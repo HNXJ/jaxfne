@@ -159,33 +159,33 @@ class TestDocsClassification:
 
     def test_acronym_canonical_in_current_facing_docs(self):
         canonical = "Adaptive Genetic Stochastic Delta Rule"
-        for rel in ["docs/api/objectives.md"]:
+        for rel in ["docs/reference/api/readout/objectives.md"]:
             text = (REPO_ROOT / rel).read_text(encoding="utf-8")
             assert canonical in text, f"{rel} missing canonical AGSDR expansion"
 
     def test_mislabeled_grid_search_relabeled(self):
-        text = (REPO_ROOT / "docs/BASELINE_DRIVE_REFERENCE.md").read_text(encoding="utf-8")
+        text = (REPO_ROOT / "docs/theory/notes/BASELINE_DRIVE_REFERENCE.md").read_text(encoding="utf-8")
         assert "grid search" in text.lower()
         assert "separate from the AGSDR" in text
 
     def test_objective_grammar_uses_factory_not_legacy_class(self):
-        text = (REPO_ROOT / "docs/guides/objective_grammar.md").read_text(encoding="utf-8")
+        text = (REPO_ROOT / "docs/guides/grammar/objective_grammar.md").read_text(encoding="utf-8")
         assert "jtfne.agsdr(" in text
         assert "COMPATIBILITY" in text
         assert "jtfne.AGSDR(" not in text
 
     def test_objectives_page_annotates_classifications(self):
-        text = (REPO_ROOT / "docs/api/objectives.md").read_text(encoding="utf-8")
+        text = (REPO_ROOT / "docs/reference/api/readout/objectives.md").read_text(encoding="utf-8")
         for label in ["CANONICAL", "EXPERIMENTAL", "COMPATIBILITY", "TUTORIAL"]:
             assert label in text
         assert "Adaptive GSDR" not in text
 
     def test_sharding_docs_reference_canonical_loop(self):
-        text = (REPO_ROOT / "docs/api/sharding.md").read_text(encoding="utf-8")
+        text = (REPO_ROOT / "docs/reference/api/core/sharding.md").read_text(encoding="utf-8")
         assert "_run_agsdr_optimization_loop" in text
 
     def test_tutorial_11_labels_tutorial_variant(self):
-        text = (REPO_ROOT / "docs/tutorials/11_multi_laminar_cortical_agsdr.md").read_text(
+        text = (REPO_ROOT / "docs/archive/tutorials/readouts/11_multi_laminar_cortical_agsdr.md").read_text(
             encoding="utf-8"
         )
         assert "TUTORIAL variant" in text

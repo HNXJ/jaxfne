@@ -554,13 +554,13 @@ def main(update_canonical: bool = False):
     # Only update canonical docs manifests when explicitly requested
     if update_canonical:
         canonical_path = Path(
-            "docs/tutorials_v030/manifests/v0302_single_neuron_parameter_sweep_manifest.json"
+            "docs/archive/tutorials_v030/manifests/v0302_single_neuron_parameter_sweep_manifest.json"
         )
         canonical_path.parent.mkdir(parents=True, exist_ok=True)
         write_json(canonical_path, atlas_manifest)
 
         canonical_report = Path(
-            "docs/tutorials_v030/reports/v0302_single_neuron_parameter_sweep_validation_report.json"
+            "docs/archive/tutorials_v030/reports/v0302_single_neuron_parameter_sweep_validation_report.json"
         )
         canonical_report.parent.mkdir(parents=True, exist_ok=True)
         write_json(canonical_report, atlas_manifest["validation_report"])

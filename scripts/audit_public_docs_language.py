@@ -35,7 +35,7 @@ EXEMPT_PREFIXES = (
     "docs/releases/",
     "docs/v047_refactor_audit.md",
     "docs/tutorials_v030/",
-    "docs/changelog.md",
+    "docs/reference/changelog.md",
 )
 
 # Exact-phrase denylist: leaked agent doctrine, or comparison/bragging language.
@@ -69,15 +69,15 @@ NEGATIVE_CLAIM_PATTERNS = [
 # Governance/process machinery vocabulary (goal-60 closure, 2026-08-23):
 # nav'd public pages must not expose agent-harness operation, internal
 # auditor/seal roles, or work-handoff machinery. Applied ONLY to pages that
-# are members of the mkdocs navigation; docs/changelog.md carries a permanent
+# are members of the mkdocs navigation; docs/reference/changelog.md carries a permanent
 # historical-scope exemption (entries preserved verbatim as history; see its
 # scope note), and physics terminology such as "field handoff" is not matched
 # because every pattern anchors on process-specific context.
 GOVERNANCE_NAV_PAGES_FILE = ROOT / "mkdocs.yml"
 GOVERNANCE_EXEMPT_PAGES = {
-    "docs/changelog.md",
+    "docs/reference/changelog.md",
     # Sole public page permitted to point automated assistants at artifacts/AGENTS.md.
-    "docs/contributing.md",
+    "docs/reference/contributing.md",
 }
 GOVERNANCE_PATTERNS = [
     re.compile(r"\bCURRENT_TASK\b"),

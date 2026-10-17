@@ -1,4 +1,4 @@
-"""docs/replications.md is generated from dashboard/sources.json and lists every paper."""
+"""docs/start/replications.md is generated from dashboard/sources.json and lists every paper."""
 
 import json
 from pathlib import Path
@@ -27,4 +27,4 @@ def test_pipe_in_a_title_does_not_split_the_row():
 
 def test_page_is_in_the_nav():
     nav = (Path(__file__).resolve().parents[1] / "mkdocs.yml").read_text(encoding="utf-8")
-    assert "      - Replications: replications.md\n" in nav.replace("\r\n", "\n")
+    assert "      - Replications: start/replications.md\n" in nav.replace("\r\n", "\n")

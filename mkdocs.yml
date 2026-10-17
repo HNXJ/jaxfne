@@ -10,67 +10,69 @@ docs_dir: docs
 # Stand-ins for atlas HTML a checkout has not built (scripts/build_docs_assets.py --build).
 hooks:
   - scripts/mkdocs_atlas_stubs.py
+  # Old URLs of pages moved on 2026-10-16 forward to the new ones (extra.redirect_maps).
+  - scripts/mkdocs_redirects.py
 
 exclude_docs: |
   _generated/version.md
-  for_ai_agents.md
-  BASELINE_DRIVE_REFERENCE.md
-  CORTEX_CALIBRATION_CHECKLIST.md
-  NEURON_IO_CHARACTERIZATION.md
-  performance_baseline.md
-  notes/brian2_benchmark_receipt.md
-  releases/v0.2.0.md
-  releases/v0.2.1.md
-  releases/v0.2.3.md
-  releases/v0.2.10.md
-  releases/v0.2.18.md
-  releases/v0.3.4.md
-  conservation_proxy_diagnostics.md
-  interactive_visualizations.md
-  operator_doctrine.md
-  tensor_electromagnetics_scope.md
-  tensor_network_ancestry.md
-  doctrine/rbs_rbd_hdp_inventory.md
-  publication/evidence_consolidation.md
-  publication/figures_1_7_cross_audit_summary.md
-  ci_policy.md
-  tutorial_figures.md
+  reference/project/for_ai_agents.md
+  theory/notes/BASELINE_DRIVE_REFERENCE.md
+  theory/notes/CORTEX_CALIBRATION_CHECKLIST.md
+  theory/notes/NEURON_IO_CHARACTERIZATION.md
+  reference/project/performance_baseline.md
+  theory/notes/brian2_benchmark_receipt.md
+  reference/releases/v0.2.0.md
+  reference/releases/v0.2.1.md
+  reference/releases/v0.2.3.md
+  reference/releases/v0.2.10.md
+  reference/releases/v0.2.18.md
+  reference/releases/v0.3.4.md
+  theory/notes/conservation_proxy_diagnostics.md
+  guides/interop/interactive_visualizations.md
+  theory/operator_doctrine.md
+  theory/tensor_electromagnetics_scope.md
+  theory/tensor_network_ancestry.md
+  theory/doctrine/rbs_rbd_hdp_inventory.md
+  theory/publication/evidence_consolidation.md
+  theory/publication/figures_1_7_cross_audit_summary.md
+  reference/project/ci_policy.md
+  archive/tutorial_figures.md
   _generated/operator_inventory.md
-  api/bridges.md
-  api/plasticity.md
-  api/sharding.md
-  api/solvers.md
-  api/tensor_operators.md
-  guides/jax_fem_interop.md
-  guides/plotly_visualization.md
-  guides/poisson_admissibility.md
-  guides/showcases.md
-  guides/solver_acceptance.md
-  guides/zenodo_doi.md
-  notes/biophysical_model_comparison.md
+  reference/api/model/bridges.md
+  reference/api/model/plasticity.md
+  reference/api/core/sharding.md
+  reference/api/core/solvers.md
+  reference/api/readout/tensor_operators.md
+  guides/interop/jax_fem_interop.md
+  guides/interop/plotly_visualization.md
+  guides/internal/poisson_admissibility.md
+  guides/interop/showcases.md
+  guides/internal/solver_acceptance.md
+  reference/project/zenodo_doi.md
+  theory/notes/biophysical_model_comparison.md
   reference/glossary_of_methods.md
   # Manuscript-in-progress working files (Publication phase): deliberately
   # non-navigable on the public site -- delivery artifacts, not user docs.
-  publication/results_reconstruction/abstract_draft.md
-  publication/results_reconstruction/abstract_traceability_map.md
-  publication/results_reconstruction/results_draft.md
-  publication/results_reconstruction/traceability_map.md
-  publication/results_reconstruction/methods_draft.md
-  publication/results_reconstruction/methods_traceability_map.md
-  publication/results_reconstruction/supplement_material.md
-  publication/results_reconstruction/supplement.md
-  publication/results_reconstruction/supplement_traceability_map.md
-  publication/results_reconstruction/introduction_draft.md
-  publication/results_reconstruction/introduction_traceability_map.md
-  publication/results_reconstruction/discussion_draft.md
-  publication/results_reconstruction/discussion_traceability_map.md
+  theory/publication/results_reconstruction/drafts/abstract_draft.md
+  theory/publication/results_reconstruction/traceability/abstract_traceability_map.md
+  theory/publication/results_reconstruction/drafts/results_draft.md
+  theory/publication/results_reconstruction/traceability/traceability_map.md
+  theory/publication/results_reconstruction/drafts/methods_draft.md
+  theory/publication/results_reconstruction/traceability/methods_traceability_map.md
+  theory/publication/results_reconstruction/drafts/supplement_material.md
+  theory/publication/results_reconstruction/drafts/supplement.md
+  theory/publication/results_reconstruction/traceability/supplement_traceability_map.md
+  theory/publication/results_reconstruction/drafts/introduction_draft.md
+  theory/publication/results_reconstruction/traceability/introduction_traceability_map.md
+  theory/publication/results_reconstruction/drafts/discussion_draft.md
+  theory/publication/results_reconstruction/traceability/discussion_traceability_map.md
   publication/manuscript/*
-  publication/manuscript/abstract.md
-  publication/manuscript/discussion.md
-  publication/manuscript/introduction.md
-  publication/manuscript/methods.md
-  publication/manuscript/results.md
-  publication/manuscript/supplement.md
+  theory/publication/manuscript/abstract.md
+  theory/publication/manuscript/discussion.md
+  theory/publication/manuscript/introduction.md
+  theory/publication/manuscript/methods.md
+  theory/publication/manuscript/results.md
+  theory/publication/manuscript/supplement.md
 
 theme:
   name: material
@@ -89,7 +91,7 @@ theme:
       accent: gray
 
 extra_css:
-  - _theme_override.css
+  - _static/theme_override.css
 
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
@@ -114,126 +116,211 @@ markdown_extensions:
 nav:
   - Getting started:
       - Welcome: index.md
-      - Installation: install.md
-      - Quickstart: quickstart.md
-      - Colab quick start: colab.md
-      - Gallery: gallery.md
-      - Replications: replications.md
-      - Public API: public_surface_contract.md
-      - Scope & status: scope_and_status.md
-      - Limitations & roadmap: limitations_and_future_plans.md
-      - Migration guide: migration_guide.md
-      - FAQ: faq.md
+      - Installation: start/install.md
+      - Quickstart: start/quickstart.md
+      - Colab quick start: start/colab.md
+      - Gallery: start/gallery.md
+      - Replications: start/replications.md
+      - Public API: reference/public_surface_contract.md
+      - Scope & status: reference/project/scope_and_status.md
+      - Limitations & roadmap: reference/project/limitations_and_future_plans.md
+      - Migration guide: start/migration_guide.md
+      - FAQ: start/faq.md
 
   - Tutorials:
       - Overview: tutorials/index.md
       - Notebook standard: tutorials/notebook_standard.md
       - Canonical path (recommended, 1000n):
-          - Define (PseudoGenome): tutorials/01_define_genome.md
-          - Develop (G→N): tutorials/02_develop_genome.md
-          - Inspect (realized vs configured): tutorials/03_inspect_tensor.md
-          - Simulate (construct→Signals): tutorials/04_simulate_tensor.md
-          - Observe (field & probe): tutorials/05_observe_fields.md
-          - Add state (H / RBS): tutorials/06_add_state.md
-          - Add dynamics (HDP): tutorials/07_add_dynamics.md
-          - Compare (nulls & lesions): tutorials/08_compare_nulls.md
+          - Define (PseudoGenome): tutorials/construct/01_define_genome.md
+          - Develop (G→N): tutorials/construct/02_develop_genome.md
+          - Inspect (realized vs configured): tutorials/construct/03_inspect_tensor.md
+          - Simulate (construct→Signals): tutorials/construct/04_simulate_tensor.md
+          - Observe (field & probe): tutorials/extend/05_observe_fields.md
+          - Add state (H / RBS): tutorials/extend/06_add_state.md
+          - Add dynamics (HDP): tutorials/extend/07_add_dynamics.md
+          - Compare (nulls & lesions): tutorials/extend/08_compare_nulls.md
 
   - Guides:
       - Overview: guides/index.md
       - Grammar:
-          - Configuration grammar: guides/configuration_grammar.md
-          - Objective grammar: guides/objective_grammar.md
-          - PseudoGenome (JDNA): guides/jdna.md
-          - Model inspection: guides/model_inspection.md
+          - Configuration grammar: guides/grammar/configuration_grammar.md
+          - Objective grammar: guides/grammar/objective_grammar.md
+          - PseudoGenome (JDNA): guides/grammar/jdna.md
+          - Model inspection: guides/grammar/model_inspection.md
       - State and adaptation:
-          - H-state and HDP: guides/hdp.md
-          - Homeostasis: guides/homeostasis.md
-          - Calibration: guides/calibration.md
+          - H-state and HDP: guides/state/hdp.md
+          - Homeostasis: guides/state/homeostasis.md
+          - Calibration: guides/state/calibration.md
       - Readout and outputs:
-          - Probe operators: guides/probe_operators.md
-          - Output bundles: guides/output_bundles.md
-          - Tensor-field workflows: guides/tensor_field_workflows.md
-          - Operator composition: guides/operator_composition.md
+          - Probe operators: guides/readout/probe_operators.md
+          - Output bundles: guides/readout/output_bundles.md
+          - Tensor-field workflows: guides/readout/tensor_field_workflows.md
+          - Operator composition: guides/readout/operator_composition.md
       - Interop and visualization:
-          - Jaxley interoperability: guides/jaxley_interop.md
-          - Canonical Atlas Suite: guides/atlas_suite.md
+          - Jaxley interoperability: guides/interop/jaxley_interop.md
+          - Canonical Atlas Suite: guides/interop/atlas_suite.md
 
   - Études:
       - Overview: etudes/index.md
       - Homeostatic balance learning: etudes/hdp_balance.md
       - Predictive Coding Light: etudes/pcl.md
-      - CAMINOS reference model: models/caminos.md
+      - CAMINOS reference model: etudes/models/caminos.md
 
   - Theory and Experiments:
       - Foundations:
-          - Fundamental laws: appendix/fundamental_laws.md
-          - Source and field equations: source_field_equations.md
-          - Computation basis: computation_basis.md
-          - Mathematical glossary: mathematical_glossary_flow.md
+          - Fundamental laws: theory/fundamental_laws.md
+          - Source and field equations: theory/source_field_equations.md
+          - Computation basis: theory/computation_basis.md
+          - Mathematical glossary: theory/mathematical_glossary_flow.md
       - State, memory and composition:
-          - RBS, RBD and HDP: doctrine/rbs_rbd_hdp.md
-          - TFNE Algebra: doctrine/tfne_algebra.md
-          - Relative Quantities: doctrine/relative_quantity_grammar.md
-          - TFNE Containment and Composition: doctrine/tfne_containment_architecture.md
-          - TFNE–JDNA Boundary: doctrine/tfne_jdna_boundary.md
+          - RBS, RBD and HDP: theory/doctrine/rbs_rbd_hdp.md
+          - TFNE Algebra: theory/doctrine/tfne_algebra.md
+          - Relative Quantities: theory/doctrine/relative_quantity_grammar.md
+          - TFNE Containment and Composition: theory/doctrine/tfne_containment_architecture.md
+          - TFNE–JDNA Boundary: theory/doctrine/tfne_jdna_boundary.md
 
   - API:
-      - Overview: api/index.md
-      - Core: api/core.md
-      - Runtime: api/runtime.md
-      - Emitters: api/emitters.md
-      - Source schema: api/source_schema.md
-      - Field schema: api/field_schema.md
-      - Fields: api/fields.md
-      - Probes: api/probes.md
-      - Objectives: api/objectives.md
-      - NeuronalTensor: api/neuronal_tensor.md
-      - Augment: api/augment.md
-      - Validation: api/validation.md
-      - Visualization: api/vis.md
-      - JDNA: api/jdna.md
+      - Overview: reference/api/index.md
+      - Core: reference/api/core/core.md
+      - Runtime: reference/api/core/runtime.md
+      - Emitters: reference/api/model/emitters.md
+      - Source schema: reference/api/readout/source_schema.md
+      - Field schema: reference/api/readout/field_schema.md
+      - Fields: reference/api/readout/fields.md
+      - Probes: reference/api/readout/probes.md
+      - Objectives: reference/api/readout/objectives.md
+      - NeuronalTensor: reference/api/model/neuronal_tensor.md
+      - Augment: reference/api/core/augment.md
+      - Validation: reference/api/core/validation.md
+      - Visualization: reference/api/readout/vis.md
+      - JDNA: reference/api/model/jdna.md
 
   - Appendix:
       - References: reference/references.md
-      - Changelog: changelog.md
-      - Citation: citation.md
-      - Contributing: contributing.md
+      - Changelog: reference/changelog.md
+      - Citation: reference/citation.md
+      - Contributing: reference/contributing.md
 
   - Archive:
       - Overview: archive/index.md
       - Tutorials:
-          - Single-neuron multimodal: tutorials/01_single_neuron_multimodal.md
-          - Two-neuron E/I: tutorials/02_two_neuron_ei.md
-          - Population E/I network: tutorials/03_network_100_ei.md
-          - 600n population, laminar readout: tutorials/04_v1_column.md
-          - V1–PFC dual column: tutorials/05_v1_pfc_dual_column.md
-          - Configuration API population: tutorials/06_v036_100_neuron_ei_population.md
-          - Source bookkeeping: tutorials/07_v037_source_bookkeeping.md
-          - LFP and CSD proxies: tutorials/08_v038_lfp_csd_readout.md
-          - EEG, MEG, EMM proxies: tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md
-          - Sensory omission oddball: tutorials/10_v0313_omission_oddball.md
-          - Multi-area laminar AGSDR: tutorials/11_multi_laminar_cortical_agsdr.md
-          - Izhikevich emitter explorer: tutorials/12_izhikevich_single_emitter_explorer.md
-          - Canonical column étude: tutorials/13_canonical_column_etude.md
-          - Tutorial outputs: tutorials/tutorial_outputs.md
+          - Single-neuron multimodal: archive/tutorials/basics/01_single_neuron_multimodal.md
+          - Two-neuron E/I: archive/tutorials/basics/02_two_neuron_ei.md
+          - Population E/I network: archive/tutorials/basics/03_network_100_ei.md
+          - 600n population, laminar readout: archive/tutorials/basics/04_v1_column.md
+          - V1–PFC dual column: archive/tutorials/basics/05_v1_pfc_dual_column.md
+          - Configuration API population: archive/tutorials/basics/06_v036_100_neuron_ei_population.md
+          - Source bookkeeping: archive/tutorials/basics/07_v037_source_bookkeeping.md
+          - LFP and CSD proxies: archive/tutorials/readouts/08_v038_lfp_csd_readout.md
+          - EEG, MEG, EMM proxies: archive/tutorials/readouts/09_v0310_eeg_meg_emm_proxy_bundle.md
+          - Sensory omission oddball: archive/tutorials/readouts/10_v0313_omission_oddball.md
+          - Multi-area laminar AGSDR: archive/tutorials/readouts/11_multi_laminar_cortical_agsdr.md
+          - Izhikevich emitter explorer: archive/tutorials/readouts/12_izhikevich_single_emitter_explorer.md
+          - Canonical column étude: archive/tutorials/readouts/13_canonical_column_etude.md
+          - Tutorial outputs: archive/tutorials/readouts/tutorial_outputs.md
       - Suites:
-          - Suite 1 — Computational biophysics: tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
-          - Suite 2a — Spectrolaminar motif: tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
-          - Suite 2b — Evoked L4 drive: tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md
-          - Suite 3 — Low-frequency scaling: tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md
+          - Suite 1 — Computational biophysics: archive/suites/06_jaxfne_suite_no_1_computational_biophysics.md
+          - Suite 2a — Spectrolaminar motif: archive/suites/07_jaxfne_suite_no_2_spectrolaminar_motif.md
+          - Suite 2b — Evoked L4 drive: archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md
+          - Suite 3 — Low-frequency scaling: archive/suites/08_jaxfne_suite_no_3_low_frequency_scaling.md
       - Études:
           - Multiscale observation: etudes/multiscale_observation.md
           - Experiment A — Canonical multiscale: etudes/experiment_a.md
           - Heterogeneous emitters: etudes/heterogeneous_emitters.md
           - HDP controllability & reachability: etudes/hdp_controllability_reachability.md
       - Experiments:
-          - Traveling Waves: protocols/protocol_c_wave.md
-          - Traveling-Wave Evidence: doctrine/protocol_c_wave_evidence.md
-          - Neural Geometry and Delays: protocols/protocol_c_c3_neural.md
-          - Biological RBS: protocols/protocol_d_biological_rbs.md
-          - Integrated TFNE Composition: protocols/protocol_e_integration.md
-          - H-to-X Gain: doctrine/protocol_h_h1b_h_to_x_gain.md
-          - RBD State Memory: doctrine/protocol_h_rbd_memory.md
-          - HDP Parameter Memory: doctrine/protocol_w_hdp_parameter_memory.md
+          - Traveling Waves: theory/protocols/protocol_c_wave.md
+          - Traveling-Wave Evidence: theory/protocols/protocol_c_wave_evidence.md
+          - Neural Geometry and Delays: theory/protocols/protocol_c_c3_neural.md
+          - Biological RBS: theory/protocols/protocol_d_biological_rbs.md
+          - Integrated TFNE Composition: theory/protocols/protocol_e_integration.md
+          - H-to-X Gain: theory/memory/protocol_h_h1b_h_to_x_gain.md
+          - RBD State Memory: theory/memory/protocol_h_rbd_memory.md
+          - HDP Parameter Memory: theory/memory/protocol_w_hdp_parameter_memory.md
 extra:
   jaxfne_version: "0.5.6"
+  redirect_maps:
+    api/augment.md: reference/api/core/augment.md
+    api/core.md: reference/api/core/core.md
+    api/emitters.md: reference/api/model/emitters.md
+    api/field_schema.md: reference/api/readout/field_schema.md
+    api/fields.md: reference/api/readout/fields.md
+    api/index.md: reference/api/index.md
+    api/jdna.md: reference/api/model/jdna.md
+    api/neuronal_tensor.md: reference/api/model/neuronal_tensor.md
+    api/objectives.md: reference/api/readout/objectives.md
+    api/probes.md: reference/api/readout/probes.md
+    api/runtime.md: reference/api/core/runtime.md
+    api/source_schema.md: reference/api/readout/source_schema.md
+    api/validation.md: reference/api/core/validation.md
+    api/vis.md: reference/api/readout/vis.md
+    appendix/fundamental_laws.md: theory/fundamental_laws.md
+    changelog.md: reference/changelog.md
+    citation.md: reference/citation.md
+    colab.md: start/colab.md
+    computation_basis.md: theory/computation_basis.md
+    contributing.md: reference/contributing.md
+    doctrine/protocol_c_wave_evidence.md: theory/protocols/protocol_c_wave_evidence.md
+    doctrine/protocol_h_h1b_h_to_x_gain.md: theory/memory/protocol_h_h1b_h_to_x_gain.md
+    doctrine/protocol_h_rbd_memory.md: theory/memory/protocol_h_rbd_memory.md
+    doctrine/protocol_w_hdp_parameter_memory.md: theory/memory/protocol_w_hdp_parameter_memory.md
+    doctrine/rbs_rbd_hdp.md: theory/doctrine/rbs_rbd_hdp.md
+    doctrine/relative_quantity_grammar.md: theory/doctrine/relative_quantity_grammar.md
+    doctrine/tfne_algebra.md: theory/doctrine/tfne_algebra.md
+    doctrine/tfne_containment_architecture.md: theory/doctrine/tfne_containment_architecture.md
+    doctrine/tfne_jdna_boundary.md: theory/doctrine/tfne_jdna_boundary.md
+    faq.md: start/faq.md
+    gallery.md: start/gallery.md
+    guides/atlas_suite.md: guides/interop/atlas_suite.md
+    guides/calibration.md: guides/state/calibration.md
+    guides/configuration_grammar.md: guides/grammar/configuration_grammar.md
+    guides/hdp.md: guides/state/hdp.md
+    guides/homeostasis.md: guides/state/homeostasis.md
+    guides/jaxley_interop.md: guides/interop/jaxley_interop.md
+    guides/jdna.md: guides/grammar/jdna.md
+    guides/model_inspection.md: guides/grammar/model_inspection.md
+    guides/objective_grammar.md: guides/grammar/objective_grammar.md
+    guides/operator_composition.md: guides/readout/operator_composition.md
+    guides/output_bundles.md: guides/readout/output_bundles.md
+    guides/probe_operators.md: guides/readout/probe_operators.md
+    guides/tensor_field_workflows.md: guides/readout/tensor_field_workflows.md
+    install.md: start/install.md
+    limitations_and_future_plans.md: reference/project/limitations_and_future_plans.md
+    mathematical_glossary_flow.md: theory/mathematical_glossary_flow.md
+    migration_guide.md: start/migration_guide.md
+    models/caminos.md: etudes/models/caminos.md
+    protocols/protocol_c_c3_neural.md: theory/protocols/protocol_c_c3_neural.md
+    protocols/protocol_c_wave.md: theory/protocols/protocol_c_wave.md
+    protocols/protocol_d_biological_rbs.md: theory/protocols/protocol_d_biological_rbs.md
+    protocols/protocol_e_integration.md: theory/protocols/protocol_e_integration.md
+    public_surface_contract.md: reference/public_surface_contract.md
+    quickstart.md: start/quickstart.md
+    replications.md: start/replications.md
+    scope_and_status.md: reference/project/scope_and_status.md
+    source_field_equations.md: theory/source_field_equations.md
+    tutorials/01_define_genome.md: tutorials/construct/01_define_genome.md
+    tutorials/01_single_neuron_multimodal.md: archive/tutorials/basics/01_single_neuron_multimodal.md
+    tutorials/02_develop_genome.md: tutorials/construct/02_develop_genome.md
+    tutorials/02_two_neuron_ei.md: archive/tutorials/basics/02_two_neuron_ei.md
+    tutorials/03_inspect_tensor.md: tutorials/construct/03_inspect_tensor.md
+    tutorials/03_network_100_ei.md: archive/tutorials/basics/03_network_100_ei.md
+    tutorials/04_simulate_tensor.md: tutorials/construct/04_simulate_tensor.md
+    tutorials/04_v1_column.md: archive/tutorials/basics/04_v1_column.md
+    tutorials/05_observe_fields.md: tutorials/extend/05_observe_fields.md
+    tutorials/05_v1_pfc_dual_column.md: archive/tutorials/basics/05_v1_pfc_dual_column.md
+    tutorials/06_add_state.md: tutorials/extend/06_add_state.md
+    tutorials/06_jaxfne_suite_no_1_computational_biophysics.md: archive/suites/06_jaxfne_suite_no_1_computational_biophysics.md
+    tutorials/06_v036_100_neuron_ei_population.md: archive/tutorials/basics/06_v036_100_neuron_ei_population.md
+    tutorials/07_add_dynamics.md: tutorials/extend/07_add_dynamics.md
+    tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md: archive/suites/07_jaxfne_suite_no_2_spectrolaminar_motif.md
+    tutorials/07_v037_source_bookkeeping.md: archive/tutorials/basics/07_v037_source_bookkeeping.md
+    tutorials/08_compare_nulls.md: tutorials/extend/08_compare_nulls.md
+    tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md: archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md
+    tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md: archive/suites/08_jaxfne_suite_no_3_low_frequency_scaling.md
+    tutorials/08_v038_lfp_csd_readout.md: archive/tutorials/readouts/08_v038_lfp_csd_readout.md
+    tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md: archive/tutorials/readouts/09_v0310_eeg_meg_emm_proxy_bundle.md
+    tutorials/10_v0313_omission_oddball.md: archive/tutorials/readouts/10_v0313_omission_oddball.md
+    tutorials/11_multi_laminar_cortical_agsdr.md: archive/tutorials/readouts/11_multi_laminar_cortical_agsdr.md
+    tutorials/12_izhikevich_single_emitter_explorer.md: archive/tutorials/readouts/12_izhikevich_single_emitter_explorer.md
+    tutorials/13_canonical_column_etude.md: archive/tutorials/readouts/13_canonical_column_etude.md
+    tutorials/tutorial_outputs.md: archive/tutorials/readouts/tutorial_outputs.md

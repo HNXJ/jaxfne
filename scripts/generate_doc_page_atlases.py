@@ -370,7 +370,7 @@ def spec_v1v4_80():
 def spec_three_area():
     import jaxfne as jtfne
 
-    # The recipe printed on docs/gallery.md.
+    # The recipe printed on docs/start/gallery.md.
     cfg = (
         jtfne.build_multi_area_columns(["V1", "V4", "PFC"], n_per_area=100, ei_profile="canonical")
         .runtime(seed=0)

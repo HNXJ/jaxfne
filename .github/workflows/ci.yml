@@ -119,7 +119,7 @@ jobs:
       # which selects the notebook set too, and notebook_execution.yml runs
       # that marker on a schedule. The release-candidate gate executes it as a
       # blocking family, so the RC gate covers the release CI test population
-      # (see docs/ci_policy.md). Other `slow` tests still run here on main.
+      # (see docs/reference/project/ci_policy.md). Other `slow` tests still run here on main.
       - name: Run all tests (broad gate — comprehensive non-slow, with viz)
         if: github.ref == 'refs/heads/main'
         run: |

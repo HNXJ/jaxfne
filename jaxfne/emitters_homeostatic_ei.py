@@ -1,6 +1,6 @@
 """The second canonical HDP sanity emitter: a minimal 2-neuron E/I circuit.
 
-Docs: ``docs/api/emitters.md`` — update that page when this module's public
+Docs: ``docs/reference/api/model/emitters.md`` — update that page when this module's public
 API changes.
 
 Companion to the Izhikevich/edge-list HDP scaffold in :mod:`jaxfne.emitters`

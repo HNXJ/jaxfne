@@ -2,7 +2,7 @@
 
 Docs: the laminar/spectrolaminar trial pipeline is documented in
 ``docs/tutorials/`` (https://jaxfne.readthedocs.io/en/latest/tutorials/) and the
-API catalog ``docs/api/index.md`` — update those when this module changes.
+API catalog ``docs/reference/api/index.md`` — update those when this module changes.
 """
 from __future__ import annotations
 

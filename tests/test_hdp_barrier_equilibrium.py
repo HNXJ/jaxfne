@@ -1,5 +1,5 @@
 """Falsifiable test of the barrier-potential equilibrium condition derived in
-docs/guides/hdp.md ("Barrier equilibrium"): the minimum of
+docs/guides/state/hdp.md ("Barrier equilibrium"): the minimum of
 C(H) = barrier_c/(H-H_min) + barrier_d/(H_max-H) sits exactly at H*=1 only
 when barrier_d/barrier_c = ((H_max-1)/(1-H_min))**2 -- a property of the
 barrier potential alone, isolated here from every other dH/dt term
@@ -93,7 +93,7 @@ def test_ratio_1_shipped_default_does_not_relax_to_1():
     barrier_d/(H_max-H)**2 with equal coefficients gives H=(H_min+H_max)/2
     -style solution -> H=5.05 at H_min=0.1/H_max=10.0. This is the concrete,
     falsifiable claim that DEFAULT_HDP's real stabilization comes from
-    K_ctrl, not the barrier (see docs/guides/hdp.md). The equilibrium
+    K_ctrl, not the barrier (see docs/guides/state/hdp.md). The equilibrium
     LOCATION depends only on the barrier_d/barrier_c RATIO, not the absolute
     magnitude (the force-balance equation cancels a common scale factor) --
     barrier_c=barrier_d=1.0 (ratio 1, same as the shipped 0.01/0.01) is used

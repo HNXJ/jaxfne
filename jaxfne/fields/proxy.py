@@ -1,6 +1,6 @@
 """Source-to-field and localized laminar projection computing proxy engines.
 
-Docs: ``docs/api/fields.md`` (https://jaxfne.readthedocs.io/en/latest/api/fields/) —
+Docs: ``docs/reference/api/readout/fields.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/readout/fields/) —
 update that page when this module's public API changes.
 
 This module implements structural simulation proxy calculations under linear_solver.
@@ -249,7 +249,7 @@ def project_laminar_sources(
         modeled population reads as loud as one in the densest layer) — it
         is kept only for explicit opt-in / backward compatibility, matching
         the stance already documented for ``JaxleyBridge.simulate_laminar_field``
-        (``docs/api/bridges.md``).
+        (``docs/reference/api/model/bridges.md``).
     dtype:
         Requested dtype policy (``None`` follows the input: float64
         input with x64 enabled computes in float64, otherwise

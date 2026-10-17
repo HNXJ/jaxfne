@@ -1,0 +1,132 @@
+# Homeostasis
+
+jaxfne includes a **homeostatic excitability controller**: a minimal computational
+control that holds each neuron's firing rate near a set-point by adapting an
+intrinsic excitability bias. One extra parameter per emitter; switching
+it on does three things at once:
+
+- **Counters hyperactivity** — pulls runaway/saturated units back down.
+- **Counters hypoactivity** — nudges silent units into working range.
+- **Models short-term adaptation** — the slow rate trace yields spike-frequency
+  adaptation.
+
+It is a *control method*, rather than a claim of a biological plasticity mechanism — a
+restoring controller on excitability, useful as stabilizer and as adaptation
+proxy. jaxfne is the mathematical backend; the configuration sets the
+controller's role in a model.
+
+## The control law
+
+Per neuron, a slow activity trace `r` tracks recent firing; a restoring bias `g`
+adds to the input current:
+
+```
+r ← decay · r + (1 − decay) · activity          # slow rate trace
+g  = clip(k_gain · (r_star − r), g_min, g_max)   # over-active → g < 0, under-active → g > 0
+I  ← I + g                                        # excitability bias into the input current
+```
+
+`k_gain` is the single dial. **`k_gain = 0` disables the controller — a clean
+null control** for ablation runs. The default `k_gain = 1.0` is a gentle
+in-band nudge.
+
+## Built-in emitter (per-step kernel)
+
+Enable it on the runtime. The built-in Izhikevich kernel applies the bias each
+step. After simulation, read controller diagnostics from the model.
+
+```python
+import jaxfne as jtfne
+jtfne.enable_x64()
+
+cfg = (
+    jtfne.build_laminar_column(n=1000)
+      .set_emitter("izhikevich", "cortical_eig")
+      .probes(["spikes", "V_m"])
+      .field(domain="laminar_column", conductivity="proxy")
+      .runtime(
+          duration_ms=1000.0, dt_ms=0.5, seed=0,
+          enable_homeostasis=True,
+          homeostasis_params={"k_gain": 1.0, "r_star": 0.01},
+      )
+)
+model   = jtfne.construct(cfg)
+signals = jtfne.simulate(model)
+
+diag = model.last_homeostasis_diagnostics()   # {"g_bias": ..., "r_trace": ...}
+```
+
+`homeostasis_params` keys:
+
+| Key | Meaning |
+|-----|---------|
+| `r_star` | Target activity set-point the controller restores toward |
+| `k_gain` | Restoring gain (`0` = disabled / null; default `1.0`) |
+| `tau_r_ms` | Time constant of the slow rate trace |
+| `alpha` | Trace update mixing factor |
+| `g_min`, `g_max` | Clamp on the excitability bias |
+| `r_max` | Activity-trace ceiling |
+
+`model.last_homeostasis_diagnostics()` returns per-neuron `g_bias` and
+`r_trace` from the latest `enable_homeostasis=True` run (or `None` if the
+last run had it off).
+
+## Jaxley emitter (outer-loop windowed)
+
+The same control law wraps a [Jaxley](../interop/jaxley_interop.md) emitter, so you keep
+Jaxley's channel/morphology toolset and gain the homeostasis. Because Jaxley's
+`integrate` is a closed scan, the feedback runs at **window cadence** rather than
+per step, and the controller is parameterized by firing rate in **Hz** (which is
+dt-independent):
+
+```python
+net = ...  # a Jaxley HH Network with recordings on the controlled compartments
+bridge = jtfne.JaxleyBridge(model=net)
+
+signals, diag = bridge.simulate_homeostatic(
+    duration_ms=400.0,
+    base_current_nA=0.01,
+    target_rate_hz=40.0,    # set-point in Hz
+    k_gain=0.2,             # 0 = null
+    window_ms=20.0,
+    return_diagnostics=True,
+)
+# diag["g_bias"], diag["r_trace"], diag["rate_hz"] -> [n_windows, n_cells]
+```
+
+The injected current is hard-bounded (`current_clip_nA`) and finiteness is
+verified (`strict_finite=True` raises rather than masking) — the controller holds
+the implicit solver in a finite regime under heterogeneous drive. See
+`JaxleyBridge.simulate_homeostatic` in the Bridges API (`docs/reference/api/model/bridges.md` — repository-internal reference, excluded from the built site).
+
+!!! warning "Stay in the monotonic f-I band (Jaxley path)"
+    Jaxley single-compartment HH has a non-monotonic f-I curve (high current →
+    depolarization block). Keep `base_current_nA` and the bias range inside the
+    monotonic band (roughly 0.002–0.02 nA for the default compartment), so the
+    controller operates where firing rate increases with current.
+
+## Stability
+
+Both paths are float32-safe: the built-in kernel hard-bounds its state
+(`v`/`u`/synaptic variables) so dynamics stay finite under extreme drive,
+and the Jaxley path hard-bounds injected current and checks finiteness. The
+controller thus also keeps the numerics finite.
+
+## Using it as evidence
+
+Because `k_gain = 0` is a true null, comparisons stay clean: run with `k_gain = 0` and `k_gain > 0`, hold everything else fixed,
+and attribute the difference (rate spread collapsing toward the set-point, silent
+units recovering) to the controller. Report the null alongside the result.
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from the 1000-neuron homeostasis run above (1000 ms, dt 0.5 ms, seed 0): [index](../../_static/atlas/homeostasis_1000/index.html) · [schema](../../_static/atlas/homeostasis_1000/schema.html) · [3D](../../_static/atlas/homeostasis_1000/network_3d.html) · [raster](../../_static/atlas/homeostasis_1000/raster.html) · [LFP](../../_static/atlas/homeostasis_1000/lfp.html) · [H](../../_static/atlas/homeostasis_1000/h_dynamics.html) · [HDP](../../_static/atlas/homeostasis_1000/hdp.html) · [oscillatory](../../_static/atlas/homeostasis_1000/oscillatory.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug homeostasis_1000`.
+
+## See also
+
+- Bridges API (`docs/reference/api/model/bridges.md` — repository-internal reference, excluded from the built site) — `simulate_homeostatic` parameters in full.
+- [Configuration Grammar](../grammar/configuration_grammar.md) — where the runtime and emitter fit in the chain.
+- [Jaxley Interoperability](../interop/jaxley_interop.md) — real channels/morphology as emitters.
+- [HDP](hdp.md) — the more structured per-neuron `H_i` controller (also works tensor-first, on a `NeuronalTensor`-built `Model`) if a single `k_gain` dial here isn't enough.

@@ -257,7 +257,7 @@ class PlasticParams:
     """Trainable/gradientable: per-connection gain (wMech) and H-factor.
 
     ``H`` is a legacy kernel-specific label (see
-    ``docs/doctrine/rbs_rbd_hdp.md`` §1 carve-out ruling): it names the
+    ``docs/theory/doctrine/rbs_rbd_hdp.md`` §1 carve-out ruling): it names the
     seeding role of this scalar inside the RBD/HDP kernels it feeds, not the
     definition of RBS. RBS/H is not intrinsically homeostatic.
     """

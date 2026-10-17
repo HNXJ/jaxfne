@@ -37,25 +37,25 @@ signals = jtfne.simulate(model)                                          # same 
 
 Smoke mode (`SMOKE=1`, `n≈100`, `duration_ms≈100`) runs in about 30 s; the
 documented path is 1000 neurons, `duration_ms=1000.0`, `dt_ms=0.5`. Development
-and runtime keys are distinct (`K_D ≠ K_S`; see the [PseudoGenome guide](../guides/jdna.md)).
+and runtime keys are distinct (`K_D ≠ K_S`; see the [PseudoGenome guide](../guides/grammar/jdna.md)).
 
 | # | Step | Topic | Focus | Reuses |
 |---|------|-------|-------|--------|
-| [**01**](01_define_genome.md) | define | PseudoGenome | `validate_genome`, `genome_rules_hash`, `declared_constraints`, tolerance bands | — |
-| [**02**](02_develop_genome.md) | develop | Genome → phenotype | `develop(G,K_D)` determinism, seed jitter within bands, `phenotype_sha256` | `genome` |
-| [**03**](03_inspect_tensor.md) | inspect | Realized vs configured | `neuron_table()`, per-layer counts, 48 rules, `save/load_neuronal_tensor` | `tensor` |
-| [**04**](04_simulate_tensor.md) | simulate | Construct → Signals | `construct(tensor, RuntimeConfiguration)` → `simulate`; `EdgeList.n_edges≈215k`, `Pose3D` positions | `tensor` |
-| [**05**](05_observe_fields.md) | observe | Fields and probes | LFP/CSD/EEG/MEG/PSD on the frozen `X,Q`; `K_a≠K_b ⇒ Y_a≠Y_b` | `model, signals` |
-| [**06**](06_add_state.md) | add state | H / RBS | `PlasticParams.H` → `h_state`, `with_hdp_initial_state`, checkpoint/restore | `tensor, model` |
-| [**07**](07_add_dynamics.md) | add dynamics | HDP | `enable_hdp` (`DEFAULT_HDP` vs `DESYNC`), `H_trace/w_trace`, `K_HDP/K_ctrl/K_w_ctrl` | `model` |
-| [**08**](08_compare_nulls.md) | compare | Nulls, lesions | shuffled, `LESION_SPEC`, multi-area 3000n via `merge_neuronal_tensors`, `kappa` | all |
+| [**01**](construct/01_define_genome.md) | define | PseudoGenome | `validate_genome`, `genome_rules_hash`, `declared_constraints`, tolerance bands | — |
+| [**02**](construct/02_develop_genome.md) | develop | Genome → phenotype | `develop(G,K_D)` determinism, seed jitter within bands, `phenotype_sha256` | `genome` |
+| [**03**](construct/03_inspect_tensor.md) | inspect | Realized vs configured | `neuron_table()`, per-layer counts, 48 rules, `save/load_neuronal_tensor` | `tensor` |
+| [**04**](construct/04_simulate_tensor.md) | simulate | Construct → Signals | `construct(tensor, RuntimeConfiguration)` → `simulate`; `EdgeList.n_edges≈215k`, `Pose3D` positions | `tensor` |
+| [**05**](extend/05_observe_fields.md) | observe | Fields and probes | LFP/CSD/EEG/MEG/PSD on the frozen `X,Q`; `K_a≠K_b ⇒ Y_a≠Y_b` | `model, signals` |
+| [**06**](extend/06_add_state.md) | add state | H / RBS | `PlasticParams.H` → `h_state`, `with_hdp_initial_state`, checkpoint/restore | `tensor, model` |
+| [**07**](extend/07_add_dynamics.md) | add dynamics | HDP | `enable_hdp` (`DEFAULT_HDP` vs `DESYNC`), `H_trace/w_trace`, `K_HDP/K_ctrl/K_w_ctrl` | `model` |
+| [**08**](extend/08_compare_nulls.md) | compare | Nulls, lesions | shuffled, `LESION_SPEC`, multi-area 3000n via `merge_neuronal_tensors`, `kappa` | all |
 
 The step table with receipts is audited in `artifacts/audit/reviews/tutorial_cumulative_audit.md`.
 The fluent `Configuration` builder is the other on-ramp; both converge on
-`construct → simulate` ([Configuration Grammar](../guides/configuration_grammar.md)).
+`construct → simulate` ([Configuration Grammar](../guides/grammar/configuration_grammar.md)).
 `NeuronalTensor` is the declarative `Areas × Layers × NeuronTypes` object the track
-carries; see the [API reference](../api/neuronal_tensor.md) and the
-[H-state / HDP guide](../guides/hdp.md).
+carries; see the [API reference](../reference/api/model/neuronal_tensor.md) and the
+[H-state / HDP guide](../guides/state/hdp.md).
 
 ## Scale: from one column to twenty areas
 
@@ -90,4 +90,4 @@ python examples/v031_single_izhikevich_neuron.py
 Regenerate the figures on these pages with `python scripts/generate_readme_atlas.py`,
 `python scripts/generate_doc_page_atlases.py` and `python scripts/generate_docs_visuals.py`.
 
-Next: [Guides](../guides/index.md) · [API reference](../api/index.md) · [Jaxley interoperability](../guides/jaxley_interop.md)
+Next: [Guides](../guides/index.md) · [API reference](../reference/api/index.md) · [Jaxley interoperability](../guides/interop/jaxley_interop.md)

@@ -72,7 +72,7 @@ def test_layered_raises_on_wrong_shape():
 #
 # Classical "two half-space" volume-conductor result (derived and verified
 # via 3 limiting-case sanity checks before use here -- see
-# docs/guides/jax_fem_interop.md's validation-target notes): a point current
+# docs/guides/interop/jax_fem_interop.md's validation-target notes): a point current
 # source I at depth z0 in medium 1 (conductivity sigma1, z>0), with medium 2
 # (conductivity sigma2, z<0) below an interface at z=0. Reflection
 # coefficient k = (sigma1-sigma2)/(sigma1+sigma2), derived from continuity of

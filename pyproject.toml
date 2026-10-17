@@ -52,14 +52,14 @@ Homepage = "https://github.com/HNXJ/jaxfne"
 Repository = "https://github.com/HNXJ/jaxfne"
 Documentation = "https://jaxfne.readthedocs.io/en/latest/"
 Issues = "https://github.com/HNXJ/jaxfne/issues"
-Changelog = "https://github.com/HNXJ/jaxfne/blob/main/docs/changelog.md"
+Changelog = "https://github.com/HNXJ/jaxfne/blob/main/docs/reference/changelog.md"
 Citation = "https://github.com/HNXJ/jaxfne/blob/main/CITATION.cff"
 "Source Code" = "https://github.com/HNXJ/jaxfne"
 
 [project.optional-dependencies]
 opt = ["optax>=0.2"]
 jaxley = ["jaxley>=0.13.0"]  # tested floor; bridge installs a JAX clip-compat shim for jaxley<=0.13
-jax-fem = ["jax-fem>=0.0.12"]  # GPLv3 (or paid commercial from the author) -- optional, NOT a core dependency; see docs/guides/jax_fem_interop.md
+jax-fem = ["jax-fem>=0.0.12"]  # GPLv3 (or paid commercial from the author) -- optional, NOT a core dependency; see docs/guides/interop/jax_fem_interop.md
 viz = ["matplotlib>=3.10.9,<3.12", "scipy==1.17.1; python_version < '3.15'", "scipy>=1.18.1; python_version >= '3.15'", "plotly", "kaleido", "pandas", "ipywidgets", "Pillow", "reportlab"]
 io = ["pyyaml", "zarr", "h5py"]
 # jnwb needs Python >= 3.12; on 3.11 the extra installs only pynwb, so

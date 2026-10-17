@@ -1,0 +1,269 @@
+# Elliptic field admissibility
+
+This page specifies **when a full elliptic (Poisson-type) field solve would be
+well-posed and consistent** in jaxfne's reserved field regimes. The **shipped
+package uses laminar proxy readouts** — read this if you are
+extending or validating a future PDE path.
+
+> **Scope:** Admissibility mathematics (well-posedness, accuracy, consistency)
+> for the elliptic field regime. The `solved_poisson` regime carries
+> `implemented=False, status_enabled=False`; proxy amplitudes stay relative
+> (uncalibrated) under `physical_amplitude_calibrated = False`. See
+> [Limitations and future plans](../../reference/project/limitations_and_future_plans.md).
+
+## Overview
+
+This document specifies the mathematical contract for the elliptic field regime in jaxfne. It defines what constitutes an "admissible" solution: one that is mathematically well-posed and passes the five numerical gates below. Admissibility is a numerical check; it makes no physical-consistency claim.
+
+**Status:** Specification of the admissibility conditions. The elliptic field regime is reserved; see
+[../computation_basis.md](../../theory/computation_basis.md) for the `solved_poisson` regime gating rule.
+
+⚠️ **Critical invariant:**
+- **Physical amplitude claims are disallowed**, even if admissibility gates pass on synthetic data.
+- `amplitude_status` is **always false** in reports.
+- Elliptic field solver implementation must be separately approved. Until then, `solved_poisson` regime remains `implemented=False`.
+
+## Mathematical Problem
+
+A resistive forward-field problem seeks extracellular potential $\phi_e$ and current density $\mathbf{J}_e$ satisfying:
+
+$$\nabla \cdot (\sigma \nabla \phi_e) = -I_{\mathrm{src}}$$
+
+where:
+- $\sigma$ is the conductivity tensor (must be **Symmetric Positive Definite**)
+- $I_{\mathrm{src}}$ is the source term (integrated neuronal currents from emitter)
+- Boundary condition: Dirichlet (essential) or Neumann (natural flux)
+- Gauge condition: Often mean-zero potential $\int \phi_e = 0$ (optional but recommended)
+
+## Admissibility Gates
+
+An elliptic field solver output is admissible if and only if **all five gates pass**:
+
+### Gate 1: Conductivity Symmetric Positive Definite (SPD)
+
+**Mathematical requirement:**
+- Conductivity $\sigma$ must be symmetric: $\sigma = \sigma^T$
+- Conductivity must be positive definite: $\lambda_{\min}(\sigma) > 0$ (all eigenvalues positive)
+
+**Why:** SPD ensures the Poisson problem is well-posed (unique solution exists). Non-SPD conductivity leads to ill-posed or unstable solutions.
+
+**Check in v0.2.15+:**
+
+```python
+from jaxfne.validation import validate_poisson_spd_conductivity
+
+is_spd, msg = validate_poisson_spd_conductivity(conductivity_tensor)
+assert is_spd, msg
+```
+
+**Parameters:**
+- `conductivity`: conductivity tensor or matrix
+- `tolerance`: numerical tolerance for near-zero eigenvalues (default 1e-8)
+
+### Gate 2: Source Conservation
+
+**Mathematical requirement:**
+
+$$\int_{\Omega} I_{\mathrm{src}} = -\int_{\partial \Omega} \sigma \nabla \phi_e \cdot \hat{n}$$
+
+Integrated source over domain equals (negative) integrated boundary flux.
+
+**Why:** Ensures charge/current conservation. If source and flux are imbalanced, solver may diverge or solution may be unphysical.
+
+**Check in v0.2.15+:**
+
+```python
+from jaxfne.validation import validate_poisson_source_conservation
+
+is_conserved, msg, residual = validate_poisson_source_conservation(
+    integrated_source,
+    integrated_boundary_flux,
+    tolerance=1e-6
+)
+assert is_conserved, msg
+```
+
+**Parameters:**
+- `integrated_source`: $\int I_{\mathrm{src}} d\Omega$
+- `integrated_boundary_flux`: $-\int \sigma \nabla \phi_e \cdot \hat{n} d\partial\Omega$
+- `tolerance`: absolute residual tolerance (default 1e-6)
+
+### Gate 3: Gauge Condition (Optional but Recommended)
+
+**Mathematical requirement (mean-zero gauge):**
+
+$$\frac{1}{|\Omega|} \int_{\Omega} \phi_e = 0$$
+
+Mean of potential over domain is zero (removes arbitrary additive constant).
+
+**Why:** Removes indeterminacy in solution (any constant added to $\phi_e$ also solves Poisson). Mean-zero gauge is physically motivated for extracellular recording.
+
+**Check in v0.2.15+:**
+
+```python
+from jaxfne.validation import validate_poisson_gauge_condition
+
+is_satisfied, msg = validate_poisson_gauge_condition(
+    mean_potential,
+    gauge="mean_zero",
+    tolerance=1e-6
+)
+assert is_satisfied, msg
+```
+
+**Parameters:**
+- `mean_potential`: $\overline{\phi_e} = \frac{1}{|\Omega|} \int \phi_e d\Omega$
+- `gauge`: gauge type ('mean_zero' or 'other')
+- `tolerance`: tolerance on mean value (default 1e-6)
+
+### Gate 4: Field Array Finiteness
+
+**Mathematical requirement:**
+
+All outputs must be finite (no NaN, no Inf):
+- $\phi_e$ finite everywhere in domain
+- $\mathbf{J}_e = -\sigma \nabla \phi_e$ finite everywhere
+- CSD (derived from $\phi_e$) finite everywhere
+
+**Why:** Ensures numerical stability. NaN/Inf indicate solver divergence or malformed input.
+
+**Check in v0.2.15+:**
+
+```python
+from jaxfne.validation import validate_poisson_field_arrays
+
+finiteness = validate_poisson_field_arrays(
+    phi_e=phi_e,
+    J_e=J_e,
+    CSD=CSD
+)
+assert all(finiteness.values()), f"Non-finite output: {finiteness}"
+```
+
+**Parameters:**
+- `phi_e`: extracellular potential field
+- `J_e`: extracellular current density
+- `CSD`: current source density (or derivatives)
+
+### Gate 5: Solver Convergence
+
+**Mathematical requirement:**
+
+Solver must satisfy a relative residual criterion:
+
+$$\frac{\|\nabla \cdot (\sigma \nabla \phi_e^{\mathrm{iter}}) + I_{\mathrm{src}}\|_2}{\|I_{\mathrm{src}}\|_2} < \epsilon_{\mathrm{tol}}$$
+
+**Parameters:**
+- `solver_residual_l2_relative`: relative L2 residual
+- `n_iterations`: number of iterations performed
+- `converged`: boolean flag (True if residual < tolerance)
+- `tolerance`: typical target $\epsilon_{\mathrm{tol}} \approx 10^{-6}$ to $10^{-8}$
+
+**Why:** Checks the solution against the stated tolerance. Convergence failure indicates solver fell short of target accuracy.
+
+## Admissibility Report
+
+When all five gates pass, the solver emits an admissibility report:
+
+```python
+from jaxfne.validation import build_poisson_admissibility_report
+
+report = build_poisson_admissibility_report(
+    conductivity=sigma_tensor,
+    integrated_source=sum_of_sources,
+    integrated_boundary_flux=-sum_of_boundary_flux,
+    mean_potential=mean_of_phi,
+    phi_e=potential_field,
+    J_e=current_density,
+    CSD=current_source_density,
+    solver_residual_l2=relative_residual,
+    n_iterations=200,
+    converged=True,
+    gauge="mean_zero",
+    boundary_condition="dirichlet",
+    csd_sign_convention="positive_equals_extracellular_source"
+)
+
+# Example report structure (v0.2.15)
+assert report["admissibility_status"] == "admissible"
+# v0.2.15 specification-only: amplitude_status is ALWAYS false
+assert report["amplitude_status"] is False
+assert "specification-only" in report.get("v0215_note", "").lower()
+```
+
+**Report structure:**
+
+```json
+{
+  "diagnostic_kind": "poisson_admissibility",
+  "admissibility_status": "admissible",
+  "gates": {
+    "conductivity_spd": {
+      "passed": true,
+      "message": "SPD verified; min eigenvalue 1.2e-02"
+    },
+    "source_conservation": {
+      "passed": true,
+      "message": "source conserved; residual 1.1e-07",
+      "residual": 1.1e-07
+    },
+    "gauge_condition": {
+      "passed": true,
+      "message": "gauge mean_zero satisfied; |mean(phi_e)| 3.2e-08",
+      "gauge": "mean_zero"
+    },
+    "field_finiteness": {
+      "passed": true,
+      "phi_e_finite": true,
+      "J_e_finite": true,
+      "CSD_finite": true
+    }
+  },
+  "solver_metadata": {
+    "solver_residual_l2_relative": 5.3e-07,
+    "n_iterations": 187,
+    "converged": true,
+    "boundary_condition": "dirichlet",
+    "gauge": "mean_zero",
+    "csd_sign_convention": "positive_equals_extracellular_source"
+  },
+  "amplitude_status": false,
+  "note": "Specification of admissibility conditions. amplitude_status is always false; proxy amplitudes stay relative under physical_amplitude_calibrated=false."
+}
+```
+
+## Future Usage (Separately Approved Phase)
+
+When an elliptic field solver is separately approved and implemented:
+
+1. **Solve:** Compute $\phi_e$, $\mathbf{J}_e$ from Poisson equation
+2. **Validate:** Run all five admissibility gates
+3. **Report:** Build and emit admissibility report
+4. **Gate:** Only pass solution downstream if `admissibility_status == "admissible"`
+5. **Statement:** Physical amplitudes stay unscaled until calibration is validated
+
+## Current Status
+
+- ✓ Admissibility specification defined
+- ✓ Five gates mathematically specified
+- ✓ Validation helpers implemented in `jaxfne.validation`
+- ✓ Conservation proxy diagnostics — proxy-scale mode
+- ⧉ Elliptic field solver — reserved regime ([Limitations and future plans](../../reference/project/limitations_and_future_plans.md))
+- ⧉ Physical amplitude claims — pending field solver implementation and calibration validation
+
+**Public-output status:** Specification of admissibility conditions; proxy amplitudes stay relative pending calibration.
+`solved_poisson` regime is gated: `implemented=False`, `status_enabled=False`.
+
+---
+
+## Mathematical References
+
+- **Well-posedness:** Lions & Magenes (1972), Variational Methods in Mathematical Physics
+- **SPD conductivity:** Standard elliptic PDE theory; required for uniqueness
+- **Source conservation:** Follows from divergence theorem; fundamental for physics
+- **Gauge conditions:** Standard practice in computational electrodynamics and neuroscience forward modeling
+
+---
+
+**Document version:** admissibility specification  
+**Last updated:** 2026-05-22

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate docs/replications.md from dashboard/sources.json.
+"""Generate docs/start/replications.md from dashboard/sources.json.
 
 One row per paper on the replication dashboard, linking its page there, plus the roadmap.
 
@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "dashboard" / "sources.json"
-OUT = ROOT / "docs" / "replications.md"
+OUT = ROOT / "docs" / "start" / "replications.md"
 DASHBOARD = "https://hnxj.github.io/jaxfne/dashboard/"
 
 

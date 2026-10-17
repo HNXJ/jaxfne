@@ -1,7 +1,7 @@
 """Relative-quantity grammar invariants (0.4.17 closure, contract I).
 
 Verifies the semantic rules declared in
-docs/doctrine/relative_quantity_grammar.md against the live implementation:
+docs/theory/doctrine/relative_quantity_grammar.md against the live implementation:
 
 - base recovery at reference relative state where defined;
 - relative-domain preservation (node H stays inside [H_min, H_max]);

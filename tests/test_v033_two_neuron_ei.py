@@ -342,7 +342,7 @@ def test_v033_e_neuron_rate_in_gate():
 def test_v033_coupling_currents_figure_exists():
     """Coupling currents figure must exist (generated from dynamic synaptic currents)."""
     fig_path = pathlib.Path(
-        "docs/tutorials_v030/_static/figures/v0303_two_neuron_ei_coupling_currents.png"
+        "docs/archive/tutorials_v030/_static/figures/v0303_two_neuron_ei_coupling_currents.png"
     )
     if not fig_path.exists():
         pytest.skip("Coupling currents figure not generated")

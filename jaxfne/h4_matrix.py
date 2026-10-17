@@ -3,7 +3,7 @@
 Primary endpoint (pre-registered):
     M_X = ∫ [M_X(Δ) - M_{X,shuffle}(Δ)]_+ dΔ
 
-See ``docs/doctrine/protocol_h_rbd_memory.md`` §6.
+See ``docs/theory/memory/protocol_h_rbd_memory.md`` §6.
 """
 
 from __future__ import annotations

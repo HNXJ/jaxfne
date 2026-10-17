@@ -84,7 +84,7 @@ class TestJ3:
     def test_declared_rbs_relationship_documented(self):
         """JDNA + RBS: development may use RBS-like coordinates; the canonical
         genome declares none, and no developmental state crosses into runtime."""
-        guide = (REPO_ROOT / "docs/guides/jdna.md").read_text(encoding="utf-8")
+        guide = (REPO_ROOT / "docs/guides/grammar/jdna.md").read_text(encoding="utf-8")
         assert "H_D" in guide
         assert "developmental state" in guide
         assert "No developmental state crosses" in guide

@@ -62,14 +62,14 @@ EXEMPT_PREFIXES = (
     "docs/releases/",
     "docs/v047_refactor_audit.md",
     "docs/tutorials_v030/",
-    "docs/changelog.md",
+    "docs/reference/changelog.md",
     "docs/_generated/",
     "docs/evidence_artifacts/",
     "docs/publication/",
     "docs/etudes/",
     "docs/doctrine/protocol_",
     "docs/protocols/",
-    "docs/doctrine/rbs_rbd_hdp_inventory.md",
+    "docs/theory/doctrine/rbs_rbd_hdp_inventory.md",
     "docs/HDP_REPORT.md",
 )
 

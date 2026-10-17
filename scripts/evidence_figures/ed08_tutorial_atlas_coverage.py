@@ -46,7 +46,7 @@ SOURCE_FILES = [
     "scripts/evidence_figures/_figure_common.py",
     "scripts/evidence_figures/ed03_notebook_execution_receipts.py",
     "scripts/audit_notebooks_and_assets.py",
-    "docs/tutorials/tutorial_outputs.md",
+    "docs/archive/tutorials/readouts/tutorial_outputs.md",
 ]
 
 TITLE = "Extended Data 8 - tutorial atlas coverage matrix"

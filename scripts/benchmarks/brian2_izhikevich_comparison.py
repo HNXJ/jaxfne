@@ -18,7 +18,7 @@ separate, throwaway environment:
 The matched jaxfne-side script is
 scripts/benchmarks/jaxfne_izhikevich_comparison.py (runs in jaxfne's normal
 environment, no extra install needed). Recorded receipt + caveats:
-docs/notes/brian2_benchmark_receipt.md.
+docs/theory/notes/brian2_benchmark_receipt.md.
 """
 import time
 import numpy as np

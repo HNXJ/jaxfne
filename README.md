@@ -20,9 +20,9 @@ and field-scale dynamics, and each of these can be changed within one model.
 - **State**: add or change biophysical state $H$.
 - **Mechanism**: change dynamics, plasticity, connectivity, geometry, or model detail.
 - **Observation**: measure spikes, population activity, or fields.
-- **Reduction**: develop or reduce models with [JDNA](docs/guides/jdna.md).
+- **Reduction**: develop or reduce models with [JDNA](docs/guides/grammar/jdna.md).
 
-[Quickstart](docs/quickstart.md) · [Scope & status](docs/scope_and_status.md)
+[Quickstart](docs/start/quickstart.md) · [Scope & status](docs/reference/project/scope_and_status.md)
 
 ## Install
 
@@ -50,24 +50,24 @@ Import convention: `import jaxfne as jtfne`.
 
 | Resource | Link |
 |----------|------|
-| Quickstart | [docs/quickstart.md](docs/quickstart.md) |
+| Quickstart | [docs/start/quickstart.md](docs/start/quickstart.md) |
 | Site | [jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/) |
 | Tutorials | [docs/tutorials/](docs/tutorials/) |
 | Études | [docs/etudes/](docs/etudes/) |
-| Public API surface | [docs/public_surface_contract.md](docs/public_surface_contract.md) |
-| Changelog | [docs/changelog.md](docs/changelog.md) |
+| Public API surface | [docs/reference/public_surface_contract.md](docs/reference/public_surface_contract.md) |
+| Changelog | [docs/reference/changelog.md](docs/reference/changelog.md) |
 
 If you are an AI agent, read [`artifacts/AGENTS.md`](artifacts/AGENTS.md).
 
 ## Citation
 
 Concept DOI (all versions): [10.5281/zenodo.21448155](https://doi.org/10.5281/zenodo.21448155) ·
-[`CITATION.cff`](CITATION.cff) · [citation guide](docs/citation.md)
+[`CITATION.cff`](CITATION.cff) · [citation guide](docs/reference/citation.md)
 
 ## Canonical Visualization Atlas
 
 Seven linked panels (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`, `hdp`, `oscillatory`) label each quantity `OBSERVED` or `DERIVED` and carry
 manifest provenance. A panel whose declared inputs are missing renders an omission card. Previews and generation code:
 [documentation site](https://jaxfne.readthedocs.io/en/latest/) and
-[Atlas guide](docs/guides/atlas_suite.md).
+[Atlas guide](docs/guides/interop/atlas_suite.md).
 

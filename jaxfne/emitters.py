@@ -1,6 +1,6 @@
 """Emitter kernels for :mod:`jaxfne`.
 
-Docs: ``docs/api/emitters.md`` (https://jaxfne.readthedocs.io/en/latest/api/emitters/) —
+Docs: ``docs/reference/api/model/emitters.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/model/emitters/) —
 update that page when this module's public API changes.
 
 The current implementation is a small E/I/G-like Izhikevich scaffold.  It is a

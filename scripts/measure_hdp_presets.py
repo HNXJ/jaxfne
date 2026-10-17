@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Measure the realized H of the two frozen HDP presets (docs/tutorials/07_add_dynamics.md table).
+"""Measure the realized H of the two frozen HDP presets (docs/tutorials/extend/07_add_dynamics.md table).
 
 Protocol: the jaxfne.hdp_network laminar column, N=500, 2000 ms, dt 0.5 ms, seeds 0-4.
 DEFAULT_HDP runs at the base drive; DEFAULT_HDP_DESYNC at DRIVE_SCALE_DESYNC times it.

@@ -1,4 +1,4 @@
-"""Executable check for every Python block in docs/quickstart.md.
+"""Executable check for every Python block in docs/start/quickstart.md.
 
 Each ```python block is extracted in document order and exec'd in one shared,
 fresh namespace (reader order, so later blocks reuse earlier names like
@@ -15,7 +15,7 @@ import re
 import warnings
 from pathlib import Path
 
-DOC = Path(__file__).resolve().parents[1] / "docs" / "quickstart.md"
+DOC = Path(__file__).resolve().parents[1] / "docs" / "start" / "quickstart.md"
 
 # Maps python-block index -> [(old, new)] substitutions. Each `old` must occur
 # at least once in its block (asserted), so a doc edit that removes the anchor
@@ -56,7 +56,7 @@ def _python_blocks() -> list[str]:
 
 def test_quickstart_block_count():
     assert len(_python_blocks()) == _EXPECTED_BLOCKS, (
-        f"docs/quickstart.md holds {len(_python_blocks())} python blocks; "
+        f"docs/start/quickstart.md holds {len(_python_blocks())} python blocks; "
         "update _OVERRIDES/_EXPECTED_BLOCKS alongside the doc edit"
     )
 

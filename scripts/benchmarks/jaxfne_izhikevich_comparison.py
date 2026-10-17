@@ -4,7 +4,7 @@ scripts/benchmarks/brian2_izhikevich_comparison.py's task (same N, same
 at dt=0.5ms, CPU only). Runs in jaxfne's normal environment -- no extra
 install needed.
 
-Recorded receipt + caveats: docs/notes/brian2_benchmark_receipt.md.
+Recorded receipt + caveats: docs/theory/notes/brian2_benchmark_receipt.md.
 """
 
 import sys

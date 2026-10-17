@@ -1,7 +1,7 @@
 """Public builder and helper functions for cortical-column configuration.
 
-Docs: ``docs/api/index.md`` "Column builders & the canonical prior"
-(https://jaxfne.readthedocs.io/en/latest/api/) — update that page when these
+Docs: ``docs/reference/api/index.md`` "Column builders & the canonical prior"
+(https://jaxfne.readthedocs.io/en/latest/reference/api/) — update that page when these
 builders' signatures or defaults change.
 
 High-level construction helpers for common cortical-column and multi-area
@@ -58,7 +58,7 @@ FLAT_CELL_TYPE_FRACTIONS: dict[str, float] = {"E": 0.75, "PV": 0.10, "SST": 0.08
 #: Biological calibration: qualitative_laminar_scaffold=true,
 #: quantitative_cell_fraction=false, quantitative_connectivity=false.
 #: Labels E/PV/SST/VIP are reduced Izhikevich scaffold identities, not warranted
-#: literal cell-type identities (see docs/scope_and_status.md).
+#: literal cell-type identities (see docs/reference/project/scope_and_status.md).
 #: Keys are the 6-layer names in :data:`CANONICAL_LAYERS_6L`; a 5-layer ("L2/3"
 #: merged) variant is :data:`CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L`.
 CANONICAL_LAYER_CELL_TYPE_FRACTIONS: dict[str, dict[str, float]] = {

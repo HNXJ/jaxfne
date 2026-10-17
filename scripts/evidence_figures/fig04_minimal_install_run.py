@@ -43,7 +43,7 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
 SOURCE_FILES = [
     "scripts/evidence_figures/fig04_minimal_install_run.py",
     "scripts/evidence_figures/_figure_common.py",
-    "docs/quickstart.md",
+    "docs/start/quickstart.md",
     "tests/test_api_smoke.py",
 ]
 

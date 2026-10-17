@@ -160,9 +160,9 @@ class TestAgentContextHygiene:
             # README and docs/index.md are minimum-word entry pages; grammars live
             # in context.md and deeper docs.
             "artifacts/context.md",
-            "docs/api/index.md",
-            "docs/for_ai_agents.md",
-            "docs/operator_doctrine.md",
+            "docs/reference/api/index.md",
+            "docs/reference/project/for_ai_agents.md",
+            "docs/theory/operator_doctrine.md",
         ]
         for path in surfaces:
             content = Path(path).read_text(encoding="utf-8")
@@ -293,7 +293,7 @@ class TestAgentPathIntegrity:
             assert not Path(path).exists(), f"Dead skill path returned: {path}"
 
     def test_for_ai_agents_does_not_reference_removed_skills(self):
-        text = Path("docs/for_ai_agents.md").read_text(encoding="utf-8")
+        text = Path("docs/reference/project/for_ai_agents.md").read_text(encoding="utf-8")
         for fragment in (
             "catalog-glossary-jaxfne",
             "jaxfne-worker-context-router",

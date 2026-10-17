@@ -36,7 +36,7 @@ def test_citation_cff_cites_only_the_concept_doi() -> None:
 
 
 def test_citation_docs_have_no_placeholder_doi() -> None:
-    for rel in ("docs/citation.md", "README.md"):
+    for rel in ("docs/reference/citation.md", "README.md"):
         text = (REPO_ROOT / rel).read_text(encoding="utf-8")
         assert "zenodo.XXXXXXX" not in text, f"placeholder DOI in {rel}"
         assert CONCEPT_DOI in text, f"concept DOI missing from {rel}"

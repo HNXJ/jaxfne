@@ -98,6 +98,6 @@ $$
 
 ## See also
 
-- [API reference](../api/index.md)
+- [API reference](api/index.md)
 - [Tutorials](../tutorials/index.md)
-- [Limitations and future plans](../limitations_and_future_plans.md)
+- [Limitations and future plans](project/limitations_and_future_plans.md)

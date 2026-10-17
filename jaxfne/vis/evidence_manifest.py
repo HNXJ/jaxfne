@@ -59,7 +59,7 @@ def evidence_checklist_path() -> Path:
     root = repo_root()
     candidates = [
         root / "docs" / "evidence" / "evidence_checklist.json",
-        root / "docs" / "evidence_artifacts" / "evidence_checklist.json",
+        root / "docs" / "theory" / "publication" / "evidence_checklist.json",
     ]
     for path in candidates:
         if path.is_file():

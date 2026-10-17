@@ -1,0 +1,758 @@
+# Neuronal Tensor API
+
+The `neuronal_tensor` module defines the **canonical network representation** for
+jaxfne circuits. Every circuit reduces to one uniform shape:
+
+```
+NeuronalTensor = [Areas, AreaConnections]
+Area           = [Layers × NeuronTypes, InterConnections]
+```
+
+Import:
+
+```python
+from jaxfne import (
+    NeuronalTensor, Area, AreaConnection, Layer, NeuronType,
+    Geometry3D, Pose3D, StaticParams, PlasticParams,
+    InterConnection, save_neuronal_tensor, load_neuronal_tensor,
+    merge_neuronal_tensors, neuronal_tensor_to_configuration,
+    construct, RuntimeConfiguration, construct_neuronal_tensor,
+    default_relative_size,
+    list_canonical_neuronal_tensors, load_canonical_neuronal_tensor,
+)
+```
+
+> **Additive.** The existing `jaxfne.core.Configuration` /
+> `jaxfne.builders.laminar_cortex_config` path is untouched;
+> `neuronal_tensor_to_configuration` bridges a `NeuronalTensor` into that
+> `construct` / `simulate` pipeline.
+
+### Connectivity modes
+
+Tensor connectivity has two derived specification states:
+
+```text
+UNSPECIFIED -> the configured default topology
+EXPLICIT    -> exactly the declared topology
+```
+
+Omission versus an explicit empty declaration is structural:
+
+```python
+Area(name="V1", layers=[layer])
+# connectivity_mode == "unspecified"
+
+Area(name="V1", layers=[layer], inter_connections=[])
+# connectivity_mode == "explicit"; the compiled graph has zero edges
+```
+
+For an explicit tensor, the executable edge list is the declared graph. Parallel
+edges are allowed only when receptor/mechanism identity differs; repeated
+`(pre, post, receptor)` identities are rejected. Compilation exposes `connectivity_mode`, `default_edge_count`,
+`declared_rule_edge_count`, and `total_compiled_edge_count` in
+`model.cfg.metadata["connectivity_compilation"]`.
+Serialized tensors keep the mode so explicit emptiness survives a JSON
+round trip; legacy files without the mode keep their default-topology
+reading when connection arrays are empty.
+
+---
+
+## Value tags
+
+Every numeric field carries a `value_tag`:
+
+| Tag | Meaning |
+|-----|---------|
+| `"relative"` | Default. Proportional/structural; empirically ungrounded. |
+| `"calibrated_proxy"` | Derived from data via a proxy/approximation. |
+| `"calibrated"` | Directly backed by experimental evidence. |
+
+Opt in to a stronger tag only with evidence. Default is `"relative"`.
+
+---
+
+## Data classes
+
+### `Geometry3D`
+
+```python
+@dataclass
+class Geometry3D:
+    distribution: str = "uniform_random"
+    x_range: tuple[float, float] = (0.0, 1.0)
+    y_range: tuple[float, float] = (0.0, 1.0)
+    z_range: tuple[float, float] = (0.0, 1.0)
+    value_tag: ValueTag = "relative"
+```
+
+Always 3D. For a 2D or 1D layer, collapse axes by fixing
+their range at `(0.0, 0.0)`.
+
+Only `distribution="uniform_random"` is implemented;
+`construct` (and `construct_neuronal_tensor`) raises `NotImplementedError` for any other value.
+
+---
+
+### `NeuronType`
+
+```python
+@dataclass
+class NeuronType:
+    name: str
+    relative_size: float = 1.0
+    fraction: float | None = None
+    value_tag: ValueTag = "relative"
+    emitter: str | None = None
+    emitter_params: dict | None = None
+    drive: float | None = None
+```
+
+`fraction` is an optional per-type population fraction. If every `NeuronType`
+in a `Layer` declares a `fraction`, `neuronal_tensor_to_configuration` uses
+those (normalized) fractions instead of splitting the layer population
+evenly across its declared types.
+
+`emitter` plus `emitter_params` declare one emitter family for the triple
+(see [Per-type emitters and geometry-derived delays](#per-type-emitters-and-geometry-derived-delays)).
+`emitter_params` with `emitter=None` is refused (the params are validated
+against the declared emitter and ignored without one). `drive` is a
+per-triple constant drive (finite real, `None` = undeclared), applied after
+the baseline drive and before `cell_params`; on the AdEx route one drive
+unit reads as one pA of constant external current on the triple's neurons.
+
+**Class method:**
+
+```python
+@classmethod
+def make(cls, name: str, relative_size: float | None = None,
+         fraction: float | None = None,
+         value_tag: ValueTag = "relative") -> NeuronType
+```
+
+Fills `relative_size` from
+`default_relative_size(name)` when `relative_size` is `None`.
+
+```python
+e  = NeuronType.make("E")    # relative_size=5.0 (default)
+pv = NeuronType.make("PV")   # relative_size=1.0
+```
+
+---
+
+### `Layer`
+
+```python
+@dataclass
+class Layer:
+    name: str
+    neuron_types: Sequence[NeuronType] = ()
+    geometry: Geometry3D = field(default_factory=Geometry3D)
+    n_neurons: int = 0
+```
+
+One cortical layer. `NeuronType` entries declare the resident cell
+populations. `n_neurons` is the total neuron budget for
+this layer (all cell types combined).
+
+---
+
+### `StaticParams`
+
+```python
+@dataclass
+class StaticParams:
+    g_mech: dict = field(default_factory=dict)          # mechanism → conductance
+    reversal_potentials_mV: dict = field(default_factory=dict)  # mechanism → E_rev (mV)
+    dT_ms: float | None = None   # REQUIRED (P-023): None is refused
+    value_tag: ValueTag = "relative"
+```
+
+**Never plastic/trainable/gradientable.** Holds conductances, reversal
+potentials, and the synaptic time constant for a connection.
+`dT_ms` is **required** (P-023): `None` is refused at wiring time rather
+than defaulted — see [Time constants are required](#time-constants-are-required)
+for the declaration vocabulary.
+
+> **Note:** `reversal_potentials_mV` is stored as metadata only. jaxfne's
+> compiled edges are native current-based (Izhikevich-style) and have no
+> conductance/reversal-potential term in the dynamics. The value is surfaced
+> in `cfg.metadata["circuit"]["mechanisms"]` for provenance/inspection but
+> does **not** affect `simulate()` output.
+
+---
+
+### `PlasticParams`
+
+```python
+@dataclass
+class PlasticParams:
+    w_mech: float = 1.0   # per-connection gain
+    H: float = 0.0        # homeostatic H-factor
+    value_tag: ValueTag = "relative"
+```
+
+**Trainable/gradientable.** `w_mech` is the per-connection gain matrix
+(scalar here, expandable to a full per-synapse matrix). `H` is the homeostatic
+H-factor (passive ionic charge income per neuron).
+
+> `H` seeds the HDP controller's initial per-neuron state **only** when HDP
+> is separately enabled (`Configuration.hdp(...)` before `jaxfne.construct`,
+> or via a post-hoc `RuntimeConfig` override). It is stored but inert when
+> HDP is disabled (jaxfne's default). See `construct` / `construct_neuronal_tensor` for how
+> per-neuron `H` is aggregated from all connections touching each neuron.
+
+---
+
+### `InterConnection`
+
+```python
+@dataclass
+class InterConnection:
+    source_layer: str
+    source_neuron_type: str
+    target_layer: str
+    target_neuron_type: str
+    mechanism: str          # required — no default (e.g. "AMPA", "GABA_A")
+    static: StaticParams = field(default_factory=StaticParams)
+    plastic: PlasticParams = field(default_factory=PlasticParams)
+    delay_ms: float | None = None
+    conduction_velocity_m_per_s: float | None = None
+    length_unit: str = "mm"
+    spatial_sigma: float | None = None
+    max_in_degree: int | None = None
+    allow_self: bool | None = None
+```
+
+**Within-area** connection from `(source_layer, source_neuron_type)` to
+`(target_layer, target_neuron_type)`. `mechanism` is required.
+
+- `delay_ms`: Configured axonal delay in milliseconds (`None` = undeclared).
+  When declared, must be a finite number `>= 0.0`. Forwarded into the compiled
+  connection rule and realized to simulation steps at model construction
+  where simulation `dt` is known. Refused together with
+  `conduction_velocity_m_per_s` (declare one or neither).
+- `conduction_velocity_m_per_s`: Geometry-derived delays in m/s
+  (`None` = undeclared). Each compiled edge gets
+  `delay_ms = pairwise distance / velocity` from the constructed positions.
+  `length_unit` names the distance unit: tensor positions are mm, so only
+  `"mm"` is accepted and any other value is refused.
+- `spatial_sigma` / `max_in_degree`: Localized distance-weighted sampling
+  (`None` = undeclared = the `probability` density path). `max_in_degree`
+  is a positive integer fan-in cap per post neuron; when set, the rule
+  compiles through the localized sampler (carrying `probability=None`)
+  instead of the density path, and `spatial_sigma` (mm, finite, `> 0`)
+  sets the Gaussian falloff. A declared sigma changes the realized edges.
+  A declared `spatial_sigma` without `max_in_degree` has no consumer on
+  the density path, so the bridge refuses it (`spatial_sigma needs
+  max_in_degree`): declare both or neither. Both are refused on the
+  conductance (AdEx) route, which has no localized-sampling consumer.
+- `allow_self`: Per-rule self-edge opt-in (`None` = undeclared = self-edges
+  dropped, the historical behaviour). `True` keeps `i == i` pairs.
+  Refused where no self pair can exist (source and target area, layer and
+  type must agree). On the AdEx route, `allow_self=True` together with
+  `conduction_velocity_m_per_s` is refused (a zero-distance self edge
+  realizes to 0 delay steps); on the current-based route the combination
+  keeps zero-step self edges.
+
+---
+
+### `Pose3D`
+
+```python
+@dataclass
+class Pose3D:
+    plane: Literal["xy", "xz", "yz"] = "xy"
+    rotation_deg: float = 0.0
+    translation: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    value_tag: ValueTag = "relative"
+```
+
+Controls where an `Area`'s layer stack sits in global 3D space.
+
+| Field | Effect |
+|-------|--------|
+| `plane` | Which two global axes hold local (x, y) spread; the third holds local depth (z). `"xy"` is canonical (depth along z). |
+| `rotation_deg` | Twist of the in-plane (x, y) spread around the depth axis. |
+| `translation` | Global (x, y, z) offset of the entire area. |
+
+**Plane → axis mapping:**
+
+| `plane` | local x → global | local y → global | local depth → global |
+|---------|-------------------|-------------------|----------------------|
+| `"xy"` | axis 0 (x) | axis 1 (y) | axis 2 (z) |
+| `"xz"` | axis 0 (x) | axis 2 (z) | axis 1 (y) |
+| `"yz"` | axis 2 (z) | axis 0 (x) | axis 1 (y) |
+
+---
+
+### `Area`
+
+```python
+@dataclass
+class Area:
+    name: str
+    layers: Sequence[Layer] = ()
+    inter_connections: Sequence[InterConnection] = omitted
+    pose: Pose3D | None = None
+    connectivity_mode: Literal["unspecified", "explicit"] | None = None
+```
+
+One cortical area: `Layer` populations, `InterConnection`
+within-area wiring, and a `Pose3D` for 3D placement. `pose=None` means
+undeclared (the historical stacked layout applies). Whether the pose was
+declared is recorded separately: even a default-valued `Pose3D()` counts as
+declared. Rigid motion holds only when every area's pose is explicit, so a
+tensor mixing declared and undeclared poses across areas is refused at bridge
+time, while an all-undeclared tensor keeps the historical layout
+byte-identically. `merge_neuronal_tensors` preserves each area's
+declared/undeclared status (an explicit `poses=` entry is a declaration).
+
+---
+
+### `AreaConnection`
+
+```python
+@dataclass
+class AreaConnection:
+    source_area: str
+    source_layer: str
+    source_neuron_type: str
+    target_area: str
+    target_layer: str
+    target_neuron_type: str
+    mechanism: str = "monotonic_cable_synapse"   # default
+    static: StaticParams = field(default_factory=StaticParams)
+    plastic: PlasticParams = field(default_factory=PlasticParams)
+    delay_ms: float | None = None
+    probability: float | None = None
+    conduction_velocity_m_per_s: float | None = None
+    length_unit: str = "mm"
+    spatial_sigma: float | None = None
+    max_in_degree: int | None = None
+    allow_self: bool | None = None
+```
+
+**Between-area** connection with the full
+`(area, layer, neuron_type)` path for both source and target.
+Unlike `InterConnection`, `mechanism` defaults to
+`"monotonic_cable_synapse"`.
+
+- `delay_ms`: Configured axonal delay in milliseconds (`None` = undeclared).
+  When declared, must be a finite number `>= 0.0`. Forwarded into the compiled
+  connection rule and realized to simulation steps at model construction.
+- `probability`: Per-pair connection probability in `(0.0, 1.0]` (`None` =
+  undeclared = `1.0`, full bipartite between the declared layer × cell-type pair).
+  Mutually exclusive with `max_in_degree` (declare one or neither).
+- `conduction_velocity_m_per_s` / `length_unit`, `spatial_sigma` /
+  `max_in_degree`, `allow_self`: same semantics as `InterConnection`
+  (geometry-derived delays, localized sampling, self-edge opt-in with the
+  same refusals).
+
+---
+
+### `NeuronalTensor`
+
+```python
+@dataclass
+class NeuronalTensor:
+    areas: Sequence[Area] = ()
+    area_connections: Sequence[AreaConnection] = omitted
+    name: str = "untitled"
+    connectivity_mode: Literal["unspecified", "explicit"] | None = None
+    provenance: dict | None = None
+```
+
+The top-level container for areas and between-area connections.
+`connectivity_mode` is inferred: `"unspecified"` when connectivity fields are
+omitted, `"explicit"` when a connection list is given, including an empty list.
+
+**Method:**
+
+```python
+def to_dict(self) -> dict
+```
+
+Returns a fully serialisable `dict` (via `dataclasses.asdict`);
+`save_neuronal_tensor` writes this dict to JSON.
+
+---
+
+## Functions
+
+### `default_relative_size`
+
+```python
+def default_relative_size(neuron_type: str) -> float
+```
+
+Returns the default `relative_size` for a neuron type (from
+`emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE`, shared with HDP `tau_i` scaling):
+- `"E"` → `5.0` (`E-like`)
+- `"PV"` / `"Inl"` → `1.0` (`PV-like`)
+- `"SST"` / `"VIP"` / `"Ing"` → `1.5` (`SST-like` / `VIP-like`)
+
+Keys are reduced-class labels (read as `-like`; no literal identity); used by `NeuronType.make`.
+
+---
+
+### `save_neuronal_tensor`
+
+```python
+def save_neuronal_tensor(tensor: NeuronalTensor, path: str | Path) -> str
+```
+
+Serialise a `NeuronalTensor` to JSON via `jaxfne.io.save_json`.
+
+Returns the path written as a string.
+
+> **Convention:** configs are data. Build a `NeuronalTensor` once,
+> then keep all variants as JSON files.
+
+```python
+save_neuronal_tensor(tensor, "circuits/v1_mt.json")
+```
+
+---
+
+### `load_neuronal_tensor`
+
+```python
+def load_neuronal_tensor(path: str | Path) -> NeuronalTensor
+```
+
+Deserialise a `NeuronalTensor` from saved JSON.
+
+```python
+tensor = load_neuronal_tensor("circuits/v1_mt.json")
+```
+
+---
+
+### `list_canonical_neuronal_tensors` / `load_canonical_neuronal_tensor`
+
+```python
+def list_canonical_neuronal_tensors() -> list[str]
+def load_canonical_neuronal_tensor(name: str) -> NeuronalTensor
+```
+
+Package-shipped canonical circuits as JSON under `jaxfne/configs/`,
+loaded with the same `load_neuronal_tensor` deserializer above:
+
+```python
+names = list_canonical_neuronal_tensors()
+# ['canonical-v1-column-1000n', 'canonical-v1-v4-pfc-multiarea', 'default-column',
+#  'default_macaque_V1', 'homeostatic-h-override-demo', 'laminar-column-4layer',
+#  'two-area-feedforward']
+tensor = load_canonical_neuronal_tensor("canonical-v1-column-1000n")
+```
+
+`canonical-v1-column-1000n` is the **qualitative laminar-scaffold** 1000-neuron V1 column
+(6 layers L1-L6, full E/PV/SST/VIP composition, the same depth-graded E:I
+gradient documented in the cortical-column-default skill — E peaks deep,
+I peaks superficial; `qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false` — scaffold values rather than quantitatively calibrated values; see provenance below). `canonical-v1-v4-pfc-multiarea` tiles that same column
+composition across 3 areas (V1, V4, PFC; 3000 neurons total) with L4-to-L4
+feedforward and L6-to-L1 feedback `AreaConnection`s, matching the
+`jtfne.build_multi_area_columns(["V1","V4","PFC"], ei_profile="canonical")`
+hierarchy already used elsewhere in the docs. The remaining four are smaller
+synthetic demos for specific features (homeostatic H-override, multi-area
+feedforward, a minimal 4-layer column) — use `canonical-v1-column-1000n` or
+`canonical-v1-v4-pfc-multiarea` when you want a realistic reference composition
+rather than a feature-isolation demo.
+
+**Provenance and calibration of `canonical-v1-column-1000n`.** Realized fractions (`jaxfne/configs/canonical-v1-column-1000n.json`, `value_tag="relative"`): `L1 {E:0.50, SST:0.15, VIP:0.35}`, `L2 {E:0.648, PV:0.20, SST:0.10, VIP:0.052}`, `L3 {E:0.80, PV:0.08, SST:0.08, VIP:0.04}`, `L4 {E:0.75, PV:0.18, SST:0.04, VIP:0.03}`, `L5 {E:0.88, PV:0.06, SST:0.04, VIP:0.02}`, `L6 {E:0.90, PV:0.0533, SST:0.0267, VIP:0.02}` (overall ~75.8E:25.2I). Generative provenance is `jaxfne/jdna/genomes/canonical-v1-column-1000n.json` (`pseudogenome_v1`, `fraction_tolerance` bands per layer, `fraction_jitter_sigma=0.01`, same base fractions, 48 typed connection rules with `value_tag="relative"`). Builder-scaffold provenance is `jaxfne.builders.CANONICAL_LAYER_CELL_TYPE_FRACTIONS` (`L1 E:0.50/PV:0.05/SST:0.10/VIP:0.35` ... `L6 E:0.95`, ~66E:34I) — a related scaffold variant with different realized fractions. **All are scaffold, without quantitative calibration**: `qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false` (see [Scope & status](../../project/scope_and_status.md) and [Calibration — Biological status](../../../guides/state/calibration.md#biological-calibration-status)). Reduced Izhikevich labels `E`/`PV`/`SST`/`VIP` are functional heterogeneity tags (distinct `IZHIKEVICH_CELL_TYPE_DEFAULTS` rows); literal cell-type identity is not warranted. File provenance and realized counts are reproducible via `load_canonical_neuronal_tensor` / `develop` + `construct(...).neuron_table()` — query live state rather than copying numbers.
+
+**On species-scaled variants:** `jaxfne/configs/default_macaque_V1.json` *is*
+shipped, but read its `_provenance` block before treating it as a calibrated
+macaque config: its `fraction_basis` field states the per-layer E/PV/SST/VIP
+fractions are "inherited unchanged" from `canonical-v1-column-1000n.json` —
+confirmed byte-identical on inspection — and qualitatively cross-checked
+against the LAP Manuscript's V1 figures (Mulvey et al., read 2026-06-30). Its
+cell-type mapping (E=NG, PV=PV, SST≈CB, VIP≈CR) is flagged in the same block
+as an explicit, user-authorized approximation. So: jaxfne does ship one named
+species-scoped config, and its composition numbers are the same generic
+column template with a manuscript-informed synaptic-kinetics layer added on
+top (per-source-cell-type GABA_A decay constants, NMDA co-release) — a
+Relative-value, documented, provenance-tagged approximation. Treat
+`default_macaque_V1.json` this way; if you need a different species/area
+scaling, build it explicitly via `NeuronalTensor(...)` with its own
+documented provenance rather than renaming a copy of
+`canonical-v1-column-1000n` without one.
+
+---
+
+### `merge_neuronal_tensors`
+
+```python
+def merge_neuronal_tensors(
+    tensors: Sequence[NeuronalTensor],
+    poses: Sequence[Pose3D] | None = None,
+    *,
+    name: str = "merged",
+) -> NeuronalTensor
+```
+
+The **"unifier"**: concatenates several `NeuronalTensor` configs into one flat
+area list (N areas across M inputs become one `NeuronalTensor`).
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `tensors` | `Sequence[NeuronalTensor]` | Configs to merge, in order. |
+| `poses` | `Sequence[Pose3D] \| None` | One `Pose3D` per area in flattened encounter order (area 0 of tensor 0, area 1 of tensor 0, …, area 0 of tensor 1, …). Must have exactly as many entries as the total area count across all tensors. If `None`, each area keeps its own declared `pose`. |
+| `name` | `str` | Name for the merged `NeuronalTensor`. |
+
+**Area name collision:** a later duplicate area name is suffixed
+(`"V1"` → `"V1_1"`); `AreaConnection` references in that tensor are rewritten to match.
+
+> **Cross-tensor `AreaConnection`s are NOT inferred.** Only connections
+> declared explicitly on the result link areas from different inputs.
+
+```python
+merged = merge_neuronal_tensors(
+    [v1_tensor, mt_tensor],
+    poses=[Pose3D("xy"), Pose3D("xz", translation=(0.0, 2.0, 0.0))],
+    name="v1_mt",
+)
+```
+
+---
+
+### `neuronal_tensor_to_configuration`
+
+```python
+def neuronal_tensor_to_configuration(
+    tensor: NeuronalTensor,
+    *,
+    seed: int = 0,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+    emitter: str = "izhikevich",
+) -> Configuration
+```
+
+Bridge a `NeuronalTensor` into the `construct` / `simulate` pipeline.
+Returns a `Configuration` for `jaxfne.construct`.
+
+**What is wired:**
+
+- Per-area/per-layer cell-type fractions (`Configuration.area_layer_cell_types`),
+  split evenly across declared `NeuronType` entries — unless every `NeuronType`
+  in the layer declares a `fraction`, in which case those (normalized)
+  fractions are used instead.
+- Omitted tensor connectivity retains the configured default topology.
+- Every `InterConnection` (within-area) and `AreaConnection` (between-area)
+  compiles into a real selector-based edge rule via
+  `Configuration.connections` + `Configuration.mechanisms`. Edge magnitude is
+  `w_mech × g_mech / √total_n`. Sign follows the P-023 mechanism vocabulary
+  (see [Time constants are required](#time-constants-are-required)):
+  excitatory `{AMPA, NMDA}` from E sources, inhibitory `{GABA_A, GABA_B}`
+  from non-E sources. `InterConnection` probability is `1.0`
+  (full bipartite between the declared layer × cell-type pair);
+  `AreaConnection.probability` is forwarded when declared (`None` means
+  `1.0`). For explicit
+  tensor connectivity, these are the complete executable edges; implicit
+  recurrent defaults are not added.
+
+- Per-layer geometry (`Layer.geometry`, P-022) is preserved via fractional
+  domains in `Configuration.metadata["tfne_geometry"]["domains"]`.
+  `Area.pose` is not applied by `neuronal_tensor_to_configuration`; only
+  `construct` applies it. When some area pose is non-default, the bridge
+  also records each area's `Pose3D` as plain data in
+  `Configuration.metadata["tensor_pose"]`, so localized (`max_in_degree`)
+  edge sampling reads the posed layout; all-default poses write nothing
+  and keep the historical path byte-identical.
+
+**Known fidelity gaps (not yet wired):**
+
+| Gap | Workaround |
+|-----|------------|
+| `StaticParams.reversal_potentials_mV` — stored as metadata only; no effect on dynamics. | Inspect via `cfg.metadata["circuit"]["mechanisms"]`. |
+| `PlasticParams.H` — stored but inert unless HDP is separately enabled. | See `construct` / `construct_neuronal_tensor` for automatic HDP seeding. |
+
+---
+
+### Time constants are required
+
+Every `InterConnection` / `AreaConnection` declares its synaptic time
+constant in `static` (`StaticParams(dT_ms=...)`, milliseconds). `None` is
+refused at wiring time, as is any other inadmissible
+value (0, negative, NaN, inf, bools, strings). Named receptors use
+`jaxfne.presets.RECEPTOR_KINETICS` values (AMPA 2.0, GABA_A 5.0, NMDA 100.0,
+GABA_B 150.0 ms).
+
+JDNA genomes declare the same kinetics once per mechanism in
+`mechanism_tau_ms` (`{mechanism: tau_ms}`); `develop` copies each
+connection's mechanism tau into its `StaticParams.dT_ms` and refuses a
+mechanism with no table entry.
+
+The mechanism name also sets the sign: `{AMPA, NMDA}` require an E
+source, `{GABA_A, GABA_B}` a non-E source, and a clash is refused. Two
+names are exempt: any other name is refused as unknown, except
+`monotonic_cable_synapse` (the `AreaConnection` default), whose sign
+follows the source cell type — and tensors minted by
+`jaxfne.tfne.to_neuronal_tensor`, which keep TFNE's own fail-closed
+kinetics plus weight-polarity sign (recognized only through a
+module-private registry: a caller-supplied `provenance` dict never
+qualifies, and save/load loses the status).
+
+---
+
+### `construct` (canonical) and `construct_neuronal_tensor` (compatibility wrapper)
+
+```python
+def construct(
+    tensor: NeuronalTensor,
+    runtime: RuntimeConfiguration | None = None,
+) -> Model
+```
+
+Or using the keyword compatibility wrapper:
+
+```python
+def construct_neuronal_tensor(
+    tensor: NeuronalTensor,
+    *,
+    seed: int = 0,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+    emitter: str = "izhikevich",
+) -> Model
+```
+
+**Bridge + construct + apply each area's `Pose3D` placement in one call.**
+Both entry points reach the same internal implementation (`_construct_neuronal_tensor_impl`). Prefer `jtfne.construct(tensor, RuntimeConfiguration(...))` for new code.
+
+**What it does beyond `neuronal_tensor_to_configuration`:**
+
+1. Calls `neuronal_tensor_to_configuration` then `jaxfne.construct`.
+2. Samples each layer's local neuron positions from its declared `Geometry3D`
+   (currently `"uniform_random"` only).
+3. Applies each area's `Pose3D` (plane + rotation + translation) to map
+   local positions into global 3D space. Localized (`max_in_degree`) edge
+   sampling reads a copy posed by the same rule before compilation, so
+   moving one area rewires the localized edge set while a rigid motion of
+   the whole tensor preserves it.
+4. Overwrites `model.params["positions"]` and
+   `model.static["neuron_metadata"]` so field/LFP/EEG/MEG proxy readouts
+   — which read positions from there — see the real layout.
+5. Aggregates `PlasticParams.H` from every connection touching each neuron
+   (mean across all connections whose target layer/cell_type matches) and
+   applies via `Model.with_hdp_initial_state`. Untouched neurons default
+   to `H=1.0` (HDP equilibrium). Stored but inert unless HDP is
+   separately enabled.
+
+```python
+from jaxfne import construct, RuntimeConfiguration
+
+model = construct(tensor, RuntimeConfiguration(seed=42, duration_ms=500.0))
+signals = jaxfne.simulate(model)
+```
+
+---
+
+## End-to-end example
+
+```python
+import jaxfne
+from jaxfne import (
+    NeuronalTensor, Area, AreaConnection, Layer, NeuronType,
+    Geometry3D, Pose3D, StaticParams, PlasticParams, InterConnection,
+    save_neuronal_tensor, load_neuronal_tensor, construct,
+    RuntimeConfiguration,
+)
+
+# ── Define cell types ────────────────────────────────────────────────────────
+E  = NeuronType.make("E")    # relative_size=5.0 (default)
+PV = NeuronType.make("PV")   # relative_size=1.0
+
+# ── Define layers ───────────────────────────────────────────────────────────
+L4  = Layer("L4",  [E, PV], Geometry3D(z_range=(0.0, 0.3)), n_neurons=80)
+L23 = Layer("L2/3",[E, PV], Geometry3D(z_range=(0.3, 0.8)), n_neurons=60)
+
+# ── Within-area wiring ──────────────────────────────────────────────────────
+# Every connection declares its synaptic time constant (P-023, required):
+# AMPA 2.0 ms / GABA_A 5.0 ms from jaxfne.presets.RECEPTOR_KINETICS.
+v1_connections = [
+    InterConnection("L4", "E", "L2/3", "E",  mechanism="AMPA",
+                    static=StaticParams(dT_ms=2.0)),
+    InterConnection("L4", "E", "L4",   "PV", mechanism="AMPA",
+                    static=StaticParams(dT_ms=2.0)),
+    InterConnection("L4", "PV","L4",   "E",  mechanism="GABA_A",
+                    static=StaticParams(dT_ms=5.0)),
+]
+
+# ── Assemble area ───────────────────────────────────────────────────────────
+v1 = Area("V1", layers=[L4, L23], inter_connections=v1_connections,
+          pose=Pose3D("xy"))
+
+# ── Build tensor ────────────────────────────────────────────────────────────
+tensor = NeuronalTensor(areas=[v1], name="v1_minimal")
+
+# ── Save / reload ───────────────────────────────────────────────────────────
+save_neuronal_tensor(tensor, "v1_minimal.json")
+tensor = load_neuronal_tensor("v1_minimal.json")
+
+# ── Construct and simulate ──────────────────────────────────────────────────
+model   = construct(tensor, RuntimeConfiguration(seed=0, duration_ms=500.0))
+signals = jaxfne.simulate(model)
+```
+
+---
+
+## Multi-area example with `merge_neuronal_tensors`
+
+```python
+from jaxfne import merge_neuronal_tensors, Pose3D
+
+# v1_tensor and mt_tensor built separately (each a NeuronalTensor)
+merged = merge_neuronal_tensors(
+    [v1_tensor, mt_tensor],
+    poses=[
+        Pose3D("xy",                     translation=(0.0, 0.0, 0.0)),
+        Pose3D("xy", rotation_deg=45.0,  translation=(3.0, 0.0, 0.0)),
+    ],
+    name="v1_mt",
+)
+
+# Wire areas together (time constants required, P-023: AMPA 2.0 ms)
+from jaxfne import AreaConnection, StaticParams, construct, RuntimeConfiguration
+merged.area_connections = [
+    AreaConnection("V1", "L2/3", "E", "MT", "L4", "E",  # feedforward
+                   mechanism="AMPA", static=StaticParams(dT_ms=2.0)),
+    AreaConnection("MT", "L2/3", "E", "V1", "L2/3", "E",  # feedback
+                   mechanism="AMPA", static=StaticParams(dT_ms=2.0)),
+]
+
+model = construct(merged, RuntimeConfiguration(seed=1, duration_ms=1000.0))
+```
+
+---
+
+## Per-type emitters and geometry-derived delays
+
+Each `NeuronType` carries an `emitter` name plus optional `emitter_params`,
+validated against `jaxfne.emitter_registry`. When no type declares an
+emitter, the runtime emitter applies. When any type declares one, every type
+declares the same family and the runtime agrees with it. `emitter_params`
+apply per (`area`, `layer`, `type`) triple, matching drive semantics, so two
+triples sharing a type name may declare different values. A tensor that
+resolves to `adex` builds through the conductance route: population size and
+positions come from the same sampler as the current route, each connection
+becomes one receptor rule (reversal required, delay constant or
+velocity-derived), and per-triple `emitter_params` override the AdEx cell
+parameters on exactly that triple's neurons.
+
+Registered-but-unroutable families (`lif`, `glif`) are refused at bridge
+time: `construct` already fails for them, so the bridge refuses early rather
+than building a model whose kernel cannot execute.
+
+The AdEx bridge wires only declared connections, so a tensor with
+`connectivity_mode="unspecified"` is refused there (it would silently build
+0 edges, while the current-based route builds the default topology).
+
+A connection with `conduction_velocity_m_per_s` gets one delay per compiled
+edge from the constructed positions (`delay_ms = distance * mm_per_unit /
+velocity`). The per-edge values overwrite the rule-compiled delays after
+construction on both routes; on the AdEx route the rule itself carries the
+median over its selected pairs.

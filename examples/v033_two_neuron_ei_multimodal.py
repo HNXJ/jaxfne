@@ -792,11 +792,11 @@ def main(update_canonical: bool = False):
         # Only update canonical docs manifests when explicitly requested
         # (never during automated test runs — prevents tracked-file drift)
         if update_canonical:
-            canonical_manifest_path = Path("docs/tutorials_v030/manifests/v0303_two_neuron_ei_multimodal_manifest.json")
+            canonical_manifest_path = Path("docs/archive/tutorials_v030/manifests/v0303_two_neuron_ei_multimodal_manifest.json")
             canonical_manifest_path.parent.mkdir(parents=True, exist_ok=True)
             write_json(canonical_manifest_path, atlas_manifest)
 
-            canonical_report_path = Path("docs/tutorials_v030/reports/v0303_two_neuron_ei_multimodal_validation_report.json")
+            canonical_report_path = Path("docs/archive/tutorials_v030/reports/v0303_two_neuron_ei_multimodal_validation_report.json")
             canonical_report_path.parent.mkdir(parents=True, exist_ok=True)
             write_json(canonical_report_path, atlas_manifest["validation_report"])
 

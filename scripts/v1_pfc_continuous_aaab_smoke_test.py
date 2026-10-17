@@ -2,7 +2,7 @@
 
 Target milestone: 0.4.6 (see artifacts/developer/plans.json's
 ``v1-pfc-continuous-aaab-adaptation-paradigm`` item and
-docs/tutorials/05_v1_pfc_dual_column.md). This script implements the design
+docs/archive/tutorials/basics/05_v1_pfc_dual_column.md). This script implements the design
 scoped there: two 100-neuron canonical laminar columns (V1, PFC), both
 HDP-enabled, connected V1->PFC feedforward, driven by a fixed 1000ms trial
 structure repeated every trial:

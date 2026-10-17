@@ -225,7 +225,9 @@ class TestNetwork100EINotebook:
         doc_path = (
             Path(__file__).parent.parent
             / "docs"
+            / "archive"
             / "tutorials"
+            / "basics"
             / "03_network_100_ei.md"
         )
         content = doc_path.read_text(encoding="utf-8")

@@ -1,7 +1,7 @@
 """JAX-native spectral analysis and objectives for JAXFNE.
 
-Docs: ``docs/api/index.md`` spectral-analysis section
-(https://jaxfne.readthedocs.io/en/latest/api/) — update when this module changes.
+Docs: ``docs/reference/api/index.md`` spectral-analysis section
+(https://jaxfne.readthedocs.io/en/latest/reference/api/) — update when this module changes.
 
 Provides JIT-compilable, batchable functions for calculating PSDs, bandpower
 profiles, and similarity objectives.

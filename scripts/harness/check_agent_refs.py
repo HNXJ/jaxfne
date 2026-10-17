@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 GOVERNED = [
     ROOT / "artifacts" / "context.md",
     ROOT / "artifacts" / "AGENTS.md",
-    ROOT / "docs/for_ai_agents.md",
+    ROOT / "docs/reference/project/for_ai_agents.md",
     *list((ROOT / "artifacts" / "control" / "skills").rglob("*.md")),
 ]
 PREFIXES = ("artifacts/control/skills/", "scripts/", "docs/", "artifacts/", "scratch/", ".opencode/", ".cursor/", "tests/", "jaxfne/")

@@ -46,8 +46,8 @@ def test_mkdocs_yml_includes_mathjax_cdn():
 
 
 def test_probe_operators_has_equation_section():
-    """docs/guides/probe_operators.md must have a Mathematical Forms section."""
-    doc_path = Path("docs/guides/probe_operators.md")
+    """docs/guides/readout/probe_operators.md must have a Mathematical Forms section."""
+    doc_path = Path("docs/guides/readout/probe_operators.md")
     assert doc_path.exists(), "probe_operators.md not found"
 
     with open(doc_path, "r", encoding="utf-8") as f:
@@ -60,7 +60,7 @@ def test_probe_operators_has_equation_section():
 
 def test_probe_operators_has_all_eight_operators():
     """probe_operators.md must document equations for all 8 operators."""
-    doc_path = Path("docs/guides/probe_operators.md")
+    doc_path = Path("docs/guides/readout/probe_operators.md")
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -71,7 +71,7 @@ def test_probe_operators_has_all_eight_operators():
 
 def test_probe_operators_has_latex_math():
     """probe_operators.md must contain LaTeX math delimiters."""
-    doc_path = Path("docs/guides/probe_operators.md")
+    doc_path = Path("docs/guides/readout/probe_operators.md")
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -86,8 +86,8 @@ def test_probe_operators_has_latex_math():
 
 
 def test_tensor_field_workflows_has_math_notation():
-    """docs/guides/tensor_field_workflows.md must have mathematical notation section."""
-    doc_path = Path("docs/guides/tensor_field_workflows.md")
+    """docs/guides/readout/tensor_field_workflows.md must have mathematical notation section."""
+    doc_path = Path("docs/guides/readout/tensor_field_workflows.md")
     assert doc_path.exists(), "tensor_field_workflows.md not found"
 
     with open(doc_path, "r", encoding="utf-8") as f:
@@ -100,7 +100,7 @@ def test_tensor_field_workflows_has_math_notation():
 
 def test_tensor_field_workflows_has_projection_equations():
     """tensor_field_workflows.md must explain source-to-field projection."""
-    doc_path = Path("docs/guides/tensor_field_workflows.md")
+    doc_path = Path("docs/guides/readout/tensor_field_workflows.md")
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -121,8 +121,8 @@ def test_tensor_field_workflows_has_projection_equations():
 
 
 def test_fields_api_is_not_placeholder():
-    """docs/api/fields.md must replace the 3-line placeholder."""
-    doc_path = Path("docs/api/fields.md")
+    """docs/reference/api/readout/fields.md must replace the 3-line placeholder."""
+    doc_path = Path("docs/reference/api/readout/fields.md")
     assert doc_path.exists(), "fields.md not found"
 
     with open(doc_path, "r", encoding="utf-8") as f:
@@ -136,8 +136,8 @@ def test_fields_api_is_not_placeholder():
 
 
 def test_fields_api_has_contract():
-    """docs/api/fields.md must document FieldOutput contract."""
-    doc_path = Path("docs/api/fields.md")
+    """docs/reference/api/readout/fields.md must document FieldOutput contract."""
+    doc_path = Path("docs/reference/api/readout/fields.md")
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -148,8 +148,8 @@ def test_fields_api_has_contract():
 
 
 def test_probes_api_is_not_placeholder():
-    """docs/api/probes.md must replace the 3-line placeholder."""
-    doc_path = Path("docs/api/probes.md")
+    """docs/reference/api/readout/probes.md must replace the 3-line placeholder."""
+    doc_path = Path("docs/reference/api/readout/probes.md")
     assert doc_path.exists(), "probes.md not found"
 
     with open(doc_path, "r", encoding="utf-8") as f:
@@ -162,8 +162,8 @@ def test_probes_api_is_not_placeholder():
 
 
 def test_probes_api_has_report_contract():
-    """docs/api/probes.md must document ProbeReport contract."""
-    doc_path = Path("docs/api/probes.md")
+    """docs/reference/api/readout/probes.md must document ProbeReport contract."""
+    doc_path = Path("docs/reference/api/readout/probes.md")
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -175,14 +175,14 @@ def test_probes_api_has_report_contract():
 
 
 def test_plotly_visualization_guide_exists():
-    """docs/guides/plotly_visualization.md must exist."""
-    doc_path = Path("docs/guides/plotly_visualization.md")
+    """docs/guides/interop/plotly_visualization.md must exist."""
+    doc_path = Path("docs/guides/interop/plotly_visualization.md")
     assert doc_path.exists(), "plotly_visualization.md not found in docs/guides/"
 
 
 def test_plotly_guide_states_optional():
     """Plotly guide must clearly state Plotly is optional, not required."""
-    doc_path = Path("docs/guides/plotly_visualization.md")
+    doc_path = Path("docs/guides/interop/plotly_visualization.md")
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -192,7 +192,7 @@ def test_plotly_guide_states_optional():
 
 def test_plotly_guide_has_code_examples():
     """Plotly guide must include runnable code examples."""
-    doc_path = Path("docs/guides/plotly_visualization.md")
+    doc_path = Path("docs/guides/interop/plotly_visualization.md")
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -203,7 +203,7 @@ def test_plotly_guide_has_code_examples():
 
 def test_plotly_guide_documents_output_structure():
     """Plotly guide must document outputs/<run>/figures/ directory structure."""
-    doc_path = Path("docs/guides/plotly_visualization.md")
+    doc_path = Path("docs/guides/interop/plotly_visualization.md")
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -214,7 +214,7 @@ def test_plotly_guide_documents_output_structure():
 
 def test_plotly_guide_documents_write_html():
     """Plotly guide must show write_html with CDN option."""
-    doc_path = Path("docs/guides/plotly_visualization.md")
+    doc_path = Path("docs/guides/interop/plotly_visualization.md")
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -270,10 +270,10 @@ def test_visual_outputs_skill_has_validation_commands():
 
 def test_plotly_guide_exists_but_not_in_primary_nav():
     """Plotly guide remains available; primary nav contracts to core grammar (Pass 2)."""
-    assert Path("docs/guides/plotly_visualization.md").exists()
+    assert Path("docs/guides/interop/plotly_visualization.md").exists()
     mkdocs_path = Path("mkdocs.yml")
     content = mkdocs_path.read_text(encoding="utf-8")
-    assert "guides/plotly_visualization.md" in content
+    assert "guides/interop/plotly_visualization.md" in content
     assert "plotly_visualization" not in content.split("nav:")[1].split("Appendix:")[0]
 
 
@@ -314,10 +314,10 @@ def test_pyproject_toml_not_modified_for_plotly():
 def test_no_like_terminology_in_new_docs():
     """New docs must use *-proxy, never *-like terminology."""
     new_docs = [
-        "docs/guides/plotly_visualization.md",
+        "docs/guides/interop/plotly_visualization.md",
         "artifacts/legacy/internal_docs/skills/skill_visual_outputs.md",
-        "docs/api/fields.md",
-        "docs/api/probes.md",
+        "docs/reference/api/readout/fields.md",
+        "docs/reference/api/readout/probes.md",
     ]
 
     forbidden_patterns = [
@@ -343,8 +343,8 @@ def test_no_like_terminology_in_new_docs():
 def test_operator_terminology_uses_proxy():
     """Operator documentation must use *-proxy terminology consistently."""
     docs_to_check = [
-        "docs/guides/probe_operators.md",
-        "docs/api/probes.md",
+        "docs/guides/readout/probe_operators.md",
+        "docs/reference/api/readout/probes.md",
     ]
 
     for doc in docs_to_check:
@@ -387,8 +387,8 @@ def test_gitignore_has_site():
 def test_equation_latex_syntax():
     """Equations in new docs must have valid LaTeX syntax (basic check)."""
     doc_paths = [
-        "docs/guides/probe_operators.md",
-        "docs/guides/tensor_field_workflows.md",
+        "docs/guides/readout/probe_operators.md",
+        "docs/guides/readout/tensor_field_workflows.md",
     ]
 
     for doc in doc_paths:

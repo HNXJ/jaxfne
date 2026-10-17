@@ -1,0 +1,48 @@
+# 01 — Define: the canonical PseudoGenome
+
+> Cumulative step 01/08 — endpoint `canonical-v1-column-1000n`. This page defines the generative rules; the next page develops them. See [Tutorials overview](../index.md) and [PseudoGenome guide](../../guides/grammar/jdna.md).
+
+A **PseudoGenome** stores rules (`G ≠ D`, `G ≠ H_D`). The canonical 1000-neuron V1 column declares 6 laminar layers, per-layer cell-type base fractions with tolerance bands, geometry, and 48 typed connection rules.
+
+```python
+import jaxfne as jtfne
+
+genome = jtfne.load_canonical_pseudogenome("canonical-v1-column-1000n")
+jtfne.jdna.genome.validate_genome(genome)
+print(genome.name)  # canonical-v1-column-1000n
+print(f"areas={len(genome.areas)} layers={len(genome.areas[0].layers)} rules={len(genome.areas[0].inter_connections)}")
+# 1 area (V1), 6 layers (L1 100, L2 250, L3 200, L4 100, L5 200, L6 150), 48 rules
+```
+
+Declared constraints (machine-readable, used by tests):
+
+```python
+from jaxfne.jdna.genome import declared_constraints, genome_rules_hash
+
+print(genome_rules_hash(genome)[:16])  # content hash (description excluded)
+print(declared_constraints(genome)["areas"]["V1"]["layers"]["L2"])
+# {'n_neurons': 250, 'cell_type_count_bands': {'E': [150, 175], 'PV': [37, 62], ...}}
+```
+
+Tolerance example (L1): `E (0.45,0.55) SST (0.1,0.2) VIP (0.3,0.4)` — realized counts must fall in those bands. Development parameter `fraction_jitter_sigma=0.01` jitters the base fractions before projection onto the box-constrained simplex.
+
+<!-- jx-figure -->
+## Figure
+
+=== "Still"
+
+    ![Realized block schematic of canonical-v1-column-1000n](../../assets/readme/schema.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="../../../_static/atlas/schema.html" loading="lazy" title="Realized block schematic of canonical-v1-column-1000n"></iframe>
+
+Realized block schematic of `canonical-v1-column-1000n` from the pinned reference run (seed 0): the layers, cell types and population counts these rules produce. [Open full page](../../_static/atlas/schema.html).
+
+Next: [02 — Develop](02_develop_genome.md) — `develop(genome, K_D)` realizes one phenotype.
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column: [index](../../_static/atlas/index.html) · [schema](../../_static/atlas/schema.html) · [3D](../../_static/atlas/network_3d.html) · [raster](../../_static/atlas/raster.html) · [LFP](../../_static/atlas/lfp.html) · [H](../../_static/atlas/h_dynamics.html) · [HDP](../../_static/atlas/hdp.html) · [oscillatory](../../_static/atlas/oscillatory.html).
+
+Regenerate: `python scripts/generate_readme_atlas.py --html-only`.

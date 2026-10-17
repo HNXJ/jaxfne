@@ -35,15 +35,15 @@ class TestDocsLinksV0330:
 
     def test_docs_api_markdown_files_exist(self):
         """All expected API documentation files must exist."""
-        docs_api_dir = pathlib.Path("docs/api")
+        docs_api_dir = pathlib.Path("docs/reference/api")
         expected_files = [
-            "core.md",
-            "emitters.md",
-            "fields.md",
-            "probes.md",
-            "objectives.md",
-            "runtime.md",
-            "validation.md",
+            "core/core.md",
+            "model/emitters.md",
+            "readout/fields.md",
+            "readout/probes.md",
+            "readout/objectives.md",
+            "core/runtime.md",
+            "core/validation.md",
             "index.md",
         ]
 

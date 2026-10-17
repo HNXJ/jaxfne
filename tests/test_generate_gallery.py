@@ -1,4 +1,4 @@
-"""Gallery index gate: the ATLAS-INDEX block of docs/gallery.md matches the manifests."""
+"""Gallery index gate: the ATLAS-INDEX block of docs/start/gallery.md matches the manifests."""
 
 from __future__ import annotations
 

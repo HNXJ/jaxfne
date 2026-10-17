@@ -4,7 +4,7 @@ This module compiles the canonical TFNE algebra
 (``artifacts/project_sources/7_tfne_algebra.md``, language version ``tfne/2``)
 as a **specification-time compiler layer**. The language is authority and this
 module is not: conformance is partial, and the measured gap is recorded under
-"Compiler conformance" in ``docs/doctrine/tfne_algebra.md``.
+"Compiler conformance" in ``docs/theory/doctrine/tfne_algebra.md``.
 It introduces no new simulator. TFNE text resolves to an explicit typed neural
 model, which is compiled two ways from the same source::
 
@@ -64,7 +64,7 @@ them so every supported expression has exactly one realization):
 9. ``parse(normalize(p))`` normalizes to ``normalize(p)`` (idempotent replay);
    the realization seed derives from the normalization hash unless overridden.
 
-Name scoping (see ``docs/doctrine/tfne_algebra.md``): bare ``O``/``X`` belong
+Name scoping (see ``docs/theory/doctrine/tfne_algebra.md``): bare ``O``/``X`` belong
 to the algebra as composition operators and ``H`` names the H-state tensor
 exclusively. JaxFNE pipeline stages keep their full names (Emitter, Source,
 Field, Probe, Objective, Optimizer, Manifest); runtime state keeps its

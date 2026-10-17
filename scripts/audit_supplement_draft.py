@@ -28,7 +28,7 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DRAFT = ROOT / "docs/publication/results_reconstruction/supplement.md"
+DRAFT = ROOT / "docs/theory/publication/results_reconstruction/drafts/supplement.md"
 OUT = ROOT / "artifacts/publication/results_reconstruction/supplement_audit_receipt.json"
 
 failures: list[str] = []

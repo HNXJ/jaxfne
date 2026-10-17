@@ -36,7 +36,7 @@ PYTEST_ENV = {
     "PYTHONUTF8": "1",
 }
 
-# Curated dev gate — owned here, not in docs/ci_policy.md prose.
+# Curated dev gate — owned here, not in docs/reference/project/ci_policy.md prose.
 DEV_PYTEST_TARGETS = [
     "tests/test_api_smoke.py",
     "tests/test_root_import_lightweight.py",
@@ -55,7 +55,7 @@ DEV_PYTEST_TARGETS = [
     "tests/test_tfne_execution.py",
     "tests/test_tfne_parameter_transfer.py",
     # An atlas regeneration resets figure_state, which silently dropped the
-    # canonical atlas from docs/gallery.md twice; dev CI never collected this.
+    # canonical atlas from docs/start/gallery.md twice; dev CI never collected this.
     "tests/test_generate_gallery.py",
     # Docs atlas registry and .html link resolution; 34 of 47 docs iframes resolved
     # nowhere under directory URLs before this gate.

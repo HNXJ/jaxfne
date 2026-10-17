@@ -41,16 +41,16 @@ MODE_AUTHORITIES = {
     ],
     "PUBLICATION": [
         "artifacts/publication/publication_evidence_index.json",
-        "docs/publication/results_reconstruction/results_draft.md",
+        "docs/theory/publication/results_reconstruction/drafts/results_draft.md",
         "scratch/CURRENT_TASK.md",
     ],
     "SCIENCE": [
-        "docs/doctrine/tfne_containment_architecture.md",
-        "docs/doctrine/rbs_rbd_hdp.md",
+        "docs/theory/doctrine/tfne_containment_architecture.md",
+        "docs/theory/doctrine/rbs_rbd_hdp.md",
         "scratch/CURRENT_TASK.md",
     ],
     "DOCS": [
-        "docs/doctrine/tfne_containment_architecture.md",
+        "docs/theory/doctrine/tfne_containment_architecture.md",
         "mkdocs.yml",
         "scratch/CURRENT_TASK.md",
     ],

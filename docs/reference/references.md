@@ -119,5 +119,5 @@ Waddington (1957), Kitano (1990), Gruau (1995), Elman (1993), Stanley (2002, 200
 and Palm (2021) are the scholarly ancestry of the JDNA theory and sit outside the manuscript
 bibliography.
 
-RBS, RBD and HDP semantics follow `docs/doctrine/rbs_rbd_hdp.md` and
-`tfne_containment_architecture.md`; see the HDP guide [`../guides/hdp.md`](../guides/hdp.md).
+RBS, RBD and HDP semantics follow `docs/theory/doctrine/rbs_rbd_hdp.md` and
+`tfne_containment_architecture.md`; see the HDP guide [`../guides/hdp.md`](../guides/state/hdp.md).

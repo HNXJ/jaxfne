@@ -85,7 +85,7 @@ METADATA_ARTIFACTS = [
     },
     # NOTE: a third "roadmap" entry (artifact_id="roadmap", kind="markdown", no
     # "path"/"label") was removed 2026-07-05 -- it referenced a planning/roadmap
-    # document that docs/changelog.md confirms was intentionally deleted from
+    # document that docs/reference/changelog.md confirms was intentionally deleted from
     # the repo ("non-public planning/roadmap material removed from root"). The
     # entry was never cleaned up after that deletion and crashed _audit_metadata_entry
     # with KeyError('path') on every real run of this script's main(). No

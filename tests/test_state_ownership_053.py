@@ -1,6 +1,6 @@
 """0.5.3 ENGINE item 1: H/W/K ownership — configured -> realized -> executed.
 
-Doctrine: Atlas source 8 + docs/doctrine/rbs_rbd_hdp.md.
+Doctrine: Atlas source 8 + docs/theory/doctrine/rbs_rbd_hdp.md.
 H is RBS (relative biophysical state); HDP is hidden-state dependent
 plasticity (persistent-parameter dynamics). H != HDP: RBD remains
 meaningful with fixed weights (dW = 0).

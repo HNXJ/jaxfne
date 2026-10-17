@@ -34,7 +34,7 @@ def test_root_surface_documented_names_exist():
 
 
 def test_guide_claims_surface_and_grammar():
-    guide = (ROOT / "docs" / "guides" / "jdna.md").read_text(encoding="utf-8")
+    guide = (ROOT / "docs" / "guides" / "grammar" / "jdna.md").read_text(encoding="utf-8")
     assert "PseudoGenome --develop--> NeuronalTensor" in guide
     for name in ("jtfne.PseudoGenome", "jtfne.develop",
                  "jtfne.load_pseudogenome", "jtfne.load_canonical_pseudogenome",
@@ -44,7 +44,7 @@ def test_guide_claims_surface_and_grammar():
 
 
 def test_api_page_names_match_root_surface():
-    api = (ROOT / "docs" / "api" / "jdna.md").read_text(encoding="utf-8")
+    api = (ROOT / "docs" / "reference" / "api" / "model" / "jdna.md").read_text(encoding="utf-8")
     for name in JDNA_ROOT:
         assert name in api
 
@@ -73,8 +73,8 @@ def test_no_jdna_branches_in_construct_simulate():
 
 
 def test_provenance_semantics_documented_and_real(tmp_path):
-    guide = (ROOT / "docs" / "guides" / "jdna.md").read_text(encoding="utf-8")
-    api = (ROOT / "docs" / "api" / "jdna.md").read_text(encoding="utf-8")
+    guide = (ROOT / "docs" / "guides" / "grammar" / "jdna.md").read_text(encoding="utf-8")
+    api = (ROOT / "docs" / "reference" / "api" / "model" / "jdna.md").read_text(encoding="utf-8")
     assert "provenance" in guide and "provenance" in api
     g = jtfne.load_canonical_pseudogenome("canonical-v1-column-1000n")
     t = jtfne.develop(g, seed=0)
@@ -95,7 +95,7 @@ def test_provenance_semantics_documented_and_real(tmp_path):
 
 def test_references_page_links_resolve():
     refs = (ROOT / "docs" / "reference" / "references.md").read_text(encoding="utf-8")
-    for target in ("docs/doctrine/rbs_rbd_hdp.md", "../guides/hdp.md"):
+    for target in ("docs/theory/doctrine/rbs_rbd_hdp.md", "../guides/hdp.md"):
         assert target in refs
 
 

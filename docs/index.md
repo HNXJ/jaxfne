@@ -24,9 +24,9 @@ flowchart LR
 - **State**: add or change biophysical state $H$.
 - **Mechanism**: change dynamics, plasticity, connectivity, geometry, or model detail.
 - **Observation**: measure spikes, population activity, or fields.
-- **Reduction**: develop or reduce models with [JDNA](guides/jdna.md).
+- **Reduction**: develop or reduce models with [JDNA](guides/grammar/jdna.md).
 
-[Scope & status](scope_and_status.md) · [Quickstart](quickstart.md)
+[Scope & status](reference/project/scope_and_status.md) · [Quickstart](start/quickstart.md)
 
 ## Install
 
@@ -46,28 +46,28 @@ model   = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms
 signals = jtfne.simulate(model)
 ```
 
-> Canonical example uses a qualitative laminar scaffold — see [Scope & status](scope_and_status.md#biological-calibration-status-canonical-v1-column).
+> Canonical example uses a qualitative laminar scaffold — see [Scope & status](reference/project/scope_and_status.md#biological-calibration-status-canonical-v1-column).
 
 ## Main pages
 
-- [Quickstart](quickstart.md) — build paths, paradigms, H-state adaptation
+- [Quickstart](start/quickstart.md) — build paths, paradigms, H-state adaptation
 - [Tutorials](tutorials/index.md) — worked examples
-- [Canonical Atlas Suite](guides/atlas_suite.md) — 7-panel interactive atlas
+- [Canonical Atlas Suite](guides/interop/atlas_suite.md) — 7-panel interactive atlas
 - [Études](etudes/index.md) — demonstrated scientific propositions
-- [API reference](api/index.md)
-- [H-state / HDP guide](guides/hdp.md)
+- [API reference](reference/api/index.md)
+- [H-state / HDP guide](guides/state/hdp.md)
 
 ## Canonical Visualization Atlas
 
 Seven linked panels (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`, `hdp`, `oscillatory`) label each quantity **OBSERVED** or **DERIVED** and carry
 manifest provenance. A panel whose declared inputs are missing renders an omission card. Representative preview from realized `canonical-v1-column-1000n` output:
 
-<a href="guides/atlas_suite.md">
+<a href="guides/interop/atlas_suite/">
   <img src="assets/readme/network_3d.png" alt="Network 3D atlas panel" width="100%">
 </a>
 
 Full panel set, generation workflow, and provenance rules:
-[Canonical Atlas Suite guide](guides/atlas_suite.md).
+[Canonical Atlas Suite guide](guides/interop/atlas_suite.md).
 
 Canonical 1000-neuron column, pinned 1000 ms reference run:
 <iframe class="jx-frame" src="_static/atlas/index.html" loading="lazy" title="Canonical 1000-neuron atlas dashboard"></iframe>
@@ -87,7 +87,7 @@ inter-area edge counts ([full page](_static/visuals/area_graph_n20.html)):
 <iframe class="jx-frame" src="_static/visuals/area_graph_n20.html" loading="lazy" title="Twenty-area hierarchy graph"></iframe>
 
 Three-area hierarchy (`V1–V4–PFC`, 100 neurons/area, bidirectional
-feedforward/feedback): [Gallery 09](gallery.md#09-three-area-hierarchy-v1v4pfc)
+feedforward/feedback): [Gallery 09](start/gallery.md#09-three-area-hierarchy-v1v4pfc)
 with the full six-panel atlas:
 
 <iframe class="jx-frame" src="_static/atlas_three_area/index.html" loading="lazy" title="Three-area atlas dashboard"></iframe>

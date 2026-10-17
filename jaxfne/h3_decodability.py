@@ -2,7 +2,7 @@
 
 Scientific question: does a localized RBS perturbation remain decodable after the
 perturbation offset is applied (no ongoing forcing)? See
-``docs/doctrine/protocol_h_rbd_memory.md`` §5.
+``docs/theory/memory/protocol_h_rbd_memory.md`` §5.
 """
 
 from __future__ import annotations

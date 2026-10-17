@@ -20,9 +20,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DRAFT = ROOT / "docs/publication/results_reconstruction/methods_draft.md"
-TRACE = ROOT / "docs/publication/results_reconstruction/methods_traceability_map.md"
-RESULTS = ROOT / "docs/publication/results_reconstruction/results_draft.md"
+DRAFT = ROOT / "docs/theory/publication/results_reconstruction/drafts/methods_draft.md"
+TRACE = ROOT / "docs/theory/publication/results_reconstruction/traceability/methods_traceability_map.md"
+RESULTS = ROOT / "docs/theory/publication/results_reconstruction/drafts/results_draft.md"
 RECEIPT_OUT = ROOT / "artifacts/publication/results_reconstruction/methods_audit_receipt.json"
 A = ROOT / "artifacts"
 

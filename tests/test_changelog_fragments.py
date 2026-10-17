@@ -1,4 +1,4 @@
-"""Changelog fragments: one file per change, assembled into ``docs/changelog.md``.
+"""Changelog fragments: one file per change, assembled into ``docs/reference/changelog.md``.
 
 Two claims carry the design, and each has a test built from its own case:
 
@@ -6,7 +6,7 @@ Two claims carry the design, and each has a test built from its own case:
   ``## [Unreleased]`` do not -- the control is the point, since a merge test that cannot fail
   says nothing about the layout;
 * the file's mixed CRLF/LF endings survive assembly byte for byte: the tools read
-  ``docs/changelog.md`` as bytes and insert without changing any existing byte.
+  ``docs/reference/changelog.md`` as bytes and insert without changing any existing byte.
 """
 
 from __future__ import annotations
@@ -161,10 +161,10 @@ def _git(cwd: Path, *args: str) -> subprocess.CompletedProcess:
 def _two_branches(repo: Path, change_a, change_b) -> subprocess.CompletedProcess:
     """Apply ``change_a`` and ``change_b`` on two branches off one commit; merge b into a."""
     assert _git(repo.parent, "init", "-q", str(repo)).returncode == 0
-    (repo / "docs").mkdir()
-    (repo / "docs" / "changelog.md").write_bytes(
+    (repo / "docs" / "reference").mkdir(parents=True)
+    (repo / "docs" / "reference" / "changelog.md").write_bytes(
         b"# Changelog\n\n## [Unreleased]\n\n## v0.1.0 (2026-09-01)\n\n### Added\n\n- old\n")
-    for step in (("add", "docs/changelog.md"), ("commit", "-q", "-m", "base"),
+    for step in (("add", "docs/reference/changelog.md"), ("commit", "-q", "-m", "base"),
                  ("branch", "-M", "base"), ("checkout", "-q", "-b", "b")):
         assert _git(repo, *step).returncode == 0, step
     change_b(repo)
@@ -186,7 +186,7 @@ def _fragment(name, text):
 
 def _under_unreleased(text):
     def write(repo: Path) -> None:
-        path = repo / "docs" / "changelog.md"
+        path = repo / "docs" / "reference" / "changelog.md"
         old = path.read_bytes().decode("utf-8")
         path.write_bytes(old.replace("## [Unreleased]\n", f"## [Unreleased]\n\n{text}\n", 1)
                          .encode("utf-8"))
@@ -203,7 +203,7 @@ def test_two_parallel_fragments_merge_without_conflict(tmp_path):
                            _fragment("delta.fixed.md", "- delta\n"))
     assert merged.returncode == 0, merged.stdout + merged.stderr
 
-    changelog = (repo / "docs" / "changelog.md").read_bytes()
+    changelog = (repo / "docs" / "reference" / "changelog.md").read_bytes()
     assembled = assemble(changelog, "0.1.1", "2026-09-02",
                          read_fragments(repo / "artifacts" / "changelog.d"))
     text = assembled.decode("utf-8")

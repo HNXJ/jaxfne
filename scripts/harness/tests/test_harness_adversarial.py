@@ -208,14 +208,14 @@ def test_epistemic_unresolved_polarity_preserved():
 
 def test_relative_not_calibrated_in_doctrine():
     """Adversarial check: doctrine must strictly separate relative from calibrated quantities."""
-    doctrine_text = (ROOT / "docs" / "doctrine" / "relative_quantity_grammar.md").read_text()
+    doctrine_text = (ROOT / "docs" / "theory" / "doctrine" / "relative_quantity_grammar.md").read_text()
     assert "p_eff = C_p(p0, r_p)" in doctrine_text
     assert "base" in doctrine_text.lower() and "relative" in doctrine_text.lower() and "effective" in doctrine_text.lower()
 
 
 def test_rbs_h_not_homeostasis_in_doctrine():
     """Adversarial check: H is defined as relative hidden biophysical state, not homeostasis by definition."""
-    doctrine_text = (ROOT / "docs" / "doctrine" / "tfne_containment_architecture.md").read_text()
+    doctrine_text = (ROOT / "docs" / "theory" / "doctrine" / "tfne_containment_architecture.md").read_text()
     assert "finite-dimensional state-space container" in doctrine_text
     assert "not a single homeostatic" in doctrine_text
 

@@ -96,7 +96,7 @@ constant extra drive. `izh` amplitudes `{0,2,4,8,12}`; `hei` amplitudes
 branch returns before paradigm resolution. Classification:
 **ANALYSIS_GAP** (family-specific drive surface); the 0.4.15 observations
 stand. Do not patch in this étude. Closure may add an HEI caveat to
-`docs/api/core.md` or reject unused `paradigm` on HEI; that is out of scope
+`docs/reference/api/core/core.md` or reject unused `paradigm` on HEI; that is out of scope
 here.
 
 ---

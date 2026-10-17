@@ -179,7 +179,9 @@ class TestSingleNeuronNotebook:
         doc_path = (
             Path(__file__).parent.parent
             / "docs"
+            / "archive"
             / "tutorials"
+            / "basics"
             / "01_single_neuron_multimodal.md"
         )
         content = doc_path.read_text(encoding="utf-8")
@@ -225,7 +227,7 @@ class TestDocumentationConsistency:
             Path(__file__).parent.parent / "docs" / "archive" / "index.md"
         )
         content = index_path.read_text(encoding="utf-8")
-        assert "(../tutorials/01_single_neuron_multimodal.md)" in content, (
+        assert "(tutorials/basics/01_single_neuron_multimodal.md)" in content, (
             "docs/archive/index.md must link the single-neuron tutorial"
         )
 

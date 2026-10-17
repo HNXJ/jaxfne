@@ -237,18 +237,18 @@ class TestDocumentation:
 
     def test_docs_page_exists(self):
         """Assert tutorial documentation page exists."""
-        docs_path = Path("docs/tutorials/08_v038_lfp_csd_readout.md")
+        docs_path = Path("docs/archive/tutorials/readouts/08_v038_lfp_csd_readout.md")
         assert docs_path.exists(), f"Expected {docs_path}"
 
     def test_docs_page_has_content(self):
         """Assert docs page has substantive content."""
-        docs_path = Path("docs/tutorials/08_v038_lfp_csd_readout.md")
+        docs_path = Path("docs/archive/tutorials/readouts/08_v038_lfp_csd_readout.md")
         content = docs_path.read_text(encoding='utf-8')
         assert len(content) > 1000, "Documentation page too short"
 
     def test_docs_mentions_examples(self):
         """Assert docs page covers all examples."""
-        docs_path = Path("docs/tutorials/08_v038_lfp_csd_readout.md")
+        docs_path = Path("docs/archive/tutorials/readouts/08_v038_lfp_csd_readout.md")
         content = docs_path.read_text(encoding='utf-8')
 
         examples = ["Example 1", "Example 2", "Example 3", "Single Neuron", "Laminar"]
@@ -257,7 +257,7 @@ class TestDocumentation:
 
     def test_docs_includes_equations(self):
         """Assert docs page includes mathematical equations."""
-        docs_path = Path("docs/tutorials/08_v038_lfp_csd_readout.md")
+        docs_path = Path("docs/archive/tutorials/readouts/08_v038_lfp_csd_readout.md")
         content = docs_path.read_text(encoding='utf-8')
 
         # Check for LaTeX math delimiters or equation references
@@ -266,7 +266,7 @@ class TestDocumentation:
 
     def test_docs_includes_configuration_examples(self):
         """Assert docs page shows configuration examples."""
-        docs_path = Path("docs/tutorials/08_v038_lfp_csd_readout.md")
+        docs_path = Path("docs/archive/tutorials/readouts/08_v038_lfp_csd_readout.md")
         content = docs_path.read_text(encoding='utf-8')
 
         assert "Configuration()" in content, "Missing Configuration() example"
@@ -478,7 +478,7 @@ class TestExecutionSmoke:
 
     def test_docs_markdown_valid(self):
         """Assert documentation page is valid markdown."""
-        docs_path = Path("docs/tutorials/08_v038_lfp_csd_readout.md")
+        docs_path = Path("docs/archive/tutorials/readouts/08_v038_lfp_csd_readout.md")
         content = docs_path.read_text(encoding='utf-8')
 
         # Basic markdown checks

@@ -86,7 +86,7 @@ def _sub_file(path: Path, pattern: str, replacement: str, *, count: int = 0) -> 
 
 
 def _published_pypi_version_from_install(root_dir: Path) -> str | None:
-    install = root_dir / "docs" / "install.md"
+    install = root_dir / "docs" / "start" / "install.md"
     if not install.exists():
         return None
     content = install.read_text(encoding="utf-8")
@@ -101,7 +101,7 @@ def sync_current_version_claims(version: str):
     """Sync docs pages that assert the live published PyPI release.
 
     During a release-candidate window the tree version may exceed the published
-    PyPI pin in ``docs/install.md``; those surfaces are left untouched until
+    PyPI pin in ``docs/start/install.md``; those surfaces are left untouched until
     publication (see ``tests/test_docs_version_alignment.py``).
     """
     root_dir = Path(__file__).resolve().parent.parent
@@ -116,39 +116,39 @@ def sync_current_version_claims(version: str):
 
     # Published PyPI line — only when the tree version is the live PyPI release.
     if sync_published_pins and _sub_file(
-        root_dir / "docs" / "install.md",
+        root_dir / "docs" / "start" / "install.md",
         r'The current published \*\*PyPI\*\* release is \*\*`jaxfne==[^`]+`\*\* \(tag `v[^`]+`\)',
         rf'The current published **PyPI** release is **`jaxfne=={version}`** (tag `v{version}`)',
     ):
-        changed.append("docs/install.md (published release line)")
+        changed.append("docs/start/install.md (published release line)")
     if sync_published_pins and _sub_file(
-        root_dir / "docs" / "install.md",
+        root_dir / "docs" / "start" / "install.md",
         r'pip install "jaxfne==[^"]+"',
         rf'pip install "jaxfne=={version}"',
     ):
-        changed.append("docs/install.md (pin example)")
+        changed.append("docs/start/install.md (pin example)")
 
     if sync_published_pins and _sub_file(
-        root_dir / "docs" / "colab.md",
+        root_dir / "docs" / "start" / "colab.md",
         r'\*\*Version:\*\* published PyPI release `jaxfne==[^`]+` \(tag `v[^`]+`\)',
         rf'**Version:** published PyPI release `jaxfne=={version}` (tag `v{version}`)',
     ):
-        changed.append("docs/colab.md (published release line)")
+        changed.append("docs/start/colab.md (published release line)")
 
-    if _sub_file(root_dir / "docs" / "quickstart.md",
+    if _sub_file(root_dir / "docs" / "start" / "quickstart.md",
                  r'Verified against `jaxfne==[^`]+`',
                  rf'Verified against `jaxfne=={version}`'):
-        changed.append("docs/quickstart.md")
+        changed.append("docs/start/quickstart.md")
 
-    if _sub_file(root_dir / "docs" / "api" / "index.md",
+    if _sub_file(root_dir / "docs" / "reference" / "api" / "index.md",
                  r'Latest PyPI release `jaxfne==[^`]+` \(tag `v[^`]+`\)',
                  rf'Latest PyPI release `jaxfne=={version}` (tag `v{version}`)'):
-        changed.append("docs/api/index.md")
+        changed.append("docs/reference/api/index.md")
 
-    if _sub_file(root_dir / "docs" / "citation.md",
+    if _sub_file(root_dir / "docs" / "reference" / "citation.md",
                  r'version = \{[^}]+\}',
                  rf'version = {{{version}}}'):
-        changed.append("docs/citation.md (version fields)")
+        changed.append("docs/reference/citation.md (version fields)")
 
     if _sub_file(root_dir / "CITATION.cff",
                  r'^version: .+$',
