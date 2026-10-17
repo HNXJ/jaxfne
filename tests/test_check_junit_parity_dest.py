@@ -11,10 +11,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 import scripts.check_junit_parity as parity
 
-OLD_SHA = "old" * 13 + "00"  # 40 hex chars, like a real SHA
-NEW_SHA = "new" * 13 + "11"
+OLD_SHA = "a0" * 20  # 40 hex chars, like a real SHA
+NEW_SHA = "b1" * 20
 FRESH_PAYLOAD = "fresh evidence for this SHA"
 STALE_PAYLOAD = "stale evidence from an earlier run"
 
@@ -76,3 +78,17 @@ def test_rerun_on_same_sha_replaces_stale_files(tmp_path, monkeypatch):
     assert [p.name for p in found] == ["pytest-results-3.11.xml"]
     assert all(NEW_SHA in str(p) for p in found)
     assert found[0].read_text(encoding="utf-8") == FRESH_PAYLOAD
+
+
+@pytest.mark.parametrize("bad_sha", ["", "..", "../" + "a0" * 19, "a0" * 4])
+def test_non_sha_is_refused_before_clearing(tmp_path, monkeypatch, bad_sha):
+    """An empty or path-like sha would make the cleared target dest itself or escape it."""
+    dest = tmp_path / "ci-junit"
+    keep = dest / OLD_SHA / "pytest-results-3.11.xml"
+    keep.parent.mkdir(parents=True)
+    keep.write_text(STALE_PAYLOAD, encoding="utf-8")
+
+    monkeypatch.setattr(parity, "_gh", _fake_gh(FRESH_PAYLOAD))
+    with pytest.raises(SystemExit, match="not a full commit SHA"):
+        parity.fetch_ci_junit(bad_sha, dest)
+    assert keep.read_text(encoding="utf-8") == STALE_PAYLOAD

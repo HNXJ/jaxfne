@@ -136,10 +136,7 @@ def _is_tfne_minted(tensor: "NeuronalTensor") -> bool:
     ref, stored = entry
     if ref() is not tensor:
         return False
-    if not stored:
-        return False
-    current = _tensor_identity_digest(tensor)
-    return bool(current) and current == stored
+    return _tensor_identity_digest(tensor) == stored
 
 #: Maps a Pose3D.plane to (global_axis_for_local_x, global_axis_for_local_y,
 #: global_axis_for_local_depth). "xy" is the canonical default (depth=z, the

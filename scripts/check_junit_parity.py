@@ -72,6 +72,8 @@ def fetch_ci_junit(sha: str, dest: Path) -> list[Path]:
             "evaluated, and an unevaluated comparison is not a pass."
         )
     print(f"+ CI evidence from {CI_WORKFLOW} run {run_id} @ {sha}", flush=True)
+    if not re.fullmatch(r"[0-9a-f]{40}", sha):
+        raise SystemExit(f"refusing to download into {dest}: {sha!r} is not a full commit SHA")
     target = dest / sha
     if target.exists():
         shutil.rmtree(target)

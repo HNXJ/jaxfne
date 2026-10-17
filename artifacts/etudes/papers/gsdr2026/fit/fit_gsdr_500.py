@@ -103,13 +103,17 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                 "components": json.loads(str(z["best_components_json"]))}
         total_wall = float(z["total_wall_s"])
         traj_path = out / "manifest_partial.json"
-        if traj_path.exists():
-            prior = json.loads(traj_path.read_text())
-            trajectory = prior.get("trajectory", [])
+        prior = json.loads(traj_path.read_text()) if traj_path.exists() else {}
+        trajectory = prior.get("trajectory", [])
+        # The checkpoint's own record wins; checkpoints written before it carried one fall
+        # back to the partial manifest, and fits older than the flag were all single.
+        if "morphology" in z.files:
+            prior_morph = str(z["morphology"])
+        else:
             prior_morph = prior.get("morphology", "single")
-            if prior_morph != morphology:
-                raise SystemExit("error: --resume with morphology %r over a %r fit"
-                                 % (morphology, prior_morph))
+        if prior_morph != morphology:
+            raise SystemExit("error: --resume with morphology %r over a %r fit"
+                             % (morphology, prior_morph))
         for _ in range(start_gen * (int(population) - 1)):
             rng.standard_normal(n_params)
         print("RESUMED from %s at gen %d best %.4f" % (ck, start_gen, best["loss"]),
@@ -136,7 +140,8 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                  best_components_json=np.array(
                      json.dumps(best["components"])),
                  total_wall_s=np.float64(total_wall),
-                 next_gen=np.int64(next_gen))
+                 next_gen=np.int64(next_gen),
+                 morphology=np.array(morphology))
         os.replace(tmp, _ckpt_path(out, next_gen - 1))
         (out / "manifest_partial.json").write_text(json.dumps(
             {"git_sha": git_sha(), "morphology": morphology,
