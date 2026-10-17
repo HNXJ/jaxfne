@@ -149,10 +149,12 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 - GSDR (lane 4f, on dev 2026-10-17 under `etudes/papers/gsdr2026/`): the saturated regime
   (κ ≈ 0.95 against 0.0156) survived three tested suspicions, CALIBRATION §6.4 to §6.6:
   inhibition ×1 to ×16 (only slows 21 to 13.5 Hz), OU noise ×1 to ×4, and the κ estimator
-  (identical on both sides). Next, no fitting: structural diagnosis, E/I co-scaling and a
-  stimulus-amplitude sweep, labelled with `activity_regimes`. HH route hardening (review
-  2026-10-17): `dt` unvalidated in the public steppers, non-finite updates keep the old state,
-  silent receptor defaults, mixed `s0` refused late, a broad except, no dt-rescaling test.
+  (identical on both sides). §6.7 structural sweeps: saturation persists with the stimulus off
+  and across 0.25 to 2× overall gain; only AMPA 0 breaks it. Next, no fitting: reproduce the
+  first-in-process outlier (5.19 Hz, κ 0.0; second sighting) in a fresh process, CPU and GPU;
+  then compare the port's AMPA recurrence (connectivity density, delays, kinetics) with the
+  authors'. HH hardening landed; open low notes: `held_steps` counts edge elements while the
+  docstring says steps, int32 count scalars, no full-kernel grad test, `dt="0.1"` coerced.
 - CAMINOS lag (6.47 against 8.5 ms): Hamm attributes the gap to the paper's estimator rather than
   the model; class stays verified, the lag stays a recorded finding, no fit.
 - Frozen, do not move: `artifacts/publication/frozen_manifest.json`,
