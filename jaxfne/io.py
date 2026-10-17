@@ -143,6 +143,7 @@ def manifest(
     evaluation: Optional[dict[str, Any]] = None,
     tuning: Optional[dict[str, Any]] = None,
     dataset: Optional[dict[str, Any]] = None,
+    model: Optional[Any] = None,
 ) -> dict[str, Any]:
     """Build a strict JSON-safe run manifest.
 
@@ -150,6 +151,14 @@ def manifest(
     manifest without changing the base schema version.  All v0.0.4 truth gates are
     always emitted.  Objective/evaluation/tuning sections carry explicit claim labels
     so downstream readers cannot mistake them for empirical validation results.
+
+    ``model`` (a :class:`Model`) supplies the constant ``x_sources`` rows from
+    its derived :attr:`Model.x_sources` property — ``(area, layer,
+    cell_type)`` triples with per-entry ``n_neurons`` counts, the single
+    manifest vocabulary (shared with :meth:`Model.manifest`). Without a
+    model no constant rows are emitted (a bare configuration cannot name
+    the realized population); Poisson rows always merge from the run's
+    signals metadata.
     """
     from .fields import validate_source_field_status
     from ._config import clamp_truth_gate_metadata
@@ -238,6 +247,22 @@ def manifest(
             "mechanism_claim_status": "not_claimed",
             "physical_amplitude_calibrated": False,
         }
+    # T-24 frozen input sources: constant rows come only from a realized
+    # model's derived entries (single triple vocabulary); Poisson rows merge
+    # from the run's signals metadata (route auto-detected). Without a model
+    # there are no constant rows to emit.
+    from .inputs import (
+        compile_poisson_sources_from_signals_metadata,
+        xsource_to_dict,
+    )
+
+    _manifest_x = (
+        *((tuple(model.x_sources) if model is not None else ())),
+        *compile_poisson_sources_from_signals_metadata(
+            signals.metadata if signals is not None else None
+        ),
+    )
+    data["x_sources"] = [xsource_to_dict(s) for s in _manifest_x]
     return json_safe(data)
 
 

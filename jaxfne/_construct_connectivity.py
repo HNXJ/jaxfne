@@ -1074,6 +1074,8 @@ def connect(
     )
     merged_static = _connect_merge_static(models, merged_rows, strict, cfg2.metadata["ensemble"])
 
+    # T-24: no stored input-source record; Model.x_sources derives the
+    # constant entries at access from the merged drive + namespaced rows.
     return Model(
         cfg=cfg2,
         params={

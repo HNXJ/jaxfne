@@ -1185,6 +1185,9 @@ def simulate(
     if sim.poisson_drive is not None:
         _emitter: IzhikevichParams = self.params["emitter"]
         _pd = sim.poisson_drive
+        from .inputs import check_current_route_poisson_drive
+
+        check_current_route_poisson_drive(_pd)
         _base_seed = int(_pd.get("seed", sim.seed + 7919))
         if continuation is None:
             _chunk = 0
@@ -1657,6 +1660,9 @@ def _simulate_lif(
         drive_2d_sched = jnp.broadcast_to(drive, (sim.n_steps, n_neurons))
     if sim.poisson_drive is not None:
         _pd = sim.poisson_drive
+        from .inputs import check_current_route_poisson_drive
+
+        check_current_route_poisson_drive(_pd)
         _poisson_arr = _make_poisson_drive(
             n_steps=sim.n_steps,
             n_neurons=n_neurons,

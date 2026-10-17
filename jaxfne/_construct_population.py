@@ -204,12 +204,16 @@ def _apply_baseline_drive(
     as ``izhikevich_params_from_labels(drive_overrides=)`` builds them."""
     import numpy as np
 
+    from .inputs import baseline_drive_entries
+
     spec = metadata.get("drive")
     baseline = spec.get("baseline_drive_by_cell_type") if isinstance(spec, dict) else None
     _refuse_unmatched_baseline_drive(params.labels, baseline, declared)
-    if not baseline:
-        return params
-    overrides = {str(k): float(v) for k, v in baseline.items()}
+    # Values come from the compiled baseline entries (defaults-filled in
+    # drive() vocabulary order); a defaults-filled override map is
+    # bit-identical to the historical partial/None application because the
+    # defaults equal the emitter-table values the params were built from.
+    overrides = {e.targets[0]: float(e.value) for e in baseline_drive_entries(metadata)}
     drive = [overrides.get(label, value) for label, value in zip(params.labels, np.asarray(params.drive).tolist())]
     return replace(params, drive=jnp.asarray(drive, dtype=params.drive.dtype))
 
@@ -233,27 +237,18 @@ def _apply_tensor_triple_drive(
     """
     import numpy as np
 
+    from .inputs import triple_drive_entries
+
     entries = metadata.get("tensor_triple_drive")
     if not entries:
         return params
+    # Values and order come from the compiled triple entries (metadata
+    # order); membership refusal below keeps this route's exact messages.
+    compiled = triple_drive_entries(metadata)
     drive = np.array(np.asarray(params.drive).tolist(), dtype=float)
-    for entry in entries:
-        try:
-            area = str(entry["area"])
-            layer = str(entry["layer"])
-            cell_type = str(entry["cell_type"])
-            value = entry["drive"]
-        except (KeyError, TypeError):
-            raise ValueError(
-                f"tensor_triple_drive entry {entry!r} is not realized: it takes "
-                "{area, layer, cell_type, drive}"
-            )
-        if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
-            raise ValueError(
-                f"tensor_triple_drive(area={area!r}, layer={layer!r}, "
-                f"cell_type={cell_type!r}, drive={value!r}) is not realized: "
-                "it takes a finite real number"
-            )
+    for entry in compiled:
+        area, layer, cell_type = entry.targets
+        value: Any = float(entry.value)
         matched = sum(
             1
             for row in neuron_rows

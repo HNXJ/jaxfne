@@ -560,6 +560,95 @@ class Model:
     params: dict[str, Any]
     static: dict[str, Any]
 
+    @property
+    def x_sources(self) -> tuple[Any, ...]:
+        """Realized constant input sources, derived at access from executed state.
+
+        One frozen :class:`XSource` per realized ``(area, layer, cell_type)``
+        group (one entry per distinct drive value within a group, in
+        first-appearance order): the per-neuron drive channel ``simulate``
+        reads — ``params["emitter"].drive``, or ``static["adex"]``'s
+        ``triple_drive_pA`` on the AdEx route — grouped by the population's
+        own final area/layer/cell-type labels. Each entry carries
+        ``n_neurons``, the count of neurons with exactly that target and
+        value, so the per-neuron drive reconstructs as each value repeated
+        ``n_neurons`` times. The unit follows the emitter family
+        (``"native_current"``, ``"pA"`` on AdEx). Nothing is stored,
+        so ``set_parameter``/tune rebuilds, ``connect()`` merges (drive
+        concatenates with the emitter; areas are namespaced in the merged
+        neuron table) and the LIF restore (final labels) are always
+        reflected. The frozen dataclass rejects assignment
+        (``FrozenInstanceError``, an ``AttributeError``).
+
+        Excludes everything that is not the constant drive channel:
+        Simulation-level Poisson streams (they ride the run manifest from
+        ``signals.metadata``), additive ``paradigm``/``StimulusSchedule``
+        inputs and per-step ``drive_schedule`` arrays (time-varying, not
+        constant sources), and routes without a constant drive channel at
+        all — the HH route (``HHParams`` carries no ``drive``) and the AdEx
+        route without a declared triple drive (``triple_drive_pA`` None)
+        both report ``()``.
+        """
+        from .inputs import XSource
+
+        import numpy as _np
+
+        static = self.static or {}
+        params = self.params or {}
+        adex = static.get("adex")
+        if adex is not None:
+            triple = adex.get("triple_drive_pA", None)
+            if triple is None:
+                return ()
+            unit = "pA"
+            values = [float(v) for v in _np.asarray(triple, dtype=float).tolist()]
+        else:
+            drive = getattr(params.get("emitter"), "drive", None)
+            if drive is None:
+                return ()
+            unit = "native_current"
+            values = [float(v) for v in _np.asarray(drive, dtype=float).tolist()]
+        rows = static.get("neuron_metadata")
+        if rows is None or len(list(rows)) != len(values):
+            emitter = params.get("emitter")
+            labels = tuple(getattr(emitter, "labels", ()) or ())
+            if len(labels) != len(values):
+                # Degenerate: no label basis matches the drive channel;
+                # report nothing rather than invented targets.
+                return ()
+            layer_labels = getattr(emitter, "layer_labels", None) or tuple(
+                "unspecified" for _ in labels
+            )
+            rows = [
+                {
+                    "area": "network",
+                    "layer": str(layer_labels[i]),
+                    "cell_type": str(labels[i]),
+                }
+                for i in range(len(values))
+            ]
+        grouped: dict[tuple[str, str, str], dict[Any, list[float]]] = {}
+        for row, value in zip(rows, values):
+            key = (
+                str(row.get("area")),
+                str(row.get("layer")),
+                str(row.get("cell_type")),
+            )
+            bucket = grouped.setdefault(key, {})
+            marker = value if value == value else "nan"
+            bucket.setdefault(marker, []).append(value)
+        return tuple(
+            XSource(
+                kind="constant",
+                targets=key,
+                value=float(members[0]),
+                unit=unit,
+                n_neurons=len(members),
+            )
+            for key, bucket in grouped.items()
+            for members in bucket.values()
+        )
+
     def _require_izhikevich_emitter(self, method_name: str) -> "IzhikevichParams":
         """Guard for `Model` methods not yet generalized beyond the Izhikevich
         emitter family. Raises a clear, actionable error instead of an

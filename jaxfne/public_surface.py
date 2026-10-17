@@ -502,6 +502,7 @@ ADVANCED_NAMESPACE: Final[dict[str, str]] = {
     "get_sharding_context": "jaxfne.sharding_utils",
     "boundedness_report": "jaxfne._long_diagnostics",
     "stability_report": "jaxfne._long_diagnostics",
+    "XSource": "jaxfne.inputs",
     "SanityDeltaConfig": "jaxfne.sanity_delta",
     "SurrogateConfig": "jaxfne._runtime_config",
     "surrogate_config": "jaxfne._runtime_config",

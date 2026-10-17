@@ -423,6 +423,8 @@ from ._long_diagnostics import (
     boundedness_report,
     stability_report,
 )
+# T-24 frozen input sources (ADVANCED tier: root attrs, not __all__).
+from .inputs import XSource
 
 from .public_surface import PUBLIC_EXPORTS
 

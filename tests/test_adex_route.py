@@ -569,6 +569,7 @@ WALK_CALLS = {
     "with_emitter_parameters": lambda m, s, p: m.with_emitter_parameters(a=0.02),
     "with_hdp_initial_state": lambda m, s, p: m.with_hdp_initial_state(H0=np.ones(N)),
     "with_recurrent_coupling": lambda m, s, p: m.with_recurrent_coupling(),
+    "x_sources": lambda m, s, p: m.x_sources,
 }
 
 
@@ -612,6 +613,10 @@ def _check_walk_result(name, result, model, signals):
     elif name == "simulate":
         assert isinstance(result, Signals)
         assert np.asarray(result.spikes).shape == (N_STEPS, N)
+    elif name == "x_sources":
+        # T-24 derived entries: the fixture declares no drive, so the AdEx
+        # route carries no drive channel at all (triple_drive_pA None).
+        assert isinstance(result, tuple) and result == (), result
     else:
         raise AssertionError(f"no check for Model.{name}(): add one with its walk entry")
 

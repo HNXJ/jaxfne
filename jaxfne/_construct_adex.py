@@ -317,6 +317,8 @@ def _adex_triple_drive_pA(
     fails as ValueError. Mirrors ``_apply_tensor_triple_drive`` in
     ``jaxfne/_construct_population.py`` (current-based route).
     """
+    from .inputs import triple_drive_entries
+
     entries = (metadata or {}).get("tensor_triple_drive")
     if not entries:
         return None
@@ -325,25 +327,14 @@ def _adex_triple_drive_pA(
             f"tensor_triple_drive {entries!r} is not realized: it takes "
             "a list of {area, layer, cell_type, drive}"
         )
+    # Values and order come from the compiled triple entries (metadata
+    # order); membership refusal below keeps this route's exact behavior.
+    compiled = triple_drive_entries(metadata, unit="pA")
     drive = np.zeros(len(rows), dtype=np.float64)
     declared = set(labels)
-    for entry in entries:
-        try:
-            area = str(entry["area"])
-            layer = str(entry["layer"])
-            cell_type = str(entry["cell_type"])
-            value = entry["drive"]
-        except (KeyError, TypeError):
-            raise ValueError(
-                f"tensor_triple_drive entry {entry!r} is not realized: it takes "
-                "{area, layer, cell_type, drive}"
-            )
-        if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
-            raise ValueError(
-                f"tensor_triple_drive(area={area!r}, layer={layer!r}, "
-                f"cell_type={cell_type!r}, drive={value!r}) is not realized: "
-                "it takes a finite real number"
-            )
+    for compiled_entry in compiled:
+        area, layer, cell_type = compiled_entry.targets
+        value: float = float(compiled_entry.value)
         matched = [
             i
             for i, row in enumerate(rows)

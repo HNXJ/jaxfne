@@ -94,7 +94,11 @@ def _scale_edge_list_weights(model: "Model", scale_fn) -> "Model":
         )
     params = dict(model.params)
     params["edge_list"] = edges
-    return Model(cfg=model.cfg, params=params, static=dict(model.static))
+    return Model(
+        cfg=model.cfg,
+        params=params,
+        static=dict(model.static),
+    )
 
 
 def _parameter_spec_to_dict(value: Any) -> Any:
@@ -1055,7 +1059,11 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
     params["emitter"] = new_emitter
     from ._model import Model  # deferred: Model is defined after this module is imported
 
-    return Model(cfg=model.cfg, params=params, static=dict(model.static))
+    return Model(
+        cfg=model.cfg,
+        params=params,
+        static=dict(model.static),
+    )
 
 
 def _mask_for_parameter(
@@ -1279,7 +1287,11 @@ def _model_with_edge_parameter(
     )
     from ._model import Model
 
-    return Model(cfg=model.cfg, params=params, static=dict(model.static))
+    return Model(
+        cfg=model.cfg,
+        params=params,
+        static=dict(model.static),
+    )
 
 
 def _model_with_matrix_parameter(
@@ -1345,7 +1357,11 @@ def _model_with_matrix_parameter(
         )
         from ._model import Model
 
-        return Model(cfg=model.cfg, params=params, static=dict(model.static))
+        return Model(
+        cfg=model.cfg,
+        params=params,
+        static=dict(model.static),
+    )
 
     current = getattr(emitter, target)
     W = _np_matrix.asarray(current, dtype=float)
@@ -1360,7 +1376,11 @@ def _model_with_matrix_parameter(
     params["emitter"] = new_emitter
     from ._model import Model  # deferred: Model is defined after this module is imported
 
-    return Model(cfg=model.cfg, params=params, static=dict(model.static))
+    return Model(
+        cfg=model.cfg,
+        params=params,
+        static=dict(model.static),
+    )
 
 
 def _model_with_parameters(

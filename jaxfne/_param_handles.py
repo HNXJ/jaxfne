@@ -510,7 +510,11 @@ def set_parameter(model: "Model", path: str, value: Any) -> "Model":
             new_emitter = replace(emitter, **{handle.field: new_values})
         params = dict(model.params)
         params["emitter"] = new_emitter
-        return _model_mod.Model(cfg=model.cfg, params=params, static=dict(model.static))
+        return _model_mod.Model(
+            cfg=model.cfg,
+            params=params,
+            static=dict(model.static),
+        )
     if handle.kind == "edge":
         return _set_edge_parameter(model, handle, path, value)
     emitter = model.params["emitter"]
@@ -520,7 +524,11 @@ def set_parameter(model: "Model", path: str, value: Any) -> "Model":
     new_emitter = replace(emitter, drive=new_drive)
     params = dict(model.params)
     params["emitter"] = new_emitter
-    return _model_mod.Model(cfg=model.cfg, params=params, static=dict(model.static))
+    return _model_mod.Model(
+        cfg=model.cfg,
+        params=params,
+        static=dict(model.static),
+    )
 
 
 def _scatter_values(current: Any, idx: np.ndarray, value: Any, path: str) -> Any:
@@ -568,7 +576,11 @@ def _set_edge_parameter(model: "Model", handle: _Handle, path: str, value: Any) 
             )
         params = dict(model.params)
         params["emitter"] = replace(emitter, W=new_W)
-        return _model_mod.Model(cfg=model.cfg, params=params, static=dict(model.static))
+        return _model_mod.Model(
+            cfg=model.cfg,
+            params=params,
+            static=dict(model.static),
+        )
     weights = np.asarray(store["weights"], dtype=float).copy()
     selected = weights[np.asarray(idx)]
     val = np.asarray(value, dtype=float)
@@ -597,7 +609,11 @@ def _set_edge_parameter(model: "Model", handle: _Handle, path: str, value: Any) 
         adex = dict(static["adex"])
         adex["weight_nS"] = np.asarray(weights, dtype=np.float64)
         static["adex"] = adex
-        return _model_mod.Model(cfg=model.cfg, params=dict(model.params), static=static)
+        return _model_mod.Model(
+            cfg=model.cfg,
+            params=dict(model.params),
+            static=static,
+        )
     edges = model.params["edge_list"]
     params = dict(model.params)
     params["edge_list"] = replace(
@@ -607,7 +623,11 @@ def _set_edge_parameter(model: "Model", handle: _Handle, path: str, value: Any) 
         weight_magnitude=None,
         mechanism_weight_magnitude_table=None,
     )
-    return _model_mod.Model(cfg=model.cfg, params=params, static=dict(model.static))
+    return _model_mod.Model(
+        cfg=model.cfg,
+        params=params,
+        static=dict(model.static),
+    )
 
 
 def list_parameters(model: "Model") -> list[dict[str, Any]]:

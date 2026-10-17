@@ -92,6 +92,7 @@ def manifest(
         evaluation=evaluation,
         tuning=tuning,
         dataset=dataset,
+        model=self,
     )
     if trials is not None:
         res["trials"] = trials
@@ -255,6 +256,9 @@ def manifest(
         }
     # v0.2.26: computation-basis block
     res["basis"] = _default_basis_dict()
+    # T-24: res["x_sources"] already carries the single vocabulary —
+    # build_manifest above took the model's derived constant entries plus
+    # the run's Poisson rows from signals metadata.
     # v0.2.27: conservation-inspired proxy diagnostics
     if signals is not None and signals.field is not None:
         from .fields import compute_conservation_proxy_diagnostics
