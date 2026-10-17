@@ -18,7 +18,7 @@ from pathlib import Path
 import jax
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pcl_column as C  # noqa: E402
 
