@@ -135,15 +135,10 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   declared intra-step fixed point: f applies R ordered rounds, with R and the order part of A and
   recorded in the manifest; delay 0 means "resolved inside the step". Closes when: the operator is
   in the core with tests, PCL B3 uses it, and the CAMINOS 0-delay sensitivity runs on it.
-- T-23 [A] One regime classifier on y in the core, reported in every manifest and usable as a fit
-  constraint. Labels per population over the kept window, defaults overridable per study: silent
-  (rate < 0.1 Hz or active fraction < 5 %); saturated (active fraction > 95 % and κ > 0.5, or rate
-  > 100 Hz); runaway (rate rises > 2× between window halves); asynchronous (κ < 0.1, CV_ISI
-  0.7–1.5); oscillatory (spectral peak excess above a declared floor). κ is the Wang–Buzsáki
-  coherence on binary spike counts in declared bins (default 5 ms; Hamm 2026-10-14), distinct from
-  the dt-resolution Pearson κ in `tutorial_utils.kappa_synchrony`. Seeds in a different regime
-  are reported, never dropped; a mixed-regime result is a finding. Closes when: the classifier and
-  its tests are on dev and the replication scorers report it.
+- T-23 [A] Remainder: the classifier (`jaxfne.analysis.activity_regime(s)`, a7a6cd88) and the
+  Izhikevich 2003 and Destexhe 2009 scorers' regime reports are on dev (2026-10-17). Left:
+  report it in every run manifest; the Destexhe scorer passes `bin_ms` 5.0 as a literal where it
+  should read the classifier's thresholds. Closes when: manifests carry the regime block.
 - T-24 [A] Constant drive (bias current, external Poisson rate) is part of x: a declared input
   source with a schedule (constant is a special case); the emitter `drive` field becomes a
   shorthand that compiles to an x source, existing numerics unchanged. Closes when: both routes
@@ -151,8 +146,13 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 - T-25 [A] Plastic weights: W is state in h during a run; A holds W₀ and its ownership. A trained
   network is A' = A with W₀ ← W_T, recorded with provenance. Closes when: the tensor carries W₀
   provenance and PCL's trained weights load as A'.
-- GSDR (lane 4f): Hamm's first suspicion for the saturated regime (κ ≈ 0.95 against 0.0156) is weak
-  inhibition: sweep g = J_I/J_E at fixed drive before any further fit.
+- GSDR (lane 4f, on dev 2026-10-17 under `etudes/papers/gsdr2026/`): the saturated regime
+  (κ ≈ 0.95 against 0.0156) survived three tested suspicions, CALIBRATION §6.4 to §6.6:
+  inhibition ×1 to ×16 (only slows 21 to 13.5 Hz), OU noise ×1 to ×4, and the κ estimator
+  (identical on both sides). Next, no fitting: structural diagnosis, E/I co-scaling and a
+  stimulus-amplitude sweep, labelled with `activity_regimes`. HH route hardening (review
+  2026-10-17): `dt` unvalidated in the public steppers, non-finite updates keep the old state,
+  silent receptor defaults, mixed `s0` refused late, a broad except, no dt-rescaling test.
 - CAMINOS lag (6.47 against 8.5 ms): Hamm attributes the gap to the paper's estimator rather than
   the model; class stays verified, the lag stays a recorded finding, no fit.
 - Frozen, do not move: `artifacts/publication/frozen_manifest.json`,
