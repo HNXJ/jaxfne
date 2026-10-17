@@ -90,7 +90,7 @@ release adds at most one emitter.
 ## 5. Definition of done, per release
 
 1. Every paper has a verdict and is at P6, or has a stated reason why P6 does not apply.
-2. A replication index (`artifacts/etudes/REPLICATIONS.md`) lists each paper's tier,
+2. A replication index (`artifacts/etudes/meta/REPLICATIONS.md`) lists each paper's tier,
    verdict, ledger, receipts and gallery page.
 3. The narrowing target is met (§6) and the size gate is green.
 4. The usual release gate: rc gate, CI green on the SHA, second review, receipt.

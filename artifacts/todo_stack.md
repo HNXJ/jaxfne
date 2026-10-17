@@ -38,10 +38,12 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 
 - R2 restated (Hamm 2026-10-14): bytes -10% against the 0.5.5 tag (met: 86.8 MB
   tracked at 1bfdaa84 against 126.0 MB at the tag) plus files at the recorded budget with
-  reasons on record (2382 tracked, `budget_files` 2400 in
-  `scripts/tree_size_allowlist.json`; each raise from 2269, its reason and authorization are in
-  this line's git history and c4056347; last raise 2372 -> 2400 for the Destexhe lane, which
-  also covers the O-8 test `tests/test_artifacts_tree_degree.py`, 2026-10-16). The
+  reasons on record (2415 tracked, `budget_files` 2428 in
+  `scripts/tree_size_allowlist.json`, 2026-10-17; each raise from 2269, its reason and
+  authorization are in this line's git history and c4056347; 2372 -> 2400 for the Destexhe lane
+  and the O-8 test, 2026-10-16; 2400 -> 2428 on 2026-10-17 for the GSDR lane, its diagnostics,
+  the T-23 regime tests and the HH tests, each raise in its commit: fdd797ce, d0c1faae, 405378e8,
+  c6f052af, bb55e631, 5615fb98, 844900c6). The
   regenerable docs assets are untracked already: the 9 registry `copies` dests under
   `docs/assets/etudes/` and all atlas/etude HTML are build products of
   `scripts/build_docs_assets.py --build` (the Read the Docs `pre_build` path) and gitignored.
@@ -56,11 +58,17 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
   push dev. Standing item. Closes when: `python scripts/build_dashboard_data.py --check` passes
   on each push.
-- T-26 [A] `scripts/check_junit_parity.py` downloads CI JUnit into
-  `artifacts/attestations/ci-junit/` without clearing it, so a rerun on a new SHA fails with
-  "file exists" from `gh run download` (seen 2026-10-14 on 65af8541; it fails closed, never
-  mixes SHAs). It also needs `gh` on the gate host (WSL has none; the 0.5.6 gate used a
-  `gh.exe` shim with `GH_REPO`). Closes when: the script clears its dest per SHA, with a test.
+- T-31 [A] Audit 2026-10-17 (Muse and Claude, union verified by a third Muse pass). Landed: harness
+  integrity re-hashed and gated (D1), dead replication paths repointed (D9), JUnit dest per SHA
+  (T-26). Open: (a) silent fallbacks reported as real values: `_construct_connectivity.py:814-817`
+  merge, `util.py:881-899` delay and trainable counts, `_model_manifest.py:229-230`
+  `executed_delay`, `paradigm.py:399` repr fallback, `_config.py:788` `or 100`; (b)
+  `tests/test_v033_two_neuron_ei.py:70-73` skips in a clean checkout (reads untracked
+  `outputs/`); (c) `scripts/gate_etude_no_resim.py` has no caller; (d) the publication gate
+  (`run_test_gate.py:689-699`) runs a snapshot and prints placeholder text; (e) ruff covers
+  `jaxfne/` only (scripts 53, tests 393, examples 31 findings); (f) `agent.py:207,210,241,278`
+  `dtype=float` in diagnostics. Closes when: each is fixed with a failing-first test or recorded
+  harmless here.
 - T-28 [H] `jaxfne/tfne.py:211` `_RESERVED_LOWER = {"x", "y", "h", "s"}` is defined and never read
   (Muse cleanup, 2026-10-15). Wiring it into name validation changes which names are accepted;
   deleting it drops the stated reservation. Closes when: Hamm picks one.
@@ -151,9 +159,39 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   order), rare on CPU (2 of 40 at a 1e-2 mV kick, 0 of 40 noise seeds). §6.10: wiring matches;
   the one-compartment reduction S1 removes the reference's axial bottleneck (inferred ~1e4×
   more drive). Hamm 2026-10-17: the 4-compartment layout is deliberate; keep it (S1 retired).
-  Next: multi-compartment HH route in the core (jaxley 0.14.0 oracle), then the §6.2 regime
-  diagnostic at g*, then a refit. HH hardening landed; open low notes: `held_steps` counts edge elements while the
+  The multi-compartment route landed (jaxley 0.14.0 oracle within 8.3e-12 mV; gates start at
+  0.2 as in the reference; `single` bit-identical). §6.11: at the one-compartment g* the
+  reference cell fires faster (70.7 Hz, κ_fit 0.61), so g* says little about it. Running: the
+  GSDR fit on `--morphology reference` (500 generations, population 6, about 17 h on the GPU,
+  `F:\warehouse\gsdr\gsdr_fit500_reference_2026-10-17\`, resumable). Then the regime diagnostic
+  at its g* and held-out seeds 4–8. The scored steps run under `PREREG_P3.md`, still a draft:
+  Hamm signs it before a scored verdict (O-25). HH hardening landed; open low notes: `held_steps` counts edge elements while the
   docstring says steps, int32 count scalars, no full-kernel grad test, `dt="0.1"` coerced.
+- T-30 [A] Replication conformance to the checklist (`etudes/meta/RESIDUAL_PROTOCOL.md`, section
+  "Replication checklist"; audit 2026-10-17), per paper:
+  - PCL Fig. 3: scored tuning runs on the numba oracle (`papers/pcl/port/run_tuning.py:85-94`,
+    CORE_GAP) and `pcl_event_ref*` transcriptions drive scored results (E1, S2). Next: the core
+    cascade through T-22, then rescore on the core, or Hamm's exception (O-24).
+  - Izhikevich 2003: scored runs call `simulate_eig_izhikevich` directly and use an étude-local
+    `kernel_net_m.py`; the `net_reference.py` transcription is a scored arm (E1, E2, S2). Next:
+    `net.m` update order as a core option, runs through `construct`, the transcription in tests.
+  - CAMINOS: P3 sweeps scored on the `caminos_jax.py` oracle (P6 v2 is core-compliant);
+    `ref42_phase_delay` and `analyze_run` are étude-local (E3, S2). Next: estimators into
+    `jaxfne.analysis`; P3 claims cite the P6 route.
+  - GSDR: `run_gsdr.py` builds through `construct_hh_model`, outside `construct()` dispatch; local
+    `detect_spikes`, rates, PSD and κ (E1, E3). Next: HH in `construct()` dispatch, estimators
+    into `jaxfne.analysis`.
+  - Destexhe 2009: core route; local `cv_isi`, `pairwise_cc`, `mean_rate_hz` (E3); no LEDGER or
+    RESULT yet (R1).
+  - pcl_h and Q-learning: core-compliant; no phase records (R1); pcl_h imports sibling-étude
+    modules through `sys.path` and is not on the dashboard.
+  - Records: SOURCE_P1 missing for CAMINOS and PCL; `dashboard/sources.json` `stage_artifacts`
+    cite pre-reorg paths; the dashboard shows GSDR at P1 with P3 records present; `hh-at01` has
+    no folder.
+  - Tree caps: `papers/pcl/`, `caminos/`, `izhikevich2003/` over 7 (O-22).
+  The gate rows go into `scripts/check_replications.py` with a known-violations list (in flight).
+  Closes when: every paper passes the checker without a listed violation, or each listed one
+  carries Hamm's exception.
 - CAMINOS lag (6.47 against 8.5 ms): Hamm attributes the gap to the paper's estimator rather than
   the model; class stays verified, the lag stays a recorded finding, no fit.
 - Frozen, do not move: `artifacts/publication/frozen_manifest.json`,

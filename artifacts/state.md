@@ -1,10 +1,18 @@
 # state
 
-Stamp: jaxfne@dev@0c8ca0f0 · 2026-10-15 (written 2026-10-15T20:22:33Z)
+Stamp: jaxfne@dev@5be5ea19 · 2026-10-17 (written 2026-10-17T23:06:15Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
 ## Works (with evidence)
+
+- 2026-10-17 on dev: multi-compartment HH route (jaxley oracle 8.3e-12 mV, Muse review PASS);
+  run manifests carry activity regimes (T-23); tensor identity digest fails closed; JUnit
+  download per SHA (T-26); harness integrity re-hashed and run as gate family
+  `harness_integrity`; replication checklist in `etudes/meta/RESIDUAL_PROTOCOL.md`. Broad gate
+  on d8e486bb: 6266 passed, 0 failed.
+- Whole-repo audit 2026-10-17 (Muse and Claude, verified by a third pass): open items in todo
+  T-30 (replication conformance) and T-31 (silent fallbacks, gates); owner calls O-24 to O-29.
 
 - 0.5.6 published 2026-10-15: tag v0.5.6 on main b24e09ef (Release CI 38791659454 green), GitHub
   Release, PyPI via Publish run 38801056076; receipt `artifacts/release/v0_5_6_release_receipt.json`.
@@ -21,8 +29,8 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - CAMINOS Fig. 1 against PLoS CB (primary, Hamm 2026-10-14; `artifacts/etudes/papers/caminos/CALIBRATION.md`
   §10): f_pk 33.80 Hz, rate order and R4 (v7) reproduced on the core route; PV→SOM lag 6.47 ms
   against 8.5 ms by the ref. 42 method (off, a finding that needs X). Dashboard row updated.
-- Tracked tree: 2382 files (budget 2400, `budget_files` in `scripts/tree_size_allowlist.json`);
-  87628423 bytes (budget 89128960), measured 2026-10-16.
+- Tracked tree: 2415 files (budget 2428, `budget_files` in `scripts/tree_size_allowlist.json`);
+  87985676 bytes (budget 89128960), measured 2026-10-17.
 - main a98e6149: 0.5.6 merged from dev 4842b87c by PR 108 (2026-10-15). Main CI green: CI Fast
   run 38757281037, Release CI with slow tests run 38757281031. rc gate PASS on 4842b87c with
   JUnit parity against Release CI run 38743501399 (3.11 and 3.14 each 6030/6030, 0 unjustified).
@@ -36,9 +44,8 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - PCL lane (lane 2b, rebuilt as a NeuronalTensor on the core): Stage C passed through the tensor
   route on 20 clips (CALIBRATION.md Step 9). Open in the record: the `no construct route (OPEN)`
   marker (CALIBRATION.md:24) is not marked closed.
-- Lane 4f (GSDR fit, 350 generations): running; at generation 200 best loss 4082 (flat since
-  about generation 150), κ ≈ 0.95 against 0.0156 in the data, active fraction 1.0 (inferred: a
-  regime where every neuron fires every cycle).
+- GSDR: the one-compartment fit saturates (κ ≈ 1 against 0.0156; CALIBRATION §6.4–6.10). The
+  refit on the reference 4-compartment cell runs (O-30, about 17 h on the GPU).
 - Lane 5d (Destexhe 2009 on the core): migration and fidelity done in its clone (lane tests
   28 passed); S2 seeds 1–8 queued on the GPU lock behind 4f.
 - Open items: T-20 (lint leftovers, ignored `--check` flags), T-21 (Destexhe on core); T-17 waits
@@ -71,5 +78,6 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-Agents: integrate the Muse fix lane (F1-F3 review findings) after a second review; integrate lanes as they land (review, broad gate, dashboard checks, push dev, CI on
-the exact SHA): 5d (Destexhe) after its S2 scoring, 4f (GSDR) on Hamm's next-step choice; T-26.
+Agents: integrate lanes as they land (review, broad gate, dashboard checks, push dev, CI on the
+exact SHA): T-24, the replication checker and the T-31 fixes (O-31, O-32); the GSDR regime
+diagnostic when the refit's manifest exists (O-30); then T-30 per paper.
