@@ -244,7 +244,7 @@ exclude = [
   "artifacts/legacy",
   "artifacts/msvc_hdp_diagnostic",
   "artifacts/tutorials",
-  "artifacts/receipts",
+  "artifacts/programme/receipts",
   "scripts/hdp_mvc_*.py",
   "jaxfne/publication",
 ]
