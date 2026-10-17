@@ -19,14 +19,26 @@ SHA, so this gate does not re-check their working-tree existence.
   is a finding.
 - R6: at most 7 files and 7 folders per paper folder (direct children, no ``__pycache__``).
 - S1: no ``.py`` under a paper folder runs outside code: ``subprocess.*``,
-  ``os.system``/``popen``/``exec*``/``spawn*``, ``importlib.import_module``,
-  ``__import__``, ``runpy.*``, ``exec(``, ``eval``, or a ``sys.path`` addition
-  resolving outside the repository. Imports are resolved per module, so aliases
+  ``os.system``/``popen``/``startfile``/``fork``/``forkpty``/``exec*``/``spawn*``/
+  ``posix_spawn*``, ``pty.spawn``, ``importlib.import_module``,
+  ``importlib.util.spec_from_file_location`` loading outside the repository (or
+  an unresolvable path), ``__import__``, ``getattr`` on an ``os``/``subprocess``
+  module alias, ``runpy.*``, ``exec(``, ``eval``, or a ``sys.path`` addition
+  resolving outside the repository. S1 is a lint for code written in good
+  faith (a reviewer aid), not a sandbox: dynamic dispatch beyond these forms
+  (computed attribute names, plugin loaders, ``os.exec*`` via ``getattr`` on
+  anything but an ``os``/``subprocess`` alias) is out of scope.
+  Imports are resolved per module, so aliases
   (``import subprocess as sp``, ``from subprocess import run``,
-  ``from os import system as s``, ``import os as o``) do not bypass the rule.
-  A ``subprocess`` call whose argv is a list literal starting with ``"git"``
-  is exempt, unless an element is ``-c``/``--exec-path*`` or a ``shell=``,
-  ``executable=``, ``env=`` or ``preexec_fn=`` keyword is present.
+  ``from os import system as s``, ``import os as o``, ``import sys as s``,
+  ``from sys import path``, ``from builtins import __import__``) do not bypass
+  the rule. ``sys.path`` mutation in any form (``insert``/``append``/``extend``,
+  ``+=``, subscript assignment) goes through the same resolver.
+  A ``subprocess`` call whose argv is a list literal of string constants
+  starting with ``"git"`` is exempt, unless an element is ``-c``/
+  ``--exec-path*`` or a ``shell=``, ``executable=``, ``env=`` or
+  ``preexec_fn=`` keyword is present; a non-constant argv element stays a
+  finding, except the directory right after ``-C``.
 - E3: no top-level ``def NAME(`` under a paper folder shadows a public
   ``jaxfne.analysis`` name (collected recursively under ``jaxfne/analysis*``,
   including ``__all__`` re-exports; a method named like a core function is not
@@ -247,9 +259,14 @@ def _paper_py_files(root: Path) -> list[Path]:
 
 
 def _collect_bindings(tree: ast.Module) -> dict[str, ast.AST]:
-    """Module-level Name bindings (first binding wins)."""
+    """Name bindings (first binding wins), module level and function level.
+
+    Function-local paths such as ``dl_path = _RUN_DIR / "data_labels.py"``
+    resolve through module-level names, so sibling-module loads stay clean.
+    Parameters are not bindings: a bare parameter never resolves.
+    """
     bindings: dict[str, ast.AST] = {}
-    for node in tree.body:
+    for node in ast.walk(tree):
         if (
             isinstance(node, ast.Assign)
             and len(node.targets) == 1
@@ -365,10 +382,11 @@ GIT_BANNED_KEYWORDS = ("shell", "executable", "env", "preexec_fn")
 def _is_git_literal_call(node: ast.Call) -> bool:
     """A ``subprocess`` call that cannot run authors' code.
 
-    The argv is a list literal starting with the string ``"git"``, with no
-    ``-c``/``--exec-path`` element (both let git run arbitrary commands) and
-    no ``shell=``/``executable=``/``env=``/``preexec_fn=`` keyword. Anything
-    else (a string, a variable, another program, a tainted git call) stays a
+    The argv is a list literal of string constants starting with ``"git"``,
+    with no ``-c``/``--exec-path`` element (both let git run arbitrary
+    commands) and no ``shell=``/``executable=``/``env=``/``preexec_fn=``
+    keyword. Anything else (a string, a variable, another program, a tainted
+    git call, a non-constant argv element such as ``str(path)``) stays a
     finding.
     """
     if not node.args:
@@ -379,10 +397,18 @@ def _is_git_literal_call(node: ast.Call) -> bool:
     head = argv.elts[0]
     if not (isinstance(head, ast.Constant) and head.value == "git"):
         return False
+    prev = head
     for elt in argv.elts[1:]:
-        if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
-            if elt.value == "-c" or elt.value.startswith("--exec-path"):
-                return False
+        after_dir_flag = isinstance(prev, ast.Constant) and prev.value == "-C"
+        prev = elt
+        if after_dir_flag and not isinstance(elt, ast.Constant):
+            # ``git -C <dir>`` with a computed directory (the repo root) only picks where
+            # git runs; the subcommand and its arguments stay constants.
+            continue
+        if not (isinstance(elt, ast.Constant) and isinstance(elt.value, str)):
+            return False
+        if elt.value == "-c" or elt.value.startswith("--exec-path"):
+            return False
     for kw in node.keywords:
         if kw.arg in GIT_BANNED_KEYWORDS:
             return False
@@ -432,21 +458,34 @@ def _call_target(
         if not isinstance(node, ast.Name):
             return (None, None)
         full = mods.get(node.id, node.id)
-        return (full.split(".")[0], func.attr)
+        top = full.split(".")[0]
+        if top == "builtins":
+            top = "builtin"
+        return (top, func.attr)
     if isinstance(func, ast.Name):
         if func.id in ("__import__", "exec", "eval"):
             return ("builtin", func.id)
         if func.id in names:
             src = names[func.id]
             mod, _, attr = src.rpartition(".")
-            return (mod.split(".")[0] if mod else None, attr)
+            top = mod.split(".")[0] if mod else None
+            if top == "builtins":
+                top = "builtin"
+            return (top, attr)
         return (None, None)
     return (None, None)
 
 
+def _os_import_dangerous(name: str) -> bool:
+    """``os`` names that execute outside code when imported or called."""
+    return name in ("system", "popen", "startfile", "fork", "forkpty") or name.startswith(
+        ("exec", "spawn", "posix_spawn")
+    )
+
+
 def _os_dangerous(attr: str) -> bool:
     """``os`` attributes that execute outside code."""
-    return attr in ("system", "popen") or attr.startswith("exec") or attr.startswith("spawn")
+    return _os_import_dangerous(attr)
 
 
 def _subprocess_use(
@@ -473,16 +512,32 @@ def _within_root(resolved: Path, root: Path) -> bool:
     return norm == base or base in norm.parents
 
 
-def _is_sys_path_call(node: ast.AST) -> bool:
-    return (
-        isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Attribute)
-        and node.func.attr in SYS_PATH_METHODS
-        and isinstance(node.func.value, ast.Attribute)
-        and node.func.value.attr == "path"
-        and isinstance(node.func.value.value, ast.Name)
-        and node.func.value.value.id == "sys"
-    )
+def _sys_path_target(target: ast.AST, mods: dict[str, str], names: dict[str, str]) -> bool:
+    """Whether an assignment target (or call receiver) is ``sys.path``.
+
+    ``import sys as s`` resolves through ``mods`` (``s.path`` counts);
+    ``from sys import path`` (optionally aliased) resolves through ``names``.
+    """
+    if (
+        isinstance(target, ast.Attribute)
+        and target.attr == "path"
+        and isinstance(target.value, ast.Name)
+    ):
+        return mods.get(target.value.id, target.value.id).split(".")[0] == "sys"
+    if isinstance(target, ast.Name):
+        return names.get(target.id) == "sys.path"
+    return False
+
+
+def _pty_spawn_called(tree: ast.Module, mods: dict[str, str], names: dict[str, str]) -> bool:
+    """Whether the module calls ``pty.spawn`` (alias-aware)."""
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        mod, attr = _call_target(node.func, mods, names)
+        if mod == "pty" and attr == "spawn":
+            return True
+    return False
 
 
 def _sys_path_args(node: ast.Call) -> list[ast.AST]:
@@ -497,12 +552,37 @@ def _sys_path_args(node: ast.Call) -> list[ast.AST]:
     return arg
 
 
+def _report_added(
+    label: str,
+    lineno: int,
+    exprs: list[ast.AST],
+    bindings: dict[str, ast.AST],
+    here: Path,
+    root: Path,
+    issues: list[str],
+) -> None:
+    """Flag ``sys.path`` additions that are unresolvable or leave the repo."""
+    if not exprs:
+        issues.append(f"line {lineno}: {label} with no path argument")
+        return
+    for arg in exprs:
+        resolved = _resolve_expr(arg, bindings, here)
+        if resolved is None:
+            issues.append(f"line {lineno}: {label} adds a path that cannot be resolved")
+        elif not _within_root(resolved, root):
+            issues.append(
+                f"line {lineno}: {label} adds a path outside the repository "
+                f"({resolved.as_posix()})"
+            )
+
+
 def check_s1_file(tree: ast.Module, rel: str, here: Path, root: Path) -> list[str]:
     """S1 issue descriptions for one parsed file (empty when clean)."""
-    issues = []
+    issues: list[str] = []
     bindings = _collect_bindings(tree)
     mods, names = _collect_imports(tree)
     any_sp, live_sp = _subprocess_use(tree, mods, names)
+    pty_live = _pty_spawn_called(tree, mods, names)
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             tops = {a.name.split(".")[0] for a in node.names}
@@ -510,6 +590,8 @@ def check_s1_file(tree: ast.Module, rel: str, here: Path, root: Path) -> list[st
                 issues.append(f"line {node.lineno}: imports subprocess")
             if "runpy" in tops:
                 issues.append(f"line {node.lineno}: imports runpy")
+            if "pty" in tops and pty_live:
+                issues.append(f"line {node.lineno}: imports pty")
         elif isinstance(node, ast.ImportFrom):
             if node.module is None:
                 continue
@@ -519,11 +601,10 @@ def check_s1_file(tree: ast.Module, rel: str, here: Path, root: Path) -> list[st
                 issues.append(f"line {node.lineno}: imports subprocess")
             elif top == "runpy":
                 issues.append(f"line {node.lineno}: imports runpy")
-            elif top == "os" and any(
-                n == "system" or n == "popen" or n.startswith("exec") or n.startswith("spawn")
-                for n in imported
-            ):
+            elif top == "os" and any(_os_import_dangerous(n) for n in imported):
                 issues.append(f"line {node.lineno}: imports os process execution")
+            elif top == "pty" and "spawn" in imported:
+                issues.append(f"line {node.lineno}: imports pty process execution")
             elif top == "importlib" and "import_module" in imported:
                 issues.append(f"line {node.lineno}: imports importlib.import_module")
         elif isinstance(node, ast.Call):
@@ -533,33 +614,96 @@ def check_s1_file(tree: ast.Module, rel: str, here: Path, root: Path) -> list[st
                     issues.append(f"line {node.lineno}: calls subprocess.{attr}")
             elif mod == "os" and attr is not None and _os_dangerous(attr):
                 issues.append(f"line {node.lineno}: calls os.{attr}")
+            elif mod == "pty" and attr == "spawn":
+                issues.append(f"line {node.lineno}: calls pty.spawn")
             elif mod == "runpy":
                 issues.append(f"line {node.lineno}: calls runpy.{attr}")
             elif mod == "importlib" and attr == "import_module":
                 issues.append(f"line {node.lineno}: calls importlib.import_module")
+            elif mod == "importlib" and attr == "spec_from_file_location":
+                loc = None
+                if len(node.args) >= 2:
+                    loc = node.args[1]
+                else:
+                    for kw in node.keywords:
+                        if kw.arg == "location":
+                            loc = kw.value
+                            break
+                if loc is None:
+                    issues.append(
+                        f"line {node.lineno}: spec_from_file_location without a path argument"
+                    )
+                else:
+                    resolved = _resolve_expr(loc, bindings, here)
+                    if resolved is None:
+                        issues.append(
+                            f"line {node.lineno}: spec_from_file_location loads a path "
+                            "that cannot be resolved"
+                        )
+                    elif not _within_root(resolved, root):
+                        issues.append(
+                            f"line {node.lineno}: spec_from_file_location loads a path "
+                            f"outside the repository ({resolved.as_posix()})"
+                        )
             elif mod == "builtin" and attr == "__import__":
                 issues.append(f"line {node.lineno}: calls __import__")
             elif mod == "builtin" and attr == "exec":
                 issues.append(f"line {node.lineno}: calls exec(")
             elif mod == "builtin" and attr == "eval":
                 issues.append(f"line {node.lineno}: calls eval(")
+            elif (
+                mod is None
+                and isinstance(node.func, ast.Name)
+                and (node.func.id == "getattr" or names.get(node.func.id) == "builtins.getattr")
+                and node.args
+                and isinstance(node.args[0], ast.Name)
+            ):
+                target = mods.get(node.args[0].id, node.args[0].id).split(".")[0]
+                if target in ("os", "subprocess"):
+                    issues.append(f"line {node.lineno}: calls getattr({target}, ...)")
     for node in ast.walk(tree):
-        if _is_sys_path_call(node):
-            args = _sys_path_args(node)
-            if not args:
-                issues.append(f"line {node.lineno}: sys.path.{node.func.attr} with no path argument")
-                continue
-            for arg in args:
-                resolved = _resolve_expr(arg, bindings, here)
-                if resolved is None:
-                    issues.append(
-                        f"line {node.lineno}: sys.path.{node.func.attr} adds a path "
-                        "that cannot be resolved"
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr in SYS_PATH_METHODS
+            and _sys_path_target(node.func.value, mods, names)
+        ):
+            _report_added(
+                f"sys.path.{node.func.attr}",
+                node.lineno,
+                _sys_path_args(node),
+                bindings,
+                here,
+                root,
+                issues,
+            )
+        elif (
+            isinstance(node, ast.AugAssign)
+            and isinstance(node.op, ast.Add)
+            and _sys_path_target(node.target, mods, names)
+        ):
+            value = node.value
+            exprs = list(value.elts) if isinstance(value, (ast.List, ast.Tuple)) else [value]
+            _report_added("sys.path +=", node.lineno, exprs, bindings, here, root, issues)
+        elif isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Subscript) and _sys_path_target(
+                    target.value, mods, names
+                ):
+                    value = node.value
+                    exprs = (
+                        list(value.elts)
+                        if isinstance(value, (ast.List, ast.Tuple))
+                        else [value]
                     )
-                elif not _within_root(resolved, root):
-                    issues.append(
-                        f"line {node.lineno}: sys.path.{node.func.attr} adds a path "
-                        f"outside the repository ({resolved.as_posix()})"
+                    _report_added(
+                        "sys.path[...] =",
+                        node.lineno,
+                        exprs,
+                        bindings,
+                        here,
+                        root,
+                        issues,
                     )
     return issues
 

@@ -425,3 +425,193 @@ def test_dev_gate_runs_off_main_audit_families(monkeypatch):
     assert set(GATE_CHECK_FAMILIES["dev"]) == {f for f, _ in ran}, (
         "the dev set and what gate_dev executes must agree"
     )
+
+
+def test_s1_git_nonconstant_argv_fails(tmp_path):
+    _s1_must_fail(
+        tmp_path,
+        "gnc",
+        'import subprocess\nsubprocess.run(["git", "-C", str(root), cmd, "HEAD"])\n',
+    )
+
+
+def test_s1_git_computed_dir_after_dash_C_passes(tmp_path):
+    _registry(tmp_path, [])
+    _write(
+        tmp_path,
+        "artifacts/etudes/papers/gdir/run.py",
+        'import subprocess\nsubprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"])\n',
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "S1"] == [], (
+        "a computed directory after -C only picks where git runs"
+    )
+
+
+def _s1_spec_must_fail(tmp_path, folder: str, code: str) -> None:
+    """One loader form: the fixture holds it and S1 flags the load itself."""
+    _registry(tmp_path, [])
+    run = _write(tmp_path, f"artifacts/etudes/papers/{folder}/run.py", code)
+    assert "spec_from_file_location" in run.read_text(encoding="utf-8"), (
+        "fixture must hold the loader"
+    )
+    findings = cr.collect_findings(tmp_path)
+    assert any(
+        rule == "S1"
+        and path == f"artifacts/etudes/papers/{folder}/run.py"
+        and "spec_from_file_location" in msg
+        for rule, path, msg in findings
+    ), f"{code!r} must fail S1 with a loader finding"
+
+
+def test_s1_spec_outside_repo_fails(tmp_path):
+    _s1_spec_must_fail(
+        tmp_path,
+        "spo",
+        'import importlib.util\nimportlib.util.spec_from_file_location("m", "/tmp/evil.py")\n',
+    )
+
+
+def test_s1_spec_unresolvable_fails(tmp_path):
+    _s1_spec_must_fail(
+        tmp_path,
+        "spu",
+        'import importlib.util\nimportlib.util.spec_from_file_location("m", module_path)\n',
+    )
+
+
+def test_s1_spec_sibling_module_passes(tmp_path):
+    _registry(tmp_path, [])
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/sps/run.py",
+        'from pathlib import Path\nimport importlib.util\n'
+        'HERE = Path(__file__).resolve().parent\n'
+        'spec = importlib.util.spec_from_file_location("sib", HERE / "sib.py")\n',
+    )
+    assert "sib.py" in run.read_text(encoding="utf-8"), (
+        "fixture must load a sibling module"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "S1"] == [], (
+        "a sibling-module load inside the repository stays clean"
+    )
+
+
+def test_s1_getattr_os_alias_fails(tmp_path):
+    _s1_must_fail(tmp_path, "gao", 'import os as o\ngetattr(o, "system")("ls")\n')
+
+
+def test_s1_getattr_subprocess_alias_fails(tmp_path):
+    _s1_must_fail(tmp_path, "gas", 'import subprocess as sp\ngetattr(sp, "run")(["ls"])\n')
+
+
+def test_s1_builtins_dunder_import_fails(tmp_path):
+    _s1_must_fail(tmp_path, "bdi", 'import builtins\nbuiltins.__import__("os")\n')
+
+
+def test_s1_getattr_plain_object_passes(tmp_path):
+    _registry(tmp_path, [])
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/gpo/run.py",
+        'value = getattr(args, "rate", 1.0)\n',
+    )
+    assert "getattr(args" in run.read_text(encoding="utf-8"), (
+        "fixture must read an attribute off a plain object"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "S1"] == [], (
+        "getattr on anything but an os/subprocess alias stays clean"
+    )
+
+
+def test_s1_sys_path_alias_insert_fails(tmp_path):
+    _registry(tmp_path, [])
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/spa/run.py",
+        'import sys as s\ns.path.insert(0, "/nowhere/xyz")\n',
+    )
+    assert "s.path.insert" in run.read_text(encoding="utf-8"), (
+        "fixture must mutate sys.path through an alias"
+    )
+    findings = cr.collect_findings(tmp_path)
+    assert any(
+        rule == "S1"
+        and path == "artifacts/etudes/papers/spa/run.py"
+        and "sys.path.insert" in msg
+        for rule, path, msg in findings
+    )
+
+
+def test_s1_from_sys_import_path_fails(tmp_path):
+    _registry(tmp_path, [])
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/sfp/run.py",
+        'from sys import path\npath.append("/nowhere/xyz")\n',
+    )
+    assert "path.append" in run.read_text(encoding="utf-8"), (
+        "fixture must mutate the imported sys.path name"
+    )
+    findings = cr.collect_findings(tmp_path)
+    assert any(
+        rule == "S1"
+        and path == "artifacts/etudes/papers/sfp/run.py"
+        and "sys.path.append" in msg
+        for rule, path, msg in findings
+    )
+
+
+def test_s1_sys_path_augassign_fails(tmp_path):
+    _registry(tmp_path, [])
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/saa/run.py",
+        'import sys\nsys.path += ["/nowhere/xyz"]\n',
+    )
+    assert "sys.path +=" in run.read_text(encoding="utf-8"), (
+        "fixture must extend sys.path with +="
+    )
+    findings = cr.collect_findings(tmp_path)
+    assert any(
+        rule == "S1"
+        and path == "artifacts/etudes/papers/saa/run.py"
+        and "sys.path +=" in msg
+        for rule, path, msg in findings
+    )
+
+
+def test_s1_sys_path_subscript_assign_fails(tmp_path):
+    _registry(tmp_path, [])
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/ssa/run.py",
+        'import sys\nsys.path[0] = "/nowhere/xyz"\n',
+    )
+    assert "sys.path[0]" in run.read_text(encoding="utf-8"), (
+        "fixture must assign a sys.path slot"
+    )
+    findings = cr.collect_findings(tmp_path)
+    assert any(
+        rule == "S1"
+        and path == "artifacts/etudes/papers/ssa/run.py"
+        and "sys.path" in msg
+        for rule, path, msg in findings
+    )
+
+
+def test_s1_os_startfile_fails(tmp_path):
+    _s1_must_fail(tmp_path, "osf", "import os\nos.startfile('x.py')\n")
+
+
+def test_s1_os_fork_fails(tmp_path):
+    _s1_must_fail(tmp_path, "ofk", "import os\nos.fork()\n")
+
+
+def test_s1_os_posix_spawn_fails(tmp_path):
+    _s1_must_fail(
+        tmp_path, "opx", "import os\nos.posix_spawnp('ls', ['ls'], None, None, None)\n"
+    )
+
+
+def test_s1_pty_spawn_fails(tmp_path):
+    _s1_must_fail(tmp_path, "ptx", "import pty\npty.spawn(['bash'])\n")

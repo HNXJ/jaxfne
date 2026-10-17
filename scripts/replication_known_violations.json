@@ -85,6 +85,20 @@
   },
   {
     "rule": "S1",
+    "path": "artifacts/etudes/papers/caminos/test_caminos_analysis.py",
+    "message": "line 412: spec_from_file_location loads a path that cannot be resolved",
+    "reason": "audit 2026-10-17",
+    "todo": "T-30"
+  },
+  {
+    "rule": "S1",
+    "path": "artifacts/etudes/papers/izhikevich2003/gate_p3b.py",
+    "message": "line 28: spec_from_file_location loads a path that cannot be resolved",
+    "reason": "audit 2026-10-17",
+    "todo": "T-30"
+  },
+  {
+    "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/build_cache.py",
     "message": "line 7: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
     "reason": "audit 2026-10-17",
