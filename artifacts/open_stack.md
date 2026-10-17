@@ -6,7 +6,7 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 
 ## In flight
 
-- O-4 artifacts/ reorg P5: skills, harness, subagents, vocabulary in `control/` (`.lab/` stays: the Labyrinth tool reads `artifacts/.lab`); on dev, `sync_skills.py --check` OK | keeper | since 2026-10-15 | closes when dev CI is green on the push
+None.
 
 ## Waiting on others
 
