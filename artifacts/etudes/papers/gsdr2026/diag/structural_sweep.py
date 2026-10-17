@@ -97,20 +97,24 @@ def build_parser():
                     help="run one sweep only (default: all three)")
     ap.add_argument("--smoke", action="store_true",
                     help="one row only: sweep C stim 0.6 seed 1")
+    ap.add_argument("--ampa-scales", type=float, nargs="+", default=None,
+                    help="AMPA factors for the ampa sweep (default %s)"
+                    % (AMPA_SCALES,))
     return ap
 
 
-def plan_rows(sweep=None, smoke=False):
+def plan_rows(sweep=None, smoke=False, ampa_scales=None):
     """Return the (sweep, scale, seed) plan in run order."""
     if smoke:
         return [(SWEEP_STIM, STIM_REF_AMP, 1)]
     names = [sweep] if sweep is not None else list(SWEEPS)
+    ampa = tuple(ampa_scales) if ampa_scales is not None else AMPA_SCALES
     plan = []
     for name in names:
         if name == SWEEP_ALL:
             plan += [(name, s, seed) for s in ALL_SCALES for seed in SEEDS]
         elif name == SWEEP_AMPA:
-            plan += [(name, s, seed) for s in AMPA_SCALES for seed in SEEDS]
+            plan += [(name, s, seed) for s in ampa for seed in SEEDS]
         elif name == SWEEP_STIM:
             plan += [(name, a, seed) for a in STIM_AMPS for seed in SEEDS]
         else:  # pragma: no cover — argparse choices refuse these first
@@ -234,7 +238,8 @@ def main(argv=None):
     payload = {"gstar": str(args.gstar), "labels": str(args.labels),
                "rows": []}
     t0 = time.time()
-    for sweep, scale, seed in plan_rows(sweep=args.sweep, smoke=args.smoke):
+    for sweep, scale, seed in plan_rows(sweep=args.sweep, smoke=args.smoke,
+                                        ampa_scales=args.ampa_scales):
         row = run_row(gstar, y, sweep, scale, seed)
         payload["rows"].append(row)
         write_incremental(args.out, payload)

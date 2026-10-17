@@ -539,3 +539,67 @@ GPU rate (3 in 30) is higher because the summation-order differences
 enter on every step rather than once. Collapse is too rare to explain
 the saturated fit; it adds outlier noise to GPU losses at g*. The
 saturated attractor remains the main finding (§6.4–6.7).
+
+### 6.10 Port vs reference wiring: S1 is the leading suspect (OBSERVED + INFERRED)
+
+Row-by-row read of the reference `main_fig6.py: net_eig` (text only)
+against `run/run_gsdr.py` and `jaxfne/emitters_hh.py`. Match
+(observed): E→all AMPA 36×50 with self-edges (1800), Ig→all GABAa
+(400), Il→5 posts chosen with key 1 (30), no delays in either, dt
+0.1 ms, 120 Hz drive to the 18 even-index E cells, conductance
+initialisation ranges. Unknown from the files in hand: the reference
+gating equations, HH rates and solver; PORT_SPEC §2–4 holds a
+second-hand read of them.
+
+Mismatch (observed): the reference cell has 4 compartments (2
+branches × 2, jaxley defaults r = 1 µm, l = 10 µm, Ra = 5000 Ω·cm),
+reads presynaptic V and records at branch 0 loc 0.0, lands every
+synapse on branch 1 loc 1.0 (the distal end) and the stimulus on
+branch 1 loc 0.0 (`main_fig6.py:82-98,304,363`). The port (S1, S2)
+puts the whole cell in one compartment of 80π µm² and preserves total
+synaptic current.
+
+Magnitudes (observed, computed from the lane-4f
+`gsdr_fit500/g_star_uS_float32.npy`): AMPA median 2.80 µS per edge, summed AMPA
+onto one cell median 123.7 µS; in the port 1 µS = 397.9 mS/cm², so the
+summed AMPA is about 4.9e4 mS/cm² against gNa 120. In the reference
+the same conductance sits on one 20π µm² distal compartment, three
+axial links of 6.28 nS each (Ra·l/πr² = 1.59e8 Ω) from the
+presynaptic-V compartment, about 2 nS in series. These are maximal
+conductances; the effective drive is g·s with s below 1, and g* is
+the port's own fit, so the reference's conductances under its own
+dynamics are unknown.
+
+Reading (inferred, untested): in the reference the distal
+compartment sits near the synaptic reversal mix and the spike site
+receives a few nS through the axial path; in the port the full
+~124 µS drives the spiking membrane directly, about four orders of
+magnitude more. This is consistent with §6.4–6.7: the lock ignores
+GABAa ×16, noise ×4, the stimulus and overall gain, and only AMPA 0
+releases it, while AMPA ×0.1 (§6.7) is still far above the bottleneck
+scale.
+
+Direct test in the port (observed; `diag/structural_sweep.py --sweep
+ampa --ampa-scales 1e-2 1e-3 1e-4 1e-5`, GPU, stim 0.6,
+`/mnt/f/warehouse/gsdr/diag_ampa_small_2026-10-17.json`; seed 1 /
+seed 2):
+
+| AMPA × | rate (Hz) | active | k_fit | E / Ig / Il | penalty |
+|---|---|---|---|---|---|
+| 1e-2 | 6.36 / 6.37 | 0.96 / 0.98 | 0.254 / 0.272 | irregular / irregular / irregular | 10.1 / 8.8 |
+| 1e-3 | 12.24 / 12.27 | 0.82 / 0.80 | 0.099 / 0.103 | irregular / silent / irregular | 34.7 / 30.7 |
+| 1e-4 | 13.37 / 12.57 | 0.78 / 0.78 | 0.164 / 0.161 | irregular / silent / irregular | 39.0 / 39.5 |
+| 1e-5 | 16.37 / 10.28 | 0.68 / 0.66 | 0.155 / 0.201 | irregular / silent / irregular | 52.9 / 56.7 |
+
+Saturation ends between AMPA ×0.1 and ×0.01. Below ×0.01, global-I
+falls silent and E speeds up again (disinhibition). No uniform AMPA
+scale reaches the data regime (2.14 Hz, kappa 0.0156): a uniform
+scale on the one-compartment cell does not reproduce the bottleneck,
+which also clamps the distal compartment and depends on each cell's
+summed input. The reading stays inferred until the multi-compartment
+route is built. S1 removes the axial bottleneck, which is the
+reference's effective synaptic gain, so S1 is not a neutral
+reduction. OPEN: a multi-compartment HH route matching the reference
+geometry (4 compartments, axial coupling, implicit voltage solve,
+synapses and stimulus distal, spikes and presynaptic V proximal),
+then the §6.2 regime diagnostic at g* before any refit.

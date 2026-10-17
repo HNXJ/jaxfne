@@ -57,3 +57,12 @@ def test_cli_refuses_unknown_sweep():
     """--sweep with an unknown name exits (argparse choices)."""
     with pytest.raises(SystemExit):
         sweep_mod.build_parser().parse_args(["--sweep", "bogus"])
+
+
+def test_ampa_scales_flag_reaches_the_plan():
+    """--ampa-scales replaces the default AMPA factors in the run plan."""
+    args = sweep_mod.build_parser().parse_args(
+        ["--sweep", "ampa", "--ampa-scales", "1e-3", "1e-4"])
+    plan = sweep_mod.plan_rows(sweep=args.sweep, ampa_scales=args.ampa_scales)
+    assert sorted({s for _, s, _ in plan}) == [1e-4, 1e-3]
+    assert len(plan) == 2 * len(sweep_mod.SEEDS)
