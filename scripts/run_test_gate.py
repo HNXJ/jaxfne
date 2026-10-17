@@ -139,6 +139,8 @@ CHECK_FAMILIES = {
     "docs_orphans_check",
     "doc_code_integrity_audit",
     "record_integrity",
+    "replication_audit",
+    "etude_no_resim",
     "harness_integrity",
     "tree_size_audit",
     "docs_build_strict",
@@ -177,6 +179,13 @@ GATE_CHECK_FAMILIES = {
         "pytest_dev",
         "docs_language_audit",
         "vocabulary_audit",
+        # CI on dev runs `scripts/run_test_gate.py dev` only (ci.yml), so the
+        # audit families below must run in the dev gate too, or nothing
+        # executes them before the broad gate on main.
+        "record_integrity",
+        "replication_audit",
+        "etude_no_resim",
+        "harness_integrity",
     },
     "broad": {
         "compileall",
@@ -187,6 +196,8 @@ GATE_CHECK_FAMILIES = {
         "docs_orphans_check",
         "doc_code_integrity_audit",
         "record_integrity",
+        "replication_audit",
+        "etude_no_resim",
         "harness_integrity",
         "tree_size_audit",
         "pytest_broad",
@@ -199,6 +210,8 @@ GATE_CHECK_FAMILIES = {
         "docs_orphans_check",
         "doc_code_integrity_audit",
         "record_integrity",
+        "replication_audit",
+        "etude_no_resim",
         "harness_integrity",
         "tree_size_audit",
     },
@@ -218,6 +231,8 @@ GATE_CHECK_FAMILIES = {
         "docs_orphans_check",
         "doc_code_integrity_audit",
         "record_integrity",
+        "replication_audit",
+        "etude_no_resim",
         "harness_integrity",
         "tree_size_audit",
         "docs_build_strict",
@@ -237,6 +252,8 @@ GATE_CHECK_FAMILIES = {
         "docs_orphans_check",
         "doc_code_integrity_audit",
         "record_integrity",
+        "replication_audit",
+        "etude_no_resim",
         "harness_integrity",
         "tree_size_audit",
         "docs_build_strict",
@@ -458,6 +475,16 @@ def gate_dev() -> None:
         family="docs_language_audit",
     )
     _run([sys.executable, "scripts/audit_vocabulary.py", "--check"], family="vocabulary_audit")
+    # CI on dev runs this gate only (ci.yml), so the audit families in the dev
+    # set run here, from AUDIT_STEPS (the commands' one owner).
+    for family, cmd in AUDIT_STEPS:
+        if family in DEV_AUDIT_FAMILIES:
+            _run(cmd, family=family)
+
+
+# Audit families the dev gate runs from AUDIT_STEPS (the docs-language and vocabulary
+# audits run above with the dev gate's own ordering).
+DEV_AUDIT_FAMILIES = ("record_integrity", "replication_audit", "etude_no_resim", "harness_integrity")
 
 
 # The audit checks the broad gate runs before its pytest sweep, owned here and
@@ -480,6 +507,14 @@ AUDIT_STEPS: list[tuple[str, list[str]]] = [
     ),
     ("tree_size_audit", [sys.executable, "scripts/check_tree_size.py", "--check"]),
     ("record_integrity", [sys.executable, "scripts/check_record_integrity.py", "--check"]),
+    (
+        "replication_audit",
+        [sys.executable, "scripts/check_replications.py", "--check"],
+    ),
+    (
+        "etude_no_resim",
+        [sys.executable, "scripts/gate_etude_no_resim.py", "--check"],
+    ),
     (
         "harness_integrity",
         [sys.executable, "scripts/harness/check_harness_integrity.py"],
