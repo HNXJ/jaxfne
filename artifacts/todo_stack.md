@@ -135,10 +135,6 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   declared intra-step fixed point: f applies R ordered rounds, with R and the order part of A and
   recorded in the manifest; delay 0 means "resolved inside the step". Closes when: the operator is
   in the core with tests, PCL B3 uses it, and the CAMINOS 0-delay sensitivity runs on it.
-- T-23 [A] Remainder: the classifier (`jaxfne.analysis.activity_regime(s)`, a7a6cd88) and the
-  Izhikevich 2003 and Destexhe 2009 scorers' regime reports are on dev (2026-10-17). Left:
-  report it in every run manifest; the Destexhe scorer passes `bin_ms` 5.0 as a literal where it
-  should read the classifier's thresholds. Closes when: manifests carry the regime block.
 - T-24 [A] Constant drive (bias current, external Poisson rate) is part of x: a declared input
   source with a schedule (constant is a special case); the emitter `drive` field becomes a
   shorthand that compiles to an x source, existing numerics unchanged. Closes when: both routes
@@ -150,10 +146,10 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   (κ ≈ 0.95 against 0.0156) survived three tested suspicions, CALIBRATION §6.4 to §6.6:
   inhibition ×1 to ×16 (only slows 21 to 13.5 Hz), OU noise ×1 to ×4, and the κ estimator
   (identical on both sides). §6.7 structural sweeps: saturation persists with the stimulus off
-  and across 0.25 to 2× overall gain; only AMPA 0 breaks it. Next, no fitting: reproduce the
-  first-in-process outlier (5.19 Hz, κ 0.0; second sighting) in a fresh process, CPU and GPU;
-  then compare the port's AMPA recurrence (connectivity density, delays, kinetics) with the
-  authors'. HH hardening landed; open low notes: `held_steps` counts edge elements while the
+  and across 0.25 to 2× overall gain; only AMPA 0 breaks it. §6.8–6.9: the 5.2 Hz, κ 0.0
+  outlier is an early collapse to silence, GPU-only (3 of 30 calls; inferred cause: segment_sum
+  order), rare on CPU (2 of 40 at a 1e-2 mV kick, 0 of 40 noise seeds). Next, no fitting:
+  compare the port's AMPA recurrence (connectivity density, delays, kinetics) with the authors'. HH hardening landed; open low notes: `held_steps` counts edge elements while the
   docstring says steps, int32 count scalars, no full-kernel grad test, `dt="0.1"` coerced.
 - CAMINOS lag (6.47 against 8.5 ms): Hamm attributes the gap to the paper's estimator rather than
   the model; class stays verified, the lag stays a recorded finding, no fit.
