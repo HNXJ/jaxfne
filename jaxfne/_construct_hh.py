@@ -27,16 +27,25 @@ import numpy as np
 from ._config import _counts_from_fractions, edge_seed_from_metadata
 from ._model import Model
 from .connectivity import compile_connection_rules
-from .emitters_hh import make_hh_params
+from .emitters_hh import (
+    HH_GRADED_S0_DEFAULT,
+    HH_GRADED_SLOPE_DEFAULT,
+    HH_GRADED_VTH_DEFAULT,
+    make_hh_params,
+)
 
 # Receptor parameter keys the HH route reads from mechanisms(params=...).
 # ``tau_ms``/``reversal_mV`` are the shared names the compiler reads;
 # ``tau_r_ms``/``slope_mV``/``v_th_mV``/``s0`` are HH-graded-synapse extras.
+# Fallback values (unchanged): slope 5.0 mV and Vth -20.0 mV are the Fig. 6
+# run values shared by every graded class, s0 0.1 the connected-class value
+# (PORT_SPEC.md section 4); tauR 0.5 ms is the GABAa reference (AMPA 0.2,
+# GABAb 10.0: receptors needing another tauR must declare tau_r_ms).
 _HH_RECEPTOR_DEFAULTS = {
     "tau_r_ms": 0.5,
-    "slope_mV": 5.0,
-    "v_th_mV": -20.0,
-    "s0": 0.1,
+    "slope_mV": HH_GRADED_SLOPE_DEFAULT,
+    "v_th_mV": HH_GRADED_VTH_DEFAULT,
+    "s0": HH_GRADED_S0_DEFAULT,
 }
 
 
@@ -174,6 +183,10 @@ def construct_hh_model(cfg: Any) -> Model:
     params = params._replace(**{f: jnp.asarray(getattr(params, f), dtype=dtype) for f in params._fields})
     mechanisms = list((cfg.metadata.get("circuit") or {}).get("mechanisms", []))
     receptor_names, receptor_params = _hh_mechanisms(cfg)
+    if len(set(receptor_params["s0"])) > 1:
+        raise ValueError(
+            f"receptors declare mixed s0={receptor_params['s0']!r}; the kernel takes one scalar receptor_s0"
+        )
     rules = _hh_rules(cfg, receptor_names)
     network_name = cfg.networks[0].get("name") if cfg.networks else None
 

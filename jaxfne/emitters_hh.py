@@ -58,6 +58,9 @@ _PARAM_FIELDS = (
 
 # PORT_SPEC.md section 3, Fig. 6 run values (the builder defaults differ;
 # the run values win): per-cell tau ~ U(10, 50), sigma = clip(U(-0.1, 0.1)).
+# No in-tree code imports these three names (the GSDR runner draws from the
+# same ranges via literals in run_gsdr.py:ou_hyperparams); they are kept as
+# the documented run values, not wired defaults.
 HH_OU_TAU_LO = 10.0
 HH_OU_TAU_HI = 50.0
 HH_OU_SIGMA_CLIP = 0.05
@@ -70,6 +73,27 @@ HH_V_REST_MV = -70.0
 
 # Clip of exp() arguments (the reference save_exp(max_value=20.0)).
 _SAVE_EXP_MAX = 20.0
+
+
+# Declared entry-point defaults with PORT_SPEC.md reference values (finding 3).
+# Section 4, Fig. 6 run values (code-observed, all three graded classes):
+# tanh slope 5.0 mV, threshold -20.0 mV; s(0) 0.1 for the connected classes
+# (AMPA, GABAa; GABAb s(0) 0.01 is defined but never connected).
+HH_GRADED_SLOPE_DEFAULT = 5.0
+HH_GRADED_VTH_DEFAULT = -20.0
+HH_GRADED_S0_DEFAULT = 0.1
+
+# Section 3, Fig. 6 run value: OU sigma clip upper (clip(U(-0.1, 0.1), 0, 0.05));
+# the lane works in uA/cm2, so the GSDR runner scales it by 1000 (mA/cm2 -> uA/cm2).
+HH_OU_SIGMA_DEFAULT = 0.05
+
+# Lane-local OU tau fallback (ms): used when ou_tau is absent and noise is
+# not live (no ou_key, or effective sigma all zero). PORT_SPEC.md section 3
+# gives a per-cell U(10, 50) range, not a single value, so a live noise run
+# must pass ou_tau explicitly (refused when absent). Note the fallback is
+# consumed when ou_key is present with zero effective sigma: the channel
+# still steps, holding ou at 0.
+HH_OU_TAU_FALLBACK_MS = 20.0
 
 
 def _save_exp(x):
@@ -101,6 +125,21 @@ def _exp_euler_gate(x, dt_ms, alpha, beta):
     x_inf = alpha * tau
     e = _save_exp(-dt_ms / tau)
     return x * e + x_inf * (1.0 - e)
+
+
+def _require_finite_dt(value: Any, name: str) -> None:
+    """Refuse ``value`` unless it is finite and > 0 (eager calls only).
+
+    Under ``jit`` the ``float()`` conversion fails loudly instead of
+    validating; jitted use validates ``dt`` once at the entry point
+    (:func:`simulate_hh` refuses a non-finite or non-positive ``dt_ms``).
+    """
+    try:
+        dt = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{name} must be finite and > 0; got {value!r}")
+    if not math.isfinite(dt) or dt <= 0.0:
+        raise ValueError(f"{name} must be finite and > 0; got {value!r}")
 
 
 def hh_gate_inf(v):
@@ -176,7 +215,10 @@ def hh_step(state, I_inj, params: HHParams, dt_ms: float):
     (channels stepped before voltage). ``state`` is ``(v, m, h, n)``:
     membrane voltage (mV, absolute) and gating variables. ``I_inj`` is
     depolarizing-positive injected current (inward). Returns ``(v, m, h, n)``.
-    Pure ``jax.numpy``; dtype follows the inputs.
+    Pure ``jax.numpy``; dtype follows the inputs. ``dt_ms`` is validated by
+    the caller (:func:`simulate_hh` and
+    :func:`jaxfne._construct_hh.hh_kernel_args` refuse a non-finite or
+    non-positive ``dt``); the stepper itself stays jittable.
     """
     v, m, h, n = state
     p = params
@@ -193,16 +235,25 @@ def hh_step(state, I_inj, params: HHParams, dt_ms: float):
     return (v, m, h, n)
 
 
-def graded_activation(v_pre, v_th: float = -20.0, slope: float = 5.0):
-    """Tanh activation of the graded synapses: ``0.5 * (1 + tanh((Vpre-Vth)/slope))``."""
+def graded_activation(v_pre, v_th: float = HH_GRADED_VTH_DEFAULT,
+                      slope: float = HH_GRADED_SLOPE_DEFAULT):
+    """Tanh activation of the graded synapses: ``0.5 * (1 + tanh((Vpre-Vth)/slope))``.
+
+    Defaults are the Fig. 6 run values (PORT_SPEC.md section 4).
+    """
     return 0.5 * (1.0 + jnp.tanh((v_pre - v_th) / slope))
 
 
-def graded_syn_step(s, v_pre, tau_d: float, tau_r: float, slope: float = 5.0,
-                    v_th: float = -20.0, dt: float = 0.1):
+def graded_syn_step(s, v_pre, tau_d: float, tau_r: float,
+                    slope: float = HH_GRADED_SLOPE_DEFAULT,
+                    v_th: float = HH_GRADED_VTH_DEFAULT, dt: float = 0.1):
     """One graded-synapse gating step: ``ds/dt = -s/tauD + act*(1-s)/tauR``.
 
-    A non-finite update keeps the old ``s`` (the reference float32 barrier).
+    ``slope``/``v_th`` default to the Fig. 6 run values (PORT_SPEC.md
+    section 4). A non-finite update keeps the old ``s`` (the reference
+    float32 barrier). ``dt`` is validated by the caller (:func:`simulate_hh`
+    refuses a non-finite or non-positive ``dt``); the stepper itself stays
+    pure ``jax.numpy`` (jittable and differentiable).
     """
     act = graded_activation(v_pre, v_th, slope)
     new_s = s + ((-s / tau_d) + act * (1.0 - s) / tau_r) * dt
@@ -214,14 +265,19 @@ def graded_syn_current(g, s, v_post, e_rev):
     return g * s * (v_post - e_rev)
 
 
-def ou_step(n, key, mean: float = 0.0, sigma: float = 0.05, tau: float = 20.0,
-            dt: float = 0.1):
+def ou_step(n, key, mean: float = 0.0, sigma: float = HH_OU_SIGMA_DEFAULT,
+            tau: float = HH_OU_TAU_FALLBACK_MS, dt: float = 0.1):
     """One Ornstein-Uhlenbeck step (the reference ``Inoise.update_states``).
 
     ``n += (mean - n)/tau * dt + sigma * sqrt(2/tau) * xi * sqrt(dt)`` with
     ``xi ~ N(0, 1)`` drawn from ``key``; the noise current is ``-n``
-    (outward-positive). Shape follows ``n``. A non-finite update keeps the
-    old ``n`` (the reference float32 barrier). The reference noise channel
+    (outward-positive). Shape follows ``n``. ``sigma`` defaults to the Fig. 6
+    run clip upper (PORT_SPEC.md section 3); ``tau`` defaults to the
+    lane-local 20 ms fallback (PORT_SPEC.md gives a U(10, 50) range, not a
+    single value). A non-finite update keeps the old ``n`` (the reference
+    float32 barrier). ``dt`` is validated by the caller (:func:`simulate_hh`
+    refuses a non-finite or non-positive ``dt``); the stepper itself stays
+    pure ``jax.numpy`` (jittable). The reference noise channel
     current is in mA/cm2; callers working in uA/cm2 scale ``sigma`` by 1000.
     """
     xi = jax.random.normal(key, shape=jnp.shape(n), dtype=jnp.asarray(n).dtype)
@@ -286,7 +342,7 @@ def simulate_hh(
     receptor_tau_d=(),
     receptor_slope=(),
     receptor_vth=(),
-    receptor_s0: float = 0.1,
+    receptor_s0: float = HH_GRADED_S0_DEFAULT,
     ou_tau=None,
     ou_sigma=None,
     ou_key=None,
@@ -309,8 +365,9 @@ def simulate_hh(
 
     Noise: per-cell OU channel (:func:`ou_step`) with time constants
     ``ou_tau`` ([N], ms), amplitudes ``ou_sigma`` ([N]) and key ``ou_key``;
-    the noise current is ``-ou``. With ``ou_sigma`` None or all zero no draw
-    happens and ``ou_key`` may be None. ``noise_gain`` is a nonnegative scalar
+    the noise current is ``-ou``. Noise is live only when a key is given and
+    the effective sigma (``ou_sigma`` times ``noise_gain``) is nonzero; only
+    a live run requires ``ou_tau``. ``noise_gain`` is a nonnegative scalar
     multiplier on ``ou_sigma`` (lane-4e residual X: the noise level; the
     default 1.0 reproduces the unscaled channel bit-exactly).
 
@@ -319,22 +376,28 @@ def simulate_hh(
     or shape ``[N]``.
 
     Per step, in order: synapse gates update from the current voltages
-    (non-finite updates keep the old gating); synaptic conductance and offset
-    terms accumulate per post cell; the OU channel updates; gates advance by
+    (a non-finite update keeps the old gating: the reference float32
+    barrier); synaptic conductance and offset terms accumulate per post
+    cell; the OU channel updates (same hold barrier); gates advance by
     exact exponential Euler and voltage by backward Euler at frozen gates
     (the :func:`hh_step` split); upward crossings of -20 mV are spikes.
+    Held (non-finite) updates are counted in the scan carry and reported as
+    ``held_steps`` (``{"s": n, "ou": n}``); the GSDR fit maps a NaN loss to
+    inf and reverts the generation (PORT_SPEC.md section 10).
 
     Returns a dict: ``spikes`` (bool ``[n_steps, N]``), ``V_mV``
-    (``[n_steps, N]``, after each step's update, only if ``record_v``), and the
-    final ``v``, ``m``, ``h``, ``n``, ``ou`` and ``s``. Implemented with
-    ``jax.lax.scan``; no dense ``N x N`` matrix. dtype follows ``params``.
+    (``[n_steps, N]``, after each step's update, only if ``record_v``), the
+    final ``v``, ``m``, ``h``, ``n``, ``ou`` and ``s``, and ``held_steps``.
+    Implemented with ``jax.lax.scan``; no dense ``N x N`` matrix. dtype
+    follows ``params``.
 
-    Raises ``ValueError`` naming the argument for every refused input.
+    Raises ``ValueError`` naming the argument for every refused input
+    (``dt_ms`` must be finite and > 0; ``ou_tau`` is required when noise is
+    live and must be finite and > 0; ``ou_sigma`` must be finite).
     """
     if not (isinstance(n_steps, (int, np.integer)) and n_steps >= 1):
         raise ValueError(f"n_steps must be a positive integer, got {n_steps!r}")
-    if not dt_ms > 0:
-        raise ValueError(f"dt_ms must be > 0, got {dt_ms!r}")
+    _require_finite_dt(dt_ms, "dt_ms")
 
     N = int(jnp.shape(params.gNa_mS_cm2)[0])
     dtype = jnp.asarray(params.gNa_mS_cm2).dtype
@@ -392,6 +455,8 @@ def simulate_hh(
         sig_j = jnp.asarray(ou_sigma, dtype)
         if sig_j.shape != (N,):
             raise ValueError(f"ou_sigma must be None or shape ({N},); got {sig_j.shape}")
+        if not bool(jnp.all(jnp.isfinite(sig_j))):
+            raise ValueError(f"ou_sigma must be finite; got {ou_sigma!r}")
     try:
         gain = float(noise_gain)
     except (TypeError, ValueError):
@@ -399,23 +464,33 @@ def simulate_hh(
     if not math.isfinite(gain) or gain < 0.0:
         raise ValueError(f"noise_gain must be finite and >= 0; got {noise_gain!r}")
     sig_j = sig_j * jnp.asarray(gain, dtype)
+    # Noise is live only when a key is given and the effective sigma
+    # (ou_sigma times noise_gain) is nonzero; only a live run needs ou_tau.
+    eff_nonzero = bool(jnp.any(sig_j != 0.0))
     if ou_tau is None:
-        tau_j = jnp.full((N,), 20.0, dtype=dtype)
+        if ou_key is not None and eff_nonzero:
+            raise ValueError(
+                "ou_tau is required when OU noise is live (ou_key given and "
+                "ou_sigma * noise_gain nonzero); got None "
+                "(PORT_SPEC.md section 3 gives a per-cell U(10, 50) range, not a default)"
+            )
+        tau_j = jnp.full((N,), HH_OU_TAU_FALLBACK_MS, dtype=dtype)
     else:
         tau_j = jnp.asarray(ou_tau, dtype)
         if tau_j.shape != (N,):
             raise ValueError(f"ou_tau must be None or shape ({N},); got {tau_j.shape}")
-    if ou_sigma is None:
-        sigma_nonzero = False
-    else:
-        sigma_nonzero = bool(np.any(np.asarray(ou_sigma, dtype=np.float64) != 0.0))
-        if sigma_nonzero and ou_key is None:
-            raise ValueError("ou_key is required when ou_sigma is nonzero")
+        if not bool(jnp.all(jnp.isfinite(tau_j))) or bool(jnp.any(tau_j <= 0.0)):
+            raise ValueError(f"ou_tau must be finite and > 0; got {ou_tau!r}")
+    if eff_nonzero and ou_key is None:
+        raise ValueError("ou_key is required when ou_sigma * noise_gain is nonzero")
     noise_on = ou_key is not None
     if ou_key is not None:
         try:
             jax.random.split(ou_key)
-        except Exception:
+        except (TypeError, ValueError):
+            # Probed on this tree's JAX: split raises TypeError for every
+            # malformed key tried (str, None, int, float, list, wrong dtype
+            # or shape); ValueError is caught for other JAX versions.
             raise ValueError(f"ou_key must be a JAX PRNG key; got {ou_key!r}")
 
     I_const = jnp.zeros((N,), dtype)
@@ -441,7 +516,7 @@ def simulate_hh(
     thr = jnp.asarray(HH_SPIKE_THR_MV, dtype)
 
     def body(carry, I_t):
-        v, m, h, n, ou, s, prev_v, rkey = carry
+        v, m, h, n, ou, s, prev_v, rkey, n_held_s, n_held_ou = carry
         if noise_on:
             rkey, uk = jax.random.split(rkey)
         I_t = I_const if I_t is None else I_t
@@ -451,6 +526,11 @@ def simulate_hh(
             v_pre = v[pre_j]
             act = 0.5 * (1.0 + jnp.tanh((v_pre - vth_j[rec_j]) / slope_j[rec_j]))
             new_s = s + ((-s / taud_j[rec_j]) + act * (1.0 - s) / taur_j[rec_j]) * dt_ms
+            # The reference float32 barrier: a non-finite update keeps the
+            # old gating; held steps are counted in the scan carry and
+            # reported as held_steps (the GSDR fit maps a NaN loss to inf
+            # and reverts the generation: PORT_SPEC.md section 10).
+            n_held_s = n_held_s + jnp.sum((~jnp.isfinite(new_s)).astype(jnp.int32))
             s = jnp.where(jnp.isfinite(new_s), new_s, s)
             gs = w_j * s
             g_syn = jax.ops.segment_sum(gs, post_j, num_segments=N)
@@ -458,6 +538,8 @@ def simulate_hh(
         if noise_on:
             xi = jax.random.normal(uk, shape=(N,), dtype=dtype)
             new_ou = ou + (0.0 - ou) / tau_j * dt_ms + sig_j * jnp.sqrt(2.0 / tau_j) * xi * jnp.sqrt(dt_ms)
+            # As above: hold the old noise, count the held update.
+            n_held_ou = n_held_ou + jnp.sum((~jnp.isfinite(new_ou)).astype(jnp.int32))
             ou = jnp.where(jnp.isfinite(new_ou), new_ou, ou)
         i_noise = -ou
         am, bm, ah, bh, an, bn = _hh_rate_coeffs(v)
@@ -476,7 +558,7 @@ def simulate_hh(
         v_new = (v + c_tot / cm * dt_ms) / (1.0 + g_tot / cm * dt_ms)
         spk = (prev_v < thr) & (v_new >= thr)
         out = (spk, v_new) if record_v else spk
-        return (v_new, m, h, n, ou, s, v_new, rkey), out
+        return (v_new, m, h, n, ou, s, v_new, rkey, n_held_s, n_held_ou), out
 
     if ou_key is None:
         rkey0 = jnp.zeros((), jnp.int32)
@@ -492,8 +574,10 @@ def simulate_hh(
         jnp.full((n_edges,), s0, dtype),
         V0,
         rkey0,
+        jnp.zeros((), dtype=jnp.int32),
+        jnp.zeros((), dtype=jnp.int32),
     )
-    (v, m, h, n, ou, s, _, _), ys = jax.lax.scan(body, carry0, I_all, length=n_steps)
+    (v, m, h, n, ou, s, _, _, n_held_s, n_held_ou), ys = jax.lax.scan(body, carry0, I_all, length=n_steps)
     result = {
         "spikes": ys[0] if record_v else ys,
         "v": v,
@@ -502,6 +586,7 @@ def simulate_hh(
         "n": n,
         "ou": ou,
         "s": s,
+        "held_steps": {"s": n_held_s, "ou": n_held_ou},
     }
     if record_v:
         result["V_mV"] = ys[1]
