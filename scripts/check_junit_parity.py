@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -51,6 +52,11 @@ def fetch_ci_junit(sha: str, dest: Path) -> list[Path]:
 
     No fallback to another commit's evidence: comparing against a different
     SHA's results would compare the RC to something it is not.
+
+    `dest` is the base directory; this SHA's files go into ``dest/<sha>`` so
+    a rerun on a new SHA never collides with an old SHA's files (``gh run
+    download`` refuses to overwrite) and two SHAs never mix. The SHA
+    directory is cleared first so a same-SHA rerun replaces stale files.
     """
     listing = _gh(
         "run", "list", "--workflow", CI_WORKFLOW, "--commit", sha,
@@ -66,11 +72,14 @@ def fetch_ci_junit(sha: str, dest: Path) -> list[Path]:
             "evaluated, and an unevaluated comparison is not a pass."
         )
     print(f"+ CI evidence from {CI_WORKFLOW} run {run_id} @ {sha}", flush=True)
-    dest.mkdir(parents=True, exist_ok=True)
-    download = _gh("run", "download", run_id, "--pattern", "pytest-results-*", "--dir", str(dest))
+    target = dest / sha
+    if target.exists():
+        shutil.rmtree(target)
+    target.mkdir(parents=True, exist_ok=True)
+    download = _gh("run", "download", run_id, "--pattern", "pytest-results-*", "--dir", str(target))
     if download.returncode != 0:
         raise SystemExit(f"gh run download failed: {download.stderr.strip()}")
-    found = sorted(dest.rglob("pytest-results-*.xml"))
+    found = sorted(target.rglob("pytest-results-*.xml"))
     if not found:
         raise SystemExit(f"No pytest-results-*.xml in run {run_id} artifacts")
     return found
