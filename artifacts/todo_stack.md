@@ -96,31 +96,20 @@ run on WSL2 CUDA.
   (`artifacts/control/harness/jnwb_cross_learning.md`).
 - T-11 [A] G-3: CAMINOS p = 0.07 seed 1 as an NWB excerpt plus provenance for jnwb `tests/`
   (waits on jnwb to name its tests/ path). Closes when: the excerpt's recovery test passes in jnwb `tests/`.
-- T-12 [A] `cross_area_coherence` Welch path (the periodogram fallback is refused since
-  Hamm's call, 2026-10-13): `nperseg = min(1024, T)` gives one segment for T < 1536 samples, so
-  coherence is 1 at the native bins there too. Independent white noise, dt 0.5 ms
-  (`C:/workspace/pytest_temp/coh_single_segment.py`): median coherence 0.81 at T = 1000, 0.40 at
-  1536 (2 segments), 0.22 at 2048, 0.10 at 4000. AT-09 (`artifacts/atlas/at08_at09_054.py`, 1000 ms,
-  T = 2000) reads it in 8–25 Hz with about 2 segments. Hamm 2026-10-13: shrink nperseg so Welch
-  has at least 8 half-overlapping segments, refuse when that leaves nperseg < 64. Landed with
-  tests; AT-09 C_12 falls from 0.50/0.45/0.45 to 0.105/0.110/0.111 (noise level, no arm
-  difference), recorded in `artifacts/programme/receipts/engine_053_054/composition_054.md`; the AT-09 verdict stands.
-  Closes when: the change is on dev with the broad gate green.
-- T-16 [A] C7: parametrize the protocol_e spec tests; merge the 8 `test_atlas_at*_05x` files
-  after a per-test coverage run. CI dedupe (examples list and wheel smoke in three places).
-  Closes when: `python scripts/run_test_gate.py broad` passes with coverage unchanged.
+- T-16 [A] Merge of the `test_atlas_at*_05x` files not done (score about 60, 2026-10-17): it renames
+  every test id path, which costs the JUnit parity comparison against earlier CI runs for fewer
+  files. Protocol_e parametrization and the CI dedupe (`run_test_gate.py` examples and
+  wheel-smoke gates) landed 2026-10-17. Closes when: Hamm keeps the files or a parity-aware merge lands.
 - T-17 [H] P3 audit, remaining owner calls: the manuscript tree and other archive moves. Four
   unreferenced scripts were archived 2026-10-13 (table in `artifacts/README.md`). Five more have
   no reference but write tracked or frozen receipts that docs cite, so they stay:
   `hdp_k_w_ctrl_sweep.py`, `p2v_a1b_dynamic_search.py`, `p2v_a1b_prefreeze_evidence.py`,
   `p2v_a3_hdp_boundedness.py`, `p2v_a4_claim_language.py`. Closes when: each has Hamm's call.
-- T-18 [A] Inhibitory-type lists that omit `I`, `Inl`, `Ing`, `SOM` (F6 review, 57f40ddf):
-  `tutorial_utils.py:1581` (`simulate_laminar_trials` zeroes same-layer input only onto
-  PV/SST/VIP, a model rule; applied at :1587), `tutorial_utils.py:813` (default `cell_signs`), `util.py:712`
-  (diagnostic grouping). Callers checked (b0a12a36): every caller of `make_laminar_column_config`
-  and `simulate_laminar_trials` (4 notebooks, `tests/test_tutorial_utils.py`, `tune_laminar_agsdr`)
-  passes only E/PV/SST/VIP, so no realized run is affected at b0a12a36. A change to 1581/1587 is a model
-  change for Hamm. Closes when: each site reads the emitter table's sign or carries a stated scope.
+- T-18 [A] Follow-ups of the T-18 fix (2026-10-17; default signs, refusal and summary grouping now
+  read `emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS`): the same-layer zeroing still names PV/SST/VIP
+  in `tutorial_utils.py` (`np.isin`), the LIF table keeps its own signs (`emitters_lif.py`
+  `LIF_LABEL_SIGN`), and `SOM` is in neither table. Extending the same-layer rule to I/Inl/Ing is
+  a model change for Hamm. Closes when: one sign source, or each site carries a stated scope.
 - T-19 [A] Deep audit and code critique (Muse, 2026-10-13, at aef3129e). Landed: 0df3da9d,
   68c61e92, 10d80c08 (NaN metrics, refusals, narrowed excepts), 5090af24 and c4dc0922 (D1 noise
   sqrt(dt_ref/dt)), and the `compute_fields` model check plus the last emitters.py broad except
@@ -135,14 +124,11 @@ run on WSL2 CUDA.
     frozen dataclasses mutated through `object.__setattr__`; mixed `_s`/`_ms` parameters in
     the HDP controller.
   Closes when: each item is fixed with a test or recorded here with Hamm's call.
-- T-20 [A] Lint leftovers (2026-10-14). F841 suspects, a value computed and unused while a panel
-  or check hard-codes it: `scripts/audit_methods_draft.py:126,132,147,151`,
-  `scripts/evidence_figures/ed05_manifest_hashes.py:223`,
-  `scripts/internal/publication/fig08_e2_ping.py:190`, `fig09_e2_ssa.py:180`,
-  `scripts/run_delta_notebook_01.py:277`, `artifacts/archive/scripts/make_delta_test_01_report.py:470`
-  (and its placeholder pass 0.95 at :484). `--check` parsed and ignored in
-  `scripts/release/assert_release_freeze.py` and `scripts/sync_release_metadata.py` (both
-  check-only). Closes when: each is used, removed or ruled harmless.
+- T-20 [A] Lint leftovers: the F841 suspects are clear (ruff F841 passes on all of them,
+  2026-10-17). Left: `run_delta_notebook_01.py` `cell_labels=None` TODO (the callee documents
+  `cell_labels` as unused, so wiring changes no output; whether the notebook applies DC is a
+  model question); `--check` parsed and ignored in `scripts/release/assert_release_freeze.py`
+  and `scripts/sync_release_metadata.py` (O-15). Closes when: each is used, removed or ruled harmless.
 
 hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 - T-22 [A] Same-step interactions (PCL local inhibition, CAMINOS zero delay, gap G12) are a
