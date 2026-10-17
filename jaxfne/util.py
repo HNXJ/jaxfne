@@ -701,15 +701,17 @@ def canonical_compact_summary(
     # realized populations: distinct (layer, cell_type) combos in built neuron_table
     n_populations_realized = None
     populations_inventory: dict[str, int] = {}
+    # Inhibitory membership comes from the emitter table (negative sign), not a local list.
+    from .emitters import IZHIKEVICH_CELL_TYPE_DEFAULTS as _IZH_TYPES
     try:
         rows = model.neuron_table()
         from collections import Counter as _Counter
         combo_counts = _Counter((r.get("layer"), r.get("cell_type")) for r in rows)
         n_populations_realized = int(len(combo_counts))
         # also flat inventory like “12 = 6 layers × 2 effective E/I” vs 23 detailed
-        # effective collapsed inhibitory: map PV/SST/VIP → I
+        # effective collapsed inhibitory: map every negative-sign emitter-table type → I
         def _eff_cell(ct: str) -> str:
-            return "I" if ct in ("PV", "SST", "VIP", "Inl", "Ing") else ct
+            return "I" if _IZH_TYPES.get(ct, {}).get("sign", 1.0) < 0 else ct
         eff_combos = _Counter((r.get("layer"), _eff_cell(str(r.get("cell_type")))) for r in rows)
         populations_inventory = {
             "realized_detailed": n_populations_realized,

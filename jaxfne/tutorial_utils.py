@@ -811,11 +811,12 @@ def make_laminar_column_config(
         }
 
     if cell_signs is None:
+        # Signs come from the emitter table (emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS),
+        # the source simulate_laminar_trials uses for each neuron's Dale's-law sign.
+        from .emitters import IZHIKEVICH_CELL_TYPE_DEFAULTS as _IZH_TYPES
         cell_signs = {
-            'E': 1.0,
-            'PV': -1.0,
-            'SST': -1.0,
-            'VIP': -1.0,
+            ct: float(_IZH_TYPES[ct]['sign'])
+            for ct in ('E', 'PV', 'SST', 'VIP')
         }
 
     if base_control is None:
@@ -1413,6 +1414,10 @@ def simulate_laminar_trials(
 ) -> dict:
     """Simulate laminar column with multiple trials.
 
+    Scope: the same-layer rule (PV/SST/VIP receive no same-layer input) covers
+    E/PV/SST/VIP configurations only. A config holding another inhibitory type
+    (negative sign in the emitter table, e.g. I, Inl, Ing) raises ValueError.
+
     Parameters
     ----------
     model : dict
@@ -1482,6 +1487,18 @@ def simulate_laminar_trials(
     from .fields import project_laminar_sources
 
     cell_labels = [str(x) for x in neurons_df['cell_type'].tolist()]
+    # The same-layer rule below zeroes PV/SST/VIP only; refuse any other inhibitory
+    # type (negative emitter-table sign) instead of running it with input unzeroed.
+    from .emitters import IZHIKEVICH_CELL_TYPE_DEFAULTS as _IZH_TYPES
+    _unzeroed_inh = sorted({
+        ct for ct in cell_labels
+        if ct not in ("PV", "SST", "VIP") and _IZH_TYPES.get(ct, {}).get("sign", 1.0) < 0
+    })
+    if _unzeroed_inh:
+        raise ValueError(
+            f"simulate_laminar_trials: inhibitory cell types {_unzeroed_inh} are outside "
+            "the same-layer rule (PV/SST/VIP only); refusing rather than running them unzeroed"
+        )
     layer_labels = [str(x) for x in neurons_df['layer'].tolist()]
     area_labels = neurons_df['area'].to_numpy()
     z_rel_all = np.clip(

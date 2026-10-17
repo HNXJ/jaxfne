@@ -746,3 +746,63 @@ def test_kappa_synchrony_defined_zero_stays():
     )
     value = kappa_synchrony(spikes)
     assert value == 0.0 and not np.isnan(value)
+
+
+@pytest.mark.parametrize("inh_type", ["I", "Inl", "Ing"])
+def test_simulate_laminar_trials_refuses_inhibitory_type_outside_same_layer_rule(inh_type):
+    """The same-layer rule zeroes PV/SST/VIP input only. A config holding another
+    inhibitory type is refused before simulation, not run with that type unzeroed."""
+    from jaxfne.tutorial_utils import build_laminar_column, simulate_laminar_trials
+
+    cfg = make_test_config(areas=("V1",), cell_types=("E", "PV", inh_type), n_neuron_per_column=24)
+    model = build_laminar_column(cfg)
+    assert inh_type in set(model["neurons"]["cell_type"]), "fixture must hold the type"
+    with pytest.raises(ValueError, match=rf"\['{inh_type}'\]"):
+        simulate_laminar_trials(model, cfg, n_trials=1)
+
+
+def test_default_cell_signs_follow_emitter_table(monkeypatch):
+    """Default cell_signs read the emitter table's sign, not a second hard-coded copy."""
+    from jaxfne.emitters import IZHIKEVICH_CELL_TYPE_DEFAULTS
+    from jaxfne.tutorial_utils import make_laminar_column_config
+
+    assert make_laminar_column_config().cell_signs == {"E": 1.0, "PV": -1.0, "SST": -1.0, "VIP": -1.0}
+    monkeypatch.setitem(
+        IZHIKEVICH_CELL_TYPE_DEFAULTS, "PV", {**IZHIKEVICH_CELL_TYPE_DEFAULTS["PV"], "sign": 1.0}
+    )
+    assert make_laminar_column_config().cell_signs["PV"] == 1.0
+
+
+def test_canonical_summary_collapses_types_by_emitter_table_sign(monkeypatch):
+    """Effective E/I grouping follows the emitter table's sign: a type the table marks
+    inhibitory collapses to I under any name."""
+    import types
+
+    import jax.numpy as jnp
+    from jaxfne.emitters import IZHIKEVICH_CELL_TYPE_DEFAULTS
+    from jaxfne.util import canonical_compact_summary
+
+    def inventory_for(labels):
+        rows = [
+            {"layer": "L2", "cell_type": ct, "area": "V1", "neuron_id": i}
+            for i, ct in enumerate(labels)
+        ]
+        z = jnp.zeros(len(labels), dtype=jnp.float32)
+        emitter = types.SimpleNamespace(
+            v0=z, u0=z, a=z, b=z, c=z, d=z, drive=z, sign=z, source_scale=1.0
+        )
+        model = types.SimpleNamespace(
+            params={"emitter": emitter},
+            cfg=types.SimpleNamespace(metadata={}),
+            static={},
+            neuron_table=lambda: rows,
+        )
+        return canonical_compact_summary(model)["counts"]["realized"]["populations_inventory"]
+
+    inv = inventory_for(["E", "PV", "Inl", "Ing", "I", "SST", "VIP"])
+    assert inv["realized_detailed"] == 7
+    assert inv["effective_EI_collapsed"] == 2, "E and one collapsed I per layer"
+
+    monkeypatch.setitem(IZHIKEVICH_CELL_TYPE_DEFAULTS, "Foo", {"sign": -1.0})
+    inv = inventory_for(["E", "PV", "Foo"])
+    assert inv["effective_EI_collapsed"] == 2, "Foo is inhibitory in the table: must collapse to I"
