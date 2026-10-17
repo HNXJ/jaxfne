@@ -92,6 +92,7 @@ def cmd_score(args):
     # raster. The raster stores no RS/FS split, so the regime is reported for
     # the whole network only; no subpopulation is inferred. Scored numbers
     # above are untouched.
+    from jaxfne.analysis import ACTIVITY_REGIME_DEFAULTS
     from jaxfne.analysis import activity_regime as _activity_regime
 
     network_regime = _activity_regime(np.asarray(spikes), float(dt_ms))
@@ -100,7 +101,7 @@ def cmd_score(args):
         "labels": {"all": network_regime["label"]},
         "window_steps": [0, int(spikes.shape[0])],
         "window_ms": [0.0, float(spikes.shape[0]) * float(dt_ms)],
-        "bin_ms": 5.0,
+        "bin_ms": ACTIVITY_REGIME_DEFAULTS["bin_ms"],
         "dt_ms": float(dt_ms),
         "note": "whole-network population: the raster stores no RS/FS split",
     }

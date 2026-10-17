@@ -81,6 +81,58 @@ def sha256_file(path: str | Path) -> str:
     return h.hexdigest()
 
 
+def _activity_regime_block(signals: Any) -> Optional[dict[str, Any]]:
+    """Per-cell-type activity-regime classification for a run manifest.
+
+    Groups spike columns by ``metadata['neuron_metadata'][i]['cell_type']``
+    and classifies each group with
+    :func:`jaxfne.analysis.metrics.activity_regimes` over the whole recorded
+    trace, so ``kept_window_ms`` is [first, last] sample time. The step comes
+    from the signals' own time grid. A silent run (all-zero spikes) is a
+    regime and is labelled ``silent``. Returns ``None`` only when the spike
+    array is missing, empty (size 0), not 2-D, or no per-neuron cell-type
+    table exists; the caller then omits the key entirely (never null).
+    """
+    spikes = getattr(signals, "spikes", None)
+    if spikes is None:
+        return None
+    arr = np.asarray(spikes)
+    if arr.size == 0 or arr.ndim != 2:
+        return None
+    metadata = getattr(signals, "metadata", None) or {}
+    table = metadata.get("neuron_metadata")
+    if not table or len(table) != int(arr.shape[-1]):
+        return None
+    groups: dict[str, list[int]] = {}
+    for i, row in enumerate(table):
+        get = getattr(row, "get", None)
+        if get is None:
+            return None
+        label = get("cell_type", None)
+        if label is None:
+            return None
+        groups.setdefault(str(label), []).append(i)
+    if not groups:
+        return None
+    # Step from the signals' own time grid: float32 grids round dt (0.1 ->
+    # 0.10000000149), so round back to 9 decimals. A downsampled pair then
+    # reports its true step rather than the declared one.
+    time_ms = np.asarray(getattr(signals, "time_ms", None))
+    if time_ms.ndim != 1 or time_ms.shape[0] != arr.shape[0] or time_ms.shape[0] < 2:
+        return None
+    dt_ms = round(float(time_ms[1] - time_ms[0]), 9)
+    if not dt_ms > 0:
+        return None
+    from .analysis.metrics import ACTIVITY_REGIME_DEFAULTS, activity_regimes
+
+    populations = {name: np.asarray(idx, dtype=int) for name, idx in groups.items()}
+    return {
+        "populations": activity_regimes(arr, dt_ms, populations),
+        "kept_window_ms": [float(time_ms[0]), float(time_ms[-1])],
+        "thresholds": dict(ACTIVITY_REGIME_DEFAULTS),
+    }
+
+
 def manifest(
     cfg: Any,
     signals: Optional[Any] = None,
@@ -149,6 +201,14 @@ def manifest(
             data["source_field_status"] = validate_source_field_status(
                 signals.field, cfg_metadata, requested_modes=requested_modes
             )
+        # The classifier's input refusals (ValueError: grid, bin or shape)
+        # are recorded in the manifest; any other error propagates.
+        try:
+            _regime_block = _activity_regime_block(signals)
+        except ValueError as exc:
+            _regime_block = {"refused": str(exc)}
+        if _regime_block is not None:
+            data["activity_regimes"] = _regime_block
     # v0.0.5 optional extension blocks — always include claim labels to prevent
     # downstream misreading of computational reports as empirical validation.
     _v005_present = any(x is not None for x in (paradigm, objective, evaluation, tuning))
