@@ -23,7 +23,7 @@ from jaxfne.public_surface import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTRACT_PATH = ROOT / "artifacts/public_surface_contract_v0413.json"
+CONTRACT_PATH = ROOT / "artifacts/assurance/api_contracts/public_surface_contract_v0413.json"
 
 
 def test_public_exports_match_contract_module():
@@ -31,7 +31,7 @@ def test_public_exports_match_contract_module():
 
 
 def test_contract_artifact_matches_module():
-    assert CONTRACT_PATH.exists(), "artifacts/public_surface_contract_v0413.json required"
+    assert CONTRACT_PATH.exists(), "artifacts/assurance/api_contracts/public_surface_contract_v0413.json required"
     artifact = json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
     summary = public_surface_summary()
     assert artifact["public_exports"] == summary["public_exports"]
@@ -176,7 +176,7 @@ def test_contract_artifact_matches_generator_output_exactly():
     from scripts.generate_public_surface_contract import render
 
     assert CONTRACT_PATH.read_text(encoding="utf-8") == render(), (
-        "artifacts/public_surface_contract_v0413.json is stale; regenerate with "
+        "artifacts/assurance/api_contracts/public_surface_contract_v0413.json is stale; regenerate with "
         "python scripts/generate_public_surface_contract.py"
     )
 

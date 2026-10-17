@@ -3,7 +3,7 @@
 <!-- Every backticked repo path and `jaxfne.*` symbol here is resolved by
 tests/test_memory_brief.py; keep SHAs, versions, counts and status out. -->
 
-> Read first. Mutable state: `artifacts/todo_stack.md`. Stable facts: `artifacts/fact_stack.md`. Procedure: `artifacts/skills/`. Rules: `artifacts/AGENTS.md`. Verified failure lessons: §10. Import: `import jaxfne as jtfne` (`README.md`).
+> Read first. Mutable state: `artifacts/todo_stack.md`. Stable facts: `artifacts/fact_stack.md`. Procedure: `artifacts/control/skills/`. Rules: `artifacts/AGENTS.md`. Verified failure lessons: §10. Import: `import jaxfne as jtfne` (`README.md`).
 
 ## 1. What jaxfne is
 
@@ -25,7 +25,7 @@ tests/test_memory_brief.py; keep SHAs, versions, counts and status out. -->
 | `examples/` | Release-smoked scripts |
 | `.github/workflows/` | `ci.yml` (Fast), `release_ci.yml`, `notebook_execution.yml`, `publish.yml` |
 | `artifacts/programme/`, `artifacts/atlas/` | Receipts, `atlas_coverage.json`, `claim_ledger_055.md`; Atlas assays `at*.py`, results in `artifacts/atlas/results/` |
-| `artifacts/skills/`, `artifacts/release/` | Canonical `jaxfne-*` skills; release receipts, `current_release_authorities.json` |
+| `artifacts/control/skills/`, `artifacts/release/` | Canonical `jaxfne-*` skills; release receipts, `current_release_authorities.json` |
 | `scripts/run_test_gate.py` | Source of truth for gates `dev`, `broad`, `release`, `rc`, `publication` |
 | `scripts/harness/sync_skills.py --update --manifest` | Canonical skills → mirrors (the only sanctioned edit→sync flow) |
 

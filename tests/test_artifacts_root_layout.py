@@ -15,8 +15,6 @@ ROOT_FILES = {
     "goal_stack.md", "problem_stack.md", "state.md",
     # open-items role (keeper proposal, Hamm 2026-10-12)
     "open_stack.md",
-    # pinned by tests/test_public_surface_contract_v0413.py, test_public_api_snapshot_v034.py
-    "public_api_before.json", "public_surface_contract_v0413.json",
 }
 
 

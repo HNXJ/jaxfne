@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Vocabulary audit for jaxfne.
 
-Canonical vocabulary: ``artifacts/vocabulary/JAXFNE_VOCABULARY.md``.
-Semantic review procedure: ``artifacts/subagents/vocabulary_critic.md``.
+Canonical vocabulary: ``artifacts/control/vocabulary/JAXFNE_VOCABULARY.md``.
+Semantic review procedure: ``artifacts/control/subagents/vocabulary_critic.md``.
 
 Scans repository release-facing text (docs, README, docstrings, manifests,
 scripts, tests) and reports:

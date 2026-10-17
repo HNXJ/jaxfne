@@ -138,7 +138,7 @@ def test_api_index_md_structural_contract_reference():
     import json
 
     counts = json.loads(
-        (root_dir / "artifacts" / "public_surface_contract_v0413.json").read_text(encoding="utf-8")
+        (root_dir / "artifacts" / "assurance" / "api_contracts" / "public_surface_contract_v0413.json").read_text(encoding="utf-8")
     )["counts"]
     assert (
         f"**{counts['public_exports']} symbols** ({counts['canonical']} CANONICAL + "

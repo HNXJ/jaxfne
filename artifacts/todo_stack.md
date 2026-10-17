@@ -93,7 +93,7 @@ run on WSL2 CUDA.
   `release_body.py` and claim check; release body as tables. Closes when: `release_body.py --tag <next>` passes.
   Then one newline policy for docs (check: `docs/changelog.md` has 0 LF-only lines), the errors
   page, a proxy-claim wording gate, AST-hash freezing of validated kernels
-  (`artifacts/harness/jnwb_cross_learning.md`).
+  (`artifacts/control/harness/jnwb_cross_learning.md`).
 - T-11 [A] G-3: CAMINOS p = 0.07 seed 1 as an NWB excerpt plus provenance for jnwb `tests/`
   (waits on jnwb to name its tests/ path). Closes when: the excerpt's recovery test passes in jnwb `tests/`.
 - T-12 [A] `cross_area_coherence` Welch path (the periodogram fallback is refused since

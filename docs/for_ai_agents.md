@@ -6,7 +6,7 @@ jaxfne treats **AI-agent readability as a first-class design goal**, alongside h
 | Surface | Audience | Role |
 |---------|----------|------|
 | `docs/` + README | Humans | Tutorials, API reference, guides |
-| `artifacts/context.md` + `artifacts/skills/` + `artifacts/AGENTS.md` | AI coding agents | Router, verified workflows, and repository policy |
+| `artifacts/context.md` + `artifacts/control/skills/` + `artifacts/AGENTS.md` | AI coding agents | Router, verified workflows, and repository policy |
 | `artifacts/developer/` | Maintainers / agents, **local-only** | Developer working notes — gitignored since 2026-07-14 and absent from a fresh clone |
 
 ## Start here (agents)
@@ -37,7 +37,7 @@ See [Scope & status](scope_and_status.md) for the authoritative gate table.
 ## Skills sync
 
 Repo skills mirror to client installs via `scripts/harness/sync_skills.py --update`
-(canonical `artifacts/skills/` → local tool mirrors; mirrors are generated and
+(canonical `artifacts/control/skills/` → local tool mirrors; mirrors are generated and
 never edited by hand). After changing a skill, run sync and update the harness manifest
 in the same change.
 

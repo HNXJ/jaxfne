@@ -3,7 +3,7 @@
 
 This command is read-only. It is the preferred source for branch, SHA, version,
 dependency, export-surface, and status observations; do not copy its values into
-artifacts/AGENTS.md, artifacts/skills, or other persistent doctrine.
+artifacts/AGENTS.md, artifacts/control/skills, or other persistent doctrine.
 """
 
 from __future__ import annotations

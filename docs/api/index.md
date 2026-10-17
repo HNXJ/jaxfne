@@ -9,7 +9,7 @@ import jaxfne as jtfne
 The root public contract is **208 symbols** (195 CANONICAL + 13 COMPATIBILITY) in
 `jaxfne.__all__`. Tier membership is authoritative in
 [`jaxfne/public_surface.py`](https://github.com/HNXJ/jaxfne/blob/main/jaxfne/public_surface.py)
-and [`artifacts/public_surface_contract_v0413.json`](https://github.com/HNXJ/jaxfne/blob/main/artifacts/public_surface_contract_v0413.json).
+and [`artifacts/assurance/api_contracts/public_surface_contract_v0413.json`](https://github.com/HNXJ/jaxfne/blob/main/artifacts/assurance/api_contracts/public_surface_contract_v0413.json).
 See [Public surface contract](../public_surface_contract.md).
 
 **Advanced** symbols (70) and **experimental/internal** symbols (13) are

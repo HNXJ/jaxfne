@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regenerate the tracked public surface contract artifact.
 
-``artifacts/public_surface_contract_v0413.json`` is a serialization of
+``artifacts/assurance/api_contracts/public_surface_contract_v0413.json`` is a serialization of
 :func:`jaxfne.public_surface.public_surface_summary`, which is the single
 authority for the tier classification and for ``jaxfne.__all__``.
 
@@ -36,7 +36,7 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
-OUT = ROOT / "artifacts" / "public_surface_contract_v0413.json"
+OUT = ROOT / "artifacts" / "assurance" / "api_contracts" / "public_surface_contract_v0413.json"
 
 
 def render() -> str:

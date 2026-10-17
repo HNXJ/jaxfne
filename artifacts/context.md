@@ -36,8 +36,8 @@ either grammar.
 | How is it meant to be used? | `docs/`, published as the documentation site |
 | Repository policy and work queue | `artifacts/AGENTS.md`, `artifacts/todo_stack.md` |
 | Human-authorized stable facts | `artifacts/fact_stack.md` (agents read only; human edit) |
-| Canonical prose vocabulary | `artifacts/vocabulary/JAXFNE_VOCABULARY.md` |
-| Reusable agent workflows | `artifacts/skills/` — in a repository checkout; not carried in the source distribution |
+| Canonical prose vocabulary | `artifacts/control/vocabulary/JAXFNE_VOCABULARY.md` |
+| Reusable agent workflows | `artifacts/control/skills/` — in a repository checkout; not carried in the source distribution |
 | Which checks block a release? | `scripts/run_test_gate.py` |
 | CI, branch and documentation policy | `docs/ci_policy.md` |
 
@@ -52,22 +52,22 @@ This file is the **only** first-contact router. Deeper policy lives in
 
 | Task | Active skill |
 |------|----------------|
-| Unfamiliar work / ordinary modeling | `artifacts/skills/jaxfne-core/SKILL.md` |
-| Bounded code change, tests, API work | `artifacts/skills/jaxfne-repo/SKILL.md` |
-| Scientific experiment / falsification | `artifacts/skills/jaxfne-science/SKILL.md` |
-| Independent audit / measurement | `artifacts/skills/jaxfne-audit/SKILL.md` |
-| Release candidate preparation | `artifacts/skills/jaxfne-release/SKILL.md` |
-| Independent seal verification | `artifacts/skills/jaxfne-seal/SKILL.md` |
-| Vocabulary / terminology review | `artifacts/skills/vocabulary-audit/SKILL.md` |
-| Neuron model, emitter, cell types | `artifacts/skills/jaxfne-model/SKILL.md` |
-| Network specification (TFNE) and realization | `artifacts/skills/jaxfne-network/SKILL.md` |
-| Hidden state H (RBS/RBD) | `artifacts/skills/jaxfne-state/SKILL.md` |
-| Plasticity (HDP), masks, frozen controls | `artifacts/skills/jaxfne-plasticity/SKILL.md` |
-| Fields, probes, LFP/CSD readouts | `artifacts/skills/jaxfne-fields/SKILL.md` |
-| Running a model | `artifacts/skills/jaxfne-simulate/SKILL.md` |
-| Configured/realized/executed identity | `artifacts/skills/jaxfne-verify/SKILL.md` |
-| Reading what a model or run contains | `artifacts/skills/jaxfne-inspect/SKILL.md` |
-| End-to-end scientific task | `artifacts/skills/jaxfne-workflow/SKILL.md` |
+| Unfamiliar work / ordinary modeling | `artifacts/control/skills/jaxfne-core/SKILL.md` |
+| Bounded code change, tests, API work | `artifacts/control/skills/jaxfne-repo/SKILL.md` |
+| Scientific experiment / falsification | `artifacts/control/skills/jaxfne-science/SKILL.md` |
+| Independent audit / measurement | `artifacts/control/skills/jaxfne-audit/SKILL.md` |
+| Release candidate preparation | `artifacts/control/skills/jaxfne-release/SKILL.md` |
+| Independent seal verification | `artifacts/control/skills/jaxfne-seal/SKILL.md` |
+| Vocabulary / terminology review | `artifacts/control/skills/vocabulary-audit/SKILL.md` |
+| Neuron model, emitter, cell types | `artifacts/control/skills/jaxfne-model/SKILL.md` |
+| Network specification (TFNE) and realization | `artifacts/control/skills/jaxfne-network/SKILL.md` |
+| Hidden state H (RBS/RBD) | `artifacts/control/skills/jaxfne-state/SKILL.md` |
+| Plasticity (HDP), masks, frozen controls | `artifacts/control/skills/jaxfne-plasticity/SKILL.md` |
+| Fields, probes, LFP/CSD readouts | `artifacts/control/skills/jaxfne-fields/SKILL.md` |
+| Running a model | `artifacts/control/skills/jaxfne-simulate/SKILL.md` |
+| Configured/realized/executed identity | `artifacts/control/skills/jaxfne-verify/SKILL.md` |
+| Reading what a model or run contains | `artifacts/control/skills/jaxfne-inspect/SKILL.md` |
+| End-to-end scientific task | `artifacts/control/skills/jaxfne-workflow/SKILL.md` |
 
 Version-specific release targets (receipt path, acceptance goal list, candidate SHA)
 live in `artifacts/release/current_release_authorities.json`, not in generic skills.

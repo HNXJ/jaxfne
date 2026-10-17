@@ -2,7 +2,7 @@
 
 ## Harness
 
-- **Integrity.** `scripts/harness/HARNESS_MANIFEST.json` hashes kernel, this router, canonical skills, mirrors, gates and schemas. Change flow: edit canonical `artifacts/skills/` or this file → `python scripts/harness/sync_skills.py --update --manifest` → verify. Tool-local mirrors are generated, never hand-edited.
+- **Integrity.** `scripts/harness/HARNESS_MANIFEST.json` hashes kernel, this router, canonical skills, mirrors, gates and schemas. Change flow: edit canonical `artifacts/control/skills/` or this file → `python scripts/harness/sync_skills.py --update --manifest` → verify. Tool-local mirrors are generated, never hand-edited.
 - **Frozen evidence.** `artifacts/publication/frozen_manifest.json` enumerates immutable publication artifacts. Release authorities: `artifacts/release/current_release_authorities.json`. `scratch/CURRENT_TASK.md` supplies the active `mode:` for Gate 0.
 - **Routing.** mode ∈ {READ, CODE, SCIENCE, RELEASE, PUBLICATION}; facets ⊆ {CODE, REPO, SCIENCE, EVIDENCE_AUDIT, RELEASE}. Skills load compositionally from both.
 
@@ -43,7 +43,7 @@ Paradigm, Objective, optimization/training utilities, visualization, and export 
 
 ## Repository behavior
 
-- Read `artifacts/memory.md` (project brief) and the smallest relevant skill under `artifacts/skills/` (router: `artifacts/context.md`).
+- Read `artifacts/memory.md` (project brief) and the smallest relevant skill under `artifacts/control/skills/` (router: `artifacts/context.md`).
 - Verify unfamiliar public symbols against live code. Prefer package-native operators; reusable plotting lives in the visualization layer.
 - Targeted tests while iterating; `python scripts/run_test_gate.py broad` before pushing code.
 - Quick status: `python scripts/run_test_gate.py report` (all audit checks, no pytest); docs edits: `python scripts/run_test_gate.py docs` (the documentation subset). Both record the same check families as the broad gate and reuse its audit list.
@@ -58,6 +58,6 @@ Paradigm, Objective, optimization/training utilities, visualization, and export 
 | `artifacts/todo_stack.md` | Remaining work only; done items are deleted (git and receipts keep history). Sealed stacks are archived byte-for-byte under `artifacts/archive/`. |
 | `artifacts/assurance/issue_log/ISSUE_LOG.md` | Open issues (P-NNN). |
 
-Work loop `P (R G)^N S`: prepare from the todo stack → review the last result → do the next item → test → commit + push `dev` → repeat; stop only for a human decision that blocks all remaining work. After each feature, run an adversarial review with a separate agent (opencode muse, `review` tier; packet template `artifacts/harness/review_packet_template.md`) and fix or record every finding.
+Work loop `P (R G)^N S`: prepare from the todo stack → review the last result → do the next item → test → commit + push `dev` → repeat; stop only for a human decision that blocks all remaining work. After each feature, run an adversarial review with a separate agent (opencode muse, `review` tier; packet template `artifacts/control/harness/review_packet_template.md`) and fix or record every finding.
 
-Full rules (work loop, H1–H14 review and evidence discipline, step completion): `artifacts/harness/evidence_and_workflow_rules.md`.
+Full rules (work loop, H1–H14 review and evidence discipline, step completion): `artifacts/control/harness/evidence_and_workflow_rules.md`.

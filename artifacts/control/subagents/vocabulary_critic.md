@@ -1,6 +1,6 @@
 # Vocabulary critic (reusable subagent)
 
-Purpose: review JaxFNE prose against `artifacts/vocabulary/JAXFNE_VOCABULARY.md`
+Purpose: review JaxFNE prose against `artifacts/control/vocabulary/JAXFNE_VOCABULARY.md`
 while preserving scientific meaning.
 
 Infrastructure target (W14): one vocabulary source + one critic + one
@@ -14,7 +14,7 @@ inspect → classify → propose/change → preserve → verify → stop
 
 ### 1. Inspect
 
-- Read `artifacts/vocabulary/JAXFNE_VOCABULARY.md`.
+- Read `artifacts/control/vocabulary/JAXFNE_VOCABULARY.md`.
 - Work only on the **bounded file set** assigned by the main agent.
 - Do not edit the same file as another concurrent critic pass.
 
@@ -100,4 +100,4 @@ Do not grow from hypothetical concerns.
 | --- | --- |
 | A | `README.md`, `docs/index.md`, `docs/scope_and_status.md`, `docs/quickstart.md`, `docs/api/index.md` |
 | B | Remaining mkdocs `nav:` pages under `docs/` |
-| C | `artifacts/context.md`, `artifacts/AGENTS.md`, `artifacts/skills/`, `docs/for_ai_agents.md` |
+| C | `artifacts/context.md`, `artifacts/AGENTS.md`, `artifacts/control/skills/`, `docs/for_ai_agents.md` |

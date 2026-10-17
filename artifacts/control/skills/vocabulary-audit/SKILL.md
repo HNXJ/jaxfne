@@ -10,8 +10,8 @@ metadata:
 Reviewing or editing JaxFNE public docs, README, skills, or agent context for terminology consistency.
 
 ## AUTHORITIES
-1. `artifacts/vocabulary/JAXFNE_VOCABULARY.md` — project source, not a procedure.
-2. `artifacts/subagents/vocabulary_critic.md` — review procedure for large passes.
+1. `artifacts/control/vocabulary/JAXFNE_VOCABULARY.md` — project source, not a procedure.
+2. `artifacts/control/subagents/vocabulary_critic.md` — review procedure for large passes.
 
 ## RULES
 - Replace only if the canonical term preserves meaning.

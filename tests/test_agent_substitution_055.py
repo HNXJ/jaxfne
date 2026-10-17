@@ -88,7 +88,7 @@ def _stale_symbols(text):
 
 
 def test_task_skills_name_only_live_symbols():
-    texts = {n: Path(f"artifacts/skills/jaxfne-{n}/SKILL.md").read_text(encoding="utf-8")
+    texts = {n: Path(f"artifacts/control/skills/jaxfne-{n}/SKILL.md").read_text(encoding="utf-8")
              for n in TASK_SKILLS}
     assert sum(len(_QUALIFIED.findall(t)) for t in texts.values()) >= 20
     assert {n: _stale_symbols(t) for n, t in texts.items() if _stale_symbols(t)} == {}

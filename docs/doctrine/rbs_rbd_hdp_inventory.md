@@ -136,7 +136,7 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 | `K_HDP`, `K_ctrl`, `hdp_rule` | parameter keys | Keep — HDP still valid acronym |
 | `EdgeList.delay_steps` | Protocol D (uncommitted) | **orthogonal** — RBD delay, a quantity outside RBS |
 
-**Evidence:** `artifacts/public_surface_contract_v0413.json`, `tests/test_public_surface_contract_v0413.py`
+**Evidence:** `artifacts/assurance/api_contracts/public_surface_contract_v0413.json`, `tests/test_public_surface_contract_v0413.py`
 
 ---
 

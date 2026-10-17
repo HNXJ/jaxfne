@@ -312,7 +312,7 @@ def main() -> None:
             "publication": "make test-publication",
         },
         "public_api_snapshot": {
-            "baseline_file": "artifacts/public_api_before.json",
+            "baseline_file": "artifacts/assurance/api_contracts/public_api_before.json",
             "semantics": "intentional compatibility baseline for test_public_api_matches_snapshot; not current API truth",
             "current_truth": "__all__ in jaxfne/__init__.py until contraction lands",
             "future": "generate public_api_current.json mechanically after 0.4.13 contraction",

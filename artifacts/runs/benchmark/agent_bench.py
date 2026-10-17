@@ -165,7 +165,7 @@ _ANSWER_PATHS = (
     "artifacts/programme/gaps/atlas_gap_052.md", "artifacts/programme/gaps/atlas_gap_053.md",
     "artifacts/programme/gaps/atlas_gap_054.md", "tests/test_atlas_*.py", "tests/test_agent_bench_055.py",
 )
-_SKILL_PATHS = ("artifacts/skills", "jaxfne/agent.py", "tests/test_agent_*.py")
+_SKILL_PATHS = ("artifacts/control/skills", "jaxfne/agent.py", "tests/test_agent_*.py")
 SOLUTION = "bench_solution.py"
 
 
@@ -207,7 +207,7 @@ def packet(task: dict[str, Any], arm: str) -> str:
         )
     arm_lines = "\n".join(f"- `{name}`: {defs[name]}" for name in task["arms"])
     route = {
-        "skills": "Start at `artifacts/skills/jaxfne-core/SKILL.md`; use the task skills it "
+        "skills": "Start at `artifacts/control/skills/jaxfne-core/SKILL.md`; use the task skills it "
                   "routes to and the `jaxfne.agent` operations they name.",
         "direct": "Use the `jaxfne` package and the repository directly.",
     }[arm]

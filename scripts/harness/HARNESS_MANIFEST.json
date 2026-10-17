@@ -3,11 +3,11 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-10-16T21:49:46",
+  "generated_at": "2026-10-16T21:56:36",
   "components": {
     "project_agents": {
       "file": "artifacts/AGENTS.md",
-      "sha256": "a486c21aeab824a600f2198da6eb591d73d42537122ee56f092be84120a532b7"
+      "sha256": "53668081519065c33772aa322aa0bf01f19b8284a90577bfaacf365c69cd40ed"
     },
     "canonical_skills": {
       "jaxfne-audit": "c275d9cdff33a3d682a4ab1e75deef479507a0d47b2cfbdc5cd02f4a788f72ba",
@@ -23,9 +23,9 @@
       "jaxfne-seal": "a02332b042f9588f476a6984a3781ac73090a689436b55ce61ed049e2354ca61",
       "jaxfne-simulate": "9af733c25e9900666673396b46f5b701168e5180f12c10a415cce2db1083c968",
       "jaxfne-state": "abc7943edc2d1d0d2126b3e89fd8afc4b059e189fff93cd6af6bd90364fdda9d",
-      "jaxfne-verify": "5a00f375cfc544c3444d2bde517d110046b1c03a02c84bfb95f386725cb120cd",
+      "jaxfne-verify": "c25b4ced013a42f1a3e6f03b92bf3565bca8567b47a524b475a862d8a7e602d7",
       "jaxfne-workflow": "757b342d599fb2ed4be39d528d9af81451fd40e299e07b952ba790ffdb580cd7",
-      "vocabulary-audit": "eb0da2fb9c79d7bae4010a109794080f507a7cec1179d7a59b86f0dc3a5f1691"
+      "vocabulary-audit": "58493e94cc7fbce7d9ec23e8d756df09091229b1bc2c61e0b52bf515fdeca106"
     },
     "project_config": {
       "file": "scripts/harness/project_safety_rules.json",
@@ -38,15 +38,15 @@
     "harness_scripts": {
       "sync_skills": {
         "file": "scripts/harness/sync_skills.py",
-        "sha256": "5059a97828ed416667f3f38e15e0c563fe6c0cac21b99a9b7ddab9609cfcb59c"
+        "sha256": "5e7c86b1e479fa8a3fb6d0cbf26ef570ebe94f24313f490e7ba53b1985062e26"
       },
       "check_harness_integrity": {
         "file": "scripts/harness/check_harness_integrity.py",
-        "sha256": "ac7ab30067465d23022bf54ded5dd2bdaa5729bc28c65f159e9c44802e1a0a10"
+        "sha256": "cf512e611a02bdd19d6e43bc3e05c94d9a5352351953c777ddac88502e8220ff"
       },
       "check_agent_refs": {
         "file": "scripts/harness/check_agent_refs.py",
-        "sha256": "9a26599617dd0934c085cbaebc5358e6b8a43077c9237244a8ad9c10d2e1d14e"
+        "sha256": "c165c533e334a6f2edb3f6e3c3af72b7bac723adbafdfe531eb95b9475c30da2"
       },
       "check_memory_hygiene": {
         "file": "scripts/harness/check_memory_hygiene.py",

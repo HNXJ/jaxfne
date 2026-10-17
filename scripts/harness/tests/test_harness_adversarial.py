@@ -235,7 +235,7 @@ def test_frozen_paths_immutable_hashes():
 
 def test_public_api_surface_no_invented_symbols():
     """Adversarial check: verify public surface contract equals exact exported symbols (no invented APIs)."""
-    contract_path = ROOT / "artifacts" / "public_surface_contract_v0413.json"
+    contract_path = ROOT / "artifacts" / "assurance" / "api_contracts" / "public_surface_contract_v0413.json"
     if contract_path.exists():
         contract = json.loads(contract_path.read_text())
         import jaxfne
@@ -279,7 +279,7 @@ def test_current_task_ephemeral_and_typed_structure():
 
 def test_skill_shape_and_unique_triggers():
     """Verify exactly 7 canonical skills exist with standardized sections and distinct WHEN triggers."""
-    canonical_skills = sorted(p.parent.name for p in (ROOT / "artifacts" / "skills").glob("*/SKILL.md"))
+    canonical_skills = sorted(p.parent.name for p in (ROOT / "artifacts" / "control" / "skills").glob("*/SKILL.md"))
     expected_skills = [
         "jaxfne-audit",
         "jaxfne-core",
@@ -294,7 +294,7 @@ def test_skill_shape_and_unique_triggers():
     required_sections = ["## WHEN", "## AUTHORITIES", "## RULES", "## STEPS", "## STOP", "## VERIFY", "## DONE"]
     when_triggers = []
     for s_name in canonical_skills:
-        content = (ROOT / "artifacts" / "skills" / s_name / "SKILL.md").read_text()
+        content = (ROOT / "artifacts" / "control" / "skills" / s_name / "SKILL.md").read_text()
         for sec in required_sections:
             assert sec in content, f"Skill {s_name} missing {sec}"
         when_clause = content.split("## WHEN")[1].split("##")[0].strip()

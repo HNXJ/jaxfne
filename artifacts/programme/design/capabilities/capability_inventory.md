@@ -20,7 +20,7 @@ refuses unrecorded), `verify(Run, property)` over `agent.PROPERTIES`.
 Tests: `tests/test_agent_surface.py` (substituted-model FAIL per class).
 `simulate` requires `seed` and refuses a non-positive, non-numeric or
 non-whole-step time grid (the kernel would round it). Task skills
-`artifacts/skills/jaxfne-{model,network,state,plasticity,fields,simulate,verify,inspect}`
+`artifacts/control/skills/jaxfne-{model,network,state,plasticity,fields,simulate,verify,inspect}`
 route to it (5b); `tests/test_agent_substitution_055.py` (5c) checks unit, type,
 mechanism and time-grid substitutions and that every qualified symbol the task
 skills name resolves in live code.

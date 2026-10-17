@@ -57,7 +57,7 @@ print(f"Simulation complete. Manifest keys: {list(manifest.keys())[:5]}")
 ### 7. Public Vocabulary
 
 Notebooks **must** use the canonical vocabulary in repository file
-`artifacts/vocabulary/JAXFNE_VOCABULARY.md` (private to the checkout; summarized here):
+`artifacts/control/vocabulary/JAXFNE_VOCABULARY.md` (private to the checkout; summarized here):
 
 - **proxy** — readout without calibrated physical units
 - **calibrated** — only with an explicit calibration receipt

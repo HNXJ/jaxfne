@@ -8,7 +8,7 @@ copy those glossaries wholesale.
 Target: **~70 controlled terms** + ordinary scientific English elsewhere.
 
 Deterministic audit: `python scripts/audit_vocabulary.py --check` (high-confidence
-drift only). Semantic review: `artifacts/subagents/vocabulary_critic.md`.
+drift only). Semantic review: `artifacts/control/subagents/vocabulary_critic.md`.
 
 **Public entry pages** (`README.md`, `docs/index.md`): minimum words; no named-tool
 comparisons; state what JaxFNE is, why flexibility matters, and what users can
