@@ -1,0 +1,434 @@
+# GSDR lane P3 baseline calibration record (OBSERVED, unscored)
+
+Date: 2026-10-14. Code: `3dd02ed060390ecf711e04860a1d6d46e854ef83` (one SHA
+per directory, enforced by the runner). JAX 0.10.1, device `cuda:0`
+(NVIDIA RTX A4000), float32, dt 0.1 ms, 15001 steps. Outputs:
+`scratch/gsdr2026/baseline/` (3 V traces, per-trial conductances,
+`manifest.json`). Prereg: `PREREG_P3.md` (draft, frozen before the run
+except per-trial provenance fix, which re-ran the baseline).
+
+## Results (model readouts only; no data labels, no loss scored)
+
+| trial | amp (nA) | g_seed | ou_seed | mean rate (Hz) | rate penalty | kappa |
+|---|---|---|---|---|---|---|
+| 0 | 0.0 | 0 | 0 | 0.547 | 89.8994 | 0.3708 |
+| 1 | 0.6 | 1 | 1 | 0.587 | 85.5665 | 0.4147 |
+| 2 | 0.6 | 2 | 2 | 0.520 | 92.7880 | 0.3377 |
+
+Wiring asserts passed in every trial (1800 AMPA / 400 global GABAa /
+30 local GABAa). Per-cell rates (manifest): nearly all cells 0.667 Hz
+(1 spike / 1.5 s), remainder silent. Model PSDs (15–60 Hz, max-normalized)
+are in `manifest.json` per trial.
+
+## Reading (no calibration claimed)
+
+Mean rates (~0.5 Hz) sit far below the 5–50 Hz in-bounds band, so the
+one-sided penalty (~90) dominates; the 0.6 nA stimulus barely moves the
+rate (trial 0 vs 1–2). Nothing is tuned post hoc: per the prereg, a miss
+goes to the fidelity suspects in order — D9 (stimulus sign convention),
+then A1/D10 (assumed HH kinetics/`C_m`) — and a paper/code disagreement
+on a claim-changing value stops the lane. Live fields, if any, carry
+`physical_amplitude_calibrated=False` (CALIBRATED != REDUCED_PHYSICAL !=
+RELATIVE_PROXY).
+
+## Step 1 — simplify (RESIDUAL_PROTOCOL.md §steps.1, OBSERVED)
+
+Smallest model showing the miss: single E cell f-I on the lane kernel,
+dt 0.1 ms. 0 Hz at 0–0.6 uA/cm²; NaN-dominated ~1 Hz at 3–50 uA/cm².
+`hh_step` NaN at step 21 at I = 10 uA/cm², dt = 0.1 (99.6 % NaN over the
+trace); dt = 0.01 stable at 70 Hz. Gated 120 Hz sine at raw 0.6 (≈0.6
+uA/cm², unconverted) → 0 Hz; converted 0.6 nA (≈238.7 uA/cm²) → 1.33 Hz.
+E→I pair barely follows. Verdict: the miss is a units + integration
+problem, not wiring (wiring asserts passed throughout).
+
+## Fidelity fixes (not fits; each with a fail-first test)
+
+Kernel (`jaxfne/emitters_hh.py`), read from jaxley 0.14.0 source as data:
+gates by exact exponential Euler (`solver_gate`, `emitters_hh.py:99`),
+voltage by backward Euler linearized at frozen currents (`:173`);
+`EL_mV = -54.3` (`:42`), rest `HH_V_REST_MV = -70.0` (`:69`);
+`hh_gate_inf` fixed-point gate init (`:106`, used at `:475`);
+`_save_exp` clips exp() arguments at 20.0 (`:71`, `:77`);
+non-finite guards keep old state (`:209`, `:229`, `:444`, `:451`).
+Fail-first: 6 kernel tests in `tests/test_emitters_hh.py` (all failed
+pre-fix, e.g. `EL must be the reference -54.3 mV, got -54.364`).
+
+Runner (`artifacts/etudes/gsdr2026/run_gsdr.py`): whole-cell area
+`AREA_CELL_UM2 = 80π` µm² (`:68`, S1/S2 one compartment per cell);
+`NA_TO_UACM2 = US_TO_MSCM2 = 1e5/80π ≈ 397.89` (`:70`–`:71`); stimulus
+0.6 nA → ≈238.7 uA/cm² (`:178`); OU σ ×1000 mA→uA/cm² (`:72`–`:73`,
+`:164`); rule weights and init conductances converted (`:111`–`:118`,
+`:138`). Fail-first: 5 conversion tests in
+`tests/test_gsdr2026_fidelity.py` (all failed pre-fix, e.g. stimulus
+0.6 vs 238.7). Post-fix CPU: 33 passed (`33 passed in 92.96s`); model
+tests 11 passed; 300 ms smoke finite, 2.667 Hz both amps (stim window
+starts 500 ms, identical expected).
+
+## Fidelity-1 run (OBSERVED, scored against the 5–50 Hz band)
+
+Code `3dd02ed060390ecf711e04860a1d6d46e854ef83`, JAX 0.10.1, `cuda:0`,
+float32, dt 0.1 ms, 15001 steps. Outputs:
+`scratch/gsdr2026/fidelity1/` (manifest + per-trial V/g + rerun twin
+`scratch/gsdr2026/fidelity1_rerun/`). GPU wall ≈ 8 s for 3 trials
+(in-rerun log: 6.9/2.8/5.2 s).
+
+Estimand: paper Fig. 6 baseline activity in the 5–50 Hz in-bounds band
+(`run_gsdr.py:56`; no point y — no MT/MST data in the lane, so the
+verdict is band membership, protocol e undefined).
+
+| trial | amp (nA) | seeds (g, ou) | z0 pre-fix (Hz) | z post-fix (Hz) | penalty | kappa | band |
+|---|---|---|---|---|---|---|---|
+| 0 | 0.0 | 0, 0 | 0.547 | 0.533 | 91.34 | 0.35 | off |
+| 1 | 0.6 | 1, 1 | 0.587 | 21.64 | 0.00 | 0.84 | **in** |
+| 2 | 0.6 | 2, 2 | 0.520 | 0.493 | 96.38 | 0.28 | off |
+
+Trial 1 (OBSERVED): all 50 cells 18.7–22.7 Hz (≈20–22 Hz uniform);
+trial 0/2: nearly all cells 0.667 Hz (1 spike / 1.5 s), remainder
+silent — same shape as the pre-fix baseline. The fidelity fix moves one
+stim-trial draw into the band and leaves the other two ~0.5 Hz:
+seed (network-draw) variance spans the band edge at fixed stimulus.
+
+Determinism twin (same SHA, same seeds): trials 0/2 bit-identical
+(0/50 cells differ); trial 1 mean 21.64 → 21.69 Hz, 5/50 cells differ,
+max per-cell diff 1.33 Hz (2 spikes / 1.5 s). Both in-band; the verdict
+is unaffected. Source of the active-regime wobble unidentified → OPEN.
+
+## Verdict and next
+
+Mixed: 1 of 3 trials in-band; the stim condition (trials 1–2) splits
+21.6 vs 0.5 Hz across network draws. Per the protocol this is still
+off → next is residual X + `jaxfne.optim.agsdr` fit (θ fixed), absorb
+into D, held-out seeds 4–8, then the `gsdr` run. Not started.
+
+## Step 2 — Fig. 6 data-label y (OBSERVED, unscored)
+
+Recipe (`data_labels.py`, read as data from `misc/main.py:109-141`):
+trial 5 (`5:6`), baseline `:200`, stim `600:1200`, mean over the MT/MST
+units (info groups `(122, 40, 95)`, slice `(162, 257)`), rFFT power
+`/(N*fs)` at `fs=1000`, interp onto `linspace(15, 60, 40)`,
+`uniform_filter1d` size 5, min-subtracted, max-normalized. Warehouse
+files stay out of the repo (hashes in `data_labels.py:31-34`,
+`794b5ee6…` / `759349b2…`, verified in
+`tests/test_gsdr2026_labels.py`). Vectors + scalars:
+`/home/nejath/gsdr_src/y_labels.json` (outside the repo, like the data).
+
+| quantity | baseline | stim |
+|---|---|---|
+| PSD peak (Hz) | 40.38 | 38.08 |
+| gamma band (35–60) | 0.4347 | 0.3769 |
+| beta band (13–30) | 0.0844 | 0.2250 |
+| alpha / theta | 0 / 0 (outside the 15–60 grid) | 0 / 0 |
+| onset rate mean (Hz, thr 20.0) | 5.79 (std 8.59, 48/95 silent) | 2.14 (std 5.47, 52/95 silent) |
+| kappa, pairwise Fleiss 5 ms | -0.00025 | +0.0156 |
+| kappa, full trial 5 | — | 0.00955 |
+
+Kappa anomaly (diagnosed, fixed): the first y cut used the jaxfne
+unanimous-agreement variant and returned exactly -1.0 in all windows —
+its -1 clip, not synchrony (raw -9.10 baseline / -21.70 stim; probe
+`scratch/_temp_probe_kappa.py`). `window_kappa` is now a NumPy port of
+the paper statistic (`gsdr/analysis.py:109`, pairwise Fleiss, bin 5 ms,
+no clamp). Fail-first test
+`test_window_kappa_is_paper_pairwise_fleiss` failed pre-fix
+(`assert -1.0 > -1.0`); cross-check vs the paper function under x64 is
+bit-exact on aligned frames (`scratch/_temp_crosscheck_kappa.py`:
+`CROSSCHECK OK`; 8.3e-05 unaligned = onset framing of one sample +
+float32, declared). Label tests: `8 passed in 25.62s`.
+
+## Step 3 — bistability over seeds 1–8 (OBSERVED)
+
+Stim 0.6 nA fixed, `g_seed = ou_seed = s`, local/edge seeds fixed (1, 0).
+Driver `scratch/_temp_bistab_gpu.py`; outputs
+`scratch/gsdr2026/bistab_s{1..8}_{main,twin,cpu}/`. GPU wall ≈ 1 s/trial.
+
+| seed | main (Hz) | twin (Hz) | cpu (Hz) | active frac | kappa | band |
+|---|---|---|---|---|---|---|
+| 1 | 21.73 | 21.67 | 21.65 | 1.00 | 0.82–0.86 | in |
+| 2 | 0.49 | 0.49 | 0.49 | 0.70 | 0.28 | off |
+| 3 | 21.44 | 21.36 | 21.35 | 1.00 | 0.64–0.70 | in |
+| 4 | 21.59 | 21.60 | 21.61 | 1.00 | 0.90–0.94 | in |
+| 5 | 0.59 | 0.59 | 0.59 | 0.80 | 0.37 | off |
+| 6 | 23.11 | 23.05 | 23.05 | 1.00 | 0.74–0.77 | in |
+| 7 | 22.95 | 22.93 | 22.93 | 1.00 | 0.77 | in |
+| 8 | 0.57 | 0.57 | 0.57 | 0.82 | 0.39 | off |
+
+Clean bimodal split at fixed stimulus: seeds 1, 3, 4, 6, 7 fully active
+(~21–23 Hz, penalty 0), seeds 2, 5, 8 quiet (~0.5 Hz, penalty ~90).
+Same-seed GPU twins agree to ≤0.08 Hz; quiet seeds bit-identical.
+CPU twins match GPU verdicts on all 8 seeds (≤0.09 Hz) — no
+GPU/CPU divergence. XLA deterministic-ops twin: deferred, not failed —
+the lane's GPU jobs queued behind two other lanes' lock holders
+(`fuser /tmp/jaxfne_gpu.lock` showed foreign PIDs; ~12 min without
+acquiring it), so the waiter was reaped and the claim released rather
+than leave unwatched GPU work queued. Rerun:
+`flock /tmp/jaxfne_gpu.lock env XLA_FLAGS=--xla_gpu_deterministic_ops=true
+~/venv_jaxfne/bin/python -u scratch/_temp_bistab_xladet_one.py <seed>`
+(seeds 1, 3 wobble; 2 quiet control) → OPEN.
+
+Violation repair: `scratch/_temp_crosscheck_kappa.py` imported and ran `compute_kappa` from the authors' code (read-as-data rule); deleted, never a Python path again; kappa re-established by hand-computed pairwise-Fleiss test `tests/test_gsdr2026_kappa_hand.py` (tiny 3×11 matrix, expected −1/3).
+
+## Step 4 — GSDR fit (seeds 1–3) + held-out (seeds 4–8) (OBSERVED, scored → off)
+
+Engine: `jaxfne.optim.gsdr` spec (alpha 0.7, exploration 0.05, deselect 3.0 = paper C; inner SDR lr 0.1 / momentum 0.4, a_init 0.0) on `L = 990·mean(psd_loss vs y) + 9·mean(penalty) + 100·mean(|k − ky|)`; trainable = all 2230 gAMPA+gGABAa conductances, uS, [0, 10], init clip(U(−4,10),0,8)/clip(U(2,10),0,10) (`main_fig6.py:191-192,194-198,210-211,671-681`, read as text); center0 = seed-1 init; 8 gen × 6 pop, seed 0. Driver `fit_gsdr.py`; outputs `scratch/gsdr2026/gsdr_fit{,_smoke}` with manifests. GPU wall 41.6 s (smoke) + 351.6 s (full), ≈6.5 min of the 90 min cap.
+
+Trajectory (best): 4482.7 → 4417.8 → 4404.2 → 4404.2 → **4323.5** (gen 4, flat after); PSD term 4.43 → 4.27, penalty 0 throughout, kappa ≈ 0.95 flat; partial-quiet candidates (active 0.80–0.88) score ≈ 5350+ via the penalty. Fit-seed active fraction 1.00 before and after (shared center init; per-seed θ0 was 1.00/0.70/1.00). Cross-run note: the identical init eval gave 4467.5 (smoke) vs 4482.7 (full) — run-to-run nondeterminism consistent with the ≤0.08 Hz active-regime wobble (link inferred).
+
+Held-out (`score_heldout.py`, model PSD = mean-voltage proxy vs spike-trace labels; y: peak 38.08, gamma 0.3769, beta 0.2250, rate 2.14, kappa 0.01561; `e = |z−y|/|y|`):
+
+θ0 (`bistab_s{4..8}_main`): s4 peak 24.23 (.36) / gamma .065 (.83) / beta .194 (.14) / rate 21.59 (9.09) / kappa 1.00 (63.0), act 1.00; s5 15.00 (.61) / .0001 (1.0) / .0003 (1.0) / 0.59 (.73) / 0.00 (1.0), act 0.80; s6 23.08 (.39) / .022 (.94) / .110 (.51) / 23.11 (9.80) / 1.00 (62.9), act 1.00; s7 23.08 (.39) / .028 (.92) / .123 (.45) / 22.95 (9.72) / 1.00 (63.0), act 1.00; s8 21.92 (.42) / .0001 (1.0) / .0003 (1.0) / 0.57 (.73) / 0.00 (1.0), act 0.82 — all off.
+
+θ* (`bistab_s{4..8}_gstar`): all 5 seeds fully active (21.2–22.5 Hz, penalty 0; bistability resolved into the band): s4 23.08 (.39) / .037 (.90) / .183 (.19) / 21.24 (8.92) / .952 (60.0); s5 24.23 (.36) / .045 (.88) / .219 (.03) / 21.25 (8.93) / .996 (62.8); s6 21.92 (.42) / .045 (.88) / .180 (.20) / 22.51 (9.52) / .935 (58.9); s7 23.08 (.39) / .036 (.91) / .185 (.18) / 21.88 (9.22) / .952 (60.0); s8 23.08 (.39) / .034 (.91) / .187 (.17) / 21.80 (9.19) / .956 (60.2) — all off. Point-rate e worsens on ex-quiet seeds (y rate 2.14 Hz); PSD peak, gamma and kappa stay far → residual X + `agsdr` fit of a, absorb, remove, re-held-out: not started (OPEN).
+
+XLA deterministic-ops twin (seed 1): two attempts queued behind foreign lock holders, reaped after ~15 / ~6.5 min without acquiring the lock, no orphan left → still OPEN. Rerun: `flock /tmp/jaxfne_gpu.lock env XLA_FLAGS=--xla_gpu_deterministic_ops=true ~/venv_jaxfne/bin/python -u scratch/_temp_bistab_xladet_one.py 1`.
+
+## Step 5 — estimand fidelity + residual-X fit (OBSERVED, scored → off)
+
+Like-for-like z (4e): model onsets through the label recipe
+(`main_fig6.py:109-126`, read as text): `run_gsdr.spike_trace_psd`
+(`run_gsdr.py:329`) + stim-window rates `window_rates_hz` on
+`[500, 1000]` ms (`run_gsdr.py:309`, functional match of the y
+`[600, 1200)` window) + kappa both windows. Kept the paper's
+asymmetric PSD recipe (labels smoothed+minsub `:109-126`, model
+max-only `:407-421`) as fidelity; added the spike-trace model PSD
+diagnostic instead of replacing the loss path. Rescorer
+`rescore_4e.py`; outputs `scratch/gsdr2026/heldout_4e.json` (seeds 4–8
+× tags main/gstar) and `heldout_4e_x.json` (× xgstar). Tests
+`tests/test_gsdr2026_fidelity4e.py` (3 passed; baseline-fail shown by
+file removal).
+
+Held-out at reference (a = 1.0), all off: spike-PSD peak 23–25 Hz
+(y 38.08, e 0.33–0.39); gamma e 0.36–0.94; rate 22–24 Hz active
+(y 2.14, e ~9–10) or 0 Hz quiet (e 1.0); kappa ≈ 0.93–1.0 active
+(y 0.0156, e ~59–63). Kappa windows agree (k500 ≈ k600), so windowing
+is not the driver.
+
+X: scalar `noise_gain` on `ou_sigma` (`emitters_hh.py:293,396-400`;
+1.0 = reference; packet's "noise level" option), threaded through
+`run_trial` (`run_gsdr.py:388-396,432,440`); tests in
+`tests/test_emitters_hh.py` (4 pass; baseline-fail shown). D (declared
+before fitting): OU sigma clip upper in source-attested [0.05, 0.1]
+(run code clips `[0, 0.05]`, packaged builder `[0, 0.1]`, PORT_SPEC
+D5) — gain a absorbs as clip → `0.05·a` iff a ∈ [1, 2].
+Fit `fit_noise_gain.py` (agsdr alpha 0.7 / exploration 0.2 /
+deselect 3.0 on scalar a ∈ [0, 3], θ = gstar fixed, seeds 1–3,
+L = mean Σe² over the 5 like-for-like estimands): init (a = 1.0)
+3886.76 → best **a = 0.9207, L = 3758.81** (gen 0, flat after; Δ ≈
+−3.3 %). Outputs `scratch/gsdr2026/noisegain_fit/manifest.json`. GPU
+wall 70.2 s.
+
+Verdict: a = 0.92 ∉ [1, 2] → **not absorbed into D (step-6 finding:
+needs X)**; X rejected as a fix and removed from the path
+(reference a = 1.0 kept). Held-out at best-a (`bistab_s{4..8}_xgstar`,
+driver `scratch/_temp_holdout_xgstar.py`): all 5 fully active
+(20.5–21.9 Hz) yet every estimand still off — peak e 0.33–0.39, rate
+e 9.3–10.3, kappa e 58.7–63.0. Noise gain moves bistability, not the
+estimands.
+
+Determinism: same-a re-evals disagree (a = 0.945 → L 3806.4 / 3921.6
+/ 3901.7 / 3806.7 across gens), consistent with the ≤0.08 Hz
+active-regime wobble (link inferred). Full-length XLA
+deterministic-ops twin infeasible here: smoke measures ~130 s per
+100 ms trial under the flag (~100×), so a 3-seed twin is hours —
+quantified OPEN, exceeds the cap.
+
+GPU time (lane total ≈ 8 min of the 90 min cap): Step-4 fit 351.6 s +
+smoke 41.6 s; X fit 70.2 s; held-out-X ≈ 6 s; bistability twins ≈
+seconds each. Narrow tests (CPU): 35 passed in 80.37s
+(`test_gsdr2026_fidelity4e` + `test_emitters_hh`) and 27 passed in
+27.53s (`fidelity`, `labels`, `kappa_hand`, `model`).
+
+## Step 6 — fit at the authors' budget (OBSERVED, scored → off)
+
+### 6.1 Epoch mapping (authors' code read as text, never imported)
+
+One authors' epoch (`net_trainer_temp1`, `main_fig6.py:495-600`, called
+with 500 at `:684`): the dataloader holds one batch of 3
+(`inputs = [0.0, 0.6, 0.6]`, `:131`; baseline label `:134-136`, stim
+labels `:138-140`; `batch_size = 3`, `:142-144`), so each epoch does one
+`jitted_grad` call (`:447-448`, `:548`) — 3 forward sims
+(`batched_simulate`, `:402`) plus one reverse-mode gradient through all
+3 — then one `optimizer.update(gradient, opt_state, params, value=loss,
+key, mcdp_factors)` with the MCDP factors of the batch traces (None when
+the batch is NaN, which voids the epoch, `:559-566`), applied by
+`optax.apply_updates`. 500 epochs = 500 gradient evals + 500 GSDR
+updates = 1500 forward sims. The optimizer (`:671-681`) is inner
+`SDR(learning_rate=0.1, momentum=0.4)` inside `GSDR(inner, normal,
+deselection_threshold=3.0, a_init=0.0, a_dynamic=True, lambda_d=1.0,
+checkpoint_n=5, mcdp=True)`, whose update (`optimizers.py:144-...`)
+tracks best params/loss, resets to best on deselect
+(`loss > loss_opt * 3.0` or NaN) or after `checkpoint_n` stagnant
+epochs, and otherwise steps `effective_lambda(t) * (a * delta +
+(1-a) * inner)` with `delta = noise * params * mcdp_factors` and a
+per-epoch random-walk `a`.
+
+Lane counterpart (`fit_gsdr_500.py`, same loss/init/seeds as Step 4):
+one candidate eval = 4 forward sims (baseline + stim seeds 1–3),
+gradient-free; one generation = 6 evals + 1 delta-rule center update
+(`center + alpha * (best - center)`, elitist anchor, NaN→inf never
+selected). Shared unit: 1 lane generation ↔ 1 authors' epoch in update
+count. `jaxfne.optim.gsdr` contributes only the spec knobs
+(`core.py:162-178`: alpha, exploration, deselect_factor); the loop is
+hand-rolled NumPy mirroring `_run_agsdr_optimization_loop`'s
+proposal/anchor/update shape.
+
+Core gaps (reported, not built — no local optimizer written): G1 no
+gradient input (spec is `non_differentiable`; inner SDR lr/momentum and
+`jitted_grad` have no counterpart); G2 no MCDP-gated stochastic delta
+(noise × params × edge factors); G3 no dynamic mixing weight `a` (lane
+alpha is a constant center step); G4 `deselect_factor` stored but not
+consumed (no reset-to-best, no NaN jump-back); G5 no `checkpoint_n`
+stagnation reset / `effective_lambda` growth; G6 no within-epoch
+per-batch updates.
+
+### 6.2 Regime diagnostic on θ* (gstar) seed 1 (OBSERVED)
+
+Stim trial at gstar, ou seed 1 (`scratch/_temp_diag_gstar_s1.py`;
+`scratch/gsdr2026/diag_gstar_s1.json`). Cycles = consecutive
+41.27 ms windows (spike-PSD peak 24.23 Hz) over [500, 1000] ms:
+
+| quantity | z (θ*, seed 1) | y (stim) |
+|---|---|---|
+| gamma cycles in window | 12 | — |
+| per-cycle E participation (mean ± std) | 1.0000 ± 0.0000 | — |
+| participation min / max | 1.00 / 1.00 | — |
+| E rate min / p10 / p25 / median / p75 / p90 / max (Hz) | 24 / 24 / 24 / 24 / 24 / 24 / 26 | mean 2.14, 52/95 silent |
+| E fraction silent | 0.00 | 0.55 |
+| E fraction > 10 Hz | 1.00 | — |
+| stim-window E mean (Hz) | 24.06 | 2.14 |
+| kappa [500, 1000] | 1.000 | 0.0156 |
+
+Every E cell fires in every gamma cycle: the fitted regime is fully
+synchronous, y is sparse. Helper `diag_participation.py` + tests
+`tests/test_gsdr2026_particip.py` (`2 passed in 2.05s`; fail-first shown
+by `ModuleNotFoundError` pre-module and a window off-by-one).
+
+### 6.3 Fit outcome: 350 generations × 6 (OBSERVED)
+
+Driver `fit_gsdr_500.py` (same loss/init/seeds as Step 4; ckpt +
+partial manifest every 10 gens). First launch died at the gen-10
+checkpoint (`FileNotFoundError`: `np.savez` appends `.npz`, so the
+`.npz.tmp` name wrote `.npz.tmp.npz`; orphan removed, name fixed to
+`.tmp.npz`, ckpt + `--resume` verified by a 10+2-gen probe). Relaunch
+ran all 350 gens detached (`setsid`, `flock`): `FIT500 DONE best
+4082.3900 wall 12720.7s` (≈3.53 h — 0.5 h over the 3 h cap; smoke pace
+28.4 s/gen extrapolated 500 gens to ≈3.9 h, actual pace 36.3 s/gen).
+Outputs `scratch/gsdr2026/gsdr_fit500/` (35 ckpts, manifest, g*).
+
+Trajectory (best, manifest): init 4488.84 → g0 4382.14 → g1 4303.31 →
+g7 4302.05 → g10 4240.57 → g12 4196.59 → g13 4157.61 → g14 4113.36 →
+g19 4108.00 → g90 4091.34 → **g110 4082.39, flat 110–349**. Best
+components: psd 4.0251, penalty 2.7e-07, kappa term 0.9756; every trial
+active 1.00, kappa ≈ 0.95–0.99 vs y 0.0156 (e.g. baseline trial 20.43 Hz
+k 0.949, stim s1 21.79 Hz). The 500-epoch budget moves the loss
+4488.8 → 4082.4 (−9 %) without leaving the synchronous regime: budget
+was necessary but not sufficient. Update-count parity: 350 lane updates
+vs 500 authors' epochs; sim count 2104 evals × 4 = 8416 forwards vs the
+authors' 1500 (ours exceeds in sims, trails in updates — both stated
+because neither alone is "the" budget).
+
+### 6.4 Diagnosis: GABAa scaling at g* (OBSERVED, no fitting)
+
+Hamm 2026-10-14 first suspicion: inhibition too weak. At g500* (GABAa
+0.928–10.0 uS, maxed at the bound), all GABAa (global + local I) × s,
+E fixed, unclipped; stim trials seeds 1–2, fit scoring
+(`scratch/_temp_inh_scale.py`, `scratch/gsdr2026/inh_scale.json`).
+Wang-Buzsaki kappa by hand — the tree lacks
+`jaxfne.analysis.metrics.wang_buzsaki_kappa` (grep: no match): binary
+5 ms bins [500, 1000] ms, mean over pairs of shared/√(nᵢnⱼ), silent
+cells excluded, all 50 cells.
+
+| s | mean rate (Hz) | active | psd | pen | k_fit | WB 5 ms |
+|---|---|---|---|---|---|---|
+| 1 | 21.4 / 21.4 (s1 21.12, s2 21.65) | 1.00 | 4.36 | 0.0000 | 1.000 | 1.000 |
+| 2 | 19.69 / 20.68 | 1.00 | 4.61 | ~0.0001 | 0.927 | 0.932 |
+| 4 | 16.45 / 17.64 | 1.00 | 4.52 | ~0.0005 | 0.863 | 0.876 |
+| 8 | 16.55 / 14.31 | 1.00 | 4.38 | ~0.0013 | 0.809 | 0.828 |
+| 16 | 13.23 / 13.84 | 1.00 | 4.26 | ~0.0012 | 0.772 | 0.793 |
+
+Rates are per-seed (seeds disagree by ≤2.2 Hz; smoke-vs-full s=1 seed 1: 21.83 vs 21.12 — same wobble family, regime unchanged). WB
+tracks the fit kappa within 0.03 throughout.
+
+Verdict: **no s leaves the saturated regime** — active fraction stays
+1.00 at every s (criterion ≤ 0.95 never met), kappa stays ≥ 0.72
+(criterion ≤ 0.5 never met). 16× inhibition only slows the network
+21 → 13.5 Hz; every cell still fires every cycle. Inhibition-too-weak
+is rejected as the first-order driver. OPEN next: the saturation is
+structural (drive recruited through E→E recurrence, or the 120 Hz
+stimulus entrainment), not a gain setting — propose E/I co-scaling or
+stim-amplitude sweeps before any further fit.
+
+### 6.5 Diagnosis: OU-noise audit + sigma sweep at g* (OBSERVED, no fitting)
+
+Hamm 2026-10-14 second suspicion: per-cell OU background (`Inoise`)
+is what desynchronizes the 50 cells. Audit (authors read as text only):
+
+| Row | Authors | Port | Match |
+|---|---|---|---|
+| Per-cell tau | `U(10, 50)` per cell (`main_fig6.py:68`) | `U(10, 50)` per cell (`run_gsdr.py:162`) | yes |
+| Per-cell sigma | `clip(U(−0.1, 0.1), 0, 0.05)` per cell (`main_fig6.py:69`) | same form ×1000 mA→uA/cm² (`run_gsdr.py:163-164`) | yes |
+| Mean | `initial_mean=0.0` (`main_fig6.py:71`) | `0.0` hardcoded (`emitters_hh.py:460`) | yes |
+| Update | `n += (mean−n)/tau·dt + sigma·√(2/tau)·xi·√dt`, `I=−n` (PORT_SPEC §3, ex `gsdr/models.py`) | identical (`emitters_hh.py:460,462`; `ou_step:227-228`) | yes |
+| Per-cell independence | per-cell channel objects, per-cell draws (`main_fig6.py:68-71`) | `xi = normal(uk, shape=(N,))` per step (`emitters_hh.py:459`), key split per step (`:446`) — independent draws per cell and step | yes |
+
+No difference found → no fix, no fail-first test (nothing to fail).
+Minor (inferred, untouched): `ou_hyperparams` and the noise stream
+both derive from the same `ou_seed` key (`run_gsdr.py:426-427`),
+so the sigma uniforms share a key with the first-step normals —
+a one-step transient, not a desync breaker.
+
+Regime at g*, stim 0.6, seeds 1–2, `noise_gain` ×{1,2,4}
+(`scratch/_temp_noise_sweep.py`, `scratch/gsdr2026/noise_sweep.json`;
+y kappa_stim 0.0156):
+
+| gain | mean rate (Hz) | active | k_fit | WB 5 ms |
+|---|---|---|---|---|
+| 1 | 21.13 / 21.68 | 1.00 | 0.996 / 1.000 | 0.997 / 1.000 |
+| 2 | 23.17 / 22.84 | 1.00 | 0.952 / 0.984 | 0.958 / 0.985 |
+| 4 | 24.41 / 23.72 | 1.00 | 0.992 / 0.977 | 0.993 / 0.980 |
+
+Verdict: reference sigma is present and correctly scaled, but even
+4× sigma cannot break the lock — kappa stays ≥ 0.95, active 1.00,
+rates rise slightly (noise adds drive). Noise-too-weak is rejected
+alongside inhibition-too-weak. OPEN next: structural diagnosis
+(E/I co-scaling, stimulus-amplitude sweeps) before any further fit.
+
+### 6.6 Diagnosis: is the 0.0156 vs ~1.0 kappa gap a measurement mismatch? (OBSERVED, no fitting)
+
+Hamm 2026-10-14 third suspicion: the data kappa target is measured
+differently from the port's kappa. Trace (authors read as text only):
+`kappa_stim = 0.015615` (`y_labels.json`) = `window_kappa(mt5, 600,
+1200)` (`scratch/_temp_compute_y.py:39`) — trial-5 MT/MST units (95,
+slice (162, 257)), convolved traces at threshold 20.0, 600 samples =
+600 ms, 5 ms bins, pairwise Fleiss, no clamp — a NumPy port of the
+paper's `compute_kappa` (`~/gsdr_src/analysis.py:109-143`: bin-max,
+pairwise P_i, pooled-chance P_e, same guards; the port's
+`kappa_of_onsets`, `run_gsdr.py:276-306`, is line-for-line the same
+math). The fit compares them as `|k_model − ky| × 100`
+(`fit_gsdr.py:108-115`, `KAPPA_WEIGHT = 100`), model side: all 50
+cells, [500, 1000) ms, −20 mV onsets, 5 ms bins. Data context
+(`y_labels.json`): stim rates 2.14 Hz mean, 52/95 units silent —
+sparse near-chance synchrony, baseline −0.00025, full-trial 0.00955.
+
+Like-for-like (`scratch/_temp_kappa_like4like.py`,
+`scratch/gsdr2026/kappa_like4like.json`; rev 1 caught a script bug:
+the port call defaulted to `dt_ms=0.1`, i.e. 50 ms bins on 1 ms data):
+
+| Estimator | Data (95 units, 600 ms) | Model g* s1 / s2 (50 cells, 500 ms) |
+|---|---|---|
+| paper `window_kappa` | 0.015615 | 1.000 / 1.000 (0/30 pseudo-traces) |
+| port `kappa_of_onsets` | 0.015615 | 1.000 / 1.000 |
+| manual shared stage | 0.015615 | 1.000 / 1.000 |
+
+Controls: data subsampled to 50 units 0.0259 (cell count is not the
+gap); model 600 ms window [500, 1100) 0.998–1.000 (window length is
+not the gap). Verdict: **the gap survives like-for-like comparison**
+— the estimators are identical; the signals differ (sparse 2 Hz data
+vs every-cell-every-cycle model).
+
+Replicability caveat (OBSERVED, `scratch/_temp_seed1_repl.py`,
+`scratch/gsdr2026/seed1_repl.json`): 5 identical seed-1 calls in one
+process give 5 distinct V hashes — GPU bit-nondeterminism (rates sit
+on two attractors, 21.85/21.19 Hz; kappa 1.0 or 0.998). The saturated
+regime is stable across reps, but quoted seed-1 decimals wobble at
+the ~1 Hz / ~0.002 level. One first-in-process seed-1 run returned
+kappa 0.0 (unexplained outlier). OPEN: rerun-before-quote for any
+seed-1 decimal; the 0.0 needs one clean reproduction before it counts.

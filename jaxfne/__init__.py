@@ -88,6 +88,7 @@ from .core import (
 )
 
 from . import paradigm
+from . import emitters_hh
 from . import tutorial_utils
 
 # Per-NeuronType emitter declaration registry, ADVANCED tier: reachable as
