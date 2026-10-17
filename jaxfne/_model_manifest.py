@@ -226,8 +226,10 @@ def manifest(
                     "n_delayed_edges": int((_executed_steps > 0).sum()),
                     "n_edges": int(_executed_steps.size),
                 }
-        except Exception:
-            pass
+        except (AttributeError, TypeError, ValueError) as exc:
+            # Unknown delay, never "no delay": omitting executed_delay is the
+            # real no-delay value.
+            res["executed_delay"] = {"unknown": f"{type(exc).__name__}: {exc}"}
     # 0.5.2 item 4 (dispatcher follow-up): epistemic level carried on the
     # manifest. FieldOutput/ProbeReadout start RELATIVE_PROXY; only an
     # AppliedCalibration relabels (fields/probes.py refusal gate). Probe-level

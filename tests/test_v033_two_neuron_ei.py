@@ -65,12 +65,22 @@ def test_v033_tutorial_runs(tmp_path, monkeypatch):
         sys.path.pop(0)
 
 
-def test_v033_manifest_json_valid():
+def test_v033_manifest_json_valid(tmp_path, monkeypatch):
     """Test that the generated manifest.json is valid and complete."""
-    manifest_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/manifest.json")
+    # The producer writes to a relative OUT dir; run it under tmp_path so this
+    # test produces what it reads instead of skipping on a clean checkout.
+    pytest.importorskip("matplotlib")
+    monkeypatch.setenv("JAXFNE_TUTORIAL_STATIC_DIR", str(tmp_path / "static_figs"))
+    monkeypatch.chdir(tmp_path)
+    examples_path = pathlib.Path(__file__).parent.parent / "examples"
+    sys.path.insert(0, str(examples_path))
+    try:
+        from v033_two_neuron_ei_multimodal import main
 
-    if not manifest_path.exists():
-        pytest.skip("Manifest not generated; tutorial may not have been run")
+        result = main()
+    finally:
+        sys.path.pop(0)
+    manifest_path = tmp_path / result["manifest_path"]
 
     with open(manifest_path) as f:
         manifest = json.load(f)

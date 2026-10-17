@@ -785,7 +785,17 @@ class Configuration:
         if networks:
             networks[0] = dict(networks[0], cell_types=clean)
         else:
-            total_n = sum(int(col["n"]) for col in metadata.get("columns", [])) or 100
+            columns = metadata.get("columns", [])
+            if columns:
+                total_n = sum(int(col["n"]) for col in columns)
+                if total_n == 0:
+                    raise ValueError(
+                        "cell_types(...) with non-empty columns summing to 0 "
+                        f"({[(col.get('name'), col.get('n')) for col in columns]!r}): "
+                        "declare column populations before cell_types, or fix column sizes."
+                    )
+            else:
+                total_n = 100
             networks = [
                 {
                     "name": "configured_network",

@@ -813,9 +813,15 @@ def _connect_merge_cfg(
         )
     try:
         cfg2 = cfg2.runtime(recurrent_backend="edge_list")
-    except Exception:
-        pass
+    except ValueError as exc:
+        # Configuration.runtime refuses keys no consumer reads (ValueError);
+        # a configuration that cannot carry the override keeps its own cfg.
+        # Any other exception is a defect, not an unsupported override.
+        md_override = f"not_supported: {type(exc).__name__}"
+    else:
+        md_override = "applied"
     md = {**cfg2.metadata}
+    md["recurrent_backend_override"] = md_override
     md["claim_level"] = "computational_scaffold"
     md["field_solver_status"] = "linear_solver"
     md["physical_amplitude_calibrated"] = all(

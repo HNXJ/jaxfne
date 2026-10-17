@@ -878,6 +878,7 @@ def canonical_compact_summary(
     _history_prev_spikes = int(n_neurons_realized)
     _history_delay_max = 0
     _history_delay_buffer = 0
+    _history_delay_unknown_reason: Any = None
     try:
         import numpy as _np_hist
         if edge_list is not None and getattr(edge_list, "delay_steps", None) is not None:
@@ -885,18 +886,27 @@ def canonical_compact_summary(
             if _dh.size:
                 _history_delay_max = int(_np_hist.max(_dh))
                 _history_delay_buffer = int((_history_delay_max + 1) * n_neurons_realized) if _history_delay_max > 0 else 0
-    except Exception:
-        _history_delay_max = 0
-        _history_delay_buffer = 0
-    _history_total = int(_history_syn_state + _history_prev_spikes + _history_delay_buffer)
-    _n_trainable = 0
+    except (AttributeError, TypeError, ValueError) as exc:
+        # Unknown delay, never "no delay": 0 is the real no-delay value.
+        _history_delay_max = None
+        _history_delay_buffer = None
+        _history_delay_unknown_reason = f"unknown: {type(exc).__name__}: {exc}"
+    _history_total = (
+        None
+        if _history_delay_buffer is None
+        else int(_history_syn_state + _history_prev_spikes + _history_delay_buffer)
+    )
+    _n_trainable: Any = 0
     _trainable_note = "0 unless EdgeParameterSpec/MatrixParameterSpec declared (optimizer-exposed subset of mutable weight coordinates); stored ≠ free ≠ optimizer"
+    _trainable_unknown_reason: Any = None
     try:
         _opt_meta = model.cfg.metadata.get("optimizer") if isinstance(getattr(model.cfg, "metadata", None), dict) else None
         if isinstance(_opt_meta, dict) and _opt_meta.get("n_trainable"):
             _n_trainable = int(_opt_meta.get("n_trainable", 0))
-    except Exception:
-        pass
+    except (AttributeError, TypeError, ValueError) as exc:
+        # Unknown trainable count, never "none trainable": 0 is the real none value.
+        _n_trainable = None
+        _trainable_unknown_reason = f"unknown: {type(exc).__name__}: {exc}"
     N_static_counterexamples = [
         {
             "misconception": "N_static includes stored EdgeList.weight (n_edges)",
@@ -922,14 +932,14 @@ def canonical_compact_summary(
         },
         {
             "misconception": "N_static equals trainable/free optimizer coordinates",
-            "wrong": int(_n_trainable),
+            "wrong": None if _n_trainable is None else int(_n_trainable),
             "correct": int(N_static),
             "explanation": "trainable/free is optimizer-exposed subset of mutable (0 when no EdgeParameterSpec/MatrixParameterSpec); N_static is fixed count, independent of optimizer declaration",
             "class_confused": "optimizer/free (trainable subset) vs fixed",
         },
         {
             "misconception": "N_static includes history buffers (syn_state+prev_spikes+B_t)",
-            "wrong": int(N_static + _history_total),
+            "wrong": None if _history_total is None else int(N_static + _history_total),
             "correct": int(N_static),
             "explanation": f"history state (syn_state {W_size}+prev_spikes {n_neurons_realized}+B_t {_history_delay_buffer}={_history_total}) is carry, not fixed parameter",
             "class_confused": "history buffers vs fixed",
@@ -955,11 +965,12 @@ def canonical_compact_summary(
         "history_state": {
             "syn_state": int(_history_syn_state),
             "prev_spikes": int(_history_prev_spikes),
-            "delay_max_steps": int(_history_delay_max),
-            "delay_buffer_Bt": int(_history_delay_buffer),
+            "delay_max_steps": _history_delay_max,
+            "delay_buffer_Bt": _history_delay_buffer,
+            "unknown_reason": _history_delay_unknown_reason,
             "continuation_prng_key": "scalar (not counted in element count)",
             "continuation_step_offset": "scalar",
-            "total_buffer_elements": int(_history_total),
+            "total_buffer_elements": _history_total,
             "note": "delay/continuation buffers carried between steps; O(E)+O(N)+O((Dmax+1)·N); distinct from dynamic X and mutable W",
         },
         "mutable_parameters": {
@@ -970,9 +981,10 @@ def canonical_compact_summary(
             "note": "coordinates permitted to change: EdgeList.weight (n_edges) may evolve via HDP dW/dt=F_W(H) or optimizer; unchanged when HDP disabled and no tune, but *permitted*",
         },
         "trainable_parameters": {
-            "n_trainable": int(_n_trainable),
-            "n_free": int(_n_trainable),
+            "n_trainable": _n_trainable,
+            "n_free": _n_trainable,
             "note": _trainable_note,
+            "unknown_reason": _trainable_unknown_reason,
             "declaration_api": "EdgeParameterSpec / MatrixParameterSpec (trainable=True)",
             "relation_to_mutable": f"subset of mutable (≤{W_size}); stored ({W_size}) ≠ plastic (permitted) ≠ free/trainable ({_n_trainable})",
         },
