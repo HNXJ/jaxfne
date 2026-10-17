@@ -10,6 +10,9 @@ Gate vocabulary (single source of truth for local runs and CI references):
   release      Broad + slow markers + release examples/docs checks
   rc           Full release-candidate verification (PRE_RELEASE_GATE >= RELEASE_CI_GATE)
   publication  Frozen scientific experiments and artifact validation
+  examples     The RELEASE_EXAMPLES smoke list only (owner of the list)
+  wheel-smoke  The canonical isolated-wheel smoke in a given venv
+               (owner of the smoke body; needs --venv-python)
 
 Documentation must refer to these gate names and this script (or Makefile
 targets), not duplicate file lists in prose.
@@ -332,6 +335,100 @@ def _run(
         raise subprocess.CalledProcessError(proc.returncode, cmd)
 
 
+# --- Shared CI-owned checks ----------------------------------------------------
+#
+# RELEASE_EXAMPLES and the isolated-wheel smoke body below are owned here.
+# .github/workflows/ci.yml, .github/workflows/release_ci.yml and
+# scripts/release_rehearsal.sh must call the ``examples`` / ``wheel-smoke``
+# gates instead of carrying their own copies.
+
+
+def wheel_smoke_code(expected_version: str) -> str:
+    """Canonical isolated-wheel smoke program.
+
+    Union of the bodies formerly in ci.yml, release_ci.yml,
+    release_rehearsal.sh and gate_rc: every assertion each of them ran.
+    The emitter/field spellings are the values construct realizes for the
+    bare calls (``cortical_eig`` is the only accepted preset; the field keys
+    accept only these values), so they pin the declaration, not new physics.
+    """
+    return (
+        "import json, jaxfne as jtfne\n"
+        "assert 'site-packages' in jtfne.__file__,"
+        " f'Not in site-packages: {jtfne.__file__}'\n"
+        f"assert jtfne.__version__ == {expected_version!r},"
+        f" f'version={{jtfne.__version__}}, expected {expected_version}'\n"
+        "cfg = (jtfne.configuration()\n"
+        "    .network(n=8).emitter(family='izhikevich', preset='cortical_eig')\n"
+        "    .field(domain='laminar_column', conductivity='proxy',\n"
+        "           boundary='mean_zero_neumann', gauge='mean_zero')\n"
+        "    .probe(name='lp', n_contacts=8))\n"
+        "model = jtfne.construct(cfg)\n"
+        "signals = model.simulate(jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0))\n"
+        "readouts = model.compute_readout(signals, [jtfne.readout_spec('r', 'spike_rate_hz')])\n"
+        "manifest = model.manifest(signals, readouts)\n"
+        "json.dumps(manifest, allow_nan=False)\n"
+        "assert manifest['physical_amplitude_calibrated'] is False\n"
+        "print('wheel smoke OK:', jtfne.__version__)\n"
+    )
+
+
+def _local_package_version() -> str:
+    """Expected wheel version, read from the tree (pyproject, not the env)."""
+    import tomllib
+
+    with open(ROOT / "pyproject.toml", "rb") as fh:
+        return str(tomllib.load(fh)["project"]["version"])
+
+
+def run_release_examples() -> None:
+    """Run every RELEASE_EXAMPLES entry (family ``examples_smoke``)."""
+    for example in RELEASE_EXAMPLES:
+        _run([sys.executable, example], family="examples_smoke")
+        print(f"PASS: {example}", flush=True)
+    # Restore static docs figures that examples mirror to keep tree clean
+    subprocess.run(
+        ["git", "checkout", "--", "docs/archive/tutorials_v030/_static/figures"], cwd=ROOT, check=False
+    )
+
+
+def run_isolated_wheel_smoke(
+    venv_python: str | Path, expected_version: str, *, cwd: str | Path
+) -> None:
+    """Run the canonical wheel smoke in ``venv_python`` (family ``isolated_wheel_smoke``).
+
+    ``cwd`` must hold no importable ``jaxfne`` package: ``python -c`` puts it
+    at the front of ``sys.path``, which would shadow the installed wheel the
+    ``site-packages`` assertion guards against.
+    """
+    isolated_env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    isolated_env["PYTHONIOENCODING"] = "utf-8"
+    isolated_env["PYTHONUTF8"] = "1"
+    print("+ Running isolated wheel smoke simulation...", flush=True)
+    _run(
+        [str(venv_python), "-c", wheel_smoke_code(expected_version)],
+        cwd=Path(cwd),
+        env=isolated_env,
+        family="isolated_wheel_smoke",
+    )
+
+
+def gate_examples() -> None:
+    """The RELEASE_EXAMPLES smoke list only (CI calls this; it owns the list)."""
+    run_release_examples()
+
+
+def gate_wheel_smoke(
+    venv_python: str | None = None, expected_version: str | None = None
+) -> None:
+    """Run the canonical wheel smoke in an existing venv (CI calls this)."""
+    if not venv_python:
+        raise RuntimeError("wheel-smoke needs --venv-python <path to the venv python>")
+    version = expected_version or _local_package_version()
+    with tempfile.TemporaryDirectory(prefix="jaxfne_wheel_smoke_cwd_") as tmp_cwd:
+        run_isolated_wheel_smoke(venv_python, version, cwd=tmp_cwd)
+
+
 def gate_dev() -> None:
     _run(
         [sys.executable, "-m", "compileall", "-q", "jaxfne", "tests", "scripts"],
@@ -470,12 +567,7 @@ def gate_release() -> None:
         notebook_cmd.extend(["--ignore", path])
     _run(notebook_cmd, family="pytest_notebook")
     _run([sys.executable, "-m", "mkdocs", "build", "--strict"], family="docs_build_strict")
-    for example in RELEASE_EXAMPLES:
-        _run([sys.executable, example], family="examples_smoke")
-    # Restore static docs figures that examples mirror to keep tree clean
-    subprocess.run(
-        ["git", "checkout", "--", "docs/archive/tutorials_v030/_static/figures"], cwd=ROOT, check=False
-    )
+    run_release_examples()
 
 
 def gate_rc() -> None:
@@ -541,28 +633,7 @@ def gate_rc() -> None:
                 family="isolated_wheel_smoke",
             )
 
-            smoke_code = (
-                "import json, jaxfne as jtfne\n"
-                "assert 'site-packages' in jtfne.__file__, f'Not in site-packages: {jtfne.__file__}'\n"
-                "cfg = jtfne.configuration().network(n=8).emitter().field().probe(n_contacts=4)\n"
-                "model = jtfne.construct(cfg)\n"
-                "signals = model.simulate(jtfne.simulation(duration_ms=5.0, dt_ms=0.1, seed=0))\n"
-                "readouts = model.compute_readout(signals, [jtfne.readout_spec('r', 'spike_rate_hz')])\n"
-                "manifest = model.manifest(signals, readouts)\n"
-                "json.dumps(manifest, allow_nan=False)\n"
-                "assert manifest['physical_amplitude_calibrated'] is False\n"
-                "print('RC isolated wheel smoke OK: version =', jtfne.__version__)\n"
-            )
-            isolated_env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
-            isolated_env["PYTHONIOENCODING"] = "utf-8"
-            isolated_env["PYTHONUTF8"] = "1"
-            print("+ Running isolated wheel smoke simulation...", flush=True)
-            _run(
-                [str(venv_py), "-c", smoke_code],
-                cwd=Path(tmp_venv),
-                env=isolated_env,
-                family="isolated_wheel_smoke",
-            )
+            run_isolated_wheel_smoke(venv_py, _local_package_version(), cwd=tmp_venv)
 
     attestation_out = write_rc_attestation()
     print(f"\nRC GATE PASS: attestation written to {attestation_out}", flush=True)
@@ -637,6 +708,8 @@ GATES = {
     "rc": gate_rc,
     "release-candidate": gate_rc,
     "publication": gate_publication,
+    "examples": gate_examples,
+    "wheel-smoke": gate_wheel_smoke,
 }
 
 
@@ -647,8 +720,21 @@ def main(argv: list[str] | None = None) -> int:
         choices=sorted(GATES),
         help="which validation gate to run",
     )
+    parser.add_argument(
+        "--venv-python",
+        default=None,
+        help="venv python for the wheel-smoke gate",
+    )
+    parser.add_argument(
+        "--expected-version",
+        default=None,
+        help="expected jaxfne version for the wheel-smoke gate (default: pyproject version)",
+    )
     args = parser.parse_args(argv)
-    GATES[args.gate]()
+    if args.gate == "wheel-smoke":
+        gate_wheel_smoke(venv_python=args.venv_python, expected_version=args.expected_version)
+    else:
+        GATES[args.gate]()
     return 0
 
 
