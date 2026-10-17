@@ -172,8 +172,8 @@ covers and what checks it); row 2 is the fact. Authorized by the human in the
 | The todo stack holds remaining work only and finished items are deleted. Goal and fact stacks are human-owned. The problem stack targets empty: solve and delete. Sealed stacks are archived byte for byte. |
 | **memory, lessons, not evidence** \| memory files and lessons; scope and evidence per lesson |
 | Memory holds verified reusable working lessons `{trigger, cause, repair, evidence, scope}`. It is never current-state evidence and never duplicates facts or code. |
-| **repo skills, canonical, mirrors, style pointers** \| `artifacts/skills/jaxfne-*`; `sync_skills.py --check` |
-| Repo skills are task-shaped, benchmarked routers. The canonical copy is in `artifacts/skills`; mirrors are generated and hash-checked. Style rules point at the canonical style skills and are not restated. |
+| **repo skills, canonical, mirrors, style pointers** \| `artifacts/control/skills/jaxfne-*`; `sync_skills.py --check` |
+| Repo skills are task-shaped, benchmarked routers. The canonical copy is in `artifacts/control/skills`; mirrors are generated and hash-checked. Style rules point at the canonical style skills and are not restated. |
 | **vocabulary, allowlist, --check** \| `scripts/audit_vocabulary.py --check`; gate |
 | Each term carries one meaning; an allowlist bounds words such as "contract". The audit runs with `--check` as a gate; bare mode exits 0 and proves nothing. |
 | **naming, package, acronyms, one meaning** \| code and docs; vocabulary audit |

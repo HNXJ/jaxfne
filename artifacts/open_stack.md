@@ -17,7 +17,6 @@ None.
 - O-14 T-28 `tfne._RESERVED_LOWER` {x, y, h, s} defined, never read: wire into name checks or delete (score about 60 either way) | Hamm | since 2026-10-15 | closes when Hamm picks one
 - O-15 T-20 `--check` accepted and ignored in `assert_release_freeze.py`, `sync_release_metadata.py` (score about 65 to change) | Hamm | since 2026-10-15 | closes when kept with a note or removed
 - O-16 Branch `_temp_never-sweep` on origin, unmerged, 2026-10-12, owner unknown | Hamm | since 2026-10-15 | closes when its owner merges or deletes it
-- O-23 `fact_stack.md:175-176` names `artifacts/skills`; since P5 it is `artifacts/control/skills` (Hamm edits that file) | Hamm | since 2026-10-16 | closes when the two paths are updated
 
 ## Known gaps (recorded, no action yet)
 
