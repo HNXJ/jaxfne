@@ -512,3 +512,30 @@ deterministic sum is expected to make runs repeatable without
 removing the sensitivity (untested). OPEN: measure the collapse
 probability on CPU under controlled initial-V perturbations; check
 whether the authors' model shows the same early collapse.
+
+### 6.9 Collapse probability on CPU (OBSERVED, no fitting)
+
+`diag/collapse_probability.py`, g*, stim 0.6, CPU (bit-reproducible;
+the unperturbed run reproduces `run_trial`'s V hash),
+`/mnt/f/warehouse/gsdr/collapse_probability_2026-10-17.jsonl`
+(161 rows). Axis P: per-cell initial-V offsets eps · N(0, 1), OU
+seed 1, draws 0–39. Axis S: no offset, OU seeds 1–40.
+
+| axis | eps (mV) | collapsed / runs | distinct V |
+|---|---|---|---|
+| P | 1e-6 | 0 / 40 | 1 (below float32 spacing) |
+| P | 1e-4 | 0 / 40 | 40 |
+| P | 1e-2 | 2 / 40 (draws 20, 27) | 40 |
+| S | 0 | 0 / 40 | 40 |
+
+Both collapses carry the §6.8 signature: 5.21 and 5.19 Hz, kappa_fit
+0.0, every spike in the first 500 ms third. Saturated runs fire
+about 536 / 603 / 449 spikes per third, so activity already sags in
+the last third.
+
+Reading (inferred): the collapse is a rare branch, 2 runs in 40
+under a 1e-2 mV kick at t = 0 and none across 40 noise seeds. The
+GPU rate (3 in 30) is higher because the summation-order differences
+enter on every step rather than once. Collapse is too rare to explain
+the saturated fit; it adds outlier noise to GPU losses at g*. The
+saturated attractor remains the main finding (§6.4–6.7).
