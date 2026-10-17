@@ -478,3 +478,37 @@ This is the second sighting of the §6.6 first-in-process outlier
 first call is quoted; then decide whether the port's E→E/E→I AMPA
 recurrence differs structurally from the authors' (connectivity
 density, delays, AMPA kinetics) before any further fit.
+
+### 6.8 The outlier is GPU-only and lands on any call (OBSERVED, no fitting)
+
+`diag/first_call_repro.py`, g*, stim 0.6, seed 1, 3 calls per fresh
+process, `/mnt/f/warehouse/gsdr/first_call_repro_2026-10-17.jsonl`:
+
+| backend | processes | calls | outliers | distinct V hashes |
+|---|---|---|---|---|
+| GPU | 10 | 30 | 3 (calls 0, 1, 2 of processes 3, 4, 6) | per call |
+| CPU | 5 | 15 | 0 | 1 |
+
+Every outlier: 5.20–5.23 Hz over the trial, active 1.00, kappa_fit
+0.0, no spikes in the [500, 1000] ms window. A probe outlier fired
+all its spikes in the first third of the trial (398, 0, 0 per 500 ms
+third) and then fell silent. The first-call framing of §6.6 and §6.7
+is refuted: outliers fall on any call. A one-off localization probe
+(not committed) reported bit-identical inputs for an outlier and a
+normal call in one process (drive, OU tau, sigma and key, edge
+weights), V differing from the first recorded sample by about
+4e-6 mV, and the gap above 1 mV from recorded sample 1509. The only
+reductions in the scan body that feed the dynamics are the two
+`jax.ops.segment_sum` calls (`jaxfne/emitters_hh.py:536-537`; the
+`jnp.sum` held-step counters at :533 and :542 never re-enter V).
+Inferred cause: varying GPU atomic-add order in those sums; CPU runs
+are bit-identical.
+
+Reading (inferred): at g* the trajectory has two outcomes, the
+saturated gamma attractor (~21 Hz) and an early collapse to silence,
+and a float-level perturbation picks between them in about 1 GPU call
+in 10. GPU fit losses at g* may have carried this branch noise. A
+deterministic sum is expected to make runs repeatable without
+removing the sensitivity (untested). OPEN: measure the collapse
+probability on CPU under controlled initial-V perturbations; check
+whether the authors' model shows the same early collapse.

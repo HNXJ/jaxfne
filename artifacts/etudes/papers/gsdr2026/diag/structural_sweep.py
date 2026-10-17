@@ -42,7 +42,7 @@ if str(_repo_root) not in sys.path:
 if str(_RUN_DIR) not in sys.path:
     sys.path.insert(0, str(_RUN_DIR))
 
-import run_gsdr as rg
+import run_gsdr as rg  # noqa: E402
 
 GSTAR_DEFAULT = ("/mnt/f/warehouse/gsdr/lane4f_runs_2026-10-14/gsdr_fit500/"
                  "g_star_uS_float32.npy")
