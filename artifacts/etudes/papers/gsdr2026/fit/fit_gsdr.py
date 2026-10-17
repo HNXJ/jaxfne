@@ -83,7 +83,8 @@ def load_y_labels(path=Y_LABELS_DEFAULT):
     return d
 
 
-def candidate_loss(g_us, rg, y, *, fit_seeds=FIT_SEEDS_DEFAULT):
+def candidate_loss(g_us, rg, y, *, fit_seeds=FIT_SEEDS_DEFAULT,
+                   morphology="single"):
     """Fig. 6 batch loss of one conductance vector (reference-uS)."""
     import numpy as np
 
@@ -95,7 +96,8 @@ def candidate_loss(g_us, rg, y, *, fit_seeds=FIT_SEEDS_DEFAULT):
     psd_terms, pens, kappas, comp = [], [], [], []
     for amp, ou, lab, ky in trials:
         result, blobs = rg.run_trial(amp, g_seed=ou, ou_seed=ou,
-                                     g_override=np.asarray(g_us, dtype=np.float32))
+                                     g_override=np.asarray(g_us, dtype=np.float32),
+                                     morphology=morphology)
         v = blobs["v"]
         z_psd = np.asarray(result["psd"], dtype=np.float64)
         psd_terms.append(rg.psd_loss(z_psd, lab))

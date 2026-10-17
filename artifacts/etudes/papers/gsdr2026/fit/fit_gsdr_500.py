@@ -44,7 +44,7 @@ def _latest_ckpt(out_dir):
 
 def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                 y_labels_path=Y_LABELS_DEFAULT,
-                fit_seeds=FIT_SEEDS_DEFAULT, resume=False):
+                fit_seeds=FIT_SEEDS_DEFAULT, resume=False, morphology="single"):
     """Generational GSDR fit with checkpoints; returns (best_g_us, manifest)."""
     import numpy as np
 
@@ -78,7 +78,8 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
 
     def evaluate(g, tag):
         t0 = time.time()
-        loss, comp = candidate_loss(g, rg, y, fit_seeds=tuple(fit_seeds))
+        loss, comp = candidate_loss(g, rg, y, fit_seeds=tuple(fit_seeds),
+                                    morphology=morphology)
         wall = time.time() - t0
         finite = bool(np.isfinite(loss))
         print("%s loss %.4f (psd %.4f pen %.4f kap %.4f) active %s wall %.1fs"
@@ -105,6 +106,10 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
         if traj_path.exists():
             prior = json.loads(traj_path.read_text())
             trajectory = prior.get("trajectory", [])
+            prior_morph = prior.get("morphology", "single")
+            if prior_morph != morphology:
+                raise SystemExit("error: --resume with morphology %r over a %r fit"
+                                 % (morphology, prior_morph))
         for _ in range(start_gen * (int(population) - 1)):
             rng.standard_normal(n_params)
         print("RESUMED from %s at gen %d best %.4f" % (ck, start_gen, best["loss"]),
@@ -134,7 +139,8 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                  next_gen=np.int64(next_gen))
         os.replace(tmp, _ckpt_path(out, next_gen - 1))
         (out / "manifest_partial.json").write_text(json.dumps(
-            {"git_sha": git_sha(), "completed_generations": int(next_gen),
+            {"git_sha": git_sha(), "morphology": morphology,
+             "completed_generations": int(next_gen),
              "best_loss": best["loss"], "best_components": best["components"],
              "trajectory": trajectory, "total_wall_s": float(total_wall)},
             indent=2))
@@ -184,6 +190,7 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                    "paper_call": "main_fig6.py:684",
                    "lane_generations": int(generations),
                    "population": int(population)},
+        "morphology": morphology,
         "y_labels": str(y_labels_path),
         "fit_seeds": [int(s) for s in fit_seeds],
         "loss_weights": {"psd": rg.PSD_WEIGHT, "rate": rg.RATE_WEIGHT,
@@ -217,6 +224,7 @@ def build_parser():
     ap.add_argument("--y-labels", default=Y_LABELS_DEFAULT)
     ap.add_argument("--fit-seeds", type=int, nargs="*", default=None)
     ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--morphology", choices=("single", "reference"), default="single")
     return ap
 
 
@@ -226,7 +234,7 @@ def main(argv=None):
                 population=args.population, seed=args.seed,
                 y_labels_path=args.y_labels,
                 fit_seeds=tuple(args.fit_seeds) if args.fit_seeds else FIT_SEEDS_DEFAULT,
-                resume=args.resume)
+                resume=args.resume, morphology=args.morphology)
 
 
 if __name__ == "__main__":
