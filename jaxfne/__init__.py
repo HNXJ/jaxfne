@@ -100,6 +100,9 @@ from . import emitter_registry
 # level imports are stdlib plus numpy, so this costs nothing at import time;
 # neuronal_tensor and connectivity are imported inside its functions.
 from . import tfne
+# Destexhe 2009 aeIF cell types for the AdEx route (ADVANCED tier, same
+# pattern: the module is the symbol, reached as jaxfne.adex_destexhe).
+from . import adex_destexhe
 from . import export as _export_module
 from .jdna import (
     PseudoGenome,

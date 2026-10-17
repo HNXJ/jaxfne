@@ -143,12 +143,6 @@ run on WSL2 CUDA.
   (and its placeholder pass 0.95 at :484). `--check` parsed and ignored in
   `scripts/release/assert_release_freeze.py` and `scripts/sync_release_metadata.py` (both
   check-only). Closes when: each is used, removed or ruled harmless.
-- T-21 [A] Destexhe 2009 on the core: G12–G14 and F7 are in the core (`Vpeak_mV`, `ext_lambda`
-  schedule and drive window, `sampling="capped_bernoulli"`, zero-delay refusal). Remaining:
-  rebase the Destexhe lane onto them, delete its `simulate_adex_gated_drive` fork, set Vpeak to
-  the authors' detection (about VT) and the capped rule, re-run seeds 1–3, held-out 4–8. Hamm
-  2026-10-14: the authors' Vpeak is primary, with a declared sensitivity at VT + 5Δ beside it.
-  Closes when: Destexhe has a verdict on core z and the Vpeak sensitivity is reported.
 
 hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 - T-22 [A] Same-step interactions (PCL local inhibition, CAMINOS zero delay, gap G12) are a

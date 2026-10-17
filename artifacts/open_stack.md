@@ -9,7 +9,6 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 - O-4 artifacts/ reorg P5 (skills, harness, subagents, vocabulary, .lab into control/; manifest regenerated) | Muse | since 2026-10-15 | closes when on dev, `sync_skills.py --check` OK, dev CI green
 - O-7 Gate-report and quick docs-gate commands (`scripts/`) | keeper | since 2026-10-15 | closes when both exist, are documented in `artifacts/AGENTS.md` and used by the broad gate
 - O-8 Tree-degree test (at most 7 direct entries per folder under artifacts/, README exceptions) after O-4 | keeper | since 2026-10-15 | closes when the test is in the broad gate
-- O-9 Destexhe 2009 lane 5d: S2 scoring; 6 uncommitted files in its clone on 6f85f5c3 (pre-reorg paths) | keeper | since 2026-10-14 | closes when integrated on dev (T-21) or recorded with a reason
 
 ## Waiting on others
 
