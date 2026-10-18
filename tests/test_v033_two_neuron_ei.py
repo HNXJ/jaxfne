@@ -11,12 +11,70 @@ Test suite for v0.3.3 Two-Neuron E/I Multimodal Tutorial.
 """
 
 import json
+import os
 import pathlib
 import subprocess
 import sys
 
 import pytest
 import numpy as np
+
+try:
+    import matplotlib
+
+    matplotlib.use("Agg")  # headless backend; never depend on the box Tk install
+except ImportError:
+    matplotlib = None  # noqa: F401 — tests skip via importorskip below
+
+
+# ============================================================================
+# Module-scoped producer: run the tutorial once into a temp dir so reader
+# tests never depend on repo-tree outputs (a fresh clone would skip; a reused
+# tree would read stale files from some earlier run).
+# ============================================================================
+
+@pytest.fixture(scope="module")
+def v033_produced(tmp_path_factory):
+    """Run the v0.3.3 tutorial producer once; yield its temp dirs and result."""
+    # Skip the reader set if matplotlib is not available (optional [viz] extra).
+    pytest.importorskip("matplotlib")
+
+    workdir = tmp_path_factory.mktemp("v033_two_neuron_ei")
+    out_dir = workdir / "outputs" / "v030_03_two_neuron_ei_multimodal"
+    static_dir = workdir / "static_figs"
+
+    examples_path = str(pathlib.Path(__file__).parent.parent / "examples")
+    sys.path.insert(0, examples_path)
+    try:
+        import v033_two_neuron_ei_multimodal as tutorial
+    finally:
+        sys.path.remove(examples_path)
+
+    # Point the producer at the temp dir explicitly: OUT/STATIC_FIGS resolve
+    # at import time, so the env var alone would not redirect an
+    # already-imported module. Same env var as the per-test runs below.
+    prev_out, prev_static = tutorial.OUT, tutorial.STATIC_FIGS
+    prev_env = os.environ.get("JAXFNE_TUTORIAL_STATIC_DIR")
+    os.environ["JAXFNE_TUTORIAL_STATIC_DIR"] = str(static_dir)
+    tutorial.OUT = out_dir
+    tutorial.STATIC_FIGS = static_dir
+    try:
+        result = tutorial.main()
+    finally:
+        tutorial.OUT = prev_out
+        tutorial.STATIC_FIGS = prev_static
+        if prev_env is None:
+            os.environ.pop("JAXFNE_TUTORIAL_STATIC_DIR", None)
+        else:
+            os.environ["JAXFNE_TUTORIAL_STATIC_DIR"] = prev_env
+
+    assert out_dir.is_dir(), f"producer did not create {out_dir}"
+    return {
+        "workdir": workdir,
+        "out_dir": out_dir,
+        "static_dir": static_dir,
+        "result": result,
+    }
 
 
 # ============================================================================
@@ -44,6 +102,9 @@ def test_v033_tutorial_runs(tmp_path, monkeypatch):
     # Regenerated figures must not mutate the tracked documentation tree;
     # route them to a temp directory for the duration of the run.
     monkeypatch.setenv("JAXFNE_TUTORIAL_STATIC_DIR", str(tmp_path / "static_figs"))
+    # The producer writes to a relative OUT dir; run it under tmp_path so this
+    # test leaves nothing behind in the repo tree.
+    monkeypatch.chdir(tmp_path)
 
     examples_path = pathlib.Path(__file__).parent.parent / "examples"
     sys.path.insert(0, str(examples_path))
@@ -117,20 +178,19 @@ def test_v033_manifest_json_valid(tmp_path, monkeypatch):
     assert "status" in val_report
 
 
-def test_v033_json_files_allow_nan_false():
+def test_v033_json_files_allow_nan_false(v033_produced):
     """Test that all JSON files are strict (no NaN/Inf)."""
+    out_dir = v033_produced["out_dir"]
     json_files = [
-        "outputs/v030_03_two_neuron_ei_multimodal/manifest.json",
-        "outputs/v030_03_two_neuron_ei_multimodal/probe_report.json",
-        "outputs/v030_03_two_neuron_ei_multimodal/validation_report.json",
-        "outputs/v030_03_two_neuron_ei_multimodal/metrics.json",
-        "outputs/v030_03_two_neuron_ei_multimodal/asset_hashes.json",
+        out_dir / "manifest.json",
+        out_dir / "probe_report.json",
+        out_dir / "validation_report.json",
+        out_dir / "metrics.json",
+        out_dir / "asset_hashes.json",
     ]
 
-    for fpath_str in json_files:
-        fpath = pathlib.Path(fpath_str)
-        if not fpath.exists():
-            pytest.skip(f"Output {fpath} not generated; tutorial may not have been run")
+    for fpath in json_files:
+        assert fpath.exists(), f"Producer fixture did not generate {fpath.name}"
 
         with open(fpath) as f:
             data = json.load(f)
@@ -139,9 +199,9 @@ def test_v033_json_files_allow_nan_false():
         assert isinstance(strict_json, str)
 
 
-def test_v033_figures_exist():
+def test_v033_figures_exist(v033_produced):
     """Test that expected figure files exist."""
-    figures_dir = pathlib.Path("docs/archive/tutorials_v030/_static/figures")
+    figures_dir = v033_produced["static_dir"]
 
     required_figures = [
         "v0303_two_neuron_ei_voltage.png",
@@ -150,18 +210,16 @@ def test_v033_figures_exist():
 
     for fig_name in required_figures:
         fig_path = figures_dir / fig_name
-        if not fig_path.exists():
-            pytest.skip(f"Figure {fig_name} not found; tutorial may not have been run")
+        assert fig_path.exists(), f"Producer fixture did not generate {fig_name}"
 
         assert fig_path.stat().st_size > 0, f"Figure {fig_name} is empty"
 
 
-def test_v033_no_forbidden_claims():
+def test_v033_no_forbidden_claims(v033_produced):
     """Test that the manifest does not contain forbidden claim phrases."""
-    manifest_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/manifest.json")
+    manifest_path = v033_produced["out_dir"] / "manifest.json"
 
-    if not manifest_path.exists():
-        pytest.skip("Manifest not generated")
+    assert manifest_path.exists(), "Producer fixture did not generate manifest.json"
 
     with open(manifest_path) as f:
         manifest = json.load(f)
@@ -182,12 +240,11 @@ def test_v033_no_forbidden_claims():
         assert phrase.lower() not in basis_str.lower(), f"Forbidden phrase '{phrase}' in basis claims"
 
 
-def test_v033_metrics_are_finite():
+def test_v033_metrics_are_finite(v033_produced):
     """Test that all numerical metrics are finite (no NaN/Inf)."""
-    metrics_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/metrics.json")
+    metrics_path = v033_produced["out_dir"] / "metrics.json"
 
-    if not metrics_path.exists():
-        pytest.skip("Metrics not generated")
+    assert metrics_path.exists(), "Producer fixture did not generate metrics.json"
 
     with open(metrics_path) as f:
         metrics = json.load(f)
@@ -197,12 +254,11 @@ def test_v033_metrics_are_finite():
             assert np.isfinite(value), f"Metric {key} is not finite: {value}"
 
 
-def test_v033_network_configuration():
+def test_v033_network_configuration(v033_produced):
     """Test that network configuration is correctly reflected in manifest."""
-    manifest_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/manifest.json")
+    manifest_path = v033_produced["out_dir"] / "manifest.json"
 
-    if not manifest_path.exists():
-        pytest.skip("Manifest not generated")
+    assert manifest_path.exists(), "Producer fixture did not generate manifest.json"
 
     with open(manifest_path) as f:
         manifest = json.load(f)
@@ -233,7 +289,6 @@ def test_v033_network_configuration():
 def test_simulate_dynamic_ei_coupling_returns_four_arrays():
     """simulate_dynamic_ei_coupling returns a 4-tuple."""
     import jax
-    import jax.numpy as jnp
     from jaxfne.emitters import simulate_dynamic_ei_coupling, izhikevich_eig_params
 
     params = izhikevich_eig_params(2, {"E": 0.5, "PV": 0.5})
@@ -245,7 +300,6 @@ def test_simulate_dynamic_ei_coupling_returns_four_arrays():
 def test_simulate_dynamic_ei_coupling_shapes():
     """Output shapes are (n_steps, 2) for all four arrays."""
     import jax
-    import jax.numpy as jnp
     from jaxfne.emitters import simulate_dynamic_ei_coupling, izhikevich_eig_params
 
     params = izhikevich_eig_params(2, {"E": 0.5, "PV": 0.5})
@@ -303,11 +357,10 @@ def test_simulate_dynamic_ei_coupling_deterministic():
 # Group B: Tutorial output validation tests (6 new tests)
 # ============================================================================
 
-def test_v033_manifest_coupling_is_dynamic():
+def test_v033_manifest_coupling_is_dynamic(v033_produced):
     """manifest.json must declare coupling as dynamic injection, not post-hoc."""
-    manifest_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/manifest.json")
-    if not manifest_path.exists():
-        pytest.skip("Manifest not generated")
+    manifest_path = v033_produced["out_dir"] / "manifest.json"
+    assert manifest_path.exists(), "Producer fixture did not generate manifest.json"
     with open(manifest_path) as f:
         manifest = json.load(f)
     coupling = manifest.get("coupling", {})
@@ -316,54 +369,49 @@ def test_v033_manifest_coupling_is_dynamic():
         f"Expected dynamic coupling implementation, got: '{impl}'"
 
 
-def test_v033_i_neuron_fires():
+def test_v033_i_neuron_fires(v033_produced):
     """I/PV neuron must have nonzero firing rate in metrics."""
-    metrics_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/metrics.json")
-    if not metrics_path.exists():
-        pytest.skip("Metrics not generated")
+    metrics_path = v033_produced["out_dir"] / "metrics.json"
+    assert metrics_path.exists(), "Producer fixture did not generate metrics.json"
     with open(metrics_path) as f:
         metrics = json.load(f)
     i_rate = metrics.get("i_firing_rate_hz", 0.0)
     assert i_rate > 0.0, f"I/PV neuron is silent: {i_rate} Hz"
 
 
-def test_v033_i_neuron_rate_in_gate():
+def test_v033_i_neuron_rate_in_gate(v033_produced):
     """I/PV neuron firing rate must be in 2-25 Hz range."""
-    metrics_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/metrics.json")
-    if not metrics_path.exists():
-        pytest.skip("Metrics not generated")
+    metrics_path = v033_produced["out_dir"] / "metrics.json"
+    assert metrics_path.exists(), "Producer fixture did not generate metrics.json"
     with open(metrics_path) as f:
         metrics = json.load(f)
     i_rate = metrics.get("i_firing_rate_hz", 0.0)
     assert 2.0 <= i_rate <= 25.0, f"I firing rate {i_rate} Hz out of 2-25 Hz range"
 
 
-def test_v033_e_neuron_rate_in_gate():
+def test_v033_e_neuron_rate_in_gate(v033_produced):
     """E neuron firing rate must be in 2-25 Hz range."""
-    metrics_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/metrics.json")
-    if not metrics_path.exists():
-        pytest.skip("Metrics not generated")
+    metrics_path = v033_produced["out_dir"] / "metrics.json"
+    assert metrics_path.exists(), "Producer fixture did not generate metrics.json"
     with open(metrics_path) as f:
         metrics = json.load(f)
     e_rate = metrics.get("e_firing_rate_hz", 0.0)
     assert 2.0 <= e_rate <= 25.0, f"E firing rate {e_rate} Hz out of 2-25 Hz range"
 
 
-def test_v033_coupling_currents_figure_exists():
+def test_v033_coupling_currents_figure_exists(v033_produced):
     """Coupling currents figure must exist (generated from dynamic synaptic currents)."""
-    fig_path = pathlib.Path(
-        "docs/archive/tutorials_v030/_static/figures/v0303_two_neuron_ei_coupling_currents.png"
+    fig_path = (
+        v033_produced["static_dir"] / "v0303_two_neuron_ei_coupling_currents.png"
     )
-    if not fig_path.exists():
-        pytest.skip("Coupling currents figure not generated")
+    assert fig_path.exists(), "Producer fixture did not generate coupling currents figure"
     assert fig_path.stat().st_size > 0, "Coupling currents figure is empty"
 
 
-def test_v033_validation_report_i_gate_passes():
+def test_v033_validation_report_i_gate_passes(v033_produced):
     """validation_report must show i_firing_rate_gate_2_25_hz as True."""
-    val_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/validation_report.json")
-    if not val_path.exists():
-        pytest.skip("Validation report not generated")
+    val_path = v033_produced["out_dir"] / "validation_report.json"
+    assert val_path.exists(), "Producer fixture did not generate validation_report.json"
     with open(val_path) as f:
         report = json.load(f)
     assert report.get("i_firing_rate_gate_2_25_hz") is True, \
@@ -374,11 +422,10 @@ def test_v033_validation_report_i_gate_passes():
 # Group C: Claim gate immutability tests (3 new tests)
 # ============================================================================
 
-def test_v033_basis_physical_amplitude_claim_false():
+def test_v033_basis_physical_amplitude_claim_false(v033_produced):
     """basis amplitude_status (or legacy physical_amplitude_calibrated) must be False."""
-    manifest_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/manifest.json")
-    if not manifest_path.exists():
-        pytest.skip("Manifest not generated")
+    manifest_path = v033_produced["out_dir"] / "manifest.json"
+    assert manifest_path.exists(), "Producer fixture did not generate manifest.json"
     with open(manifest_path) as f:
         manifest = json.load(f)
     basis = manifest["basis"]
@@ -386,11 +433,10 @@ def test_v033_basis_physical_amplitude_claim_false():
     assert val is False, f"amplitude gate must be False, got: {val}"
 
 
-def test_v033_basis_claim_level_computational_scaffold():
+def test_v033_basis_claim_level_computational_scaffold(v033_produced):
     """basis model_status (or legacy claim_level) must be 'computational_scaffold'."""
-    manifest_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/manifest.json")
-    if not manifest_path.exists():
-        pytest.skip("Manifest not generated")
+    manifest_path = v033_produced["out_dir"] / "manifest.json"
+    assert manifest_path.exists(), "Producer fixture did not generate manifest.json"
     with open(manifest_path) as f:
         manifest = json.load(f)
     basis = manifest["basis"]
@@ -401,25 +447,22 @@ def test_v033_basis_claim_level_computational_scaffold():
 # Group D: Asset integrity tests (3 new tests)
 # ============================================================================
 
-def test_v033_asset_hashes_json_exists_and_nonempty():
+def test_v033_asset_hashes_json_exists_and_nonempty(v033_produced):
     """asset_hashes.json must exist and contain hash entries."""
-    hash_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/asset_hashes.json")
-    if not hash_path.exists():
-        pytest.skip("Asset hashes not generated")
+    hash_path = v033_produced["out_dir"] / "asset_hashes.json"
+    assert hash_path.exists(), "Producer fixture did not generate asset_hashes.json"
     with open(hash_path) as f:
         hashes = json.load(f)
     assert isinstance(hashes, dict), "asset_hashes.json must be a dict"
     assert len(hashes) > 0, "asset_hashes.json must have at least one entry"
 
 
-def test_v033_all_json_files_parseable():
+def test_v033_all_json_files_parseable(v033_produced):
     """All JSON files in outputs must parse without error as dicts."""
-    out_dir = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal")
-    if not out_dir.exists():
-        pytest.skip("Output directory not generated")
+    out_dir = v033_produced["out_dir"]
+    assert out_dir.is_dir(), "Producer fixture did not create the output directory"
     json_files = list(out_dir.glob("*.json"))
-    if not json_files:
-        pytest.skip("No JSON outputs generated")
+    assert len(json_files) > 0, "Producer fixture generated no JSON outputs"
     for jf in json_files:
         with open(jf) as f:
             data = json.load(f)
@@ -445,9 +488,9 @@ def test_v033_syntax_check():
 # Group E: 8-figure completeness tests (2 new tests)
 # ============================================================================
 
-def test_v033_all_8_figures_exist_in_static():
+def test_v033_all_8_figures_exist_in_static(v033_produced):
     """All 8 required figures must exist in docs-stable _static/figures."""
-    figures_dir = pathlib.Path("docs/archive/tutorials_v030/_static/figures")
+    figures_dir = v033_produced["static_dir"]
     required_figures = [
         "v0303_two_neuron_ei_voltage.png",
         "v0303_two_neuron_ei_raster.png",
@@ -460,16 +503,14 @@ def test_v033_all_8_figures_exist_in_static():
     ]
     for fig_name in required_figures:
         fig_path = figures_dir / fig_name
-        if not fig_path.exists():
-            pytest.skip(f"Figure not found (tutorial not run): {fig_name}")
+        assert fig_path.exists(), f"Producer fixture did not generate {fig_name}"
         assert fig_path.stat().st_size > 0, f"Figure is empty: {fig_name}"
 
 
-def test_v033_manifest_has_8_figure_entries():
+def test_v033_manifest_has_8_figure_entries(v033_produced):
     """atlas_manifest figures dict must contain all 8 figure keys."""
-    manifest_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/manifest.json")
-    if not manifest_path.exists():
-        pytest.skip("Manifest not generated")
+    manifest_path = v033_produced["out_dir"] / "manifest.json"
+    assert manifest_path.exists(), "Producer fixture did not generate manifest.json"
     with open(manifest_path) as f:
         manifest = json.load(f)
     figures = manifest.get("figures", {})
