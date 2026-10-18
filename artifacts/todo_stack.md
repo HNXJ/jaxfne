@@ -96,7 +96,9 @@ run on WSL2 CUDA.
 
 - T-10 [A] G-1 (meet 204dfdaa): port jnwb's `changelog.d`, `assemble_changelog.py`,
   `release_body.py` and claim check; release body as tables. Closes when: `release_body.py --tag <next>` passes.
-  Then one newline policy for docs (check: `docs/reference/changelog.md` has 0 LF-only lines), the errors
+  The port itself landed (924f2423, 78d293d9); only the closing check waits for a tag.
+  Then one newline policy for docs (check: `docs/reference/changelog.md` has 0 LF-only lines; it has
+  5 of 745, lines 213-216 and 297, and `docs/_static/atlas/manifest.json` 16 of 136, 2026-10-18), the errors
   page, a proxy-claim wording gate, AST-hash freezing of validated kernels
   (`artifacts/control/harness/jnwb_cross_learning.md`).
 - T-11 [A] G-3: CAMINOS p = 0.07 seed 1 as an NWB excerpt plus provenance for jnwb `tests/`
@@ -191,7 +193,7 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
     no folder.
   - Tree caps: `papers/pcl/`, `caminos/`, `izhikevich2003/` over 7 (O-22).
   Gate: `scripts/check_replications.py --check` (families replication_audit, etude_no_resim, run
-  by the dev gate too) against `scripts/replication_known_violations.json` (26 findings,
+  by the dev gate too) against `scripts/replication_known_violations.json` (25 findings,
   2026-10-18); a fix removes its entry. Closes when: every paper passes the checker without a listed violation, or each listed one
   carries Hamm's exception.
 - CAMINOS lag (6.47 against 8.5 ms): Hamm attributes the gap to the paper's estimator rather than

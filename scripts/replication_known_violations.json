@@ -169,13 +169,6 @@
   },
   {
     "rule": "S1",
-    "path": "artifacts/etudes/papers/pcl/port/test_pcl_trained_load.py",
-    "message": "line 27: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
-  },
-  {
-    "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/port/validate_umap_order.py",
     "message": "line 46: sys.path.insert adds a path that cannot be resolved",
     "reason": "audit 2026-10-17",

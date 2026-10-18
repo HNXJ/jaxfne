@@ -6,7 +6,7 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 
 ## In flight
 
-- O-30 GSDR fit on the reference morphology, 500 generations (`F:\warehouse\gsdr\gsdr_fit500_reference_2026-10-17\fit.log`, code 6124c5e5, GPU lock held about 17 h) | keeper | since 2026-10-17 | closes when `manifest.json` exists and CALIBRATION records the regime at its g*
+- O-30 GSDR fit on the reference morphology, 500 generations (`F:\warehouse\gsdr\gsdr_fit500_reference_2026-10-17\fit.log`, code 6124c5e5, GPU lock held about 17 h; about 155 s per generation, so nearer 21 h). At gen 80 the best loss is 2.765e11, down 3.4% from 2.864e11 at gen 10, and the rate penalty dominates it (about 3.1e10 per candidate, psd term about 3.3), so cells sit near the penalty's rate bound | keeper | since 2026-10-17 | closes when `manifest.json` exists and CALIBRATION records the regime at its g*
 
 ## Waiting on others
 
@@ -28,4 +28,4 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 ## Known gaps (recorded, no action yet)
 
 - O-22 Over-7 lane folders excepted in `tests/test_artifacts_tree_degree.py` while their lanes are open: `etudes/papers/caminos/` (19 files), `etudes/papers/izhikevich2003/` (13) | keeper | since 2026-10-16 | closes when each is split by kind or its exception gets a path-addressing reason
-- O-19 Scratch clones (58 `cl-*`) and finished Muse sessions | keeper | since 2026-10-15 | closes when deleted after O-3 to O-5 land
+- O-19 Scratch clones and finished Muse sessions: 49 deleted 2026-10-18; 22 `cl-*` left (unlanded T-23 patches, dirty lanes, alternates sources, the GSDR run, and lanes not yet pushed) | keeper | since 2026-10-15 | closes when deleted after O-3 to O-5 land
