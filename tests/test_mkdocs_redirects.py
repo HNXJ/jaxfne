@@ -35,6 +35,38 @@ def test_repository_map_points_from_gone_pages_to_live_ones():
     assert not [new for new in maps.values() if not (docs / new).exists()]
 
 
+# Frozen files cite docs paths from before the 2026-10-16 move and cannot be edited. A page the
+# docs build excludes has no redirect page, so its move is recorded here instead.
+FROZEN_CITATION_MOVES = {
+    "docs/publication/evidence_consolidation.md": "docs/theory/publication/evidence_consolidation.md",
+}
+
+
+def test_frozen_files_cite_docs_paths_that_resolve():
+    import json
+
+    config = load_config(str(REPO / "mkdocs.yml"))
+    maps = config["extra"]["redirect_maps"]
+    frozen = json.loads((REPO / "artifacts/publication/frozen_manifest.json").read_text(encoding="utf-8"))
+    cited = set()
+    for rel in frozen["files"]:
+        path = REPO / rel
+        if path.suffix in (".md", ".json") and path.is_file():
+            text = path.read_text(encoding="utf-8", errors="replace")
+            cited |= {m.rstrip(".,)") for m in re.findall(r"(?<![\w/.-])(docs/[\w./-]+\.md)", text)}
+    assert cited, "the frozen files must cite docs paths (scan reads nothing otherwise)"
+    unresolved = []
+    for old in sorted(cited):
+        if (REPO / old).exists():
+            continue
+        new = maps.get(old[len("docs/"):])
+        target = f"docs/{new}" if new else FROZEN_CITATION_MOVES.get(old)
+        if target is None or not (REPO / target).exists():
+            unresolved.append(old)
+    assert not unresolved, unresolved
+    assert all((REPO / new).exists() for new in FROZEN_CITATION_MOVES.values())
+
+
 def _build(tmp_path, maps, use_dirs=True):
     docs, site = tmp_path / "docs", tmp_path / "site"
     for new in maps.values():
