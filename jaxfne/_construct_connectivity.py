@@ -941,7 +941,8 @@ def ensemble_edge_ownership(model: "Model") -> dict[str, list[tuple[int, int]]]:
     """
     try:
         ens = model.cfg.metadata.get("ensemble")
-    except Exception:
+    except (AttributeError, TypeError):
+        # Narrow: only a missing/malformed metadata mapping reads as "no ensemble".
         ens = None
     if not isinstance(ens, dict):
         raise ValueError("ensemble_edge_ownership requires a connect() ensemble model")

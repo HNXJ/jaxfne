@@ -152,3 +152,120 @@ def test_cell_types_zero_column_sum_refused():
 def test_cell_types_no_columns_default_kept():
     cfg = jtfne.Configuration().cell_types({"E": 1.0})
     assert cfg.networks[0]["n"] == 100
+
+
+# --- T-31 rest: narrowed silent fallbacks (unexpected errors propagate) ----------
+# Each test forces an unexpected error type through a previously bare
+# `except Exception` site. On the baseline the error is swallowed (the test
+# fails); with the narrowed handler it propagates. Expected-type failures
+# (AttributeError/TypeError/ValueError) still take the silent fallback.
+import numpy as np
+
+
+class _BoomContains:
+    def __contains__(self, key):
+        raise RuntimeError("forced metadata containment failure")
+
+    def get(self, key, default=None):
+        raise AssertionError("unreachable")
+
+
+class _BoomGet:
+    def __contains__(self, key):
+        return False
+
+    def get(self, key, default=None):
+        raise RuntimeError("forced metadata get failure")
+
+
+class _BoomArrayRt:
+    def __array__(self, dtype=None, copy=None):
+        raise RuntimeError("forced readout failure")
+
+
+def test_hdp_params_probe_unexpected_propagates():
+    model = _small_model()
+    object.__setattr__(model.cfg, "metadata", _BoomContains())
+    with pytest.raises(RuntimeError, match="forced metadata containment"):
+        jtfne.canonical_compact_summary(model)
+
+
+def test_enable_hdp_lookup_unexpected_propagates():
+    model = _small_model()
+    object.__setattr__(model.cfg, "metadata", _BoomGet())
+    with pytest.raises(RuntimeError, match="forced metadata get"):
+        jtfne.canonical_compact_summary(model)
+
+
+def test_hdp_initial_H_unexpected_propagates():
+    model = _small_model()
+    model.params["hdp_initial_H"] = _BoomArrayRt()
+    with pytest.raises(RuntimeError, match="forced readout"):
+        jtfne.canonical_compact_summary(model)
+
+
+def test_tensor_H_schema_unexpected_propagates():
+    model = _small_model()
+
+    class _BoomAreas:
+        def __iter__(self):
+            raise RuntimeError("forced schema iteration failure")
+
+    tensor = types.SimpleNamespace(areas=_BoomAreas(), area_connections=[])
+    with pytest.raises(RuntimeError, match="forced schema iteration"):
+        jtfne.canonical_compact_summary(model, tensor=tensor)
+
+
+def test_signals_hdp_meta_unexpected_propagates():
+    model = _small_model()
+
+    class _BoomDict(dict):
+        def get(self, key, default=None):
+            raise RuntimeError("forced hdp-meta get failure")
+
+    boom = _BoomDict(enabled=False)
+    signals = types.SimpleNamespace(metadata={"hdp": boom}, sources=None, field=None)
+    with pytest.raises(RuntimeError, match="forced hdp-meta get"):
+        jtfne.canonical_compact_summary(model, signals=signals)
+
+
+def test_last_hdp_diag_unexpected_propagates():
+    model = _small_model()
+    object.__setattr__(model, "_last_hdp_diag", {"H_trace": _BoomArrayRt()})
+    with pytest.raises(RuntimeError, match="forced readout"):
+        jtfne.canonical_compact_summary(model)
+
+
+def test_ensemble_metadata_unexpected_propagates():
+    from jaxfne._construct_connectivity import ensemble_edge_ownership
+
+    model = types.SimpleNamespace(
+        cfg=types.SimpleNamespace(metadata=_BoomGet()), params={}
+    )
+    with pytest.raises(RuntimeError, match="forced metadata get"):
+        ensemble_edge_ownership(model)
+
+
+# --- T-31 rest: agent diagnostics preserve input dtype ---------------------------
+_AB = "A := [C = {E}; N = 4]; B := [C = {E}; N = 4];"
+
+
+def _tfne_spec(weight=0.5, delay=4.0):
+    return (
+        "O[k] := [direction = >; mechanism = AMPA; probability = 1.0; "
+        f"weight = {weight}; delay = {delay}];\n{_AB}\nx : A O[k] B : y\n"
+    )
+
+
+def test_agent_diagnostics_preserve_float32():
+    from jaxfne import agent as A
+
+    run = A.simulate(A.realize(_tfne_spec(), seed=11), duration_ms=30.0, dt_ms=1.0, seed=0)
+    sig_dtype = np.asarray(run.signals.V_m).dtype
+    assert sig_dtype == np.dtype(np.float32)
+    for q in ("V_m", "spikes"):
+        assert A.observe(run, q).values.dtype == sig_dtype
+    cmp = A.compare(run)
+    assert {k: v["verdict"] for k, v in cmp.items()} == {
+        "time": "EQUAL", "weight": "EQUAL", "mechanism": "EQUAL", "delay": "EQUAL"}
+    assert A.verify(run, "finite")["verdict"] == "PASS"

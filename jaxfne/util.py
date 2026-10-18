@@ -441,7 +441,8 @@ def canonical_compact_summary(
     try:
         if "hdp_params" in model.cfg.metadata:
             hdp_params_probe = model.cfg.metadata.get("hdp_params")
-    except Exception:
+    except (AttributeError, TypeError):
+        # Narrow: only a missing/malformed metadata mapping means "no probe".
         hdp_params_probe = None
     enable_hdp = False
     try:
@@ -449,7 +450,8 @@ def canonical_compact_summary(
         if enable_hdp:
             H_dynamic = True
             H_evidence.append("model.cfg.metadata enable_hdp (dynamics)")
-    except Exception:
+    except (AttributeError, TypeError):
+        # Narrow: only an unreadable metadata mapping means "not enabled".
         enable_hdp = False
     try:
         hdp_H = model.params.get("hdp_initial_H")
@@ -506,7 +508,8 @@ def canonical_compact_summary(
                     h_state_dim = int(hdp_params_probe.get("h_state_dim", 0))
             except Exception:
                 pass
-    except Exception:
+    except (AttributeError, TypeError, ValueError):
+        # Narrow: only unreadable/coercion failures mean "no H state" here.
         pass
     if H_size == 0 and tensor is not None:
         try:
@@ -545,7 +548,8 @@ def canonical_compact_summary(
                     H_size = int(h_state_dim * n_neurons_realized)
                 if H_status == "unknown":
                     H_status = "present_dynamic" if H_dynamic else "present_static"
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
+            # Narrow: only unreadable tensor-schema/coercion failures stay silent.
             pass
     if signals is not None and isinstance(getattr(signals, "metadata", None), dict):
         try:
@@ -592,7 +596,8 @@ def canonical_compact_summary(
                         H_evidence.append("signals.metadata hdp enabled")
                     if H_status in ("present_static", "unknown"):
                         H_status = "present_dynamic"
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
+            # Narrow: only unreadable signals-metadata/coercion failures stay silent.
             pass
     if H_size == 0:
         try:
@@ -630,7 +635,8 @@ def canonical_compact_summary(
                         H_dynamic = True
                         if H_status == "present_static":
                             H_status = "present_dynamic"
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
+            # Narrow: only unreadable diag/coercion failures mean "no H trace" here.
             pass
     if H_size == 0 and enable_hdp and isinstance(hdp_params_probe, dict):
         try:
