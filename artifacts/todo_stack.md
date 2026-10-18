@@ -39,12 +39,13 @@ in the T-22 row).
 
 - R2 restated (Hamm 2026-10-14): bytes -10% against the 0.5.5 tag (met: 86.8 MB
   tracked at 1bfdaa84 against 126.0 MB at the tag) plus files at the recorded budget with
-  reasons on record (2415 tracked, `budget_files` 2428 in
-  `scripts/tree_size_allowlist.json`, 2026-10-17; each raise from 2269, its reason and
+  reasons on record (2436 tracked, `budget_files` 2436 in
+  `scripts/tree_size_allowlist.json`, 2026-10-18; each raise from 2269, its reason and
   authorization are in this line's git history and c4056347; 2372 -> 2400 for the Destexhe lane
   and the O-8 test, 2026-10-16; 2400 -> 2428 on 2026-10-17 for the GSDR lane, its diagnostics,
   the T-23 regime tests and the HH tests, each raise in its commit: fdd797ce, d0c1faae, 405378e8,
-  c6f052af, bb55e631, 5615fb98, 844900c6). The
+  c6f052af, bb55e631, 5615fb98, 844900c6; 2428 -> 2436 on 2026-10-18 for the 10 changelog
+  fragments since v0.5.6, which the assembler deletes at release). The
   regenerable docs assets are untracked already: the 9 registry `copies` dests under
   `docs/assets/etudes/` and all atlas/etude HTML are build products of
   `scripts/build_docs_assets.py --build` (the Read the Docs `pre_build` path) and gitignored.
