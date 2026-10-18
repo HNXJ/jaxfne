@@ -123,11 +123,25 @@ def test_step_gsgd_transform_direct():
 
 
 def test_optax_guarded_import_no_top_level_dependency():
-    """Optax must not be imported at module top-level; require_optax() guard works."""
-    import sys
+    """Optax must not be imported at module top-level; require_optax() guard works.
 
-    # jaxfne should import cleanly without triggering optax
-    mod = sys.modules.get("optax")
+    Checked in a fresh interpreter, since another test may already have
+    imported optax in this process.
+    """
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[1]
+    proc = subprocess.run(
+        [sys.executable, "-c", "import jaxfne, sys; print('optax' in sys.modules)"],
+        capture_output=True,
+        text=True,
+        cwd=repo_root,
+    )
+    assert proc.returncode == 0, proc.stderr[-2000:]
+    # Fresh `import jaxfne` must not pull in optax (measured: False).
+    assert proc.stdout.strip() == "False"
     # Only check the guard function is available — don't actually import optax
     assert hasattr(jtfne, "require_optax")
     assert callable(jtfne.require_optax)

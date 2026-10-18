@@ -64,12 +64,11 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   `agent.py` dtype (f), six narrowed handlers in `canonical_compact_summary`; `canonical_compact_summary`
   has no broad handler left (g); ruff defect-class rules gate scripts/tests/examples (e, part,
   2026-10-18); `tests/test_v033_two_neuron_ei.py` produces its own outputs in a temp dir and no
-  longer skips in a fresh clone (i); F401 at 0 in scripts/tests/examples and gated, 54 of 58 F841
-  cleared (e). Open: (e) E741 57, E402 47 (style); (j) four tests whose names claim a property
-  they never assert (the F841 residue): `test_emitter_equations_v020.py:106` (reset isolation),
-  `test_optim_tune.py:130` (optax not imported at top level),
-  `test_spectrolaminar_objectives.py:84` and `:125` (the nulls lower the profile score). Closes
-  when: each is fixed with a failing-first test or recorded harmless here.
+  longer skips in a fresh clone (i); F401 and F841 at 0 in scripts/tests/examples and gated (e);
+  four tests that never asserted their claim now do, each failing on a mutant, except the
+  uniform-gain null, which raised the score in 1 of 20 draws and is renamed to what it checks (j).
+  Open: (e) E741 57, E402 47 (style). Closes when: each is fixed with a failing-first test or
+  recorded harmless here.
 - T-28 [H] `jaxfne/tfne.py:211` `_RESERVED_LOWER = {"x", "y", "h", "s"}` is defined and never read
   (Muse cleanup, 2026-10-15). Wiring it into name validation changes which names are accepted;
   deleting it drops the stated reservation. Closes when: Hamm picks one.

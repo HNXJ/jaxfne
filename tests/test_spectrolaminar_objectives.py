@@ -83,10 +83,11 @@ def test_null_layer_shuffle_changes_score(mock_readout, target_profiles):
     original = spectrolaminar_profile_score(mock_readout, alpha_beta, gamma)
     orig_score = original["profile_score_percent"]
 
-    # Shuffled score
-    np.random.seed(42)
+    # Shuffled score: explicit rng drives the null (legacy np.random.seed
+    # does not; the null uses default_rng()). Measured rng=42: 91.36 vs
+    # orig 99.62 (diff -8.27); rng seeds 0..9 all differ (diffs -1.9..-9.4).
     shuffled_readout = mock_readout.copy()
-    null_out = layer_shuffle_null(mock_readout)
+    null_out = layer_shuffle_null(mock_readout, rng=np.random.default_rng(42))
     shuffled_readout["alpha_beta"] = null_out["alpha_beta_shuffled"]
     shuffled_readout["gamma"] = null_out["gamma_shuffled"]
 
@@ -97,6 +98,7 @@ def test_null_layer_shuffle_changes_score(mock_readout, target_profiles):
     # Allow equality with very low probability
     assert isinstance(shuffled_score, (float, np.floating))
     assert 0.0 <= shuffled_score <= 100.0
+    assert shuffled_score < orig_score
 
 
 def test_null_band_shuffle_changes_score(mock_readout, target_profiles):
@@ -117,14 +119,20 @@ def test_null_band_shuffle_changes_score(mock_readout, target_profiles):
     assert np.isfinite(shuffled_score)
 
 
-def test_null_uniform_gain_reduces_profile_info(mock_readout, target_profiles):
-    """Uniform gain null should reduce information content."""
+def test_null_uniform_gain_score_bounded(mock_readout, target_profiles):
+    """Uniform gain null scales profiles; the score effect is gain-dependent.
+
+    Measured: 19 of 20 unseeded draws reduce the score, but a near-unity
+    gain raised it by +8e-05 (99.62205 vs orig 99.62197), so a reduction
+    cannot be asserted. This pins boundedness/finiteness instead.
+    """
     alpha_beta, gamma = target_profiles
 
-    np.random.seed(42)
     original = spectrolaminar_profile_score(mock_readout, alpha_beta, gamma)
+    assert np.isfinite(original["profile_score_percent"])
+    assert 0.0 <= original["profile_score_percent"] <= 100.0
 
-    null_out = uniform_gain_null(mock_readout, gain_min=0.1)
+    null_out = uniform_gain_null(mock_readout, gain_min=0.1, rng=np.random.default_rng(42))
     readout_copy = mock_readout.copy()
     readout_copy["alpha_beta"] = null_out["alpha_beta_shuffled"]
     readout_copy["gamma"] = null_out["gamma_shuffled"]

@@ -104,6 +104,9 @@ class TestSpikeReset:
         # After a spike, voltage should reset (not stay at 30+)
         # Check that high voltage (>30) points are isolated, not persistent
         high_voltage_mask = voltages > 29.0
+        # V_m is recorded post-reset (spikes reset v to c), so no recorded
+        # sample may remain above threshold (measured max ~19.6, 0 high).
+        assert int(jnp.sum(high_voltage_mask)) == 0
         # Count transitions from high to lower voltage
         spikes = signals.spikes
         assert spikes.shape == voltages.shape
