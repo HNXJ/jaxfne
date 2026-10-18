@@ -214,9 +214,10 @@ No code changed in this step. Acceptance remains section 8: `71 passed in 316.69
 ## 11. True zero delay (ruling point 4; 2026-10-18)
 
 Core gap G12 closed on dev in T-22: zero-delay edges as a declared intra-step fixed point
-(`connections(..., intra_step_rounds=R)`: round 0 is the ordinary step, then R rounds in which
+(`connections(..., intra_step_rounds=R)`: round 0 is the ordinary step, then rounds in which
 newly spiked cells add their delay-0 conductance and every cell not yet spiked is re-stepped from
-the pre-step state; spikes are kept once fired), and a same-step Poisson drive
+the pre-step state, until no newly spiked cell owns a delay-0 out-edge, R rounds at most; spikes
+are kept once fired), and a same-step Poisson drive
 (`poisson_drive={..., "same_step": True}`: the count drawn for step t acts at step t).
 
 `caminos_api.py`: a delay that rounds to 0 steps at dt 0.1 ms sets `intra_step_rounds` on all seven
@@ -232,11 +233,33 @@ R (observed, CPU, `scratchpad/cam_probe_R.py`; p = 0.07, seed 1, T = 0.5 s, floa
 | 2 | 3885 / 3361 / 3757 | d9d0462b0d58… | 189 |
 | 4, 8, 16, 32 | 3885 / 3361 / 3757 | d9d0462b0d58… | 312, 548, 1004, 1920 |
 
-R = 2 is the smallest R whose raster equals every larger R byte for byte, so `ZERO_DELAY_ROUNDS = 2`.
-The kernel runs all R rounds every step, so cost grows linearly with R. The probe covers 0.5 s of
-one seed; the scored run repeats seed 1 at R = 4 over the full 12 s, and a raster difference there
-means R = 2 is not converged.
+The probe covered 0.5 s of one seed. Over 12 s, seed 1 at R = 2 and R = 4 diverged at step
+29596: a fixed R dropped the delay-0 output of cells that newly spiked in the last round. The
+R = 2 runs (`F:\warehouse\caminos\calib\sens_delay0_p007\`, seeds 1–8) and the R = 4 check
+(`sens_delay0_R4_p007\`) are void. Hamm 2026-10-18: the fixed point runs to quiescence, R is a
+cap, and a step that reaches the cap with undelivered events refuses the run. Since 1764f4b0,
+`ZERO_DELAY_ROUNDS = 64` is that cap and the manifest records `max_rounds_used`.
 
-Runs (queued behind the GPU lock): p = 0.07, T = 12 s, float32, seeds 1–8, delay 0, R = 2, into
-`F:\warehouse\caminos\calib\sens_delay0_p007\`; seed 1 at R = 4 into `sens_delay0_R4_p007\`.
-Scoring as section 9 (`score_delay_sensitivity.py`).
+Runs: p = 0.07, T = 12 s, float32, delay 0, seeds 1–8, GPU under `flock`, code 1764f4b0,
+`F:\warehouse\caminos\calib\sens_delay0_quies_p007\` (2.3–7.0 min per seed; log
+`scratchpad\cam_quies_runs.log`, rc=0 on seeds 1–8, ALL_DONE). No run refused; `max_rounds_used`
+is 3 on every seed, so the R = 2 runs missed a third round.
+
+### Results (observed; `score_delay_sensitivity.py --delay-ms 0`; `F:\warehouse\caminos\calib\sens_delay0_quies_score.json`)
+
+Same layout as section 9: mean, then e against 8.5 and against 7.
+
+| Run | Seeds | ref42 ±5 Hz | ref42 ±3 Hz | ref42 ±8 Hz | P3 | f_pk E (Hz, per seed) | E / PV / SOM (Hz, mean) | Oscillates |
+|---|---|---|---|---|---|---|---|---|
+| 2 ms (primary) | 1–3 | 6.47 (0.239 / 0.076) | 6.45 (0.241 / 0.079) | 6.62 (0.221 / 0.054) | 7.20 (0.153 / 0.029) | 34, 34, 34 | 1.08 / 11.24 / 6.74 | 3/3 |
+| 0 ms (T-22) | 1–3 | 7.18 (0.155 / 0.026) | 7.13 (0.161 / 0.019) | 7.18 (0.155 / 0.026) | 7.00 (0.176 / 0.000) | 46, 45, 43 | 0.94 / 9.83 / 4.52 | 3/3 |
+| 2 ms (primary) | 4–8 | 6.32 (0.257 / 0.097) | 6.31 (0.258 / 0.099) | 6.48 (0.237 / 0.074) | 7.12 (0.162 / 0.017) | 33, 34, 34, 34, 35 | 1.09 / 11.31 / 6.90 | 5/5 |
+| 0 ms (T-22) | 4–8 | 7.11 (0.164 / 0.016) | 7.06 (0.170 / 0.008) | 7.13 (0.161 / 0.019) | 6.92 (0.186 / 0.011) | 45, 44, 45, 45, 46 | 0.95 / 9.81 / 4.54 | 5/5 |
+
+- E-rate f_pk equals the LFP f_pk on every seed. P3 lag per seed: 6.9, 7.0, 7.1 (1–3) and
+  6.9, 6.9, 7.0, 6.8, 7.0 (4–8).
+- Against y = 8.5: off on every estimator and band (e 0.155–0.186). Against y = 7: close on every
+  estimator and band (e ≤ 0.026).
+- True zero delay lands where the 0.1 ms sensitivity did (section 9: lag 6.96–7.10, f_pk 43–46 Hz,
+  rates 0.94–0.95 / 9.84–9.85 / 4.54–4.60): one step of delay and none give the same network state
+  to within the seed spread. Ruling point 4 is met. The primary verdict (section 10) is unchanged.

@@ -59,8 +59,14 @@ def check_manifest(d, want_delay_ms):
     bad = [r["seed"] for r in runs if abs(float(r["delay_ms"]) - want_delay_ms) > 1e-12]
     if bad:
         raise SystemExit("error: %s has runs at another delay (seeds %r)" % (d, bad))
-    return {"git_sha": sorted({r["git_sha"] for r in runs}), "seeds": seeds,
-            "delay_ms": want_delay_ms}
+    out = {"git_sha": sorted({r["git_sha"] for r in runs}), "seeds": seeds,
+           "delay_ms": want_delay_ms}
+    if any("intra_step_rounds" in r for r in runs):
+        out["intra_step_rounds"] = sorted({r.get("intra_step_rounds") for r in runs},
+                                          key=str)
+        out["max_rounds_used_per_seed"] = {str(r["seed"]): r.get("max_rounds_used")
+                                           for r in sorted(runs, key=lambda r: r["seed"])}
+    return out
 
 
 def group_summary(recs):
@@ -91,11 +97,15 @@ def main(argv=None):
     ap.add_argument("--p6-dir", default=str(s.P6_DIR), help="P6 v2 receipts (seeds 1-3)")
     ap.add_argument("--heldout-dir", default=str(s.HELDOUT_DIR), help="primary held-out seeds 4-8")
     ap.add_argument("--out", default=None, help="JSON path (default: <cal-dir>/sens_delay0p1_score.json)")
+    ap.add_argument("--delay-ms", type=float, default=SENS_DELAY_MS,
+                    help="declared delay of the runs in --sens-dir (default %(default)s; 0 is the "
+                         "T-22 intra-step fixed point)")
     args = ap.parse_args(argv)
     sens_dir, p6_dir, held_dir = Path(args.sens_dir), Path(args.p6_dir), Path(args.heldout_dir)
     out_path = Path(args.out) if args.out else Path(args.sens_dir).parent / "sens_delay0p1_score.json"
+    delay_ms = float(args.delay_ms)
 
-    manifest = check_manifest(sens_dir, SENS_DELAY_MS)
+    manifest = check_manifest(sens_dir, delay_ms)
     sens = {}
     for label, seeds in GROUPS:
         sens[label] = [seed_record(s.seed_path(sens_dir, k)) for k in seeds]
@@ -104,8 +114,9 @@ def main(argv=None):
     primary["seeds_4_8"] = [seed_record(s.seed_path(held_dir, k)) for k in (4, 5, 6, 7, 8)]
 
     doc = {
-        "sensitivity": {"synaptic_delay_ms": SENS_DELAY_MS, "drive_delay_ms": SENS_DELAY_MS,
-                        "steps_at_dt_0p1": 1, "p": s.P_REF, "T_s": 12.0,
+        "sensitivity": {"synaptic_delay_ms": delay_ms, "drive_delay_ms": delay_ms,
+                        "steps_at_dt_0p1": int(np.floor(delay_ms / 0.1 + 0.5)),
+                        "p": s.P_REF, "T_s": 12.0,
                         "manifest": manifest, "dir": str(sens_dir)},
         "primary": {"synaptic_delay_ms": 2.0, "dir": "P6 v2 receipts (1-3), calib heldout (4-8)"},
         "declared_bands_Hz": list(s.BANDS_HZ),

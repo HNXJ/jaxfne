@@ -355,3 +355,23 @@ def test_manifest_records_rounds_used_on_the_zero_delay_path(tmp_path, delay_ms,
         assert entry["max_rounds_used"] == want
         keys = list(entry)
         assert keys[keys.index("intra_step_rounds") + 1] == "max_rounds_used"
+
+
+def test_delay_scorer_checks_the_declared_delay_and_reports_rounds(tmp_path):
+    """score_delay_sensitivity.check_manifest takes the declared delay (0 for T-22 runs),
+    refuses runs at another delay, and reports the cap and rounds used per seed."""
+    import numpy as np
+
+    import caminos_api as ca
+    import score_delay_sensitivity as sds
+
+    for seed in sds.SENS_SEEDS:
+        ca.write_run(tmp_path, p=0.07, seed=seed, T_s=0.001, counts=np.zeros((10, 3), np.float32),
+                     sizes={"E": 1, "PV": 1, "SOM": 1}, wall_s=0.0, start_time="t", sha="s",
+                     delay_ms=0.0, max_rounds_used=seed % 3 + 1)
+    got = sds.check_manifest(tmp_path, 0.0)
+    assert got["delay_ms"] == 0.0
+    assert got["intra_step_rounds"] == [ca.ZERO_DELAY_ROUNDS]
+    assert got["max_rounds_used_per_seed"] == {str(k): k % 3 + 1 for k in sds.SENS_SEEDS}
+    with pytest.raises(SystemExit, match="another delay"):
+        sds.check_manifest(tmp_path, 0.1)

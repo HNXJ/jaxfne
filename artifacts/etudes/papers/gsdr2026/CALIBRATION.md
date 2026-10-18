@@ -709,6 +709,31 @@ the amplitude no longer matters. Removing recurrent excitation entirely
 above y's 2.14 Hz, with k_fit 0.15 (y 0.0156). Inferred: the excess
 comes from the per-cell drive (OU background and stimulus into the
 distal compartment), and recurrent excitation adds the lock on top.
-Next: one reference cell, no synapses, under the OU background alone
-and with the stimulus, against the authors' single-cell rates if their
-source states them (read as text).
+
+No synapses (every conductance 0, `g_zero_uS_float32.npy`), same
+sweep, `diag_stim_reference_gzero.json`:
+
+| stim | rate (Hz) | active | k_fit |
+|---|---|---|---|
+| 0 | 19.71 / 22.35 | 0.50 / 0.56 | 0.001 / 0.008 |
+| 0.15 | 30.72 / 33.63 | 0.66 / 0.74 | 0.081 / 0.084 |
+| 0.3 | 31.25 / 34.45 | 0.66 / 0.74 | 0.125 / 0.097 |
+| 0.6 | 31.29 / 34.45 | 0.66 / 0.74 | 0.127 / 0.098 |
+| 1.2 | 31.27 / 34.41 | 0.66 / 0.74 | 0.098 / 0.078 |
+
+Uncoupled cells under the OU background alone fire at about 20 Hz
+mean with half the cells silent, so the active half fires near 40 Hz.
+The half matches the OU draw (PORT_SPEC §3, `run_gsdr.ou_hyperparams`):
+sigma = clip(U(−0.1, 0.1), 0, 0.05) mA/cm² is 0 for half the cells,
+0.05 for a quarter and U(0, 0.05) for the rest (derived), and the OU
+stationary std equals sigma, up to 50 µA/cm² in the lane unit. The
+stimulus adds the stimulated cells (active 0.66–0.74) and saturates by
+0.15. So the background drive alone puts the active cells far above
+y, before any synapse (observed); the port follows the authors' code
+values here (PORT_SPEC §3, D5).
+
+Reading (inferred): the authors' rate penalty bounds the model at
+5–50 Hz (SOURCE_P1 Fig. 6 loss), above y's 2.14 Hz mean; the fit's
+targets are the spectra, kappa and that band, so a z-to-y rate error
+measures a quantity their loss does not target. Which rate estimand
+the scored steps use belongs to `PREREG_P3.md` (unsigned, O-25).

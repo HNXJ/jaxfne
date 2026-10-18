@@ -156,8 +156,9 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   OR-monotone re-step from the pre-step state. Phase 2 (Poisson drive delay 0 with `"same_step": True`;
   brian2 and the registered-HDP kernel refuse it) landed 2026-10-18. CAMINOS on the core
   (5235f807): a 0-step delay passes `same_step` and `intra_step_rounds` (R = 2 from a probe,
-  CAMINOS CALIBRATION section 11); the R = 2 seeds 1-8 are void under the cap rule and rerun
-  under quiescence. PCL B3
+  CAMINOS CALIBRATION section 11); the R = 2 seeds 1-8 are void, and the quiescence rerun
+  (cap 64, 3 rounds used on every seed) matches the 0.1 ms sensitivity: group lag means 6.92-7.18 ms, f_pk
+  43-46 Hz (section 11 results). PCL B3
   (Muse sweep 2026-10-18, checked): its rule is an inhibitory depth-ordered cascade (a winner
   vetoes later candidates), already in the core as the LIF route's
   `local_inhibition_resolution="event_order"` (`emitters_lif.py` `_cascade_step`); the AdEx
@@ -186,9 +187,10 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   rate penalty; at its g* every E cell fires every cycle near 120 Hz, κ 0.60, on fit seed 1 and
   held-out seeds 4–8). §6.13 (isolating the source of κ, sol's review 2026-10-18): with AMPA ×0
   cells still fire near 20 Hz (y 2.14), and with the stimulus off the network locks at 45 Hz;
-  inferred: per-cell drive sets the excess, recurrence adds the lock. Next: (b) one reference
-  cell, no synapses, under the OU background alone and with the stimulus, against the authors'
-  single-cell rates where their source states them; (c) CPU against GPU on one fixed trial. The scored steps run under `PREREG_P3.md`, still a draft:
+  with every synapse removed the OU background alone drives the noisy half of the cells near
+  40 Hz (the authors' sigma draw, ported as written). Reading: the authors' loss bounds rates at
+  5–50 Hz and does not target y's 2.14 Hz, so the rate estimand of the scored steps is
+  `PREREG_P3.md`'s call (O-25). Next: (c) CPU against GPU on one fixed trial. The scored steps run under `PREREG_P3.md`, still a draft:
   Hamm signs it before a scored verdict (O-25). HH hardening landed; open low notes: `held_steps` counts edge elements while the
   docstring says steps, int32 count scalars, no full-kernel grad test, `dt="0.1"` coerced.
 - T-30 [A] Replication conformance to the checklist (`etudes/meta/RESIDUAL_PROTOCOL.md`, section

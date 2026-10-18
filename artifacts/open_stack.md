@@ -6,7 +6,6 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 
 ## In flight
 
-- O-36 CAMINOS zero-delay seeds 1-8 rerun under the T-22 quiescence rule (cap 64; the R = 2 runs in `F:\warehouse\caminos\calib\sens_delay0_p007\` are void) | keeper | since 2026-10-18 | closes when CALIBRATION section 11 records the runs, `max_rounds_used`, and the section 9 score
 
 ## Waiting on others
 

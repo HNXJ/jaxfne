@@ -38,7 +38,7 @@ The bands are exact (e = 0), close (every e ≤ 0.05), off (any e > 0.05), with 
 
 The lag is measured two ways. The port's cross-correlation estimator (`caminos_analysis.py`) gives 7.22 ms. The phase method of the paper's ref. 42 gives 6.47 ms on seeds 1–3 and 6.32 ms on seeds 4–8. The phase method works as follows: the E population activity, smoothed by a 1 ms Gaussian, is the LFP proxy; the first 2 s are dropped and 10 s analysed; a zero-phase 4th-order Butterworth band-pass at the peak frequency ± 5 Hz is applied (the paper leaves the filter unstated, so this is declared); each spike's phase is read from the Hilbert transform; each population's mean phase is a circular mean over its spikes. The ref. 42 lag is off against 8.5 ms at every band tested (± 3, ± 5, ± 8 Hz). The P3 estimator has no band.
 
-The port has a 2 ms synaptic delay on all synapses (Table 2 of the paper). The preprint's model has no synaptic delay, and its spiking lag is about 7 ms. This difference is an open fidelity item and is not changed here. A 0.1 ms synaptic delay (one step) is a recorded sensitivity, below; true zero delay runs through the core's declared intra-step fixed point, and its runs are queued.
+The port has a 2 ms synaptic delay on all synapses (Table 2 of the paper). The preprint's model has no synaptic delay, and its spiking lag is about 7 ms. This difference is an open fidelity item and is not changed here. A 0.1 ms synaptic delay (one step) and true zero delay are recorded sensitivities, below.
 
 ## Critical-p result (R4)
 
@@ -58,7 +58,7 @@ Ruling (Hamm, 2026-10-14, relayed by the coordinator): PLoS CB is primary. The 2
 | PV→SOM lag, ref. 42 (seeds 1–3; 4–8) | ≈ 8.5 | 6.47; 6.32 | 0.239; 0.257 | off | finding: needs X |
 | PV→SOM lag, P3 estimator (seeds 1–5) | ≈ 8.5 | 7.22 | 0.151 | off | finding: needs X |
 
-Sensitivity: a 0.1 ms synaptic and drive delay (one step) gives a ref. 42 lag of 6.97 ms (seeds 1–3) and 7.07 ms (seeds 4–8), and a P3 lag of 7.10 and 6.96 ms. Every e against the preprint's about 7 ms is at most 0.014. The oscillation moves to 43–46 Hz (primary 34 Hz), so this is a different network state from the primary model. True zero delay runs through the core's declared intra-step fixed point (`intra_step_rounds` on the AdEx route, with the Poisson `"same_step"` drive flag).
+Sensitivity: a 0.1 ms synaptic and drive delay (one step) gives a ref. 42 lag of 6.97 ms (seeds 1–3) and 7.07 ms (seeds 4–8), and a P3 lag of 7.10 and 6.96 ms. Every e against the preprint's about 7 ms is at most 0.014. The oscillation moves to 43–46 Hz (primary 34 Hz), so this is a different network state from the primary model. True zero delay runs through the core's declared intra-step fixed point (`intra_step_rounds` on the AdEx route, run to quiescence with the Poisson `"same_step"` drive flag; at most 3 rounds per step on every seed). It gives a ref. 42 lag of 7.18 ms (seeds 1–3) and 7.11 ms (seeds 4–8), a P3 lag of 7.00 and 6.92 ms, and f_pk 43–46 Hz: e against about 7 ms is at most 0.026, and the network state matches the 0.1 ms run.
 
 ## Receipts
 
