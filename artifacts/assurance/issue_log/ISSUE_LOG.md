@@ -30,6 +30,9 @@ marked inferred).
   (`_runtime_config.py:310-319`); only `runtime_report` says `backend_enforced=False`.
 - Expected: each refused or consumed. Possible change: refuse non-zero `plasticity` (or wire
   it), make the fall-through REVISE, `is not None` defaults, refuse an unavailable backend.
+- Fixed 2026-10-18: the fall-through reports REVISE; explicit `generations`/`population_size`
+  below 1 raise (`tests/test_tune_explicit_values_p036.py`, 4 tests fail on the old code).
+  Plasticity label and backend downgrade are documented designs: Hamm's call (O-47).
 
 ### P-037
 

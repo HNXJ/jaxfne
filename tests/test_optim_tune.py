@@ -226,7 +226,7 @@ def test_model_tune_optax_unavailable_non_strict_status():
         # v0.0.6+: optax path always returns optax_guarded_path_no_loop_v0.0.8
         assert same_model is model
         assert report["tuning_status"] == "optax_guarded_path_no_loop_v0.0.8"
-        assert report["acceptance_decision"] in {"REVISE", "ACCEPT_CANDIDATE"}
+        assert report["acceptance_decision"] == "REVISE"
     finally:
         if optax_mod is not None:
             sys.modules["optax"] = optax_mod

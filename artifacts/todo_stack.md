@@ -91,6 +91,10 @@ Rules B1–B7 (adopted 2026-10-11):
   build (T-4; plan `artifacts/etudes/meta/narrowing_plan.md`).
 - [A] B5 GPU: one job at a time, claimed in jchat. B6 each accepted binding becomes a row here the
   same session. B7 calibrate on synthetic nulls and known positives before a signature.
+- [A] B8 pilot-then-sign (Hamm 2026-10-18): a lane runs its full pipeline on unscored pilot seeds
+  and a known positive before the prereg is signed, and the prereg declares its sensitivity set;
+  after signature at most one amendment, any further change is a new protocol version scored on
+  fresh seeds.
 
 Decisions in force (2026-09-23…2026-10-11, Atlas caveats AT-10-R5, AT-10-R6, AT-05-R2,
 AT-01-R6/AT-00-R4): `artifacts/archive/0.5.x/decisions_and_caveats_2026-10-12.md`. Newest: T1
@@ -98,6 +102,21 @@ option A (meeting 3790d96e), manuscript sections 1–7 freeze on 0.5.5 evidence,
 section 8 citing a replication only at a signed-prereg verdict; JAX runs above about 1000 neurons
 run on WSL2 CUDA.
 
+- T-32 [A] Reproduction throughput (Hamm 2026-10-18: "we should be reproducing a lot more").
+  Inspection the same day (three read-only sweeps at 74acf7e0): 7 lanes over 12 days, one
+  reproduced; the queue holds no unstarted paper; about 40–50% of lane commits are protocol
+  paperwork (CAMINOS prereg v1–v6 + v7, Izhikevich v7 to v8.2); every run loop is serial (GSDR
+  500 generations 58,552 s, 24 serial HH calls per generation; PCL about 55 min per clip on one
+  core); 4 of 28 checklist rules are scripted. Work, in order: (R1) lane kit
+  `etudes/meta/lane_kit.py` and `scripts/new_lane.py` scaffold, destexhe2009 migrated first;
+  (R2) `simulate_hh_batch` (vmap over weights, keys, stimuli) and the GSDR fit on it; (R3)
+  seed and candidate batching for the AdEx and LIF routes and `Model.tune` (serial loop
+  `_model_tune.py:451`); (R4) core homes for lane-local analysis (ISI ratio and CV, aperiodic
+  fit, tuning fit) and MCDP (O-42); (R5) script checklist rules E1, S2, F3, P4, R4 in
+  `check_replications.py`; (R6) new lanes at P1 with the scaffold (Hamm 2026-10-18): Brunel
+  2000, Vogels et al. 2011, Potjans and Diesmann 2014, Mejias et al. 2016; Hamm authorized a
+  rate-population (Wilson–Cowan-type) emitter for Mejias under B3, behind the P4 perturbation
+  gate. Each lane follows B8.
 - T-10 [A] G-1 (meet 204dfdaa): port jnwb's `changelog.d`, `assemble_changelog.py`,
   `release_body.py` and claim check; release body as tables. Closes when: `release_body.py --tag <next>` passes.
   The port itself landed (924f2423, 78d293d9); only the closing check waits for a tag.

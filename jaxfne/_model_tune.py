@@ -220,13 +220,23 @@ def tune(
         # Extract seed from optimizer if not explicitly overridden via model.tune(..., seed=nonzero)
         opt_seed = getattr(optimizer, "seed", 0)
         actual_seed = seed if seed != 0 else opt_seed
+        resolved_generations = 8 if generations is None else int(generations)
+        if resolved_generations < 1:
+            raise ValueError(
+                f"generations must be >= 1, got {generations!r}"
+            )
+        resolved_population_size = 6 if population_size is None else int(population_size)
+        if resolved_population_size < 1:
+            raise ValueError(
+                f"population_size must be >= 1, got {population_size!r}"
+            )
         return self._tune_multiparameter(
             objective=objective,
             optimizer=optimizer,
             spec=spec,
             parameters=parameters,
-            generations=generations or 8,
-            population_size=population_size or 6,
+            generations=resolved_generations,
+            population_size=resolved_population_size,
             seed=int(actual_seed),
             strict=strict,
             simulation=sim,
@@ -404,9 +414,7 @@ def tune(
         report = {
             **base_report,
             "tuning_status": "optax_guarded_path_no_loop_v0.0.8",
-            "acceptance_decision": "REVISE"
-            if optax_status == "unavailable"
-            else "ACCEPT_CANDIDATE",
+            "acceptance_decision": "REVISE",
             "optax_status": optax_status,
             "same_model_unchanged": True,
             "warnings": [

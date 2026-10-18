@@ -5,8 +5,7 @@ Anything open right now. Read first at session start, before `todo_stack.md`. On
 it closes; at most 30 lines; a line older than 3 days moves to todo or problem, or is dropped.
 
 ## In flight
-- O-37 Read the Docs fails on every build since 2026-10-14 (P-035): `build_docs_assets.py --build` stops at the `hdp_controllability_reachability` condition-B rate pin (10.5611 against 10.6212) | keeper | since 2026-10-18 | closes when an RTD build on dev or main succeeds
-- O-39 Core API defects (P-036): tune fall-through returns ACCEPT_CANDIDATE with no parameters; `or` defaults swallow an explicit 0 | keeper | since 2026-10-18 | closes when each is refused or REVISE, with a failing-first test
+- O-37 Read the Docs fails on every build since 2026-10-14 (P-035): `build_docs_assets.py --build` stops at the `hdp_controllability_reachability` condition-B rate pin (10.5611 against 10.6212); fixed on dev 617c09c0; Hamm 2026-10-18: fix-only PR to main (RTD `latest` builds main; `stable` waits for the next tag) | keeper | since 2026-10-18 | closes when an RTD build on dev or main succeeds
 - O-40 Vacuous and ungated tests (P-037): conftest x64 reset voids float64 tests; skips on gitignored inputs; exact float pin; cwd-dependent paths; 11 lane test files in no gate | keeper | since 2026-10-18 | closes when each test runs and can fail in a gate
 - O-41 Stale pointers and ignored flags (P-038): evidence checklist path in 3 scripts, mcc3 manifest names 3 absent files, 4 ignored flags, `simulate(return_state=True)` doc, non-strict RTD | keeper | since 2026-10-18 | closes when each resolves on disk or is refused
 - O-42 GSDR fits record `"mcdp": True`, the core `gsdr` has no MCDP (P-039): the 350 and 500 generation fits ran without it | keeper | since 2026-10-18 | closes when manifests say what ran and MCDP is in the core, or Hamm rules it out of scope
