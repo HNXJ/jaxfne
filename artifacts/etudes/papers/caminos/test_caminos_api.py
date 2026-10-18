@@ -241,14 +241,96 @@ def test_core_realizes_the_declared_delay_as_one_step_on_the_drive(model_p002_de
     assert kw["ext_delay_steps"] == 1
 
 
-def test_core_refuses_zero_delay_until_the_core_gap_closes(model_p002_delay01):
-    # Known core gap: the AdEx route refuses 0 steps (_construct_adex._rule_delay_steps).
-    # If this test starts failing, the gap is closed: update CALIBRATION.md section 9.
+def test_delayed_runs_declare_no_fixed_point(model_p002, model_p002_delay01):
     import caminos_api as ca
     from jaxfne._construct_adex import adex_kernel_args
 
+    for model in (model_p002, model_p002_delay01):
+        kw = adex_kernel_args(model, ca.DT_MS)
+        assert kw.get("intra_step_rounds") is None
+        assert "edge0_pre" not in kw or len(kw["edge0_pre"]) == 0
+    assert "same_step" not in ca.drive_spec(0.02, 1)
+    assert "same_step" not in ca.drive_spec(0.02, 1, delay_ms=0.1)
+
+
+# --- true zero delay (core gap G12 closed in T-22; Hamm's ruling 2026-10-14, point 4) ---
+
+
+@pytest.fixture(scope="module")
+def model_p002_delay0():
     import jaxfne as jtfne
 
-    model0 = jtfne.construct(ca.build_spec(0.02, 1, delay_ms=0.0))
-    with pytest.raises(ValueError, match="needs >= 1"):
-        adex_kernel_args(model0, ca.DT_MS)
+    import caminos_api as ca
+
+    return jtfne.construct(ca.build_spec(0.02, 1, delay_ms=0.0))
+
+
+def test_zero_delay_runs_every_connection_through_the_fixed_point(model_p002_delay0):
+    import numpy as np
+
+    import caminos_api as ca
+    from jaxfne._construct_adex import adex_kernel_args
+
+    kw = adex_kernel_args(model_p002_delay0, ca.DT_MS)
+    assert len(kw["edge0_pre"]) > 0, "fixture must build zero-delay edges"
+    assert kw["intra_step_rounds"] == ca.ZERO_DELAY_ROUNDS
+    assert np.asarray(kw["edge_delay_steps"]).size == 0
+
+
+def test_zero_delay_drive_acts_in_its_own_step(model_p002_delay0):
+    import caminos_api as ca
+    from jaxfne._construct_adex import adex_external_drive_kwargs
+
+    sim = ca.build_sim(0.02, 1, 12.0, delay_ms=0.0)
+    assert sim.poisson_drive["same_step"] is True
+    assert adex_external_drive_kwargs(model_p002_delay0, sim)["ext_delay_steps"] == 0
+
+
+def test_rounds_override_reaches_the_kernel():
+    import jaxfne as jtfne
+
+    import caminos_api as ca
+    from jaxfne._construct_adex import adex_kernel_args
+
+    model = jtfne.construct(ca.build_spec(0.02, 1, delay_ms=0.0, intra_step_rounds=3))
+    assert adex_kernel_args(model, ca.DT_MS)["intra_step_rounds"] == 3
+
+
+@pytest.mark.parametrize("delay_ms", [None, 0.1, 2.0])
+def test_rounds_override_with_a_delayed_run_is_refused(delay_ms):
+    import caminos_api as ca
+
+    with pytest.raises(ValueError, match="intra_step_rounds"):
+        ca.build_spec(0.02, 1, delay_ms=delay_ms, intra_step_rounds=4)
+    with pytest.raises(ValueError, match="intra_step_rounds"):
+        ca.drive_spec(0.02, 1, delay_ms=delay_ms, intra_step_rounds=4)
+
+
+@pytest.mark.parametrize("bad", [0, -1, True, 2.0])
+def test_rounds_override_must_be_a_positive_int(bad):
+    import caminos_api as ca
+
+    with pytest.raises(ValueError, match="positive integer"):
+        ca.build_spec(0.02, 1, delay_ms=0.0, intra_step_rounds=bad)
+
+
+@pytest.mark.parametrize("delay_ms, rounds, recorded", [(0.0, None, "default"), (0.0, 3, 3),
+                                                        (0.1, None, None), (None, None, None)])
+def test_manifest_records_rounds_only_on_the_zero_delay_path(tmp_path, delay_ms, rounds, recorded):
+    import json
+
+    import numpy as np
+
+    import caminos_api as ca
+
+    ca.write_run(tmp_path, p=0.02, seed=1, T_s=0.001, counts=np.zeros((10, 3), np.float32),
+                 sizes={"E": 1, "PV": 1, "SOM": 1}, wall_s=0.0, start_time="t", sha="s",
+                 delay_ms=delay_ms, intra_step_rounds=rounds)
+    entry = json.loads((tmp_path / "manifest.json").read_text())["runs"][0]
+    want = ca.ZERO_DELAY_ROUNDS if recorded == "default" else recorded
+    keys = list(entry)
+    if want is None:
+        assert "intra_step_rounds" not in entry
+    else:
+        assert entry["intra_step_rounds"] == want
+        assert keys[keys.index("delay_ms") + 1] == "intra_step_rounds"

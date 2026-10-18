@@ -210,3 +210,33 @@ Recorded sensitivity (not the primary verdict; section 9):
 Corrections made in this step: the docs page said both estimators were off "at every band tested", but P3 has no band (now corrected). The docs labelled "≈ 7" as a PLoS CB mean-field value; the XML says "6–7 ms later" for SOM in the mean-field model, not "≈ 7" (label removed).
 
 No code changed in this step. Acceptance remains section 8: `71 passed in 316.69s (0:05:16)`, rc=0.
+
+## 11. True zero delay (ruling point 4; 2026-10-18)
+
+Core gap G12 closed on dev in T-22: zero-delay edges as a declared intra-step fixed point
+(`connections(..., intra_step_rounds=R)`: round 0 is the ordinary step, then R rounds in which
+newly spiked cells add their delay-0 conductance and every cell not yet spiked is re-stepped from
+the pre-step state; spikes are kept once fired), and a same-step Poisson drive
+(`poisson_drive={..., "same_step": True}`: the count drawn for step t acts at step t).
+
+`caminos_api.py`: a delay that rounds to 0 steps at dt 0.1 ms sets `intra_step_rounds` on all seven
+connection rules and `same_step` on the drive, and the manifest records `intra_step_rounds` next to
+`delay_ms`. The 2 ms default and the 0.1 ms sensitivity take the old path unchanged; a rounds
+override with a delay of 1 step or more is refused.
+
+R (observed, CPU, `scratchpad/cam_probe_R.py`; p = 0.07, seed 1, T = 0.5 s, float32, delay 0):
+
+| R | E / PV / SOM spikes | raster sha256 | wall (s) |
+|---|---|---|---|
+| 1 | 4029 / 3490 / 3880 | bc1f3dbb9afe… | 114 |
+| 2 | 3885 / 3361 / 3757 | d9d0462b0d58… | 189 |
+| 4, 8, 16, 32 | 3885 / 3361 / 3757 | d9d0462b0d58… | 312, 548, 1004, 1920 |
+
+R = 2 is the smallest R whose raster equals every larger R byte for byte, so `ZERO_DELAY_ROUNDS = 2`.
+The kernel runs all R rounds every step, so cost grows linearly with R. The probe covers 0.5 s of
+one seed; the scored run repeats seed 1 at R = 4 over the full 12 s, and a raster difference there
+means R = 2 is not converged.
+
+Runs (queued behind the GPU lock): p = 0.07, T = 12 s, float32, seeds 1–8, delay 0, R = 2, into
+`F:\warehouse\caminos\calib\sens_delay0_p007\`; seed 1 at R = 4 into `sens_delay0_R4_p007\`.
+Scoring as section 9 (`score_delay_sensitivity.py`).

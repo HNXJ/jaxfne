@@ -78,7 +78,54 @@ def _delay(delay_ms):
     return DELAY_MS if delay_ms is None else float(delay_ms)
 
 
-def drive_spec(p, seed, ext_sources="pNE", gain=None, delay_ms=None):
+# True zero delay (core gap G12, closed in T-22 phases 1 and 2): a delay
+# resolving to 0 steps at the run's dt runs the intra-step fixed point with
+# this many rounds on every connection, and the drive with ``"same_step": True``.
+# Set by the R convergence probe (p = 0.07, seed 1, T = 0.5 s, float32, delay 0, CPU,
+# 2026-10-18): the spike raster at R = 2 equals R = 4, 8, 16 and 32 byte for byte; R = 1
+# differs (CALIBRATION.md section 11).
+ZERO_DELAY_ROUNDS = 2
+
+
+def _validate_rounds(rounds):
+    """A declared intra-step round count: a positive int (a bool is refused)."""
+    import numbers
+
+    if isinstance(rounds, bool) or not isinstance(rounds, numbers.Integral):
+        raise ValueError("intra_step_rounds must be a positive integer; got %r" % (rounds,))
+    value = int(rounds)
+    if value < 1:
+        raise ValueError("intra_step_rounds must be a positive integer; got %r" % (rounds,))
+    return value
+
+
+def _is_zero_step_delay(delay_ms, dt_ms=DT_MS):
+    """Whether ``delay_ms`` realizes to 0 steps at ``dt_ms`` (round half up, the
+    core's rule): delay 0, or a positive delay inside one step."""
+    import math
+
+    ms = float(delay_ms)
+    return ms >= 0.0 and int(math.floor(ms / float(dt_ms) + 0.5)) == 0
+
+
+def _zero_delay_rounds(delay_ms, intra_step_rounds):
+    """The fixed-point R for a run at ``delay_ms``: the override when given, the
+    module default on the zero-delay path, None on the delay>=1 path. A rounds
+    override with a delay of >= 1 step is refused (rounds admit only a delay
+    rounding to 0 steps)."""
+    if _is_zero_step_delay(delay_ms):
+        if intra_step_rounds is None:
+            return ZERO_DELAY_ROUNDS
+        return _validate_rounds(intra_step_rounds)
+    if intra_step_rounds is not None:
+        raise ValueError(
+            "intra_step_rounds=%r with delay_ms=%r at dt_ms=%g realizes to >= 1 step; "
+            "intra_step_rounds admits only a delay rounding to 0 steps -- omit it or "
+            "set a sub-step delay" % (intra_step_rounds, delay_ms, DT_MS))
+    return None
+
+
+def drive_spec(p, seed, ext_sources="pNE", gain=None, delay_ms=None, intra_step_rounds=None):
     """The ``Simulation(poisson_drive=...)`` dict for the CAMINOS drive.
 
     ``gain`` None keeps 4 Hz per source. A gain ``a`` sets the mean drive to
@@ -87,6 +134,9 @@ def drive_spec(p, seed, ext_sources="pNE", gain=None, delay_ms=None):
     ``n_sources * rate_hz * dt``, so ``n_sources`` stays at ``n`` and ``rate_hz`` carries the
     scaling. A gain that makes the mean drive non-positive is refused. ``delay_ms`` None keeps
     the port's 2 ms; a value is a declared sensitivity (the core refuses below one step).
+    A delay resolving to 0 steps at the run's dt adds ``"same_step": True`` (the count
+    drawn for step t acts at step t); ``intra_step_rounds`` only selects the fixed-point
+    R for the connections (validated here), and is refused with a delay of >= 1 step.
     """
     n = ext_source_count(p, ext_sources)
     rate = EXT_RATE_HZ
@@ -95,26 +145,35 @@ def drive_spec(p, seed, ext_sources="pNE", gain=None, delay_ms=None):
         if not n_eff > 0:
             raise ValueError("gain %r gives a non-positive drive (%g sources)" % (gain, n_eff))
         rate = EXT_RATE_HZ * n_eff / n
-    return {
+    d = _delay(delay_ms)
+    _zero_delay_rounds(d, intra_step_rounds)
+    spec = {
         "n_sources": n,
         "rate_hz": rate,
         "weight_nS": Q_EXT,
         "mechanism": "ampa",
         "target_cell_types": ["E", "PV"],
-        "delay_ms": _delay(delay_ms),
+        "delay_ms": d,
         "seed": int(seed),
     }
+    if _is_zero_step_delay(d):
+        spec["same_step"] = True
+    return spec
 
 
-def build_spec(p, seed, delay_ms=None):
+def build_spec(p, seed, delay_ms=None, intra_step_rounds=None):
     """The CAMINOS network built only from the public API (PREREG_P6.md table).
 
     ``delay_ms`` None keeps the port's 2 ms on every connection; a value is a declared
-    sensitivity applied to all seven rules.
+    sensitivity applied to all seven rules. A delay resolving to 0 steps at the run's
+    dt declares ``intra_step_rounds=R`` on every connection (R the override when given,
+    ``ZERO_DELAY_ROUNDS`` otherwise); a delay of >= 1 step takes the historical path,
+    and a rounds override with it is refused.
     """
     import jaxfne as jtfne
 
     d = _delay(delay_ms)
+    rounds = _zero_delay_rounds(d, intra_step_rounds)
     cfg = (
         jtfne.Configuration()
         .network(name="caminos", n=N,
@@ -125,6 +184,7 @@ def build_spec(p, seed, delay_ms=None):
         .mechanisms(name="gaba", kind="receptor",
                     params={"tau_ms": TAU_I_MS, "reversal_mV": REV_I_MV})
     )
+    fixed_point = {} if rounds is None else {"intra_step_rounds": rounds}
     for name, pre, post, weight, mechanism in RULES:
         cfg = cfg.connections(
             name=name,
@@ -135,21 +195,24 @@ def build_spec(p, seed, delay_ms=None):
             mechanism=mechanism,
             delay_ms=d,
             sampling="bernoulli",
+            **fixed_point,
         )
     return cfg.connectivity(edge_seed=int(seed))
 
 
-def build_sim(p, seed, T_s, ext_sources="pNE", gain=None, delay_ms=None):
+def build_sim(p, seed, T_s, ext_sources="pNE", gain=None, delay_ms=None, intra_step_rounds=None):
     """The ``Simulation`` for a run: dt 0.1 ms, the ``drive_spec`` drive.
 
     ``Simulation(seed=)`` stays at its default: the route refuses it, and the
     run's randomness comes from ``connectivity(edge_seed=)`` and the drive
-    seed (PREREG_P6.md).
+    seed (PREREG_P6.md). ``intra_step_rounds`` is the fixed-point override for a
+    zero-delay run (refused with a delay of >= 1 step).
     """
     import jaxfne as jtfne
 
     return jtfne.Simulation(duration_ms=float(T_s) * 1000.0, dt_ms=DT_MS,
-                            poisson_drive=drive_spec(p, seed, ext_sources, gain, delay_ms))
+                            poisson_drive=drive_spec(p, seed, ext_sources, gain, delay_ms,
+                                                     intra_step_rounds))
 
 
 def spikes_to_counts(spikes, sizes):
@@ -306,7 +369,7 @@ def _refuse_existing(out_dir, fname, sha):
 
 
 def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
-              ext_sources="pNE", delay_ms=None):
+              ext_sources="pNE", delay_ms=None, intra_step_rounds=None):
     """Write the count array plus the manifest ``caminos_analysis.score`` reads."""
     import numpy as np
 
@@ -322,16 +385,20 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
     with open(tmp, "wb") as f:
         np.save(f, counts)
     os.replace(tmp, out / fname)
+    d = _delay(delay_ms)
+    rounds = _zero_delay_rounds(d, intra_step_rounds)
     entry = {"seed": int(seed), "p": float(p), "file": fname,
              "dtype": "float32", "dt": DT_S, "T": float(T_s),
              "pilot": False, "sizes": dict(sizes),
              "indegree": "bernoulli", "ext": "private",
              "step_order": "default", "ext_sources": ext_sources,
              "ext_sources_n": ext_source_count(p, ext_sources),
-             "delay_ms": _delay(delay_ms),
-             "backend": "edge_list",
-             "git_sha": sha, "start_time": start_time,
-             "wall_s": float(wall_s), "steps": int(counts.shape[0])}
+             "delay_ms": d}
+    if rounds is not None:
+        entry["intra_step_rounds"] = rounds
+    entry.update({"backend": "edge_list",
+                  "git_sha": sha, "start_time": start_time,
+                  "wall_s": float(wall_s), "steps": int(counts.shape[0])})
     entries[fname] = entry
     manifest = {"git_sha": sha, "start_time": prior["start_time"] if prior else start_time,
                 "runs": list(entries.values())}
@@ -348,13 +415,18 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
     return out / fname
 
 
-def run(p, seed, T_s, out_dir, signed=False, ext_sources="pNE", delay_ms=None):
+def run(p, seed, T_s, out_dir, signed=False, ext_sources="pNE", delay_ms=None,
+        intra_step_rounds=None):
     """B0 route (c): construct the model, run the kernel with ``record_v=False``.
 
     Writes the port's per-step population count array and ``manifest.json``
     exactly as ``caminos_analysis.score`` reads them. Refuses any ``out_dir``
     with a path part containing "scored" unless ``signed``. ``delay_ms`` None is
     the port's 2 ms; a value is a declared sensitivity and is recorded in the manifest.
+    A delay resolving to 0 steps runs the intra-step fixed point (``intra_step_rounds``
+    selects R, default ``ZERO_DELAY_ROUNDS``; recorded in the manifest next to
+    ``delay_ms``) with a same-step drive; a rounds override with a delay of >= 1
+    step is refused.
     """
     import numpy as np
 
@@ -366,8 +438,9 @@ def run(p, seed, T_s, out_dir, signed=False, ext_sources="pNE", delay_ms=None):
 
     start_time = datetime.now(timezone.utc).isoformat()
     t0 = time.time()
-    model = jtfne.construct(build_spec(p, seed, delay_ms))
-    sim = build_sim(p, seed, T_s, ext_sources, delay_ms=delay_ms)
+    model = jtfne.construct(build_spec(p, seed, delay_ms, intra_step_rounds))
+    sim = build_sim(p, seed, T_s, ext_sources, delay_ms=delay_ms,
+                    intra_step_rounds=intra_step_rounds)
     runtime_cfg = sim.resolved_runtime
     if str(runtime_cfg.actual_dtype) != "float32":
         raise SystemExit("error: P6 runs are float32, runtime resolved %s"
@@ -385,7 +458,8 @@ def run(p, seed, T_s, out_dir, signed=False, ext_sources="pNE", delay_ms=None):
     wall_s = time.time() - t0
     write_run(out_dir, p=p, seed=seed, T_s=T_s, counts=counts, sizes=sizes,
               wall_s=wall_s, start_time=start_time, sha=git_sha(),
-              ext_sources=ext_sources, delay_ms=delay_ms)
+              ext_sources=ext_sources, delay_ms=delay_ms,
+              intra_step_rounds=intra_step_rounds)
     return {"counts": counts, "sizes": sizes, "steps": sim.n_steps,
             "wall_s": wall_s}
 
@@ -404,13 +478,16 @@ def build_parser():
                     help="allow a path containing 'scored' (signed P6 runs only)")
     ap.add_argument("--delay-ms", type=float, default=None,
                     help="declared sensitivity: synaptic and drive delay in ms (default 2, the port)")
+    ap.add_argument("--intra-step-rounds", type=int, default=None,
+                    help="fixed-point rounds R for a zero-delay run (default ZERO_DELAY_ROUNDS); "
+                    "refused with a delay of >= 1 step")
     return ap
 
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
     run(args.p, args.seed, args.T, args.out, signed=args.signed, ext_sources=args.ext_sources,
-        delay_ms=args.delay_ms)
+        delay_ms=args.delay_ms, intra_step_rounds=args.intra_step_rounds)
 
 
 if __name__ == "__main__":
