@@ -415,6 +415,9 @@ _ADVANCED: Final[frozenset[str]] = frozenset(
         "HDPRuleDescriptor",
         "HDPRuleUpdate",
         "register_hdp_rule",
+        # Frozen trained-W0 provenance (T-25: root attrs, not __all__)
+        "W0Provenance",
+        "with_trained_weights",
         # Dev / QA utilities
         "compilation_registry",
         "compile_connection_rules_jax",
@@ -498,6 +501,8 @@ ADVANCED_NAMESPACE: Final[dict[str, str]] = {
     "HDPRuleDescriptor": "jaxfne.hdp_rule",
     "HDPRuleUpdate": "jaxfne.hdp_rule",
     "HDPRuleContext": "jaxfne.hdp_rule",
+    "W0Provenance": "jaxfne.neuronal_tensor",
+    "with_trained_weights": "jaxfne.neuronal_tensor",
     "spectrolaminar_psd_jax": "jaxfne.analysis.spectral",
     "get_sharding_context": "jaxfne.sharding_utils",
     "boundedness_report": "jaxfne._long_diagnostics",

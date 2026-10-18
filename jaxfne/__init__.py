@@ -402,6 +402,11 @@ from .hdp_rule import (
     HDPRuleUpdate,
     register_hdp_rule,
 )
+# T-25 frozen trained-W0 provenance (ADVANCED tier: root attrs, not __all__).
+from .neuronal_tensor import (
+    W0Provenance,
+    with_trained_weights,
+)
 # Lane 7 (G3/G8): AdEx registered-HDP entry and model-aware field positions
 # (ADVANCED tier: root attrs, not __all__).
 from .emitters_adex import simulate_adex_hdp_registered

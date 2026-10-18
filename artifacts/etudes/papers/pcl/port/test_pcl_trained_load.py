@@ -211,3 +211,53 @@ def test_e_numba_refuses_learning_on():
 def test_f_static_alias_reads_as_local():
     net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=[["static"], ["static"]])
     assert net.local_s and net.local_c and not net.lat_on and not net.td_on
+
+
+# ----- (g) T-25: real trained PCL bytes through with_trained_weights gates -----
+def test_g_authors_trained_bytes_refused_as_foreign_w0_with_native_positive_control():
+    """T-25: the port has no NeuronalTensor bridge, so PCL trained weights are
+    foreign to every jaxfne circuit. Real trained bytes must be refused by
+    ``with_trained_weights`` (shape, then sign), while a native HDP run binds
+    with provenance (positive control that the gate path works)."""
+    import jaxfne as jtfne
+
+    nt = jtfne.neuronal_tensor
+    # Real trained bytes: float64, finite, nonnegative (PCL convention).
+    raw = np.load(CSTDP3 / "weights" / "0" / "3.npy", allow_pickle=False)
+    assert raw.dtype == np.float64, "fixture: trained file must be float64"
+    assert np.all(np.isfinite(raw)) and np.all(raw >= 0), "fixture: trained bytes"
+    tensor = nt.make_minimal_ei_tensor()
+    model = jtfne.construct(
+        tensor, nt.RuntimeConfiguration(seed=0, duration_ms=20.0, dt_ms=0.5))
+    el = model.params["edge_list"]
+    pre = np.asarray(el.pre).reshape(-1)
+    post = np.asarray(el.post).reshape(-1)
+    # The PCL file holds 200 weights; the minimal circuit compiles fewer.
+    w_foreign = raw.reshape(-1)
+    assert w_foreign.shape[0] != pre.shape[0], "fixture: foreign length must differ"
+    with pytest.raises(ValueError, match="same length"):
+        nt.with_trained_weights(
+            tensor, {"pre": pre, "post": post, "w": w_foreign}, seed=0)
+    # The same real bytes cut to edge count: nonnegative values on inhibitory
+    # edges flip native signs, so they are refused as foreign, never coerced.
+    rows = model.neuron_table()
+    src_is_e = np.asarray([r["cell_type"] == "E" for r in rows], dtype=bool)
+    assert not bool(np.all(src_is_e[pre])), "fixture must compile inhibitory edges"
+    w_cut = np.asarray(np.resize(w_foreign, pre.shape[0]), dtype=np.float64)
+    with pytest.raises(ValueError, match="sign"):
+        nt.with_trained_weights(
+            tensor, {"pre": pre, "post": post, "w": w_cut}, seed=0)
+    # Positive control: a native HDP run's final weights bind with provenance.
+    jtfne.simulate(
+        model,
+        runtime=jtfne.RuntimeConfig(
+            enable_hdp=True,
+            hdp_params=dict(K_HDP=0.2, K_ctrl=0.3, K_w_ctrl=0.002,
+                            alpha=0.05, tau_0_ms=5.0, noise_scale=0.0),
+        ),
+        duration_ms=20.0, dt_ms=0.5, seed=7,
+    )
+    trained = nt.with_trained_weights(tensor, model)
+    assert trained.w0_provenance.origin == "trained"
+    assert (trained.w0_provenance.parent_digest
+            == nt._tensor_identity_digest(tensor))

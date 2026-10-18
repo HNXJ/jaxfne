@@ -147,7 +147,10 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   the PCL B3 operator on the core.
 - T-25 [A] Plastic weights: W is state in h during a run; A holds W₀ and its ownership. A trained
   network is A' = A with W₀ ← W_T, recorded with provenance. Closes when: the tensor carries W₀
-  provenance and PCL's trained weights load as A'.
+  provenance and PCL's trained weights load as A'. Landed 2026-10-18: `W0Provenance`,
+  `with_trained_weights` (izhikevich route; lif/adex refused). Left: PCL's trained weights come
+  from the numba port, which has no tensor bridge; they load as A' once PCL runs on the core
+  (T-30, O-24).
 - GSDR (lane 4f, on dev 2026-10-17 under `etudes/papers/gsdr2026/`): the saturated regime
   (κ ≈ 0.95 against 0.0156) survived three tested suspicions, CALIBRATION §6.4 to §6.6:
   inhibition ×1 to ×16 (only slows 21 to 13.5 Hz), OU noise ×1 to ×4, and the κ estimator

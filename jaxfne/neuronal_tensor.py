@@ -61,7 +61,7 @@ import jax.numpy as jnp
 from .io import save_json, load_json
 from .core import Configuration, Model, construct
 from ._config import check_n_contacts
-from .emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
+from .emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE, _resolved_edge_weight
 from .emitter_registry import check_emitter_params, is_registered_emitter
 from .pcl_topology import validate_footprint, validate_local_inhibition, validate_weight_sharing
 from .presets import RECEPTOR_KINETICS
@@ -817,6 +817,148 @@ class AreaConnection:
             )
 
 
+#: W0 origin vocabulary for :class:`W0Provenance`: ``"declared"``
+#: (initial weights from the declared ``PlasticParams.w_mech`` gains) or
+#: ``"trained"`` (per-edge W0 bound by :func:`with_trained_weights` to one
+#: run's final weights).
+W0_ORIGINS = frozenset({"declared", "trained"})
+
+#: Float dtypes a trained weight vector may carry (exact roundtrip through
+#: the JSON persistence: float32 values are exact as float64 and back).
+_TRAINED_W_DTYPES = ("float32", "float64")
+
+
+def _checked_edge_index_tuple(values: Any, name: str) -> tuple:
+    """Normalize one TrainedW0 edge-index vector to a tuple of ints.
+
+    Bools, floats, strings and missing values are refused, never coerced.
+    """
+    try:
+        items = tuple(values)
+    except TypeError:
+        raise ValueError(
+            f"TrainedW0 {name} must be a sequence of edge indices; got {values!r}"
+        ) from None
+    out = []
+    for v in items:
+        if isinstance(v, bool) or not isinstance(v, numbers.Integral):
+            raise ValueError(f"TrainedW0 {name} must hold only ints; got {v!r}")
+        out.append(int(v))
+    return tuple(out)
+
+
+def _checked_edge_weight_tuple(values: Any) -> tuple:
+    """Normalize one TrainedW0 weight vector to a tuple of finite floats.
+
+    Bools, complex values, strings, NaN and inf are refused, never coerced.
+    """
+    try:
+        items = tuple(values)
+    except TypeError:
+        raise ValueError(
+            f"TrainedW0 w must be a sequence of numbers; got {values!r}"
+        ) from None
+    out = []
+    for v in items:
+        if isinstance(v, bool) or not isinstance(v, numbers.Real):
+            raise ValueError(f"TrainedW0 w must hold only real numbers; got {v!r}")
+        f = float(v)
+        if not math.isfinite(f):
+            raise ValueError(f"TrainedW0 w must be all finite; got {v!r}")
+        out.append(f)
+    return tuple(out)
+
+
+@dataclass(frozen=True)
+class W0Provenance:
+    """Provenance of a tensor's initial edge weights (frozen, T-25).
+
+    ``origin="declared"`` (the default) means W0 comes from the declared
+    ``PlasticParams.w_mech`` gains and carries no further fields.
+    ``origin="trained"`` means per-edge W0 was bound by
+    :func:`with_trained_weights` to one run's final weights, and
+    ``parent_digest`` is the :func:`_tensor_identity_digest` of the tensor
+    that run started from. ``run_manifest_sha``/``n_steps``/``code_sha``
+    are caller-supplied run receipts, all optional.
+    """
+
+    origin: str = "declared"
+    parent_digest: Optional[str] = None
+    run_manifest_sha: Optional[str] = None
+    n_steps: Optional[int] = None
+    code_sha: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        if self.origin not in W0_ORIGINS:
+            raise ValueError(
+                f"W0Provenance origin must be one of {sorted(W0_ORIGINS)}; "
+                f"got {self.origin!r}"
+            )
+        if self.origin == "trained":
+            if not isinstance(self.parent_digest, str) or not self.parent_digest:
+                raise ValueError(
+                    "W0Provenance origin='trained' requires parent_digest "
+                    "(the identity digest of the tensor the weights trained from)"
+                )
+        else:
+            for key in ("parent_digest", "run_manifest_sha", "n_steps", "code_sha"):
+                if getattr(self, key) is not None:
+                    raise ValueError(
+                        "W0Provenance origin='declared' carries no "
+                        f"{key}; got {getattr(self, key)!r}"
+                    )
+        if self.n_steps is not None:
+            if isinstance(self.n_steps, bool) or not isinstance(self.n_steps, int):
+                raise ValueError(
+                    f"W0Provenance n_steps must be an int >= 0; got {self.n_steps!r}"
+                )
+            if self.n_steps < 0:
+                raise ValueError(
+                    f"W0Provenance n_steps must be an int >= 0; got {self.n_steps!r}"
+                )
+        for key in ("run_manifest_sha", "code_sha"):
+            value = getattr(self, key)
+            if value is not None and (not isinstance(value, str) or not value):
+                raise ValueError(f"W0Provenance {key} must be a non-empty str; got {value!r}")
+
+
+@dataclass(frozen=True)
+class TrainedW0:
+    """Per-edge trained initial weights bound to one compiled edge order.
+
+    ``pre``/``post``/``w`` are parallel tuples of length n_edges > 0;
+    ``dtype`` records the trained vector's float dtype (``"float32"`` or
+    ``"float64"``): realization casts back to the model dtype exactly, and
+    refuses when the cast would change any value. Edge identity (same
+    edges, same order) and native-sign agreement are verified both when the
+    weights bind (:func:`with_trained_weights`) and when they realize
+    (:func:`_construct_neuronal_tensor_impl`); stale or foreign weights are
+    refused at both gates, never silently rebound.
+    """
+
+    pre: tuple = ()
+    post: tuple = ()
+    w: tuple = ()
+    dtype: str = "float32"
+
+    def __post_init__(self) -> None:
+        pre = _checked_edge_index_tuple(self.pre, "pre")
+        post = _checked_edge_index_tuple(self.post, "post")
+        w = _checked_edge_weight_tuple(self.w)
+        if self.dtype not in _TRAINED_W_DTYPES:
+            raise ValueError(
+                f"TrainedW0 dtype must be one of {_TRAINED_W_DTYPES}; got {self.dtype!r}"
+            )
+        if not (len(pre) == len(post) == len(w) > 0):
+            raise ValueError(
+                "TrainedW0 pre/post/w must be non-empty and the same length; "
+                f"got {(len(pre), len(post), len(w))}"
+            )
+        object.__setattr__(self, "pre", pre)
+        object.__setattr__(self, "post", post)
+        object.__setattr__(self, "w", w)
+
+
 @dataclass
 class NeuronalTensor:
     """The canonical network representation: [Areas, AreaConnections].
@@ -843,6 +985,11 @@ class NeuronalTensor:
     name: str = "untitled"
     connectivity_mode: ConnectivityMode | None = None
     provenance: Optional[dict] = None
+    # T-25 frozen W0 provenance plus per-edge trained weights. Both are
+    # default-omitted from to_dict, so declared tensors persist and digest
+    # byte-identically to earlier releases (loading fills the defaults).
+    w0_provenance: W0Provenance = field(default_factory=W0Provenance)
+    trained_w0: Optional[TrainedW0] = None
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name == "area_connections" and "_connectivity_initialized" in self.__dict__:
@@ -912,6 +1059,22 @@ class NeuronalTensor:
         object.__setattr__(self, "_connectivity_initialized", True)
         if not isinstance(self.name, str):
             raise TypeError(f"NeuronalTensor.name must be a str, got {type(self.name).__name__}")
+        if not isinstance(self.w0_provenance, W0Provenance):
+            raise TypeError(
+                "NeuronalTensor.w0_provenance must be a W0Provenance, got "
+                f"{type(self.w0_provenance).__name__}"
+            )
+        if self.trained_w0 is not None and not isinstance(self.trained_w0, TrainedW0):
+            raise TypeError(
+                "NeuronalTensor.trained_w0 must be a TrainedW0 or None, got "
+                f"{type(self.trained_w0).__name__}"
+            )
+        if (self.trained_w0 is None) != (self.w0_provenance.origin == "declared"):
+            raise ValueError(
+                "NeuronalTensor trained_w0 and w0_provenance.origin disagree: "
+                "trained weights require origin='trained', and declared "
+                "tensors carry no trained weights"
+            )
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -926,7 +1089,25 @@ class NeuronalTensor:
                 _drop_defaults(conn, _CONNECTION_DEFAULTS_056)
         for conn in d.get("area_connections", []):
             _drop_defaults(conn, _CONNECTION_DEFAULTS_056)
+        # T-25: same idiom for the trained-W0 surface. A default-declared
+        # provenance compares equal to its plain-data default and is dropped;
+        # an absent trained vector is dropped (a present one persists as data).
+        if d.get("w0_provenance") == _DECLARED_W0_PROVENANCE_DICT:
+            del d["w0_provenance"]
+        if d.get("trained_w0") is None:
+            del d["trained_w0"]
         return d
+
+
+#: Plain-data default of :class:`W0Provenance` (``asdict`` form): a declared
+#: provenance equal to this is omitted from :meth:`NeuronalTensor.to_dict`.
+_DECLARED_W0_PROVENANCE_DICT = {
+    "origin": "declared",
+    "parent_digest": None,
+    "run_manifest_sha": None,
+    "n_steps": None,
+    "code_sha": None,
+}
 
 
 _NEURON_TYPE_DEFAULTS_056 = {"emitter": None, "emitter_params": None, "drive": None}
@@ -1025,7 +1206,12 @@ def load_canonical_neuronal_tensor(name: str) -> NeuronalTensor:
 
 
 def save_neuronal_tensor(tensor: NeuronalTensor, path: str | Path) -> str:
-    """Save a NeuronalTensor as a JSON config file. Configs are data, never code."""
+    """Save a NeuronalTensor as a JSON config file. Configs are data, never code.
+
+    T-25: in-memory ``provenance`` is stripped as before, but a bound trained
+    W0 (``trained_w0`` plus ``w0_provenance``) persists deliberately — it is
+    plain per-edge data, and :func:`load` reconstructs it exactly.
+    """
     path = Path(path)
     payload = dict(tensor.to_dict())
     payload.pop("provenance", None)
@@ -1179,6 +1365,16 @@ def _load_neuronal_tensor_impl(
         area_connections=area_connections_value,
         name=raw.get("name", "untitled"),
         connectivity_mode=legacy_mode,
+        # T-25: trained W0 persists as plain data (absent = declared
+        # defaults); field validation refuses half-bound files.
+        w0_provenance=(
+            W0Provenance(**raw["w0_provenance"])
+            if raw.get("w0_provenance")
+            else W0Provenance()
+        ),
+        trained_w0=(
+            TrainedW0(**raw["trained_w0"]) if raw.get("trained_w0") else None
+        ),
     )
 
 
@@ -1221,6 +1417,16 @@ def merge_neuronal_tensors(
         raise ValueError(
             f"poses must have one entry per area; got {len(poses)} for {total_areas} areas"
         )
+    # T-25: a bound trained W0 is indexed by one tensor's compiled edges —
+    # merging would silently rebind or drop it, so it is refused.
+    for tensor in tensors:
+        if tensor.trained_w0 is not None:
+            raise ValueError(
+                f"merge_neuronal_tensors refuses tensor {tensor.name!r} carrying "
+                "trained W0 (origin='trained'): merged edges are a new circuit, "
+                "so bound per-edge weights cannot transfer — bind trained "
+                "weights on the merged tensor instead"
+            )
 
     merged_areas: list[Area] = []
     merged_connections: list[AreaConnection] = []
@@ -1491,8 +1697,19 @@ def _construct_neuronal_tensor_impl(
     Connectivity mode is preserved from the tensor: omitted connectivity uses
     the configuration default topology, while explicit connectivity (including
     an explicit empty declaration) compiles only the declared graph.
+
+    A bound trained W0 (T-25) realizes only on the izhikevich route: lif/adex
+    tensors carrying one are refused, and the izhikevich route verifies the
+    stored edges/signs before applying (see :func:`_apply_trained_w0`).
     """
     family, overrides = _resolve_tensor_emitter_family(tensor, emitter)
+    if tensor.trained_w0 is not None and family != "izhikevich":
+        raise ValueError(
+            f"tensor {tensor.name!r} carries trained W0 but resolves to emitter "
+            f"family {family!r}; trained W0 is realized only on the izhikevich "
+            "route (lif/adex have no trained-W0 consumer) — declare izhikevich "
+            "or drop the trained weights"
+        )
     if family == "lif":
         from ._construct_lif import construct_lif_tensor_model
 
@@ -1535,8 +1752,15 @@ def _construct_neuronal_tensor_impl(
             f"consumed for emitter {family!r} on the current-based route; leave "
             "the defaults"
         )
+    # T-25: the Configuration bridge carries declared structure only (a bound
+    # trained W0 is refused there), so bridge a declared copy and stamp the
+    # full identity — including the trained vector — into the receipt metadata
+    # afterwards; _apply_trained_w0 then realizes the trained vector exactly.
+    bridge_tensor = tensor
+    if tensor.trained_w0 is not None:
+        bridge_tensor = replace(tensor, trained_w0=None, w0_provenance=W0Provenance())
     cfg = neuronal_tensor_to_configuration(
-        tensor,
+        bridge_tensor,
         seed=seed,
         duration_ms=duration_ms,
         dt_ms=dt_ms,
@@ -1547,7 +1771,10 @@ def _construct_neuronal_tensor_impl(
         vmap=vmap,
         n_contacts=n_contacts,
     )
+    if bridge_tensor is not tensor:
+        cfg = cfg.update_metadata(tensor_identity=_tensor_identity_digest(tensor))
     model = construct(cfg)
+    model = _apply_trained_w0(model, tensor)
     rows = model.neuron_table()
 
     h_sum: dict[tuple[str, str, str], float] = {}
@@ -1576,6 +1803,406 @@ def _construct_neuronal_tensor_impl(
     model = _replace_model_positions(model, posed, updated_rows)
     model = _apply_velocity_delays_izhi(model, tensor, updated_rows)
     return model
+
+
+def _as_1d_edge_vector(value: Any, *, name: str) -> "object":
+    """Coerce one candidate edge vector to a 1-D numpy array (T-25).
+
+    Shape only — dtype and value checks belong to the caller so each refusal
+    names the invariant it guards. Empty and non-1-D inputs are refused.
+    """
+    import numpy as _np
+
+    try:
+        arr = _np.asarray(value)
+    except Exception as exc:
+        raise ValueError(
+            f"with_trained_weights: {name} is not array-like ({exc})"
+        ) from exc
+    if arr.ndim != 1:
+        raise ValueError(
+            f"with_trained_weights: {name} must be a 1-D per-edge vector; "
+            f"got shape {arr.shape}"
+        )
+    if arr.shape[0] == 0:
+        raise ValueError(
+            f"with_trained_weights: {name} is empty; need at least one edge"
+        )
+    return arr
+
+
+def _native_edge_signs(edge_list: Any, emitter: Any) -> "object":
+    """Executed per-edge weights of a compiled edge list, as float64 numpy.
+
+    Resolves through :func:`jaxfne.emitters._resolved_edge_weight` — the same
+    function the kernels consume — so compact ``weight_storage`` modes (whose
+    ``weight`` field is a size-0 placeholder) resolve exactly, never by guess.
+    """
+    import numpy as _np
+
+    return _np.asarray(
+        _resolved_edge_weight(edge_list, jnp.float32, emitter), dtype=_np.float64
+    ).reshape(-1)
+
+
+def with_trained_weights(
+    tensor: NeuronalTensor,
+    source: Any,
+    *,
+    pre: Any = None,
+    post: Any = None,
+    seed: int = 0,
+    run_manifest_sha: "str | None" = None,
+    n_steps: "int | None" = None,
+    code_sha: "str | None" = None,
+) -> NeuronalTensor:
+    """Bind one run's final per-edge weights to a copy of ``tensor`` (T-25).
+
+    Returns A' — a new :class:`NeuronalTensor` carrying the trained vector as
+    :class:`TrainedW0` plus :class:`W0Provenance` (``origin="trained"``,
+    ``parent_digest`` = identity digest of ``tensor``). Constructing A' on the
+    izhikevich route realizes the trained weights exactly
+    (:func:`_construct_neuronal_tensor_impl` verifies stored vs compiled
+    ``(pre, post)`` and native signs again before applying). ``tensor`` is
+    never mutated.
+
+    ``source`` forms (first match wins):
+
+    - a :class:`jaxfne.core.Model` with HDP diagnostics (primary): the final
+      weights come from ``model.last_hdp_diagnostics()["w_final"]`` and the
+      reference edges from ``model.params["edge_list"]``; ownership is the
+      ``tensor_identity`` config-metadata cross-check (a model built from any
+      other tensor is refused). Explicit ``pre``/``post`` alongside a Model
+      is refused as ambiguous.
+    - a ``(pre, post, w)`` triple, a ``{"pre", "post", "w"}`` dict, a
+      :class:`jaxfne._pipeline.ContinuationState` (``dynamic.w``), or a bare
+      weight vector — each with ``pre``/``post`` made explicit (kwargs for a
+      state or bare vector; inside the triple/dict otherwise). Reference
+      edges are a deterministic reconstruction of ``tensor`` at ``seed`` (the
+      construct seed the circuit was built with, not the simulate seed);
+      compiled ``(pre, post)`` are seed-deterministic, so a wrong seed is
+      refused, never rebound.
+    - anything else is refused: a bare :class:`Signals` (HDP summaries only,
+      never per-edge weights — pass the trained Model, or re-run with
+      ``return_state=True`` and pass the state with explicit ``pre``/``post``),
+      a checkpoint leaf list (unlabeled — rebind through the trained Model),
+      a model with no HDP diagnostics (re-run with ``enable_hdp=True``).
+
+    Every form checks shape (1-D, same length, non-empty), dtype (integer
+    ``pre``/``post``, float32/float64 ``w`` — never coerced), finiteness,
+    edge identity (same edges, same order) and native-sign agreement (HDP
+    updates are sign-preserving magnitude updates, so a flipped sign means
+    foreign weights). Optional ``run_manifest_sha``/``n_steps``/``code_sha``
+    are recorded on the provenance.
+    """
+    import numpy as _np
+
+    if not isinstance(tensor, NeuronalTensor):
+        raise TypeError(
+            "with_trained_weights: tensor must be a NeuronalTensor, got "
+            f"{type(tensor).__name__}"
+        )
+    if isinstance(seed, bool) or not isinstance(seed, int):
+        raise ValueError(f"with_trained_weights: seed must be an int; got {seed!r}")
+
+    if isinstance(source, Model):
+        if pre is not None or post is not None:
+            raise ValueError(
+                "with_trained_weights: a Model carries its own edges — pass "
+                "pre/post only with weight-vector sources (triple, dict, "
+                "state, or bare array), never alongside a Model"
+            )
+        # Same family gate as the weight-vector forms below: lif/adex tensors
+        # are refused at bind, not at construct.
+        try:
+            family, _ = _resolve_tensor_emitter_family(tensor, "izhikevich")
+        except ValueError as exc:
+            raise ValueError(
+                "with_trained_weights: trained W0 is realized only on the "
+                f"izhikevich route ({exc})"
+            ) from exc
+        if family != "izhikevich":
+            raise ValueError(
+                "with_trained_weights: trained W0 is realized only on the "
+                f"izhikevich route; tensor resolves to {family!r}"
+            )
+        edge_list = source.params.get("edge_list")
+        if edge_list is None:
+            raise ValueError(
+                "with_trained_weights: model has no params['edge_list'] (the "
+                "adex route stores edges in static['adex']); trained W0 binds "
+                "only to edge-list models"
+            )
+        diag = source.last_hdp_diagnostics()
+        if diag is None:
+            raise ValueError(
+                "with_trained_weights: model has no HDP diagnostics — re-run "
+                "it with RuntimeConfig(enable_hdp=True, hdp_params={...}) and "
+                "pass the trained model"
+            )
+        w_final = diag.get("w_final")
+        if w_final is None:
+            raise ValueError(
+                "with_trained_weights: HDP diagnostics carry no w_final — "
+                "re-run with enable_hdp=True and pass the trained model"
+            )
+        owner = (getattr(getattr(source, "cfg", None), "metadata", None) or {}).get(
+            "tensor_identity"
+        )
+        if owner != _tensor_identity_digest(tensor):
+            raise ValueError(
+                "with_trained_weights: model was not built from this tensor "
+                "(tensor_identity mismatch) — trained weights bind only to "
+                "the circuit that produced them"
+            )
+        emitter = source.params.get("emitter")
+        if emitter is None:
+            raise ValueError(
+                "with_trained_weights: model has no emitter — cannot resolve "
+                "native edge signs"
+            )
+        ref_pre = _np.asarray(edge_list.pre).reshape(-1)
+        ref_post = _np.asarray(edge_list.post).reshape(-1)
+        native = _native_edge_signs(edge_list, emitter)
+        pre, post = ref_pre, ref_post
+    else:
+        from ._pipeline import ContinuationState as _ContinuationState
+        from ._signals import Signals as _Signals
+
+        if isinstance(source, _Signals):
+            raise ValueError(
+                "with_trained_weights: bare Signals carry HDP summaries only "
+                "(metadata['hdp']), never per-edge weights — pass the trained "
+                "Model, or re-run with return_state=True and pass the state "
+                "with explicit pre/post"
+            )
+        if isinstance(source, list):
+            raise ValueError(
+                "with_trained_weights: unlabeled leaf list (e.g. "
+                "checkpoint_state/restore_state leaves carry no edge labels) — "
+                "rebind through the trained Model or pass an explicit "
+                "pre/post/w triple"
+            )
+        kw_edges = pre is not None or post is not None
+        if isinstance(source, _ContinuationState):
+            if pre is None or post is None:
+                raise ValueError(
+                    "with_trained_weights: a ContinuationState carries w but "
+                    "no edges — pass explicit pre= and post= from the trained "
+                    "model"
+                )
+            w_final = source.dynamic.w
+        elif isinstance(source, tuple):
+            if kw_edges:
+                raise ValueError(
+                    "with_trained_weights: pass edges once — inside the "
+                    "(pre, post, w) triple or as pre=/post= kwargs, never both"
+                )
+            if len(source) == 3 and not isinstance(source[0], _Signals):
+                pre, post, w_final = source
+            elif len(source) == 2 and isinstance(source[0], _Signals):
+                raise ValueError(
+                    "with_trained_weights: a (Signals, state) pair carries no "
+                    "edges on its own — pass the state with explicit pre= and "
+                    "post= from the trained model"
+                )
+            else:
+                raise ValueError(
+                    "with_trained_weights: tuple source must be a "
+                    f"(pre, post, w) triple; got length {len(source)}"
+                )
+        elif isinstance(source, dict):
+            if kw_edges:
+                raise ValueError(
+                    "with_trained_weights: pass edges once — inside the dict "
+                    "or as pre=/post= kwargs, never both"
+                )
+            missing = {"pre", "post", "w"} - set(source)
+            if missing:
+                raise ValueError(
+                    "with_trained_weights: dict source needs keys pre/post/w; "
+                    f"missing {sorted(missing)}"
+                )
+            pre, post, w_final = source["pre"], source["post"], source["w"]
+        else:
+            if pre is None or post is None:
+                raise ValueError(
+                    "with_trained_weights: a bare weight vector needs explicit "
+                    "pre= and post= from the trained model"
+                )
+            w_final = source
+        try:
+            family, _ = _resolve_tensor_emitter_family(tensor, "izhikevich")
+        except ValueError as exc:
+            raise ValueError(
+                "with_trained_weights: trained W0 is realized only on the "
+                f"izhikevich route ({exc})"
+            ) from exc
+        if family != "izhikevich":
+            raise ValueError(
+                "with_trained_weights: trained W0 is realized only on the "
+                f"izhikevich route; tensor resolves to {family!r}"
+            )
+        ref_model = _construct_neuronal_tensor_impl(
+            tensor, seed=seed, duration_ms=10.0, dt_ms=0.5
+        )
+        ref_list = ref_model.params.get("edge_list")
+        if ref_list is None:
+            raise ValueError(
+                "with_trained_weights: reference construction of tensor "
+                f"{tensor.name!r} produced no params['edge_list']"
+            )
+        ref_emitter = ref_model.params.get("emitter")
+        if ref_emitter is None:
+            raise ValueError(
+                "with_trained_weights: reference construction of tensor "
+                f"{tensor.name!r} produced no emitter"
+            )
+        ref_pre = _np.asarray(ref_list.pre).reshape(-1)
+        ref_post = _np.asarray(ref_list.post).reshape(-1)
+        native = _native_edge_signs(ref_list, ref_emitter)
+
+    pre_a = _as_1d_edge_vector(pre, name="pre")
+    post_a = _as_1d_edge_vector(post, name="post")
+    w_a = _as_1d_edge_vector(w_final, name="w")
+    if not (pre_a.shape == post_a.shape == w_a.shape):
+        raise ValueError(
+            "with_trained_weights: pre/post/w must have the same length; got "
+            f"{(pre_a.shape, post_a.shape, w_a.shape)}"
+        )
+    for label, arr in (("pre", pre_a), ("post", post_a)):
+        if not _np.issubdtype(arr.dtype, _np.integer):
+            raise ValueError(
+                f"with_trained_weights: {label} must be an integer array; got "
+                f"dtype {arr.dtype} (no silent coercion — pass int edges)"
+            )
+    if not _np.issubdtype(w_a.dtype, _np.floating) or w_a.dtype.itemsize not in (4, 8):
+        raise ValueError(
+            "with_trained_weights: w must be float32 or float64; got dtype "
+            f"{w_a.dtype}"
+        )
+    if not bool(_np.all(_np.isfinite(w_a))):
+        raise ValueError("with_trained_weights: w must be all finite; got NaN or inf")
+    w_dtype = "float32" if w_a.dtype.itemsize == 4 else "float64"
+    if pre_a.shape != ref_pre.shape or not bool(_np.array_equal(pre_a, ref_pre)):
+        raise ValueError(
+            "with_trained_weights: candidate pre does not match the edges "
+            f"compiled from tensor {tensor.name!r} at seed={seed} (same edges, "
+            "same order required)"
+        )
+    if post_a.shape != ref_post.shape or not bool(_np.array_equal(post_a, ref_post)):
+        raise ValueError(
+            "with_trained_weights: candidate post does not match the edges "
+            f"compiled from tensor {tensor.name!r} at seed={seed} (same edges, "
+            "same order required)"
+        )
+    w_f = _np.asarray(w_a, dtype=_np.float64)
+    if native.shape != w_f.shape:
+        raise ValueError(
+            "with_trained_weights: reference edges "
+            f"({native.shape[0]}) and candidate weights "
+            f"({w_f.shape[0]}) disagree in length"
+        )
+    # A weight clamped to exactly 0 keeps no sign to flip; any nonzero weight must match.
+    flipped = int(_np.sum((w_f != 0) & (_np.sign(w_f) != _np.sign(native))))
+    if flipped:
+        raise ValueError(
+            f"with_trained_weights: {flipped}/{w_f.shape[0]} trained weights "
+            "flip the native edge sign — HDP updates are sign-preserving "
+            "magnitude updates, so these are foreign weights; refusing"
+        )
+    parent = _tensor_identity_digest(tensor)
+    trained = TrainedW0(
+        pre=tuple(int(v) for v in pre_a.tolist()),
+        post=tuple(int(v) for v in post_a.tolist()),
+        w=tuple(float(v) for v in w_f.tolist()),
+        dtype=w_dtype,
+    )
+    provenance = W0Provenance(
+        origin="trained",
+        parent_digest=parent,
+        run_manifest_sha=run_manifest_sha,
+        n_steps=n_steps,
+        code_sha=code_sha,
+    )
+    return replace(tensor, trained_w0=trained, w0_provenance=provenance)
+
+
+def _apply_trained_w0(model: Model, tensor: NeuronalTensor) -> Model:
+    """Realize a bound trained W0 on a freshly constructed model (T-25).
+
+    No-op when ``tensor`` carries no trained weights. Otherwise verifies the
+    stored ``(pre, post)`` against the compiled edges exactly (same edges,
+    same order — stale or foreign weights are refused) and native-sign
+    agreement, then swaps in a ``per_edge`` :class:`EdgeList` carrying the
+    trained vector — the same replace idiom as
+    :func:`jaxfne.emitters.edge_list_per_edge_zeros`, so compact
+    ``weight_storage`` modes (whose ``weight`` is a size-0 placeholder)
+    execute the trained vector exactly rather than being refused.
+    """
+    import numpy as _np
+
+    stored = tensor.trained_w0
+    if stored is None:
+        return model
+    edge_list = model.params.get("edge_list")
+    if edge_list is None:
+        raise ValueError(
+            f"tensor {tensor.name!r} carries trained W0 but the constructed "
+            "model has no params['edge_list'] — trained W0 cannot realize here"
+        )
+    pre_s = _np.asarray(stored.pre, dtype=_np.int64)
+    post_s = _np.asarray(stored.post, dtype=_np.int64)
+    pre_c = _np.asarray(edge_list.pre).reshape(-1)
+    post_c = _np.asarray(edge_list.post).reshape(-1)
+    if (
+        pre_s.shape != pre_c.shape
+        or not bool(_np.array_equal(pre_s, pre_c))
+        or post_s.shape != post_c.shape
+        or not bool(_np.array_equal(post_s, post_c))
+    ):
+        raise ValueError(
+            f"tensor {tensor.name!r} carries trained W0 for {pre_s.shape[0]} "
+            f"edges but this construction compiled {pre_c.shape[0]} — rebuild "
+            "with the seed/topology the weights trained on (stale or foreign "
+            "weights are refused, never rebound)"
+        )
+    w_s = _np.asarray(stored.w, dtype=_np.dtype(stored.dtype))
+    emitter = model.params.get("emitter")
+    if emitter is None:
+        raise ValueError(
+            f"tensor {tensor.name!r} carries trained W0 but the constructed "
+            "model has no emitter — cannot resolve native edge signs"
+        )
+    native = _native_edge_signs(edge_list, emitter)
+    flipped = int(_np.sum((w_s != 0) & (_np.sign(w_s) != _np.sign(native))))
+    if flipped:
+        raise ValueError(
+            f"tensor {tensor.name!r}: {flipped}/{w_s.shape[0]} stored weights "
+            "flip the compiled native edge sign — refusing"
+        )
+    jdtype = getattr(getattr(emitter, "v0", None), "dtype", jnp.float32)
+    # The stored vector keeps its bound dtype: refuse when the cast to the
+    # model dtype changes any value (float64 detail would be silently rounded
+    # off on a float32 model), else apply exactly.
+    model_np_dtype = _np.dtype(jdtype)
+    w_cast = w_s.astype(model_np_dtype)
+    changed = int(_np.sum(w_cast.astype(_np.float64) != w_s.astype(_np.float64)))
+    if changed:
+        raise ValueError(
+            f"tensor {tensor.name!r} stores trained W0 in {stored.dtype} but "
+            f"{changed}/{w_s.shape[0]} values change when cast to the model "
+            f"dtype {model_np_dtype.name} — refusing (float64 detail would be "
+            "lost on a float32 model); rebind at the model dtype"
+        )
+    new_edges = replace(
+        edge_list,
+        weight=jnp.asarray(w_cast, dtype=jdtype),
+        weight_storage="per_edge",
+        weight_magnitude=None,
+        mechanism_weight_magnitude_table=None,
+    )
+    return replace(model, params={**model.params, "edge_list": new_edges})
 
 
 def _adex_harvest_tensor(tensor: NeuronalTensor) -> "tuple[NeuronalTensor, dict[str, str]]":
@@ -2453,10 +3080,13 @@ def _velocity_edge_delays(
 def _tensor_identity_digest(tensor: NeuronalTensor) -> str:
     """Deterministic structural digest of a NeuronalTensor.
 
-    Includes areas, layers, neuron types, geometry, pose, and connections —
-    the persisted content of the tensor (the same surface as
-    ``save_neuronal_tensor``, which intentionally strips in-memory
-    ``provenance``). Runtime knobs (seed/duration/dt/emitter) are excluded —
+    Includes areas, layers, neuron types, geometry, pose, connections, and —
+    when bound — the trained W0 vector and its provenance: they are the
+    circuit's initial condition, so a trained tensor digests distinctly from
+    its parent. Untrained tensors omit those fields in ``to_dict`` and digest
+    byte-identically to earlier releases. The digest covers the persisted
+    content of the tensor (the same surface as ``save_neuronal_tensor``,
+    which intentionally strips in-memory ``provenance``). Runtime knobs (seed/duration/dt/emitter) are excluded —
     they belong to ``RuntimeConfiguration``, not the tensor. Provenance
     (genome rules hash, schema version, development seed, phenotype hash) is
     deliberately excluded so receipt identity is stable across the documented
@@ -2476,6 +3106,12 @@ def _tensor_identity_digest(tensor: NeuronalTensor) -> str:
             f"{getattr(tensor, 'name', type(tensor).__name__)!r}: {exc}"
         ) from exc
     payload.pop("provenance", None)
+    # T-25: a declared W0 provenance compares equal to its plain-data default
+    # and is already omitted by to_dict, so untrained tensors digest
+    # byte-identically to earlier releases; a bound trained W0 and its
+    # provenance are part of the circuit's initial condition, so A' digests
+    # distinctly from its parent A, and a second generation A'' records A'
+    # as parent (lineage holds the full chain).
     blob = _json.dumps(
         payload,
         sort_keys=True,
@@ -2669,6 +3305,17 @@ def neuronal_tensor_to_configuration(
     """
     if not tensor.areas:
         raise ValueError("NeuronalTensor must declare at least one area to bridge")
+    # T-25: a bound trained W0 is per-edge data this bridge cannot carry —
+    # bridging it would silently run declared W0. Refuse with the route that
+    # verifies and realizes the trained vector exactly.
+    if tensor.trained_w0 is not None:
+        raise ValueError(
+            f"tensor {tensor.name!r} carries trained W0 (origin='trained'): "
+            "neuronal_tensor_to_configuration builds the declared circuit only "
+            "and would silently run declared W0 — build it with "
+            "construct(tensor) (the RuntimeConfiguration path), which verifies "
+            "the stored edges/signs and realizes the trained vector exactly"
+        )
     _refuse_mixed_pose_specification(tensor)
     if not _skip_emitter_resolution:
         # The current-based (izhikevich) bridge is the only non-skip caller:
@@ -2949,6 +3596,15 @@ def neuronal_tensor_to_adex_configuration(
 
     if not tensor.areas:
         raise ValueError("NeuronalTensor must declare at least one area to bridge")
+    # T-25: same as neuronal_tensor_to_configuration — this bridge cannot carry
+    # a bound trained W0 and would silently run declared W0.
+    if tensor.trained_w0 is not None:
+        raise ValueError(
+            f"tensor {tensor.name!r} carries trained W0 (origin='trained'): "
+            "neuronal_tensor_to_adex_configuration builds the declared circuit only "
+            "and would silently run declared W0; trained W0 is realized on the "
+            "izhikevich route through construct(tensor)"
+        )
     _refuse_mixed_pose_specification(tensor)
     if tensor.connectivity_mode == "unspecified":
         raise ValueError(

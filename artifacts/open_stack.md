@@ -7,7 +7,6 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 ## In flight
 
 - O-30 GSDR fit on the reference morphology, 500 generations (`F:\warehouse\gsdr\gsdr_fit500_reference_2026-10-17\fit.log`, code 6124c5e5, GPU lock held about 17 h) | keeper | since 2026-10-17 | closes when `manifest.json` exists and CALIBRATION records the regime at its g*
-- O-33 T-25 W₀ provenance (`W0Provenance`, `with_trained_weights`), Muse lane in review round 2 (round 1: trained digest equal to parent's, `to_configuration` dropped trained weights, dtype) | keeper | since 2026-10-18 | closes when it lands on dev or is recorded as stopped
 
 ## Waiting on others
 
