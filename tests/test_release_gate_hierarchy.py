@@ -688,3 +688,20 @@ def test_manifest_rejects_backend_that_did_not_build_the_wheel():
     ):
         with pytest.raises(SystemExit):
             _require_backend_matches_pin(declared, observed)
+
+
+def test_publication_gate_runs_frozen_checks(monkeypatch):
+    # T-31(d): the publication gate ran a snapshot and printed placeholder text.
+    import scripts.run_test_gate as rtg
+
+    ran = []
+    monkeypatch.setattr(rtg, "_run", lambda cmd, family=None, **kw: ran.append((family, cmd)))
+    rtg.gate_publication()
+    families = [f for f, _ in ran if f is not None]
+    assert families == ["record_integrity", "harness_integrity", "publication_equivalence"]
+    for family in families:
+        assert family in CHECK_FAMILIES
+    eq = dict(ran)["publication_equivalence"]
+    assert eq[1].endswith("equivalence_gate.py")
+    report = Path(eq[eq.index("--report") + 1])
+    assert "scratch" in report.parts, "a gate run must not rewrite the tracked report"

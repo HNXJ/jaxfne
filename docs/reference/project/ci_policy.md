@@ -60,8 +60,10 @@ coverage argument depends on release CI selecting everything.
 
 ### publication gate
 
-- Repository state snapshot and hooks for frozen experiment manifests
-- Extend when publication-facing receipts have a single entrypoint
+- Frozen-path hashes (`record_integrity`, `harness_integrity`)
+- Figures 1–7 re-rendered and compared pixel-for-pixel with their frozen PNGs
+  (`publication_equivalence`; render and report under `scratch/publication_gate/`)
+- Repository state snapshot
 
 ## CI workflows
 

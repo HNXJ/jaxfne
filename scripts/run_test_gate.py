@@ -151,6 +151,7 @@ CHECK_FAMILIES = {
     "package_build",
     "twine_check",
     "isolated_wheel_smoke",
+    "publication_equivalence",
 }
 
 RELEASE_CI_GATE_FAMILIES = {
@@ -731,16 +732,32 @@ def write_rc_attestation(out_path: Path | None = None) -> Path:
 
 
 def gate_publication() -> None:
-    """Placeholder hook for frozen experiment manifests.
+    """The frozen publication record: frozen-path hashes, then Figures 1-7 re-rendered and
+    compared pixel-for-pixel with their frozen PNGs, then the repository state snapshot.
 
-    Extend this gate when publication-facing receipts have a single entrypoint.
+    Render and report go under the gitignored ``scratch/``, so the tracked
+    ``artifacts/publication/equivalence_report.json`` is not rewritten by a gate run.
     """
-    _run([sys.executable, "scripts/repo_state_snapshot.py"])
-    print(
-        "publication gate: repo_state_snapshot only; "
-        "add frozen experiment runners here when contracted.",
-        flush=True,
+    for family, cmd in AUDIT_STEPS:
+        if family in PUBLICATION_AUDIT_FAMILIES:
+            _run(cmd, family=family)
+    out = ROOT / "scratch" / "publication_gate"
+    _run(
+        [
+            sys.executable,
+            "scripts/publication_figures/equivalence_gate.py",
+            "--render-dir",
+            str(out / "render"),
+            "--report",
+            str(out / "equivalence_report.json"),
+        ],
+        family="publication_equivalence",
     )
+    _run([sys.executable, "scripts/repo_state_snapshot.py"])
+
+
+# Frozen-path checks the publication gate runs from AUDIT_STEPS.
+PUBLICATION_AUDIT_FAMILIES = ("record_integrity", "harness_integrity")
 
 
 GATES = {
