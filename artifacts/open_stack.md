@@ -6,7 +6,7 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 
 ## In flight
 
-- O-30 GSDR fit on the reference morphology, 500 generations (`F:\warehouse\gsdr\gsdr_fit500_reference_2026-10-17\fit.log`, code 6124c5e5, GPU lock held about 17 h; about 155 s per generation, so nearer 21 h). At gen 80 the best loss is 2.765e11, down 3.4% from 2.864e11 at gen 10, and the rate penalty dominates it (about 3.1e10 per candidate, psd term about 3.3), so cells sit near the penalty's rate bound | keeper | since 2026-10-17 | closes when `manifest.json` exists and CALIBRATION records the regime at its g*
+- O-36 CAMINOS zero-delay seeds 1-8 rerun under the T-22 quiescence rule (cap 64; the R = 2 runs in `F:\warehouse\caminos\calib\sens_delay0_p007\` are void) | keeper | since 2026-10-18 | closes when CALIBRATION section 11 records the runs, `max_rounds_used`, and the section 9 score
 
 ## Waiting on others
 

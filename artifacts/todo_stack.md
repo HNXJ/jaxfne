@@ -39,13 +39,14 @@ in the T-22 row).
 
 - R2 restated (Hamm 2026-10-14): bytes -10% against the 0.5.5 tag (met: 86.8 MB
   tracked at 1bfdaa84 against 126.0 MB at the tag) plus files at the recorded budget with
-  reasons on record (2436 tracked, `budget_files` 2436 in
+  reasons on record (2438 tracked, `budget_files` 2438 in
   `scripts/tree_size_allowlist.json`, 2026-10-18; each raise from 2269, its reason and
   authorization are in this line's git history and c4056347; 2372 -> 2400 for the Destexhe lane
   and the O-8 test, 2026-10-16; 2400 -> 2428 on 2026-10-17 for the GSDR lane, its diagnostics,
   the T-23 regime tests and the HH tests, each raise in its commit: fdd797ce, d0c1faae, 405378e8,
   c6f052af, bb55e631, 5615fb98, 844900c6; 2428 -> 2436 on 2026-10-18 for the 10 changelog
-  fragments since v0.5.6, which the assembler deletes at release). The
+  fragments since v0.5.6, which the assembler deletes at release; 2436 -> 2438 on 2026-10-18
+  for the GSDR regime diagnostic at the reference g* and its test). The
   regenerable docs assets are untracked already: the 9 registry `copies` dests under
   `docs/assets/etudes/` and all atlas/etude HTML are build products of
   `scripts/build_docs_assets.py --build` (the Read the Docs `pre_build` path) and gitignored.
@@ -180,10 +181,13 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   more drive). Hamm 2026-10-17: the 4-compartment layout is deliberate; keep it (S1 retired).
   The multi-compartment route landed (jaxley 0.14.0 oracle within 8.3e-12 mV; gates start at
   0.2 as in the reference; `single` bit-identical). §6.11: at the one-compartment g* the
-  reference cell fires faster (70.7 Hz, κ_fit 0.61), so g* says little about it. Running: the
-  GSDR fit on `--morphology reference` (500 generations, population 6, about 17 h on the GPU,
-  `F:\warehouse\gsdr\gsdr_fit500_reference_2026-10-17\`, resumable). Then the regime diagnostic
-  at its g* and held-out seeds 4–8. The scored steps run under `PREREG_P3.md`, still a draft:
+  reference cell fires faster (70.7 Hz, κ_fit 0.61), so g* says little about it. §6.12: the
+  500-generation refit on `--morphology reference` stays saturated (best loss carried by the
+  rate penalty; at its g* every E cell fires every cycle near 120 Hz, κ 0.60, on fit seed 1 and
+  held-out seeds 4–8). Next, to isolate the source of κ (sol's review 2026-10-18): (a) AMPA
+  scale sweep at the reference g* on `--morphology reference` (§6.10's sweep was on the
+  one-compartment cell); (b) single reference cell f–I curve against the jaxley oracle, for
+  per-cell excitability; (c) CPU against GPU on one fixed trial, for numerics. The scored steps run under `PREREG_P3.md`, still a draft:
   Hamm signs it before a scored verdict (O-25). HH hardening landed; open low notes: `held_steps` counts edge elements while the
   docstring says steps, int32 count scalars, no full-kernel grad test, `dt="0.1"` coerced.
 - T-30 [A] Replication conformance to the checklist (`etudes/meta/RESIDUAL_PROTOCOL.md`, section

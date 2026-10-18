@@ -633,3 +633,40 @@ one 20π µm² compartment, 4× the density of S2). g* was fitted on the
 reduced cell and says little about the reference one. Next: the paper's
 own procedure, the GSDR fit on `--morphology reference` (budget as
 §6.3), then the regime diagnostic at its g*.
+
+### 6.12 Refit on the reference morphology stays saturated (OBSERVED)
+
+Fit: `fit/fit_gsdr_500.py --morphology reference`, 500 generations,
+population 6, fit seeds 1–3, code 6124c5e5, GPU
+(`F:\warehouse\gsdr\gsdr_fit500_reference_2026-10-17\`, `manifest.json`,
+`g_star_uS_float32.npy`). Best loss 1.924e10, carried by the rate
+penalty (mean penalty 2.14e9 per trial; PSD term 3.29, kappa term 0.68):
+no candidate reached the rate band.
+
+Diagnostic at that g*: `diag/regime_at_gstar.py`, stim 0.6, CPU, code
+0a373674, `diag_seed{1,4..8}.json` in the fit folder; seed 1 is a fit
+seed, 4–8 are held out; about 7–11 s per seed. Window [500, 1000] ms.
+
+| seed | rate (Hz) | E mean (Hz) | E rate min / median / max | silent | PSD peak (Hz) | cycles | participation | kappa | spikes per third |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 69.28 | 117.78 | 114 / 118 / 118 | 0.00 | 41.54 | 20 | 1.0000 ± 0.0000 | 0.607 | 1200 / 2945 / 1051 |
+| 4 | 68.27 | 120.00 | 120 / 120 / 120 | 0.00 | 39.23 | 19 | 1.0000 ± 0.0000 | 0.604 | 1157 / 3000 / 963 |
+| 5 | 69.37 | 119.89 | 116 / 120 / 120 | 0.00 | 39.23 | 19 | 1.0000 ± 0.0000 | 0.605 | 1203 / 2996 / 1004 |
+| 6 | 69.32 | 119.83 | 116 / 120 / 120 | 0.00 | 40.38 | 20 | 1.0000 ± 0.0000 | 0.603 | 1151 / 2996 / 1052 |
+| 7 | 72.57 | 119.83 | 116 / 120 / 120 | 0.00 | 39.23 | 19 | 1.0000 ± 0.0000 | 0.596 | 1198 / 2995 / 1250 |
+| 8 | 71.33 | 119.83 | 116 / 120 / 120 | 0.00 | 41.54 | 20 | 1.0000 ± 0.0000 | 0.599 | 1253 / 2993 / 1104 |
+| y | — | 2.14 | 52/95 silent | 0.55 | 38.08 | — | — | 0.0156 | — |
+
+Every E cell fires in every gamma cycle at a common rate near 120 Hz
+(about three spikes per cycle), on all six seeds; the held-out seeds
+match the fit seed. The PSD peak lands near y's 38 Hz, the rate and
+kappa do not. The fit on the paper's morphology did not leave the
+saturated regime, so the regime does not come from the S1 reduction
+(§6.10) and the fit cannot reach it through g alone at this budget.
+Excluded so far: the kappa estimator (§6.6), inhibition, noise, the
+stimulus and overall gain (§6.4–6.7), the reduced morphology (here).
+Left: recurrent excitation on the reference cell (§6.10's AMPA sweep
+was on the one-compartment cell) and per-cell excitability (single
+reference cell f–I against the jaxley oracle). Diagnostic test:
+`tests/test_gsdr2026_regime.py` (4 passed; a window off-by-one mutant
+fails 3).
