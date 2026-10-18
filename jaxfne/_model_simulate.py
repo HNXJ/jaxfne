@@ -1504,10 +1504,29 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
         "not_recorded": ["sources", "field"],
     }
     if "edge0_pre" in kwargs:
+        import numpy as _np_fp
+
+        _unres = _np_fp.asarray(
+            out["fixed_point_unresolved"], dtype=_np_fp.int64
+        ).reshape(-1)
+        _n_unres = int(_unres.sum())
+        if _n_unres:
+            raise ValueError(
+                "intra-step fixed point reached its cap intra_step_rounds="
+                f"{int(kwargs['intra_step_rounds'])} "
+                f"with {_n_unres} undelivered same-step spikes, "
+                f"first at step {int(_np_fp.argmax(_unres > 0))}; raise intra_step_rounds"
+            )
         metadata["intra_step_fixed_point"] = {
             "rounds": int(kwargs["intra_step_rounds"]),
             "n_delay0_edges": int(kwargs["edge0_pre"].shape[0]),
-            "rule": "or-monotone re-step from pre-step state",
+            "rule": "or-monotone re-step from pre-step state until quiescence, rounds capped",
+            "n_unresolved_spikes": 0,
+            "max_rounds_used": int(
+                _np_fp.asarray(out["fixed_point_rounds"], dtype=_np_fp.int64)
+                .reshape(-1)
+                .max()
+            ),
         }
     if sim.poisson_drive is not None:
         metadata["poisson_drive"] = {

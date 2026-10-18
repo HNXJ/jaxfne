@@ -334,3 +334,24 @@ def test_manifest_records_rounds_only_on_the_zero_delay_path(tmp_path, delay_ms,
     else:
         assert entry["intra_step_rounds"] == want
         assert keys[keys.index("delay_ms") + 1] == "intra_step_rounds"
+
+
+@pytest.mark.parametrize("delay_ms, used, want", [(0.0, 5, 5), (0.0, None, None),
+                                                  (0.1, 5, None)])
+def test_manifest_records_rounds_used_on_the_zero_delay_path(tmp_path, delay_ms, used, want):
+    import json
+
+    import numpy as np
+
+    import caminos_api as ca
+
+    ca.write_run(tmp_path, p=0.02, seed=1, T_s=0.001, counts=np.zeros((10, 3), np.float32),
+                 sizes={"E": 1, "PV": 1, "SOM": 1}, wall_s=0.0, start_time="t", sha="s",
+                 delay_ms=delay_ms, max_rounds_used=used)
+    entry = json.loads((tmp_path / "manifest.json").read_text())["runs"][0]
+    if want is None:
+        assert "max_rounds_used" not in entry
+    else:
+        assert entry["max_rounds_used"] == want
+        keys = list(entry)
+        assert keys[keys.index("intra_step_rounds") + 1] == "max_rounds_used"

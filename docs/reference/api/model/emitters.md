@@ -805,10 +805,11 @@ print(signals.V_m.shape)
     the receptor (`metadata["receptors"]`).
   - `connections(name=, source=, target=, probability=, weight=, mechanism=, delay_ms=, sampling=, intra_step_rounds=)`:
     `name` labels the rule (`metadata["rules"]`). The optional `intra_step_rounds=R` (a positive
-    int) declares the intra-step fixed point for a rule whose delay rounds to 0 steps: round 0 is
-    the existing step, then R rounds propagate newly spiked cells' delay-0 conductance and re-step
-    cells not yet spiked from the pre-step state. The manifest records the fixed point under
-    `intra_step_fixed_point`.
+    int, the round cap) declares the intra-step fixed point for a rule whose delay rounds to 0
+    steps: round 0 is the existing step, then rounds propagate newly spiked cells' delay-0
+    conductance and re-step cells not yet spiked from the pre-step state until no newly spiked cell
+    owns a delay-0 out-edge. A step that reaches R with undelivered events refuses the run. The
+    manifest records the fixed point under `intra_step_fixed_point` (`rounds`, `max_rounds_used`).
   - `connectivity(edge_seed=)`, or `runtime(seed=)` when that is unset: the edge seed draws the edges.
   - `runtime(dt_ms=, duration_ms=)`: each must equal the Simulation's value, or simulate refuses the
     conflict.

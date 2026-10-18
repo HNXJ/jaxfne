@@ -1,10 +1,12 @@
 """T-22 phase 1: declared intra-step fixed point for zero-delay edges (adex route).
 
 A connection declaring ``intra_step_rounds=R`` admits a delay rounding to 0 steps on
-that connection only: within one step, round 0 is the ordinary step, then rounds 1..R
-fold the newly spiked cells' delay-0 arrivals into the conductance and re-step every
-not-yet-spiked cell from the same pre-step ``(V, w, ref)``; spikes are OR-ed, never
-undone. Kernel oracles below transcribe that rule with direct ``adex_step`` calls.
+that connection only: within one step, round 0 is the ordinary step, then further
+rounds fold the newly spiked cells' delay-0 arrivals into the conductance and re-step
+every not-yet-spiked cell from the same pre-step ``(V, w, ref)`` until quiescence
+(no newly spiked cell owns a delay-0 out-edge) or R rounds have run; R is a cap,
+and a run the cap stops is refused. Spikes are OR-ed, never undone. Kernel oracles
+below transcribe that rule with direct ``adex_step`` calls.
 """
 
 from __future__ import annotations
@@ -80,12 +82,15 @@ def _run_chain(n_cells, rounds, **overrides):
     return np.asarray(out["spikes"])[0]
 
 
-def test_chain_round1_reaches_one_hop():
-    got = _run_chain(3, 1)
-    assert got.sum() > 0, "fixture must spike"
-    np.testing.assert_array_equal(got, [True, True, False])
-    want, _, _, _ = _oracle_first_step(make_adex_params(("E",) * 3), 3, CHAIN_WEIGHT_NS, 1)
-    np.testing.assert_array_equal(got, want)
+def test_round1_cap_refuses_undelivered_spike():
+    # Cap 1 strands cell 1 (its output to cell 2 never delivered): the run is
+    # refused instead of returning the partial cascade.
+    with pytest.raises(ValueError) as info:
+        _run_chain(3, 1)
+    msg = str(info.value)
+    assert "intra_step_rounds=1" in msg, msg
+    assert "step 0" in msg, msg
+    assert "raise intra_step_rounds" in msg, msg
 
 
 def test_chain_round2_reaches_two_hops():
@@ -95,12 +100,18 @@ def test_chain_round2_reaches_two_hops():
     np.testing.assert_array_equal(got, want)
 
 
-@pytest.mark.parametrize("rounds, n_spiked", [(5, 6), (19, 20)])
-def test_long_chain_converges_one_hop_per_round(rounds, n_spiked):
-    got = _run_chain(20, rounds)
+@pytest.mark.parametrize("cap", [19, 30])
+def test_long_chain_converges_to_quiescence(cap):
+    # A 20-chain needs 19 rounds (the last cell is a sink); a larger cap stops
+    # at quiescence with identical outputs.
+    out = _chain_out(20, cap)
+    got = np.asarray(out["spikes"])[0]
     assert got.sum() > 0, "fixture must spike"
-    np.testing.assert_array_equal(got, [(i <= rounds) for i in range(20)])
-    assert int(got.sum()) == n_spiked
+    np.testing.assert_array_equal(got, np.ones(20, bool))
+    np.testing.assert_array_equal(
+        np.asarray(out["fixed_point_rounds"]), np.array([19], np.int32))
+    np.testing.assert_array_equal(
+        np.asarray(out["fixed_point_unresolved"]), np.zeros(1, np.int32))
 
 
 def test_absent_rounds_runs_the_historical_body_bit_for_bit():
@@ -163,8 +174,10 @@ CELL_TYPES = {"E": 0.8, "PV": 0.1, "SOM": 0.1}
 
 
 def _route_cfg(**over):
+    # Cap 64: quiescence on 60 cells needs at most 60 rounds (each round adds
+    # at least one newly spiked cell), so the default route is always accepted.
     kw = dict(probability=0.2, weight=0.5, delay_ms=0.04, sampling="bernoulli",
-              intra_step_rounds=2, edge_seed=11)
+              intra_step_rounds=64, edge_seed=11)
     kw.update(over)
     rounds = kw.pop("intra_step_rounds")
     seed = kw.pop("edge_seed")
@@ -200,9 +213,13 @@ def test_declared_rounds_admit_zero_delay_end_to_end():
     st = model.static["adex"]
     n_edges = int(np.asarray(st["pre"]).shape[0])
     assert n_edges > 0, "the fixture must realize delay-0 edges"
-    assert signals.metadata["intra_step_fixed_point"] == {
-        "rounds": 2, "n_delay0_edges": n_edges,
-        "rule": "or-monotone re-step from pre-step state"}
+    fp = signals.metadata["intra_step_fixed_point"]
+    assert fp["rounds"] == 64
+    assert fp["n_delay0_edges"] == n_edges
+    assert fp["rule"] == (
+        "or-monotone re-step from pre-step state until quiescence, rounds capped")
+    assert fp["n_unresolved_spikes"] == 0
+    assert isinstance(fp["max_rounds_used"], int) and fp["max_rounds_used"] >= 0
 
 
 def test_manifest_omits_fixed_point_without_delay0_edges():
@@ -328,7 +345,8 @@ def test_manifest_impl_sources_fixed_point_from_signals_metadata():
     model, signals = _izhi_run()
     assert "intra_step_fixed_point" not in _run_manifest(model, signals)
     want = {"rounds": 2, "n_delay0_edges": 7,
-            "rule": "or-monotone re-step from pre-step state"}
+            "rule": "or-monotone re-step from pre-step state until quiescence, rounds capped",
+            "n_unresolved_spikes": 0, "max_rounds_used": 4}
     tagged = dataclasses.replace(
         signals, metadata={**signals.metadata, "intra_step_fixed_point": dict(want)})
     assert _run_manifest(model, tagged)["intra_step_fixed_point"] == want
@@ -535,3 +553,134 @@ def test_hdp_kernel_refuses_zero_ext_delay():
             hdp_rule="synthetic_presyn_gain",
         )
     assert "same-step" in str(info.value)
+
+
+# T-22 phase 4 (ruling 2026-10-18): the fixed point runs to quiescence with
+# intra_step_rounds=R as a cap. A run the cap stops is refused naming the cap,
+# the first stranded step and the total; accepted runs report the rounds used.
+def _chain_out(n_cells, rounds, n_steps=1, record_v=True, **overrides):
+    params, edges = _chain(n_cells)
+    edges.update(overrides)
+    return simulate_adex(
+        params, n_steps=n_steps, dt_ms=DT_MS, intra_step_rounds=rounds,
+        record_v=record_v, **edges, **RECEPTORS, decay="exp",
+    )
+
+
+def test_cap1_chain_refused_naming_step_and_cap():
+    # Cap 1 strands cell 1 (its output to cell 2 never delivered).
+    with pytest.raises(ValueError) as info:
+        _chain_out(4, 1)
+    msg = str(info.value)
+    assert "intra_step_rounds=1" in msg, msg
+    assert "step 0" in msg, msg
+    assert "1 undelivered" in msg, msg
+    assert "raise intra_step_rounds" in msg, msg
+
+
+def test_resolved_sink_reports_zero():
+    out = _chain_out(4, 3)
+    np.testing.assert_array_equal(
+        np.asarray(out["fixed_point_unresolved"]), np.zeros(1, np.int32))
+    np.testing.assert_array_equal(
+        np.asarray(out["fixed_point_rounds"]), np.array([3], np.int32))
+    assert np.asarray(out["spikes"])[0].tolist() == [True, True, True, True]
+
+
+def test_longer_than_cap_refused_at_cap_accepted():
+    with pytest.raises(ValueError) as info:
+        _chain_out(5, 3)
+    assert "intra_step_rounds=3" in str(info.value)
+    out = _chain_out(5, 4)
+    assert np.asarray(out["spikes"])[0].tolist() == [True] * 5
+    np.testing.assert_array_equal(
+        np.asarray(out["fixed_point_rounds"]), np.array([4], np.int32))
+    np.testing.assert_array_equal(
+        np.asarray(out["fixed_point_unresolved"]), np.zeros(1, np.int32))
+
+
+def test_unresolved_absent_without_delay0_edges():
+    params = make_adex_params(("E", "E", "E"))
+    I_ext = np.zeros((3,), dtype=np.float64)
+    I_ext[0] = I_DRIVE_PA
+    for record_v in (False, True):
+        out = simulate_adex(
+            params, n_steps=3, dt_ms=DT_MS, I_ext_pA=I_ext,
+            record_v=record_v, **RECEPTORS, decay="exp",
+        )
+        assert "fixed_point_unresolved" not in out
+
+
+def test_unresolved_present_without_record_v():
+    out = _chain_out(4, 3, record_v=False)
+    np.testing.assert_array_equal(
+        np.asarray(out["fixed_point_unresolved"]), np.zeros(1, np.int32))
+    np.testing.assert_array_equal(
+        np.asarray(out["fixed_point_rounds"]), np.array([3], np.int32))
+    assert "V_mV" not in out
+
+
+def test_unresolved_reported_on_the_same_step_drive_body():
+    params = make_adex_params(("E",) * 3)
+    n_steps = 8
+    out = simulate_adex(
+        params, n_steps=n_steps, dt_ms=DT_MS, record_v=True,
+        receptor_reversal_mV=(0.0,), receptor_tau_ms=(2.0,), decay="exp",
+        ext_targets=np.arange(1), ext_lambda=3.0, ext_weight_nS=30.0,
+        ext_receptor=0, ext_delay_steps=0, key=jax.random.PRNGKey(11),
+        edge0_pre=np.array([0, 1]), edge0_post=np.array([1, 2]),
+        edge0_weight_nS=np.full(2, CHAIN_WEIGHT_NS),
+        edge0_receptor=np.zeros(2, dtype=np.int64), intra_step_rounds=2,
+    )
+    unres = np.asarray(out["fixed_point_unresolved"])
+    assert unres.dtype == np.int32, unres.dtype
+    assert unres.shape == (n_steps,)
+    assert bool((unres >= 0).all())
+    assert int(unres.sum()) == 0, "a 2-deep chain from cell 0 always resolves"
+    rounds = np.asarray(out["fixed_point_rounds"])
+    assert rounds.dtype == np.int32, rounds.dtype
+    assert bool(((rounds >= 0) & (rounds <= 2)).all())
+
+
+def test_manifest_carries_unresolved_totals():
+    model = jtfne.construct(_route_cfg())
+    signals = model.simulate(_sim())
+    fp = signals.metadata["intra_step_fixed_point"]
+    assert set(fp) == {"rounds", "n_delay0_edges", "rule",
+                       "n_unresolved_spikes", "max_rounds_used"}
+    assert fp["rounds"] == 64
+    assert fp["n_unresolved_spikes"] == 0
+    assert isinstance(fp["max_rounds_used"], int) and fp["max_rounds_used"] >= 0
+
+
+def test_route_refuses_cap_stopped_run():
+    # Strong recurrent weight so one delay-0 arrival spikes: cap 1 strands a
+    # cascade and the model route refuses (nothing partial is returned).
+    model = jtfne.construct(_route_cfg(weight=1000.0, intra_step_rounds=1))
+    with pytest.raises(ValueError) as info:
+        model.simulate(_same_sim())
+    msg = str(info.value)
+    assert "intra_step_rounds=1" in msg, msg
+    assert "raise intra_step_rounds" in msg, msg
+
+
+# Byte pin for the quiescence loop: at cap 10 the 4-cell chain reproduces the
+# old fixed-R kernel at R = 3 (the cascade depth) bit-for-bit. Spikes and V
+# frozen from the pre-loop implementation (float32, x64 off).
+_CHAIN_Q_SPIKES = [[True, True, True, True], [False, False, False, False]]
+_CHAIN_Q_V = [[-65.0, -65.0, -65.0, -65.0],
+              [-65.0, -65.0, -65.0, -65.0]]
+
+
+def test_quiescence_pinned_byte_identical_to_fixed_r():
+    out = _chain_out(4, 10, n_steps=2)
+    np.testing.assert_array_equal(np.asarray(out["spikes"]), _CHAIN_Q_SPIKES)
+    np.testing.assert_array_equal(
+        np.asarray(out["V_mV"]),
+        np.asarray(_CHAIN_Q_V, dtype=np.asarray(out["V_mV"]).dtype),
+    )
+    # The loop stops at quiescence after 3 rounds at step 0; step 1 is quiet.
+    np.testing.assert_array_equal(
+        np.asarray(out["fixed_point_unresolved"]), np.zeros(2, np.int32))
+    np.testing.assert_array_equal(
+        np.asarray(out["fixed_point_rounds"]), np.array([3, 0], np.int32))

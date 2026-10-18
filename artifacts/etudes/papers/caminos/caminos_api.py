@@ -80,11 +80,11 @@ def _delay(delay_ms):
 
 # True zero delay (core gap G12, closed in T-22 phases 1 and 2): a delay
 # resolving to 0 steps at the run's dt runs the intra-step fixed point with
-# this many rounds on every connection, and the drive with ``"same_step": True``.
-# Set by the R convergence probe (p = 0.07, seed 1, T = 0.5 s, float32, delay 0, CPU,
-# 2026-10-18): the spike raster at R = 2 equals R = 4, 8, 16 and 32 byte for byte; R = 1
-# differs (CALIBRATION.md section 11).
-ZERO_DELAY_ROUNDS = 2
+# this round cap on every connection, and the drive with ``"same_step": True``.
+# The fixed point runs to quiescence; a step that reaches the cap with undelivered
+# events refuses the run (T-22, Hamm 2026-10-18). The cap costs nothing below it.
+# The rounds a run used are recorded as ``max_rounds_used`` (CALIBRATION.md section 11).
+ZERO_DELAY_ROUNDS = 64
 
 
 def _validate_rounds(rounds):
@@ -369,7 +369,8 @@ def _refuse_existing(out_dir, fname, sha):
 
 
 def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
-              ext_sources="pNE", delay_ms=None, intra_step_rounds=None):
+              ext_sources="pNE", delay_ms=None, intra_step_rounds=None,
+              max_rounds_used=None):
     """Write the count array plus the manifest ``caminos_analysis.score`` reads."""
     import numpy as np
 
@@ -396,6 +397,8 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
              "delay_ms": d}
     if rounds is not None:
         entry["intra_step_rounds"] = rounds
+        if max_rounds_used is not None:
+            entry["max_rounds_used"] = int(max_rounds_used)
     entry.update({"backend": "edge_list",
                   "git_sha": sha, "start_time": start_time,
                   "wall_s": float(wall_s), "steps": int(counts.shape[0])})
@@ -459,7 +462,9 @@ def run(p, seed, T_s, out_dir, signed=False, ext_sources="pNE", delay_ms=None,
     write_run(out_dir, p=p, seed=seed, T_s=T_s, counts=counts, sizes=sizes,
               wall_s=wall_s, start_time=start_time, sha=git_sha(),
               ext_sources=ext_sources, delay_ms=delay_ms,
-              intra_step_rounds=intra_step_rounds)
+              intra_step_rounds=intra_step_rounds,
+              max_rounds_used=(int(np.asarray(out["fixed_point_rounds"]).max())
+                               if "fixed_point_rounds" in out else None))
     return {"counts": counts, "sizes": sizes, "steps": sim.n_steps,
             "wall_s": wall_s}
 

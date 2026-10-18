@@ -149,11 +149,14 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   (AdEx zero-delay edges, `connections(intra_step_rounds=R)`) landed 2026-10-18. Semantics
   (Hamm 2026-10-18, O-35 defaults confirmed): (1) the declaration sits on the Configuration
   connection for the AdEx route, PCL keeps `NeuronalTensor` `local_inhibition`; (2) `event_scan`
-  stays out of the operator; (3) fixed R, no iterate-to-quiescence; (4) round rule: OR-monotone
-  re-step from the pre-step state. Phase 2 (Poisson drive delay 0 with `"same_step": True`;
+  stays out of the operator; (3) iterate to quiescence with R as a cap that refuses when hit
+  (Hamm 2026-10-18, reversing "fixed R": a fixed R dropped the delay-0 output of the last
+  round's new spikers, so CAMINOS R = 2 and R = 4 diverged at step 29596); (4) round rule:
+  OR-monotone re-step from the pre-step state. Phase 2 (Poisson drive delay 0 with `"same_step": True`;
   brian2 and the registered-HDP kernel refuse it) landed 2026-10-18. CAMINOS on the core
   (5235f807): a 0-step delay passes `same_step` and `intra_step_rounds` (R = 2 from a probe,
-  CAMINOS CALIBRATION section 11); seeds 1-8 and an R = 4 check are queued behind the GPU lock. PCL B3
+  CAMINOS CALIBRATION section 11); the R = 2 seeds 1-8 are void under the cap rule and rerun
+  under quiescence. PCL B3
   (Muse sweep 2026-10-18, checked): its rule is an inhibitory depth-ordered cascade (a winner
   vetoes later candidates), already in the core as the LIF route's
   `local_inhibition_resolution="event_order"` (`emitters_lif.py` `_cascade_step`); the AdEx

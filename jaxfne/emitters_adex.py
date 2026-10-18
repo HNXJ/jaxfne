@@ -535,19 +535,31 @@ def simulate_adex(
     The declared intra-step fixed point for zero-delay edges rides the
     ``edge0_*`` arrays (``edge0_pre``, ``edge0_post``, ``edge0_weight_nS``,
     ``edge0_receptor``: all given or all None, same shapes as ``edge_*``
-    minus the delay) plus ``intra_step_rounds`` (a positive int R): within one
-    step, round 0 is the step above giving ``spk``; then for ``r`` in 1..R,
-    cells that newly spiked in the previous round add their delay-0 weights
-    to the post cells' ``g`` for this step, and every cell not yet spiked
-    this step is re-stepped from the same pre-step ``(V, w, ref)`` with the
-    updated ``g``; spikes are OR-ed, never undone. The final ``g`` includes
-    all delay-0 arrivals of the step, and the final ``spk`` is written to the
-    ring. Absent ``edge0_*``/``intra_step_rounds`` (both None) the scan body
+    minus the delay) plus ``intra_step_rounds`` (a positive int R, the cap):
+    within one step, round 0 is the step above giving ``spk``; then further
+    rounds run while some cell that newly spiked in the last round owns a
+    delay-0 out-edge and fewer than R rounds have run. Each such round adds
+    the newly spiked cells' delay-0 weights to the post cells' ``g`` for this
+    step, and every cell not yet spiked this step is re-stepped from the same
+    pre-step ``(V, w, ref)`` with the updated ``g``; spikes are OR-ed, never
+    undone. The loop stops at quiescence (a round whose newly spiked cells
+    own no delay-0 out-edge adds no conductance, so stopping changes
+    nothing); the cap stops it otherwise, and then the run is refused rather
+    than returning dropped events. The final ``g`` includes all delay-0
+    arrivals of the step, and the final ``spk`` is written to the ring.
+    Absent ``edge0_*``/``intra_step_rounds`` (both None) the scan body
     is the step above byte-for-byte; one without the other is refused.
 
     Returns a dict: ``spikes`` (bool ``[n_steps, N]``), ``V_mV`` (``[n_steps, N]``, after each
     step's update, only if ``record_v``: 4.6 GB in float32 at 9500 cells and 120000 steps),
-    and the final ``V``, ``w``, ``ref`` and ``g``.
+    and the final ``V``, ``w``, ``ref`` and ``g``. With delay-0 edges, also
+    ``fixed_point_unresolved`` (int32 ``[n_steps]``: per step, the number of
+    cells that newly spiked in the final round and own delay-0 out-edges —
+    nonzero only where the cap stopped the loop) and ``fixed_point_rounds``
+    (int32 ``[n_steps]``: rounds run after round 0); absent otherwise. A nonzero
+    unresolved count anywhere refuses with ``ValueError`` naming the cap, the
+    first such step and the total, saying to raise ``intra_step_rounds``;
+    nothing partial is returned.
     Implemented with ``jax.lax.scan``; no dense ``N x N`` matrix. dtype follows ``params``.
 
     Raises ``ValueError`` naming the argument for every refused input.
@@ -675,6 +687,7 @@ def simulate_adex(
         pre0_j = jnp.asarray(zero["pre"], jnp.int32)
         seg0_j = jnp.asarray(zero["post"] * R + zero["receptor"], jnp.int32)
         absw0_j = jnp.asarray(np.abs(zero["weight"]), dtype)
+        has_out0_j = jnp.asarray(np.bincount(zero["pre"], minlength=N) > 0)
     decay_r = np.exp(-dt_ms / tau) if decay == "exp" else 1.0 - dt_ms / tau
     decay_j = jnp.asarray(decay_r, dtype)
     rev_j = jnp.asarray(rev, dtype)
@@ -748,15 +761,22 @@ def simulate_adex(
             I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
             (V, w, ref), spk = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
         else:
-            # Declared intra-step fixed point: round 0 is the step above;
-            # rounds 1..R re-step every not-yet-spiked cell from the same
-            # pre-step (V, w, ref) with the delay-0 arrivals folded into g.
+            # Declared intra-step fixed point: round 0 is the step above, then
+            # further rounds re-step every not-yet-spiked cell from the same
+            # pre-step (V, w, ref) with the delay-0 arrivals folded into g, until
+            # no newly spiked cell owns a delay-0 out-edge (quiescence) or R
+            # rounds have run. A round with no such cell adds no conductance, so
+            # stopping there changes nothing.
             I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
             (V1, w1, ref1), spk0 = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
             V_pre, w_pre, ref_pre = V, w, ref
 
-            def _fp_round(_r, fp_carry):
-                spk_acc, Vc, wc, refc, gc, prev_new = fp_carry
+            def _fp_cond(fp_carry):
+                _, _, _, _, _, prev_new, done = fp_carry
+                return (done < n_rounds) & jnp.any(prev_new & has_out0_j)
+
+            def _fp_round(fp_carry):
+                spk_acc, Vc, wc, refc, gc, prev_new, done = fp_carry
                 add0 = jax.ops.segment_sum(
                     jnp.where(prev_new[pre0_j], absw0_j, 0.0),
                     seg0_j,
@@ -771,12 +791,15 @@ def simulate_adex(
                 Vc = jnp.where(take, Vn, Vc)
                 wc = jnp.where(take, wn, wc)
                 refc = jnp.where(take, refn, refc)
-                return (spk_acc | spkn, Vc, wc, refc, gc, spkn & ~spk_acc)
+                return (spk_acc | spkn, Vc, wc, refc, gc, spkn & ~spk_acc, done + 1)
 
-            spk_acc, V, w, ref, g, _prev = jax.lax.fori_loop(
-                0, n_rounds, _fp_round, (spk0, V1, w1, ref1, g, spk0)
+            spk_acc, V, w, ref, g, _prev, n_done = jax.lax.while_loop(
+                _fp_cond, _fp_round, (spk0, V1, w1, ref1, g, spk0, jnp.int32(0))
             )
             spk = spk_acc
+            # Cells that newly spiked in the final round and own delay-0
+            # out-edges: their same-step outputs were never delivered.
+            n_unres = jnp.sum(_prev & has_out0_j).astype(jnp.int32)
         ring = ring.at[t % L].set(spk)
         if ext is not None:
             if lam_1d is None and lam_2d is None:
@@ -790,7 +813,10 @@ def simulate_adex(
                 t0, t1 = window
                 extc = jnp.where((t >= t0) & (t < t1), extc, jnp.zeros_like(extc))
             ering = ering.at[t % L].set(extc)
-        out = (spk, V) if record_v else spk
+        if has_zero:
+            out = (spk, V, n_unres, n_done) if record_v else (spk, n_unres, n_done)
+        else:
+            out = (spk, V) if record_v else spk
         return (V, w, ref, g, ring, ering, t + 1, rkey), out
 
     def body0(carry, I_t):
@@ -828,13 +854,18 @@ def simulate_adex(
             (V, w, ref), spk = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
         else:
             # Declared intra-step fixed point, round 0 as above (g already holds
-            # the same-step arrivals); rounds 1..R re-step as in body.
+            # the same-step arrivals); further rounds re-step as in body, until
+            # quiescence or R rounds.
             I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
             (V1, w1, ref1), spk0 = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
             V_pre, w_pre, ref_pre = V, w, ref
 
-            def _fp_round(_r, fp_carry):
-                spk_acc, Vc, wc, refc, gc, prev_new = fp_carry
+            def _fp_cond(fp_carry):
+                _, _, _, _, _, prev_new, done = fp_carry
+                return (done < n_rounds) & jnp.any(prev_new & has_out0_j)
+
+            def _fp_round(fp_carry):
+                spk_acc, Vc, wc, refc, gc, prev_new, done = fp_carry
                 add0 = jax.ops.segment_sum(
                     jnp.where(prev_new[pre0_j], absw0_j, 0.0),
                     seg0_j,
@@ -849,14 +880,19 @@ def simulate_adex(
                 Vc = jnp.where(take, Vn, Vc)
                 wc = jnp.where(take, wn, wc)
                 refc = jnp.where(take, refn, refc)
-                return (spk_acc | spkn, Vc, wc, refc, gc, spkn & ~spk_acc)
+                return (spk_acc | spkn, Vc, wc, refc, gc, spkn & ~spk_acc, done + 1)
 
-            spk_acc, V, w, ref, g, _prev = jax.lax.fori_loop(
-                0, n_rounds, _fp_round, (spk0, V1, w1, ref1, g, spk0)
+            spk_acc, V, w, ref, g, _prev, n_done = jax.lax.while_loop(
+                _fp_cond, _fp_round, (spk0, V1, w1, ref1, g, spk0, jnp.int32(0))
             )
             spk = spk_acc
+            # As in body: final-round newly spiked cells with delay-0 out-edges.
+            n_unres = jnp.sum(_prev & has_out0_j).astype(jnp.int32)
         ring = ring.at[t % L].set(spk)
-        out = (spk, V) if record_v else spk
+        if has_zero:
+            out = (spk, V, n_unres, n_done) if record_v else (spk, n_unres, n_done)
+        else:
+            out = (spk, V) if record_v else spk
         return (V, w, ref, g, ring, ering, t + 1, rkey), out
 
     if ext is not None:
@@ -878,7 +914,7 @@ def simulate_adex(
     scan_body = body0 if (ext is not None and d_ext == 0) else body
     (V, w, ref, g, _, _, _, _), ys = jax.lax.scan(scan_body, carry0, I_all, length=n_steps)
     result = {
-        "spikes": ys[0] if record_v else ys,
+        "spikes": ys[0] if (record_v or has_zero) else ys,
         "V": V,
         "w": w,
         "ref": ref,
@@ -886,6 +922,19 @@ def simulate_adex(
     }
     if record_v:
         result["V_mV"] = ys[1]
+    if has_zero:
+        result["fixed_point_unresolved"] = ys[2] if record_v else ys[1]
+        result["fixed_point_rounds"] = ys[3] if record_v else ys[2]
+        _unres_h = np.asarray(
+            result["fixed_point_unresolved"], dtype=np.int64
+        ).reshape(-1)
+        _n_unres = int(_unres_h.sum())
+        if _n_unres:
+            raise ValueError(
+                f"intra-step fixed point reached its cap intra_step_rounds={n_rounds} "
+                f"with {_n_unres} undelivered same-step spikes, "
+                f"first at step {int(np.argmax(_unres_h > 0))}; raise intra_step_rounds"
+            )
     return result
 
 
