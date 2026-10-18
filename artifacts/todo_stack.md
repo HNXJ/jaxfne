@@ -53,8 +53,6 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   other tracked `docs/assets/` file (its generator, if one exists, is not in the build path;
   `--html-only` skips PNG rasterization) would leave broken embeds if untracked, so all stay
   tracked.
-- T-7 [A] R5: every paper row in `REPLICATIONS.md` carries a verdict or a reason (2026-10-13).
-  Closes when: `python scripts/build_dashboard_data.py --check` passes on the pushed SHA.
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
   push dev. Standing item. Closes when: `python scripts/build_dashboard_data.py --check` passes
   on each push.
