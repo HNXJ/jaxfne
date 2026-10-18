@@ -1403,6 +1403,11 @@ def _laminar_match_mask(neurons_df, area=None, layers=None, cell_types=None) -> 
     return mask
 
 
+# Same-layer zeroing covers PV, SST, VIP only; Inl/Ing/I excluded by the
+# tutorial's model, extending it is a model change.
+SAME_LAYER_ZEROED_INHIBITORY = ("PV", "SST", "VIP")
+
+
 def simulate_laminar_trials(
     model: dict,
     cfg: LaminarColumnConfig,
@@ -1492,7 +1497,7 @@ def simulate_laminar_trials(
     from .emitters import IZHIKEVICH_CELL_TYPE_DEFAULTS as _IZH_TYPES
     _unzeroed_inh = sorted({
         ct for ct in cell_labels
-        if ct not in ("PV", "SST", "VIP") and _IZH_TYPES.get(ct, {}).get("sign", 1.0) < 0
+        if ct not in SAME_LAYER_ZEROED_INHIBITORY and _IZH_TYPES.get(ct, {}).get("sign", 1.0) < 0
     })
     if _unzeroed_inh:
         raise ValueError(
@@ -1595,7 +1600,7 @@ def simulate_laminar_trials(
     
     same_layer = post_layers[:, None] == post_layers[None, :]
     diff_area = post_areas[:, None] != post_areas[None, :]
-    post_is_i = np.isin(post_cell_types, ["PV", "SST", "VIP"])[:, None]
+    post_is_i = np.isin(post_cell_types, list(SAME_LAYER_ZEROED_INHIBITORY))[:, None]
     
     not_e_post = (post_cell_types != "E")[:, None]
     not_e_pre = (post_cell_types != "E")[None, :]

@@ -337,9 +337,9 @@ def construct_lif_tensor_model(
     from .core import construct
     from .emitters_lif import (
         LIF_DEFAULT_DRIVE_MV,
-        LIF_LABEL_SIGN,
         LIFNetworkParams,
         lif_cell_type_of,
+        lif_sign_of,
         make_lif_params,
     )
     from .neuronal_tensor import (
@@ -411,7 +411,7 @@ def construct_lif_tensor_model(
                 true = _restore[lab]
                 key = (str(row.get("area")), str(row.get("layer")), true)
                 d[i] = triple_drive.get(key, LIF_DEFAULT_DRIVE_MV)
-                s[i] = float(LIF_LABEL_SIGN.get(true, 1.0))
+                s[i] = float(lif_sign_of(true))
         drive = jnp.asarray(d, dtype=keep)
         sign = jnp.asarray(s, dtype=keep)
     fallback = sorted({lab for lab in true_labels if lif_cell_type_of(lab) != lab})
@@ -461,7 +461,7 @@ def construct_lif_tensor_model(
             "only when the bridge default does; renamed lif-only types "
             "read the declared triple or the lif default)"
         ),
-        "label_sign": {lab: float(LIF_LABEL_SIGN.get(lab, 1.0)) for lab in sorted(set(true_labels))},
+        "label_sign": {lab: float(lif_sign_of(lab)) for lab in sorted(set(true_labels))},
     }
     declared_inhibition = []
     for area in tensor.areas:

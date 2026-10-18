@@ -44,6 +44,8 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from .emitters import CELL_TYPE_SIGN
+
 NEVER = -1.0e30  # no spike yet; spiked state is t_last > HAS_SPIKED
 HAS_SPIKED = -1.0e29
 
@@ -340,12 +342,28 @@ LIF_FALLBACK_CELL_TYPE = "simple"
 
 #: Presynaptic polarity carried on the shared edge compilers, using the same
 #: convention as the current-based route's sign column (+1 excitatory, -1
-#: inhibitory). Labels outside this map resolve to +1, matching the
-#: simple-cell fallback above.
+#: inhibitory). Derived from the single sign table
+#: (:data:`jaxfne.emitters.CELL_TYPE_SIGN`), restricted to the labels the LIF
+#: route signs; kept under this name so existing imports keep working.
 LIF_LABEL_SIGN: dict[str, float] = {
-    "simple": 1.0, "complex": 1.0, "E": 1.0,
-    "PV": -1.0, "SST": -1.0, "VIP": -1.0, "Inl": -1.0, "Ing": -1.0, "I": -1.0,
+    lab: CELL_TYPE_SIGN[lab]
+    for lab in ("simple", "complex", "E", "PV", "SST", "VIP", "Inl", "Ing", "I")
 }
+
+
+def lif_sign_of(label: str) -> float:
+    """Presynaptic sign for a LIF-route label; refuses unlisted labels.
+
+    An unknown label previously signed +1 silently (excitatory by default);
+    a typo'd label (e.g. "SOM", which names an AdEx-table type) must not
+    simulate as excitatory with no warning.
+    """
+    try:
+        return LIF_LABEL_SIGN[label]
+    except KeyError:
+        raise ValueError(
+            f"unknown LIF sign label {label!r}; expected one of {sorted(LIF_LABEL_SIGN)}"
+        ) from None
 
 #: Constant drive (mV added every step) for triples with no declared drive.
 #: Matches the current-based route's PV default so the same doctrine fixture
@@ -423,7 +441,8 @@ def lif_network_params_from_labels(
     """Build :class:`LIFNetworkParams` for one label per neuron.
 
     Each neuron reads the PCL row of :func:`lif_cell_type_of` (its label when
-    it names a PCL cell type, else the simple-cell row). ``drive_overrides``
+    it names a PCL cell type, else the simple-cell row); its sign comes from
+    :func:`lif_sign_of`, which refuses a label outside ``LIF_LABEL_SIGN``. ``drive_overrides``
     maps a label to constant drive (mV/step); unmentioned labels default to
     ``LIF_DEFAULT_DRIVE_MV``. ``lif_overrides`` maps a label to a dict of the
     eight :data:`_PARAM_FIELDS` fields. Unknown override labels and unknown
@@ -464,7 +483,7 @@ def lif_network_params_from_labels(
         for f in _PARAM_FIELDS:
             columns[f].append(float(over.get(f, LIF_CELL_TYPE_DEFAULTS[row][f])))
         drive.append(overrides.get(lab, LIF_DEFAULT_DRIVE_MV))
-        sign.append(LIF_LABEL_SIGN.get(lab, 1.0))
+        sign.append(lif_sign_of(lab))
     return LIFNetworkParams(
         **{f: jnp.asarray(columns[f], dtype=jdtype) for f in _PARAM_FIELDS},
         drive=jnp.asarray(drive, dtype=jdtype),

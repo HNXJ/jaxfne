@@ -76,24 +76,45 @@ def _noise_coef(
     return jnp.where(dt == ref, base, base * jnp.sqrt(ref / dt))
 
 
+# Single source of truth for presynaptic sign (+1 excitatory, -1 inhibitory),
+# keyed by cell-type label. This module owns cell-type identity (the Izhikevich
+# parameter table and its refusal helper below carry the same sign convention),
+# so the union table lives here: the Izhikevich rows read their sign from it,
+# and the LIF-only labels ("simple", "complex", both excitatory) are included
+# so `jaxfne.emitters_lif.LIF_LABEL_SIGN` derives from it rather than restating
+# it. "SOM" is deliberately absent: it names an AdEx-table type, and adding a
+# label here is a model decision, not a refactor.
+CELL_TYPE_SIGN: dict[str, float] = {
+    "E": 1.0,
+    "PV": -1.0,
+    "Inl": -1.0,
+    "SST": -1.0,
+    "Ing": -1.0,
+    "VIP": -1.0,
+    "I": -1.0,
+    "simple": 1.0,
+    "complex": 1.0,
+}
+
+
 # Canonical Izhikevich cell-type parameter defaults.
 # Single source of truth for E/PV-like/SST-like/VIP-like reduced-model parameters.
 # Labels "E", "PV", "SST", "VIP" denote reduced emitter classes (E-like, PV-like,
 # SST-like, VIP-like) — phenomenological Izhikevich presets that do not warrant
 # literal transcriptomic/morphological identity.
 IZHIKEVICH_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
-    "E": {"a": 0.02, "b": 0.20, "c": -65.0, "d": 8.0, "drive": 5.0, "sign": 1.0},
-    "PV": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 3.0, "sign": -1.0},
-    "Inl": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 3.0, "sign": -1.0},
-    "SST": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "sign": -1.0},
-    "Ing": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "sign": -1.0},
-    "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": -1.0},
+    "E": {"a": 0.02, "b": 0.20, "c": -65.0, "d": 8.0, "drive": 5.0, "sign": CELL_TYPE_SIGN["E"]},
+    "PV": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["PV"]},
+    "Inl": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["Inl"]},
+    "SST": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "sign": CELL_TYPE_SIGN["SST"]},
+    "Ing": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "sign": CELL_TYPE_SIGN["Ing"]},
+    "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["VIP"]},
     # "I" (generic Inhibitory) is a widely-used two-population E/I shorthand
     # across examples/, scripts/evidence_figures/, and tests/ -- explicit alias
     # to VIP's parameters (2026-07-13: this matches the exact values every
     # real "I" caller was already getting via a since-removed silent VIP
     # fallback in _get_cell_type_params; made explicit, not changed).
-    "I": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": -1.0},
+    "I": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["I"]},
 }
 
 
