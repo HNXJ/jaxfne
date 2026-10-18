@@ -1,10 +1,17 @@
 # state
 
-Stamp: jaxfne@dev@36f65d8b · 2026-10-18 (written 2026-10-18T01:06:55Z)
+Stamp: jaxfne@dev@c63e1abf · 2026-10-18 (written 2026-10-18T19:05:42Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
 ## Works (with evidence)
+
+- 2026-10-18 later on dev: T-22 intra-step fixed point runs to quiescence with
+  `intra_step_rounds` as a refusing cap (Hamm 2026-10-18); CAMINOS true zero delay scored on it
+  (CAMINOS CALIBRATION §11: 3 rounds used per step, lag about 7 ms, f_pk 43–46 Hz, as the 0.1 ms
+  run); GSDR refit on the reference morphology stays saturated and the excess traces to per-cell
+  OU drive (GSDR CALIBRATION §6.12–6.13; CPU and GPU agree). Broad gate on 1764f4b0: 6501
+  passed, 0 failed; on f554a7e2: 6503 passed. CI Fast green on 1764f4b0 and c63e1abf.
 
 - 2026-10-18 on dev: declared input sources (T-24, `XSource`, `Model.x_sources`); replication
   checker `scripts/check_replications.py` in every gate including dev (25 listed findings); T-31
@@ -37,7 +44,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   §10): f_pk 33.80 Hz, rate order and R4 (v7) reproduced on the core route; PV→SOM lag 6.47 ms
   against 8.5 ms by the ref. 42 method (off, a finding that needs X). Dashboard row updated.
 - Tracked tree: 2438 files (budget 2438, `budget_files` in `scripts/tree_size_allowlist.json`);
-  87985676 bytes (budget 89128960), measured 2026-10-17.
+  88299932 bytes (budget 89128960), measured 2026-10-18 by the report gate.
 - main a98e6149: 0.5.6 merged from dev 4842b87c by PR 108 (2026-10-15). Main CI green: CI Fast
   run 38757281037, Release CI with slow tests run 38757281031. rc gate PASS on 4842b87c with
   JUnit parity against Release CI run 38743501399 (3.11 and 3.14 each 6030/6030, 0 unjustified).
@@ -51,12 +58,11 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - PCL lane (lane 2b, rebuilt as a NeuronalTensor on the core): Stage C passed through the tensor
   route on 20 clips (CALIBRATION.md Step 9). Open in the record: the `no construct route (OPEN)`
   marker (CALIBRATION.md:24) is not marked closed.
-- GSDR: the one-compartment fit saturates (κ ≈ 1 against 0.0156; CALIBRATION §6.4–6.10). The
-  refit on the reference 4-compartment cell runs (O-30, about 17 h on the GPU).
-- Lane 5d (Destexhe 2009 on the core): migration and fidelity done in its clone (lane tests
-  28 passed); S2 seeds 1–8 queued on the GPU lock behind 4f.
-- Open items: T-20 (lint leftovers, ignored `--check` flags), T-21 (Destexhe on core); T-17 waits
-  on Hamm.
+- Read the Docs fails on every build since 2026-10-14 (P-035, O-37): the
+  `hdp_controllability_reachability` generator pin predates D1 (bisected to 5090af24).
+- GSDR: saturated at both g* (κ_fit 0.60 against 0.0156); the rate estimand waits on
+  `PREREG_P3.md` (O-25).
+- Whole-project scan in progress (O-38); findings go to `open_stack.md` and the issue log.
 
 ## Last gate results
 
@@ -85,6 +91,5 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-Agents: integrate lanes as they land (review, broad gate, dashboard checks, push dev, CI on the
-exact SHA): T-24, the replication checker and the T-31 fixes (O-31, O-32); the GSDR regime
-diagnostic when the refit's manifest exists (O-30); then T-30 per paper.
+Agents: finish the scan (O-38) and land its fixes by severity; P-035 (re-pin the mcc3 digest
+after D1 beside the old one); then T-30 per paper.

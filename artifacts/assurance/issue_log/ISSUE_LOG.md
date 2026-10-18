@@ -24,11 +24,13 @@ possible future change.
   `condition-B population_rate_hz drift: 10.561121940612793 vs 10.62124252319336`, raised by the
   exact float equality at `scripts/rerun_etude_figures.py:548-552` against the frozen checkpoint.
   The tuned theta check just above it passes. Atlases 25 ok, the other 3 études ok.
-- Evidence: RTD API v2 build logs (`/api/v2/build/<id>/`). 154 commits lie between ff89b24b and
-  413fb4a2; among them D1 (5090af24, c4dc0922: Izhikevich noise scaled by `sqrt(0.5/dt_ms)`,
-  also in `simulate_dynamic_ei_coupling`) is the first suspect for a changed 10 s rate (inferred,
-  not bisected).
-- Possible change: bisect ff89b24b..413fb4a2 on the generator; if the change is an intended model
-  change, re-freeze the checkpoint as a declared regeneration; if platform-only, compare with a
-  stated tolerance. The docs gate (`run_test_gate.py docs`) does not run the generators, so CI
+- Evidence: RTD API v2 build logs (`/api/v2/build/<id>/`). Reproduced in WSL on CPU
+  (`rerun_etude_figures.py --etude hdp_mcc3`: ff89b24b passes, 413fb4a2 gives the same 10.5611).
+  `git bisect` over the 154 commits: first bad commit 5090af24 (D1, Hamm 2026-10-13: Izhikevich
+  noise made dt-invariant, `noise_coef = noise_scale * sqrt(0.5 / dt_ms)`), an intended model
+  change. The frozen digest `artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_metrics_digest.json`
+  holds the pre-D1 firing; the tuned theta still matches.
+- Possible change: keep the pre-D1 digest as the historical record and pin a post-D1 digest
+  beside it as a declared regeneration (reason: D1), which the generator checks; the docs panels
+  then show the post-D1 run. The docs gate (`run_test_gate.py docs`) does not run the generators, so CI
   stays green while RTD fails.
