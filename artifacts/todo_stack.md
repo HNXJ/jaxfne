@@ -12,7 +12,8 @@ Open: the manuscript tree and other archive moves (T-17). Decided 2026-10-13: T-
 T-14, T-17 (calls in each item). Decided 2026-10-14: hyx standardization (T-22–T-25),
 Destexhe Vpeak, GSDR diagnosis, CAMINOS lag (§3); T-1 (a) landed in e3a7a41b; T-2
 bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
-`artifacts/etudes/meta/REPLICATIONS.md`).
+`artifacts/etudes/meta/REPLICATIONS.md`). Decided 2026-10-18: the four T-22 semantics defaults (O-35,
+in the T-22 row).
 
 - T-3 [A] PCL Fig. 3 stays in progress (Hamm 2026-10-13: it must replicate). v4 FAIL stands
   (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). v5 signed by Hamm 2026-10-13 on `pcl-port`
@@ -144,16 +145,20 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   declared intra-step fixed point: f applies R ordered rounds, with R and the order part of A and
   recorded in the manifest; delay 0 means "resolved inside the step". Closes when: the operator is
   in the core with tests, PCL B3 uses it, and the CAMINOS 0-delay sensitivity runs on it. Phase 1
-  (AdEx zero-delay edges, `connections(intra_step_rounds=R)`) landed 2026-10-18; semantics calls
-  O-35. Phase 2 (Poisson drive delay 0 with `"same_step": True`; brian2 and the registered-HDP
-  kernel refuse it) landed 2026-10-18. CAMINOS `--delay-ms 0` would pass `same_step` in its
-  drive and `intra_step_rounds` on its connections; `caminos_api.py` does neither yet. PCL B3
+  (AdEx zero-delay edges, `connections(intra_step_rounds=R)`) landed 2026-10-18. Semantics
+  (Hamm 2026-10-18, O-35 defaults confirmed): (1) the declaration sits on the Configuration
+  connection for the AdEx route, PCL keeps `NeuronalTensor` `local_inhibition`; (2) `event_scan`
+  stays out of the operator; (3) fixed R, no iterate-to-quiescence; (4) round rule: OR-monotone
+  re-step from the pre-step state. Phase 2 (Poisson drive delay 0 with `"same_step": True`;
+  brian2 and the registered-HDP kernel refuse it) landed 2026-10-18. CAMINOS on the core
+  (5235f807): a 0-step delay passes `same_step` and `intra_step_rounds` (R = 2 from a probe,
+  CAMINOS CALIBRATION section 11); seeds 1-8 and an R = 4 check are queued behind the GPU lock. PCL B3
   (Muse sweep 2026-10-18, checked): its rule is an inhibitory depth-ordered cascade (a winner
   vetoes later candidates), already in the core as the LIF route's
   `local_inhibition_resolution="event_order"` (`emitters_lif.py` `_cascade_step`); the AdEx
   rounds only add excitation. What keeps B3 off the core is the full-network mapping (cover-table
   feed, complex pooling, lateral and top-down; `run_tuning.py` CORE_GAP), which is PCL lane work
-  (O-24). Next: the CAMINOS 0-delay sensitivity on the core.
+  (O-24). Next: score the CAMINOS zero-delay runs as section 9 and check R = 4 against R = 2.
 - T-25 [A] Plastic weights: W is state in h during a run; A holds W₀ and its ownership. A trained
   network is A' = A with W₀ ← W_T, recorded with provenance. Closes when: the tensor carries W₀
   provenance and PCL's trained weights load as A'. Landed 2026-10-18: `W0Provenance`,

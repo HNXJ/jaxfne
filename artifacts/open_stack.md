@@ -22,7 +22,6 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 - O-26 Izhikevich 2003 v8.2 "Fig. 2 passes 8 of 8" is post hoc (`RESULT_P3.md:69-71`): wording and whether release notes may cite it | Hamm | since 2026-10-17 | closes when Hamm rules
 - O-27 Tree-degree rule is tested for `artifacts/` only; root, `tests/` (493 flat) and `scripts/` (124) exceed 7 | Hamm | since 2026-10-17 | closes when Hamm sets the scope
 - O-28 `artifacts/release/current_release_authorities.json` (frozen) names 0.5.5 as target; 0.5.6 is published | Hamm | since 2026-10-17 | closes when Hamm authorizes the update
-- O-35 T-22 semantics, built with the keeper's defaults (keeps choices open): (1) the declaration sits on the Configuration connection for the AdEx route (CAMINOS builds through Configuration), PCL keeps `NeuronalTensor` `local_inhibition`; (2) `event_scan` stays out of the operator (fixed rounds are not event-exact); (3) fixed R, no iterate-to-quiescence; (4) round rule: OR-monotone re-step from the pre-step state | Hamm | since 2026-10-18 | closes when Hamm confirms or changes each
 - O-29 CAMINOS P6 status disagrees: goal G-2 "equivalence test (not yet written)", `RESULT_P6.md:3` PASS, `REPLICATIONS.md` "mixed" (paper verdict), dashboard reproduced. Proposed G-2 edit: "Held by: P6 v2 PASS (`papers/caminos/RESULT_P6.md`)" | Hamm | since 2026-10-17 | closes when G-2 is edited or ruled
 
 ## Known gaps (recorded, no action yet)
