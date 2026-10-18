@@ -13,7 +13,6 @@ import math
 import pathlib
 
 import jax.numpy as jnp
-import pytest
 
 import jaxfne as jtfne
 from jaxfne.jdna import develop, load_canonical_pseudogenome, pseudogenome_from_dict

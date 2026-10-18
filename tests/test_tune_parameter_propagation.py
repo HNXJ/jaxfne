@@ -263,11 +263,11 @@ def test_parameter_independence_source_drive():
     """Verify no cross-contamination between source_scale and drive_gain."""
     # Model with high source_scale, low drive_gain
     model_1, signals_1 = _model_and_signals("source_scale", 2.0)
-    model_1_drive_mod = _model_and_signals("drive_gain", 0.5)[0]
+    _model_and_signals("drive_gain", 0.5)[0]
 
     # Model with low source_scale, high drive_gain
     model_2, signals_2 = _model_and_signals("source_scale", 0.5)
-    model_2_drive_mod = _model_and_signals("drive_gain", 2.0)[0]
+    _model_and_signals("drive_gain", 2.0)[0]
 
     # The effect of source_scale should be independent of drive_gain
     # (verify by spike patterns not affected by source_scale alone)

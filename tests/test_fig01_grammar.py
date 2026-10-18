@@ -15,7 +15,6 @@ from scripts.internal.publication.fig01_protocol import (
     FIG01_AUDIT_PATH,
     FIG01_FIGURE_PATH,
     FIG01_RECEIPT_PATH,
-    FIG01_SPEC_PATH,
     load_fig01_generation_receipt,
     load_fig01_semantic_audit,
     load_fig01_spec,

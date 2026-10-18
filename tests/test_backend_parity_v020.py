@@ -10,9 +10,7 @@ Parity is computational correctness evidence only; no biological calibration.
 
 import json
 
-import jax
 import jax.numpy as jnp
-import pytest
 
 import jaxfne
 from jaxfne.emitters import make_edge_list_from_dense

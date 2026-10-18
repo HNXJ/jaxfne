@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import json
 
-import jax.numpy as jnp
 import numpy as np
-import pytest
 
 import jaxfne as jtfne
 from jaxfne.protocol_e_integration.e1_execution import build_e1_configuration
@@ -17,14 +14,11 @@ from jaxfne.protocol_e_integration.e2_execution import (
     build_typed_delay_table,
     hierarchy_fingerprint,
     load_e2_execution_receipt,
-    run_e2_delayed_coupling,
     verify_delayed_continuation,
     verify_delay_ownership,
     write_e2_execution_receipt,
 )
 from jaxfne.protocol_e_integration.e2_protocol import (
-    E2_EXECUTION_RECEIPT_PATH,
-    E2_SPEC_PATH,
     load_e2_spec,
     validate_e2_spec,
 )
@@ -40,7 +34,7 @@ def test_e2_build_model_attaches_provenance_delays():
 
 
 def test_e2_zero_delay_matches_e1_via_e2_path():
-    spec = load_e2_spec()
+    load_e2_spec()
     zero = build_e2_model(zero_delays=True)
     e1 = jtfne.construct(build_e1_configuration())
     sim = jtfne.Simulation(

@@ -9,7 +9,6 @@ from __future__ import annotations
 from dataclasses import asdict
 from pathlib import Path
 
-import pytest
 
 import jaxfne as jtfne
 

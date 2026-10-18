@@ -12,7 +12,6 @@ from jaxfne.experiment_a.canonical import (
     array_sha256,
     freeze_canonical_dataset,
     write_b1_receipt,
-    write_canonical_npz,
 )
 from jaxfne.experiment_a.protocol import load_protocol_spec
 

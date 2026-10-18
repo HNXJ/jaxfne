@@ -9,7 +9,6 @@ import pytest
 pytest.importorskip("nbformat")
 pytest.importorskip("nbclient")
 
-import json
 import nbformat
 from nbclient import NotebookClient
 

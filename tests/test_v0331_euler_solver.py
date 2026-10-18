@@ -4,7 +4,6 @@ Tests for forward Euler ODE solver (step and scan).
 """
 
 import jax.numpy as jnp
-import pytest
 
 import jaxfne as jtfne
 

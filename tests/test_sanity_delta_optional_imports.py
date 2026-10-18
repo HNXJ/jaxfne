@@ -2,7 +2,6 @@
 
 import subprocess
 import sys
-import pytest
 import jaxfne as jtfne
 
 

@@ -21,8 +21,6 @@ from jaxfne.objectives import (
     band_label_shuffle_null,
     uniform_gain_null,
     no_field_projection_null,
-    phase_randomized_null,
-    source_polarity_flip_null,
     compute_synchrony_metric,
     spectrolaminar_objective_factory,
 )

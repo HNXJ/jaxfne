@@ -9,7 +9,6 @@ Tests cover:
 - No forbidden vocabulary in new docs
 """
 
-import json
 import re
 from pathlib import Path
 import pytest

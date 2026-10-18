@@ -19,7 +19,6 @@ Truth posture: repository-semantics regression test; no biological claim.
 
 from pathlib import Path
 
-import jax
 import jax.numpy as jnp
 import pytest
 

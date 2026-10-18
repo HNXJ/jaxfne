@@ -9,7 +9,7 @@ from jaxfne.protocol_c.c3_execution import (
     C3_EXECUTION_RECEIPT_PATH,
     load_c3_execution_receipt,
 )
-from jaxfne.protocol_c.c3_protocol import c3_total_cells, load_c3_spec
+from jaxfne.protocol_c.c3_protocol import c3_total_cells
 from jaxfne.protocol_c.c4_interpretation import (
     C4_INTERPRETATION_RECEIPT_PATH,
     load_c4_interpretation_receipt,

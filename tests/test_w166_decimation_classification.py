@@ -16,7 +16,6 @@ from dataclasses import replace
 
 import jax.numpy as jnp
 import numpy as np
-import pytest
 
 import jaxfne as jtfne
 

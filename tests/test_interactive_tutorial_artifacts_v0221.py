@@ -19,7 +19,7 @@ _SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # Check if Plotly is available
 try:
-    import plotly
+    import plotly  # noqa: F401 -- availability probe: sets PLOTLY_AVAILABLE when installed
     PLOTLY_AVAILABLE = True
 except ImportError:
     PLOTLY_AVAILABLE = False

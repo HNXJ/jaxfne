@@ -1,7 +1,5 @@
 import json
-import jax
 import jax.numpy as jnp
-import pytest
 from pathlib import Path
 
 import jaxfne

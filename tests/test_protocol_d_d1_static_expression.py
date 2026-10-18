@@ -19,10 +19,8 @@ from jaxfne.emitters import (
 )
 from jaxfne.protocol_d_biological_rbs.d1_execution import (
     load_d1_execution_receipt,
-    write_d1_execution_receipt,
 )
 from jaxfne.protocol_d_biological_rbs.d1_protocol import (
-    D1_EXECUTION_RECEIPT_PATH,
     D1_SPEC_PATH,
     d1_h_k_sweep_values,
     load_d1_spec,
@@ -32,7 +30,6 @@ from jaxfne.protocol_d_biological_rbs.d1_protocol import (
 
 def _isolated() -> tuple[IzhikevichParams, EdgeList]:
     jdtype = jnp.float32
-    n = 1
     params = IzhikevichParams(
         v0=jnp.asarray([-65.0], dtype=jdtype),
         u0=jnp.zeros((1,), dtype=jdtype),

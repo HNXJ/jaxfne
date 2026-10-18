@@ -14,7 +14,6 @@ import ast
 import pathlib
 
 import jax.numpy as jnp
-import pytest
 
 import jaxfne as jtfne
 import jaxfne.fields.proxy as proxy

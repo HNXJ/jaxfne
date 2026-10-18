@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 
 import numpy as np
 import pytest
@@ -13,12 +12,10 @@ from jaxfne.protocol_e_integration.e5_execution import (
     compute_evidence_gates,
     run_e5_arm_kernel,
     run_e5_arm_trajectory,
-    run_e5_causal_perturbation,
     write_e5_receipts,
 )
 from jaxfne.protocol_e_integration.e5_protocol import (
     E5_EXECUTION_RECEIPT_PATH,
-    E5_INTERPRETATION_RECEIPT_PATH,
     load_e5_spec,
     validate_e5_spec,
 )

@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
 
 import jaxfne as jtfne
 
@@ -63,7 +62,7 @@ def test_no_jdna_branches_in_construct_simulate():
         "pipeline": ROOT / "jaxfne" / "_pipeline.py",
         "simulate": ROOT / "jaxfne" / "emitters.py",
     }
-    jdna_text = (ROOT / "jaxfne" / "jdna" / "genome.py").read_text(encoding="utf-8")
+    (ROOT / "jaxfne" / "jdna" / "genome.py").read_text(encoding="utf-8")
     for label, path in sources.items():
         text = path.read_text(encoding="utf-8")
         assert "import jdna" not in text, f"{label} must not import JDNA"

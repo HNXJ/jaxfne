@@ -334,7 +334,6 @@ def main(update_canonical: bool = False):
     jtfne.vis.close_all()
 
     # Figure 2: Spike raster
-    spike_times = t[spike_indices]
     single_neuron_spikes = np.zeros((len(t), 1), dtype=np.float32)
     single_neuron_spikes[spike_indices, 0] = 1.0
     fig = jtfne.vis.raster(

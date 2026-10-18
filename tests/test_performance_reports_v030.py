@@ -7,9 +7,7 @@ claim_level: computational_scaffold
 """
 
 import json
-import pathlib
 
-import pytest
 
 
 class TestPerformanceReportSchema:

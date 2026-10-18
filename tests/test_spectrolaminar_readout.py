@@ -6,7 +6,6 @@ Focus: Validate readout does not score and uses proxy-safe metadata.
 import json
 import numpy as np
 import pytest
-import jax.numpy as jnp
 
 from _shared_fixtures import MockNeuronsDataFrame as _SharedMockNeurons
 from jaxfne.fields import (

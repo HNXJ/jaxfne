@@ -5,12 +5,10 @@ Validates equation forms, spike behavior, adaptation, and uncalibrated source cl
 
 import json
 
-import jax
 import jax.numpy as jnp
 import pytest
 
 import jaxfne
-from jaxfne.emitters import IzhikevichParams, simulate_eig_izhikevich
 
 from _shared_fixtures import _cfg
 

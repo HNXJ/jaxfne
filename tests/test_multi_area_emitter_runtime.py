@@ -2,7 +2,6 @@
 
 import numpy as np
 import pytest
-import jax
 
 from _shared_fixtures import MockNeuronsDataFrame
 from jaxfne.emitters import simulate_multi_area_izhikevich
@@ -33,7 +32,6 @@ def test_multi_area_emitter_population_firing_rate():
         neurons, positions, W, n_steps=n_steps, dt_ms=dt_ms, seed=42
     )
 
-    duration_s = n_steps * dt_ms / 1000.0
     rate_hz = float(np.sum(spikes)) / (n_steps * 50)
 
     # Reasonable firing rate range (Hz). Default drive may be very low, allowing silence.

@@ -4,10 +4,7 @@ Verifies the mathematical contract: F(S1 + S2) ≈ F(S1) + F(S2) and F(aS) ≈ a
 for all linear readout types.
 """
 
-import jax
-import jax.numpy as jnp
 import numpy as np
-import pytest
 
 import jaxfne as jtfne
 

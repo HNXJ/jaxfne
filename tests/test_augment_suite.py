@@ -20,10 +20,8 @@ from jaxfne.augment import (
     GeometryTransform,
     PoseEdit,
     ScaleN,
-    ThetaC,
     ThetaX,
     W0,
-    H0,
     augment,
 )
 

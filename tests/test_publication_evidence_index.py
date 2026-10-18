@@ -8,8 +8,6 @@ import pytest
 
 from scripts.internal.publication.pec_protocol import (
     PEC_CONSOLIDATION_RECEIPT_PATH,
-    PEC_SPEC_PATH,
-    PUBLICATION_EVIDENCE_INDEX_PATH,
     load_pec_spec,
     load_publication_evidence_index,
     panel_ids,

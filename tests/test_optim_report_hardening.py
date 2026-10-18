@@ -1,9 +1,5 @@
-import math
 import json
 import warnings
-import jax
-import jax.numpy as jnp
-import pytest
 import unittest.mock
 import jaxfne as jtfne
 from jaxfne._signals import Objective

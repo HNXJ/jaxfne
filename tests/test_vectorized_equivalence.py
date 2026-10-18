@@ -1,10 +1,8 @@
 import numpy as np
 import pandas as pd
-import jax
 import jax.numpy as jnp
 from jaxfne.fields.proxy import make_laminar_connectivity as new_make_laminar_connectivity
 from jaxfne.fields.proxy import teaching_control_spectrolaminar_resonance_source as new_resonance_source
-from jaxfne.fields.proxy import spectrolaminar_readout as new_spectrolaminar_readout
 
 # Reference old implementations
 def old_make_laminar_connectivity(
@@ -168,7 +166,6 @@ def test_connectivity_invariants():
 
 def test_spectrolaminar_readout_vectorized_equivalence():
     n = 30
-    signal_arr = np.random.normal(size=(100, n))
     neurons = {
         "area": ["V1"] * 15 + ["V2"] * 15,
         "pos_from_l4": np.linspace(-0.5, 0.5, n).tolist()
@@ -193,7 +190,6 @@ def test_spectrolaminar_readout_vectorized_equivalence():
     assert pos_from_l4_list_new == pos_from_l4_list_old
 
 def test_connectivity_empty_population():
-    n = 0
     neurons_df = pd.DataFrame(columns=["area", "layer", "cell_type"])
     positions_m = np.zeros((0, 3))
     

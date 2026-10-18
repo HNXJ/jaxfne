@@ -4,7 +4,6 @@ Tests the notebook components that can be verified without full execution.
 """
 
 import json
-from pathlib import Path
 
 import numpy as np
 import jaxfne as jtfne
@@ -239,8 +238,6 @@ class TestDeltaAGSDR:
     def test_agsdr_objective_callable(self):
         """AGSDR objective should compute scores."""
         # Simple test that an objective scoring function works
-        baseline_rates = np.array([5.0, 10.0, 15.0, 3.0, 2.0])
-
         # Score should decrease as gain approaches 0.2 (which scales rates toward 1 Hz)
         gain1 = 1.0
         score1 = abs(5.0 * gain1 - 7.5) + 10.0 * max(0, 1.0 - 0.0) * gain1

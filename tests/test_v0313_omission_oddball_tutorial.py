@@ -8,9 +8,6 @@ Validates that:
 - Strict non-negotiable scientific scope boundaries are enforced.
 """
 
-import pytest
-import numpy as np
-import jax.numpy as jnp
 import jaxfne as jtfne
 import json
 import os

@@ -10,11 +10,8 @@ Validates:
 """
 
 import json
-import os
-import re
 from pathlib import Path
 
-import numpy as np
 import pytest
 
 # Path to notebook and assets

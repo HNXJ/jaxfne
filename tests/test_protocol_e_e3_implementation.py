@@ -16,7 +16,6 @@ from jaxfne.protocol_e_integration.e3_execution import (
     owner_flat_indices,
     run_e2_reference_kernel,
     run_e3_kernel,
-    run_e3_rbs_composition,
     verify_e3_continuation,
     verify_non_owner_h_k_support,
     write_e3_execution_receipt,

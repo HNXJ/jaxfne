@@ -29,7 +29,7 @@ class TestProxyReadoutNames:
         assert cfg.field_solver_status == "linear_solver"
 
         # Proxy readouts are only allowed with this status
-        paradigm = cfg.make_paradigm()
+        cfg.make_paradigm()
         model = cfg.construct()
 
         # No full PDE solves; only laminar proxy

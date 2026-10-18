@@ -65,7 +65,7 @@ def test_b_manifest_readout_list_of_results(_base):
 
 def test_c_manifest_readout_legacy_dict(_base):
     model, signals, _ = _base
-    mf = model.manifest(signals, {"requested_modes": ["CSD"]})
+    model.manifest(signals, {"requested_modes": ["CSD"]})
 
 
 # ─── D. readout=single ReadoutResult ────────────────────────────────────────

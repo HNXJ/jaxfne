@@ -69,7 +69,7 @@ jobs:
         run: python -m ruff check jaxfne/
 
       - name: Lint scripts/tests/examples (ruff defect-class rules) -- hard gate
-        run: python -m ruff check scripts/ tests/ examples/ --select E711,E712,E721,E722,F601,F632,F811,F821,F823,F402
+        run: python -m ruff check scripts/ tests/ examples/ --select E711,E712,E721,E722,F601,F632,F811,F821,F823,F402,F401
 
       - name: Audit public docs language (no leaked doctrine, no obfuscated identifiers)
         run: PYTHONPATH=. python scripts/audit_public_docs_language.py --check

@@ -120,7 +120,6 @@ def test_analytic_reference_insulating_and_grounded_limits():
     ground-truth target is actually correct before it gets used to validate
     any solver."""
     sigma1, I, z0, rho = 1.0, 1.0, 0.5, 0.3
-    R0 = np.sqrt(rho**2 + 0.0)  # at z=0
 
     phi_insulating = _analytic_two_half_space_potential(rho, 0.0, z0, I, sigma1, 1e-9)
     R_at_0 = np.sqrt(rho**2 + z0**2)

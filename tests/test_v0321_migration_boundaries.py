@@ -6,7 +6,6 @@ decoupled from the core JAX simulation and objective engines.
 from __future__ import annotations
 
 import sys
-import pytest
 
 
 def test_simulation_engine_has_zero_graphics_overhead():

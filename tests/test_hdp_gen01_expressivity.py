@@ -722,7 +722,7 @@ def test_bulk_diagnostics_forward_aux_and_bias_identity():
     assert np.asarray(diag["b_trace"]).shape[0] == sig.V_m.shape[0]
     assert bool(np.all(np.isfinite(np.asarray(diag["b_final"]))))
     # determinism: same configured run reproduces the diagnostic exactly
-    sig2 = jtfne.simulate(model, duration_ms=20.0, dt_ms=0.5, seed=1)
+    jtfne.simulate(model, duration_ms=20.0, dt_ms=0.5, seed=1)
     diag2 = model.last_hdp_diagnostics()
     np.testing.assert_array_equal(np.asarray(diag["b_final"]),
                                   np.asarray(diag2["b_final"]))
@@ -746,7 +746,6 @@ def test_bulk_diagnostics_forward_eligibility_aux():
 
 
 def test_bulk_diagnostics_recording_off_keeps_aux_finals():
-    import jaxfne as jtfne
     _ensure("gen01_drive_bias",
             HDPRuleDescriptor(name="gen01_drive_bias",
                               theta_targets=("drive_bias",),

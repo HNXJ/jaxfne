@@ -7,7 +7,6 @@ and JSON-safe field admissibility reports.
 
 import json
 
-import pytest
 
 import jaxfne
 from jaxfne.validation import (

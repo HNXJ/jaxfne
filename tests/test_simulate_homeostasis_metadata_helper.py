@@ -5,7 +5,6 @@ conditional w_final, three summary-stat computations); the rest of the tail
 is flat key-value assembly not worth splitting further.
 """
 
-import numpy as np
 import pytest
 
 import jaxfne as jtfne

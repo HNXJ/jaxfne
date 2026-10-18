@@ -10,7 +10,6 @@ HP-03 conceptual CircuitSpec hygiene (construct rejects experimental class)
 
 from __future__ import annotations
 
-import json
 import subprocess
 import sys
 from pathlib import Path

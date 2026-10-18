@@ -75,8 +75,6 @@ def _recovery_metrics(r_e, r_i, *, dt_ms, r0_e, r0_i, perturb_start_ms, final_wi
     def _R(rf, rp, r0, norm):
         return 1.0 - abs((rf - r0) / norm) / (abs((rp - r0) / norm) + eps)
 
-    R_E = _R(r_final[0], peak[0], r0_e, R_E_NORM)
-    R_I = _R(r_final[1], peak[1], r0_i, R_I_NORM)
     e_peak = d * (peak - np.array([r0_e, r0_i]))
     e_final = d * (r_final - np.array([r0_e, r0_i]))
     R_EI = 1.0 - float(np.linalg.norm(e_final) / (np.linalg.norm(e_peak) + eps))

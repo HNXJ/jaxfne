@@ -8,13 +8,10 @@ Verifies:
 5. Recording invariance (diagnostic traces do not alter physical trajectory).
 """
 
-from dataclasses import replace
 import numpy as np
-import pytest
 import jax
 import jax.numpy as jnp
 
-import jaxfne as jtfne
 from jaxfne.emitters import (
     IzhikevichParams,
     EdgeList,

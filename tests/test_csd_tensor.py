@@ -5,7 +5,6 @@ named, testable, and reusable.
 
 import numpy as np
 import jax.numpy as jnp
-import pytest
 
 import jaxfne as jtfne
 from jaxfne.fields import csd_tensor

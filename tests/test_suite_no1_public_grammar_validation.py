@@ -148,7 +148,6 @@ def test_model_tune_supports_gampa_parameters():
 
     # gAMPA scalar (global excitatory gain) must still work
     model_gampa = _model_with_scalar_parameter(model, "gAMPA", 1.5)
-    import jax.numpy as jnp
     assert model_gampa is not model
 
     # gAMPA_w matrix parameter must work

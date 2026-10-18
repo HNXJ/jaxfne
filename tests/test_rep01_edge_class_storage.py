@@ -8,7 +8,6 @@ import pytest
 
 import jaxfne as jtfne
 from jaxfne._edge_class_storage import (
-    audit_edge_list_storage,
     materialize_edge_list_arrays,
     try_compact_edge_list_class_storage,
 )
@@ -253,7 +252,6 @@ def test_p_connect_with_rules_bounded_degree_independent_path():
     el = model.params["edge_list"]
     assert model.params["emitter"].W.shape == (0, 0)
     assert el.n_edges > 0
-    pre = np.asarray(el.pre)
     post = np.asarray(el.post)
     in_deg = np.bincount(post, minlength=300)
     assert int(in_deg.max()) <= 40

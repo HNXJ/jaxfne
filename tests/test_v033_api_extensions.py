@@ -9,7 +9,6 @@ Tests for v0.3.3 API extensions:
 import pytest
 import jax
 import jax.numpy as jnp
-import numpy as np
 
 import jaxfne as jtfne
 from jaxfne.emitters import (

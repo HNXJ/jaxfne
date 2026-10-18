@@ -32,17 +32,6 @@ def test_null_gains_match_baseline_bit_exact():
     v_base = np.asarray(jtfne.simulate(baseline, duration_ms=D, dt_ms=DT, seed=SEED).V_m)
     v_null = np.asarray(jtfne.simulate(null_hdp, duration_ms=D, dt_ms=DT, seed=SEED).V_m)
     assert np.array_equal(v_base, v_null)
-    w0 = np.asarray(null_hdp.params["edge_list"].weight)
-    if null_hdp.params["edge_list"].weight_storage != "per_edge":
-        from jaxfne.emitters import resolve_edge_weight
-
-        w0 = np.asarray(
-            resolve_edge_weight(
-                null_hdp.params["edge_list"],
-                null_hdp.params["edge_list"].weight.dtype,
-                presynaptic_sign=null_hdp.params["emitter"].sign,
-            )
-        )
     assert null_hdp.last_hdp_diagnostics() is None
 
 

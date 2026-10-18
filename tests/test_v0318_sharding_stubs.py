@@ -71,7 +71,6 @@ class TestMakePopulationMesh:
     def test_mesh_axis_name(self, monkeypatch):
         """Mesh must carry axis name 'population_sweep'."""
         import jax
-        import numpy as np
         import jaxfne.sharding_utils as su
         from jax.sharding import Mesh
 

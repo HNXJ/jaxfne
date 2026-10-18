@@ -72,7 +72,7 @@ def test_izhikevich_stability_sweep():
 def test_placeholder_stability_failure():
     """Verify that GLIF and LIF placeholders fail stability sweeps gracefully."""
     with pytest.raises(NotImplementedError):
-        emitter = jtfne.emitters.GLIFEmitter(n=10)
-        
+        jtfne.emitters.GLIFEmitter(n=10)
+
     with pytest.raises(NotImplementedError):
-        emitter = jtfne.emitters.LIFEmitter(n=10)
+        jtfne.emitters.LIFEmitter(n=10)

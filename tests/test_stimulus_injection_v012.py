@@ -1,13 +1,11 @@
 import json
 import math
-import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
-from dataclasses import replace
 
 import jaxfne as jtfne
-from jaxfne.core import StimulusSchedule, ParadigmCondition, ParadigmEvent
+from jaxfne.core import StimulusSchedule
 
 
 def _cfg(n=5):

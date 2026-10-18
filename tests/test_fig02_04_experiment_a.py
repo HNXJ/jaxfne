@@ -13,7 +13,6 @@ import pytest
 
 from jaxfne.experiment_a.canonical import load_frozen_canonical_dataset
 from scripts.internal.publication.fig02_04_protocol import (
-    FIG02_04_AUDIT_PATH,
     FIG02_PATH,
     FIG03_PATH,
     FIG04_PATH,

@@ -8,7 +8,6 @@ Covers §4-§9 of preregistration:
 from __future__ import annotations
 
 import importlib.util
-import json
 import sys
 from pathlib import Path
 
@@ -16,8 +15,7 @@ import pytest
 
 import jaxfne as jtfne
 from jaxfne.jdna.genome import (
-    PseudoGenome, AreaGenome, LayerGenome, ConnectionRuleGenome,
-    validate_genome, genome_rules_hash, phenotype_sha256,
+    PseudoGenome, validate_genome, genome_rules_hash, phenotype_sha256,
     save_pseudogenome, load_pseudogenome, develop,
 )
 from jaxfne.neuronal_tensor import merge_neuronal_tensors, Pose3D
@@ -192,7 +190,7 @@ def test_A_minus_80_absolute():
     }
     """
     reg = parser.desugar_file(text)
-    base = reg["base-column"]
+    reg["base-column"]  # parses and registers; content exercised via use_text below
     # use with A-80
     use_text = """
     define base-column {
@@ -314,7 +312,7 @@ def test_KD_determinism_same_vs_different(tmp_path):
     # Check counts within bands
     for area in g_sig.areas:
         for layer in area.layers:
-            rt = next(l for a in t_c.areas if a.name==area.name for l in a.layers if l.name==layer.name)
+            next(l for a in t_c.areas if a.name==area.name for l in a.layers if l.name==layer.name)
             # counts per cell type fractions within tolerance is checked by develop itself, but we also verify band via declared_constraints
             pass
     # sigma=0 should be exact and different K_D should give identical counts (since key ignored)
@@ -342,7 +340,7 @@ def test_KD_split_order_matters():
     g1 = PseudoGenome(name=reg1["G1"].name, description="", development_parameters={"fraction_jitter_sigma":0.05}, areas=reg1["G1"].areas, area_connections=())
     g2 = PseudoGenome(name=reg2["G2"].name, description="", development_parameters={"fraction_jitter_sigma":0.05}, areas=reg2["G2"].areas, area_connections=())
     t1 = develop(g1, seed=0)
-    t2 = develop(g2, seed=0)
+    develop(g2, seed=0)  # must also develop without error; no inequality required
     # Same multiset of areas but different order → different layer_keys → generally different jitter
     # We don't require inequality always, but at least check determinism per order
     assert phenotype_sha256(develop(g1, seed=0)) == phenotype_sha256(t1)
@@ -467,13 +465,6 @@ def test_depth_band_out_of_range():
         parser.desugar_file(text)
 
 def test_bare_area_fraction_multi_area_error():
-    text = """
-    define G {
-      area V1 { layer L1 n=100 depth=[0.0,1.0] fractions {E:1.0} }
-      area V2 { layer L1 n=100 depth=[0.0,1.0] fractions {E:1.0} }
-    }
-    use G V1*0.5 as Bad
-    """
     # bare Area*frac with multi-area genomes is discouraged; our parser treats V1*0.5 as bare area tweak which requires single-layer, but multi-area should still be allowed? Spec says discouraged/linted, but we enforce bare requires single layer per area, not per genome.
     # So V1*0.5 on V1 with single layer should pass (bare area tweak maps to sole layer). The multi-area aspect is not an error in our impl, but we test that bare layer name handling works.
     # Instead test bare tweak on multi-layer area should error:
@@ -616,7 +607,7 @@ def test_A80_vs_A_star_coincidence():
     }
     """
     reg = parser.desugar_file(base)
-    g0 = reg["base-column"]
+    reg["base-column"]  # parses and registers; variants exercised below
     # A-80
     abs_text = base + "\nuse base-column V1.L4-80 as abs80\n"
     reg_abs = parser.desugar_file(abs_text)

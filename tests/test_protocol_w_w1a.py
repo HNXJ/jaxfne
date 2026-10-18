@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import math
 
-import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
@@ -17,7 +16,6 @@ from jaxfne.w1a_omega_plasticity import (
     omega_continuous_writing,
     omega_discrete_exact_constant_delta,
     omega_infinity,
-    rectangular_delta_h_schedule,
     simulate_rectangular_pulse,
     weight_from_omega,
 )

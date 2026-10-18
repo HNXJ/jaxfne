@@ -13,7 +13,6 @@ docs/theory/doctrine/relative_quantity_grammar.md against the live implementatio
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 import jaxfne as jtfne
 

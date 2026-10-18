@@ -3,7 +3,6 @@
 Validates that sine waves produce expected frequency peaks, and spectrograms execute cleanly.
 """
 
-import pytest
 import numpy as np
 from scipy import signal
 

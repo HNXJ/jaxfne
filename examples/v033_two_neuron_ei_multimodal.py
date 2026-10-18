@@ -489,9 +489,6 @@ def main(update_canonical: bool = False):
         figures_dir = OUT / "figures"
         figures_dir.mkdir(exist_ok=True)
 
-        e_spike_times = t[e_spike_indices]
-        i_spike_times = t[i_spike_indices]
-
         # Figure 1: Voltage traces for E and PV neurons (two-row panel)
         fig = jtfne.vis.dual_voltage_panel(
             t, V_m[:, E_INDEX], V_m[:, I_INDEX],

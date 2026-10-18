@@ -2,7 +2,6 @@
 
 import numpy as np
 import pytest
-import jax
 
 from _shared_fixtures import MockNeuronsDataFrame
 from jaxfne.fields import (

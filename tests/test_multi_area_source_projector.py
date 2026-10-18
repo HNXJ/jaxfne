@@ -3,11 +3,8 @@
 import json
 import numpy as np
 import pytest
-import jax
-import jax.numpy as jnp
 
 from _shared_fixtures import MockNeuronsDataFrame
-import jaxfne as jtfne
 from jaxfne.fields import (
     filtered_spike_source,
     synaptic_resonance_source,
@@ -35,7 +32,6 @@ def test_filtered_spike_source_exponential_decay():
     source, _ = filtered_spike_source(spikes, neurons, tau_ms=10.0)
 
     # Source should decay monotonically (approximately)
-    max_source = np.max(source)
     for i in range(1, 45):
         assert source[i, 0] <= source[i - 1, 0] + 1e-5, "Exponential decay not monotonic"
 

@@ -93,12 +93,10 @@ def test_visualize_network_3d_writes_plotly_html_when_plotly_available(tmp_path)
 def test_visualize_network_3d_no_plotly_raises_import_error() -> None:
     """Without plotly, the function must raise ImportError (not AttributeError or silent fail)."""
     import sys
-    import types
 
     import jaxfne as jtfne
 
     # Stub out plotly so _require_plotly() fires
-    fake_plotly = None
     original = sys.modules.get("plotly")
     try:
         sys.modules["plotly"] = None  # type: ignore[assignment]

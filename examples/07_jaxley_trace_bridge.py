@@ -29,12 +29,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import json
 import pathlib
 import hashlib
-from typing import Any
 
 import numpy as np
 import jax.numpy as jnp
 
-import jaxfne as jtfne
 from jaxfne import JaxleyTraceSpec, jaxley_trace_to_signals
 
 

@@ -19,7 +19,6 @@ from jaxfne.protocol_d_biological_rbs.d3_execution import (
 )
 from jaxfne.protocol_d_biological_rbs.d3_interpretation import (
     D3_INTERPRETATION_RECEIPT_PATH,
-    build_d3_interpretation,
     load_d3_interpretation_receipt,
     write_d3_interpretation_receipt,
 )

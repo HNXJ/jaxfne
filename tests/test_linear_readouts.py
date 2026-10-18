@@ -3,10 +3,8 @@
 Covers dimension contracts, metadata reports, CSD boundary checks, and EMM-proxy.
 """
 
-import jax
 import jax.numpy as jnp
 import numpy as np
-import pytest
 
 import jaxfne as jtfne
 

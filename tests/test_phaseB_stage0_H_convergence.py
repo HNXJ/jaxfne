@@ -40,7 +40,6 @@ rule side.
 """
 import jax
 import jax.numpy as jnp
-import pytest
 
 from jaxfne.emitters_homeostatic_ei import HomeostaticEIParams, simulate_homeostatic_ei
 

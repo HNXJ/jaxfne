@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 
 from jaxfne.protocol_d_biological_rbs.d_closure import (
-    D_CLOSURE_RECEIPT_PATH,
     load_d_closure_receipt,
     validate_d_closure_receipt,
 )

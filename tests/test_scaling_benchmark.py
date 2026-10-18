@@ -11,7 +11,6 @@ import importlib.util
 import json
 import pathlib
 
-import pytest
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 SCRIPT_PATH = REPO_ROOT / "scripts" / "benchmarks" / "scaling_benchmark.py"
