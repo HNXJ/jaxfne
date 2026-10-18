@@ -65,9 +65,8 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   covers `jaxfne/` only (2026-10-18: scripts/tests/examples 477 findings, F401 228, F841 59,
   E741 57, E402 47; scripts/ clean on F401/F841/E711/E712/E721); (g) `util.py` keeps 22 broad
   `except Exception` handlers, some inner ones (`:507`, `:516-519`) swallow any error in the H
-  probe; (h) `tests/test_field01_audit.py:74` asserts a wall-clock ratio (`t64 < 4 * t4`) and
-  failed once under xdist load (int4 gate 2026-10-18; passes alone 3 of 3). Closes when: each is
-  fixed with a failing-first test or recorded harmless here.
+  probe (Muse lane 2026-10-18). Closes when: each is fixed with a failing-first test or recorded
+  harmless here.
 - T-28 [H] `jaxfne/tfne.py:211` `_RESERVED_LOWER = {"x", "y", "h", "s"}` is defined and never read
   (Muse cleanup, 2026-10-15). Wiring it into name validation changes which names are accepted;
   deleting it drops the stated reservation. Closes when: Hamm picks one.

@@ -65,11 +65,21 @@ def test_contacts_scale_projection_not_kernel():
     # 16x contacts must cost far less than 16x time: at canonical scale the
     # path is dispatch/overhead-bound, not FLOP-bound (kernel build and
     # matmul are fractions of a millisecond each at steady state).
+    # The two sizes run interleaved and each keeps its fastest run, so load from
+    # other test workers hits both alike (a sequential median failed once under
+    # xdist: 7.6 ms against 32.2 ms, ratio about 1 when run alone).
     T, N = 1000, 400
     src, _ = _synthetic_sources(T, N)
     pos = _positions(N)
-    t4, _ = _bench(lambda: project_laminar_sources(src, pos, n_contacts=4))
-    t64, _ = _bench(lambda: project_laminar_sources(src, pos, n_contacts=64))
+    runs = {c: [] for c in (4, 64)}
+    for c in runs:
+        jax.block_until_ready(project_laminar_sources(src, pos, n_contacts=c).lfp_proxy)
+    for _ in range(7):
+        for c in runs:
+            t0 = time.perf_counter()
+            jax.block_until_ready(project_laminar_sources(src, pos, n_contacts=c).lfp_proxy)
+            runs[c].append(time.perf_counter() - t0)
+    t4, t64 = min(runs[4]), min(runs[64])
     print(f"\nC scaling: 4->{t4 * 1e3:.2f}ms 64->{t64 * 1e3:.2f}ms")
     assert t64 < 4.0 * t4
 
