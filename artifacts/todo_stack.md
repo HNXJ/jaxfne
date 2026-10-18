@@ -190,7 +190,8 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   with every synapse removed the OU background alone drives the noisy half of the cells near
   40 Hz (the authors' sigma draw, ported as written). Reading: the authors' loss bounds rates at
   5–50 Hz and does not target y's 2.14 Hz, so the rate estimand of the scored steps is
-  `PREREG_P3.md`'s call (O-25). Next: (c) CPU against GPU on one fixed trial. The scored steps run under `PREREG_P3.md`, still a draft:
+  `PREREG_P3.md`'s call (O-25). CPU and GPU agree on all 10 sweep trials (§6.13). The κ source
+  is isolated as far as the port can go without the estimand ruling (O-25). The scored steps run under `PREREG_P3.md`, still a draft:
   Hamm signs it before a scored verdict (O-25). HH hardening landed; open low notes: `held_steps` counts edge elements while the
   docstring says steps, int32 count scalars, no full-kernel grad test, `dt="0.1"` coerced.
 - T-30 [A] Replication conformance to the checklist (`etudes/meta/RESIDUAL_PROTOCOL.md`, section

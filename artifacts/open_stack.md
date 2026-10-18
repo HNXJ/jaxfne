@@ -6,6 +6,9 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 
 ## In flight
 
+- O-37 Read the Docs fails on every build since 2026-10-14 (P-035): `build_docs_assets.py --build` stops at the `hdp_controllability_reachability` condition-B rate pin (10.5611 against 10.6212) | keeper | since 2026-10-18 | closes when an RTD build on dev or main succeeds
+- O-38 Whole-project problem scan (Hamm 2026-10-18), Haiku worker swarm, findings verified and added here | keeper | since 2026-10-18 | closes when every verified finding has its own O- line or issue
+
 
 ## Waiting on others
 

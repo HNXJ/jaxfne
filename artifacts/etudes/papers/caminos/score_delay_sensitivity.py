@@ -115,7 +115,7 @@ def main(argv=None):
 
     doc = {
         "sensitivity": {"synaptic_delay_ms": delay_ms, "drive_delay_ms": delay_ms,
-                        "steps_at_dt_0p1": int(np.floor(delay_ms / 0.1 + 0.5)),
+                        "steps_at_dt_0p1": int(np.floor(delay_ms / ca.DT_MS + 0.5)),
                         "p": s.P_REF, "T_s": 12.0,
                         "manifest": manifest, "dir": str(sens_dir)},
         "primary": {"synaptic_delay_ms": 2.0, "dir": "P6 v2 receipts (1-3), calib heldout (4-8)"},

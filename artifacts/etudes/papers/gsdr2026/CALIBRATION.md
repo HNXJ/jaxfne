@@ -737,3 +737,11 @@ Reading (inferred): the authors' rate penalty bounds the model at
 targets are the spectra, kappa and that band, so a z-to-y rate error
 measures a quantity their loss does not target. Which rate estimand
 the scored steps use belongs to `PREREG_P3.md` (unsigned, O-25).
+
+CPU against GPU (observed): the stimulus sweep at g* rerun on the GPU
+(`diag_stim_reference_gpu.json`, same code and seeds, under `flock`)
+gives the same mean rate, active fraction, penalty, k_fit and
+Wang–Buzsáki kappa as the CPU rows on all 10 trials, and the same regime
+labels; only the PSD term differs (at most 1.0e-4 absolute, 3.3e-5
+relative). Numerics do not drive the regime at this g*. (The §6.8 GPU
+outlier was a collapse on the one-compartment cell; none occurred here.)
