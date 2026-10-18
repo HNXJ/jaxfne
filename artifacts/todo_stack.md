@@ -64,8 +64,10 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   `agent.py` dtype (f), six narrowed handlers in `canonical_compact_summary`; `canonical_compact_summary`
   has no broad handler left (g); ruff defect-class rules gate scripts/tests/examples (e, part,
   2026-10-18). Open: (e) unused and style rules on scripts/tests/examples (F401 228, F841 59,
-  E741 57, E402 47 on 2026-10-18). Closes when: each is fixed with a failing-first test or recorded
-  harmless here.
+  E741 57, E402 47 on 2026-10-18). (i) `tests/test_v033_two_neuron_ei.py`: 10 tests read the
+  relative `outputs/v030_03_two_neuron_ei_multimodal/` another test writes, so they skip in a fresh
+  clone and pass in a reused one (cl-lint gate 2026-10-18: 81 skipped against 71). Closes when: each
+  is fixed with a failing-first test or recorded harmless here.
 - T-28 [H] `jaxfne/tfne.py:211` `_RESERVED_LOWER = {"x", "y", "h", "s"}` is defined and never read
   (Muse cleanup, 2026-10-15). Wiring it into name validation changes which names are accepted;
   deleting it drops the stated reservation. Closes when: Hamm picks one.
@@ -146,8 +148,13 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   (AdEx zero-delay edges, `connections(intra_step_rounds=R)`) landed 2026-10-18; semantics calls
   O-35. Phase 2 (Poisson drive delay 0 with `"same_step": True`; brian2 and the registered-HDP
   kernel refuse it) landed 2026-10-18. CAMINOS `--delay-ms 0` would pass `same_step` in its
-  drive and `intra_step_rounds` on its connections; `caminos_api.py` does neither yet. Next: the
-  PCL B3 operator on the core.
+  drive and `intra_step_rounds` on its connections; `caminos_api.py` does neither yet. PCL B3
+  (Muse sweep 2026-10-18, checked): its rule is an inhibitory depth-ordered cascade (a winner
+  vetoes later candidates), already in the core as the LIF route's
+  `local_inhibition_resolution="event_order"` (`emitters_lif.py` `_cascade_step`); the AdEx
+  rounds only add excitation. What keeps B3 off the core is the full-network mapping (cover-table
+  feed, complex pooling, lateral and top-down; `run_tuning.py` CORE_GAP), which is PCL lane work
+  (O-24). Next: the CAMINOS 0-delay sensitivity on the core.
 - T-25 [A] Plastic weights: W is state in h during a run; A holds W₀ and its ownership. A trained
   network is A' = A with W₀ ← W_T, recorded with provenance. Closes when: the tensor carries W₀
   provenance and PCL's trained weights load as A'. Landed 2026-10-18: `W0Provenance`,
