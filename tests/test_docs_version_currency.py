@@ -31,6 +31,7 @@ def _excluded_and_archived() -> set[str]:
     lines = (REPO / "mkdocs.yml").read_text(encoding="utf-8").splitlines()
     out: set[str] = set()
     block = None
+    archive_indent = -1  # ruff F821: always assigned with block="archive" before any read; init only for the checker.
     for line in lines:
         if block == "exclude":
             if line and not line.startswith(" "):

@@ -175,7 +175,6 @@ def _tiny_window_world():
     import jax
 
     from jaxfne.adex_destexhe import DESTEXHE_CELL_DEFAULTS
-    from jaxfne.emitters_adex import AdExParams
 
     rows = [dict(DESTEXHE_CELL_DEFAULTS["RSweak"])] * 2 + [dict(DESTEXHE_CELL_DEFAULTS["FS"])] * 2
     fields = (

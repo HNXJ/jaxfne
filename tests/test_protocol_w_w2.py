@@ -8,6 +8,7 @@ import pytest
 from jaxfne.w2_parameter_expression import (
     FROZEN_W2_CONFIG,
     W2FrozenOmegaState,
+    W2ProtocolConfig,
     run_w2_expression,
     run_w2_monotonic_sweep,
     run_w2_w1b_memory_contrast,

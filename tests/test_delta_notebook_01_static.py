@@ -129,7 +129,6 @@ class TestDeltaNotebookAGSDRCells:
         nb_path = pathlib.Path("artifacts/tutorials/intro/jaxfne-sanity-checker-notebook-01.ipynb")
         assert nb_path.exists(), f"Notebook not found: {nb_path}"
 
-        import json
         with open(nb_path) as f:
             nb = json.load(f)
 
@@ -148,7 +147,6 @@ class TestDeltaNotebookAGSDRCells:
         import pathlib
         nb_path = pathlib.Path("artifacts/tutorials/intro/jaxfne-sanity-checker-notebook-01.ipynb")
 
-        import json
         with open(nb_path) as f:
             nb = json.load(f)
 
@@ -166,7 +164,6 @@ class TestDeltaNotebookAGSDRCells:
         import pathlib
         nb_path = pathlib.Path("artifacts/tutorials/intro/jaxfne-sanity-checker-notebook-01.ipynb")
 
-        import json
         with open(nb_path) as f:
             nb = json.load(f)
 
@@ -184,7 +181,6 @@ class TestDeltaNotebookAGSDRCells:
         import pathlib
         nb_path = pathlib.Path("artifacts/tutorials/intro/jaxfne-sanity-checker-notebook-01.ipynb")
 
-        import json
         with open(nb_path) as f:
             nb = json.load(f)
 
@@ -202,7 +198,6 @@ class TestDeltaNotebookAGSDRCells:
         import pathlib
         nb_path = pathlib.Path("artifacts/tutorials/intro/jaxfne-sanity-checker-notebook-01.ipynb")
 
-        import json
         with open(nb_path) as f:
             nb = json.load(f)
 

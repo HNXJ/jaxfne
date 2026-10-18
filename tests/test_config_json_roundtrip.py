@@ -19,8 +19,6 @@ def _assert_true_roundtrip(loaded_dict: dict, loaded_cfg) -> None:
     equality with the source JSON, then require construct-level parity."""
     import json
 
-    from dataclasses import asdict
-
     reserialized = json.loads(json.dumps(asdict(loaded_cfg), allow_nan=False, sort_keys=True))
     original = json.loads(json.dumps(loaded_dict, allow_nan=False, sort_keys=True))
     assert reserialized == original, "Configuration -> JSON is not lossless vs source"

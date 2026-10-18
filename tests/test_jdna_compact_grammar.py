@@ -301,7 +301,6 @@ def test_KD_determinism_same_vs_different(tmp_path):
     reg = parser.desugar_file(text)
     # set sigma >0 to get jitter
     g = reg["G"]
-    from jaxfne.jdna.genome import PseudoGenome
     g_sig = PseudoGenome(name=g.name, description=g.description, development_parameters={"fraction_jitter_sigma":0.05}, areas=g.areas, area_connections=g.area_connections)
     t_a = develop(g_sig, seed=0)
     t_b = develop(g_sig, seed=0)
@@ -340,7 +339,6 @@ def test_KD_split_order_matters():
     """
     reg1 = parser.desugar_file(text1)
     reg2 = parser.desugar_file(text2)
-    from jaxfne.jdna.genome import PseudoGenome
     g1 = PseudoGenome(name=reg1["G1"].name, description="", development_parameters={"fraction_jitter_sigma":0.05}, areas=reg1["G1"].areas, area_connections=())
     g2 = PseudoGenome(name=reg2["G2"].name, description="", development_parameters={"fraction_jitter_sigma":0.05}, areas=reg2["G2"].areas, area_connections=())
     t1 = develop(g1, seed=0)
@@ -543,7 +541,6 @@ def test_provenance_hash_excludes_description():
     reg = parser.desugar_file(text)
     g = reg["G"]
     h1 = genome_rules_hash(g)
-    from jaxfne.jdna.genome import PseudoGenome
     g2 = PseudoGenome(name=g.name, description="different prose", development_parameters=dict(g.development_parameters), areas=g.areas, area_connections=g.area_connections)
     h2 = genome_rules_hash(g2)
     assert h1 == h2

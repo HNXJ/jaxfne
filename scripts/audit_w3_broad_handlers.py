@@ -27,10 +27,6 @@ HANDLER_RE = re.compile(
 
 # Line-specific overrides for scientific paths (file, line) -> (class, note)
 _OVERRIDES: dict[tuple[str, int], tuple[str, str]] = {
-    ("jaxfne/_construct_connectivity.py", 592): (
-        "BEST_EFFORT_PRESENTATION",
-        "optional recurrent_backend=edge_list upgrade; construction continues",
-    ),
     ("jaxfne/_model.py", 593): (
         "BEST_EFFORT_PRESENTATION",
         "neuron_table z position extraction; None when unavailable",
@@ -66,10 +62,6 @@ _OVERRIDES: dict[tuple[str, int], tuple[str, str]] = {
     ("jaxfne/_model_simulate.py", 1264): (
         "BEST_EFFORT_PRESENTATION",
         "post-sim diagnostics attachment",
-    ),
-    ("jaxfne/_model_evaluate.py", 297): (
-        "BEST_EFFORT_PRESENTATION",
-        "evaluate objective aggregation fallback",
     ),
     ("jaxfne/_model_tune.py", 652): (
         "SCIENTIFIC_COMPUTATION",

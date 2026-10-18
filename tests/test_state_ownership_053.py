@@ -132,8 +132,6 @@ def test_h_null_pins_at_reference():
     Model level these identity params route to the baseline kernel instead
     (see test_identity_params_route_to_baseline below).
     """
-    import jax
-
     from jaxfne.emitters import (
         EdgeList,
         IzhikevichParams,

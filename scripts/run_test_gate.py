@@ -493,6 +493,20 @@ DEV_AUDIT_FAMILIES = ("record_integrity", "replication_audit", "etude_no_resim",
 AUDIT_STEPS: list[tuple[str, list[str]]] = [
     ("lint_ruff", [sys.executable, "-m", "ruff", "check", "jaxfne/"]),
     (
+        "lint_ruff",
+        [
+            sys.executable,
+            "-m",
+            "ruff",
+            "check",
+            "scripts/",
+            "tests/",
+            "examples/",
+            "--select",
+            "E711,E712,E721,E722,F601,F632,F811,F821,F823,F402",
+        ],
+    ),
+    (
         "docs_language_audit",
         [sys.executable, "scripts/audit_public_docs_language.py", "--check"],
     ),

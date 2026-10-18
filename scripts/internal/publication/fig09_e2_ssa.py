@@ -51,7 +51,7 @@ def sha256_file(p: Path)->str:
 
 def repo_sha():
     try: return subprocess.check_output(["git","rev-parse","HEAD"], cwd=REPO, text=True).strip()
-    except: return "unknown"
+    except (OSError, subprocess.SubprocessError): return "unknown"
 
 def canon_hash(j):
     return hashlib.sha256(json.dumps({k:v for k,v in j.items() if k!="spec_hash"}, sort_keys=True, separators=(",",":")).encode()).hexdigest()

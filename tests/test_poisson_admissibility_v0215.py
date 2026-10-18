@@ -162,8 +162,6 @@ class TestPoissonGaugeCondition:
 
     def test_gauge_other_type(self):
         """Unsupported gauge types raise until an implementation exists."""
-        import pytest
-
         with pytest.raises(NotImplementedError):
             validate_poisson_gauge_condition(0.5, gauge="other_gauge")
 
