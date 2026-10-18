@@ -991,6 +991,7 @@ class Configuration:
         max_in_degree: Optional[int] = None,
         spatial_sigma: Optional[float] = None,
         delay_ms: Optional[float] = None,
+        intra_step_rounds: Optional[int] = None,
         sampling: str = "density",
         footprint: Optional[Mapping[str, Any]] = None,
         weight_sharing: Optional[str] = None,
@@ -1033,7 +1034,14 @@ class Configuration:
         ``round(delay_ms / dt_ms)`` (0.5.2 decision 0b) at the configuration's
         ``dt_ms``, and both the configured ms and the realized steps are
         recorded. A positive delay rounding to 0 steps is refused rather than
-        dropped. ``footprint`` (None = undeclared) selects pairs
+        dropped. ``intra_step_rounds`` (None = undeclared = current behaviour)
+        declares the intra-step fixed point for this connection on the adex
+        route: a positive int R admitting a ``delay_ms`` that rounds to 0 steps
+        on that connection only (delay 0 means "resolved inside the step"; R
+        and the rule are recorded in the manifest). A declared R with a delay
+        rounding to >= 1 step is refused at simulate time, as is a declared R
+        on any other route at construct time.
+        ``footprint`` (None = undeclared) selects pairs
         deterministically from posed positions
         (``jaxfne.pcl_topology.footprint_pairs``: ``{"size": (sx, sy),
         "offset": (ox, oy)}``); it is refused with ``probability``,
@@ -1091,7 +1099,7 @@ class Configuration:
                 f"connection {name!r} sampling={sampling!r} is not implemented with "
                 "max_in_degree (localized sampling); omit one of them"
             )
-        from .pcl_topology import validate_footprint, validate_weight_sharing
+        from .pcl_topology import validate_footprint, validate_rounds, validate_weight_sharing
 
         footprint_spec = validate_footprint(footprint, label=f"connection {name!r}")
         sharing_mode = validate_weight_sharing(weight_sharing, label=f"connection {name!r}")
@@ -1138,6 +1146,11 @@ class Configuration:
             "delay_ms": float(delay_ms) if delay_ms is not None else None,
             "status": "declared_not_compiled",
         }
+        if intra_step_rounds is not None:
+            # Stored only when declared so existing config hashes stay unchanged.
+            entry["intra_step_rounds"] = validate_rounds(
+                intra_step_rounds, label=f"connection {name!r} intra_step_rounds"
+            )
         if footprint_spec is not None:
             # Stored only when declared so existing config hashes stay unchanged.
             entry["footprint"] = {

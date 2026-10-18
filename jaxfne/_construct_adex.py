@@ -68,6 +68,7 @@ ADEX_CONSUMED = (
     ("Configuration", "metadata", "circuit", "connections", "*", "weight"),
     ("Configuration", "metadata", "circuit", "connections", "*", "mechanism"),
     ("Configuration", "metadata", "circuit", "connections", "*", "delay_ms"),
+    ("Configuration", "metadata", "circuit", "connections", "*", "intra_step_rounds"),
     ("Configuration", "metadata", "circuit", "connections", "*", "allow_self_connections"),
     ("Configuration", "metadata", "circuit", "connections", "*", "sampling"),
     ("Configuration", "metadata", "circuit", "connections", "*", "status"),
@@ -559,7 +560,10 @@ def construct_adex_model(
     triple_drive = _adex_triple_drive_pA(
         cfg.metadata, rows, tuple(sorted(set(labels)))
     )
-    result = compile_connection_rules(rows, rules, mechanisms, seed=edge_seed, dtype=dtype_name)
+    result = compile_connection_rules(
+        rows, rules, mechanisms, seed=edge_seed, dtype=dtype_name,
+        allow_intra_step_rounds=True,
+    )
 
     static = _construct_build_static(cfg, geometry_meta=None)
     static["neuron_metadata"] = rows
@@ -576,6 +580,12 @@ def construct_adex_model(
         "receptor": np.asarray(result.edge_mechanism, dtype=np.int64),
         "delay_ms": np.asarray(result.edge_delay_ms, dtype=np.float64),
         "rules": [(str(r.get("name")), float(r["delay_ms"])) for r in rules],
+        "rule_id": np.asarray(result.edge_rule_id, dtype=np.int64),
+        "intra_step_rounds": {
+            str(r.get("name")): int(r["intra_step_rounds"])
+            for r in rules
+            if r.get("intra_step_rounds") is not None
+        },
         "network": None if network_name is None else str(network_name),
         "receptor_names": tuple(receptor_names),
         "receptor_reversal_mV": receptor_reversal,
@@ -621,6 +631,28 @@ def _rule_delay_steps(name: str, delay_ms: float, dt_ms: float) -> int:
     return steps
 
 
+def _rule_delay_steps_allow_zero(name: str, delay_ms: float, dt_ms: float) -> int:
+    """``round(delay_ms / dt_ms)`` admitting 0 steps (the intra-step fixed point's rule).
+
+    Same realization as :func:`_rule_delay_steps`, except a delay rounding to
+    0 steps returns 0 instead of raising; negative and non-finite delays still
+    raise. The caller admits 0 only on a rule declaring ``intra_step_rounds``.
+    """
+    try:
+        return int(delay_steps_from_ms(delay_ms, dt_ms))
+    except ValueError as exc:
+        try:
+            ms = float(delay_ms)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"connections(name={name!r}) delay_ms={delay_ms} is not realized: "
+                "it takes a finite number in ms >= 0"
+            ) from exc
+        if math.isfinite(ms) and ms >= 0.0:
+            return 0
+        raise
+
+
 def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> dict[str, Any]:
     """Keyword arguments for :func:`jaxfne.emitters_adex.simulate_adex` on ``model``.
 
@@ -631,28 +663,92 @@ def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> di
     ``["triple_drive_pA"]``); models built without one take the historical path
     (no key: the kernel runs undriven). ``dtype`` casts the cell
     parameters (and so the kernel's dtype); None keeps them as built.
+
+    A rule declaring ``intra_step_rounds`` admits a delay realizing to 0 steps
+    on that rule only: its edges ride the kernel's ``edge0_*`` set with
+    ``intra_step_rounds`` (recorded in the manifest); without it a delay
+    rounding to 0 steps is refused as before. A declared R with a delay
+    realizing to >= 1 step, distinct R values across rules, or a declared R
+    realizing no delay-0 edge is refused rather than silently unconsumed.
+    Without any delay-0 edge the returned dict is unchanged.
     """
     emitter = model.params["emitter"]
     if dtype is not None:
         emitter = _cast_params(emitter, jnp.dtype(dtype))
     st = model.static["adex"]
     dt = float(dt_ms)
+    declared_rounds = dict(st.get("intra_step_rounds") or {})
+    if not declared_rounds:
+        for name, delay_ms in st["rules"]:
+            _rule_delay_steps(name, delay_ms, dt)
+        steps = np.asarray(
+            [delay_steps_from_ms(float(ms), dt) for ms in st["delay_ms"]], dtype=np.int64
+        )
+        out: dict[str, Any] = {
+            "params": emitter,
+            "edge_pre": st["pre"],
+            "edge_post": st["post"],
+            "edge_weight_nS": st["weight_nS"],
+            "edge_receptor": st["receptor"],
+            "edge_delay_steps": steps,
+            "receptor_reversal_mV": st["receptor_reversal_mV"],
+            "receptor_tau_ms": st["receptor_tau_ms"],
+            "decay": st["decay"],
+            "step_order": st["step_order"],
+        }
+        if st.get("triple_drive_pA", None) is not None:
+            out["I_ext_pA"] = st["triple_drive_pA"]
+        return out
+    rule_names = [name for name, _ in st["rules"]]
+    rule_steps: dict[str, int] = {}
+    fixed_values: list[int] = []
     for name, delay_ms in st["rules"]:
-        _rule_delay_steps(name, delay_ms, dt)
-    steps = np.asarray(
-        [delay_steps_from_ms(float(ms), dt) for ms in st["delay_ms"]], dtype=np.int64
-    )
-    out: dict[str, Any] = {
+        declared = declared_rounds.get(name)
+        if declared is None:
+            _rule_delay_steps(name, delay_ms, dt)
+            rule_steps[name] = int(delay_steps_from_ms(float(delay_ms), dt))
+        else:
+            realized = _rule_delay_steps_allow_zero(name, delay_ms, dt)
+            if realized >= 1:
+                raise ValueError(
+                    f"connections(name={name!r}) declares intra_step_rounds={declared} but "
+                    f"delay_ms={delay_ms} at dt_ms={dt} realizes to {realized} steps (>= 1); "
+                    "intra_step_rounds admits only a delay rounding to 0 steps on that "
+                    "connection -- omit it or set a sub-step delay"
+                )
+            rule_steps[name] = 0
+            fixed_values.append(int(declared))
+    if len(set(fixed_values)) > 1:
+        raise ValueError(
+            f"connections declare distinct intra_step_rounds={sorted(set(fixed_values))}; "
+            "the adex route's intra-step fixed point realizes one R -- declare one"
+        )
+    edge_rule = np.asarray(st["rule_id"], dtype=np.int64)
+    steps = np.asarray([rule_steps[rule_names[int(r)]] for r in edge_rule], dtype=np.int64)
+    zero = steps == 0
+    n_zero = int(zero.sum())
+    if fixed_values and not n_zero:
+        raise ValueError(
+            f"connections declare intra_step_rounds={fixed_values[0]} but realize no "
+            f"delay-0 edge at dt_ms={dt}; a declared R with nothing to resolve is refused "
+            "rather than silently unconsumed"
+        )
+    out = {
         "params": emitter,
-        "edge_pre": st["pre"],
-        "edge_post": st["post"],
-        "edge_weight_nS": st["weight_nS"],
-        "edge_receptor": st["receptor"],
-        "edge_delay_steps": steps,
+        "edge_pre": np.asarray(st["pre"])[~zero],
+        "edge_post": np.asarray(st["post"])[~zero],
+        "edge_weight_nS": np.asarray(st["weight_nS"])[~zero],
+        "edge_receptor": np.asarray(st["receptor"])[~zero],
+        "edge_delay_steps": steps[~zero],
         "receptor_reversal_mV": st["receptor_reversal_mV"],
         "receptor_tau_ms": st["receptor_tau_ms"],
         "decay": st["decay"],
         "step_order": st["step_order"],
+        "edge0_pre": np.asarray(st["pre"])[zero],
+        "edge0_post": np.asarray(st["post"])[zero],
+        "edge0_weight_nS": np.asarray(st["weight_nS"])[zero],
+        "edge0_receptor": np.asarray(st["receptor"])[zero],
+        "intra_step_rounds": int(fixed_values[0]),
     }
     if st.get("triple_drive_pA", None) is not None:
         out["I_ext_pA"] = st["triple_drive_pA"]

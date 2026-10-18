@@ -231,6 +231,14 @@ def manifest(
             # Unknown delay, never "no delay": omitting executed_delay is the
             # real no-delay value.
             res["executed_delay"] = {"unknown": f"{type(exc).__name__}: {exc}"}
+    # Declared intra-step fixed point (T-22, adex route only): present only
+    # when the run resolved delay-0 edges inside the step; absent otherwise.
+    if signals is not None:
+        _fixed_point = (signals.metadata or {}).get("intra_step_fixed_point")
+        if _fixed_point is not None:
+            from .io import json_safe as _fixed_json_safe
+
+            res["intra_step_fixed_point"] = _fixed_json_safe(dict(_fixed_point))
     # 0.5.2 item 4 (dispatcher follow-up): epistemic level carried on the
     # manifest. FieldOutput/ProbeReadout start RELATIVE_PROXY; only an
     # AppliedCalibration relabels (fields/probes.py refusal gate). Probe-level

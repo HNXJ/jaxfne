@@ -1503,6 +1503,12 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
         # The route records no sources and no field; the record flags change nothing here.
         "not_recorded": ["sources", "field"],
     }
+    if "edge0_pre" in kwargs:
+        metadata["intra_step_fixed_point"] = {
+            "rounds": int(kwargs["intra_step_rounds"]),
+            "n_delay0_edges": int(kwargs["edge0_pre"].shape[0]),
+            "rule": "or-monotone re-step from pre-step state",
+        }
     if sim.poisson_drive is not None:
         metadata["poisson_drive"] = {
             "n_sources": int(sim.poisson_drive["n_sources"]),

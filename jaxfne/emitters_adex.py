@@ -205,6 +205,10 @@ _EDGE_ARGS = (
     "edge_pre", "edge_post", "edge_weight_nS", "edge_receptor", "edge_delay_steps",
 )
 
+_EDGE0_ARGS = (
+    "edge0_pre", "edge0_post", "edge0_weight_nS", "edge0_receptor",
+)
+
 _EXT_ARGS = (
     "ext_targets", "ext_lambda", "ext_weight_nS", "ext_receptor", "ext_delay_steps", "key",
 )
@@ -394,6 +398,49 @@ def _check_edges(N, R, given):
     }
 
 
+def _check_zero_delay_edges(N, R, given):
+    """Validate the four delay-0 edge arrays; return numpy arrays, or None when all are absent."""
+    missing = [k for k in _EDGE0_ARGS if given[k] is None]
+    if missing and len(missing) < len(_EDGE0_ARGS):
+        raise ValueError(f"delay-0 edge arrays must be all given or all None; missing {missing}")
+    if missing:
+        return None
+    arrs = {}
+    for k in _EDGE0_ARGS:
+        a = np.asarray(given[k])
+        if a.ndim != 1:
+            raise ValueError(f"{k} must be one-dimensional, got shape {a.shape}")
+        arrs[k] = a
+    lengths = {k: a.shape[0] for k, a in arrs.items()}
+    if len(set(lengths.values())) > 1:
+        raise ValueError(f"delay-0 edge arrays must have equal lengths; got {lengths}")
+
+    def _ints(name):
+        a = arrs[name].astype(np.float64)
+        if not np.all(np.isfinite(a)) or np.any(a != np.round(a)):
+            raise ValueError(f"{name} must hold integers")
+        return a.astype(np.int64)
+
+    pre = _ints("edge0_pre")
+    post = _ints("edge0_post")
+    rec = _ints("edge0_receptor")
+    if pre.size and (pre.min() < 0 or pre.max() >= N):
+        raise ValueError(f"edge0_pre must index cells in [0, {N}); got min {pre.min()}, max {pre.max()}")
+    if post.size and (post.min() < 0 or post.max() >= N):
+        raise ValueError(f"edge0_post must index cells in [0, {N}); got min {post.min()}, max {post.max()}")
+    if rec.size and (rec.min() < 0 or rec.max() >= R):
+        raise ValueError(f"edge0_receptor must index receptors in [0, {R}); got min {rec.min()}, max {rec.max()}")
+    weight = arrs["edge0_weight_nS"].astype(np.float64)
+    if weight.size and not bool(np.all(np.isfinite(weight))):
+        raise ValueError("edge0_weight_nS must hold finite values")
+    return {
+        "pre": pre,
+        "post": post,
+        "weight": weight,
+        "receptor": rec,
+    }
+
+
 def simulate_adex(
     params: AdExParams,
     *,
@@ -404,6 +451,11 @@ def simulate_adex(
     edge_weight_nS=None,
     edge_receptor=None,
     edge_delay_steps=None,
+    edge0_pre=None,
+    edge0_post=None,
+    edge0_weight_nS=None,
+    edge0_receptor=None,
+    intra_step_rounds=None,
     receptor_reversal_mV=(),
     receptor_tau_ms=(),
     decay: str,
@@ -473,6 +525,19 @@ def simulate_adex(
     ``I_ext_pA`` is None, shape ``[N]`` (every step), or ``[n_steps, N]``. ``V0_mV`` is None
     (rest at ``EL``) or shape ``[N]``. ``edge_*`` arrays are all given or all None. Edge
     delays must be integers >= 1.
+
+    The declared intra-step fixed point for zero-delay edges rides the
+    ``edge0_*`` arrays (``edge0_pre``, ``edge0_post``, ``edge0_weight_nS``,
+    ``edge0_receptor``: all given or all None, same shapes as ``edge_*``
+    minus the delay) plus ``intra_step_rounds`` (a positive int R): within one
+    step, round 0 is the step above giving ``spk``; then for ``r`` in 1..R,
+    cells that newly spiked in the previous round add their delay-0 weights
+    to the post cells' ``g`` for this step, and every cell not yet spiked
+    this step is re-stepped from the same pre-step ``(V, w, ref)`` with the
+    updated ``g``; spikes are OR-ed, never undone. The final ``g`` includes
+    all delay-0 arrivals of the step, and the final ``spk`` is written to the
+    ring. Absent ``edge0_*``/``intra_step_rounds`` (both None) the scan body
+    is the step above byte-for-byte; one without the other is refused.
 
     Returns a dict: ``spikes`` (bool ``[n_steps, N]``), ``V_mV`` (``[n_steps, N]``, after each
     step's update, only if ``record_v``: 4.6 GB in float32 at 9500 cells and 120000 steps),
@@ -560,10 +625,44 @@ def simulate_adex(
         M = int(ext["targets"].shape[0])
         window = _check_drive_window(n_steps, ext_t_start_steps, ext_t_stop_steps)
 
+    zero = _check_zero_delay_edges(
+        N,
+        R,
+        {
+            "edge0_pre": edge0_pre,
+            "edge0_post": edge0_post,
+            "edge0_weight_nS": edge0_weight_nS,
+            "edge0_receptor": edge0_receptor,
+        },
+    )
+    if zero is None and intra_step_rounds is None:
+        has_zero = False
+        n_rounds = 0
+    elif zero is None:
+        raise ValueError(
+            f"intra_step_rounds={intra_step_rounds!r} needs the delay-0 edge arrays "
+            "(edge0_pre, edge0_post, edge0_weight_nS, edge0_receptor); pass both or neither"
+        )
+    elif intra_step_rounds is None:
+        raise ValueError(
+            "delay-0 edge arrays (edge0_pre, edge0_post, edge0_weight_nS, edge0_receptor) "
+            "need intra_step_rounds; pass both or neither"
+        )
+    else:
+        from .pcl_topology import validate_rounds
+
+        n_rounds = validate_rounds(intra_step_rounds, label="intra_step_rounds")
+        has_zero = True
+
     pre_j = jnp.asarray(edges["pre"], jnp.int32)
     seg_j = jnp.asarray(edges["post"] * R + edges["receptor"], jnp.int32)
     absw_j = jnp.asarray(np.abs(edges["weight"]), dtype)
     lag_j = jnp.asarray(delay_eff, jnp.int32)
+    if has_zero:
+        assert zero is not None
+        pre0_j = jnp.asarray(zero["pre"], jnp.int32)
+        seg0_j = jnp.asarray(zero["post"] * R + zero["receptor"], jnp.int32)
+        absw0_j = jnp.asarray(np.abs(zero["weight"]), dtype)
     decay_r = np.exp(-dt_ms / tau) if decay == "exp" else 1.0 - dt_ms / tau
     decay_j = jnp.asarray(decay_r, dtype)
     rev_j = jnp.asarray(rev, dtype)
@@ -633,8 +732,39 @@ def simulate_adex(
         if ext is not None:
             earr = ering[(t - d_ext) % L]
             g = g.at[targets_j, rec_ext].add(w_ext_j * earr.astype(dtype))
-        I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
-        (V, w, ref), spk = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
+        if not has_zero:
+            I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
+            (V, w, ref), spk = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
+        else:
+            # Declared intra-step fixed point: round 0 is the step above;
+            # rounds 1..R re-step every not-yet-spiked cell from the same
+            # pre-step (V, w, ref) with the delay-0 arrivals folded into g.
+            I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
+            (V1, w1, ref1), spk0 = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
+            V_pre, w_pre, ref_pre = V, w, ref
+
+            def _fp_round(_r, fp_carry):
+                spk_acc, Vc, wc, refc, gc, prev_new = fp_carry
+                add0 = jax.ops.segment_sum(
+                    jnp.where(prev_new[pre0_j], absw0_j, 0.0),
+                    seg0_j,
+                    num_segments=N * R,
+                ).reshape(N, R)
+                gc = gc + add0
+                I_2 = jnp.sum(gc * (rev_j[None, :] - V_pre[:, None]), axis=1) + I_t
+                (Vn, wn, refn), spkn = adex_step(
+                    (V_pre, w_pre, ref_pre), I_2, params, dt_ms, step_order
+                )
+                take = ~spk_acc
+                Vc = jnp.where(take, Vn, Vc)
+                wc = jnp.where(take, wn, wc)
+                refc = jnp.where(take, refn, refc)
+                return (spk_acc | spkn, Vc, wc, refc, gc, spkn & ~spk_acc)
+
+            spk_acc, V, w, ref, g, _prev = jax.lax.fori_loop(
+                0, n_rounds, _fp_round, (spk0, V1, w1, ref1, g, spk0)
+            )
+            spk = spk_acc
         ring = ring.at[t % L].set(spk)
         if ext is not None:
             if lam_1d is None and lam_2d is None:

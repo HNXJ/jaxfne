@@ -1420,6 +1420,15 @@ def _construct_from_configuration(
     physical signals.
     """
     _construct_validate_config(cfg)
+    if not (cfg.emitters and cfg.emitters[0].get("family") == "adex"):
+        for rule in (cfg.metadata.get("circuit") or {}).get("connections", []):
+            if isinstance(rule, Mapping) and rule.get("intra_step_rounds") is not None:
+                raise ValueError(
+                    f"connections(name={rule.get('name')!r}) declares "
+                    f"intra_step_rounds={rule.get('intra_step_rounds')!r}: the intra-step "
+                    "fixed point is realized on the adex route only (emitter family "
+                    "'adex'); omit it on this route"
+                )
     if cfg.emitters and cfg.emitters[0].get("family") == "homeostatic_ei":
         if geometry is not None:
             raise ValueError(

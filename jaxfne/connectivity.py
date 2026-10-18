@@ -32,7 +32,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from .pcl_topology import footprint_pairs, validate_footprint, validate_local_inhibition, validate_weight_sharing
+from .pcl_topology import footprint_pairs, validate_footprint, validate_local_inhibition, validate_rounds, validate_weight_sharing
 
 __all__ = [
     "compile_connection_rules",
@@ -693,6 +693,7 @@ def compile_connection_rules(
     allow_self_connections: bool = False,
     artifacts: Optional[Mapping[str, Any]] = None,
     dtype: str = "float32",
+    allow_intra_step_rounds: bool = False,
 ) -> ConnectionCompileResult:
     """Compile declared connection rules into sparse finite edge arrays.
 
@@ -737,6 +738,12 @@ def compile_connection_rules(
     ``edge_delay_ms``, and recorded on the connection-table row. Realization
     to integer steps happens at construction via :func:`delay_steps_from_ms`
     (0.5.2 decision 0b), where ``dt`` is known — never here.
+
+    A rule may set ``intra_step_rounds`` (None = undeclared): the declared
+    intra-step fixed point for zero-delay edges, realized on the adex route
+    only. Any other caller refuses it here, naming the adex route; pass
+    ``allow_intra_step_rounds=True`` on the adex route, where it is validated
+    (a positive int) and carried on the rule for the kernel.
     """
     artifacts = dict(artifacts or {})
     if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
@@ -797,6 +804,15 @@ def compile_connection_rules(
         # fanned out per edge below, realized to steps at construction.
         rule_delay_ms = _validate_rule_delay_ms(rname, rule.get("delay_ms"))
         # Validated before any skip, so an empty or localized rule cannot carry a bad value.
+        declared_rounds = rule.get("intra_step_rounds")
+        if declared_rounds is not None:
+            if not allow_intra_step_rounds:
+                raise ValueError(
+                    f"connection {rname!r} declares intra_step_rounds={declared_rounds!r}: "
+                    "the intra-step fixed point is realized on the adex route only "
+                    "(emitter family 'adex'); omit it on this route"
+                )
+            validate_rounds(declared_rounds, label=f"connection {rname!r} intra_step_rounds")
         sampling = rule.get("sampling")
         sampling = "density" if sampling is None else sampling
         if not isinstance(sampling, str) or sampling not in (
