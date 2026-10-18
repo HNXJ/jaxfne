@@ -64,7 +64,7 @@ import argparse
 import ast
 import json
 import os
-from pathlib import Path, PureWindowsPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 ROOT = Path(__file__).resolve().parents[1]
 KNOWN_PATH = Path(__file__).resolve().parent / "replication_known_violations.json"
@@ -292,6 +292,10 @@ def _resolve_expr(node: ast.AST, bindings: dict[str, ast.AST], here: Path, depth
             # relative and the finding would differ between Windows and Linux gates.
             if PureWindowsPath(node.value).drive:
                 return PureWindowsPath(node.value)
+            # Likewise a POSIX root path ("/tmp/x") is absolute on Windows too (UNC "//" excepted,
+            # which both OSes already read the same way).
+            if node.value.startswith("/") and not node.value.startswith("//"):
+                return PurePosixPath(node.value)
             cand = Path(node.value)
             return cand if cand.is_absolute() else None
         return None
@@ -379,42 +383,50 @@ def _resolve_expr(node: ast.AST, bindings: dict[str, ast.AST], here: Path, depth
     return None
 
 
-GIT_BANNED_ELEMENTS = ("-c", "--exec-path")
+#: Read-only git subcommands a replication may call to stamp its provenance.
+GIT_READ_SUBCOMMANDS = ("rev-parse", "status", "log", "show", "describe", "ls-files")
+#: Element prefixes that let git run a command or load config (attached ``-cX=Y`` included).
+GIT_BANNED_PREFIXES = ("-c", "--config", "--exec-path", "--upload-pack", "--receive-pack",
+                       "--ext-diff", "--textconv", "-u")
 GIT_BANNED_KEYWORDS = ("shell", "executable", "env", "preexec_fn")
 
 
 def _is_git_literal_call(node: ast.Call) -> bool:
     """A ``subprocess`` call that cannot run authors' code.
 
-    The argv is a list literal of string constants starting with ``"git"``,
-    with no ``-c``/``--exec-path`` element (both let git run arbitrary
-    commands) and no ``shell=``/``executable=``/``env=``/``preexec_fn=``
-    keyword. Anything else (a string, a variable, another program, a tainted
-    git call, a non-constant argv element such as ``str(path)``) stays a
-    finding.
+    The argv is a list literal starting with ``"git"``, optionally one
+    ``-C <dir>`` (the only element allowed to be computed), then a read-only
+    subcommand from ``GIT_READ_SUBCOMMANDS`` and string constants, none
+    starting with a ``GIT_BANNED_PREFIXES`` entry; no ``shell=``,
+    ``executable=``, ``env=``, ``preexec_fn=`` or ``**`` keyword. Anything else
+    (a string, a variable, another program, a writing or fetching subcommand,
+    a second computed element) stays a finding.
     """
     if not node.args:
         return False
     argv = node.args[0]
     if not isinstance(argv, (ast.List, ast.Tuple)) or not argv.elts:
         return False
-    head = argv.elts[0]
-    if not (isinstance(head, ast.Constant) and head.value == "git"):
+    elts = list(argv.elts)
+    if not (isinstance(elts[0], ast.Constant) and elts[0].value == "git"):
         return False
-    prev = head
-    for elt in argv.elts[1:]:
-        after_dir_flag = isinstance(prev, ast.Constant) and prev.value == "-C"
-        prev = elt
-        if after_dir_flag and not isinstance(elt, ast.Constant):
-            # ``git -C <dir>`` with a computed directory (the repo root) only picks where
-            # git runs; the subcommand and its arguments stay constants.
-            continue
+    rest = elts[1:]
+    if rest and isinstance(rest[0], ast.Constant) and rest[0].value == "-C":
+        # ``git -C <dir>`` with a computed directory (the repo root) only picks where git runs.
+        if len(rest) < 2 or isinstance(rest[1], ast.Starred):
+            return False
+        rest = rest[2:]
+    if not rest:
+        return False
+    for elt in rest:
         if not (isinstance(elt, ast.Constant) and isinstance(elt.value, str)):
             return False
-        if elt.value == "-c" or elt.value.startswith("--exec-path"):
+        if elt.value.startswith(GIT_BANNED_PREFIXES):
             return False
+    if rest[0].value not in GIT_READ_SUBCOMMANDS:
+        return False
     for kw in node.keywords:
-        if kw.arg in GIT_BANNED_KEYWORDS:
+        if kw.arg is None or kw.arg in GIT_BANNED_KEYWORDS:
             return False
     return True
 

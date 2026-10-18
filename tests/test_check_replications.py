@@ -629,3 +629,48 @@ def test_s1_os_posix_spawn_fails(tmp_path):
 
 def test_s1_pty_spawn_fails(tmp_path):
     _s1_must_fail(tmp_path, "ptx", "import pty\npty.spawn(['bash'])\n")
+
+
+def test_s1_git_double_star_keywords_fail(tmp_path):
+    _s1_must_fail(
+        tmp_path,
+        "gkw",
+        "import subprocess\nsubprocess.run(['git', 'rev-parse', 'HEAD'], **{'shell': True})\n",
+    )
+
+
+def test_s1_git_upload_pack_fails(tmp_path):
+    # Constant argv, yet clone runs the upload-pack command.
+    _s1_must_fail(
+        tmp_path,
+        "gup",
+        "import subprocess\nsubprocess.run(['git', 'clone', '--upload-pack=touch x', 'u'])\n",
+    )
+
+
+def test_s1_git_attached_dash_c_fails(tmp_path):
+    _s1_must_fail(
+        tmp_path,
+        "gac",
+        "import subprocess\nsubprocess.run(['git', '-ccore.pager=x', 'log'])\n",
+    )
+
+
+def test_s1_git_two_computed_elements_fail(tmp_path):
+    _s1_must_fail(
+        tmp_path,
+        "g2c",
+        "import subprocess\nsubprocess.run(['git', '-C', d1, '-C', d2, 'log'])\n",
+    )
+
+
+def test_s1_posix_root_path_is_outside_on_every_os(tmp_path):
+    # Windows and Linux gates must give the same finding for a POSIX root path.
+    _registry(tmp_path, [])
+    _write(
+        tmp_path,
+        "artifacts/etudes/papers/psx/run.py",
+        'import sys\nsys.path.insert(0, "/tmp/elsewhere")\n',
+    )
+    messages = [m for r, _, m in cr.collect_findings(tmp_path) if r == "S1"]
+    assert messages == ["line 2: sys.path.insert adds a path outside the repository (/tmp/elsewhere)"]
