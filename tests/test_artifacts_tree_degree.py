@@ -60,6 +60,8 @@ EXEMPT_FOLDERS = {
     "protocol_c": "frozen fig05_wave_spec.json and publication_evidence_index.json cite these files",
     "protocol_d_biological_rbs": "jaxfne/ runtime paths and frozen fig06_hwd_spec.json cite these files",
     "protocol_e_integration": "jaxfne/ runtime paths and frozen fig01/fig07 specs cite these files",
+    "changelog.d": "one fragment per change since the last release; "
+                   "scripts/assemble_changelog.py deletes them at release",
     "control/skills": "one folder per skill: sync_skills.py and check_harness_integrity.py resolve "
                       "control/skills/<name>/SKILL.md",
     "etudes/experiment_a": "frozen publication/fig02-fig04 receipts and jaxfne/ defaults cite these files",
