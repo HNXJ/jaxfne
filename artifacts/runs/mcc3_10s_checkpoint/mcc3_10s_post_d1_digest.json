@@ -1,0 +1,26 @@
+{
+ "abc_table": {
+  "total_spikes": {
+   "B": 1063
+  }
+ },
+ "agsdr": {
+  "theta_hat": {
+   "m_EE": 1.4332973957061768,
+   "m_EI": 1.111473560333252,
+   "m_IE": 0.10846326500177383,
+   "m_II": 0.9603762626647949
+  }
+ },
+ "firing": {
+  "B": {
+   "E_rate_hz": 10.721442222595215,
+   "I_rate_hz": 10.400801658630371,
+   "population_rate_hz": 10.561121940612793
+  }
+ },
+ "note": "Declared regeneration of the condition-B fields in mcc3_10s_metrics_digest.json after D1 (5090af24, Hamm 2026-10-13: Izhikevich noise made dt-invariant, noise_coef = noise_scale * sqrt(0.5 / dt_ms)), an intended model change. The tuned theta is unchanged; the B rates and spike total moved. mcc3_10s_metrics_digest.json stays as the pre-D1 record. Computed 2026-10-18 on dev 74acf7e0, Linux CPU, JAX 0.10.1, by the code path of scripts/rerun_etude_figures.py::mode_hdp_mcc3; the Read the Docs build log (Python 3.13, CPU) reports the same population rate. Issue P-035.",
+ "regenerated_after_commit": "5090af24",
+ "schema": "jaxfne.mcc3_10s_post_d1_digest.v1",
+ "supersedes_fields_of": "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_metrics_digest.json"
+}

@@ -130,3 +130,7 @@ marked inferred).
   beside it as a declared regeneration (reason: D1), which the generator checks; the docs panels
   then show the post-D1 run. The docs gate (`run_test_gate.py docs`) does not run the generators, so CI
   stays green while RTD fails.
+- Fix 2026-10-18: `mcc3_10s_post_d1_digest.json` (condition B after D1: population 10.5611 Hz,
+  1063 spikes; theta unchanged) beside the pre-D1 digest; `mode_hdp_mcc3` checks theta against
+  the frozen digest and condition B against the post-D1 one. Moves to closed when a Read the
+  Docs build succeeds.
