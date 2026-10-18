@@ -529,7 +529,7 @@ def build_multi_area_columns(
         Within-area weight gain.
     p_feedforward, p_feedback : float, keyword-only
         Inter-area connection probabilities, default 0.3 / 0.2.
-        UNCALIBRATED placeholders (todo 0c); not calibrated to primate anatomy.
+        UNCALIBRATED placeholders; not calibrated to primate anatomy.
 
     Returns
     -------
@@ -557,8 +557,8 @@ def build_multi_area_columns(
     # deeper target layers). One spec per direction; specs accumulate:
     #   feedforward  lo -> hi  : source L2/3 E -> target L4   (uses p_feedforward)
     #   feedback     hi -> lo  : source L6     -> target L1/L5 (uses p_feedback)
-    # Probabilities and weight ranges below are UNCALIBRATED placeholders
-    # (todo 0c); not calibrated to primate anatomy.
+    # Probabilities and weight ranges below are UNCALIBRATED placeholders;
+    # not calibrated to primate anatomy.
     for lo, hi in zip(areas[:-1], areas[1:]):
         cfg = cfg.inter_column_connectivity(
             source_area=lo,
@@ -604,11 +604,11 @@ def connect_columns(
         Connectivity mode; the inter-area compiler realizes sparse Bernoulli
         projections only, so other values are refused.
     feedforward_gain : float
-        Feedforward weight scaling. Default: 0.65. UNCALIBRATED placeholder
-        (todo 0c); not calibrated to primate anatomy.
+        Feedforward weight scaling. Default: 0.65. UNCALIBRATED placeholder;
+        not calibrated to primate anatomy.
     feedback_gain : float
-        Feedback weight scaling. Default: 0.50. UNCALIBRATED placeholder
-        (todo 0c); not calibrated to primate anatomy.
+        Feedback weight scaling. Default: 0.50. UNCALIBRATED placeholder;
+        not calibrated to primate anatomy.
 
     Returns
     -------
@@ -640,8 +640,8 @@ def sparse_intercolumn_connectivity(
 ) -> dict[str, Any]:
     """Create a sparse inter-column connectivity specification.
 
-    Default probabilities and weight ranges are UNCALIBRATED placeholders
-    (todo 0c); not calibrated to primate anatomy.
+    Default probabilities and weight ranges are UNCALIBRATED placeholders;
+    not calibrated to primate anatomy.
 
     Returns
     -------
