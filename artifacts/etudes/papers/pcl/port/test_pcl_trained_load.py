@@ -13,16 +13,8 @@ import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-
-
-def _repo_root(start: Path) -> Path:
-    for cand in (start, *start.parents):
-        if (cand / "pyproject.toml").is_file():
-            return cand
-    raise RuntimeError(f"no pyproject.toml above {start}")
-
-
-_ROOT = str(_repo_root(HERE))
+# Repo-root guard (P-025): artifacts/etudes/papers/pcl/port/ sits five levels below the root.
+_ROOT = str(Path(__file__).resolve().parents[5])
 if sys.path[:1] != [_ROOT]:
     sys.path.insert(0, _ROOT)
 if str(HERE) not in sys.path:
