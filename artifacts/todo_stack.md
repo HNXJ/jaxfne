@@ -59,16 +59,15 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   push dev. Standing item. Closes when: `python scripts/build_dashboard_data.py --check` passes
   on each push.
 - T-31 [A] Audit 2026-10-17 (Muse and Claude, union verified by a third Muse pass). Landed: harness
-  integrity re-hashed and gated (D1), dead replication paths repointed (D9), JUnit dest per SHA
-  (T-26). Open: (a) silent fallbacks reported as real values: `_construct_connectivity.py:814-817`
-  merge, `util.py:881-899` delay and trainable counts, `_model_manifest.py:229-230`
-  `executed_delay`, `paradigm.py:399` repr fallback, `_config.py:788` `or 100`; (b)
-  `tests/test_v033_two_neuron_ei.py:70-73` skips in a clean checkout (reads untracked
-  `outputs/`); (c) `scripts/gate_etude_no_resim.py` has no caller; (d) the publication gate
-  (`run_test_gate.py:689-699`) runs a snapshot and prints placeholder text; (e) ruff covers
-  `jaxfne/` only (scripts 53, tests 393, examples 31 findings); (f) `agent.py:207,210,241,278`
-  `dtype=float` in diagnostics. Closes when: each is fixed with a failing-first test or recorded
-  harmless here.
+  integrity (D1), replication paths (D9), JUnit per SHA (T-26), silent fallbacks (a), the clean-
+  checkout skip (b), `gate_etude_no_resim.py` in the gates (c), a real publication gate (d), the
+  `agent.py` dtype (f), six narrowed handlers in `canonical_compact_summary`. Open: (e) ruff
+  covers `jaxfne/` only (2026-10-18: scripts/tests/examples 477 findings, F401 228, F841 59,
+  E741 57, E402 47; scripts/ clean on F401/F841/E711/E712/E721); (g) `util.py` keeps 22 broad
+  `except Exception` handlers, some inner ones (`:507`, `:516-519`) swallow any error in the H
+  probe; (h) `tests/test_field01_audit.py:74` asserts a wall-clock ratio (`t64 < 4 * t4`) and
+  failed once under xdist load (int4 gate 2026-10-18; passes alone 3 of 3). Closes when: each is
+  fixed with a failing-first test or recorded harmless here.
 - T-28 [H] `jaxfne/tfne.py:211` `_RESERVED_LOWER = {"x", "y", "h", "s"}` is defined and never read
   (Muse cleanup, 2026-10-15). Wiring it into name validation changes which names are accepted;
   deleting it drops the stated reservation. Closes when: Hamm picks one.
@@ -113,11 +112,12 @@ run on WSL2 CUDA.
   no reference but write tracked or frozen receipts that docs cite, so they stay:
   `hdp_k_w_ctrl_sweep.py`, `p2v_a1b_dynamic_search.py`, `p2v_a1b_prefreeze_evidence.py`,
   `p2v_a3_hdp_boundedness.py`, `p2v_a4_claim_language.py`. Closes when: each has Hamm's call.
-- T-18 [A] Follow-ups of the T-18 fix (2026-10-17; default signs, refusal and summary grouping now
-  read `emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS`): the same-layer zeroing still names PV/SST/VIP
-  in `tutorial_utils.py` (`np.isin`), the LIF table keeps its own signs (`emitters_lif.py`
-  `LIF_LABEL_SIGN`), and `SOM` is in neither table. Extending the same-layer rule to I/Inl/Ing is
-  a model change for Hamm. Closes when: one sign source, or each site carries a stated scope.
+- T-18 [A] One sign table landed 2026-10-18 (`emitters.CELL_TYPE_SIGN`; Izhikevich and LIF derive
+  from it; unknown LIF labels refused; same-layer zeroing a named stated-scope constant). Left:
+  `presets.py:12-64` and `tutorial_utils.py:612-644` are separate parameter catalogs that restate
+  signs (and differ from the canonical a/b/c/d: SST a, VIP b); `SOM` lives only in the AdEx table.
+  Extending the same-layer rule to I/Inl/Ing is a model change for Hamm. Closes when: each catalog
+  reads the table or carries a stated scope.
 - T-19 [A] Deep audit and code critique (Muse, 2026-10-13, at aef3129e). Landed: 0df3da9d,
   68c61e92, 10d80c08 (NaN metrics, refusals, narrowed excepts), 5090af24 and c4dc0922 (D1 noise
   sqrt(dt_ref/dt)), and the `compute_fields` model check plus the last emitters.py broad except
@@ -142,11 +142,10 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 - T-22 [A] Same-step interactions (PCL local inhibition, CAMINOS zero delay, gap G12) are a
   declared intra-step fixed point: f applies R ordered rounds, with R and the order part of A and
   recorded in the manifest; delay 0 means "resolved inside the step". Closes when: the operator is
-  in the core with tests, PCL B3 uses it, and the CAMINOS 0-delay sensitivity runs on it.
-- T-24 [A] Constant drive (bias current, external Poisson rate) is part of x: a declared input
-  source with a schedule (constant is a special case); the emitter `drive` field becomes a
-  shorthand that compiles to an x source, existing numerics unchanged. Closes when: both routes
-  compile drive to x with a byte-identity test on the old path.
+  in the core with tests, PCL B3 uses it, and the CAMINOS 0-delay sensitivity runs on it. Phase 1
+  (AdEx zero-delay edges, `connections(intra_step_rounds=R)`) landed 2026-10-18; semantics calls
+  O-35. Next: Poisson drive delay 0 (CAMINOS `--delay-ms 0` zeroes it too, still refused), then
+  the PCL B3 operator on the core.
 - T-25 [A] Plastic weights: W is state in h during a run; A holds W₀ and its ownership. A trained
   network is A' = A with W₀ ← W_T, recorded with provenance. Closes when: the tensor carries W₀
   provenance and PCL's trained weights load as A'.
@@ -189,8 +188,9 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
     cite pre-reorg paths; the dashboard shows GSDR at P1 with P3 records present; `hh-at01` has
     no folder.
   - Tree caps: `papers/pcl/`, `caminos/`, `izhikevich2003/` over 7 (O-22).
-  The gate rows go into `scripts/check_replications.py` with a known-violations list (in flight).
-  Closes when: every paper passes the checker without a listed violation, or each listed one
+  Gate: `scripts/check_replications.py --check` (families replication_audit, etude_no_resim, run
+  by the dev gate too) against `scripts/replication_known_violations.json` (29 findings,
+  2026-10-18); a fix removes its entry. Closes when: every paper passes the checker without a listed violation, or each listed one
   carries Hamm's exception.
 - CAMINOS lag (6.47 against 8.5 ms): Hamm attributes the gap to the paper's estimator rather than
   the model; class stays verified, the lag stays a recorded finding, no fit.

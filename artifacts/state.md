@@ -1,10 +1,16 @@
 # state
 
-Stamp: jaxfne@dev@5be5ea19 · 2026-10-17 (written 2026-10-17T23:06:15Z)
+Stamp: jaxfne@dev@36f65d8b · 2026-10-18 (written 2026-10-18T01:06:55Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
 ## Works (with evidence)
+
+- 2026-10-18 on dev: declared input sources (T-24, `XSource`, `Model.x_sources`); replication
+  checker `scripts/check_replications.py` in every gate including dev (29 listed findings); T-31
+  fixes (silent fallbacks, narrowed handlers, real publication gate); one sign table (T-18); AdEx
+  zero-delay edges as a declared intra-step fixed point (T-22 phase 1). Broad gate on 36f65d8b:
+  6407 passed, 1 timing flake (passes alone 3 of 3, T-31 h).
 
 - 2026-10-17 on dev: multi-compartment HH route (jaxley oracle 8.3e-12 mV, Muse review PASS);
   run manifests carry activity regimes (T-23); tensor identity digest fails closed; JUnit
