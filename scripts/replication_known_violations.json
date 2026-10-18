@@ -1,29 +1,8 @@
 [
   {
     "rule": "R1",
-    "path": "artifacts/etudes/papers/caminos",
-    "message": "stage P6 paper 'caminos' lacks the P1 record SOURCE_P1.md",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
-  },
-  {
-    "rule": "R1",
     "path": "artifacts/etudes/papers/izhikevich2003",
     "message": "stage P5 paper 'izhikevich2003' lacks the P5 record LEDGER.md",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
-  },
-  {
-    "rule": "R1",
-    "path": "artifacts/etudes/papers/pcl",
-    "message": "stage P1 paper 'pcl-fig2' lacks the P1 record SOURCE_P1.md",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
-  },
-  {
-    "rule": "R1",
-    "path": "artifacts/etudes/papers/pcl",
-    "message": "stage P5 paper 'pcl-fig3' lacks the P1 record SOURCE_P1.md",
     "reason": "audit 2026-10-17",
     "todo": "T-30"
   },
@@ -65,7 +44,7 @@
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/caminos",
-    "message": "holds 19 files (at most 7)",
+    "message": "holds 20 files (at most 7)",
     "reason": "audit 2026-10-17",
     "todo": "T-30"
   },
@@ -79,7 +58,7 @@
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/pcl",
-    "message": "holds 21 files (at most 7)",
+    "message": "holds 22 files (at most 7)",
     "reason": "audit 2026-10-17",
     "todo": "T-30"
   },

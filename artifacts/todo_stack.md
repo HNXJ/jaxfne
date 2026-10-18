@@ -186,12 +186,13 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
     RESULT yet (R1).
   - pcl_h and Q-learning: core-compliant; no phase records (R1); pcl_h imports sibling-étude
     modules through `sys.path` and is not on the dashboard.
-  - Records: SOURCE_P1 missing for CAMINOS and PCL; `dashboard/sources.json` `stage_artifacts`
+  - Records: SOURCE_P1 for CAMINOS and PCL are drafts (2026-10-18), Hamm or the keeper verifies
+    them against the articles; `dashboard/sources.json` `stage_artifacts`
     cite pre-reorg paths; the dashboard shows GSDR at P1 with P3 records present; `hh-at01` has
     no folder.
   - Tree caps: `papers/pcl/`, `caminos/`, `izhikevich2003/` over 7 (O-22).
   Gate: `scripts/check_replications.py --check` (families replication_audit, etude_no_resim, run
-  by the dev gate too) against `scripts/replication_known_violations.json` (29 findings,
+  by the dev gate too) against `scripts/replication_known_violations.json` (26 findings,
   2026-10-18); a fix removes its entry. Closes when: every paper passes the checker without a listed violation, or each listed one
   carries Hamm's exception.
 - CAMINOS lag (6.47 against 8.5 ms): Hamm attributes the gap to the paper's estimator rather than
