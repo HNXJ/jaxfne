@@ -511,9 +511,15 @@ def mode_hdp_mcc3(out_dir: pathlib.Path) -> list[dict]:
     import scripts.mcc3_10s_scientific_checkpoint as M3
 
     # The full 54.8 MB metrics file left the tree (2026-10-06 compaction); the digest
-    # holds the fields compared below (theta_hat, firing.B, total_spikes.B).
+    # holds the fields compared below (theta_hat, firing.B, total_spikes.B). The condition-B
+    # fields moved with D1 (P-035); they are checked against the post-D1 digest.
     committed = json.loads(
         (ROOT / "artifacts/mcc3_10s_checkpoint/mcc3_10s_metrics_digest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    post_d1 = json.loads(
+        (ROOT / "artifacts/mcc3_10s_checkpoint/mcc3_10s_post_d1_digest.json").read_text(
             encoding="utf-8"
         )
     )
@@ -544,11 +550,13 @@ def mode_hdp_mcc3(out_dir: pathlib.Path) -> list[dict]:
         duration_ms=M3.DURATION_MS, dt_ms=M3.DT_MS, seed=M3.SIM_SEED, runtime=M3.mcc3_runtime(True)
     )
     B = M3.run_condition(base, thetah, specs, sim_10s_on, objective, "B")
-    want = committed["firing"]["B"]
+    if post_d1["agsdr"]["theta_hat"] != committed["agsdr"]["theta_hat"]:
+        raise SystemExit("post-D1 digest theta differs from the frozen checkpoint")
+    want = post_d1["firing"]["B"]
     for key in ("population_rate_hz", "E_rate_hz", "I_rate_hz"):
         if B[key] != want[key]:
             raise SystemExit(f"condition-B {key} drift: {B[key]} vs {want[key]}")
-    if B["spike_total"] != committed["abc_table"]["total_spikes"]["B"]:
+    if B["spike_total"] != post_d1["abc_table"]["total_spikes"]["B"]:
         raise SystemExit("condition-B spike_total drift")
 
     signals = B["signals"]
