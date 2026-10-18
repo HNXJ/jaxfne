@@ -63,9 +63,8 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   checkout skip (b), `gate_etude_no_resim.py` in the gates (c), a real publication gate (d), the
   `agent.py` dtype (f), six narrowed handlers in `canonical_compact_summary`. Open: (e) ruff
   covers `jaxfne/` only (2026-10-18: scripts/tests/examples 477 findings, F401 228, F841 59,
-  E741 57, E402 47; scripts/ clean on F401/F841/E711/E712/E721); (g) `util.py` keeps 22 broad
-  `except Exception` handlers, some inner ones (`:507`, `:516-519`) swallow any error in the H
-  probe (Muse lane 2026-10-18). Closes when: each is fixed with a failing-first test or recorded
+  E741 57, E402 47; scripts/ clean on F401/F841/E711/E712/E721). `canonical_compact_summary`
+  has no broad handler left (g, 2026-10-18). Closes when: each is fixed with a failing-first test or recorded
   harmless here.
 - T-28 [H] `jaxfne/tfne.py:211` `_RESERVED_LOWER = {"x", "y", "h", "s"}` is defined and never read
   (Muse cleanup, 2026-10-15). Wiring it into name validation changes which names are accepted;

@@ -269,3 +269,101 @@ def test_agent_diagnostics_preserve_float32():
     assert {k: v["verdict"] for k, v in cmp.items()} == {
         "time": "EQUAL", "weight": "EQUAL", "mechanism": "EQUAL", "delay": "EQUAL"}
     assert A.verify(run, "finite")["verdict"] == "PASS"
+
+
+# --- T-31g: narrowed fallbacks inside canonical_compact_summary ----------------
+# Each forcing test below fails on the baseline (restored implementation file)
+# and passes with the narrowed handler. Unexpected error types propagate.
+
+def _boom_table():
+    raise TypeError("forced population-table failure")
+
+
+def test_h_locality_2d_mismatch_failure_is_unknown():
+    import jax.numpy as jnp
+
+    model = _small_model()
+    model.params["hdp_initial_H"] = jnp.zeros((3, 2))  # 6 != N(10) * dim(2)
+    object.__setattr__(model, "neuron_table", _boom_table)
+    summ = jtfne.canonical_compact_summary(model)
+    assert summ["Theta"]["H"]["locality"] == "unknown"
+
+
+def test_h_locality_1d_mismatch_failure_is_unknown():
+    import jax.numpy as jnp
+
+    model = _small_model()
+    model.params["hdp_initial_H"] = jnp.zeros((3,))
+    md = dict(model.cfg.metadata)
+    md["hdp_params"] = {"h_state_locality": "population", "h_state_dim": 2}
+    object.__setattr__(model.cfg, "metadata", md)
+    object.__setattr__(model, "neuron_table", _boom_table)
+    summ = jtfne.canonical_compact_summary(model)
+    assert summ["Theta"]["H"]["locality"] == "unknown"
+
+
+def test_tensor_schema_pops_failure_marks_guess():
+    model = _small_model()
+    md = dict(model.cfg.metadata)
+    md["hdp_params"] = {"h_state_locality": "population", "h_state_dim": 2}
+    object.__setattr__(model.cfg, "metadata", md)
+    object.__setattr__(model, "neuron_table", _boom_table)
+    plastic = types.SimpleNamespace(H=0.5)
+    area = types.SimpleNamespace(inter_connections=[types.SimpleNamespace(plastic=plastic)])
+    tensor = types.SimpleNamespace(areas=[area], area_connections=[])
+    summ = jtfne.canonical_compact_summary(model, tensor=tensor)
+    assert summ["Theta"]["H"]["size"] is None  # a guessed count is reported unknown
+    assert any("population count unknown" in e for e in summ["H_evidence"])
+
+
+def test_signals_htrace_pops_failure_marks_guess():
+    model = _small_model()
+    object.__setattr__(model, "neuron_table", _boom_table)
+    hdp = {"H_trace": np.zeros((5, 3))}  # 2-D, 3 != N(10) -> population branch
+    signals = model.simulate(jtfne.Simulation(duration_ms=10, dt_ms=0.5, seed=0))
+    object.__setattr__(signals, "metadata", {"hdp": hdp})
+    summ = jtfne.canonical_compact_summary(model, signals=signals)
+    assert summ["Theta"]["H"]["size"] is None
+    assert any("population count unknown" in e for e in summ["H_evidence"])
+
+
+def test_last_hdp_diag_pops_failure_marks_guess():
+    model = _small_model()
+    object.__setattr__(model, "neuron_table", _boom_table)
+    object.__setattr__(model, "_last_hdp_diag", {"H_trace": np.zeros((5, 3))})
+    summ = jtfne.canonical_compact_summary(model)
+    assert summ["Theta"]["H"]["size"] is None
+    assert any("population count unknown" in e for e in summ["H_evidence"])
+
+
+def test_n_contacts_unreadable_is_unknown_not_16():
+    model = _small_model()
+    object.__setattr__(model, "static", None)
+    summ = jtfne.canonical_compact_summary(model)
+    assert summ["counts"]["realized"]["n_contacts"] is None
+
+
+def test_field_recorded_unreadable_is_unknown_not_false():
+    model = _small_model()
+    sigs = model.simulate(jtfne.Simulation(duration_ms=10, dt_ms=0.5, seed=0))
+
+    class _BoomField:
+        def __getattr__(self, name):
+            raise TypeError("forced field readout failure")
+
+    object.__setattr__(sigs, "field", _BoomField())
+    summ = jtfne.canonical_compact_summary(model, sigs)
+    assert summ["output_basis"]["FIELD"]["lfp_proxy"]["recorded"] is None
+
+
+def test_time_axis_unexpected_propagates():
+    model = _small_model()
+
+    class _BoomShape:
+        @property
+        def shape(self):
+            raise RuntimeError("forced time-axis failure")
+
+    signals = types.SimpleNamespace(time_ms=_BoomShape(), sources=None, field=None)
+    with pytest.raises(RuntimeError, match="forced time-axis"):
+        jtfne.canonical_compact_summary(model, signals=signals)
