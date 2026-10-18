@@ -770,7 +770,8 @@ print(signals.V_m.shape)
 - Edges are drawn with `connectivity(edge_seed=)`, or with the runtime seed when that is unset,
   as the plain route does.
 - `simulate` realizes `round(delay_ms / dt_ms)` steps, rounded half up from the float quotient, and
-  refuses a delay under one step, naming the rule. It returns `time_ms`, `V_m` (mV), `spikes` and
+  refuses a delay under one step, naming the rule, unless the rule declares `intra_step_rounds`
+  (below). It returns `time_ms`, `V_m` (mV), `spikes` and
   metadata; `sources` and `field` are `None`, and `metadata["not_recorded"]` lists both.
 - With the drive off, the cells start at rest with zero input current.
   `simulate_adex` takes `I_ext_pA` and `V0_mV` directly, and it takes the external
@@ -784,7 +785,10 @@ print(signals.V_m.shape)
   conductance after `delay_ms` (realized by the same half-up step rule as rule delays). The
   key is `jax.random.PRNGKey(seed)`. A count drawn at step `t` acts at step `t + d`, so the
   external drive starts at step `d`. Unknown or missing keys refuse by name, as do
-  `amplitude` and `target` from the current-drive schema.
+  `amplitude` and `target` from the current-drive schema. The optional key `"same_step": True`
+  admits a `delay_ms` rounding to 0 steps, so each drawn count acts in the step it is drawn;
+  the run metadata records `"same_step": True` when the flag is set. `"same_step": True` with
+  a delay reaching 1 step or more, or with `step_order="brian2"`, is refused.
 - The `Model` methods that read the edge list, the recurrent backend, the Izhikevich parameters or
   an HDP or coupling state raise `NotImplementedError` naming the method: `edge_table()`,
   `compile_connections()`, `connectivity_summary()`, `manifest()`, `run_receipt()`, `tune()`,
@@ -799,8 +803,12 @@ print(signals.V_m.shape)
   - `emitter(family="adex", adex_decay=, adex_step_order=)`.
   - `mechanisms(name=, kind="receptor", params={"tau_ms": ..., "reversal_mV": ...})`: `name` labels
     the receptor (`metadata["receptors"]`).
-  - `connections(name=, source=, target=, probability=, weight=, mechanism=, delay_ms=, sampling=)`:
-    `name` labels the rule (`metadata["rules"]`).
+  - `connections(name=, source=, target=, probability=, weight=, mechanism=, delay_ms=, sampling=, intra_step_rounds=)`:
+    `name` labels the rule (`metadata["rules"]`). The optional `intra_step_rounds=R` (a positive
+    int) declares the intra-step fixed point for a rule whose delay rounds to 0 steps: round 0 is
+    the existing step, then R rounds propagate newly spiked cells' delay-0 conductance and re-step
+    cells not yet spiked from the pre-step state. The manifest records the fixed point under
+    `intra_step_fixed_point`.
   - `connectivity(edge_seed=)`, or `runtime(seed=)` when that is unset: the edge seed draws the edges.
   - `runtime(dt_ms=, duration_ms=)`: each must equal the Simulation's value, or simulate refuses the
     conflict.

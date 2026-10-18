@@ -1,0 +1,1 @@
+- One presynaptic sign table: `CELL_TYPE_SIGN` in `jaxfne.emitters`, which the Izhikevich default signs and `LIF_LABEL_SIGN` derive from. `lif_sign_of` refuses a LIF label outside the table, where it silently signed +1; no in-repo caller used one.

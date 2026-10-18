@@ -1,0 +1,2 @@
+- `canonical_compact_summary` reports `unknown` with the reason where it returned invented values: the H locality reads `"unknown"` in place of `"node"`, static contact counts and the H size read `None` in place of assumed counts, and a field member reads `None` in place of `False`. Unexpected errors propagate instead of falling back.
+- A `NeuronalTensor` whose serialization fails raises `ValueError` naming the tensor in place of sharing one empty identity digest.

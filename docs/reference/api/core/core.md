@@ -248,7 +248,7 @@ jaxfne.Simulation
 - `seed` (`int`, default `0`)
 - `record_sources` (`bool`, default `True`)
 - `record_fields` (`bool`, default `True`)
-- `poisson_drive` (`dict | None`, default `None`)
+- `poisson_drive` (`dict | None`, default `None`) — external drive consumed per emitter family; on the AdEx route it carries the CAMINOS Poisson keys plus the optional `"same_step": True` (see the AdEx family section of the emitters API doc)
 - `runtime` (`RuntimeConfig | None`, default `None`)
 - `ablation` (`str | None`, default `None`)
 
