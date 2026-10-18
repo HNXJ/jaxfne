@@ -66,3 +66,24 @@ def test_ampa_scales_flag_reaches_the_plan():
     plan = sweep_mod.plan_rows(sweep=args.sweep, ampa_scales=args.ampa_scales)
     assert sorted({s for _, s, _ in plan}) == [1e-4, 1e-3]
     assert len(plan) == 2 * len(sweep_mod.SEEDS)
+
+
+@pytest.mark.parametrize("argv, want", [([], "single"),
+                                        (["--morphology", "reference"], "reference")])
+def test_morphology_flag_reaches_run_trial(monkeypatch, argv, want):
+    """--morphology is passed to run_gsdr.run_trial; the default stays single."""
+    seen = {}
+
+    class _Stop(Exception):
+        pass
+
+    def fake_run_trial(stim_amp, **kw):
+        seen.update(kw)
+        raise _Stop
+
+    monkeypatch.setattr(sweep_mod.rg, "run_trial", fake_run_trial)
+    args = sweep_mod.build_parser().parse_args(argv)
+    y = {"stim_psd": [1.0], "kappa_stim": 0.0}
+    with pytest.raises(_Stop):
+        sweep_mod.run_row(_fixture(), y, "ampa", 0.5, 1, morphology=args.morphology)
+    assert seen["morphology"] == want

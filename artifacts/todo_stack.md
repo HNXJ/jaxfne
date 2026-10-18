@@ -184,10 +184,11 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   reference cell fires faster (70.7 Hz, κ_fit 0.61), so g* says little about it. §6.12: the
   500-generation refit on `--morphology reference` stays saturated (best loss carried by the
   rate penalty; at its g* every E cell fires every cycle near 120 Hz, κ 0.60, on fit seed 1 and
-  held-out seeds 4–8). Next, to isolate the source of κ (sol's review 2026-10-18): (a) AMPA
-  scale sweep at the reference g* on `--morphology reference` (§6.10's sweep was on the
-  one-compartment cell); (b) single reference cell f–I curve against the jaxley oracle, for
-  per-cell excitability; (c) CPU against GPU on one fixed trial, for numerics. The scored steps run under `PREREG_P3.md`, still a draft:
+  held-out seeds 4–8). §6.13 (isolating the source of κ, sol's review 2026-10-18): with AMPA ×0
+  cells still fire near 20 Hz (y 2.14), and with the stimulus off the network locks at 45 Hz;
+  inferred: per-cell drive sets the excess, recurrence adds the lock. Next: (b) one reference
+  cell, no synapses, under the OU background alone and with the stimulus, against the authors'
+  single-cell rates where their source states them; (c) CPU against GPU on one fixed trial. The scored steps run under `PREREG_P3.md`, still a draft:
   Hamm signs it before a scored verdict (O-25). HH hardening landed; open low notes: `held_steps` counts edge elements while the
   docstring says steps, int32 count scalars, no full-kernel grad test, `dt="0.1"` coerced.
 - T-30 [A] Replication conformance to the checklist (`etudes/meta/RESIDUAL_PROTOCOL.md`, section

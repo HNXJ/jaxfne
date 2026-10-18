@@ -670,3 +670,45 @@ was on the one-compartment cell) and per-cell excitability (single
 reference cell f–I against the jaxley oracle). Diagnostic test:
 `tests/test_gsdr2026_regime.py` (4 passed; a window off-by-one mutant
 fails 3).
+
+### 6.13 Drive, not recurrence, sets the reference-cell regime (OBSERVED + INFERRED)
+
+`diag/structural_sweep.py --morphology reference` at the §6.12 g*, CPU,
+labels as the fit (`y_labels.json`), seeds 1 / 2, code 1764f4b0 plus
+the flag; `diag_ampa_reference.json` and `diag_stim_reference.json` in
+the fit folder; about 40 s per sweep. The AMPA ×1 and stim 0.6 rows
+reproduce §6.12 seed 1 (69.28 Hz, k_fit 0.6073).
+
+AMPA sweep, stim 0.6:
+
+| AMPA × | rate (Hz) | active | k_fit | E / Ig / Il |
+|---|---|---|---|---|
+| 0 | 20.71 / 19.07 | 0.64 / 0.68 | 0.153 / 0.159 | irregular / runaway, asynchronous / irregular, asynchronous |
+| 1e-3 | 24.03 / 21.16 | 1.00 / 0.96 | 0.150 / 0.154 | irregular, oscillatory / irregular, asynchronous / irregular |
+| 1e-2 | 30.75 / 27.35 | 0.98 / 1.00 | 0.220 / 0.170 | saturated, irregular / irregular / irregular |
+| 0.1 | 53.91 / 51.89 | 1.00 / 1.00 | 0.193 / 0.219 | saturated / saturated / irregular |
+| 0.25 | 69.27 / 69.73 | 1.00 / 1.00 | 0.471 / 0.464 | saturated |
+| 0.5 | 69.79 / 70.48 | 1.00 / 1.00 | 0.579 / 0.579 | saturated |
+| 1 | 69.28 / 69.41 | 1.00 / 1.00 | 0.607 / 0.588 | saturated |
+
+Stimulus sweep, g* unscaled (stim 0 scored on the baseline window
+[0, 200] ms, the rest on [500, 1000] ms):
+
+| stim | rate (Hz) | active | k_fit |
+|---|---|---|---|
+| 0 | 46.04 / 44.33 | 1.00 / 1.00 | 0.991 / 0.836 |
+| 0.15 | 69.08 / 69.07 | 1.00 / 1.00 | 0.576 / 0.572 |
+| 0.3 | 69.96 / 69.40 | 1.00 / 1.00 | 0.564 / 0.584 |
+| 0.6 | 69.28 / 69.41 | 1.00 / 1.00 | 0.607 / 0.588 |
+| 1.2 | 69.28 / 69.40 | 1.00 / 1.00 | 0.619 / 0.586 |
+
+With the stimulus off, every cell fires at about 45 Hz in lock. Any
+stimulus from 0.15 up takes the network to a ceiling near 70 Hz, and
+the amplitude no longer matters. Removing recurrent excitation entirely
+(AMPA ×0) still leaves cells firing near 20 Hz, an order of magnitude
+above y's 2.14 Hz, with k_fit 0.15 (y 0.0156). Inferred: the excess
+comes from the per-cell drive (OU background and stimulus into the
+distal compartment), and recurrent excitation adds the lock on top.
+Next: one reference cell, no synapses, under the OU background alone
+and with the stimulus, against the authors' single-cell rates if their
+source states them (read as text).

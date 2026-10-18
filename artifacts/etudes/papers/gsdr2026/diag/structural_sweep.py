@@ -100,6 +100,9 @@ def build_parser():
     ap.add_argument("--ampa-scales", type=float, nargs="+", default=None,
                     help="AMPA factors for the ampa sweep (default %s)"
                     % (AMPA_SCALES,))
+    ap.add_argument("--morphology", choices=("single", "reference"),
+                    default="single",
+                    help="cell layout passed to run_gsdr.run_trial")
     return ap
 
 
@@ -128,7 +131,7 @@ def window_edges(n_steps, t_l_ms, t_r_ms, dt_ms=rg.DT_MS):
     return i0, i1
 
 
-def run_row(gstar, y, sweep, scale, seed):
+def run_row(gstar, y, sweep, scale, seed, morphology="single"):
     """One sweep row: simulate, score, classify. No fitting."""
     import numpy as np
 
@@ -147,7 +150,8 @@ def run_row(gstar, y, sweep, scale, seed):
     ky = float(y["kappa_baseline"] if baseline else y["kappa_stim"])
 
     result, blobs = rg.run_trial(stim_amp, g_seed=int(seed),
-                                 ou_seed=int(seed), g_override=g)
+                                 ou_seed=int(seed), g_override=g,
+                                 morphology=morphology)
     v = blobs["v"]
     spikes = rg.detect_spikes(v)
     n_steps = v.shape[0]
@@ -181,6 +185,7 @@ def run_row(gstar, y, sweep, scale, seed):
         "scale": float(scale),
         "g": g_label,
         "seed": int(seed),
+        "morphology": morphology,
         "stim_amp": stim_amp,
         "mean_rate_hz": float(result["mean_rate_hz"]),
         "active_frac": float((rates > 0).mean()),
@@ -236,11 +241,11 @@ def main(argv=None):
              float(gstar[rg.N_AMPA_EDGES:].max())), flush=True)
 
     payload = {"gstar": str(args.gstar), "labels": str(args.labels),
-               "rows": []}
+               "morphology": args.morphology, "rows": []}
     t0 = time.time()
     for sweep, scale, seed in plan_rows(sweep=args.sweep, smoke=args.smoke,
                                         ampa_scales=args.ampa_scales):
-        row = run_row(gstar, y, sweep, scale, seed)
+        row = run_row(gstar, y, sweep, scale, seed, morphology=args.morphology)
         payload["rows"].append(row)
         write_incremental(args.out, payload)
         reg = row["regimes"]
