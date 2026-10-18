@@ -435,6 +435,20 @@ def test_s1_git_nonconstant_argv_fails(tmp_path):
     )
 
 
+def test_s1_drive_path_is_outside_on_every_os(tmp_path):
+    # Windows and Linux gates must give the same finding for a drive path.
+    _registry(tmp_path, [])
+    _write(
+        tmp_path,
+        "artifacts/etudes/papers/drv/run.py",
+        'import sys\nsys.path.insert(0, "C:/workspace/elsewhere")\n',
+    )
+    messages = [m for r, _, m in cr.collect_findings(tmp_path) if r == "S1"]
+    assert messages == [
+        "line 2: sys.path.insert adds a path outside the repository (C:/workspace/elsewhere)"
+    ]
+
+
 def test_s1_git_computed_dir_after_dash_C_passes(tmp_path):
     _registry(tmp_path, [])
     _write(

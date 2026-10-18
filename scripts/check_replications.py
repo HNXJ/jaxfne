@@ -64,7 +64,7 @@ import argparse
 import ast
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 ROOT = Path(__file__).resolve().parents[1]
 KNOWN_PATH = Path(__file__).resolve().parent / "replication_known_violations.json"
@@ -288,6 +288,10 @@ def _resolve_expr(node: ast.AST, bindings: dict[str, ast.AST], here: Path, depth
         return None
     if isinstance(node, ast.Constant):
         if isinstance(node.value, str):
+            # A drive path ("C:/...") is absolute on every OS; on POSIX, Path() would read it as
+            # relative and the finding would differ between Windows and Linux gates.
+            if PureWindowsPath(node.value).drive:
+                return PureWindowsPath(node.value)
             cand = Path(node.value)
             return cand if cand.is_absolute() else None
         return None
