@@ -140,7 +140,7 @@ run on WSL2 CUDA.
   2026-10-17). Left: `run_delta_notebook_01.py` `cell_labels=None` TODO (the callee documents
   `cell_labels` as unused, so wiring changes no output; whether the notebook applies DC is a
   model question); `--check` parsed and ignored in `scripts/release/assert_release_freeze.py`
-  and `scripts/sync_release_metadata.py` (O-15). Closes when: each is used, removed or ruled harmless.
+  and `scripts/sync_release_metadata.py` (O-46). Closes when: each is used, removed or ruled harmless.
 
 hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 - T-22 [A] Same-step interactions (PCL local inhibition, CAMINOS zero delay, gap G12) are a
@@ -216,7 +216,7 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
     them against the articles; `dashboard/sources.json` `stage_artifacts`
     cite pre-reorg paths; the dashboard shows GSDR at P1 with P3 records present; `hh-at01` has
     no folder.
-  - Tree caps: `papers/pcl/`, `caminos/`, `izhikevich2003/` over 7 (O-22).
+  - Tree caps: `papers/pcl/`, `caminos/`, `izhikevich2003/` over 7 (section 5).
   Gate: `scripts/check_replications.py --check` (families replication_audit, etude_no_resim, run
   by the dev gate too) against `scripts/replication_known_violations.json` (25 findings,
   2026-10-18); a fix removes its entry. Closes when: every paper passes the checker without a listed violation, or each listed one
@@ -250,6 +250,12 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 
 ## 5. Deferred, each with its trigger
 
+- (from the open stack, 2026-10-18) Over-7 lane folders excepted in
+  `tests/test_artifacts_tree_degree.py` while their lanes are open: `etudes/papers/caminos/`,
+  `etudes/papers/izhikevich2003/`. Trigger: a lane closes; then split by kind or give the
+  exception a path-addressing reason.
+- (from the open stack, 2026-10-18) Scratch clones and finished Muse sessions in the session
+  scratchpad. Trigger: their lanes land; delete then (check alternates dependents first).
 1. AT-10-R6: RSS growth (+80–98 MB over 4 chunks of the 20-area run): resolve against the XLA cache
    before any run over 100 s (0.5.8 laminar models on GPU). WSL2 CUDA 20-area receipts
    (`scratch/wsl_cuda_2026-10-09/`, gitignored): one unexplained failed GPU run. Closes when:

@@ -62,7 +62,9 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   `hdp_controllability_reachability` generator pin predates D1 (bisected to 5090af24).
 - GSDR: saturated at both g* (κ_fit 0.60 against 0.0156); the rate estimand waits on
   `PREREG_P3.md` (O-25).
-- Whole-project scan in progress (O-38); findings go to `open_stack.md` and the issue log.
+- Whole-project scan of 2026-10-18 done: verified findings P-036 to P-042 in the issue log,
+  O-39 to O-46 in the open stack (high: unconsumed `Simulation.plasticity`, vacuous float64
+  tests, GSDR fits without MCDP, Destexhe and PCL claims against unsigned or failing records).
 
 ## Last gate results
 
@@ -91,5 +93,5 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-Agents: finish the scan (O-38) and land its fixes by severity; P-035 (re-pin the mcc3 digest
+Agents: land the scan's keeper fixes by severity (O-39 to O-43); P-035 (re-pin the mcc3 digest
 after D1 beside the old one); then T-30 per paper.
