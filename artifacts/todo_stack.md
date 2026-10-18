@@ -61,10 +61,10 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 - T-31 [A] Audit 2026-10-17 (Muse and Claude, union verified by a third Muse pass). Landed: harness
   integrity (D1), replication paths (D9), JUnit per SHA (T-26), silent fallbacks (a), the clean-
   checkout skip (b), `gate_etude_no_resim.py` in the gates (c), a real publication gate (d), the
-  `agent.py` dtype (f), six narrowed handlers in `canonical_compact_summary`. Open: (e) ruff
-  covers `jaxfne/` only (2026-10-18: scripts/tests/examples 477 findings, F401 228, F841 59,
-  E741 57, E402 47; scripts/ clean on F401/F841/E711/E712/E721). `canonical_compact_summary`
-  has no broad handler left (g, 2026-10-18). Closes when: each is fixed with a failing-first test or recorded
+  `agent.py` dtype (f), six narrowed handlers in `canonical_compact_summary`; `canonical_compact_summary`
+  has no broad handler left (g); ruff defect-class rules gate scripts/tests/examples (e, part,
+  2026-10-18). Open: (e) unused and style rules on scripts/tests/examples (F401 228, F841 59,
+  E741 57, E402 47 on 2026-10-18). Closes when: each is fixed with a failing-first test or recorded
   harmless here.
 - T-28 [H] `jaxfne/tfne.py:211` `_RESERVED_LOWER = {"x", "y", "h", "s"}` is defined and never read
   (Muse cleanup, 2026-10-15). Wiring it into name validation changes which names are accepted;
@@ -144,8 +144,10 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   recorded in the manifest; delay 0 means "resolved inside the step". Closes when: the operator is
   in the core with tests, PCL B3 uses it, and the CAMINOS 0-delay sensitivity runs on it. Phase 1
   (AdEx zero-delay edges, `connections(intra_step_rounds=R)`) landed 2026-10-18; semantics calls
-  O-35. Next: Poisson drive delay 0 (CAMINOS `--delay-ms 0` zeroes it too, still refused), then
-  the PCL B3 operator on the core.
+  O-35. Phase 2 (Poisson drive delay 0 with `"same_step": True`; brian2 and the registered-HDP
+  kernel refuse it) landed 2026-10-18. CAMINOS `--delay-ms 0` would pass `same_step` in its
+  drive and `intra_step_rounds` on its connections; `caminos_api.py` does neither yet. Next: the
+  PCL B3 operator on the core.
 - T-25 [A] Plastic weights: W is state in h during a run; A holds W₀ and its ownership. A trained
   network is A' = A with W₀ ← W_T, recorded with provenance. Closes when: the tensor carries W₀
   provenance and PCL's trained weights load as A'. Landed 2026-10-18: `W0Provenance`,
@@ -234,8 +236,9 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
    only as a measured bottleneck.
 4. C5–C7 numerical deferrals: need a signed-zero/NaN exactness contract.
 5. UNTESTED-exact refusal tail; placeholder notebooks and artifact-gated skips; post-0.4.14 aliases.
-6. `scripts/` lint (P-001, ruff 171): first `audit_w3_broad_handlers.py` `_OVERRIDES` (running it
-   rewrites `artifacts/audit/baselines/w3_broad_handler_tally.json`): re-key by content or retire.
+6. `audit_w3_broad_handlers.py` `_OVERRIDES` (duplicate keys removed 2026-10-18; its line anchors
+   still rot, and running it rewrites `artifacts/audit/baselines/w3_broad_handler_tally.json`):
+   re-key by content or retire.
 7. S27 population definition family, when CTX-01 cannot express one.
 8. Agent-native step 10: MCP or another transport.
 9. From 0.5.4: item 1b (S20.1 ordering, needs Hamm) and item 0 (`X[k]` frontier override).
