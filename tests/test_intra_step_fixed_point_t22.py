@@ -9,6 +9,7 @@ undone. Kernel oracles below transcribe that rule with direct ``adex_step`` call
 
 from __future__ import annotations
 
+import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
@@ -331,3 +332,206 @@ def test_manifest_impl_sources_fixed_point_from_signals_metadata():
     tagged = dataclasses.replace(
         signals, metadata={**signals.metadata, "intra_step_fixed_point": dict(want)})
     assert _run_manifest(model, tagged)["intra_step_fixed_point"] == want
+
+
+# T-22 phase 2: zero-delay external Poisson drive ("same_step", adex route).
+# A 0-step drive delay is admitted only with ``"same_step": True`` in the drive
+# dict: the count drawn for step t acts at step t (external drive has no
+# same-step feedback -- its counts never depend on this step's spikes -- so no
+# fixed point is needed). Kernel: ``ext_delay_steps=0`` draws first and adds to
+# g before the current is computed, under the same one-split-per-step key
+# stream, so the drawn counts are the delay>=1 sequence shifted by one step.
+SAMEDRIVE = {
+    "n_sources": 560, "rate_hz": 4.0, "weight_nS": 2.5, "mechanism": "ampa",
+    "target_cell_types": ["E", "PV"], "delay_ms": 0.0, "seed": 7,
+}
+
+
+def _same_sim(**kwargs):
+    drive = dict(SAMEDRIVE, same_step=True)
+    drive.update(kwargs)
+    return _sim(poisson_drive=drive)
+
+
+def test_zero_delay_drive_needs_same_step():
+    model = jtfne.construct(_route_cfg())
+    with pytest.raises(ValueError) as info:
+        model.simulate(_sim(poisson_drive=dict(SAMEDRIVE)))
+    assert "the drive needs >= 1" in str(info.value)
+    signals = model.simulate(_same_sim())
+    assert int(np.sum(np.asarray(signals.spikes))) > 0, "the same-step drive must spike"
+
+
+@pytest.mark.parametrize("same_step", [False, 0, 1, "yes"])
+def test_zero_delay_drive_same_step_must_be_true(same_step):
+    model = jtfne.construct(_route_cfg())
+    with pytest.raises(ValueError) as info:
+        model.simulate(_sim(poisson_drive=dict(SAMEDRIVE, same_step=same_step)))
+    assert "same_step=True" in str(info.value)
+
+
+def test_same_step_with_nonzero_delay_refused():
+    model = jtfne.construct(_route_cfg())
+    with pytest.raises(ValueError) as info:
+        model.simulate(_sim(poisson_drive=dict(SAMEDRIVE, delay_ms=2.0, same_step=True)))
+    msg = str(info.value)
+    assert "same_step" in msg, msg
+    assert "0 steps" in msg, msg
+
+
+def test_same_step_with_brian2_refused():
+    cfg = (
+        jtfne.Configuration()
+        .network(name="adex60", n=N, cell_types=CELL_TYPES)
+        .emitter(family="adex", adex_decay="exp", adex_step_order="brian2")
+        .mechanisms(name="ampa", kind="receptor",
+                    params={"tau_ms": 2.0, "reversal_mV": 0.0})
+        .connections(name="e_e", source={"cell_type": "E"}, target={"cell_type": "E"},
+                     mechanism="ampa", probability=0.2, weight=0.5, delay_ms=0.04,
+                     sampling="bernoulli", intra_step_rounds=2)
+        .connectivity(edge_seed=11)
+    )
+    model = jtfne.construct(cfg)
+    with pytest.raises(ValueError) as info:
+        model.simulate(_sim(poisson_drive=dict(SAMEDRIVE, same_step=True)))
+    assert "brian2" in str(info.value)
+
+
+@pytest.mark.parametrize("variant", ["plain", "window", "edge0"])
+def test_same_step_shift_identity(variant):
+    """Spikes at delay 0 equal spikes at delay 1 shifted by one step, same key: the
+    counts are the same sequence shifted (one count of 30 nS moves V by volts, so
+    a count difference cannot hide under the V tolerance). ``window`` gates the
+    draw by its step; ``edge0`` runs the intra-step fixed-point branch of both bodies."""
+    params = make_adex_params(("E",) * 3)
+    n_steps = 60
+    sched = np.full(n_steps, 3.0)
+    sched[0] = 0.0  # both runs apply no drive at step 0, so trajectories align shifted
+    key = jax.random.PRNGKey(11)
+    base = dict(
+        receptor_reversal_mV=(0.0,), receptor_tau_ms=(2.0,), decay="exp",
+        ext_targets=np.arange(3), ext_lambda=sched, ext_weight_nS=30.0,
+        ext_receptor=0,
+    )
+    if variant == "window":
+        base.update(ext_t_start_steps=10, ext_t_stop_steps=40)
+    elif variant == "edge0":
+        base.update(
+            ext_targets=np.arange(1), ext_lambda=sched[:, None],
+            edge0_pre=np.array([0, 1]), edge0_post=np.array([1, 2]),
+            edge0_weight_nS=np.full(2, CHAIN_WEIGHT_NS),
+            edge0_receptor=np.zeros(2, dtype=np.int64), intra_step_rounds=2,
+        )
+    out0 = simulate_adex(
+        params, n_steps=n_steps, dt_ms=DT_MS, record_v=True,
+        **base, ext_delay_steps=0, key=key,
+    )
+    out1 = simulate_adex(
+        params, n_steps=n_steps, dt_ms=DT_MS, record_v=True,
+        **base, ext_delay_steps=1, key=key,
+    )
+    spk0 = np.asarray(out0["spikes"])
+    if variant == "window":
+        assert not spk0[:10].any() and spk0[10:40].any(), "window must gate the drive"
+    elif variant == "edge0":
+        # Only cell 0 is driven; cells 1, 2 spike only through the same-step chain.
+        same = spk0[:, 0] & spk0[:, 1] & spk0[:, 2]
+        assert same.any(), "the chain must carry a driven spike within its step"
+    assert np.asarray(out0["spikes"]).sum() > 0, "fixture must spike"
+    np.testing.assert_array_equal(
+        np.asarray(out1["spikes"])[1:], np.asarray(out0["spikes"])[:-1])
+    # Spikes are bit-exact; V agrees to float32 rounding (the two scan bodies
+    # compile separately, so XLA may fuse the same arithmetic differently: a
+    # single differing count would move V by volts, not 1e-6).
+    np.testing.assert_allclose(
+        np.asarray(out1["V_mV"])[1:], np.asarray(out0["V_mV"])[:-1],
+        rtol=1e-5, atol=1e-6)
+
+
+def test_same_step_count_acts_this_step():
+    """A 3-cell case: the step-t count changes V at step t, hand-checked."""
+    params = make_adex_params(("E", "E", "E"))
+    key = jax.random.PRNGKey(4)
+    lam, weight = 2.0, 30.0
+    out = simulate_adex(
+        params, n_steps=1, dt_ms=DT_MS, record_v=True,
+        receptor_reversal_mV=(0.0,), receptor_tau_ms=(2.0,), decay="exp",
+        ext_targets=np.arange(3), ext_lambda=lam, ext_weight_nS=weight,
+        ext_receptor=0, ext_delay_steps=0, key=key,
+    )
+    _, ks = jax.random.split(key)
+    dtype = jnp.asarray(params.C_pF).dtype
+    counts = jnp.asarray(np.asarray(jax.random.poisson(ks, lam, shape=(3,))), dtype)
+    assert int(jnp.sum(counts)) > 0, "fixture must draw a nonzero count"
+    V0 = jnp.asarray(np.asarray(params.EL_mV))
+    w0 = jnp.zeros((3,), dtype)
+    ref0 = jnp.zeros((3,), jnp.int32)
+    g = jnp.asarray(weight, dtype) * counts  # decay of zero g plus the arrival
+    (V1, _, _), spk = adex_step((V0, w0, ref0), g * (0.0 - V0), params, DT_MS)
+    np.testing.assert_array_equal(np.asarray(out["spikes"])[0], np.asarray(spk))
+    np.testing.assert_array_equal(np.asarray(out["V_mV"])[0], np.asarray(V1))
+
+
+# Byte pin for the unchanged delay>=1 body (Python-level branch): a tiny
+# delay-1 drive run, frozen from the implementation (float32, x64 off).
+_DELAY1_SPIKES = [
+    [False, False, False], [False, False, False], [False, False, False],
+    [False, False, False], [False, False, False], [True, False, False],
+    [False, False, False], [False, False, False],
+]
+_DELAY1_V0 = [
+    -64.99999237060547, -62.07498550415039, -55.70794677734375,
+    -48.63483428955078, -42.05535125732422, -65.0, -65.0, -65.0,
+]
+
+
+def test_delayed_body_pinned_byte_identical():
+    params = make_adex_params(("E", "E", "E"))
+    out = simulate_adex(
+        params, n_steps=8, dt_ms=DT_MS, record_v=True,
+        receptor_reversal_mV=(0.0,), receptor_tau_ms=(2.0,), decay="exp",
+        ext_targets=np.arange(1), ext_lambda=2.0, ext_weight_nS=30.0,
+        ext_receptor=0, ext_delay_steps=1, key=jax.random.PRNGKey(4),
+    )
+    np.testing.assert_array_equal(np.asarray(out["spikes"]), _DELAY1_SPIKES)
+    np.testing.assert_array_equal(
+        np.asarray(out["V_mV"])[:, 0],
+        np.asarray(_DELAY1_V0, dtype=np.asarray(out["V_mV"]).dtype),
+    )
+    np.testing.assert_array_equal(
+        np.asarray(out["spikes"])[:, 1:], np.zeros((8, 2), bool))
+
+
+def test_manifest_records_same_step_only_when_declared():
+    model = jtfne.construct(_route_cfg())
+    tagged = model.simulate(_same_sim())
+    assert tagged.metadata["poisson_drive"]["same_step"] is True
+    plain = model.simulate(_sim(poisson_drive=dict(SAMEDRIVE, delay_ms=2.0)))
+    assert "same_step" not in plain.metadata["poisson_drive"]
+
+
+def test_kernel_refuses_zero_ext_delay_under_brian2():
+    params = make_adex_params(("E", "PV"))
+    with pytest.raises(ValueError) as info:
+        simulate_adex(
+            params, n_steps=10, dt_ms=DT_MS, step_order="brian2",
+            receptor_reversal_mV=(0.0,), receptor_tau_ms=(2.0,), decay="exp",
+            ext_targets=[0], ext_lambda=1.0, ext_weight_nS=1.0, ext_receptor=0,
+            ext_delay_steps=0, key=jax.random.PRNGKey(0),
+        )
+    assert "brian2" in str(info.value)
+
+
+def test_hdp_kernel_refuses_zero_ext_delay():
+    from jaxfne.emitters_adex import simulate_adex_hdp_registered
+
+    params = make_adex_params(("E", "PV"))
+    with pytest.raises(ValueError) as info:
+        simulate_adex_hdp_registered(
+            params, n_steps=10, dt_ms=DT_MS,
+            receptor_reversal_mV=(0.0,), receptor_tau_ms=(2.0,), decay="exp",
+            ext_targets=[0], ext_lambda=1.0, ext_weight_nS=1.0, ext_receptor=0,
+            ext_delay_steps=0, key=jax.random.PRNGKey(0),
+            hdp_rule="synthetic_presyn_gain",
+        )
+    assert "same-step" in str(info.value)

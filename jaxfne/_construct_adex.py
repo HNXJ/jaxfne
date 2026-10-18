@@ -763,6 +763,10 @@ _DRIVE_KEYS = (
 # Optional drive-window bounds in ms (both declared or neither): the drive runs on steps
 # [t_start, t_stop) only, realized with the plain route's rule at the run's dt.
 _DRIVE_WINDOW_KEYS = ("t_start_ms", "t_stop_ms")
+# Optional same-step flag: ``"same_step": True`` admits a delay rounding to 0 steps, so the
+# count drawn for step t acts at step t (external drive has no same-step feedback, so no
+# fixed point is needed). Any other value, or ``True`` with a delay of >= 1 step, is refused.
+_DRIVE_OPT_KEYS = ("same_step",)
 
 
 def _drive_error(detail: str) -> ValueError:
@@ -773,7 +777,8 @@ def _drive_error(detail: str) -> ValueError:
         "mechanism: a declared mechanism name, target_cell_types: a non-empty list of "
         "declared cell types, delay_ms, seed: int), plus optionally "
         f"{list(_DRIVE_WINDOW_KEYS)} (t_start_ms/t_stop_ms in ms, both or neither, "
-        "with t_start_ms < t_stop_ms)"
+        "with t_start_ms < t_stop_ms) and 'same_step' (same_step=True admits a delay "
+        "rounding to 0 steps, so the count drawn for step t acts at step t)"
     )
 
 
@@ -784,7 +789,11 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     ``n_sources * rate_hz * dt_ms / 1000`` (ms to s); the key is
     ``jax.random.PRNGKey(seed)``; targets are the cells whose type is listed in
     ``target_cell_types``, in index order; the receptor is the mechanism's declaration
-    index; the delay is realized by the plain route's rule. The optional
+    index; the delay is realized by the plain route's rule, except a delay rounding
+    to 0 steps, which is admitted only with ``"same_step": True`` in the drive dict
+    (the kernel's ``ext_delay_steps=0``: the count drawn for step t acts at step t;
+    refused under ``step_order="brian2"``, which reads every arrival one step later).
+    The optional
     ``t_start_ms``/``t_stop_ms`` window rides as the kernel's
     ``ext_t_start_steps``/``ext_t_stop_steps`` (realized by the same rule at
     the run's ``dt_ms``, refused unless ``0 <= t_start < t_stop <= n_steps``);
@@ -796,7 +805,11 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
         return {}
     if not isinstance(drive, Mapping):
         raise _drive_error(repr(drive))
-    unknown = [k for k in drive if k not in _DRIVE_KEYS and k not in _DRIVE_WINDOW_KEYS]
+    unknown = [
+        k
+        for k in drive
+        if k not in _DRIVE_KEYS and k not in _DRIVE_WINDOW_KEYS and k not in _DRIVE_OPT_KEYS
+    ]
     if unknown:
         raise _drive_error(f"{dict(drive)!r} has unknown keys {unknown}")
     missing = [k for k in _DRIVE_KEYS if k not in drive]
@@ -836,15 +849,37 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     if not _finite_real(delay_ms):
         raise _drive_error(f"delay_ms={delay_ms!r} must be a number")
     dt = float(sim.dt_ms)
+    same_step = drive.get("same_step", False) is True
+    if "same_step" in drive and not same_step:
+        raise _drive_error(
+            f"same_step={drive['same_step']!r} is not realized: admit a 0-step drive "
+            "delay with same_step=True, or omit same_step"
+        )
+    if same_step and str(st.get("step_order", "default")) == "brian2":
+        raise _drive_error(
+            "same_step=True with step_order='brian2' is not realized: brian2 reads "
+            "every arrival one step later, so a count drawn for step t cannot act at step t"
+        )
     try:
         delay_steps = delay_steps_from_ms(float(delay_ms), dt)
     except ValueError as exc:
-        raise _drive_error(
-            f"delay_ms={delay_ms!r} at dt_ms={dt} rounds to 0 steps; the drive needs >= 1"
-        ) from exc
+        if same_step and _finite_real(delay_ms) and float(delay_ms) >= 0.0:
+            delay_steps = 0
+        else:
+            raise _drive_error(
+                f"delay_ms={delay_ms!r} at dt_ms={dt} rounds to 0 steps; the drive needs >= 1"
+            ) from exc
     if delay_steps < 1:
+        if not same_step:
+            raise _drive_error(
+                f"delay_ms={delay_ms!r} at dt_ms={dt} is {delay_steps} steps; the drive needs >= 1"
+            )
+        delay_steps = 0
+    elif same_step:
         raise _drive_error(
-            f"delay_ms={delay_ms!r} at dt_ms={dt} is {delay_steps} steps; the drive needs >= 1"
+            f"same_step=True with delay_ms={delay_ms!r} at dt_ms={dt} realizes to "
+            f"{delay_steps} steps (>= 1); same_step admits only a delay rounding to "
+            "0 steps -- omit same_step or set a sub-step delay"
         )
     seed = drive["seed"]
     if isinstance(seed, bool) or not isinstance(seed, (int, np.integer)):

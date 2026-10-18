@@ -611,7 +611,7 @@ DRIVE_REFUSALS = [
     ({**_drive_full(), "ext_targets": [99]}, "ext_targets"),
     ({**_drive_full(), "ext_targets": [0, 0]}, "ext_targets"),
     ({**_drive_full(), "ext_receptor": 4}, "ext_receptor"),
-    ({**_drive_full(), "ext_delay_steps": 0}, "ext_delay_steps"),
+    ({**_drive_full(), "ext_delay_steps": -1}, "ext_delay_steps"),
 ]
 
 

@@ -1521,6 +1521,8 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
             "ext_lambda": float(drive_kwargs["ext_lambda"]),
             "status": "stochastic_drive_applied",
         }
+        if sim.poisson_drive.get("same_step", False) is True:
+            metadata["poisson_drive"]["same_step"] = True
     return Signals(
         time_ms=time_ms,
         V_m=out["V_mV"].astype(dtype),

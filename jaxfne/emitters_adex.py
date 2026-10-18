@@ -283,7 +283,7 @@ def _check_drive_window(n_steps, t_start_steps, t_stop_steps) -> "tuple[int, int
     return (t0, t1)
 
 
-def _check_external_drive(N, R, given):
+def _check_external_drive(N, R, given, allow_zero_delay: bool = False):
     """Validate the six external-drive arguments; return a dict, or None when all are absent."""
     missing = [k for k in _EXT_ARGS if given[k] is None]
     if missing and len(missing) < len(_EXT_ARGS):
@@ -331,14 +331,15 @@ def _check_external_drive(N, R, given):
     ):
         raise ValueError(f"ext_receptor must index receptors in [0, {R}); got {rec!r}")
     delay = given["ext_delay_steps"]
+    lo = 0 if allow_zero_delay else 1
     if (
         isinstance(delay, bool)
         or not isinstance(delay, (int, np.integer, float, np.floating))
         or not math.isfinite(float(delay))
         or float(delay) != round(float(delay))
-        or int(delay) < 1
+        or int(delay) < lo
     ):
-        raise ValueError(f"ext_delay_steps must be an integer >= 1; got {delay!r}")
+        raise ValueError(f"ext_delay_steps must be an integer >= {lo}; got {delay!r}")
     try:
         key = given["key"]
         jax.random.split(key)
@@ -490,7 +491,9 @@ def simulate_adex(
     2. arrivals: each edge reads the spike vector of step ``t - d_e`` (``d_e`` plus 1 under
        ``step_order="brian2"``) from a ring of length ``max(d_e)`` (plus 1 for brian2), and
        each external target reads the Poisson count drawn ``d_ext`` steps earlier (plus 1
-       under ``step_order="brian2"``) from an int32 ring of the same length;
+       under ``step_order="brian2"``) from an int32 ring of the same length, except
+       ``ext_delay_steps=0`` (same-step drive): the count for step ``t`` is drawn first
+       and joins ``g`` before the current, under the same key stream;
     3. conductance ``g[N, R] = g * decay_r + scatter_add(post, receptor, |w| * arrival)``,
        with ``decay_r = exp(-dt / tau_r)`` for ``decay="exp"`` or ``1 - dt / tau_r`` for
        ``decay="euler"`` (the CAMINOS reference; required, no default, because the two differ
@@ -501,15 +504,18 @@ def simulate_adex(
     6. this step's spikes are written into the ring, and fresh counts
        ``poisson(ks, ext_lambda)`` per target are written into the external ring, so a
        count drawn at step ``t`` acts at step ``t + d_ext`` and the first ``d_ext`` steps
-       carry no external drive.
+       carry no external drive (under same-step drive nothing is written: the count
+       acts at once).
 
     The external drive is opt-in through six keyword arguments that are all given or all
     None: ``ext_targets`` (int ``[M]`` cell indices, unique, in range), ``ext_lambda``
     (mean count per step per target, >= 0 — either a scalar float, or a per-step
     schedule array ``[n_steps]`` (shared by every target) or ``[n_steps, M]`` (per
     target); finite values >= 0, bools refused), ``ext_weight_nS`` (conductance per count, >= 0),
-    ``ext_receptor`` (a valid receptor index), ``ext_delay_steps`` (int >= 1; plus 1 under
-    ``step_order="brian2"``, as for edges), and ``key`` (a JAX PRNG key). A scalar
+    ``ext_receptor`` (a valid receptor index), ``ext_delay_steps`` (int >= 0; 0 is the
+    same-step drive above and is refused under ``step_order="brian2"``; a delay >= 1
+    gains 1 under brian2, as for edges), and
+    ``key`` (a JAX PRNG key). A scalar
     ``ext_lambda`` takes the historical path bit-identically; a schedule is drawn
     per step (``poisson(ks, lam[t])`` under the same one-split-per-step key
     stream) and validated against ``(n_steps, M)`` here, where both are known.
@@ -606,6 +612,7 @@ def simulate_adex(
             "ext_delay_steps": ext_delay_steps,
             "key": key,
         },
+        allow_zero_delay=True,
     )
     L_edge = int(delay_eff.max()) if E else 0
     if ext is None:
@@ -624,6 +631,11 @@ def simulate_adex(
         L = max(L_edge, d_ext, 1)
         M = int(ext["targets"].shape[0])
         window = _check_drive_window(n_steps, ext_t_start_steps, ext_t_stop_steps)
+        if int(ext["delay"]) == 0 and step_order == "brian2":
+            raise ValueError(
+                "ext_delay_steps=0 requests a same-step drive, which step_order='brian2' "
+                "does not realize (it reads every arrival one step later): use a delay >= 1"
+            )
 
     zero = _check_zero_delay_edges(
         N,
@@ -781,6 +793,72 @@ def simulate_adex(
         out = (spk, V) if record_v else spk
         return (V, w, ref, g, ring, ering, t + 1, rkey), out
 
+    def body0(carry, I_t):
+        """Same-step external drive (``d_ext == 0``): the count drawn for step t acts at t.
+
+        Same one-split-per-step key stream as :func:`body` above, so the drawn counts
+        are the delayed run's counts shifted by one step; the draw happens first and
+        the fresh counts join ``g`` before the current is computed. The external ring
+        is unused (carried only so the scan signature matches).
+        """
+        V, w, ref, g, ring, ering, t, rkey = carry
+        rkey, ks = jax.random.split(rkey)
+        I_t = I_const if I_t is None else I_t
+        if E:
+            arrived = ring[(t - lag_j) % L, pre_j]
+            added = jax.ops.segment_sum(
+                jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
+            ).reshape(N, R)
+        else:
+            added = jnp.zeros((N, R), dtype)
+        g = g * decay_j[None, :] + added
+        if lam_1d is None and lam_2d is None:
+            lam_t = lam_f
+        elif lam_2d is None:
+            lam_t = lam_1d[t]
+        else:
+            lam_t = lam_2d[t]
+        extc = jax.random.poisson(ks, lam_t, shape=(M,)).astype(jnp.int32)
+        if window is not None:
+            t0, t1 = window
+            extc = jnp.where((t >= t0) & (t < t1), extc, jnp.zeros_like(extc))
+        g = g.at[targets_j, rec_ext].add(w_ext_j * extc.astype(dtype))
+        if not has_zero:
+            I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
+            (V, w, ref), spk = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
+        else:
+            # Declared intra-step fixed point, round 0 as above (g already holds
+            # the same-step arrivals); rounds 1..R re-step as in body.
+            I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
+            (V1, w1, ref1), spk0 = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
+            V_pre, w_pre, ref_pre = V, w, ref
+
+            def _fp_round(_r, fp_carry):
+                spk_acc, Vc, wc, refc, gc, prev_new = fp_carry
+                add0 = jax.ops.segment_sum(
+                    jnp.where(prev_new[pre0_j], absw0_j, 0.0),
+                    seg0_j,
+                    num_segments=N * R,
+                ).reshape(N, R)
+                gc = gc + add0
+                I_2 = jnp.sum(gc * (rev_j[None, :] - V_pre[:, None]), axis=1) + I_t
+                (Vn, wn, refn), spkn = adex_step(
+                    (V_pre, w_pre, ref_pre), I_2, params, dt_ms, step_order
+                )
+                take = ~spk_acc
+                Vc = jnp.where(take, Vn, Vc)
+                wc = jnp.where(take, wn, wc)
+                refc = jnp.where(take, refn, refc)
+                return (spk_acc | spkn, Vc, wc, refc, gc, spkn & ~spk_acc)
+
+            spk_acc, V, w, ref, g, _prev = jax.lax.fori_loop(
+                0, n_rounds, _fp_round, (spk0, V1, w1, ref1, g, spk0)
+            )
+            spk = spk_acc
+        ring = ring.at[t % L].set(spk)
+        out = (spk, V) if record_v else spk
+        return (V, w, ref, g, ring, ering, t + 1, rkey), out
+
     if ext is not None:
         rkey0 = ext["key"]
         ering0 = jnp.zeros((L, M), jnp.int32)
@@ -797,7 +875,8 @@ def simulate_adex(
         jnp.int32(0),
         rkey0,
     )
-    (V, w, ref, g, _, _, _, _), ys = jax.lax.scan(body, carry0, I_all, length=n_steps)
+    scan_body = body0 if (ext is not None and d_ext == 0) else body
+    (V, w, ref, g, _, _, _, _), ys = jax.lax.scan(scan_body, carry0, I_all, length=n_steps)
     result = {
         "spikes": ys[0] if record_v else ys,
         "V": V,
@@ -951,6 +1030,7 @@ def simulate_adex_hdp_registered(
             "ext_delay_steps": ext_delay_steps,
             "key": key,
         },
+        allow_zero_delay=True,
     )
     L_edge = int(delay_eff.max()) if E else 0
     if ext is None:
@@ -970,6 +1050,11 @@ def simulate_adex_hdp_registered(
         M = int(ext["targets"].shape[0])
         window = _check_drive_window(n_steps, ext_t_start_steps, ext_t_stop_steps)
 
+    if ext is not None and int(ext["delay"]) == 0:
+        raise ValueError(
+            "ext_delay_steps=0 requests a same-step drive, which the registered-HDP "
+            "kernel does not realize: use simulate_adex, or a delay >= 1 step"
+        )
     descriptor, rule_step, rule_params = resolve_registered_rule(hdp_rule, hdp_rule_params)
     check_rule_family_support(descriptor, family="adex", rule_name=hdp_rule)
     if plasticity_mask is not None:
