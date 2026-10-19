@@ -168,8 +168,8 @@ covers and what checks it); row 2 is the fact. Authorized by the human in the
 | Delegated output is evidence to verify, not a result. One writer per worktree; every diff is reviewed before integration. |
 | **authority, human-owned facts, agents** \| `fact_stack.md`, `todo_stack.md`, `AGENTS.md` |
 | The human authorizes facts and goals; agents read, test and challenge them and flag contradictions; state and todos are agent-maintained. The fact stack is not evidence. |
-| **stacks, todo, goal, fact, problem** \| `artifacts/*_stack.md`; archive per release cycle |
-| The todo stack holds remaining work only and finished items are deleted. Goal and fact stacks are human-owned. The problem stack targets empty: solve and delete. Sealed stacks are archived byte for byte. |
+| **stacks, open, todo, goal, fact** \| `artifacts/*_stack.md`; archive per release cycle |
+| The todo stack holds remaining work only and finished items are deleted. Goal and fact stacks are human-owned. Sealed stacks are archived byte for byte. |
 | **memory, lessons, not evidence** \| memory files and lessons; scope and evidence per lesson |
 | Memory holds verified reusable working lessons `{trigger, cause, repair, evidence, scope}`. It is never current-state evidence and never duplicates facts or code. |
 | **repo skills, canonical, mirrors, style pointers** \| `artifacts/control/skills/jaxfne-*`; `sync_skills.py --check` |

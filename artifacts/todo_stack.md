@@ -136,8 +136,6 @@ run on WSL2 CUDA.
     are deleted, one class per commit behind the gate; the 8 ungated audits are wired into the
     report gate when they pass today, else deleted; the ignored `--check` in
     `assert_release_freeze.py` and `sync_release_metadata.py` becomes real.
-  - [H] `problem_stack.md` is retired; `fact_stack.md` (Hamm edits) still says "The problem stack
-    targets empty: solve and delete." and lists "problem" among the stacks. Proposed: drop both.
   - Docs foil sweep: branch `_temp_never-sweep` (jynx keeper, 5bd596f8) deleted from origin as
     stale after the docs reorg; one fresh sweep of the "X, not Y" form over current docs pages.
 - T-10 [A] G-1 (meet 204dfdaa): port jnwb's `changelog.d`, `assemble_changelog.py`,
