@@ -53,8 +53,24 @@ e = |z - y| / |y| (absolute error for estimands near 0, with the scale named).
 
 ## 2. Simplifications, fidelity fixes, X forms (checklist F1-F4)
 
-- (fill: each step with its file and seed; a fidelity fix carries a test
-  that fails on the code before the fix)
+- F1 hard refractory (2026-10-19, `brunel2000_api.py`, seed 0): the lane
+  declares `t_ref_ms=2.0` (paper taurp); core `lif_step` holds V at reset
+  and blocks spikes for `round(t_ref_ms/dt)` steps. Test
+  `test_hard_refractory` fails on the code before the fix (no such term;
+  cells re-fire the next step under strong drive).
+- F2 exact fixed indegree (2026-10-19, `brunel2000_api.py`, seed 0): the
+  lane declares `sampling="fixed_indegree"` with `in_degree=CE/CI`
+  computed from the realized (NE, NI) counts; every post cell draws
+  exactly that many distinct partners. Tests `test_exact_indegree` and
+  `test_fixed_indegree_exact_totals` fail on the code before the fix
+  (the baseline refuses `sampling="fixed_indegree"`).
+- F3 external drive as Cext trains (2026-10-19, `brunel2000_api.py`,
+  seed 0): the lane declares `poisson_drive={rate_hz: nuext, counts:
+  Cext}`; each step draws `binomial(Cext, nuext*dt/1000)`, the exact sum
+  distribution of Cext independent trains. Test
+  `test_external_drive_counts` fails on the code before the fix (the
+  baseline has no `counts` key; the old lane declared the summed rate
+  with at most one event per step per cell).
 
 ## 3. D (degrees of freedom, declared before any fit)
 

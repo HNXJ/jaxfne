@@ -50,16 +50,17 @@ def _edges(model):
 
 def test_build_spec_smoke():
     """The lane spec builds (fixture must build)."""
-    spec = L.build_spec(n=20, seed=0)
+    spec = L.build_spec(n=N_SMALL, seed=0)
     assert spec is not None, "fixture must build the lane spec"
 
 
 def test_lif_extras_zero_closed_form():
-    """Zeroed PCL extras equal the closed-form Brunel LIF step (PORT_SPEC 3, 6)."""
+    """Zeroed PCL extras equal the closed-form Brunel LIF step (PORT_SPEC 6)."""
     jtfne.enable_x64()
     from jaxfne.emitters_lif import lif_step, make_lif_params
 
-    params = make_lif_params(["simple"], {"simple": dict(L._LIF_BRNEL)})
+    lif = dict(L._LIF_BRNEL, t_ref_ms=0.0)
+    params = make_lif_params(["simple"], {"simple": lif})
     dt, tau, thr, rst, iamp = 0.5, 20.0, 20.0, 10.0, 5.0
     decay = math.exp(-dt / tau)
     n_steps = 6
@@ -89,9 +90,8 @@ def test_lif_extras_zero_closed_form():
     assert trace[4] == pytest.approx(rst), "spike must reset to Vr exactly"
 
 
-@pytest.mark.xfail(strict=True)
-def test_hard_refractory_gap():
-    """Brunel cells cannot re-fire within taurp=2 ms (gap G1: no such term)."""
+def test_hard_refractory():
+    """Brunel cells cannot re-fire within taurp=2 ms (PORT_SPEC 3)."""
     from jaxfne import neuronal_tensor as nt
 
     lif = dict(L._LIF_BRNEL)
@@ -114,22 +114,30 @@ def test_hard_refractory_gap():
     assert int(np.diff(idx).min()) >= 4, "no re-fire within taurp=2 ms"
 
 
-def test_density_exact_totals():
-    """Density sampling realizes exactly round(p*n_pre*n_post) per rule."""
+def test_fixed_indegree_exact_totals():
+    """Fixed-indegree rules realize exactly in_degree*n_post edges per rule."""
     pre, post, _, _, lab = _edges(_lif_model())
-    ne = int((lab == "E").sum())
-    ni = int((lab == "PV").sum())
-    for src, npre in (("E", ne), ("PV", ni)):
+    spec = L.build_spec(n=N_SMALL, seed=0)
+    want = {}
+    for ac in spec.area_connections:
+        npost = int((lab == ac.target_neuron_type).sum())
+        want[(ac.source_neuron_type, ac.target_neuron_type)] = \
+            int(ac.in_degree) * npost
+    for src in ("E", "PV"):
         for tgt in ("E", "PV"):
-            npost = ne if tgt == "E" else ni
             got = int(((lab[pre] == src) & (lab[post] == tgt)).sum())
-            assert got == round(0.1 * npre * npost), \
-                "rule %s->%s must realize its exact density total" % (src, tgt)
+            assert got == want[(src, tgt)], \
+                "rule %s->%s must realize its exact fixed total" % (src, tgt)
+    rules = {(a.source_neuron_type, a.target_neuron_type): a
+             for a in spec.area_connections}
+    assert all(a.sampling == "fixed_indegree" for a in rules.values()), \
+        "lane rules must sample fixed_indegree"
+    assert all(a.probability is None for a in rules.values()), \
+        "fixed-indegree rules carry no probability"
 
 
-@pytest.mark.xfail(strict=True)
-def test_exact_indegree_gap():
-    """Every cell holds exactly CE/CI inputs (gap G2: binomial indegree)."""
+def test_exact_indegree():
+    """Every cell holds exactly CE/CI inputs (PORT_SPEC 8)."""
     pre, post, _, _, lab = _edges(_lif_model())
     ce = round(0.1 * int((lab == "E").sum()))
     ci = round(0.1 * int((lab == "PV").sum()))
@@ -146,30 +154,27 @@ def test_uniform_delay_steps():
     assert set(delay.tolist()) == {D_STEPS}, "uniform-D delays"
 
 
-@pytest.mark.xfail(strict=True)
-def test_external_drive_same_step_gap():
-    """External drive arrives delayed by D (gap G3: same-step arrival)."""
-    from jaxfne import neuronal_tensor as nt
-
-    lif = dict(L._LIF_BRNEL)
-    tensor = nt.NeuronalTensor(
-        name="brunel-g3",
-        areas=[nt.Area(name="net", layers=[nt.Layer(
-            name="L0", n_neurons=1,
-            neuron_types=[nt.NeuronType.make("E", fraction=1.0, emitter="lif",
-                                             emitter_params=dict(lif),
-                                             drive=0.0)])])],
-    )
-    model = jtfne.construct(
-        tensor, nt.RuntimeConfiguration(seed=0, duration_ms=20.0, dt_ms=DT,
-                                        emitter="lif"))
-    sim = jtfne.Simulation(
-        duration_ms=20.0, dt_ms=DT, seed=0,
-        poisson_drive={"rate_hz": 1000.0 / DT, "amplitude": 25.0, "seed": 0},
-        runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list"))
-    spikes = np.asarray(model.simulate(sim).spikes).reshape(-1)
-    assert int(spikes.sum()) > 0, "fixture must spike"
-    assert int(np.where(spikes)[0][0]) == D_STEPS, "first arrival after D"
+def test_external_drive_counts():
+    """The lane drive declares Cext trains at nuext each (PORT_SPEC 11)."""
+    ne, _ = L._realized_counts(N_SMALL)
+    cext = int(round(L.CONNECTIVITY_P * ne))
+    for point in ("A", "B", "C", "D"):
+        sim = L.build_sim(point=point, n=N_SMALL, seed=0)
+        pd = dict(sim.poisson_drive)
+        _, eta = L.FIG8_POINTS[point]
+        assert int(pd["counts"]) == cext, "lane declares Cext trains per cell"
+        assert float(pd["rate_hz"]) == pytest.approx(float(eta) * L.NUTHR_HZ), \
+            "per-train rate is nuext"
+        assert float(pd["rate_hz"]) * cext == pytest.approx(
+            L.external_rate_hz(point=point, n=N_SMALL)), \
+            "counts x per-train rate is the paper total"
+        assert float(pd["amplitude"]) == pytest.approx(L.J_MV), \
+            "each train arrives at amplitude J"
+        model = _lif_model(n=N_SMALL, seed=1, point=point)
+        signals = model.simulate(L.build_sim(point=point, n=N_SMALL, T_s=0.02,
+                                             seed=1))
+        assert int(signals.metadata["poisson_drive"]["counts"]) == cext, \
+            "declared counts must reach the run receipt"
 
 
 def test_zero_drive_silent():

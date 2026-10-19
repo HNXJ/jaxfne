@@ -48,7 +48,8 @@ FIG8_POINTS = {
 }
 
 #: Brunel-zeroed LIF extras: plain LIF with absolute reset, no PCL
-#: refractory/adaptation tail (PORT_SPEC.md row 3, 6).
+#: adaptation tail (PORT_SPEC.md row 6); hard refractory taurp = 2 ms via
+#: ``t_ref_ms`` (PORT_SPEC.md row 3).
 _LIF_BRNEL = dict(
     tau_m_ms=TAU_MS,
     v_thresh_mV=THETA_MV,
@@ -58,13 +59,28 @@ _LIF_BRNEL = dict(
     tau_rp_ms=5.0,
     tau_sra_ms=100.0,
     delta_sra_mV=0.0,
+    t_ref_ms=2.0,
 )
+
+
+def _realized_counts(n):
+    """Realized (NE, NI) cell counts at ``n`` neurons under the lane split.
+
+    Mirrors ``jaxfne._config._counts_from_fractions`` for the lane's
+    ``{E: 0.8, PV: 0.2}`` declaration (fractions sum to 1, E declared
+    first, so ``NE = round(0.8*n)`` and NI takes the remainder); the lane
+    needs the realized counts to declare exact CE/CI fan-in.
+    """
+    n = int(n)
+    ne = int(round(E_FRACTION * n))
+    return ne, n - ne
 
 
 def external_rate_hz(point="D", n=1250):
     """Total external Poisson rate per cell: ``Cext * nuext`` (Hz)."""
     _, eta = FIG8_POINTS[str(point)]
-    cext = int(round(CONNECTIVITY_P * E_FRACTION * int(n)))
+    ne, _ = _realized_counts(n)
+    cext = int(round(CONNECTIVITY_P * ne))
     return float(cext) * float(eta) * NUTHR_HZ
 
 
@@ -74,6 +90,9 @@ def build_spec(point="D", n=1250, seed=0):
     g, _ = FIG8_POINTS[str(point)]
     n = int(n)
     w = J_MV * math.sqrt(n)
+    ne, ni = _realized_counts(n)
+    ce = int(round(CONNECTIVITY_P * ne))
+    ci = int(round(CONNECTIVITY_P * ni))
     lif = dict(_LIF_BRNEL)
     tensor = nt.NeuronalTensor(
         name="brunel2000-%s" % str(point),
@@ -88,7 +107,8 @@ def build_spec(point="D", n=1250, seed=0):
             ],
         )])],
         # Same-area AreaConnections: InterConnection has no probability
-        # (all-to-all), AreaConnection carries probability=0.1 (PORT_SPEC 16).
+        # (all-to-all), AreaConnection carries the exact per-cell fan-in
+        # (PORT_SPEC 8, 16): CE inputs per cell from E, CI from PV.
         area_connections=[
             nt.AreaConnection(
                 source_area="net", source_layer="L0", source_neuron_type=src,
@@ -97,7 +117,8 @@ def build_spec(point="D", n=1250, seed=0):
                 static=nt.StaticParams(dT_ms=2.0),
                 plastic=nt.PlasticParams(w_mech=(w if src == "E" else float(g) * w)),
                 delay_ms=D_MS,
-                probability=CONNECTIVITY_P,
+                sampling="fixed_indegree",
+                in_degree=(ce if src == "E" else ci),
             )
             for src in ("E", "PV")
             for tgt in ("E", "PV")
@@ -108,20 +129,24 @@ def build_spec(point="D", n=1250, seed=0):
 
 def build_sim(point="D", n=1250, T_s=0.5, dt_ms=DT_MS, seed=0):
     """The ``Simulation`` for a run (duration, dt, drive)."""
-    rate = external_rate_hz(point=point, n=n)
-    prob = float(rate) * float(dt_ms) / 1000.0
+    _, eta = FIG8_POINTS[str(point)]
+    nuext = float(eta) * NUTHR_HZ
+    ne, _ = _realized_counts(n)
+    cext = int(round(CONNECTIVITY_P * ne))
+    prob = float(nuext) * float(dt_ms) / 1000.0
     if prob > 1.0:
         raise ValueError(
-            "brunel2000 point %s at n=%d needs external rate %.0f Hz "
+            "brunel2000 point %s at n=%d needs per-train rate %.0f Hz "
             "(p=%.2f per %.2g ms step): the current-route Poisson drive "
-            "allows at most one event per step per cell (PORT_SPEC.md row 12)"
-            % (str(point), int(n), rate, prob, float(dt_ms))
+            "allows at most one event per train per step (PORT_SPEC.md row 12)"
+            % (str(point), int(n), nuext, prob, float(dt_ms))
         )
     return J.Simulation(
         duration_ms=float(T_s) * 1000.0,
         dt_ms=float(dt_ms),
         seed=int(seed),
-        poisson_drive={"rate_hz": rate, "amplitude": J_MV, "seed": int(seed)},
+        poisson_drive={"rate_hz": nuext, "amplitude": J_MV, "counts": cext,
+                       "seed": int(seed)},
         runtime=J.RuntimeConfig(recurrent_backend="edge_list"),
     )
 
@@ -164,8 +189,10 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, signed=False):
              "n": int(n), "steps": int(spikes.shape[0]), "dt_ms": DT_MS,
              "duration_ms": float(T_s) * 1000.0, "dtype": "float32",
              "backend": "cpu",
-             "poisson_drive": {"rate_hz": external_rate_hz(point=point, n=n),
-                               "amplitude": J_MV, "seed": int(seed)},
+             "poisson_drive": {"rate_hz": float(sim.poisson_drive["rate_hz"]),
+                               "amplitude": J_MV,
+                               "counts": int(sim.poisson_drive["counts"]),
+                               "seed": int(seed)},
              "wall_s": {"construct": t_construct, "simulate": t_simulate},
              "regime": regime}
     entries[fname] = entry
