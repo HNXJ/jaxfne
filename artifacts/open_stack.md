@@ -16,6 +16,4 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 - O-10 Harness proposals (lane-clone helper, worker background guard, jchat lane registry, lock holders in `who`, known-failures register, release events), jchat conference #29 | jynx keeper | since 2026-10-15 | closes when each is taken or refused
 
 ## Hamm's calls
-- O-14 T-28 `tfne._RESERVED_LOWER` {x, y, h, s} defined, never read: wire into name checks or delete (score about 60 either way) | Hamm | since 2026-10-15 | closes when Hamm picks one
-- O-16 Branch `_temp_never-sweep` on origin, unmerged, 2026-10-12, owner unknown | Hamm | since 2026-10-15 | closes when its owner merges or deletes it
-- O-46 Tooling to keep or delete: 16 scripts referenced by nothing, 8 audit scripts in no gate (P-042), and the ignored `--check` in `assert_release_freeze.py` and `sync_release_metadata.py` (was O-15, T-20, score about 65 to change) | Hamm | since 2026-10-18 | closes when each is kept with a reason or deleted
+- none open (open-decisions review 2026-10-18/19: rulings in todo T-32 and T-33)

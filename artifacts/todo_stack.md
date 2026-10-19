@@ -134,7 +134,20 @@ run on WSL2 CUDA.
     plasticity API; update notebook 2, test H7, changelog); refuse an absent gpu/tpu backend at
     `simulate()` and `construct()` (`runtime_report` still reports).
   - Tree degree: enforced for `artifacts/` and `docs/`; `tests/`, `scripts/` and the root exempt
-    with a stated reason (flat by tool convention); revisit at 0.5.8.
+    with a stated reason (flat by tool convention); revisit at 0.5.8. Splits follow
+    organization-quality criteria (no ambiguous ownership, no duplicated authoritative record,
+    generated apart from source, frozen paths kept); a split made only to meet the number may
+    take a reasoned exemption instead (Hamm 2026-10-19, after sol's review).
+  - Tooling (O-46): receipt-cited unreferenced scripts move to an archive folder; orphaned ones
+    are deleted, one class per commit behind the gate; the 8 ungated audits are wired into the
+    report gate when they pass today, else deleted; the ignored `--check` in
+    `assert_release_freeze.py` and `sync_release_metadata.py` becomes real.
+  - `tfne._RESERVED_LOWER` {x, y, h, s} wired into construct-time name checks (T-28): check repo
+    uses first, failing-first test, changelog.
+  - `problem_stack.md` retired: the issue log is the single defect registry, its high-severity
+    entries the problem view; update AGENTS.md, context.md and the hygiene references.
+  - Docs foil sweep: branch `_temp_never-sweep` (jynx keeper, 5bd596f8) deleted from origin as
+    stale after the docs reorg; one fresh sweep of the "X, not Y" form over current docs pages.
 - T-10 [A] G-1 (meet 204dfdaa): port jnwb's `changelog.d`, `assemble_changelog.py`,
   `release_body.py` and claim check; release body as tables. Closes when: `release_body.py --tag <next>` passes.
   The port itself landed (924f2423, 78d293d9); only the closing check waits for a tag.
