@@ -26,7 +26,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   `harness_integrity`; replication checklist in `etudes/meta/RESIDUAL_PROTOCOL.md`. Broad gate
   on d8e486bb: 6266 passed, 0 failed.
 - Whole-repo audit 2026-10-17 (Muse and Claude, verified by a third pass): open items in todo
-  T-30 (replication conformance) and T-31 (silent fallbacks, gates); owner calls O-24 to O-29.
+  T-30 (replication conformance) and T-31 (silent fallbacks, gates); owner calls since ruled.
 
 - 0.5.6 published 2026-10-15: tag v0.5.6 on main b24e09ef (Release CI 38791659454 green), GitHub
   Release, PyPI via Publish run 38801056076; receipt `artifacts/release/v0_5_6_release_receipt.json`.
@@ -60,12 +60,12 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   marker (CALIBRATION.md:24) is not marked closed.
 - 2026-10-19: Read the Docs `latest` green again on main cf46d6d3 (PR 110, fix-only port of dev
   617c09c0; P-035 closed). Hamm's 2026-10-18 rulings are in todo T-33 (records, two API
-  refusals, tree-degree scope) and T-32 (four new lanes, rate emitter, rule B8). R1 lane kit
-  and R2 `simulate_hh_batch` built in clones, review and broad gate pending (O-49).
+  refusals, tree-degree scope) and T-32 (four new lanes, rate emitter, rule B8). T-32a lane kit
+  and T-32b `simulate_hh_batch` built in clones, review and broad gate pending (O-49).
 - GSDR: saturated at both g* (κ_fit 0.60 against 0.0156); the rate estimand waits on
-  `PREREG_P3.md` (O-25).
+  `PREREG_P3.md`.
 - Whole-project scan of 2026-10-18 done: verified findings P-036 to P-042 in the issue log,
-  O-39 to O-46 in the open stack (high: unconsumed `Simulation.plasticity`, vacuous float64
+  open-stack items, those still open now O-40 to O-43 (high: unconsumed `Simulation.plasticity`, vacuous float64
   tests, GSDR fits without MCDP, Destexhe and PCL claims against unsigned or failing records).
 
 ## Last gate results
@@ -95,5 +95,4 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-Agents: land the scan's keeper fixes by severity (O-39 to O-43); P-035 (re-pin the mcc3 digest
-after D1 beside the old one); then T-30 per paper.
+Agents: land the scan's keeper fixes by severity (O-40 to O-43), Hamm's 2026-10-18 rulings (T-33), T-32 lanes; then T-30 per paper.

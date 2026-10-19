@@ -8,12 +8,9 @@ first, amend in place.
 
 ## 1. Decisions waiting on Hamm (they unblock items below)
 
-Open: the manuscript tree and other archive moves (T-17). Decided 2026-10-13: T-12, T-13,
-T-14, T-17 (calls in each item). Decided 2026-10-14: hyx standardization (T-22–T-25),
-Destexhe Vpeak, GSDR diagnosis, CAMINOS lag (§3); T-1 (a) landed in e3a7a41b; T-2
-bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
-`artifacts/etudes/meta/REPLICATIONS.md`). Decided 2026-10-18: the four T-22 semantics defaults (O-35,
-in the T-22 row).
+Open: the manuscript tree and other archive moves (T-17). Earlier rulings sit in the rows they
+govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATIONS.md` (Izhikevich
+2003 and CAMINOS P6 move to 0.5.7); finished rows are in git history.
 
 - T-3 [A] PCL Fig. 3 stays in progress (Hamm 2026-10-13: it must replicate). v4 FAIL stands
   (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). v5 signed by Hamm 2026-10-13 on `pcl-port`
@@ -35,7 +32,7 @@ in the T-22 row).
   local inhibition off (`F:\warehouse\pcl\diag_runs\`). Then P6 (B1). Closes when: a signed prereg reproduces Fig. 3, or Hamm
   closes it, and the P6 attempt is recorded.
 
-## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
+## 2. 0.5.6 release (Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
 - R2 restated (Hamm 2026-10-14): bytes -10% against the 0.5.5 tag (met: 86.8 MB
   tracked at 1bfdaa84 against 126.0 MB at the tag) plus files at the recorded budget with
@@ -43,7 +40,7 @@ in the T-22 row).
   `scripts/tree_size_allowlist.json`, 2026-10-18; each raise from 2269, its reason and
   authorization are in this line's git history and c4056347; 2372 -> 2400 for the Destexhe lane
   and the O-8 test, 2026-10-16; 2400 -> 2428 on 2026-10-17 for the GSDR lane, its diagnostics,
-  the T-23 regime tests and the HH tests, each raise in its commit: fdd797ce, d0c1faae, 405378e8,
+  the regime tests and the HH tests, each raise in its commit: fdd797ce, d0c1faae, 405378e8,
   c6f052af, bb55e631, 5615fb98, 844900c6; 2428 -> 2436 on 2026-10-18 for the 10 changelog
   fragments since v0.5.6, which the assembler deletes at release; 2436 -> 2438 on 2026-10-18
   for the GSDR regime diagnostic at the reference g* and its test). The
@@ -60,7 +57,7 @@ in the T-22 row).
   push dev. Standing item. Closes when: `python scripts/build_dashboard_data.py --check` passes
   on each push.
 - T-31 [A] Audit 2026-10-17 (Muse and Claude, union verified by a third Muse pass). Landed: harness
-  integrity (D1), replication paths (D9), JUnit per SHA (T-26), silent fallbacks (a), the clean-
+  integrity (D1), replication paths (D9), JUnit per SHA, silent fallbacks (a), the clean-
   checkout skip (b), `gate_etude_no_resim.py` in the gates (c), a real publication gate (d), the
   `agent.py` dtype (f), six narrowed handlers in `canonical_compact_summary`; `canonical_compact_summary`
   has no broad handler left (g); ruff defect-class rules gate scripts/tests/examples (e, part,
@@ -88,7 +85,7 @@ Rules B1–B7 (adopted 2026-10-11):
 - [H] B3 one emitter per release, authorized by Hamm, gated by a P4 test perturbing every
   accepted parameter.
 - [A] B4 narrowing, one class per commit with its gate; generated assets regenerate at the docs
-  build (T-4; plan `artifacts/etudes/meta/narrowing_plan.md`).
+  build (plan `artifacts/etudes/meta/narrowing_plan.md`).
 - [A] B5 GPU: one job at a time, claimed in jchat. B6 each accepted binding becomes a row here the
   same session. B7 calibrate on synthetic nulls and known positives before a signature.
 - [A] B8 pilot-then-sign (Hamm 2026-10-18): a lane runs its full pipeline on unscored pilot seeds
@@ -107,13 +104,13 @@ run on WSL2 CUDA.
   reproduced; the queue holds no unstarted paper; about 40–50% of lane commits are protocol
   paperwork (CAMINOS prereg v1–v6 + v7, Izhikevich v7 to v8.2); every run loop is serial (GSDR
   500 generations 58,552 s, 24 serial HH calls per generation; PCL about 55 min per clip on one
-  core); 4 of 28 checklist rules are scripted. Work, in order: (R1) lane kit
+  core); 4 of 28 checklist rules are scripted. Work, in order: (T-32a) lane kit
   `etudes/meta/lane_kit.py` and `scripts/new_lane.py` scaffold, destexhe2009 migrated first;
-  (R2) `simulate_hh_batch` (vmap over weights, keys, stimuli) and the GSDR fit on it; (R3)
+  (T-32b) `simulate_hh_batch` (vmap over weights, keys, stimuli) and the GSDR fit on it; (T-32c)
   seed and candidate batching for the AdEx and LIF routes and `Model.tune` (serial loop
-  `_model_tune.py:451`); (R4) core homes for lane-local analysis (ISI ratio and CV, aperiodic
-  fit, tuning fit) and MCDP (O-42); (R5) script checklist rules E1, S2, F3, P4, R4 in
-  `check_replications.py`; (R6) new lanes at P1 with the scaffold (Hamm 2026-10-18): Brunel
+  `_model_tune.py:451`); (T-32d) core homes for lane-local analysis (ISI ratio and CV, aperiodic
+  fit, tuning fit) and MCDP (O-42); (T-32e) script checklist rules E1, S2, F3, P4, R4 in
+  `check_replications.py`; (T-32f) new lanes at P1 with the scaffold (Hamm 2026-10-18): Brunel
   2000, Vogels et al. 2011, Potjans and Diesmann 2014, Mejias et al. 2016; Hamm authorized a
   rate-population (Wilson–Cowan-type) emitter for Mejias under B3, behind the P4 perturbation
   gate. Each lane follows B8.

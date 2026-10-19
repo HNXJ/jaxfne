@@ -12,7 +12,7 @@ Release-checkpoint work: candidate identity, version consistency, test gates, pa
 ## AUTHORITIES
 1. Repository `artifacts/AGENTS.md` (release identities, completion rule).
 2. Version-specific paths: `artifacts/release/current_release_authorities.json`.
-3. Active task mode: `scratch/CURRENT_TASK.md` (Gate 0 reads `mode:`).
+3. Active task mode: `scratch/CURRENT_TASK.md` (local, gitignored; Gate 0 reads `mode:`). <!-- optional -->
 
 ## RULES
 - Distinguish C_core, C_release, C_receipt, and C_head in receipts.

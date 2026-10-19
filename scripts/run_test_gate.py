@@ -142,6 +142,7 @@ CHECK_FAMILIES = {
     "replication_audit",
     "etude_no_resim",
     "harness_integrity",
+    "agent_refs",
     "tree_size_audit",
     "docs_build_strict",
     "pytest_broad",
@@ -187,6 +188,7 @@ GATE_CHECK_FAMILIES = {
         "replication_audit",
         "etude_no_resim",
         "harness_integrity",
+        "agent_refs",
     },
     "broad": {
         "compileall",
@@ -200,6 +202,7 @@ GATE_CHECK_FAMILIES = {
         "replication_audit",
         "etude_no_resim",
         "harness_integrity",
+        "agent_refs",
         "tree_size_audit",
         "pytest_broad",
     },
@@ -214,6 +217,7 @@ GATE_CHECK_FAMILIES = {
         "replication_audit",
         "etude_no_resim",
         "harness_integrity",
+        "agent_refs",
         "tree_size_audit",
     },
     "docs": {
@@ -235,6 +239,7 @@ GATE_CHECK_FAMILIES = {
         "replication_audit",
         "etude_no_resim",
         "harness_integrity",
+        "agent_refs",
         "tree_size_audit",
         "docs_build_strict",
         "pytest_broad",
@@ -256,6 +261,7 @@ GATE_CHECK_FAMILIES = {
         "replication_audit",
         "etude_no_resim",
         "harness_integrity",
+        "agent_refs",
         "tree_size_audit",
         "docs_build_strict",
         "pytest_broad",
@@ -485,7 +491,13 @@ def gate_dev() -> None:
 
 # Audit families the dev gate runs from AUDIT_STEPS (the docs-language and vocabulary
 # audits run above with the dev gate's own ordering).
-DEV_AUDIT_FAMILIES = ("record_integrity", "replication_audit", "etude_no_resim", "harness_integrity")
+DEV_AUDIT_FAMILIES = (
+    "record_integrity",
+    "replication_audit",
+    "etude_no_resim",
+    "harness_integrity",
+    "agent_refs",
+)
 
 
 # The audit checks the broad gate runs before its pytest sweep, owned here and
@@ -534,6 +546,7 @@ AUDIT_STEPS: list[tuple[str, list[str]]] = [
         "harness_integrity",
         [sys.executable, "scripts/harness/check_harness_integrity.py"],
     ),
+    ("agent_refs", [sys.executable, "scripts/harness/check_agent_refs.py"]),
 ]
 
 # The documentation subset: what a docs edit needs checked before pushing.

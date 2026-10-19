@@ -3,7 +3,8 @@
 ## Harness
 
 - **Integrity.** `scripts/harness/HARNESS_MANIFEST.json` hashes kernel, this router, canonical skills, mirrors, gates and schemas. Change flow: edit canonical `artifacts/control/skills/` or this file → `python scripts/harness/sync_skills.py --update --manifest` → verify. Tool-local mirrors are generated, never hand-edited.
-- **Frozen evidence.** `artifacts/publication/frozen_manifest.json` enumerates immutable publication artifacts. Release authorities: `artifacts/release/current_release_authorities.json`. `scratch/CURRENT_TASK.md` supplies the active `mode:` for Gate 0.
+- **Frozen evidence.** `artifacts/publication/frozen_manifest.json` enumerates immutable publication artifacts. Release authorities: `artifacts/release/current_release_authorities.json`. `scratch/CURRENT_TASK.md` (local, gitignored; absent means CODE) supplies the active `mode:` for Gate 0. <!-- optional -->
+
 - **Routing.** mode ∈ {READ, CODE, SCIENCE, RELEASE, PUBLICATION}; facets ⊆ {CODE, REPO, SCIENCE, EVIDENCE_AUDIT, RELEASE}. Skills load compositionally from both.
 
 ## Purpose

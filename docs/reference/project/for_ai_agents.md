@@ -7,7 +7,7 @@ jaxfne treats **AI-agent readability as a first-class design goal**, alongside h
 |---------|----------|------|
 | `docs/` + README | Humans | Tutorials, API reference, guides |
 | `artifacts/context.md` + `artifacts/control/skills/` + `artifacts/AGENTS.md` | AI coding agents | Router, verified workflows, and repository policy |
-| `artifacts/developer/` | Maintainers / agents, **local-only** | Developer working notes — gitignored since 2026-07-14 and absent from a fresh clone |
+| `artifacts/developer/` | Maintainers / agents, **local-only** | Developer working notes — gitignored since 2026-07-14 and absent from a fresh clone | <!-- optional -->
 
 ## Start here (agents)
 
@@ -44,7 +44,7 @@ in the same change.
 ## Multi-agent handoff
 
 Ordinary work defaults to CODE when `scratch/CURRENT_TASK.md` is absent. For release work, copy
-`scratch/CURRENT_TASK.example.md` to `scratch/CURRENT_TASK.md` and set `mode:`.
+`scratch/CURRENT_TASK.example.md` to `scratch/CURRENT_TASK.md` and set `mode:`. <!-- optional -->
 Release authorities live in `artifacts/release/current_release_authorities.json`.
 
 ## Human docs cross-links
