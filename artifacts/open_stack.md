@@ -11,4 +11,4 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or the issue
 - O-10 Harness proposals (lane-clone helper, worker background guard, jchat lane registry, lock holders in `who`, known-failures register, release events), jchat conference #29 | jynx keeper | since 2026-10-15 | closes when each is taken or refused
 
 ## Hamm's calls
-- none open (open-decisions review 2026-10-18/19: rulings in todo T-32 and T-33)
+- O-52 Brunel P3 prereg v3 (`artifacts/etudes/papers/brunel2000/PREREG_P3_v3.md`): band (a) e <= 0.05 or (b) the paper's sim-theory gaps; Q3 (i) classifier `asynchronous` or (ii) the paper's stationary-global reading; then signature | Hamm | since 2026-10-19 | closes when v3 is signed or replaced

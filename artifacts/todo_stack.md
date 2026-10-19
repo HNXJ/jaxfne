@@ -114,7 +114,9 @@ run on WSL2 CUDA.
   global frequencies within 10% at B-D, CALIBRATION); next, each lane's P3 prereg for Hamm's
   signature, and the core gaps the lanes name: Potjans G-MULT, G-TAUSYN, G-POPDRIVE, G-WDIST,
   G-DDIST; Vogels G-SC; Mejias G6 (constants unknown) and the phi(0)=1 transfer
-  normalization. Each lane follows B8.
+  normalization; the LIF edge kernel on the GPU (13.4 GiB at 25000 steps x 12500 cells, out of
+  memory beside the desktop; about 110 ms per step at dt=0.5 against about 50 on the CPU, so the
+  Brunel dt=0.1 runs use the CPU). Each lane follows B8.
 - T-33 [A] Hamm's rulings of 2026-10-18, still to carry out (records, API refusals, tree
   degree, tooling and the foil sweep landed on dev 2026-10-19):
   - GSDR and Destexhe 2009: B8 pilot, then signature, then fresh seeds; Destexhe's reserved

@@ -1,7 +1,7 @@
 # brunel2000 calibration record (RESIDUAL_PROTOCOL.md, Records)
 
 Status: P2 (PORT_SPEC written, seed-0 pilots at N=1250 and at full scale
-N=12500, no scored run). Verdict: in progress. Every number below is reopened from its JSON or receipt before
+N=12500 at dt 0.5 and 0.1 ms, no scored run; P3 prereg v3 awaits Hamm). Verdict: in progress. Every number below is reopened from its JSON or receipt before
 commit (checklist R2); verdicts use the status tags (checklist R3).
 
 ## Provenance
@@ -78,6 +78,40 @@ global frequency. C has the paper's rate, yet its CV (0.39) and kappa
 below 0.1) and a weak 146 Hz peak appears on the fine grid: less irregular than an AI state (observed, one
 seed); P3 decides whether this is a finding or a window effect.
 Wall per point 520-858 s (construct 75-215 s, simulate 420-654 s).
+
+## P2 pilot, dt convergence (gap G4; seed 0, unscored, B8)
+
+The same four points at dt=0.1 ms (`run(..., dt_ms=0.1)`; delays 15 steps,
+refractory 20 steps, 25000 steps). Code SHA
+5080da5caa4b719843c30c852d211e6e443f9741, backend cpu (the GPU kernel asked
+for 13.4 GiB at 25000 steps and ran out of memory beside the desktop's 10
+GB), float32, jaxfne 0.5.6, jax 0.10.1; receipts in
+`C:/workspace/jaxfne_receipts/brunel2000_fig8_dt01/` (manifest sha256
+f322460cfe1e5c9e...). Both pilots rescored from their rasters with
+`brunel_fig8_rescore2.py`: labels on 128 ms Welch segments (the classifier's
+256 samples at dt=0.5 ms; at dt=0.1 ms the 256-sample default has 39 Hz bins
+and read D `irregular`), global frequency on a 1 Hz grid.
+
+| point | quantity | dt=0.5 | dt=0.1 | paper | e at dt=0.1 |
+|---|---|---|---|---|---|
+| A | rate Hz, CV, kappa, label | 333.25, 0.0006, 1.00, saturated | 333.27, 0.0006, 1.00, saturated | SR | |
+| B | rate Hz | 56.35 | 59.46 | 60.7 | 0.020 |
+| B | global Hz | 197 | 178 | ~180 | 0.011 |
+| B | CV, kappa, label | 0.53, 0.29, oscillatory | 0.79, 0.30, oscillatory | SI | |
+| C | rate Hz | 37.20 | 37.68 | 37.7 | 0.0006 |
+| C | CV, kappa, excess, label | 0.39, 0.20, 2.1, irregular | 0.41, 0.20, 2.2, irregular | AI | |
+| D | rate Hz | 5.84 | 6.01 | 5.5 | 0.093 |
+| D | global Hz | 22 | 26 | 22 | 0.18 |
+| D | CV, kappa, label | 0.64, 0.075, oscillatory | 0.62, 0.11, oscillatory | SI | |
+
+dt moves E1-E5 by 5.5%, 9.6%, 1.3%, 2.9% and 18%: above the 2% rule of
+PREREG_P3_v2, so scored runs use dt=0.1 ms. B converges onto the paper (rate
+e 0.072 to 0.020, global 0.096 to 0.011, CV 0.53 to 0.79); D moves away on
+both (one seed at 6 Hz: about 150k spikes in the 2 s window, so seed noise
+is a candidate). C keeps the paper's rate and stays below the classifier's
+asynchronous bounds at both dts: stationary global activity (excess 2.2,
+below the floor of 5) with CV 0.41, a finding P3 settles. Wall per point
+1049-1343 s on the CPU (construct 51-94 s).
 
 ## 1. Estimand table
 
