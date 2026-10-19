@@ -34,6 +34,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 import jax
+import jax.errors
 import jax.numpy as jnp
 import numpy as np
 
@@ -565,6 +566,19 @@ def _check_comp_range(comp, n_comp: int, lo_name: str) -> None:
         )
 
 
+def _tolerant_asarray(value, dtype):
+    """``np.asarray`` that passes tracers through as JAX arrays.
+
+    Batch-only: called only with ``_prevalidated=True``, after
+    :func:`simulate_hh_batch` validated every batch element's values on the
+    host. Shapes stay static under tracing.
+    """
+    try:
+        return np.asarray(value, dtype=dtype)
+    except (jax.errors.TracerArrayConversionError, jax.errors.ConcretizationTypeError):
+        return jnp.asarray(value, dtype=dtype)
+
+
 def simulate_hh(
     params: HHParams,
     *,
@@ -595,6 +609,7 @@ def simulate_hh(
     edge_weight_uS=None,
     stim_comp=None,
     record_comp=None,
+    _prevalidated: bool = False,
 ) -> dict[str, Any]:
     """Simulate HH cells with OU noise and graded tanh synapses on an edge list.
 
@@ -682,7 +697,7 @@ def simulate_hh(
             record_v=record_v, morphology=morphology,
             edge_pre_comp=edge_pre_comp, edge_post_comp=edge_post_comp,
             edge_weight_uS=edge_weight_uS, stim_comp=stim_comp,
-            record_comp=record_comp,
+            record_comp=record_comp, _prevalidated=_prevalidated,
         )
 
     N = int(jnp.shape(params.gNa_mS_cm2)[0])
@@ -741,18 +756,30 @@ def simulate_hh(
         sig_j = jnp.asarray(ou_sigma, dtype)
         if sig_j.shape != (N,):
             raise ValueError(f"ou_sigma must be None or shape ({N},); got {sig_j.shape}")
-        if not bool(jnp.all(jnp.isfinite(sig_j))):
+        # Shared input: with _prevalidated its finiteness was checked on the
+        # host (element 0 runs the full serial validation), and the
+        # jnp.asarray above is a tracer under the batch jit.
+        if not _prevalidated and not bool(jnp.all(jnp.isfinite(sig_j))):
             raise ValueError(f"ou_sigma must be finite; got {ou_sigma!r}")
-    try:
-        gain = float(noise_gain)
-    except (TypeError, ValueError):
-        raise ValueError(f"noise_gain must be a number; got {noise_gain!r}")
-    if not math.isfinite(gain) or gain < 0.0:
-        raise ValueError(f"noise_gain must be finite and >= 0; got {noise_gain!r}")
-    sig_j = sig_j * jnp.asarray(gain, dtype)
-    # Noise is live only when a key is given and the effective sigma
-    # (ou_sigma times noise_gain) is nonzero; only a live run needs ou_tau.
-    eff_nonzero = bool(jnp.any(sig_j != 0.0))
+    if _prevalidated:
+        # Batch path: this element's gain was validated on the host and the
+        # slice may be a tracer, so take it as-is without value judgments.
+        # ``eff_nonzero`` stays None (falsy below): the per-element liveness
+        # raises already ran in :func:`simulate_hh_batch`.
+        gain_arr = jnp.asarray(noise_gain)
+        sig_j = sig_j * gain_arr
+        eff_nonzero = None
+    else:
+        try:
+            gain = float(noise_gain)
+        except (TypeError, ValueError):
+            raise ValueError(f"noise_gain must be a number; got {noise_gain!r}")
+        if not math.isfinite(gain) or gain < 0.0:
+            raise ValueError(f"noise_gain must be finite and >= 0; got {noise_gain!r}")
+        sig_j = sig_j * jnp.asarray(gain, dtype)
+        # Noise is live only when a key is given and the effective sigma
+        # (ou_sigma times noise_gain) is nonzero; only a live run needs ou_tau.
+        eff_nonzero = bool(jnp.any(sig_j != 0.0))
     if ou_tau is None:
         if ou_key is not None and eff_nonzero:
             raise ValueError(
@@ -765,7 +792,8 @@ def simulate_hh(
         tau_j = jnp.asarray(ou_tau, dtype)
         if tau_j.shape != (N,):
             raise ValueError(f"ou_tau must be None or shape ({N},); got {tau_j.shape}")
-        if not bool(jnp.all(jnp.isfinite(tau_j))) or bool(jnp.any(tau_j <= 0.0)):
+        # Shared input, same batch rationale as ou_sigma above.
+        if not _prevalidated and (not bool(jnp.all(jnp.isfinite(tau_j))) or bool(jnp.any(tau_j <= 0.0))):
             raise ValueError(f"ou_tau must be finite and > 0; got {ou_tau!r}")
     if eff_nonzero and ou_key is None:
         raise ValueError("ou_key is required when ou_sigma * noise_gain is nonzero")
@@ -915,6 +943,7 @@ def _simulate_hh_multi(
     edge_weight_uS=None,
     stim_comp=None,
     record_comp=None,
+    _prevalidated: bool = False,
 ) -> dict[str, Any]:
     """Multi-compartment ``simulate_hh`` (see its docstring for the contract).
 
@@ -978,7 +1007,7 @@ def _simulate_hh_multi(
                 record_v=record_v, morphology=morphology,
                 edge_pre_comp=None, edge_post_comp=None,
                 edge_weight_uS=None, stim_comp=stim_comp,
-                record_comp=record_comp,
+                record_comp=record_comp, _prevalidated=_prevalidated,
             )
         for k in ("edge_pre", "edge_post", "edge_receptor"):
             given = {"edge_pre": edge_pre, "edge_post": edge_post,
@@ -1056,20 +1085,29 @@ def _simulate_hh_multi(
         if not bool(np.all(np.isfinite(sig_host))):
             raise ValueError(f"ou_sigma must be finite; got {ou_sigma!r}")
         sig_j = jnp.asarray(ou_sigma, dtype)
-    try:
-        gain = float(noise_gain)
-    except (TypeError, ValueError):
-        raise ValueError(f"noise_gain must be a number; got {noise_gain!r}")
-    if not math.isfinite(gain) or gain < 0.0:
-        raise ValueError(f"noise_gain must be finite and >= 0; got {noise_gain!r}")
-    sig_j = sig_j * jnp.asarray(gain, dtype)
-    # Host-side nonzero check on the params-dtype values the scan consumes:
-    # identical to the old ``bool(jnp.any(...))`` eagerly, and keeps Python
-    # control flow off traced values (jittable).
-    if ou_sigma is None:
-        eff_nonzero = False
+    if _prevalidated:
+        # Batch path: this element's gain was validated on the host and the
+        # slice may be a tracer, so take it as-is without value judgments.
+        # ``eff_nonzero`` stays None (falsy below): the per-element liveness
+        # raises already ran in :func:`simulate_hh_batch`.
+        gain_arr = jnp.asarray(noise_gain)
+        sig_j = sig_j * gain_arr
+        eff_nonzero = None
     else:
-        eff_nonzero = bool(np.any(sig_host * float(np.asarray(gain, dtype=np.float64)) != 0.0))
+        try:
+            gain = float(noise_gain)
+        except (TypeError, ValueError):
+            raise ValueError(f"noise_gain must be a number; got {noise_gain!r}")
+        if not math.isfinite(gain) or gain < 0.0:
+            raise ValueError(f"noise_gain must be finite and >= 0; got {noise_gain!r}")
+        sig_j = sig_j * jnp.asarray(gain, dtype)
+        # Host-side nonzero check on the params-dtype values the scan consumes:
+        # identical to the old ``bool(jnp.any(...))`` eagerly, and keeps Python
+        # control flow off traced values (jittable).
+        if ou_sigma is None:
+            eff_nonzero = False
+        else:
+            eff_nonzero = bool(np.any(sig_host * float(np.asarray(gain, dtype=np.float64)) != 0.0))
     if ou_tau is None:
         if ou_key is not None and eff_nonzero:
             raise ValueError(
@@ -1097,6 +1135,10 @@ def _simulate_hh_multi(
         raise ValueError("I_ext and I_ext_nA are alternative input forms; got both")
     I_all = None
     I_const = None
+    # Under the batch vmap, I_ext slices are tracers that np.asarray cannot
+    # read; with _prevalidated their values were checked per element on the
+    # host, so read them through JAX instead. The serial path keeps np.asarray.
+    host_array = _tolerant_asarray if _prevalidated else np.asarray
     if I_ext_nA is not None:
         nA = np.asarray(I_ext_nA, dtype=np.float64)
         if nA.shape == (N,):
@@ -1111,7 +1153,7 @@ def _simulate_hh_multi(
                 f"I_ext_nA must be None, shape ({N},) or ({n_steps}, {N}); got {nA.shape}"
             )
     elif I_ext is not None:
-        I_arr = np.asarray(I_ext, dtype=np.float64)
+        I_arr = host_array(I_ext, dtype=np.float64)
         if I_arr.shape == (N,):
             I_const = I_arr
         elif I_arr.shape == (n_steps, N):
@@ -1126,9 +1168,9 @@ def _simulate_hh_multi(
     if I_const is None:
         I_const_j = jnp.zeros((N, C), dtype)
     else:
-        I_const_j = jnp.asarray(np.asarray(I_const, dtype=np.float64)[:, None] * onehot, dtype)
+        I_const_j = jnp.asarray(host_array(I_const, dtype=np.float64)[:, None] * onehot, dtype)
     if I_all is not None:
-        I_all_j = jnp.asarray(np.asarray(I_all, dtype=np.float64)[:, :, None] * onehot_j[None], dtype)
+        I_all_j = jnp.asarray(host_array(I_all, dtype=np.float64)[:, :, None] * onehot_j[None], dtype)
     else:
         I_all_j = None
 
@@ -1249,3 +1291,258 @@ def _simulate_hh_multi(
     if record_v:
         result["V_mV"] = ys[1]
     return result
+
+
+# Keys that may vary across the leading batch axis of simulate_hh_batch.
+# Everything else (topology, receptors, morphology, compartment selections,
+# OU scales) is shared: it is validated once on the host and closed over,
+# hence static under jit.
+_HH_BATCH_KEYS = (
+    "edge_weight",
+    "edge_weight_uS",
+    "ou_key",
+    "I_ext",
+    "I_ext_nA",
+    "V0_mV",
+    "noise_gain",
+)
+
+_MULTI_TRIGGERS = (
+    "morphology",
+    "edge_pre_comp",
+    "edge_post_comp",
+    "edge_weight_uS",
+    "stim_comp",
+    "record_comp",
+    "I_ext_nA",
+)
+
+
+def simulate_hh_batch(
+    params: HHParams,
+    *,
+    n_steps: int,
+    dt_ms: float,
+    batch=None,
+    **shared: Any,
+) -> dict[str, Any]:
+    """Simulate a batch of HH runs that share topology but vary per-trial inputs.
+
+    Every element runs :func:`simulate_hh` with the same ``params``,
+    ``n_steps``, ``dt_ms`` and shared arguments. ``batch`` maps a subset of
+    input names to values stacked along a leading axis B: ``edge_weight``
+    ``(B, E)``, ``edge_weight_uS`` ``(B, E)``, ``ou_key`` (one key per
+    element), ``I_ext`` ``(B, N)`` or ``(B, n_steps, N)``, ``I_ext_nA`` (same
+    shapes), ``V0_mV`` ``(B, N)`` (or ``(B, N, C)`` on the multi-compartment
+    path) and ``noise_gain`` ``(B,)``. All batch values must share one B;
+    unknown keys, keys given both batched and shared, and mixing
+    ``edge_weight`` with ``edge_weight_uS`` (or ``I_ext`` with ``I_ext_nA``)
+    are refused with ``ValueError``.
+
+    Each batch element's values are validated on the host before tracing
+    (element 0 through :func:`simulate_hh` itself, the rest against the same
+    value rules), and point-process inputs (``edge_weight_uS``,
+    ``I_ext_nA``) are converted to density forms on the host per element, so
+    the traced kernel only ever sees the density path. The traced kernel runs
+    with the internal ``_prevalidated`` flag, which skips only those
+    already-done value checks; the public serial path is unchanged for every
+    input, concrete and traced. The batch runs under
+    ``jax.jit(jax.vmap(...))`` with ``n_steps``, ``dt_ms`` and ``morphology``
+    closed over (static). Output leaves match :func:`simulate_hh` with one
+    leading batch axis (``spikes`` ``[B, n_steps, N]``, ``V_mV``
+    ``[B, n_steps, N]``, final states ``[B, N]``, ``held_steps`` counts
+    ``[B]``).
+    """
+    if not (isinstance(n_steps, (int, np.integer)) and n_steps >= 1):
+        raise ValueError(f"n_steps must be a positive integer, got {n_steps!r}")
+    _require_finite_dt(dt_ms, "dt_ms")
+    if not isinstance(batch, Mapping) or not batch:
+        raise ValueError(
+            "batch must be a non-empty mapping of batch key to stacked values; "
+            f"got {batch!r}"
+        )
+    unknown = [k for k in batch if k not in _HH_BATCH_KEYS]
+    if unknown:
+        raise ValueError(
+            f"unknown batch keys {unknown}; expected a subset of {list(_HH_BATCH_KEYS)}"
+        )
+    dupes = [k for k in batch if k in shared]
+    if dupes:
+        raise ValueError(
+            f"batch keys {dupes} are also given as shared arguments; pass each input once"
+        )
+    stacked: dict[str, Any] = {}
+    B = None
+    for key, value in batch.items():
+        arr = jnp.asarray(value)
+        if arr.ndim < 1:
+            raise ValueError(
+                f"batch[{key!r}] must stack B elements along a leading axis; "
+                f"got shape {arr.shape}"
+            )
+        if B is None:
+            B = int(arr.shape[0])
+            if B < 1:
+                raise ValueError(f"batch must hold at least one element; got B={B}")
+        elif int(arr.shape[0]) != B:
+            raise ValueError(
+                f"batch keys must share one leading size B; {key!r} has "
+                f"{int(arr.shape[0])}, expected {B}"
+            )
+        stacked[key] = arr
+    assert B is not None
+    if (("edge_weight_uS" in stacked or shared.get("edge_weight_uS") is not None)
+            and ("edge_weight" in stacked or shared.get("edge_weight") is not None)):
+        raise ValueError(
+            "edge_weight_uS and edge_weight are alternative input forms; got both"
+        )
+    if (("I_ext_nA" in stacked or shared.get("I_ext_nA") is not None)
+            and ("I_ext" in stacked or shared.get("I_ext") is not None)):
+        raise ValueError("I_ext and I_ext_nA are alternative input forms; got both")
+    N = int(jnp.shape(params.gNa_mS_cm2)[0])
+
+    if ("edge_weight_uS" in stacked or shared.get("edge_weight_uS") is not None
+            or "I_ext_nA" in stacked or shared.get("I_ext_nA") is not None):
+        if shared.get("morphology") is None:
+            raise ValueError(
+                "morphology is required when any compartment selection or "
+                "point-process input is given"
+            )
+        mx = _check_morphology(shared["morphology"])
+        area = mx["area"]
+        n_comp = mx["n_comp"]
+        if "edge_weight_uS" in stacked:
+            uw = stacked.pop("edge_weight_uS")
+            if uw.ndim != 2:
+                raise ValueError(
+                    f"batch['edge_weight_uS'] must have shape (B, E); got {uw.shape}"
+                )
+            n_e = int(uw.shape[1])
+            missing = [k for k in ("edge_pre", "edge_post", "edge_receptor")
+                       if shared.get(k) is None]
+            if missing:
+                raise ValueError(
+                    f"edge arrays must be all given or all None; missing {missing}"
+                )
+            post_c = _comp_index_array(shared.get("edge_post_comp"), n_e, "edge_post_comp")
+            _check_comp_range(post_c, n_comp, "edge_post_comp")
+            pre_c = _comp_index_array(shared.get("edge_pre_comp"), n_e, "edge_pre_comp")
+            _check_comp_range(pre_c, n_comp, "edge_pre_comp")
+            dens = np.empty((B, n_e), dtype=np.float64)
+            for b in range(B):
+                wb = np.asarray(uw[b], dtype=np.float64)
+                if not np.all(np.isfinite(wb)):
+                    raise ValueError(f"edge_weight_uS must be finite; got {wb}")
+                if np.any(wb < 0.0):
+                    raise ValueError(
+                        "edge_weight_uS must be >= 0 (the reversal sets the sign); "
+                        f"got min {wb.min()}"
+                    )
+                dens[b] = point_process_to_distributed(wb, area[post_c])
+            stacked["edge_weight"] = jnp.asarray(dens)
+        if shared.get("edge_weight_uS") is not None:
+            w_us = np.asarray(shared.pop("edge_weight_uS"), dtype=np.float64)
+            if w_us.ndim != 1:
+                raise ValueError(
+                    f"edge_weight_uS must be one-dimensional, got shape {w_us.shape}"
+                )
+            post_c = _comp_index_array(shared.get("edge_post_comp"), int(w_us.shape[0]),
+                                       "edge_post_comp")
+            _check_comp_range(post_c, n_comp, "edge_post_comp")
+            shared["edge_weight"] = point_process_to_distributed(w_us, area[post_c])
+        stim_c = _comp_index_array(shared.get("stim_comp"), N, "stim_comp")
+        _check_comp_range(stim_c, n_comp, "stim_comp")
+        if "I_ext_nA" in stacked:
+            nA_b = stacked.pop("I_ext_nA")
+            conv = []
+            for b in range(B):
+                nb = np.asarray(nA_b[b], dtype=np.float64)
+                if nb.shape == (N,):
+                    conv.append(point_process_to_distributed(nb, area[stim_c]))
+                elif nb.shape == (n_steps, N):
+                    conv.append(point_process_to_distributed(
+                        nb, np.broadcast_to(area[stim_c], (n_steps, N))))
+                else:
+                    raise ValueError(
+                        f"I_ext_nA must be None, shape ({N},) or ({n_steps}, {N}); "
+                        f"got {nb.shape}"
+                    )
+            stacked["I_ext"] = jnp.asarray(np.asarray(conv, dtype=np.float64))
+        if shared.get("I_ext_nA") is not None:
+            nA = np.asarray(shared.pop("I_ext_nA"), dtype=np.float64)
+            if nA.shape == (N,):
+                shared["I_ext"] = point_process_to_distributed(nA, area[stim_c])
+            elif nA.shape == (n_steps, N):
+                shared["I_ext"] = point_process_to_distributed(
+                    nA, np.broadcast_to(area[stim_c], (n_steps, N)))
+            else:
+                raise ValueError(
+                    f"I_ext_nA must be None, shape ({N},) or ({n_steps}, {N}); "
+                    f"got {nA.shape}"
+                )
+
+    # Host validation: element 0 runs through simulate_hh itself (exact
+    # shared and per-element errors), the rest against the same value rules
+    # (shapes are static and raise inside the traced call either way).
+    elem0 = dict(shared)
+    for key, arr in stacked.items():
+        elem0[key] = arr[0]
+    simulate_hh(params, n_steps=n_steps, dt_ms=dt_ms, **elem0)
+
+    sig_shared = shared.get("ou_sigma", None)
+    signp = None if sig_shared is None else np.asarray(sig_shared, dtype=np.float64)
+    if shared.get("noise_gain") is not None and "noise_gain" not in stacked:
+        try:
+            shared_gain = float(shared["noise_gain"])
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"noise_gain must be a number; got {shared['noise_gain']!r}"
+            )
+    else:
+        shared_gain = 1.0
+    key_present_shared = shared.get("ou_key") is not None
+    tau_present = shared.get("ou_tau") is not None
+    for b in range(1, B):
+        if "edge_weight" in stacked:
+            wb = np.asarray(stacked["edge_weight"][b], dtype=np.float64)
+            if not np.all(np.isfinite(wb)):
+                raise ValueError(f"edge_weight must be finite; got {wb}")
+            if np.any(wb < 0.0):
+                raise ValueError(
+                    "edge_weight must be >= 0 (the reversal sets the sign); "
+                    f"got min {wb.min()}"
+                )
+        if "ou_key" in stacked:
+            try:
+                jax.random.split(stacked["ou_key"][b])
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"ou_key must be a JAX PRNG key; got {stacked['ou_key'][b]!r}"
+                )
+        if "noise_gain" in stacked:
+            gb = stacked["noise_gain"][b]
+            try:
+                g = float(gb)
+            except (TypeError, ValueError):
+                raise ValueError(f"noise_gain must be a number; got {gb!r}")
+            if not math.isfinite(g) or g < 0.0:
+                raise ValueError(f"noise_gain must be finite and >= 0; got {gb!r}")
+        else:
+            g = shared_gain
+        eff = False if signp is None else bool(np.any(signp * g != 0.0))
+        if not tau_present and (key_present_shared or "ou_key" in stacked) and eff:
+            raise ValueError(
+                "ou_tau is required when OU noise is live (ou_key given and "
+                "ou_sigma * noise_gain nonzero); got None "
+                "(PORT_SPEC.md section 3 gives a per-cell U(10, 50) range, not a default)"
+            )
+        if eff and not key_present_shared and "ou_key" not in stacked:
+            raise ValueError("ou_key is required when ou_sigma * noise_gain is nonzero")
+
+    def _single(slices):
+        kw = dict(shared)
+        kw.update(slices)
+        return simulate_hh(params, n_steps=n_steps, dt_ms=dt_ms,
+                           _prevalidated=True, **kw)
+
+    return jax.jit(jax.vmap(_single))(stacked)

@@ -1,0 +1,1 @@
+- Batched HH runs: `simulate_hh_batch` in `jaxfne/emitters_hh.py` runs trials sharing topology under `jax.jit(jax.vmap(...))`; spikes identical to the serial calls; V within float32 tolerance (multi-compartment differences up to about 0.012 mV) (CPU: B=24, N=50, morph, n_steps=2000 serial 28.00 s vs batched 1.89 s).

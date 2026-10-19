@@ -825,3 +825,30 @@ print(signals.V_m.shape)
   `connections(sign=)`, `Simulation(plasticity=)` and `Simulation(ablation=)`.
 - Refused explicitly: `continuation`, `return_state`, `paradigm`, `simulate_batch` and
   `simulate_condition`.
+
+---
+
+## Hodgkin-Huxley batched runs (`jaxfne/emitters_hh.py`)
+
+`simulate_hh_batch(params, *, n_steps, dt_ms, batch, **shared)` runs a batch of
+`simulate_hh` trials that share topology and receptor settings while varying
+per-trial inputs. `batch` maps a subset of `edge_weight`, `edge_weight_uS`,
+`ou_key`, `I_ext`, `I_ext_nA`, `V0_mV` and `noise_gain` to arrays stacked along
+a leading batch axis; every other argument is shared. The batch runs under
+`jax.jit(jax.vmap(...))` with `n_steps`, `dt_ms` and `morphology` closed over.
+Output leaves match `simulate_hh` with one leading batch axis.
+
+```python
+from jaxfne.emitters_hh import simulate_hh_batch
+
+out = simulate_hh_batch(params, n_steps=2000, dt_ms=0.1,
+                        batch={"I_ext": i_ext_b, "edge_weight": w_b},
+                        edge_pre=[0], edge_post=[1], edge_receptor=[0],
+                        receptor_e_rev=(0.0,), receptor_tau_r=(0.2,),
+                        receptor_tau_d=(2.0,), receptor_slope=(5.0,),
+                        receptor_vth=(-20.0,))
+```
+
+Batch keys unknown to the kernel, keys given both batched and shared, and
+mixing `edge_weight` with `edge_weight_uS` (or `I_ext` with `I_ext_nA`) are
+refused with `ValueError`.
