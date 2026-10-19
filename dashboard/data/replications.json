@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-19T15:40:33Z",
-    "dev_sha": "1c71d6cdf0d616d869fedad4a1e319872fffd839"
+    "utc": "2026-10-19T15:41:00Z",
+    "dev_sha": "8a127be535964866c50d3955c949a72364942b2e"
   },
   "papers": [
     {
@@ -2623,11 +2623,6 @@
       "release": "0.5.7",
       "model": "PCL Fig. 4: suppression effects",
       "needs": "0.5.6 conductance synapses"
-    },
-    {
-      "release": "0.5.8",
-      "model": "Mejias et al. 2016: laminar multi-area model",
-      "needs": "laminar readout; GPU time"
     },
     {
       "release": "0.5.8",

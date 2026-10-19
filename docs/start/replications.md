@@ -28,7 +28,6 @@ as done with jaxfne only when it runs through the library (P6).
 |---|---|---|
 | 0.5.7 | Calcium-regulated synaptic homeostasis (bioRxiv 2025) | working LIF emitter |
 | 0.5.7 | PCL Fig. 4: suppression effects | 0.5.6 conductance synapses |
-| 0.5.8 | Mejias et al. 2016: laminar multi-area model | laminar readout; GPU time |
 | 0.5.8 | Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply) | the 0.5.8 laminar models |
 | 0.5.9 | Lee, Pennartz and Mejias, PLoS Comput Biol 2025: interneuron silencing, deviant enhancement | event input |
 | 0.5.9 | PCL Figs. 5–6 | the PCL suppression data and N-MNIST/DVS sets |
