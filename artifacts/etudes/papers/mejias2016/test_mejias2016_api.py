@@ -1,8 +1,8 @@
-"""Tests for the mejias2016 lane API (P2: PORT_SPEC rows, G1/G5 settled).
+"""Tests for the mejias2016 lane API (P2: PORT_SPEC rows, G1/G5 closed).
 
-Passing tests pin exact port behaviour; gaps fail on the baseline
-implementation and carry ``xfail(strict=True)`` so a core change that closes
-a gap turns them green loudly.
+Passing tests pin exact port behaviour; the Wilson-Cowan rate pair (G1)
+builds and runs through the core ``rate`` route and the Granger/DAI
+estimators (G5) ship in ``jaxfne.analysis``.
 """
 
 import os
@@ -54,9 +54,8 @@ def test_build_spec_smoke():
     assert spec is not None, "fixture must build the lane spec"
 
 
-@pytest.mark.xfail(strict=True, reason="G1: no Wilson-Cowan rate emitter")
-def test_wilson_rate_emitter_gap():
-    """A Wilson-Cowan rate pair builds and runs (gap G1: refused)."""
+def test_wilson_rate_emitter():
+    """A Wilson-Cowan rate pair builds and runs (gap G1 closed by the core route)."""
     from jaxfne import neuronal_tensor as nt
 
     tensor = nt.NeuronalTensor(
@@ -71,8 +70,11 @@ def test_wilson_rate_emitter_gap():
                                         emitter="rate"))
     sim = jtfne.Simulation(duration_ms=20.0, dt_ms=DT, seed=0,
                            runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list"))
-    rates = np.asarray(model.simulate(sim).V_m)
+    signals = model.simulate(sim)
+    rates = np.asarray(signals.V_m)
     assert bool(np.isfinite(rates).all()), "rate state must stay finite"
+    assert int(np.sum(np.asarray(signals.spikes))) == 0, "rate route emits no spikes"
+    assert signals.metadata["emitter_family"] == "rate"
 
 
 def test_interlaminar_motif_exact():
@@ -141,12 +143,23 @@ def test_density_exact_totals():
         "wired edges must equal the exact per-rule density totals"
 
 
-@pytest.mark.xfail(strict=True, reason="G5: no Granger/DAI estimator in analysis")
-def test_dai_granger_gap():
-    """Spectral Granger causality / DAI ships in jaxfne.analysis (gap G5)."""
-    from jaxfne.analysis import granger_causality  # noqa: F401
+def test_dai_granger():
+    """Spectral Granger causality / DAI ships in jaxfne.analysis (gap G5 closed)."""
+    from jaxfne.analysis import directionality_index, granger_spectral
 
-    assert callable(granger_causality), "Granger estimator must be callable"
+    rng = np.random.default_rng(0)
+    n = 2000
+    x = np.zeros(n)
+    y = np.zeros(n)
+    ex = rng.standard_normal(n)
+    ey = rng.standard_normal(n)
+    for t in range(1, n):
+        x[t] = 0.5 * x[t - 1] + ex[t]
+        y[t] = 0.5 * y[t - 1] + 0.6 * x[t - 1] + ey[t]
+    out = granger_spectral(x, y, DT, 2, np.array([10.0, 40.0]))
+    assert bool((out["gc_xy"] > out["gc_yx"]).all()), "x -> y must dominate"
+    dai = directionality_index(out["gc_xy"], out["gc_yx"])
+    assert bool((dai > 0.0).all()), "DAI must read x -> y as positive"
 
 
 def test_score_keys():

@@ -24,9 +24,10 @@ the tensor route is the only lif path.
 
 - A (state): membrane voltages V (mV), spikes; no adaptation, no rate state.
   Paper: one nonlinear Wilson-Cowan firing-rate pair (E plus I) per laminar
-  module (`SOURCE_P1.md` §1). The core has no rate emitter (gap G1); the
-  lane runs a declared spiking stand-in (deviation S1): lif E-PV pairs per
-  module, extras zeroed (`jaxfne/emitters_lif.py:56-67`).
+  module (`SOURCE_P1.md` §1). The core ships the rate emitter (exact row 1:
+  `jaxfne/emitters_rate.py`, `jaxfne/_construct_rate.py`); the lane pilot
+  still runs the declared spiking stand-in (deviation S1): lif E-PV pairs
+  per module, extras zeroed (`jaxfne/emitters_lif.py:56-67`).
 - x (input): tonic triple drive (declared 0.0) plus one Poisson channel per
   cell (`jaxfne/_signals.py:742`); paper: tonic currents I plus noise, both
   of unknown process (`SOURCE_P1.md` §4, gap G6).
@@ -47,7 +48,7 @@ the tensor route is the only lif path.
 
 | # | Element (paper) | Core path (file:line) | Status |
 |---|---|---|---|
-| 1 | Local module unit: nonlinear Wilson-Cowan E-I rate pair per layer (`SOURCE_P1.md` §1) | No rate emitter registered (`jaxfne/emitter_registry.py:104-111` lists izhikevich, lif, glif, adex only) | gap G1 (pinned by `test_wilson_rate_emitter_gap`, xfail; stand-in deviation S1 below) |
+| 1 | Local module unit: nonlinear Wilson-Cowan E-I rate pair per layer (`SOURCE_P1.md` §1) | `NeuronType(emitter="rate")` + `RuntimeConfiguration(emitter="rate")` -> `construct_rate_tensor_model` (`jaxfne/_construct_rate.py`); transfers in `jaxfne/emitters_rate.py`, registered as `rate` in `jaxfne/emitter_registry.py` | exact (pinned by `test_wilson_rate_emitter`; lane pilot still runs the lif stand-in S1 below) |
 | 2 | Stand-in S1: lif E-PV pairs per module, extras zeroed | `NeuronType.make("E"/"PV", emitter="lif", emitter_params={tau_m_ms:20, v_thresh_mV:20, v_reset_mV:10, ...})`; fields in `jaxfne/emitters_lif.py:67`, applied by `lif_step` (`jaxfne/emitters_lif.py:254`) | deviation (declared: spikes stand in for rates; no rate claim; pilot runs this) |
 | 3 | Supra gamma ~40 Hz, infra alpha ~10 Hz / low-beta 15-30 Hz (`SOURCE_P1.md` §2) | Constants, weights, noise amplitudes unknown (`SOURCE_P1.md` §4) | gap G6 (no test: nothing to fail; settled at P3) |
 | 4 | Interlaminar motif: L23E to L5E; L5E to L2/3I, the two strongest projections (`SOURCE_P1.md` §1) | Same-area `AreaConnection`s (`jaxfne/neuronal_tensor.py:662`); no other cross-layer rules declared | exact (pinned by `test_interlaminar_motif_exact`) |
@@ -60,7 +61,7 @@ the tensor route is the only lif path.
 | 11 | Multi-area tensor: 30 named areas, ~66% density (`SOURCE_P1.md` §2) | `NeuronalTensor` areas plus `AreaConnection(probability=...)` (`jaxfne/neuronal_tensor.py:662-685`); exact total `round(p*n_pre*n_post)` per rule | exact route (pinned at 2 areas by `test_ff_fb_motif_exact` and totals by `test_density_exact_totals`); 30-area scale gap G7, deferred to P3 |
 | 12 | SLN/FLN anatomy, hierarchy subset (`SOURCE_P1.md` §2) | Lane-assigned per-pair gains; matrices served from a login wall, unknown (`SOURCE_P1.md` §4) | gap G6 (no test: input data, not core behaviour) |
 | 13 | Estimands: layer rates, spectral peaks, gamma/alpha bands (`SOURCE_P1.md` §3) | `activity_regime`, Welch peak, kappa, `spectrolaminar_psd_jax` (all `jaxfne/analysis`, checklist E3) | exact (estimator choice; values scored at P3; pinned by `test_score_keys`) |
-| 14 | Directionality: spectral Granger causality, DAI/mDAI Eqs. 1-2 (`SOURCE_P1.md` §1) | No Granger or DAI estimator in `jaxfne/analysis` (`jaxfne/analysis/__init__.py:50`); `cross_area_coherence` (`jaxfne/fields/proxy.py:1236`) is a continuous-proxy operator, not a spike-signal analysis estimator | gap G5 (pinned by `test_dai_granger_gap`, xfail) |
+| 14 | Directionality: spectral Granger causality, DAI/mDAI Eqs. 1-2 (`SOURCE_P1.md` §1) | `granger_spectral` + `directionality_index` (DAI Eq. 1) in `jaxfne/analysis/granger.py`, exported from `jaxfne/analysis`; `cross_area_coherence` (`jaxfne/fields/proxy.py:1236`) stays a continuous-proxy operator, not the spike-signal estimator | exact as the DAI Eq. 1 pairwise estimator (pinned by `test_dai_granger`); the multivariate mDAI form is not ported |
 | 15 | Integrator, dt, duration, seeds (paper unknown, `SOURCE_P1.md` §4) | Exact exponential decay per `lif_step` (`jaxfne/emitters_lif.py:254`); dt=0.5 ms binary-exact; seed 0 pilots only | deviation (declared; convergence check at P3) |
 | 16 | Population sizes, sparse wiring (paper: full 30-area counts unknown) | Fractions split counts exactly (probe: 16/4 per layer at n=20); `dT_ms` required but inert on the lif route (value 2.0 ms carried for inspection) | deviation (declared-but-inert dT; sizes declared per builder) |
 
@@ -77,6 +78,6 @@ the tensor route is the only lif path.
 
 ## Status counts
 
-16 rows: 6 exact (4, 5, 6-config, 10-route, 11-route, 13), 6 declared
-deviations (S1 stand-in, S2 readout, 8, 9, 15, 16), 4 gap references
-(G1 row 1; G5 row 14; G6 rows 3, 6-values, 12; G7 row 11-scale).
+16 rows: 8 exact (1, 4, 5, 6-config, 10-route, 11-route, 13, 14),
+6 declared deviations (S1 stand-in row 2, S2 readout, 8, 9, 15, 16),
+2 gap references (G6 rows 3, 6-values, 12; G7 row 11-scale).

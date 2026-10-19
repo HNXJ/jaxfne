@@ -18,6 +18,20 @@ cv_isi 0.6739; kappa 0.0726; active_fraction 1.0; spectral_peak_excess
 1.2829; label "irregular"; layer_rates_hz L23 14.55, L56 13.5. V finite
 (asserted in `run`). Verdict: runs (no score, no band).
 
+## Rate smoke (seed 0, unscored; G1 closed)
+
+Engine: core `rate` route (`jaxfne/emitters_rate.py`,
+`jaxfne/_construct_rate.py`; PORT_SPEC.md row 1). Route: single-area
+single-layer pair, 2 cells (1 E + 1 I), T=20.0 ms, dt=0.5 ms (40 steps),
+CPU, float32, no Poisson drive, seed 0 (the `test_wilson_rate_emitter`
+fixture, observed from this tree).
+
+Measured values (observed from the run): rates shape (40, 2); finite True;
+min 0.2962, max 4.5474, mean 3.0054; spikes 0 (the route emits none; rates
+ride `V_m`); `metadata["emitter_family"] == "rate"`; n_edges 2,
+n_floored_to_one_step 2 (no declared delay on the fixture rule).
+Verdict: runs (no score, no band).
+
 ## Provenance
 
 - Code SHA: (fill; one SHA per output directory, enforced by
