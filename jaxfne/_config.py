@@ -189,6 +189,29 @@ def _refuse_unrealized(method: str, key: str, value: Any, realized: Sequence[Any
         )
 
 
+def _validate_config_in_degree(name: str, in_degree: Any) -> "int | None":
+    """Validate a ``connections()`` exact fixed ``in_degree`` (or pass None through).
+
+    None = undeclared = the density path; a declared value must be a
+    positive integer (bools, non-integral numbers and values < 1 are
+    refused, never coerced).
+    """
+    if in_degree is None:
+        return None
+    if isinstance(in_degree, bool) or not isinstance(in_degree, numbers.Integral):
+        raise ValueError(
+            f"connection {name!r} in_degree must be a positive integer; "
+            f"got {in_degree!r}"
+        )
+    degree = int(in_degree)
+    if degree < 1:
+        raise ValueError(
+            f"connection {name!r} in_degree must be a positive integer; "
+            f"got {in_degree!r}"
+        )
+    return degree
+
+
 def _check_field_kwargs(kwargs: Mapping[str, Any]) -> None:
     solver = kwargs.get("solver")
     if solver is not None:
@@ -989,6 +1012,7 @@ class Configuration:
         plasticity: Optional[Mapping[str, Any]] = None,
         control_key: Optional[str] = None,
         max_in_degree: Optional[int] = None,
+        in_degree: Optional[int] = None,
         spatial_sigma: Optional[float] = None,
         delay_ms: Optional[float] = None,
         intra_step_rounds: Optional[int] = None,
@@ -1014,7 +1038,13 @@ class Configuration:
         refused with ``max_in_degree``. ``"capped_bernoulli"`` takes the Bernoulli
         draws and keeps the first ``int(n_pre*p)`` per post cell in pre order; it is
         likewise refused with ``max_in_degree``, and refused on the sign-only
-        fallback path (which honours ``"density"``/``"bernoulli"`` only). ``weight`` is the native edge magnitude
+        fallback path (which honours ``"density"``/``"bernoulli"`` only).
+        ``"fixed_indegree"`` draws exactly ``in_degree`` distinct presynaptic
+        partners per post cell uniformly without replacement; it needs
+        ``in_degree`` (a positive int), and is refused with ``probability``,
+        ``max_in_degree``, ``footprint`` and the Bernoulli samplings, and on
+        the sign-only fallback path (which honours ``"density"``/``"bernoulli"``
+        only). ``weight`` is the native edge magnitude
         (default ``1/sqrt(n)``),
         and ``sign`` is ``"excitatory"``/``"inhibitory"``/``"signed"`` (``"signed"`` or
         unset follows the presynaptic neuron's intrinsic sign). When any rule
@@ -1088,16 +1118,50 @@ class Configuration:
                     f"connection {name!r} delay_ms must be finite and >= 0; got {delay_ms!r}"
                 )
         if not isinstance(sampling, str) or sampling not in {
-            "density", "bernoulli", "capped_bernoulli",
+            "density", "bernoulli", "capped_bernoulli", "fixed_indegree",
         }:
             raise ValueError(
-                f"connection {name!r} sampling must be 'density', 'bernoulli' or "
-                f"'capped_bernoulli'; got {sampling!r}"
+                f"connection {name!r} sampling must be 'density', 'bernoulli', "
+                f"'capped_bernoulli' or 'fixed_indegree'; got {sampling!r}"
             )
         if sampling in ("bernoulli", "capped_bernoulli") and max_in_degree is not None:
             raise ValueError(
                 f"connection {name!r} sampling={sampling!r} is not implemented with "
                 "max_in_degree (localized sampling); omit one of them"
+            )
+        in_degree = _validate_config_in_degree(name, in_degree)
+        if sampling == "fixed_indegree" and in_degree is None:
+            raise ValueError(
+                f"connection {name!r} declares sampling='fixed_indegree' "
+                "without in_degree; the fixed-indegree sampler draws exactly "
+                "in_degree presynaptic partners per post cell -- declare both"
+            )
+        if sampling in ("bernoulli", "capped_bernoulli") and in_degree is not None:
+            raise ValueError(
+                f"connection {name!r} sampling={sampling!r} is not implemented "
+                f"with in_degree={in_degree!r} (exact fixed in-degree); "
+                "omit one of them"
+            )
+        if sampling == "fixed_indegree" and max_in_degree is not None:
+            raise ValueError(
+                f"connection {name!r} declares sampling='fixed_indegree' with "
+                f"max_in_degree={max_in_degree!r}; exact fixed in-degree and "
+                "localized (distance-weighted) sampling are mutually exclusive "
+                "sampling modes -- declare one or neither"
+            )
+        if in_degree is not None and probability is not None:
+            raise ValueError(
+                f"connection {name!r} declares in_degree={in_degree!r} with "
+                f"probability={probability!r}; the fixed-indegree sampler "
+                "draws an exact per-post-cell count, not a density fraction "
+                "-- declare one or neither"
+            )
+        if in_degree is not None and max_in_degree is not None:
+            raise ValueError(
+                f"connection {name!r} declares in_degree={in_degree!r} with "
+                f"max_in_degree={max_in_degree!r}; exact fixed in-degree and "
+                "localized (distance-weighted) sampling are mutually exclusive "
+                "sampling modes -- declare one or neither"
             )
         from .pcl_topology import validate_footprint, validate_rounds, validate_weight_sharing
 
@@ -1121,6 +1185,12 @@ class Configuration:
                 raise ValueError(
                     f"connection {name!r} declares footprint with "
                     f"max_in_degree={max_in_degree!r}; the footprint rule selects "
+                    "pairs deterministically -- declare one or neither"
+                )
+            if in_degree is not None:
+                raise ValueError(
+                    f"connection {name!r} declares footprint with "
+                    f"in_degree={in_degree!r}; the footprint rule selects "
                     "pairs deterministically -- declare one or neither"
                 )
             if sampling != "density":
@@ -1159,9 +1229,12 @@ class Configuration:
             }
         if sharing_mode is not None:
             entry["weight_sharing"] = sharing_mode
-        if sampling in ("bernoulli", "capped_bernoulli"):
+        if sampling in ("bernoulli", "capped_bernoulli", "fixed_indegree"):
             # Stored only when non-default so existing config hashes stay unchanged.
             entry["sampling"] = sampling
+        if in_degree is not None:
+            # Stored only when declared so existing config hashes stay unchanged.
+            entry["in_degree"] = in_degree
         cfg = self._append_circuit("connections", entry, dedup_name=True)
         # Unknown-mechanism reference is a WARNING in this declaration-only phase;
         # the v0.3.30 compiler will promote it to a hard error.

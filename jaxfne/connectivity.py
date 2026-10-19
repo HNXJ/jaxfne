@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import numbers
 import warnings
 from functools import partial
 from dataclasses import dataclass, field, replace as _dc_replace
@@ -88,6 +89,31 @@ def _validate_rule_delay_ms(rule_name: str, delay: Any) -> "float | None":
             f"connection {rule_name!r} delay_ms must be finite and >= 0; got {delay!r}"
         )
     return ms
+
+
+def _validate_in_degree(rule_name: str, in_degree: Any) -> "int | None":
+    """Validate one connection rule's exact fixed ``in_degree`` (or pass None through).
+
+    None = undeclared = the density path; a declared value must be a
+    positive integer (bools, non-integral numbers and values < 1 are
+    refused, never coerced). When set, the rule compiles through the
+    exact fixed-indegree sampler instead of the ``probability`` density
+    path, so the two are mutually exclusive.
+    """
+    if in_degree is None:
+        return None
+    if isinstance(in_degree, bool) or not isinstance(in_degree, numbers.Integral):
+        raise ValueError(
+            f"connection {rule_name!r} in_degree must be a positive integer; "
+            f"got {in_degree!r}"
+        )
+    degree = int(in_degree)
+    if degree < 1:
+        raise ValueError(
+            f"connection {rule_name!r} in_degree must be a positive integer; "
+            f"got {in_degree!r}"
+        )
+    return degree
 
 
 @dataclass(frozen=True)
@@ -472,6 +498,54 @@ def _candidate_pairs_capped_bernoulli(
     return kept
 
 
+def _candidate_pairs_fixed_indegree(
+    pre_ids: list[int],
+    post_ids: list[int],
+    *,
+    in_degree: int,
+    allow_self: bool,
+    key: jax.Array,
+) -> list[tuple[int, int]]:
+    """Return (pre, post) edge pairs with an exact per-post-cell in-degree.
+
+    Every post cell draws exactly ``in_degree`` distinct presynaptic
+    partners uniformly without replacement from the pre pool (the self
+    pair excluded first when ``allow_self`` is False, so the count holds
+    kept edges). Each post cell folds its position into ``key``, so draws
+    are deterministic given ``key`` and independent across post cells.
+    A post cell with fewer than ``in_degree`` available partners raises
+    ``ValueError`` rather than filling short: the exact count is the
+    contract (Brunel 2000: fixed CE/CI per cell).
+    """
+    if not pre_ids or not post_ids or in_degree <= 0:
+        return []
+    pre_set = set(pre_ids)
+    pairs: list[tuple[int, int]] = []
+    for j, post_id in enumerate(post_ids):
+        if allow_self or post_id not in pre_set:
+            candidates = pre_ids
+        else:
+            candidates = [i for i in pre_ids if i != post_id]
+        if in_degree > len(candidates):
+            raise ValueError(
+                f"fixed_indegree in_degree={in_degree} exceeds the "
+                f"{len(candidates)} available presynaptic neurons for post "
+                f"neuron {post_id!r} (allow_self={allow_self}); lower "
+                "in_degree or widen the source selector"
+            )
+        idx = np.asarray(
+            jax.random.choice(
+                jax.random.fold_in(key, j),
+                len(candidates),
+                shape=(in_degree,),
+                replace=False,
+            )
+        )
+        for i in idx:
+            pairs.append((int(candidates[int(i)]), int(post_id)))
+    return sorted(pairs)
+
+
 def _spatial_bucket_key(pos: np.ndarray, cell_size: float) -> tuple[int, int, int]:
     return tuple(int(math.floor(c / cell_size)) for c in pos)
 
@@ -728,10 +802,14 @@ def compile_connection_rules(
     edge count is exactly ``round(p*n_pre*n_post)``), ``"bernoulli"`` (each
     (pre, post) pair is included independently with probability ``p`` via
     :func:`_candidate_pairs_bernoulli`, tiled past 4M candidate pairs so no
-    dense mask is materialized) or ``"capped_bernoulli"`` (the Bernoulli
+    dense mask is materialized), ``"capped_bernoulli"`` (the Bernoulli
     draws truncated to ``int(n_pre*p)`` kept edges per post cell, scanning
-    pre cells in order, via :func:`_candidate_pairs_capped_bernoulli`).
-    Any other ``sampling`` value raises ``ValueError``.
+    pre cells in order, via :func:`_candidate_pairs_capped_bernoulli`) or
+    ``"fixed_indegree"`` (each post cell draws exactly ``in_degree`` distinct
+    presynaptic partners uniformly without replacement via
+    :func:`_candidate_pairs_fixed_indegree`; it needs ``in_degree`` and
+    refuses ``probability``, ``max_in_degree``, ``footprint`` and the
+    Bernoulli samplings). Any other ``sampling`` value raises ``ValueError``.
 
     A rule may set ``delay_ms`` (configured axonal delay in ms, None =
     undeclared): validated here (finite, >= 0), fanned out per edge onto
@@ -816,11 +894,38 @@ def compile_connection_rules(
         sampling = rule.get("sampling")
         sampling = "density" if sampling is None else sampling
         if not isinstance(sampling, str) or sampling not in (
-            "density", "bernoulli", "capped_bernoulli",
+            "density", "bernoulli", "capped_bernoulli", "fixed_indegree",
         ):
             raise ValueError(
-                f"connection {rname!r} sampling must be 'density', 'bernoulli' or "
-                f"'capped_bernoulli'; got {sampling!r}"
+                f"connection {rname!r} sampling must be 'density', 'bernoulli', "
+                f"'capped_bernoulli' or 'fixed_indegree'; got {sampling!r}"
+            )
+        in_degree = _validate_in_degree(rname, rule.get("in_degree"))
+        if sampling == "fixed_indegree" and in_degree is None:
+            raise ValueError(
+                f"connection {rname!r} declares sampling='fixed_indegree' "
+                "without in_degree; the fixed-indegree sampler draws exactly "
+                "in_degree presynaptic partners per post cell -- declare both"
+            )
+        if sampling in ("bernoulli", "capped_bernoulli") and in_degree is not None:
+            raise ValueError(
+                f"connection {rname!r} sampling={sampling!r} is not implemented "
+                f"with in_degree={in_degree!r} (exact fixed in-degree); "
+                "omit one of them"
+            )
+        if in_degree is not None and rule.get("probability") is not None:
+            raise ValueError(
+                f"connection {rname!r} declares in_degree={in_degree!r} with "
+                f"probability={rule.get('probability')!r}; the fixed-indegree "
+                "sampler draws an exact per-post-cell count, not a density "
+                "fraction -- declare one or neither"
+            )
+        if in_degree is not None and rule.get("max_in_degree") is not None:
+            raise ValueError(
+                f"connection {rname!r} declares in_degree={in_degree!r} with "
+                f"max_in_degree={rule.get('max_in_degree')!r}; exact fixed "
+                "in-degree and localized (distance-weighted) sampling are "
+                "mutually exclusive sampling modes -- declare one or neither"
             )
         if sampling in ("bernoulli", "capped_bernoulli") and rule.get("max_in_degree") is not None:
             raise ValueError(
@@ -864,6 +969,12 @@ def compile_connection_rules(
                 raise ValueError(
                     f"connection {rname!r} declares footprint with "
                     f"max_in_degree={rule.get('max_in_degree')!r}; the footprint "
+                    "rule selects pairs deterministically -- declare one or neither"
+                )
+            if in_degree is not None:
+                raise ValueError(
+                    f"connection {rname!r} declares footprint with "
+                    f"in_degree={in_degree!r}; the footprint "
                     "rule selects pairs deterministically -- declare one or neither"
                 )
             if sampling != "density":
@@ -956,6 +1067,14 @@ def compile_connection_rules(
                 allow_self=rule_self,
                 key=rkey,
             )
+        elif in_degree is not None:
+            pairs = _candidate_pairs_fixed_indegree(
+                pre_ids,
+                post_ids,
+                in_degree=in_degree,
+                allow_self=rule_self,
+                key=rkey,
+            )
         else:
             if sampling == "bernoulli":
                 pairs = _candidate_pairs_bernoulli(
@@ -1007,6 +1126,7 @@ def compile_connection_rules(
             "mechanism": rule.get("mechanism"),
             "probability": rule.get("probability"),
             "max_in_degree": rule.get("max_in_degree"),
+            "in_degree": rule.get("in_degree"),
             "sign": rule.get("sign"),
             "control_key": rule.get("control_key"),
             "delay_ms": rule_delay_ms,
@@ -1040,7 +1160,7 @@ def compile_connection_rules(
             if "resolution" in inhibition_spec:
                 row["local_inhibition"]["resolution"] = str(
                     inhibition_spec["resolution"])
-        if sampling in ("bernoulli", "capped_bernoulli"):
+        if sampling in ("bernoulli", "capped_bernoulli", "fixed_indegree"):
             # Recorded only when non-default, as in connections(), so density rows are unchanged.
             row["sampling"] = sampling
         connection_table.append(row)

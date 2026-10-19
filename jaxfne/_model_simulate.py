@@ -1208,6 +1208,7 @@ def simulate(
             dt_ms=sim.dt_ms,
             seed=poisson_chunk_seed(_base_seed, _chunk),
             target=str(_pd.get("target", "all")),
+            counts=int(_pd.get("counts", 1)),
         )
         drive_array = _poisson_arr if drive_array is None else drive_array + _poisson_arr
 
@@ -1316,7 +1317,7 @@ def simulate(
             metadata["condition_name"] = paradigm.name
             metadata["has_omission"] = paradigm.has_omission()
     if sim.poisson_drive is not None:
-        metadata["poisson_drive"] = {
+        _poisson_receipt: dict[str, object] = {
             "rate_hz": float(sim.poisson_drive.get("rate_hz", 2.0)),
             "amplitude": float(sim.poisson_drive.get("amplitude", 0.5)),
             "target": str(sim.poisson_drive.get("target", "all")),
@@ -1326,6 +1327,10 @@ def simulate(
             "chunk_seed": int(poisson_chunk_seed(
                 int(sim.poisson_drive.get("seed", sim.seed + 7919)), int(_chunk))),
         }
+        if "counts" in sim.poisson_drive:
+            # Recorded only when declared so default receipts stay unchanged.
+            _poisson_receipt["counts"] = int(sim.poisson_drive["counts"])
+        metadata["poisson_drive"] = _poisson_receipt
     if getattr(runtime_cfg, "enable_homeostasis", False):
         diag = getattr(self, "_last_homeostasis_diag", None)
         metadata["homeostasis"] = _simulate_homeostasis_metadata(runtime_cfg, diag)
@@ -1704,6 +1709,7 @@ def _simulate_lif(
             dt_ms=sim.dt_ms,
             seed=poisson_chunk_seed(int(_pd.get("seed", sim.seed + 7919)), 0),
             target=str(_pd.get("target", "all")),
+            counts=int(_pd.get("counts", 1)),
         )
         drive_2d = drive_2d_sched + jnp.asarray(
             _poisson_arr, dtype=dtype
@@ -1857,12 +1863,16 @@ def _simulate_lif(
         "not_recorded": ["sources", "field"],
     }
     if sim.poisson_drive is not None:
-        metadata["poisson_drive"] = {
+        _poisson_receipt = {
             "rate_hz": float(sim.poisson_drive.get("rate_hz", 2.0)),
             "amplitude": float(sim.poisson_drive.get("amplitude", 0.5)),
             "seed": int(sim.poisson_drive.get("seed", sim.seed + 7919)),
             "status": "stochastic_drive_applied",
         }
+        if "counts" in sim.poisson_drive:
+            # Recorded only when declared so default receipts stay unchanged.
+            _poisson_receipt["counts"] = int(sim.poisson_drive["counts"])
+        metadata["poisson_drive"] = _poisson_receipt
     if hdp_rule_name is not None:
         metadata["hdp_rule"] = str(hdp_rule_name)
         metadata["hdp_rule_registered"] = True

@@ -31,10 +31,11 @@ _POISSON_UNIT = "Hz"
 DRIVE_VOCABULARY_ORDER = ("E", "PV", "SST", "VIP")
 
 # Schedule keys carried on Poisson entries: the exact existing mappings.
-# Current route: exactly (("amplitude", float),). AdEx route: n_sources,
+# Current route: (("amplitude", float),), plus ("counts", int) when the
+# declaration names it. AdEx route: n_sources,
 # weight_nS, mechanism, delay_ms in this order, plus optionally the
 # t_start_ms/t_stop_ms window pair (both or neither).
-_POISSON_CURRENT_SCHEDULE_KEYS = ("amplitude",)
+_POISSON_CURRENT_SCHEDULE_KEYS = ("amplitude", "counts")
 _POISSON_ADEX_SCHEDULE_KEYS = ("n_sources", "weight_nS", "mechanism", "delay_ms")
 _POISSON_WINDOW_KEYS = ("t_start_ms", "t_stop_ms")
 _POISSON_SCHEDULE_KEYS = frozenset(
@@ -139,11 +140,21 @@ class XSource:
                 f"expected a subset of {sorted(_POISSON_SCHEDULE_KEYS)}"
             )
         table = dict(schedule)
-        if "amplitude" in table and set(keys) != {"amplitude"}:
+        if "amplitude" in table and set(keys) - {"amplitude", "counts"}:
             raise ValueError(
                 f"poisson XSource schedule {schedule!r} is not realized: 'amplitude' "
-                "carries the current-route mapping alone"
+                "carries the current-route mapping, alone or with 'counts'"
             )
+        if "counts" in table:
+            counts = table["counts"]
+            if (
+                isinstance(counts, bool)
+                or not isinstance(counts, numbers.Integral)
+                or int(counts) < 1
+            ):
+                raise ValueError(
+                    f"poisson XSource counts={counts!r} must be a positive integer"
+                )
         if "amplitude" in table and not _is_finite_real(table["amplitude"]):
             raise ValueError(
                 f"poisson XSource amplitude={table['amplitude']!r} takes a finite real number"
@@ -341,9 +352,9 @@ def triple_drive_entries(
 
 
 # Keys each Poisson route consumes. The current route (``_make_poisson_drive``:
-# whole-population Bernoulli noise) reads only these four; the AdEx route
+# whole-population Bernoulli noise) reads only these five; the AdEx route
 # (``adex_external_drive_kwargs``) reads its seven plus the optional window.
-_CURRENT_POISSON_KEYS = ("rate_hz", "amplitude", "target", "seed")
+_CURRENT_POISSON_KEYS = ("rate_hz", "amplitude", "target", "seed", "counts")
 # Run-bookkeeping receipts the simulate path writes into
 # ``signals.metadata["poisson_drive"]`` alongside the declaration; they are
 # not declarations and are stripped before any consumed-key check.
@@ -362,13 +373,25 @@ def check_current_route_poisson_drive(poisson: Mapping[str, Any]) -> None:
     ``delay_ms``) are silently dropped by ``_make_poisson_drive``; the
     window is consumed only by the AdEx route, as a pair naming
     ``target_cell_types``. Anything outside
-    ``("rate_hz", "amplitude", "target", "seed")`` is refused here so a
+    ``("rate_hz", "amplitude", "target", "seed", "counts")`` is refused here so a
     misrouted declaration fails loudly at the public entry point instead
-    of running with part of its drive missing.
+    of running with part of its drive missing. A declared ``counts`` must be
+    a positive integer (bools, non-integral numbers and values < 1 refused);
+    it sums that many independent trains per step per cell.
     """
     seed = poisson.get("seed", 0)
     if isinstance(seed, bool) or not isinstance(seed, numbers.Integral):
         raise ValueError(f"poisson_drive seed={seed!r} must be an int")
+    if "counts" in poisson:
+        counts = poisson["counts"]
+        if isinstance(counts, bool) or not isinstance(counts, numbers.Integral):
+            raise ValueError(
+                f"poisson_drive counts={counts!r} must be a positive integer"
+            )
+        if int(counts) < 1:
+            raise ValueError(
+                f"poisson_drive counts={counts!r} must be a positive integer"
+            )
     extra = [k for k in poisson if k not in _CURRENT_POISSON_KEYS]
     if not extra:
         return
@@ -415,12 +438,17 @@ def compile_poisson_sources(
             raise ValueError(f"poisson_drive amplitude={amplitude!r} takes a finite real number")
         if isinstance(seed, bool) or not isinstance(seed, numbers.Integral):
             raise ValueError(f"poisson_drive seed={seed!r} must be an int")
+        current_schedule: list[tuple[str, Any]] = [("amplitude", float(amplitude))]
+        if "counts" in poisson:
+            # Recorded only when declared so default schedules stay unchanged;
+            # validated by check_current_route_poisson_drive above.
+            current_schedule.append(("counts", int(poisson["counts"])))
         entry = XSource(
             kind="poisson",
             targets=(target,),
             value=float(rate),
             unit="Hz",
-            schedule=(("amplitude", float(amplitude)),),
+            schedule=tuple(current_schedule),
             seed=int(seed),
         )
         return (entry,)

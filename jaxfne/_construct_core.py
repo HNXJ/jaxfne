@@ -893,6 +893,15 @@ def _construct_compile_connections(
                     ".mechanisms() declaration. Declare mechanisms for all rules, or drop "
                     "max_in_degree -- the cap cannot be applied on the sign-only path."
                 )
+            _fixed = [r.get("name") for r in _conn_rules if r.get("in_degree") is not None]
+            if _fixed:
+                raise ValueError(
+                    f"connection rule(s) {_fixed} declare in_degree, which is only "
+                    "honoured by the mechanism-aware compiler. That compiler runs only when "
+                    "every declared rule carries a mechanism= reference resolvable against a "
+                    ".mechanisms() declaration. Declare mechanisms for all rules, or drop "
+                    "in_degree -- the exact count cannot be applied on the sign-only path."
+                )
             _uncompilable = {}
             for r in _conn_rules:
                 _keys = [

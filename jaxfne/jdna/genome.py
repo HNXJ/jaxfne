@@ -909,6 +909,8 @@ def develop(
                 static=StaticParams(dT_ms=_tau_for(mechanism, f"area_connections[{i}]")),
                 delay_ms=raw.get("delay_ms"),
                 probability=raw.get("probability"),
+                sampling=raw.get("sampling"),
+                in_degree=raw.get("in_degree"),
                 plastic=PlasticParams(w_mech=float(raw.get("w_mech", 1.0))),
             )
         )

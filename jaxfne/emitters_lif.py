@@ -36,6 +36,7 @@ Function-level only. Configuration, construct and simulate wiring is not here.
 from __future__ import annotations
 
 import math
+import numbers
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, NamedTuple
@@ -55,18 +56,18 @@ LIF_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
     "simple": {
         "tau_m_ms": 18.0, "v_thresh_mV": 10.0, "v_reset_mV": -10.0,
         "v_min_mV": -20.0, "eta_rp_mV": 10.0, "tau_rp_ms": 5.0,
-        "tau_sra_ms": 100.0, "delta_sra_mV": 0.0,
+        "tau_sra_ms": 100.0, "delta_sra_mV": 0.0, "t_ref_ms": 0.0,
     },
     "complex": {
         "tau_m_ms": 50.0, "v_thresh_mV": 3.0, "v_reset_mV": -10.0,
         "v_min_mV": -20.0, "eta_rp_mV": 10.0, "tau_rp_ms": 5.0,
-        "tau_sra_ms": math.inf, "delta_sra_mV": 0.0,
+        "tau_sra_ms": math.inf, "delta_sra_mV": 0.0, "t_ref_ms": 0.0,
     },
 }
 
 _PARAM_FIELDS = (
     "tau_m_ms", "v_thresh_mV", "v_reset_mV", "v_min_mV", "eta_rp_mV", "tau_rp_ms",
-    "tau_sra_ms", "delta_sra_mV",
+    "tau_sra_ms", "delta_sra_mV", "t_ref_ms",
 )
 
 
@@ -81,7 +82,26 @@ class LIFParams(NamedTuple):
     tau_rp_ms: jax.Array
     tau_sra_ms: jax.Array
     delta_sra_mV: jax.Array
+    t_ref_ms: jax.Array
     labels: tuple[str, ...]
+
+
+def _check_t_ref_ms(value: float, *, label: str) -> float:
+    """Hard-refractory window in ms: finite and >= 0 (0.0 = today's behaviour).
+
+    Bools, strings and other non-reals are refused, never coerced (mirrors
+    the triple-drive and in-degree validators).
+    """
+    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+        raise ValueError(
+            f"{label} t_ref_ms must be a finite number >= 0 in ms; got {value!r}"
+        )
+    v = float(value)
+    if not math.isfinite(v) or v < 0.0:
+        raise ValueError(
+            f"{label} t_ref_ms must be a finite number >= 0 in ms; got {value!r}"
+        )
+    return v
 
 
 def make_lif_params(
@@ -116,6 +136,11 @@ def make_lif_params(
                     f"unknown LIF parameter field {field!r} for cell type {ctype!r}; "
                     f"expected one of {_PARAM_FIELDS}"
                 )
+        if "t_ref_ms" in fields:
+            _check_t_ref_ms(
+                fields["t_ref_ms"],
+                label=f"lif_overrides[{ctype!r}]",
+            )
     columns = {}
     for field in _PARAM_FIELDS:
         values = [
@@ -280,6 +305,12 @@ def lif_step(state, I_mV, n_arr, t_ms, params: LIFParams, dt_ms: float,
     compete; any label order or gaps are admitted). ``None`` keeps the
     whole-population cap. Set with ``cap_rounds`` None is refused.
 
+    Hard refractory (``params.t_ref_ms``, Brunel 2000 ``taurp``): after a
+    spike at ``t_last``, while ``t_ms - t_last < round(t_ref_ms / dt_ms) *
+    dt_ms`` the cell's ``V`` is held at ``v_reset_mV`` and it cannot spike;
+    inputs arriving in that window are discarded. ``t_ref_ms = 0.0`` keeps
+    ``V`` and spikes bit for bit (the refractory mask is all-False).
+
     Returns ``((V, A, t_last), spk)`` with boolean spike vector ``spk``. Pure
     ``jax.numpy``; dtype follows the inputs.
     """
@@ -293,13 +324,19 @@ def lif_step(state, I_mV, n_arr, t_ms, params: LIFParams, dt_ms: float,
     R = jnp.where(has, p.eta_rp_mV * jnp.exp(-(t_ms - t_last) / p.tau_rp_ms), 0.0)
     V_new = jnp.maximum(p.v_min_mV, Vd + I_mV - n_arr * (R + Ad))
     raw = V_new > p.v_thresh_mV
+    # Hard refractory mask: whole steps with t_ms - t_last inside the
+    # round(t_ref_ms / dt_ms)-step window. The bound sits half a step below
+    # the window edge, so float32 rounding of t_ms - t_last at large t cannot
+    # add or drop a step. t_ref_ms = 0.0 is all-False (t_ms - t_last >= 0 >
+    # -dt/2), so the path below is today's behaviour bit for bit.
+    ref = (t_ms - t_last) < (jnp.round(p.t_ref_ms / dt_ms) - 0.5) * dt_ms
     if cap_rounds is None:
         if cap_groups is not None:
             raise ValueError(
                 "cap_groups is set but cap_rounds is None; groups only scope "
                 "a declared local-inhibition cap"
             )
-        spk = raw
+        spk = raw & ~ref
     else:
         from .pcl_topology import LOCAL_INHIBITION_ORDERS, validate_rounds
 
@@ -323,8 +360,8 @@ def lif_step(state, I_mV, n_arr, t_ms, params: LIFParams, dt_ms: float,
                     f"cap_groups must have shape ({n},); got {tuple(g.shape)}"
                 )
             keep = _grouped_first_r(raw, g, visit, n_rounds)
-        spk = raw & keep
-    V_out = jnp.where(spk, p.v_reset_mV, V_new)
+        spk = raw & keep & ~ref
+    V_out = jnp.where(spk | ref, p.v_reset_mV, V_new)
     A_out = jnp.where(spk, Ad + p.delta_sra_mV, Ad)
     t_out = jnp.where(spk, t_ms, t_last)
     return (V_out, A_out, t_out), spk
@@ -386,7 +423,7 @@ def _lif_dtype(dtype: str):
 class LIFNetworkParams:
     """Per-neuron PCL LIF parameters for a constructed population.
 
-    The eight ``*_ms``/``*_mV`` arrays are the :func:`make_lif_params` columns
+    The nine ``*_ms``/``*_mV`` arrays are the :func:`make_lif_params` columns
     in population order; ``drive`` is constant current (mV added every step)
     per neuron; ``sign``/``W``/``labels``/``layer_labels`` mirror the fields
     the shared construction machinery reads (edge compilers, triple-drive
@@ -402,6 +439,7 @@ class LIFNetworkParams:
     tau_rp_ms: jax.Array
     tau_sra_ms: jax.Array
     delta_sra_mV: jax.Array
+    t_ref_ms: jax.Array
     drive: jax.Array
     sign: jax.Array
     W: jax.Array
@@ -421,6 +459,7 @@ class LIFNetworkParams:
             v_reset_mV=self.v_reset_mV, v_min_mV=self.v_min_mV,
             eta_rp_mV=self.eta_rp_mV, tau_rp_ms=self.tau_rp_ms,
             tau_sra_ms=self.tau_sra_ms, delta_sra_mV=self.delta_sra_mV,
+            t_ref_ms=self.t_ref_ms,
             labels=self.labels,
         )
 
@@ -445,7 +484,7 @@ def lif_network_params_from_labels(
     :func:`lif_sign_of`, which refuses a label outside ``LIF_LABEL_SIGN``. ``drive_overrides``
     maps a label to constant drive (mV/step); unmentioned labels default to
     ``LIF_DEFAULT_DRIVE_MV``. ``lif_overrides`` maps a label to a dict of the
-    eight :data:`_PARAM_FIELDS` fields. Unknown override labels and unknown
+    nine :data:`_PARAM_FIELDS` fields. Unknown override labels and unknown
     fields raise ``ValueError``; an override label matching no neuron is
     refused unless it names a PCL cell type or a built label is its fallback
     target (mirrors the declared-but-rounded-away acceptance elsewhere).
@@ -474,6 +513,8 @@ def lif_network_params_from_labels(
                 raise ValueError(
                     f"unknown LIF parameter field {f!r} for {lab!r}; expected one of {_PARAM_FIELDS}"
                 )
+        if "t_ref_ms" in fields:
+            _check_t_ref_ms(fields["t_ref_ms"], label=f"lif_overrides[{lab!r}]")
     columns: dict[str, list[float]] = {f: [] for f in _PARAM_FIELDS}
     drive: list[float] = []
     sign: list[float] = []

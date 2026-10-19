@@ -361,7 +361,7 @@ def _check_connection_allow_self(allow_self: "bool | None", *, label: str) -> "b
 
 #: Sampling modes the compiler honours per connection rule (None = undeclared
 #: = the ``density`` default).
-_CONNECTION_SAMPLINGS = ("density", "bernoulli", "capped_bernoulli")
+_CONNECTION_SAMPLINGS = ("density", "bernoulli", "capped_bernoulli", "fixed_indegree")
 
 
 def _check_connection_sampling(sampling: "str | None", *, label: str) -> "str | None":
@@ -402,6 +402,33 @@ def _check_connection_max_in_degree(max_in_degree: "int | None", *, label: str) 
         raise ValueError(
             f"{label} max_in_degree must be a positive integer; "
             f"got {max_in_degree!r}"
+        )
+    return degree
+
+
+def _check_connection_in_degree(in_degree: "int | None", *, label: str) -> "int | None":
+    """Validate the exact-fixed-in-degree fan-in count shared by both connection types.
+
+    None = undeclared = the ``probability`` density path; a declared value
+    must be a positive integer (bools, non-integral numbers and values < 1
+    are refused, never coerced). When set, the rule compiles through the
+    exact fixed-indegree sampler with this per-post-neuron count instead of
+    the density path, so it is mutually exclusive with a declared
+    ``probability``, ``max_in_degree``, ``footprint`` and any sampling
+    other than ``"fixed_indegree"``.
+    """
+    if in_degree is None:
+        return None
+    if isinstance(in_degree, bool) or not isinstance(in_degree, numbers.Integral):
+        raise ValueError(
+            f"{label} in_degree must be a positive integer; "
+            f"got {in_degree!r}"
+        )
+    degree = int(in_degree)
+    if degree < 1:
+        raise ValueError(
+            f"{label} in_degree must be a positive integer; "
+            f"got {in_degree!r}"
         )
     return degree
 
@@ -463,6 +490,15 @@ class InterConnection:
     # No consumer exists on the conductance (adex) route, so a declared
     # value there is refused.
     max_in_degree: "int | None" = None
+    # Exact fixed in-degree per post cell (None = undeclared = the
+    # ``probability`` density path). When set, the rule compiles through
+    # the exact fixed-indegree sampler (``sampling`` ``"fixed_indegree"``)
+    # with this per-post-neuron count instead of the density path;
+    # mutually exclusive with a declared ``probability``, ``max_in_degree``,
+    # ``footprint`` and any other sampling (refused jointly). Must be a
+    # positive integer when set. No consumer exists on the conductance
+    # (adex) route, so a declared value there is refused.
+    in_degree: "int | None" = None
     # Per-rule self-edge opt-in (None = undeclared = self-edges dropped, the
     # historical behaviour). ``True`` keeps ``i == i`` pairs on every
     # sampling path of :func:`jaxfne.connectivity.compile_connection_rules`;
@@ -525,6 +561,10 @@ class InterConnection:
             _check_connection_max_in_degree(self.max_in_degree, label="InterConnection"),
         )
         object.__setattr__(
+            self, "in_degree",
+            _check_connection_in_degree(self.in_degree, label="InterConnection"),
+        )
+        object.__setattr__(
             self, "allow_self",
             _check_connection_allow_self(self.allow_self, label="InterConnection"),
         )
@@ -550,6 +590,34 @@ class InterConnection:
                 f"{self.footprint!r} and max_in_degree={self.max_in_degree!r}; "
                 "the footprint rule selects pairs deterministically — "
                 "declare one or neither"
+            )
+        if self.footprint is not None and self.in_degree is not None:
+            raise ValueError(
+                "InterConnection declares both footprint="
+                f"{self.footprint!r} and in_degree={self.in_degree!r}; "
+                "the footprint rule selects pairs deterministically — "
+                "declare one or neither"
+            )
+        if self.in_degree is not None and self.max_in_degree is not None:
+            raise ValueError(
+                "InterConnection declares both in_degree="
+                f"{self.in_degree!r} and max_in_degree={self.max_in_degree!r}; "
+                "exact fixed in-degree and localized (distance-weighted) "
+                "sampling are mutually exclusive sampling modes — "
+                "declare one or neither"
+            )
+        if self.sampling == "fixed_indegree" and self.in_degree is None:
+            raise ValueError(
+                "InterConnection declares sampling='fixed_indegree' without "
+                "in_degree; the fixed-indegree sampler draws exactly in_degree "
+                "presynaptic partners per post cell — declare both"
+            )
+        if self.in_degree is not None and self.sampling not in (None, "fixed_indegree"):
+            raise ValueError(
+                "InterConnection declares in_degree="
+                f"{self.in_degree!r} with sampling={self.sampling!r}; the "
+                "fixed-indegree sampler runs under sampling='fixed_indegree' "
+                "or the default — declare one or neither"
             )
         if self.footprint is not None and self.sampling is not None:
             raise ValueError(
@@ -696,6 +764,13 @@ class AreaConnection:
     # ``probability`` (refused jointly). No consumer exists on the
     # conductance (adex) route.
     max_in_degree: "int | None" = None
+    # Exact fixed in-degree per post cell (None = undeclared = the
+    # ``probability`` density path). Same forwarding semantics as
+    # InterConnection.in_degree; mutually exclusive with a declared
+    # ``probability``, ``max_in_degree``, ``footprint`` and any other
+    # sampling (refused jointly). No consumer exists on the conductance
+    # (adex) route.
+    in_degree: "int | None" = None
     # Per-rule self-edge opt-in (None = undeclared = self-edges dropped).
     # Same forwarding semantics as InterConnection.allow_self.
     allow_self: "bool | None" = None
@@ -768,6 +843,17 @@ class AreaConnection:
                 "sampling modes — declare one or neither"
             )
         object.__setattr__(
+            self, "in_degree",
+            _check_connection_in_degree(self.in_degree, label="AreaConnection"),
+        )
+        if self.in_degree is not None and self.probability is not None:
+            raise ValueError(
+                "AreaConnection declares both in_degree="
+                f"{self.in_degree!r} and probability={self.probability!r}; "
+                "the fixed-indegree sampler draws an exact per-post-cell "
+                "count, not a density fraction — declare one or neither"
+            )
+        object.__setattr__(
             self, "allow_self",
             _check_connection_allow_self(self.allow_self, label="AreaConnection"),
         )
@@ -800,6 +886,34 @@ class AreaConnection:
                 f"{self.footprint!r} and max_in_degree={self.max_in_degree!r}; "
                 "the footprint rule selects pairs deterministically — "
                 "declare one or neither"
+            )
+        if self.footprint is not None and self.in_degree is not None:
+            raise ValueError(
+                "AreaConnection declares both footprint="
+                f"{self.footprint!r} and in_degree={self.in_degree!r}; "
+                "the footprint rule selects pairs deterministically — "
+                "declare one or neither"
+            )
+        if self.in_degree is not None and self.max_in_degree is not None:
+            raise ValueError(
+                "AreaConnection declares both in_degree="
+                f"{self.in_degree!r} and max_in_degree={self.max_in_degree!r}; "
+                "exact fixed in-degree and localized (distance-weighted) "
+                "sampling are mutually exclusive sampling modes — "
+                "declare one or neither"
+            )
+        if self.sampling == "fixed_indegree" and self.in_degree is None:
+            raise ValueError(
+                "AreaConnection declares sampling='fixed_indegree' without "
+                "in_degree; the fixed-indegree sampler draws exactly in_degree "
+                "presynaptic partners per post cell — declare both"
+            )
+        if self.in_degree is not None and self.sampling not in (None, "fixed_indegree"):
+            raise ValueError(
+                "AreaConnection declares in_degree="
+                f"{self.in_degree!r} with sampling={self.sampling!r}; the "
+                "fixed-indegree sampler runs under sampling='fixed_indegree' "
+                "or the default — declare one or neither"
             )
         if self.footprint is not None and self.sampling is not None:
             raise ValueError(
@@ -1116,6 +1230,7 @@ _CONNECTION_DEFAULTS_056 = {
     "length_unit": "mm",
     "spatial_sigma": None,
     "max_in_degree": None,
+    "in_degree": None,
     "allow_self": None,
     "sampling": None,
     "footprint": None,
@@ -1309,6 +1424,7 @@ def _load_neuronal_tensor_impl(
                 length_unit=ac.get("length_unit", "mm"),
                 spatial_sigma=ac.get("spatial_sigma"),
                 max_in_degree=ac.get("max_in_degree"),
+                in_degree=ac.get("in_degree"),
                 allow_self=ac.get("allow_self"),
                 sampling=ac.get("sampling"),
             )
@@ -1344,6 +1460,7 @@ def _load_neuronal_tensor_impl(
                         length_unit=ic.get("length_unit", "mm"),
                         spatial_sigma=ic.get("spatial_sigma"),
                         max_in_degree=ic.get("max_in_degree"),
+                        in_degree=ic.get("in_degree"),
                         allow_self=ic.get("allow_self"),
                         sampling=ic.get("sampling"),
                     )
@@ -2692,7 +2809,10 @@ def _wire_connection(
     A declared ``max_in_degree`` routes the rule through the localized
     (distance-weighted, ``spatial_sigma``) sampler instead of the
     ``probability`` density path (the two are mutually exclusive, so the
-    rule carries ``probability=None`` then); a declared ``spatial_sigma``
+    rule carries ``probability=None`` then); a declared ``in_degree``
+    routes the rule through the exact fixed-indegree sampler instead (also
+    with ``probability=None``; mutually exclusive with ``max_in_degree``
+    and ``footprint``); a declared ``spatial_sigma``
     without ``max_in_degree`` has no consumer on the density path, so it
     is refused here (``spatial_sigma needs max_in_degree``). A declared
     ``footprint`` compiles deterministic pairs from the posed positions
@@ -2757,7 +2877,22 @@ def _wire_connection(
         # refuses the combination), so the rule carries probability=None.
         wire_kw["max_in_degree"] = int(conn_degree)
         wire_probability = None
-    else:
+    conn_in_degree = getattr(conn, "in_degree", None)
+    if conn_in_degree is not None:
+        # Exact fixed in-degree replaces the density path (Configuration
+        # refuses the combination), so the rule carries probability=None.
+        wire_kw["in_degree"] = int(conn_in_degree)
+        wire_probability = None
+    if conn_degree is not None and conn_in_degree is not None:
+        # Unreachable through the declaring constructors (both refuse the
+        # combination), but the compiler must never see both samplers.
+        raise ValueError(
+            f"{label} declares both max_in_degree={conn_degree!r} and "
+            f"in_degree={conn_in_degree!r}; exact fixed in-degree and "
+            "localized (distance-weighted) sampling are mutually exclusive "
+            "sampling modes — declare one or neither"
+        )
+    if conn_degree is None and conn_in_degree is None:
         wire_probability = (
             1.0 if getattr(conn, "probability", None) is None
             else float(conn.probability)
@@ -2869,6 +3004,13 @@ def _wire_adex_connection(
             "the conductance (adex) route has no localized-sampling consumer "
             "(rule max_in_degree/spatial_sigma are refused there: only None "
             "is admitted) — leave max_in_degree undeclared there"
+        )
+    if getattr(conn, "in_degree", None) is not None:
+        raise ValueError(
+            f"{label} declares in_degree={getattr(conn, 'in_degree')!r}; "
+            "the conductance (adex) route has no fixed-indegree consumer "
+            "(exact per-post-cell counts are refused there: only None "
+            "is admitted) — leave in_degree undeclared there"
         )
     if getattr(conn, "weight_sharing", None) is not None:
         raise ValueError(

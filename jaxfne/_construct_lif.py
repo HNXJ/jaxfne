@@ -107,6 +107,10 @@ def apply_lif_triple_param_overrides(
                     f"param_overrides[{key!r}] names unknown LIF parameter field "
                     f"{field!r}; expected one of {list(_PARAM_FIELDS)}"
                 )
+            if field == "t_ref_ms":
+                from .emitters_lif import _check_t_ref_ms as _check_tref
+
+                _check_tref(value, label=f"param_overrides[{key!r}]")
             if (
                 isinstance(value, bool)
                 or not isinstance(value, numbers.Real)
@@ -179,7 +183,7 @@ def _lif_bridge_alias_tensor(
     from .neuronal_tensor import Area, NeuronalTensor, NeuronType
 
     _SCAN_EDGE_KEYS = (
-        "footprint", "weight_sharing", "max_in_degree", "sampling",
+        "footprint", "weight_sharing", "max_in_degree", "in_degree", "sampling",
         "spatial_sigma", "delay_ms", "conduction_velocity_m_per_s",
         "allow_self",
     )
@@ -427,6 +431,7 @@ def construct_lif_tensor_model(
         tau_rp_ms=col("tau_rp_ms"),
         tau_sra_ms=col("tau_sra_ms"),
         delta_sra_mV=col("delta_sra_mV"),
+        t_ref_ms=col("t_ref_ms"),
         drive=drive,
         sign=sign,
         W=jnp.zeros((0, 0), dtype=keep),
