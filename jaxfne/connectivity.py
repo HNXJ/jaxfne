@@ -511,39 +511,56 @@ def _candidate_pairs_fixed_indegree(
     Every post cell draws exactly ``in_degree`` distinct presynaptic
     partners uniformly without replacement from the pre pool (the self
     pair excluded first when ``allow_self`` is False, so the count holds
-    kept edges). Each post cell folds its position into ``key``, so draws
-    are deterministic given ``key`` and independent across post cells.
-    A post cell with fewer than ``in_degree`` available partners raises
-    ``ValueError`` rather than filling short: the exact count is the
+    kept edges). Each post cell keeps the ``in_degree`` smallest of
+    independent uniforms over its pool, a uniform draw of a subset of that
+    size; the uniforms come from one NumPy generator seeded by ``key``, so
+    draws are deterministic given ``key`` and independent across post cells,
+    and the whole projection costs one host-side pass (no per-cell device
+    call). A post cell with fewer than ``in_degree`` available partners
+    raises ``ValueError`` rather than filling short: the exact count is the
     contract (Brunel 2000: fixed CE/CI per cell).
     """
     if not pre_ids or not post_ids or in_degree <= 0:
         return []
-    pre_set = set(pre_ids)
-    pairs: list[tuple[int, int]] = []
-    for j, post_id in enumerate(post_ids):
-        if allow_self or post_id not in pre_set:
-            candidates = pre_ids
-        else:
-            candidates = [i for i in pre_ids if i != post_id]
-        if in_degree > len(candidates):
-            raise ValueError(
-                f"fixed_indegree in_degree={in_degree} exceeds the "
-                f"{len(candidates)} available presynaptic neurons for post "
-                f"neuron {post_id!r} (allow_self={allow_self}); lower "
-                "in_degree or widen the source selector"
-            )
-        idx = np.asarray(
-            jax.random.choice(
-                jax.random.fold_in(key, j),
-                len(candidates),
-                shape=(in_degree,),
-                replace=False,
-            )
+    pre_arr = np.asarray(pre_ids, dtype=np.int64)
+    post_arr = np.asarray(post_ids, dtype=np.int64)
+    n_pre = pre_arr.size
+    pre_pos = {int(a): i for i, a in enumerate(pre_ids)}
+    # Pool position of each post cell's own pair, -1 when it stays a candidate.
+    self_pos = np.full(post_arr.size, -1, dtype=np.int64)
+    if not allow_self:
+        for j, post_id in enumerate(post_ids):
+            self_pos[j] = pre_pos.get(int(post_id), -1)
+    available = n_pre - (self_pos >= 0)
+    short = np.flatnonzero(available < in_degree)
+    if short.size:
+        j = int(short[0])
+        raise ValueError(
+            f"fixed_indegree in_degree={in_degree} exceeds the "
+            f"{int(available[j])} available presynaptic neurons for post "
+            f"neuron {post_ids[j]!r} (allow_self={allow_self}); lower "
+            "in_degree or widen the source selector"
         )
-        for i in idx:
-            pairs.append((int(candidates[int(i)]), int(post_id)))
-    return sorted(pairs)
+    rng = np.random.default_rng(
+        np.asarray(jax.random.bits(key, (4,), dtype=jnp.uint32))
+    )
+    rows_per_chunk = max(1, (1 << 22) // n_pre)
+    out_pre, out_post = [], []
+    for lo in range(0, post_arr.size, rows_per_chunk):
+        hi = min(post_arr.size, lo + rows_per_chunk)
+        u = rng.random((hi - lo, n_pre))
+        own = np.flatnonzero(self_pos[lo:hi] >= 0)
+        u[own, self_pos[lo:hi][own]] = np.inf
+        if in_degree < n_pre:
+            idx = np.argpartition(u, in_degree - 1, axis=1)[:, :in_degree]
+        else:
+            idx = np.broadcast_to(np.arange(n_pre), (hi - lo, n_pre))
+        out_pre.append(pre_arr[idx].ravel())
+        out_post.append(np.repeat(post_arr[lo:hi], in_degree))
+    edge_pre = np.concatenate(out_pre)
+    edge_post = np.concatenate(out_post)
+    order = np.lexsort((edge_post, edge_pre))
+    return list(zip(edge_pre[order].tolist(), edge_post[order].tolist()))
 
 
 def _spatial_bucket_key(pos: np.ndarray, cell_size: float) -> tuple[int, int, int]:

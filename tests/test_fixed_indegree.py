@@ -100,6 +100,35 @@ def test_unit_sampler_without_self_holds_count():
             "self pair excluded first, count still holds"
 
 
+def test_sampler_marginals_are_uniform():
+    # Each of 20 pre cells is drawn by a post cell with probability 5/20; over
+    # 4000 post cells the per-pre count is Binomial(4000, 0.25): sd ~27.4.
+    import jax
+
+    pairs = _candidate_pairs_fixed_indegree(
+        list(range(20)), list(range(100, 4100)), in_degree=5, allow_self=False,
+        key=jax.random.PRNGKey(1))
+    counts = np.bincount([a for a, _ in pairs], minlength=20)
+    assert counts.sum() == 4000 * 5, "fixture must hold every draw"
+    assert np.all(np.abs(counts - 1000) < 6 * 27.4), counts
+
+
+def test_sampler_scales_without_per_cell_device_calls():
+    # 20000 post cells: a per-cell device draw costs seconds; one host pass is
+    # milliseconds.
+    import time
+
+    import jax
+
+    t0 = time.perf_counter()
+    pairs = _candidate_pairs_fixed_indegree(
+        list(range(50)), list(range(20000)), in_degree=10, allow_self=False,
+        key=jax.random.PRNGKey(2))
+    elapsed = time.perf_counter() - t0
+    assert len(pairs) == 200000, "every post cell must hold exactly in_degree edges"
+    assert elapsed < 3.0, f"sampler took {elapsed:.1f} s for 20000 post cells"
+
+
 def test_sampling_without_degree_refused():
     with pytest.raises(ValueError, match="without"):
         _compile(_rule(sampling="fixed_indegree"), seed=0)
