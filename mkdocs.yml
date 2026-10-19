@@ -156,6 +156,7 @@ nav:
           - Output bundles: guides/readout/output_bundles.md
           - Tensor-field workflows: guides/readout/tensor_field_workflows.md
           - Operator composition: guides/readout/operator_composition.md
+          - MEG and EEG from one column: guides/readout/meg_eeg_from_one_column.md
       - Interop and visualization:
           - Jaxley interoperability: guides/interop/jaxley_interop.md
           - Canonical Atlas Suite: guides/interop/atlas_suite.md

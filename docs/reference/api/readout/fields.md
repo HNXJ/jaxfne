@@ -584,6 +584,7 @@ dipoles. EEG uses the homogeneous-sphere closed form of Frank (1952), one shell.
 positions in metres with the sphere centred at the origin. `sphere_sensor_cap` places sensors on a
 cap, and `SphereForward(modality, W, model, units)` applies a leadfield and reports its model.
 The dipole is in the source's relative units until multiplied by a declared scale in A·m.
+A worked run with figures is in [MEG and EEG from one column](../../../guides/readout/meg_eeg_from_one_column.md).
 
 ```python
 import jax
