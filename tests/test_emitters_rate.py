@@ -283,6 +283,19 @@ class TestRateRoute:
                 drive=np.zeros(1), seed=0)
 
 
+def test_poisson_counts_is_consumed_on_the_rate_route():
+    """poisson_drive counts=C (C trains per unit) changes the rate traces and is recorded."""
+    model = _model(_tensor())
+    pd = {"rate_hz": 40.0, "amplitude": 0.5, "seed": 5}
+    one = model.simulate(_sim(poisson=dict(pd)))
+    many = model.simulate(_sim(poisson=dict(pd, counts=50)))
+    a, b = np.asarray(one.V_m), np.asarray(many.V_m)
+    assert np.isfinite(a).all() and np.isfinite(b).all(), "fixture must stay finite"
+    assert not np.array_equal(a, b), "counts must change the realized drive"
+    assert many.metadata["poisson_drive"]["counts"] == 50
+    assert "counts" not in one.metadata["poisson_drive"]
+
+
 @pytest.mark.parametrize("dt_ms", [0.1, 1.0])
 def test_stationary_variance_matches_euler_maruyama(dt_ms):
     """tau dr = (mu - r) dt + sigma sqrt(tau) dW: stationary variance sigma**2 / (2 - dt/tau).

@@ -1636,6 +1636,7 @@ def _simulate_rate(
             dt_ms=sim.dt_ms,
             seed=poisson_chunk_seed(int(_pd.get("seed", sim.seed + 7919)), 0),
             target=str(_pd.get("target", "all")),
+            counts=int(_pd.get("counts", 1)),
         )
         ext = drive[None, :] + _np_host.asarray(_poisson_arr, dtype=_np_host.float64)
     else:
@@ -1676,6 +1677,9 @@ def _simulate_rate(
             "seed": int(sim.poisson_drive.get("seed", sim.seed + 7919)),
             "status": "stochastic_drive_applied",
         }
+        if "counts" in sim.poisson_drive:
+            # Recorded only when declared, as on the current-based routes.
+            metadata["poisson_drive"]["counts"] = int(sim.poisson_drive["counts"])
     n_steps, n_units = out["rates"].shape
     return Signals(
         time_ms=time_ms,
