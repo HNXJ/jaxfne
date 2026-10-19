@@ -1,8 +1,22 @@
 # mejias2016 calibration record (RESIDUAL_PROTOCOL.md, Records)
 
-Status: P1 (no runs yet). Every number below is reopened from its JSON or
-receipt before commit (checklist R2); verdicts use the status tags
-(checklist R3).
+Status: P2 (smoke pilot, seed 0, unscored; B8). No comparison claim: the
+pilot shows the route runs end to end only. Every number below is reopened
+from `scratch/mejias2016_pilot/manifest.json` (checklist R2); verdicts use
+the status tags (checklist R3).
+
+## P2 smoke pilot (seed 0, unscored, B8)
+
+Engine: lif stand-in S1 (`PORT_SPEC.md`; gap G1: no rate emitter). Route:
+single-area two-layer module, n=20 per layer (40 cells), T=1.0 s, dt=0.5 ms
+(2000 steps), CPU, float32, poisson 400 Hz / 2 mV, seed 0. Wall 3.2 s total
+(construct 2.37 s, simulate 0.70 s); outputs under
+`scratch/mejias2016_pilot/` (gitignored).
+
+Measured values (reopened from the manifest): spikes 561; rate_hz 14.025;
+cv_isi 0.6739; kappa 0.0726; active_fraction 1.0; spectral_peak_excess
+1.2829; label "irregular"; layer_rates_hz L23 14.55, L56 13.5. V finite
+(asserted in `run`). Verdict: runs (no score, no band).
 
 ## Provenance
 
