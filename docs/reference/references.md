@@ -66,6 +66,7 @@ from the published result, the row and the docstring say how.
 | Cook, B. J., et al. (2022). Neural field models: a mathematical overview and unifying framework. *Mathematical Neuroscience and Applications* 2, 7284. [doi:10.46298/mna.7284](https://doi.org/10.46298/mna.7284) | The same, as a unified formulation |
 | Ermentrout, G. B., & Kleinfeld, D. (2001). Traveling electrical waves in cortex: insights from phase dynamics and speculation on a computational role. *Neuron* 29(1), 33-44. [doi:10.1016/S0896-6273(01)00178-7](https://doi.org/10.1016/S0896-6273(01)00178-7) | Cortical travelling waves; jaxfne implements no wave model |
 | Muller, L., Chavane, F., Reynolds, J., & Sejnowski, T. J. (2018). Cortical travelling waves: mechanisms and computational principles. *Nature Reviews Neuroscience* 19(5), 255-268. [doi:10.1038/nrn.2018.20](https://doi.org/10.1038/nrn.2018.20) | Review of the same |
+| Geweke, J. (1982). Measurement of linear dependence and feedback between multiple time series. *Journal of the American Statistical Association* 77(378), 304-313. [doi:10.1080/01621459.1982.10477803](https://doi.org/10.1080/01621459.1982.10477803) | Spectral Granger causality from a fitted VAR: `jaxfne.analysis.granger_spectral`, the basis of the directionality index (Mejias et al. 2016 Eq. 1) |
 
 ## Background: circuits, rhythms and plasticity
 
