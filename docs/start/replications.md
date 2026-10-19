@@ -17,12 +17,12 @@ as done with jaxfne only when it runs through the library (P6).
 | [Izhikevich 2003, Figs. 2 and 3 (single-cell patterns and the 1000-cell network)](https://hnxj.github.io/jaxfne/dashboard/#model/izhikevich2003)<br>Izhikevich, IEEE Trans Neural Netw 2003 | in progress | 0.5.7 | P5 | — |
 | [GSDR, Fig. 6 (a 50-neuron E, SST-like and PV-like circuit fitted to recorded spectra)](https://hnxj.github.io/jaxfne/dashboard/#model/gsdr2026)<br>Nejat, Sherfey and Bastos, PLOS One 2026 | in progress | 0.5.7 | P1 | — |
 | [Destexhe 2009, Fig. 6B (self-sustained asynchronous irregular state in an AdEx cortical network)](https://hnxj.github.io/jaxfne/dashboard/#model/destexhe2009)<br>Destexhe, J Comput Neurosci 2009 | in progress | 0.5.7 | P3 | — |
+| [Brunel 2000, Fig. 8 (SR, SI fast, AI and SI slow states of a sparse LIF network)](https://hnxj.github.io/jaxfne/dashboard/#model/brunel2000)<br>Brunel, J Comput Neurosci 2000 | in progress | 0.5.7 | P1 | — |
 
 ## Not started
 
 | Release | Model | Needs |
 |---|---|---|
-| 0.5.7 | Brunel 2000: asynchronous irregular, synchronous regular and synchronous irregular states | working LIF emitter |
 | 0.5.7 | Vogels et al. 2011: inhibitory plasticity | working LIF emitter |
 | 0.5.7 | Calcium-regulated synaptic homeostasis (bioRxiv 2025) | working LIF emitter |
 | 0.5.7 | PCL Fig. 4: suppression effects | 0.5.6 conductance synapses |

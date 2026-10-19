@@ -412,10 +412,28 @@
       "sensitivity": [],
       "charts": [],
       "open": ["Rebase the lane onto the artifacts reorganization and integrate on dev (T-21).", "Report the authors' Vpeak beside the VT + 5Δ sensitivity (Hamm 2026-10-14)."]
+    },
+    {
+      "id": "brunel2000",
+      "title": "Brunel 2000, Fig. 8 (SR, SI fast, AI and SI slow states of a sparse LIF network)",
+      "citation": "Brunel, J Comput Neurosci 2000",
+      "class": "in progress",
+      "question": "Does the jaxfne LIF core, at the paper's parameters, reproduce the Fig. 8 rates, regularity and global frequencies of the SR, SI fast, AI and SI slow states?",
+      "page": "models/brunel2000.md",
+      "release": "0.5.7",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {"branch": "dev", "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"},
+      "summary": "P1 source record written from the author's copy. The lane runs on the jaxfne core only; next per rule B8 is the pilot, then signature, then fresh seeds.",
+      "preregs": [],
+      "files": {},
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": ["Pilot port of the Fig. 8 network (12,500 LIF cells, fixed indegree, single delay) through the public API.", "Simulation numerics (integrator, dt, duration, seeds) are unstated in the paper and need declared P2 choices."]
     }
   ],
   "roadmap": [
-    {"release": "0.5.7", "model": "Brunel 2000: asynchronous irregular, synchronous regular and synchronous irregular states", "needs": "working LIF emitter"},
     {"release": "0.5.7", "model": "Vogels et al. 2011: inhibitory plasticity", "needs": "working LIF emitter"},
     {"release": "0.5.7", "model": "Calcium-regulated synaptic homeostasis (bioRxiv 2025)", "needs": "working LIF emitter"},
     {"release": "0.5.7", "model": "PCL Fig. 4: suppression effects", "needs": "0.5.6 conductance synapses"},
