@@ -2,15 +2,15 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-19T14:31:25Z",
-    "dev_sha": "6173b175b042c12e32e1340d8bc62e23fc8d2c0e"
+    "utc": "2026-10-19T15:41:00Z",
+    "dev_sha": "8a127be535964866c50d3955c949a72364942b2e"
   },
   "papers": [
     {
       "id": "caminos",
       "title": "CAMINOS reference model, Fig. 1",
       "citation": "Tahvili, Vinck and di Volo, PLoS Comput Biol 2026",
-      "class": "reproduced",
+      "class": "mixed",
       "question": "Does the E–PV–SOM AdEx network give about 35 Hz gamma, SOM after PV, PV > SOM > E and an onset above a critical p?",
       "page": "models/caminos.md",
       "release": "0.5.7",
@@ -122,8 +122,8 @@
           ]
         }
       ],
-      "verdict": "reproduced",
-      "verdict_note": "Paper verdict mixed (REPLICATIONS.md, Hamm 2026-10-18); library path separate: P6 v2 PASS through the public API (Q1–Q5, C1). Paper verdict under v7 (amended after v6 R4 failed): f_pk, rates and R4 reproduced. Against PLoS CB (primary, Hamm 2026-10-14) the PV→SOM lag by the ref. 42 method is 6.47 ms against 8.5 ms (off, e 0.24): a finding that needs X. The 0.1 ms delay sensitivity gives the preprint's ≈ 7 ms",
+      "verdict": "mixed",
+      "verdict_note": "Reproduced under v7 (amended after v6 R4 failed): f_pk, rates and R4. Missed: against PLoS CB (primary, Hamm 2026-10-14) the PV→SOM lag by the ref. 42 method is 6.47 ms against 8.5 ms (off, e 0.24), a finding that needs X. Library path, scored apart: P6 v2 PASS through the public API (Q1–Q5, C1). The 0.1 ms delay sensitivity gives the preprint's ≈ 7 ms",
       "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07. The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep. At p = 0.07 the v6 and v7 runs are identical for all five seeds, so R1–R3 and R4v7 score one realization there.",
       "preregs": [
         {
@@ -2500,19 +2500,120 @@
         "Rebase the lane onto the artifacts reorganization and integrate on dev (T-21).",
         "Report the authors' Vpeak beside the VT + 5Δ sensitivity (Hamm 2026-10-14)."
       ]
+    },
+    {
+      "id": "brunel2000",
+      "title": "Brunel 2000, Fig. 8 (SR, SI fast, AI and SI slow states of a sparse LIF network)",
+      "citation": "Brunel, J Comput Neurosci 2000",
+      "class": "in progress",
+      "question": "Does the jaxfne LIF core, at the paper's parameters, reproduce the Fig. 8 rates, regularity and global frequencies of the SR, SI fast, AI and SI slow states?",
+      "page": "models/brunel2000.md",
+      "release": "0.5.7",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {
+        "branch": "dev",
+        "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "P1 source record written from the author's copy. The lane runs on the jaxfne core only; next per rule B8 is the pilot, then signature, then fresh seeds.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Pilot port of the Fig. 8 network (12,500 LIF cells, fixed indegree, single delay) through the public API.",
+        "Simulation numerics (integrator, dt, duration, seeds) are unstated in the paper and need declared P2 choices."
+      ]
+    },
+    {
+      "id": "potjans2014",
+      "title": "Potjans and Diesmann 2014 cortical microcircuit, Fig. 6 and Table 5",
+      "citation": "Potjans and Diesmann, Cereb Cortex 24(3):785-806",
+      "class": "in progress",
+      "question": "Does the jaxfne core reproduce the microcircuit's spontaneous AI state: layer-specific rates, CV above 0.8 and L6-lowest synchrony?",
+      "page": "models/potjans2014.md",
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {
+        "branch": "dev",
+        "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "P1 source record written from the open-access PMC record. Fig. 6 claims (reference rates 0.86/4.45/7.59/1.09 Hz, CV above 0.8, L5e-highest/L6-lowest synchrony) and the Table 5 connectivity map are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Supplementary Tables 1-3 not yet machine-read; publisher supplement links unverified.",
+        "Leak reversal unstated in the paper; NEST default or authors' code must settle it.",
+        "Thalamic transient protocol and Fig. 10/11 propagation claims deferred past P1."
+      ]
+    },
+    {
+      "id": "vogels2011",
+      "title": "Vogels et al. 2011, Fig. 4 (inhibitory STDP balancing a recurrent network) and Figs. 1-2 (single-cell detailed balance)",
+      "citation": "Vogels et al., Science 334(6062):1569-1573",
+      "class": "in progress",
+      "question": "Does the jaxfne core, at the authors' parameters, reproduce the inhibitory-plasticity balance: the Fig. 4 network driven to its target rate and the Figs. 1-2 single-cell detailed balance?",
+      "page": "models/vogels2011.md",
+      "release": "0.5.7",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {
+        "branch": "dev",
+        "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "P1 source record written from the authors' ModelDB code (the MATLAB script was in the Science SOM) plus the open-access 2013 review. Coded target rho0 = 3 Hz; paper-stated realized rates/CVs stay unknown (full text paywalled). The lane runs on the jaxfne core only; next per rule B8 is the pilot, then signature, then fresh seeds.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Paper full text and SOM PDF unreachable; paper-stated Fig. 4 rates/CVs unknown until a legal copy is readable.",
+        "Conductance synapses vs the current-based core LIF is a P2 fidelity question.",
+        "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."
+      ]
+    },
+    {
+      "id": "mejias2016",
+      "title": "Mejias et al. 2016 laminar multi-area model, Figs. 2-3 and 6-7",
+      "citation": "Mejias, Murray, Kennedy and Wang, Sci Adv 2(11):e1601335",
+      "class": "in progress",
+      "question": "Does the jaxfne core reproduce the laminar circuit's gamma/alpha rhythms, their interlaminar coupling, and the 30-area functional hierarchy from frequency-dependent Granger causality?",
+      "page": "models/mejias2016.md",
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {
+        "branch": "dev",
+        "sha": "f8c05f04aefc1b14b27d1972ae57ffa07f888697"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "P1 source record written from the open-access PMC record. Fig. 2-3 claims (gamma ~40 Hz, alpha ~10 Hz, PAC, alpha-suppression link) and Fig. 6-7 claims (SLN-DAI correlation, functional hierarchy, laminar-input jumps) are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Supplementary Methods PDF unreachable with this run's tools; time constants, weights, noise, delays and GC settings stay unknown.",
+        "No Wilson-Cowan rate emitter and no spectral Granger-causality estimator in the core; P2 must build or declare deviations.",
+        "Anatomy files named on core-nets.org, which served a login wall on 2026-10-19."
+      ]
     }
   ],
   "roadmap": [
-    {
-      "release": "0.5.7",
-      "model": "Brunel 2000: asynchronous irregular, synchronous regular and synchronous irregular states",
-      "needs": "working LIF emitter"
-    },
-    {
-      "release": "0.5.7",
-      "model": "Vogels et al. 2011: inhibitory plasticity",
-      "needs": "working LIF emitter"
-    },
     {
       "release": "0.5.7",
       "model": "Calcium-regulated synaptic homeostasis (bioRxiv 2025)",
@@ -2522,16 +2623,6 @@
       "release": "0.5.7",
       "model": "PCL Fig. 4: suppression effects",
       "needs": "0.5.6 conductance synapses"
-    },
-    {
-      "release": "0.5.8",
-      "model": "Potjans and Diesmann 2014: cortical microcircuit",
-      "needs": "laminar readout; GPU time"
-    },
-    {
-      "release": "0.5.8",
-      "model": "Mejias et al. 2016: laminar multi-area model",
-      "needs": "laminar readout; GPU time"
     },
     {
       "release": "0.5.8",
