@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-19T15:16:36Z",
-    "dev_sha": "21fb2a9ceec48a6b9b1a6fd1bf8f77fb36462be4"
+    "utc": "2026-10-19T15:36:33Z",
+    "dev_sha": "f8c05f04aefc1b14b27d1972ae57ffa07f888697"
   },
   "papers": [
     {
@@ -2555,14 +2555,37 @@
         "Leak reversal unstated in the paper; NEST default or authors' code must settle it.",
         "Thalamic transient protocol and Fig. 10/11 propagation claims deferred past P1."
       ]
+    },
+    {
+      "id": "vogels2011",
+      "title": "Vogels et al. 2011, Fig. 4 (inhibitory STDP balancing a recurrent network) and Figs. 1-2 (single-cell detailed balance)",
+      "citation": "Vogels et al., Science 334(6062):1569-1573",
+      "class": "in progress",
+      "question": "Does the jaxfne core, at the authors' parameters, reproduce the inhibitory-plasticity balance: the Fig. 4 network driven to its target rate and the Figs. 1-2 single-cell detailed balance?",
+      "page": "models/vogels2011.md",
+      "release": "0.5.7",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {
+        "branch": "dev",
+        "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "P1 source record written from the authors' ModelDB code (the MATLAB script was in the Science SOM) plus the open-access 2013 review. Coded target rho0 = 3 Hz; paper-stated realized rates/CVs stay unknown (full text paywalled). The lane runs on the jaxfne core only; next per rule B8 is the pilot, then signature, then fresh seeds.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Paper full text and SOM PDF unreachable; paper-stated Fig. 4 rates/CVs unknown until a legal copy is readable.",
+        "Conductance synapses vs the current-based core LIF is a P2 fidelity question.",
+        "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."
+      ]
     }
   ],
   "roadmap": [
-    {
-      "release": "0.5.7",
-      "model": "Vogels et al. 2011: inhibitory plasticity",
-      "needs": "working LIF emitter"
-    },
     {
       "release": "0.5.7",
       "model": "Calcium-regulated synaptic homeostasis (bioRxiv 2025)",

@@ -19,12 +19,12 @@ as done with jaxfne only when it runs through the library (P6).
 | [Destexhe 2009, Fig. 6B (self-sustained asynchronous irregular state in an AdEx cortical network)](https://hnxj.github.io/jaxfne/dashboard/#model/destexhe2009)<br>Destexhe, J Comput Neurosci 2009 | in progress | 0.5.7 | P3 | — |
 | [Brunel 2000, Fig. 8 (SR, SI fast, AI and SI slow states of a sparse LIF network)](https://hnxj.github.io/jaxfne/dashboard/#model/brunel2000)<br>Brunel, J Comput Neurosci 2000 | in progress | 0.5.7 | P1 | — |
 | [Potjans and Diesmann 2014 cortical microcircuit, Fig. 6 and Table 5](https://hnxj.github.io/jaxfne/dashboard/#model/potjans2014)<br>Potjans and Diesmann, Cereb Cortex 24(3):785-806 | in progress | 0.5.8 | P1 | — |
+| [Vogels et al. 2011, Fig. 4 (inhibitory STDP balancing a recurrent network) and Figs. 1-2 (single-cell detailed balance)](https://hnxj.github.io/jaxfne/dashboard/#model/vogels2011)<br>Vogels et al., Science 334(6062):1569-1573 | in progress | 0.5.7 | P1 | — |
 
 ## Not started
 
 | Release | Model | Needs |
 |---|---|---|
-| 0.5.7 | Vogels et al. 2011: inhibitory plasticity | working LIF emitter |
 | 0.5.7 | Calcium-regulated synaptic homeostasis (bioRxiv 2025) | working LIF emitter |
 | 0.5.7 | PCL Fig. 4: suppression effects | 0.5.6 conductance synapses |
 | 0.5.8 | Mejias et al. 2016: laminar multi-area model | laminar readout; GPU time |

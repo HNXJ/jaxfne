@@ -450,10 +450,28 @@
       "sensitivity": [],
       "charts": [],
       "open": ["Supplementary Tables 1-3 not yet machine-read; publisher supplement links unverified.", "Leak reversal unstated in the paper; NEST default or authors' code must settle it.", "Thalamic transient protocol and Fig. 10/11 propagation claims deferred past P1."]
+    },
+    {
+      "id": "vogels2011",
+      "title": "Vogels et al. 2011, Fig. 4 (inhibitory STDP balancing a recurrent network) and Figs. 1-2 (single-cell detailed balance)",
+      "citation": "Vogels et al., Science 334(6062):1569-1573",
+      "class": "in progress",
+      "question": "Does the jaxfne core, at the authors' parameters, reproduce the inhibitory-plasticity balance: the Fig. 4 network driven to its target rate and the Figs. 1-2 single-cell detailed balance?",
+      "page": "models/vogels2011.md",
+      "release": "0.5.7",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {"branch": "dev", "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"},
+      "summary": "P1 source record written from the authors' ModelDB code (the MATLAB script was in the Science SOM) plus the open-access 2013 review. Coded target rho0 = 3 Hz; paper-stated realized rates/CVs stay unknown (full text paywalled). The lane runs on the jaxfne core only; next per rule B8 is the pilot, then signature, then fresh seeds.",
+      "preregs": [],
+      "files": {},
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": ["Paper full text and SOM PDF unreachable; paper-stated Fig. 4 rates/CVs unknown until a legal copy is readable.", "Conductance synapses vs the current-based core LIF is a P2 fidelity question.", "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."]
     }
   ],
   "roadmap": [
-    {"release": "0.5.7", "model": "Vogels et al. 2011: inhibitory plasticity", "needs": "working LIF emitter"},
     {"release": "0.5.7", "model": "Calcium-regulated synaptic homeostasis (bioRxiv 2025)", "needs": "working LIF emitter"},
     {"release": "0.5.7", "model": "PCL Fig. 4: suppression effects", "needs": "0.5.6 conductance synapses"},
     {"release": "0.5.8", "model": "Mejias et al. 2016: laminar multi-area model", "needs": "laminar readout; GPU time"},
