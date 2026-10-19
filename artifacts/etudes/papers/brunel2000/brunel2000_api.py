@@ -1,15 +1,19 @@
 """brunel2000 replication, library-path runner.
 
 Builds the network only from the jaxfne public API and runs it through
-``Configuration -> construct -> Model -> simulate -> Signals`` (checklist
-E1). Estimators come from ``jaxfne.analysis`` (checklist E3). No scored run:
-outputs land in the caller's directory, never under a ``scored`` path
+``NeuronalTensor + RuntimeConfiguration(emitter="lif") -> construct ->
+Model -> simulate -> Signals`` (checklist E1). Estimators come from
+``jaxfne.analysis`` (checklist E3). No scored run: outputs land in the
+caller's directory, never under a ``scored`` path
 (``lane_kit.refuse_scored_dir``). Every run writes a manifest with code SHA,
-backend, dtype and seeds (checklist P4).
+backend, dtype, seeds and the activity-regime block (checklist P4).
+
+Port decisions live in ``PORT_SPEC.md``; digits denote Fig. 8 of Brunel (2000).
 """
 
 from __future__ import annotations
 
+import math
 import sys
 from pathlib import Path
 
@@ -21,26 +25,111 @@ import jaxfne as J
 assert "site-packages" not in J.__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
+from jaxfne import neuronal_tensor as nt
 from scripts import lane_kit
 
+# Paper constants (SOURCE_P1.md section 2; Fig. 8 set).
+J_MV = 0.1
+D_MS = 1.5
+DT_MS = 0.5
+TAU_MS = 20.0
+THETA_MV = 20.0
+VRESET_MV = 10.0
+CONNECTIVITY_P = 0.1
+NUTHR_HZ = 10.0
+E_FRACTION = 0.8
 
-def build_spec(n=20, seed=0):
-    """The lane network built only from the public API (fill: port rows)."""
-    cfg = (
-        J.Configuration()
-        .network(name="brunel2000", n=int(n), cell_types={"E": 0.8, "PV": 0.2})
-        .emitter(family="adex", adex_decay="euler", adex_step_order="default")
+#: Fig. 8 (g, nuext/nuthr) points (SOURCE_P1.md section 3).
+FIG8_POINTS = {
+    "A": (3.0, 2.0),
+    "B": (6.0, 4.0),
+    "C": (5.0, 2.0),
+    "D": (4.5, 0.9),
+}
+
+#: Brunel-zeroed LIF extras: plain LIF with absolute reset, no PCL
+#: refractory/adaptation tail (PORT_SPEC.md row 3, 6).
+_LIF_BRNEL = dict(
+    tau_m_ms=TAU_MS,
+    v_thresh_mV=THETA_MV,
+    v_reset_mV=VRESET_MV,
+    v_min_mV=-1000.0,
+    eta_rp_mV=0.0,
+    tau_rp_ms=5.0,
+    tau_sra_ms=100.0,
+    delta_sra_mV=0.0,
+)
+
+
+def external_rate_hz(point="D", n=1250):
+    """Total external Poisson rate per cell: ``Cext * nuext`` (Hz)."""
+    _, eta = FIG8_POINTS[str(point)]
+    cext = int(round(CONNECTIVITY_P * E_FRACTION * int(n)))
+    return float(cext) * float(eta) * NUTHR_HZ
+
+
+def build_spec(point="D", n=1250, seed=0):
+    """The lane network built only from the public API (PORT_SPEC.md rows)."""
+    del seed  # wiring draws seed from RuntimeConfiguration at construct time
+    g, _ = FIG8_POINTS[str(point)]
+    n = int(n)
+    w = J_MV * math.sqrt(n)
+    lif = dict(_LIF_BRNEL)
+    tensor = nt.NeuronalTensor(
+        name="brunel2000-%s" % str(point),
+        areas=[nt.Area(name="net", layers=[nt.Layer(
+            name="L0",
+            n_neurons=n,
+            neuron_types=[
+                nt.NeuronType.make("E", fraction=E_FRACTION, emitter="lif",
+                                   emitter_params=dict(lif), drive=0.0),
+                nt.NeuronType.make("PV", fraction=1.0 - E_FRACTION, emitter="lif",
+                                   emitter_params=dict(lif), drive=0.0),
+            ],
+        )])],
+        # Same-area AreaConnections: InterConnection has no probability
+        # (all-to-all), AreaConnection carries probability=0.1 (PORT_SPEC 16).
+        area_connections=[
+            nt.AreaConnection(
+                source_area="net", source_layer="L0", source_neuron_type=src,
+                target_area="net", target_layer="L0", target_neuron_type=tgt,
+                mechanism=("AMPA" if src == "E" else "GABA_A"),
+                static=nt.StaticParams(dT_ms=2.0),
+                plastic=nt.PlasticParams(w_mech=(w if src == "E" else float(g) * w)),
+                delay_ms=D_MS,
+                probability=CONNECTIVITY_P,
+            )
+            for src in ("E", "PV")
+            for tgt in ("E", "PV")
+        ],
     )
-    return cfg.connectivity(edge_seed=int(seed))
+    return tensor
 
 
-def build_sim(T_s=1.0, dt_ms=0.1):
-    """The ``Simulation`` for a run (fill: duration, dt, drive)."""
-    return J.Simulation(duration_ms=float(T_s) * 1000.0, dt_ms=float(dt_ms))
+def build_sim(point="D", n=1250, T_s=0.5, dt_ms=DT_MS, seed=0):
+    """The ``Simulation`` for a run (duration, dt, drive)."""
+    rate = external_rate_hz(point=point, n=n)
+    prob = float(rate) * float(dt_ms) / 1000.0
+    if prob > 1.0:
+        raise ValueError(
+            "brunel2000 point %s at n=%d needs external rate %.0f Hz "
+            "(p=%.2f per %.2g ms step): the current-route Poisson drive "
+            "allows at most one event per step per cell (PORT_SPEC.md row 12)"
+            % (str(point), int(n), rate, prob, float(dt_ms))
+        )
+    return J.Simulation(
+        duration_ms=float(T_s) * 1000.0,
+        dt_ms=float(dt_ms),
+        seed=int(seed),
+        poisson_drive={"rate_hz": rate, "amplitude": J_MV, "seed": int(seed)},
+        runtime=J.RuntimeConfig(recurrent_backend="edge_list"),
+    )
 
 
-def run(seed, tag, out_dir, *, T_s=1.0, signed=False):
+def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, signed=False):
     """Build, run and write the raster plus the ``manifest.json`` the scorer reads."""
+    import time
+
     import numpy as np
 
     lane_kit.refuse_scored_dir(out_dir, signed)
@@ -50,28 +139,55 @@ def run(seed, tag, out_dir, *, T_s=1.0, signed=False):
     sha = lane_kit.git_sha(_repo_root)
     prior = lane_kit.refuse_existing(out, fname, sha, signed=signed)
     entries = {e["file"]: e for e in prior["runs"]} if prior else {}
-    model = J.construct(build_spec(seed=seed))
-    sim = build_sim(T_s=T_s)
-    spikes = np.zeros((sim.n_steps, model.n), dtype=bool)  # fill: simulate
+    t0 = time.perf_counter()
+    model = J.construct(
+        build_spec(point=point, n=n, seed=seed),
+        nt.RuntimeConfiguration(seed=int(seed), duration_ms=float(T_s) * 1000.0,
+                                dt_ms=DT_MS, emitter="lif"),
+    )
+    t_construct = time.perf_counter() - t0
+    sim = build_sim(point=point, n=n, T_s=T_s, seed=seed)
+    signals = model.simulate(sim)
+    t_simulate = time.perf_counter() - t0 - t_construct
+    spikes = np.asarray(signals.spikes, dtype=bool)
+    assert spikes.shape == (sim.n_steps, sum(
+        1 for _ in model.neuron_table())), "raster must cover every neuron"
+    assert bool(np.isfinite(np.asarray(signals.V_m)).all()), "V must stay finite"
+    regime = score(spikes, DT_MS)
     tmp = out / (fname + ".tmp")
     with open(tmp, "wb") as f:
         np.savez_compressed(f, spikes=spikes)
     import os
 
     os.replace(tmp, out / fname)
-    entry = {"seed": int(seed), "tag": tag, "file": fname,
-              "steps": int(spikes.shape[0]), "n": int(spikes.shape[1])}
+    entry = {"seed": int(seed), "tag": tag, "file": fname, "point": str(point),
+             "n": int(n), "steps": int(spikes.shape[0]), "dt_ms": DT_MS,
+             "duration_ms": float(T_s) * 1000.0, "dtype": "float32",
+             "backend": "cpu",
+             "poisson_drive": {"rate_hz": external_rate_hz(point=point, n=n),
+                               "amplitude": J_MV, "seed": int(seed)},
+             "wall_s": {"construct": t_construct, "simulate": t_simulate},
+             "regime": regime}
     entries[fname] = entry
-    manifest = {"git_sha": sha, "runs": list(entries.values())}
+    manifest = {"git_sha": sha, "dtype": "float32", "backend": "cpu",
+                "runs": list(entries.values())}
     lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)
-    return {"spikes": spikes, "steps": sim.n_steps}
+    return {"spikes": spikes, "steps": sim.n_steps, "regime": regime,
+            "wall_s": {"construct": t_construct, "simulate": t_simulate}}
 
 
-def score(spikes):
-    """Score a raster with ``jaxfne.analysis`` estimators (fill: estimands)."""
+def score(spikes, dt_ms=DT_MS):
+    """Score a raster with ``jaxfne.analysis`` estimators (checklist E3)."""
     from jaxfne.analysis import activity_regime as _activity_regime
+    from jaxfne.analysis import wang_buzsaki_kappa as _kappa
 
     import numpy as np
 
     arr = np.asarray(spikes, dtype=bool)
-    return _activity_regime(arr, 0.1)
+    regime = _activity_regime(arr, float(dt_ms))
+    return {"rate_hz": float(regime["rate_hz"]),
+            "cv_isi": float(regime["cv_isi"]),
+            "kappa": float(_kappa(arr, float(dt_ms))),
+            "active_fraction": float(regime["active_fraction"]),
+            "spectral_peak_excess": float(regime["spectral_peak_excess"]),
+            "label": str(regime["label"])}

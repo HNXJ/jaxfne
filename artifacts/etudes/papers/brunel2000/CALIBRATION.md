@@ -1,15 +1,47 @@
 # brunel2000 calibration record (RESIDUAL_PROTOCOL.md, Records)
 
-Status: P1 (no runs yet). Every number below is reopened from its JSON or
-receipt before commit (checklist R2); verdicts use the status tags
-(checklist R3).
+Status: P2 (PORT_SPEC written, seed-0 pilot done, no scored run). Verdict: in
+progress. Every number below is reopened from its JSON or receipt before
+commit (checklist R2); verdicts use the status tags (checklist R3).
 
 ## Provenance
 
-- Code SHA: (fill; one SHA per output directory, enforced by
-  `brunel2000_api.write_run` via `lane_kit`).
-- Backend, dtype, seeds: (fill per run; float32 default, one float64 check per
-  scored result, checklist P3).
+- Code SHA: c57ec220c395369528a93bf104a94c815409568a (pilot manifest
+  `scratch/brunel2000_pilot/manifest.json`; one SHA per output directory,
+  enforced by `lane_kit.refuse_existing` — observed refusing an overwrite on
+  rerun).
+- Backend, dtype, seeds: cpu, float32, seed 0 (manifest `backend`, `dtype`,
+  `seed`; jaxfne 0.5.6, jax 0.10.1, platform win32, all in the manifest).
+  Float64 appears only in the closed-form kernel test (checklist P3
+  float64 check is due at scoring).
+
+## P2 pilot (seed 0, unscored)
+
+`brunel2000_api.run(0, "pilot-D", "scratch/brunel2000_pilot", point="D",
+n=1250, T_s=0.5)`: N=1250 (NE=1000, NI=250), point D (g=4.5, eta=0.9),
+external 900 Hz x 0.1 mV, 1000 steps at dt=0.5 ms.
+
+| measure | value (manifest) |
+|---|---|
+| wall construct / simulate / total | 5.6 s / 1.6 s / 7.7 s |
+| spikes | 0 (label `silent`, rate 0.0 Hz) |
+| V | finite throughout |
+
+Why silent (inferred, by construction): at N=1250 the external mean is
+Cext*nuext*J*tau = 100*9*0.1*20 ms = 1.8 mV against threshold 20 mV; the
+full-scale operating point needs Cext=1000 (18 mV). Small-N sparse nets sit
+below threshold at fixed p — the pilot proves plumbing and timing, not
+dynamics. No estimand claim follows.
+
+Known-positive control (PREREG_P3 B8, same network, drive amplitude x10 =
+1.0 mV, control only, not a paper point): 7473 spikes, rate 11.9568 Hz,
+cv_isi 0.4633, kappa 0.0629, label `oscillatory`, V finite. Spikes propagate
+through the recurrent delayed edges; the estimators run end to end.
+
+Scale decision: full N=12500 projects ~15.6M edges (0.1 x 12500^2) and is
+additionally barred for points A-C by the drive-rate cap (PORT_SPEC.md row
+12; point B refused at N=1250 with p=2.00 per step, quoted in the pilot
+log). No full-scale run precedes the P3 protocol decision.
 
 ## 1. Estimand table
 
