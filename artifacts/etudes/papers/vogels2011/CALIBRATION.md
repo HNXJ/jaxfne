@@ -7,20 +7,27 @@ receipt before commit (checklist R2); verdicts use the status tags
 ## Smoke pilot (P2, seed 0 only, unscored B8)
 
 Route settled; no score against the paper (G-source: paper realized numbers
-unknown; G-IE: I-to-E fixed at the D-IE stand-in).
+unknown).
 
-- Output: `scratch/vogels2011_pilot/` (gitignored), manifest
-  `manifest.json`, raster `spikes_seed0_pilot.npz`.
-- Manifest (observed): git_sha `32f852b2`, backend cpu, dtype float32,
-  jax 0.10.1, jaxfne 0.5.6, platform win32.
-- Run (observed): n=200 (NE=160, NI=40), T=1.0 s, dt=0.1 ms, seed 0,
-  10000 steps, 6900 spikes; wall_s construct 1.75 s, simulate 0.34 s.
-- Regime (observed, `activity_regime`): rate_hz 34.5, cv_isi 0.029,
-  kappa 0.194, active_fraction 0.995, spectral_peak_excess 1.446,
+- Outputs: `scratch/vogels2011_pilot_segA/` (static segment A) and
+  `scratch/vogels2011_pilot_segB/` (plastic segment B), gitignored; manifests
+  `manifest.json`, rasters `spikes_seed0_segA.npz` / `spikes_seed0_segB.npz`.
+- Manifests (observed): git_sha `c049151e`, backend cpu, dtype float32,
+  jax 0.10.1, jaxfne 0.5.6, platform linux.
+- Segment A, static (observed): n=200 (NE=160, NI=40), T=1.0 s, dt=0.1 ms,
+  seed 0, 10000 steps, 10878 spikes; wall_s construct 1.89 s, simulate
+  0.39 s. Regime (observed, `activity_regime`): rate_hz 54.39, cv_isi 0.017,
+  kappa 0.343, active_fraction 1.0, spectral_peak_excess 1.681,
   label "irregular".
-- Reading: far above the rho0=3 Hz target with the fixed D-IE stand-in and
-  no plasticity; the pilot settles the route, not the rate (PORT_SPEC §18
-  scored at P3).
+- Segment B, plastic from rest (observed): same grid, 10242 spikes;
+  wall_s construct 0.17 s, simulate 0.29 s; 128 I-to-E edges plastic under
+  `istdp_vogels2011`, w_ie_init 1e-10 nS, w_ie_final_mean 2.42 nS.
+  Regime (observed): rate_hz 51.21, cv_isi 0.054, kappa 0.315,
+  active_fraction 1.0, spectral_peak_excess 1.355, label "irregular".
+- Reading: both segments run far above the rho0=3 Hz target after 1 s from
+  rest with the paper 1e-10 init (near-zero initial inhibition); the pilot
+  settles the two-segment route and shows I-to-E growth, not the rate
+  (PORT_SPEC §18 scored at P3).
 
 ## Provenance
 

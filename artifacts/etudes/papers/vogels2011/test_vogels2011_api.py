@@ -1,8 +1,8 @@
-"""Tests for the vogels2011 lane API (P2: PORT_SPEC rows, G-IE/G-SC settled).
+"""Tests for the vogels2011 lane API (P2: PORT_SPEC rows, G-IE closed).
 
-Passing tests pin exact port behaviour; gap tests fail on the baseline
-implementation and carry ``xfail(strict=True)`` so a core change that closes
-a gap turns them green loudly.
+Passing tests pin exact port behaviour; the remaining gap test fails on the
+baseline implementation and carries ``xfail(strict=True)`` so a core change
+that closes the gap turns it green loudly.
 """
 
 import os
@@ -60,7 +60,7 @@ def test_build_spec_smoke():
 
 
 def test_realized_cell_params():
-    """Realized AdEx cells carry the paper leak/threshold/reset values (PORT_SPEC 1-3)."""
+    """Realized AdEx cells carry the paper leak/threshold/reset values (PORT_SPEC 1-4)."""
     from jaxfne._construct_adex import adex_kernel_args
 
     kw = adex_kernel_args(_adex_model(), DT)
@@ -78,19 +78,24 @@ def test_realized_cell_params():
     assert uniq("Tref_ms") == [5.0], "refractory must be 5 ms"
     assert uniq("a_nS") == [0.0], "adaptation coupling must be zeroed"
     assert uniq("b_pA") == [0.0], "spike-triggered adaptation must be zeroed"
-    assert uniq("Delta_mV") == [0.5, 2.0], \
-        "sharpness stays at Table-1 defaults (D-CELL)"
+    assert uniq("Delta_mV") == [0.0], \
+        "sharpness must be the LIF limit (exact LIF, PORT_SPEC 4)"
 
 
 def test_realized_weights():
-    """Realized edges carry +0.3 (E) and -3.0 (I) nS (PORT_SPEC 7, 9)."""
-    pre, _, weight, lab, _ = _edges(_adex_model())
+    """Realized edges carry +0.3 (E), -1e-10 (I-to-E init), -3.0 (I-to-I)."""
+    # N=100: every rule wires (at N=20 the I-to-I rule rounds to 0 edges).
+    pre, post, weight, lab, _ = _edges(_adex_model(n=100, seed=0))
     assert len(weight) > 0, "fixture must wire edges"
     w_e = weight[lab[pre] == "E"]
-    w_i = weight[lab[pre] == "PV"]
-    assert len(w_e) > 0 and len(w_i) > 0, "both sources must wire edges"
+    w_ie = weight[(lab[pre] == "PV") & (lab[post] == "E")]
+    w_ii = weight[(lab[pre] == "PV") & (lab[post] == "PV")]
+    assert len(w_e) > 0 and len(w_ie) > 0 and len(w_ii) > 0, \
+        "E, I-to-E and I-to-I rules must all wire edges"
     assert np.allclose(w_e, 0.3, rtol=1e-6), "E edges must realize +0.3 nS"
-    assert np.allclose(w_i, -3.0, rtol=1e-6), "I edges must realize -3.0 nS"
+    assert np.allclose(w_ie, -1e-10, rtol=1e-6), \
+        "I-to-E edges must realize the -1e-10 nS paper init"
+    assert np.allclose(w_ii, -3.0, rtol=1e-6), "I-to-I edges must realize -3.0 nS"
 
 
 def test_delay_one_step():
@@ -154,25 +159,42 @@ def test_score_keys():
     assert regime["label"] == "silent", "empty raster must read silent"
 
 
-@pytest.mark.xfail(strict=True)
-def test_istdp_ie_gap():
-    """Inhibitory presynaptic spikes must move I-to-E weights (gap G-IE)."""
-    import jax.numpy as jnp
+def test_istdp_ie():
+    """The registered iSTDP rule moves lane I-to-E weights, freezing the rest."""
+    from jaxfne._construct_adex import adex_kernel_args
+    from jaxfne.emitters_adex import simulate_adex_hdp_registered
+    from jaxfne.istdp_vogels2011 import (
+        ISTDP_RULE_NAME,
+        W_MAX_NS,
+        W_MIN_NS,
+        istdp_plasticity_mask,
+    )
 
-    from jaxfne.plasticity import stdp_weight_update
-
-    n = 4
-    W = jnp.full((n, n), 3.0)
-    exc_mask = jnp.asarray([True, True, False, False])
-    trace_pre = jnp.ones(n)
-    trace_post = jnp.ones(n)
-    spiked = jnp.asarray([False, False, True, False])
-    out = np.asarray(stdp_weight_update(
-        W, trace_pre, trace_post, spiked, exc_mask,
-        A_plus=0.01, A_minus=0.01, plasticity_scale=1.0,
-        w_min=0.0, w_max=100.0))
-    assert float(out[0, 2]) != 3.0, \
-        "inhibitory-presynaptic weight must update under iSTDP"
+    model = _adex_model()
+    kw = adex_kernel_args(model, DT)
+    rows = model.neuron_table()
+    lab = np.array([r["cell_type"] for r in rows])
+    pre = np.asarray(kw["edge_pre"])
+    post = np.asarray(kw["edge_post"])
+    mask = np.asarray(istdp_plasticity_mask(lab[pre] == "PV", lab[post] == "E"))
+    w_init = np.abs(np.asarray(kw["edge_weight_nS"], dtype=float))
+    out = simulate_adex_hdp_registered(
+        **kw,
+        n_steps=500,
+        dt_ms=DT,
+        hdp_rule=ISTDP_RULE_NAME,
+        plasticity_mask=mask,
+        seed=0,
+    )
+    spikes = np.asarray(out["spikes"], dtype=bool)
+    assert int(spikes.sum()) > 0, "fixture must spike"
+    w_final = np.asarray(out["w_final_nS"], dtype=float)
+    assert bool(np.all(w_final[~mask] == w_init[~mask])), \
+        "frozen E and I-to-I edges must stay bit-identical"
+    assert bool(np.any(w_final[mask] != w_init[mask])), \
+        "plastic I-to-E weights must move under the registered rule"
+    assert bool(np.all((w_final >= W_MIN_NS) & (w_final <= W_MAX_NS))), \
+        "plastic magnitudes must stay within the (0, 100) clip"
 
 
 @pytest.mark.xfail(strict=True)

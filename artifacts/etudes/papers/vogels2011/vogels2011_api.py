@@ -1,10 +1,14 @@
 """vogels2011 replication, library-path runner.
 
-Builds the network only from the jaxfne public API and runs it through
-``NeuronalTensor + RuntimeConfiguration(emitter="adex") -> construct ->
-Model -> simulate -> Signals`` (checklist E1). The conductance (adex) route
-is the only core path with reversal-potential synapses; the LIF route
-carries reversals as metadata only. Estimators come from
+Builds the network only from the jaxfne public API and runs it in two
+segments (``PORT_SPEC.md``): segment A through ``NeuronalTensor +
+RuntimeConfiguration(emitter="adex") -> construct -> Model -> simulate ->
+Signals`` (checklist E1; static kernel, I-to-E held at its init), segment
+B through ``simulate_adex_hdp_registered`` on the compiled kernel
+arguments with the registered ``istdp_vogels2011`` rule (the adex
+``Model.simulate`` path runs the static kernel only). The conductance
+(adex) route is the only core path with reversal-potential synapses; the
+LIF route carries reversals as metadata only. Estimators come from
 ``jaxfne.analysis`` (checklist E3). No scored run: outputs land in the
 caller's directory, never under a ``scored`` path
 (``lane_kit.refuse_scored_dir``). Every run writes a manifest with code SHA,
@@ -41,18 +45,24 @@ E_REV_MV = 0.0
 I_REV_MV = -80.0
 W_E_NS = 0.3
 W_II_NS = 3.0
-# PORT_SPEC.md row 9: I-to-E is plastic in the paper; the port stands in a
-# fixed weight (the I-to-I value) until gap G-IE closes.
-W_IE_NS = 3.0
+# PORT_SPEC.md row 8: I-to-E is plastic under the registered iSTDP rule,
+# starting at the paper init; the static segment holds this value.
+W_IE_NS = 1e-10
 BG_CURRENT_PA = 200.0
 DELAY_MS = 0.1
+# iSTDP paper values (SOURCE_P1.md section 2): eta = 1e-2, tau = 20 ms,
+# alpha = 2*rho0*tau with rho0 = 3 Hz, cap gmax = 100. All four ride the
+# rule defaults in `jaxfne.istdp_vogels2011`.
+ISTDP_RULE = "istdp_vogels2011"
 
-#: Conductance-LIF stand-in cells: AdEx with adaptation zeroed, leak and
-#: threshold at the paper values (PORT_SPEC.md rows 1-4).
+#: Conductance-LIF cells: AdEx at the LIF limit (Delta_mV = 0.0) with
+#: adaptation zeroed, leak and threshold at the paper values
+#: (PORT_SPEC.md rows 1-4).
 _LIF_LIKE = dict(
     EL_mV=-60.0,
     VT_mV=-50.0,
     Vreset_mV=-60.0,
+    Delta_mV=0.0,
     a_nS=0.0,
     b_pA=0.0,
 )
@@ -162,6 +172,87 @@ def run(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False):
                 "runs": list(entries.values())}
     lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)
     return {"spikes": spikes, "steps": sim.n_steps, "regime": regime,
+            "wall_s": {"construct": t_construct, "simulate": t_simulate}}
+
+
+def run_plastic_segment(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False):
+    """Segment B: the registered iSTDP kernel from rest (PORT_SPEC rows 8-9).
+
+    The adex ``Model.simulate`` path runs the static kernel only, so the
+    plastic leg calls ``simulate_adex_hdp_registered`` directly on the
+    compiled kernel arguments, with an I-to-E ``plasticity_mask`` (E-to-all
+    and I-to-I edges frozen exactly). It starts from rest at the paper
+    I-to-E init, like the authors' plasticity-onset leg.
+    """
+    import time
+
+    import numpy as np
+
+    from jaxfne._construct_adex import adex_kernel_args
+    from jaxfne.emitters_adex import simulate_adex_hdp_registered
+    from jaxfne.istdp_vogels2011 import ISTDP_RULE_NAME, istdp_plasticity_mask
+
+    lane_kit.refuse_scored_dir(out_dir, signed)
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    fname = "spikes_seed%d_%s.npz" % (int(seed), tag)
+    sha = lane_kit.git_sha(_repo_root)
+    prior = lane_kit.refuse_existing(out, fname, sha, signed=signed)
+    entries = {e["file"]: e for e in prior["runs"]} if prior else {}
+    t0 = time.perf_counter()
+    model = J.construct(
+        build_spec(n=n, seed=seed),
+        nt.RuntimeConfiguration(seed=int(seed),
+                                duration_ms=float(T_s) * 1000.0,
+                                dt_ms=DT_MS, emitter="adex"),
+    )
+    t_construct = time.perf_counter() - t0
+    kw = adex_kernel_args(model, DT_MS)
+    rows = model.neuron_table()
+    lab = np.array([r["cell_type"] for r in rows])
+    pre = np.asarray(kw["edge_pre"])
+    post = np.asarray(kw["edge_post"])
+    mask = np.asarray(istdp_plasticity_mask(lab[pre] == "PV", lab[post] == "E"))
+    w_init = np.abs(np.asarray(kw["edge_weight_nS"], dtype=float))
+    n_steps = int(round(float(T_s) * 1000.0 / DT_MS))
+    result = simulate_adex_hdp_registered(
+        **kw,
+        n_steps=n_steps,
+        dt_ms=DT_MS,
+        hdp_rule=ISTDP_RULE_NAME,
+        plasticity_mask=mask,
+        seed=int(seed),
+    )
+    t_simulate = time.perf_counter() - t0 - t_construct
+    spikes = np.asarray(result["spikes"], dtype=bool)
+    assert spikes.shape == (n_steps, sum(
+        1 for _ in model.neuron_table())), "raster must cover every neuron"
+    w_final = np.asarray(result["w_final_nS"], dtype=float)
+    assert bool(np.all(w_final[~mask] == w_init[~mask])), \
+        "frozen edges must stay bit-identical"
+    regime = score(spikes, DT_MS)
+    tmp = out / (fname + ".tmp")
+    with open(tmp, "wb") as f:
+        np.savez_compressed(f, spikes=spikes)
+    import os
+
+    os.replace(tmp, out / fname)
+    entry = {"seed": int(seed), "tag": tag, "file": fname,
+             "n": int(n), "steps": int(spikes.shape[0]), "dt_ms": DT_MS,
+             "duration_ms": float(T_s) * 1000.0, "dtype": "float32",
+             "backend": "cpu",
+             "wall_s": {"construct": t_construct, "simulate": t_simulate},
+             "regime": regime,
+             "plastic": {"rule": ISTDP_RULE_NAME,
+                        "w_ie_init_nS": float(w_init[mask].max(initial=0.0)) if int(mask.sum()) else 0.0,
+                        "w_ie_final_mean_nS": float(w_final[mask].mean()) if int(mask.sum()) else 0.0,
+                        "n_plastic": int(mask.sum())}}
+    entries[fname] = entry
+    manifest = {"git_sha": sha, "dtype": "float32", "backend": "cpu",
+                "runs": list(entries.values())}
+    lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)
+    return {"spikes": spikes, "steps": n_steps, "regime": regime,
+            "w_ie_final_mean_nS": entry["plastic"]["w_ie_final_mean_nS"],
             "wall_s": {"construct": t_construct, "simulate": t_simulate}}
 
 
