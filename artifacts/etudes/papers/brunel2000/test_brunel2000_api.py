@@ -217,6 +217,16 @@ def test_score_drops_burn_in():
         "a burn-in covering the transient leaves a silent window"
 
 
+def test_run_consumes_dt(tmp_path):
+    """``run(dt_ms=...)`` sets the step count and the manifest dt (G4 convergence runs)."""
+    import json
+
+    out = L.run(0, "dt025", tmp_path, point="D", n=50, T_s=0.02, dt_ms=0.25)
+    assert out["steps"] == 80, "20 ms at dt=0.25 is 80 steps"
+    entry = json.loads((tmp_path / "manifest.json").read_text())["runs"][0]
+    assert entry["dt_ms"] == 0.25 and entry["steps"] == 80
+
+
 @pytest.mark.parametrize("bad", [-5.0, float("nan")])
 def test_score_refuses_bad_burn_in(bad):
     """A negative or NaN burn-in is refused; slicing would score the tail."""

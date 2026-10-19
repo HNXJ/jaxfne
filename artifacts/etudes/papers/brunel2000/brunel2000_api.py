@@ -151,7 +151,8 @@ def build_sim(point="D", n=1250, T_s=0.5, dt_ms=DT_MS, seed=0):
     )
 
 
-def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, signed=False):
+def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms=DT_MS,
+        signed=False):
     """Build, run and write the raster plus the ``manifest.json`` the scorer reads."""
     import time
 
@@ -168,17 +169,17 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, signe
     model = J.construct(
         build_spec(point=point, n=n, seed=seed),
         nt.RuntimeConfiguration(seed=int(seed), duration_ms=float(T_s) * 1000.0,
-                                dt_ms=DT_MS, emitter="lif"),
+                                dt_ms=float(dt_ms), emitter="lif"),
     )
     t_construct = time.perf_counter() - t0
-    sim = build_sim(point=point, n=n, T_s=T_s, seed=seed)
+    sim = build_sim(point=point, n=n, T_s=T_s, dt_ms=dt_ms, seed=seed)
     signals = model.simulate(sim)
     t_simulate = time.perf_counter() - t0 - t_construct
     spikes = np.asarray(signals.spikes, dtype=bool)
     assert spikes.shape == (sim.n_steps, sum(
         1 for _ in model.neuron_table())), "raster must cover every neuron"
     assert bool(np.isfinite(np.asarray(signals.V_m)).all()), "V must stay finite"
-    regime = score(spikes, DT_MS, burn_in_ms=burn_in_ms)
+    regime = score(spikes, dt_ms, burn_in_ms=burn_in_ms)
     import jax
 
     backend = jax.default_backend()
@@ -189,7 +190,7 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, signe
 
     os.replace(tmp, out / fname)
     entry = {"seed": int(seed), "tag": tag, "file": fname, "point": str(point),
-             "n": int(n), "steps": int(spikes.shape[0]), "dt_ms": DT_MS,
+             "n": int(n), "steps": int(spikes.shape[0]), "dt_ms": float(dt_ms),
              "duration_ms": float(T_s) * 1000.0, "dtype": "float32",
              "backend": backend, "burn_in_ms": float(burn_in_ms),
              "poisson_drive": {"rate_hz": float(sim.poisson_drive["rate_hz"]),
