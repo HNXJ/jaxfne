@@ -107,6 +107,7 @@ def test_new_lane_write_then_refuse(tmp_path, capsys):
     api = (folder / "demo_lane_api.py").read_text()
     assert "from scripts import lane_kit" in api
     assert "import jaxfne as J" in api
+    assert '"site-packages" not in J.__file__' in api  # P-025 assert, as the guard test requires
     assert "PORT_SPEC" not in api
     prereg = (folder / "PREREG_P3.md").read_text()
     assert "UNSIGNED" in prereg and "no scored run may use it" in prereg

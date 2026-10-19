@@ -160,6 +160,9 @@ if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
 import jaxfne as J
+assert "site-packages" not in J.__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 from scripts import lane_kit
 
 
