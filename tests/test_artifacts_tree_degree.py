@@ -65,6 +65,8 @@ EXEMPT_FOLDERS = {
     "control/skills": "one folder per skill: sync_skills.py and check_harness_integrity.py resolve "
                       "control/skills/<name>/SKILL.md",
     "etudes/experiment_a": "frozen publication/fig02-fig04 receipts and jaxfne/ defaults cite these files",
+    "etudes/papers": "one folder per paper lane (T-32 target: about one a day, Hamm 2026-10-19); "
+                     "grouping lanes by year or status would split one registry (reasoned exemption)",
     "etudes/papers/caminos": "open replication lane (CAMINOS lag); split when the lane closes",
     "etudes/papers/izhikevich2003": "open replication lane; split when the lane closes",
     "etudes/bundles/hdp_balance": "preregistered stage record: README declares each confirmatory "

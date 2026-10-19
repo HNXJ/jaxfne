@@ -192,7 +192,8 @@ def test_p3_folders_live_at_new_layout():
         assert not (REPO / "artifacts" / "etudes" / rel).exists(), f"stale after P3 move: {rel}"
     for rel in sorted(P3_KEY_FILES):
         assert (REPO / "artifacts" / rel).is_file(), f"missing after P3 move: {rel}"
-    for sub in ("bundles", "papers", "theory", "jdna", "meta"):
+    # papers/ holds one folder per lane and is exempt (test_artifacts_tree_degree.py states why).
+    for sub in ("bundles", "theory", "jdna", "meta"):
         entries = list((REPO / "artifacts" / "etudes" / sub).iterdir())
         assert len(entries) <= 7, f"etudes/{sub} holds {len(entries)} entries"
     # experiment_a/ stays as written (frozen cited path); tutorials/etudes/ keeps
