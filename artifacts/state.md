@@ -6,6 +6,14 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Works (with evidence)
 
+- 2026-10-19 later on dev: Brunel Fig. 8 A-D at full scale (N=12500, seed 0, B8 pilot,
+  unscored; brunel2000 CALIBRATION): cell rates 56.3, 37.2, 5.84 Hz at B, C, D against
+  60.7, 37.7, 5.5; global 197 Hz (B) and 22.5 Hz (D) against ~180 and 22; A synchronous
+  regular at 333 Hz; C less irregular than AI (CV 0.39). Core: vectorized `fixed_indegree`
+  sampler and host-side construct (full-scale construct from over 15 min to 1-4 min,
+  outputs bit-identical), `activity_regime` reports `spectral_peak_hz`. Potjans 2014 P2
+  pilot. Broad gate on cl-int11 (dev 32997f0e + 5): 6786 passed, 0 failed; dev 7bbb5f7c.
+
 - 2026-10-19 on dev: sol's control-surface audit and the scan's keeper fixes O-40 to O-43
   (x64 test marker, stale pointers and flags, GSDR MCDP in the core with corrected fit
   manifests, REPLICATIONS records); Hamm's 2026-10-18 rulings (T-33 records, refusals of

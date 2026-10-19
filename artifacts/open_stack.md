@@ -6,7 +6,6 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or the issue
 
 ## In flight
 - O-41 remainder (P-038): Read the Docs regenerates atlases only, so étude pages publish stand-ins (RTD itself is strict since 2026-10-19) | keeper | since 2026-10-18 | closes when RTD builds the étude pages or they leave the RTD nav
-- O-50 T-32f lanes at P1 on dev: brunel2000, potjans2014, vogels2011, mejias2016; next per B8 a pilot each (Vogels needs a plastic I-to-E rule, Mejias the authorized rate emitter and a spectral Granger estimator) | keeper | since 2026-10-19 | closes when each lane has a pilot receipt
 
 ## Waiting on others
 - O-10 Harness proposals (lane-clone helper, worker background guard, jchat lane registry, lock holders in `who`, known-failures register, release events), jchat conference #29 | jynx keeper | since 2026-10-15 | closes when each is taken or refused

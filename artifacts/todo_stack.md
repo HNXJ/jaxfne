@@ -109,10 +109,12 @@ run on WSL2 CUDA.
   seed and candidate batching for the AdEx and LIF routes and `Model.tune` (serial loop
   `_model_tune.py:451`); (T-32d) core homes for lane-local analysis (ISI ratio and CV, aperiodic
   fit, tuning fit); (T-32e) script checklist rules E1, S2, F3, P4, R4 in
-  `check_replications.py`; (T-32f, the four lanes at P1 since 2026-10-19) pilots for Brunel
-  2000, Vogels et al. 2011, Potjans and Diesmann 2014, Mejias et al. 2016; Hamm authorized a
-  rate-population (Wilson–Cowan-type) emitter for Mejias under B3, behind the P4 perturbation
-  gate. Each lane follows B8.
+  `check_replications.py`; (T-32f) Brunel 2000, Vogels et al. 2011, Potjans and Diesmann 2014
+  and Mejias et al. 2016 hold B8 pilots on dev (Brunel Fig. 8 A-D at full scale: rates and
+  global frequencies within 10% at B-D, CALIBRATION); next, each lane's P3 prereg for Hamm's
+  signature, and the core gaps the lanes name: Potjans G-MULT, G-TAUSYN, G-POPDRIVE, G-WDIST,
+  G-DDIST; Vogels G-SC; Mejias G6 (constants unknown) and the phi(0)=1 transfer
+  normalization. Each lane follows B8.
 - T-33 [A] Hamm's rulings of 2026-10-18, still to carry out (records, API refusals, tree
   degree, tooling and the foil sweep landed on dev 2026-10-19):
   - GSDR and Destexhe 2009: B8 pilot, then signature, then fresh seeds; Destexhe's reserved

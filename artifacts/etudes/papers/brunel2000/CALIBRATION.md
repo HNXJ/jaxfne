@@ -1,7 +1,7 @@
 # brunel2000 calibration record (RESIDUAL_PROTOCOL.md, Records)
 
-Status: P2 (PORT_SPEC written, seed-0 pilot done, no scored run). Verdict: in
-progress. Every number below is reopened from its JSON or receipt before
+Status: P2 (PORT_SPEC written, seed-0 pilots at N=1250 and at full scale
+N=12500, no scored run). Verdict: in progress. Every number below is reopened from its JSON or receipt before
 commit (checklist R2); verdicts use the status tags (checklist R3).
 
 ## Provenance
@@ -41,7 +41,43 @@ through the recurrent delayed edges; the estimators run end to end.
 Scale decision: full N=12500 projects ~15.6M edges (0.1 x 12500^2) and is
 additionally barred for points A-C by the drive-rate cap (PORT_SPEC.md row
 12; point B refused at N=1250 with p=2.00 per step, quoted in the pilot
-log). No full-scale run precedes the P3 protocol decision.
+log). Superseded 2026-10-19: the Cext-train drive (F3) lifts the rate cap,
+and Hamm asked for Fig. 8 at full scale; the run below is a B8 pilot on
+seed 0 (PREREG_P3 reserves seed 0 for pilots), so P3 stays unsigned and
+its fit and held-out seeds 1-8 stay unused.
+
+## P2 pilot at full scale, Fig. 8 A-D (seed 0, unscored, B8)
+
+`brunel2000_api.run(0, "fig8<P>_n12500", out, point=P, n=12500, T_s=2.5,
+burn_in_ms=500)` for P in A-D: NE=10000, NI=2500, CE=1000, CI=250 exact
+(fixed in-degree), Cext=1000 trains at nuext=eta*nuthr, J=0.1 mV, D=1.5 ms,
+t_ref=2 ms, 5000 steps at dt=0.5 ms, estimands over the last 2000 ms.
+Code SHA d5689f6f3a356eeb4d8c44f5b4f42e06ecc56190 (rebased onto dev as
+e891a6b5; `jaxfne/` and this lane equal dev 7bbb5f7c except a burn-in
+refusal and `fields.signals_dipole`). Backend gpu (cuda:0, WSL2), float32,
+jaxfne 0.5.6, jax 0.10.1; manifest, rasters, runner and log outside the repo in
+`C:/workspace/jaxfne_receipts/brunel2000_fig8_full/` (manifest sha256 7079b4e3eb9d9495...).
+Global frequency is `spectral_peak_hz` (Welch peak of the population rate
+in 5-200 Hz) rescored from the saved rasters with `welch_nperseg=2048`
+(0.98 Hz bins); the run-time default 256 (7.8 Hz bins) gave 195.3 Hz (B)
+and 23.4 Hz (D).
+
+| point (g, eta) | paper state | cell rate Hz (paper) | global Hz (paper) | CV_ISI | kappa | label |
+|---|---|---|---|---|---|---|
+| A (3, 2) | SR | 333.25 (none stated) | out of band: 3.0 ms period | 0.0006 | 1.000 | saturated |
+| B (6, 4) | SI fast | 56.35 (60.7) | 197.3 (~180) | 0.530 | 0.285 | oscillatory |
+| C (5, 2) | AI | 37.20 (37.7) | 146.5, excess 7.8 | 0.390 | 0.196 | irregular (256), oscillatory (2048) |
+| D (4.5, 0.9) | SI slow | 5.84 (5.5) | 22.5 (22) | 0.641 | 0.075 | oscillatory |
+
+Errors e against the paper: rate B 7.2%, C 1.3%, D 6.2%; global frequency
+B 9.6%, D 2.1%. A fires regularly in lockstep, a 3.0 ms period of 2 ms
+refractory plus 1 ms recharge (limit 500 Hz), the SR picture; its 333 Hz population
+rhythm lies above the 200 Hz band, so the band peak (194 Hz) is not a
+global frequency. C has the paper's rate, yet its CV (0.39) and kappa
+(0.196) miss the classifier's asynchronous bounds (CV 0.7-1.5, kappa
+below 0.1) and a weak 146 Hz peak appears on the fine grid: less irregular than an AI state (observed, one
+seed); P3 decides whether this is a finding or a window effect.
+Wall per point 520-858 s (construct 75-215 s, simulate 420-654 s).
 
 ## 1. Estimand table
 
