@@ -29,7 +29,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-REPO = Path(__file__).resolve().parents[3]
+REPO = Path(__file__).resolve().parents[2]
 SSA_SPEC = REPO / "artifacts/e2/preregistration/e2_ssa_spec.v6.json"
 PING_SPEC = REPO / "artifacts/e2/preregistration/e2_ping_prereg.json"
 V2_RECEIPT = REPO / "artifacts/e2/preregistration/E2b_confirmatory/v2_ssa_confirmatory_receipt.json"

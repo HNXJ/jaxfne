@@ -19,7 +19,7 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 DRAFT = ROOT / "docs/theory/publication/results_reconstruction/drafts/methods_draft.md"
 TRACE = ROOT / "docs/theory/publication/results_reconstruction/traceability/methods_traceability_map.md"
 RESULTS = ROOT / "docs/theory/publication/results_reconstruction/drafts/results_draft.md"
