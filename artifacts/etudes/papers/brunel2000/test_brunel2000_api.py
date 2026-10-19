@@ -217,6 +217,22 @@ def test_score_drops_burn_in():
         "a burn-in covering the transient leaves a silent window"
 
 
+def test_score_freq_res_sets_peak_grid():
+    """``freq_res_hz=1`` reads a 22 Hz rhythm at 22 Hz; the default 7.8 Hz grid reads 23.4."""
+    rng = np.random.default_rng(5)
+    t_s = np.arange(4000) * DT * 1e-3
+    p = 0.01 * (1.0 + np.sin(2.0 * np.pi * 22.0 * t_s))
+    spikes = rng.random((4000, 400)) < p[:, None]
+    assert spikes.sum() > 0, "fixture must spike"
+    coarse = L.score(spikes, DT)
+    fine = L.score(spikes, DT, freq_res_hz=1.0)
+    assert coarse["spectral_peak_hz"] == pytest.approx(23.4375)
+    assert fine["spectral_peak_hz"] == pytest.approx(22.0)
+    assert fine["label"] == coarse["label"], "labels stay on the default grid"
+    with pytest.raises(ValueError, match="freq_res_hz"):
+        L.score(spikes, DT, freq_res_hz=0.0)
+
+
 def test_run_consumes_dt(tmp_path):
     """``run(dt_ms=...)`` sets the step count and the manifest dt (G4 convergence runs)."""
     import json

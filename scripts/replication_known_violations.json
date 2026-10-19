@@ -43,6 +43,13 @@
   },
   {
     "rule": "R6",
+    "path": "artifacts/etudes/papers/brunel2000",
+    "message": "holds 8 files (at most 7)",
+    "reason": "open lane: P3 prereg v2 beside the pinned v1 template (2026-10-19)",
+    "todo": "T-32"
+  },
+  {
+    "rule": "R6",
     "path": "artifacts/etudes/papers/caminos",
     "message": "holds 20 files (at most 7)",
     "reason": "audit 2026-10-17",

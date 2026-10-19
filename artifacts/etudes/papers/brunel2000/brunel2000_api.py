@@ -152,7 +152,7 @@ def build_sim(point="D", n=1250, T_s=0.5, dt_ms=DT_MS, seed=0):
 
 
 def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms=DT_MS,
-        signed=False):
+        freq_res_hz=None, signed=False):
     """Build, run and write the raster plus the ``manifest.json`` the scorer reads."""
     import time
 
@@ -179,7 +179,7 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms
     assert spikes.shape == (sim.n_steps, sum(
         1 for _ in model.neuron_table())), "raster must cover every neuron"
     assert bool(np.isfinite(np.asarray(signals.V_m)).all()), "V must stay finite"
-    regime = score(spikes, dt_ms, burn_in_ms=burn_in_ms)
+    regime = score(spikes, dt_ms, burn_in_ms=burn_in_ms, freq_res_hz=freq_res_hz)
     import jax
 
     backend = jax.default_backend()
@@ -192,7 +192,7 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms
     entry = {"seed": int(seed), "tag": tag, "file": fname, "point": str(point),
              "n": int(n), "steps": int(spikes.shape[0]), "dt_ms": float(dt_ms),
              "duration_ms": float(T_s) * 1000.0, "dtype": "float32",
-             "backend": backend, "burn_in_ms": float(burn_in_ms),
+             "backend": backend, "burn_in_ms": float(burn_in_ms), "freq_res_hz": freq_res_hz,
              "poisson_drive": {"rate_hz": float(sim.poisson_drive["rate_hz"]),
                                "amplitude": J_MV,
                                "counts": int(sim.poisson_drive["counts"]),
@@ -207,8 +207,13 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms
             "wall_s": {"construct": t_construct, "simulate": t_simulate}}
 
 
-def score(spikes, dt_ms=DT_MS, burn_in_ms=0.0):
-    """Score a raster after ``burn_in_ms`` with ``jaxfne.analysis`` estimators (checklist E3)."""
+def score(spikes, dt_ms=DT_MS, burn_in_ms=0.0, freq_res_hz=None):
+    """Score a raster after ``burn_in_ms`` with ``jaxfne.analysis`` estimators (checklist E3).
+
+    Labels use the classifier's default Welch grid. ``freq_res_hz`` reads
+    ``spectral_peak_hz`` from a second Welch grid with that bin width (the
+    global frequency of Fig. 8); None keeps the default grid.
+    """
     from jaxfne.analysis import activity_regime as _activity_regime
     from jaxfne.analysis import wang_buzsaki_kappa as _kappa
 
@@ -219,10 +224,17 @@ def score(spikes, dt_ms=DT_MS, burn_in_ms=0.0):
     arr = np.asarray(spikes, dtype=bool)[int(round(float(burn_in_ms) / float(dt_ms))):]
     assert arr.shape[0] > 0, "burn_in_ms must leave steps to score"
     regime = _activity_regime(arr, float(dt_ms))
+    peak_hz = regime["spectral_peak_hz"]
+    if freq_res_hz is not None:
+        if not float(freq_res_hz) > 0.0:
+            raise ValueError(f"freq_res_hz must be > 0, got {freq_res_hz!r}")
+        nperseg = int(round(1000.0 / (float(dt_ms) * float(freq_res_hz))))
+        peak_hz = _activity_regime(
+            arr, float(dt_ms), thresholds={"welch_nperseg": nperseg})["spectral_peak_hz"]
     return {"rate_hz": float(regime["rate_hz"]),
             "cv_isi": float(regime["cv_isi"]),
             "kappa": float(_kappa(arr, float(dt_ms))),
             "active_fraction": float(regime["active_fraction"]),
             "spectral_peak_excess": float(regime["spectral_peak_excess"]),
-            "spectral_peak_hz": float(regime["spectral_peak_hz"]),
+            "spectral_peak_hz": float(peak_hz),
             "label": str(regime["label"])}

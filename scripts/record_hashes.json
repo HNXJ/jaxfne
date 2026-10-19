@@ -5,7 +5,7 @@
     "dated": 17,
     "frozen": 28,
     "legacy": 32,
-    "prereg": 101,
+    "prereg": 102,
     "receipts": 8
   },
   "paths": {
@@ -105,6 +105,7 @@
     "artifacts/e2/preregistration/e2_ssa_spec_v6_amendment_receipt_CORRECTION.json": "efe7ae49fa44dc95eb6f8f26b04dee73a716e16fcc55e96d8d39e5a2a61f0c2b",
     "artifacts/etudes/jdna/jdna-compact-grammar-preregistration.md": "afb00e54587b4634b354542858030a8f2d4f9e4936b993087af827e4b92ce3ea",
     "artifacts/etudes/papers/brunel2000/PREREG_P3.md": "795e6d2e72e373c94b6ab568313529b883ffd9516a96ce317f1f483b805337c1",
+    "artifacts/etudes/papers/brunel2000/PREREG_P3_v2.md": "a28001c45fa44a78640d783238c54e0b1468f93dcfd7b46620674cc559dce75b",
     "artifacts/etudes/papers/caminos/PREREG_P3.md": "c7e551b10d98eedb5d265a1a0385e20b6d62d547e1be4ab7be0f1e1dcb9d3215",
     "artifacts/etudes/papers/caminos/PREREG_P3_v7_R4.md": "308e821020a5fc50fd0c4b525558c9345544483f119955def77288398ba606fa",
     "artifacts/etudes/papers/caminos/PREREG_P6.md": "38bf47c206a573ebaa433f9f896a4f9fc66179c181b1caf18f1d546421ab7b8b",
