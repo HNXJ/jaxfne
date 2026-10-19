@@ -17,13 +17,13 @@ fidelity notes are named in ``PORT_SPEC.md``. Units are jaxfne's
 from __future__ import annotations
 
 import argparse
-import json
 import os
-import subprocess
 import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+from artifacts.etudes.meta import lane_kit
 
 _HERE = Path(__file__).resolve().parent
 
@@ -285,22 +285,8 @@ def mean_rate_hz(spikes, dt_ms):
     return float(arr.sum() / (arr.shape[1] * seconds))
 
 
-def _refuse_scored_dir(out_dir, signed=False):
-    if signed:
-        return
-    parts = Path(out_dir).resolve().parts
-    if any("scored" in part.lower() for part in parts):
-        raise SystemExit("error: refusing to write under a directory containing "
-                         "'scored': %s" % out_dir)
-
-
-def git_sha():
-    """Git SHA via ``git rev-parse HEAD`` at the repository root."""
-    out = subprocess.run(["git", "-C", str(_repo_root), "rev-parse", "HEAD"],
-                         capture_output=True, text=True)
-    if out.returncode != 0:
-        return "unknown"
-    return out.stdout.strip()
+_refuse_scored_dir = lane_kit.refuse_scored_dir
+_refuse_existing = lane_kit.refuse_existing
 
 
 def run_filename(seed, tag):
@@ -308,30 +294,16 @@ def run_filename(seed, tag):
     return "spikes_seed%d_%s.npz" % (int(seed), tag)
 
 
-def _refuse_existing(out_dir, fname, sha):
-    out = Path(out_dir)
-    prior = None
-    if (out / "manifest.json").exists():
-        prior = json.loads((out / "manifest.json").read_text())
-        if prior.get("git_sha") != sha:
-            raise SystemExit("error: %s holds runs from code %s; this run is %s (one code SHA "
-                             "per directory)" % (out, prior.get("git_sha"), sha))
-        if any(e["file"] == fname for e in prior["runs"]):
-            raise SystemExit("error: refusing to overwrite %s" % (out / fname))
-    if (out / fname).exists():
-        raise SystemExit("error: refusing to overwrite %s" % (out / fname))
-    return prior
-
-
-def write_run(out_dir, *, seed, tag, spikes, dt_ms, meta_extra=None):
+def write_run(out_dir, *, seed, tag, spikes, dt_ms, meta_extra=None,
+              signed=False):
     """Write the boolean raster plus the manifest the scorer reads."""
     import numpy as np
 
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     fname = run_filename(seed, tag)
-    sha = git_sha()
-    prior = _refuse_existing(out, fname, sha)
+    sha = lane_kit.git_sha(_repo_root)
+    prior = _refuse_existing(out, fname, sha, signed=signed)
     entries = {e["file"]: e for e in prior["runs"]} if prior else {}
     spikes = np.asarray(spikes, dtype=bool)
     tmp = out / (fname + ".tmp")
@@ -348,16 +320,7 @@ def write_run(out_dir, *, seed, tag, spikes, dt_ms, meta_extra=None):
     entries[fname] = entry
     manifest = {"git_sha": sha,
                 "runs": list(entries.values())}
-    try:
-        import jax
-
-        manifest["jax_version"] = jax.__version__
-        manifest["jax_devices"] = [str(d) for d in jax.devices()]
-    except Exception:
-        pass
-    mtmp = out / "manifest.json.tmp"
-    mtmp.write_text(json.dumps(manifest, indent=2))
-    os.replace(mtmp, out / "manifest.json")
+    lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)
     return out / fname
 
 
@@ -372,7 +335,8 @@ def run(seed, tag, out_dir, *, free_t_s=FREE_T_S, n_rs=N_RS, n_fs=N_FS,
     import numpy as np
 
     _refuse_scored_dir(out_dir, signed)
-    _refuse_existing(out_dir, run_filename(seed, tag), git_sha())  # before the compute
+    _refuse_existing(out_dir, run_filename(seed, tag),
+                     lane_kit.git_sha(_repo_root), signed=signed)  # before the compute
     import jaxfne as jtfne
     from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args
     from jaxfne.emitters_adex import simulate_adex
@@ -403,7 +367,8 @@ def run(seed, tag, out_dir, *, free_t_s=FREE_T_S, n_rs=N_RS, n_fs=N_FS,
     write_run(out_dir, seed=seed, tag=tag, spikes=spikes, dt_ms=DT_MS,
               meta_extra={"free_t_s": float(free_t_s),
                           "strong_adaptation": bool(strong_adaptation),
-                          "wall_s": float(wall_s)})
+                          "wall_s": float(wall_s)},
+              signed=signed)
     return {"spikes": spikes, "wall_s": wall_s, "steps": free_steps}
 
 
@@ -433,7 +398,8 @@ def run_continuous(seed, tag, out_dir, *, free_t_s=FREE_T_S, n_rs=N_RS,
     import numpy as np
 
     _refuse_scored_dir(out_dir, signed)
-    _refuse_existing(out_dir, run_filename(seed, tag), git_sha())  # before the compute
+    _refuse_existing(out_dir, run_filename(seed, tag),
+                     lane_kit.git_sha(_repo_root), signed=signed)  # before the compute
     import jaxfne as jtfne
     from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args
     from jaxfne.adex_destexhe import subset_drive_kwargs
@@ -496,7 +462,8 @@ def run_continuous(seed, tag, out_dir, *, free_t_s=FREE_T_S, n_rs=N_RS,
                           "ongoing": bool(ongoing),
                           "probability": float(probability),
                           "n_edges": int(model.static["adex"]["pre"].shape[0]),
-                          "wall_s": float(wall_s)})
+                          "wall_s": float(wall_s)},
+              signed=signed)
     return {"spikes": spikes, "wall_s": wall_s, "steps": free_steps,
             "n_edges": int(model.static["adex"]["pre"].shape[0])}
 
