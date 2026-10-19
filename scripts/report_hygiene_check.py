@@ -44,6 +44,8 @@ EXCLUDED_FILES = {
     # 2026-09-08 as stale/redundant (see repair note).
     Path("tests/test_agent_context_hygiene.py"),
     Path("pyproject.toml"), # references /.claude
+    # Hash registry: its keys name pinned files, including artifacts/legacy paths excluded above.
+    Path("scripts/record_hashes.json"),
 }
 
 # Allowed suffixes to scan (avoids scanning large generated HTML/JS visualizations)
