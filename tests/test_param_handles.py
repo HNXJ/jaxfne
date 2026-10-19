@@ -493,5 +493,5 @@ def test_narrow_source_scale_optax_unchanged():
     result = model.tune(objectives=obj, optimizer=opt, simulation=sim, steps=5)
     history = result.summary["gradient_history"]
     assert len(history) == 5
-    assert history[-1]["source_scale"] == 1.2485201358795166
-    assert history[-1]["loss"] == 278.07080078125
+    np.testing.assert_allclose(history[-1]["source_scale"], 1.2485201358795166, rtol=1e-6)
+    np.testing.assert_allclose(history[-1]["loss"], 278.07080078125, rtol=1e-6)

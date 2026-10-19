@@ -46,10 +46,10 @@ def _mk_tensor(depth: float) -> NeuronalTensor:
 # --------------------------------------------------------------------------- #
 
 class TestTensorRuntimeConfiguration:
+    @pytest.mark.x64
     def test_dtype_float64_honored_under_x64(self):
         import jax
-        if not bool(jax.config.read("jax_enable_x64")):
-            pytest.skip("requires jax_enable_x64")
+        assert bool(jax.config.read("jax_enable_x64")), "x64 marker must enable x64"
         t = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")
         m = jtfne.construct(t, RuntimeConfiguration(seed=1, duration_ms=20.0,
                                                     dt_ms=1.0, dtype="float64"))

@@ -10,7 +10,7 @@ import pytest
 from jaxfne.experiment_a.canonical import freeze_canonical_dataset
 from jaxfne.experiment_a.receipt import run_observation_suite
 
-BUNDLE = Path("artifacts/etudes/experiment_a")
+BUNDLE = Path(__file__).resolve().parents[1] / "artifacts/etudes/experiment_a"
 
 
 def test_b3_observation_suite_levels_and_semantics():

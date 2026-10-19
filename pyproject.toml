@@ -256,6 +256,7 @@ markers = [
   "fast: T1 fast development unit tests (<= 60s)",
   "integration: multi-component end-to-end integration workflows",
   "slow: long-running multi-trial simulations and parameter sweeps",
+  "x64: test requires jax_enable_x64; the conftest fixture enables it for the test",
   "notebook: interactive tutorial notebook execution tests",
   "release: complete T2 release-gate tests including docs and full examples",
 ]

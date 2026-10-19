@@ -27,6 +27,8 @@ def _reset_jax_x64_between_tests(request):
     jax.config.update("jax_enable_x64", False)
     if "test_protocol_w_" in request.node.fspath.basename:
         jax.config.update("jax_enable_x64", True)
+    elif request.node.get_closest_marker("x64") is not None:
+        jax.config.update("jax_enable_x64", True)
     yield
     jax.config.update("jax_enable_x64", orig)
 
