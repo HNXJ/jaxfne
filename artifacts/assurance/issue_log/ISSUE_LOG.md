@@ -137,3 +137,6 @@ marked inferred).
   1063 spikes; theta unchanged) beside the pre-D1 digest; `mode_hdp_mcc3` checks theta against
   the frozen digest and condition B against the post-D1 one. Moves to closed when a Read the
   Docs build succeeds.
+- Closed 2026-10-19: on main by PR 110 (merge cf46d6d3, fix-only, Hamm 2026-10-18); Read the
+  Docs `latest` built green on cf46d6d3; `stable` follows the next tag. Stays here until the
+  hash-pinned `archive/0.5.x/issues_closed.md` is re-pinned with its next batch.

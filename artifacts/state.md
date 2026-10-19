@@ -58,8 +58,10 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - PCL lane (lane 2b, rebuilt as a NeuronalTensor on the core): Stage C passed through the tensor
   route on 20 clips (CALIBRATION.md Step 9). Open in the record: the `no construct route (OPEN)`
   marker (CALIBRATION.md:24) is not marked closed.
-- Read the Docs fails on every build since 2026-10-14 (P-035, O-37): the
-  `hdp_controllability_reachability` generator pin predates D1 (bisected to 5090af24).
+- 2026-10-19: Read the Docs `latest` green again on main cf46d6d3 (PR 110, fix-only port of dev
+  617c09c0; P-035 closed). Hamm's 2026-10-18 rulings are in todo T-33 (records, two API
+  refusals, tree-degree scope) and T-32 (four new lanes, rate emitter, rule B8). R1 lane kit
+  and R2 `simulate_hh_batch` built in clones, review and broad gate pending (O-49).
 - GSDR: saturated at both g* (κ_fit 0.60 against 0.0156); the rate estimand waits on
   `PREREG_P3.md` (O-25).
 - Whole-project scan of 2026-10-18 done: verified findings P-036 to P-042 in the issue log,
