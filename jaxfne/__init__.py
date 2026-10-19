@@ -104,6 +104,10 @@ from . import tfne
 # Destexhe 2009 aeIF cell types for the AdEx route (ADVANCED tier, same
 # pattern: the module is the symbol, reached as jaxfne.adex_destexhe).
 from . import adex_destexhe
+# Vogels 2011 inhibitory STDP rule for the AdEx registered-HDP kernel
+# (ADVANCED tier, same pattern: the module is the symbol, reached as
+# jaxfne.istdp_vogels2011; importing it registers the rule).
+from . import istdp_vogels2011
 from . import export as _export_module
 from .jdna import (
     PseudoGenome,

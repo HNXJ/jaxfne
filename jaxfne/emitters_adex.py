@@ -170,6 +170,10 @@ def adex_step(state, I_pA, params: AdExParams, dt_ms: float, step_order: str = "
     absent), else the reference ``VT + 5 * Delta``; on spike V is reset, ``w += b``, and
     ``ref`` is set to ``round(Tref / dt)`` (one fewer under ``step_order="brian2"``).
 
+    A per-cell ``Delta_mV`` of exactly ``0.0`` runs the conductance-LIF limit: the
+    exponential term vanishes and the (undeclared-``Vpeak``) threshold binds at
+    ``VT``. Positive ``Delta_mV`` steps the reference equations bit-identically.
+
     Returns ``((V, w, ref), spk)`` with boolean spike vector ``spk``. Pure ``jax.numpy``;
     dtype follows the inputs.
     """
@@ -180,10 +184,19 @@ def adex_step(state, I_pA, params: AdExParams, dt_ms: float, step_order: str = "
     v_thr = jnp.where(
         jnp.isnan(p.Vpeak_mV), p.VT_mV + 5.0 * p.Delta_mV, p.Vpeak_mV
     )
-    arg = jnp.minimum((V - p.VT_mV) / p.Delta_mV, _EXP_ARG_MAX)
+    # LIF limit: Delta == 0 zeroes the exponential current exactly. The safe
+    # denominator keeps the quotient finite under jit; the where() below then
+    # selects the exact limit per cell, so mixed populations step each cell
+    # under its own model.
+    is_lif = p.Delta_mV == 0.0
+    safe_delta = jnp.where(is_lif, jnp.ones_like(p.Delta_mV), p.Delta_mV)
+    arg = jnp.minimum((V - p.VT_mV) / safe_delta, _EXP_ARG_MAX)
+    exp_current = jnp.where(
+        is_lif, jnp.zeros_like(arg), p.gL_nS * p.Delta_mV * jnp.exp(arg)
+    )
     dV = (
         p.gL_nS * (p.EL_mV - V)
-        + p.gL_nS * p.Delta_mV * jnp.exp(arg)
+        + exp_current
         - w
         + I_pA
     ) / p.C_pF * dt_ms

@@ -1,0 +1,1 @@
+- New ADVANCED module `jaxfne.istdp_vogels2011`: the Vogels et al. 2011 inhibitory STDP rule (`eta=1e-2`, `tau_stdp=20 ms`, `alpha` always derived as `2*rho0*tau`, clip `(0, 100)`), registered as `istdp_vogels2011` for `simulate_adex_hdp_registered`, plus `istdp_plasticity_mask` declaring the I-to-E edges plastic while E-to-all and I-to-I edges freeze bit-identically.

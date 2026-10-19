@@ -113,9 +113,11 @@ def test_public_symbol_count_contraction_from_baseline():
     +3 activity-regime classifier CANONICAL for T-23 (activity_regime,
     activity_regimes, wang_buzsaki_kappa; Hamm 2026-10-14);
     +2 trained-W0 provenance ADVANCED for T-25 (W0Provenance,
-    with_trained_weights; Hamm 2026-10-17)."""
+    with_trained_weights; Hamm 2026-10-17);
+    +1 inhibitory-STDP rule module ADVANCED for the Vogels 2011 lane
+    (istdp_vogels2011: the module is the symbol, as with tfne)."""
     summary = public_surface_summary()
-    assert summary["counts"]["baseline_all"] == 293
+    assert summary["counts"]["baseline_all"] == 294
     assert summary["counts"]["public_exports"] == 208
     assert summary["counts"]["compatibility"] == 13
     assert summary["counts"]["experimental_internal"] == 13

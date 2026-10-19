@@ -415,6 +415,9 @@ _ADVANCED: Final[frozenset[str]] = frozenset(
         "HDPRuleDescriptor",
         "HDPRuleUpdate",
         "register_hdp_rule",
+        # Named registered rules: the module is the symbol (as with tfne
+        # above), so rule math stays namespaced instead of hoisted to root.
+        "istdp_vogels2011",
         # Frozen trained-W0 provenance (T-25: root attrs, not __all__)
         "W0Provenance",
         "with_trained_weights",
@@ -498,6 +501,7 @@ ADVANCED_NAMESPACE: Final[dict[str, str]] = {
     "STDPPlasticityConfig": "jaxfne.plasticity",
     "update_stdp_weights_jax": "jaxfne.plasticity",
     "register_hdp_rule": "jaxfne.hdp_rule",
+    "istdp_vogels2011": "jaxfne.istdp_vogels2011",
     "HDPRuleDescriptor": "jaxfne.hdp_rule",
     "HDPRuleUpdate": "jaxfne.hdp_rule",
     "HDPRuleContext": "jaxfne.hdp_rule",
