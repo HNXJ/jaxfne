@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-19T15:36:33Z",
-    "dev_sha": "f8c05f04aefc1b14b27d1972ae57ffa07f888697"
+    "utc": "2026-10-19T15:40:33Z",
+    "dev_sha": "1c71d6cdf0d616d869fedad4a1e319872fffd839"
   },
   "papers": [
     {
@@ -2582,6 +2582,34 @@
         "Paper full text and SOM PDF unreachable; paper-stated Fig. 4 rates/CVs unknown until a legal copy is readable.",
         "Conductance synapses vs the current-based core LIF is a P2 fidelity question.",
         "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."
+      ]
+    },
+    {
+      "id": "mejias2016",
+      "title": "Mejias et al. 2016 laminar multi-area model, Figs. 2-3 and 6-7",
+      "citation": "Mejias, Murray, Kennedy and Wang, Sci Adv 2(11):e1601335",
+      "class": "in progress",
+      "question": "Does the jaxfne core reproduce the laminar circuit's gamma/alpha rhythms, their interlaminar coupling, and the 30-area functional hierarchy from frequency-dependent Granger causality?",
+      "page": "models/mejias2016.md",
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {
+        "branch": "dev",
+        "sha": "f8c05f04aefc1b14b27d1972ae57ffa07f888697"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "P1 source record written from the open-access PMC record. Fig. 2-3 claims (gamma ~40 Hz, alpha ~10 Hz, PAC, alpha-suppression link) and Fig. 6-7 claims (SLN-DAI correlation, functional hierarchy, laminar-input jumps) are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Supplementary Methods PDF unreachable with this run's tools; time constants, weights, noise, delays and GC settings stay unknown.",
+        "No Wilson-Cowan rate emitter and no spectral Granger-causality estimator in the core; P2 must build or declare deviations.",
+        "Anatomy files named on core-nets.org, which served a login wall on 2026-10-19."
       ]
     }
   ],
