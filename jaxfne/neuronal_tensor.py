@@ -2504,9 +2504,12 @@ def _pose_positions_and_rows(
         position_chunks.append(chunk)
         i = j
     posed = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3))
+    import numpy as np
+
+    posed_host = np.asarray(posed)  # one device read, not three per neuron
     updated_rows = [
         dict(
-            row, x=float(posed[idx, 0]), y=float(posed[idx, 1]), z=float(posed[idx, 2])
+            row, x=float(posed_host[idx, 0]), y=float(posed_host[idx, 1]), z=float(posed_host[idx, 2])
         )
         for idx, row in enumerate(rows)
     ]

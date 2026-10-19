@@ -190,8 +190,14 @@ class ConnectionCompileResult:
                 if self.edge_delay_ms is not None
                 else _np.zeros((self.n_edges,), dtype=_np.float64)
             )
+            # Realize each distinct delay once; every value is still checked.
+            uniq, inverse = _np.unique(ms, return_inverse=True)
+            steps = _np.asarray(
+                [delay_steps_from_ms(float(v), float(dt_ms)) for v in uniq], dtype=_np.int32
+            ).reshape(-1)
             delay_steps = jnp.asarray(
-                [delay_steps_from_ms(float(v), float(dt_ms)) for v in ms], dtype=jnp.int32
+                steps[inverse.reshape(-1)] if ms.size else _np.zeros((0,), _np.int32),
+                dtype=jnp.int32,
             )
         return EdgeList(
             pre=jnp.asarray(self.edge_pre, dtype=jnp.int32),
@@ -1182,12 +1188,13 @@ def compile_connection_rules(
             row["sampling"] = sampling
         connection_table.append(row)
 
-    edge_pre = jnp.asarray(all_pre, dtype=jnp.int32)
-    edge_post = jnp.asarray(all_post, dtype=jnp.int32)
-    edge_weight = jnp.asarray(all_weight, dtype=jdtype)
-    edge_mechanism = jnp.asarray(all_mech, dtype=jnp.int32)
-    edge_rule_id = jnp.asarray(all_rule, dtype=jnp.int32)
-    edge_delay_ms = jnp.asarray(all_delay_ms, dtype=jdtype)
+    # Lists go through NumPy first: jnp.asarray walks a Python list element by element.
+    edge_pre = jnp.asarray(np.asarray(all_pre, dtype=np.int32), dtype=jnp.int32)
+    edge_post = jnp.asarray(np.asarray(all_post, dtype=np.int32), dtype=jnp.int32)
+    edge_weight = jnp.asarray(np.asarray(all_weight, dtype=np.float64), dtype=jdtype)
+    edge_mechanism = jnp.asarray(np.asarray(all_mech, dtype=np.int32), dtype=jnp.int32)
+    edge_rule_id = jnp.asarray(np.asarray(all_rule, dtype=np.int32), dtype=jnp.int32)
+    edge_delay_ms = jnp.asarray(np.asarray(all_delay_ms, dtype=np.float64), dtype=jdtype)
     if edge_weight.shape[0] and not bool(jnp.all(jnp.isfinite(edge_weight))):
         raise ValueError("compiled edge weights contain non-finite values")
 

@@ -367,6 +367,7 @@ def _refuse_dropped_layer_tables(metadata: Mapping[str, Any], columns: Sequence[
 
 def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float32") -> tuple[IzhikevichParams, jax.Array, dict[str, Any]]:
     """Build explicit Suite No. 2 neuron metadata and reduced emitter arrays."""
+    import numpy as np
 
     metadata = cfg.metadata
     net = cfg.networks[0]
@@ -413,11 +414,12 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
             y = jax.random.uniform(y_key, (n_col,), minval=-radius, maxval=radius, dtype=jdtype)
             z = jax.random.uniform(z_key, (n_col,), minval=0.0, maxval=height, dtype=jdtype)
             position_chunks.append(jnp.stack([x, y, z], axis=1))
+            xh, yh, zh = np.asarray(x), np.asarray(y), np.asarray(z)  # one device read per chunk
             for local_idx, cell_type in enumerate(col_labels[:n_col]):
                 labels.append(cell_type)
                 layer_labels.append("uniform_3d")
                 area_labels.append(area)
-                neuron_rows.append({"neuron_id": neuron_id, "area": area, "layer": "uniform_3d", "cell_type": cell_type, "x": float(x[local_idx]), "y": float(y[local_idx]), "z": float(z[local_idx])})
+                neuron_rows.append({"neuron_id": neuron_id, "area": area, "layer": "uniform_3d", "cell_type": cell_type, "x": float(xh[local_idx]), "y": float(yh[local_idx]), "z": float(zh[local_idx])})
                 neuron_id += 1
             continue
 
@@ -479,11 +481,12 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
             y = jax.random.uniform(y_key, (n_layer,), minval=y_lo, maxval=y_hi, dtype=jdtype)
             z = jax.random.uniform(z_key, (n_layer,), minval=z_lo, maxval=z_hi, dtype=jdtype)
             position_chunks.append(jnp.stack([x, y, z], axis=1))
+            xh, yh, zh = np.asarray(x), np.asarray(y), np.asarray(z)  # one device read per chunk
             for local_idx, cell_type in enumerate(layer_cell_labels[:n_layer]):
                 labels.append(cell_type)
                 layer_labels.append(layer)
                 area_labels.append(area)
-                neuron_rows.append({"neuron_id": neuron_id, "area": area, "layer": layer, "cell_type": cell_type, "x": float(x[local_idx]), "y": float(y[local_idx]), "z": float(z[local_idx])})
+                neuron_rows.append({"neuron_id": neuron_id, "area": area, "layer": layer, "cell_type": cell_type, "x": float(xh[local_idx]), "y": float(yh[local_idx]), "z": float(zh[local_idx])})
                 neuron_id += 1
 
     # Apply baseline_drive_by_cell_type from drive specification if present
