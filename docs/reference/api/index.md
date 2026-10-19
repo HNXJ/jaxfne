@@ -12,7 +12,7 @@ The root public contract is **208 symbols** (195 CANONICAL + 13 COMPATIBILITY) i
 and [`artifacts/assurance/api_contracts/public_surface_contract_v0413.json`](https://github.com/HNXJ/jaxfne/blob/main/artifacts/assurance/api_contracts/public_surface_contract_v0413.json).
 See [Public surface contract](../public_surface_contract.md).
 
-**Advanced** symbols (72) and **experimental/internal** symbols (13) are
+**Advanced** symbols (73) and **experimental/internal** symbols (13) are
 importable from submodules but are not root exports.
 
 !!! note "Proxy readouts"
