@@ -141,8 +141,8 @@ run on WSL2 CUDA.
     `assert_release_freeze.py` and `sync_release_metadata.py` becomes real.
   - `tfne._RESERVED_LOWER` {x, y, h, s} wired into construct-time name checks (T-28): check repo
     uses first, failing-first test, changelog.
-  - `problem_stack.md` retired: the issue log is the single defect registry, its high-severity
-    entries the problem view; update AGENTS.md, context.md and the hygiene references.
+  - [H] `problem_stack.md` is retired; `fact_stack.md` (Hamm edits) still says "The problem stack
+    targets empty: solve and delete." and lists "problem" among the stacks. Proposed: drop both.
   - Docs foil sweep: branch `_temp_never-sweep` (jynx keeper, 5bd596f8) deleted from origin as
     stale after the docs reorg; one fresh sweep of the "X, not Y" form over current docs pages.
 - T-10 [A] G-1 (meet 204dfdaa): port jnwb's `changelog.d`, `assemble_changelog.py`,

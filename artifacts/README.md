@@ -10,7 +10,8 @@ receipts, dated audits, `archive/`, `legacy/`) keep the paths they were written 
 ## State (root files)
 
 `AGENTS.md` (operating manual), `context.md` (skill router), `open_stack.md`, `goal_stack.md`,
-`todo_stack.md`, `problem_stack.md`, `fact_stack.md` (Hamm edits), `state.md`, `memory.md`.
+`todo_stack.md`, `fact_stack.md` (Hamm edits), `state.md`, `memory.md`. Defects live in one
+registry, `assurance/issue_log/ISSUE_LOG.md` (high severity is the problem view; Hamm 2026-10-18).
 
 ## Folders
 

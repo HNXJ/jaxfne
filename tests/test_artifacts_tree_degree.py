@@ -19,7 +19,7 @@ ROOT_EXEMPT = {
     # (tests/test_artifacts_root_layout.py::ROOT_FILES)
     "AGENTS.md": "control stack", "README.md": "control stack", "context.md": "control stack",
     "fact_stack.md": "control stack", "goal_stack.md": "control stack", "memory.md": "control stack",
-    "open_stack.md": "control stack", "problem_stack.md": "control stack", "state.md": "control stack",
+    "open_stack.md": "control stack", "state.md": "control stack",
     "todo_stack.md": "control stack",
     "publication": "frozen_manifest.json lives here and keys 21 publication/ paths",
     "figures": "frozen_manifest.json keys figures/publication/fig01-fig07",

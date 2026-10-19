@@ -12,7 +12,7 @@ REPO = Path(__file__).resolve().parent.parent
 ROOT_FILES = {
     "AGENTS.md", "README.md", "context.md", "fact_stack.md", "memory.md", "todo_stack.md",
     # state roles of the shared workspace layout (meet 204dfdaa, Hamm 2026-10-12)
-    "goal_stack.md", "problem_stack.md", "state.md",
+    "goal_stack.md", "state.md",
     # open-items role (keeper proposal, Hamm 2026-10-12)
     "open_stack.md",
 }

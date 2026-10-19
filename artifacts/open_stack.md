@@ -2,7 +2,7 @@
 
 Anything open right now. Read first at session start, before `todo_stack.md`. One line per item:
 `O-n <what is open> | owner | since YYYY-MM-DD | closes when <check>`. Add when it opens, delete when
-it closes; at most 30 lines; a line older than 3 days moves to todo or problem, or is dropped.
+it closes; at most 30 lines; a line older than 3 days moves to todo or the issue log, or is dropped.
 
 ## In flight
 - O-40 Vacuous and ungated tests (P-037): conftest x64 reset voids float64 tests; skips on gitignored inputs; exact float pin; cwd-dependent paths; 11 lane test files in no gate | keeper | since 2026-10-18 | closes when each test runs and can fail in a gate
