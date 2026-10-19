@@ -5,6 +5,8 @@ sources to a current dipole along its axis, :func:`folded_sphere_surface` places
 column copies on a folded surface with outward normals, and
 :func:`tile_column_dipoles` copies simulated realizations onto those columns, and
 :func:`signals_dipole` takes the dipole straight from a simulation's ``Signals``.
+:func:`line_source_lfp` gives the laminar LFP of the same currents with
+two-compartment (soma plus line-source dendrite) neurons.
 :func:`meg_sphere_leadfield` (Sarvas 1987) and :func:`eeg_sphere_leadfield`
 (homogeneous sphere, Frank 1952) map oriented dipoles to sensors.
 
@@ -59,6 +61,63 @@ def signals_dipole(signals: Any, model: Any, axis: int = 2) -> jax.Array:
     if not isinstance(params, dict) or "positions" not in params:
         raise ValueError("model must carry params['positions'] (a constructed jaxfne Model)")
     return column_dipole(sources, params["positions"], axis=axis)
+
+
+def line_source_lfp(
+    source: jax.Array,
+    positions: jax.Array,
+    contact_depths: jax.Array,
+    dendrite_length: jax.Array,
+    *,
+    min_distance: float,
+    electrode_xy: tuple[float, float] | None = None,
+    conductivity: float = 1.0,
+    axis: int = 2,
+) -> jax.Array:
+    """Laminar LFP ``[T, C]`` of two-compartment neurons in an infinite homogeneous medium.
+
+    Neuron ``i`` emits ``source[:, i]`` at its soma and takes the same current back
+    evenly along a straight dendrite from the soma to ``z_i + dendrite_length[i]``
+    on the column axis (signed: negative points to lower depth values). Each
+    neuron is current-balanced, so the column has no monopole and its far field
+    is the dipole ``−I L/2``. Contacts sit on a line parallel to the axis at
+    ``electrode_xy`` (default: the mean lateral position), at ``contact_depths``::
+
+        φ_c = Σ_i I_i [1/√(ρ_i² + (z_i − z_c)²) − (asinh((z_i + L_i − z_c)/ρ_i) − asinh((z_i − z_c)/ρ_i))/L_i] / (4π σ)
+
+    with ``ρ_i`` the lateral distance to the electrode, floored at
+    ``min_distance``. ``dendrite_length`` is a scalar or ``[N]``; a zero length
+    is a closed field and contributes nothing. Units follow the inputs
+    (relative unless the source and positions are calibrated).
+    """
+    q = jnp.asarray(source)
+    pos = jnp.asarray(positions)
+    if q.ndim != 2 or pos.ndim != 2 or pos.shape[1] != 3 or pos.shape[0] != q.shape[1]:
+        raise ValueError(f"source [T, N] and positions [N, 3] required, got {q.shape} and {pos.shape}")
+    if axis not in (0, 1, 2):
+        raise ValueError(f"axis must be 0, 1 or 2, got {axis}")
+    if not conductivity > 0:
+        raise ValueError(f"conductivity must be > 0, got {conductivity}")
+    if not min_distance > 0:
+        raise ValueError(f"min_distance must be > 0, got {min_distance}")
+    n = pos.shape[0]
+    length = jnp.asarray(dendrite_length, dtype=pos.dtype)
+    if length.ndim == 0:
+        length = jnp.full((n,), length)
+    if length.shape != (n,) or not bool(jnp.all(jnp.isfinite(length))):
+        raise ValueError(f"dendrite_length must be a finite scalar or [{n}], got shape {length.shape}")
+    lateral = [k for k in range(3) if k != axis]
+    xy = pos[:, lateral]
+    exy = xy.mean(axis=0) if electrode_xy is None else jnp.asarray(electrode_xy, dtype=pos.dtype)
+    rho = jnp.maximum(jnp.linalg.norm(xy - exy, axis=1), min_distance)[None, :]
+    z = pos[:, axis][None, :]
+    zc = jnp.asarray(contact_depths, dtype=pos.dtype).reshape(-1, 1)
+    soma = 1.0 / jnp.sqrt(rho**2 + (z - zc) ** 2)
+    closed = length == 0
+    safe = jnp.where(closed, 1.0, length)[None, :]
+    line = (jnp.arcsinh((z + safe - zc) / rho) - jnp.arcsinh((z - zc) / rho)) / safe
+    kernel = jnp.where(closed[None, :], 0.0, soma - line) / (4 * jnp.pi * conductivity)
+    return q @ kernel.T
 
 
 def _unit(v: jax.Array) -> jax.Array:
@@ -287,6 +346,7 @@ __all__ = [
     "column_dipole",
     "eeg_sphere_leadfield",
     "folded_sphere_surface",
+    "line_source_lfp",
     "meg_sphere_leadfield",
     "signals_dipole",
     "sphere_sensor_cap",

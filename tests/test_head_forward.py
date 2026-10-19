@@ -13,6 +13,7 @@ from jaxfne.fields.head import (
     column_dipole,
     eeg_sphere_leadfield,
     folded_sphere_surface,
+    line_source_lfp,
     meg_sphere_leadfield,
     signals_dipole,
     sphere_sensor_cap,
@@ -252,3 +253,78 @@ def test_signals_dipole_bridges_a_simulation_to_the_head():
         signals_dipole(no_src, model)
     with pytest.raises(ValueError, match="positions"):
         signals_dipole(sig, object())
+
+
+def _line_lfp_quadrature(q, pos, contacts, length, exy, sigma, rmin):
+    """Soma point source +I and the return current -I spread evenly along the dendrite, by numerical quadrature."""
+    out = np.zeros((q.shape[0], len(contacts)))
+    for i in range(pos.shape[0]):
+        rho = max(np.hypot(pos[i, 0] - exy[0], pos[i, 1] - exy[1]), rmin)
+        for c, zc in enumerate(contacts):
+            soma = 1.0 / np.hypot(rho, pos[i, 2] - zc)
+            if length[i] == 0:
+                k = 0.0
+            else:
+                seg = quad(lambda s: 1.0 / np.hypot(rho, pos[i, 2] + np.sign(length[i]) * s - zc), 0, abs(length[i]),
+                           epsabs=1e-14, epsrel=1e-12)[0]
+                k = soma - seg / abs(length[i])
+            out[:, c] += q[:, i] * k / (4 * np.pi * sigma)
+    return out
+
+
+@pytest.mark.x64
+def test_line_source_lfp_matches_quadrature():
+    rng = np.random.default_rng(5)
+    pos = np.column_stack([rng.uniform(-0.2, 0.2, 6), rng.uniform(-0.2, 0.2, 6), rng.uniform(0, 1, 6)])
+    pos[0, :2] = [0.03, -0.01]  # on the electrode axis: the floor sets rho
+    length = np.array([-0.3, 0.25, -0.1, 0.0, 0.4, -0.05])
+    q = rng.normal(size=(4, 6))
+    contacts = np.linspace(0, 1, 9)
+    got = np.asarray(line_source_lfp(q, pos, contacts, length, electrode_xy=(0.03, -0.01), conductivity=0.7,
+                                     min_distance=0.02))
+    want = _line_lfp_quadrature(q, pos, contacts, length, (0.03, -0.01), 0.7, 0.02)
+    assert np.abs(want).max() > 0, "fixture must give a field"
+    assert_allclose(got, want, rtol=1e-9, atol=1e-12 * np.abs(want).max())
+
+
+@pytest.mark.x64
+def test_line_source_lfp_far_field_is_the_dipole():
+    # +I at the soma, -I centred L/2 along the dendrite: p = -I L/2 along the axis.
+    length, d = 0.001, 10.0
+    pos = np.array([[0.0, 0.0, 0.5]])
+    q = np.array([[1.0]])
+    for zc in (0.5 + d, 0.5 - d):
+        phi = float(np.asarray(line_source_lfp(q, pos, [zc], [length], min_distance=1e-9))[0, 0])
+        centre = 0.5 + length / 4
+        want = (-length / 2) * np.sign(zc - centre) / (4 * np.pi * (zc - centre) ** 2)
+        assert_allclose(phi, want, rtol=1e-3)
+
+
+def test_line_source_lfp_parameters_change_the_field_or_are_refused():
+    pos = np.array([[0.0, 0.0, 0.3], [0.05, 0.0, 0.7]])
+    q = np.array([[1.0, -0.5], [0.2, 0.8]])
+    c = np.linspace(0, 1, 5)
+    base = np.asarray(line_source_lfp(q, pos, c, [-0.2, 0.1], min_distance=0.02))
+    assert np.abs(base).max() > 0
+    assert np.all(np.asarray(line_source_lfp(q, pos, c, [0.0, 0.0], min_distance=0.02)) == 0)
+    assert_allclose(np.asarray(line_source_lfp(q, pos, c, [-0.2, 0.1], min_distance=0.02, conductivity=2.0)),
+                    base / 2, rtol=1e-6)
+    for kw in ({"min_distance": 0.05}, {"electrode_xy": (0.3, 0.0), "min_distance": 0.02}):
+        assert np.abs(np.asarray(line_source_lfp(q, pos, c, [-0.2, 0.1], **kw)) - base).max() > 1e-6, kw
+    # the column axis is read from `axis`: the same geometry with depth in coordinate 0
+    assert_allclose(np.asarray(line_source_lfp(q, pos[:, [2, 1, 0]], c, [-0.2, 0.1], axis=0, min_distance=0.02)),
+                    base, rtol=1e-6)
+    assert np.abs(np.asarray(line_source_lfp(q, pos, c, [-0.3, 0.1], min_distance=0.02)) - base).max() > 1e-6
+    # electrode_xy defaults to the column centre
+    assert_allclose(np.asarray(line_source_lfp(q, pos, c, [-0.2, 0.1], electrode_xy=(0.025, 0.0), min_distance=0.02)),
+                    base, rtol=1e-6)
+    for kw, msg in (({"conductivity": 0.0}, "conductivity"), ({"min_distance": 0.0}, "min_distance"),
+                    ({"axis": 3}, "axis")):
+        with pytest.raises(ValueError, match=msg):
+            line_source_lfp(q, pos, c, [-0.2, 0.1], **{"min_distance": 0.02, **kw})
+    with pytest.raises(ValueError, match="dendrite_length"):
+        line_source_lfp(q, pos, c, [-0.2], min_distance=0.02)
+    with pytest.raises(ValueError, match="dendrite_length"):
+        line_source_lfp(q, pos, c, [np.nan, 0.1], min_distance=0.02)
+    with pytest.raises(ValueError, match="source"):
+        line_source_lfp(q[:, :1], pos, c, [-0.2, 0.1], min_distance=0.02)

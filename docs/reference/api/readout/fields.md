@@ -602,6 +602,31 @@ elec, _ = sphere_sensor_cap(64, 0.09, 120.0)
 eeg = dip @ eeg_sphere_leadfield(elec, pos, nrm, conductivity_s_per_m=0.33).T   # volt
 ```
 
+### Line-source laminar LFP
+
+`line_source_lfp(source, positions, contact_depths, dendrite_length, *, min_distance, electrode_xy=None, conductivity=1.0, axis=2)`
+reads the same currents on a laminar electrode with two-compartment neurons in an infinite
+homogeneous medium. Neuron $i$ emits $I_i$ at its soma and takes it back evenly along a straight
+dendrite of signed length $L_i$ on the column axis:
+
+$$
+\phi_c = \frac{1}{4\pi\sigma}\sum_i I_i\left[\frac{1}{\sqrt{\rho_i^2 + (z_i - z_c)^2}}
+- \frac{\operatorname{asinh}\frac{z_i + L_i - z_c}{\rho_i} - \operatorname{asinh}\frac{z_i - z_c}{\rho_i}}{L_i}\right]
+$$
+
+$\rho_i$ is the lateral distance to the electrode (default: the column centre), floored at
+`min_distance`. Each neuron is current-balanced, so the far field is the dipole $-I_i L_i/2$; a
+zero length is a closed field. Output `[T, C]` in the inputs' units.
+
+```python
+from jaxfne.fields import line_source_lfp
+
+pos = model.params["positions"]
+is_e = jnp.array([r["cell_type"] == "E" for r in model.neuron_table()])
+length = jnp.where(is_e, -pos[:, 2], 0.0)          # apical dendrites reach z = 0; interneurons closed
+lfp = line_source_lfp(signals.sources, pos, jnp.linspace(0, 1, 16), length, min_distance=0.02)
+```
+
 ## Boundary Conditions & Constraints
 
 ### Mean-Zero Constraint
