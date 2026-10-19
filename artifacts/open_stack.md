@@ -5,12 +5,9 @@ Anything open right now. Read first at session start, before `todo_stack.md`. On
 it closes; at most 30 lines; a line older than 3 days moves to todo or the issue log, or is dropped.
 
 ## In flight
-- O-40 Vacuous and ungated tests (P-037): conftest x64 reset voids float64 tests; skips on gitignored inputs; exact float pin; cwd-dependent paths; 11 lane test files in no gate | keeper | since 2026-10-18 | closes when each test runs and can fail in a gate
-- O-41 Stale pointers and ignored flags (P-038): evidence checklist path in 3 scripts, mcc3 manifest names 3 absent files, 4 ignored flags, `simulate(return_state=True)` doc, non-strict RTD | keeper | since 2026-10-18 | closes when each resolves on disk or is refused
-- O-42 GSDR fits record `"mcdp": True`, the core `gsdr` has no MCDP (P-039): the 350 and 500 generation fits ran without it | keeper | since 2026-10-18 | closes when manifests say what ran and MCDP is in the core
-- O-43 REPLICATIONS records (P-042): CAMINOS release row 0.5.6 against the todo's 0.5.7; scored-off GSDR and Destexhe results missing (B2) | keeper | since 2026-10-18 | closes when the table matches the lanes
-- O-48 Carry out Hamm's rulings of 2026-10-18 (todo T-33): records (GSDR and Destexhe steps unscored, PCL page and v5 T4 label, Izhikevich 6 of 8 under v7 with v8.2 labelled, dashboard CAMINOS note), API refusals (non-zero `Simulation.plasticity`, absent gpu/tpu backend), tree-degree exemptions | keeper | since 2026-10-18 | closes when each lands on dev with its gate
-- O-49 T-32 reproduction lanes: T-32a lane kit and T-32b `simulate_hh_batch` built in clones (cl-r1, cl-r2), review and broad gate pending | keeper | since 2026-10-18 | closes when both are on dev
+- O-41 remainder (P-038): Read the Docs regenerates atlases only, so étude pages publish stand-ins (RTD itself is strict since 2026-10-19) | keeper | since 2026-10-18 | closes when RTD builds the étude pages or they leave the RTD nav
+- O-50 T-32f lanes at P1 on dev: brunel2000, potjans2014, vogels2011, mejias2016; next per B8 a pilot each (Vogels needs a plastic I-to-E rule, Mejias the authorized rate emitter and a spectral Granger estimator) | keeper | since 2026-10-19 | closes when each lane has a pilot receipt
+- O-51 `audit_81_docs_pages` fails to decode a non-UTF-8 page (found by a lane worker 2026-10-19, not yet reproduced) | keeper | since 2026-10-19 | closes when reproduced and fixed with a test, or shown false
 
 ## Waiting on others
 - O-10 Harness proposals (lane-clone helper, worker background guard, jchat lane registry, lock holders in `who`, known-failures register, release events), jchat conference #29 | jynx keeper | since 2026-10-15 | closes when each is taken or refused

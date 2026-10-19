@@ -109,37 +109,17 @@ run on WSL2 CUDA.
   seed and candidate batching for the AdEx and LIF routes and `Model.tune` (serial loop
   `_model_tune.py:451`); (T-32d) core homes for lane-local analysis (ISI ratio and CV, aperiodic
   fit, tuning fit); (T-32e) script checklist rules E1, S2, F3, P4, R4 in
-  `check_replications.py`; (T-32f) new lanes at P1 with the scaffold (Hamm 2026-10-18): Brunel
+  `check_replications.py`; (T-32f, the four lanes at P1 since 2026-10-19) pilots for Brunel
   2000, Vogels et al. 2011, Potjans and Diesmann 2014, Mejias et al. 2016; Hamm authorized a
   rate-population (Wilson–Cowan-type) emitter for Mejias under B3, behind the P4 perturbation
   gate. Each lane follows B8.
-- T-33 [A] Hamm's rulings of 2026-10-18 (open-decisions review), to carry out:
-  - GSDR and Destexhe 2009: steps scored against the unsigned draft preregs are unscored
-    (relabel as pilot/diagnostic, kept visible, B2); B8 pilot, then signature, then fresh seeds;
-    Destexhe's reserved seeds 4–8 are spent, so new reserved seeds.
+- T-33 [A] Hamm's rulings of 2026-10-18, still to carry out (records, API refusals, tree
+  degree, tooling and the foil sweep landed on dev 2026-10-19):
+  - GSDR and Destexhe 2009: B8 pilot, then signature, then fresh seeds; Destexhe's reserved
+    seeds 4–8 are spent, so new reserved seeds.
   - PCL: Fig. 3 rescored on the core (full-network mapping of feed, complex pooling and
     lateral/top-down paths onto the LIF tensor route; the numba port stays the event-exact
-    oracle); `docs/etudes/pcl.md` says in progress with its failing rows; v5 T4 labelled "pass
-    on a post hoc criterion (changed after v4)" in REPLICATIONS and the ledger; the next core
-    protocol declares T4 up front.
-  - Izhikevich 2003: "6 of 8 under signed v7; 8 of 8 under post hoc amendment v8.2"; release
-    notes cite the v7 verdict; status in progress.
-  - CAMINOS: G-2 edited (P6 v2 PASS); REPLICATIONS keeps "mixed"; dashboard note separates the
-    library-path PASS from the paper verdict.
-  - API: refuse non-zero `Simulation(plasticity=)` on every route (error points to the HDP and
-    plasticity API; update notebook 2, test H7, changelog); refuse an absent gpu/tpu backend at
-    `simulate()` and `construct()` (`runtime_report` still reports).
-  - Tree degree: enforced for `artifacts/` and `docs/`; `tests/`, `scripts/` and the root exempt
-    with a stated reason (flat by tool convention); revisit at 0.5.8. Splits follow
-    organization-quality criteria (no ambiguous ownership, no duplicated authoritative record,
-    generated apart from source, frozen paths kept); a split made only to meet the number may
-    take a reasoned exemption instead (Hamm 2026-10-19, after sol's review).
-  - Tooling (O-46): receipt-cited unreferenced scripts move to an archive folder; orphaned ones
-    are deleted, one class per commit behind the gate; the 8 ungated audits are wired into the
-    report gate when they pass today, else deleted; the ignored `--check` in
-    `assert_release_freeze.py` and `sync_release_metadata.py` becomes real.
-  - Docs foil sweep: branch `_temp_never-sweep` (jynx keeper, 5bd596f8) deleted from origin as
-    stale after the docs reorg; one fresh sweep of the "X, not Y" form over current docs pages.
+    oracle); the next core protocol declares T4 up front.
 - T-10 [A] G-1 (meet 204dfdaa): port jnwb's `changelog.d`, `assemble_changelog.py`,
   `release_body.py` and claim check; release body as tables. Closes when: `release_body.py --tag <next>` passes.
   The port itself landed (924f2423, 78d293d9); only the closing check waits for a tag.
@@ -181,8 +161,7 @@ run on WSL2 CUDA.
 - T-20 [A] Lint leftovers: the F841 suspects are clear (ruff F841 passes on all of them,
   2026-10-17). Left: `run_delta_notebook_01.py` `cell_labels=None` TODO (the callee documents
   `cell_labels` as unused, so wiring changes no output; whether the notebook applies DC is a
-  model question); `--check` parsed and ignored in `scripts/release/assert_release_freeze.py`
-  and `scripts/sync_release_metadata.py` (O-46). Closes when: each is used, removed or ruled harmless.
+  model question). Closes when: it is used, removed or ruled harmless.
 
 hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 - T-22 [A] Same-step interactions (PCL local inhibition, CAMINOS zero delay, gap G12) are a

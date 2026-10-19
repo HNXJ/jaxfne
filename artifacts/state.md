@@ -1,10 +1,19 @@
 # state
 
-Stamp: jaxfne@dev@c63e1abf · 2026-10-18 (written 2026-10-18T19:05:42Z)
+Stamp: jaxfne@dev@bd1e004d · 2026-10-19 (written 2026-10-19T15:42:58Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
 ## Works (with evidence)
+
+- 2026-10-19 on dev: sol's control-surface audit and the scan's keeper fixes O-40 to O-43
+  (x64 test marker, stale pointers and flags, GSDR MCDP in the core with corrected fit
+  manifests, REPLICATIONS records); Hamm's 2026-10-18 rulings (T-33 records, refusals of
+  non-zero `Simulation.plasticity` and absent gpu/tpu, reserved lowercase rule names,
+  tree-degree scope, tooling triage, foil sweep); `problem_stack.md` retired into the open
+  stack; dashboard class "mixed" (CAMINOS); T-32a lane kit, T-32b `simulate_hh_batch`;
+  four new lanes at P1 (Brunel 2000, Potjans and Diesmann 2014, Vogels 2011, Mejias 2016);
+  RTD strict. Broad gate on fc5d13f4: 6574 passed, 0 failed.
 
 - 2026-10-18 later on dev: T-22 intra-step fixed point runs to quiescence with
   `intra_step_rounds` as a refusing cap (Hamm 2026-10-18); CAMINOS true zero delay scored on it
@@ -59,14 +68,12 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   route on 20 clips (CALIBRATION.md Step 9). Open in the record: the `no construct route (OPEN)`
   marker (CALIBRATION.md:24) is not marked closed.
 - 2026-10-19: Read the Docs `latest` green again on main cf46d6d3 (PR 110, fix-only port of dev
-  617c09c0; P-035 closed). Hamm's 2026-10-18 rulings are in todo T-33 (records, two API
-  refusals, tree-degree scope) and T-32 (four new lanes, rate emitter, rule B8). T-32a lane kit
-  and T-32b `simulate_hh_batch` built in clones, review and broad gate pending (O-49).
+  617c09c0; P-035 closed). Left of Hamm's 2026-10-18 rulings: T-33 GSDR/Destexhe B8 runs and
+  the PCL Fig. 3 core rescoring; T-32 pilots for the four new lanes (O-50).
 - GSDR: saturated at both g* (κ_fit 0.60 against 0.0156); the rate estimand waits on
   `PREREG_P3.md`.
 - Whole-project scan of 2026-10-18 done: verified findings P-036 to P-042 in the issue log,
-  open-stack items, those still open now O-40 to O-43 (high: unconsumed `Simulation.plasticity`, vacuous float64
-  tests, GSDR fits without MCDP, Destexhe and PCL claims against unsigned or failing records).
+  open-stack items; all closed by 2026-10-19 except the RTD étude stand-ins (O-41 remainder).
 
 ## Last gate results
 
@@ -95,4 +102,5 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-Agents: land the scan's keeper fixes by severity (O-40 to O-43), Hamm's 2026-10-18 rulings (T-33), T-32 lanes; then T-30 per paper.
+Agents: T-32 toward one replication a day (GSDR fit on `simulate_hh_batch`, pilots for the
+four P1 lanes, T-32c–e), the rest of T-33; then T-30 per paper.
