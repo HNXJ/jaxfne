@@ -12,14 +12,15 @@ import pytest
 from jaxfne import emitter_registry as reg
 from jaxfne.emitters_adex import _PARAM_FIELDS as ADEX_FIELDS
 from jaxfne.emitters_lif import _PARAM_FIELDS as LIF_FIELDS
+from jaxfne.emitters_rate import _RATE_PARAM_FIELDS as RATE_FIELDS
 
 
 def test_builtin_emitter_names():
-    assert reg.list_registered_emitters() == ("adex", "glif", "izhikevich", "lif")
+    assert reg.list_registered_emitters() == ("adex", "glif", "izhikevich", "lif", "rate")
 
 
 def test_get_roundtrip_and_is_registered():
-    for name in ("izhikevich", "lif", "glif", "adex"):
+    for name in ("izhikevich", "lif", "glif", "adex", "rate"):
         assert reg.is_registered_emitter(name)
         assert reg.get_emitter(name).name == name
     assert not reg.is_registered_emitter("hodgkin_huxley")
@@ -53,6 +54,26 @@ def test_check_adex_params_refuses_unconsumed_keys():
 
 def test_lif_descriptor_consumes_the_lif_cell_fields():
     assert tuple(reg.get_emitter("lif").params) == tuple(LIF_FIELDS)
+
+
+def test_rate_descriptor_consumes_the_rate_population_fields():
+    assert tuple(reg.get_emitter("rate").params) == tuple(RATE_FIELDS)
+
+
+def test_check_rate_params_accepts_a_subset_and_returns_a_copy():
+    params = {"tau_ms": 20.0, "transfer": "sigmoid"}
+    checked = reg.check_emitter_params("rate", params)
+    assert checked == params
+    assert checked is not params
+
+
+def test_check_rate_params_none_reads_as_empty():
+    assert reg.check_emitter_params("rate", None) == {}
+
+
+def test_check_rate_params_refuses_unconsumed_keys():
+    with pytest.raises(ValueError, match="does not consume"):
+        reg.check_emitter_params("rate", {"tau_ms": 20.0, "C_pF": 150.0})
 
 
 def test_check_lif_params_accepts_a_subset_and_returns_a_copy():

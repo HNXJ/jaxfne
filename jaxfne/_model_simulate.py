@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any, Mapping, Optional
 
 import jax
 import jax.numpy as jnp
+import numpy as _np_host
 
 if TYPE_CHECKING:
     from ._model import Model
@@ -33,6 +34,7 @@ from .emitters import (
 from .emitters_homeostatic_ei import HomeostaticEIParams, simulate_homeostatic_ei
 from .emitters_adex import AdExParams, simulate_adex
 from .emitters_lif import LIFNetworkParams
+from .emitters_rate import RateNetworkParams
 from .fields import project_laminar_sources
 from .io import config_hash, json_safe
 from ._runtime_config import RuntimeConfig, _device_scope, _require_backend_available
@@ -1152,6 +1154,11 @@ def simulate(
         _require_backend_available(runtime_cfg.selected_backend)
         return _simulate_lif(self, sim, runtime_cfg, paradigm)
 
+    if isinstance(self.params["emitter"], RateNetworkParams):
+        _refuse_rate_inputs(self, sim, paradigm, continuation, return_state)
+        _require_backend_available(runtime_cfg.selected_backend)
+        return _simulate_rate(self, sim, runtime_cfg)
+
     # An absent gpu/tpu device fails fast instead of silently downgrading.
     _require_backend_available(runtime_cfg.selected_backend)
     for _row in (self.cfg.metadata.get("circuit", {}) or {}).get("connections", []):
@@ -1557,6 +1564,123 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
         time_ms=time_ms,
         V_m=out["V_mV"].astype(dtype),
         spikes=out["spikes"],
+        sources=None,
+        field=None,
+        metadata=metadata,
+    )
+
+
+def _refuse_rate_inputs(
+    model: "Model", sim: Simulation, paradigm: Any, continuation: Any, return_state: bool
+) -> None:
+    """Refuse the simulate() inputs the rate route does not consume, naming each.
+
+    Continuation and the Simulation/RuntimeConfig fields named in
+    ``_construct_rate.refuse_rate_simulation`` have no rate consumer. A
+    paradigm is refused as well: the route's declared input is
+    ``Simulation(poisson_drive=...)`` added to the drive channel (see
+    ``_simulate_rate``).
+    """
+    from ._construct_rate import refuse_rate_simulation
+
+    if continuation is not None or return_state:
+        raise ValueError(
+            "simulate(continuation=..., return_state=...) is not realized for emitter family "
+            "'rate': the route has no full-state continuation"
+        )
+    if paradigm is not None:
+        raise ValueError(
+            "simulate(paradigm=...) is not realized for emitter family 'rate': the route's "
+            "declared input is Simulation(poisson_drive=...) on the drive channel; "
+            "pass the drive there instead"
+        )
+    refuse_rate_simulation(sim, sim.resolved_runtime)
+
+
+def _simulate_rate(
+    self: "Model",
+    sim: Simulation,
+    runtime_cfg: RuntimeConfig,
+) -> Signals:
+    """The rate emitter family's ``simulate()`` path (``jaxfne.emitters_rate``).
+
+    Runs the Wilson-Cowan-type rate kernel on the compiled edges
+    (``_construct_rate.rate_edge_arrays`` supplies its arguments, flooring
+    zero-step edges to 1 step with a metadata receipt). The step input is the
+    emitter's constant drive channel plus ``Simulation(poisson_drive=...)``
+    (same seed rule as the current-based route: ``poisson_drive["seed"]``,
+    else ``sim.seed + 7919``), all in native current units. No field is
+    built (``field`` is None) and no sources are recorded; the route emits
+    no spikes, so ``spikes`` is an all-False array and the rate traces ride
+    ``V_m`` (``(n_steps, N)`` float).
+    """
+    from ._construct_rate import rate_edge_arrays
+    from .emitters_rate import simulate_rate_edge
+
+    dtype = runtime_cfg.jnp_dtype
+    emitter: RateNetworkParams = self.params["emitter"]
+    edges = rate_edge_arrays(self)
+    n_neurons = emitter.n_neurons
+
+    drive = _np_host.asarray(emitter.drive, dtype=_np_host.float64).ravel()
+    if sim.poisson_drive is not None:
+        _pd = sim.poisson_drive
+        from .inputs import check_current_route_poisson_drive
+
+        check_current_route_poisson_drive(_pd)
+        _poisson_arr = _make_poisson_drive(
+            n_steps=sim.n_steps,
+            n_neurons=n_neurons,
+            rate_hz=float(_pd.get("rate_hz", 2.0)),
+            amplitude=float(_pd.get("amplitude", 0.5)),
+            dt_ms=sim.dt_ms,
+            seed=poisson_chunk_seed(int(_pd.get("seed", sim.seed + 7919)), 0),
+            target=str(_pd.get("target", "all")),
+        )
+        ext = drive[None, :] + _np_host.asarray(_poisson_arr, dtype=_np_host.float64)
+    else:
+        ext = _np_host.broadcast_to(drive, (sim.n_steps, n_neurons)).copy()
+
+    out = simulate_rate_edge(
+        emitter,
+        n_steps=sim.n_steps,
+        dt_ms=sim.dt_ms,
+        edge_pre=edges["pre"],
+        edge_post=edges["post"],
+        edge_weight=edges["weight"],
+        edge_delay_steps=edges["delay_steps"],
+        drive=drive,
+        poisson=ext - drive[None, :],
+        seed=int(sim.seed),
+    )
+    time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
+    metadata: dict[str, Any] = {
+        "config_hash": config_hash(self.cfg),
+        "emitter_family": "rate",
+        "n_edges": int(edges["pre"].shape[0]),
+        "n_floored_to_one_step": int(edges["n_floored_to_one_step"]),
+        "duration_ms": float(sim.duration_ms),
+        "dt_ms": float(sim.dt_ms),
+        "n_steps": int(sim.n_steps),
+        "runtime": runtime_cfg.runtime_report(),
+        "physical_amplitude_calibrated": False,
+        # The route emits no spikes: the rate traces ride V_m and the spikes
+        # array is all-False. No sources and no field are recorded either.
+        "spikes": "empty (rate route emits no spikes; rates ride V_m)",
+        "not_recorded": ["sources", "field"],
+    }
+    if sim.poisson_drive is not None:
+        metadata["poisson_drive"] = {
+            "rate_hz": float(sim.poisson_drive.get("rate_hz", 2.0)),
+            "amplitude": float(sim.poisson_drive.get("amplitude", 0.5)),
+            "seed": int(sim.poisson_drive.get("seed", sim.seed + 7919)),
+            "status": "stochastic_drive_applied",
+        }
+    n_steps, n_units = out["rates"].shape
+    return Signals(
+        time_ms=time_ms,
+        V_m=jnp.asarray(out["rates"], dtype=dtype),
+        spikes=jnp.zeros((n_steps, n_units), dtype=bool),
         sources=None,
         field=None,
         metadata=metadata,

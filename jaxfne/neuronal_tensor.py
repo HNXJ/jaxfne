@@ -90,7 +90,7 @@ INHIBITORY_MECHANISMS = frozenset({"GABA_A", "GABA_B"})
 #: resolving to them is refused here rather than failing late inside
 #: construct with an explicitly-declared-but-unbuilt emitter. Declared
 #: dynamics always equal executed dynamics ((h, y) = f(x, h')).
-ROUTABLE_TENSOR_EMITTER_FAMILIES = frozenset({"izhikevich", "lif", "adex"})
+ROUTABLE_TENSOR_EMITTER_FAMILIES = frozenset({"izhikevich", "lif", "adex", "rate"})
 
 #: Length units accepted for geometry-derived delays
 #: (:attr:`InterConnection.length_unit` / :attr:`AreaConnection.length_unit`).
@@ -1824,7 +1824,7 @@ def _construct_neuronal_tensor_impl(
         raise ValueError(
             f"tensor {tensor.name!r} carries trained W0 but resolves to emitter "
             f"family {family!r}; trained W0 is realized only on the izhikevich "
-            "route (lif/adex have no trained-W0 consumer) — declare izhikevich "
+            "route (lif/adex/rate have no trained-W0 consumer) — declare izhikevich "
             "or drop the trained weights"
         )
     if family == "lif":
@@ -1861,6 +1861,26 @@ def _construct_neuronal_tensor_impl(
             dtype=dtype,
             adex_decay=adex_decay,
             adex_step_order=adex_step_order,
+            param_overrides=overrides,
+        )
+    if family == "rate":
+        from ._construct_rate import construct_rate_tensor_model
+
+        if n_contacts != 16:
+            raise ValueError(
+                f"n_contacts={n_contacts!r} is not consumed on the rate tensor route "
+                "(no laminar probe readout there); leave the default"
+            )
+        return construct_rate_tensor_model(
+            tensor,
+            seed=seed,
+            duration_ms=duration_ms,
+            dt_ms=dt_ms,
+            dtype=dtype,
+            backend=backend,
+            jit=jit,
+            vmap=vmap,
+            n_contacts=n_contacts,
             param_overrides=overrides,
         )
     if adex_decay != "exp" or adex_step_order != "default":

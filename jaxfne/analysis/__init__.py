@@ -38,6 +38,10 @@ from .metrics import (
     mean_pairwise_spike_correlation,
     wang_buzsaki_kappa,
 )
+from .granger import (
+    directionality_index,
+    granger_spectral,
+)
 from .spectral import (
     spectrolaminar_psd_jax,
     bandpower_jax,
@@ -56,6 +60,8 @@ __all__ = [
     "activity_regime",
     "activity_regimes",
     "ACTIVITY_REGIME_DEFAULTS",
+    "granger_spectral",
+    "directionality_index",
     "spectrolaminar_psd_jax",
     "bandpower_jax",
     "spectrolaminar_readout_kernel_jax",

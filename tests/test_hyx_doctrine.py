@@ -101,6 +101,14 @@ def _drive_simulate(model, emitter):
             duration_ms=DUR_MS, dt_ms=DT_MS, seed=1,
             poisson_drive={"rate_hz": 50.0, "amplitude": 100.0},
             runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")))
+    if emitter == "rate":
+        # Same explicit runtime: the rate route's edges live only in
+        # params["edge_list"], and its declared input is poisson_drive on
+        # the drive channel (no paradigm, no HDP).
+        return model.simulate(jtfne.Simulation(
+            duration_ms=DUR_MS, dt_ms=DT_MS, seed=1,
+            poisson_drive={"rate_hz": 50.0, "amplitude": 100.0},
+            runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")))
     return model.simulate(jtfne.Simulation(
         duration_ms=DUR_MS, dt_ms=DT_MS, seed=1,
         poisson_drive={"rate_hz": 50.0, "amplitude": 100.0}))
@@ -222,6 +230,19 @@ def test_single_self_exciting_neuron_is_a_model(emitter):
             duration_ms=DUR_MS, dt_ms=DT_MS, seed=1,
             poisson_drive={"rate_hz": 50.0, "amplitude": 100.0},
             runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")))
+    elif emitter == "rate":
+        # The rate route emits no spikes: the non-vacuous proof is finite
+        # rate traces on V_m that the declared input moves.
+        driven = model.simulate(jtfne.Simulation(
+            duration_ms=DUR_MS, dt_ms=DT_MS, seed=1,
+            poisson_drive={"rate_hz": 50.0, "amplitude": 100.0},
+            runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")))
+        assert int(np.sum(np.asarray(driven.spikes))) == 0
+        assert bool(np.isfinite(np.asarray(driven.V_m)).all())
+        assert float(np.max(np.abs(
+            np.asarray(driven.V_m, dtype=float)
+            - np.asarray(signals.V_m, dtype=float)))) > 0.0
+        return
     else:
         driven = model.simulate(jtfne.Simulation(
             duration_ms=DUR_MS, dt_ms=DT_MS, seed=1,
@@ -235,6 +256,16 @@ def test_same_declaration_same_seed_same_signals(emitter):
     tensor = _single_area_tensor([_nt("E"), _nt("PV")], [_ee_conn()], name="hyx-det")
     first = _drive_simulate(_construct(tensor, emitter=emitter), emitter)
     second = _drive_simulate(_construct(tensor, emitter=emitter), emitter)
+    if emitter == "rate":
+        # No spikes by design: determinism reads on the rate traces.
+        assert int(np.sum(np.asarray(first.spikes))) == 0, "rate route emits no spikes"
+        assert np.array_equal(np.asarray(first.V_m), np.asarray(second.V_m))
+        assert bool(np.isfinite(np.asarray(first.V_m)).all())
+        assert float(np.max(np.asarray(first.V_m, dtype=float))) > 0.0, \
+            "fixture must emit a rate signal"
+        assert np.asarray(first.V_m).shape == np.asarray(second.V_m).shape
+        assert np.asarray(first.V_m).size > 0, "fixture must emit a signal array"
+        return
     assert int(np.sum(np.asarray(first.spikes))) > 0, "fixture must spike"
     assert np.array_equal(np.asarray(first.spikes), np.asarray(second.spikes))
     assert bool(np.isfinite(np.asarray(first.V_m)).all())
@@ -328,6 +359,11 @@ def test_rigid_motion_preserves_dynamics(emitter):
         assert np.array_equal(delay_base, delay_moved)
     sig_base = _drive_simulate(base, emitter)
     sig_moved = _drive_simulate(moved, emitter)
+    if emitter == "rate":
+        # No spikes by design: the rigid motion preserves the rate traces.
+        assert int(np.sum(np.asarray(sig_base.spikes))) == 0
+        assert np.array_equal(np.asarray(sig_base.V_m), np.asarray(sig_moved.V_m))
+        return
     assert int(np.sum(np.asarray(sig_base.spikes))) > 0, "fixture must spike"
     assert np.array_equal(np.asarray(sig_base.spikes), np.asarray(sig_moved.spikes))
     assert np.array_equal(np.asarray(sig_base.V_m), np.asarray(sig_moved.V_m))
@@ -372,6 +408,14 @@ def test_one_self_exciting_neuron_has_its_self_edge_and_feels_it(emitter):
     assert len(_edge_pairs(without, emitter)[0]) == 0
     sig_self = _drive_simulate(with_self, emitter)
     sig_none = _drive_simulate(without, emitter)
+    if emitter == "rate":
+        # No spikes by design: the self edge moves the rate trace instead.
+        assert int(np.sum(np.asarray(sig_none.spikes))) == 0
+        assert bool(np.isfinite(np.asarray(sig_self.V_m)).all())
+        assert float(np.max(np.abs(
+            np.asarray(sig_self.V_m, dtype=float)
+            - np.asarray(sig_none.V_m, dtype=float)))) > 0.0
+        return
     assert int(np.sum(np.asarray(sig_none.spikes))) > 0, "fixture must spike"
     assert float(np.max(np.abs(
         np.asarray(sig_self.V_m, dtype=float)
@@ -403,5 +447,6 @@ def test_geometry_change_changes_the_trajectory(emitter):
     v_near = np.asarray(near.V_m, dtype=float)
     v_far = np.asarray(far.V_m, dtype=float)
     spikes = np.asarray(near.spikes)
-    assert int(np.sum(spikes)) > 0, "fixture must spike"
+    if emitter != "rate":
+        assert int(np.sum(spikes)) > 0, "fixture must spike"
     assert float(np.max(np.abs(v_near - v_far))) > 0.0
