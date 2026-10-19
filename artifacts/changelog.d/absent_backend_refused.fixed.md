@@ -1,0 +1,1 @@
+- `simulate()` and `construct()` refuse a `gpu`/`tpu` backend with no such JAX device (`RuntimeError` naming the backend and the available platforms) instead of silently downgrading. `runtime_report()` still reports the honest downgrade without raising; `auto`/`cpu` are unchanged.

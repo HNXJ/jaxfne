@@ -38,7 +38,7 @@ def _rt(**kw):
 SIM_CASES = {
     "duration_ms": ({}, {"duration_ms": 30.0}, "output"),
     "dt_ms": ({}, {"dt_ms": 0.05}, "output"),
-    "plasticity": ({}, {"plasticity": 0.7}, "label"),
+    "plasticity": ({}, {"plasticity": 0.7}, "refuse"),
     "seed": ({}, {"seed": 5}, "output"),
     "record_sources": ({}, {"record_sources": False}, "output"),
     "record_fields": ({}, {"record_fields": False}, "output"),

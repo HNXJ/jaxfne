@@ -423,7 +423,9 @@ SIMULATE_REFUSALS = [
     ("simulate_batch", lambda m: m.simulate_batch(_sim(), n_seeds=2), "simulate_batch"),
     ("simulate_condition", lambda m: m.simulate_condition(_sim(), condition=object()),
      "simulate_condition"),
-    ("plasticity", lambda m: m.simulate(_sim(plasticity=0.5)), "plasticity"),
+    # ``plasticity`` is not listed here: a non-zero gain is refused at
+    # Simulation construction (before simulate runs), covered by
+    # test_unconsumed_simulation_field_is_refused_by_name[plasticity].
     ("seed", lambda m: m.simulate(_sim(seed=3)), "seed"),
     ("record_sources", lambda m: m.simulate(_sim(record_sources=False)), "record_sources"),
     ("record_fields", lambda m: m.simulate(_sim(record_fields=False)), "record_fields"),

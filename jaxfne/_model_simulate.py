@@ -35,7 +35,7 @@ from .emitters_adex import AdExParams, simulate_adex
 from .emitters_lif import LIFNetworkParams
 from .fields import project_laminar_sources
 from .io import config_hash, json_safe
-from ._runtime_config import RuntimeConfig, _device_scope
+from ._runtime_config import RuntimeConfig, _device_scope, _require_backend_available
 from ._signals import (
     Signals,
     Simulation,
@@ -1146,8 +1146,14 @@ def simulate(
 
     if isinstance(self.params["emitter"], LIFNetworkParams):
         _refuse_lif_inputs(self, sim, paradigm, continuation, return_state)
+        # The lif route consumes backend placement (runs under _device_scope),
+        # so an absent gpu/tpu fails here; the adex branch above already
+        # refuses every non-default backend by name, so it needs no check.
+        _require_backend_available(runtime_cfg.selected_backend)
         return _simulate_lif(self, sim, runtime_cfg, paradigm)
 
+    # An absent gpu/tpu device fails fast instead of silently downgrading.
+    _require_backend_available(runtime_cfg.selected_backend)
     for _row in (self.cfg.metadata.get("circuit", {}) or {}).get("connections", []):
         if isinstance(_row, dict) and _row.get("weight_sharing") is not None:
             raise ValueError(
@@ -2096,6 +2102,7 @@ def simulate_batch(
     base_seed = sim.seed if seed is None else int(seed)
     keys = jax.random.split(jax.random.PRNGKey(base_seed), int(n_seeds))
     emitter = self._require_izhikevich_emitter("simulate_batch")
+    _require_backend_available(runtime_cfg.selected_backend)
 
     # Sparse-direct models (placeholder dense W) must use the edge_list backend.
     if emitter.W.shape[0] != int(emitter.v0.shape[0]) and "edge_list" in self.params:

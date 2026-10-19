@@ -45,7 +45,7 @@ from ._config import (
     edge_seed_from_metadata,
     poisson_signature,
 )
-from ._runtime_config import RuntimeConfig
+from ._runtime_config import RuntimeConfig, _require_backend_available
 from ._signals import Simulation, Signals, LaminarSourceGeometry
 from ._model import Model
 from ._construct_connectivity import (
@@ -85,6 +85,18 @@ def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
         if v is not None:
             kw[k] = v
     return RuntimeConfig(**kw)
+
+
+def _require_metadata_backend_available(metadata: Mapping[str, Any]) -> None:
+    """Fail fast when ``Configuration.runtime(backend=...)`` names an absent gpu/tpu.
+
+    Mirrors :attr:`RuntimeConfig.selected_backend` (``device_type`` aliases
+    ``backend``). The adex route is not covered here: it refuses every
+    non-default backend by name itself, so its ``ValueError`` keeps priority.
+    """
+    _require_backend_available(
+        metadata.get("device_type") or metadata.get("backend") or "auto"
+    )
 
 
 def simulate(
@@ -1021,6 +1033,9 @@ def construct(
                 f"for the second argument when the first is a NeuronalTensor; "
                 f"got {type(runtime).__name__}"
             )
+        # Fail fast on an absent gpu/tpu device instead of building a model
+        # that can only fail later at simulate() time.
+        _require_backend_available(runtime.device or "auto")
         if geometry is not None:
             raise ValueError(
                 "geometry= is not supported on the NeuronalTensor path -- "
@@ -1435,6 +1450,7 @@ def _construct_from_configuration(
                 f"construct(geometry={geometry!r}) is not realized on the homeostatic_ei route: "
                 "positions come from the canonical E/I layout"
             )
+        _require_metadata_backend_available(cfg.metadata)
         return _construct_homeostatic_ei_model(cfg)
     if cfg.emitters and cfg.emitters[0].get("family") == "adex":
         if geometry is not None:
@@ -1443,6 +1459,8 @@ def _construct_from_configuration(
                 "its cells sit at zero positions and no geometry is read"
             )
         return construct_adex_model(cfg)
+    # An absent gpu/tpu device fails here, not later at simulate() time.
+    _require_metadata_backend_available(cfg.metadata)
     net = cfg.networks[0]
     dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
 

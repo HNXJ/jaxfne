@@ -1,0 +1,1 @@
+- `Simulation(plasticity=)` admits only `0.0`: a non-zero gain label is refused at construction with a `ValueError` naming the HDP API (`jaxfne.hdp_network.enable_plasticity`, `jaxfne.plasticity.STDPPlasticityConfig`). The label was never wired into any kernel, so the refusal replaces a silent no-op; the `metadata["plasticity_gain"]` key stays.

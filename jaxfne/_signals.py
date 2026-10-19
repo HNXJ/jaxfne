@@ -69,10 +69,12 @@ class Simulation:
     """Immutable specification of one simulation run.
 
     Fields: ``duration_ms`` and ``dt_ms`` (milliseconds; both must be positive
-    and finite), ``seed`` (PRNG seed), ``plasticity`` (reserved gain label,
-    recorded to ``metadata["plasticity_gain"]`` for provenance only -- it does
-    not alter kernel numerics; plasticity is engaged via
-    ``RuntimeConfig(enable_hdp=...)`` / homeostasis params),
+    and finite), ``seed`` (PRNG seed), ``plasticity`` (must be ``0.0``: a
+    non-zero gain label is refused at construction because no kernel reads
+    it -- only ``metadata["plasticity_gain"]`` records the admitted zero.
+    Engage real plasticity via ``RuntimeConfig(enable_hdp=...)`` /
+    homeostasis params, i.e. ``jaxfne.hdp_network.enable_plasticity`` or
+    ``jaxfne.plasticity.STDPPlasticityConfig``),
     ``record_sources``/``record_fields`` (recording toggles), ``poisson_drive``
     (optional drive spec), ``runtime`` (:class:`RuntimeConfig` override), and
     ``ablation`` (None or one of ``E_silence``, ``I_silence``,
@@ -84,6 +86,11 @@ class Simulation:
 
     duration_ms: float = 1000.0
     dt_ms: float = 0.05
+    # ``plasticity`` admits only ``0.0``: the gain label was never wired into
+    # any kernel (it only reached ``metadata["plasticity_gain"]``), so a
+    # non-zero value is refused instead of silently doing nothing. Engage
+    # real plasticity through ``jaxfne.hdp_network.enable_plasticity`` or
+    # ``jaxfne.plasticity.STDPPlasticityConfig``.
     plasticity: float = 0.0
     seed: int = 0
     record_sources: bool = True
@@ -111,6 +118,15 @@ class Simulation:
             raise ValueError(
                 f"Simulation.ablation must be None or one of {sorted(_ABLATION_MODES)}; "
                 f"got {self.ablation!r}"
+            )
+        if self.plasticity != 0:
+            raise ValueError(
+                f"Simulation.plasticity={self.plasticity!r} is refused: the gain "
+                "label is not read by any kernel (only the admitted zero "
+                "reaches metadata['plasticity_gain']), so a non-zero value "
+                "would silently do nothing. Engage real plasticity through "
+                "jaxfne.hdp_network.enable_plasticity or "
+                "jaxfne.plasticity.STDPPlasticityConfig, or leave plasticity=0.0"
             )
         # Simulation owns seed and n_steps (resolved_runtime overrides the
         # runtime's); a runtime carrying different non-default values is refused
