@@ -233,6 +233,20 @@ def test_score_freq_res_sets_peak_grid():
         L.score(spikes, DT, freq_res_hz=0.0)
 
 
+def test_score_label_grid_fixed_in_time():
+    """A 22 Hz rhythm reads oscillatory at dt=0.1 ms as at dt=0.5 ms (128 ms segments)."""
+    rng = np.random.default_rng(6)
+    labels = {}
+    for dt in (0.5, 0.1):
+        n_steps = int(round(2000 / dt))
+        t_s = np.arange(n_steps) * dt * 1e-3
+        p = 0.002 * dt / 0.1 * (1.0 + 0.3 * np.sin(2.0 * np.pi * 22.0 * t_s))
+        spikes = rng.random((n_steps, 300)) < p[:, None]
+        assert spikes.sum() > 0, "fixture must spike"
+        labels[dt] = L.score(spikes, dt)["label"]
+    assert labels == {0.5: "oscillatory", 0.1: "oscillatory"}, labels
+
+
 def test_run_consumes_dt(tmp_path):
     """``run(dt_ms=...)`` sets the step count and the manifest dt (G4 convergence runs)."""
     import json

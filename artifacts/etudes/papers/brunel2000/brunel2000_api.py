@@ -37,6 +37,7 @@ THETA_MV = 20.0
 VRESET_MV = 10.0
 CONNECTIVITY_P = 0.1
 NUTHR_HZ = 10.0
+LABEL_WINDOW_MS = 128.0  # Welch segment for regime labels: 256 samples at dt=0.5 ms
 E_FRACTION = 0.8
 
 #: Fig. 8 (g, nuext/nuthr) points (SOURCE_P1.md section 3).
@@ -174,8 +175,8 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms
     t_construct = time.perf_counter() - t0
     sim = build_sim(point=point, n=n, T_s=T_s, dt_ms=dt_ms, seed=seed)
     signals = model.simulate(sim)
+    spikes = np.asarray(signals.spikes, dtype=bool)  # waits for the dispatched kernel
     t_simulate = time.perf_counter() - t0 - t_construct
-    spikes = np.asarray(signals.spikes, dtype=bool)
     assert spikes.shape == (sim.n_steps, sum(
         1 for _ in model.neuron_table())), "raster must cover every neuron"
     assert bool(np.isfinite(np.asarray(signals.V_m)).all()), "V must stay finite"
@@ -210,9 +211,11 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms
 def score(spikes, dt_ms=DT_MS, burn_in_ms=0.0, freq_res_hz=None):
     """Score a raster after ``burn_in_ms`` with ``jaxfne.analysis`` estimators (checklist E3).
 
-    Labels use the classifier's default Welch grid. ``freq_res_hz`` reads
-    ``spectral_peak_hz`` from a second Welch grid with that bin width (the
-    global frequency of Fig. 8); None keeps the default grid.
+    Labels use Welch segments of ``LABEL_WINDOW_MS`` (the classifier's
+    256-sample default at dt=0.5 ms), so the label grid stays fixed in time
+    at any dt. ``freq_res_hz`` reads ``spectral_peak_hz`` from a second Welch
+    grid with that bin width (the global frequency of Fig. 8); None keeps the
+    label grid.
     """
     from jaxfne.analysis import activity_regime as _activity_regime
     from jaxfne.analysis import wang_buzsaki_kappa as _kappa
@@ -223,7 +226,9 @@ def score(spikes, dt_ms=DT_MS, burn_in_ms=0.0, freq_res_hz=None):
         raise ValueError(f"burn_in_ms must be >= 0, got {burn_in_ms!r}")
     arr = np.asarray(spikes, dtype=bool)[int(round(float(burn_in_ms) / float(dt_ms))):]
     assert arr.shape[0] > 0, "burn_in_ms must leave steps to score"
-    regime = _activity_regime(arr, float(dt_ms))
+    regime = _activity_regime(
+        arr, float(dt_ms),
+        thresholds={"welch_nperseg": int(round(LABEL_WINDOW_MS / float(dt_ms)))})
     peak_hz = regime["spectral_peak_hz"]
     if freq_res_hz is not None:
         if not float(freq_res_hz) > 0.0:
