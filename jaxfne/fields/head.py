@@ -3,7 +3,8 @@
 One simulated column becomes a cortex: :func:`column_dipole` reduces the column's
 sources to a current dipole along its axis, :func:`folded_sphere_surface` places
 column copies on a folded surface with outward normals, and
-:func:`tile_column_dipoles` copies simulated realizations onto those columns.
+:func:`tile_column_dipoles` copies simulated realizations onto those columns, and
+:func:`signals_dipole` takes the dipole straight from a simulation's ``Signals``.
 :func:`meg_sphere_leadfield` (Sarvas 1987) and :func:`eeg_sphere_leadfield`
 (homogeneous sphere, Frank 1952) map oriented dipoles to sensors.
 
@@ -42,6 +43,22 @@ def column_dipole(source: jax.Array, positions: jax.Array, axis: int = 2) -> jax
         raise ValueError(f"axis must be 0, 1 or 2, got {axis}")
     z = pos[:, axis]
     return q @ (z - z.mean())
+
+
+def signals_dipole(signals: Any, model: Any, axis: int = 2) -> jax.Array:
+    """Column dipole ``[T]`` of a simulation: :func:`column_dipole` of its sources at the model's positions.
+
+    The bridge from a laminar run to MEG and EEG: the sources that make the
+    run's LFP also give its dipole, which :class:`SphereForward` maps to sensors
+    once scaled to A·m. ``signals`` must carry sources (``record_sources=True``).
+    """
+    sources = getattr(signals, "sources", None)
+    if sources is None:
+        raise ValueError("signals carry no sources; simulate with record_sources=True")
+    params = getattr(model, "params", None)
+    if not isinstance(params, dict) or "positions" not in params:
+        raise ValueError("model must carry params['positions'] (a constructed jaxfne Model)")
+    return column_dipole(sources, params["positions"], axis=axis)
 
 
 def _unit(v: jax.Array) -> jax.Array:
@@ -271,6 +288,7 @@ __all__ = [
     "eeg_sphere_leadfield",
     "folded_sphere_surface",
     "meg_sphere_leadfield",
+    "signals_dipole",
     "sphere_sensor_cap",
     "tile_column_dipoles",
 ]

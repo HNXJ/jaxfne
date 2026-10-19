@@ -14,6 +14,7 @@ from jaxfne.fields.head import (
     eeg_sphere_leadfield,
     folded_sphere_surface,
     meg_sphere_leadfield,
+    signals_dipole,
     sphere_sensor_cap,
     tile_column_dipoles,
 )
@@ -220,3 +221,34 @@ def test_sphere_forward_applies_and_reports():
     assert rep["modality"] == "meg" and rep["physical_amplitude_calibrated"] is False
     with pytest.raises(ValueError):
         fwd.apply(p[:, :5])
+
+
+def test_signals_dipole_bridges_a_simulation_to_the_head():
+    import jaxfne as jtfne
+
+    cfg = (
+        jtfne.configuration()
+        .network(name="V1", kind="cortical_column", n=24, cell_types={"E": 0.8, "PV": 0.1, "SST": 0.1})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        .probe(name="laminar_probe", modes=["spikes", "LFP"])
+    )
+    model = jtfne.construct(cfg)
+    sig = model.simulate(jtfne.simulation(duration_ms=40.0, dt_ms=0.5, seed=1))
+    q, pos = np.asarray(sig.sources, np.float64), np.asarray(model.params["positions"], np.float64)
+    assert np.abs(q).max() > 0, "fixture must produce sources"
+    z = pos[:, 2]
+    p = np.asarray(signals_dipole(sig, model))
+    assert p.shape == (q.shape[0],)
+    assert_allclose(p, q @ (z - z.mean()), rtol=1e-5, atol=1e-6 * np.abs(q).max())
+    p_x = np.asarray(signals_dipole(sig, model, axis=0))
+    assert np.abs(p_x - p).max() > 0, "axis must be consumed"
+    sens, nrm = sphere_sensor_cap(8, 0.12)
+    cpos, cnrm = folded_sphere_surface(1)
+    fwd = SphereForward("meg", meg_sphere_leadfield(sens, nrm, cpos, cnrm), "sarvas_1987_sphere", "T/(A m)")
+    assert fwd.apply(jnp.asarray(p)[:, None] * 1e-9).shape == (q.shape[0], 8)
+    no_src = model.simulate(jtfne.simulation(duration_ms=40.0, dt_ms=0.5, seed=1, record_sources=False))
+    with pytest.raises(ValueError, match="record_sources"):
+        signals_dipole(no_src, model)
+    with pytest.raises(ValueError, match="positions"):
+        signals_dipole(sig, object())

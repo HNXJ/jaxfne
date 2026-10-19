@@ -87,6 +87,7 @@ from .head import (
     eeg_sphere_leadfield,
     folded_sphere_surface,
     meg_sphere_leadfield,
+    signals_dipole,
     sphere_sensor_cap,
     tile_column_dipoles,
 )
@@ -154,6 +155,7 @@ __all__ = [
     "eeg_sphere_leadfield",
     "folded_sphere_surface",
     "meg_sphere_leadfield",
+    "signals_dipole",
     "sphere_sensor_cap",
     "tile_column_dipoles",
 ]
