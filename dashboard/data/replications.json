@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-19T15:09:20Z",
-    "dev_sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"
+    "utc": "2026-10-19T15:16:36Z",
+    "dev_sha": "21fb2a9ceec48a6b9b1a6fd1bf8f77fb36462be4"
   },
   "papers": [
     {
@@ -2527,6 +2527,34 @@
         "Pilot port of the Fig. 8 network (12,500 LIF cells, fixed indegree, single delay) through the public API.",
         "Simulation numerics (integrator, dt, duration, seeds) are unstated in the paper and need declared P2 choices."
       ]
+    },
+    {
+      "id": "potjans2014",
+      "title": "Potjans and Diesmann 2014 cortical microcircuit, Fig. 6 and Table 5",
+      "citation": "Potjans and Diesmann, Cereb Cortex 24(3):785-806",
+      "class": "in progress",
+      "question": "Does the jaxfne core reproduce the microcircuit's spontaneous AI state: layer-specific rates, CV above 0.8 and L6-lowest synchrony?",
+      "page": "models/potjans2014.md",
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {
+        "branch": "dev",
+        "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "P1 source record written from the open-access PMC record. Fig. 6 claims (reference rates 0.86/4.45/7.59/1.09 Hz, CV above 0.8, L5e-highest/L6-lowest synchrony) and the Table 5 connectivity map are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Supplementary Tables 1-3 not yet machine-read; publisher supplement links unverified.",
+        "Leak reversal unstated in the paper; NEST default or authors' code must settle it.",
+        "Thalamic transient protocol and Fig. 10/11 propagation claims deferred past P1."
+      ]
     }
   ],
   "roadmap": [
@@ -2544,11 +2572,6 @@
       "release": "0.5.7",
       "model": "PCL Fig. 4: suppression effects",
       "needs": "0.5.6 conductance synapses"
-    },
-    {
-      "release": "0.5.8",
-      "model": "Potjans and Diesmann 2014: cortical microcircuit",
-      "needs": "laminar readout; GPU time"
     },
     {
       "release": "0.5.8",
