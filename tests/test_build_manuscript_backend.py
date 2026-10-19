@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
+
+import pytest
 
 import scripts.build_manuscript as bm
 
@@ -142,3 +145,12 @@ def test_build_tex_explicit_honored_with_pandoc(monkeypatch, tmp_path):
     res = bm.build(out, backend="pandoc")
     assert res.suffix == ".tex"
     assert res.exists()
+
+
+def test_verify_flag_removed(monkeypatch, capsys):
+    """--verify was parsed and never read (build() always verifies); it is refused."""
+    monkeypatch.setattr(sys, "argv", ["build_manuscript.py", "--verify"])
+    with pytest.raises(SystemExit) as exc:
+        bm.main()
+    assert exc.value.code == 2
+    assert "unrecognized arguments: --verify" in capsys.readouterr().err

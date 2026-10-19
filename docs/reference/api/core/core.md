@@ -151,12 +151,13 @@ physical signals.
 
 `Model` has many methods beyond those listed; this lists the documented ones.
 
-#### `simulate(sim: Simulation, paradigm: Any | None = None, *, continuation: Any | None = None, return_state: bool = False) -> Signals`
+#### `simulate(sim: Simulation, paradigm: Any | None = None, *, continuation: Any | None = None, return_state: bool = False) -> Signals | tuple[Signals, Any]`
 
 `_model.py`. Runs the default **Izhikevich / edge-list EIG vertical slice**.
 `sim` is a **required, positional `Simulation` object**. `duration_ms`, `dt_ms`, and `seed` are not accepted as
 keywords directly on `Model.simulate`. Use the module-level `jtfne.simulate(model,
-duration_ms=..., ...)` helper (below) for the kwarg form.
+duration_ms=..., ...)` helper (below) for the kwarg form. With `return_state=True`
+it returns `(signals, continuation)`; pass that state back through `continuation=` for the next segment.
 
 When the constructed emitter is Izhikevich (or another edge-list path that
 reaches `_simulate_arrays`), and `paradigm` is a `StimulusSchedule` or

@@ -120,6 +120,10 @@ def save_figure_manifest(
     if not output_path.is_file():
         raise FileNotFoundError(f"Figure output not found: {output_path}")
 
+    for src in source_files:
+        if not (root / src).is_file():
+            raise FileNotFoundError(f"Source file not found: {src}")
+
     sha = sha256_file(output_path)
     manifest: dict = {
         "schema_version": _MANIFEST_SCHEMA,

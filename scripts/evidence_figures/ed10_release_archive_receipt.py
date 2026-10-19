@@ -51,7 +51,7 @@ SOURCE_FILES = [
     "scripts/evidence_figures/ed10_release_archive_receipt.py",
     "scripts/evidence_figures/_figure_common.py",
     "scripts/evidence_inventory.py",
-    "docs/evidence/evidence_checklist.json",
+    "docs/theory/publication/evidence_checklist.json",
     "pyproject.toml",
 ]
 

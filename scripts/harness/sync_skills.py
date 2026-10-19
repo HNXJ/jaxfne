@@ -135,12 +135,14 @@ def update(refresh_manifest: bool) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--check", action="store_true")
-    ap.add_argument("--update", action="store_true")
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument("--check", action="store_true")
+    mode.add_argument("--update", action="store_true")
     ap.add_argument("--manifest", action="store_true")
     a = ap.parse_args()
     if a.update:
         return update(a.manifest)
+    # --check or bare invocation: verify canonical skills match the manifest.
     return check()
 
 

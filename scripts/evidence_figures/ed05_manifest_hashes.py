@@ -48,7 +48,7 @@ SOURCE_FILES = [
     "scripts/evidence_figures/ed05_manifest_hashes.py",
     "scripts/evidence_figures/_figure_common.py",
     "scripts/evidence_inventory.py",
-    "docs/evidence/evidence_checklist.json",
+    "docs/theory/publication/evidence_checklist.json",
 ]
 
 TITLE = "Extended Data 5 - local artifact hash integrity receipt"

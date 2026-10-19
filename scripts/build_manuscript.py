@@ -434,7 +434,6 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Deterministic manuscript PDF build")
     ap.add_argument("--out", type=Path, default=Path("/tmp/manuscript.pdf"), help="output PDF/HTML path")
     ap.add_argument("--backend", choices=["auto", "reportlab", "pandoc"], default="auto", help="PDF backend: auto (default, guarantees .pdf suffix), reportlab (deterministic), pandoc (markdown→pdf/tex)")
-    ap.add_argument("--verify", action="store_true", help="verify figures/DOIs before build")
     args = ap.parse_args()
     out = build(args.out, backend=args.backend)
     # Enforce suffix contract post-build

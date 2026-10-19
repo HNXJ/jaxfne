@@ -68,12 +68,14 @@ def main(argv=None) -> int:
         OUT.write_bytes(text.encode("utf-8"))
         print(f"wrote {OUT.relative_to(ROOT)}")
         return 0
-    current = OUT.read_bytes().decode("utf-8") if OUT.exists() else None
-    if current != text:
-        print(f"{OUT.relative_to(ROOT)} is stale: run --write", file=sys.stderr)
-        return 1
-    print("replications page current")
-    return 0
+    if args.check:
+        current = OUT.read_bytes().decode("utf-8") if OUT.exists() else None
+        if current != text:
+            print(f"{OUT.relative_to(ROOT)} is stale: run --write", file=sys.stderr)
+            return 1
+        print("replications page current")
+        return 0
+    parser.error("pass --write or --check")
 
 
 if __name__ == "__main__":

@@ -24,6 +24,11 @@
     "weights_csv": "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_weights.csv",
     "H_csv": "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_H.csv"
   },
+  "absent_since_compaction_2026_10_06": [
+    "mcc3_10s_metrics.json",
+    "mcc3_10s_weights.csv",
+    "mcc3_10s_H.csv"
+  ],
   "hashes": {
     "mcc3_10s_pre_post.png": "a44a7384f280db1347b2ed2564b20c0bdb83cf34d42f2a21766962aab8dd6035",
     "mcc3_10s_metrics.json": "85712818c99fca8779967f917e93c5965f3c8fc983d08f1579ae1ef92785d4a5"
