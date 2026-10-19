@@ -110,6 +110,21 @@ marked inferred).
   only in receipts, e.g. `benchmark_054_scaling.py`, `run_protocol_h_h4_matrix.py`); 8 audit
   scripts are reached by no gate. Deleting any is Hamm's call.
 
+### P-043
+
+- Date: 2026-10-19. Type: SCIENCE. Area: Izhikevich cell-type presets. Severity: medium.
+- `IZHIKEVICH_CELL_TYPE_DEFAULTS` (`jaxfne/emitters.py`): `VIP` (b = -0.10, drive 3.0), and `I`,
+  which aliases VIP, sit far below rheobase. Constant input gives a stable rest while
+  `(5 - b)^2 > 0.16 (140 + I)`, so VIP needs I > 22.56; E and PV need I > 4.0, SST I > 1.02.
+- Reproduction: near-uncoupled column (all type gains 1e-6, default noise), one drive for all
+  types, 1 s after a 250 ms burn. VIP: 0 Hz up to drive 22, 4.2 Hz at 23, 11.8 Hz at 25. PV: 0 Hz at
+  the default 3.0. SST: 42 Hz at 3.0, 51 Hz at 4.0.
+- Consequence: a column built on the defaults has silent VIP (and `I`) cells and SST-dominated
+  dynamics; in a 1050-neuron, 21-bin laminar column, SST fired at 48 Hz while E and PV fired once at onset and
+  then stopped.
+- Possible change: per-type default drives above rheobase, or a construction-time warning when
+  a type's drive is below its rheobase. Which one is Hamm's call (it changes every default model).
+
 ### P-035
 
 - Date: 2026-10-18. Type: BUG. Area: docs build (Read the Docs). Severity: high (published docs
