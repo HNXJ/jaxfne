@@ -2,15 +2,15 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-19T14:31:25Z",
-    "dev_sha": "6173b175b042c12e32e1340d8bc62e23fc8d2c0e"
+    "utc": "2026-10-19T14:59:26Z",
+    "dev_sha": "752794f0c5672ddfceb56a74f62f00b7630bf633"
   },
   "papers": [
     {
       "id": "caminos",
       "title": "CAMINOS reference model, Fig. 1",
       "citation": "Tahvili, Vinck and di Volo, PLoS Comput Biol 2026",
-      "class": "reproduced",
+      "class": "mixed",
       "question": "Does the E–PV–SOM AdEx network give about 35 Hz gamma, SOM after PV, PV > SOM > E and an onset above a critical p?",
       "page": "models/caminos.md",
       "release": "0.5.7",
@@ -122,8 +122,8 @@
           ]
         }
       ],
-      "verdict": "reproduced",
-      "verdict_note": "Paper verdict mixed (REPLICATIONS.md, Hamm 2026-10-18); library path separate: P6 v2 PASS through the public API (Q1–Q5, C1). Paper verdict under v7 (amended after v6 R4 failed): f_pk, rates and R4 reproduced. Against PLoS CB (primary, Hamm 2026-10-14) the PV→SOM lag by the ref. 42 method is 6.47 ms against 8.5 ms (off, e 0.24): a finding that needs X. The 0.1 ms delay sensitivity gives the preprint's ≈ 7 ms",
+      "verdict": "mixed",
+      "verdict_note": "Reproduced under v7 (amended after v6 R4 failed): f_pk, rates and R4. Missed: against PLoS CB (primary, Hamm 2026-10-14) the PV→SOM lag by the ref. 42 method is 6.47 ms against 8.5 ms (off, e 0.24), a finding that needs X. Library path, scored apart: P6 v2 PASS through the public API (Q1–Q5, C1). The 0.1 ms delay sensitivity gives the preprint's ≈ 7 ms",
       "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07. The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep. At p = 0.07 the v6 and v7 runs are identical for all five seeds, so R1–R3 and R4v7 score one realization there.",
       "preregs": [
         {

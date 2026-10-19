@@ -25,11 +25,13 @@ from pathlib import Path
 SCHEMA = "jaxfne-replications/2"
 SOURCES_SCHEMA = "jaxfne-dashboard-sources/2"
 # Status classes (Hamm 2026-10-16). reproduced, reproduced (conditional) and failed need a signed
-# preregistration; a conditional reproduction states its condition in verdict_note. An in-progress
+# preregistration; a conditional reproduction states its condition in verdict_note. mixed (Hamm
+# 2026-10-19): a signed preregistration scored with some primary criteria reproduced and others
+# missed; verdict_note names which. An in-progress
 # paper has a stage and no verdict; a preregistration scored without a pass keeps it in progress.
 # A not-started paper has no verdict and no criteria.
-CLASSES = ("reproduced", "reproduced (conditional)", "in progress", "not started", "failed")
-SCORED_CLASSES = ("reproduced", "reproduced (conditional)", "failed")
+CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "in progress", "not started", "failed")
+SCORED_CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "failed")
 TOL = 1e-9
 FLOOR_REASON = "E-rate floor not met"
 NO_VALUE = "—"
@@ -459,6 +461,8 @@ def check_class(spec):
         raise BuildError(f"paper {spec['id']}: class {cls!r} needs a signed preregistration")
     if cls == "reproduced (conditional)" and not spec.get("verdict_note"):
         raise BuildError(f"paper {spec['id']}: a conditional reproduction states its condition in verdict_note")
+    if cls == "mixed" and not spec.get("verdict_note"):
+        raise BuildError(f"paper {spec['id']}: a mixed verdict names what reproduced and what missed in verdict_note")
     return cls
 
 

@@ -13,8 +13,8 @@ pass or fail (B2). Ledgers and results live on the lane branch until it merges t
 
 Decisions (Hamm 2026-10-13; CAMINOS ruling 2026-10-14; status tags 2026-10-16):
 
-- Status tags (Hamm 2026-10-16): reproduced, reproduced (conditional), in progress, not
-  started, failed (rare). "Not reproduced" is no status: a preregistration scored without a
+- Status tags (Hamm 2026-10-16; mixed 2026-10-19): reproduced, reproduced (conditional),
+  mixed, in progress, not started, failed (rare). "Not reproduced" is no status: a preregistration scored without a
   pass keeps the paper in progress, and the scored criteria stay visible (B2). The former
   demonstrations (PCL Fig. 2, HH AT-01, Q-learning) are in progress; CAMINOS stays mixed
   (Hamm 2026-10-18); the dashboard separates the P6 library-path PASS from the paper verdict.

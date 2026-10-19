@@ -139,7 +139,7 @@ names the file and line that satisfies each one.
 |---|---|---|
 | R1 | A stage closes only when its record exists: P1 `SOURCE_P1.md`, P2 `PORT_SPEC.md`, P3 `PREREG_P3.md`, P5 `LEDGER.md` and `RESULT_P3.md`, calibration `CALIBRATION.md`, P6 equivalence result. | *gate*: files present for the stage on the dashboard |
 | R2 | Every number quoted in a record is reopened from its JSON or receipt before commit. | reviewer reopens each number |
-| R3 | Verdicts use the status tags (reproduced, reproduced (conditional), in progress, not started, failed). A scored miss keeps the paper in progress with its criteria visible. | dashboard row matches the folder's records |
+| R3 | Verdicts use the status tags (reproduced, reproduced (conditional), mixed, in progress, not started, failed). A scored miss keeps the paper in progress with its criteria visible. | dashboard row matches the folder's records |
 | R4 | A paper counts as replicated with jaxfne only at P6: the same estimands through the public API, equal to P5 within the declared tolerance. | P6 result file |
 | R5 | `dashboard/sources.json`, `REPLICATIONS.md` and `docs/start/replications.md` are regenerated with the stage change (`build_dashboard_data.py --check`, `generate_replications_page.py --check`). | *gate*: both `--check` pass |
 | R6 | The paper folder keeps at most 7 files and 7 folders (`run/`, `fit/`, `diag/`, `tests` in `tests/`). | *gate*: tree-degree test |

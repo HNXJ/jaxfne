@@ -375,6 +375,11 @@ def test_value_text_three_significant_figures():
     ({"class": "reproduced (conditional)", "verdict": "pass",
       "preregs": [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}]},
      "a conditional reproduction states its condition in verdict_note"),
+    ({"class": "mixed", "verdict": "mixed",
+      "preregs": [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}]},
+     "a mixed verdict names what reproduced and what missed in verdict_note"),
+    ({"class": "mixed", "verdict_note": "f_pk reproduced; lag missed", "preregs": []},
+     "needs a signed preregistration"),
 ])
 def test_class_rules_refuse_and_name_the_paper(tmp_path, over, needle):
     root = tmp_path / "repo"

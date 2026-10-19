@@ -97,16 +97,18 @@ section 8 citing a replication only at a signed-prereg verdict; JAX runs above a
 run on WSL2 CUDA.
 
 - T-32 [A] Reproduction throughput (Hamm 2026-10-18: "we should be reproducing a lot more").
+  Target (Hamm 2026-10-19): close about one replication per day, a scored verdict in any class
+  on the dashboard; the dashboard and REPLICATIONS update as each lands.
   Inspection the same day (three read-only sweeps at 74acf7e0): 7 lanes over 12 days, one
   reproduced; the queue holds no unstarted paper; about 40–50% of lane commits are protocol
   paperwork (CAMINOS prereg v1–v6 + v7, Izhikevich v7 to v8.2); every run loop is serial (GSDR
   500 generations 58,552 s, 24 serial HH calls per generation; PCL about 55 min per clip on one
-  core); 4 of 28 checklist rules are scripted. Work, in order: (T-32a) lane kit
-  `scripts/lane_kit.py` and `scripts/new_lane.py` scaffold, destexhe2009 migrated first;
-  (T-32b) `simulate_hh_batch` (vmap over weights, keys, stimuli) and the GSDR fit on it; (T-32c)
+  core); 4 of 28 checklist rules are scripted. Landed: (T-32a) lane kit `scripts/lane_kit.py`
+  and `scripts/new_lane.py`, destexhe2009 migrated; (T-32b) `simulate_hh_batch`; MCDP in the core
+  (O-42). Work, in order: the GSDR fit on `simulate_hh_batch` and `gsdr_mcdp_transform`; (T-32c)
   seed and candidate batching for the AdEx and LIF routes and `Model.tune` (serial loop
   `_model_tune.py:451`); (T-32d) core homes for lane-local analysis (ISI ratio and CV, aperiodic
-  fit, tuning fit) and MCDP (O-42); (T-32e) script checklist rules E1, S2, F3, P4, R4 in
+  fit, tuning fit); (T-32e) script checklist rules E1, S2, F3, P4, R4 in
   `check_replications.py`; (T-32f) new lanes at P1 with the scaffold (Hamm 2026-10-18): Brunel
   2000, Vogels et al. 2011, Potjans and Diesmann 2014, Mejias et al. 2016; Hamm authorized a
   rate-population (Wilson–Cowan-type) emitter for Mejias under B3, behind the P4 perturbation

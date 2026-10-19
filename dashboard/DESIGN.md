@@ -33,9 +33,11 @@ shows scored results only from committed evidence.
 Schema 2 (Hamm 2026-10-12, `ARCHITECTURE_v2.md`) adds per paper `class`, `question`, `page`
 (`models/<id>.md`, rendered with marked and KaTeX), per criterion `paper_value` (text, or null
 where the paper gives none), and a top-level `roadmap` list of `{release, model, needs}`.
-Classes (Hamm 2026-10-16): reproduced | reproduced (conditional) | in progress | not started |
-failed. A model run without a scored preregistration is in progress. The scored classes (reproduced, reproduced (conditional), failed) need
-a signed preregistration, and a conditional reproduction states its condition in `verdict_note`.
+Classes (Hamm 2026-10-16; mixed 2026-10-19): reproduced | reproduced (conditional) | mixed |
+in progress | not started | failed. A model run without a scored preregistration is in progress.
+The scored classes (reproduced, reproduced (conditional), mixed, failed) need a signed
+preregistration; a conditional reproduction states its condition, and a mixed one what
+reproduced and what missed, in `verdict_note`.
 An in-progress paper carries no verdict and needs a non-empty `stage`; a preregistration scored
 without a pass keeps the paper in progress, with its criteria shown. A not-started paper carries
 no verdict and no criteria; the overview also lists every roadmap row as not started. The generator refuses an unknown class, a broken class rule

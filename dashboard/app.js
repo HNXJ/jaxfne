@@ -27,6 +27,7 @@ function chipClass(verdict) {
   if (verdict === "pass" || verdict === "reproduced") return "chip-pass";
   if (verdict === "fail" || verdict === "not reproduced") return "chip-fail";
   if (verdict === "pending") return "chip-pending";
+  if (verdict === "mixed") return "chip-partial";
   return "chip-incomplete";
 }
 
@@ -34,6 +35,7 @@ function chipSymbol(verdict) {
   if (verdict === "pass" || verdict === "reproduced") return "✓";
   if (verdict === "fail" || verdict === "not reproduced") return "✗";
   if (verdict === "pending") return "…";
+  if (verdict === "mixed") return "◑";
   return "◌";
 }
 
@@ -508,6 +510,8 @@ var CLASSES = [
     def: "Every primary criterion of a signed preregistration passes." },
   { id: "reproduced (conditional)", label: "Reproduced (conditional)", chip: "chip-partial", symbol: "◐",
     def: "A signed preregistration passes under a stated condition, shown beside the class." },
+  { id: "mixed", label: "Mixed", chip: "chip-partial", symbol: "◑",
+    def: "A signed preregistration scored with some primary criteria reproduced and others missed, named beside the class." },
   { id: "in progress", label: "In progress", chip: "chip-incomplete", symbol: "…",
     def: "On the replication pipeline (P0–P7); the stage track shows how far it is. A preregistration scored without a pass keeps the paper here, with its criteria shown." },
   { id: "not started", label: "Not started", chip: "chip-incomplete", symbol: "○",
@@ -515,7 +519,7 @@ var CLASSES = [
   { id: "failed", label: "Failed", chip: "chip-fail", symbol: "✗",
     def: "Closed without reproducing the paper's result, with the reason stated (B2)." }
 ];
-var SCORED_CLASSES = ["reproduced", "reproduced (conditional)", "failed"];
+var SCORED_CLASSES = ["reproduced", "reproduced (conditional)", "mixed", "failed"];
 var TABS = ["overview", "models", "validation", "roadmap", "method"];
 
 function classInfo(id) {
