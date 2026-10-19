@@ -108,8 +108,7 @@ The pinned configuration is:
 | Realized | 1000 neurons, 215785 edges, 2000 steps |
 
 The generator checks `config_hash` before writing and aborts on drift, so a
-change to the canonical column must be an explicit decision, rather than a
-silent republish. PNG rasterization needs `kaleido` (`pip install ".[viz]"`);
+change to the canonical column needs an explicit decision. PNG rasterization needs `kaleido` (`pip install ".[viz]"`);
 `--html-only` skips it.
 
 ### A note on panel 6's name

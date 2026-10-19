@@ -18,8 +18,8 @@ TFNE -> JDNA -> JaxFNE Model -> Simulation -> Observation -> Evidence
 | Simulation | Dynamics | trajectories and observations |
 
 TFNE can be intentionally underdetermined: a specification may leave
-quantities open that realization requires. That is not a defect in the
-specification. JDNA is the single owner of completing them, under explicit
+quantities open that realization requires. That openness is intentional.
+JDNA is the single owner of completing them, under explicit
 developmental rules `D` and an explicit development RNG domain `K_D`:
 
 $$

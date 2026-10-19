@@ -49,8 +49,8 @@ implementations of typed roles**; no single universal physical equation applies.
 \boxed{\mathbf H(t)\in\mathbb R^{d_H}}
 \]
 
-is a **finite-dimensional state-space container**, rather than a single homeostatic
-equation.
+is a **finite-dimensional state-space container** holding several state
+coordinates.
 
 See [RBS/RBD/HDP](rbs_rbd_hdp.md) for the canonical RBS definition.
 

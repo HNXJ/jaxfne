@@ -202,7 +202,7 @@ signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=7)
 
 `_model_readout.py`. Canonical v0.1 workflow method — computes scalar features from
 `Signals`, one per `ReadoutSpec`. Returns a **list** of `ReadoutResult`, one
-per spec, in the same order (not a single combined `ReadoutResult`).
+per spec, in the same order.
 
 **Example:**
 ```python

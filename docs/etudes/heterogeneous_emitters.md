@@ -79,7 +79,7 @@ Shared **shape** (relative native drive added to each family's baseline):
 | pulse | 700–750 | 1 |
 | tail | 750–1000 | 0 |
 
-Family-native scales (not a calibration):
+Family-native scales (uncalibrated):
 
 - `izh`: \(U = 6.0 \times \mathrm{shape}\)
 - `hei`: \(U = 0.2 \times \mathrm{shape}\)

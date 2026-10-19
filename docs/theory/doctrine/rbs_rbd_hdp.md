@@ -441,7 +441,7 @@ Upstream project sources and repository docs listed in the agent handout. Requir
 3. Relative coordinates retain physical provenance where physical claims may later be made.
 4. Proxy readouts remain proxies until calibrated/validated.
 5. Geometry-dependent calibration occurs at an explicit boundary.
-6. A normalized projection is not a physical PDE solve.
+6. A normalized projection stays a proxy rescaling.
 7. Homeostasis, adaptation, memory, plasticity, prediction, and surprise minimization are distinct claims.
 8. RBS/RBD/HDP unify mechanisms only where equations and falsification justify it.
 9. Quantization is an implementation optimization and carries no scientific evidence.

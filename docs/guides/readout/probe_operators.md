@@ -139,7 +139,7 @@ where `s_k(t)` is a declared source/current/potential feature and `L_eeg` is a t
 
 ### MEG-proxy
 
-**Purpose:** Provide a relative linear map of scalar source ``Q``. This is not a physical MEG forward operator and does not construct oriented current.
+**Purpose:** Provide a relative linear map of scalar source ``Q``. It is a relative proxy: physical MEG forward modelling and oriented current are out of scope.
 
 **Acceptable implementation:**
 

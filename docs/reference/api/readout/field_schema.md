@@ -73,7 +73,7 @@ output object and no new public API is proposed.
 - Use `experimental_poisson_1d` only for the explicit one-dimensional,
   mean-zero-Neumann / mean-zero-gauge experimental PDE workflow. The float32
   dense solve is observed to fail its 1e-3 residual check at N=321; that
-  observation is not a universal ceiling.
+  observation covers the tested size only.
 - Use `experimental_poisson_1d_from_neuron_table` when the source values
   start on a `Model.neuron_table()` (per-neuron depths and sources).
 - `field_solver_status` distinguishes implementation type and leaves

@@ -284,8 +284,8 @@ removed `ProbeReport`:
 
 2. **`jaxfne.operator_status()`** (`jaxfne/_construct_extras.py:38`) — returns a
    dict mapping operator symbol names to readiness strings (e.g.
-   `"prototype_api"`, `"not_implemented"`), a registry-level status snapshot,
-   not a per-call probe result.
+   `"prototype_api"`, `"not_implemented"`), a registry-level snapshot of
+   operator readiness.
 
 For a per-probe-call structured result, use `ReadoutResult` (above) or the
 plain dict returned by `Model.probe()`.
