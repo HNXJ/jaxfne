@@ -67,9 +67,6 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   uniform-gain null, which raised the score in 1 of 20 draws and is renamed to what it checks (j).
   Open: (e) E741 57, E402 47 (style). Closes when: each is fixed with a failing-first test or
   recorded harmless here.
-- T-28 [H] `jaxfne/tfne.py:211` `_RESERVED_LOWER = {"x", "y", "h", "s"}` is defined and never read
-  (Muse cleanup, 2026-10-15). Wiring it into name validation changes which names are accepted;
-  deleting it drops the stated reservation. Closes when: Hamm picks one.
 
 ## 3. 0.5.6–0.5.10 programme
 
@@ -139,8 +136,6 @@ run on WSL2 CUDA.
     are deleted, one class per commit behind the gate; the 8 ungated audits are wired into the
     report gate when they pass today, else deleted; the ignored `--check` in
     `assert_release_freeze.py` and `sync_release_metadata.py` becomes real.
-  - `tfne._RESERVED_LOWER` {x, y, h, s} wired into construct-time name checks (T-28): check repo
-    uses first, failing-first test, changelog.
   - [H] `problem_stack.md` is retired; `fact_stack.md` (Hamm edits) still says "The problem stack
     targets empty: solve and delete." and lists "problem" among the stacks. Proposed: drop both.
   - Docs foil sweep: branch `_temp_never-sweep` (jynx keeper, 5bd596f8) deleted from origin as

@@ -225,6 +225,10 @@ def _check_object_name(name: str) -> str:
 def _check_lower_name(name: str, role: str) -> str:
     if not name or not (name[0].islower() or name[0] == "_"):
         raise TFNEError(f"{role} name must be lowercase; got {name!r}")
+    if role != "boundary" and name in _RESERVED_LOWER:
+        raise TFNEError(
+            f"{role} name {name!r} is reserved (boundary or state symbol); choose another name"
+        )
     return name
 
 

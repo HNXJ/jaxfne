@@ -612,6 +612,19 @@ def test_reserved_names_and_rule_validation():
         parse("A := [C = {cell}; N = 2]; x : A O B : y; x : A : y")
 
 
+@pytest.mark.parametrize("name", ["x", "y", "h", "s"])
+def test_reserved_lowercase_rule_names_refused(name):
+    # x, y name boundaries and h, s state symbols; a rule may not take them.
+    rule = f"O[{name}] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.4]; "
+    cells = "A := [C = {cell}; N = 2]; B := [C = {cell}; N = 2]; "
+    with pytest.raises(TFNEError, match="reserved"):
+        parse(rule + cells + "x : A O B : y")
+    with pytest.raises(TFNEError, match="reserved"):
+        parse(cells + f"x : A O[{name}] B : y")
+    # the same names stay valid as boundaries, and other rule names still parse
+    parse(FF_RULE + " " + cells + "x : A O[ff] B : y")
+
+
 def test_selection_addressing_and_layer_types():
     text = """
     O[ff] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 1.0];
