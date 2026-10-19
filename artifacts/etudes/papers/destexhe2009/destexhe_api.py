@@ -23,7 +23,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from artifacts.etudes.meta import lane_kit
+from scripts import lane_kit
 
 _HERE = Path(__file__).resolve().parent
 

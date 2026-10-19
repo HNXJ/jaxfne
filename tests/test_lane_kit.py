@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from artifacts.etudes.meta import lane_kit
+from scripts import lane_kit
 from scripts import new_lane as nl
 
 REPO = Path(__file__).resolve().parent.parent
@@ -105,7 +105,7 @@ def test_new_lane_write_then_refuse(tmp_path, capsys):
                  "demo_lane_api.py", "test_demo_lane_api.py"):
         assert want in names, names
     api = (folder / "demo_lane_api.py").read_text()
-    assert "from artifacts.etudes.meta import lane_kit" in api
+    assert "from scripts import lane_kit" in api
     assert "import jaxfne as J" in api
     assert "PORT_SPEC" not in api
     prereg = (folder / "PREREG_P3.md").read_text()

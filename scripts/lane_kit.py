@@ -16,6 +16,11 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# P-025: the repo root precedes any jaxfne import (write_manifest imports it lazily).
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
 
 def git_sha(repo_root):
     """Git SHA via ``git rev-parse HEAD`` at ``repo_root`` (``"unknown"`` when git fails)."""

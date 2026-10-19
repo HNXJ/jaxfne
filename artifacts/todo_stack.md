@@ -105,7 +105,7 @@ run on WSL2 CUDA.
   paperwork (CAMINOS prereg v1–v6 + v7, Izhikevich v7 to v8.2); every run loop is serial (GSDR
   500 generations 58,552 s, 24 serial HH calls per generation; PCL about 55 min per clip on one
   core); 4 of 28 checklist rules are scripted. Work, in order: (T-32a) lane kit
-  `etudes/meta/lane_kit.py` and `scripts/new_lane.py` scaffold, destexhe2009 migrated first;
+  `scripts/lane_kit.py` and `scripts/new_lane.py` scaffold, destexhe2009 migrated first;
   (T-32b) `simulate_hh_batch` (vmap over weights, keys, stimuli) and the GSDR fit on it; (T-32c)
   seed and candidate batching for the AdEx and LIF routes and `Model.tune` (serial loop
   `_model_tune.py:451`); (T-32d) core homes for lane-local analysis (ISI ratio and CV, aperiodic

@@ -160,7 +160,7 @@ if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
 import jaxfne as J
-from artifacts.etudes.meta import lane_kit
+from scripts import lane_kit
 
 
 def build_spec(n=20, seed=0):
