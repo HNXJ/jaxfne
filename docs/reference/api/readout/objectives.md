@@ -67,6 +67,34 @@ definition above. The authoritative source is
 | **HYBRID** | `_tune_matrix_agsdr_optax` | Matrix/two-level path: canonical AGSDR outer proposals with an inner Optax (Adam) refinement surrogate; NOT mathematically identical to canonical AGSDR. |
 | **TUTORIAL** | `tune_laminar_agsdr` | Tutorial convenience wrapper; not the canonical engine. |
 
+## GSDR with MCDP
+
+`jaxfne.optim.gsdr` carries module-local MCDP support for the Fig. 6 lane:
+
+- `mcdp_factors(v_traces, pre, post, shift_steps, smooth_k=None)` computes
+  per-edge squared Pearson correlations of pre voltages against post voltages
+  shifted by `shift_steps`, with optional normalized Gaussian smoothing over
+  edges (`smooth_k`) applied before z-scoring. Edges with no variance read
+  `1.0`. The no-smoothing form reproduces `run_gsdr.mcdp_factors` at
+  `shift_steps=10`.
+- `gsdr_mcdp_transform(...)` returns an Optax-compatible
+  `GradientTransformation` combining an inner SGD step
+  (`learning_rate=0.1`, `momentum=0.4`) with an MCDP-gated stochastic delta
+  (`stochastic_scale` sets its magnitude) scaled by `lambda_d`, mixed by a
+  weight `a` (`a_init`, uniform random walk of half-width `a_step` when
+  `a_dynamic`). The walked `a` is kept only when the step improved on the
+  best loss, else the accepted `a` is kept. `w_max` clamps the update so
+  `params + update` stays in `[0, w_max]` (`None` means no clamp).
+  Selection tracks the best loss and parameters; a C-threshold
+  revert (`deselection_threshold`), a stagnation reset (`checkpoint_n`) and a
+  non-finite-loss revert each return `best_params - params` deltas. `update`
+  requires an explicit `key`; `mcdp=None` voids the epoch with zero updates.
+
+The 350/500-generation Fig. 6 fits ran without MCDP; their manifests record
+`mcdp_applied: False` with the authors' settings under
+`authors_optimizer_settings_not_used` (P-039; erratum in the lane
+`CALIBRATION.md`).
+
 ## Tune
 
 ```python

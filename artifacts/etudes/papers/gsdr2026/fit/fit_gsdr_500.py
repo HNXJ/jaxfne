@@ -182,11 +182,14 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
     sha = git_sha()
     manifest = {
         "git_sha": sha,
-        "optimizer": {"name": "jaxfne.optim.gsdr",
+        "optimizer": {"name": "lane delta-rule center update (gradient-free)",
                       "alpha": alpha, "exploration": exploration,
-                      "deselect_factor": float(spec.deselect_factor),
-                      "inner_SDR_lr": 0.1, "inner_SDR_momentum": 0.4,
-                      "a_init": 0.0, "mcdp": True},
+                      "mcdp_applied": False,
+                      "deselect_factor_consumed": False,
+                      "authors_optimizer_settings_not_used": {
+                          "deselect_factor": float(spec.deselect_factor),
+                          "inner_SDR_lr": 0.1, "inner_SDR_momentum": 0.4,
+                          "a_init": 0.0, "mcdp": True}},
         "trainable": {"gAMPA_edges": rg.N_AMPA_EDGES,
                       "gGABAa_edges": rg.N_GABAA_GLOBAL_EDGES + rg.N_GABAA_LOCAL_EDGES,
                       "bounds_uS": [0.0, 10.0],

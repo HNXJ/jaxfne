@@ -745,3 +745,25 @@ Wang–Buzsáki kappa as the CPU rows on all 10 trials, and the same regime
 labels; only the PSD term differs (at most 1.0e-4 absolute, 3.3e-5
 relative). Numerics do not drive the regime at this g*. (The §6.8 GPU
 outlier was a collapse on the one-compartment cell; none occurred here.)
+
+## Erratum 2026-10-19 — fit manifests recorded MCDP that never ran (P-039)
+
+The Step-4 fit (`fit/fit_gsdr.py`) and the 350/500-generation fits
+(`fit/fit_gsdr_500.py`, single and reference morphologies) wrote
+`"mcdp": True` in their manifests while the lane ran no MCDP step:
+`jaxfne/` held no MCDP implementation and the oracle
+`run/run_gsdr.py:264` `mcdp_factors` has no caller. The same blocks
+recorded `deselect_factor`, `inner_SDR_lr`, `inner_SDR_momentum` and
+`a_init`, which the generational loop likewise never consumed (only the
+spec knobs `alpha` and `exploration` drove the loop). Affected outputs:
+`scratch/gsdr2026/gsdr_fit/` (`gsdr_fit_smoke/` likewise), `scratch/gsdr2026/gsdr_fit500/` and
+`F:\warehouse\gsdr\gsdr_fit500_reference_2026-10-17\`; those manifests
+are frozen records and stay as written. Going forward both writers
+record `mcdp_applied: False` and keep the authors' values under
+`authors_optimizer_settings_not_used`. MCDP now exists in the core as
+module-local `mcdp_factors` / `gsdr_mcdp_transform` in
+`jaxfne/optim/gsdr.py` (tests `tests/test_gsdr_mcdp.py`); no fit has
+used it yet. Record gap: the lane records name only the smoothing width
+`k = int(sqrt(N))` (PORT_SPEC section 10); the Gaussian kernel shape in
+`mcdp_factors` (sigma `k/2`, taps `-k..k`, edge-padded) is this port's
+choice, not an observed setting.
