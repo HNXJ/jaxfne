@@ -1,6 +1,6 @@
 # Étude: Predictive Coding Light
 
-**Status:** Fig. 2 reproduced standalone and on the HDP kernel; central claim reproduced in a small column; Fig. 3 tuning in progress (preregistrations v4 and v5 did not pass)  
+**Status:** in progress. Fig. 2 reproduced standalone and on the HDP kernel; central claim reproduced in a small column. Fig. 3 fails: v4 FAIL; v5 T2 fails (T1, T3 pass; T4 passes on a post hoc criterion changed after v4). Next: Fig. 3 rescored on the jaxfne core with T4 declared up front  
 **Bundle:** `artifacts/etudes/papers/pcl/`
 
 ## Claim and source
