@@ -7,7 +7,6 @@ does not exist, so importing it fails there. CPU-only, small grids.
 from __future__ import annotations
 
 import jax
-import jax.numpy as jnp
 import numpy as np
 import pytest
 
