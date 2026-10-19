@@ -568,6 +568,39 @@ phi, residual, manifest = jtfne.fields.experimental_poisson_1d_from_neuron_table
 
 ---
 
+## From one column to MEG and EEG
+
+One simulated column becomes a cortex in four steps (`jaxfne.fields.head`):
+
+| Step | Function | Output |
+|---|---|---|
+| Column dipole | `column_dipole(source, positions, axis=2)` | $p(t) = \sum_i Q_i(t)\,(z_i - \bar z)$, `[T]`, relative units |
+| Cortex | `folded_sphere_surface(n_columns, radius_m=0.068, fold_amplitude_m=0.009, fold_frequencies=(12, 16), max_polar_deg=110)` | positions and outward normals `[M, 3]` |
+| Copies | `tile_column_dipoles(realizations, n_columns, key, in_phase=None, in_phase_realization=0)` | dipoles `[T, M]`, one realization and circular shift per copy; `in_phase` copies share one realization with zero shift |
+| Sensors | `meg_sphere_leadfield(sensor_pos, sensor_ori, dipole_pos, dipole_ori)`, `eeg_sphere_leadfield(electrode_pos, dipole_pos, dipole_ori, conductivity_s_per_m=..., average_reference=True)` | leadfields `[S, M]` in T/(A·m) and V/(A·m) |
+
+MEG uses the Sarvas (1987) sphere, which includes volume currents and gives zero field for radial
+dipoles. EEG uses the homogeneous-sphere closed form of Frank (1952), one shell. Both take
+positions in metres with the sphere centred at the origin. `sphere_sensor_cap` places sensors on a
+cap, and `SphereForward(modality, W, model, units)` applies a leadfield and reports its model.
+The dipole is in the source's relative units until multiplied by a declared scale in A·m.
+
+```python
+import jax
+import jax.numpy as jnp
+from jaxfne.fields import (column_dipole, folded_sphere_surface, tile_column_dipoles,
+                           sphere_sensor_cap, meg_sphere_leadfield, eeg_sphere_leadfield)
+
+p = column_dipole(signals.sources, model.params["positions"])          # one column, [T]
+pos, nrm = folded_sphere_surface(1500)
+dip, _, _ = tile_column_dipoles(jnp.stack([p / p.std()]), 1500, jax.random.PRNGKey(0))
+dip = dip * 1e-9                                                         # declared: 1 nA·m RMS per column
+sens, sens_n = sphere_sensor_cap(160, 0.12)
+meg = dip @ meg_sphere_leadfield(sens, sens_n, pos, nrm).T               # tesla
+elec, _ = sphere_sensor_cap(64, 0.09, 120.0)
+eeg = dip @ eeg_sphere_leadfield(elec, pos, nrm, conductivity_s_per_m=0.33).T   # volt
+```
+
 ## Boundary Conditions & Constraints
 
 ### Mean-Zero Constraint

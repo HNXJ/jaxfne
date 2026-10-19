@@ -6,7 +6,7 @@ docstring; `tests/test_references_page.py` holds the two to each other. The repl
 lists papers whose results jaxfne ports compare against. The background tables list work that
 jaxfne builds on, compares itself with or follows as practice, without implementing a result
 from it. Every DOI below resolved on 2026-10-12 (Wang and Buzsáki 1996 and Nejat et al. 2026 on
-2026-10-14, Destexhe 2009 on 2026-10-16), and each matched the title, first author and
+2026-10-14, Destexhe 2009 on 2026-10-16, Frank 1952 and Sarvas 1987 on 2026-10-19), and each matched the title, first author and
 year of its Crossref record (the Equinox preprint, of its DataCite record). Where jaxfne departs
 from the published result, the row and the docstring say how.
 
@@ -24,7 +24,9 @@ from the published result, the row and the docstring say how.
 
 | Reference | Result implemented | Functions |
 |---|---|---|
+| Frank, E. (1952). Electric potential produced by two point current sources in a homogeneous conducting sphere. *Journal of Applied Physics* 23(11), 1225-1228. [doi:10.1063/1.1702037](https://doi.org/10.1063/1.1702037) | The potential on the surface of a homogeneous conducting sphere from a current dipole inside it, in closed form: the sum of the Neumann series $\sum_n (2n+1)/n\,(b/R)^n P_n(\cos\gamma)$ differentiated along the dipole. jaxfne models one shell only (no skull or scalp layers) and offers an average reference | `jaxfne.fields.eeg_sphere_leadfield` |
 | Nicholson, C., & Freeman, J. A. (1975). Theory of current source-density analysis and determination of conductivity tensor for anuran cerebellum. *Journal of Neurophysiology* 38(2), 356-368. [doi:10.1152/jn.1975.38.2.356](https://doi.org/10.1152/jn.1975.38.2.356) | Current source density $-\sigma\,\partial^2\phi/\partial z^2$ in one dimension, by the three-point second difference along the contact axis. jaxfne omits $\sigma$ and pads the edges, so the output is a CSD proxy in the units of the potential proxy | `jaxfne.fields.csd_tensor` |
+| Sarvas, J. (1987). Basic mathematical and electromagnetic concepts of the biomagnetic inverse problem. *Physics in Medicine and Biology* 32(1), 11-22. [doi:10.1088/0031-9155/32/1/004](https://doi.org/10.1088/0031-9155/32/1/004) | The magnetic field outside a spherically symmetric conductor from a current dipole, volume currents included, in closed form. The field is independent of the conductivity profile and zero for a radial dipole. jaxfne returns the field component along each sensor's orientation | `jaxfne.fields.meg_sphere_leadfield` |
 
 | Reference | Relation to jaxfne |
 |---|---|
