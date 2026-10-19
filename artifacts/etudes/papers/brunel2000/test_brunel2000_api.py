@@ -204,5 +204,14 @@ def test_score_keys():
     """The lane scorer returns the analysis estimands (checklist E3)."""
     regime = L.score(np.zeros((100, 10), dtype=bool), DT)
     assert set(regime) == {"rate_hz", "cv_isi", "kappa", "active_fraction",
-                           "spectral_peak_excess", "label"}, "scorer keys"
+                           "spectral_peak_excess", "spectral_peak_hz", "label"}, "scorer keys"
     assert regime["label"] == "silent", "empty raster must read silent"
+
+
+def test_score_drops_burn_in():
+    """``burn_in_ms`` removes the transient before every estimand."""
+    spikes = np.zeros((200, 10), dtype=bool)
+    spikes[:100:5] = True
+    assert L.score(spikes, DT)["rate_hz"] > 0, "fixture must fire in the transient"
+    assert L.score(spikes, DT, burn_in_ms=100 * DT)["rate_hz"] == 0.0, \
+        "a burn-in covering the transient leaves a silent window"

@@ -618,6 +618,32 @@ def _spectral_peak_excess(
     return float(peak / median)
 
 
+def _spectral_peak_hz(
+    population_rate_hz: np.ndarray,
+    dt_ms: float,
+    nperseg: int,
+) -> float:
+    """Frequency of the peak Welch power of the population rate in 5-200 Hz."""
+    n_points = int(population_rate_hz.size)
+    try:
+        segments = int(nperseg)
+    except (TypeError, ValueError):
+        return float("nan")
+    segments = min(segments, n_points)
+    if segments < 8:
+        return float("nan")
+    freqs, power = welch(
+        np.asarray(population_rate_hz, dtype=float),
+        fs=1000.0 / dt_ms,
+        nperseg=segments,
+        detrend="constant",
+    )
+    in_band = (freqs >= 5.0) & (freqs <= 200.0)
+    if not in_band.any() or not np.any(power[in_band] > 0.0):
+        return float("nan")
+    return float(freqs[in_band][np.argmax(power[in_band])])
+
+
 def activity_regime(
     spikes: Union[np.ndarray, "jax.Array"],
     dt_ms: float,
@@ -674,7 +700,9 @@ def activity_regime(
         ISI coefficient of variation over cells with at least 3 spikes, NaN
         when no cell qualifies), ``rate_ratio`` (second-half over first-half
         rate; inf when only the second half fires, NaN when neither does),
-        ``spectral_peak_excess``, ``label`` (one of ``"silent"``,
+        ``spectral_peak_excess``, ``spectral_peak_hz`` (frequency of that
+        Welch peak in 5-200 Hz; NaN when the band holds no power),
+        ``label`` (one of ``"silent"``,
         ``"saturated"``, ``"runaway"``, ``"asynchronous"``,
         ``"oscillatory"``, ``"irregular"``), and ``thresholds`` (the merged
         boundaries this call applied).
@@ -806,6 +834,9 @@ def activity_regime(
         "cv_isi": cv_isi,
         "rate_ratio": rate_ratio,
         "spectral_peak_excess": excess,
+        "spectral_peak_hz": _spectral_peak_hz(
+            population_rate_hz, dt_ms, limits["welch_nperseg"]
+        ),
         "label": label,
         "thresholds": dict(limits),
     }

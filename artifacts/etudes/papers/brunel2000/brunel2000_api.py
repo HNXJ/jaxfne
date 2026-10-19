@@ -151,7 +151,7 @@ def build_sim(point="D", n=1250, T_s=0.5, dt_ms=DT_MS, seed=0):
     )
 
 
-def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, signed=False):
+def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, signed=False):
     """Build, run and write the raster plus the ``manifest.json`` the scorer reads."""
     import time
 
@@ -178,7 +178,10 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, signed=False):
     assert spikes.shape == (sim.n_steps, sum(
         1 for _ in model.neuron_table())), "raster must cover every neuron"
     assert bool(np.isfinite(np.asarray(signals.V_m)).all()), "V must stay finite"
-    regime = score(spikes, DT_MS)
+    regime = score(spikes, DT_MS, burn_in_ms=burn_in_ms)
+    import jax
+
+    backend = jax.default_backend()
     tmp = out / (fname + ".tmp")
     with open(tmp, "wb") as f:
         np.savez_compressed(f, spikes=spikes)
@@ -188,7 +191,7 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, signed=False):
     entry = {"seed": int(seed), "tag": tag, "file": fname, "point": str(point),
              "n": int(n), "steps": int(spikes.shape[0]), "dt_ms": DT_MS,
              "duration_ms": float(T_s) * 1000.0, "dtype": "float32",
-             "backend": "cpu",
+             "backend": backend, "burn_in_ms": float(burn_in_ms),
              "poisson_drive": {"rate_hz": float(sim.poisson_drive["rate_hz"]),
                                "amplitude": J_MV,
                                "counts": int(sim.poisson_drive["counts"]),
@@ -196,25 +199,27 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, signed=False):
              "wall_s": {"construct": t_construct, "simulate": t_simulate},
              "regime": regime}
     entries[fname] = entry
-    manifest = {"git_sha": sha, "dtype": "float32", "backend": "cpu",
+    manifest = {"git_sha": sha, "dtype": "float32", "backend": backend,
                 "runs": list(entries.values())}
     lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)
     return {"spikes": spikes, "steps": sim.n_steps, "regime": regime,
             "wall_s": {"construct": t_construct, "simulate": t_simulate}}
 
 
-def score(spikes, dt_ms=DT_MS):
-    """Score a raster with ``jaxfne.analysis`` estimators (checklist E3)."""
+def score(spikes, dt_ms=DT_MS, burn_in_ms=0.0):
+    """Score a raster after ``burn_in_ms`` with ``jaxfne.analysis`` estimators (checklist E3)."""
     from jaxfne.analysis import activity_regime as _activity_regime
     from jaxfne.analysis import wang_buzsaki_kappa as _kappa
 
     import numpy as np
 
-    arr = np.asarray(spikes, dtype=bool)
+    arr = np.asarray(spikes, dtype=bool)[int(round(float(burn_in_ms) / float(dt_ms))):]
+    assert arr.shape[0] > 0, "burn_in_ms must leave steps to score"
     regime = _activity_regime(arr, float(dt_ms))
     return {"rate_hz": float(regime["rate_hz"]),
             "cv_isi": float(regime["cv_isi"]),
             "kappa": float(_kappa(arr, float(dt_ms))),
             "active_fraction": float(regime["active_fraction"]),
             "spectral_peak_excess": float(regime["spectral_peak_excess"]),
+            "spectral_peak_hz": float(regime["spectral_peak_hz"]),
             "label": str(regime["label"])}

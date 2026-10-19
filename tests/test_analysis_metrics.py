@@ -740,6 +740,24 @@ class TestActivityRegimeLabels:
         assert out["spectral_peak_excess"] >= 5.0
         assert out["label"] == "oscillatory"
 
+    @pytest.mark.parametrize("freq_hz", [62.5, 125.0])
+    def test_spectral_peak_hz_tracks_modulation(self, freq_hz):
+        # Sinusoidally modulated Bernoulli spiking: the population rate peaks at
+        # the modulation frequency (on the Welch grid, 2000 Hz / 256 = 7.8125 Hz).
+        _, activity_regime, _, _ = _regime_api()
+        rng = np.random.default_rng(3)
+        t_s = np.arange(4000) * 0.5e-3
+        p = 0.05 * (1.0 + np.sin(2.0 * np.pi * freq_hz * t_s))
+        spikes = rng.random((4000, 200)) < p[:, None]
+        assert spikes.sum() > 0, "fixture must spike"
+        out = activity_regime(spikes, 0.5)
+        assert out["spectral_peak_hz"] == pytest.approx(freq_hz, abs=1e-9)
+
+    def test_spectral_peak_hz_nan_when_silent(self):
+        _, activity_regime, _, _ = _regime_api()
+        out = activity_regime(np.zeros((2000, 8), dtype=bool), 0.5)
+        assert np.isnan(out["spectral_peak_hz"])
+
     def test_asynchronous(self):
         _, activity_regime, _, _ = _regime_api()
         out = activity_regime(_t23_async_spikes(), 0.5)
