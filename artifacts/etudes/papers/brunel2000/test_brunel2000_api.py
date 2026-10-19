@@ -215,3 +215,12 @@ def test_score_drops_burn_in():
     assert L.score(spikes, DT)["rate_hz"] > 0, "fixture must fire in the transient"
     assert L.score(spikes, DT, burn_in_ms=100 * DT)["rate_hz"] == 0.0, \
         "a burn-in covering the transient leaves a silent window"
+
+
+@pytest.mark.parametrize("bad", [-5.0, float("nan")])
+def test_score_refuses_bad_burn_in(bad):
+    """A negative or NaN burn-in is refused; slicing would score the tail."""
+    spikes = np.zeros((200, 10), dtype=bool)
+    spikes[:100:5] = True
+    with pytest.raises(ValueError, match="burn_in_ms"):
+        L.score(spikes, DT, burn_in_ms=bad)

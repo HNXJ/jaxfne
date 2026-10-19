@@ -213,6 +213,8 @@ def score(spikes, dt_ms=DT_MS, burn_in_ms=0.0):
 
     import numpy as np
 
+    if not float(burn_in_ms) >= 0.0:
+        raise ValueError(f"burn_in_ms must be >= 0, got {burn_in_ms!r}")
     arr = np.asarray(spikes, dtype=bool)[int(round(float(burn_in_ms) / float(dt_ms))):]
     assert arr.shape[0] > 0, "burn_in_ms must leave steps to score"
     regime = _activity_regime(arr, float(dt_ms))
