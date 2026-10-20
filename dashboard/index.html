@@ -4,34 +4,48 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>jaxfne replications</title>
+<meta name="description" content="jaxfne replication records: models, validation, roadmap and method, generated from the repository's committed lane files.">
+<!--
+  Template. Holds layout and tokens only: every number, name and date comes from
+  dashboard/data/replications.json, which scripts/build_dashboard_data.py writes
+  from committed lane files. Element ids below are the contract app.js fills;
+  do not rename one without changing app.js.
+-->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="site-header">
-  <h1>jaxfne replications</h1>
-  <p class="meta" id="meta">
+<header class="top">
+  <span class="title">jaxfne replications</span>
+  <span class="meta" id="meta">
     <span id="generated">Loading…</span>
     <span aria-hidden="true"> · </span>
     <a id="devsha" href="https://github.com/hnxj/jaxfne">dev</a>
-  </p>
-  <nav aria-label="Project links">
+  </span>
+  <span class="links">
     <a href="https://jaxfne.readthedocs.io/">Documentation</a>
     <a id="replications-doc" href="https://github.com/hnxj/jaxfne">REPLICATIONS.md</a>
-  </nav>
-  <p class="banner" id="banner" hidden>Sample data: these values are placeholders</p>
-  <nav class="tabs" id="tabs" aria-label="Sections">
-    <a href="#overview" data-tab="overview">Overview</a>
-    <a href="#models" data-tab="models">Models</a>
-    <a href="#validation" data-tab="validation">Validation</a>
-    <a href="#roadmap" data-tab="roadmap">Roadmap</a>
-    <a href="#method" data-tab="method">Method</a>
-  </nav>
+    <button id="theme-toggle" type="button" aria-label="Toggle light and dark">◐</button>
+  </span>
 </header>
+
+<p class="banner" id="banner" hidden>Sample data: these values are placeholders</p>
+
+<nav class="tabs" id="tabs" role="tablist" aria-label="Sections">
+  <a href="#overview" data-tab="overview" role="tab">Overview</a>
+  <a href="#models" data-tab="models" role="tab">Models</a>
+  <a href="#validation" data-tab="validation" role="tab">Validation</a>
+  <a href="#roadmap" data-tab="roadmap" role="tab">Roadmap</a>
+  <a href="#method" data-tab="method" role="tab">Method</a>
+</nav>
+
 <main id="view" tabindex="-1" aria-live="polite"></main>
+
 <footer>
   <p>Failures are kept with the same prominence as passes (B2).</p>
+  <p>Generated from the commit linked above. Documentation: <a href="https://jaxfne.readthedocs.io/">Read the Docs</a>.</p>
 </footer>
+
 <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js" integrity="sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script>
