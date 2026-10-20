@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-19T15:41:00Z",
-    "dev_sha": "8a127be535964866c50d3955c949a72364942b2e"
+    "utc": "2026-10-20T12:43:36Z",
+    "dev_sha": "d1a0d3b38f24962b566a9804d23ea2ecaa088dbd"
   },
   "papers": [
     {
@@ -2505,27 +2505,276 @@
       "id": "brunel2000",
       "title": "Brunel 2000, Fig. 8 (SR, SI fast, AI and SI slow states of a sparse LIF network)",
       "citation": "Brunel, J Comput Neurosci 2000",
-      "class": "in progress",
+      "class": "reproduced (conditional)",
       "question": "Does the jaxfne LIF core, at the paper's parameters, reproduce the Fig. 8 rates, regularity and global frequencies of the SR, SI fast, AI and SI slow states?",
       "page": "models/brunel2000.md",
       "release": "0.5.7",
       "tier": "T-jaxfne",
-      "stage": "P1",
+      "stage": "P5",
       "lane": {
         "branch": "dev",
-        "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"
+        "sha": "d1a0d3b38f24962b566a9804d23ea2ecaa088dbd"
       },
-      "stage_artifacts": [],
-      "verdict": null,
-      "verdict_note": null,
-      "summary": "P1 source record written from the author's copy. The lane runs on the jaxfne core only; next per rule B8 is the pilot, then signature, then fresh seeds.",
-      "preregs": [],
-      "criteria": [],
+      "stage_artifacts": [
+        {
+          "stage": "P1",
+          "items": [
+            {
+              "label": "source record",
+              "path": "artifacts/etudes/papers/brunel2000/SOURCE_P1.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/SOURCE_P1.md"
+            }
+          ]
+        },
+        {
+          "stage": "P2",
+          "items": [
+            {
+              "label": "port spec",
+              "path": "artifacts/etudes/papers/brunel2000/PORT_SPEC.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/PORT_SPEC.md"
+            },
+            {
+              "label": "lane api",
+              "path": "artifacts/etudes/papers/brunel2000/brunel2000_api.py",
+              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/brunel2000_api.py"
+            },
+            {
+              "label": "tests",
+              "path": "artifacts/etudes/papers/brunel2000/test_brunel2000_api.py",
+              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/test_brunel2000_api.py"
+            },
+            {
+              "label": "pilots",
+              "path": "artifacts/etudes/papers/brunel2000/CALIBRATION.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/CALIBRATION.md"
+            }
+          ]
+        },
+        {
+          "stage": "P3",
+          "items": [
+            {
+              "label": "prereg v4 (signed)",
+              "path": "artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md"
+            }
+          ]
+        },
+        {
+          "stage": "P5",
+          "items": [
+            {
+              "label": "result",
+              "path": "artifacts/etudes/papers/brunel2000/RESULT_P3.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/RESULT_P3.md"
+            },
+            {
+              "label": "scores",
+              "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+            }
+          ]
+        }
+      ],
+      "verdict": "reproduced (conditional)",
+      "verdict_note": "Every estimand in its band and Q1-Q3 pass on seeds 4-8 under signed v4. Condition: Q3 (AI at C) reads the paper's wording, stationary global activity plus CV > 0.1, chosen after the seed-0 pilot failed the classifier's asynchronous bounds (disclosed in v4); at C the cells stay more regular than those bounds (CV 0.40-0.41, kappa 0.20).",
+      "summary": "At the paper's parameters, N = 12,500, dt 0.1 ms, the jaxfne LIF core gives Fig. 8's rates and global frequencies at B, C and D within the paper's own simulation-theory gaps, A saturates at 333 Hz with kappa 1.0, and B and D oscillate with irregular cells. A float64 run at C agrees within 0.012% in rate.",
+      "preregs": [
+        {
+          "id": "v4",
+          "signed": "2026-10-19",
+          "path": "artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "E1",
+          "group": "",
+          "claim": "SI fast (B) cells fire near 60 Hz",
+          "estimand": "mean cell rate at B, seeds 4-8",
+          "criterion": "e <= 0.08",
+          "value": 59.330560000000006,
+          "value_text": "59.3",
+          "value_label": "mean rate",
+          "paper_value": "60.7 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "E2",
+          "group": "",
+          "claim": "SI fast (B) global oscillation near 180 Hz",
+          "estimand": "global spectral peak at B, seeds 4-8",
+          "criterion": "e <= 0.06",
+          "value": 182.4,
+          "value_text": "182",
+          "value_label": "mean peak",
+          "paper_value": "~180 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "E3",
+          "group": "",
+          "claim": "AI (C) cells fire near 38 Hz",
+          "estimand": "mean cell rate at C, seeds 4-8",
+          "criterion": "e <= 0.01",
+          "value": 37.867312000000005,
+          "value_text": "37.9",
+          "value_label": "mean rate",
+          "paper_value": "37.7 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "E4",
+          "group": "",
+          "claim": "SI slow (D) cells fire near 5.5 Hz",
+          "estimand": "mean cell rate at D, seeds 4-8",
+          "criterion": "e <= 0.18",
+          "value": 5.631328,
+          "value_text": "5.63",
+          "value_label": "mean rate",
+          "paper_value": "5.5 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "E5",
+          "group": "",
+          "claim": "SI slow (D) global oscillation near 22 Hz",
+          "estimand": "global spectral peak at D, seeds 4-8",
+          "criterion": "e <= 0.32",
+          "value": 20.6,
+          "value_text": "20.6",
+          "value_label": "mean peak",
+          "paper_value": "22 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "Q1",
+          "group": "",
+          "claim": "A is synchronous and regular",
+          "estimand": "label, kappa, CV_ISI at A per seed",
+          "criterion": "saturated or oscillatory, kappa >= 0.5, CV <= 0.1 on every seed",
+          "value": 1.0,
+          "value_text": "1",
+          "value_label": "lowest kappa",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "Q2B",
+          "group": "",
+          "claim": "B is synchronous with irregular cells",
+          "estimand": "label and CV_ISI at B per seed",
+          "criterion": "oscillatory, CV > 0.1 on every seed",
+          "value": 0.7750053988713748,
+          "value_text": "0.775",
+          "value_label": "lowest CV",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "Q2D",
+          "group": "",
+          "claim": "D is synchronous with irregular cells",
+          "estimand": "label and CV_ISI at D per seed",
+          "criterion": "oscillatory, CV > 0.1 on every seed",
+          "value": 0.6302825174958675,
+          "value_text": "0.63",
+          "value_label": "lowest CV",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "Q3",
+          "group": "",
+          "claim": "C has stationary global activity and irregular cells",
+          "estimand": "spectral peak excess (128 ms grid) and CV_ISI at C per seed",
+          "criterion": "excess < 5, CV > 0.1 on every seed",
+          "value": 3.2674747966483104,
+          "value_text": "3.27",
+          "value_label": "highest excess",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        }
+      ],
       "sensitivity": [],
       "charts": [],
       "open": [
-        "Pilot port of the Fig. 8 network (12,500 LIF cells, fixed indegree, single delay) through the public API.",
-        "Simulation numerics (integrator, dt, duration, seeds) are unstated in the paper and need declared P2 choices."
+        "Sensitivity set S1 (N = 6250, fixed in-degrees; needs a lane option), S2 (5 s window), S3 (dt 0.05 ms) declared in v4, not yet run.",
+        "Library path P6 and the P7 insight page."
       ]
     },
     {
