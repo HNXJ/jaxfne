@@ -154,6 +154,7 @@ CHECK_FAMILIES = {
     "tree_size_audit",
     "docs_build_strict",
     "pytest_broad",
+    "pytest_lanes",
     "pytest_slow",
     "pytest_notebook",
     "examples_smoke",
@@ -221,6 +222,7 @@ GATE_CHECK_FAMILIES = {
         "release_metadata",
         "tree_size_audit",
         "pytest_broad",
+        "pytest_lanes",
     },
     "report": {
         "lint_ruff",
@@ -275,6 +277,7 @@ GATE_CHECK_FAMILIES = {
         "tree_size_audit",
         "docs_build_strict",
         "pytest_broad",
+        "pytest_lanes",
         "pytest_slow",
         "pytest_notebook",
         "examples_smoke",
@@ -305,6 +308,7 @@ GATE_CHECK_FAMILIES = {
         "tree_size_audit",
         "docs_build_strict",
         "pytest_broad",
+        "pytest_lanes",
         "pytest_slow",
         "pytest_notebook",
         "examples_smoke",
@@ -635,6 +639,82 @@ def gate_docs() -> None:
             _run(cmd, family=family)
 
 
+# --- Paper-lane pytest sweeps (family ``pytest_lanes``) -------------------------
+#
+# ``testpaths`` is ``tests`` only, so the lane tests under PAPER_LANES_DIR ran in
+# no gate. Each lane runs in its own pytest process: caminos enables jax x64 at
+# import, and a pcl guard aborts a shared collection.
+PAPER_LANES_DIR = "artifacts/etudes/papers"
+
+# Lanes that fail, keyed by lane folder, with the summary line that showed it. A
+# listed lane that still fails is printed as skipped; a listed lane that passes
+# fails the family (stale entry), so an entry cannot outlive its fault.
+LANE_PYTEST_KNOWN_FAILING: dict[str, str] = {}
+
+
+def discover_pytest_lanes() -> list[str]:
+    """Lane folders: directories under PAPER_LANES_DIR holding a tracked ``test_*.py`` at any depth."""
+    lanes: set[str] = set()
+    prefix = PAPER_LANES_DIR + "/"
+    for path in _git_out("ls-files", "--", PAPER_LANES_DIR).splitlines():
+        if not path.startswith(prefix):
+            continue
+        parts = path[len(prefix) :].split("/")
+        if len(parts) >= 2 and parts[-1].startswith("test_") and parts[-1].endswith(".py"):
+            lanes.add(parts[0])
+    return sorted(lanes)
+
+
+def _lane_argv(lane: str) -> list[str]:
+    return [
+        sys.executable,
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        f"{PAPER_LANES_DIR}/{lane}",
+    ]
+
+
+def _run_lane(lane: str) -> int:
+    """Run one lane in its own pytest process; return its exit code."""
+    cmd = _lane_argv(lane)
+    print("+", " ".join(cmd), flush=True)
+    return subprocess.run(cmd, cwd=ROOT, check=False, env=PYTEST_ENV).returncode
+
+
+def gate_pytest_lanes() -> None:
+    """One pytest process per paper lane (family ``pytest_lanes``).
+
+    Exit code 5 (no tests collected) is accepted. A known-failing lane that still
+    fails is recorded in the ledger as exit 0 and named in its printed SKIP line.
+    """
+    failures: list[str] = []
+    for lane in discover_pytest_lanes():
+        argv = _lane_argv(lane)
+        started = _utcnow()
+        rc = _run_lane(lane)
+        completed = _utcnow()
+        known = LANE_PYTEST_KNOWN_FAILING.get(lane)
+        if known is not None and rc == 0:
+            failures.append(f"{lane}: listed in LANE_PYTEST_KNOWN_FAILING but passes (stale entry)")
+            print(f"FAIL lane {lane}: stale LANE_PYTEST_KNOWN_FAILING entry", flush=True)
+            record_execution("pytest_lanes", argv, started, completed, 1)
+        elif known is not None:
+            print(f"SKIP known-failing lane {lane} (rc={rc}): {known}", flush=True)
+            record_execution("pytest_lanes", argv, started, completed, 0)
+        elif rc in (0, 5):
+            print(f"{'PASS' if rc == 0 else 'NO TESTS'} lane {lane} (rc={rc})", flush=True)
+            record_execution("pytest_lanes", argv, started, completed, 0)
+        else:
+            failures.append(f"{lane}: rc={rc}")
+            print(f"FAIL lane {lane} (rc={rc})", flush=True)
+            record_execution("pytest_lanes", argv, started, completed, rc)
+    if failures:
+        raise RuntimeError("pytest_lanes failed: " + "; ".join(failures))
+
+
 def gate_broad() -> None:
     _run(
         [sys.executable, "-m", "compileall", "-q", "jaxfne", "tests", "scripts", "examples"],
@@ -664,6 +744,7 @@ def gate_broad() -> None:
     for path in BROAD_PYTEST_IGNORE:
         cmd.extend(["--ignore", path])
     _run(cmd, family="pytest_broad")
+    gate_pytest_lanes()
 
 
 def gate_release() -> None:

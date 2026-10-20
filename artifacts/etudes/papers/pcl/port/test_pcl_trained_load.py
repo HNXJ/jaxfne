@@ -24,6 +24,8 @@ import numpy as np  # noqa: E402
 import pytest  # noqa: E402
 
 import pcl_event_ref as ref  # noqa: E402
+
+pytest.importorskip("numba", reason="the numba port needs numba (not a jaxfne dependency)")
 import pcl_event_ref_numba as nb  # noqa: E402
 
 CSTDP3 = Path("F:/warehouse/pcl/data/PCL_datasets_and_networks/add_simulations_cSTDP/cSTDP3")

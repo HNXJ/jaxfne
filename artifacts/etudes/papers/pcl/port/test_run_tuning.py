@@ -24,7 +24,11 @@ if sys.path[:1] != [_ROOT]:
 if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 
+import pytest  # noqa: E402
+
 import pcl_event_ref as ref  # noqa: E402
+
+pytest.importorskip("numba", reason="the numba port needs numba (not a jaxfne dependency)")
 import pcl_event_ref_numba as nb  # noqa: E402
 import run_tuning as rt  # noqa: E402
 
