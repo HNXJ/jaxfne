@@ -67,7 +67,7 @@ EXEMPT_FOLDERS = {
     "etudes/experiment_a": "frozen publication/fig02-fig04 receipts and jaxfne/ defaults cite these files",
     "etudes/papers": "one folder per paper lane (T-32 target: about one a day, Hamm 2026-10-19); "
                      "grouping lanes by year or status would split one registry (reasoned exemption)",
-    "etudes/papers/brunel2000": "open replication lane (signed P3 v4, result and scores beside pinned v1-v3); "
+    "etudes/papers/brunel2000": "open replication lane (signed P3 v4, result, scores and ledger beside pinned v1-v3); "
                                 "split when the lane closes",
     "etudes/papers/caminos": "open replication lane (CAMINOS lag); split when the lane closes",
     "etudes/papers/izhikevich2003": "open replication lane; split when the lane closes",
