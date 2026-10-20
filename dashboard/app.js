@@ -1,5 +1,11 @@
 "use strict";
 
+var THEME_KEY = "jaxfne-dashboard-theme";
+var THEMES = ["system", "light", "dark"];
+var theme = "system";
+var figureImages = [];
+var systemDark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+
 var PALETTE = ["#1565c0", "#ff9800", "#00acc1", "#e53935", "#4caf50", "#8e24aa"];
 var DASHES = ["solid", "dash", "dot", "dashdot"];
 var GOLD = "#cfb87c";
@@ -117,11 +123,75 @@ function groupColors(items) {
 }
 
 function plotColors() {
-  var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  var style = window.getComputedStyle(document.documentElement);
+  var fg = style.getPropertyValue("--text").trim();
+  var grid = style.getPropertyValue("--plot-grid").trim();
   return {
-    fg: dark ? "#f2f2f2" : "#1a1a1a",
-    grid: dark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.15)"
+    fg: fg || "#1b1f24",
+    grid: grid || "rgba(0, 0, 0, 0.15)"
   };
+}
+
+function storedTheme() {
+  try {
+    var value = window.localStorage.getItem(THEME_KEY);
+    return THEMES.indexOf(value) === -1 ? "system" : value;
+  } catch (err) {
+    return "system";
+  }
+}
+
+function storeTheme(choice) {
+  try {
+    window.localStorage.setItem(THEME_KEY, choice);
+  } catch (err) {
+    // Storage refused: the choice still holds for this page view.
+  }
+}
+
+function effectiveTheme() {
+  if (theme === "dark") return "dark";
+  if (theme === "light") return "light";
+  return systemDark && systemDark.matches ? "dark" : "light";
+}
+
+function applyTheme(choice) {
+  theme = choice;
+  document.documentElement.setAttribute("data-theme", choice);
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) toggle.title = "Theme: " + choice;
+  var effective = effectiveTheme();
+  figureImages.forEach(function (img) {
+    img.setAttribute("src", effective === "dark" ? img.dataset.dark : img.dataset.light);
+  });
+  repaintPlots();
+}
+
+function setupTheme() {
+  var toggle = document.getElementById("theme-toggle");
+  if (!toggle) return;
+  toggle.addEventListener("click", function () {
+    var next = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
+    storeTheme(next);
+    applyTheme(next);
+  });
+  if (systemDark) {
+    var onSystemChange = function () {
+      if (theme === "system") applyTheme("system");
+    };
+    if (systemDark.addEventListener) systemDark.addEventListener("change", onSystemChange);
+    else if (systemDark.addListener) systemDark.addListener(onSystemChange);
+  }
+}
+
+function repaintPlots() {
+  if (!window.__data) return;
+  var view = document.getElementById("view");
+  purgePlots(view);
+  var r = route();
+  var paper = null;
+  (window.__data.papers || []).forEach(function (p) { if (p.id === r.id) paper = p; });
+  if (paper) drawCharts(paper);
 }
 
 function renderLinesChart(div, chart) {
@@ -318,17 +388,21 @@ function criteriaTable(paper) {
   return wrap;
 }
 
-/* Static PNG rendered from the same data by scripts/build_dashboard_figures.py. */
+/* Static PNG rendered from the same data by scripts/build_dashboard_figures.py.
+ * Each figure ships as name.png plus name.dark.png; the src follows the theme. */
 function staticFigure(paper, chart) {
   var box = el("details");
   box.className = "static-fig";
   box.appendChild(el("summary", "Static figure"));
   var img = el("img");
-  img.src = "figures/" + paper.id + "-" + chart.id + ".png";
+  img.dataset.light = "figures/" + paper.id + "-" + chart.id + ".png";
+  img.dataset.dark = "figures/" + paper.id + "-" + chart.id + ".dark.png";
+  img.src = effectiveTheme() === "dark" ? img.dataset.dark : img.dataset.light;
   img.alt = chart.title + " (static)";
   img.loading = "lazy";
   img.addEventListener("error", function () { box.hidden = true; });
   box.appendChild(img);
+  figureImages.push(img);
   return box;
 }
 
@@ -750,21 +824,74 @@ function renderValidation(view, data) {
   label.appendChild(select);
   view.appendChild(label);
   var table = el("table");
-  table.className = "criteria";
+  table.className = "validation";
   var head = el("thead");
   var hr = el("tr");
-  var labels = ["Model", "Class", "ID", "Claim", "Paper", "Ours", "Verdict"];
-  labels.forEach(function (h) { hr.appendChild(el("th", h)); });
-  head.appendChild(hr);
   table.appendChild(head);
   var body = el("tbody");
   table.appendChild(body);
   view.appendChild(table);
-  function fill() {
-    clear(body);
+  // Header-click sort, as in the jnwb dashboard: missing values sort last either way.
+  var sortIndex = -1;
+  var direction = 1;
+  var labels = ["Model", "Class", "ID", "Claim", "Paper", "Ours", "Verdict"];
+  function rowValues(p, c) {
+    return [
+      p.title || "",
+      classInfo(p["class"]).label,
+      c.id + (c.group ? " (" + c.group + ")" : ""),
+      c.claim || "",
+      c.paper_value || "",
+      c.value_text === undefined || c.value_text === null ? "" : String(c.value_text),
+      c.verdict || ""
+    ];
+  }
+  function collect() {
+    var rows = [];
     (data.papers || []).forEach(function (p) {
       (p.criteria || []).forEach(function (c) {
         if (select.value !== "all" && c.verdict !== select.value) return;
+        rows.push({ p: p, c: c });
+      });
+    });
+    if (sortIndex !== -1) {
+      rows.sort(function (a, b) {
+        var x = rowValues(a.p, a.c)[sortIndex];
+        var y = rowValues(b.p, b.c)[sortIndex];
+        if (!x || !y) return !x === !y ? 0 : (!x ? 1 : -1);
+        return direction * String(x).localeCompare(String(y));
+      });
+    }
+    return rows;
+  }
+  function paintHead() {
+    clear(hr);
+    labels.forEach(function (h, i) {
+      var th = el("th", h + (i === sortIndex ? (direction > 0 ? " ▲" : " ▼") : ""));
+      th.className = "sortable";
+      th.tabIndex = 0;
+      th.setAttribute("aria-sort", i !== sortIndex ? "none" : (direction > 0 ? "ascending" : "descending"));
+      var choose = function () {
+        if (sortIndex === i) direction = -direction;
+        else { sortIndex = i; direction = 1; }
+        fill();
+      };
+      th.addEventListener("click", choose);
+      th.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          choose();
+        }
+      });
+      hr.appendChild(th);
+    });
+    head.appendChild(hr);
+  }
+  function fill() {
+    paintHead();
+    clear(body);
+    collect().forEach(function (entry) {
+      var p = entry.p, c = entry.c;
         var row = el("tr");
         var m = el("td");
         m.appendChild(link("#model/" + p.id, p.title));
@@ -783,7 +910,6 @@ function renderValidation(view, data) {
           td.insertBefore(lab, td.firstChild);
         });
         body.appendChild(row);
-      });
     });
   }
   select.addEventListener("change", fill);
@@ -810,6 +936,53 @@ function renderRoadmap(view, data) {
   });
   table.appendChild(body);
   view.appendChild(table);
+  view.appendChild(el("h3", "Study list"));
+  var studies = data.studies || [];
+  var statuses = [];
+  studies.forEach(function (s) { if (statuses.indexOf(s.status) < 0) statuses.push(s.status); });
+  var label = el("label", "Show ");
+  var select = el("select");
+  ["all"].concat(statuses).forEach(function (v) {
+    var o = el("option", v);
+    o.value = v;
+    select.appendChild(o);
+  });
+  label.appendChild(select);
+  view.appendChild(label);
+  var studyTable = el("table");
+  studyTable.className = "criteria";
+  var studyHead = el("thead");
+  var sr = el("tr");
+  var studyLabels = ["Status", "Reference", "Result compared"];
+  studyLabels.forEach(function (h) { sr.appendChild(el("th", h)); });
+  studyHead.appendChild(sr);
+  studyTable.appendChild(studyHead);
+  var studyBody = el("tbody");
+  studyTable.appendChild(studyBody);
+  view.appendChild(studyTable);
+  function fillStudies() {
+    clear(studyBody);
+    studies.forEach(function (s) {
+      if (select.value !== "all" && s.status !== select.value) return;
+      var row = el("tr");
+      row.appendChild(el("td", s.status_note ? s.status + " · " + s.status_note : s.status));
+      var refCell = el("td");
+      // The references page marks italics with asterisks; the dashboard shows plain text.
+      var text = (s.reference || "").replace(/\*/g, "");
+      if (s.doi) refCell.appendChild(link("https://doi.org/" + s.doi, text));
+      else refCell.textContent = text;
+      row.appendChild(refCell);
+      row.appendChild(el("td", s.result || ""));
+      Array.prototype.forEach.call(row.children, function (td, i) {
+        var lab = el("span", studyLabels[i] + ": ");
+        lab.className = "cell-label";
+        td.insertBefore(lab, td.firstChild);
+      });
+      studyBody.appendChild(row);
+    });
+  }
+  select.addEventListener("change", fillStudies);
+  fillStudies();
 }
 
 function renderMethod(view) {
@@ -845,6 +1018,7 @@ function render(data) {
   var view = document.getElementById("view");
   purgePlots(view);
   clear(view);
+  figureImages = [];
   var r = route();
   Array.prototype.forEach.call(document.querySelectorAll("#tabs a"), function (a) {
     if (a.getAttribute("data-tab") === r.tab) a.setAttribute("aria-current", "page");
@@ -861,7 +1035,9 @@ function render(data) {
   else if (r.tab === "roadmap") renderRoadmap(view, data);
   else if (r.tab === "method") renderMethod(view);
   else renderOverview(view, data);
-  view.focus();
+  // A new route opens at the top; focus without scrolling keeps the tabs out from under the sticky header.
+  window.scrollTo(0, 0);
+  view.focus({ preventScroll: true });
 }
 
 function purgePlots(root) {
@@ -903,6 +1079,8 @@ window.addEventListener("hashchange", function () {
 
 loadData().then(function (data) {
   window.__data = data;
+  setupTheme();
+  applyTheme(storedTheme());
   renderHeader(data);
   render(data);
 }).catch(function () {
