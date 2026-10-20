@@ -26,7 +26,7 @@ places a population's cell in a target column by mapping depth piecewise-linearl
 boundaries to the target's (linear extrapolation beyond them), so a tuft that reaches L1 in the source
 reaches L1 in the target. A population with several morphologies averages their profiles with equal
 weights. These are reduced, derived cells: the profile keeps the membrane area per depth and the
-axial-equivalent diameter, not the branching.
+axial-equivalent diameter; the branching is dropped.
 """
 
 from __future__ import annotations
@@ -153,7 +153,10 @@ def hagen2016_cell(population: str, target_bounds_um, *, merge: int = 1) -> Cabl
     """The reduced cell of a Hagen 2016 population (``L23E L23I L4E L4I L5E L5I L6E L6I``) in a target
     column with layer boundaries ``target_bounds_um`` (six increasing depths in um below the pia: pia,
     L1|L2/3, L2/3|L4, L4|L5, L5|L6, white matter). ``merge`` joins that many consecutive 10 um bins
-    into one compartment (areas summed, Rall sums averaged)."""
+    into one compartment (areas summed, Rall sums averaged).
+
+    Hagen et al. 2016, doi:10.1093/cercor/bhw237.
+    """
     if population not in POPULATIONS:
         raise ValueError(f"unknown Hagen 2016 population {population!r}; one of {tuple(POPULATIONS)}")
     tb = np.asarray(target_bounds_um, np.float64)
