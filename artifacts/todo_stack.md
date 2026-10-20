@@ -44,10 +44,10 @@ section 6. Packages A1-A7 are on dev or in the push now gating; what is left, fa
 | Order | Item | ETA | Who |
 |---|---|---|---|
 | 1 | Push the 0.5.7 lane commits after the broad gate (0 failed), CI green on the exact SHA | 1 h, gate-bound | dispatcher |
-| 2 | A1b lane tests in the broad gate, one pytest process per lane (worker running; known-failing lanes listed with reasons) | 1-2 h | worker, dispatcher review |
-| 3 | P-044 `population()` drops neuron-share keys that are not layer names: in scope (truthful core); fix with a failing-first test, or rule it to 0.5.8 | 1-2 h | worker or the other session if it holds it |
+| 3 | P-044 `population()` refuses neuron-share keys that are not layer names, callers bit-identical (Hamm 2026-10-20: fix in 0.5.7; worker running) | 1-2 h | worker, dispatcher review |
 | 4 | Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5, unscored, detached on the CPU; RESULT_P3 sensitivity section | about 5 h compute | worker launches, dispatcher reads |
-| 5 | Exit-gate sweep: each P-037 to P-042 with a resolution line or Hamm's ruling; `check_replications.py --check` and `build_dashboard_data.py --check` pass | 30 min | worker |
+| 5 | Dashboard: the study list from the references page on the Roadmap tab (worker running); the hand roadmap rows retargeted | 2 h | worker, dispatcher |
+| 5a | Dashboard route 1 (Hamm 2026-10-20): the analytic EEG/MEG forward checks of `tests/test_head_forward.py` (Sarvas sphere MEG, the sphere EEG reference) as a core-method class on the Validation tab, values from a scorer file | half a day | worker after 5 |
 | 6 | A9: assemble the fragments, `release_body.py --tag v0.5.7` claim check (closes T-10), rc gate, second review, receipt under `artifacts/release/` | 2-3 h | dispatcher, worker gate runs |
 | 7 | Tag, main, PyPI and RTD `stable` | after 6 | `[H]` go |
 
@@ -58,7 +58,8 @@ fixed-in-degree option, B5).
 Then 0.5.8 (core-compliant replications), in order: B4 checklist rules in `check_replications.py`;
 B1 estimators into `jaxfne.analysis`; B5 lane gaps (Brunel S1 option, Vogels G-SC, Potjans G-MULT
 to G-DDIST); B3 batching; B2 routes through `construct`; Destexhe and GSDR pilots, then preregs (the GSDR fit
-with MCDP on via `mcdp_hdp_step`, Hamm 2026-10-20).
+with MCDP on via `mcdp_hdp_step`, Hamm 2026-10-20); Jansen and Rit 1995 opens the EEG/MEG lane
+(Hamm 2026-10-20; P0 in REPLICATIONS): a neural-mass emitter in the core, then P1.
 Blocked: T-11 (jnwb), T-16 and T-17 `[H]`, deferred list (section 5).
 
 ## 2a. Standing from 0.5.6 (Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
