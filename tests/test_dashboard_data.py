@@ -36,7 +36,8 @@ def exists_at(root, sha, path):
 
 
 def make_repo(root, files):
-    """Commit `files` ({path: JSON-able object}), then copy the generator in (not committed). Returns the SHA."""
+    """Commit `files` ({path: JSON-able object}), then copy the generator and the references page (the
+    study-list source) in, uncommitted. Returns the SHA."""
     root.mkdir(parents=True)
     git(root, "init", "-q")
     git(root, "config", "user.name", "test")
@@ -49,6 +50,8 @@ def make_repo(root, files):
     git(root, "commit", "-q", "-m", "fixture scores")
     (root / "scripts").mkdir()
     shutil.copy(SCRIPT, root / "scripts" / "build_dashboard_data.py")
+    (root / "docs" / "reference").mkdir(parents=True)
+    shutil.copy(REPO / "docs" / "reference" / "references.md", root / "docs" / "reference" / "references.md")
     return git(root, "rev-parse", "HEAD")
 
 

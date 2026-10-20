@@ -12,6 +12,9 @@ from the scorer JSONs, never re-scored. This script does not import jaxfne, so t
 --check regenerates in memory and compares with the committed file, ignoring "generated". On a
 difference it names the first differing path. Any input error exits 1 and names the paper, file
 and key.
+
+The study list ("studies") is the table under "## Research studies (study list)" in
+docs/reference/references.md; parse_studies refuses a row it cannot read.
 """
 
 import argparse
@@ -39,6 +42,11 @@ NO_VALUE = "—"
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "dashboard" / "sources.json"
 DEFAULT_OUT = ROOT / "dashboard" / "data" / "replications.json"
+REFERENCES = ROOT / "docs" / "reference" / "references.md"
+STUDY_HEADING = "## Research studies (study list)"
+STUDY_COLUMNS = ["Reference", "Result compared", "Where"]
+STUDY_STATUSES = ("reproduced", "reproduced (conditional)", "mixed", "in progress", "queued", "not started")
+MIN_STUDIES = 40
 
 
 class BuildError(Exception):
@@ -519,6 +527,75 @@ def build_paper(spec, files, repo_url):
     }
 
 
+# A DOI may hold parentheses ("s0896-6273(02)01092-9"), so the link ends at a ")" followed by a space or the cell end.
+DOI_LINK = re.compile(r"\[doi:([^\]]+)\]\(https://doi\.org/(\S+?)\)(?=\s|$)")
+# Longest status name first, so "reproduced (conditional)" is a status and not "reproduced" plus a note.
+STUDY_OPEN = re.compile(
+    "(" + "|".join(re.escape(s) for s in sorted(STUDY_STATUSES, key=len, reverse=True)) + r")"
+    r"(?:\s*\(([^()]*)\))?\.\s*(.*)",
+    re.IGNORECASE,
+)
+
+
+def split_row(line):
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+def study_row(cells, number):
+    ref_cell, result_cell, where_cell = cells
+    doi = None
+    reference = ref_cell
+    link = DOI_LINK.search(ref_cell)
+    if link:
+        if link.group(1) != link.group(2):
+            raise BuildError(f"study row {number}: DOI text {link.group(1)!r} differs from its link {link.group(2)!r}")
+        doi = link.group(2)
+        reference = " ".join(s for s in (ref_cell[:link.start()].strip(), ref_cell[link.end():].strip()) if s)
+    opened = STUDY_OPEN.match(where_cell)
+    if not opened:
+        raise BuildError(
+            f"study row {number} ({reference[:60]!r}): Where cell opens with {where_cell[:40]!r}, "
+            f"not one of {list(STUDY_STATUSES)} followed by a period"
+        )
+    note = opened.group(2)
+    return {
+        "reference": reference,
+        "doi": doi,
+        "result": result_cell,
+        "status": opened.group(1).lower(),
+        "status_note": None if note is None else note.strip(),
+        "where": opened.group(3).strip(),
+    }
+
+
+def parse_studies(markdown):
+    """One dict per row of the study-list table under STUDY_HEADING. A missing table, a header other
+    than STUDY_COLUMNS, fewer than MIN_STUDIES rows, or a Where cell that opens with no status is an error.
+    A parenthetical after the status (for example 'In progress (pilot).') is kept as status_note."""
+    lines = markdown.splitlines()
+    starts = [i for i, line in enumerate(lines) if line.rstrip() == STUDY_HEADING]
+    if not starts:
+        raise BuildError(f"references page has no heading {STUDY_HEADING!r}")
+    block = []
+    for line in lines[starts[0] + 1:]:
+        if line.startswith("## "):
+            break
+        if line.startswith("|"):
+            block.append(line)
+    if len(block) < 2 or split_row(block[0]) != STUDY_COLUMNS or not re.fullmatch(r"[|\s:-]+", block[1]):
+        raise BuildError(f"study list under {STUDY_HEADING!r} has no header {' | '.join(STUDY_COLUMNS)}")
+    rows = block[2:]
+    if len(rows) < MIN_STUDIES:
+        raise BuildError(f"study list has {len(rows)} rows, expected at least {MIN_STUDIES}")
+    out = []
+    for number, line in enumerate(rows, 1):
+        cells = split_row(line)
+        if len(cells) != 3:
+            raise BuildError(f"study row {number} has {len(cells)} cells, expected 3")
+        out.append(study_row(cells, number))
+    return out
+
+
 def dev_sha():
     proc = git(["rev-parse", "HEAD"])
     sha = proc.stdout.decode("ascii", "replace").strip()
@@ -536,6 +613,10 @@ def build_document():
         raise BuildError(f"sources schema is {sources.get('schema')!r}, expected {SOURCES_SCHEMA!r}")
     files = Files()
     papers = [build_paper(s, files, sources["repo_url"]) for s in sources["papers"]]
+    try:
+        studies = parse_studies(REFERENCES.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise BuildError(f"cannot read {REFERENCES}: {exc}")
     return {
         "schema": SCHEMA,
         "sample": False,
@@ -545,6 +626,7 @@ def build_document():
         },
         "papers": papers,
         "roadmap": list(sources.get("roadmap", [])),
+        "studies": studies,
     }
 
 

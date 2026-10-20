@@ -810,6 +810,53 @@ function renderRoadmap(view, data) {
   });
   table.appendChild(body);
   view.appendChild(table);
+  view.appendChild(el("h3", "Study list"));
+  var studies = data.studies || [];
+  var statuses = [];
+  studies.forEach(function (s) { if (statuses.indexOf(s.status) < 0) statuses.push(s.status); });
+  var label = el("label", "Show ");
+  var select = el("select");
+  ["all"].concat(statuses).forEach(function (v) {
+    var o = el("option", v);
+    o.value = v;
+    select.appendChild(o);
+  });
+  label.appendChild(select);
+  view.appendChild(label);
+  var studyTable = el("table");
+  studyTable.className = "criteria";
+  var studyHead = el("thead");
+  var sr = el("tr");
+  var studyLabels = ["Status", "Reference", "Result compared"];
+  studyLabels.forEach(function (h) { sr.appendChild(el("th", h)); });
+  studyHead.appendChild(sr);
+  studyTable.appendChild(studyHead);
+  var studyBody = el("tbody");
+  studyTable.appendChild(studyBody);
+  view.appendChild(studyTable);
+  function fillStudies() {
+    clear(studyBody);
+    studies.forEach(function (s) {
+      if (select.value !== "all" && s.status !== select.value) return;
+      var row = el("tr");
+      row.appendChild(el("td", s.status_note ? s.status + " · " + s.status_note : s.status));
+      var refCell = el("td");
+      // The references page marks italics with asterisks; the dashboard shows plain text.
+      var text = (s.reference || "").replace(/\*/g, "");
+      if (s.doi) refCell.appendChild(link("https://doi.org/" + s.doi, text));
+      else refCell.textContent = text;
+      row.appendChild(refCell);
+      row.appendChild(el("td", s.result || ""));
+      Array.prototype.forEach.call(row.children, function (td, i) {
+        var lab = el("span", studyLabels[i] + ": ");
+        lab.className = "cell-label";
+        td.insertBefore(lab, td.firstChild);
+      });
+      studyBody.appendChild(row);
+    });
+  }
+  select.addEventListener("change", fillStudies);
+  fillStudies();
 }
 
 function renderMethod(view) {
