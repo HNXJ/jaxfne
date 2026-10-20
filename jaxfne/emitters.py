@@ -30,7 +30,7 @@ from ._hdp_adaptive import (
     resolve_h_state_locality,
     theta_bounds,
 )
-from .presets import DEFAULT_SPIKE_IMPULSE_GAIN
+from .presets import CELL_TYPE_SIGN, DEFAULT_SPIKE_IMPULSE_GAIN
 
 
 def _source_proxy_from_components(
@@ -74,27 +74,6 @@ def _noise_coef(
     dt = jnp.asarray(dt_ms, dtype=dtype)
     ref = jnp.asarray(DT_REF_MS, dtype=dtype)
     return jnp.where(dt == ref, base, base * jnp.sqrt(ref / dt))
-
-
-# Single source of truth for presynaptic sign (+1 excitatory, -1 inhibitory),
-# keyed by cell-type label. This module owns cell-type identity (the Izhikevich
-# parameter table and its refusal helper below carry the same sign convention),
-# so the union table lives here: the Izhikevich rows read their sign from it,
-# and the LIF-only labels ("simple", "complex", both excitatory) are included
-# so `jaxfne.emitters_lif.LIF_LABEL_SIGN` derives from it rather than restating
-# it. "SOM" is deliberately absent: it names an AdEx-table type, and adding a
-# label here is a model decision, not a refactor.
-CELL_TYPE_SIGN: dict[str, float] = {
-    "E": 1.0,
-    "PV": -1.0,
-    "Inl": -1.0,
-    "SST": -1.0,
-    "Ing": -1.0,
-    "VIP": -1.0,
-    "I": -1.0,
-    "simple": 1.0,
-    "complex": 1.0,
-}
 
 
 # Canonical Izhikevich cell-type parameter defaults.

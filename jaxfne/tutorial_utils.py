@@ -609,11 +609,14 @@ def make_cell_type_catalog(
     -------
     dict mapping cell_type -> CellTypePreset
     """
+    from .emitters import CELL_TYPE_SIGN
+
+    # own a/b/c/d and drive values; signs from emitters.CELL_TYPE_SIGN
     catalog = {
         'E': CellTypePreset(
             name='E-Regular',
             color='#1f77b4',  # blue
-            sign=1.0,
+            sign=CELL_TYPE_SIGN['E'],
             a=0.02, b=0.2, c=-65.0, d=8.0,
             drive=5.0,
             noise_std=0.85,
@@ -621,7 +624,7 @@ def make_cell_type_catalog(
         'PV': CellTypePreset(
             name='PV-Fast-Spiking',
             color='#d62728',  # red
-            sign=-1.0,
+            sign=CELL_TYPE_SIGN['PV'],
             a=0.1, b=0.2, c=-65.0, d=2.0,
             drive=3.0,
             noise_std=0.75,
@@ -629,7 +632,7 @@ def make_cell_type_catalog(
         'SST': CellTypePreset(
             name='SST-Martinotti',
             color='#2ca02c',  # green
-            sign=-1.0,
+            sign=CELL_TYPE_SIGN['SST'],
             a=0.08, b=0.25, c=-65.0, d=3.0,
             drive=3.5,
             noise_std=0.70,
@@ -637,7 +640,7 @@ def make_cell_type_catalog(
         'VIP': CellTypePreset(
             name='VIP-Disinhibitory',
             color='#9467bd',  # purple
-            sign=-1.0,
+            sign=CELL_TYPE_SIGN['VIP'],
             a=0.05, b=0.26, c=-65.0, d=4.0,
             drive=3.0,
             noise_std=0.72,
