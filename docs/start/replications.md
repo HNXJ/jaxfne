@@ -21,6 +21,7 @@ as done with jaxfne only when it runs through the library (P6).
 | [Potjans and Diesmann 2014 cortical microcircuit, Fig. 6 and Table 5](https://hnxj.github.io/jaxfne/dashboard/#model/potjans2014)<br>Potjans and Diesmann, Cereb Cortex 24(3):785-806 | in progress | 0.5.9 | P1 | — |
 | [Vogels et al. 2011, Fig. 4 (inhibitory STDP balancing a recurrent network) and Figs. 1-2 (single-cell detailed balance)](https://hnxj.github.io/jaxfne/dashboard/#model/vogels2011)<br>Vogels et al., Science 334(6062):1569-1573 | in progress | 0.5.8 | P1 | — |
 | [Mejias et al. 2016 laminar multi-area model, Figs. 2-3 and 6-7](https://hnxj.github.io/jaxfne/dashboard/#model/mejias2016)<br>Mejias, Murray, Kennedy and Wang, Sci Adv 2(11):e1601335 | in progress | 0.5.9 | P1 | — |
+| [Analytic EEG/MEG forward checks of jaxfne.fields.head](https://hnxj.github.io/jaxfne/dashboard/#model/head-forward)<br>Sarvas 1987 (MEG); Frank 1952 (EEG) | core method | 0.5.7 | — | — |
 
 ## Not started
 

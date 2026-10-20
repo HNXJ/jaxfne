@@ -127,6 +127,7 @@ tr.group-row th { background: var(--bg); }
 .chip-fail { background: var(--bad); color: var(--bg); }
 .chip-pending, .chip-incomplete { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
 .chip-partial { background: var(--warn); color: var(--bg); }
+.chip-accent { background: var(--accent); color: var(--bg); }
 .chip-class { margin-right: 4px; }
 .tag { display: inline-block; padding: 0 6px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); font-size: 12px; }
 

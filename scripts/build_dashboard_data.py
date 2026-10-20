@@ -33,7 +33,8 @@ SOURCES_SCHEMA = "jaxfne-dashboard-sources/2"
 # missed; verdict_note names which. An in-progress
 # paper has a stage and no verdict; a preregistration scored without a pass keeps it in progress.
 # A not-started paper has no verdict and no criteria.
-CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "in progress", "not started", "failed")
+CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "in progress", "not started", "failed",
+           "core method")
 SCORED_CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "failed")
 TOL = 1e-9
 FLOOR_REASON = "E-rate floor not met"
@@ -234,6 +235,10 @@ def verdict_of(p, c):
     if p.absent(spec["file"]):
         return "pending", reason
     flag = p.value(spec["file"], spec["key"])
+    if flag is None:
+        # A scorer row that stays null (a skipped check, such as a missing optional
+        # dependency) shows as pending, never as a pass or a synthesized value.
+        return "pending", reason
     if spec.get("form") == "pass_fail":
         # Scorers that write "pass" / "fail" / "incomplete"; incomplete scores as a fail.
         if flag not in ("pass", "fail", "incomplete"):
@@ -260,6 +265,13 @@ def build_criterion(p, c):
     vspec = c["value"]
     value = p.value(vspec["file"], vspec["key"])
     verdict, reason = verdict_of(p, c)
+    if "reference" in c:
+        # A core-method criterion names its independent reference in the scorer file
+        # ({"file", "key"}); a literal rides through for other classes.
+        refspec = c["reference"]
+        reference = p.value(refspec["file"], refspec["key"]) if isinstance(refspec, dict) else refspec
+    else:
+        reference = None
     return {
         "id": c["id"],
         "group": c.get("group", ""),
@@ -274,7 +286,9 @@ def build_criterion(p, c):
         "extra": [build_extra(p, e) for e in c.get("extra", [])],
         "verdict": verdict,
         "reason": reason,
-        "prereg": c["prereg"],
+        "reference": reference,
+        "reference_text": value_text(reference),
+        "prereg": c.get("prereg"),
         "evidence": p.evidence(vspec["file"]),
     }
 
@@ -465,6 +479,23 @@ def check_class(spec):
             raise BuildError(f"paper {spec['id']}: an in-progress paper needs a non-empty stage")
     if cls == "not started" and (spec.get("verdict") is not None or spec.get("criteria")):
         raise BuildError(f"paper {spec['id']}: a not-started paper carries no verdict and no criteria")
+    if cls == "core method":
+        # Analytic checks of a core method, not a paper replication: no stage, no verdict,
+        # no preregistration. Every criterion takes its verdict from the scorer file and names
+        # the independent reference it was scored against; a skippable criterion (a check the
+        # scorer can refuse, such as a missing optional dependency) names its scorer entry.
+        if not spec.get("criteria"):
+            raise BuildError(f"paper {spec['id']}: a core-method entry needs non-empty criteria")
+        for c in spec["criteria"]:
+            if "verdict" not in c:
+                raise BuildError(f"paper {spec['id']}: criterion {c.get('id')!r} takes its verdict "
+                                 "from the scorer file")
+            if not c.get("reference"):
+                raise BuildError(f"paper {spec['id']}: criterion {c.get('id')!r} needs a non-empty reference")
+            if c.get("may_skip") and not c.get("entry"):
+                raise BuildError(f"paper {spec['id']}: a skippable criterion names its scorer entry "
+                                 "in 'entry'")
+        return cls
     if cls in SCORED_CLASSES and not spec.get("preregs"):
         raise BuildError(f"paper {spec['id']}: class {cls!r} needs a signed preregistration")
     if cls == "reproduced (conditional)" and not spec.get("verdict_note"):
@@ -522,7 +553,7 @@ def build_paper(spec, files, repo_url):
         "page": model_page(spec),
         "release": spec["release"],
         "tier": spec["tier"],
-        "stage": spec["stage"],
+        "stage": spec.get("stage"),
         "lane": {"branch": spec["lane"]["branch"], "sha": spec["lane"]["sha"]},
         "stage_artifacts": build_stage_artifacts(p, spec),
         "verdict": spec.get("verdict"),

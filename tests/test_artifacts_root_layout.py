@@ -136,6 +136,7 @@ def test_p2_folders_live_at_new_layout():
 # P3 reorganization (Hamm 2026-10-15): etudes/ and tutorials/ grouped by kind.
 P3_ETUDES_ROOT = {
     "bundles",
+    "core_checks",
     "experiment_a",
     "jdna",
     "meta",

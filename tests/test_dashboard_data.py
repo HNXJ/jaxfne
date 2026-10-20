@@ -510,3 +510,99 @@ def test_class_page_paper_value_and_roadmap_are_copied(tmp_path):
         write_sources(root, [paper(sha, **{**spec, "page": bad})], roadmap=roadmap)
         proc = run(root)
         assert proc.returncode == 1 and "is not models/<name>.md" in proc.stderr, (bad, proc.stderr)
+
+
+def core_criterion(check, **over):
+    base = {
+        "id": check, "entry": check, "claim": "c", "estimand": "e",
+        "criterion": "error within tolerance",
+        "value": {"file": "main", "key": f"checks.{check}.error"},
+        "verdict": {"file": "main", "key": f"checks.{check}.pass"},
+        "reference": {"file": "main", "key": f"checks.{check}.reference"},
+    }
+    base.update(over)
+    return base
+
+
+def core_score():
+    return {"checks": {
+        "meg_radial": {"error": 1e-9, "tolerance": 1e-6, "pass": True,
+                       "reference": "primary-current field"},
+        "eeg_mne": {"error": None, "tolerance": None, "pass": None,
+                    "reference": "MNE single-shell", "skipped": "mne not installed"},
+    }}
+
+
+def core_paper(sha, criteria):
+    return paper(sha, **{"class": "core method", "stage": None, "preregs": [],
+                         "files": {"main": "scores/main.json"}, "criteria": criteria})
+
+
+def test_core_method_builds_values_verdicts_and_references_from_the_scorer_file(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": core_score()})
+    spec = core_paper(sha, [core_criterion("meg_radial"), core_criterion("eeg_mne")])
+    assert "prereg" not in spec["criteria"][0] and spec.get("stage") is None, (
+        "fixture must carry no prereg and no stage"
+    )
+    write_sources(root, [spec])
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    got = load_out(root)["papers"][0]
+    assert (got["class"], got["stage"], got["verdict"], got["preregs"]) == ("core method", None, None, [])
+    live, skipped = got["criteria"]
+    assert (live["value"], live["verdict"]) == (1e-9, "pass")
+    assert live["reference"] == "primary-current field"
+    assert live["reference_text"] == "primary-current field"
+    assert (skipped["value"], skipped["verdict"]) == (None, "pending")
+
+    flipped = core_score()
+    flipped["checks"]["meg_radial"]["pass"] = False
+    (root / "scores" / "main.json").write_text(json.dumps(flipped), encoding="utf-8")
+    git(root, "add", "--", "scores/main.json")
+    git(root, "commit", "-q", "-m", "flipped verdict")
+    sha2 = git(root, "rev-parse", "HEAD")
+    write_sources(root, [core_paper(sha2, [core_criterion("meg_radial")])])
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    assert load_out(root)["papers"][0]["criteria"][0]["verdict"] == "fail", (
+        "the verdict comes from the lane scorer file, not the sources entry"
+    )
+
+
+@pytest.mark.parametrize("criteria, needle", [
+    ([], "needs non-empty criteria"),
+    ([{k: v for k, v in core_criterion("meg_radial").items() if k != "reference"}],
+     "needs a non-empty reference"),
+    ([{k: v for k, v in core_criterion("meg_radial").items() if k != "verdict"}],
+     "takes its verdict from the scorer file"),
+])
+def test_core_method_refuses_and_names_the_paper(tmp_path, criteria, needle):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": core_score()})
+    write_sources(root, [core_paper(sha, criteria)])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and needle in proc.stderr, proc.stderr
+    assert not (root / REL_OUT).exists(), "no data file may be written on error"
+
+
+def test_core_method_skippable_criterion_names_its_entry(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": core_score()})
+    crit = core_criterion("eeg_mne", may_skip=True)
+    assert "entry" in crit
+    del crit["entry"]
+    write_sources(root, [core_paper(sha, [crit])])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and "names its scorer entry" in proc.stderr, proc.stderr
+    assert not (root / REL_OUT).exists(), "no data file may be written on error"
+
+    write_sources(root, [core_paper(sha, [core_criterion("eeg_mne", may_skip=True)])])
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    assert load_out(root)["papers"][0]["criteria"][0]["verdict"] == "pending"

@@ -27,7 +27,7 @@ registry, `assurance/issue_log/ISSUE_LOG.md` (high severity is the problem view;
 | `changelog.d/` | release-note fragments assembled into `docs/reference/changelog.md` | |
 | `publication/` | manuscript figure specs, receipts, claim ledger, `frozen_manifest.json` | frozen + harness |
 | `figures/` | publication figure renders | `publication/` fig01–fig07 frozen |
-| `etudes/` | `experiment_a/` frozen canonical bundle (stays: cited frozen path, `jaxfne/` defaults), paper replications (`papers/`: caminos, gsdr2026, izhikevich2003, pcl, pcl_h, qlearning), standalone bundles (`bundles/`), theory checks (`theory/`), compact-grammar lane (`jdna/`), lane records (`meta/`) | cited by publication |
+| `etudes/` | `experiment_a/` frozen canonical bundle (stays: cited frozen path, `jaxfne/` defaults), paper replications (`papers/`: caminos, gsdr2026, izhikevich2003, pcl, pcl_h, qlearning), standalone bundles (`bundles/`), theory checks (`theory/`), compact-grammar lane (`jdna/`), core method checks (`core_checks/`), lane records (`meta/`) | cited by publication |
 | `programme/` | plans (`design/plans/`), gap reports (`gaps/`), capabilities and inventories (`design/capabilities/`), live coverage triple (`coverage/`: `atlas_coverage.json`, `claim_ledger_055.md`, `methods_055.md`), receipts by version and family (`receipts/`), 3 dated files at root (kept paths) | release authorities |
 | `protocol_c/` | Protocol C (waves) specs and receipts (stays: `jaxfne/` runtime defaults, FROZEN supplement rows) | cited by publication |
 | `protocol_d_biological_rbs/` | Protocol D (biological RBS) specs and receipts | cited by publication |

@@ -1,0 +1,48 @@
+{
+  "checks": {
+    "meg_radial": {
+      "error": 3.957314409161212e-12,
+      "tolerance": 1.4883172971838165e-09,
+      "pass": true,
+      "reference": "primary-current Biot-Savart field"
+    },
+    "meg_full_vector": {
+      "error": 5.424514919145701e-13,
+      "tolerance": 2.3207659579155874e-09,
+      "pass": true,
+      "reference": "scalar-potential quadrature (-mu0 grad U)"
+    },
+    "meg_radial_silence": {
+      "error": 5.978804013466013e-08,
+      "tolerance": 1e-06,
+      "pass": true,
+      "reference": "radial-to-tangential amplitude ratio"
+    },
+    "eeg_neumann": {
+      "error": 0.00041629936487197483,
+      "tolerance": 0.4029249967826127,
+      "pass": true,
+      "reference": "Neumann-series potential (400 terms)"
+    },
+    "eeg_mne": {
+      "error": 4.57763671875e-05,
+      "tolerance": 0.8438264892578126,
+      "pass": true,
+      "reference": "MNE single-shell forward (homogeneous)"
+    },
+    "eeg_scaling": {
+      "error": 0.0,
+      "tolerance": 0.001966030731201172,
+      "pass": true,
+      "reference": "conductivity reciprocity (0.33 against 0.66 S/m)"
+    },
+    "eeg_reference": {
+      "error": 4.124641418457031e-06,
+      "tolerance": 0.00019660307312011717,
+      "pass": true,
+      "reference": "average-reference null"
+    }
+  },
+  "pass": true,
+  "skipped": []
+}

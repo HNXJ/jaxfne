@@ -11,6 +11,7 @@ SHA, so this gate does not re-check their working-tree existence.
 - R1: a paper at stage S holds the records of every stage up to S in its folder
   (P1 ``SOURCE_P1.md``, P2 ``PORT_SPEC.md``, P3 ``PREREG_P3*.md`` or ``prereg/``
   holding ``P3_*.md``, P5 ``LEDGER.md`` and ``RESULT_P3*.md``, P6 ``RESULT_P6*.md``).
+  Entries of class ``core method`` are analytic checks, not staged papers, and are skipped.
   The folder is ``artifacts/etudes/papers/<name>/``, where ``<name>`` is the path
   segment after ``artifacts/etudes/`` (or ``artifacts/etudes/papers/``) in the
   paper's own ``stage_artifacts`` paths; a paper with no ``stage_artifacts``
@@ -174,6 +175,8 @@ def check_r1(papers: list[dict], root: Path) -> list[tuple[str, str, str]]:
     """R1 findings: unresolvable folders and missing stage records."""
     findings = []
     for paper in papers:
+        if paper.get("class") == "core method":
+            continue  # analytic checks of a core method, not a staged paper replication
         pid = paper.get("id", "?")
         stage = paper.get("stage")
         if stage not in STAGE_ORDER:
