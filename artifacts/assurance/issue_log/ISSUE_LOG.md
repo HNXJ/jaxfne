@@ -110,6 +110,23 @@ marked inferred).
   only in receipts, e.g. `benchmark_054_scaling.py`, `run_protocol_h_h4_matrix.py`); 8 audit
   scripts are reached by no gate. Deleting any is Hamm's call.
 
+### P-044
+
+- Date: 2026-10-20. Type: BUG. Area: `Configuration.population` (`jaxfne/_config.py`), layer
+  allocation in `jaxfne/_construct_population.py`. Severity: medium.
+- Observation: `neurons=` keys that are not names in `layers=` are dropped without a message.
+  When no key names a layer, counts fall back to layer thickness; when some do, layers missing
+  from `neurons` get zero cells.
+- Reproduction: N = 100, layers A (0.0-0.2) and B (0.2-1.0). `{"A": 9, "B": 1}` gives 90/10;
+  `{"E": 0.8, "I": 0.2}` gives 20/80 (thickness); `{"A": 9, "I": 1}` gives 100/0.
+- Callers passing cell-type keys (shares ignored, thickness used): `jaxfne/experiment_a/canonical.py`,
+  `tests/mcc_fixtures.py`, `scripts/generate_meg_eeg_figures.py`,
+  `scripts/run_heterogeneous_emitters_etude.py`, `scripts/run_multiscale_observation_etude.py`.
+- Expected: a key outside `layers` is refused, and an omitted layer is refused or reported.
+- Possible change: refuse unknown keys in `population()`, and change the five callers to layer
+  shares equal to their thicknesses, so that their outputs stay bit-identical. This changes the
+  public API and touches protocol and fixture code: Hamm's call.
+
 ### P-043
 
 - Date: 2026-10-19. Type: SCIENCE. Area: Izhikevich cell-type presets. Severity: medium.
