@@ -100,7 +100,7 @@ Rules B1–B7 (adopted 2026-10-11):
 - [H] B3 one emitter per release, authorized by Hamm, gated by a P4 test perturbing every
   accepted parameter.
 - [A] B4 narrowing, one class per commit with its gate; generated assets regenerate at the docs
-  build (plan `artifacts/etudes/meta/narrowing_plan.md`).
+  build (plan `artifacts/etudes/meta/plans/narrowing_plan.md`).
 - [A] B5 GPU: one job at a time, claimed in jchat. B6 each accepted binding becomes a row here the
   same session. B7 calibrate on synthetic nulls and known positives before a signature.
 - [A] B8 pilot-then-sign (Hamm 2026-10-18): a lane runs its full pipeline on unscored pilot seeds
