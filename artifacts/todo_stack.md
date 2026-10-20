@@ -44,7 +44,6 @@ inferred from similar packages; `[H]` waits on Hamm.
 |---|---|---|---|
 | 1 | A7 issue-log hygiene: P-035, P-036 to the closed archive; resolution lines on P-037 to P-042 as their packages land | 20 min | dispatcher |
 | 2 | A3 leftovers: GSDR step headers 6.x "scored", Destexhe body verdict lines marked unscored pilot | 20 min | worker |
-| 3 | T-10 newline policy: LF-only lines in `docs/reference/changelog.md` and `docs/_static/atlas/manifest.json` | 20 min | worker |
 | 4 | References page as the study list: two classes (core references; research studies with replication status), every DOI checked against Crossref, toward 50+ research studies | 2-4 h | workers (check), dispatcher (status) |
 | 5 | A5 drive defaults, A6 lint (running); A1b lane tests in the broad gate, one pytest process per lane (caminos sets x64 at import, the pcl guard aborts a shared collection) | 1-2 h each | workers |
 | 6 | Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5 | 6 h compute, detached | worker launches |
@@ -150,9 +149,9 @@ run on WSL2 CUDA.
 - T-10 [A] G-1 (meet 204dfdaa): port jnwb's `changelog.d`, `assemble_changelog.py`,
   `release_body.py` and claim check; release body as tables. Closes when: `release_body.py --tag <next>` passes.
   The port itself landed (924f2423, 78d293d9); only the closing check waits for a tag.
-  Then one newline policy for docs (check: `docs/reference/changelog.md` has 0 LF-only lines; it has
-  5 of 745, lines 213-216 and 297, and `docs/_static/atlas/manifest.json` 16 of 136, 2026-10-18), the errors
-  page, a proxy-claim wording gate, AST-hash freezing of validated kernels
+  Then the errors page (the docs newline check holds: `docs/reference/changelog.md` and
+  `docs/_static/atlas/manifest.json` are all CRLF at HEAD, 745 and 136 lines, 2026-10-20), a
+  proxy-claim wording gate, AST-hash freezing of validated kernels
   (`artifacts/control/harness/jnwb_cross_learning.md`).
 - T-11 [A] G-3: CAMINOS p = 0.07 seed 1 as an NWB excerpt plus provenance for jnwb `tests/`
   (waits on jnwb to name its tests/ path). Closes when: the excerpt's recovery test passes in jnwb `tests/`.
