@@ -1,6 +1,6 @@
 # Étude: Predictive Coding Light
 
-**Status:** in progress. Fig. 2 reproduced standalone and on the HDP kernel; central claim reproduced in a small column. Fig. 3 fails: v4 FAIL; v5 T2 fails (T1, T3 pass; T4 passes on a post hoc criterion changed after v4). Next: Fig. 3 rescored on the jaxfne core with T4 declared up front  
+**Status:** in progress. Fig. 2 passes standalone (P0) and on the HDP kernel only with averaged weights (K0b); end-of-epoch weights fail (K0). The column's A1 fails in C1, K1 and C1b; A2 and A3 pass. Fig. 3 fails: v4 FAIL; v5 T2 fails (T1, T3 pass; T4 passes on a post hoc criterion changed after v4). Next: Fig. 3 rescored on the jaxfne core with T4 declared up front  
 **Bundle:** `artifacts/etudes/papers/pcl/`
 
 ## Claim and source

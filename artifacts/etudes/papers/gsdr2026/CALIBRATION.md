@@ -303,6 +303,8 @@ by `ModuleNotFoundError` pre-module and a window off-by-one).
 
 ### 6.3 Fit outcome: 350 generations × 6 (OBSERVED)
 
+This fit and the 500-generation fit ran without MCDP (P-039; erratum 2026-10-19 below).
+
 Driver `fit_gsdr_500.py` (same loss/init/seeds as Step 4; ckpt +
 partial manifest every 10 gens). First launch died at the gen-10
 checkpoint (`FileNotFoundError`: `np.savez` appends `.npz`, so the

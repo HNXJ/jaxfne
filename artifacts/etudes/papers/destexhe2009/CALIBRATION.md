@@ -1,7 +1,8 @@
 # Destexhe 2009 calibration C3 (baseline θ₀, seeds 1–3 + Fig. 6A control)
 
 Baseline z at the paper's parameters (PORT_SPEC.md θ₀, PREREG_P3.md).
-No fit performed; degrees of freedom D untouched. Verdict: OFF —
+No fit performed; degrees of freedom D untouched. Verdict: OFF, unscored pilot (ruling
+2026-10-18: scored against the unsigned draft `PREREG_P3.md`) —
 no self-sustained activity at θ₀, so E1 fails and E2/E3 score a transient,
 not an AI state. Held-out seeds 4–8 are unused and stay reserved for scoring
 after any future fit.
@@ -74,7 +75,7 @@ clamped to the whole raster) and reported every spiking run alive. Fixed to
 `tests/test_destexhe2009_port.py::test_score_alive_reads_last_second_of_time`
 fails on the old line (`assert True is False`) and passes on the new one.
 
-## Step 1: F2 continuous-run hypothesis (REJECTED 2026-10-14)
+## Step 1: F2 continuous-run hypothesis (REJECTED 2026-10-14; unscored pilot, ruling 2026-10-18)
 
 One continuous 10.05 s run per seed (1–3), kick Poisson drive gated to the
 first 50 ms, no phase restart: `simulate_adex_gated_drive`
@@ -136,7 +137,7 @@ uncommitted tree state at run time (new `jaxfne/adex_destexhe.py`
 `run_destexhe fig6b_cont`; `s2cont/manifest.json` pins the HEAD SHA —
 rasters are post-baseline tree, labelled calibrated reproduction).
 
-## Step 2: kick-D exhausted (REJECTED 2026-10-14)
+## Step 2: kick-D exhausted (REJECTED 2026-10-14; unscored pilot, ruling 2026-10-18)
 
 D in declared order (PREREG_P3.md): kick rate 200–400 Hz (paper range),
 kick fraction shape F5 (fraction of RS kick targets; 0.05 of RS ≈ 4% of the
@@ -177,7 +178,7 @@ rate/weight/receptor/delay/key, then keeps a seeded fraction of RS
 exposes it as `kick_fraction` plus `kick_rate_hz`, reached through
 `run_destexhe.py fig6b_cont`. No paper value moved.
 
-## Step 3: diagnostics + residual X_bg (DECLARED 2026-10-14)
+## Step 3: diagnostics + residual X_bg (DECLARED 2026-10-14; unscored pilot, ruling 2026-10-18)
 
 Diagnostics (report `scratch/destexhe2009/report_s2diag.json`): `nokickv0`
 (heterogeneous V0 in [−70, −50] mV, no drive) gives 0 free spikes;
@@ -221,7 +222,7 @@ E2, none closes E2+E3 jointly with rate in-band. L = e_cv² +
 GPU wall this step: bg08 `58.0 s`, bg12 `68.4 s` (run output); prior
 bg01–bg05 + bg20 per manifest `wall_s`.
 
-## Step 4: absorption interim + step-6 status (OPEN)
+## Step 4: absorption interim + step-6 status (OPEN; unscored pilot, ruling 2026-10-18)
 
 D with ranges and reasons: kick rate 200–400 Hz (paper range, in D);
 kick fraction 0.02–1.0 (F5 shape; 0.02–0.10 of RS ≈ paper 2–10% of the
@@ -245,7 +246,7 @@ single-gain X_bg does not reproduce E2+E3. Concentrated-vs-diffuse
 background and a genuine D-absorption fit (with λ ramp on a) remain
 the two open moves before a final needs-X verdict.
 
-## Step 5: authors'-code fidelity audit + code-value kick + N-trend (2026-10-14)
+## Step 5: authors'-code fidelity audit + code-value kick + N-trend (2026-10-14; unscored pilot, ruling 2026-10-18)
 
 Code source (read as data, never run): ModelDB accession 126466
 ("Asynchronous irregular and up/down states in excitatory and inhibitory
@@ -343,7 +344,7 @@ port's spike-detection threshold (F6) is the prime structural
 suspect, with a proposed core experiment (detection at VT). No
 paper-stated parameter moved; no θ*.
 
-## Step 6: core migration and fidelity F6/F7 (2026-10-14)
+## Step 6: core migration and fidelity F6/F7 (2026-10-14; unscored pilot, ruling 2026-10-18)
 
 What changed (port-side only, no core edit, no paper value moved):
 
@@ -424,7 +425,7 @@ Held-out note: seeds 4–8 are scored here at the declared non-fit
 baseline per dispatcher order (no fit exists); any future fit
 re-scores them per PREREG_P3.md.
 
-Verdict: supersedes steps 1–5 OFF. E1 PASSES on 4/8 seeds under the
+Verdict (unscored pilot): supersedes steps 1–5 OFF. E1 PASSES on 4/8 seeds under the
 authors' Vpeak (2, 3, 6 sustained; 7 alive but collapsing in s9);
 E3 closes on 2, 3, 6; E2 stays off on every alive seed; E4 rate
 order badly off (hyperactive ~5x). No θ* — no seed closes

@@ -25,6 +25,8 @@ Decisions (Hamm 2026-10-13; CAMINOS ruling 2026-10-14; status tags 2026-10-16):
 - CAMINOS final (Hamm 2026-10-14, `CALIBRATION.md` §10): PLoS CB is primary; f_pk,
   rates and R4 reproduced; the PV→SOM lag miss is a finding that needs X; no residual
   fit ran; the 0.1 ms preprint sensitivity is recorded.
+- CAMINOS P6 moves to 0.5.7 (Hamm 2026-10-13, todo stack section 5): its P6 prereg goes to
+  signature and its equivalence test lands in that release.
 - Izhikevich 2003 scored in 0.5.7 without a pass, in progress (Fig. 2 C4/C8, Fig. 3 N2; post hoc
   amendment v8.2; P3b stopped at its equivalence gate).
 - GSDR and Destexhe 2009 (Hamm 2026-10-18): steps scored against unsigned draft preregs are
