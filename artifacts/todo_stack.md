@@ -43,7 +43,6 @@ inferred from similar packages; `[H]` waits on Hamm.
 | Order | Item | ETA | Who |
 |---|---|---|---|
 | 1 | A7 issue-log hygiene: P-035, P-036 to the closed archive; resolution lines on P-037 to P-042 as their packages land | 20 min | dispatcher |
-| 2 | A3 leftovers: GSDR step headers 6.x "scored", Destexhe body verdict lines marked unscored pilot | 20 min | worker |
 | 4 | References page as the study list: two classes (core references; research studies with replication status), every DOI checked against Crossref, toward 50+ research studies | 2-4 h | workers (check), dispatcher (status) |
 | 5 | A5 drive defaults, A6 lint (running); A1b lane tests in the broad gate, one pytest process per lane (caminos sets x64 at import, the pcl guard aborts a shared collection) | 1-2 h each | workers |
 | 6 | Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5 | 6 h compute, detached | worker launches |

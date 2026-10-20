@@ -101,7 +101,7 @@ Estimands (same bands; E3 absolute scale 0.01):
 | E3 CC = 0.005 | 0.005 | 0.0957 / 0.0908 / 0.1485 | abs 0.091 / 0.086 / 0.144 | off |
 | E4 rates | RS < FS, RS 1–10 Hz | 3.24/3.57, 2.76/2.86, 1.06/1.18 | — | reported, not gated: holds on transient |
 
-Verdict: still dead within 2 s (seed 3 within 1 s). The phase-2 restart
+Verdict (unscored pilot): still dead within 2 s (seed 3 within 1 s). The phase-2 restart
 dropping w/g/ref does not explain the miss; F2 rejected. E2/E3 again score a
 transient, not an AI state.
 
@@ -167,7 +167,7 @@ CV 1.621 CC 0.1122 rate 2.17; all `alive_last_s=false`. Seeds 2–3 kf05:
 seed 2 CV 1.595 CC 0.0891 rate 2.51 alive false; seed 3 CV 1.687
 CC 0.0984 rate 3.20 alive false.
 
-Verdict: every kick-D point dies (best kf05 seed 1 lasts ~3.4 s, all
+Verdict (unscored pilot): every kick-D point dies (best kf05 seed 1 lasts ~3.4 s, all
 others ≤ 2 s). E1 FAILs everywhere, so E2/E3 again score a transient.
 Kick rate × kick fraction cannot sustain; no θ* from kick-D.
 
@@ -338,7 +338,7 @@ is no candidate to score; 4–8 stay reserved per the residual protocol
 GPU wall this step: smoke `3.2 s` + `3.4 s`; batches `41.6 / 40.3 /
 40.2 / 49.4 / 38.6 s`; total ≈ 217 s. JAX `0.10.1`, cuda.
 
-Verdict: still OFF at θ₀ and at the authors'-code kick value. Step-4
+Verdict (unscored pilot): still OFF at θ₀ and at the authors'-code kick value. Step-4
 interim stands (|a| trajectory for X_bg unchanged); new finding: the
 port's spike-detection threshold (F6) is the prime structural
 suspect, with a proposed core experiment (detection at VT). No

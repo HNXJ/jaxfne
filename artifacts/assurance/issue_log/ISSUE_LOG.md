@@ -91,8 +91,8 @@ marked inferred).
 - Possible change: correct the manifests' wording (record `mcdp: false` going forward), and add
   MCDP to the core `gsdr` before any further fit (replications run on the core).
 - 2026-10-20 (release plan A3): GSDR CALIBRATION §6.3 states the 350- and 500-generation fits
-  ran without MCDP; the fit drivers already record `mcdp_applied`. Open: the authors' `"mcdp": True`
-  block in the fit drivers, and three step headers that still read "scored" (todo queue item 2).
+  ran without MCDP; the fit drivers already record `mcdp_applied`; steps 4-6 read as unscored
+  pilots. Open: the authors' `"mcdp": True` block in the fit drivers (Hamm's call).
 
 ### P-040
 
@@ -102,7 +102,7 @@ marked inferred).
   says E1 passes (:427) and scores the reserved seeds 4-8. `REPLICATIONS.md:12` says "no verdict
   yet" and "28 passed" (30 pass today).
 - 2026-10-20 (release plan A3): CALIBRATION header and steps 1-6 marked unscored pilots (ruling
-  2026-10-18), REPLICATIONS row agrees. Open: three body verdict lines (todo queue item 2).
+  2026-10-18), body verdicts too; REPLICATIONS row agrees. Closes with the lane's next prereg.
 
 ### P-041
 

@@ -166,7 +166,7 @@ than leave unwatched GPU work queued. Rerun:
 
 Violation repair: `scratch/_temp_crosscheck_kappa.py` imported and ran `compute_kappa` from the authors' code (read-as-data rule); deleted, never a Python path again; kappa re-established by hand-computed pairwise-Fleiss test `tests/test_gsdr2026_kappa_hand.py` (tiny 3×11 matrix, expected −1/3).
 
-## Step 4 — GSDR fit (seeds 1–3) + held-out (seeds 4–8) (OBSERVED, scored → off)
+## Step 4 — GSDR fit (seeds 1–3) + held-out (seeds 4–8) (OBSERVED; off against the unsigned draft, unscored pilot by ruling 2026-10-18)
 
 Engine: `jaxfne.optim.gsdr` spec (alpha 0.7, exploration 0.05, deselect 3.0 = paper C; inner SDR lr 0.1 / momentum 0.4, a_init 0.0) on `L = 990·mean(psd_loss vs y) + 9·mean(penalty) + 100·mean(|k − ky|)`; trainable = all 2230 gAMPA+gGABAa conductances, uS, [0, 10], init clip(U(−4,10),0,8)/clip(U(2,10),0,10) (`main_fig6.py:191-192,194-198,210-211,671-681`, read as text); center0 = seed-1 init; 8 gen × 6 pop, seed 0. Driver `fit_gsdr.py`; outputs `scratch/gsdr2026/gsdr_fit{,_smoke}` with manifests. GPU wall 41.6 s (smoke) + 351.6 s (full), ≈6.5 min of the 90 min cap.
 
@@ -180,7 +180,7 @@ Held-out (`score_heldout.py`, model PSD = mean-voltage proxy vs spike-trace labe
 
 XLA deterministic-ops twin (seed 1): two attempts queued behind foreign lock holders, reaped after ~15 / ~6.5 min without acquiring the lock, no orphan left → still OPEN. Rerun: `flock /tmp/jaxfne_gpu.lock env XLA_FLAGS=--xla_gpu_deterministic_ops=true ~/venv_jaxfne/bin/python -u scratch/_temp_bistab_xladet_one.py 1`.
 
-## Step 5 — estimand fidelity + residual-X fit (OBSERVED, scored → off)
+## Step 5 — estimand fidelity + residual-X fit (OBSERVED; off against the unsigned draft, unscored pilot by ruling 2026-10-18)
 
 Like-for-like z (4e): model onsets through the label recipe
 (`main_fig6.py:109-126`, read as text): `run_gsdr.spike_trace_psd`
@@ -236,7 +236,7 @@ seconds each. Narrow tests (CPU): 35 passed in 80.37s
 (`test_gsdr2026_fidelity4e` + `test_emitters_hh`) and 27 passed in
 27.53s (`fidelity`, `labels`, `kappa_hand`, `model`).
 
-## Step 6 — fit at the authors' budget (OBSERVED, scored → off)
+## Step 6 — fit at the authors' budget (OBSERVED; off against the unsigned draft, unscored pilot by ruling 2026-10-18)
 
 ### 6.1 Epoch mapping (authors' code read as text, never imported)
 
