@@ -128,7 +128,7 @@ def build_spec(point="D", n=1250, seed=0):
     return tensor
 
 
-def build_sim(point="D", n=1250, T_s=0.5, dt_ms=DT_MS, seed=0):
+def build_sim(point="D", n=1250, T_s=0.5, dt_ms=DT_MS, seed=0, dtype="float32"):
     """The ``Simulation`` for a run (duration, dt, drive)."""
     _, eta = FIG8_POINTS[str(point)]
     nuext = float(eta) * NUTHR_HZ
@@ -148,12 +148,12 @@ def build_sim(point="D", n=1250, T_s=0.5, dt_ms=DT_MS, seed=0):
         seed=int(seed),
         poisson_drive={"rate_hz": nuext, "amplitude": J_MV, "counts": cext,
                        "seed": int(seed)},
-        runtime=J.RuntimeConfig(recurrent_backend="edge_list"),
+        runtime=J.RuntimeConfig(recurrent_backend="edge_list", dtype=dtype),
     )
 
 
 def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms=DT_MS,
-        freq_res_hz=None, signed=False):
+        freq_res_hz=None, signed=False, dtype="float32"):
     """Build, run and write the raster plus the ``manifest.json`` the scorer reads."""
     import time
 
@@ -170,16 +170,18 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms
     model = J.construct(
         build_spec(point=point, n=n, seed=seed),
         nt.RuntimeConfiguration(seed=int(seed), duration_ms=float(T_s) * 1000.0,
-                                dt_ms=float(dt_ms), emitter="lif"),
+                                dt_ms=float(dt_ms), emitter="lif", dtype=dtype),
     )
     t_construct = time.perf_counter() - t0
-    sim = build_sim(point=point, n=n, T_s=T_s, dt_ms=dt_ms, seed=seed)
+    sim = build_sim(point=point, n=n, T_s=T_s, dt_ms=dt_ms, seed=seed, dtype=dtype)
     signals = model.simulate(sim)
     spikes = np.asarray(signals.spikes, dtype=bool)  # waits for the dispatched kernel
     t_simulate = time.perf_counter() - t0 - t_construct
     assert spikes.shape == (sim.n_steps, sum(
         1 for _ in model.neuron_table())), "raster must cover every neuron"
-    assert bool(np.isfinite(np.asarray(signals.V_m)).all()), "V must stay finite"
+    v_m = np.asarray(signals.V_m)
+    assert bool(np.isfinite(v_m).all()), "V must stay finite"
+    realized_dtype = str(v_m.dtype)
     regime = score(spikes, dt_ms, burn_in_ms=burn_in_ms, freq_res_hz=freq_res_hz)
     import jax
 
@@ -192,7 +194,7 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms
     os.replace(tmp, out / fname)
     entry = {"seed": int(seed), "tag": tag, "file": fname, "point": str(point),
              "n": int(n), "steps": int(spikes.shape[0]), "dt_ms": float(dt_ms),
-             "duration_ms": float(T_s) * 1000.0, "dtype": "float32",
+             "duration_ms": float(T_s) * 1000.0, "dtype": realized_dtype,
              "backend": backend, "burn_in_ms": float(burn_in_ms), "freq_res_hz": freq_res_hz,
              "poisson_drive": {"rate_hz": float(sim.poisson_drive["rate_hz"]),
                                "amplitude": J_MV,
@@ -201,7 +203,7 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms
              "wall_s": {"construct": t_construct, "simulate": t_simulate},
              "regime": regime}
     entries[fname] = entry
-    manifest = {"git_sha": sha, "dtype": "float32", "backend": backend,
+    manifest = {"git_sha": sha, "dtype": realized_dtype, "backend": backend,
                 "runs": list(entries.values())}
     lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)
     return {"spikes": spikes, "steps": sim.n_steps, "regime": regime,

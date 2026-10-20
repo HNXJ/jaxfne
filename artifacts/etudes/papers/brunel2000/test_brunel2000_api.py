@@ -257,6 +257,36 @@ def test_run_consumes_dt(tmp_path):
     assert entry["dt_ms"] == 0.25 and entry["steps"] == 80
 
 
+def test_run_consumes_dtype(tmp_path):
+    """``run(dtype="float64")`` runs in float64 and records it (prereg P3 float64 check)."""
+    import json
+
+    import jax
+
+    prev = bool(jax.config.read("jax_enable_x64"))
+    jax.config.update("jax_enable_x64", True)
+    try:
+        out = L.run(0, "f64", tmp_path, point="D", n=50, T_s=0.02, dtype="float64")
+    finally:
+        jax.config.update("jax_enable_x64", prev)
+    assert out["steps"] == 40
+    m = json.loads((tmp_path / "manifest.json").read_text())
+    assert m["dtype"] == "float64" and m["runs"][0]["dtype"] == "float64"
+
+
+def test_run_refuses_float64_without_x64(tmp_path):
+    """float64 without JAX x64 is refused before any run."""
+    import jax
+
+    prev = bool(jax.config.read("jax_enable_x64"))
+    jax.config.update("jax_enable_x64", False)
+    try:
+        with pytest.raises(Exception, match="(?i)x64|float64"):
+            L.run(0, "f64", tmp_path, point="D", n=50, T_s=0.02, dtype="float64")
+    finally:
+        jax.config.update("jax_enable_x64", prev)
+
+
 @pytest.mark.parametrize("bad", [-5.0, float("nan")])
 def test_score_refuses_bad_burn_in(bad):
     """A negative or NaN burn-in is refused; slicing would score the tail."""
