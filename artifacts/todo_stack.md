@@ -46,7 +46,6 @@ inferred from similar packages; `[H]` waits on Hamm.
 | 4 | References page as the study list: two classes (core references; research studies with replication status), every DOI checked against Crossref, toward 50+ research studies | 2-4 h | workers (check), dispatcher (status) |
 | 5 | A5 drive defaults, A6 lint (running); A1b lane tests in the broad gate, one pytest process per lane (caminos sets x64 at import, the pcl guard aborts a shared collection) | 1-2 h each | workers |
 | 6 | Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5 | 6 h compute, detached | worker launches |
-| 7 | CAMINOS zero-delay runs scored as section 9, R = 4 against R = 2 (T-22) | 2-3 h | dispatcher (science), worker runs |
 | 8 | A9 release mechanics for 0.5.7: fragments, `release_body.py --tag v0.5.7`, rc gate, receipt | 2 h after 1-7 | dispatcher, worker gate runs |
 | 9 | 0.5.8 B4 checklist rules in `check_replications.py`; B1 estimators into `jaxfne.analysis` | 1-2 days | workers |
 | 10 | 0.5.8 B5 lane gaps (Brunel S1 option, Vogels G-SC, Potjans G-MULT to G-DDIST); B3 batching; B2 routes through `construct` | days each | workers, dispatcher review |
@@ -213,7 +212,9 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   `local_inhibition_resolution="event_order"` (`emitters_lif.py` `_cascade_step`); the AdEx
   rounds only add excitation. What keeps B3 off the core is the full-network mapping (cover-table
   feed, complex pooling, lateral and top-down; `run_tuning.py` CORE_GAP), which is PCL lane work
-  (O-24). Next: score the CAMINOS zero-delay runs as section 9 and check R = 4 against R = 2.
+  (O-24). The CAMINOS zero-delay runs are scored (CALIBRATION section 11: lag 6.92-7.18 ms, f_pk
+  43-46 Hz, as the 0.1 ms sensitivity; R = 4 against R = 2 is superseded by the quiescence cap).
+  Left: PCL B3 on the operator, with the PCL core mapping (release plan B2).
 - T-25 [A] Plastic weights: W is state in h during a run; A holds W₀ and its ownership. A trained
   network is A' = A with W₀ ← W_T, recorded with provenance. Closes when: the tensor carries W₀
   provenance and PCL's trained weights load as A'. Landed 2026-10-18: `W0Provenance`,
