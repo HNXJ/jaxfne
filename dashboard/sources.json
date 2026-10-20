@@ -382,7 +382,7 @@
       "citation": "Nejat, Sherfey and Bastos, PLOS One 2026",
       "class": "in progress",
       "question": "Does GSDR fit the 50-neuron Hodgkin–Huxley circuit to the recorded spectra when the circuit and the optimizer run in jaxfne?",
-      "release": "0.5.7",
+      "release": "0.5.8",
       "tier": "T-jaxfne",
       "stage": "P1",
       "lane": {"branch": "dev", "sha": "7ac1bb47b5805b046a4790d9d6456ed23c706eb7"},
@@ -401,7 +401,7 @@
       "citation": "Destexhe, J Comput Neurosci 2009",
       "class": "in progress",
       "question": "Does the jaxfne AdEx core, at the paper's parameters, sustain the asynchronous irregular state of Fig. 6B with its rates, CV_ISI and pairwise correlation?",
-      "release": "0.5.7",
+      "release": "0.5.8",
       "tier": "T-port",
       "stage": "P3",
       "lane": {"branch": "dev", "sha": "6f85f5c3056edf91b89ea2a61efce758000d0a69"},
@@ -483,7 +483,7 @@
       "class": "in progress",
       "question": "Does the jaxfne core reproduce the microcircuit's spontaneous AI state: layer-specific rates, CV above 0.8 and L6-lowest synchrony?",
       "page": "models/potjans2014.md",
-      "release": "0.5.8",
+      "release": "0.5.9",
       "tier": "T-jaxfne",
       "stage": "P1",
       "lane": {"branch": "dev", "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"},
@@ -502,7 +502,7 @@
       "class": "in progress",
       "question": "Does the jaxfne core, at the authors' parameters, reproduce the inhibitory-plasticity balance: the Fig. 4 network driven to its target rate and the Figs. 1-2 single-cell detailed balance?",
       "page": "models/vogels2011.md",
-      "release": "0.5.7",
+      "release": "0.5.8",
       "tier": "T-jaxfne",
       "stage": "P1",
       "lane": {"branch": "dev", "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"},
@@ -521,7 +521,7 @@
       "class": "in progress",
       "question": "Does the jaxfne core reproduce the laminar circuit's gamma/alpha rhythms, their interlaminar coupling, and the 30-area functional hierarchy from frequency-dependent Granger causality?",
       "page": "models/mejias2016.md",
-      "release": "0.5.8",
+      "release": "0.5.9",
       "tier": "T-jaxfne",
       "stage": "P1",
       "lane": {"branch": "dev", "sha": "f8c05f04aefc1b14b27d1972ae57ffa07f888697"},
@@ -535,11 +535,12 @@
     }
   ],
   "roadmap": [
-    {"release": "0.5.7", "model": "Calcium-regulated synaptic homeostasis (bioRxiv 2025)", "needs": "working LIF emitter"},
-    {"release": "0.5.7", "model": "PCL Fig. 4: suppression effects", "needs": "0.5.6 conductance synapses"},
-    {"release": "0.5.8", "model": "Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply)", "needs": "the 0.5.8 laminar models"},
+    {"release": "0.5.8", "model": "Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns", "needs": "a neural-mass emitter in the core"},
     {"release": "0.5.9", "model": "Lee, Pennartz and Mejias, PLoS Comput Biol 2025: interneuron silencing, deviant enhancement", "needs": "event input"},
-    {"release": "0.5.9", "model": "PCL Figs. 5–6", "needs": "the PCL suppression data and N-MNIST/DVS sets"},
-    {"release": "0.5.10", "model": "Mazzoni et al. 2015: LFP proxies", "needs": "the 0.5.8 laminar models"}
+    {"release": "0.5.10", "model": "Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply)", "needs": "the 0.5.9 laminar networks"},
+    {"release": "0.5.10", "model": "Mazzoni et al. 2015: LFP proxies", "needs": "the 0.5.9 laminar networks"},
+    {"release": "after 0.5.10", "model": "PCL Fig. 4: suppression effects", "needs": "the PCL full-network mapping (0.5.8)"},
+    {"release": "after 0.5.10", "model": "PCL Figs. 5–6", "needs": "the PCL suppression data and N-MNIST/DVS sets"},
+    {"release": "after 0.5.10", "model": "Calcium-regulated synaptic homeostasis (bioRxiv 2025)", "needs": "methods read; calcium state as an HDP coordinate"}
   ]
 }
