@@ -1,0 +1,1 @@
+- `.connections()` rules with a mechanism now honor the documented plural selector keys `layers` and `cell_types` (a name or a list). The mechanism-aware compiler matched them as exact row fields, so such a rule selected no neuron and compiled zero edges without a message. Declaring both `layer` and `layers` (or `cell_type` and `cell_types`) in one selector is refused.

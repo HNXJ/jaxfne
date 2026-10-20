@@ -258,6 +258,9 @@ class _SelectionIndex:
         return True, [q for q in ranked[0][2] if all(q in st for st in member)]
 
 
+_PLURAL_SELECTOR_KEYS = {"layers": "layer", "cell_types": "cell_type"}
+
+
 def _select_indices(
     neurons: Sequence[Mapping[str, Any]],
     selector: Mapping[str, Any],
@@ -266,10 +269,23 @@ def _select_indices(
     label: str,
     _index: "_SelectionIndex | None" = None,
 ) -> list[int]:
-    """Resolve a quartet/id selector to neuron_id indices (strict AND)."""
+    """Resolve a quartet/id selector to neuron_id indices (strict AND).
+
+    The plural keys ``layers``/``cell_types`` take a name or a list and match
+    any listed value of the row field ``layer``/``cell_type``; declaring a key
+    in both forms is refused.
+    """
     if not isinstance(selector, Mapping):
         raise ValueError(f"{label} selector must be a mapping; got {type(selector).__name__}")
     keys = {k: v for k, v in selector.items() if k != "ids" and v is not None}
+    member: dict[str, set[str]] = {}
+    for plural, single in _PLURAL_SELECTOR_KEYS.items():
+        if plural not in keys:
+            continue
+        if single in keys:
+            raise ValueError(f"{label} selector declares both {single!r} and {plural!r}; declare one")
+        value = keys.pop(plural)
+        member[single] = {str(v) for v in ([value] if isinstance(value, str) else value)}
     ids_filter = selector.get("ids")
     ids_set = set(int(i) for i in ids_filter) if ids_filter is not None else None
     if _index is not None:
@@ -277,6 +293,8 @@ def _select_indices(
         if covered:
             out = []
             for pos in positions:
+                if not all(str(neurons[pos].get(f)) in s for f, s in member.items()):
+                    continue
                 nid = int(neurons[pos]["neuron_id"])
                 if ids_set is not None and nid not in ids_set:
                     continue
@@ -287,6 +305,8 @@ def _select_indices(
     out: list[int] = []
     for row in neurons:
         if not all(str(row.get(k)) == str(v) for k, v in keys.items()):
+            continue
+        if not all(str(row.get(f)) in s for f, s in member.items()):
             continue
         nid = int(row["neuron_id"])
         if ids_set is not None and nid not in ids_set:

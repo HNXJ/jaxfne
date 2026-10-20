@@ -34,7 +34,7 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 
 ## 2. Releases 0.5.7-0.5.10
 
-Plan and order: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md` (Hamm 2026-10-19). Packages
+Plan and order: `artifacts/etudes/meta/release_plans/release_plan_0.5.7-0.5.10.md` (Hamm 2026-10-19). Packages
 A1-A9 (0.5.7) run first; rows below close as their packages land.
 
 ## 2a. Standing from 0.5.6 (Hamm 2026-10-12: cleaning, organizing, docs, dashboard)

@@ -6,7 +6,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Works (with evidence)
 
-- 2026-10-19 evening: release plan 0.5.7-0.5.10 (`etudes/meta/release_plan_0.5.7-0.5.10.md`):
+- 2026-10-19 evening: release plan 0.5.7-0.5.10 (`etudes/meta/release_plans/release_plan_0.5.7-0.5.10.md`):
   0.5.7 truthful core, 0.5.8 core-compliant replications, 0.5.9 scale, 0.5.10 fields; D1-D4 for Hamm.
 - 2026-10-19 evening: Hamm signed brunel2000 P3 v4 (`PREREG_P3_v4.md`: band (b), the paper's
   sim-theory gaps; Q3 (ii), stationary global plus CV > 0.1); O-52 closed. Scored run seeds
