@@ -44,9 +44,8 @@ section 6. Packages A1-A7 are on dev or in the push now gating; what is left, fa
 | Order | Item | ETA | Who |
 |---|---|---|---|
 | 1 | Push the 0.5.7 lane commits after the broad gate (0 failed), CI green on the exact SHA | 1 h, gate-bound | dispatcher |
-| 3 | P-044 `population()` refuses neuron-share keys that are not layer names, callers bit-identical (Hamm 2026-10-20: fix in 0.5.7; worker running) | 1-2 h | worker, dispatcher review |
 | 4 | Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5, unscored, detached on the CPU; RESULT_P3 sensitivity section | about 5 h compute | worker launches, dispatcher reads |
-| 5 | Dashboard: the study list from the references page on the Roadmap tab (worker running); the hand roadmap rows retargeted | 2 h | worker, dispatcher |
+| 5 | Dashboard: the hand roadmap rows in `dashboard/sources.json` retargeted to the plan (the study list is on the Roadmap tab); the jnwb theme and template (Hamm 2026-10-20; Muse running) | 2 h | Muse, dispatcher browser check |
 | 5a | Dashboard route 1 (Hamm 2026-10-20): the analytic EEG/MEG forward checks of `tests/test_head_forward.py` (Sarvas sphere MEG, the sphere EEG reference) as a core-method class on the Validation tab, values from a scorer file | half a day | worker after 5 |
 | 6 | A9: assemble the fragments, `release_body.py --tag v0.5.7` claim check (closes T-10), rc gate, second review, receipt under `artifacts/release/` | 2-3 h | dispatcher, worker gate runs |
 | 7 | Tag, main, PyPI and RTD `stable` | after 6 | `[H]` go |

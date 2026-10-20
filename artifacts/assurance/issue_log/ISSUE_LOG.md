@@ -138,6 +138,10 @@ marked inferred).
 - Possible change: refuse unknown keys in `population()`, and change the five callers to layer
   shares equal to their thicknesses, so that their outputs stay bit-identical. This changes the
   public API and touches protocol and fixture code: Hamm's call.
+- 2026-10-20 (Hamm: fix in 0.5.7): `population()` refuses, by name, a key outside `layers` and a
+  layer with no share; the five callers pass layer shares equal to their thicknesses. Per-layer
+  counts and neuron tables are identical before and after for all five; simulate outputs were not
+  hashed. Test `tests/test_population_neuron_keys_p044.py` (3 of 5 fail on the old code). Closes for 0.5.7.
 
 ### P-043
 
