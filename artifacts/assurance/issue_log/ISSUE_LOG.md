@@ -122,8 +122,10 @@ marked inferred).
 - Consequence: a column built on the defaults has silent VIP (and `I`) cells and SST-dominated
   dynamics; in a 1050-neuron, 21-bin laminar column, SST fired at 48 Hz while E and PV fired once at onset and
   then stopped.
-- Possible change: per-type default drives above rheobase, or a construction-time warning when
-  a type's drive is below its rheobase. Which one is Hamm's call (it changes every default model).
+- Closed 2026-10-19 (Hamm 2026-10-19: keep the presets, document them): the rheobase per label and
+  the advice to set per-type drives explicitly are in `docs/reference/api/model/emitters.md`
+  (Default drives and rheobase); defaults unchanged. Stays here until the hash-pinned
+  `archive/0.5.x/issues_closed.md` is re-pinned with its next batch.
 
 ### P-035
 

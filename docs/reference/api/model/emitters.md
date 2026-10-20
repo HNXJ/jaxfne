@@ -76,7 +76,7 @@ current_native = drive + recurrent_synaptic + noise
 ### Parameters
 
 Canonical per-cell-type parameter defaults live in
-`IZHIKEVICH_CELL_TYPE_DEFAULTS` (`jaxfne/emitters.py:25`), keyed by reduced-class label
+`IZHIKEVICH_CELL_TYPE_DEFAULTS` (`jaxfne/emitters.py`), keyed by reduced-class label
 (`E`, `PV`, `Inl`, `SST`, `Ing`, `VIP` — read as `E-like`, `PV-like`, etc.; no literal
 identity claim — see wording note above):
 
@@ -88,12 +88,27 @@ identity claim — see wording note above):
 | `SST` | 0.05 | 0.25  | -65.0 | 2.0 | 3.5 | -1.0 | SST-like low-threshold |
 | `Ing` | 0.05 | 0.25  | -65.0 | 2.0 | 3.5 | -1.0 | SST-like (Ing alias) |
 | `VIP` | 0.02 | -0.10 | -55.0 | 6.0 | 3.0 | -1.0 | VIP-like inhibitory/disinhibitory |
+| `I`   | 0.02 | -0.10 | -55.0 | 6.0 | 3.0 | -1.0 | generic inhibitory (VIP alias) |
 
-An unrecognized cell-type label falls back to the `VIP` row (`_get_cell_type_params`,
-`jaxfne/emitters.py:35`). These values feed the `a`/`b`/`c`/`d`/`drive`/`sign` fields of
+An unrecognized cell-type label raises `ValueError`. These values feed the `a`/`b`/`c`/`d`/`drive`/`sign` fields of
 `IzhikevichParams` — see the dataclass table below. There is
 no `I_injected` field; the closest analogue is the per-cell `drive` value plus, at simulate time, an
 optional `drive_schedule` argument.
+
+**Default drives and rheobase.** Under constant input `I` the model has a stable rest while
+`(5 - b)^2 > 0.16 (140 + I)`, so the rheobase is `(5 - b)^2 / 0.16 - 140`:
+
+| Label | rheobase | default `drive` | uncoupled cell at the default |
+|-------|----------|-----------------|-------------------------------|
+| `E` | 4.0 | 5.0 | fires |
+| `PV`, `Inl` | 4.0 | 3.0 | silent |
+| `SST`, `Ing` | 1.02 | 3.5 | fires |
+| `VIP`, `I` | 22.56 | 3.0 | silent |
+
+The defaults are kept as they are. A network built on them is driven by `E` and `SST` until
+recurrent or external input lifts `PV` and `VIP` above rheobase; for a model meant to match
+physiological rates, set the drive per cell type (`.drive(baseline_drive_by_cell_type=...)`, or
+`.cell_params(selector, {"drive": ...})`) and check each type's rate.
 
 > **Reduced-emitter caveat — labels are not warranted literal cell-type identities.** The Izhikevich kernel is a reduced point-neuron scaffold. Labels `E`/`PV`/`SST`/`VIP` (`Inl`/`Ing` aliases) are **functional scaffold identities** that index distinct dynamical rows in `IZHIKEVICH_CELL_TYPE_DEFAULTS` (heterogeneous `a`/`b`/`c`/`d`/`drive`/`sign`; `source_calibration_status="uncalibrated_izhikevich_native_current"`, `value_tag="relative"`). A label match does **not** warrant transcriptomic, morphological, or biophysical identity with the named biological class. Do not present results as if `PV` in the model is proven to be biological PV interneurons; report as "PV-like reduced scaffold" unless an independent calibration/validation study supplies that warrant. See [Scope & status — Biological calibration](../../project/scope_and_status.md#biological-calibration-status-canonical-v1-column) and [Calibration — Biological status](../../../guides/state/calibration.md#biological-calibration-status) (`quantitative_cell_fraction = false`, `quantitative_connectivity = false`, `qualitative_laminar_scaffold = true`). HH-level identity requires the separate `JaxleyBridge` path and its own calibration.
 
