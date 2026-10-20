@@ -92,6 +92,6 @@ Packages for both are written at the 0.5.8 seal from what 0.5.8 measured.
 
 | Id | Decision | Options | Recommendation |
 |---|---|---|---|
-| D1 | P-042 16 unreferenced scripts and 8 ungated audit scripts | (a) archive with an index; (b) keep | (a) |
+| D1 | P-042 16 unreferenced scripts and 8 ungated audit scripts | (a) archive with an index; (b) keep | (a); Hamm chose (a) 2026-10-20 |
 | D2 | Destexhe and GSDR preregs after their B8 pilots | sign or revise | per prereg, after review |
-| D3 | This plan's order and scope | approve or reorder | approve |
+| D3 | This plan's order and scope | approve or reorder | approve; Hamm approved 2026-10-20 |
