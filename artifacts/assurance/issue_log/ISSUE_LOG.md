@@ -75,7 +75,10 @@ marked inferred).
   MCDP to the core `gsdr` before any further fit (replications run on the core).
 - 2026-10-20 (release plan A3): GSDR CALIBRATION §6.3 states the 350- and 500-generation fits
   ran without MCDP; the fit drivers already record `mcdp_applied`; steps 4-6 read as unscored
-  pilots. Open: the authors' `"mcdp": True` block in the fit drivers (Hamm's call).
+  pilots. Ruled 2026-10-20 (Hamm): MCDP on, as an outer-loop HDP step in a simple form,
+  `jaxfne.optim.gsdr.mcdp_hdp_step` (W' = clip(W + eta xi W m), m from `mcdp_factors`; no `a`
+  walk, inner SDR or lambda schedule; `tests/test_mcdp_hdp_step.py`). The GSDR B8 pilot (0.5.8)
+  uses it and declares the simplification and the smoothing-kernel choice. Closes for 0.5.7.
 
 ### P-040
 

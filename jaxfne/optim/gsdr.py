@@ -116,6 +116,33 @@ def mcdp_factors(v_traces, pre, post, shift_steps, smooth_k=None):
     return jnp.where(undefined, jnp.asarray(1.0, dtype=z.dtype), z)
 
 
+def mcdp_hdp_step(weights, mcdp, key, eta, w_max=None):
+    """One GSDR generation update as an outer-loop HDP step, simple MCDP form.
+
+    HDP grammar ``dW = F_W(H)`` at the generation timescale, with ``H`` the
+    per-edge MCDP factors ``m`` (:func:`mcdp_factors` of the batch traces)::
+
+        W' = clip(W + eta * xi * W * m, 0, w_max),   xi ~ N(0, 1) per edge
+
+    This is the stochastic delta of :func:`gsdr_mcdp_transform` alone (Hamm
+    2026-10-20, P-039): no ``a`` walk, no inner SDR step and no ``lambda``
+    schedule. Selection (keep the best, revert) stays with the caller.
+    ``w_max=None`` clips at 0 only.
+    """
+    if eta < 0:
+        raise ValueError("eta must be >= 0, got %r" % (eta,))
+    if w_max is not None and float(w_max) <= 0:
+        raise ValueError("w_max must be positive, got %r" % (w_max,))
+    w = jnp.asarray(weights)
+    m = jnp.asarray(mcdp, dtype=w.dtype)
+    if m.shape != w.shape:
+        raise ValueError(
+            "mcdp shape %s differs from weights shape %s" % (tuple(m.shape), tuple(w.shape))
+        )
+    xi = jax.random.normal(key, w.shape, dtype=w.dtype)
+    return jnp.clip(w + eta * xi * w * m, 0.0, w_max)
+
+
 def step_gsdr_transform(
     u_t: jnp.ndarray,
     grad_l: jnp.ndarray,

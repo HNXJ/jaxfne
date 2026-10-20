@@ -10,8 +10,7 @@ first, amend in place.
 
 Ruled 2026-10-20: release plan D1 (a), archive the unreferenced and ungated scripts with an index
 (worker running); D3 approved. Open, recommendation first: D2 (Destexhe and GSDR preregs, after
-their pilots); a state clamp on the plain Izhikevich path (T-19, changes outputs); the
-authors' `"mcdp": True` block in the GSDR fit drivers; extending the same-layer zeroing rule
+their pilots); a state clamp on the plain Izhikevich path (T-19, changes outputs); extending the same-layer zeroing rule
 to I/Inl/Ing (T-18 remainder, a model change); the manuscript tree and other archive moves (T-17).
 Earlier rulings sit in the rows they
 govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATIONS.md` (Izhikevich
@@ -58,7 +57,8 @@ fixed-in-degree option, B5).
 
 Then 0.5.8 (core-compliant replications), in order: B4 checklist rules in `check_replications.py`;
 B1 estimators into `jaxfne.analysis`; B5 lane gaps (Brunel S1 option, Vogels G-SC, Potjans G-MULT
-to G-DDIST); B3 batching; B2 routes through `construct`; Destexhe and GSDR pilots, then preregs.
+to G-DDIST); B3 batching; B2 routes through `construct`; Destexhe and GSDR pilots, then preregs (the GSDR fit
+with MCDP on via `mcdp_hdp_step`, Hamm 2026-10-20).
 Blocked: T-11 (jnwb), T-16 and T-17 `[H]`, deferred list (section 5).
 
 ## 2a. Standing from 0.5.6 (Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
