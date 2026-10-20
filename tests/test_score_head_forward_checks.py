@@ -72,6 +72,34 @@ def test_recomputed_pass_is_error_within_tolerance():
         assert row["tolerance"] > 0, cid
 
 
+def _doc(**rows):
+    return {"checks": rows, "pass": True, "skipped": []}
+
+
+def _row(error, tolerance=1.0):
+    return {"error": error, "tolerance": tolerance, "pass": error <= tolerance, "reference": "r"}
+
+
+def test_compare_accepts_rounding_residuals_and_refuses_real_changes():
+    from scripts import score_head_forward_checks as scorer
+
+    # Both residuals below a tenth of the tolerance: a platform difference, no verdict at stake.
+    assert scorer.compare(_doc(a=_row(4e-6, 2e-4)), _doc(a=_row(3e-6, 2e-4))) == []
+    # A residual near the tolerance must reproduce.
+    assert scorer.compare(_doc(a=_row(0.5)), _doc(a=_row(0.6))) != []
+    # The tolerance itself always reproduces.
+    assert scorer.compare(_doc(a=_row(1e-6, 1.0)), _doc(a=_row(1e-6, 1.1))) != []
+
+
+def test_compare_lets_a_missing_optional_dependency_stand_on_the_stored_row():
+    from scripts import score_head_forward_checks as scorer
+
+    skipped = {"error": None, "tolerance": None, "pass": None, "reference": "r", "skipped": "mne not installed"}
+    assert scorer.compare(_doc(a=_row(1e-5)), _doc(a=skipped)) == []
+    # The reverse, a stored skip that now computes, is a change to record.
+    assert scorer.compare(_doc(a=skipped), _doc(a=_row(1e-5))) == ["a: skipped True != False"]
+
+
 def test_recompute_matches_within_rtol_1e_9():
     from scripts import score_head_forward_checks as scorer
 

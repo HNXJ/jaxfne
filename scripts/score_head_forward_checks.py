@@ -48,6 +48,7 @@ OUT_DIR = ROOT / "artifacts" / "etudes" / "core_checks" / "head_forward"
 SCORE_PATH = OUT_DIR / "score.json"
 README_PATH = OUT_DIR / "README.md"
 RTOL = 1e-9
+NOISE_FRACTION = 0.1  # errors below this fraction of the tolerance are compared as rounding residuals
 
 MU0 = 4e-7 * np.pi  # literal, independent of the implementation
 
@@ -252,8 +253,11 @@ def compare(old, new, rtol=RTOL):
     bad = []
     for name in old["checks"]:
         o, n = old["checks"][name], new["checks"][name]
+        if "skipped" in n and "skipped" not in o:
+            # This environment lacks the check's optional dependency; the stored row stands.
+            continue
         if ("skipped" in o) != ("skipped" in n):
-            bad.append(f"{name}: skipped {('skipped' in n)} != {('skipped' in o)}")
+            bad.append(f"{name}: skipped {('skipped' in o)} != {('skipped' in n)}")
             continue
         if "skipped" in o:
             if o["skipped"] != n["skipped"]:
@@ -262,8 +266,14 @@ def compare(old, new, rtol=RTOL):
         if o["pass"] != n["pass"]:
             bad.append(f"{name}.pass: {o['pass']!r} != {n['pass']!r}")
         for key in ("error", "tolerance"):
-            if not math.isclose(o[key], n[key], rel_tol=rtol, abs_tol=1e-15):
-                bad.append(f"{name}.{key}: {o[key]!r} != {n[key]!r} past rtol {rtol:g}")
+            if math.isclose(o[key], n[key], rel_tol=rtol, abs_tol=1e-15):
+                continue
+            # A rounding-level residual differs across platforms (BLAS, float32); below a tenth
+            # of the tolerance in both copies it cannot change the verdict.
+            floor = NOISE_FRACTION * min(o["tolerance"], n["tolerance"])
+            if key == "error" and o[key] <= floor and n[key] <= floor:
+                continue
+            bad.append(f"{name}.{key}: {o[key]!r} != {n[key]!r} past rtol {rtol:g}")
     if old.get("pass") != new.get("pass"):
         bad.append(f"pass: {old.get('pass')!r} != {new.get('pass')!r}")
     return bad
