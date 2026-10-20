@@ -2,6 +2,7 @@
 
 import hashlib
 import importlib
+import importlib.util
 import sys
 from pathlib import Path
 
@@ -500,6 +501,14 @@ def test_cli_refuses_runs_path(capsys):
     assert "unsigned" in err and "--signed" in err
 
 
+def _drop_bytecode(path):
+    """Delete the cached .pyc so ``reload`` compiles the bytes on disk: a same-size rewrite inside
+    the cache's mtime resolution otherwise reloads stale code (seen under WSL on /mnt/c: the
+    mutant never applied)."""
+    Path(importlib.util.cache_from_source(str(path))).unlink(missing_ok=True)
+    importlib.invalidate_caches()
+
+
 def _run_mutant(old, new, check):
     """Swap one bytes span of the implementation, show ``check`` failing, restore by sha256."""
     path = Path(fa.__file__)
@@ -508,11 +517,13 @@ def _run_mutant(old, new, check):
     text = raw.decode("utf-8")
     assert text.count(old) == 1, f"anchor {old!r} found {text.count(old)}x"
     path.write_bytes(text.replace(old, new).encode("utf-8"))
+    _drop_bytecode(path)
     importlib.reload(fa)
     try:
         check()
     finally:
         path.write_bytes(raw)
+        _drop_bytecode(path)
         assert hashlib.sha256(path.read_bytes()).hexdigest() == before, "restore mismatch"
         importlib.reload(fa)
 

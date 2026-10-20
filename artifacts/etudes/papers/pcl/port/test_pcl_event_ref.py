@@ -32,6 +32,13 @@ import pytest  # noqa: E402
 import pcl_event_ref as ref  # noqa: E402
 
 SHAPES = Path("F:/warehouse/pcl/code/Predictive-Coding-Light_code/PCL_C++/data/events/shapes.h5")
+
+
+def _shapes():
+    """The local PCL event file; tests that read it skip where it is absent (the WSL gate, CI)."""
+    if not SHAPES.is_file():
+        pytest.skip("needs the local PCL event file %s" % SHAPES)
+    return SHAPES
 TOL = 1e-12
 
 
@@ -149,7 +156,7 @@ _RUNS: dict = {}
 def _shapes_runs():
     """Two seeded runs on the first 50,000 events of shapes.h5 (computed once)."""
     if "runs" not in _RUNS:
-        ev = ref.load_cpp_events(SHAPES, n_events=50000)
+        ev = ref.load_cpp_events(_shapes(), n_events=50000)
         runs = []
         for _ in range(2):
             net = ref.PCLEventRef(seed=0)
@@ -180,10 +187,10 @@ def test_e_wall_time_for_50000_events(capsys):
 
 
 def test_f_loader_rebases_time_and_keeps_camera_zero():
-    with h5py.File(SHAPES, "r") as f:
+    with h5py.File(_shapes(), "r") as f:
         first = int(f["events"]["t"][0])
-    raw = ref.load_cpp_events(SHAPES, n_events=50000, rebase=False)
-    ev = ref.load_cpp_events(SHAPES, n_events=50000)
+    raw = ref.load_cpp_events(_shapes(), n_events=50000, rebase=False)
+    ev = ref.load_cpp_events(_shapes(), n_events=50000)
     assert ev["t"].dtype == np.int64
     assert int(ev["t"][0]) == 0
     assert np.array_equal(raw["t"] - first, ev["t"])

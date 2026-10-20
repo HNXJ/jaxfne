@@ -38,6 +38,15 @@ import pcl_binned_jax as bj  # noqa: E402
 import pcl_event_ref as ref  # noqa: E402
 
 SHAPES = Path("F:/warehouse/pcl/code/Predictive-Coding-Light_code/PCL_C++/data/events/shapes.h5")
+
+
+def _shapes():
+    """The local PCL event file; tests that read it skip where it is absent (the WSL gate, CI)."""
+    if not SHAPES.is_file():
+        pytest.skip("needs the local PCL event file %s" % SHAPES)
+    return SHAPES
+
+
 N_SHAPES = 200000
 N_SMALL = 20000
 # Declared in the test: simple VTHRESH lowered from 30 (DefaultConfig.cpp). Stage A with learning
@@ -85,7 +94,7 @@ _RUNS: dict = {}
 def _stage_a_shapes(cdir: Path) -> dict:
     """Stage A on the first 200,000 events, once (cached): counts per cell and wall time."""
     if "A" not in _RUNS:
-        ev = ref.load_cpp_events(SHAPES, n_events=N_SHAPES)
+        ev = ref.load_cpp_events(_shapes(), n_events=N_SHAPES)
         net = ref.PCLEventRef(cdir, seed=0, learning=False)
         t0 = time.perf_counter()
         net.run(ev["t"], ev["x"], ev["y"], ev["p"])
@@ -131,7 +140,7 @@ def test_a_single_simple_neuron_binned_equals_event_exact(tmp_path):
     "complex never reaches 0.95. Decision: L1 trains on stage A (event-exact, as fast on CPU)."))
 def test_b_shapes_first_200k_events_binned_vs_event_exact(shapes_dir, capsys):
     """Gate L1-G2 on shapes.h5 at dt = 100 us: simple and complex r >= 0.95, totals within 5 %, no misses."""
-    ev = ref.load_cpp_events(SHAPES, n_events=N_SHAPES)
+    ev = ref.load_cpp_events(_shapes(), n_events=N_SHAPES)
     assert ev["t"].shape[0] == N_SHAPES, "fixture: first 200000 events are all camera 0"
     ref_run = _stage_a_shapes(shapes_dir)
     tot_a = int(ref_run["counts_s"].sum())
@@ -196,7 +205,7 @@ def test_g_one_event_per_bin_matches_event_exact_and_local_inhibition_is_active(
     # dt = 1 us: TAU_M = 18 us and TAU_RP = 5 us (ref.DEFAULT_SIMPLE), so a bin of 100 us erases the
     # membrane and refractory state between events; at 100 us spacing no simple cell can spike.
     dt = 1
-    ev = ref.load_cpp_events(SHAPES, n_events=N_SMALL)
+    ev = ref.load_cpp_events(_shapes(), n_events=N_SMALL)
     t = (np.arange(ev["t"].shape[0], dtype=np.int64) + 1) * dt  # one event per bin, at the bin time
 
     a = ref.PCLEventRef(cdir, seed=0, learning=False)
@@ -222,7 +231,7 @@ def test_g_one_event_per_bin_matches_event_exact_and_local_inhibition_is_active(
 
 def test_c_binned_is_deterministic(shapes_dir):
     """Two fresh runs on the same events give identical counts, spike times and state."""
-    ev = ref.load_cpp_events(SHAPES, n_events=N_SMALL)
+    ev = ref.load_cpp_events(_shapes(), n_events=N_SMALL)
     runs = []
     for _ in range(2):
         b = bj.PCLBinned(shapes_dir, seed=0, learning=False, dt_us=100)
@@ -244,7 +253,7 @@ def test_d_all_state_arrays_are_float32(shapes_dir):
 
     assert not bool(getattr(jax.config, "jax_enable_x64", False))
     assert jnp.zeros(1).dtype == jnp.float32
-    ev = ref.load_cpp_events(SHAPES, n_events=2000)
+    ev = ref.load_cpp_events(_shapes(), n_events=2000)
     for learning in (False, True):
         b = bj.PCLBinned(shapes_dir, seed=0, learning=learning, dt_us=100)
         b.run(ev["t"], ev["x"], ev["y"], ev["p"])
@@ -255,7 +264,7 @@ def test_d_all_state_arrays_are_float32(shapes_dir):
 
 def test_e_learning_path_runs_and_keeps_invariants(shapes_dir):
     """Smoke (not in the packet): learning on changes the weights; L1 sums and signs hold."""
-    ev = ref.load_cpp_events(SHAPES, n_events=N_SMALL)
+    ev = ref.load_cpp_events(_shapes(), n_events=N_SMALL)
     b = bj.PCLBinned(shapes_dir, seed=0, learning=True, dt_us=100)
     w0 = np.asarray(b.state["Ws"]).copy()
     out = b.run(ev["t"], ev["x"], ev["y"], ev["p"])
@@ -282,7 +291,7 @@ def test_f_lateral_and_topdown_smoke_and_refusal(tmp_path):
     cdir = _write_config_dir(tmp_path / "lat", network=net_raw, simple=simple)
     with pytest.raises(NotImplementedError):
         bj.PCLBinned(cdir, seed=0, learning=True, dt_us=100)
-    ev = ref.load_cpp_events(SHAPES, n_events=N_SMALL)
+    ev = ref.load_cpp_events(_shapes(), n_events=N_SMALL)
     a = ref.PCLEventRef(cdir, seed=0, learning=False)
     a.run(ev["t"], ev["x"], ev["y"], ev["p"])
     b = bj.PCLBinned(cdir, seed=0, learning=False, dt_us=100)
