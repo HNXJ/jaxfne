@@ -58,8 +58,11 @@ marked inferred).
   `docs/evidence/` is gone, `tests/test_evidence_checklist_path.py`); `simulate` documents its
   `return_state=True` tuple. Already fixed at the A2 baseline: the three script pointers, the
   `source_files` check, `build_manuscript --verify`, `generate_replications_page --check`.
-  `generate_gallery --check` names the default mode (harmless). Open: `sync_skills --check`
-  (hash-pinned harness file), the mcc3 manifest's three absent files, the RTD stand-ins (O-41).
+  `generate_gallery --check` and `sync_skills --check` name the default mode (harmless: the bare
+  call checks). The mcc3 manifest stays the run's receipt as written: its three files left in the
+  2026-10-06 compaction (f4397bd6, digest kept) and stay readable at f4397bd6^ under the
+  pre-move path `artifacts/mcc3_10s_checkpoint/`. The RTD stand-ins
+  (O-41) move to 0.5.8 with narrowing B4. Closes for 0.5.7 (exit-gate sweep 2026-10-20).
 
 ### P-039
 
@@ -97,8 +100,9 @@ marked inferred).
 - PCL v5 T4 PASS rests on a criterion changed after the v4 numbers (`prereg/P3_fig3_v5.md:7`,
   `P3_fig3_result.md:23`); `REPLICATIONS.md:8` gives no qualifier.
 - 2026-10-20 (release plan A3): `docs/etudes/pcl.md` opener follows its own gate rows; the
-  REPLICATIONS T4 qualifier was already present. Open: the local STDP/LIF in `pcl_column.py` and
-  `pcl_fig2.py` and the `pcl_h` rules go to the core with release plan B2.
+  REPLICATIONS T4 qualifier was already present. The local STDP/LIF in `pcl_column.py` and
+  `pcl_fig2.py` and the `pcl_h` rules go to the core with release plan B2 (0.5.8, moved with
+  reason: a core route, not a record fix). Closes for 0.5.7 (exit-gate sweep 2026-10-20).
 
 ### P-042
 
