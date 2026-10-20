@@ -867,3 +867,19 @@ out = simulate_hh_batch(params, n_steps=2000, dt_ms=0.1,
 Batch keys unknown to the kernel, keys given both batched and shared, and
 mixing `edge_weight` with `edge_weight_uS` (or `I_ext` with `I_ext_nA`) are
 refused with `ValueError`.
+
+## Billeh 2020 V1 connectivity (`jaxfne/billeh2020.py`)
+
+The recurrent connectivity of the Billeh et al. (2020) mouse V1 model for 17 populations:
+`e2 e4 e5 e6` and `i<layer><class>` with P (Pvalb), S (Sst) and H (Htr3a). Tables keyed by
+`(pre, post)`: `A_LITERATURE`, `SIGMA_UM`, `B_RATIO` and `NSYN_RANGE`, transcribed from the
+release's `v1_conn_props.json` (`SOURCE_SHA256`). `connection_probability(pre, post, r_um)`
+returns $p(r) = \min(1, A\,e^{-r^2/\sigma^2})$ at lateral distance $r$, with
+$A = A_\text{lit} / ((\sigma/R_0)^2 (1 - e^{-(R_0/\sigma)^2}))$ and $R_0 = 75$ µm, so the mean of
+$p$ over a 75 µm disk is the literature value. The E-to-E orientation factor is not applied.
+
+```python
+from jaxfne.billeh2020 import connection_probability
+
+connection_probability("i5S", "e5", [0.0, 100.0])   # Sst -> E in L5
+```

@@ -1,0 +1,1 @@
+- `jaxfne.billeh2020`: the Billeh et al. (2020) mouse V1 recurrent connectivity of 17 populations (literature probabilities, Gaussian widths, orientation ratios, synapses per connection), transcribed by script from the release's `v1_conn_props.json` (SHA-256 recorded), and `connection_probability(pre, post, r_um)` for the lateral distance rule.

@@ -92,6 +92,16 @@ from .head import (
     sphere_sensor_cap,
     tile_column_dipoles,
 )
+from .kernel_lfp import (
+    CableCell,
+    cable_cell,
+    kernel_lfp,
+    line_source_matrix,
+    passive_membrane_currents,
+    profile_cell,
+    synapse_kernel,
+    synapse_weights_in_depth_range,
+)
 
 __all__ = [
     "FieldOutput",
@@ -160,4 +170,12 @@ __all__ = [
     "signals_dipole",
     "sphere_sensor_cap",
     "tile_column_dipoles",
+    "CableCell",
+    "cable_cell",
+    "kernel_lfp",
+    "line_source_matrix",
+    "passive_membrane_currents",
+    "profile_cell",
+    "synapse_kernel",
+    "synapse_weights_in_depth_range",
 ]
