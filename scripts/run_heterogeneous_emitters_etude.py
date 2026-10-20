@@ -104,7 +104,7 @@ def izh_config() -> Any:
     return (
         jtfne.configuration()
         .runtime(seed=SEED, duration_ms=DURATION_MS, dt_ms=DT_MS, dtype="float32", jit=False)
-        .population(N_IZH, neurons={"E": 0.7, "I": 0.3}, layers=["L2/3", "L4"], name="V1")
+        .population(N_IZH, neurons={"L2/3": 0.5, "L4": 0.5}, layers=["L2/3", "L4"], name="V1")
         .cell_types({"E": 0.7, "PV": 0.3})
         .geometry(layer_thickness={"L2/3": 0.5, "L4": 0.5})
         # No .drive(): the frozen figures ran at the emitter default drive. Their E/PV drive

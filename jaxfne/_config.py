@@ -757,7 +757,8 @@ class Configuration:
 
         ``neurons`` maps each layer to its share of the total (any positive
         scale — counts like ``{"L2": 250}`` or fractions like ``{"L2": 0.25}``;
-        they are normalized).  Allocation uses the same largest-remainder rule as
+        they are normalized).  Keys must be names in ``layers`` and every layer needs
+        a share; anything else is refused.  Allocation uses the same largest-remainder rule as
         cell-type allocation, so per-layer integer counts sum exactly to ``N``.
 
         Changing the whole column size is a single edit to ``N``; the per-layer
@@ -783,6 +784,17 @@ class Configuration:
         if layers is None:
             layers = list(frac.keys())
         layers_list = [str(layer) for layer in layers]
+        unknown = [key for key in frac if key not in layers_list]
+        if unknown:
+            raise ValueError(
+                f"neuron share keys {unknown!r} are not layers of this population; "
+                f"valid layers are {layers_list!r}"
+            )
+        omitted = [layer for layer in layers_list if layer not in frac]
+        if omitted:
+            raise ValueError(
+                f"layers {omitted!r} have no share in neurons=; give every layer a share (0 for none)"
+            )
 
         metadata = dict(self.metadata)
         per_area = dict(metadata.get("area_layer_count_frac", {}))

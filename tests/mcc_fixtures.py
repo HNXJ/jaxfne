@@ -47,7 +47,7 @@ def mcc_configuration() -> Any:
         .runtime(seed=0, duration_ms=20.0, dt_ms=0.5, dtype="float32")
         .population(
             10,
-            neurons={"E": 0.5, "I": 0.5},
+            neurons={"L2/3": 0.5, "L4": 0.5},
             layers=["L2/3", "L4"],
             name="V1",
         )

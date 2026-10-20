@@ -74,7 +74,7 @@ def simulate(seed: int):
     cfg = (
         jtfne.configuration()
         .runtime(seed=seed, duration_ms=DUR, dt_ms=DT, dtype="float32", jit=True)
-        .population(N, neurons={"E": 0.8, "I": 0.2}, layers=["L2/3", "L4", "L5"], name="col")
+        .population(N, neurons={"L2/3": 0.33, "L4": 0.34, "L5": 0.33}, layers=["L2/3", "L4", "L5"], name="col")
         .cell_types({"E": 0.8, "PV": 0.2})
         .geometry(layer_thickness={"L2/3": 0.33, "L4": 0.34, "L5": 0.33})
         .set_emitter("izhikevich", "cortical_eig")
