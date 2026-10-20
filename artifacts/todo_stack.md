@@ -56,7 +56,7 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
   push dev. Standing item. Closes when: `python scripts/build_dashboard_data.py --check` passes
   on each push.
-- T-31 [A] Audit 2026-10-17 (Muse and Claude, union verified by a third Muse pass). Landed: harness
+- T-31 [A] Audit 2026-10-17 (two agents, union verified by a third Muse pass). Landed: harness
   integrity (D1), replication paths (D9), JUnit per SHA, silent fallbacks (a), the clean-
   checkout skip (b), `gate_etude_no_resim.py` in the gates (c), a real publication gate (d), the
   `agent.py` dtype (f), six narrowed handlers in `canonical_compact_summary`; `canonical_compact_summary`
@@ -112,7 +112,7 @@ run on WSL2 CUDA.
   `check_replications.py`; (T-32f) Brunel 2000, Vogels et al. 2011, Potjans and Diesmann 2014
   and Mejias et al. 2016 hold B8 pilots on dev (Brunel Fig. 8 A-D at full scale: rates and
   global frequencies within 10% at B-D, CALIBRATION); next, each lane's P3 prereg for Hamm's
-  signature, and the core gaps the lanes name: Potjans G-MULT, G-TAUSYN, G-POPDRIVE, G-WDIST,
+  signature (Brunel P3 v4 signed 2026-10-19, scored run seeds 4-8 then verdict), and the core gaps the lanes name: Potjans G-MULT, G-TAUSYN, G-POPDRIVE, G-WDIST,
   G-DDIST; Vogels G-SC; Mejias G6 (constants unknown) and the phi(0)=1 transfer
   normalization; the LIF edge kernel on the GPU (13.4 GiB at 25000 steps x 12500 cells, out of
   memory beside the desktop; about 110 ms per step at dt=0.5 against about 50 on the CPU, so the

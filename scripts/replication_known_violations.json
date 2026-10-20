@@ -44,8 +44,8 @@
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/brunel2000",
-    "message": "holds 9 files (at most 7)",
-    "reason": "open lane: P3 prereg v3 beside the pinned v1 and v2 drafts (2026-10-19)",
+    "message": "holds 10 files (at most 7)",
+    "reason": "open lane: signed P3 prereg v4 beside the pinned v1-v3 drafts (2026-10-19)",
     "todo": "T-32"
   },
   {

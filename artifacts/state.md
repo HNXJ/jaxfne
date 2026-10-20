@@ -6,6 +6,9 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Works (with evidence)
 
+- 2026-10-19 evening: Hamm signed brunel2000 P3 v4 (`PREREG_P3_v4.md`: band (b), the paper's
+  sim-theory gaps; Q3 (ii), stationary global plus CV > 0.1); O-52 closed. Scored run seeds
+  4-8 at A-D, dt 0.1 ms on the CPU, launched on the commit carrying v4.
 - 2026-10-19 later on dev: Brunel Fig. 8 A-D at full scale (N=12500, seed 0, B8 pilot,
   unscored; brunel2000 CALIBRATION): cell rates 56.3, 37.2, 5.84 Hz at B, C, D against
   60.7, 37.7, 5.5; global 197 Hz (B) and 22.5 Hz (D) against ~180 and 22; A synchronous
@@ -42,7 +45,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   download per SHA (T-26); harness integrity re-hashed and run as gate family
   `harness_integrity`; replication checklist in `etudes/meta/RESIDUAL_PROTOCOL.md`. Broad gate
   on d8e486bb: 6266 passed, 0 failed.
-- Whole-repo audit 2026-10-17 (Muse and Claude, verified by a third pass): open items in todo
+- Whole-repo audit 2026-10-17 (two agents, verified by a third pass): open items in todo
   T-30 (replication conformance) and T-31 (silent fallbacks, gates); owner calls since ruled.
 
 - 0.5.6 published 2026-10-15: tag v0.5.6 on main b24e09ef (Release CI 38791659454 green), GitHub
