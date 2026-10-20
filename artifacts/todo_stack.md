@@ -32,7 +32,12 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   local inhibition off (`F:\warehouse\pcl\diag_runs\`). Then P6 (B1). Closes when: a signed prereg reproduces Fig. 3, or Hamm
   closes it, and the P6 attempt is recorded.
 
-## 2. 0.5.6 release (Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
+## 2. Releases 0.5.7-0.5.10
+
+Plan and order: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md` (Hamm 2026-10-19). Packages
+A1-A9 (0.5.7) run first; rows below close as their packages land.
+
+## 2a. Standing from 0.5.6 (Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
 - R2 restated (Hamm 2026-10-14): bytes -10% against the 0.5.5 tag (met: 86.8 MB
   tracked at 1bfdaa84 against 126.0 MB at the tag) plus files at the recorded budget with
