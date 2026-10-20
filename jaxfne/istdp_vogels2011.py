@@ -124,25 +124,16 @@ def _istdp_vogels2011_step(ctx: HDPRuleContext) -> HDPRuleUpdate:
     # Delayed presynaptic arrivals drive the pre trace at time t (the
     # qualified chain event_{t-d} -> H_t holds); the zero-delay path passes
     # pre_sp=None and falls back to spikes[pre].
+    # Traces are per synapse, as in the authors' code: each presynaptic
+    # arrival adds 1 to that edge's A_pre, each postsynaptic spike 1 to its A_post.
     pre_sp = ctx.pre_sp if ctx.pre_sp is not None else ctx.spikes[ctx.pre]
     post_sp = ctx.spikes[ctx.post]
     a_pre = ctx.aux[:, 0]
     a_post = ctx.aux[:, 1]
-    pre_events = (
-        jax.ops.segment_sum(pre_sp, ctx.pre, num_segments=ctx.n_neurons) / dt
-    )
-    post_events = ctx.spikes / dt
     d_aux = jnp.stack(
-        (a_pre / -tau + pre_events, a_post / -tau + post_events), axis=1
+        (a_pre / -tau + pre_sp / dt, a_post / -tau + post_sp / dt), axis=1
     )
-    dw = (
-        eta
-        * (
-            pre_sp * (a_post[ctx.post] - alpha)
-            + post_sp * a_pre[ctx.pre]
-        )
-        / dt
-    )
+    dw = eta * (pre_sp * (a_post - alpha) + post_sp * a_pre) / dt
     return HDPRuleUpdate(
         dH=jnp.zeros_like(ctx.H), d_aux=d_aux, d_theta={"edge_weight": dw}
     )
@@ -154,7 +145,7 @@ register_hdp_rule(
         h_coords=("H",),
         theta_targets=("edge_weight",),
         aux_coords=("A_pre", "A_post"),
-        aux_layout="per_neuron",
+        aux_layout="per_edge",
         scope="node",
         w_bounds=(W_MIN_NS, W_MAX_NS),
         default_params={
