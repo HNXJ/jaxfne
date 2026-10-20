@@ -12,7 +12,7 @@ Baseline: dev 4969d01b, 0.5.6 released 2026-10-15, 178 commits and 26 changelog 
 
 | Release | Theme | Closes | Opens the way for |
 |---|---|---|---|
-| 0.5.7 | Truthful core: every public parameter consumed or refused, every test asserts what it names, every record says what was run | P-036 to P-043, T-18, T-19 (tested items), T-20, T-31, T-10 | replications whose verdicts can be trusted |
+| 0.5.7 | Truthful core: every public parameter consumed or refused, every test asserts what it names, every record says what was run | P-036 to P-042, T-18, T-19 (tested items), T-20, T-31, T-10 | replications whose verdicts can be trusted |
 | 0.5.8 | Core-compliant replications: every lane runs on `construct` and `jaxfne.analysis` | T-30, T-32c, T-32d, T-32e, T-33, T-22, T-25 | scale |
 | 0.5.9 | Scale: full-size networks on the GPU, laminar and multi-area | AT-10-R6, the LIF GPU kernel, T-32f core gaps | fields |
 | 0.5.10 | Fields and readouts: LFP, EEG, laminar spectra on validated networks | deferred items 3, 4, 5 of the todo stack, if measured | 0.6.0 |
@@ -29,7 +29,7 @@ Each package has one owner tier, one acceptance command and one commit (or one p
 | A1 | Test gates assert their names | P-037: x64 per test instead of global off; skipped float64 asserts run; `except: pass` around asserts removed; cwd-independent paths; `assert_allclose` for optimizer pins; lane tests under `artifacts/etudes/papers/**` and `scripts/harness/tests/` enter a gate; `networkx` declared | Muse code, Muse review | broad gate 0 failed; skips in a fresh clone listed and each justified; every changed test fails on a mutant |
 | A2 | Stale pointers and ignored flags | P-038: evidence checklist path in 3 scripts; `evidence_manifest.source_files` checked; mcc3 manifest entries; 4 parsed-unread flags read or removed; `simulate` return documented for `return_state=True` | Haiku worker | `run_test_gate.py report` OK; a test per flag that fails when the flag is ignored |
 | A3 | Records match what ran | P-039 manifest wording (`mcdp` as run); P-040 Destexhe headers and REPLICATIONS row; P-041 PCL page claims and the v5 T4 qualifier; P-042 CAMINOS release row and the B2 omissions | Haiku worker, dispatcher checks every number | `check_replications.py --check` with fewer known violations; each changed number opened at its receipt |
-| A4 | One sign and preset table | T-18: `presets.py` and `tutorial_utils.py` read `emitters.CELL_TYPE_SIGN` or state their scope; SOM outside the AdEx table; P-043 per Hamm's D1 | Muse code | tests that a catalog sign differing from the table fails |
+| A4 | One sign and preset table | T-18: `presets.py` and `tutorial_utils.py` read `emitters.CELL_TYPE_SIGN` or state their scope; SOM outside the AdEx table (P-043 closed by Hamm 2026-10-19: presets kept, rheobase documented) | Muse code | tests that a catalog sign differing from the table fails |
 | A5 | Core design items with a test | T-19: Izhikevich state clamp, one home for drive defaults, the process-wide `jnp.clip` patch in `bridges.py` removed, `object.__setattr__` on frozen dataclasses replaced, `_s`/`_ms` names in the HDP controller; each fixed with a failing-first test or recorded with its reason | Muse code, Muse review | outputs bit-identical on the canonical column and the Atlas smoke unless a fix is declared |
 | A6 | Lint and newline policy | T-31(e) E741, E402; T-20 `cell_labels`; T-10 docs newline policy (`changelog.md`, atlas manifest) | Haiku worker, medium | ruff E741/E402 0 in scripts, tests, examples, then gated; 0 LF-only lines in the named files |
 | A7 | Issue log hygiene | P-035 and P-036 to the closed archive (re-pin it); each closed issue with its resolution line | Haiku worker | record integrity 0 violations |
@@ -92,7 +92,6 @@ Packages for both are written at the 0.5.8 seal from what 0.5.8 measured.
 
 | Id | Decision | Options | Recommendation |
 |---|---|---|---|
-| D1 | P-043 Izhikevich presets below rheobase | (a) construction-time warning, defaults unchanged; (b) per-type default drives above rheobase | (a): no default model changes; (b) as a declared 0.5.8 model change if wanted |
-| D2 | P-042 16 unreferenced scripts and 8 ungated audit scripts | (a) archive with an index; (b) keep | (a) |
-| D3 | Destexhe and GSDR preregs after their B8 pilots | sign or revise | per prereg, after review |
-| D4 | This plan's order and scope | approve or reorder | approve |
+| D1 | P-042 16 unreferenced scripts and 8 ungated audit scripts | (a) archive with an index; (b) keep | (a) |
+| D2 | Destexhe and GSDR preregs after their B8 pilots | sign or revise | per prereg, after review |
+| D3 | This plan's order and scope | approve or reorder | approve |

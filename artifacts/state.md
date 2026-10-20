@@ -6,8 +6,12 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Works (with evidence)
 
+- 2026-10-20: Brunel 2000 Fig. 8 reproduced (conditional) under signed P3 v4 (seeds 4-8, dt 0.1 ms,
+  CPU float32; float64 at C agrees): `papers/brunel2000/RESULT_P3.md`, REPLICATIONS, dashboard.
+  0.5.7 lanes A2-A4 integrated (P-038 path fallback, P-039-P-042 records, T-18 one sign table).
+  Batuev and Sukhov 2026 (Dynamics 6(4):42) queued at P0 (Hamm 2026-10-20).
 - 2026-10-19 evening: release plan 0.5.7-0.5.10 (`etudes/meta/release_plan_0.5.7-0.5.10.md`):
-  0.5.7 truthful core, 0.5.8 core-compliant replications, 0.5.9 scale, 0.5.10 fields; D1-D4 for Hamm.
+  0.5.7 truthful core, 0.5.8 core-compliant replications, 0.5.9 scale, 0.5.10 fields; D1-D3 for Hamm.
 - 2026-10-19 evening: Hamm signed brunel2000 P3 v4 (`PREREG_P3_v4.md`: band (b), the paper's
   sim-theory gaps; Q3 (ii), stationary global plus CV > 0.1); O-52 closed. Scored run seeds
   4-8 at A-D, dt 0.1 ms on the CPU, launched on the commit carrying v4.

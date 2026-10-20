@@ -117,7 +117,7 @@ run on WSL2 CUDA.
   `check_replications.py`; (T-32f) Brunel 2000, Vogels et al. 2011, Potjans and Diesmann 2014
   and Mejias et al. 2016 hold B8 pilots on dev (Brunel Fig. 8 A-D at full scale: rates and
   global frequencies within 10% at B-D, CALIBRATION); next, each lane's P3 prereg for Hamm's
-  signature (Brunel P3 v4 signed 2026-10-19, scored run seeds 4-8 then verdict), and the core gaps the lanes name: Potjans G-MULT, G-TAUSYN, G-POPDRIVE, G-WDIST,
+  signature (Brunel P3 v4 scored 2026-10-20: reproduced (conditional), `RESULT_P3.md`; its S1-S3 sensitivity set waits on release plan B5), and the core gaps the lanes name: Potjans G-MULT, G-TAUSYN, G-POPDRIVE, G-WDIST,
   G-DDIST; Vogels G-SC; Mejias G6 (constants unknown) and the phi(0)=1 transfer
   normalization; the LIF edge kernel on the GPU (13.4 GiB at 25000 steps x 12500 cells, out of
   memory beside the desktop; about 110 ms per step at dt=0.5 against about 50 on the CPU, so the

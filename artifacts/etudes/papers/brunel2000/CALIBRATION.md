@@ -1,7 +1,7 @@
 # brunel2000 calibration record (RESIDUAL_PROTOCOL.md, Records)
 
-Status: P2 (PORT_SPEC written, seed-0 pilots at N=1250 and at full scale
-N=12500 at dt 0.5 and 0.1 ms, no scored run; P3 prereg v3 awaits Hamm). Verdict: in progress. Every number below is reopened from its JSON or receipt before
+Status: P5 (prereg v4 signed by Hamm 2026-10-19 and scored on seeds 4-8; `RESULT_P3.md`).
+Verdict: reproduced (conditional): every estimand in band, Q3 on the paper's wording. Every number below is reopened from its JSON or receipt before
 commit (checklist R2); verdicts use the status tags (checklist R3).
 
 ## Provenance
