@@ -24,6 +24,11 @@ function link(href, text, cls) {
   return a;
 }
 
+// The Paper column: the paper's value, or for a core-method check its analytic reference.
+function paperText(c) {
+  return c.paper_value || (c.reference ? String(c.reference) : "");
+}
+
 function shortSha(sha) {
   return sha ? String(sha).slice(0, 7) : "";
 }
@@ -359,14 +364,16 @@ function criteriaTable(paper) {
     var est = el("div", "Estimand: " + (c.estimand || ""));
     est.className = "small";
     claimCell.appendChild(est);
-    var pre = el("div", "Prereg: " + (c.prereg || ""));
-    pre.className = "small";
-    claimCell.appendChild(pre);
+    if (c.prereg) {
+      var pre = el("div", "Prereg: " + c.prereg);
+      pre.className = "small";
+      claimCell.appendChild(pre);
+    }
     row.appendChild(claimCell);
     var critCell = document.createElement("td");
     critCell.appendChild(el("span", c.criterion || ""));
     row.appendChild(critCell);
-    row.appendChild(el("td", c.paper_value || "—"));
+    row.appendChild(el("td", paperText(c) || "—"));
     var valCell = valueCell(c);
     row.appendChild(valCell);
     var verdictCell = document.createElement("td");
@@ -591,7 +598,9 @@ var CLASSES = [
   { id: "not started", label: "Not started", chip: "chip-incomplete", symbol: "○",
     def: "Planned for a release; no work on the pipeline yet." },
   { id: "failed", label: "Failed", chip: "chip-fail", symbol: "✗",
-    def: "Closed without reproducing the paper's result, with the reason stated (B2)." }
+    def: "Closed without reproducing the paper's result, with the reason stated (B2)." },
+  { id: "core method", label: "Core method checks", chip: "chip-accent", symbol: "◈",
+    def: "Analytic checks of a core method against closed-form references, scored by a script; not a paper replication." }
 ];
 var SCORED_CLASSES = ["reproduced", "reproduced (conditional)", "mixed", "failed"];
 var TABS = ["overview", "models", "validation", "roadmap", "method"];
@@ -841,7 +850,7 @@ function renderValidation(view, data) {
       classInfo(p["class"]).label,
       c.id + (c.group ? " (" + c.group + ")" : ""),
       c.claim || "",
-      c.paper_value || "",
+      paperText(c),
       c.value_text === undefined || c.value_text === null ? "" : String(c.value_text),
       c.verdict || ""
     ];
@@ -849,6 +858,7 @@ function renderValidation(view, data) {
   function collect() {
     var rows = [];
     (data.papers || []).forEach(function (p) {
+      if (p["class"] === "core method") return;
       (p.criteria || []).forEach(function (c) {
         if (select.value !== "all" && c.verdict !== select.value) return;
         rows.push({ p: p, c: c });
@@ -887,32 +897,57 @@ function renderValidation(view, data) {
     });
     head.appendChild(hr);
   }
+  function paintRow(p, c, tbody) {
+    var row = el("tr");
+    var m = el("td");
+    m.appendChild(link("#model/" + p.id, p.title));
+    row.appendChild(m);
+    row.appendChild(el("td", classInfo(p["class"]).label));
+    row.appendChild(el("td", c.id + (c.group ? " (" + c.group + ")" : "")));
+    row.appendChild(el("td", c.claim || ""));
+    row.appendChild(el("td", paperText(c) || "—"));
+    row.appendChild(valueCell(c));
+    var vc = el("td");
+    vc.appendChild(verdictChip(c.verdict));
+    row.appendChild(vc);
+    Array.prototype.forEach.call(row.children, function (td, i) {
+      var lab = el("span", labels[i] + ": ");
+      lab.className = "cell-label";
+      td.insertBefore(lab, td.firstChild);
+    });
+    tbody.appendChild(row);
+  }
   function fill() {
     paintHead();
     clear(body);
     collect().forEach(function (entry) {
-      var p = entry.p, c = entry.c;
-        var row = el("tr");
-        var m = el("td");
-        m.appendChild(link("#model/" + p.id, p.title));
-        row.appendChild(m);
-        row.appendChild(el("td", classInfo(p["class"]).label));
-        row.appendChild(el("td", c.id + (c.group ? " (" + c.group + ")" : "")));
-        row.appendChild(el("td", c.claim || ""));
-        row.appendChild(el("td", c.paper_value || "—"));
-        row.appendChild(valueCell(c));
-        var vc = el("td");
-        vc.appendChild(verdictChip(c.verdict));
-        row.appendChild(vc);
-        Array.prototype.forEach.call(row.children, function (td, i) {
-          var lab = el("span", labels[i] + ": ");
-          lab.className = "cell-label";
-          td.insertBefore(lab, td.firstChild);
-        });
-        body.appendChild(row);
+      paintRow(entry.p, entry.c, body);
     });
+    fillCore();
   }
   select.addEventListener("change", fill);
+  view.appendChild(el("h3", "Core method checks"));
+  view.appendChild(el("p", "Analytic checks of core methods against closed-form references. Values are copied from the scorer files at the commits shown; the page computes no verdict.")).className = "small";
+  var coreTable = el("table");
+  coreTable.className = "validation";
+  var coreHead = el("thead");
+  var coreHr = el("tr");
+  labels.forEach(function (h) { coreHr.appendChild(el("th", h)); });
+  coreHead.appendChild(coreHr);
+  coreTable.appendChild(coreHead);
+  var coreBody = el("tbody");
+  coreTable.appendChild(coreBody);
+  view.appendChild(coreTable);
+  function fillCore() {
+    clear(coreBody);
+    (data.papers || []).forEach(function (p) {
+      if (p["class"] !== "core method") return;
+      (p.criteria || []).forEach(function (c) {
+        if (select.value !== "all" && c.verdict !== select.value) return;
+        paintRow(p, c, coreBody);
+      });
+    });
+  }
   fill();
 }
 

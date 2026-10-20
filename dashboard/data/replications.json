@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-20T17:44:57Z",
-    "dev_sha": "aa3f6ff08300c5dabf3ae598bcab759dbcdb6af8"
+    "utc": "2026-10-20T20:39:38Z",
+    "dev_sha": "8354bf52351621e1173859b6cbee9716b7d2eee2"
   },
   "papers": [
     {
@@ -160,6 +160,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
@@ -180,6 +182,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
@@ -200,6 +204,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
@@ -220,6 +226,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "every run oscillates, p = 0.02 included; peak excess is largest at low p",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
@@ -240,6 +248,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "at p = 0.03, 2 of 3 seeds fail only the 20 Hz band-edge rule (f_pk 22 Hz, peak excess 22–26)",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7 (R4 only)",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score_v7.json",
@@ -1266,6 +1276,8 @@
           ],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1297,6 +1309,8 @@
           ],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1328,6 +1342,8 @@
           ],
           "verdict": "fail",
           "reason": "above both nulls, under the ratio of 2",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1359,6 +1375,8 @@
           ],
           "verdict": "fail",
           "reason": "above both nulls, under the ratio of 2",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1390,6 +1408,8 @@
           ],
           "verdict": "fail",
           "reason": "worse than a flat line",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v5",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
@@ -1421,6 +1441,8 @@
           ],
           "verdict": "fail",
           "reason": "shape guard missed by 0.02",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v5",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
@@ -1441,6 +1463,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1461,6 +1485,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1497,6 +1523,8 @@
           ],
           "verdict": "fail",
           "reason": "complex median below 0; the set difference beats its null",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1984,6 +2012,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
           "evidence": {
             "path": "artifacts/atlas/results/at01_055.json",
@@ -2004,6 +2034,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
           "evidence": {
             "path": "artifacts/atlas/results/at01_055.json",
@@ -2024,6 +2056,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
           "evidence": {
             "path": "artifacts/atlas/results/at01_055.json",
@@ -2044,6 +2078,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
           "evidence": {
             "path": "artifacts/atlas/results/at01_055.json",
@@ -2202,6 +2238,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2222,6 +2260,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2242,6 +2282,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2262,6 +2304,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "the FS cell adapts",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2282,6 +2326,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2302,6 +2348,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2322,6 +2370,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2342,6 +2392,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "one spike after the pulse",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2362,6 +2414,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2382,6 +2436,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "too regular; the reference arm gives 0.39",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2402,6 +2458,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2422,6 +2480,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2603,6 +2663,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
@@ -2623,6 +2685,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
@@ -2643,6 +2707,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
@@ -2663,6 +2729,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
@@ -2683,6 +2751,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
@@ -2703,6 +2773,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
@@ -2723,6 +2795,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
@@ -2743,6 +2817,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
@@ -2763,6 +2839,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
@@ -2859,6 +2937,188 @@
         "Supplementary Methods PDF unreachable with this run's tools; time constants, weights, noise, delays and GC settings stay unknown.",
         "No Wilson-Cowan rate emitter and no spectral Granger-causality estimator in the core; P2 must build or declare deviations.",
         "Anatomy files named on core-nets.org, which served a login wall on 2026-10-19."
+      ]
+    },
+    {
+      "id": "head-forward",
+      "title": "Analytic EEG/MEG forward checks of jaxfne.fields.head",
+      "citation": "Sarvas 1987 (MEG); Frank 1952 (EEG)",
+      "class": "core method",
+      "question": "Does the spherical-head MEG/EEG forward code agree with independent analytic references?",
+      "page": null,
+      "release": "0.5.7",
+      "tier": "T-jaxfne",
+      "stage": null,
+      "lane": {
+        "branch": "dev",
+        "sha": "eae6f929099e6a2dc14fee34e5e2e143b0fad981"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Seven analytic agreements of the spherical-head forward code, scored from the inputs of tests/test_head_forward.py: radial and full-vector MEG against the primary-current field and scalar-potential quadrature, radial-dipole silence, EEG against the Neumann series and the MNE single shell, conductivity reciprocity and the average-reference null.",
+      "preregs": [],
+      "criteria": [
+        {
+          "id": "meg-radial",
+          "group": "",
+          "claim": "radial MEG leadfields equal the primary-current field",
+          "estimand": "worst-case |deviation| over 40 sensors and 7 dipoles",
+          "criterion": "error ≤ 1e-6·scale + 2e-4·scale",
+          "value": 3.957314409161212e-12,
+          "value_text": "3.96e-12",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "T/(A·m)",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "primary-current Biot-Savart field",
+          "reference_text": "primary-current Biot-Savart field",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "meg-full-vector",
+          "group": "",
+          "claim": "full-vector MEG leadfields equal the scalar-potential quadrature",
+          "estimand": "worst-case |deviation| over 12 tilted sensors and 3 dipoles",
+          "criterion": "error ≤ 1e-4·scale + 1e-3·scale",
+          "value": 5.424514919145701e-13,
+          "value_text": "5.42e-13",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "T/(A·m)",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "scalar-potential quadrature (-mu0 grad U)",
+          "reference_text": "scalar-potential quadrature (-mu0 grad U)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "meg-radial-silence",
+          "group": "",
+          "claim": "radial dipoles are silent beside tangential ones",
+          "estimand": "silent/loud amplitude ratio over 30 sensors and 7 dipoles",
+          "criterion": "ratio below 1e-6",
+          "value": 5.978804013466013e-08,
+          "value_text": "5.98e-08",
+          "value_label": "silent/loud",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "radial-to-tangential amplitude ratio",
+          "reference_text": "radial-to-tangential amplitude ratio",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "eeg-neumann",
+          "group": "",
+          "claim": "the EEG closed form equals the Neumann series",
+          "estimand": "worst-case |deviation| over 25 electrodes and 4 dipoles",
+          "criterion": "error ≤ 1e-4·scale + 1e-3·scale",
+          "value": 0.00041629936487197483,
+          "value_text": "0.000416",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "V/(A·m)",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "Neumann-series potential (400 terms)",
+          "reference_text": "Neumann-series potential (400 terms)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "eeg-mne",
+          "group": "",
+          "claim": "EEG leadfields equal the MNE single-shell forward",
+          "estimand": "worst-case |deviation| over 30 electrodes and 5 dipoles",
+          "criterion": "error ≤ 1e-4·scale + 1e-3·scale",
+          "value": 4.57763671875e-05,
+          "value_text": "4.58e-05",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "V/(A·m)",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "MNE single-shell forward (homogeneous)",
+          "reference_text": "MNE single-shell forward (homogeneous)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "eeg-scaling",
+          "group": "",
+          "claim": "halving the conductivity doubles the EEG leadfield",
+          "estimand": "worst-case |a − 2b| over 20 electrodes and 3 dipoles",
+          "criterion": "error ≤ 1e-5·scale",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "V/(A·m)",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "conductivity reciprocity (0.33 against 0.66 S/m)",
+          "reference_text": "conductivity reciprocity (0.33 against 0.66 S/m)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "eeg-reference",
+          "group": "",
+          "claim": "average referencing nulls the column means",
+          "estimand": "worst-case |column mean| over 20 electrodes and 3 dipoles",
+          "criterion": "means below 1e-6·scale",
+          "value": 4.124641418457031e-06,
+          "value_text": "4.12e-06",
+          "value_label": "max |mean|",
+          "paper_value": null,
+          "unit": "V/(A·m)",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "average-reference null",
+          "reference_text": "average-reference null",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No paper values: analytic agreements of a core method, not a replication.",
+        "eeg-mne needs the optional mne package and shows pending without it."
       ]
     }
   ],
