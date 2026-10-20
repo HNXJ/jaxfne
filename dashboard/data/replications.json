@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-20T18:55:34Z",
-    "dev_sha": "06a9d96ed610455e124c687ce8237026f3db4b04"
+    "utc": "2026-10-20T20:39:38Z",
+    "dev_sha": "8354bf52351621e1173859b6cbee9716b7d2eee2"
   },
   "papers": [
     {
@@ -2951,7 +2951,7 @@
       "stage": null,
       "lane": {
         "branch": "dev",
-        "sha": "06a9d96ed610455e124c687ce8237026f3db4b04"
+        "sha": "eae6f929099e6a2dc14fee34e5e2e143b0fad981"
       },
       "stage_artifacts": [],
       "verdict": null,
@@ -2978,7 +2978,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/06a9d96ed610455e124c687ce8237026f3db4b04/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3000,7 +3000,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/06a9d96ed610455e124c687ce8237026f3db4b04/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3022,7 +3022,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/06a9d96ed610455e124c687ce8237026f3db4b04/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3044,7 +3044,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/06a9d96ed610455e124c687ce8237026f3db4b04/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3066,7 +3066,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/06a9d96ed610455e124c687ce8237026f3db4b04/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3088,7 +3088,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/06a9d96ed610455e124c687ce8237026f3db4b04/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3110,7 +3110,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/06a9d96ed610455e124c687ce8237026f3db4b04/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
           }
         }
       ],
