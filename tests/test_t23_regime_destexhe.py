@@ -14,9 +14,9 @@ from contextlib import redirect_stdout
 
 import numpy as np
 
-REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
-
 from artifacts.etudes.papers.destexhe2009 import run_destexhe as R
+
+REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
 def _score_raster(tmp_path, spikes, dt_ms=0.1):

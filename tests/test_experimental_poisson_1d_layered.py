@@ -86,14 +86,14 @@ def test_layered_raises_on_wrong_shape():
 # k->1 (classic "doubling" result); sigma2->inf (grounded boundary) gives
 # k->-1 (image cancels, phi->0 at the boundary).
 
-def _analytic_two_half_space_potential(rho, z, z0, I, sigma1, sigma2):
+def _analytic_two_half_space_potential(rho, z, z0, i_src, sigma1, sigma2):
     k = (sigma1 - sigma2) / (sigma1 + sigma2)
     R0 = np.sqrt(rho**2 + (z - z0)**2)
     R0p = np.sqrt(rho**2 + (z + z0)**2)
     if z >= 0:
-        return I / (4 * np.pi * sigma1) * (1.0 / R0 + k / R0p)
+        return i_src / (4 * np.pi * sigma1) * (1.0 / R0 + k / R0p)
     R0pp = np.sqrt(rho**2 + (z - z0)**2)
-    return I / (4 * np.pi * sigma1) * (1.0 + k) / R0pp
+    return i_src / (4 * np.pi * sigma1) * (1.0 + k) / R0pp
 
 
 def test_analytic_reference_uniform_medium_limit():
@@ -102,13 +102,13 @@ def test_analytic_reference_uniform_medium_limit():
     I/(4*pi*sigma*R) everywhere -- the simplest possible sanity check on the
     derivation itself, independent of experimental_poisson_1d."""
     sigma = 1.5
-    I = 2.0
+    i_src = 2.0
     z0 = 0.3
     for z in (0.5, -0.5, 0.0):
         rho = 0.4
-        phi = _analytic_two_half_space_potential(rho, z, z0, I, sigma, sigma)
+        phi = _analytic_two_half_space_potential(rho, z, z0, i_src, sigma, sigma)
         R = np.sqrt(rho**2 + (z - z0)**2)
-        expected = I / (4 * np.pi * sigma * R)
+        expected = i_src / (4 * np.pi * sigma * R)
         np.testing.assert_allclose(phi, expected, rtol=1e-10)
 
 
@@ -119,12 +119,12 @@ def test_analytic_reference_insulating_and_grounded_limits():
     checked here as a receipt that the derivation used for the analytic
     ground-truth target is actually correct before it gets used to validate
     any solver."""
-    sigma1, I, z0, rho = 1.0, 1.0, 0.5, 0.3
+    sigma1, i_src, z0, rho = 1.0, 1.0, 0.5, 0.3
 
-    phi_insulating = _analytic_two_half_space_potential(rho, 0.0, z0, I, sigma1, 1e-9)
+    phi_insulating = _analytic_two_half_space_potential(rho, 0.0, z0, i_src, sigma1, 1e-9)
     R_at_0 = np.sqrt(rho**2 + z0**2)
-    expected_insulating = I / (4 * np.pi * sigma1) * 2.0 / R_at_0
+    expected_insulating = i_src / (4 * np.pi * sigma1) * 2.0 / R_at_0
     np.testing.assert_allclose(phi_insulating, expected_insulating, rtol=1e-4)
 
-    phi_grounded = _analytic_two_half_space_potential(rho, 0.0, z0, I, sigma1, 1e9)
+    phi_grounded = _analytic_two_half_space_potential(rho, 0.0, z0, i_src, sigma1, 1e9)
     np.testing.assert_allclose(phi_grounded, 0.0, atol=1e-6)

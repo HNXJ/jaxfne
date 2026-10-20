@@ -6,7 +6,6 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 from scripts.internal.publication.fig05_protocol import (
@@ -18,6 +17,8 @@ from scripts.internal.publication.fig05_protocol import (
     validate_fig05_semantic_audit,
     validate_fig05_spec,
 )
+
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 ROOT = Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "scripts" / "publication_figures" / "fig05_protocol_c.py"

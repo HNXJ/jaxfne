@@ -7,7 +7,6 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import pytest
 
@@ -22,6 +21,8 @@ from scripts.internal.publication.fig02_04_protocol import (
     validate_fig02_04_receipts,
     validate_fig02_04_spec,
 )
+
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 ROOT = Path(__file__).resolve().parents[1]
 NPZ = ROOT / "artifacts" / "etudes" / "experiment_a" / "canonical_source.npz"

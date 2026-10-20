@@ -121,12 +121,12 @@ def test_d1_g2_static_h_k_constant():
 def test_d1_h_k_one_matches_classical_du():
     v = jnp.asarray([-55.0], dtype=jnp.float32)
     u = jnp.asarray([2.0], dtype=jnp.float32)
-    I = jnp.asarray([10.0], dtype=jnp.float32)
+    i_ext = jnp.asarray([10.0], dtype=jnp.float32)
     a = jnp.asarray([0.02], dtype=jnp.float32)
     b = jnp.asarray([0.2], dtype=jnp.float32)
     h1 = jnp.ones((1,), dtype=jnp.float32)
-    _, du_c = _izhikevich_dv_du(v, u, I, a, b)
-    _, du_e = _izhikevich_dv_du_recovery_h_k(v, u, I, a, b, h1)
+    _, du_c = _izhikevich_dv_du(v, u, i_ext, a, b)
+    _, du_e = _izhikevich_dv_du_recovery_h_k(v, u, i_ext, a, b, h1)
     assert float(du_c[0]) == float(du_e[0])
 
 

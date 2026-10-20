@@ -6,13 +6,14 @@ import subprocess
 import os
 import sys
 from pathlib import Path
-_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 from scripts.internal.publication.cross_figure_audit import (
     load_cross_figure_audit,
     run_cross_figure_audit,
     validate_cross_figure_audit,
 )
+
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 ROOT = Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "scripts" / "publication_figures" / "figures_1_7_cross_audit.py"

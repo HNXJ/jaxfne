@@ -5,9 +5,10 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import pytest
+
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestTutorialSmokeRunner:

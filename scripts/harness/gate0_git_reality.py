@@ -190,8 +190,8 @@ def check_gate0(
     # 6. Dirty-Tree State
     _, status_short = run_git(["status", "--porcelain"], cwd=root)
     dirty_lines = [line for line in status_short.splitlines() if line.strip()]
-    tracked_dirty = [l for l in dirty_lines if not l.startswith("??")]
-    untracked = [l for l in dirty_lines if l.startswith("??")]
+    tracked_dirty = [entry for entry in dirty_lines if not entry.startswith("??")]
+    untracked = [entry for entry in dirty_lines if entry.startswith("??")]
 
     # 7. Mode-Dependent Required Authorities
     detected_mode, task_file_status = detect_task_mode(root, mode)

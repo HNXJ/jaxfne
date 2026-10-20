@@ -105,7 +105,7 @@ class TestJ4:
         hashes = {t.provenance["phenotype_sha256"] for t in tensors}
         assert len(hashes) >= 2
         for t in tensors:
-            total = sum(l.n_neurons for a in t.areas for l in a.layers)
+            total = sum(lay.n_neurons for a in t.areas for lay in a.layers)
             assert total == 1000
 
 

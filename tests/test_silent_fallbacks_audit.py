@@ -8,6 +8,7 @@ passes with the fix.
 import dataclasses
 import types
 
+import numpy as np
 import pytest
 
 import jaxfne as jtfne
@@ -159,7 +160,6 @@ def test_cell_types_no_columns_default_kept():
 # `except Exception` site. On the baseline the error is swallowed (the test
 # fails); with the narrowed handler it propagates. Expected-type failures
 # (AttributeError/TypeError/ValueError) still take the silent fallback.
-import numpy as np
 
 
 class _BoomContains:

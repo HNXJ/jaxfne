@@ -57,8 +57,8 @@ def _euler_lif(v0, current):
 
 def test_lif_limit_matches_euler_closed_form():
     """Subthreshold Delta=0 steps the exact LIF Euler update."""
-    params, state, I = _one_cell(delta=0.0, v0=-65.0, current=200.0)
-    (V_new, w_new, _), spk = adex_step(state, I, params, DT_MS)
+    params, state, i_ext = _one_cell(delta=0.0, v0=-65.0, current=200.0)
+    (V_new, w_new, _), spk = adex_step(state, i_ext, params, DT_MS)
     assert bool(np.asarray(spk)[0]) is False, "subthreshold cell must not spike"
     np.testing.assert_allclose(
         np.asarray(V_new), [_euler_lif(-65.0, 200.0)], rtol=1e-6,
@@ -69,8 +69,8 @@ def test_lif_limit_matches_euler_closed_form():
 
 def test_lif_limit_spikes_at_vt():
     """A driven cell starting exactly at VT spikes and resets (0/0 site)."""
-    params, state, I = _one_cell(delta=0.0, v0=-50.0, current=200.0)
-    (V_new, _, ref_new), spk = adex_step(state, I, params, DT_MS)
+    params, state, i_ext = _one_cell(delta=0.0, v0=-50.0, current=200.0)
+    (V_new, _, ref_new), spk = adex_step(state, i_ext, params, DT_MS)
     assert bool(np.asarray(spk)[0]) is True, "driven LIF cell at VT must spike"
     np.testing.assert_allclose(np.asarray(V_new), [-60.0], rtol=0, atol=0)
     assert int(np.asarray(ref_new)[0]) == 50, "ref must be round(5/0.1)"
@@ -78,8 +78,8 @@ def test_lif_limit_spikes_at_vt():
 
 def test_lif_limit_exact_threshold_stays_finite():
     """Undriven cell at exactly VT relaxes below it, finite, no spike."""
-    params, state, I = _one_cell(delta=0.0, v0=-50.0, current=0.0)
-    (V_new, _, _), spk = adex_step(state, I, params, DT_MS)
+    params, state, i_ext = _one_cell(delta=0.0, v0=-50.0, current=0.0)
+    (V_new, _, _), spk = adex_step(state, i_ext, params, DT_MS)
     assert bool(np.isfinite(np.asarray(V_new)).all()), "V must stay finite at V==VT"
     assert bool(np.asarray(spk)[0]) is False, "relaxing cell must not spike"
     np.testing.assert_allclose(
@@ -91,8 +91,8 @@ def test_lif_limit_exact_threshold_stays_finite():
 def test_positive_delta_matches_reference_formula():
     """Delta=2 keeps the exponential term (guards the branch refactor)."""
     f = np.float32
-    params, state, I = _one_cell(delta=2.0, v0=-65.0, current=200.0)
-    (V_new, _, _), spk = adex_step(state, I, params, DT_MS)
+    params, state, i_ext = _one_cell(delta=2.0, v0=-65.0, current=200.0)
+    (V_new, _, _), spk = adex_step(state, i_ext, params, DT_MS)
     arg = (f(-65.0) - f(-50.0)) / f(2.0)
     exp_current = f(10.0) * f(2.0) * np.exp(arg, dtype=np.float32)
     dV = (f(10.0) * (f(-60.0) - f(-65.0)) + exp_current + f(200.0)) / f(200.0) * f(DT_MS)
@@ -123,8 +123,8 @@ def test_mixed_delta_population_steps_each_cell_under_its_model():
         jnp.asarray([f(0.0), f(0.0)]),
         jnp.asarray([0, 0], dtype=jnp.int32),
     )
-    I = jnp.asarray([f(0.0), f(200.0)])
-    (V_new, _, _), spk = adex_step(state, I, params, DT_MS)
+    i_ext = jnp.asarray([f(0.0), f(200.0)])
+    (V_new, _, _), spk = adex_step(state, i_ext, params, DT_MS)
     got = np.asarray(V_new)
     assert bool(np.isfinite(got).all()), "mixed population must stay finite"
     assert [bool(s) for s in np.asarray(spk)] == [False, False]

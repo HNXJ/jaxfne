@@ -26,6 +26,7 @@ import json
 import pathlib
 import re
 import sys
+from collections import Counter
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DRAFT = ROOT / "docs/theory/publication/results_reconstruction/drafts/supplement.md"
@@ -134,7 +135,6 @@ for cond, cs in by_id.items():
             f"{cond} reasons {reasons}",
         )
 
-from collections import Counter
 reason_counter = Counter(c["estimator"]["quality_reasons"][0] for c in cells)
 check(
     "s6_reason_distribution",

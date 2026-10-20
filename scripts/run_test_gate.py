@@ -555,7 +555,7 @@ AUDIT_STEPS: list[tuple[str, list[str]]] = [
             "tests/",
             "examples/",
             "--select",
-            "E711,E712,E721,E722,F601,F632,F811,F821,F823,F402,F401,F841",
+            "E711,E712,E721,E722,F601,F632,F811,F821,F823,F402,F401,F841,E741,E402",
         ],
     ),
     (

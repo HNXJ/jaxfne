@@ -11,6 +11,7 @@ import warnings
 import jax.numpy as jnp
 import jaxfne as jtfne
 from jaxfne.core import _apply_connectivity, _DENSE_CONNECTIVITY_WARN_N
+from jaxfne.core import _SPARSE_DIRECT_N
 from jaxfne.emitters import IzhikevichParams
 
 
@@ -55,8 +56,6 @@ def test_sparse_p_connect_suppresses_warning():
 
 
 # ── Sparse-direct edge construction (factor 13 deep refactor) ────────────────
-from jaxfne.core import _SPARSE_DIRECT_N
-
 
 def _sparse_model(n, p, seed=1):
     cfg = (jtfne.Configuration().runtime(seed=seed, dtype="float32", duration_ms=40.0, dt_ms=0.5)

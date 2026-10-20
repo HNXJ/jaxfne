@@ -30,13 +30,13 @@ class TestIzhikevichEquationSemantics:
         # Create minimal params with known values
         v = jnp.array([10.0])
         u = jnp.array([1.0])
-        I = jnp.array([5.0])
+        i_ext = jnp.array([5.0])
 
         # Expected: dv = 0.04 * 10^2 + 5 * 10 + 140 - 1 + 5
         #                = 0.04 * 100 + 50 + 140 - 1 + 5
         #                = 4 + 50 + 140 - 1 + 5 = 198
         expected_dv = 0.04 * 100 + 5 * 10 + 140 - 1 + 5
-        actual_dv = 0.04 * v[0] * v[0] + 5.0 * v[0] + 140.0 - u[0] + I[0]
+        actual_dv = 0.04 * v[0] * v[0] + 5.0 * v[0] + 140.0 - u[0] + i_ext[0]
 
         assert float(actual_dv) == pytest.approx(expected_dv, rel=1e-5)
 

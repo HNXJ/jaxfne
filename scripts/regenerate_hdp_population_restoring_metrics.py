@@ -25,6 +25,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
+
 ROOT = Path(__file__).resolve().parents[1]
 # Force the repo package: `python scripts/...` puts scripts/ first on sys.path,
 # which would import any site-packages jaxfne instead of this tree (P-016/P-020
@@ -32,12 +34,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tests"))
 
-import numpy as np
-
-import jaxfne as jtfne
+import jaxfne as jtfne  # noqa: E402 (repo root on sys.path, line 32)
 
 assert "site-packages" not in jtfne.__file__, jtfne.__file__
-from test_hdp_population_restoring import (
+from test_hdp_population_restoring import (  # noqa: E402 (tests/ on sys.path, line 33)
     _mcc3_model,
     _population_hdp_params,
     _recovery_metrics,

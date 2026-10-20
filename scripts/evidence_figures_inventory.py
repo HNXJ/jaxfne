@@ -15,7 +15,7 @@ SCRIPTS = Path(__file__).resolve().parent
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from evidence_inventory import main
+from evidence_inventory import main  # noqa: E402 (scripts/ put on sys.path above)
 
 
 if __name__ == "__main__":

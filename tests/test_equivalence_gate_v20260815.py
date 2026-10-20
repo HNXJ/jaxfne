@@ -11,9 +11,9 @@ import sys
 from pathlib import Path
 from unittest import mock
 
-_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
-
 import pytest
+
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 ROOT = Path(__file__).resolve().parents[1]
 GATE = ROOT / "scripts" / "publication_figures" / "equivalence_gate.py"

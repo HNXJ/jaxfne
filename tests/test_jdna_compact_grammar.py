@@ -90,7 +90,7 @@ def test_define_example1_desugar_equivalent(tmp_path):
     assert t0.provenance is not None
     assert t0.provenance["genome_sha256"] == genome_rules_hash(g)
     # n_neurons preserved
-    assert sum(l.n_neurons for l in t0.areas[0].layers) == 1000
+    assert sum(lay.n_neurons for lay in t0.areas[0].layers) == 1000
     # save tensor without provenance in tmp_path
     out = tmp_path / "tensor.json"
     jtfne.save_neuronal_tensor(t0, out)
@@ -120,11 +120,11 @@ def test_inherit_sparse_l4_absolute_override():
     validate_genome(child)
     assert genome_rules_hash(child) != genome_rules_hash(parent)
     # only n changed
-    l4 = next(l for a in child.areas for l in a.layers if l.name == "L4")
+    l4 = next(lay for a in child.areas for lay in a.layers if lay.name == "L4")
     assert l4.n_neurons == 80
     assert l4.cell_type_fractions == {"E":0.80, "PV":0.15, "SST":0.05}
     assert l4.fraction_tolerance == {"E":(0.75,0.85), "PV":(0.10,0.20), "SST":(0.03,0.08)}
-    assert sum(l.n_neurons for l in child.areas[0].layers) == 280
+    assert sum(lay.n_neurons for lay in child.areas[0].layers) == 280
     # develop determinism check: same K_D gives same phenotype hash
     t0 = develop(child, seed=0)
     t1 = develop(child, seed=0)
@@ -146,7 +146,7 @@ def test_inherit_tolerance_field_granular(tmp_path):
     reg = parser.desugar_file(text)
     child = reg["Child"]
     validate_genome(child)
-    tol = next(l for a in child.areas for l in a.layers if l.name=="L4").fraction_tolerance
+    tol = next(lay for a in child.areas for lay in a.layers if lay.name=="L4").fraction_tolerance
     assert tol == {"E":(0.78,0.82), "PV":(0.1,0.3)}
     # joint feasibility 0.88 <=1 <=1.12
     # also save/load in tmp_path
@@ -203,17 +203,17 @@ def test_A_minus_80_absolute():
     """
     reg2 = parser.desugar_file(use_text)
     sparse = reg2["sparse-L4"]
-    assert next(l for a in sparse.areas for l in a.layers if l.name=="L4").n_neurons == 80
+    assert next(lay for a in sparse.areas for lay in a.layers if lay.name=="L4").n_neurons == 80
     # fractions unchanged
     # This use with single absolute is mutating mode allowed? But our preserving mode keeps total 1000, so L2/3 becomes 920? Let's check both semantics
     # For single absolute without other tweaks, spec says area_total preserving vs mutating based on single-layer-single-tweak mutate allowance
     # Our implementation is preserving (total 1000). So L2/3 should be 920 if preserving, or 200 if mutating.
     # We implemented preserving, so sum is 1000
-    total = sum(l.n_neurons for a in sparse.areas for l in a.layers)
+    total = sum(lay.n_neurons for a in sparse.areas for lay in a.layers)
     # Accept either 280 (mutating: 80+200) or 1000 (preserving: 80+920) — we assert preserving per prereg default §5.3.3
     assert total == 1000 or total == 280
     if total == 1000:
-        assert next(l for l in sparse.areas[0].layers if l.name=="L2/3").n_neurons == 920
+        assert next(lay for lay in sparse.areas[0].layers if lay.name=="L2/3").n_neurons == 920
 
 def test_A_star_fraction_preserving_denominator(tmp_path):
     text = """
@@ -228,14 +228,14 @@ def test_A_star_fraction_preserving_denominator(tmp_path):
     reg = parser.desugar_file(text)
     frac08 = reg["base-frac08"]
     # N_V1 = 1000, raw L4 =80, preserving => L4=80, remaining 920 to L2/3
-    n_l4 = next(l for a in frac08.areas for l in a.layers if l.name=="L4").n_neurons
+    n_l4 = next(lay for a in frac08.areas for lay in a.layers if lay.name=="L4").n_neurons
     assert n_l4 == 80
-    total = sum(l.n_neurons for a in frac08.areas for l in a.layers)
+    total = sum(lay.n_neurons for a in frac08.areas for lay in a.layers)
     assert total == 1000
-    assert next(l for l in frac08.areas[0].layers if l.name=="L2/3").n_neurons == 920
+    assert next(lay for lay in frac08.areas[0].layers if lay.name=="L2/3").n_neurons == 920
     # develop and check largest-remainder sums preserved
     t = develop(frac08, seed=0)
-    assert sum(l.n_neurons for l in t.areas[0].layers) == 1000
+    assert sum(lay.n_neurons for lay in t.areas[0].layers) == 1000
 
 def test_fractional_multi_atomic_same_snapshot():
     # Two fractions evaluated atomically against same N_area(G0)
@@ -252,13 +252,13 @@ def test_fractional_multi_atomic_same_snapshot():
     reg = parser.desugar_file(text)
     g = reg["two-frac"]
     # N=1000, raw L2=200, L3=300, remaining 500 should be distributed? Our implementation will handle largest remainder
-    total = sum(l.n_neurons for a in g.areas for l in a.layers)
+    total = sum(lay.n_neurons for a in g.areas for lay in a.layers)
     assert total == 1000
     # check absolute values after our allocation (should be close to raw, but integer)
-    n_l2 = next(l for l in g.areas[0].layers if l.name=="L2").n_neurons
-    n_l3 = next(l for l in g.areas[0].layers if l.name=="L3").n_neurons
+    n_l2 = next(lay for lay in g.areas[0].layers if lay.name=="L2").n_neurons
+    n_l3 = next(lay for lay in g.areas[0].layers if lay.name=="L3").n_neurons
     # raw 200,300 -> with remaining 500 for L4? Let's check L4
-    n_l4 = next(l for l in g.areas[0].layers if l.name=="L4").n_neurons
+    n_l4 = next(lay for lay in g.areas[0].layers if lay.name=="L4").n_neurons
     # In preserving mode, L4 is untreated and should get remaining 500
     assert n_l4 == 500
     assert n_l2 == 200
@@ -278,10 +278,10 @@ def test_absolute_plus_fractional_mixture():
     reg = parser.desugar_file(text)
     g = reg["mixed"]
     # N_fixed=80, N_enclosing=1000, raw L4=100, remaining 920, leftover for L3 after fixed+frac =820
-    assert next(l for l in g.areas[0].layers if l.name=="L2").n_neurons == 80
-    assert next(l for l in g.areas[0].layers if l.name=="L4").n_neurons == 100
-    assert next(l for l in g.areas[0].layers if l.name=="L3").n_neurons == 820
-    assert sum(l.n_neurons for l in g.areas[0].layers) == 1000
+    assert next(lay for lay in g.areas[0].layers if lay.name=="L2").n_neurons == 80
+    assert next(lay for lay in g.areas[0].layers if lay.name=="L4").n_neurons == 100
+    assert next(lay for lay in g.areas[0].layers if lay.name=="L3").n_neurons == 820
+    assert sum(lay.n_neurons for lay in g.areas[0].layers) == 1000
 
 # ---------------------------------------------------------------------------
 # 4. K_D determinism via develop PRNG split per area/layer
@@ -312,7 +312,7 @@ def test_KD_determinism_same_vs_different(tmp_path):
     # Check counts within bands
     for area in g_sig.areas:
         for layer in area.layers:
-            next(l for a in t_c.areas if a.name==area.name for l in a.layers if l.name==layer.name)
+            next(lay for a in t_c.areas if a.name==area.name for lay in a.layers if lay.name==layer.name)
             # counts per cell type fractions within tolerance is checked by develop itself, but we also verify band via declared_constraints
             pass
     # sigma=0 should be exact and different K_D should give identical counts (since key ignored)
@@ -617,8 +617,8 @@ def test_A80_vs_A_star_coincidence():
     abs_g = reg_abs["abs80"]
     frac_g = reg_frac["frac08"]
     # Both give 80 for L4 in this N=1000 case, but they are not semantically equal
-    assert next(l for l in abs_g.areas[0].layers if l.name=="L4").n_neurons == 80
-    assert next(l for l in frac_g.areas[0].layers if l.name=="L4").n_neurons == 80
+    assert next(lay for lay in abs_g.areas[0].layers if lay.name=="L4").n_neurons == 80
+    assert next(lay for lay in frac_g.areas[0].layers if lay.name=="L4").n_neurons == 80
     # If area total changed prior, they'd diverge: simulate growth
     # Grow L2/3 to 400 => N=1200, then A*0.08 would be 96 vs A-80 stays 80
     grown_text = """
@@ -632,7 +632,7 @@ def test_A80_vs_A_star_coincidence():
     use base2 V1.L4*0.08 as frac08b
     """
     reg2 = parser.desugar_file(grown_text)
-    assert next(l for l in reg2["abs80b"].areas[0].layers if l.name=="L4").n_neurons == 80
+    assert next(lay for lay in reg2["abs80b"].areas[0].layers if lay.name=="L4").n_neurons == 80
     # N=1200, 0.08*1200=96
-    assert next(l for l in reg2["frac08b"].areas[0].layers if l.name=="L4").n_neurons == 96
+    assert next(lay for lay in reg2["frac08b"].areas[0].layers if lay.name=="L4").n_neurons == 96
     assert genome_rules_hash(abs_g) != genome_rules_hash(frac_g)

@@ -13,9 +13,10 @@ import tempfile
 import tarfile
 import zipfile
 from pathlib import Path
-_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import pytest
+
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts" / "release"

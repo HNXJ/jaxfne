@@ -30,8 +30,9 @@ import json
 import subprocess
 import tempfile
 
-ROOT = Path(__file__).resolve().parents[2]
 from scripts.harness.gate0_git_reality import check_gate0, EXPECTED_REMOTES
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def run_cmd(cmd: list[str], cwd: Path) -> tuple[int, str]:
@@ -268,7 +269,7 @@ def test_release_authority_must_match_package_in_release_mode():
 def test_current_task_ephemeral_and_typed_structure():
     """Verify CURRENT_TASK.md is tiny (<=30 lines) and uses exact C_* vocabulary."""
     task_text = (ROOT / "scratch" / "CURRENT_TASK.md").read_text()
-    lines = [l for l in task_text.splitlines() if l.strip()]
+    lines = [line for line in task_text.splitlines() if line.strip()]
     assert len(lines) <= 30, f"CURRENT_TASK.md has {len(lines)} lines; must remain <= 30"
     assert "C_core:" in task_text
     assert "C_release:" in task_text

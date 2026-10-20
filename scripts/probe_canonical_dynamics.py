@@ -9,11 +9,11 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import numpy as np
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import jaxfne as jtfne
 assert "site-packages" not in jtfne.__file__, jtfne.__file__
-
-import numpy as np
 
 
 def measure_canonical_observables(duration_ms: float = 1000.0, dt_ms: float = 0.5, seed: int = 0) -> dict[str, float]:

@@ -159,7 +159,7 @@ def build_v1_area() -> Area:
         _canonical_layer("L5", 20),
         Layer(name="L6", n_neurons=15, neuron_types=(NeuronType.make("E", fraction=1.0),)),
     ]
-    assert sum(l.n_neurons for l in layers) == 100
+    assert sum(lay.n_neurons for lay in layers) == 100
     return Area(name="V1", layers=tuple(layers))
 
 
@@ -179,7 +179,7 @@ def build_pfc_area() -> Area:
                                                       NeuronType.make("SST", fraction=0.0267),
                                                       NeuronType.make("VIP", fraction=0.02))),
     ]
-    assert sum(l.n_neurons for l in layers) == 100
+    assert sum(lay.n_neurons for lay in layers) == 100
     return Area(name="PFC", layers=tuple(layers))
 
 
