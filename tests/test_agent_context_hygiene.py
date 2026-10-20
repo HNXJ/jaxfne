@@ -248,6 +248,8 @@ _ACTIVE_SKILLS = (
     "jaxfne-simulate",
     "jaxfne-verify",
     "jaxfne-inspect",
+    # Lane dashboard refresh after a push (2026-10-20).
+    "jaxfne-dashboard",
 )
 
 _TASK_ROUTES = {
@@ -266,6 +268,7 @@ _TASK_ROUTES = {
     "simulation": "artifacts/control/skills/jaxfne-simulate/SKILL.md",
     "identity verification": "artifacts/control/skills/jaxfne-verify/SKILL.md",
     "inspection": "artifacts/control/skills/jaxfne-inspect/SKILL.md",
+    "lane dashboard refresh": "artifacts/control/skills/jaxfne-dashboard/SKILL.md",
 }
 
 _REQUIRED_AI_PATHS = (
