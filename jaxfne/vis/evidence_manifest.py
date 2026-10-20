@@ -55,16 +55,8 @@ def utc_now_iso() -> str:
 
 
 def evidence_checklist_path() -> Path:
-    """Return the active evidence checklist path with compatibility fallback."""
-    root = repo_root()
-    candidates = [
-        root / "docs" / "evidence" / "evidence_checklist.json",
-        root / "docs" / "theory" / "publication" / "evidence_checklist.json",
-    ]
-    for path in candidates:
-        if path.is_file():
-            return path
-    return candidates[0]
+    """Return the evidence checklist path (docs/theory/publication/, since 72eafbbd)."""
+    return repo_root() / "docs" / "theory" / "publication" / "evidence_checklist.json"
 
 
 def truth_gates() -> dict:

@@ -468,7 +468,7 @@ with a `NeuronalTensor` raises `ValueError`.
 model = jtfne.construct(cfg)
 ```
 
-### `simulate(model, sim=None, paradigm=None, **kwargs) -> Signals`
+### `simulate(model, sim=None, paradigm=None, **kwargs) -> Signals | tuple[Signals, Any]`
 
 `_construct_core.py`. Module-level convenience wrapper accepting an
 explicit `Simulation` via `sim=`, or simulation parameters (`duration_ms`,
@@ -477,6 +477,7 @@ as keyword arguments. Passing both `sim=` and other kwargs raises
 `ValueError`. When no explicit `runtime`/`Simulation` is given, the runtime
 declared on `model.cfg` via `.runtime(...)` is inherited; a `dtype=` kwarg
 overrides the inherited dtype (and cannot be combined with `runtime=`).
+With `return_state=True` it returns `(signals, continuation)`, as on `Model.simulate`.
 
 `paradigm` injection follows the **Izhikevich vertical-slice** contract
 documented on `Model.simulate` above. It does not apply to `homeostatic_ei`
