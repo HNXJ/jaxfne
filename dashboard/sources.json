@@ -541,7 +541,7 @@
       "question": "Does the spherical-head MEG/EEG forward code agree with independent analytic references?",
       "release": "0.5.7",
       "tier": "T-jaxfne",
-      "lane": {"branch": "dev", "sha": "LANE_SHA_AFTER_COMMIT"},
+      "lane": {"branch": "dev", "sha": "06a9d96ed610455e124c687ce8237026f3db4b04"},
       "summary": "Seven analytic agreements of the spherical-head forward code, scored from the inputs of tests/test_head_forward.py: radial and full-vector MEG against the primary-current field and scalar-potential quadrature, radial-dipole silence, EEG against the Neumann series and the MNE single shell, conductivity reciprocity and the average-reference null.",
       "preregs": [],
       "files": {
