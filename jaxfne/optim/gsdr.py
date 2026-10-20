@@ -5,6 +5,7 @@ Outputs are handled as a structured simulation proxy (amplitude_claim_allowed=Fa
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 import jax
@@ -129,10 +130,10 @@ def mcdp_hdp_step(weights, mcdp, key, eta, w_max=None):
     schedule. Selection (keep the best, revert) stays with the caller.
     ``w_max=None`` clips at 0 only.
     """
-    if eta < 0:
-        raise ValueError("eta must be >= 0, got %r" % (eta,))
-    if w_max is not None and float(w_max) <= 0:
-        raise ValueError("w_max must be positive, got %r" % (w_max,))
+    if not math.isfinite(float(eta)) or eta < 0:
+        raise ValueError("eta must be finite and >= 0, got %r" % (eta,))
+    if w_max is not None and not (math.isfinite(float(w_max)) and float(w_max) > 0):
+        raise ValueError("w_max must be finite and positive, got %r" % (w_max,))
     w = jnp.asarray(weights)
     m = jnp.asarray(mcdp, dtype=w.dtype)
     if m.shape != w.shape:

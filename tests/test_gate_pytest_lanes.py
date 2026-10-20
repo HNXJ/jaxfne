@@ -83,6 +83,15 @@ def test_stale_known_failing_entry_fails_the_family(monkeypatch, capsys):
         rtg.reset_observations()
 
 
+def test_known_failing_entry_for_a_lane_with_no_tests_is_stale(monkeypatch):
+    _control_lanes(monkeypatch, ["vogels2011"], {"vogels2011": 5}, {"vogels2011": "old reason"})
+    try:
+        with pytest.raises(RuntimeError, match="stale"):
+            rtg.gate_pytest_lanes()
+    finally:
+        rtg.reset_observations()
+
+
 def test_known_failing_lane_that_still_fails_is_skipped_with_reason(monkeypatch, capsys):
     _control_lanes(monkeypatch, ["pcl"], {"pcl": 1}, {"pcl": "guard aborts collection"})
     try:

@@ -688,7 +688,8 @@ def gate_pytest_lanes() -> None:
     """One pytest process per paper lane (family ``pytest_lanes``).
 
     Exit code 5 (no tests collected) is accepted. A known-failing lane that still
-    fails is recorded in the ledger as exit 0 and named in its printed SKIP line.
+    fails is recorded in the ledger as exit 0 and named in its printed SKIP line; one
+    that passes or collects nothing is a stale entry and fails the family.
     """
     failures: list[str] = []
     for lane in discover_pytest_lanes():
@@ -697,7 +698,7 @@ def gate_pytest_lanes() -> None:
         rc = _run_lane(lane)
         completed = _utcnow()
         known = LANE_PYTEST_KNOWN_FAILING.get(lane)
-        if known is not None and rc == 0:
+        if known is not None and rc in (0, 5):
             failures.append(f"{lane}: listed in LANE_PYTEST_KNOWN_FAILING but passes (stale entry)")
             print(f"FAIL lane {lane}: stale LANE_PYTEST_KNOWN_FAILING entry", flush=True)
             record_execution("pytest_lanes", argv, started, completed, 1)

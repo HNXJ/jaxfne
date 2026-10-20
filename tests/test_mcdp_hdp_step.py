@@ -45,7 +45,17 @@ def test_w_max_bounds_the_weights():
     assert unclipped.max() > 3.0 or unclipped.min() < 0.0, "fixture must hit a bound"
 
 
-@pytest.mark.parametrize("kwargs", [dict(eta=-0.1), dict(eta=0.1, w_max=0.0)])
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        dict(eta=-0.1),
+        dict(eta=0.1, w_max=0.0),
+        dict(eta=float("nan")),
+        dict(eta=float("inf")),
+        dict(eta=0.1, w_max=float("nan")),
+        dict(eta=0.1, w_max=float("inf")),
+    ],
+)
 def test_refuses_bad_parameters(kwargs):
     with pytest.raises(ValueError):
         mcdp_hdp_step(W, M, jax.random.PRNGKey(0), **kwargs)
