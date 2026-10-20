@@ -499,7 +499,19 @@ def build_stage_artifacts(p, spec):
     return out
 
 
+def check_dev_lane(spec):
+    """A dev lane SHA must be in HEAD's history: a rebased-away SHA survives in a local clone but not in CI's."""
+    lane = spec["lane"]
+    if lane["branch"] != "dev":
+        return
+    if git(["cat-file", "-e", f"{lane['sha']}^{{commit}}"]).returncode != 0:
+        raise BuildError(f"lane sha {lane['sha']} is not a commit in this clone")
+    if git(["merge-base", "--is-ancestor", lane["sha"], "HEAD"]).returncode != 0:
+        raise BuildError(f"paper {spec['id']}: dev lane sha {lane['sha']} is not in HEAD's history")
+
+
 def build_paper(spec, files, repo_url):
+    check_dev_lane(spec)
     p = Paper(spec, files, repo_url)
     return {
         "id": spec["id"],

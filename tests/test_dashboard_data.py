@@ -173,6 +173,24 @@ def test_allow_missing_file_gives_pending_and_drops_its_series(tmp_path):
     assert [t["name"] for t in out["charts"][0]["traces"]] == ["kept"], "the absent file's series is dropped"
 
 
+def test_dev_lane_sha_off_head_history_is_refused(tmp_path):
+    # A rebase leaves the old lane SHA in a local clone, but CI's clone of dev lacks it.
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5, "ok": True}})
+    stray = git(root, "commit-tree", f"{sha}^{{tree}}", "-m", "rebased away")
+    probe = subprocess.run(["git", "merge-base", "--is-ancestor", stray, "HEAD"], cwd=str(root),
+                           capture_output=True, stdin=subprocess.DEVNULL)
+    assert probe.returncode == 1, "fixture must build a commit off HEAD's history"
+    write_sources(root, [paper(stray, lane={"branch": "dev", "sha": stray}, files={"main": "scores/main.json"})])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and stray in proc.stderr and "dev" in proc.stderr, proc.stderr
+
+    write_sources(root, [paper(sha, lane={"branch": "dev", "sha": sha}, files={"main": "scores/main.json"})])
+    assert run(root).returncode == 0
+
+
 @pytest.mark.parametrize("kind", ["missing_key", "missing_file"])
 def test_missing_required_key_or_file_exits_1_and_names_it(tmp_path, kind):
     root = tmp_path / "repo"

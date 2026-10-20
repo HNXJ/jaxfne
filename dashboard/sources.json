@@ -423,7 +423,7 @@
       "release": "0.5.7",
       "tier": "T-jaxfne",
       "stage": "P5",
-      "lane": {"branch": "dev", "sha": "d1a0d3b38f24962b566a9804d23ea2ecaa088dbd"},
+      "lane": {"branch": "dev", "sha": "3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b"},
       "stage_artifacts": {
         "P1": [{"label": "source record", "path": "artifacts/etudes/papers/brunel2000/SOURCE_P1.md"}],
         "P2": [{"label": "port spec", "path": "artifacts/etudes/papers/brunel2000/PORT_SPEC.md"},

@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-20T17:11:30Z",
-    "dev_sha": "69c33bf01bf98898e06404a15df5749733ca3e9a"
+    "utc": "2026-10-20T17:21:43Z",
+    "dev_sha": "43debf6babf8598a32dde25a371d5d59e96001ab"
   },
   "papers": [
     {
@@ -2513,7 +2513,7 @@
       "stage": "P5",
       "lane": {
         "branch": "dev",
-        "sha": "d1a0d3b38f24962b566a9804d23ea2ecaa088dbd"
+        "sha": "3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b"
       },
       "stage_artifacts": [
         {
@@ -2522,7 +2522,7 @@
             {
               "label": "source record",
               "path": "artifacts/etudes/papers/brunel2000/SOURCE_P1.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/SOURCE_P1.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/SOURCE_P1.md"
             }
           ]
         },
@@ -2532,22 +2532,22 @@
             {
               "label": "port spec",
               "path": "artifacts/etudes/papers/brunel2000/PORT_SPEC.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/PORT_SPEC.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/PORT_SPEC.md"
             },
             {
               "label": "lane api",
               "path": "artifacts/etudes/papers/brunel2000/brunel2000_api.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/brunel2000_api.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/brunel2000_api.py"
             },
             {
               "label": "tests",
               "path": "artifacts/etudes/papers/brunel2000/test_brunel2000_api.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/test_brunel2000_api.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/test_brunel2000_api.py"
             },
             {
               "label": "pilots",
               "path": "artifacts/etudes/papers/brunel2000/CALIBRATION.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/CALIBRATION.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/CALIBRATION.md"
             }
           ]
         },
@@ -2557,7 +2557,7 @@
             {
               "label": "prereg v4 (signed)",
               "path": "artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md"
             }
           ]
         },
@@ -2567,12 +2567,12 @@
             {
               "label": "result",
               "path": "artifacts/etudes/papers/brunel2000/RESULT_P3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/RESULT_P3.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/RESULT_P3.md"
             },
             {
               "label": "scores",
               "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
             }
           ]
         }
@@ -2585,7 +2585,7 @@
           "id": "v4",
           "signed": "2026-10-19",
           "path": "artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md"
         }
       ],
       "criteria": [
@@ -2606,7 +2606,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
           }
         },
         {
@@ -2626,7 +2626,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
           }
         },
         {
@@ -2646,7 +2646,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
           }
         },
         {
@@ -2666,7 +2666,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
           }
         },
         {
@@ -2686,7 +2686,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
           }
         },
         {
@@ -2706,7 +2706,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
           }
         },
         {
@@ -2726,7 +2726,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
           }
         },
         {
@@ -2746,7 +2746,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
           }
         },
         {
@@ -2766,7 +2766,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/d1a0d3b38f24962b566a9804d23ea2ecaa088dbd/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
           }
         }
       ],
