@@ -118,7 +118,9 @@ marked inferred).
   only in receipts, e.g. `benchmark_054_scaling.py`, `run_protocol_h_h4_matrix.py`); 8 audit
   scripts are reached by no gate. Deleting any is Hamm's call.
 - 2026-10-20 (release plan A3): REPLICATIONS gives the CAMINOS P6 release reason; the GSDR and
-  Destexhe pilot clauses were already present. Open: the 16 + 8 scripts (release plan D1, Hamm).
+  Destexhe pilot clauses were already present. D1 (a) (Hamm 2026-10-20): three scripts archived
+  to `scripts/archive/unreferenced/` with an index; six were archived earlier; the rest stay with
+  their reasons in `scripts/archive/README.md`. Closes for 0.5.7.
 
 ### P-044
 

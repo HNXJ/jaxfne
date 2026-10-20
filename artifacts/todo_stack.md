@@ -159,7 +159,8 @@ run on WSL2 CUDA.
   unreferenced scripts were archived 2026-10-13 (table in `artifacts/README.md`). Five more have
   no reference but write tracked or frozen receipts that docs cite, so they stay:
   `hdp_k_w_ctrl_sweep.py`, `p2v_a1b_dynamic_search.py`, `p2v_a1b_prefreeze_evidence.py`,
-  `p2v_a3_hdp_boundedness.py`, `p2v_a4_claim_language.py`. Closes when: each has Hamm's call.
+  `p2v_a3_hdp_boundedness.py` (`p2v_a4_claim_language.py` archived 2026-10-20 under D1 (a)).
+  Closes when: each has Hamm's call.
 - T-19 [A] Deep audit and code critique (Muse, 2026-10-13, at aef3129e). Landed: 0df3da9d,
   68c61e92, 10d80c08 (NaN metrics, refusals, narrowed excepts), 5090af24 and c4dc0922 (D1 noise
   sqrt(dt_ref/dt)), and the `compute_fields` model check plus the last emitters.py broad except
@@ -307,11 +308,8 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
    only as a measured bottleneck.
 4. C5–C7 numerical deferrals: need a signed-zero/NaN exactness contract.
 5. UNTESTED-exact refusal tail; placeholder notebooks and artifact-gated skips; post-0.4.14 aliases.
-6. `audit_w3_broad_handlers.py` `_OVERRIDES` (duplicate keys removed 2026-10-18; its line anchors
-   still rot, and running it rewrites `artifacts/audit/baselines/w3_broad_handler_tally.json`):
-   re-key by content or retire.
-7. S27 population definition family, when CTX-01 cannot express one.
-8. Agent-native step 10: MCP or another transport.
+6. S27 population definition family, when CTX-01 cannot express one.
+7. Agent-native step 10: MCP or another transport.
 9. From 0.5.4: item 1b (S20.1 ordering, needs Hamm) and item 0 (`X[k]` frontier override).
 10. 2026-09-20 audit owner calls: `compile_step_fn **hdp_kwargs` unknown keys;
     `validate_hdp_params` non-dict pass; frozen protocols recording JAX versions (P-003).
