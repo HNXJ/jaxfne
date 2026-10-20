@@ -609,16 +609,16 @@ def make_cell_type_catalog(
     -------
     dict mapping cell_type -> CellTypePreset
     """
-    from .emitters import CELL_TYPE_SIGN
+    from .emitters import CELL_TYPE_SIGN, IZHIKEVICH_CELL_TYPE_DEFAULTS as _IZH_TYPES
 
-    # own a/b/c/d and drive values; signs from emitters.CELL_TYPE_SIGN
+    # own a/b/c/d; drive from emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS; signs from emitters.CELL_TYPE_SIGN
     catalog = {
         'E': CellTypePreset(
             name='E-Regular',
             color='#1f77b4',  # blue
             sign=CELL_TYPE_SIGN['E'],
             a=0.02, b=0.2, c=-65.0, d=8.0,
-            drive=5.0,
+            drive=_IZH_TYPES['E']['drive'],
             noise_std=0.85,
         ),
         'PV': CellTypePreset(
@@ -626,7 +626,7 @@ def make_cell_type_catalog(
             color='#d62728',  # red
             sign=CELL_TYPE_SIGN['PV'],
             a=0.1, b=0.2, c=-65.0, d=2.0,
-            drive=3.0,
+            drive=_IZH_TYPES['PV']['drive'],
             noise_std=0.75,
         ),
         'SST': CellTypePreset(
@@ -634,7 +634,7 @@ def make_cell_type_catalog(
             color='#2ca02c',  # green
             sign=CELL_TYPE_SIGN['SST'],
             a=0.08, b=0.25, c=-65.0, d=3.0,
-            drive=3.5,
+            drive=_IZH_TYPES['SST']['drive'],
             noise_std=0.70,
         ),
         'VIP': CellTypePreset(
@@ -642,7 +642,7 @@ def make_cell_type_catalog(
             color='#9467bd',  # purple
             sign=CELL_TYPE_SIGN['VIP'],
             a=0.05, b=0.26, c=-65.0, d=4.0,
-            drive=3.0,
+            drive=_IZH_TYPES['VIP']['drive'],
             noise_std=0.72,
         ),
     }

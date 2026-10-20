@@ -1725,8 +1725,8 @@ class Configuration:
         Parameters
         ----------
         baseline_drive_by_cell_type : dict[str, float], optional
-            Baseline external drive per cell type. Default:
-            {"E": 5.0, "PV": 3.0, "SST": 3.5, "VIP": 3.0}.
+            Baseline external drive per cell type. Default: the ``drive`` of
+            E, PV, SST and VIP in ``jaxfne.emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS``.
         drive_by_layer, drive_by_area : dict[str, float], optional
             Refused unless empty (no consumer).
         time_schedule : str, optional
@@ -1766,11 +1766,11 @@ class Configuration:
                 "(P-015); use stimulus_schedule(...) as paradigm for time-varying input"
             )
         if baseline_drive_by_cell_type is None:
+            from .emitters import IZHIKEVICH_CELL_TYPE_DEFAULTS
+
             baseline_drive_by_cell_type = {
-                "E": 5.0,
-                "PV": 3.0,
-                "SST": 3.5,
-                "VIP": 3.0,
+                name: IZHIKEVICH_CELL_TYPE_DEFAULTS[name]["drive"]
+                for name in ("E", "PV", "SST", "VIP")
             }
         for cell_type, value in dict(baseline_drive_by_cell_type).items():
             if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
