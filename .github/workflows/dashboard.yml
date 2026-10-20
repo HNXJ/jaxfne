@@ -13,6 +13,7 @@ on:
       - "scripts/build_dashboard_figures.py"
       - "scripts/generate_replications_page.py"
       - "docs/start/replications.md"
+      - "docs/reference/references.md"
       - ".github/workflows/dashboard.yml"
   workflow_dispatch:
 

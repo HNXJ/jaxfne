@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-20T16:46:38Z",
-    "dev_sha": "1210a0fca9ca42c3209f78af0841046e25b0e561"
+    "utc": "2026-10-20T17:11:30Z",
+    "dev_sha": "69c33bf01bf98898e06404a15df5749733ca3e9a"
   },
   "papers": [
     {
@@ -3358,6 +3358,14 @@
       "status": "not started",
       "status_note": null,
       "where": ""
+    },
+    {
+      "reference": "Jansen, B. H., & Rit, V. G. (1995). Electroencephalogram and visual evoked potential generation in a mathematical model of coupled cortical columns. *Biological Cybernetics* 73(4), 357-366.",
+      "doi": "10.1007/BF00199471",
+      "result": "Alpha-rhythm EEG and the visual evoked potential from the coupled-column neural mass",
+      "status": "queued",
+      "status_note": "P0",
+      "where": "Opens the EEG/MEG lane (Hamm 2026-10-20); core gap: a neural-mass emitter (sigmoid rate, second-order synaptic kernels)"
     }
   ]
 }
