@@ -24,6 +24,11 @@ function link(href, text, cls) {
   return a;
 }
 
+// The Paper column: the paper's value, or for a core-method check its analytic reference.
+function paperText(c) {
+  return c.paper_value || (c.reference ? String(c.reference) : "");
+}
+
 function shortSha(sha) {
   return sha ? String(sha).slice(0, 7) : "";
 }
@@ -359,14 +364,16 @@ function criteriaTable(paper) {
     var est = el("div", "Estimand: " + (c.estimand || ""));
     est.className = "small";
     claimCell.appendChild(est);
-    var pre = el("div", "Prereg: " + (c.prereg || ""));
-    pre.className = "small";
-    claimCell.appendChild(pre);
+    if (c.prereg) {
+      var pre = el("div", "Prereg: " + c.prereg);
+      pre.className = "small";
+      claimCell.appendChild(pre);
+    }
     row.appendChild(claimCell);
     var critCell = document.createElement("td");
     critCell.appendChild(el("span", c.criterion || ""));
     row.appendChild(critCell);
-    row.appendChild(el("td", c.paper_value || "—"));
+    row.appendChild(el("td", paperText(c) || "—"));
     var valCell = valueCell(c);
     row.appendChild(valCell);
     var verdictCell = document.createElement("td");
@@ -843,7 +850,7 @@ function renderValidation(view, data) {
       classInfo(p["class"]).label,
       c.id + (c.group ? " (" + c.group + ")" : ""),
       c.claim || "",
-      c.paper_value || "",
+      paperText(c),
       c.value_text === undefined || c.value_text === null ? "" : String(c.value_text),
       c.verdict || ""
     ];
@@ -898,7 +905,7 @@ function renderValidation(view, data) {
     row.appendChild(el("td", classInfo(p["class"]).label));
     row.appendChild(el("td", c.id + (c.group ? " (" + c.group + ")" : "")));
     row.appendChild(el("td", c.claim || ""));
-    row.appendChild(el("td", c.paper_value || "—"));
+    row.appendChild(el("td", paperText(c) || "—"));
     row.appendChild(valueCell(c));
     var vc = el("td");
     vc.appendChild(verdictChip(c.verdict));
