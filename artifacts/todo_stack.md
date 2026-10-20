@@ -37,6 +37,24 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 Plan and order: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md` (Hamm 2026-10-19). Packages
 A1-A9 (0.5.7) run first; rows below close as their packages land.
 
+Queue by ETA (Hamm 2026-10-20: fastest doable first; focused tool work to subagents). Estimates are
+inferred from similar packages; `[H]` waits on Hamm.
+
+| Order | Item | ETA | Who |
+|---|---|---|---|
+| 1 | A7 issue-log hygiene: P-035, P-036 to the closed archive; resolution lines on P-037 to P-042 as their packages land | 20 min | dispatcher |
+| 2 | A3 leftovers: GSDR step headers 6.x "scored", Destexhe body verdict lines marked unscored pilot | 20 min | worker |
+| 3 | T-10 newline policy: LF-only lines in `docs/reference/changelog.md` and `docs/_static/atlas/manifest.json` | 20 min | worker |
+| 4 | References page as the study list: two classes (core references; research studies with replication status), every DOI checked against Crossref, toward 50+ research studies | 2-4 h | workers (check), dispatcher (status) |
+| 5 | A5 drive defaults, A6 lint (running); A1b lane tests in the broad gate, one pytest process per lane (caminos sets x64 at import, the pcl guard aborts a shared collection) | 1-2 h each | workers |
+| 6 | Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5 | 6 h compute, detached | worker launches |
+| 7 | CAMINOS zero-delay runs scored as section 9, R = 4 against R = 2 (T-22) | 2-3 h | dispatcher (science), worker runs |
+| 8 | A9 release mechanics for 0.5.7: fragments, `release_body.py --tag v0.5.7`, rc gate, receipt | 2 h after 1-7 | dispatcher, worker gate runs |
+| 9 | 0.5.8 B4 checklist rules in `check_replications.py`; B1 estimators into `jaxfne.analysis` | 1-2 days | workers |
+| 10 | 0.5.8 B5 lane gaps (Brunel S1 option, Vogels G-SC, Potjans G-MULT to G-DDIST); B3 batching; B2 routes through `construct` | days each | workers, dispatcher review |
+| 11 | Destexhe and GSDR B8 pilots, then preregs `[H]` signature | days | dispatcher |
+| 12 | T-11 (waits on jnwb), T-16 and T-17 `[H]`, deferred list (section 5) | blocked | Hamm or trigger |
+
 ## 2a. Standing from 0.5.6 (Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
 - R2 restated (Hamm 2026-10-14): bytes -10% against the 0.5.5 tag (met: 86.8 MB
@@ -166,11 +184,14 @@ run on WSL2 CUDA.
     Izhikevich path (`emitters.py:522-523`); `bridges.py` patches `jnp.clip` process-wide;
     frozen dataclasses mutated through `object.__setattr__`; mixed `_s`/`_ms` parameters in
     the HDP controller.
+  Recorded 2026-10-20 (release plan A5), no change: the `bridges.py` clip shim is installed only
+  when jaxley needs it, reversible (`uninstall_jax_clip_compat`) and reported in the runtime
+  report; `object.__setattr__` sits in `__post_init__` normalization of frozen dataclasses, the
+  standard idiom; the `_s`/`_ms` names and the `simulate(return_state=)` arity are public API
+  (documented, A2); the HDP kernel size, the duplicated scan bodies and the construction order
+  wait for a measured need (deferred item 3). Open: drive defaults in one home (A5, running); a
+  state clamp on the plain Izhikevich path changes outputs, so it is Hamm's call.
   Closes when: each item is fixed with a test or recorded here with Hamm's call.
-- T-20 [A] Lint leftovers: the F841 suspects are clear (ruff F841 passes on all of them,
-  2026-10-17). Left: `run_delta_notebook_01.py` `cell_labels=None` TODO (the callee documents
-  `cell_labels` as unused, so wiring changes no output; whether the notebook applies DC is a
-  model question). Closes when: it is used, removed or ruled harmless.
 
 hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 - T-22 [A] Same-step interactions (PCL local inhibition, CAMINOS zero delay, gap G12) are a

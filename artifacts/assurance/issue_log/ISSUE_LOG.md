@@ -33,6 +33,9 @@ marked inferred).
 - Fixed 2026-10-18: the fall-through reports REVISE; explicit `generations`/`population_size`
   below 1 raise (`tests/test_tune_explicit_values_p036.py`, 4 tests fail on the old code).
   Plasticity label and backend downgrade are documented designs: Hamm's call (O-47).
+- Closed 2026-10-19 by Hamm's ruling of 2026-10-18: non-zero `Simulation(plasticity=)` and an
+  absent gpu/tpu backend are refused (fragments `simulation_plasticity_refused.fixed.md`,
+  `absent_backend_refused.fixed.md`). Moves to the closed archive at its next re-pin.
 
 ### P-037
 
@@ -50,6 +53,10 @@ marked inferred).
   (`pyproject` `testpaths=["tests"]`); they pass today (226 passed, 1 xfailed).
 - `scripts/harness/tests/test_harness_adversarial.py` is reached by no gate; `networkx`
   (`test_network3d_visualize.py:175`) is declared nowhere.
+- 2026-10-20 (release plan A1): optimizer pins in `test_param_handles.py` use `assert_allclose`;
+  the float64 asserts, the `__file__` paths and the `networkx` importorskip already held at
+  81b602bd. Open: lane tests in a gate need one process per lane (todo queue item 5); the
+  harness tests moved to `scripts/archive/`; skips on gitignored inputs stay (listed in A1).
 
 ### P-038
 
@@ -67,6 +74,12 @@ marked inferred).
   `return_state=True` it returns `(signals, continuation)` (`_model_simulate.py:1337-1338`).
 - `.readthedocs.yaml` builds without `fail_on_warning`, and the quick docs gate skips the strict
   build; RTD regenerates atlases only, so étude pages publish stand-ins.
+- 2026-10-20 (release plan A2): the evidence checklist path has one home (the fallback to
+  `docs/evidence/` is gone, `tests/test_evidence_checklist_path.py`); `simulate` documents its
+  `return_state=True` tuple. Already fixed at the A2 baseline: the three script pointers, the
+  `source_files` check, `build_manuscript --verify`, `generate_replications_page --check`.
+  `generate_gallery --check` names the default mode (harmless). Open: `sync_skills --check`
+  (hash-pinned harness file), the mcc3 manifest's three absent files, the RTD stand-ins (O-41).
 
 ### P-039
 
@@ -77,6 +90,9 @@ marked inferred).
   without the authors' MCDP step, while their manifests say otherwise.
 - Possible change: correct the manifests' wording (record `mcdp: false` going forward), and add
   MCDP to the core `gsdr` before any further fit (replications run on the core).
+- 2026-10-20 (release plan A3): GSDR CALIBRATION §6.3 states the 350- and 500-generation fits
+  ran without MCDP; the fit drivers already record `mcdp_applied`. Open: the authors' `"mcdp": True`
+  block in the fit drivers, and three step headers that still read "scored" (todo queue item 2).
 
 ### P-040
 
@@ -85,6 +101,8 @@ marked inferred).
   `CALIBRATION.md:3-4` scores E1-E4 against it (header "Verdict: OFF"), and its final section
   says E1 passes (:427) and scores the reserved seeds 4-8. `REPLICATIONS.md:12` says "no verdict
   yet" and "28 passed" (30 pass today).
+- 2026-10-20 (release plan A3): CALIBRATION header and steps 1-6 marked unscored pilots (ruling
+  2026-10-18), REPLICATIONS row agrees. Open: three body verdict lines (todo queue item 2).
 
 ### P-041
 
@@ -98,6 +116,9 @@ marked inferred).
   with no prereg, docs page or REPLICATIONS row.
 - PCL v5 T4 PASS rests on a criterion changed after the v4 numbers (`prereg/P3_fig3_v5.md:7`,
   `P3_fig3_result.md:23`); `REPLICATIONS.md:8` gives no qualifier.
+- 2026-10-20 (release plan A3): `docs/etudes/pcl.md` opener follows its own gate rows; the
+  REPLICATIONS T4 qualifier was already present. Open: the local STDP/LIF in `pcl_column.py` and
+  `pcl_fig2.py` and the `pcl_h` rules go to the core with release plan B2.
 
 ### P-042
 
@@ -109,6 +130,8 @@ marked inferred).
 - 16 scripts are referenced by nothing (no gate, workflow, doc, test or script; several cited
   only in receipts, e.g. `benchmark_054_scaling.py`, `run_protocol_h_h4_matrix.py`); 8 audit
   scripts are reached by no gate. Deleting any is Hamm's call.
+- 2026-10-20 (release plan A3): REPLICATIONS gives the CAMINOS P6 release reason; the GSDR and
+  Destexhe pilot clauses were already present. Open: the 16 + 8 scripts (release plan D1, Hamm).
 
 ### P-044
 
