@@ -682,7 +682,7 @@ target_bounds_um, merge=1)` returns the cell of one population (`L23E L23I L4E L
 a column with the given layer boundaries (pia, L1|L2/3, L2/3|L4, L4|L5, L5|L6, white matter, in µm).
 Depth is mapped piecewise-linearly from Hagen's column, so the soma sits at its layer's midpoint and a
 tuft that reaches L1 there reaches L1 in the target. The cell keeps the membrane area per depth and
-the axial-equivalent diameter, not the branching.
+the axial-equivalent diameter; the branching is dropped.
 
 ```python
 from jaxfne.fields.hagen2016_cells import hagen2016_cell

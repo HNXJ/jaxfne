@@ -1,7 +1,7 @@
 """Hybrid kernel LFP: the laminar LFP of passive multicompartment cells driven by point-network spikes.
 
 The network runs on point neurons; the LFP is computed separately from multicompartment cells
-(the hybrid scheme of Hagen et al. 2016, Cereb. Cortex 26:4461). Each connection class (presynaptic
+(the hybrid scheme of Hagen et al. 2016, Cereb. Cortex 26:4461, doi:10.1093/cercor/bhw237). Each connection class (presynaptic
 population onto a postsynaptic cell type, synapses on the compartments within a depth range) has a
 kernel: the extracellular potential at each contact after one presynaptic spike. The LFP is the sum
 over classes of the presynaptic spike count convolved with that class's kernel.
@@ -269,7 +269,10 @@ def synapse_kernel(
     min_distance_um: float,
 ) -> np.ndarray:
     """LFP kernel ``[n_contacts, n_steps]`` (mV) of one synapse of 1 nA peak current: the line-source
-    potential of the cell's transmembrane currents after one presynaptic spike."""
+    potential of the cell's transmembrane currents after one presynaptic spike.
+
+    Hybrid scheme of Hagen et al. 2016, doi:10.1093/cercor/bhw237.
+    """
     _, i_m = passive_membrane_currents(cell, syn_weights, tau_syn_ms=tau_syn_ms, dt_ms=dt_ms, n_steps=n_steps,
                                        cm_uF_cm2=cm_uF_cm2, rm_ohm_cm2=rm_ohm_cm2, ra_ohm_cm=ra_ohm_cm)
     mat = line_source_matrix(cell, contact_depths_um, radii_um=radii_um, sigma_S_m=sigma_S_m,
@@ -282,7 +285,10 @@ def kernel_lfp(spike_counts: jax.Array, kernels: jax.Array) -> jax.Array:
     """LFP ``[T, n_contacts]`` from presynaptic spike counts ``[T, n_classes]`` (spikes per step of each
     connection class, already multiplied by its synapse count and signed peak current) and kernels
     ``[n_classes, n_contacts, K]``: the causal convolution summed over classes, truncated to T,
-    computed by FFT over T + K - 1 points."""
+    computed by FFT over T + K - 1 points.
+
+    Hybrid scheme of Hagen et al. 2016, doi:10.1093/cercor/bhw237.
+    """
     t, k = spike_counts.shape[0], kernels.shape[-1]
     n = t + k - 1
     s = jnp.fft.rfft(spike_counts, n=n, axis=0)                 # [F, C]

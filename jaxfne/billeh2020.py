@@ -1219,7 +1219,10 @@ def peak_probability(pre: str, post: str) -> float:
 
 
 def connection_probability(pre: str, post: str, r_um) -> np.ndarray:
-    """p(r) = min(1, A_new exp(-r^2 / sigma^2)) at lateral distances ``r_um`` (um, finite, >= 0)."""
+    """p(r) = min(1, A_new exp(-r^2 / sigma^2)) at lateral distances ``r_um`` (um, finite, >= 0).
+
+    Billeh et al. 2020, doi:10.1016/j.neuron.2020.01.040.
+    """
     key = _pair(pre, post)
     r = np.asarray(r_um, np.float64)
     if not np.all(np.isfinite(r)) or np.any(r < 0):
