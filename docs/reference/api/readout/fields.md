@@ -627,6 +627,69 @@ length = jnp.where(is_e, -pos[:, 2], 0.0)          # apical dendrites reach z = 
 lfp = line_source_lfp(signals.sources, pos, jnp.linspace(0, 1, 16), length, min_distance=0.02)
 ```
 
+### Hybrid kernel LFP
+
+`jaxfne.fields.kernel_lfp` computes the laminar LFP of a point-neuron network from passive
+multicompartment cells (the hybrid scheme of Hagen et al. 2016). A cell is a vertical cable,
+`cable_cell(sections)`, with compartments at depths $z$ (µm below the pia). A synapse injects
+$I(t) = e^{-t/\tau_s}$ nA, split over compartments by membrane area within a depth range
+(`synapse_weights_in_depth_range`), and the cable
+
+$$
+C_i \dot V_i = -g_{L,i} V_i + \sum_j g_{ij}(V_j - V_i) + w_i I(t)
+$$
+
+is solved exactly on the time grid (`passive_membrane_currents`). The transmembrane current of each
+compartment is $i_{m,i} = \sum_j g_{ij}(V_j - V_i)$; it sums to zero over the cell. Spread along its
+segment, it gives the potential at contact depth $z_c$ (`line_source_matrix`)
+
+$$
+\phi_c = \frac{1}{4\pi\sigma}\sum_k \frac{i_{m,k}}{L_k}
+\left[\operatorname{asinh}\frac{z_{k,1} - z_c}{\rho} - \operatorname{asinh}\frac{z_{k,0} - z_c}{\rho}\right],
+$$
+
+averaged with equal weight over the lateral distances $\rho$ of the cells (for cells uniform in a
+disk of radius $R$, the equal-area radii $\rho_k = R\sqrt{(k + 1/2)/n}$). `synapse_kernel` returns $H(z_c, t)$ in mV
+for one synapse. With $\nu_X(t)$ the spike count of connection class $X$ scaled by its synapse
+count and signed peak current, `kernel_lfp` returns $\phi(z_c, t) = \sum_X (\nu_X * H_X)(z_c, t)$.
+Units are µm, ms, nA, µF/cm², Ω·cm², Ω·cm and S/m; every biophysical value is an argument.
+
+```python
+import numpy as np
+from jaxfne.fields import cable_cell, kernel_lfp, synapse_kernel, synapse_weights_in_depth_range
+
+cell = cable_cell([dict(z0=900, z1=880, diam=20, n=1, parent=-1),     # soma
+                   dict(z0=880, z1=50, diam=3, n=16, parent=0)])      # apical dendrite to L1
+w = synapse_weights_in_depth_range(cell, 50, 300)                     # synapses in L1-L2/3
+h = synapse_kernel(cell, w, np.linspace(0, 1000, 16), tau_syn_ms=2.0, dt_ms=0.1, n_steps=300,
+                   cm_uF_cm2=1.0, rm_ohm_cm2=20000.0, ra_ohm_cm=150.0,
+                   radii_um=300 * np.sqrt((np.arange(30) + 0.5) / 30), sigma_S_m=0.3, min_distance_um=1.0)
+counts = np.random.default_rng(0).poisson(2.0, size=(2000, 1)) * 0.5   # [T, 1] spikes x synapses x nA
+lfp = kernel_lfp(counts.astype(np.float32), h[None].astype(np.float32))   # [T, 16] mV
+```
+
+The passive and geometric values in the example are illustrative.
+
+A compartment's `area_factor` multiplies its membrane area while its diameter alone sets the axial
+resistance, so one compartment can stand for every branch at its depth. `profile_cell(soma_z_um,
+soma_diam_um, soma_length_um, branches)` builds such a cell from depth profiles: per bin, the membrane
+area and an axial-equivalent diameter, for example Rall's $(\sum d^{3/2})^{2/3}$ over the branches
+crossing the bin.
+
+`jaxfne.fields.hagen2016_cells` holds these profiles for the morphologies of the Hagen et al. (2016)
+hybrid-LFP model, reduced in 10 µm bins from the soma, and `hagen2016_cell(population,
+target_bounds_um, merge=1)` returns the cell of one population (`L23E L23I L4E L4I L5E L5I L6E L6I`) in
+a column with the given layer boundaries (pia, L1|L2/3, L2/3|L4, L4|L5, L5|L6, white matter, in µm).
+Depth is mapped piecewise-linearly from Hagen's column, so the soma sits at its layer's midpoint and a
+tuft that reaches L1 there reaches L1 in the target. The cell keeps the membrane area per depth and
+the axial-equivalent diameter, not the branching.
+
+```python
+from jaxfne.fields.hagen2016_cells import hagen2016_cell
+
+cell = hagen2016_cell("L5E", [0, 130, 1200, 1470, 1700, 2000], merge=5)   # 50 µm compartments
+```
+
 ## Boundary Conditions & Constraints
 
 ### Mean-Zero Constraint
