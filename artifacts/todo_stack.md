@@ -8,7 +8,12 @@ first, amend in place.
 
 ## 1. Decisions waiting on Hamm (they unblock items below)
 
-Open: the manuscript tree and other archive moves (T-17). Earlier rulings sit in the rows they
+Open, recommendation first: release plan D1 (archive the 16 unreferenced and 8 ungated audit
+scripts with an index), D2 (Destexhe and GSDR preregs, after their pilots), D3 (approve the
+plan's order); a state clamp on the plain Izhikevich path (T-19, changes outputs); the
+authors' `"mcdp": True` block in the GSDR fit drivers; extending the same-layer zeroing rule
+to I/Inl/Ing (T-18 remainder, a model change); the manuscript tree and other archive moves (T-17).
+Earlier rulings sit in the rows they
 govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATIONS.md` (Izhikevich
 2003 and CAMINOS P6 move to 0.5.7); finished rows are in git history.
 
@@ -32,23 +37,29 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   local inhibition off (`F:\warehouse\pcl\diag_runs\`). Then P6 (B1). Closes when: a signed prereg reproduces Fig. 3, or Hamm
   closes it, and the P6 attempt is recorded.
 
-## 2. Releases 0.5.7-0.5.10
+## 2. Next release: 0.5.7 (truthful core)
 
-Plan and order: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md` (Hamm 2026-10-19). Packages
-A1-A9 (0.5.7) run first; rows below close as their packages land.
-
-Queue by ETA (Hamm 2026-10-20: fastest doable first; focused tool work to subagents). Estimates are
-inferred from similar packages; `[H]` waits on Hamm.
+Plan: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md` (Hamm 2026-10-19); exit gate in its
+section 6. Packages A1-A7 are on dev or in the push now gating; what is left, fastest first:
 
 | Order | Item | ETA | Who |
 |---|---|---|---|
-| 5 | A1b lane tests in the broad gate, one pytest process per lane (caminos sets x64 at import, the pcl guard aborts a shared collection) | 1-2 h each | workers |
-| 6 | Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5 | 6 h compute, detached | worker launches |
-| 8 | A9 release mechanics for 0.5.7: fragments, `release_body.py --tag v0.5.7`, rc gate, receipt | 2 h after 1-7 | dispatcher, worker gate runs |
-| 9 | 0.5.8 B4 checklist rules in `check_replications.py`; B1 estimators into `jaxfne.analysis` | 1-2 days | workers |
-| 10 | 0.5.8 B5 lane gaps (Brunel S1 option, Vogels G-SC, Potjans G-MULT to G-DDIST); B3 batching; B2 routes through `construct` | days each | workers, dispatcher review |
-| 11 | Destexhe and GSDR B8 pilots, then preregs `[H]` signature | days | dispatcher |
-| 12 | T-11 (waits on jnwb), T-16 and T-17 `[H]`, deferred list (section 5) | blocked | Hamm or trigger |
+| 1 | Push the 0.5.7 lane commits after the broad gate (0 failed), CI green on the exact SHA | 1 h, gate-bound | dispatcher |
+| 2 | A1b lane tests in the broad gate, one pytest process per lane (worker running; known-failing lanes listed with reasons) | 1-2 h | worker, dispatcher review |
+| 3 | P-044 `population()` drops neuron-share keys that are not layer names: in scope (truthful core); fix with a failing-first test, or rule it to 0.5.8 | 1-2 h | worker or the other session if it holds it |
+| 4 | Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5, unscored, detached on the CPU; RESULT_P3 sensitivity section | about 5 h compute | worker launches, dispatcher reads |
+| 5 | Exit-gate sweep: each P-037 to P-042 with a resolution line or Hamm's ruling; `check_replications.py --check` and `build_dashboard_data.py --check` pass | 30 min | worker |
+| 6 | A9: assemble the fragments, `release_body.py --tag v0.5.7` claim check (closes T-10), rc gate, second review, receipt under `artifacts/release/` | 2-3 h | dispatcher, worker gate runs |
+| 7 | Tag, main, PyPI and RTD `stable` | after 6 | `[H]` go |
+
+Moved to 0.5.8 with reason (plan section 1: missed work never blocks its release): Destexhe and
+GSDR B8 pilots and their preregs (A8 part; days of runs, signature `[H]`); Brunel S1 (needs the
+fixed-in-degree option, B5).
+
+Then 0.5.8 (core-compliant replications), in order: B4 checklist rules in `check_replications.py`;
+B1 estimators into `jaxfne.analysis`; B5 lane gaps (Brunel S1 option, Vogels G-SC, Potjans G-MULT
+to G-DDIST); B3 batching; B2 routes through `construct`; Destexhe and GSDR pilots, then preregs.
+Blocked: T-11 (jnwb), T-16 and T-17 `[H]`, deferred list (section 5).
 
 ## 2a. Standing from 0.5.6 (Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
@@ -74,17 +85,6 @@ inferred from similar packages; `[H]` waits on Hamm.
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
   push dev. Standing item. Closes when: `python scripts/build_dashboard_data.py --check` passes
   on each push.
-- T-31 [A] Audit 2026-10-17 (two agents, union verified by a third Muse pass). Landed: harness
-  integrity (D1), replication paths (D9), JUnit per SHA, silent fallbacks (a), the clean-
-  checkout skip (b), `gate_etude_no_resim.py` in the gates (c), a real publication gate (d), the
-  `agent.py` dtype (f), six narrowed handlers in `canonical_compact_summary`; `canonical_compact_summary`
-  has no broad handler left (g); ruff defect-class rules gate scripts/tests/examples (e, part,
-  2026-10-18); `tests/test_v033_two_neuron_ei.py` produces its own outputs in a temp dir and no
-  longer skips in a fresh clone (i); F401 and F841 at 0 in scripts/tests/examples and gated (e);
-  four tests that never asserted their claim now do, each failing on a mutant, except the
-  uniform-gain null, which raised the score in 1 of 20 draws and is renamed to what it checks (j).
-  Open: (e) E741 57, E402 47 (style). Closes when: each is fixed with a failing-first test or
-  recorded harmless here.
 
 ## 3. 0.5.6–0.5.10 programme
 
@@ -160,12 +160,6 @@ run on WSL2 CUDA.
   no reference but write tracked or frozen receipts that docs cite, so they stay:
   `hdp_k_w_ctrl_sweep.py`, `p2v_a1b_dynamic_search.py`, `p2v_a1b_prefreeze_evidence.py`,
   `p2v_a3_hdp_boundedness.py`, `p2v_a4_claim_language.py`. Closes when: each has Hamm's call.
-- T-18 [A] One sign table landed 2026-10-18 (`emitters.CELL_TYPE_SIGN`; Izhikevich and LIF derive
-  from it; unknown LIF labels refused; same-layer zeroing a named stated-scope constant). Left:
-  `presets.py:12-64` and `tutorial_utils.py:612-644` are separate parameter catalogs that restate
-  signs (and differ from the canonical a/b/c/d: SST a, VIP b); `SOM` lives only in the AdEx table.
-  Extending the same-layer rule to I/Inl/Ing is a model change for Hamm. Closes when: each catalog
-  reads the table or carries a stated scope.
 - T-19 [A] Deep audit and code critique (Muse, 2026-10-13, at aef3129e). Landed: 0df3da9d,
   68c61e92, 10d80c08 (NaN metrics, refusals, narrowed excepts), 5090af24 and c4dc0922 (D1 noise
   sqrt(dt_ref/dt)), and the `compute_fields` model check plus the last emitters.py broad except
@@ -184,8 +178,8 @@ run on WSL2 CUDA.
   report; `object.__setattr__` sits in `__post_init__` normalization of frozen dataclasses, the
   standard idiom; the `_s`/`_ms` names and the `simulate(return_state=)` arity are public API
   (documented, A2); the HDP kernel size, the duplicated scan bodies and the construction order
-  wait for a measured need (deferred item 3). Open: drive defaults in one home (A5, running); a
-  state clamp on the plain Izhikevich path changes outputs, so it is Hamm's call.
+  wait for a measured need (deferred item 3). Drive defaults read one table (A5, 2026-10-20).
+  Open: a state clamp on the plain Izhikevich path changes outputs, so it is Hamm's call (section 1).
   Closes when: each item is fixed with a test or recorded here with Hamm's call.
 
 hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):

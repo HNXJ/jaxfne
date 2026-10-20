@@ -8,7 +8,10 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 - 2026-10-20: Brunel 2000 Fig. 8 reproduced (conditional) under signed P3 v4 (seeds 4-8, dt 0.1 ms,
   CPU float32; float64 at C agrees): `papers/brunel2000/RESULT_P3.md`, REPLICATIONS, dashboard.
-  0.5.7 lanes A2-A4 integrated (P-038 path fallback, P-039-P-042 records, T-18 one sign table).
+  0.5.7 lanes A1-A7 integrated (A1 optimizer pins, A2 one checklist path, A3 records as run, A4 one
+  sign table, A5 one drive-default table, A6 ruff E741/E402 gated, A7 P-035/P-036 archived);
+  Brunel P5 ledger; references page split into core references and 58 research studies. Left for
+  0.5.7: A1b lane tests, P-044, Brunel S2/S3, A9 (todo section 2); Destexhe/GSDR pilots to 0.5.8.
   Batuev and Sukhov 2026 (Dynamics 6(4):42) queued at P0 (Hamm 2026-10-20).
 - 2026-10-19 evening: release plan 0.5.7-0.5.10 (`etudes/meta/release_plan_0.5.7-0.5.10.md`):
   0.5.7 truthful core, 0.5.8 core-compliant replications, 0.5.9 scale, 0.5.10 fields; D1-D3 for Hamm.
