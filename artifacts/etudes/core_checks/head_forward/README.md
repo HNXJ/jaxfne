@@ -17,6 +17,8 @@ agreements of a core method, not a paper replication: there is no paper value be
 | eeg_mne | MNE single-shell forward (homogeneous) | 1e-4·scale + 1e-3·scale |
 | eeg_scaling | conductivity reciprocity (0.33 against 0.66 S/m) | 1e-5·scale |
 | eeg_reference | average-reference null | column means below 1e-6·scale |
+| line_lfp_quadrature | scipy quadrature of the line-source integral | 1e-12·scale + 1e-9·scale |
+| line_lfp_far_field | point-dipole far field | 1e-3·scale |
 
 Rerun:
 

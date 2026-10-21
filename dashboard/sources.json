@@ -542,7 +542,7 @@
       "release": "0.5.7",
       "tier": "T-jaxfne",
       "lane": {"branch": "dev", "sha": "eae6f929099e6a2dc14fee34e5e2e143b0fad981"},
-      "summary": "Seven analytic agreements of the spherical-head forward code, scored from the inputs of tests/test_head_forward.py: radial and full-vector MEG against the primary-current field and scalar-potential quadrature, radial-dipole silence, EEG against the Neumann series and the MNE single shell, conductivity reciprocity and the average-reference null.",
+      "summary": "Nine analytic agreements of the spherical-head forward code, scored from the inputs of tests/test_head_forward.py: radial and full-vector MEG against the primary-current field and scalar-potential quadrature, radial-dipole silence, EEG against the Neumann series and the MNE single shell, conductivity reciprocity, the average-reference null, line-source LFP against scipy quadrature of the line-source integral and its point-dipole far field.",
       "preregs": [],
       "files": {
         "main": "artifacts/etudes/core_checks/head_forward/score.json"
@@ -575,7 +575,15 @@
         {"id": "eeg-reference", "entry": "eeg_reference", "claim": "average referencing nulls the column means", "estimand": "worst-case |column mean| over 20 electrodes and 3 dipoles", "criterion": "means below 1e-6·scale",
          "value": {"file": "main", "key": "checks.eeg_reference.error"}, "unit": "V/(A·m)", "value_label": "max |mean|",
          "verdict": {"file": "main", "key": "checks.eeg_reference.pass"},
-         "reference": {"file": "main", "key": "checks.eeg_reference.reference"}}
+         "reference": {"file": "main", "key": "checks.eeg_reference.reference"}},
+        {"id": "line-lfp-quadrature", "entry": "line_lfp_quadrature", "claim": "line-source LFP equals scipy quadrature of the line-source integral", "estimand": "worst-case |deviation| over 9 contacts, 6 neurons and 4 time points", "criterion": "error ≤ 1e-12·scale + 1e-9·scale",
+         "value": {"file": "main", "key": "checks.line_lfp_quadrature.error"}, "unit": "", "value_label": "max |deviation|",
+         "verdict": {"file": "main", "key": "checks.line_lfp_quadrature.pass"},
+         "reference": {"file": "main", "key": "checks.line_lfp_quadrature.reference"}},
+        {"id": "line-lfp-far-field", "entry": "line_lfp_far_field", "claim": "far-field line-source LFP equals the point-dipole field", "estimand": "worst-case |deviation| at two contacts 10 length units above and below the soma (units follow the inputs)", "criterion": "error ≤ 1e-3·scale",
+         "value": {"file": "main", "key": "checks.line_lfp_far_field.error"}, "unit": "", "value_label": "max |deviation|",
+         "verdict": {"file": "main", "key": "checks.line_lfp_far_field.pass"},
+         "reference": {"file": "main", "key": "checks.line_lfp_far_field.reference"}}
       ],
       "sensitivity": [],
       "charts": [],

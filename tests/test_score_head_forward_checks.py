@@ -16,6 +16,8 @@ CHECK_IDS = (
     "eeg_mne",
     "eeg_scaling",
     "eeg_reference",
+    "line_lfp_quadrature",
+    "line_lfp_far_field",
 )
 
 
@@ -30,7 +32,7 @@ def test_scorer_script_exists_with_repo_root_guard():
     )
 
 
-def test_score_file_holds_seven_checks_in_score_form():
+def test_score_file_holds_nine_checks_in_score_form():
     doc = load_score()
     assert set(doc["checks"]) == set(CHECK_IDS), f"checks are {sorted(doc['checks'])}"
     assert isinstance(doc["pass"], bool), "top-level pass is a boolean"
@@ -70,6 +72,17 @@ def test_recomputed_pass_is_error_within_tolerance():
     for cid, row in live.items():
         assert row["pass"] == (row["error"] <= row["tolerance"]), cid
         assert row["tolerance"] > 0, cid
+
+
+def test_tightened_tolerance_flips_a_pass_to_false(monkeypatch):
+    from scripts import score_head_forward_checks as scorer
+
+    row = scorer.check_meg_radial_silence()
+    assert row["error"] > 0, "fixture must carry a non-zero residual"
+    assert row["pass"], "the pinned check must pass before tightening"
+    monkeypatch.setitem(scorer.TOLERANCES, "meg_radial_silence",
+                        tuple(v * 1e-6 for v in scorer.TOLERANCES["meg_radial_silence"]))
+    assert scorer.check_meg_radial_silence()["pass"] is False
 
 
 def _doc(**rows):

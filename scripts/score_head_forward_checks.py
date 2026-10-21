@@ -12,6 +12,8 @@ tolerances, and records the worst-case absolute deviation beside its tolerance:
 - eeg_mne: EEG leadfield against the MNE single-shell forward (skipped when mne is absent)
 - eeg_scaling: conductivity reciprocity (0.33 against 0.66 S/m)
 - eeg_reference: average-reference null (column means against zero)
+- line_lfp_quadrature: line-source LFP against scipy quadrature of the line-source integral
+- line_lfp_far_field: far-field line-source LFP against the point-dipole field
 
 Writes artifacts/etudes/core_checks/head_forward/score.json (one
 {error, tolerance, pass, reference} row per check) and README.md beside it:
@@ -26,15 +28,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import argparse
+import contextlib
 import json
 import math
 
+import jax
 import numpy as np
 from scipy.integrate import quad
 from scipy.special import eval_legendre
 
 from jaxfne.fields.head import (
     eeg_sphere_leadfield,
+    line_source_lfp,
     meg_sphere_leadfield,
     sphere_sensor_cap,
 )
@@ -51,6 +56,32 @@ RTOL = 1e-9
 NOISE_FRACTION = 0.1  # errors below this fraction of the tolerance are compared as rounding residuals
 
 MU0 = 4e-7 * np.pi  # literal, independent of the implementation
+
+
+@contextlib.contextmanager
+def _x64():
+    """x64 on for one block, restored after (jax.enable_x64 is missing from older jax in the declared range)."""
+    orig = jax.config.read("jax_enable_x64")
+    jax.config.update("jax_enable_x64", True)
+    try:
+        yield
+    finally:
+        jax.config.update("jax_enable_x64", orig)
+
+# One tolerance entry per check, read by every check_* below: pairs hold the
+# (atol_factor, rtol_factor) of a `tolerance = atol_factor*scale + rtol_factor*scale`
+# row, singletons the single factor or threshold of that row's tolerance.
+TOLERANCES = {
+    "meg_radial": (1e-6, 2e-4),
+    "meg_full_vector": (1e-4, 1e-3),
+    "meg_radial_silence": (1e-6,),
+    "eeg_neumann": (1e-4, 1e-3),
+    "eeg_mne": (1e-4, 1e-3),
+    "eeg_scaling": (1e-5,),
+    "eeg_reference": (1e-6,),
+    "line_lfp_quadrature": (1e-12, 1e-9),
+    "line_lfp_far_field": (1e-3,),
+}
 
 
 def _dipoles(m=7, radius=0.07, seed=3):
@@ -81,7 +112,8 @@ def check_meg_radial():
     assert np.abs(ref).max() > 0, "fixture must produce a field"
     scale = float(np.abs(ref).max())
     error = float(np.abs(lead - ref).max())
-    tolerance = 1e-6 * scale + 2e-4 * scale
+    atol_factor, rtol_factor = TOLERANCES["meg_radial"]
+    tolerance = atol_factor * scale + rtol_factor * scale
     return _row(error, tolerance, "primary-current Biot-Savart field", error <= tolerance)
 
 
@@ -118,7 +150,8 @@ def check_meg_full_vector():
     assert radial_share.min() < 0.5, "fixture must include non-radial sensor axes"
     scale = float(np.abs(ref).max())
     error = float(np.abs(lead - ref).max())
-    tolerance = 1e-4 * scale + 1e-3 * scale
+    atol_factor, rtol_factor = TOLERANCES["meg_full_vector"]
+    tolerance = atol_factor * scale + rtol_factor * scale
     return _row(error, tolerance, "scalar-potential quadrature (-mu0 grad U)", error <= tolerance)
 
 
@@ -133,7 +166,8 @@ def check_meg_radial_silence():
     loud = float(np.abs(np.asarray(meg_sphere_leadfield(sens, nrm, pos, tang))).max())
     assert loud > 1e-9, "fixture must produce a field"
     ratio = silent / loud
-    return _row(ratio, 1e-6, "radial-to-tangential amplitude ratio", ratio < 1e-6)
+    (threshold,) = TOLERANCES["meg_radial_silence"]
+    return _row(ratio, threshold, "radial-to-tangential amplitude ratio", ratio < threshold)
 
 
 def _eeg_series(e, r0, q, sigma, n_max=400):
@@ -166,7 +200,8 @@ def check_eeg_neumann():
     assert np.abs(ref).max() > 0, "fixture must produce a field"
     scale = float(np.abs(ref).max())
     error = float(np.abs(lead - ref).max())
-    tolerance = 1e-4 * scale + 1e-3 * scale
+    atol_factor, rtol_factor = TOLERANCES["eeg_neumann"]
+    tolerance = atol_factor * scale + rtol_factor * scale
     return _row(error, tolerance, "Neumann-series potential (400 terms)", error <= tolerance)
 
 
@@ -195,7 +230,8 @@ def check_eeg_mne():
     ours = np.asarray(eeg_sphere_leadfield(e, pos, ori, conductivity_s_per_m=0.33), float)
     scale = float(np.abs(ref).max())
     error = float(np.abs(ours - ref).max())
-    tolerance = 1e-4 * scale + 1e-3 * scale
+    atol_factor, rtol_factor = TOLERANCES["eeg_mne"]
+    tolerance = atol_factor * scale + rtol_factor * scale
     return _row(error, tolerance, "MNE single-shell forward (homogeneous)", error <= tolerance)
 
 
@@ -207,7 +243,8 @@ def check_eeg_scaling():
     b = np.asarray(eeg_sphere_leadfield(elec, pos, ori, conductivity_s_per_m=0.66), float)
     scale = float(np.abs(a).max())
     error = float(np.abs(a - 2 * b).max())
-    tolerance = 1e-5 * scale
+    (factor,) = TOLERANCES["eeg_scaling"]
+    tolerance = factor * scale
     return _row(error, tolerance, "conductivity reciprocity (0.33 against 0.66 S/m)",
                 error <= tolerance)
 
@@ -222,8 +259,68 @@ def check_eeg_reference():
     assert np.abs(raw.mean(0)).max() > 1e-3 * np.abs(raw).max(), "fixture must leave a mean to remove"
     scale = float(np.abs(a).max())
     error = float(np.abs(a.mean(0)).max())
-    tolerance = 1e-6 * scale
+    (factor,) = TOLERANCES["eeg_reference"]
+    tolerance = factor * scale
     return _row(error, tolerance, "average-reference null", error <= tolerance)
+
+
+def _line_lfp_quadrature(q, pos, contacts, length, exy, sigma, rmin):
+    """Soma point source +I and the return current -I spread evenly along the dendrite, by numerical quadrature."""
+    out = np.zeros((q.shape[0], len(contacts)))
+    for i in range(pos.shape[0]):
+        rho = max(np.hypot(pos[i, 0] - exy[0], pos[i, 1] - exy[1]), rmin)
+        for c, zc in enumerate(contacts):
+            soma = 1.0 / np.hypot(rho, pos[i, 2] - zc)
+            if length[i] == 0:
+                k = 0.0
+            else:
+                seg = quad(lambda s: 1.0 / np.hypot(rho, pos[i, 2] + np.sign(length[i]) * s - zc), 0, abs(length[i]),
+                           epsabs=1e-14, epsrel=1e-12)[0]
+                k = soma - seg / abs(length[i])
+            out[:, c] += q[:, i] * k / (4 * np.pi * sigma)
+    return out
+
+
+def check_line_lfp_quadrature():
+    """Line-source LFP against scipy quadrature of the line-source integral (rtol 1e-9)."""
+    rng = np.random.default_rng(5)
+    pos = np.column_stack([rng.uniform(-0.2, 0.2, 6), rng.uniform(-0.2, 0.2, 6), rng.uniform(0, 1, 6)])
+    pos[0, :2] = [0.03, -0.01]  # on the electrode axis: the floor sets rho
+    length = np.array([-0.3, 0.25, -0.1, 0.0, 0.4, -0.05])
+    q = rng.normal(size=(4, 6))
+    contacts = np.linspace(0, 1, 9)
+    # The pinned test is marked x64: float64 inputs need x64 on, set locally so
+    # the suite's per-test x64 reset cannot change the other checks' values.
+    with _x64():
+        got = np.asarray(line_source_lfp(q, pos, contacts, length, electrode_xy=(0.03, -0.01), conductivity=0.7,
+                                         min_distance=0.02), float)
+    want = _line_lfp_quadrature(q, pos, contacts, length, (0.03, -0.01), 0.7, 0.02)
+    assert np.abs(want).max() > 0, "fixture must give a field"
+    scale = float(np.abs(want).max())
+    error = float(np.abs(got - want).max())
+    atol_factor, rtol_factor = TOLERANCES["line_lfp_quadrature"]
+    tolerance = atol_factor * scale + rtol_factor * scale
+    return _row(error, tolerance, "scipy quadrature of the line-source integral", error <= tolerance)
+
+
+def check_line_lfp_far_field():
+    """Far-field line-source LFP against the point-dipole field (rtol 1e-3)."""
+    # +I at the soma, -I centred L/2 along the dendrite: p = -I L/2 along the axis.
+    length, d = 0.001, 10.0
+    pos = np.array([[0.0, 0.0, 0.5]])
+    q = np.array([[1.0]])
+    phis, wants = [], []
+    # The pinned test is marked x64: float64 inputs need x64 on (see above).
+    with _x64():
+        for zc in (0.5 + d, 0.5 - d):
+            phis.append(float(np.asarray(line_source_lfp(q, pos, [zc], [length], min_distance=1e-9))[0, 0]))
+            centre = 0.5 + length / 4
+            wants.append((-length / 2) * np.sign(zc - centre) / (4 * np.pi * (zc - centre) ** 2))
+    scale = float(np.abs(wants).max())
+    error = float(np.abs(np.asarray(phis) - np.asarray(wants)).max())
+    (rtol,) = TOLERANCES["line_lfp_far_field"]
+    tolerance = rtol * scale
+    return _row(error, tolerance, "point-dipole far field", error <= tolerance)
 
 
 CHECKS = (
@@ -234,6 +331,8 @@ CHECKS = (
     ("eeg_mne", check_eeg_mne),
     ("eeg_scaling", check_eeg_scaling),
     ("eeg_reference", check_eeg_reference),
+    ("line_lfp_quadrature", check_line_lfp_quadrature),
+    ("line_lfp_far_field", check_line_lfp_far_field),
 )
 
 
@@ -298,6 +397,8 @@ agreements of a core method, not a paper replication: there is no paper value be
 | eeg_mne | MNE single-shell forward (homogeneous) | 1e-4·scale + 1e-3·scale |
 | eeg_scaling | conductivity reciprocity (0.33 against 0.66 S/m) | 1e-5·scale |
 | eeg_reference | average-reference null | column means below 1e-6·scale |
+| line_lfp_quadrature | scipy quadrature of the line-source integral | 1e-12·scale + 1e-9·scale |
+| line_lfp_far_field | point-dipole far field | 1e-3·scale |
 
 Rerun:
 

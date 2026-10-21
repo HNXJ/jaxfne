@@ -41,6 +41,18 @@
       "tolerance": 0.00019660307312011717,
       "pass": true,
       "reference": "average-reference null"
+    },
+    "line_lfp_quadrature": {
+      "error": 8.881784197001252e-16,
+      "tolerance": 1.704749320871139e-09,
+      "pass": true,
+      "reference": "scipy quadrature of the line-source integral"
+    },
+    "line_lfp_far_field": {
+      "error": 6.630211508907213e-12,
+      "tolerance": 3.979072528436885e-10,
+      "pass": true,
+      "reference": "point-dipole far field"
     }
   },
   "pass": true,
