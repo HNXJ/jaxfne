@@ -26,9 +26,13 @@ model2 = jtfne.restore_state(model, state)
 <!-- jx-figure -->
 ## Figure
 
-![Hidden state H over time](../../assets/visuals/hdp_h_dynamics.png)
+=== "Still"
 
-[Interactive version](https://hnxj.github.io/jaxfne/figures/hdp_10/h_dynamics.html)
+    ![Hidden state H over time](../../assets/visuals/hdp_h_dynamics.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/hdp_10/h_dynamics.html" loading="lazy" title="Hidden state H over time"></iframe>
 
 Hidden state H over time (population mean ± std) in a small 10-neuron HDP run with full recording. [Open full page](https://hnxj.github.io/jaxfne/figures/hdp_10/h_dynamics.html).
 

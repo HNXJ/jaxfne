@@ -62,9 +62,13 @@ carries; see the [API reference](../reference/api/model/neuronal_tensor.md) and 
 The same language builds the 20-area hierarchy used by Atlas AT-10-N20: areas in
 hierarchy order, one chord per connected pair, chord width by edge count.
 
-![G_20 area graph](../assets/visuals/area_graph_n20.png)
+=== "Still"
 
-[Interactive version](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.html)
+    ![G_20 area graph](../assets/visuals/area_graph_n20.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.html" loading="lazy" title="G_20 area graph"></iframe>
 
 [Open full page](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.html). Reference atlas of the
 1000 ms column run: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)

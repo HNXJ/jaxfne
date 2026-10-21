@@ -78,8 +78,13 @@ Canonical 1000-neuron column, pinned 1000 ms reference run:
 Twenty-area hierarchy (Atlas AT-10-N20), areas in hierarchy order with
 inter-area edge counts ([full page](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.html)):
 
-![Twenty-area hierarchy graph](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.png)
-*Twenty-area hierarchy graph. [Interactive version](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.html)*
+=== "Still"
+
+    ![Twenty-area hierarchy graph](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.html" loading="lazy" title="Twenty-area hierarchy graph"></iframe>
 
 Three-area hierarchy (`V1–V4–PFC`, 100 neurons/area, bidirectional
 feedforward/feedback): [Gallery 09](start/gallery.md#09-three-area-hierarchy-v1v4pfc)

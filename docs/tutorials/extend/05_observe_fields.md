@@ -30,9 +30,13 @@ Rules:
 <!-- jx-figure -->
 ## Figure
 
-![Laminar LFP proxy read from the frozen trajectory](../../assets/readme/lfp.png)
+=== "Still"
 
-[Interactive version](https://hnxj.github.io/jaxfne/figures/readme/lfp.html)
+    ![Laminar LFP proxy read from the frozen trajectory](../../assets/readme/lfp.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/readme/lfp.html" loading="lazy" title="Laminar LFP proxy read from the frozen trajectory"></iframe>
 
 Laminar LFP proxy read from the frozen trajectory, in relative units (calibration is a separate, explicit step). [Open full page](https://hnxj.github.io/jaxfne/figures/readme/lfp.html).
 

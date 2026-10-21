@@ -26,9 +26,13 @@ Realized `H` is the per-neuron mean over the last 1 s of a 2 s run (N=500, seeds
 <!-- jx-figure -->
 ## Figure
 
-![Weight trajectories W](../../assets/visuals/hdp_weights.png)
+=== "Still"
 
-[Interactive version](https://hnxj.github.io/jaxfne/figures/hdp_10/hdp.html)
+    ![Weight trajectories W](../../assets/visuals/hdp_weights.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/hdp_10/hdp.html" loading="lazy" title="Weight trajectories W"></iframe>
 
 Weight trajectories W(t) under HDP in the same small run. [Open full page](https://hnxj.github.io/jaxfne/figures/hdp_10/hdp.html).
 

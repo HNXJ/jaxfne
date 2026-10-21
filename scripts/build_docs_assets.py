@@ -702,9 +702,10 @@ def check_site_figures(site: Path) -> list[str]:
     return problems
 
 
-# Docs-figures migration steady state: no figure iframe may remain (the four
-# unmapped pages below are left as-is), and no relative link may point at a
-# figure page (atlas, etude or visual dirs); those live on the figure site.
+# Docs figures are Still / Interactive tab pairs whose iframe frames the
+# figure site; no relative iframe may remain (the four unmapped pages below
+# are left as-is), and no relative link may point at a figure page (atlas,
+# etude or visual dirs).
 ALLOWLISTED_FIGURE_IFRAMES = {
     "docs/assets/interactive/v037_source_column_3d.html",
     "docs/assets/interactive/izhikevich_single_emitter_explorer.html",

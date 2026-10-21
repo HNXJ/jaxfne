@@ -25,9 +25,13 @@ print(float(signals.get("spikes").mean() * 1000 / 0.5))  # ~8-12 Hz population r
 <!-- jx-figure -->
 ## Figure
 
-![Spike raster of the 1000 ms reference run](../../assets/readme/raster.png)
+=== "Still"
 
-[Interactive version](https://hnxj.github.io/jaxfne/figures/readme/raster.html)
+    ![Spike raster of the 1000 ms reference run](../../assets/readme/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/readme/raster.html" loading="lazy" title="Spike raster of the 1000 ms reference run"></iframe>
 
 Spike raster of the pinned 1000 ms reference run (canonical tensor, runtime seed 0, dt 0.5 ms); the code above uses runtime seed 1, so its raster differs in detail. [Open full page](https://hnxj.github.io/jaxfne/figures/readme/raster.html).
 

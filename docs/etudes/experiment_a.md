@@ -68,7 +68,15 @@ python scripts/run_experiment_a.py
 <!-- jx-figure -->
 ## Figure
 
-![Experiment A bundle figure](../assets/etudes/experiment_a.png)
+=== "Still"
+
+    ![Experiment A bundle figure](../assets/etudes/experiment_a.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/experiment_a/raster.html" loading="lazy" title="Experiment A bundle figure"></iframe>
+
+*The Interactive tab shows the spike-raster panel; every panel is linked under Interactive panels below.*
 
 
 Rendered still from the frozen `canonical_source.npz` (no resimulation; `python scripts/plot_experiment_a_still.py`).

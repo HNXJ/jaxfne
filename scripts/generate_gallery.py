@@ -29,7 +29,7 @@ LISTED_STATES = ("validated", "canonical")
 
 REGISTRY = STATIC / "atlas_registry.json"
 
-# Public figure site: every still and "Interactive version" link points here
+# Public figure site: every still and Interactive-tab iframe points here
 # (published by the Dashboard workflow's figures job from --site output).
 FIGURES_URL = "https://hnxj.github.io/jaxfne/figures/"
 SHA_RE = re.compile(r"\b[0-9a-f]{40}\b")
@@ -128,9 +128,17 @@ def render(entries: list[dict]) -> str:
                      f"config `{str(m.get('config_hash'))[:12]}` · "
                      f"jaxfne {m.get('jaxfne_version')}")
         lines.append("")
-        lines.append(f"![{title}]({FIGURES_URL}{fslug}/{stem}.png)")
-        lines.append(f"*{title}: spike raster. "
-                     f"[Interactive version]({FIGURES_URL}{fslug}/{stem}.html)*")
+        # Still / Interactive tab pair, the docs figure form (Hamm 2026-10-21).
+        lines.append('=== "Still"')
+        lines.append("")
+        lines.append(f"    ![{title}]({FIGURES_URL}{fslug}/{stem}.png)")
+        lines.append("")
+        lines.append('=== "Interactive"')
+        lines.append("")
+        lines.append(f'    <iframe class="jx-frame" src="{FIGURES_URL}{fslug}/{stem}.html" '
+                     f'loading="lazy" title="{title}"></iframe>')
+        lines.append("")
+        lines.append(f"*{title}: spike raster.*")
         lines.append("")
     lines.append(END)
     return "\n".join(lines) + "\n"

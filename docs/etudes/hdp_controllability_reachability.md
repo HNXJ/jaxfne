@@ -180,7 +180,15 @@ Package-native operators used: `Signals` field proxy (`phi_e_proxy`, `csd_proxy`
 <!-- jx-figure -->
 ## Figure
 
-![HDP controllability bundle figure, panels A–L](../assets/etudes/hdp_controllability_reachability.png)
+=== "Still"
+
+    ![HDP controllability bundle figure, panels A–L](../assets/etudes/hdp_controllability_reachability.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/hdp_controllability_reachability/raster.html" loading="lazy" title="HDP controllability bundle figure, panels A–L"></iframe>
+
+*The Interactive tab shows the spike-raster panel; every panel is linked under Interactive panels below.*
 
 
 Panels A–L (panel E = OFF | scalar | vector rasters; MVC #1 inset in D).

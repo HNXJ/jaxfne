@@ -132,176 +132,351 @@ Evidence index of validated atlases (25 models). Generated from committed `manif
 
 State `validated` · N=100 · edges=9900 · steps=400 · config `96761084e110` · jaxfne 0.5.0
 
-![Calibration-ready column, minimal run (100n, 200 ms)](https://hnxj.github.io/jaxfne/figures/calibration_100/raster.png)
-*Calibration-ready column, minimal run (100n, 200 ms): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/calibration_100/raster.html)*
+=== "Still"
+
+    ![Calibration-ready column, minimal run (100n, 200 ms)](https://hnxj.github.io/jaxfne/figures/calibration_100/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/calibration_100/raster.html" loading="lazy" title="Calibration-ready column, minimal run (100n, 200 ms)"></iframe>
+
+*Calibration-ready column, minimal run (100n, 200 ms): spike raster.*
 
 ### `atlas/canonical_etude_1000` — Canonical-column etude, uniform drive (1000n)
 
 State `validated` · N=1000 · edges=999000 · steps=2000 · config `b8ec3bc1536d` · jaxfne 0.5.0
 
-![Canonical-column etude, uniform drive (1000n)](https://hnxj.github.io/jaxfne/figures/canonical_etude_1000/raster.png)
-*Canonical-column etude, uniform drive (1000n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/canonical_etude_1000/raster.html)*
+=== "Still"
+
+    ![Canonical-column etude, uniform drive (1000n)](https://hnxj.github.io/jaxfne/figures/canonical_etude_1000/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/canonical_etude_1000/raster.html" loading="lazy" title="Canonical-column etude, uniform drive (1000n)"></iframe>
+
+*Canonical-column etude, uniform drive (1000n): spike raster.*
 
 ### `atlas/config_grammar_1000` — Configuration-grammar column, smoke-scale (1000n, 200 ms)
 
 State `validated` · N=1000 · edges=999000 · steps=400 · config `4665fb608374` · jaxfne 0.5.0
 
-![Configuration-grammar column, smoke-scale (1000n, 200 ms)](https://hnxj.github.io/jaxfne/figures/config_grammar_1000/raster.png)
-*Configuration-grammar column, smoke-scale (1000n, 200 ms): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/config_grammar_1000/raster.html)*
+=== "Still"
+
+    ![Configuration-grammar column, smoke-scale (1000n, 200 ms)](https://hnxj.github.io/jaxfne/figures/config_grammar_1000/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/config_grammar_1000/raster.html" loading="lazy" title="Configuration-grammar column, smoke-scale (1000n, 200 ms)"></iframe>
+
+*Configuration-grammar column, smoke-scale (1000n, 200 ms): spike raster.*
 
 ### `atlas/ei_population_100` — Chainable E/I population (100n)
 
 State `validated` · N=100 · edges=9900 · steps=2000 · config `8c242da2a84d` · jaxfne 0.5.0
 
-![Chainable E/I population (100n)](https://hnxj.github.io/jaxfne/figures/ei_population_100/raster.png)
-*Chainable E/I population (100n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/ei_population_100/raster.html)*
+=== "Still"
+
+    ![Chainable E/I population (100n)](https://hnxj.github.io/jaxfne/figures/ei_population_100/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/ei_population_100/raster.html" loading="lazy" title="Chainable E/I population (100n)"></iframe>
+
+*Chainable E/I population (100n): spike raster.*
 
 ### `atlas/evoked_l4` — Evoked L4 drive, evoked condition (100n)
 
 State `validated` · N=100 · edges=9900 · steps=3000 · config `872f598151ed` · jaxfne 0.5.0
 
-![Evoked L4 drive, evoked condition (100n)](https://hnxj.github.io/jaxfne/figures/evoked_l4/raster.png)
-*Evoked L4 drive, evoked condition (100n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/evoked_l4/raster.html)*
+=== "Still"
+
+    ![Evoked L4 drive, evoked condition (100n)](https://hnxj.github.io/jaxfne/figures/evoked_l4/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/evoked_l4/raster.html" loading="lazy" title="Evoked L4 drive, evoked condition (100n)"></iframe>
+
+*Evoked L4 drive, evoked condition (100n): spike raster.*
 
 ### `atlas/hdp_10` — HDP circuit, full recording (10n, 100 ms)
 
 State `validated` · N=10 · edges=90 · steps=200 · config `14c5b4f994b9` · jaxfne 0.5.0
 
-![HDP circuit, full recording (10n, 100 ms)](https://hnxj.github.io/jaxfne/figures/hdp_10/raster.png)
-*HDP circuit, full recording (10n, 100 ms): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/hdp_10/raster.html)*
+=== "Still"
+
+    ![HDP circuit, full recording (10n, 100 ms)](https://hnxj.github.io/jaxfne/figures/hdp_10/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/hdp_10/raster.html" loading="lazy" title="HDP circuit, full recording (10n, 100 ms)"></iframe>
+
+*HDP circuit, full recording (10n, 100 ms): spike raster.*
 
 ### `atlas/hdp_1000` — HDP column, short run (1000n, 200 ms)
 
 State `validated` · N=1000 · edges=999000 · steps=400 · config `a6746c86b439` · jaxfne 0.5.5
 
-![HDP column, short run (1000n, 200 ms)](https://hnxj.github.io/jaxfne/figures/hdp_1000/raster.png)
-*HDP column, short run (1000n, 200 ms): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/hdp_1000/raster.html)*
+=== "Still"
+
+    ![HDP column, short run (1000n, 200 ms)](https://hnxj.github.io/jaxfne/figures/hdp_1000/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/hdp_1000/raster.html" loading="lazy" title="HDP column, short run (1000n, 200 ms)"></iframe>
+
+*HDP column, short run (1000n, 200 ms): spike raster.*
 
 ### `atlas/homeostasis_1000` — Homeostasis column (1000n)
 
 State `validated` · N=1000 · edges=999000 · steps=2000 · config `4dbc78e75818` · jaxfne 0.5.5
 
-![Homeostasis column (1000n)](https://hnxj.github.io/jaxfne/figures/homeostasis_1000/raster.png)
-*Homeostasis column (1000n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/homeostasis_1000/raster.html)*
+=== "Still"
+
+    ![Homeostasis column (1000n)](https://hnxj.github.io/jaxfne/figures/homeostasis_1000/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/homeostasis_1000/raster.html" loading="lazy" title="Homeostasis column (1000n)"></iframe>
+
+*Homeostasis column (1000n): spike raster.*
 
 ### `atlas/lfp_csd_12` — LFP/CSD laminar column (12n)
 
 State `validated` · N=12 · edges=132 · steps=2000 · config `a07c380b8304` · jaxfne 0.5.0
 
-![LFP/CSD laminar column (12n)](https://hnxj.github.io/jaxfne/figures/lfp_csd_12/raster.png)
-*LFP/CSD laminar column (12n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/lfp_csd_12/raster.html)*
+=== "Still"
+
+    ![LFP/CSD laminar column (12n)](https://hnxj.github.io/jaxfne/figures/lfp_csd_12/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/lfp_csd_12/raster.html" loading="lazy" title="LFP/CSD laminar column (12n)"></iframe>
+
+*LFP/CSD laminar column (12n): spike raster.*
 
 ### `atlas` — Canonical V1 Column (1000n)
 
 State `validated` · N=1000 · edges=215785 · steps=2000 · config `91f037cf383e` · jaxfne 0.5.7
 
-![Canonical V1 Column (1000n)](https://hnxj.github.io/jaxfne/figures/readme/raster.png)
-*Canonical V1 Column (1000n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/readme/raster.html)*
+=== "Still"
+
+    ![Canonical V1 Column (1000n)](https://hnxj.github.io/jaxfne/figures/readme/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/readme/raster.html" loading="lazy" title="Canonical V1 Column (1000n)"></iframe>
+
+*Canonical V1 Column (1000n): spike raster.*
 
 ### `atlas/network_100_ei` — Balanced E/I population (100n)
 
 State `validated` · N=100 · edges=9900 · steps=1000 · config `e58d76183666` · jaxfne 0.5.0
 
-![Balanced E/I population (100n)](https://hnxj.github.io/jaxfne/figures/network_100_ei/raster.png)
-*Balanced E/I population (100n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/network_100_ei/raster.html)*
+=== "Still"
+
+    ![Balanced E/I population (100n)](https://hnxj.github.io/jaxfne/figures/network_100_ei/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/network_100_ei/raster.html" loading="lazy" title="Balanced E/I population (100n)"></iframe>
+
+*Balanced E/I population (100n): spike raster.*
 
 ### `atlas/objective_60` — Objective-grammar chain, pre-tune (60n)
 
 State `validated` · N=60 · edges=3540 · steps=400 · config `48f956974352` · jaxfne 0.5.0
 
-![Objective-grammar chain, pre-tune (60n)](https://hnxj.github.io/jaxfne/figures/objective_60/raster.png)
-*Objective-grammar chain, pre-tune (60n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/objective_60/raster.html)*
+=== "Still"
+
+    ![Objective-grammar chain, pre-tune (60n)](https://hnxj.github.io/jaxfne/figures/objective_60/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/objective_60/raster.html" loading="lazy" title="Objective-grammar chain, pre-tune (60n)"></iframe>
+
+*Objective-grammar chain, pre-tune (60n): spike raster.*
 
 ### `atlas/omission_60` — Omission-oddball column, plain drive (60n)
 
 State `validated` · N=60 · edges=3540 · steps=2000 · config `f3305c133965` · jaxfne 0.5.0
 
-![Omission-oddball column, plain drive (60n)](https://hnxj.github.io/jaxfne/figures/omission_60/raster.png)
-*Omission-oddball column, plain drive (60n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/omission_60/raster.html)*
+=== "Still"
+
+    ![Omission-oddball column, plain drive (60n)](https://hnxj.github.io/jaxfne/figures/omission_60/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/omission_60/raster.html" loading="lazy" title="Omission-oddball column, plain drive (60n)"></iframe>
+
+*Omission-oddball column, plain drive (60n): spike raster.*
 
 ### `atlas/operator_chain_40` — Operator-composition column (40n)
 
 State `validated` · N=40 · edges=1560 · steps=200 · config `d22bc040c652` · jaxfne 0.5.0
 
-![Operator-composition column (40n)](https://hnxj.github.io/jaxfne/figures/operator_chain_40/raster.png)
-*Operator-composition column (40n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/operator_chain_40/raster.html)*
+=== "Still"
+
+    ![Operator-composition column (40n)](https://hnxj.github.io/jaxfne/figures/operator_chain_40/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/operator_chain_40/raster.html" loading="lazy" title="Operator-composition column (40n)"></iframe>
+
+*Operator-composition column (40n): spike raster.*
 
 ### `atlas/probe_32` — Probe-operators circuit, minimal run (32n, 200 ms)
 
 State `validated` · N=32 · edges=992 · steps=400 · config `5690a65f088b` · jaxfne 0.5.0
 
-![Probe-operators circuit, minimal run (32n, 200 ms)](https://hnxj.github.io/jaxfne/figures/probe_32/raster.png)
-*Probe-operators circuit, minimal run (32n, 200 ms): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/probe_32/raster.html)*
+=== "Still"
+
+    ![Probe-operators circuit, minimal run (32n, 200 ms)](https://hnxj.github.io/jaxfne/figures/probe_32/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/probe_32/raster.html" loading="lazy" title="Probe-operators circuit, minimal run (32n, 200 ms)"></iframe>
+
+*Probe-operators circuit, minimal run (32n, 200 ms): spike raster.*
 
 ### `atlas/scale_100` — Suite No. 3 scale N=100 (async patch)
 
 State `validated` · N=100 · edges=9900 · steps=2000 · config `96a6c894ecad` · jaxfne 0.5.0
 
-![Suite No. 3 scale N=100 (async patch)](https://hnxj.github.io/jaxfne/figures/scale_100/raster.png)
-*Suite No. 3 scale N=100 (async patch): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/scale_100/raster.html)*
+=== "Still"
+
+    ![Suite No. 3 scale N=100 (async patch)](https://hnxj.github.io/jaxfne/figures/scale_100/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/scale_100/raster.html" loading="lazy" title="Suite No. 3 scale N=100 (async patch)"></iframe>
+
+*Suite No. 3 scale N=100 (async patch): spike raster.*
 
 ### `atlas/single_neuron` — Single neuron (1n)
 
 State `validated` · N=1 · edges=0 · steps=1000 · config `0cb7b98c0189` · jaxfne 0.5.0
 
-![Single neuron (1n)](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.png)
-*Single neuron (1n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.html)*
+=== "Still"
+
+    ![Single neuron (1n)](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/single_neuron/raster.html" loading="lazy" title="Single neuron (1n)"></iframe>
+
+*Single neuron (1n): spike raster.*
 
 ### `atlas/source_column_48` — Source-bookkeeping column (48n)
 
 State `validated` · N=48 · edges=2256 · steps=2000 · config `e29a9e61e9eb` · jaxfne 0.5.0
 
-![Source-bookkeeping column (48n)](https://hnxj.github.io/jaxfne/figures/source_column_48/raster.png)
-*Source-bookkeeping column (48n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/source_column_48/raster.html)*
+=== "Still"
+
+    ![Source-bookkeeping column (48n)](https://hnxj.github.io/jaxfne/figures/source_column_48/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/source_column_48/raster.html" loading="lazy" title="Source-bookkeeping column (48n)"></iframe>
+
+*Source-bookkeeping column (48n): spike raster.*
 
 ### `atlas/suite1_column` — Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms)
 
 State `validated` · N=48 · edges=2256 · steps=2000 · config `316023c3edc9` · jaxfne 0.5.0
 
-![Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms)](https://hnxj.github.io/jaxfne/figures/suite1_column/raster.png)
-*Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/suite1_column/raster.html)*
+=== "Still"
+
+    ![Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms)](https://hnxj.github.io/jaxfne/figures/suite1_column/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/suite1_column/raster.html" loading="lazy" title="Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms)"></iframe>
+
+*Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms): spike raster.*
 
 ### `atlas/suite2_net1` — Suite No. 2 net1 (100n)
 
 State `validated` · N=100 · edges=9900 · steps=2000 · config `2cc90a7c1ef0` · jaxfne 0.5.0
 
-![Suite No. 2 net1 (100n)](https://hnxj.github.io/jaxfne/figures/suite2_net1/raster.png)
-*Suite No. 2 net1 (100n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/suite2_net1/raster.html)*
+=== "Still"
+
+    ![Suite No. 2 net1 (100n)](https://hnxj.github.io/jaxfne/figures/suite2_net1/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/suite2_net1/raster.html" loading="lazy" title="Suite No. 2 net1 (100n)"></iframe>
+
+*Suite No. 2 net1 (100n): spike raster.*
 
 ### `atlas/two_neuron_ei` — Two-neuron E/I (2n)
 
 State `validated` · N=2 · edges=2 · steps=1000 · config `8ae5b8435e85` · jaxfne 0.5.0
 
-![Two-neuron E/I (2n)](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.png)
-*Two-neuron E/I (2n): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.html)*
+=== "Still"
+
+    ![Two-neuron E/I (2n)](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.html" loading="lazy" title="Two-neuron E/I (2n)"></iframe>
+
+*Two-neuron E/I (2n): spike raster.*
 
 ### `atlas/v1_column` — 600n population, laminar readout
 
 State `validated` · N=600 · edges=359400 · steps=2000 · config `c79b0c87047f` · jaxfne 0.5.0
 
-![600n population, laminar readout](https://hnxj.github.io/jaxfne/figures/v1_column/raster.png)
-*600n population, laminar readout: spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/v1_column/raster.html)*
+=== "Still"
+
+    ![600n population, laminar readout](https://hnxj.github.io/jaxfne/figures/v1_column/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/v1_column/raster.html" loading="lazy" title="600n population, laminar readout"></iframe>
+
+*600n population, laminar readout: spike raster.*
 
 ### `atlas/v1_pfc_dual` — V1-PFC dual column, single AAAB trial (200n, no HDP carryover)
 
 State `validated` · N=200 · edges=240 · steps=2000 · config `f9433f57d4d5` · jaxfne 0.5.0
 
-![V1-PFC dual column, single AAAB trial (200n, no HDP carryover)](https://hnxj.github.io/jaxfne/figures/v1_pfc_dual/raster.png)
-*V1-PFC dual column, single AAAB trial (200n, no HDP carryover): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/v1_pfc_dual/raster.html)*
+=== "Still"
+
+    ![V1-PFC dual column, single AAAB trial (200n, no HDP carryover)](https://hnxj.github.io/jaxfne/figures/v1_pfc_dual/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/v1_pfc_dual/raster.html" loading="lazy" title="V1-PFC dual column, single AAAB trial (200n, no HDP carryover)"></iframe>
+
+*V1-PFC dual column, single AAAB trial (200n, no HDP carryover): spike raster.*
 
 ### `atlas/v1v4_80` — V1-V4 scaffold (80/area)
 
 State `validated` · N=160 · edges=12891 · steps=2000 · config `0699b80ad44b` · jaxfne 0.5.0
 
-![V1-V4 scaffold (80/area)](https://hnxj.github.io/jaxfne/figures/v1v4_80/raster.png)
-*V1-V4 scaffold (80/area): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/v1v4_80/raster.html)*
+=== "Still"
+
+    ![V1-V4 scaffold (80/area)](https://hnxj.github.io/jaxfne/figures/v1v4_80/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/v1v4_80/raster.html" loading="lazy" title="V1-V4 scaffold (80/area)"></iframe>
+
+*V1-V4 scaffold (80/area): spike raster.*
 
 ### `atlas_three_area` — V1-V4-PFC three-area hierarchy (100/area)
 
 State `validated` · N=300 · edges=30105 · steps=1000 · config `84f67ccf815f` · jaxfne 0.5.5
 
-![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.png)
-*V1-V4-PFC three-area hierarchy (100/area): spike raster. [Interactive version](https://hnxj.github.io/jaxfne/figures/three_area/raster.html)*
+=== "Still"
+
+    ![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/three_area/raster.html" loading="lazy" title="V1-V4-PFC three-area hierarchy (100/area)"></iframe>
+
+*V1-V4-PFC three-area hierarchy (100/area): spike raster.*
 
 <!-- ATLAS-INDEX:END -->
 

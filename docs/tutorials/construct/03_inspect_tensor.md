@@ -26,9 +26,13 @@ assert jtfne.load_neuronal_tensor(path).name == tensor.name
 <!-- jx-figure -->
 ## Figure
 
-![Realized positions of every neuron, colored by cell type; hover for area, layer and coordinates.](../../assets/readme/network_3d.png)
+=== "Still"
 
-[Interactive version](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html)
+    ![Realized positions of every neuron, colored by cell type; hover for area, layer and coordinates.](../../assets/readme/network_3d.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/readme/network_3d.html" loading="lazy" title="Realized positions of every neuron, colored by cell type; hover for area, layer and coordinates."></iframe>
 
 Realized positions of every neuron, colored by cell type; hover for area, layer and coordinates. [Open full page](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html).
 

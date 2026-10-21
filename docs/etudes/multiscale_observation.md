@@ -197,7 +197,15 @@ Emitter variation is a **later** étude on the same observation stack.
 <!-- jx-figure -->
 ## Figure
 
-![Multiscale observation bundle figure](../assets/etudes/multiscale_observation.png)
+=== "Still"
+
+    ![Multiscale observation bundle figure](../assets/etudes/multiscale_observation.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/multiscale_observation/raster.html" loading="lazy" title="Multiscale observation bundle figure"></iframe>
+
+*The Interactive tab shows the spike-raster panel; every panel is linked under Interactive panels below.*
 
 
 Committed bundle still (`artifacts/etudes/bundles/multiscale_observation/figure.png`).

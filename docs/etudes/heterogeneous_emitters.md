@@ -159,7 +159,15 @@ PYTHONPATH=. python3 scripts/run_heterogeneous_emitters_etude.py
 <!-- jx-figure -->
 ## Figure
 
-![Heterogeneous emitters bundle figure](../assets/etudes/heterogeneous_emitters.png)
+=== "Still"
+
+    ![Heterogeneous emitters bundle figure](../assets/etudes/heterogeneous_emitters.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/heterogeneous_emitters/raster_izh.html" loading="lazy" title="Heterogeneous emitters bundle figure"></iframe>
+
+*The Interactive tab shows the spike-raster panel; every panel is linked under Interactive panels below.*
 
 
 Committed bundle still (`artifacts/etudes/bundles/heterogeneous_emitters/figure.png`).

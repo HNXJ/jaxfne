@@ -27,9 +27,13 @@ Provenance is additive: `tensor.provenance["genome_sha256"]` == `genome_rules_ha
 <!-- jx-figure -->
 ## Figure
 
-![The developed column in 3-D](../../assets/visuals/column_network.png)
+=== "Still"
 
-[Interactive version](https://hnxj.github.io/jaxfne/figures/column_network/column_network.html)
+    ![The developed column in 3-D](../../assets/visuals/column_network.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/column_network/column_network.html" loading="lazy" title="The developed column in 3-D"></iframe>
 
 The developed column in 3-D: 1000 neurons and a sample of 800 realized edges, split by presynaptic cell-type name, `E*` types vs the rest (toggle each group in the legend). [Open full page](https://hnxj.github.io/jaxfne/figures/column_network/column_network.html).
 
