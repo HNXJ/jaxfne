@@ -10,6 +10,9 @@ import copy
 import importlib.util
 import json
 import pathlib
+import re
+
+import pytest
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location(
@@ -426,3 +429,113 @@ def test_check_flags_a_copy_whose_dest_differs(tmp_path, monkeypatch, capsys):
     assert "ERROR" in out and dest_rel in out, out
     (tmp_path / dest_rel).write_bytes(b"source-bytes")
     assert bda.check_copies(registry) == []
+
+
+# --- Standalone figure site (--site): one HTML + PNG still per panel ---
+
+# Cheapest registry slug by realized size (n_neurons=1, n_steps=1000: the
+# smallest N*steps in the registry), so the --site tests simulate the least.
+CHEAPEST_SLUG = "single_neuron"
+
+
+def _require_kaleido(tmp_path):
+    pytest.importorskip("kaleido", reason="kaleido renders the --site PNG stills")
+    import plotly.graph_objects as go
+
+    probe = tmp_path / "kaleido_probe.png"
+    try:
+        go.Figure(go.Scatter(x=[0, 1], y=[0, 1])).write_image(str(probe))
+    except Exception as exc:  # noqa: BLE001 -- kaleido fails without a browser
+        pytest.skip(f"kaleido cannot start: {exc}")
+    assert probe.stat().st_size > 0, "kaleido probe still must be non-empty"
+
+
+@pytest.mark.slow
+def test_site_writes_html_png_and_manifest_for_cheapest_slug(tmp_path):
+    _require_kaleido(tmp_path)
+    site = tmp_path / "figsite"
+    assert bda.main(["--site", str(site), "--only", CHEAPEST_SLUG]) == 0
+    manifest = json.loads((site / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["schema"] == bda.SITE_SCHEMA
+    assert len(manifest["build_sha"]) == 40, "build_sha must be the git HEAD"
+    by_panel = {f["panel"]: f for f in manifest["figures"] if f["slug"] == CHEAPEST_SLUG}
+    entry = _entry(CHEAPEST_SLUG)
+    assert set(by_panel) == {name[:-len(".html")] for name in entry["panels"]}
+    for name, status in entry["panels"].items():
+        fig = by_panel[name[:-len(".html")]]
+        html = site / fig["html"]
+        assert html.is_file() and html.stat().st_size > 0, f"{name} html missing"
+        assert isinstance(fig["docs_pages"], list)
+        if status in ("OMITTED", "ERROR"):
+            assert fig["status"] == "omitted" and "png" not in fig, name
+        else:
+            assert fig["status"] == "available", name
+            png = site / fig["png"]
+            assert png.is_file(), f"{name} png missing"
+            assert png.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n" and png.stat().st_size > 0, name
+
+
+@pytest.mark.slow
+def test_site_writes_nothing_under_docs(tmp_path):
+    _require_kaleido(tmp_path)
+    before = {p for p in (REPO / "docs").rglob("*")}
+    assert bda.main(["--site", str(tmp_path / "figsite"), "--only", CHEAPEST_SLUG]) == 0
+    assert {p for p in (REPO / "docs").rglob("*")} == before
+
+
+def test_render_atlas_default_output_unchanged(tmp_path, monkeypatch):
+    import datetime
+
+    import jaxfne.vis.atlas_suite as suite
+
+    real_datetime = datetime.datetime
+
+    class _Frozen(real_datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return real_datetime(2026, 1, 1, tzinfo=tz)
+
+    monkeypatch.setattr(datetime, "datetime", _Frozen)
+    spec = importlib.util.spec_from_file_location(
+        "generate_doc_page_atlases", REPO / "scripts" / "generate_doc_page_atlases.py")
+    dpa = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(dpa)
+    title, model, signals, kw = dpa.spec_two_neuron_ei()
+    default = suite.render_atlas(model, signals, out_dir=str(tmp_path / "a"),
+                                 title=title, **kw)
+    assert isinstance(default, dict), "the default return stays the manifest dict"
+    with_figures = suite.render_atlas(model, signals, out_dir=str(tmp_path / "b"),
+                                      title=title, return_figures=True, **kw)
+    assert isinstance(with_figures, tuple) and with_figures[0] == default
+    manifest, figures = with_figures
+    assert set(figures) == {p["file"] for p in manifest["panels"]
+                             if p["status"] == "AVAILABLE"}
+    # Plotly stamps a fresh random id on every to_html call (the div id,
+    # repeated in the newPlot script, plus per-trace uids), so two runs are
+    # never byte-identical; normalize those ids and require everything else
+    # to match exactly.
+    uuid = re.compile(rb'"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}"')
+    for name in sorted((tmp_path / "a").iterdir()):
+        other = tmp_path / "b" / name.name
+        assert other.is_file(), f"{name.name} missing from the keyword run"
+        assert (uuid.sub(b'"X"', other.read_bytes())
+                == uuid.sub(b'"X"', name.read_bytes())), f"{name.name} differs"
+
+
+def test_site_completeness_fails_when_png_missing(tmp_path):
+    site = tmp_path / "site"
+    (site / "s").mkdir(parents=True)
+    (site / "s" / "raster.html").write_bytes(b"<html></html>")
+    (site / "s" / "hdp.html").write_bytes(b"<html></html>")
+    (site / "s" / "raster.png").write_bytes(b"\x89PNG" + b"\x00" * 16)
+    manifest = {"schema": bda.SITE_SCHEMA, "build_sha": "0" * 40, "figures": [
+        {"slug": "s", "panel": "raster", "html": "s/raster.html",
+         "png": "s/raster.png", "title": "t", "status": "available",
+         "docs_pages": []},
+        {"slug": "s", "panel": "hdp", "html": "s/hdp.html",
+         "title": "t", "status": "omitted", "docs_pages": []}]}
+    (site / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    assert bda.check_site_figures(site) == []
+    (site / "s" / "raster.png").unlink()
+    problems = bda.check_site_figures(site)
+    assert len(problems) == 1 and "png missing" in problems[0], problems

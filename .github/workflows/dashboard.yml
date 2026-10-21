@@ -3,6 +3,7 @@ name: Dashboard
 # Publishes the committed replication dashboard to gh-pages:/dashboard/ (Hamm 2026-10-12).
 # The gh-pages root index.html redirects to /dashboard/ (Hamm 2026-10-15); other old files stay.
 # The data file is never regenerated here: the job fails if it is stale.
+# The figures job builds every docs figure as HTML plus a PNG still into gh-pages:/figures/ (Hamm 2026-10-21).
 
 on:
   push:
@@ -12,6 +13,10 @@ on:
       - "scripts/build_dashboard_data.py"
       - "scripts/build_dashboard_figures.py"
       - "scripts/generate_replications_page.py"
+      - "scripts/build_docs_assets.py"
+      - "scripts/generate_doc_page_atlases.py"
+      - "jaxfne/vis/**"
+      - "docs/_static/atlas_registry.json"
       - "docs/start/replications.md"
       - "docs/reference/references.md"
       - ".github/workflows/dashboard.yml"
@@ -67,4 +72,42 @@ jobs:
           fi
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
             commit -m "Publish dashboard from dev ${GITHUB_SHA}"
+          git push origin HEAD:gh-pages
+
+  figures:
+    needs: publish
+    runs-on: ubuntu-latest
+    concurrency:
+      group: dashboard-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # build_sha in the figure manifest is the exact HEAD
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install package with the viz extra
+        run: pip install -e ".[viz]"
+
+      - name: Build standalone figure site
+        run: python scripts/build_docs_assets.py --site _site_figures
+
+      - name: Copy figures into gh-pages
+        run: |
+          git fetch origin gh-pages
+          git worktree add ../pages origin/gh-pages
+          rm -rf ../pages/figures
+          mkdir -p ../pages/figures
+          cp -r _site_figures/. ../pages/figures/
+          cd ../pages
+          git add -A figures
+          if git diff --cached --quiet; then
+            echo "figures unchanged"
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "Publish figures from dev ${GITHUB_SHA}"
           git push origin HEAD:gh-pages

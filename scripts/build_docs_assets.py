@@ -14,6 +14,11 @@ Modes:
                             also runs each etude generator once and checks its HTML.
                             Then rewrite gallery.md
     --check                 compare the tracked manifests with the registry; generate nothing
+    --site OUT [--only a,b] build the standalone figure site: every atlas panel and
+                            the docs visuals as OUT/<slug>/<panel>.html (standalone
+                            page of the panel's Figure) plus .png stills and a
+                            manifest.json. Never writes under docs/; --build/--check
+                            are unchanged
 
 Slugs are registry slugs: the atlas/<slug> directories, ``three_area`` for
 atlas_three_area, and ``readme`` for the top-level atlas/ (the canonical README atlas,
@@ -34,6 +39,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -51,6 +57,17 @@ STATE_FIELDS = ("figure_state", "promotion")
 README_SLUG = "readme"
 THREE_AREA_SLUG = "three_area"
 ETUDE_KEYS = ("slug", "dir", "generator", "html")
+
+# Standalone figure site (Phase A of the docs-figures plan): every atlas panel
+# and the docs visuals as OUT/<slug>/<panel>.html (full standalone page of the
+# panel's Plotly figure, plotly.js from the CDN) plus OUT/<slug>/<panel>.png
+# (the same Figure through exporters._write_image). PNG raster size is fixed;
+# the kaleido scale is its default of 1.
+FIG_PNG_WIDTH = 1000
+FIG_PNG_HEIGHT = 760
+FIG_PNG_SCALE = 1
+VISUAL_SLUGS = ("column_network", "area_graph_n20")
+SITE_SCHEMA = "figsite.v1"
 
 
 def rel(path: Path) -> str:
@@ -475,6 +492,163 @@ def build(slugs: list[str]) -> int:
     return 0 if gallery.returncode == 0 and not etude_errors and not copy_errors else 1
 
 
+def site_slugs(registry: dict) -> list[str]:
+    """Every atlas slug in build order, then the docs visuals with their own pages."""
+    return [e["slug"] for e in registry["atlases"]] + list(VISUAL_SLUGS)
+
+
+def pages_showing(target: str, pages: dict[Path, str]) -> list[str]:
+    """Docs pages holding an .html link that resolves to ``target`` (repo-relative)."""
+    hits = []
+    for page, text in pages.items():
+        for _offset, link, raw_html in html_links(text):
+            if rel(Path(os.path.normpath(link_base(page, raw_html) / link))) == target:
+                hits.append(rel(page))
+                break
+    return sorted(hits)
+
+
+def _git_head() -> str:
+    try:
+        proc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(ROOT),
+                              capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+    return proc.stdout.strip() or "unknown"
+
+
+def _site_figure_source(slug: str):
+    """(kind, title, model, signals, render_kw, doc_dir) for one site slug.
+
+    Atlas slugs re-simulate their registry spec; the visuals reuse their
+    generator's figure builder. Nothing is written here.
+    """
+    scripts = str(ROOT / "scripts")
+    if scripts not in sys.path:
+        sys.path.insert(0, scripts)
+    if slug in VISUAL_SLUGS:
+        import generate_docs_visuals as gv
+
+        fig = gv.FIGURES[slug]()
+        title = str(getattr(fig.layout.title, "text", "") or slug)
+        return ("visual", title, None, None, {}, "docs/_static/visuals", {slug: fig})
+    import generate_doc_page_atlases as dpa
+
+    if slug == README_SLUG:
+        import generate_readme_atlas as gra
+
+        model, signals = gra.build_canonical_model()
+        title = gra.CANONICAL_TITLE
+        kw: dict = {"duration_ms": gra.CANONICAL_DURATION_MS,
+                    "dt_ms": gra.CANONICAL_DT_MS, "seed": gra.CANONICAL_SEED}
+    else:
+        title, model, signals, kw = dpa.SPECS[slug]()
+    return ("atlas", title, model, signals, kw, "", {})
+
+
+def _build_site_slug(slug: str, out: Path, registry: dict, pages: dict[Path, str]) -> list[dict]:
+    """Write OUT/<slug>/<panel>.html + .png; return the slug's manifest entries."""
+    from jaxfne.vis.atlas_suite import render_atlas
+    from jaxfne.vis.exporters import _write_image
+
+    kind, title, model, signals, kw, doc_dir, visual_figs = _site_figure_source(slug)
+    by_slug = {e["slug"]: e for e in registry["atlases"]}
+    slug_dir = out / slug
+    slug_dir.mkdir(parents=True, exist_ok=True)
+    entries: list[dict] = []
+    if kind == "visual":
+        panels = [{"file": f"{slug}.html", "panel": slug, "status": "AVAILABLE"}]
+        figures = visual_figs
+        doc_targets = {f"{slug}.html": f"{doc_dir}/{slug}.html"}
+        wrapped: dict[str, Path] = {}
+    else:
+        tmpdir = tempfile.TemporaryDirectory()
+        manifest, figures = render_atlas(model, signals, out_dir=tmpdir.name, title=title,
+                                         return_figures=True, **kw)
+        panels = manifest["panels"]
+        entry = by_slug[slug]
+        doc_targets = {p["file"]: f"{entry['dir']}/{p['file']}" for p in panels}
+        wrapped = {p["file"]: Path(tmpdir.name) / p["file"] for p in panels}
+    for panel in panels:
+        name = panel["file"]
+        stem = name[:-len(".html")] if name.endswith(".html") else name
+        fig = figures.get(name)
+        html_rel = f"{slug}/{name}"
+        label = panel.get("panel", stem)
+        docs = pages_showing(doc_targets[name], pages)
+        if fig is None:
+            # No Figure to stand alone: keep the existing wrapped omission page.
+            shutil.copyfile(wrapped[name], slug_dir / name)
+            entries.append({"slug": slug, "panel": stem, "html": html_rel,
+                            "title": label, "status": "omitted", "docs_pages": docs})
+            continue
+        fig.write_html(str(slug_dir / name), include_plotlyjs="cdn", full_html=True)
+        fig.update_layout(width=FIG_PNG_WIDTH, height=FIG_PNG_HEIGHT)
+        # Kaleido's own default scale is 1 == FIG_PNG_SCALE; _write_image only
+        # retries its teardown failure (P-011).
+        _write_image(fig, str(slug_dir / f"{stem}.png"))
+        if kind == "visual":
+            label = title
+        entries.append({"slug": slug, "panel": stem, "html": html_rel,
+                        "png": f"{slug}/{stem}.png", "title": label,
+                        "status": "available", "docs_pages": docs})
+    if kind != "visual":
+        tmpdir.cleanup()
+    return entries
+
+
+def check_site_figures(site: Path) -> list[str]:
+    """Every non-omitted figure needs its html and a non-empty png."""
+    manifest = read_json(Path(site) / "manifest.json")
+    problems = []
+    for fig in manifest.get("figures", []):
+        label = f"{fig.get('slug')}/{fig.get('panel')}"
+        html = Path(site) / str(fig.get("html", ""))
+        if not html.is_file():
+            problems.append(f"{label}: html missing at {fig.get('html')}")
+        if fig.get("status") == "omitted":
+            continue
+        png = Path(site) / str(fig.get("png", ""))
+        if not png.is_file():
+            problems.append(f"{label}: png missing at {fig.get('png')}")
+        elif png.stat().st_size == 0:
+            problems.append(f"{label}: png empty at {fig.get('png')}")
+    return problems
+
+
+def build_site(site: str | Path, only: list[str]) -> int:
+    """Build the standalone figure site into OUT (never under docs/)."""
+    registry = load_registry()
+    known = site_slugs(registry)
+    wanted = only or known
+    unknown = [s for s in wanted if s not in known]
+    if unknown:
+        raise SystemExit(f"unknown site slugs {unknown}; known slugs {known}")
+    _repo_guard()
+    out = Path(site)
+    pages = docs_pages()
+    build_sha = _git_head()
+    entries: list[dict] = []
+    errors = 0
+    for slug in wanted:
+        try:
+            entries.extend(_build_site_slug(slug, out, registry, pages))
+            print(f"{slug}: {len([e for e in entries if e['slug'] == slug])} figures")
+        except Exception as exc:  # noqa: BLE001 -- one slug must not kill the site
+            errors += 1
+            print(f"[{slug}] SITE ERROR: {exc!r}")
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "manifest.json").write_text(
+        json.dumps({"schema": SITE_SCHEMA, "build_sha": build_sha,
+                    "figures": entries}, indent=2) + "\n", encoding="utf-8")
+    problems = check_site_figures(out)
+    for p in problems:
+        print(f"  - {p}")
+    print(f"site: {len(entries)} figures, {errors} errors, "
+          f"{len(problems)} completeness problems -> {out}")
+    return 1 if errors or problems else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -485,14 +659,22 @@ def main(argv: list[str] | None = None) -> int:
                       help="regenerate atlases and compare them with the registry")
     mode.add_argument("--check", action="store_true",
                       help="compare tracked manifests with the registry; generate nothing")
+    mode.add_argument("--site", metavar="OUT", default=None,
+                      help="build the standalone figure site (HTML + PNG + manifest) into OUT")
     parser.add_argument("--slug", default="", help="comma-separated registry slugs for --build (default: all)")
+    parser.add_argument("--only", default="",
+                        help="comma-separated site slugs for --site (default: all atlases + visuals)")
     args = parser.parse_args(argv)
     if args.slug and not args.build:
         parser.error("--slug applies to --build only")
+    if args.only and args.site is None:
+        parser.error("--only applies to --site only")
     if args.registry_write:
         return write_registry()
     if args.check:
         return check()
+    if args.site is not None:
+        return build_site(args.site, [s.strip() for s in args.only.split(",") if s.strip()])
     return build([s.strip() for s in args.slug.split(",") if s.strip()])
 
 
