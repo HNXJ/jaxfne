@@ -64,10 +64,10 @@
       "stage": "optimizer"
     },
     "agsdr_quadratic_minimum": {
-      "error": 2.315323021026431e-10,
-      "tolerance": 4.6307e-10,
+      "error": 0.0,
+      "tolerance": 1e-12,
       "pass": true,
-      "reference": "closed-form minimum x* = (1, -2, 0.5, 3) from x_0 = 0; error = ||x_100 - x*|| / ||x_0 - x*||; inner optax.sgd(0.1), noise off; experimental transform",
+      "reference": "independent float64 NumPy recurrence of the transform update (U_t = (1 - a_t) D_t, D_t = -0.1 grad_t, a_0 = 0.5, v_{t+1} = 0.99 v_t + 0.01 var(D_t), a_{t+1} = clip((u + eps) / (u + v_{t+1} + 2 eps)), u = 0, eps = 1e-6; loss falls every step so no deselection reset fires); error = max|x_core - x_ref| / max|x_0 - x*|; inner optax.sgd(0.1), noise off; experimental transform",
       "stage": "optimizer"
     },
     "gsgd_quadratic_minimum": {

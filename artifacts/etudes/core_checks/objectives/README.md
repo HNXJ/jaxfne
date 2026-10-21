@@ -19,7 +19,7 @@ closed forms, not a paper replication: there is no paper value beside ours.
 | box_projection_is_clip | optimizer | np.clip to the bounds | 1e-12 x scale |
 | sdr_quadratic_minimum | optimizer | closed-form trajectory 0.8^100 | 1e-6 relative |
 | gsdr_quadratic_minimum | optimizer | closed-form trajectory 0.8^100 | 1e-6 relative |
-| agsdr_quadratic_minimum | optimizer | closed-form minimum x* after 100 steps (experimental) | 2 x recorded run |
+| agsdr_quadratic_minimum | optimizer | independent float64 NumPy recurrence of the transform update | 1e-12 x max\|x_0 - x*\| |
 | gsgd_quadratic_minimum | optimizer | closed-form trajectory 0.8^100 | 1e-6 relative |
 
 ## Hand derivations
@@ -46,19 +46,28 @@ closed forms, not a paper replication: there is no paper value beside ours.
   100 steps is exactly 0.8^100 = 2.04e-10. `step_gsgd_transform` with eta = 0.1 has the same exact
   contraction. The sdr, gsdr and gsgd rows score the relative deviation of the observed ratio from
   0.8^100, so a wrong step size fails as well as a step that does not converge.
+- **AGSDR recurrence.** With `stochastic_scale = 0` and inner `optax.sgd(0.1)` the transform update is
+  `U_t = (1 - a_t) D_t` with `D_t = -0.2 (x_t - x*)`, from `a_0 = 0.5` and `v_0 = u_0 = 0`. After each
+  step `v_{t+1} = 0.99 v_t + 0.01 var(D_t)` (population variance over the flattened update) and
+  `a_{t+1} = clip((u + eps) / (u + v_{t+1} + 2 eps))` with `eps = 1e-6`; `u` stays 0 because the
+  stochastic variance is 0. The loss falls every step from `x_0 = 0`, which keeps the deselection
+  branch inactive (asserted in the reference). The row scores `max|x_core - x_ref| / max|x_0 - x*|`
+  against this recurrence: float64 rounding near x* is about 1e-16 of that scale, a halved core
+  step leaves about 3e-5 and `a_0 = 0` about 2.5e-11, against the tolerance 1e-12.
 
-## Empirical tolerances and configuration
+## Tolerances and configuration
 
-The agsdr row uses tolerance = 2 x the error from one run of this scorer (one-sided; its value is in
-`score.json`): it guards the transform path against regressions and is not an accuracy claim. Fixed
+Each row's tolerance is its factor times its scale (`TOLERANCES` in the scorer). The optimizer rows
+use factor 1e-6 at scale 1.0; the agsdr row uses 1e-12 of the start displacement, below the error of a
+halved-step or an `a_0 = 0` mutant. Fixed
 configuration: x_0 = 0, 100 steps, PRNG key seed 0, inner `optax.sgd(0.1)`.
 
 - `sdr_quadratic_minimum`, `gsdr_quadratic_minimum` and `agsdr_quadratic_minimum` run with
   `stochastic_scale = 0` (the default is 0.1). With the noise off, sdr, gsdr and gsgd reduce to the inner
   gradient step, so these rows test the deterministic update path; the stochastic term and the reset
   branches are not tested here (tests/test_optim_tune.py covers the reset branches). In agsdr the
-  reward variance is 0 with the noise off, so its mixing weight collapses after the first step and the
-  mixing is not tested either.
+  stochastic variance is 0 with the noise off, so its unsup EMA stays 0 and the reference exercises
+  the mixing-weight recurrence directly.
 - `agsdr_transform` is marked EXPERIMENTAL in its docstring (not the canonical AGSDR algorithm, not on the
   `Model.tune()` path). Its row tests that transform only.
 - `step_gsgd_transform` is the documented plain step (its docstring: kept for direct use). Its row tests that step.

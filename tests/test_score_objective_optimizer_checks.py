@@ -91,6 +91,34 @@ def test_recompute_matches_within_rtol_1e_9():
     assert scorer.compare(load_score(), scorer.compute_all(), rtol=1e-9) == []
 
 
+@pytest.mark.parametrize("factor_at", [
+    lambda step: 0.5,                         # every core update halved
+    lambda step: 2.0 if step == 0 else 1.0,   # first update doubled: a_0 = 0 in place of 0.5
+], ids=["halved_step", "alpha0_zero"])
+def test_agsdr_row_kills_a_perturbed_core_update(monkeypatch, factor_at):
+    from scripts import score_objective_optimizer_checks as scorer
+
+    row = scorer.check_agsdr_quadratic_minimum()
+    assert row["pass"] is True, "the unperturbed agsdr row must pass"
+    real = scorer.oc.agsdr_transform
+
+    def perturbed_transform(**kwargs):
+        tx = real(**kwargs)
+        calls = []
+
+        def update(updates, state, params=None, **kw):
+            out, state = tx.update(updates, state, params, **kw)
+            calls.append(None)
+            return factor_at(len(calls) - 1) * out, state
+
+        return type(tx)(init=tx.init, update=update)
+
+    monkeypatch.setattr(scorer.oc, "agsdr_transform", perturbed_transform)
+    mutant = scorer.check_agsdr_quadratic_minimum()
+    assert mutant["error"] > 10 * mutant["tolerance"], mutant
+    assert mutant["pass"] is False, "a perturbed core update must fail the agsdr agreement row"
+
+
 def test_tightened_tolerance_flips_a_pass_to_false(monkeypatch):
     from scripts import score_objective_optimizer_checks as scorer
 

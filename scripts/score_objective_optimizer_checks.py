@@ -47,7 +47,7 @@ NOISE_FRACTION = 0.1  # errors below this fraction of the tolerance are compared
 
 # tolerance = factor * scale, scale being the reference's magnitude (1.0 for ratios and counts).
 # sdr, gsdr and gsgd: relative deviation from the closed-form trajectory 0.8^100 (float64 rounding).
-# agsdr: empirical, 2x the error recorded by a run of this scorer (README).
+# agsdr: element-wise agreement with the independent float64 NumPy recurrence below.
 TOLERANCES = {
     "polarity_null_flips_sign": (1e-12,),
     "layer_shuffle_null_permutes": (1e-12,),
@@ -58,7 +58,7 @@ TOLERANCES = {
     "box_projection_is_clip": (1e-12,),
     "sdr_quadratic_minimum": (1e-6,),
     "gsdr_quadratic_minimum": (1e-6,),
-    "agsdr_quadratic_minimum": (4.6307e-10,),
+    "agsdr_quadratic_minimum": (1e-12,),
     "gsgd_quadratic_minimum": (1e-6,),
 }
 
@@ -211,8 +211,12 @@ def check_box_projection_is_clip():
                 "np.clip of each row to [lows, highs]", "optimizer")
 
 
-QUAD_REFERENCE = ("closed-form minimum x* = (1, -2, 0.5, 3) from x_0 = 0; "
-                  "error = ||x_100 - x*|| / ||x_0 - x*||")
+AGSDR_RECURRENCE = ("independent float64 NumPy recurrence of the transform update "
+                    "(U_t = (1 - a_t) D_t, D_t = -0.1 grad_t, a_0 = 0.5, "
+                    "v_{t+1} = 0.99 v_t + 0.01 var(D_t), "
+                    "a_{t+1} = clip((u + eps) / (u + v_{t+1} + 2 eps)), u = 0, eps = 1e-6; "
+                    "loss falls every step so no deselection reset fires); "
+                    "error = max|x_core - x_ref| / max|x_0 - x*|")
 QUAD_TRAJECTORY = ("closed-form trajectory: ||x_100 - x*|| / ||x_0 - x*|| = 0.8^100 from x_0 = 0, "
                    "x* = (1, -2, 0.5, 3); error = relative deviation from 0.8^100")
 
@@ -243,6 +247,45 @@ def _run_transform(tx):
     return params
 
 
+def _agsdr_reference_trajectory():
+    """Independent float64 NumPy recurrence of the agsdr_transform update (no jaxfne import).
+
+    With stochastic_scale = 0 and inner optax.sgd(0.1), the transform update is
+    U_t = (1 - a_t) D_t with D_t = -0.1 grad_t = -0.2 (x_t - x*), from a_0 = 0.5 and
+    v_0 = u_0 = 0. After each step v_{t+1} = 0.99 v_t + 0.01 var(D_t), the population
+    variance over the flattened update, and a_{t+1} = clip((u + eps) / (u + v + 2 eps))
+    with eps = 1e-6; u stays 0 because the stochastic variance is 0. The loss falls every
+    step from X_START, which keeps the deselection branch inactive (asserted below).
+    """
+    x = np.asarray(X_START, dtype=np.float64).copy()
+    alpha = 0.5
+    var_sup = 0.0
+    var_unsup = 0.0
+    eps = 1e-6
+    decay = 0.99
+    prev_loss = float(np.sum((x - XSTAR) ** 2))
+    for _ in range(STEPS):
+        grad = 2.0 * (x - XSTAR)
+        inner = -SGD_LR * grad
+        x = x + (1.0 - alpha) * inner
+        loss = float(np.sum((x - XSTAR) ** 2))
+        assert loss < prev_loss, "fixture must improve every step so no deselection reset fires"
+        prev_loss = loss
+        var_sup = decay * var_sup + (1.0 - decay) * float(np.var(inner))
+        alpha = float(min(1.0, max(0.0, (var_unsup + eps) / (var_unsup + var_sup + 2.0 * eps))))
+    return x
+
+
+def _agsdr_agreement_error(x_core, x_ref):
+    """Max element deviation from the recurrence, scaled by the start displacement max|x_0 - x*|.
+
+    Float64 rounding of x near x* is about 1e-16 of this scale; a halved step leaves
+    about 3e-5 and a_0 = 0 about 2.5e-11 (README).
+    """
+    scale = float(np.abs(np.asarray(X_START, dtype=np.float64) - XSTAR).max())
+    return float(np.abs(np.asarray(x_core) - x_ref).max() / scale)
+
+
 @_f64
 def check_sdr_quadratic_minimum():
     """sdr_transform reaches the quadratic minimum with its stochastic term off."""
@@ -261,10 +304,13 @@ def check_gsdr_quadratic_minimum():
 
 @_f64
 def check_agsdr_quadratic_minimum():
-    """agsdr_transform (EXPERIMENTAL in its docstring) reaches the quadratic minimum with noise off."""
+    """agsdr_transform (EXPERIMENTAL in its docstring) agrees element-wise with the
+    independent float64 NumPy recurrence, with noise off."""
     tx = oc.agsdr_transform(inner_optimizer=optax.sgd(SGD_LR), stochastic_scale=0.0)
-    return _row("agsdr_quadratic_minimum", _ratio(_run_transform(tx)), 1.0,
-                QUAD_REFERENCE + "; inner optax.sgd(0.1), noise off; experimental transform",
+    x_core = np.asarray(_run_transform(tx), dtype=np.float64)
+    return _row("agsdr_quadratic_minimum",
+                _agsdr_agreement_error(x_core, _agsdr_reference_trajectory()), 1.0,
+                AGSDR_RECURRENCE + "; inner optax.sgd(0.1), noise off; experimental transform",
                 "optimizer")
 
 
@@ -345,7 +391,7 @@ closed forms, not a paper replication: there is no paper value beside ours.
 | box_projection_is_clip | optimizer | np.clip to the bounds | 1e-12 x scale |
 | sdr_quadratic_minimum | optimizer | closed-form trajectory 0.8^100 | 1e-6 relative |
 | gsdr_quadratic_minimum | optimizer | closed-form trajectory 0.8^100 | 1e-6 relative |
-| agsdr_quadratic_minimum | optimizer | closed-form minimum x* after 100 steps (experimental) | 2 x recorded run |
+| agsdr_quadratic_minimum | optimizer | independent float64 NumPy recurrence of the transform update | 1e-12 x max\\|x_0 - x*\\| |
 | gsgd_quadratic_minimum | optimizer | closed-form trajectory 0.8^100 | 1e-6 relative |
 
 ## Hand derivations
@@ -372,19 +418,28 @@ closed forms, not a paper replication: there is no paper value beside ours.
   100 steps is exactly 0.8^100 = 2.04e-10. `step_gsgd_transform` with eta = 0.1 has the same exact
   contraction. The sdr, gsdr and gsgd rows score the relative deviation of the observed ratio from
   0.8^100, so a wrong step size fails as well as a step that does not converge.
+- **AGSDR recurrence.** With `stochastic_scale = 0` and inner `optax.sgd(0.1)` the transform update is
+  `U_t = (1 - a_t) D_t` with `D_t = -0.2 (x_t - x*)`, from `a_0 = 0.5` and `v_0 = u_0 = 0`. After each
+  step `v_{t+1} = 0.99 v_t + 0.01 var(D_t)` (population variance over the flattened update) and
+  `a_{t+1} = clip((u + eps) / (u + v_{t+1} + 2 eps))` with `eps = 1e-6`; `u` stays 0 because the
+  stochastic variance is 0. The loss falls every step from `x_0 = 0`, which keeps the deselection
+  branch inactive (asserted in the reference). The row scores `max|x_core - x_ref| / max|x_0 - x*|`
+  against this recurrence: float64 rounding near x* is about 1e-16 of that scale, a halved core
+  step leaves about 3e-5 and `a_0 = 0` about 2.5e-11, against the tolerance 1e-12.
 
-## Empirical tolerances and configuration
+## Tolerances and configuration
 
-The agsdr row uses tolerance = 2 x the error from one run of this scorer (one-sided; its value is in
-`score.json`): it guards the transform path against regressions and is not an accuracy claim. Fixed
+Each row's tolerance is its factor times its scale (`TOLERANCES` in the scorer). The optimizer rows
+use factor 1e-6 at scale 1.0; the agsdr row uses 1e-12 of the start displacement, below the error of a
+halved-step or an `a_0 = 0` mutant. Fixed
 configuration: x_0 = 0, 100 steps, PRNG key seed 0, inner `optax.sgd(0.1)`.
 
 - `sdr_quadratic_minimum`, `gsdr_quadratic_minimum` and `agsdr_quadratic_minimum` run with
   `stochastic_scale = 0` (the default is 0.1). With the noise off, sdr, gsdr and gsgd reduce to the inner
   gradient step, so these rows test the deterministic update path; the stochastic term and the reset
   branches are not tested here (tests/test_optim_tune.py covers the reset branches). In agsdr the
-  reward variance is 0 with the noise off, so its mixing weight collapses after the first step and the
-  mixing is not tested either.
+  stochastic variance is 0 with the noise off, so its unsup EMA stays 0 and the reference exercises
+  the mixing-weight recurrence directly.
 - `agsdr_transform` is marked EXPERIMENTAL in its docstring (not the canonical AGSDR algorithm, not on the
   `Model.tune()` path). Its row tests that transform only.
 - `step_gsgd_transform` is the documented plain step (its docstring: kept for direct use). Its row tests that step.
