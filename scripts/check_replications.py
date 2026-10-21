@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Replication-checklist gate rows: R1, R6, S1, S2, E1, E3.
+"""Replication-checklist gate rows: R1, R6, S1, S2, E1, E3, P4 (manifest).
 
 Paper registry: ``dashboard/sources.json`` papers[] (``id``, ``stage``,
 ``stage_artifacts``, ``preregs``). Paper folders: ``artifacts/etudes/papers/*/``.
@@ -64,6 +64,21 @@ SHA, so this gate does not re-check their working-tree existence.
   ``jaxfne.analysis`` name (collected recursively under ``jaxfne/analysis*``,
   including ``__all__`` re-exports; a method named like a core function is not
   a copy).
+- P4 (manifest): every run writes a manifest with code SHA, backend, dtype,
+  seeds and the activity-regime block: the paper's P4 ``stage_artifacts``
+  entries (the same scored modules E1 checks; labels naming an oracle or a
+  test, ``test_*`` basenames and ``*_ref*``/``*reference*`` names excluded)
+  hold one manifest writer covering one key from each class. A writer is a
+  dict display or ``dict(...)`` call assigned to a name containing
+  ``manifest``, or passed to ``json.dump``/``json.dumps``/``write_text``
+  (attribute calls; a name resolves to its first bound literal); the dicts
+  passed to one call of a function named like ``*manifest*`` count together
+  as one writer. Required
+  classes, in finding order: code SHA {git_sha, code_sha, sha, commit, baseline_sha},
+  backend {backend}, dtype {dtype}, seeds {seed, seeds}, regime {regime,
+  activity_regime} (exact match, case-sensitive; every member is a key a real
+  paper writer uses). Papers below P4 and ``core method`` entries are
+  skipped; a paper with no scored module is E1's finding, not P4 (manifest)'s.
 
 Known violations live in ``scripts/replication_known_violations.json`` as
 ``{"rule", "path", "message", "reason", "todo"}`` and match findings on
@@ -1036,6 +1051,165 @@ def check_e1(papers: list[dict], root: Path) -> list[tuple[str, str, str]]:
     return findings
 
 
+#: P4 (manifest) required key classes, in finding order. Each class is
+#: satisfied by one exact (case-sensitive) key from its set.
+P4_KEY_CLASSES = (
+    ("code SHA", ("git_sha", "code_sha", "sha", "commit", "baseline_sha")),
+    ("backend", ("backend",)),
+    ("dtype", ("dtype",)),
+    ("seeds", ("seed", "seeds")),
+    ("regime", ("regime", "activity_regime")),
+)
+
+#: Attribute calls a manifest writer may be passed to (``json.dump``,
+#: ``json.dumps``, ``Path.write_text`` and the like).
+P4_SINK_CALLS = ("dump", "dumps", "write_text")
+
+
+def _p4_dict_keys(node: ast.AST) -> set[str] | None:
+    """String keys of a manifest-writer-shaped node, else None.
+
+    A dict display contributes its constant string keys; a ``dict(...)``
+    call contributes its keyword names. Anything else (a load, a merge, a
+    name) is not a statically readable writer.
+    """
+    if isinstance(node, ast.Dict):
+        return {
+            key.value
+            for key in node.keys
+            if isinstance(key, ast.Constant) and isinstance(key.value, str)
+        }
+    if (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "dict"
+    ):
+        return {kw.arg for kw in node.keywords if kw.arg is not None}
+    return None
+
+
+def _p4_literal_bindings(tree: ast.Module) -> dict[str, ast.AST]:
+    """Name to its first bound dict-display / ``dict(...)`` value."""
+    bindings: dict[str, ast.AST] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            targets = node.targets
+            value = node.value
+        elif (
+            isinstance(node, ast.AnnAssign)
+            and isinstance(node.target, ast.Name)
+            and node.value is not None
+        ):
+            targets = [node.target]
+            value = node.value
+        else:
+            continue
+        if (
+            len(targets) == 1
+            and isinstance(targets[0], ast.Name)
+            and _p4_dict_keys(value) is not None
+        ):
+            bindings.setdefault(targets[0].id, value)
+    return bindings
+
+
+def _p4_writers(tree: ast.Module) -> list[tuple[int, int, set[str]]]:
+    """(lineno, column, keys) manifest writers of one module, in file order.
+
+    A dict display or ``dict(...)`` call counts when it is assigned to a
+    name containing ``manifest``, or passed to ``json.dump`` /
+    ``json.dumps`` / ``write_text`` (a passed name resolves to its first
+    bound literal; subscript stores and loads never count).
+    """
+    found: dict[tuple[int, int], set[str]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Assign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            if any(
+                isinstance(target, ast.Name) and "manifest" in target.id
+                for target in targets
+            ):
+                keys = _p4_dict_keys(node.value)
+                if keys is not None:
+                    found.setdefault(
+                        (node.lineno, node.col_offset), keys
+                    )
+    bindings = _p4_literal_bindings(tree)
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        args: list[ast.AST] = list(node.args) + [kw.value for kw in node.keywords]
+        name = func.id if isinstance(func, ast.Name) else (
+            func.attr if isinstance(func, ast.Attribute) else "")
+        if "manifest" in name.lower():
+            # A manifest helper (write_manifest(out, record, static)) merges the dicts it is
+            # given into one manifest: their keys count together as one writer.
+            merged: set[str] = set()
+            for arg in args:
+                if isinstance(arg, ast.Name) and arg.id in bindings:
+                    arg = bindings[arg.id]
+                keys = _p4_dict_keys(arg)
+                if keys is not None:
+                    merged |= keys
+            if merged:
+                found.setdefault((node.lineno, node.col_offset), merged)
+            continue
+        if not (isinstance(func, ast.Attribute) and func.attr in P4_SINK_CALLS):
+            continue
+        for arg in args:
+            if isinstance(arg, ast.Starred):
+                arg = arg.value
+            if isinstance(arg, ast.Name) and arg.id in bindings:
+                arg = bindings[arg.id]
+            keys = _p4_dict_keys(arg)
+            if keys is not None:
+                found.setdefault((arg.lineno, arg.col_offset), keys)
+    return sorted((line, col, keys) for (line, col), keys in found.items())
+
+
+def check_p4(papers: list[dict], root: Path) -> list[tuple[str, str, str]]:
+    """P4 (manifest) findings: one scored-modules manifest covering every key class."""
+    findings = []
+    for paper in papers:
+        if paper.get("class") == "core method":
+            continue
+        stage = paper.get("stage")
+        if stage not in STAGE_ORDER or STAGE_ORDER.index(stage) < STAGE_ORDER.index("P4"):
+            continue
+        folder_rel = paper_folder(paper, root)
+        if folder_rel is None:
+            continue  # R1 owns folders no stage_artifacts path names
+        modules = e1_scored_modules(paper, root)
+        if not modules:
+            continue  # no scored module is E1's finding, not P4 (manifest)'s
+        best: tuple[set[str], int, int] | None = None
+        for module in modules:
+            try:
+                tree = ast.parse(module.read_bytes().decode("utf-8"))
+            except (OSError, ValueError, SyntaxError):
+                continue
+            for lineno, col, keys in _p4_writers(tree):
+                covered = {
+                    cls for cls, members in P4_KEY_CLASSES if keys & set(members)
+                }
+                if best is None or len(covered) > len(best[0]):
+                    best = (covered, lineno, col)
+        if best is None:
+            findings.append(
+                ("P4", folder_rel, "no manifest writer in the scored P4 modules")
+            )
+            continue
+        covered, _, _ = best
+        if len(covered) == len(P4_KEY_CLASSES):
+            continue
+        missing = [cls for cls, _ in P4_KEY_CLASSES if cls not in covered]
+        findings.append(
+            ("P4", folder_rel, "manifest writer lacks " + ", ".join(missing))
+        )
+    return findings
+
+
 def _all_names(tree: ast.Module) -> set[str]:
     """Non-private names of one ``__all__`` list/tuple assignment."""
     names: set[str] = set()
@@ -1147,6 +1321,7 @@ def collect_findings(root: Path) -> list[tuple[str, str, str]]:
         + s1
         + check_s2(parsed, papers, root)
         + check_e1(papers, root)
+        + check_p4(papers, root)
         + e3
     )
     return sorted(set(findings))

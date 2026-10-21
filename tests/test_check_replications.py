@@ -570,6 +570,108 @@ def test_e1_no_scored_module_listed(tmp_path):
     ) in cr.collect_findings(tmp_path)
 
 
+def test_p4_full_writer_passes(tmp_path):
+    _registry(tmp_path, [_e1_paper("p4ok", [_e1_entry("p4ok", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/p4ok/run.py",
+                 'import json\nmanifest = {"git_sha": "abc", "backend": "cpu", '
+                 '"dtype": "float32", "seed": 1, "regime": "AI"}\n'
+                 'json.dumps(manifest)\n')
+    text = run.read_text(encoding="utf-8")
+    for key in ("git_sha", "backend", "dtype", "seed", "regime"):
+        assert '"%s"' % key in text, "fixture must hold every P4 key class"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "P4"] == [], (
+        "a writer covering all five classes stays clean"
+    )
+
+
+def test_p4_missing_dtype_and_regime_fails(tmp_path):
+    _registry(tmp_path, [_e1_paper("p4mr", [_e1_entry("p4mr", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/p4mr/run.py",
+                 'manifest = {"git_sha": "abc", "backend": "cpu", "seed": 1}\n')
+    text = run.read_text(encoding="utf-8")
+    assert '"dtype"' not in text and '"regime"' not in text, (
+        "fixture must lack exactly dtype and regime"
+    )
+    assert (
+        "P4",
+        "artifacts/etudes/papers/p4mr",
+        "manifest writer lacks dtype, regime",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_p4_no_writer_fails(tmp_path):
+    _registry(tmp_path, [_e1_paper("p4nw", [_e1_entry("p4nw", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/p4nw/run.py", "VALUE = 1\n")
+    assert "manifest" not in run.read_text(encoding="utf-8"), (
+        "fixture must hold no manifest writer"
+    )
+    assert (
+        "P4",
+        "artifacts/etudes/papers/p4nw",
+        "no manifest writer in the scored P4 modules",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_p4_unnamed_writer_passed_to_dumps_passes(tmp_path):
+    _registry(tmp_path, [_e1_paper("p4un", [_e1_entry("p4un", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/p4un/run.py",
+                 'import json\ndata = {"git_sha": "abc", "backend": "cpu", '
+                 '"dtype": "float32", "seed": 1, "regime": "AI"}\n'
+                 'json.dumps(data)\n')
+    text = run.read_text(encoding="utf-8")
+    assert "manifest" not in text, "fixture writer must not be named manifest"
+    assert "json.dumps(data)" in text, "fixture must pass the writer to json.dumps"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "P4"] == [], (
+        "a writer passed to json.dumps counts without the manifest name"
+    )
+
+
+def test_p4_manifest_helper_merges_its_dict_arguments(tmp_path):
+    _registry(tmp_path, [_e1_paper("p4hp", [_e1_entry("p4hp", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/p4hp/run.py",
+                 'static = {"baseline_sha": "abc", "backend": "cpu"}\n'
+                 'record = {"dtype": "float32", "seeds": [1, 2]}\n'
+                 '_write_manifest("out", record, static)\n')
+    text = run.read_text(encoding="utf-8")
+    assert "_write_manifest(" in text and '"regime"' not in text, (
+        "fixture must pass two dicts to a manifest helper and lack only the regime"
+    )
+    assert (
+        "P4",
+        "artifacts/etudes/papers/p4hp",
+        "manifest writer lacks regime",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_p4_oracle_only_writer_does_not_count(tmp_path):
+    _registry(tmp_path, [_e1_paper("p4or", [
+        _e1_entry("p4or", "model", "run.py"),
+        _e1_entry("p4or", "oracle transcription", "oracle_mod.py"),
+    ])])
+    _write(tmp_path, "artifacts/etudes/papers/p4or/run.py", "VALUE = 1\n")
+    oracle = _write(tmp_path, "artifacts/etudes/papers/p4or/oracle_mod.py",
+                    'manifest = {"git_sha": "abc", "backend": "cpu", '
+                    '"dtype": "float32", "seed": 1, "regime": "AI"}\n')
+    text = oracle.read_text(encoding="utf-8")
+    for key in ("git_sha", "backend", "dtype", "seed", "regime"):
+        assert '"%s"' % key in text, "fixture oracle must hold the full writer"
+    assert (
+        "P4",
+        "artifacts/etudes/papers/p4or",
+        "no manifest writer in the scored P4 modules",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_p4_p3_paper_out_of_scope(tmp_path):
+    papers = [_e1_paper("p4p3", [_e1_entry("p4p3", "model", "run.py")], stage="P3")]
+    _registry(tmp_path, papers)
+    _write(tmp_path, "artifacts/etudes/papers/p4p3/run.py", "VALUE = 1\n")
+    assert papers[0]["stage"] == "P3", "fixture must stay below P4"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "P4"] == [], (
+        "a P3 paper is out of scope"
+    )
+
+
 def test_missing_allowlist_fails_check(tmp_path):
     _registry(tmp_path, [])
     assert not (tmp_path / "scripts" / "replication_known_violations.json").exists(), (
