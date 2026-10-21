@@ -1,1 +1,0 @@
-- The LIF kernel gains the optional parameter `t_ref_ms` (default `0.0`): a hard-refractory window in milliseconds after each spike during which the cell's voltage is held at reset and it cannot spike. `0.0` keeps the historical step bit for bit; a non-LIF family declaring it is refused as an unconsumed key; non-real, non-finite or negative values are refused.

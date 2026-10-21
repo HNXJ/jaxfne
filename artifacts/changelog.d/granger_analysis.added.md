@@ -1,1 +1,0 @@
-- Spectral Granger causality and directionality in `jaxfne.analysis`: `granger_spectral` (Geweke 1982 bivariate VAR decomposition, `gc_xy`/`gc_yx` over `freqs_hz`) and `directionality_index` (DAI Eq. 1, `0/0` reads 0.0). NumPy only, so lane scorers can call them on binned spike trains or rate traces without touching the simulator.

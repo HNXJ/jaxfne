@@ -1,1 +1,0 @@
-- `Model.tune` reports `acceptance_decision: "REVISE"` on the optax path when no gradient loop is eligible (no parameters were tuned); it reported `ACCEPT_CANDIDATE` there before. On the multi-parameter path an explicit `generations` or `population_size` below 1 raises `ValueError` naming the argument; an explicit 0 was replaced by the default before.

@@ -18,7 +18,7 @@ which resolves to the latest version. Cite it when referring to jaxfne as a proj
   publisher = {Zenodo},
   doi = {10.5281/zenodo.21448155},
   url = {https://github.com/HNXJ/jaxfne},
-  version = {0.5.6}
+  version = {0.5.7}
 }
 ```
 

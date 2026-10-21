@@ -1,1 +1,0 @@
-- `adex_step` in `jaxfne/emitters_adex.py` gains the exact LIF limit: `Delta_mV=0.0` takes the leak-only update through `jnp.where`, so the exponential term vanishes instead of dividing by zero, and every `Delta_mV>0` cell runs the unchanged AdEx formula bit-identically.

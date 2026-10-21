@@ -1,1 +1,0 @@
-- `jaxfne.fields.signals_dipole(signals, model, axis=2)`: column dipole `[T]` of a simulation, from its recorded sources at the model's positions, ready for `SphereForward` (MEG/EEG from the same run that gives the LFP). Refuses signals without sources and models without `params["positions"]`.

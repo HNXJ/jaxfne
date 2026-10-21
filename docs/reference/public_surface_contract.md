@@ -1,6 +1,6 @@
 # Public API
 
-This page records the **public export contract** of jaxfne 0.5.6: 208 root symbols in
+This page records the **public export contract** of jaxfne 0.5.7: 208 root symbols in
 `jaxfne.__all__`, with tier membership defined in `jaxfne/public_surface.py`.
 
 Machine-readable receipt: `artifacts/assurance/api_contracts/public_surface_contract_v0413.json`.

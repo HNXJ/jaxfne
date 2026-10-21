@@ -10,7 +10,9 @@ The published **PyPI** release is **`jaxfne==0.5.6`** (tag `v0.5.6`),
 built from commit `b24e09e`. The previous release is **`0.5.5`**
 (tag `v0.5.5`). The
 **development** public API on `dev` is documented in
-[Public API contract](../reference/public_surface_contract.md) (208-symbol surface). To pin
+[Public API contract](../reference/public_surface_contract.md) (208-symbol surface). The
+development tree is at **0.5.7**, a release candidate that is unpublished on
+PyPI; the published release stays at 0.5.6 above. To pin
 the published PyPI release explicitly:
 
 ```bash

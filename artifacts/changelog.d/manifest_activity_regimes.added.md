@@ -1,1 +1,0 @@
-- Run manifests carry `activity_regimes` per cell type, classified over the whole recorded trace with the signals' own grid and the recorded thresholds; all-silent runs read `silent`, and classifier refusals are recorded with their reason.

@@ -239,7 +239,7 @@ nav:
           - RBD State Memory: theory/memory/protocol_h_rbd_memory.md
           - HDP Parameter Memory: theory/memory/protocol_w_hdp_parameter_memory.md
 extra:
-  jaxfne_version: "0.5.6"
+  jaxfne_version: "0.5.7"
   redirect_maps:
     api/augment.md: reference/api/core/augment.md
     api/core.md: reference/api/core/core.md

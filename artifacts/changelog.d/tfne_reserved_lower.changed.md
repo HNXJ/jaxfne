@@ -1,1 +1,0 @@
-- TFNE rule names refuse `x`, `y`, `h` and `s` at parse time, in definitions (`O[s] := ...`) and references (`A O[s] B`): `x` and `y` name boundaries and `h` and `s` state symbols. Boundary names are unchanged.

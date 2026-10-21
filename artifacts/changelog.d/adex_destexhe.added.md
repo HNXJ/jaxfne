@@ -1,1 +1,0 @@
-- `jaxfne.adex_destexhe`: Destexhe 2009 aeIF cell values (RS, RSweak, FS, LTS, TC, RE over shared geometry) for the AdEx route. `destexhe_overrides` builds the overrides mapping that `make_adex_params` accepts, and `apply_destexhe_params` returns a copy of an AdEx `Model` carrying the Destexhe emitter values; edges, receptors, delays, drive and the kernel are untouched.
