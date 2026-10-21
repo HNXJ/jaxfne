@@ -52,10 +52,8 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   0.5.8 changelog names it as a fix to 0.5.7; Vogels segment B rerun is O-55).
   Then 6eb3c6b8 (hybrid kernel LFP, Hagen 2016 reduced cells, Billeh 2020 V1 wiring tables),
   44cd0111, ff45364b; its LFP validation feeds 0.5.10.
-- Validation backbone (O-56; Hamm 2026-10-21: "expand it, our backbone of supports"): one
-  core-method scorer per family under `artifacts/etudes/core_checks/` (at most 7 folders):
-  head_forward (on dev), emitters, plasticity, numerics, objectives (Objective and Optimizer
-  checks, new), fields, ports; then a grammar-stage column in the Validation tab. After the
+- Validation backbone (O-56; Hamm 2026-10-21: "expand it, our backbone of supports"): seven
+  core-method rows score under `artifacts/etudes/core_checks/` with grammar stages. After the
   kernel LFP lane lands: iSTDP out-degree check in plasticity, kernel LFP checks in fields.
 
 In order: B4 checklist rules in `check_replications.py`;
