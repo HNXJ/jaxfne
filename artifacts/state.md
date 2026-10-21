@@ -10,7 +10,10 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   CI 39585668167 green), GitHub Release, PyPI via Publish run 39595006450; receipt
   `artifacts/release/v0_5_7_release_receipt.json`. rc gate PASS on dev 508dffa9 (broad 6917
   passed, 0 failed; JUnit parity 7053 = 7053 nodes against Release CI 39565883872, 6 explained
-  differences). Install and Colab docs name 0.5.7 as published.
+  differences). Install and Colab docs name 0.5.7 as published. Release body edited
+  2026-10-21T14:09:15Z (Hamm: "Name it, fix in 0.5.8"): a Known issue section names the
+  `istdp_vogels2011` presynaptic trace scaling with out-degree; the fix is f57aae0f in the kernel
+  LFP lane (todo section 2). Tag, PyPI files and receipt unchanged.
 
 - 2026-10-20: Brunel 2000 Fig. 8 reproduced (conditional) under signed P3 v4 (seeds 4-8, dt 0.1 ms,
   CPU float32; float64 at C agrees): `papers/brunel2000/RESULT_P3.md`, REPLICATIONS, dashboard.

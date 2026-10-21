@@ -48,7 +48,8 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 - Kernel LFP lane `cl-klfp` onto dev (owner: corticolaminar session; keeper gates and pushes):
   rebase onto current dev, broad gate 0 failed, then push. First f57aae0f, `istdp_vogels2011`
   per-synapse traces (0.5.7 ships the per-neuron trace, whose presynaptic increment scales with
-  out-degree; the 0.5.8 changelog names it as a fix to 0.5.7; Vogels segment B rerun is O-55).
+  out-degree, named as a Known issue in the v0.5.7 release body on Hamm's ruling 2026-10-21; the
+  0.5.8 changelog names it as a fix to 0.5.7; Vogels segment B rerun is O-55).
   Then 6eb3c6b8 (hybrid kernel LFP, Hagen 2016 reduced cells, Billeh 2020 V1 wiring tables),
   44cd0111, ff45364b; its LFP validation feeds 0.5.10.
 
