@@ -86,9 +86,22 @@ theme:
     - search.highlight
     - content.code.copy
   palette:
-    - scheme: slate
-      primary: orange
-      accent: gray
+    # Two schemes with a toggle (as in jnwb); `media` makes the first entry the default for a
+    # visitor whose OS prefers dark. Colors come from docs/_static/theme_override.css.
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
 
 extra_css:
   - _static/theme_override.css
