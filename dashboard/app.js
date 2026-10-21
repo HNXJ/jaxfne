@@ -927,12 +927,30 @@ function renderValidation(view, data) {
   }
   select.addEventListener("change", fill);
   view.appendChild(el("h3", "Core method checks"));
-  view.appendChild(el("p", "Analytic checks of core methods against closed-form references. Values are copied from the scorer files at the commits shown; the page computes no verdict.")).className = "small";
+  view.appendChild(el("p", "Checks of core methods against independent references (closed forms, hand values, finite differences, other libraries), grouped by the grammar stage they support. Values are copied from the scorer files at the commits shown; the page computes no verdict.")).className = "small";
+  var coreRows = [];
+  (data.papers || []).forEach(function (p) {
+    if (p["class"] !== "core method") return;
+    (p.criteria || []).forEach(function (c) { coreRows.push({ p: p, c: c }); });
+  });
+  // Rows sort by the first grammar stage of their method, in grammar order.
+  var GRAMMAR = ["Emitter", "Source", "Field", "Probe", "Objective", "Optimizer", "RBD/HDP", "Numerics"];
+  function grammarRank(p) {
+    var g = (p.grammar || [])[0];
+    var i = GRAMMAR.indexOf(g);
+    return i < 0 ? GRAMMAR.length : i;
+  }
+  coreRows.sort(function (a, b) { return grammarRank(a.p) - grammarRank(b.p); });
+  var coverage = GRAMMAR.map(function (g) {
+    var n = coreRows.filter(function (r) { return (r.p.grammar || []).indexOf(g) >= 0; }).length;
+    return g + " " + n;
+  });
+  view.appendChild(el("p", "Checks per stage: " + coverage.join(" · "))).className = "small";
   var coreTable = el("table");
   coreTable.className = "validation";
   var coreHead = el("thead");
   var coreHr = el("tr");
-  labels.forEach(function (h) { coreHr.appendChild(el("th", h)); });
+  ["Stage"].concat(labels).forEach(function (h) { coreHr.appendChild(el("th", h)); });
   coreHead.appendChild(coreHr);
   coreTable.appendChild(coreHead);
   var coreBody = el("tbody");
@@ -940,12 +958,15 @@ function renderValidation(view, data) {
   view.appendChild(coreTable);
   function fillCore() {
     clear(coreBody);
-    (data.papers || []).forEach(function (p) {
-      if (p["class"] !== "core method") return;
-      (p.criteria || []).forEach(function (c) {
-        if (select.value !== "all" && c.verdict !== select.value) return;
-        paintRow(p, c, coreBody);
-      });
+    coreRows.forEach(function (r) {
+      if (select.value !== "all" && r.c.verdict !== select.value) return;
+      paintRow(r.p, r.c, coreBody);
+      var row = coreBody.lastChild;
+      var td = el("td", (r.p.grammar || []).join(", ") || "—");
+      var lab = el("span", "Stage: ");
+      lab.className = "cell-label";
+      td.insertBefore(lab, td.firstChild);
+      row.insertBefore(td, row.firstChild);
     });
   }
   fill();
