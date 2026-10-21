@@ -41,11 +41,20 @@ def _sha(arr) -> str:
 
 
 def _emit(
-    panels: list, out_dir: pathlib.Path, filename: str, panel: str, evidence: str, fig, source: str
-) -> None:  # type: ignore[no-untyped-def]
+    panels: list,
+    out_dir: pathlib.Path,
+    filename: str,
+    panel: str,
+    evidence: str,
+    fig,  # type: ignore[no-untyped-def]
+    source: str,
+    figures: dict | None = None,
+) -> None:
     from scripts.plot_frozen_etude_panels import _dark, _write
 
     fig = _dark(fig, panel)
+    if figures is not None:
+        figures[filename] = fig
     nbytes = _write(fig, out_dir, filename)
     panels.append(
         {
@@ -109,7 +118,7 @@ def _verify_multiscale_claims(bundle_metrics: dict, spikes, V, Q, positions) -> 
         )
 
 
-def mode_multiscale(out_dir: pathlib.Path) -> list[dict]:
+def mode_multiscale(out_dir: pathlib.Path, figures: dict | None = None) -> list[dict]:
     import numpy as np
 
     import jaxfne as J
@@ -186,6 +195,7 @@ def mode_multiscale(out_dir: pathlib.Path) -> list[dict]:
         "OBSERVED",
         fig,
         SRC,
+        figures=figures,
     )
 
     fig = go.Figure()
@@ -200,6 +210,7 @@ def mode_multiscale(out_dir: pathlib.Path) -> list[dict]:
         "OBSERVED",
         fig,
         SRC,
+        figures=figures,
     )
 
     fo = project_laminar_sources(Q, positions, n_contacts=16, width=0.10)
@@ -217,6 +228,7 @@ def mode_multiscale(out_dir: pathlib.Path) -> list[dict]:
         "DERIVED",
         fig,
         SRC,
+        figures=figures,
     )
 
     fig = go.Figure()
@@ -231,6 +243,7 @@ def mode_multiscale(out_dir: pathlib.Path) -> list[dict]:
         "DERIVED",
         fig,
         SRC,
+        figures=figures,
     )
 
     from jaxfne.analysis.spectral import spectrolaminar_psd_jax
@@ -265,6 +278,7 @@ def mode_multiscale(out_dir: pathlib.Path) -> list[dict]:
         "DERIVED",
         fig,
         SRC,
+        figures=figures,
     )
 
     finalize(
@@ -318,7 +332,7 @@ def _verify_heterogeneous_claims(bundle: dict, runs: dict, rates: dict) -> None:
     return burn, freqs
 
 
-def mode_heterogeneous(out_dir: pathlib.Path) -> list[dict]:
+def mode_heterogeneous(out_dir: pathlib.Path, figures: dict | None = None) -> list[dict]:
     import numpy as np
 
     from scripts.run_heterogeneous_emitters_etude import (
@@ -408,6 +422,7 @@ def mode_heterogeneous(out_dir: pathlib.Path) -> list[dict]:
         "OBSERVED",
         fig,
         HSRC,
+        figures=figures,
     )
 
     V = np.asarray(izh["V"])
@@ -423,6 +438,7 @@ def mode_heterogeneous(out_dir: pathlib.Path) -> list[dict]:
         "OBSERVED",
         fig,
         HSRC,
+        figures=figures,
     )
 
     for name, key in (("izh", "lfp_izh.html"), ("hei", "lfp_hei.html")):
@@ -439,6 +455,7 @@ def mode_heterogeneous(out_dir: pathlib.Path) -> list[dict]:
             "DERIVED",
             fig,
             HSRC,
+            figures=figures,
         )
 
     X = np.asarray(hei["V"])
@@ -454,6 +471,7 @@ def mode_heterogeneous(out_dir: pathlib.Path) -> list[dict]:
         "OBSERVED",
         fig,
         HSRC,
+        figures=figures,
     )
 
     from jaxfne.analysis.spectral import spectrolaminar_psd_jax
@@ -484,6 +502,7 @@ def mode_heterogeneous(out_dir: pathlib.Path) -> list[dict]:
         "DERIVED",
         fig,
         HSRC,
+        figures=figures,
     )
 
     finalize(
@@ -504,7 +523,7 @@ def mode_heterogeneous(out_dir: pathlib.Path) -> list[dict]:
     return panels
 
 
-def mode_hdp_mcc3(out_dir: pathlib.Path) -> list[dict]:
+def mode_hdp_mcc3(out_dir: pathlib.Path, figures: dict | None = None) -> list[dict]:
     import numpy as np
 
     import jaxfne as J
@@ -585,6 +604,7 @@ def mode_hdp_mcc3(out_dir: pathlib.Path) -> list[dict]:
         "OBSERVED",
         fig,
         "reproduced MCC-3 condition B (metric-checked)",
+        figures=figures,
     )
 
     fig = go.Figure()
@@ -599,6 +619,7 @@ def mode_hdp_mcc3(out_dir: pathlib.Path) -> list[dict]:
         "OBSERVED",
         fig,
         "reproduced MCC-3 condition B (metric-checked)",
+        figures=figures,
     )
 
     H = np.asarray(diag["H_trace"])
@@ -635,6 +656,7 @@ def mode_hdp_mcc3(out_dir: pathlib.Path) -> list[dict]:
         "DERIVED",
         fig,
         "reproduced MCC-3 condition B (metric-checked)",
+        figures=figures,
     )
 
     W = np.asarray(diag["w_trace"], dtype=float).reshape(diag["w_trace"].shape[0], -1)
@@ -672,6 +694,7 @@ def mode_hdp_mcc3(out_dir: pathlib.Path) -> list[dict]:
         "DERIVED",
         fig,
         "reproduced MCC-3 condition B (metric-checked)",
+        figures=figures,
     )
 
     from jaxfne.analysis.spectral import spectrolaminar_psd_jax
@@ -701,6 +724,7 @@ def mode_hdp_mcc3(out_dir: pathlib.Path) -> list[dict]:
         "DERIVED",
         fig,
         "reproduced MCC-3 condition B (metric-checked)",
+        figures=figures,
     )
 
     finalize(

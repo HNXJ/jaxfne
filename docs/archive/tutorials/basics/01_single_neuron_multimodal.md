@@ -115,6 +115,6 @@ plt.show()
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from this page's circuit (100 ms, dt 0.1 ms, seed 0): [index](../../../_static/atlas/single_neuron/index.html) · [schema](../../../_static/atlas/single_neuron/schema.html) · [3D](../../../_static/atlas/single_neuron/network_3d.html) · [raster](../../../_static/atlas/single_neuron/raster.html) · [LFP](../../../_static/atlas/single_neuron/lfp.html) · [H](../../../_static/atlas/single_neuron/h_dynamics.html) · [HDP](../../../_static/atlas/single_neuron/hdp.html) · [oscillatory](../../../_static/atlas/single_neuron/oscillatory.html).
+Dark-theme Plotly panels from this page's circuit (100 ms, dt 0.1 ms, seed 0): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/single_neuron/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/single_neuron/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/single_neuron/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/single_neuron/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug single_neuron`.

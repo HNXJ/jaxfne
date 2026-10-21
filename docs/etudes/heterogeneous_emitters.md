@@ -159,18 +159,13 @@ PYTHONPATH=. python3 scripts/run_heterogeneous_emitters_etude.py
 <!-- jx-figure -->
 ## Figure
 
-=== "Still"
+![Heterogeneous emitters bundle figure](../assets/etudes/heterogeneous_emitters.png)
 
-    ![Heterogeneous emitters bundle figure](../assets/etudes/heterogeneous_emitters.png)
 
-=== "Interactive"
-
-    <iframe class="jx-frame" src="../../_static/etudes/heterogeneous_emitters/index.html" loading="lazy" title="Heterogeneous emitters bundle figure"></iframe>
-
-Committed bundle still (`artifacts/etudes/bundles/heterogeneous_emitters/figure.png`). [Open full page](../_static/etudes/heterogeneous_emitters/index.html).
+Committed bundle still (`artifacts/etudes/bundles/heterogeneous_emitters/figure.png`).
 
 ## Interactive panels (dark)
 
-Reproduced panels — deterministic rerun of the frozen protocol, trajectories and rates hash-identical to the bundle: [index](../_static/etudes/heterogeneous_emitters/index.html) · [raster (izh)](../_static/etudes/heterogeneous_emitters/raster_izh.html) · [traces (izh)](../_static/etudes/heterogeneous_emitters/traces_izh.html) · [LFP (izh)](../_static/etudes/heterogeneous_emitters/lfp_izh.html) · [LFP (hei)](../_static/etudes/heterogeneous_emitters/lfp_hei.html) · [traces (hei)](../_static/etudes/heterogeneous_emitters/traces_hei.html) · [spectra](../_static/etudes/heterogeneous_emitters/oscillatory.html).
+Reproduced panels — deterministic rerun of the frozen protocol, trajectories and rates hash-identical to the bundle: LFP proxy (hei) · LFP proxy (izh) · [Source spectra by family](https://hnxj.github.io/jaxfne/figures/heterogeneous_emitters/oscillatory.html) · Spike raster (Izhikevich) · [State traces (HEI)](https://hnxj.github.io/jaxfne/figures/heterogeneous_emitters/traces_hei.html) · Membrane traces (Izhikevich)
 
 Regenerate: `python scripts/rerun_etude_figures.py --etude heterogeneous` (aborts on drift).

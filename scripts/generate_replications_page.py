@@ -34,7 +34,7 @@ def render(sources: dict) -> str:
         "verdicts and figures. Stages P0–P7 run from selection to insight; a replication counts",
         "as done with jaxfne only when it runs through the library (P6).",
         "",
-        f'<iframe class="jx-frame" src="{DASHBOARD}" loading="lazy" title="Replication dashboard"></iframe>',
+        f"[Open the replication dashboard]({DASHBOARD})",
         "",
         "| Paper | Class | Release | Stage | Verdict |",
         "|---|---|---|---|---|",

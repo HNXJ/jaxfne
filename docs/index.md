@@ -70,33 +70,22 @@ Full panel set, generation workflow, and provenance rules:
 [Canonical Atlas Suite guide](guides/interop/atlas_suite.md).
 
 Canonical 1000-neuron column, pinned 1000 ms reference run:
-<iframe class="jx-frame" src="_static/atlas/index.html" loading="lazy" title="Canonical 1000-neuron atlas dashboard"></iframe>
+![Canonical V1 Column (1000n)](https://hnxj.github.io/jaxfne/figures/readme/raster.png)
+*Canonical V1 Column (1000n): spike raster.*
 
-([index](_static/atlas/index.html) ·
-[schema](_static/atlas/schema.html) ·
-[network_3d](_static/atlas/network_3d.html) ·
-[raster](_static/atlas/raster.html) ·
-[lfp](_static/atlas/lfp.html) ·
-[h_dynamics](_static/atlas/h_dynamics.html) ·
-[hdp](_static/atlas/hdp.html) ·
-[oscillatory](_static/atlas/oscillatory.html)).
+([Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)).
 
 Twenty-area hierarchy (Atlas AT-10-N20), areas in hierarchy order with
-inter-area edge counts ([full page](_static/visuals/area_graph_n20.html)):
+inter-area edge counts ([full page](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.html)):
 
-<iframe class="jx-frame" src="_static/visuals/area_graph_n20.html" loading="lazy" title="Twenty-area hierarchy graph"></iframe>
+![Twenty-area hierarchy graph](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.png)
+*Twenty-area hierarchy graph. [Interactive version](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.html)*
 
 Three-area hierarchy (`V1–V4–PFC`, 100 neurons/area, bidirectional
 feedforward/feedback): [Gallery 09](start/gallery.md#09-three-area-hierarchy-v1v4pfc)
 with the full six-panel atlas:
 
-<iframe class="jx-frame" src="_static/atlas_three_area/index.html" loading="lazy" title="Three-area atlas dashboard"></iframe>
+![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.png)
+*V1-V4-PFC three-area hierarchy (100/area): spike raster.*
 
-([index](_static/atlas_three_area/index.html) ·
-[schema](_static/atlas_three_area/schema.html) ·
-[network_3d](_static/atlas_three_area/network_3d.html) ·
-[raster](_static/atlas_three_area/raster.html) ·
-[lfp](_static/atlas_three_area/lfp.html) ·
-[h_dynamics](_static/atlas_three_area/h_dynamics.html) ·
-[hdp](_static/atlas_three_area/hdp.html) ·
-[oscillatory](_static/atlas_three_area/oscillatory.html)).
+([Circuit schematic](https://hnxj.github.io/jaxfne/figures/three_area/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/three_area/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/three_area/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/three_area/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/three_area/oscillatory.html)).

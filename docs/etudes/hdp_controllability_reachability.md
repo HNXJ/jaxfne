@@ -180,15 +180,10 @@ Package-native operators used: `Signals` field proxy (`phi_e_proxy`, `csd_proxy`
 <!-- jx-figure -->
 ## Figure
 
-=== "Still"
+![HDP controllability bundle figure, panels A–L](../assets/etudes/hdp_controllability_reachability.png)
 
-    ![HDP controllability bundle figure, panels A–L](../assets/etudes/hdp_controllability_reachability.png)
 
-=== "Interactive"
-
-    <iframe class="jx-frame" src="../../_static/etudes/hdp_controllability_reachability/index.html" loading="lazy" title="HDP controllability bundle figure"></iframe>
-
-Panels A–L (panel E = OFF | scalar | vector rasters; MVC #1 inset in D). [Open full page](../_static/etudes/hdp_controllability_reachability/index.html).
+Panels A–L (panel E = OFF | scalar | vector rasters; MVC #1 inset in D).
 
 ---
 
@@ -216,6 +211,6 @@ The committed `metrics.json`, `figure.png`, and `manifest.json` are the durable 
 
 ## Interactive panels (dark)
 
-Reproduced MCC-3 condition-B panels — deterministic rerun of the frozen checkpoint protocol (tune + condition B); tuned weights and firing rates hash-identical to the committed checkpoint: [index](../_static/etudes/hdp_controllability_reachability/index.html) · [raster](../_static/etudes/hdp_controllability_reachability/raster.html) · [traces](../_static/etudes/hdp_controllability_reachability/traces.html) · [H](../_static/etudes/hdp_controllability_reachability/h_dynamics.html) · [HDP](../_static/etudes/hdp_controllability_reachability/hdp.html) · [oscillatory](../_static/etudes/hdp_controllability_reachability/oscillatory.html).
+Reproduced MCC-3 condition-B panels — deterministic rerun of the frozen checkpoint protocol (tune + condition B); tuned weights and firing rates hash-identical to the committed checkpoint: [H dynamics (condition B)](https://hnxj.github.io/jaxfne/figures/hdp_controllability_reachability/h_dynamics.html) · [HDP weight magnitude (condition B)](https://hnxj.github.io/jaxfne/figures/hdp_controllability_reachability/hdp.html) · [Oscillatory response (condition B)](https://hnxj.github.io/jaxfne/figures/hdp_controllability_reachability/oscillatory.html) · [Spike raster (condition B)](https://hnxj.github.io/jaxfne/figures/hdp_controllability_reachability/raster.html) · [Membrane traces (condition B)](https://hnxj.github.io/jaxfne/figures/hdp_controllability_reachability/traces.html)
 
 Regenerate: `python scripts/rerun_etude_figures.py --etude hdp_mcc3` (aborts on drift).

@@ -104,9 +104,10 @@ Timesteps: 1000
 Spike rate: 0.00 spikes/ms
 ```
 
-<iframe class="jx-frame" src="../../_static/atlas/single_neuron/index.html" loading="lazy" title="Single-neuron atlas dashboard"></iframe>
+![Single neuron (1n)](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.png)
+*Single neuron (1n): spike raster.*
 
-Interactive dark-theme panels for this run: [index](../_static/atlas/single_neuron/index.html) · [schema](../_static/atlas/single_neuron/schema.html) · [raster](../_static/atlas/single_neuron/raster.html) · [LFP](../_static/atlas/single_neuron/lfp.html) · [oscillatory](../_static/atlas/single_neuron/oscillatory.html).
+Interactive dark-theme panels for this run: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/single_neuron/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/single_neuron/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/single_neuron/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/single_neuron/oscillatory.html)
 
 ---
 
@@ -149,9 +150,10 @@ Inhibitory firing rate: 0.00 Hz
 ✓ Status checks immutable: physical_amplitude_calibrated = False
 ```
 
-<iframe class="jx-frame" src="../../_static/atlas/two_neuron_ei/index.html" loading="lazy" title="Two-neuron E/I atlas dashboard"></iframe>
+![Two-neuron E/I (2n)](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.png)
+*Two-neuron E/I (2n): spike raster.*
 
-Interactive dark-theme panels for this circuit (500 ms, dt 0.5 ms): [index](../_static/atlas/two_neuron_ei/index.html) · [schema](../_static/atlas/two_neuron_ei/schema.html) · [raster](../_static/atlas/two_neuron_ei/raster.html) · [LFP](../_static/atlas/two_neuron_ei/lfp.html) · [oscillatory](../_static/atlas/two_neuron_ei/oscillatory.html).
+Interactive dark-theme panels for this circuit (500 ms, dt 0.5 ms): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/oscillatory.html)
 
 ---
 

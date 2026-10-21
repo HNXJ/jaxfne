@@ -120,7 +120,7 @@ units recovering) to the controller. Report the null alongside the result.
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the 1000-neuron homeostasis run above (1000 ms, dt 0.5 ms, seed 0): [index](../../_static/atlas/homeostasis_1000/index.html) · [schema](../../_static/atlas/homeostasis_1000/schema.html) · [3D](../../_static/atlas/homeostasis_1000/network_3d.html) · [raster](../../_static/atlas/homeostasis_1000/raster.html) · [LFP](../../_static/atlas/homeostasis_1000/lfp.html) · [H](../../_static/atlas/homeostasis_1000/h_dynamics.html) · [HDP](../../_static/atlas/homeostasis_1000/hdp.html) · [oscillatory](../../_static/atlas/homeostasis_1000/oscillatory.html).
+Dark-theme Plotly panels from the 1000-neuron homeostasis run above (1000 ms, dt 0.5 ms, seed 0): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/homeostasis_1000/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/homeostasis_1000/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/homeostasis_1000/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/homeostasis_1000/lfp.html) · [H dynamics](https://hnxj.github.io/jaxfne/figures/homeostasis_1000/h_dynamics.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/homeostasis_1000/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug homeostasis_1000`.
 

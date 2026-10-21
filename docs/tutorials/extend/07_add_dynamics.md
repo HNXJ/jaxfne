@@ -26,20 +26,16 @@ Realized `H` is the per-neuron mean over the last 1 s of a 2 s run (N=500, seeds
 <!-- jx-figure -->
 ## Figure
 
-=== "Still"
+![Weight trajectories W](../../assets/visuals/hdp_weights.png)
 
-    ![Weight trajectories W](../../assets/visuals/hdp_weights.png)
+[Interactive version](https://hnxj.github.io/jaxfne/figures/hdp_10/hdp.html)
 
-=== "Interactive"
-
-    <iframe class="jx-frame" src="../../../_static/atlas/hdp_10/hdp.html" loading="lazy" title="Weight trajectories W"></iframe>
-
-Weight trajectories W(t) under HDP in the same small run. [Open full page](../../_static/atlas/hdp_10/hdp.html).
+Weight trajectories W(t) under HDP in the same small run. [Open full page](https://hnxj.github.io/jaxfne/figures/hdp_10/hdp.html).
 
 Next: [08 — Compare](08_compare_nulls.md) — nulls, lesions, and authority.
 
 ## Interactive atlas (dark)
 
-HDP dynamics change the trajectory and leave the circuit as it is: the pinned non-HDP reference panels are [here](../../_static/atlas/index.html) ([schema](../../_static/atlas/schema.html) · [3D](../../_static/atlas/network_3d.html) · [raster](../../_static/atlas/raster.html) · [LFP](../../_static/atlas/lfp.html) · [H](../../_static/atlas/h_dynamics.html) · [HDP](../../_static/atlas/hdp.html) · [oscillatory](../../_static/atlas/oscillatory.html)), and the small-mechanistic HDP run with full recording is [here](../../_static/atlas/hdp_10/index.html) ([schema](../../_static/atlas/hdp_10/schema.html) · [3D](../../_static/atlas/hdp_10/network_3d.html) · [raster](../../_static/atlas/hdp_10/raster.html) · [LFP](../../_static/atlas/hdp_10/lfp.html) · [H](../../_static/atlas/hdp_10/h_dynamics.html) · [HDP](../../_static/atlas/hdp_10/hdp.html) · [oscillatory](../../_static/atlas/hdp_10/oscillatory.html)). A short HDP run of the builder-path 1000-neuron column (weight trace off by recording budget) is [here](../../_static/atlas/hdp_1000/index.html).
+HDP dynamics change the trajectory and leave the circuit as it is: the pinned non-HDP reference panels are here ([Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)), and the small-mechanistic HDP run with full recording is here ([Circuit schematic](https://hnxj.github.io/jaxfne/figures/hdp_10/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/hdp_10/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/hdp_10/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/hdp_10/lfp.html) · [H dynamics](https://hnxj.github.io/jaxfne/figures/hdp_10/h_dynamics.html) · [HDP plasticity](https://hnxj.github.io/jaxfne/figures/hdp_10/hdp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/hdp_10/oscillatory.html)). A short HDP run of the builder-path 1000-neuron column (weight trace off by recording budget) is here.
 
 Regenerate: `python scripts/generate_readme_atlas.py --html-only` and `python scripts/generate_doc_page_atlases.py --slug hdp_10,hdp_1000`.

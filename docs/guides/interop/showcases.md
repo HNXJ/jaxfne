@@ -35,7 +35,7 @@ jtfne.vis.visualize_network_3d(
   loading="lazy"
 ></iframe>
 
-Smaller-scale analogue with the full six-panel dark atlas: the V1–V4–PFC hierarchy at 100 neurons/area (this page builds 300/area) — [index](../../_static/atlas_three_area/index.html) · [schema](../../_static/atlas_three_area/schema.html) · [3D](../../_static/atlas_three_area/network_3d.html) · [raster](../../_static/atlas_three_area/raster.html) · [LFP](../../_static/atlas_three_area/lfp.html) · [H](../../_static/atlas_three_area/h_dynamics.html) · [HDP](../../_static/atlas_three_area/hdp.html) · [oscillatory](../../_static/atlas_three_area/oscillatory.html).
+Smaller-scale analogue with the full six-panel dark atlas: the V1–V4–PFC hierarchy at 100 neurons/area (this page builds 300/area) — Interactive figures: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/three_area/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/three_area/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/three_area/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/three_area/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/three_area/oscillatory.html)
 
 ## Homeostasis: firing-rate change and full 10 s raster
 

@@ -26,20 +26,16 @@ model2 = jtfne.restore_state(model, state)
 <!-- jx-figure -->
 ## Figure
 
-=== "Still"
+![Hidden state H over time](../../assets/visuals/hdp_h_dynamics.png)
 
-    ![Hidden state H over time](../../assets/visuals/hdp_h_dynamics.png)
+[Interactive version](https://hnxj.github.io/jaxfne/figures/hdp_10/h_dynamics.html)
 
-=== "Interactive"
-
-    <iframe class="jx-frame" src="../../../_static/atlas/hdp_10/h_dynamics.html" loading="lazy" title="Hidden state H over time"></iframe>
-
-Hidden state H over time (population mean ± std) in a small 10-neuron HDP run with full recording. [Open full page](../../_static/atlas/hdp_10/h_dynamics.html).
+Hidden state H over time (population mean ± std) in a small 10-neuron HDP run with full recording. [Open full page](https://hnxj.github.io/jaxfne/figures/hdp_10/h_dynamics.html).
 
 Next: [07 — Add dynamics](07_add_dynamics.md) — enable `enable_hdp`.
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column (no HDP; dynamics variants are on step 07): [index](../../_static/atlas/index.html) · [schema](../../_static/atlas/schema.html) · [3D](../../_static/atlas/network_3d.html) · [raster](../../_static/atlas/raster.html) · [LFP](../../_static/atlas/lfp.html) · [H](../../_static/atlas/h_dynamics.html) · [HDP](../../_static/atlas/hdp.html) · [oscillatory](../../_static/atlas/oscillatory.html).
+Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column (no HDP; dynamics variants are on step 07): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)
 
 Regenerate: `python scripts/generate_readme_atlas.py --html-only`.

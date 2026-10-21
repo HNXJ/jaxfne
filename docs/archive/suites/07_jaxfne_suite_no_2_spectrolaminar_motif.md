@@ -927,6 +927,6 @@ For a current, corrected spectrolaminar readout (depth-distribution crossings, a
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from `suite2_net1_config` (100 neurons, 1000 ms, dt 0.5 ms, seed 7; the page shows dt 0.1 ms): [index](../../_static/atlas/suite2_net1/index.html) · [schema](../../_static/atlas/suite2_net1/schema.html) · [3D](../../_static/atlas/suite2_net1/network_3d.html) · [raster](../../_static/atlas/suite2_net1/raster.html) · [LFP](../../_static/atlas/suite2_net1/lfp.html) · [H](../../_static/atlas/suite2_net1/h_dynamics.html) · [HDP](../../_static/atlas/suite2_net1/hdp.html) · [oscillatory](../../_static/atlas/suite2_net1/oscillatory.html).
+Dark-theme Plotly panels from `suite2_net1_config` (100 neurons, 1000 ms, dt 0.5 ms, seed 7; the page shows dt 0.1 ms): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/suite2_net1/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/suite2_net1/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/suite2_net1/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/suite2_net1/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/suite2_net1/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug suite2_net1`. The V1–V4 scaffold panels live on the [multi-area laminar page](../tutorials/readouts/11_multi_laminar_cortical_agsdr.md).

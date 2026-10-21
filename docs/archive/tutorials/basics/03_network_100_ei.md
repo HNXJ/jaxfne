@@ -103,7 +103,7 @@ print(f"Voltage: {vm_mean:.2f} ± {vm_std:.2f} mV")
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from this page's run (100 ms, dt 0.1 ms, seed 42): [index](../../../_static/atlas/network_100_ei/index.html) · [schema](../../../_static/atlas/network_100_ei/schema.html) · [3D](../../../_static/atlas/network_100_ei/network_3d.html) · [raster](../../../_static/atlas/network_100_ei/raster.html) · [LFP](../../../_static/atlas/network_100_ei/lfp.html) · [H](../../../_static/atlas/network_100_ei/h_dynamics.html) · [HDP](../../../_static/atlas/network_100_ei/hdp.html) · [oscillatory](../../../_static/atlas/network_100_ei/oscillatory.html).
+Dark-theme Plotly panels from this page's run (100 ms, dt 0.1 ms, seed 42): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/network_100_ei/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/network_100_ei/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/network_100_ei/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/network_100_ei/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/network_100_ei/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug network_100_ei`.
 

@@ -5,7 +5,7 @@ Published models rerun with jaxfne. Each paper has a page on the
 verdicts and figures. Stages P0–P7 run from selection to insight; a replication counts
 as done with jaxfne only when it runs through the library (P6).
 
-<iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/dashboard/" loading="lazy" title="Replication dashboard"></iframe>
+[Open the replication dashboard](https://hnxj.github.io/jaxfne/dashboard/)
 
 | Paper | Class | Release | Stage | Verdict |
 |---|---|---|---|---|

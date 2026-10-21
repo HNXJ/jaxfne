@@ -60,14 +60,7 @@ for p in manifest["panels"]:
 
 These standalone interactive panels come from the canonical 1000-neuron column simulation:
 
-- [Index Dashboard (`index.html`)](../../_static/atlas/index.html)
-- [Panel 1: Circuit Schematic (`schema.html`)](../../_static/atlas/schema.html)
-- [Panel 2: Network 3D Architecture (`network_3d.html`)](../../_static/atlas/network_3d.html)
-- [Panel 3: Spike Raster (`raster.html`)](../../_static/atlas/raster.html)
-- [Panel 4: LFP Proxy (`lfp.html`)](../../_static/atlas/lfp.html)
-- [Panel 5: H Dynamics (`h_dynamics.html`)](../../_static/atlas/h_dynamics.html)
-- [Panel 6: HDP Plasticity (`hdp.html`)](../../_static/atlas/hdp.html)
-- [Panel 7: Oscillatory Response (`oscillatory.html`)](../../_static/atlas/oscillatory.html)
+Interactive figures: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)
 
 ---
 

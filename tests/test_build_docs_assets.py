@@ -207,7 +207,10 @@ def _link_problems(page_rel, text):
 def test_links_on_tree_resolve():
     problems, examined, atlas_links = bda.check_links(bda.load_registry(), bda.docs_pages())
     assert problems == []
-    assert atlas_links > 0 and examined > atlas_links, "the gate must examine atlas and other links"
+    # After the docs-figures rewrite every figure link is an absolute
+    # figure-site URL; no relative link may resolve into an atlas directory.
+    assert atlas_links == 0
+    assert examined > 0, "the gate must still examine non-figure .html links"
 
 
 def test_raw_iframe_resolves_from_the_page_url():
@@ -564,3 +567,54 @@ def test_site_completeness_fails_when_png_missing(tmp_path):
     (site / "s" / "raster.png").unlink()
     problems = bda.check_site_figures(site)
     assert len(problems) == 1 and "png missing" in problems[0], problems
+
+
+def test_site_covers_every_registry_etude():
+    registry = bda.load_registry()
+    assert [e["slug"] for e in registry["etudes"]] == [
+        "experiment_a",
+        "hdp_controllability_reachability",
+        "multiscale_observation",
+        "heterogeneous_emitters",
+    ]
+    known = bda.site_slugs(registry)
+    for slug in ("experiment_a", "hdp_controllability_reachability",
+                 "multiscale_observation", "heterogeneous_emitters"):
+        assert slug in known, f"--site must cover the {slug} etude"
+        assert slug in bda.ETUDE_SITE_MODES
+
+
+def test_docs_figures_check_passes_on_tree(capsys):
+    assert bda.docs_figures_check() == 0
+    out = capsys.readouterr().out
+    assert "docs-figures-check:" in out and "0 problems" in out
+
+
+def test_docs_figures_check_fails_on_planted_iframe(tmp_path, monkeypatch, capsys):
+    page = REPO / "docs" / "index.md"
+    text = page.read_text(encoding="utf-8")
+    planted = ('<iframe src="../_static/atlas/readme/raster.html"></iframe>\n' + text)
+    monkeypatch.setattr(bda, "docs_pages", lambda: {page: planted})
+    assert bda.docs_figures_check() == 1
+    assert "not in allowlist" in capsys.readouterr().out
+
+
+def test_docs_figures_check_fails_on_relative_figure_link(tmp_path, monkeypatch, capsys):
+    page = REPO / "docs" / "index.md"
+    text = "[raster](_static/atlas/calibration_100/raster.html)\n"
+    monkeypatch.setattr(bda, "docs_pages", lambda: {page: text})
+    assert bda.docs_figures_check() == 1
+    assert "figure-site URL" in capsys.readouterr().out
+
+
+def test_site_fails_when_docs_cite_an_omitted_figure():
+    # The first etude build listed every rerun panel as omitted while the
+    # docs showed their stills; the completeness check alone passed it.
+    page = REPO / "docs" / "etudes" / "e.md"
+    text = (f"![r]({bda.FIGURES_URL}e/raster.png)\n"
+            f"[r]({bda.FIGURES_URL}e/raster.html) · [x]({bda.FIGURES_URL}other/raster.html)\n")
+    omitted = [{"slug": "e", "panel": "raster", "html": "e/raster.html", "status": "omitted"}]
+    problems = bda.check_cited_figures(omitted, ["e"], {page: text})
+    assert len(problems) == 2 and all("e/raster." in p for p in problems), problems
+    available = [dict(omitted[0], status="available", png="e/raster.png")]
+    assert bda.check_cited_figures(available, ["e"], {page: text}) == []

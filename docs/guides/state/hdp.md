@@ -336,7 +336,7 @@ controls; neither is full-system null equivalence.
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from a short 200 ms HDP run (dt 0.5 ms, seed 0, weight-trace recording off) of the builder-path 1000-neuron column: [index](../../_static/atlas/hdp_1000/index.html) · [schema](../../_static/atlas/hdp_1000/schema.html) · [3D](../../_static/atlas/hdp_1000/network_3d.html) · [raster](../../_static/atlas/hdp_1000/raster.html) · [LFP](../../_static/atlas/hdp_1000/lfp.html) · [H](../../_static/atlas/hdp_1000/h_dynamics.html) · [HDP](../../_static/atlas/hdp_1000/hdp.html) · [oscillatory](../../_static/atlas/hdp_1000/oscillatory.html).
+Dark-theme Plotly panels from a short 200 ms HDP run (dt 0.5 ms, seed 0, weight-trace recording off) of the builder-path 1000-neuron column: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/hdp_1000/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/hdp_1000/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/hdp_1000/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/hdp_1000/lfp.html) · [H dynamics](https://hnxj.github.io/jaxfne/figures/hdp_1000/h_dynamics.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/hdp_1000/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug hdp_1000`.
 

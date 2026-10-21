@@ -25,20 +25,16 @@ print(float(signals.get("spikes").mean() * 1000 / 0.5))  # ~8-12 Hz population r
 <!-- jx-figure -->
 ## Figure
 
-=== "Still"
+![Spike raster of the 1000 ms reference run](../../assets/readme/raster.png)
 
-    ![Spike raster of the 1000 ms reference run](../../assets/readme/raster.png)
+[Interactive version](https://hnxj.github.io/jaxfne/figures/readme/raster.html)
 
-=== "Interactive"
-
-    <iframe class="jx-frame" src="../../../_static/atlas/raster.html" loading="lazy" title="Spike raster of the 1000 ms reference run"></iframe>
-
-Spike raster of the pinned 1000 ms reference run (canonical tensor, runtime seed 0, dt 0.5 ms); the code above uses runtime seed 1, so its raster differs in detail. [Open full page](../../_static/atlas/raster.html).
+Spike raster of the pinned 1000 ms reference run (canonical tensor, runtime seed 0, dt 0.5 ms); the code above uses runtime seed 1, so its raster differs in detail. [Open full page](https://hnxj.github.io/jaxfne/figures/readme/raster.html).
 
 Next: [05 — Observe](../extend/05_observe_fields.md) — post-hoc observation operators on the frozen trajectory.
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column (the page runs 1000 ms — the same duration as the pinned run): [index](../../_static/atlas/index.html) · [schema](../../_static/atlas/schema.html) · [3D](../../_static/atlas/network_3d.html) · [raster](../../_static/atlas/raster.html) · [LFP](../../_static/atlas/lfp.html) · [H](../../_static/atlas/h_dynamics.html) · [HDP](../../_static/atlas/hdp.html) · [oscillatory](../../_static/atlas/oscillatory.html).
+Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column (the page runs 1000 ms — the same duration as the pinned run): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)
 
 Regenerate: `python scripts/generate_readme_atlas.py --html-only`.
