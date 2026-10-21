@@ -75,11 +75,8 @@ jobs:
           git push origin HEAD:gh-pages
 
   figures:
-    needs: publish
+    needs: publish  # the workflow-level dashboard-pages group serializes gh-pages writes
     runs-on: ubuntu-latest
-    concurrency:
-      group: dashboard-pages
-      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
         with:
