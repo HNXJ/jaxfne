@@ -457,6 +457,119 @@ def test_r1_no_artifacts_no_folder_reports(tmp_path):
     ), "a paper naming no folder must fail R1"
 
 
+def _e1_paper(pid: str, p4: list[dict] | None, stage: str = "P4",
+              cls: str = "in progress") -> dict:
+    entry: dict = {"id": pid, "stage": stage, "class": cls, "preregs": []}
+    if p4 is None:
+        entry["stage_artifacts"] = {
+            "P1": [{"label": "source", "path": f"artifacts/etudes/{pid}/SOURCE_P1.md"}]}
+    else:
+        entry["stage_artifacts"] = {"P4": p4}
+    return entry
+
+
+def _e1_entry(pid: str, label: str, name: str) -> dict:
+    return {"label": label, "path": f"artifacts/etudes/{pid}/{name}"}
+
+
+def test_e1_construct_and_simulate_passes(tmp_path):
+    _registry(tmp_path, [_e1_paper("e1ok", [_e1_entry("e1ok", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/e1ok/run.py",
+                 "import J\nmodel = J.construct(spec)\nsignals = model.simulate(sim)\n")
+    text = run.read_text(encoding="utf-8")
+    assert "construct(" in text and ".simulate(" in text, (
+        "fixture must call construct( and .simulate("
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "E1"] == [], (
+        "a scored module calling both stays clean"
+    )
+
+
+def test_e1_neither_fails(tmp_path):
+    _registry(tmp_path, [_e1_paper("e1no", [_e1_entry("e1no", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/e1no/run.py", "VALUE = 1\n")
+    text = run.read_text(encoding="utf-8")
+    assert "construct(" not in text and ".simulate(" not in text, (
+        "fixture must call neither"
+    )
+    assert (
+        "E1",
+        "artifacts/etudes/papers/e1no",
+        "no scored P4 module calls construct( or .simulate(",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_e1_construct_only_fails(tmp_path):
+    _registry(tmp_path, [_e1_paper("e1c", [_e1_entry("e1c", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/e1c/run.py",
+                 "import J\nmodel = J.construct(spec)\n")
+    text = run.read_text(encoding="utf-8")
+    assert "construct(" in text and ".simulate(" not in text, (
+        "fixture must call construct( without .simulate("
+    )
+    assert (
+        "E1",
+        "artifacts/etudes/papers/e1c",
+        "scored P4 modules call construct( but not .simulate(",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_e1_oracle_and_test_calls_do_not_count(tmp_path):
+    _registry(tmp_path, [_e1_paper("e1o", [
+        _e1_entry("e1o", "model", "run.py"),
+        _e1_entry("e1o", "oracle transcription", "oracle_mod.py"),
+        _e1_entry("e1o", "tests", "test_mod.py"),
+    ])])
+    _write(tmp_path, "artifacts/etudes/papers/e1o/run.py", "VALUE = 1\n")
+    both = "import J\nmodel = J.construct(spec)\nsignals = model.simulate(sim)\n"
+    oracle = _write(tmp_path, "artifacts/etudes/papers/e1o/oracle_mod.py", both)
+    test_mod = _write(tmp_path, "artifacts/etudes/papers/e1o/test_mod.py", both)
+    for path in (oracle, test_mod):
+        text = path.read_text(encoding="utf-8")
+        assert "construct(" in text and ".simulate(" in text, (
+            "fixture must hold both calls outside the scored module"
+        )
+    assert (
+        "E1",
+        "artifacts/etudes/papers/e1o",
+        "no scored P4 module calls construct( or .simulate(",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_e1_p3_paper_out_of_scope(tmp_path):
+    papers = [_e1_paper("e1p3", [_e1_entry("e1p3", "model", "run.py")], stage="P3")]
+    _registry(tmp_path, papers)
+    _write(tmp_path, "artifacts/etudes/papers/e1p3/run.py", "VALUE = 1\n")
+    assert papers[0]["stage"] == "P3", "fixture must stay below P4"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "E1"] == [], (
+        "a P3 paper is out of scope"
+    )
+
+
+def test_e1_core_method_out_of_scope(tmp_path):
+    papers = [_e1_paper("e1core", [_e1_entry("e1core", "model", "run.py")],
+                        stage="P5", cls="core method")]
+    _registry(tmp_path, papers)
+    _write(tmp_path, "artifacts/etudes/papers/e1core/run.py", "VALUE = 1\n")
+    assert papers[0]["class"] == "core method", "fixture must be a core method"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "E1"] == [], (
+        "a core-method entry is out of scope"
+    )
+
+
+def test_e1_no_scored_module_listed(tmp_path):
+    papers = [_e1_paper("e1empty", None)]
+    _registry(tmp_path, papers)
+    assert "P4" not in papers[0]["stage_artifacts"], (
+        "fixture must name no P4 module"
+    )
+    assert (
+        "E1",
+        "artifacts/etudes/papers/e1empty",
+        "no scored P4 module listed",
+    ) in cr.collect_findings(tmp_path)
+
+
 def test_missing_allowlist_fails_check(tmp_path):
     _registry(tmp_path, [])
     assert not (tmp_path / "scripts" / "replication_known_violations.json").exists(), (

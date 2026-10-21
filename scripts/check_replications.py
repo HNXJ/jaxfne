@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Replication-checklist gate rows: R1, R6, S1, S2, E3.
+"""Replication-checklist gate rows: R1, R6, S1, S2, E1, E3.
 
 Paper registry: ``dashboard/sources.json`` papers[] (``id``, ``stage``,
 ``stage_artifacts``, ``preregs``). Paper folders: ``artifacts/etudes/papers/*/``.
@@ -52,6 +52,14 @@ SHA, so this gate does not re-check their working-tree existence.
   finding) and ``*_ref.py``, ``*_ref_*.py``, ``*reference*.py`` files under
   the paper folders. Allowed importers are ``test_*``/``gate_*`` files,
   files under a ``tests/`` directory, and sibling oracles of the same paper.
+- E1: the scored run builds and simulates through jaxfne
+  (``Configuration``/``CircuitSpec`` -> ``construct`` -> ``Model`` ->
+  ``simulate``): the paper's P4 ``stage_artifacts`` entries (mapped onto
+  ``artifacts/etudes/papers/`` the way oracles map; labels naming an oracle
+  or a test, ``test_*`` basenames and ``*_ref*``/``*reference*`` names
+  excluded; existing files only) hold at least one ``construct`` call (bare
+  or attribute) and one attribute ``.simulate`` call, in any scope, across
+  the modules. Papers below P4 and ``core method`` entries are skipped.
 - E3: no top-level ``def NAME(`` under a paper folder shadows a public
   ``jaxfne.analysis`` name (collected recursively under ``jaxfne/analysis*``,
   including ``__all__`` re-exports; a method named like a core function is not
@@ -934,6 +942,100 @@ def check_s2(
     return sorted(findings)
 
 
+def _is_test_label(label: str) -> bool:
+    """Whether a stage_artifacts label names a test module."""
+    return "test" in label.lower()
+
+
+def e1_scored_modules(paper: dict, root: Path) -> list[Path]:
+    """The paper's scored P4 modules: existing .py files, oracles and tests excluded.
+
+    P4 ``stage_artifacts`` entries map onto ``artifacts/etudes/papers/`` the
+    way S2 oracles map. Entries whose label marks an oracle or a test,
+    ``test_*`` basenames and oracle names do not count.
+    """
+    modules = []
+    stages = paper.get("stage_artifacts")
+    if not isinstance(stages, dict):
+        return []
+    items = stages.get("P4")
+    if not isinstance(items, list):
+        return []
+    for item in items:
+        if not (isinstance(item, dict) and isinstance(item.get("path"), str)):
+            continue
+        label = item.get("label", "")
+        if isinstance(label, str) and (_is_oracle_label(label) or _is_test_label(label)):
+            continue
+        rel = _label_oracle_rel(item["path"])
+        if rel is None:
+            continue
+        if Path(rel).name.startswith("test_") or _is_oracle_name(Path(rel).name):
+            continue
+        candidate = root / rel
+        if candidate.is_file():
+            modules.append(candidate)
+    return modules
+
+
+def _e1_calls(tree: ast.Module) -> tuple[bool, bool]:
+    """(construct call, .simulate call) anywhere in one module, any scope."""
+    saw_construct = saw_simulate = False
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if isinstance(func, ast.Name) and func.id == "construct":
+            saw_construct = True
+        elif isinstance(func, ast.Attribute) and func.attr == "construct":
+            saw_construct = True
+        elif isinstance(func, ast.Attribute) and func.attr == "simulate":
+            saw_simulate = True
+    return saw_construct, saw_simulate
+
+
+def check_e1(papers: list[dict], root: Path) -> list[tuple[str, str, str]]:
+    """E1 findings: the scored P4 modules must call construct( and .simulate(."""
+    findings = []
+    for paper in papers:
+        if paper.get("class") == "core method":
+            continue
+        stage = paper.get("stage")
+        if stage not in STAGE_ORDER or STAGE_ORDER.index(stage) < STAGE_ORDER.index("P4"):
+            continue
+        folder_rel = paper_folder(paper, root)
+        if folder_rel is None:
+            continue  # R1 owns folders no stage_artifacts path names
+        modules = e1_scored_modules(paper, root)
+        if not modules:
+            findings.append(("E1", folder_rel, "no scored P4 module listed"))
+            continue
+        saw_construct = saw_simulate = False
+        for module in modules:
+            try:
+                tree = ast.parse(module.read_bytes().decode("utf-8"))
+            except (OSError, ValueError, SyntaxError):
+                continue
+            has_construct, has_simulate = _e1_calls(tree)
+            saw_construct = saw_construct or has_construct
+            saw_simulate = saw_simulate or has_simulate
+        if saw_construct and saw_simulate:
+            continue
+        if saw_construct:
+            findings.append(
+                ("E1", folder_rel, "scored P4 modules call construct( but not .simulate(")
+            )
+        elif saw_simulate:
+            findings.append(
+                ("E1", folder_rel, "scored P4 modules call .simulate( but not construct(")
+            )
+        else:
+            findings.append(
+                ("E1", folder_rel, "no scored P4 module calls construct( or .simulate(")
+            )
+    return findings
+
+
 def _all_names(tree: ast.Module) -> set[str]:
     """Non-private names of one ``__all__`` list/tuple assignment."""
     names: set[str] = set()
@@ -1044,6 +1146,7 @@ def collect_findings(root: Path) -> list[tuple[str, str, str]]:
         + check_r6(root)
         + s1
         + check_s2(parsed, papers, root)
+        + check_e1(papers, root)
         + e3
     )
     return sorted(set(findings))
