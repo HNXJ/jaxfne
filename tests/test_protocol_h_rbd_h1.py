@@ -125,7 +125,6 @@ def test_f1_f2_equilibrium_at_h_one():
 def test_f1_f2_matched_jacobian_at_equilibrium():
     """R_1'(1)=R_2'(1)=-1 => same first-order relaxation rate 1/tau_H."""
     eps = 1e-4
-    H = jnp.asarray([1.0], dtype=jnp.float32)
     dt = jnp.asarray(1.0, dtype=jnp.float32)
     tau = jnp.asarray(100.0, dtype=jnp.float32)
     kappa = jnp.asarray(0.0, dtype=jnp.float32)

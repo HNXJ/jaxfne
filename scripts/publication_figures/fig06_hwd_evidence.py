@@ -101,10 +101,10 @@ def draw_panel_b(ax, h3_curves: dict[str, Any]) -> None:
     keys = list(h3_curves["curves"].keys())
     c_beta0 = h3_curves["curves"][keys[0]]
     c_betap = h3_curves["curves"][keys[1]]
-    mh0 = [c_beta0["M_H"][str(l)] for l in lags]
-    mx0 = [c_beta0["M_X"][str(l)] for l in lags]
-    mhp = [c_betap["M_H"][str(l)] for l in lags]
-    mxp = [c_betap["M_X"][str(l)] for l in lags]
+    mh0 = [c_beta0["M_H"][str(lag)] for lag in lags]
+    mx0 = [c_beta0["M_X"][str(lag)] for lag in lags]
+    mhp = [c_betap["M_H"][str(lag)] for lag in lags]
+    mxp = [c_betap["M_X"][str(lag)] for lag in lags]
     ax.plot(lags, mh0, "o-", color=STYLE_POS["edgecolor"], label=r"$M_H$, $\beta_H=0$")
     ax.plot(lags, mx0, "s--", color="#C44E52", label=r"$M_X$, $\beta_H=0$")
     ax.plot(lags, mhp, "o-", color="#0B6E4F", alpha=0.7, label=r"$M_H$, $\beta_H>0$")

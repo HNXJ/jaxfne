@@ -16,12 +16,8 @@ from jaxfne.core import (
     AxisSpec,
     BasisSpec,
     default_basis_spec,
-    _AXIS_STATUS_VALUES,
     _SPACE_BASIS_VALUES,
-    _TIME_BASIS_VALUES,
-    _FIELD_REGIME_VALUES,
     _SOURCE_MODE_BASIS_VALUES,
-    _PROBE_BASIS_VALUES,
     _FUTURE_FIELD_REGIMES,
 )
 from jaxfne.validation import validate_basis_spec, basis_claim_gate

@@ -41,7 +41,7 @@ if not (ROOT / "pyproject.toml").is_file() or not (ROOT / "jaxfne").is_dir():
     print("inheritance INVALID: repo-root guard failed (not the jaxfne repo root)")
     sys.exit(2)
 
-import jaxfne  # noqa: E402  (repo-root import, asserted below)
+import jaxfne  # noqa: E402, F401  (repo-root import, asserted below via sys.modules)
 
 assert "site-packages" not in sys.modules["jaxfne"].__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"

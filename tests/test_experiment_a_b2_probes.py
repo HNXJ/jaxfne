@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import jax.numpy as jnp
 import numpy as np
-import pytest
 
 from jaxfne.experiment_a.canonical import freeze_canonical_dataset
 from jaxfne.experiment_a.observe import (

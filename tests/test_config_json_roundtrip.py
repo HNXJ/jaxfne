@@ -9,7 +9,6 @@ from __future__ import annotations
 from dataclasses import asdict
 from pathlib import Path
 
-import pytest
 
 import jaxfne as jtfne
 
@@ -18,8 +17,6 @@ def _assert_true_roundtrip(loaded_dict: dict, loaded_cfg) -> None:
     """Serialize the reconstructed configuration back and require deep
     equality with the source JSON, then require construct-level parity."""
     import json
-
-    from dataclasses import asdict
 
     reserialized = json.loads(json.dumps(asdict(loaded_cfg), allow_nan=False, sort_keys=True))
     original = json.loads(json.dumps(loaded_dict, allow_nan=False, sort_keys=True))

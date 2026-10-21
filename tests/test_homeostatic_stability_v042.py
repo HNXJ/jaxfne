@@ -6,7 +6,6 @@ float32 — even under absurd or non-finite drive. These tests drive deliberatel
 extreme inputs and assert finite, in-range output.
 """
 import numpy as np
-import jax
 import jax.numpy as jnp
 import pytest
 

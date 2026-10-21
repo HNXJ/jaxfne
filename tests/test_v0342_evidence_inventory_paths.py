@@ -15,7 +15,7 @@ def test_agent_context_inventory_commands_resolve():
     for path in [
         Path("artifacts/AGENTS.md"),
         Path(".github/CONTRIBUTING.md"),
-        Path("docs/contributing.md"),
+        Path("docs/reference/contributing.md"),
         Path("internal_docs/loop_context/AGENT_QUICKREF.md"),
     ]:
         # internal_docs/ is gitignored (internal-only), so it is absent in clean

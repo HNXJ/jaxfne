@@ -7,8 +7,6 @@ import os
 import sys
 from pathlib import Path
 
-_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
-
 from scripts.internal.publication.fig06_evidence import (
     h4_primary_mx,
     load_fig06_evidence,
@@ -23,6 +21,8 @@ from scripts.internal.publication.fig06_protocol import (
     validate_fig06_semantic_audit,
     validate_fig06_spec,
 )
+
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 ROOT = Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "scripts" / "publication_figures" / "fig06_hwd_evidence.py"

@@ -9,7 +9,6 @@ carry, continuation, and delayed composition.
 
 from __future__ import annotations
 
-from dataclasses import replace
 
 import jax
 import jax.numpy as jnp
@@ -18,11 +17,6 @@ import pytest
 
 import jaxfne as jtfne
 from jaxfne._hdp_registrable_kernel import simulate_edge_recurrent_izhikevich_hdp_registered
-from jaxfne._pipeline import (
-    compile_step_fn,
-    continuation_state_from_model,
-    run_continuation,
-)
 from jaxfne.emitters import EdgeList, IzhikevichParams
 from jaxfne.hdp_rule import expected_aux_shape, get_hdp_rule, list_registered_hdp_rules
 
@@ -196,7 +190,7 @@ def test_model_dispatch_and_continuation_with_aux():
             enable_hdp=True, recurrent_backend="edge_list",
             hdp_params={"hdp_rule": RULE, "hdp_rule_params": PARAMS, "noise_scale": 0.0}))
     sig = jtfne.simulate(model, duration_ms=20.0, dt_ms=0.5, seed=1)
-    diag = model.last_hdp_diagnostics()
+    model.last_hdp_diagnostics()
     assert bool(np.isfinite(np.asarray(sig.V_m)).all())
     full, _ = jtfne.simulate(model, duration_ms=12.0, dt_ms=0.5, seed=6, return_state=True)
     first, st1 = jtfne.simulate(model, duration_ms=6.0, dt_ms=0.5, seed=6, return_state=True)

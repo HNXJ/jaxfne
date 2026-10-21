@@ -208,7 +208,7 @@ def test_neuron_type_fraction_overrides_even_split():
     assert layer_cell_types["PV"] == pytest.approx(0.1)
     model = jtfne.construct(cfg)
     labels = model.params["emitter"].labels
-    e_count = sum(1 for l in labels if l == "E")
+    e_count = sum(1 for lab in labels if lab == "E")
     assert e_count == 90
 
 

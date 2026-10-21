@@ -1,0 +1,185 @@
+# Quickstart
+
+Simulate **laminar neural dynamics** — spikes, membrane traces, and depth-resolved
+field readouts (LFP, CSD, spectrolaminar PSD) — from a circuit defined once
+and simulated reproducibly. JaxFNE couples specification, dynamics, biophysical
+state ($H$/RBS/RBD), plasticity, and geometry into sources, fields, and probes,
+from reduced emitters to compartmental models attached via bridges.
+
+> Documentation tracks the `dev` branch public API. `NeuronalTensor` is the preferred `construct` input path.
+
+## Install & import
+
+```bash
+pip install jaxfne
+pip install "jaxfne[viz]"
+```
+
+```python
+import jaxfne as jtfne
+jtfne.enable_x64()   # before array construction
+```
+
+## Jaxley interoperability
+
+[Jaxley](https://jaxley.readthedocs.io) provides compartmental detail;
+JaxFNE couples dynamics, geometry, and field readouts. Compose them:
+
+```python
+import jaxley as jx
+from jaxley.channels import HH
+import jaxfne as jtfne
+
+cell = jx.Cell(jx.Branch(jx.Compartment(), ncomp=1), parents=[-1])
+cell.insert(HH())
+cell.record("v")
+cell.stimulate(jx.step_current(i_delay=10, i_dur=50, i_amp=0.1, delta_t=0.025, t_max=100))
+
+sig = jtfne.JaxleyBridge(model=cell).simulate(duration_ms=100.0, dt_ms=0.025)
+fig = jtfne.vis.vm(sig)
+```
+
+See [Jaxley interoperability guide](../guides/interop/jaxley_interop.md) for homeostatic
+wrappers and laminar field projection.
+
+## Which workflow should I use?
+
+Pick **one path per script** — they return different types:
+
+| Goal | Path | Returns |
+|------|------|---------|
+| New code, JSON circuits, HDP, multi-area | `NeuronalTensor` → `construct` → `simulate` | `Model` / `Signals` |
+| Fluent builder, AGSDR, homeostasis, per-neuron drive | `laminar_cortex_config` / `build_laminar_column` → `construct` → `simulate` | `Model` / `Signals` |
+| Multi-trial spectrolaminar sweeps | `tutorial_utils.make_laminar_column_config` → `simulate_laminar_trials` | plain `dict` |
+
+Per-event subset drive (e.g. L4-E only): put `target_indices` on each **event dict**
+in `StimulusSchedule`, built from `model.neuron_table()`.
+
+## NeuronalTensor
+
+*Preferred path.*
+
+```python
+tensor  = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")
+runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5)
+model   = jtfne.construct(tensor, runtime)
+signals = jtfne.simulate(model)
+spk = signals.get("spk")
+vm_e = signals.get("vm", cell_type="E")
+```
+
+Inline circuit:
+
+```python
+E  = jtfne.NeuronType.make("E", fraction=0.9)
+PV = jtfne.NeuronType.make("PV", fraction=0.1)
+L4 = jtfne.Layer(name="L4", n_neurons=100, neuron_types=[E, PV])
+tensor = jtfne.NeuronalTensor(areas=[jtfne.Area(name="V1", layers=[L4])])
+model   = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5))
+signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
+```
+
+**HDP plasticity** — pass `RuntimeConfig` (not `RuntimeConfiguration`) to `simulate()`:
+
+```python
+runtime_hdp = jtfne.RuntimeConfig(enable_hdp=True, hdp_params={
+    "K_HDP": 0.01, "tau_0_ms": 200.0, "K_ctrl": 5.0,
+    "size_scale_by_cell_type": {"E": 2.0, "PV": 1.0},
+})
+signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0, runtime=runtime_hdp)
+```
+
+API: [neuronal_tensor.md](../reference/api/model/neuronal_tensor.md) · Migration: [migration_guide.md](migration_guide.md)
+· Example: [examples/08_neuronal_tensor_first.py](https://github.com/HNXJ/jaxfne/blob/main/examples/08_neuronal_tensor_first.py)
+
+## Configuration
+
+*Supported compatibility path.*
+
+```python
+cfg = (jtfne.build_laminar_column(n=1000, ei_profile="canonical")
+          .set_emitter("izhikevich", "cortical_eig")
+          .probes(["spikes", "V_m", "LFP", "CSD"], n_contacts=16)
+          .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann"))
+model   = jtfne.construct(cfg)
+signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
+```
+
+`ei_profile="canonical"` applies the verified laminar E:I gradient (E peaks deep,
+I peaks superficial, PV peaks at L2/L3, ≈66E:34I overall for the builder constant) — a **qualitative scaffold** (`qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false`; `value_tag="relative"`; provenance `jaxfne/jdna/genomes/canonical-v1-column-1000n.json`); the biology is not quantitatively calibrated. Reduced labels `E`/`PV`/`SST`/`VIP` are functional scaffold identities; literal cell-type identity is not warranted. `ei_profile="flat"`
+keeps legacy depth-invariant composition.
+
+Multi-area: `jtfne.build_multi_area_columns(["V1", "V4", "PFC"], ei_profile="canonical")`.
+
+Full fluent API: [Configuration Grammar](../guides/grammar/configuration_grammar.md).
+
+### Layers, connectivity, homeostasis
+
+```python
+cfg = jtfne.build_laminar_column(
+    "V1", n=2000,
+    layers=["L1", "L2/3", "L4", "L5", "L6"],
+    layer_fractions={"L1": (0.00, 0.08), "L2/3": (0.08, 0.40), "L4": (0.40, 0.55),
+                      "L5": (0.55, 0.80), "L6": (0.80, 1.00)},
+)
+cfg = (cfg
+    .connections(name="L4_recurrent", source={"layer": "L4"}, target={"layer": "L4"},
+                 probability=0.2, weight=0.5)
+    .homeostasis(relative_baseline=1.0, r_star=8.0, k_gain=1.0)
+    .set_emitter("izhikevich", "cortical_eig")
+    .probes(["spikes", "V_m"], n_contacts=8)
+    .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann"))
+model   = jtfne.construct(cfg)
+signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
+```
+
+`plasticity()` records manifest intent only — STDP runs via separate `run_stdp_stream`; `simulate()` does not run it.
+
+## Typical workflow
+
+```text
+setup → config → construct → simulate → visualize → tune/objective → optimize → export
+```
+
+See [H-state / HDP guide](../guides/state/hdp.md) and the [controllability étude](../etudes/hdp_controllability_reachability.md).
+
+## Interactive 3D circuit view
+
+```python
+cfg = jtfne.build_laminar_column(n=1000, ei_profile="canonical")
+model = jtfne.construct(cfg
+    .set_emitter("izhikevich", "cortical_eig")
+    .probes(["spikes"], n_contacts=4)
+    .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann"))
+jtfne.vis.visualize_network_3d(model, output_html="network3d.html")
+```
+
+## Tune toward a target
+
+```python
+obj = jtfne.rate_synchrony_targets()
+result = model.tune(obj, optimizer="AGSDR", steps=50)
+manifest = jtfne.manifest(cfg, signals=signals)
+```
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from the pinned 1000 ms reference run of the canonical 1000-neuron column — the same tensor path as above (`load_canonical_neuronal_tensor`): [index](../_static/atlas/index.html) · [schema](../_static/atlas/schema.html) · [3D](../_static/atlas/network_3d.html) · [raster](../_static/atlas/raster.html) · [LFP](../_static/atlas/lfp.html) · [H](../_static/atlas/h_dynamics.html) · [HDP](../_static/atlas/hdp.html) · [oscillatory](../_static/atlas/oscillatory.html).
+
+Regenerate: `python scripts/generate_readme_atlas.py --html-only`.
+
+## Scope & status
+
+Proxy readouts only — see [Scope & status](../reference/project/scope_and_status.md).
+
+## Validate locally
+
+```bash
+python3 -m compileall -q jaxfne tests examples scripts
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest \
+  tests/test_api_smoke.py tests/test_root_import_lightweight.py \
+  tests/test_signals_get_v0329.py -q --tb=short
+python3 -m mkdocs build --strict
+```
+
+Contributing: [docs/reference/contributing.md](../reference/contributing.md).

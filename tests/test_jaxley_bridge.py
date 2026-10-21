@@ -4,7 +4,6 @@ Validates source extraction on mock compartmental signals, unimplemented excepti
 and bridge reporting metadata.
 """
 
-import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest

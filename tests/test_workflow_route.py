@@ -8,6 +8,6 @@ def test_task_router_routes_end_to_end_science_to_workflow_skill():
 
     assert "## Task router (canonical)" in context
     router_section = context.split("## Task router (canonical)", 1)[1]
-    assert "artifacts/skills/jaxfne-workflow/SKILL.md" in router_section, (
+    assert "artifacts/control/skills/jaxfne-workflow/SKILL.md" in router_section, (
         "Task router must send end-to-end scientific tasks to jaxfne-workflow"
     )

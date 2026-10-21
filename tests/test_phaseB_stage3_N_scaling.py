@@ -28,7 +28,6 @@ Each test asserts four criteria:
 """
 import jax
 import jax.numpy as jnp
-import pytest
 
 from jaxfne.emitters_homeostatic_ei import make_minimal_ei_params, simulate_homeostatic_ei
 

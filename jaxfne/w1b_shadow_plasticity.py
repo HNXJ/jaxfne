@@ -5,7 +5,7 @@ Shadow contract: recurrent simulation uses fixed ``W_0``; ``omega`` integrates
 
 Update ordering (frozen): ``omega_{n+1} = F(omega_n, H_n)`` using pre-step ``H_n``.
 
-See ``docs/doctrine/protocol_w_hdp_parameter_memory.md``.
+See ``docs/theory/memory/protocol_w_hdp_parameter_memory.md``.
 """
 
 from __future__ import annotations

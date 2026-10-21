@@ -16,7 +16,7 @@ def _outline():
 
 
 def test_progression_covers_every_coverage_sim_once_in_order():
-    rows = json.loads((ROOT / "artifacts/programme/atlas_coverage.json").read_text())["requirements"]
+    rows = json.loads((ROOT / "artifacts/programme/coverage/atlas_coverage.json").read_text())["requirements"]
     sims = {r["sim"] for r in rows if re.fullmatch(r"S\d+", r["sim"])}
     assert sims == set(SIM_ORDER) and len(SIM_ORDER) == len(set(SIM_ORDER)) == 10
     assert SIM_ORDER == tuple(f"S{i}" for i in range(1, 11))

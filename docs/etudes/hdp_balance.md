@@ -1,7 +1,7 @@
 # Étude: homeostatic balance learning
 
 **Status:** exploratory; every stage fails at least one criterion  
-**Bundle:** `artifacts/etudes/hdp_balance/` (standalone JAX, independent of the jaxfne kernels)
+**Bundle:** `artifacts/etudes/bundles/hdp_balance/` (standalone JAX, independent of the jaxfne kernels)
 
 ## Question
 
@@ -72,8 +72,8 @@ within 2.5–10 Hz; **P4** wired in-band ≥ 0.6.
 ## Reproduce
 
 ```bash
-python artifacts/etudes/hdp_balance/balance.py --eta 1.0 --seed0 3000 --n-seeds 16 --plastic-scope sensory_motor --out artifacts/etudes/hdp_balance/confirm_1c.json
-python artifacts/etudes/hdp_balance/verdict.py artifacts/etudes/hdp_balance/confirm_1c.json
+python artifacts/etudes/bundles/hdp_balance/balance.py --eta 1.0 --seed0 3000 --n-seeds 16 --plastic-scope sensory_motor --out artifacts/etudes/bundles/hdp_balance/confirm_1c.json
+python artifacts/etudes/bundles/hdp_balance/verdict.py artifacts/etudes/bundles/hdp_balance/confirm_1c.json
 ```
 
-Every stage's protocol, pilot table and command: `artifacts/etudes/hdp_balance/README.md`.
+Every stage's protocol, pilot table and command: `artifacts/etudes/bundles/hdp_balance/README.md`.

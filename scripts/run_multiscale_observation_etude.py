@@ -126,7 +126,7 @@ def build_config() -> Any:
         .runtime(seed=SEED, duration_ms=DURATION_MS, dt_ms=DT_MS, dtype="float32", jit=False)
         .population(
             N,
-            neurons={"E": 0.7, "I": 0.3},
+            neurons={"L2/3": 0.33, "L4": 0.34, "L5": 0.33},
             layers=["L2/3", "L4", "L5"],
             name="V1",
         )

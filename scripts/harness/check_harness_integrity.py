@@ -60,7 +60,7 @@ def verify_manifest(manifest: Path, base: Path):
                 else:
                     want = item
                     if comp == "canonical_skills":
-                        f = base / "artifacts" / "skills" / rel / "SKILL.md"
+                        f = base / "artifacts" / "control" / "skills" / rel / "SKILL.md"
                     else:
                         f = base / rel
                 got = None if not f.exists() else sha(f)

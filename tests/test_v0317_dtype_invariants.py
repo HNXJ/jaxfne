@@ -86,8 +86,6 @@ class TestDtypeInheritance:
     def test_explicit_float32_arrays(self):
         """Verify that when JAX has x64 disabled, low/high center arrays are float32."""
         # Force float32 by checking arrays in candidate proposal
-        bounds = {"a": (0.0, 1.0), "b": (-2.0, 2.0)}
-
         # Disable x64 explicitly for this check
         orig_x64 = jax.config.read("jax_enable_x64")
         try:
@@ -104,8 +102,6 @@ class TestDtypeInheritance:
 
     def test_explicit_x64_arrays(self):
         """Verify that when JAX has x64 enabled, bounds propagate to float64."""
-        bounds = {"a": (0.0, 1.0), "b": (-2.0, 2.0)}
-
         orig_x64 = jax.config.read("jax_enable_x64")
         # Try enabling x64. If it's supported by the platform, verify exact float64.
         try:

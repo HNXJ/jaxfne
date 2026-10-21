@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the gallery atlas index from committed manifests (Batch B6).
 
-`docs/gallery.md` is output, not source, between the markers
+`docs/start/gallery.md` is output, not source, between the markers
 ``<!-- ATLAS-INDEX:START -->`` / ``<!-- ATLAS-INDEX:END -->``. Only atlases
 whose manifest reads VALIDATED or CANONICAL are listed — GENERATED outputs
 never enter the gallery. Every link is checked against docs/_static/atlas_registry.json,
@@ -20,7 +20,7 @@ import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 STATIC = ROOT / "docs" / "_static"
-GALLERY = ROOT / "docs" / "gallery.md"
+GALLERY = ROOT / "docs" / "start" / "gallery.md"
 START = "<!-- ATLAS-INDEX:START -->"
 END = "<!-- ATLAS-INDEX:END -->"
 LISTED_STATES = ("validated", "canonical")
@@ -60,7 +60,7 @@ def collect() -> tuple[list[dict], list[str]]:
         if missing:
             problems.append(f"{slug}: panel files outside the registry {missing}")
             continue
-        entries.append({"slug": slug, "base": f"_static/{rel}/",
+        entries.append({"slug": slug, "base": f"../_static/{rel}/",
                         "manifest": manifest, "state": state})
     # The three-area hierarchy lives beside atlas/ rather than inside it.
     for manifest_path in sorted(STATIC.glob("atlas_three_area/manifest.json")):
@@ -77,7 +77,7 @@ def collect() -> tuple[list[dict], list[str]]:
         if missing:
             problems.append(f"{rel}: panel files outside the registry {missing}")
             continue
-        entries.append({"slug": rel, "base": f"_static/{rel}/",
+        entries.append({"slug": rel, "base": f"../_static/{rel}/",
                         "manifest": manifest, "state": state})
     return entries, problems
 
@@ -99,7 +99,8 @@ def render(entries: list[dict]) -> str:
         lines.append("")
         links = " · ".join(
             f"[{p['panel']}]({base}{p['file']})" for p in m["panels"])
-        # Raw HTML is served unrewritten from the page URL /gallery/, one level below docs/.
+        # Links are relative to docs/start/gallery.md; raw HTML is served unrewritten from the
+        # page URL /start/gallery/, one level deeper.
         lines.append(
             f'<iframe class="jx-frame" src="../{base}index.html" loading="lazy" '
             f'title="{m.get("title", "atlas")} dashboard"></iframe>')
@@ -119,8 +120,9 @@ def current_block() -> str | None:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true")
-    parser.add_argument("--write", action="store_true")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--check", action="store_true")
+    mode.add_argument("--write", action="store_true")
     args = parser.parse_args(argv)
     entries, problems = collect()
     if problems:

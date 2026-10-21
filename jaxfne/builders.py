@@ -1,7 +1,7 @@
 """Public builder and helper functions for cortical-column configuration.
 
-Docs: ``docs/api/index.md`` "Column builders & the canonical prior"
-(https://jaxfne.readthedocs.io/en/latest/api/) — update that page when these
+Docs: ``docs/reference/api/index.md`` "Column builders & the canonical prior"
+(https://jaxfne.readthedocs.io/en/latest/reference/api/) — update that page when these
 builders' signatures or defaults change.
 
 High-level construction helpers for common cortical-column and multi-area
@@ -58,7 +58,7 @@ FLAT_CELL_TYPE_FRACTIONS: dict[str, float] = {"E": 0.75, "PV": 0.10, "SST": 0.08
 #: Biological calibration: qualitative_laminar_scaffold=true,
 #: quantitative_cell_fraction=false, quantitative_connectivity=false.
 #: Labels E/PV/SST/VIP are reduced Izhikevich scaffold identities, not warranted
-#: literal cell-type identities (see docs/scope_and_status.md).
+#: literal cell-type identities (see docs/reference/project/scope_and_status.md).
 #: Keys are the 6-layer names in :data:`CANONICAL_LAYERS_6L`; a 5-layer ("L2/3"
 #: merged) variant is :data:`CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L`.
 CANONICAL_LAYER_CELL_TYPE_FRACTIONS: dict[str, dict[str, float]] = {
@@ -220,7 +220,7 @@ def default_cortical_column_config(
     cfg = (
         Configuration()
         .runtime(
-            seed=seed or 42,
+            seed=seed if seed is not None else 42,
             duration_ms=duration_ms,
             dt_ms=dt_ms,
             dtype="float32",
@@ -231,7 +231,7 @@ def default_cortical_column_config(
         .cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
         .uniform3d(radius_mm=0.25, height_mm=1.6)
         .connectivity(
-            within_area="all_to_all_uniform_random", within_gain=0.45, edge_seed=seed or 42
+            within_area="all_to_all_uniform_random", within_gain=0.45, edge_seed=seed if seed is not None else 42
         )
         .set_emitter("izhikevich", "cortical_eig")
         .probes(["spikes", "V_m", "source", "LFP", "CSD"], n_contacts=16)
@@ -307,7 +307,7 @@ def default_complete_configuration(
 
     cfg = (
         Configuration()
-        .runtime(seed=seed or 42, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
+        .runtime(seed=seed if seed is not None else 42, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
         .areas([column_name, nucleus_name])
         .column(column_name, layers=layers, n=n_column)
         .column(nucleus_name, layers=["core"], n=n_nucleus)
@@ -318,7 +318,7 @@ def default_complete_configuration(
         )
         .area_layer_cell_types(nucleus_name, {"core": {"E": 0.70, "PV": 0.30}})
         .connectivity(
-            within_area="all_to_all_uniform_random", within_gain=0.40, edge_seed=seed or 42
+            within_area="all_to_all_uniform_random", within_gain=0.40, edge_seed=seed if seed is not None else 42
         )
         .inter_column_connectivity(
             source_area=column_name,
@@ -529,7 +529,7 @@ def build_multi_area_columns(
         Within-area weight gain.
     p_feedforward, p_feedback : float, keyword-only
         Inter-area connection probabilities, default 0.3 / 0.2.
-        UNCALIBRATED placeholders (todo 0c); not calibrated to primate anatomy.
+        UNCALIBRATED placeholders; not calibrated to primate anatomy.
 
     Returns
     -------
@@ -557,8 +557,8 @@ def build_multi_area_columns(
     # deeper target layers). One spec per direction; specs accumulate:
     #   feedforward  lo -> hi  : source L2/3 E -> target L4   (uses p_feedforward)
     #   feedback     hi -> lo  : source L6     -> target L1/L5 (uses p_feedback)
-    # Probabilities and weight ranges below are UNCALIBRATED placeholders
-    # (todo 0c); not calibrated to primate anatomy.
+    # Probabilities and weight ranges below are UNCALIBRATED placeholders;
+    # not calibrated to primate anatomy.
     for lo, hi in zip(areas[:-1], areas[1:]):
         cfg = cfg.inter_column_connectivity(
             source_area=lo,
@@ -604,11 +604,11 @@ def connect_columns(
         Connectivity mode; the inter-area compiler realizes sparse Bernoulli
         projections only, so other values are refused.
     feedforward_gain : float
-        Feedforward weight scaling. Default: 0.65. UNCALIBRATED placeholder
-        (todo 0c); not calibrated to primate anatomy.
+        Feedforward weight scaling. Default: 0.65. UNCALIBRATED placeholder;
+        not calibrated to primate anatomy.
     feedback_gain : float
-        Feedback weight scaling. Default: 0.50. UNCALIBRATED placeholder
-        (todo 0c); not calibrated to primate anatomy.
+        Feedback weight scaling. Default: 0.50. UNCALIBRATED placeholder;
+        not calibrated to primate anatomy.
 
     Returns
     -------
@@ -640,8 +640,8 @@ def sparse_intercolumn_connectivity(
 ) -> dict[str, Any]:
     """Create a sparse inter-column connectivity specification.
 
-    Default probabilities and weight ranges are UNCALIBRATED placeholders
-    (todo 0c); not calibrated to primate anatomy.
+    Default probabilities and weight ranges are UNCALIBRATED placeholders;
+    not calibrated to primate anatomy.
 
     Returns
     -------

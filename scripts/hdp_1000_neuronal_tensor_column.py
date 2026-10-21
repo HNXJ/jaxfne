@@ -42,6 +42,7 @@ from jaxfne.hdp_network import (
     DEFAULT_HDP, BASE_HDP_KWARGS_DEFAULT,
     HDPColumnConfig, apply_drive_correction as _hdp_apply_drive_correction,
 )
+from jaxfne.emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
 
 OUTPUT_DIR = Path("outputs/hdp_1000_neuronal_tensor_column")
 
@@ -68,8 +69,6 @@ ZBANDS = {
     "L1": (0.00, 0.10), "L2": (0.10, 0.35), "L3": (0.35, 0.55),
     "L4": (0.55, 0.65), "L5": (0.65, 0.85), "L6": (0.85, 1.00),
 }
-
-from jaxfne.emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
 
 assert "site-packages" not in sys.modules["jaxfne"].__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
@@ -299,7 +298,7 @@ def main() -> None:
     print("=== Building 1000-neuron V1 column as a NeuronalTensor ===")
     tensor = build_tensor()
     n_inter_connections = sum(len(a.inter_connections) for a in tensor.areas)
-    n_neurons = sum(l.n_neurons for a in tensor.areas for l in a.layers)
+    n_neurons = sum(lay.n_neurons for a in tensor.areas for lay in a.layers)
     print(f"areas={len(tensor.areas)} layers={sum(len(a.layers) for a in tensor.areas)} "
           f"neurons={n_neurons} inter_connections={n_inter_connections}")
     nt.save_neuronal_tensor(tensor, OUTPUT_DIR / "hdp_1000_v1_column_tensor.json")

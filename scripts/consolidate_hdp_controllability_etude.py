@@ -19,7 +19,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = Path(__file__).resolve().parent
 DIAG = ROOT / "artifacts/msvc_hdp_diagnostic"
-ETUDE_DIR = ROOT / "artifacts/etudes/hdp_controllability_reachability"
+ETUDE_DIR = ROOT / "artifacts/etudes/bundles/hdp_controllability_reachability"
 DOCS_MD = ROOT / "docs/etudes/hdp_controllability_reachability.md"
 
 FROZEN_RECEIPTS = {

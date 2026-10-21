@@ -1,6 +1,5 @@
 """Test that vis.py has no duplicate function definitions and visualization functions work correctly."""
 
-import pytest
 import numpy as np
 import matplotlib
 import jaxfne as jtfne

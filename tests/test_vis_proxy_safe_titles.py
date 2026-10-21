@@ -4,7 +4,6 @@ Asserts that no title uses words like "real", "empirical", or "calibrated" witho
 explicit proxy context, and that simulated/proxy vocabulary is correctly present.
 """
 
-import pytest
 import numpy as np
 
 import jaxfne as jtfne

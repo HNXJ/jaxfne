@@ -55,16 +55,8 @@ def utc_now_iso() -> str:
 
 
 def evidence_checklist_path() -> Path:
-    """Return the active evidence checklist path with compatibility fallback."""
-    root = repo_root()
-    candidates = [
-        root / "docs" / "evidence" / "evidence_checklist.json",
-        root / "docs" / "evidence_artifacts" / "evidence_checklist.json",
-    ]
-    for path in candidates:
-        if path.is_file():
-            return path
-    return candidates[0]
+    """Return the evidence checklist path (docs/theory/publication/, since 72eafbbd)."""
+    return repo_root() / "docs" / "theory" / "publication" / "evidence_checklist.json"
 
 
 def truth_gates() -> dict:
@@ -119,6 +111,10 @@ def save_figure_manifest(
     output_path = Path(output_path)
     if not output_path.is_file():
         raise FileNotFoundError(f"Figure output not found: {output_path}")
+
+    for src in source_files:
+        if not (root / src).is_file():
+            raise FileNotFoundError(f"Source file not found: {src}")
 
     sha = sha256_file(output_path)
     manifest: dict = {

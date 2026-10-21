@@ -13,7 +13,7 @@ Tests that:
 10. Example script exists and runs
 11. Vocabulary clean (no forbidden terms)
 12. Version remains 0.2.3
-13. The numbers docs/tutorials/02_two_neuron_ei.md and docs/colab.md state
+13. The numbers docs/archive/tutorials/basics/02_two_neuron_ei.md and docs/start/colab.md state
 """
 
 from __future__ import annotations
@@ -227,7 +227,9 @@ class TestTwoNeuronEINotebook:
         doc_path = (
             Path(__file__).parent.parent
             / "docs"
+            / "archive"
             / "tutorials"
+            / "basics"
             / "02_two_neuron_ei.md"
         )
         content = doc_path.read_text(encoding="utf-8")

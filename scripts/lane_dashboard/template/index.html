@@ -1,0 +1,118 @@
+<style>
+#dash-root { --dash-gutter: clamp(16px, 4vw, 40px); }
+.fg { max-width: 1280px; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+.fg h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 2rem; margin: 0 0 .25rem; text-wrap: balance; }
+.fg .lede { color: var(--color-fg-muted); margin: 0 0 1.25rem; max-width: 70ch; }
+.fg .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); gap: var(--cds-gap-md); margin-bottom: 1.25rem; }
+.fg .kpi { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); min-width: 0; }
+.fg .kpi b.n { display: block; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 1.75rem; font-variant-numeric: tabular-nums; }
+.fg .kpi span.l { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.fg .bar { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); align-items: center; margin-bottom: 1rem; }
+.fg .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); overflow: hidden; }
+.fg .seg button { background: transparent; color: var(--color-fg); border: 0; padding: .4rem .8rem; font: inherit; cursor: pointer; }
+.fg .seg button[aria-pressed=true] { background: var(--color-panel); font-weight: 600; box-shadow: inset 0 -2px 0 var(--color-fg); }
+.fg .seg button:focus-visible, .fg input:focus-visible, .fg select:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.fg input[type=search], .fg select { background: var(--color-bg); color: var(--color-fg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: .4rem .6rem; font: inherit; min-width: 0; }
+.fg input[type=search] { flex: 1 1 14rem; max-width: 22rem; }
+.fg .count { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin-left: auto; font-variant-numeric: tabular-nums; }
+.fg .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: var(--cds-gap-md); min-height: 12rem; }
+.fg .card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.fg .card img { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: #fff; border-bottom: 1px solid var(--color-border-line); display: block; }
+.fg .card .noimg { aspect-ratio: 4 / 3; display: grid; place-items: center; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); border-bottom: 1px solid var(--color-border-line); }
+.fg .card .body { padding: var(--cds-pad-md) var(--cds-pad-lg); display: flex; flex-direction: column; gap: .4rem; min-width: 0; }
+.fg .card h3 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); line-height: 1.3; }
+.fg .card .id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); overflow-wrap: anywhere; }
+.fg .card p { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; overflow-wrap: anywhere; }
+.fg .facts { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .2rem; }
+.fg .pill { font-size: var(--cds-font-size-caption); border: 1px solid var(--color-border-line); border-radius: 999px; padding: .1rem .55rem; color: var(--color-fg-muted); font-variant-numeric: tabular-nums; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.fg .pill.warn { color: var(--color-warn); border-color: var(--color-warn); }
+.fg .pill.bad { color: var(--color-bad); border-color: var(--color-bad); }
+.fg .pill.ok { color: var(--color-good, var(--color-fg)); border-color: var(--color-good, var(--color-fg)); }
+.fg .note { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin-top: 1.25rem; max-width: 80ch; line-height: 1.5; }
+.fg .msg { grid-column: 1 / -1; color: var(--color-fg-muted); padding: 2rem 0; text-align: center; }
+.fg h2 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 1.4rem; margin: 2rem 0 .5rem; }
+.fg .tbl-wrap { overflow-x: auto; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); }
+.fg table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); }
+.fg th, .fg td { text-align: left; vertical-align: top; padding: .5rem .7rem; border-bottom: 1px solid var(--color-border-line); }
+.fg th { background: var(--color-panel); font-weight: 600; white-space: nowrap; }
+.fg td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fg td.id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; }
+</style>
+
+<div class="fg">
+  <h1 id="fg-title">jaxfne replication lanes</h1>
+  <p class="lede" id="fg-lede">One card per lane folder in artifacts/etudes/papers, read from its README, its files, git, the replication registry and the todo and open stacks.</p>
+  <div class="bar">
+    <div class="seg" role="group" aria-label="Dashboard view">
+      <button type="button" data-tab="lanes" aria-pressed="true">Lanes</button>
+      <button type="button" data-tab="analyses" aria-pressed="false">Saved outputs</button>
+    </div>
+  </div>
+
+  <section id="tab-lanes">
+    <div class="kpis">
+      <div class="kpi"><b class="n" data-source="counts" data-field="value" data-where="metric=lanes">—</b><span class="l">lane folders</span></div>
+      <div class="kpi"><b class="n" data-source="counts" data-field="value" data-where="metric=registry">—</b><span class="l">in the replication registry</span></div>
+      <div class="kpi"><b class="n" data-source="counts" data-field="value" data-where="metric=render">—</b><span class="l">with a rendered figure</span></div>
+      <div class="kpi"><b class="n" data-source="counts" data-field="value" data-where="metric=receipts">—</b><span class="l">with a receipt</span></div>
+      <div class="kpi"><b class="n" data-source="counts" data-field="value" data-where="metric=open">—</b><span class="l">named by an open todo or open-stack row</span></div>
+    </div>
+
+    <div class="bar">
+      <div class="seg" role="group" aria-label="Lane set">
+        <button type="button" data-set="all" aria-pressed="true">All</button>
+        <button type="button" data-set="registry" aria-pressed="false">In the registry</button>
+        <button type="button" data-set="unregistered" aria-pressed="false">Not in the registry</button>
+        <button type="button" data-set="open" aria-pressed="false">Named by open rows</button>
+      </div>
+      <input type="search" id="fg-q" placeholder="Search lane, title, caption, registry id" aria-label="Search lanes">
+      <select id="fg-sort" aria-label="Sort lanes">
+        <option value="name">Lane name</option>
+        <option value="render">Latest render first</option>
+        <option value="receipt">Latest receipt first</option>
+        <option value="open">Most open rows first</option>
+      </select>
+      <span class="count" id="fg-count"></span>
+    </div>
+
+    <div class="grid" id="fg-grid" data-source="lanes"></div>
+
+    <p class="note" id="fg-note">Title and caption come from the lane README (title line, first sentence of the first paragraph), or from SOURCE_P1.md (its Target paragraph) or NOTES.md where the lane has no README. Receipts are the lane's score files (score*.json, scores/*.json) and any json named receipt. Standing is the registry stage and class from dashboard/data/replications.json, joined to the folder by the rule in scripts/check_replications.py. The render date is the git commit date of the newest PNG in the lane, or of its dashboard/figures render; an untracked file shows its file time and says so. A render date shows when the picture was committed, not whether its numbers were reviewed. A receipt count is not freshness: jaxfne has no per-receipt staleness judge, and the registry document's own judge (scripts/build_dashboard_data.py --check) rates the whole document only. Open rows are todo table rows, T- bullets and O- lines that name the lane folder, a registry id, or the author and year.</p>
+  </section>
+
+  <section id="tab-analyses" hidden>
+    <h2>Saved analysis outputs</h2>
+    <div class="kpis">
+      <div class="kpi"><b class="n" data-source="an_counts" data-field="value" data-where="metric=files">—</b><span class="l">saved data files</span></div>
+      <div class="kpi"><b class="n" data-source="an_counts" data-field="value" data-where="metric=areas">—</b><span class="l">folders</span></div>
+      <div class="kpi"><b class="n" data-source="an_counts" data-field="value" data-where="metric=rows">—</b><span class="l">table rows in total</span></div>
+      <div class="kpi"><b class="n" data-source="an_counts" data-field="value" data-where="metric=mb">—</b><span class="l">MB on disk</span></div>
+      <div class="kpi"><b class="n" data-source="an_counts" data-field="value" data-where="metric=untracked">—</b><span class="l">untracked (local only)</span></div>
+    </div>
+    <div class="bar">
+      <div class="seg" role="group" aria-label="File kind">
+        <button type="button" data-an-kind="all" aria-pressed="true">All</button>
+        <button type="button" data-an-kind="table" aria-pressed="false">Tables</button>
+        <button type="button" data-an-kind="array" aria-pressed="false">Arrays</button>
+        <button type="button" data-an-kind="receipt" aria-pressed="false">Receipts</button>
+        <button type="button" data-an-kind="json" aria-pressed="false">Other json</button>
+      </div>
+      <input type="search" id="an-q" placeholder="Search folder or file" aria-label="Search saved outputs">
+      <select id="an-sort" aria-label="Sort saved outputs">
+        <option value="written">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="area">Folder, then file</option>
+        <option value="rows">Most rows first</option>
+        <option value="size">Largest first</option>
+      </select>
+      <span class="count" id="an-count"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table id="an-table" data-source="analyses" data-row-key="path">
+        <thead><tr><th data-field="area">Folder</th><th data-field="file">File</th><th data-field="kind">Kind</th><th data-field="n_rows">Rows</th><th data-field="size_kb">Size (KB)</th><th data-field="written_utc">Written (UTC)</th><th data-field="written_source">Date from</th><th data-field="tracked">Tracked</th></tr></thead>
+        <tbody id="an-body"></tbody>
+      </table>
+    </div>
+    <p class="note">Read from artifacts/ at the commit named in the dataset; control, legacy and archive folders and _temp_ files are skipped. Rows are the lines of each csv minus its header, or of each jsonl; blank for arrays, json and files too large to count. Written is the newest commit touching the file, or its file time when untracked. The table shows the first rows of the current sort; the count says how many.</p>
+  </section>
+</div>

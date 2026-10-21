@@ -1,4 +1,4 @@
-"""Assemble the files under ``artifacts/changelog.d/`` into ``docs/changelog.md``.
+"""Assemble the files under ``artifacts/changelog.d/`` into ``docs/reference/changelog.md``.
 
 Each change writes its own file, ``artifacts/changelog.d/<name>.<category>.md``,
 holding one or more top-level ``- `` bullets. Two changes made in parallel
@@ -12,7 +12,7 @@ YYYY-MM-DD`` inserts ``## vX.Y.Z (YYYY-MM-DD)`` directly below
 deletes the fragments it consumed. ``--dry-run`` prints the section and changes
 nothing.
 
-``docs/changelog.md`` mixes CRLF and LF lines, so every byte of it is kept:
+``docs/reference/changelog.md`` mixes CRLF and LF lines, so every byte of it is kept:
 the file is read and written as bytes, the new section is an insertion, never
 an edit. The script refuses a version that already has a ``## v<version>``
 section, and refuses while ``[Unreleased]`` still carries hand-written lines,
@@ -31,10 +31,10 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FRAGMENT_DIR = REPO_ROOT / "artifacts" / "changelog.d"
-CHANGELOG = REPO_ROOT / "docs" / "changelog.md"
+CHANGELOG = REPO_ROOT / "docs" / "reference" / "changelog.md"
 
 #: Fragment category -> section heading, in Keep a Changelog order. These are
-#: the Keep a Changelog headings ``docs/changelog.md`` uses; older sections
+#: the Keep a Changelog headings ``docs/reference/changelog.md`` uses; older sections
 #: carry other headings as history, but fragments use only these.
 CATEGORIES: Dict[str, str] = {
     "added": "Added",
@@ -131,10 +131,10 @@ def assemble(changelog: bytes, version: str, date: str,
     mixed CRLF/LF line endings survive the insertion.
     """
     if _version_heading(version).search(changelog):
-        raise FragmentError(f"docs/changelog.md already has a section for v{version}")
+        raise FragmentError(f"docs/reference/changelog.md already has a section for v{version}")
     marker = _MARKER_LINE.search(changelog)
     if marker is None:
-        raise FragmentError("docs/changelog.md has no '## [Unreleased]' line")
+        raise FragmentError("docs/reference/changelog.md has no '## [Unreleased]' line")
     head, tail = changelog[:marker.end()], changelog[marker.end():]
     cut = tail.find(b"\n## ")
     gap, rest = (tail, b"") if cut == -1 else (tail[:cut + 1], tail[cut + 1:])
@@ -166,7 +166,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
     args.changelog.write_bytes(updated)
     if args.changelog.read_bytes() != updated:
-        print("assemble_changelog: docs/changelog.md did not read back as written", file=sys.stderr)
+        print("assemble_changelog: docs/reference/changelog.md did not read back as written", file=sys.stderr)
         return 1
     for _, _, path in fragments:
         path.unlink()

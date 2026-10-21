@@ -45,7 +45,7 @@ from ._config import (
     edge_seed_from_metadata,
     poisson_signature,
 )
-from ._runtime_config import RuntimeConfig
+from ._runtime_config import RuntimeConfig, _require_backend_available
 from ._signals import Simulation, Signals, LaminarSourceGeometry
 from ._model import Model
 from ._construct_connectivity import (
@@ -85,6 +85,18 @@ def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
         if v is not None:
             kw[k] = v
     return RuntimeConfig(**kw)
+
+
+def _require_metadata_backend_available(metadata: Mapping[str, Any]) -> None:
+    """Fail fast when ``Configuration.runtime(backend=...)`` names an absent gpu/tpu.
+
+    Mirrors :attr:`RuntimeConfig.selected_backend` (``device_type`` aliases
+    ``backend``). The adex route is not covered here: it refuses every
+    non-default backend by name itself, so its ``ValueError`` keeps priority.
+    """
+    _require_backend_available(
+        metadata.get("device_type") or metadata.get("backend") or "auto"
+    )
 
 
 def simulate(
@@ -830,10 +842,14 @@ def _construct_compile_connections(
         # closed inside the compilers rather than zeroing.
         _construct_dt_ms = cfg.metadata.get("dt_ms")
         if _all_connection_rules_declare_resolvable_mechanism(_conn_rules, _conn_mechanisms):
-            _needs_positions = any(r.get("max_in_degree") is not None for r in _conn_rules)
+            _needs_positions = any(
+                r.get("max_in_degree") is not None or r.get("footprint") is not None
+                for r in _conn_rules
+            )
             if _needs_positions and positions is None:
                 raise ValueError(
                     "connection rule(s) declare max_in_degree (spatially-localized sampling) "
+                    "or footprint (retinotopic pairs) "
                     "but no neuron positions are available at this construct() stage"
                 )
             # Tensor-posed wiring: the tensor bridge records each area's
@@ -851,7 +867,7 @@ def _construct_compile_connections(
                 )
             else:
                 _positions_np = _np.asarray(positions) if _needs_positions else None
-            _conn_edges, _counts = _compile_mechanism_aware_connection_rules(
+            _conn_edges, _counts, _sharing = _compile_mechanism_aware_connection_rules(
                 _conn_rules,
                 _conn_mechanisms,
                 _area_labels,
@@ -877,6 +893,34 @@ def _construct_compile_connections(
                     ".mechanisms() declaration. Declare mechanisms for all rules, or drop "
                     "max_in_degree -- the cap cannot be applied on the sign-only path."
                 )
+            _fixed = [r.get("name") for r in _conn_rules if r.get("in_degree") is not None]
+            if _fixed:
+                raise ValueError(
+                    f"connection rule(s) {_fixed} declare in_degree, which is only "
+                    "honoured by the mechanism-aware compiler. That compiler runs only when "
+                    "every declared rule carries a mechanism= reference resolvable against a "
+                    ".mechanisms() declaration. Declare mechanisms for all rules, or drop "
+                    "in_degree -- the exact count cannot be applied on the sign-only path."
+                )
+            _uncompilable = {}
+            for r in _conn_rules:
+                _keys = [
+                    k for k in ("footprint", "weight_sharing", "local_inhibition")
+                    if r.get(k) is not None
+                ]
+                if _keys:
+                    _uncompilable[r.get("name")] = _keys
+            if _uncompilable:
+                raise ValueError(
+                    f"connection rule(s) {sorted(_uncompilable)} declare "
+                    f"{_uncompilable}, which the sign-only path cannot compile. The "
+                    "mechanism-aware compiler runs only when every declared rule "
+                    "carries a mechanism= reference resolvable against a "
+                    ".mechanisms() declaration; weight_sharing and "
+                    "local_inhibition execute on the lif route only. Declare "
+                    "mechanisms for all rules (and build the lif route for the "
+                    "lif-only keys), or drop them."
+                )
             _sigma = [r.get("name") for r in _conn_rules if r.get("spatial_sigma") is not None]
             if _sigma:
                 raise ValueError(
@@ -896,6 +940,10 @@ def _construct_compile_connections(
                 int(edge_seed_from_metadata(cfg.metadata)),
                 dt_ms=_construct_dt_ms,
             )
+            # The sign-only compiler selects no footprint pairs, so it emits
+            # no sharing groups (rules carrying those keys were refused
+            # above); the echo stays None on this path.
+            _sharing = None
         declared_edge_count = sum(int(count) for count in _counts)
         if connectivity_mode == "explicit" and _conn_edges is not None:
             _reject_duplicate_explicit_edges(_conn_edges)
@@ -908,7 +956,7 @@ def _construct_compile_connections(
                 f"{_conn_edges.n_edges} edge(s) were materialized from "
                 ".connections() rules, which the dense W does not carry",
             )
-        cfg = _mark_connections_compiled(cfg, _counts)
+        cfg = _mark_connections_compiled(cfg, _counts, _sharing)
     if connectivity_mode is not None:
         cfg = _record_connectivity_compilation(
             cfg,
@@ -994,6 +1042,9 @@ def construct(
                 f"for the second argument when the first is a NeuronalTensor; "
                 f"got {type(runtime).__name__}"
             )
+        # Fail fast on an absent gpu/tpu device instead of building a model
+        # that can only fail later at simulate() time.
+        _require_backend_available(runtime.device or "auto")
         if geometry is not None:
             raise ValueError(
                 "geometry= is not supported on the NeuronalTensor path -- "
@@ -1393,12 +1444,22 @@ def _construct_from_configuration(
     physical signals.
     """
     _construct_validate_config(cfg)
+    if not (cfg.emitters and cfg.emitters[0].get("family") == "adex"):
+        for rule in (cfg.metadata.get("circuit") or {}).get("connections", []):
+            if isinstance(rule, Mapping) and rule.get("intra_step_rounds") is not None:
+                raise ValueError(
+                    f"connections(name={rule.get('name')!r}) declares "
+                    f"intra_step_rounds={rule.get('intra_step_rounds')!r}: the intra-step "
+                    "fixed point is realized on the adex route only (emitter family "
+                    "'adex'); omit it on this route"
+                )
     if cfg.emitters and cfg.emitters[0].get("family") == "homeostatic_ei":
         if geometry is not None:
             raise ValueError(
                 f"construct(geometry={geometry!r}) is not realized on the homeostatic_ei route: "
                 "positions come from the canonical E/I layout"
             )
+        _require_metadata_backend_available(cfg.metadata)
         return _construct_homeostatic_ei_model(cfg)
     if cfg.emitters and cfg.emitters[0].get("family") == "adex":
         if geometry is not None:
@@ -1407,6 +1468,8 @@ def _construct_from_configuration(
                 "its cells sit at zero positions and no geometry is read"
             )
         return construct_adex_model(cfg)
+    # An absent gpu/tpu device fails here, not later at simulate() time.
+    _require_metadata_backend_available(cfg.metadata)
     net = cfg.networks[0]
     dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
 

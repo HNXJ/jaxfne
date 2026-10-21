@@ -398,6 +398,7 @@ def general_sequential_oddball_paradigm(
             merged_metadata["static_events"] = json_safe(static_events)
         except Exception:
             merged_metadata["static_events"] = {str(k): repr(v) for k, v in static_events.items()}
+            merged_metadata["static_events_repr_fallback"] = True
 
     if analysis_windows is None:
         analysis_windows = {

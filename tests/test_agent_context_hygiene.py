@@ -160,9 +160,9 @@ class TestAgentContextHygiene:
             # README and docs/index.md are minimum-word entry pages; grammars live
             # in context.md and deeper docs.
             "artifacts/context.md",
-            "docs/api/index.md",
-            "docs/for_ai_agents.md",
-            "docs/operator_doctrine.md",
+            "docs/reference/api/index.md",
+            "docs/reference/project/for_ai_agents.md",
+            "docs/theory/operator_doctrine.md",
         ]
         for path in surfaces:
             content = Path(path).read_text(encoding="utf-8")
@@ -225,9 +225,9 @@ class TestAgentContextHygiene:
 
 # Paths that were dead in the pre-P0 harness and must never return.
 _REMOVED_DEAD_SKILL_PATHS = (
-    "artifacts/skills/catalog-glossary-jaxfne/SKILL.md",
-    "artifacts/skills/jaxfne-worker-context-router/SKILL.md",
-    "artifacts/skills/jaxfne-frozen-use/SKILL.md",
+    "artifacts/control/skills/catalog-glossary-jaxfne/SKILL.md",
+    "artifacts/control/skills/jaxfne-worker-context-router/SKILL.md",
+    "artifacts/control/skills/jaxfne-frozen-use/SKILL.md",
 )
 
 _ACTIVE_SKILLS = (
@@ -248,35 +248,38 @@ _ACTIVE_SKILLS = (
     "jaxfne-simulate",
     "jaxfne-verify",
     "jaxfne-inspect",
+    # Lane dashboard refresh after a push (2026-10-20).
+    "jaxfne-dashboard",
 )
 
 _TASK_ROUTES = {
-    "ordinary modeling": "artifacts/skills/jaxfne-core/SKILL.md",
-    "code modification": "artifacts/skills/jaxfne-repo/SKILL.md",
-    "scientific experiment": "artifacts/skills/jaxfne-science/SKILL.md",
-    "independent audit": "artifacts/skills/jaxfne-audit/SKILL.md",
-    "release": "artifacts/skills/jaxfne-release/SKILL.md",
-    "independent seal": "artifacts/skills/jaxfne-seal/SKILL.md",
-    "vocabulary review": "artifacts/skills/vocabulary-audit/SKILL.md",
-    "neuron model": "artifacts/skills/jaxfne-model/SKILL.md",
-    "network specification": "artifacts/skills/jaxfne-network/SKILL.md",
-    "hidden state": "artifacts/skills/jaxfne-state/SKILL.md",
-    "plasticity": "artifacts/skills/jaxfne-plasticity/SKILL.md",
-    "fields and probes": "artifacts/skills/jaxfne-fields/SKILL.md",
-    "simulation": "artifacts/skills/jaxfne-simulate/SKILL.md",
-    "identity verification": "artifacts/skills/jaxfne-verify/SKILL.md",
-    "inspection": "artifacts/skills/jaxfne-inspect/SKILL.md",
+    "ordinary modeling": "artifacts/control/skills/jaxfne-core/SKILL.md",
+    "code modification": "artifacts/control/skills/jaxfne-repo/SKILL.md",
+    "scientific experiment": "artifacts/control/skills/jaxfne-science/SKILL.md",
+    "independent audit": "artifacts/control/skills/jaxfne-audit/SKILL.md",
+    "release": "artifacts/control/skills/jaxfne-release/SKILL.md",
+    "independent seal": "artifacts/control/skills/jaxfne-seal/SKILL.md",
+    "vocabulary review": "artifacts/control/skills/vocabulary-audit/SKILL.md",
+    "neuron model": "artifacts/control/skills/jaxfne-model/SKILL.md",
+    "network specification": "artifacts/control/skills/jaxfne-network/SKILL.md",
+    "hidden state": "artifacts/control/skills/jaxfne-state/SKILL.md",
+    "plasticity": "artifacts/control/skills/jaxfne-plasticity/SKILL.md",
+    "fields and probes": "artifacts/control/skills/jaxfne-fields/SKILL.md",
+    "simulation": "artifacts/control/skills/jaxfne-simulate/SKILL.md",
+    "identity verification": "artifacts/control/skills/jaxfne-verify/SKILL.md",
+    "inspection": "artifacts/control/skills/jaxfne-inspect/SKILL.md",
+    "lane dashboard refresh": "artifacts/control/skills/jaxfne-dashboard/SKILL.md",
 }
 
 _REQUIRED_AI_PATHS = (
     "artifacts/context.md",
     "artifacts/AGENTS.md",
-    "artifacts/vocabulary/JAXFNE_VOCABULARY.md",
-    "artifacts/subagents/vocabulary_critic.md",
+    "artifacts/control/vocabulary/JAXFNE_VOCABULARY.md",
+    "artifacts/control/subagents/vocabulary_critic.md",
     "artifacts/release/current_release_authorities.json",
     "scripts/run_test_gate.py",
     "scripts/harness/gate0_git_reality.py",
-    *(f"artifacts/skills/{name}/SKILL.md" for name in _ACTIVE_SKILLS),
+    *(f"artifacts/control/skills/{name}/SKILL.md" for name in _ACTIVE_SKILLS),
 )
 
 
@@ -288,12 +291,12 @@ class TestAgentPathIntegrity:
         assert not missing, f"Missing required AI paths: {missing}"
 
     def test_removed_dead_skill_paths_stay_absent(self):
-        """Regression: pre-P0 dead skills must not reappear under artifacts/skills/."""
+        """Regression: pre-P0 dead skills must not reappear under artifacts/control/skills/."""
         for path in _REMOVED_DEAD_SKILL_PATHS:
             assert not Path(path).exists(), f"Dead skill path returned: {path}"
 
     def test_for_ai_agents_does_not_reference_removed_skills(self):
-        text = Path("docs/for_ai_agents.md").read_text(encoding="utf-8")
+        text = Path("docs/reference/project/for_ai_agents.md").read_text(encoding="utf-8")
         for fragment in (
             "catalog-glossary-jaxfne",
             "jaxfne-worker-context-router",
@@ -320,11 +323,11 @@ class TestFreshAgentRouter:
             assert Path(skill_path).exists(), f"{task} route missing: {skill_path}"
 
     def test_active_skill_inventory(self):
-        found = sorted(p.parent.name for p in Path("artifacts/skills").glob("*/SKILL.md"))
+        found = sorted(p.parent.name for p in Path("artifacts/control/skills").glob("*/SKILL.md"))
         assert found == sorted(_ACTIVE_SKILLS), f"Active skill inventory mismatch: {found}"
 
     def test_archived_frozen_use_not_in_active_inventory(self):
-        assert not Path("artifacts/skills/jaxfne-frozen-use/SKILL.md").exists()
+        assert not Path("artifacts/control/skills/jaxfne-frozen-use/SKILL.md").exists()
         assert Path("artifacts/legacy/skills/jaxfne-frozen-use/SKILL.md").exists()
 
 
@@ -341,7 +344,7 @@ class TestActiveSkillStaleness:
     def test_generic_skills_have_no_expired_release_literals(self):
         offenders: list[str] = []
         for name in _ACTIVE_SKILLS:
-            text = Path(f"artifacts/skills/{name}/SKILL.md").read_text(encoding="utf-8")
+            text = Path(f"artifacts/control/skills/{name}/SKILL.md").read_text(encoding="utf-8")
             if "40-day frozen-use" in text:
                 offenders.append(name)
             if name == "jaxfne-repo" and "Delta C_core = 0" in text:

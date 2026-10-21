@@ -60,31 +60,28 @@ def check_consistency():
     print("Current versions:")
     all_present = True
     for name, ver in versions.items():
-        status = "✓" if ver else "✗"
+        status = "ok" if ver else "MISSING"
         print(f"  {status} {name}: {ver or 'NOT FOUND'}")
         if not ver:
             all_present = False
 
     if not all_present:
-        print("\n✗ ERROR: Missing required version metadata source(s). Check failed.")
+        print("\nERROR: Missing required version metadata source(s). Check failed.")
         return False
 
     ver_list = list(versions.values())
     all_match = all(v == ver_list[0] for v in ver_list)
 
     if all_match:
-        print(f"\n✓ All versions consistent: {ver_list[0]}")
+        print(f"\nOK: All versions consistent: {ver_list[0]}")
         return True
     else:
-        print("\n✗ ERROR: Version mismatch detected across metadata sources.")
+        print("\nERROR: Version mismatch detected across metadata sources.")
         return False
 
 def main():
     parser = ArgumentParser(description="Check consistency of release metadata versions.")
-    parser.add_argument("--check", action="store_true", help="Check consistency")
-    args = parser.parse_args()
-
-    # --check is the primary verification gate
+    parser.parse_args()  # check-only: no flags, invoking it runs the check
     success = check_consistency()
     sys.exit(0 if success else 1)
 

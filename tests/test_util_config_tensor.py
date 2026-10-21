@@ -148,7 +148,6 @@ def test_validate_model_clean_edge_list_model_has_no_warnings():
 
 
 def test_validate_model_flags_out_of_bounds_edge_index():
-    import jax.numpy as jnp
     from dataclasses import replace as dc_replace
 
     model = _small_model(recurrent_backend="edge_list")
@@ -161,7 +160,6 @@ def test_validate_model_flags_out_of_bounds_edge_index():
 
 
 def test_validate_model_strict_raises():
-    import jax.numpy as jnp
     from dataclasses import replace as dc_replace
 
     model = _small_model(recurrent_backend="edge_list")

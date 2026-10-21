@@ -15,7 +15,7 @@ High R_k is recorded for class-shared arrays but is NOT treated as removability 
 
 Usage:
     python scripts/perf/w8_benchmark_harness.py
-    python scripts/perf/w8_benchmark_harness.py --json artifacts/audit/w8_baseline.json
+    python scripts/perf/w8_benchmark_harness.py --json artifacts/audit/baselines/w8_baseline.json
     python scripts/perf/w8_benchmark_harness.py --cell dense_all_to_all_N1000
 """
 from __future__ import annotations
@@ -42,7 +42,7 @@ if str(_PERF) not in sys.path:
 from w10_allocation_map import RSSSampler, build_config, describe, walk_arrays  # noqa: E402
 from w11_scaling_atlas import _realized_degree, _split_bytes  # noqa: E402
 
-OUT_DEFAULT = ROOT / "artifacts" / "audit" / "w8_baseline.json"
+OUT_DEFAULT = ROOT / "artifacts" / "audit" / "baselines" / "w8_baseline.json"
 
 # W7 anchor profiles (same configs as w7_dense_nxn_inventory measurements).
 W7_PROFILES: list[dict[str, Any]] = [
@@ -288,7 +288,7 @@ def build_report(duration_ms: float, dt_ms: float, seed: int, include_sweep: boo
             "R_k": "materialized/distinct; high R_k does not imply removability",
         },
         "reconciles_with": [
-            "artifacts/audit/w7_dense_nxn_inventory.json",
+            "artifacts/audit/baselines/w7_dense_nxn_inventory.json",
             "scripts/perf/w10_allocation_map.py",
             "scripts/perf/w11_scaling_atlas.py",
         ],

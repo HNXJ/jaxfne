@@ -12,7 +12,9 @@ all SHA invariants hold.
 
 Usage:
     python scripts/release/assert_release_freeze.py
-    python scripts/release/assert_release_freeze.py --check
+
+This script is check-only by construction: it never writes. There is no
+--check flag; invoking it performs the check.
 
 Exit codes:
     0  — freeze not active, or freeze active and all SHAs match
@@ -94,8 +96,7 @@ def read_freeze_from_lockfile():
 
 def main():
     parser = argparse.ArgumentParser(description="Assert release freeze state.")
-    parser.add_argument("--check", action="store_true", help="Check-only mode (no side effects)")
-    args = parser.parse_args()
+    parser.parse_args()
 
     # Sources of freeze state (lockfile takes priority if present)
     lock_freeze, lock_sha = read_freeze_from_lockfile()

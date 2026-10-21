@@ -55,8 +55,6 @@ def _topology(model: Any) -> tuple[np.ndarray, np.ndarray, Any]:
     labels = np.asarray([row["cell_type"] for row in rows])
     layers = np.asarray([row["layer"] for row in rows])
     edges = model.params["edge_list"]
-    pre = np.asarray(edges.pre)
-    post = np.asarray(edges.post)
     return labels, layers, edges
 
 

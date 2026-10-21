@@ -6,7 +6,6 @@ availability (no false placement claim on absent devices). On a single-device
 host these are no-ops, so behavior is unchanged.
 """
 
-import jax
 import numpy as np
 
 import jaxfne as jtfne

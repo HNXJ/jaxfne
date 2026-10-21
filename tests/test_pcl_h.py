@@ -11,11 +11,11 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
-import artifacts.etudes.pcl.pcl_fig2 as F  # noqa: E402
-import artifacts.etudes.pcl.pcl_fig2_hdp as K  # noqa: E402
-import artifacts.etudes.pcl.pcl_hdp_rule as R  # noqa: E402
-import artifacts.etudes.pcl_h.pcl_h_fig2 as KH  # noqa: E402
-import artifacts.etudes.pcl_h.pcl_h_rule as RH  # noqa: E402
+import artifacts.etudes.papers.pcl.pcl_fig2 as F  # noqa: E402
+import artifacts.etudes.papers.pcl.pcl_fig2_hdp as K  # noqa: E402
+import artifacts.etudes.papers.pcl.pcl_hdp_rule as R  # noqa: E402
+import artifacts.etudes.papers.pcl_h.pcl_h_fig2 as KH  # noqa: E402
+import artifacts.etudes.papers.pcl_h.pcl_h_rule as RH  # noqa: E402
 
 
 def _run_both(seed=7):

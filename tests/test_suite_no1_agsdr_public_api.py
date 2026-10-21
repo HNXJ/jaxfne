@@ -10,7 +10,6 @@ Validates:
 
 import json
 import numpy as np
-import jax.numpy as jnp
 import jaxfne as jtfne
 import pytest
 

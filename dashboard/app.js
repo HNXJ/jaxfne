@@ -1,5 +1,11 @@
 "use strict";
 
+var THEME_KEY = "jaxfne-dashboard-theme";
+var THEMES = ["system", "light", "dark"];
+var theme = "system";
+var figureImages = [];
+var systemDark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+
 var PALETTE = ["#1565c0", "#ff9800", "#00acc1", "#e53935", "#4caf50", "#8e24aa"];
 var DASHES = ["solid", "dash", "dot", "dashdot"];
 var GOLD = "#cfb87c";
@@ -18,6 +24,11 @@ function link(href, text, cls) {
   return a;
 }
 
+// The Paper column: the paper's value, or for a core-method check its analytic reference.
+function paperText(c) {
+  return c.paper_value || (c.reference ? String(c.reference) : "");
+}
+
 function shortSha(sha) {
   return sha ? String(sha).slice(0, 7) : "";
 }
@@ -27,6 +38,7 @@ function chipClass(verdict) {
   if (verdict === "pass" || verdict === "reproduced") return "chip-pass";
   if (verdict === "fail" || verdict === "not reproduced") return "chip-fail";
   if (verdict === "pending") return "chip-pending";
+  if (verdict === "mixed") return "chip-partial";
   return "chip-incomplete";
 }
 
@@ -34,6 +46,7 @@ function chipSymbol(verdict) {
   if (verdict === "pass" || verdict === "reproduced") return "✓";
   if (verdict === "fail" || verdict === "not reproduced") return "✗";
   if (verdict === "pending") return "…";
+  if (verdict === "mixed") return "◑";
   return "◌";
 }
 
@@ -115,11 +128,75 @@ function groupColors(items) {
 }
 
 function plotColors() {
-  var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  var style = window.getComputedStyle(document.documentElement);
+  var fg = style.getPropertyValue("--text").trim();
+  var grid = style.getPropertyValue("--plot-grid").trim();
   return {
-    fg: dark ? "#f2f2f2" : "#1a1a1a",
-    grid: dark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.15)"
+    fg: fg || "#1b1f24",
+    grid: grid || "rgba(0, 0, 0, 0.15)"
   };
+}
+
+function storedTheme() {
+  try {
+    var value = window.localStorage.getItem(THEME_KEY);
+    return THEMES.indexOf(value) === -1 ? "system" : value;
+  } catch (err) {
+    return "system";
+  }
+}
+
+function storeTheme(choice) {
+  try {
+    window.localStorage.setItem(THEME_KEY, choice);
+  } catch (err) {
+    // Storage refused: the choice still holds for this page view.
+  }
+}
+
+function effectiveTheme() {
+  if (theme === "dark") return "dark";
+  if (theme === "light") return "light";
+  return systemDark && systemDark.matches ? "dark" : "light";
+}
+
+function applyTheme(choice) {
+  theme = choice;
+  document.documentElement.setAttribute("data-theme", choice);
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) toggle.title = "Theme: " + choice;
+  var effective = effectiveTheme();
+  figureImages.forEach(function (img) {
+    img.setAttribute("src", effective === "dark" ? img.dataset.dark : img.dataset.light);
+  });
+  repaintPlots();
+}
+
+function setupTheme() {
+  var toggle = document.getElementById("theme-toggle");
+  if (!toggle) return;
+  toggle.addEventListener("click", function () {
+    var next = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
+    storeTheme(next);
+    applyTheme(next);
+  });
+  if (systemDark) {
+    var onSystemChange = function () {
+      if (theme === "system") applyTheme("system");
+    };
+    if (systemDark.addEventListener) systemDark.addEventListener("change", onSystemChange);
+    else if (systemDark.addListener) systemDark.addListener(onSystemChange);
+  }
+}
+
+function repaintPlots() {
+  if (!window.__data) return;
+  var view = document.getElementById("view");
+  purgePlots(view);
+  var r = route();
+  var paper = null;
+  (window.__data.papers || []).forEach(function (p) { if (p.id === r.id) paper = p; });
+  if (paper) drawCharts(paper);
 }
 
 function renderLinesChart(div, chart) {
@@ -287,14 +364,16 @@ function criteriaTable(paper) {
     var est = el("div", "Estimand: " + (c.estimand || ""));
     est.className = "small";
     claimCell.appendChild(est);
-    var pre = el("div", "Prereg: " + (c.prereg || ""));
-    pre.className = "small";
-    claimCell.appendChild(pre);
+    if (c.prereg) {
+      var pre = el("div", "Prereg: " + c.prereg);
+      pre.className = "small";
+      claimCell.appendChild(pre);
+    }
     row.appendChild(claimCell);
     var critCell = document.createElement("td");
     critCell.appendChild(el("span", c.criterion || ""));
     row.appendChild(critCell);
-    row.appendChild(el("td", c.paper_value || "—"));
+    row.appendChild(el("td", paperText(c) || "—"));
     var valCell = valueCell(c);
     row.appendChild(valCell);
     var verdictCell = document.createElement("td");
@@ -316,17 +395,21 @@ function criteriaTable(paper) {
   return wrap;
 }
 
-/* Static PNG rendered from the same data by scripts/build_dashboard_figures.py. */
+/* Static PNG rendered from the same data by scripts/build_dashboard_figures.py.
+ * Each figure ships as name.png plus name.dark.png; the src follows the theme. */
 function staticFigure(paper, chart) {
   var box = el("details");
   box.className = "static-fig";
   box.appendChild(el("summary", "Static figure"));
   var img = el("img");
-  img.src = "figures/" + paper.id + "-" + chart.id + ".png";
+  img.dataset.light = "figures/" + paper.id + "-" + chart.id + ".png";
+  img.dataset.dark = "figures/" + paper.id + "-" + chart.id + ".dark.png";
+  img.src = effectiveTheme() === "dark" ? img.dataset.dark : img.dataset.light;
   img.alt = chart.title + " (static)";
   img.loading = "lazy";
   img.addEventListener("error", function () { box.hidden = true; });
   box.appendChild(img);
+  figureImages.push(img);
   return box;
 }
 
@@ -504,17 +587,22 @@ function openSection(paper) {
 /* ---- v2: classes, tabs, model pages ---- */
 
 var CLASSES = [
-  { id: "verified", label: "Verified replication", chip: "chip-pass", symbol: "✓",
-    def: "Every primary criterion of a signed preregistration passes, run through the jaxfne library (B1)." },
-  { id: "partial", label: "Partial replication", chip: "chip-partial", symbol: "◐",
-    def: "A signed preregistration is scored and some criteria pass, or all pass on a standalone port only." },
-  { id: "not reproduced", label: "Not reproduced", chip: "chip-fail", symbol: "✗",
-    def: "A signed preregistration is scored and its verdict is a fail, shown with the same prominence as a pass (B2)." },
+  { id: "reproduced", label: "Reproduced", chip: "chip-pass", symbol: "✓",
+    def: "Every primary criterion of a signed preregistration passes." },
+  { id: "reproduced (conditional)", label: "Reproduced (conditional)", chip: "chip-partial", symbol: "◐",
+    def: "A signed preregistration passes under a stated condition, shown beside the class." },
+  { id: "mixed", label: "Mixed", chip: "chip-partial", symbol: "◑",
+    def: "A signed preregistration scored with some primary criteria reproduced and others missed, named beside the class." },
   { id: "in progress", label: "In progress", chip: "chip-incomplete", symbol: "…",
-    def: "On the replication pipeline (P0–P7) with no scored preregistration yet; the stage track shows how far it is." },
-  { id: "demonstration", label: "Demonstration", chip: "chip-incomplete", symbol: "◌",
-    def: "A published model runs in jaxfne without a scored numerical comparison to the paper. It carries no verdict." }
+    def: "On the replication pipeline (P0–P7); the stage track shows how far it is. A preregistration scored without a pass keeps the paper here, with its criteria shown." },
+  { id: "not started", label: "Not started", chip: "chip-incomplete", symbol: "○",
+    def: "Planned for a release; no work on the pipeline yet." },
+  { id: "failed", label: "Failed", chip: "chip-fail", symbol: "✗",
+    def: "Closed without reproducing the paper's result, with the reason stated (B2)." },
+  { id: "core method", label: "Core method checks", chip: "chip-accent", symbol: "◈",
+    def: "Analytic checks of a core method against closed-form references, scored by a script; not a paper replication." }
 ];
+var SCORED_CLASSES = ["reproduced", "reproduced (conditional)", "mixed", "failed"];
 var TABS = ["overview", "models", "validation", "roadmap", "method"];
 
 function classInfo(id) {
@@ -536,7 +624,7 @@ function clear(node) {
 }
 
 function scored(papers) {
-  return papers.filter(function (p) { return p.class !== "demonstration" && p.class !== "in progress"; });
+  return papers.filter(function (p) { return SCORED_CLASSES.indexOf(p["class"]) >= 0; });
 }
 
 function countVerdicts(papers) {
@@ -609,8 +697,10 @@ function renderOverview(view, data) {
   view.appendChild(el("h2", "Overview"));
   var kpis = el("div");
   kpis.className = "kpis";
+  var planned = data.roadmap || [];
+  function extra(c) { return c.id === "not started" ? planned.length : 0; }
   CLASSES.forEach(function (c) {
-    var n = papers.filter(function (p) { return p["class"] === c.id; }).length;
+    var n = papers.filter(function (p) { return p["class"] === c.id; }).length + extra(c);
     kpis.appendChild(kpi(n, c.label));
   });
   var v = countVerdicts(scored(papers));
@@ -618,15 +708,29 @@ function renderOverview(view, data) {
   view.appendChild(kpis);
   CLASSES.forEach(function (c) {
     var group = papers.filter(function (p) { return p["class"] === c.id; });
-    if (!group.length) return;
+    if (!group.length && !extra(c)) return;
     var h = el("h3", c.label);
     view.appendChild(h);
     view.appendChild(el("p", c.def)).className = "small";
     var cards = el("div");
     cards.className = "cards";
     group.forEach(function (p) { cards.appendChild(paperCard(p)); });
+    if (extra(c)) planned.forEach(function (r) { cards.appendChild(plannedCard(r)); });
     view.appendChild(cards);
   });
+}
+
+function plannedCard(r) {
+  var card = el("a");
+  card.className = "card";
+  card.href = "#roadmap";
+  card.appendChild(el("h3", r.model || ""));
+  card.appendChild(el("p", "release " + (r.release || ""))).className = "small";
+  var chips = el("p");
+  chips.appendChild(classChip("not started"));
+  card.appendChild(chips);
+  if (r.needs) card.appendChild(el("p", "Needs: " + r.needs));
+  return card;
 }
 
 function renderModels(view, data) {
@@ -680,7 +784,7 @@ function renderModel(view, data, paper) {
     });
   }
 
-  var unscoredClass = paper["class"] === "demonstration" || paper["class"] === "in progress";
+  var unscoredClass = SCORED_CLASSES.indexOf(paper["class"]) < 0;
   card.appendChild(el("h3", unscoredClass ? "Declared checks" : "Original and replicated"));
   card.appendChild(criteriaTable(paper));
   if ((paper.charts || []).length) {
@@ -729,43 +833,121 @@ function renderValidation(view, data) {
   label.appendChild(select);
   view.appendChild(label);
   var table = el("table");
-  table.className = "criteria";
+  table.className = "validation";
   var head = el("thead");
   var hr = el("tr");
-  var labels = ["Model", "Class", "ID", "Claim", "Paper", "Ours", "Verdict"];
-  labels.forEach(function (h) { hr.appendChild(el("th", h)); });
-  head.appendChild(hr);
   table.appendChild(head);
   var body = el("tbody");
   table.appendChild(body);
   view.appendChild(table);
-  function fill() {
-    clear(body);
+  // Header-click sort, as in the jnwb dashboard: missing values sort last either way.
+  var sortIndex = -1;
+  var direction = 1;
+  var labels = ["Model", "Class", "ID", "Claim", "Paper", "Ours", "Verdict"];
+  function rowValues(p, c) {
+    return [
+      p.title || "",
+      classInfo(p["class"]).label,
+      c.id + (c.group ? " (" + c.group + ")" : ""),
+      c.claim || "",
+      paperText(c),
+      c.value_text === undefined || c.value_text === null ? "" : String(c.value_text),
+      c.verdict || ""
+    ];
+  }
+  function collect() {
+    var rows = [];
     (data.papers || []).forEach(function (p) {
+      if (p["class"] === "core method") return;
       (p.criteria || []).forEach(function (c) {
         if (select.value !== "all" && c.verdict !== select.value) return;
-        var row = el("tr");
-        var m = el("td");
-        m.appendChild(link("#model/" + p.id, p.title));
-        row.appendChild(m);
-        row.appendChild(el("td", classInfo(p["class"]).label));
-        row.appendChild(el("td", c.id + (c.group ? " (" + c.group + ")" : "")));
-        row.appendChild(el("td", c.claim || ""));
-        row.appendChild(el("td", c.paper_value || "—"));
-        row.appendChild(valueCell(c));
-        var vc = el("td");
-        vc.appendChild(verdictChip(c.verdict));
-        row.appendChild(vc);
-        Array.prototype.forEach.call(row.children, function (td, i) {
-          var lab = el("span", labels[i] + ": ");
-          lab.className = "cell-label";
-          td.insertBefore(lab, td.firstChild);
-        });
-        body.appendChild(row);
+        rows.push({ p: p, c: c });
+      });
+    });
+    if (sortIndex !== -1) {
+      rows.sort(function (a, b) {
+        var x = rowValues(a.p, a.c)[sortIndex];
+        var y = rowValues(b.p, b.c)[sortIndex];
+        if (!x || !y) return !x === !y ? 0 : (!x ? 1 : -1);
+        return direction * String(x).localeCompare(String(y));
+      });
+    }
+    return rows;
+  }
+  function paintHead() {
+    clear(hr);
+    labels.forEach(function (h, i) {
+      var th = el("th", h + (i === sortIndex ? (direction > 0 ? " ▲" : " ▼") : ""));
+      th.className = "sortable";
+      th.tabIndex = 0;
+      th.setAttribute("aria-sort", i !== sortIndex ? "none" : (direction > 0 ? "ascending" : "descending"));
+      var choose = function () {
+        if (sortIndex === i) direction = -direction;
+        else { sortIndex = i; direction = 1; }
+        fill();
+      };
+      th.addEventListener("click", choose);
+      th.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          choose();
+        }
+      });
+      hr.appendChild(th);
+    });
+    head.appendChild(hr);
+  }
+  function paintRow(p, c, tbody) {
+    var row = el("tr");
+    var m = el("td");
+    m.appendChild(link("#model/" + p.id, p.title));
+    row.appendChild(m);
+    row.appendChild(el("td", classInfo(p["class"]).label));
+    row.appendChild(el("td", c.id + (c.group ? " (" + c.group + ")" : "")));
+    row.appendChild(el("td", c.claim || ""));
+    row.appendChild(el("td", paperText(c) || "—"));
+    row.appendChild(valueCell(c));
+    var vc = el("td");
+    vc.appendChild(verdictChip(c.verdict));
+    row.appendChild(vc);
+    Array.prototype.forEach.call(row.children, function (td, i) {
+      var lab = el("span", labels[i] + ": ");
+      lab.className = "cell-label";
+      td.insertBefore(lab, td.firstChild);
+    });
+    tbody.appendChild(row);
+  }
+  function fill() {
+    paintHead();
+    clear(body);
+    collect().forEach(function (entry) {
+      paintRow(entry.p, entry.c, body);
+    });
+    fillCore();
+  }
+  select.addEventListener("change", fill);
+  view.appendChild(el("h3", "Core method checks"));
+  view.appendChild(el("p", "Analytic checks of core methods against closed-form references. Values are copied from the scorer files at the commits shown; the page computes no verdict.")).className = "small";
+  var coreTable = el("table");
+  coreTable.className = "validation";
+  var coreHead = el("thead");
+  var coreHr = el("tr");
+  labels.forEach(function (h) { coreHr.appendChild(el("th", h)); });
+  coreHead.appendChild(coreHr);
+  coreTable.appendChild(coreHead);
+  var coreBody = el("tbody");
+  coreTable.appendChild(coreBody);
+  view.appendChild(coreTable);
+  function fillCore() {
+    clear(coreBody);
+    (data.papers || []).forEach(function (p) {
+      if (p["class"] !== "core method") return;
+      (p.criteria || []).forEach(function (c) {
+        if (select.value !== "all" && c.verdict !== select.value) return;
+        paintRow(p, c, coreBody);
       });
     });
   }
-  select.addEventListener("change", fill);
   fill();
 }
 
@@ -789,6 +971,53 @@ function renderRoadmap(view, data) {
   });
   table.appendChild(body);
   view.appendChild(table);
+  view.appendChild(el("h3", "Study list"));
+  var studies = data.studies || [];
+  var statuses = [];
+  studies.forEach(function (s) { if (statuses.indexOf(s.status) < 0) statuses.push(s.status); });
+  var label = el("label", "Show ");
+  var select = el("select");
+  ["all"].concat(statuses).forEach(function (v) {
+    var o = el("option", v);
+    o.value = v;
+    select.appendChild(o);
+  });
+  label.appendChild(select);
+  view.appendChild(label);
+  var studyTable = el("table");
+  studyTable.className = "criteria";
+  var studyHead = el("thead");
+  var sr = el("tr");
+  var studyLabels = ["Status", "Reference", "Result compared"];
+  studyLabels.forEach(function (h) { sr.appendChild(el("th", h)); });
+  studyHead.appendChild(sr);
+  studyTable.appendChild(studyHead);
+  var studyBody = el("tbody");
+  studyTable.appendChild(studyBody);
+  view.appendChild(studyTable);
+  function fillStudies() {
+    clear(studyBody);
+    studies.forEach(function (s) {
+      if (select.value !== "all" && s.status !== select.value) return;
+      var row = el("tr");
+      row.appendChild(el("td", s.status_note ? s.status + " · " + s.status_note : s.status));
+      var refCell = el("td");
+      // The references page marks italics with asterisks; the dashboard shows plain text.
+      var text = (s.reference || "").replace(/\*/g, "");
+      if (s.doi) refCell.appendChild(link("https://doi.org/" + s.doi, text));
+      else refCell.textContent = text;
+      row.appendChild(refCell);
+      row.appendChild(el("td", s.result || ""));
+      Array.prototype.forEach.call(row.children, function (td, i) {
+        var lab = el("span", studyLabels[i] + ": ");
+        lab.className = "cell-label";
+        td.insertBefore(lab, td.firstChild);
+      });
+      studyBody.appendChild(row);
+    });
+  }
+  select.addEventListener("change", fillStudies);
+  fillStudies();
 }
 
 function renderMethod(view) {
@@ -804,7 +1033,7 @@ function renderMethod(view) {
   view.appendChild(dl);
   var rules = el("ul");
   [
-    "The class sits beside the preregistered verdict, which always stays visible.",
+    "Preregistered criteria and their pass or fail stay visible under every class.",
     "The page computes no verdict: values and verdicts are copied by scripts/build_dashboard_data.py from scorer files at pinned commits, and its --check runs in CI.",
     "Failures carry the same prominence as passes (B2).",
     "Agreement with a paper is claimed only where a paper value sits beside ours in the table.",
@@ -824,6 +1053,7 @@ function render(data) {
   var view = document.getElementById("view");
   purgePlots(view);
   clear(view);
+  figureImages = [];
   var r = route();
   Array.prototype.forEach.call(document.querySelectorAll("#tabs a"), function (a) {
     if (a.getAttribute("data-tab") === r.tab) a.setAttribute("aria-current", "page");
@@ -840,7 +1070,9 @@ function render(data) {
   else if (r.tab === "roadmap") renderRoadmap(view, data);
   else if (r.tab === "method") renderMethod(view);
   else renderOverview(view, data);
-  view.focus();
+  // A new route opens at the top; focus without scrolling keeps the tabs out from under the sticky header.
+  window.scrollTo(0, 0);
+  view.focus({ preventScroll: true });
 }
 
 function purgePlots(root) {
@@ -860,7 +1092,7 @@ function renderHeader(data) {
   devLink.appendChild(el("span", "build dev@" + shortSha(sha)));
   devLink.href = "https://github.com/hnxj/jaxfne/commit/" + sha;
   var doc = document.getElementById("replications-doc");
-  doc.href = "https://github.com/hnxj/jaxfne/blob/" + sha + "/artifacts/etudes/REPLICATIONS.md";
+  doc.href = "https://github.com/hnxj/jaxfne/blob/dev/artifacts/etudes/meta/REPLICATIONS.md";
   document.getElementById("banner").hidden = !data.sample;
 }
 
@@ -882,6 +1114,8 @@ window.addEventListener("hashchange", function () {
 
 loadData().then(function (data) {
   window.__data = data;
+  setupTheme();
+  applyTheme(storedTheme());
   renderHeader(data);
   render(data);
 }).catch(function () {

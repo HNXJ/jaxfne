@@ -2,19 +2,14 @@
 
 from __future__ import annotations
 
-import json
 import os
 import subprocess
 import sys
 from pathlib import Path
-_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
-import pytest
 
 from scripts.internal.publication.fig05_protocol import (
-    FIG05_AUDIT_PATH,
     FIG05_PATH,
-    FIG05_RECEIPT_PATH,
     load_fig05_generation_receipt,
     load_fig05_semantic_audit,
     load_fig05_spec,
@@ -22,6 +17,8 @@ from scripts.internal.publication.fig05_protocol import (
     validate_fig05_semantic_audit,
     validate_fig05_spec,
 )
+
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 ROOT = Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "scripts" / "publication_figures" / "fig05_protocol_c.py"

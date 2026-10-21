@@ -26,7 +26,6 @@ def main():
     n_steps = int(duration_ms / dt_ms)
     
     # 1. Emitters Setup
-    cell_types = {"E": 0.8, "PV": 0.2}
     emitter = jtfne.emitters.IzhikevichEmitter(n=n_neurons, dtype="float32")
     emitter_state = emitter.initial_state(seed=42)
     

@@ -21,6 +21,7 @@ import pytest
 
 import jaxfne as jtfne
 from jaxfne import neuronal_tensor as nt
+from jaxfne.emitters_lif import LIFNetworkParams
 from jaxfne.connectivity import (
     delay_steps_from_ms,
     with_rule_allow_self_connections,
@@ -75,12 +76,13 @@ def _rules(cfg):
     return list(cfg.metadata["circuit"]["connections"])
 
 
-# G1: lif/glif are registered but not routed by the tensor bridge.
-def test_lif_tensor_refused_at_bridge_as_unroutable():
+# G1: glif is registered but not routed by the tensor bridge; lif routes.
+def test_lif_tensor_routes_through_the_bridge():
     tensor = _single_area_tensor(
         [_nt("E", emitter="lif"), _nt("PV", emitter="lif")], [_ee_conn()])
-    with pytest.raises(ValueError, match="not routed"):
-        _construct(tensor, emitter="lif")
+    model = _construct(tensor, emitter="lif")
+    assert isinstance(model.params["emitter"], LIFNetworkParams)
+    assert model.static["lif"]["emitter_family"] == "lif"
 
 
 def test_glif_tensor_refused_at_bridge_as_unroutable():
@@ -90,10 +92,10 @@ def test_glif_tensor_refused_at_bridge_as_unroutable():
         _construct(tensor, emitter="glif")
 
 
-def test_undeclared_runtime_lif_refused_at_bridge():
+def test_undeclared_runtime_lif_routes_through_the_bridge():
     tensor = _single_area_tensor([_nt("E"), _nt("PV")], [_ee_conn()])
-    with pytest.raises(ValueError, match="not routed"):
-        _construct(tensor, emitter="lif")
+    model = _construct(tensor, emitter="lif")
+    assert isinstance(model.params["emitter"], LIFNetworkParams)
 
 
 # G5: per-triple drive.

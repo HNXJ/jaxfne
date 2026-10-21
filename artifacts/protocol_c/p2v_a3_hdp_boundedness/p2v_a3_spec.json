@@ -9,11 +9,11 @@
   "parent_authorities": {
     "hdp_kernel": "jaxfne/emitters.py simulate_edge_recurrent_izhikevich_hdp",
     "hdp_presets": "jaxfne/hdp_network.py DEFAULT_HDP / DEFAULT_HDP_DESYNC / BASE_HDP_KWARGS_DEFAULT",
-    "k_w_ctrl_sweep": "artifacts/hdp_k_w_ctrl_sweep/summary.json",
+    "k_w_ctrl_sweep": "artifacts/protocols/hdp/hdp_k_w_ctrl_sweep/summary.json",
     "w0_contract": "artifacts/protocol_w/w0_mathematical_contract.json",
     "w3a_receipt": "artifacts/protocol_w/w3a_stability/w3a_stability_receipt.json",
     "w3b_receipt": "artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json",
-    "rho_sweep": "artifacts/hdp_v2_rho_sweep/",
+    "rho_sweep": "artifacts/protocols/hdp/hdp_v2_rho_sweep/",
     "phase2_review": "artifacts/developer/phase2_review/04_hostile_nature_methods_review.md (M-4)"
   },
   "motivation": "Phase-2 review (M-4, K_w_ctrl) demanded a boundedness classification of every HDP state variable and every manuscript-facing HDP claim. The user direction: do NOT infer instability merely from K_w_ctrl=0.0; classify each claim into one of four classes (analytically bounded / bounded by implementation / numerically bounded over tested domain / not established); prospective domain definition plus a minimal run only; a scoped statement 'trajectories remained bounded over the tested parameter and time domain' is acceptable.",

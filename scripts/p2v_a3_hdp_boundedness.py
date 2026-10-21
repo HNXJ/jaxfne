@@ -19,7 +19,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-import jaxfne as jtfne
+import jaxfne as jtfne  # noqa: F401  (repo-root import, asserted below via sys.modules)
 from jaxfne.emitters import simulate_edge_recurrent_izhikevich_hdp
 from jaxfne.h4_matrix import build_ring_params_edges
 

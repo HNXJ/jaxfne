@@ -104,7 +104,7 @@ def izh_config() -> Any:
     return (
         jtfne.configuration()
         .runtime(seed=SEED, duration_ms=DURATION_MS, dt_ms=DT_MS, dtype="float32", jit=False)
-        .population(N_IZH, neurons={"E": 0.7, "I": 0.3}, layers=["L2/3", "L4"], name="V1")
+        .population(N_IZH, neurons={"L2/3": 0.5, "L4": 0.5}, layers=["L2/3", "L4"], name="V1")
         .cell_types({"E": 0.7, "PV": 0.3})
         .geometry(layer_thickness={"L2/3": 0.5, "L4": 0.5})
         # No .drive(): the frozen figures ran at the emitter default drive. Their E/PV drive
@@ -419,7 +419,7 @@ def _gap_review(metrics: dict[str, Any]) -> str:
             "|------|-------|------|",
             "| Two mature distinct F_X (Izhikevich vs homeostatic_ei) | NO_GAP | Smallest implemented pair. |",
             "| LIF/GLIF unused | NO_GAP | Placeholders; not silent Izhikevich substitutes. |",
-            "| HEI Model.simulate ignores StimulusSchedule | ANALYSIS_GAP | Live Model.simulate docstring is the Izhikevich vertical slice; HEI returns before paradigm resolution. Supported HEI drive is simulate_homeostatic_ei(..., drive_schedule=). docs/api/core.md overgeneralizes injection without an HEI caveat (closure docs, not this étude). Silent ignore is an interface limitation, not CORRECTNESS_DEFECT of the Izhikevich-scoped method. |",
+            "| HEI Model.simulate ignores StimulusSchedule | ANALYSIS_GAP | Live Model.simulate docstring is the Izhikevich vertical slice; HEI returns before paradigm resolution. Supported HEI drive is simulate_homeostatic_ei(..., drive_schedule=). docs/reference/api/core/core.md overgeneralizes injection without an HEI caveat (closure docs, not this étude). Silent ignore is an interface limitation, not CORRECTNESS_DEFECT of the Izhikevich-scoped method. |",
             "| Jaxley omitted | NO_GAP | Not a capability claim; deferred to avoid an integration étude. |",
             "| AGSDR omitted | NO_GAP | Not a capability claim; would need a cross-family observable contract. |",
             "| Family-native U scales | NO_GAP | Common shape, not calibrated current equivalence. |",

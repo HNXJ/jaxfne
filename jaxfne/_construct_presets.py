@@ -210,11 +210,13 @@ def rate_targets(
 
 def suite2_celltype_presets() -> dict[str, dict[str, float | str]]:
     """Return compact E/PV/SST/VIP reduced-emitter preset metadata."""
+    from .emitters import IZHIKEVICH_CELL_TYPE_DEFAULTS as _IZH_TYPES
+
     return {
-        "E": {"a": 0.02, "b": 0.20, "c": -65.0, "d": 8.0, "drive": 5.0, "role": "excitatory_pyramidal_like"},
-        "PV": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 3.0, "role": "fast_inhibitory_like"},
-        "SST": {"a": 0.02, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "role": "somatostatin_like"},
-        "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "role": "disinhibitory_like"},
+        "E": {"a": 0.02, "b": 0.20, "c": -65.0, "d": 8.0, "drive": _IZH_TYPES["E"]["drive"], "role": "excitatory_pyramidal_like"},
+        "PV": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": _IZH_TYPES["PV"]["drive"], "role": "fast_inhibitory_like"},
+        "SST": {"a": 0.02, "b": 0.25, "c": -65.0, "d": 2.0, "drive": _IZH_TYPES["SST"]["drive"], "role": "somatostatin_like"},
+        "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": _IZH_TYPES["VIP"]["drive"], "role": "disinhibitory_like"},
     }
 
 

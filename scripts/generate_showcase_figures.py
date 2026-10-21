@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate PNG showcase figures for docs/guides/showcases.md.
+"""Generate PNG showcase figures for docs/guides/interop/showcases.md.
 
 Runs real jaxfne simulations with proxy-safe titles. Sizes are reduced from
 the prose in showcases.md where a full-scale run would be impractical for

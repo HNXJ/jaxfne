@@ -6,7 +6,6 @@ import json
 
 import jaxfne as jtfne
 import numpy as np
-import pytest
 
 from jaxfne.protocol_e_integration.e1_execution import (
     build_edge_provenance_table,
@@ -14,13 +13,10 @@ from jaxfne.protocol_e_integration.e1_execution import (
     build_identity_map,
     identity_round_trip_ok,
     load_e1_execution_receipt,
-    run_e1_hierarchy_runtime,
     verify_connectivity_ownership,
     write_e1_execution_receipt,
 )
 from jaxfne.protocol_e_integration.e1_protocol import (
-    E1_EXECUTION_RECEIPT_PATH,
-    E1_SPEC_PATH,
     load_e1_spec,
     validate_e1_spec,
 )

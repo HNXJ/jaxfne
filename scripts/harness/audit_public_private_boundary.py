@@ -8,7 +8,6 @@ Audits:
    scratch trees, agent configurations, and developer plans.
 """
 import re
-import subprocess
 import sys
 import tarfile
 import zipfile
@@ -82,11 +81,11 @@ def audit_distributions() -> list[str]:
         return ["No dist/ directory found. Build packages before running distribution audit."]
 
     forbidden_pkg_prefixes = (
-        "artifacts/skills/",
+        "artifacts/control/skills/",
         ".opencode/",
         ".cursor/",
         "scratch/",
-        "artifacts/private_acceptance/",
+        "artifacts/assurance/private_acceptance/",
         "scripts/harness/",
     )
 

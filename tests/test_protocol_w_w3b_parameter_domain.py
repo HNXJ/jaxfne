@@ -14,10 +14,8 @@ from jaxfne.w3b_parameter_domain import (
     W3bFrozenGates,
     W3bParameterPoint,
     classify_regime,
-    export_w3b_domain_receipt,
     floquet_margin_nonneutral,
     gamma_hdp,
-    run_w3b_domain_scan,
     validate_period_for_floquet,
 )
 

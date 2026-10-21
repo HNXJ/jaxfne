@@ -2,15 +2,15 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-14T16:35:07Z",
-    "dev_sha": "6f85f5c3056edf91b89ea2a61efce758000d0a69"
+    "utc": "2026-10-21T00:54:57Z",
+    "dev_sha": "214c853b654f34c65edb2b4535128d848fd272a6"
   },
   "papers": [
     {
       "id": "caminos",
       "title": "CAMINOS reference model, Fig. 1",
       "citation": "Tahvili, Vinck and di Volo, PLoS Comput Biol 2026",
-      "class": "verified",
+      "class": "mixed",
       "question": "Does the E–PV–SOM AdEx network give about 35 Hz gamma, SOM after PV, PV > SOM > E and an onset above a critical p?",
       "page": "models/caminos.md",
       "release": "0.5.7",
@@ -122,8 +122,8 @@
           ]
         }
       ],
-      "verdict": "reproduced",
-      "verdict_note": "under v7 (amended after v6 R4 failed); P6 v2 PASS through the public API (Q1–Q5, C1). Against PLoS CB (primary, Hamm 2026-10-14) the PV→SOM lag by the ref. 42 method is 6.47 ms against 8.5 ms (off, e 0.24): a finding that needs X. The 0.1 ms delay sensitivity gives the preprint's ≈ 7 ms",
+      "verdict": "mixed",
+      "verdict_note": "Reproduced under v7 (amended after v6 R4 failed): f_pk, rates and R4. Missed: against PLoS CB (primary, Hamm 2026-10-14) the PV→SOM lag by the ref. 42 method is 6.47 ms against 8.5 ms (off, e 0.24), a finding that needs X. Library path, scored apart: P6 v2 PASS through the public API (Q1–Q5, C1). The 0.1 ms delay sensitivity gives the preprint's ≈ 7 ms",
       "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07. The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep. At p = 0.07 the v6 and v7 runs are identical for all five seeds, so R1–R3 and R4v7 score one realization there.",
       "preregs": [
         {
@@ -160,6 +160,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
@@ -180,6 +182,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
@@ -200,6 +204,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
@@ -220,6 +226,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "every run oscillates, p = 0.02 included; peak excess is largest at low p",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
@@ -240,6 +248,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "at p = 0.03, 2 of 3 seeds fail only the 20 Hz band-edge rule (f_pk 22 Hz, peak excess 22–26)",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7 (R4 only)",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score_v7.json",
@@ -1141,7 +1151,7 @@
       "id": "pcl-fig3",
       "title": "Predictive coding light, Fig. 3 (simple and complex cell tuning)",
       "citation": "N'dri, Barbier, Teulière and Triesch, Nat Commun 2025",
-      "class": "not reproduced",
+      "class": "in progress",
       "question": "Do the trained network's simple and complex cells show the paper's orientation, spatial-frequency and phase tuning?",
       "page": "models/pcl_fig3.md",
       "release": "0.5.6",
@@ -1223,9 +1233,9 @@
           ]
         }
       ],
-      "verdict": "not reproduced",
+      "verdict": null,
       "verdict_note": null,
-      "summary": "Orientation tuning and the simple/complex phase split reproduce. v5 scores the sf curve against the digitized Fig. 3: simple cells fail (10/16 points, error 1.5 times a flat line), complex cells miss the shape guard by 0.02. Under v5, T4 (frequency doubling, C3) passes on the v4 numbers.",
+      "summary": "Preregistrations v4 and v5 were scored and did not pass; a new protocol follows (Hamm 2026-10-13). Orientation tuning and the simple/complex phase split reproduce. v5 scores the sf curve against the digitized Fig. 3: simple cells fail (10/16 points, error 1.5 times a flat line), complex cells miss the shape guard by 0.02. Under v5, T4 (frequency doubling, C3) passes on the v4 numbers.",
       "preregs": [
         {
           "id": "v4",
@@ -1266,6 +1276,8 @@
           ],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1297,6 +1309,8 @@
           ],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1328,6 +1342,8 @@
           ],
           "verdict": "fail",
           "reason": "above both nulls, under the ratio of 2",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1359,6 +1375,8 @@
           ],
           "verdict": "fail",
           "reason": "above both nulls, under the ratio of 2",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1390,6 +1408,8 @@
           ],
           "verdict": "fail",
           "reason": "worse than a flat line",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v5",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
@@ -1421,6 +1441,8 @@
           ],
           "verdict": "fail",
           "reason": "shape guard missed by 0.02",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v5",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
@@ -1441,6 +1463,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1461,6 +1485,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1497,6 +1523,8 @@
           ],
           "verdict": "fail",
           "reason": "complex median below 0; the set difference beats its null",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
@@ -1928,12 +1956,12 @@
       "id": "pcl-fig2",
       "title": "Predictive coding light, Fig. 2 (inhibitory STDP removes predictable spikes)",
       "citation": "N'dri, Barbier, Teulière and Triesch, Nat Commun 2025",
-      "class": "demonstration",
+      "class": "in progress",
       "question": "Are learned inhibitory weights and spike suppression ordered by predictability?",
       "page": "models/pcl_fig2.md",
       "release": "0.5.6",
       "tier": "T-port",
-      "stage": "",
+      "stage": "P1",
       "lane": {
         "branch": "dev",
         "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
@@ -1954,12 +1982,12 @@
       "id": "hh-at01",
       "title": "Hodgkin–Huxley reference against a reduced jaxfne neuron (AT-01)",
       "citation": "Hodgkin and Huxley 1952, through Jaxley",
-      "class": "demonstration",
+      "class": "in progress",
       "question": "How closely does a reduced jaxfne neuron follow a Hodgkin–Huxley cell under the same current step?",
       "page": "models/hh_at01.md",
       "release": "0.5.5",
       "tier": "T-reference",
-      "stage": "",
+      "stage": "P3",
       "lane": {
         "branch": "dev",
         "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
@@ -1984,6 +2012,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
           "evidence": {
             "path": "artifacts/atlas/results/at01_055.json",
@@ -2004,6 +2034,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
           "evidence": {
             "path": "artifacts/atlas/results/at01_055.json",
@@ -2024,6 +2056,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
           "evidence": {
             "path": "artifacts/atlas/results/at01_055.json",
@@ -2044,6 +2078,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
           "evidence": {
             "path": "artifacts/atlas/results/at01_055.json",
@@ -2062,12 +2098,12 @@
       "id": "qlearning",
       "title": "Q-learning on jaxfne network features",
       "citation": "Watkins and Dayan 1992 (learning rule)",
-      "class": "demonstration",
+      "class": "in progress",
       "question": "Can a linear Q-learner on network spike counts learn the optimal policy of chain5 and corridor7?",
       "page": "models/qlearning.md",
       "release": "0.5.6",
       "tier": "T-task",
-      "stage": "",
+      "stage": "P3",
       "lane": {
         "branch": "dev",
         "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
@@ -2088,7 +2124,7 @@
       "id": "izhikevich2003",
       "title": "Izhikevich 2003, Figs. 2 and 3 (single-cell patterns and the 1000-cell network)",
       "citation": "Izhikevich, IEEE Trans Neural Netw 2003",
-      "class": "not reproduced",
+      "class": "in progress",
       "question": "Does jaxfne's existing Izhikevich kernel reproduce the paper's single-cell firing patterns (Fig. 2) and the 1000-cell network rhythm (Fig. 3)?",
       "page": "models/izhikevich2003.md",
       "release": "0.5.7",
@@ -2170,9 +2206,9 @@
           ]
         }
       ],
-      "verdict": "not reproduced",
+      "verdict": null,
       "verdict_note": null,
-      "summary": "Six of eight single-cell patterns reproduce; FS adapts (ISI ratio 1.86) and the resonator spikes once. The network has the paper's rate, alpha and gamma peaks, but its firing is too regular (median ISI CV 0.40 against 0.6 to 1.5), and the float64 reference arm of net.m gives 0.39 too.",
+      "summary": "Preregistration v7 was scored and did not pass. Six of eight single-cell patterns reproduce; FS adapts (ISI ratio 1.86) and the resonator spikes once. The network has the paper's rate, alpha and gamma peaks, but its firing is too regular (median ISI CV 0.40 against 0.6 to 1.5), and the float64 reference arm of net.m gives 0.39 too.",
       "preregs": [
         {
           "id": "v7",
@@ -2202,6 +2238,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2222,6 +2260,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2242,6 +2282,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2262,6 +2304,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "the FS cell adapts",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2282,6 +2326,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2302,6 +2348,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2322,6 +2370,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2342,6 +2392,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "one spike after the pulse",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2362,6 +2414,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2382,6 +2436,8 @@
           "extra": [],
           "verdict": "fail",
           "reason": "too regular; the reference arm gives 0.39",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2402,6 +2458,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2422,6 +2480,8 @@
           "extra": [],
           "verdict": "pass",
           "reason": "",
+          "reference": null,
+          "reference_text": "—",
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
@@ -2435,43 +2495,682 @@
         "Amendment v8.2 (post hoc, signed 2026-10-13; scores/p3_v8_score.json): Fig. 2 passes 8 of 8 with the C8 pulse at I = 2 and C4 as the least-adapting type (FS 1.86 against RS 2.53 and LTS 4.39). N2 stays a failed paper claim.",
         "S1 (rescored on each arm's own step) moves N3 across its band edge. The net.m update-order arm (PREREG_P3b.md) stopped at its equivalence gate (v5): the JAX arm drifts from the NumPy reference faster than a one-ulp input change (RESULT_P3.md)."
       ]
+    },
+    {
+      "id": "gsdr2026",
+      "title": "GSDR, Fig. 6 (a 50-neuron E, SST-like and PV-like circuit fitted to recorded spectra)",
+      "citation": "Nejat, Sherfey and Bastos, PLOS One 2026",
+      "class": "in progress",
+      "question": "Does GSDR fit the 50-neuron Hodgkin–Huxley circuit to the recorded spectra when the circuit and the optimizer run in jaxfne?",
+      "page": null,
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {
+        "branch": "dev",
+        "sha": "7ac1bb47b5805b046a4790d9d6456ed23c706eb7"
+      },
+      "stage_artifacts": [
+        {
+          "stage": "P1",
+          "items": [
+            {
+              "label": "source record (draft)",
+              "path": "artifacts/etudes/papers/gsdr2026/SOURCE_P1.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/7ac1bb47b5805b046a4790d9d6456ed23c706eb7/artifacts/etudes/papers/gsdr2026/SOURCE_P1.md"
+            }
+          ]
+        }
+      ],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Source record drafted. A pilot fit in the lane reached a saturated regime (κ ≈ 0.95 against 0.0156 in the data); the next step is a sweep of g = J_I/J_E at fixed drive before any further fit.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Port spec, calibration record and the pilot fit are in the lane clone and wait for integration on dev.",
+        "The drive and J_E anchor for the g sweep are not yet recorded."
+      ]
+    },
+    {
+      "id": "destexhe2009",
+      "title": "Destexhe 2009, Fig. 6B (self-sustained asynchronous irregular state in an AdEx cortical network)",
+      "citation": "Destexhe, J Comput Neurosci 2009",
+      "class": "in progress",
+      "question": "Does the jaxfne AdEx core, at the paper's parameters, sustain the asynchronous irregular state of Fig. 6B with its rates, CV_ISI and pairwise correlation?",
+      "page": null,
+      "release": "0.5.8",
+      "tier": "T-port",
+      "stage": "P3",
+      "lane": {
+        "branch": "dev",
+        "sha": "6f85f5c3056edf91b89ea2a61efce758000d0a69"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "The AdEx core features the port needs are on dev (Vpeak detection threshold, external-drive schedules, capped Bernoulli sampling). The port is built in the lane clone (28 lane tests pass); its preregistration is drafted and unsigned, and scored seeds 1–8 (S2) are queued.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Rebase the lane onto the artifacts reorganization and integrate on dev (T-21).",
+        "Report the authors' Vpeak beside the VT + 5Δ sensitivity (Hamm 2026-10-14)."
+      ]
+    },
+    {
+      "id": "brunel2000",
+      "title": "Brunel 2000, Fig. 8 (SR, SI fast, AI and SI slow states of a sparse LIF network)",
+      "citation": "Brunel, J Comput Neurosci 2000",
+      "class": "reproduced (conditional)",
+      "question": "Does the jaxfne LIF core, at the paper's parameters, reproduce the Fig. 8 rates, regularity and global frequencies of the SR, SI fast, AI and SI slow states?",
+      "page": "models/brunel2000.md",
+      "release": "0.5.7",
+      "tier": "T-jaxfne",
+      "stage": "P5",
+      "lane": {
+        "branch": "dev",
+        "sha": "3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b"
+      },
+      "stage_artifacts": [
+        {
+          "stage": "P1",
+          "items": [
+            {
+              "label": "source record",
+              "path": "artifacts/etudes/papers/brunel2000/SOURCE_P1.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/SOURCE_P1.md"
+            }
+          ]
+        },
+        {
+          "stage": "P2",
+          "items": [
+            {
+              "label": "port spec",
+              "path": "artifacts/etudes/papers/brunel2000/PORT_SPEC.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/PORT_SPEC.md"
+            },
+            {
+              "label": "lane api",
+              "path": "artifacts/etudes/papers/brunel2000/brunel2000_api.py",
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/brunel2000_api.py"
+            },
+            {
+              "label": "tests",
+              "path": "artifacts/etudes/papers/brunel2000/test_brunel2000_api.py",
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/test_brunel2000_api.py"
+            },
+            {
+              "label": "pilots",
+              "path": "artifacts/etudes/papers/brunel2000/CALIBRATION.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/CALIBRATION.md"
+            }
+          ]
+        },
+        {
+          "stage": "P3",
+          "items": [
+            {
+              "label": "prereg v4 (signed)",
+              "path": "artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md"
+            }
+          ]
+        },
+        {
+          "stage": "P5",
+          "items": [
+            {
+              "label": "result",
+              "path": "artifacts/etudes/papers/brunel2000/RESULT_P3.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/RESULT_P3.md"
+            },
+            {
+              "label": "scores",
+              "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+            }
+          ]
+        }
+      ],
+      "verdict": "reproduced (conditional)",
+      "verdict_note": "Every estimand in its band and Q1-Q3 pass on seeds 4-8 under signed v4. Condition: Q3 (AI at C) reads the paper's wording, stationary global activity plus CV > 0.1, chosen after the seed-0 pilot failed the classifier's asynchronous bounds (disclosed in v4); at C the cells stay more regular than those bounds (CV 0.40-0.41, kappa 0.20).",
+      "summary": "At the paper's parameters, N = 12,500, dt 0.1 ms, the jaxfne LIF core gives Fig. 8's rates and global frequencies at B, C and D within the paper's own simulation-theory gaps, A saturates at 333 Hz with kappa 1.0, and B and D oscillate with irregular cells. A float64 run at C agrees within 0.012% in rate.",
+      "preregs": [
+        {
+          "id": "v4",
+          "signed": "2026-10-19",
+          "path": "artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "E1",
+          "group": "",
+          "claim": "SI fast (B) cells fire near 60 Hz",
+          "estimand": "mean cell rate at B, seeds 4-8",
+          "criterion": "e <= 0.08",
+          "value": 59.330560000000006,
+          "value_text": "59.3",
+          "value_label": "mean rate",
+          "paper_value": "60.7 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "E2",
+          "group": "",
+          "claim": "SI fast (B) global oscillation near 180 Hz",
+          "estimand": "global spectral peak at B, seeds 4-8",
+          "criterion": "e <= 0.06",
+          "value": 182.4,
+          "value_text": "182",
+          "value_label": "mean peak",
+          "paper_value": "~180 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "E3",
+          "group": "",
+          "claim": "AI (C) cells fire near 38 Hz",
+          "estimand": "mean cell rate at C, seeds 4-8",
+          "criterion": "e <= 0.01",
+          "value": 37.867312000000005,
+          "value_text": "37.9",
+          "value_label": "mean rate",
+          "paper_value": "37.7 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "E4",
+          "group": "",
+          "claim": "SI slow (D) cells fire near 5.5 Hz",
+          "estimand": "mean cell rate at D, seeds 4-8",
+          "criterion": "e <= 0.18",
+          "value": 5.631328,
+          "value_text": "5.63",
+          "value_label": "mean rate",
+          "paper_value": "5.5 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "E5",
+          "group": "",
+          "claim": "SI slow (D) global oscillation near 22 Hz",
+          "estimand": "global spectral peak at D, seeds 4-8",
+          "criterion": "e <= 0.32",
+          "value": 20.6,
+          "value_text": "20.6",
+          "value_label": "mean peak",
+          "paper_value": "22 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "Q1",
+          "group": "",
+          "claim": "A is synchronous and regular",
+          "estimand": "label, kappa, CV_ISI at A per seed",
+          "criterion": "saturated or oscillatory, kappa >= 0.5, CV <= 0.1 on every seed",
+          "value": 1.0,
+          "value_text": "1",
+          "value_label": "lowest kappa",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "Q2B",
+          "group": "",
+          "claim": "B is synchronous with irregular cells",
+          "estimand": "label and CV_ISI at B per seed",
+          "criterion": "oscillatory, CV > 0.1 on every seed",
+          "value": 0.7750053988713748,
+          "value_text": "0.775",
+          "value_label": "lowest CV",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "Q2D",
+          "group": "",
+          "claim": "D is synchronous with irregular cells",
+          "estimand": "label and CV_ISI at D per seed",
+          "criterion": "oscillatory, CV > 0.1 on every seed",
+          "value": 0.6302825174958675,
+          "value_text": "0.63",
+          "value_label": "lowest CV",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        },
+        {
+          "id": "Q3",
+          "group": "",
+          "claim": "C has stationary global activity and irregular cells",
+          "estimand": "spectral peak excess (128 ms grid) and CV_ISI at C per seed",
+          "criterion": "excess < 5, CV > 0.1 on every seed",
+          "value": 3.2674747966483104,
+          "value_text": "3.27",
+          "value_label": "highest excess",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Sensitivity set S1 (N = 6250, fixed in-degrees; needs a lane option), S2 (5 s window), S3 (dt 0.05 ms) declared in v4, not yet run.",
+        "Library path P6 and the P7 insight page."
+      ]
+    },
+    {
+      "id": "potjans2014",
+      "title": "Potjans and Diesmann 2014 cortical microcircuit, Fig. 6 and Table 5",
+      "citation": "Potjans and Diesmann, Cereb Cortex 24(3):785-806",
+      "class": "in progress",
+      "question": "Does the jaxfne core reproduce the microcircuit's spontaneous AI state: layer-specific rates, CV above 0.8 and L6-lowest synchrony?",
+      "page": "models/potjans2014.md",
+      "release": "0.5.9",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {
+        "branch": "dev",
+        "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "P1 source record written from the open-access PMC record. Fig. 6 claims (reference rates 0.86/4.45/7.59/1.09 Hz, CV above 0.8, L5e-highest/L6-lowest synchrony) and the Table 5 connectivity map are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Supplementary Tables 1-3 not yet machine-read; publisher supplement links unverified.",
+        "Leak reversal unstated in the paper; NEST default or authors' code must settle it.",
+        "Thalamic transient protocol and Fig. 10/11 propagation claims deferred past P1."
+      ]
+    },
+    {
+      "id": "vogels2011",
+      "title": "Vogels et al. 2011, Fig. 4 (inhibitory STDP balancing a recurrent network) and Figs. 1-2 (single-cell detailed balance)",
+      "citation": "Vogels et al., Science 334(6062):1569-1573",
+      "class": "in progress",
+      "question": "Does the jaxfne core, at the authors' parameters, reproduce the inhibitory-plasticity balance: the Fig. 4 network driven to its target rate and the Figs. 1-2 single-cell detailed balance?",
+      "page": "models/vogels2011.md",
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {
+        "branch": "dev",
+        "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "P1 source record written from the authors' ModelDB code (the MATLAB script was in the Science SOM) plus the open-access 2013 review. Coded target rho0 = 3 Hz; paper-stated realized rates/CVs stay unknown (full text paywalled). The lane runs on the jaxfne core only; next per rule B8 is the pilot, then signature, then fresh seeds.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Paper full text and SOM PDF unreachable; paper-stated Fig. 4 rates/CVs unknown until a legal copy is readable.",
+        "Conductance synapses vs the current-based core LIF is a P2 fidelity question.",
+        "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."
+      ]
+    },
+    {
+      "id": "mejias2016",
+      "title": "Mejias et al. 2016 laminar multi-area model, Figs. 2-3 and 6-7",
+      "citation": "Mejias, Murray, Kennedy and Wang, Sci Adv 2(11):e1601335",
+      "class": "in progress",
+      "question": "Does the jaxfne core reproduce the laminar circuit's gamma/alpha rhythms, their interlaminar coupling, and the 30-area functional hierarchy from frequency-dependent Granger causality?",
+      "page": "models/mejias2016.md",
+      "release": "0.5.9",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {
+        "branch": "dev",
+        "sha": "f8c05f04aefc1b14b27d1972ae57ffa07f888697"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "P1 source record written from the open-access PMC record. Fig. 2-3 claims (gamma ~40 Hz, alpha ~10 Hz, PAC, alpha-suppression link) and Fig. 6-7 claims (SLN-DAI correlation, functional hierarchy, laminar-input jumps) are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Supplementary Methods PDF unreachable with this run's tools; time constants, weights, noise, delays and GC settings stay unknown.",
+        "No Wilson-Cowan rate emitter and no spectral Granger-causality estimator in the core; P2 must build or declare deviations.",
+        "Anatomy files named on core-nets.org, which served a login wall on 2026-10-19."
+      ]
+    },
+    {
+      "id": "head-forward",
+      "title": "Analytic EEG/MEG forward checks of jaxfne.fields.head",
+      "citation": "Sarvas 1987 (MEG); Frank 1952 (EEG)",
+      "class": "core method",
+      "question": "Does the spherical-head MEG/EEG forward code agree with independent analytic references?",
+      "page": null,
+      "release": "0.5.7",
+      "tier": "T-jaxfne",
+      "stage": null,
+      "lane": {
+        "branch": "dev",
+        "sha": "214c853b654f34c65edb2b4535128d848fd272a6"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Nine analytic agreements of the spherical-head forward code, scored from the inputs of tests/test_head_forward.py: radial and full-vector MEG against the primary-current field and scalar-potential quadrature, radial-dipole silence, EEG against the Neumann series and the MNE single shell, conductivity reciprocity, the average-reference null, line-source LFP against scipy quadrature of the line-source integral and its point-dipole far field.",
+      "preregs": [],
+      "criteria": [
+        {
+          "id": "meg-radial",
+          "group": "",
+          "claim": "radial MEG leadfields equal the primary-current field",
+          "estimand": "worst-case |deviation| over 40 sensors and 7 dipoles",
+          "criterion": "error ≤ 1e-6·scale + 2e-4·scale",
+          "value": 3.957314409161212e-12,
+          "value_text": "3.96e-12",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "T/(A·m)",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "primary-current Biot-Savart field",
+          "reference_text": "primary-current Biot-Savart field",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "meg-full-vector",
+          "group": "",
+          "claim": "full-vector MEG leadfields equal the scalar-potential quadrature",
+          "estimand": "worst-case |deviation| over 12 tilted sensors and 3 dipoles",
+          "criterion": "error ≤ 1e-4·scale + 1e-3·scale",
+          "value": 5.424514919145701e-13,
+          "value_text": "5.42e-13",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "T/(A·m)",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "scalar-potential quadrature (-mu0 grad U)",
+          "reference_text": "scalar-potential quadrature (-mu0 grad U)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "meg-radial-silence",
+          "group": "",
+          "claim": "radial dipoles are silent beside tangential ones",
+          "estimand": "silent/loud amplitude ratio over 30 sensors and 7 dipoles",
+          "criterion": "ratio below 1e-6",
+          "value": 5.978804013466013e-08,
+          "value_text": "5.98e-08",
+          "value_label": "silent/loud",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "radial-to-tangential amplitude ratio",
+          "reference_text": "radial-to-tangential amplitude ratio",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "eeg-neumann",
+          "group": "",
+          "claim": "the EEG closed form equals the Neumann series",
+          "estimand": "worst-case |deviation| over 25 electrodes and 4 dipoles",
+          "criterion": "error ≤ 1e-4·scale + 1e-3·scale",
+          "value": 0.00041629936487197483,
+          "value_text": "0.000416",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "V/(A·m)",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "Neumann-series potential (400 terms)",
+          "reference_text": "Neumann-series potential (400 terms)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "eeg-mne",
+          "group": "",
+          "claim": "EEG leadfields equal the MNE single-shell forward",
+          "estimand": "worst-case |deviation| over 30 electrodes and 5 dipoles",
+          "criterion": "error ≤ 1e-4·scale + 1e-3·scale",
+          "value": 4.57763671875e-05,
+          "value_text": "4.58e-05",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "V/(A·m)",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "MNE single-shell forward (homogeneous)",
+          "reference_text": "MNE single-shell forward (homogeneous)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "eeg-scaling",
+          "group": "",
+          "claim": "halving the conductivity doubles the EEG leadfield",
+          "estimand": "worst-case |a − 2b| over 20 electrodes and 3 dipoles",
+          "criterion": "error ≤ 1e-5·scale",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "V/(A·m)",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "conductivity reciprocity (0.33 against 0.66 S/m)",
+          "reference_text": "conductivity reciprocity (0.33 against 0.66 S/m)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "eeg-reference",
+          "group": "",
+          "claim": "average referencing nulls the column means",
+          "estimand": "worst-case |column mean| over 20 electrodes and 3 dipoles",
+          "criterion": "means below 1e-6·scale",
+          "value": 4.124641418457031e-06,
+          "value_text": "4.12e-06",
+          "value_label": "max |mean|",
+          "paper_value": null,
+          "unit": "V/(A·m)",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "average-reference null",
+          "reference_text": "average-reference null",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "line-lfp-quadrature",
+          "group": "",
+          "claim": "line-source LFP equals scipy quadrature of the line-source integral",
+          "estimand": "worst-case |deviation| over 9 contacts, 6 neurons and 4 time points",
+          "criterion": "error ≤ 1e-12·scale + 1e-9·scale",
+          "value": 8.881784197001252e-16,
+          "value_text": "8.88e-16",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "scipy quadrature of the line-source integral",
+          "reference_text": "scipy quadrature of the line-source integral",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "line-lfp-far-field",
+          "group": "",
+          "claim": "far-field line-source LFP equals the point-dipole field",
+          "estimand": "worst-case |deviation| at two contacts 10 length units above and below the soma (units follow the inputs)",
+          "criterion": "error ≤ 1e-3·scale",
+          "value": 6.630211508907213e-12,
+          "value_text": "6.63e-12",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "point-dipole far field",
+          "reference_text": "point-dipole far field",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No paper values: analytic agreements of a core method, not a replication.",
+        "eeg-mne needs the optional mne package and shows pending without it."
+      ]
     }
   ],
   "roadmap": [
     {
-      "release": "0.5.7",
-      "model": "Brunel 2000: asynchronous irregular, synchronous regular and synchronous irregular states",
-      "needs": "working LIF emitter"
-    },
-    {
-      "release": "0.5.7",
-      "model": "Vogels et al. 2011: inhibitory plasticity",
-      "needs": "working LIF emitter"
-    },
-    {
-      "release": "0.5.7",
-      "model": "Calcium-regulated synaptic homeostasis (bioRxiv 2025)",
-      "needs": "working LIF emitter"
-    },
-    {
-      "release": "0.5.7",
-      "model": "PCL Fig. 4: suppression effects",
-      "needs": "0.5.6 conductance synapses"
-    },
-    {
       "release": "0.5.8",
-      "model": "Potjans and Diesmann 2014: cortical microcircuit",
-      "needs": "laminar readout; GPU time"
-    },
-    {
-      "release": "0.5.8",
-      "model": "Mejias et al. 2016: laminar multi-area model",
-      "needs": "laminar readout; GPU time"
-    },
-    {
-      "release": "0.5.8",
-      "model": "Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply)",
-      "needs": "the 0.5.8 laminar models"
+      "model": "Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns",
+      "needs": "a neural-mass emitter in the core"
     },
     {
       "release": "0.5.9",
@@ -2479,14 +3178,503 @@
       "needs": "event input"
     },
     {
-      "release": "0.5.9",
-      "model": "PCL Figs. 5–6",
-      "needs": "the PCL suppression data and N-MNIST/DVS sets"
+      "release": "0.5.10",
+      "model": "Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply)",
+      "needs": "the 0.5.9 laminar networks"
     },
     {
       "release": "0.5.10",
       "model": "Mazzoni et al. 2015: LFP proxies",
-      "needs": "the 0.5.8 laminar models"
+      "needs": "the 0.5.9 laminar networks"
+    },
+    {
+      "release": "after 0.5.10",
+      "model": "PCL Fig. 4: suppression effects",
+      "needs": "the PCL full-network mapping (0.5.8)"
+    },
+    {
+      "release": "after 0.5.10",
+      "model": "PCL Figs. 5–6",
+      "needs": "the PCL suppression data and N-MNIST/DVS sets"
+    },
+    {
+      "release": "after 0.5.10",
+      "model": "Calcium-regulated synaptic homeostasis (bioRxiv 2025)",
+      "needs": "methods read; calcium state as an HDP coordinate"
+    }
+  ],
+  "studies": [
+    {
+      "reference": "Tahvili, F., Vinck, M., & di Volo, M. (2026). *PLOS Computational Biology* 22(6), e1014378.",
+      "doi": "10.1371/journal.pcbi.1014378",
+      "result": "Fig. 1: gamma frequency, the PV→SOM lag, the rate order and the onset of oscillation with connection probability",
+      "status": "mixed",
+      "status_note": null,
+      "where": "[Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/caminos), `artifacts/etudes/papers/caminos/`"
+    },
+    {
+      "reference": "Tahvili, F., Vinck, M., & di Volo, M. (2025). PV and SOM cells play distinct causal roles in controlling network oscillations and stability. *Cell Reports* 44(8), 116131.",
+      "doi": "10.1016/j.celrep.2025.116131",
+      "result": "The network the PLOS paper takes as its reference model; its STAR Methods are not yet compared with the port",
+      "status": "not started",
+      "status_note": "reference model of the plos paper",
+      "where": "`artifacts/etudes/papers/caminos/PORT_SPEC.md`"
+    },
+    {
+      "reference": "N'dri, A. W., Barbier, T., Teulière, C., & Triesch, J. (2025). Predictive Coding Light. *Nature Communications* 16, 8880.",
+      "doi": "10.1038/s41467-025-64234-z",
+      "result": "Fig. 2: learned inhibitory weights and spike suppression ordered by predictability. Fig. 3 is in progress; preregistrations v4 and v5 did not pass",
+      "status": "in progress",
+      "status_note": null,
+      "where": "Dashboard: [Fig. 2](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig2), [Fig. 3](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig3); `artifacts/etudes/papers/pcl/`"
+    },
+    {
+      "reference": "Nejat, H., Sherfey, J., & Bastos, A. M. (2026). A genetic algorithm for self-supervised models of oscillatory neurodynamics. *PLOS One* 21(8), e0354021.",
+      "doi": "10.1371/journal.pone.0354021",
+      "result": "Fig. 6: a 50-neuron E, SST-like and PV-like circuit fitted by GSDR to recorded spectra. In progress; no score yet",
+      "status": "in progress",
+      "status_note": "pilot",
+      "where": "`artifacts/etudes/papers/gsdr2026/`"
+    },
+    {
+      "reference": "Destexhe, A. (2009). Self-sustained asynchronous irregular states and Up-Down states in thalamic, cortical and thalamocortical networks of nonlinear integrate-and-fire neurons. *Journal of Computational Neuroscience* 27(3), 493-506.",
+      "doi": "10.1007/s10827-009-0164-4",
+      "result": "Fig. 6B cortical self-sustained AI state: survival at 10 s, CV_ISI 2.47, pairwise CC 0.005 and the RS/FS rate order, with Fig. 1 single-cell patterns; the port sustains on a subset of seeds with higher rates (`artifacts/etudes/papers/destexhe2009/CALIBRATION.md` step 6)",
+      "status": "in progress",
+      "status_note": "pilot",
+      "where": "[Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/destexhe2009), `artifacts/etudes/papers/destexhe2009/`"
+    },
+    {
+      "reference": "Brunel, N. (2000). Dynamics of sparsely connected networks of excitatory and inhibitory spiking neurons. *Journal of Computational Neuroscience* 8(3), 183-208.",
+      "doi": "10.1023/A:1008925309027",
+      "result": "Fig. 8: the SR, SI fast, AI and SI slow states of the sparse LIF network (rates, regularity, global frequency). Reproduced (conditional) under signed prereg v4, 2026-10-20",
+      "status": "reproduced (conditional)",
+      "status_note": null,
+      "where": "[Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/brunel2000), `artifacts/etudes/papers/brunel2000/`"
+    },
+    {
+      "reference": "Potjans, T. C., & Diesmann, M. (2014). The cell-type specific cortical microcircuit: relating structure and activity in a full-scale spiking network model. *Cerebral Cortex* 24(3), 785-806.",
+      "doi": "10.1093/cercor/bhs358",
+      "result": "Fig. 6 and Table 5: layer- and type-specific spontaneous rates, irregularity and synchrony of the microcircuit. At P1; no score yet",
+      "status": "in progress",
+      "status_note": "pilot",
+      "where": "[Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/potjans2014), `artifacts/etudes/papers/potjans2014/`"
+    },
+    {
+      "reference": "Vogels, T. P., Sprekeler, H., Zenke, F., Clopath, C., & Gerstner, W. (2011). Inhibitory plasticity balances excitation and inhibition in sensory pathways and memory networks. *Science* 334(6062), 1569-1573.",
+      "doi": "10.1126/science.1211095",
+      "result": "Fig. 4: inhibitory STDP on I-to-E synapses drives a recurrent network to its target rate; Figs. 1-2: single-cell detailed balance. At P1; no score yet",
+      "status": "in progress",
+      "status_note": "pilot",
+      "where": "[Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/vogels2011), `artifacts/etudes/papers/vogels2011/`"
+    },
+    {
+      "reference": "Mejias, J. F., Murray, J. D., Kennedy, H., & Wang, X.-J. (2016). Feedforward and feedback frequency-dependent interactions in a large-scale laminar network of the primate cortex. *Science Advances* 2(11), e1601335.",
+      "doi": "10.1126/sciadv.1601335",
+      "result": "Figs. 2-3: laminar gamma and alpha rhythms and their coupling; Figs. 6-7: the 30-area functional hierarchy from frequency-dependent Granger causality. At P1; no score yet",
+      "status": "in progress",
+      "status_note": "pilot",
+      "where": "[Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/mejias2016), `artifacts/etudes/papers/mejias2016/`"
+    },
+    {
+      "reference": "Batuev, B. B., & Sukhov, S. V. (2026). Predictive-Coding-Inspired Reconstruction of Nonlinear Dynamics in Spiking Neural Networks. *Dynamics* 6(4), 42.",
+      "doi": "10.3390/dynamics6040042",
+      "result": "prediction-error spiking networks reconstructing nonlinear dynamics (NEF, PES rule)",
+      "status": "queued",
+      "status_note": "p0",
+      "where": "`artifacts/etudes/meta/REPLICATIONS.md` (queue)"
+    },
+    {
+      "reference": "Kopell, N., Ermentrout, G. B., Whittington, M. A., & Traub, R. D. (2000). Gamma rhythms and beta rhythms have different synchronization properties. *PNAS* 97(4), 1867-1872.",
+      "doi": "10.1073/pnas.97.4.1867",
+      "result": "Gamma and beta synchronization in E-I networks; background for the CAMINOS gamma replication",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Börgers, C., & Kopell, N. (2003). Synchronization in networks of excitatory and inhibitory neurons with sparse, random connectivity. *Neural Computation* 15(3), 509-538.",
+      "doi": "10.1162/089976603321192059",
+      "result": "The PING mechanism in sparse random E-I networks; the same background",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Prinz, A. A., Bucher, D., & Marder, E. (2004). Similar network activity from disparate circuit parameters. *Nature Neuroscience* 7(12), 1345-1352.",
+      "doi": "10.1038/nn1352",
+      "result": "Parameter degeneracy in circuit models; background for fitting with `Model.tune`",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Bastos, A. M., Usrey, W. M., Adams, R. A., Mangun, G. R., Fries, P., & Friston, K. J. (2012). Canonical Microcircuits for Predictive Coding. *Neuron* 76(4), 695-711.",
+      "doi": "10.1016/j.neuron.2012.10.038",
+      "result": "Laminar feedforward and feedback roles in predictive coding",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Bastos, A. M., Vezoli, J., Bosman, C. A., Schoffelen, J.-M., Oostenveld, R., Dowdall, J. R., et al. (2015). Visual Areas Exert Feedforward and Feedback Influences through Distinct Frequency Channels. *Neuron* 85(2), 390-401.",
+      "doi": "10.1016/j.neuron.2014.12.018",
+      "result": "Feedforward gamma and feedback alpha-beta channels",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "van Kerkoerle, T., Self, M. W., Dagnino, B., Gariel-Mathis, M.-A., Poort, J., van der Togt, C., et al. (2014). Alpha and gamma oscillations characterize feedback and feedforward processing in monkey visual cortex. *Proceedings of the National Academy of Sciences* 111(40), 14332-14341.",
+      "doi": "10.1073/pnas.1402773111",
+      "result": "Alpha feedback and gamma feedforward laminar signatures",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Mendoza-Halliday, D., Major, A. J., Lee, N., Lichtenfeld, M. J., Carlson, B., Mitchell, B., et al. (2024). A ubiquitous spectrolaminar motif of local field potential power across the primate cortex. *Nature Neuroscience* 27(3), 547-560.",
+      "doi": "10.1038/s41593-023-01554-7",
+      "result": "Spectrolaminar LFP power motif across cortical areas",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Tiesinga, P., & Sejnowski, T. J. (2009). Cortical Enlightenment: Are Attentional Gamma Oscillations Driven by ING or PING? *Neuron* 63(6), 727-732.",
+      "doi": "10.1016/j.neuron.2009.09.009",
+      "result": "ING versus PING mechanisms for attentional gamma",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Brunel, N., & Wang, X.-J. (2003). What Determines the Frequency of Fast Network Oscillations With Irregular Neural Discharges? I. Synaptic Dynamics and Excitation-Inhibition Balance. *Journal of Neurophysiology* 90(1), 415-430.",
+      "doi": "10.1152/jn.01095.2002",
+      "result": "Oscillation frequency set by synaptic dynamics",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "van Vreeswijk, C., & Sompolinsky, H. (1996). Chaos in Neuronal Networks with Balanced Excitatory and Inhibitory Activity. *Science* 274(5293), 1724-1726.",
+      "doi": "10.1126/science.274.5293.1724",
+      "result": "Chaotic fluctuations in balanced E-I networks",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Renart, A., de la Rocha, J., Bartho, P., Hollender, L., Parga, N., Reyes, A., et al. (2010). The Asynchronous State in Cortical Circuits. *Science* 327(5965), 587-590.",
+      "doi": "10.1126/science.1179850",
+      "result": "Asynchronous irregular state in balanced networks",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Litwin-Kumar, A., & Doiron, B. (2012). Slow dynamics and high variability in balanced cortical networks with clustered connections. *Nature Neuroscience* 15(11), 1498-1505.",
+      "doi": "10.1038/nn.3220",
+      "result": "Slow, variable dynamics from clustered connectivity",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Ostojic, S. (2014). Two types of asynchronous activity in networks of excitatory and inhibitory spiking neurons. *Nature Neuroscience* 17(4), 594-600.",
+      "doi": "10.1038/nn.3658",
+      "result": "Two asynchronous states in E-I spiking networks",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Tsodyks, M. V., Skaggs, W. E., Sejnowski, T. J., & McNaughton, B. L. (1997). Paradoxical Effects of External Modulation of Inhibitory Interneurons. *The Journal of Neuroscience* 17(11), 4382-4388.",
+      "doi": "10.1523/jneurosci.17-11-04382.1997",
+      "result": "Paradoxical response to interneuron modulation",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Ozeki, H., Finn, I. M., Schaffer, E. S., Miller, K. D., & Ferster, D. (2009). Inhibitory Stabilization of the Cortical Network Underlies Visual Surround Suppression. *Neuron* 62(4), 578-592.",
+      "doi": "10.1016/j.neuron.2009.03.028",
+      "result": "Inhibitory stabilization and surround suppression",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Litwin-Kumar, A., Rosenbaum, R., & Doiron, B. (2016). Inhibitory stabilization and visual coding in cortical circuits with multiple interneuron subtypes. *Journal of Neurophysiology* 115(3), 1399-1409.",
+      "doi": "10.1152/jn.00732.2015",
+      "result": "Inhibitory stabilization with multiple interneuron subtypes",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Hertäg, L., & Sprekeler, H. (2020). Learning prediction error neurons in a canonical interneuron circuit. *eLife* 9, e57541.",
+      "doi": "10.7554/elife.57541",
+      "result": "Prediction-error neurons from interneuron circuit learning",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Mazzoni, A., Lindén, H., Cuntz, H., Lansner, A., Panzeri, S., & Einevoll, G. T. (2015). Computing the Local Field Potential (LFP) from Integrate-and-Fire Network Models. *PLOS Computational Biology* 11(12), e1004584.",
+      "doi": "10.1371/journal.pcbi.1004584",
+      "result": "LFP computed from integrate-and-fire network currents",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Mazzoni, A., Panzeri, S., Logothetis, N. K., & Brunel, N. (2008). Encoding of Naturalistic Stimuli by Local Field Potential Spectra in Networks of Excitatory and Inhibitory Neurons. *PLoS Computational Biology* 4(12), e1000239.",
+      "doi": "10.1371/journal.pcbi.1000239",
+      "result": "LFP spectra encoding naturalistic stimulus in networks",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Lindén, H., Tetzlaff, T., Potjans, T. C., Pettersen, K. H., Grün, S., Diesmann, M., et al. (2011). Modeling the Spatial Reach of the LFP. *Neuron* 72(5), 859-872.",
+      "doi": "10.1016/j.neuron.2011.11.006",
+      "result": "Spatial reach of LFP from single-neuron sources",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Hagen, E., Dahmen, D., Stavrinou, M. L., Lindén, H., Tetzlaff, T., van Albada, S. J., et al. (2016). Hybrid Scheme for Modeling Local Field Potentials from Point-Neuron Networks. *Cerebral Cortex* 26(12), 4461-4496.",
+      "doi": "10.1093/cercor/bhw237",
+      "result": "Hybrid LFP model from point-neuron networks",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Lee, K., Pennartz, C. M. A., & Mejias, J. F. (2025). Cortical networks with multiple interneuron types generate oscillatory patterns during predictive coding. *PLOS Computational Biology* 21(9), e1013469.",
+      "doi": "10.1371/journal.pcbi.1013469",
+      "result": "Oscillatory patterns across interneuron types in predictive coding",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Ness, T. V., Tetzlaff, T., Einevoll, G. T., & Dahmen, D. (2025). On the validity of electric brain signal predictions based on population firing rates. *PLOS Computational Biology* 21(4), e1012303.",
+      "doi": "10.1371/journal.pcbi.1012303",
+      "result": "Predicting LFP-like signals from population firing rates",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Páscoa dos Santos, F., & Verschure, P. F. M. J. (2025). Metastable dynamics emerge from local excitatory–inhibitory homeostasis in the cortex at rest. *Network Neuroscience* 9(3), 938-968.",
+      "doi": "10.1162/netn_a_00460",
+      "result": "Metastable dynamics from E-I homeostasis at rest",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Vogels, T. P., & Abbott, L. F. (2005). Signal Propagation and Logic Gating in Networks of Integrate-and-Fire Neurons. *The Journal of Neuroscience* 25(46), 10786-10795.",
+      "doi": "10.1523/jneurosci.3508-05.2005",
+      "result": "Pulse propagation and logic gating in IF networks",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Zenke, F., Agnes, E. J., & Gerstner, W. (2015). Diverse synaptic plasticity mechanisms orchestrated to form and retrieve memories in spiking neural networks. *Nature Communications* 6(1), 6922.",
+      "doi": "10.1038/ncomms7922",
+      "result": "Plasticity mechanisms forming and retrieving memories",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Song, S., Miller, K. D., & Abbott, L. F. (2000). Competitive Hebbian learning through spike-timing-dependent synaptic plasticity. *Nature Neuroscience* 3(9), 919-926.",
+      "doi": "10.1038/78829",
+      "result": "Competitive Hebbian learning under STDP",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Billeh, Y. N., Cai, B., Gratiy, S. L., Dai, K., Iyer, R., Gouwens, N. W., et al. (2020). Systematic Integration of Structural and Functional Data into Multi-scale Models of Mouse Primary Visual Cortex. *Neuron* 106(3), 388-403.e18.",
+      "doi": "10.1016/j.neuron.2020.01.040",
+      "result": "Multi-scale V1 model from structural and functional data",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Schmidt, M., Bakker, R., Shen, K., Bezgin, G., Diesmann, M., & van Albada, S. J. (2018). A multi-scale layer-resolved spiking network model of resting-state dynamics in macaque visual cortical areas. *PLOS Computational Biology* 14(10), e1006359.",
+      "doi": "10.1371/journal.pcbi.1006359",
+      "result": "Layer-resolved resting-state dynamics in macaque areas",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Chaudhuri, R., Knoblauch, K., Gariel, M.-A., Kennedy, H., & Wang, X.-J. (2015). A Large-Scale Circuit Mechanism for Hierarchical Dynamical Processing in the Primate Cortex. *Neuron* 88(2), 419-431.",
+      "doi": "10.1016/j.neuron.2015.09.008",
+      "result": "Hierarchical timescales in large-scale macaque circuit",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Joglekar, M. R., Mejias, J. F., Yang, G. R., & Wang, X.-J. (2018). Inter-areal Balanced Amplification Enhances Signal Propagation in a Large-Scale Circuit Model of the Primate Cortex. *Neuron* 98(1), 222-234.e8.",
+      "doi": "10.1016/j.neuron.2018.02.031",
+      "result": "Inter-areal balanced amplification of signal propagation",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Veit, J., Hakim, R., Jadi, M. P., Sejnowski, T. J., & Adesnik, H. (2017). Cortical gamma band synchronization through somatostatin interneurons. *Nature Neuroscience* 20(7), 951-959.",
+      "doi": "10.1038/nn.4562",
+      "result": "Somatostatin interneurons drive cortical gamma synchrony",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Wilmes, K. A., & Clopath, C. (2019). Inhibitory microcircuits for top-down plasticity of sensory representations. *Nature Communications* 10(1), 5055.",
+      "doi": "10.1038/s41467-019-12972-2",
+      "result": "Inhibitory microcircuits for top-down plasticity",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Kumar, A., Rotter, S., & Aertsen, A. (2008). Conditions for Propagating Synchronous Spiking and Asynchronous Firing Rates in a Cortical Network Model. *The Journal of Neuroscience* 28(20), 5268-5280.",
+      "doi": "10.1523/jneurosci.2542-07.2008",
+      "result": "Propagating synchrony with asynchronous firing rates",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "El Boustani, S., & Destexhe, A. (2009). A Master Equation Formalism for Macroscopic Modeling of Asynchronous Irregular Activity States. *Neural Computation* 21(1), 46-100.",
+      "doi": "10.1162/neco.2009.02-08-710",
+      "result": "Master equation for asynchronous irregular states",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "di Volo, M., Romagnoni, A., Capone, C., & Destexhe, A. (2019). Biologically Realistic Mean-Field Models of Conductance-Based Networks of Spiking Neurons with Adaptation. *Neural Computation* 31(4), 653-680.",
+      "doi": "10.1162/neco_a_01173",
+      "result": "Mean-field adaptation in conductance-based networks",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Spreizer, S., Aertsen, A., & Kumar, A. (2019). From space to time: Spatial inhomogeneities lead to the emergence of spatiotemporal sequences in spiking neuronal networks. *PLOS Computational Biology* 15(10), e1007432.",
+      "doi": "10.1371/journal.pcbi.1007432",
+      "result": "Spatial inhomogeneity producing spatiotemporal sequences",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Rosenbaum, R., Smith, M. A., Kohn, A., Rubin, J. E., & Doiron, B. (2017). The spatial structure of correlated neuronal variability. *Nature Neuroscience* 20(1), 107-114.",
+      "doi": "10.1038/nn.4433",
+      "result": "Spatial structure of pairwise noise correlations",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Huang, C., Ruff, D. A., Pyle, R., Rosenbaum, R., Cohen, M. R., & Doiron, B. (2019). Circuit Models of Low-Dimensional Shared Variability in Cortical Networks. *Neuron* 101(2), 337-348.e4.",
+      "doi": "10.1016/j.neuron.2018.11.034",
+      "result": "Low-dimensional shared variability from circuit models",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Keane, A., & Gong, P. (2015). Propagating Waves Can Explain Irregular Neural Dynamics. *The Journal of Neuroscience* 35(4), 1591-1605.",
+      "doi": "10.1523/jneurosci.1669-14.2015",
+      "result": "Propagating waves producing irregular dynamics",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Mejias, J. F., & Longtin, A. (2012). Optimal Heterogeneity for Coding in Spiking Neural Networks. *Physical Review Letters* 108(22), 228102.",
+      "doi": "10.1103/physrevlett.108.228102",
+      "result": "Heterogeneity optimizing neural coding in spiking networks",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Wang, X.-J. (2002). Probabilistic Decision Making by Slow Reverberation in Cortical Circuits. *Neuron* 36(5), 955-968.",
+      "doi": "10.1016/s0896-6273(02)01092-9",
+      "result": "Slow reverberation for probabilistic decision making",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Hansel, D., & van Vreeswijk, C. (2012). The Mechanism of Orientation Selectivity in Primary Visual Cortex without a Functional Map. *The Journal of Neuroscience* 32(12), 4049-4064.",
+      "doi": "10.1523/jneurosci.6284-11.2012",
+      "result": "Orientation selectivity without an orientation map",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Wacongne, C., Changeux, J.-P., & Dehaene, S. (2012). A Neuronal Model of Predictive Coding Accounting for the Mismatch Negativity. *The Journal of Neuroscience* 32(11), 3665-3678.",
+      "doi": "10.1523/jneurosci.5003-11.2012",
+      "result": "Predictive coding model of mismatch negativity",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Spratling, M. W. (2008). Reconciling Predictive Coding and Biased Competition Models of Cortical Function. *Frontiers in Computational Neuroscience* 2.",
+      "doi": "10.3389/neuro.10.004.2008",
+      "result": "Predictive coding versus biased competition models",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Rao, R. P. N., & Ballard, D. H. (1999). Predictive coding in the visual cortex: a functional interpretation of some extra-classical receptive-field effects. *Nature Neuroscience* 2(1), 79-87.",
+      "doi": "10.1038/4580",
+      "result": "Predictive coding explains extra-classical receptive-field effects",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Markram, H., Muller, E., Ramaswamy, S., Reimann, M. W., Abdellah, M., Sanchez, C. A., et al. (2015). Reconstruction and Simulation of Neocortical Microcircuitry. *Cell* 163(2), 456-492.",
+      "doi": "10.1016/j.cell.2015.09.029",
+      "result": "Spontaneous and evoked dynamics of a reconstructed rat neocortical microcircuit",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "van Vreeswijk, C., & Farkhooi, F. (2025). Emergence of Balanced Cortical Activity via Calcium-Regulated Synaptic Homeostasis. *bioRxiv*. (the record spells the first author \"van Vreewsijk\")",
+      "doi": "10.1101/2025.09.04.674182",
+      "result": "Balanced activity from calcium-regulated synaptic homeostasis",
+      "status": "not started",
+      "status_note": null,
+      "where": ""
+    },
+    {
+      "reference": "Jansen, B. H., & Rit, V. G. (1995). Electroencephalogram and visual evoked potential generation in a mathematical model of coupled cortical columns. *Biological Cybernetics* 73(4), 357-366.",
+      "doi": "10.1007/BF00199471",
+      "result": "Alpha-rhythm EEG and the visual evoked potential from the coupled-column neural mass",
+      "status": "queued",
+      "status_note": "P0",
+      "where": "Opens the EEG/MEG lane (Hamm 2026-10-20); core gap: a neural-mass emitter (sigmoid rate, second-order synaptic kernels)"
     }
   ]
 }

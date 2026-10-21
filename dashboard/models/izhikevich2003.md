@@ -1,6 +1,6 @@
 ## Question
 
-Does jaxfne's existing Izhikevich kernel reproduce the paper's single-cell firing patterns (Fig. 2) and the 1000-cell network rhythm (Fig. 3)? The port spec is `artifacts/etudes/izhikevich2003/PORT_SPEC.md`.
+Does jaxfne's existing Izhikevich kernel reproduce the paper's single-cell firing patterns (Fig. 2) and the 1000-cell network rhythm (Fig. 3)? The port spec is `artifacts/etudes/papers/izhikevich2003/PORT_SPEC.md`.
 
 ## Formulation
 
@@ -27,7 +27,7 @@ empirical validation; drives are in native current units.
 
 - No run compares a preset's firing pattern with the paper.
 - RS, FS and LTS match the paper's Fig. 2. `VIP_IS` does not appear in the paper, and its
-  `source` field says so (`artifacts/etudes/izhikevich2003/SOURCE_P1.md`).
+  `source` field says so (`artifacts/etudes/papers/izhikevich2003/SOURCE_P1.md`).
 - The mapping of patterns to PV, SST and VIP interneurons is the library's labelling.
 
 ## Reproduce

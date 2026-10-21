@@ -38,7 +38,7 @@ def _rt(**kw):
 SIM_CASES = {
     "duration_ms": ({}, {"duration_ms": 30.0}, "output"),
     "dt_ms": ({}, {"dt_ms": 0.05}, "output"),
-    "plasticity": ({}, {"plasticity": 0.7}, "label"),
+    "plasticity": ({}, {"plasticity": 0.7}, "refuse"),
     "seed": ({}, {"seed": 5}, "output"),
     "record_sources": ({}, {"record_sources": False}, "output"),
     "record_fields": ({}, {"record_fields": False}, "output"),
@@ -186,7 +186,7 @@ TENSOR_RT_CASES = {
     "dt_ms": ({"dt_ms": 0.25}, "output", None),
     "seed": ({"seed": 3}, "output", None),
     "dtype": ({"dtype": "float16"}, "refuse", "dtype"),
-    "emitter": ({"emitter": "lif"}, "refuse", "not routed by the NeuronalTensor bridge"),
+    "emitter": ({"emitter": "lif"}, "output", None),
     "device": ({"device": "cpu"}, "policy", None),
     "jit": ({"jit": True}, "policy", None),
     "vmap": ({"vmap": True}, "refuse", "vmap is not consumed"),
@@ -213,7 +213,10 @@ def _tensor_run(**kw):
 
 
 def _tensor_output(sig):
-    lfp = sig.get("lfp_proxy")
+    try:
+        lfp = sig.get("lfp_proxy")
+    except ValueError:
+        lfp = None  # routes recording no field (lif) raise on access
     return [np.asarray(sig.V_m), np.asarray(sig.spikes), None if lfp is None else np.asarray(lfp)]
 
 
@@ -235,6 +238,21 @@ def test_tensor_runtime_field_is_consumed_or_refused(field):
         for x, y in zip(base, pert, strict=True)
     )
     assert same == (outcome == "policy"), f"{field}: outcome {outcome} not realized"
+
+
+def test_tensor_runtime_unroutable_emitter_refused_listing_routable_set():
+    """A registered-but-unrouted family is refused, naming the routable set."""
+    from jaxfne.neuronal_tensor import ROUTABLE_TENSOR_EMITTER_FAMILIES
+
+    with pytest.raises(ValueError, match="not routed"):
+        _tensor_run(emitter="glif")
+    try:
+        _tensor_run(emitter="glif")
+    except ValueError as exc:
+        for family in sorted(ROUTABLE_TENSOR_EMITTER_FAMILIES):
+            assert family in str(exc)
+    else:  # pragma: no cover
+        raise AssertionError("glif must be refused")
 
 
 @pytest.mark.parametrize("n", [1, 16.0, "16", True])

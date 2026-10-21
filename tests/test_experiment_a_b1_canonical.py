@@ -12,11 +12,10 @@ from jaxfne.experiment_a.canonical import (
     array_sha256,
     freeze_canonical_dataset,
     write_b1_receipt,
-    write_canonical_npz,
 )
 from jaxfne.experiment_a.protocol import load_protocol_spec
 
-RECEIPT = Path("artifacts/etudes/experiment_a/b1_canonical_receipt.json")
+RECEIPT = Path(__file__).resolve().parents[1] / "artifacts/etudes/experiment_a/b1_canonical_receipt.json"
 
 
 def test_b1_single_simulate_produces_finite_XHQ():

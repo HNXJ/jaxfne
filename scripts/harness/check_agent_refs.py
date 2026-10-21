@@ -2,7 +2,7 @@
 """Harness v2.1 reference checker.
 
 Every repo-relative path referenced in agent-facing markdown (artifacts/AGENTS.md,
-docs/**, artifacts/skills/**) must exist on disk OR be explicitly marked optional
+docs/**, artifacts/control/skills/**) must exist on disk OR be explicitly marked optional
 via an inline `<!-- optional -->` marker in the same paragraph.
 
 Exit codes: 0 clean, 1 broken (unmarked) references found.
@@ -15,10 +15,10 @@ ROOT = Path(__file__).resolve().parents[2]
 GOVERNED = [
     ROOT / "artifacts" / "context.md",
     ROOT / "artifacts" / "AGENTS.md",
-    ROOT / "docs/for_ai_agents.md",
-    *list((ROOT / "artifacts" / "skills").rglob("*.md")),
+    ROOT / "docs/reference/project/for_ai_agents.md",
+    *list((ROOT / "artifacts" / "control" / "skills").rglob("*.md")),
 ]
-PREFIXES = ("artifacts/skills/", "scripts/", "docs/", "artifacts/", "scratch/", ".opencode/", ".cursor/", "tests/", "jaxfne/")
+PREFIXES = ("artifacts/control/skills/", "scripts/", "docs/", "artifacts/", "scratch/", ".opencode/", ".cursor/", "tests/", "jaxfne/")
 BACKTICK = re.compile(r"`([A-Za-z0-9_.\-/]+(?:/[A-Za-z0-9_.\-]+)*)`")
 LINK = re.compile(r"\]\(([^)#]+)\)")
 
@@ -73,7 +73,7 @@ def main() -> int:
     a = ap.parse_args()
     if a.all:
         scan = [ROOT / "artifacts" / "AGENTS.md", *list((ROOT / "docs").rglob("*.md")),
-                *list((ROOT / "artifacts" / "skills").rglob("*.md"))]
+                *list((ROOT / "artifacts" / "control" / "skills").rglob("*.md"))]
     else:
         scan = GOVERNED
     return run(scan)

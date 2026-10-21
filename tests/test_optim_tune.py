@@ -123,12 +123,25 @@ def test_step_gsgd_transform_direct():
 
 
 def test_optax_guarded_import_no_top_level_dependency():
-    """Optax must not be imported at module top-level; require_optax() guard works."""
-    import importlib
-    import sys
+    """Optax must not be imported at module top-level; require_optax() guard works.
 
-    # jaxfne should import cleanly without triggering optax
-    mod = sys.modules.get("optax")
+    Checked in a fresh interpreter, since another test may already have
+    imported optax in this process.
+    """
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[1]
+    proc = subprocess.run(
+        [sys.executable, "-c", "import jaxfne, sys; print('optax' in sys.modules)"],
+        capture_output=True,
+        text=True,
+        cwd=repo_root,
+    )
+    assert proc.returncode == 0, proc.stderr[-2000:]
+    # Fresh `import jaxfne` must not pull in optax (measured: False).
+    assert proc.stdout.strip() == "False"
     # Only check the guard function is available — don't actually import optax
     assert hasattr(jtfne, "require_optax")
     assert callable(jtfne.require_optax)
@@ -136,9 +149,7 @@ def test_optax_guarded_import_no_top_level_dependency():
     # Guard should raise ImportError or succeed depending on environment
     try:
         jtfne.require_optax()
-        optax_present = True
     except ImportError as e:
-        optax_present = False
         assert "optional dependency 'optax'" in str(e)
         assert "pip install" in str(e)
 
@@ -215,7 +226,7 @@ def test_model_tune_optax_unavailable_non_strict_status():
         # v0.0.6+: optax path always returns optax_guarded_path_no_loop_v0.0.8
         assert same_model is model
         assert report["tuning_status"] == "optax_guarded_path_no_loop_v0.0.8"
-        assert report["acceptance_decision"] in {"REVISE", "ACCEPT_CANDIDATE"}
+        assert report["acceptance_decision"] == "REVISE"
     finally:
         if optax_mod is not None:
             sys.modules["optax"] = optax_mod
@@ -390,11 +401,10 @@ def test_transform_constructors_exist():
 
 def test_transform_requires_explicit_prng_key():
     """Transform update must require explicit PRNG key (no hidden global state)."""
-    import jax
     import jax.numpy as jnp
 
     try:
-        optax = jtfne.require_optax()
+        jtfne.require_optax()
     except ImportError:
         # Skip if optax not available
         return
@@ -626,8 +636,7 @@ def test_gampa_w_updates_weight_matrix():
 
 def test_gampa_w_mask_preserves_shape():
     """Mask application must preserve W matrix shape."""
-    from jaxfne.core import _model_with_matrix_parameter, _mask_for_parameter
-    import jax.numpy as jnp
+    from jaxfne.core import _model_with_matrix_parameter
 
     model, _ = _model_with_rate_objective(n=16)
     spec = jtfne.matrix_parameter(mask="E_to_E", bounds=(0.1, 5.0))
@@ -651,7 +660,6 @@ def test_gampa_w_bounds_preserved():
     new_model_clipped_hi = _model_with_matrix_parameter(model, "gAMPA_w", spec, 10.0)  # clipped to 2.0
     new_model_clipped_lo = _model_with_matrix_parameter(model, "gAMPA_w", spec, 0.01)  # clipped to 0.5
 
-    original_W = jnp.asarray(model.params["emitter"].W, dtype=float)
     expected_hi = _model_with_matrix_parameter(model, "gAMPA_w", spec, 2.0)
     expected_lo = _model_with_matrix_parameter(model, "gAMPA_w", spec, 0.5)
 
@@ -667,7 +675,6 @@ def test_gampa_w_bounds_preserved():
 
 def test_result_model_contains_tuned_gampa_w():
     """result.model from matrix tuning should have a different W than the original."""
-    import jax.numpy as jnp
 
     model, sim = _model_with_rate_objective(n=12, duration_ms=20.0)
     spec = jtfne.matrix_parameter(mask="excitatory_to_all", bounds=(0.5, 2.5))

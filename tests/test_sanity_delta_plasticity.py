@@ -38,7 +38,7 @@ class TestPlasticityConfig:
         assert cfg.biological_learning_claim is False
 
         model = cfg.construct()
-        model_with_plasticity = model.enable_plasticity()
+        model.enable_plasticity()
         assert cfg.biological_learning_claim is False
 
     def test_weight_bounds_preserve_sign(self):

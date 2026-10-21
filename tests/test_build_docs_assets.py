@@ -375,12 +375,12 @@ def _copies_registry(copies):
 
 
 def test_build_copies_each_source_to_its_dest_byte_exact(tmp_path, monkeypatch, capsys):
-    src = tmp_path / "artifacts/etudes/pcl/confirm/c1_seed10_kernels.png"
+    src = tmp_path / "artifacts/etudes/papers/pcl/confirm/c1_seed10_kernels.png"
     src.parent.mkdir(parents=True)
     src.write_bytes(b"\x89PNG fixture-bytes")
     registry = _copies_registry([{
         "dest": "docs/assets/etudes/pcl/c1_kernels.png",
-        "source": "artifacts/etudes/pcl/confirm/c1_seed10_kernels.png",
+        "source": "artifacts/etudes/papers/pcl/confirm/c1_seed10_kernels.png",
     }])
     monkeypatch.setattr(bda, "load_registry", lambda: registry)
     monkeypatch.setattr(bda, "ROOT", tmp_path)
@@ -394,7 +394,7 @@ def test_build_copies_each_source_to_its_dest_byte_exact(tmp_path, monkeypatch, 
 def test_registry_refuses_a_malformed_copies_entry(tmp_path, monkeypatch):
     import pytest
 
-    src = "artifacts/etudes/pcl/confirm/c1_seed10_kernels.png"
+    src = "artifacts/etudes/papers/pcl/confirm/c1_seed10_kernels.png"
     assert (REPO / src).is_file(), "fixture needs a tracked source figure"
     dest = "docs/assets/etudes/pcl/c1_kernels.png"
     bad = [

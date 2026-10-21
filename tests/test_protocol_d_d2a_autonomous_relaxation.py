@@ -21,7 +21,6 @@ from jaxfne.protocol_d_biological_rbs.d2a_execution import (
     h_k_f1_analytic,
     h_k_f1_euler_trace,
     load_d2a_execution_receipt,
-    write_d2a_execution_receipt,
 )
 from jaxfne.protocol_d_biological_rbs.d2a_protocol import (
     D2A_SPEC_PATH,

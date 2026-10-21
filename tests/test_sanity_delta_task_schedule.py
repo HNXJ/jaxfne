@@ -1,6 +1,5 @@
 """Tests for task schedule compilation and validation."""
 
-import pytest
 import jaxfne as jtfne
 
 

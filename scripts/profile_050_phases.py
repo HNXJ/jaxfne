@@ -3,7 +3,7 @@
 
 Per regime: N/E, construct ms, first-call (compile+run) vs warm-call ms,
 RSS deltas, recording volume, observe ms. No optimization, measurement only.
-Writes artifacts/perf/profile_050.json (tracked). Local receipt only.
+Writes artifacts/runs/perf/profiles/profile_050.json (tracked). Local receipt only.
 
 Usage:
     python scripts/profile_050_phases.py
@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-OUT = ROOT / "artifacts" / "perf" / "profile_050.json"
+OUT = ROOT / "artifacts" / "runs" / "perf" / "profiles" / "profile_050.json"
 
 
 def _rss_mb() -> float:

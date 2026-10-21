@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 
 import numpy as np
 import pytest
@@ -17,7 +16,6 @@ from jaxfne.protocol_e_integration.e4_execution import (
     materialize_phi_ref,
     run_all_primary_observations,
     run_e4_neural_only,
-    run_e4_observation_composition,
     verify_field_linearity,
     verify_zero_source_operators,
     write_e4_execution_receipt,

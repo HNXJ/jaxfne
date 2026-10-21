@@ -45,34 +45,16 @@ echo "--- 3. Artifact + twine check ---"
 python3 -m twine check dist/*
 echo "twine: OK"
 
-# 4. Wheel smoke
+# 4. Wheel smoke (body owned by scripts/run_test_gate.py: wheel_smoke_code;
+#    this rehearsal only builds the venv and calls the `wheel-smoke` gate)
 echo ""
 echo "--- 4. Wheel install smoke ---"
 rm -rf "$VENV_WHEEL"
 python3 -m venv "$VENV_WHEEL"
 "$VENV_WHEEL/bin/python" -m pip install --upgrade pip --quiet
 "$VENV_WHEEL/bin/python" -m pip install "$WHEEL" --quiet
-cd /tmp
-EXPECTED_VERSION_PY="$EXPECTED_VERSION"
-"$VENV_WHEEL/bin/python" - <<PY
-import json, jaxfne as jtfne
-assert "site-packages" in jtfne.__file__, f"CWD shadowing! file={jtfne.__file__}"
-expected_version = "$EXPECTED_VERSION_PY"
-assert jtfne.__version__ == expected_version, f"version={jtfne.__version__}, expected {expected_version}"
-cfg = (jtfne.configuration()
-    .network(n=8).emitter(family="izhikevich", preset="cortical_eig")
-    .field(domain="laminar_column", conductivity="proxy",
-           boundary="mean_zero_neumann", gauge="mean_zero")
-    .probe(name="lp", n_contacts=8))
-model = jtfne.construct(cfg)
-signals = model.simulate(jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0))
-readouts = model.compute_readout(signals, [jtfne.readout_spec("r", "spike_rate_hz")])
-manifest = model.manifest(signals, readouts)
-json.dumps(manifest, allow_nan=False)
-assert manifest["physical_amplitude_calibrated"] is False
-print("wheel smoke: OK", jtfne.__version__)
-PY
-cd "$REPO_ROOT"
+PYTHONPATH=. python3 scripts/run_test_gate.py wheel-smoke \
+  --venv-python "$VENV_WHEEL/bin/python" --expected-version "$EXPECTED_VERSION"
 
 # 5. Sdist smoke
 echo ""
@@ -101,15 +83,12 @@ echo ""
 echo "--- 6. pytest ---"
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest -q --tb=short
 
-# 7. Examples
+# 7. Examples (list owned by scripts/run_test_gate.py: RELEASE_EXAMPLES;
+#    no subset reason applies here, so this rehearsal calls the `examples`
+#    gate instead of carrying its own list)
 echo ""
 echo "--- 7. Examples ---"
-for ex in examples/00_minimal_column.py examples/01_source_field_manifest.py \
-          examples/02_omission_scaffold.py examples/03_objective_and_tune_smoke.py \
-          examples/04_blackbox_tuning_loop.py examples/05_dataset_bridge_manifest.py \
-          examples/06_edge_list_recurrent_backend.py; do
-  PYTHONPATH=. python3 "$ex" > /dev/null 2>&1 && echo "PASS: $ex" || { echo "FAIL: $ex"; exit 1; }
-done
+PYTHONPATH=. python3 scripts/run_test_gate.py examples
 
 echo ""
 echo "=== release rehearsal PASSED — v${EXPECTED_VERSION} ready for TestPyPI ==="

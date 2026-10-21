@@ -7,7 +7,6 @@ B-beyond-proxy and calibration refuse, nothing is substituted.
 
 from __future__ import annotations
 
-import numpy as np
 
 import artifacts.atlas.at01_at06_052 as A
 

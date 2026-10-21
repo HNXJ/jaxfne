@@ -1,7 +1,6 @@
 """Runtime verification of sparse connectivity (p_connect) compilation."""
 
 import numpy as np
-import jax.numpy as jnp
 import jaxfne as jtfne
 
 def _build_cfg(seed, p_connect=None):

@@ -27,6 +27,10 @@ Families and their plastic targets:
   supports ``edge_weight`` only. A rule whose descriptor needs anything else
   (e.g. ``drive_bias``) is refused by name via
   :func:`check_rule_family_support`.
+- ``"lif"`` — PCL current-based LIF on a signed edge list; supports
+  ``edge_weight`` (sign-preserving magnitude, as on ``"izhikevich"``) and
+  ``drive_bias`` (the rule's per-neuron ``bias`` adds to the step input in
+  :func:`jaxfne.emitters_lif.simulate_lif_edge`).
 
 ``u`` (Izhikevich recovery) has no AdEx counterpart: AdEx contexts carry a
 zero ``u`` coordinate, documented at the call site. No descriptor channel can
@@ -52,6 +56,7 @@ from .hdp_rule import (
 #: Family identifiers understood by :func:`check_rule_family_support`.
 FAMILY_IZHIKEVICH = "izhikevich"
 FAMILY_ADEX = "adex"
+FAMILY_LIF = "lif"
 
 #: Plastic targets each family integrates. AdEx keeps magnitude semantics on
 #: conductance weights; intrinsic-excitability bias is an Izhikevich-only
@@ -59,6 +64,7 @@ FAMILY_ADEX = "adex"
 FAMILY_THETA_SUPPORT: dict[str, tuple[str, ...]] = {
     FAMILY_IZHIKEVICH: ("edge_weight", "drive_bias"),
     FAMILY_ADEX: ("edge_weight",),
+    FAMILY_LIF: ("edge_weight", "drive_bias"),
 }
 
 #: ``FamilyStepFn``: ``(state, I, params, dt) -> (state, spikes_bool, v)``.

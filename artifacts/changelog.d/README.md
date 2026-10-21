@@ -2,8 +2,8 @@
 
 One file per change a reader would notice, named `<name>.<category>.md`, where
 `<category>` is one of `added`, `changed`, `deprecated`, `removed` or `fixed`
-(the Keep a Changelog headings `docs/changelog.md` uses). The file holds one or
-more top-level `- ` bullets written as they will read in `docs/changelog.md`,
+(the Keep a Changelog headings `docs/reference/changelog.md` uses). The file holds one or
+more top-level `- ` bullets written as they will read in `docs/reference/changelog.md`,
 with LF line endings and no headings.
 
 At release, `python scripts/assemble_changelog.py --version X.Y.Z --date

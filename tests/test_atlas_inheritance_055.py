@@ -7,8 +7,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import artifacts.atlas.at_manifest as M
-import scripts.check_atlas_inheritance as C
+import artifacts.atlas.at_manifest as M  # noqa: E402 (repo root on sys.path, see lines above)
+import scripts.check_atlas_inheritance as C  # noqa: E402 (repo root on sys.path, see lines above)
 
 SOURCE = ROOT / "artifacts" / "project_sources" / "8_atlas.md"
 

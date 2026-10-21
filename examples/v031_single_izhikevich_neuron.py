@@ -45,7 +45,7 @@ from jaxfne.fields import (
 OUT = Path("outputs/v030_01_single_neuron_izhikevich")
 # Docs-stable figures directory
 STATIC_FIGS = Path(
-    os.environ.get("JAXFNE_TUTORIAL_STATIC_DIR", "docs/tutorials_v030/_static/figures")
+    os.environ.get("JAXFNE_TUTORIAL_STATIC_DIR", "docs/archive/tutorials_v030/_static/figures")
 )
 
 
@@ -69,7 +69,7 @@ def main(update_canonical: bool = False):
     Parameters
     ----------
     update_canonical : bool, default False
-        When True, write the canonical docs manifest to docs/tutorials_v030/manifests/.
+        When True, write the canonical docs manifest to docs/archive/tutorials_v030/manifests/.
         Tests should call main() with update_canonical=False (the default) to prevent
         tracked tutorial artifact drift.
     """
@@ -334,7 +334,6 @@ def main(update_canonical: bool = False):
     jtfne.vis.close_all()
 
     # Figure 2: Spike raster
-    spike_times = t[spike_indices]
     single_neuron_spikes = np.zeros((len(t), 1), dtype=np.float32)
     single_neuron_spikes[spike_indices, 0] = 1.0
     fig = jtfne.vis.raster(
@@ -435,11 +434,11 @@ def main(update_canonical: bool = False):
 
     # Only update canonical docs manifests when explicitly requested
     if update_canonical:
-        canonical_manifest_path = Path("docs/tutorials_v030/manifests/v0301_single_izhikevich_neuron_manifest.json")
+        canonical_manifest_path = Path("docs/archive/tutorials_v030/manifests/v0301_single_izhikevich_neuron_manifest.json")
         canonical_manifest_path.parent.mkdir(parents=True, exist_ok=True)
         write_json(canonical_manifest_path, atlas_manifest)
 
-        canonical_report_path = Path("docs/tutorials_v030/reports/v0301_single_izhikevich_neuron_validation_report.json")
+        canonical_report_path = Path("docs/archive/tutorials_v030/reports/v0301_single_izhikevich_neuron_validation_report.json")
         canonical_report_path.parent.mkdir(parents=True, exist_ok=True)
         write_json(canonical_report_path, atlas_manifest["validation_report"])
 

@@ -1,10 +1,12 @@
-"""Gallery index gate: the ATLAS-INDEX block of docs/gallery.md matches the manifests."""
+"""Gallery index gate: the ATLAS-INDEX block of docs/start/gallery.md matches the manifests."""
 
 from __future__ import annotations
 
 import importlib.util
 import json
 import pathlib
+
+import pytest
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location(
@@ -74,3 +76,13 @@ def test_collect_flags_a_panel_outside_the_registry(tmp_path, monkeypatch):
 
 def test_repository_gallery_index_current():
     assert gg.main(["--check"]) == 0
+
+
+def test_check_and_write_are_mutually_exclusive(tmp_path, monkeypatch):
+    gallery = tmp_path / "gallery.md"
+    gallery.write_text("stale", encoding="utf-8")
+    monkeypatch.setattr(gg, "GALLERY", gallery)
+    with pytest.raises(SystemExit) as exc:
+        gg.main(["--check", "--write"])
+    assert exc.value.code == 2
+    assert gallery.read_text(encoding="utf-8") == "stale"

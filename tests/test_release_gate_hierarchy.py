@@ -544,14 +544,14 @@ def test_python_support_policy():
             f"publish.yml builds on {version}, expected {PUBLISH_PYTHON} "
             "(inside the tested set)"
         )
-    policy = (ROOT / "docs" / "ci_policy.md").read_text(encoding="utf-8")
+    policy = (ROOT / "docs" / "reference" / "project" / "ci_policy.md").read_text(encoding="utf-8")
     assert "JaxFNE supports Python 3.11-3.14." in policy
     assert "at its 3.11 and 3.14 endpoints" in policy
     assert "not independently exercised by the full CI matrix" in policy
-    faq = (ROOT / "docs" / "faq.md").read_text(encoding="utf-8")
+    faq = (ROOT / "docs" / "start" / "faq.md").read_text(encoding="utf-8")
     assert "requires Python 3.11 or later" in faq
     assert "3.10 or later" not in faq
-    contrib = (ROOT / "docs" / "contributing.md").read_text(encoding="utf-8")
+    contrib = (ROOT / "docs" / "reference" / "contributing.md").read_text(encoding="utf-8")
     assert "(3.11 and 3.14 tested)" in contrib
 
 
@@ -688,3 +688,20 @@ def test_manifest_rejects_backend_that_did_not_build_the_wheel():
     ):
         with pytest.raises(SystemExit):
             _require_backend_matches_pin(declared, observed)
+
+
+def test_publication_gate_runs_frozen_checks(monkeypatch):
+    # T-31(d): the publication gate ran a snapshot and printed placeholder text.
+    import scripts.run_test_gate as rtg
+
+    ran = []
+    monkeypatch.setattr(rtg, "_run", lambda cmd, family=None, **kw: ran.append((family, cmd)))
+    rtg.gate_publication()
+    families = [f for f, _ in ran if f is not None]
+    assert families == ["record_integrity", "harness_integrity", "publication_equivalence"]
+    for family in families:
+        assert family in CHECK_FAMILIES
+    eq = dict(ran)["publication_equivalence"]
+    assert eq[1].endswith("equivalence_gate.py")
+    report = Path(eq[eq.index("--report") + 1])
+    assert "scratch" in report.parts, "a gate run must not rewrite the tracked report"

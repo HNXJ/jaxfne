@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Harness v2.1 skill synchronization: canonical artifacts/skills/ -> generated client mirrors.
+"""Harness v2.1 skill synchronization: canonical artifacts/control/skills/ -> generated client mirrors.
 
 --check             verify canonical skills match the manifest (and any
                     configured mirrors are byte-identical)
---update            regenerate mirrors from canonical artifacts/skills/
+--update            regenerate mirrors from canonical artifacts/control/skills/
 --update --manifest also refresh mirror/canonical hashes in the project HARNESS_MANIFEST.json
 Exit codes: 0 ok, 1 drift/missing.
 
@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-CANONICAL = ROOT / "artifacts" / "skills"
+CANONICAL = ROOT / "artifacts" / "control" / "skills"
 # Mirrors are now tool-local outside the repository (e.g., ~/.config/opencode/skills).
 # Keeping the list empty satisfies the "project authority not in tool-specific hidden directory" invariant.
 MIRRORS: list[Path] = []
@@ -117,6 +117,8 @@ def update(refresh_manifest: bool) -> int:
         comp = m["components"]
         if "project_agents" in comp:
             comp["project_agents"]["sha256"] = sha(ROOT / "artifacts" / "AGENTS.md")
+        if "project_config" in comp:
+            comp["project_config"]["sha256"] = sha(ROOT / comp["project_config"]["file"])
         if "harness_scripts" in comp:
             comp["harness_scripts"] = {
                 name: {
@@ -133,12 +135,14 @@ def update(refresh_manifest: bool) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--check", action="store_true")
-    ap.add_argument("--update", action="store_true")
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument("--check", action="store_true")
+    mode.add_argument("--update", action="store_true")
     ap.add_argument("--manifest", action="store_true")
     a = ap.parse_args()
     if a.update:
         return update(a.manifest)
+    # --check or bare invocation: verify canonical skills match the manifest.
     return check()
 
 

@@ -1,9 +1,7 @@
-import pytest
 import numpy as np
 import jax
 import jax.numpy as jnp
 import jaxfne as jtfne
-from jaxfne.core import make_eig_network, EIGNetwork
 from jaxfne.emitters import simulate_eig_izhikevich
 
 def test_jit_eager_equivalence_high_level():

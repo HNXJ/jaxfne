@@ -6,7 +6,6 @@ import subprocess
 import os
 import sys
 from pathlib import Path
-_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 from scripts.internal.publication.fig07_evidence import (
     e2_delay_classes,
@@ -24,6 +23,8 @@ from scripts.internal.publication.fig07_protocol import (
     validate_fig07_semantic_audit,
     validate_fig07_spec,
 )
+
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 ROOT = Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "scripts" / "publication_figures" / "fig07_e_integration.py"

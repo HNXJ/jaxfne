@@ -4,7 +4,6 @@ Validates that all visualizers accept standard signals or readout arrays,
 return valid matplotlib figures, and that placeholders throw expected exceptions.
 """
 
-import os
 import numpy as np
 
 import jaxfne as jtfne

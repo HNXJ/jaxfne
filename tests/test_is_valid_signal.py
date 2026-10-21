@@ -5,7 +5,6 @@ and dict-like signal containers, and correctly identifies finite/invalid arrays.
 """
 
 import jax.numpy as jnp
-import pytest
 import jaxfne as jtfne
 
 

@@ -3,7 +3,7 @@ from pathlib import Path
 import jaxfne as jtfne
 
 def test_public_api_matches_snapshot():
-    snapshot_path = Path("artifacts/public_api_before.json")
+    snapshot_path = Path("artifacts/assurance/api_contracts/public_api_before.json")
     assert snapshot_path.exists(), "Public API snapshot file missing"
     
     with open(snapshot_path, "r") as f:

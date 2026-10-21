@@ -204,12 +204,16 @@ def _apply_baseline_drive(
     as ``izhikevich_params_from_labels(drive_overrides=)`` builds them."""
     import numpy as np
 
+    from .inputs import baseline_drive_entries
+
     spec = metadata.get("drive")
     baseline = spec.get("baseline_drive_by_cell_type") if isinstance(spec, dict) else None
     _refuse_unmatched_baseline_drive(params.labels, baseline, declared)
-    if not baseline:
-        return params
-    overrides = {str(k): float(v) for k, v in baseline.items()}
+    # Values come from the compiled baseline entries (defaults-filled in
+    # drive() vocabulary order); a defaults-filled override map is
+    # bit-identical to the historical partial/None application because the
+    # defaults equal the emitter-table values the params were built from.
+    overrides = {e.targets[0]: float(e.value) for e in baseline_drive_entries(metadata)}
     drive = [overrides.get(label, value) for label, value in zip(params.labels, np.asarray(params.drive).tolist())]
     return replace(params, drive=jnp.asarray(drive, dtype=params.drive.dtype))
 
@@ -233,27 +237,18 @@ def _apply_tensor_triple_drive(
     """
     import numpy as np
 
+    from .inputs import triple_drive_entries
+
     entries = metadata.get("tensor_triple_drive")
     if not entries:
         return params
+    # Values and order come from the compiled triple entries (metadata
+    # order); membership refusal below keeps this route's exact messages.
+    compiled = triple_drive_entries(metadata)
     drive = np.array(np.asarray(params.drive).tolist(), dtype=float)
-    for entry in entries:
-        try:
-            area = str(entry["area"])
-            layer = str(entry["layer"])
-            cell_type = str(entry["cell_type"])
-            value = entry["drive"]
-        except (KeyError, TypeError):
-            raise ValueError(
-                f"tensor_triple_drive entry {entry!r} is not realized: it takes "
-                "{area, layer, cell_type, drive}"
-            )
-        if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
-            raise ValueError(
-                f"tensor_triple_drive(area={area!r}, layer={layer!r}, "
-                f"cell_type={cell_type!r}, drive={value!r}) is not realized: "
-                "it takes a finite real number"
-            )
+    for entry in compiled:
+        area, layer, cell_type = entry.targets
+        value: Any = float(entry.value)
         matched = sum(
             1
             for row in neuron_rows
@@ -372,6 +367,7 @@ def _refuse_dropped_layer_tables(metadata: Mapping[str, Any], columns: Sequence[
 
 def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float32") -> tuple[IzhikevichParams, jax.Array, dict[str, Any]]:
     """Build explicit Suite No. 2 neuron metadata and reduced emitter arrays."""
+    import numpy as np
 
     metadata = cfg.metadata
     net = cfg.networks[0]
@@ -418,11 +414,12 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
             y = jax.random.uniform(y_key, (n_col,), minval=-radius, maxval=radius, dtype=jdtype)
             z = jax.random.uniform(z_key, (n_col,), minval=0.0, maxval=height, dtype=jdtype)
             position_chunks.append(jnp.stack([x, y, z], axis=1))
+            xh, yh, zh = np.asarray(x), np.asarray(y), np.asarray(z)  # one device read per chunk
             for local_idx, cell_type in enumerate(col_labels[:n_col]):
                 labels.append(cell_type)
                 layer_labels.append("uniform_3d")
                 area_labels.append(area)
-                neuron_rows.append({"neuron_id": neuron_id, "area": area, "layer": "uniform_3d", "cell_type": cell_type, "x": float(x[local_idx]), "y": float(y[local_idx]), "z": float(z[local_idx])})
+                neuron_rows.append({"neuron_id": neuron_id, "area": area, "layer": "uniform_3d", "cell_type": cell_type, "x": float(xh[local_idx]), "y": float(yh[local_idx]), "z": float(zh[local_idx])})
                 neuron_id += 1
             continue
 
@@ -484,11 +481,12 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
             y = jax.random.uniform(y_key, (n_layer,), minval=y_lo, maxval=y_hi, dtype=jdtype)
             z = jax.random.uniform(z_key, (n_layer,), minval=z_lo, maxval=z_hi, dtype=jdtype)
             position_chunks.append(jnp.stack([x, y, z], axis=1))
+            xh, yh, zh = np.asarray(x), np.asarray(y), np.asarray(z)  # one device read per chunk
             for local_idx, cell_type in enumerate(layer_cell_labels[:n_layer]):
                 labels.append(cell_type)
                 layer_labels.append(layer)
                 area_labels.append(area)
-                neuron_rows.append({"neuron_id": neuron_id, "area": area, "layer": layer, "cell_type": cell_type, "x": float(x[local_idx]), "y": float(y[local_idx]), "z": float(z[local_idx])})
+                neuron_rows.append({"neuron_id": neuron_id, "area": area, "layer": layer, "cell_type": cell_type, "x": float(xh[local_idx]), "y": float(yh[local_idx]), "z": float(zh[local_idx])})
                 neuron_id += 1
 
     # Apply baseline_drive_by_cell_type from drive specification if present

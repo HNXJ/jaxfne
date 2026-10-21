@@ -1,7 +1,7 @@
 """Tests for the AdEx conductance kernel in ``jaxfne/emitters_adex.py``.
 
 Oracle: ``_oracle_adex_step`` is a float64 NumPy transcription of ``adex_step`` in
-``artifacts/etudes/caminos/caminos_jax.py`` of the reference worktree (branch
+``artifacts/etudes/papers/caminos/caminos_jax.py`` of the reference worktree (branch
 ``l2-caminos``, commit 1e768f9d; SI units, Eqs. 15-16 of Tahvili, Vinck, di Volo 2026,
 PLoS Comput Biol). Its cell parameters are typed from ``PORT_SPEC.md`` Table 1 in SI
 units, independently of the kernel's mV/pA table.
@@ -611,7 +611,7 @@ DRIVE_REFUSALS = [
     ({**_drive_full(), "ext_targets": [99]}, "ext_targets"),
     ({**_drive_full(), "ext_targets": [0, 0]}, "ext_targets"),
     ({**_drive_full(), "ext_receptor": 4}, "ext_receptor"),
-    ({**_drive_full(), "ext_delay_steps": 0}, "ext_delay_steps"),
+    ({**_drive_full(), "ext_delay_steps": -1}, "ext_delay_steps"),
 ]
 
 

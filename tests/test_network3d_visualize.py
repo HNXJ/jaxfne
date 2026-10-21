@@ -15,8 +15,6 @@ Truth posture: proxy/computational-scaffold diagnostics only.
 from __future__ import annotations
 
 import sys
-import types
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -190,7 +188,6 @@ def test_core_import_does_not_require_plotly():
     """import jaxfne (and jaxfne.vis) must succeed without Plotly present."""
     # This test runs in the current interpreter, which may have Plotly.
     # We verify that the import chain doesn't eagerly import Plotly.
-    import importlib
     import jaxfne  # noqa: F401
     import jaxfne.vis  # noqa: F401
     # No plotly in the module's top-level namespace check
@@ -206,7 +203,7 @@ def test_missing_plotly_raises_clear_install_message(monkeypatch):
     import jaxfne.vis.network3d as n3d
 
     # Temporarily make _require_plotly raise as if plotly is absent
-    original = n3d._require_plotly
+    # (monkeypatch auto-restores; no manual save needed)
 
     def _fake_require_plotly():
         raise ImportError(

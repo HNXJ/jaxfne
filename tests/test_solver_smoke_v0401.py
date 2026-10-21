@@ -2,9 +2,7 @@
 
 import pytest
 import json
-import jax
 import jax.numpy as jnp
-import jaxfne as jtfne
 from jaxfne.fields import experimental_poisson_1d
 
 def test_experimental_poisson_1d_smoke():

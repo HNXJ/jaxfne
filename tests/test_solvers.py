@@ -1,7 +1,6 @@
 """Tests for ODE solver APIs."""
 
 import pytest
-import jax
 import jax.numpy as jnp
 import jaxfne as jtfne
 
@@ -38,7 +37,7 @@ def test_diffrax_solver_missing_guard():
     config = jtfne.SolverConfig(method="diffrax", dt=0.1)
     
     try:
-        import diffrax
+        import diffrax  # noqa: F401 -- availability probe: solve path runs only when installed
         # If diffrax is installed, it should solve successfully
         y_final, trajectory = jtfne.solve_ode(config, dydt_fn, jnp.array([1.0]), 0.0, 1.0)
         assert trajectory.shape == (10, 1)

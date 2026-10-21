@@ -19,7 +19,7 @@ from jaxfne.plasticity import update_stdp_weights_jax
 
 AUDIT_JSON = (
     Path(__file__).resolve().parents[1]
-    / "artifacts/audit/hdp_audit_01_probe_results.json"
+    / "artifacts/audit/probe_results/hdp_audit_01_probe_results.json"
 )
 
 

@@ -1,4 +1,4 @@
-"""Gate F4: the OSI ceiling's lemma (L1) and the idealized unit of artifacts/etudes/theory_f4."""
+"""Gate F4: the OSI ceiling's lemma (L1) and the idealized unit of artifacts/etudes/theory/theory_f4."""
 from __future__ import annotations
 
 import sys
@@ -13,7 +13,7 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
-import artifacts.etudes.theory_f4.f4_ceiling as F  # noqa: E402
+import artifacts.etudes.theory.theory_f4.f4_ceiling as F  # noqa: E402
 
 C = F.C
 CENTRAL = 1 * 4 + 1  # position (py, px) = (1, 1): patch rows and columns 3..9, nearest the grid centre

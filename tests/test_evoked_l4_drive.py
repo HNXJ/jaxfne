@@ -145,19 +145,19 @@ class TestEvokedDocumentation:
     def test_tutorial_notebook_exists(self):
         """Evoked L4 tutorial notebook should exist."""
         import os
-        notebook_path = "artifacts/tutorials/jaxfne_suite_no_2_evoked_l4_drive.ipynb"
+        notebook_path = "artifacts/tutorials/suite/jaxfne_suite_no_2_evoked_l4_drive.ipynb"
         assert os.path.exists(notebook_path), f"Tutorial notebook not found: {notebook_path}"
 
     def test_markdown_docs_exist(self):
         """Evoked L4 markdown docs should exist."""
         import os
-        docs_path = "docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md"
+        docs_path = "docs/archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md"
         assert os.path.exists(docs_path), f"Docs file not found: {docs_path}"
 
     def test_docs_include_learning_objectives(self):
         """Docs should include learning objectives section."""
         import os
-        docs_path = "docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md"
+        docs_path = "docs/archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md"
         if os.path.exists(docs_path):
             with open(docs_path) as f:
                 content = f.read()
@@ -166,7 +166,7 @@ class TestEvokedDocumentation:
     def test_docs_include_scope_boundary(self):
         """Docs should include coverage boundary section."""
         import os
-        docs_path = "docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md"
+        docs_path = "docs/archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md"
         if os.path.exists(docs_path):
             with open(docs_path) as f:
                 content = f.read()
@@ -176,7 +176,7 @@ class TestEvokedDocumentation:
     def test_docs_include_equation_glossary(self):
         """Docs should include mathematical glossary."""
         import os
-        docs_path = "docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md"
+        docs_path = "docs/archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md"
         if os.path.exists(docs_path):
             with open(docs_path) as f:
                 content = f.read()
@@ -186,7 +186,7 @@ class TestEvokedDocumentation:
     def test_docs_no_forbidden_science_wording(self):
         """Docs should not use forbidden science phrases."""
         import os
-        docs_path = "docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md"
+        docs_path = "docs/archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md"
         if os.path.exists(docs_path):
             with open(docs_path) as f:
                 content = f.read().lower()

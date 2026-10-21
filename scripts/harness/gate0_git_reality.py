@@ -16,7 +16,6 @@ Verification sequence:
 """
 import argparse
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -32,26 +31,26 @@ EXPECTED_REMOTES = [
 MODE_AUTHORITIES = {
     "RELEASE": [
         "artifacts/release/current_release_authorities.json",
-        "artifacts/issue_log/ISSUE_LOG.md",
+        "artifacts/assurance/issue_log/ISSUE_LOG.md",
         "scratch/CURRENT_TASK.md",
     ],
     "RELEASE_PREPARATION": [
         "artifacts/release/current_release_authorities.json",
-        "artifacts/issue_log/ISSUE_LOG.md",
+        "artifacts/assurance/issue_log/ISSUE_LOG.md",
         "scratch/CURRENT_TASK.md",
     ],
     "PUBLICATION": [
         "artifacts/publication/publication_evidence_index.json",
-        "docs/publication/results_reconstruction/results_draft.md",
+        "docs/theory/publication/results_reconstruction/drafts/results_draft.md",
         "scratch/CURRENT_TASK.md",
     ],
     "SCIENCE": [
-        "docs/doctrine/tfne_containment_architecture.md",
-        "docs/doctrine/rbs_rbd_hdp.md",
+        "docs/theory/doctrine/tfne_containment_architecture.md",
+        "docs/theory/doctrine/rbs_rbd_hdp.md",
         "scratch/CURRENT_TASK.md",
     ],
     "DOCS": [
-        "docs/doctrine/tfne_containment_architecture.md",
+        "docs/theory/doctrine/tfne_containment_architecture.md",
         "mkdocs.yml",
         "scratch/CURRENT_TASK.md",
     ],
@@ -191,8 +190,8 @@ def check_gate0(
     # 6. Dirty-Tree State
     _, status_short = run_git(["status", "--porcelain"], cwd=root)
     dirty_lines = [line for line in status_short.splitlines() if line.strip()]
-    tracked_dirty = [l for l in dirty_lines if not l.startswith("??")]
-    untracked = [l for l in dirty_lines if l.startswith("??")]
+    tracked_dirty = [entry for entry in dirty_lines if not entry.startswith("??")]
+    untracked = [entry for entry in dirty_lines if entry.startswith("??")]
 
     # 7. Mode-Dependent Required Authorities
     detected_mode, task_file_status = detect_task_mode(root, mode)

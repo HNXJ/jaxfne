@@ -1,6 +1,5 @@
 """Tests for homeostatic plasticity regularizer and reports in full mode."""
 
-import numpy as np
 import jaxfne as jtfne
 
 def test_plasticity_bounds_and_report():

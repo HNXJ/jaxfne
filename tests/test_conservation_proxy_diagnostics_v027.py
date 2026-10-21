@@ -433,7 +433,6 @@ class TestNoDoubleCountingRegression:
 
 # ─── Test 9: no silent error-swallowing (2026-10-13 audit) ───────────────────
 
-import warnings as _warnings  # noqa: E402
 
 
 class TestNonFiniteRefusal:

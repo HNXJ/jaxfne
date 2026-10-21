@@ -523,7 +523,7 @@
       "claim": "Per-layer fractions and typed connection rules are scaffold values (quantitative_cell_fraction false); E/PV/SST/VIP are reduced Izhikevich scaffold identities",
       "claim_id": "CL-25",
       "evidence_artifacts": [
-        "docs/scope_and_status.md",
+        "docs/reference/project/scope_and_status.md",
         "jaxfne/builders.py"
       ],
       "evidence_regime": "method_boundary_statement",

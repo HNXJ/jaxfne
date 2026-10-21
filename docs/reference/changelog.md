@@ -1,0 +1,797 @@
+# Changelog
+
+All notable changes are documented here in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
+
+Scope note: entries are preserved verbatim as history. Early entries reference
+internal governance documents (for example `AGENTS.md` review rules) that live
+in maintainer-facing areas outside this public documentation tree; they record
+the rules those releases were held to and are historical context for readers.
+
+## [Unreleased]
+
+## v0.5.7 (2026-10-20)
+
+### Added
+
+- `activity_regime` returns `spectral_peak_hz` with its classification.
+- `jaxfne.adex_destexhe`: Destexhe 2009 aeIF cell values (RS, RSweak, FS, LTS, TC, RE over shared geometry) for the AdEx route. `destexhe_overrides` builds the overrides mapping that `make_adex_params` accepts, and `apply_destexhe_params` returns a copy of an AdEx `Model` carrying the Destexhe emitter values; edges, receptors, delays, drive and the kernel are untouched. `subset_drive_kwargs` keeps a seeded fraction (0 < fraction <= 1) of the external drive's targets, drawn on the drive's own seed.
+- `simulate_adex_hdp_registered` gains a `seed` keyword.
+- `adex_step` in `jaxfne/emitters_adex.py` gains the exact LIF limit: `Delta_mV=0.0` takes the leak update through `jnp.where`, so the exponential term vanishes instead of dividing by zero, and every `Delta_mV>0` cell runs the unchanged AdEx formula bit-identically.
+- Connection rules gain `sampling="fixed_indegree"` with `in_degree=K`: every post cell draws exactly `K` distinct presynaptic partners uniformly at random. Declared on `Configuration.connections()`, `InterConnection`/`AreaConnection` (forwarded by JDNA `develop()`); refused with `probability`, `max_in_degree`, `footprint` and the other samplings, on the conductance (adex) route, and on the fallback path that carries signs alone. A post cell with fewer than `K` available partners raises instead of filling short.
+- Spectral Granger causality and directionality in `jaxfne.analysis`: `granger_spectral` (Geweke 1982 bivariate VAR decomposition, `gc_xy`/`gc_yx` over `freqs_hz`) and `directionality_index` (DAI Eq. 1, `0/0` reads 0.0). Pure NumPy, so lane scorers can call them on binned spike trains or rate traces outside the simulator.
+- `jaxfne.optim.gsdr` gains module-local `mcdp_factors` (JAX port of the Fig. 6 MCDP factors: squared Pearson pre/post correlation at a declared shift, optional Gaussian edge smoothing, z-scored with `1.0` where undefined) and `gsdr_mcdp_transform` (Optax-compatible GSDR update with MCDP-gated stochastic delta, dynamic mixing weight, C-threshold and stagnation resets to best; `lambda_d` is a constant multiplier).
+- GSDR fit manifests record `mcdp_applied: False` and `deselect_factor_consumed: False` with the authors' optimizer settings kept under `authors_optimizer_settings_not_used`; earlier manifests read `"mcdp": True` while the fits ran with MCDP off (P-039). The optimizer name reads `"lane delta-rule center update (gradient-free)"`.
+- Column tiling and spherical-head forward models in `jaxfne.fields`: `column_dipole` (first moment of a column's sources along its axis), `folded_sphere_surface`, `tile_column_dipoles` (realizations copied with circular shifts and an optional in-phase patch), `meg_sphere_leadfield` (Sarvas 1987), `eeg_sphere_leadfield` (homogeneous sphere, Frank 1952, average reference), `sphere_sensor_cap` and `SphereForward`. The EEG leadfield matches the Neumann series and MNE's homogeneous sphere; the MEG radial component matches the primary-current field.
+- `jaxfne.fields.line_source_lfp(source, positions, contact_depths, dendrite_length, *, min_distance, electrode_xy=None, conductivity=1.0, axis=2)`: laminar LFP `[T, C]` of two-compartment neurons (soma point source, return current along a straight line-source dendrite) in an infinite homogeneous medium. Matches numerical quadrature and the far-field dipole; refuses non-positive conductivity or `min_distance` and non-finite or mis-shaped lengths.
+- Batched HH runs: `simulate_hh_batch` in `jaxfne/emitters_hh.py` runs trials sharing topology under `jax.jit(jax.vmap(...))`; spikes identical to the serial calls; V within float32 tolerance (multi-compartment differences up to about 0.012 mV) (CPU: B=24, N=50, morph, n_steps=2000 serial 28.00 s vs batched 1.89 s).
+- Multi-compartment HH route: `construct_hh_model` with `morphology="single" | "reference"`, run through `simulate_hh` on the `emitters_hh` kernel, with axial coupling, per-edge and per-input compartment sites and explicit gate initialization. The single-compartment path reproduces the reference transcription bit-identically; held non-finite steps are counted in the returned `held_steps`.
+- `Configuration.connections()` gains `intra_step_rounds=R` on the AdEx route: a declared positive-int round cap admitting a `delay_ms` that rounds to 0 steps on that connection alone. Within one step, round 0 is the existing step, then rounds propagate the delay-0 conductance of newly spiked cells to their targets and re-step every cell that has yet to spike from the pre-step state, until every newly spiked cell lacks a delay-0 out-edge; spikes are kept once fired. A step that reaches the cap with undelivered events refuses the run, naming the step. `simulate_adex` returns `fixed_point_rounds` and `fixed_point_unresolved` per step; the run manifest records `intra_step_fixed_point` (`rounds` cap, `max_rounds_used`, `n_unresolved_spikes`, `n_delay0_edges`, `rule`) when delay-0 edges exist; runs lacking them take the unchanged scan body. Refused: a non-positive-int R, R on a connection whose delay reaches 1 step or more, R on other routes, and a 0-step delay with R undeclared.
+- New ADVANCED module `jaxfne.istdp_vogels2011`: the Vogels et al. 2011 inhibitory STDP rule (`eta=1e-2`, `tau_stdp=20 ms`, `alpha` always derived as `2*rho0*tau`, clip `(0, 100)`), registered as `istdp_vogels2011` for `simulate_adex_hdp_registered`, plus `istdp_plasticity_mask` declaring the I-to-E edges plastic while E-to-all and I-to-I edges freeze bit-identically. `istdp_alpha` computes `alpha`, and `resolve_istdp_params` resolves a partial parameter mapping to paper defaults, refusing non-finite values and a non-positive `eta` or `tau_stdp_ms` by name.
+- The LIF kernel gains the optional parameter `t_ref_ms` (default `0.0`): a hard-refractory window in milliseconds after each spike during which the cell's voltage is held at reset and spiking is blocked. `0.0` keeps the historical step bit for bit; a non-LIF family declaring it is refused as an unconsumed key; non-real, non-finite or negative values are refused.
+- Run manifests carry `activity_regimes` per cell type, classified over the whole recorded trace with the signals' own grid and the recorded thresholds; all-silent runs read `silent`, and classifier refusals are recorded with their reason.
+- `jaxfne.optim.gsdr.mcdp_hdp_step(weights, mcdp, key, eta, w_max=None)`: one GSDR generation update as an outer-loop HDP step with MCDP on, in its simple form `W' = clip(W + eta * xi * W * m, 0, w_max)` with `xi ~ N(0, 1)` per edge; selection stays with the caller. Refuses a negative or non-finite `eta`, a non-positive or non-finite `w_max` and an `mcdp` shape that differs from `weights`.
+- Guide `docs/guides/readout/meg_eeg_from_one_column.md`: one column copied 1500 times on a folded cortex and forwarded to MEG and EEG with `jaxfne.fields.head`, seven figures generated by `scripts/generate_meg_eeg_figures.py`.
+- PCL on the LIF tensor route: `NeuronalTensor` with `emitter="lif"` builds through `construct_neuronal_tensor` (the current-based bridge refuses it by name), with event input as `x`. `Configuration.connections()` gains `footprint` (`{"size": (sx, sy), "offset": (ox, oy)}`, deterministic pairs from posed positions; refused with `probability`, `max_in_degree` and non-default `sampling`) and `weight_sharing` (`None` per-edge, `"patch"` one shared row per receiving-depth slot; needs `footprint`). `jaxfne.connectivity.with_rule_local_inhibition` declares same-step local inhibition on one rule with `resolution` `"whole_step"` (default, byte-identical), `"event_order"` or `"event_scan"` (one `jax.lax.scan` replay of the time-sorted event stream). Helpers live in the new module `jaxfne.pcl_topology`.
+- `pcl_stdp` (N'dri et al. 2025, Eqs. 4-11) is a registered core HDP rule in `jaxfne.hdp_rules_pcl`, copied exactly from the oracle transcription, with per-edge aux coordinates and L1 normalization per (post neuron, connection type) group.
+- The current-route Poisson drive gains the optional key `counts=C` (default `1`): each step per cell sums `C` independent trains, drawn as one `binomial(C, p)` per step per cell. `counts=1` keeps the historical Bernoulli drive bit for bit; non-positive-int values are refused. Declared on `Simulation(poisson_drive=...)` and carried on the `XSource` current-route schedule (recorded when declared).
+- `Simulation(poisson_drive=...)` on the AdEx route gains the optional key `"same_step": True`, admitting a drive `delay_ms` that rounds to 0 steps so each drawn count acts in the step it is drawn. A sub-step drive delay with the flag unset is refused, as before; `"same_step": True` with a delay reaching 1 step or more, or with `step_order="brian2"`, is refused. The run metadata records `"same_step": True` when the flag is set.
+- Wilson-Cowan-type rate-population emitter (`emitter="rate"` on `NeuronalTensor`): one nonlinear firing-rate unit per neuron (`threshold_linear` | `sigmoid` | `x_over_one_minus_exp`, all normalized to `phi(0) = 1`), Euler-Maruyama noise (`sigma`), per-triple `emitter_params` (`tau_ms`, `transfer`, `gain`, `sigma`, `r0`), population/edges/delays inherited bit-exactly from the current-based bridge. `simulate()` runs the sparse signed edge kernel with ring-buffer delays (zero-step edges floor to 1 with a metadata receipt); rate traces ride `V_m`, spikes are all-False, and sources and field stay unrecorded. The route refuses, by name, every input it leaves unconsumed (paradigm, ablation, homeostasis, HDP, dense/vmap backends, LIF-specific declarations, trained W0).
+- `jaxfne.fields.signals_dipole(signals, model, axis=2)`: column dipole `[T]` of a simulation, from its recorded sources at the model's positions, ready for `SphereForward` (MEG/EEG from the same run that gives the LFP). Refuses signals lacking sources and models lacking `params["positions"]`.
+- Trained networks as tensors: `NeuronalTensor` gains `W0Provenance` and `with_trained_weights` (ADVANCED). `with_trained_weights(A, run)` binds one run's final weights as the tensor's `W0` with provenance (`origin "trained"`, the parent identity digest, lineage through further generations); it refuses shape, dtype, edge identity and order, non-finite values, sign flips (a weight clamped to 0 is allowed), a wrong construct seed, other emitter families and bare signals. `construct` on the trained tensor realizes the trained vector exactly on the Izhikevich route and refuses a cast that would change a value; the configuration conversions and merges refuse a trained tensor. Untrained tensors keep their identity digests; a trained tensor's digest differs from its parent's.
+- Declared input sources: `XSource` in `jaxfne.inputs` (ADVANCED), a frozen record of one configured external input of kind `"constant"` (a per-neuron value with units) or `"poisson"` (a rate with seed and schedule). `Model.x_sources` is an immutable view derived at access from the realized drive, grouped by final area, layer and cell type with neuron counts, so it tracks parameter edits, tuning and composition. Run and model manifests emit one `x_sources` vocabulary plus the run Poisson rows.
+
+### Changed
+
+- `evidence_checklist_path()` returns one path, `docs/theory/publication/evidence_checklist.json`; the `docs/evidence` fallback is removed.
+- `Configuration.population(neurons=...)` refuses a key outside the names in `layers=` and a layer lacking a share, by name. Such keys were dropped unreported, so the counts fell back to layer thickness or the omitted layers got zero cells. The in-repo callers that passed cell-type keys now pass layer shares equal to their thicknesses, so their per-layer counts and neuron tables are unchanged.
+- `population_rate`, `cable_filter_sources` and `project_laminar_sources` take `dtype=None` by default and follow the input dtype (`project_laminar_sources` defaulted to `"float32"`); an explicit `bfloat16` is refused.
+- TFNE rule names refuse `x`, `y`, `h` and `s` at parse time, in definitions (`O[s] := ...`) and references (`A O[s] B`): `x` and `y` name boundaries and `h` and `s` state symbols. Boundary names are unchanged.
+
+### Fixed
+
+- `simulate()` and `construct()` refuse a `gpu`/`tpu` backend absent from the JAX devices (`RuntimeError` naming the backend and the available platforms) instead of downgrading unannounced. `runtime_report()` still reports the honest downgrade and returns; `auto`/`cpu` are unchanged.
+- The AdEx Poisson drive refuses unknown keys and non-integer seeds by name (a float seed was truncated unreported). `cell_types` refuses columns that sum to 0. `connect()` merge records `recurrent_backend_override` and lets other errors propagate; manifests record an unresolvable executed delay as `{"unknown": ...}`, and paradigms flag `static_events_repr_fallback` when the static-events representation falls back.
+- `default_cortical_column_config` and `default_complete_configuration` honour `seed=0`; it was replaced by 42.
+- `simulate_laminar_trials` refuses inhibitory cell types outside PV, SST and VIP by name.
+- `ensemble_edge_ownership` catches `AttributeError` and `TypeError` alone; other errors propagate.
+- `.connections()` rules with a mechanism now honor the documented plural selector keys `layers` and `cell_types` (a name or a list). The mechanism-aware compiler matched them as exact row fields, so such a rule selected zero neurons and compiled zero edges unreported. Declaring both `layer` and `layers` (or `cell_type` and `cell_types`) in one selector is refused.
+- One presynaptic sign table: `CELL_TYPE_SIGN` in `jaxfne.emitters`, which the Izhikevich default signs and `LIF_LABEL_SIGN` derive from. `lif_sign_of` refuses a LIF label outside the table, where it signed +1 unreported; in-repo callers used none.
+- `Simulation(plasticity=)` admits `0.0` alone: a non-zero gain label is refused at construction with a `ValueError` naming the HDP API (`jaxfne.hdp_network.enable_plasticity`, `jaxfne.plasticity.STDPPlasticityConfig`). The label was never wired into any kernel, so the refusal replaces a label that had zero effect; the `metadata["plasticity_gain"]` key stays.
+- `canonical_compact_summary` reports `unknown` with the reason where it returned invented values: the H locality reads `"unknown"` in place of `"node"`, static contact counts and the H size read `None` in place of assumed counts, and a field member reads `None` in place of `False`. Unexpected errors propagate instead of falling back.
+- A `NeuronalTensor` whose serialization fails raises `ValueError` naming the tensor in place of sharing one empty identity digest.
+- `Model.tune` reports `acceptance_decision: "REVISE"` on the optax path when zero gradient loops are eligible (zero parameters tuned); it reported `ACCEPT_CANDIDATE` there before. On the multi-parameter path an explicit `generations` or `population_size` below 1 raises `ValueError` naming the argument; an explicit 0 was replaced by the default before.
+
+## v0.5.6 (2026-10-15)
+
+### Added
+- `Configuration.connections()` gains `sampling="density" | "bernoulli"` (default
+  `"density"`). `"density"` keeps each compiler's existing draw (with mechanisms, the
+  exact count `round(p*n_pre*n_post)`; without, per-pair Bernoulli up to 4M candidate
+  pairs). `"bernoulli"` includes each (pre, post) pair independently with probability
+  `p` at any size on both compiler paths. Anything else raises `ValueError`, and
+  `"bernoulli"` with `max_in_degree` is refused. A compiled `"bernoulli"` rule's
+  `connection_table` row records `"sampling": "bernoulli"`; density rows are unchanged.
+- `jaxfne.emitters` gains the AdEx conductance kernel (ADVANCED): `simulate_adex`,
+  `adex_step`, `AdExParams`, `make_adex_params`, `ADEX_CELL_TYPE_DEFAULTS` (E/PV/SOM, Tahvili,
+  Vinck and di Volo 2026, Table 1), in mV/ms/pF/nS/pA. Conductance synapses
+  (`I = sum_r g_r (E_r - V)`; `decay="exp"` or `"euler"`, required) and a per-edge delay ring
+  (delays >= 1 step). The cell step and the recurrent synaptic step match a float64
+  transcription of the CAMINOS reference within rtol 1e-6; `step_order="brian2"` adds one delay
+  step and removes one refractory step.
+  `Configuration.emitter(family="adex")` builds these cells over `network(n=, cell_types=)`
+  (E/PV/SOM), wires them with `mechanisms()` receptors and `connections()` rules, and
+  `simulate` runs the kernel on the compiled edges. The route refuses, by name, every
+  `Configuration`, `RuntimeConfig` and `Simulation` field outside its allowlist (see the AdEx
+  family section of the emitters API doc). `Model` methods that need the Izhikevich emitter, the
+  edge list or an HDP or coupling state raise `NotImplementedError` naming the method.
+- `Simulation(poisson_drive=...)` drives `emitter(family="adex")` models with the CAMINOS
+  external drive: each cell of the listed types draws Poisson counts with mean
+  `n_sources * rate_hz * dt / 1000` per step; each count adds `weight_nS` to the named
+  mechanism's conductance after `delay_ms`. `simulate_adex` gains the matching `ext_targets`,
+  `ext_lambda`, `ext_weight_nS`, `ext_receptor`, `ext_delay_steps` and `key` keyword arguments
+  (all given or all None; the kernel draws in the reference's split order and matches a
+  transcription of it spike for spike).
+- `NeuronalTensor` gains an emitter registry with an AdEx route: posed positions,
+  distance-derived delays, per-triple drives, `spatial_sigma`, `allow_self`, and
+  family routing that refuses unknown fields by name.
+- `Vpeak_mV` spike-detection threshold on the AdEx route, `ext_lambda` drive
+  schedules with a drive window, and `capped_bernoulli` connection sampling;
+  zero-delay requests are refused with the compile-time wording.
+- Named parameter handles for any core model, fit by `agsdr` and `optax_adam`.
+- Registered HDP rules on AdEx cells, with an identity test over three cells, five
+  edges, two receptors and noisy drive; fields read positions from the model.
+- Activity-regime classifier on executed runs: `wang_buzsaki_kappa`,
+  `activity_regime`, `activity_regimes`.
+- CAMINOS calibration record (`artifacts/etudes/caminos/CALIBRATION.md` §10): ref. 42
+  LFP and phase-delay scorers, the P6 v2 run on the core through the public API
+  (mixed verdict, Hamm 2026-10-14), and the 0.1 ms delay sensitivity run.
+- GSDR P1 source record (`artifacts/etudes/gsdr2026/SOURCE_P1.md`) for the 50-cell HH
+  circuit and the paper's Eqs. 2–4 update, plus the P2 jaxfne-coverage plan.
+- Izhikevich amendment v8.2 scores and the P3b `net.m`-order arm with its equivalence
+  gate and FAIL receipt.
+- PCL diagnostics across phase subsets and columns, the `no-local-simple` inhibition
+  arm, and per-mode run directories that refuse other modes.
+- Calibrated reproduction protocol: exact / within-5% / off bands, residual gain
+  absorbed into declared degrees of freedom, held-out seeds.
+- Changelog tooling: `assemble_changelog.py` and `release_body.py` with tests; an
+  undated section fails `--check`.
+
+### Changed
+- The docs have a top-level Archive section for pages whose results predate 0.5.0: the
+  earlier tutorials, the suites, four études and the 0.4.16–0.4.17 experiment pages. Their
+  files stay in place; the current sections list 0.5.x material.
+- Current pages regenerated at 0.5.5: the three-area atlas (same config hash, now built by
+  `generate_doc_page_atlases.py --slug three_area`), the Colab page (installs 0.5.5; two cells
+  read manifest keys that no longer exist and now read `claim_level` and
+  `physical_amplitude_calibrated`), the HDP preset table in tutorial 07 (re-measured by
+  `scripts/measure_hdp_presets.py`; `DEFAULT_HDP_DESYNC` realizes H = 1.016 ± 0.017), the
+  public-surface counts (205 symbols), the run-receipt example, and the version stamps on the
+  install, citation, JDNA and probe-operator pages.
+- A Replications page in the docs, generated from `dashboard/sources.json`
+  (`scripts/generate_replications_page.py`, checked in the Dashboard workflow), links each
+  paper's dashboard page. The dashboard gains the class "in progress" (on the pipeline at a stage,
+  before a signed preregistration and a verdict); Izhikevich 2003, Figs. 2 and 3 moves to it at P3.
+- `scripts/v1_pfc_continuous_aaab_smoke_test.py` declares its AMPA time constant (0.1 ms,
+  the value used before P-023 made it required), so the V1-PFC atlas regenerates again with
+  the same configuration hash.
+- `scripts/build_docs_assets.py` regenerates the 25 docs atlases in one pass (about 3 min on
+  CPU) and checks each against `docs/_static/atlas_registry.json` (configuration hash, sizes,
+  seed, timing and panel status), then restores the registry's validated state and rewrites
+  the gallery. The `hdp_1000` and `homeostasis_1000` atlases are regenerated: the 0.5.5
+  H1 (e) commit (9958a72) changed their declared configuration hash; neuron and edge counts
+  are unchanged.
+- Docs iframes resolve on the built site: 34 of the 47 were raw HTML written one directory
+  too shallow (or deep) for mkdocs directory URLs and pointed at nonexistent paths. The gallery
+  generator and eight pages now use the page-URL depth. `build_docs_assets.py --check`
+  resolves every relative `.html` link in the docs (atlas links against the registry, the
+  rest on disk), and Read the Docs regenerates the atlases before mkdocs runs.
+- The 200 atlas HTML files (9.7 MB) leave the repository as build products; the 25
+  manifests and `atlas_registry.json` stay tracked. The tracked-tree budget drops from
+  102665681 to 91226112 bytes. A checkout before the HTML build gets a stand-in page for
+  each registry panel (`scripts/mkdocs_atlas_stubs.py`), so `mkdocs build --strict` passes there.
+- `tests/test_docs_version_currency.py` keeps the current docs current: a published page
+  outside the Archive section that calls an older minor version current, live or its status
+  fails the dev gate.
+- The replication dashboard links each finished stage of a paper to its files at the lane
+  commit (port spec, preregistration, model and tests, result, ledger, scores).
+- The references page lists, per source, the result jaxfne implements and the functions that
+  implement it; those functions cite the same DOI, and `tests/test_references_page.py` holds the
+  two together. Replicated papers and background work have their own tables.
+- `vis.visualize_network_3d(output_html=...)` loads plotly.js from the Plotly CDN, as the other
+  `jaxfne.vis` HTML writers do; the file no longer embeds the 4.8 MB bundle and needs a network
+  connection to render. Five tracked Plotly pages now reference plotly.js 3.5.0 on the CDN with an
+  SRI hash (their bundle was byte-identical to the CDN file), which cuts the tracked tree by 24 MB.
+- Python 3.15 groundwork. JAX/jaxlib ceiling raised from `<0.11` to `<0.12`, because jaxlib's first
+  Python 3.15 wheels are 0.11.1. The homeostatic-EI `cubic_penalty` NaN that set the old pin
+  no longer reproduces: its 30 tests (slow included) pass on JAX 0.11.2. JAX 0.11 rounds 2 of the
+  48 laminar projection kernel entries 1 ulp differently (max relative 8.8e-8); the oracle pins
+  both hashes. On Python 3.15 the `dev`/`viz` extras take scipy 1.18.1 and matplotlib 3.11, which
+  have 3.15 wheels, and the frozen-figure equivalence gate tests skip there. CI does not yet run
+  3.15, and pyyaml and h5py (the `io` and `jnwb` extras) publish no 3.15 wheels yet.
+- Etude HTML under `docs/_static/etudes/experiment_a/` and
+  `docs/_static/etudes/hdp_controllability_reachability/` is a build product, like the atlas HTML.
+  `scripts/build_docs_assets.py --build` runs each etude generator and checks the files listed
+  in the registry's `etudes` section. The 12 HTML files leave git; their `manifest.json` files
+  stay tracked.
+- `NeuronalTensor.to_dict` writes the new optional fields when set, leaving identity
+  and phenotype hashes of existing tensors unchanged.
+- Public surface at 208 symbols (195 CANONICAL) after the regime-classifier exports.
+- The references page cites Nejat, Sherfey and Bastos 2026 (GSDR) and Wang and Buzsaki
+  1996, each bound to the functions that implement the result.
+- The `jnwb` remaining-sites tests skip when `jnwb` is absent, so the release-test
+  environment collects cleanly.
+
+### Fixed
+- `fields.filtered_spike_source` (and `combined_multi_area_source`) signs each cell type from
+  the emitter tables: `I`, `Inl`, `Ing` and the AdEx `SOM` were signed +1 (excitatory) because
+  any type outside E, PV, SST, VIP defaulted to +1; they are now -1. A cell type absent from the
+  table raises `ValueError` naming it; pass `cell_signs=` to sign it. The package, its scripts
+  and frozen results call neither function.
+- `Simulation(poisson_drive={"target": ...})` raises `ValueError` for any target other than
+  `"all"`. The target was never read: `{"target": "E"}` drove every neuron while the run
+  metadata recorded `"E"`. `"all"` and an omitted target draw as before.
+- `jaxfne.presets.CELL_TYPE_PRESETS` sources cite Izhikevich (2003) Fig. 2 for RS, FS and LTS;
+  the paper has no table. `VIP_IS` is marked as absent from the paper.
+- `wang_buzsaki_kappa` binarizes spikes per step before binning, so a non-positive
+  value stays inside its own bin.
+
+## v0.5.5 (2026-10-10)
+
+### Added
+
+- Controlled model augmentation (`jaxfne.augment`, `clone_tensor`,
+  `AugmentationSpec`, `AugmentationRecord`, `ProvenanceEntry`, `ScaleN`,
+  `GeometryTransform`, `PoseEdit`, `RangeEdit`, `ThetaC`, `ThetaX`, `W0`,
+  `H0`): typed pre-`construct` transforms of a `NeuronalTensor` in fixed
+  canonical order `N -> G -> Theta_C -> Theta_X -> W_0 -> H_0`, with
+  per-axis `K_V` seeding and per-value provenance. See `docs/reference/api/core/augment.md`.
+- Optional per-neuron membrane floor `v_floor` on the registrable HDP
+  Izhikevich kernel (default `None`, outputs unchanged). A floor below rest
+  stops strong inhibition from driving the membrane past the quadratic
+  turning point, where the neuron would fire.
+- Études: homeostatic balance learning and Predictive Coding Light
+  (`docs/etudes/hdp_balance.md`, `docs/etudes/pcl.md`).
+
+### Changed
+
+- Synaptic time constants are required (P-023, owner
+  ruling 2026-09-30): `StaticParams.dT_ms` of `None` is refused at wiring
+  time, as are 0, negative, NaN, inf, bools and strings. JDNA genomes
+  declare per-mechanism kinetics in `mechanism_tau_ms`; `develop` copies
+  each connection's mechanism tau into `StaticParams.dT_ms` and refuses a
+  mechanism with no table entry. Mechanism names set the sign
+  (`{AMPA, NMDA}` need an E source, `{GABA_A, GABA_B}` a non-E source);
+  unknown names are refused except `monotonic_cable_synapse`, and
+  TFNE-minted tensors keep their own polarity sign.
+  `make_minimal_ei_tensor` now emits `GABA_A` instead of `GABA`, and the
+  demo config's E->PV pair is `AMPA`.
+- Seeded stochastic `simulate()` runs (baseline and registered-rule paths)
+  draw membrane and rule noise from the per-step continuation key chain, so
+  a run split into chunks equals the unsplit run bit for bit. Seeded
+  stochastic outputs differ from earlier releases; noise-free runs are
+  unchanged.
+- A declared `noise_scale` is honored on the baseline and registered-rule
+  paths; earlier releases ignored it there.
+- Stored-but-unconsumed per-cell-type drives are refused (P-014, owner
+  ruling 2026-09-26): `Configuration.cell_type_drives(...)` stored per-type
+  drives that construction never read, so suite2 presets, `experiment_a`,
+  `protocol_e`, tests, scripts and tutorials ran at the emitter default
+  drive. The call now raises `TypeError` naming
+  `drive(baseline_drive_by_cell_type=...)`, and every caller uses that path
+  with its declared values, so those runs change; the HDP etude regression
+  model drops its drive because its frozen metrics were made at the default.
+  The same ruling logs P-015 for the unconsumed `drive()` layer/area fields.
+- AT-10-N20 follow-up from adversarial review: the assay spec carries its
+  criteria (kicks, `H_0`, ratio, threshold, late windows, replicate seeds) so
+  the result digest tracks them, and the runner docstring states the
+  selection status (gain, HDP gains and kicks were chosen on the same
+  regime; results are descriptive; no confirmatory claim is made). Assay records
+  `w_unchanged`; disabled arms keep W bit-identical in all 9 runs (tested).
+  `w_mech` validation is unified on both paths (bool, string, NaN and inf
+  refused; finite and positive required; absolute default and `H_0`
+  sensitivity asserted in tests), and `drive()` rejects non-mapping
+  layer/area/oddball fields with `ValueError`.
+
+### Deprecated
+
+- `jaxfne.analysis` misnamed metrics `fano_factor`, `burst_index`, and
+  `mean_pairwise_spike_correlation` (P-026, owner ruling 2026-10-01): each
+  keeps its current values for one release, emits a `DeprecationWarning`
+  naming the `jnwb` replacement (`fano_factor`, `network_burst_index`,
+  `spike_count_correlation`, reached via `jaxfne.jnwb_view.to_jnwb` /
+  `to_jnwb_trials`), and carries a corrected docstring stating what it
+  computes.
+
+### Removed
+
+- Dead speculative `jaxfne.units` module and its tests (owner ruling 2026-10-02): unused across `jaxfne/`, `docs/`, `scripts/`, and `tutorials/`.
+
+## v0.5.0 (2026-09-23)
+
+Measured 0.5.x baseline plus integration/harness foundation and one verified
+reporting-path optimization; simulation semantics preserved.
+
+### Measurement
+
+- Frozen v0.4.25 performance baseline (construct/compile/warm/record phases
+  across 1n, HDP-10n, sparse-100n, column-1000n regimes) with phase profile,
+  memory deltas, test/gate runtime profile, and agent-workflow benchmark.
+
+### Integration
+
+- Canonical question→TFNE→JDNA→simulation→verification agent workflow skill
+  routing the existing lifecycle skills; TFNE→JDNA→Model route audit;
+  non-vacuous harness skill-sync check.
+- Visualization semantic-integrity improvements: backend-independent numerical
+  contracts for population rate and band power with parity tests, honest
+  time-axis labels, synthetic-geometry provenance, per-point activity
+  encoding in 3D views, and declared field/proxy route separation.
+
+### Performance
+
+- Conservation-proxy diagnostics computed on host arrays (verified
+  reporting-path optimization): cold manifest on new shapes falls from
+  hundreds of milliseconds to milliseconds with per-shape XLA recompilation
+  eliminated; trajectories and diagnostics values preserved within the
+  adjudicated cross-implementation tolerance.
+
+## v0.4.25 (2026-09-20)
+
+Terminal `0.4.x` release: TFNE-algebra + visualization sweep on unchanged
+scientific numerics (bit-exact legacy trajectories; Batch F kernel work
+proven bitwise-identical by stash-compared trajectory hashes).
+
+### Visualization
+
+- H-SPICE schematic built directly in Plotly (`network_hspice_plotly`, same
+  `describe()` data contract as the matplotlib twin) + model-inspection
+  guide.
+- Seven-panel dark atlas (`schema`, `network_3d`, `raster`, `lfp`,
+  `h_dynamics`, `hdp`, `oscillatory`) with per-panel data contracts:
+  unmeetable contracts render explicit omission cards.
+- Per-page atlases for every doc simulation + frozen-étude HTML panels
+  (post-hoc or deterministic reruns with hash/claims verification).
+- Provenance manifests (`tfne_digest`, `K_D`, sim identity, per-panel
+  lineage, figure states GENERATED/VALIDATED).
+
+### Documentation
+
+- TFNE→JDNA→Model teaching lifecycle; pinned stable TFNE doc subset.
+- Verbosity/format passes across tutorials, guides, API, doctrine;
+  reorganized left menu; semantic-negative docs gate + vocabulary audits.
+- Fixed stale snippets (evoked paradigm path, `model_inspection` kwargs,
+  Colab API with live keys and measured outputs).
+
+### Publication
+
+- Tag `v0.4.25`; GitHub release and PyPI from retained CI artifacts; RTD
+  stable @ tag.
+- Published predecessor v0.4.24 (tag `v0.4.24`, PyPI) preserved.
+
+## v0.4.24 (2026-09-14)
+
+Minimization programme plus general finite-state HDP expressivity, with no
+change to published scientific numerics (bit-exact legacy trajectories;
+per-observable equivalence bounds unchanged).
+
+### Programme
+- Installed-package boundary: research protocols leave the wheel
+  (159 → 111 modules) while the repository/sdist stay complete.
+- Public surface classified: 190 names = 187 concepts, zero removals.
+- Drive-schedule scan paths unified; `Simulation.plasticity` classified
+  provenance metadata; HomeostaticEI rejects unconsumed drive paths loudly.
+- Registrable HDP: vector-H coordinates, scalar/multi-coordinate aux,
+  `drive_bias` target, per-step rule keys, strict malformed rejection.
+
+### Publication
+- Tag `v0.4.24` @ `7f89eff`; GitHub release and PyPI from retained CI
+  artifacts (wheel 604850 B, sdist 38138137 B); RTD stable @ `7f89eff`.
+- Published predecessor v0.4.23 (tag `v0.4.23`, PyPI) preserved.
+
+## v0.4.22 (2026-09-10)
+
+Truth and measurement floor for the v0.4.22–v0.4.24 programme: classification,
+instrumentation, and public-surface truth without representation reduction or
+performance claims. Scientific numerics remain bit-exact against the published
+v0.4.21 baseline.
+
+### Programme
+- Dense-site and handler classification closure (zero `UNKNOWN` in W3/W7 audits).
+- Public install/docs surfaces aligned to published PyPI identity after release.
+- Canonical visualization atlas and gallery regenerated at 0.4.22.
+- Full RC + release CI + JUnit parity chain PASS on sealed candidate `d849e6d`.
+
+### Publication
+- Tag `v0.4.22` @ `d849e6d`; GitHub release and PyPI from retained CI artifacts.
+- RTD production docs: `https://jaxfne.readthedocs.io/en/stable/` @ `d849e6d`.
+
+## v0.4.21 (2026-09-07)
+
+Release-candidate promotion of the post-v0.4.20 tree (v0.4.20 tag `e3b7d0a`
+unchanged). No scientific/runtime numerical change relative to v0.4.20:
+no `jaxfne` kernel, emitter, field, probe, or optimizer mathematics was
+modified (Δscience=0); the runtime diff is an import-hygiene rename
+(`sys` → `_sys` in `jaxfne/__init__.py`) plus one additive vis-subpackage
+export.
+
+### Harness/reliability
+- Observed-execution RC attestation: the release gate records per-family
+  command evidence and authorizes publication exclusively from re-derived
+  observations (`scripts/run_test_gate.py`,
+  `scripts/release/reconcile_release_target.py`).
+- Exact RC/release test-set reconciliation: the three RC marker sweeps are
+  proven exhaustive, and release CI selects the identical node set
+  (verified per-node via JUnit comparison; aggregate counts were not used).
+- JUnit per-node evidence: blocking CI uploads `--junitxml` artifacts and
+  the RC gate writes gitignored sweep JUnit; `scripts/compare_pytest_junit.py`
+  compares node-by-node with explicit platform/environment classification.
+- Environment parity: release CI installs `.[dev,viz,jaxley]` plus the docs
+  toolchain, matching the RC gate (reportlab/markdown/mkdocs capabilities
+  no longer skip or fail asymmetrically).
+- CI context uniqueness and branch protection: unique job names across
+  workflows; required contexts verified equal to emitted contexts.
+- Release artifact provenance: `release_ci` builds the wheel and sdist exactly
+  once and retains them as a CI artifact alongside a generated release
+  manifest; publishing downloads those retained bytes and requires SHA256
+  equality with the manifest before upload. Nothing is rebuilt at publish
+  time, so the published bytes are the bytes every gate validated.
+- Restored multi-area test coverage: the two formerly excluded modules run
+  in every blocking gate (`BROAD_PYTEST_IGNORE` empty).
+
+### Visualization/docs
+- Canonical six-panel visualization atlas (`network_3d`, `connectivity`,
+  `raster`, `traces`, `spectral`, `state_summary`) with OBSERVED-vs-DERIVED
+  separation, deterministic degradation (N=1, zero edges, silent runs,
+  field/no-field, multi-area), README/docs single-source generation, and a
+  pinned published configuration.
+- `state_summary` terminology and H/RBD/HDP grammar corrections across
+  landing docs; field/source truth corrections (proxy vs calibrated).
+
+### API/contract
+- Additive vis-subpackage exports (`build_atlas`, `PANELS`); no root public
+  API removal (root contract 190 symbols after tier reclassification).
+- Public-surface contract regenerated from the live module with guards;
+  docs counts corrected to match (191 → 190).
+
+### Support
+- Python 3.11-3.14. Blocking CI validates the supported range at its 3.11
+  and 3.14 endpoints; 3.12 and 3.13 are supported but not independently
+  exercised by the full CI matrix. The published artifacts are built on 3.11 by
+  `release_ci` and are pure-Python (`py3-none-any`).
+
+## v0.4.20 (2026-09-03)
+
+Release candidate v0.4.20. Correctness fixes, canonical public continuation export, reproducible release gallery, and semantic precision alignment across documentation and downstream consumers. Δscience=0 across scientific and numerical kernels.
+
+### Added
+- Public API: `jaxfne.run_continuation` canonical export from root package namespace (`jaxfne/__init__.py`), providing unified public access for simulation continuation across multi-chunk workloads without private imports.
+- Public API: `Model.edge_table` property exporting canonical tabular network edge representation with presynaptic/postsynaptic indices, weights, delays, receptor types, and target compartments.
+- Documentation & Artifacts: Canonical 8-panel reproducible release gallery generated via `scripts/generate_release_gallery.py` with accompanying machine-readable `gallery_manifest.json` recording figure hashes, seed configurations, and explicit calibration statuses.
+
+### Changed
+- Downstream compatibility: `jomission` workflow updated to use canonical public exports (`run_continuation`, `ContinuationState`, `DynamicState`), eliminating all private imports from `jaxfne._model`.
+- Semantic precision: Documentation updated to explicitly distinguish uncalibrated relative source proxies $Q$ from executed synaptic currents $I_{\text{syn}}$, replacing unverified "current density" claims with rigorous trans-membrane source proxy definitions.
+- Continuation documentation: Clarified Markov continuation semantics under nonzero edge delays ($\mathcal{B}_t$ ring buffer carry requirements and population-local RBS invariants).
+
+### Fixed
+- Emitters correctness: Resolved F823 variable hoisting / uninitialized local variable reference in `jaxfne/emitters.py` under conditional execution paths.
+- Version consistency: Synchronized release identity across all authoritative metadata surfaces (`pyproject.toml`, `_model.py`, `mkdocs.yml`, `CITATION.cff`, generated documentation, and release gallery manifest).
+
+### Unchanged
+- Numerical kernels: `_pipeline.py`, `_model_simulate.py`, `fields.py`, `dynamics.py`, and underlying simulation equations bit-identical with prior baseline.
+- Frozen publication evidence: All 28 publication artifact hashes in `artifacts/publication/frozen_manifest.json` preserved identically.
+- Deferred non-blocking gaps: Online $O(T \times N)$ executed E/I synaptic current aggregation recorded as `CONFIRMED_GAP | DEFERRED | NON-BLOCKING` (offline trace extraction available). GPU performance and multi-device scaling classified as `UNKNOWN` (CPU-validated baseline).
+
+
+## v0.4.18 (2026-08-28)
+
+Structure/docs/CI/manuscript-tooling release — no scientific kernel change (Δscience=0). Hygiene guards only; 0.4.17 frozen evidence and public API contract unchanged.
+
+### Added
+- Manuscript: deterministic build pipeline `scripts/build_manuscript.py` (`M_submission` → `PDF_submission`) with DejaVu font, equation split, deterministic ID, and pagination; manuscript sources under `docs/publication/manuscript/`.
+- CI: split curated dev gate (~90 s) vs broad main gate; viz capability boundary and `reportlab` guard for build tests.
+- Docs inventory: `_generated/operator_inventory.md` regeneration; `artifacts/publication/final/` figure finalization (E2 ping/SSA combined figures).
+
+### Changed
+- Docs/nav: PseudoGenome (JDNA) labeling, subtractive compaction (C→R→E words-before-symbols, PseudoGenome G→D(K_D)→N), link consolidation, and `_generated` densification.
+- Structure: tutorials/figures/skills/`AGENTS.md` consolidated under `artifacts/` with frozen manifest relocation; `.opencode` authorities migrated to neutral harness owners (`opencode.json`).
+- JDNA docs: retitled PseudoGenome with compact `K_D` grammar and illustrative examples.
+- Doctrine/metadata: `pyproject.toml` authors and citation tag alignment; `README`/`CITATION.cff`/`bibliography` sync (TRUE_DEFECT D1–D3).
+
+### Fixed
+- Build: `--out X.pdf` always produces PDF with deterministic backend and scientific captions (P1); `reportlab`-dependent build tests skip cleanly when viz extra absent.
+- Hygiene guards (no trajectory change): `Model.checkpoint`/`restore_state` UTF-8 read consistency; `EdgeList.to_dict`/`from_dict` full-payload roundtrip with dtype preservation and backend version check; edge `delay_steps >= 0` validation and dense-backend nonzero-delay rejection; `json_safe` declared `NaN/Inf → None` with `UserWarning`; `spectrolaminar_psd_jax` `window="rectangular" | "hann"` taper (default rectangular, bit-identical).
+- Path hygiene: stale `artifacts/` references corrected after relocation; JAX-native/package-native prose allowlist for vocab gate.
+
+### Unchanged
+- Public root contract: 189 symbols (176 CANONICAL + 13 COMPATIBILITY) from 0.4.17 — SurrogateConfig/surrogate_config reclassified to EXPERIMENTAL_INTERNAL (W4 scoping), otherwise frozen; frozen publication evidence, receipts, and TFNE computational scaffold semantics unchanged.
+- Scientific kernels (`emitters`, `fields`, `_pipeline`, `_model_simulate` numerics): no trajectory or claim change beyond declared hygiene guards.
+
+## v0.4.17 (2026-08-18)
+
+JDNA reconciliation release: multi-model audit reconciliation (H1–H14),
+bounded-simplex JDNA development with strict validation, serialization
+schema/roundtrip guarantees, AGSDR surface reclassification, verified
+scholarly references, and harness evidence discipline.
+
+### Added
+- JDNA: box-constrained simplex projection for cell-type fraction allocation
+  (deterministic, bounds-respecting, sum-to-one); `validate_genome` strict
+  checks — fraction domain, tolerance bands, joint feasibility, and
+  inter-/area-connection reference integrity.
+- JDNA serialization: `pseudogenome_from_dict` (exported) rejects unknown
+  schemas; `save_pseudogenome` preserves schema version; tuple
+  geometry/pose canonicalization restores exact roundtrip equality.
+- PRNG separation: behavioral tests for \(K_D\) (development), \(K_S\)
+  (runtime seed), \(K_A\) (optimizer seed) independence.
+- Harness: H1–H14 review/evidence discipline rules in AGENTS.md.
+
+### Changed
+- AGSDR surface classification: `propose_blackbox_candidates` →
+  COMPATIBILITY, `_tune_matrix_agsdr_optax` → HYBRID (documented in
+  `jaxfne.optim.AGSDR_SURFACE_CLASSIFICATION` and objectives API).
+- RBS inventory: node HDP kernel includes \(K_{\mathrm{ctrl}}(1-H)\) and
+  \(H C^\top\) coupling terms.
+- References: verified primary sources (Palm/Najarro/Risi 2021, Zador
+  2019); removed unverifiable memo number.
+
+### Fixed
+- Fresh-clone test isolation: visual review self-generates into a
+  temporary directory (H11).
+- Dead imports (`asdict`, `_jdna_genome_module`, `REPO_ROOT`) removed.
+
+### Unchanged
+- Public root contract: 190 symbols (177 CANONICAL + 13 COMPATIBILITY) from
+  0.4.13; frozen publication evidence untouched.
+
+## v0.4.16 (2026-08-13)
+
+RBS/RBD/HDP containment release: finite edge-delay recurrent kernel (Protocol D),
+frozen Protocol H ladder through H4 falsification receipt, frozen Protocol W ladder
+through W3b unresolved interpretation receipt, and doctrine alignment for TFNE
+containment architecture.
+
+### Added
+- Protocol D0/D1: finite edge-delay recurrent kernel with grid-aligned delay
+  quantization (`edge_delay_steps_from_ms`, `edge_list_with_delay_ms`).
+- Protocol H: RBD state-memory ladder (H1–H4) with frozen prospective receipts;
+  H4 falsification receipt (topology/delay extension).
+- Protocol W: HDP parameter-memory ladder (W0–W3b) with frozen receipts;
+  W3b interpretation frozen as **unresolved classification** (`N_S=0`, `N_X=1944`).
+- Doctrine: TFNE containment architecture, unified RBS/RBD/HDP grammar,
+  Protocol W HDP parameter-memory specification.
+
+### Changed
+- Emitters: Protocol D delay-step validation on recurrent edge lists.
+- Scientific development boundary for Protocol W closed at W3b interpretation
+  for 0.4.16; W3c remains parallel science off the release critical path.
+
+### Fixed
+- Test isolation: remove import-time `jax_enable_x64` side effects from Protocol W
+  analysis modules; reset x64 in session `conftest.py`.
+- Optional `kaleido` dependency: skip plotly PNG export vis smoke when absent.
+- Pin JAX/jaxlib to `<0.11` pending homeostatic-EI cubic_penalty compatibility audit.
+
+### Unchanged
+- Public root export count and stable API contract from 0.4.15.
+- Fused observation-operator execution and observation provenance semantics.
+
+## v0.4.15 (2026-08-12)
+
+Observation-composability release: explicit fused-operator provenance,
+observation-authority tests, Multiscale and Heterogeneous Emitter Études.
+
+### Added
+- O1 observation provenance on eager diagnostics/reports (`execution_form`,
+  `operator_chain`, orthogonal amplitude/validation/physical-claim axes).
+- O3 observation authority regression (frozen \(Q\), distinct \(O\),
+  identical-\(W\) control, linear superposition, `O(0)=0`).
+- Études: [multiscale observation](../etudes/multiscale_observation.md);
+  [heterogeneous emitters](../etudes/heterogeneous_emitters.md).
+
+### Changed
+- MEG-proxy receipts: `relative_linear_map_proxy`, `orientation_claim: none`.
+- API/docs: HEI `drive_schedule` path; observation vocabulary in fields API.
+
+### Unchanged
+- 186 root exports; fused \(F/P\) execution; `Signals`/`FieldOutput` layouts;
+  compatibility parameter names.
+
+## v0.4.14 (2026-08-12)
+
+Stable TFNE core release: frozen public API contract (186 root exports), compact
+release-facing documentation, H-state/HDP evidence semantics (`param_groups`),
+MCC-1/2/3 and HDP controllability/reachability Etude regression. Package
+semantics match the 0.4.13 freeze at `4a0e887`.
+
+### Added
+- Structural API documentation map and Études top-level documentation group.
+- Public surface contract (`artifacts/public_surface_contract_v0413.json`) and
+  `jaxfne.public_surface` tier authority.
+- HDP metadata `param_groups` (H-state | H-dynamics | adaptive parameter dynamics).
+
+### Changed
+- Root public exports: 173 CANONICAL + 13 COMPATIBILITY (186 total).
+- Population-H public semantics via `h_state_locality="population"`; user-facing
+  docs and metadata use locality labels.
+- Agent context (`AGENTS.md`) and four router skills under `skills/jaxfne-*`.
+
+### Fixed
+- Release-facing documentation and tutorial index normalized by mathematical
+  purpose; mechanical test alignment for Pass 2 doc contraction.
+
+### Changed (0.4.13 development, included in 0.4.14)
+- Generalized HDP execution documents `H_i(t) ∈ R^d_H` as a finite-dimensional
+  hidden biophysical state. The scalar homeostatic-like HDP realization is the
+  `d_H=1` case; vector coordinates, optional coupling, and adaptation-specific
+  readouts are supported.
+- Canonical HDP simulation paths use one explicit per-step PRNG sequence across
+  ordinary, continuation, and batch execution.
+
+## v0.4.8 (2026-07-22)
+
+First release of the 0.4.8-0.4.48 long-term roadmap (`full_scorecard >= 80/100`
+by 0.4.48). Ships Phases 1-3 (Baseline measurement, Defragmentation wave 1,
+Computational efficiency wave 1). `full_scorecard` total: 58.5/80 as of this
+version (Novelty 78.6, Computational efficiency 74, TFNE goals 30,
+Generalization 50, Code defragmentation 60).
+
+### Added
+- Committed, repeatable scaling étude at N=100/1,000/10,000/100,000
+  (`benchmarks/scaling_benchmark.py`) -- the N=100,000 case exercises the
+  sparse-connectivity lever (`p_connect<1`) via `Configuration.uniform3d()`,
+  since a dense (N,N) matrix at this N is infeasible (~40GB).
+
+### Fixed
+- `_apply_connectivity`'s dense-memory warning now covers
+  `tcm_v1_6pop`/`suite2_interarea`/`inter_column_connectivity` configs; the
+  warning used to skip these whenever `p_connect<1`.
+- `_construct_build_network`'s dense fallback (reached when a `Configuration`
+  doesn't set `columns`/`layer_cell_types`/`uniform_3d` metadata) now warns at
+  scale -- previously, a plausible-looking `.network(kind=..., layers=[...])`
+  recipe made any `connectivity(p_connect=...)` call inert, building
+  a dense (N,N) matrix regardless (confirmed: ~50GB/194s at N=100,000 before
+  the fix, ~1.1GB/11s after, at the identical N/p_connect).
+- `eeg_proxy_transform`/`meg_proxy_transform` (`jaxfne/fields/probes.py`)
+  merged into one internal `_leadfield_proxy_transform` implementation --
+  both were byte-identical bodies, differing purely in a parameter name. Both
+  public names kept as thin, signature-preserving wrappers.
+
+### Changed
+- `_model.py` (2,901 LOC) and `_construct.py` (2,946 LOC) split into cohesive
+  submodules (`_model_simulate.py`, `_model_readout.py`, `_model_evaluate.py`,
+  `_model_tune.py`, `_model_manifest.py`, `_construct_population.py`,
+  `_construct_connectivity.py`, `_construct_presets.py`, `_construct_core.py`,
+  `_construct_extras.py`) -- both files are now thin re-export aggregators,
+  matching `core.py`'s existing pattern. Zero public API surface change
+  (`jaxfne.__all__` count unchanged at 256 throughout).
+- `_suite2_apply_connectivity`/`_suite2_neuron_population_from_config`/
+  `_suite2_default_layer_cell_types` renamed to their general names
+  (`_apply_connectivity`/`_neuron_population_from_config`/
+  `_default_layer_cell_types`) -- all three were the sole implementation,
+  called broadly, with behavior identical across every suite2 flag value (jaxfne-harden rule 10).
+
+## v0.4.7 (2026-07-20)
+
+Internal engineering scorecard: 100/100 (all 10 factors,
+`artifacts/developer/release_0_4_7_scorecard.md`). First release published to
+GitHub Release / TestPyPI / PyPI since v0.4.5.
+
+### Added
+- `homeostatic_ei` emitter: N-generalized cubic-penalty and cross-population
+  coupling homeostasis, soft bounds, `bound_mode`, pairwise synaptic HDP,
+  wired through `Configuration.set_emitter()`/`Model.simulate()`.
+- `experimental_poisson_1d` bridged to `Model.neuron_table()`/`Signals.sources`;
+  extended to piecewise (layered) conductivity with an analytic validation target.
+- `jax-fem` optional bridge (schema-first, mirrors `JaxleyBridge`).
+- `record_weight_trace` opt-out on the HDP kernel and `_pipeline.py`'s
+  `compile_step_fn`/`scan_network` path (closes an 80GB-scale OOM at large
+  N/step counts; additive, default unchanged).
+- First real cross-tool benchmark (jaxfne vs Brian2, matched Izhikevich task),
+  independently re-verified.
+- Formal HDP barrier-potential equilibrium stability proof; significance
+  testing added to the ED9 HDP evidence bundle.
+
+### Fixed
+- Dense-connectivity `construct()` OOM at N=100,000 (skips a wasted dense
+  (N,N) allocation the suite2 path discards anyway); N=100,000 HDP
+  long-duration étude executed end-to-end post-fix (H settles near
+  equilibrium, memory stays bounded).
+- `step_sdr_transform`/`step_gsdr_transform`/`step_agsdr_transform` docstrings
+  corrected — `Model.tune()` never calls these functions.
+- Version-alignment: `pyproject.toml`, `jaxfne.__version__`, `mkdocs.yml`, and
+  `docs/_generated/version.md` now kept in lockstep (a stale-source gap was
+  caught by the release CI's own regression suite this cycle).
+
+### Changed
+- `ruff` lint is now a hard CI gate (509 → 0 errors as of 2026-07-14, with
+  every per-file suppression individually verified rather than blanket-applied).
+- Pre-0.4.7 four-chapter polish (P–S): human docs de-parrot agent jargon; `clamp_truth_gate_metadata` blocks claim escalation on update_metadata/manifest/migrate_schema; dual-ask re-score leak 92 / overall 93.
+- Root declutter: contributing guide under `docs/` + `.github/CONTRIBUTING.md`; changelog lives under `docs/reference/changelog.md`.
+- API docs export note links [Scope & status](project/scope_and_status.md) instead of repeating gate jargon.
+- README: drop "Built for AI agents too" manifesto; quiet Documentation-table link to for_ai_agents (`docs/reference/project/for_ai_agents.md` — repository-internal reference, excluded from the built site); states the Jaxley/jaxfne population-vs-compartment relationship.
+
+### Removed
+- Root `SECURITY.md` and `CODE_OF_CONDUCT.md`.
+
+## v0.4.6 (2026-07-12)
+
+**Internal git tag** for the release-readiness polish wave (README/docs community files, citation metadata, scope page, CI coverage, root cleanup). Distribution to GitHub Release / TestPyPI / PyPI stays deferred until Hamm confirms **0.4.7**.
+
+### Added
+- `CITATION.cff`; contributing under `docs/reference/contributing.md` + `.github/CONTRIBUTING.md`; changelog under `docs/reference/changelog.md`
+- `docs/reference/project/scope_and_status.md`, `docs/reference/project/for_ai_agents.md`, Zenodo wiring guide
+- `jaxfne/py.typed`; pytest-cov coverage artifacts in CI
+
+### Changed
+- README landing page shortened; Jaxley comparison lives in docs
+- Lean `AGENTS.md`; `.legacy/` under `artifacts/legacy/`
+
+### Removed
+- Root `CODE_OF_CONDUCT.md`
+
+## v0.4.5 (2026-07-03)
+
+**HDP v2, NeuronalTensor as a first-class circuit representation, full-repo visualization isolation, and a large test/doc alignment pass.** The homeostasis-dependent-plasticity (HDP) kernel gained a real, stability-validated second generation (linear equilibrium controller + safety barrier, per-cell-type drive tuning, wired into `RuntimeConfig`), `NeuronalTensor` became a genuine second build path (Areas × Layers × NeuronTypes × AreaConnections, JSON round-trip, multi-area placement, a bridge into `Configuration`), and every `matplotlib`/`plotly` call in the installable package was consolidated under `jaxfne.vis` (verified zero leakage elsewhere). Alongside the features: all 89 public docs got a real content review against current source (average score 81→91/100, several docs that documented fabricated APIs were rewritten to match reality), the test suite was consolidated toward étude/suite-notebook execution as the primary coverage mechanism, and CI was fixed for real (a pre-existing failure and several stale exclusions were traced and genuinely resolved).
+
+### Added
+- **HDP v2** — passive resource income, H-taxed synaptic drain, `hdp_rule` families (`signed_linear`/`signed_quadratic`), a linear equilibrium controller (`K_ctrl`) restoring `H_i` toward 1.0, and an asymmetric safety barrier near `H_min`/`H_max`. Wired into `core.py`'s `RuntimeConfig`/dispatch and exposed via `Configuration.hdp()`. `K_ctrl=5.0` validated as the genuine stability-critical term after root-causing a prior instability (F-017).
+- **`NeuronalTensor`** — the canonical `[Areas, AreaConnections]` circuit representation (`Area = [Layers × NeuronTypes, InterConnections]`), with `Pose3D` multi-area 3D placement, `merge_neuronal_tensors`, JSON save/load, and `neuronal_tensor_to_configuration()` bridging it into the existing `construct()`/`simulate()` pipeline. `construct()` now dispatches on input type (`Configuration` or `NeuronalTensor`) transparently. Canonical JSON configs (including `default_macaque_V1`) promoted into `jaxfne/configs/`.
+- **`Configuration` declarative verbs** — `.plasticity()`, `.homeostasis()`, `.connectivity()`, `.drive()`, `.optimizer()` record structured intent into metadata for `manifest()`/inspection (none of these affect `simulate()` directly — each is honestly self-documented as declarative-only).
+- `jtfne.connect(...)` — model-to-model ensemble operator; `Configuration.connections()` compiles declarative selector rules into real edges at `construct()` time via a mechanism-aware connection compiler.
+- `general_sequential_oddball_paradigm` — a backbone for arbitrary sequential-task paradigms (local/global oddball, omission, DMS-style event lists), replacing several one-off paradigm builders.
+- 4 new étude notebooks (5, 6, 7, 8), closing the last remaining placeholder (étude 8 — continuous HDP adaptation).
+- `cable_filter_tensor` and `csd_tensor` — named, standard pipeline stages for LFP/EEG/MEG and CSD, replacing ad hoc inline math.
+- `Synaptic Tensor` — an additive mechanism-correct tau lookup (AMPA/NMDA/GABA-A/GABA-B) usable independent of the recurrent-network path.
+
+### Fixed
+- **Visualization isolation completed** — every real `matplotlib`/`plotly` call in `jaxfne/` now lives under `jaxfne/vis/*`; the two remaining references outside it (`export.py`/`tutorial_utils.py`) are lazy imports inside deprecated shims that delegate to `jaxfne.vis.export_figure`, both already carrying `DeprecationWarning`.
+- 4 dead-stub `jaxfne.vis` plotting functions (built a figure, plotted nothing, returned `None`) implemented for real.
+- HDP JIT cache key now fingerprints all `homeostasis_params` (was silently reusing a stale compiled kernel on some parameter changes); homeostasis diagnostics now correctly forward `w_trace`/`w_final`.
+- A real N=2 cell-type edge case, a silent bad-dtype fallthrough (now rejects loudly, with `bfloat16` support added), and several NeuronalTensor↔Configuration bridge fidelity gaps (per-area/per-layer cell-type fractions, `AreaConnection`/`InterConnection` wiring, `PlasticParams.H`/reversal potentials).
+- `NeuronalTensor`/`Area` now validate element types at construction (`__post_init__`) — passing the wrong type (e.g. a `Configuration` where an `Area` belongs) raises `TypeError` immediately instead of silently corrupting state.
+- CI: removed a stale `--ignore` exclusion for 2 test files that had been broken in May and were later fixed but never re-included; added the `kaleido` dependency (a pre-existing gap, present in every CI run checked back through history); fixed several doc-hygiene lint failures introduced by the doc-alignment pass itself.
+- `project_laminar_sources` now defaults to `density_preserving` (was a silent behavior mismatch with its own documentation).
+
+### Changed
+- **Test suite consolidated** toward étude/suite-notebook execution as the primary coverage mechanism: of 210 test files reviewed, 2 deleted and 41 slimmed to keep only tests a notebook run can't replace (pure-function invariants, error paths, schema/contract checks); the rest were confirmed to already carry unique value and left untouched.
+- **Full documentation review**: all 89 `docs/*.md` files given a real content review against current source (not just a scan) — average score 81→91/100, 88/89 fully resolved. Several `docs/api/*.md` files that documented entirely fabricated dataclass fields/function signatures (up to 65 points below their post-fix score) were rewritten to match reality.
+- `pyproject.toml` gained `[project.urls]` (Homepage/Repository/Documentation/Issues/Changelog).
+
+## v0.4.4 (2026-06-21)
+
+**Multi-area études + a real fix to inter-area connectivity.** Études 6 and 7 are implemented (previously placeholders), built on the built-in Izhikevich emitter and the canonical E:I profile. Implementing them surfaced and fixed genuine bugs in the multi-area connectivity path.
+
+### Fixed
+- `inter_column_connectivity` now **accumulates** specs instead of overwriting — multiple calls (one per directed projection) all materialize. Previously every call replaced the single metadata key, so `build_multi_area_columns` wired only the last adjacent pair.
+- `build_multi_area_columns` wires each adjacent pair in **both directions**: feedforward lo→hi (L2/3 → L4) and genuine top-down feedback hi→lo (L6 → L1/L5). Its `p_feedback` now produces real top-down edges.
+- `_interarea_W` layer matching tolerates the merged 5-layer scheme (`"L2/3"`) as well as split `"L2"`/`"L3"` columns, so feedforward from superficial layers wires under the default `DEFAULT_LAYERS`.
+
+### Added
+- **Étude 6 — Multi-Area Network**: V1→V2→V4→PFC hierarchy with feedforward + feedback, inter-areal connectivity census, interactive 3D layout, per-area depth rasters, and an async-irregular (κ) gate.
+- **Étude 7 — Multi-Trial Spectrolaminar Motif**: multi-trial depth × frequency relative power on a 1k canonical column, with the synchrony (κ) trust gate and the regime-based crossover caveat (oscillatory layers + low κ; N alone does not suffice).
+
+## v0.4.3 (2026-06-21)
+
+**Jaxley emitters reach the field stage, plus the flagship Configuration Grammar guide.** A Jaxley Hodgkin–Huxley network can now drive a laminar LFP/CSD readout from a physically meaningful generator — its reconstructed transmembrane ionic current — closing `Emitter → Source → Field → Probe` for the Jaxley bridge. jaxfne is the mathematical backend; the biophysical fidelity of the readout follows the model you provide.
+
+### Added
+- `JaxleyBridge.simulate_laminar_field(...)` — run a Jaxley HH model and return `Signals` with a laminar `FieldOutput` (`lfp_proxy`/`csd_proxy`/...). The source is the reconstructed HH ionic current `I_Na + I_K + I_Leak` (from recorded `HH_m/HH_h/HH_n` gating states + channel params), projected via `project_laminar_sources`. `signals.get("lfp_proxy")` and `jaxfne.vis.lfp`/`csd` work directly on the result. Izhikevich/Fire are non-capacitive (zero current) and raise a clear error.
+- `normalize_depth` option (default on) min-max rescales the depth axis to `[0, 1]` so arbitrary-scale (µm) Jaxley geometry maps onto the projection's contact span instead of collapsing onto one contact; the raw range is preserved in metadata.
+- **Configuration Grammar guide** — the flagship documentation: `Configuration` framed as the compiler whose declarative specification compiles into the Emitter→Source→Field→Probe→Objective→Optimizer→Manifest chain, with each of the eleven sections mapped to its real fluent method and described as a biophysical-specificity dial.
+- **Homeostasis guide** — the homeostatic excitability controller (one parameter `k_gain`, `k_gain=0` null), covering both the built-in per-step kernel (`runtime(enable_homeostasis=True, homeostasis_params=...)`, diagnostics via `model.last_homeostasis_diagnostics()`) and the Jaxley outer-loop windowed controller.
+- **Bridges API reference** (`api/bridges.md`) — `require_jaxley`/clip shim, `jaxley_to_signals`, and all three `JaxleyBridge` run modes.
+
+## v0.4.2 (2026-06-20)
+
+**Homeostatic numerical stability — hard-bounded, float32-safe emitters.** Enabling the homeostatic mode (one knob, gain `k≈1.0`) keeps each emitter in a stable operating regime AND hard-bounds its state, so a single neuron or simple component can never overflow or underflow in float32. The same mode eliminates hyperactivity and hypoactivity and provides short-term adaptation. Proxy/scaffold gates unchanged.
+
+### Added
+- Hard state bounds in the built-in Izhikevich homeostatic kernel (`v_floor`/`v_ceiling`/`u_abs_max`/`syn_abs_max`, tunable via `homeostasis_params`) — set far outside normal dynamics, so they never alter behaviour, only catch overflow/underflow. State stays finite in float32 under any finite (or even `±inf`) input current.
+- `JaxleyBridge.simulate_homeostatic(..., current_clip_nA=, strict_finite=)` — the injected current is hard-bounded to keep the implicit solver away from overflow; output finiteness is verified (raises in strict mode rather than silently masking). Metadata records `state_hard_bounded` and `all_finite`.
+
+### Notes
+- The bounds are a safety net: in the normal regime the clamps stay inactive.
+
+## v0.4.1 (2026-06-20)
+
+**Jaxley emitters become a first-class path, with tfne homeostasis on top.** Proxy/scaffold gates unchanged.
+
+### Added
+- `jaxley_to_signals(module, recordings, dt_ms=...)` — convert a `jaxley.integrate` recordings array `(n_rec, n_time)` to a jaxfne `Signals`, pulling recorded-compartment xyz from `module.nodes` into metadata for downstream projection (exported at the root).
+- `JaxleyBridge.simulate(...)` — run a Jaxley model end-to-end (stable `bwd_euler`) and return proxy `Signals` (previously a placeholder).
+- `JaxleyBridge.simulate_homeostatic(...)` — outer-loop windowed homeostatic excitability controller around a Jaxley emitter, applying tfne's restoring-bias law `g = clip(k_gain·(target_rate_hz − r), g_min, g_max)` as a per-cell current via grad-safe `data_stimulate`, stitched with continuous state resume. Computational control proxy only (`biological_learning_claim=False`, `mechanism_claim_status="not_claimed"`).
+- `hh_jaxley_reference_trace(...)` — real single-compartment Hodgkin–Huxley reference trace (previously a placeholder).
+- ED10 release-archive receipt (`scripts/ed10_release_archive_receipt.py`) — binds release identity + truth gates to content hashes of the upstream evidence bundle (ED9), then self-hashes.
+
+### Fixed
+- `require_jaxley()` lazily installs a backward-compatible `jnp.clip(a_min=/a_max=)` shim so Jaxley (≤0.13) channel emitters integrate on current JAX (the shim self-disables when Jaxley adopts `min=/max=`). Metadata records `jax_clip_compat_installed`.
+
+### Changed
+- `jaxley` optional-dependency extra floored to `>=0.13.0` (tested version).
+- CI now installs the `jaxley` extra so the Jaxley integration is exercised (drift-tested) on every push.
+
+## v0.4.0 (2026-06-18)
+
+**Fluent Configuration grammar + proxy-only probe vocabulary.**
+
+### Added
+- `Configuration.geometry(layer_thickness=...)` — declare laminar geometry from per-layer thickness (normalized to cumulative z-intervals).
+- `Configuration.population(N, neurons={...})` — per-layer neuron budget decoupled from thickness (largest-remainder allocation; one `N` per area).
+- Real inter-area edge wiring in `Configuration.inter_column_connectivity(...)`: materializes cross-area synapses with anatomical routing (feedforward L2/3→L4, feedback L6→L1/L5) and an explicit `layer_to_layer_map` override.
+
+### Changed (breaking)
+- The `*_like` probe vocabulary (`lfp_like`/`csd_like`/`eeg_like`/`meg_like`) is **fully retired with no aliases**. Use `*_proxy` names only; signal access and probe declarations reject `*_like` with a clear pointer to the `*_proxy` name.
+
+### Fixed
+- CI workflow `scope:`→`strategy:` (matrix jobs now run); retired-term doc guard; mkdocs strict-build links.
+- Updated all tutorial notebooks to execute against the current API.
+
+### Scope
+- Outputs remain proxy readouts (`field_solver_status=linear_solver`, `physical_amplitude_calibrated=false`). No scientific-claim escalation.
+
+## Earlier releases (v0.3.42 -- v0.2.0, 2026-04 -- 2026-06)
+
+Condensed history: public context hardening (v0.3.42), JAX kernel ports including spectral/STDP/connectivity helpers (v0.3.41), device-flexibility and hardening (v0.3.40), stable packaging consolidation v0.3.37--v0.3.39, multi-area laminar workshop and cylindric scaffold/spectrolaminar features (v0.3.26--v0.3.24), Etude No.1 completion (v0.3.21), field-proxy boundary and sharding/dtype improvements (v0.3.19--v0.3.17), and initial stable proxy operators/docs infrastructure (v0.2.3--v0.2.0). Full per-release notes preserved in git history; no API or scientific claim changes beyond those summarized.
+
+Reference: see git log and GitHub Releases for verbatim per-version notes.

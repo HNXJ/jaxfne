@@ -33,8 +33,8 @@ def _tree(tmp_path: pathlib.Path, version: str, changelog: str) -> pathlib.Path:
         'beta = ["scipy"]\n',
         encoding="utf-8",
     )
-    (tmp_path / "docs").mkdir(exist_ok=True)
-    (tmp_path / "docs" / "changelog.md").write_text(changelog, encoding="utf-8")
+    (tmp_path / "docs" / "reference").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "docs" / "reference" / "changelog.md").write_text(changelog, encoding="utf-8")
     return tmp_path
 
 
@@ -85,7 +85,7 @@ def test_a_dated_section_passes_the_dated_check(tmp_path):
 def test_this_repositorys_body_matches_its_own_metadata():
     metadata = release_metadata(REPO_ROOT)
     assert metadata.name == "jaxfne", "fixture is the live repository"
-    changelog = (REPO_ROOT / "docs" / "changelog.md").read_text(encoding="utf-8")
+    changelog = (REPO_ROOT / "docs" / "reference" / "changelog.md").read_text(encoding="utf-8")
     assert f"## v{metadata.version}" in changelog, "the live changelog must carry the version"
     body, violations = build_body(REPO_ROOT, f"v{metadata.version}")
     assert violations == [], violations
@@ -104,7 +104,7 @@ def test_a_version_without_a_changelog_section_is_refused(tmp_path):
     assert "## v7.2.0" not in CHANGELOG, "fixture must lack the version section"
     body, violations = build_body(root, "v7.2.0")
     assert body is None
-    assert violations == ["docs/changelog.md has no non-empty section headed "
+    assert violations == ["docs/reference/changelog.md has no non-empty section headed "
                           "'## v7.2.0 ...'"], violations
 
 
@@ -146,7 +146,7 @@ class TestTheCommand:
     def test_check_refuses_a_candidate_section(self, tmp_path):
         root = _tree(tmp_path, "7.1.0",
                      CHANGELOG.replace("## v7.1.0 (2026-10-01)", "## v7.1.0 (candidate)"))
-        assert "## v7.1.0 (candidate)" in (root / "docs" / "changelog.md").read_text(encoding="utf-8")
+        assert "## v7.1.0 (candidate)" in (root / "docs" / "reference" / "changelog.md").read_text(encoding="utf-8")
         rendered = self._run("--tag", "v7.1.0", "--root", str(root))
         assert rendered.returncode == 0, (rendered.stdout, rendered.stderr)
         checked = self._run("--tag", "v7.1.0", "--check", "--root", str(root))

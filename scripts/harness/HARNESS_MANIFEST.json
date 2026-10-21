@@ -3,33 +3,34 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-10-08T20:30:16",
+  "generated_at": "2026-10-20T12:49:02",
   "components": {
     "project_agents": {
       "file": "artifacts/AGENTS.md",
-      "sha256": "fd75046a6f7c439e9abadc70d78013681f16d3b6367466a21c2eb58a957fadc1"
+      "sha256": "fbc1cd354f72271151725051cf5d2496ab6708b7add06b344dbb2c34f94537da"
     },
     "canonical_skills": {
-      "jaxfne-audit": "c275d9cdff33a3d682a4ab1e75deef479507a0d47b2cfbdc5cd02f4a788f72ba",
-      "jaxfne-core": "03201f96cf261851f0b4edacd0db09707640c556ab7e252f9985f98ca157bb76",
+      "jaxfne-audit": "53f245b9f8adb2d9f761f22d04cc0db72791b8790eb46f361473eb7b8bf16b82",
+      "jaxfne-core": "b86fadae8df6e38eeeded487517106e3498c69f2486db172db12e5ba1e70c958",
+      "jaxfne-dashboard": "b464b81b7dea23e548f0b9f4d9f565b2f492d2468ce42c4caac9d360d8c4da08",
       "jaxfne-fields": "fe9cd12f9aac0e098aebd1e68c631c6ae86a1487e76689a490c5b0f2fe88fedb",
       "jaxfne-inspect": "5b3a4b2cf7bd12fd165742f58c54593e0ff4b1858615897b05bbf8d65b8d256f",
       "jaxfne-model": "e869067c39a41866ae5ba438c9bf7f181f5e14dc35b733cef4a84cdb7915697f",
-      "jaxfne-network": "f54a5d5e079891a1b90a0346619a958ac86e16ef664df65d68b2785ade1e5e7f",
-      "jaxfne-plasticity": "7cced7bd0ec9973a1bb2e4a5cba08a0831d22174a3d18dd4532c6b14584c74e2",
-      "jaxfne-release": "d5abfe5f30362a7679540ceb508bb63123d60f5766a67de4c1e1cebc188cb66a",
+      "jaxfne-network": "938d4ed380d3f0e481f7809d05ad7011f7b1320725ea427706bb63b5b2495b56",
+      "jaxfne-plasticity": "7d7803385c662436481b016c80a7b304cc427758c8a87559c55ec2b90869f080",
+      "jaxfne-release": "0c02107f21ee1292375a4659da99d9aa37f2222b198706bd12629f0fa133b72c",
       "jaxfne-repo": "94a48bd6c82c68662ecdc06042495d665cdcdc05c87131f68628e31683a95c3e",
-      "jaxfne-science": "eb18e5f95d462eb65d2aba92ab63c8f31583f8faefde3586389765e1a7d91bee",
-      "jaxfne-seal": "765975a6878f1e8f9ac2e0029b0bd43924f2afc0b61f9a4312d45d321a5ba7d0",
-      "jaxfne-simulate": "7ffaf0cb90536b0d5d8e384d1948a8cb9db7f89c5a9f45535a94c0bb501ee333",
-      "jaxfne-state": "abc7943edc2d1d0d2126b3e89fd8afc4b059e189fff93cd6af6bd90364fdda9d",
-      "jaxfne-verify": "5a00f375cfc544c3444d2bde517d110046b1c03a02c84bfb95f386725cb120cd",
-      "jaxfne-workflow": "757b342d599fb2ed4be39d528d9af81451fd40e299e07b952ba790ffdb580cd7",
-      "vocabulary-audit": "eb0da2fb9c79d7bae4010a109794080f507a7cec1179d7a59b86f0dc3a5f1691"
+      "jaxfne-science": "e8792501d11068986f4864b663c6025fa20483fb64847659666d8cf026e9311b",
+      "jaxfne-seal": "a02332b042f9588f476a6984a3781ac73090a689436b55ce61ed049e2354ca61",
+      "jaxfne-simulate": "9af733c25e9900666673396b46f5b701168e5180f12c10a415cce2db1083c968",
+      "jaxfne-state": "75cc9dbdeaa013a79cf13dab4b157636b2e3cf0736a53d7edbcf7fb2e74a1ebe",
+      "jaxfne-verify": "c25b4ced013a42f1a3e6f03b92bf3565bca8567b47a524b475a862d8a7e602d7",
+      "jaxfne-workflow": "c65212691a65526b4af8d4932513b6a0f607f388ae0c513d2dea0665b9bff514",
+      "vocabulary-audit": "58493e94cc7fbce7d9ec23e8d756df09091229b1bc2c61e0b52bf515fdeca106"
     },
     "project_config": {
       "file": "scripts/harness/project_safety_rules.json",
-      "sha256": "8ea0b6939a913e2c26931296d4ac3dd6686c824aae8ecd349c42a2055427bd97"
+      "sha256": "5e2228e271a48ecea00f6192a44782f40dbd12a7a76b716d1af068a79aa10281"
     },
     "frozen_paths": {
       "file": "artifacts/publication/frozen_manifest.json",
@@ -38,15 +39,15 @@
     "harness_scripts": {
       "sync_skills": {
         "file": "scripts/harness/sync_skills.py",
-        "sha256": "5059a97828ed416667f3f38e15e0c563fe6c0cac21b99a9b7ddab9609cfcb59c"
+        "sha256": "9c677f73140ab03d55ca7e01bdf41494daa8b881b253840e63213825f9239f08"
       },
       "check_harness_integrity": {
         "file": "scripts/harness/check_harness_integrity.py",
-        "sha256": "ac7ab30067465d23022bf54ded5dd2bdaa5729bc28c65f159e9c44802e1a0a10"
+        "sha256": "cf512e611a02bdd19d6e43bc3e05c94d9a5352351953c777ddac88502e8220ff"
       },
       "check_agent_refs": {
         "file": "scripts/harness/check_agent_refs.py",
-        "sha256": "9a26599617dd0934c085cbaebc5358e6b8a43077c9237244a8ad9c10d2e1d14e"
+        "sha256": "905fde7f90455888177adad640027574fc516dd108ad714f4cb7e5da0e122570"
       },
       "check_memory_hygiene": {
         "file": "scripts/harness/check_memory_hygiene.py",

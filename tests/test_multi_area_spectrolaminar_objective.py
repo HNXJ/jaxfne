@@ -2,10 +2,7 @@
 
 import numpy as np
 import pytest
-import jax
-import jax.numpy as jnp
 
-import jaxfne as jtfne
 from jaxfne.fields import (
     spectrolaminar_similarity,
     spectrolaminar_objective,

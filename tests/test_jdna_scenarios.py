@@ -13,7 +13,6 @@ import math
 import pathlib
 
 import jax.numpy as jnp
-import pytest
 
 import jaxfne as jtfne
 from jaxfne.jdna import develop, load_canonical_pseudogenome, pseudogenome_from_dict
@@ -84,7 +83,7 @@ class TestJ3:
     def test_declared_rbs_relationship_documented(self):
         """JDNA + RBS: development may use RBS-like coordinates; the canonical
         genome declares none, and no developmental state crosses into runtime."""
-        guide = (REPO_ROOT / "docs/guides/jdna.md").read_text(encoding="utf-8")
+        guide = (REPO_ROOT / "docs/guides/grammar/jdna.md").read_text(encoding="utf-8")
         assert "H_D" in guide
         assert "developmental state" in guide
         assert "No developmental state crosses" in guide
@@ -106,7 +105,7 @@ class TestJ4:
         hashes = {t.provenance["phenotype_sha256"] for t in tensors}
         assert len(hashes) >= 2
         for t in tensors:
-            total = sum(l.n_neurons for a in t.areas for l in a.layers)
+            total = sum(lay.n_neurons for a in t.areas for lay in a.layers)
             assert total == 1000
 
 

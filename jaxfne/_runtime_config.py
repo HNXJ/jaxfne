@@ -322,6 +322,25 @@ def _device_scope(backend: Optional[str]):
     return contextlib.nullcontext()
 
 
+def _require_backend_available(backend: Optional[str]) -> None:
+    """Raise ``RuntimeError`` when a gpu/tpu backend is requested but absent.
+
+    ``"auto"`` and ``"cpu"`` never raise (cpu always exists); ``"gpu"``/``"tpu"``
+    raise unless :func:`_resolve_backend_device` finds such a JAX device.
+    ``runtime_report()`` deliberately does not call this: it reports the
+    honest downgrade instead of raising.
+    """
+    if backend in ("gpu", "tpu") and _resolve_backend_device(backend) is None:
+        devices = [str(device) for device in jax.devices()]
+        platforms = sorted({device.platform for device in jax.devices()})
+        raise RuntimeError(
+            f"RuntimeConfig(backend={backend!r}) names a backend with no such "
+            f"JAX device: devices={devices}, platforms={platforms}. "
+            "Use backend='auto' or backend='cpu', or run where the "
+            f"{backend!r} device exists"
+        )
+
+
 def _jaxlib_version() -> str:
     try:
         import jaxlib  # type: ignore

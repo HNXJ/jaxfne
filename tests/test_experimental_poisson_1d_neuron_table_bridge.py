@@ -112,8 +112,6 @@ def test_bridge_sums_not_averages_within_a_bin():
 # default behavior byte-unchanged, opt-in produces a real solve, and a failure
 # in the opt-in path can never break an otherwise-valid simulate().
 
-import jaxfne as jtfne
-
 
 def _cfg(*, solver: bool):
     field_kwargs = {"domain": "laminar_column"}

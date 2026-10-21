@@ -1,6 +1,5 @@
 import jaxfne as jtfne
 import numpy as np
-import pytest
 
 def test_coop_paradigm_api():
     # Verify both access paths exist

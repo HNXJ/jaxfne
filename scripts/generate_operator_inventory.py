@@ -31,7 +31,7 @@ OUTPUT_PATH = ROOT_DIR / "docs" / "_generated" / "operator_inventory.md"
 
 def _load_public_tiers() -> tuple[set[str], set[str]]:
     try:
-        data = json.loads((ROOT_DIR / "artifacts" / "public_surface_contract_v0413.json").read_text(encoding="utf-8"))
+        data = json.loads((ROOT_DIR / "artifacts" / "assurance" / "api_contracts" / "public_surface_contract_v0413.json").read_text(encoding="utf-8"))
         public = set(data.get("public_exports", []))
         compat = set(data.get("compatibility_deprecations", {}).keys())
         return public, compat

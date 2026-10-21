@@ -3,7 +3,7 @@
 > **Status:** Canonical Atlas source for the JaxFNE 0.5.x programme
 > (project source 8 of 8).
 >
-> **Identity:** S1-S10 correspond to AT-01-AT-10. Requirement IDs (`AT-0n-R<k>`) and mutable coverage state are maintained separately in `artifacts/programme/atlas_coverage.json`.
+> **Identity:** S1-S10 correspond to AT-01-AT-10. Requirement IDs (`AT-0n-R<k>`) and mutable coverage state are maintained separately in `artifacts/programme/coverage/atlas_coverage.json`.
 >
 > **Boundary:** This source distinguishes the Atlas design and required experiments from capabilities it requests but does not itself establish. In particular: proxy != calibrated; correlation != causal field feedback; attenuation != adaptation; bounded != active stability. Calibrated HH/field behavior and field feedback (`Phi -> X`) require independent evidence and authorization where not already established.
 >

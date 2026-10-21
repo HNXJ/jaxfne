@@ -1,10 +1,7 @@
-import jax
-import jax.numpy as jnp
 import pytest
-import warnings
 import jaxfne as jtfne
-from jaxfne import Model, compilation_registry
-from jaxfne.core import Simulation, RuntimeConfig
+from jaxfne import compilation_registry
+from jaxfne.core import RuntimeConfig
 
 
 def _base_model():
@@ -32,10 +29,10 @@ def test_static_cache_verification():
     sim2 = jtfne.simulation(duration_ms=10.0, dt_ms=1.0, seed=43, runtime=runtime_cfg)
     
     # Run once - should compile (trace count = 1)
-    res1 = model.simulate(sim1)
-    
+    model.simulate(sim1)
+
     # Run second time with same dimensions - should NOT compile (use cache, trace count stays 1)
-    res2 = model.simulate(sim2)
+    model.simulate(sim2)
     
     # Verify exactly 1 trace was recorded in registry for simulate JIT path
     assert ("simulate", (1, 16, 4, 10)) in compilation_registry.traced_signatures

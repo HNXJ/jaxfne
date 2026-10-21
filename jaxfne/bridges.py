@@ -99,14 +99,14 @@ def require_jax_fem():
     extra: installing it is an explicit, separate opt-in
     (`pip install jaxfne[jax-fem]`) so that jaxfne's own MIT-licensed core
     stays usable by anyone who doesn't need this specific bridge. See
-    docs/guides/jax_fem_interop.md.
+    docs/guides/interop/jax_fem_interop.md.
     """
     try:
         import jax_fem  # type: ignore
     except ImportError as exc:
         raise ImportError(
             "This optional feature requires 'jax-fem' (GPLv3 -- see "
-            "docs/guides/jax_fem_interop.md for licensing notes). "
+            "docs/guides/interop/jax_fem_interop.md for licensing notes). "
             "Install with: pip install jaxfne[jax-fem]"
         ) from exc
     return jax_fem

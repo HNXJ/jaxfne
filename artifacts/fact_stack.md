@@ -104,9 +104,9 @@ covers and what checks it); row 2 is the fact. Authorized by the human in the
 | An optimizer changes only declared parameters it owns, within bounds, keeps identity, topology and signs, and records the result in a manifest. |
 | **manifest, digest, seeds, versions** \| run manifests; manifest-quoted Methods |
 | A run manifest records the config digest, seeds, versions (jaxfne, JAX, libraries), units, calibration level and tolerances, quoted from generated artifacts and not typed. |
-| **optimization, profile, diff** \| `artifacts/perf/`; output diff against a frozen copy |
+| **optimization, profile, diff** \| `artifacts/runs/perf/`; output diff against a frozen copy |
 | A change is justified by a measured bottleneck and an output diff against a frozen copy, and leaves semantics, API and numerics unchanged (minimum complexity subject to complete required semantics). |
-| **performance, T_compute, M_compute, E_semantic** \| `artifacts/perf/`; measured artifact per AT |
+| **performance, T_compute, M_compute, E_semantic** \| `artifacts/runs/perf/`; measured artifact per AT |
 | A performance claim needs a traceable measured artifact (`T_compute`, `M_compute` per AT). Programme deltas against v0.4.25 are measured, with `E_semantic = 0`. |
 | **precision, dtype, declared** \| config `dtype`; precision-comparison tests |
 | Precision is declared in the config, never inferred. Accumulation and comparisons state their precision; a float32 result is not compared to float64 without a declared bound. |
@@ -168,12 +168,12 @@ covers and what checks it); row 2 is the fact. Authorized by the human in the
 | Delegated output is evidence to verify, not a result. One writer per worktree; every diff is reviewed before integration. |
 | **authority, human-owned facts, agents** \| `fact_stack.md`, `todo_stack.md`, `AGENTS.md` |
 | The human authorizes facts and goals; agents read, test and challenge them and flag contradictions; state and todos are agent-maintained. The fact stack is not evidence. |
-| **stacks, todo, goal, fact, problem** \| `artifacts/*_stack.md`; archive per release cycle |
-| The todo stack holds remaining work only and finished items are deleted. Goal and fact stacks are human-owned. The problem stack targets empty: solve and delete. Sealed stacks are archived byte for byte. |
+| **stacks, open, todo, goal, fact** \| `artifacts/*_stack.md`; archive per release cycle |
+| The todo stack holds remaining work only and finished items are deleted. Goal and fact stacks are human-owned. Sealed stacks are archived byte for byte. |
 | **memory, lessons, not evidence** \| memory files and lessons; scope and evidence per lesson |
 | Memory holds verified reusable working lessons `{trigger, cause, repair, evidence, scope}`. It is never current-state evidence and never duplicates facts or code. |
-| **repo skills, canonical, mirrors, style pointers** \| `artifacts/skills/jaxfne-*`; `sync_skills.py --check` |
-| Repo skills are task-shaped, benchmarked routers. The canonical copy is in `artifacts/skills`; mirrors are generated and hash-checked. Style rules point at the canonical style skills and are not restated. |
+| **repo skills, canonical, mirrors, style pointers** \| `artifacts/control/skills/jaxfne-*`; `sync_skills.py --check` |
+| Repo skills are task-shaped, benchmarked routers. The canonical copy is in `artifacts/control/skills`; mirrors are generated and hash-checked. Style rules point at the canonical style skills and are not restated. |
 | **vocabulary, allowlist, --check** \| `scripts/audit_vocabulary.py --check`; gate |
 | Each term carries one meaning; an allowlist bounds words such as "contract". The audit runs with `--check` as a gate; bare mode exits 0 and proves nothing. |
 | **naming, package, acronyms, one meaning** \| code and docs; vocabulary audit |

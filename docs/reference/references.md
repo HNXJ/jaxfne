@@ -1,16 +1,21 @@
 # References
 
-Published sources for jaxfne. Each row of a method table names the result jaxfne implements and
-the functions that implement it, and each of those functions cites the same DOI in its
-docstring; `tests/test_references_page.py` holds the two to each other. The replication table
-lists papers whose results jaxfne ports compare against. The background tables list work that
-jaxfne builds on, compares itself with or follows as practice, without implementing a result
-from it. Every DOI below resolved on 2026-10-12 (Wang and Buzsáki 1996 and Nejat et al. 2026 on
-2026-10-14), and each matched the title, first author and
-year of its Crossref record (the Equinox preprint, of its DataCite record). Where jaxfne departs
-from the published result, the row and the docstring say how.
+Published sources for jaxfne, in two classes. Core references are textbook-like: each method row
+names the result jaxfne implements and the functions that implement it, and each of those
+functions cites the same DOI in its docstring (`tests/test_references_page.py` holds the two to
+each other); background rows list work jaxfne builds on, compares itself with or follows as
+practice. Research studies are the study list: papers whose results jaxfne replicates one by one,
+each with its replication status (`artifacts/etudes/meta/REPLICATIONS.md`, the dashboard).
+Every DOI below matched the title, first author and year of its Crossref record (the Equinox
+preprint, of its DataCite record): resolved 2026-10-12 to 2026-10-19, and rechecked with the
+research-study additions on 2026-10-20. Where jaxfne departs from a published result, the row
+and the docstring say how.
 
-## Neural dynamics
+## Core references
+
+Textbook-like sources: the methods jaxfne implements and the work it builds on.
+
+### Neural dynamics
 
 | Reference | Result implemented | Functions |
 |---|---|---|
@@ -20,11 +25,13 @@ from the published result, the row and the docstring say how.
 | Tahvili, F., Vinck, M., & di Volo, M. (2026). A mean-field model of neural networks with PV and SOM interneurons reveals connectivity-based mechanisms of gamma oscillations. *PLOS Computational Biology* 22(6), e1014378. [doi:10.1371/journal.pcbi.1014378](https://doi.org/10.1371/journal.pcbi.1014378) | Methods Eqs. 15-18 and Tables 1-2: the E, PV and SOM AdEx network with conductance synapses, synaptic delays and an external Poisson conductance drive. The kernel matches an independent transcription of this project's port of Eqs. 15-18 bit for bit (`tests/test_emitters_adex.py`); `decay="exp"` also offers the exact exponential decay of the conductances | `jaxfne.emitters.simulate_adex`, `jaxfne.emitters.make_adex_params` |
 | Wang, X.-J., & Buzsáki, G. (1996). Gamma oscillation by synaptic inhibition in a hippocampal interneuronal network model. *The Journal of Neuroscience* 16(20), 6402-6413. [doi:10.1523/JNEUROSCI.16-20-06402.1996](https://doi.org/10.1523/JNEUROSCI.16-20-06402.1996) | The coherence measure κ on binary spike trains in bins of width τ: the mean over cell pairs of shared active bins over sqrt(n_i n_j). jaxfne departs from the paper's use in three declared ways: the default bin width is 5 ms, cells with no spike in any bin are excluded from the mean, and the measure is NaN with fewer than 2 spiking cells | `jaxfne.analysis.metrics.wang_buzsaki_kappa`, `jaxfne.analysis.metrics.activity_regime` |
 
-## Sources and extracellular observation
+### Sources and extracellular observation
 
 | Reference | Result implemented | Functions |
 |---|---|---|
+| Frank, E. (1952). Electric potential produced by two point current sources in a homogeneous conducting sphere. *Journal of Applied Physics* 23(11), 1225-1228. [doi:10.1063/1.1702037](https://doi.org/10.1063/1.1702037) | The potential on the surface of a homogeneous conducting sphere from a current dipole inside it, in closed form: the sum of the Neumann series $\sum_n (2n+1)/n\,(b/R)^n P_n(\cos\gamma)$ differentiated along the dipole. jaxfne models one shell only (no skull or scalp layers) and offers an average reference | `jaxfne.fields.eeg_sphere_leadfield` |
 | Nicholson, C., & Freeman, J. A. (1975). Theory of current source-density analysis and determination of conductivity tensor for anuran cerebellum. *Journal of Neurophysiology* 38(2), 356-368. [doi:10.1152/jn.1975.38.2.356](https://doi.org/10.1152/jn.1975.38.2.356) | Current source density $-\sigma\,\partial^2\phi/\partial z^2$ in one dimension, by the three-point second difference along the contact axis. jaxfne omits $\sigma$ and pads the edges, so the output is a CSD proxy in the units of the potential proxy | `jaxfne.fields.csd_tensor` |
+| Sarvas, J. (1987). Basic mathematical and electromagnetic concepts of the biomagnetic inverse problem. *Physics in Medicine and Biology* 32(1), 11-22. [doi:10.1088/0031-9155/32/1/004](https://doi.org/10.1088/0031-9155/32/1/004) | The magnetic field outside a spherically symmetric conductor from a current dipole, volume currents included, in closed form. The field is independent of the conductivity profile and zero for a radial dipole. jaxfne returns the field component along each sensor's orientation | `jaxfne.fields.meg_sphere_leadfield` |
 
 | Reference | Relation to jaxfne |
 |---|---|
@@ -36,43 +43,29 @@ from the published result, the row and the docstring say how.
 | Einevoll, G. T. (2020). Extracellular potentials, forward modeling of. *Encyclopedia of Computational Neuroscience*. [doi:10.1007/978-1-4614-7320-6_59-2](https://doi.org/10.1007/978-1-4614-7320-6_59-2) | Short account of the forward model that jaxfne fields approximate as proxies |
 | Vorwerk, J., et al. (2014). A guideline for head volume conductor modeling in EEG and MEG. *NeuroImage* 100, 590-607. [doi:10.1016/j.neuroimage.2014.06.040](https://doi.org/10.1016/j.neuroimage.2014.06.040) | Volume-conductor modelling for EEG and MEG; the calibration step `eeg_proxy_transform` does not perform |
 
-## Replicated papers
-
-| Reference | Result compared | Where |
-|---|---|---|
-| Tahvili, F., Vinck, M., & di Volo, M. (2026). *PLOS Computational Biology* 22(6), e1014378. [doi:10.1371/journal.pcbi.1014378](https://doi.org/10.1371/journal.pcbi.1014378) | Fig. 1: gamma frequency, the PV→SOM lag, the rate order and the onset of oscillation with connection probability | [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/caminos), `artifacts/etudes/caminos/` |
-| Tahvili, F., Vinck, M., & di Volo, M. (2025). PV and SOM cells play distinct causal roles in controlling network oscillations and stability. *Cell Reports* 44(8), 116131. [doi:10.1016/j.celrep.2025.116131](https://doi.org/10.1016/j.celrep.2025.116131) | The network the PLOS paper takes as its reference model; its STAR Methods are not yet compared with the port | `artifacts/etudes/caminos/PORT_SPEC.md` |
-| N'dri, A. W., Barbier, T., Teulière, C., & Triesch, J. (2025). Predictive Coding Light. *Nature Communications* 16, 8880. [doi:10.1038/s41467-025-64234-z](https://doi.org/10.1038/s41467-025-64234-z) | Fig. 2: learned inhibitory weights and spike suppression ordered by predictability. Fig. 3 is not reproduced under its preregistration | Dashboard: [Fig. 2](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig2), [Fig. 3](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig3); `artifacts/etudes/pcl/` |
-| Nejat, H., Sherfey, J., & Bastos, A. M. (2026). A genetic algorithm for self-supervised models of oscillatory neurodynamics. *PLOS One* 21(8), e0354021. [doi:10.1371/journal.pone.0354021](https://doi.org/10.1371/journal.pone.0354021) | Fig. 6: a 50-neuron E, SST-like and PV-like circuit fitted by GSDR to recorded spectra. In progress; no score yet | `artifacts/etudes/gsdr2026/` |
-| Watkins, C. J. C. H., & Dayan, P. (1992). Q-learning. *Machine Learning* 8(3-4), 279-292. [doi:10.1007/BF00992698](https://doi.org/10.1007/BF00992698) | The tabular Q-learning update, run as a demonstration on two chain tasks | [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/qlearning), `artifacts/etudes/qlearning/` |
-
-## Background: reduced and population models
+### Background: reduced and population models
 
 | Reference | Relation to jaxfne |
 |---|---|
 | FitzHugh, R. (1961). Impulses and physiological states in theoretical models of nerve membrane. *Biophysical Journal* 1(6), 445-466. [doi:10.1016/S0006-3495(61)86902-6](https://doi.org/10.1016/S0006-3495(61)86902-6) | Two-variable reduction of the Hodgkin-Huxley model; the programme the Izhikevich and AdEx emitters belong to |
 | Nagumo, J., Arimoto, S., & Yoshizawa, S. (1962). An active pulse transmission line simulating nerve axon. *Proceedings of the IRE* 50(10), 2061-2070. [doi:10.1109/JRPROC.1962.288235](https://doi.org/10.1109/JRPROC.1962.288235) | The circuit form of the FitzHugh reduction |
 | Morris, C., & Lecar, H. (1981). Voltage oscillations in the barnacle giant muscle fiber. *Biophysical Journal* 35(1), 193-213. [doi:10.1016/S0006-3495(81)84782-0](https://doi.org/10.1016/S0006-3495(81)84782-0) | A second two-variable conductance model in the same programme |
-| Wilson, H. R., & Cowan, J. D. (1972). Excitatory and inhibitory interactions in localized populations of model neurons. *Biophysical Journal* 12(1), 1-24. [doi:10.1016/S0006-3495(72)86068-5](https://doi.org/10.1016/S0006-3495(72)86068-5) | Population rate model; jaxfne implements no rate node |
-| Jansen, B. H., & Rit, V. G. (1995). Electroencephalogram and visual evoked potential generation in a mathematical model of coupled cortical columns. *Biological Cybernetics* 73(4), 357-366. [doi:10.1007/BF00199471](https://doi.org/10.1007/BF00199471) | Neural-mass model of the EEG; jaxfne implements no neural mass |
+| Wilson, H. R., & Cowan, J. D. (1972). Excitatory and inhibitory interactions in localized populations of model neurons. *Biophysical Journal* 12(1), 1-24. [doi:10.1016/S0006-3495(72)86068-5](https://doi.org/10.1016/S0006-3495(72)86068-5) | Population rate model; the `emitter="rate"` route runs a Wilson-Cowan-type rate unit per population (`jaxfne/emitters_rate.py`) |
 | Montbrió, E., Pazó, D., & Roxin, A. (2015). Macroscopic description for networks of spiking neurons. *Physical Review X* 5(2), 021028. [doi:10.1103/PhysRevX.5.021028](https://doi.org/10.1103/PhysRevX.5.021028) | Exact mean field of quadratic integrate-and-fire networks; jaxfne simulates the spiking network itself |
 | Coombes, S. (2005). Waves, bumps, and patterns in neural field theories. *Biological Cybernetics* 93(2), 91-108. [doi:10.1007/s00422-005-0574-y](https://doi.org/10.1007/s00422-005-0574-y) | Neural field theory; background |
 | Cook, B. J., et al. (2022). Neural field models: a mathematical overview and unifying framework. *Mathematical Neuroscience and Applications* 2, 7284. [doi:10.46298/mna.7284](https://doi.org/10.46298/mna.7284) | The same, as a unified formulation |
 | Ermentrout, G. B., & Kleinfeld, D. (2001). Traveling electrical waves in cortex: insights from phase dynamics and speculation on a computational role. *Neuron* 29(1), 33-44. [doi:10.1016/S0896-6273(01)00178-7](https://doi.org/10.1016/S0896-6273(01)00178-7) | Cortical travelling waves; jaxfne implements no wave model |
 | Muller, L., Chavane, F., Reynolds, J., & Sejnowski, T. J. (2018). Cortical travelling waves: mechanisms and computational principles. *Nature Reviews Neuroscience* 19(5), 255-268. [doi:10.1038/nrn.2018.20](https://doi.org/10.1038/nrn.2018.20) | Review of the same |
+| Geweke, J. (1982). Measurement of linear dependence and feedback between multiple time series. *Journal of the American Statistical Association* 77(378), 304-313. [doi:10.1080/01621459.1982.10477803](https://doi.org/10.1080/01621459.1982.10477803) | Spectral Granger causality from a fitted VAR: `jaxfne.analysis.granger_spectral`, the basis of the directionality index (Mejias et al. 2016 Eq. 1) |
 
-## Background: circuits, rhythms and plasticity
+### Background: circuits, rhythms and plasticity
 
 | Reference | Relation to jaxfne |
 |---|---|
-| Kopell, N., Ermentrout, G. B., Whittington, M. A., & Traub, R. D. (2000). Gamma rhythms and beta rhythms have different synchronization properties. *PNAS* 97(4), 1867-1872. [doi:10.1073/pnas.97.4.1867](https://doi.org/10.1073/pnas.97.4.1867) | Gamma and beta synchronization in E-I networks; background for the CAMINOS gamma replication |
-| Börgers, C., & Kopell, N. (2003). Synchronization in networks of excitatory and inhibitory neurons with sparse, random connectivity. *Neural Computation* 15(3), 509-538. [doi:10.1162/089976603321192059](https://doi.org/10.1162/089976603321192059) | The PING mechanism in sparse random E-I networks; the same background |
-| Prinz, A. A., Bucher, D., & Marder, E. (2004). Similar network activity from disparate circuit parameters. *Nature Neuroscience* 7(12), 1345-1352. [doi:10.1038/nn1352](https://doi.org/10.1038/nn1352) | Parameter degeneracy in circuit models; background for fitting with `Model.tune` |
 | Clopath, C., Büsing, L., Vasilaki, E., & Gerstner, W. (2010). Connectivity reflects coding: a model of voltage-based STDP with homeostasis. *Nature Neuroscience* 13(3), 344-352. [doi:10.1038/nn.2479](https://doi.org/10.1038/nn.2479) | Voltage-based STDP with homeostasis; a comparator for the pair-trace STDP and HDP rules, which implement neither |
-| Mejias, J. F., Murray, J. D., Kennedy, H., & Wang, X.-J. (2016). Feedforward and feedback frequency-dependent interactions in a large-scale laminar network of the primate cortex. *Science Advances* 2(11), e1601335. [doi:10.1126/sciadv.1601335](https://doi.org/10.1126/sciadv.1601335) | Laminar multi-area model; on the replication roadmap |
 | Arkhipov, A., et al. (2018). Visual physiology of the layer 4 cortical circuit in silico. *PLOS Computational Biology* 14(11), e1006535. [doi:10.1371/journal.pcbi.1006535](https://doi.org/10.1371/journal.pcbi.1006535) | Biophysically detailed layer 4 model; a scale comparator |
 
-## Background: simulators and model languages
+### Background: simulators and model languages
 
 | Reference | Relation to jaxfne |
 |---|---|
@@ -90,7 +83,7 @@ from the published result, the row and the docstring say how.
 | Gewaltig, M.-O., & Diesmann, M. (2007). NEST (NEural Simulation Tool). *Scholarpedia* 2(4), 1430. [doi:10.4249/scholarpedia.1430](https://doi.org/10.4249/scholarpedia.1430) | Point-neuron network simulator; comparator |
 | Akar, N. A., et al. (2019). Arbor: a morphologically-detailed neural network simulation library for contemporary high-performance computing architectures. *27th Euromicro PDP*, 274-282. [doi:10.1109/EMPDP.2019.8671560](https://doi.org/10.1109/EMPDP.2019.8671560) | Compartmental simulator; comparator |
 
-## Background: differentiable computation
+### Background: differentiable computation
 
 | Reference | Relation to jaxfne |
 |---|---|
@@ -100,7 +93,7 @@ from the published result, the row and the docstring say how.
 | Huh, D., & Sejnowski, T. J. (2018). Gradient descent for spiking neural networks. *Advances in Neural Information Processing Systems* 31, 1433-1443. | Gradients through spiking dynamics; background for differentiable spiking kernels |
 | Kidger, P., & Garcia, C. (2021). Equinox: neural networks in JAX via callable PyTrees and filtered transformations. *arXiv* 2111.00254. [doi:10.48550/arXiv.2111.00254](https://doi.org/10.48550/arXiv.2111.00254) | Model composition as PyTrees in JAX; background |
 
-## Background: reproducibility and data standards
+### Background: reproducibility and data standards
 
 | Reference | Relation to jaxfne |
 |---|---|
@@ -113,11 +106,79 @@ from the published result, the row and the docstring say how.
 | Dai, K., et al. (2020). The SONATA data format for efficient description of large-scale network models. *PLOS Computational Biology* 16(2), e1007696. [doi:10.1371/journal.pcbi.1007696](https://doi.org/10.1371/journal.pcbi.1007696) | Network description format; comparator |
 | Crüwell, S., & Evans, N. J. (2021). Preregistration in diverse contexts: a preregistration template for the application of cognitive models. *Royal Society Open Science* 8(10), 210155. [doi:10.1098/rsos.210155](https://doi.org/10.1098/rsos.210155) | Preregistration of model applications; the form of the replication preregistrations |
 
-## Developmental and generative background
+### Developmental and generative background
 
 Waddington (1957), Kitano (1990), Gruau (1995), Elman (1993), Stanley (2002, 2009), Zador (2019)
 and Palm (2021) are the scholarly ancestry of the JDNA theory and sit outside the manuscript
 bibliography.
 
-RBS, RBD and HDP semantics follow `docs/doctrine/rbs_rbd_hdp.md` and
-`tfne_containment_architecture.md`; see the HDP guide [`../guides/hdp.md`](../guides/hdp.md).
+RBS, RBD and HDP semantics follow `docs/theory/doctrine/rbs_rbd_hdp.md` and
+`tfne_containment_architecture.md`; see the HDP guide [`../guides/hdp.md`](../guides/state/hdp.md).
+
+## Research studies (study list)
+
+Status opens the Where cell: reproduced, reproduced (conditional), mixed, in progress, queued,
+or not started. A core method row can also be a replication target (Izhikevich 2003, in
+progress, `artifacts/etudes/papers/izhikevich2003/`).
+
+| Reference | Result compared | Where |
+|---|---|---|
+| Tahvili, F., Vinck, M., & di Volo, M. (2026). *PLOS Computational Biology* 22(6), e1014378. [doi:10.1371/journal.pcbi.1014378](https://doi.org/10.1371/journal.pcbi.1014378) | Fig. 1: gamma frequency, the PV→SOM lag, the rate order and the onset of oscillation with connection probability | Mixed. [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/caminos), `artifacts/etudes/papers/caminos/` |
+| Tahvili, F., Vinck, M., & di Volo, M. (2025). PV and SOM cells play distinct causal roles in controlling network oscillations and stability. *Cell Reports* 44(8), 116131. [doi:10.1016/j.celrep.2025.116131](https://doi.org/10.1016/j.celrep.2025.116131) | The network the PLOS paper takes as its reference model; its STAR Methods are not yet compared with the port | Not started (reference model of the plos paper). `artifacts/etudes/papers/caminos/PORT_SPEC.md` |
+| N'dri, A. W., Barbier, T., Teulière, C., & Triesch, J. (2025). Predictive Coding Light. *Nature Communications* 16, 8880. [doi:10.1038/s41467-025-64234-z](https://doi.org/10.1038/s41467-025-64234-z) | Fig. 2: learned inhibitory weights and spike suppression ordered by predictability. Fig. 3 is in progress; preregistrations v4 and v5 did not pass | In progress. Dashboard: [Fig. 2](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig2), [Fig. 3](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig3); `artifacts/etudes/papers/pcl/` |
+| Nejat, H., Sherfey, J., & Bastos, A. M. (2026). A genetic algorithm for self-supervised models of oscillatory neurodynamics. *PLOS One* 21(8), e0354021. [doi:10.1371/journal.pone.0354021](https://doi.org/10.1371/journal.pone.0354021) | Fig. 6: a 50-neuron E, SST-like and PV-like circuit fitted by GSDR to recorded spectra. In progress; no score yet | In progress (pilot). `artifacts/etudes/papers/gsdr2026/` |
+| Destexhe, A. (2009). Self-sustained asynchronous irregular states and Up-Down states in thalamic, cortical and thalamocortical networks of nonlinear integrate-and-fire neurons. *Journal of Computational Neuroscience* 27(3), 493-506. [doi:10.1007/s10827-009-0164-4](https://doi.org/10.1007/s10827-009-0164-4) | Fig. 6B cortical self-sustained AI state: survival at 10 s, CV_ISI 2.47, pairwise CC 0.005 and the RS/FS rate order, with Fig. 1 single-cell patterns; the port sustains on a subset of seeds with higher rates (`artifacts/etudes/papers/destexhe2009/CALIBRATION.md` step 6) | In progress (pilot). [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/destexhe2009), `artifacts/etudes/papers/destexhe2009/` |
+| Brunel, N. (2000). Dynamics of sparsely connected networks of excitatory and inhibitory spiking neurons. *Journal of Computational Neuroscience* 8(3), 183-208. [doi:10.1023/A:1008925309027](https://doi.org/10.1023/A:1008925309027) | Fig. 8: the SR, SI fast, AI and SI slow states of the sparse LIF network (rates, regularity, global frequency). Reproduced (conditional) under signed prereg v4, 2026-10-20 | Reproduced (conditional). [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/brunel2000), `artifacts/etudes/papers/brunel2000/` |
+| Potjans, T. C., & Diesmann, M. (2014). The cell-type specific cortical microcircuit: relating structure and activity in a full-scale spiking network model. *Cerebral Cortex* 24(3), 785-806. [doi:10.1093/cercor/bhs358](https://doi.org/10.1093/cercor/bhs358) | Fig. 6 and Table 5: layer- and type-specific spontaneous rates, irregularity and synchrony of the microcircuit. At P1; no score yet | In progress (pilot). [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/potjans2014), `artifacts/etudes/papers/potjans2014/` |
+| Vogels, T. P., Sprekeler, H., Zenke, F., Clopath, C., & Gerstner, W. (2011). Inhibitory plasticity balances excitation and inhibition in sensory pathways and memory networks. *Science* 334(6062), 1569-1573. [doi:10.1126/science.1211095](https://doi.org/10.1126/science.1211095) | Fig. 4: inhibitory STDP on I-to-E synapses drives a recurrent network to its target rate; Figs. 1-2: single-cell detailed balance. At P1; no score yet | In progress (pilot). [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/vogels2011), `artifacts/etudes/papers/vogels2011/` |
+| Mejias, J. F., Murray, J. D., Kennedy, H., & Wang, X.-J. (2016). Feedforward and feedback frequency-dependent interactions in a large-scale laminar network of the primate cortex. *Science Advances* 2(11), e1601335. [doi:10.1126/sciadv.1601335](https://doi.org/10.1126/sciadv.1601335) | Figs. 2-3: laminar gamma and alpha rhythms and their coupling; Figs. 6-7: the 30-area functional hierarchy from frequency-dependent Granger causality. At P1; no score yet | In progress (pilot). [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/mejias2016), `artifacts/etudes/papers/mejias2016/` |
+| Batuev, B. B., & Sukhov, S. V. (2026). Predictive-Coding-Inspired Reconstruction of Nonlinear Dynamics in Spiking Neural Networks. *Dynamics* 6(4), 42. [doi:10.3390/dynamics6040042](https://doi.org/10.3390/dynamics6040042) | prediction-error spiking networks reconstructing nonlinear dynamics (NEF, PES rule) | Queued (p0). `artifacts/etudes/meta/REPLICATIONS.md` (queue) |
+| Kopell, N., Ermentrout, G. B., Whittington, M. A., & Traub, R. D. (2000). Gamma rhythms and beta rhythms have different synchronization properties. *PNAS* 97(4), 1867-1872. [doi:10.1073/pnas.97.4.1867](https://doi.org/10.1073/pnas.97.4.1867) | Gamma and beta synchronization in E-I networks; background for the CAMINOS gamma replication | Not started. |
+| Börgers, C., & Kopell, N. (2003). Synchronization in networks of excitatory and inhibitory neurons with sparse, random connectivity. *Neural Computation* 15(3), 509-538. [doi:10.1162/089976603321192059](https://doi.org/10.1162/089976603321192059) | The PING mechanism in sparse random E-I networks; the same background | Not started. |
+| Prinz, A. A., Bucher, D., & Marder, E. (2004). Similar network activity from disparate circuit parameters. *Nature Neuroscience* 7(12), 1345-1352. [doi:10.1038/nn1352](https://doi.org/10.1038/nn1352) | Parameter degeneracy in circuit models; background for fitting with `Model.tune` | Not started. |
+| Bastos, A. M., Usrey, W. M., Adams, R. A., Mangun, G. R., Fries, P., & Friston, K. J. (2012). Canonical Microcircuits for Predictive Coding. *Neuron* 76(4), 695-711. [doi:10.1016/j.neuron.2012.10.038](https://doi.org/10.1016/j.neuron.2012.10.038) | Laminar feedforward and feedback roles in predictive coding | Not started. |
+| Bastos, A. M., Vezoli, J., Bosman, C. A., Schoffelen, J.-M., Oostenveld, R., Dowdall, J. R., et al. (2015). Visual Areas Exert Feedforward and Feedback Influences through Distinct Frequency Channels. *Neuron* 85(2), 390-401. [doi:10.1016/j.neuron.2014.12.018](https://doi.org/10.1016/j.neuron.2014.12.018) | Feedforward gamma and feedback alpha-beta channels | Not started. |
+| van Kerkoerle, T., Self, M. W., Dagnino, B., Gariel-Mathis, M.-A., Poort, J., van der Togt, C., et al. (2014). Alpha and gamma oscillations characterize feedback and feedforward processing in monkey visual cortex. *Proceedings of the National Academy of Sciences* 111(40), 14332-14341. [doi:10.1073/pnas.1402773111](https://doi.org/10.1073/pnas.1402773111) | Alpha feedback and gamma feedforward laminar signatures | Not started. |
+| Mendoza-Halliday, D., Major, A. J., Lee, N., Lichtenfeld, M. J., Carlson, B., Mitchell, B., et al. (2024). A ubiquitous spectrolaminar motif of local field potential power across the primate cortex. *Nature Neuroscience* 27(3), 547-560. [doi:10.1038/s41593-023-01554-7](https://doi.org/10.1038/s41593-023-01554-7) | Spectrolaminar LFP power motif across cortical areas | Not started. |
+| Tiesinga, P., & Sejnowski, T. J. (2009). Cortical Enlightenment: Are Attentional Gamma Oscillations Driven by ING or PING? *Neuron* 63(6), 727-732. [doi:10.1016/j.neuron.2009.09.009](https://doi.org/10.1016/j.neuron.2009.09.009) | ING versus PING mechanisms for attentional gamma | Not started. |
+| Brunel, N., & Wang, X.-J. (2003). What Determines the Frequency of Fast Network Oscillations With Irregular Neural Discharges? I. Synaptic Dynamics and Excitation-Inhibition Balance. *Journal of Neurophysiology* 90(1), 415-430. [doi:10.1152/jn.01095.2002](https://doi.org/10.1152/jn.01095.2002) | Oscillation frequency set by synaptic dynamics | Not started. |
+| van Vreeswijk, C., & Sompolinsky, H. (1996). Chaos in Neuronal Networks with Balanced Excitatory and Inhibitory Activity. *Science* 274(5293), 1724-1726. [doi:10.1126/science.274.5293.1724](https://doi.org/10.1126/science.274.5293.1724) | Chaotic fluctuations in balanced E-I networks | Not started. |
+| Renart, A., de la Rocha, J., Bartho, P., Hollender, L., Parga, N., Reyes, A., et al. (2010). The Asynchronous State in Cortical Circuits. *Science* 327(5965), 587-590. [doi:10.1126/science.1179850](https://doi.org/10.1126/science.1179850) | Asynchronous irregular state in balanced networks | Not started. |
+| Litwin-Kumar, A., & Doiron, B. (2012). Slow dynamics and high variability in balanced cortical networks with clustered connections. *Nature Neuroscience* 15(11), 1498-1505. [doi:10.1038/nn.3220](https://doi.org/10.1038/nn.3220) | Slow, variable dynamics from clustered connectivity | Not started. |
+| Ostojic, S. (2014). Two types of asynchronous activity in networks of excitatory and inhibitory spiking neurons. *Nature Neuroscience* 17(4), 594-600. [doi:10.1038/nn.3658](https://doi.org/10.1038/nn.3658) | Two asynchronous states in E-I spiking networks | Not started. |
+| Tsodyks, M. V., Skaggs, W. E., Sejnowski, T. J., & McNaughton, B. L. (1997). Paradoxical Effects of External Modulation of Inhibitory Interneurons. *The Journal of Neuroscience* 17(11), 4382-4388. [doi:10.1523/jneurosci.17-11-04382.1997](https://doi.org/10.1523/jneurosci.17-11-04382.1997) | Paradoxical response to interneuron modulation | Not started. |
+| Ozeki, H., Finn, I. M., Schaffer, E. S., Miller, K. D., & Ferster, D. (2009). Inhibitory Stabilization of the Cortical Network Underlies Visual Surround Suppression. *Neuron* 62(4), 578-592. [doi:10.1016/j.neuron.2009.03.028](https://doi.org/10.1016/j.neuron.2009.03.028) | Inhibitory stabilization and surround suppression | Not started. |
+| Litwin-Kumar, A., Rosenbaum, R., & Doiron, B. (2016). Inhibitory stabilization and visual coding in cortical circuits with multiple interneuron subtypes. *Journal of Neurophysiology* 115(3), 1399-1409. [doi:10.1152/jn.00732.2015](https://doi.org/10.1152/jn.00732.2015) | Inhibitory stabilization with multiple interneuron subtypes | Not started. |
+| Hertäg, L., & Sprekeler, H. (2020). Learning prediction error neurons in a canonical interneuron circuit. *eLife* 9, e57541. [doi:10.7554/elife.57541](https://doi.org/10.7554/elife.57541) | Prediction-error neurons from interneuron circuit learning | Not started. |
+| Mazzoni, A., Lindén, H., Cuntz, H., Lansner, A., Panzeri, S., & Einevoll, G. T. (2015). Computing the Local Field Potential (LFP) from Integrate-and-Fire Network Models. *PLOS Computational Biology* 11(12), e1004584. [doi:10.1371/journal.pcbi.1004584](https://doi.org/10.1371/journal.pcbi.1004584) | LFP computed from integrate-and-fire network currents | Not started. |
+| Mazzoni, A., Panzeri, S., Logothetis, N. K., & Brunel, N. (2008). Encoding of Naturalistic Stimuli by Local Field Potential Spectra in Networks of Excitatory and Inhibitory Neurons. *PLoS Computational Biology* 4(12), e1000239. [doi:10.1371/journal.pcbi.1000239](https://doi.org/10.1371/journal.pcbi.1000239) | LFP spectra encoding naturalistic stimulus in networks | Not started. |
+| Lindén, H., Tetzlaff, T., Potjans, T. C., Pettersen, K. H., Grün, S., Diesmann, M., et al. (2011). Modeling the Spatial Reach of the LFP. *Neuron* 72(5), 859-872. [doi:10.1016/j.neuron.2011.11.006](https://doi.org/10.1016/j.neuron.2011.11.006) | Spatial reach of LFP from single-neuron sources | Not started. |
+| Hagen, E., Dahmen, D., Stavrinou, M. L., Lindén, H., Tetzlaff, T., van Albada, S. J., et al. (2016). Hybrid Scheme for Modeling Local Field Potentials from Point-Neuron Networks. *Cerebral Cortex* 26(12), 4461-4496. [doi:10.1093/cercor/bhw237](https://doi.org/10.1093/cercor/bhw237) | Hybrid LFP model from point-neuron networks | Not started. |
+| Lee, K., Pennartz, C. M. A., & Mejias, J. F. (2025). Cortical networks with multiple interneuron types generate oscillatory patterns during predictive coding. *PLOS Computational Biology* 21(9), e1013469. [doi:10.1371/journal.pcbi.1013469](https://doi.org/10.1371/journal.pcbi.1013469) | Oscillatory patterns across interneuron types in predictive coding | Not started. |
+| Ness, T. V., Tetzlaff, T., Einevoll, G. T., & Dahmen, D. (2025). On the validity of electric brain signal predictions based on population firing rates. *PLOS Computational Biology* 21(4), e1012303. [doi:10.1371/journal.pcbi.1012303](https://doi.org/10.1371/journal.pcbi.1012303) | Predicting LFP-like signals from population firing rates | Not started. |
+| Páscoa dos Santos, F., & Verschure, P. F. M. J. (2025). Metastable dynamics emerge from local excitatory–inhibitory homeostasis in the cortex at rest. *Network Neuroscience* 9(3), 938-968. [doi:10.1162/netn_a_00460](https://doi.org/10.1162/netn_a_00460) | Metastable dynamics from E-I homeostasis at rest | Not started. |
+| Vogels, T. P., & Abbott, L. F. (2005). Signal Propagation and Logic Gating in Networks of Integrate-and-Fire Neurons. *The Journal of Neuroscience* 25(46), 10786-10795. [doi:10.1523/jneurosci.3508-05.2005](https://doi.org/10.1523/jneurosci.3508-05.2005) | Pulse propagation and logic gating in IF networks | Not started. |
+| Zenke, F., Agnes, E. J., & Gerstner, W. (2015). Diverse synaptic plasticity mechanisms orchestrated to form and retrieve memories in spiking neural networks. *Nature Communications* 6(1), 6922. [doi:10.1038/ncomms7922](https://doi.org/10.1038/ncomms7922) | Plasticity mechanisms forming and retrieving memories | Not started. |
+| Song, S., Miller, K. D., & Abbott, L. F. (2000). Competitive Hebbian learning through spike-timing-dependent synaptic plasticity. *Nature Neuroscience* 3(9), 919-926. [doi:10.1038/78829](https://doi.org/10.1038/78829) | Competitive Hebbian learning under STDP | Not started. |
+| Billeh, Y. N., Cai, B., Gratiy, S. L., Dai, K., Iyer, R., Gouwens, N. W., et al. (2020). Systematic Integration of Structural and Functional Data into Multi-scale Models of Mouse Primary Visual Cortex. *Neuron* 106(3), 388-403.e18. [doi:10.1016/j.neuron.2020.01.040](https://doi.org/10.1016/j.neuron.2020.01.040) | Multi-scale V1 model from structural and functional data | Not started. |
+| Schmidt, M., Bakker, R., Shen, K., Bezgin, G., Diesmann, M., & van Albada, S. J. (2018). A multi-scale layer-resolved spiking network model of resting-state dynamics in macaque visual cortical areas. *PLOS Computational Biology* 14(10), e1006359. [doi:10.1371/journal.pcbi.1006359](https://doi.org/10.1371/journal.pcbi.1006359) | Layer-resolved resting-state dynamics in macaque areas | Not started. |
+| Chaudhuri, R., Knoblauch, K., Gariel, M.-A., Kennedy, H., & Wang, X.-J. (2015). A Large-Scale Circuit Mechanism for Hierarchical Dynamical Processing in the Primate Cortex. *Neuron* 88(2), 419-431. [doi:10.1016/j.neuron.2015.09.008](https://doi.org/10.1016/j.neuron.2015.09.008) | Hierarchical timescales in large-scale macaque circuit | Not started. |
+| Joglekar, M. R., Mejias, J. F., Yang, G. R., & Wang, X.-J. (2018). Inter-areal Balanced Amplification Enhances Signal Propagation in a Large-Scale Circuit Model of the Primate Cortex. *Neuron* 98(1), 222-234.e8. [doi:10.1016/j.neuron.2018.02.031](https://doi.org/10.1016/j.neuron.2018.02.031) | Inter-areal balanced amplification of signal propagation | Not started. |
+| Veit, J., Hakim, R., Jadi, M. P., Sejnowski, T. J., & Adesnik, H. (2017). Cortical gamma band synchronization through somatostatin interneurons. *Nature Neuroscience* 20(7), 951-959. [doi:10.1038/nn.4562](https://doi.org/10.1038/nn.4562) | Somatostatin interneurons drive cortical gamma synchrony | Not started. |
+| Wilmes, K. A., & Clopath, C. (2019). Inhibitory microcircuits for top-down plasticity of sensory representations. *Nature Communications* 10(1), 5055. [doi:10.1038/s41467-019-12972-2](https://doi.org/10.1038/s41467-019-12972-2) | Inhibitory microcircuits for top-down plasticity | Not started. |
+| Kumar, A., Rotter, S., & Aertsen, A. (2008). Conditions for Propagating Synchronous Spiking and Asynchronous Firing Rates in a Cortical Network Model. *The Journal of Neuroscience* 28(20), 5268-5280. [doi:10.1523/jneurosci.2542-07.2008](https://doi.org/10.1523/jneurosci.2542-07.2008) | Propagating synchrony with asynchronous firing rates | Not started. |
+| El Boustani, S., & Destexhe, A. (2009). A Master Equation Formalism for Macroscopic Modeling of Asynchronous Irregular Activity States. *Neural Computation* 21(1), 46-100. [doi:10.1162/neco.2009.02-08-710](https://doi.org/10.1162/neco.2009.02-08-710) | Master equation for asynchronous irregular states | Not started. |
+| di Volo, M., Romagnoni, A., Capone, C., & Destexhe, A. (2019). Biologically Realistic Mean-Field Models of Conductance-Based Networks of Spiking Neurons with Adaptation. *Neural Computation* 31(4), 653-680. [doi:10.1162/neco_a_01173](https://doi.org/10.1162/neco_a_01173) | Mean-field adaptation in conductance-based networks | Not started. |
+| Spreizer, S., Aertsen, A., & Kumar, A. (2019). From space to time: Spatial inhomogeneities lead to the emergence of spatiotemporal sequences in spiking neuronal networks. *PLOS Computational Biology* 15(10), e1007432. [doi:10.1371/journal.pcbi.1007432](https://doi.org/10.1371/journal.pcbi.1007432) | Spatial inhomogeneity producing spatiotemporal sequences | Not started. |
+| Rosenbaum, R., Smith, M. A., Kohn, A., Rubin, J. E., & Doiron, B. (2017). The spatial structure of correlated neuronal variability. *Nature Neuroscience* 20(1), 107-114. [doi:10.1038/nn.4433](https://doi.org/10.1038/nn.4433) | Spatial structure of pairwise noise correlations | Not started. |
+| Huang, C., Ruff, D. A., Pyle, R., Rosenbaum, R., Cohen, M. R., & Doiron, B. (2019). Circuit Models of Low-Dimensional Shared Variability in Cortical Networks. *Neuron* 101(2), 337-348.e4. [doi:10.1016/j.neuron.2018.11.034](https://doi.org/10.1016/j.neuron.2018.11.034) | Low-dimensional shared variability from circuit models | Not started. |
+| Keane, A., & Gong, P. (2015). Propagating Waves Can Explain Irregular Neural Dynamics. *The Journal of Neuroscience* 35(4), 1591-1605. [doi:10.1523/jneurosci.1669-14.2015](https://doi.org/10.1523/jneurosci.1669-14.2015) | Propagating waves producing irregular dynamics | Not started. |
+| Mejias, J. F., & Longtin, A. (2012). Optimal Heterogeneity for Coding in Spiking Neural Networks. *Physical Review Letters* 108(22), 228102. [doi:10.1103/physrevlett.108.228102](https://doi.org/10.1103/physrevlett.108.228102) | Heterogeneity optimizing neural coding in spiking networks | Not started. |
+| Wang, X.-J. (2002). Probabilistic Decision Making by Slow Reverberation in Cortical Circuits. *Neuron* 36(5), 955-968. [doi:10.1016/s0896-6273(02)01092-9](https://doi.org/10.1016/s0896-6273(02)01092-9) | Slow reverberation for probabilistic decision making | Not started. |
+| Hansel, D., & van Vreeswijk, C. (2012). The Mechanism of Orientation Selectivity in Primary Visual Cortex without a Functional Map. *The Journal of Neuroscience* 32(12), 4049-4064. [doi:10.1523/jneurosci.6284-11.2012](https://doi.org/10.1523/jneurosci.6284-11.2012) | Orientation selectivity without an orientation map | Not started. |
+| Wacongne, C., Changeux, J.-P., & Dehaene, S. (2012). A Neuronal Model of Predictive Coding Accounting for the Mismatch Negativity. *The Journal of Neuroscience* 32(11), 3665-3678. [doi:10.1523/jneurosci.5003-11.2012](https://doi.org/10.1523/jneurosci.5003-11.2012) | Predictive coding model of mismatch negativity | Not started. |
+| Spratling, M. W. (2008). Reconciling Predictive Coding and Biased Competition Models of Cortical Function. *Frontiers in Computational Neuroscience* 2. [doi:10.3389/neuro.10.004.2008](https://doi.org/10.3389/neuro.10.004.2008) | Predictive coding versus biased competition models | Not started. |
+| Rao, R. P. N., & Ballard, D. H. (1999). Predictive coding in the visual cortex: a functional interpretation of some extra-classical receptive-field effects. *Nature Neuroscience* 2(1), 79-87. [doi:10.1038/4580](https://doi.org/10.1038/4580) | Predictive coding explains extra-classical receptive-field effects | Not started. |
+| Markram, H., Muller, E., Ramaswamy, S., Reimann, M. W., Abdellah, M., Sanchez, C. A., et al. (2015). Reconstruction and Simulation of Neocortical Microcircuitry. *Cell* 163(2), 456-492. [doi:10.1016/j.cell.2015.09.029](https://doi.org/10.1016/j.cell.2015.09.029) | Spontaneous and evoked dynamics of a reconstructed rat neocortical microcircuit | Not started. |
+| van Vreeswijk, C., & Farkhooi, F. (2025). Emergence of Balanced Cortical Activity via Calcium-Regulated Synaptic Homeostasis. *bioRxiv*. [doi:10.1101/2025.09.04.674182](https://doi.org/10.1101/2025.09.04.674182) (the record spells the first author "van Vreewsijk") | Balanced activity from calcium-regulated synaptic homeostasis | Not started. |
+| Jansen, B. H., & Rit, V. G. (1995). Electroencephalogram and visual evoked potential generation in a mathematical model of coupled cortical columns. *Biological Cybernetics* 73(4), 357-366. [doi:10.1007/BF00199471](https://doi.org/10.1007/BF00199471) | Alpha-rhythm EEG and the visual evoked potential from the coupled-column neural mass | Queued (P0). Opens the EEG/MEG lane (Hamm 2026-10-20); core gap: a neural-mass emitter (sigmoid rate, second-order synaptic kernels) |

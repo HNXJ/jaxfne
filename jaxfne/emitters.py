@@ -1,6 +1,6 @@
 """Emitter kernels for :mod:`jaxfne`.
 
-Docs: ``docs/api/emitters.md`` (https://jaxfne.readthedocs.io/en/latest/api/emitters/) —
+Docs: ``docs/reference/api/model/emitters.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/model/emitters/) —
 update that page when this module's public API changes.
 
 The current implementation is a small E/I/G-like Izhikevich scaffold.  It is a
@@ -30,7 +30,7 @@ from ._hdp_adaptive import (
     resolve_h_state_locality,
     theta_bounds,
 )
-from .presets import DEFAULT_SPIKE_IMPULSE_GAIN
+from .presets import CELL_TYPE_SIGN, DEFAULT_SPIKE_IMPULSE_GAIN
 
 
 def _source_proxy_from_components(
@@ -82,18 +82,18 @@ def _noise_coef(
 # SST-like, VIP-like) — phenomenological Izhikevich presets that do not warrant
 # literal transcriptomic/morphological identity.
 IZHIKEVICH_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
-    "E": {"a": 0.02, "b": 0.20, "c": -65.0, "d": 8.0, "drive": 5.0, "sign": 1.0},
-    "PV": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 3.0, "sign": -1.0},
-    "Inl": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 3.0, "sign": -1.0},
-    "SST": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "sign": -1.0},
-    "Ing": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "sign": -1.0},
-    "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": -1.0},
+    "E": {"a": 0.02, "b": 0.20, "c": -65.0, "d": 8.0, "drive": 5.0, "sign": CELL_TYPE_SIGN["E"]},
+    "PV": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["PV"]},
+    "Inl": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["Inl"]},
+    "SST": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "sign": CELL_TYPE_SIGN["SST"]},
+    "Ing": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "sign": CELL_TYPE_SIGN["Ing"]},
+    "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["VIP"]},
     # "I" (generic Inhibitory) is a widely-used two-population E/I shorthand
     # across examples/, scripts/evidence_figures/, and tests/ -- explicit alias
     # to VIP's parameters (2026-07-13: this matches the exact values every
     # real "I" caller was already getting via a since-removed silent VIP
     # fallback in _get_cell_type_params; made explicit, not changed).
-    "I": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": -1.0},
+    "I": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["I"]},
 }
 
 

@@ -68,6 +68,9 @@ jobs:
         # per file. Now a real, enforced gate -- no continue-on-error.
         run: python -m ruff check jaxfne/
 
+      - name: Lint scripts/tests/examples (ruff defect-class rules) -- hard gate
+        run: python -m ruff check scripts/ tests/ examples/ --select E711,E712,E721,E722,F601,F632,F811,F821,F823,F402,F401,F841
+
       - name: Audit public docs language (no leaked doctrine, no obfuscated identifiers)
         run: PYTHONPATH=. python scripts/audit_public_docs_language.py --check
 
@@ -119,7 +122,7 @@ jobs:
       # which selects the notebook set too, and notebook_execution.yml runs
       # that marker on a schedule. The release-candidate gate executes it as a
       # blocking family, so the RC gate covers the release CI test population
-      # (see docs/ci_policy.md). Other `slow` tests still run here on main.
+      # (see docs/reference/project/ci_policy.md). Other `slow` tests still run here on main.
       - name: Run all tests (broad gate — comprehensive non-slow, with viz)
         if: github.ref == 'refs/heads/main'
         run: |
@@ -135,18 +138,9 @@ jobs:
           if-no-files-found: ignore
 
       - name: Run examples
-        run: |
-          for ex in examples/00_minimal_column.py examples/01_source_field_manifest.py \
-                    examples/01_generalized_readout_smoke.py examples/02_generalized_vis_smoke.py \
-                    examples/02_omission_scaffold.py examples/03_objective_and_tune_smoke.py \
-                    examples/04_blackbox_tuning_loop.py examples/05_dataset_bridge_manifest.py \
-                    examples/06_edge_list_recurrent_backend.py examples/07_jaxley_trace_bridge.py \
-                    examples/00_generalized_izhikevich_3d_smoke.py examples/02_spectrolaminar_oddball_scaffold.py \
-                    examples/03_jaxley_bridge_smoke.py examples/05_network_100_ei_multimodal.py \
-                    examples/v031_single_izhikevich_neuron.py examples/v032_single_neuron_parameter_sweep.py \
-                    examples/v033_two_neuron_ei_multimodal.py examples/08_neuronal_tensor_first.py; do
-            PYTHONPATH=. python "$ex" > /dev/null && echo "PASS: $ex" || { echo "FAIL: $ex"; exit 1; }
-          done
+        # The list is owned by scripts/run_test_gate.py (RELEASE_EXAMPLES);
+        # this step calls the `examples` gate instead of repeating it.
+        run: PYTHONPATH=. python scripts/run_test_gate.py examples
 
   fast-build:
     runs-on: ubuntu-latest
@@ -169,19 +163,11 @@ jobs:
         run: python -m twine check dist/*
 
       - name: Wheel install smoke (from /tmp)
+        # The smoke body is owned by scripts/run_test_gate.py
+        # (wheel_smoke_code); this step only builds the venv and calls it.
         run: |
           python -m venv /tmp/jaxfne_ci_smoke
           /tmp/jaxfne_ci_smoke/bin/python -m pip install --upgrade pip
           /tmp/jaxfne_ci_smoke/bin/python -m pip install dist/jaxfne-*.whl
-          cd /tmp && /tmp/jaxfne_ci_smoke/bin/python -c "
-          import json, jaxfne as jtfne
-          assert 'site-packages' in jtfne.__file__
-          cfg = jtfne.configuration().network(n=8).emitter().field().probe(n_contacts=4)
-          model = jtfne.construct(cfg)
-          signals = model.simulate(jtfne.simulation(duration_ms=5.0, dt_ms=0.1, seed=0))
-          readouts = model.compute_readout(signals, [jtfne.readout_spec('r', 'spike_rate_hz')])
-          manifest = model.manifest(signals, readouts)
-          json.dumps(manifest, allow_nan=False)
-          assert manifest['physical_amplitude_calibrated'] is False
-          print('CI wheel smoke OK', jtfne.__version__)
-          "
+          PYTHONPATH=. python scripts/run_test_gate.py wheel-smoke \
+            --venv-python /tmp/jaxfne_ci_smoke/bin/python

@@ -1,8 +1,6 @@
 import pytest
-import time
 import jax
 import jax.numpy as jnp
-import numpy as np
 from jaxfne.solvers import solve_volume_conductor_experimental
 from jaxfne import (
     spectrolaminar_psd_jax,
@@ -13,7 +11,6 @@ from jaxfne import (
     spectrolaminar_similarity_candidates_seeds_jax,
     compile_connection_rules_jax,
     update_stdp_weights_jax,
-    Model,
     Simulation,
     RuntimeConfig,
     stimulus_schedule,
@@ -169,11 +166,11 @@ def test_jit_warmup_timing():
     
     # Run once - should warm up and record
     assert not hasattr(model, "_warmup_times")
-    signals = model.simulate(sim)
+    model.simulate(sim)
     assert hasattr(model, "_warmup_times")
     assert len(model._warmup_times) > 0
     first_len = len(model._warmup_times)
     
     # Run again - should use compiled cache, so no new warmup times are added
-    signals2 = model.simulate(sim)
+    model.simulate(sim)
     assert len(model._warmup_times) == first_len

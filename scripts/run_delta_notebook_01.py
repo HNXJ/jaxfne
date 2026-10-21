@@ -248,7 +248,7 @@ def main():
                 spk,
                 GLOBAL["duration_ms"],
                 baseline_drive_by_cell_type=GLOBAL.get("baseline_drive_by_cell_type"),
-                cell_labels=None,  # TODO: extract from model if DC actually applied
+                cell_labels=None,  # unused by compute_firing_rates_hz (its docstring)
             )
             baseline_rates_all.append(rates_hz)
 
@@ -274,7 +274,6 @@ def main():
 
         # For AGSDR tuning, use regularized rates (with floor for stable objective)
         # But gates will evaluate against observed rates
-        baseline_rates_all_for_tuning = regularized_baseline_rates_all
         baseline_rates_all = regularized_baseline_rates_all  # Used for objective
 
         baseline_mean_rate_hz = regularized_baseline_mean_rate_hz

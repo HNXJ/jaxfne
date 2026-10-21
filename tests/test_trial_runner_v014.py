@@ -15,7 +15,6 @@ I. consistency: run_trials results are identical to manual simulate() calls with
 import jaxfne as jtfne
 import pytest
 import jax.numpy as jnp
-from dataclasses import replace
 from jaxfne.core import ParadigmCondition
 
 

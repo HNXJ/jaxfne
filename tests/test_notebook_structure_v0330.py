@@ -8,6 +8,8 @@ import pathlib
 
 import pytest
 
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+
 
 def _load_notebook(nb_path):
     """Load a notebook from disk."""
@@ -20,8 +22,9 @@ class TestNotebookStructureV0330:
 
     def test_etude_no_1_cells_have_ids(self):
         """Etude No. 1: All cells must have 'id' field."""
-        nb_path = pathlib.Path(
-            "artifacts/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb"
+        nb_path = (
+            REPO_ROOT
+            / "artifacts/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb"
         )
         nb = _load_notebook(nb_path)
         missing_ids = []
@@ -32,8 +35,9 @@ class TestNotebookStructureV0330:
 
     def test_etude_no_1_no_adjacent_code_cells(self):
         """Etude No. 1: Code cells must be separated by markdown cells."""
-        nb_path = pathlib.Path(
-            "artifacts/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb"
+        nb_path = (
+            REPO_ROOT
+            / "artifacts/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb"
         )
         nb = _load_notebook(nb_path)
         adjacent_code = []
@@ -49,12 +53,17 @@ class TestNotebookStructureV0330:
 
     def test_etude_no_1_execution_clean(self):
         """Etude No. 1: Execution must complete without cell errors."""
-        nb_path = pathlib.Path(
-            "artifacts/tutorials/outputs/executed/"
+        nb_path = (
+            REPO_ROOT
+            / "artifacts/tutorials/outputs/executed/"
             "artifacts__tutorials__etudes__jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb"
         )
         if not nb_path.exists():
-            pytest.skip("Executed Etude notebook not found; run nbconvert first")
+            pytest.skip(
+                "Executed Etude notebook not found; generate with the nbclient "
+                "full-kernel execution suite (tests/test_notebook_execution_suite.py, "
+                "minutes, over the 10 s generation gate)"
+            )
 
         nb = _load_notebook(nb_path)
         errors = []

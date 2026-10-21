@@ -9,12 +9,12 @@ arms exactly as ``test_population_restoring_etude_regression_metrics`` does
 
 Read-only: prints the six asserted values as JSON. The caller copies the
 moved leaf (vector ``terminal_error_weighted``) into
-artifacts/etudes/hdp_controllability_reachability/metrics.json.
+artifacts/etudes/bundles/hdp_controllability_reachability/metrics.json.
 
 Cause of the move (P-016): commit 865e74b ("0.5.3 item 3 (W1): P-010
 chain-noise fix + continuation all-state") changed the plain-path noise
 schedule, moving vector terminal error 0.0296 -> ~0.0028 (smaller, out of
-the old pin). See artifacts/programme/bisect_p016_receipt.md and
+the old pin). See artifacts/programme/receipts/investigations/bisect_p016_receipt.md and
 artifacts/programme/refreeze_p016_p020_2026-09-30.md.
 """
 
@@ -25,6 +25,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
+
 ROOT = Path(__file__).resolve().parents[1]
 # Force the repo package: `python scripts/...` puts scripts/ first on sys.path,
 # which would import any site-packages jaxfne instead of this tree (P-016/P-020
@@ -32,12 +34,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tests"))
 
-import numpy as np
-
-import jaxfne as jtfne
+import jaxfne as jtfne  # noqa: E402 (repo root on sys.path, line 32)
 
 assert "site-packages" not in jtfne.__file__, jtfne.__file__
-from test_hdp_population_restoring import (
+from test_hdp_population_restoring import (  # noqa: E402 (tests/ on sys.path, line 33)
     _mcc3_model,
     _population_hdp_params,
     _recovery_metrics,

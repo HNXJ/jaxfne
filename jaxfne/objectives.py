@@ -1,7 +1,7 @@
 """
 Spectrolaminar objective and null distribution functions.
 
-Docs: ``docs/api/objectives.md`` (https://jaxfne.readthedocs.io/en/latest/api/objectives/) —
+Docs: ``docs/reference/api/readout/objectives.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/readout/objectives/) —
 update that page when this module's public API changes.
 
 This module implements spectrolaminar profile scoring with null distributions

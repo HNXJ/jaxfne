@@ -48,7 +48,7 @@ SOURCE_FILES = [
     "scripts/evidence_figures/ed05_manifest_hashes.py",
     "scripts/evidence_figures/_figure_common.py",
     "scripts/evidence_inventory.py",
-    "docs/evidence/evidence_checklist.json",
+    "docs/theory/publication/evidence_checklist.json",
 ]
 
 TITLE = "Extended Data 5 - local artifact hash integrity receipt"
@@ -85,7 +85,7 @@ METADATA_ARTIFACTS = [
     },
     # NOTE: a third "roadmap" entry (artifact_id="roadmap", kind="markdown", no
     # "path"/"label") was removed 2026-07-05 -- it referenced a planning/roadmap
-    # document that docs/changelog.md confirms was intentionally deleted from
+    # document that docs/reference/changelog.md confirms was intentionally deleted from
     # the repo ("non-public planning/roadmap material removed from root"). The
     # entry was never cleaned up after that deletion and crashed _audit_metadata_entry
     # with KeyError('path') on every real run of this script's main(). No
@@ -220,7 +220,6 @@ def _audit_figure_entry(
 
     png_exists = png_path.is_file()
     script_exists = script_path.is_file() if script_path else False
-    manifest_exists_before = manifest_path.is_file()
     receipt_exists = receipt_path is not None
 
     manifest_data, synthesized = _ensure_figure_manifest(

@@ -8,7 +8,6 @@ Covers §4-§9 of preregistration:
 from __future__ import annotations
 
 import importlib.util
-import json
 import sys
 from pathlib import Path
 
@@ -16,14 +15,13 @@ import pytest
 
 import jaxfne as jtfne
 from jaxfne.jdna.genome import (
-    PseudoGenome, AreaGenome, LayerGenome, ConnectionRuleGenome,
-    validate_genome, genome_rules_hash, phenotype_sha256,
+    PseudoGenome, validate_genome, genome_rules_hash, phenotype_sha256,
     save_pseudogenome, load_pseudogenome, develop,
 )
 from jaxfne.neuronal_tensor import merge_neuronal_tensors, Pose3D
 
 ROOT = Path(__file__).resolve().parents[1]
-PARSER_PATH = ROOT / "artifacts" / "etudes" / "jdna-compact-grammar" / "parser.py"
+PARSER_PATH = ROOT / "artifacts" / "etudes" / "jdna" / "jdna-compact-grammar" / "parser.py"
 
 def _load_parser():
     spec = importlib.util.spec_from_file_location("jdna_compact_parser", PARSER_PATH)
@@ -92,7 +90,7 @@ def test_define_example1_desugar_equivalent(tmp_path):
     assert t0.provenance is not None
     assert t0.provenance["genome_sha256"] == genome_rules_hash(g)
     # n_neurons preserved
-    assert sum(l.n_neurons for l in t0.areas[0].layers) == 1000
+    assert sum(lay.n_neurons for lay in t0.areas[0].layers) == 1000
     # save tensor without provenance in tmp_path
     out = tmp_path / "tensor.json"
     jtfne.save_neuronal_tensor(t0, out)
@@ -122,11 +120,11 @@ def test_inherit_sparse_l4_absolute_override():
     validate_genome(child)
     assert genome_rules_hash(child) != genome_rules_hash(parent)
     # only n changed
-    l4 = next(l for a in child.areas for l in a.layers if l.name == "L4")
+    l4 = next(lay for a in child.areas for lay in a.layers if lay.name == "L4")
     assert l4.n_neurons == 80
     assert l4.cell_type_fractions == {"E":0.80, "PV":0.15, "SST":0.05}
     assert l4.fraction_tolerance == {"E":(0.75,0.85), "PV":(0.10,0.20), "SST":(0.03,0.08)}
-    assert sum(l.n_neurons for l in child.areas[0].layers) == 280
+    assert sum(lay.n_neurons for lay in child.areas[0].layers) == 280
     # develop determinism check: same K_D gives same phenotype hash
     t0 = develop(child, seed=0)
     t1 = develop(child, seed=0)
@@ -148,7 +146,7 @@ def test_inherit_tolerance_field_granular(tmp_path):
     reg = parser.desugar_file(text)
     child = reg["Child"]
     validate_genome(child)
-    tol = next(l for a in child.areas for l in a.layers if l.name=="L4").fraction_tolerance
+    tol = next(lay for a in child.areas for lay in a.layers if lay.name=="L4").fraction_tolerance
     assert tol == {"E":(0.78,0.82), "PV":(0.1,0.3)}
     # joint feasibility 0.88 <=1 <=1.12
     # also save/load in tmp_path
@@ -192,7 +190,7 @@ def test_A_minus_80_absolute():
     }
     """
     reg = parser.desugar_file(text)
-    base = reg["base-column"]
+    reg["base-column"]  # parses and registers; content exercised via use_text below
     # use with A-80
     use_text = """
     define base-column {
@@ -205,17 +203,17 @@ def test_A_minus_80_absolute():
     """
     reg2 = parser.desugar_file(use_text)
     sparse = reg2["sparse-L4"]
-    assert next(l for a in sparse.areas for l in a.layers if l.name=="L4").n_neurons == 80
+    assert next(lay for a in sparse.areas for lay in a.layers if lay.name=="L4").n_neurons == 80
     # fractions unchanged
     # This use with single absolute is mutating mode allowed? But our preserving mode keeps total 1000, so L2/3 becomes 920? Let's check both semantics
     # For single absolute without other tweaks, spec says area_total preserving vs mutating based on single-layer-single-tweak mutate allowance
     # Our implementation is preserving (total 1000). So L2/3 should be 920 if preserving, or 200 if mutating.
     # We implemented preserving, so sum is 1000
-    total = sum(l.n_neurons for a in sparse.areas for l in a.layers)
+    total = sum(lay.n_neurons for a in sparse.areas for lay in a.layers)
     # Accept either 280 (mutating: 80+200) or 1000 (preserving: 80+920) — we assert preserving per prereg default §5.3.3
     assert total == 1000 or total == 280
     if total == 1000:
-        assert next(l for l in sparse.areas[0].layers if l.name=="L2/3").n_neurons == 920
+        assert next(lay for lay in sparse.areas[0].layers if lay.name=="L2/3").n_neurons == 920
 
 def test_A_star_fraction_preserving_denominator(tmp_path):
     text = """
@@ -230,14 +228,14 @@ def test_A_star_fraction_preserving_denominator(tmp_path):
     reg = parser.desugar_file(text)
     frac08 = reg["base-frac08"]
     # N_V1 = 1000, raw L4 =80, preserving => L4=80, remaining 920 to L2/3
-    n_l4 = next(l for a in frac08.areas for l in a.layers if l.name=="L4").n_neurons
+    n_l4 = next(lay for a in frac08.areas for lay in a.layers if lay.name=="L4").n_neurons
     assert n_l4 == 80
-    total = sum(l.n_neurons for a in frac08.areas for l in a.layers)
+    total = sum(lay.n_neurons for a in frac08.areas for lay in a.layers)
     assert total == 1000
-    assert next(l for l in frac08.areas[0].layers if l.name=="L2/3").n_neurons == 920
+    assert next(lay for lay in frac08.areas[0].layers if lay.name=="L2/3").n_neurons == 920
     # develop and check largest-remainder sums preserved
     t = develop(frac08, seed=0)
-    assert sum(l.n_neurons for l in t.areas[0].layers) == 1000
+    assert sum(lay.n_neurons for lay in t.areas[0].layers) == 1000
 
 def test_fractional_multi_atomic_same_snapshot():
     # Two fractions evaluated atomically against same N_area(G0)
@@ -254,13 +252,13 @@ def test_fractional_multi_atomic_same_snapshot():
     reg = parser.desugar_file(text)
     g = reg["two-frac"]
     # N=1000, raw L2=200, L3=300, remaining 500 should be distributed? Our implementation will handle largest remainder
-    total = sum(l.n_neurons for a in g.areas for l in a.layers)
+    total = sum(lay.n_neurons for a in g.areas for lay in a.layers)
     assert total == 1000
     # check absolute values after our allocation (should be close to raw, but integer)
-    n_l2 = next(l for l in g.areas[0].layers if l.name=="L2").n_neurons
-    n_l3 = next(l for l in g.areas[0].layers if l.name=="L3").n_neurons
+    n_l2 = next(lay for lay in g.areas[0].layers if lay.name=="L2").n_neurons
+    n_l3 = next(lay for lay in g.areas[0].layers if lay.name=="L3").n_neurons
     # raw 200,300 -> with remaining 500 for L4? Let's check L4
-    n_l4 = next(l for l in g.areas[0].layers if l.name=="L4").n_neurons
+    n_l4 = next(lay for lay in g.areas[0].layers if lay.name=="L4").n_neurons
     # In preserving mode, L4 is untreated and should get remaining 500
     assert n_l4 == 500
     assert n_l2 == 200
@@ -280,10 +278,10 @@ def test_absolute_plus_fractional_mixture():
     reg = parser.desugar_file(text)
     g = reg["mixed"]
     # N_fixed=80, N_enclosing=1000, raw L4=100, remaining 920, leftover for L3 after fixed+frac =820
-    assert next(l for l in g.areas[0].layers if l.name=="L2").n_neurons == 80
-    assert next(l for l in g.areas[0].layers if l.name=="L4").n_neurons == 100
-    assert next(l for l in g.areas[0].layers if l.name=="L3").n_neurons == 820
-    assert sum(l.n_neurons for l in g.areas[0].layers) == 1000
+    assert next(lay for lay in g.areas[0].layers if lay.name=="L2").n_neurons == 80
+    assert next(lay for lay in g.areas[0].layers if lay.name=="L4").n_neurons == 100
+    assert next(lay for lay in g.areas[0].layers if lay.name=="L3").n_neurons == 820
+    assert sum(lay.n_neurons for lay in g.areas[0].layers) == 1000
 
 # ---------------------------------------------------------------------------
 # 4. K_D determinism via develop PRNG split per area/layer
@@ -301,7 +299,6 @@ def test_KD_determinism_same_vs_different(tmp_path):
     reg = parser.desugar_file(text)
     # set sigma >0 to get jitter
     g = reg["G"]
-    from jaxfne.jdna.genome import PseudoGenome
     g_sig = PseudoGenome(name=g.name, description=g.description, development_parameters={"fraction_jitter_sigma":0.05}, areas=g.areas, area_connections=g.area_connections)
     t_a = develop(g_sig, seed=0)
     t_b = develop(g_sig, seed=0)
@@ -315,7 +312,7 @@ def test_KD_determinism_same_vs_different(tmp_path):
     # Check counts within bands
     for area in g_sig.areas:
         for layer in area.layers:
-            rt = next(l for a in t_c.areas if a.name==area.name for l in a.layers if l.name==layer.name)
+            next(lay for a in t_c.areas if a.name==area.name for lay in a.layers if lay.name==layer.name)
             # counts per cell type fractions within tolerance is checked by develop itself, but we also verify band via declared_constraints
             pass
     # sigma=0 should be exact and different K_D should give identical counts (since key ignored)
@@ -340,11 +337,10 @@ def test_KD_split_order_matters():
     """
     reg1 = parser.desugar_file(text1)
     reg2 = parser.desugar_file(text2)
-    from jaxfne.jdna.genome import PseudoGenome
     g1 = PseudoGenome(name=reg1["G1"].name, description="", development_parameters={"fraction_jitter_sigma":0.05}, areas=reg1["G1"].areas, area_connections=())
     g2 = PseudoGenome(name=reg2["G2"].name, description="", development_parameters={"fraction_jitter_sigma":0.05}, areas=reg2["G2"].areas, area_connections=())
     t1 = develop(g1, seed=0)
-    t2 = develop(g2, seed=0)
+    develop(g2, seed=0)  # must also develop without error; no inequality required
     # Same multiset of areas but different order → different layer_keys → generally different jitter
     # We don't require inequality always, but at least check determinism per order
     assert phenotype_sha256(develop(g1, seed=0)) == phenotype_sha256(t1)
@@ -469,13 +465,6 @@ def test_depth_band_out_of_range():
         parser.desugar_file(text)
 
 def test_bare_area_fraction_multi_area_error():
-    text = """
-    define G {
-      area V1 { layer L1 n=100 depth=[0.0,1.0] fractions {E:1.0} }
-      area V2 { layer L1 n=100 depth=[0.0,1.0] fractions {E:1.0} }
-    }
-    use G V1*0.5 as Bad
-    """
     # bare Area*frac with multi-area genomes is discouraged; our parser treats V1*0.5 as bare area tweak which requires single-layer, but multi-area should still be allowed? Spec says discouraged/linted, but we enforce bare requires single layer per area, not per genome.
     # So V1*0.5 on V1 with single layer should pass (bare area tweak maps to sole layer). The multi-area aspect is not an error in our impl, but we test that bare layer name handling works.
     # Instead test bare tweak on multi-layer area should error:
@@ -543,7 +532,6 @@ def test_provenance_hash_excludes_description():
     reg = parser.desugar_file(text)
     g = reg["G"]
     h1 = genome_rules_hash(g)
-    from jaxfne.jdna.genome import PseudoGenome
     g2 = PseudoGenome(name=g.name, description="different prose", development_parameters=dict(g.development_parameters), areas=g.areas, area_connections=g.area_connections)
     h2 = genome_rules_hash(g2)
     assert h1 == h2
@@ -574,7 +562,7 @@ def test_no_jdna_imports_in_construct():
 # ---------------------------------------------------------------------------
 
 def test_H11_generates_outputs_in_tmp_path(tmp_path):
-    # This test itself verifies H11: all generated files are under tmp_path and fresh clone would still pass because we don't read artifacts/etudes/jdna-compact-grammar/*.json
+    # This test itself verifies H11: all generated files are under tmp_path and fresh clone would still pass because we don't read artifacts/etudes/jdna/jdna-compact-grammar/*.json
     # Generate a genome and tensor into tmp_path
     text = """
     define H11Test {
@@ -592,8 +580,8 @@ def test_H11_generates_outputs_in_tmp_path(tmp_path):
     tp = tmp_path / "tensor.json"
     jtfne.save_neuronal_tensor(t, tp)
     assert tp.exists()
-    # ensure no file under artifacts/etudes/jdna-compact-grammar was read as fixture
-    assert not (ROOT / "artifacts" / "etudes" / "jdna-compact-grammar" / "fixture.json").exists()
+    # ensure no file under artifacts/etudes/jdna/jdna-compact-grammar was read as fixture
+    assert not (ROOT / "artifacts" / "etudes" / "jdna" / "jdna-compact-grammar" / "fixture.json").exists()
 
 # ---------------------------------------------------------------------------
 # 10. FUTURE_API blocked: no jaxfne/jdna/*.py change
@@ -601,7 +589,7 @@ def test_H11_generates_outputs_in_tmp_path(tmp_path):
 
 def test_future_api_not_shipped():
     # Parser must live under artifacts, not jaxfne/jdna
-    assert (ROOT / "artifacts" / "etudes" / "jdna-compact-grammar" / "parser.py").exists()
+    assert (ROOT / "artifacts" / "etudes" / "jdna" / "jdna-compact-grammar" / "parser.py").exists()
     assert not (ROOT / "jaxfne" / "jdna" / "compact.py").exists()
     assert not (ROOT / "jaxfne" / "jdna" / "parser.py").exists()
 
@@ -619,7 +607,7 @@ def test_A80_vs_A_star_coincidence():
     }
     """
     reg = parser.desugar_file(base)
-    g0 = reg["base-column"]
+    reg["base-column"]  # parses and registers; variants exercised below
     # A-80
     abs_text = base + "\nuse base-column V1.L4-80 as abs80\n"
     reg_abs = parser.desugar_file(abs_text)
@@ -629,8 +617,8 @@ def test_A80_vs_A_star_coincidence():
     abs_g = reg_abs["abs80"]
     frac_g = reg_frac["frac08"]
     # Both give 80 for L4 in this N=1000 case, but they are not semantically equal
-    assert next(l for l in abs_g.areas[0].layers if l.name=="L4").n_neurons == 80
-    assert next(l for l in frac_g.areas[0].layers if l.name=="L4").n_neurons == 80
+    assert next(lay for lay in abs_g.areas[0].layers if lay.name=="L4").n_neurons == 80
+    assert next(lay for lay in frac_g.areas[0].layers if lay.name=="L4").n_neurons == 80
     # If area total changed prior, they'd diverge: simulate growth
     # Grow L2/3 to 400 => N=1200, then A*0.08 would be 96 vs A-80 stays 80
     grown_text = """
@@ -644,7 +632,7 @@ def test_A80_vs_A_star_coincidence():
     use base2 V1.L4*0.08 as frac08b
     """
     reg2 = parser.desugar_file(grown_text)
-    assert next(l for l in reg2["abs80b"].areas[0].layers if l.name=="L4").n_neurons == 80
+    assert next(lay for lay in reg2["abs80b"].areas[0].layers if lay.name=="L4").n_neurons == 80
     # N=1200, 0.08*1200=96
-    assert next(l for l in reg2["frac08b"].areas[0].layers if l.name=="L4").n_neurons == 96
+    assert next(lay for lay in reg2["frac08b"].areas[0].layers if lay.name=="L4").n_neurons == 96
     assert genome_rules_hash(abs_g) != genome_rules_hash(frac_g)

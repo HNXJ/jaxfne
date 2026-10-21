@@ -122,10 +122,10 @@ def test_memory_report_matches_measured():
     assert rep["components"]["recording.spikes"] == np.asarray(sig.spikes).nbytes
     assert rep["components"]["recording.sources"] == np.asarray(sig.sources).nbytes
     assert rep["components"]["delay"] == 0
-    dyn = sum(np.asarray(l).nbytes for l in jax.tree_util.tree_leaves(
+    dyn = sum(np.asarray(leaf).nbytes for leaf in jax.tree_util.tree_leaves(
         dynamic_state_from_model(model)))
     assert rep["components"]["dynamic"] == dyn
-    par = sum(np.asarray(l).nbytes for l in jax.tree_util.tree_leaves(model.params))
+    par = sum(np.asarray(leaf).nbytes for leaf in jax.tree_util.tree_leaves(model.params))
     assert rep["components"]["persistent"] == par
 
 

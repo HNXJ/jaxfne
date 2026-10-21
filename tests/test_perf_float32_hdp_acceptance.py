@@ -152,9 +152,9 @@ def test_hdp_float32_repeat_is_deterministic(hdp_model):
     seed. This mirrors the exact-result equality already pinned in
     tests/test_phaseC_H_carry_resume.py for chunk/continuous HDP carry.
     """
-    a = _run(hdp_model, seed=7, hdp=True)
+    _run(hdp_model, seed=7, hdp=True)
     da = hdp_model.last_hdp_diagnostics()
-    b = _run(hdp_model, seed=7, hdp=True)
+    _run(hdp_model, seed=7, hdp=True)
     db = hdp_model.last_hdp_diagnostics()
     assert np.array_equal(np.asarray(da["H_trace"]), np.asarray(db["H_trace"]))
     assert np.array_equal(np.asarray(da["w_final"]), np.asarray(db["w_final"]))

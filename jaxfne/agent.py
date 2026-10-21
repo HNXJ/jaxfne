@@ -204,10 +204,10 @@ def _realized_edges(r: Any, dt_ms: float) -> tuple[Counter, Counter, Counter]:
     s = r.s
     pre = np.asarray(s["edge_pre"]).astype(int)
     post = np.asarray(s["edge_post"]).astype(int)
-    w = np.asarray(s["edge_weight"], dtype=float)
+    w = np.asarray(s["edge_weight"])
     names = [m["name"] for m in s["mechanism_table"]]
     mech = np.asarray(s["edge_mechanism"]).astype(int)
-    d_ms = np.asarray(s["edge_delay_ms"], dtype=float)
+    d_ms = np.asarray(s["edge_delay_ms"])
     weights = Counter((int(a), int(b), round(float(x), 6)) for a, b, x in zip(pre, post, w))
     mechs = Counter((int(a), int(b), names[int(m)]) for a, b, m in zip(pre, post, mech))
     delays = Counter(
@@ -238,7 +238,7 @@ def compare(run: Run) -> dict[str, Any]:
     realization the edge classes are ``NOT_APPLICABLE``.
     """
     sig = run.signals
-    t = np.asarray(sig.time_ms, dtype=float)
+    t = np.asarray(sig.time_ms)
     n_expected = int(round(run.duration_ms / run.dt_ms))
     dt_exec = float(t[1] - t[0]) if t.shape[0] > 1 else None
     time_ok = t.shape[0] == n_expected and dt_exec is not None and np.isclose(dt_exec, run.dt_ms)
@@ -275,7 +275,7 @@ def observe(run: Run, quantity: str) -> Observation:
 
 
 def _prop_finite(run: Run) -> tuple[bool, dict[str, Any]]:
-    bad = {k: int(np.sum(~np.isfinite(np.asarray(observe(run, k).values, dtype=float))))
+    bad = {k: int(np.sum(~np.isfinite(np.asarray(observe(run, k).values))))
            for k in _recorded(run.signals)}
     return not any(bad.values()), {"non_finite_counts": bad}
 

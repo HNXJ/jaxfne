@@ -2,7 +2,7 @@
 
 TFNE states constraints and may leave quantities open that realization
 requires. This module is the single owner of completing them, per
-``docs/doctrine/tfne_jdna_boundary.md`` and project source 7 S29.1:
+``docs/theory/doctrine/tfne_jdna_boundary.md`` and project source 7 S29.1:
 
     A (TFNE constraints) + D (rules/defaults) + K_D (development RNG) -> M.
 

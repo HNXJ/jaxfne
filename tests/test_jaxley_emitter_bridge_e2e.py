@@ -8,8 +8,8 @@ import numpy as np
 import pytest
 
 jaxley = pytest.importorskip("jaxley")
-import jaxfne as jtfne
-from jaxfne import bridges
+import jaxfne as jtfne  # noqa: E402 (after importorskip guard)
+from jaxfne import bridges  # noqa: E402 (after importorskip guard)
 
 
 @pytest.fixture(autouse=True)

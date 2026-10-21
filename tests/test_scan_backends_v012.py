@@ -10,7 +10,6 @@ Tests that dense, edge-list, and receptor-exponential paths:
 """
 
 import json
-import jax
 import jax.numpy as jnp
 import jaxfne as jtfne
 

@@ -1,7 +1,7 @@
 name: Dashboard
 
 # Publishes the committed replication dashboard to gh-pages:/dashboard/ (Hamm 2026-10-12).
-# Only that directory on gh-pages changes; the rest of the branch is left as it is.
+# The gh-pages root index.html redirects to /dashboard/ (Hamm 2026-10-15); other old files stay.
 # The data file is never regenerated here: the job fails if it is stale.
 
 on:
@@ -12,7 +12,8 @@ on:
       - "scripts/build_dashboard_data.py"
       - "scripts/build_dashboard_figures.py"
       - "scripts/generate_replications_page.py"
-      - "docs/replications.md"
+      - "docs/start/replications.md"
+      - "docs/reference/references.md"
       - ".github/workflows/dashboard.yml"
   workflow_dispatch:
 
@@ -52,7 +53,14 @@ jobs:
           mkdir -p ../pages/dashboard
           cp -r dashboard/index.html dashboard/app.js dashboard/style.css dashboard/data dashboard/models dashboard/figures ../pages/dashboard/
           cd ../pages
-          git add -A dashboard
+          # The site root opens the dashboard (Hamm 2026-10-15); the docs live on Read the Docs.
+          # The old v0.4.20 docs pages stay so existing deep links do not 404 (Hamm 2026-10-12).
+          printf '%s\n' '<!doctype html>' '<meta charset="utf-8">' '<title>jaxfne dashboard</title>' \
+            '<meta http-equiv="refresh" content="0; url=dashboard/">' \
+            '<link rel="canonical" href="dashboard/">' \
+            '<p><a href="dashboard/">jaxfne replication dashboard</a> · <a href="https://jaxfne.readthedocs.io/">documentation</a></p>' \
+            > index.html
+          git add -A dashboard index.html
           if git diff --cached --quiet; then
             echo "dashboard unchanged"
             exit 0

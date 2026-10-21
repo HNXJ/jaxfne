@@ -13,12 +13,10 @@ H. Existing examples still run
 
 import json
 import os
-import pytest
 import jax
 import jax.numpy as jnp
 import jax.random
 
-import jaxfne
 from jaxfne.fields import (
     spk_probe,
     vm_probe,

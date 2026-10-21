@@ -77,13 +77,13 @@ class TestDevelopmentProperties:
 
     def test_exact_count_and_structure(self):
         t = develop(load_canonical(), seed=0)
-        total = sum(l.n_neurons for a in t.areas for l in a.layers)
+        total = sum(lay.n_neurons for a in t.areas for lay in a.layers)
         assert total == 1000
-        by_name = {l.name: l.n_neurons for a in t.areas for l in a.layers}
+        by_name = {lay.name: lay.n_neurons for a in t.areas for lay in a.layers}
         assert by_name == {"L1": 100, "L2": 250, "L3": 200, "L4": 100, "L5": 200, "L6": 150}
         for a in t.areas:
-            for l in a.layers:
-                fracs = [nt.fraction for nt in l.neuron_types if nt.fraction is not None]
+            for lay in a.layers:
+                fracs = [nt.fraction for nt in lay.neuron_types if nt.fraction is not None]
                 assert abs(sum(fracs) - 1.0) < 1e-6
 
     def test_determinism(self):
@@ -107,22 +107,22 @@ class TestDevelopmentProperties:
             t = develop(g, seed=seed)
             for a in t.areas:
                 area_c = constraints["areas"][a.name]
-                for l in a.layers:
-                    layer_c = area_c["layers"][l.name]
-                    assert l.n_neurons == layer_c["n_neurons"]
-                    counts = {nt.name: round(l.n_neurons * (nt.fraction or 0.0)) for nt in l.neuron_types}
-                    assert sum(counts.values()) == l.n_neurons
+                for lay in a.layers:
+                    layer_c = area_c["layers"][lay.name]
+                    assert lay.n_neurons == layer_c["n_neurons"]
+                    counts = {nt.name: round(lay.n_neurons * (nt.fraction or 0.0)) for nt in lay.neuron_types}
+                    assert sum(counts.values()) == lay.n_neurons
                     for ct, (lo, hi) in layer_c["cell_type_count_bands"].items():
                         assert lo <= counts[ct] <= hi, (
-                            f"layer {l.name} cell type {ct}: {counts[ct]} outside [{lo}, {hi}]"
+                            f"layer {lay.name} cell type {ct}: {counts[ct]} outside [{lo}, {hi}]"
                         )
 
     def test_jitter_disable_reproduces_base_fractions(self):
         g = load_canonical()
         t = develop(g, seed=0, development_parameters={"fraction_jitter_sigma": 0.0})
         for a in t.areas:
-            for lg in (l for ar in g.areas for l in ar.layers if ar.name == a.name):
-                realized = next(l for l in a.layers if l.name == lg.name)
+            for lg in (lay for ar in g.areas for lay in ar.layers if ar.name == a.name):
+                realized = next(lay for lay in a.layers if lay.name == lg.name)
                 for ct, frac in lg.cell_type_fractions.items():
                     nt = next(x for x in realized.neuron_types if x.name == ct)
                     assert round(realized.n_neurons * (nt.fraction or 0.0)) == pytest.approx(
@@ -289,14 +289,14 @@ class TestValidation:
         validate_genome(g)
         for s in range(25):
             t = develop(g, seed=s)
-            l = t.areas[0].layers[0]
-            counts = {nt.name: int(round(l.n_neurons * (nt.fraction or 0.0)))
-                      for nt in l.neuron_types}
-            assert sum(counts.values()) == l.n_neurons
+            lay = t.areas[0].layers[0]
+            counts = {nt.name: int(round(lay.n_neurons * (nt.fraction or 0.0)))
+                      for nt in lay.neuron_types}
+            assert sum(counts.values()) == lay.n_neurons
             for ct, frac in lg.cell_type_fractions.items():
                 tol = lg.fraction_tolerance.get(ct, (frac, frac))
-                lo = int(math.floor(l.n_neurons * tol[0]))
-                hi = int(math.ceil(l.n_neurons * tol[1]))
+                lo = int(math.floor(lay.n_neurons * tol[0]))
+                hi = int(math.ceil(lay.n_neurons * tol[1]))
                 assert lo <= counts.get(ct, 0) <= hi, (
                     f"seed {s}: {ct} count {counts.get(ct, 0)} outside [{lo}, {hi}]"
                 )

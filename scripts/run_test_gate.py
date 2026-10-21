@@ -4,10 +4,15 @@
 Gate vocabulary (single source of truth for local runs and CI references):
 
   dev          Curated architectural gate (~1 minute)
+  report       All audit checks without the pytest sweeps (~1 minute)
+  docs         The documentation subset of the audit checks (~30 seconds)
   broad        Repository-wide ``-m "not slow"`` (~8 minutes)
   release      Broad + slow markers + release examples/docs checks
   rc           Full release-candidate verification (PRE_RELEASE_GATE >= RELEASE_CI_GATE)
   publication  Frozen scientific experiments and artifact validation
+  examples     The RELEASE_EXAMPLES smoke list only (owner of the list)
+  wheel-smoke  The canonical isolated-wheel smoke in a given venv
+               (owner of the smoke body; needs --venv-python)
 
 Documentation must refer to these gate names and this script (or Makefile
 targets), not duplicate file lists in prose.
@@ -34,7 +39,7 @@ PYTEST_ENV = {
     "PYTHONUTF8": "1",
 }
 
-# Curated dev gate — owned here, not in docs/ci_policy.md prose.
+# Curated dev gate — owned here, not in docs/reference/project/ci_policy.md prose.
 DEV_PYTEST_TARGETS = [
     "tests/test_api_smoke.py",
     "tests/test_root_import_lightweight.py",
@@ -53,7 +58,7 @@ DEV_PYTEST_TARGETS = [
     "tests/test_tfne_execution.py",
     "tests/test_tfne_parameter_transfer.py",
     # An atlas regeneration resets figure_state, which silently dropped the
-    # canonical atlas from docs/gallery.md twice; dev CI never collected this.
+    # canonical atlas from docs/start/gallery.md twice; dev CI never collected this.
     "tests/test_generate_gallery.py",
     # Docs atlas registry and .html link resolution; 34 of 47 docs iframes resolved
     # nowhere under directory URLs before this gate.
@@ -133,15 +138,30 @@ CHECK_FAMILIES = {
     "vocabulary_audit",
     "docs_orphans_check",
     "doc_code_integrity_audit",
+    "record_integrity",
+    "replication_audit",
+    "etude_no_resim",
+    "harness_integrity",
+    "agent_refs",
+    "atlas_inheritance",
+    "claim_ledger",
+    "memory_hygiene",
+    "report_hygiene",
+    "release_artifacts",
+    "release_freeze",
+    "notebooks_assets",
+    "release_metadata",
     "tree_size_audit",
     "docs_build_strict",
     "pytest_broad",
+    "pytest_lanes",
     "pytest_slow",
     "pytest_notebook",
     "examples_smoke",
     "package_build",
     "twine_check",
     "isolated_wheel_smoke",
+    "publication_equivalence",
 }
 
 RELEASE_CI_GATE_FAMILIES = {
@@ -170,6 +190,14 @@ GATE_CHECK_FAMILIES = {
         "pytest_dev",
         "docs_language_audit",
         "vocabulary_audit",
+        # CI on dev runs `scripts/run_test_gate.py dev` only (ci.yml), so the
+        # audit families below must run in the dev gate too, or nothing
+        # executes them before the broad gate on main.
+        "record_integrity",
+        "replication_audit",
+        "etude_no_resim",
+        "harness_integrity",
+        "agent_refs",
     },
     "broad": {
         "compileall",
@@ -179,8 +207,51 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "record_integrity",
+        "replication_audit",
+        "etude_no_resim",
+        "harness_integrity",
+        "agent_refs",
+        "atlas_inheritance",
+        "claim_ledger",
+        "memory_hygiene",
+        "report_hygiene",
+        "release_artifacts",
+        "release_freeze",
+        "notebooks_assets",
+        "release_metadata",
         "tree_size_audit",
         "pytest_broad",
+        "pytest_lanes",
+    },
+    "report": {
+        "lint_ruff",
+        "docs_language_audit",
+        "notebook_grammar_audit",
+        "vocabulary_audit",
+        "docs_orphans_check",
+        "doc_code_integrity_audit",
+        "record_integrity",
+        "replication_audit",
+        "etude_no_resim",
+        "harness_integrity",
+        "agent_refs",
+        "atlas_inheritance",
+        "claim_ledger",
+        "memory_hygiene",
+        "report_hygiene",
+        "release_artifacts",
+        "release_freeze",
+        "notebooks_assets",
+        "release_metadata",
+        "tree_size_audit",
+    },
+    "docs": {
+        "docs_language_audit",
+        "notebook_grammar_audit",
+        "vocabulary_audit",
+        "docs_orphans_check",
+        "doc_code_integrity_audit",
     },
     "release": {
         "compileall",
@@ -190,9 +261,23 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "record_integrity",
+        "replication_audit",
+        "etude_no_resim",
+        "harness_integrity",
+        "agent_refs",
+        "atlas_inheritance",
+        "claim_ledger",
+        "memory_hygiene",
+        "report_hygiene",
+        "release_artifacts",
+        "release_freeze",
+        "notebooks_assets",
+        "release_metadata",
         "tree_size_audit",
         "docs_build_strict",
         "pytest_broad",
+        "pytest_lanes",
         "pytest_slow",
         "pytest_notebook",
         "examples_smoke",
@@ -207,9 +292,23 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "record_integrity",
+        "replication_audit",
+        "etude_no_resim",
+        "harness_integrity",
+        "agent_refs",
+        "atlas_inheritance",
+        "claim_ledger",
+        "memory_hygiene",
+        "report_hygiene",
+        "release_artifacts",
+        "release_freeze",
+        "notebooks_assets",
+        "release_metadata",
         "tree_size_audit",
         "docs_build_strict",
         "pytest_broad",
+        "pytest_lanes",
         "pytest_slow",
         "pytest_notebook",
         "examples_smoke",
@@ -309,6 +408,100 @@ def _run(
         raise subprocess.CalledProcessError(proc.returncode, cmd)
 
 
+# --- Shared CI-owned checks ----------------------------------------------------
+#
+# RELEASE_EXAMPLES and the isolated-wheel smoke body below are owned here.
+# .github/workflows/ci.yml, .github/workflows/release_ci.yml and
+# scripts/release_rehearsal.sh must call the ``examples`` / ``wheel-smoke``
+# gates instead of carrying their own copies.
+
+
+def wheel_smoke_code(expected_version: str) -> str:
+    """Canonical isolated-wheel smoke program.
+
+    Union of the bodies formerly in ci.yml, release_ci.yml,
+    release_rehearsal.sh and gate_rc: every assertion each of them ran.
+    The emitter/field spellings are the values construct realizes for the
+    bare calls (``cortical_eig`` is the only accepted preset; the field keys
+    accept only these values), so they pin the declaration, not new physics.
+    """
+    return (
+        "import json, jaxfne as jtfne\n"
+        "assert 'site-packages' in jtfne.__file__,"
+        " f'Not in site-packages: {jtfne.__file__}'\n"
+        f"assert jtfne.__version__ == {expected_version!r},"
+        f" f'version={{jtfne.__version__}}, expected {expected_version}'\n"
+        "cfg = (jtfne.configuration()\n"
+        "    .network(n=8).emitter(family='izhikevich', preset='cortical_eig')\n"
+        "    .field(domain='laminar_column', conductivity='proxy',\n"
+        "           boundary='mean_zero_neumann', gauge='mean_zero')\n"
+        "    .probe(name='lp', n_contacts=8))\n"
+        "model = jtfne.construct(cfg)\n"
+        "signals = model.simulate(jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0))\n"
+        "readouts = model.compute_readout(signals, [jtfne.readout_spec('r', 'spike_rate_hz')])\n"
+        "manifest = model.manifest(signals, readouts)\n"
+        "json.dumps(manifest, allow_nan=False)\n"
+        "assert manifest['physical_amplitude_calibrated'] is False\n"
+        "print('wheel smoke OK:', jtfne.__version__)\n"
+    )
+
+
+def _local_package_version() -> str:
+    """Expected wheel version, read from the tree (pyproject, not the env)."""
+    import tomllib
+
+    with open(ROOT / "pyproject.toml", "rb") as fh:
+        return str(tomllib.load(fh)["project"]["version"])
+
+
+def run_release_examples() -> None:
+    """Run every RELEASE_EXAMPLES entry (family ``examples_smoke``)."""
+    for example in RELEASE_EXAMPLES:
+        _run([sys.executable, example], family="examples_smoke")
+        print(f"PASS: {example}", flush=True)
+    # Restore static docs figures that examples mirror to keep tree clean
+    subprocess.run(
+        ["git", "checkout", "--", "docs/archive/tutorials_v030/_static/figures"], cwd=ROOT, check=False
+    )
+
+
+def run_isolated_wheel_smoke(
+    venv_python: str | Path, expected_version: str, *, cwd: str | Path
+) -> None:
+    """Run the canonical wheel smoke in ``venv_python`` (family ``isolated_wheel_smoke``).
+
+    ``cwd`` must hold no importable ``jaxfne`` package: ``python -c`` puts it
+    at the front of ``sys.path``, which would shadow the installed wheel the
+    ``site-packages`` assertion guards against.
+    """
+    isolated_env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    isolated_env["PYTHONIOENCODING"] = "utf-8"
+    isolated_env["PYTHONUTF8"] = "1"
+    print("+ Running isolated wheel smoke simulation...", flush=True)
+    _run(
+        [str(venv_python), "-c", wheel_smoke_code(expected_version)],
+        cwd=Path(cwd),
+        env=isolated_env,
+        family="isolated_wheel_smoke",
+    )
+
+
+def gate_examples() -> None:
+    """The RELEASE_EXAMPLES smoke list only (CI calls this; it owns the list)."""
+    run_release_examples()
+
+
+def gate_wheel_smoke(
+    venv_python: str | None = None, expected_version: str | None = None
+) -> None:
+    """Run the canonical wheel smoke in an existing venv (CI calls this)."""
+    if not venv_python:
+        raise RuntimeError("wheel-smoke needs --venv-python <path to the venv python>")
+    version = expected_version or _local_package_version()
+    with tempfile.TemporaryDirectory(prefix="jaxfne_wheel_smoke_cwd_") as tmp_cwd:
+        run_isolated_wheel_smoke(venv_python, version, cwd=tmp_cwd)
+
+
 def gate_dev() -> None:
     _run(
         [sys.executable, "-m", "compileall", "-q", "jaxfne", "tests", "scripts"],
@@ -333,6 +526,194 @@ def gate_dev() -> None:
         family="docs_language_audit",
     )
     _run([sys.executable, "scripts/audit_vocabulary.py", "--check"], family="vocabulary_audit")
+    # CI on dev runs this gate only (ci.yml), so the audit families in the dev
+    # set run here, from AUDIT_STEPS (the commands' one owner).
+    for family, cmd in AUDIT_STEPS:
+        if family in DEV_AUDIT_FAMILIES:
+            _run(cmd, family=family)
+
+
+# Audit families the dev gate runs from AUDIT_STEPS (the docs-language and vocabulary
+# audits run above with the dev gate's own ordering).
+DEV_AUDIT_FAMILIES = (
+    "record_integrity",
+    "replication_audit",
+    "etude_no_resim",
+    "harness_integrity",
+    "agent_refs",
+)
+
+
+# The audit checks the broad gate runs before its pytest sweep, owned here and
+# shared with the report and docs gates. Order matters only for readability.
+AUDIT_STEPS: list[tuple[str, list[str]]] = [
+    ("lint_ruff", [sys.executable, "-m", "ruff", "check", "jaxfne/"]),
+    (
+        "lint_ruff",
+        [
+            sys.executable,
+            "-m",
+            "ruff",
+            "check",
+            "scripts/",
+            "tests/",
+            "examples/",
+            "--select",
+            "E711,E712,E721,E722,F601,F632,F811,F821,F823,F402,F401,F841,E741,E402",
+        ],
+    ),
+    (
+        "docs_language_audit",
+        [sys.executable, "scripts/audit_public_docs_language.py", "--check"],
+    ),
+    (
+        "notebook_grammar_audit",
+        [sys.executable, "scripts/audit_notebook_grammar.py", "--check"],
+    ),
+    ("vocabulary_audit", [sys.executable, "scripts/audit_vocabulary.py", "--check"]),
+    ("docs_orphans_check", [sys.executable, "scripts/check_docs_orphans.py"]),
+    (
+        "doc_code_integrity_audit",
+        [sys.executable, "scripts/audit_doc_code_integrity.py", "--check"],
+    ),
+    ("tree_size_audit", [sys.executable, "scripts/check_tree_size.py", "--check"]),
+    ("record_integrity", [sys.executable, "scripts/check_record_integrity.py", "--check"]),
+    (
+        "replication_audit",
+        [sys.executable, "scripts/check_replications.py", "--check"],
+    ),
+    (
+        "etude_no_resim",
+        [sys.executable, "scripts/gate_etude_no_resim.py", "--check"],
+    ),
+    (
+        "harness_integrity",
+        [sys.executable, "scripts/harness/check_harness_integrity.py"],
+    ),
+    ("agent_refs", [sys.executable, "scripts/harness/check_agent_refs.py"]),
+    ("atlas_inheritance", [sys.executable, "scripts/check_atlas_inheritance.py"]),
+    ("claim_ledger", [sys.executable, "scripts/check_claim_ledger_055.py"]),
+    ("memory_hygiene", [sys.executable, "scripts/harness/check_memory_hygiene.py"]),
+    ("report_hygiene", [sys.executable, "scripts/report_hygiene_check.py"]),
+    (
+        "release_artifacts",
+        [
+            sys.executable,
+            "scripts/release/validate_release_artifacts.py",
+            "--version",
+            _local_package_version(),
+            "--allow-missing-dist",
+        ],
+    ),
+    ("release_freeze", [sys.executable, "scripts/release/assert_release_freeze.py"]),
+    (
+        "notebooks_assets",
+        [sys.executable, "scripts/audit_notebooks_and_assets.py", "--check"],
+    ),
+    (
+        "release_metadata",
+        [sys.executable, "scripts/sync_release_metadata.py"],
+    ),
+]
+
+# The documentation subset: what a docs edit needs checked before pushing.
+DOCS_AUDIT_FAMILIES = {
+    "docs_language_audit",
+    "notebook_grammar_audit",
+    "vocabulary_audit",
+    "docs_orphans_check",
+    "doc_code_integrity_audit",
+}
+
+
+def gate_report() -> None:
+    """The audit checks only: a gate status report without the pytest sweeps."""
+    for family, cmd in AUDIT_STEPS:
+        _run(cmd, family=family)
+
+
+def gate_docs() -> None:
+    """Quick docs gate: the documentation subset of the audit checks."""
+    for family, cmd in AUDIT_STEPS:
+        if family in DOCS_AUDIT_FAMILIES:
+            _run(cmd, family=family)
+
+
+# --- Paper-lane pytest sweeps (family ``pytest_lanes``) -------------------------
+#
+# ``testpaths`` is ``tests`` only, so the lane tests under PAPER_LANES_DIR ran in
+# no gate. Each lane runs in its own pytest process: caminos enables jax x64 at
+# import, and a pcl guard aborts a shared collection.
+PAPER_LANES_DIR = "artifacts/etudes/papers"
+
+# Lanes that fail, keyed by lane folder, with the summary line that showed it. A
+# listed lane that still fails is printed as skipped; a listed lane that passes
+# fails the family (stale entry), so an entry cannot outlive its fault.
+LANE_PYTEST_KNOWN_FAILING: dict[str, str] = {}
+
+
+def discover_pytest_lanes() -> list[str]:
+    """Lane folders: directories under PAPER_LANES_DIR holding a tracked ``test_*.py`` at any depth."""
+    lanes: set[str] = set()
+    prefix = PAPER_LANES_DIR + "/"
+    for path in _git_out("ls-files", "--", PAPER_LANES_DIR).splitlines():
+        if not path.startswith(prefix):
+            continue
+        parts = path[len(prefix) :].split("/")
+        if len(parts) >= 2 and parts[-1].startswith("test_") and parts[-1].endswith(".py"):
+            lanes.add(parts[0])
+    return sorted(lanes)
+
+
+def _lane_argv(lane: str) -> list[str]:
+    return [
+        sys.executable,
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        f"{PAPER_LANES_DIR}/{lane}",
+    ]
+
+
+def _run_lane(lane: str) -> int:
+    """Run one lane in its own pytest process; return its exit code."""
+    cmd = _lane_argv(lane)
+    print("+", " ".join(cmd), flush=True)
+    return subprocess.run(cmd, cwd=ROOT, check=False, env=PYTEST_ENV).returncode
+
+
+def gate_pytest_lanes() -> None:
+    """One pytest process per paper lane (family ``pytest_lanes``).
+
+    Exit code 5 (no tests collected) is accepted. A known-failing lane that still
+    fails is recorded in the ledger as exit 0 and named in its printed SKIP line; one
+    that passes or collects nothing is a stale entry and fails the family.
+    """
+    failures: list[str] = []
+    for lane in discover_pytest_lanes():
+        argv = _lane_argv(lane)
+        started = _utcnow()
+        rc = _run_lane(lane)
+        completed = _utcnow()
+        known = LANE_PYTEST_KNOWN_FAILING.get(lane)
+        if known is not None and rc in (0, 5):
+            failures.append(f"{lane}: listed in LANE_PYTEST_KNOWN_FAILING but passes (stale entry)")
+            print(f"FAIL lane {lane}: stale LANE_PYTEST_KNOWN_FAILING entry", flush=True)
+            record_execution("pytest_lanes", argv, started, completed, 1)
+        elif known is not None:
+            print(f"SKIP known-failing lane {lane} (rc={rc}): {known}", flush=True)
+            record_execution("pytest_lanes", argv, started, completed, 0)
+        elif rc in (0, 5):
+            print(f"{'PASS' if rc == 0 else 'NO TESTS'} lane {lane} (rc={rc})", flush=True)
+            record_execution("pytest_lanes", argv, started, completed, 0)
+        else:
+            failures.append(f"{lane}: rc={rc}")
+            print(f"FAIL lane {lane} (rc={rc})", flush=True)
+            record_execution("pytest_lanes", argv, started, completed, rc)
+    if failures:
+        raise RuntimeError("pytest_lanes failed: " + "; ".join(failures))
 
 
 def gate_broad() -> None:
@@ -340,25 +721,7 @@ def gate_broad() -> None:
         [sys.executable, "-m", "compileall", "-q", "jaxfne", "tests", "scripts", "examples"],
         family="compileall",
     )
-    _run([sys.executable, "-m", "ruff", "check", "jaxfne/"], family="lint_ruff")
-    _run(
-        [sys.executable, "scripts/audit_public_docs_language.py", "--check"],
-        family="docs_language_audit",
-    )
-    _run(
-        [sys.executable, "scripts/audit_notebook_grammar.py", "--check"],
-        family="notebook_grammar_audit",
-    )
-    _run([sys.executable, "scripts/audit_vocabulary.py", "--check"], family="vocabulary_audit")
-    _run([sys.executable, "scripts/check_docs_orphans.py"], family="docs_orphans_check")
-    _run(
-        [sys.executable, "scripts/audit_doc_code_integrity.py", "--check"],
-        family="doc_code_integrity_audit",
-    )
-    _run(
-        [sys.executable, "scripts/check_tree_size.py", "--check"],
-        family="tree_size_audit",
-    )
+    gate_report()
     # Per-node evidence: each sweep writes JUnit into the gitignored
     # artifacts/attestations/ dir (same provenance home as the RC
     # attestation) so RC outcomes can be compared node-by-node against
@@ -382,6 +745,7 @@ def gate_broad() -> None:
     for path in BROAD_PYTEST_IGNORE:
         cmd.extend(["--ignore", path])
     _run(cmd, family="pytest_broad")
+    gate_pytest_lanes()
 
 
 def gate_release() -> None:
@@ -420,12 +784,7 @@ def gate_release() -> None:
         notebook_cmd.extend(["--ignore", path])
     _run(notebook_cmd, family="pytest_notebook")
     _run([sys.executable, "-m", "mkdocs", "build", "--strict"], family="docs_build_strict")
-    for example in RELEASE_EXAMPLES:
-        _run([sys.executable, example], family="examples_smoke")
-    # Restore static docs figures that examples mirror to keep tree clean
-    subprocess.run(
-        ["git", "checkout", "--", "docs/tutorials_v030/_static/figures"], cwd=ROOT, check=False
-    )
+    run_release_examples()
 
 
 def gate_rc() -> None:
@@ -491,28 +850,7 @@ def gate_rc() -> None:
                 family="isolated_wheel_smoke",
             )
 
-            smoke_code = (
-                "import json, jaxfne as jtfne\n"
-                "assert 'site-packages' in jtfne.__file__, f'Not in site-packages: {jtfne.__file__}'\n"
-                "cfg = jtfne.configuration().network(n=8).emitter().field().probe(n_contacts=4)\n"
-                "model = jtfne.construct(cfg)\n"
-                "signals = model.simulate(jtfne.simulation(duration_ms=5.0, dt_ms=0.1, seed=0))\n"
-                "readouts = model.compute_readout(signals, [jtfne.readout_spec('r', 'spike_rate_hz')])\n"
-                "manifest = model.manifest(signals, readouts)\n"
-                "json.dumps(manifest, allow_nan=False)\n"
-                "assert manifest['physical_amplitude_calibrated'] is False\n"
-                "print('RC isolated wheel smoke OK: version =', jtfne.__version__)\n"
-            )
-            isolated_env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
-            isolated_env["PYTHONIOENCODING"] = "utf-8"
-            isolated_env["PYTHONUTF8"] = "1"
-            print("+ Running isolated wheel smoke simulation...", flush=True)
-            _run(
-                [str(venv_py), "-c", smoke_code],
-                cwd=Path(tmp_venv),
-                env=isolated_env,
-                family="isolated_wheel_smoke",
-            )
+            run_isolated_wheel_smoke(venv_py, _local_package_version(), cwd=tmp_venv)
 
     attestation_out = write_rc_attestation()
     print(f"\nRC GATE PASS: attestation written to {attestation_out}", flush=True)
@@ -566,25 +904,45 @@ def write_rc_attestation(out_path: Path | None = None) -> Path:
 
 
 def gate_publication() -> None:
-    """Placeholder hook for frozen experiment manifests.
+    """The frozen publication record: frozen-path hashes, then Figures 1-7 re-rendered and
+    compared pixel-for-pixel with their frozen PNGs, then the repository state snapshot.
 
-    Extend this gate when publication-facing receipts have a single entrypoint.
+    Render and report go under the gitignored ``scratch/``, so the tracked
+    ``artifacts/publication/equivalence_report.json`` is not rewritten by a gate run.
     """
-    _run([sys.executable, "scripts/repo_state_snapshot.py"])
-    print(
-        "publication gate: repo_state_snapshot only; "
-        "add frozen experiment runners here when contracted.",
-        flush=True,
+    for family, cmd in AUDIT_STEPS:
+        if family in PUBLICATION_AUDIT_FAMILIES:
+            _run(cmd, family=family)
+    out = ROOT / "scratch" / "publication_gate"
+    _run(
+        [
+            sys.executable,
+            "scripts/publication_figures/equivalence_gate.py",
+            "--render-dir",
+            str(out / "render"),
+            "--report",
+            str(out / "equivalence_report.json"),
+        ],
+        family="publication_equivalence",
     )
+    _run([sys.executable, "scripts/repo_state_snapshot.py"])
+
+
+# Frozen-path checks the publication gate runs from AUDIT_STEPS.
+PUBLICATION_AUDIT_FAMILIES = ("record_integrity", "harness_integrity")
 
 
 GATES = {
     "dev": gate_dev,
+    "report": gate_report,
+    "docs": gate_docs,
     "broad": gate_broad,
     "release": gate_release,
     "rc": gate_rc,
     "release-candidate": gate_rc,
     "publication": gate_publication,
+    "examples": gate_examples,
+    "wheel-smoke": gate_wheel_smoke,
 }
 
 
@@ -595,8 +953,21 @@ def main(argv: list[str] | None = None) -> int:
         choices=sorted(GATES),
         help="which validation gate to run",
     )
+    parser.add_argument(
+        "--venv-python",
+        default=None,
+        help="venv python for the wheel-smoke gate",
+    )
+    parser.add_argument(
+        "--expected-version",
+        default=None,
+        help="expected jaxfne version for the wheel-smoke gate (default: pyproject version)",
+    )
     args = parser.parse_args(argv)
-    GATES[args.gate]()
+    if args.gate == "wheel-smoke":
+        gate_wheel_smoke(venv_python=args.venv_python, expected_version=args.expected_version)
+    else:
+        GATES[args.gate]()
     return 0
 
 

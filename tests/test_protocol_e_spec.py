@@ -269,11 +269,20 @@ def test_e2_construction_scaffolding_excluded_from_evidence():
     assert scaffold["evidence_status"] == "excluded_from_E2_evidence"
 
 
-def test_e2_implementation_not_authorized_at_spec_freeze():
-    auth = load_e2_spec()["execution_authorization"]
+@pytest.mark.parametrize(
+    "checkpoint,load_spec",
+    [
+        ("E2", load_e2_spec),
+        ("E3", load_e3_spec),
+        ("E4", load_e4_spec),
+        ("E5", load_e5_spec),
+    ],
+)
+def test_implementation_not_authorized_at_spec_freeze(checkpoint, load_spec):
+    auth = load_spec()["execution_authorization"]
     assert auth["specification_only"] is True
     assert auth["implementation_authorized"] is False
-    assert auth["next_checkpoint"] == "E2_implementation"
+    assert auth["next_checkpoint"] == f"{checkpoint}_implementation"
 
 
 def test_e2_protocol_receipt_closed():
@@ -334,13 +343,6 @@ def test_e3_delay_table_inheritance_unchanged():
     rule = load_e3_spec()["typed_delay_inheritance"]
     assert rule["must_match_exactly"] is True
     assert "e2_execution_receipt" in rule["source_receipt"]
-
-
-def test_e3_implementation_not_authorized_at_spec_freeze():
-    auth = load_e3_spec()["execution_authorization"]
-    assert auth["specification_only"] is True
-    assert auth["implementation_authorized"] is False
-    assert auth["next_checkpoint"] == "E3_implementation"
 
 
 def test_e3_protocol_receipt_closed():
@@ -426,13 +428,6 @@ def test_e4_neural_path_e3_null():
     assert spec["simulation_policy"]["neural_mode"] == "E3-null"
 
 
-def test_e4_implementation_not_authorized_at_spec_freeze():
-    auth = load_e4_spec()["execution_authorization"]
-    assert auth["specification_only"] is True
-    assert auth["implementation_authorized"] is False
-    assert auth["next_checkpoint"] == "E4_implementation"
-
-
 def test_e4_protocol_receipt_closed():
     receipt = json.loads((E4_SPEC_PATH.parent / "e4_protocol_receipt.json").read_text(encoding="utf-8"))
     assert receipt["status"] == "CLOSED"
@@ -516,13 +511,6 @@ def test_e5_gates_g1_through_g10():
     assert len(gates) == 10
     assert gates[0] == "G1_arm_isolation"
     assert gates[9] == "G10_no_phenotype_overinterpretation"
-
-
-def test_e5_implementation_not_authorized_at_spec_freeze():
-    auth = load_e5_spec()["execution_authorization"]
-    assert auth["specification_only"] is True
-    assert auth["implementation_authorized"] is False
-    assert auth["next_checkpoint"] == "E5_implementation"
 
 
 def test_e5_publication_manifest_provenance_note():

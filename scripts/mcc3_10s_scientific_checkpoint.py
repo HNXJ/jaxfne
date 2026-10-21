@@ -38,7 +38,7 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "artifacts" / "mcc3_10s_checkpoint"
+OUT = ROOT / "artifacts" / "runs" / "mcc3_10s_checkpoint"
 EPS = 1e-9
 
 DURATION_MS = 10_000.0
@@ -831,9 +831,9 @@ def main() -> int:
             "artifacts": {
                 "figure_png": str(png_path.relative_to(ROOT)),
                 "metrics_json": str(metrics_path.relative_to(ROOT)),
-                "rates_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_rates.csv",
-                "weights_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_weights.csv",
-                "H_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_H.csv",
+                "rates_csv": "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_rates.csv",
+                "weights_csv": "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_weights.csv",
+                "H_csv": "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_H.csv",
             },
             "hashes": {
                 "mcc3_10s_pre_post.png": sha256_file(png_path),

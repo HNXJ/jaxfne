@@ -38,7 +38,7 @@ spike train under counterphase gratings at $\omega$ ≈ 2 Hz.
 
 ## Implementation
 
-Standalone event-exact port on lane `pcl-port` (`artifacts/etudes/pcl/port/`), numba on CPU,
+Standalone event-exact port on lane `pcl-port` (`artifacts/etudes/papers/pcl/port/`), numba on CPU,
 driven by `port/run_tuning.py`; it reproduces the C++ update order. It imports no jaxfne code,
 so under rule B1 the paper is not yet replicated *with jaxfne*.
 
@@ -58,9 +58,9 @@ so under rule B1 the paper is not yet replicated *with jaxfne*.
 ## Reproduce
 
 ```
-python artifacts/etudes/pcl/port/run_tuning.py --subset all
-python artifacts/etudes/pcl/port/run_tuning.py --subset all --inhibition local-only   # S1
-python artifacts/etudes/pcl/port/fig3_analysis.py <run dir> <stimulus dir> --signed --out <scores.json>
+python artifacts/etudes/papers/pcl/port/run_tuning.py --subset all
+python artifacts/etudes/papers/pcl/port/run_tuning.py --subset all --inhibition local-only   # S1
+python artifacts/etudes/papers/pcl/port/fig3_analysis.py <run dir> <stimulus dir> --signed --out <scores.json>
 ```
 
 Network and stimuli: Zenodo 10.5281/zenodo.16813454 (cSTDP3, `test7` gratings: 8 orientations ×

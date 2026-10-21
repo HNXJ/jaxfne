@@ -5,7 +5,7 @@ Causal graph: ``omega* -> W* -> X`` with ``dot omega = 0``.
 Canonical stored plastic state is ``omega``; effective signed coupling at the edge
 boundary is ``J = s * W0 * exp(omega)`` (magnitude ``W = W0*exp(omega) > 0``).
 
-See ``docs/doctrine/protocol_w_hdp_parameter_memory.md``.
+See ``docs/theory/memory/protocol_w_hdp_parameter_memory.md``.
 """
 
 from __future__ import annotations

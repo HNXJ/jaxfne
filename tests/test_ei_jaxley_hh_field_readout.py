@@ -17,12 +17,12 @@ import numpy as np
 import pytest
 
 jaxley = pytest.importorskip("jaxley")
-import jaxley as jx
-from jaxley.channels import HH
-from jaxley.synapses import IonotropicSynapse
-from jaxley.connect import connect
+import jaxley as jx  # noqa: E402 (after importorskip guard)
+from jaxley.channels import HH  # noqa: E402 (after importorskip guard)
+from jaxley.synapses import IonotropicSynapse  # noqa: E402 (after importorskip guard)
+from jaxley.connect import connect  # noqa: E402 (after importorskip guard)
 
-import jaxfne as jtfne
+import jaxfne as jtfne  # noqa: E402 (after importorskip guard)
 
 DT_MS = 0.025
 DURATION_MS = 60.0

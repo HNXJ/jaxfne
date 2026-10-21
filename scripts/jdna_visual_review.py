@@ -13,12 +13,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import matplotlib
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-
-import matplotlib
 
 matplotlib.use("Agg")
 
@@ -41,14 +40,14 @@ def _tensor_layers(tensor):
 
 
 def layer_counts(tensor) -> dict[str, int]:
-    return {l.name: l.n_neurons for l in _tensor_layers(tensor)}
+    return {lay.name: lay.n_neurons for lay in _tensor_layers(tensor)}
 
 
 def cell_type_rows(tensor) -> list[tuple[str, str, int]]:
     rows: list[tuple[str, str, int]] = []
-    for l in _tensor_layers(tensor):
-        for nt in l.neuron_types:
-            rows.append((l.name, nt.name, int(round(l.n_neurons * (nt.fraction or 0.0)))))
+    for lay in _tensor_layers(tensor):
+        for nt in lay.neuron_types:
+            rows.append((lay.name, nt.name, int(round(lay.n_neurons * (nt.fraction or 0.0)))))
     return rows
 
 
@@ -72,9 +71,9 @@ def main() -> None:
         line = f"{layer:<4} {ct:<5} {cc:>9}"
         for t in developed:
             sub = next(
-                (int(round(l.n_neurons * (nt.fraction or 0.0)))
-                 for l in _tensor_layers(t) for nt in l.neuron_types
-                 if l.name == layer and nt.name == ct),
+                (int(round(lay.n_neurons * (nt.fraction or 0.0)))
+                 for lay in _tensor_layers(t) for nt in lay.neuron_types
+                 if lay.name == layer and nt.name == ct),
                 0,
             )
             line += f" {sub:>5}"
@@ -89,7 +88,7 @@ def main() -> None:
     for layer, ct, cc in rows:
         comp[layer][ct] = cc
     ax = axes[0]
-    im = ax.imshow([[comp[l][c] for c in cells] for l in layers], cmap="viridis")
+    im = ax.imshow([[comp[lay][c] for c in cells] for lay in layers], cmap="viridis")
     ax.set_xticks(range(4), cells)
     ax.set_yticks(range(6), layers)
     ax.set_title("canonical fixed tensor (counts)")
@@ -99,14 +98,14 @@ def main() -> None:
     for layer, ct, cc in cell_type_rows(developed[0]):
         dev[layer][ct] = cc
     ax = axes[1]
-    im = ax.imshow([[dev[l][c] for c in cells] for l in layers], cmap="viridis")
+    im = ax.imshow([[dev[lay][c] for c in cells] for lay in layers], cmap="viridis")
     ax.set_xticks(range(4), cells)
     ax.set_yticks(range(6), layers)
     ax.set_title("JDNA develop(seed=0) (counts)")
     fig.colorbar(im, ax=ax)
 
     ax = axes[2]
-    im = ax.imshow([[comp[l][c] - dev[l][c] for c in cells] for l in layers],
+    im = ax.imshow([[comp[lay][c] - dev[lay][c] for c in cells] for lay in layers],
                    cmap="RdBu", vmin=-25, vmax=25)
     ax.set_xticks(range(4), cells)
     ax.set_yticks(range(6), layers)

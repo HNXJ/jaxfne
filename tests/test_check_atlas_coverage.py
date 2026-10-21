@@ -54,5 +54,5 @@ def test_planned_in_sealed_release_fails_candidate_warns(tmp_path):
 
 
 def test_repository_coverage_valid():
-    errors = cac.check(REPO / "artifacts" / "programme" / "atlas_coverage.json", REPO)
+    errors = cac.check(REPO / "artifacts" / "programme" / "coverage" / "atlas_coverage.json", REPO)
     assert errors == []

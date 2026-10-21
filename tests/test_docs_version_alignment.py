@@ -69,28 +69,28 @@ def test_generated_version_md_comparison():
 # publication updates one literal and every docs surface is re-checked against
 # it; the tests never reach the network, so this is the one thing a human must
 # advance when a release goes out.
-PUBLISHED_PYPI_VERSION = "0.5.5"
+PUBLISHED_PYPI_VERSION = "0.5.6"
 
-PREVIOUS_PYPI_VERSION = "0.5.0"
+PREVIOUS_PYPI_VERSION = "0.5.5"
 
 
 def test_install_md_latest_pypi_version():
-    """docs/install.md must state the version actually published to PyPI."""
+    """docs/start/install.md must state the version actually published to PyPI."""
     root_dir = Path(__file__).resolve().parent.parent
-    content = (root_dir / "docs" / "install.md").read_text(encoding="utf-8")
+    content = (root_dir / "docs" / "start" / "install.md").read_text(encoding="utf-8")
 
     match_pub = re.search(r"published \*\*PyPI\*\* release is \*\*`jaxfne==([^`]+)`\*\*", content)
-    assert match_pub, "Could not find published PyPI release in docs/install.md"
+    assert match_pub, "Could not find published PyPI release in docs/start/install.md"
     assert match_pub.group(1) == PUBLISHED_PYPI_VERSION, (
-        f"docs/install.md claims published {match_pub.group(1)!r}, "
+        f"docs/start/install.md claims published {match_pub.group(1)!r}, "
         f"live PyPI is {PUBLISHED_PYPI_VERSION!r}"
     )
     # The pinned-install example must not advertise a superseded release.
     assert f'pip install "jaxfne=={PUBLISHED_PYPI_VERSION}"' in content, (
-        "docs/install.md pins a version other than the published release"
+        "docs/start/install.md pins a version other than the published release"
     )
     assert f"`{PREVIOUS_PYPI_VERSION}`" in content, (
-        "docs/install.md should still name the previous release for context"
+        "docs/start/install.md should still name the previous release for context"
     )
 
 
@@ -102,29 +102,29 @@ def test_published_version_matches_pyproject_when_not_mid_candidate():
     """
     pyproject_version = get_pyproject_version()
     root_dir = Path(__file__).resolve().parent.parent
-    install = (root_dir / "docs" / "install.md").read_text(encoding="utf-8")
+    install = (root_dir / "docs" / "start" / "install.md").read_text(encoding="utf-8")
     if pyproject_version != PUBLISHED_PYPI_VERSION:
         assert "release candidate" in install.lower(), (
             f"pyproject is {pyproject_version!r} but PyPI has {PUBLISHED_PYPI_VERSION!r}; "
-            "docs/install.md must label the unpublished version a release candidate"
+            "docs/start/install.md must label the unpublished version a release candidate"
         )
 
 
 def test_colab_md_version():
     root_dir = Path(__file__).resolve().parent.parent
-    content = (root_dir / "docs" / "colab.md").read_text(encoding="utf-8")
+    content = (root_dir / "docs" / "start" / "colab.md").read_text(encoding="utf-8")
     assert f"published PyPI release `jaxfne=={PUBLISHED_PYPI_VERSION}`" in content, (
-        f"docs/colab.md does not state published release {PUBLISHED_PYPI_VERSION}"
+        f"docs/start/colab.md does not state published release {PUBLISHED_PYPI_VERSION}"
     )
     assert f"previous release `{PREVIOUS_PYPI_VERSION}`" in content, (
-        "docs/colab.md should name the previous release for context"
+        "docs/start/colab.md should name the previous release for context"
     )
 
 
 def test_quickstart_md_documents_dev_contract():
     """quickstart.md tracks the development public contract (not a pinned PyPI stamp)."""
     root_dir = Path(__file__).resolve().parent.parent
-    content = (root_dir / "docs" / "quickstart.md").read_text(encoding="utf-8")
+    content = (root_dir / "docs" / "start" / "quickstart.md").read_text(encoding="utf-8")
 
     assert "dev" in content.lower() or "NeuronalTensor" in content
     assert "Verified against `jaxfne==" not in content
@@ -133,12 +133,12 @@ def test_quickstart_md_documents_dev_contract():
 def test_api_index_md_structural_contract_reference():
     """api/index.md references the frozen public surface contract, not a symbol inventory."""
     root_dir = Path(__file__).resolve().parent.parent
-    content = (root_dir / "docs" / "api" / "index.md").read_text(encoding="utf-8")
+    content = (root_dir / "docs" / "reference" / "api" / "index.md").read_text(encoding="utf-8")
 
     import json
 
     counts = json.loads(
-        (root_dir / "artifacts" / "public_surface_contract_v0413.json").read_text(encoding="utf-8")
+        (root_dir / "artifacts" / "assurance" / "api_contracts" / "public_surface_contract_v0413.json").read_text(encoding="utf-8")
     )["counts"]
     assert (
         f"**{counts['public_exports']} symbols** ({counts['canonical']} CANONICAL + "
@@ -153,13 +153,13 @@ def test_api_index_md_structural_contract_reference():
 def test_citation_md_version_fields():
     pyproject_version = get_pyproject_version()
     root_dir = Path(__file__).resolve().parent.parent
-    content = (root_dir / "docs" / "citation.md").read_text(encoding="utf-8")
+    content = (root_dir / "docs" / "reference" / "citation.md").read_text(encoding="utf-8")
 
     matches = re.findall(r"version = \{([^}]+)\}", content)
-    assert matches, "Could not find any 'version = {...}' BibTeX fields in docs/citation.md"
+    assert matches, "Could not find any 'version = {...}' BibTeX fields in docs/reference/citation.md"
     for v in matches:
         assert v == pyproject_version, (
-            f"docs/citation.md has a BibTeX version field {v!r}, pyproject.toml says {pyproject_version!r}"
+            f"docs/reference/citation.md has a BibTeX version field {v!r}, pyproject.toml says {pyproject_version!r}"
         )
 
 
@@ -205,7 +205,7 @@ def test_no_stale_active_versions_in_public_docs():
 
 
 def test_install_md_surface_count_matches_live_contract():
-    """docs/install.md names the current root surface size (N-symbol surface).
+    """docs/start/install.md names the current root surface size (N-symbol surface).
 
     The sentence describes the live root public contract, so N must equal
     len(jaxfne.__all__) exactly -- a stale count here is confusable with
@@ -214,10 +214,36 @@ def test_install_md_surface_count_matches_live_contract():
     import jaxfne as jtfne
 
     root_dir = Path(__file__).resolve().parent.parent
-    content = (root_dir / "docs" / "install.md").read_text(encoding="utf-8")
+    content = (root_dir / "docs" / "start" / "install.md").read_text(encoding="utf-8")
     match = re.search(r"\((\d+)-symbol surface\)", content)
-    assert match, "Could not find the '(N-symbol surface)' claim in docs/install.md"
+    assert match, "Could not find the '(N-symbol surface)' claim in docs/start/install.md"
     assert int(match.group(1)) == len(jtfne.__all__), (
-        f"docs/install.md claims a {match.group(1)}-symbol surface, "
+        f"docs/start/install.md claims a {match.group(1)}-symbol surface, "
+        f"live jaxfne.__all__ has {len(jtfne.__all__)}"
+    )
+
+
+def test_public_surface_contract_md_matches_live_surface():
+    """docs/reference/public_surface_contract.md names the current version and root count.
+
+    The page states the live root public contract (``jaxfne X.Y.Z: N root
+    symbols``), so the version must equal ``jaxfne.__version__`` and N must
+    equal ``len(jaxfne.__all__)`` exactly.
+    """
+    import jaxfne as jtfne
+
+    root_dir = Path(__file__).resolve().parent.parent
+    content = (root_dir / "docs" / "reference" / "public_surface_contract.md").read_text(encoding="utf-8")
+    match = re.search(r"jaxfne (\d+\.\d+\.\d+): (\d+) root symbols", content)
+    assert match, (
+        "Could not find the 'jaxfne X.Y.Z: N root symbols' claim "
+        "in docs/reference/public_surface_contract.md"
+    )
+    assert match.group(1) == jtfne.__version__, (
+        f"docs/reference/public_surface_contract.md claims jaxfne {match.group(1)!r}, "
+        f"live jaxfne.__version__ is {jtfne.__version__!r}"
+    )
+    assert int(match.group(2)) == len(jtfne.__all__), (
+        f"docs/reference/public_surface_contract.md claims {match.group(2)} root symbols, "
         f"live jaxfne.__all__ has {len(jtfne.__all__)}"
     )

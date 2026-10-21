@@ -12,6 +12,9 @@ from the scorer JSONs, never re-scored. This script does not import jaxfne, so t
 --check regenerates in memory and compares with the committed file, ignoring "generated". On a
 difference it names the first differing path. Any input error exits 1 and names the paper, file
 and key.
+
+The study list ("studies") is the table under "## Research studies (study list)" in
+docs/reference/references.md; parse_studies refuses a row it cannot read.
 """
 
 import argparse
@@ -24,9 +27,15 @@ from pathlib import Path
 
 SCHEMA = "jaxfne-replications/2"
 SOURCES_SCHEMA = "jaxfne-dashboard-sources/2"
-# Status classes (Hamm 2026-10-12, dashboard/ARCHITECTURE_v2.md). A demonstration carries no verdict.
-# An in-progress paper is on the replication pipeline with no scored preregistration yet: no verdict, a stage.
-CLASSES = ("verified", "partial", "not reproduced", "demonstration", "in progress")
+# Status classes (Hamm 2026-10-16). reproduced, reproduced (conditional) and failed need a signed
+# preregistration; a conditional reproduction states its condition in verdict_note. mixed (Hamm
+# 2026-10-19): a signed preregistration scored with some primary criteria reproduced and others
+# missed; verdict_note names which. An in-progress
+# paper has a stage and no verdict; a preregistration scored without a pass keeps it in progress.
+# A not-started paper has no verdict and no criteria.
+CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "in progress", "not started", "failed",
+           "core method")
+SCORED_CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "failed")
 TOL = 1e-9
 FLOOR_REASON = "E-rate floor not met"
 NO_VALUE = "—"
@@ -34,6 +43,11 @@ NO_VALUE = "—"
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "dashboard" / "sources.json"
 DEFAULT_OUT = ROOT / "dashboard" / "data" / "replications.json"
+REFERENCES = ROOT / "docs" / "reference" / "references.md"
+STUDY_HEADING = "## Research studies (study list)"
+STUDY_COLUMNS = ["Reference", "Result compared", "Where"]
+STUDY_STATUSES = ("reproduced", "reproduced (conditional)", "mixed", "in progress", "queued", "not started")
+MIN_STUDIES = 40
 
 
 class BuildError(Exception):
@@ -221,6 +235,10 @@ def verdict_of(p, c):
     if p.absent(spec["file"]):
         return "pending", reason
     flag = p.value(spec["file"], spec["key"])
+    if flag is None:
+        # A scorer row that stays null (a skipped check, such as a missing optional
+        # dependency) shows as pending, never as a pass or a synthesized value.
+        return "pending", reason
     if spec.get("form") == "pass_fail":
         # Scorers that write "pass" / "fail" / "incomplete"; incomplete scores as a fail.
         if flag not in ("pass", "fail", "incomplete"):
@@ -247,6 +265,13 @@ def build_criterion(p, c):
     vspec = c["value"]
     value = p.value(vspec["file"], vspec["key"])
     verdict, reason = verdict_of(p, c)
+    if "reference" in c:
+        # A core-method criterion names its independent reference in the scorer file
+        # ({"file", "key"}); a literal rides through for other classes.
+        refspec = c["reference"]
+        reference = p.value(refspec["file"], refspec["key"]) if isinstance(refspec, dict) else refspec
+    else:
+        reference = None
     return {
         "id": c["id"],
         "group": c.get("group", ""),
@@ -261,7 +286,9 @@ def build_criterion(p, c):
         "extra": [build_extra(p, e) for e in c.get("extra", [])],
         "verdict": verdict,
         "reason": reason,
-        "prereg": c["prereg"],
+        "reference": reference,
+        "reference_text": value_text(reference),
+        "prereg": c.get("prereg"),
         "evidence": p.evidence(vspec["file"]),
     }
 
@@ -445,15 +472,36 @@ def check_class(spec):
     cls = spec.get("class")
     if cls not in CLASSES:
         raise BuildError(f"paper {spec['id']}: class {cls!r} is not one of {list(CLASSES)}")
-    if cls == "demonstration" and spec.get("verdict") is not None:
-        raise BuildError(f"paper {spec['id']}: a demonstration carries no verdict")
     if cls == "in progress":
         if spec.get("verdict") is not None:
             raise BuildError(f"paper {spec['id']}: an in-progress paper carries no verdict")
         if not spec.get("stage"):
             raise BuildError(f"paper {spec['id']}: an in-progress paper needs a non-empty stage")
-    elif cls != "demonstration" and not spec.get("preregs"):
+    if cls == "not started" and (spec.get("verdict") is not None or spec.get("criteria")):
+        raise BuildError(f"paper {spec['id']}: a not-started paper carries no verdict and no criteria")
+    if cls == "core method":
+        # Analytic checks of a core method, not a paper replication: no stage, no verdict,
+        # no preregistration. Every criterion takes its verdict from the scorer file and names
+        # the independent reference it was scored against; a skippable criterion (a check the
+        # scorer can refuse, such as a missing optional dependency) names its scorer entry.
+        if not spec.get("criteria"):
+            raise BuildError(f"paper {spec['id']}: a core-method entry needs non-empty criteria")
+        for c in spec["criteria"]:
+            if "verdict" not in c:
+                raise BuildError(f"paper {spec['id']}: criterion {c.get('id')!r} takes its verdict "
+                                 "from the scorer file")
+            if not c.get("reference"):
+                raise BuildError(f"paper {spec['id']}: criterion {c.get('id')!r} needs a non-empty reference")
+            if c.get("may_skip") and not c.get("entry"):
+                raise BuildError(f"paper {spec['id']}: a skippable criterion names its scorer entry "
+                                 "in 'entry'")
+        return cls
+    if cls in SCORED_CLASSES and not spec.get("preregs"):
         raise BuildError(f"paper {spec['id']}: class {cls!r} needs a signed preregistration")
+    if cls == "reproduced (conditional)" and not spec.get("verdict_note"):
+        raise BuildError(f"paper {spec['id']}: a conditional reproduction states its condition in verdict_note")
+    if cls == "mixed" and not spec.get("verdict_note"):
+        raise BuildError(f"paper {spec['id']}: a mixed verdict names what reproduced and what missed in verdict_note")
     return cls
 
 
@@ -482,7 +530,19 @@ def build_stage_artifacts(p, spec):
     return out
 
 
+def check_dev_lane(spec):
+    """A dev lane SHA must be in HEAD's history: a rebased-away SHA survives in a local clone but not in CI's."""
+    lane = spec["lane"]
+    if lane["branch"] != "dev":
+        return
+    if git(["cat-file", "-e", f"{lane['sha']}^{{commit}}"]).returncode != 0:
+        raise BuildError(f"lane sha {lane['sha']} is not a commit in this clone")
+    if git(["merge-base", "--is-ancestor", lane["sha"], "HEAD"]).returncode != 0:
+        raise BuildError(f"paper {spec['id']}: dev lane sha {lane['sha']} is not in HEAD's history")
+
+
 def build_paper(spec, files, repo_url):
+    check_dev_lane(spec)
     p = Paper(spec, files, repo_url)
     return {
         "id": spec["id"],
@@ -493,7 +553,7 @@ def build_paper(spec, files, repo_url):
         "page": model_page(spec),
         "release": spec["release"],
         "tier": spec["tier"],
-        "stage": spec["stage"],
+        "stage": spec.get("stage"),
         "lane": {"branch": spec["lane"]["branch"], "sha": spec["lane"]["sha"]},
         "stage_artifacts": build_stage_artifacts(p, spec),
         "verdict": spec.get("verdict"),
@@ -508,6 +568,75 @@ def build_paper(spec, files, repo_url):
         "charts": [build_chart(p, ch) for ch in spec.get("charts", [])],
         "open": list(spec.get("open", [])),
     }
+
+
+# A DOI may hold parentheses ("s0896-6273(02)01092-9"), so the link ends at a ")" followed by a space or the cell end.
+DOI_LINK = re.compile(r"\[doi:([^\]]+)\]\(https://doi\.org/(\S+?)\)(?=\s|$)")
+# Longest status name first, so "reproduced (conditional)" is a status and not "reproduced" plus a note.
+STUDY_OPEN = re.compile(
+    "(" + "|".join(re.escape(s) for s in sorted(STUDY_STATUSES, key=len, reverse=True)) + r")"
+    r"(?:\s*\(([^()]*)\))?\.\s*(.*)",
+    re.IGNORECASE,
+)
+
+
+def split_row(line):
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+def study_row(cells, number):
+    ref_cell, result_cell, where_cell = cells
+    doi = None
+    reference = ref_cell
+    link = DOI_LINK.search(ref_cell)
+    if link:
+        if link.group(1) != link.group(2):
+            raise BuildError(f"study row {number}: DOI text {link.group(1)!r} differs from its link {link.group(2)!r}")
+        doi = link.group(2)
+        reference = " ".join(s for s in (ref_cell[:link.start()].strip(), ref_cell[link.end():].strip()) if s)
+    opened = STUDY_OPEN.match(where_cell)
+    if not opened:
+        raise BuildError(
+            f"study row {number} ({reference[:60]!r}): Where cell opens with {where_cell[:40]!r}, "
+            f"not one of {list(STUDY_STATUSES)} followed by a period"
+        )
+    note = opened.group(2)
+    return {
+        "reference": reference,
+        "doi": doi,
+        "result": result_cell,
+        "status": opened.group(1).lower(),
+        "status_note": None if note is None else note.strip(),
+        "where": opened.group(3).strip(),
+    }
+
+
+def parse_studies(markdown):
+    """One dict per row of the study-list table under STUDY_HEADING. A missing table, a header other
+    than STUDY_COLUMNS, fewer than MIN_STUDIES rows, or a Where cell that opens with no status is an error.
+    A parenthetical after the status (for example 'In progress (pilot).') is kept as status_note."""
+    lines = markdown.splitlines()
+    starts = [i for i, line in enumerate(lines) if line.rstrip() == STUDY_HEADING]
+    if not starts:
+        raise BuildError(f"references page has no heading {STUDY_HEADING!r}")
+    block = []
+    for line in lines[starts[0] + 1:]:
+        if line.startswith("## "):
+            break
+        if line.startswith("|"):
+            block.append(line)
+    if len(block) < 2 or split_row(block[0]) != STUDY_COLUMNS or not re.fullmatch(r"[|\s:-]+", block[1]):
+        raise BuildError(f"study list under {STUDY_HEADING!r} has no header {' | '.join(STUDY_COLUMNS)}")
+    rows = block[2:]
+    if len(rows) < MIN_STUDIES:
+        raise BuildError(f"study list has {len(rows)} rows, expected at least {MIN_STUDIES}")
+    out = []
+    for number, line in enumerate(rows, 1):
+        cells = split_row(line)
+        if len(cells) != 3:
+            raise BuildError(f"study row {number} has {len(cells)} cells, expected 3")
+        out.append(study_row(cells, number))
+    return out
 
 
 def dev_sha():
@@ -527,6 +656,10 @@ def build_document():
         raise BuildError(f"sources schema is {sources.get('schema')!r}, expected {SOURCES_SCHEMA!r}")
     files = Files()
     papers = [build_paper(s, files, sources["repo_url"]) for s in sources["papers"]]
+    try:
+        studies = parse_studies(REFERENCES.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise BuildError(f"cannot read {REFERENCES}: {exc}")
     return {
         "schema": SCHEMA,
         "sample": False,
@@ -536,6 +669,7 @@ def build_document():
         },
         "papers": papers,
         "roadmap": list(sources.get("roadmap", [])),
+        "studies": studies,
     }
 
 

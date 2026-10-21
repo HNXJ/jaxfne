@@ -1,10 +1,10 @@
 # Étude: Heterogeneous emitters in one TFNE composition (frozen protocol)
 
 **Protocol identity:** `heterogeneous_emitters_v0415b`  
-**Supersedes:** `v0415` (n=10 HEI, `bound_mode=minimal`, \(U_{\rm hei}=0.5\)), which produced nonfinite \(Q\) (`hei_error=true`). Failed receipt: `artifacts/etudes/heterogeneous_emitters/failed_v0415/`.  
+**Supersedes:** `v0415` (n=10 HEI, `bound_mode=minimal`, \(U_{\rm hei}=0.5\)), which produced nonfinite \(Q\) (`hei_error=true`). Failed receipt: `artifacts/etudes/bundles/heterogeneous_emitters/failed_v0415/`.  
 **Revision reason:** the composition claim requires a finite declared source. `homeostatic_ei` at n=10 under extra drive with unbounded \(x\) is a known numerical regime of that kernel; the canonical mature circuit is n=2 with `bound_mode=stable`.
 **Package baseline:** `jaxfne/` unchanged since `d5cf9a6`; repo HEAD at etude start recorded in the bundle  
-**Bundle:** `artifacts/etudes/heterogeneous_emitters/`  
+**Bundle:** `artifacts/etudes/bundles/heterogeneous_emitters/`  
 **Package code:** not modified for this étude  
 **Jaxley:** installed locally but **not** a primary emitter (deferred; see §6)
 
@@ -79,7 +79,7 @@ Shared **shape** (relative native drive added to each family's baseline):
 | pulse | 700–750 | 1 |
 | tail | 750–1000 | 0 |
 
-Family-native scales (not a calibration):
+Family-native scales (uncalibrated):
 
 - `izh`: \(U = 6.0 \times \mathrm{shape}\)
 - `hei`: \(U = 0.2 \times \mathrm{shape}\)
@@ -96,7 +96,7 @@ constant extra drive. `izh` amplitudes `{0,2,4,8,12}`; `hei` amplitudes
 branch returns before paradigm resolution. Classification:
 **ANALYSIS_GAP** (family-specific drive surface); the 0.4.15 observations
 stand. Do not patch in this étude. Closure may add an HEI caveat to
-`docs/api/core.md` or reject unused `paradigm` on HEI; that is out of scope
+`docs/reference/api/core/core.md` or reject unused `paradigm` on HEI; that is out of scope
 here.
 
 ---
@@ -167,7 +167,7 @@ PYTHONPATH=. python3 scripts/run_heterogeneous_emitters_etude.py
 
     <iframe class="jx-frame" src="../../_static/etudes/heterogeneous_emitters/index.html" loading="lazy" title="Heterogeneous emitters bundle figure"></iframe>
 
-Committed bundle still (`artifacts/etudes/heterogeneous_emitters/figure.png`). [Open full page](../_static/etudes/heterogeneous_emitters/index.html).
+Committed bundle still (`artifacts/etudes/bundles/heterogeneous_emitters/figure.png`). [Open full page](../_static/etudes/heterogeneous_emitters/index.html).
 
 ## Interactive panels (dark)
 

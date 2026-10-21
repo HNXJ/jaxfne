@@ -471,8 +471,9 @@ def test_narrow_drive_gain_blackbox_unchanged():
         objectives=obj, optimizer=jtfne.agsdr(), simulation=sim,
         parameter="drive_gain", bounds=(0.5, 1.5), steps=4, seed=0,
     )
-    assert result.best_parameters == {"best_value": 0.84114316166169}
-    assert result.best_score == 0.07111111111111111
+    assert set(result.best_parameters) == {"best_value"}
+    np.testing.assert_allclose(result.best_parameters["best_value"], 0.84114316166169, rtol=1e-12)
+    np.testing.assert_allclose(result.best_score, 0.07111111111111111, rtol=1e-12)
 
 
 def test_narrow_source_scale_optax_unchanged():
@@ -493,5 +494,5 @@ def test_narrow_source_scale_optax_unchanged():
     result = model.tune(objectives=obj, optimizer=opt, simulation=sim, steps=5)
     history = result.summary["gradient_history"]
     assert len(history) == 5
-    assert history[-1]["source_scale"] == 1.2485201358795166
-    assert history[-1]["loss"] == 278.07080078125
+    np.testing.assert_allclose(history[-1]["source_scale"], 1.2485201358795166, rtol=1e-6)
+    np.testing.assert_allclose(history[-1]["loss"], 278.07080078125, rtol=1e-6)

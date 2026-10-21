@@ -2,7 +2,7 @@
 
 The body is two tables, in order: release metadata (package, version, Python
 support, extras, install command) read from ``pyproject.toml``, and the
-version's section of ``docs/changelog.md``. ``--check`` verifies the tag names
+version's section of ``docs/reference/changelog.md``. ``--check`` verifies the tag names
 ``pyproject.toml``'s version, the changelog carries a section for it, and the section
 is dated (``## vX.Y.Z (YYYY-MM-DD)``): a ``(candidate)`` section fails the check,
 while the body without ``--check`` still renders it. The check reads files only; it
@@ -111,14 +111,14 @@ def build_body(root: pathlib.Path, tag: str, require_dated: bool = False
     if tag != f"v{metadata.version}":
         return None, [f"tag {tag!r} does not match pyproject version "
                       f"{metadata.version!r} (expected 'v{metadata.version}')"]
-    changelog = (root / "docs" / "changelog.md").read_bytes().decode("utf-8").replace("\r\n", "\n")
+    changelog = (root / "docs" / "reference" / "changelog.md").read_bytes().decode("utf-8").replace("\r\n", "\n")
     section = changelog_section(changelog, metadata.version)
     if section is None:
-        return None, [f"docs/changelog.md has no non-empty section headed "
+        return None, [f"docs/reference/changelog.md has no non-empty section headed "
                       f"'## v{metadata.version} ...'"]
     if require_dated and _dated_heading(metadata.version).search(changelog) is None:
         heading = section.split("\n", 1)[0]
-        return None, [f"docs/changelog.md carries {heading!r} for v{metadata.version}: "
+        return None, [f"docs/reference/changelog.md carries {heading!r} for v{metadata.version}: "
                       f"the section must be dated before release"]
     return render_body(metadata, section), []
 
@@ -139,7 +139,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             print(f"release body: {violation}", file=sys.stderr)
         return 1
     if args.check:
-        print(f"PASS: {args.tag} matches pyproject and docs/changelog.md carries its section")
+        print(f"PASS: {args.tag} matches pyproject and docs/reference/changelog.md carries its section")
         return 0
     sys.stdout.write(body)
     return 0

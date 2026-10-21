@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import numbers
 import warnings
 from functools import partial
 from dataclasses import dataclass, field, replace as _dc_replace
@@ -31,6 +32,8 @@ from typing import Any, Mapping, Optional, Sequence
 import jax
 import jax.numpy as jnp
 import numpy as np
+
+from .pcl_topology import footprint_pairs, validate_footprint, validate_local_inhibition, validate_rounds, validate_weight_sharing
 
 __all__ = [
     "compile_connection_rules",
@@ -86,6 +89,31 @@ def _validate_rule_delay_ms(rule_name: str, delay: Any) -> "float | None":
             f"connection {rule_name!r} delay_ms must be finite and >= 0; got {delay!r}"
         )
     return ms
+
+
+def _validate_in_degree(rule_name: str, in_degree: Any) -> "int | None":
+    """Validate one connection rule's exact fixed ``in_degree`` (or pass None through).
+
+    None = undeclared = the density path; a declared value must be a
+    positive integer (bools, non-integral numbers and values < 1 are
+    refused, never coerced). When set, the rule compiles through the
+    exact fixed-indegree sampler instead of the ``probability`` density
+    path, so the two are mutually exclusive.
+    """
+    if in_degree is None:
+        return None
+    if isinstance(in_degree, bool) or not isinstance(in_degree, numbers.Integral):
+        raise ValueError(
+            f"connection {rule_name!r} in_degree must be a positive integer; "
+            f"got {in_degree!r}"
+        )
+    degree = int(in_degree)
+    if degree < 1:
+        raise ValueError(
+            f"connection {rule_name!r} in_degree must be a positive integer; "
+            f"got {in_degree!r}"
+        )
+    return degree
 
 
 @dataclass(frozen=True)
@@ -162,8 +190,14 @@ class ConnectionCompileResult:
                 if self.edge_delay_ms is not None
                 else _np.zeros((self.n_edges,), dtype=_np.float64)
             )
+            # Realize each distinct delay once; every value is still checked.
+            uniq, inverse = _np.unique(ms, return_inverse=True)
+            steps = _np.asarray(
+                [delay_steps_from_ms(float(v), float(dt_ms)) for v in uniq], dtype=_np.int32
+            ).reshape(-1)
             delay_steps = jnp.asarray(
-                [delay_steps_from_ms(float(v), float(dt_ms)) for v in ms], dtype=jnp.int32
+                steps[inverse.reshape(-1)] if ms.size else _np.zeros((0,), _np.int32),
+                dtype=jnp.int32,
             )
         return EdgeList(
             pre=jnp.asarray(self.edge_pre, dtype=jnp.int32),
@@ -224,6 +258,9 @@ class _SelectionIndex:
         return True, [q for q in ranked[0][2] if all(q in st for st in member)]
 
 
+_PLURAL_SELECTOR_KEYS = {"layers": "layer", "cell_types": "cell_type"}
+
+
 def _select_indices(
     neurons: Sequence[Mapping[str, Any]],
     selector: Mapping[str, Any],
@@ -232,10 +269,23 @@ def _select_indices(
     label: str,
     _index: "_SelectionIndex | None" = None,
 ) -> list[int]:
-    """Resolve a quartet/id selector to neuron_id indices (strict AND)."""
+    """Resolve a quartet/id selector to neuron_id indices (strict AND).
+
+    The plural keys ``layers``/``cell_types`` take a name or a list and match
+    any listed value of the row field ``layer``/``cell_type``; declaring a key
+    in both forms is refused.
+    """
     if not isinstance(selector, Mapping):
         raise ValueError(f"{label} selector must be a mapping; got {type(selector).__name__}")
     keys = {k: v for k, v in selector.items() if k != "ids" and v is not None}
+    member: dict[str, set[str]] = {}
+    for plural, single in _PLURAL_SELECTOR_KEYS.items():
+        if plural not in keys:
+            continue
+        if single in keys:
+            raise ValueError(f"{label} selector declares both {single!r} and {plural!r}; declare one")
+        value = keys.pop(plural)
+        member[single] = {str(v) for v in ([value] if isinstance(value, str) else value)}
     ids_filter = selector.get("ids")
     ids_set = set(int(i) for i in ids_filter) if ids_filter is not None else None
     if _index is not None:
@@ -243,6 +293,8 @@ def _select_indices(
         if covered:
             out = []
             for pos in positions:
+                if not all(str(neurons[pos].get(f)) in s for f, s in member.items()):
+                    continue
                 nid = int(neurons[pos]["neuron_id"])
                 if ids_set is not None and nid not in ids_set:
                     continue
@@ -253,6 +305,8 @@ def _select_indices(
     out: list[int] = []
     for row in neurons:
         if not all(str(row.get(k)) == str(v) for k, v in keys.items()):
+            continue
+        if not all(str(row.get(f)) in s for f, s in member.items()):
             continue
         nid = int(row["neuron_id"])
         if ids_set is not None and nid not in ids_set:
@@ -468,6 +522,71 @@ def _candidate_pairs_capped_bernoulli(
         seen_post[b] = n_kept + 1
         kept.append((a, b))
     return kept
+
+
+def _candidate_pairs_fixed_indegree(
+    pre_ids: list[int],
+    post_ids: list[int],
+    *,
+    in_degree: int,
+    allow_self: bool,
+    key: jax.Array,
+) -> list[tuple[int, int]]:
+    """Return (pre, post) edge pairs with an exact per-post-cell in-degree.
+
+    Every post cell draws exactly ``in_degree`` distinct presynaptic
+    partners uniformly without replacement from the pre pool (the self
+    pair excluded first when ``allow_self`` is False, so the count holds
+    kept edges). Each post cell keeps the ``in_degree`` smallest of
+    independent uniforms over its pool, a uniform draw of a subset of that
+    size; the uniforms come from one NumPy generator seeded by ``key``, so
+    draws are deterministic given ``key`` and independent across post cells,
+    and the whole projection costs one host-side pass (no per-cell device
+    call). A post cell with fewer than ``in_degree`` available partners
+    raises ``ValueError`` rather than filling short: the exact count is the
+    contract (Brunel 2000: fixed CE/CI per cell).
+    """
+    if not pre_ids or not post_ids or in_degree <= 0:
+        return []
+    pre_arr = np.asarray(pre_ids, dtype=np.int64)
+    post_arr = np.asarray(post_ids, dtype=np.int64)
+    n_pre = pre_arr.size
+    pre_pos = {int(a): i for i, a in enumerate(pre_ids)}
+    # Pool position of each post cell's own pair, -1 when it stays a candidate.
+    self_pos = np.full(post_arr.size, -1, dtype=np.int64)
+    if not allow_self:
+        for j, post_id in enumerate(post_ids):
+            self_pos[j] = pre_pos.get(int(post_id), -1)
+    available = n_pre - (self_pos >= 0)
+    short = np.flatnonzero(available < in_degree)
+    if short.size:
+        j = int(short[0])
+        raise ValueError(
+            f"fixed_indegree in_degree={in_degree} exceeds the "
+            f"{int(available[j])} available presynaptic neurons for post "
+            f"neuron {post_ids[j]!r} (allow_self={allow_self}); lower "
+            "in_degree or widen the source selector"
+        )
+    rng = np.random.default_rng(
+        np.asarray(jax.random.bits(key, (4,), dtype=jnp.uint32))
+    )
+    rows_per_chunk = max(1, (1 << 22) // n_pre)
+    out_pre, out_post = [], []
+    for lo in range(0, post_arr.size, rows_per_chunk):
+        hi = min(post_arr.size, lo + rows_per_chunk)
+        u = rng.random((hi - lo, n_pre))
+        own = np.flatnonzero(self_pos[lo:hi] >= 0)
+        u[own, self_pos[lo:hi][own]] = np.inf
+        if in_degree < n_pre:
+            idx = np.argpartition(u, in_degree - 1, axis=1)[:, :in_degree]
+        else:
+            idx = np.broadcast_to(np.arange(n_pre), (hi - lo, n_pre))
+        out_pre.append(pre_arr[idx].ravel())
+        out_post.append(np.repeat(post_arr[lo:hi], in_degree))
+    edge_pre = np.concatenate(out_pre)
+    edge_post = np.concatenate(out_post)
+    order = np.lexsort((edge_post, edge_pre))
+    return list(zip(edge_pre[order].tolist(), edge_post[order].tolist()))
 
 
 def _spatial_bucket_key(pos: np.ndarray, cell_size: float) -> tuple[int, int, int]:
@@ -691,6 +810,7 @@ def compile_connection_rules(
     allow_self_connections: bool = False,
     artifacts: Optional[Mapping[str, Any]] = None,
     dtype: str = "float32",
+    allow_intra_step_rounds: bool = False,
 ) -> ConnectionCompileResult:
     """Compile declared connection rules into sparse finite edge arrays.
 
@@ -725,16 +845,26 @@ def compile_connection_rules(
     edge count is exactly ``round(p*n_pre*n_post)``), ``"bernoulli"`` (each
     (pre, post) pair is included independently with probability ``p`` via
     :func:`_candidate_pairs_bernoulli`, tiled past 4M candidate pairs so no
-    dense mask is materialized) or ``"capped_bernoulli"`` (the Bernoulli
+    dense mask is materialized), ``"capped_bernoulli"`` (the Bernoulli
     draws truncated to ``int(n_pre*p)`` kept edges per post cell, scanning
-    pre cells in order, via :func:`_candidate_pairs_capped_bernoulli`).
-    Any other ``sampling`` value raises ``ValueError``.
+    pre cells in order, via :func:`_candidate_pairs_capped_bernoulli`) or
+    ``"fixed_indegree"`` (each post cell draws exactly ``in_degree`` distinct
+    presynaptic partners uniformly without replacement via
+    :func:`_candidate_pairs_fixed_indegree`; it needs ``in_degree`` and
+    refuses ``probability``, ``max_in_degree``, ``footprint`` and the
+    Bernoulli samplings). Any other ``sampling`` value raises ``ValueError``.
 
     A rule may set ``delay_ms`` (configured axonal delay in ms, None =
     undeclared): validated here (finite, >= 0), fanned out per edge onto
     ``edge_delay_ms``, and recorded on the connection-table row. Realization
     to integer steps happens at construction via :func:`delay_steps_from_ms`
     (0.5.2 decision 0b), where ``dt`` is known — never here.
+
+    A rule may set ``intra_step_rounds`` (None = undeclared): the declared
+    intra-step fixed point for zero-delay edges, realized on the adex route
+    only. Any other caller refuses it here, naming the adex route; pass
+    ``allow_intra_step_rounds=True`` on the adex route, where it is validated
+    (a positive int) and carried on the rule for the kernel.
     """
     artifacts = dict(artifacts or {})
     if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
@@ -795,14 +925,50 @@ def compile_connection_rules(
         # fanned out per edge below, realized to steps at construction.
         rule_delay_ms = _validate_rule_delay_ms(rname, rule.get("delay_ms"))
         # Validated before any skip, so an empty or localized rule cannot carry a bad value.
+        declared_rounds = rule.get("intra_step_rounds")
+        if declared_rounds is not None:
+            if not allow_intra_step_rounds:
+                raise ValueError(
+                    f"connection {rname!r} declares intra_step_rounds={declared_rounds!r}: "
+                    "the intra-step fixed point is realized on the adex route only "
+                    "(emitter family 'adex'); omit it on this route"
+                )
+            validate_rounds(declared_rounds, label=f"connection {rname!r} intra_step_rounds")
         sampling = rule.get("sampling")
         sampling = "density" if sampling is None else sampling
         if not isinstance(sampling, str) or sampling not in (
-            "density", "bernoulli", "capped_bernoulli",
+            "density", "bernoulli", "capped_bernoulli", "fixed_indegree",
         ):
             raise ValueError(
-                f"connection {rname!r} sampling must be 'density', 'bernoulli' or "
-                f"'capped_bernoulli'; got {sampling!r}"
+                f"connection {rname!r} sampling must be 'density', 'bernoulli', "
+                f"'capped_bernoulli' or 'fixed_indegree'; got {sampling!r}"
+            )
+        in_degree = _validate_in_degree(rname, rule.get("in_degree"))
+        if sampling == "fixed_indegree" and in_degree is None:
+            raise ValueError(
+                f"connection {rname!r} declares sampling='fixed_indegree' "
+                "without in_degree; the fixed-indegree sampler draws exactly "
+                "in_degree presynaptic partners per post cell -- declare both"
+            )
+        if sampling in ("bernoulli", "capped_bernoulli") and in_degree is not None:
+            raise ValueError(
+                f"connection {rname!r} sampling={sampling!r} is not implemented "
+                f"with in_degree={in_degree!r} (exact fixed in-degree); "
+                "omit one of them"
+            )
+        if in_degree is not None and rule.get("probability") is not None:
+            raise ValueError(
+                f"connection {rname!r} declares in_degree={in_degree!r} with "
+                f"probability={rule.get('probability')!r}; the fixed-indegree "
+                "sampler draws an exact per-post-cell count, not a density "
+                "fraction -- declare one or neither"
+            )
+        if in_degree is not None and rule.get("max_in_degree") is not None:
+            raise ValueError(
+                f"connection {rname!r} declares in_degree={in_degree!r} with "
+                f"max_in_degree={rule.get('max_in_degree')!r}; exact fixed "
+                "in-degree and localized (distance-weighted) sampling are "
+                "mutually exclusive sampling modes -- declare one or neither"
             )
         if sampling in ("bernoulli", "capped_bernoulli") and rule.get("max_in_degree") is not None:
             raise ValueError(
@@ -818,6 +984,48 @@ def compile_connection_rules(
                 "without max_in_degree; spatial_sigma needs max_in_degree "
                 "(localized sampling) -- declare both or neither"
             )
+        # A declared footprint selects pairs deterministically from posed
+        # positions (jaxfne.pcl_topology.footprint_pairs), so the stochastic
+        # pair selectors must not also apply: probability, max_in_degree and
+        # a non-default sampling alongside it are refused rather than
+        # silently ignored. Weight sharing without a footprint is refused:
+        # sharing groups are the footprint's co-located post slots.
+        footprint_spec = validate_footprint(
+            rule.get("footprint"), label=f"connection {rname!r}")
+        sharing_mode = validate_weight_sharing(
+            rule.get("weight_sharing"), label=f"connection {rname!r}")
+        if footprint_spec is None:
+            if sharing_mode is not None:
+                raise ValueError(
+                    f"connection {rname!r} declares weight_sharing={sharing_mode!r} "
+                    "without footprint; sharing groups are the footprint rule's "
+                    "co-located post slots -- declare both or neither"
+                )
+        else:
+            if rule.get("probability") is not None:
+                raise ValueError(
+                    f"connection {rname!r} declares footprint with "
+                    f"probability={rule.get('probability')!r}; the footprint "
+                    "rule selects pairs deterministically -- declare one or neither"
+                )
+            if rule.get("max_in_degree") is not None:
+                raise ValueError(
+                    f"connection {rname!r} declares footprint with "
+                    f"max_in_degree={rule.get('max_in_degree')!r}; the footprint "
+                    "rule selects pairs deterministically -- declare one or neither"
+                )
+            if in_degree is not None:
+                raise ValueError(
+                    f"connection {rname!r} declares footprint with "
+                    f"in_degree={in_degree!r}; the footprint "
+                    "rule selects pairs deterministically -- declare one or neither"
+                )
+            if sampling != "density":
+                raise ValueError(
+                    f"connection {rname!r} declares footprint with "
+                    f"sampling={sampling!r}; the footprint rule selects pairs "
+                    "deterministically -- leave sampling at its default"
+                )
         # _select_indices honors allow_empty internally (returns [] vs raises on
         # zero-match) and ALWAYS raises on a structurally invalid (non-mapping)
         # selector. No try/except here: structural errors must surface loudly,
@@ -846,7 +1054,42 @@ def compile_connection_rules(
         mech_idx = _resolve_mechanism(rule.get("mechanism"), mech_index, rname)
         rkey = jax.random.fold_in(base_key, rule_id)
         max_in_degree = rule.get("max_in_degree")
-        if max_in_degree is not None:
+        sharing_groups: list[int] | None = None
+        if footprint_spec is not None:
+            try:
+                xy_by_id = {
+                    int(row["neuron_id"]): (float(row["x"]), float(row["y"]))
+                    for row in neurons
+                }
+            except (KeyError, TypeError, ValueError) as exc:
+                raise ValueError(
+                    f"connection {rname!r} declares footprint but a neuron row "
+                    f"lacks x/y posed positions ({exc})"
+                )
+            if any(
+                not (math.isfinite(x) and math.isfinite(y))
+                for x, y in xy_by_id.values()
+            ):
+                raise ValueError(
+                    f"connection {rname!r} declares footprint but a neuron row "
+                    "carries a non-finite x/y posed position"
+                )
+            pairs_all, groups_all = footprint_pairs(
+                [int(i) for i in pre_ids],
+                np.array([xy_by_id[int(i)] for i in pre_ids], dtype=float),
+                [int(i) for i in post_ids],
+                np.array([xy_by_id[int(i)] for i in post_ids], dtype=float),
+                {"size": footprint_spec["size"], "offset": footprint_spec["offset"]},
+                label=f"connection {rname!r}",
+            )
+            if not rule_self:
+                kept = [(a, b, g) for (a, b), g in zip(pairs_all, groups_all) if a != b]
+            else:
+                kept = [(a, b, g) for (a, b), g in zip(pairs_all, groups_all)]
+            pairs = [(a, b) for a, b, _ in kept]
+            if sharing_mode is not None:
+                sharing_groups = [g for _, _, g in kept]
+        elif max_in_degree is not None:
             neuron_xyz = {
                 int(row["neuron_id"]): np.asarray([row["x"], row["y"], row["z"]], dtype=float)
                 for row in neurons
@@ -864,6 +1107,14 @@ def compile_connection_rules(
                     if rule.get("spatial_sigma") is None
                     else rule["spatial_sigma"]
                 ),
+                allow_self=rule_self,
+                key=rkey,
+            )
+        elif in_degree is not None:
+            pairs = _candidate_pairs_fixed_indegree(
+                pre_ids,
+                post_ids,
+                in_degree=in_degree,
                 allow_self=rule_self,
                 key=rkey,
             )
@@ -918,22 +1169,52 @@ def compile_connection_rules(
             "mechanism": rule.get("mechanism"),
             "probability": rule.get("probability"),
             "max_in_degree": rule.get("max_in_degree"),
+            "in_degree": rule.get("in_degree"),
             "sign": rule.get("sign"),
             "control_key": rule.get("control_key"),
             "delay_ms": rule_delay_ms,
             "status": "compiled",
         }
-        if sampling in ("bernoulli", "capped_bernoulli"):
+        if footprint_spec is not None:
+            # Echoed so the realized geometry stays inspectable; the
+            # per-edge groups align with this rule's edges (global indices
+            # estart:estart + n_edges) for the HDP rule to consume.
+            row["footprint"] = {
+                "size": list(footprint_spec["size"]),
+                "offset": list(footprint_spec["offset"]),
+            }
+            row["weight_sharing"] = sharing_mode
+            if sharing_groups is not None:
+                row["sharing_group_of_edge"] = [int(g) for g in sharing_groups]
+                row["n_sharing_groups"] = (
+                    max(sharing_groups) + 1 if sharing_groups else 0
+                )
+        inhibition_spec = validate_local_inhibition(
+            rule.get("local_inhibition"), label=f"connection {rname!r}")
+        if inhibition_spec is not None:
+            # Echoed so the declared intra-step fixed point (R and the round
+            # order on A) stays inspectable through the manifest. The
+            # resolution echoes only when explicitly declared, so default
+            # specs echo byte-identically.
+            row["local_inhibition"] = {
+                "rounds": int(inhibition_spec["rounds"]),
+                "order": str(inhibition_spec["order"]),
+            }
+            if "resolution" in inhibition_spec:
+                row["local_inhibition"]["resolution"] = str(
+                    inhibition_spec["resolution"])
+        if sampling in ("bernoulli", "capped_bernoulli", "fixed_indegree"):
             # Recorded only when non-default, as in connections(), so density rows are unchanged.
             row["sampling"] = sampling
         connection_table.append(row)
 
-    edge_pre = jnp.asarray(all_pre, dtype=jnp.int32)
-    edge_post = jnp.asarray(all_post, dtype=jnp.int32)
-    edge_weight = jnp.asarray(all_weight, dtype=jdtype)
-    edge_mechanism = jnp.asarray(all_mech, dtype=jnp.int32)
-    edge_rule_id = jnp.asarray(all_rule, dtype=jnp.int32)
-    edge_delay_ms = jnp.asarray(all_delay_ms, dtype=jdtype)
+    # Lists go through NumPy first: jnp.asarray walks a Python list element by element.
+    edge_pre = jnp.asarray(np.asarray(all_pre, dtype=np.int32), dtype=jnp.int32)
+    edge_post = jnp.asarray(np.asarray(all_post, dtype=np.int32), dtype=jnp.int32)
+    edge_weight = jnp.asarray(np.asarray(all_weight, dtype=np.float64), dtype=jdtype)
+    edge_mechanism = jnp.asarray(np.asarray(all_mech, dtype=np.int32), dtype=jnp.int32)
+    edge_rule_id = jnp.asarray(np.asarray(all_rule, dtype=np.int32), dtype=jnp.int32)
+    edge_delay_ms = jnp.asarray(np.asarray(all_delay_ms, dtype=np.float64), dtype=jdtype)
     if edge_weight.shape[0] and not bool(jnp.all(jnp.isfinite(edge_weight))):
         raise ValueError("compiled edge weights contain non-finite values")
 
@@ -988,6 +1269,44 @@ def with_rule_allow_self_connections(cfg: Any, rule_name: str, value: bool = Tru
             f"allow_self_connections; found {len(hits)}"
         )
     patched = dict(rules[hits[0]], allow_self_connections=value)
+    rules[hits[0]] = patched
+    circuit["connections"] = rules
+    metadata["circuit"] = circuit
+    metadata["circuit_compiled"] = False
+    return _dc_replace(cfg, metadata=metadata)
+
+
+def with_rule_local_inhibition(cfg: Any, rule_name: str, spec: Any) -> Any:
+    """Return a copy of ``cfg`` with ``local_inhibition`` set on one rule.
+
+    Same idiom as :func:`with_rule_allow_self_connections` (:meth:
+    `Configuration.connections` has no ``local_inhibition`` kwarg): the
+    named rule entry is copied with ``local_inhibition={"rounds", "order"}``
+    (plus ``"resolution"`` when explicitly declared, so default specs stay
+    byte-identical) and everything else byte-identical. ``spec`` is revalidated here
+    (fail-closed); :func:`compile_connection_rules` echoes it onto the
+    connection-table row so the declared intra-step fixed point rides the
+    manifest. The rule must exist exactly once.
+    """
+    normalized = validate_local_inhibition(spec, label=f"rule {rule_name!r}")
+    assert normalized is not None
+    metadata = dict(cfg.metadata)
+    circuit = {k: list(v) for k, v in dict(metadata.get("circuit", {})).items()}
+    rules = list(circuit.get("connections", []))
+    hits = [i for i, rule in enumerate(rules) if rule.get("name") == rule_name]
+    if len(hits) != 1:
+        raise ValueError(
+            f"rule {rule_name!r} must exist exactly once to declare "
+            f"local_inhibition; found {len(hits)}"
+        )
+    patched = dict(
+        rules[hits[0]],
+        local_inhibition={
+            "rounds": normalized["rounds"], "order": normalized["order"],
+            **({"resolution": normalized["resolution"]}
+               if "resolution" in normalized else {}),
+        },
+    )
     rules[hits[0]] = patched
     circuit["connections"] = rules
     metadata["circuit"] = circuit

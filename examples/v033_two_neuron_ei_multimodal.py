@@ -55,7 +55,7 @@ from jaxfne.fields import (
 OUT = Path("outputs/v030_03_two_neuron_ei_multimodal")
 # Docs-stable figures directory
 STATIC_FIGS = Path(
-    os.environ.get("JAXFNE_TUTORIAL_STATIC_DIR", "docs/tutorials_v030/_static/figures")
+    os.environ.get("JAXFNE_TUTORIAL_STATIC_DIR", "docs/archive/tutorials_v030/_static/figures")
 )
 
 # Simulation parameters
@@ -120,7 +120,7 @@ def main(update_canonical: bool = False):
     ----------
     update_canonical : bool, default False
         When True, write the canonical docs manifest to
-        docs/tutorials_v030/manifests/ (only for intentional docs-build runs).
+        docs/archive/tutorials_v030/manifests/ (only for intentional docs-build runs).
         Tests should always call main() with update_canonical=False (the default)
         to prevent tracked tutorial artifact drift.
     """
@@ -489,9 +489,6 @@ def main(update_canonical: bool = False):
         figures_dir = OUT / "figures"
         figures_dir.mkdir(exist_ok=True)
 
-        e_spike_times = t[e_spike_indices]
-        i_spike_times = t[i_spike_indices]
-
         # Figure 1: Voltage traces for E and PV neurons (two-row panel)
         fig = jtfne.vis.dual_voltage_panel(
             t, V_m[:, E_INDEX], V_m[:, I_INDEX],
@@ -792,11 +789,11 @@ def main(update_canonical: bool = False):
         # Only update canonical docs manifests when explicitly requested
         # (never during automated test runs — prevents tracked-file drift)
         if update_canonical:
-            canonical_manifest_path = Path("docs/tutorials_v030/manifests/v0303_two_neuron_ei_multimodal_manifest.json")
+            canonical_manifest_path = Path("docs/archive/tutorials_v030/manifests/v0303_two_neuron_ei_multimodal_manifest.json")
             canonical_manifest_path.parent.mkdir(parents=True, exist_ok=True)
             write_json(canonical_manifest_path, atlas_manifest)
 
-            canonical_report_path = Path("docs/tutorials_v030/reports/v0303_two_neuron_ei_multimodal_validation_report.json")
+            canonical_report_path = Path("docs/archive/tutorials_v030/reports/v0303_two_neuron_ei_multimodal_validation_report.json")
             canonical_report_path.parent.mkdir(parents=True, exist_ok=True)
             write_json(canonical_report_path, atlas_manifest["validation_report"])
 

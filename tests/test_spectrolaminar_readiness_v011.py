@@ -9,12 +9,9 @@ E. Version assertion for 0.1.1
 F. Truth gate preservation
 """
 
-import pytest
 import jaxfne
 from jaxfne.core import (
     _JAXFNE_VERSION,
-    LaminarPopulation,
-    LaminarSourceGeometry,
 )
 from jaxfne.emitters import izhikevich_eig_params
 from jaxfne import (
@@ -87,7 +84,6 @@ def test_b_layer_labels_default_none():
 
 def test_b_layer_labels_correct_length():
     """layer_labels must match n_neurons when provided."""
-    import jax.numpy as jnp
 
     params = izhikevich_eig_params(n=8, cell_type_fractions={"E": 1.0})
     layer_labels = ("L4", "L4", "L4", "L4", "L5", "L5", "L6", "L6")

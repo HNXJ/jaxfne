@@ -88,6 +88,7 @@ from .core import (
 )
 
 from . import paradigm
+from . import emitters_hh
 from . import tutorial_utils
 
 # Per-NeuronType emitter declaration registry, ADVANCED tier: reachable as
@@ -100,6 +101,13 @@ from . import emitter_registry
 # level imports are stdlib plus numpy, so this costs nothing at import time;
 # neuronal_tensor and connectivity are imported inside its functions.
 from . import tfne
+# Destexhe 2009 aeIF cell types for the AdEx route (ADVANCED tier, same
+# pattern: the module is the symbol, reached as jaxfne.adex_destexhe).
+from . import adex_destexhe
+# Vogels 2011 inhibitory STDP rule for the AdEx registered-HDP kernel
+# (ADVANCED tier, same pattern: the module is the symbol, reached as
+# jaxfne.istdp_vogels2011; importing it registers the rule).
+from . import istdp_vogels2011
 from . import export as _export_module
 from .jdna import (
     PseudoGenome,
@@ -398,6 +406,11 @@ from .hdp_rule import (
     HDPRuleUpdate,
     register_hdp_rule,
 )
+# T-25 frozen trained-W0 provenance (ADVANCED tier: root attrs, not __all__).
+from .neuronal_tensor import (
+    W0Provenance,
+    with_trained_weights,
+)
 # Lane 7 (G3/G8): AdEx registered-HDP entry and model-aware field positions
 # (ADVANCED tier: root attrs, not __all__).
 from .emitters_adex import simulate_adex_hdp_registered
@@ -419,6 +432,8 @@ from ._long_diagnostics import (
     boundedness_report,
     stability_report,
 )
+# T-24 frozen input sources (ADVANCED tier: root attrs, not __all__).
+from .inputs import XSource
 
 from .public_surface import PUBLIC_EXPORTS
 

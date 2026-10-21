@@ -24,8 +24,8 @@ def test_checker_passes_on_repo():
 def test_checker_fails_on_altered_state_in_temp_copy(tmp_path, capsys):
     ledger = tmp_path / "claim_ledger_055.md"
     coverage = tmp_path / "atlas_coverage.json"
-    shutil.copyfile(REPO_ROOT / "artifacts" / "programme" / "claim_ledger_055.md", ledger)
-    shutil.copyfile(REPO_ROOT / "artifacts" / "programme" / "atlas_coverage.json", coverage)
+    shutil.copyfile(REPO_ROOT / "artifacts" / "programme" / "coverage" / "claim_ledger_055.md", ledger)
+    shutil.copyfile(REPO_ROOT / "artifacts" / "programme" / "coverage" / "atlas_coverage.json", coverage)
     text = ledger.read_text(encoding="utf-8")
     target = (
         "| AT-10-R6 | Reduced fast model with very long T | RESULT | VALIDATED | "

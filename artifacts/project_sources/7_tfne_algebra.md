@@ -3,7 +3,7 @@
 **Status:** `tfne/2` — `SEALED LANGUAGE`. Canonical authority for the TFNE
 specification language, superseding the `tfne/1` text previously carried here.
 Verbatim source below; implementation-scope notes and the current compiler
-conformance boundary live in `docs/doctrine/tfne_algebra.md`, not here.
+conformance boundary live in `docs/theory/doctrine/tfne_algebra.md`, not here.
 
 The language seal implies no parser or compiler. `jaxfne.tfne` is a compiler
 against this language and does not define it: where the two disagree, this

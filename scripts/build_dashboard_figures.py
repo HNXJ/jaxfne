@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Render each dashboard chart to a static PNG from dashboard/data/replications.json.
 
-The PNGs are the static copies of the page's Plotly charts and carry the same values. Each is
-written to dashboard/figures/<paper id>-<chart id>.png; dashboard/figures/manifest.json records
-the SHA-256 of the chart data each PNG was drawn from. This script does not import jaxfne, so the
-repo-root guard (P-025) is not needed.
+The PNGs are the static copies of the page's Plotly charts and carry the same values. Each
+chart is written twice, as dashboard/figures/<paper id>-<chart id>.png and
+dashboard/figures/<paper id>-<chart id>.dark.png; the page shows the one matching the colour
+scheme. dashboard/figures/manifest.json records the SHA-256 of the chart data each PNG pair
+was drawn from. This script does not import jaxfne, so the repo-root guard (P-025) is not needed.
 
   python scripts/build_dashboard_figures.py           render every chart (needs matplotlib)
   python scripts/build_dashboard_figures.py --check   exit 1 if a PNG is missing or drawn from other data
@@ -34,7 +35,9 @@ def chart_hash(chart):
 def charts(doc):
     for paper in doc.get("papers", []):
         for chart in paper.get("charts", []):
-            yield f"{paper['id']}-{chart['id']}.png", chart
+            stem = f"{paper['id']}-{chart['id']}"
+            yield f"{stem}.png", chart, False
+            yield f"{stem}.dark.png", chart, True
 
 
 def axis_title(axis):
@@ -43,11 +46,14 @@ def axis_title(axis):
     return f"{label} ({unit})" if unit else label
 
 
-def draw(chart, path):
+def draw(chart, path, dark=False):
     import matplotlib
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+
+    # Styles are global in pyplot: reset each draw so a dark figure never restyles the next light one.
+    plt.style.use("dark_background" if dark else "default")
 
     fig, ax = plt.subplots(figsize=(6.4, 4.4), dpi=150)
     traces = chart.get("traces", [])
@@ -86,7 +92,7 @@ def draw(chart, path):
     ax.spines[["top", "right"]].set_visible(False)
     ax.legend(fontsize=7, frameon=False, loc="upper left", bbox_to_anchor=(1.0, 1.0))
     fig.tight_layout()
-    fig.savefig(path, metadata={"Software": None})
+    fig.savefig(path, facecolor=fig.get_facecolor(), metadata={"Software": None})
     plt.close(fig)
 
 
@@ -96,7 +102,7 @@ def check(doc):
     except (OSError, ValueError) as exc:
         print(f"stale: cannot read {MANIFEST} ({exc}); run scripts/build_dashboard_figures.py", file=sys.stderr)
         return 1
-    want = {name: chart_hash(chart) for name, chart in charts(doc)}
+    want = {name: chart_hash(chart) for name, chart, _ in charts(doc)}
     bad = sorted(n for n in set(want) | set(recorded) if want.get(n) != recorded.get(n) or not (FIGURES / n).is_file())
     if bad:
         print(f"stale: {', '.join(bad)}; run scripts/build_dashboard_figures.py", file=sys.stderr)
@@ -114,8 +120,8 @@ def main(argv=None):
         return check(doc)
     FIGURES.mkdir(parents=True, exist_ok=True)
     manifest = {}
-    for name, chart in charts(doc):
-        draw(chart, FIGURES / name)
+    for name, chart, dark in charts(doc):
+        draw(chart, FIGURES / name, dark=dark)
         manifest[name] = chart_hash(chart)
     for old in FIGURES.glob("*.png"):
         if old.name not in manifest:

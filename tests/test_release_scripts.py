@@ -13,9 +13,10 @@ import tempfile
 import tarfile
 import zipfile
 from pathlib import Path
-_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import pytest
+
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts" / "release"
@@ -38,7 +39,7 @@ def run_script(script_name: str, args: list[str], extra_env: dict | None = None)
     return result.returncode, result.stdout, result.stderr
 
 
-def run_bash_script(script_name: str, args: list[str]):
+def run_bash_script(script_name: str, args: list[str], cwd: Path | None = None):
     """Run a shell script and return (exit_code, stdout, stderr)."""
     if platform.system() != "Linux" and platform.system() != "Darwin":
         pytest.skip("POSIX shell-script gates run on Linux/macOS CI only")
@@ -48,9 +49,48 @@ def run_bash_script(script_name: str, args: list[str]):
         text=True,
         encoding="utf-8",
         env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
-        cwd=str(REPO_ROOT),
+        cwd=str(cwd or REPO_ROOT),
     )
     return result.returncode, result.stdout, result.stderr
+
+
+def _git(args: list[str], cwd: Path, env: dict) -> None:
+    """Run one git command, failing the test (never the gate) when it errors."""
+    result = subprocess.run(
+        ["git", *args], capture_output=True, text=True, encoding="utf-8",
+        env=env, cwd=str(cwd),
+    )
+    assert result.returncode == 0, f"git {' '.join(args)} failed: {result.stderr}"
+
+
+def _repo_with_bare_origin(tmp_path: Path, tag: str | None = None) -> Path:
+    """Build a work repo whose origin is a local bare repo, optionally tagged.
+
+    The clone under test may itself have a local-path origin (or none the
+    script can resolve), so the receipt script is exercised against a repo
+    this test owns: a bare origin plus one pushed annotated tag.
+    """
+    env = {
+        **os.environ,
+        "GIT_AUTHOR_NAME": "receipt-test",
+        "GIT_AUTHOR_EMAIL": "receipt-test@example.com",
+        "GIT_COMMITTER_NAME": "receipt-test",
+        "GIT_COMMITTER_EMAIL": "receipt-test@example.com",
+    }
+    origin = tmp_path / "origin.git"
+    work = tmp_path / "work"
+    origin.mkdir()
+    work.mkdir()
+    _git(["init", "--bare"], origin, env)
+    _git(["init"], work, env)
+    (work / "probe.txt").write_text("receipt fixture\n", encoding="utf-8")
+    _git(["add", "probe.txt"], work, env)
+    _git(["commit", "-m", "fixture commit"], work, env)
+    _git(["remote", "add", "origin", str(origin)], work, env)
+    if tag is not None:
+        _git(["tag", "-a", tag, "-m", f"test tag {tag}"], work, env)
+        _git(["push", "origin", tag], work, env)
+    return work
 
 
 class TestReconcileReleaseTarget:
@@ -324,30 +364,36 @@ class TestValidateReleaseArtifacts:
 
 
 class TestPrintTagReceipt:
-    """Tests for print_tag_receipt.sh."""
+    """Tests for print_tag_receipt.sh (own temporary repo with a bare origin)."""
 
-    def test_exits_nonzero_missing_tag(self):
+    def test_exits_nonzero_missing_tag(self, tmp_path):
         """Exits nonzero when tag does not exist on origin and --allow-missing not set."""
+        work = _repo_with_bare_origin(tmp_path, tag="v0.3.14")
         code, stdout, stderr = run_bash_script(
             "print_tag_receipt.sh",
             ["v99.99.99"],
+            cwd=work,
         )
         assert code != 0
 
-    def test_allow_missing_exits_zero(self):
+    def test_allow_missing_exits_zero(self, tmp_path):
         """Exits 0 when tag missing and --allow-missing is set."""
+        work = _repo_with_bare_origin(tmp_path, tag="v0.3.14")
         code, stdout, stderr = run_bash_script(
             "print_tag_receipt.sh",
             ["v99.99.99", "--allow-missing"],
+            cwd=work,
         )
         assert code == 0
         assert "allow-missing" in stdout.lower() or "skipping" in stdout.lower()
 
-    def test_real_tag_prints_receipt(self):
-        """Prints object and peeled SHAs for the existing v0.3.14 tag."""
+    def test_real_tag_prints_receipt(self, tmp_path):
+        """Prints object and peeled SHAs for the tag pushed to the temp origin."""
+        work = _repo_with_bare_origin(tmp_path, tag="v0.3.14")
         code, stdout, stderr = run_bash_script(
             "print_tag_receipt.sh",
             ["v0.3.14"],
+            cwd=work,
         )
         assert code == 0
         assert "tag object SHA" in stdout or "peeled commit" in stdout

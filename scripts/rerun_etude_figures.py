@@ -119,7 +119,7 @@ def mode_multiscale(out_dir: pathlib.Path) -> list[dict]:
     )
 
     bundle_metrics = json.loads(
-        (ROOT / "artifacts/etudes/multiscale_observation/metrics.json").read_text(encoding="utf-8")
+        (ROOT / "artifacts/etudes/bundles/multiscale_observation/metrics.json").read_text(encoding="utf-8")
     )
     committed = bundle_metrics["cause_hashes"]
     cfg = build_config()
@@ -273,7 +273,7 @@ def mode_multiscale(out_dir: pathlib.Path) -> list[dict]:
         f"Multiscale observation — reproduced group-A panels ({tier}-checked)",
         panels,
         {
-            "source_bundle": "artifacts/etudes/multiscale_observation",
+            "source_bundle": "artifacts/etudes/bundles/multiscale_observation",
             "verification_tier": tier,
             "reproduced_cause_hashes": got,
             "seed": 7,
@@ -337,7 +337,7 @@ def mode_heterogeneous(out_dir: pathlib.Path) -> list[dict]:
     )
 
     bundle_het = json.loads(
-        (ROOT / "artifacts/etudes/heterogeneous_emitters/metrics.json").read_text(encoding="utf-8")
+        (ROOT / "artifacts/etudes/bundles/heterogeneous_emitters/metrics.json").read_text(encoding="utf-8")
     )
     committed = bundle_het
     n_steps = int(round(DURATION_MS / DT_MS))
@@ -492,7 +492,7 @@ def mode_heterogeneous(out_dir: pathlib.Path) -> list[dict]:
         f"Heterogeneous emitters — reproduced panels ({het_tier}-checked)",
         panels,
         {
-            "source_bundle": "artifacts/etudes/heterogeneous_emitters",
+            "source_bundle": "artifacts/etudes/bundles/heterogeneous_emitters",
             "verification_tier": het_tier,
             "reproduced_Q_sha256": {n: array_sha256(r["Q"]) for n, r in runs.items()},
             "reproduced_rates_hz": rates,
@@ -514,12 +514,12 @@ def mode_hdp_mcc3(out_dir: pathlib.Path) -> list[dict]:
     # holds the fields compared below (theta_hat, firing.B, total_spikes.B). The condition-B
     # fields moved with D1 (P-035); they are checked against the post-D1 digest.
     committed = json.loads(
-        (ROOT / "artifacts/mcc3_10s_checkpoint/mcc3_10s_metrics_digest.json").read_text(
+        (ROOT / "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_metrics_digest.json").read_text(
             encoding="utf-8"
         )
     )
     post_d1 = json.loads(
-        (ROOT / "artifacts/mcc3_10s_checkpoint/mcc3_10s_post_d1_digest.json").read_text(
+        (ROOT / "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_post_d1_digest.json").read_text(
             encoding="utf-8"
         )
     )
@@ -709,15 +709,15 @@ def mode_hdp_mcc3(out_dir: pathlib.Path) -> list[dict]:
         "MCC-3 checkpoint — reproduced condition-B panels (hash-checked)",
         panels,
         {
-            "source_bundle": "artifacts/etudes/hdp_controllability_reachability",
+            "source_bundle": "artifacts/etudes/bundles/hdp_controllability_reachability",
             "verification_tier": "hash",
-            "checkpoint": "artifacts/mcc3_10s_checkpoint",
+            "checkpoint": "artifacts/runs/mcc3_10s_checkpoint",
             "reproduced_theta_hat": thetah,
             "seed": M3.SIM_SEED,
             "n_neurons": 10,
             "n_steps": int(round(M3.DURATION_MS / M3.DT_MS)),
             "simulation_runs": 2,
-            "rerun_note": "tune + condition B reproduced; theta_hat and firing.B match committed checkpoint",
+            "rerun_note": "tune + condition B reproduced; theta_hat matches the committed checkpoint, firing.B the post-D1 digest (P-035)",
         },
     )
     return panels

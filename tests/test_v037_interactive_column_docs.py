@@ -141,12 +141,12 @@ class TestDocumentationIntegration:
 
     def test_docs_page_exists(self):
         """Assert tutorial documentation page exists."""
-        docs_path = Path("docs/tutorials/07_v037_source_bookkeeping.md")
+        docs_path = Path("docs/archive/tutorials/basics/07_v037_source_bookkeeping.md")
         assert docs_path.exists(), f"Expected {docs_path}"
 
     def test_docs_page_contains_scope(self):
         """Assert docs page declares scope clearly."""
-        docs_path = Path("docs/tutorials/07_v037_source_bookkeeping.md")
+        docs_path = Path("docs/archive/tutorials/basics/07_v037_source_bookkeeping.md")
         content = docs_path.read_text(encoding='utf-8')
 
         assert "computational_scaffold" in content, "Missing scope declaration"
@@ -156,7 +156,7 @@ class TestDocumentationIntegration:
 
     def test_docs_page_embeds_html(self):
         """Assert docs page references the interactive HTML."""
-        docs_path = Path("docs/tutorials/07_v037_source_bookkeeping.md")
+        docs_path = Path("docs/archive/tutorials/basics/07_v037_source_bookkeeping.md")
         content = docs_path.read_text(encoding='utf-8')
 
         assert "v037_source_column_3d.html" in content or "source_column_3d" in content, \
@@ -166,7 +166,7 @@ class TestDocumentationIntegration:
 
     def test_docs_page_contains_equations(self):
         """Assert docs page documents the three equations."""
-        docs_path = Path("docs/tutorials/07_v037_source_bookkeeping.md")
+        docs_path = Path("docs/archive/tutorials/basics/07_v037_source_bookkeeping.md")
         content = docs_path.read_text(encoding='utf-8')
 
         # Check for equation descriptions (LaTeX or text)
@@ -179,7 +179,7 @@ class TestDocumentationIntegration:
 
     def test_docs_page_no_negative_prose(self):
         """Assert documentation uses positive language."""
-        docs_path = Path("docs/tutorials/07_v037_source_bookkeeping.md")
+        docs_path = Path("docs/archive/tutorials/basics/07_v037_source_bookkeeping.md")
         content = docs_path.read_text(encoding='utf-8')
 
         # Check for negative patterns (case-insensitive, but exclude code blocks)
@@ -203,7 +203,7 @@ class TestDocumentationIntegration:
 
     def test_docs_references_api(self):
         """Assert documentation references the Configuration API."""
-        docs_path = Path("docs/tutorials/07_v037_source_bookkeeping.md")
+        docs_path = Path("docs/archive/tutorials/basics/07_v037_source_bookkeeping.md")
         content = docs_path.read_text(encoding='utf-8')
 
         api_terms = [
@@ -224,7 +224,7 @@ class TestPublicWording:
 
     def test_approved_scope_language_in_docs(self):
         """Assert approved scope language appears in docs."""
-        docs_path = Path("docs/tutorials/07_v037_source_bookkeeping.md")
+        docs_path = Path("docs/archive/tutorials/basics/07_v037_source_bookkeeping.md")
         content = docs_path.read_text(encoding='utf-8')
 
         approved_terms = [
@@ -238,7 +238,7 @@ class TestPublicWording:
 
     def test_no_internal_terminology_in_docs(self):
         """Assert internal terminology is not in public docs."""
-        docs_path = Path("docs/tutorials/07_v037_source_bookkeeping.md")
+        docs_path = Path("docs/archive/tutorials/basics/07_v037_source_bookkeeping.md")
         content = docs_path.read_text(encoding='utf-8')
 
         forbidden_terms = [
@@ -321,7 +321,7 @@ class TestEndToEndIntegration:
             Path("docs/assets/interactive/v037_source_column_3d.html"),
             Path("docs/assets/interactive/v037_readout_panels.html"),
             Path("docs/assets/interactive/v037_source_column_manifest.json"),
-            Path("docs/tutorials/07_v037_source_bookkeeping.md"),
+            Path("docs/archive/tutorials/basics/07_v037_source_bookkeeping.md"),
             Path("scripts/build_v037_source_column_3d.py"),
         ]
 
@@ -331,7 +331,7 @@ class TestEndToEndIntegration:
     def test_mkdocs_integration_ready(self):
         """Assert documentation can be built with mkdocs."""
         # Check that the markdown file is valid
-        docs_path = Path("docs/tutorials/07_v037_source_bookkeeping.md")
+        docs_path = Path("docs/archive/tutorials/basics/07_v037_source_bookkeeping.md")
         content = docs_path.read_text(encoding='utf-8')
 
         # Basic markdown structure checks

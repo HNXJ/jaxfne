@@ -4,7 +4,7 @@ Scalar state equation (W0 frozen):
 
     τ_W ω̇ = κ_W ΔH(t) − λ_W ω(t),    W(t) = W_0 exp(ω(t)).
 
-See ``docs/doctrine/protocol_w_hdp_parameter_memory.md`` and
+See ``docs/theory/memory/protocol_w_hdp_parameter_memory.md`` and
 ``artifacts/protocol_w/w0_mathematical_contract.json``.
 """
 

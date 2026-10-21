@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import numpy as np
 
-import artifacts.etudes.pcl.pcl_fig2 as F
+import artifacts.etudes.papers.pcl.pcl_fig2 as F
 
 
 def test_inputs_copy_the_declared_fraction():
@@ -21,7 +21,7 @@ def test_inhibition_ordered_by_predictability():
 
 def test_column_flags_and_normalization():
     import jax
-    import artifacts.etudes.pcl.pcl_column as C
+    import artifacts.etudes.papers.pcl.pcl_column as C
     W0 = C.init_weights(jax.random.PRNGKey(0))
     key = jax.random.PRNGKey(1)
     Wf, s, _ = C.run_sequence(W0, key, 2, 1.0, 1.0, (False, False, 1.0), 200)
@@ -39,7 +39,7 @@ def test_column_flags_and_normalization():
 def test_segment_is_cut_along_its_axis(monkeypatch):
     import jax
     import jax.numpy as jnp
-    import artifacts.etudes.pcl.pcl_column as C
+    import artifacts.etudes.papers.pcl.pcl_column as C
     monkeypatch.setitem(C.STIM, "kind", "segment")
     monkeypatch.setitem(C.STIM, "length", 4.0)
     cov = jnp.zeros(C.G * C.G, bool)
@@ -55,7 +55,7 @@ def test_hdp_rule_matches_paper_update():
     """One step of pcl_stdp: post neuron 2 spikes; edges 0->2 and 1->2 share a group."""
     import jax.numpy as jnp
     from jaxfne.hdp_rule import HDPRuleContext
-    import artifacts.etudes.pcl.pcl_hdp_rule as R
+    import artifacts.etudes.papers.pcl.pcl_hdp_rule as R
     dt, tau, wmax, eta, f, lam = 0.1, 7.0, 50.0, 2.0, 0.02, 30.0
     w = np.array([10.0, 20.0])
     aux = np.array([[0.5, 0.2, 0.8], [0.0, 0.1, 0.8]])  # ltp, ltd, ypost
@@ -79,9 +79,9 @@ def test_hdp_rule_matches_paper_update():
 
 def test_third_factor_g0_is_pcl_and_g_changes_weights():
     """pcl_stdp_m with g = 0 reproduces pcl_stdp bit for bit; g > 0 changes the learned weights."""
-    import artifacts.etudes.pcl.pcl_fig2_hdp as K
-    import artifacts.etudes.pcl.pcl_third_factor as T
-    import artifacts.etudes.pcl.pcl_hdp_rule as R
+    import artifacts.etudes.papers.pcl.pcl_fig2_hdp as K
+    import artifacts.etudes.papers.pcl.pcl_third_factor as T
+    import artifacts.etudes.papers.pcl.pcl_hdp_rule as R
     R.register()
     trains, total = K.concat([F.make_sample(np.random.default_rng(3)) for _ in range(2)])
     s, amp, w0 = 5.0, 30.0, np.full(3, 5.0)

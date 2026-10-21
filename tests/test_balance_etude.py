@@ -2,10 +2,9 @@
 from __future__ import annotations
 
 import jax
-import jax.numpy as jnp
 import numpy as np
 
-import artifacts.etudes.hdp_balance.balance as B
+import artifacts.etudes.bundles.hdp_balance.balance as B
 
 
 def _run(conds, eta):

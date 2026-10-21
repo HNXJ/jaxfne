@@ -4,7 +4,6 @@ Tests the notebook components that can be verified without full execution.
 """
 
 import json
-from pathlib import Path
 
 import numpy as np
 import jaxfne as jtfne
@@ -126,10 +125,9 @@ class TestDeltaNotebookAGSDRCells:
     def test_notebook_contains_agsdr_section(self):
         """Notebook must have AGSDR cells."""
         import pathlib
-        nb_path = pathlib.Path("artifacts/tutorials/jaxfne-sanity-checker-notebook-01.ipynb")
+        nb_path = pathlib.Path("artifacts/tutorials/intro/jaxfne-sanity-checker-notebook-01.ipynb")
         assert nb_path.exists(), f"Notebook not found: {nb_path}"
 
-        import json
         with open(nb_path) as f:
             nb = json.load(f)
 
@@ -146,9 +144,8 @@ class TestDeltaNotebookAGSDRCells:
     def test_notebook_has_baseline_rate_computation(self):
         """Notebook must compute baseline firing rates."""
         import pathlib
-        nb_path = pathlib.Path("artifacts/tutorials/jaxfne-sanity-checker-notebook-01.ipynb")
+        nb_path = pathlib.Path("artifacts/tutorials/intro/jaxfne-sanity-checker-notebook-01.ipynb")
 
-        import json
         with open(nb_path) as f:
             nb = json.load(f)
 
@@ -164,9 +161,8 @@ class TestDeltaNotebookAGSDRCells:
     def test_notebook_has_connectivity_gain_grid(self):
         """Notebook must define connectivity gain candidates."""
         import pathlib
-        nb_path = pathlib.Path("artifacts/tutorials/jaxfne-sanity-checker-notebook-01.ipynb")
+        nb_path = pathlib.Path("artifacts/tutorials/intro/jaxfne-sanity-checker-notebook-01.ipynb")
 
-        import json
         with open(nb_path) as f:
             nb = json.load(f)
 
@@ -182,9 +178,8 @@ class TestDeltaNotebookAGSDRCells:
     def test_notebook_exports_optimizer_report(self):
         """Notebook must export optimizer_report.json."""
         import pathlib
-        nb_path = pathlib.Path("artifacts/tutorials/jaxfne-sanity-checker-notebook-01.ipynb")
+        nb_path = pathlib.Path("artifacts/tutorials/intro/jaxfne-sanity-checker-notebook-01.ipynb")
 
-        import json
         with open(nb_path) as f:
             nb = json.load(f)
 
@@ -200,9 +195,8 @@ class TestDeltaNotebookAGSDRCells:
     def test_notebook_has_truth_gates_preserved(self):
         """AGSDR cells must preserve truth gates."""
         import pathlib
-        nb_path = pathlib.Path("artifacts/tutorials/jaxfne-sanity-checker-notebook-01.ipynb")
+        nb_path = pathlib.Path("artifacts/tutorials/intro/jaxfne-sanity-checker-notebook-01.ipynb")
 
-        import json
         with open(nb_path) as f:
             nb = json.load(f)
 
@@ -244,8 +238,6 @@ class TestDeltaAGSDR:
     def test_agsdr_objective_callable(self):
         """AGSDR objective should compute scores."""
         # Simple test that an objective scoring function works
-        baseline_rates = np.array([5.0, 10.0, 15.0, 3.0, 2.0])
-
         # Score should decrease as gain approaches 0.2 (which scales rates toward 1 Hz)
         gain1 = 1.0
         score1 = abs(5.0 * gain1 - 7.5) + 10.0 * max(0, 1.0 - 0.0) * gain1

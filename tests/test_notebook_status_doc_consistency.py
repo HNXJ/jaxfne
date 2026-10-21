@@ -1,5 +1,5 @@
 """Cheap, fast-lane guard against drift between the notebook-execution test
-suite and artifacts/tutorials/NOTEBOOK_STATUS.md.
+suite and artifacts/tutorials/status/NOTEBOOK_STATUS.md.
 
 Deliberately has no nbclient/nbformat/slow/notebook markers -- this runs on
 every push, unlike the real notebook executions in test_notebook_execution_suite.py
@@ -25,7 +25,7 @@ def test_release_facing_notebook_list_matches_status_doc():
     and every notebook on disk must be classified there (release-facing,
     archived, or template) so an unclassified notebook can't silently
     appear."""
-    status_text = (TUTORIALS_DIR / "NOTEBOOK_STATUS.md").read_text(encoding="utf-8")
+    status_text = (TUTORIALS_DIR / "status" / "NOTEBOOK_STATUS.md").read_text(encoding="utf-8")
 
     execution_tested = {
         nb.rsplit("/", 1)[-1] for nb in RELEASE_FACING_NOTEBOOKS

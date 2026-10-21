@@ -68,6 +68,7 @@ ADEX_CONSUMED = (
     ("Configuration", "metadata", "circuit", "connections", "*", "weight"),
     ("Configuration", "metadata", "circuit", "connections", "*", "mechanism"),
     ("Configuration", "metadata", "circuit", "connections", "*", "delay_ms"),
+    ("Configuration", "metadata", "circuit", "connections", "*", "intra_step_rounds"),
     ("Configuration", "metadata", "circuit", "connections", "*", "allow_self_connections"),
     ("Configuration", "metadata", "circuit", "connections", "*", "sampling"),
     ("Configuration", "metadata", "circuit", "connections", "*", "status"),
@@ -317,6 +318,8 @@ def _adex_triple_drive_pA(
     fails as ValueError. Mirrors ``_apply_tensor_triple_drive`` in
     ``jaxfne/_construct_population.py`` (current-based route).
     """
+    from .inputs import triple_drive_entries
+
     entries = (metadata or {}).get("tensor_triple_drive")
     if not entries:
         return None
@@ -325,25 +328,14 @@ def _adex_triple_drive_pA(
             f"tensor_triple_drive {entries!r} is not realized: it takes "
             "a list of {area, layer, cell_type, drive}"
         )
+    # Values and order come from the compiled triple entries (metadata
+    # order); membership refusal below keeps this route's exact behavior.
+    compiled = triple_drive_entries(metadata, unit="pA")
     drive = np.zeros(len(rows), dtype=np.float64)
     declared = set(labels)
-    for entry in entries:
-        try:
-            area = str(entry["area"])
-            layer = str(entry["layer"])
-            cell_type = str(entry["cell_type"])
-            value = entry["drive"]
-        except (KeyError, TypeError):
-            raise ValueError(
-                f"tensor_triple_drive entry {entry!r} is not realized: it takes "
-                "{area, layer, cell_type, drive}"
-            )
-        if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
-            raise ValueError(
-                f"tensor_triple_drive(area={area!r}, layer={layer!r}, "
-                f"cell_type={cell_type!r}, drive={value!r}) is not realized: "
-                "it takes a finite real number"
-            )
+    for compiled_entry in compiled:
+        area, layer, cell_type = compiled_entry.targets
+        value: float = float(compiled_entry.value)
         matched = [
             i
             for i, row in enumerate(rows)
@@ -568,7 +560,10 @@ def construct_adex_model(
     triple_drive = _adex_triple_drive_pA(
         cfg.metadata, rows, tuple(sorted(set(labels)))
     )
-    result = compile_connection_rules(rows, rules, mechanisms, seed=edge_seed, dtype=dtype_name)
+    result = compile_connection_rules(
+        rows, rules, mechanisms, seed=edge_seed, dtype=dtype_name,
+        allow_intra_step_rounds=True,
+    )
 
     static = _construct_build_static(cfg, geometry_meta=None)
     static["neuron_metadata"] = rows
@@ -585,6 +580,12 @@ def construct_adex_model(
         "receptor": np.asarray(result.edge_mechanism, dtype=np.int64),
         "delay_ms": np.asarray(result.edge_delay_ms, dtype=np.float64),
         "rules": [(str(r.get("name")), float(r["delay_ms"])) for r in rules],
+        "rule_id": np.asarray(result.edge_rule_id, dtype=np.int64),
+        "intra_step_rounds": {
+            str(r.get("name")): int(r["intra_step_rounds"])
+            for r in rules
+            if r.get("intra_step_rounds") is not None
+        },
         "network": None if network_name is None else str(network_name),
         "receptor_names": tuple(receptor_names),
         "receptor_reversal_mV": receptor_reversal,
@@ -630,6 +631,28 @@ def _rule_delay_steps(name: str, delay_ms: float, dt_ms: float) -> int:
     return steps
 
 
+def _rule_delay_steps_allow_zero(name: str, delay_ms: float, dt_ms: float) -> int:
+    """``round(delay_ms / dt_ms)`` admitting 0 steps (the intra-step fixed point's rule).
+
+    Same realization as :func:`_rule_delay_steps`, except a delay rounding to
+    0 steps returns 0 instead of raising; negative and non-finite delays still
+    raise. The caller admits 0 only on a rule declaring ``intra_step_rounds``.
+    """
+    try:
+        return int(delay_steps_from_ms(delay_ms, dt_ms))
+    except ValueError as exc:
+        try:
+            ms = float(delay_ms)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"connections(name={name!r}) delay_ms={delay_ms} is not realized: "
+                "it takes a finite number in ms >= 0"
+            ) from exc
+        if math.isfinite(ms) and ms >= 0.0:
+            return 0
+        raise
+
+
 def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> dict[str, Any]:
     """Keyword arguments for :func:`jaxfne.emitters_adex.simulate_adex` on ``model``.
 
@@ -640,28 +663,92 @@ def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> di
     ``["triple_drive_pA"]``); models built without one take the historical path
     (no key: the kernel runs undriven). ``dtype`` casts the cell
     parameters (and so the kernel's dtype); None keeps them as built.
+
+    A rule declaring ``intra_step_rounds`` admits a delay realizing to 0 steps
+    on that rule only: its edges ride the kernel's ``edge0_*`` set with
+    ``intra_step_rounds`` (recorded in the manifest); without it a delay
+    rounding to 0 steps is refused as before. A declared R with a delay
+    realizing to >= 1 step, distinct R values across rules, or a declared R
+    realizing no delay-0 edge is refused rather than silently unconsumed.
+    Without any delay-0 edge the returned dict is unchanged.
     """
     emitter = model.params["emitter"]
     if dtype is not None:
         emitter = _cast_params(emitter, jnp.dtype(dtype))
     st = model.static["adex"]
     dt = float(dt_ms)
+    declared_rounds = dict(st.get("intra_step_rounds") or {})
+    if not declared_rounds:
+        for name, delay_ms in st["rules"]:
+            _rule_delay_steps(name, delay_ms, dt)
+        steps = np.asarray(
+            [delay_steps_from_ms(float(ms), dt) for ms in st["delay_ms"]], dtype=np.int64
+        )
+        out: dict[str, Any] = {
+            "params": emitter,
+            "edge_pre": st["pre"],
+            "edge_post": st["post"],
+            "edge_weight_nS": st["weight_nS"],
+            "edge_receptor": st["receptor"],
+            "edge_delay_steps": steps,
+            "receptor_reversal_mV": st["receptor_reversal_mV"],
+            "receptor_tau_ms": st["receptor_tau_ms"],
+            "decay": st["decay"],
+            "step_order": st["step_order"],
+        }
+        if st.get("triple_drive_pA", None) is not None:
+            out["I_ext_pA"] = st["triple_drive_pA"]
+        return out
+    rule_names = [name for name, _ in st["rules"]]
+    rule_steps: dict[str, int] = {}
+    fixed_values: list[int] = []
     for name, delay_ms in st["rules"]:
-        _rule_delay_steps(name, delay_ms, dt)
-    steps = np.asarray(
-        [delay_steps_from_ms(float(ms), dt) for ms in st["delay_ms"]], dtype=np.int64
-    )
-    out: dict[str, Any] = {
+        declared = declared_rounds.get(name)
+        if declared is None:
+            _rule_delay_steps(name, delay_ms, dt)
+            rule_steps[name] = int(delay_steps_from_ms(float(delay_ms), dt))
+        else:
+            realized = _rule_delay_steps_allow_zero(name, delay_ms, dt)
+            if realized >= 1:
+                raise ValueError(
+                    f"connections(name={name!r}) declares intra_step_rounds={declared} but "
+                    f"delay_ms={delay_ms} at dt_ms={dt} realizes to {realized} steps (>= 1); "
+                    "intra_step_rounds admits only a delay rounding to 0 steps on that "
+                    "connection -- omit it or set a sub-step delay"
+                )
+            rule_steps[name] = 0
+            fixed_values.append(int(declared))
+    if len(set(fixed_values)) > 1:
+        raise ValueError(
+            f"connections declare distinct intra_step_rounds={sorted(set(fixed_values))}; "
+            "the adex route's intra-step fixed point realizes one R -- declare one"
+        )
+    edge_rule = np.asarray(st["rule_id"], dtype=np.int64)
+    steps = np.asarray([rule_steps[rule_names[int(r)]] for r in edge_rule], dtype=np.int64)
+    zero = steps == 0
+    n_zero = int(zero.sum())
+    if fixed_values and not n_zero:
+        raise ValueError(
+            f"connections declare intra_step_rounds={fixed_values[0]} but realize no "
+            f"delay-0 edge at dt_ms={dt}; a declared R with nothing to resolve is refused "
+            "rather than silently unconsumed"
+        )
+    out = {
         "params": emitter,
-        "edge_pre": st["pre"],
-        "edge_post": st["post"],
-        "edge_weight_nS": st["weight_nS"],
-        "edge_receptor": st["receptor"],
-        "edge_delay_steps": steps,
+        "edge_pre": np.asarray(st["pre"])[~zero],
+        "edge_post": np.asarray(st["post"])[~zero],
+        "edge_weight_nS": np.asarray(st["weight_nS"])[~zero],
+        "edge_receptor": np.asarray(st["receptor"])[~zero],
+        "edge_delay_steps": steps[~zero],
         "receptor_reversal_mV": st["receptor_reversal_mV"],
         "receptor_tau_ms": st["receptor_tau_ms"],
         "decay": st["decay"],
         "step_order": st["step_order"],
+        "edge0_pre": np.asarray(st["pre"])[zero],
+        "edge0_post": np.asarray(st["post"])[zero],
+        "edge0_weight_nS": np.asarray(st["weight_nS"])[zero],
+        "edge0_receptor": np.asarray(st["receptor"])[zero],
+        "intra_step_rounds": int(fixed_values[0]),
     }
     if st.get("triple_drive_pA", None) is not None:
         out["I_ext_pA"] = st["triple_drive_pA"]
@@ -676,6 +763,10 @@ _DRIVE_KEYS = (
 # Optional drive-window bounds in ms (both declared or neither): the drive runs on steps
 # [t_start, t_stop) only, realized with the plain route's rule at the run's dt.
 _DRIVE_WINDOW_KEYS = ("t_start_ms", "t_stop_ms")
+# Optional same-step flag: ``"same_step": True`` admits a delay rounding to 0 steps, so the
+# count drawn for step t acts at step t (external drive has no same-step feedback, so no
+# fixed point is needed). Any other value, or ``True`` with a delay of >= 1 step, is refused.
+_DRIVE_OPT_KEYS = ("same_step",)
 
 
 def _drive_error(detail: str) -> ValueError:
@@ -686,7 +777,8 @@ def _drive_error(detail: str) -> ValueError:
         "mechanism: a declared mechanism name, target_cell_types: a non-empty list of "
         "declared cell types, delay_ms, seed: int), plus optionally "
         f"{list(_DRIVE_WINDOW_KEYS)} (t_start_ms/t_stop_ms in ms, both or neither, "
-        "with t_start_ms < t_stop_ms)"
+        "with t_start_ms < t_stop_ms) and 'same_step' (same_step=True admits a delay "
+        "rounding to 0 steps, so the count drawn for step t acts at step t)"
     )
 
 
@@ -697,7 +789,11 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     ``n_sources * rate_hz * dt_ms / 1000`` (ms to s); the key is
     ``jax.random.PRNGKey(seed)``; targets are the cells whose type is listed in
     ``target_cell_types``, in index order; the receptor is the mechanism's declaration
-    index; the delay is realized by the plain route's rule. The optional
+    index; the delay is realized by the plain route's rule, except a delay rounding
+    to 0 steps, which is admitted only with ``"same_step": True`` in the drive dict
+    (the kernel's ``ext_delay_steps=0``: the count drawn for step t acts at step t;
+    refused under ``step_order="brian2"``, which reads every arrival one step later).
+    The optional
     ``t_start_ms``/``t_stop_ms`` window rides as the kernel's
     ``ext_t_start_steps``/``ext_t_stop_steps`` (realized by the same rule at
     the run's ``dt_ms``, refused unless ``0 <= t_start < t_stop <= n_steps``);
@@ -709,7 +805,11 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
         return {}
     if not isinstance(drive, Mapping):
         raise _drive_error(repr(drive))
-    unknown = [k for k in drive if k not in _DRIVE_KEYS and k not in _DRIVE_WINDOW_KEYS]
+    unknown = [
+        k
+        for k in drive
+        if k not in _DRIVE_KEYS and k not in _DRIVE_WINDOW_KEYS and k not in _DRIVE_OPT_KEYS
+    ]
     if unknown:
         raise _drive_error(f"{dict(drive)!r} has unknown keys {unknown}")
     missing = [k for k in _DRIVE_KEYS if k not in drive]
@@ -749,15 +849,37 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     if not _finite_real(delay_ms):
         raise _drive_error(f"delay_ms={delay_ms!r} must be a number")
     dt = float(sim.dt_ms)
+    same_step = drive.get("same_step", False) is True
+    if "same_step" in drive and not same_step:
+        raise _drive_error(
+            f"same_step={drive['same_step']!r} is not realized: admit a 0-step drive "
+            "delay with same_step=True, or omit same_step"
+        )
+    if same_step and str(st.get("step_order", "default")) == "brian2":
+        raise _drive_error(
+            "same_step=True with step_order='brian2' is not realized: brian2 reads "
+            "every arrival one step later, so a count drawn for step t cannot act at step t"
+        )
     try:
         delay_steps = delay_steps_from_ms(float(delay_ms), dt)
     except ValueError as exc:
-        raise _drive_error(
-            f"delay_ms={delay_ms!r} at dt_ms={dt} rounds to 0 steps; the drive needs >= 1"
-        ) from exc
+        if same_step and _finite_real(delay_ms) and float(delay_ms) >= 0.0:
+            delay_steps = 0
+        else:
+            raise _drive_error(
+                f"delay_ms={delay_ms!r} at dt_ms={dt} rounds to 0 steps; the drive needs >= 1"
+            ) from exc
     if delay_steps < 1:
+        if not same_step:
+            raise _drive_error(
+                f"delay_ms={delay_ms!r} at dt_ms={dt} is {delay_steps} steps; the drive needs >= 1"
+            )
+        delay_steps = 0
+    elif same_step:
         raise _drive_error(
-            f"delay_ms={delay_ms!r} at dt_ms={dt} is {delay_steps} steps; the drive needs >= 1"
+            f"same_step=True with delay_ms={delay_ms!r} at dt_ms={dt} realizes to "
+            f"{delay_steps} steps (>= 1); same_step admits only a delay rounding to "
+            "0 steps -- omit same_step or set a sub-step delay"
         )
     seed = drive["seed"]
     if isinstance(seed, bool) or not isinstance(seed, (int, np.integer)):

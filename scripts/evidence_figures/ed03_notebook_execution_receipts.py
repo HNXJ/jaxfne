@@ -64,27 +64,27 @@ SCOPE_STATUS = (
 
 # Controlled smoke subset (short runtime notebooks only).
 SMOKE_NOTEBOOKS = [
-    "artifacts/tutorials/jaxfne_suite_no_2_evoked_l4_drive.ipynb",
-    "artifacts/tutorials/jaxfne_v031_single_neuron.ipynb",
+    "artifacts/tutorials/suite/jaxfne_suite_no_2_evoked_l4_drive.ipynb",
+    "artifacts/tutorials/versioned/jaxfne_v031_single_neuron.ipynb",
 ]
 
 # Notebooks with dedicated slow pytest execution gates in tests/.
 CI_EXECUTION_TESTS: dict[str, str] = {
-    "artifacts/tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb": (
+    "artifacts/tutorials/suite/jaxfne_suite_no_1_computational_biophysics.ipynb": (
         "tests/test_suite_no1_notebook_execution.py"
     ),
-    "artifacts/tutorials/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb": (
+    "artifacts/tutorials/suite/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb": (
         "tests/test_suite_no4_notebook_execution.py"
     ),
 }
 
 # Known external receipt locations (relative to repo root).
 KNOWN_RECEIPT_PATHS: dict[str, list[str]] = {
-    "artifacts/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb": [
+    "artifacts/tutorials/suite/jaxfne_suite_no_3_low_frequency_scaling.ipynb": [
         "artifacts/tutorials/suite_no3_v0310_execution_receipt.json",
         "outputs/suite_no3_v0310_execution_receipt.json",
     ],
-    "artifacts/tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb": [
+    "artifacts/tutorials/versioned/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb": [
         "artifacts/tutorials/suite_no4_v0310_execution_receipt.json",
         "outputs/suite_no4_v0310_execution_receipt.json",
     ],
@@ -192,7 +192,6 @@ def _mode_from_receipt(data: dict) -> str | None:
 def _portable_kernel_context():
     import shutil
 
-    import nbformat as _nbf
     from jupyter_client.kernelspec import KernelSpecManager
 
     spec = {

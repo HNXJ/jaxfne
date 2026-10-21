@@ -85,7 +85,7 @@
   ],
   "sha256": "2a9f30f32656fb3d",
   "generated_utc": "2026-10-13T14:03:08.094147+00:00",
-  "source_bundle": "artifacts/etudes/heterogeneous_emitters",
+  "source_bundle": "artifacts/etudes/bundles/heterogeneous_emitters",
   "verification_tier": "claims",
   "reproduced_Q_sha256": {
     "izh": "0a3be54c567794b3c1c5feda34de4111cee6bca24e5824f8c83f802525dc65a5",

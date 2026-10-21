@@ -23,7 +23,7 @@ class TestRuntimeModule:
         submodule import is checked via sys.modules instead.
         """
         import sys
-        import jaxfne.runtime
+        import jaxfne.runtime  # noqa: F401 -- populates sys.modules for the check below; kept function-local per the module NOTE
 
         assert isinstance(sys.modules["jaxfne.runtime"], type(sys))
 

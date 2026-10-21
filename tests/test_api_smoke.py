@@ -18,16 +18,26 @@ def _cfg(n=12):
 
 
 def test_simulation_plasticity_gain_is_provenance_only():
-    """H7: Simulation.plasticity records to metadata, never alters numerics."""
+    """H7: non-zero Simulation.plasticity is refused at construction.
+
+    The gain label was never wired into any kernel (it only reached
+    ``metadata["plasticity_gain"]``), so anything but ``0.0`` raises
+    ``ValueError`` naming the HDP API instead of silently doing nothing.
+    Zero stays valid and the metadata key stays.
+    """
+    with pytest.raises(ValueError, match="enable_plasticity"):
+        jtfne.Simulation(duration_ms=10.0, dt_ms=0.1, seed=0, plasticity=0.7)
+    with pytest.raises(ValueError, match="STDPPlasticityConfig"):
+        jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0, plasticity=0.7)
     cfg = _cfg(6)
     model = jtfne.construct(cfg)
     sim0 = jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0)
-    sim1 = sim0.with_plasticity(0.7)
+    sim1 = sim0.with_plasticity(0.0)
     s0 = model.simulate(sim0)
     s1 = model.simulate(sim1)
-    assert s1.metadata["plasticity_gain"] == 0.7
+    assert s1.metadata["plasticity_gain"] == 0.0
     import jax.numpy as jnp
-    assert bool(jnp.array_equal(s0.V_m, s1.V_m)), "gain label must not alter numerics"
+    assert bool(jnp.array_equal(s0.V_m, s1.V_m))
 
 
 def test_minimal_api_smoke():

@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from jaxfne.protocol_c.c1_validation import run_c1_synthetic_validation, write_c1_receipt
+from jaxfne.protocol_c.c1_validation import run_c1_synthetic_validation
 from jaxfne.protocol_c.estimator import estimate_traveling_wave
 from jaxfne.protocol_c.protocol import load_protocol_spec
 from jaxfne.protocol_c.synthetic import (

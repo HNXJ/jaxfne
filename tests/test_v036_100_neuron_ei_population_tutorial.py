@@ -15,11 +15,10 @@ import os
 import json
 import pytest
 from pathlib import Path
-import re
 
 # Test configuration
-TUTORIAL_NOTEBOOK = Path(__file__).parent.parent / "artifacts" / "tutorials" / "jaxfne_v036_100_neuron_ei_population.ipynb"
-TUTORIAL_DOCS = Path(__file__).parent.parent / "docs" / "tutorials" / "06_v036_100_neuron_ei_population.md"
+TUTORIAL_NOTEBOOK = Path(__file__).parent.parent / "artifacts" / "tutorials" / "versioned" / "jaxfne_v036_100_neuron_ei_population.ipynb"
+TUTORIAL_DOCS = Path(__file__).parent.parent / "docs" / "archive" / "tutorials" / "basics" / "06_v036_100_neuron_ei_population.md"
 TUTORIAL_OUTPUT_DIR = Path(__file__).parent.parent / "tutorial_outputs" / "v036_100_neuron_ei_population"
 
 # Gate: Only run artifact tests if environment variable is set
@@ -442,7 +441,7 @@ class TestPublicWordingScan:
         ])
 
         with open(TUTORIAL_DOCS, 'r', encoding='utf-8') as f:
-            docs_content = f.read()
+            f.read()
 
         assert "v0.3.6" in notebook_title, "Notebook title missing v0.3.6"
         assert "100-Neuron" in notebook_title, "Notebook title missing neuron count"

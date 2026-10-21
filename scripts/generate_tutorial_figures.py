@@ -133,7 +133,7 @@ def gen_lfp_proxy_trace(signals, output_dir):
         lfp_proxy = safe_to_numpy(signals.field.lfp_proxy)
         if lfp_proxy.size == 0:
             return None
-    except:
+    except Exception:
         return None
 
     time_steps, n_contacts = lfp_proxy.shape
@@ -154,7 +154,7 @@ def gen_csd_proxy_heatmap(signals, output_dir):
         csd_proxy = safe_to_numpy(signals.field.csd_proxy)
         if csd_proxy.size == 0:
             return None
-    except:
+    except Exception:
         return None
 
     fig = jtfne.vis.tutorial_matrix_heatmap(
@@ -180,7 +180,7 @@ def gen_phi_e_proxy_heatmap(signals, output_dir):
         phi_e_proxy = safe_to_numpy(signals.field.phi_e_proxy)
         if phi_e_proxy.size == 0:
             return None
-    except:
+    except Exception:
         return None
 
     fig = jtfne.vis.tutorial_matrix_heatmap(
@@ -206,7 +206,7 @@ def gen_source_proxy_spatial(signals, output_dir):
         source_proxy = safe_to_numpy(signals.field.source_proxy)
         if source_proxy.size == 0:
             return None
-    except:
+    except Exception:
         return None
 
     fig = jtfne.vis.tutorial_matrix_heatmap(
@@ -232,7 +232,7 @@ def gen_conservation_diagnostics(manifest, output_dir):
         diag = manifest.get("conservation_proxy_diagnostics", {})
         if not diag:
             return None
-    except:
+    except Exception:
         return None
 
     metrics = {
@@ -257,7 +257,7 @@ def gen_contact_depths_profile(signals, output_dir):
         contact_depths = safe_to_numpy(signals.field.contact_depths)
         if contact_depths.size == 0:
             return None
-    except:
+    except Exception:
         return None
 
     fig = jtfne.vis.tutorial_contact_depths_barh(contact_depths, title="Laminar Profile (Contact Depths)")

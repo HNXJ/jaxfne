@@ -11,7 +11,7 @@
       "tier": "T-methods",
       "stage": "P5",
       "lane": {"branch": "lane-a", "sha": "1111111111111111111111111111111111111111"},
-      "verdict": "not reproduced",
+      "verdict": "pending",
       "summary": "SAMPLE: three criteria pass, one fails, one is pending.",
       "preregs": [
         {"id": "v1", "signed": "2026-10-11", "path": "artifacts/etudes/a/PREREG.md", "url": "https://github.com/hnxj/jaxfne/blob/1111111111111111111111111111111111111111/artifacts/etudes/a/PREREG.md"}

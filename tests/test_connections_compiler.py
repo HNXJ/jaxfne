@@ -6,7 +6,6 @@ selectors, probability, weight, and sign.
 """
 import numpy as np
 import pandas as pd
-import pytest
 
 import jaxfne as jtfne
 

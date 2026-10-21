@@ -198,31 +198,31 @@ DOC_OVERRIDES: dict[str, dict[str, str]] = {
     # Post-move paths keep action ARCHIVE (relocated out of user docs).
     "artifacts/legacy/v047_refactor_audit.md": {"action": "ARCHIVE", "merge_target": None},
     "docs/fullroadmap.md": {"action": "ARCHIVE", "merge_target": None},
-    "docs/for_ai_agents.md": {"action": "ARCHIVE", "merge_target": None},
+    "docs/reference/project/for_ai_agents.md": {"action": "ARCHIVE", "merge_target": None},
     "artifacts/legacy/reports/STDP_HOMEOSTATIC_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
     "artifacts/legacy/reports/STDP_CLOSED_LOOP_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
     "artifacts/legacy/reports/STDP_GLOBAL_SCALE_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
     "artifacts/legacy/reports/STDP_LOWRATE_REGIME_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
     "artifacts/legacy/reports/STDP_REAL_TEST_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
     "artifacts/legacy/reports/HDP_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
-    "docs/releases/v0.2.0.md": {"action": "MERGE", "merge_target": "docs/changelog.md"},
-    "docs/releases/v0.2.1.md": {"action": "MERGE", "merge_target": "docs/changelog.md"},
-    "docs/releases/v0.2.3.md": {"action": "MERGE", "merge_target": "docs/changelog.md"},
-    "docs/releases/v0.2.10.md": {"action": "MERGE", "merge_target": "docs/changelog.md"},
-    "docs/releases/v0.2.18.md": {"action": "MERGE", "merge_target": "docs/changelog.md"},
-    "docs/releases/v0.3.4.md": {"action": "MERGE", "merge_target": "docs/changelog.md"},
+    "docs/reference/releases/v0.2.0.md": {"action": "MERGE", "merge_target": "docs/reference/changelog.md"},
+    "docs/reference/releases/v0.2.1.md": {"action": "MERGE", "merge_target": "docs/reference/changelog.md"},
+    "docs/reference/releases/v0.2.3.md": {"action": "MERGE", "merge_target": "docs/reference/changelog.md"},
+    "docs/reference/releases/v0.2.10.md": {"action": "MERGE", "merge_target": "docs/reference/changelog.md"},
+    "docs/reference/releases/v0.2.18.md": {"action": "MERGE", "merge_target": "docs/reference/changelog.md"},
+    "docs/reference/releases/v0.3.4.md": {"action": "MERGE", "merge_target": "docs/reference/changelog.md"},
     "docs/index.md": {"action": "KEEP", "grammar_bucket": "README"},
-    "docs/install.md": {"action": "KEEP", "grammar_bucket": "Reference/installation"},
-    "docs/citation.md": {"action": "KEEP", "grammar_bucket": "Reference/citation"},
-    "docs/changelog.md": {"action": "KEEP", "grammar_bucket": "Reference/changelog"},
-    "docs/source_field_equations.md": {"action": "KEEP", "grammar_bucket": "Mathematics/TFNE"},
-    "docs/api/neuronal_tensor.md": {"action": "KEEP", "grammar_bucket": "Mathematics/NeuronalTensor"},
-    "docs/guides/hdp.md": {"action": "KEEP", "grammar_bucket": "Mathematics/H-state / HDP"},
-    "docs/guides/tensor_field_workflows.md": {"action": "KEEP", "grammar_bucket": "Mathematics/Source → Field → Probe"},
-    "docs/api/objectives.md": {"action": "KEEP", "grammar_bucket": "Mathematics/Objective → Optimization"},
-    "docs/quickstart.md": {"action": "KEEP", "grammar_bucket": "Tutorials/MCC / minimal system"},
-    "docs/scope_and_status.md": {"action": "KEEP", "grammar_bucket": "Reference/configuration"},
-    "docs/operator_doctrine.md": {"action": "KEEP", "grammar_bucket": "Mathematics/TFNE"},
+    "docs/start/install.md": {"action": "KEEP", "grammar_bucket": "Reference/installation"},
+    "docs/reference/citation.md": {"action": "KEEP", "grammar_bucket": "Reference/citation"},
+    "docs/reference/changelog.md": {"action": "KEEP", "grammar_bucket": "Reference/changelog"},
+    "docs/theory/source_field_equations.md": {"action": "KEEP", "grammar_bucket": "Mathematics/TFNE"},
+    "docs/reference/api/model/neuronal_tensor.md": {"action": "KEEP", "grammar_bucket": "Mathematics/NeuronalTensor"},
+    "docs/guides/state/hdp.md": {"action": "KEEP", "grammar_bucket": "Mathematics/H-state / HDP"},
+    "docs/guides/readout/tensor_field_workflows.md": {"action": "KEEP", "grammar_bucket": "Mathematics/Source → Field → Probe"},
+    "docs/reference/api/readout/objectives.md": {"action": "KEEP", "grammar_bucket": "Mathematics/Objective → Optimization"},
+    "docs/start/quickstart.md": {"action": "KEEP", "grammar_bucket": "Tutorials/MCC / minimal system"},
+    "docs/reference/project/scope_and_status.md": {"action": "KEEP", "grammar_bucket": "Reference/configuration"},
+    "docs/theory/operator_doctrine.md": {"action": "KEEP", "grammar_bucket": "Mathematics/TFNE"},
 }
 
 
@@ -264,13 +264,13 @@ def classify_doc(path: str) -> dict[str, str | None]:
         return {"action": "KEEP", "grammar_bucket": "generated"}
     if path.startswith("docs/tutorials/"):
         return {"action": "KEEP", "grammar_bucket": "Tutorials"}
-    if path.startswith("docs/api/"):
+    if path.startswith("docs/reference/api/"):
         return {"action": "KEEP", "grammar_bucket": "API"}
     if path.startswith("docs/guides/"):
         return {"action": "KEEP", "grammar_bucket": "Guides"}
-    if path.startswith("docs/releases/"):
-        return {"action": "MERGE", "merge_target": "docs/changelog.md"}
-    if path.startswith("docs/notes/"):
+    if path.startswith("docs/reference/releases/"):
+        return {"action": "MERGE", "merge_target": "docs/reference/changelog.md"}
+    if path.startswith("docs/theory/notes/"):
         return {"action": "ARCHIVE", "merge_target": None}
     if "REPORT" in path or "CHECKLIST" in path or "CHARACTERIZATION" in path:
         return {"action": "MERGE", "merge_target": "docs/reports/index.md"}
@@ -312,7 +312,7 @@ def main() -> None:
             "publication": "make test-publication",
         },
         "public_api_snapshot": {
-            "baseline_file": "artifacts/public_api_before.json",
+            "baseline_file": "artifacts/assurance/api_contracts/public_api_before.json",
             "semantics": "intentional compatibility baseline for test_public_api_matches_snapshot; not current API truth",
             "current_truth": "__all__ in jaxfne/__init__.py until contraction lands",
             "future": "generate public_api_current.json mechanically after 0.4.13 contraction",

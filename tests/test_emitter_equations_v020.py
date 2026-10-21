@@ -5,12 +5,10 @@ Validates equation forms, spike behavior, adaptation, and uncalibrated source cl
 
 import json
 
-import jax
 import jax.numpy as jnp
 import pytest
 
 import jaxfne
-from jaxfne.emitters import IzhikevichParams, simulate_eig_izhikevich
 
 from _shared_fixtures import _cfg
 
@@ -32,13 +30,13 @@ class TestIzhikevichEquationSemantics:
         # Create minimal params with known values
         v = jnp.array([10.0])
         u = jnp.array([1.0])
-        I = jnp.array([5.0])
+        i_ext = jnp.array([5.0])
 
         # Expected: dv = 0.04 * 10^2 + 5 * 10 + 140 - 1 + 5
         #                = 0.04 * 100 + 50 + 140 - 1 + 5
         #                = 4 + 50 + 140 - 1 + 5 = 198
         expected_dv = 0.04 * 100 + 5 * 10 + 140 - 1 + 5
-        actual_dv = 0.04 * v[0] * v[0] + 5.0 * v[0] + 140.0 - u[0] + I[0]
+        actual_dv = 0.04 * v[0] * v[0] + 5.0 * v[0] + 140.0 - u[0] + i_ext[0]
 
         assert float(actual_dv) == pytest.approx(expected_dv, rel=1e-5)
 
@@ -106,6 +104,9 @@ class TestSpikeReset:
         # After a spike, voltage should reset (not stay at 30+)
         # Check that high voltage (>30) points are isolated, not persistent
         high_voltage_mask = voltages > 29.0
+        # V_m is recorded post-reset (spikes reset v to c), so no recorded
+        # sample may remain above threshold (measured max ~19.6, 0 high).
+        assert int(jnp.sum(high_voltage_mask)) == 0
         # Count transitions from high to lower voltage
         spikes = signals.spikes
         assert spikes.shape == voltages.shape

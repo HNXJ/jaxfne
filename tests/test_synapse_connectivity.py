@@ -6,7 +6,6 @@ import numpy as np
 import pytest
 
 from _shared_fixtures import MockNeuronsDataFrame
-import jaxfne as jtfne
 from jaxfne.fields import (
     exponential_synaptic_trace,
     make_laminar_connectivity,

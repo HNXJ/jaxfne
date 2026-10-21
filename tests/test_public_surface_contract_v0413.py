@@ -23,7 +23,7 @@ from jaxfne.public_surface import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTRACT_PATH = ROOT / "artifacts/public_surface_contract_v0413.json"
+CONTRACT_PATH = ROOT / "artifacts/assurance/api_contracts/public_surface_contract_v0413.json"
 
 
 def test_public_exports_match_contract_module():
@@ -31,7 +31,7 @@ def test_public_exports_match_contract_module():
 
 
 def test_contract_artifact_matches_module():
-    assert CONTRACT_PATH.exists(), "artifacts/public_surface_contract_v0413.json required"
+    assert CONTRACT_PATH.exists(), "artifacts/assurance/api_contracts/public_surface_contract_v0413.json required"
     artifact = json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
     summary = public_surface_summary()
     assert artifact["public_exports"] == summary["public_exports"]
@@ -111,9 +111,13 @@ def test_public_symbol_count_contraction_from_baseline():
     +5 AdEx conductance kernel ADVANCED under jaxfne.emitters (ADEX_CELL_TYPE_DEFAULTS,
     AdExParams, adex_step, make_adex_params, simulate_adex; Hamm 2026-10-12);
     +3 activity-regime classifier CANONICAL for T-23 (activity_regime,
-    activity_regimes, wang_buzsaki_kappa; Hamm 2026-10-14)."""
+    activity_regimes, wang_buzsaki_kappa; Hamm 2026-10-14);
+    +2 trained-W0 provenance ADVANCED for T-25 (W0Provenance,
+    with_trained_weights; Hamm 2026-10-17);
+    +1 inhibitory-STDP rule module ADVANCED for the Vogels 2011 lane
+    (istdp_vogels2011: the module is the symbol, as with tfne)."""
     summary = public_surface_summary()
-    assert summary["counts"]["baseline_all"] == 291
+    assert summary["counts"]["baseline_all"] == 294
     assert summary["counts"]["public_exports"] == 208
     assert summary["counts"]["compatibility"] == 13
     assert summary["counts"]["experimental_internal"] == 13
@@ -176,7 +180,7 @@ def test_contract_artifact_matches_generator_output_exactly():
     from scripts.generate_public_surface_contract import render
 
     assert CONTRACT_PATH.read_text(encoding="utf-8") == render(), (
-        "artifacts/public_surface_contract_v0413.json is stale; regenerate with "
+        "artifacts/assurance/api_contracts/public_surface_contract_v0413.json is stale; regenerate with "
         "python scripts/generate_public_surface_contract.py"
     )
 

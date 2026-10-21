@@ -432,6 +432,7 @@ def canonical_compact_summary(
     #      or to detect present_dynamic via enable_hdp dynamics.
     # Report H_status in {absent, present_static, present_dynamic, unknown}.
     H_size = 0
+    H_size_guessed = False  # set when H_size rests on an assumed population count
     h_state_dim = 0
     h_locality = None
     H_status: str = "unknown"
@@ -441,7 +442,8 @@ def canonical_compact_summary(
     try:
         if "hdp_params" in model.cfg.metadata:
             hdp_params_probe = model.cfg.metadata.get("hdp_params")
-    except Exception:
+    except (AttributeError, TypeError):
+        # Narrow: only a missing/malformed metadata mapping means "no probe".
         hdp_params_probe = None
     enable_hdp = False
     try:
@@ -449,7 +451,8 @@ def canonical_compact_summary(
         if enable_hdp:
             H_dynamic = True
             H_evidence.append("model.cfg.metadata enable_hdp (dynamics)")
-    except Exception:
+    except (AttributeError, TypeError):
+        # Narrow: only an unreadable metadata mapping means "not enabled".
         enable_hdp = False
     try:
         hdp_H = model.params.get("hdp_initial_H")
@@ -471,8 +474,10 @@ def canonical_compact_summary(
                                 h_locality = "population"
                             else:
                                 h_locality = "node"
-                    except Exception:
-                        h_locality = "node"
+                    except (AttributeError, TypeError, ValueError):
+                        # Narrow: unreadable table/coercion only; "node" is a real
+                        # outcome, so a failed refinement reports unknown.
+                        h_locality = "unknown"
                 else:
                     h_locality = "node"
             elif arr.ndim == 1:
@@ -488,8 +493,10 @@ def canonical_compact_summary(
                             h_locality = "population"
                         else:
                             h_locality = "node"
-                    except Exception:
-                        h_locality = "node"
+                    except (AttributeError, TypeError, ValueError):
+                        # Narrow: unreadable table/coercion only; "node" is a real
+                        # outcome, so a failed refinement reports unknown.
+                        h_locality = "unknown"
                 else:
                     h_locality = "node"
             else:
@@ -504,9 +511,11 @@ def canonical_compact_summary(
                     h_locality = hdp_params_probe.get("h_state_locality")
                 if h_state_dim == 0 and hdp_params_probe.get("h_state_dim"):
                     h_state_dim = int(hdp_params_probe.get("h_state_dim", 0))
-            except Exception:
+            except (AttributeError, TypeError, ValueError):
+                # Narrow: refinement only; prior evidence-driven values stand, nothing fabricated.
                 pass
-    except Exception:
+    except (AttributeError, TypeError, ValueError):
+        # Narrow: only unreadable/coercion failures mean "no H state" here.
         pass
     if H_size == 0 and tensor is not None:
         try:
@@ -515,12 +524,14 @@ def canonical_compact_summary(
                 for ic in area.inter_connections:
                     try:
                         vals.append(float(ic.plastic.H))
-                    except Exception:
+                    except (AttributeError, TypeError, ValueError):
+                        # Narrow: skips one malformed PlasticParams.H; no value reported for it.
                         pass
             for ac in getattr(tensor, "area_connections", []):
                 try:
                     vals.append(float(ac.plastic.H))
-                except Exception:
+                except (AttributeError, TypeError, ValueError):
+                    # Narrow: skips one malformed PlasticParams.H; no value reported for it.
                     pass
             if vals:
                 H_evidence.append("tensor PlasticParams.H schema")
@@ -539,13 +550,18 @@ def canonical_compact_summary(
                         rows = model.neuron_table() if callable(getattr(model, "neuron_table", None)) else []
                         pops = len({(r.get("layer"), r.get("cell_type")) for r in rows}) if rows else 1
                         H_size = int(h_state_dim * pops)
-                    except Exception:
+                    except (AttributeError, TypeError, ValueError):
+                        # Narrow: pops unknown, but h_state_dim is a real count; keep the
+                        # single-population size and mark the guess in the evidence.
                         H_size = int(h_state_dim)
+                        H_size_guessed = True
+                        H_evidence.append("tensor PlasticParams.H schema: population count unknown, assuming one")
                 else:
                     H_size = int(h_state_dim * n_neurons_realized)
                 if H_status == "unknown":
                     H_status = "present_dynamic" if H_dynamic else "present_static"
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
+            # Narrow: only unreadable tensor-schema/coercion failures stay silent.
             pass
     if signals is not None and isinstance(getattr(signals, "metadata", None), dict):
         try:
@@ -571,8 +587,12 @@ def canonical_compact_summary(
                                     rows = model.neuron_table() if callable(getattr(model, "neuron_table", None)) else []
                                     pops = len({(r.get("layer"), r.get("cell_type")) for r in rows}) if rows else 1
                                     H_size = int(h_state_dim * pops) if pops else int(h_state_dim)
-                                except Exception:
+                                except (AttributeError, TypeError, ValueError):
+                                    # Narrow: pops unknown, but h_state_dim is a real count; keep the
+                                    # single-population size and mark the guess in the evidence.
                                     H_size = int(h_state_dim)
+                                    H_size_guessed = True
+                                    H_evidence.append("signals hdp H_trace/H_final: population count unknown, assuming one")
                         elif arr.ndim == 1:
                             h_state_dim = 1
                             H_size = int(arr.size)
@@ -584,7 +604,9 @@ def canonical_compact_summary(
                             H_dynamic = True
                             if H_status == "present_static":
                                 H_status = "present_dynamic"
-                    except Exception:
+                    except (AttributeError, TypeError, ValueError):
+                        # Narrow: trace-coercion only; contributes no size, so the verdict
+                        # follows the shared no-evidence path with nothing fabricated.
                         pass
                 if isinstance(hdp_meta, dict) and hdp_meta.get("enabled"):
                     H_dynamic = True
@@ -592,7 +614,8 @@ def canonical_compact_summary(
                         H_evidence.append("signals.metadata hdp enabled")
                     if H_status in ("present_static", "unknown"):
                         H_status = "present_dynamic"
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
+            # Narrow: only unreadable signals-metadata/coercion failures stay silent.
             pass
     if H_size == 0:
         try:
@@ -617,8 +640,12 @@ def canonical_compact_summary(
                                 rows = model.neuron_table() if callable(getattr(model, "neuron_table", None)) else []
                                 pops = len({(r.get("layer"), r.get("cell_type")) for r in rows}) if rows else 1
                                 H_size = int(h_state_dim * pops) if pops else int(h_state_dim)
-                            except Exception:
+                            except (AttributeError, TypeError, ValueError):
+                                # Narrow: pops unknown, but h_state_dim is a real count; keep the
+                                # single-population size and mark the guess in the evidence.
                                 H_size = int(h_state_dim)
+                                H_size_guessed = True
+                                H_evidence.append("model _last_hdp_diag H_trace/H_final: population count unknown, assuming one")
                     else:
                         H_size = int(arr.size)
                         h_state_dim = 1
@@ -630,7 +657,8 @@ def canonical_compact_summary(
                         H_dynamic = True
                         if H_status == "present_static":
                             H_status = "present_dynamic"
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
+            # Narrow: only unreadable diag/coercion failures mean "no H trace" here.
             pass
     if H_size == 0 and enable_hdp and isinstance(hdp_params_probe, dict):
         try:
@@ -650,7 +678,9 @@ def canonical_compact_summary(
                 H_evidence.append("hdp_params fallback for size (HDP enabled, H dynamics)")
                 H_status = "present_dynamic"
                 H_dynamic = True
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
+            # Narrow: validated probe ints + working table cannot fail legitimately;
+            # pass keeps the shared no-evidence verdict without fabricating a size.
             pass
     if H_status == "unknown":
         if H_size == 0:
@@ -668,6 +698,9 @@ def canonical_compact_summary(
         h_locality = "node"
         if h_state_dim == 0:
             h_state_dim = int(H_size // max(n_neurons_realized, 1)) if n_neurons_realized else 1
+    # A size built on an assumed population count is reported as unknown (None);
+    # the evidence line says why.
+    H_size_out = None if H_size_guessed else H_size
 
     # W: synaptic storage (EdgeList, existing API)
     edge_list = model.params.get("edge_list")
@@ -692,7 +725,8 @@ def canonical_compact_summary(
             # declared populations = total NeuronType entries (derived from tensor)
             n_populations_configured = int(sum(len(layer.neuron_types) for a in tensor.areas for layer in a.layers))
             n_edges_configured_rules = int(sum(len(a.inter_connections) for a in tensor.areas) + len(tensor.area_connections))
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
+            # Narrow: configured counts stay None (the unknown marker) when the tensor schema is unreadable.
             pass
     if n_neurons_configured is None:
         # fallback: configured == realized when no tensor given
@@ -701,15 +735,17 @@ def canonical_compact_summary(
     # realized populations: distinct (layer, cell_type) combos in built neuron_table
     n_populations_realized = None
     populations_inventory: dict[str, int] = {}
+    # Inhibitory membership comes from the emitter table (negative sign), not a local list.
+    from .emitters import IZHIKEVICH_CELL_TYPE_DEFAULTS as _IZH_TYPES
     try:
         rows = model.neuron_table()
         from collections import Counter as _Counter
         combo_counts = _Counter((r.get("layer"), r.get("cell_type")) for r in rows)
         n_populations_realized = int(len(combo_counts))
         # also flat inventory like “12 = 6 layers × 2 effective E/I” vs 23 detailed
-        # effective collapsed inhibitory: map PV/SST/VIP → I
+        # effective collapsed inhibitory: map every negative-sign emitter-table type → I
         def _eff_cell(ct: str) -> str:
-            return "I" if ct in ("PV", "SST", "VIP", "Inl", "Ing") else ct
+            return "I" if _IZH_TYPES.get(ct, {}).get("sign", 1.0) < 0 else ct
         eff_combos = _Counter((r.get("layer"), _eff_cell(str(r.get("cell_type")))) for r in rows)
         populations_inventory = {
             "realized_detailed": n_populations_realized,
@@ -718,7 +754,9 @@ def canonical_compact_summary(
             "per_layer": dict(_Counter(r.get("layer") for r in rows)),
             "per_cell_type": dict(_Counter(r.get("cell_type") for r in rows)),
         }
-    except Exception:
+    except (AttributeError, TypeError):
+        # Narrow: inventory stays {} (real inventories always carry keys) and
+        # n_populations stays None (unknown); nothing fabricated.
         pass
 
     # effective: after simulate, may differ due to runtime overrides (dt rounding, HDP enable, dtype)
@@ -738,7 +776,8 @@ def canonical_compact_summary(
         # RuntimeConfiguration bridged keys may be in metadata; otherwise use signals time axis
         dt_ms_configured = float(rt_meta.get("dt_ms", rt_meta.get("dt", 0.5))) if "dt_ms" in rt_meta or "dt" in rt_meta else None
         duration_ms_configured = float(rt_meta.get("duration_ms", 1000.0)) if "duration_ms" in rt_meta else None
-    except Exception:
+    except (AttributeError, TypeError, ValueError):
+        # Narrow: bad runtime knobs stay None (unknown); no value fabricated.
         pass
     if signals is not None:
         try:
@@ -751,7 +790,8 @@ def canonical_compact_summary(
                 dt_ms_executed = None
                 duration_ms_executed = None
             n_steps_realized = n_steps_executed
-        except Exception:
+        except (AttributeError, TypeError, ValueError, IndexError):
+            # Narrow: unreadable time axis stays None (unknown); IndexError covers degenerate shapes.
             pass
     # fallback executed = realized when no signals (effective=causal ΔX)
     if n_steps_executed is None and n_steps_realized is None:
@@ -764,24 +804,29 @@ def canonical_compact_summary(
     # Roles: X=STATE (V_m, spikes, u), Q=SOURCE (sources), Φ=FIELD (lfp/csd/phi_e), Y=PROBE/DERIVED
     try:
         n_contacts_realized = int(model.static.get("n_contacts", 16))
-    except Exception:
-        n_contacts_realized = 16
+    except (AttributeError, TypeError, ValueError):
+        # Narrow: static.get cannot fail legitimately; 16 is also the real default,
+        # so an unreadable static reports unknown (None flows into shapes like T_eff).
+        n_contacts_realized = None
     # realized time steps
     T_eff: Any = None
     if signals is not None:
         try:
             T_eff = int(signals.time_ms.shape[0])
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
+            # Narrow: unreadable time axis stays None (the unknown marker for T).
             T_eff = None
     # recorded flags (existing API: signals.field, signals.sources)
     sources_recorded = bool(signals is not None and getattr(signals, "sources", None) is not None)
-    field_recorded: dict[str, bool] = {}
+    field_recorded: dict[str, Any] = {}
     if signals is not None and getattr(signals, "field", None) is not None:
         for _k in ("lfp_proxy", "csd_proxy", "phi_e_proxy"):
             try:
                 field_recorded[_k] = getattr(signals.field, _k, None) is not None
-            except Exception:
-                field_recorded[_k] = False
+            except (AttributeError, TypeError):
+                # Narrow: getattr-with-default fails only on broken descriptors; False is
+                # also the real not-recorded value, so an unreadable member reports unknown.
+                field_recorded[_k] = None
     else:
         for _k in ("lfp_proxy", "csd_proxy", "phi_e_proxy"):
             field_recorded[_k] = False
@@ -819,7 +864,9 @@ def canonical_compact_summary(
                     arr = getattr(signals.field, _k, None)
                     if arr is not None:
                         _field_members[_k]["shape"] = [int(arr.shape[0]), int(arr.shape[1])]
-        except Exception:
+        except (AttributeError, TypeError, ValueError, IndexError):
+            # Narrow: shape read is precision-only; failure keeps the generic
+            # [T, X] shape, nothing fabricated.
             pass
     X_node: dict[str, Any] = {"role": "STATE", "depends_on": [], "shape": list(_shape_TN), "recorded": T_eff is not None, "calibrated": _cal, "members": _state_members}
     Q_node: dict[str, Any] = {"role": "SOURCE", "depends_on": ["X"], "shape": list(_shape_TN), "recorded": sources_recorded, "calibrated": _cal, "members": _source_members}
@@ -846,20 +893,24 @@ def canonical_compact_summary(
     provenance: dict[str, Any] = {}
     try:
         provenance["config_hash"] = _config_hash(model.cfg)
-    except Exception:
+    except (AttributeError, TypeError, ValueError):
+        # Narrow: json/hash coercion only; an unhashable config stays None (unknown).
         provenance["config_hash"] = None
     try:
         provenance["tensor_identity"] = model.cfg.metadata.get("tensor_identity")
-    except Exception:
+    except (AttributeError, TypeError):
+        # Narrow: unreadable metadata stays None (unknown).
         provenance["tensor_identity"] = None
     try:
         provenance["tensor_provenance"] = getattr(tensor, "provenance", None) if tensor is not None else None
-    except Exception:
+    except (AttributeError, TypeError):
+        # Narrow: getattr-with-default fails only on broken descriptors; None (unknown) either way.
         provenance["tensor_provenance"] = None
     try:
         from jaxfne._model import _JAXFNE_VERSION as _ver
         provenance["jaxfne_version"] = _ver
-    except Exception:
+    except (ImportError, AttributeError):
+        # Narrow: only a missing module or version attribute means "version unknown".
         provenance["jaxfne_version"] = None
     try:
         provenance["positions_shape"] = positions_shape
@@ -868,7 +919,9 @@ def canonical_compact_summary(
         provenance["field_solver_status"] = model.cfg.metadata.get("field_solver_status")
         provenance["field_claim_level"] = model.cfg.metadata.get("field_claim_level", "proxy_readout")
         provenance["physical_amplitude_calibrated"] = False
-    except Exception:
+    except (AttributeError, TypeError):
+        # Narrow: keys stay absent on unreadable metadata (vs present-with-None
+        # on success); nothing fabricated.
         pass
 
     # --- universal taxonomy: Fixed / Dynamic / History / Mutable / Trainable / Recorded ---
@@ -876,6 +929,7 @@ def canonical_compact_summary(
     _history_prev_spikes = int(n_neurons_realized)
     _history_delay_max = 0
     _history_delay_buffer = 0
+    _history_delay_unknown_reason: Any = None
     try:
         import numpy as _np_hist
         if edge_list is not None and getattr(edge_list, "delay_steps", None) is not None:
@@ -883,18 +937,27 @@ def canonical_compact_summary(
             if _dh.size:
                 _history_delay_max = int(_np_hist.max(_dh))
                 _history_delay_buffer = int((_history_delay_max + 1) * n_neurons_realized) if _history_delay_max > 0 else 0
-    except Exception:
-        _history_delay_max = 0
-        _history_delay_buffer = 0
-    _history_total = int(_history_syn_state + _history_prev_spikes + _history_delay_buffer)
-    _n_trainable = 0
+    except (AttributeError, TypeError, ValueError) as exc:
+        # Unknown delay, never "no delay": 0 is the real no-delay value.
+        _history_delay_max = None
+        _history_delay_buffer = None
+        _history_delay_unknown_reason = f"unknown: {type(exc).__name__}: {exc}"
+    _history_total = (
+        None
+        if _history_delay_buffer is None
+        else int(_history_syn_state + _history_prev_spikes + _history_delay_buffer)
+    )
+    _n_trainable: Any = 0
     _trainable_note = "0 unless EdgeParameterSpec/MatrixParameterSpec declared (optimizer-exposed subset of mutable weight coordinates); stored ≠ free ≠ optimizer"
+    _trainable_unknown_reason: Any = None
     try:
         _opt_meta = model.cfg.metadata.get("optimizer") if isinstance(getattr(model.cfg, "metadata", None), dict) else None
         if isinstance(_opt_meta, dict) and _opt_meta.get("n_trainable"):
             _n_trainable = int(_opt_meta.get("n_trainable", 0))
-    except Exception:
-        pass
+    except (AttributeError, TypeError, ValueError) as exc:
+        # Unknown trainable count, never "none trainable": 0 is the real none value.
+        _n_trainable = None
+        _trainable_unknown_reason = f"unknown: {type(exc).__name__}: {exc}"
     N_static_counterexamples = [
         {
             "misconception": "N_static includes stored EdgeList.weight (n_edges)",
@@ -920,14 +983,14 @@ def canonical_compact_summary(
         },
         {
             "misconception": "N_static equals trainable/free optimizer coordinates",
-            "wrong": int(_n_trainable),
+            "wrong": None if _n_trainable is None else int(_n_trainable),
             "correct": int(N_static),
             "explanation": "trainable/free is optimizer-exposed subset of mutable (0 when no EdgeParameterSpec/MatrixParameterSpec); N_static is fixed count, independent of optimizer declaration",
             "class_confused": "optimizer/free (trainable subset) vs fixed",
         },
         {
             "misconception": "N_static includes history buffers (syn_state+prev_spikes+B_t)",
-            "wrong": int(N_static + _history_total),
+            "wrong": None if _history_total is None else int(N_static + _history_total),
             "correct": int(N_static),
             "explanation": f"history state (syn_state {W_size}+prev_spikes {n_neurons_realized}+B_t {_history_delay_buffer}={_history_total}) is carry, not fixed parameter",
             "class_confused": "history buffers vs fixed",
@@ -953,11 +1016,12 @@ def canonical_compact_summary(
         "history_state": {
             "syn_state": int(_history_syn_state),
             "prev_spikes": int(_history_prev_spikes),
-            "delay_max_steps": int(_history_delay_max),
-            "delay_buffer_Bt": int(_history_delay_buffer),
+            "delay_max_steps": _history_delay_max,
+            "delay_buffer_Bt": _history_delay_buffer,
+            "unknown_reason": _history_delay_unknown_reason,
             "continuation_prng_key": "scalar (not counted in element count)",
             "continuation_step_offset": "scalar",
-            "total_buffer_elements": int(_history_total),
+            "total_buffer_elements": _history_total,
             "note": "delay/continuation buffers carried between steps; O(E)+O(N)+O((Dmax+1)·N); distinct from dynamic X and mutable W",
         },
         "mutable_parameters": {
@@ -968,9 +1032,10 @@ def canonical_compact_summary(
             "note": "coordinates permitted to change: EdgeList.weight (n_edges) may evolve via HDP dW/dt=F_W(H) or optimizer; unchanged when HDP disabled and no tune, but *permitted*",
         },
         "trainable_parameters": {
-            "n_trainable": int(_n_trainable),
-            "n_free": int(_n_trainable),
+            "n_trainable": _n_trainable,
+            "n_free": _n_trainable,
             "note": _trainable_note,
+            "unknown_reason": _trainable_unknown_reason,
             "declaration_api": "EdgeParameterSpec / MatrixParameterSpec (trainable=True)",
             "relation_to_mutable": f"subset of mutable (≤{W_size}); stored ({W_size}) ≠ plastic (permitted) ≠ free/trainable ({_n_trainable})",
         },
@@ -983,7 +1048,7 @@ def canonical_compact_summary(
             "note": "saved trajectory / observation graph; recorded outputs are not state carried forward (|Y| is evidence, not dynamics)",
         },
         "hidden_state": {
-            "H_size": int(H_size),
+            "H_size": H_size_out,
             "h_state_dim": int(h_state_dim),
             "locality": h_locality,
             "H_status": H_status,
@@ -994,7 +1059,7 @@ def canonical_compact_summary(
     Theta = {
         "Theta_static": {"members": theta_static_sized, "N_static": N_static, "note": "Σ|θ| for θ∈Θ_static (per-neuron static; positions and W are separate)"},
         "X": {"per_step": X_per_step, "with_prev_spikes": X_with_prev, "canonical_4N": X_canonical_4N, "note": "fast state [v,u]; 4N counts v,u,prev_spikes,buffer head for text bundle illustration"},
-        "H": {"size": H_size, "h_state_dim": h_state_dim, "locality": h_locality, "H_status": H_status, "evidence": list(H_evidence), "note": "RBS; H_status in {absent,present_static,present_dynamic,unknown}; size 0 when absent, else N*h_state_dim (or per-population); HDP only one possible F_W(H)"},
+        "H": {"size": H_size_out, "h_state_dim": h_state_dim, "locality": h_locality, "H_status": H_status, "evidence": list(H_evidence), "note": "RBS; H_status in {absent,present_static,present_dynamic,unknown}; size 0 when absent, else N*h_state_dim (or per-population); HDP only one possible F_W(H)"},
         "W": {"n_edges": W_size, "tau_catalog": tau_catalog_size, "note": "synaptic storage (EdgeList.weight); τ catalog separate"},
         "positions": {"shape": positions_shape, "size": positions_size, "note": "geometry (N×3), not part of N_static"},
     }
@@ -1027,7 +1092,7 @@ def canonical_compact_summary(
             "dt_ms": dt_ms_executed,
             "n_steps": n_steps_executed,
             "X_per_step": X_per_step,
-            "H_size": H_size,
+            "H_size": H_size_out,
             "H_status": H_status,
             "h_state_dim": int(h_state_dim),
             "locality": h_locality,
@@ -1050,7 +1115,7 @@ def canonical_compact_summary(
         "provenance": provenance,
         "H_status": H_status,
         "H_evidence": list(H_evidence),
-        "H": {"size": H_size, "h_state_dim": int(h_state_dim), "locality": h_locality, "H_status": H_status, "evidence": list(H_evidence)},
+        "H": {"size": H_size_out, "h_state_dim": int(h_state_dim), "locality": h_locality, "H_status": H_status, "evidence": list(H_evidence)},
         "Δscience": 0,
         "overhead": "zero when unused (function not called in simulate/construct hot path)",
     }

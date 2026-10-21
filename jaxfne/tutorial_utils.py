@@ -2,7 +2,7 @@
 
 Docs: the laminar/spectrolaminar trial pipeline is documented in
 ``docs/tutorials/`` (https://jaxfne.readthedocs.io/en/latest/tutorials/) and the
-API catalog ``docs/api/index.md`` — update those when this module changes.
+API catalog ``docs/reference/api/index.md`` — update those when this module changes.
 """
 from __future__ import annotations
 
@@ -609,37 +609,40 @@ def make_cell_type_catalog(
     -------
     dict mapping cell_type -> CellTypePreset
     """
+    from .emitters import CELL_TYPE_SIGN, IZHIKEVICH_CELL_TYPE_DEFAULTS as _IZH_TYPES
+
+    # own a/b/c/d; drive from emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS; signs from emitters.CELL_TYPE_SIGN
     catalog = {
         'E': CellTypePreset(
             name='E-Regular',
             color='#1f77b4',  # blue
-            sign=1.0,
+            sign=CELL_TYPE_SIGN['E'],
             a=0.02, b=0.2, c=-65.0, d=8.0,
-            drive=5.0,
+            drive=_IZH_TYPES['E']['drive'],
             noise_std=0.85,
         ),
         'PV': CellTypePreset(
             name='PV-Fast-Spiking',
             color='#d62728',  # red
-            sign=-1.0,
+            sign=CELL_TYPE_SIGN['PV'],
             a=0.1, b=0.2, c=-65.0, d=2.0,
-            drive=3.0,
+            drive=_IZH_TYPES['PV']['drive'],
             noise_std=0.75,
         ),
         'SST': CellTypePreset(
             name='SST-Martinotti',
             color='#2ca02c',  # green
-            sign=-1.0,
+            sign=CELL_TYPE_SIGN['SST'],
             a=0.08, b=0.25, c=-65.0, d=3.0,
-            drive=3.5,
+            drive=_IZH_TYPES['SST']['drive'],
             noise_std=0.70,
         ),
         'VIP': CellTypePreset(
             name='VIP-Disinhibitory',
             color='#9467bd',  # purple
-            sign=-1.0,
+            sign=CELL_TYPE_SIGN['VIP'],
             a=0.05, b=0.26, c=-65.0, d=4.0,
-            drive=3.0,
+            drive=_IZH_TYPES['VIP']['drive'],
             noise_std=0.72,
         ),
     }
@@ -811,11 +814,12 @@ def make_laminar_column_config(
         }
 
     if cell_signs is None:
+        # Signs come from the emitter table (emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS),
+        # the source simulate_laminar_trials uses for each neuron's Dale's-law sign.
+        from .emitters import IZHIKEVICH_CELL_TYPE_DEFAULTS as _IZH_TYPES
         cell_signs = {
-            'E': 1.0,
-            'PV': -1.0,
-            'SST': -1.0,
-            'VIP': -1.0,
+            ct: float(_IZH_TYPES[ct]['sign'])
+            for ct in ('E', 'PV', 'SST', 'VIP')
         }
 
     if base_control is None:
@@ -1402,6 +1406,11 @@ def _laminar_match_mask(neurons_df, area=None, layers=None, cell_types=None) -> 
     return mask
 
 
+# Same-layer zeroing covers PV, SST, VIP only; Inl/Ing/I excluded by the
+# tutorial's model, extending it is a model change.
+SAME_LAYER_ZEROED_INHIBITORY = ("PV", "SST", "VIP")
+
+
 def simulate_laminar_trials(
     model: dict,
     cfg: LaminarColumnConfig,
@@ -1412,6 +1421,10 @@ def simulate_laminar_trials(
     seed_offset: int = 0,
 ) -> dict:
     """Simulate laminar column with multiple trials.
+
+    Scope: the same-layer rule (PV/SST/VIP receive no same-layer input) covers
+    E/PV/SST/VIP configurations only. A config holding another inhibitory type
+    (negative sign in the emitter table, e.g. I, Inl, Ing) raises ValueError.
 
     Parameters
     ----------
@@ -1482,6 +1495,18 @@ def simulate_laminar_trials(
     from .fields import project_laminar_sources
 
     cell_labels = [str(x) for x in neurons_df['cell_type'].tolist()]
+    # The same-layer rule below zeroes PV/SST/VIP only; refuse any other inhibitory
+    # type (negative emitter-table sign) instead of running it with input unzeroed.
+    from .emitters import IZHIKEVICH_CELL_TYPE_DEFAULTS as _IZH_TYPES
+    _unzeroed_inh = sorted({
+        ct for ct in cell_labels
+        if ct not in SAME_LAYER_ZEROED_INHIBITORY and _IZH_TYPES.get(ct, {}).get("sign", 1.0) < 0
+    })
+    if _unzeroed_inh:
+        raise ValueError(
+            f"simulate_laminar_trials: inhibitory cell types {_unzeroed_inh} are outside "
+            "the same-layer rule (PV/SST/VIP only); refusing rather than running them unzeroed"
+        )
     layer_labels = [str(x) for x in neurons_df['layer'].tolist()]
     area_labels = neurons_df['area'].to_numpy()
     z_rel_all = np.clip(
@@ -1578,7 +1603,7 @@ def simulate_laminar_trials(
     
     same_layer = post_layers[:, None] == post_layers[None, :]
     diff_area = post_areas[:, None] != post_areas[None, :]
-    post_is_i = np.isin(post_cell_types, ["PV", "SST", "VIP"])[:, None]
+    post_is_i = np.isin(post_cell_types, list(SAME_LAYER_ZEROED_INHIBITORY))[:, None]
     
     not_e_post = (post_cell_types != "E")[:, None]
     not_e_pre = (post_cell_types != "E")[None, :]

@@ -7,9 +7,7 @@ Validates that:
 - Strictly adheres to the non-negotiable scientific scope boundary.
 """
 
-import pytest
 import jax.numpy as jnp
-import jaxfne as jtfne
 from jaxfne.fields import (
     eeg_proxy_probe,
     meg_proxy_probe,

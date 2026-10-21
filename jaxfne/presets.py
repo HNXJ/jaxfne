@@ -7,7 +7,28 @@ Truth status: computational_scaffold.
 from __future__ import annotations
 
 
-# Cell-type presets for Izhikevich parameters
+# Single source of truth for presynaptic sign (+1 excitatory, -1 inhibitory),
+# keyed by cell-type label. It lives here, below jaxfne.emitters in the import
+# order, so every catalog can read it; jaxfne.emitters re-exports it as
+# `emitters.CELL_TYPE_SIGN`. The Izhikevich rows, the presets below, the tutorial
+# catalog and `jaxfne.emitters_lif.LIF_LABEL_SIGN` (LIF-only labels "simple",
+# "complex", both excitatory) read their signs from it. "SOM" is deliberately
+# absent: it names an AdEx-table type, and adding a label is a model decision.
+CELL_TYPE_SIGN: dict[str, float] = {
+    "E": 1.0,
+    "PV": -1.0,
+    "Inl": -1.0,
+    "SST": -1.0,
+    "Ing": -1.0,
+    "VIP": -1.0,
+    "I": -1.0,
+    "simple": 1.0,
+    "complex": 1.0,
+}
+
+
+# Cell-type presets for Izhikevich parameters.
+# Own a/b/c/d and drive values; signs from CELL_TYPE_SIGN.
 CELL_TYPE_PRESETS = {
     "E_RS": {
         "a": 0.02,
@@ -15,7 +36,7 @@ CELL_TYPE_PRESETS = {
         "c": -65.0,
         "d": 8.0,
         "drive": 5.0,
-        "sign": 1.0,
+        "sign": CELL_TYPE_SIGN["E"],
         "label": "E",
         "description": "Regular-spiking excitatory",
         "source": "Izhikevich 2003 Fig. 2 (RS)",
@@ -28,7 +49,7 @@ CELL_TYPE_PRESETS = {
         "c": -65.0,
         "d": 2.0,
         "drive": 3.0,
-        "sign": -1.0,
+        "sign": CELL_TYPE_SIGN["PV"],
         "label": "PV",
         "description": "Fast-spiking parvalbumin+",
         "source": "Izhikevich 2003 Fig. 2 (FS)",
@@ -41,7 +62,7 @@ CELL_TYPE_PRESETS = {
         "c": -65.0,
         "d": 2.0,
         "drive": 3.5,
-        "sign": -1.0,
+        "sign": CELL_TYPE_SIGN["SST"],
         "label": "SST",
         "description": "Low-threshold somatostatin+",
         "source": "Izhikevich 2003 Fig. 2 (LTS)",
@@ -54,7 +75,7 @@ CELL_TYPE_PRESETS = {
         "c": -55.0,
         "d": 6.0,
         "drive": 3.0,
-        "sign": -1.0,
+        "sign": CELL_TYPE_SIGN["VIP"],
         "label": "VIP",
         "description": "Intrinsic spiking / bursting, VIP+ disinhibitory",
         "source": "not in Izhikevich 2003; origin not recorded",

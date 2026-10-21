@@ -6,7 +6,6 @@ decoupled from the core JAX simulation and objective engines.
 from __future__ import annotations
 
 import sys
-import pytest
 
 
 def test_simulation_engine_has_zero_graphics_overhead():
@@ -14,7 +13,6 @@ def test_simulation_engine_has_zero_graphics_overhead():
     computational engine triggers zero visual library attachments.
     """
     import subprocess
-    import sys
 
     # Run in a fresh, isolated Python subprocess to guarantee absolute cleanliness
     code = """

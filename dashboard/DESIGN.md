@@ -30,14 +30,18 @@ shows scored results only from committed evidence.
 
 ## Data contract (`replications.json`, schema `jaxfne-replications/2`)
 
-Schema 2 (Hamm 2026-10-12, `ARCHITECTURE_v2.md`) adds per paper `class` (verified | partial |
-not reproduced | demonstration | in progress), `question`, `page` (`models/<id>.md`, rendered with marked and
-KaTeX), per criterion `paper_value` (text, or null where the paper gives none), and a top-level
-`roadmap` list of `{release, model, needs}`. The generator refuses an unknown class, a
-demonstration with a verdict, a scored class without a preregistration, and a named page that
-does not exist. `verdict` is null for a demonstration. An in-progress paper carries no verdict and
-needs a non-empty `stage`; it needs no signed preregistration, since the scored-class rule applies
-to verified, partial and not reproduced only. Static PNGs of every chart come from
+Schema 2 (Hamm 2026-10-12, `ARCHITECTURE_v2.md`) adds per paper `class`, `question`, `page`
+(`models/<id>.md`, rendered with marked and KaTeX), per criterion `paper_value` (text, or null
+where the paper gives none), and a top-level `roadmap` list of `{release, model, needs}`.
+Classes (Hamm 2026-10-16; mixed 2026-10-19): reproduced | reproduced (conditional) | mixed |
+in progress | not started | failed. A model run without a scored preregistration is in progress.
+The scored classes (reproduced, reproduced (conditional), mixed, failed) need a signed
+preregistration; a conditional reproduction states its condition, and a mixed one what
+reproduced and what missed, in `verdict_note`.
+An in-progress paper carries no verdict and needs a non-empty `stage`; a preregistration scored
+without a pass keeps the paper in progress, with its criteria shown. A not-started paper carries
+no verdict and no criteria; the overview also lists every roadmap row as not started. The generator refuses an unknown class, a broken class rule
+and a named page that does not exist. Static PNGs of every chart come from
 `scripts/build_dashboard_figures.py` (`dashboard/figures/`, manifest of chart-data hashes;
 `--check` in the workflow).
 
@@ -53,7 +57,7 @@ to verified, partial and not reproduced only. Static PNGs of every chart come fr
     "stage_artifacts": [{"stage": "P2", "items": [{"label": "port spec", "path": "...", "url": "..."}]}],
                                           // files per finished stage at the lane sha, P0..P7 order;
                                           // a stage past "stage" or a path absent at the lane is refused
-    "verdict": "not reproduced",          // reproduced | not reproduced | pending | not testable
+    "verdict": "reproduced",              // reproduced | pending | not testable; null when unscored
     "summary": "one sentence",
     "preregs": [{"id": "v6", "signed": "2026-10-11", "path": "...", "url": "..."}],
     "criteria": [{
@@ -85,10 +89,10 @@ to verified, partial and not reproduced only. Static PNGs of every chart come fr
 Desktop at 1440 px; one column at 390 px with no horizontal scroll. Hash-routed tabs:
 
 1. **Header.** "jaxfne replications", generated time (UTC) and build dev SHA, links to the Read
-   the Docs site and to `artifacts/etudes/REPLICATIONS.md`, a sample banner when `sample` is
+   the Docs site and to `artifacts/etudes/meta/REPLICATIONS.md`, a sample banner when `sample` is
    true, and the tabs.
 2. **Overview** (`#overview`, default). KPI cards: models per class and the preregistered
-   criteria pass / fail / pending (demonstrations and in-progress papers excluded). Then the model cards grouped by
+   criteria pass / fail / pending (scored classes only). Then the model cards grouped by
    class, each with its class chip, its verdict chip where one exists, and its question.
 3. **Models** (`#models`; one model at `#model/<id>`; v1 links `#<id>` still open it): title,
    citation, class chip beside the preregistered verdict, stage track, code SHA, summary; the
@@ -116,8 +120,9 @@ Desktop at 1440 px; one column at 390 px with no horizontal scroll. Hash-routed 
 
 ## Publishing
 
-`gh-pages` holds the old MkDocs build (v0.4.20) at the site root. The dashboard goes to
-`gh-pages:/dashboard/` only, and nothing else on the branch changes (Hamm 2026-10-12). The
+The dashboard goes to `gh-pages:/dashboard/`, and the root `index.html` redirects there
+(Hamm 2026-10-15). The old MkDocs build (v0.4.20) stays at the root for existing links
+(Hamm 2026-10-12). The
 `Dashboard` workflow publishes it on each dev push that touches `dashboard/` or the generator,
 after `build_dashboard_data.py --check` passes. URL: https://hnxj.github.io/jaxfne/dashboard/.
 

@@ -1,6 +1,6 @@
 """0.5.3 ENGINE item 1: H/W/K ownership — configured -> realized -> executed.
 
-Doctrine: Atlas source 8 + docs/doctrine/rbs_rbd_hdp.md.
+Doctrine: Atlas source 8 + docs/theory/doctrine/rbs_rbd_hdp.md.
 H is RBS (relative biophysical state); HDP is hidden-state dependent
 plasticity (persistent-parameter dynamics). H != HDP: RBD remains
 meaningful with fixed weights (dW = 0).
@@ -132,8 +132,6 @@ def test_h_null_pins_at_reference():
     Model level these identity params route to the baseline kernel instead
     (see test_identity_params_route_to_baseline below).
     """
-    import jax
-
     from jaxfne.emitters import (
         EdgeList,
         IzhikevichParams,

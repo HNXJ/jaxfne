@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import numbers
 import warnings
 from dataclasses import dataclass, field, replace
 from typing import Any, Callable, Mapping, Optional, Sequence
@@ -69,10 +70,12 @@ class Simulation:
     """Immutable specification of one simulation run.
 
     Fields: ``duration_ms`` and ``dt_ms`` (milliseconds; both must be positive
-    and finite), ``seed`` (PRNG seed), ``plasticity`` (reserved gain label,
-    recorded to ``metadata["plasticity_gain"]`` for provenance only -- it does
-    not alter kernel numerics; plasticity is engaged via
-    ``RuntimeConfig(enable_hdp=...)`` / homeostasis params),
+    and finite), ``seed`` (PRNG seed), ``plasticity`` (must be ``0.0``: a
+    non-zero gain label is refused at construction because no kernel reads
+    it -- only ``metadata["plasticity_gain"]`` records the admitted zero.
+    Engage real plasticity via ``RuntimeConfig(enable_hdp=...)`` /
+    homeostasis params, i.e. ``jaxfne.hdp_network.enable_plasticity`` or
+    ``jaxfne.plasticity.STDPPlasticityConfig``),
     ``record_sources``/``record_fields`` (recording toggles), ``poisson_drive``
     (optional drive spec), ``runtime`` (:class:`RuntimeConfig` override), and
     ``ablation`` (None or one of ``E_silence``, ``I_silence``,
@@ -84,6 +87,11 @@ class Simulation:
 
     duration_ms: float = 1000.0
     dt_ms: float = 0.05
+    # ``plasticity`` admits only ``0.0``: the gain label was never wired into
+    # any kernel (it only reached ``metadata["plasticity_gain"]``), so a
+    # non-zero value is refused instead of silently doing nothing. Engage
+    # real plasticity through ``jaxfne.hdp_network.enable_plasticity`` or
+    # ``jaxfne.plasticity.STDPPlasticityConfig``.
     plasticity: float = 0.0
     seed: int = 0
     record_sources: bool = True
@@ -111,6 +119,15 @@ class Simulation:
             raise ValueError(
                 f"Simulation.ablation must be None or one of {sorted(_ABLATION_MODES)}; "
                 f"got {self.ablation!r}"
+            )
+        if self.plasticity != 0:
+            raise ValueError(
+                f"Simulation.plasticity={self.plasticity!r} is refused: the gain "
+                "label is not read by any kernel (only the admitted zero "
+                "reaches metadata['plasticity_gain']), so a non-zero value "
+                "would silently do nothing. Engage real plasticity through "
+                "jaxfne.hdp_network.enable_plasticity or "
+                "jaxfne.plasticity.STDPPlasticityConfig, or leave plasticity=0.0"
             )
         # Simulation owns seed and n_steps (resolved_runtime overrides the
         # runtime's); a runtime carrying different non-default values is refused
@@ -731,19 +748,36 @@ def _make_poisson_drive(
     dt_ms: float,
     seed: int,
     target: str = "all",
+    counts: int = 1,
 ) -> jax.Array:
     """Generate a Poisson stochastic drive array.
-    
+
     Returns (n_steps, n_neurons) float32 array. Each timestep, each neuron
-    has an independent Poisson event with probability rate_hz * dt_ms / 1000.
-    Events inject `amplitude` native current units. Output is finite and bounded.
+    sums ``counts`` independent Poisson events of probability rate_hz *
+    dt_ms / 1000, each injecting ``amplitude`` native current units.
+    ``counts=1`` (default) is one Bernoulli trial per step per cell, exactly
+    the historical drive bit for bit; ``counts=C`` sums C independent trains
+    (Brunel 2000: Cext external trains per cell), drawn as a single
+    ``binomial(C, p)`` per step per cell — the exact sum distribution of C
+    Bernoulli trials. Output is finite and bounded.
     Only ``target="all"`` is implemented; any other target raises ``ValueError``
-    rather than driving every neuron under another name.
+    rather than driving every neuron under another name. ``counts`` must be
+    a positive integer (bools, non-integral numbers and values < 1 are
+    refused, never coerced).
     """
     if target != "all":
         raise ValueError(
             f"poisson_drive target {target!r} is not implemented; only 'all' "
             "(every neuron) is supported"
+        )
+    if isinstance(counts, bool) or not isinstance(counts, numbers.Integral):
+        raise ValueError(
+            f"poisson_drive counts={counts!r} must be a positive integer"
+        )
+    counts = int(counts)
+    if counts < 1:
+        raise ValueError(
+            f"poisson_drive counts={counts!r} must be a positive integer"
         )
     prob = float(rate_hz) * float(dt_ms) / 1000.0
     if not float(rate_hz) >= 0:  # also refuses NaN
@@ -756,8 +790,11 @@ def _make_poisson_drive(
             "one event per step at most; lower dt_ms or rate_hz"
         )
     key = jax.random.PRNGKey(int(seed))
-    noise = jax.random.bernoulli(key, p=prob, shape=(int(n_steps), int(n_neurons)))
-    return (jnp.asarray(noise, dtype=jnp.float32) * float(amplitude))
+    if counts == 1:
+        noise = jax.random.bernoulli(key, p=prob, shape=(int(n_steps), int(n_neurons)))
+        return (jnp.asarray(noise, dtype=jnp.float32) * float(amplitude))
+    events = jax.random.binomial(key, n=counts, p=prob, shape=(int(n_steps), int(n_neurons)))
+    return (jnp.asarray(events, dtype=jnp.float32) * float(amplitude))
 
 
 def poisson_chunk_seed(poisson_seed: int, chunk_index: int) -> int:

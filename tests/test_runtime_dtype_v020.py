@@ -7,7 +7,6 @@ manifest runtime metadata, CPU compatibility, and JSON safety.
 import json
 
 import jax
-import pytest
 
 import jaxfne
 

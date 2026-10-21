@@ -20,3 +20,5 @@ python:
 
 mkdocs:
   configuration: mkdocs.yml
+  # Any mkdocs warning fails the build (mkdocs build --strict passes locally, 2026-10-19).
+  fail_on_warning: true

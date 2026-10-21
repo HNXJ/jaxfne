@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE = ROOT / "artifacts" / "audit" / "w8_baseline.json"
+BASELINE = ROOT / "artifacts" / "audit" / "baselines" / "w8_baseline.json"
 HARNESS = ROOT / "scripts" / "perf" / "w8_benchmark_harness.py"
 
 W7_ANCHOR_PROFILES = frozenset({

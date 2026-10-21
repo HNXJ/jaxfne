@@ -13,15 +13,15 @@ Usage
 
 Outputs
 -------
-    artifacts/hdp_v2_rho_sweep/results_default.csv
-    artifacts/hdp_v2_rho_sweep/results_desync.csv
-    artifacts/hdp_v2_rho_sweep/summary.txt
+    artifacts/protocols/hdp/hdp_v2_rho_sweep/results_default.csv
+    artifacts/protocols/hdp/hdp_v2_rho_sweep/results_desync.csv
+    artifacts/protocols/hdp/hdp_v2_rho_sweep/summary.txt
 
 Do NOT put simulator or optimizer logic here. This script only
 configures and calls package APIs.
 
 Historical (F-017): rho_passive sweep found no working window (see
-artifacts/hdp_v2_rho_sweep/summary.txt). Production HDP presets use
+artifacts/protocols/hdp/hdp_v2_rho_sweep/summary.txt). Production HDP presets use
 K_ctrl / K_w_ctrl — re-run this sweep only if the restoring-force
 formula changes materially.
 """
@@ -96,7 +96,7 @@ PRESET_SPECS: dict[str, dict] = {
 }
 
 FAST_OVERRIDE = dict(duration_ms=2_000.0, n_seeds=2)
-OUT_DIR = Path("artifacts/hdp_v2_rho_sweep")
+OUT_DIR = Path("artifacts/protocols/hdp/hdp_v2_rho_sweep")
 
 
 # -----------------------------------------------------------------------

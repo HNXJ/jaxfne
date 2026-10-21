@@ -4,7 +4,6 @@ Covers source mode exclusivity, double-count detection, and theoretical validati
 """
 
 import json
-import pytest
 import jaxfne
 
 from _shared_fixtures import _cfg

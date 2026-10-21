@@ -2,7 +2,7 @@
 it to JSON, reload it, construct + simulate it.
 
 This is the canonical entry point for the Areas/Layers/NeuronTypes/Connections
-data model (see docs/api/neuronal_tensor.md). `Configuration` is only touched
+data model (see docs/reference/api/model/neuronal_tensor.md). `Configuration` is only touched
 internally by the bridge (`construct_neuronal_tensor`) -- the user-facing code
 below never builds one directly.
 """

@@ -36,7 +36,8 @@ def exists_at(root, sha, path):
 
 
 def make_repo(root, files):
-    """Commit `files` ({path: JSON-able object}), then copy the generator in (not committed). Returns the SHA."""
+    """Commit `files` ({path: JSON-able object}), then copy the generator and the references page (the
+    study-list source) in, uncommitted. Returns the SHA."""
     root.mkdir(parents=True)
     git(root, "init", "-q")
     git(root, "config", "user.name", "test")
@@ -49,6 +50,8 @@ def make_repo(root, files):
     git(root, "commit", "-q", "-m", "fixture scores")
     (root / "scripts").mkdir()
     shutil.copy(SCRIPT, root / "scripts" / "build_dashboard_data.py")
+    (root / "docs" / "reference").mkdir(parents=True)
+    shutil.copy(REPO / "docs" / "reference" / "references.md", root / "docs" / "reference" / "references.md")
     return git(root, "rev-parse", "HEAD")
 
 
@@ -62,7 +65,7 @@ def paper(sha, **over):
     """A minimal valid paper entry; keyword arguments replace or add fields."""
     base = {
         "id": "fixture", "title": "Fixture", "citation": "test", "release": "0.0.0", "tier": "T-test",
-        "class": "demonstration",
+        "class": "in progress",
         "stage": "P0", "lane": {"branch": "test", "sha": sha}, "summary": "fixture",
         "preregs": [], "files": {}, "criteria": [], "sensitivity": [], "charts": [], "open": [],
     }
@@ -168,6 +171,24 @@ def test_allow_missing_file_gives_pending_and_drops_its_series(tmp_path):
     assert got_r9["evidence"] == {"path": "scores/v7.json", "url": None}
     assert got_r9["extra"] == [{"label": "n", "value": None, "value_text": NO_VALUE}]
     assert [t["name"] for t in out["charts"][0]["traces"]] == ["kept"], "the absent file's series is dropped"
+
+
+def test_dev_lane_sha_off_head_history_is_refused(tmp_path):
+    # A rebase leaves the old lane SHA in a local clone, but CI's clone of dev lacks it.
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5, "ok": True}})
+    stray = git(root, "commit-tree", f"{sha}^{{tree}}", "-m", "rebased away")
+    probe = subprocess.run(["git", "merge-base", "--is-ancestor", stray, "HEAD"], cwd=str(root),
+                           capture_output=True, stdin=subprocess.DEVNULL)
+    assert probe.returncode == 1, "fixture must build a commit off HEAD's history"
+    write_sources(root, [paper(stray, lane={"branch": "dev", "sha": stray}, files={"main": "scores/main.json"})])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and stray in proc.stderr and "dev" in proc.stderr, proc.stderr
+
+    write_sources(root, [paper(sha, lane={"branch": "dev", "sha": sha}, files={"main": "scores/main.json"})])
+    assert run(root).returncode == 0
 
 
 @pytest.mark.parametrize("kind", ["missing_key", "missing_file"])
@@ -364,8 +385,22 @@ def test_value_text_three_significant_figures():
 
 @pytest.mark.parametrize("over, needle", [
     ({"class": "replicated"}, "class 'replicated'"),
-    ({"class": "demonstration", "verdict": "pass"}, "a demonstration carries no verdict"),
-    ({"class": "partial", "preregs": []}, "needs a signed preregistration"),
+    ({"class": "not reproduced", "preregs": [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}]},
+     "class 'not reproduced' is not one of"),
+    ({"class": "verified", "preregs": [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}]},
+     "class 'verified' is not one of"),
+    ({"class": "demonstration"}, "class 'demonstration' is not one of"),
+    ({"class": "reproduced", "preregs": []}, "needs a signed preregistration"),
+    ({"class": "failed", "preregs": []}, "needs a signed preregistration"),
+    ({"class": "not started", "verdict": "pass"}, "a not-started paper carries no verdict and no criteria"),
+    ({"class": "reproduced (conditional)", "verdict": "pass",
+      "preregs": [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}]},
+     "a conditional reproduction states its condition in verdict_note"),
+    ({"class": "mixed", "verdict": "mixed",
+      "preregs": [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}]},
+     "a mixed verdict names what reproduced and what missed in verdict_note"),
+    ({"class": "mixed", "verdict_note": "f_pk reproduced; lag missed", "preregs": []},
+     "needs a signed preregistration"),
 ])
 def test_class_rules_refuse_and_name_the_paper(tmp_path, over, needle):
     root = tmp_path / "repo"
@@ -454,7 +489,7 @@ def test_class_page_paper_value_and_roadmap_are_copied(tmp_path):
     prereg = [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}]
     r1 = criterion(value={"file": "main", "key": "val"}, paper_value="≈ 1.4")
     roadmap = [{"release": "9.9.9", "model": "m", "needs": "n"}]
-    spec = {"class": "partial", "verdict": "pass", "verdict_note": "under v2", "preregs": prereg,
+    spec = {"class": "reproduced (conditional)", "verdict": "pass", "verdict_note": "under v2", "preregs": prereg,
             "page": "models/fixture.md", "files": {"main": "scores/main.json"}, "criteria": [r1]}
     write_sources(root, [paper(sha, **spec)], roadmap=roadmap)
 
@@ -462,7 +497,7 @@ def test_class_page_paper_value_and_roadmap_are_copied(tmp_path):
     assert proc.returncode == 0, proc.stderr
     doc = load_out(root)
     got = doc["papers"][0]
-    assert (got["class"], got["verdict"], got["page"]) == ("partial", "pass", "models/fixture.md")
+    assert (got["class"], got["verdict"], got["page"]) == ("reproduced (conditional)", "pass", "models/fixture.md")
     assert got["verdict_note"] == "under v2"
     assert got["criteria"][0]["paper_value"] == "≈ 1.4" and got["criteria"][0]["value"] == 1.5
     assert doc["roadmap"] == roadmap
@@ -475,3 +510,99 @@ def test_class_page_paper_value_and_roadmap_are_copied(tmp_path):
         write_sources(root, [paper(sha, **{**spec, "page": bad})], roadmap=roadmap)
         proc = run(root)
         assert proc.returncode == 1 and "is not models/<name>.md" in proc.stderr, (bad, proc.stderr)
+
+
+def core_criterion(check, **over):
+    base = {
+        "id": check, "entry": check, "claim": "c", "estimand": "e",
+        "criterion": "error within tolerance",
+        "value": {"file": "main", "key": f"checks.{check}.error"},
+        "verdict": {"file": "main", "key": f"checks.{check}.pass"},
+        "reference": {"file": "main", "key": f"checks.{check}.reference"},
+    }
+    base.update(over)
+    return base
+
+
+def core_score():
+    return {"checks": {
+        "meg_radial": {"error": 1e-9, "tolerance": 1e-6, "pass": True,
+                       "reference": "primary-current field"},
+        "eeg_mne": {"error": None, "tolerance": None, "pass": None,
+                    "reference": "MNE single-shell", "skipped": "mne not installed"},
+    }}
+
+
+def core_paper(sha, criteria):
+    return paper(sha, **{"class": "core method", "stage": None, "preregs": [],
+                         "files": {"main": "scores/main.json"}, "criteria": criteria})
+
+
+def test_core_method_builds_values_verdicts_and_references_from_the_scorer_file(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": core_score()})
+    spec = core_paper(sha, [core_criterion("meg_radial"), core_criterion("eeg_mne")])
+    assert "prereg" not in spec["criteria"][0] and spec.get("stage") is None, (
+        "fixture must carry no prereg and no stage"
+    )
+    write_sources(root, [spec])
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    got = load_out(root)["papers"][0]
+    assert (got["class"], got["stage"], got["verdict"], got["preregs"]) == ("core method", None, None, [])
+    live, skipped = got["criteria"]
+    assert (live["value"], live["verdict"]) == (1e-9, "pass")
+    assert live["reference"] == "primary-current field"
+    assert live["reference_text"] == "primary-current field"
+    assert (skipped["value"], skipped["verdict"]) == (None, "pending")
+
+    flipped = core_score()
+    flipped["checks"]["meg_radial"]["pass"] = False
+    (root / "scores" / "main.json").write_text(json.dumps(flipped), encoding="utf-8")
+    git(root, "add", "--", "scores/main.json")
+    git(root, "commit", "-q", "-m", "flipped verdict")
+    sha2 = git(root, "rev-parse", "HEAD")
+    write_sources(root, [core_paper(sha2, [core_criterion("meg_radial")])])
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    assert load_out(root)["papers"][0]["criteria"][0]["verdict"] == "fail", (
+        "the verdict comes from the lane scorer file, not the sources entry"
+    )
+
+
+@pytest.mark.parametrize("criteria, needle", [
+    ([], "needs non-empty criteria"),
+    ([{k: v for k, v in core_criterion("meg_radial").items() if k != "reference"}],
+     "needs a non-empty reference"),
+    ([{k: v for k, v in core_criterion("meg_radial").items() if k != "verdict"}],
+     "takes its verdict from the scorer file"),
+])
+def test_core_method_refuses_and_names_the_paper(tmp_path, criteria, needle):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": core_score()})
+    write_sources(root, [core_paper(sha, criteria)])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and needle in proc.stderr, proc.stderr
+    assert not (root / REL_OUT).exists(), "no data file may be written on error"
+
+
+def test_core_method_skippable_criterion_names_its_entry(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": core_score()})
+    crit = core_criterion("eeg_mne", may_skip=True)
+    assert "entry" in crit
+    del crit["entry"]
+    write_sources(root, [core_paper(sha, [crit])])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and "names its scorer entry" in proc.stderr, proc.stderr
+    assert not (root / REL_OUT).exists(), "no data file may be written on error"
+
+    write_sources(root, [core_paper(sha, [core_criterion("eeg_mne", may_skip=True)])])
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    assert load_out(root)["papers"][0]["criteria"][0]["verdict"] == "pending"

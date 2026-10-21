@@ -1,4 +1,4 @@
-"""Known-answer tests for artifacts/etudes/izhikevich2003/izh_analysis.py.
+"""Known-answer tests for artifacts/etudes/papers/izhikevich2003/izh_analysis.py.
 
 Spec: PREREG_P3.md "Detector calibration" (each bullet is a test here), plus one
 peak_excess test on a constructed signal. Every fixture asserts its own
@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
-MODULE_PATH = REPO_ROOT / "artifacts" / "etudes" / "izhikevich2003" / "izh_analysis.py"
+MODULE_PATH = REPO_ROOT / "artifacts" / "etudes" / "papers" / "izhikevich2003" / "izh_analysis.py"
 DT_MS = 0.1  # kernel dt of the Fig. 2 runs; 10 ms = 100 rows
 
 
@@ -268,8 +268,8 @@ def test_peak_excess_without_a_fit_is_no_peak(monkeypatch):
 # run_izh.py / net_reference.py) every test below fails while the tests above
 # still run.
 
-RUN_IZH_PATH = REPO_ROOT / "artifacts" / "etudes" / "izhikevich2003" / "run_izh.py"
-NETREF_PATH = REPO_ROOT / "artifacts" / "etudes" / "izhikevich2003" / "net_reference.py"
+RUN_IZH_PATH = REPO_ROOT / "artifacts" / "etudes" / "papers" / "izhikevich2003" / "run_izh.py"
+NETREF_PATH = REPO_ROOT / "artifacts" / "etudes" / "papers" / "izhikevich2003" / "net_reference.py"
 
 
 def _load_run_izh() -> types.ModuleType:

@@ -4,7 +4,7 @@ This module compiles the canonical TFNE algebra
 (``artifacts/project_sources/7_tfne_algebra.md``, language version ``tfne/2``)
 as a **specification-time compiler layer**. The language is authority and this
 module is not: conformance is partial, and the measured gap is recorded under
-"Compiler conformance" in ``docs/doctrine/tfne_algebra.md``.
+"Compiler conformance" in ``docs/theory/doctrine/tfne_algebra.md``.
 It introduces no new simulator. TFNE text resolves to an explicit typed neural
 model, which is compiled two ways from the same source::
 
@@ -64,7 +64,7 @@ them so every supported expression has exactly one realization):
 9. ``parse(normalize(p))`` normalizes to ``normalize(p)`` (idempotent replay);
    the realization seed derives from the normalization hash unless overridden.
 
-Name scoping (see ``docs/doctrine/tfne_algebra.md``): bare ``O``/``X`` belong
+Name scoping (see ``docs/theory/doctrine/tfne_algebra.md``): bare ``O``/``X`` belong
 to the algebra as composition operators and ``H`` names the H-state tensor
 exclusively. JaxFNE pipeline stages keep their full names (Emitter, Source,
 Field, Probe, Objective, Optimizer, Manifest); runtime state keeps its
@@ -135,8 +135,6 @@ MECHANISM_NOT_PERMITTED = "NOT_PERMITTED"
 #: would retune every existing direct-coupled trajectory, so it stays put
 #: as documented placeholder rather than a biological claim.
 DIRECT_MECHANISM_TAU_MS = 0.1
-
-_PN_TOL = 1e-9
 
 
 class TFNEError(ValueError):
@@ -227,6 +225,10 @@ def _check_object_name(name: str) -> str:
 def _check_lower_name(name: str, role: str) -> str:
     if not name or not (name[0].islower() or name[0] == "_"):
         raise TFNEError(f"{role} name must be lowercase; got {name!r}")
+    if role != "boundary" and name in _RESERVED_LOWER:
+        raise TFNEError(
+            f"{role} name {name!r} is reserved (boundary or state symbol); choose another name"
+        )
     return name
 
 

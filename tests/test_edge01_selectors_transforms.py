@@ -13,7 +13,6 @@ from jaxfne._model_tune import (
     _edge_parameter_mask,
     _initial_parameter_values,
     _model_with_edge_parameter,
-    _model_with_parameters,
     _resolved_edge_weights_host,
 )
 
@@ -51,13 +50,10 @@ def test_parallel_edges_selected_together():
     model = _suite2()
     edges = model.params["edge_list"]
     n = int(edges.n_edges)
-    pre = np.asarray(edges.pre)
-    post = np.asarray(edges.post)
     w0 = _resolved_edge_weights_host(model)
-    from jaxfne.emitters import resolve_edge_tau_ms, resolve_edge_delay_steps, resolve_receptor_index
+    from jaxfne.emitters import resolve_edge_tau_ms, resolve_edge_delay_steps
     tau = np.asarray(resolve_edge_tau_ms(edges, edges.weight.dtype))
     ds = np.asarray(resolve_edge_delay_steps(edges))
-    ri = np.asarray(resolve_receptor_index(edges))
     dup = replace(
         edges,
         pre=jnp.concatenate([edges.pre, edges.pre[:1]]),

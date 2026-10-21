@@ -11,8 +11,8 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
-import artifacts.etudes.pcl.pcl_column as C  # noqa: E402
-import artifacts.etudes.pcl.pcl_orient_control as O  # noqa: E402
+import artifacts.etudes.papers.pcl.pcl_column as C  # noqa: E402
+import artifacts.etudes.papers.pcl.pcl_orient_control as O  # noqa: E402
 
 
 def test_oriented_kernels_lobes_and_normalization():

@@ -7,7 +7,6 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import pytest
 
@@ -15,7 +14,6 @@ from scripts.internal.publication.fig01_protocol import (
     FIG01_AUDIT_PATH,
     FIG01_FIGURE_PATH,
     FIG01_RECEIPT_PATH,
-    FIG01_SPEC_PATH,
     load_fig01_generation_receipt,
     load_fig01_semantic_audit,
     load_fig01_spec,
@@ -23,6 +21,8 @@ from scripts.internal.publication.fig01_protocol import (
     validate_fig01_semantic_audit,
     validate_fig01_spec,
 )
+
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_fig01_spec_frozen():

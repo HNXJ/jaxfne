@@ -81,6 +81,17 @@ from .solvers import (
     experimental_poisson_1d,
     experimental_poisson_1d_from_neuron_table,
 )
+from .head import (
+    SphereForward,
+    column_dipole,
+    eeg_sphere_leadfield,
+    folded_sphere_surface,
+    line_source_lfp,
+    meg_sphere_leadfield,
+    signals_dipole,
+    sphere_sensor_cap,
+    tile_column_dipoles,
+)
 
 __all__ = [
     "FieldOutput",
@@ -140,4 +151,13 @@ __all__ = [
     "eeg_proxy_transform",
     "meg_proxy_transform",
     "emm_proxy_transform",
+    "SphereForward",
+    "column_dipole",
+    "eeg_sphere_leadfield",
+    "folded_sphere_surface",
+    "line_source_lfp",
+    "meg_sphere_leadfield",
+    "signals_dipole",
+    "sphere_sensor_cap",
+    "tile_column_dipoles",
 ]

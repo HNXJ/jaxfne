@@ -1,7 +1,7 @@
 # Étude: Predictive Coding Light
 
-**Status:** Fig. 2 reproduced standalone and on the HDP kernel; central claim reproduced in a small column; orientation tuning not reproduced  
-**Bundle:** `artifacts/etudes/pcl/`
+**Status:** in progress. Fig. 2 passes standalone (P0) and on the HDP kernel only with averaged weights (K0b); end-of-epoch weights fail (K0). The column's A1 fails in C1, K1 and C1b; A2 and A3 pass. Fig. 3 fails: v4 FAIL; v5 T2 fails (T1, T3 pass; T4 passes on a post hoc criterion changed after v4). Next: Fig. 3 rescored on the jaxfne core with T4 declared up front  
+**Bundle:** `artifacts/etudes/papers/pcl/`
 
 ## Claim and source
 
@@ -104,9 +104,9 @@ seeds alike. The end-of-epoch snapshot still fails in one fresh network.
 ## Reproduce
 
 ```bash
-python artifacts/etudes/pcl/pcl_fig2.py --out artifacts/etudes/pcl/fig2.json
-python artifacts/etudes/pcl/pcl_column.py --seed 10 --out artifacts/etudes/pcl/confirm/c1_seed10.json
-python artifacts/etudes/pcl/pcl_column_hdp.py --seed 10 --out artifacts/etudes/pcl/confirm/k1_seed10.json
+python artifacts/etudes/papers/pcl/pcl_fig2.py --out artifacts/etudes/papers/pcl/fig2.json
+python artifacts/etudes/papers/pcl/pcl_column.py --seed 10 --out artifacts/etudes/papers/pcl/confirm/c1_seed10.json
+python artifacts/etudes/papers/pcl/pcl_column_hdp.py --seed 10 --out artifacts/etudes/papers/pcl/confirm/k1_seed10.json
 ```
 
-Protocols, pilots and every command: `artifacts/etudes/pcl/README.md`.
+Protocols, pilots and every command: `artifacts/etudes/papers/pcl/README.md`.

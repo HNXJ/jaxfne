@@ -94,7 +94,11 @@ def _scale_edge_list_weights(model: "Model", scale_fn) -> "Model":
         )
     params = dict(model.params)
     params["edge_list"] = edges
-    return Model(cfg=model.cfg, params=params, static=dict(model.static))
+    return Model(
+        cfg=model.cfg,
+        params=params,
+        static=dict(model.static),
+    )
 
 
 def _parameter_spec_to_dict(value: Any) -> Any:
@@ -216,13 +220,23 @@ def tune(
         # Extract seed from optimizer if not explicitly overridden via model.tune(..., seed=nonzero)
         opt_seed = getattr(optimizer, "seed", 0)
         actual_seed = seed if seed != 0 else opt_seed
+        resolved_generations = 8 if generations is None else int(generations)
+        if resolved_generations < 1:
+            raise ValueError(
+                f"generations must be >= 1, got {generations!r}"
+            )
+        resolved_population_size = 6 if population_size is None else int(population_size)
+        if resolved_population_size < 1:
+            raise ValueError(
+                f"population_size must be >= 1, got {population_size!r}"
+            )
         return self._tune_multiparameter(
             objective=objective,
             optimizer=optimizer,
             spec=spec,
             parameters=parameters,
-            generations=generations or 8,
-            population_size=population_size or 6,
+            generations=resolved_generations,
+            population_size=resolved_population_size,
             seed=int(actual_seed),
             strict=strict,
             simulation=sim,
@@ -400,9 +414,7 @@ def tune(
         report = {
             **base_report,
             "tuning_status": "optax_guarded_path_no_loop_v0.0.8",
-            "acceptance_decision": "REVISE"
-            if optax_status == "unavailable"
-            else "ACCEPT_CANDIDATE",
+            "acceptance_decision": "REVISE",
             "optax_status": optax_status,
             "same_model_unchanged": True,
             "warnings": [
@@ -1055,7 +1067,11 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
     params["emitter"] = new_emitter
     from ._model import Model  # deferred: Model is defined after this module is imported
 
-    return Model(cfg=model.cfg, params=params, static=dict(model.static))
+    return Model(
+        cfg=model.cfg,
+        params=params,
+        static=dict(model.static),
+    )
 
 
 def _mask_for_parameter(
@@ -1279,7 +1295,11 @@ def _model_with_edge_parameter(
     )
     from ._model import Model
 
-    return Model(cfg=model.cfg, params=params, static=dict(model.static))
+    return Model(
+        cfg=model.cfg,
+        params=params,
+        static=dict(model.static),
+    )
 
 
 def _model_with_matrix_parameter(
@@ -1345,7 +1365,11 @@ def _model_with_matrix_parameter(
         )
         from ._model import Model
 
-        return Model(cfg=model.cfg, params=params, static=dict(model.static))
+        return Model(
+        cfg=model.cfg,
+        params=params,
+        static=dict(model.static),
+    )
 
     current = getattr(emitter, target)
     W = _np_matrix.asarray(current, dtype=float)
@@ -1360,7 +1384,11 @@ def _model_with_matrix_parameter(
     params["emitter"] = new_emitter
     from ._model import Model  # deferred: Model is defined after this module is imported
 
-    return Model(cfg=model.cfg, params=params, static=dict(model.static))
+    return Model(
+        cfg=model.cfg,
+        params=params,
+        static=dict(model.static),
+    )
 
 
 def _model_with_parameters(

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 
-import pytest
 
 from jaxfne.experiment_a import PROTOCOL_ID, PROTOCOL_SPEC_PATH, load_protocol_spec
 

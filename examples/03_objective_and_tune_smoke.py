@@ -67,7 +67,7 @@ def main():
 
     print("\n=== Objective ===")
     print(f"  name: {obj.name}")
-    print(f"  losses: {[l['name'] for l in obj.losses]}")
+    print(f"  losses: {[loss['name'] for loss in obj.losses]}")
     print(f"  regularizers: {[r['name'] for r in obj.regularizers]}")
     print(f"  gates: {[g['name'] for g in obj.gates]}")
 

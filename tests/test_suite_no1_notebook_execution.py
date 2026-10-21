@@ -24,12 +24,13 @@ import pytest
 nbclient = pytest.importorskip("nbclient")
 nbformat = pytest.importorskip("nbformat")
 
-from _notebook_exec_helpers import execute_notebook_via_nbclient, format_cell_errors
+from _notebook_exec_helpers import execute_notebook_via_nbclient, format_cell_errors  # noqa: E402 (after importorskip guard)
 
 NOTEBOOK_PATH = (
     Path(__file__).parent.parent
     / "artifacts"
     / "tutorials"
+    / "suite"
     / "jaxfne_suite_no_1_computational_biophysics.ipynb"
 )
 

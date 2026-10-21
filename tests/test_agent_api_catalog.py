@@ -32,8 +32,9 @@ FORBIDDEN_LIKE = ["lfp_like", "csd_like", "eeg_like", "meg_like"]
 def text() -> str:
     # internal_docs/ is gitignored (internal-only artifact), so the catalog is
     # absent in clean checkouts / CI. Skip rather than fail when it is not present.
+    # The catalog is hand-curated; no repo script generates it.
     if not CATALOG.exists():
-        pytest.skip(f"internal catalog not present (gitignored): {CATALOG}")
+        pytest.skip(f"internal catalog not present (gitignored, hand-curated, no repo generator): {CATALOG}")
     return CATALOG.read_text(encoding="utf-8")
 
 

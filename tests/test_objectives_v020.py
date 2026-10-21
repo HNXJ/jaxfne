@@ -8,10 +8,7 @@ empirical mechanism proof, or amplitude calibration is claimed.
 """
 
 import json
-import math
 
-import jax.numpy as jnp
-import pytest
 
 import jaxfne
 

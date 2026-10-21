@@ -1,6 +1,6 @@
 """Source-to-field and localized laminar projection computing proxy engines.
 
-Docs: ``docs/api/fields.md`` (https://jaxfne.readthedocs.io/en/latest/api/fields/) —
+Docs: ``docs/reference/api/readout/fields.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/readout/fields/) —
 update that page when this module's public API changes.
 
 This module implements structural simulation proxy calculations under linear_solver.
@@ -178,6 +178,47 @@ def _spectrolaminar_readout_metadata() -> dict[str, Any]:
     }
 
 
+def _resolve_proxy_dtype(dtype: str, *, name: str):
+    """Working dtype for a proxy observation operator.
+
+    Same contract as :func:`project_laminar_sources`: ``"float32"`` computes
+    in float32; ``"float64"`` computes in float64 but requires the caller to
+    have enabled x64 first, else it is refused by name rather than silently
+    downgraded. Anything else — including ``"bfloat16"`` — is refused by
+    name, matching the sibling ``experimental_poisson_1d`` solver
+    (``jaxfne/fields/solvers.py``), which admits only ``"float32"`` and
+    ``"float64"``. The bfloat16-dynamics runtime path upcasts to
+    ``"float32"`` before calling, so it never reaches this refusal.
+    """
+    if dtype not in ("float32", "float64"):
+        raise ValueError(
+            f"{name}(dtype={dtype!r}) is not realized: use 'float32' or 'float64'"
+        )
+    if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
+        raise ValueError(
+            f"{name}(dtype='float64') requested but JAX x64 is not enabled -- call "
+            'jax.config.update("jax_enable_x64", True) before creating any array '
+            "in this process; refusing to silently compute in float32"
+        )
+    return jnp.float64 if dtype == "float64" else jnp.float32
+
+
+def _infer_proxy_dtype(*arrays: jax.Array):
+    """Working dtype when ``dtype`` is not given: follow the input.
+
+    float64 input with x64 enabled computes in float64; anything else
+    computes in float32. A float64 input with x64 off still reads
+    float32 — that is JAX's own canonicalization (``jnp.asarray`` of a
+    float64 array with x64 disabled), not a second truncation, so it is
+    kept, not refused.
+    """
+    if bool(jax.config.read("jax_enable_x64")):
+        for array in arrays:
+            if jnp.asarray(array).dtype == jnp.float64:
+                return jnp.float64
+    return jnp.float32
+
+
 def project_laminar_sources(
     sources: jax.Array | CanonicalSource,
     positions: jax.Array,
@@ -185,7 +226,7 @@ def project_laminar_sources(
     n_contacts: int = 16,
     width: float = 0.10,
     mode: str = "density_preserving",
-    dtype: str = "float32",
+    dtype: str | None = None,
 ) -> FieldOutput:
     """Project source traces to laminar proxy contacts.
 
@@ -208,22 +249,17 @@ def project_laminar_sources(
         modeled population reads as loud as one in the densest layer) — it
         is kept only for explicit opt-in / backward compatibility, matching
         the stance already documented for ``JaxleyBridge.simulate_laminar_field``
-        (``docs/api/bridges.md``).
+        (``docs/reference/api/model/bridges.md``).
     dtype:
-        Requested dtype policy.
+        Requested dtype policy (``None`` follows the input: float64
+        input with x64 enabled computes in float64, otherwise
+        float32).
     """
-    if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
-        raise ValueError(
-            "dtype='float64' requested but JAX x64 is not enabled -- call "
-            'jax.config.update("jax_enable_x64", True) before creating any array '
-            "in this process; refusing to silently build float32"
-        )
-    if dtype == "float64" and bool(jax.config.read("jax_enable_x64")):
-        jdtype = jnp.float64
-    else:
-        jdtype = jnp.float32
-
     sources, _ = _unwrap_probe_input(sources)
+    if dtype is None:
+        jdtype = _infer_proxy_dtype(sources, positions)
+    else:
+        jdtype = _resolve_proxy_dtype(dtype, name="project_laminar_sources")
     sources = jnp.asarray(sources, dtype=jdtype)
     positions = jnp.asarray(positions, dtype=jdtype)
     depth = positions[:, 2]
@@ -345,7 +381,7 @@ def project_sources_to_laminar_field(
     n_contacts: int = 16,
     *,
     mode: str = "density_preserving",
-    dtype: str = "float32",
+    dtype: str | None = None,
 ) -> FieldOutput:
     """Project sources onto ``n_contacts`` laminar contacts (proxy field).
 
@@ -372,7 +408,7 @@ def project_model_sources(
     n_contacts: int = 16,
     width: float = 0.10,
     mode: str = "density_preserving",
-    dtype: str = "float32",
+    dtype: str | None = None,
 ) -> FieldOutput:
     """Project sources at model-owned positions onto laminar contacts (G8).
 
@@ -1166,23 +1202,35 @@ def multi_area_spectrolaminar_readout(
 def population_rate(
     spikes: jax.Array,
     dt_ms: float = 0.1,
+    *,
+    dtype: str | None = None,
 ) -> jax.Array:
     """Mean population firing rate in Hz (0.5.4 item 3, per-area Q signal).
 
     ``rate[t] = mean_n(spikes[t, n]) * 1000 / dt_ms``. Pure observation
     operator: no smoothing, no thresholding, no plotting-side computation.
+    ``dtype`` follows the :func:`project_laminar_sources` contract:
+    ``None`` (default) follows the input (float64 input with x64 enabled
+    computes in float64, otherwise float32), ``"float32"`` computes in
+    float32, ``"float64"`` computes in float64 and requires x64 to be
+    enabled first.
     """
+    if dtype is None:
+        jdtype = _infer_proxy_dtype(spikes)
+    else:
+        jdtype = _resolve_proxy_dtype(dtype, name="population_rate")
+    np_dtype = np.float64 if jdtype == jnp.float64 else np.float32
     dt = float(dt_ms)
     if not np.isfinite(dt) or dt <= 0.0:
         raise ValueError(f"dt_ms must be finite and > 0; got {dt_ms!r}")
-    s = np.asarray(spikes, dtype=np.float32)
+    s = np.asarray(spikes, dtype=np_dtype)
     if s.ndim != 2:
         raise ValueError(f"spikes must be 2D [T, N]; got shape {s.shape}")
     if s.shape[0] == 0 or s.shape[1] == 0:
         raise ValueError(f"spikes must be non-empty; got shape {s.shape}")
     if not bool(np.isfinite(s).all()):
         raise ValueError("spikes must be finite")
-    return jnp.asarray(s.mean(axis=1) * (1000.0 / dt), dtype=jnp.float32)
+    return jnp.asarray(s.mean(axis=1) * (1000.0 / dt), dtype=jdtype)
 
 
 def cross_area_coherence(
@@ -1413,6 +1461,7 @@ def cable_filter_sources(
     dt_ms: float,
     *,
     order: int = 2,
+    dtype: str | None = None,
 ) -> jax.Array:
     """Apply a depth/cell-type-dependent passive-cable low-pass TENSOR to sources.
 
@@ -1466,10 +1515,19 @@ def cable_filter_sources(
     order:
         Number of cascaded single-pole sections (default 2; validated —
         see above).
+    dtype:
+        Requested dtype policy (same contract as
+        :func:`project_laminar_sources`): ``None`` (default) follows the
+        input, ``"float32"`` computes in float32, ``"float64"`` computes
+        in float64 and requires x64 to be enabled first.
     """
     sources, _ = _unwrap_probe_input(sources)
-    sources = jnp.asarray(sources, dtype=jnp.float32)
-    tau_s = jnp.asarray(tau_s, dtype=jnp.float32)
+    if dtype is None:
+        jdtype = _infer_proxy_dtype(sources, tau_s)
+    else:
+        jdtype = _resolve_proxy_dtype(dtype, name="cable_filter_sources")
+    sources = jnp.asarray(sources, dtype=jdtype)
+    tau_s = jnp.asarray(tau_s, dtype=jdtype)
     if sources.ndim != 2:
         raise ValueError(f"sources must be 2D [T, N], got shape {sources.shape}")
     if tau_s.shape[0] != sources.shape[1]:
@@ -1486,7 +1544,7 @@ def cable_filter_sources(
         )
 
     dt_s = dt_ms / 1000.0
-    alpha = 1.0 - jnp.exp(-jnp.asarray(dt_s, dtype=jnp.float32) / tau_s)
+    alpha = 1.0 - jnp.exp(-jnp.asarray(dt_s, dtype=jdtype) / tau_s)
 
     def _apply_one_pole(x: jax.Array) -> jax.Array:
         def step(y_prev: jax.Array, x_t: jax.Array) -> tuple[jax.Array, jax.Array]:
@@ -1499,7 +1557,7 @@ def cable_filter_sources(
     filtered = sources
     for _ in range(order):
         filtered = _apply_one_pole(filtered)
-    return jnp.asarray(filtered, dtype=jnp.float32)
+    return jnp.asarray(filtered, dtype=jdtype)
 
 
 def cable_filter_report(tau_s: jax.Array, order: int = 2) -> dict[str, Any]:

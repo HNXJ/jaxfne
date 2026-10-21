@@ -219,7 +219,7 @@ class TestStatusFields:
     def test_jaxfne_version_matches_frozen_v034_manifest(self, manifest):
         """The manifest's embedded jaxfne_version is a frozen historical value
         (this manifest was generated at v0.3.4 and is not regenerated on
-        release, same as docs/releases/v0.3.4.md) -- 0.3.4 is the correct,
+        release, same as docs/reference/releases/v0.3.4.md) -- 0.3.4 is the correct,
         permanent expectation here, not a staleness bug relative to the
         current package version."""
         version = manifest.get("jaxfne_version", "")

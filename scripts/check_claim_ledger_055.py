@@ -1,7 +1,7 @@
-"""Ledger/coverage agreement check for artifacts/programme/claim_ledger_055.md (0.5.5 ATLAS, manuscript item 11).
+"""Ledger/coverage agreement check for artifacts/programme/coverage/claim_ledger_055.md (0.5.5 ATLAS, manuscript item 11).
 
 The ledger's State and evidence-path columns are mechanically generated from
-artifacts/programme/atlas_coverage.json and must never be hand-drifted. This
+artifacts/programme/coverage/atlas_coverage.json and must never be hand-drifted. This
 script reads both files and exits 0 only when every coverage id appears exactly
 once in the ledger and each row's state and evidence path agree with the
 coverage row (coverage evidence "" matches ledger `none`; non-empty evidence
@@ -19,8 +19,8 @@ import pathlib
 import re
 import sys
 
-DEFAULT_LEDGER = "artifacts/programme/claim_ledger_055.md"
-DEFAULT_COVERAGE = "artifacts/programme/atlas_coverage.json"
+DEFAULT_LEDGER = "artifacts/programme/coverage/claim_ledger_055.md"
+DEFAULT_COVERAGE = "artifacts/programme/coverage/atlas_coverage.json"
 ROW_RE = re.compile(r"^\|\s*(AT-\d{2}-R\d+)\s*\|")
 EMPTY_EVIDENCE = ("", "none", "n/a")
 WORDING = frozenset(

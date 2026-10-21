@@ -415,6 +415,12 @@ _ADVANCED: Final[frozenset[str]] = frozenset(
         "HDPRuleDescriptor",
         "HDPRuleUpdate",
         "register_hdp_rule",
+        # Named registered rules: the module is the symbol (as with tfne
+        # above), so rule math stays namespaced instead of hoisted to root.
+        "istdp_vogels2011",
+        # Frozen trained-W0 provenance (T-25: root attrs, not __all__)
+        "W0Provenance",
+        "with_trained_weights",
         # Dev / QA utilities
         "compilation_registry",
         "compile_connection_rules_jax",
@@ -495,13 +501,17 @@ ADVANCED_NAMESPACE: Final[dict[str, str]] = {
     "STDPPlasticityConfig": "jaxfne.plasticity",
     "update_stdp_weights_jax": "jaxfne.plasticity",
     "register_hdp_rule": "jaxfne.hdp_rule",
+    "istdp_vogels2011": "jaxfne.istdp_vogels2011",
     "HDPRuleDescriptor": "jaxfne.hdp_rule",
     "HDPRuleUpdate": "jaxfne.hdp_rule",
     "HDPRuleContext": "jaxfne.hdp_rule",
+    "W0Provenance": "jaxfne.neuronal_tensor",
+    "with_trained_weights": "jaxfne.neuronal_tensor",
     "spectrolaminar_psd_jax": "jaxfne.analysis.spectral",
     "get_sharding_context": "jaxfne.sharding_utils",
     "boundedness_report": "jaxfne._long_diagnostics",
     "stability_report": "jaxfne._long_diagnostics",
+    "XSource": "jaxfne.inputs",
     "SanityDeltaConfig": "jaxfne.sanity_delta",
     "SurrogateConfig": "jaxfne._runtime_config",
     "surrogate_config": "jaxfne._runtime_config",

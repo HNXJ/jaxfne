@@ -202,7 +202,7 @@ def test_public_pages_reference_current_panel_names():
     pages = [
         ROOT / "README.md",
         ROOT / "docs" / "index.md",
-        ROOT / "docs" / "guides" / "atlas_suite.md",
+        ROOT / "docs" / "guides" / "interop" / "atlas_suite.md",
     ]
     retired_assets = ("operating_point.html", "operating_point.png")
     for page in pages:
@@ -221,7 +221,7 @@ def test_public_pages_reference_current_panel_names():
     assert 'src="assets/readme/network_3d.png"' in index, (
         "docs/index.md must embed the network_3d landing preview"
     )
-    assert "guides/atlas_suite.md" in index, (
+    assert "guides/interop/atlas_suite.md" in index, (
         "docs/index.md must link to the canonical atlas guide"
     )
     for panel in ("schema", "network_3d", "oscillatory"):
@@ -229,7 +229,7 @@ def test_public_pages_reference_current_panel_names():
             f"docs/index.md landing prose must still name panel {panel!r}"
         )
 
-    guide = (ROOT / "docs" / "guides" / "atlas_suite.md").read_text(encoding="utf-8")
+    guide = (ROOT / "docs" / "guides" / "interop" / "atlas_suite.md").read_text(encoding="utf-8")
     for filename in FIXED:
         assert filename in guide, f"atlas guide does not document panel {filename!r}"
 

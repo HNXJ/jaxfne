@@ -55,7 +55,7 @@ def build_experiment_a_config(spec: dict[str, Any] | None = None) -> Any:
         )
         .population(
             int(ns["N"]),
-            neurons={"E": 0.7, "I": 0.3},
+            neurons=dict(ns["layer_thickness"]),
             layers=list(ns["layers"]),
             name="V1",
         )

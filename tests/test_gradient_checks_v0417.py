@@ -1,6 +1,6 @@
 """Small deterministic gradient checks for the declared differentiable paths.
 
-The public differentiability contract (docs/source_field_equations.md,
+The public differentiability contract (docs/theory/source_field_equations.md,
 project source §10) declares exactly one end-to-end differentiable
 composition: the ``source_scale`` rescale of an already-simulated run, a
 linear post-processing map that never crosses the spike/reset boundary.

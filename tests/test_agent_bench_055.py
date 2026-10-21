@@ -10,7 +10,7 @@ from artifacts.atlas.at_bundle import bundle
 from artifacts.atlas.at_manifest import REGISTRY, at_spec, spec_digest
 import pytest
 
-from artifacts.benchmark.agent_bench import (
+from artifacts.runs.benchmark.agent_bench import (
     ARMS, CLASSES, TASK_SET, carry_arm_definitions, freeze_task, packet, prepare_worktree, score)
 
 TASKS = {t["at_id"]: t for t in json.loads(TASK_SET.read_text(encoding="utf-8"))["tasks"]}

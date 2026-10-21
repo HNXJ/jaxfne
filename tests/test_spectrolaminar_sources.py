@@ -6,7 +6,6 @@ Focus: Validate dynamics-derived vs teaching/control source paths.
 import json
 import numpy as np
 import pytest
-import jax.numpy as jnp
 
 from _shared_fixtures import MockNeuronsDataFrame
 from jaxfne.fields import (

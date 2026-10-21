@@ -6,7 +6,7 @@ import yaml
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-mk = yaml.safe_load((ROOT / "mkdocs.yml").read_text())
+mk = yaml.safe_load((ROOT / "mkdocs.yml").read_text(encoding="utf-8"))
 
 
 def extract_nav(nav_item):
@@ -44,7 +44,7 @@ for title, rel in nav_pairs:
         })
         continue
 
-    text = p.read_text()
+    text = p.read_text(encoding="utf-8")
     words = len(text.split())
     has_eq = bool(re.search(r"(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$.*?\$)", text))
     has_code = "```" in text
@@ -79,5 +79,5 @@ if missing or with_todos or broken:
     print("AUDIT RESULT: FAIL")
     sys.exit(1)
 
-print("AUDIT RESULT: PASS (All 81 pages verified on disk, zero broken tags, zero TODOs)")
+print(f"AUDIT RESULT: PASS (all {len(audit_rows)} nav pages on disk, zero broken tags, zero TODOs)")
 print("================================================================================")

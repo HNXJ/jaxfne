@@ -118,16 +118,16 @@ def check_fences() -> list[dict]:
 
 
 SKILL_DOCS = [
-    "artifacts/skills/jaxfne-audit/SKILL.md",
-    "artifacts/skills/jaxfne-core/SKILL.md",
-    "artifacts/skills/jaxfne-release/SKILL.md",
-    "artifacts/skills/jaxfne-repo/SKILL.md",
-    "artifacts/skills/jaxfne-science/SKILL.md",
-    "artifacts/skills/jaxfne-seal/SKILL.md",
-    "artifacts/skills/vocabulary-audit/SKILL.md",
-    "artifacts/subagents/vocabulary_critic.md",
-    "artifacts/subagents/jaxfne-developer.md",
-    "artifacts/subagents/pool.md",
+    "artifacts/control/skills/jaxfne-audit/SKILL.md",
+    "artifacts/control/skills/jaxfne-core/SKILL.md",
+    "artifacts/control/skills/jaxfne-release/SKILL.md",
+    "artifacts/control/skills/jaxfne-repo/SKILL.md",
+    "artifacts/control/skills/jaxfne-science/SKILL.md",
+    "artifacts/control/skills/jaxfne-seal/SKILL.md",
+    "artifacts/control/skills/vocabulary-audit/SKILL.md",
+    "artifacts/control/subagents/vocabulary_critic.md",
+    "artifacts/control/subagents/jaxfne-developer.md",
+    "artifacts/control/subagents/pool.md",
 ]
 
 PATH_RE = re.compile(r"`((?:artifacts|scripts|docs|tests|scratch|mkdocs\.yml|README\.md)[^`]*?)`")

@@ -22,7 +22,6 @@ Governing equations (sign-consistent):
 from __future__ import annotations
 
 import numpy as np
-import pytest
 import jax
 import jax.numpy as jnp
 
@@ -450,7 +449,7 @@ def test_dispatch_boundary_stabilization_traces():
         .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
     )
     model = jtfne.construct(cfg)
-    sig = jtfne.simulate(model, duration_ms=200.0, dt_ms=0.5, seed=0)
+    jtfne.simulate(model, duration_ms=200.0, dt_ms=0.5, seed=0)
 
     diag = model.last_hdp_diagnostics()
     assert diag is not None

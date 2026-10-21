@@ -17,8 +17,6 @@ M. _KNOWN_READOUT_METRICS exported and contains expected entries
 
 import json
 
-import pytest
-import jax.numpy as jnp
 
 import jaxfne as jtfne
 from jaxfne.core import _KNOWN_READOUT_METRICS
