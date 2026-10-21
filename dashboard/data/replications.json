@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-20T20:39:38Z",
-    "dev_sha": "8354bf52351621e1173859b6cbee9716b7d2eee2"
+    "utc": "2026-10-21T00:54:57Z",
+    "dev_sha": "214c853b654f34c65edb2b4535128d848fd272a6"
   },
   "papers": [
     {
@@ -2951,12 +2951,12 @@
       "stage": null,
       "lane": {
         "branch": "dev",
-        "sha": "eae6f929099e6a2dc14fee34e5e2e143b0fad981"
+        "sha": "214c853b654f34c65edb2b4535128d848fd272a6"
       },
       "stage_artifacts": [],
       "verdict": null,
       "verdict_note": null,
-      "summary": "Seven analytic agreements of the spherical-head forward code, scored from the inputs of tests/test_head_forward.py: radial and full-vector MEG against the primary-current field and scalar-potential quadrature, radial-dipole silence, EEG against the Neumann series and the MNE single shell, conductivity reciprocity and the average-reference null.",
+      "summary": "Nine analytic agreements of the spherical-head forward code, scored from the inputs of tests/test_head_forward.py: radial and full-vector MEG against the primary-current field and scalar-potential quadrature, radial-dipole silence, EEG against the Neumann series and the MNE single shell, conductivity reciprocity, the average-reference null, line-source LFP against scipy quadrature of the line-source integral and its point-dipole far field.",
       "preregs": [],
       "criteria": [
         {
@@ -2978,7 +2978,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3000,7 +3000,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3022,7 +3022,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3044,7 +3044,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3066,7 +3066,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3088,7 +3088,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3110,7 +3110,51 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/eae6f929099e6a2dc14fee34e5e2e143b0fad981/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "line-lfp-quadrature",
+          "group": "",
+          "claim": "line-source LFP equals scipy quadrature of the line-source integral",
+          "estimand": "worst-case |deviation| over 9 contacts, 6 neurons and 4 time points",
+          "criterion": "error ≤ 1e-12·scale + 1e-9·scale",
+          "value": 8.881784197001252e-16,
+          "value_text": "8.88e-16",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "scipy quadrature of the line-source integral",
+          "reference_text": "scipy quadrature of the line-source integral",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+          }
+        },
+        {
+          "id": "line-lfp-far-field",
+          "group": "",
+          "claim": "far-field line-source LFP equals the point-dipole field",
+          "estimand": "worst-case |deviation| at two contacts 10 length units above and below the soma (units follow the inputs)",
+          "criterion": "error ≤ 1e-3·scale",
+          "value": 6.630211508907213e-12,
+          "value_text": "6.63e-12",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "point-dipole far field",
+          "reference_text": "point-dipole far field",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
           }
         }
       ],
