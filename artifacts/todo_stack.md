@@ -55,17 +55,15 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 - Validation backbone (Hamm 2026-10-21: "expand it, our backbone of supports"; seven core-method
   rows on dev 1e79c99c): after the kernel LFP lane lands, an iSTDP out-degree check in plasticity
   and kernel LFP checks in fields.
-- Docs figures (Hamm 2026-10-21: docs lack inline PNGs; the docs iframes do not work, so every
-  interactive figure moves to GitHub Pages and the dashboard, and the docs stay light). In order:
-  (1) the dashboard workflow builds each figure once from its Plotly object and publishes
-  `hnxj.github.io/jaxfne/figures/<slug>.html` and a kaleido still `<slug>.png` (through
-  `jaxfne.vis.exporters._write_image`), with a manifest of slug, build SHA and docs page; nothing
-  new is tracked (the tree is at its file budget); (2) a Figures tab on the dashboard lists the
-  stills, each linking to its HTML and back to its docs page; (3) the generators rewrite their docs
-  blocks as the still (absolute URL), a caption naming the build SHA and one "Interactive version"
-  link, and drop every docs iframe (about 30) and the 8-link panel rows (about 200 plain `.html`
-  links); docs-side HTML builds under `docs/_static` stop; (4) a docs check refuses an iframe or a
-  bare figure `.html` link, and the dashboard build fails on a figure without a still.
+- Docs figures (Hamm 2026-10-21: no iframes in the docs; interactive figures on GitHub Pages).
+  The figure site `hnxj.github.io/jaxfne/figures/` landed, and every docs figure is a Still /
+  Interactive tab pair framing it (Hamm 2026-10-21: "this form is the best").
+  Left, in order: (1) a Figures tab on the dashboard from `figures/manifest.json`, each still
+  linking to its HTML and its docs pages; (2) stop the docs-side HTML builds under `docs/_static`
+  (atlas, etude and visual pages no docs page links any more) and delete those tracked files,
+  which frees tree budget; (3) the four allowlisted iframes in `build_docs_assets.py`
+  (v0.37 source column, Izhikevich explorer, jaxley Vm, V1/V4/PFC showcase) get a figure-site
+  build or a still.
 
 In order: B4 checklist rules in `check_replications.py` (S2, E1 and P4 landed; next R4; F3
 stays manual: the gate cannot run the parent commit), with the follow-ups, each closed by a fix or
