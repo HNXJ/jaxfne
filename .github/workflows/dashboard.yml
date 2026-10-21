@@ -82,9 +82,11 @@ jobs:
         with:
           fetch-depth: 0  # build_sha in the figure manifest is the exact HEAD
 
+      # 3.12 resolves jax 0.11.x, where the etude reruns reproduce their frozen claims; under
+      # 3.11 (jax 0.10.2) the HDP etude's tuned theta drifts and its rerun refuses (run 39693463744).
       - uses: actions/setup-python@v7
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install package with the viz extra
         run: pip install -e ".[viz]"

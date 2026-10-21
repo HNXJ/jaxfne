@@ -607,6 +607,24 @@ def test_docs_figures_check_fails_on_relative_figure_link(tmp_path, monkeypatch,
     assert "figure-site URL" in capsys.readouterr().out
 
 
+def test_site_continues_past_a_slug_that_refuses(tmp_path, monkeypatch, capsys):
+    # An etude rerun refuses with SystemExit when a frozen claim does not
+    # reproduce; it killed the whole CI site build (run 39693463744).
+    first, second = bda.VISUAL_SLUGS[:2]
+    built = []
+
+    def fake(slug, out, registry, pages):
+        if slug == first:
+            raise SystemExit("tuned theta drift vs frozen checkpoint")
+        built.append(slug)
+        return []
+
+    monkeypatch.setattr(bda, "_build_site_slug", fake)
+    assert bda.main(["--site", str(tmp_path / "site"), "--only", f"{first},{second}"]) == 1
+    assert built == [second]
+    assert f"[{first}] SITE ERROR" in capsys.readouterr().out
+
+
 def test_site_fails_when_docs_cite_an_omitted_figure():
     # The first etude build listed every rerun panel as omitted while the
     # docs showed their stills; the completeness check alone passed it.

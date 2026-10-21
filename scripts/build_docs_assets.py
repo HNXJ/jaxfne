@@ -790,7 +790,8 @@ def build_site(site: str | Path, only: list[str]) -> int:
             else:
                 entries.extend(_build_site_slug(slug, out, registry, pages))
             print(f"{slug}: {len([e for e in entries if e['slug'] == slug])} figures")
-        except Exception as exc:  # noqa: BLE001 -- one slug must not kill the site
+        # The etude reruns refuse with SystemExit when a frozen claim does not reproduce.
+        except (Exception, SystemExit) as exc:  # noqa: BLE001 -- one slug must not kill the site
             errors += 1
             print(f"[{slug}] SITE ERROR: {exc!r}")
     out.mkdir(parents=True, exist_ok=True)
