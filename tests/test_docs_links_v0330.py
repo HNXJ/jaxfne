@@ -24,7 +24,9 @@ class TestDocsLinksV0330:
             text=True,
         encoding="utf-8",
             cwd=pathlib.Path.cwd(),
-            timeout=120,
+            # 16 s alone; over 120 s under the xdist broad gate on a loaded machine (rc, 2026-10-21).
+            # The test checks the strict build, so the limit only bounds a hang.
+            timeout=600,
         )
 
         assert result.returncode == 0, (
