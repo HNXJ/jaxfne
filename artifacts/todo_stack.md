@@ -45,6 +45,12 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   on the WSL CPU since 2026-10-20 (`brunel_s23_chain.sh`, out
   `C:/workspace/jaxfne_receipts/brunel2000_p3v4/unscored_S2`, `unscored_S3`); then the RESULT_P3
   sensitivity section. Carried from 0.5.7 with Brunel S1 (needs the fixed-in-degree option, B5).
+- Kernel LFP lane `cl-klfp` onto dev (owner: corticolaminar session; keeper gates and pushes):
+  rebase onto current dev, broad gate 0 failed, then push. First f57aae0f, `istdp_vogels2011`
+  per-synapse traces (0.5.7 ships the per-neuron trace, whose presynaptic increment scales with
+  out-degree; the 0.5.8 changelog names it as a fix to 0.5.7; Vogels segment B rerun is O-55).
+  Then 6eb3c6b8 (hybrid kernel LFP, Hagen 2016 reduced cells, Billeh 2020 V1 wiring tables),
+  44cd0111, ff45364b; its LFP validation feeds 0.5.10.
 
 In order: B4 checklist rules in `check_replications.py`;
 B1 estimators into `jaxfne.analysis`; B5 lane gaps (Brunel S1 option, Vogels G-SC, Potjans G-MULT
@@ -77,6 +83,11 @@ Blocked: T-11 (jnwb), T-16 and T-17 `[H]`, deferred list (section 5).
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
   push dev. Standing item. Closes when: `python scripts/build_dashboard_data.py --check` passes
   on each push.
+- T-8b [A] After each dev push, refresh the lane dashboard artifact (skill `jaxfne-dashboard`).
+  Standing item.
+- 0.5.10 candidate: `coherence_radius_um` readout in `jaxfne.fields.kernel_lfp` (currents sum in
+  phase within R_c, random phase between patches), with the two limit tests (R_c = sheet radius
+  gives the coherent sheet; R_c of one cell gives incoherent summation). After the kernel LFP lane.
 
 ## 3. 0.5.6–0.5.10 programme
 
