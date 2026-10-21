@@ -522,6 +522,31 @@ def test_render_atlas_default_output_unchanged(tmp_path, monkeypatch):
                 == uuid.sub(b'"X"', name.read_bytes())), f"{name.name} differs"
 
 
+def test_site_builds_a_docs_visual_slug(tmp_path, monkeypatch):
+    # The visual path keys its Figure by the panel file; a slug key failed
+    # both visuals on the first CI build (Dashboard run 39679832206).
+    import sys
+    import types
+
+    import plotly.graph_objects as go
+
+    import jaxfne.vis.exporters as exporters
+
+    slug = bda.VISUAL_SLUGS[0]
+    fake = types.ModuleType("generate_docs_visuals")
+    fake.FIGURES = {slug: lambda: go.Figure(go.Scatter(x=[0, 1], y=[0, 1]),
+                                            layout={"title": {"text": "visual"}})}
+    monkeypatch.setitem(sys.modules, "generate_docs_visuals", fake)
+    monkeypatch.setattr(exporters, "_write_image",
+                        lambda fig, path: pathlib.Path(path).write_bytes(b"\x89PNG\r\n\x1a\n"))
+    site = tmp_path / "figsite"
+    assert bda.main(["--site", str(site), "--only", slug]) == 0
+    manifest = json.loads((site / "manifest.json").read_text(encoding="utf-8"))
+    [entry] = manifest["figures"]
+    assert entry["status"] == "available" and entry["title"] == "visual"
+    assert (site / entry["html"]).is_file() and (site / entry["png"]).is_file()
+
+
 def test_site_completeness_fails_when_png_missing(tmp_path):
     site = tmp_path / "site"
     (site / "s").mkdir(parents=True)

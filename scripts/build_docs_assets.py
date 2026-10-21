@@ -531,7 +531,7 @@ def _site_figure_source(slug: str):
 
         fig = gv.FIGURES[slug]()
         title = str(getattr(fig.layout.title, "text", "") or slug)
-        return ("visual", title, None, None, {}, "docs/_static/visuals", {slug: fig})
+        return ("visual", title, None, None, {}, "docs/_static/visuals", {f"{slug}.html": fig})
     import generate_doc_page_atlases as dpa
 
     if slug == README_SLUG:
