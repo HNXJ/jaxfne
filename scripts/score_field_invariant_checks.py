@@ -12,7 +12,7 @@ worst-case deviation beside its tolerance:
   contacts (new; the same pinned invariant as tests/test_linear_readouts.py:44 but on the core)
 - cable_filter_transfer: cable_filter_sources gain at 5, 20 and 100 Hz against the exact discrete-time
   response of its one-pole cascade (new; tests/test_cable_filter_tensor.py:60 is qualitative only)
-- poisson_1d_flux_magnitude: experimental_poisson_1d flux against Q dx (Gauss's law;
+- poisson_1d_flux_magnitude: experimental_poisson_1d flux against -Q dx (Gauss's law, signed;
   tests/test_experimental_poisson_1d_convergence.py:71)
 - poisson_1d_flux_span: flux zero outside the source-sink span and constant inside
   (tests/test_experimental_poisson_1d_convergence.py:56)
@@ -300,7 +300,7 @@ paper replication, and there is no paper value beside ours.
 | csd_flat_potential_zero | tests/test_csd_tensor.py:42 | zero second difference of a constant (3.7, 5 x 8) | 1e-5 absolute |
 | csd_quadratic_potential | new (cf. tests/test_linear_readouts.py:44, which uses a test-local stencil) | -phi'' = -2a at interior contacts for phi = a z^2 + b z + c, float64 | 1e-6 · max\\|-phi''\\| |
 | cable_filter_transfer | new (tests/test_cable_filter_tensor.py:60 is qualitative only) | exact discrete response of the cascade at 5, 20, 100 Hz, tau 20 ms, dt 0.5 ms, order 2 | 1e-6 relative |
-| poisson_1d_flux_magnitude | tests/test_experimental_poisson_1d_convergence.py:71 | Gauss's law: interior flux = Q dx at N = 21, 41, 81, Q = 2 | 1e-3 relative |
+| poisson_1d_flux_magnitude | tests/test_experimental_poisson_1d_convergence.py:71 | Gauss's law: interior flux = -Q dx (signed) at N = 21, 41, 81, Q = 2 | 1e-3 relative |
 | poisson_1d_flux_span | tests/test_experimental_poisson_1d_convergence.py:56 | Gauss's law: flux zero outside [src, sink), constant inside, N = 81 | 1e-4 absolute |
 
 Conventions and choices, stated once:
