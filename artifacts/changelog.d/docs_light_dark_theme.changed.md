@@ -1,1 +1,1 @@
-The documentation offers a light and a dark scheme with a toggle (dark follows the reader's system setting); the logo is transparent, and flowcharts re-render in the active scheme.
+- The documentation offers a light and a dark scheme with a toggle (dark follows the reader's system setting); the logo is transparent, and flowcharts re-render in the active scheme.

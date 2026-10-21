@@ -22,6 +22,12 @@ as done with jaxfne only when it runs through the library (P6).
 | [Vogels et al. 2011, Fig. 4 (inhibitory STDP balancing a recurrent network) and Figs. 1-2 (single-cell detailed balance)](https://hnxj.github.io/jaxfne/dashboard/#model/vogels2011)<br>Vogels et al., Science 334(6062):1569-1573 | in progress | 0.5.8 | P1 | — |
 | [Mejias et al. 2016 laminar multi-area model, Figs. 2-3 and 6-7](https://hnxj.github.io/jaxfne/dashboard/#model/mejias2016)<br>Mejias, Murray, Kennedy and Wang, Sci Adv 2(11):e1601335 | in progress | 0.5.9 | P1 | — |
 | [Analytic EEG/MEG forward checks of jaxfne.fields.head](https://hnxj.github.io/jaxfne/dashboard/#model/head-forward)<br>Sarvas 1987 (MEG); Frank 1952 (EEG) | core method | 0.5.7 | — | — |
+| [Emitter closed-form checks of the jaxfne emitter kernels](https://hnxj.github.io/jaxfne/dashboard/#model/emitter-closed-form)<br>closed-form and hand-computed references in the pinned tests (no paper value) | core method | 0.5.8 | — | — |
+| [Core checks of the field and probe invariants in jaxfne.fields](https://hnxj.github.io/jaxfne/dashboard/#model/field-invariants)<br>Nicholson and Freeman 1975 (CSD three-point stencil); Gauss's law in one dimension | core method | 0.5.8 | — | — |
+| [Hand-value plasticity checks of the jaxfne core](https://hnxj.github.io/jaxfne/dashboard/#model/plasticity-hand-values)<br>Vogels et al., Science 334(6062):1569-1573; docs/guides/state/hdp.md (barrier equilibrium); protocol D2a F1 relaxation | core method | 0.5.8 | — | — |
+| [Objective and optimizer stages against closed forms and independent references](https://hnxj.github.io/jaxfne/dashboard/#model/objective-optimizer-references)<br>analytic references; no paper value | core method | 0.5.8 | — | — |
+| [Core-method numerics checks: integrators and autodiff gradients](https://hnxj.github.io/jaxfne/dashboard/#model/numerics-references)<br>Closed-form exponential and Euler iterate; central finite differences (no paper values) | core method | 0.5.8 | — | — |
+| [Core-vs-oracle parity checks of the AdEx, multi-compartment HH and MCDP routes](https://hnxj.github.io/jaxfne/dashboard/#model/port-oracle-parity)<br> | core method | 0.5.8 | — | — |
 
 ## Not started
 
