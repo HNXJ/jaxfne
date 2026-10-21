@@ -1,10 +1,16 @@
 # state
 
-Stamp: jaxfne@dev@bd1e004d · 2026-10-19 (written 2026-10-19T15:42:58Z)
+Stamp: jaxfne@dev@2bdc1701 · 2026-10-21 (written 2026-10-21T12:07:39Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
 ## Works (with evidence)
+
+- 0.5.7 published 2026-10-21: tag v0.5.7 on main 03a86014 (PR 113; CI Fast 39585668154, Release
+  CI 39585668167 green), GitHub Release, PyPI via Publish run 39595006450; receipt
+  `artifacts/release/v0_5_7_release_receipt.json`. rc gate PASS on dev 508dffa9 (broad 6917
+  passed, 0 failed; JUnit parity 7053 = 7053 nodes against Release CI 39565883872, 6 explained
+  differences). Install and Colab docs name 0.5.7 as published.
 
 - 2026-10-20: Brunel 2000 Fig. 8 reproduced (conditional) under signed P3 v4 (seeds 4-8, dt 0.1 ms,
   CPU float32; float64 at C agrees): `papers/brunel2000/RESULT_P3.md`, REPLICATIONS, dashboard.
@@ -59,7 +65,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 - 0.5.6 published 2026-10-15: tag v0.5.6 on main b24e09ef (Release CI 38791659454 green), GitHub
   Release, PyPI via Publish run 38801056076; receipt `artifacts/release/v0_5_6_release_receipt.json`.
-  Release merged back into dev; install and Colab docs name 0.5.6 as published.
+  Release merged back into dev.
 - dev 0c8ca0f0: Muse cleanup lane (unused imports and bindings in scripts/, dead `tfne._PN_TOL`);
   Muse review PASS; dev CI green.
 - dev 95324945 (PCL lane: LIF tensor route with event input, per-position local inhibition,
@@ -77,8 +83,6 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - main a98e6149: 0.5.6 merged from dev 4842b87c by PR 108 (2026-10-15). Main CI green: CI Fast
   run 38757281037, Release CI with slow tests run 38757281031. rc gate PASS on 4842b87c with
   JUnit parity against Release CI run 38743501399 (3.11 and 3.14 each 6030/6030, 0 unjustified).
-- Version state: 0.5.6 published (tag, GitHub Release, PyPI); main b24e09ef carries the receipt
-  commit a5fae28d via PR 109.
 - Dependabot PR 106 (ruff 0.17.0 in the dev extra) and PR 107 (docs pymdown-extensions >= 12.2)
   merged into dev and closed on GitHub.
 

@@ -36,23 +36,17 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   local inhibition off (`F:\warehouse\pcl\diag_runs\`). Then P6 (B1). Closes when: a signed prereg reproduces Fig. 3, or Hamm
   closes it, and the P6 attempt is recorded.
 
-## 2. Next release: 0.5.7 (truthful core)
+## 2. Next release: 0.5.8 (core-compliant replications)
 
-Plan: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md` (Hamm 2026-10-19); exit gate in its
-section 6. Packages A1-A7 are on dev or in the push now gating; what is left, fastest first:
+0.5.7 published 2026-10-21 (tag v0.5.7 on main 03a86014, GitHub Release, PyPI; receipt
+`artifacts/release/v0_5_7_release_receipt.json`). Plan: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md`.
 
-| Order | Item | ETA | Who |
-|---|---|---|---|
-| 4 | Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5, unscored: running detached on the WSL CPU since 2026-10-20 (`brunel_s23_chain.sh`, out `C:/workspace/jaxfne_receipts/brunel2000_p3v4/unscored_S2`, `unscored_S3`); RESULT_P3 sensitivity section | about 5 h compute | dispatcher reads |
-| 5 | Head-forward core checks: the two line-source LFP agreements of `tests/test_head_forward.py`; tolerances moved out of the check functions so a test can tighten them and see a fail | 1 h | Muse |
-| 6 | A9: assemble the fragments, `release_body.py --tag v0.5.7` claim check (closes T-10), rc gate, second review, receipt under `artifacts/release/` | 2-3 h | dispatcher, worker gate runs |
-| 7 | Tag, main, PyPI and RTD `stable` | after 6 | `[H]` go |
+- Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5, unscored: running detached
+  on the WSL CPU since 2026-10-20 (`brunel_s23_chain.sh`, out
+  `C:/workspace/jaxfne_receipts/brunel2000_p3v4/unscored_S2`, `unscored_S3`); then the RESULT_P3
+  sensitivity section. Carried from 0.5.7 with Brunel S1 (needs the fixed-in-degree option, B5).
 
-Moved to 0.5.8 with reason (plan section 1: missed work never blocks its release): Destexhe and
-GSDR B8 pilots and their preregs (A8 part; days of runs, signature `[H]`); Brunel S1 (needs the
-fixed-in-degree option, B5).
-
-Then 0.5.8 (core-compliant replications), in order: B4 checklist rules in `check_replications.py`;
+In order: B4 checklist rules in `check_replications.py`;
 B1 estimators into `jaxfne.analysis`; B5 lane gaps (Brunel S1 option, Vogels G-SC, Potjans G-MULT
 to G-DDIST); B3 batching; B2 routes through `construct`; Destexhe and GSDR pilots, then preregs (the GSDR fit
 with MCDP on via `mcdp_hdp_step`, Hamm 2026-10-20); Jansen and Rit 1995 opens the EEG/MEG lane
@@ -140,10 +134,8 @@ run on WSL2 CUDA.
   - PCL: Fig. 3 rescored on the core (full-network mapping of feed, complex pooling and
     lateral/top-down paths onto the LIF tensor route; the numba port stays the event-exact
     oracle); the next core protocol declares T4 up front.
-- T-10 [A] G-1 (meet 204dfdaa): port jnwb's `changelog.d`, `assemble_changelog.py`,
-  `release_body.py` and claim check; release body as tables. Closes when: `release_body.py --tag <next>` passes.
-  The port itself landed (924f2423, 78d293d9); only the closing check waits for a tag.
-  Then the errors page (the docs newline check holds: `docs/reference/changelog.md` and
+- T-10b [A] jnwb cross-learning follow-ups (T-10 closed 2026-10-21: `release_body.py --tag
+  v0.5.7 --check` passed and built the v0.5.7 release body): the errors page (the docs newline check holds: `docs/reference/changelog.md` and
   `docs/_static/atlas/manifest.json` are all CRLF at HEAD, 745 and 136 lines, 2026-10-20), a
   proxy-claim wording gate, AST-hash freezing of validated kernels
   (`artifacts/control/harness/jnwb_cross_learning.md`).
