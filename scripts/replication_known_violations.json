@@ -78,6 +78,13 @@
   },
   {
     "rule": "S1",
+    "path": "artifacts/etudes/papers/pcl/port/test_fig3_analysis.py",
+    "message": "line 529: spec_from_file_location loads a path that cannot be resolved",
+    "reason": "mutant harness loads a temporary copy of fig3_analysis.py, as the CAMINOS harness does (2026-10-20)",
+    "todo": "T-30"
+  },
+  {
+    "rule": "S1",
     "path": "artifacts/etudes/papers/izhikevich2003/gate_p3b.py",
     "message": "line 28: spec_from_file_location loads a path that cannot be resolved",
     "reason": "audit 2026-10-17",
