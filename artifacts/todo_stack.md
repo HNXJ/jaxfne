@@ -55,16 +55,17 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 - Validation backbone (Hamm 2026-10-21: "expand it, our backbone of supports"; seven core-method
   rows on dev 1e79c99c): after the kernel LFP lane lands, an iSTDP out-degree check in plasticity
   and kernel LFP checks in fields.
-- Docs figures (Hamm 2026-10-21: docs lack inline PNGs; HTML goes to the dashboard site). In order:
-  (1) every HTML figure generator also writes a PNG still at build time (registry `copies` in
-  `build_docs_assets.py`, nothing tracked: the tree is at its file budget), and the docs build fails
-  on a missing image; (2) the dashboard workflow publishes the figure HTML at
-  `hnxj.github.io/jaxfne/figures/<slug>.html`, with a Figures tab of stills linking back to the docs;
-  (3) generators rewrite their blocks as inline PNG, caption and one "Interactive version" link,
-  dropping the 8-link panel rows (about 200 plain `.html` links today); (4) a docs check refuses a
-  bare figure `.html` link; (5) each dashboard figure records its build SHA, named in the caption.
-  Open for Hamm: D1 drop all docs iframes (recommended) or keep 3-4 on landing pages. Keeper: D2,
-  stills by Plotly export (kaleido) or a matplotlib re-plot, after measuring the atlas generators.
+- Docs figures (Hamm 2026-10-21: docs lack inline PNGs; the docs iframes do not work, so every
+  interactive figure moves to GitHub Pages and the dashboard, and the docs stay light). In order:
+  (1) the dashboard workflow builds each figure once from its Plotly object and publishes
+  `hnxj.github.io/jaxfne/figures/<slug>.html` and a kaleido still `<slug>.png` (through
+  `jaxfne.vis.exporters._write_image`), with a manifest of slug, build SHA and docs page; nothing
+  new is tracked (the tree is at its file budget); (2) a Figures tab on the dashboard lists the
+  stills, each linking to its HTML and back to its docs page; (3) the generators rewrite their docs
+  blocks as the still (absolute URL), a caption naming the build SHA and one "Interactive version"
+  link, and drop every docs iframe (about 30) and the 8-link panel rows (about 200 plain `.html`
+  links); docs-side HTML builds under `docs/_static` stop; (4) a docs check refuses an iframe or a
+  bare figure `.html` link, and the dashboard build fails on a figure without a still.
 
 In order: B4 checklist rules in `check_replications.py` (S2, E1 and P4 landed; next R4; F3
 stays manual: the gate cannot run the parent commit), with the follow-ups, each closed by a fix or
