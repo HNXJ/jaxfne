@@ -541,7 +541,7 @@
       "question": "Does the spherical-head MEG/EEG forward code agree with independent analytic references?",
       "release": "0.5.7",
       "tier": "T-jaxfne",
-      "lane": {"branch": "dev", "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"},
+      "lane": {"branch": "dev", "sha": "a13884f58b908a711bd747e34c99327d41bd036c"},
       "summary": "Nine analytic agreements of the spherical-head forward code, scored from the inputs of tests/test_head_forward.py: radial and full-vector MEG against the primary-current field and scalar-potential quadrature, radial-dipole silence, EEG against the Neumann series and the MNE single shell, conductivity reciprocity, the average-reference null, line-source LFP against scipy quadrature of the line-source integral and its point-dipole far field.",
       "preregs": [],
       "files": {
@@ -599,7 +599,7 @@
       "tier": "T-jaxfne",
       "lane": {
         "branch": "dev",
-        "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
+        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
       },
       "summary": "Seven analytic agreements of the emitter kernels, scored from the inputs of tests/test_emitters_lif.py, tests/test_adex_lif_limit.py, tests/test_emitters_hh.py and tests/test_emitters_rate.py: LIF membrane decay and per-arrival refractory subtraction against closed forms, the AdEx LIF limit against the hand Euler update, the HH gate update against exact exponential Euler, the graded synapse against its steady state, the rate OU stationary variance against the Euler-Maruyama formula, and threshold-linear and sigmoid transfer against hand values.",
       "preregs": [],
@@ -771,7 +771,7 @@
       "tier": "T-jaxfne",
       "lane": {
         "branch": "dev",
-        "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
+        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
       },
       "summary": "Six agreements of the field and probe operators, scored from the inputs of their pinned tests: LinearReadout, EEG and MEG proxies superpose and scale against the hand formula S W^T; csd_tensor is zero on a constant and -phi'' on a quadratic at interior contacts; the cable filter gain equals the exact discrete response of its one-pole cascade at 5, 20 and 100 Hz; the one-dimensional Poisson solver's flux obeys Gauss's law.",
       "preregs": [],
@@ -923,7 +923,7 @@
       "tier": "T-jaxfne",
       "lane": {
         "branch": "dev",
-        "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
+        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
       },
       "summary": "Six hand-value agreements of the plasticity core, scored from the inputs of tests/test_istdp_vogels2011.py, tests/test_hdp_barrier_equilibrium.py and tests/test_protocol_d_d2a_autonomous_relaxation.py: the iSTDP depression constant against the paper 0.12, lone-pre and post pairing steps against hand updates, pure-barrier relaxation against the derived fixed points H*=1 and H*=5.05, and the Euler H_K trace against the closed-form F1 solution.",
       "preregs": [],
@@ -1076,7 +1076,7 @@
       "tier": "T-jaxfne",
       "lane": {
         "branch": "dev",
-        "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
+        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
       },
       "summary": "Eleven agreements of the objective stage (polarity, layer-shuffle and uniform-gain nulls, synchrony limits, the sigma-precision sample count, the spectrolaminar score of a known profile) and the optimizer stage (the parameter-bounds projection against np.clip, and the quadratic minima of the sdr, gsdr, agsdr and gsgd transforms), scored from the core functions with fixed seeds. The phase-randomized null and optax_adam were dropped: the first takes no FFT, the second is a declaration only.",
       "preregs": [],
@@ -1234,15 +1234,15 @@
         {
           "id": "sdr-minimum",
           "entry": "sdr_quadratic_minimum",
-          "claim": "sdr_transform reaches the quadratic minimum with noise off",
-          "estimand": "ratio of final to start distance after 100 steps",
-          "criterion": "ratio ≤ 2 × recorded run",
+          "claim": "sdr_transform contracts at the closed-form rate with noise off",
+          "estimand": "relative deviation of the final-to-start distance ratio from 0.8^100",
+          "criterion": "deviation ≤ 1e-6",
           "value": {
             "file": "main",
             "key": "checks.sdr_quadratic_minimum.error"
           },
           "unit": "",
-          "value_label": "distance ratio",
+          "value_label": "deviation",
           "verdict": {
             "file": "main",
             "key": "checks.sdr_quadratic_minimum.pass"
@@ -1255,15 +1255,15 @@
         {
           "id": "gsdr-minimum",
           "entry": "gsdr_quadratic_minimum",
-          "claim": "gsdr_transform reaches the quadratic minimum with noise off",
-          "estimand": "ratio of final to start distance after 100 steps",
-          "criterion": "ratio ≤ 2 × recorded run",
+          "claim": "gsdr_transform contracts at the closed-form rate with noise off",
+          "estimand": "relative deviation of the final-to-start distance ratio from 0.8^100",
+          "criterion": "deviation ≤ 1e-6",
           "value": {
             "file": "main",
             "key": "checks.gsdr_quadratic_minimum.error"
           },
           "unit": "",
-          "value_label": "distance ratio",
+          "value_label": "deviation",
           "verdict": {
             "file": "main",
             "key": "checks.gsdr_quadratic_minimum.pass"
@@ -1276,15 +1276,15 @@
         {
           "id": "agsdr-minimum",
           "entry": "agsdr_quadratic_minimum",
-          "claim": "agsdr_transform (experimental) reaches the quadratic minimum with noise off",
-          "estimand": "ratio of final to start distance after 100 steps",
-          "criterion": "ratio ≤ 2 × recorded run",
+          "claim": "agsdr_transform (experimental) follows its update recurrence with noise off",
+          "estimand": "max deviation from a float64 NumPy recurrence after 100 steps, per max|x_0 - x*|",
+          "criterion": "deviation ≤ 1e-12",
           "value": {
             "file": "main",
             "key": "checks.agsdr_quadratic_minimum.error"
           },
           "unit": "",
-          "value_label": "distance ratio",
+          "value_label": "deviation",
           "verdict": {
             "file": "main",
             "key": "checks.agsdr_quadratic_minimum.pass"
@@ -1297,15 +1297,15 @@
         {
           "id": "gsgd-minimum",
           "entry": "gsgd_quadratic_minimum",
-          "claim": "the plain gradient step reaches the quadratic minimum at the closed-form rate",
-          "estimand": "ratio of final to start distance after 100 steps; closed form 0.8^100",
-          "criterion": "ratio ≤ 2 × recorded run",
+          "claim": "the plain gradient step contracts at the closed-form rate",
+          "estimand": "relative deviation of the final-to-start distance ratio from 0.8^100",
+          "criterion": "deviation ≤ 1e-6",
           "value": {
             "file": "main",
             "key": "checks.gsgd_quadratic_minimum.error"
           },
           "unit": "",
-          "value_label": "distance ratio",
+          "value_label": "deviation",
           "verdict": {
             "file": "main",
             "key": "checks.gsgd_quadratic_minimum.pass"
@@ -1399,7 +1399,7 @@
       "id": "numerics-references",
       "lane": {
         "branch": "dev",
-        "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
+        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
       },
       "open": [
         "No paper values: analytic and finite-difference agreements of a core method, not a replication.",
@@ -1423,7 +1423,7 @@
       "tier": "T-jaxfne",
       "lane": {
         "branch": "dev",
-        "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
+        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
       },
       "summary": "Four core-versus-oracle agreements, scored from the inputs of their pinned tests: single AdEx cells and a two-cell AdEx network against float64 NumPy transcriptions, the four-compartment HH cell against jaxley 0.14.0, and the MCDP factors of two pre/post groups against the lane-oracle transcription.",
       "preregs": [],
