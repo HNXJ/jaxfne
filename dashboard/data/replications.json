@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-21T00:54:57Z",
-    "dev_sha": "214c853b654f34c65edb2b4535128d848fd272a6"
+    "utc": "2026-10-21T18:32:01Z",
+    "dev_sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
   },
   "papers": [
     {
@@ -16,6 +16,7 @@
       "release": "0.5.7",
       "tier": "T-jaxfne",
       "stage": "P6",
+      "grammar": null,
       "lane": {
         "branch": "dev",
         "sha": "a4f13020d370491aad122977b4cc50b232cced0f"
@@ -1157,6 +1158,7 @@
       "release": "0.5.6",
       "tier": "T-port",
       "stage": "P5",
+      "grammar": null,
       "lane": {
         "branch": "pcl-port",
         "sha": "8f75acd064882184c77b897890c298db75cc32c5"
@@ -1962,6 +1964,7 @@
       "release": "0.5.6",
       "tier": "T-port",
       "stage": "P1",
+      "grammar": null,
       "lane": {
         "branch": "dev",
         "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
@@ -1988,6 +1991,7 @@
       "release": "0.5.5",
       "tier": "T-reference",
       "stage": "P3",
+      "grammar": null,
       "lane": {
         "branch": "dev",
         "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
@@ -2104,6 +2108,7 @@
       "release": "0.5.6",
       "tier": "T-task",
       "stage": "P3",
+      "grammar": null,
       "lane": {
         "branch": "dev",
         "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
@@ -2130,6 +2135,7 @@
       "release": "0.5.7",
       "tier": "T-jaxfne",
       "stage": "P5",
+      "grammar": null,
       "lane": {
         "branch": "izh2003",
         "sha": "a8477940e79eb2ed6a359d03965e8efcb4a924f9"
@@ -2506,6 +2512,7 @@
       "release": "0.5.8",
       "tier": "T-jaxfne",
       "stage": "P1",
+      "grammar": null,
       "lane": {
         "branch": "dev",
         "sha": "7ac1bb47b5805b046a4790d9d6456ed23c706eb7"
@@ -2544,6 +2551,7 @@
       "release": "0.5.8",
       "tier": "T-port",
       "stage": "P3",
+      "grammar": null,
       "lane": {
         "branch": "dev",
         "sha": "6f85f5c3056edf91b89ea2a61efce758000d0a69"
@@ -2571,6 +2579,7 @@
       "release": "0.5.7",
       "tier": "T-jaxfne",
       "stage": "P5",
+      "grammar": null,
       "lane": {
         "branch": "dev",
         "sha": "3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b"
@@ -2865,6 +2874,7 @@
       "release": "0.5.9",
       "tier": "T-jaxfne",
       "stage": "P1",
+      "grammar": null,
       "lane": {
         "branch": "dev",
         "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"
@@ -2893,6 +2903,7 @@
       "release": "0.5.8",
       "tier": "T-jaxfne",
       "stage": "P1",
+      "grammar": null,
       "lane": {
         "branch": "dev",
         "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"
@@ -2921,6 +2932,7 @@
       "release": "0.5.9",
       "tier": "T-jaxfne",
       "stage": "P1",
+      "grammar": null,
       "lane": {
         "branch": "dev",
         "sha": "f8c05f04aefc1b14b27d1972ae57ffa07f888697"
@@ -2949,9 +2961,13 @@
       "release": "0.5.7",
       "tier": "T-jaxfne",
       "stage": null,
+      "grammar": [
+        "Field",
+        "Probe"
+      ],
       "lane": {
         "branch": "dev",
-        "sha": "214c853b654f34c65edb2b4535128d848fd272a6"
+        "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
       },
       "stage_artifacts": [],
       "verdict": null,
@@ -2978,7 +2994,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3000,7 +3016,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3022,7 +3038,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3044,7 +3060,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3066,7 +3082,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3088,7 +3104,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3110,7 +3126,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3132,7 +3148,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/head_forward/score.json"
           }
         },
         {
@@ -3154,7 +3170,7 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/214c853b654f34c65edb2b4535128d848fd272a6/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/head_forward/score.json"
           }
         }
       ],
@@ -3164,6 +3180,1008 @@
         "No paper values: analytic agreements of a core method, not a replication.",
         "eeg-mne needs the optional mne package and shows pending without it."
       ]
+    },
+    {
+      "id": "emitter-closed-form",
+      "title": "Emitter closed-form checks of the jaxfne emitter kernels",
+      "citation": "closed-form and hand-computed references in the pinned tests (no paper value)",
+      "class": "core method",
+      "question": "Do the LIF, AdEx, HH, graded-synapse and rate emitter kernels agree with independent closed-form references?",
+      "page": null,
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "stage": null,
+      "grammar": [
+        "Emitter"
+      ],
+      "lane": {
+        "branch": "dev",
+        "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Seven analytic agreements of the emitter kernels, scored from the inputs of tests/test_emitters_lif.py, tests/test_adex_lif_limit.py, tests/test_emitters_hh.py and tests/test_emitters_rate.py: LIF membrane decay and per-arrival refractory subtraction against closed forms, the AdEx LIF limit against the hand Euler update, the HH gate update against exact exponential Euler, the graded synapse against its steady state, the rate OU stationary variance against the Euler-Maruyama formula, and threshold-linear and sigmoid transfer against hand values.",
+      "preregs": [],
+      "criteria": [
+        {
+          "id": "lif-membrane-decay",
+          "group": "",
+          "claim": "silent LIF decay equals 5·exp(−t/tau_m)",
+          "estimand": "worst-case |deviation| over 10 steps from 5 mV",
+          "criterion": "error ≤ 1e-5",
+          "value": 2.5975216644269494e-07,
+          "value_text": "2.6e-07",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "mV",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "closed-form membrane decay 5*exp(-t/tau_m)",
+          "reference_text": "closed-form membrane decay 5*exp(-t/tau_m)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/emitters/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/emitters/score.json"
+          }
+        },
+        {
+          "id": "lif-refractory-subtraction",
+          "group": "",
+          "claim": "one arrival on a just-spiked cell subtracts the refractory transient",
+          "estimand": "worst-case |deviation| of one step against the hand decay-plus-subtraction sum",
+          "criterion": "error ≤ 1e-5",
+          "value": 1.074325812311372e-06,
+          "value_text": "1.07e-06",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "mV",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "hand decay-plus-refractory sum",
+          "reference_text": "hand decay-plus-refractory sum",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/emitters/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/emitters/score.json"
+          }
+        },
+        {
+          "id": "adex-lif-limit",
+          "group": "",
+          "claim": "the Delta=0 AdEx step equals the hand Euler LIF update",
+          "estimand": "|deviation| of one subthreshold step from −65 mV at 200 pA",
+          "criterion": "error ≤ 1e-6·|want|",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "mV",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "hand Euler LIF update in float32 operation order",
+          "reference_text": "hand Euler LIF update in float32 operation order",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/emitters/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/emitters/score.json"
+          }
+        },
+        {
+          "id": "hh-gate-exponential-euler",
+          "group": "",
+          "claim": "the HH m-gate update equals exact exponential Euler at frozen rates",
+          "estimand": "|deviation| of one gate update at −70 mV",
+          "criterion": "error ≤ 1e-4",
+          "value": 2.0551529089640752e-09,
+          "value_text": "2.06e-09",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "exact exponential-Euler gate step at frozen rates",
+          "reference_text": "exact exponential-Euler gate step at frozen rates",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/emitters/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/emitters/score.json"
+          }
+        },
+        {
+          "id": "graded-synapse-steady-state",
+          "group": "",
+          "claim": "a clamped depolarized synapse reaches tauD/(tauD+tauR)",
+          "estimand": "|deviation| after 2000 steps at Vpre 20 mV",
+          "criterion": "error ≤ 0.01",
+          "value": 3.251162439266153e-08,
+          "value_text": "3.25e-08",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "steady state tauD/(tauD+tauR)",
+          "reference_text": "steady state tauD/(tauD+tauR)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/emitters/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/emitters/score.json"
+          }
+        },
+        {
+          "id": "rate-ou-stationary-variance",
+          "group": "",
+          "claim": "the rate OU stationary variance equals sigma^2/(2−dt/tau)",
+          "estimand": "worst-case relative deviation at dt 0.1 and 1.0 ms (seed 3)",
+          "criterion": "relative error ≤ 0.05",
+          "value": 0.003862968491676501,
+          "value_text": "0.00386",
+          "value_label": "max relative deviation",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "Euler-Maruyama stationary variance sigma^2/(2-dt/tau), seed 3",
+          "reference_text": "Euler-Maruyama stationary variance sigma^2/(2-dt/tau), seed 3",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/emitters/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/emitters/score.json"
+          }
+        },
+        {
+          "id": "rate-transfer-functions",
+          "group": "",
+          "claim": "threshold-linear and sigmoid transfer equal hand values",
+          "estimand": "worst-case |deviation| over 4 threshold-linear and 2 sigmoid points",
+          "criterion": "error ≤ 1e-9",
+          "value": 7.440151952041671e-44,
+          "value_text": "7.44e-44",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "hand transfer values ([0,0,1,2]; sigmoid 0, 1, 2/(1+e^-1), 2)",
+          "reference_text": "hand transfer values ([0,0,1,2]; sigmoid 0, 1, 2/(1+e^-1), 2)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/emitters/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/emitters/score.json"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No paper values: analytic agreements of a core method, not a replication."
+      ]
+    },
+    {
+      "id": "field-invariants",
+      "title": "Core checks of the field and probe invariants in jaxfne.fields",
+      "citation": "Nicholson and Freeman 1975 (CSD three-point stencil); Gauss's law in one dimension",
+      "class": "core method",
+      "question": "Do the field and probe operators satisfy their stated invariants against independent references?",
+      "page": null,
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "stage": null,
+      "grammar": [
+        "Source",
+        "Field",
+        "Probe"
+      ],
+      "lane": {
+        "branch": "dev",
+        "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Six agreements of the field and probe operators, scored from the inputs of their pinned tests: LinearReadout, EEG and MEG proxies superpose and scale against the hand formula S W^T; csd_tensor is zero on a constant and -phi'' on a quadratic at interior contacts; the cable filter gain equals the exact discrete response of its one-pole cascade at 5, 20 and 100 Hz; the one-dimensional Poisson solver's flux obeys Gauss's law.",
+      "preregs": [],
+      "criteria": [
+        {
+          "id": "operator-superposition",
+          "group": "",
+          "claim": "LinearReadout, EEG and MEG proxies superpose and scale",
+          "estimand": "worst-case |deviation| over three operators, superposition and scaling, 50 x 10 float32 inputs (seed 100)",
+          "criterion": "error ≤ 1e-5 + 1e-5·max|Y|",
+          "value": 0.03901627116073578,
+          "value_text": "0.039",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "superposition and scaling against Y = S W^T (float64 numpy hand formula; seed 100)",
+          "reference_text": "superposition and scaling against Y = S W^T (float64 numpy hand formula; seed 100)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/fields/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/fields/score.json"
+          }
+        },
+        {
+          "id": "csd-flat-potential-zero",
+          "group": "",
+          "claim": "CSD of a potential constant across contacts is zero",
+          "estimand": "max |CSD| over 5 x 8 contacts for a constant potential 3.7",
+          "criterion": "error ≤ 1e-5",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "max |CSD|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "zero: second difference of a constant (all 8 contacts)",
+          "reference_text": "zero: second difference of a constant (all 8 contacts)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/fields/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/fields/score.json"
+          }
+        },
+        {
+          "id": "csd-quadratic-potential",
+          "group": "",
+          "claim": "CSD of a quadratic in depth equals -phi'' at interior contacts",
+          "estimand": "worst-case |deviation| over three quadratics at interior contacts (float64)",
+          "criterion": "error ≤ 1e-6·max|−phi''|",
+          "value": 4.796163466380676e-14,
+          "value_text": "4.8e-14",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "-phi'' = -2a at interior contacts for phi = a z^2 + b z + c (no conductivity, sigma = 1)",
+          "reference_text": "-phi'' = -2a at interior contacts for phi = a z^2 + b z + c (no conductivity, sigma = 1)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/fields/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/fields/score.json"
+          }
+        },
+        {
+          "id": "cable-filter-transfer",
+          "group": "",
+          "claim": "the cable filter gain equals the exact discrete response of its one-pole cascade at 5, 20 and 100 Hz",
+          "estimand": "worst-case relative gain deviation at 5, 20 and 100 Hz, tau 20 ms, dt 0.5 ms, order 2",
+          "criterion": "relative error ≤ 1e-6",
+          "value": 3.474829224359155e-07,
+          "value_text": "3.47e-07",
+          "value_label": "max relative deviation",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "exact discrete response of the cascade, |H| = (alpha / |1 - (1-alpha) e^{-j 2 pi f dt}|)^order, alpha = 1 - exp(-dt/tau), at 5, 20, 100 Hz (tau 20 ms, dt 0.5 ms; relative)",
+          "reference_text": "exact discrete response of the cascade, |H| = (alpha / |1 - (1-alpha) e^{-j 2 pi f dt}|)^order, alpha = 1 - exp(-dt/tau), at 5, 20, 100 Hz (tau 20 ms, dt 0.5 ms; relative)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/fields/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/fields/score.json"
+          }
+        },
+        {
+          "id": "poisson-1d-flux-magnitude",
+          "group": "",
+          "claim": "the one-dimensional solver's flux carries Q dx across the source-sink span",
+          "estimand": "worst-case relative deviation of |interior flux| from Q dx at N = 21, 41, 81",
+          "criterion": "relative error ≤ 1e-3",
+          "value": 3.425031900400333e-05,
+          "value_text": "3.43e-05",
+          "value_label": "max relative deviation",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "Gauss's law: interior flux = -Q dx at N = 21, 41, 81 (signed, relative)",
+          "reference_text": "Gauss's law: interior flux = -Q dx at N = 21, 41, 81 (signed, relative)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/fields/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/fields/score.json"
+          }
+        },
+        {
+          "id": "poisson-1d-flux-span",
+          "group": "",
+          "claim": "the one-dimensional solver's flux vanishes outside the source-sink span and is constant inside",
+          "estimand": "worst-case |flux| outside the span and std inside, N = 81",
+          "criterion": "error ≤ 1e-4",
+          "value": 2.5704503059387207e-06,
+          "value_text": "2.57e-06",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "Gauss's law: flux zero outside [src, sink) and constant inside (N = 81, absolute)",
+          "reference_text": "Gauss's law: flux zero outside [src, sink) and constant inside (N = 81, absolute)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/fields/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/fields/score.json"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No paper values: analytic and hand-formula agreements of a core method, not a replication.",
+        "cable-filter-transfer is scored against the exact discrete-time response of the realised one-pole cascade, not the continuous RC transfer."
+      ]
+    },
+    {
+      "id": "plasticity-hand-values",
+      "title": "Hand-value plasticity checks of the jaxfne core",
+      "citation": "Vogels et al., Science 334(6062):1569-1573; docs/guides/state/hdp.md (barrier equilibrium); protocol D2a F1 relaxation",
+      "class": "core method",
+      "question": "Does the plasticity core agree with hand-computed updates, derived fixed points and a closed-form relaxation?",
+      "page": null,
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "stage": null,
+      "grammar": [
+        "RBD/HDP"
+      ],
+      "lane": {
+        "branch": "dev",
+        "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Six hand-value agreements of the plasticity core, scored from the inputs of tests/test_istdp_vogels2011.py, tests/test_hdp_barrier_equilibrium.py and tests/test_protocol_d_d2a_autonomous_relaxation.py: the iSTDP depression constant against the paper 0.12, lone-pre and post pairing steps against hand updates, pure-barrier relaxation against the derived fixed points H*=1 and H*=5.05, and the Euler H_K trace against the closed-form F1 solution.",
+      "preregs": [],
+      "criteria": [
+        {
+          "id": "istdp-alpha",
+          "group": "",
+          "claim": "alpha = 2*rho0*tau equals the paper 0.12",
+          "estimand": "max |deviation| of alpha and resolved alpha from 0.12",
+          "criterion": "error ≤ 1e-6·0.12",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "paper value alpha = 2*rho0*tau = 0.12 (Vogels et al. 2011)",
+          "reference_text": "paper value alpha = 2*rho0*tau = 0.12 (Vogels et al. 2011)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/plasticity/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/plasticity/score.json"
+          }
+        },
+        {
+          "id": "istdp-pre",
+          "group": "",
+          "claim": "a lone presynaptic spike depresses by (0-alpha)*eta with unit trace jumps",
+          "estimand": "worst per-element relative deviation of d_aux and d_edge_weight from the hand update (zero reference entries exact)",
+          "criterion": "relative deviation below 1e-12",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "hand pairing update w += (0-alpha)*eta, A += 1 (Vogels et al. 2011)",
+          "reference_text": "hand pairing update w += (0-alpha)*eta, A += 1 (Vogels et al. 2011)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/plasticity/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/plasticity/score.json"
+          }
+        },
+        {
+          "id": "istdp-post",
+          "group": "",
+          "claim": "a postsynaptic spike potentiates by A_pre*eta at A_pre = 0.5",
+          "estimand": "worst per-element relative deviation of d_aux and d_edge_weight from the hand update (zero reference entries exact)",
+          "criterion": "relative deviation below 1e-12",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "hand pairing update w += A_pre*eta with A_pre = 0.5 (Vogels et al. 2011)",
+          "reference_text": "hand pairing update w += A_pre*eta with A_pre = 0.5 (Vogels et al. 2011)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/plasticity/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/plasticity/score.json"
+          }
+        },
+        {
+          "id": "barrier-ratio-100",
+          "group": "",
+          "claim": "pure-barrier relaxation reaches H* = 1 at barrier_d/barrier_c = 100",
+          "estimand": "relaxed mean H after 4000 steps from H0 = 3.0",
+          "criterion": "|H − 1| below 0.05",
+          "value": 0.00016176700592041016,
+          "value_text": "0.000162",
+          "value_label": "|H − 1|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "derived pure-barrier fixed point H* = 1 at barrier_d/barrier_c = 100 (seed 0)",
+          "reference_text": "derived pure-barrier fixed point H* = 1 at barrier_d/barrier_c = 100 (seed 0)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/plasticity/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/plasticity/score.json"
+          }
+        },
+        {
+          "id": "barrier-ratio-1",
+          "group": "",
+          "claim": "pure-barrier relaxation reaches H* = 5.05 at barrier_d/barrier_c = 1",
+          "estimand": "relaxed mean H after 4000 steps from H0 = 3.0",
+          "criterion": "|H − 5.05| below 0.1 with |H − 1| above 1.0",
+          "value": 7.181167602521299e-05,
+          "value_text": "7.18e-05",
+          "value_label": "|H − 5.05|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "derived pure-barrier fixed point H* = 5.05 at barrier_d/barrier_c = 1 (seed 0)",
+          "reference_text": "derived pure-barrier fixed point H* = 5.05 at barrier_d/barrier_c = 1 (seed 0)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/plasticity/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/plasticity/score.json"
+          }
+        },
+        {
+          "id": "d2a-bracket",
+          "group": "",
+          "claim": "the kernel H_K trajectory brackets the scorer-side closed F1 form",
+          "estimand": "worst-case |kernel H_K − closed form| at t = 50, 500, 1500 ms",
+          "criterion": "max|deviation| below 0.05",
+          "value": 0.00015200243736912533,
+          "value_text": "0.000152",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "scorer-side closed form H_K(t) = 1 + (H0-1) exp(-t/tau_K) (kernel seed 0)",
+          "reference_text": "scorer-side closed form H_K(t) = 1 + (H0-1) exp(-t/tau_K) (kernel seed 0)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/plasticity/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/plasticity/score.json"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No paper values beside the stated iSTDP constant: hand-value agreements of a core method, not a replication.",
+        "The iSTDP checks use out-degree 1; the per-synapse trace fix lives in the kernel LFP lane (todo section 2), not yet on dev.",
+        "Stochastic inputs are pinned to seed 0."
+      ]
+    },
+    {
+      "id": "objective-optimizer-references",
+      "title": "Objective and optimizer stages against closed forms and independent references",
+      "citation": "analytic references; no paper value",
+      "class": "core method",
+      "question": "Do the objective-stage nulls, synchrony and score formulas, the parameter-bounds projection and the four quadratic transforms agree with closed forms and independent references?",
+      "page": null,
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "stage": null,
+      "grammar": [
+        "Objective",
+        "Optimizer"
+      ],
+      "lane": {
+        "branch": "dev",
+        "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Eleven agreements of the objective stage (polarity, layer-shuffle and uniform-gain nulls, synchrony limits, the sigma-precision sample count, the spectrolaminar score of a known profile) and the optimizer stage (the parameter-bounds projection against np.clip, and the quadratic minima of the sdr, gsdr, agsdr and gsgd transforms), scored from the core functions with fixed seeds. The phase-randomized null and optax_adam were dropped: the first takes no FFT, the second is a declaration only.",
+      "preregs": [],
+      "criteria": [
+        {
+          "id": "polarity-null",
+          "group": "",
+          "claim": "the polarity null returns minus each profile",
+          "estimand": "worst-case |deviation| over 64 bins of both profiles",
+          "criterion": "error ≤ 1e-12·scale",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "minus its input, exact negation of both profiles",
+          "reference_text": "minus its input, exact negation of both profiles",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/objectives/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/objectives/score.json"
+          }
+        },
+        {
+          "id": "layer-shuffle-null",
+          "group": "",
+          "claim": "the layer shuffle permutes the rows of each profile",
+          "estimand": "worst-case |deviation| of sorted values over 64 bins",
+          "criterion": "error ≤ 1e-12·scale",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "sorted values of the input, the multiset a permutation keeps",
+          "reference_text": "sorted values of the input, the multiset a permutation keeps",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/objectives/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/objectives/score.json"
+          }
+        },
+        {
+          "id": "uniform-gain-null",
+          "group": "",
+          "claim": "the uniform gain null scales both profiles by one gain",
+          "estimand": "worst-case |deviation| from the seeded gain times the input",
+          "criterion": "error ≤ 1e-12·scale",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "input times the seeded generator's first uniform(0.1, 1) draw",
+          "reference_text": "input times the seeded generator's first uniform(0.1, 1) draw",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/objectives/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/objectives/score.json"
+          }
+        },
+        {
+          "id": "synchrony-limits",
+          "group": "",
+          "claim": "synchrony is 1 for identical channels and 0 for complementary ones",
+          "estimand": "worst-case |deviation| of two closed-form values",
+          "criterion": "error ≤ 1e-12",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "closed form: identical channels 1; one complementary pair r = -1, clipped to 0",
+          "reference_text": "closed form: identical channels 1; one complementary pair r = -1, clipped to 0",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/objectives/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/objectives/score.json"
+          }
+        },
+        {
+          "id": "null-samples",
+          "group": "",
+          "claim": "the null-sample count follows 1 + 1/(2 rse²)",
+          "estimand": "worst-case count deviation at rse 0.5, 0.25 and 0.125",
+          "criterion": "count error ≤ 0.5 (exact)",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "max |count deviation|",
+          "paper_value": null,
+          "unit": "samples",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "n = ceil(1 + 1/(2 rse^2)): 3, 5, 9 and 33 samples at rse 0.5, 0.4, 0.25 and 0.125",
+          "reference_text": "n = ceil(1 + 1/(2 rse^2)): 3, 5, 9 and 33 samples at rse 0.5, 0.4, 0.25 and 0.125",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/objectives/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/objectives/score.json"
+          }
+        },
+        {
+          "id": "spectrolaminar-known-profile",
+          "group": "",
+          "claim": "the spectrolaminar score of a known profile equals its closed form",
+          "estimand": "worst-case |deviation| in percentage points, ideal and reversed readouts",
+          "criterion": "error ≤ 1e-12·100",
+          "value": 3.552713678800501e-15,
+          "value_text": "3.55e-15",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "%",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "100 for an ideal readout; 100 exp(-3 x 0.8) for the reversed profile (MSE 0.4 per band)",
+          "reference_text": "100 for an ideal readout; 100 exp(-3 x 0.8) for the reversed profile (MSE 0.4 per band)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/objectives/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/objectives/score.json"
+          }
+        },
+        {
+          "id": "box-projection",
+          "group": "",
+          "claim": "the parameter-bounds projection equals np.clip",
+          "estimand": "worst-case |deviation| over 50 proposals in 4 dimensions",
+          "criterion": "error ≤ 1e-12·scale",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "np.clip of each row to [lows, highs]",
+          "reference_text": "np.clip of each row to [lows, highs]",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/objectives/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/objectives/score.json"
+          }
+        },
+        {
+          "id": "sdr-minimum",
+          "group": "",
+          "claim": "sdr_transform reaches the quadratic minimum with noise off",
+          "estimand": "ratio of final to start distance after 100 steps",
+          "criterion": "ratio ≤ 2 × recorded run",
+          "value": 5.6310463582512106e-08,
+          "value_text": "5.63e-08",
+          "value_label": "distance ratio",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "closed-form trajectory: ||x_100 - x*|| / ||x_0 - x*|| = 0.8^100 from x_0 = 0, x* = (1, -2, 0.5, 3); error = relative deviation from 0.8^100; inner optax.sgd(0.1), noise off",
+          "reference_text": "closed-form trajectory: ||x_100 - x*|| / ||x_0 - x*|| = 0.8^100 from x_0 = 0, x* = (1, -2, 0.5, 3); error = relative deviation from 0.8^100; inner optax.sgd(0.1), noise off",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/objectives/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/objectives/score.json"
+          }
+        },
+        {
+          "id": "gsdr-minimum",
+          "group": "",
+          "claim": "gsdr_transform reaches the quadratic minimum with noise off",
+          "estimand": "ratio of final to start distance after 100 steps",
+          "criterion": "ratio ≤ 2 × recorded run",
+          "value": 5.6310463582512106e-08,
+          "value_text": "5.63e-08",
+          "value_label": "distance ratio",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "closed-form trajectory: ||x_100 - x*|| / ||x_0 - x*|| = 0.8^100 from x_0 = 0, x* = (1, -2, 0.5, 3); error = relative deviation from 0.8^100; inner optax.sgd(0.1), noise off",
+          "reference_text": "closed-form trajectory: ||x_100 - x*|| / ||x_0 - x*|| = 0.8^100 from x_0 = 0, x* = (1, -2, 0.5, 3); error = relative deviation from 0.8^100; inner optax.sgd(0.1), noise off",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/objectives/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/objectives/score.json"
+          }
+        },
+        {
+          "id": "agsdr-minimum",
+          "group": "",
+          "claim": "agsdr_transform (experimental) reaches the quadratic minimum with noise off",
+          "estimand": "ratio of final to start distance after 100 steps",
+          "criterion": "ratio ≤ 2 × recorded run",
+          "value": 2.315323021026431e-10,
+          "value_text": "2.32e-10",
+          "value_label": "distance ratio",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "closed-form minimum x* = (1, -2, 0.5, 3) from x_0 = 0; error = ||x_100 - x*|| / ||x_0 - x*||; inner optax.sgd(0.1), noise off; experimental transform",
+          "reference_text": "closed-form minimum x* = (1, -2, 0.5, 3) from x_0 = 0; error = ||x_100 - x*|| / ||x_0 - x*||; inner optax.sgd(0.1), noise off; experimental transform",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/objectives/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/objectives/score.json"
+          }
+        },
+        {
+          "id": "gsgd-minimum",
+          "group": "",
+          "claim": "the plain gradient step reaches the quadratic minimum at the closed-form rate",
+          "estimand": "ratio of final to start distance after 100 steps; closed form 0.8^100",
+          "criterion": "ratio ≤ 2 × recorded run",
+          "value": 5.6310463582512106e-08,
+          "value_text": "5.63e-08",
+          "value_label": "distance ratio",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "closed-form trajectory: ||x_100 - x*|| / ||x_0 - x*|| = 0.8^100 from x_0 = 0, x* = (1, -2, 0.5, 3); error = relative deviation from 0.8^100; eta 0.1",
+          "reference_text": "closed-form trajectory: ||x_100 - x*|| / ||x_0 - x*|| = 0.8^100 from x_0 = 0, x* = (1, -2, 0.5, 3); error = relative deviation from 0.8^100; eta 0.1",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/objectives/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/objectives/score.json"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No paper values: analytic agreements of core methods, not a replication.",
+        "The four quadratic tolerances are 2 x a recorded run: regression guards, not accuracy claims.",
+        "phase_null_keeps_power and optax_adam_quadratic_minimum were dropped; the README gives the reasons."
+      ]
+    },
+    {
+      "id": "numerics-references",
+      "title": "Core-method numerics checks: integrators and autodiff gradients",
+      "citation": "Closed-form exponential and Euler iterate; central finite differences (no paper values)",
+      "class": "core method",
+      "question": "Do the core integrator and the declared differentiable path agree with independent references?",
+      "page": null,
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "stage": null,
+      "grammar": [
+        "Numerics"
+      ],
+      "lane": {
+        "branch": "dev",
+        "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Three core-method agreements, scored from the inputs of tests/test_v0331_euler_solver.py, tests/test_solvers.py and tests/test_gradient_checks_v0417.py: the forward-Euler scan against the closed-form exponential, solve_ode against the closed-form Euler iterate, and the source_scale autodiff gradient against central finite differences.",
+      "preregs": [],
+      "criteria": [
+        {
+          "id": "euler-exponential-decay",
+          "group": "",
+          "claim": "the forward-Euler scan of dy/dt = -y equals exp(-1)",
+          "estimand": "worst-case |deviation| of y(1) from exp(-1) over 100 steps at dt=0.01",
+          "criterion": "error ≤ 2e-3",
+          "value": 0.0018471387918341797,
+          "value_text": "0.00185",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "closed-form exponential exp(-1)",
+          "reference_text": "closed-form exponential exp(-1)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/numerics/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/numerics/score.json"
+          }
+        },
+        {
+          "id": "euler-solve-ode-decay",
+          "group": "",
+          "claim": "solve_ode with method=euler on dy/dt = -y equals y_init * 0.9**20",
+          "estimand": "worst-case |deviation| of y(2) from the closed-form iterate over 20 steps at dt=0.1 on [1.0, 2.0]",
+          "criterion": "error ≤ 1e-5",
+          "value": 3.5121843044993994e-08,
+          "value_text": "3.51e-08",
+          "value_label": "max |deviation|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "closed-form Euler iterate y_init * 0.9**20",
+          "reference_text": "closed-form Euler iterate y_init * 0.9**20",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/numerics/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/numerics/score.json"
+          }
+        },
+        {
+          "id": "source-scale-gradient",
+          "group": "",
+          "claim": "autodiff d(loss)/d(source_scale) equals central finite differences",
+          "estimand": "|autodiff − FD| at s=1 with h=1e-2 on the pinned 8-neuron run (seed 3)",
+          "criterion": "error ≤ 1e-3",
+          "value": 0.0001373291015625,
+          "value_text": "0.000137",
+          "value_label": "|autodiff − FD|",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "central finite differences",
+          "reference_text": "central finite differences",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/numerics/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/numerics/score.json"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No paper values: analytic and finite-difference agreements of a core method, not a replication.",
+        "The linear-rescale gradient test is not a row: it differentiates a loss defined inside the test, not a jaxfne function. window_kappa is not a row: it is lane code, not jaxfne/."
+      ]
+    },
+    {
+      "id": "port-oracle-parity",
+      "title": "Core-vs-oracle parity checks of the AdEx, multi-compartment HH and MCDP routes",
+      "citation": "",
+      "class": "core method",
+      "question": "Do jaxfne core routes agree with independent implementations of the same equations?",
+      "page": null,
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "stage": null,
+      "grammar": [
+        "Emitter",
+        "Optimizer"
+      ],
+      "lane": {
+        "branch": "dev",
+        "sha": "3ab82d7e675a16fba923e381b17a8aed1b5b403f"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Four core-versus-oracle agreements, scored from the inputs of their pinned tests: single AdEx cells and a two-cell AdEx network against float64 NumPy transcriptions, the four-compartment HH cell against jaxley 0.14.0, and the MCDP factors of two pre/post groups against the lane-oracle transcription.",
+      "preregs": [],
+      "criteria": [
+        {
+          "id": "adex-single-cell",
+          "group": "",
+          "claim": "AdEx single cells under a step current equal the float64 transcription",
+          "estimand": "worst ratio of |deviation| to atol + rtol·|ref| over V and w, with spike mismatches as whole units",
+          "criterion": "ratio ≤ 1 (rtol 1e-6, atol 1e-9)",
+          "value": 4.4415816186632005e-06,
+          "value_text": "4.44e-06",
+          "value_label": "worst ratio to bound",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "float64 NumPy transcription of caminos_jax.adex_step (SI units)",
+          "reference_text": "float64 NumPy transcription of caminos_jax.adex_step (SI units)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/ports/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/ports/score.json"
+          }
+        },
+        {
+          "id": "adex-network",
+          "group": "",
+          "claim": "the two-cell AdEx network equals the hand-coded float64 loop in four decay and step-order cases",
+          "estimand": "worst ratio of |deviation| to atol + rtol·|ref| over V, with spike mismatches as whole units",
+          "criterion": "ratio ≤ 1 (rtol 1e-6, atol 1e-9)",
+          "value": 2.469977596775782e-07,
+          "value_text": "2.47e-07",
+          "value_label": "worst ratio to bound",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "float64 NumPy hand-coded loop of the two-cell network (transcription)",
+          "reference_text": "float64 NumPy hand-coded loop of the two-cell network (transcription)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/ports/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/ports/score.json"
+          }
+        },
+        {
+          "id": "multicompartment-hh",
+          "group": "",
+          "claim": "the four-compartment HH cell equals jaxley 0.14.0 jx.integrate",
+          "estimand": "worst ratio of |deviation| to atol + rtol·|ref| over four compartments",
+          "criterion": "ratio ≤ 1 (rtol 1e-12, atol 1e-9)",
+          "value": 0.008250982545410384,
+          "value_text": "0.00825",
+          "value_label": "worst ratio to bound",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "jaxley 0.14.0 jx.integrate, external",
+          "reference_text": "jaxley 0.14.0 jx.integrate, external",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/ports/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/ports/score.json"
+          }
+        },
+        {
+          "id": "mcdp-zscored",
+          "group": "",
+          "claim": "the MCDP factors of two pre/post groups equal the lane-oracle transcription",
+          "estimand": "worst ratio of |deviation| to rtol·|ref| over both groups, seed 23",
+          "criterion": "ratio ≤ 1 (rtol 1e-5)",
+          "value": 3.401779140704578e-10,
+          "value_text": "3.4e-10",
+          "value_label": "worst ratio to bound",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "float64 NumPy transcription of the lane oracle (PORT_SPEC section 10)",
+          "reference_text": "float64 NumPy transcription of the lane oracle (PORT_SPEC section 10)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/ports/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/3ab82d7e675a16fba923e381b17a8aed1b5b403f/artifacts/etudes/core_checks/ports/score.json"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": []
     }
   ],
   "roadmap": [
