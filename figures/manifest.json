@@ -1,0 +1,2202 @@
+{
+  "schema": "figsite.v1",
+  "build_sha": "9d569d3894ba48be1c5e7b36945860e00d739f9a",
+  "figures": [
+    {
+      "slug": "calibration_100",
+      "panel": "schema",
+      "html": "calibration_100/schema.html",
+      "png": "calibration_100/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/calibration.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "calibration_100",
+      "panel": "network_3d",
+      "html": "calibration_100/network_3d.html",
+      "png": "calibration_100/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/calibration.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "calibration_100",
+      "panel": "raster",
+      "html": "calibration_100/raster.html",
+      "png": "calibration_100/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/calibration.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "calibration_100",
+      "panel": "lfp",
+      "html": "calibration_100/lfp.html",
+      "png": "calibration_100/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/calibration.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "calibration_100",
+      "panel": "h_dynamics",
+      "html": "calibration_100/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/state/calibration.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "calibration_100",
+      "panel": "hdp",
+      "html": "calibration_100/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/state/calibration.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "calibration_100",
+      "panel": "oscillatory",
+      "html": "calibration_100/oscillatory.html",
+      "png": "calibration_100/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/calibration.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "canonical_etude_1000",
+      "panel": "schema",
+      "html": "canonical_etude_1000/schema.html",
+      "png": "canonical_etude_1000/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/13_canonical_column_etude.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "canonical_etude_1000",
+      "panel": "network_3d",
+      "html": "canonical_etude_1000/network_3d.html",
+      "png": "canonical_etude_1000/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/13_canonical_column_etude.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "canonical_etude_1000",
+      "panel": "raster",
+      "html": "canonical_etude_1000/raster.html",
+      "png": "canonical_etude_1000/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/13_canonical_column_etude.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "canonical_etude_1000",
+      "panel": "lfp",
+      "html": "canonical_etude_1000/lfp.html",
+      "png": "canonical_etude_1000/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/13_canonical_column_etude.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "canonical_etude_1000",
+      "panel": "h_dynamics",
+      "html": "canonical_etude_1000/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/13_canonical_column_etude.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "canonical_etude_1000",
+      "panel": "hdp",
+      "html": "canonical_etude_1000/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/13_canonical_column_etude.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "canonical_etude_1000",
+      "panel": "oscillatory",
+      "html": "canonical_etude_1000/oscillatory.html",
+      "png": "canonical_etude_1000/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/13_canonical_column_etude.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "config_grammar_1000",
+      "panel": "schema",
+      "html": "config_grammar_1000/schema.html",
+      "png": "config_grammar_1000/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/configuration_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "config_grammar_1000",
+      "panel": "network_3d",
+      "html": "config_grammar_1000/network_3d.html",
+      "png": "config_grammar_1000/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/configuration_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "config_grammar_1000",
+      "panel": "raster",
+      "html": "config_grammar_1000/raster.html",
+      "png": "config_grammar_1000/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/configuration_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "config_grammar_1000",
+      "panel": "lfp",
+      "html": "config_grammar_1000/lfp.html",
+      "png": "config_grammar_1000/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/configuration_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "config_grammar_1000",
+      "panel": "h_dynamics",
+      "html": "config_grammar_1000/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/grammar/configuration_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "config_grammar_1000",
+      "panel": "hdp",
+      "html": "config_grammar_1000/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/grammar/configuration_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "config_grammar_1000",
+      "panel": "oscillatory",
+      "html": "config_grammar_1000/oscillatory.html",
+      "png": "config_grammar_1000/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/configuration_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "ei_population_100",
+      "panel": "schema",
+      "html": "ei_population_100/schema.html",
+      "png": "ei_population_100/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/06_v036_100_neuron_ei_population.md",
+        "docs/archive/tutorials/readouts/09_v0310_eeg_meg_emm_proxy_bundle.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "ei_population_100",
+      "panel": "network_3d",
+      "html": "ei_population_100/network_3d.html",
+      "png": "ei_population_100/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/06_v036_100_neuron_ei_population.md",
+        "docs/archive/tutorials/readouts/09_v0310_eeg_meg_emm_proxy_bundle.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "ei_population_100",
+      "panel": "raster",
+      "html": "ei_population_100/raster.html",
+      "png": "ei_population_100/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/06_v036_100_neuron_ei_population.md",
+        "docs/archive/tutorials/readouts/09_v0310_eeg_meg_emm_proxy_bundle.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "ei_population_100",
+      "panel": "lfp",
+      "html": "ei_population_100/lfp.html",
+      "png": "ei_population_100/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/06_v036_100_neuron_ei_population.md",
+        "docs/archive/tutorials/readouts/09_v0310_eeg_meg_emm_proxy_bundle.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "ei_population_100",
+      "panel": "h_dynamics",
+      "html": "ei_population_100/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/06_v036_100_neuron_ei_population.md",
+        "docs/archive/tutorials/readouts/09_v0310_eeg_meg_emm_proxy_bundle.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "ei_population_100",
+      "panel": "hdp",
+      "html": "ei_population_100/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/06_v036_100_neuron_ei_population.md",
+        "docs/archive/tutorials/readouts/09_v0310_eeg_meg_emm_proxy_bundle.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "ei_population_100",
+      "panel": "oscillatory",
+      "html": "ei_population_100/oscillatory.html",
+      "png": "ei_population_100/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/06_v036_100_neuron_ei_population.md",
+        "docs/archive/tutorials/readouts/09_v0310_eeg_meg_emm_proxy_bundle.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "evoked_l4",
+      "panel": "schema",
+      "html": "evoked_l4/schema.html",
+      "png": "evoked_l4/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "evoked_l4",
+      "panel": "network_3d",
+      "html": "evoked_l4/network_3d.html",
+      "png": "evoked_l4/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "evoked_l4",
+      "panel": "raster",
+      "html": "evoked_l4/raster.html",
+      "png": "evoked_l4/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "evoked_l4",
+      "panel": "lfp",
+      "html": "evoked_l4/lfp.html",
+      "png": "evoked_l4/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "evoked_l4",
+      "panel": "h_dynamics",
+      "html": "evoked_l4/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "evoked_l4",
+      "panel": "hdp",
+      "html": "evoked_l4/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "evoked_l4",
+      "panel": "oscillatory",
+      "html": "evoked_l4/oscillatory.html",
+      "png": "evoked_l4/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_2_evoked_l4_drive.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "hdp_10",
+      "panel": "schema",
+      "html": "hdp_10/schema.html",
+      "png": "hdp_10/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/start/gallery.md",
+        "docs/tutorials/extend/07_add_dynamics.md"
+      ]
+    },
+    {
+      "slug": "hdp_10",
+      "panel": "network_3d",
+      "html": "hdp_10/network_3d.html",
+      "png": "hdp_10/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/start/gallery.md",
+        "docs/tutorials/extend/07_add_dynamics.md"
+      ]
+    },
+    {
+      "slug": "hdp_10",
+      "panel": "raster",
+      "html": "hdp_10/raster.html",
+      "png": "hdp_10/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/start/gallery.md",
+        "docs/tutorials/extend/07_add_dynamics.md"
+      ]
+    },
+    {
+      "slug": "hdp_10",
+      "panel": "lfp",
+      "html": "hdp_10/lfp.html",
+      "png": "hdp_10/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/start/gallery.md",
+        "docs/tutorials/extend/07_add_dynamics.md"
+      ]
+    },
+    {
+      "slug": "hdp_10",
+      "panel": "h_dynamics",
+      "html": "hdp_10/h_dynamics.html",
+      "png": "hdp_10/h_dynamics.png",
+      "title": "H dynamics",
+      "status": "available",
+      "docs_pages": [
+        "docs/start/gallery.md",
+        "docs/tutorials/extend/06_add_state.md",
+        "docs/tutorials/extend/07_add_dynamics.md"
+      ]
+    },
+    {
+      "slug": "hdp_10",
+      "panel": "hdp",
+      "html": "hdp_10/hdp.html",
+      "png": "hdp_10/hdp.png",
+      "title": "HDP plasticity",
+      "status": "available",
+      "docs_pages": [
+        "docs/start/gallery.md",
+        "docs/tutorials/extend/07_add_dynamics.md"
+      ]
+    },
+    {
+      "slug": "hdp_10",
+      "panel": "oscillatory",
+      "html": "hdp_10/oscillatory.html",
+      "png": "hdp_10/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/start/gallery.md",
+        "docs/tutorials/extend/07_add_dynamics.md"
+      ]
+    },
+    {
+      "slug": "hdp_1000",
+      "panel": "schema",
+      "html": "hdp_1000/schema.html",
+      "png": "hdp_1000/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/hdp.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "hdp_1000",
+      "panel": "network_3d",
+      "html": "hdp_1000/network_3d.html",
+      "png": "hdp_1000/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/hdp.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "hdp_1000",
+      "panel": "raster",
+      "html": "hdp_1000/raster.html",
+      "png": "hdp_1000/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/hdp.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "hdp_1000",
+      "panel": "lfp",
+      "html": "hdp_1000/lfp.html",
+      "png": "hdp_1000/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/hdp.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "hdp_1000",
+      "panel": "h_dynamics",
+      "html": "hdp_1000/h_dynamics.html",
+      "png": "hdp_1000/h_dynamics.png",
+      "title": "H dynamics",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/hdp.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "hdp_1000",
+      "panel": "hdp",
+      "html": "hdp_1000/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/state/hdp.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "hdp_1000",
+      "panel": "oscillatory",
+      "html": "hdp_1000/oscillatory.html",
+      "png": "hdp_1000/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/hdp.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "homeostasis_1000",
+      "panel": "schema",
+      "html": "homeostasis_1000/schema.html",
+      "png": "homeostasis_1000/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/homeostasis.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "homeostasis_1000",
+      "panel": "network_3d",
+      "html": "homeostasis_1000/network_3d.html",
+      "png": "homeostasis_1000/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/homeostasis.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "homeostasis_1000",
+      "panel": "raster",
+      "html": "homeostasis_1000/raster.html",
+      "png": "homeostasis_1000/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/homeostasis.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "homeostasis_1000",
+      "panel": "lfp",
+      "html": "homeostasis_1000/lfp.html",
+      "png": "homeostasis_1000/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/homeostasis.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "homeostasis_1000",
+      "panel": "h_dynamics",
+      "html": "homeostasis_1000/h_dynamics.html",
+      "png": "homeostasis_1000/h_dynamics.png",
+      "title": "H dynamics",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/homeostasis.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "homeostasis_1000",
+      "panel": "hdp",
+      "html": "homeostasis_1000/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/state/homeostasis.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "homeostasis_1000",
+      "panel": "oscillatory",
+      "html": "homeostasis_1000/oscillatory.html",
+      "png": "homeostasis_1000/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/state/homeostasis.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "lfp_csd_12",
+      "panel": "schema",
+      "html": "lfp_csd_12/schema.html",
+      "png": "lfp_csd_12/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/08_v038_lfp_csd_readout.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "lfp_csd_12",
+      "panel": "network_3d",
+      "html": "lfp_csd_12/network_3d.html",
+      "png": "lfp_csd_12/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/08_v038_lfp_csd_readout.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "lfp_csd_12",
+      "panel": "raster",
+      "html": "lfp_csd_12/raster.html",
+      "png": "lfp_csd_12/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/08_v038_lfp_csd_readout.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "lfp_csd_12",
+      "panel": "lfp",
+      "html": "lfp_csd_12/lfp.html",
+      "png": "lfp_csd_12/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/08_v038_lfp_csd_readout.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "lfp_csd_12",
+      "panel": "h_dynamics",
+      "html": "lfp_csd_12/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/08_v038_lfp_csd_readout.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "lfp_csd_12",
+      "panel": "hdp",
+      "html": "lfp_csd_12/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/08_v038_lfp_csd_readout.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "lfp_csd_12",
+      "panel": "oscillatory",
+      "html": "lfp_csd_12/oscillatory.html",
+      "png": "lfp_csd_12/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/08_v038_lfp_csd_readout.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "readme",
+      "panel": "schema",
+      "html": "readme/schema.html",
+      "png": "readme/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/jdna.md",
+        "docs/guides/interop/atlas_suite.md",
+        "docs/index.md",
+        "docs/start/gallery.md",
+        "docs/start/quickstart.md",
+        "docs/tutorials/construct/01_define_genome.md",
+        "docs/tutorials/construct/02_develop_genome.md",
+        "docs/tutorials/construct/03_inspect_tensor.md",
+        "docs/tutorials/construct/04_simulate_tensor.md",
+        "docs/tutorials/extend/05_observe_fields.md",
+        "docs/tutorials/extend/06_add_state.md",
+        "docs/tutorials/extend/07_add_dynamics.md",
+        "docs/tutorials/extend/08_compare_nulls.md",
+        "docs/tutorials/index.md"
+      ]
+    },
+    {
+      "slug": "readme",
+      "panel": "network_3d",
+      "html": "readme/network_3d.html",
+      "png": "readme/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/jdna.md",
+        "docs/guides/interop/atlas_suite.md",
+        "docs/index.md",
+        "docs/start/gallery.md",
+        "docs/start/quickstart.md",
+        "docs/tutorials/construct/01_define_genome.md",
+        "docs/tutorials/construct/02_develop_genome.md",
+        "docs/tutorials/construct/03_inspect_tensor.md",
+        "docs/tutorials/construct/04_simulate_tensor.md",
+        "docs/tutorials/extend/05_observe_fields.md",
+        "docs/tutorials/extend/06_add_state.md",
+        "docs/tutorials/extend/07_add_dynamics.md",
+        "docs/tutorials/extend/08_compare_nulls.md",
+        "docs/tutorials/index.md"
+      ]
+    },
+    {
+      "slug": "readme",
+      "panel": "raster",
+      "html": "readme/raster.html",
+      "png": "readme/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/jdna.md",
+        "docs/guides/interop/atlas_suite.md",
+        "docs/index.md",
+        "docs/start/gallery.md",
+        "docs/start/quickstart.md",
+        "docs/tutorials/construct/01_define_genome.md",
+        "docs/tutorials/construct/02_develop_genome.md",
+        "docs/tutorials/construct/03_inspect_tensor.md",
+        "docs/tutorials/construct/04_simulate_tensor.md",
+        "docs/tutorials/extend/05_observe_fields.md",
+        "docs/tutorials/extend/06_add_state.md",
+        "docs/tutorials/extend/07_add_dynamics.md",
+        "docs/tutorials/extend/08_compare_nulls.md",
+        "docs/tutorials/index.md"
+      ]
+    },
+    {
+      "slug": "readme",
+      "panel": "lfp",
+      "html": "readme/lfp.html",
+      "png": "readme/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/jdna.md",
+        "docs/guides/interop/atlas_suite.md",
+        "docs/index.md",
+        "docs/start/gallery.md",
+        "docs/start/quickstart.md",
+        "docs/tutorials/construct/01_define_genome.md",
+        "docs/tutorials/construct/02_develop_genome.md",
+        "docs/tutorials/construct/03_inspect_tensor.md",
+        "docs/tutorials/construct/04_simulate_tensor.md",
+        "docs/tutorials/extend/05_observe_fields.md",
+        "docs/tutorials/extend/06_add_state.md",
+        "docs/tutorials/extend/07_add_dynamics.md",
+        "docs/tutorials/extend/08_compare_nulls.md",
+        "docs/tutorials/index.md"
+      ]
+    },
+    {
+      "slug": "readme",
+      "panel": "h_dynamics",
+      "html": "readme/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/grammar/jdna.md",
+        "docs/guides/interop/atlas_suite.md",
+        "docs/index.md",
+        "docs/start/gallery.md",
+        "docs/start/quickstart.md",
+        "docs/tutorials/construct/01_define_genome.md",
+        "docs/tutorials/construct/02_develop_genome.md",
+        "docs/tutorials/construct/03_inspect_tensor.md",
+        "docs/tutorials/construct/04_simulate_tensor.md",
+        "docs/tutorials/extend/05_observe_fields.md",
+        "docs/tutorials/extend/06_add_state.md",
+        "docs/tutorials/extend/07_add_dynamics.md",
+        "docs/tutorials/extend/08_compare_nulls.md"
+      ]
+    },
+    {
+      "slug": "readme",
+      "panel": "hdp",
+      "html": "readme/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/grammar/jdna.md",
+        "docs/guides/interop/atlas_suite.md",
+        "docs/index.md",
+        "docs/start/gallery.md",
+        "docs/start/quickstart.md",
+        "docs/tutorials/construct/01_define_genome.md",
+        "docs/tutorials/construct/02_develop_genome.md",
+        "docs/tutorials/construct/03_inspect_tensor.md",
+        "docs/tutorials/construct/04_simulate_tensor.md",
+        "docs/tutorials/extend/05_observe_fields.md",
+        "docs/tutorials/extend/06_add_state.md",
+        "docs/tutorials/extend/07_add_dynamics.md",
+        "docs/tutorials/extend/08_compare_nulls.md"
+      ]
+    },
+    {
+      "slug": "readme",
+      "panel": "oscillatory",
+      "html": "readme/oscillatory.html",
+      "png": "readme/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/jdna.md",
+        "docs/guides/interop/atlas_suite.md",
+        "docs/index.md",
+        "docs/start/gallery.md",
+        "docs/start/quickstart.md",
+        "docs/tutorials/construct/01_define_genome.md",
+        "docs/tutorials/construct/02_develop_genome.md",
+        "docs/tutorials/construct/03_inspect_tensor.md",
+        "docs/tutorials/construct/04_simulate_tensor.md",
+        "docs/tutorials/extend/05_observe_fields.md",
+        "docs/tutorials/extend/06_add_state.md",
+        "docs/tutorials/extend/07_add_dynamics.md",
+        "docs/tutorials/extend/08_compare_nulls.md",
+        "docs/tutorials/index.md"
+      ]
+    },
+    {
+      "slug": "network_100_ei",
+      "panel": "schema",
+      "html": "network_100_ei/schema.html",
+      "png": "network_100_ei/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/03_network_100_ei.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "network_100_ei",
+      "panel": "network_3d",
+      "html": "network_100_ei/network_3d.html",
+      "png": "network_100_ei/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/03_network_100_ei.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "network_100_ei",
+      "panel": "raster",
+      "html": "network_100_ei/raster.html",
+      "png": "network_100_ei/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/03_network_100_ei.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "network_100_ei",
+      "panel": "lfp",
+      "html": "network_100_ei/lfp.html",
+      "png": "network_100_ei/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/03_network_100_ei.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "network_100_ei",
+      "panel": "h_dynamics",
+      "html": "network_100_ei/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/03_network_100_ei.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "network_100_ei",
+      "panel": "hdp",
+      "html": "network_100_ei/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/03_network_100_ei.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "network_100_ei",
+      "panel": "oscillatory",
+      "html": "network_100_ei/oscillatory.html",
+      "png": "network_100_ei/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/03_network_100_ei.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "objective_60",
+      "panel": "schema",
+      "html": "objective_60/schema.html",
+      "png": "objective_60/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/objective_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "objective_60",
+      "panel": "network_3d",
+      "html": "objective_60/network_3d.html",
+      "png": "objective_60/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/objective_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "objective_60",
+      "panel": "raster",
+      "html": "objective_60/raster.html",
+      "png": "objective_60/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/objective_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "objective_60",
+      "panel": "lfp",
+      "html": "objective_60/lfp.html",
+      "png": "objective_60/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/objective_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "objective_60",
+      "panel": "h_dynamics",
+      "html": "objective_60/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/grammar/objective_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "objective_60",
+      "panel": "hdp",
+      "html": "objective_60/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/grammar/objective_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "objective_60",
+      "panel": "oscillatory",
+      "html": "objective_60/oscillatory.html",
+      "png": "objective_60/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/grammar/objective_grammar.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "omission_60",
+      "panel": "schema",
+      "html": "omission_60/schema.html",
+      "png": "omission_60/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/10_v0313_omission_oddball.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "omission_60",
+      "panel": "network_3d",
+      "html": "omission_60/network_3d.html",
+      "png": "omission_60/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/10_v0313_omission_oddball.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "omission_60",
+      "panel": "raster",
+      "html": "omission_60/raster.html",
+      "png": "omission_60/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/10_v0313_omission_oddball.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "omission_60",
+      "panel": "lfp",
+      "html": "omission_60/lfp.html",
+      "png": "omission_60/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/10_v0313_omission_oddball.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "omission_60",
+      "panel": "h_dynamics",
+      "html": "omission_60/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/10_v0313_omission_oddball.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "omission_60",
+      "panel": "hdp",
+      "html": "omission_60/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/10_v0313_omission_oddball.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "omission_60",
+      "panel": "oscillatory",
+      "html": "omission_60/oscillatory.html",
+      "png": "omission_60/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/10_v0313_omission_oddball.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "operator_chain_40",
+      "panel": "schema",
+      "html": "operator_chain_40/schema.html",
+      "png": "operator_chain_40/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/readout/operator_composition.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "operator_chain_40",
+      "panel": "network_3d",
+      "html": "operator_chain_40/network_3d.html",
+      "png": "operator_chain_40/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/readout/operator_composition.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "operator_chain_40",
+      "panel": "raster",
+      "html": "operator_chain_40/raster.html",
+      "png": "operator_chain_40/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/readout/operator_composition.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "operator_chain_40",
+      "panel": "lfp",
+      "html": "operator_chain_40/lfp.html",
+      "png": "operator_chain_40/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/readout/operator_composition.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "operator_chain_40",
+      "panel": "h_dynamics",
+      "html": "operator_chain_40/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/readout/operator_composition.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "operator_chain_40",
+      "panel": "hdp",
+      "html": "operator_chain_40/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/readout/operator_composition.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "operator_chain_40",
+      "panel": "oscillatory",
+      "html": "operator_chain_40/oscillatory.html",
+      "png": "operator_chain_40/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/readout/operator_composition.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "probe_32",
+      "panel": "schema",
+      "html": "probe_32/schema.html",
+      "png": "probe_32/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/readout/output_bundles.md",
+        "docs/guides/readout/probe_operators.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "probe_32",
+      "panel": "network_3d",
+      "html": "probe_32/network_3d.html",
+      "png": "probe_32/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/readout/output_bundles.md",
+        "docs/guides/readout/probe_operators.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "probe_32",
+      "panel": "raster",
+      "html": "probe_32/raster.html",
+      "png": "probe_32/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/readout/output_bundles.md",
+        "docs/guides/readout/probe_operators.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "probe_32",
+      "panel": "lfp",
+      "html": "probe_32/lfp.html",
+      "png": "probe_32/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/readout/output_bundles.md",
+        "docs/guides/readout/probe_operators.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "probe_32",
+      "panel": "h_dynamics",
+      "html": "probe_32/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/readout/output_bundles.md",
+        "docs/guides/readout/probe_operators.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "probe_32",
+      "panel": "hdp",
+      "html": "probe_32/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/readout/output_bundles.md",
+        "docs/guides/readout/probe_operators.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "probe_32",
+      "panel": "oscillatory",
+      "html": "probe_32/oscillatory.html",
+      "png": "probe_32/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/readout/output_bundles.md",
+        "docs/guides/readout/probe_operators.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "scale_100",
+      "panel": "schema",
+      "html": "scale_100/schema.html",
+      "png": "scale_100/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_3_low_frequency_scaling.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "scale_100",
+      "panel": "network_3d",
+      "html": "scale_100/network_3d.html",
+      "png": "scale_100/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_3_low_frequency_scaling.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "scale_100",
+      "panel": "raster",
+      "html": "scale_100/raster.html",
+      "png": "scale_100/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_3_low_frequency_scaling.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "scale_100",
+      "panel": "lfp",
+      "html": "scale_100/lfp.html",
+      "png": "scale_100/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_3_low_frequency_scaling.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "scale_100",
+      "panel": "h_dynamics",
+      "html": "scale_100/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_3_low_frequency_scaling.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "scale_100",
+      "panel": "hdp",
+      "html": "scale_100/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_3_low_frequency_scaling.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "scale_100",
+      "panel": "oscillatory",
+      "html": "scale_100/oscillatory.html",
+      "png": "scale_100/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/08_jaxfne_suite_no_3_low_frequency_scaling.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "single_neuron",
+      "panel": "schema",
+      "html": "single_neuron/schema.html",
+      "png": "single_neuron/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/01_single_neuron_multimodal.md",
+        "docs/guides/readout/tensor_field_workflows.md",
+        "docs/start/colab.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "single_neuron",
+      "panel": "network_3d",
+      "html": "single_neuron/network_3d.html",
+      "png": "single_neuron/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/01_single_neuron_multimodal.md",
+        "docs/guides/readout/tensor_field_workflows.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "single_neuron",
+      "panel": "raster",
+      "html": "single_neuron/raster.html",
+      "png": "single_neuron/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/01_single_neuron_multimodal.md",
+        "docs/guides/readout/tensor_field_workflows.md",
+        "docs/start/colab.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "single_neuron",
+      "panel": "lfp",
+      "html": "single_neuron/lfp.html",
+      "png": "single_neuron/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/01_single_neuron_multimodal.md",
+        "docs/guides/readout/tensor_field_workflows.md",
+        "docs/start/colab.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "single_neuron",
+      "panel": "h_dynamics",
+      "html": "single_neuron/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/01_single_neuron_multimodal.md",
+        "docs/guides/readout/tensor_field_workflows.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "single_neuron",
+      "panel": "hdp",
+      "html": "single_neuron/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/01_single_neuron_multimodal.md",
+        "docs/guides/readout/tensor_field_workflows.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "single_neuron",
+      "panel": "oscillatory",
+      "html": "single_neuron/oscillatory.html",
+      "png": "single_neuron/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/01_single_neuron_multimodal.md",
+        "docs/guides/readout/tensor_field_workflows.md",
+        "docs/start/colab.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "source_column_48",
+      "panel": "schema",
+      "html": "source_column_48/schema.html",
+      "png": "source_column_48/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/07_v037_source_bookkeeping.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "source_column_48",
+      "panel": "network_3d",
+      "html": "source_column_48/network_3d.html",
+      "png": "source_column_48/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/07_v037_source_bookkeeping.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "source_column_48",
+      "panel": "raster",
+      "html": "source_column_48/raster.html",
+      "png": "source_column_48/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/07_v037_source_bookkeeping.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "source_column_48",
+      "panel": "lfp",
+      "html": "source_column_48/lfp.html",
+      "png": "source_column_48/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/07_v037_source_bookkeeping.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "source_column_48",
+      "panel": "h_dynamics",
+      "html": "source_column_48/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/07_v037_source_bookkeeping.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "source_column_48",
+      "panel": "hdp",
+      "html": "source_column_48/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/07_v037_source_bookkeeping.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "source_column_48",
+      "panel": "oscillatory",
+      "html": "source_column_48/oscillatory.html",
+      "png": "source_column_48/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/07_v037_source_bookkeeping.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite1_column",
+      "panel": "schema",
+      "html": "suite1_column/schema.html",
+      "png": "suite1_column/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/06_jaxfne_suite_no_1_computational_biophysics.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite1_column",
+      "panel": "network_3d",
+      "html": "suite1_column/network_3d.html",
+      "png": "suite1_column/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/06_jaxfne_suite_no_1_computational_biophysics.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite1_column",
+      "panel": "raster",
+      "html": "suite1_column/raster.html",
+      "png": "suite1_column/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/06_jaxfne_suite_no_1_computational_biophysics.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite1_column",
+      "panel": "lfp",
+      "html": "suite1_column/lfp.html",
+      "png": "suite1_column/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/06_jaxfne_suite_no_1_computational_biophysics.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite1_column",
+      "panel": "h_dynamics",
+      "html": "suite1_column/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/suites/06_jaxfne_suite_no_1_computational_biophysics.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite1_column",
+      "panel": "hdp",
+      "html": "suite1_column/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/suites/06_jaxfne_suite_no_1_computational_biophysics.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite1_column",
+      "panel": "oscillatory",
+      "html": "suite1_column/oscillatory.html",
+      "png": "suite1_column/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/06_jaxfne_suite_no_1_computational_biophysics.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite2_net1",
+      "panel": "schema",
+      "html": "suite2_net1/schema.html",
+      "png": "suite2_net1/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite2_net1",
+      "panel": "network_3d",
+      "html": "suite2_net1/network_3d.html",
+      "png": "suite2_net1/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite2_net1",
+      "panel": "raster",
+      "html": "suite2_net1/raster.html",
+      "png": "suite2_net1/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite2_net1",
+      "panel": "lfp",
+      "html": "suite2_net1/lfp.html",
+      "png": "suite2_net1/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite2_net1",
+      "panel": "h_dynamics",
+      "html": "suite2_net1/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/suites/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite2_net1",
+      "panel": "hdp",
+      "html": "suite2_net1/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/suites/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "suite2_net1",
+      "panel": "oscillatory",
+      "html": "suite2_net1/oscillatory.html",
+      "png": "suite2_net1/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/suites/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "two_neuron_ei",
+      "panel": "schema",
+      "html": "two_neuron_ei/schema.html",
+      "png": "two_neuron_ei/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/02_two_neuron_ei.md",
+        "docs/start/colab.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "two_neuron_ei",
+      "panel": "network_3d",
+      "html": "two_neuron_ei/network_3d.html",
+      "png": "two_neuron_ei/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/02_two_neuron_ei.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "two_neuron_ei",
+      "panel": "raster",
+      "html": "two_neuron_ei/raster.html",
+      "png": "two_neuron_ei/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/02_two_neuron_ei.md",
+        "docs/start/colab.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "two_neuron_ei",
+      "panel": "lfp",
+      "html": "two_neuron_ei/lfp.html",
+      "png": "two_neuron_ei/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/02_two_neuron_ei.md",
+        "docs/start/colab.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "two_neuron_ei",
+      "panel": "h_dynamics",
+      "html": "two_neuron_ei/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/02_two_neuron_ei.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "two_neuron_ei",
+      "panel": "hdp",
+      "html": "two_neuron_ei/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/02_two_neuron_ei.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "two_neuron_ei",
+      "panel": "oscillatory",
+      "html": "two_neuron_ei/oscillatory.html",
+      "png": "two_neuron_ei/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/02_two_neuron_ei.md",
+        "docs/start/colab.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_column",
+      "panel": "schema",
+      "html": "v1_column/schema.html",
+      "png": "v1_column/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/04_v1_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_column",
+      "panel": "network_3d",
+      "html": "v1_column/network_3d.html",
+      "png": "v1_column/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/04_v1_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_column",
+      "panel": "raster",
+      "html": "v1_column/raster.html",
+      "png": "v1_column/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/04_v1_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_column",
+      "panel": "lfp",
+      "html": "v1_column/lfp.html",
+      "png": "v1_column/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/04_v1_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_column",
+      "panel": "h_dynamics",
+      "html": "v1_column/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/04_v1_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_column",
+      "panel": "hdp",
+      "html": "v1_column/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/04_v1_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_column",
+      "panel": "oscillatory",
+      "html": "v1_column/oscillatory.html",
+      "png": "v1_column/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/04_v1_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_pfc_dual",
+      "panel": "schema",
+      "html": "v1_pfc_dual/schema.html",
+      "png": "v1_pfc_dual/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/05_v1_pfc_dual_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_pfc_dual",
+      "panel": "network_3d",
+      "html": "v1_pfc_dual/network_3d.html",
+      "png": "v1_pfc_dual/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/05_v1_pfc_dual_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_pfc_dual",
+      "panel": "raster",
+      "html": "v1_pfc_dual/raster.html",
+      "png": "v1_pfc_dual/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/05_v1_pfc_dual_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_pfc_dual",
+      "panel": "lfp",
+      "html": "v1_pfc_dual/lfp.html",
+      "png": "v1_pfc_dual/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/05_v1_pfc_dual_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_pfc_dual",
+      "panel": "h_dynamics",
+      "html": "v1_pfc_dual/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/05_v1_pfc_dual_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_pfc_dual",
+      "panel": "hdp",
+      "html": "v1_pfc_dual/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/05_v1_pfc_dual_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1_pfc_dual",
+      "panel": "oscillatory",
+      "html": "v1_pfc_dual/oscillatory.html",
+      "png": "v1_pfc_dual/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/basics/05_v1_pfc_dual_column.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1v4_80",
+      "panel": "schema",
+      "html": "v1v4_80/schema.html",
+      "png": "v1v4_80/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/11_multi_laminar_cortical_agsdr.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1v4_80",
+      "panel": "network_3d",
+      "html": "v1v4_80/network_3d.html",
+      "png": "v1v4_80/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/11_multi_laminar_cortical_agsdr.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1v4_80",
+      "panel": "raster",
+      "html": "v1v4_80/raster.html",
+      "png": "v1v4_80/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/11_multi_laminar_cortical_agsdr.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1v4_80",
+      "panel": "lfp",
+      "html": "v1v4_80/lfp.html",
+      "png": "v1v4_80/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/11_multi_laminar_cortical_agsdr.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1v4_80",
+      "panel": "h_dynamics",
+      "html": "v1v4_80/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/11_multi_laminar_cortical_agsdr.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1v4_80",
+      "panel": "hdp",
+      "html": "v1v4_80/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/11_multi_laminar_cortical_agsdr.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "v1v4_80",
+      "panel": "oscillatory",
+      "html": "v1v4_80/oscillatory.html",
+      "png": "v1v4_80/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/archive/tutorials/readouts/11_multi_laminar_cortical_agsdr.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "three_area",
+      "panel": "schema",
+      "html": "three_area/schema.html",
+      "png": "three_area/schema.png",
+      "title": "Circuit schematic",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/interop/showcases.md",
+        "docs/index.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "three_area",
+      "panel": "network_3d",
+      "html": "three_area/network_3d.html",
+      "png": "three_area/network_3d.png",
+      "title": "Network 3D",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/interop/showcases.md",
+        "docs/index.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "three_area",
+      "panel": "raster",
+      "html": "three_area/raster.html",
+      "png": "three_area/raster.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/interop/showcases.md",
+        "docs/index.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "three_area",
+      "panel": "lfp",
+      "html": "three_area/lfp.html",
+      "png": "three_area/lfp.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/interop/showcases.md",
+        "docs/index.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "three_area",
+      "panel": "h_dynamics",
+      "html": "three_area/h_dynamics.html",
+      "title": "H dynamics",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/interop/showcases.md",
+        "docs/index.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "three_area",
+      "panel": "hdp",
+      "html": "three_area/hdp.html",
+      "title": "HDP plasticity",
+      "status": "omitted",
+      "docs_pages": [
+        "docs/guides/interop/showcases.md",
+        "docs/index.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "three_area",
+      "panel": "oscillatory",
+      "html": "three_area/oscillatory.html",
+      "png": "three_area/oscillatory.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/guides/interop/showcases.md",
+        "docs/index.md",
+        "docs/start/gallery.md"
+      ]
+    },
+    {
+      "slug": "column_network",
+      "panel": "column_network",
+      "html": "column_network/column_network.html",
+      "png": "column_network/column_network.png",
+      "title": "Canonical column: 1000 neurons, 800 sampled edges",
+      "status": "available",
+      "docs_pages": [
+        "docs/tutorials/construct/02_develop_genome.md"
+      ]
+    },
+    {
+      "slug": "area_graph_n20",
+      "panel": "area_graph_n20",
+      "html": "area_graph_n20/area_graph_n20.html",
+      "png": "area_graph_n20/area_graph_n20.png",
+      "title": "G_20 hierarchy: 20 areas, inter-area edges",
+      "status": "available",
+      "docs_pages": [
+        "docs/index.md",
+        "docs/tutorials/index.md"
+      ]
+    }
+  ]
+}
