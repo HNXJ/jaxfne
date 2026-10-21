@@ -315,6 +315,13 @@
           "promoter": "promote_atlas_state.py",
           "git_head": "f508648b552af5310c74a3d31fccf219b8890d25",
           "utc": "2026-10-14T19:47:37.764184+00:00"
+        },
+        {
+          "to": "validated",
+          "reason": "0.5.7 candidate: version bump regenerated the canonical atlas (config hash 91f037cf383e0bdb unchanged, jaxfne_version 0.5.6 -> 0.5.7, which reset its state); broad gate on ae3eb498 flagged test_canonical_manifest_provenance. Dispatcher-accepted 2026-10-20.",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "ae3eb498137787fd4d3871a20929bff658f33100",
+          "utc": "2026-10-21T01:52:38.658854+00:00"
         }
       ]
     },
@@ -841,14 +848,41 @@
     }
   ],
   "copies": [
-    {"dest": "docs/assets/etudes/pcl/c1b_kernels.png", "source": "artifacts/etudes/papers/pcl/confirm/c1b_seed10_kernels.png"},
-    {"dest": "docs/assets/etudes/pcl/c1_kernels.png", "source": "artifacts/etudes/papers/pcl/confirm/c1_seed10_kernels.png"},
-    {"dest": "docs/assets/etudes/multiscale_observation.png", "source": "artifacts/etudes/bundles/multiscale_observation/figure.png"},
-    {"dest": "docs/assets/etudes/hdp_controllability_reachability.png", "source": "artifacts/etudes/bundles/hdp_controllability_reachability/figure.png"},
-    {"dest": "docs/assets/etudes/heterogeneous_emitters.png", "source": "artifacts/etudes/bundles/heterogeneous_emitters/figure.png"},
-    {"dest": "docs/assets/etudes/hdp_balance/stage1.png", "source": "artifacts/etudes/bundles/hdp_balance/confirm_figure.png"},
-    {"dest": "docs/assets/etudes/hdp_balance/stage1b.png", "source": "artifacts/etudes/bundles/hdp_balance/confirm_1b_figure.png"},
-    {"dest": "docs/assets/etudes/hdp_balance/stage1c.png", "source": "artifacts/etudes/bundles/hdp_balance/confirm_1c_figure.png"},
-    {"dest": "docs/assets/etudes/hdp_balance/stage1d.png", "source": "artifacts/etudes/bundles/hdp_balance/confirm_1d_figure.png"}
+    {
+      "dest": "docs/assets/etudes/pcl/c1b_kernels.png",
+      "source": "artifacts/etudes/papers/pcl/confirm/c1b_seed10_kernels.png"
+    },
+    {
+      "dest": "docs/assets/etudes/pcl/c1_kernels.png",
+      "source": "artifacts/etudes/papers/pcl/confirm/c1_seed10_kernels.png"
+    },
+    {
+      "dest": "docs/assets/etudes/multiscale_observation.png",
+      "source": "artifacts/etudes/bundles/multiscale_observation/figure.png"
+    },
+    {
+      "dest": "docs/assets/etudes/hdp_controllability_reachability.png",
+      "source": "artifacts/etudes/bundles/hdp_controllability_reachability/figure.png"
+    },
+    {
+      "dest": "docs/assets/etudes/heterogeneous_emitters.png",
+      "source": "artifacts/etudes/bundles/heterogeneous_emitters/figure.png"
+    },
+    {
+      "dest": "docs/assets/etudes/hdp_balance/stage1.png",
+      "source": "artifacts/etudes/bundles/hdp_balance/confirm_figure.png"
+    },
+    {
+      "dest": "docs/assets/etudes/hdp_balance/stage1b.png",
+      "source": "artifacts/etudes/bundles/hdp_balance/confirm_1b_figure.png"
+    },
+    {
+      "dest": "docs/assets/etudes/hdp_balance/stage1c.png",
+      "source": "artifacts/etudes/bundles/hdp_balance/confirm_1c_figure.png"
+    },
+    {
+      "dest": "docs/assets/etudes/hdp_balance/stage1d.png",
+      "source": "artifacts/etudes/bundles/hdp_balance/confirm_1d_figure.png"
+    }
   ]
 }

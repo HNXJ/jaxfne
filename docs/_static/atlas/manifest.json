@@ -8,7 +8,7 @@
   "sim_identity": "seed=0 duration_ms=1000.0 dt_ms=0.5",
   "recording_class": "large",
   "recording_budget": "population H, selected traces, summaries; no full T\u00d7E",
-  "jaxfne_version": "0.5.6",
+  "jaxfne_version": "0.5.7",
   "seed": 0,
   "duration_ms": 1000.0,
   "n_neurons": 1000,
@@ -36,7 +36,7 @@
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 76096,
+      "bytes": 76194,
       "inputs": {
         "source_artifact": "model",
         "variable": "params.positions + params.edge_list",
@@ -50,7 +50,7 @@
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 107680,
+      "bytes": 107778,
       "inputs": {
         "source_artifact": "signals",
         "variable": "spikes [T,N] + neuron_table",
@@ -64,7 +64,7 @@
       "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 362231,
+      "bytes": 362329,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field proxy",
@@ -78,7 +78,7 @@
       "panel": "H dynamics",
       "evidence": "DERIVED",
       "status": "OMITTED",
-      "bytes": 10350,
+      "bytes": 10443,
       "inputs": {
         "source_artifact": "model diagnostics",
         "variable": "H_trace / r_trace",
@@ -92,7 +92,7 @@
       "panel": "HDP plasticity",
       "evidence": "DERIVED",
       "status": "OMITTED",
-      "bytes": 10293,
+      "bytes": 10389,
       "inputs": {
         "source_artifact": "model diagnostics",
         "variable": "w_trace",
@@ -106,7 +106,7 @@
       "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 21484,
+      "bytes": 21582,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field traces",
@@ -116,7 +116,7 @@
       }
     }
   ],
-  "sha256": "b0da382200c47c0b",
+  "sha256": "af15e48477083936",
   "promotion": [
     {
       "to": "validated",
@@ -131,6 +131,13 @@
       "promoter": "promote_atlas_state.py",
       "git_head": "f508648b552af5310c74a3d31fccf219b8890d25",
       "utc": "2026-10-14T19:47:37.764184+00:00"
+    },
+    {
+      "to": "validated",
+      "reason": "0.5.7 candidate: version bump regenerated the canonical atlas (config hash 91f037cf383e0bdb unchanged, jaxfne_version 0.5.6 -> 0.5.7, which reset its state); broad gate on ae3eb498 flagged test_canonical_manifest_provenance. Dispatcher-accepted 2026-10-20.",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "ae3eb498137787fd4d3871a20929bff658f33100",
+      "utc": "2026-10-21T01:52:38.658854+00:00"
     }
   ]
 }

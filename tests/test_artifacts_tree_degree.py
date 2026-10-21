@@ -48,6 +48,10 @@ EXEMPT_TREES = {
                          "docs/_static/atlas_registry.json cite its subfolders by path; open lane",
 }
 
+# Exempt folders that empty at each release and refill between releases (35 changelog fragments
+# for 0.5.7): the exemption stays while the folder is under the limit.
+CYCLIC_EXEMPT = {"changelog.d"}
+
 # Single folders allowed over the limit (their subfolders are still checked).
 EXEMPT_FOLDERS = {
     "": "root: see ROOT_EXEMPT; the remaining entries must fit the limit",
@@ -144,6 +148,9 @@ def test_every_exception_is_live_and_needed():
         assert any(_over(dirs, files, f)[0] for f in inside), f"tree fits the limit now: {tree}"
     for folder in EXEMPT_FOLDERS:
         if folder == "":
+            continue
+        if folder in CYCLIC_EXEMPT:
+            assert folder in folders, f"EXEMPT_FOLDERS names a missing folder: {folder}"
             continue
         assert folder in folders, f"EXEMPT_FOLDERS names a missing folder: {folder}"
         assert _over(dirs, files, folder)[0], f"folder fits the limit now, drop it: {folder}"
