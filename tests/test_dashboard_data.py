@@ -533,9 +533,12 @@ def core_score():
     }}
 
 
-def core_paper(sha, criteria):
-    return paper(sha, **{"class": "core method", "stage": None, "preregs": [],
+def core_paper(sha, criteria, grammar=("Field", "Probe")):
+    spec = paper(sha, **{"class": "core method", "stage": None, "preregs": [],
                          "files": {"main": "scores/main.json"}, "criteria": criteria})
+    if grammar is not None:
+        spec["grammar"] = list(grammar)
+    return spec
 
 
 def test_core_method_builds_values_verdicts_and_references_from_the_scorer_file(tmp_path):
@@ -551,6 +554,7 @@ def test_core_method_builds_values_verdicts_and_references_from_the_scorer_file(
     assert proc.returncode == 0, proc.stderr
     got = load_out(root)["papers"][0]
     assert (got["class"], got["stage"], got["verdict"], got["preregs"]) == ("core method", None, None, [])
+    assert got["grammar"] == ["Field", "Probe"]
     live, skipped = got["criteria"]
     assert (live["value"], live["verdict"]) == (1e-9, "pass")
     assert live["reference"] == "primary-current field"
@@ -587,6 +591,37 @@ def test_core_method_refuses_and_names_the_paper(tmp_path, criteria, needle):
     assert proc.returncode == 1, proc.stdout + proc.stderr
     assert "fixture" in proc.stderr and needle in proc.stderr, proc.stderr
     assert not (root / REL_OUT).exists(), "no data file may be written on error"
+
+
+@pytest.mark.parametrize("grammar, needle", [
+    (None, "names grammar stages from"),
+    ([], "names grammar stages from"),
+    (["Field", "Membrane"], "names grammar stages from"),
+    (["Probe", "Field"], "unique and in grammar order"),
+    (["Field", "Field"], "unique and in grammar order"),
+])
+def test_core_method_refuses_bad_grammar_stages(tmp_path, grammar, needle):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": core_score()})
+    write_sources(root, [core_paper(sha, [core_criterion("meg_radial")], grammar=grammar)])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and needle in proc.stderr, proc.stderr
+    assert not (root / REL_OUT).exists(), "no data file may be written on error"
+
+
+def test_grammar_stages_only_on_core_method_rows(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": core_score()})
+    spec = paper(sha)
+    spec["grammar"] = ["Emitter"]
+    assert spec["class"] != "core method", "fixture must be a non-core paper"
+    write_sources(root, [spec])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "only a core-method entry names grammar stages" in proc.stderr, proc.stderr
 
 
 def test_core_method_skippable_criterion_names_its_entry(tmp_path):

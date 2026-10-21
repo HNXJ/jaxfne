@@ -430,7 +430,8 @@ def check(doc):
         for line in bad:
             print(f"mismatch: {line}", file=sys.stderr)
         return 1
-    print(f"fresh: {SCORE_PATH} matches a recomputation within rtol {RTOL:g}")
+    print(f"fresh: {SCORE_PATH} matches a recomputation within rtol {RTOL:g} "
+          f"(errors under {NOISE_FRACTION:g} x tolerance in both copies count as rounding residuals)")
     return 0
 
 

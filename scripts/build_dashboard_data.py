@@ -507,6 +507,26 @@ def check_class(spec):
 
 STAGES = ("P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7")
 
+# Grammar stages a core-method row supports, in the order of the scientific grammar
+# (Emitter -> Source -> Field -> Probe -> Objective -> Optimizer), then the adaptive dynamics
+# (RBD/HDP) and the numerics every stage runs on.
+GRAMMAR = ("Emitter", "Source", "Field", "Probe", "Objective", "Optimizer", "RBD/HDP", "Numerics")
+
+
+def check_grammar(spec):
+    """The grammar stages of a core-method row: a non-empty list from GRAMMAR, in GRAMMAR order.
+    Other classes carry none."""
+    grammar = spec.get("grammar")
+    if spec.get("class") != "core method":
+        if grammar is not None:
+            raise BuildError(f"paper {spec['id']}: only a core-method entry names grammar stages")
+        return None
+    if not grammar or any(g not in GRAMMAR for g in grammar):
+        raise BuildError(f"paper {spec['id']}: a core-method entry names grammar stages from {list(GRAMMAR)}")
+    if list(grammar) != sorted(set(grammar), key=GRAMMAR.index):
+        raise BuildError(f"paper {spec['id']}: grammar stages are unique and in grammar order")
+    return list(grammar)
+
 
 def build_stage_artifacts(p, spec):
     """Per-stage files at the lane SHA, in stage order. A stage past the paper's own stage, an
@@ -554,6 +574,7 @@ def build_paper(spec, files, repo_url):
         "release": spec["release"],
         "tier": spec["tier"],
         "stage": spec.get("stage"),
+        "grammar": check_grammar(spec),
         "lane": {"branch": spec["lane"]["branch"], "sha": spec["lane"]["sha"]},
         "stage_artifacts": build_stage_artifacts(p, spec),
         "verdict": spec.get("verdict"),
