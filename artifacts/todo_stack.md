@@ -56,12 +56,14 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   core-method rows score under `artifacts/etudes/core_checks/` with grammar stages. After the
   kernel LFP lane lands: iSTDP out-degree check in plasticity, kernel LFP checks in fields.
 
-In order: B4 checklist rules in `check_replications.py` (S2 and E1 landed; next P4 and R4; F3
+In order: B4 checklist rules in `check_replications.py` (S2, E1 and P4 landed; next R4; F3
 stays manual: the gate cannot run the parent commit), with the follow-ups, each closed by a fix or
 by Hamm listing it as an exception: S2, the four allowlisted oracle imports (caminos
 `run_caminos.py`, pcl `port/pcl_binned_jax.py` and `port/run_tuning.py`) move to gates or tests;
 E1, brunel2000 lists its scored module under P4, caminos runs `Model.simulate` (B2),
-izhikevich2003 and pcl route their scored runs through `construct` and `.simulate`;
+izhikevich2003 and pcl route their scored runs through `construct` and `.simulate`; P4
+(manifest), caminos adds backend, dtype, seeds and the regime block, izhikevich2003 the regime
+block, pcl backend, dtype, seeds and regime;
 B1 estimators into `jaxfne.analysis`; B5 lane gaps (Brunel S1 option, Vogels G-SC, Potjans G-MULT
 to G-DDIST); B3 batching; B2 routes through `construct`; Destexhe and GSDR pilots, then preregs (the GSDR fit
 with MCDP on via `mcdp_hdp_step`, Hamm 2026-10-20); Jansen and Rit 1995 opens the EEG/MEG lane
