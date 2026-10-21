@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Replication-checklist gate rows: R1, R6, S1, E3.
+"""Replication-checklist gate rows: R1, R6, S1, S2, E3.
 
 Paper registry: ``dashboard/sources.json`` papers[] (``id``, ``stage``,
 ``stage_artifacts``, ``preregs``). Paper folders: ``artifacts/etudes/papers/*/``.
@@ -40,6 +40,18 @@ SHA, so this gate does not re-check their working-tree existence.
   ``--exec-path*`` or a ``shell=``, ``executable=``, ``env=`` or
   ``preexec_fn=`` keyword is present; a non-constant argv element stays a
   finding, except the directory right after ``-C``.
+- S2: a transcription of the authors' model (an oracle) is imported only by
+  tests or gate scripts, never by the scored path: ``import X``,
+  ``from X import``, ``from .X import``, ``importlib.import_module("X")``
+  with a constant, and ``spec_from_file_location`` with a constant path that
+  resolves to the oracle (module scope and function scope both count).
+  Oracle modules are the paper's ``stage_artifacts`` entries labelled
+  oracle/transcription/reference arm (mapped onto
+  ``artifacts/etudes/papers/`` the way R1 maps them, so a stale path still
+  maps; a label naming a ``.py`` file that does not exist is not an S2
+  finding) and ``*_ref.py``, ``*_ref_*.py``, ``*reference*.py`` files under
+  the paper folders. Allowed importers are ``test_*``/``gate_*`` files,
+  files under a ``tests/`` directory, and sibling oracles of the same paper.
 - E3: no top-level ``def NAME(`` under a paper folder shadows a public
   ``jaxfne.analysis`` name (collected recursively under ``jaxfne/analysis*``,
   including ``__all__`` re-exports; a method named like a core function is not
@@ -63,6 +75,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import fnmatch
 import json
 import os
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -727,6 +740,200 @@ def check_s1_file(tree: ast.Module, rel: str, here: Path, root: Path) -> list[st
     return issues
 
 
+#: Stage-artifact label fragments that mark a transcription of the authors' model.
+ORACLE_LABEL_KEYWORDS = ("oracle", "transcription", "reference arm")
+
+
+def _is_oracle_label(label: str) -> bool:
+    """Whether a stage_artifacts label names an oracle (case-insensitive)."""
+    low = label.lower()
+    return any(key in low for key in ORACLE_LABEL_KEYWORDS)
+
+
+def _label_oracle_rel(path: str) -> str | None:
+    """Repo-relative oracle path for a stage_artifacts entry, or None.
+
+    The ``<name>`` segment maps onto ``artifacts/etudes/papers/<name>/`` the
+    way R1 maps it (the folders moved there), so a stale pinned path still
+    maps. Only ``.py`` entries count.
+    """
+    if Path(path).suffix != ".py":
+        return None
+    parts = Path(path).parts
+    if len(parts) < 3 or parts[0] != "artifacts" or parts[1] != "etudes":
+        return None
+    rest = parts[2:]
+    if rest[0] == "papers":
+        rest = rest[1:]
+    if len(rest) < 2 or not rest[0]:
+        return None
+    return PAPERS_REL.joinpath(*rest).as_posix()
+
+
+def _is_oracle_name(basename: str) -> bool:
+    """Whether a file basename marks an oracle transcription."""
+    return (
+        fnmatch.fnmatchcase(basename, "*_ref.py")
+        or fnmatch.fnmatchcase(basename, "*_ref_*.py")
+        or fnmatch.fnmatchcase(basename, "*reference*.py")
+    )
+
+
+def oracle_files(papers: list[dict], root: Path) -> dict[str, Path]:
+    """(repo-relative posix, absolute path) oracle modules, per paper folder.
+
+    Labelled oracles resolve through the R1 folder mapping; a label naming a
+    ``.py`` file that does not exist is not an oracle (R1 and the dashboard
+    build own existence). Name oracles match ``*_ref.py``, ``*_ref_*.py`` or
+    ``*reference*.py`` under the paper folders.
+    """
+    oracles: dict[str, Path] = {}
+    for paper in papers:
+        stages = paper.get("stage_artifacts")
+        if isinstance(stages, dict):
+            for items in stages.values():
+                if isinstance(items, list):
+                    for item in items:
+                        if (
+                            isinstance(item, dict)
+                            and isinstance(item.get("label"), str)
+                            and isinstance(item.get("path"), str)
+                            and _is_oracle_label(item["label"])
+                        ):
+                            rel = _label_oracle_rel(item["path"])
+                            if rel is not None and (root / rel).is_file():
+                                oracles.setdefault(rel, root / rel)
+    for path in _paper_py_files(root):
+        if _is_oracle_name(path.name):
+            oracles.setdefault(_rel(path, root), path)
+    return oracles
+
+
+def _norm(path: Path | PurePosixPath | PureWindowsPath) -> str:
+    return os.path.normcase(os.path.normpath(str(path)))
+
+
+def _s2_paper(rel: str) -> str | None:
+    """The paper folder name for a repo-relative path under papers/, or None."""
+    parts = PurePosixPath(rel).parts
+    if (
+        len(parts) > 3
+        and parts[0] == "artifacts"
+        and parts[1] == "etudes"
+        and parts[2] == "papers"
+    ):
+        return parts[3]
+    return None
+
+
+def _s2_module_candidates(name: str, base: Path) -> list[Path]:
+    """Candidate files for a dotted module name anchored at one directory."""
+    stem = Path(*name.split("."))
+    return [base / (str(stem) + ".py"), base / stem / "__init__.py"]
+
+
+def _resolve_s2_module(
+    name: str, here: Path, paper_root: Path, level: int
+) -> Path | None:
+    """The file a module name resolves to, or None when it resolves nowhere.
+
+    Absolute names resolve beside the importer, then at the paper root (the
+    paper folders run with their own directory on ``sys.path``); relative
+    names resolve beside the importer. Only existing files count.
+    """
+    if level:
+        base = here.parent
+        for _ in range(level - 1):
+            base = base.parent
+        candidates = _s2_module_candidates(name, base)
+    else:
+        candidates = _s2_module_candidates(name, here.parent) + _s2_module_candidates(
+            name, paper_root
+        )
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _s2_module_refs(tree: ast.Module) -> list[tuple[str, int]]:
+    """(module name, relative level) for every import statement, any scope."""
+    refs: list[tuple[str, int]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for a in node.names:
+                refs.append((a.name, 0))
+        elif isinstance(node, ast.ImportFrom):
+            if node.module is not None:
+                refs.append((node.module, node.level))
+            else:
+                for a in node.names:
+                    if a.name != "*":
+                        refs.append((a.name, node.level))
+    return refs
+
+
+def check_s2(
+    parsed: list[tuple[str, Path, ast.Module | None]], papers: list[dict], root: Path
+) -> list[tuple[str, str, str]]:
+    """S2 findings: a non-test, non-gate file importing an oracle module."""
+    oracles = oracle_files(papers, root)
+    by_abs = {_norm(path): rel for rel, path in oracles.items()}
+    by_paper: dict[str | None, set[str]] = {}
+    for rel, path in oracles.items():
+        by_paper.setdefault(_s2_paper(rel), set()).add(_norm(path))
+    findings: set[tuple[str, str, str]] = set()
+    for rel, here, tree in parsed:
+        if tree is None:
+            continue
+        paper = _s2_paper(rel)
+        if paper is None:
+            continue
+        if here.name.startswith(("test_", "gate_")):
+            continue
+        if "tests" in PurePosixPath(rel).parts:
+            continue
+        if _norm(here) in by_paper.get(paper, set()):
+            continue  # a sibling oracle of the same paper
+        paper_root = root / PAPERS_REL / paper
+        bindings = _collect_bindings(tree)
+        mods, names = _collect_imports(tree)
+        hits: set[str] = set()
+        for name, level in _s2_module_refs(tree):
+            target = _resolve_s2_module(name, here, paper_root, level)
+            if target is not None and _norm(target) in by_abs:
+                hits.add(by_abs[_norm(target)])
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            mod, attr = _call_target(node.func, mods, names)
+            if mod == "importlib" and attr == "import_module":
+                if (
+                    node.args
+                    and isinstance(node.args[0], ast.Constant)
+                    and isinstance(node.args[0].value, str)
+                ):
+                    target = _resolve_s2_module(node.args[0].value, here, paper_root, 0)
+                    if target is not None and _norm(target) in by_abs:
+                        hits.add(by_abs[_norm(target)])
+            elif mod == "importlib" and attr == "spec_from_file_location":
+                loc = None
+                if len(node.args) >= 2:
+                    loc = node.args[1]
+                else:
+                    for kw in node.keywords:
+                        if kw.arg == "location":
+                            loc = kw.value
+                            break
+                if loc is not None:
+                    resolved = _resolve_expr(loc, bindings, here)
+                    if resolved is not None and _norm(resolved) in by_abs:
+                        hits.add(by_abs[_norm(resolved)])
+        for oracle_rel in hits:
+            findings.add(("S2", rel, "imports oracle " + oracle_rel))
+    return sorted(findings)
+
+
 def _all_names(tree: ast.Module) -> set[str]:
     """Non-private names of one ``__all__`` list/tuple assignment."""
     names: set[str] = set()
@@ -836,6 +1043,7 @@ def collect_findings(root: Path) -> list[tuple[str, str, str]]:
         check_r1(papers, root)
         + check_r6(root)
         + s1
+        + check_s2(parsed, papers, root)
         + e3
     )
     return sorted(set(findings))

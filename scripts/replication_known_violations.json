@@ -187,5 +187,33 @@
     "message": "line 46: sys.path.insert adds a path that cannot be resolved",
     "reason": "audit 2026-10-17",
     "todo": "T-30"
+  },
+  {
+    "rule": "S2",
+    "path": "artifacts/etudes/papers/caminos/run_caminos.py",
+    "message": "imports oracle artifacts/etudes/papers/caminos/caminos_jax.py",
+    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
+    "todo": "B4 S2 follow-up"
+  },
+  {
+    "rule": "S2",
+    "path": "artifacts/etudes/papers/pcl/port/pcl_binned_jax.py",
+    "message": "imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref.py",
+    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
+    "todo": "B4 S2 follow-up"
+  },
+  {
+    "rule": "S2",
+    "path": "artifacts/etudes/papers/pcl/port/run_tuning.py",
+    "message": "imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref.py",
+    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
+    "todo": "B4 S2 follow-up"
+  },
+  {
+    "rule": "S2",
+    "path": "artifacts/etudes/papers/pcl/port/run_tuning.py",
+    "message": "imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref_numba.py",
+    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
+    "todo": "B4 S2 follow-up"
   }
 ]

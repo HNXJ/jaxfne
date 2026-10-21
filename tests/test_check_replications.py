@@ -11,6 +11,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from scripts import check_replications as cr
 from scripts import run_test_gate as rtg
 from scripts.run_test_gate import AUDIT_STEPS, CHECK_FAMILIES, GATE_CHECK_FAMILIES
@@ -221,6 +223,156 @@ def test_s1_git_shell_keyword_fails(tmp_path):
         "gsh",
         "import subprocess\nsubprocess.run(['git', 'rev-parse', 'HEAD'], shell=True)\n",
     )
+
+
+def _s2_paper_entry(pid: str, label: str, path: str) -> dict:
+    return {
+        "id": pid,
+        "stage": "P1",
+        "stage_artifacts": {"P1": [{"label": label, "path": path}]},
+        "preregs": [],
+    }
+
+
+def test_s2_labelled_oracle_import_fails(tmp_path):
+    _registry(tmp_path, [_s2_paper_entry(
+        "s2lab", "oracle transcription", "artifacts/etudes/s2lab/oracle_trans.py")])
+    oracle = _write(tmp_path, "artifacts/etudes/papers/s2lab/oracle_trans.py", "VALUE = 1\n")
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/s2lab/run.py",
+        "import oracle_trans\nprint(oracle_trans.VALUE)\n",
+    )
+    _write(tmp_path, "artifacts/etudes/papers/s2lab/SOURCE_P1.md")
+    assert oracle.is_file(), "fixture must hold the labelled oracle"
+    assert "import oracle_trans" in run.read_text(encoding="utf-8"), (
+        "fixture must import the oracle"
+    )
+    findings = cr.collect_findings(tmp_path)
+    assert (
+        "S2",
+        "artifacts/etudes/papers/s2lab/run.py",
+        "imports oracle artifacts/etudes/papers/s2lab/oracle_trans.py",
+    ) in findings
+
+
+def test_s2_test_gate_and_tests_importers_pass(tmp_path):
+    _registry(tmp_path, [_s2_paper_entry(
+        "s2ok", "oracle transcription", "artifacts/etudes/s2ok/oracle_trans.py")])
+    _write(tmp_path, "artifacts/etudes/papers/s2ok/oracle_trans.py", "VALUE = 1\n")
+    test_run = _write(
+        tmp_path, "artifacts/etudes/papers/s2ok/test_run.py", "import oracle_trans\n")
+    gate_run = _write(
+        tmp_path, "artifacts/etudes/papers/s2ok/gate_run.py", "import oracle_trans\n")
+    nested = _write(
+        tmp_path, "artifacts/etudes/papers/s2ok/tests/check.py", "import oracle_trans\n")
+    _write(tmp_path, "artifacts/etudes/papers/s2ok/SOURCE_P1.md")
+    for importer in (test_run, gate_run, nested):
+        assert "import oracle_trans" in importer.read_text(encoding="utf-8"), (
+            "fixture must import the oracle"
+        )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "S2"] == [], (
+        "test_, gate_ and tests/ importers of the oracle stay clean"
+    )
+
+
+def test_s2_ref_name_oracle_fails(tmp_path):
+    _registry(tmp_path, [])
+    oracle = _write(tmp_path, "artifacts/etudes/papers/q/mod_ref.py", "VALUE = 1\n")
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/q/run.py",
+        "import mod_ref\nprint(mod_ref.VALUE)\n",
+    )
+    assert oracle.is_file(), "fixture must hold the *_ref.py oracle"
+    assert "import mod_ref" in run.read_text(encoding="utf-8"), (
+        "fixture must import the oracle"
+    )
+    findings = cr.collect_findings(tmp_path)
+    assert (
+        "S2",
+        "artifacts/etudes/papers/q/run.py",
+        "imports oracle artifacts/etudes/papers/q/mod_ref.py",
+    ) in findings
+
+
+def test_s2_relative_and_function_scope_imports_fail(tmp_path):
+    _registry(tmp_path, [])
+    oracle = _write(tmp_path, "artifacts/etudes/papers/r/sib_ref.py", "VALUE = 1\n")
+    rel = _write(
+        tmp_path, "artifacts/etudes/papers/r/rel.py", "from .sib_ref import VALUE\n")
+    func = _write(
+        tmp_path,
+        "artifacts/etudes/papers/r/func.py",
+        "def f():\n    import sib_ref\n    return sib_ref.VALUE\n",
+    )
+    assert oracle.is_file(), "fixture must hold the *_ref.py oracle"
+    assert "from .sib_ref import" in rel.read_text(encoding="utf-8"), (
+        "fixture must hold the relative import"
+    )
+    assert "import sib_ref" in func.read_text(encoding="utf-8"), (
+        "fixture must hold the function-scope import"
+    )
+    findings = cr.collect_findings(tmp_path)
+    assert (
+        "S2",
+        "artifacts/etudes/papers/r/rel.py",
+        "imports oracle artifacts/etudes/papers/r/sib_ref.py",
+    ) in findings
+    assert (
+        "S2",
+        "artifacts/etudes/papers/r/func.py",
+        "imports oracle artifacts/etudes/papers/r/sib_ref.py",
+    ) in findings
+
+
+def test_s2_oracle_importing_sibling_oracle_passes(tmp_path):
+    _registry(tmp_path, [])
+    first = _write(
+        tmp_path, "artifacts/etudes/papers/s/a_ref.py", "import b_ref\nprint(b_ref.VALUE)\n")
+    _write(tmp_path, "artifacts/etudes/papers/s/b_ref.py", "VALUE = 1\n")
+    assert "import b_ref" in first.read_text(encoding="utf-8"), (
+        "fixture must import the sibling oracle"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "S2"] == [], (
+        "an oracle importing a sibling oracle of the same paper stays clean"
+    )
+
+
+def test_s2_missing_labelled_oracle_passes(tmp_path):
+    _registry(tmp_path, [_s2_paper_entry(
+        "ghost", "reference arm", "artifacts/etudes/ghost/missing_oracle.py")])
+    run = _write(
+        tmp_path, "artifacts/etudes/papers/ghost/run.py", "import missing_oracle\n")
+    _write(tmp_path, "artifacts/etudes/papers/ghost/SOURCE_P1.md")
+    assert not (tmp_path / "artifacts/etudes/papers/ghost/missing_oracle.py").exists(), (
+        "fixture oracle must be missing"
+    )
+    assert "import missing_oracle" in run.read_text(encoding="utf-8"), (
+        "fixture must hold the import"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "S2"] == [], (
+        "a label naming a missing .py yields no S2 finding"
+    )
+
+
+@pytest.mark.parametrize("source", [
+    "import importlib\nm = importlib.import_module('net_ref')\n",
+    "import importlib.util\nfrom pathlib import Path\nHERE = Path(__file__).resolve().parent\n"
+    "spec = importlib.util.spec_from_file_location('n', HERE / 'net_ref.py')\n",
+], ids=["import_module", "spec_from_file_location"])
+def test_s2_dynamic_oracle_load_fails(tmp_path, source):
+    _registry(tmp_path, [])
+    oracle = _write(tmp_path, "artifacts/etudes/papers/dyn/net_ref.py", "VALUE = 1\n")
+    run = _write(tmp_path, "artifacts/etudes/papers/dyn/run.py", source)
+    assert oracle.is_file() and "net_ref" in run.read_text(encoding="utf-8"), (
+        "fixture must hold the oracle and a dynamic load of it"
+    )
+    assert (
+        "S2",
+        "artifacts/etudes/papers/dyn/run.py",
+        "imports oracle artifacts/etudes/papers/dyn/net_ref.py",
+    ) in cr.collect_findings(tmp_path)
 
 
 def test_e3_shadow_fails(tmp_path):
