@@ -12,7 +12,11 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   recomputes at rtol 1e-9. Dashboard Validation tab: seven core-method rows with a grammar-stage
   column. Haiku critics per family; their fixes are in. colab-mcp connects as an HTTP server on
   127.0.0.1:8765 (`~/.local/bin/colab_mcp_http.ps1`, rerun after a reboot); one session drives
-  Colab. Opencode Muse is the default for builds, fixes, sweeps and first reviews.
+  Colab. Opencode Muse is the default for builds, fixes, sweeps and first reviews. On dev 1e79c99c
+  (CI Fast 39662523638, Dashboard 39662523609 green); Muse reviews fixed: --check names stored rows
+  it did not recompute, AGSDR scored against its update recurrence (was self-fitted).
+  Replication gate rules S2 (oracles only in tests and gates), E1 (construct and .simulate) and P4
+  (manifest keys) with their findings allowlisted as B4 follow-ups.
 - 0.5.7 published 2026-10-21: tag v0.5.7 on main 03a86014 (PR 113; CI Fast 39585668154, Release
   CI 39585668167 green), GitHub Release, PyPI via Publish run 39595006450; receipt
   `artifacts/release/v0_5_7_release_receipt.json`. rc gate PASS on dev 508dffa9 (broad 6917

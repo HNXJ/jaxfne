@@ -7,7 +7,6 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or the issue
 ## In flight
 - O-41 remainder (P-038): Read the Docs regenerates atlases only, so étude pages publish stand-ins (RTD itself is strict since 2026-10-19) | keeper | since 2026-10-18 | closes when RTD builds the étude pages or they leave the RTD nav
 
-- O-56 Validation backbone (Hamm 2026-10-21): seven core-method rows with a grammar-stage column (scorers 3ab82d7e, dashboard rows 01c30c21; broad gate on the integration clone) | keeper | since 2026-10-21 | closes when CI is green on dev at the pushed SHA
 
 ## Waiting on others
 - O-10 Harness proposals (lane-clone helper, worker background guard, jchat lane registry, lock holders in `who`, known-failures register, release events), jchat conference #29 | jynx keeper | since 2026-10-15 | closes when each is taken or refused
