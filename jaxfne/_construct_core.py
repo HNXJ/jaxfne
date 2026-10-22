@@ -511,7 +511,7 @@ def _homeostasis_params_cache_fingerprint(hp: Mapping[str, Any]) -> tuple:
         if isinstance(v, (bool, int, float, str)) or v is None:
             items.append((k, v))
         elif isinstance(v, Mapping):
-            items.append((k, tuple(sorted(v.items()))))
+            items.append((k, _homeostasis_params_cache_fingerprint(v)))
         else:
             arr = _np.asarray(v)
             items.append((k, "array", arr.shape, str(arr.dtype), hash(arr.tobytes())))

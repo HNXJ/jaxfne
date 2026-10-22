@@ -9,6 +9,14 @@ import jax
 import pytest
 import jaxfne as jtfne
 
+from jaxfne._construct_core import _homeostasis_params_cache_fingerprint
+
+
+def test_fingerprint_accepts_nested_rule_params_mapping():
+    a = _homeostasis_params_cache_fingerprint({"c": {"A_plus": 0.01}})
+    hash(a)
+    assert a != _homeostasis_params_cache_fingerprint({"c": {"A_plus": 0.02}})
+
 
 def _build(runtime_kwargs=None, n=200):
     cfg = jtfne.build_laminar_column(n=n, ei_profile="canonical")
