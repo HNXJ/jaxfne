@@ -46,7 +46,7 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   (0.33-0.67). Readout follow-up (w_max, larger frozen sets) is Hamm's call; lane paused until then.
 
 - Brunel S2/S3 sensitivity, seeds 4-5, unscored: running detached on WSL CPU since 2026-10-20; then the
-  RESULT_P3 sensitivity section (needs B5 item 2).
+  RESULT_P3 sensitivity section.
 - Kernel LFP lane `cl-klfp` onto dev [A]: rebase onto current dev, broad gate 0 failed, push; first
   f57aae0f (`istdp_vogels2011` per-synapse traces; the 0.5.8 changelog names the fix to 0.5.7's
   per-neuron trace, Known issue per Hamm 2026-10-21; O-55 Vogels segment B rerun), then 6eb3c6b8,
@@ -58,18 +58,22 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 In order (Hamm 2026-10-22: work until the 0.5.8 todos and open issues are empty; open issues become
 todos once their close is decided; checkpoint when both are empty; Muse Spark 1.3 code packets in
 clones, verified before integration):
-1. [A] B4-R4 result-verification rule in `check_replications.py` (F3 stays manual: the gate cannot
-   run the parent commit); then close the S2/E1/P4 follow-ups, each removing its known finding:
+1. [A] B4 R4 LANDED (8136beea, 2026-10-22: a paper claiming reproduced must hold its P6 result file;
+   F3 stays manual: the gate cannot run the parent commit). Remaining: the S2/E1/P4 follow-ups,
+   each removing its known finding:
    the four allowlisted oracle imports move to gates or tests; brunel2000 lists its scored module
    under P4; caminos P4 adds backend, dtype, seeds and the regime block; izhikevich2003 the regime
    block; pcl backend, dtype, seeds and regime.
-2. [A] B5 Brunel S1 fixed-in-degree option (unblocks the S1-S3 sensitivity scoring).
+2. [A] B5 Brunel S1 fixed-in-degree option: CLOSED (already landed 9a56737c, 2026-10-19; PORT_SPEC rows
+   8-11 pinned). B5 remainder also CLOSED 2026-10-22: Vogels G-SC (94e62ef0 + 744647a8, per-channel
+   Poisson rates realized end to end), Potjans G-MULT (b4d4dc5c), G-TAUSYN (5a8d4ad4),
+   G-POPDRIVE (47c8076b), G-WDIST/G-DDIST (9dc6afd3). Each xfail unmarked; no-spread paths
+   bit-identical; review round applied.
 3. [A] B1 estimators into `jaxfne.analysis` (ISI ratio and CV, pairwise correlation, aperiodic fit,
    tuning fit, phase delay); lane copies import them, outputs equal on saved rasters.
 4. [A] B3 batched runs: seed and candidate batching for the AdEx and LIF routes and `Model.tune`.
 5. [A] B2 routes through `construct`: HH in dispatch (GSDR), the `net.m` order as a core option
    (izhikevich2003), the PCL full-network mapping on the LIF tensor route (T-22 operator, T-25 A').
-6. [A] B5 remainder: Vogels G-SC, Potjans G-MULT/G-TAUSYN/G-POPDRIVE/G-WDIST/G-DDIST.
 7. [A] B8 pilots then preregs: Destexhe and GSDR (the GSDR fit with MCDP on via `mcdp_hdp_step`);
    then each lane's P3 prereg for signature; Jansen-Rit 1995 opens the EEG/MEG lane (a neural-mass
    emitter in the core, then P1).
