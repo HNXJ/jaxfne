@@ -603,7 +603,7 @@ var CLASSES = [
     def: "Analytic checks of a core method against closed-form references, scored by a script; not a paper replication." }
 ];
 var SCORED_CLASSES = ["reproduced", "reproduced (conditional)", "mixed", "failed"];
-var TABS = ["overview", "models", "validation", "roadmap", "method"];
+var TABS = ["overview", "models", "validation", "figures", "roadmap", "method"];
 
 function classInfo(id) {
   var hit = null;
@@ -1063,6 +1063,135 @@ function renderMethod(view) {
   view.appendChild(rules);
 }
 
+/* ---- Figures tab: the standalone figure site's manifest, one fetch per page view ---- */
+
+var FIG_MANIFEST_URL = "../figures/manifest.json";
+// Read the Docs base, as stated in README.md and pyproject.toml.
+var RTD_BASE = "https://jaxfne.readthedocs.io/en/latest/";
+
+// docs/<path>.md -> the RTD page URL; docs/<dir>/index.md -> the folder URL.
+function docsUrl(page) {
+  var rest = String(page).replace(/^docs\//, "").replace(/\.md$/, "");
+  if (rest === "index") return RTD_BASE;
+  if (rest.slice(-"/index".length) === "/index") rest = rest.slice(0, -"/index".length);
+  return RTD_BASE + rest + "/";
+}
+
+function figMatches(fig, query) {
+  var hay = ((fig.slug || "") + " " + (fig.title || "") + " " + (fig.panel || "")).toLowerCase();
+  return hay.indexOf(query) >= 0;
+}
+
+function figCard(fig) {
+  var card = el("article");
+  card.className = "fig-card";
+  var img = document.createElement("img");
+  img.src = "../figures/" + fig.png;
+  img.alt = fig.title || ((fig.slug || "") + " " + (fig.panel || ""));
+  img.loading = "lazy";
+  card.appendChild(img);
+  card.appendChild(el("h4", fig.panel || ""));
+  var inter = el("p");
+  inter.appendChild(link("../figures/" + fig.html, "Interactive"));
+  card.appendChild(inter);
+  (fig.docs_pages || []).forEach(function (page) {
+    var line = el("p");
+    line.className = "small";
+    line.appendChild(link(docsUrl(page), page));
+    card.appendChild(line);
+  });
+  if (fig.note) {
+    var note = el("p", fig.note);
+    note.className = "small";
+    card.appendChild(note);
+  }
+  return card;
+}
+
+function paintFigList(box, manifest, query) {
+  clear(box);
+  var seen = {};
+  var slugs = [];
+  (manifest.figures || []).forEach(function (fig) {
+    if (!figMatches(fig, query)) return;
+    if (!seen[fig.slug]) { seen[fig.slug] = []; slugs.push(fig.slug); }
+    seen[fig.slug].push(fig);
+  });
+  slugs.sort();
+  if (!slugs.length) {
+    box.appendChild(el("p", "No figures match the filter."));
+    return;
+  }
+  slugs.forEach(function (slug) {
+    var group = seen[slug];
+    var first = null;
+    group.forEach(function (fig) { if (!first && fig.status === "available") first = fig; });
+    if (!first) first = group[0];
+    box.appendChild(el("h3", slug + " — " + (first.title || first.panel || "")));
+    var grid = el("div");
+    grid.className = "fig-grid";
+    group.forEach(function (fig) {
+      if (fig.status === "available" && fig.png) grid.appendChild(figCard(fig));
+    });
+    if (grid.firstChild) box.appendChild(grid);
+    var omitted = group.filter(function (fig) { return fig.status !== "available" || !fig.png; })
+      .map(function (fig) { return fig.panel; });
+    if (omitted.length) {
+      var line = el("p", "Omitted: " + omitted.join(", "));
+      line.className = "small";
+      box.appendChild(line);
+    }
+  });
+}
+
+function renderFigTab(view, manifest) {
+  view.appendChild(el("h2", "Figures"));
+  var head = el("p", "build " + String(manifest.build_sha || "unknown").slice(0, 12) +
+    " · " + (manifest.figures || []).length + " figures");
+  head.className = "small";
+  view.appendChild(head);
+  var bar = el("div");
+  bar.className = "toolbar";
+  var label = el("label", "Filter ");
+  var input = document.createElement("input");
+  input.type = "search";
+  input.placeholder = "slug, title or panel";
+  input.setAttribute("aria-label", "Filter figures by slug, title or panel");
+  label.appendChild(input);
+  bar.appendChild(label);
+  view.appendChild(bar);
+  var box = el("div");
+  view.appendChild(box);
+  paintFigList(box, manifest, "");
+  input.addEventListener("input", function () {
+    paintFigList(box, manifest, String(input.value).toLowerCase());
+  });
+}
+
+function renderFigures(view) {
+  if (window.__figsite) {
+    renderFigTab(view, window.__figsite);
+    return;
+  }
+  view.appendChild(el("p", "Loading the figure manifest…"));
+  fetch(FIG_MANIFEST_URL).then(function (r) {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function (manifest) {
+    window.__figsite = manifest;
+    if (route().tab !== "figures") return;
+    var fresh = document.getElementById("view");
+    clear(fresh);
+    renderFigTab(fresh, manifest);
+  }).catch(function (err) {
+    if (route().tab !== "figures") return;
+    var fresh = document.getElementById("view");
+    clear(fresh);
+    fresh.appendChild(el("p", "Could not load the figure manifest from " +
+      FIG_MANIFEST_URL + ": " + (err && err.message ? err.message : err)));
+  });
+}
+
 function route() {
   var h = location.hash ? decodeURIComponent(location.hash.slice(1)) : "overview";
   if (h.indexOf("model/") === 0) return { tab: "models", id: h.slice(6) };
@@ -1088,6 +1217,7 @@ function render(data) {
     else view.appendChild(el("p", "No model with id " + r.id + "."));
   } else if (r.tab === "models") renderModels(view, data);
   else if (r.tab === "validation") renderValidation(view, data);
+  else if (r.tab === "figures") renderFigures(view);
   else if (r.tab === "roadmap") renderRoadmap(view, data);
   else if (r.tab === "method") renderMethod(view);
   else renderOverview(view, data);
