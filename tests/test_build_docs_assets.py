@@ -625,6 +625,24 @@ def test_site_continues_past_a_slug_that_refuses(tmp_path, monkeypatch, capsys):
     assert f"[{first}] SITE ERROR" in capsys.readouterr().out
 
 
+def test_site_builds_the_hdp_etude_from_the_frozen_theta(tmp_path, monkeypatch):
+    # The HDP etude's AGSDR tune reaches another optimum on GitHub's runner (O-59);
+    # the site takes the frozen theta_hat and keeps the mode's firing checks.
+    import scripts.rerun_etude_figures as rerun
+
+    seen = {}
+
+    def fake(out_dir, figures=None, **kw):
+        seen.update(kw)
+        return []
+
+    monkeypatch.setitem(rerun.MODES, "hdp_mcc3", ("hdp_controllability_reachability", fake))
+    pages = {}
+    assert bda._build_site_etude_slug("hdp_controllability_reachability", tmp_path,
+                                      bda.load_registry(), pages) == []
+    assert seen == {"retune": False}
+
+
 def test_site_fails_when_docs_cite_an_omitted_figure():
     # The first etude build listed every rerun panel as omitted while the
     # docs showed their stills; the completeness check alone passed it.

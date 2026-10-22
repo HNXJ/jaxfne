@@ -523,7 +523,15 @@ def mode_heterogeneous(out_dir: pathlib.Path, figures: dict | None = None) -> li
     return panels
 
 
-def mode_hdp_mcc3(out_dir: pathlib.Path, figures: dict | None = None) -> list[dict]:
+def mode_hdp_mcc3(
+    out_dir: pathlib.Path, figures: dict | None = None, retune: bool = True
+) -> list[dict]:
+    """retune=False takes theta_hat from the frozen checkpoint instead of re-running AGSDR.
+
+    The tune reproduces on the machine that froze it and reaches another optimum on GitHub's
+    runner (O-59), so the figure site builds from the frozen theta; the condition-B firing
+    checks below run either way.
+    """
     import numpy as np
 
     import jaxfne as J
@@ -561,10 +569,14 @@ def mode_hdp_mcc3(out_dir: pathlib.Path, figures: dict | None = None) -> list[di
         population_size=M3.AGSDR_POPULATION,
         seed=M3.OPT_SEED,
     )
-    tune_result = base.tune(objectives=objective, optimizer=optimizer, simulation=tune_sim)
-    thetah = {k: float(v) for k, v in dict(tune_result.best_parameters).items()}
-    if thetah != {k: float(v) for k, v in committed["agsdr"]["theta_hat"].items()}:
-        raise SystemExit(f"tuned theta drift vs frozen checkpoint: {thetah}")
+    frozen_theta = {k: float(v) for k, v in committed["agsdr"]["theta_hat"].items()}
+    if retune:
+        tune_result = base.tune(objectives=objective, optimizer=optimizer, simulation=tune_sim)
+        thetah = {k: float(v) for k, v in dict(tune_result.best_parameters).items()}
+        if thetah != frozen_theta:
+            raise SystemExit(f"tuned theta drift vs frozen checkpoint: {thetah}")
+    else:
+        thetah = frozen_theta
     sim_10s_on = J.simulation(
         duration_ms=M3.DURATION_MS, dt_ms=M3.DT_MS, seed=M3.SIM_SEED, runtime=M3.mcc3_runtime(True)
     )

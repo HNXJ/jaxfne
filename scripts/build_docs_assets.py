@@ -86,6 +86,9 @@ ETUDE_SITE_MODES = {
     "multiscale_observation": "multiscale",
     "heterogeneous_emitters": "heterogeneous",
 }
+# Modes whose stochastic tune reproduces only on the machine that froze it (O-59): the site
+# takes their frozen theta_hat; their firing checks still run.
+FROZEN_THETA_MODES = {"hdp_mcc3"}
 
 
 def rel(path: Path) -> str:
@@ -653,8 +656,12 @@ def _build_site_etude_slug(slug: str, out: Path, registry: dict,
             key = ETUDE_SITE_MODES[slug]
             built_slug, fn = MODES[key]
             assert built_slug == slug, f"etude site mode {key} builds {built_slug}, not {slug}"
-            panels = fn(Path(tmpdir.name), figures=figures)
+            kw = {"retune": False} if key in FROZEN_THETA_MODES else {}
+            panels = fn(Path(tmpdir.name), figures=figures, **kw)
         entry = {e["slug"]: e for e in registry["etudes"]}[slug]
+        note = ({"note": "built from the frozen checkpoint theta_hat; the AGSDR tune is not "
+                         "re-run here (O-59)"} if ETUDE_SITE_MODES[slug] in FROZEN_THETA_MODES
+                else {})
         entries: list[dict] = []
         for panel in panels:
             name = panel["file"]
@@ -677,7 +684,7 @@ def _build_site_etude_slug(slug: str, out: Path, registry: dict,
             _write_image(fig, str(slug_dir / f"{stem}.png"))
             entries.append({"slug": slug, "panel": stem, "html": f"{slug}/{name}",
                             "png": f"{slug}/{stem}.png", "title": label,
-                            "status": "available", "docs_pages": docs})
+                            "status": "available", "docs_pages": docs, **note})
         return entries
     finally:
         tmpdir.cleanup()
