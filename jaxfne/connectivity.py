@@ -597,16 +597,18 @@ def _candidate_pairs_multinomial(
     allow_self: bool,
     key: jax.Array,
 ) -> list[tuple[int, int]]:
-    """Return exactly ``K = round(p * n_post)`` (pre, post) edge pairs drawn
-    with replacement (multapses allowed).
+    """Return exactly ``K = round_half_up(p * n_post)`` (pre, post) edge pairs
+    drawn with replacement (multapses allowed).
 
     Each of the K synapses draws its presynaptic and postsynaptic neuron
     independently and uniformly, giving binomial in/out-degree; a (pre, post)
     pair may repeat. ``probability=None`` -> ``p = 1.0``; ``p <= 0`` -> no
-    edges. With ``allow_self=False`` and overlapping pools, self pairs are
-    excluded by rejection top-up to exactly K kept pairs. Sampling is
-    deterministic given ``key`` and never materializes a dense n_pre x n_post
-    pair grid.
+    edges; the count rounds half-up (the delay grid's convention). With
+    ``allow_self=False`` and overlapping pools, self pairs are excluded by
+    drawing over the reduced valid pair space arithmetically, so exactly K
+    kept pairs always come back; a rule whose valid pair space is empty while
+    ``K > 0`` is refused. Sampling is deterministic given ``key`` and never
+    materializes a dense n_pre x n_post pair grid.
     """
     n_pre, n_post = len(pre_ids), len(post_ids)
     if n_pre == 0 or n_post == 0:
@@ -614,7 +616,7 @@ def _candidate_pairs_multinomial(
     p = 1.0 if probability is None else float(probability)
     if p <= 0.0:
         return []
-    k = int(round(p * n_post))
+    k = int(math.floor(p * n_post + 0.5))
     if k <= 0:
         return []
     pre_arr = np.asarray(pre_ids)
@@ -628,30 +630,30 @@ def _candidate_pairs_multinomial(
         )
         pre_pick, post_pick = np.divmod(flat, n_post)
         return sorted(zip(pre_arr[pre_pick].tolist(), post_arr[post_pick].tolist()))
-    if n_pre * n_post - len(shared) <= 0:
-        return []  # every candidate pair is a refused self pair
-    # Overlapping pools without self: rejection top-up to exactly k kept
-    # pairs (mirrors the density sampler's bounded top-up structure).
-    kept: list[tuple[int, int]] = []
-    sub = key
-    attempts = 0
-    max_attempts = 40 * k + 100
-    while len(kept) < k and attempts < max_attempts:
-        sub, draw_key = jax.random.split(sub)
-        draw = max((k - len(kept)) * 2, 16)
-        pre_pick = np.asarray(jax.random.randint(draw_key, (draw,), 0, n_pre))
-        post_pick = np.asarray(
-            jax.random.randint(jax.random.fold_in(draw_key, 1), (draw,), 0, n_post)
+    # Overlapping pools without self: the valid pair space drops the
+    # pre==post pairs. Draw K indices over the reduced space and map them
+    # per post cell, so exactly K kept pairs always come back (no rejection
+    # top-up that could come back short).
+    valid_per_post = np.asarray(
+        [n_pre - (1 if int(b) in shared else 0) for b in post_arr.tolist()],
+        dtype=np.int64,
+    )
+    total_valid = int(valid_per_post.sum())
+    if total_valid <= 0:
+        raise ValueError(
+            "multinomial sampling draws K>0 synapses but every (pre, post) pair "
+            "of the rule is a refused self pair; allow self pairs or enlarge the pools"
         )
-        for a, b in zip(pre_pick, post_pick):
-            a_id, b_id = int(pre_arr[int(a)]), int(post_arr[int(b)])
-            if a_id == b_id:
-                continue
-            kept.append((a_id, b_id))
-            if len(kept) >= k:
-                break
-        attempts += draw
-    return sorted(kept)
+    offsets = np.concatenate(([0], np.cumsum(valid_per_post)))
+    flat = np.asarray(jax.random.choice(key, total_valid, shape=(k,), replace=True))
+    post_pick = np.searchsorted(offsets, flat, side="right") - 1
+    within = flat - offsets[post_pick]
+    pre_idx = np.asarray(within, dtype=np.int64).copy()
+    for j in np.flatnonzero(valid_per_post != n_pre):
+        skip = int(np.flatnonzero(pre_arr == post_arr[j])[0])
+        sel = post_pick == j
+        pre_idx[sel] += (within[sel] >= skip).astype(np.int64)
+    return sorted(zip(pre_arr[pre_idx].tolist(), post_arr[post_pick].tolist()))
 
 
 def _spatial_bucket_key(pos: np.ndarray, cell_size: float) -> tuple[int, int, int]:
@@ -1188,6 +1190,20 @@ def compile_connection_rules(
                 key=rkey,
             )
         else:
+            if sampling in ("density", "bernoulli", "capped_bernoulli", "multinomial"):
+                # The builder validates too; the compiler owns the rule as well,
+                # and a direct compile_connection_rules call bypasses the builder.
+                p_rule = rule.get("probability")
+                if p_rule is not None and (
+                    isinstance(p_rule, bool)
+                    or not isinstance(p_rule, numbers.Real)
+                    or not math.isfinite(float(p_rule))
+                    or not (0.0 <= float(p_rule) <= 1.0)
+                ):
+                    raise ValueError(
+                        f"connection {rname!r} probability={p_rule!r} "
+                        "must be a finite number in [0, 1]"
+                    )
             if sampling == "bernoulli":
                 pairs = _candidate_pairs_bernoulli(
                     pre_ids,

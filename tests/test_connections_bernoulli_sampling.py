@@ -536,6 +536,69 @@ def test_multinomial_with_in_degree_is_refused():
         jtfne.compile_connection_rules(neurons, [rule], MECHS, seed=0)
 
 
+def test_multinomial_recurrent_single_neuron_is_refused_not_empty():
+    # 1 pre x 1 post, same id: every pair is a refused self pair, so a K>0
+    # multinomial rule has an empty valid pair space -- refused, never a
+    # silent empty edge list.
+    neurons = _rows(1, "V1")
+    rule = {"name": "rec", "source": {"area": "V1"}, "target": {"area": "V1"},
+            "probability": 0.5, "weight": 0.1, "mechanism": "ampa",
+            "sampling": "multinomial"}
+    with pytest.raises(ValueError, match="empty valid pair space|refused self pair"):
+        jtfne.compile_connection_rules(neurons, [rule], MECHS, seed=0)
+
+
+def test_multinomial_self_excluded_count_rounds_half_up():
+    # 5 recurrent neurons, p = 0.5: K = round_half_up(2.5) = 3 (banker's
+    # rounding would give 2). Exact K, no self pairs, every seed.
+    neurons = _rows(5, "V1")
+    rule = {"name": "rec", "source": {"area": "V1"}, "target": {"area": "V1"},
+            "probability": 0.5, "weight": 0.1, "mechanism": "ampa",
+            "sampling": "multinomial"}
+    for seed in range(5):
+        r = jtfne.compile_connection_rules(neurons, [rule], MECHS, seed=seed)
+        assert r.n_edges == 3, "half-up: K = 3 exactly, every seed"
+        assert not np.any(
+            np.asarray(r.edge_pre) == np.asarray(r.edge_post)
+        ), "self pairs stay excluded"
+
+
+def test_compile_refuses_probability_out_of_range():
+    # The compiler owns the rule even when the builder is bypassed.
+    neurons = _rows(4, "PRE") + _rows(4, "POST", start=4)
+    for p in (1.5, -0.1):
+        rule = _mult_rule(probability=p)
+        with pytest.raises(ValueError, match="finite number in \\[0, 1\\]"):
+            jtfne.compile_connection_rules(neurons, [rule], MECHS, seed=0)
+
+
+def test_duplicate_guard_flags_cross_block_repeat():
+    # The construct-time duplicate guard: an identity repeated entirely inside
+    # ONE declared multinomial block is the declared with-replacement outcome;
+    # the same identity repeating across two blocks (or spanning an exempt and
+    # a non-exempt source) is an accident and raises.
+    from jaxfne._construct_core import _reject_duplicate_explicit_edges
+    from jaxfne.emitters import EdgeList
+
+    def el(pairs):
+        arr = np.asarray(pairs, dtype=np.int64)
+        n = arr.shape[0]
+        return EdgeList(
+            pre=jnp.asarray(arr[:, 0]),
+            post=jnp.asarray(arr[:, 1]),
+            weight=jnp.ones(n),
+            receptor_index=jnp.zeros(n, dtype=jnp.int32),
+            tau_ms=jnp.ones(n),
+        )
+
+    both = el([(0, 1), (0, 1)])
+    with pytest.raises(ValueError, match="duplicate executable synaptic identities"):
+        _reject_duplicate_explicit_edges(both, exempt_ranges=[(0, 1)])
+    _reject_duplicate_explicit_edges(both, exempt_ranges=[(0, 2)])
+    with pytest.raises(ValueError, match="duplicate executable synaptic identities"):
+        _reject_duplicate_explicit_edges(both)
+
+
 def test_connections_refuses_multinomial_with_in_degree():
     with pytest.raises(ValueError, match="with in_degree"):
         jtfne.configuration().connections(

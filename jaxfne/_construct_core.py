@@ -774,14 +774,15 @@ def _record_connectivity_compilation(
     return replace(cfg, metadata=metadata)
 
 
-def _reject_duplicate_explicit_edges(edge_list: "EdgeList", *, exempt_mask=None) -> None:
+def _reject_duplicate_explicit_edges(edge_list: "EdgeList", *, exempt_ranges=None) -> None:
     """Reject accidental duplicate explicit synaptic identities.
 
     Distinct receptor/mechanism indices are valid parallel edges. The identity
-    rejected here is exactly ``(pre, post, receptor_index)``. Edges flagged
-    in ``exempt_mask`` (compiled from ``sampling="multinomial"`` rules) are
-    skipped: repeated identities are the declared with-replacement outcome
-    there, not accidents.
+    rejected here is exactly ``(pre, post, receptor_index)``. ``exempt_ranges``
+    lists the edge blocks compiled from ``sampling="multinomial"`` rules: an
+    identity repeated entirely inside ONE declared block is the declared
+    with-replacement outcome, while an identity repeating across two blocks or
+    spanning an exempt and a non-exempt source is still an accident and raises.
     """
     import numpy as _np
 
@@ -795,12 +796,20 @@ def _reject_duplicate_explicit_edges(edge_list: "EdgeList", *, exempt_mask=None)
         ),
         axis=1,
     )
-    if exempt_mask is not None:
-        keep = ~_np.asarray(exempt_mask, dtype=bool)
-        identities = identities[keep]
-        if len(identities) < 2:
-            return
-    if len(_np.unique(identities, axis=0)) != len(identities):
+    n = identities.shape[0]
+    block = _np.full(n, -1, dtype=_np.int64)
+    if exempt_ranges:
+        for bid, (lo, hi) in enumerate(exempt_ranges):
+            block[lo:hi] = bid
+    uniq, inverse = _np.unique(identities, axis=0, return_inverse=True)
+    inverse = _np.asarray(inverse).reshape(-1)
+    for u in range(uniq.shape[0]):
+        occ = _np.flatnonzero(inverse == u)
+        if occ.size < 2:
+            continue
+        bids = block[occ]
+        if exempt_ranges and int(bids[0]) >= 0 and bool(_np.all(bids == bids[0])):
+            continue
         raise ValueError(
             "explicit NeuronalTensor connectivity produced duplicate "
             "executable synaptic identities; identity is "
@@ -965,17 +974,18 @@ def _construct_compile_connections(
             _sharing = None
         declared_edge_count = sum(int(count) for count in _counts)
         if connectivity_mode == "explicit" and _conn_edges is not None:
-            _exempt = None
+            _exempt_ranges = None
             if any(r.get("sampling") == "multinomial" for r in _conn_rules):
-                # Rule-order edge blocks align with _counts: flag the blocks
-                # compiled from with-replacement rules as declared duplicates.
-                _exempt = _np.zeros(int(_conn_edges.n_edges), dtype=bool)
+                # Rule-order edge blocks align with _counts: the blocks compiled
+                # from with-replacement rules carry declared duplicates, scoped
+                # per block (cross-block repeats stay accidental and raise).
+                _exempt_ranges = []
                 _lo = 0
                 for _rule, _cnt in zip(_conn_rules, _counts):
                     if _rule.get("sampling") == "multinomial":
-                        _exempt[_lo:_lo + int(_cnt)] = True
+                        _exempt_ranges.append((_lo, _lo + int(_cnt)))
                     _lo += int(_cnt)
-            _reject_duplicate_explicit_edges(_conn_edges, exempt_mask=_exempt)
+            _reject_duplicate_explicit_edges(_conn_edges, exempt_ranges=_exempt_ranges)
         if _conn_edges is not None and _conn_edges.n_edges > 0:
             edge_list = _concat_edge_lists(
                 edge_list, _conn_edges, presynaptic_sign=_np.asarray(_ep.sign)
