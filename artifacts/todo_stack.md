@@ -41,13 +41,10 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 0.5.7 published 2026-10-21 (tag v0.5.7 on main 03a86014, GitHub Release, PyPI; receipt
 `artifacts/release/v0_5_7_release_receipt.json`). Plan: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md`.
 
-- Jitter reader on a carrier (Hamm 2026-10-22, for the CRC meeting): core landed on dev (SpikeTrainInput,
-  trace_stdp = superpose_hdp_rules(trace_ltp, trace_ltd), plasticity_mask on every registered and continuation
-  path, forced-spike continuation without recompiles). Next: the HDP-on training leg of the untracked script
-  `reader_exp/reader_carrier.py` (copy at `C:/workspace/jaxfne_reader_exp/`): train on P with trace_stdp masked to
-  A->R, then frozen P/Q test; report accuracy before/after and pattern vs carrier w, seeds 0 and 1. HDP-off smoke:
-  P/Q at chance by construction (uniform weights); check the carrier-leakage normalization (0.003 looks low).
-  Spec: `C:/workspace/jaxfne_reader_exp/reader_model_spec.md`.
+- Jitter reader (Hamm 2026-10-22): core on dev (SpikeTrainInput, trace_stdp, masks on continuation). Next: HDP
+  leg of `C:/workspace/jaxfne_reader_exp/reader_carrier.py` (spec beside it): train on P, A->R masked, frozen P/Q
+  test, accuracy before/after, pattern vs carrier w, seeds 0, 1. HDP off: P/Q at chance by construction; check
+  the leakage normalization (0.003).
 
 - Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5, unscored: running detached
   on the WSL CPU since 2026-10-20 (`brunel_s23_chain.sh`, out
