@@ -41,45 +41,40 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 0.5.7 published 2026-10-21 (tag v0.5.7 on main 03a86014, GitHub Release, PyPI; receipt
 `artifacts/release/v0_5_7_release_receipt.json`). Plan: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md`.
 
-- Jitter reader (Hamm 2026-10-22): O-60 diagnosed (the spec's full-tail pair rule net-depresses every synapse
-  at a 25 ms period; write-up `C:/workspace/jaxfne_reader_exp/O60_diagnosis.md`). Hamm picked (a): declared
-  retune protocol (`O60_protocol_a.md`, arms A1/A2, seeds 0,1); verdict next.
+- Jitter reader (Hamm 2026-10-22): protocol (a) PASS on all four runs (A1/A2, seeds 0,1; w_pat -> 2.0
+  bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak
+  (0.33-0.67). Readout follow-up (w_max, larger frozen sets) is Hamm's call; lane paused until then.
 
-- Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5, unscored: running detached
-  on the WSL CPU since 2026-10-20 (`brunel_s23_chain.sh`, out
-  `C:/workspace/jaxfne_receipts/brunel2000_p3v4/unscored_S2`, `unscored_S3`); then the RESULT_P3
-  sensitivity section. Carried from 0.5.7 with Brunel S1 (needs the fixed-in-degree option, B5).
-- Kernel LFP lane `cl-klfp` onto dev (owner: corticolaminar session; keeper gates and pushes):
-  rebase onto current dev, broad gate 0 failed, then push. First f57aae0f, `istdp_vogels2011`
-  per-synapse traces (0.5.7 ships the per-neuron trace, whose presynaptic increment scales with
-  out-degree, named as a Known issue in the v0.5.7 release body on Hamm's ruling 2026-10-21; the
-  0.5.8 changelog names it as a fix to 0.5.7; Vogels segment B rerun is O-55).
-  Then 6eb3c6b8 (hybrid kernel LFP, Hagen 2016 reduced cells, Billeh 2020 V1 wiring tables),
-  44cd0111, ff45364b; its LFP validation feeds 0.5.10.
-- Validation backbone (Hamm 2026-10-21: "expand it, our backbone of supports"; seven core-method
-  rows on dev 1e79c99c): after the kernel LFP lane lands, an iSTDP out-degree check in plasticity
-  and kernel LFP checks in fields.
-- Docs figures (Hamm 2026-10-21: no iframes in the docs; interactive figures on GitHub Pages).
-  The figure site `hnxj.github.io/jaxfne/figures/` landed, and every docs figure is a Still /
-  Interactive tab pair framing it (Hamm 2026-10-21: "this form is the best").
-  The dashboard has a Figures tab. Left, in order: (1) stop the docs-side HTML builds under
-  `docs/_static` (atlas, etude and visual pages no docs page links any more) and delete those
-  tracked files, which frees tree budget; (2) the four allowlisted iframes in `build_docs_assets.py`
-  (v0.37 source column, Izhikevich explorer, jaxley Vm, V1/V4/PFC showcase) get a figure-site
-  build or a still.
+- Brunel S2/S3 sensitivity, seeds 4-5, unscored: running detached on WSL CPU since 2026-10-20; then the
+  RESULT_P3 sensitivity section (needs B5 item 2).
+- Kernel LFP lane `cl-klfp` onto dev [A]: rebase onto current dev, broad gate 0 failed, push; first
+  f57aae0f (`istdp_vogels2011` per-synapse traces; the 0.5.8 changelog names the fix to 0.5.7's
+  per-neuron trace, Known issue per Hamm 2026-10-21; O-55 Vogels segment B rerun), then 6eb3c6b8,
+  44cd0111, ff45364b (hybrid kernel LFP; feeds 0.5.10). Then the validation backbone continues
+  (iSTDP out-degree check in plasticity, kernel LFP checks in fields).
+- Docs figures leftovers: (1) stop the `docs/_static` HTML builds and delete those tracked files (frees
+  tree budget); (2) the four allowlisted iframes in `build_docs_assets.py` get a figure-site build or a still.
 
-In order: B4 checklist rules in `check_replications.py` (S2, E1 and P4 landed; next R4; F3
-stays manual: the gate cannot run the parent commit), with the follow-ups, each closed by a fix or
-by Hamm listing it as an exception: S2, the four allowlisted oracle imports (caminos
-`run_caminos.py`, pcl `port/pcl_binned_jax.py` and `port/run_tuning.py`) move to gates or tests;
-E1, brunel2000 lists its scored module under P4, caminos runs `Model.simulate` (B2),
-izhikevich2003 and pcl route their scored runs through `construct` and `.simulate`; P4
-(manifest), caminos adds backend, dtype, seeds and the regime block, izhikevich2003 the regime
-block, pcl backend, dtype, seeds and regime;
-B1 estimators into `jaxfne.analysis`; B5 lane gaps (Brunel S1 option, Vogels G-SC, Potjans G-MULT
-to G-DDIST); B3 batching; B2 routes through `construct`; Destexhe and GSDR pilots, then preregs (the GSDR fit
-with MCDP on via `mcdp_hdp_step`, Hamm 2026-10-20); Jansen and Rit 1995 opens the EEG/MEG lane
-(Hamm 2026-10-20; P0 in REPLICATIONS): a neural-mass emitter in the core, then P1.
+In order (Hamm 2026-10-22: work until the 0.5.8 todos and open issues are empty; open issues become
+todos once their close is decided; checkpoint when both are empty; Muse Spark 1.3 code packets in
+clones, verified before integration):
+1. [A] B4-R4 result-verification rule in `check_replications.py` (F3 stays manual: the gate cannot
+   run the parent commit); then close the S2/E1/P4 follow-ups, each removing its known finding:
+   the four allowlisted oracle imports move to gates or tests; brunel2000 lists its scored module
+   under P4; caminos P4 adds backend, dtype, seeds and the regime block; izhikevich2003 the regime
+   block; pcl backend, dtype, seeds and regime.
+2. [A] B5 Brunel S1 fixed-in-degree option (unblocks the S1-S3 sensitivity scoring).
+3. [A] B1 estimators into `jaxfne.analysis` (ISI ratio and CV, pairwise correlation, aperiodic fit,
+   tuning fit, phase delay); lane copies import them, outputs equal on saved rasters.
+4. [A] B3 batched runs: seed and candidate batching for the AdEx and LIF routes and `Model.tune`.
+5. [A] B2 routes through `construct`: HH in dispatch (GSDR), the `net.m` order as a core option
+   (izhikevich2003), the PCL full-network mapping on the LIF tensor route (T-22 operator, T-25 A').
+6. [A] B5 remainder: Vogels G-SC, Potjans G-MULT/G-TAUSYN/G-POPDRIVE/G-WDIST/G-DDIST.
+7. [A] B8 pilots then preregs: Destexhe and GSDR (the GSDR fit with MCDP on via `mcdp_hdp_step`);
+   then each lane's P3 prereg for signature; Jansen-Rit 1995 opens the EEG/MEG lane (a neural-mass
+   emitter in the core, then P1).
+8. [A] B6 split closed lane folders by kind (tree degree) once their lanes close.
+- [H] Signatures: Izhikevich P6 prereg v7, CAMINOS P6 prereg, then the 0.5.8 preregs from 7.
 Blocked: T-11 (jnwb), T-16 and T-17 `[H]`, deferred list (section 5).
 
 ## 2a. Standing from 0.5.6 (Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
