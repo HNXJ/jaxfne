@@ -120,6 +120,80 @@ def test_construct_compiles_declared_connections_into_edge_list():
     assert compiled[0]["compiled_n_edges"] > 0
 
 
+def _hh_test_config(n=10):
+    """Minimal HH-family Configuration: population + one receptor + one rule."""
+    return (
+        jtfne.configuration()
+        .network(n=n, cell_types={"E": 0.6, "Ig": 0.2, "Il": 0.2})
+        .emitter(family="hh")
+        .mechanisms(name="ampa", kind="receptor",
+                    params={"tau_ms": 2.0, "reversal_mV": 0.0, "tau_r_ms": 0.2,
+                            "slope_mV": 5.0, "v_th_mV": -20.0, "s0": 0.1})
+        .connections(name="e_all", source={"cell_type": "E"}, target={},
+                     probability=None, weight=2.5, mechanism="ampa",
+                     sign="excitatory")
+        .connectivity(edge_seed=0)
+    )
+
+
+def test_construct_hh_family_builds_through_dispatch():
+    """family='hh' constructs a Model via construct(), backed by the HH kernel."""
+    model = jtfne.construct(_hh_test_config())
+    assert "hh" in model.static
+    assert int(model.static["hh"]["pre"].shape[0]) > 0
+    assert model.params["edge_list"] is None
+
+
+def test_construct_gsdr_shaped_config_builds():
+    """The GSDR Fig. 6 circuit shape (50 cells, 3 receptors, 3 rules) constructs."""
+    import sys
+    from pathlib import Path
+
+    _run_dir = Path(__file__).resolve().parents[1] / "artifacts" / "etudes" / "papers" / "gsdr2026" / "run"
+    sys.path.insert(0, str(_run_dir))
+    try:
+        import run_gsdr
+    finally:
+        sys.path.remove(str(_run_dir))
+    cfg, _posts = run_gsdr.build_spec(local_seed=1, edge_seed=0)
+    assert cfg.emitters == [{"family": "hh"}]
+    model = jtfne.construct(cfg)
+    st = model.static["hh"]
+    assert int(st["pre"].shape[0]) == (
+        run_gsdr.N_AMPA_EDGES + run_gsdr.N_GABAA_GLOBAL_EDGES + run_gsdr.N_GABAA_LOCAL_EDGES
+    )
+    assert list(st["receptor_names"]) == ["ampa", "gaba_global", "gaba_local"]
+
+
+def test_construct_refusal_names_hh_as_supported():
+    cfg = (
+        jtfne.configuration()
+        .network(n=6)
+        .emitter(family="hodgkin_huxley_not_implemented")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        .probe(name="p", n_contacts=4)
+    )
+    with pytest.raises(ValueError, match="Unsupported emitter family"):
+        jtfne.construct(cfg)
+    try:
+        jtfne.construct(cfg)
+    except ValueError as exc:
+        assert " hh," in str(exc), f"refusal must name 'hh': {exc}"
+    else:  # pragma: no cover - the raises above already failed
+        raise AssertionError("unreachable")
+
+
+def test_construct_hh_simulate_runs():
+    """simulate() on an HH Model runs the HH kernel and returns shaped Signals."""
+    model = jtfne.construct(_hh_test_config())
+    signals = jtfne.simulate(
+        model, jtfne.Simulation(duration_ms=2.0, dt_ms=0.5, seed=0)
+    )
+    assert signals.V_m.shape == (4, 10)
+    assert signals.spikes.shape == (4, 10)
+    assert signals.metadata["emitter_family"] == "hh"
+
+
 def test_construct_returns_model_with_expected_param_keys():
     cfg = jtfne.laminar_cortex_config(
         seed=0, duration_ms=20.0, dt_ms=0.5, areas=("V1",), layers=("L4",),

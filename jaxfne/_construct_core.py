@@ -65,6 +65,7 @@ from ._construct_population import (
 )
 from ._construct_extras import operator_status
 from ._construct_adex import construct_adex_model
+from ._construct_hh import construct_hh_model
 
 
 def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
@@ -518,15 +519,15 @@ def _homeostasis_params_cache_fingerprint(hp: Mapping[str, Any]) -> tuple:
     return tuple(items)
 
 
-_SUPPORTED_EMITTER_FAMILIES = frozenset({"izhikevich", "homeostatic_ei", "adex"})
+_SUPPORTED_EMITTER_FAMILIES = frozenset({"izhikevich", "homeostatic_ei", "adex", "hh"})
 
 
 def _construct_validate_config(cfg: "Configuration") -> None:
     """``construct()`` stage: validate config + fail loudly on unsupported emitter family."""
     issues = cfg.validate()["issues"]
-    if cfg.emitters and cfg.emitters[0].get("family") == "adex":
-        # The adex route refuses field() and probe() at construct, so the generic
-        # requirement that one be declared does not apply to it.
+    if cfg.emitters and cfg.emitters[0].get("family") in ("adex", "hh"):
+        # The adex and hh routes refuse field() and probe() at construct, so the generic
+        # requirement that one be declared does not apply to them.
         issues = [i for i in issues if i not in ("no_field_declared", "no_probes_declared")]
     if issues:
         raise ValueError(f"Invalid jaxfne configuration: {issues}")
@@ -1474,8 +1475,8 @@ def _construct_from_configuration(
     """Validate a :class:`Configuration` and build a runnable :class:`Model`.
 
     Raises ``ValueError`` if the configuration is invalid or names an
-    unsupported emitter family (only the Izhikevich, homeostatic_ei and adex
-    kernels are implemented; an explicitly declared family such as
+    unsupported emitter family (only the Izhikevich, homeostatic_ei, adex and
+    hh kernels are implemented; an explicitly declared family such as
     ``"lif"``/``"glif"`` fails loudly rather than silently substituting
     Izhikevich). An optional :class:`LaminarSourceGeometry` overrides
     geometry derived from the config. The returned model is a computational
@@ -1483,7 +1484,7 @@ def _construct_from_configuration(
     physical signals.
     """
     _construct_validate_config(cfg)
-    if not (cfg.emitters and cfg.emitters[0].get("family") == "adex"):
+    if not (cfg.emitters and cfg.emitters[0].get("family") in ("adex", "hh")):
         for rule in (cfg.metadata.get("circuit") or {}).get("connections", []):
             if isinstance(rule, Mapping) and rule.get("intra_step_rounds") is not None:
                 raise ValueError(
@@ -1507,6 +1508,13 @@ def _construct_from_configuration(
                 "its cells sit at zero positions and no geometry is read"
             )
         return construct_adex_model(cfg)
+    if cfg.emitters and cfg.emitters[0].get("family") == "hh":
+        if geometry is not None:
+            raise ValueError(
+                f"construct(geometry={geometry!r}) is not realized on the hh route: "
+                "its cells sit at zero positions and no geometry is read"
+            )
+        return construct_hh_model(cfg)
     # An absent gpu/tpu device fails here, not later at simulate() time.
     _require_metadata_backend_available(cfg.metadata)
     net = cfg.networks[0]

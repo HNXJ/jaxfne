@@ -33,6 +33,7 @@ from .emitters import (
 )
 from .emitters_homeostatic_ei import HomeostaticEIParams, simulate_homeostatic_ei
 from .emitters_adex import AdExParams, simulate_adex
+from .emitters_hh import HHParams
 from .emitters_lif import LIFNetworkParams
 from .emitters_rate import RateNetworkParams
 from .fields import project_laminar_sources
@@ -1327,6 +1328,23 @@ def simulate(
         _refuse_adex_inputs(self, sim, paradigm, continuation, return_state)
         return _simulate_adex(self, sim, runtime_cfg)
 
+    if isinstance(self.params["emitter"], HHParams):
+        if continuation is not None or return_state:
+            raise ValueError(
+                "simulate(continuation=..., return_state=...) is not realized for emitter family "
+                "'hh': the route has no full-state continuation"
+            )
+        if (
+            paradigm is not None
+            or sim.poisson_drive is not None
+            or getattr(sim, "ablation", None) is not None
+        ):
+            raise ValueError(
+                "paradigm/poisson_drive/ablation is not realized for emitter family 'hh': "
+                "drive it via jaxfne.emitters_hh.simulate_hh's I_ext on the kernel directly"
+            )
+        return _simulate_hh(self, sim, runtime_cfg)
+
     if isinstance(self.params["emitter"], LIFNetworkParams):
         _refuse_lif_inputs(self, sim, paradigm, continuation, return_state)
         # The lif route consumes backend placement (runs under _device_scope),
@@ -1795,6 +1813,60 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
         sources=None,
         field=None,
         metadata=metadata,
+    )
+
+
+def _simulate_hh(
+    self: "Model",
+    sim: Simulation,
+    runtime_cfg: RuntimeConfig,
+) -> Signals:
+    """The hh emitter family's ``simulate()`` path (``jaxfne/emitters_hh.py``).
+
+    Runs the single-compartment graded-synapse kernel on the compiled edges
+    (``_construct_hh.hh_kernel_args`` supplies its arguments) with no drive
+    and silent noise: cells start at rest and run only on recurrent input.
+    A driven or multi-compartment run stays a direct ``simulate_hh`` call
+    with explicit ``I_ext``/morphology arguments. No field is built
+    (``field`` is None).
+    """
+    from ._construct_hh import hh_kernel_args
+    from .emitters_hh import simulate_hh
+
+    if "morphology" in self.static["hh"]:
+        raise ValueError(
+            "simulate() is not realized for a multi-compartment hh model: "
+            "run jaxfne.emitters_hh.simulate_hh with hh_kernel_args(model, dt_ms) directly"
+        )
+    dtype = runtime_cfg.jnp_dtype
+    kwargs = hh_kernel_args(self, sim.dt_ms)
+    out = simulate_hh(
+        **kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True
+    )
+    time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
+    static = self.static["hh"]
+    hh_metadata: dict[str, Any] = {
+        "config_hash": config_hash(self.cfg),
+        "emitter_family": "hh",
+        "n_edges": int(static["pre"].shape[0]),
+        "edge_seed": int(static["edge_seed"]),
+        "duration_ms": float(sim.duration_ms),
+        "dt_ms": float(sim.dt_ms),
+        "n_steps": int(sim.n_steps),
+        "runtime": runtime_cfg.runtime_report(),
+        "physical_amplitude_calibrated": False,
+        "network": static["network"],
+        "receptors": list(static["receptor_names"]),
+        # The route records no sources and no field; the record flags change nothing here.
+        "not_recorded": ["sources", "field"],
+    }
+    return Signals(
+        time_ms=time_ms,
+        V_m=out["V_mV"].astype(dtype),
+        spikes=out["spikes"],
+        sources=None,
+        field=None,
+        metadata=hh_metadata,
     )
 
 
