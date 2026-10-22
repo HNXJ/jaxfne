@@ -741,6 +741,55 @@ class RunReceipt:
 import numpy as _np  # used only in StimulusSchedule.to_array; no JAX tracing
 
 
+def resolve_poisson_drive_target(model, target) -> Optional[list[int]]:
+    """Resolve a current-route ``poisson_drive`` target to neuron indices.
+
+    ``"all"`` returns None (every neuron; the draw runs unmasked). An
+    ``(area, layer, cell_type)`` triple of strings resolves through
+    :func:`paradigm_target_indices_from_model` (``Model.select`` rows), so
+    targeted drive and paradigm drive name populations one way. A triple
+    that resolves to zero neurons is refused with a message naming the
+    parts; any other non-``"all"`` target is refused exactly as
+    :func:`_make_poisson_drive` refuses it.
+    """
+    if isinstance(target, str):
+        if target == "all":
+            return None
+        raise ValueError(
+            f"poisson_drive target {target!r} is not implemented; only 'all' "
+            "(every neuron) is supported"
+        )
+    if isinstance(target, (tuple, list)):
+        parts = tuple(target)
+        if len(parts) != 3 or not all(isinstance(p, str) for p in parts):
+            raise ValueError(
+                f"poisson_drive target {target!r} must be 'all' or an "
+                "(area, layer, cell_type) triple of strings"
+            )
+        try:
+            idx = paradigm_target_indices_from_model(
+                model, area=parts[0], layer=parts[1], cell_type=parts[2])
+        except ValueError as exc:
+            raise ValueError(
+                f"poisson_drive target {target!r} resolves to no neurons "
+                f"(area={parts[0]!r}, layer={parts[1]!r}, "
+                f"cell_type={parts[2]!r}); refusing a targeted drive that "
+                "would reach nothing"
+            ) from exc
+        if len(idx) == 0:
+            raise ValueError(
+                f"poisson_drive target {target!r} resolves to no neurons "
+                f"(area={parts[0]!r}, layer={parts[1]!r}, "
+                f"cell_type={parts[2]!r}); refusing a targeted drive that "
+                "would reach nothing"
+            )
+        return [int(i) for i in idx]
+    raise ValueError(
+        f"poisson_drive target {target!r} is not implemented; only 'all' "
+        "(every neuron) is supported"
+    )
+
+
 def _make_poisson_drive(
     n_steps: int,
     n_neurons: int,
@@ -748,8 +797,10 @@ def _make_poisson_drive(
     amplitude: float,
     dt_ms: float,
     seed: int,
-    target: str = "all",
+    target: "str | Sequence[str]" = "all",
     counts: int = 1,
+    *,
+    target_indices=None,
 ) -> jax.Array:
     """Generate a Poisson stochastic drive array.
 
@@ -761,12 +812,31 @@ def _make_poisson_drive(
     (Brunel 2000: Cext external trains per cell), drawn as a single
     ``binomial(C, p)`` per step per cell — the exact sum distribution of C
     Bernoulli trials. Output is finite and bounded.
-    Only ``target="all"`` is implemented; any other target raises ``ValueError``
-    rather than driving every neuron under another name. ``counts`` must be
-    a positive integer (bools, non-integral numbers and values < 1 are
-    refused, never coerced).
+    ``target`` is ``"all"`` (every neuron) or an ``(area, layer, cell_type)``
+    triple of strings naming one population. A triple draws the same
+    per-neuron realization as ``"all"`` and then zeroes every column outside
+    ``target_indices`` (resolved from a model with
+    ``resolve_poisson_drive_target``), so the counts/amplitude/rate_hz
+    contract per neuron is unchanged. A triple without ``target_indices``
+    is refused, never run as all-drive; any other non-``"all"`` target
+    raises ``ValueError`` rather than driving every neuron under another
+    name. ``counts`` must be a positive integer (bools, non-integral numbers
+    and values < 1 are refused, never coerced).
     """
-    if target != "all":
+    if isinstance(target, (tuple, list)):
+        parts = tuple(target)
+        if len(parts) != 3 or not all(isinstance(p, str) for p in parts):
+            raise ValueError(
+                f"poisson_drive target {target!r} must be 'all' or an "
+                "(area, layer, cell_type) triple of strings"
+            )
+        if target_indices is None:
+            raise ValueError(
+                f"poisson_drive target {target!r} is an (area, layer, "
+                "cell_type) triple: pass target_indices resolved from a "
+                "model (resolve_poisson_drive_target), never a bare triple"
+            )
+    elif target != "all":
         raise ValueError(
             f"poisson_drive target {target!r} is not implemented; only 'all' "
             "(every neuron) is supported"
@@ -793,9 +863,52 @@ def _make_poisson_drive(
     key = jax.random.PRNGKey(int(seed))
     if counts == 1:
         noise = jax.random.bernoulli(key, p=prob, shape=(int(n_steps), int(n_neurons)))
-        return (jnp.asarray(noise, dtype=jnp.float32) * float(amplitude))
-    events = jax.random.binomial(key, n=counts, p=prob, shape=(int(n_steps), int(n_neurons)))
-    return (jnp.asarray(events, dtype=jnp.float32) * float(amplitude))
+        full = (jnp.asarray(noise, dtype=jnp.float32) * float(amplitude))
+    else:
+        events = jax.random.binomial(key, n=counts, p=prob, shape=(int(n_steps), int(n_neurons)))
+        full = (jnp.asarray(events, dtype=jnp.float32) * float(amplitude))
+    if target_indices is None:
+        return full
+    try:
+        entries = list(target_indices)
+    except TypeError:
+        raise ValueError(
+            f"poisson_drive target_indices={target_indices!r} must be a "
+            "sequence of integer neuron indices"
+        ) from None
+    idx: list[int] = []
+    for entry in entries:
+        if isinstance(entry, bool):
+            raise ValueError(
+                f"poisson_drive target_indices holds {entry!r}: entries must "
+                "be integer neuron indices"
+            )
+        try:
+            as_int = int(entry)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"poisson_drive target_indices holds {entry!r}: entries must "
+                "be integer neuron indices"
+            ) from None
+        if bool(entry != as_int):
+            raise ValueError(
+                f"poisson_drive target_indices holds {entry!r}: entries must "
+                "be integer neuron indices"
+            )
+        if as_int < 0 or as_int >= int(n_neurons):
+            raise ValueError(
+                f"poisson_drive target_indices holds {entry!r}: index out of "
+                f"range for n_neurons={int(n_neurons)}"
+            )
+        idx.append(as_int)
+    if not idx:
+        raise ValueError(
+            "poisson_drive target_indices is empty; refusing a targeted "
+            "drive that would reach no neuron"
+        )
+    keep = jnp.zeros((int(n_neurons),), dtype=jnp.float32)
+    keep = keep.at[jnp.asarray(idx, dtype=jnp.int32)].set(1.0)
+    return full * keep[None, :]
 
 
 def poisson_chunk_seed(poisson_seed: int, chunk_index: int) -> int:

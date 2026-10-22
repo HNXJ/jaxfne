@@ -49,6 +49,7 @@ from ._signals import (
     ParadigmCondition,
     Paradigm,
     _make_poisson_drive,
+    resolve_poisson_drive_target,
     poisson_chunk_seed,
 )
 from ._model import _SOURCE_PROXY_METADATA, stimulus_schedule
@@ -2056,6 +2057,13 @@ def _simulate_lif(
         from .inputs import check_current_route_poisson_drive
 
         check_current_route_poisson_drive(_pd)
+        _pd_target = _pd.get("target", "all")
+        if isinstance(_pd_target, (tuple, list)):
+            _pd_target_arg = tuple(_pd_target)
+            _pd_target_idx: object = resolve_poisson_drive_target(self, _pd_target)
+        else:
+            _pd_target_arg = str(_pd_target)
+            _pd_target_idx = None
         _poisson_arr = _make_poisson_drive(
             n_steps=sim.n_steps,
             n_neurons=n_neurons,
@@ -2063,8 +2071,9 @@ def _simulate_lif(
             amplitude=float(_pd.get("amplitude", 0.5)),
             dt_ms=sim.dt_ms,
             seed=poisson_chunk_seed(int(_pd.get("seed", sim.seed + 7919)), 0),
-            target=str(_pd.get("target", "all")),
+            target=_pd_target_arg,
             counts=int(_pd.get("counts", 1)),
+            target_indices=_pd_target_idx,
         )
         drive_2d = drive_2d_sched + jnp.asarray(
             _poisson_arr, dtype=dtype

@@ -217,7 +217,6 @@ def test_gap_tau_syn_filter():
     assert model is not None, "tau_syn_ms must construct and filter arrivals"
 
 
-@pytest.mark.xfail(strict=True, reason="G-POPDRIVE: poisson target is all-only")
 def test_gap_per_population_drive():
     """Paper external input is per-population k_ext trains (SOURCE_P1.md
     section 2: 1600-2900 per cell); poisson_drive target="all" is the only
