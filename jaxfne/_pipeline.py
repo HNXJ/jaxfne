@@ -618,6 +618,7 @@ def compile_step_fn(
                     record_h_subset=h_sub,
                     record_w_subset=w_sub,
                     step_indices=kernel_kw.get("step_indices"),
+                    plasticity_mask=kernel_kw.get("plasticity_mask"),
                     **noise_kw,
                 )
             else:

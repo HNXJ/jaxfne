@@ -966,7 +966,10 @@ class SpikeTrainInput:
     membrane held at reset ``c``, indistinguishable downstream from a
     natural spike. Only the Izhikevich edge-list registered-rule kernel
     realizes it (``Model.simulate(sim, SpikeTrainInput(...))``); every other
-    route refuses it, as do continuation, ``poisson_drive`` and ablations.
+    route refuses it, as do ``poisson_drive`` and ablations. Continuation
+    composes with it on that kernel: each segment's times are relative to
+    the segment's start, and chunked forced runs reproduce the continuous
+    forced run.
     No calibrated-current claim is made: this is a spike clamp, not a drive.
     """
 

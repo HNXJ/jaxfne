@@ -117,16 +117,30 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     else:
         plastic_edge = None
     if forced_spikes is not None:
-        _force_raw = np.asarray(forced_spikes)
         _n_neurons = int(params.v0.shape[0])
-        if _force_raw.shape != (int(n_steps), _n_neurons):
-            raise ValueError(
-                "forced_spikes must have shape "
-                f"({int(n_steps)}, {_n_neurons}), got {_force_raw.shape}"
-            )
-        if not bool(np.all(np.isfinite(_force_raw))):
-            raise ValueError("forced_spikes must be finite (got NaN/inf)")
-        forced_rows = jnp.asarray(_force_raw > 0.5)
+        try:
+            _force_raw = np.asarray(forced_spikes)
+        except Exception:
+            _force_raw = None
+        if _force_raw is None:
+            # A tracer under jit (a concrete JAX array always converts):
+            # static shape check only; value checks need concrete values.
+            _force_traced = jnp.asarray(forced_spikes)
+            if tuple(int(d) for d in _force_traced.shape) != (int(n_steps), _n_neurons):
+                raise ValueError(
+                    "forced_spikes must have shape "
+                    f"({int(n_steps)}, {_n_neurons}), got {_force_traced.shape}"
+                )
+            forced_rows = _force_traced > 0.5
+        else:
+            if _force_raw.shape != (int(n_steps), _n_neurons):
+                raise ValueError(
+                    "forced_spikes must have shape "
+                    f"({int(n_steps)}, {_n_neurons}), got {_force_raw.shape}"
+                )
+            if not bool(np.all(np.isfinite(_force_raw))):
+                raise ValueError("forced_spikes must be finite (got NaN/inf)")
+            forced_rows = jnp.asarray(_force_raw > 0.5)
     else:
         forced_rows = None
     h_min, h_max = descriptor.h_bounds
@@ -487,10 +501,9 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
         if isinstance(off, int):
             step_indices_arr = jnp.arange(off, off + int(n_steps), dtype=jnp.int32)
         else:
-            step_indices_arr = jnp.arange(
-                off,
-                off + jnp.asarray(int(n_steps), dtype=jnp.int32),
-                dtype=jnp.int32,
+            # off may be traced under jit: shift a concrete-length range.
+            step_indices_arr = jnp.asarray(off, dtype=jnp.int32) + jnp.arange(
+                int(n_steps), dtype=jnp.int32
             )
 
     if init_state is not None and "v" in init_state:

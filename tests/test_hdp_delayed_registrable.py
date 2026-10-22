@@ -336,9 +336,6 @@ def test_spike_train_input_refusals():
         jtfne.simulate(model, sim_cfg, jtfne.SpikeTrainInput({0: [50.0]}, n_neurons=n))
     with pytest.raises(ValueError, match="one spike per bin"):
         jtfne.simulate(model, sim_cfg, jtfne.SpikeTrainInput({0: [5.0, 5.4]}, n_neurons=n))
-    with pytest.raises(ValueError, match="continuation"):
-        jtfne.simulate(model, sim_cfg, jtfne.SpikeTrainInput({0: [5.0]}, n_neurons=n),
-                       return_state=True)
     with pytest.raises(ValueError, match="poisson_drive"):
         jtfne.simulate(
             model,
@@ -397,6 +394,243 @@ def test_spike_train_input_floor_binning():
         jtfne.SpikeTrainInput({0: 5.0}, n_neurons=1)
     with pytest.raises(ValueError, match="neuron 1"):
         jtfne.SpikeTrainInput({1: "5.0"}, n_neurons=2)
+
+
+def test_delayed_registered_traced_offset_jit():
+    # Fix 1: the delayed path must shift a concrete range (off + arange(n))
+    # so a traced continuation offset compiles under jit, like the
+    # zero-delay path and the emitters.py siblings already do.
+    params, edges = _three_neuron((2, 9, 5))
+    total, chunk = 10, 4
+    kw = dict(hdp_rule="synthetic_presyn_gain",
+              hdp_rule_params={"k_h": 0.3, "k_w": 0.05, "gamma": 0.0},
+              noise_scale=0.0)
+    drv = jnp.zeros((total, 3), dtype=jnp.float32).at[:, 0].set(14.0)
+    _, _, _, diag1 = simulate_edge_recurrent_izhikevich_hdp_registered(
+        params, edges, chunk, 1.0, jax.random.PRNGKey(7),
+        drive_schedule=drv[:chunk], **kw)
+    assert "continuation_step_offset" in diag1, "fixture must carry a step offset"
+    _, S2_ref, _, _ = simulate_edge_recurrent_izhikevich_hdp_registered(
+        params, edges, total - chunk, 1.0, jax.random.PRNGKey(7),
+        drive_schedule=drv[chunk:], init_state=diag1, **kw)
+    concrete = dict(diag1)
+
+    def run(off):
+        init = dict(concrete)
+        init["continuation_step_offset"] = off
+        return simulate_edge_recurrent_izhikevich_hdp_registered(
+            params, edges, total - chunk, 1.0, jax.random.PRNGKey(7),
+            drive_schedule=drv[chunk:], init_state=init, **kw)[1]
+
+    S2 = np.asarray(jax.jit(run)(jnp.asarray(diag1["continuation_step_offset"])))
+    assert np.array_equal(S2, np.asarray(S2_ref))
+
+
+def _reader_model_jit():
+    cfg = jtfne.suite2_net1_config(seed=1, n=4, duration_ms=20.0, dt_ms=1.0).runtime(
+        enable_hdp=True, recurrent_backend="edge_list",
+        hdp_params={"hdp_rule": "synthetic_presyn_gain",
+                    "hdp_rule_params": {"k_h": 0.05, "k_w": 0.04, "gamma": 0.0},
+                    "noise_scale": 0.0})
+    model = jtfne.construct(cfg)
+    rt = jtfne.RuntimeConfig(recurrent_backend="edge_list", enable_hdp=True, jit=True,
+                             hdp_params={"hdp_rule": "synthetic_presyn_gain",
+                                         "hdp_rule_params": {"k_h": 0.05, "k_w": 0.04, "gamma": 0.0},
+                                         "noise_scale": 0.0})
+    return model, rt
+
+
+def test_forced_spike_trials_reuse_compilation():
+    # Fix 2: repeated forced-spike trials reuse one compilation; only the
+    # raster shape and presence sit in the static cache key, the raster
+    # itself rides a traced kernel argument.
+    model, rt = _reader_model_jit()
+    n = int(model.params["emitter"].n_neurons)
+    sim_cfg = jtfne.simulation(duration_ms=20.0, dt_ms=1.0, seed=5, runtime=rt)
+    r1 = jtfne.simulate(model, sim_cfg, jtfne.SpikeTrainInput({0: [5.0]}, n_neurons=n))
+    assert len(model._compiled_cache) == 1, "first forced trial must compile once"
+    r2 = jtfne.simulate(model, sim_cfg, jtfne.SpikeTrainInput({1: [9.0]}, n_neurons=n))
+    assert len(model._compiled_cache) == 1, "second raster must reuse the compilation"
+    assert not bool(jnp.array_equal(r1.spikes, r2.spikes)), "trials must differ"
+    assert float(r1.spikes[5, 0]) == 1.0
+    assert float(r2.spikes[9, 1]) == 1.0
+
+
+def test_forced_spike_continuation_segment_relative():
+    # Fix 3: SpikeTrainInput composes with return_state/continuation; each
+    # segment's spike times are relative to that segment's start, so chunked
+    # forced runs reproduce the continuous forced run.
+    model, rt = _reader_model()
+    n = int(model.params["emitter"].n_neurons)
+    full = jtfne.simulate(
+        model, jtfne.simulation(duration_ms=20.0, dt_ms=1.0, seed=5, runtime=rt),
+        jtfne.SpikeTrainInput({0: [5.0], 1: [15.0]}, n_neurons=n))
+    s1, st1 = jtfne.simulate(
+        model, jtfne.simulation(duration_ms=10.0, dt_ms=1.0, seed=5, runtime=rt),
+        jtfne.SpikeTrainInput({0: [5.0]}, n_neurons=n), return_state=True)
+    assert st1 is not None
+    s2, _ = jtfne.simulate(
+        model, jtfne.simulation(duration_ms=10.0, dt_ms=1.0, seed=99, runtime=rt),
+        jtfne.SpikeTrainInput({1: [5.0]}, n_neurons=n),
+        continuation=st1, return_state=True)
+    assert jnp.array_equal(jnp.concatenate([s1.spikes, s2.spikes]), full.spikes)
+    assert jnp.array_equal(jnp.concatenate([s1.V_m, s2.V_m]), full.V_m)
+
+
+def _reader_model_trace_stdp():
+    hp = {"hdp_rule": "trace_stdp", "hdp_rule_params": {}, "noise_scale": 0.0}
+    cfg = jtfne.suite2_net1_config(seed=1, n=4, duration_ms=40.0, dt_ms=1.0).runtime(
+        enable_hdp=True, recurrent_backend="edge_list", hdp_params=dict(hp))
+    model = jtfne.construct(cfg)
+    edges = model.params["edge_list"]
+    ds = jnp.zeros((int(edges.n_edges),), dtype=jnp.int32).at[0].set(2)
+    object.__setattr__(model, "params", {**model.params, "edge_list": replace(edges, delay_steps=ds, delay_storage="per_edge")})
+    rt = jtfne.RuntimeConfig(recurrent_backend="edge_list", enable_hdp=True,
+                             hdp_params=dict(hp))
+    return model, rt
+
+
+def test_forced_spike_continuation_hdp_trace_stdp():
+    # Fix 3 with HDP on: trace_stdp on a 2 ms-delay edge, forced pre/post
+    # spikes in both 20 ms segments with a pre(19 ms)->post(25 ms) pair
+    # spanning the boundary. One 40 ms run equals two chained 20 ms runs
+    # (second segment times relative to its start) on spikes, H and w.
+    model, rt = _reader_model_trace_stdp()
+    n = int(model.params["emitter"].n_neurons)
+    el = model.params["edge_list"]
+    pre_n, post_n = int(np.asarray(el.pre)[0]), int(np.asarray(el.post)[0])
+    w0 = np.asarray(el.weight)
+    full = jtfne.simulate(
+        model, jtfne.simulation(duration_ms=40.0, dt_ms=1.0, seed=5, runtime=rt),
+        jtfne.SpikeTrainInput({pre_n: [5.0, 19.0], post_n: [10.0, 25.0]}, n_neurons=n))
+    for t, i in ((5, pre_n), (19, pre_n), (10, post_n), (25, post_n)):
+        assert float(full.spikes[t, i]) == 1.0, "clamp must force the pair spikes"
+    H_full = np.asarray(model._last_hdp_diag["H_final"])
+    w_full = np.asarray(model._last_hdp_diag["w_final"])
+    Ht_full = np.asarray(model._last_hdp_diag["H_trace"])
+    assert Ht_full.shape == (40, n, 2), "trace_stdp must record both traces"
+    assert not np.allclose(w_full, w0), "pair must move w (precondition)"
+    s1, st1 = jtfne.simulate(
+        model, jtfne.simulation(duration_ms=20.0, dt_ms=1.0, seed=5, runtime=rt),
+        jtfne.SpikeTrainInput({pre_n: [5.0, 19.0], post_n: [10.0]}, n_neurons=n),
+        return_state=True)
+    Ht1 = np.asarray(model._last_hdp_diag["H_trace"])
+    s2, _ = jtfne.simulate(
+        model, jtfne.simulation(duration_ms=20.0, dt_ms=1.0, seed=99, runtime=rt),
+        jtfne.SpikeTrainInput({post_n: [5.0]}, n_neurons=n),
+        continuation=st1, return_state=True)
+    H2 = np.asarray(model._last_hdp_diag["H_final"])
+    w2 = np.asarray(model._last_hdp_diag["w_final"])
+    Ht2 = np.asarray(model._last_hdp_diag["H_trace"])
+    assert np.array_equal(np.concatenate([np.asarray(s1.spikes), np.asarray(s2.spikes)], axis=0),
+                          np.asarray(full.spikes))
+    assert np.array_equal(np.concatenate([Ht1, Ht2], axis=0), Ht_full)
+    assert np.array_equal(H2, H_full)
+    assert np.array_equal(w2, w_full)
+
+
+def _reader_model_trace_stdp_masked():
+    model, _ = _reader_model_trace_stdp()
+    n_edges = int(model.params["edge_list"].n_edges)
+    mask = np.ones((n_edges,))
+    mask[0] = 0.0
+    hp = {"hdp_rule": "trace_stdp", "hdp_rule_params": {}, "noise_scale": 0.0,
+          "plasticity_mask": jnp.asarray(mask)}
+    rt = jtfne.RuntimeConfig(recurrent_backend="edge_list", enable_hdp=True,
+                             hdp_params=dict(hp))
+    return model, rt
+
+
+def test_forced_spike_continuation_plasticity_mask():
+    # Fix 3 carries plasticity_mask: edge 0 frozen in the single run and in
+    # both chained segments; an unmasked edge still moves; chained == single
+    # on spikes, H and w_final.
+    model, rt = _reader_model_trace_stdp_masked()
+    n = int(model.params["emitter"].n_neurons)
+    el = model.params["edge_list"]
+    pre_n, post_n = int(np.asarray(el.pre)[0]), int(np.asarray(el.post)[0])
+    w0 = np.asarray(el.weight)
+    full = jtfne.simulate(
+        model, jtfne.simulation(duration_ms=40.0, dt_ms=1.0, seed=5, runtime=rt),
+        jtfne.SpikeTrainInput({pre_n: [5.0, 19.0], post_n: [10.0, 25.0]}, n_neurons=n))
+    w_full = np.asarray(model._last_hdp_diag["w_final"])
+    H_full = np.asarray(model._last_hdp_diag["H_final"])
+    Ht_full = np.asarray(model._last_hdp_diag["H_trace"])
+    assert float(w_full[0]) == float(w0[0]), "masked edge must freeze (single)"
+    assert not np.allclose(w_full[1:], w0[1:]), "unmasked edges must move"
+    s1, st1 = jtfne.simulate(
+        model, jtfne.simulation(duration_ms=20.0, dt_ms=1.0, seed=5, runtime=rt),
+        jtfne.SpikeTrainInput({pre_n: [5.0, 19.0], post_n: [10.0]}, n_neurons=n),
+        return_state=True)
+    Ht1 = np.asarray(model._last_hdp_diag["H_trace"])
+    s2, _ = jtfne.simulate(
+        model, jtfne.simulation(duration_ms=20.0, dt_ms=1.0, seed=99, runtime=rt),
+        jtfne.SpikeTrainInput({post_n: [5.0]}, n_neurons=n),
+        continuation=st1, return_state=True)
+    w2 = np.asarray(model._last_hdp_diag["w_final"])
+    H2 = np.asarray(model._last_hdp_diag["H_final"])
+    Ht2 = np.asarray(model._last_hdp_diag["H_trace"])
+    assert float(w2[0]) == float(w0[0]), "masked edge must freeze (chained)"
+    assert np.array_equal(np.concatenate([np.asarray(s1.spikes), np.asarray(s2.spikes)], axis=0),
+                          np.asarray(full.spikes))
+    assert np.array_equal(np.concatenate([Ht1, Ht2], axis=0), Ht_full)
+    assert np.array_equal(H2, H_full)
+    assert np.array_equal(w2, w_full)
+
+
+def _reader_model_trace_stdp_noisy():
+    hp = {"hdp_rule": "trace_stdp", "hdp_rule_params": {}, "noise_scale": 0.5}
+    cfg = jtfne.suite2_net1_config(seed=1, n=4, duration_ms=40.0, dt_ms=1.0).runtime(
+        enable_hdp=True, recurrent_backend="edge_list", hdp_params=dict(hp))
+    model = jtfne.construct(cfg)
+    edges = model.params["edge_list"]
+    ds = jnp.zeros((int(edges.n_edges),), dtype=jnp.int32).at[0].set(2)
+    object.__setattr__(model, "params", {**model.params, "edge_list": replace(edges, delay_steps=ds, delay_storage="per_edge")})
+    rt = jtfne.RuntimeConfig(recurrent_backend="edge_list", enable_hdp=True,
+                             hdp_params=dict(hp))
+    return model, rt
+
+
+def test_forced_spike_continuation_noisy_equivalence():
+    # Fix 3 under noise: chained forced segments reproduce the single forced
+    # run on spikes, H and w_final at fixed seeds; the noise moves V_m
+    # against the noise-free run (precondition).
+    model, rt = _reader_model_trace_stdp_noisy()
+    n = int(model.params["emitter"].n_neurons)
+    el = model.params["edge_list"]
+    pre_n, post_n = int(np.asarray(el.pre)[0]), int(np.asarray(el.post)[0])
+    full = jtfne.simulate(
+        model, jtfne.simulation(duration_ms=40.0, dt_ms=1.0, seed=5, runtime=rt),
+        jtfne.SpikeTrainInput({pre_n: [5.0, 19.0], post_n: [10.0, 25.0]}, n_neurons=n))
+    H_full = np.asarray(model._last_hdp_diag["H_final"])
+    w_full = np.asarray(model._last_hdp_diag["w_final"])
+    Ht_full = np.asarray(model._last_hdp_diag["H_trace"])
+    quiet, _ = _reader_model_trace_stdp()
+    q = jtfne.simulate(
+        quiet, jtfne.simulation(duration_ms=40.0, dt_ms=1.0, seed=5,
+                                runtime=jtfne.RuntimeConfig(
+                                    recurrent_backend="edge_list", enable_hdp=True,
+                                    hdp_params={"hdp_rule": "trace_stdp",
+                                                "hdp_rule_params": {},
+                                                "noise_scale": 0.0})),
+        jtfne.SpikeTrainInput({pre_n: [5.0, 19.0], post_n: [10.0, 25.0]}, n_neurons=n))
+    assert not np.array_equal(np.asarray(full.V_m), np.asarray(q.V_m)), \
+        "noise must move the output (precondition)"
+    s1, st1 = jtfne.simulate(
+        model, jtfne.simulation(duration_ms=20.0, dt_ms=1.0, seed=5, runtime=rt),
+        jtfne.SpikeTrainInput({pre_n: [5.0, 19.0], post_n: [10.0]}, n_neurons=n),
+        return_state=True)
+    Ht1 = np.asarray(model._last_hdp_diag["H_trace"])
+    s2, _ = jtfne.simulate(
+        model, jtfne.simulation(duration_ms=20.0, dt_ms=1.0, seed=99, runtime=rt),
+        jtfne.SpikeTrainInput({post_n: [5.0]}, n_neurons=n),
+        continuation=st1, return_state=True)
+    assert np.array_equal(np.concatenate([np.asarray(s1.spikes), np.asarray(s2.spikes)], axis=0),
+                          np.asarray(full.spikes))
+    assert np.array_equal(np.concatenate([Ht1, np.asarray(model._last_hdp_diag["H_trace"])], axis=0),
+                          Ht_full)
+    assert np.array_equal(np.asarray(model._last_hdp_diag["H_final"]), H_full)
+    assert np.array_equal(np.asarray(model._last_hdp_diag["w_final"]), w_full)
 
 
 def test_registered_plain_path_applies_plasticity_mask():

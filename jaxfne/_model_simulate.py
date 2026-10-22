@@ -524,8 +524,13 @@ def _simulate_arrays(
             if _hdp_w0 is not None:
                 init_state["w_final"] = jnp.asarray(_hdp_w0, dtype=_idt)
 
-        def _hdp_packed(k, s):
-            """Return (V, spikes, sources, H_final, H_trace, w_final, w_trace)."""
+        def _hdp_packed(k, s, f):
+            """Return (V, spikes, sources, H_final, H_trace, w_final, w_trace).
+
+            ``f`` is the forced-spike raster (or None): it rides a traced
+            argument so repeated trials share one compilation; only its
+            shape and presence sit in the static cache key.
+            """
             if is_registered_hdp_rule(hp.get("hdp_rule")):
                 from ._hdp_registrable_kernel import (
                     simulate_edge_recurrent_izhikevich_hdp_registered,
@@ -557,7 +562,7 @@ def _simulate_arrays(
                     record_h_subset=hp.get("record_h_subset", None),
                     record_w_subset=hp.get("record_w_subset", None),
                     plasticity_mask=hp.get("plasticity_mask"),
-                    forced_spikes=forced_spikes,
+                    forced_spikes=f,
                 )
             else:
                 kernel_kwargs = _hdp_kernel_kwargs(hp)
@@ -625,11 +630,9 @@ def _simulate_arrays(
             if forced_spikes is None:
                 _forced_key = None
             else:
-                import hashlib
-
                 _forced_key = (
                     "forced_spikes",
-                    hashlib.sha256(_np_host.asarray(forced_spikes).tobytes()).hexdigest(),
+                    tuple(int(d) for d in jnp.shape(forced_spikes)),
                 )
             cache_key = (
                 "simulate_hdp",
@@ -658,16 +661,16 @@ def _simulate_arrays(
                     )
                     self._compiled_cache[cache_key] = jax.jit(target_fn)
                     t0 = time.perf_counter()
-                    result = self._compiled_cache[cache_key](key, sched)
+                    result = self._compiled_cache[cache_key](key, sched, forced_spikes)
                     t1 = time.perf_counter()
                     if not hasattr(self, "_warmup_times"):
                         object.__setattr__(self, "_warmup_times", [])
                     self._warmup_times.append(t1 - t0)
                 else:
-                    result = self._compiled_cache[cache_key](key, sched)
+                    result = self._compiled_cache[cache_key](key, sched, forced_spikes)
         else:
             with _device_scope(runtime_cfg.selected_backend):
-                result = _hdp_packed(key, sched)
+                result = _hdp_packed(key, sched, forced_spikes)
         (
             V,
             S,
@@ -974,12 +977,17 @@ def _simulate_continuation_arrays(
     runtime_cfg: RuntimeConfig,
     drive_schedule: Optional[jax.Array],
     continuation: "Any | None",
+    forced_spikes: "jax.Array | None" = None,
 ):
     """Run one segment through the explicit full-state continuation path."""
     from ._pipeline import (
         ContinuationState,
+        DynamicState,
+        _advance_prng_key,
+        _continuation_init_dict_from_state,
         compile_step_fn,
         continuation_state_from_model,
+        model_requires_delay_state,
         run_continuation,
         validate_continuation_delay_state,
         _ensemble_segment_schedule,
@@ -1048,6 +1056,23 @@ def _simulate_continuation_arrays(
     from .hdp_rule import hdp_is_engaged, is_registered_hdp_rule
 
     use_hdp_cont = hdp_is_engaged(hp, self.params, enable_hdp=bool(runtime_cfg.enable_hdp))
+    _forced_rows = None
+    if forced_spikes is not None:
+        # The clamp rides the registered-rule kernel only; every other
+        # continuation route refuses it, naming the realizing path.
+        if not (use_hdp_cont and is_registered_hdp_rule(hp.get("hdp_rule"))):
+            raise ValueError(
+                "SpikeTrainInput is realized only by the Izhikevich edge-list "
+                "registered-rule HDP kernel (RuntimeConfig(enable_hdp=True, "
+                "hdp_params={'hdp_rule': <registered rule>}); this run does "
+                "not take that path"
+            )
+        _forced_rows = jnp.asarray(forced_spikes)
+        if tuple(int(d) for d in _forced_rows.shape) != (int(sim.n_steps), int(n_neurons)):
+            raise ValueError(
+                "forced_spikes must have shape "
+                f"({int(sim.n_steps)}, {int(n_neurons)}), got {_forced_rows.shape}"
+            )
     if use_hdp_cont:
         if is_registered_hdp_rule(hp.get("hdp_rule")):
             hdp_kwargs = {
@@ -1062,12 +1087,13 @@ def _simulate_continuation_arrays(
             }
         else:
             hdp_kwargs = _hdp_kernel_kwargs(hp)
-        step_fn, _ = compile_step_fn(
-            self,
-            dt_ms=sim.dt_ms,
-            kernel="hdp",
-            **hdp_kwargs,
-        )
+        if _forced_rows is None:
+            step_fn, _ = compile_step_fn(
+                self,
+                dt_ms=sim.dt_ms,
+                kernel="hdp",
+                **hdp_kwargs,
+            )
     else:
         step_fn, _ = compile_step_fn(
             self,
@@ -1088,7 +1114,115 @@ def _simulate_continuation_arrays(
             _cont_counts, sim.seed, _cont_start, sim.n_steps, runtime_cfg.jnp_dtype
         )
 
-    next_state, outputs = run_continuation(step_fn, state, schedule, _cont_noise_rows)
+    if _forced_rows is None:
+        next_state, outputs = run_continuation(step_fn, state, schedule, _cont_noise_rows)
+    else:
+        # Forced-spike continuation: the shared step_fn has no clamp slot,
+        # so a forced twin scans here directly (same per-step key chain as
+        # run_continuation, same output tail below). Each segment's spike
+        # times stay relative to that segment's start.
+        from ._hdp_registrable_kernel import (
+            simulate_edge_recurrent_izhikevich_hdp_registered as _forced_hdp_kernel,
+        )
+
+        _edges_f = self.params["edge_list"]
+        _use_delays_f = model_requires_delay_state(self)
+        _f_rwt = bool(hdp_kwargs.get("record_weight_trace", True))
+        _f_ns = hdp_kwargs.get("noise_scale", None)
+        _f_stride = hdp_kwargs.get("record_stride", 1)
+        _f_h_sub = hdp_kwargs.get("record_h_subset", None)
+        _f_w_sub = hdp_kwargs.get("record_w_subset", None)
+        _f_silence = jnp.ones((n_neurons,), dtype=emitter.v0.dtype)
+
+        def _forced_cont_step_fn(state_in, xs_t):
+            if _cont_noise_rows is None:
+                _sched_t, _key_t, _t_idx, _forced_t = xs_t
+                _step_noise_kw: dict = {}
+            else:
+                _sched_t, _key_t, _t_idx, _forced_t, _noise_t = xs_t
+                _step_noise_kw = {"noise_schedule": _noise_t[None, :]}
+            _init_d = _continuation_init_dict_from_state(
+                state_in, include_step_offset=not _use_delays_f
+            )
+            _merged = {
+                **_init_d,
+                "H_final": state_in.dynamic.H,
+                "w_final": state_in.dynamic.w,
+                "b_final": state_in.dynamic.b,
+            }
+            _, _, _src1, _dg1 = _forced_hdp_kernel(
+                emitter,
+                _edges_f,
+                1,
+                sim.dt_ms,
+                _key_t,
+                dtype=str(emitter.v0.dtype),
+                drive_schedule=_sched_t[None, :],
+                silence_mask=_f_silence,
+                init_state=_merged,
+                hdp_rule=str(hp["hdp_rule"]),
+                hdp_rule_params=hp.get("hdp_rule_params", {}),
+                record_weight_trace=_f_rwt,
+                noise_scale=_f_ns,
+                record_stride=_f_stride,
+                record_h_subset=_f_h_sub,
+                record_w_subset=_f_w_sub,
+                step_indices=jnp.reshape(_t_idx, (1,)),
+                plasticity_mask=hdp_kwargs.get("plasticity_mask"),
+                forced_spikes=_forced_t[None, :],
+                **_step_noise_kw,
+            )
+            _new_dynamic = DynamicState(
+                v=_dg1["v"],
+                u=_dg1["u"],
+                prev_spikes=_dg1["prev_spikes"],
+                syn_state=_dg1["syn_state"],
+                H=_dg1.get("H_final", state_in.dynamic.H),
+                w=_dg1.get("w_final", state_in.dynamic.w),
+                theta_S=_dg1.get("theta_S_final", state_in.dynamic.theta_S),
+                aux=_dg1.get("aux_final", state_in.dynamic.aux),
+                b=_dg1.get("b_final", state_in.dynamic.b),
+            )
+            _delay_out = state_in.delay_state
+            if _use_delays_f:
+                _delay_out = _dg1.get("delay_state", _dg1.get("spike_history"))
+            _step_off = state_in.step_index + 1
+            if _use_delays_f and "continuation_step_offset" in _dg1:
+                _step_off = _dg1["continuation_step_offset"]
+            _new_state = state_in._replace(
+                dynamic=_new_dynamic,
+                step_index=_step_off,
+                delay_state=_delay_out,
+            )
+            _h_t = _dg1["H_trace"][0]
+            _w_t = _dg1["w_trace"][0] if _f_rwt else state_in.dynamic.w
+            if _f_rwt:
+                _outs = (_dg1["v"], _dg1["prev_spikes"], _src1[0], _h_t, _w_t)
+            else:
+                _outs = (_dg1["v"], _dg1["prev_spikes"], _src1[0], _h_t)
+            return _new_state, _outs
+
+        _fkey_next, _fkeys = _advance_prng_key(state.prng_key, int(sim.n_steps))
+        _f_start = state.step_index
+        _f_tidx = jnp.arange(int(sim.n_steps), dtype=jnp.int32) + jnp.asarray(
+            _f_start, dtype=jnp.int32
+        )
+        if _cont_noise_rows is None:
+            _fxs = (schedule, _fkeys, _f_tidx, _forced_rows)
+        else:
+            _fxs = (schedule, _fkeys, _f_tidx, _forced_rows, _cont_noise_rows)
+        _fin, _fouts = jax.lax.scan(jax.jit(_forced_cont_step_fn), state, _fxs)
+        if isinstance(_f_start, int):
+            _f_next_index = _f_start + int(sim.n_steps)
+        else:
+            _f_next_index = int(_np_host.asarray(jax.device_get(_f_start))) + int(sim.n_steps)
+        _f_next_chunk = int(getattr(state, "chunk_index", 0) or 0) + 1
+        next_state = _fin._replace(
+            prng_key=_fkey_next,
+            step_index=_f_next_index,
+            chunk_index=_f_next_chunk,
+        )
+        outputs = _fouts
     voltages, spikes, sources = outputs[:3]
     if use_hdp_cont:
         # 0.5.3 item 2: the per-step continuation kernels apply subset
@@ -1170,6 +1304,9 @@ def simulate(
     realization per chunk. HDP state (H, w), delays in flight and the PRNG
     chain continue across chunks as before. Explicit ``paradigm`` schedules
     carry no cursor: pass each segment only its own time window.
+    ``SpikeTrainInput`` composes with continuation on the registered-rule
+    HDP path: each segment's spike times are relative to that segment's
+    start, and chunked forced runs reproduce the continuous forced run.
     """
     # Local import: _simulate_homeostasis_metadata/_simulate_hdp_metadata stay
     # in core.py (group-6 construct-pipeline territory); Model is their only
@@ -1249,11 +1386,8 @@ def simulate(
                 f"{getattr(sim, 'ablation', None)!r}; the clamp rides the "
                 "registered-rule kernel, which takes no ablation mask"
             )
-        if continuation is not None or return_state:
-            raise ValueError(
-                "SpikeTrainInput is not realized on the full-state "
-                "continuation path; pass a single uninterrupted run"
-            )
+        # Segment-relative times: each continuation segment passes only its
+        # own window, like explicit paradigm schedules.
         _spike_emitter = self.params["emitter"]
         if int(spike_train_input.n_neurons) != int(_spike_emitter.n_neurons):
             raise ValueError(
@@ -1313,6 +1447,7 @@ def simulate(
             runtime_cfg,
             drive_array,
             continuation,
+            forced_spikes=forced_spikes,
         )
     else:
         voltages, spikes, sources = self._simulate_arrays(
