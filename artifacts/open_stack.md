@@ -13,4 +13,3 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or the issue
 
 ## Hamm's calls
 - O-58 WSL DNS: `/etc/resolv.conf` is empty, so pip and isolated builds fail inside WSL (the 0.5.7 sdist and package families ran on Windows Python) | Hamm (system setting) | since 2026-10-21 | closes when `pip download jaxfne==0.5.7 --no-deps` works in WSL
-- O-60 Reader STDP: w_pat -> 0 (saturates, seeds 0,1), frozen P/Q readout at chance; the rule disconnects the payload channel; rule params or circuit change is the next step | Hamm | since 2026-10-22 | closes when Hamm picks it

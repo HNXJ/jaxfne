@@ -41,10 +41,9 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 0.5.7 published 2026-10-21 (tag v0.5.7 on main 03a86014, GitHub Release, PyPI; receipt
 `artifacts/release/v0_5_7_release_receipt.json`). Plan: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md`.
 
-- Jitter reader (Hamm 2026-10-22): core on dev (SpikeTrainInput, trace_stdp, masks on continuation). HDP leg done
-  (`cl-reader-cursor`, receipts+spec `C:/workspace/jaxfne_reader_exp/`): w_pat -> 0 (saturates, seeds 0,1),
-  w_car -> 0.43-0.46, frozen P/Q readout at chance. Next: mechanism diagnosis (LTD dominance on pattern
-  synapses: reader phase vs offsets, A+/A-, trace taus; O-60).
+- Jitter reader (Hamm 2026-10-22): O-60 diagnosed (the spec's full-tail pair rule net-depresses every synapse
+  at a 25 ms period; write-up `C:/workspace/jaxfne_reader_exp/O60_diagnosis.md`). Hamm picked (a): declared
+  retune protocol (`O60_protocol_a.md`, arms A1/A2, seeds 0,1); verdict next.
 
 - Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5, unscored: running detached
   on the WSL CPU since 2026-10-20 (`brunel_s23_chain.sh`, out
