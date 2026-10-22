@@ -358,7 +358,8 @@ _CURRENT_POISSON_KEYS = ("rate_hz", "amplitude", "target", "seed", "counts")
 # Run-bookkeeping receipts the simulate path writes into
 # ``signals.metadata["poisson_drive"]`` alongside the declaration; they are
 # not declarations and are stripped before any consumed-key check.
-_POISSON_RECEIPT_KEYS = ("status", "chunk_index", "chunk_seed")
+_POISSON_RECEIPT_KEYS = ("status", "chunk_index", "chunk_seed", "ext_lambda",
+                          "ext_lambda_per_group", "ext_target_group_sizes", "key_derivation")
 _ADEX_POISSON_KEYS = (
     "n_sources", "rate_hz", "weight_nS", "mechanism",
     "target_cell_types", "delay_ms", "seed",

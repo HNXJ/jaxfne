@@ -165,6 +165,13 @@ def subset_drive_kwargs(model: Any, sim: Any, fraction: float) -> dict[str, Any]
             "fraction needs a Poisson drive on sim "
             f"(sim.poisson_drive={getattr(sim, 'poisson_drive', None)!r}); got none"
         )
+    if "ext_target_groups" in base:
+        raise ValueError(
+            "fraction is not realized for a grouped Poisson drive "
+            f"(sim.poisson_drive={dict(sim.poisson_drive)!r} names "
+            f"{len(sim.poisson_drive['rate_hz'])} rates): subset_drive_kwargs keeps "
+            "one seeded fraction of the drive's targets, which has no grouped meaning"
+        )
     targets = np.asarray(base["ext_targets"])
     seed = sim.poisson_drive["seed"]
     rng = np.random.default_rng(int(seed))

@@ -1755,17 +1755,36 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
             ),
         }
     if sim.poisson_drive is not None:
-        metadata["poisson_drive"] = {
-            "n_sources": int(sim.poisson_drive["n_sources"]),
-            "rate_hz": float(sim.poisson_drive["rate_hz"]),
-            "weight_nS": float(sim.poisson_drive["weight_nS"]),
-            "mechanism": str(sim.poisson_drive["mechanism"]),
-            "target_cell_types": list(sim.poisson_drive["target_cell_types"]),
-            "delay_ms": float(sim.poisson_drive["delay_ms"]),
-            "seed": int(sim.poisson_drive["seed"]),
-            "ext_lambda": float(drive_kwargs["ext_lambda"]),
-            "status": "stochastic_drive_applied",
-        }
+        if isinstance(sim.poisson_drive["rate_hz"], (list, tuple)):
+            rates = [float(r) for r in sim.poisson_drive["rate_hz"]]
+            per_group = [float(v) for v in _np_host.asarray(drive_kwargs["ext_lambda"])[0]]
+            sizes = _np_host.asarray(drive_kwargs["ext_target_groups"])
+            metadata["poisson_drive"] = {
+                "n_sources": int(sim.poisson_drive["n_sources"]),
+                "rate_hz": rates,
+                "weight_nS": float(sim.poisson_drive["weight_nS"]),
+                "mechanism": str(sim.poisson_drive["mechanism"]),
+                "target_cell_types": list(sim.poisson_drive["target_cell_types"]),
+                "delay_ms": float(sim.poisson_drive["delay_ms"]),
+                "seed": int(sim.poisson_drive["seed"]),
+                "ext_lambda": float(sum(per_group)),
+                "ext_lambda_per_group": per_group,
+                "ext_target_group_sizes": [int(_np_host.sum(sizes == g)) for g in range(len(rates))],
+                "key_derivation": "per-group keys fold_in(fold_in(key, g), t)",
+                "status": "stochastic_drive_applied",
+            }
+        else:
+            metadata["poisson_drive"] = {
+                "n_sources": int(sim.poisson_drive["n_sources"]),
+                "rate_hz": float(sim.poisson_drive["rate_hz"]),
+                "weight_nS": float(sim.poisson_drive["weight_nS"]),
+                "mechanism": str(sim.poisson_drive["mechanism"]),
+                "target_cell_types": list(sim.poisson_drive["target_cell_types"]),
+                "delay_ms": float(sim.poisson_drive["delay_ms"]),
+                "seed": int(sim.poisson_drive["seed"]),
+                "ext_lambda": float(drive_kwargs["ext_lambda"]),
+                "status": "stochastic_drive_applied",
+            }
         if sim.poisson_drive.get("same_step", False) is True:
             metadata["poisson_drive"]["same_step"] = True
     return Signals(

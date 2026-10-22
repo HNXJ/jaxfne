@@ -875,3 +875,148 @@ def test_route_drive_window_refusals_name_poisson_drive_and_key(
     assert "poisson_drive" in msg, msg
     assert needle in msg, msg
     assert detail in msg, msg
+
+
+# G-SC: per-channel Poisson rates on the drive. A list ``rate_hz`` splits the
+# declared ``n_sources`` channels evenly across the groups; each contiguous
+# target-cell subset draws its own per-group stream, so the declared list is
+# consumed numerically instead of pooled. The E fixture holds 48 cells, so two
+# groups give 24 targets each at 280 channels per group.
+GSC_DRIVE = {
+    "n_sources": 560, "rate_hz": [4.0, 12.0], "weight_nS": 2.5, "mechanism": "ampa",
+    "target_cell_types": ["E"], "delay_ms": 2.0, "seed": 7,
+}
+GSC_SHARE = 280
+GSC_LAMS = [GSC_SHARE * 4.0 * (DT_MS / 1000.0), GSC_SHARE * 12.0 * (DT_MS / 1000.0)]
+GSC_GROUPS = [0] * 24 + [1] * 24
+
+
+def _gsc_sim(**kwargs):
+    drive = dict(GSC_DRIVE)
+    drive.update(kwargs)
+    return _sim(poisson_drive=drive)
+
+
+def test_gsc_scalar_drive_kwargs_leave_no_groups(kernel_calls):
+    # (a) The scalar path is unchanged: no groups key reaches the kernel.
+    model = jtfne.construct(_base())
+    model.simulate(_drive_sim())
+    assert len(kernel_calls) == 1, "simulate must run the kernel once"
+    kw = kernel_calls[0][0]
+    assert "ext_target_groups" not in kw
+    np.testing.assert_allclose(kw["ext_lambda"], 560 * 4.0 * (DT_MS / 1000.0), rtol=1e-12)
+
+
+def test_gsc_grouped_drive_kwargs_carry_per_group_rates(kernel_calls):
+    # (b) Groups map to contiguous target subsets; ext_lambda rides [n_steps, G].
+    model = jtfne.construct(_base())
+    model.simulate(_gsc_sim())
+    assert len(kernel_calls) == 1, "simulate must run the kernel once"
+    kw = kernel_calls[0][0]
+    assert np.asarray(kw["ext_target_groups"]).tolist() == GSC_GROUPS
+    lam = np.asarray(kw["ext_lambda"])
+    assert lam.shape == (N_STEPS, 2), lam.shape
+    np.testing.assert_allclose(lam[0], GSC_LAMS, rtol=1e-12)
+    np.testing.assert_allclose(lam[-1], GSC_LAMS, rtol=1e-12)
+
+
+def test_gsc_grouped_drive_spikes_and_swap_moves_spikes():
+    # (c) The declared list is consumed numerically: swapping group rates moves spikes.
+    model = jtfne.construct(_base())
+    ref = np.asarray(model.simulate(_gsc_sim()).spikes)
+    assert ref.sum() > 0, "the grouped drive must spike the fixture"
+    swapped = np.asarray(model.simulate(_gsc_sim(rate_hz=[12.0, 4.0])).spikes)
+    assert not np.array_equal(swapped, ref), "swapping group rates must move the spikes"
+
+
+def test_gsc_grouped_kernel_draws_independent_per_group_streams():
+    # (d) Kernel level: per-group fold_in keys separate the streams; a zero-rate
+    # group stays silent while the other drives its cell.
+    import jax
+
+    params = make_adex_params(("E", "E"))
+    base = dict(
+        n_steps=50, dt_ms=DT_MS, receptor_reversal_mV=(0.0,), receptor_tau_ms=(2.0,),
+        decay="euler", ext_targets=np.arange(2), ext_weight_nS=2.5, ext_receptor=0,
+        ext_delay_steps=1, key=jax.random.PRNGKey(7),
+    )
+    lam = np.tile(np.array([[2.0, 2.0]]), (50, 1))
+    kw = dict(base, ext_lambda=lam, ext_target_groups=np.array([0, 1]))
+    a = np.asarray(simulate_adex(params, **kw)["spikes"])
+    b = np.asarray(simulate_adex(params, **kw)["spikes"])
+    np.testing.assert_array_equal(a, b)
+    assert a.sum() > 0, "fixture must spike"
+    scalar = np.asarray(simulate_adex(params, **{**base, "ext_lambda": 2.0})["spikes"])
+    assert not np.array_equal(a, scalar), "grouped streams must separate from the scalar stream"
+    assert not np.array_equal(a[:, 0], a[:, 1]), "identical group rates still draw independently"
+    silent = np.asarray(
+        simulate_adex(
+            params, **{**base, "ext_lambda": np.tile(np.array([[0.0, 5.0]]), (50, 1)),
+                        "ext_target_groups": np.array([0, 1])}
+        )["spikes"]
+    )
+    assert silent[:, 0].sum() == 0, "a zero-rate group draws no counts"
+    assert silent[:, 1].sum() > 0, "the driven group must spike its cell"
+
+
+def test_gsc_grouped_drive_is_recorded_in_metadata():
+    # (e) The receipt records the declared list, the summed and per-group lambdas,
+    # the group sizes and the key-derivation note.
+    model = jtfne.construct(_base())
+    signals = model.simulate(_gsc_sim())
+    assert int(np.sum(np.asarray(signals.spikes))) > 0, "the grouped drive must spike"
+    recorded = signals.metadata["poisson_drive"]
+    assert recorded["status"] == "stochastic_drive_applied"
+    assert recorded["rate_hz"] == [4.0, 12.0]
+    assert recorded["n_sources"] == 560
+    np.testing.assert_allclose(recorded["ext_lambda"], sum(GSC_LAMS), rtol=1e-12)
+    np.testing.assert_allclose(recorded["ext_lambda_per_group"], GSC_LAMS, rtol=1e-12)
+    assert recorded["ext_target_group_sizes"] == [24, 24]
+    assert "fold_in" in recorded["key_derivation"], recorded["key_derivation"]
+
+
+GSC_SCHEMA_REFUSALS = [
+    ({"n_sources": 561}, "evenly"),
+    ({"rate_hz": [4.0, 4.0]}, "distinct"),
+    ({"rate_hz": []}, "at least one"),
+    ({"rate_hz": [4.0, -1.0]}, ">= 0"),
+    ({"rate_hz": [4.0, 12.0, 8.0, 2.0], "target_cell_types": ["PV"]}, "evenly"),
+    (
+        {"rate_hz": [16.0, 15.0, 14.0, 13.0, 12.0, 11.0, 10.0, 9.0],
+         "n_sources": 560, "target_cell_types": ["SOM"]},
+        "empty",
+    ),
+]
+
+
+@pytest.mark.parametrize("override, needle", GSC_SCHEMA_REFUSALS)
+def test_gsc_grouped_drive_schema_refusals_name_poisson_drive_and_key(override, needle):
+    model = jtfne.construct(_base())
+    with pytest.raises(ValueError) as info:
+        model.simulate(_sim(poisson_drive=dict(GSC_DRIVE, **override)))
+    msg = str(info.value)
+    assert "poisson_drive" in msg, msg
+    assert needle in msg, msg
+
+
+def test_gsc_grouped_metadata_compiles_to_one_source_per_rate():
+    from jaxfne.inputs import compile_poisson_sources_from_signals_metadata
+
+    model = jtfne.construct(_base())
+    signals = model.simulate(_gsc_sim())
+    entries = compile_poisson_sources_from_signals_metadata(signals.metadata)
+    assert [e.value for e in entries] == [4.0, 12.0]
+    assert [e.schedule for e in entries] == [
+        (("n_sources", GSC_SHARE), ("weight_nS", 2.5),
+         ("mechanism", "ampa"), ("delay_ms", 2.0)),
+        (("n_sources", GSC_SHARE), ("weight_nS", 2.5),
+         ("mechanism", "ampa"), ("delay_ms", 2.0)),
+    ]
+
+
+def test_gsc_subset_drive_refuses_grouped_base():
+    from jaxfne.adex_destexhe import subset_drive_kwargs
+
+    model = jtfne.construct(_base())
+    with pytest.raises(ValueError, match="grouped"):
+        subset_drive_kwargs(model, _gsc_sim(), 0.5)
