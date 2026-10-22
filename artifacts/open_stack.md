@@ -6,7 +6,7 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or the issue
 
 ## In flight
 - O-41 remainder (P-038): Read the Docs regenerates atlases only, so étude pages publish stand-ins (RTD itself is strict since 2026-10-19) | keeper | since 2026-10-18 | closes when RTD builds the étude pages or they leave the RTD nav
-- O-59 The HDP étude rerun (`rerun_etude_figures.py` hdp_mcc3) refuses under Python 3.11 / jax 0.10.2 (tuned theta drifts from the frozen checkpoint, Dashboard run 39693463744) and reproduces under 3.12 / jax 0.11.2; the figures job now runs 3.12 | keeper | since 2026-10-21 | closes when the figures job publishes all four études, and the jax-version sensitivity of the tuned theta is either bounded by a test or recorded as a known limit
+- O-59 The HDP étude rerun (`rerun_etude_figures.py` hdp_mcc3) reproduces the frozen AGSDR theta_hat on this machine (WSL, jax 0.11.2) but tunes to a different optimum on GitHub's ubuntu runner with the same jax/numpy (m_EE 0.306, m_EI 2.759, m_IE 0.383, m_II 0.1 against frozen 1.433, 1.111, 0.108, 0.960; Dashboard runs 39693463744, 39698962390), so its figure pages are not on the figure site | Hamm (whether the site may build the étude panels from the frozen theta) | since 2026-10-21 | closes when the figures job publishes the HDP étude and the tune's platform sensitivity is recorded as a known limit or bounded
 
 ## Waiting on others
 - O-10 Harness proposals (lane-clone helper, worker background guard, jchat lane registry, lock holders in `who`, known-failures register, release events), jchat conference #29 | jynx keeper | since 2026-10-15 | closes when each is taken or refused

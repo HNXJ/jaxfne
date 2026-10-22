@@ -91,14 +91,19 @@ jobs:
       - name: Install package with the viz extra
         run: pip install -e ".[viz]"
 
+      # One failing slug must not hold back the others: publish what built, then fail the job.
       - name: Build standalone figure site
-        run: python scripts/build_docs_assets.py --site _site_figures
+        id: site
+        run: |
+          set +e
+          python scripts/build_docs_assets.py --site _site_figures
+          echo "rc=$?" >> "$GITHUB_OUTPUT"
 
+      # Overlay, so a slug that failed this build keeps its last published pages.
       - name: Copy figures into gh-pages
         run: |
           git fetch origin gh-pages
           git worktree add ../pages origin/gh-pages
-          rm -rf ../pages/figures
           mkdir -p ../pages/figures
           cp -r _site_figures/. ../pages/figures/
           cd ../pages
@@ -110,3 +115,9 @@ jobs:
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
             commit -m "Publish figures from dev ${GITHUB_SHA}"
           git push origin HEAD:gh-pages
+
+      - name: Fail when the site build reported errors or problems
+        if: steps.site.outputs.rc != '0'
+        run: |
+          echo "figure site build exited ${{ steps.site.outputs.rc }}; the slugs that built were published"
+          exit 1
