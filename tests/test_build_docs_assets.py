@@ -654,3 +654,65 @@ def test_site_fails_when_docs_cite_an_omitted_figure():
     assert len(problems) == 2 and all("e/raster." in p for p in problems), problems
     available = [dict(omitted[0], status="available", png="e/raster.png")]
     assert bda.check_cited_figures(available, ["e"], {page: text}) == []
+
+
+# --- Dashboard Figures tab: static wiring of index.html, app.js and style.css ---
+#
+# No browser here. The tests read the three dashboard files as text and pin the
+# tab mechanics (same data-tab wiring as the other tabs), the figsite manifest
+# URL, the docs-page to Read the Docs mapping and the card pieces.
+
+DASHBOARD = REPO / "dashboard"
+RTD_BASE = "https://jaxfne.readthedocs.io/en/latest/"
+
+
+def _dash(name):
+    return (DASHBOARD / name).read_text(encoding="utf-8")
+
+
+def test_figures_tab_wired_like_the_other_tabs():
+    tabs = re.findall(r'<a href="#([a-z]+)" data-tab="([a-z]+)" role="tab">', _dash("index.html"))
+    assert tabs, "the tab nav must hold wired tab links"
+    assert all(h == d for h, d in tabs), f"each tab's href must name its data-tab: {tabs}"
+    names = [d for _, d in tabs]
+    assert "figures" in names, f"the nav must hold a Figures tab: {names}"
+    assert names.index("validation") < names.index("figures") < names.index("roadmap"), names
+    js = _dash("app.js")
+    assert '"figures"' in js, "TABS must route #figures"
+    assert 'r.tab === "figures"' in js, "render must dispatch the figures tab"
+
+
+def test_figures_tab_fetches_the_figsite_manifest_and_names_it_on_failure():
+    js = _dash("app.js")
+    assert '"../figures/manifest.json"' in js, "the tab reads the manifest relative to the dashboard page"
+    assert "Could not load the figure manifest from" in js
+    assert "../figures/manifest.json" in js.split("Could not load the figure manifest from")[1][:300] or \
+        "FIG_MANIFEST_URL" in js.split("Could not load the figure manifest from")[1][:300], (
+        "the failure line must name the manifest URL"
+    )
+
+
+def test_figures_tab_maps_docs_pages_to_read_the_docs():
+    assert RTD_BASE in (REPO / "README.md").read_text(encoding="utf-8"), (
+        "the RTD base must be stated in README.md"
+    )
+    js = _dash("app.js")
+    assert RTD_BASE in js, "app.js must map docs pages onto the README's RTD base"
+    assert 'replace(/^docs\\//, "")' in js, "docs/<path>.md loses its docs/ prefix"
+    assert 'replace(/\\.md$/, "")' in js, "docs/<path>.md loses its .md suffix"
+    assert '"/index"' in js, "docs/<dir>/index.md maps to the folder URL"
+
+
+def test_figures_tab_cards_and_style_use_the_dashboard_tokens():
+    js = _dash("app.js")
+    assert 'img.loading = "lazy"' in js, "stills load lazily"
+    assert "img.alt" in js, "stills carry the figure title as alt text"
+    assert '"Interactive"' in js, "each card links its Interactive html"
+    assert '"Omitted: "' in js, "omitted panels collapse to one muted line per slug"
+    assert "slice(0, 12)" in js, "the header shows the first 12 of build_sha"
+    assert "slug, title or panel" in js, "the filter box names what it filters"
+    css = _dash("style.css")
+    assert ".fig-grid" in css and ".fig-card" in css, "the cards reuse the dashboard surface tokens"
+    assert "var(--surface)" in css.split(".fig-card")[1].split("}")[0], (
+        "fig cards sit on the dashboard surface token"
+    )
