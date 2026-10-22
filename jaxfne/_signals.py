@@ -16,6 +16,7 @@ import hashlib
 import math
 import numbers
 import warnings
+from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
 from typing import Any, Callable, Mapping, Optional, Sequence
 
@@ -954,6 +955,113 @@ class StimulusSchedule:
 
 
 _KNOWN_LAYERS = frozenset({"L1", "L2/3", "L4", "L5", "L6", "unspecified"})
+
+
+@dataclass(frozen=True)
+class SpikeTrainInput:
+    """Explicit per-neuron forced-spike clamp for reader experiments.
+
+    Maps neuron indices to the spike times (ms) forced on them: every listed
+    ``(neuron, time)`` pair is realized as a spike (``spikes=1``) with the
+    membrane held at reset ``c``, indistinguishable downstream from a
+    natural spike. Only the Izhikevich edge-list registered-rule kernel
+    realizes it (``Model.simulate(sim, SpikeTrainInput(...))``); every other
+    route refuses it, as do continuation, ``poisson_drive`` and ablations.
+    No calibrated-current claim is made: this is a spike clamp, not a drive.
+    """
+
+    spike_times: Mapping[int, Sequence[float]]
+    n_neurons: int
+    claim_level: str = "computational_scaffold"
+
+    def __post_init__(self) -> None:
+        if isinstance(self.n_neurons, bool) or not isinstance(self.n_neurons, numbers.Integral):
+            raise ValueError(
+                f"SpikeTrainInput n_neurons={self.n_neurons!r} must be a positive integer"
+            )
+        if int(self.n_neurons) <= 0:
+            raise ValueError(
+                f"SpikeTrainInput n_neurons={self.n_neurons!r} must be a positive integer"
+            )
+        if not isinstance(self.spike_times, Mapping):
+            raise ValueError(
+                "SpikeTrainInput spike_times must be a mapping of "
+                f"neuron index -> sequence of times in ms; got {type(self.spike_times).__name__}"
+            )
+        for neuron, times in self.spike_times.items():
+            if isinstance(neuron, bool) or not isinstance(neuron, numbers.Integral):
+                raise ValueError(
+                    f"SpikeTrainInput neuron {neuron!r} is not an integer neuron index "
+                    f"(n_neurons={int(self.n_neurons)})"
+                )
+            if int(neuron) < 0 or int(neuron) >= int(self.n_neurons):
+                raise ValueError(
+                    f"SpikeTrainInput neuron {int(neuron)} out of range "
+                    f"for n_neurons={int(self.n_neurons)}"
+                )
+            if isinstance(times, (str, bytes)) or not isinstance(times, Iterable):
+                raise ValueError(
+                    f"SpikeTrainInput neuron {int(neuron)} times must be a sequence "
+                    f"of spike times in ms; got {type(times).__name__}"
+                )
+            for t in times:
+                if isinstance(t, bool) or not isinstance(t, numbers.Real):
+                    raise ValueError(
+                        f"SpikeTrainInput neuron {int(neuron)} has non-numeric "
+                        f"spike time {t!r}; times must be finite ms values"
+                    )
+                if not math.isfinite(float(t)):
+                    raise ValueError(
+                        f"SpikeTrainInput neuron {int(neuron)} has non-finite "
+                        f"spike time {t!r}; times must be finite ms values"
+                    )
+                if float(t) < 0.0:
+                    raise ValueError(
+                        f"SpikeTrainInput neuron {int(neuron)} has negative "
+                        f"spike time {float(t)}; times must be >= 0 ms"
+                    )
+
+    def to_array(self, n_steps: int, dt_ms: float) -> "jax.Array":
+        """Materialize an ``(n_steps, n_neurons)`` boolean forced-spike mask.
+
+        Each time maps to ``floor(time_ms / dt_ms + 1e-9)``: bin
+        ``[n*dt, (n+1)*dt)``. The 1e-9-step epsilon absorbs float-division
+        dust (2.35/0.05 reads 46.999... in float64); sub-epsilon differences
+        (femtosecond scale at ms dt) join the upper bin. A time at or past
+        the run duration (step >= n_steps) or two times sharing one neuron
+        bin raise ``ValueError`` naming the neuron.
+        """
+        import numpy as _np
+
+        mask = _np.zeros((int(n_steps), int(self.n_neurons)), dtype=bool)
+        for neuron, times in self.spike_times.items():
+            seen: set[int] = set()
+            for t in times:
+                step = int(math.floor(float(t) / float(dt_ms) + 1e-9))
+                if step >= int(n_steps):
+                    raise ValueError(
+                        f"SpikeTrainInput neuron {int(neuron)} spike time "
+                        f"{float(t)} ms maps to step {step}, beyond "
+                        f"n_steps={int(n_steps)} (dt_ms={float(dt_ms)})"
+                    )
+                if step in seen:
+                    raise ValueError(
+                        f"SpikeTrainInput neuron {int(neuron)} has two spike times "
+                        f"in step bin {step} (dt_ms={float(dt_ms)}); one spike per bin"
+                    )
+                seen.add(step)
+                mask[step, int(neuron)] = True
+        return jnp.asarray(mask)
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "type": "spike_train_input",
+            "n_neurons": int(self.n_neurons),
+            "n_spikes": sum(len(v) for v in self.spike_times.values()),
+            "spike_times": {str(int(k)): [float(t) for t in v] for k, v in self.spike_times.items()},
+            "claim_level": self.claim_level,
+        })
 
 
 @dataclass(frozen=True)

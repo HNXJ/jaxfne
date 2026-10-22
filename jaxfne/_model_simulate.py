@@ -41,6 +41,7 @@ from ._runtime_config import RuntimeConfig, _device_scope, _require_backend_avai
 from ._signals import (
     Signals,
     Simulation,
+    SpikeTrainInput,
     StimulusSchedule,
     TrialBatch,
     TrialResult,
@@ -222,6 +223,7 @@ def _simulate_arrays(
     key: jax.Array,
     runtime_cfg: RuntimeConfig,
     drive_schedule: Optional[jax.Array] = None,
+    forced_spikes: Optional[jax.Array] = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array]:
     """Compile and execute the underlying simulation kernel.
 
@@ -239,6 +241,10 @@ def _simulate_arrays(
         Resolved runtime config.
     drive_schedule : jax.Array, optional
         Input drive schedule array, by default None.
+    forced_spikes : jax.Array, optional
+        Explicit per-neuron spike clamp from ``SpikeTrainInput``; realized
+        only by the registered-rule HDP kernel, refused on every other
+        route, by default None.
 
     Returns
     -------
@@ -325,6 +331,25 @@ def _simulate_arrays(
     # Reset per-call homeostasis/HDP diagnostics (populated only when enabled).
     object.__setattr__(self, "_last_homeostasis_diag", None)
     object.__setattr__(self, "_last_hdp_diag", None)
+
+    if forced_spikes is not None:
+        # The clamp is scoped to the one kernel that realizes it; every
+        # other route (homeostasis, legacy HDP, plain recurrent, dense)
+        # refuses it here, naming the only realizing path.
+        from .hdp_rule import hdp_is_engaged, is_registered_hdp_rule
+
+        _forced_hp = dict(runtime_cfg.hdp_params or {})
+        if not (
+            bool(getattr(runtime_cfg, "enable_hdp", False))
+            and hdp_is_engaged(_forced_hp, self.params, enable_hdp=True)
+            and is_registered_hdp_rule(_forced_hp.get("hdp_rule"))
+        ):
+            raise ValueError(
+                "SpikeTrainInput is realized only by the Izhikevich edge-list "
+                "registered-rule HDP kernel (RuntimeConfig(enable_hdp=True, "
+                "hdp_params={'hdp_rule': <registered rule>}); this run does "
+                "not take that path"
+            )
 
     if getattr(runtime_cfg, "enable_homeostasis", False):
         if runtime_cfg.synaptic_kernel == "receptor_exponential":
@@ -531,6 +556,8 @@ def _simulate_arrays(
                     record_stride=hp.get("record_stride", 1),
                     record_h_subset=hp.get("record_h_subset", None),
                     record_w_subset=hp.get("record_w_subset", None),
+                    plasticity_mask=hp.get("plasticity_mask"),
+                    forced_spikes=forced_spikes,
                 )
             else:
                 kernel_kwargs = _hdp_kernel_kwargs(hp)
@@ -595,6 +622,15 @@ def _simulate_arrays(
             C = int(emitter.n_neurons)
             T = int(sim.n_steps)
             guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+            if forced_spikes is None:
+                _forced_key = None
+            else:
+                import hashlib
+
+                _forced_key = (
+                    "forced_spikes",
+                    hashlib.sha256(_np_host.asarray(forced_spikes).tobytes()).hexdigest(),
+                )
             cache_key = (
                 "simulate_hdp",
                 B,
@@ -605,6 +641,7 @@ def _simulate_arrays(
                 ablation_mode,
                 runtime_cfg.selected_backend,
                 _homeostasis_params_cache_fingerprint(hp),
+                _forced_key,
             )
             with _device_scope(runtime_cfg.selected_backend):
                 if cache_key not in self._compiled_cache:
@@ -860,6 +897,12 @@ def _resolve_stimulus_schedule(
     runtime_cfg: RuntimeConfig,
 ) -> Optional["StimulusSchedule"]:
     """Return a StimulusSchedule from paradigm arg, or None."""
+    if isinstance(paradigm, SpikeTrainInput):
+        raise ValueError(
+            "SpikeTrainInput is not a StimulusSchedule and cannot be resolved "
+            "to a drive array here; pass it as simulate(sim, SpikeTrainInput(...)) "
+            "on the Izhikevich edge-list registered-rule HDP path"
+        )
     if paradigm is None:
         return None
     if isinstance(paradigm, StimulusSchedule):
@@ -1191,7 +1234,36 @@ def simulate(
             )
         return self._simulate_homeostatic_ei(sim, key, runtime_cfg)
 
-    schedule = self._resolve_stimulus_schedule(paradigm, sim, runtime_cfg)
+    schedule = None
+    forced_spikes = None
+    spike_train_input = paradigm if isinstance(paradigm, SpikeTrainInput) else None
+    if spike_train_input is not None:
+        if sim.poisson_drive is not None:
+            raise ValueError(
+                "SpikeTrainInput cannot be combined with sim.poisson_drive; "
+                "pass one declared input"
+            )
+        if getattr(sim, "ablation", None) is not None:
+            raise ValueError(
+                f"SpikeTrainInput cannot be combined with ablation="
+                f"{getattr(sim, 'ablation', None)!r}; the clamp rides the "
+                "registered-rule kernel, which takes no ablation mask"
+            )
+        if continuation is not None or return_state:
+            raise ValueError(
+                "SpikeTrainInput is not realized on the full-state "
+                "continuation path; pass a single uninterrupted run"
+            )
+        _spike_emitter = self.params["emitter"]
+        if int(spike_train_input.n_neurons) != int(_spike_emitter.n_neurons):
+            raise ValueError(
+                f"SpikeTrainInput n_neurons={int(spike_train_input.n_neurons)} "
+                f"does not match the model's {int(_spike_emitter.n_neurons)} "
+                "neurons"
+            )
+        forced_spikes = spike_train_input.to_array(sim.n_steps, sim.dt_ms)
+    else:
+        schedule = self._resolve_stimulus_schedule(paradigm, sim, runtime_cfg)
     drive_array: Optional[Any] = None
     if schedule is not None:
         drive_array = schedule.to_array(sim.n_steps, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
@@ -1244,7 +1316,8 @@ def simulate(
         )
     else:
         voltages, spikes, sources = self._simulate_arrays(
-            sim, key, runtime_cfg, drive_schedule=drive_array
+            sim, key, runtime_cfg, drive_schedule=drive_array,
+            forced_spikes=forced_spikes,
         )
         continuation_out = None
     time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
