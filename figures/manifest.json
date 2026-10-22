@@ -1,6 +1,6 @@
 {
   "schema": "figsite.v1",
-  "build_sha": "45f0966ec1bd143b52e9596792cccc6901dc0d86",
+  "build_sha": "7b3fb83a5ed7528e95c28527b3a0ea8e9db85ca8",
   "figures": [
     {
       "slug": "calibration_100",
@@ -1585,6 +1585,66 @@
       "docs_pages": [
         "docs/etudes/experiment_a.md"
       ]
+    },
+    {
+      "slug": "hdp_controllability_reachability",
+      "panel": "raster",
+      "html": "hdp_controllability_reachability/raster.html",
+      "png": "hdp_controllability_reachability/raster.png",
+      "title": "Spike raster (condition B)",
+      "status": "available",
+      "docs_pages": [
+        "docs/etudes/hdp_controllability_reachability.md"
+      ],
+      "note": "built from the frozen checkpoint theta_hat; the AGSDR tune is not re-run here (O-59)"
+    },
+    {
+      "slug": "hdp_controllability_reachability",
+      "panel": "traces",
+      "html": "hdp_controllability_reachability/traces.html",
+      "png": "hdp_controllability_reachability/traces.png",
+      "title": "Membrane traces (condition B)",
+      "status": "available",
+      "docs_pages": [
+        "docs/etudes/hdp_controllability_reachability.md"
+      ],
+      "note": "built from the frozen checkpoint theta_hat; the AGSDR tune is not re-run here (O-59)"
+    },
+    {
+      "slug": "hdp_controllability_reachability",
+      "panel": "h_dynamics",
+      "html": "hdp_controllability_reachability/h_dynamics.html",
+      "png": "hdp_controllability_reachability/h_dynamics.png",
+      "title": "H dynamics (condition B)",
+      "status": "available",
+      "docs_pages": [
+        "docs/etudes/hdp_controllability_reachability.md"
+      ],
+      "note": "built from the frozen checkpoint theta_hat; the AGSDR tune is not re-run here (O-59)"
+    },
+    {
+      "slug": "hdp_controllability_reachability",
+      "panel": "hdp",
+      "html": "hdp_controllability_reachability/hdp.html",
+      "png": "hdp_controllability_reachability/hdp.png",
+      "title": "HDP weight magnitude (condition B)",
+      "status": "available",
+      "docs_pages": [
+        "docs/etudes/hdp_controllability_reachability.md"
+      ],
+      "note": "built from the frozen checkpoint theta_hat; the AGSDR tune is not re-run here (O-59)"
+    },
+    {
+      "slug": "hdp_controllability_reachability",
+      "panel": "oscillatory",
+      "html": "hdp_controllability_reachability/oscillatory.html",
+      "png": "hdp_controllability_reachability/oscillatory.png",
+      "title": "Oscillatory response (condition B)",
+      "status": "available",
+      "docs_pages": [
+        "docs/etudes/hdp_controllability_reachability.md"
+      ],
+      "note": "built from the frozen checkpoint theta_hat; the AGSDR tune is not re-run here (O-59)"
     },
     {
       "slug": "multiscale_observation",
