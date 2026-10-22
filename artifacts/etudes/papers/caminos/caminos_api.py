@@ -404,7 +404,17 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
                   "wall_s": float(wall_s), "steps": int(counts.shape[0])})
     entries[fname] = entry
     manifest = {"git_sha": sha, "start_time": prior["start_time"] if prior else start_time,
-                "runs": list(entries.values())}
+                "runs": list(entries.values()),
+                "backend": "edge_list",
+                "dtype": "float32",
+                "seeds": sorted(e["seed"] for e in entries.values()),
+                "activity_regime": {
+                    "kind": "declared",
+                    "source": "CALIBRATION.md: primary 2 ms run, seeds 1-3 and 4-8",
+                    "oscillates": True,
+                    "f_pk_hz": 34.0,
+                    "lag_ref42_ms": {"seeds_1_3": 6.47, "seeds_4_8": 6.32},
+                    "mean_rates_hz": {"E": 1.08, "PV": 11.24, "SOM": 6.74}}}
     try:
         import jax
 

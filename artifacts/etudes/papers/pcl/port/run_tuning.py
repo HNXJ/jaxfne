@@ -223,6 +223,34 @@ def _baseline_sha() -> str:
     return res.stdout.strip()
 
 
+def _realized_backend(engine="numba") -> str:
+    """Realized compute backend of the tuning run path.
+
+    The scored path runs the numba oracle (``--engine numba``); engine
+    ``core`` is refused (CORE_GAP), so the jax branch below only names the
+    device platform for the edge-scale core smoke in test_run_tuning.py.
+    Numba threads are pinned to one per worker process (module top).
+    """
+    if engine == "core":
+        import jax
+
+        return "jax " + jax.devices()[0].platform
+    try:
+        import numba
+
+        try:
+            layer = numba.threading_layer()
+        except Exception:
+            layer = "unknown"
+        try:
+            threads = numba.get_num_threads()
+        except Exception:
+            threads = 1
+        return f"numba {layer}/{threads} threads"
+    except ImportError:
+        return "numba"
+
+
 def _write_manifest(out: Path, record: dict, static: dict) -> None:
     path = out / "manifest.json"
     man = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {"invocations": []}
@@ -300,6 +328,21 @@ def main(argv=None) -> int:
                         "column": CENTRAL_COL[0] * ny + CENTRAL_COL[1],
                         "flat_base": (CENTRAL_COL[0] * ny + CENTRAL_COL[1]) * nd,
                         "note": CENTRAL_COL_NOTE},
+        "backend": _realized_backend(args.engine),
+        "dtype": "float64",
+        "dtype_note": ("compute float64 (weights, V/A/thr/rate per "
+                       "pcl_event_ref_numba.py); events int64; outputs "
+                       "simple_counts/complex_counts int32, times int64, wall_s float64"),
+        "seeds": [],
+        "seeds_note": ("event replay over the recorded test7 streams; no RNG seeds. "
+                       "The network weights are the trained cSTDP3 values loaded over "
+                       "the seed-0 init."),
+        "activity_regime": {
+            "kind": "declared",
+            "source": "prereg/P3_fig3.md C1-C2",
+            "simple": "tuned for orientation, spatial frequency and spatial phase",
+            "complex": ("tuned for orientation and spatial frequency, "
+                        "approximately phase invariant")},
     }
     record = {"start_utc": start, "argv": sys.argv[1:], "subset": args.subset,
               "n_tasks": len(jobs), "n_pending": len(pending), "out": str(out)}

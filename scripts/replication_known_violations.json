@@ -243,26 +243,5 @@
     "message": "no scored P4 module calls construct( or .simulate(",
     "reason": "found by E1 when the rule landed (B4); the scored path does not route through construct/simulate",
     "todo": "B4 E1 follow-up"
-  },
-  {
-    "rule": "P4",
-    "path": "artifacts/etudes/papers/caminos",
-    "message": "manifest writer lacks backend, dtype, seeds, regime",
-    "reason": "found by P4 when the rule landed (B4); the manifest dict names only the code SHA, backend/dtype/seed live in its run entries with no regime block",
-    "todo": "B4 P4 follow-up"
-  },
-  {
-    "rule": "P4",
-    "path": "artifacts/etudes/papers/izhikevich2003",
-    "message": "manifest writer lacks regime",
-    "reason": "found by P4 when the rule landed (B4); the Fig. 3 manifest names code SHA, backend, dtype and seeds but no regime block",
-    "todo": "B4 P4 follow-up"
-  },
-  {
-    "rule": "P4",
-    "path": "artifacts/etudes/papers/pcl",
-    "message": "manifest writer lacks backend, dtype, seeds, regime",
-    "reason": "found by P4 when the rule landed (B4); run_tuning's _write_manifest(out, record, static) records baseline_sha, engine and inhibition, with no backend, dtype, seeds or regime block",
-    "todo": "B4 P4 follow-up"
   }
 ]
