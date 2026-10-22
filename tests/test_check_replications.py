@@ -1041,3 +1041,101 @@ def test_s1_posix_root_path_is_outside_on_every_os(tmp_path):
     )
     messages = [m for r, _, m in cr.collect_findings(tmp_path) if r == "S1"]
     assert messages == ["line 2: sys.path.insert adds a path outside the repository (/tmp/elsewhere)"]
+
+
+def _r4_paper(pid: str, verdict, stage: str = "P6", p6: list[dict] | None = None) -> dict:
+    entry: dict = {
+        "id": pid,
+        "stage": stage,
+        "stage_artifacts": {
+            "P1": [{"label": "source", "path": f"artifacts/etudes/papers/{pid}/SOURCE_P1.md"}]},
+        "preregs": [],
+        "verdict": verdict,
+    }
+    if p6 is not None:
+        entry["stage_artifacts"]["P6"] = p6
+    return entry
+
+
+def _r4_p6_records(root: Path, pid: str) -> None:
+    """Every R1 record a stage-P6 paper needs, including the P6 result file."""
+    for name in ("SOURCE_P1.md", "PORT_SPEC.md", "PREREG_P3.md",
+                 "LEDGER.md", "RESULT_P3.md", "RESULT_P6.md"):
+        _write(root, f"artifacts/etudes/papers/{pid}/{name}")
+
+
+def test_r4_reproduced_without_p6_entry_fails(tmp_path):
+    papers = [_r4_paper("r4noentry", "reproduced")]
+    _registry(tmp_path, papers)
+    _r4_p6_records(tmp_path, "r4noentry")
+    assert "P6" not in papers[0]["stage_artifacts"], (
+        "fixture must list no P6 stage_artifacts entry"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "R1"] == [], (
+        "the folder holds every R1 record, so only R4 may fire"
+    )
+    assert (
+        "R4",
+        "artifacts/etudes/papers/r4noentry",
+        "paper 'r4noentry' claims reproduced without a P6 result file",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_r4_reproduced_with_missing_p6_file_fails(tmp_path):
+    papers = [_r4_paper("r4miss", "reproduced",
+                        p6=[{"label": "result P6",
+                             "path": "artifacts/etudes/papers/r4miss/RESULT_P6_v2.md"}])]
+    _registry(tmp_path, papers)
+    _r4_p6_records(tmp_path, "r4miss")
+    assert not (tmp_path / "artifacts/etudes/papers/r4miss/RESULT_P6_v2.md").exists(), (
+        "fixture P6 entry must name a file absent from disk"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "R1"] == [], (
+        "the folder holds every R1 record, so only R4 may fire"
+    )
+    assert (
+        "R4",
+        "artifacts/etudes/papers/r4miss",
+        "paper 'r4miss' claims reproduced without a P6 result file",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_r4_reproduced_with_p6_file_passes(tmp_path):
+    papers = [_r4_paper("r4ok", "reproduced",
+                        p6=[{"label": "result P6",
+                             "path": "artifacts/etudes/papers/r4ok/RESULT_P6.md"}])]
+    _registry(tmp_path, papers)
+    _r4_p6_records(tmp_path, "r4ok")
+    assert (tmp_path / "artifacts/etudes/papers/r4ok/RESULT_P6.md").is_file(), (
+        "fixture P6 entry must resolve on disk"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "R4"] == [], (
+        "a reproduced paper whose P6 entry resolves stays clean"
+    )
+
+
+def test_r4_reproduced_below_p6_out_of_scope(tmp_path):
+    papers = [_r4_paper("r4p5", "reproduced", stage="P5")]
+    _registry(tmp_path, papers)
+    for name in ("SOURCE_P1.md", "PORT_SPEC.md", "PREREG_P3.md",
+                 "LEDGER.md", "RESULT_P3.md"):
+        _write(tmp_path, f"artifacts/etudes/papers/r4p5/{name}")
+    assert papers[0]["stage"] == "P5", "fixture must stay below P6"
+    assert "P6" not in papers[0]["stage_artifacts"], "fixture must list no P6 entry"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "R4"] == [], (
+        "a reproduced claim below P6 is not an R4 finding"
+    )
+
+
+@pytest.mark.parametrize("verdict", [
+    "reproduced (conditional)", "mixed", "in progress", "not started", "failed",
+])
+def test_r4_non_replication_verdicts_pass(tmp_path, verdict):
+    papers = [_r4_paper("r4nv", verdict)]
+    _registry(tmp_path, papers)
+    _r4_p6_records(tmp_path, "r4nv")
+    assert papers[0]["verdict"] == verdict, "fixture must hold the verdict it is named after"
+    assert "P6" not in papers[0]["stage_artifacts"], "fixture must list no P6 entry"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "R4"] == [], (
+        f"verdict {verdict!r} is a stage-level claim, not a full-replication claim"
+    )

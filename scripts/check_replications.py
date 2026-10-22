@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Replication-checklist gate rows: R1, R6, S1, S2, E1, E3, P4 (manifest).
+"""Replication-checklist gate rows: R1, R4, R6, S1, S2, E1, E3, P4 (manifest).
 
 Paper registry: ``dashboard/sources.json`` papers[] (``id``, ``stage``,
 ``stage_artifacts``, ``preregs``). Paper folders: ``artifacts/etudes/papers/*/``.
@@ -18,6 +18,12 @@ SHA, so this gate does not re-check their working-tree existence.
   maps to ``artifacts/etudes/papers/<id>/`` (then ``<id>`` before the first
   ``"-"``) when that folder exists. Disagreeing segments, or no folder at all,
   is a finding.
+- R4: a paper counts as replicated with jaxfne only at P6: a paper whose
+  recorded verdict is exactly ``reproduced`` holds its P6 stage result file
+  (the P6 entry of its ``stage_artifacts``, resolved on disk the way R1
+  resolves record files). A paper below P6, or with verdict ``reproduced
+  (conditional)``, ``mixed``, ``in progress``, ``not started`` or ``failed``,
+  is not a finding.
 - R6: at most 7 files and 7 folders per paper folder (direct children, no ``__pycache__``).
 - S1: no ``.py`` under a paper folder runs outside code: ``subprocess.*``,
   ``os.system``/``popen``/``startfile``/``fork``/``forkpty``/``exec*``/``spawn*``/
@@ -1210,6 +1216,40 @@ def check_p4(papers: list[dict], root: Path) -> list[tuple[str, str, str]]:
     return findings
 
 
+def check_r4(papers: list[dict], root: Path) -> list[tuple[str, str, str]]:
+    """R4 findings: a paper claiming replication must hold its P6 result file."""
+    findings = []
+    for paper in papers:
+        if paper.get("verdict") != "reproduced":
+            continue  # only a full-replication claim counts, not a stage-level one
+        pid = paper.get("id", "?")
+        stage = paper.get("stage")
+        if stage in STAGE_ORDER and STAGE_ORDER.index(stage) < STAGE_ORDER.index("P6"):
+            continue  # a paper below P6 is not a finding
+        stages = paper.get("stage_artifacts")
+        items = stages.get("P6") if isinstance(stages, dict) else None
+        paths = (
+            [
+                item["path"]
+                for item in items
+                if isinstance(item, dict) and isinstance(item.get("path"), str)
+            ]
+            if isinstance(items, list)
+            else []
+        )
+        if any((root / path).is_file() for path in paths):
+            continue
+        folder_rel = paper_folder(paper, root)
+        findings.append(
+            (
+                "R4",
+                folder_rel if folder_rel is not None else SOURCES_REL.as_posix(),
+                f"paper {pid!r} claims reproduced without a P6 result file",
+            )
+        )
+    return findings
+
+
 def _all_names(tree: ast.Module) -> set[str]:
     """Non-private names of one ``__all__`` list/tuple assignment."""
     names: set[str] = set()
@@ -1322,6 +1362,7 @@ def collect_findings(root: Path) -> list[tuple[str, str, str]]:
         + check_s2(parsed, papers, root)
         + check_e1(papers, root)
         + check_p4(papers, root)
+        + check_r4(papers, root)
         + e3
     )
     return sorted(set(findings))
