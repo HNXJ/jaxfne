@@ -58,10 +58,9 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 - Docs figures (Hamm 2026-10-21: no iframes in the docs; interactive figures on GitHub Pages).
   The figure site `hnxj.github.io/jaxfne/figures/` landed, and every docs figure is a Still /
   Interactive tab pair framing it (Hamm 2026-10-21: "this form is the best").
-  Left, in order: (1) a Figures tab on the dashboard from `figures/manifest.json`, each still
-  linking to its HTML and its docs pages; (2) stop the docs-side HTML builds under `docs/_static`
-  (atlas, etude and visual pages no docs page links any more) and delete those tracked files,
-  which frees tree budget; (3) the four allowlisted iframes in `build_docs_assets.py`
+  The dashboard has a Figures tab. Left, in order: (1) stop the docs-side HTML builds under
+  `docs/_static` (atlas, etude and visual pages no docs page links any more) and delete those
+  tracked files, which frees tree budget; (2) the four allowlisted iframes in `build_docs_assets.py`
   (v0.37 source column, Izhikevich explorer, jaxley Vm, V1/V4/PFC showcase) get a figure-site
   build or a still.
 
