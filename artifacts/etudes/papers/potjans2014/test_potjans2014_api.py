@@ -165,7 +165,6 @@ def test_score_keys():
     assert pops["L23E"]["n"] == 5, "per-population sizes"
 
 
-@pytest.mark.xfail(strict=True, reason="G-MULT: no with-replacement sampler")
 def test_gap_multapse_sampler():
     """Paper wiring draws K synapses per projection with replacement
     (multapses allowed, SOURCE_P1.md section 1); the core draws distinct

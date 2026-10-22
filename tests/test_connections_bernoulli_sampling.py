@@ -473,6 +473,110 @@ def _sampling_tensor(sampling):
     )
 
 
+# F8. multinomial: exactly round(p*n_post) draws with replacement (multapses
+# allowed). Each of the K draws picks pre and post independently and
+# uniformly (SOURCE_P1.md section 1), so a (pre, post) pair may repeat.
+def _mult_rule(**kw):
+    rule = {"name": "feed", "source": {"area": "PRE"}, "target": {"area": "POST"},
+            "probability": 0.5, "weight": 0.1, "mechanism": "ampa",
+            "sampling": "multinomial"}
+    rule.update(kw)
+    return rule
+
+
+def test_multinomial_exact_count_per_projection():
+    neurons = _rows(8, "PRE") + _rows(8, "POST", start=8)
+    for seed in range(5):
+        r = jtfne.compile_connection_rules(neurons, [_mult_rule()], MECHS, seed=seed)
+        assert r.n_edges == 4, "K = round(0.5 * n_post) exactly, every seed"
+
+
+def test_multinomial_deterministic_given_seed():
+    neurons = _rows(8, "PRE") + _rows(8, "POST", start=8)
+    a = jtfne.compile_connection_rules(neurons, [_mult_rule()], MECHS, seed=7)
+    b = jtfne.compile_connection_rules(neurons, [_mult_rule()], MECHS, seed=7)
+    np.testing.assert_array_equal(np.asarray(a.edge_pre), np.asarray(b.edge_pre))
+    np.testing.assert_array_equal(np.asarray(a.edge_post), np.asarray(b.edge_post))
+
+
+def test_multinomial_draws_with_replacement():
+    # 1 pre x 2 post, p = 1.0 -> K = 2 draws from 2 pairs. A
+    # without-replacement sampler could never repeat a pair, so any repeated
+    # pair across seeds proves replacement (P(none in 40 seeds) = 2**-40).
+    neurons = _rows(1, "PRE") + _rows(2, "POST", start=1)
+    seen_dup = False
+    for seed in range(40):
+        r = jtfne.compile_connection_rules(
+            neurons, [_mult_rule(probability=1.0)], MECHS, seed=seed)
+        assert r.n_edges == 2, "K = round(1.0 * n_post) stays exact"
+        pairs = list(zip(np.asarray(r.edge_pre).tolist(),
+                         np.asarray(r.edge_post).tolist()))
+        if len(set(pairs)) < len(pairs):
+            seen_dup = True
+    assert seen_dup, "40 seeds must show a repeated (pre, post) pair"
+
+
+def test_multinomial_recurrent_excludes_self_and_stays_exact():
+    neurons = _rows(4, "V1")
+    rule = {"name": "rec", "source": {"area": "V1"}, "target": {"area": "V1"},
+            "probability": 0.5, "weight": 0.1, "mechanism": "ampa",
+            "sampling": "multinomial"}
+    r = jtfne.compile_connection_rules(neurons, [rule], MECHS, seed=0)
+    assert r.n_edges == 2, "K = round(0.5 * n_post) exact with self excluded"
+    assert not np.any(np.asarray(r.edge_pre) == np.asarray(r.edge_post)), \
+        "allow_self=False drops self pairs"
+
+
+def test_multinomial_with_in_degree_is_refused():
+    neurons = _rows(4, "PRE") + _rows(4, "POST", start=4)
+    rule = {"name": "m", "source": {"area": "PRE"}, "target": {"area": "POST"},
+            "weight": 0.1, "mechanism": "ampa",
+            "sampling": "multinomial", "in_degree": 2}
+    with pytest.raises(ValueError, match="with in_degree"):
+        jtfne.compile_connection_rules(neurons, [rule], MECHS, seed=0)
+
+
+def test_connections_refuses_multinomial_with_in_degree():
+    with pytest.raises(ValueError, match="with in_degree"):
+        jtfne.configuration().connections(
+            name="x", source={}, target={}, sampling="multinomial",
+            in_degree=2, probability=None)
+
+
+def test_sign_only_multinomial_is_refused_while_full_path_compiles():
+    from jaxfne._construct_connectivity import _compile_connection_rules
+
+    neurons = _rows(8, "PRE") + _rows(8, "POST", start=8)
+    full = jtfne.compile_connection_rules(neurons, [_mult_rule()], MECHS, seed=0)
+    assert full.n_edges == 4, "the full path must compile multinomial"
+    area, layer, cell, sign = _sign_only_labels(8)
+    rules = [{"name": "m", "source": {}, "target": {}, "probability": 0.5,
+              "weight": 0.5, "sampling": "multinomial"}]
+    with pytest.raises(ValueError, match="sampling"):
+        _compile_connection_rules(rules, area, layer, cell, sign, 8, jnp.float32, 0)
+
+
+def test_construct_sign_only_multinomial_is_refused():
+    cfg = (jtfne.laminar_cortex_config(
+        seed=0, duration_ms=50.0, dt_ms=0.5, areas=("V1",), layers=("L4",),
+        cell_types={"E": 0.5, "PV": 0.5}, n=12, emitter="izhikevich")
+        .connections(name="m", source={}, target={}, probability=0.5,
+                     weight=0.5, sampling="multinomial"))
+    with pytest.raises(ValueError, match="mechanism-aware"):
+        jtfne.construct(cfg)
+
+
+@pytest.mark.parametrize("cls", ["inter", "area"])
+def test_tensor_multinomial_round_trips(cls):
+    assert _tensor_conn(cls, sampling="multinomial").sampling == "multinomial"
+
+
+@pytest.mark.parametrize("cls", ["inter", "area"])
+def test_tensor_multinomial_with_in_degree_refused(cls):
+    with pytest.raises(ValueError, match="with sampling"):
+        _tensor_conn(cls, sampling="multinomial", in_degree=2)
+
+
 def test_tensor_sampling_forwards_to_the_adex_rule():
     from jaxfne import neuronal_tensor as nt
 

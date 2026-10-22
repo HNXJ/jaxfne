@@ -361,7 +361,8 @@ def _check_connection_allow_self(allow_self: "bool | None", *, label: str) -> "b
 
 #: Sampling modes the compiler honours per connection rule (None = undeclared
 #: = the ``density`` default).
-_CONNECTION_SAMPLINGS = ("density", "bernoulli", "capped_bernoulli", "fixed_indegree")
+_CONNECTION_SAMPLINGS = ("density", "bernoulli", "capped_bernoulli", "fixed_indegree",
+                         "multinomial")
 
 
 def _check_connection_sampling(sampling: "str | None", *, label: str) -> "str | None":

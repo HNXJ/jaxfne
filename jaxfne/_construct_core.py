@@ -774,11 +774,14 @@ def _record_connectivity_compilation(
     return replace(cfg, metadata=metadata)
 
 
-def _reject_duplicate_explicit_edges(edge_list: "EdgeList") -> None:
+def _reject_duplicate_explicit_edges(edge_list: "EdgeList", *, exempt_mask=None) -> None:
     """Reject accidental duplicate explicit synaptic identities.
 
     Distinct receptor/mechanism indices are valid parallel edges. The identity
-    rejected here is exactly ``(pre, post, receptor_index)``.
+    rejected here is exactly ``(pre, post, receptor_index)``. Edges flagged
+    in ``exempt_mask`` (compiled from ``sampling="multinomial"`` rules) are
+    skipped: repeated identities are the declared with-replacement outcome
+    there, not accidents.
     """
     import numpy as _np
 
@@ -792,7 +795,12 @@ def _reject_duplicate_explicit_edges(edge_list: "EdgeList") -> None:
         ),
         axis=1,
     )
-    if len(_np.unique(identities, axis=0)) != edge_list.n_edges:
+    if exempt_mask is not None:
+        keep = ~_np.asarray(exempt_mask, dtype=bool)
+        identities = identities[keep]
+        if len(identities) < 2:
+            return
+    if len(_np.unique(identities, axis=0)) != len(identities):
         raise ValueError(
             "explicit NeuronalTensor connectivity produced duplicate "
             "executable synaptic identities; identity is "
@@ -902,6 +910,17 @@ def _construct_compile_connections(
                     ".mechanisms() declaration. Declare mechanisms for all rules, or drop "
                     "in_degree -- the exact count cannot be applied on the sign-only path."
                 )
+            _multi = [r.get("name") for r in _conn_rules
+                      if r.get("sampling") == "multinomial"]
+            if _multi:
+                raise ValueError(
+                    f"connection rule(s) {_multi} declare sampling='multinomial', "
+                    "which is only honoured by the mechanism-aware compiler. That "
+                    "compiler runs only when every declared rule carries a mechanism= "
+                    "reference resolvable against a .mechanisms() declaration. Declare "
+                    "mechanisms for all rules, or drop sampling='multinomial' -- "
+                    "with-replacement draws cannot be applied on the sign-only path."
+                )
             _uncompilable = {}
             for r in _conn_rules:
                 _keys = [
@@ -946,7 +965,17 @@ def _construct_compile_connections(
             _sharing = None
         declared_edge_count = sum(int(count) for count in _counts)
         if connectivity_mode == "explicit" and _conn_edges is not None:
-            _reject_duplicate_explicit_edges(_conn_edges)
+            _exempt = None
+            if any(r.get("sampling") == "multinomial" for r in _conn_rules):
+                # Rule-order edge blocks align with _counts: flag the blocks
+                # compiled from with-replacement rules as declared duplicates.
+                _exempt = _np.zeros(int(_conn_edges.n_edges), dtype=bool)
+                _lo = 0
+                for _rule, _cnt in zip(_conn_rules, _counts):
+                    if _rule.get("sampling") == "multinomial":
+                        _exempt[_lo:_lo + int(_cnt)] = True
+                    _lo += int(_cnt)
+            _reject_duplicate_explicit_edges(_conn_edges, exempt_mask=_exempt)
         if _conn_edges is not None and _conn_edges.n_edges > 0:
             edge_list = _concat_edge_lists(
                 edge_list, _conn_edges, presynaptic_sign=_np.asarray(_ep.sign)

@@ -1056,7 +1056,10 @@ class Configuration:
         ``in_degree`` (a positive int), and is refused with ``probability``,
         ``max_in_degree``, ``footprint`` and the Bernoulli samplings, and on
         the sign-only fallback path (which honours ``"density"``/``"bernoulli"``
-        only). ``weight`` is the native edge magnitude
+        only). ``"multinomial"`` draws exactly ``round(p*n_post)`` synapses
+        per rule with replacement (multapses allowed); it is refused with
+        ``in_degree``, ``max_in_degree`` and on the sign-only fallback path.
+        ``weight`` is the native edge magnitude
         (default ``1/sqrt(n)``),
         and ``sign`` is ``"excitatory"``/``"inhibitory"``/``"signed"`` (``"signed"`` or
         unset follows the presynaptic neuron's intrinsic sign). When any rule
@@ -1131,12 +1134,13 @@ class Configuration:
                 )
         if not isinstance(sampling, str) or sampling not in {
             "density", "bernoulli", "capped_bernoulli", "fixed_indegree",
+            "multinomial",
         }:
             raise ValueError(
                 f"connection {name!r} sampling must be 'density', 'bernoulli', "
-                f"'capped_bernoulli' or 'fixed_indegree'; got {sampling!r}"
+                f"'capped_bernoulli', 'fixed_indegree' or 'multinomial'; got {sampling!r}"
             )
-        if sampling in ("bernoulli", "capped_bernoulli") and max_in_degree is not None:
+        if sampling in ("bernoulli", "capped_bernoulli", "multinomial") and max_in_degree is not None:
             raise ValueError(
                 f"connection {name!r} sampling={sampling!r} is not implemented with "
                 "max_in_degree (localized sampling); omit one of them"
@@ -1148,7 +1152,7 @@ class Configuration:
                 "without in_degree; the fixed-indegree sampler draws exactly "
                 "in_degree presynaptic partners per post cell -- declare both"
             )
-        if sampling in ("bernoulli", "capped_bernoulli") and in_degree is not None:
+        if sampling in ("bernoulli", "capped_bernoulli", "multinomial") and in_degree is not None:
             raise ValueError(
                 f"connection {name!r} sampling={sampling!r} is not implemented "
                 f"with in_degree={in_degree!r} (exact fixed in-degree); "
@@ -1241,7 +1245,7 @@ class Configuration:
             }
         if sharing_mode is not None:
             entry["weight_sharing"] = sharing_mode
-        if sampling in ("bernoulli", "capped_bernoulli", "fixed_indegree"):
+        if sampling in ("bernoulli", "capped_bernoulli", "fixed_indegree", "multinomial"):
             # Stored only when non-default so existing config hashes stay unchanged.
             entry["sampling"] = sampling
         if in_degree is not None:

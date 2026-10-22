@@ -589,6 +589,71 @@ def _candidate_pairs_fixed_indegree(
     return list(zip(edge_pre[order].tolist(), edge_post[order].tolist()))
 
 
+def _candidate_pairs_multinomial(
+    pre_ids: list[int],
+    post_ids: list[int],
+    *,
+    probability: Optional[float],
+    allow_self: bool,
+    key: jax.Array,
+) -> list[tuple[int, int]]:
+    """Return exactly ``K = round(p * n_post)`` (pre, post) edge pairs drawn
+    with replacement (multapses allowed).
+
+    Each of the K synapses draws its presynaptic and postsynaptic neuron
+    independently and uniformly, giving binomial in/out-degree; a (pre, post)
+    pair may repeat. ``probability=None`` -> ``p = 1.0``; ``p <= 0`` -> no
+    edges. With ``allow_self=False`` and overlapping pools, self pairs are
+    excluded by rejection top-up to exactly K kept pairs. Sampling is
+    deterministic given ``key`` and never materializes a dense n_pre x n_post
+    pair grid.
+    """
+    n_pre, n_post = len(pre_ids), len(post_ids)
+    if n_pre == 0 or n_post == 0:
+        return []
+    p = 1.0 if probability is None else float(probability)
+    if p <= 0.0:
+        return []
+    k = int(round(p * n_post))
+    if k <= 0:
+        return []
+    pre_arr = np.asarray(pre_ids)
+    post_arr = np.asarray(post_ids)
+    shared = set(map(int, pre_ids)) & set(map(int, post_ids))
+    if allow_self or not shared:
+        # Every flat pair index is valid: draw K flat indices with replacement
+        # and map them arithmetically (no dense pair grid materialized).
+        flat = np.asarray(
+            jax.random.choice(key, n_pre * n_post, shape=(k,), replace=True)
+        )
+        pre_pick, post_pick = np.divmod(flat, n_post)
+        return sorted(zip(pre_arr[pre_pick].tolist(), post_arr[post_pick].tolist()))
+    if n_pre * n_post - len(shared) <= 0:
+        return []  # every candidate pair is a refused self pair
+    # Overlapping pools without self: rejection top-up to exactly k kept
+    # pairs (mirrors the density sampler's bounded top-up structure).
+    kept: list[tuple[int, int]] = []
+    sub = key
+    attempts = 0
+    max_attempts = 40 * k + 100
+    while len(kept) < k and attempts < max_attempts:
+        sub, draw_key = jax.random.split(sub)
+        draw = max((k - len(kept)) * 2, 16)
+        pre_pick = np.asarray(jax.random.randint(draw_key, (draw,), 0, n_pre))
+        post_pick = np.asarray(
+            jax.random.randint(jax.random.fold_in(draw_key, 1), (draw,), 0, n_post)
+        )
+        for a, b in zip(pre_pick, post_pick):
+            a_id, b_id = int(pre_arr[int(a)]), int(post_arr[int(b)])
+            if a_id == b_id:
+                continue
+            kept.append((a_id, b_id))
+            if len(kept) >= k:
+                break
+        attempts += draw
+    return sorted(kept)
+
+
 def _spatial_bucket_key(pos: np.ndarray, cell_size: float) -> tuple[int, int, int]:
     return tuple(int(math.floor(c / cell_size)) for c in pos)
 
@@ -852,7 +917,10 @@ def compile_connection_rules(
     presynaptic partners uniformly without replacement via
     :func:`_candidate_pairs_fixed_indegree`; it needs ``in_degree`` and
     refuses ``probability``, ``max_in_degree``, ``footprint`` and the
-    Bernoulli samplings). Any other ``sampling`` value raises ``ValueError``.
+    Bernoulli samplings) or ``"multinomial"`` (exactly ``round(p*n_post)``
+    synapses per rule drawn with replacement via
+    :func:`_candidate_pairs_multinomial`; it refuses ``in_degree``).
+    Any other ``sampling`` value raises ``ValueError``.
 
     A rule may set ``delay_ms`` (configured axonal delay in ms, None =
     undeclared): validated here (finite, >= 0), fanned out per edge onto
@@ -938,10 +1006,11 @@ def compile_connection_rules(
         sampling = "density" if sampling is None else sampling
         if not isinstance(sampling, str) or sampling not in (
             "density", "bernoulli", "capped_bernoulli", "fixed_indegree",
+            "multinomial",
         ):
             raise ValueError(
                 f"connection {rname!r} sampling must be 'density', 'bernoulli', "
-                f"'capped_bernoulli' or 'fixed_indegree'; got {sampling!r}"
+                f"'capped_bernoulli', 'fixed_indegree' or 'multinomial'; got {sampling!r}"
             )
         in_degree = _validate_in_degree(rname, rule.get("in_degree"))
         if sampling == "fixed_indegree" and in_degree is None:
@@ -950,7 +1019,7 @@ def compile_connection_rules(
                 "without in_degree; the fixed-indegree sampler draws exactly "
                 "in_degree presynaptic partners per post cell -- declare both"
             )
-        if sampling in ("bernoulli", "capped_bernoulli") and in_degree is not None:
+        if sampling in ("bernoulli", "capped_bernoulli", "multinomial") and in_degree is not None:
             raise ValueError(
                 f"connection {rname!r} sampling={sampling!r} is not implemented "
                 f"with in_degree={in_degree!r} (exact fixed in-degree); "
@@ -970,7 +1039,7 @@ def compile_connection_rules(
                 "in-degree and localized (distance-weighted) sampling are "
                 "mutually exclusive sampling modes -- declare one or neither"
             )
-        if sampling in ("bernoulli", "capped_bernoulli") and rule.get("max_in_degree") is not None:
+        if sampling in ("bernoulli", "capped_bernoulli", "multinomial") and rule.get("max_in_degree") is not None:
             raise ValueError(
                 f"connection {rname!r} sampling={sampling!r} is not implemented with "
                 "max_in_degree (localized sampling); omit one of them"
@@ -1135,6 +1204,14 @@ def compile_connection_rules(
                     allow_self=rule_self,
                     key=rkey,
                 )
+            elif sampling == "multinomial":
+                pairs = _candidate_pairs_multinomial(
+                    pre_ids,
+                    post_ids,
+                    probability=rule.get("probability"),
+                    allow_self=rule_self,
+                    key=rkey,
+                )
             else:
                 pairs = _candidate_pairs(
                     pre_ids,
@@ -1203,7 +1280,7 @@ def compile_connection_rules(
             if "resolution" in inhibition_spec:
                 row["local_inhibition"]["resolution"] = str(
                     inhibition_spec["resolution"])
-        if sampling in ("bernoulli", "capped_bernoulli", "fixed_indegree"):
+        if sampling in ("bernoulli", "capped_bernoulli", "fixed_indegree", "multinomial"):
             # Recorded only when non-default, as in connections(), so density rows are unchanged.
             row["sampling"] = sampling
         connection_table.append(row)
