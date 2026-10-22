@@ -405,6 +405,63 @@ def check_current_route_poisson_drive(poisson: Mapping[str, Any]) -> None:
     )
 
 
+def _compile_grouped_adex_sources(
+    poisson: Mapping[str, Any], targets: Any, rates: list
+) -> tuple[XSource, ...]:
+    # One entry per distinct group rate, in the order given; the declared
+    # n_sources channels split evenly across the groups.
+    if not rates:
+        raise ValueError(f"poisson_drive rate_hz={rates!r} must name at least one rate")
+    seen: set[float] = set()
+    for rate in rates:
+        if not _is_finite_real(rate) or float(rate) < 0.0:
+            raise ValueError(f"poisson_drive rate_hz={rates!r} must hold rates >= 0")
+        if float(rate) in seen:
+            raise ValueError(f"poisson_drive rate_hz={rates!r} must hold distinct rates")
+        seen.add(float(rate))
+    seed = poisson["seed"]
+    if isinstance(seed, bool) or not isinstance(seed, numbers.Integral):
+        raise ValueError(f"poisson_drive seed={seed!r} must be an int")
+    total = poisson["n_sources"]
+    if (
+        isinstance(total, bool)
+        or not isinstance(total, numbers.Real)
+        or float(total) != float(int(total))
+        or int(total) < 1
+    ):
+        raise ValueError(f"poisson_drive n_sources={total!r} must be an int >= 1")
+    total = int(total)
+    if total % len(rates):
+        raise ValueError(
+            f"poisson_drive n_sources={total!r} must split evenly "
+            f"across {len(rates)} rates"
+        )
+    share = total // len(rates)
+    tail: list[tuple[str, Any]] = [
+        ("weight_nS", float(poisson["weight_nS"])),
+        ("mechanism", str(poisson["mechanism"])),
+        ("delay_ms", float(poisson["delay_ms"])),
+    ]
+    if poisson.get("t_start_ms") is not None or poisson.get("t_stop_ms") is not None:
+        tail.extend(
+            [
+                ("t_start_ms", float(poisson["t_start_ms"])),
+                ("t_stop_ms", float(poisson["t_stop_ms"])),
+            ]
+        )
+    return tuple(
+        XSource(
+            kind="poisson",
+            targets=tuple(str(t) for t in targets),
+            value=float(rate),
+            unit="Hz",
+            schedule=tuple([("n_sources", share), *tail]),
+            seed=int(seed),
+        )
+        for rate in rates
+    )
+
+
 def compile_poisson_sources(
     poisson: Mapping[str, Any] | None,
     *,
@@ -462,6 +519,8 @@ def compile_poisson_sources(
         raise ValueError(
             f"poisson_drive target_cell_types={targets!r} must be a non-empty list of cell types"
         )
+    if isinstance(poisson["rate_hz"], (list, tuple)):
+        return _compile_grouped_adex_sources(poisson, targets, list(poisson["rate_hz"]))
     schedule: list[tuple[str, Any]] = [
         ("n_sources", int(poisson["n_sources"])),
         ("weight_nS", float(poisson["weight_nS"])),

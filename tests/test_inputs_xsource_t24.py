@@ -749,3 +749,74 @@ def test_current_route_window_refused_in_compiler():
             {"rate_hz": 2.0, "t_start_ms": 1.0, "t_stop_ms": 5.0},
             route="current",
         )
+
+
+def _adex_list_drive(**overrides):
+    drive = {
+        "n_sources": 8, "rate_hz": [50.0, 100.0], "weight_nS": 0.3,
+        "mechanism": "ampa", "target_cell_types": ["E"],
+        "delay_ms": 0.1, "seed": 0,
+    }
+    drive.update(overrides)
+    return drive
+
+
+def test_adex_scalar_rate_path_identity():
+    (entry,) = compile_poisson_sources(dict(AD_DRIVE), route="adex")
+    assert entry.value == 4.0
+    assert entry.targets == ("E", "PV")
+    assert entry.seed == 7
+    assert entry.schedule == (
+        ("n_sources", 560), ("weight_nS", 2.5),
+        ("mechanism", "ampa"), ("delay_ms", 2.0),
+    )
+
+
+def test_adex_list_rate_compiles_one_source_per_rate():
+    entries = compile_poisson_sources(_adex_list_drive())
+    assert [e.value for e in entries] == [50.0, 100.0]
+    assert [e.targets for e in entries] == [("E",), ("E",)]
+    assert [e.seed for e in entries] == [0, 0]
+    assert [e.schedule for e in entries] == [
+        (("n_sources", 4), ("weight_nS", 0.3),
+         ("mechanism", "ampa"), ("delay_ms", 0.1)),
+        (("n_sources", 4), ("weight_nS", 0.3),
+         ("mechanism", "ampa"), ("delay_ms", 0.1)),
+    ]
+
+
+def test_adex_list_rate_negative_refused():
+    with pytest.raises(ValueError, match=">= 0"):
+        compile_poisson_sources(_adex_list_drive(rate_hz=[50.0, -1.0]))
+
+
+def test_adex_list_rate_non_finite_refused():
+    with pytest.raises(ValueError, match=">= 0"):
+        compile_poisson_sources(_adex_list_drive(rate_hz=[50.0, float("nan")]))
+    with pytest.raises(ValueError, match=">= 0"):
+        compile_poisson_sources(_adex_list_drive(rate_hz=[float("inf"), 100.0]))
+
+
+def test_adex_list_rate_non_int_seed_refused():
+    with pytest.raises(ValueError, match="must be an int"):
+        compile_poisson_sources(_adex_list_drive(seed=1.5))
+
+
+def test_adex_list_rate_uneven_split_refused():
+    with pytest.raises(ValueError, match="evenly"):
+        compile_poisson_sources(_adex_list_drive(n_sources=7))
+
+
+def test_adex_list_rate_duplicate_refused():
+    with pytest.raises(ValueError, match="distinct"):
+        compile_poisson_sources(_adex_list_drive(rate_hz=[50.0, 50.0]))
+
+
+def test_adex_list_rate_empty_refused():
+    with pytest.raises(ValueError, match="at least one"):
+        compile_poisson_sources(_adex_list_drive(rate_hz=[]))
+
+
+def test_current_route_list_rate_refused():
+    with pytest.raises(ValueError, match=">= 0"):
+        compile_poisson_sources({"rate_hz": [50.0, 100.0]}, route="current")
