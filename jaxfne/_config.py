@@ -1027,6 +1027,8 @@ class Configuration:
         in_degree: Optional[int] = None,
         spatial_sigma: Optional[float] = None,
         delay_ms: Optional[float] = None,
+        weight_std: Optional[float] = None,
+        delay_std_ms: Optional[float] = None,
         intra_step_rounds: Optional[int] = None,
         sampling: str = "density",
         footprint: Optional[Mapping[str, Any]] = None,
@@ -1079,7 +1081,17 @@ class Configuration:
         ``round(delay_ms / dt_ms)`` (0.5.2 decision 0b) at the configuration's
         ``dt_ms``, and both the configured ms and the realized steps are
         recorded. A positive delay rounding to 0 steps is refused rather than
-        dropped. ``intra_step_rounds`` (None = undeclared = current behaviour)
+        dropped. ``weight_std`` (None = undeclared = one constant weight per
+        rule) is the per-rule Gaussian weight spread in native units: the
+        mechanism-aware compiler draws one weight per edge around the scalar
+        ``weight`` mean and folds sub-zero draws at zero (fixed sign).
+        ``delay_std_ms`` (None = undeclared = one constant delay per rule) is
+        the per-rule Gaussian delay spread in ms: the mechanism-aware compiler
+        draws one delay per edge around the scalar ``delay_ms`` mean (which it
+        requires) and folds sub-zero draws at zero (positive delays). Both
+        spreads are refused on the sign-only fallback path (fail-closed: that
+        compiler has no spread consumer), and a non-scalar ``weight`` with
+        ``weight_std`` is refused by the compiler. ``intra_step_rounds`` (None = undeclared = current behaviour)
         declares the intra-step fixed point for this connection on the adex
         route: a positive int R admitting a ``delay_ms`` that rounds to 0 steps
         on that connection only (delay 0 means "resolved inside the step"; R
@@ -1132,6 +1144,28 @@ class Configuration:
                 raise ValueError(
                     f"connection {name!r} delay_ms must be finite and >= 0; got {delay_ms!r}"
                 )
+        for _key, _val in (("weight_std", weight_std), ("delay_std_ms", delay_std_ms)):
+            if _val is None:
+                continue
+            if isinstance(_val, bool) or isinstance(_val, str):
+                raise ValueError(
+                    f"connection {name!r} {_key} must be a finite number >= 0; got {_val!r}"
+                )
+            try:
+                _std = float(_val)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"connection {name!r} {_key} must be a finite number >= 0; got {_val!r}"
+                )
+            if not math.isfinite(_std) or _std < 0.0:
+                raise ValueError(
+                    f"connection {name!r} {_key} must be finite and >= 0; got {_val!r}"
+                )
+        if delay_std_ms is not None and delay_ms is None:
+            raise ValueError(
+                f"connection {name!r} declares delay_std_ms={delay_std_ms!r} without "
+                "delay_ms; the spread draws around one scalar mean -- declare both"
+            )
         if not isinstance(sampling, str) or sampling not in {
             "density", "bernoulli", "capped_bernoulli", "fixed_indegree",
             "multinomial",
@@ -1232,6 +1266,12 @@ class Configuration:
             "delay_ms": float(delay_ms) if delay_ms is not None else None,
             "status": "declared_not_compiled",
         }
+        if weight_std is not None:
+            # Stored only when declared so existing config hashes stay unchanged.
+            entry["weight_std"] = float(weight_std)
+        if delay_std_ms is not None:
+            # Stored only when declared so existing config hashes stay unchanged.
+            entry["delay_std_ms"] = float(delay_std_ms)
         if intra_step_rounds is not None:
             # Stored only when declared so existing config hashes stay unchanged.
             entry["intra_step_rounds"] = validate_rounds(

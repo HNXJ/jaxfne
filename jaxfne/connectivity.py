@@ -91,6 +91,42 @@ def _validate_rule_delay_ms(rule_name: str, delay: Any) -> "float | None":
     return ms
 
 
+#: ``jax.random.fold_in`` tags for the per-rule spread streams. Pair selection
+#: consumes ``rkey`` and scalar/random weight modes consume ``fold_in(rkey, 1)``,
+#: so weight and delay spreads fold 2 and 3: declaring a spread perturbs no
+#: pre-existing stream and omitting one leaves every stream byte-identical.
+_WEIGHT_SPREAD_FOLD = 2
+_DELAY_SPREAD_FOLD = 3
+
+
+def _validate_spread_std(rule_name: str, value: Any, key: str) -> "float | None":
+    """Validate one connection rule's per-edge spread (``weight_std``/``delay_std_ms``).
+
+    None = undeclared = one constant per rule (current behaviour); a declared
+    value must be a finite real number >= 0 (bools and strings refused, never
+    coerced). Negative or non-finite values are refused, never clamped.
+    """
+    if value is None:
+        return None
+    if isinstance(value, bool) or isinstance(value, str):
+        raise ValueError(
+            f"connection {rule_name!r} {key} must be a finite number >= 0; "
+            f"got {value!r}"
+        )
+    try:
+        std = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"connection {rule_name!r} {key} must be a finite number >= 0; "
+            f"got {value!r}"
+        )
+    if not math.isfinite(std) or std < 0.0:
+        raise ValueError(
+            f"connection {rule_name!r} {key} must be finite and >= 0; got {value!r}"
+        )
+    return std
+
+
 def _validate_in_degree(rule_name: str, in_degree: Any) -> "int | None":
     """Validate one connection rule's exact fixed ``in_degree`` (or pass None through).
 
@@ -190,15 +226,48 @@ class ConnectionCompileResult:
                 if self.edge_delay_ms is not None
                 else _np.zeros((self.n_edges,), dtype=_np.float64)
             )
-            # Realize each distinct delay once; every value is still checked.
-            uniq, inverse = _np.unique(ms, return_inverse=True)
-            steps = _np.asarray(
-                [delay_steps_from_ms(float(v), float(dt_ms)) for v in uniq], dtype=_np.int32
-            ).reshape(-1)
-            delay_steps = jnp.asarray(
-                steps[inverse.reshape(-1)] if ms.size else _np.zeros((0,), _np.int32),
-                dtype=jnp.int32,
-            )
+            spread_rules = {
+                i
+                for i, row in enumerate(self.connection_table)
+                if isinstance(row, Mapping) and row.get("delay_std_ms") is not None
+            }
+            if not spread_rules:
+                # Realize each distinct delay once; every value is still checked.
+                uniq, inverse = _np.unique(ms, return_inverse=True)
+                steps = _np.asarray(
+                    [delay_steps_from_ms(float(v), float(dt_ms)) for v in uniq], dtype=_np.int32
+                ).reshape(-1)
+                delay_steps = jnp.asarray(
+                    steps[inverse.reshape(-1)] if ms.size else _np.zeros((0,), _np.int32),
+                    dtype=jnp.int32,
+                )
+            else:
+                # Spread rules drew per-edge delays (folded >= 0 at compile):
+                # each draw snaps half-up like the constant path, except a
+                # positive draw inside one timestep floors to 1 step instead
+                # of raising (the constant path keeps the refusal). Exact-zero
+                # draws stay 0 steps. Non-spread edges keep the exact path.
+                import math as _math
+
+                rule_of = _np.asarray(self.edge_rule_id,
+                                      dtype=_np.int64).reshape(-1)
+                steps = _np.zeros(ms.shape, dtype=_np.int32)
+                plain = _np.array([int(r) not in spread_rules for r in rule_of])
+                if bool(_np.any(plain)):
+                    uniq, inverse = _np.unique(ms[plain], return_inverse=True)
+                    psteps = _np.asarray(
+                        [delay_steps_from_ms(float(v), float(dt_ms)) for v in uniq],
+                        dtype=_np.int32,
+                    ).reshape(-1)
+                    steps[plain] = psteps[inverse.reshape(-1)]
+                dt = float(dt_ms)
+                for idx in _np.where(~plain)[0]:
+                    v = float(ms[idx])
+                    if v == 0.0:
+                        steps[idx] = 0
+                    else:
+                        steps[idx] = max(1, int(_math.floor(v / dt + 0.5)))
+                delay_steps = jnp.asarray(steps, dtype=jnp.int32)
         return EdgeList(
             pre=jnp.asarray(self.edge_pre, dtype=jnp.int32),
             post=jnp.asarray(self.edge_post, dtype=jnp.int32),
@@ -1247,13 +1316,54 @@ def compile_connection_rules(
             rule_name=rname,
             artifacts=artifacts,
         )
-        for (a, b), w in zip(pairs, weights):
-            all_pre.append(int(a))
-            all_post.append(int(b))
-            all_weight.append(float(w))
-            all_mech.append(int(mech_idx))
-            all_rule.append(int(rule_id))
-            all_delay_ms.append(0.0 if rule_delay_ms is None else float(rule_delay_ms))
+        # Per-rule Gaussian spreads (G-WDIST/G-DDIST): one Normal draw per
+        # edge from the rule's own stream, absolute-value folded at zero so
+        # the paper's fixed sign (SOURCE_P1.md section 2: Gaussian w +- delta_w
+        # sign-preserving; Gaussian d +- delta_d positive) holds per edge.
+        # Undeclared spreads keep the constant path above byte-identical.
+        weight_std = _validate_spread_std(rname, rule.get("weight_std"), "weight_std")
+        if weight_std is not None:
+            w_spec = rule.get("weight")
+            if w_spec is not None and (
+                isinstance(w_spec, bool) or not isinstance(w_spec, (int, float))
+            ):
+                raise ValueError(
+                    f"connection {rname!r} declares weight_std={weight_std!r} with "
+                    f"a non-scalar weight={w_spec!r}; the spread draws around one "
+                    "scalar mean -- declare a scalar weight or neither"
+                )
+            mean = 0.0 if w_spec is None else float(w_spec)
+            noise = np.asarray(
+                jax.random.normal(jax.random.fold_in(rkey, _WEIGHT_SPREAD_FOLD),
+                                  (len(pairs),)), dtype=np.float64)
+            weights = np.abs(mean + float(weight_std) * noise)
+        delay_std = _validate_spread_std(
+            rname, rule.get("delay_std_ms"), "delay_std_ms")
+        if delay_std is not None and rule_delay_ms is None:
+            raise ValueError(
+                f"connection {rname!r} declares delay_std_ms={delay_std!r} without "
+                "delay_ms; the spread draws around one scalar mean -- declare both"
+            )
+        if delay_std is None:
+            for (a, b), w in zip(pairs, weights):
+                all_pre.append(int(a))
+                all_post.append(int(b))
+                all_weight.append(float(w))
+                all_mech.append(int(mech_idx))
+                all_rule.append(int(rule_id))
+                all_delay_ms.append(0.0 if rule_delay_ms is None else float(rule_delay_ms))
+        else:
+            dnoise = np.asarray(
+                jax.random.normal(jax.random.fold_in(rkey, _DELAY_SPREAD_FOLD),
+                                  (len(pairs),)), dtype=np.float64)
+            draws = np.abs(float(rule_delay_ms) + float(delay_std) * dnoise)
+            for (a, b), w, dd in zip(pairs, weights, draws):
+                all_pre.append(int(a))
+                all_post.append(int(b))
+                all_weight.append(float(w))
+                all_mech.append(int(mech_idx))
+                all_rule.append(int(rule_id))
+                all_delay_ms.append(float(dd))
         row = {
             "name": rname,
             "n_pre": len(pre_ids),
@@ -1268,6 +1378,11 @@ def compile_connection_rules(
             "delay_ms": rule_delay_ms,
             "status": "compiled",
         }
+        if weight_std is not None:
+            # Echoed only when declared so undeclared rows stay byte-identical.
+            row["weight_std"] = weight_std
+        if delay_std is not None:
+            row["delay_std_ms"] = delay_std
         if footprint_spec is not None:
             # Echoed so the realized geometry stays inspectable; the
             # per-edge groups align with this rule's edges (global indices

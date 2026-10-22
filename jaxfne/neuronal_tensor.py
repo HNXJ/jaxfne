@@ -264,6 +264,18 @@ class PlasticParams:
         0.0  # legacy "homeostatic H-factor" seeding label (kernel-specific; see docstring above)
     )
     value_tag: ValueTag = "relative"
+    # Per-rule Gaussian weight spread in native units (None = undeclared = one
+    # constant weight per rule). When set, the mechanism-aware compiler draws
+    # one weight per edge around the scalar rule mean and folds sub-zero
+    # draws at zero (fixed sign); refused on routes with no spread consumer.
+    # Trailing field so existing positional constructions keep their bindings.
+    w_std: "float | None" = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self, "w_std",
+            _check_spread_std(self.w_std, label="PlasticParams", key="w_std"),
+        )
 
 
 def _check_conduction_velocity(
@@ -357,6 +369,32 @@ def _check_connection_allow_self(allow_self: "bool | None", *, label: str) -> "b
             f"{label} allow_self must be a bool; got {allow_self!r}"
         )
     return allow_self
+
+
+def _check_spread_std(value: "float | None", *, label: str, key: str) -> "float | None":
+    """Validate one per-rule Gaussian spread width shared by the spread fields.
+
+    None = undeclared = one constant per rule (current behaviour); a declared
+    value must be a finite real number >= 0 (bools and strings refused, never
+    coerced). Negative or non-finite values are refused, never clamped.
+    """
+    if value is None:
+        return None
+    if isinstance(value, bool) or isinstance(value, str):
+        raise ValueError(
+            f"{label} {key} must be a finite number >= 0; got {value!r}"
+        )
+    try:
+        std = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"{label} {key} must be a finite number >= 0; got {value!r}"
+        )
+    if not (math.isfinite(std) and std >= 0.0):
+        raise ValueError(
+            f"{label} {key} must be finite and >= 0; got {value!r}"
+        )
+    return std
 
 
 #: Sampling modes the compiler honours per connection rule (None = undeclared
@@ -788,6 +826,13 @@ class AreaConnection:
     # Same-step local inhibition (None = undeclared). Same semantics as
     # InterConnection.local_inhibition: the ruled B3 intra-step fixed point.
     local_inhibition: "dict | None" = None
+    # Per-rule Gaussian delay spread in ms (None = undeclared = one constant
+    # delay per rule). When set, the mechanism-aware compiler draws one delay
+    # per edge around ``delay_ms`` and folds sub-zero draws at zero (positive
+    # delays); requires ``delay_ms`` and refuses
+    # ``conduction_velocity_m_per_s``. No consumer exists on the conductance
+    # (adex) route, so a declared value there is refused.
+    delay_std_ms: "float | None" = None
 
     def __post_init__(self) -> None:
         import math as _math
@@ -813,6 +858,24 @@ class AreaConnection:
                 label="AreaConnection",
             ),
         )
+        object.__setattr__(
+            self, "delay_std_ms",
+            _check_spread_std(self.delay_std_ms, label="AreaConnection", key="delay_std_ms"),
+        )
+        if self.delay_std_ms is not None and self.delay_ms is None:
+            raise ValueError(
+                "AreaConnection declares "
+                f"delay_std_ms={self.delay_std_ms!r} without delay_ms; the spread "
+                "draws around one scalar mean — declare both"
+            )
+        if self.delay_std_ms is not None and self.conduction_velocity_m_per_s is not None:
+            raise ValueError(
+                "AreaConnection declares "
+                f"delay_std_ms={self.delay_std_ms!r} with "
+                "conduction_velocity_m_per_s="
+                f"{self.conduction_velocity_m_per_s!r}; one constant mean plus a "
+                "per-edge geometry field is ambiguous — declare one or neither"
+            )
         _refuse_delay_and_velocity(
             self.delay_ms, self.conduction_velocity_m_per_s, label="AreaConnection"
         )
@@ -1202,8 +1265,10 @@ class NeuronalTensor:
                     _drop_defaults(nt_d, _NEURON_TYPE_DEFAULTS_056)
             for conn in area.get("inter_connections", []):
                 _drop_defaults(conn, _CONNECTION_DEFAULTS_056)
+                _drop_defaults(conn.get("plastic", {}), _PLASTIC_DEFAULTS_056)
         for conn in d.get("area_connections", []):
             _drop_defaults(conn, _CONNECTION_DEFAULTS_056)
+            _drop_defaults(conn.get("plastic", {}), _PLASTIC_DEFAULTS_056)
         # T-25: same idiom for the trained-W0 surface. A default-declared
         # provenance compares equal to its plain-data default and is dropped;
         # an absent trained vector is dropped (a present one persists as data).
@@ -1226,6 +1291,7 @@ _DECLARED_W0_PROVENANCE_DICT = {
 
 
 _NEURON_TYPE_DEFAULTS_056 = {"emitter": None, "emitter_params": None, "drive": None}
+_PLASTIC_DEFAULTS_056 = {"w_std": None}
 _CONNECTION_DEFAULTS_056 = {
     "conduction_velocity_m_per_s": None,
     "length_unit": "mm",
@@ -1237,6 +1303,7 @@ _CONNECTION_DEFAULTS_056 = {
     "footprint": None,
     "weight_sharing": None,
     "local_inhibition": None,
+    "delay_std_ms": None,
 }
 
 
@@ -1420,6 +1487,7 @@ def _load_neuronal_tensor_impl(
                 plastic=PlasticParams(**ac.get("plastic", {})),
                 # Saved by to_dict/asdict; dropped on load before 0.5.5.
                 delay_ms=ac.get("delay_ms"),
+                delay_std_ms=ac.get("delay_std_ms"),
                 probability=ac.get("probability"),
                 conduction_velocity_m_per_s=ac.get("conduction_velocity_m_per_s"),
                 length_unit=ac.get("length_unit", "mm"),
@@ -2942,6 +3010,28 @@ def _wire_connection(
         # Validated at declaration; needs footprint (refused without it at
         # declaration and again at compile time).
         wire_kw["weight_sharing"] = str(conn_sharing)
+    conn_w_std = getattr(conn.plastic, "w_std", None)
+    if conn_w_std is not None:
+        # Validated at declaration (finite, >= 0); the mechanism-aware
+        # compiler draws one weight per edge around the scalar rule mean.
+        if conn_sharing is not None:
+            raise ValueError(
+                f"{label} declares w_std={conn_w_std!r} with "
+                f"weight_sharing={conn_sharing!r}; a per-edge spread has no "
+                "shared-row consumer — declare one or neither"
+            )
+        wire_kw["weight_std"] = float(conn_w_std)
+    conn_delay_std = getattr(conn, "delay_std_ms", None)
+    if conn_delay_std is not None:
+        # Validated at declaration (finite, >= 0, with delay_ms and without a
+        # velocity); the mechanism-aware compiler draws one delay per edge
+        # around the scalar rule mean.
+        if conn_delay is None:
+            raise ValueError(
+                f"{label} declares delay_std_ms={conn_delay_std!r} without "
+                "delay_ms; the spread draws around one scalar mean — declare both"
+            )
+        wire_kw["delay_std_ms"] = float(conn_delay_std)
     cfg = cfg.connections(
         name=rule_name,
         source={
@@ -3054,6 +3144,18 @@ def _wire_adex_connection(
             "the conductance (adex) route has no footprint-rule consumer "
             "(deterministic retinotopic pairs are refused there: only None "
             "is admitted) — leave footprint undeclared there"
+        )
+    if getattr(conn.plastic, "w_std", None) is not None:
+        raise ValueError(
+            f"{label} declares w_std={getattr(conn.plastic, 'w_std')!r}; "
+            "the conductance (adex) route has no per-edge weight-spread consumer "
+            "(only None is admitted) — leave w_std undeclared there"
+        )
+    if getattr(conn, "delay_std_ms", None) is not None:
+        raise ValueError(
+            f"{label} declares delay_std_ms={getattr(conn, 'delay_std_ms')!r}; "
+            "the conductance (adex) route has no per-edge delay-spread consumer "
+            "(only None is admitted) — leave delay_std_ms undeclared there"
         )
     if conn.allow_self is True and conn.conduction_velocity_m_per_s is not None:
         raise ValueError(

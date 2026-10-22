@@ -234,7 +234,6 @@ def test_gap_per_population_drive():
         "targeted drive must simulate"
 
 
-@pytest.mark.xfail(strict=True, reason="G-WDIST: no per-rule weight spread")
 def test_gap_weight_distribution():
     """Paper weights are Gaussian w +- delta_w, sign-preserving
     (SOURCE_P1.md section 2); the core realizes one constant per rule.
@@ -266,7 +265,6 @@ def test_gap_weight_distribution():
     assert model is not None, "weight spread must construct"
 
 
-@pytest.mark.xfail(strict=True, reason="G-DDIST: no per-rule delay spread")
 def test_gap_delay_distribution():
     """Paper delays are Gaussian d +- delta_d, sign-preserving and snapped
     to the grid (SOURCE_P1.md section 2); the core fans one constant per
