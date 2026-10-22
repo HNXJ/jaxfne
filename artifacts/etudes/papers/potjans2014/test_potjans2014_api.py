@@ -196,7 +196,6 @@ def test_gap_multapse_sampler():
     assert model is not None, "multapse sampler must construct"
 
 
-@pytest.mark.xfail(strict=True, reason="G-TAUSYN: no synaptic current filter")
 def test_gap_tau_syn_filter():
     """Paper PSCs decay with tau_syn = 0.5 ms (SOURCE_P1.md section 1); the
     lif route sums delta arrivals with no filter. Proposed: tau_syn_ms LIF

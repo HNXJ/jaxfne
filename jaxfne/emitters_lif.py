@@ -57,17 +57,19 @@ LIF_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
         "tau_m_ms": 18.0, "v_thresh_mV": 10.0, "v_reset_mV": -10.0,
         "v_min_mV": -20.0, "eta_rp_mV": 10.0, "tau_rp_ms": 5.0,
         "tau_sra_ms": 100.0, "delta_sra_mV": 0.0, "t_ref_ms": 0.0,
+        "tau_syn_ms": 0.0,
     },
     "complex": {
         "tau_m_ms": 50.0, "v_thresh_mV": 3.0, "v_reset_mV": -10.0,
         "v_min_mV": -20.0, "eta_rp_mV": 10.0, "tau_rp_ms": 5.0,
         "tau_sra_ms": math.inf, "delta_sra_mV": 0.0, "t_ref_ms": 0.0,
+        "tau_syn_ms": 0.0,
     },
 }
 
 _PARAM_FIELDS = (
     "tau_m_ms", "v_thresh_mV", "v_reset_mV", "v_min_mV", "eta_rp_mV", "tau_rp_ms",
-    "tau_sra_ms", "delta_sra_mV", "t_ref_ms",
+    "tau_sra_ms", "delta_sra_mV", "t_ref_ms", "tau_syn_ms",
 )
 
 
@@ -83,6 +85,7 @@ class LIFParams(NamedTuple):
     tau_sra_ms: jax.Array
     delta_sra_mV: jax.Array
     t_ref_ms: jax.Array
+    tau_syn_ms: jax.Array
     labels: tuple[str, ...]
 
 
@@ -100,6 +103,25 @@ def _check_t_ref_ms(value: float, *, label: str) -> float:
     if not math.isfinite(v) or v < 0.0:
         raise ValueError(
             f"{label} t_ref_ms must be a finite number >= 0 in ms; got {value!r}"
+        )
+    return v
+
+
+def _check_tau_syn_ms(value: float, *, label: str) -> float:
+    """Synaptic current time constant in ms: finite and > 0 when declared.
+
+    ``0.0`` is the unset default (the delta-summing path), so a declared
+    ``tau_syn_ms`` must clear zero: non-positive, non-finite and non-real
+    values are refused, never coerced (mirrors the t_ref_ms validator).
+    """
+    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+        raise ValueError(
+            f"{label} tau_syn_ms must be a finite number > 0 in ms; got {value!r}"
+        )
+    v = float(value)
+    if not math.isfinite(v) or v <= 0.0:
+        raise ValueError(
+            f"{label} tau_syn_ms must be a finite number > 0 in ms; got {value!r}"
         )
     return v
 
@@ -139,6 +161,11 @@ def make_lif_params(
         if "t_ref_ms" in fields:
             _check_t_ref_ms(
                 fields["t_ref_ms"],
+                label=f"lif_overrides[{ctype!r}]",
+            )
+        if "tau_syn_ms" in fields:
+            _check_tau_syn_ms(
+                fields["tau_syn_ms"],
                 label=f"lif_overrides[{ctype!r}]",
             )
     columns = {}
@@ -423,7 +450,7 @@ def _lif_dtype(dtype: str):
 class LIFNetworkParams:
     """Per-neuron PCL LIF parameters for a constructed population.
 
-    The nine ``*_ms``/``*_mV`` arrays are the :func:`make_lif_params` columns
+    The ten ``*_ms``/``*_mV`` arrays are the :func:`make_lif_params` columns
     in population order; ``drive`` is constant current (mV added every step)
     per neuron; ``sign``/``W``/``labels``/``layer_labels`` mirror the fields
     the shared construction machinery reads (edge compilers, triple-drive
@@ -440,6 +467,7 @@ class LIFNetworkParams:
     tau_sra_ms: jax.Array
     delta_sra_mV: jax.Array
     t_ref_ms: jax.Array
+    tau_syn_ms: jax.Array
     drive: jax.Array
     sign: jax.Array
     W: jax.Array
@@ -459,7 +487,7 @@ class LIFNetworkParams:
             v_reset_mV=self.v_reset_mV, v_min_mV=self.v_min_mV,
             eta_rp_mV=self.eta_rp_mV, tau_rp_ms=self.tau_rp_ms,
             tau_sra_ms=self.tau_sra_ms, delta_sra_mV=self.delta_sra_mV,
-            t_ref_ms=self.t_ref_ms,
+            t_ref_ms=self.t_ref_ms, tau_syn_ms=self.tau_syn_ms,
             labels=self.labels,
         )
 
@@ -484,7 +512,7 @@ def lif_network_params_from_labels(
     :func:`lif_sign_of`, which refuses a label outside ``LIF_LABEL_SIGN``. ``drive_overrides``
     maps a label to constant drive (mV/step); unmentioned labels default to
     ``LIF_DEFAULT_DRIVE_MV``. ``lif_overrides`` maps a label to a dict of the
-    nine :data:`_PARAM_FIELDS` fields. Unknown override labels and unknown
+    ten :data:`_PARAM_FIELDS` fields. Unknown override labels and unknown
     fields raise ``ValueError``; an override label matching no neuron is
     refused unless it names a PCL cell type or a built label is its fallback
     target (mirrors the declared-but-rounded-away acceptance elsewhere).
@@ -515,6 +543,8 @@ def lif_network_params_from_labels(
                 )
         if "t_ref_ms" in fields:
             _check_t_ref_ms(fields["t_ref_ms"], label=f"lif_overrides[{lab!r}]")
+        if "tau_syn_ms" in fields:
+            _check_tau_syn_ms(fields["tau_syn_ms"], label=f"lif_overrides[{lab!r}]")
     columns: dict[str, list[float]] = {f: [] for f in _PARAM_FIELDS}
     drive: list[float] = []
     sign: list[float] = []
@@ -1393,6 +1423,13 @@ def _run_event_scan_branch(
             "H0 is set but resolution is 'event_scan'; the replay carries "
             "no rule state"
         )
+    tau_scan = np.asarray(params.tau_syn_ms, dtype=np.float64)
+    if bool((tau_scan > 0).any()):
+        raise ValueError(
+            "tau_syn_ms is set but resolution is 'event_scan'; the replay "
+            "excites cells event by event with exact inter-event decay, no "
+            "binned current filter — leave tau_syn_ms undeclared"
+        )
     dt_us_f = float(dt_ms) * 1000.0
     if dt_us_f != math.floor(dt_us_f) or dt_us_f < 1:
         raise ValueError(
@@ -1523,6 +1560,16 @@ def simulate_lif_edge(
     arrival counts, so no refractory term is subtracted for it (Gap-1
     drive numerics are unchanged by the feed channels below).
 
+    ``params.tau_syn_ms`` (per neuron, 0 when undeclared) is the first-order
+    synaptic current filter ``dg/dt = -g/tau_syn + sum arrivals``
+    (Potjans G-TAUSYN; paper ``tau_syn = 0.5 ms``): each step's edge
+    arrivals and ``feed_current`` sum into ``g`` after its
+    ``exp(-dt/tau_syn)`` decay, and ``g`` (not the raw deltas) enters the
+    input current. Arrival counts still subtract one ``R + A`` each, as
+    before. ``0.0`` everywhere runs the historical delta-summing path bit
+    for bit (the update is skipped, not computed); the exact event-scan
+    replay refuses a set ``tau_syn_ms`` (it has no binned current).
+
     ``feed_current``/``feed_arrivals`` (each None, or shape ``[n_steps,
     N]``) are the DVS cover-table feed as part of the input drive ``x``:
     per-step summed synaptic weights and per-step fed-event counts of the
@@ -1571,6 +1618,21 @@ def simulate_lif_edge(
 
     N = int(jnp.shape(params.tau_m_ms)[0])
     dtype = jnp.asarray(params.tau_m_ms).dtype
+    tau_col = jnp.asarray(params.tau_syn_ms, dtype)
+    if tuple(tau_col.shape) != (N,):
+        raise ValueError(
+            f"params tau_syn_ms must have shape ({N},); got {tuple(tau_col.shape)}"
+        )
+    tau_np = np.asarray(tau_col, dtype=np.float64)
+    if not bool(np.all(np.isfinite(tau_np))) or bool((tau_np < 0).any()):
+        raise ValueError("params tau_syn_ms must be finite and >= 0 (0 runs the delta path)")
+    use_filter = bool((tau_np > 0).any())
+    has_tau = tau_col > 0
+    decay_syn = jnp.where(
+        has_tau,
+        jnp.exp(-float(dt_ms) / jnp.maximum(tau_col, 1e-12)),
+        jnp.zeros((), dtype),
+    )
 
     edges = _check_edges(
         N,
@@ -1805,7 +1867,7 @@ def simulate_lif_edge(
     dt = jnp.asarray(dt_ms, dtype=dtype)
 
     def body(carry, I_t):
-        V, A, t_last, w, H, aux, bias, ring, prev_spk, t_idx = carry
+        V, A, t_last, w, H, aux, bias, ring, prev_spk, t_idx, g = carry
         t = t0 + t_idx * float(dt_ms)
         if E:
             arrived = ring[(t_idx - lag_j) % L, pre_j]
@@ -1816,9 +1878,16 @@ def simulate_lif_edge(
             I_net = jnp.zeros((N,), dtype)
             n_net = jnp.zeros((N,), dtype)
         I_tot = I_const if I_t is None else I_t
-        I_tot = I_tot + I_net
-        if F_cur is not None:
-            I_tot = I_tot + F_cur[t_idx]
+        if use_filter:
+            syn = I_net
+            if F_cur is not None:
+                syn = syn + F_cur[t_idx]
+            g = g * decay_syn + syn
+            I_tot = I_tot + g
+        else:
+            I_tot = I_tot + I_net
+            if F_cur is not None:
+                I_tot = I_tot + F_cur[t_idx]
         if F_arr is not None:
             n_net = n_net + F_arr[t_idx]
         if use_b:
@@ -1881,7 +1950,7 @@ def simulate_lif_edge(
                     bias = jnp.clip(bias + dt * db, b_min, b_max)
         ring = ring.at[t_idx % L].set(spk)
         out = (spk, V_n) if record_v else spk
-        return (V_n, A_n, t_n, w, H, aux, bias, ring, spk, t_idx + 1), out
+        return (V_n, A_n, t_n, w, H, aux, bias, ring, spk, t_idx + 1, g), out
 
     if descriptor is not None:
         Hc, auxc, bc = H0_arr, aux0, jnp.zeros((N,), dtype)
@@ -1890,9 +1959,9 @@ def simulate_lif_edge(
     carry0 = (
         V0, jnp.zeros((N,), dtype), jnp.full((N,), NEVER, dtype),
         w0, Hc, auxc, bc, jnp.zeros((L, N), bool),
-        jnp.zeros((N,), bool), jnp.int32(0),
+        jnp.zeros((N,), bool), jnp.int32(0), jnp.zeros((N,), dtype),
     )
-    (V_f, A_f, t_f, w_f, H_f, aux_f, b_f, _, _, _), ys = jax.lax.scan(
+    (V_f, A_f, t_f, w_f, H_f, aux_f, b_f, _, _, _, _), ys = jax.lax.scan(
         body, carry0, I_all, length=n_steps,
     )
     result: dict[str, Any] = {

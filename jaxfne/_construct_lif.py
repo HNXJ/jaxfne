@@ -111,6 +111,10 @@ def apply_lif_triple_param_overrides(
                 from .emitters_lif import _check_t_ref_ms as _check_tref
 
                 _check_tref(value, label=f"param_overrides[{key!r}]")
+            if field == "tau_syn_ms":
+                from .emitters_lif import _check_tau_syn_ms as _check_tsyn
+
+                _check_tsyn(value, label=f"param_overrides[{key!r}]")
             if (
                 isinstance(value, bool)
                 or not isinstance(value, numbers.Real)
@@ -432,6 +436,7 @@ def construct_lif_tensor_model(
         tau_sra_ms=col("tau_sra_ms"),
         delta_sra_mV=col("delta_sra_mV"),
         t_ref_ms=col("t_ref_ms"),
+        tau_syn_ms=col("tau_syn_ms"),
         drive=drive,
         sign=sign,
         W=jnp.zeros((0, 0), dtype=keep),
