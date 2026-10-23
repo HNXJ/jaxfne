@@ -40,8 +40,10 @@ def _repo_root(start: Path) -> Path:
     raise RuntimeError(f"no pyproject.toml above {start}")
 
 
+# P-025 repo-root guard in the detector-recognized form (five parents up from
+# artifacts/etudes/papers/pcl/port/).
+_ROOT = str(Path(__file__).resolve().parents[5])
 _HERE = Path(__file__).resolve().parent
-_ROOT = str(_repo_root(_HERE))
 if sys.path[:1] != [_ROOT]:
     sys.path.insert(0, _ROOT)
 if str(_HERE) not in sys.path:

@@ -23,7 +23,16 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+# P-025 repo-root guard: pull jaxfne from this checkout, never site-packages.
+_ROOT = str(Path(__file__).resolve().parents[4])
+if sys.path[:1] != [_ROOT]:
+    sys.path.insert(0, _ROOT)
+
 from scripts import lane_kit
+
+import jaxfne as jtfne  # noqa: E402
+
+assert "site-packages" not in jtfne.__file__, "destexhe_api must run the checkout's jaxfne"
 
 from jaxfne.analysis import (
     cv_isi,
