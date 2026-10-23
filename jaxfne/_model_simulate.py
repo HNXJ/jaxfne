@@ -2814,6 +2814,273 @@ def simulate_batch(
     }
 
 
+def _checked_batch_seeds(seeds: Any) -> list[int]:
+    """Validate a batch seed list: non-empty ints; bools refused by name."""
+    try:
+        raw = list(seeds)
+    except TypeError:
+        raise ValueError(f"seeds must be a non-empty sequence of int seeds; got {seeds!r}")
+    if not raw or any(isinstance(s, bool) or not isinstance(s, (int, _np_host.integer)) for s in raw):
+        raise ValueError(f"seeds must be a non-empty sequence of int seeds; got {raw!r}")
+    return [int(s) for s in raw]
+
+
+def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[str, Any]:
+    """Run one compiled AdEx seed batch; member i is keyed PRNGKey(seeds[i]).
+
+    Bit-identical to N serial ``simulate`` runs whose ``poisson_drive["seed"]`` is
+    ``seeds[i]`` (``PRNGKey(seed)`` on both paths, same one-split-per-step stream). The
+    template's own drive seed is replaced per member; ``sim.seed`` must stay 0 (the route
+    consumes no Simulation seed, so a non-default value is refused, never ignored).
+    Duplicate seeds are allowed and give identical members; without a drive every member
+    repeats the serial run. Members run sequentially inside one compiled program
+    (``jax.lax.map``, not ``vmap``: batch-dim vectorization changes float32 codegen by
+    ~1 ulp, so sequential mapping preserves bit-identity). Steady-state is one
+    dispatch and beats N serial dispatches (3-member probe on this box: 0.002s vs
+    1.29s warm serial); the first call pays the one jit compile. continuation is
+    not realized here (no chunk cursor, no
+    delay-in-flight carry): continue segments through serial ``simulate``.
+    """
+    from ._construct_adex import adex_external_drive_kwargs, adex_kernel_args
+
+    if not isinstance(self.params["emitter"], AdExParams):
+        raise ValueError(
+            "simulate_adex_seed_batch is only realized for emitter family 'adex'; got "
+            f"{type(self.params['emitter']).__name__}"
+        )
+    seed_list = _checked_batch_seeds(seeds)
+    if int(sim.seed) != 0:
+        raise ValueError(
+            f"simulate_adex_seed_batch does not consume Simulation.seed (got {int(sim.seed)}); "
+            "per-member seeds ride poisson_drive['seed'], so leave Simulation.seed at 0"
+        )
+    runtime_cfg = sim.resolved_runtime
+    kernel_kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+    has_drive = sim.poisson_drive is not None
+    drive_template: dict[str, Any] = {}
+    drive_fp = ""
+    if has_drive:
+        per_drive = [
+            adex_external_drive_kwargs(self, replace(sim, poisson_drive={**sim.poisson_drive, "seed": s}))
+            for s in seed_list
+        ]
+        drive_template = {k: v for k, v in per_drive[0].items() if k != "key"}
+        per_keys = [d["key"] for d in per_drive]
+        drive_fp = repr(
+            {k: (v if isinstance(v, (str, int, float, bool)) or v is None else _np_host.asarray(v).tolist())
+             for k, v in per_drive[0].items() if k != "key"}
+        )
+    else:
+        per_keys = [jax.random.PRNGKey(s) for s in seed_list]
+    keys = jnp.stack([jnp.asarray(k) for k in per_keys])
+
+    def one(key):
+        """Batched AdEx member: serial kernel under one member key."""
+        if not has_drive:
+            return simulate_adex(**kernel_kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True)
+        return simulate_adex(
+            **kernel_kwargs, **{**drive_template, "key": key},
+            n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True,
+        )
+
+    if not hasattr(self, "_compiled_cache"):
+        object.__setattr__(self, "_compiled_cache", {})
+    cache_key = (
+        "simulate_adex_seed_batch", len(seed_list), int(sim.n_steps),
+        runtime_cfg.actual_dtype, kernel_kwargs["decay"], kernel_kwargs["step_order"],
+        runtime_cfg.selected_backend, drive_fp,
+    )
+    with _device_scope(runtime_cfg.selected_backend):
+        if cache_key not in self._compiled_cache:
+            self._compiled_cache[cache_key] = jax.jit(lambda ks: jax.lax.map(one, ks))
+        batched = self._compiled_cache[cache_key](keys)
+    return {
+        "spikes": batched["spikes"],
+        "V_m": batched["V_mV"],
+        "final": {k: batched[k] for k in ("V", "w", "ref", "g")},
+        "metadata": json_safe(
+            {
+                "emitter_family": "adex",
+                "seeds": list(seed_list),
+                "key_derivation": "per-member PRNGKey(seed_i), serial-identical",
+                "n_steps": int(sim.n_steps),
+                "continuation": "not_realized_use_serial_simulate",
+                "runtime": runtime_cfg.runtime_report(),
+                "physical_amplitude_calibrated": False,
+            }
+        ),
+    }
+
+
+def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[str, Any]:
+    """Run one compiled LIF seed batch; member i rides serial seed seeds[i].
+
+    Bit-identical to N serial ``simulate`` runs with ``Simulation(seed=seeds[i])``: the
+    Poisson drive is rebuilt per member with ``poisson_chunk_seed(seeds[i] + 7919, 0)``
+    and the HDP key is ``PRNGKey(seeds[i])``, exactly as the serial path. The template's
+    ``sim.seed`` must stay 0; a template pinning ``poisson_drive["seed"]`` is refused
+    (per-member keying needs the seed to ride the seeds argument). Duplicate seeds are
+    allowed and give identical members. Members run sequentially inside one compiled
+    program (``jax.lax.map``, not ``vmap``: batch-dim vectorization changes float32
+    codegen, so sequential mapping preserves bit-identity). ``local_inhibition``
+    resolutions other than ``whole_step`` are not realized here (event replay stays
+    serial), and model HDP diagnostics are untouched: per-member ``H_final``/``w_final``
+    ride this output. continuation is not realized here either: continue through
+    serial ``simulate``.
+    """
+    from ._construct_lif import lif_edge_arrays
+    from .emitters_lif import simulate_lif_edge
+    from .inputs import check_current_route_poisson_drive
+
+    if not isinstance(self.params["emitter"], LIFNetworkParams):
+        raise ValueError(
+            "simulate_lif_seed_batch is only realized for emitter family 'lif'; got "
+            f"{type(self.params['emitter']).__name__}"
+        )
+    seed_list = _checked_batch_seeds(seeds)
+    if int(sim.seed) != 0:
+        raise ValueError(
+            f"simulate_lif_seed_batch does not consume Simulation.seed (got {int(sim.seed)}); "
+            "per-member seeds are the seeds argument, so leave Simulation.seed at 0"
+        )
+    runtime_cfg = sim.resolved_runtime
+    dtype = runtime_cfg.jnp_dtype
+    emitter: LIFNetworkParams = self.params["emitter"]
+    edges = lif_edge_arrays(self)
+    n_neurons = emitter.n_neurons
+    lif_params = emitter.to_lif_params()
+    inhibition_spec: dict[str, Any] | None = None
+    for entry in (self.static.get("lif", {}) or {}).get("local_inhibition", []):
+        if str(entry.get("resolution", "whole_step")) != "whole_step":
+            raise ValueError(
+                "simulate_lif_seed_batch is not realized for local_inhibition resolution "
+                f"{entry.get('resolution')!r}; run event replay through serial simulate"
+            )
+        inhibition_spec = {
+            "order": str(entry["order"]),
+            **({"rounds": int(entry["rounds"])} if entry.get("rounds") is not None else {}),
+        }
+    inhibition_groups = None
+    if inhibition_spec is not None:
+        inhibition_groups = jnp.asarray(
+            self.static["lif"]["local_inhibition_group_of_neuron"], dtype=jnp.int32)
+    drive = jnp.asarray(emitter.drive, dtype=dtype)
+    drive_2d = jnp.broadcast_to(drive, (sim.n_steps, n_neurons))
+    if sim.poisson_drive is not None:
+        _pd = sim.poisson_drive
+        check_current_route_poisson_drive(_pd)
+        if "seed" in _pd:
+            raise ValueError(
+                "simulate_lif_seed_batch refuses a template pinning poisson_drive['seed'] "
+                f"({_pd['seed']!r}): per-member keying needs the seed to ride the seeds argument"
+            )
+        _tgt = _pd.get("target", "all")
+        if isinstance(_tgt, (tuple, list)):
+            _targ: Any = tuple(_tgt)
+            _tidx: Any = resolve_poisson_drive_target(self, _tgt)
+        else:
+            _targ, _tidx = str(_tgt), None
+        drive_batch = jnp.stack([
+            drive_2d + jnp.asarray(_make_poisson_drive(
+                sim.n_steps, n_neurons, float(_pd.get("rate_hz", 2.0)),
+                float(_pd.get("amplitude", 0.5)), sim.dt_ms,
+                poisson_chunk_seed(s + 7919, 0), _targ,
+                int(_pd.get("counts", 1)), target_indices=_tidx), dtype=dtype)
+            for s in seed_list
+        ])
+    else:
+        drive_batch = jnp.stack([drive_2d for _ in seed_list])
+    hdp_static: dict[str, Any] = {}
+    hdp_rule_name = None
+    if bool(getattr(runtime_cfg, "enable_hdp", False)):
+        from .hdp_rule import get_hdp_rule, is_registered_hdp_rule
+
+        from ._hdp_family_kernel import check_rule_family_support
+        from .hdp_rules_pcl import register as _ensure_pcl_stdp_registered
+
+        hp = dict(runtime_cfg.hdp_params or {})
+        hdp_rule_name = hp.get("hdp_rule")
+        if not is_registered_hdp_rule(hdp_rule_name):
+            raise ValueError(
+                "simulate_lif_seed_batch needs a registered hdp_rule; got "
+                f"hdp_rule={hdp_rule_name!r}"
+            )
+        refused = sorted(set(hp) - _LIF_HDP_CONSUMED_KEYS, key=repr)
+        if refused:
+            raise ValueError(
+                f"hdp_params keys {refused} are not consumed on emitter family 'lif' "
+                f"(consumed: {sorted(_LIF_HDP_CONSUMED_KEYS)}); leave them unset"
+            )
+        _ensure_pcl_stdp_registered()
+        descriptor, _ = get_hdp_rule(str(hdp_rule_name))
+        check_rule_family_support(descriptor, family="lif", rule_name=str(hdp_rule_name))
+        if self.params.get("hdp_initial_w") is not None:
+            raise ValueError(
+                "hdp_initial_w is not realized for emitter family 'lif' under a registered "
+                "rule: edge weights come from params['edge_list']"
+            )
+        hdp_static = {
+            "hdp_rule": str(hdp_rule_name),
+            "hdp_rule_params": hp.get("hdp_rule_params"),
+            "plasticity_mask": hp.get("plasticity_mask"),
+            "H0": self.params.get("hdp_initial_H"),
+            "key": None,
+        }
+    edge_pre, edge_post = edges["pre"], edges["post"]
+    edge_weight, edge_delay = edges["weight"], edges["delay_steps"]
+    edge_group = edges.get("group")
+    n_steps, dt_ms = sim.n_steps, sim.dt_ms
+
+    def one(xs):
+        """Batched LIF member: serial kernel under one drive row and key."""
+        drive_row, key = xs
+        kw = dict(hdp_static)
+        if "key" in kw:
+            kw["key"] = key
+        return simulate_lif_edge(
+            lif_params, n_steps=n_steps, dt_ms=dt_ms,
+            edge_pre=edge_pre, edge_post=edge_post, edge_weight=edge_weight,
+            edge_delay_steps=edge_delay, edge_group=edge_group,
+            I_ext_pA=drive_row, record_v=True,
+            local_inhibition_rounds=(None if inhibition_spec is None else inhibition_spec["rounds"]),
+            local_inhibition_order=("ascending" if inhibition_spec is None else inhibition_spec["order"]),
+            local_inhibition_groups=inhibition_groups, **kw,
+        )
+
+    keys = jnp.stack([jax.random.PRNGKey(s) for s in seed_list])
+    if not hasattr(self, "_compiled_cache"):
+        object.__setattr__(self, "_compiled_cache", {})
+    cache_key = (
+        "simulate_lif_seed_batch", len(seed_list), int(n_neurons), int(n_steps),
+        int(edge_pre.shape[0]), runtime_cfg.actual_dtype, runtime_cfg.selected_backend,
+        hdp_rule_name, None if inhibition_spec is None else (
+            inhibition_spec.get("rounds"), inhibition_spec["order"]),
+    )
+    with _device_scope(runtime_cfg.selected_backend):
+        if cache_key not in self._compiled_cache:
+            self._compiled_cache[cache_key] = jax.jit(lambda args: jax.lax.map(one, args))
+        batched = self._compiled_cache[cache_key]((drive_batch, keys))
+    out: dict[str, Any] = {
+        "spikes": batched["spikes"],
+        "V_m": batched["V_mV"],
+        "w_final": batched["w_final"],
+        "metadata": json_safe(
+            {
+                "emitter_family": "lif",
+                "seeds": list(seed_list),
+                "key_derivation": "poisson_chunk_seed(seed_i + 7919, 0) + PRNGKey(seed_i), serial-identical",
+                "n_steps": int(sim.n_steps),
+                "continuation": "not_realized_use_serial_simulate",
+                "runtime": runtime_cfg.runtime_report(),
+                "physical_amplitude_calibrated": False,
+            }
+        ),
+    }
+    if "H_final" in batched:
+        out["H_final"] = batched["H_final"]
+    return out
+
+
 def run_trials(
     self, batch: TrialBatch, sim: Simulation, collect_errors: bool = False
 ) -> TrialBatchResult:

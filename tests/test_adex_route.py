@@ -11,6 +11,10 @@ from decimal import ROUND_HALF_UP, Decimal
 import numpy as np
 import pytest
 
+import jax
+import jax.numpy as jnp
+import jaxlib
+
 import jaxfne as jtfne
 import jaxfne._model_simulate as route_simulate
 from jaxfne._construct_adex import (
@@ -1020,3 +1024,220 @@ def test_gsc_subset_drive_refuses_grouped_base():
     model = jtfne.construct(_base())
     with pytest.raises(ValueError, match="grouped"):
         subset_drive_kwargs(model, _gsc_sim(), 0.5)
+
+
+# T-32c seed batching: one compiled call over N drive seeds, each member keyed
+# PRNGKey(seed_i), bit-equal to N serial runs with poisson_drive seed=seed_i.
+from jaxfne._model_simulate import simulate_adex_seed_batch
+
+
+# T-32c numerical contract (Hamm ruling 2026-10-23, option a): spikes bitwise
+# exact; V_m allclose rtol=0, atol=1e-4 mV (provisional, ~2x the largest WSL
+# discrepancy observed; do NOT raise on a future failure). Bitwise-voltage
+# tests are retained as platform diagnostics (marked bitwise_diagnostic).
+V_RTOL = 0.0
+V_ATOL_MV = 1e-4
+EVIDENCE = {
+    "jax": jax.__version__,
+    "jaxlib": jaxlib.__version__,
+    "backend": jax.default_backend(),
+    "device": str(jax.devices()[0]),
+    "dtype": "float32",
+    "x64": bool(jax.config.read("jax_enable_x64")),
+}
+
+
+@pytest.mark.bitwise_diagnostic
+@pytest.mark.xfail(strict=False, reason="bitwise V_m is platform/run-dependent; diagnostic evidence only")
+def test_adex_seed_batch_matches_serial_per_member():
+    """DIAGNOSTIC (bitwise_diagnostic): bitwise V_m holds on Windows CPU and some
+    WSL runs; other WSL runs show ulp-scale V_m differences (max ~5e-5 mV).
+    Spike assertions are contract; V_m bitwise here is evidence, not gate."""
+    model = jtfne.construct(_base())
+    seeds = [7, 8, 9]
+    out = simulate_adex_seed_batch(model, _drive_sim(), seeds)
+    assert [int(s) for s in out["metadata"]["seeds"]] == seeds
+    for k, s in enumerate(seeds):
+        ref = model.simulate(_drive_sim(seed=s))
+        assert int(np.sum(np.asarray(ref.spikes))) > 0, "fixture must spike"
+        assert np.array_equal(np.asarray(out["spikes"][k]), np.asarray(ref.spikes))
+        assert np.array_equal(np.asarray(out["V_m"][k]), np.asarray(ref.V_m))
+
+
+def test_adex_seed_batch_members_are_independent():
+    model = jtfne.construct(_base())
+    out = simulate_adex_seed_batch(model, _drive_sim(), [7, 8, 9])
+    spk = np.asarray(out["spikes"])
+    assert not (np.array_equal(spk[0], spk[1]) and np.array_equal(spk[1], spk[2]))
+    same = simulate_adex_seed_batch(model, _drive_sim(), [7, 7])
+    assert np.array_equal(np.asarray(same["spikes"][0]), np.asarray(same["spikes"][1]))
+
+
+@pytest.mark.bitwise_diagnostic
+@pytest.mark.xfail(strict=False, reason="bitwise V_m is platform/run-dependent; diagnostic evidence only")
+def test_adex_seed_batch_without_drive_repeats_the_serial_run():
+    """DIAGNOSTIC (bitwise_diagnostic): same platform note as the serial-parity
+    diagnostic above; no-drive runs are bit-identical where observed."""
+    model = jtfne.construct(_base())
+    out = simulate_adex_seed_batch(model, _sim(), [3, 4])
+    ref = model.simulate(_sim())
+    for k in range(2):
+        assert np.array_equal(np.asarray(out["spikes"][k]), np.asarray(ref.spikes))
+        assert np.array_equal(np.asarray(out["V_m"][k]), np.asarray(ref.V_m))
+
+
+def test_adex_seed_batch_refuses_a_nondefault_simulation_seed():
+    model = jtfne.construct(_base())
+    with pytest.raises(ValueError, match="seed"):
+        simulate_adex_seed_batch(model, _sim(seed=3), [7, 8])
+
+
+def test_adex_seed_batch_states_the_continuation_refusal():
+    assert "continuation" in simulate_adex_seed_batch.__doc__
+
+
+def test_adex_seed_batch_is_permutation_and_batch_size_invariant():
+    model = jtfne.construct(_base())
+    fwd = simulate_adex_seed_batch(model, _drive_sim(), [7, 8, 9])
+    rev = simulate_adex_seed_batch(model, _drive_sim(), [9, 7, 8])
+    order = [9, 7, 8]
+    for k, s in enumerate(order):
+        j = [7, 8, 9].index(s)
+        assert np.array_equal(np.asarray(rev["spikes"][k]), np.asarray(fwd["spikes"][j]))
+        assert np.array_equal(np.asarray(rev["V_m"][k]), np.asarray(fwd["V_m"][j]))
+    wide = simulate_adex_seed_batch(model, _drive_sim(), [7, 8, 9, 10])
+    slim = simulate_adex_seed_batch(model, _drive_sim(), [7, 8])
+    for k in range(2):
+        assert np.array_equal(np.asarray(wide["spikes"][k]), np.asarray(slim["spikes"][k]))
+        assert np.array_equal(np.asarray(wide["V_m"][k]), np.asarray(slim["V_m"][k]))
+
+
+@pytest.mark.bitwise_diagnostic
+@pytest.mark.xfail(strict=False, reason="bitwise final V/w is platform/run-dependent; diagnostic evidence only")
+def test_adex_seed_batch_final_state_matches_the_serial_kernel():
+    """DIAGNOSTIC (bitwise_diagnostic): bitwise final V/w holds on Windows CPU;
+    cross-form float32 codegen may differ at ulp scale elsewhere."""
+    from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args
+    from jaxfne.emitters_adex import simulate_adex
+
+    model = jtfne.construct(_base())
+    out = simulate_adex_seed_batch(model, _drive_sim(), [7, 8, 9])
+    kw = adex_kernel_args(model, DT_MS)
+    for k, s in enumerate([7, 8, 9]):
+        ref = simulate_adex(**kw, **adex_external_drive_kwargs(model, _drive_sim(seed=s)),
+                            n_steps=N_STEPS, dt_ms=DT_MS, record_v=True)
+        assert np.array_equal(np.asarray(out["final"]["V"][k]), np.asarray(ref["V"]))
+        assert np.array_equal(np.asarray(out["final"]["w"][k]), np.asarray(ref["w"]))
+
+
+def test_adex_seed_batch_contract_spikes_exact_voltage_close():
+    """CONTRACT: spikes bitwise at every timestep; V_m allclose rtol=0, atol=1e-4."""
+    model = jtfne.construct(_base())
+    seeds = [7, 8, 9]
+    out = simulate_adex_seed_batch(model, _drive_sim(), seeds)
+    worst = 0.0
+    for k, s in enumerate(seeds):
+        ref = model.simulate(_drive_sim(seed=s))
+        b_spk = np.asarray(out["spikes"][k])
+        r_spk = np.asarray(ref.spikes)
+        assert b_spk.shape == r_spk.shape
+        for t in range(b_spk.shape[0]):
+            assert np.array_equal(b_spk[t], r_spk[t]), f"spike mismatch seed {s} step {t}"
+        np.testing.assert_allclose(np.asarray(out["V_m"][k]), np.asarray(ref.V_m),
+                                   rtol=V_RTOL, atol=V_ATOL_MV)
+        worst = max(worst, float(np.max(np.abs(
+            np.asarray(out["V_m"][k], dtype=float) - np.asarray(ref.V_m, dtype=float)))))
+    print(f"adex contract max |dV| mV: {worst:.3e} evidence: {EVIDENCE}")
+    assert worst <= V_ATOL_MV
+
+
+def test_adex_seed_batch_repeated_compiled_runs_are_bit_identical():
+    """Batched side self-deterministic: two compiled calls agree bitwise."""
+    model = jtfne.construct(_base())
+    a = simulate_adex_seed_batch(model, _drive_sim(), [7, 8, 9])
+    b = simulate_adex_seed_batch(model, _drive_sim(), [7, 8, 9])
+    for key in ("spikes", "V_m"):
+        assert np.array_equal(np.asarray(a[key]), np.asarray(b[key]))
+    for key in ("V", "w", "ref", "g"):
+        assert np.array_equal(np.asarray(a["final"][key]), np.asarray(b["final"][key]))
+
+
+def test_adex_seed_batch_vmap_form_matches_contract():
+    """Same seeds across scalar, vmap and compiled forms: spikes exact, V close."""
+    from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args
+
+    model = jtfne.construct(_base())
+    seeds = [7, 8, 9]
+    kw = adex_kernel_args(model, DT_MS)
+    shared = {k: v for k, v in adex_external_drive_kwargs(model, _drive_sim(seed=7)).items()
+              if k != "key"}
+    keys = jnp.stack([jax.random.PRNGKey(s) for s in seeds])
+    vmapped = jax.jit(jax.vmap(
+        lambda k: simulate_adex(**kw, **shared, key=k,
+                                n_steps=N_STEPS, dt_ms=DT_MS, record_v=True)))(keys)
+    batched = simulate_adex_seed_batch(model, _drive_sim(), seeds)
+    worst = 0.0
+    for k, s in enumerate(seeds):
+        ref = model.simulate(_drive_sim(seed=s))
+        assert np.array_equal(np.asarray(vmapped["spikes"][k]), np.asarray(ref.spikes))
+        np.testing.assert_allclose(np.asarray(vmapped["V_mV"][k]), np.asarray(ref.V_m),
+                                   rtol=V_RTOL, atol=V_ATOL_MV)
+        assert np.array_equal(np.asarray(vmapped["spikes"][k]),
+                              np.asarray(batched["spikes"][k]))
+        worst = max(worst, float(np.max(np.abs(
+            np.asarray(vmapped["V_mV"][k], dtype=float)
+            - np.asarray(batched["V_m"][k], dtype=float)))))
+    print(f"adex vmap-vs-batch max |dV| mV: {worst:.3e} evidence: {EVIDENCE}")
+    assert worst <= V_ATOL_MV
+
+
+def test_adex_seed_batch_tonic_spiking_stays_spike_exact():
+    """Sensitive case: tonic drive (spikes in both halves) still spike-exact."""
+    model = jtfne.construct(_base())
+    pick = None
+    for w in (5.0, 8.0, 12.0, 16.0):
+        ref = model.simulate(_drive_sim(weight_nS=w, seed=7))
+        spk = np.asarray(ref.spikes)
+        half = spk.shape[0] // 2
+        if spk.sum() > 20 and spk[:half].sum() > 0 and spk[half:].sum() > 0:
+            pick = w
+            break
+    assert pick is not None, "fixture has no tonic drive"
+    out = simulate_adex_seed_batch(model, _drive_sim(weight_nS=pick), [7, 8])
+    for k, s in enumerate([7, 8]):
+        ref = model.simulate(_drive_sim(weight_nS=pick, seed=s))
+        assert np.array_equal(np.asarray(out["spikes"][k]), np.asarray(ref.spikes))
+        np.testing.assert_allclose(np.asarray(out["V_m"][k]), np.asarray(ref.V_m),
+                                   rtol=V_RTOL, atol=V_ATOL_MV)
+
+
+def test_adex_seed_batch_benchmark_compile_steady_and_memory():
+    """Benchmark: compile vs steady-state vs warm serial; output bytes pinned."""
+    import time
+    import tracemalloc
+
+    model = jtfne.construct(_base())
+    seeds = [7, 8, 9]
+    t0 = time.perf_counter()
+    out = simulate_adex_seed_batch(model, _drive_sim(), seeds)
+    t_compile = time.perf_counter() - t0
+    tracemalloc.start()
+    t0 = time.perf_counter()
+    out = simulate_adex_seed_batch(model, _drive_sim(), seeds)
+    t_steady = time.perf_counter() - t0
+    _, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    for _ in range(2):
+        for s in seeds:
+            model.simulate(_drive_sim(seed=s))
+    t0 = time.perf_counter()
+    for s in seeds:
+        model.simulate(_drive_sim(seed=s))
+    t_serial = time.perf_counter() - t0
+    n_b, n_t, n_n = len(seeds), N_STEPS, N
+    assert np.asarray(out["spikes"]).shape == (n_b, n_t, n_n)
+    assert np.asarray(out["V_m"]).shape == (n_b, n_t, n_n)
+    print(f"adex bench compile={t_compile:.3f}s steady={t_steady:.3f}s "
+          f"serial3={t_serial:.3f}s host_peak_MiB={peak / 2 ** 20:.1f} "
+          f"bytes={np.asarray(out['spikes']).nbytes + np.asarray(out['V_m']).nbytes}")
+    assert t_steady <= t_serial

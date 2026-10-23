@@ -808,3 +808,35 @@ def test_matrix_tune_candidate_failure_is_counted(monkeypatch, exc):
     counts = result.summary["fallback_counts"]
     assert counts["final_scoring_failed"] >= 1
     assert result.best_score == float("inf")
+
+
+def test_tune_candidate_batching_refusal_is_declared():
+    """T-32c: candidate evaluations stay serial; the refusal names the constraint."""
+    from jaxfne._model_tune import CANDIDATE_BATCH_STATUS
+
+    assert "adaptive" in CANDIDATE_BATCH_STATUS
+    assert "serial" in CANDIDATE_BATCH_STATUS
+
+
+def test_tune_history_carries_complete_per_candidate_outputs():
+    """T-32c addendum: serial tune history holds candidate identity, scores,
+    rejection reasons, and a best selection consistent with the scores."""
+    import math
+
+    model = _model()
+    obj = jtfne.objective().loss("rate_loss", target=20.0, metric="spike_rate_hz_mean")
+    result = model.tune(obj, optimizer="AGSDR", steps=5, seed=42)
+    history = result.summary["candidate_history"]
+    assert len(history) == 5
+    for i, entry in enumerate(history):
+        assert entry["step"] == i
+        assert isinstance(entry["candidate_value"], float)
+        assert isinstance(entry["score"], float)
+        assert isinstance(entry["all_gates_pass"], bool)
+        assert isinstance(entry["accepted_as_best"], bool)
+        assert isinstance(entry["rejection_reasons"], list)
+    finite = [(e["candidate_value"], e["score"]) for e in history if math.isfinite(e["score"])]
+    assert finite, "fixture must yield a finite candidate score"
+    best_value, best_score = min(finite, key=lambda pair: pair[1])
+    assert result.best_score == best_score
+    assert result.summary["best_parameter_value"] == best_value

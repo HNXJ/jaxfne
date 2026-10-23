@@ -1849,7 +1849,11 @@ def simulate_lif_edge(
         H_init = jnp.asarray(H0, dtype)
         if H_init.shape != (N,):
             raise ValueError(f"H0 must be None or shape ({N},); got {H_init.shape}")
-        if not bool(jnp.all(jnp.isfinite(H_init))):
+        try:
+            h_host = np.asarray(jax.device_get(H_init))
+        except (jax.errors.TracerArrayConversionError, jax.errors.ConcretizationTypeError, TypeError, ValueError):
+            h_host = None  # traced under jit/map: finiteness checked on the concrete call
+        if h_host is not None and not bool(np.all(np.isfinite(h_host))):
             raise ValueError("H0 must be finite (got NaN/inf)")
 
     if descriptor is not None:
