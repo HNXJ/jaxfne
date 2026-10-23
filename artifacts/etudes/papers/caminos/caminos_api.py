@@ -27,6 +27,12 @@ _repo_root = Path(__file__).resolve().parents[4]
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
+import jaxfne as jtfne  # noqa: E402
+
+assert "site-packages" not in jtfne.__file__, "caminos_api must run the checkout's jaxfne"
+
+from jaxfne.analysis import ref42_lfp, ref42_phase_delay  # noqa: E402
+
 # PORT_SPEC.md Table 2 and Methods text.
 NE = 8000
 NPV = 750
@@ -247,86 +253,8 @@ REF42_KEEP_S = 10.0  # 10 s are analysed
 REF42_LFP_SIGMA_MS = 1.0  # "1 ms Gaussian kernel", read as sigma
 REF42_BUTTER_ORDER = 4  # zero-phase Butterworth, applied with sosfiltfilt
 
-
-def _ref42_window(n_steps, dt_s):
-    """Row bounds (first, end) of the analysed window."""
-    fs = 1.0 / float(dt_s)
-    i0 = int(round(REF42_DROP_S * fs))
-    i1 = i0 + int(round(REF42_KEEP_S * fs))
-    if n_steps < i1:
-        raise ValueError("run has %d steps; the ref. 42 window needs %d" % (n_steps, i1))
-    return i0, i1
-
-
-def ref42_lfp(counts, dt_s):
-    """LFP proxy of the ref. 42 method: E spikes per bin, Gaussian-smoothed, analysed window.
-
-    The smoothing runs on the whole run, so the window edges are not truncated kernels.
-    """
-    import numpy as np
-
-    c = np.asarray(counts)
-    if c.ndim != 2 or c.shape[1] != 3:
-        raise ValueError("counts must be [steps, 3], got shape %r" % (c.shape,))
-    fs = 1.0 / float(dt_s)
-    sigma = REF42_LFP_SIGMA_MS * 1e-3 * fs
-    half = int(np.ceil(4.0 * sigma))
-    t = np.arange(-half, half + 1, dtype=float)
-    kernel = np.exp(-0.5 * (t / sigma) ** 2)
-    kernel /= kernel.sum()
-    lfp = np.convolve(c[:, 0].astype(float), kernel, mode="same")
-    i0, i1 = _ref42_window(c.shape[0], dt_s)
-    return lfp[i0:i1]
-
-
-def ref42_phase_delay(counts, dt_s, f_peak_hz, half_band_hz=5.0):
-    """PV->SOM delay by the ref. 42 phase method, from population counts in [E | PV | SOM] order.
-
-    ``counts`` is the per-step group sums of the core raster (``spikes_to_counts``). A circular
-    mean over a group's spikes equals the mean over its per-step counts, so no per-cell raster is
-    needed. The LFP proxy (``ref42_lfp``) is band-passed zero-phase with a 4th-order Butterworth
-    filter at f_peak +- half_band_hz, then Hilbert-transformed. Each group's mean phase is the
-    circular mean over its spikes. The delay is the wrapped difference (SOM minus PV) divided by
-    2 pi f_peak, in ms; it is positive when SOM fires after PV. PV or SOM with no spikes in the
-    window gives ``delay_ms`` None.
-
-    Returns a dict: delay_ms, phase_PV_rad, phase_SOM_rad, n_spikes_PV, n_spikes_SOM,
-    f_peak_Hz, half_band_Hz.
-    """
-    import numpy as np
-    from scipy import signal
-
-    c = np.asarray(counts)
-    if c.ndim != 2 or c.shape[1] != 3:
-        raise ValueError("counts must be [steps, 3], got shape %r" % (c.shape,))
-    f_peak = float(f_peak_hz)
-    half = float(half_band_hz)
-    fs = 1.0 / float(dt_s)
-    if not (0.0 < half < f_peak and f_peak + half < fs / 2.0):
-        raise ValueError("band must satisfy 0 < half_band_hz < f_peak_hz and "
-                         "f_peak_hz + half_band_hz < Nyquist (got half=%r, f=%r)" % (half, f_peak))
-    x = ref42_lfp(c, dt_s)
-    sos = signal.butter(REF42_BUTTER_ORDER, [(f_peak - half) / (fs / 2.0), (f_peak + half) / (fs / 2.0)],
-                        btype="bandpass", output="sos")
-    phase = np.angle(signal.hilbert(signal.sosfiltfilt(sos, x)))
-    i0, i1 = _ref42_window(c.shape[0], dt_s)
-    w = c[i0:i1].astype(float)
-
-    def group_phase(col):
-        n = w[:, col].sum()
-        if n <= 0:
-            return None, 0
-        return float(np.angle(np.sum(w[:, col] * np.exp(1j * phase)))), int(round(n))
-
-    pv_phi, n_pv = group_phase(1)
-    som_phi, n_som = group_phase(2)
-    delay_ms = None
-    if pv_phi is not None and som_phi is not None:
-        d = float(np.angle(np.exp(1j * (som_phi - pv_phi))))
-        delay_ms = d / (2.0 * np.pi * f_peak) * 1e3
-    return {"delay_ms": delay_ms, "phase_PV_rad": pv_phi, "phase_SOM_rad": som_phi,
-            "n_spikes_PV": n_pv, "n_spikes_SOM": n_som,
-            "f_peak_Hz": f_peak, "half_band_Hz": half}
+# ref42_lfp / ref42_phase_delay are the jaxfne.analysis core homes imported
+# above (same callables; lane constants above hold the declared protocol values).
 
 
 def _refuse_scored_dir(out_dir, signed=False):

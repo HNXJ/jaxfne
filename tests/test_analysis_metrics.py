@@ -1165,3 +1165,146 @@ class TestDestexheCoreHomes:
             mean_rate_hz(spikes, _DESTEXHE_DT_MS),
             _orig_mean_rate_hz(spikes, _DESTEXHE_DT_MS),
         )
+
+
+# --- T-32d caminos estimator core homes -------------------------------------
+
+_CAMINOS_DT = 1e-4  # s, prereg Runs Euler step
+_CAMINOS_SIZES = {"E": 1000, "PV": 50, "SOM": 50}
+_CAMINOS_POPS = ("E", "PV", "SOM")
+
+
+def _caminos_fixture_counts(seed=7, steps=120000, rates=(2.0, 12.0, 7.0)):
+    """Poisson [steps, 3] counts in [E | PV | SOM] order; every pop spikes."""
+    rng = np.random.default_rng(seed)
+    counts = np.zeros((steps, 3), dtype=np.int64)
+    for i, pop in enumerate(_CAMINOS_POPS):
+        counts[:, i] = rng.poisson(
+            _CAMINOS_SIZES[pop] * rates[i] * _CAMINOS_DT, size=steps
+        )
+    assert all(counts[:, i].sum() > 0 for i in range(3)), \
+        "fixture must spike in every pop"
+    return counts
+
+
+def _caminos_delayed_counts(delay_s=0.0085, seed=21, depth=0.9):
+    """Rate-modulated counts with SOM delayed after PV (lane R2 acceptance)."""
+    rng = np.random.default_rng(seed)
+    steps = 120000
+    t = np.arange(steps) * _CAMINOS_DT
+    counts = np.zeros((steps, 3), dtype=np.int64)
+    rates = {"E": 2.0, "PV": 12.0, "SOM": 7.0}
+    delays = {"SOM": delay_s}
+    for i, pop in enumerate(_CAMINOS_POPS):
+        lam = np.full(steps, rates[pop] * _CAMINOS_DT)
+        d = delays.get(pop, 0.0)
+        lam = lam * (1.0 + depth * np.sin(2.0 * np.pi * 35.0 * (t - d)))
+        counts[:, i] = rng.poisson(_CAMINOS_SIZES[pop] * lam)
+    return counts
+
+
+class TestCaminosCoreHomes:
+    """The lane estimators live in jaxfne.analysis (T-32d stage 2)."""
+
+    def test_lane_aliases_are_core_callables(self):
+        import jaxfne.analysis as analysis
+        from artifacts.etudes.papers.caminos import caminos_analysis as ca
+
+        for name in (
+            "population_rates",
+            "xcorr_peak_lag",
+            "welch_numpy",
+            "welch_spectrum",
+            "aperiodic_log10",
+            "fit_aperiodic",
+            "rate_welch_psd",
+            "aperiodic_spectral_peak",
+            "oscillation_call",
+        ):
+            assert getattr(ca, name) is getattr(analysis, name), name
+
+    def test_ref42_aliases_are_core_callables(self):
+        import jaxfne.analysis as analysis
+        from artifacts.etudes.papers.caminos import caminos_api as capi
+
+        assert capi.ref42_lfp is analysis.ref42_lfp
+        assert capi.ref42_phase_delay is analysis.ref42_phase_delay
+
+
+class TestCaminosRasterIdentity:
+    """Core kernels reproduce the lane scores from raster counts."""
+
+    def test_analyze_run_rates_match_core(self):
+        from jaxfne.analysis import population_rates
+        from artifacts.etudes.papers.caminos import caminos_analysis as ca
+
+        counts = _caminos_fixture_counts()
+        out = ca.analyze_run(counts, _CAMINOS_DT, _CAMINOS_SIZES)
+        want = population_rates(
+            counts, _CAMINOS_DT, _CAMINOS_SIZES,
+            pops=ca.POPS, discard_s=ca.DISCARD_S,
+        )
+        assert out["rates_Hz"] == want
+        kept = counts[int(round(ca.DISCARD_S / _CAMINOS_DT)):]
+        assert out["spikes_kept"] == {
+            p: int(kept[:, i].sum()) for i, p in enumerate(ca.POPS)
+        }
+
+    def test_pv_som_lag_matches_core_xcorr(self):
+        from jaxfne.analysis import xcorr_peak_lag
+        from artifacts.etudes.papers.caminos import caminos_analysis as ca
+
+        counts = _caminos_delayed_counts()
+        lag_ms = ca.pv_som_lag(counts, _CAMINOS_DT, _CAMINOS_SIZES)
+        assert abs(lag_ms - 8.5) <= 0.5, lag_ms  # lane R2 acceptance
+        # Core unit pin: a copy delayed by k steps peaks at +k ("a after b").
+        rng = np.random.default_rng(5)
+        b = rng.random(2000)
+        k = 37
+        a = np.concatenate([np.zeros(k), b[:-k]])
+        assert xcorr_peak_lag(a, b, 0.1, window_ms=14.0) == k
+        assert xcorr_peak_lag(b, a, 0.1, window_ms=14.0) == -k
+
+    def test_e_welch_matches_core_psd(self):
+        import numpy as np
+
+        from jaxfne.analysis import rate_welch_psd
+        from artifacts.etudes.papers.caminos import caminos_analysis as ca
+
+        counts = _caminos_fixture_counts()
+        e_rate = counts[:, 0] / _CAMINOS_DT / _CAMINOS_SIZES["E"]
+        f_lane, p_lane = ca.e_welch(e_rate, _CAMINOS_DT)
+        f_core, p_core = rate_welch_psd(
+            e_rate, _CAMINOS_DT, win_s=ca.WIN_S, overlap_frac=ca.OVERLAP_FRAC
+        )
+        assert np.array_equal(f_lane, f_core)
+        assert np.allclose(p_lane, p_core, rtol=1e-12, atol=0.0)
+
+    def test_spectral_peak_null_does_not_oscillate(self):
+        from artifacts.etudes.papers.caminos import caminos_analysis as ca
+
+        counts = _caminos_fixture_counts()
+        e_rate = counts[:, 0] / _CAMINOS_DT / _CAMINOS_SIZES["E"]
+        pk = ca.spectral_peak(e_rate, _CAMINOS_DT)
+        assert pk["oscillates"] is False
+        assert pk["peak_excess"] < ca.PE_THRESHOLD
+
+    def test_spectral_peak_modulated_oscillates(self):
+        from artifacts.etudes.papers.caminos import caminos_analysis as ca
+
+        counts = _caminos_delayed_counts()
+        e_rate = counts[:, 0] / _CAMINOS_DT / _CAMINOS_SIZES["E"]
+        pk = ca.spectral_peak(e_rate, _CAMINOS_DT)
+        assert abs(pk["peak_freq_Hz"] - 35.0) <= 2.0, pk
+        assert pk["oscillates"] is True
+
+    def test_ref42_silent_population_delay_is_none(self):
+        from artifacts.etudes.papers.caminos import caminos_api as capi
+
+        counts = _caminos_fixture_counts()
+        counts[:, 1] = 0  # silent PV in the analysed window
+        lfp = capi.ref42_lfp(counts, _CAMINOS_DT)
+        assert lfp.shape == (100000,)  # 10 s kept window at 1e-4 s
+        out = capi.ref42_phase_delay(counts, _CAMINOS_DT, 35.0)
+        assert out["delay_ms"] is None
+        assert out["n_spikes_PV"] == 0

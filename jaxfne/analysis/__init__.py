@@ -48,7 +48,9 @@ from .metrics import (
     mean_pairwise_spike_correlation,
     mean_rate_hz,
     pairwise_cc_binned_disjoint,
+    population_rates,
     wang_buzsaki_kappa,
+    xcorr_peak_lag,
 )
 from .granger import (
     directionality_index,
@@ -61,6 +63,15 @@ from .spectral import (
     spectrolaminar_similarity_kernel_jax,
     spectrolaminar_similarity_candidates_jax,
     spectrolaminar_similarity_candidates_seeds_jax,
+    welch_numpy,
+    welch_spectrum,
+    aperiodic_log10,
+    fit_aperiodic,
+    rate_welch_psd,
+    aperiodic_spectral_peak,
+    oscillation_call,
+    ref42_lfp,
+    ref42_phase_delay,
 )
 
 __all__ = [
@@ -72,6 +83,8 @@ __all__ = [
     "cv_isi",
     "pairwise_cc_binned_disjoint",
     "mean_rate_hz",
+    "population_rates",
+    "xcorr_peak_lag",
     "activity_regime",
     "activity_regimes",
     "ACTIVITY_REGIME_DEFAULTS",
@@ -83,4 +96,13 @@ __all__ = [
     "spectrolaminar_similarity_kernel_jax",
     "spectrolaminar_similarity_candidates_jax",
     "spectrolaminar_similarity_candidates_seeds_jax",
+    "welch_numpy",
+    "welch_spectrum",
+    "aperiodic_log10",
+    "fit_aperiodic",
+    "rate_welch_psd",
+    "aperiodic_spectral_peak",
+    "oscillation_call",
+    "ref42_lfp",
+    "ref42_phase_delay",
 ]

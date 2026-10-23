@@ -1071,3 +1071,52 @@ def mean_rate_hz(
     arr = np.asarray(spikes, dtype=bool)
     seconds = arr.shape[0] * dt_ms / 1000.0
     return float(arr.sum() / (arr.shape[1] * seconds))
+
+
+# --- CAMINOS lane estimators (T-32d stage 2: generic core homes) ----------------
+
+_POP_DEFAULTS = ("E", "PV", "SOM")
+_DISCARD_S_DEFAULT = 2.0
+
+
+def population_rates(counts, dt, sizes, pops=_POP_DEFAULTS, discard_s=_DISCARD_S_DEFAULT):
+    """Mean rate (Hz) per population over the kept window.
+
+    ``counts`` is a per-step population count array ``[steps, n_pops]`` in
+    ``pops`` order; ``dt`` is the step in seconds; ``sizes`` maps each name
+    in ``pops`` to its cell count. Rows before ``discard_s`` are dropped
+    (prereg Runs: first 2 s discarded). Returns a dict of Python floats.
+    """
+    arr = np.asarray(counts)
+    if arr.ndim != 2 or arr.shape[1] != len(pops):
+        raise ValueError("counts must be [steps, %d], got shape %r" % (len(pops), arr.shape))
+    cut = int(round(float(discard_s) / float(dt)))
+    if cut >= arr.shape[0]:
+        raise ValueError("run shorter than the %.g s discard: %d steps at dt=%g"
+                         % (discard_s, arr.shape[0], dt))
+    keep = arr[cut:]
+    dur = keep.shape[0] * float(dt)
+    return {p: float(keep[:, i].sum() / dur / sizes[p]) for i, p in enumerate(pops)}
+
+
+def xcorr_peak_lag(a, b, dt_ms, window_ms=14.0):
+    """Peak lag of the cross-correlation of two rate traces, in steps.
+
+    ``a`` and ``b`` are 1D smoothed rate traces (demeaned here); the
+    correlation is searched over ``-window_ms..+window_ms``. Returns an int:
+    positive means ``a`` after ``b``.
+    """
+    a = np.asarray(a, dtype=float)
+    b = np.asarray(b, dtype=float)
+    x = a - a.mean()
+    y = b - b.mean()
+    n = len(x)
+    max_lag = int(round(float(window_ms) / float(dt_ms)))
+    lags = np.arange(-max_lag, max_lag + 1)
+    cc = np.empty(lags.size)
+    for j, lag in enumerate(lags):
+        if lag >= 0:
+            cc[j] = np.dot(x[lag:], y[:n - lag])
+        else:
+            cc[j] = np.dot(x[:n + lag], y[-lag:])
+    return int(lags[int(np.argmax(cc))])
