@@ -97,6 +97,16 @@ clones, verified before integration):
 3. [A] B1 estimators into `jaxfne.analysis` (ISI ratio and CV, pairwise correlation, aperiodic fit,
    tuning fit, phase delay); lane copies import them, outputs equal on saved rasters.
 4. [A] B3 batched runs: seed and candidate batching for the AdEx and LIF routes and `Model.tune`.
+   RULING (Hamm 2026-10-23): option (a) APPROVED conditional on verification - per-observable
+   numerical equivalence, NOT bitwise float trajectories across XLA compilation forms: spikes and
+   RNG exact; V_m allclose rtol=0 atol=1e-4 mV (provisional ~2x the observed max; never raised
+   automatically); other states exact where observed else justified tolerances; candidate identity/
+   seeds/order exact; the failing bitwise-V_m tests RETAINED as platform diagnostics. Falsification
+   set: scalar/vmap/repeated on Windows AND WSL, complete trajectories, per-timestep spike equality,
+   near-threshold sensitive cases, permutation/batch-size invariance, continuation, environment
+   versions + max errors recorded, compile/steady-state/memory benchmarked separately. Bounded
+   claims only (tested configurations). Integration after the contract passes; stop and report on
+   any spike mismatch or tolerance breach.
 5. [A] B2 routes through `construct`: HH in dispatch (GSDR) - LANDED (cc3871cb: construct()
    dispatches family="hh", single-compartment _simulate_hh with named refusals, GSDR lane builds via
    construct(), construct-vs-direct bit-equality pinned); the net.m order as a core option
