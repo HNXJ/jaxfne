@@ -16,7 +16,27 @@ Earlier rulings sit in the rows they
 govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATIONS.md` (Izhikevich
 2003 and CAMINOS P6 move to 0.5.7); finished rows are in git history.
 
-- T-3 [A] PCL Fig. 3 stays in progress (Hamm 2026-10-13: it must replicate). v4 FAIL stands
+- T-3 [A] PCL REOPENED (Hamm 2026-10-23: replication improvement authorized). The signed v5
+  T2 FAIL stays immutable historical evidence; its status as the final assessment is withdrawn
+  and a NEW PCL replication attempt opens, in stages:
+  PCL-R1 audit implementation fidelity (resolve the three fidelity-audit findings: local
+  inhibition reading, STDP persistence across files, the authors' selected neuron indices);
+  PCL-R2 reproduce the reference implementation on identical inputs (behavior and estimators);
+  PCL-R3 diagnose residual differences (attribute to implementation, parameters, stochastic
+  variation, or model assumptions); PCL-R4 run the corrected replication (freeze the NEW
+  protocol before confirmatory execution — B8); PCL-R5 score: exact PASS, approximate
+  agreement, or FAIL on predeclared criteria.
+  Approximate reproduction: per observable, normalized discrepancy
+  e_j = d_j(yhat_j, y_ref_j)/s_j with d_j a declared distance and s_j a preregistered
+  normalization scale; TWO independent outcomes - exact reproduction (the original criteria)
+  and approximate reproduction (separately declared scientific tolerances including
+  uncertainty and stochastic variability); approximate agreement is never labeled an exact
+  pass; if neither succeeds, retain the negative result and quantify the remaining
+  discrepancy. Constraints: fidelity corrections before parameter tuning; no post-hoc
+  relaxation of the original thresholds; B2c core integration (4a07072e) is a prerequisite,
+  not evidence of paper reproduction; the dashboard shows the historical failure alongside
+  the latest independently scored outcome. Priority: after B1 stage 2, before lower-priority
+  work. (Historical state below.) v4 FAIL stands
   (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). v5 signed by Hamm 2026-10-13 on `pcl-port`
   89e45191 (`prereg/P3_fig3_v5.md`; signature recorded in 640cb97c): T2 runs the authors'
   `plot_fqcy` procedure on the port and scores it per K/k point against Fig. 3c,d digitized
