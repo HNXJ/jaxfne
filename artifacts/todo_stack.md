@@ -84,6 +84,23 @@ clones, verified before integration):
    kernel_net_m oracle bit-for-bit; default path pinned). Remaining: the PCL full-network mapping
    on the LIF tensor route (T-22 operator, T-25 A') - the largest sub-item, unblocks the pcl
    S2/E1 findings and T-25's A' load.
+   B2c stage 1 LANDED (4a07072e: engine="core" runs the trained PCL network through the tensor
+   scan route; numba-vs-core equality exact in all four inhibition modes - a bounded
+   numerical-equivalence result, NOT PCL scientific reproduction or universal backend equivalence).
+   B2c stage 2 RULED (Hamm 2026-10-23): `event_order` stays an explicit opt-in execution option -
+   default ordering unchanged; a named, validated policy (no implicit inference from model type);
+   scope only where relative order is scientifically consequential; monolithic-vs-chunked
+   continuation equality under each supported policy; numba/core parity under the legacy policy,
+   alternative policies tested against an independent stepwise reference; a negative control
+   (an order-sensitive network must show the option changes the expected outcome); unsupported
+   policies rejected, never silently mapped. No generic event scheduler or fixed-point solver
+   without a demonstrated requirement. B4 S2/E1 depend on the resulting semantics, not an
+   assumed scheduler design; B1 stage 2 precedes any new CAMINOS confirmatory scoring
+   (estimator changes must not silently reinterpret historical results). Release constraint:
+   the signed PCL T2 failure, CAMINOS mixed paper verdict and Brunel conditional verdict are
+   preserved - numerical integration success never promotes them to scientific reproduction;
+   the dashboard's three-verdict separation stays invariant through generation, serialization
+   and display.
 7. [A] B8 pilots then preregs: Destexhe and GSDR (the GSDR fit with MCDP on via `mcdp_hdp_step`);
    then each lane's P3 prereg for signature; Jansen-Rit 1995 opens the EEG/MEG lane (a neural-mass
    emitter in the core, then P1).
