@@ -168,7 +168,7 @@ def test_gsdr_refuses_emitter_declaration():
 
     cfg, _ = _gsdr_spec()
     cfg = cfg.emitter(family="adex", adex_decay="euler")
-    with pytest.raises(ValueError, match="no emitter"):
+    with pytest.raises(ValueError, match="the hh route takes emitter"):
         construct_hh_model(cfg)
 
 

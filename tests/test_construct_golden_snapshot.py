@@ -14,6 +14,8 @@ manifest/truth-gates) -- not duplicated here.
 
 import pytest
 
+import numpy as np
+
 import jaxfne as jtfne
 
 
@@ -192,6 +194,31 @@ def test_construct_hh_simulate_runs():
     assert signals.V_m.shape == (4, 10)
     assert signals.spikes.shape == (4, 10)
     assert signals.metadata["emitter_family"] == "hh"
+
+
+def test_hh_simulate_matches_direct_kernel_call_bit_for_bit():
+    """The construct() facade must not perturb the HH kernel's numerics."""
+    from jaxfne._construct_hh import construct_hh_model, hh_kernel_args
+    from jaxfne.emitters_hh import simulate_hh
+
+    cfg = _hh_test_config()
+    direct = construct_hh_model(cfg)
+    out = simulate_hh(**hh_kernel_args(direct, 0.5), n_steps=4, dt_ms=0.5,
+                      record_v=True)
+    via = jtfne.construct(cfg).simulate(
+        jtfne.Simulation(duration_ms=2.0, dt_ms=0.5, seed=0))
+    np.testing.assert_array_equal(np.asarray(via.V_m), np.asarray(out["V_mV"]))
+    np.testing.assert_array_equal(np.asarray(via.spikes), np.asarray(out["spikes"]))
+
+
+def test_hh_simulate_refuses_plasticity_and_seed():
+    model = jtfne.construct(_hh_test_config())
+    with pytest.raises(ValueError, match="plasticity on the hh family"):
+        model.simulate(jtfne.Simulation(
+            duration_ms=2.0, dt_ms=0.5, seed=0,
+            runtime=jtfne.RuntimeConfig(enable_hdp=True)))
+    with pytest.raises(ValueError, match="does not consume Simulation.seed"):
+        model.simulate(jtfne.Simulation(duration_ms=2.0, dt_ms=0.5, seed=7))
 
 
 def test_construct_returns_model_with_expected_param_keys():

@@ -599,6 +599,46 @@ def test_duplicate_guard_flags_cross_block_repeat():
         _reject_duplicate_explicit_edges(both)
 
 
+def test_b2b_net_m_dense_model_consumes_the_order():
+    import jaxfne as jtfne
+
+    def cfg(order):
+        return (jtfne.configuration().network(n=6)
+                .emitter(family="izhikevich", izhikevich_update_order=order)
+                .field().probe(name="p"))
+
+    # noise_scale rides the Simulation-level hdp_params transport; the config
+    # metadata form is dropped by resolved_runtime (observed 2026-10-22).
+    sim = jtfne.Simulation(
+        duration_ms=5.0, dt_ms=1.0, seed=0,
+        runtime=jtfne.RuntimeConfig(hdp_params={"noise_scale": 0.0}))
+    s_def = np.asarray(jtfne.construct(cfg("default")).simulate(sim).spikes)
+    s_net = np.asarray(jtfne.construct(cfg("net_m")).simulate(sim).spikes)
+    assert s_net.shape == s_def.shape
+    assert not np.array_equal(s_net, s_def), \
+        "update_order='net_m' must be a realized change at the same seed"
+
+
+def test_b2b_net_m_simulate_refuses_dt_and_edge_list():
+    import jaxfne as jtfne
+
+    cfg = (jtfne.configuration().network(n=6)
+           .emitter(family="izhikevich", izhikevich_update_order="net_m")
+           .field().probe(name="p"))
+
+    model = jtfne.construct(cfg)
+    with pytest.raises(ValueError, match="dt_ms must be 1.0"):
+        model.simulate(jtfne.Simulation(
+            duration_ms=5.0, dt_ms=0.5, seed=0,
+            runtime=jtfne.RuntimeConfig(hdp_params={"noise_scale": 0.0})))
+    model_el = jtfne.construct(cfg.runtime(recurrent_backend="edge_list"))
+    with pytest.raises(ValueError, match="dense"):
+        model_el.simulate(jtfne.Simulation(
+            duration_ms=5.0, dt_ms=1.0, seed=0,
+            runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list",
+                                        hdp_params={"noise_scale": 0.0})))
+
+
 def test_connections_refuses_multinomial_with_in_degree():
     with pytest.raises(ValueError, match="with in_degree"):
         jtfne.configuration().connections(

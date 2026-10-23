@@ -1857,10 +1857,23 @@ def _simulate_hh(
     from ._construct_hh import hh_kernel_args
     from .emitters_hh import simulate_hh
 
-    if "morphology" in self.static["hh"]:
+    static = self.static["hh"]
+    if "morphology" in static:
         raise ValueError(
             "simulate() is not realized for a multi-compartment hh model: "
             "run jaxfne.emitters_hh.simulate_hh with hh_kernel_args(model, dt_ms) directly"
+        )
+    if runtime_cfg.enable_hdp:
+        raise ValueError(
+            "simulate() is not realized for plasticity on the hh family: "
+            "enable_hdp would be silently ignored; run "
+            "jaxfne.emitters_hh.simulate_hh with an hh-rule runtime directly"
+        )
+    if int(sim.seed) != 0:
+        raise ValueError(
+            "simulate() does not consume Simulation.seed on the hh family: the "
+            "run key derives from the declared connectivity edge seed "
+            f"(edge_seed={int(static['edge_seed'])}); leave seed at 0 here"
         )
     dtype = runtime_cfg.jnp_dtype
     kwargs = hh_kernel_args(self, sim.dt_ms)
@@ -1868,7 +1881,6 @@ def _simulate_hh(
         **kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True
     )
     time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
-    static = self.static["hh"]
     hh_metadata: dict[str, Any] = {
         "config_hash": config_hash(self.cfg),
         "emitter_family": "hh",

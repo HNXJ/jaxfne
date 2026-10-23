@@ -411,6 +411,8 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
                 "activity_regime": {
                     "kind": "declared",
                     "source": "CALIBRATION.md: primary 2 ms run, seeds 1-3 and 4-8",
+                    "scope": "valid for the calibrated seed set 1-8 only; other "
+                             "seeds or backends must re-declare from their runs",
                     "oscillates": True,
                     "f_pk_hz": 34.0,
                     "lag_ref42_ms": {"seeds_1_3": 6.47, "seeds_4_8": 6.32},
