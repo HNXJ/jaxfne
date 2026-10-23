@@ -116,7 +116,16 @@ clones, verified before integration):
    policies rejected, never silently mapped. No generic event scheduler or fixed-point solver
    without a demonstrated requirement. B4 S2/E1 depend on the resulting semantics, not an
    assumed scheduler design; B1 stage 2 precedes any new CAMINOS confirmatory scoring
-   (estimator changes must not silently reinterpret historical results). Release constraint:
+   (estimator changes must not silently reinterpret historical results). Acceptance (Hamm
+   2026-10-23): exactly three supported LIF resolutions, unknown values rejected; each documented
+   with its ACTUAL numerical meaning; a same-seed order-sensitive fixture shows
+   event_order != event_scan; existing tests and hash pins unchanged; continuation equality per
+   policy or its unsupported behavior documented; no scheduler, continuation machinery, or
+   numerical change. QUALIFICATION: the negative control proves policy selection affects
+   execution - it does NOT prove event_scan is universally event-exact; that claim stays bounded
+   by the Stage C 20-clip evidence and its assumptions. Preserve the three resolutions as
+   distinct numerical methods; no single accuracy ranking without model, timestep, observable
+   and reference solution specified. Release constraint:
    the signed PCL T2 failure, CAMINOS mixed paper verdict and Brunel conditional verdict are
    preserved - numerical integration success never promotes them to scientific reproduction;
    the dashboard's three-verdict separation stays invariant through generation, serialization
