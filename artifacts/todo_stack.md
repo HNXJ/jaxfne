@@ -47,6 +47,11 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 
 - Brunel S2/S3 sensitivity, seeds 4-5, unscored: running detached on WSL CPU since 2026-10-20; then the
   RESULT_P3 sensitivity section.
+- Dashboard three-verdict distinction (Hamm 2026-10-23 P0 feedback, bundle
+  `C:/Users/nejath/Downloads/JAXFNE_SOURCES_AND_DASHBOARD_REVIEW_2026-10-23/`): LANDED 06a44180 -
+  verdict_summary (paper/library/methods) derived from records, core-method rows out of the paper
+  denominators, data_revision + stale warning, failed criteria ride the row. P1 (estimator/units/
+  seeds/prereg exposure) and P2 (commands/runtime/memory) queued behind the P0 acceptance.
 - Kernel LFP lane `cl-klfp` onto dev [A]: rebase onto current dev, broad gate 0 failed, push; first
   f57aae0f (`istdp_vogels2011` per-synapse traces; the 0.5.8 changelog names the fix to 0.5.7's
   per-neuron trace, Known issue per Hamm 2026-10-21; O-55 Vogels segment B rerun), then 6eb3c6b8,
