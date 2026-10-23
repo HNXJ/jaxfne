@@ -16,6 +16,7 @@ import jax.numpy as jnp
 import jaxlib
 
 import jaxfne as jtfne
+from jaxfne._model_simulate import simulate_adex_seed_batch
 import jaxfne._model_simulate as route_simulate
 from jaxfne._construct_adex import (
     ADEX_CONSUMED,
@@ -1028,7 +1029,6 @@ def test_gsc_subset_drive_refuses_grouped_base():
 
 # T-32c seed batching: one compiled call over N drive seeds, each member keyed
 # PRNGKey(seed_i), bit-equal to N serial runs with poisson_drive seed=seed_i.
-from jaxfne._model_simulate import simulate_adex_seed_batch
 
 
 # T-32c numerical contract (Hamm ruling 2026-10-23, option a): spikes bitwise

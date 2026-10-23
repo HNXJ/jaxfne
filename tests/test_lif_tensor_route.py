@@ -16,6 +16,7 @@ import jax.numpy as jnp
 import jaxlib
 
 import jaxfne as jtfne
+from jaxfne._model_simulate import simulate_lif_seed_batch
 from jaxfne import neuronal_tensor as nt
 from jaxfne.emitters_lif import LIFNetworkParams
 
@@ -666,7 +667,6 @@ def test_lif_event_scan_refuses_unmapped_inputs_by_name():
 
 # T-32c seed batching: one compiled call over N seeds, each member keyed
 # PRNGKey(seed_i), bit-equal to N serial runs.
-from jaxfne._model_simulate import simulate_lif_seed_batch
 
 
 def _lif_seed_batch_sim(**kwargs):
