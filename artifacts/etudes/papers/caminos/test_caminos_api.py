@@ -375,3 +375,54 @@ def test_delay_scorer_checks_the_declared_delay_and_reports_rounds(tmp_path):
     assert got["max_rounds_used_per_seed"] == {str(k): k % 3 + 1 for k in sds.SENS_SEEDS}
     with pytest.raises(SystemExit, match="another delay"):
         sds.check_manifest(tmp_path, 0.1)
+
+
+def test_run_refuses_without_model_simulate(tmp_path, monkeypatch):
+    """``run()`` consumes ``Model.simulate``: with it disabled the run refuses."""
+    import caminos_api as ca
+
+    import jaxfne as jtfne
+
+    def _refuse(self, sim):
+        raise RuntimeError("run must consume Model.simulate")
+
+    monkeypatch.setattr(jtfne.Model, "simulate", _refuse)
+    with pytest.raises(RuntimeError, match="must consume Model.simulate"):
+        ca.run(0.02, 1, 0.002, str(tmp_path))
+
+
+def test_run_writes_the_model_simulate_counts(tmp_path):
+    """``run()`` writes the ``Model.simulate`` spikes as the scored counts.
+
+    The direct-kernel route (same compiled args, ``record_v=False``) agrees
+    bit-for-bit: ``record_v`` only adds the ``V_mV`` row, never read here.
+    """
+    import json
+
+    import jax
+    import numpy as np
+
+    import caminos_api as ca
+    import jaxfne as jtfne
+    from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args
+    from jaxfne.emitters_adex import simulate_adex
+
+    out = ca.run(0.02, 1, 0.002, str(tmp_path))
+    assert out["steps"] == 20, "2 ms at dt=0.1 is 20 steps"
+    assert out["counts"].shape == (20, 3)
+    model = jtfne.construct(ca.build_spec(0.02, 1))
+    sim = ca.build_sim(0.02, 1, 0.002)
+    runtime_cfg = sim.resolved_runtime
+    ref = simulate_adex(
+        **adex_kernel_args(model, sim.dt_ms, dtype=runtime_cfg.actual_dtype),
+        **adex_external_drive_kwargs(model, sim),
+        n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=False)
+    jax.block_until_ready(ref["spikes"])
+    assert (ca.spikes_to_counts(np.asarray(ref["spikes"]), out["sizes"])
+            == out["counts"]).all(), "Model.simulate spikes match the kernel"
+    signals = model.simulate(sim)
+    assert signals.metadata["step_order"] == "default", "the port runs the default order"
+    assert (np.asarray(signals.spikes)
+            == np.asarray(ref["spikes"])).all(), "the route carries no second mechanism"
+    entry = json.loads((tmp_path / "manifest.json").read_text())["runs"][0]
+    assert entry["seed"] == 1 and entry["steps"] == 20 and entry["p"] == 0.02

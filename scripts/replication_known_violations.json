@@ -211,20 +211,6 @@
   },
   {
     "rule": "E1",
-    "path": "artifacts/etudes/papers/brunel2000",
-    "message": "no scored P4 module listed",
-    "reason": "found by E1 when the rule landed (B4); no P4 stage artifact names the scored module",
-    "todo": "B4 E1 follow-up"
-  },
-  {
-    "rule": "E1",
-    "path": "artifacts/etudes/papers/caminos",
-    "message": "scored P4 modules call construct( but not .simulate(",
-    "reason": "found by E1 when the rule landed (B4); caminos_api.py builds the Model with construct, then runs the core jaxfne.emitters_adex.simulate_adex in place of Model.simulate (B2)",
-    "todo": "B4 E1 follow-up"
-  },
-  {
-    "rule": "E1",
     "path": "artifacts/etudes/papers/izhikevich2003",
     "message": "no scored P4 module calls construct( or .simulate(",
     "reason": "found by E1 when the rule landed (B4); the scored path does not route through construct/simulate",

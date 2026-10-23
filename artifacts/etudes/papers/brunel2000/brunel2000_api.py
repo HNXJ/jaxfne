@@ -204,6 +204,9 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms
              "regime": regime}
     entries[fname] = entry
     manifest = {"git_sha": sha, "dtype": realized_dtype, "backend": backend,
+                "seeds": sorted(e["seed"] for e in entries.values()),
+                "activity_regime": {e["file"]: e["regime"]["label"]
+                                    for e in entries.values()},
                 "runs": list(entries.values())}
     lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)
     return {"spikes": spikes, "steps": sim.n_steps, "regime": regime,

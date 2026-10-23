@@ -433,6 +433,7 @@
                {"label": "tests", "path": "artifacts/etudes/papers/brunel2000/test_brunel2000_api.py"},
                {"label": "pilots", "path": "artifacts/etudes/papers/brunel2000/CALIBRATION.md"}],
         "P3": [{"label": "prereg v4 (signed)", "path": "artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md"}],
+        "P4": [{"label": "lane api (scored route)", "path": "artifacts/etudes/papers/brunel2000/brunel2000_api.py"}],
         "P5": [{"label": "result", "path": "artifacts/etudes/papers/brunel2000/RESULT_P3.md"},
                {"label": "scores", "path": "artifacts/etudes/papers/brunel2000/score_p3.json"}]
       },

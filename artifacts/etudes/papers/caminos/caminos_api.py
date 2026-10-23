@@ -1,9 +1,9 @@
 """CAMINOS P6 library-path runner (PREREG_P6.md, signed v2).
 
 Builds the CAMINOS E-PV-SOM network only from the jaxfne public API and runs
-it through B0 route (c): the model's compiled ``adex_kernel_args`` /
-``adex_external_drive_kwargs`` called through the ADVANCED kernel
-``jaxfne.emitters_adex.simulate_adex`` with ``record_v=False``. No scored run:
+it through B0 route (c): the constructed model simulated through
+``Model.simulate`` (the adex path runs the ``simulate_adex`` kernel; the
+recorded ``V_m`` is never read). No scored run:
 outputs land in the caller's directory, never under a ``scored`` path.
 
 Every biophysical value comes from ``PORT_SPEC.md`` Tables 1-2; nothing is
@@ -360,7 +360,7 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
 
 def run(p, seed, T_s, out_dir, signed=False, ext_sources="pNE", delay_ms=None,
         intra_step_rounds=None):
-    """B0 route (c): construct the model, run the kernel with ``record_v=False``.
+    """B0 route (c): construct the model and simulate it through ``Model.simulate``.
 
     Writes the port's per-step population count array and ``manifest.json``
     exactly as ``caminos_analysis.score`` reads them. Refuses any ``out_dir``
@@ -370,14 +370,15 @@ def run(p, seed, T_s, out_dir, signed=False, ext_sources="pNE", delay_ms=None,
     selects R, default ``ZERO_DELAY_ROUNDS``; recorded in the manifest next to
     ``delay_ms``) with a same-step drive; a rounds override with a delay of >= 1
     step is refused.
+    The adex ``Model.simulate`` path runs the same ``simulate_adex`` kernel the
+    direct route ran, so the spikes are bit-identical; the recorded ``V_m`` is
+    never read here.
     """
     import numpy as np
 
     _refuse_scored_dir(out_dir, signed)
     _refuse_existing(out_dir, run_filename(seed, p), git_sha())  # before the compute
     import jaxfne as jtfne
-    from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args
-    from jaxfne.emitters_adex import simulate_adex
 
     start_time = datetime.now(timezone.utc).isoformat()
     t0 = time.time()
@@ -388,23 +389,21 @@ def run(p, seed, T_s, out_dir, signed=False, ext_sources="pNE", delay_ms=None,
     if str(runtime_cfg.actual_dtype) != "float32":
         raise SystemExit("error: P6 runs are float32, runtime resolved %s"
                          % runtime_cfg.actual_dtype)
-    kwargs = adex_kernel_args(model, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
-    drive_kwargs = adex_external_drive_kwargs(model, sim)
-    out = simulate_adex(**kwargs, **drive_kwargs, n_steps=sim.n_steps,
-                        dt_ms=sim.dt_ms, record_v=False)
+    signals = model.simulate(sim)
     import jax
 
-    jax.block_until_ready(out["spikes"])
+    jax.block_until_ready(signals.spikes)
     labels = tuple(model.params["emitter"].labels)
     sizes = {t: labels.count(t) for t in POPS}
-    counts = spikes_to_counts(np.asarray(out["spikes"]), sizes)
+    counts = spikes_to_counts(np.asarray(signals.spikes), sizes)
     wall_s = time.time() - t0
+    fixed_point = signals.metadata.get("intra_step_fixed_point")
     write_run(out_dir, p=p, seed=seed, T_s=T_s, counts=counts, sizes=sizes,
               wall_s=wall_s, start_time=start_time, sha=git_sha(),
               ext_sources=ext_sources, delay_ms=delay_ms,
               intra_step_rounds=intra_step_rounds,
-              max_rounds_used=(int(np.asarray(out["fixed_point_rounds"]).max())
-                               if "fixed_point_rounds" in out else None))
+              max_rounds_used=(int(fixed_point["max_rounds_used"])
+                               if fixed_point is not None else None))
     return {"counts": counts, "sizes": sizes, "steps": sim.n_steps,
             "wall_s": wall_s}
 
