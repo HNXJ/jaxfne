@@ -163,7 +163,7 @@
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/port/run_tuning.py",
-    "message": "line 47: sys.path.insert adds a path that cannot be resolved",
+    "message": "line 46: sys.path.insert adds a path that cannot be resolved",
     "reason": "audit 2026-10-17",
     "todo": "T-30"
   },
@@ -233,13 +233,6 @@
   {
     "rule": "E1",
     "path": "artifacts/etudes/papers/izhikevich2003",
-    "message": "no scored P4 module calls construct( or .simulate(",
-    "reason": "found by E1 when the rule landed (B4); the scored path does not route through construct/simulate",
-    "todo": "B4 E1 follow-up"
-  },
-  {
-    "rule": "E1",
-    "path": "artifacts/etudes/papers/pcl",
     "message": "no scored P4 module calls construct( or .simulate(",
     "reason": "found by E1 when the rule landed (B4); the scored path does not route through construct/simulate",
     "todo": "B4 E1 follow-up"

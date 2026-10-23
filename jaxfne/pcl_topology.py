@@ -1488,7 +1488,9 @@ class EventScanDrive:
         }
 
 
-def build_s1_scan_tensor(ns: int, nc: int, *, name: str = "s1-scan") -> Any:
+def build_s1_scan_tensor(ns: int, nc: int, *, name: str = "s1-scan",
+                         lif_simple: "Mapping[str, float] | None" = None,
+                         lif_complex: "Mapping[str, float] | None" = None) -> Any:
     """A scan-ready S1 tensor: simples-first population, scan declaration.
 
     One area with a simple layer (``ns`` ``"simple"`` cells) followed by a
@@ -1503,6 +1505,13 @@ def build_s1_scan_tensor(ns: int, nc: int, *, name: str = "s1-scan") -> Any:
     compiles no edges — the scan has no edge expression) and records
     the spec, so ``simulate(paradigm=EventScanDrive(...))`` replays the
     stream exactly. ``ns``/``nc`` must be positive whole numbers.
+    ``lif_simple``/``lif_complex`` are optional per-type LIF parameter
+    mappings (the :mod:`jaxfne.emitters_lif` field names); when given,
+    both must be given, and the two neuron types declare
+    ``emitter="lif"`` with them, so the replay integrates the declaring
+    network's own cell parameters instead of the LIF defaults. When
+    neither is given the types stay undeclared and the runtime emitter
+    applies as before.
     """
     from .neuronal_tensor import (
         Area,
@@ -1519,17 +1528,28 @@ def build_s1_scan_tensor(ns: int, nc: int, *, name: str = "s1-scan") -> Any:
     if ns_i < 1 or nc_i < 1:
         raise ValueError(
             f"{label} ns/nc must be >= 1; got {ns!r}/{nc!r}")
+    if (lif_simple is None) != (lif_complex is None):
+        raise ValueError(
+            f"{label} lif_simple and lif_complex must be given together: a "
+            "partial per-NeuronType emitter declaration is refused")
     simple_layer = f"{name}-simple"
     complex_layer = f"{name}-complex"
+    simple_nt = NeuronType.make("simple")
+    complex_nt = NeuronType.make("complex")
+    if lif_simple is not None and lif_complex is not None:
+        simple_nt = NeuronType.make(
+            "simple", emitter="lif", emitter_params=dict(lif_simple))
+        complex_nt = NeuronType.make(
+            "complex", emitter="lif", emitter_params=dict(lif_complex))
     return NeuronalTensor(
         name=str(name),
         areas=[Area(
             name="S1",
             layers=[
                 Layer(name=simple_layer, n_neurons=ns_i,
-                      neuron_types=[NeuronType.make("simple")]),
+                      neuron_types=[simple_nt]),
                 Layer(name=complex_layer, n_neurons=nc_i,
-                      neuron_types=[NeuronType.make("complex")]),
+                      neuron_types=[complex_nt]),
             ],
             inter_connections=[InterConnection(
                 source_layer=simple_layer,

@@ -2,9 +2,8 @@
 
 Each input file test7/<ori>/<sf>/<phase>/<trial>.npz is fed through the numba run path with learning
 off, from a fresh copy of the loaded network. --engine core routes the same feed through the
-jaxfne core kernel instead; the full-network core cascade is not mapped yet (CORE_GAP below),
-so a core tuning run is refused and only the edge-scale core smoke in test_run_tuning.py
-produces z from core. Output per file, in the port's flat index order:
+jaxfne core kernel instead (run_core_events below: the feed is transcribed into event-scan
+tables and replayed with construct -> Model -> simulate). Output per file, in the port's flat index order:
 simple_counts (int32, 5184 cells), complex_counts (int32, 1152 cells), n_events (camera-0 events fed),
 wall_s, and the spike times of every cell: simple_times_us (int64) with simple_times_cell (int32), and
 complex_times_us (int64) with complex_times_cell (int32). Times are in microseconds, sorted by time then
@@ -83,15 +82,23 @@ AXES_NOTE = (
 _PRISTINE = None
 _INHIBITION = "full"
 _ENGINE = "numba"
-# Full-network core cascade gap (Lane 2 finding): the depth-sequential local-inhibition
-# cascade (SpikingNetwork.cpp:41-67, visit order with iterative R_ROUNDS rounds), the
-# cover-table feed and the complex-layer pooling (pcl_event_ref.py:41-179, :474-489) have
-# no mapping onto the edge-list core kernel (jaxfne/emitters_lif.py, function-level only).
-# Until that mapping exists, engine="core" refuses the tuning run; z comes from the tree's
-# jaxfne core only at edge scale (test_run_tuning.py core smoke), never from the oracle.
-CORE_GAP = ("engine core refused: the depth-sequential local-inhibition cascade, "
-            "cover-table feed and complex pooling have no core mapping yet "
-            "(pcl_event_ref.py:41-179, :474-489); see artifacts/etudes/pcl/CALIBRATION.md")
+# Tensor-scan replay grid: the oracle integrates integer-microsecond event times, so the
+# 0.5 ms grid is binary-exact and every event lands on it (500 us bins).
+CORE_DT_MS = 0.5
+CORE_DT_US = 500
+# Honest boundary of the core replay (run_core_events): the scan kernel returns binned
+# spikes with counts and first-spike times only (jaxfne/_model_simulate.py), so a file in
+# which any cell spikes twice has unrecoverable per-spike times; and the kernel runs frozen
+# thresholds, so a file reaching past the network's measurement interval would cross the
+# oracle's rate/threshold adaptation (pcl_event_ref.py), which has no scan expression.
+# Either file is refused for that file, never approximated.
+CORE_MULTISPIKE = ("engine core cannot report this file: a cell spiked twice, and the scan "
+                   "replay returns counts with first-spike times only "
+                   "(jaxfne/_model_simulate.py); per-spike times are exact only when "
+                   "each cell spikes at most once")
+CORE_ADAPTATION = ("engine core cannot report this file: its events reach past the "
+                   "measurement interval, where the oracle adapts rates and thresholds "
+                   "(pcl_event_ref.py) and the frozen-threshold scan has no expression")
 
 
 def apply_inhibition_mode(net, inhibition: str):
@@ -173,22 +180,182 @@ def _gather(cells: list) -> tuple[np.ndarray, np.ndarray]:
     return t[order], o[order]
 
 
+def _core_tables(net):
+    """Transcribe the loaded network's wiring into event-scan tables, blocks and groups.
+
+    Reads the same arrays the numba path consumes (net.LAT rows-as-targets, net.TD
+    transposed to rows-as-sources, pcl_event_ref_numba.py:258-267): lateral and top-down
+    pass through untouched, so an inhibition mode's zeroed maps (apply_inhibition_mode)
+    replay as zero-weight calls, exactly as the oracle executes them. A layer whose local
+    flag is off gets singleton groups with its triplets dropped, which is the oracle's
+    skip: with no group-mates the cascade inhibits nobody and stamps nothing.
+    """
+    from jaxfne.pcl_topology import (event_scan_tables, local_inhibition_blocks,
+                                     scan_inhibition_triplets)
+
+    ns, nc = int(net.NS), int(net.NC)
+    tables = event_scan_tables(
+        nx=net.NX, ny=net.NY, nd=net.ND, cx=net.CX, cy=net.CY, cd=net.CD,
+        origins_x=[float(v) for v in net.s_ox], origins_y=[float(v) for v in net.s_oy],
+        size=(net.SX, net.SY), weights=np.asarray(net.w_s, dtype=np.float64),
+        c_cover=net.c_cover,
+        c_ox=[int(v) for v in net.c_ox], c_oy=[int(v) for v in net.c_oy],
+        c_size=(net.CSX, net.CSY), c_weights=np.asarray(net.w_c, dtype=np.float64),
+        vw=net.VW, vh=net.VH,
+        inhib_range=((net.Rx, net.Ry) if net.lat_on else (0, 0)),
+        lateral_on=bool(net.lat_on),
+        lateral_weights=(np.ascontiguousarray(net.LAT, dtype=np.float64)
+                         if net.lat_on else None),
+        topdown_on=bool(net.td_on),
+        topdown_weights=(np.ascontiguousarray(net.TD.T, dtype=np.float64)
+                         if net.td_on else None),
+        activation=bool(net.activation))
+    groups = np.zeros(ns + nc, dtype=np.int64)
+    for i in range(net.NX):
+        for j in range(net.NY):
+            groups[(i * net.NY + j) * net.ND:(i * net.NY + j + 1) * net.ND] = i * net.NY + j
+    for cx in range(net.CX):
+        for cy in range(net.CY):
+            groups[ns + (cx * net.CY + cy) * net.CD:ns + (cx * net.CY + cy + 1) * net.CD] = (
+                net.NX * net.NY + cx * net.CY + cy)
+    # Singleton ids ride above every position id, so a disabled layer never shares a
+    # group with an enabled one.
+    if not net.local_s:
+        groups[:ns] = ns + nc + np.arange(ns, dtype=np.int64)
+    if not net.local_c:
+        groups[ns:] = ns + nc + np.arange(nc, dtype=np.int64)
+    pre, post, mag = scan_inhibition_triplets(
+        net.NX, net.NY, net.ND, net.CX, net.CY, net.CD, ns,
+        np.asarray(net.wi_s, dtype=np.float64), np.asarray(net.wi_c, dtype=np.float64))
+    keep = np.ones(pre.shape[0], dtype=bool)
+    if not net.local_s:
+        keep &= pre >= ns
+    if not net.local_c:
+        keep &= pre < ns
+    blocks = local_inhibition_blocks(groups, li_pre=pre[keep], li_post=post[keep],
+                                     li_weight=mag[keep])
+    return tables, blocks, groups
+
+
+def _core_lif_params(net):
+    """Per-type LIF parameters from the loaded network's own cell configs.
+
+    The scan kernel defaults to the paper's Table 2 values (simple
+    threshold 10 mV), but the replayed oracle integrates whatever the
+    network's configs carry (the synthetic default network: 30 mV). Each
+    side reads the same scalars: taus back to ms, voltages as mV. Complex
+    cells carry no adaptation term, so ``tau_sra_ms`` stays undeclared
+    there (its default rides) and ``delta_sra_mV`` is pinned at the
+    oracle's 0.
+    """
+    simple = {
+        "tau_m_ms": float(net.scfg.TAU_M) / 1000.0,
+        "v_thresh_mV": float(net.scfg.VTHRESH),
+        "v_reset_mV": float(net.scfg.VRESET),
+        "v_min_mV": float(ref.NEG_LIMIT),
+        "eta_rp_mV": float(net.scfg.DELTA_RP),
+        "tau_rp_ms": float(net.scfg.TAU_RP) / 1000.0,
+        "tau_sra_ms": float(net.scfg.TAU_SRA) / 1000.0,
+        "delta_sra_mV": float(net.scfg.DELTA_SRA),
+    }
+    complex_ = {
+        "tau_m_ms": float(net.ccfg.TAU_M) / 1000.0,
+        "v_thresh_mV": float(net.ccfg.VTHRESH),
+        "v_reset_mV": float(net.ccfg.VRESET),
+        "v_min_mV": float(ref.NEG_LIMIT),
+        "eta_rp_mV": float(net.ccfg.DELTA_RP),
+        "tau_rp_ms": float(net.ccfg.TAU_RP) / 1000.0,
+        "delta_sra_mV": float(net.ccfg.DELTA_SRA),
+    }
+    return simple, complex_
+
+
+def run_core_events(net, t, x, y, p):
+    """Replay one camera-0 event slice through the jaxfne event-scan kernel.
+
+    Returns the same per-file arrays _run_one writes (simple/complex_counts int32,
+    times_us int64 with times_cell int32 in the port's flat index order, n_events),
+    rebased back onto the file's raw timestamps. The network is read, never mutated.
+    Refusals, before any heavy work: unsorted times (the scan sorts; the oracle follows
+    file order), an empty slice, events past the measurement interval from the network's
+    last update (CORE_ADAPTATION), and any cell spiking twice (CORE_MULTISPIKE).
+    """
+    import jaxfne as jtfne
+    jtfne.enable_x64()  # the scan kernel integrates in float64 (as the oracle does)
+    from jaxfne import neuronal_tensor as nt
+    from jaxfne.pcl_topology import (EventScanDrive, build_s1_scan_tensor,
+                                     event_scan_events)
+
+    t = np.asarray(t, dtype=np.int64).ravel()
+    x = np.asarray(x, dtype=np.int64).ravel()
+    y = np.asarray(y, dtype=np.int64).ravel()
+    p = (np.asarray(p) != 0).astype(np.int64).ravel()  # as run_numba coerces polarity
+    if not (t.shape == x.shape == y.shape == p.shape):
+        raise ValueError(f"core replay needs one (t, x, y, p) tuple; got {t.shape}")
+    if t.size == 0:
+        raise ValueError("core replay needs at least one event to anchor t0")
+    if bool((np.diff(t) < 0).any()):
+        raise ValueError("core replay needs time-ordered events (the oracle follows file order)")
+    if int(t.max()) - int(net._last_update) > int(net.measurement_interval):
+        raise NotImplementedError(CORE_ADAPTATION)
+    ns, nc = int(net.NS), int(net.NC)
+    tables, blocks, groups = _core_tables(net)
+    t0 = int(t[0])
+    tr = t - t0
+    t_last = int(tr.max())
+    n_steps = t_last // CORE_DT_US + 1 + 3
+    events = event_scan_events(tr, x, y, p, dt_ms=CORE_DT_MS, n_steps=n_steps,
+                               vw=net.VW, vh=net.VH)
+    drive = EventScanDrive(events, tables, blocks, groups,
+                           dt_ms=CORE_DT_MS, n_steps=n_steps)
+    dur = float(n_steps) * CORE_DT_MS
+    lif_simple, lif_complex = _core_lif_params(net)
+    model = jtfne.construct(
+        build_s1_scan_tensor(ns=ns, nc=nc, lif_simple=lif_simple,
+                             lif_complex=lif_complex),
+        nt.RuntimeConfiguration(seed=0, duration_ms=dur, dt_ms=CORE_DT_MS, emitter="lif"))
+    signals = model.simulate(
+        jtfne.Simulation(duration_ms=dur, dt_ms=CORE_DT_MS, seed=1,
+                         runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")),
+        paradigm=drive)
+    counts = np.asarray(signals.metadata["scan_counts"], dtype=np.int64)
+    first = np.asarray(signals.metadata["scan_first_spike_us"], dtype=np.int64)
+    over = np.flatnonzero(counts > 1)
+    if over.size:
+        raise NotImplementedError(
+            f"{CORE_MULTISPIKE} (first {over.size} cells: {over[:8].tolist()})")
+    fired = np.flatnonzero(counts == 1)
+    times = (first[fired] + t0).astype(np.int64)
+    order = np.lexsort((fired.astype(np.int64), times))  # time then cell, as _gather
+    times, owners = times[order], fired[order]
+    sm = owners < ns
+    return {
+        "simple_counts": counts[:ns].astype(np.int32),
+        "complex_counts": counts[ns:].astype(np.int32),
+        "simple_times_us": times[sm],
+        "simple_times_cell": owners[sm].astype(np.int32),
+        "complex_times_us": times[~sm],
+        "complex_times_cell": (owners[~sm] - ns).astype(np.int32),
+        "n_events": np.int64(int(t.shape[0])),
+    }
+
+
 def _init_worker(inhibition: str = "full", engine: str = "numba") -> None:
     """Load the trained network once per process and compile the kernel outside the timed region."""
     global _PRISTINE, _INHIBITION, _ENGINE
     _INHIBITION = inhibition
     _ENGINE = engine
-    if engine == "core":
-        raise NotImplementedError(CORE_GAP)
     _PRISTINE = ref.PCLEventRef(NETWORK, learning=False)  # as test_pcl_trained_load.py
     apply_inhibition_mode(_PRISTINE, inhibition)
+    if engine == "core":
+        return  # the scan compiles on first simulate; nothing to warm up
     nb.warm_up()
 
 
 def _run_one(job: tuple[str, str]) -> float:
     """Run one input file from a fresh copy of the loaded network; write its output atomically."""
     if _ENGINE == "core":
-        raise NotImplementedError(CORE_GAP)
+        return _run_one_core(job)
     src, dst = Path(job[0]), Path(job[1])
     t_start = time.perf_counter()
     with np.load(src, allow_pickle=False) as z:
@@ -215,6 +382,44 @@ def _run_one(job: tuple[str, str]) -> float:
     return float(arrays["wall_s"])
 
 
+def _run_one_core(job: tuple[str, str]) -> float:
+    """Run one input file through the tensor-scan replay; write its output atomically.
+
+    The replay is functional (the network is read, never mutated), so no per-file copy
+    is needed. An empty camera-0 slice writes zeros, exactly what a fresh network holds
+    with no events. Files outside the run_core_events boundary fail that file, never
+    the run: the summary and exit code report them.
+    """
+    src, dst = Path(job[0]), Path(job[1])
+    t_start = time.perf_counter()
+    with np.load(src, allow_pickle=False) as z:
+        t = z["arr_0"].astype(np.int64)
+        x = z["arr_1"].astype(np.int64)
+        y = z["arr_2"].astype(np.int64)
+        p = z["arr_3"].astype(np.int64)
+        c = z["arr_4"]
+    keep = c == 0  # one camera network: camera 0 only (NetworkHandle.cpp:511)
+    ns, nc = int(_PRISTINE.NS), int(_PRISTINE.NC)
+    if int(keep.sum()) == 0:
+        arrays = {
+            "simple_counts": np.zeros(ns, dtype=np.int32),
+            "complex_counts": np.zeros(nc, dtype=np.int32),
+            "n_events": np.int64(0),
+            "simple_times_us": np.zeros(0, dtype=np.int64),
+            "simple_times_cell": np.zeros(0, dtype=np.int32),
+            "complex_times_us": np.zeros(0, dtype=np.int64),
+            "complex_times_cell": np.zeros(0, dtype=np.int32),
+        }
+    else:
+        arrays = run_core_events(_PRISTINE, t[keep], x[keep], y[keep], p[keep])
+    arrays["wall_s"] = np.float64(time.perf_counter() - t_start)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dst.with_name(dst.stem + ".tmp.npz")  # np.savez appends .npz unless the name ends with it
+    np.savez(str(tmp), **arrays)
+    os.replace(tmp, dst)
+    return float(arrays["wall_s"])
+
+
 def _baseline_sha() -> str:
     res = subprocess.run(["git", "-C", _ROOT, "rev-parse", "HEAD"], capture_output=True, text=True,
                          stdin=subprocess.DEVNULL, check=False)
@@ -226,10 +431,10 @@ def _baseline_sha() -> str:
 def _realized_backend(engine="numba") -> str:
     """Realized compute backend of the tuning run path.
 
-    The scored path runs the numba oracle (``--engine numba``); engine
-    ``core`` is refused (CORE_GAP), so the jax branch below only names the
-    device platform for the edge-scale core smoke in test_run_tuning.py.
-    Numba threads are pinned to one per worker process (module top).
+    The scored path runs the numba oracle (``--engine numba``); engine ``core``
+    replays the same feed through the jaxfne event-scan kernel, so the jax branch
+    below names the device platform that replay ran on. Numba threads are pinned
+    to one per worker process (module top).
     """
     if engine == "core":
         import jax
@@ -270,9 +475,9 @@ def _build_parser() -> argparse.ArgumentParser:
                          "no-local clears the local flags; no-local-simple clears the simple "
                          "layer's only (diagnostics)")
     ap.add_argument("--engine", choices=("numba", "core"), default="numba",
-                    help="numba runs the oracle path; core routes z through jaxfne core, "
-                         "which refuses the full-network run until the cascade is mapped "
-                         "(CORE_GAP; default: numba, behaviour unchanged)")
+                    help="numba runs the oracle path; core replays the same feed through "
+                         "the jaxfne event-scan kernel (run_core_events: exact only inside "
+                         "its stated boundary; default: numba, behaviour unchanged)")
     ap.add_argument("--out", default=None,
                     help="default: the mode's dir in MODE_DIRS (full, fig3_cSTDP3_S1, "
                          "diag_runs/fig3_cSTDP3_nolocal, diag_runs/fig3_cSTDP3_nolocal_simple)")
@@ -284,10 +489,6 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def main(argv=None) -> int:
     args = _build_parser().parse_args(argv)
-
-    if args.engine == "core":
-        print(f"error: {CORE_GAP}", flush=True)
-        return 2
 
     cfg = json.loads((NETWORK / "configs" / "network_config.json").read_text(encoding="utf-8"))
     _, ny, nd = (int(v) for v in cfg["layerSizes"][0])  # simple layer grid: nx, ny, depth
