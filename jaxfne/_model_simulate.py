@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 from .emitters import (
     EdgeList,
     IzhikevichParams,
+    IZHIKEVICH_UPDATE_ORDERS,
+    _require_net_m_zero_noise,
     simulate_edge_recurrent_izhikevich,
     simulate_edge_recurrent_izhikevich_homeostatic,
     simulate_edge_recurrent_izhikevich_hdp,
@@ -723,8 +725,21 @@ def _simulate_arrays(
 
     _refuse_dense_receptor_kernel(runtime_cfg)
     _refuse_dense_connection_rules(self, runtime_cfg)
+    _decls = getattr(self.cfg, "emitters", None) or []
+    update_order = (_decls[0].get("izhikevich_update_order", "default")
+                    if _decls else "default") or "default"
+    if update_order not in IZHIKEVICH_UPDATE_ORDERS:
+        raise ValueError(
+            f"izhikevich_update_order must be one of {list(IZHIKEVICH_UPDATE_ORDERS)}; "
+            f"got {update_order!r}"
+        )
     if runtime_cfg.recurrent_backend == "edge_list":
         edges: EdgeList = self.params["edge_list"]
+        if update_order != "default":
+            raise ValueError(
+                f"izhikevich_update_order={update_order!r} is realized on the dense "
+                "backend only (it couples emitter.W); this model runs on edge_list"
+            )
         if ablation_mode == "disconnected_null":
             from .emitters import edge_list_per_edge_zeros
 
@@ -833,6 +848,12 @@ def _simulate_arrays(
                 silence_mask=silence_mask,
                 **extra_kw,
             )[:3]
+    dense_kw: dict[str, Any] = {"update_order": update_order}
+    if update_order == "net_m":
+        # Fail closed before the compile cache: nonzero noise never reaches it.
+        if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+            _require_net_m_zero_noise(runtime_cfg.hdp_params["noise_scale"])
+            dense_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
     effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
     if effective_jit:
         if not hasattr(self, "_compiled_cache"):
@@ -854,6 +875,7 @@ def _simulate_arrays(
             runtime_cfg.actual_dtype,
             ablation_mode,
             runtime_cfg.selected_backend,
+            update_order,
         )
         with _device_scope(runtime_cfg.selected_backend):
             if cache_key not in self._compiled_cache:
@@ -868,6 +890,7 @@ def _simulate_arrays(
                         dtype=runtime_cfg.actual_dtype,
                         drive_schedule=s,
                         silence_mask=silence_mask,
+                        **dense_kw,
                     )
 
                 target_fn = make_recompilation_guard(
@@ -892,6 +915,7 @@ def _simulate_arrays(
             dtype=runtime_cfg.actual_dtype,
             drive_schedule=sched,
             silence_mask=silence_mask,
+            **dense_kw,
         )
 
 

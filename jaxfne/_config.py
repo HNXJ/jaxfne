@@ -323,10 +323,11 @@ def _check_probe_kwargs(kwargs: Mapping[str, Any]) -> None:
 
 _EMITTER_KEYS = (
     "family", "preset", "homeostatic_ei_rules", "homeostatic_ei_bound_mode",
-    "adex_decay", "adex_step_order",
+    "adex_decay", "adex_step_order", "izhikevich_update_order",
 )
 _ADEX_DECAYS = ("exp", "euler")
 _ADEX_STEP_ORDERS = ("default", "brian2")
+_IZHIKEVICH_UPDATE_ORDERS = ("default", "net_m")
 # construct reads name, n and cell_types; kind is a label; p_connect is checked against the
 # route's connectivity; layers come from column(). column()/cell_types() build _BUILT_NETWORK_KINDS.
 _NETWORK_KEYS = ("name", "n", "cell_types", "kind", "p_connect", "layers")
@@ -539,6 +540,16 @@ class Configuration:
             _refuse_unrealized("emitter", "adex_decay", kwargs["adex_decay"], _ADEX_DECAYS)
         if kwargs.get("adex_step_order") is not None:
             _refuse_unrealized("emitter", "adex_step_order", kwargs["adex_step_order"], _ADEX_STEP_ORDERS)
+        izhi_keys = sorted(k for k in kwargs if k.startswith("izhikevich_"))
+        if izhi_keys and kwargs.get("family") not in ("izhikevich", None):
+            raise ValueError(
+                f"emitter({izhi_keys[0]}=...) is not realized for family={kwargs.get('family')!r}: "
+                "construct reads it for family='izhikevich' only "
+                "(or an undeclared family, which defaults to izhikevich)"
+            )
+        if kwargs.get("izhikevich_update_order") is not None:
+            _refuse_unrealized("emitter", "izhikevich_update_order",
+                               kwargs["izhikevich_update_order"], _IZHIKEVICH_UPDATE_ORDERS)
         if self.emitters:
             check_emitter_conflict(self.emitters[0], kwargs)
         return replace(self, emitters=[*self.emitters, dict(kwargs)])

@@ -346,3 +346,58 @@ def test_p3b_v5_bar_fails_a_flip_before_r_and_extra_u_off():
     assert got["R"] == 10 and not got["extra_u_rtol1e-6_before_R"]
     ref, ker, ctrl = _v5_case(r_row=None, kernel_flip_row=None, extra_rel=1e-7)
     assert gate.v5_step(ref, ker, ctrl)["verdict"] == "PASS"
+
+
+# --- B2b: the core net_m path reproduces the kernel_net_m oracle bit-for-bit ---
+
+
+def _b2b_core_params(jnp, net, n_e, n_i, dtype):
+    from jaxfne.emitters import IzhikevichParams
+
+    n = n_e + n_i
+    return IzhikevichParams(
+        a=jnp.asarray(net["a"], dtype=dtype),
+        b=jnp.asarray(net["b"], dtype=dtype),
+        c=jnp.asarray(net["c"], dtype=dtype),
+        d=jnp.asarray(net["d"], dtype=dtype),
+        drive=jnp.zeros((n,), dtype=dtype),
+        sign=jnp.concatenate([jnp.ones((n_e,)), -jnp.ones((n_i,))]).astype(dtype),
+        W=jnp.asarray(net["S"], dtype=dtype),
+        v0=jnp.full((n,), -65.0, dtype=dtype),
+        u0=(jnp.asarray(net["b"], dtype=dtype) * -65.0).astype(dtype),
+        source_scale=jnp.ones((n,), dtype=dtype),
+        labels=("E",) * n_e + ("I",) * n_i)
+
+
+def test_b2b_core_net_m_matches_oracle_bit_for_bit():
+    import jax
+
+    from jaxfne.emitters import simulate_eig_izhikevich
+
+    nref, km = _load_netref(), _load_kernel()
+    was = bool(jax.config.read("jax_enable_x64"))
+    try:
+        jax.config.update("jax_enable_x64", True)
+        import jax.numpy as jnp
+
+        n_e, n_i, steps = 8, 2, 200
+        n = n_e + n_i
+        net = nref.build_network(np.random.default_rng(20261013), n_e=n_e, n_i=n_i)
+        rng = np.random.default_rng(4)
+        thal = np.concatenate([5.0 * rng.standard_normal((steps, n_e)),
+                               2.0 * rng.standard_normal((steps, n_i))], axis=1)
+        oracle = km.simulate_net_m(
+            {k: np.asarray(net[k], dtype=np.float64) for k in ("a", "b", "c", "d")},
+            np.asarray(net["S"], dtype=np.float64), thal,
+            np.full(n, -65.0), np.asarray(net["b"]) * -65.0, return_v=True)
+        assert int(np.asarray(oracle["spikes"]).sum()) > 0, "fixture must spike"
+        v, spk, _ = simulate_eig_izhikevich(
+            _b2b_core_params(jnp, net, n_e, n_i, jnp.float64), steps, 1.0,
+            jax.random.PRNGKey(0), dtype="float64",
+            drive_schedule=jnp.asarray(thal, dtype=jnp.float64),
+            noise_scale=0.0, update_order="net_m")
+        assert np.array_equal(np.asarray(spk).astype(bool), np.asarray(oracle["spikes"]))
+        assert np.array_equal(np.asarray(v), np.asarray(oracle["v_test"]))
+    finally:
+        if not was:
+            jax.config.update("jax_enable_x64", False)
