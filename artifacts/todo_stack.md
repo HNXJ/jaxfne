@@ -72,8 +72,13 @@ clones, verified before integration):
 3. [A] B1 estimators into `jaxfne.analysis` (ISI ratio and CV, pairwise correlation, aperiodic fit,
    tuning fit, phase delay); lane copies import them, outputs equal on saved rasters.
 4. [A] B3 batched runs: seed and candidate batching for the AdEx and LIF routes and `Model.tune`.
-5. [A] B2 routes through `construct`: HH in dispatch (GSDR), the `net.m` order as a core option
-   (izhikevich2003), the PCL full-network mapping on the LIF tensor route (T-22 operator, T-25 A').
+5. [A] B2 routes through `construct`: HH in dispatch (GSDR) - LANDED (cc3871cb: construct()
+   dispatches family="hh", single-compartment _simulate_hh with named refusals, GSDR lane builds via
+   construct(), construct-vs-direct bit-equality pinned); the net.m order as a core option
+   (izhikevich2003) - LANDED (7443d4ee: izhikevich_update_order="net_m" reproduces the signed
+   kernel_net_m oracle bit-for-bit; default path pinned). Remaining: the PCL full-network mapping
+   on the LIF tensor route (T-22 operator, T-25 A') - the largest sub-item, unblocks the pcl
+   S2/E1 findings and T-25's A' load.
 7. [A] B8 pilots then preregs: Destexhe and GSDR (the GSDR fit with MCDP on via `mcdp_hdp_step`);
    then each lane's P3 prereg for signature; Jansen-Rit 1995 opens the EEG/MEG lane (a neural-mass
    emitter in the core, then P1).
