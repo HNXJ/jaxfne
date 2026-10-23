@@ -25,6 +25,12 @@ from pathlib import Path
 
 from scripts import lane_kit
 
+from jaxfne.analysis import (
+    cv_isi,
+    mean_rate_hz,
+    pairwise_cc_binned_disjoint as pairwise_cc,
+)
+
 _HERE = Path(__file__).resolve().parent
 
 _repo_root = Path(__file__).resolve().parents[4]
@@ -226,63 +232,6 @@ def epsp_peak(weight_nS, dt_ms=DT_MS):
     assert pre.size, "fixture must spike the pre cell"
     base = v[:50, 1].mean()
     return float(v[int(pre[0]) + 1:280, 1].max() - base)
-
-
-def cv_isi(spikes, dt_ms):
-    """Mean over spiking cells of sigma_ISI / mean_ISI (paper Eq. 3).
-
-    Cells with fewer than 3 spikes carry no ISI variance and are excluded;
-    the included fraction is reported alongside by the caller.
-    """
-    import numpy as np
-
-    arr = np.asarray(spikes, dtype=bool)
-    cvs = []
-    for col in range(arr.shape[1]):
-        t = np.flatnonzero(arr[:, col]).astype(float) * dt_ms
-        if t.size < 3:
-            continue
-        isi = np.diff(t)
-        if isi.mean() <= 0:
-            continue
-        cvs.append(float(isi.std() / isi.mean()))
-    if not cvs:
-        return float("nan")
-    return float(np.mean(cvs))
-
-
-def pairwise_cc(spikes, dt_ms, seed=0, bin_ms=5.0, n_pairs=500):
-    """Mean Pearson correlation over disjoint pairs in 5 ms bins (Eq. 4)."""
-    import numpy as np
-
-    arr = np.asarray(spikes, dtype=bool)
-    width = max(1, int(round(bin_ms / dt_ms)))
-    cut = (arr.shape[0] // width) * width
-    binned = arr[:cut].reshape(cut // width, width, arr.shape[1]).sum(axis=1)
-    n = arr.shape[1]
-    rng = np.random.default_rng(int(seed))
-    order = rng.permutation(n)
-    order = order[: (len(order) // 2) * 2].reshape(-1, 2)
-    order = order[:n_pairs]
-    rs = []
-    for i, j in order:
-        x = binned[:, i].astype(float)
-        y = binned[:, j].astype(float)
-        if x.std() == 0 or y.std() == 0:
-            continue
-        rs.append(float(np.corrcoef(x, y)[0, 1]))
-    if not rs:
-        return float("nan")
-    return float(np.mean(rs))
-
-
-def mean_rate_hz(spikes, dt_ms):
-    """Population mean firing rate (Hz) over the whole raster."""
-    import numpy as np
-
-    arr = np.asarray(spikes, dtype=bool)
-    seconds = arr.shape[0] * dt_ms / 1000.0
-    return float(arr.sum() / (arr.shape[1] * seconds))
 
 
 _refuse_scored_dir = lane_kit.refuse_scored_dir

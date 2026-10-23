@@ -21,6 +21,15 @@ fleiss_kappa_binary
 wang_buzsaki_kappa
     Compute mean pairwise coincidence of binary binned spike trains.
 
+cv_isi
+    Mean ISI coefficient of variation over spiking cells (Destexhe Eq. 3).
+
+pairwise_cc_binned_disjoint
+    Mean Pearson correlation over disjoint pairs in binned counts (Eq. 4).
+
+mean_rate_hz
+    Population mean firing rate (Hz) over the whole raster.
+
 activity_regime
     Classify one population activity trace into a standard regime.
 
@@ -33,9 +42,12 @@ from .metrics import (
     activity_regime,
     activity_regimes,
     burst_index,
+    cv_isi,
     fano_factor,
     fleiss_kappa_binary,
     mean_pairwise_spike_correlation,
+    mean_rate_hz,
+    pairwise_cc_binned_disjoint,
     wang_buzsaki_kappa,
 )
 from .granger import (
@@ -57,6 +69,9 @@ __all__ = [
     "fano_factor",
     "fleiss_kappa_binary",
     "wang_buzsaki_kappa",
+    "cv_isi",
+    "pairwise_cc_binned_disjoint",
+    "mean_rate_hz",
     "activity_regime",
     "activity_regimes",
     "ACTIVITY_REGIME_DEFAULTS",

@@ -991,3 +991,177 @@ class TestActivityRegimeNanAndEcho:
             assert name in jtfne.__all__, name
             assert hasattr(analysis, name), name
             assert symbol_tier(name) == "CANONICAL", name
+
+
+# --- T-32d destexhe estimator core homes -------------------------------------
+
+
+def _orig_cv_isi(spikes, dt_ms):
+    import numpy as np
+
+    arr = np.asarray(spikes, dtype=bool)
+    cvs = []
+    for col in range(arr.shape[1]):
+        t = np.flatnonzero(arr[:, col]).astype(float) * dt_ms
+        if t.size < 3:
+            continue
+        isi = np.diff(t)
+        if isi.mean() <= 0:
+            continue
+        cvs.append(float(isi.std() / isi.mean()))
+    if not cvs:
+        return float("nan")
+    return float(np.mean(cvs))
+
+
+def _orig_pairwise_cc(spikes, dt_ms, seed=0, bin_ms=5.0, n_pairs=500):
+    import numpy as np
+
+    arr = np.asarray(spikes, dtype=bool)
+    width = max(1, int(round(bin_ms / dt_ms)))
+    cut = (arr.shape[0] // width) * width
+    binned = arr[:cut].reshape(cut // width, width, arr.shape[1]).sum(axis=1)
+    n = arr.shape[1]
+    rng = np.random.default_rng(int(seed))
+    order = rng.permutation(n)
+    order = order[: (len(order) // 2) * 2].reshape(-1, 2)
+    order = order[:n_pairs]
+    rs = []
+    for i, j in order:
+        x = binned[:, i].astype(float)
+        y = binned[:, j].astype(float)
+        if x.std() == 0 or y.std() == 0:
+            continue
+        rs.append(float(np.corrcoef(x, y)[0, 1]))
+    if not rs:
+        return float("nan")
+    return float(np.mean(rs))
+
+
+def _orig_mean_rate_hz(spikes, dt_ms):
+    import numpy as np
+
+    arr = np.asarray(spikes, dtype=bool)
+    seconds = arr.shape[0] * dt_ms / 1000.0
+    return float(arr.sum() / (arr.shape[1] * seconds))
+
+
+_DESTEXHE_DT_MS = 0.5
+
+
+def _destexhe_fixture_raster():
+    """(200 steps, 6 cells): regular, sparse, <3-spike, silent, twin, irregular."""
+    spikes = np.zeros((200, 6), dtype=bool)
+    spikes[[10, 20, 30, 100], 0] = True
+    spikes[[5, 60, 150], 1] = True
+    spikes[[7, 8], 2] = True
+    spikes[[10, 20, 30, 100], 4] = True
+    spikes[[12, 44, 45, 150], 5] = True
+    return spikes
+
+
+def _assert_same_float(got, want):
+    if np.isnan(want):
+        assert np.isnan(got), f"expected NaN, got {got!r}"
+    else:
+        assert got == pytest.approx(want)
+
+
+class TestDestexheCvIsiPin:
+    """cv_isi pinned against the lane original copied above."""
+
+    def test_matches_original_on_fixture(self):
+        from artifacts.etudes.papers.destexhe2009 import destexhe_api as L
+
+        spikes = _destexhe_fixture_raster()
+        assert spikes[:, 3].sum() == 0, "fixture must hold one silent cell"
+        assert spikes[:, 2].sum() == 2, "fixture must hold one <3-spike cell"
+        want = _orig_cv_isi(spikes, _DESTEXHE_DT_MS)
+        assert np.isfinite(want), "fixture must give a defined CV"
+        _assert_same_float(L.cv_isi(spikes, _DESTEXHE_DT_MS), want)
+
+    def test_nan_when_no_cell_qualifies(self):
+        from artifacts.etudes.papers.destexhe2009 import destexhe_api as L
+
+        silent = np.zeros((200, 4), dtype=bool)
+        assert np.isnan(_orig_cv_isi(silent, _DESTEXHE_DT_MS))
+        assert np.isnan(L.cv_isi(silent, _DESTEXHE_DT_MS))
+        few = np.zeros((200, 4), dtype=bool)
+        few[[3, 50], 0] = True
+        few[[7], 1] = True
+        assert np.isnan(_orig_cv_isi(few, _DESTEXHE_DT_MS))
+        assert np.isnan(L.cv_isi(few, _DESTEXHE_DT_MS))
+
+
+class TestDestexhePairwiseCcPin:
+    """pairwise_cc pinned against the lane original copied above."""
+
+    def test_matches_original_on_fixture(self):
+        from artifacts.etudes.papers.destexhe2009 import destexhe_api as L
+
+        spikes = _destexhe_fixture_raster()
+        for seed in (0, 3):
+            want = _orig_pairwise_cc(spikes, _DESTEXHE_DT_MS, seed=seed)
+            assert np.isfinite(want), "fixture must give a defined CC"
+            _assert_same_float(
+                L.pairwise_cc(spikes, _DESTEXHE_DT_MS, seed=seed), want
+            )
+
+    def test_nan_when_all_pairs_zero_variance(self):
+        from artifacts.etudes.papers.destexhe2009 import destexhe_api as L
+
+        silent = np.zeros((200, 4), dtype=bool)
+        assert np.isnan(_orig_pairwise_cc(silent, _DESTEXHE_DT_MS))
+        assert np.isnan(L.pairwise_cc(silent, _DESTEXHE_DT_MS))
+
+
+class TestDestexheMeanRatePin:
+    """mean_rate_hz pinned against the lane original copied above."""
+
+    def test_matches_original_on_fixture(self):
+        from artifacts.etudes.papers.destexhe2009 import destexhe_api as L
+
+        spikes = _destexhe_fixture_raster()
+        want = _orig_mean_rate_hz(spikes, _DESTEXHE_DT_MS)
+        assert want == pytest.approx(17.0 / (6 * 0.1))
+        _assert_same_float(L.mean_rate_hz(spikes, _DESTEXHE_DT_MS), want)
+
+    def test_silent_raster_is_zero(self):
+        from artifacts.etudes.papers.destexhe2009 import destexhe_api as L
+
+        silent = np.zeros((200, 4), dtype=bool)
+        assert _orig_mean_rate_hz(silent, _DESTEXHE_DT_MS) == 0.0
+        assert L.mean_rate_hz(silent, _DESTEXHE_DT_MS) == 0.0
+
+
+class TestDestexheCoreHomes:
+    """The lane estimators live in jaxfne.analysis (T-32d stage 1)."""
+
+    def test_lane_uses_core_callables(self):
+        import jaxfne.analysis as analysis
+        from artifacts.etudes.papers.destexhe2009 import destexhe_api as L
+
+        assert analysis.cv_isi is L.cv_isi
+        assert analysis.mean_rate_hz is L.mean_rate_hz
+        assert analysis.pairwise_cc_binned_disjoint is L.pairwise_cc
+
+    def test_core_matches_originals(self):
+        from jaxfne.analysis import (
+            cv_isi,
+            mean_rate_hz,
+            pairwise_cc_binned_disjoint,
+        )
+
+        spikes = _destexhe_fixture_raster()
+        _assert_same_float(
+            cv_isi(spikes, _DESTEXHE_DT_MS),
+            _orig_cv_isi(spikes, _DESTEXHE_DT_MS),
+        )
+        _assert_same_float(
+            pairwise_cc_binned_disjoint(spikes, _DESTEXHE_DT_MS),
+            _orig_pairwise_cc(spikes, _DESTEXHE_DT_MS),
+        )
+        _assert_same_float(
+            mean_rate_hz(spikes, _DESTEXHE_DT_MS),
+            _orig_mean_rate_hz(spikes, _DESTEXHE_DT_MS),
+        )

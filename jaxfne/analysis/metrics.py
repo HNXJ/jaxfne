@@ -894,3 +894,180 @@ def activity_regimes(
         )
         for name, index in populations.items()
     }
+
+
+# --- Destexhe 2009 lane estimators (T-32d stage 1) ---------------------------
+
+
+def cv_isi(
+    spikes: Union[np.ndarray, "jax.Array"],
+    dt_ms: float,
+) -> float:
+    r"""Mean over spiking cells of sigma_ISI / mean_ISI (paper Eq. 3).
+
+    For each cell with at least 3 spikes, the spike times give the
+    interspike intervals ``ISI``; the cell contributes
+    ``std(ISI) / mean(ISI)`` (population std, ddof 0). The metric is the
+    mean over the contributing cells.
+
+    Parameters
+    ----------
+    spikes : (n_steps, n_neurons) ndarray
+        Spike indicator array with one row per time step and one column per
+        neuron. Any nonzero value counts as a spike.
+    dt_ms : float
+        Simulation timestep in milliseconds. Must be > 0.
+
+    Returns
+    -------
+    float
+        Mean ISI coefficient of variation over cells with at least 3 spikes.
+        Returns NaN when no cell qualifies.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from jaxfne.analysis import cv_isi
+    >>> spikes = np.zeros((10, 2), dtype=bool)
+    >>> spikes[[1, 3, 5, 7], 0] = True
+    >>> cv_isi(spikes, 1.0)
+    0.0
+
+    Notes
+    -----
+    Moved verbatim from the Destexhe 2009 lane
+    (``artifacts/etudes/papers/destexhe2009/destexhe_api.py``), which applies
+    it to the free-run raster. Cells with fewer than 3 spikes carry no ISI
+    variance and are excluded.
+    """
+    arr = np.asarray(spikes, dtype=bool)
+    cvs = []
+    for col in range(arr.shape[1]):
+        t = np.flatnonzero(arr[:, col]).astype(float) * dt_ms
+        if t.size < 3:
+            continue
+        isi = np.diff(t)
+        if isi.mean() <= 0:
+            continue
+        cvs.append(float(isi.std() / isi.mean()))
+    if not cvs:
+        return float("nan")
+    return float(np.mean(cvs))
+
+
+def pairwise_cc_binned_disjoint(
+    spikes: Union[np.ndarray, "jax.Array"],
+    dt_ms: float,
+    seed: int = 0,
+    bin_ms: float = 5.0,
+    n_pairs: int = 500,
+) -> float:
+    r"""Mean Pearson correlation over disjoint pairs in binned spike counts.
+
+    Spikes are grouped into non-overlapping bins of ``max(1,
+    round(bin_ms / dt_ms))`` steps (trailing partial bin dropped); counts
+    (not binarized) fill a ``(n_bins, n_neurons)`` table. A seeded
+    permutation of the cells is cut into disjoint pairs (at most
+    ``n_pairs``); the metric is the mean Pearson r over pairs where both
+    binned trains have nonzero variance.
+
+    Parameters
+    ----------
+    spikes : (n_steps, n_neurons) ndarray
+        Spike indicator array with one row per time step and one column per
+        neuron. Any nonzero value counts as a spike.
+    dt_ms : float
+        Simulation timestep in milliseconds. Must be > 0.
+    seed : int, default=0
+        Seed driving the disjoint pairing permutation.
+    bin_ms : float, default=5.0
+        Binning window in milliseconds.
+    n_pairs : int, default=500
+        Maximum number of disjoint pairs sampled.
+
+    Returns
+    -------
+    float
+        Mean pairwise Pearson correlation in [-1, 1]. Returns NaN when no
+        sampled pair has variance on both trains.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from jaxfne.analysis import pairwise_cc_binned_disjoint
+    >>> rng = np.random.default_rng(0)
+    >>> spikes = rng.random((1000, 6)) < 0.01
+    >>> cc = pairwise_cc_binned_disjoint(spikes, 0.5, seed=0)
+
+    Notes
+    -----
+    Moved verbatim from the Destexhe 2009 lane
+    (``artifacts/etudes/papers/destexhe2009/destexhe_api.py``), which scores
+    it in 5 ms bins over 500 disjoint pairs (paper Eq. 4). It differs from
+    :func:`mean_pairwise_spike_correlation`: that function takes
+    ``(n_neurons, n_time)`` input, averages over all upper-triangle pairs
+    with no seed, and filters low-activity bins, while this one takes
+    ``(n_steps, n_neurons)`` input and averages over a seeded disjoint
+    pairing with no bin filtering.
+    """
+    arr = np.asarray(spikes, dtype=bool)
+    width = max(1, int(round(bin_ms / dt_ms)))
+    cut = (arr.shape[0] // width) * width
+    binned = arr[:cut].reshape(cut // width, width, arr.shape[1]).sum(axis=1)
+    n = arr.shape[1]
+    rng = np.random.default_rng(int(seed))
+    order = rng.permutation(n)
+    order = order[: (len(order) // 2) * 2].reshape(-1, 2)
+    order = order[:n_pairs]
+    rs = []
+    for i, j in order:
+        x = binned[:, i].astype(float)
+        y = binned[:, j].astype(float)
+        if x.std() == 0 or y.std() == 0:
+            continue
+        rs.append(float(np.corrcoef(x, y)[0, 1]))
+    if not rs:
+        return float("nan")
+    return float(np.mean(rs))
+
+
+def mean_rate_hz(
+    spikes: Union[np.ndarray, "jax.Array"],
+    dt_ms: float,
+) -> float:
+    r"""Population mean firing rate (Hz) over the whole raster.
+
+    Total spikes divided by the number of cells times the raster duration
+    in seconds.
+
+    Parameters
+    ----------
+    spikes : (n_steps, n_neurons) ndarray
+        Spike indicator array with one row per time step and one column per
+        neuron. Any nonzero value counts as a spike.
+    dt_ms : float
+        Simulation timestep in milliseconds. Must be > 0.
+
+    Returns
+    -------
+    float
+        Mean spikes per neuron per second. Returns 0.0 for a silent raster.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from jaxfne.analysis import mean_rate_hz
+    >>> spikes = np.zeros((1000, 2), dtype=bool)
+    >>> spikes[::100, 0] = True
+    >>> mean_rate_hz(spikes, 1.0)
+    5.0
+
+    Notes
+    -----
+    Moved verbatim from the Destexhe 2009 lane
+    (``artifacts/etudes/papers/destexhe2009/destexhe_api.py``), which scores
+    it per carrier over the free-run raster.
+    """
+    arr = np.asarray(spikes, dtype=bool)
+    seconds = arr.shape[0] * dt_ms / 1000.0
+    return float(arr.sum() / (arr.shape[1] * seconds))
