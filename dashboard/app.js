@@ -686,6 +686,19 @@ function paperCard(paper) {
     chips.appendChild(verdictChip(paper.verdict));
     if (paper.verdict_note) chips.appendChild(el("span", " " + paper.verdict_note));
   }
+  var summary = paper.verdict_summary || null;
+  if (summary && summary.library) {
+    chips.appendChild(el("span", " "));
+    var lib = el("span", "Library " + summary.library.stage + ": ");
+    lib.appendChild(verdictChip(summary.library.verdict));
+    chips.appendChild(lib);
+  }
+  if (summary && summary.kind === "core_method" && summary.methods) {
+    chips.appendChild(el("span", " "));
+    var meth = el("span", "Methods: ");
+    meth.appendChild(verdictChip(summary.methods));
+    chips.appendChild(meth);
+  }
   card.appendChild(chips);
   if (paper.question) card.appendChild(el("p", paper.question));
   if ((paper.criteria || []).length) card.appendChild(el("p", passCount(paper))).className = "pass-count";
@@ -695,6 +708,15 @@ function paperCard(paper) {
 function renderOverview(view, data) {
   var papers = data.papers || [];
   view.appendChild(el("h2", "Overview"));
+  // Paper denominators exclude core-method rows; core checks are counted apart.
+  if (data.overview) {
+    var o = data.overview;
+    var core = o.core_methods || { rows: 0, criteria: { pass: 0, fail: 0, pending: 0 } };
+    view.appendChild(el("p", o.papers + " paper replications · criteria pass " +
+      o.criteria.pass + " / fail " + o.criteria.fail + " / pending " + o.criteria.pending +
+      " · " + core.rows + " core-method rows (" +
+      core.criteria.pass + " / " + core.criteria.fail + " / " + core.criteria.pending + ")")).className = "small";
+  }
   var kpis = el("div");
   kpis.className = "kpis";
   var planned = data.roadmap || [];
@@ -757,6 +779,19 @@ function renderModel(view, data, paper) {
     if (paper.verdict_note) chips.appendChild(el("span", " " + paper.verdict_note));
   }
   card.appendChild(chips);
+  var summary = paper.verdict_summary || null;
+  if (summary && summary.library) {
+    var libLine = el("p");
+    libLine.className = "small";
+    libLine.appendChild(el("span", "Library path (" + summary.library.stage + "): "));
+    libLine.appendChild(verdictChip(summary.library.verdict));
+    var libEv = summary.library.evidence || {};
+    if (libEv.url) {
+      libLine.appendChild(el("span", " — "));
+      libLine.appendChild(link(libEv.url, libEv.path || "", "ev-link"));
+    }
+    card.appendChild(libLine);
+  }
   if (paper.stage) card.appendChild(stageTrack(paper.stage));
   if ((paper.stage_artifacts || []).length) card.appendChild(stageArtifacts(paper));
   var lane = paper.lane || {};
@@ -1237,6 +1272,8 @@ function renderHeader(data) {
   var generated = document.getElementById("generated");
   clear(generated);
   generated.appendChild(el("span", "Generated " + ((data.generated && data.generated.utc) || "unknown")));
+  var rev = data.generated && data.generated.data_revision;
+  if (rev) generated.appendChild(el("span", " · data " + String(rev).slice(0, 12)));
   var sha = (data.generated && data.generated.dev_sha) || "";
   var devLink = document.getElementById("devsha");
   clear(devLink);
@@ -1245,6 +1282,32 @@ function renderHeader(data) {
   var doc = document.getElementById("replications-doc");
   doc.href = "https://github.com/hnxj/jaxfne/blob/dev/artifacts/etudes/meta/REPLICATIONS.md";
   document.getElementById("banner").hidden = !data.sample;
+  var staleBanner = document.getElementById("stale-banner");
+  if (staleBanner) {
+    var warning = staleWarning(data.generated);
+    if (warning) {
+      staleBanner.textContent = warning;
+      staleBanner.hidden = false;
+    } else {
+      staleBanner.hidden = true;
+    }
+  }
+}
+
+/* Freshness: the generated stamp is older than STALE_AFTER_DAYS, or unreadable,
+// so the page warns instead of reading green. Mirrors stale_warning in
+// scripts/build_dashboard_data.py. */
+var STALE_AFTER_DAYS = 14;
+
+function staleWarning(generated) {
+  var utc = generated && generated.utc;
+  var seen = utc ? Date.parse(utc) : NaN;
+  if (isNaN(seen)) return "Generated timestamp is unreadable; treat this data file as stale.";
+  var days = Math.floor((Date.now() - seen) / 86400000);
+  if (days >= STALE_AFTER_DAYS) {
+    return "Stale data: generated " + utc + " (" + days + " days ago); regenerate before citing.";
+  }
+  return null;
 }
 
 function loadData() {

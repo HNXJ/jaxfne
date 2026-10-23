@@ -42,8 +42,10 @@
       "files": {
         "main": "artifacts/etudes/caminos/scores/score.json",
         "sens": "artifacts/etudes/caminos/scores/sensitivity_S1_S5.json",
-        "v7": {"path": "artifacts/etudes/caminos/scores/score_v7.json", "allow_missing": true}
+        "v7": {"path": "artifacts/etudes/caminos/scores/score_v7.json", "allow_missing": true},
+        "p6": "artifacts/etudes/caminos/scores/p6_v2_score.json"
       },
+      "library_path": {"stage": "P6", "file": "p6", "key": "p6.verdict"},
       "criteria": [
         {"id": "R1", "claim": "the network oscillates at about 35 Hz", "estimand": "peak frequency f_pk of the E rate spectrum, seeds 1–5 at p = 0.07", "criterion": "every seed oscillates, f_pk 30–40 Hz",
          "value": {"file": "main", "key": "r1.mean_peak_freq_Hz"}, "unit": "Hz", "value_label": "mean f_pk", "paper_value": "≈ 35 Hz",
