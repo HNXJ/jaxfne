@@ -9,6 +9,9 @@ profiles, and similarity objectives.
 
 from functools import partial
 from typing import Dict
+import numpy as _np
+from scipy.optimize import curve_fit as _curve_fit
+
 import jax
 import jax.numpy as jnp
 
@@ -197,9 +200,6 @@ spectrolaminar_similarity_candidates_seeds_jax = jax.vmap(
 
 
 # --- CAMINOS lane estimators (T-32d stage 2: generic core homes) ----------------
-
-import numpy as _np
-from scipy.optimize import curve_fit as _curve_fit
 
 
 def welch_numpy(x, fs, nperseg, noverlap):
