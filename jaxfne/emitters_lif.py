@@ -224,7 +224,12 @@ def _cascade_step(state, I_tot, Kn, t_ms, params: LIFParams, dt_ms: float,
     inhibition, losers decayed-minus-all inhibition plus their input, both
     floored; unfed cells absorb winners' inhibition only. This is the
     binned-oracle cascade (``pcl_binned_jax._cascade``) with the
-    per-event visit order on A (Hamm 2026-10-14). Pure ``jax.numpy``;
+    per-event visit order on A (Hamm 2026-10-14): an approximation of the
+    event-exact cascade, not the event-exact order itself (decay once per
+    step, one shared ``k * (R + A)`` subtraction, no inter-event
+    interleave; ``resolution='event_scan'`` is the exact per-event
+    replay under the Stage C test conditions (20-clip receipt; exactness
+    is bounded by that evidence, not universal). Pure ``jax.numpy``;
     dtype follows the inputs.
     """
     V, A, t_last = state
@@ -1522,7 +1527,13 @@ def simulate_lif_edge(
     ``None``/``"whole_step"``
     is the grouped first-R cap above (the default, so undeclared specs run
     byte-identically); ``"event_order"`` runs the declared intra-step fixed
-    point (Hamm 2026-10-14) — each fed cell visited in feed order with ties
+    point (Hamm 2026-10-14) as a per-step APPROXIMATION of the event-exact
+    cascade, not the event-exact order itself: potentials decay once per
+    step, the step's ``k`` arrivals share one ``k * (R + A)`` subtraction,
+    same-step events do not interleave decay between visits
+    (``"event_scan"`` is the exact per-event replay under the Stage C test
+    conditions - bounded by the 20-clip receipt, not universal). Each fed cell
+    is visited in feed order with ties
     in ascending index (oracle ``pcl_event_ref.py:663-697``), every spike
     subtracting its local inhibition from later group-mates before the next
     visit. ``"event_scan"`` replays the event stream exactly instead of the
