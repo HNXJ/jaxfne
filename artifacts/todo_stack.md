@@ -130,6 +130,11 @@ clones, verified before integration):
    preserved - numerical integration success never promotes them to scientific reproduction;
    the dashboard's three-verdict separation stays invariant through generation, serialization
    and display.
+   B2c stage 2 LANDED (9fa0f4c5): the three LIF resolutions are a declared, validated policy set -
+   event_order documented as a per-step APPROXIMATION, event_scan's exactness bounded to the Stage
+   C evidence; the negative control fires (order-sensitive drive: event_scan [T,T,F] vs
+   event_order [F,T,F] on one seed); refusals name the supported set; the LIF route's
+   continuation absence pinned (state enters via V0_mV only); zero numerics change. B2 COMPLETE.
 7. [A] B8 pilots then preregs: Destexhe and GSDR (the GSDR fit with MCDP on via `mcdp_hdp_step`);
    then each lane's P3 prereg for signature; Jansen-Rit 1995 opens the EEG/MEG lane (a neural-mass
    emitter in the core, then P1).
