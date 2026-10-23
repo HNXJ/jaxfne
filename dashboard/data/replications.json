@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-23T15:44:31Z",
-    "dev_sha": "a5f6ffa3770f98558c177456841a575d0047bafa",
-    "data_revision": "e6d21fc027e9096637c049ea1b2e97b0d82f8accd334b6bdd02475faf05f9740"
+    "utc": "2026-10-23T22:47:03Z",
+    "dev_sha": "33e66089318e8424200081b0ce04e5c2482ed69f",
+    "data_revision": "165ea493fcdba1d8bc2e99fa048f61102a77c9f03cccf3ea0c7d0f54127e6150"
   },
   "papers": [
     {
@@ -3027,6 +3027,16 @@
               "label": "prereg v4 (signed)",
               "path": "artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md",
               "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md"
+            }
+          ]
+        },
+        {
+          "stage": "P4",
+          "items": [
+            {
+              "label": "lane api (scored route)",
+              "path": "artifacts/etudes/papers/brunel2000/brunel2000_api.py",
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/brunel2000_api.py"
             }
           ]
         },
