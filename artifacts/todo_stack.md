@@ -84,79 +84,42 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   verdict_summary (paper/library/methods) derived from records, core-method rows out of the paper
   denominators, data_revision + stale warning, failed criteria ride the row. P1 (estimator/units/
   seeds/prereg exposure) and P2 (commands/runtime/memory) queued behind the P0 acceptance.
-- Kernel LFP lane `cl-klfp` onto dev [A]: rebase onto current dev, broad gate 0 failed, push; first
+- Kernel LFP lane `cl-klfp` onto dev [H go needed, Cursor handoff 2026-10-24] [A]: rebase onto current dev, broad gate 0 failed, push; first
   f57aae0f (`istdp_vogels2011` per-synapse traces; the 0.5.8 changelog names the fix to 0.5.7's
   per-neuron trace, Known issue per Hamm 2026-10-21; O-55 Vogels segment B rerun), then 6eb3c6b8,
   44cd0111, ff45364b (hybrid kernel LFP; feeds 0.5.10). Then the validation backbone continues
   (iSTDP out-degree check in plasticity, kernel LFP checks in fields).
+- Dashboard/docs adoption from jnwb (Hamm 2026-10-24, all four: [A], not 0.5.8-blocking, moves to 0.5.9
+  if unfinished): (a) docs stills get generated `.dark.png` twins (`#only-light`/`#only-dark`); (b) JSON
+  Schema with 40-hex SHA patterns for `replications.json`, validated in `build_dashboard_data.py
+  --check`; (c) sha256 of each committed receipt on its evidence item; (d) a test that loads
+  `dashboard/index.html` + `app.js` in a real page. Joint rulings: both dashboards use the jaxfne verdict
+  set and publish on every dev push; style files stay per repo, aligned by convention. Tree budget
+  (Hamm 2026-10-24: the repo stays well below 100 MB, read as 100,000,000 bytes, so a budget
+  amendment for the twins is fine): record the measured delta in the amendment file.
+- Interactive figure theme (Hamm ruled for jnwb 2026-10-24: one HTML per figure that follows the site
+  theme, no light/dark twins): jaxfne's interactive panels are one HTML each but built with a fixed
+  `plotly_dark` template (`jaxfne/vis/atlas_suite.py`, `network_inspect.py`, `tutorial_panels.py`,
+  `scripts/generate_docs_visuals.py`, `generate_doc_page_atlases.py`). [A] make them follow the
+  reader's theme (iframe reads `prefers-color-scheme` / the parent's `data-theme`); closes when a
+  panel renders light and dark from the same file. Not 0.5.8-blocking.
 - Docs figures leftovers: (1) stop the `docs/_static` HTML builds and delete those tracked files (frees
   tree budget); (2) the four allowlisted iframes in `build_docs_assets.py` get a figure-site build or a still.
 
 In order (Hamm 2026-10-22: work until the 0.5.8 todos and open issues are empty; open issues become
 todos once their close is decided; checkpoint when both are empty; Muse Spark 1.3 code packets in
 clones, verified before integration):
-1. [A] B4 R4 LANDED (8136beea, 2026-10-22: a paper claiming reproduced must hold its P6 result file;
-   F3 stays manual: the gate cannot run the parent commit). Remaining: the S2/E1/P4 follow-ups,
-   each removing its known finding:
-   the four allowlisted oracle imports move to gates or tests; brunel2000 lists its scored module
-   under P4; caminos P4 adds backend, dtype, seeds and the regime block; izhikevich2003 the regime
-   block; pcl backend, dtype, seeds and regime.
-2. [A] B5 Brunel S1 fixed-in-degree option: CLOSED (already landed 9a56737c, 2026-10-19; PORT_SPEC rows
-   8-11 pinned). B5 remainder also CLOSED 2026-10-22: Vogels G-SC (94e62ef0 + 744647a8, per-channel
-   Poisson rates realized end to end), Potjans G-MULT (b4d4dc5c), G-TAUSYN (5a8d4ad4),
-   G-POPDRIVE (47c8076b), G-WDIST/G-DDIST (9dc6afd3). Each xfail unmarked; no-spread paths
-   bit-identical; review round applied.
-3. [A] B1 estimators into `jaxfne.analysis` (ISI ratio and CV, pairwise correlation, aperiodic fit,
-   tuning fit, phase delay); lane copies import them, outputs equal on saved rasters.
-4. [A] B3 batched runs: seed and candidate batching for the AdEx and LIF routes and `Model.tune`.
-   RULING (Hamm 2026-10-23): option (a) APPROVED conditional on verification - per-observable
-   numerical equivalence, NOT bitwise float trajectories across XLA compilation forms: spikes and
-   RNG exact; V_m allclose rtol=0 atol=1e-4 mV (provisional ~2x the observed max; never raised
-   automatically); other states exact where observed else justified tolerances; candidate identity/
-   seeds/order exact; the failing bitwise-V_m tests RETAINED as platform diagnostics. Falsification
-   set: scalar/vmap/repeated on Windows AND WSL, complete trajectories, per-timestep spike equality,
-   near-threshold sensitive cases, permutation/batch-size invariance, continuation, environment
-   versions + max errors recorded, compile/steady-state/memory benchmarked separately. Bounded
-   claims only (tested configurations). Integration after the contract passes; stop and report on
-   any spike mismatch or tolerance breach.
-5. [A] B2 routes through `construct`: HH in dispatch (GSDR) - LANDED (cc3871cb: construct()
-   dispatches family="hh", single-compartment _simulate_hh with named refusals, GSDR lane builds via
-   construct(), construct-vs-direct bit-equality pinned); the net.m order as a core option
-   (izhikevich2003) - LANDED (7443d4ee: izhikevich_update_order="net_m" reproduces the signed
-   kernel_net_m oracle bit-for-bit; default path pinned). Remaining: the PCL full-network mapping
-   on the LIF tensor route (T-22 operator, T-25 A') - the largest sub-item, unblocks the pcl
-   S2/E1 findings and T-25's A' load.
-   B2c stage 1 LANDED (4a07072e: engine="core" runs the trained PCL network through the tensor
-   scan route; numba-vs-core equality exact in all four inhibition modes - a bounded
-   numerical-equivalence result, NOT PCL scientific reproduction or universal backend equivalence).
-   B2c stage 2 RULED (Hamm 2026-10-23): `event_order` stays an explicit opt-in execution option -
-   default ordering unchanged; a named, validated policy (no implicit inference from model type);
-   scope only where relative order is scientifically consequential; monolithic-vs-chunked
-   continuation equality under each supported policy; numba/core parity under the legacy policy,
-   alternative policies tested against an independent stepwise reference; a negative control
-   (an order-sensitive network must show the option changes the expected outcome); unsupported
-   policies rejected, never silently mapped. No generic event scheduler or fixed-point solver
-   without a demonstrated requirement. B4 S2/E1 depend on the resulting semantics, not an
-   assumed scheduler design; B1 stage 2 precedes any new CAMINOS confirmatory scoring
-   (estimator changes must not silently reinterpret historical results). Acceptance (Hamm
-   2026-10-23): exactly three supported LIF resolutions, unknown values rejected; each documented
-   with its ACTUAL numerical meaning; a same-seed order-sensitive fixture shows
-   event_order != event_scan; existing tests and hash pins unchanged; continuation equality per
-   policy or its unsupported behavior documented; no scheduler, continuation machinery, or
-   numerical change. QUALIFICATION: the negative control proves policy selection affects
-   execution - it does NOT prove event_scan is universally event-exact; that claim stays bounded
-   by the Stage C 20-clip evidence and its assumptions. Preserve the three resolutions as
-   distinct numerical methods; no single accuracy ranking without model, timestep, observable
-   and reference solution specified. Release constraint:
-   the signed PCL T2 failure, CAMINOS mixed paper verdict and Brunel conditional verdict are
-   preserved - numerical integration success never promotes them to scientific reproduction;
-   the dashboard's three-verdict separation stays invariant through generation, serialization
-   and display.
-   B2c stage 2 LANDED (9fa0f4c5): the three LIF resolutions are a declared, validated policy set -
-   event_order documented as a per-step APPROXIMATION, event_scan's exactness bounded to the Stage
-   C evidence; the negative control fires (order-sensitive drive: event_scan [T,T,F] vs
-   event_order [F,T,F] on one seed); refusals name the supported set; the LIF route's
-   continuation absence pinned (state enters via V0_mV only); zero numerics change. B2 COMPLETE.
+1. [A] B4 PARTIAL (R4 8136beea, P4 d5b07498, caminos + brunel E1 33e66089; findings 38 -> 31, all
+   known, 0 unlisted; B1, B2, B3, B5 CLOSED 2026-10-22/24, evidence in git and the handoff).
+   Remaining, each removing its known finding: izhikevich2003 E1 is BLOCKED on a construct path
+   for the P3b arm's heterogeneous per-cell parameters (dt=0.5 + noise, default order; Hamm:
+   a core capability or an exception on the finding); the S2 set (4 oracle-import findings) is
+   protocol-gated: pcl closes at PCL-R4's new prereg, caminos by re-running its scored P3 sweeps
+   on the verified core route (Hamm's call).
+   Constraints kept from the closed items: B3 numerical contract (spikes/RNG exact; V_m
+   atol 1e-4 mV; bitwise V_m tests retained as platform diagnostics); the signed PCL T2 failure,
+   CAMINOS mixed verdict and Brunel conditional verdict are never promoted by integration
+   success; the dashboard's three-verdict separation stays invariant.
 7. [A] B8 pilots then preregs: Destexhe and GSDR (the GSDR fit with MCDP on via `mcdp_hdp_step`);
    then each lane's P3 prereg for signature; Jansen-Rit 1995 opens the EEG/MEG lane (a neural-mass
    emitter in the core, then P1).
