@@ -36,7 +36,19 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   relaxation of the original thresholds; B2c core integration (4a07072e) is a prerequisite,
   not evidence of paper reproduction; the dashboard shows the historical failure alongside
   the latest independently scored outcome. Priority: after B1 stage 2, before lower-priority
-  work. (Historical state below.) v4 FAIL stands
+  work. (Historical state below.) R1 CLOSED - FIDELITY AUDIT (2026-10-24; receipt
+  `artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md`, hash-pinned; NOT PCL REPRODUCED;
+  the signed v5 T2 FAIL immutable). Six findings, attributions and design dependencies: F1 local
+  inhibition - implementation (reference-faithful inhibition); F2 STDP persistence - implementation
+  (explicit training-file continuation); F3 serialization - implementation (canonical serialization);
+  F4 scored state is not weights-only - implementation (complete continuation state: Y =
+  F(W0, C0, I; theta), matching W0 without C0 does not preserve Y); F5 the core scan cannot replay
+  the real file - implementation (replay capability and adaptation semantics); F6 column selection -
+  observation/selection fidelity, same-run DeltaY_selection = 422 with (0,0) entirely silent
+  (reference-faithful observation selection; correcting selection alone is inferred, not
+  established, to resolve T2). Next authorized stage: the READ-ONLY PCL-R2/R4 design study
+  (two alternatives, the oracle state-variable mapping to X/H/W/B/K, a continuation-equivalence
+  test, generalization beyond PCL; stop before runtime changes). Historical state: v4 FAIL stands
   (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). v5 signed by Hamm 2026-10-13 on `pcl-port`
   89e45191 (`prereg/P3_fig3_v5.md`; signature recorded in 640cb97c): T2 runs the authors'
   `plot_fqcy` procedure on the port and scores it per K/k point against Fig. 3c,d digitized

@@ -2,7 +2,7 @@
   "counts": {
     "archive": 15,
     "benchmark": 1,
-    "dated": 19,
+    "dated": 20,
     "frozen": 28,
     "legacy": 32,
     "prereg": 104,
@@ -207,7 +207,8 @@
     "artifacts/release/v0_5_5_seal_notes_draft.md": "2e53c2587b258f457771b5667e6ed8406200ce9cc827c2b69d4e387a5f1871bd",
     "artifacts/release/v0_5_6_release_receipt.json": "e55ed2ac568c0bf171c1abeb684a178ff0dca623c88951c2da26eb1bcf19ab81",
     "artifacts/release/v0_5_7_release_receipt.json": "6cee1c8075918a2aeb0478d2a9acf26dea944082600d91f7479f35157535d96c",
-    "artifacts/release/budget_amendment_2026-10-23.md": "4e2c57042e39b32732280993f2534fc19e0c66b29b5b30e98f00aa73ff374631",
+    "artifacts/release/budget_amendment_2026-10-23.md": "7c07bed9983dd932c4a605cd99dfc52025383ce24e9e16aa5e70f3567c365d41",
+    "artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md": "cbe27393e16e41339c9e7b21398973ecbd747bd4a2292053d772ec4f9b637409",
     "artifacts/runs/benchmark/agent_tasks_055.json": "91dd839b4f8dd0828e3f44218199f6bbcd62fbe64e66f6dead9d266f02a4860c"
   }
 }

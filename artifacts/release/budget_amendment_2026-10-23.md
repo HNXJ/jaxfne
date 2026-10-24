@@ -38,3 +38,13 @@ additional features or unrelated growth."
 
 This is an engineering constraint record, not a scientific fact; it belongs to
 the release-evidence set, not the fact stack.
+
+## Second increment, 2026-10-24 (PCL-R1 receipt sealing)
+
++10,000 bytes (90,205,000 -> 90,215,000), authorized by the PCL-R1 sealing
+ruling ("Track the completed R1 matrix and its reproducing commands"): the
+tracked receipt `artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md`
+(+9,218 bytes, hash-pinned in `scripts/record_hashes.json`, dated class 20).
+Measured tree after sealing: 90,212,449 bytes; headroom 2,551. The probe
+scripts (25 files, 25,194 bytes) are preserved OUTSIDE the repository at
+`C:/workspace/jaxfne_pclr1_audit/` with sha256s recorded in the receipt.
