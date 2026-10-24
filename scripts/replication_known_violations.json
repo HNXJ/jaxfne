@@ -65,8 +65,8 @@
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/pcl",
-    "message": "holds 22 files (at most 7)",
-    "reason": "audit 2026-10-17",
+    "message": "holds 23 files (at most 7)",
+    "reason": "audit 2026-10-17; recount 2026-10-24 after the PCL-R1 receipt landed",
     "todo": "T-30"
   },
   {
