@@ -4,8 +4,8 @@ Baseline z at the paper's parameters (PORT_SPEC.md θ₀, PREREG_P3.md).
 No fit performed; degrees of freedom D untouched. Verdict: OFF, unscored pilot (ruling
 2026-10-18: scored against the unsigned draft `PREREG_P3.md`) —
 no self-sustained activity at θ₀, so E1 fails and E2/E3 score a transient,
-not an AI state. Held-out seeds 4–8 are unused and stay reserved for scoring
-after any future fit.
+not an AI state. (Step 6 below supersedes this verdict: seeds 4–8 ran there as an unscored pilot
+at the declared baseline, so they are spent; a scored run needs a new protocol on fresh seeds.)
 
 ## Provenance
 

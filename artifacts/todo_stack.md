@@ -125,14 +125,10 @@ clones, verified before integration):
    emitter in the core, then P1).
 8. [A] B6 split closed lane folders by kind (tree degree) once their lanes close.
 Open-stack rows (each closes its `O-n`; the open stack empties when these close; audits 2026-10-25):
-- T-O61 [A] verdict drift: add `tests/test_verdict_consistency.py` (per paper: receipt, registry, dashboard
-  JSON, docs table agree on the paper, library and methods verdicts, and on stage); first run fails on the
-  listed drifts, then fix them: CAMINOS lag restated per `CALIBRATION.md` §10 in `LEDGER.md`,
-  `RESULT_P3.md`, dashboard summary and R2 row; remove "P6 not attempted" (`dashboard/sources.json:114`,
-  `dashboard/models/caminos.md:44`); `generate_replications_page.py` shows the library and methods
-  verdicts; Destexhe summary shows the E1 4/8 and E4 ~5x pilot and the spent seeds (CALIBRATION header
-  lines 4-8 too); GSDR summary says κ 0.60; PCL-R1 receipt listed; stage labels agree. Review: the
-  CAMINOS and docs-table wording is Hamm's to read.
+- T-O61 follow-up [H] read the 2026-10-25 wording changes: CAMINOS lag as a finding (`LEDGER.md` R2,
+  `RESULT_P3.md` note, dashboard summary), Destexhe pilot and spent seeds, GSDR κ 0.60, Potjans, Vogels and
+  Mejias at stage P2, PCL-R1 sentence; open cosmetic: tier and release labels differ between
+  REPLICATIONS (CAMINOS T-methods, Izhikevich T-port) and the dashboard (T-jaxfne).
 - T-O65 [A] document the 57 undocumented `__all__` symbols in `docs/reference/api` (or name each in a
   test's exempt list with its reason); a test compares `__all__` to the reference pages.
 - T-O66 [A] tree budget: check whether `frozen_manifest.json` or the atlas results cite

@@ -33,7 +33,7 @@
       },
       "verdict": "mixed",
       "verdict_note": "Reproduced under v7 (amended after v6 R4 failed): f_pk, rates and R4. Missed: against PLoS CB (primary, Hamm 2026-10-14) the PV→SOM lag by the ref. 42 method is 6.47 ms against 8.5 ms (off, e 0.24), a finding that needs X. Library path, scored apart: P6 v2 PASS through the public API (Q1–Q5, C1). The 0.1 ms delay sensitivity gives the preprint's ≈ 7 ms",
-      "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07. The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep. At p = 0.07 the v6 and v7 runs are identical for all five seeds, so R1–R3 and R4v7 score one realization there.",
+      "summary": "Gamma and the rate order reproduce at p = 0.07; the PV→SOM lag is a finding that needs X (6.3–7.2 ms against 8.5 ms, e 0.15–0.26; CALIBRATION §10). The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep. At p = 0.07 the v6 and v7 runs are identical for all five seeds, so R1–R3 and R4v7 score one realization there.",
       "preregs": [
         {"id": "v6", "signed": "2026-10-11", "path": "artifacts/etudes/caminos/PREREG_P3.md"},
         {"id": "v7 (R4 only)", "signed": "2026-10-12", "path": "artifacts/etudes/caminos/PREREG_P3_v7_R4.md"},
@@ -111,7 +111,7 @@
       "open": [
         "R4v7 rests on the drive scaling as p·NE across the sweep; the paper does not state it.",
         "With the drive fixed at 560 sources (v6), every p oscillates; the onset needs the drive to scale with p. Shared-drive variant dropped (Hamm 2026-10-12).",
-        "P6 library path not attempted (B1)."
+        "The PV→SOM lag stays a finding that needs X; true zero delay runs once core gap G12 closes (CALIBRATION §10-11)."
       ]
     },
     {
@@ -138,7 +138,7 @@
                {"label": "scores v5", "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json"}]
       },
       "verdict": null,
-      "summary": "Preregistrations v4 and v5 were scored and did not pass; a new protocol follows (Hamm 2026-10-13). Orientation tuning and the simple/complex phase split reproduce. v5 scores the sf curve against the digitized Fig. 3: simple cells fail (10/16 points, error 1.5 times a flat line), complex cells miss the shape guard by 0.02. Under v5, T4 (frequency doubling, C3) passes on the v4 numbers.",
+      "summary": "Preregistrations v4 and v5 were scored and did not pass; a new protocol follows (Hamm 2026-10-13). Orientation tuning and the simple/complex phase split reproduce. v5 scores the sf curve against the digitized Fig. 3: simple cells fail (10/16 points, error 1.5 times a flat line), complex cells miss the shape guard by 0.02. Under v5, T4 (frequency doubling, C3) passes on the v4 numbers. The PCL-R1 fidelity audit (closed 2026-10-24, receipt `artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md`) attributes six findings to implementation and selection fidelity; PCL is not reproduced and the signed v5 T2 failure stands.",
       "preregs": [{"id": "v4", "signed": "2026-10-11", "path": "artifacts/etudes/pcl/prereg/P3_fig3.md"},
                   {"id": "v5", "signed": "2026-10-13", "path": "artifacts/etudes/pcl/prereg/P3_fig3_v5.md"}],
       "files": {
@@ -389,7 +389,7 @@
       "stage": "P1",
       "lane": {"branch": "dev", "sha": "7ac1bb47b5805b046a4790d9d6456ed23c706eb7"},
       "stage_artifacts": {"P1": [{"label": "source record (draft)", "path": "artifacts/etudes/papers/gsdr2026/SOURCE_P1.md"}]},
-      "summary": "Source record drafted. A pilot fit in the lane reached a saturated regime (κ ≈ 0.95 against 0.0156 in the data); the next step is a sweep of g = J_I/J_E at fixed drive before any further fit.",
+      "summary": "Source record drafted. Pilot fits in the lane (unscored, run without MCDP; P-039) stay saturated: κ 0.60 on the 500-generation reference refit against 0.0156 in the data. The ruled next step is MCDP on as an outer-loop HDP step (`mcdp_hdp_step`) in the B8 pilot, then the prereg.",
       "preregs": [],
       "files": {},
       "criteria": [],
@@ -407,7 +407,7 @@
       "tier": "T-port",
       "stage": "P3",
       "lane": {"branch": "dev", "sha": "6f85f5c3056edf91b89ea2a61efce758000d0a69"},
-      "summary": "The AdEx core features the port needs are on dev (Vpeak detection threshold, external-drive schedules, capped Bernoulli sampling). The port is built in the lane clone (28 lane tests pass); its preregistration is drafted and unsigned, and scored seeds 1–8 (S2) are queued.",
+      "summary": "The AdEx core features the port needs are on dev (Vpeak detection threshold, external-drive schedules, capped Bernoulli sampling). The port is built in the lane clone (28 lane tests pass); its preregistration is drafted and unsigned. Unscored pilot (CALIBRATION step 6): seeds 1–8 ran at the declared baseline; E1 holds on 4 of 8 seeds under the authors' Vpeak, E2 stays off on every live seed, and the E4 rate order is off (hyperactive, about 5x); the held-out seeds 4–8 are spent, so a scored run needs a new protocol on fresh seeds.",
       "preregs": [],
       "files": {},
       "criteria": [],
@@ -477,7 +477,7 @@
       ],
       "sensitivity": [],
       "charts": [],
-      "open": ["Sensitivity set S1 (N = 6250, fixed in-degrees; needs a lane option), S2 (5 s window), S3 (dt 0.05 ms) declared in v4, not yet run.", "Library path P6 and the P7 insight page."]
+      "open": ["Sensitivity set S1 (N = 6250, fixed in-degrees) needs a lane option and has not run; S2 (5 s window) and S3 (dt 0.05 ms) ran unscored on seeds 4-5: labels hold except point C seed 4 at dt 0.05 (RESULT_P3).", "Library path P6 and the P7 insight page."]
     },
     {
       "id": "potjans2014",
@@ -488,7 +488,7 @@
       "page": "models/potjans2014.md",
       "release": "0.5.9",
       "tier": "T-jaxfne",
-      "stage": "P1",
+      "stage": "P2",
       "lane": {"branch": "dev", "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"},
       "summary": "P1 source record written from the open-access PMC record. Fig. 6 claims (reference rates 0.86/4.45/7.59/1.09 Hz, CV above 0.8, L5e-highest/L6-lowest synchrony) and the Table 5 connectivity map are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
       "preregs": [],
@@ -507,7 +507,7 @@
       "page": "models/vogels2011.md",
       "release": "0.5.8",
       "tier": "T-jaxfne",
-      "stage": "P1",
+      "stage": "P2",
       "lane": {"branch": "dev", "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"},
       "summary": "P1 source record written from the authors' ModelDB code (the MATLAB script was in the Science SOM) plus the open-access 2013 review. Coded target rho0 = 3 Hz; paper-stated realized rates/CVs stay unknown (full text paywalled). The lane runs on the jaxfne core only; next per rule B8 is the pilot, then signature, then fresh seeds.",
       "preregs": [],
@@ -526,7 +526,7 @@
       "page": "models/mejias2016.md",
       "release": "0.5.9",
       "tier": "T-jaxfne",
-      "stage": "P1",
+      "stage": "P2",
       "lane": {"branch": "dev", "sha": "f8c05f04aefc1b14b27d1972ae57ffa07f888697"},
       "summary": "P1 source record written from the open-access PMC record. Fig. 2-3 claims (gamma ~40 Hz, alpha ~10 Hz, PAC, alpha-suppression link) and Fig. 6-7 claims (SLN-DAI correlation, functional hierarchy, laminar-input jumps) are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
       "preregs": [],

@@ -17,6 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "dashboard" / "sources.json"
+DERIVED = ROOT / "dashboard" / "data" / "replications.json"
 OUT = ROOT / "docs" / "start" / "replications.md"
 DASHBOARD = "https://hnxj.github.io/jaxfne/dashboard/"
 
@@ -79,7 +80,15 @@ def main(argv=None) -> int:
     mode.add_argument("--check", action="store_true")
     args = parser.parse_args(argv)
 
-    text = render(json.loads(SOURCES.read_text(encoding="utf-8")))
+    sources = json.loads(SOURCES.read_text(encoding="utf-8"))
+    # sources.json holds no derived verdicts; the library and methods columns come from the
+    # derived data that `build_dashboard_data.py` writes, so the page shows what the dashboard shows.
+    if DERIVED.exists():
+        summaries = {p["id"]: p.get("verdict_summary") for p in json.loads(DERIVED.read_text(encoding="utf-8"))["papers"]}
+        for p in sources["papers"]:
+            if summaries.get(p["id"]):
+                p["verdict_summary"] = summaries[p["id"]]
+    text = render(sources)
     if args.write:
         OUT.write_bytes(text.encode("utf-8"))
         print(f"wrote {OUT.relative_to(ROOT)}")
