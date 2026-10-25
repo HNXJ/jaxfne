@@ -11,7 +11,6 @@ has its row `T-O<n>` in the todo stack (section 2) with the detail.
 - O-59 HDP étude tune differs on GitHub's runner; the site uses the frozen theta_hat | keeper | since 2026-10-25 (opened 2026-10-21) | closes when the sensitivity is a recorded known limit or bounded by a test
 - O-65 57 of 208 `jaxfne.__all__` symbols are absent from `docs/reference` | keeper | since 2026-10-25 | closes when each is documented or a test names its exemption
 - O-66 Tree budget: 7.9 KB bytes and 0 files of headroom after the third increment (new tests need a `budget_files` raise); `publication/atlas` is 24.6 MB (three `lfp.html` at 3.5 MB) | keeper | since 2026-10-25 | closes when their citations are checked and headroom is at least 1 MB, or the amendment is signed
-- O-67 Lane tests in no gate; skips on gitignored inputs (P-037 remainder) | keeper | since 2026-10-25 (opened 2026-10-18) | closes when one process per lane runs them in a gate and each skip names its input
 
 ## Waiting on others
 - O-10 Harness proposals, jchat conference #29 | jynx keeper | since 2026-10-25 (opened 2026-10-15) | closes when each is taken or refused

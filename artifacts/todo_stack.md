@@ -138,8 +138,6 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   requires it; the audit's basename scan missed the generated name); budget raised 2026-10-25 (third
   increment, headroom 7.9 KB, 0 files). Open:
   `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log` if the manifests do not hash it.
-- T-O67 [A] lane tests: one process per lane under `artifacts/etudes/papers/**` in a gate (or CI job);
-  skips on gitignored inputs name the input in the reason; P-037 closes with it.
 - T-O41 [A] RTD stand-ins: build the étude pages on Read the Docs or take them out of the RTD nav;
   check: a Read the Docs build succeeds and `.readthedocs.yaml` or the nav matches the choice.
 - T-O59 [A] HDP étude platform sensitivity: record it as a known limit in the étude page, or add a test

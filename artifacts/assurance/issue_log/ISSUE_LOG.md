@@ -37,6 +37,9 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   the float64 asserts, the `__file__` paths and the `networkx` importorskip already held at
   81b602bd. Open: lane tests in a gate need one process per lane (todo queue item 5); the
   harness tests moved to `scripts/archive/`; skips on gitignored inputs stay (listed in A1).
+- 2026-10-25: the lane tests run in `scripts/run_test_gate.py` family `pytest_lanes`, one process per
+  lane (seven lanes pass in the broad gate; `.github/workflows/ci.yml` runs broad); the skip on the
+  gitignored catalog names its input. Closes for 0.5.8; the entry moves to a closed batch at release.
 
 ### P-040
 
