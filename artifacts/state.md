@@ -1,10 +1,16 @@
 # state
 
-Stamp: jaxfne@dev@2bdc1701 · 2026-10-21 (written 2026-10-21T12:07:39Z)
+Stamp: jaxfne@dev@a940569b · 2026-10-25 (written 2026-10-25T16:38:32Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
 ## Works (with evidence)
+
+- 2026-10-25: PCL-R1 fidelity audit sealed (receipt on dev a940569b, hash-pinned); four read-only audits
+  (files, code, analysis status, state files) rebuilt `open_stack.md` (11 items, each with a `T-O<n>`
+  todo row) and closed six issues to `issues_closed_2026-10-25.md`; gates green on the tree:
+  check_replications 31 known / 0 unlisted, build_dashboard_data fresh, record-integrity 0 violations,
+  tree-size within budget. Not run: broad gate, CI at this SHA.
 
 - 2026-10-21: validation backbone. Six core-method scorers (emitters, fields, plasticity,
   objectives with optimizer, numerics, ports) beside head-forward under

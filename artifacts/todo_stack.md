@@ -77,8 +77,9 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak
   (0.33-0.67). Readout follow-up (w_max, larger frozen sets) is Hamm's call; lane paused until then.
 
-- Brunel S2/S3 sensitivity, seeds 4-5, unscored: running detached on WSL CPU since 2026-10-20; then the
-  RESULT_P3 sensitivity section.
+- Brunel S2/S3 sensitivity, seeds 4-5: runs finished (outputs unscored in
+  `C:/workspace/jaxfne_receipts/brunel2000_p3v4/unscored_S2`, `unscored_S3`, `s23_chain_done.txt`); score
+  them into the RESULT_P3 sensitivity section (T-O62).
 - Dashboard three-verdict distinction (Hamm 2026-10-23 P0 feedback, bundle
   `C:/Users/nejath/Downloads/JAXFNE_SOURCES_AND_DASHBOARD_REVIEW_2026-10-23/`): LANDED 06a44180 -
   verdict_summary (paper/library/methods) derived from records, core-method rows out of the paper
@@ -124,7 +125,42 @@ clones, verified before integration):
    then each lane's P3 prereg for signature; Jansen-Rit 1995 opens the EEG/MEG lane (a neural-mass
    emitter in the core, then P1).
 8. [A] B6 split closed lane folders by kind (tree degree) once their lanes close.
-- [H] Signatures: Izhikevich P6 prereg v7, CAMINOS P6 prereg, then the 0.5.8 preregs from 7.
+Open-stack rows (each closes its `O-n`; the open stack empties when these close; audits 2026-10-25):
+- T-O61 [A] verdict drift: add `tests/test_verdict_consistency.py` (per paper: receipt, registry, dashboard
+  JSON, docs table agree on the paper, library and methods verdicts, and on stage); first run fails on the
+  listed drifts, then fix them: CAMINOS lag restated per `CALIBRATION.md` §10 in `LEDGER.md`,
+  `RESULT_P3.md`, dashboard summary and R2 row; remove "P6 not attempted" (`dashboard/sources.json:114`,
+  `dashboard/models/caminos.md:44`); `generate_replications_page.py` shows the library and methods
+  verdicts; Destexhe summary shows the E1 4/8 and E4 ~5x pilot and the spent seeds (CALIBRATION header
+  lines 4-8 too); GSDR summary says κ 0.60; PCL-R1 receipt listed; stage labels agree. Review: the
+  CAMINOS and docs-table wording is Hamm's to read.
+- T-O62 [A] Brunel S2/S3: score `unscored_S2`/`unscored_S3` per the v4 sensitivity declaration into
+  `RESULT_P3.md`, track the receipts, add the E5 note (e 0.064 passes only under the wider band).
+- T-O63 [A] parameters (P-014/P-015): per field in O-63, consume it or refuse a non-default value by
+  name; `physical_amplitude_calibrated=True` raises; asserts become `ValueError`; `x if x is not None
+  else d` at `_construct_connectivity.py:69-70` (`p_feedforward`, `p_feedback`); fields: `stimulus_
+  frequency_hz`, `hierarchy` (hard-coded in `sanity_runtime.py:93`), `cell_colors`, `cell_signs`, `cy_m`,
+  `exc_mask`; one perturbation test per field, run first on the old code and failing there.
+- T-O65 [A] document the 57 undocumented `__all__` symbols in `docs/reference/api` (or name each in a
+  test's exempt list with its reason); a test compares `__all__` to the reference pages.
+- T-O66 [A] tree budget: check whether `frozen_manifest.json` or the atlas results cite
+  `artifacts/publication/atlas/**/AT-10-N20/*/lfp.html`; if not cited, propose their removal with the
+  measured bytes; any budget raise (bytes, and `budget_files` for the new tests of T-O61, T-O63, T-O67)
+  goes in the amendment file for Hamm to sign. Done 2026-10-25: `docs/assets/readme/hdp.png` removed
+  (referenced by nothing; headroom 58.8 KB, 0 files). Open:
+  `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log` if the manifests do not hash it.
+- T-O67 [A] lane tests: one process per lane under `artifacts/etudes/papers/**` in a gate (or CI job);
+  skips on gitignored inputs name the input in the reason; P-037 closes with it.
+- T-O41 [A] RTD stand-ins: build the étude pages on Read the Docs or take them out of the RTD nav;
+  check: a Read the Docs build succeeds and `.readthedocs.yaml` or the nav matches the choice.
+- T-O59 [A] HDP étude platform sensitivity: record it as a known limit in the étude page, or add a test
+  bounding the tuned optimum; check: the étude page names the limit, or the test fails on a moved optimum.
+- T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29); check:
+  one jchat reply per proposal.
+- T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
+- T-O68 [H] local copies and the layout rule (see O-68); keep-or-delete ruling per held copy; check:
+  each copy is deleted or sits at `E:/repos/<name>` or `E:/repos/_wt/<repo>/<task>`.
+- [H] Signatures: the 0.5.8 preregs from item 7 (Izhikevich v7 and v8.2 and CAMINOS P6 v2 are signed, 2026-10-13).
 Blocked: T-11 (jnwb), T-16 and T-17 `[H]`, deferred list (section 5).
 
 ## 2a. Standing from 0.5.6 (Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
@@ -330,8 +366,8 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
     no folder.
   - Tree caps: `papers/pcl/`, `caminos/`, `izhikevich2003/` over 7 (section 5).
   Gate: `scripts/check_replications.py --check` (families replication_audit, etude_no_resim, run
-  by the dev gate too) against `scripts/replication_known_violations.json` (25 findings,
-  2026-10-18); a fix removes its entry. Closes when: every paper passes the checker without a listed violation, or each listed one
+  by the dev gate too) against `scripts/replication_known_violations.json` (31 findings,
+  2026-10-25); a fix removes its entry. Closes when: every paper passes the checker without a listed violation, or each listed one
   carries Hamm's exception.
 - CAMINOS lag (6.47 against 8.5 ms): Hamm attributes the gap to the paper's estimator rather than
   the model; class stays verified, the lag stays a recorded finding, no fit.
@@ -366,8 +402,6 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   `tests/test_artifacts_tree_degree.py` while their lanes are open: `etudes/papers/caminos/`,
   `etudes/papers/izhikevich2003/`. Trigger: a lane closes; then split by kind or give the
   exception a path-addressing reason.
-- (from the open stack, 2026-10-18) Scratch clones and finished Muse sessions in the session
-  scratchpad. Trigger: their lanes land; delete then (check alternates dependents first).
 1. AT-10-R6: RSS growth (+80–98 MB over 4 chunks of the 20-area run): resolve against the XLA cache
    before any run over 100 s (0.5.8 laminar models on GPU). WSL2 CUDA 20-area receipts
    (`scratch/wsl_cuda_2026-10-09/`, gitignored): one unexplained failed GPU run. Closes when:
@@ -376,7 +410,7 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 3. Architecture split (`emitters/`, `tfne.py`; `artifacts/audit/reviews/deep_review_89_2026-10-04.md` §5)
    only as a measured bottleneck.
 4. C5–C7 numerical deferrals: need a signed-zero/NaN exactness contract.
-5. UNTESTED-exact refusal tail; placeholder notebooks and artifact-gated skips; post-0.4.14 aliases.
+5. UNTESTED-exact refusal tail; artifact-gated skips (O-67); post-0.4.14 aliases.
 6. S27 population definition family, when CTX-01 cannot express one.
 7. Agent-native step 10: MCP or another transport.
 9. From 0.5.4: item 1b (S20.1 ordering, needs Hamm) and item 0 (`X[k]` frontier override).
@@ -385,11 +419,6 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 11. Field Approximation Atlas ladder (deep review 89 §7).
 12. Rule proposal (deep review 89 §12): new mechanism ⇒ reference model, discriminator and
     reduction test; adoption is Hamm's.
-13. 0.5.7 (Hamm 2026-10-13): Izhikevich 2003 P3 prereg draft v7 (calibration passed at θ = 4,
-    `artifacts/etudes/papers/izhikevich2003/calibration/calibration_v7_15f36087.json`) for signature,
-    then S1 reference arm `net_reference.py` and the scored runs. CAMINOS P6 prereg (Fig. 1
-    through `emitter(family="adex")`, `connections(sampling="bernoulli")`,
-    `Simulation(poisson_drive=)`; F1–F6 landed) for signature and its equivalence test.
 
 Tracks (standing directions): P performance (optimize profiled components only) · T testing
 (cheapest gate per defect class) · S skills · I integration (one implementation, many entrances) ·
