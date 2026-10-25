@@ -77,9 +77,8 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak
   (0.33-0.67). Readout follow-up (w_max, larger frozen sets) is Hamm's call; lane paused until then.
 
-- Brunel S2/S3 sensitivity, seeds 4-5: runs finished (outputs unscored in
-  `C:/workspace/jaxfne_receipts/brunel2000_p3v4/unscored_S2`, `unscored_S3`, `s23_chain_done.txt`); score
-  them into the RESULT_P3 sensitivity section (T-O62).
+- Brunel S1 (finite size, N=6250, in-degrees fixed) needs the fixed-in-degree lane option (release plan B5);
+  S2 and S3 are recorded in `RESULT_P3.md` (2026-10-25).
 - Dashboard three-verdict distinction (Hamm 2026-10-23 P0 feedback, bundle
   `C:/Users/nejath/Downloads/JAXFNE_SOURCES_AND_DASHBOARD_REVIEW_2026-10-23/`): LANDED 06a44180 -
   verdict_summary (paper/library/methods) derived from records, core-method rows out of the paper
@@ -134,8 +133,6 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   verdicts; Destexhe summary shows the E1 4/8 and E4 ~5x pilot and the spent seeds (CALIBRATION header
   lines 4-8 too); GSDR summary says κ 0.60; PCL-R1 receipt listed; stage labels agree. Review: the
   CAMINOS and docs-table wording is Hamm's to read.
-- T-O62 [A] Brunel S2/S3: score `unscored_S2`/`unscored_S3` per the v4 sensitivity declaration into
-  `RESULT_P3.md`, track the receipts, add the E5 note (e 0.064 passes only under the wider band).
 - T-O65 [A] document the 57 undocumented `__all__` symbols in `docs/reference/api` (or name each in a
   test's exempt list with its reason); a test compares `__all__` to the reference pages.
 - T-O66 [A] tree budget: check whether `frozen_manifest.json` or the atlas results cite
