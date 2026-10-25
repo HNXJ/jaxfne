@@ -126,6 +126,8 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
 - T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
 - T-O68 [H] local copies and the layout rule (see O-68): each held copy is deleted or sits at
   `E:/repos/<name>` or `E:/repos/_wt/<repo>/<task>`.
+- Moved to 0.5.9 (scope freeze 2026-10-25; evidence rules unchanged, the PCL T2 failure and the CAMINOS mixed verdict stand): CAMINOS S2 re-run, PCL-R2 to R5 and the PCL-R4 prereg, the Destexhe, GSDR, Potjans and Vogels preregs.
+  Stays in 0.5.8: izhikevich2003 E1 construct path, `cl-klfp` after diff review and gates, O-66 (route open).
 - [H] Signatures: the 0.5.8 preregs from item 7 (Izhikevich v7 and v8.2 and CAMINOS P6 v2 are signed, 2026-10-13).
 Blocked: T-11 (jnwb), T-16 and T-17 `[H]`, deferred list (section 5).
 
