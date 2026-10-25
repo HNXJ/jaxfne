@@ -48,25 +48,13 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   (reference-faithful observation selection; correcting selection alone is inferred, not
   established, to resolve T2). Next authorized stage: the READ-ONLY PCL-R2/R4 design study
   (two alternatives, the oracle state-variable mapping to X/H/W/B/K, a continuation-equivalence
-  test, generalization beyond PCL; stop before runtime changes). Historical state: v4 FAIL stands
-  (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). v5 signed by Hamm 2026-10-13 on `pcl-port`
-  89e45191 (`prereg/P3_fig3_v5.md`; signature recorded in 640cb97c): T2 runs the authors'
-  `plot_fqcy` procedure on the port and scores it per K/k point against Fig. 3c,d digitized
-  (`reference/fig3_freq_digitized.json`, ε 0.04) with a shape guard; A1 even phases; T4 drops
-  the sign requirement, and its outcome is known from v4. v5 scored 2026-10-13 (`pcl-port`
-  8f75acd0, `prereg/P3_fig3_v5_result.md`): FAIL on T2. Simple 10/16 points, SSE 1.50 × flat
-  (higher off-peak response at K/k 0.6–0.8 and 1.3); complex 12/15, SSE 0.52 × flat (guard 0.5;
-  passes with all 10 phases, not scored). S6/S7 diagnostic (unscored, `prereg/
-  P3_fig3_diagnostic.md`): simple fails under both; complex passes with the 62.5 ms window
-  (0.48); measured periods follow (20 − i)/2 px, supporting A2. Hamm 2026-10-13: investigate port
-  fidelity, port-side only (never run the authors' code). Fidelity audit (read-only): (1) the
-  C++ runs cSTDP3 without local inhibition ("static" is not "local", SpikingNetwork.cpp:351);
-  the port reads "static" as local (declared alias, untested); (2) the C++ keeps STDP on and
-  weights across files during tuning, the port freezes and reloads; (3) the authors' writer
-  reads neuron files 0–63, which by index is column (0,0), against the port's (4,4)
-  (unresolved: (0,0) lies outside the stimulated band). In flight: an unscored tuning run with
-  local inhibition off (`F:\warehouse\pcl\diag_runs\`). Then P6 (B1). Closes when: a signed prereg reproduces Fig. 3, or Hamm
-  closes it, and the P6 attempt is recorded.
+  test, generalization beyond PCL; stop before runtime changes). Historical state (records in
+  `papers/pcl/prereg/` and `LEDGER.md`): v4 FAIL stands (`pcl-port` 5640ce18: T1, T3 pass; T2, T4
+  fail). v5 signed by Hamm 2026-10-13 (`prereg/P3_fig3_v5.md`, 89e45191); scored 2026-10-13 (8f75acd0,
+  `prereg/P3_fig3_v5_result.md`): FAIL on T2 (simple 10/16 points, SSE 1.50 × flat; complex 12/15,
+  SSE 0.52 × flat, guard 0.5). The S6/S7 diagnostic is unscored. The three fidelity findings of
+  2026-10-13 became R1's F1, F2 and F6. Then P6 (B1). Closes when: a signed prereg reproduces Fig. 3,
+  or Hamm closes it, and the P6 attempt is recorded.
 
 ## 2. Next release: 0.5.8 (core-compliant replications)
 
@@ -154,14 +142,9 @@ Blocked: T-11 (jnwb), T-16 and T-17 `[H]`, deferred list (section 5).
 
 - R2 restated (Hamm 2026-10-14): bytes -10% against the 0.5.5 tag (met: 86.8 MB
   tracked at 1bfdaa84 against 126.0 MB at the tag) plus files at the recorded budget with
-  reasons on record (2438 tracked, `budget_files` 2438 in
-  `scripts/tree_size_allowlist.json`, 2026-10-18; each raise from 2269, its reason and
-  authorization are in this line's git history and c4056347; 2372 -> 2400 for the Destexhe lane
-  and the O-8 test, 2026-10-16; 2400 -> 2428 on 2026-10-17 for the GSDR lane, its diagnostics,
-  the regime tests and the HH tests, each raise in its commit: fdd797ce, d0c1faae, 405378e8,
-  c6f052af, bb55e631, 5615fb98, 844900c6; 2428 -> 2436 on 2026-10-18 for the 10 changelog
-  fragments since v0.5.6, which the assembler deletes at release; 2436 -> 2438 on 2026-10-18
-  for the GSDR regime diagnostic at the reference g* and its test). The
+  reasons on record (`budget_files` and `budget_bytes` in `scripts/tree_size_allowlist.json`; each
+  raise, its reason and authorization are in the commit that made it and, from 2026-10-23, in
+  `artifacts/release/budget_amendment_2026-10-23.md`). The
   regenerable docs assets are untracked already: the 9 registry `copies` dests under
   `docs/assets/etudes/` and all atlas/etude HTML are build products of
   `scripts/build_docs_assets.py --build` (the Read the Docs `pre_build` path) and gitignored.
