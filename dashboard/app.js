@@ -1241,7 +1241,9 @@ function render(data) {
   figureImages = [];
   var r = route();
   Array.prototype.forEach.call(document.querySelectorAll("#tabs a"), function (a) {
-    if (a.getAttribute("data-tab") === r.tab) a.setAttribute("aria-current", "page");
+    var on = a.getAttribute("data-tab") === r.tab;
+    a.setAttribute("aria-selected", on ? "true" : "false");
+    if (on) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   });
   var papers = data.papers || [];
