@@ -37,6 +37,7 @@ Below is a **standalone Plotly HTML** laminar column with:
   src="../../../../assets/interactive/v037_source_column_3d.html"
   width="100%"
   height="800"
+  title="Source column 3-D"
   style="border: 1px solid #ccc; margin: 20px 0;">
   <p>
     If the visualization doesn't load, you can open it directly:

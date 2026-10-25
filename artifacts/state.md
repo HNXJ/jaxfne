@@ -98,8 +98,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - CAMINOS Fig. 1 against PLoS CB (primary, Hamm 2026-10-14; `artifacts/etudes/papers/caminos/CALIBRATION.md`
   §10): f_pk 33.80 Hz, rate order and R4 (v7) reproduced on the core route; PV→SOM lag 6.47 ms
   against 8.5 ms by the ref. 42 method (off, a finding that needs X). Dashboard row updated.
-- Tracked tree: 2520 files (budget 2520, `budget_files` in `scripts/tree_size_allowlist.json`);
-  89225818 bytes (budget 90177536, 86 MiB since 2026-10-19), measured 2026-10-19 by `check_tree_size.py`.
+- Tracked tree: measure with `python scripts/check_tree_size.py --check`; budget in `scripts/tree_size_allowlist.json`.
 - main a98e6149: 0.5.6 merged from dev 4842b87c by PR 108 (2026-10-15). Main CI green: CI Fast
   run 38757281037, Release CI with slow tests run 38757281031. rc gate PASS on 4842b87c with
   JUnit parity against Release CI run 38743501399 (3.11 and 3.14 each 6030/6030, 0 unjustified).

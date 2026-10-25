@@ -9,7 +9,7 @@ first, amend in place.
 ## 1. Decisions waiting on Hamm (they unblock items below)
 
 Ruled 2026-10-20: release plan D1 (a), archive the unreferenced and ungated scripts with an index
-(worker running); D3 approved. Open, recommendation first: D2 (Destexhe and GSDR preregs, after
+(15 left); D3 approved. Open, recommendation first: D2 (Destexhe and GSDR preregs, after
 their pilots); a state clamp on the plain Izhikevich path (T-19, changes outputs); extending the same-layer zeroing rule
 to I/Inl/Ing (T-18 remainder, a model change); the manuscript tree and other archive moves (T-17).
 Earlier rulings sit in the rows they
