@@ -8,13 +8,12 @@ has its row `T-O<n>` in the todo stack (section 2) with the detail.
 
 ## In flight
 - O-41 Read the Docs publishes étude stand-ins (P-038 remainder) | keeper | since 2026-10-25 (opened 2026-10-18) | closes when RTD builds the étude pages or they leave the RTD nav
-- O-59 HDP étude tune differs on GitHub's runner; the site uses the frozen theta_hat | keeper | since 2026-10-25 (opened 2026-10-21) | closes when the sensitivity is a recorded known limit or bounded by a test
 - O-65 57 of 208 `jaxfne.__all__` symbols are absent from `docs/reference` | keeper | since 2026-10-25 | closes when each is documented or a test names its exemption
-- O-66 Tree budget: 7.9 KB bytes and 0 files of headroom after the third increment (new tests need a `budget_files` raise); `publication/atlas` is 24.6 MB (three `lfp.html` at 3.5 MB) | keeper | since 2026-10-25 | closes when their citations are checked and headroom is at least 1 MB, or the amendment is signed
 
 ## Waiting on others
 - O-10 Harness proposals, jchat conference #29 | jynx keeper | since 2026-10-25 (opened 2026-10-15) | closes when each is taken or refused
 
 ## Hamm's calls
 - O-58 WSL DNS: `/etc/resolv.conf` is empty, so pip and isolated builds fail inside WSL | Hamm (system setting) | since 2026-10-25 (opened 2026-10-21) | closes when `pip download jaxfne==0.5.7 --no-deps` works in WSL
-- O-68 Local copies held after the 2026-10-25 triage (jaxfne-theory, dash, dash_gen with 12 unmatched gh-pages commits, non-git leftovers) and the layout rule | Hamm | since 2026-10-25 | closes when each copy is kept at a rule-conforming path or deleted
+- O-66 Tree budget: 0.8 KB and 0 files of headroom; the three `publication/atlas/AT-10-N20/*/lfp.html` (3.5 MB each, not frozen) are the reclaim candidate | Hamm | since 2026-10-25 | closes when Hamm reclaims them or signs a raise in `budget_amendment_2026-10-23.md`
+- O-68 Local copies held after the 2026-10-25 cleanup: `cl-reader-cursor` (`reader_exp/` unreviewed), `jaxfne-wt-p022`, four WSL copies, non-git leftovers (`jaxfne_rc057`, `jaxfne_receipts`, `jaxfne_reader_exp`, `jaxfne_pclr1_audit`, `F:/warehouse` leftovers, keeper worktrees with broken gitfiles), and the layout rule | Hamm | since 2026-10-25 | closes when each copy is kept at a rule-conforming path or deleted

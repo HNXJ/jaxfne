@@ -222,3 +222,9 @@ The committed `metrics.json`, `figure.png`, and `manifest.json` are the durable 
 Reproduced MCC-3 condition-B panels — deterministic rerun of the frozen checkpoint protocol (tune + condition B); tuned weights and firing rates hash-identical to the committed checkpoint: [H dynamics (condition B)](https://hnxj.github.io/jaxfne/figures/hdp_controllability_reachability/h_dynamics.html) · [HDP weight magnitude (condition B)](https://hnxj.github.io/jaxfne/figures/hdp_controllability_reachability/hdp.html) · [Oscillatory response (condition B)](https://hnxj.github.io/jaxfne/figures/hdp_controllability_reachability/oscillatory.html) · [Spike raster (condition B)](https://hnxj.github.io/jaxfne/figures/hdp_controllability_reachability/raster.html) · [Membrane traces (condition B)](https://hnxj.github.io/jaxfne/figures/hdp_controllability_reachability/traces.html)
 
 Regenerate: `python scripts/rerun_etude_figures.py --etude hdp_mcc3` (aborts on drift).
+
+Known limit (platform sensitivity): the AGSDR tune reproduces the frozen theta_hat on a local machine
+(jax 0.11.2) and lands on a different optimum on GitHub's ubuntu runner with the same jax and numpy
+(m_EE 0.306, m_EI 2.759, m_IE 0.383, m_II 0.1 against 1.433, 1.111, 0.108, 0.960). The site therefore
+builds these panels from the frozen theta_hat (`FROZEN_THETA_MODES` in `scripts/build_docs_assets.py`) and
+does not re-run the tune; the condition-B firing checks still run.

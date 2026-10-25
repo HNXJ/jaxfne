@@ -119,17 +119,15 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   REPLICATIONS (CAMINOS T-methods, Izhikevich T-port) and the dashboard (T-jaxfne).
 - T-O65 [A] document the 57 undocumented `__all__` symbols in `docs/reference/api` (or name each in a
   test's exempt list with its reason); a test compares `__all__` to the reference pages.
-- T-O66 [A] tree budget: check whether `frozen_manifest.json` or the atlas results cite
-  `artifacts/publication/atlas/**/AT-10-N20/*/lfp.html`; if not cited, propose their removal with the
-  measured bytes; any budget raise (bytes, and `budget_files` for the new tests of T-O61, T-O63, T-O67)
-  goes in the amendment file for Hamm to sign. `docs/assets/readme/hdp.png` stays (the README-still test
-  requires it; the audit's basename scan missed the generated name); budget raised 2026-10-25 (third
-  increment, headroom 7.9 KB, 0 files). Open:
-  `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log` if the manifests do not hash it.
+- T-O66 [H] tree budget: headroom is 0.8 KB and 0 files. The three `artifacts/publication/atlas/AT-10-N20/
+  */lfp.html` (3.5 MB each) are not in `frozen_manifest.json`; they are canonical atlas-bundle outputs
+  (`artifacts/atlas/at_bundle.py`, allowlisted over the 1 MiB cap), so dropping them is a publication
+  decision: Hamm chooses between reclaiming them (regenerable from the bundle) and a signed raise in the
+  amendment file (also for `budget_files` when a row adds a test file). `docs/assets/readme/hdp.png`
+  stays (the README-still test requires it; the audit's basename scan missed the generated name).
+  Open: `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log` if the manifests do not hash it.
 - T-O41 [A] RTD stand-ins: build the étude pages on Read the Docs or take them out of the RTD nav;
   check: a Read the Docs build succeeds and `.readthedocs.yaml` or the nav matches the choice.
-- T-O59 [A] HDP étude platform sensitivity: record it as a known limit in the étude page, or add a test
-  bounding the tuned optimum; check: the étude page names the limit, or the test fails on a moved optimum.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29); check:
   one jchat reply per proposal.
 - T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
