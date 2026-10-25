@@ -3,7 +3,7 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-10-20T12:49:02",
+  "generated_at": "2026-10-25T18:19:57",
   "components": {
     "project_agents": {
       "file": "artifacts/AGENTS.md",
@@ -43,7 +43,7 @@
       },
       "check_harness_integrity": {
         "file": "scripts/harness/check_harness_integrity.py",
-        "sha256": "cf512e611a02bdd19d6e43bc3e05c94d9a5352351953c777ddac88502e8220ff"
+        "sha256": "8fe8e80b4f9858e96e6a07c34fde86bae526acfd01da12c0a4807ccf716f89e9"
       },
       "check_agent_refs": {
         "file": "scripts/harness/check_agent_refs.py",
@@ -51,7 +51,7 @@
       },
       "check_memory_hygiene": {
         "file": "scripts/harness/check_memory_hygiene.py",
-        "sha256": "c4795bb7025e2062c98ae404dc0c9de7ac58d0d2dbf3d16d1e4056d913fdb32f"
+        "sha256": "01bfee97b3d95381a5f6b3f3bdbff61e31908c6018e5ee5db396cb9762375d9d"
       }
     },
     "reference_manifest": "/Users/hamednejat/.config/opencode/harness/HARNESS_MANIFEST.json",

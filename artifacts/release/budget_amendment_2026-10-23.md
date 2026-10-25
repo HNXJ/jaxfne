@@ -58,3 +58,10 @@ hash-pinned), the changelog fragment `artifacts/changelog.d/refuse_unrealized_sa
 changed.md`, the open-stack rebuild, and `docs/assets/readme/hdp.png` (59,862 bytes, required by
 `tests/test_atlas_suite.py::test_readme_still_exists_for_every_fixed_panel`; an orphan scan by basename had
 listed it as unreferenced, and the broad gate caught the removal). Measured tree: 90,217,078 bytes.
+
+## Fourth increment, 2026-10-25 (gate false-passes)
+
++4,000 bytes (90,225,000 -> 90,229,000), no files, authorized by Hamm in chat 2026-10-25 ("record a small
+budget increment if the bytes require it"): failing-case tests and fixes for four gates that passed without
+examining what they name (`harness_integrity`, `release_artifacts`, `notebooks_assets`, `memory_hygiene`;
+the last now scans `artifacts/memory.md` and flags short SHAs), in existing files.

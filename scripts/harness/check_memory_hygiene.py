@@ -14,9 +14,11 @@ import sys
 from pathlib import Path
 
 HOME_MEMORY = Path.home() / ".config" / "opencode" / "MEMORY.md"
+PROJECT_MEMORY = Path(__file__).resolve().parents[2] / "artifacts" / "memory.md"
 TRANSIENT = [
     (re.compile(r"\bHEAD is [0-9a-f]{7,}\b", re.I), "HEAD snapshot"),
     (re.compile(r"\b[0-9a-f]{40}\b"), "absolute sha"),
+    (re.compile(r"\b(?=[0-9a-f]*\d)(?=[0-9a-f]*[a-f])[0-9a-f]{8,12}\b"), "short sha"),
     (re.compile(r"\b(next checkpoint|current checkpoint) is", re.I), "checkpoint pointer"),
     (re.compile(r"\brelease candidate (is|:)", re.I), "release transient"),
     (re.compile(r"\bcaptured? (on|at) \d{4}-\d{2}-\d{2}", re.I), "pinned date"),
@@ -39,7 +41,7 @@ def check(path: Path) -> list[str]:
 
 
 def main() -> int:
-    files = [HOME_MEMORY] + [Path(a) for a in sys.argv[1:]]
+    files = [HOME_MEMORY, PROJECT_MEMORY] + [Path(a) for a in sys.argv[1:]]
     hits = []
     for f in files:
         hits += check(f)

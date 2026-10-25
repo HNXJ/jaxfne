@@ -132,7 +132,7 @@ def main():
             json.dump(summary, f, indent=2)
         print(f"\nAudit Summary saved to: {report_path}")
 
-    print(f"Notebook structure valid: {all_nb_valid}")
+    print(f"Notebook structure valid: {all_nb_valid}" + ("" if all_nb_valid else " (warnings do not gate)"))
     print(f"Jaxley bridge safety check: {jaxley['status'].upper()}")
 
     # Fail check if bridges are red
