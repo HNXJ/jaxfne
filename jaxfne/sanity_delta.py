@@ -30,6 +30,9 @@ import numpy as np
 from . import sanity_runtime
 from ._config import clamp_truth_gate_metadata
 
+_CANONICAL_HIERARCHY = (("V1a", "V4"), ("V1b", "V4"), ("V4", "MT"), ("MT", "PFC"))
+_CANONICAL_STIMULUS_FREQUENCY_HZ = 100.0
+
 
 @dataclasses.dataclass
 class SanityDeltaConfig:
@@ -68,6 +71,16 @@ class SanityDeltaConfig:
         assert self.stimulus_map["A"]["V1a"] == 0.75 and self.stimulus_map["A"]["V1b"] == 0.25
         assert self.stimulus_map["B"]["V1a"] == 0.25 and self.stimulus_map["B"]["V1b"] == 0.75
         assert self.runtime_mode in ("scaffold", "full"), f"Invalid runtime_mode: {self.runtime_mode}"
+        # The runtime wires the canonical hierarchy (`sanity_runtime._build_weight_matrix`) and
+        # applies no stimulus frequency; a stored value that differs would change nothing.
+        if tuple(tuple(e) for e in self.hierarchy) != _CANONICAL_HIERARCHY:
+            raise ValueError(
+                f"hierarchy {self.hierarchy!r} is not realized: the runtime wires only "
+                f"{_CANONICAL_HIERARCHY!r}")
+        if self.stimulus_frequency_hz != _CANONICAL_STIMULUS_FREQUENCY_HZ:
+            raise ValueError(
+                f"stimulus_frequency_hz={self.stimulus_frequency_hz!r} is not realized: the runtime "
+                f"applies no stimulus frequency; only {_CANONICAL_STIMULUS_FREQUENCY_HZ} is accepted")
 
     @classmethod
     def hierarchical_global_local_oddball(
@@ -88,7 +101,7 @@ class SanityDeltaConfig:
     ) -> SanityDeltaConfig:
         """Factory for hierarchical global-local oddball configuration."""
         if hierarchy is None:
-            hierarchy = (("V1a", "V4"), ("V1b", "V4"), ("V4", "MT"), ("MT", "PFC"))
+            hierarchy = _CANONICAL_HIERARCHY
         if cell_counts is None:
             cell_counts = {"E": 70, "PV": 12, "SST": 10, "VIP": 8}
         if stimulus_map is None:

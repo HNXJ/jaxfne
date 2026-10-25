@@ -199,3 +199,22 @@ def test_build_multi_area_columns_wires_bidirectional_hierarchy():
     # all adjacent pairs wired in both directions
     fwd_pairs = set(zip(area[pre[ff]].tolist(), area[post[ff]].tolist()))
     assert ("V1", "V2") in fwd_pairs and ("V2", "V4") in fwd_pairs
+
+
+def test_interarea_probabilities_none_take_the_default_not_zero():
+    # An explicit None means "use the default" (0.3 / 0.2), the same as an absent key; 0.0 stays 0.0.
+    import jax.numpy as jnp
+    from jaxfne._construct_connectivity import _interarea_W
+
+    n = 40
+    area = ["V1"] * 20 + ["V4"] * 20
+    layer = ["L2/3"] * 20 + ["L4"] * 10 + ["L6"] * 10
+    cell = ["E"] * n
+    args = (area, layer, cell, n, jnp.float32, 0)
+    base = {"source_area": "V1", "target_area": "V4", "seed": 3}
+    absent = np.asarray(_interarea_W(dict(base), *args))
+    none = np.asarray(_interarea_W({**base, "p_feedforward": None, "p_feedback": None}, *args))
+    zero = np.asarray(_interarea_W({**base, "p_feedforward": 0.0}, *args))
+    assert absent.sum() > 0, "fixture must wire at least one feedforward edge"
+    assert np.array_equal(none, absent)
+    assert zero.sum() == 0.0

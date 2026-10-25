@@ -136,18 +136,14 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   CAMINOS and docs-table wording is Hamm's to read.
 - T-O62 [A] Brunel S2/S3: score `unscored_S2`/`unscored_S3` per the v4 sensitivity declaration into
   `RESULT_P3.md`, track the receipts, add the E5 note (e 0.064 passes only under the wider band).
-- T-O63 [A] parameters (P-014/P-015): per field in O-63, consume it or refuse a non-default value by
-  name; `physical_amplitude_calibrated=True` raises; asserts become `ValueError`; `x if x is not None
-  else d` at `_construct_connectivity.py:69-70` (`p_feedforward`, `p_feedback`); fields: `stimulus_
-  frequency_hz`, `hierarchy` (hard-coded in `sanity_runtime.py:93`), `cell_colors`, `cell_signs`, `cy_m`,
-  `exc_mask`; one perturbation test per field, run first on the old code and failing there.
 - T-O65 [A] document the 57 undocumented `__all__` symbols in `docs/reference/api` (or name each in a
   test's exempt list with its reason); a test compares `__all__` to the reference pages.
 - T-O66 [A] tree budget: check whether `frozen_manifest.json` or the atlas results cite
   `artifacts/publication/atlas/**/AT-10-N20/*/lfp.html`; if not cited, propose their removal with the
   measured bytes; any budget raise (bytes, and `budget_files` for the new tests of T-O61, T-O63, T-O67)
-  goes in the amendment file for Hamm to sign. Done 2026-10-25: `docs/assets/readme/hdp.png` removed
-  (referenced by nothing; headroom 58.8 KB, 0 files). Open:
+  goes in the amendment file for Hamm to sign. `docs/assets/readme/hdp.png` stays (the README-still test
+  requires it; the audit's basename scan missed the generated name); budget raised 2026-10-25 (third
+  increment, headroom 7.9 KB, 0 files). Open:
   `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log` if the manifests do not hash it.
 - T-O67 [A] lane tests: one process per lane under `artifacts/etudes/papers/**` in a gate (or CI job);
   skips on gitignored inputs name the input in the reason; P-037 closes with it.
@@ -419,6 +415,11 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 11. Field Approximation Atlas ladder (deep review 89 §7).
 12. Rule proposal (deep review 89 §12): new mechanism ⇒ reference model, discriminator and
     reduction test; adoption is Hamm's.
+13. Stored-only fields left after the 2026-10-25 audit (cosmetic): `LaminarColumnConfig.cell_colors`,
+    `cell_signs`, `cy_m` (tutorial scaffold), `HDPRuleContext.exc_mask` (context offered to rules; built-in
+    rules do not read it), `SanityDeltaConfig` validation by `assert` (stripped under `python -O`; the
+    existing test expects `AssertionError`). The `physical_amplitude_calibrated=True` overwrite is the
+    truth-gate clamp, tested as intended. Trigger: a caller needs one of them.
 
 Tracks (standing directions): P performance (optimize profiled components only) · T testing
 (cheapest gate per defect class) · S skills · I integration (one implementation, many entrances) ·

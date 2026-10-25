@@ -48,3 +48,13 @@ tracked receipt `artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md`
 Measured tree after sealing: 90,212,449 bytes; headroom 2,551. The probe
 scripts (25 files, 25,194 bytes) are preserved OUTSIDE the repository at
 `C:/workspace/jaxfne_pclr1_audit/` with sha256s recorded in the receipt.
+
+## Third increment, 2026-10-25 (issue-log batch, changelog fragment, restored README still)
+
++10,000 bytes (90,215,000 -> 90,225,000) and +2 files (2559 -> 2561), decided by the keeper under
+Hamm's standing rule (2026-10-24: the repo stays below 100,000,000 bytes, amendments fine): the
+closed-issue batch `artifacts/archive/0.5.x/issues_closed_2026-10-25.md` (+8,428 bytes, one file,
+hash-pinned), the changelog fragment `artifacts/changelog.d/refuse_unrealized_sanity_delta_params.
+changed.md`, the open-stack rebuild, and `docs/assets/readme/hdp.png` (59,862 bytes, required by
+`tests/test_atlas_suite.py::test_readme_still_exists_for_every_fixed_panel`; an orphan scan by basename had
+listed it as unreferenced, and the broad gate caught the removal). Measured tree: 90,217,078 bytes.

@@ -1,0 +1,1 @@
+- `SanityDeltaConfig` refuses, by name, a `hierarchy` other than the canonical four edges and a `stimulus_frequency_hz` other than 100.0 (the runtime wires only those; the stored values had changed nothing); an inter-area spec with `p_feedforward` or `p_feedback` set to `None` takes the default 0.3 / 0.2 instead of 0.0.
