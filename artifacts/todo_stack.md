@@ -115,24 +115,17 @@ clones, verified before integration):
 Open-stack rows (each closes its `O-n`; the open stack empties when these close; audits 2026-10-25):
 - T-O61 follow-up [H] read the 2026-10-25 wording changes: CAMINOS lag as a finding (`LEDGER.md` R2,
   `RESULT_P3.md` note, dashboard summary), Destexhe pilot and spent seeds, GSDR κ 0.60, Potjans, Vogels and
-  Mejias at stage P2, PCL-R1 sentence; open cosmetic: tier and release labels differ between
-  REPLICATIONS (CAMINOS T-methods, Izhikevich T-port) and the dashboard (T-jaxfne).
-- T-O65 [A] document the 57 undocumented `__all__` symbols in `docs/reference/api` (or name each in a
-  test's exempt list with its reason); a test compares `__all__` to the reference pages.
-- T-O66 [H] tree budget: headroom is 0.8 KB and 0 files. The three `artifacts/publication/atlas/AT-10-N20/
-  */lfp.html` (3.5 MB each) are not in `frozen_manifest.json`; they are canonical atlas-bundle outputs
-  (`artifacts/atlas/at_bundle.py`, allowlisted over the 1 MiB cap), so dropping them is a publication
-  decision: Hamm chooses between reclaiming them (regenerable from the bundle) and a signed raise in the
-  amendment file (also for `budget_files` when a row adds a test file). `docs/assets/readme/hdp.png`
-  stays (the README-still test requires it; the audit's basename scan missed the generated name).
+  Mejias at stage P2, PCL-R1 sentence; cosmetic: tier labels differ, REPLICATIONS against dashboard.
+- T-O66 [H] tree budget: no headroom. The three `artifacts/publication/atlas/AT-10-N20/*/lfp.html`
+  (3.5 MB each, not frozen, regenerable from `artifacts/atlas/at_bundle.py`): Hamm reclaims them or
+  signs a raise in the amendment file. `docs/assets/readme/hdp.png` stays (README-still test).
   Open: `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log` if the manifests do not hash it.
 - T-O41 [A] RTD stand-ins: build the étude pages on Read the Docs or take them out of the RTD nav;
   check: a Read the Docs build succeeds and `.readthedocs.yaml` or the nav matches the choice.
-- T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29); check:
-  one jchat reply per proposal.
+- T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
 - T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
-- T-O68 [H] local copies and the layout rule (see O-68); keep-or-delete ruling per held copy; check:
-  each copy is deleted or sits at `E:/repos/<name>` or `E:/repos/_wt/<repo>/<task>`.
+- T-O68 [H] local copies and the layout rule (see O-68): each held copy is deleted or sits at
+  `E:/repos/<name>` or `E:/repos/_wt/<repo>/<task>`.
 - [H] Signatures: the 0.5.8 preregs from item 7 (Izhikevich v7 and v8.2 and CAMINOS P6 v2 are signed, 2026-10-13).
 Blocked: T-11 (jnwb), T-16 and T-17 `[H]`, deferred list (section 5).
 
@@ -141,22 +134,15 @@ Blocked: T-11 (jnwb), T-16 and T-17 `[H]`, deferred list (section 5).
 - R2 restated (Hamm 2026-10-14): bytes -10% against the 0.5.5 tag (met: 86.8 MB
   tracked at 1bfdaa84 against 126.0 MB at the tag) plus files at the recorded budget with
   reasons on record (`budget_files` and `budget_bytes` in `scripts/tree_size_allowlist.json`; each
-  raise, its reason and authorization are in the commit that made it and, from 2026-10-23, in
-  `artifacts/release/budget_amendment_2026-10-23.md`). The
-  regenerable docs assets are untracked already: the 9 registry `copies` dests under
-  `docs/assets/etudes/` and all atlas/etude HTML are build products of
-  `scripts/build_docs_assets.py --build` (the Read the Docs `pre_build` path) and gitignored.
-  No further class qualifies: the 9 `docs/_static/gallery/*.png` (embedded by `docs/start/gallery.md`,
-  rewritten only as an index by `generate_gallery.py --write`, never rasterized by the build
-  path), the 12 `docs/_static/tutorial_figures/*.png` (no caller in the build path), and every
-  other tracked `docs/assets/` file (its generator, if one exists, is not in the build path;
-  `--html-only` skips PNG rasterization) would leave broken embeds if untracked, so all stay
-  tracked.
+  raise is in `artifacts/release/budget_amendment_2026-10-23.md` or its commit). The regenerable
+  docs assets (the 9 registry `copies` dests, atlas and étude HTML) are build products of
+  `scripts/build_docs_assets.py --build` and gitignored. No further class qualifies: the gallery
+  and tutorial-figure PNGs and every other tracked `docs/assets/` file are outside the build path,
+  so untracking them would break embeds.
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
   push dev. Standing item. Closes when: `python scripts/build_dashboard_data.py --check` passes
   on each push.
 - T-8b [A] After each dev push, refresh the lane dashboard artifact (skill `jaxfne-dashboard`).
-  Standing item.
 - 0.5.10 candidate: `coherence_radius_um` readout in `jaxfne.fields.kernel_lfp` (currents sum in
   phase within R_c, random phase between patches), with the two limit tests (R_c = sheet radius
   gives the coherent sheet; R_c of one cell gives incoherent summation). After the kernel LFP lane.

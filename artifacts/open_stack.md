@@ -8,7 +8,6 @@ has its row `T-O<n>` in the todo stack (section 2) with the detail.
 
 ## In flight
 - O-41 Read the Docs publishes étude stand-ins (P-038 remainder) | keeper | since 2026-10-25 (opened 2026-10-18) | closes when RTD builds the étude pages or they leave the RTD nav
-- O-65 57 of 208 `jaxfne.__all__` symbols are absent from `docs/reference` | keeper | since 2026-10-25 | closes when each is documented or a test names its exemption
 
 ## Waiting on others
 - O-10 Harness proposals, jchat conference #29 | jynx keeper | since 2026-10-25 (opened 2026-10-15) | closes when each is taken or refused

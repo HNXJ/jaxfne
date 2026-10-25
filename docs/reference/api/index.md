@@ -162,6 +162,9 @@ Import from the defining submodule (see `ADVANCED_NAMESPACE` in
 | Solvers | `jaxfne.solvers` — `EulerSolver`, `DiffraxSolver` |
 | Spectral | `jaxfne.analysis.spectral` — `spectrolaminar_psd_jax` |
 
+Trials and datasets: `TrialSpec`, `TrialBatch`, `TrialResult`, `TrialBatchResult`, `ParadigmEvent`,
+`DatasetSpec`, `dataset_spec`, `omission_oddball_paradigm`, `standard_visual_omission`, `stimulus_schedule`.
+
 ## Minimal workflow
 
 ```python
