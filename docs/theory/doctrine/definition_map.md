@@ -20,7 +20,7 @@ Each formal definition in the TFNE theory pages maps to the public jaxfne symbol
 | D14 | Projection exclusions, subtracted from the rule expansion | 7_tfne_algebra.md, 14. Projection exclusions | `jaxfne.tfne.Exclude` | `tests/test_tfne_algebra.py::test_exclusion_subtracts_the_projection_it_names` |
 | D15 | Declared in and out frontiers | 7_tfne_algebra.md, 9. Interfaces and frontiers | `jaxfne.tfne.resolve` | `tests/test_definition_map_realizations.py::test_d15_frontier_members_are_validated_by_the_mapped_expansion` |
 | D16 | Canonical natural ordering of paths | 7_tfne_algebra.md, 20. Canonical ordering | `jaxfne.tfne.resolve` | `tests/test_definition_map_realizations.py::test_d16_paths_come_out_in_natural_order` |
-| D17 | Typed boundaries x and y | 7_tfne_algebra.md, 19. Typed boundaries | `none` | `tests/test_tfne_algebra.py::test_typed_boundaries_preserved` |
+| D17 | Typed boundaries x and y | 7_tfne_algebra.md, 19. Typed boundaries | `jaxfne.tfne.System` | `tests/test_definition_map_realizations.py::test_d17_declared_boundary_types_reach_the_mapped_system` |
 | D18 | Biological identity, separate from the dynamical model | 7_tfne_algebra.md, 4. Biological identity and dynamical realization | `jaxfne.emitters.Emitter` | `tests/test_tfne_algebra.py::test_shared_type_distinct_models` |
 | D19 | Geometry G as a declared object | 7_tfne_algebra.md, 15. Geometry | `jaxfne.Geometry3D` | `tests/test_tfne_algebra.py::test_geometry_compiles_to_static_state` |
 | D20 | Declared geometry as fractions of a sampled block within [0,1] | tfne_algebra.md, Pipeline | `jaxfne.tfne.to_configuration` | `tests/test_definition_map_realizations.py::test_d20_declared_geometry_is_a_fraction_of_the_block` |
@@ -29,7 +29,7 @@ Each formal definition in the TFNE theory pages maps to the public jaxfne symbol
 | D23 | Mechanism resolution to a synaptic time constant | tfne_algebra.md, Pipeline | `jaxfne.tfne.resolve_mechanism` | `tests/test_tfne_parameter_transfer.py::test_canonical_mechanism_kinetics_reach_execution` |
 | D24 | Synaptic kinetics independent of the integration step dt | tfne_algebra.md, Pipeline | `jaxfne.tfne.resolve_mechanism` | `tests/test_tfne_parameter_transfer.py::test_synaptic_tau_does_not_depend_on_the_integration_timestep` |
 | D25 | RBS state H in R^(d_H), a finite-dimensional state container | rbs_rbd_hdp.md, 1. Semantic migration | `jaxfne.DynamicState` | `tests/test_relative_grammar_invariants.py::test_node_h_stays_in_declared_bounds_across_stress` |
-| D26 | RBD dynamics dH/dt = F_H(H, x, I, W, u) | rbs_rbd_hdp.md, 2. RBD | `none` | `none` |
+| D26 | RBD dynamics dH/dt = F_H(H, x, I, W, u) | rbs_rbd_hdp.md, 2. RBD | `jaxfne.emitters.simulate_edge_recurrent_izhikevich_rbd` | `tests/test_definition_map_realizations.py::test_d26_rbd_moves_h_and_keeps_w_fixed` |
 | D27 | Physical time class T and forward-causal clock t[n+1] > t[n] | relative_quantity_grammar.md, 3. Physical time (class T) | `jaxfne.Signals` | `tests/test_relative_grammar_invariants.py::test_time_ms_monotonic_and_causal` |
 | D28 | Quantity kinds B, R, E, T | relative_quantity_grammar.md, 1. Quantity kinds | `none` | `none` |
 | D29 | Null HDP leaves the base weights unchanged | relative_quantity_grammar.md, 5. Effective-parameter mappings | `jaxfne.hdp_rule.hdp_params_are_identity` | `tests/test_relative_grammar_invariants.py::test_hdp_off_matches_hdp_null_weights` |

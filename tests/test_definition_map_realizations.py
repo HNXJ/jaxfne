@@ -60,6 +60,20 @@ def test_d16_paths_come_out_in_natural_order():
     assert seg == [f"SEG.{i}" for i in range(1, 13)]
 
 
+def test_d17_declared_boundary_types_reach_the_mapped_system():
+    """D17: a declared x and y type is carried by the parsed system; an undeclared type is None."""
+    System = _mapped("D17")
+    typed = parse("Cell := [C = {cell}; N = 1]; x[retina] : Cell : y[choice]")
+    assert typed.system is not None, "fixture must declare a system"
+    assert isinstance(typed.system, System)
+    assert (typed.system.x, typed.system.x_type, typed.system.y, typed.system.y_type) == (
+        "x", "retina", "y", "choice")
+    untyped = parse("Cell := [C = {cell}; N = 1]; x : Cell : y")
+    assert untyped.system is not None, "fixture must declare a system"
+    assert isinstance(untyped.system, System)
+    assert (untyped.system.x_type, untyped.system.y_type) == (None, None)
+
+
 def test_d20_declared_geometry_is_a_fraction_of_the_block():
     """D20: a declared sub-range is a fraction in [0, 1] of its sampled block."""
     to_configuration = _mapped("D20")
@@ -114,6 +128,64 @@ def test_d22_declared_delay_realizes_to_round_delay_over_dt():
         cfg = to_configuration(realization, duration_ms=5.0, dt_ms=dt_ms)
         steps = cfg.metadata["tfne_delay"]["realized_steps"]
         assert list(steps.values()) == [expected], steps
+
+
+def test_d26_rbd_moves_h_and_keeps_w_fixed():
+    """D26: under RBD (W fixed) H moves while cells fire; family f0 freezes H at 1."""
+    import jax
+    import jax.numpy as jnp
+
+    from jaxfne.emitters import EdgeList, IzhikevichParams, resolve_edge_weight
+
+    simulate = _mapped("D26")
+    jd = jnp.float32
+    n = 2
+    params = IzhikevichParams(
+        v0=jnp.full((n,), -65.0, dtype=jd),
+        u0=jnp.zeros((n,), dtype=jd),
+        a=jnp.full((n,), 0.02, dtype=jd),
+        b=jnp.full((n,), 0.2, dtype=jd),
+        c=jnp.full((n,), -65.0, dtype=jd),
+        d=jnp.full((n,), 8.0, dtype=jd),
+        drive=jnp.zeros((n,), dtype=jd),
+        sign=jnp.ones((n,), dtype=jd),
+        W=jnp.zeros((n, n), dtype=jd),
+        source_scale=jnp.ones((n,), dtype=jd),
+        labels=tuple("E" for _ in range(n)),
+        layer_labels=tuple("L4" for _ in range(n)),
+        source_calibration_status="uncalibrated_izhikevich_native_current",
+    )
+    edges = EdgeList(
+        pre=jnp.asarray([0, 1], dtype=jnp.int32),
+        post=jnp.asarray([1, 0], dtype=jnp.int32),
+        weight=jnp.asarray([5.0, 5.0], dtype=jd),
+        receptor_index=jnp.asarray([0, 0], dtype=jnp.int32),
+        tau_ms=jnp.asarray([2.0, 2.0], dtype=jd),
+        delay_steps=jnp.asarray([0, 0], dtype=jnp.int32),
+    )
+    n_steps = 60
+    drive = jnp.zeros((n_steps, n), dtype=jd).at[5, :].set(40.0)
+
+    def run(family):
+        return simulate(
+            params, edges, n_steps, 1.0, jax.random.PRNGKey(0),
+            dtype="float32", noise_scale=0.0, drive_schedule=drive,
+            rbd_family=family, kappa_h=1.0,
+        )
+
+    _, spikes, _, st = run("f1")
+    assert float(np.asarray(spikes).sum()) > 0, "fixture must spike"
+    H = np.asarray(st["H_trace"])
+    assert np.max(np.abs(np.diff(H, axis=0))) > 0, "H must change while the cells fire"
+
+    assert edges.n_edges > 0, "fixture must have edges"
+    w0 = np.asarray(resolve_edge_weight(edges, jd, presynaptic_sign=params.sign.astype(jd)))
+    assert np.array_equal(np.asarray(st["w_fixed"]), w0)
+
+    _, spikes_f0, _, st_f0 = run("f0")
+    assert float(np.asarray(spikes_f0).sum()) > 0, "neutral fixture must spike too"
+    H_f0 = np.asarray(st_f0["H_trace"])
+    assert np.array_equal(H_f0, np.ones_like(H_f0))
 
 
 def test_d30_population_edge_weight_is_sign_times_theta0():

@@ -16,7 +16,7 @@ MAP_PATH = REPO_ROOT / "docs" / "theory" / "doctrine" / "definition_map.md"
 
 MIN_ROWS = 15
 
-KNOWN_GAPS = frozenset({"D17", "D26", "D28", "D35"})
+KNOWN_GAPS = frozenset({"D28", "D35"})
 
 # Rows whose Symbol has a path segment starting with "_": internal realizations.
 INTERNAL_ONLY = frozenset({"D31", "D32"})
