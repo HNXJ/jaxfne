@@ -5,9 +5,9 @@ Receipt-driven atlas survey of tutorial notebooks and docs/tutorial pages.
 Does not claim full notebook execution unless artifact receipts exist.
 
 Outputs:
-  figures/evidence/ed08_tutorial_atlas_coverage.png
-  outputs/evidence/ed08_tutorial_atlas_coverage_manifest.json
-  outputs/evidence/ed08_tutorial_atlas_coverage_receipt.json
+  artifacts/_temp/figures/evidence/ed08_tutorial_atlas_coverage.png
+  artifacts/_temp/outputs/evidence/ed08_tutorial_atlas_coverage_manifest.json
+  artifacts/_temp/outputs/evidence/ed08_tutorial_atlas_coverage_receipt.json
 """
 
 from __future__ import annotations
@@ -145,7 +145,7 @@ def _notebook_artifact_coverage(root: Path, rel: str, nb_path: Path) -> dict[str
     stem = nb_path.stem
     outputs_dir = root / "outputs"
     receipt_candidates = list(KNOWN_RECEIPT_PATHS.get(rel, []))
-    receipt_candidates.append(f"outputs/evidence/smoke_receipts/{stem}.json")
+    receipt_candidates.append(f"artifacts/_temp/outputs/evidence/smoke_receipts/{stem}.json")
     has_receipt = any((root / p).is_file() for p in receipt_candidates)
     has_output_bundle = any(outputs_dir.rglob(f"*{stem}*manifest.json")) if outputs_dir.is_dir() else False
     has_png = any((root / "artifacts" / "tutorials").rglob(f"{stem}*.png")) or any(
@@ -183,7 +183,7 @@ def _execution_receipt_status(root: Path, rel: str) -> str:
             if isinstance(status, str):
                 return status.lower()
             return "receipt-on-file"
-    ed03 = _read_json_if_exists(root / "outputs/evidence/ed03_notebook_execution_receipts.json")
+    ed03 = _read_json_if_exists(root / "artifacts/_temp/outputs/evidence/ed03_notebook_execution_receipts.json")
     if ed03:
         for row in ed03.get("notebooks", []):
             if row.get("notebook_path") == rel:
@@ -440,7 +440,7 @@ def main() -> int:
     )
 
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
-    print(f"wrote: outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
+    print(f"wrote: artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
     print(f"wrote: {RECEIPT_PATH.relative_to(root)}")
     print(f"sha256: {sha256_file(FIGURE_PATH)}")
     print(f"figure_id: {manifest['figure_id']}")

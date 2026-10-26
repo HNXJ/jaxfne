@@ -18,7 +18,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# The v0.3.42-era evidence scheme (8 main + 10 extended, figures/evidence)
+# The v0.3.42-era evidence scheme (8 main + 10 extended, legacy root evidence figure dir)
 # was superseded by the publication figure set committed under
 # artifacts/figures/publication/ (fig01..fig07 manuscript figures). Extended-data
 # figures are assigned during final Supplement assembly; none committed yet.
@@ -41,19 +41,19 @@ INSPECT_DIRS = [
     "docs/evidence_artifacts",
     "artifacts/tutorials",
     "examples",
-    "outputs/evidence",
-    "outputs/publication",
-    "figures/evidence",
+    "artifacts/_temp/outputs/evidence",
+    "artifacts/_temp/outputs/publication",
+    "artifacts/_temp/figures/evidence",
     "artifacts/figures/publication",
 ]
 
 FIGURE_DIR_CANDIDATES = [
-    "figures/evidence",
+    "artifacts/_temp/figures/evidence",
     "artifacts/figures/publication",
 ]
 
 # Publication-figure receipts under artifacts/publication/ are the live
-# manifests for the committed figures (legacy outputs/evidence manifests no
+# manifests for the committed figures (legacy root evidence manifests no
 # longer exist in-tree).
 MANIFEST_PATHS = [
     "artifacts/publication/fig01_generation_receipt.json",
@@ -95,7 +95,7 @@ def git_head_sha() -> str | None:
 def inventory_asset(filename: str, figure_dirs: list[Path]) -> dict:
     """Inventory one PNG from canonical or compatibility figure directories.
 
-    The v0.3.42 evidence scripts write to ``figures/evidence``. Some release
+    The evidence scripts write to ``artifacts/_temp/figures/evidence``. Some release
     bundles still contain the previously tracked ``artifacts/figures/publication`` assets.
     Treat the latter as a compatibility source so inventory reports do not false
     fail before the evidence figures are regenerated.
@@ -226,8 +226,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=REPO_ROOT / "outputs" / "evidence",
-        help="directory for inventory.json (default: outputs/evidence under the repo root)",
+        default=REPO_ROOT / "artifacts" / "_temp" / "outputs" / "evidence",
+        help="directory for inventory.json (default: artifacts/_temp/outputs/evidence under the repo root)",
     )
     args = parser.parse_args(argv)
     inventory = build_inventory()

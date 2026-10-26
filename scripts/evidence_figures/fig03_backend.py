@@ -2,8 +2,8 @@
 """Generate Figure 3: jaxfne computational backend and reproducibility boundary.
 
 Outputs:
-  figures/evidence/fig03_jaxfne_backend.png
-  outputs/evidence/fig03_jaxfne_backend_manifest.json
+  artifacts/_temp/figures/evidence/fig03_jaxfne_backend.png
+  artifacts/_temp/outputs/evidence/fig03_jaxfne_backend_manifest.json
 """
 
 from __future__ import annotations
@@ -243,7 +243,7 @@ def main() -> int:
     )
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"sha256: {sha}")

@@ -2,8 +2,8 @@
 """Generate Extended Data ED1: public API stability snapshot panel.
 
 Outputs:
-  figures/evidence/ed01_api_stability_snapshot.png
-  outputs/evidence/ed01_api_stability_snapshot_manifest.json
+  artifacts/_temp/figures/evidence/ed01_api_stability_snapshot.png
+  artifacts/_temp/outputs/evidence/ed01_api_stability_snapshot_manifest.json
 
 Local snapshot only; does not claim completeness beyond tested import surface.
 """
@@ -307,7 +307,7 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"sha256: {sha}")

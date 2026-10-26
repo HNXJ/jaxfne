@@ -2,8 +2,8 @@
 """Generate Figure 8: adjacent tools positioning (capability comparison only).
 
 Outputs:
-  figures/evidence/fig08_adjacent_tools_comparison.png
-  outputs/evidence/fig08_adjacent_tools_comparison_manifest.json
+  artifacts/_temp/figures/evidence/fig08_adjacent_tools_comparison.png
+  artifacts/_temp/outputs/evidence/fig08_adjacent_tools_comparison_manifest.json
 
 No speedup, accuracy, biological-validity, or solver-superiority claims.
 """
@@ -199,7 +199,7 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"sha256: {sha}")

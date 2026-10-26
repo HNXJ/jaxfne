@@ -5,8 +5,8 @@ Shows the evidence evidence chain:
   script -> PNG -> manifest -> SHA256 -> inventory -> checklist -> repo SHA
 
 Outputs:
-  figures/evidence/fig07_reproducibility_artifacts.png
-  outputs/evidence/fig07_reproducibility_artifacts_manifest.json
+  artifacts/_temp/figures/evidence/fig07_reproducibility_artifacts.png
+  artifacts/_temp/outputs/evidence/fig07_reproducibility_artifacts_manifest.json
 """
 
 from __future__ import annotations
@@ -88,7 +88,7 @@ def _load_inventory() -> dict:
 
 def _manifest_entry(root: Path, png_name: str) -> dict | None:
     stem = Path(png_name).stem
-    manifest_path = root / "outputs" / "evidence" / f"{stem}_manifest.json"
+    manifest_path = root / "artifacts" / "_temp" / "outputs" / "evidence" / f"{stem}_manifest.json"
     if not manifest_path.is_file():
         return None
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -130,7 +130,7 @@ def build_reproducibility_chain(inventory: dict, checklist: dict) -> dict:
             }
         )
 
-    inventory_path = root / "outputs" / "evidence" / "inventory.json"
+    inventory_path = root / "artifacts" / "_temp" / "outputs" / "evidence" / "inventory.json"
     checklist_path = evidence_checklist_path()
 
     return {
@@ -138,7 +138,7 @@ def build_reproducibility_chain(inventory: dict, checklist: dict) -> dict:
         "repo_sha_git": repo_sha(),
         "repo_sha_inventory": inventory.get("repo_sha"),
         "repo_sha_checklist": checklist.get("repo_sha"),
-        "inventory_path": "outputs/evidence/inventory.json",
+        "inventory_path": "artifacts/_temp/outputs/evidence/inventory.json",
         "inventory_exists": inventory_path.is_file(),
         "checklist_path": str(checklist_path.relative_to(root)),
         "checklist_exists": checklist_path.is_file(),
@@ -295,7 +295,7 @@ def main() -> int:
     inventory = _load_inventory()
     chain = build_reproducibility_chain(inventory, checklist)
 
-    inv_path = repo_root() / "outputs" / "evidence" / "inventory.json"
+    inv_path = repo_root() / "artifacts" / "_temp" / "outputs" / "evidence" / "inventory.json"
     inv_path.parent.mkdir(parents=True, exist_ok=True)
     inv_path.write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
 
@@ -316,10 +316,10 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
-    print("wrote: outputs/evidence/inventory.json")
+    print("wrote: artifacts/_temp/outputs/evidence/inventory.json")
     print(f"sha256: {sha}")
     print(f"figure_id: {manifest['figure_id']}")
     print(

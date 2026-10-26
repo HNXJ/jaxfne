@@ -17,8 +17,8 @@
       "purpose": "TFNE operator grammar overview",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/fig01_architecture.py",
-      "manifest_path": "outputs/evidence/fig01_tfne_architecture_manifest.json",
-      "figure_path": "figures/evidence/fig01_tfne_architecture.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/fig01_tfne_architecture_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/fig01_tfne_architecture.png",
       "claim_boundary": "computational_scaffold_only"
     },
     {
@@ -27,8 +27,8 @@
       "purpose": "Source/field contracts and truth gates",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/fig02_contracts.py",
-      "manifest_path": "outputs/evidence/fig02_source_field_contracts_manifest.json",
-      "figure_path": "figures/evidence/fig02_source_field_contracts.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/fig02_source_field_contracts_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/fig02_source_field_contracts.png",
       "claim_boundary": "no_pde_solver_claim"
     },
     {
@@ -37,8 +37,8 @@
       "purpose": "Config to simulate backend flow",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/fig03_backend.py",
-      "manifest_path": "outputs/evidence/fig03_jaxfne_backend_manifest.json",
-      "figure_path": "figures/evidence/fig03_jaxfne_backend.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/fig03_jaxfne_backend_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/fig03_jaxfne_backend.png",
       "claim_boundary": "package_native_api"
     },
     {
@@ -47,8 +47,8 @@
       "purpose": "Minimal install and smoke run",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/fig04_minimal_install_run.py",
-      "manifest_path": "outputs/evidence/fig04_minimal_install_run_manifest.json",
-      "figure_path": "figures/evidence/fig04_minimal_install_run.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/fig04_minimal_install_run_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/fig04_minimal_install_run.png",
       "claim_boundary": "cpu_safe_tutorial"
     },
     {
@@ -57,8 +57,8 @@
       "purpose": "Runtime scaling across N, Z, seeds",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/fig05_runtime_scaling.py",
-      "manifest_path": "outputs/evidence/fig05_runtime_scaling_manifest.json",
-      "figure_path": "figures/evidence/fig05_runtime_scaling.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/fig05_runtime_scaling_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/fig05_runtime_scaling.png",
       "claim_boundary": "benchmark_receipt_required"
     },
     {
@@ -67,8 +67,8 @@
       "purpose": "Eight proxy readout families",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/fig06_readout_family_panel.py",
-      "manifest_path": "outputs/evidence/fig06_readout_family_panel_manifest.json",
-      "figure_path": "figures/evidence/fig06_readout_family_panel.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/fig06_readout_family_panel_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/fig06_readout_family_panel.png",
       "claim_boundary": "proxy_readouts_only"
     },
     {
@@ -77,8 +77,8 @@
       "purpose": "Manifest and hash reproducibility",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/fig07_reproducibility_artifacts.py",
-      "manifest_path": "outputs/evidence/fig07_reproducibility_artifacts_manifest.json",
-      "figure_path": "figures/evidence/fig07_reproducibility_artifacts.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/fig07_reproducibility_artifacts_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/fig07_reproducibility_artifacts.png",
       "claim_boundary": "fixed_tag_sha_required"
     },
     {
@@ -87,8 +87,8 @@
       "purpose": "Positioning vs adjacent tools",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/fig08_adjacent_tools_comparison.py",
-      "manifest_path": "outputs/evidence/fig08_adjacent_tools_comparison_manifest.json",
-      "figure_path": "figures/evidence/fig08_adjacent_tools_comparison.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/fig08_adjacent_tools_comparison_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/fig08_adjacent_tools_comparison.png",
       "claim_boundary": "capability_comparison_not_superiority"
     }
   ],
@@ -99,8 +99,8 @@
       "purpose": "Public API stability snapshot",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/ed01_api_stability_snapshot.py",
-      "manifest_path": "outputs/evidence/ed01_api_stability_snapshot_manifest.json",
-      "figure_path": "figures/evidence/ed01_api_stability_snapshot.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/ed01_api_stability_snapshot_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/ed01_api_stability_snapshot.png",
       "claim_boundary": "local_api_snapshot_only"
     },
     {
@@ -109,8 +109,8 @@
       "purpose": "JSON schema and config validation receipts",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/ed02_json_schema_validation.py",
-      "manifest_path": "outputs/evidence/ed02_json_schema_validation_manifest.json",
-      "figure_path": "figures/evidence/ed02_json_schema_validation.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/ed02_json_schema_validation_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/ed02_json_schema_validation.png",
       "claim_boundary": "config_schema_validation_receipt"
     },
     {
@@ -119,8 +119,8 @@
       "purpose": "Notebook execution receipts (tutorial atlas survey)",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/ed03_notebook_execution_receipts.py",
-      "manifest_path": "outputs/evidence/ed03_notebook_execution_receipts_manifest.json",
-      "figure_path": "figures/evidence/ed03_notebook_execution_receipts.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/ed03_notebook_execution_receipts_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/ed03_notebook_execution_receipts.png",
       "claim_boundary": "receipt_driven_structural_scan"
     },
     {
@@ -129,8 +129,8 @@
       "purpose": "Optional dependency laziness (local subprocess receipts)",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/ed04_optional_dependency_laziness.py",
-      "manifest_path": "outputs/evidence/ed04_optional_dependency_laziness_manifest.json",
-      "figure_path": "figures/evidence/ed04_optional_dependency_laziness.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/ed04_optional_dependency_laziness_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/ed04_optional_dependency_laziness.png",
       "claim_boundary": "local_subprocess_optional_dep_receipt"
     },
     {
@@ -139,8 +139,8 @@
       "purpose": "Local manifest/hash integrity receipt",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/ed05_manifest_hashes.py",
-      "manifest_path": "outputs/evidence/ed05_manifest_hashes_manifest.json",
-      "figure_path": "figures/evidence/ed05_manifest_hashes.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/ed05_manifest_hashes_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/ed05_manifest_hashes.png",
       "claim_boundary": "local_artifact_integrity_receipt_only"
     },
     {
@@ -149,8 +149,8 @@
       "purpose": "Benchmark scaling tables (local CPU runtime receipt)",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/ed06_benchmark_scaling_tables.py",
-      "manifest_path": "outputs/evidence/ed06_benchmark_scaling_tables_manifest.json",
-      "figure_path": "figures/evidence/ed06_benchmark_scaling_tables.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/ed06_benchmark_scaling_tables_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/ed06_benchmark_scaling_tables.png",
       "claim_boundary": "local_cpu_runtime_receipt_only"
     },
     {
@@ -159,8 +159,8 @@
       "purpose": "Probe/readout operator contract matrix",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/ed07_probe_operator_contracts.py",
-      "manifest_path": "outputs/evidence/ed07_probe_operator_contracts_manifest.json",
-      "figure_path": "figures/evidence/ed07_probe_operator_contracts.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/ed07_probe_operator_contracts_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/ed07_probe_operator_contracts.png",
       "claim_boundary": "proxy_readout_operator_contracts_only"
     },
     {
@@ -169,8 +169,8 @@
       "purpose": "Tutorial atlas coverage matrix (receipt-driven)",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/ed08_tutorial_atlas_coverage.py",
-      "manifest_path": "outputs/evidence/ed08_tutorial_atlas_coverage_manifest.json",
-      "figure_path": "figures/evidence/ed08_tutorial_atlas_coverage.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/ed08_tutorial_atlas_coverage_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/ed08_tutorial_atlas_coverage.png",
       "claim_boundary": "tutorial_atlas_coverage_receipt_only"
     },
     {
@@ -179,8 +179,8 @@
       "purpose": "Failure modes and null controls (local receipt)",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/ed09_failure_modes_and_nulls.py",
-      "manifest_path": "outputs/evidence/ed09_failure_modes_and_nulls_manifest.json",
-      "figure_path": "figures/evidence/ed09_failure_modes_and_nulls.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/ed09_failure_modes_and_nulls_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/ed09_failure_modes_and_nulls.png",
       "claim_boundary": "failure_null_local_receipt_only"
     },
     {
@@ -191,8 +191,8 @@
       "generator_script": "scripts/evidence_figures/ed10_release_archive_receipt.py",
       "closure_receipt_script": "scripts/ed10_release_archive_receipt.py",
       "closure_receipt_path": "outputs/ed10_release_archive/ed10_receipt.json",
-      "manifest_path": "outputs/evidence/ed10_release_archive_receipt_manifest.json",
-      "figure_path": "figures/evidence/ed10_release_archive_receipt.png",
+      "manifest_path": "artifacts/_temp/outputs/evidence/ed10_release_archive_receipt_manifest.json",
+      "figure_path": "artifacts/_temp/figures/evidence/ed10_release_archive_receipt.png",
       "claim_boundary": "release_archive_evidence_receipt_only"
     }
   ],
@@ -225,7 +225,7 @@
   "required_artifacts": [
     "docs/theory/publication/evidence_checklist.json",
     "scripts/evidence_figures_inventory.py",
-    "outputs/evidence/inventory.json"
+    "artifacts/_temp/outputs/evidence/inventory.json"
   ],
   "missing_artifacts": [],
   "benchmark_plan": {

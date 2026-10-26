@@ -42,7 +42,7 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 EVIDENCE_ARTIFACTS = {
     "ed9_evidence": "outputs/ed9_homeostasis_evidence/ed9_evidence.json",
     "ed9_receipt": "outputs/ed9_homeostasis_evidence/ed9_receipt.json",
-    "evidence_inventory": "outputs/evidence/inventory.json",
+    "evidence_inventory": "artifacts/_temp/outputs/evidence/inventory.json",
 }
 
 TRUTH_GATES = {

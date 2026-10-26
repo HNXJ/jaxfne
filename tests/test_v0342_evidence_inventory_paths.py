@@ -37,7 +37,7 @@ def test_inventory_accepts_publication_figure_compatibility_paths():
 
     inventory = build_inventory()
     summary = inventory["summary"]
-    assert "figures/evidence" in summary["figure_dir_candidates"]
+    assert "artifacts/_temp/figures/evidence" in summary["figure_dir_candidates"]
     assert "artifacts/figures/publication" in summary["figure_dir_candidates"]
     # In source zips that already contain publication PNGs but have not rerun the
     # evidence generators, inventory should not report a false 0/18 state.

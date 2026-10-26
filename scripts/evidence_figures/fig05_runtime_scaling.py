@@ -2,9 +2,9 @@
 """Generate Figure 5: CPU-safe runtime scaling receipt over N, contacts, and seeds.
 
 Outputs:
-  figures/evidence/fig05_runtime_scaling.png
-  outputs/evidence/fig05_runtime_scaling_manifest.json
-  outputs/evidence/fig05_runtime_scaling.csv
+  artifacts/_temp/figures/evidence/fig05_runtime_scaling.png
+  artifacts/_temp/outputs/evidence/fig05_runtime_scaling_manifest.json
+  artifacts/_temp/outputs/evidence/fig05_runtime_scaling.csv
 
 No universal performance claims. Local environment receipt only.
 """
@@ -350,7 +350,7 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"wrote: {csv_rel}")

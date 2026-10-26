@@ -6,9 +6,9 @@ regenerating committed figure PNGs. Missing figure manifests are synthesized
 from on-disk PNG SHA256 digests (local integrity receipt only).
 
 Outputs:
-  figures/evidence/ed05_manifest_hashes.png
-  outputs/evidence/ed05_manifest_hashes_manifest.json
-  outputs/evidence/ed05_manifest_hashes_receipt.json
+  artifacts/_temp/figures/evidence/ed05_manifest_hashes.png
+  artifacts/_temp/outputs/evidence/ed05_manifest_hashes_manifest.json
+  artifacts/_temp/outputs/evidence/ed05_manifest_hashes_receipt.json
 """
 
 from __future__ import annotations
@@ -60,11 +60,11 @@ SCOPE_STATUS = (
 
 RECEIPT_PATHS_BY_STEM: dict[str, list[str]] = {
     "ed03_notebook_execution_receipts": [
-        "outputs/evidence/ed03_notebook_execution_receipts.json",
-        "outputs/evidence/notebook_execution_receipt.json",
+        "artifacts/_temp/outputs/evidence/ed03_notebook_execution_receipts.json",
+        "artifacts/_temp/outputs/evidence/notebook_execution_receipt.json",
     ],
     "ed04_optional_dependency_laziness": [
-        "outputs/evidence/ed04_optional_dependency_laziness_receipt.json",
+        "artifacts/_temp/outputs/evidence/ed04_optional_dependency_laziness_receipt.json",
     ],
 }
 
@@ -73,7 +73,7 @@ METADATA_ARTIFACTS = [
         "artifact_group": "evidence_metadata",
         "artifact_id": "inventory",
         "label": "evidence_inventory.json",
-        "path": "outputs/evidence/inventory.json",
+        "path": "artifacts/_temp/outputs/evidence/inventory.json",
         "kind": "json",
     },
     {
@@ -109,7 +109,7 @@ def _load_inventory() -> dict:
 
 
 def _write_inventory_json(inventory: dict) -> Path:
-    path = repo_root() / "outputs" / "evidence" / "inventory.json"
+    path = repo_root() / "artifacts" / "_temp" / "outputs" / "evidence" / "inventory.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     write_json_strict(path, inventory)
     return path
@@ -139,7 +139,7 @@ def _truth_gates_preserved(manifest_data: dict | None) -> bool | None:
 
 def _resolve_receipt_paths(stem: str) -> list[Path]:
     root = repo_root()
-    candidates = RECEIPT_PATHS_BY_STEM.get(stem, [f"outputs/evidence/{stem}_receipt.json"])
+    candidates = RECEIPT_PATHS_BY_STEM.get(stem, [f"artifacts/_temp/outputs/evidence/{stem}_receipt.json"])
     return [root / rel for rel in candidates]
 
 

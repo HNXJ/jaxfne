@@ -2,8 +2,8 @@
 """Generate Extended Data ED2: JSON schema and config validation panel.
 
 Outputs:
-  figures/evidence/ed02_json_schema_validation.png
-  outputs/evidence/ed02_json_schema_validation_manifest.json
+  artifacts/_temp/figures/evidence/ed02_json_schema_validation.png
+  artifacts/_temp/outputs/evidence/ed02_json_schema_validation_manifest.json
 
 REDESIGNED 2026-06-30: previously validated the legacy .jcfg.json/JaxFNEConfig
 format (load_config/validate_config), which was deleted (lived only in tests,
@@ -316,7 +316,7 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"wrote: {receipt_rel}")

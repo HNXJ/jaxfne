@@ -5,9 +5,9 @@ Records branch, commit SHA, evidence inventory, checklist/output hashes,
 and release/archive field status. Does not tag, release, publish, or archive.
 
 Outputs:
-  figures/evidence/ed10_release_archive_receipt.png
-  outputs/evidence/ed10_release_archive_receipt_manifest.json
-  outputs/evidence/ed10_release_archive_receipt_receipt.json
+  artifacts/_temp/figures/evidence/ed10_release_archive_receipt.png
+  artifacts/_temp/outputs/evidence/ed10_release_archive_receipt_manifest.json
+  artifacts/_temp/outputs/evidence/ed10_release_archive_receipt_receipt.json
 """
 
 from __future__ import annotations
@@ -118,7 +118,7 @@ def _checklist_hash() -> dict[str, Any]:
 
 
 def _output_inventory_hash(inventory: dict[str, Any]) -> dict[str, Any]:
-    path = _REPO_ROOT / "outputs" / "evidence" / "inventory.json"
+    path = _REPO_ROOT / "artifacts" / "_temp" / "outputs" / "evidence" / "inventory.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(inventory, indent=2, sort_keys=False) + "\n", encoding="utf-8")
     return {
@@ -485,7 +485,7 @@ def main() -> int:
     )
 
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
-    print(f"wrote: outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
+    print(f"wrote: artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
     print(f"wrote: {RECEIPT_PATH.relative_to(root)}")
     print(f"sha256: {sha256_file(FIGURE_PATH)}")
     print(f"figure_id: {manifest['figure_id']}")
