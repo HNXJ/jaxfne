@@ -139,5 +139,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev,viz,jaxley,jnwb]"
 
+      - name: Record the figure environment (source for the figure lock)
+        run: pip freeze --exclude-editable > figure_env_freeze.txt
+
       - name: Publication gate (Figures 1-7 vs frozen PNGs, frozen-path hashes, repo state)
         run: python scripts/run_test_gate.py publication
+
+      - name: Upload the figure environment
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: figure-env-freeze
+          path: figure_env_freeze.txt
+          if-no-files-found: error
