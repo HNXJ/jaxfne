@@ -8,7 +8,8 @@ first, amend in place.
 After 0.5.8, rows serve G-0 (`artifacts/programme/design/plans/arxiv_paper_plan.md`): each names its F, S or C id.
 G-0 findings from lanes L1-L9 (2026-10-25/26):
 - [A] C9, C2: 16 gaps in `artifacts/programme/paper/reproducibility_audit.md` section 7. Agent rows: a figure
-  lock file, the publication gate in a workflow, a clean-checkout figure job. Closed 2026-10-26: the v0.5.7
+  lock file, a clean-checkout figure job; the `publication` job in `release_ci.yml` (lane L11) awaits its first
+  CI run, and off macOS it compares figure dimensions only. Closed 2026-10-26: the v0.5.7
   version DOI is in `docs/reference/project/zenodo_doi.md`; the 0.5.7 date in the release authority file
   matches the GitHub Release (2026-10-21 UTC; Zenodo dates its record 2026-10-22). [H] rows: the LICENSE name
   "H N", the data and code statement, external data licences (PCL, CAMINOS), the F1-F8 to frozen fig01-fig07

@@ -123,3 +123,21 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+  publication:
+    # Off macOS the equivalence step compares decoded pixel dimensions only; pixels and bytes are informational.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install package and dev+viz deps (renderer pin comes from the dev extra)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,viz,jaxley,jnwb]"
+
+      - name: Publication gate (Figures 1-7 vs frozen PNGs, frozen-path hashes, repo state)
+        run: python scripts/run_test_gate.py publication
