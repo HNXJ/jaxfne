@@ -1,0 +1,1 @@
+- Localized connectivity sampling (`max_in_degree` with `spatial_sigma`) anchors its spatial buckets at the pre population's minimum corner and orders candidates by neuron id, so a rigid translation of the population keeps the realized edge set under one seed. Edge sets drawn under a given seed differ from 0.5.8.

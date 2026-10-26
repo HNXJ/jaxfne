@@ -14,12 +14,15 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
 - [H] C10: `docs/reference/references.md` lists 112 entries, 94 figure-linked, against the 80 cap
   (`artifacts/programme/paper/references_inventory.md`: plasticity 8 and fitting 7 short; other 20, fields 7,
   tools 4 over; JAX itself uncited; E054 repeats E004). The cut and the category map are Hamm's call.
-- [A] C4, F2: localized connectivity draws depend on absolute bucket position (`connectivity._candidate_pairs_localized`); a
-  translation changes 27 of 50 edges under one seed (strict xfail in `tests/test_geometry_invariants.py`). Bucket
-  relative to the population and order candidates by id, then drop the xfail.
+- [A] C4, F2: localized sampling keeps its edge set under translation (lane L8); a turn can change a few edges
+  (worker receipt: an 11x11 grid quarter turn changes 2 of 484) because the bucket neighbourhood is axis-aligned.
+  Exact turn invariance needs a radius cutoff on candidates, a change to the candidate law: settle it with the C4
+  claim wording. The 100k tutorial notebook and the w8/w10 baselines keep pre-L8 draws as historical receipts.
 - [A] C3, S1: `docs/theory/doctrine/definition_map.md` lists 5 definitions with no symbol (D17, D26, D28, D34, D35)
   and 9 realized only by private names; give each a public symbol and test, or record why not.
 - [H] C6, S6: benchmark protocol choices (`artifacts/programme/benchmarks/README.md`); brian2 and NEST not installed.
+  `scripts/cortical_column_localized_workflow.build_config`, which the Izhikevich benchmark calls, raises at HEAD: the
+  builder refuses `geometry='uniform3d'` with `layers` and `ei_profile='canonical'`. The repair picks a geometry.
 
 ## 1. Decisions waiting on Hamm (they unblock items below)
 

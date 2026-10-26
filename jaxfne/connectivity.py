@@ -752,9 +752,10 @@ def _candidate_pairs_localized(
 
     Candidate pre-neurons are restricted to a spatial neighborhood via grid
     bucketing (cell size = 3*spatial_sigma, covering ~3 std of the Gaussian
-    falloff) rather than computing a full n_pre x n_post distance matrix --
-    that full computation would reintroduce the same O(N^2) cost one step
-    earlier even though the resulting edge count is sparse.
+    falloff; the grid is anchored at the pre population's minimum corner) rather
+    than computing a full n_pre x n_post distance matrix -- that full computation
+    would reintroduce the same O(N^2) cost one step earlier even though the
+    resulting edge count is sparse.
 
     PERFORMANCE NOTE (found 2026-07-01): the grid-bucket neighborhood's raw
     candidate count scales with local NEURON DENSITY, not with N or
@@ -784,17 +785,21 @@ def _candidate_pairs_localized(
     if not pre_ids or not post_ids or max_in_degree <= 0:
         return []
     cell_size = 3.0 * max(float(spatial_sigma), 1e-9)
+    # Anchor the grid at the pre population's minimum corner: a rigid translation of the
+    # population then leaves every bucket key, and so every candidate set, unchanged.
+    origin = np.min(np.stack([positions[nid] for nid in pre_ids]), axis=0)
 
     pre_buckets: dict[tuple[int, int, int], list[int]] = {}
     for nid in pre_ids:
-        pre_buckets.setdefault(_spatial_bucket_key(positions[nid], cell_size), []).append(nid)
+        bucket = _spatial_bucket_key(positions[nid] - origin, cell_size)
+        pre_buckets.setdefault(bucket, []).append(nid)
 
     neighbor_offsets = [(dx, dy, dz) for dx in (-1, 0, 1) for dy in (-1, 0, 1) for dz in (-1, 0, 1)]
     pairs: list[tuple[int, int]] = []
     rng = np.random.default_rng(_stable_fold(int(jax.random.randint(key, (), 0, 2**31 - 1))))
     for post_id in post_ids:
         post_pos = positions[post_id]
-        bx, by, bz = _spatial_bucket_key(post_pos, cell_size)
+        bx, by, bz = _spatial_bucket_key(post_pos - origin, cell_size)
         candidates: list[int] = []
         for dx, dy, dz in neighbor_offsets:
             candidates.extend(pre_buckets.get((bx + dx, by + dy, bz + dz), ()))
@@ -802,6 +807,9 @@ def _candidate_pairs_localized(
             candidates = [c for c in candidates if c != post_id]
         if not candidates:
             continue
+        # The pool cap and the draw both index this list: sorting by neuron id makes the
+        # selection a function of ids and distances only.
+        candidates.sort()
         if len(candidates) > _LOCALIZED_CANDIDATE_POOL_CAP:
             keep = rng.choice(len(candidates), size=_LOCALIZED_CANDIDATE_POOL_CAP, replace=False)
             candidates = [candidates[i] for i in keep]
