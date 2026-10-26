@@ -5,6 +5,7 @@ are deleted (history: git; the pre-2026-09-27 stack and the sealed 0.5.0–0.5.5
 `artifacts/archive/0.5.x/`). Rules: `artifacts/AGENTS.md`. Facts: `artifacts/fact_stack.md` (Hamm
 edits). Open issues: `artifacts/assurance/issue_log/ISSUE_LOG.md`. Other editors change this file: re-read
 first, amend in place.
+After 0.5.8, rows serve G-0 (`artifacts/programme/design/plans/arxiv_paper_plan.md`): each names its F, S or C id.
 
 ## 1. Decisions waiting on Hamm (they unblock items below)
 
@@ -116,9 +117,9 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
 - T-O61 follow-up [H] read the 2026-10-25 wording changes: CAMINOS lag as a finding (`LEDGER.md` R2,
   `RESULT_P3.md` note, dashboard summary), Destexhe pilot and spent seeds, GSDR κ 0.60, Potjans, Vogels and
   Mejias at stage P2, PCL-R1 sentence; cosmetic: tier labels differ, REPLICATIONS against dashboard.
-- T-O66 [H] tree budget: no headroom. The three `artifacts/publication/atlas/AT-10-N20/*/lfp.html`
-  (3.5 MB each, not frozen, regenerable from `artifacts/atlas/at_bundle.py`): Hamm reclaims them or
-  signs a raise in the amendment file. `docs/assets/readme/hdp.png` stays (README-still test).
+- T-O66 [H] tree budget: the three AT-10-N20 `lfp.html` stay (Hamm 2026-10-25, referenced by the bundle
+  manifests). A raise by their cost passes the 100,000,000 cap (amendment, consolidated review):
+  Hamm sets the headroom or the cap. `docs/assets/readme/hdp.png` stays (README-still test).
   Open: `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log` if the manifests do not hash it.
 - T-O41 [A] RTD stand-ins: build the étude pages on Read the Docs or take them out of the RTD nav;
   check: a Read the Docs build succeeds and `.readthedocs.yaml` or the nav matches the choice.

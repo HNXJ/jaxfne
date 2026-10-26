@@ -72,3 +72,16 @@ the last now scans `artifacts/memory.md` and flags short SHAs), in existing file
 fine) and his 0.5.8 scope decision to fix izhikevich2003 E1 in the core: `cell_params` takes one value per
 matched neuron (`_construct_population.py`, three tests in `test_cell_params_compilation_v0401.py`, one
 changelog bullet), which unblocks the P3b arm's heterogeneous a, b, c, d.
+Measured tree at fd8933d6: 90,230,927 bytes, 2561 files.
+
+## Consolidated review and sixth increment, 2026-10-25 (O-66, paper plan)
+
+O-66 (Hamm 2026-10-25): the three `artifacts/publication/atlas/AT-10-N20/*/lfp.html` stay (3,530,080 +
+3,531,433 + 3,532,786 = 10,594,299 bytes; referenced by each bundle's `manifest.json` and `index.html` and
+by `atlas_run.json`). They are already inside the measured tree. A raise by their full cost would set the
+budget to 100,827,299 bytes, above the standing 100,000,000 cap, so it is not applied; Hamm decides.
+Sixth increment: +8,000 bytes and +1 file (90,233,000 -> 90,241,000; 2561 -> 2562) for the paper plan
+`artifacts/programme/design/plans/arxiv_paper_plan.md` (G-0, Hamm 2026-10-25: "6kb is ok"), its goal and
+todo lines, and this entry. Second to sixth increments: +36,000 bytes (90,205,000 -> 90,241,000) and
++3 files (2559 -> 2562). Further raises wait
+for a consolidated review.
