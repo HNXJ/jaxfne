@@ -28,6 +28,13 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
   `CalibrationSpec`). No symbol: D28 (`ValueTag` lacks B, R, E, T). New public names proposed: D21
   `resolved_edge_weight`, D34 `rbd_recurrent_gain` (both `jaxfne/emitters.py`); D31 and D32 need a code path
   that exposes a_eff and the AdEx clip. Public API choices: orchestrator, then Hamm.
+- [H] C1: `python scripts/check_manuscript_claims.py` (lane L12) counts 0 cited ids missing from the ledger, 0
+  statuses outside the tier set, 5 uncited ledger ids (CL-22 to CL-26) and 17 orphan candidates (abstract 1,
+  results 16; results.md cites no CL id). CL-22 to CL-26 name AT-10 claims in
+  `artifacts/publication/publication_claim_ledger.json` and E2 V1/V2 claims in
+  `artifacts/e2/audit/claim_ledger_delta.json` (CL-22 to CL-29), which the S.18 traceability map follows; the
+  manuscript supplement says "all 21 rows" against 26. Which numbering holds is Hamm's call; the results
+  citations follow it.
 - [H] C6, S6: benchmark protocol choices (`artifacts/programme/benchmarks/README.md`); brian2 and NEST not installed.
   `scripts/cortical_column_localized_workflow.build_config`, which the Izhikevich benchmark calls, raises at HEAD: the
   builder refuses `geometry='uniform3d'` with `layers` and `ei_profile='canonical'`. The repair picks a geometry.
