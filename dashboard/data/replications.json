@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-25T20:07:16Z",
-    "dev_sha": "c4406032dfff01b6814a7128c6a2693c755cee85",
-    "data_revision": "6ec00acca8a9c0fa9332c48d4a6ccfa8f8077f12207f1ca5396fa4b94d7d6b2e"
+    "utc": "2026-10-26T20:34:09Z",
+    "dev_sha": "0bc1e47a76d2a051b55087bf0c1c17c1f2c0d35b",
+    "data_revision": "804200028a418ec82f59d9c48e9f61e9d65c5db89b01dc4746baa51254f6b6e6"
   },
   "papers": [
     {
@@ -29,7 +29,8 @@
             {
               "label": "port spec",
               "path": "artifacts/etudes/caminos/PORT_SPEC.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PORT_SPEC.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PORT_SPEC.md",
+              "sha256": "24271aa44d97bcac34341ede5d8c660f3027987dd46c20015f9dec923575469f"
             }
           ]
         },
@@ -39,12 +40,14 @@
             {
               "label": "prereg v6",
               "path": "artifacts/etudes/caminos/PREREG_P3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PREREG_P3.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PREREG_P3.md",
+              "sha256": "c7e551b10d98eedb5d265a1a0385e20b6d62d547e1be4ab7be0f1e1dcb9d3215"
             },
             {
               "label": "prereg v7 (R4)",
               "path": "artifacts/etudes/caminos/PREREG_P3_v7_R4.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PREREG_P3_v7_R4.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PREREG_P3_v7_R4.md",
+              "sha256": "308e821020a5fc50fd0c4b525558c9345544483f119955def77288398ba606fa"
             }
           ]
         },
@@ -54,17 +57,20 @@
             {
               "label": "model (jaxfne core)",
               "path": "artifacts/etudes/caminos/caminos_api.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/caminos_api.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/caminos_api.py",
+              "sha256": "3cdca4e52f2723a28de94bb8208a46ecd992a6a0e70cd74bc49ea44db954545c"
             },
             {
               "label": "tests",
               "path": "artifacts/etudes/caminos/test_caminos_api.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/test_caminos_api.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/test_caminos_api.py",
+              "sha256": "8eea39e8e4c2dd6e882099a38ceac0abc660cb38aee482aa0481fe74855c6913"
             },
             {
               "label": "oracle transcription",
               "path": "artifacts/etudes/caminos/caminos_jax.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/caminos_jax.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/caminos_jax.py",
+              "sha256": "74083052cca8300cabf6a17627581ff6a7955a580a57c127128d6d414433328b"
             }
           ]
         },
@@ -74,32 +80,38 @@
             {
               "label": "result",
               "path": "artifacts/etudes/caminos/RESULT_P3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/RESULT_P3.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/RESULT_P3.md",
+              "sha256": "932a0b1f904ec69489c6c0db4598c288bec8f6ae654ba801faebfbeae207bb29"
             },
             {
               "label": "ledger",
               "path": "artifacts/etudes/caminos/LEDGER.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/LEDGER.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/LEDGER.md",
+              "sha256": "26c953e5f8cc654ebf99991a25ec5681e0f4639a2884cb920e2999956143cfe0"
             },
             {
               "label": "scores v7",
               "path": "artifacts/etudes/caminos/scores/score_v7.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score_v7.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score_v7.json",
+              "sha256": "833a8db305334bff8cc4d1334afdce83eecf809aefe36bc6bd6daf85d810d7f1"
             },
             {
               "label": "calibration and final verdict",
               "path": "artifacts/etudes/caminos/CALIBRATION.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/CALIBRATION.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/CALIBRATION.md",
+              "sha256": "fca1ae1e492a225d4eeaca1f0b688bd9398a6d563154a231cba71e9a190f15dc"
             },
             {
               "label": "lag scorer (ref. 42)",
               "path": "artifacts/etudes/caminos/score_lag_ref42.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/score_lag_ref42.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/score_lag_ref42.py",
+              "sha256": "da31de190c7fdf7bab1a7597da7de98dc70e3ce8d06368fdf054853641d98c75"
             },
             {
               "label": "delay sensitivity scorer",
               "path": "artifacts/etudes/caminos/score_delay_sensitivity.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/score_delay_sensitivity.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/score_delay_sensitivity.py",
+              "sha256": "58f27a3c6e3921b43be7544d635adde36e2b463de97d1e3251c7fffc37299d51"
             }
           ]
         },
@@ -109,17 +121,20 @@
             {
               "label": "prereg P6 v2",
               "path": "artifacts/etudes/caminos/PREREG_P6.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PREREG_P6.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PREREG_P6.md",
+              "sha256": "38bf47c206a573ebaa433f9f896a4f9fc66179c181b1caf18f1d546421ab7b8b"
             },
             {
               "label": "result P6",
               "path": "artifacts/etudes/caminos/RESULT_P6.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/RESULT_P6.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/RESULT_P6.md",
+              "sha256": "9dc50cf87fa9be82da703f518ccb6a6f40720adda2f524805194b2edcb210dc9"
             },
             {
               "label": "scores P6",
               "path": "artifacts/etudes/caminos/scores/p6_v2_score.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/p6_v2_score.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/p6_v2_score.json",
+              "sha256": "26965e3d42d15a72f6df8ee331deddaf01fc99ad909e6a09da7e83d57debf271"
             }
           ]
         }
@@ -132,19 +147,22 @@
           "id": "v6",
           "signed": "2026-10-11",
           "path": "artifacts/etudes/caminos/PREREG_P3.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PREREG_P3.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PREREG_P3.md",
+          "sha256": "c7e551b10d98eedb5d265a1a0385e20b6d62d547e1be4ab7be0f1e1dcb9d3215"
         },
         {
           "id": "v7 (R4 only)",
           "signed": "2026-10-12",
           "path": "artifacts/etudes/caminos/PREREG_P3_v7_R4.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PREREG_P3_v7_R4.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PREREG_P3_v7_R4.md",
+          "sha256": "308e821020a5fc50fd0c4b525558c9345544483f119955def77288398ba606fa"
         },
         {
           "id": "P6 v2 (library path)",
           "signed": "2026-10-13",
           "path": "artifacts/etudes/caminos/PREREG_P6.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PREREG_P6.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/PREREG_P6.md",
+          "sha256": "38bf47c206a573ebaa433f9f896a4f9fc66179c181b1caf18f1d546421ab7b8b"
         }
       ],
       "criteria": [
@@ -167,7 +185,8 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json",
+            "sha256": "705e9350c0509ff6ed300ed9873e96e92ba0004582ce6414ee8854204fe49c3b"
           }
         },
         {
@@ -189,7 +208,8 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json",
+            "sha256": "705e9350c0509ff6ed300ed9873e96e92ba0004582ce6414ee8854204fe49c3b"
           }
         },
         {
@@ -211,7 +231,8 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json",
+            "sha256": "705e9350c0509ff6ed300ed9873e96e92ba0004582ce6414ee8854204fe49c3b"
           }
         },
         {
@@ -233,7 +254,8 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json",
+            "sha256": "705e9350c0509ff6ed300ed9873e96e92ba0004582ce6414ee8854204fe49c3b"
           }
         },
         {
@@ -255,7 +277,8 @@
           "prereg": "v7 (R4 only)",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score_v7.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score_v7.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score_v7.json",
+            "sha256": "833a8db305334bff8cc4d1334afdce83eecf809aefe36bc6bd6daf85d810d7f1"
           }
         }
       ],
@@ -739,7 +762,8 @@
           "caption": "Peak excess of the E rate spectrum per run; a run oscillates above 4. Lines join one seed across p.",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json",
+            "sha256": "705e9350c0509ff6ed300ed9873e96e92ba0004582ce6414ee8854204fe49c3b"
           }
         },
         {
@@ -1091,7 +1115,8 @@
           "caption": "Mean rates over the kept 10 s, seeds 1–3.",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json",
+            "sha256": "705e9350c0509ff6ed300ed9873e96e92ba0004582ce6414ee8854204fe49c3b"
           }
         },
         {
@@ -1139,7 +1164,8 @@
           "caption": "Peak frequency per seed at the reference point.",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json",
+            "sha256": "705e9350c0509ff6ed300ed9873e96e92ba0004582ce6414ee8854204fe49c3b"
           }
         }
       ],
@@ -1156,7 +1182,8 @@
           "verdict": "pass",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/p6_v2_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/p6_v2_score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/p6_v2_score.json",
+            "sha256": "26965e3d42d15a72f6df8ee331deddaf01fc99ad909e6a09da7e83d57debf271"
           }
         },
         "methods": null,
@@ -1180,7 +1207,8 @@
             "prereg": "v6",
             "evidence": {
               "path": "artifacts/etudes/caminos/scores/score.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/scores/score.json",
+              "sha256": "705e9350c0509ff6ed300ed9873e96e92ba0004582ce6414ee8854204fe49c3b"
             }
           }
         ],
@@ -1209,7 +1237,8 @@
             {
               "label": "port spec",
               "path": "artifacts/etudes/pcl/PORT_SPEC.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/PORT_SPEC.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/PORT_SPEC.md",
+              "sha256": "996d5a7025cd9cd4b43e095b46216a33d7c3478507eb698515839577a722f450"
             }
           ]
         },
@@ -1219,12 +1248,14 @@
             {
               "label": "prereg v4",
               "path": "artifacts/etudes/pcl/prereg/P3_fig3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3.md",
+              "sha256": "32edb53a16b36dfdc037b58f0075b919c1b95c5e52cae42c052aec467ba3c665"
             },
             {
               "label": "prereg v5",
               "path": "artifacts/etudes/pcl/prereg/P3_fig3_v5.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3_v5.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3_v5.md",
+              "sha256": "25fc1dc8742204ee27e84bf12ec025cb826e6d7da6d4b7d7f12501b9b4ad52ba"
             }
           ]
         },
@@ -1234,12 +1265,14 @@
             {
               "label": "tuning run",
               "path": "artifacts/etudes/pcl/port/run_tuning.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/port/run_tuning.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/port/run_tuning.py",
+              "sha256": "678fbe979130b368034d9feba14bfad0f8b1d83b785965537ebbe282783fa6cd"
             },
             {
               "label": "analysis tests",
               "path": "artifacts/etudes/pcl/port/test_fig3_analysis.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/port/test_fig3_analysis.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/port/test_fig3_analysis.py",
+              "sha256": "10f09e418643c559dd32b43316da53e53cb511a561f97e808d9351a13041ef6f"
             }
           ]
         },
@@ -1249,27 +1282,32 @@
             {
               "label": "result",
               "path": "artifacts/etudes/pcl/prereg/P3_fig3_result.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3_result.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3_result.md",
+              "sha256": "b2dd9a48a9fd6af306ab1e079032ab01bc1fd8a45fa1a9911d47cffaed2b86a2"
             },
             {
               "label": "ledger",
               "path": "artifacts/etudes/pcl/LEDGER.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/LEDGER.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/LEDGER.md",
+              "sha256": "c9425832087072d223dd39506640a8c951cb32cf2b32960334678e45d906f59f"
             },
             {
               "label": "scores",
               "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+              "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
             },
             {
               "label": "result v5",
               "path": "artifacts/etudes/pcl/prereg/P3_fig3_v5_result.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3_v5_result.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3_v5_result.md",
+              "sha256": "97993e9cf572f1bf869b51e2887c63239836f53d9933871c82c10d10cadcb3d2"
             },
             {
               "label": "scores v5",
               "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
+              "sha256": "394367aec79ac12a4b556c9c878ae9233d360d7c9aa701e32e132d9944797b47"
             }
           ]
         }
@@ -1282,13 +1320,15 @@
           "id": "v4",
           "signed": "2026-10-11",
           "path": "artifacts/etudes/pcl/prereg/P3_fig3.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3.md",
+          "sha256": "32edb53a16b36dfdc037b58f0075b919c1b95c5e52cae42c052aec467ba3c665"
         },
         {
           "id": "v5",
           "signed": "2026-10-13",
           "path": "artifacts/etudes/pcl/prereg/P3_fig3_v5.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3_v5.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3_v5.md",
+          "sha256": "25fc1dc8742204ee27e84bf12ec025cb826e6d7da6d4b7d7f12501b9b4ad52ba"
         }
       ],
       "criteria": [
@@ -1322,7 +1362,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
           }
         },
         {
@@ -1355,7 +1396,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
           }
         },
         {
@@ -1388,7 +1430,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
           }
         },
         {
@@ -1421,7 +1464,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
           }
         },
         {
@@ -1454,7 +1498,8 @@
           "prereg": "v5",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
+            "sha256": "394367aec79ac12a4b556c9c878ae9233d360d7c9aa701e32e132d9944797b47"
           }
         },
         {
@@ -1487,7 +1532,8 @@
           "prereg": "v5",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
+            "sha256": "394367aec79ac12a4b556c9c878ae9233d360d7c9aa701e32e132d9944797b47"
           }
         },
         {
@@ -1509,7 +1555,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
           }
         },
         {
@@ -1531,7 +1578,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
           }
         },
         {
@@ -1569,7 +1617,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
           }
         }
       ],
@@ -1873,7 +1922,8 @@
           "caption": "Held-out ratios with the 99th percentiles of both nulls (1000 draws).",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
           }
         },
         {
@@ -1922,7 +1972,8 @@
           "caption": "T4 needs median L complex above 0.",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
           }
         },
         {
@@ -1982,7 +2033,8 @@
           "caption": "R_sf stays under 2 in every variant.",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
           }
         }
       ],
@@ -2028,7 +2080,8 @@
             "prereg": "v4",
             "evidence": {
               "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+              "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
             }
           },
           {
@@ -2061,7 +2114,8 @@
             "prereg": "v4",
             "evidence": {
               "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+              "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
             }
           },
           {
@@ -2094,7 +2148,8 @@
             "prereg": "v5",
             "evidence": {
               "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
+              "sha256": "394367aec79ac12a4b556c9c878ae9233d360d7c9aa701e32e132d9944797b47"
             }
           },
           {
@@ -2127,7 +2182,8 @@
             "prereg": "v5",
             "evidence": {
               "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
+              "sha256": "394367aec79ac12a4b556c9c878ae9233d360d7c9aa701e32e132d9944797b47"
             }
           },
           {
@@ -2165,7 +2221,8 @@
             "prereg": "v4",
             "evidence": {
               "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+              "sha256": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
             }
           }
         ],
@@ -2247,7 +2304,8 @@
           "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
           "evidence": {
             "path": "artifacts/atlas/results/at01_055.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json",
+            "sha256": "fa8dd987764531e780eeaaba7ee713714de49a9336646e2158b3f40db43fb11b"
           }
         },
         {
@@ -2269,7 +2327,8 @@
           "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
           "evidence": {
             "path": "artifacts/atlas/results/at01_055.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json",
+            "sha256": "fa8dd987764531e780eeaaba7ee713714de49a9336646e2158b3f40db43fb11b"
           }
         },
         {
@@ -2291,7 +2350,8 @@
           "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
           "evidence": {
             "path": "artifacts/atlas/results/at01_055.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json",
+            "sha256": "fa8dd987764531e780eeaaba7ee713714de49a9336646e2158b3f40db43fb11b"
           }
         },
         {
@@ -2313,7 +2373,8 @@
           "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
           "evidence": {
             "path": "artifacts/atlas/results/at01_055.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json",
+            "sha256": "fa8dd987764531e780eeaaba7ee713714de49a9336646e2158b3f40db43fb11b"
           }
         }
       ],
@@ -2348,7 +2409,8 @@
             "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
             "evidence": {
               "path": "artifacts/atlas/results/at01_055.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json",
+              "sha256": "fa8dd987764531e780eeaaba7ee713714de49a9336646e2158b3f40db43fb11b"
             }
           },
           {
@@ -2370,7 +2432,8 @@
             "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
             "evidence": {
               "path": "artifacts/atlas/results/at01_055.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json",
+              "sha256": "fa8dd987764531e780eeaaba7ee713714de49a9336646e2158b3f40db43fb11b"
             }
           },
           {
@@ -2392,7 +2455,8 @@
             "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
             "evidence": {
               "path": "artifacts/atlas/results/at01_055.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json",
+              "sha256": "fa8dd987764531e780eeaaba7ee713714de49a9336646e2158b3f40db43fb11b"
             }
           }
         ],
@@ -2456,7 +2520,8 @@
             {
               "label": "source",
               "path": "artifacts/etudes/izhikevich2003/SOURCE_P1.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/SOURCE_P1.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/SOURCE_P1.md",
+              "sha256": "bc252a994db2995b1c1eae417048882ce9e604993c1fc4081628a0b55000d075"
             }
           ]
         },
@@ -2466,7 +2531,8 @@
             {
               "label": "port spec",
               "path": "artifacts/etudes/izhikevich2003/PORT_SPEC.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PORT_SPEC.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PORT_SPEC.md",
+              "sha256": "026b4a244527505e9371634963c4188215fe0b26767abfea67d877e3d47c3ec4"
             }
           ]
         },
@@ -2476,7 +2542,8 @@
             {
               "label": "prereg v7",
               "path": "artifacts/etudes/izhikevich2003/PREREG_P3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PREREG_P3.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PREREG_P3.md",
+              "sha256": "cc429c492120a4375a65928dfe835e2aaa3e8a87c677f378bea49747d9de00cd"
             }
           ]
         },
@@ -2486,12 +2553,14 @@
             {
               "label": "runner and scorer",
               "path": "artifacts/etudes/izhikevich2003/run_izh.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/run_izh.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/run_izh.py",
+              "sha256": "1b1e8a333dc875f745a5680e167dc0ea22ba5c47f0f0f7b6bc26a47724691715"
             },
             {
               "label": "reference arm",
               "path": "artifacts/etudes/izhikevich2003/net_reference.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/net_reference.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/net_reference.py",
+              "sha256": "814c3799c8a1fc68729639e7e2fb24b53eb2e9131d0cc4c5a12be4713cee2621"
             }
           ]
         },
@@ -2501,22 +2570,26 @@
             {
               "label": "result",
               "path": "artifacts/etudes/izhikevich2003/RESULT_P3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/RESULT_P3.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/RESULT_P3.md",
+              "sha256": "3bc3c6dd79bdc7f8c305690fef75adb7b72ab7d0fa903a0e07b9babcc00af12f"
             },
             {
               "label": "scores",
               "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+              "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
             },
             {
               "label": "S1 report",
               "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json",
+              "sha256": "8ea57e71b024cf2ee568a2ebb9784c08a9dee6d17a763109fdad51efea716564"
             },
             {
               "label": "v8.2 scores (post hoc)",
               "path": "artifacts/etudes/izhikevich2003/scores/p3_v8_score.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v8_score.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v8_score.json",
+              "sha256": "21c64b3a9492f255ce539ba912b14930a89ba2125865bf7bf2179e1b1c69524b"
             }
           ]
         }
@@ -2529,13 +2602,15 @@
           "id": "v7",
           "signed": "2026-10-13",
           "path": "artifacts/etudes/izhikevich2003/PREREG_P3.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PREREG_P3.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PREREG_P3.md",
+          "sha256": "cc429c492120a4375a65928dfe835e2aaa3e8a87c677f378bea49747d9de00cd"
         },
         {
           "id": "v8.2",
           "signed": "2026-10-13",
           "path": "artifacts/etudes/izhikevich2003/PREREG_P3_v8.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PREREG_P3_v8.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PREREG_P3_v8.md",
+          "sha256": "7ce8b7d1310ca4c670a66c339fe3b5554f792d5ce2247a2a88bc8bf48dffd429"
         }
       ],
       "criteria": [
@@ -2558,7 +2633,8 @@
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
         {
@@ -2580,7 +2656,8 @@
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
         {
@@ -2602,7 +2679,8 @@
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
         {
@@ -2624,7 +2702,8 @@
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
         {
@@ -2646,7 +2725,8 @@
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
         {
@@ -2668,7 +2748,8 @@
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
         {
@@ -2690,7 +2771,8 @@
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
         {
@@ -2712,7 +2794,8 @@
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
         {
@@ -2734,7 +2817,8 @@
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
         {
@@ -2756,7 +2840,8 @@
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
         {
@@ -2778,7 +2863,8 @@
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
         {
@@ -2800,7 +2886,8 @@
           "prereg": "v7",
           "evidence": {
             "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         }
       ],
@@ -2835,7 +2922,8 @@
             "prereg": "v7",
             "evidence": {
               "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+              "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
             }
           },
           {
@@ -2857,7 +2945,8 @@
             "prereg": "v7",
             "evidence": {
               "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+              "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
             }
           },
           {
@@ -2879,7 +2968,8 @@
             "prereg": "v7",
             "evidence": {
               "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+              "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
             }
           }
         ],
@@ -2908,7 +2998,8 @@
             {
               "label": "source record (draft)",
               "path": "artifacts/etudes/papers/gsdr2026/SOURCE_P1.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/7ac1bb47b5805b046a4790d9d6456ed23c706eb7/artifacts/etudes/papers/gsdr2026/SOURCE_P1.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/7ac1bb47b5805b046a4790d9d6456ed23c706eb7/artifacts/etudes/papers/gsdr2026/SOURCE_P1.md",
+              "sha256": "e3b0289324080f4a2ac43010a12a9fe89ebdbe478ccac394b5054d6f668b972f"
             }
           ]
         }
@@ -2991,7 +3082,8 @@
             {
               "label": "source record",
               "path": "artifacts/etudes/papers/brunel2000/SOURCE_P1.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/SOURCE_P1.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/SOURCE_P1.md",
+              "sha256": "703c08f86bf2542722748249c74a1212443304cd4a1af120989f672cecd22436"
             }
           ]
         },
@@ -3001,22 +3093,26 @@
             {
               "label": "port spec",
               "path": "artifacts/etudes/papers/brunel2000/PORT_SPEC.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/PORT_SPEC.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/PORT_SPEC.md",
+              "sha256": "83f63a9c0bd3ec6c6694b8ed5d149fd7df351d71ca74ee4958372a004c4e5f31"
             },
             {
               "label": "lane api",
               "path": "artifacts/etudes/papers/brunel2000/brunel2000_api.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/brunel2000_api.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/brunel2000_api.py",
+              "sha256": "e6f2cf9d85100f2f1db579a1af4b26cb313e149030f0e85d39a6ba757bf8036d"
             },
             {
               "label": "tests",
               "path": "artifacts/etudes/papers/brunel2000/test_brunel2000_api.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/test_brunel2000_api.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/test_brunel2000_api.py",
+              "sha256": "12de498a0266c74124f294530a30ddd0213098a20cd5a4d24bcd352ffdbed6e5"
             },
             {
               "label": "pilots",
               "path": "artifacts/etudes/papers/brunel2000/CALIBRATION.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/CALIBRATION.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/CALIBRATION.md",
+              "sha256": "ec9d1c04d8ccdf1edc4be96b236595d4e0ce80ac630ce4e35eb81b2f887df642"
             }
           ]
         },
@@ -3026,7 +3122,8 @@
             {
               "label": "prereg v4 (signed)",
               "path": "artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md",
+              "sha256": "8a3110b901884f258f09f02c1ab2818eeaaa6497dd70711fc8302356baaac1cc"
             }
           ]
         },
@@ -3036,7 +3133,8 @@
             {
               "label": "lane api (scored route)",
               "path": "artifacts/etudes/papers/brunel2000/brunel2000_api.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/brunel2000_api.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/brunel2000_api.py",
+              "sha256": "e6f2cf9d85100f2f1db579a1af4b26cb313e149030f0e85d39a6ba757bf8036d"
             }
           ]
         },
@@ -3046,12 +3144,14 @@
             {
               "label": "result",
               "path": "artifacts/etudes/papers/brunel2000/RESULT_P3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/RESULT_P3.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/RESULT_P3.md",
+              "sha256": "3bc8be441457f38a9acec2f16bbeab034aced75d6f145c766120cca98c88eb46"
             },
             {
               "label": "scores",
               "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json",
+              "sha256": "9f367e6e161e1145c9bee1c497da8a0e19f5d601606ca394c804e75234d17c35"
             }
           ]
         }
@@ -3064,7 +3164,8 @@
           "id": "v4",
           "signed": "2026-10-19",
           "path": "artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md",
+          "sha256": "8a3110b901884f258f09f02c1ab2818eeaaa6497dd70711fc8302356baaac1cc"
         }
       ],
       "criteria": [
@@ -3087,7 +3188,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json",
+            "sha256": "9f367e6e161e1145c9bee1c497da8a0e19f5d601606ca394c804e75234d17c35"
           }
         },
         {
@@ -3109,7 +3211,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json",
+            "sha256": "9f367e6e161e1145c9bee1c497da8a0e19f5d601606ca394c804e75234d17c35"
           }
         },
         {
@@ -3131,7 +3234,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json",
+            "sha256": "9f367e6e161e1145c9bee1c497da8a0e19f5d601606ca394c804e75234d17c35"
           }
         },
         {
@@ -3153,7 +3257,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json",
+            "sha256": "9f367e6e161e1145c9bee1c497da8a0e19f5d601606ca394c804e75234d17c35"
           }
         },
         {
@@ -3175,7 +3280,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json",
+            "sha256": "9f367e6e161e1145c9bee1c497da8a0e19f5d601606ca394c804e75234d17c35"
           }
         },
         {
@@ -3197,7 +3303,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json",
+            "sha256": "9f367e6e161e1145c9bee1c497da8a0e19f5d601606ca394c804e75234d17c35"
           }
         },
         {
@@ -3219,7 +3326,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json",
+            "sha256": "9f367e6e161e1145c9bee1c497da8a0e19f5d601606ca394c804e75234d17c35"
           }
         },
         {
@@ -3241,7 +3349,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json",
+            "sha256": "9f367e6e161e1145c9bee1c497da8a0e19f5d601606ca394c804e75234d17c35"
           }
         },
         {
@@ -3263,7 +3372,8 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/papers/brunel2000/score_p3.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/3ae6ee2f4850666a04970a1e5dcc8fe919bebd5b/artifacts/etudes/papers/brunel2000/score_p3.json",
+            "sha256": "9f367e6e161e1145c9bee1c497da8a0e19f5d601606ca394c804e75234d17c35"
           }
         }
       ],
@@ -3436,7 +3546,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
         {
@@ -3458,7 +3569,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
         {
@@ -3480,7 +3592,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
         {
@@ -3502,7 +3615,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
         {
@@ -3524,7 +3638,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
         {
@@ -3546,7 +3661,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
         {
@@ -3568,7 +3684,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
         {
@@ -3590,7 +3707,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
         {
@@ -3612,7 +3730,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         }
       ],
@@ -3673,7 +3792,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/emitters/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json",
+            "sha256": "7ddcc400097bf03ae42b898ee1d8f5c595e1dcc4fa642f705151378133bc887f"
           }
         },
         {
@@ -3695,7 +3815,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/emitters/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json",
+            "sha256": "7ddcc400097bf03ae42b898ee1d8f5c595e1dcc4fa642f705151378133bc887f"
           }
         },
         {
@@ -3717,7 +3838,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/emitters/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json",
+            "sha256": "7ddcc400097bf03ae42b898ee1d8f5c595e1dcc4fa642f705151378133bc887f"
           }
         },
         {
@@ -3739,7 +3861,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/emitters/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json",
+            "sha256": "7ddcc400097bf03ae42b898ee1d8f5c595e1dcc4fa642f705151378133bc887f"
           }
         },
         {
@@ -3761,7 +3884,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/emitters/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json",
+            "sha256": "7ddcc400097bf03ae42b898ee1d8f5c595e1dcc4fa642f705151378133bc887f"
           }
         },
         {
@@ -3783,7 +3907,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/emitters/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json",
+            "sha256": "7ddcc400097bf03ae42b898ee1d8f5c595e1dcc4fa642f705151378133bc887f"
           }
         },
         {
@@ -3805,7 +3930,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/emitters/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/emitters/score.json",
+            "sha256": "7ddcc400097bf03ae42b898ee1d8f5c595e1dcc4fa642f705151378133bc887f"
           }
         }
       ],
@@ -3867,7 +3993,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/fields/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json",
+            "sha256": "c43a711d25813f079be356d2f1444c3e953006b925f95d9c972a213d88aa51c4"
           }
         },
         {
@@ -3889,7 +4016,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/fields/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json",
+            "sha256": "c43a711d25813f079be356d2f1444c3e953006b925f95d9c972a213d88aa51c4"
           }
         },
         {
@@ -3911,7 +4039,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/fields/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json",
+            "sha256": "c43a711d25813f079be356d2f1444c3e953006b925f95d9c972a213d88aa51c4"
           }
         },
         {
@@ -3933,7 +4062,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/fields/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json",
+            "sha256": "c43a711d25813f079be356d2f1444c3e953006b925f95d9c972a213d88aa51c4"
           }
         },
         {
@@ -3955,7 +4085,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/fields/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json",
+            "sha256": "c43a711d25813f079be356d2f1444c3e953006b925f95d9c972a213d88aa51c4"
           }
         },
         {
@@ -3977,7 +4108,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/fields/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json",
+            "sha256": "c43a711d25813f079be356d2f1444c3e953006b925f95d9c972a213d88aa51c4"
           }
         }
       ],
@@ -4038,7 +4170,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/plasticity/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/plasticity/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/plasticity/score.json",
+            "sha256": "304600e05b7bdc88949cdac03f955897bf39b158ea6ae43e09816b644192848e"
           }
         },
         {
@@ -4060,7 +4193,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/plasticity/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/plasticity/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/plasticity/score.json",
+            "sha256": "304600e05b7bdc88949cdac03f955897bf39b158ea6ae43e09816b644192848e"
           }
         },
         {
@@ -4082,7 +4216,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/plasticity/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/plasticity/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/plasticity/score.json",
+            "sha256": "304600e05b7bdc88949cdac03f955897bf39b158ea6ae43e09816b644192848e"
           }
         },
         {
@@ -4104,7 +4239,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/plasticity/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/plasticity/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/plasticity/score.json",
+            "sha256": "304600e05b7bdc88949cdac03f955897bf39b158ea6ae43e09816b644192848e"
           }
         },
         {
@@ -4126,7 +4262,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/plasticity/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/plasticity/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/plasticity/score.json",
+            "sha256": "304600e05b7bdc88949cdac03f955897bf39b158ea6ae43e09816b644192848e"
           }
         },
         {
@@ -4148,7 +4285,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/plasticity/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/plasticity/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/plasticity/score.json",
+            "sha256": "304600e05b7bdc88949cdac03f955897bf39b158ea6ae43e09816b644192848e"
           }
         }
       ],
@@ -4211,7 +4349,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/objectives/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json",
+            "sha256": "b90f35378d8057e1c2e0e04d5b83277a8b9abc73f00f44860e571e50af40557b"
           }
         },
         {
@@ -4233,7 +4372,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/objectives/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json",
+            "sha256": "b90f35378d8057e1c2e0e04d5b83277a8b9abc73f00f44860e571e50af40557b"
           }
         },
         {
@@ -4255,7 +4395,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/objectives/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json",
+            "sha256": "b90f35378d8057e1c2e0e04d5b83277a8b9abc73f00f44860e571e50af40557b"
           }
         },
         {
@@ -4277,7 +4418,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/objectives/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json",
+            "sha256": "b90f35378d8057e1c2e0e04d5b83277a8b9abc73f00f44860e571e50af40557b"
           }
         },
         {
@@ -4299,7 +4441,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/objectives/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json",
+            "sha256": "b90f35378d8057e1c2e0e04d5b83277a8b9abc73f00f44860e571e50af40557b"
           }
         },
         {
@@ -4321,7 +4464,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/objectives/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json",
+            "sha256": "b90f35378d8057e1c2e0e04d5b83277a8b9abc73f00f44860e571e50af40557b"
           }
         },
         {
@@ -4343,7 +4487,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/objectives/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json",
+            "sha256": "b90f35378d8057e1c2e0e04d5b83277a8b9abc73f00f44860e571e50af40557b"
           }
         },
         {
@@ -4365,7 +4510,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/objectives/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json",
+            "sha256": "b90f35378d8057e1c2e0e04d5b83277a8b9abc73f00f44860e571e50af40557b"
           }
         },
         {
@@ -4387,7 +4533,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/objectives/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json",
+            "sha256": "b90f35378d8057e1c2e0e04d5b83277a8b9abc73f00f44860e571e50af40557b"
           }
         },
         {
@@ -4409,7 +4556,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/objectives/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json",
+            "sha256": "b90f35378d8057e1c2e0e04d5b83277a8b9abc73f00f44860e571e50af40557b"
           }
         },
         {
@@ -4431,7 +4579,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/objectives/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/objectives/score.json",
+            "sha256": "b90f35378d8057e1c2e0e04d5b83277a8b9abc73f00f44860e571e50af40557b"
           }
         }
       ],
@@ -4493,7 +4642,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/numerics/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/numerics/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/numerics/score.json",
+            "sha256": "c41f6146bd04ce7714667607f8964b711f84a99f1c3ad150c77850af6d9ecae3"
           }
         },
         {
@@ -4515,7 +4665,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/numerics/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/numerics/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/numerics/score.json",
+            "sha256": "c41f6146bd04ce7714667607f8964b711f84a99f1c3ad150c77850af6d9ecae3"
           }
         },
         {
@@ -4537,7 +4688,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/numerics/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/numerics/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/numerics/score.json",
+            "sha256": "c41f6146bd04ce7714667607f8964b711f84a99f1c3ad150c77850af6d9ecae3"
           }
         }
       ],
@@ -4599,7 +4751,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/ports/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/ports/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/ports/score.json",
+            "sha256": "846f7863b26ea09e0e5af0abf2ecb18e7fa291d8fc9632d333ba60c877bb2ce2"
           }
         },
         {
@@ -4621,7 +4774,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/ports/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/ports/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/ports/score.json",
+            "sha256": "846f7863b26ea09e0e5af0abf2ecb18e7fa291d8fc9632d333ba60c877bb2ce2"
           }
         },
         {
@@ -4643,7 +4797,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/ports/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/ports/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/ports/score.json",
+            "sha256": "846f7863b26ea09e0e5af0abf2ecb18e7fa291d8fc9632d333ba60c877bb2ce2"
           }
         },
         {
@@ -4665,7 +4820,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/ports/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/ports/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/ports/score.json",
+            "sha256": "846f7863b26ea09e0e5af0abf2ecb18e7fa291d8fc9632d333ba60c877bb2ce2"
           }
         }
       ],
