@@ -7,18 +7,24 @@ orchestrator's draft (2026-10-26) and need his ruling.
 ## Route (prerequisite, proposal)
 
 Scored runs use the closed-gap core route, adopted by the lane in a P2 refresh before the pilots
-(PORT_SPEC rows 8-14 move with it): `sampling="multinomial"` with the paper's K per projection,
+(PORT_SPEC rows 8-14 move with it): `sampling="multinomial"` with the paper's K per projection
+(`probability` = K / N_post, the in-degree),
 Gaussian weights (`w_std`) and delays (`delay_std_ms`) per rule, `tau_syn_ms=0.5`, per-population
-Poisson drive at the reference k_ext (8 Hz per train), dt = 0.1 ms (paper h). Weights map pA to mV
+Poisson drive at the reference k_ext (8 Hz per train; needs a core `poisson_drive` list with one
+target per entry, since the current route takes one target), dt = 0.1 ms (paper h). Weights map pA to mV
 through C_m = 250 pF with the exact charge per arrival: per-step increment
 `(w / C_m) * tau_syn * (1 - exp(-dt / tau_syn))`, so one PSC deposits `w * tau_syn / C_m` (0.1756 mV
 at w = 87.8 pA) at any dt.
 
 Scale D-NSCALE (proposal): 10% of every population (7 717 cortical cells), in-degree per projection
 held at its full-scale value, weights and k_ext unchanged. Reason: held in-degree and weights keep the
-mean and variance of each cell's input; pairwise correlations are not held (inferred), which is why
-synchrony is secondary below. Full scale (about 0.3 billion synapses) is out of reach for 10 s runs
-on the local GPU and on CPU (inferred from the N=800 pilot timing in `CALIBRATION.md` section 0).
+mean and variance of each cell's input, and no target value enters the drive. Cost: each connected
+pair carries ten times the full-scale synapse count (-ln(1-C)/0.1 per pair; 4.7 for L5i to L5e), so
+shared input and pairwise correlations rise (inferred), which is why synchrony is secondary below.
+The alternative, probability held with weights scaled and a DC term computed from the full-scale
+rates, puts the paper's rates into the drive. Full scale (about 0.3 billion synapses) is out of reach: the
+multinomial sampler returns a sorted Python list of pairs, so construct alone would hold about 3e8
+tuples in memory (inferred from `_candidate_pairs_multinomial` in `jaxfne/connectivity.py`).
 
 ## Estimands and criteria (checklist P1)
 

@@ -159,7 +159,10 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   (`emitters.py`) couples H_K to recovery outside `rbd_recurrent_gain`; it needs its own neutral-reduction and
   bypass test, and the F3 generator remains. The S2 generator waits on the D35 calibration call (C3 row).
 - T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
-  and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots.
+  and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots. Potjans draft 2026-10-26
+  (scale and bands wait on Hamm). Before its pilots: core `Simulation(poisson_drive=[...])`, one target per
+  entry (the current route takes one target, so per-population k_ext is not expressible), then the lane's P2
+  refresh onto multinomial wiring, w_std, delay_std_ms, tau_syn_ms and the exact-charge pA map.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
 - T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
 - T-O68 [H] local copies and the layout rule (see O-68): each held copy is deleted or sits at
