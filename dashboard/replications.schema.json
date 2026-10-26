@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "jaxfne replication dashboard data (jaxfne-replications/2)",
+  "description": "Checked by scripts/build_dashboard_data.py --check. Only type, required, properties, items, pattern and enum are read; any other keyword makes the check refuse. Every git SHA field is 40 lower-case hex; every sha256 field is 64 lower-case hex.",
+  "type": "object",
+  "required": ["schema", "sample", "generated", "papers", "overview", "roadmap", "studies"],
+  "properties": {
+    "schema": {"type": "string", "enum": ["jaxfne-replications/2"]},
+    "sample": {"type": "boolean"},
+    "generated": {
+      "type": "object",
+      "required": ["utc", "dev_sha", "data_revision"],
+      "properties": {
+        "utc": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+        "dev_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "data_revision": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "papers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "class", "lane", "preregs", "criteria", "charts", "stage_artifacts", "verdict_summary"],
+        "properties": {
+          "id": {"type": "string"},
+          "class": {
+            "type": "string",
+            "enum": ["reproduced", "reproduced (conditional)", "mixed", "in progress", "not started", "failed", "core method"]
+          },
+          "lane": {
+            "type": "object",
+            "required": ["branch", "sha"],
+            "properties": {
+              "branch": {"type": "string"},
+              "sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+            }
+          },
+          "preregs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "path"],
+              "properties": {
+                "id": {"type": "string"},
+                "path": {"type": "string"},
+                "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+              }
+            }
+          },
+          "criteria": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "verdict", "evidence"],
+              "properties": {
+                "verdict": {"type": "string", "enum": ["pass", "fail", "pending"]},
+                "evidence": {
+                  "type": "object",
+                  "required": ["path", "url"],
+                  "properties": {
+                    "path": {"type": "string"},
+                    "url": {"type": ["string", "null"]},
+                    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+                  }
+                }
+              }
+            }
+          },
+          "charts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "evidence"],
+              "properties": {
+                "evidence": {
+                  "type": "object",
+                  "required": ["path", "url"],
+                  "properties": {
+                    "path": {"type": "string"},
+                    "url": {"type": ["string", "null"]},
+                    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+                  }
+                }
+              }
+            }
+          },
+          "stage_artifacts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["stage", "items"],
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["label", "path"],
+                    "properties": {
+                      "path": {"type": "string"},
+                      "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "verdict_summary": {
+            "type": "object",
+            "required": ["kind"],
+            "properties": {
+              "library": {
+                "type": ["object", "null"],
+                "properties": {
+                  "evidence": {
+                    "type": "object",
+                    "required": ["path", "url"],
+                    "properties": {
+                      "path": {"type": "string"},
+                      "url": {"type": ["string", "null"]},
+                      "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "overview": {"type": "object"},
+    "roadmap": {"type": "array"},
+    "studies": {
+      "type": "array",
+      "items": {"type": "object", "required": ["reference", "status", "where"]}
+    }
+  }
+}

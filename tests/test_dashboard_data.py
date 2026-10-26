@@ -5,6 +5,7 @@ generator into that repo and runs it as a subprocess. No network. DASH_GEN_BUILD
 another script to test; it is used to show that these tests fail against a stub.
 """
 
+import hashlib
 import importlib.util
 import json
 import os
@@ -37,6 +38,14 @@ def exists_at(root, sha, path):
     return probe.returncode == 0
 
 
+def blob_bytes(root, rev, path):
+    """The bytes git holds at rev:path (git show; honours replace refs, as the generator does)."""
+    proc = subprocess.run(["git", "show", f"{rev}:{path}"], cwd=str(root), capture_output=True,
+                          stdin=subprocess.DEVNULL)
+    assert proc.returncode == 0, proc.stderr.decode("utf-8", "replace")
+    return proc.stdout
+
+
 def make_repo(root, files):
     """Commit `files` ({path: JSON-able object}), then copy the generator and the references page (the
     study-list source) in, uncommitted. Returns the SHA."""
@@ -54,6 +63,8 @@ def make_repo(root, files):
     shutil.copy(SCRIPT, root / "scripts" / "build_dashboard_data.py")
     (root / "docs" / "reference").mkdir(parents=True)
     shutil.copy(REPO / "docs" / "reference" / "references.md", root / "docs" / "reference" / "references.md")
+    (root / "dashboard").mkdir(exist_ok=True)
+    shutil.copy(REPO / "dashboard" / "replications.schema.json", root / "dashboard" / "replications.schema.json")
     return git(root, "rev-parse", "HEAD")
 
 
@@ -286,7 +297,8 @@ def test_bars_keys_and_pairs(tmp_path):
         {"name": "pairs", "group": "pairs", "y": [3.5, 8.0]},
     ]
     assert got["evidence"] == {"path": "scores/main.json",
-                               "url": f"{REPO_URL}/blob/{sha}/scores/main.json"}
+                               "url": f"{REPO_URL}/blob/{sha}/scores/main.json",
+                               "sha256": hashlib.sha256(blob_bytes(root, sha, "scores/main.json")).hexdigest()}
 
 
 def test_check_flags_a_changed_value_and_ignores_generated(tmp_path):
@@ -463,7 +475,8 @@ def test_stage_artifacts_link_lane_files_in_stage_order(tmp_path):
     got = load_out(root)["papers"][0]["stage_artifacts"]
     assert [s["stage"] for s in got] == ["P2", "P3", "P5"], "stages must come out in pipeline order"
     assert got[0]["items"] == [{"label": "port spec", "path": "spec.json",
-                                "url": f"{REPO_URL}/blob/{sha}/spec.json"}]
+                                "url": f"{REPO_URL}/blob/{sha}/spec.json",
+                                "sha256": hashlib.sha256(blob_bytes(root, sha, "spec.json")).hexdigest()}]
 
 
 @pytest.mark.parametrize("artifacts, needle", [
@@ -811,6 +824,52 @@ def test_generated_carries_provenance_and_a_stable_revision(tmp_path):
     assert again.returncode == 0, again.stderr
     assert load_out(root)["generated"]["data_revision"] == gen["data_revision"], (
         "the revision must be stable across regenerations (timestamps excluded)")
+
+
+def test_short_sha_in_a_sha_field_fails_check(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5, "ok": True}})
+    write_sources(root, [paper(sha[:12], files={"main": "scores/main.json"},
+                               criteria=[criterion(value={"file": "main", "key": "val"})])])
+    assert run(root).returncode == 0, "git resolves a short sha, so the fixture must build"
+    assert len(load_out(root)["papers"][0]["lane"]["sha"]) == 12, "fixture must hold a 12-character lane sha"
+    bad = run(root, "--check")
+    assert bad.returncode == 1, bad.stdout
+    assert "invalid" in bad.stderr and "lane" in bad.stderr and "40" in bad.stderr, bad.stderr
+
+
+def test_receipt_digest_follows_the_lane_blob_not_the_working_tree(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5, "ok": True}})
+    write_sources(root, [paper(sha, files={"main": "scores/main.json"},
+                               criteria=[criterion(value={"file": "main", "key": "val"})])])
+    assert run(root).returncode == 0
+    recorded = load_out(root)["papers"][0]["criteria"][0]["evidence"]
+    assert recorded.get("sha256") == hashlib.sha256(blob_bytes(root, sha, "scores/main.json")).hexdigest(), (
+        "the evidence item must carry the sha256 of the bytes at the lane sha")
+    assert run(root, "--check").returncode == 0
+
+    (root / "scores" / "main.json").write_bytes(b'{"val": 1.5, "ok": true, "note": "edited"}')  # not committed
+    assert run(root, "--check").returncode == 0, "a working-tree edit alone must not change the digest"
+
+    # Same lane sha, changed blob: a git replace ref makes git show return other bytes at rev:path.
+    old_blob = git(root, "rev-parse", f"{sha}:scores/main.json")
+    (root / "changed.json").write_bytes(b'{"val": 1.5, "ok": true, "note": "changed blob"}')
+    new_blob = git(root, "hash-object", "-w", "changed.json")
+    git(root, "replace", old_blob, new_blob)
+    assert blob_bytes(root, sha, "scores/main.json") == (root / "changed.json").read_bytes(), (
+        "fixture must make git show the changed blob at the lane sha")
+    stale = run(root, "--check")
+    assert stale.returncode == 1, stale.stdout
+    assert "sha256" in stale.stderr, stale.stderr
+
+
+def test_committed_data_file_passes_its_schema_and_unread_keywords_are_refused():
+    module = load_module(SCRIPT)
+    schema = json.loads((REPO / "dashboard" / "replications.schema.json").read_text(encoding="utf-8"))
+    assert module.schema_errors(real_doc(), schema) == [], "the committed data file must conform to its schema"
+    with pytest.raises(module.BuildError, match="patern"):
+        module.schema_errors("x", {"type": "string", "patern": "^x$"})
 
 
 def test_stale_generated_timestamp_flags_a_warning():
