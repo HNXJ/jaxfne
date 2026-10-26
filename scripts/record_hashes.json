@@ -1,8 +1,8 @@
 {
   "counts": {
-    "archive": 16,
+    "archive": 17,
     "benchmark": 1,
-    "dated": 21,
+    "dated": 22,
     "frozen": 28,
     "legacy": 32,
     "prereg": 104,
@@ -12,6 +12,7 @@
     "artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md": "8bba084e6ba9a9cc17af8086642a57678db88f6d2c7f7fbf40c7cb145ebfb98c",
     "artifacts/archive/0.5.x/decisions_and_caveats_2026-10-12.md": "a75f10621f53b15e9edf515ec8bdc691efdcad18eb78315caba9ccb5f528cbfc",
     "artifacts/archive/0.5.x/issues_closed.md": "22f44d9e9f052491a8fdece482225bc7bc0816f3f5f4b62269025ec172654a04",
+    "artifacts/archive/0.5.x/issues_closed/issues_closed_2026-10-26.md": "d9656ac8a370ff345978d050157da58dbb48031e70309fd63785d2a1f449f5af",
     "artifacts/archive/0.5.x/issues_closed_2026-10-20.md": "d4e89b68acb505f1f49232856e085f232d343b1e86de45c416fd85516418a385",
     "artifacts/archive/0.5.x/issues_closed_2026-10-25.md": "c0cd95128633b1e76a842a2aff3628644e51b3378e85a52efdcebd68eebabd08",
     "artifacts/archive/0.5.x/refreeze_2026-09-30/artifacts/etudes/hdp_controllability_reachability/metrics.json": "60941daca1c27df2fe72803345f35572c7a2fc7cd6795f9a057e530fa70e5eb4",

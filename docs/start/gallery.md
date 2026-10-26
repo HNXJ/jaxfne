@@ -256,7 +256,7 @@ State `validated` · N=12 · edges=132 · steps=2000 · config `a07c380b8304` ·
 
 ### `atlas` — Canonical V1 Column (1000n)
 
-State `validated` · N=1000 · edges=215785 · steps=2000 · config `91f037cf383e` · jaxfne 0.5.7
+State `validated` · N=1000 · edges=215785 · steps=2000 · config `91f037cf383e` · jaxfne 0.5.8
 
 === "Still"
 

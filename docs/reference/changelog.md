@@ -9,6 +9,38 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+## v0.5.8 (2026-10-26)
+
+### Added
+
+- Six core-method rows on the dashboard Validation tab, each scored by a script under `scripts/score_*_checks.py` into `artifacts/etudes/core_checks/`: emitter closed forms (LIF, AdEx LIF limit, HH gate update, graded synapse, rate OU variance and transfer functions), field invariants (operator superposition, CSD of flat and quadratic potentials, the cable filter's exact discrete response, Poisson flux), plasticity hand values (iSTDP updates, HDP barrier fixed points, the D2a relaxation), Objective and Optimizer references (null transforms, synchrony limits, box projection, SDR, GSDR, AGSDR and GSGD on a quadratic), numerics (Euler decay, autodiff against finite differences) and port parity (AdEx oracle, multi-compartment HH against jaxley, GSDR MCDP oracle).
+- `SpikeTrainInput` clamps listed neurons to given spike times on the dt grid (bin `floor(t/dt)`) in the registered-HDP Izhikevich edge-list kernel; plain `simulate` passes `plasticity_mask` to registered HDP rules; `superpose_hdp_rules` builds one HDP rule from independent H components (concatenated H, summed weight drive, per-component params), with `trace_ltp`, `trace_ltd` and their superposition `trace_stdp` (pair change A exp(-|dt|/tau) at any dt).
+- `SpikeTrainInput` repeated trials share one compilation (the raster rides a traced kernel argument; its shape and presence alone sit in the static cache key) and composes with `return_state`/continuation on the registered-HDP kernel with segment-relative spike times; the delayed registered kernel builds its step indices by shifting a concrete range so a traced continuation offset compiles under jit.
+- `Configuration.cell_params(selector, params)` accepts, for each of `a`, `b`, `c`, `d` and `drive`, a list with one value per matched neuron (neuron-index order) as well as a scalar; a list of the wrong length is refused by name. Heterogeneous per-cell Izhikevich parameters now reach the emitter through `construct()`.
+- The `hh` emitter family builds through `construct()` and simulates one compartment per cell, equal bit for bit to `construct_hh_model`; HDP and a nonzero `Simulation.seed` on this route are refused by name (its run key derives from the edge seed).
+- Izhikevich emitters take `izhikevich_update_order="net_m"`, the update order of the authors' `net.m` (Izhikevich 2003). It reproduces the signed transcription's spikes and test-cell voltage bit for bit; dt and noise settings outside its domain are refused by name, and the default order is unchanged.
+- Connection rules take `sampling="multinomial"`: exactly `round(p*n_post)` synapses per rule (half-up), drawn with replacement; it is refused together with `in_degree` or `max_in_degree` and on the fallback path that infers receptors from weight signs.
+- Per-rule weight and delay spreads: `PlasticParams.w_std` and `delay_std_ms` (on `AreaConnection` and `Configuration.connections`) draw sign-preserving folded-normal weights and delays, with delays snapped half-up to the dt grid; undeclared spreads leave the realized network unchanged.
+- LIF emitters take `tau_syn_ms`, a first-order exponential filter of the synaptic current. The default 0 keeps the delta synapse bit-identical; the event-scan replay refuses a nonzero value.
+- On the LIF route, `poisson_drive["target"]` accepts an `(area, layer, cell_type)` triple, so one population receives the drive; the all-target default is bit-identical.
+- The AdEx drive takes a list `rate_hz`, one rate per channel group: `n_sources` splits evenly into contiguous target groups, each with its own random stream, and an uneven split is refused. A scalar rate is bit-identical.
+- `jaxfne.analysis` gains the lane estimators `cv_isi`, `pairwise_cc_binned_disjoint`, `mean_rate_hz`, `population_rates`, `xcorr_peak_lag`, `welch_numpy`, `welch_spectrum`, `aperiodic_log10`, `fit_aperiodic`, `rate_welch_psd`, `aperiodic_spectral_peak`, `oscillation_call`, `ref42_lfp` and `ref42_phase_delay`; the Destexhe and CAMINOS lanes import them in place of their copies.
+- Replication-checklist rule S2 in `scripts/check_replications.py`: a transcription of the authors' model (a stage artifact labelled oracle, transcription or reference arm, or a `*_ref*.py` / `*reference*.py` file) is imported by `test_*`, `gate_*` or `tests/` files alone. Static, relative, function-scope, `importlib.import_module` and `spec_from_file_location` loads count. Checklist rule E1 in the same script: a paper at stage P4 or later (other than class `core method`) scores a run that builds and simulates through jaxfne — its P4 stage artifacts (oracle, `test_*` and reference names excluded) hold a `construct` call and a `.simulate` call. Checklist rule P4 (manifest): a paper at stage P4 or later (other than class `core method`) passes when one manifest writer in its scored P4 modules covers one key from each class, code SHA, backend, dtype, seeds and regime. At this release `scripts/replication_known_violations.json` lists four S2 imports (PCL and CAMINOS) and one E1 finding (Izhikevich 2003); P4 reports none. Their closure moves to 0.5.9.
+
+### Changed
+
+- Seed batches on the AdEx and LIF routes (`simulate_adex_seed_batch`, `simulate_lif_seed_batch` in `jaxfne._model_simulate`) follow a declared numerical contract against serial runs: spikes and random draws exact, membrane potential within 1e-4 mV (absolute). The bitwise tests stay as platform diagnostics. `Model.tune` keeps candidate evaluations serial (`CANDIDATE_BATCH_STATUS` gives the reason).
+- The LIF `local_inhibition` resolutions form a declared set: `event_order` is a per-step approximation, and `event_scan` is exact within the PCL Stage C evidence. Numerics are unchanged.
+- The documentation offers a light and a dark scheme with a toggle (dark follows the reader's system setting); the logo is transparent, and flowcharts re-render in the active scheme.
+- Documentation figures show a Still tab (PNG) and an Interactive tab; the interactive Plotly pages are published once per build at `hnxj.github.io/jaxfne/figures/` and framed from there.
+- `SanityDeltaConfig` refuses, by name, a `hierarchy` other than the canonical four edges and a `stimulus_frequency_hz` other than 100.0 (the runtime wires those values alone; the stored values had changed nothing); an inter-area spec with `p_feedforward` or `p_feedback` set to `None` takes the default 0.3 / 0.2 instead of 0.0.
+- The docs Replications page takes its library and methods verdict columns from the dashboard data, so it shows the verdicts the dashboard shows; the CAMINOS PV→SOM lag reads as a finding that needs X (`CALIBRATION.md` §10) in the ledger, result, dashboard and page, and the Potjans, Vogels and Mejias lanes read stage P2.
+
+### Fixed
+
+- The JIT cache fingerprint recurses into nested `hdp_rule_params`; a registered HDP rule with nested coefficients crashed as unhashable on the jit path.
+- `istdp_vogels2011` keeps its traces per synapse (`aux_layout="per_edge"`), as in the authors' code. The traces were per neuron and the presynaptic one summed arrivals over the cell's outgoing edges, so one spike raised it by the out-degree and pairing potentiation scaled with it (an inhibitory cell with 100 targets potentiated 100 times too much). `aux_final` now has one `(A_pre, A_post)` row per edge.
+
 ## v0.5.7 (2026-10-20)
 
 ### Added

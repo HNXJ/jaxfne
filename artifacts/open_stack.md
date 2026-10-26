@@ -6,9 +6,6 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or the issue
 Rebuilt 2026-10-25 from four read-only audits, each finding re-opened by the dispatcher; every line
 has its row `T-O<n>` in the todo stack (section 2) with the detail.
 
-## In flight
-- O-41 Read the Docs publishes étude stand-ins (P-038 remainder) | keeper | since 2026-10-25 (opened 2026-10-18) | closes when RTD builds the étude pages or they leave the RTD nav
-
 ## Waiting on others
 - O-10 Harness proposals, jchat conference #29 | jynx keeper | since 2026-10-25 (opened 2026-10-15) | closes when each is taken or refused
 

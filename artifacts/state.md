@@ -1,10 +1,19 @@
 # state
 
-Stamp: jaxfne@dev@a940569b · 2026-10-25 (written 2026-10-25T16:38:32Z)
+Stamp: jaxfne@dev@85199ade · 2026-10-26 (written 2026-10-26T02:18:23Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
 ## Works (with evidence)
+
+- 2026-10-26: 0.5.8 candidate on the tree (scope frozen by Hamm 2026-10-25; deferrals in todo
+  section 2). Version 0.5.8 in 8 files, changelog v0.5.8 (21 bullets from 8 fragments; docs lint
+  29 ghost / 19 adverb, limits 30 / 20), canonical atlas at 0.5.8 (config hash unchanged, state
+  validated), P-037 to `archive/0.5.x/issues_closed/`, O-41 closed (RTD latest and stable at
+  03a86014: 25 of 25 étude files served). Vogels per-synapse fix 85199ade with the plasticity
+  scorer on per-edge traces (score.json unchanged). Checks on the tree: release_body v0.5.8 PASS,
+  check_replications 31 known / 0 unlisted, build_dashboard_data fresh, record-integrity 0
+  violations. Broad gate and CI at the candidate SHA: pending.
 
 - 2026-10-25: PCL-R1 fidelity audit sealed (receipt on dev a940569b, hash-pinned); four read-only audits
   (files, code, analysis status, state files) rebuilt `open_stack.md` (11 items, each with a `T-O<n>`

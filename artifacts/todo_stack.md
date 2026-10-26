@@ -71,6 +71,11 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 0.5.7 published 2026-10-21 (tag v0.5.7 on main 03a86014, GitHub Release, PyPI; receipt
 `artifacts/release/v0_5_7_release_receipt.json`). Plan: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md`.
 
+- 0.5.8 candidate (2026-10-26): version 0.5.8, changelog section (21 bullets), canonical atlas at
+  0.5.8, P-037 closed, O-41 closed (RTD latest and stable at 03a86014 serve all 25 étude files).
+  Left [A]: broad gate 0 failed, push dev, CI green on the SHA, rc gate, second review, receipt
+  `artifacts/release/v0_5_8_release_receipt.json`. Then [H]: tag, main, GitHub Release, PyPI.
+
 - Jitter reader (Hamm 2026-10-22): protocol (a) PASS on all four runs (A1/A2, seeds 0,1; w_pat -> 2.0
   bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak
   (0.33-0.67). Readout follow-up (w_max, larger frozen sets) is Hamm's call; lane paused until then.
@@ -82,11 +87,9 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   verdict_summary (paper/library/methods) derived from records, core-method rows out of the paper
   denominators, data_revision + stale warning, failed criteria ride the row. P1 (estimator/units/
   seeds/prereg exposure) and P2 (commands/runtime/memory) queued behind the P0 acceptance.
-- Kernel LFP lane `cl-klfp` onto dev [H go needed, Cursor handoff 2026-10-24] [A]: rebase onto current dev, broad gate 0 failed, push; first
-  f57aae0f (`istdp_vogels2011` per-synapse traces; the 0.5.8 changelog names the fix to 0.5.7's
-  per-neuron trace, Known issue per Hamm 2026-10-21; O-55 Vogels segment B rerun), then 6eb3c6b8,
-  44cd0111, ff45364b (hybrid kernel LFP; feeds 0.5.10). Then the validation backbone continues
-  (iSTDP out-degree check in plasticity, kernel LFP checks in fields).
+- Kernel LFP lane `cl-klfp` [A]: f57aae0f landed on dev as 85199ade (0.5.8; the plasticity scorer's
+  iSTDP checks read per-edge traces). 6eb3c6b8, 44cd0111, ff45364b (hybrid kernel LFP) go to 0.5.10.
+  Then the validation backbone continues (iSTDP out-degree check in plasticity, kernel LFP checks in fields).
 - Dashboard/docs adoption from jnwb (Hamm 2026-10-24, all four: [A], not 0.5.8-blocking, moves to 0.5.9
   if unfinished): (a) docs stills get generated `.dark.png` twins (`#only-light`/`#only-dark`); (b) JSON
   Schema with 40-hex SHA patterns for `replications.json`, validated in `build_dashboard_data.py
@@ -101,8 +104,9 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   `scripts/generate_docs_visuals.py`, `generate_doc_page_atlases.py`). [A] make them follow the
   reader's theme (iframe reads `prefers-color-scheme` / the parent's `data-theme`); closes when a
   panel renders light and dark from the same file. Not 0.5.8-blocking.
-- Docs figures leftovers: (1) stop the `docs/_static` HTML builds and delete those tracked files (frees
-  tree budget); (2) the four allowlisted iframes in `build_docs_assets.py` get a figure-site build or a still.
+- Docs figures leftovers (0.5.9; docs build hygiene, outside the 0.5.8 engineering scope): (1) stop the
+  `docs/_static` HTML builds and delete those tracked files (frees tree budget); (2) the four allowlisted
+  iframes in `build_docs_assets.py` get a figure-site build or a still.
 
 In order (Hamm 2026-10-22: work until the 0.5.8 todos and open issues are empty; open issues become
 todos once their close is decided; checkpoint when both are empty; Muse Spark 1.3 code packets in
@@ -127,8 +131,6 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
 - [A] Check whether the manifests hash `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log`; if none does, record it.
 - [A] `runtime_report()` (`jaxfne/_runtime_config.py`) records `jit: true` for "auto" even when `resolve_jit` runs eager
   (n_steps x n_units <= 50,000; L3 benchmark 2026-10-25); report the resolved value (0.5.9, F4).
-- T-O41 [A] RTD stand-ins: build the étude pages on Read the Docs or take them out of the RTD nav;
-  check: a Read the Docs build succeeds and `.readthedocs.yaml` or the nav matches the choice.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
 - T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
 - T-O68 [H] local copies and the layout rule (see O-68): each held copy is deleted or sits at

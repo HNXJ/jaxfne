@@ -1,2 +1,0 @@
-- The documentation offers a light and a dark scheme with a toggle (dark follows the reader's system setting); the logo is transparent, and flowcharts re-render in the active scheme.
-- Documentation figures show a Still tab (PNG) and an Interactive tab; the interactive Plotly pages are published once per build at `hnxj.github.io/jaxfne/figures/` and framed from there.
