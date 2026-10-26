@@ -52,7 +52,7 @@ def test_inventory_accepts_publication_figure_compatibility_paths():
 
 def test_legacy_inventory_wrapper_executes(tmp_path):
     result = subprocess.run(
-        [sys.executable, "scripts/evidence_figures_inventory.py"],
+        [sys.executable, "scripts/evidence_figures_inventory.py", "--out-dir", str(tmp_path)],
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -60,3 +60,4 @@ def test_legacy_inventory_wrapper_executes(tmp_path):
     )
     assert result.returncode == 0, result.stderr
     assert "jaxfne evidence inventory" in result.stdout
+    assert (tmp_path / "inventory.json").is_file(), "the wrapper must write under tmp_path"

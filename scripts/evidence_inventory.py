@@ -7,6 +7,7 @@ SHA256 hashes for files that exist.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import subprocess
@@ -220,14 +221,26 @@ def print_summary(inventory: dict) -> None:
         print(f"missing main figures ({len(missing_main)}): {', '.join(missing_main[:4])}...")
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Write the evidence inventory JSON.")
+    parser.add_argument(
+        "--out-dir",
+        type=Path,
+        default=REPO_ROOT / "outputs" / "evidence",
+        help="directory for inventory.json (default: outputs/evidence under the repo root)",
+    )
+    args = parser.parse_args(argv)
     inventory = build_inventory()
-    out_dir = REPO_ROOT / "outputs" / "evidence"
+    out_dir = args.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / "inventory.json"
     out_path.write_text(json.dumps(inventory, indent=2, sort_keys=False) + "\n", encoding="utf-8")
     print_summary(inventory)
-    print(f"wrote: {out_path.relative_to(REPO_ROOT)}")
+    try:
+        shown = out_path.relative_to(REPO_ROOT)
+    except ValueError:
+        shown = out_path
+    print(f"wrote: {shown}")
     return 0
 
 

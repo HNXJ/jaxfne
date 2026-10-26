@@ -13,7 +13,6 @@ Test suite for v0.3.3 Two-Neuron E/I Multimodal Tutorial.
 import json
 import os
 import pathlib
-import subprocess
 import sys
 
 import pytest
@@ -469,19 +468,18 @@ def test_v033_all_json_files_parseable(v033_produced):
         assert isinstance(data, dict), f"{jf.name} did not parse as dict"
 
 
-def test_v033_syntax_check():
+def test_v033_syntax_check(tmp_path):
     """Tutorial script must pass py_compile (no syntax errors)."""
+    import py_compile
+
     script_path = str(
         pathlib.Path(__file__).parent.parent / "examples" / "v033_two_neuron_ei_multimodal.py"
     )
-    result = subprocess.run(
-        [sys.executable, "-m", "py_compile", script_path],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert result.returncode == 0, \
-        f"py_compile failed:\n{result.stderr}"
+    # cfile under tmp_path: py_compile writes a .pyc even with PYTHONDONTWRITEBYTECODE set.
+    try:
+        py_compile.compile(script_path, cfile=str(tmp_path / "v033.pyc"), doraise=True)
+    except py_compile.PyCompileError as exc:
+        pytest.fail(f"py_compile failed:\n{exc.msg}")
 
 
 # ============================================================================

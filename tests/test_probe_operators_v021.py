@@ -347,7 +347,7 @@ def test_g_all_operators_finite_on_random_inputs():
 # ─── H. Integration: Existing Examples Still Run ─────────────────────────────
 
 
-def test_h_example_02_spectrolaminar_still_runs():
+def test_h_example_02_spectrolaminar_still_runs(tmp_path):
     """Existing example 02 (spectrolaminar) still executes without error."""
     # This is a smoke test that imports and runs the example
     import subprocess
@@ -360,7 +360,7 @@ def test_h_example_02_spectrolaminar_still_runs():
         timeout=120,
         text=True,
         encoding="utf-8",
-        cwd=str(_repo_root / "tests"),
+        cwd=str(tmp_path),  # the example writes outputs/ under its cwd
         env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
     )
     assert result.returncode == 0, f"Example failed:\n{result.stderr}"

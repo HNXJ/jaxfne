@@ -143,6 +143,10 @@ def _generated(path, data):
 
 def test_build_attributes_a_crashed_generator_and_skips_the_gallery(monkeypatch, capsys):
     calls = []
+    # build() also runs the registry copies, which write into the tree; this case needs none.
+    reg = bda.load_registry()
+    reg.pop("copies", None)
+    monkeypatch.setattr(bda, "load_registry", lambda: reg)
     monkeypatch.setattr(bda, "_run", _fake_run(calls, 1, stderr="Traceback\nMemoryError: out of memory"))
     monkeypatch.setattr(bda, "_repo_guard", lambda: None)
     assert bda.build(["two_neuron_ei"]) == 1
@@ -187,6 +191,10 @@ def test_build_fails_when_a_registry_html_file_is_not_written(tmp_path, monkeypa
 
 def test_build_reads_a_failed_line_for_its_own_slug_only(monkeypatch, capsys):
     calls = []
+    # build() also runs the registry copies, which write into the tree; this case needs none.
+    reg = bda.load_registry()
+    reg.pop("copies", None)
+    monkeypatch.setattr(bda, "load_registry", lambda: reg)
     monkeypatch.setattr(bda, "_run", _fake_run(calls, 1, stdout="[hdp_1000] FAILED: ValueError('x')\n"))
     monkeypatch.setattr(bda, "_repo_guard", lambda: None)
     assert bda.build(["hdp_10", "hdp_1000"]) == 1
