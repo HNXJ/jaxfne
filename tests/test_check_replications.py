@@ -22,7 +22,8 @@ from scripts.run_test_gate import AUDIT_STEPS, CHECK_FAMILIES, GATE_CHECK_FAMILI
 
 ROOT = Path(__file__).resolve().parents[1]
 PAPERS_DIR = ROOT / "artifacts" / "etudes" / "papers"
-# Signed or historical records: their citations stay as written.
+# Signed or historical records: their citations stay as written. Any path naming a prereg is a
+# pinned record (the prereg class of scripts/check_record_integrity.py).
 SIGNED_RECORD_GLOBS = ("PREREG_P3*.md", "RESULT*.md", "LEDGER.md")
 LINE_CITE = re.compile(r"jaxfne/[A-Za-z0-9_/]+\.py:[0-9]")
 SYMBOL_CITE = re.compile(
@@ -1158,6 +1159,7 @@ def _paper_records() -> list[Path]:
     return [
         md for md in sorted(PAPERS_DIR.rglob("*.md"))
         if not any(fnmatch.fnmatch(md.name, g) for g in SIGNED_RECORD_GLOBS)
+        and "prereg" not in md.relative_to(PAPERS_DIR).as_posix().lower()
     ]
 
 
