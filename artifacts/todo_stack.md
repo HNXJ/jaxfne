@@ -95,10 +95,8 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 (packages 9A-9G; decisions H1-H5; 0.5.11 submission, 0.6.0 acceptance). A 0.5.9 release needs a new go from Hamm.
 
 - [A] 9F: the JUnit classifier reads the `data_gated`, `optional_oracle` and `bitwise_diagnostic` markers
-  (2026-10-26); closes when rc on the next candidate runs end to end. Scripts under `scripts/evidence_figures/`
-  and `scripts/evidence_inventory.py` still default to root `outputs/` (gitignored); the tracked
-  `docs/theory/publication/evidence_checklist.json` names 17 manifest paths and the inventory path there
-  (audited by ed05), so writers and checklist move to `artifacts/_temp/` together.
+  (2026-10-26); closes when rc on the next candidate runs end to end. Evidence writers and the checklist write
+  under `artifacts/_temp/` (2026-10-26). Left: the figure lock file and the clean-checkout figure job.
 
 - Jitter reader (Hamm 2026-10-22): protocol (a) PASS on all four runs (A1/A2, seeds 0,1; w_pat -> 2.0
   bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak
@@ -155,11 +153,11 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
 - [A] Check whether the manifests hash `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log`; if none does, record it.
 - T-O69 [A] 0.5.9 lanes per the release plan, at most 3 Haiku workers in clones under `E:/repos/_wt/jaxfne/`.
   Running: E1 core (`connections(weight_range=)`, `Simulation(gaussian_drive=)`, realize or refuse per kernel;
-  P-045), the coupling-bypass check (9B), evidence writers into `artifacts/_temp/` (9F). Brunel S1 option on
-  dev; the S1 runs (A-D, seeds 4-8, N=6250) start once it is pushed. Next: PORT_SPEC citations by symbol (73
-  `jaxfne/*.py:N` citations in brunel2000, mejias2016, potjans2014, vogels2011 are stale, e.g. brunel row 8
-  cites the Bernoulli sampler for fixed in-degree) with a check that refuses line citations. The S2 generator
-  waits on the D35 calibration call (C3 row).
+  P-045); PORT_SPEC citations by symbol (about 90 stale `jaxfne/*.py:N` citations in lane records) with a check
+  that refuses line citations. On dev: Brunel S1 option, 9B recurrent-gain bypass check. The S1 runs (A-D, seeds
+  4-8, N=6250) start once dev is pushed. 9B left: `du = a(H_K b v - u)` in the Izhikevich H kernels
+  (`emitters.py`) couples H_K to recovery outside `rbd_recurrent_gain`; it needs its own neutral-reduction and
+  bypass test, and the F3 generator remains. The S2 generator waits on the D35 calibration call (C3 row).
 - T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
   and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
