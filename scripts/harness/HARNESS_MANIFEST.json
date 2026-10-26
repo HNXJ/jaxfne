@@ -3,11 +3,11 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-10-26T11:27:18",
+  "generated_at": "2026-10-26T12:37:14",
   "components": {
     "project_agents": {
       "file": "artifacts/AGENTS.md",
-      "sha256": "717d00253e4314e45335fb24d059b6e3d2b947c0c4e62666a79e330c55ac4dc8"
+      "sha256": "68ec7acbf64c42726aed0586ac17b3df0e7702f213e5916cc87e1ce707c50a66"
     },
     "canonical_skills": {
       "jaxfne-audit": "53f245b9f8adb2d9f761f22d04cc0db72791b8790eb46f361473eb7b8bf16b82",
@@ -47,7 +47,7 @@
       },
       "check_agent_refs": {
         "file": "scripts/harness/check_agent_refs.py",
-        "sha256": "905fde7f90455888177adad640027574fc516dd108ad714f4cb7e5da0e122570"
+        "sha256": "5740634a62cd315b7d0588a1b78c63423c076cb5e5022dea7ed610ce5a5a7f94"
       },
       "check_memory_hygiene": {
         "file": "scripts/harness/check_memory_hygiene.py",

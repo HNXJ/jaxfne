@@ -97,7 +97,9 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 (packages 9A-9G; decisions H1-H5; 0.5.11 submission, 0.6.0 acceptance). A 0.5.9 release needs a new go from Hamm.
 
 - [A] 9F: the broad gate writes root `outputs/evidence/inventory.json` and `tests/outputs/v020_spectrolaminar_public_path/`
-  (2026-10-26); send those writers to `tmp_path` or `artifacts/_temp/`, then delete both folders.
+  (2026-10-26); send those writers to `tmp_path` or `artifacts/_temp/`, then delete both folders. Same class: a
+  `tests/test_build_docs_assets.py` test rewrites `docs/assets/` while `test_check_passes_on_tree` reads it (xdist race,
+  failed once in the dev gate 2026-10-26, passes alone).
 - [A] JUnit parity classifier (0.5.9): `compare_pytest_junit.classify` reads three explained CI-skip
   kinds as UNKNOWN, so the rc gate stops at junit_parity and the package families run by hand (0.5.7
   and 0.5.8): data-gated skipifs (`test_pcl_stage_c`), optional-oracle importorskips (`mne` in no

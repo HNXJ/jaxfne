@@ -2,14 +2,17 @@
 """Harness v2.1 reference checker.
 
 Every repo-relative path referenced in agent-facing markdown (artifacts/AGENTS.md,
-docs/**, artifacts/control/skills/**) must exist on disk OR be explicitly marked optional
-via an inline `<!-- optional -->` marker in the same paragraph.
+docs/**, artifacts/control/skills/**) must be a file git keeps (tracked, or new and not
+ignored) or a folder holding one, OR be explicitly marked optional via an inline
+`<!-- optional -->` marker in the same paragraph. Gitignored files on disk never count, so
+a local run sees what a fresh clone sees.
 
 Exit codes: 0 clean, 1 broken (unmarked) references found.
 """
 import re
+import subprocess
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[2]
 GOVERNED = [
@@ -32,7 +35,22 @@ def paragraph_has_optional(text: str, pos: int) -> bool:
     return "<!-- optional" in para
 
 
-def run(scan) -> int:
+def kept_paths(root: Path) -> set[str]:
+    """Files git keeps (tracked or new and unignored) and every folder above them."""
+    out = subprocess.run(
+        ["git", "-C", str(root), "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+        capture_output=True, check=True,
+    ).stdout.decode("utf-8")
+    kept = set()
+    for name in filter(None, out.split("\0")):
+        path = PurePosixPath(name)
+        kept.add(str(path))
+        kept.update(str(parent) for parent in path.parents if str(parent) != ".")
+    return kept
+
+
+def run(scan, root: Path = ROOT) -> int:
+    kept = kept_paths(root)
     failures = []
     for f in scan:
         if not f.is_file():
@@ -47,13 +65,12 @@ def run(scan) -> int:
             ref = ref.split("#")[0].rstrip("/")
             if not ref:
                 continue
-            target = ROOT / ref
-            if target.exists():
+            if ref in kept:
                 continue
             if paragraph_has_optional(text, m.start()):
                 continue
             try:
-                rel = f.relative_to(ROOT)
+                rel = f.relative_to(root)
             except ValueError:
                 rel = Path(f.name)
             failures.append(f"{rel}:{text[: m.start()].count(chr(10)) + 1} -> {ref}")
