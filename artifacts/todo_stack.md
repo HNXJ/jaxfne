@@ -154,10 +154,12 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
 - T-O69 [A] 0.5.9 lanes per the release plan, at most 3 Haiku workers in clones under `E:/repos/_wt/jaxfne/`.
   Running: E1 core (`connections(weight_range=)`, `Simulation(gaussian_drive=)`, realize or refuse per kernel;
   P-045); PORT_SPEC citations by symbol (about 90 stale `jaxfne/*.py:N` citations in lane records) with a check
-  that refuses line citations. On dev: Brunel S1 option, 9B recurrent-gain bypass check. The S1 runs (A-D, seeds
-  4-8, N=6250) start once dev is pushed. 9B left: `du = a(H_K b v - u)` in the Izhikevich H kernels
-  (`emitters.py`) couples H_K to recovery outside `rbd_recurrent_gain`; it needs its own neutral-reduction and
-  bypass test, and the F3 generator remains. The S2 generator waits on the D35 calibration call (C3 row).
+  that refuses line citations. On dev: Brunel S1 option, 9B bypass checks for the recurrent gain and the H_K
+  recovery map (a moving H_K has a first-step reference only). The S1 runs (A-D, seeds 4-8, N=6250) start once
+  dev is pushed. Next: core `poisson_drive` list (after E1, same files); 9F figure lock (receipts record no
+  versions: the publication job writes `pip freeze` as an artifact, a passing run's freeze becomes the
+  constraints file the job installs with). 9B left: the F3 generator. The S2 generator waits on the D35
+  calibration call (C3 row).
 - T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
   and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots. Potjans draft 2026-10-26
   (scale and bands wait on Hamm). Before its pilots: core `Simulation(poisson_drive=[...])`, one target per
