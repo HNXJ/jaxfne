@@ -77,23 +77,54 @@ def _realized_counts(n):
     return ne, n - ne
 
 
-def external_rate_hz(point="D", n=1250):
+#: Scored network size. The in-degree override (S1 finite size) pins Cext to
+#: its value at this size, so the external drive does not move with N.
+N_REF = 12500
+
+
+def _cext(n, in_degree=None):
+    """Cext trains per cell: ``0.1 * NE`` at ``n``; at ``N_REF`` under an override."""
+    ne, _ = _realized_counts(N_REF if in_degree is not None else n)
+    return int(round(CONNECTIVITY_P * ne))
+
+
+def _check_in_degree(in_degree, n):
+    """Validate an ``(CE, CI)`` override against the realized pools at ``n``."""
+    ne, ni = _realized_counts(n)
+    ce, ci = (int(x) for x in in_degree)
+    if not (0 <= ce <= ne and 0 <= ci <= ni):
+        raise ValueError(
+            "in_degree=(CE, CI)=(%d, %d) exceeds the pools NE=%d, NI=%d at n=%d"
+            % (ce, ci, ne, ni, int(n)))
+    return ce, ci
+
+
+def external_rate_hz(point="D", n=1250, in_degree=None):
     """Total external Poisson rate per cell: ``Cext * nuext`` (Hz)."""
     _, eta = FIG8_POINTS[str(point)]
-    ne, _ = _realized_counts(n)
-    cext = int(round(CONNECTIVITY_P * ne))
+    cext = _cext(n, in_degree)
     return float(cext) * float(eta) * NUTHR_HZ
 
 
-def build_spec(point="D", n=1250, seed=0):
-    """The lane network built only from the public API (PORT_SPEC.md rows)."""
+def build_spec(point="D", n=1250, seed=0, in_degree=None):
+    """The lane network built only from the public API (PORT_SPEC.md rows).
+
+    ``in_degree=None`` is the paper default (CE = 0.1 NE, CI = 0.1 NI). A pair
+    ``(CE, CI)`` fixes the exact fan-in at any ``n`` (S1 finite size). The
+    weight stays ``J*sqrt(n)``: the kernel divides every edge by
+    ``sqrt(total_n)`` (``jaxfne/neuronal_tensor.py:2684``), and ``total_n``
+    is this ``n``, so the realized PSP is J at every ``n``.
+    """
     del seed  # wiring draws seed from RuntimeConfiguration at construct time
     g, _ = FIG8_POINTS[str(point)]
     n = int(n)
     w = J_MV * math.sqrt(n)
     ne, ni = _realized_counts(n)
-    ce = int(round(CONNECTIVITY_P * ne))
-    ci = int(round(CONNECTIVITY_P * ni))
+    if in_degree is None:
+        ce = int(round(CONNECTIVITY_P * ne))
+        ci = int(round(CONNECTIVITY_P * ni))
+    else:
+        ce, ci = _check_in_degree(in_degree, n)
     lif = dict(_LIF_BRNEL)
     tensor = nt.NeuronalTensor(
         name="brunel2000-%s" % str(point),
@@ -128,12 +159,11 @@ def build_spec(point="D", n=1250, seed=0):
     return tensor
 
 
-def build_sim(point="D", n=1250, T_s=0.5, dt_ms=DT_MS, seed=0, dtype="float32"):
+def build_sim(point="D", n=1250, T_s=0.5, dt_ms=DT_MS, seed=0, dtype="float32", in_degree=None):
     """The ``Simulation`` for a run (duration, dt, drive)."""
     _, eta = FIG8_POINTS[str(point)]
     nuext = float(eta) * NUTHR_HZ
-    ne, _ = _realized_counts(n)
-    cext = int(round(CONNECTIVITY_P * ne))
+    cext = _cext(n, in_degree)
     prob = float(nuext) * float(dt_ms) / 1000.0
     if prob > 1.0:
         raise ValueError(
@@ -153,8 +183,12 @@ def build_sim(point="D", n=1250, T_s=0.5, dt_ms=DT_MS, seed=0, dtype="float32"):
 
 
 def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms=DT_MS,
-        freq_res_hz=None, signed=False, dtype="float32"):
-    """Build, run and write the raster plus the ``manifest.json`` the scorer reads."""
+        freq_res_hz=None, signed=False, dtype="float32", in_degree=None):
+    """Build, run and write the raster plus the ``manifest.json`` the scorer reads.
+
+    ``in_degree=(CE, CI)`` is the S1 finite-size override; the manifest entry
+    then carries it under ``in_degree``. ``None`` is the paper default.
+    """
     import time
 
     import numpy as np
@@ -168,12 +202,13 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms
     entries = {e["file"]: e for e in prior["runs"]} if prior else {}
     t0 = time.perf_counter()
     model = J.construct(
-        build_spec(point=point, n=n, seed=seed),
+        build_spec(point=point, n=n, seed=seed, in_degree=in_degree),
         nt.RuntimeConfiguration(seed=int(seed), duration_ms=float(T_s) * 1000.0,
                                 dt_ms=float(dt_ms), emitter="lif", dtype=dtype),
     )
     t_construct = time.perf_counter() - t0
-    sim = build_sim(point=point, n=n, T_s=T_s, dt_ms=dt_ms, seed=seed, dtype=dtype)
+    sim = build_sim(point=point, n=n, T_s=T_s, dt_ms=dt_ms, seed=seed, dtype=dtype,
+                    in_degree=in_degree)
     signals = model.simulate(sim)
     spikes = np.asarray(signals.spikes, dtype=bool)  # waits for the dispatched kernel
     t_simulate = time.perf_counter() - t0 - t_construct
@@ -202,6 +237,9 @@ def run(seed, tag, out_dir, *, point="D", n=1250, T_s=0.5, burn_in_ms=0.0, dt_ms
                                "seed": int(seed)},
              "wall_s": {"construct": t_construct, "simulate": t_simulate},
              "regime": regime}
+    if in_degree is not None:
+        ce, ci = _check_in_degree(in_degree, n)
+        entry["in_degree"] = {"ce": ce, "ci": ci, "cext_held_at_n": N_REF}
     entries[fname] = entry
     manifest = {"git_sha": sha, "dtype": realized_dtype, "backend": backend,
                 "seeds": sorted(e["seed"] for e in entries.values()),
