@@ -28,7 +28,8 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
   D35: `apply_calibration` relabels the epistemic level and applies no Q -> Q_phys transform (doctrine or code
   moves: Hamm's call). D28: `ValueTag` lacks B, R, E, T. D31 and D32 need a code path that exposes a_eff and
   the AdEx clip. Notation: `7_tfne_algebra.md` writes `x[type=current]`, the parser reads `x[retina]`. S1 and
-  S5 regenerate with `python scripts/publication_figures/supplement.py`; S2 and the F1, F3 generators remain.
+  S5 regenerate with `python scripts/publication_figures/supplement.py`; F1 and F3 are frozen fig01 and fig06
+  (H1), rebuilt by the publication gate; the S2 generator remains.
 - [A] C1: H4 ruled 2026-10-26 and landed: the ledger holds CL-01 to CL-34 (E2 V1/V2 claims are CL-27 to CL-34).
   Left: results.md cites no CL id (17 orphan candidates in `check_manuscript_claims.py`); CL-34 cites two
   `artifacts/developer/resolution/` documents that were never tracked (`KNOWN_UNTRACKED` in
@@ -152,14 +153,13 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
 - T-O61 cosmetic [A] (wording approved by Hamm 2026-10-25): tier labels differ, REPLICATIONS against dashboard.
 - [A] Check whether the manifests hash `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log`; if none does, record it.
 - T-O69 [A] 0.5.9 lanes per the release plan, at most 3 Haiku workers in clones under `E:/repos/_wt/jaxfne/`.
-  Running: E1 core (`connections(weight_range=)`, `Simulation(gaussian_drive=)`, realize or refuse per kernel;
-  P-045); PORT_SPEC citations by symbol (about 90 stale `jaxfne/*.py:N` citations in lane records) with a check
-  that refuses line citations. On dev: Brunel S1 option, 9B bypass checks for the recurrent gain and the H_K
-  recovery map (a moving H_K has a first-step reference only). The S1 runs (A-D, seeds 4-8, N=6250) start once
-  dev is pushed. Next: core `poisson_drive` list (after E1, same files); 9F figure lock (receipts record no
-  versions: the publication job writes `pip freeze` as an artifact, a passing run's freeze becomes the
-  constraints file the job installs with). 9B left: the F3 generator. The S2 generator waits on the D35
-  calibration call (C3 row).
+  Running: LIF `Simulation(poisson_drive=[...])` (one target per entry, disjoint targets; other routes refuse);
+  Izhikevich E1 library-path pilot (Fig. 3 network through construct/simulate against the kernel route, seed 0,
+  unscored). On dev: E1 core (`weight_range`, `gaussian_drive`; the delayed-edge route is realized but untested;
+  hdp noise_scale stays P-045), citations by symbol, Brunel S1 option, 9B bypass checks (a moving H_K has a
+  first-step reference only), the publication job's `pip freeze` artifact. Brunel S1 runs (A-D, seeds 4-8,
+  N=6250) start after the smoke. Next: 9F figure lock (a passing Release CI run's freeze becomes the constraints
+  file the job installs with); the S2 generator waits on the D35 calibration call (C3 row).
 - T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
   and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots. Potjans draft 2026-10-26
   (scale and bands wait on Hamm). Before its pilots: core `Simulation(poisson_drive=[...])`, one target per

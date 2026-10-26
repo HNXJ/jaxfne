@@ -10,8 +10,8 @@ has its row `T-O<n>` in the todo stack (section 2) with the detail.
 - O-10 Harness proposals, jchat conference #29 | jynx keeper | since 2026-10-25 (opened 2026-10-15) | closes when each is taken or refused
 
 ## In flight
-- O-69 0.5.9 lanes (release plan 9A-9G): E1 core capability, PORT_SPEC citations, Brunel S1 runs (dashboard hashes, D17/D26, tutorial outputs, S1 option, 9B recurrent-gain check, 9F evidence writers landed 2026-10-26) | orchestrator, Haiku workers | since 2026-10-26 | closes when each lands on dev or is recorded in the todo stack
-- O-70 H3 signatures: the Potjans and Vogels preregs are templates (estimands unfilled, pilots not run) | orchestrator drafts, Hamm signs | since 2026-10-26 | closes when Hamm signs or defers each
+- O-69 0.5.9 lanes (release plan 9A-9G): LIF poisson_drive list, Izhikevich E1 library-path pilot, Brunel S1 runs, 9F figure lock (E1 core, citations by symbol, S1 option, 9B checks, 9F evidence writers landed 2026-10-26) | orchestrator, Haiku workers | since 2026-10-26 | closes when each lands on dev or is recorded in the todo stack
+- O-70 H3 signatures: Potjans P3 v2 drafted (`prereg/P3_v2.md`; scale and bands wait on Hamm), Vogels a template; pilots not run | orchestrator drafts, Hamm signs | since 2026-10-26 | closes when Hamm signs or defers each
 
 ## Hamm's calls
 - O-58 WSL DNS: `/etc/resolv.conf` is empty, so pip and isolated builds fail inside WSL | Hamm (system setting) | since 2026-10-25 (opened 2026-10-21) | closes when `pip download jaxfne==0.5.7 --no-deps` works in WSL
