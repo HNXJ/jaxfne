@@ -96,8 +96,13 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 
 - 0.5.8 candidate (2026-10-26): version 0.5.8, changelog section (21 bullets), canonical atlas at
   0.5.8, P-037 closed, O-41 closed (RTD latest and stable at 03a86014 serve all 25 étude files).
-  Left [A]: broad gate 0 failed, push dev, CI green on the SHA, rc gate, second review, receipt
-  `artifacts/release/v0_5_8_release_receipt.json`. Then [H]: tag, main, GitHub Release, PyPI.
+  Candidate f6614b25 (2026-10-26): rc families pass, Release CI 40272561706 and CI Fast green, Muse review
+  non-blocking; receipt drafted. Left [H]: tag, main, GitHub Release, PyPI; then the receipt lands.
+- [A] JUnit parity classifier (0.5.9): `compare_pytest_junit.classify` reads three explained CI-skip
+  kinds as UNKNOWN, so the rc gate stops at junit_parity and the package families run by hand (0.5.7
+  and 0.5.8): data-gated skipifs (`test_pcl_stage_c`), optional-oracle importorskips (`mne` in no
+  extra), and `bitwise_diagnostic` xfail(strict=False). Classify each by its marker or skip source,
+  never by widening the reason-text markers; closes when rc on a candidate runs end to end.
 
 - Jitter reader (Hamm 2026-10-22): protocol (a) PASS on all four runs (A1/A2, seeds 0,1; w_pat -> 2.0
   bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak
