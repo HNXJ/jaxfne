@@ -29,3 +29,15 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   2026-10-18), body verdicts too; REPLICATIONS row agrees. Closes with the lane's next prereg.
 - 2026-10-26: the Destexhe prereg moves to 0.5.9 (scope freeze, Hamm 2026-10-25); the entry stays
   open into 0.5.9.
+
+### P-045
+
+- Date: 2026-10-26. Type: BUG. Area: Izhikevich construct routes, `hdp_params["noise_scale"]`.
+  Severity: medium (P-014/P-015 class: stored, not consumed).
+- `_model_simulate.py:838-839` passes `noise_scale` only to `simulate_edge_recurrent_izhikevich`;
+  the `receptor_exponential` kernel hard-codes the coefficient (`emitters.py:4574`,
+  `_noise_coef(0.5, ...)`), and the dense kernel receives it only for `update_order="net_m"`
+  (`_model_simulate.py:851-856`). On those routes a declared `noise_scale` is dropped silently.
+- Found by the 9C-E1 packet (2026-10-26). Expected: realized or refused. Future change: refuse it
+  where no kernel reads it, or pass it to the dense default order; the E1 `gaussian_drive` lands
+  with the same realize-or-refuse rule.

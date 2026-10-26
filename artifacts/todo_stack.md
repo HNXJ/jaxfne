@@ -23,12 +23,12 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
   (worker receipt: an 11x11 grid quarter turn changes 2 of 484) because the bucket neighbourhood is axis-aligned.
   Exact turn invariance needs a radius cutoff on candidates, a change to the candidate law: settle it with the C4
   claim wording. The 100k tutorial notebook and the w8/w10 baselines keep pre-L8 draws as historical receipts.
-- [A] C3, S1: `docs/theory/doctrine/definition_map.md` lists 4 definitions with no symbol and 2 realized only by
-  private names (D21 and D34 mapped 2026-10-26 under H2). Several candidates each: D17 (`tfne.System`,
-  `ExplicitModel.boundaries`, `Realization.s["boundaries"]`), D26 (two emitters sites, `HDPRuleUpdate.dH`), D35
-  (`apply_calibration`, `CalibrationSpec`). No symbol: D28 (`ValueTag` lacks B, R, E, T). D31 and D32 need a code
-  path that exposes a_eff and the AdEx clip. Public API choices: orchestrator, then Hamm. S1 and S5 regenerate
-  with `python scripts/publication_figures/supplement.py`; S2 and the F1, F3 generators remain.
+- [A] C3, S1: `docs/theory/doctrine/definition_map.md` lists 2 definitions with no symbol and 2 realized only by
+  private names (D21, D34, D17 `tfne.System`, D26 `simulate_edge_recurrent_izhikevich_rbd` mapped 2026-10-26).
+  D35: `apply_calibration` relabels the epistemic level and applies no Q -> Q_phys transform (doctrine or code
+  moves: Hamm's call). D28: `ValueTag` lacks B, R, E, T. D31 and D32 need a code path that exposes a_eff and
+  the AdEx clip. Notation: `7_tfne_algebra.md` writes `x[type=current]`, the parser reads `x[retina]`. S1 and
+  S5 regenerate with `python scripts/publication_figures/supplement.py`; S2 and the F1, F3 generators remain.
 - [A] C1: H4 ruled 2026-10-26 and landed: the ledger holds CL-01 to CL-34 (E2 V1/V2 claims are CL-27 to CL-34).
   Left: results.md cites no CL id (17 orphan candidates in `check_manuscript_claims.py`); CL-34 cites two
   `artifacts/developer/resolution/` documents that were never tracked (`KNOWN_UNTRACKED` in
@@ -96,9 +96,9 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 
 - [A] 9F: the JUnit classifier reads the `data_gated`, `optional_oracle` and `bitwise_diagnostic` markers
   (2026-10-26); closes when rc on the next candidate runs end to end. Scripts under `scripts/evidence_figures/`
-  and `scripts/evidence_inventory.py` still default to root `outputs/` (gitignored): move them to
-  `artifacts/_temp/` after checking what fig07 records of the inventory path.
-  `tests/test_tutorial_figure_contract_v0219.py` skips all 32 cases: give it outputs or remove it.
+  and `scripts/evidence_inventory.py` still default to root `outputs/` (gitignored); the tracked
+  `docs/theory/publication/evidence_checklist.json` names 17 manifest paths and the inventory path there
+  (audited by ed05), so writers and checklist move to `artifacts/_temp/` together.
 
 - Jitter reader (Hamm 2026-10-22): protocol (a) PASS on all four runs (A1/A2, seeds 0,1; w_pat -> 2.0
   bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak
@@ -153,9 +153,10 @@ clones, verified before integration):
 Open-stack rows (each closes its `O-n`; the open stack empties when these close; audits 2026-10-25):
 - T-O61 cosmetic [A] (wording approved by Hamm 2026-10-25): tier labels differ, REPLICATIONS against dashboard.
 - [A] Check whether the manifests hash `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log`; if none does, record it.
-- T-O69 [A] 0.5.9 lanes per the release plan, at most 3 Haiku workers in clones under `E:/repos/_wt/jaxfne/`;
-  next after the running three: Izhikevich E1 on the construct path (9C, orchestrator designs the API), the S2
-  generator, Brunel S1 `fixed_indegree` (9C), the coupling-bypass mutant (9B).
+- T-O69 [A] 0.5.9 lanes per the release plan, at most 3 Haiku workers in clones under `E:/repos/_wt/jaxfne/`.
+  Running: E1 core (`connections(weight_range=)`, `Simulation(gaussian_drive=)`, realize or refuse per kernel;
+  P-045), Brunel S1 lane option `in_degree=(CE, CI)` then the S1 runs (A-D, seeds 4-8, N=6250). Next: the S2
+  generator, the coupling-bypass mutant (9B), evidence writers into `artifacts/_temp/`.
 - T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
   and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
