@@ -992,7 +992,9 @@ class Configuration:
         self, selector: Mapping[str, Any], params: Mapping[str, Any]
     ) -> "Configuration":
         """Override Izhikevich ``a``/``b``/``c``/``d``/``drive`` for neurons matching a
-        ``cell_type`` and/or ``layer`` selector; applied at ``construct()``."""
+        ``cell_type`` and/or ``layer`` selector; applied at ``construct()``. A value is a
+        scalar for every matched neuron or a list with one value per matched neuron, in
+        neuron-index order (a length mismatch is refused)."""
         bad_sel = sorted(set(selector) - {"cell_type", "layer"})
         bad_par = sorted(set(params) - {"a", "b", "c", "d", "drive"})
         if bad_sel or bad_par:

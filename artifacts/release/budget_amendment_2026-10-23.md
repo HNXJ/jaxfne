@@ -65,3 +65,10 @@ listed it as unreferenced, and the broad gate caught the removal). Measured tree
 budget increment if the bytes require it"): failing-case tests and fixes for four gates that passed without
 examining what they name (`harness_integrity`, `release_artifacts`, `notebooks_assets`, `memory_hygiene`;
 the last now scans `artifacts/memory.md` and flags short SHAs), in existing files.
+
+## Fifth increment, 2026-10-25 (per-cell `cell_params`)
+
++4,000 bytes (90,229,000 -> 90,233,000), no files, under Hamm's standing rule (2026-10-24, amendments
+fine) and his 0.5.8 scope decision to fix izhikevich2003 E1 in the core: `cell_params` takes one value per
+matched neuron (`_construct_population.py`, three tests in `test_cell_params_compilation_v0401.py`, one
+changelog bullet), which unblocks the P3b arm's heterogeneous a, b, c, d.
