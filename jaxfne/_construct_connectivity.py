@@ -237,11 +237,16 @@ def _compile_connection_rules(
                 f"connection rule {rule.get('name')!r} sampling must be 'density' "
                 f"or 'bernoulli'; got {sampling!r}"
             )
-        if rule.get("weight_std") is not None or rule.get("delay_std_ms") is not None:
+        if (
+            rule.get("weight_std") is not None
+            or rule.get("delay_std_ms") is not None
+            or rule.get("weight_range") is not None
+        ):
             raise ValueError(
                 f"connection rule {rule.get('name')!r} declares a per-edge spread "
                 f"(weight_std={rule.get('weight_std')!r}, "
-                f"delay_std_ms={rule.get('delay_std_ms')!r}) but no resolvable "
+                f"delay_std_ms={rule.get('delay_std_ms')!r}, "
+                f"weight_range={rule.get('weight_range')!r}) but no resolvable "
                 "mechanism; the sign-only fallback has no spread consumer — "
                 "declare a resolvable mechanism= so the mechanism-aware "
                 "compiler draws the spread"

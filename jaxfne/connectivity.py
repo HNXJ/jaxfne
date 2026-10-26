@@ -93,10 +93,12 @@ def _validate_rule_delay_ms(rule_name: str, delay: Any) -> "float | None":
 
 #: ``jax.random.fold_in`` tags for the per-rule spread streams. Pair selection
 #: consumes ``rkey`` and scalar/random weight modes consume ``fold_in(rkey, 1)``,
-#: so weight and delay spreads fold 2 and 3: declaring a spread perturbs no
-#: pre-existing stream and omitting one leaves every stream byte-identical.
+#: so weight spread, delay spread and the per-edge weight range fold 2, 3 and 4:
+#: declaring one perturbs no pre-existing stream and omitting one leaves every
+#: stream byte-identical.
 _WEIGHT_SPREAD_FOLD = 2
 _DELAY_SPREAD_FOLD = 3
+_WEIGHT_RANGE_FOLD = 4
 
 
 def _validate_spread_std(rule_name: str, value: Any, key: str) -> "float | None":
@@ -125,6 +127,55 @@ def _validate_spread_std(rule_name: str, value: Any, key: str) -> "float | None"
             f"connection {rule_name!r} {key} must be finite and >= 0; got {value!r}"
         )
     return std
+
+
+def _validate_weight_range(
+    rule_name: str, value: Any, *, weight: Any, weight_std: Any
+) -> "tuple[float, float] | None":
+    """Validate one connection rule's per-edge weight range (``weight_range``).
+
+    None = undeclared = the rule's existing weights. A declared value must be a
+    2-sequence ``(lo, hi)`` of finite reals with ``0 <= lo < hi``; each edge's
+    magnitude is then drawn U[lo, hi). The range replaces a scalar ``weight``
+    and excludes ``weight_std``, so either conflict is refused, never resolved.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, (list, tuple)) or len(value) != 2:
+        raise ValueError(
+            f"connection {rule_name!r} weight_range must be a 2-sequence (lo, hi) "
+            f"of finite reals; got {value!r}"
+        )
+    bounds: list[float] = []
+    for end in value:
+        if (
+            isinstance(end, bool)
+            or not isinstance(end, numbers.Real)
+            or not math.isfinite(float(end))
+        ):
+            raise ValueError(
+                f"connection {rule_name!r} weight_range must be a 2-sequence (lo, hi) "
+                f"of finite reals; got {value!r}"
+            )
+        bounds.append(float(end))
+    lo, hi = bounds
+    if weight is not None:
+        raise ValueError(
+            f"connection {rule_name!r} declares weight_range={value!r} with "
+            f"weight={weight!r}; the range draws each edge's magnitude -- declare "
+            "weight_range or a scalar weight, not both"
+        )
+    if weight_std is not None:
+        raise ValueError(
+            f"connection {rule_name!r} declares weight_range={value!r} with "
+            f"weight_std={weight_std!r}; the range and the Gaussian spread both set "
+            "each edge's weight -- declare one"
+        )
+    if lo < 0.0:
+        raise ValueError(f"connection {rule_name!r} weight_range lo must be >= 0; got {value!r}")
+    if lo >= hi:
+        raise ValueError(f"connection {rule_name!r} weight_range must satisfy lo < hi; got {value!r}")
+    return (lo, hi)
 
 
 def _validate_in_degree(rule_name: str, in_degree: Any) -> "int | None":
@@ -1324,6 +1375,20 @@ def compile_connection_rules(
             rule_name=rname,
             artifacts=artifacts,
         )
+        weight_range = _validate_weight_range(
+            rname,
+            rule.get("weight_range"),
+            weight=rule.get("weight"),
+            weight_std=rule.get("weight_std"),
+        )
+        if weight_range is not None:
+            # Per-edge magnitudes U[lo, hi) from the rule's own stream (fold 4).
+            lo, hi = weight_range
+            u = np.asarray(
+                jax.random.uniform(jax.random.fold_in(rkey, _WEIGHT_RANGE_FOLD), (len(pairs),)),
+                dtype=np.float64,
+            )
+            weights = lo + (hi - lo) * u
         # Per-rule Gaussian spreads (G-WDIST/G-DDIST): one Normal draw per
         # edge from the rule's own stream, absolute-value folded at zero so
         # the paper's fixed sign (SOURCE_P1.md section 2: Gaussian w +- delta_w
@@ -1386,6 +1451,9 @@ def compile_connection_rules(
             "delay_ms": rule_delay_ms,
             "status": "compiled",
         }
+        if weight_range is not None:
+            # Echoed only when declared so undeclared rows stay byte-identical.
+            row["weight_range"] = [weight_range[0], weight_range[1]]
         if weight_std is not None:
             # Echoed only when declared so undeclared rows stay byte-identical.
             row["weight_std"] = weight_std

@@ -66,6 +66,46 @@ def _n_steps_from_grid(duration_ms: float, dt_ms: float, *, owner: str) -> int:
     return int(nearest)
 
 
+def _validate_gaussian_drive(value: Any) -> None:
+    """Refuse a malformed ``Simulation.gaussian_drive`` declaration.
+
+    The only accepted form is ``{"std_by_cell_type": {cell_type: std}}`` with
+    every std a finite real >= 0 (bools and strings refused, never coerced).
+    Whether the mapping covers the model's cell types is checked at simulate
+    time, where the model is known.
+    """
+    if not isinstance(value, Mapping):
+        raise ValueError(
+            "Simulation.gaussian_drive must be a mapping "
+            f"{{'std_by_cell_type': {{cell_type: std}}}}; got {value!r}"
+        )
+    extra = sorted(str(k) for k in value if k != "std_by_cell_type")
+    if extra:
+        raise ValueError(
+            f"Simulation.gaussian_drive key(s) {extra} are not recognised; the only "
+            "key is 'std_by_cell_type'"
+        )
+    if "std_by_cell_type" not in value:
+        raise ValueError("Simulation.gaussian_drive requires the key 'std_by_cell_type'")
+    stds = value["std_by_cell_type"]
+    if not isinstance(stds, Mapping) or not stds:
+        raise ValueError(
+            "Simulation.gaussian_drive['std_by_cell_type'] must be a non-empty mapping "
+            f"from cell type to std; got {stds!r}"
+        )
+    for cell_type, std in stds.items():
+        if (
+            isinstance(std, bool)
+            or not isinstance(std, numbers.Real)
+            or not math.isfinite(float(std))
+            or float(std) < 0.0
+        ):
+            raise ValueError(
+                f"Simulation.gaussian_drive std_by_cell_type[{cell_type!r}] must be a "
+                f"finite number >= 0; got {std!r}"
+            )
+
+
 @dataclass(frozen=True)
 class Simulation:
     """Immutable specification of one simulation run.
@@ -84,6 +124,19 @@ class Simulation:
     ``duration_ms / dt_ms``, which must be an integer within 1e-9 relative
     tolerance (off-grid durations raise) and must be > 0. Seed and n_steps belong to
     the Simulation: a ``runtime`` carrying different non-zero values is refused.
+
+    ``gaussian_drive`` (None = undeclared) is ``{"std_by_cell_type": {cell_type:
+    std}}``. It sets each cell's stochastic-current coefficient: the ``noise_scale``
+    that the Izhikevich kernels take, defined at the 0.5 ms reference step and
+    scaled by ``sqrt(0.5/dt_ms)`` exactly as the existing current is, so the
+    existing seed stream drives it and no new noise key is added. It is realized
+    on the Izhikevich routes (edge undelayed and delayed, dense in default and
+    ``net_m`` order, homeostatic, HDP, and continuation). It is refused on the
+    other emitter families, on ``synaptic_kernel='receptor_exponential'`` (its
+    kernel takes no ``noise_scale``), in ``simulate_batch`` (which does not consume
+    it), together with ``hdp_params['noise_scale']``, and, on ``net_m``, unless
+    every std is zero. The mapping must cover every model cell type and name no
+    other; that is checked at simulate time.
     """
 
     duration_ms: float = 1000.0
@@ -100,6 +153,7 @@ class Simulation:
     poisson_drive: Optional[dict] = None
     runtime: RuntimeConfig | None = None
     ablation: Optional[str] = None
+    gaussian_drive: Optional[dict] = None
 
     def __post_init__(self) -> None:
         if not (math.isfinite(self.duration_ms) and self.duration_ms > 0):
@@ -121,6 +175,8 @@ class Simulation:
                 f"Simulation.ablation must be None or one of {sorted(_ABLATION_MODES)}; "
                 f"got {self.ablation!r}"
             )
+        if self.gaussian_drive is not None:
+            _validate_gaussian_drive(self.gaussian_drive)
         if self.plasticity != 0:
             raise ValueError(
                 f"Simulation.plasticity={self.plasticity!r} is refused: the gain "

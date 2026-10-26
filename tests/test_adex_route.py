@@ -290,6 +290,7 @@ def _non_default(name, default):
         "dtype_primary": "float64",
         "x64_enabled": True,
         "synaptic_kernel": "receptor_exponential",
+        "gaussian_drive": {"std_by_cell_type": {"E": 1.0}},
     }
     if name in table:
         return table[name]

@@ -221,6 +221,87 @@ def _ensemble_member_counts(model) -> "list[int] | None":
     return _ensemble_counts_of_model(model)
 
 
+def _refuse_gaussian_drive_family(self: "Model", sim: Simulation) -> None:
+    """Refuse ``gaussian_drive`` on every emitter family but Izhikevich, naming it."""
+    if getattr(sim, "gaussian_drive", None) is None:
+        return
+    emitter = self.params["emitter"]
+    if isinstance(emitter, IzhikevichParams):
+        return
+    route = {
+        AdExParams: "adex",
+        HHParams: "hh",
+        LIFNetworkParams: "lif",
+        RateNetworkParams: "rate",
+        HomeostaticEIParams: "homeostatic_ei",
+    }.get(type(emitter), type(emitter).__name__)
+    raise ValueError(
+        "Simulation.gaussian_drive is realized only on the Izhikevich construct routes; "
+        f"emitter route {route!r} takes no noise_scale -- drop gaussian_drive or use the "
+        "izhikevich family"
+    )
+
+
+def _gaussian_noise_for_route(
+    self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig
+) -> "Optional[_np_host.ndarray]":
+    """Per-cell ``noise_scale`` that realizes ``sim.gaussian_drive``, or None.
+
+    Raises every refusal the declaration needs on the Izhikevich routes: the
+    route's kernel must take a per-cell ``noise_scale`` (receptor_exponential
+    takes none), no other ``noise_scale`` may be declared on the run, and the
+    mapping must name exactly the model's cell types.
+    """
+    decl = getattr(sim, "gaussian_drive", None)
+    if decl is None:
+        return None
+    if runtime_cfg.synaptic_kernel == "receptor_exponential":
+        raise ValueError(
+            "Simulation.gaussian_drive is not realized on synaptic_kernel="
+            "'receptor_exponential': simulate_receptor_exponential_izhikevich takes no "
+            "noise_scale (it hard-codes the 0.5 coefficient); use "
+            "synaptic_kernel='exponential' or drop gaussian_drive"
+        )
+    if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+        raise ValueError(
+            "Simulation.gaussian_drive is refused together with "
+            "hdp_params['noise_scale']: both set the stochastic-current coefficient; "
+            "declare one"
+        )
+    if getattr(runtime_cfg, "enable_homeostasis", False) and "noise_scale" in dict(
+        runtime_cfg.homeostasis_params or {}
+    ):
+        raise ValueError(
+            "Simulation.gaussian_drive is refused together with "
+            "homeostasis_params['noise_scale']: both set the stochastic-current "
+            "coefficient; declare one"
+        )
+    emitter = self.params["emitter"]
+    labels = tuple(str(lbl) for lbl in emitter.labels)
+    model_types = sorted(set(labels))
+    stds = decl["std_by_cell_type"]
+    missing = [t for t in model_types if t not in stds]
+    unknown = sorted(str(k) for k in stds if k not in model_types)
+    if missing:
+        raise ValueError(
+            f"Simulation.gaussian_drive std_by_cell_type misses model cell type(s) "
+            f"{missing}; the model's cell types are {model_types}"
+        )
+    if unknown:
+        raise ValueError(
+            f"Simulation.gaussian_drive std_by_cell_type names unknown cell type(s) "
+            f"{unknown}; the model's cell types are {model_types}"
+        )
+    return _np_host.asarray([float(stds[lbl]) for lbl in labels], dtype=_np_host.float64)
+
+
+def _gaussian_cache_suffix(gauss) -> tuple:
+    """Compile-cache key part for a per-cell gaussian ``noise_scale`` (empty if undeclared)."""
+    if gauss is None:
+        return ()
+    return (("gaussian_drive", tuple(float(x) for x in gauss)),)
+
+
 def _simulate_arrays(
     self: "Model",
     sim: Simulation,
@@ -275,6 +356,8 @@ def _simulate_arrays(
     n_neurons = emitter.v0.shape[0]
     jdtype = _dtype_from_policy(runtime_cfg.actual_dtype)
     ablation_mode = getattr(sim, "ablation", None)
+    # Per-cell gaussian noise_scale (None when gaussian_drive is undeclared).
+    gauss = _gaussian_noise_for_route(self, sim, runtime_cfg)
 
     # Sparse-direct models carry a placeholder dense W (edges live only in
     # params["edge_list"]); force the edge_list backend so the dense kernel is
@@ -385,7 +468,7 @@ def _simulate_arrays(
                 dtype=runtime_cfg.actual_dtype,
                 drive_schedule=s,
                 silence_mask=silence_mask,
-                noise_scale=hp.get("noise_scale", None),
+                noise_scale=gauss if gauss is not None else hp.get("noise_scale", None),
                 noise_schedule=_chain_noise_schedule(
                     k,
                     sim.n_steps,
@@ -436,7 +519,7 @@ def _simulate_arrays(
                 runtime_cfg.selected_backend,
                 _plastic_active,
                 _homeostasis_params_cache_fingerprint(hp),
-            )
+            ) + _gaussian_cache_suffix(gauss)
             with _device_scope(runtime_cfg.selected_backend):
                 if cache_key not in self._compiled_cache:
                     import time
@@ -553,7 +636,7 @@ def _simulate_arrays(
                     hdp_rule=str(hp["hdp_rule"]),
                     hdp_rule_params=hp.get("hdp_rule_params", {}),
                     record_weight_trace=bool(hp.get("record_weight_trace", True)),
-                    noise_scale=hp.get("noise_scale", None),
+                    noise_scale=gauss if gauss is not None else hp.get("noise_scale", None),
                     noise_schedule=_chain_noise_schedule(
                         k,
                         sim.n_steps,
@@ -570,6 +653,8 @@ def _simulate_arrays(
                 )
             else:
                 kernel_kwargs = _hdp_kernel_kwargs(hp)
+                if gauss is not None:
+                    kernel_kwargs["noise_scale"] = gauss
                 V, S, src, diag = simulate_edge_recurrent_izhikevich_hdp(
                     emitter,
                     edges,
@@ -649,7 +734,7 @@ def _simulate_arrays(
                 runtime_cfg.selected_backend,
                 _homeostasis_params_cache_fingerprint(hp),
                 _forced_key,
-            )
+            ) + _gaussian_cache_suffix(gauss)
             with _device_scope(runtime_cfg.selected_backend):
                 if cache_key not in self._compiled_cache:
                     import time
@@ -771,7 +856,7 @@ def _simulate_arrays(
                 runtime_cfg.synaptic_kernel,
                 ablation_mode,
                 runtime_cfg.selected_backend,
-            )
+            ) + _gaussian_cache_suffix(gauss)
             with _device_scope(runtime_cfg.selected_backend):
                 if cache_key not in self._compiled_cache:
                     import time
@@ -791,7 +876,9 @@ def _simulate_arrays(
                                 _member_base_seed,
                                 _member_counts,
                             )
-                            if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+                            if gauss is not None:
+                                extra_kw["noise_scale"] = gauss
+                            elif runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
                                 extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
                         return kernel_fn(
                             emitter,
@@ -835,7 +922,9 @@ def _simulate_arrays(
                     _member_base_seed,
                     _member_counts,
                 )
-                if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+                if gauss is not None:
+                    extra_kw["noise_scale"] = gauss
+                elif runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
                     extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
             return kernel_fn(
                 emitter,
@@ -854,6 +943,12 @@ def _simulate_arrays(
         if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
             _require_net_m_zero_noise(runtime_cfg.hdp_params["noise_scale"])
             dense_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
+    if gauss is not None:
+        # The dense kernel takes the per-cell coefficient in default order; net_m
+        # realizes no noise, so it admits only an all-zero declaration.
+        if update_order == "net_m":
+            _require_net_m_zero_noise(gauss)
+        dense_kw["noise_scale"] = gauss
     effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
     if effective_jit:
         if not hasattr(self, "_compiled_cache"):
@@ -876,7 +971,7 @@ def _simulate_arrays(
             ablation_mode,
             runtime_cfg.selected_backend,
             update_order,
-        )
+        ) + _gaussian_cache_suffix(gauss)
         with _device_scope(runtime_cfg.selected_backend):
             if cache_key not in self._compiled_cache:
                 import time
@@ -1039,6 +1134,8 @@ def _simulate_continuation_arrays(
             "synaptic_kernel='exponential'; requested "
             f"{runtime_cfg.synaptic_kernel!r}"
         )
+    # Per-cell gaussian noise_scale; every continuation kernel takes it (below).
+    gauss = _gaussian_noise_for_route(self, sim, runtime_cfg)
     # Poisson background is generated per segment in simulate() (each
     # continuation chunk from its own chunk seed), so no refusal here: HDP
     # state (H, w), delays in flight and the PRNG chain all ride the
@@ -1113,6 +1210,8 @@ def _simulate_continuation_arrays(
             }
         else:
             hdp_kwargs = _hdp_kernel_kwargs(hp)
+        if gauss is not None:
+            hdp_kwargs["noise_scale"] = gauss
         if _forced_rows is None:
             step_fn, _ = compile_step_fn(
                 self,
@@ -1121,6 +1220,8 @@ def _simulate_continuation_arrays(
                 **hdp_kwargs,
             )
     else:
+        if gauss is not None:
+            baseline_kw["noise_scale"] = gauss
         step_fn, _ = compile_step_fn(
             self,
             dt_ms=sim.dt_ms,
@@ -1347,6 +1448,7 @@ def simulate(
     # HDP-on candidate on the same immutable model instance.
     object.__setattr__(self, "_last_hdp_diag", None)
     object.__setattr__(self, "_last_homeostasis_diag", None)
+    _refuse_gaussian_drive_family(self, sim)
 
     if isinstance(self.params["emitter"], AdExParams):
         _refuse_adex_inputs(self, sim, paradigm, continuation, return_state)
@@ -1575,6 +1677,14 @@ def simulate(
     }
     if poisson_final_step is not None:
         metadata["poisson_field_final_step"] = poisson_final_step
+    if sim.gaussian_drive is not None:
+        # Recorded only when declared so default receipts stay unchanged.
+        metadata["gaussian_drive"] = {
+            "std_by_cell_type": {
+                str(k): float(v)
+                for k, v in sorted(sim.gaussian_drive["std_by_cell_type"].items())
+            }
+        }
     if schedule is not None:
         metadata["stimulus_injection_status"] = "native_drive_schedule_v0.0.12"
         metadata["stimulus_schedule"] = schedule.to_dict()
@@ -2605,7 +2715,7 @@ def simulate_batch(
         runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
     # The batch kernel draws no Poisson drive, applies no ablation, always
     # returns sources and never builds a field.
-    for _name in ("poisson_drive", "ablation"):
+    for _name in ("poisson_drive", "ablation", "gaussian_drive"):
         if getattr(sim, _name) is not None:
             raise ValueError(
                 f"simulate_batch does not consume Simulation.{_name}; use simulate() "
@@ -2865,6 +2975,7 @@ def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict
             f"{type(self.params['emitter']).__name__}"
         )
     seed_list = _checked_batch_seeds(seeds)
+    _refuse_gaussian_drive_family(self, sim)
     if int(sim.seed) != 0:
         raise ValueError(
             f"simulate_adex_seed_batch does not consume Simulation.seed (got {int(sim.seed)}); "
@@ -2955,6 +3066,7 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
             f"{type(self.params['emitter']).__name__}"
         )
     seed_list = _checked_batch_seeds(seeds)
+    _refuse_gaussian_drive_family(self, sim)
     if int(sim.seed) != 0:
         raise ValueError(
             f"simulate_lif_seed_batch does not consume Simulation.seed (got {int(sim.seed)}); "

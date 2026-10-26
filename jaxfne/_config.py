@@ -1042,6 +1042,7 @@ class Configuration:
         delay_ms: Optional[float] = None,
         weight_std: Optional[float] = None,
         delay_std_ms: Optional[float] = None,
+        weight_range: Optional[Sequence[float]] = None,
         intra_step_rounds: Optional[int] = None,
         sampling: str = "density",
         footprint: Optional[Mapping[str, Any]] = None,
@@ -1104,7 +1105,11 @@ class Configuration:
         requires) and folds sub-zero draws at zero (positive delays). Both
         spreads are refused on the sign-only fallback path (fail-closed: that
         compiler has no spread consumer), and a non-scalar ``weight`` with
-        ``weight_std`` is refused by the compiler. ``intra_step_rounds`` (None = undeclared = current behaviour)
+        ``weight_std`` is refused by the compiler. ``weight_range`` (None = undeclared = the
+        rule's existing weights) is a ``(lo, hi)`` pair of finite reals with ``0 <= lo < hi``:
+        the compiler draws each edge's magnitude U[lo, hi) from the rule's own stream. It
+        replaces a scalar ``weight`` and excludes ``weight_std`` (both refused), and is
+        refused on the sign-only fallback path like the spreads. ``intra_step_rounds`` (None = undeclared = current behaviour)
         declares the intra-step fixed point for this connection on the adex
         route: a positive int R admitting a ``delay_ms`` that rounds to 0 steps
         on that connection only (delay 0 means "resolved inside the step"; R
@@ -1174,6 +1179,11 @@ class Configuration:
                 raise ValueError(
                     f"connection {name!r} {_key} must be finite and >= 0; got {_val!r}"
                 )
+        from .connectivity import _validate_weight_range
+
+        _range = _validate_weight_range(
+            name, weight_range, weight=weight, weight_std=weight_std
+        )
         if delay_std_ms is not None and delay_ms is None:
             raise ValueError(
                 f"connection {name!r} declares delay_std_ms={delay_std_ms!r} without "
@@ -1282,6 +1292,9 @@ class Configuration:
         if weight_std is not None:
             # Stored only when declared so existing config hashes stay unchanged.
             entry["weight_std"] = float(weight_std)
+        if _range is not None:
+            # Stored only when declared so existing config hashes stay unchanged.
+            entry["weight_range"] = [_range[0], _range[1]]
         if delay_std_ms is not None:
             # Stored only when declared so existing config hashes stay unchanged.
             entry["delay_std_ms"] = float(delay_std_ms)

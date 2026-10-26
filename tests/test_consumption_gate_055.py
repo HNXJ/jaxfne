@@ -44,6 +44,10 @@ SIM_CASES = {
     "record_fields": ({}, {"record_fields": False}, "output"),
     "poisson_drive": ({}, {"poisson_drive": _POIS}, "output"),
     "ablation": ({}, {"ablation": "disconnected_null"}, "output"),
+    "gaussian_drive": (
+        {}, {"gaussian_drive": {"std_by_cell_type": {"E": 3.0, "PV": 0.0, "SST": 0.0}}},
+        "output",
+    ),
     "runtime": ({}, _rt(recurrent_backend="edge_list"), "output"),
 }
 # A "policy" case names its consumer; a field with no consumer is not policy.
@@ -170,7 +174,8 @@ def test_unconsumed_values_are_refused(model, sim_kwargs, match):
 @pytest.mark.parametrize(
     "sim_kwargs",
     [{"poisson_drive": _POIS}, {"ablation": "E_silence"},
-     {"record_sources": False}],
+     {"record_sources": False},
+     {"gaussian_drive": {"std_by_cell_type": {"E": 1.0}}}],
 )
 def test_simulate_batch_refuses_fields_it_does_not_consume(model, sim_kwargs):
     with pytest.raises(ValueError, match="simulate_batch does not consume"):
