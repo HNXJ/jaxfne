@@ -3,8 +3,8 @@
 Goal G-0: submit one jaxfne paper to arXiv (q-bio.NC, cross-list cs.NE, CC BY 4.0) with 8 main
 figures, 16 supplementary figures, at most 80 references, and checklist C1-C12 at 100/100.
 Scope rule: every paper task names its figure (F1-F8, S1-S16) or checklist item (C1-C12). Work that
-maps to none waits until Hamm amends this file (dated entry at the end). Releases 0.5.9 to 0.6.0
-serve this plan first.
+maps to none waits until Hamm amends this file (dated entry at the end). Releases 0.5.9 to 0.5.11
+serve this plan first; 0.6.0 is the acceptance release (amendment 2026-10-26).
 
 Framing (Hamm 2026-10-25): a methods and software paper with validation, theory first. TFNE is a
 containment and composition language for neural models of different resolution; geometry, H-state
@@ -26,7 +26,7 @@ PCL (N'dri 2025), GSDR. Mejias 2016 and Destexhe 2009 are extras.
 | F5 | Validation, emitters: Brunel 2000 Fig. 8 regimes; Izhikevich 2003 Fig. 2-3 on the public path | Brunel P3; Izhikevich v7 + E1 | 0.5.9 |
 | F6 | Validation, circuits and geometry: Potjans 2014 microcircuit; CAMINOS Fig. 1 on the library path | Potjans P3; CAMINOS P6 v2 | 0.5.9 |
 | F7 | Validation, plasticity and fit to data: Vogels 2011 inhibitory balance; PCL; GSDR fits | Vogels P3 (per-synapse rule); PCL criteria that pass; GSDR P3 | 0.5.9 |
-| F8 | Alignment: claim coverage by status tier; fit-to-data summary across the replication set | claim ledger, dashboard data | 0.6.0 |
+| F8 | Alignment: claim coverage by status tier; fit-to-data summary across the replication set | claim ledger, dashboard data | 0.5.11 |
 
 ## Supplementary figures
 
@@ -75,8 +75,13 @@ optimization 9; reproducibility and preregistration 6; other 10. Each in
 
 ## Sequence
 
-0.5.8: release in flight. 0.5.9: F3, F5-F7 lanes (Izhikevich E1, Potjans P3, CAMINOS S2 rerun,
-Vogels rerun and P3, PCL R2-R5, GSDR prereg and P3), S1. 0.5.10: F2, F4, S3, S6, S7, S16. 0.6.0:
-manuscript rewrite, refreeze (C2), review (C11), arXiv (C12).
+0.5.8: published 2026-10-26. 0.5.9: F3, F5-F7 lanes (Izhikevich E1, Potjans P3, CAMINOS S2 rerun,
+Vogels rerun and P3, PCL R2-R5, GSDR prereg and P3), S1. 0.5.10: F2, F4, S3, S6, S7, S16. 0.5.11:
+manuscript rewrite, refreeze (C2), review (C11), arXiv (C12). 0.6.0: acceptance. Packages:
+`artifacts/etudes/meta/plans/release_plan_0.5.9-0.6.0.md`.
 
 ## Amendments
+
+- 2026-10-26 (Hamm): 0.6.0 is the post-peer-review and acceptance release, a hard and complete one.
+  Submission moves to 0.5.11, the release after 0.5.10 (the dispatcher's numbering); F8 and the
+  0.6.0 sequence items move with it.

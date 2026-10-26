@@ -92,8 +92,8 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 ## 2. Next release: 0.5.9 (items moved from 0.5.8 below)
 
 0.5.8 published 2026-10-26 (tag v0.5.8 on main 11957afa, GitHub Release, PyPI; receipt
-`artifacts/release/v0_5_8_release_receipt.json`). Plan: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md`.
-A 0.5.9 release needs a new go from Hamm.
+`artifacts/release/v0_5_8_release_receipt.json`). Plan: `artifacts/etudes/meta/plans/release_plan_0.5.9-0.6.0.md`
+(packages 9A-9G; decisions H1-H5; 0.5.11 submission, 0.6.0 acceptance). A 0.5.9 release needs a new go from Hamm.
 
 - [A] JUnit parity classifier (0.5.9): `compare_pytest_junit.classify` reads three explained CI-skip
   kinds as UNKNOWN, so the rc gate stops at junit_parity and the package families run by hand (0.5.7
