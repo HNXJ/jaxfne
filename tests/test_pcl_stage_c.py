@@ -72,6 +72,7 @@ def _clip_counts(f: int, s: int) -> tuple[np.ndarray, np.ndarray, int]:
     return sc, cc, int(out["n_events"])
 
 
+@pytest.mark.data_gated
 def test_stage_c_oracle_20clip_record():
     """Pin the S1 oracle side of the Stage C comparison (frozen cSTDP3, learning off)."""
     tot_s = tot_c = 0
@@ -237,6 +238,7 @@ def _oracle_slice_matrix(n_steps: int, t0: int, t_last: int) -> np.ndarray:
     return mat
 
 
+@pytest.mark.data_gated
 def test_stage_c_tensor_route_matches_oracle_on_slice():
     """Step 9: the tensor route replays clip (0,0)'s first 300 events exactly.
 
@@ -264,6 +266,7 @@ def test_stage_c_tensor_route_matches_oracle_on_slice():
     assert bool(np.isnan(np.asarray(signals.V_m)).all()), "V_m must be NaN"
 
 
+@pytest.mark.data_gated
 def test_stage_c_tensor_route_20clip_receipt():
     """Step 9: the committed 20-clip receipt matches the pins and the gate."""
     receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))

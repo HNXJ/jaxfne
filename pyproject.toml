@@ -258,6 +258,8 @@ markers = [
   "slow: long-running multi-trial simulations and parameter sweeps",
   "x64: test requires jax_enable_x64; the conftest fixture enables it for the test",
   "bitwise_diagnostic: platform-dependent bitwise-identity probe (see test docstring); informational, never contract",
+  "data_gated: needs warehouse inputs or frozen outputs; skipped where they are absent (CI), classified by the JUnit comparator",
+  "optional_oracle: needs an optional third-party oracle through importorskip; no extra installs it, classified by the JUnit comparator",
   "notebook: interactive tutorial notebook execution tests",
   "release: complete T2 release-gate tests including docs and full examples",
 ]

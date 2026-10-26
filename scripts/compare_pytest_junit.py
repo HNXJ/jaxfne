@@ -5,7 +5,9 @@ Usage:
     python scripts/compare_pytest_junit.py --rc rc.xml --ci ci.xml [--json]
 
 Each record carries node_id, outcome (passed/skipped/failed/error),
-and skip/xfail reason. Differences are classified:
+skip/xfail reason, skip type (pytest.skip or pytest.xfail) and the
+jaxfne markers that tests/conftest.py records as the "jaxfne_marker"
+user property. Differences are classified:
 
   INTENTIONAL_PLATFORM_DIFFERENCE - skip reason names a platform
     (POSIX, Windows, Linux, macOS, executable bit).
@@ -15,12 +17,22 @@ and skip/xfail reason. Differences are classified:
   ENVIRONMENT_DEFECT - a required capability is missing on one side
     (reportlab/viz; extends to importorskip names when the reason
     names the distribution).
+  INTENTIONAL_DATA_GATE - data_gated marker; one leg passed, the other
+    skipped (warehouse inputs present on one leg only).
+  INTENTIONAL_OPTIONAL_ORACLE - optional_oracle marker; one leg passed,
+    the other skipped (an oracle package absent on one leg).
+  INTENTIONAL_DIAGNOSTIC - bitwise_diagnostic marker; one leg passed (xpass),
+    the other an xfail skip. Informational by marker definition.
   UNKNOWN - everything else.
 
-Exit codes: 0 when node sets match and every outcome difference is
-INTENTIONAL_PLATFORM_DIFFERENCE or INTENTIONAL_VERSION_DIFFERENCE;
-1 otherwise (node-set mismatch, any ENVIRONMENT_DEFECT/UNKNOWN diff,
-or any failure/error).
+The three marker classes need the marker on both legs, so a CI file
+written before the property existed stays UNKNOWN. A marker never excuses
+a failed or error outcome, and it applies only to a passed-versus-skipped
+pair (the diagnostic also needs the skipped leg to be pytest.xfail).
+
+Exit codes: 0 when node sets match and every outcome difference is in
+PASSING_DIFFERENCES; 1 otherwise (node-set mismatch, any
+ENVIRONMENT_DEFECT/UNKNOWN diff, or any failure/error).
 """
 
 from __future__ import annotations
@@ -40,9 +52,21 @@ JNWB_311_SKIP_MARKERS = (
     'no module named "jnwb"',
     "installed jnwb has no compute_psd",
 )
+# Written by tests/conftest.py as a per-testcase JUnit property.
+MARKER_PROPERTY = "jaxfne_marker"
+# marker -> class; checked after the reason-text classes, so a skip whose
+# reason names an environment defect stays ENVIRONMENT_DEFECT.
+MARKER_CLASSES = (
+    ("data_gated", "INTENTIONAL_DATA_GATE"),
+    ("optional_oracle", "INTENTIONAL_OPTIONAL_ORACLE"),
+    ("bitwise_diagnostic", "INTENTIONAL_DIAGNOSTIC"),
+)
 PASSING_DIFFERENCES = frozenset({
     "INTENTIONAL_PLATFORM_DIFFERENCE",
     "INTENTIONAL_VERSION_DIFFERENCE",
+    "INTENTIONAL_DATA_GATE",
+    "INTENTIONAL_OPTIONAL_ORACLE",
+    "INTENTIONAL_DIAGNOSTIC",
 })
 
 
@@ -57,6 +81,18 @@ def _outcome(case: ET.Element) -> tuple[str, str]:
     return "passed", ""
 
 
+def _skip_type(case: ET.Element) -> str:
+    """pytest.xfail for an xfail-marked skip, pytest.skip for a plain skip."""
+    skip = case.find("skipped")
+    return (skip.get("type") or "") if skip is not None else ""
+
+
+def _markers(case: ET.Element) -> list[str]:
+    found = {p.get("value") or "" for p in case.findall(
+        f"properties/property[@name='{MARKER_PROPERTY}']")}
+    return sorted(found - {""})
+
+
 def load(path: Path) -> dict[str, dict]:
     root = ET.parse(path).getroot()
     out: dict[str, dict] = {}
@@ -65,8 +101,24 @@ def load(path: Path) -> dict[str, dict]:
         name = case.get("name") or ""
         node = f"{classname}::{name}" if classname and name else (classname or name)
         outcome, reason = _outcome(case)
-        out[node] = {"outcome": outcome, "reason": reason}
+        out[node] = {"outcome": outcome, "reason": reason,
+                     "skip_type": _skip_type(case), "markers": _markers(case)}
     return out
+
+
+def _marker_class(a: dict, b: dict) -> str | None:
+    """Class for a passed-versus-skipped pair whose test carries a marker on both legs."""
+    if {a["outcome"], b["outcome"]} != {"passed", "skipped"}:
+        return None
+    skipped = a if a["outcome"] == "skipped" else b
+    shared = set(a.get("markers", [])) & set(b.get("markers", []))
+    for marker, cls in MARKER_CLASSES:
+        if marker not in shared:
+            continue
+        if cls == "INTENTIONAL_DIAGNOSTIC" and skipped.get("skip_type") != "pytest.xfail":
+            continue
+        return cls
+    return None
 
 
 def classify(node: str, a: dict, b: dict, ci_python: str | None = None) -> str:
@@ -77,7 +129,7 @@ def classify(node: str, a: dict, b: dict, ci_python: str | None = None) -> str:
         return "INTENTIONAL_VERSION_DIFFERENCE"
     if any(m in reason for m in ENV_MARKERS):
         return "ENVIRONMENT_DEFECT"
-    return "UNKNOWN"
+    return _marker_class(a, b) or "UNKNOWN"
 
 
 def compare(rc: dict, ci: dict, ci_python: str | None = None) -> dict:

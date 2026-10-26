@@ -128,6 +128,7 @@ def test_eeg_closed_form_matches_neumann_series():
         assert_allclose(lead[:, m], ref, rtol=1e-3, atol=1e-4 * np.abs(ref).max())
 
 
+@pytest.mark.optional_oracle
 def test_eeg_matches_mne_single_shell():
     mne = pytest.importorskip("mne")
     mne.set_log_level("ERROR")

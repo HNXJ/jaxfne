@@ -40,8 +40,18 @@ def _reset_compilation_registry():
     compilation_registry.reset()
 
 
+JUNIT_MARKER_PROPERTY = "jaxfne_marker"
+# Markers the JUnit comparator (scripts/compare_pytest_junit.py) classifies.
+JUNIT_MARKERS = ("data_gated", "optional_oracle", "bitwise_diagnostic")
+
+
 def pytest_collection_modifyitems(config, items):
-    """Dynamically assign smoke, fast, slow, and notebook markers based on module taxonomies."""
+    """Dynamically assign smoke, fast, slow, and notebook markers based on module taxonomies.
+
+    Also records the JUnit-classified markers as user properties. Pytest writes
+    them into the testcase's <properties> block under the default xunit2 family.
+    Appending to item.user_properties avoids record_property, which warns under xunit2.
+    """
     smoke_modules = {
         "test_api_smoke",
         "test_root_import_lightweight",
@@ -73,4 +83,7 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(marker_smoke)
         if mod_name in fast_modules:
             item.add_marker(marker_fast)
+        for name in JUNIT_MARKERS:
+            if item.get_closest_marker(name) is not None:
+                item.user_properties.append((JUNIT_MARKER_PROPERTY, name))
 

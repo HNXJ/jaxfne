@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
+
+import pytest
 
 from scripts.compare_pytest_junit import compare, load, load_many
 
@@ -110,3 +113,146 @@ def test_load_many_merges_disjoint_sweeps(tmp_path):
     r2 = _junit(tmp_path / "s.xml", [("a::t2", "skipped", "POSIX x")])
     merged = load_many([r1, r2])
     assert sorted(merged) == ["a::t1", "a::t2"]
+
+
+# --- marker-classified differences (tests/conftest.py writes jaxfne_marker) ---
+
+DATA_NODE = "tests.test_pcl_stage_c::test_stage_c_tensor_route_20clip_receipt"
+DATA_REASON = ("Stage C needs the warehouse test7 inputs, S1 oracle outputs "
+               "and the frozen cSTDP3 network")
+ORACLE_NODE = "tests.test_head_forward::test_eeg_matches_mne_single_shell"
+ORACLE_REASON = "could not import 'mne': No module named 'mne'"
+DIAG_NODE = "tests.test_adex_route::test_adex_seed_batch_matches_serial_per_member"
+DIAG_REASON = "bitwise V_m is platform/run-dependent; diagnostic evidence only"
+
+# (node, marker, expected class, skip type on the skipped leg, skip reason)
+KINDS = [
+    (DATA_NODE, "data_gated", "INTENTIONAL_DATA_GATE", "pytest.skip", DATA_REASON),
+    (ORACLE_NODE, "optional_oracle", "INTENTIONAL_OPTIONAL_ORACLE", "pytest.skip", ORACLE_REASON),
+    (DIAG_NODE, "bitwise_diagnostic", "INTENTIONAL_DIAGNOSTIC", "pytest.xfail", DIAG_REASON),
+]
+
+
+def _case(node, outcome, reason="", markers=(), skip_type="pytest.skip") -> str:
+    """One <testcase> shaped like pytest's xunit2 output for these outcomes."""
+    cls, _, name = node.partition("::")
+    props = "".join(f'<property name="jaxfne_marker" value="{m}"/>' for m in markers)
+    body = f"<properties>{props}</properties>" if props else ""
+    if outcome == "skipped":
+        body += f'<skipped type="{skip_type}" message="{reason}"/>'
+    elif outcome in ("failure", "error"):
+        body += f'<{outcome} message="{reason}"/>'
+    return f'<testcase classname="{cls}" name="{name}">{body}</testcase>'
+
+
+def _xml(path: Path, *cases: str) -> Path:
+    path.write_text(
+        '<?xml version="1.0" ?><testsuites><testsuite>'
+        + "".join(cases) + "</testsuite></testsuites>",
+        encoding="utf-8",
+    )
+    return path
+
+
+@pytest.mark.parametrize("node, marker, expected, skip_type, reason", KINDS)
+def test_marker_excuses_a_passed_versus_skipped_pair(tmp_path, node, marker, expected, skip_type, reason):
+    rc = _xml(tmp_path / "rc.xml", _case(node, "passed", markers=[marker]))
+    ci = _xml(tmp_path / "ci.xml",
+              _case(node, "skipped", reason, markers=[marker], skip_type=skip_type))
+    for a, b in ((rc, ci), (ci, rc)):
+        rep = compare(load(a), load(b))
+        assert [d["classification"] for d in rep["outcome_differences"]] == [expected]
+        assert rep["pass"] is True
+
+
+@pytest.mark.parametrize("marked", [True, False])
+def test_parity_gate_passes_marked_pairs_and_fails_unmarked(tmp_path, monkeypatch, marked):
+    import scripts.check_junit_parity as parity
+
+    att = tmp_path / "attestations"
+    att.mkdir()
+    monkeypatch.setattr(parity, "ATTESTATIONS", att)
+    _xml(att / parity.RC_JUNIT[0],
+         *[_case(node, "passed", markers=[marker]) for node, marker, *_ in KINDS])
+    for name in parity.RC_JUNIT[1:]:
+        _xml(att / name)
+    ci = _xml(tmp_path / "ci.xml", *[
+        _case(node, "skipped", reason, markers=[marker] if marked else (), skip_type=skip_type)
+        for node, marker, _, skip_type, reason in KINDS
+    ])
+    out = tmp_path / "out.json"
+    rc = parity.main(["--ci-junit", str(ci), "--sha", "c" * 40, "--out", str(out)])
+    assert rc == (0 if marked else 1)
+    written = json.loads(out.read_text(encoding="utf-8"))
+    assert written["pass"] is marked
+    by_class = written["comparisons"]["ci.xml"]["justified_by_class"]
+    for node, _, expected, *_ in KINDS:
+        assert (node in by_class[expected]) is marked
+
+
+@pytest.mark.parametrize("node, marker, expected, skip_type, reason", KINDS)
+def test_same_skip_without_marker_property_stays_unknown(tmp_path, node, marker, expected, skip_type, reason):
+    rc = _xml(tmp_path / "rc.xml", _case(node, "passed"))
+    ci = _xml(tmp_path / "ci.xml", _case(node, "skipped", reason, skip_type=skip_type))
+    rep = compare(load(rc), load(ci))
+    assert [d["classification"] for d in rep["outcome_differences"]] == ["UNKNOWN"]
+    assert rep["pass"] is False
+
+
+def test_marker_on_one_leg_only_stays_unknown(tmp_path):
+    node, marker, _, _, reason = KINDS[0]
+    rc = _xml(tmp_path / "rc.xml", _case(node, "passed", markers=[marker]))
+    ci = _xml(tmp_path / "ci.xml", _case(node, "skipped", reason))
+    rep = compare(load(rc), load(ci))
+    assert [d["classification"] for d in rep["outcome_differences"]] == ["UNKNOWN"]
+    assert rep["pass"] is False
+
+
+@pytest.mark.parametrize("bad", ["failure", "error"])
+@pytest.mark.parametrize("node, marker, expected, skip_type, reason", KINDS)
+def test_failure_with_marker_is_never_excused(tmp_path, bad, node, marker, expected, skip_type, reason):
+    rc = _xml(tmp_path / "rc.xml", _case(node, "passed", markers=[marker]))
+    ci = _xml(tmp_path / "ci.xml", _case(node, bad, "boom", markers=[marker]))
+    rep = compare(load(rc), load(ci))
+    assert [d["classification"] for d in rep["outcome_differences"]] == ["UNKNOWN"]
+    assert rep["pass"] is False
+    assert node in rep["failures_or_errors"]
+
+
+def test_failure_on_rc_leg_with_marker_is_never_excused(tmp_path):
+    node, marker, _, _, reason = KINDS[0]
+    rc = _xml(tmp_path / "rc.xml", _case(node, "error", "boom", markers=[marker]))
+    ci = _xml(tmp_path / "ci.xml", _case(node, "skipped", reason, markers=[marker]))
+    rep = compare(load(rc), load(ci))
+    assert rep["outcome_differences"][0]["classification"] == "UNKNOWN"
+    assert rep["pass"] is False
+
+
+def test_diagnostic_needs_the_xfail_skip_not_a_plain_skip(tmp_path):
+    node, marker, _, _, reason = KINDS[2]
+    rc = _xml(tmp_path / "rc.xml", _case(node, "passed", markers=[marker]))
+    ci = _xml(tmp_path / "ci.xml",
+              _case(node, "skipped", reason, markers=[marker], skip_type="pytest.skip"))
+    rep = compare(load(rc), load(ci))
+    assert rep["outcome_differences"][0]["classification"] == "UNKNOWN"
+    assert rep["pass"] is False
+
+
+def test_environment_reason_beats_a_marker(tmp_path):
+    node, marker, _, _, _ = KINDS[0]
+    rc = _xml(tmp_path / "rc.xml", _case(node, "passed", markers=[marker]))
+    ci = _xml(tmp_path / "ci.xml", _case(
+        node, "skipped", "reportlab not installed (viz extra not in dev CI)", markers=[marker]))
+    rep = compare(load(rc), load(ci))
+    assert rep["outcome_differences"][0]["classification"] == "ENVIRONMENT_DEFECT"
+    assert rep["pass"] is False
+
+
+def test_load_reads_marker_property_and_skip_type(tmp_path):
+    node, marker, _, skip_type, reason = KINDS[2]
+    path = _xml(tmp_path / "ci.xml",
+                _case(node, "skipped", reason, markers=[marker], skip_type=skip_type))
+    rec = load(path)[node]
+    assert rec["markers"] == ["bitwise_diagnostic"]
+    assert rec["skip_type"] == "pytest.xfail"
+    assert load(_xml(tmp_path / "plain.xml", _case("a::t1", "passed")))["a::t1"]["markers"] == []
