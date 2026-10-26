@@ -13,8 +13,7 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
   and differs for fig03-05; bytes differ for all (pixels and bytes are pinned to the macOS freeze platform). Closed 2026-10-26: the v0.5.7
   version DOI is in `docs/reference/project/zenodo_doi.md`; the 0.5.7 date in the release authority file
   matches the GitHub Release (2026-10-21 UTC; Zenodo dates its record 2026-10-22). [H] rows: the LICENSE name
-  "H N", the data and code statement, external data licences (PCL, CAMINOS), the F1-F8 to frozen fig01-fig07
-  mapping, S16 generators.
+  "H N", the data and code statement, external data licences (PCL, CAMINOS), S16 generators.
 - [H] C10: `docs/reference/references.md` lists 112 entries, 94 figure-linked, against the 80 cap
   (`artifacts/programme/paper/references_inventory.md`: plasticity 8 and fitting 7 short; other 20, fields 7,
   tools 4 over; JAX itself uncited; E054 repeats E004). The cut and the category map are Hamm's call.
@@ -22,13 +21,12 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
   (worker receipt: an 11x11 grid quarter turn changes 2 of 484) because the bucket neighbourhood is axis-aligned.
   Exact turn invariance needs a radius cutoff on candidates, a change to the candidate law: settle it with the C4
   claim wording. The 100k tutorial notebook and the w8/w10 baselines keep pre-L8 draws as historical receipts.
-- [A] C3, S1: `docs/theory/doctrine/definition_map.md` lists 5 definitions with no symbol and 3 realized only by
-  private names (lane L10 moved D9, D15, D16, D20, D22, D30 to the public operation that realizes them, each with a
-  test that reads the map). Several candidates each: D17 (`tfne.System`, `ExplicitModel.boundaries`,
-  `Realization.s["boundaries"]`), D26 (two emitters sites, `HDPRuleUpdate.dH`), D35 (`apply_calibration`,
-  `CalibrationSpec`). No symbol: D28 (`ValueTag` lacks B, R, E, T). New public names proposed: D21
-  `resolved_edge_weight`, D34 `rbd_recurrent_gain` (both `jaxfne/emitters.py`); D31 and D32 need a code path
-  that exposes a_eff and the AdEx clip. Public API choices: orchestrator, then Hamm.
+- [A] C3, S1: `docs/theory/doctrine/definition_map.md` lists 4 definitions with no symbol and 2 realized only by
+  private names (D21 and D34 mapped 2026-10-26 under H2). Several candidates each: D17 (`tfne.System`,
+  `ExplicitModel.boundaries`, `Realization.s["boundaries"]`), D26 (two emitters sites, `HDPRuleUpdate.dH`), D35
+  (`apply_calibration`, `CalibrationSpec`). No symbol: D28 (`ValueTag` lacks B, R, E, T). D31 and D32 need a code
+  path that exposes a_eff and the AdEx clip. Public API choices: orchestrator, then Hamm. S1 and S5 regenerate
+  with `python scripts/publication_figures/supplement.py`; S2 and the F1, F3 generators remain.
 - [H] C1: `python scripts/check_manuscript_claims.py` (lane L12) counts 0 cited ids missing from the ledger, 0
   statuses outside the tier set, 5 uncited ledger ids (CL-22 to CL-26) and 17 orphan candidates (abstract 1,
   results 16; results.md cites no CL id). CL-22 to CL-26 name AT-10 claims in
@@ -96,15 +94,11 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 `artifacts/release/v0_5_8_release_receipt.json`). Plan: `artifacts/etudes/meta/plans/release_plan_0.5.9-0.6.0.md`
 (packages 9A-9G; decisions H1-H5; 0.5.11 submission, 0.6.0 acceptance). A 0.5.9 release needs a new go from Hamm.
 
-- [A] 9F: the broad gate writes root `outputs/evidence/inventory.json` and `tests/outputs/v020_spectrolaminar_public_path/`
-  (2026-10-26); send those writers to `tmp_path` or `artifacts/_temp/`, then delete both folders. Same class: a
-  `tests/test_build_docs_assets.py` test rewrites `docs/assets/` while `test_check_passes_on_tree` reads it (xdist race,
-  failed once in the dev gate 2026-10-26, passes alone).
-- [A] JUnit parity classifier (0.5.9): `compare_pytest_junit.classify` reads three explained CI-skip
-  kinds as UNKNOWN, so the rc gate stops at junit_parity and the package families run by hand (0.5.7
-  and 0.5.8): data-gated skipifs (`test_pcl_stage_c`), optional-oracle importorskips (`mne` in no
-  extra), and `bitwise_diagnostic` xfail(strict=False). Classify each by its marker or skip source,
-  never by widening the reason-text markers; closes when rc on a candidate runs end to end.
+- [A] 9F: the JUnit classifier reads the `data_gated`, `optional_oracle` and `bitwise_diagnostic` markers
+  (2026-10-26); closes when rc on the next candidate runs end to end. Scripts under `scripts/evidence_figures/`
+  and `scripts/evidence_inventory.py` still default to root `outputs/` (gitignored): move them to
+  `artifacts/_temp/` after checking what fig07 records of the inventory path.
+  `tests/test_tutorial_figure_contract_v0219.py` skips all 32 cases: give it outputs or remove it.
 
 - Jitter reader (Hamm 2026-10-22): protocol (a) PASS on all four runs (A1/A2, seeds 0,1; w_pat -> 2.0
   bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak

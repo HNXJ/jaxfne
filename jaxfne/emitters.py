@@ -2363,20 +2363,27 @@ def _rbd_advance_h(
     return H_next
 
 
-def _rbd_recurrent_gain_affine(
+def rbd_recurrent_gain(
     family: str,
     H: jax.Array,
     beta_h: jax.Array,
     *,
     jdtype: jnp.dtype,
 ) -> jax.Array:
-    """Postsynaptic recurrent gain ``G_H(H;beta_H)=1+beta_H(H-1)`` (Protocol H1c-C)."""
+    """Typed coupling map ``G_H(H;beta_H)=1+beta_H(H-1)`` on the recurrent current (Protocol H1c-C).
+
+    Neutral cases return 1 exactly: RBD family ``"f0"``, or ``beta_h == 0``, so the
+    composed drive reduces to the H-free model. A non-positive gain returns NaN.
+    """
     one = jnp.ones_like(H, dtype=jdtype)
     if family == "f0":
         return one
     g = 1.0 + beta_h * (H - 1.0)
     g = jnp.where(beta_h == 0.0, one, g)
     return jnp.where(g > 0, g, jnp.nan)
+
+
+_rbd_recurrent_gain_affine = rbd_recurrent_gain
 
 
 def _rbd_compose_native_current(
@@ -2390,7 +2397,7 @@ def _rbd_compose_native_current(
     jdtype: jnp.dtype,
 ) -> jax.Array:
     """``I_drive = I_ext + G_H(H) * I_rec + noise``; ``F_H`` uses pre-gain ``I_rec``."""
-    g_h = _rbd_recurrent_gain_affine(family, H, beta_h, jdtype=jdtype)
+    g_h = rbd_recurrent_gain(family, H, beta_h, jdtype=jdtype)
     return I_ext + g_h * I_rec + noise
 
 

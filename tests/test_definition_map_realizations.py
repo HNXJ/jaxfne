@@ -75,6 +75,36 @@ def test_d20_declared_geometry_is_a_fraction_of_the_block():
     assert blocks == [{"z": [0.2, 0.5]}]
 
 
+def test_d21_declared_weight_reaches_the_kernel_resolver():
+    """D21: the kernel resolver returns the declared weight, signed by the presynaptic cell."""
+    import jaxfne
+    from jaxfne.tfne import realize, resolve, to_configuration
+
+    resolve_weight = _mapped("D21")
+    ab = "A := [C = {E}; N = 4]; B := [C = {E}; N = 4];"
+    program = parse(f"O[k] := [direction = >; mechanism = AMPA; weight = 0.3125];\n{ab}\nx : A O[k] B : y\n")
+    realization = realize(resolve(program), program)
+    model = jaxfne.construct(to_configuration(realization, duration_ms=5.0, dt_ms=0.1))
+    edges, emitter = model.params["edge_list"], model.params["emitter"]
+    assert int(edges.n_edges) > 0, "fixture must have edges"
+    w = np.asarray(resolve_weight(edges, edges.weight.dtype, presynaptic_sign=emitter.sign))
+    assert np.allclose(np.sort(w), np.sort(np.asarray(realization.s["edge_weight"])), atol=1e-6)
+    assert np.allclose(w, 0.3125, atol=1e-6)
+
+
+def test_d34_gain_map_is_one_at_neutral_h_and_affine_otherwise():
+    """D34: G_H(H; beta_H) = 1 + beta_H (H - 1); exactly 1 for family f0 or beta_H = 0."""
+    import jax.numpy as jnp
+
+    gain = _mapped("D34")
+    H = jnp.asarray([0.8, 1.0, 1.2], dtype=jnp.float32)
+    beta = jnp.asarray(0.5, dtype=jnp.float32)
+    assert np.allclose(gain("f1", H, beta, jdtype=jnp.float32), [0.9, 1.0, 1.1], rtol=1e-6)
+    assert np.array_equal(gain("f1", H, jnp.asarray(0.0, dtype=jnp.float32), jdtype=jnp.float32), np.ones(3))
+    assert np.array_equal(gain("f0", H, beta, jdtype=jnp.float32), np.ones(3))
+    assert np.isnan(np.asarray(gain("f1", jnp.asarray([-2.0], dtype=jnp.float32), beta, jdtype=jnp.float32))).all()
+
+
 def test_d22_declared_delay_realizes_to_round_delay_over_dt():
     """D22: delay_steps = round(delay_ms / dt_ms); 0.3 ms is 3 steps at 0.1 ms, 6 at 0.05 ms."""
     to_configuration = _mapped("D22")

@@ -85,3 +85,7 @@ manuscript rewrite, refreeze (C2), review (C11), arXiv (C12). 0.6.0: acceptance.
 - 2026-10-26 (Hamm): 0.6.0 is the post-peer-review and acceptance release, a hard and complete one.
   Submission moves to 0.5.11, the release after 0.5.10 (the dispatcher's numbering); F8 and the
   0.6.0 sequence items move with it.
+- 2026-10-26 (Hamm, H1): F1 is frozen fig01, F3 is frozen fig06, S15 is frozen fig05; fig02–04 and
+  fig07 stay frozen evidence outside the paper.
+- 2026-10-26 (Hamm, H2): D21 maps to `jaxfne.emitters.resolve_edge_weight`; D34 becomes the public
+  `jaxfne.emitters.rbd_recurrent_gain`.

@@ -87,11 +87,11 @@ Status key. Command exists: a generator in the repo matches the figure content b
 | F6 | Potjans 2014, CAMINOS | 27 | partial | `artifacts/etudes/papers/potjans2014/potjans2014_api.py`; `artifacts/etudes/papers/caminos/run_caminos.py` | Potjans lane has API and test, no run script |
 | F7 | Vogels 2011, PCL, GSDR fits | 28 | partial | `artifacts/etudes/papers/vogels2011/vogels2011_api.py`; `artifacts/etudes/papers/pcl/pcl_report.py`; `artifacts/etudes/papers/gsdr2026/run/run_gsdr.py` | Lane-level pieces; no panel generator |
 | F8 | Claim coverage by status tier; fit summary | 29 | partial | `scripts/build_dashboard_figures.py`; `scripts/check_claim_ledger_055.py` | Dashboard figure builder and ledger check; no status-tier figure generator found |
-| S1 | Notation table | 35 | none | nearest: `scripts/audit_vocabulary.py` | vocabulary check, not a notation table |
+| S1 | Notation table | 35 | command exists (2026-10-26) | `scripts/publication_figures/supplement.py` | table from `definition_map.md`; `tests/test_supplement_generators.py` |
 | S2 | Relative quantities, calibration | 36 | partial (tests only) | `tests/test_calibration_contracts_v025.py` | |
 | S3 | Geometry property tests | 37 | partial (tests only) | `tests/test_geometry_invariants.py` | |
 | S4 | NeuronalTensor schema, flattening | 38 | partial (tests only) | `tests/test_neuronal_tensor_geometry.py` | |
-| S5 | HDP reduction identity per rule | 39 | partial (tests only) | `tests/test_hdp_reduction_identity.py` | |
+| S5 | HDP reduction identity per rule | 39 | command exists (2026-10-26) | `scripts/publication_figures/supplement.py`; `tests/test_hdp_reduction_identity.py` | table and panel per registered rule |
 | S6 | Benchmark detail: CPU, GPU, Brian2, NEST, Jaxley | 40 | partial | `scripts/benchmarks/scaling_benchmark.py`; `scripts/benchmarks/brian2_izhikevich_comparison.py` | no NEST or Jaxley script found by name |
 | S7 | Augmentation determinism, provenance | 41 | partial (tests only) | `tests/test_augment_determinism.py`; `jaxfne/augment.py` | |
 | S8 | Brunel sensitivity (dt, seeds) | 42 | partial | `artifacts/etudes/papers/brunel2000/brunel2000_api.py` | no sensitivity run script found |
@@ -104,7 +104,7 @@ Status key. Command exists: a generator in the repo matches the figure content b
 | S15 | Negative results: traveling waves, NO_ADAPTATION, closed loop | 49 | partial | `scripts/publication_figures/fig05_protocol_c.py` | traveling-wave frozen figure only; NO_ADAPTATION appears in publication audit scripts such as `scripts/publication_figures/fig06_hwd_evidence.py`; no closed-loop generator found by name |
 | S16 | Extras: Mejias, Destexhe, kernel LFP, Jansen-Rit | 50 | partial | `artifacts/etudes/papers/mejias2016/mejias2016_api.py`; `artifacts/etudes/papers/destexhe2009/run_destexhe.py` | no Jansen-Rit or kernel-LFP generator; "Jansen" appears only in references and dashboard metadata |
 
-Counts: command exists 1 (F1). Partial 22 (F2 to F8, S2 to S16). None 1 (S1).
+Counts: command exists 3 (F1, S1, S5). Partial 21 (F2 to F8, S2 to S4, S6 to S16). None 0.
 
 Frozen figures: the 28 files in `frozen_manifest.json` (21 JSON, 7 PNG) are all git-tracked (`git ls-files --error-unmatch`, exit 0).
 
