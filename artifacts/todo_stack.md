@@ -89,15 +89,15 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   2026-10-13 became R1's F1, F2 and F6. Then P6 (B1). Closes when: a signed prereg reproduces Fig. 3,
   or Hamm closes it, and the P6 attempt is recorded.
 
-## 2. Next release: 0.5.8 (core-compliant replications)
+## 2. Next release: 0.5.9 (items moved from 0.5.8 below)
 
-0.5.7 published 2026-10-21 (tag v0.5.7 on main 03a86014, GitHub Release, PyPI; receipt
-`artifacts/release/v0_5_7_release_receipt.json`). Plan: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md`.
+0.5.8 published 2026-10-26 (tag v0.5.8 on main 11957afa, GitHub Release, PyPI; receipt
+`artifacts/release/v0_5_8_release_receipt.json`). Plan: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md`.
+A 0.5.9 release needs a new go from Hamm.
 
-- 0.5.8 candidate (2026-10-26): version 0.5.8, changelog section (21 bullets), canonical atlas at
-  0.5.8, P-037 closed, O-41 closed (RTD latest and stable at 03a86014 serve all 25 étude files).
-  Candidate f6614b25 (2026-10-26): rc families pass, Release CI 40272561706 and CI Fast green, Muse review
-  non-blocking; receipt drafted. Left [H]: tag, main, GitHub Release, PyPI; then the receipt lands.
+- [A] `scripts/release_body.py` writes the body through `sys.stdout` in the locale encoding: redirected
+  on Windows (cp1252) it raises UnicodeEncodeError on `→` (2026-10-26; rendered with PYTHONUTF8=1).
+  Write UTF-8 bytes; closes with a test that renders under a cp1252 stdout.
 - [A] JUnit parity classifier (0.5.9): `compare_pytest_junit.classify` reads three explained CI-skip
   kinds as UNKNOWN, so the rc gate stops at junit_parity and the package families run by hand (0.5.7
   and 0.5.8): data-gated skipifs (`test_pcl_stage_c`), optional-oracle importorskips (`mne` in no

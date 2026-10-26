@@ -1,19 +1,19 @@
 # state
 
-Stamp: jaxfne@dev@85199ade · 2026-10-26 (written 2026-10-26T02:18:23Z)
+Stamp: jaxfne@dev@4ca608f9 · 2026-10-26 (written 2026-10-26T14:17:34Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
 ## Works (with evidence)
 
-- 2026-10-26: 0.5.8 candidate on the tree (scope frozen by Hamm 2026-10-25; deferrals in todo
-  section 2). Version 0.5.8 in 8 files, changelog v0.5.8 (21 bullets from 8 fragments; docs lint
-  29 ghost / 19 adverb, limits 30 / 20), canonical atlas at 0.5.8 (config hash unchanged, state
-  validated), P-037 to `archive/0.5.x/issues_closed/`, O-41 closed (RTD latest and stable at
-  03a86014: 25 of 25 étude files served). Vogels per-synapse fix 85199ade with the plasticity
-  scorer on per-edge traces (score.json unchanged). Checks on the tree: release_body v0.5.8 PASS,
-  check_replications 31 known / 0 unlisted, build_dashboard_data fresh, record-integrity 0
-  violations. Broad gate and CI at the candidate SHA: pending.
+- 0.5.8 published 2026-10-26 (engineering release; scope frozen by Hamm 2026-10-25): tag v0.5.8 on
+  main 11957afa (PR 114, merge of 03a86014 and the tested dev f6614b25, tree 47dfdb08; CI Fast
+  40326163833, Release CI 40326163888 green), GitHub Release, PyPI via Publish run 40337551635
+  (PyPI sha256 equal to the release manifest); receipt `artifacts/release/v0_5_8_release_receipt.json`.
+  rc gate on f6614b25: every family passes (broad 7210 passed, 0 failed); JUnit parity 7362 = 7362
+  nodes against Release CI 40272561706, 0 failures, 7 explained CI skips (the classifier row in todo
+  section 2). Install and Colab docs name 0.5.8 as published. Local dev carries the G-0 lane commits
+  (L4-L12) on top of f6614b25, unpushed until a broad gate passes on them.
 
 - 2026-10-25: PCL-R1 fidelity audit sealed (receipt on dev a940569b, hash-pinned); four read-only audits
   (files, code, analysis status, state files) rebuilt `open_stack.md` (11 items, each with a `T-O<n>`
