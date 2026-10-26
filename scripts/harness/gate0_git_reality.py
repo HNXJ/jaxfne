@@ -32,27 +32,27 @@ MODE_AUTHORITIES = {
     "RELEASE": [
         "artifacts/release/current_release_authorities.json",
         "artifacts/assurance/issue_log/ISSUE_LOG.md",
-        "scratch/CURRENT_TASK.md",
+        "artifacts/_temp/CURRENT_TASK.md",
     ],
     "RELEASE_PREPARATION": [
         "artifacts/release/current_release_authorities.json",
         "artifacts/assurance/issue_log/ISSUE_LOG.md",
-        "scratch/CURRENT_TASK.md",
+        "artifacts/_temp/CURRENT_TASK.md",
     ],
     "PUBLICATION": [
         "artifacts/publication/publication_evidence_index.json",
         "docs/theory/publication/results_reconstruction/drafts/results_draft.md",
-        "scratch/CURRENT_TASK.md",
+        "artifacts/_temp/CURRENT_TASK.md",
     ],
     "SCIENCE": [
         "docs/theory/doctrine/tfne_containment_architecture.md",
         "docs/theory/doctrine/rbs_rbd_hdp.md",
-        "scratch/CURRENT_TASK.md",
+        "artifacts/_temp/CURRENT_TASK.md",
     ],
     "DOCS": [
         "docs/theory/doctrine/tfne_containment_architecture.md",
         "mkdocs.yml",
-        "scratch/CURRENT_TASK.md",
+        "artifacts/_temp/CURRENT_TASK.md",
     ],
     "CODE": [
         "artifacts/AGENTS.md",
@@ -61,7 +61,7 @@ MODE_AUTHORITIES = {
 
 RELEASE_MODES = frozenset({"RELEASE", "RELEASE_PREPARATION"})
 TASK_INIT_HINT = (
-    "Initialize scratch/CURRENT_TASK.md from scratch/CURRENT_TASK.example.md "
+    "Initialize artifacts/_temp/CURRENT_TASK.md from artifacts/control/harness/CURRENT_TASK.example.md "
     "(set mode: RELEASE or other non-CODE mode)."
 )
 
@@ -77,7 +77,7 @@ def detect_task_mode(root: Path, explicit_mode: str | None) -> tuple[str, str]:
     """Return (mode, task_file_status) where status is present|absent|explicit."""
     if explicit_mode is not None:
         return explicit_mode, "explicit"
-    task_file = root / "scratch" / "CURRENT_TASK.md"
+    task_file = root / "artifacts" / "_temp" / "CURRENT_TASK.md"
     if task_file.exists():
         for line in task_file.read_text(encoding="utf-8").splitlines():
             if line.startswith("mode:"):
@@ -227,7 +227,7 @@ def check_gate0(
     if missing_authorities:
         print("--------------------------------------------------------------------------------")
         print(f"GATE 0 RESULT: FAIL (Missing required authorities for mode {detected_mode}: {missing_authorities})")
-        if "scratch/CURRENT_TASK.md" in missing_authorities:
+        if "artifacts/_temp/CURRENT_TASK.md" in missing_authorities:
             print(f"INIT REQUIRED: {TASK_INIT_HINT}")
         print("================================================================================")
         return 1

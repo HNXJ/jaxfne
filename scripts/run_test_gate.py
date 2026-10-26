@@ -917,13 +917,13 @@ def gate_publication() -> None:
     """The frozen publication record: frozen-path hashes, then Figures 1-7 re-rendered and
     compared pixel-for-pixel with their frozen PNGs, then the repository state snapshot.
 
-    Render and report go under the gitignored ``scratch/``, so the tracked
+    Render and report go under the gitignored ``artifacts/_temp/``, so the tracked
     ``artifacts/publication/equivalence_report.json`` is not rewritten by a gate run.
     """
     for family, cmd in AUDIT_STEPS:
         if family in PUBLICATION_AUDIT_FAMILIES:
             _run(cmd, family=family)
-    out = ROOT / "scratch" / "publication_gate"
+    out = ROOT / "artifacts" / "_temp" / "publication_gate"
     _run(
         [
             sys.executable,

@@ -19,7 +19,7 @@ bound. The Fig. 6 run code clips ``U(-0.1, 0.1)`` to ``[0, 0.05]``
 gain a in [1, 2] absorbs into D by moving the clip bound to ``0.05 * a``.
 A fitted a outside [1, 2] is a step-6 finding (``needs X``).
 
-Outputs land in the caller's directory (``scratch/gsdr2026/``), never under
+Outputs land in the caller's directory (``artifacts/_temp/gsdr2026/``), never under
 a ``scored`` path. GPU: run under ``flock /tmp/jaxfne_gpu.lock``.
 """
 
@@ -42,7 +42,7 @@ if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
 Y_LABELS_DEFAULT = "/home/nejath/gsdr_src/y_labels.json"
-GSTAR_DEFAULT = str(_repo_root / "scratch" / "gsdr2026" / "gsdr_fit"
+GSTAR_DEFAULT = str(_repo_root / "artifacts" / "_temp" / "gsdr2026" / "gsdr_fit"
                     / "g_star_uS_float32.npy")
 FIT_SEEDS_DEFAULT = (1, 2, 3)
 STIM_AMP = 0.6

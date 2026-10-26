@@ -704,4 +704,4 @@ def test_publication_gate_runs_frozen_checks(monkeypatch):
     eq = dict(ran)["publication_equivalence"]
     assert eq[1].endswith("equivalence_gate.py")
     report = Path(eq[eq.index("--report") + 1])
-    assert "scratch" in report.parts, "a gate run must not rewrite the tracked report"
+    assert "_temp" in report.parts, "a gate run must not rewrite the tracked report"

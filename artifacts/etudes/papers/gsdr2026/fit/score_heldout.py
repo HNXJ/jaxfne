@@ -80,7 +80,7 @@ def main(argv=None):
 
     ap = argparse.ArgumentParser(description="Held-out Fig. 6 scoring (CPU).")
     ap.add_argument("--traces-root",
-                    default=str(_repo_root / "scratch" / "gsdr2026"))
+                    default=str(_repo_root / "artifacts" / "_temp" / "gsdr2026"))
     ap.add_argument("--seeds", type=int, nargs="*", default=list(HELD_OUT_SEEDS))
     ap.add_argument("--tag", default="main")
     ap.add_argument("--y-labels", default=Y_LABELS_DEFAULT)

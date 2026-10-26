@@ -4,7 +4,7 @@ Builds the 36 E / 8 Ig / 6 Il circuit only from the jaxfne public API,
 constructs it with ``jaxfne.construct()`` (``emitter(family="hh")`` dispatches
 to ``jaxfne._construct_hh.construct_hh_model``), and runs it through
 ``jaxfne.emitters_hh.simulate_hh``. No scored runs: outputs land in the
-caller's directory (``scratch/gsdr2026/``), never under a ``scored`` path.
+caller's directory (``artifacts/_temp/gsdr2026/``), never under a ``scored`` path.
 
 Every biophysical value comes from ``PORT_SPEC.md``; assumed values carry
 their A-label. Units: mV, ms, mS/cm2. Lane runs are float32 on CUDA

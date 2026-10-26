@@ -50,8 +50,8 @@ outputs/
 outputs-provenance-patched.zip
 outputs-*-patched.zip
 site/
-scratch/*
-!scratch/CURRENT_TASK.example.md
+# Every temporary file lives here (Hamm 2026-10-26: plans and temporary files stay inside artifacts/).
+artifacts/_temp/
 tmp/
 test_execution_output/
 

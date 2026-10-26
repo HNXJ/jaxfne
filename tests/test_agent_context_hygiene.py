@@ -401,7 +401,7 @@ class TestFreshCloneTaskState:
         assert status == "absent"
 
     def test_current_task_example_is_tracked(self):
-        assert Path("scratch/CURRENT_TASK.example.md").is_file()
+        assert Path("artifacts/control/harness/CURRENT_TASK.example.md").is_file()
 
 
 class TestRepoStateSnapshotDetachedHead:

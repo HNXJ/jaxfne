@@ -43,8 +43,8 @@ in the same change.
 
 ## Multi-agent handoff
 
-Ordinary work defaults to CODE when `scratch/CURRENT_TASK.md` is absent. For release work, copy
-`scratch/CURRENT_TASK.example.md` to `scratch/CURRENT_TASK.md` and set `mode:`. <!-- optional -->
+Ordinary work defaults to CODE when `artifacts/_temp/CURRENT_TASK.md` is absent. For release work, copy
+`artifacts/control/harness/CURRENT_TASK.example.md` to `artifacts/_temp/CURRENT_TASK.md` and set `mode:`. <!-- optional -->
 Release authorities live in `artifacts/release/current_release_authorities.json`.
 
 ## Human docs cross-links

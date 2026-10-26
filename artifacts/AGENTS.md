@@ -3,7 +3,7 @@
 ## Harness
 
 - **Integrity.** `scripts/harness/HARNESS_MANIFEST.json` hashes kernel, this router, canonical skills, mirrors, gates and schemas. Change flow: edit canonical `artifacts/control/skills/` or this file → `python scripts/harness/sync_skills.py --update --manifest` → verify. Tool-local mirrors are generated, never hand-edited.
-- **Frozen evidence.** `artifacts/publication/frozen_manifest.json` enumerates immutable publication artifacts. Release authorities: `artifacts/release/current_release_authorities.json`. `scratch/CURRENT_TASK.md` (local, gitignored; absent means CODE) supplies the active `mode:` for Gate 0. <!-- optional -->
+- **Frozen evidence.** `artifacts/publication/frozen_manifest.json` enumerates immutable publication artifacts. Release authorities: `artifacts/release/current_release_authorities.json`. `artifacts/_temp/CURRENT_TASK.md` (local, gitignored; absent means CODE) supplies the active `mode:` for Gate 0. <!-- optional -->
 
 - **Routing.** mode ∈ {READ, CODE, SCIENCE, RELEASE, PUBLICATION}; facets ⊆ {CODE, REPO, SCIENCE, EVIDENCE_AUDIT, RELEASE}. Skills load compositionally from both.
 
@@ -50,6 +50,7 @@ Paradigm, Objective, optimization/training utilities, visualization, and export 
 - Quick status: `python scripts/run_test_gate.py report` (all audit checks, no pytest); docs edits: `python scripts/run_test_gate.py docs` (the documentation subset). Both record the same check families as the broad gate and reuse its audit list.
 - Routine non-force `git push origin dev` is part of step completion under an authorized task; tags, main, releases, force push need separate authorization.
 - Public docs are compact positive mathematical descriptions; agent governance stays out of them.
+- Plans live under `artifacts/`; temporary files (drafts, logs, scratch scripts, gate renders) under the gitignored `artifacts/_temp/` (Hamm 2026-10-26). Keep every file thin.
 
 ## Project control
 

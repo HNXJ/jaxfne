@@ -235,7 +235,7 @@ exclude = [
   "/internal_docs",
   "/outputs",
   "/test_execution_output",
-  "scratch",
+  "artifacts/_temp",
   "skills",
   "scripts/harness",
   "artifacts/assurance/private_acceptance",
