@@ -87,6 +87,9 @@ def test_compare_accepts_rounding_residuals_and_refuses_real_changes():
 
     # Both residuals below a tenth of the tolerance: a platform difference, no verdict at stake.
     assert scorer.compare(_doc(a=_row(4e-6, 2e-4)), _doc(a=_row(3e-6, 2e-4))) == []
+    # The FD row's float32 residuals under jax 0.10 (stored) and jax 0.11 (Release CI, Python 3.14).
+    assert scorer.compare(_doc(a=_row(1.373291015625e-4, 1e-3)),
+                          _doc(a=_row(4.1961669921875e-05, 1e-3))) == []
     # A residual near the tolerance must reproduce.
     assert scorer.compare(_doc(a=_row(0.5)), _doc(a=_row(0.6))) != []
     # The tolerance itself always reproduces.

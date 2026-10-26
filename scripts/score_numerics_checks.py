@@ -51,7 +51,10 @@ OUT_DIR = ROOT / "artifacts" / "etudes" / "core_checks" / "numerics"
 SCORE_PATH = OUT_DIR / "score.json"
 README_PATH = OUT_DIR / "README.md"
 RTOL = 1e-9
-NOISE_FRACTION = 0.1  # errors below this fraction of the tolerance are compared as rounding residuals
+NOISE_FRACTION = 0.25  # errors below this fraction of the tolerance are compared as rounding residuals
+# A quarter here, a tenth in the sibling scorers: the central difference divides float32 rounding of the
+# loss by 2h, so source_scale_gradient_fd carries residuals near eps32 * |loss| / h = 9.7e-5, a tenth of
+# its tolerance (jax 0.10 gives 1.37e-4, jax 0.11 gives 4.2e-5, two float32 steps of the quotient).
 
 # One tolerance entry per check, read by every check_* below: each row holds
 # the single absolute threshold of that row's tolerance.
@@ -179,8 +182,8 @@ def compare(old, new, rtol=RTOL):
         for key in ("error", "tolerance"):
             if math.isclose(o[key], n[key], rel_tol=rtol, abs_tol=1e-15):
                 continue
-            # A rounding-level residual differs across platforms (BLAS, float32); below a tenth
-            # of the tolerance in both copies it cannot change the verdict.
+            # A rounding-level residual differs across platforms (BLAS, float32, jax version); below
+            # NOISE_FRACTION of the tolerance in both copies it cannot change the verdict.
             floor = NOISE_FRACTION * min(o["tolerance"], n["tolerance"])
             if key == "error" and o[key] <= floor and n[key] <= floor:
                 continue
