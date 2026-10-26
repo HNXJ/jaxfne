@@ -95,9 +95,6 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 `artifacts/release/v0_5_8_release_receipt.json`). Plan: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md`.
 A 0.5.9 release needs a new go from Hamm.
 
-- [A] `scripts/release_body.py` writes the body through `sys.stdout` in the locale encoding: redirected
-  on Windows (cp1252) it raises UnicodeEncodeError on `→` (2026-10-26; rendered with PYTHONUTF8=1).
-  Write UTF-8 bytes; closes with a test that renders under a cp1252 stdout.
 - [A] JUnit parity classifier (0.5.9): `compare_pytest_junit.classify` reads three explained CI-skip
   kinds as UNKNOWN, so the rc gate stops at junit_parity and the package families run by hand (0.5.7
   and 0.5.8): data-gated skipifs (`test_pcl_stage_c`), optional-oracle importorskips (`mne` in no
