@@ -147,6 +147,16 @@ def _candidate_state_evidence(model: "Model", state_diagnostics: Any) -> dict[st
     return evidence
 
 
+CANDIDATE_BATCH_STATUS = (
+    "serial_only: candidate evaluations stay serial. The scalar black-box loop proposes a "
+    "fixed candidate list up front, but each evaluation builds a distinct candidate model "
+    "(different compiled edges/emitter arrays) and no route exposes a vmapped multi-model "
+    "path, so batching would change serial numerics; the generational AGSDR loop is adaptive "
+    "across generations (each generation reads prior scores), so only the independent inner "
+    "evaluations within one generation could batch, and they stay serial for the same reason."
+)
+
+
 def tune(
     self: "Model",
     objective: Optional["Objective"] = None,

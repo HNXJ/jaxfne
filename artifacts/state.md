@@ -1,10 +1,45 @@
 # state
 
-Stamp: jaxfne@dev@bd1e004d · 2026-10-19 (written 2026-10-19T15:42:58Z)
+Stamp: jaxfne@dev@85199ade · 2026-10-26 (written 2026-10-26T02:18:23Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
 ## Works (with evidence)
+
+- 2026-10-26: 0.5.8 candidate on the tree (scope frozen by Hamm 2026-10-25; deferrals in todo
+  section 2). Version 0.5.8 in 8 files, changelog v0.5.8 (21 bullets from 8 fragments; docs lint
+  29 ghost / 19 adverb, limits 30 / 20), canonical atlas at 0.5.8 (config hash unchanged, state
+  validated), P-037 to `archive/0.5.x/issues_closed/`, O-41 closed (RTD latest and stable at
+  03a86014: 25 of 25 étude files served). Vogels per-synapse fix 85199ade with the plasticity
+  scorer on per-edge traces (score.json unchanged). Checks on the tree: release_body v0.5.8 PASS,
+  check_replications 31 known / 0 unlisted, build_dashboard_data fresh, record-integrity 0
+  violations. Broad gate and CI at the candidate SHA: pending.
+
+- 2026-10-25: PCL-R1 fidelity audit sealed (receipt on dev a940569b, hash-pinned); four read-only audits
+  (files, code, analysis status, state files) rebuilt `open_stack.md` (11 items, each with a `T-O<n>`
+  todo row) and closed six issues to `issues_closed_2026-10-25.md`; gates green on the tree:
+  check_replications 31 known / 0 unlisted, build_dashboard_data fresh, record-integrity 0 violations,
+  tree-size within budget. Not run: broad gate, CI at this SHA.
+
+- 2026-10-21: validation backbone. Six core-method scorers (emitters, fields, plasticity,
+  objectives with optimizer, numerics, ports) beside head-forward under
+  `artifacts/etudes/core_checks/`, each against an independent reference; every `--check`
+  recomputes at rtol 1e-9. Dashboard Validation tab: seven core-method rows with a grammar-stage
+  column. Haiku critics per family; their fixes are in. colab-mcp connects as an HTTP server on
+  127.0.0.1:8765 (`~/.local/bin/colab_mcp_http.ps1`, rerun after a reboot); one session drives
+  Colab. Opencode Muse is the default for builds, fixes, sweeps and first reviews. On dev 1e79c99c
+  (CI Fast 39662523638, Dashboard 39662523609 green); Muse reviews fixed: --check names stored rows
+  it did not recompute, AGSDR scored against its update recurrence (was self-fitted).
+  Replication gate rules S2 (oracles only in tests and gates), E1 (construct and .simulate) and P4
+  (manifest keys) with their findings allowlisted as B4 follow-ups.
+- 0.5.7 published 2026-10-21: tag v0.5.7 on main 03a86014 (PR 113; CI Fast 39585668154, Release
+  CI 39585668167 green), GitHub Release, PyPI via Publish run 39595006450; receipt
+  `artifacts/release/v0_5_7_release_receipt.json`. rc gate PASS on dev 508dffa9 (broad 6917
+  passed, 0 failed; JUnit parity 7053 = 7053 nodes against Release CI 39565883872, 6 explained
+  differences). Install and Colab docs name 0.5.7 as published. Release body edited
+  2026-10-21T14:09:15Z (Hamm: "Name it, fix in 0.5.8"): a Known issue section names the
+  `istdp_vogels2011` presynaptic trace scaling with out-degree; the fix is f57aae0f in the kernel
+  LFP lane (todo section 2). Tag, PyPI files and receipt unchanged.
 
 - 2026-10-20: Brunel 2000 Fig. 8 reproduced (conditional) under signed P3 v4 (seeds 4-8, dt 0.1 ms,
   CPU float32; float64 at C agrees): `papers/brunel2000/RESULT_P3.md`, REPLICATIONS, dashboard.
@@ -59,7 +94,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 - 0.5.6 published 2026-10-15: tag v0.5.6 on main b24e09ef (Release CI 38791659454 green), GitHub
   Release, PyPI via Publish run 38801056076; receipt `artifacts/release/v0_5_6_release_receipt.json`.
-  Release merged back into dev; install and Colab docs name 0.5.6 as published.
+  Release merged back into dev.
 - dev 0c8ca0f0: Muse cleanup lane (unused imports and bindings in scripts/, dead `tfne._PN_TOL`);
   Muse review PASS; dev CI green.
 - dev 95324945 (PCL lane: LIF tensor route with event input, per-position local inhibition,
@@ -72,13 +107,10 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - CAMINOS Fig. 1 against PLoS CB (primary, Hamm 2026-10-14; `artifacts/etudes/papers/caminos/CALIBRATION.md`
   §10): f_pk 33.80 Hz, rate order and R4 (v7) reproduced on the core route; PV→SOM lag 6.47 ms
   against 8.5 ms by the ref. 42 method (off, a finding that needs X). Dashboard row updated.
-- Tracked tree: 2520 files (budget 2520, `budget_files` in `scripts/tree_size_allowlist.json`);
-  89225818 bytes (budget 90177536, 86 MiB since 2026-10-19), measured 2026-10-19 by `check_tree_size.py`.
+- Tracked tree: measure with `python scripts/check_tree_size.py --check`; budget in `scripts/tree_size_allowlist.json`.
 - main a98e6149: 0.5.6 merged from dev 4842b87c by PR 108 (2026-10-15). Main CI green: CI Fast
   run 38757281037, Release CI with slow tests run 38757281031. rc gate PASS on 4842b87c with
   JUnit parity against Release CI run 38743501399 (3.11 and 3.14 each 6030/6030, 0 unjustified).
-- Version state: 0.5.6 published (tag, GitHub Release, PyPI); main b24e09ef carries the receipt
-  commit a5fae28d via PR 109.
 - Dependabot PR 106 (ruff 0.17.0 in the dev extra) and PR 107 (docs pymdown-extensions >= 12.2)
   merged into dev and closed on GitHub.
 

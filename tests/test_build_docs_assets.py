@@ -10,6 +10,9 @@ import copy
 import importlib.util
 import json
 import pathlib
+import re
+
+import pytest
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location(
@@ -204,7 +207,10 @@ def _link_problems(page_rel, text):
 def test_links_on_tree_resolve():
     problems, examined, atlas_links = bda.check_links(bda.load_registry(), bda.docs_pages())
     assert problems == []
-    assert atlas_links > 0 and examined > atlas_links, "the gate must examine atlas and other links"
+    # After the docs-figures rewrite every figure link is an absolute
+    # figure-site URL; no relative link may resolve into an atlas directory.
+    assert atlas_links == 0
+    assert examined > 0, "the gate must still examine non-figure .html links"
 
 
 def test_raw_iframe_resolves_from_the_page_url():
@@ -238,9 +244,11 @@ def test_atlas_link_must_name_a_built_file():
 
 
 def test_other_html_link_must_name_a_file_on_disk():
-    # visuals/ is not a registry product: its tracked HTML is checked on disk.
-    target = "../../_static/visuals/column_network.html"
-    assert (REPO / "docs/_static/visuals/column_network.html").is_file(), "fixture needs a tracked page"
+    # Non-registry HTML paths are checked on disk; the tracked jaxley interop
+    # page is such a file (the visuals/ HTML is an untracked build product
+    # since 2026-10-22).
+    target = "../../_static/jaxley_interop/vm_dark.html"
+    assert (REPO / "docs/_static/jaxley_interop/vm_dark.html").is_file(), "fixture needs a tracked page"
     assert _link_problems("docs/etudes/p.md", f'<iframe src="{target}"></iframe>') == []
     missing = _link_problems("docs/etudes/p.md", '<iframe src="../../_static/etudes/none.html"></iframe>')
     assert len(missing) == 1 and "names no file" in missing[0], missing
@@ -426,3 +434,287 @@ def test_check_flags_a_copy_whose_dest_differs(tmp_path, monkeypatch, capsys):
     assert "ERROR" in out and dest_rel in out, out
     (tmp_path / dest_rel).write_bytes(b"source-bytes")
     assert bda.check_copies(registry) == []
+
+
+# --- Standalone figure site (--site): one HTML + PNG still per panel ---
+
+# Cheapest registry slug by realized size (n_neurons=1, n_steps=1000: the
+# smallest N*steps in the registry), so the --site tests simulate the least.
+CHEAPEST_SLUG = "single_neuron"
+
+
+def _require_kaleido(tmp_path):
+    pytest.importorskip("kaleido", reason="kaleido renders the --site PNG stills")
+    import plotly.graph_objects as go
+
+    probe = tmp_path / "kaleido_probe.png"
+    try:
+        go.Figure(go.Scatter(x=[0, 1], y=[0, 1])).write_image(str(probe))
+    except Exception as exc:  # noqa: BLE001 -- kaleido fails without a browser
+        pytest.skip(f"kaleido cannot start: {exc}")
+    assert probe.stat().st_size > 0, "kaleido probe still must be non-empty"
+
+
+@pytest.mark.slow
+def test_site_writes_html_png_and_manifest_for_cheapest_slug(tmp_path):
+    _require_kaleido(tmp_path)
+    site = tmp_path / "figsite"
+    assert bda.main(["--site", str(site), "--only", CHEAPEST_SLUG]) == 0
+    manifest = json.loads((site / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["schema"] == bda.SITE_SCHEMA
+    assert len(manifest["build_sha"]) == 40, "build_sha must be the git HEAD"
+    by_panel = {f["panel"]: f for f in manifest["figures"] if f["slug"] == CHEAPEST_SLUG}
+    entry = _entry(CHEAPEST_SLUG)
+    assert set(by_panel) == {name[:-len(".html")] for name in entry["panels"]}
+    for name, status in entry["panels"].items():
+        fig = by_panel[name[:-len(".html")]]
+        html = site / fig["html"]
+        assert html.is_file() and html.stat().st_size > 0, f"{name} html missing"
+        assert isinstance(fig["docs_pages"], list)
+        if status in ("OMITTED", "ERROR"):
+            assert fig["status"] == "omitted" and "png" not in fig, name
+        else:
+            assert fig["status"] == "available", name
+            png = site / fig["png"]
+            assert png.is_file(), f"{name} png missing"
+            assert png.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n" and png.stat().st_size > 0, name
+
+
+@pytest.mark.slow
+def test_site_writes_nothing_under_docs(tmp_path):
+    _require_kaleido(tmp_path)
+    before = {p for p in (REPO / "docs").rglob("*")}
+    assert bda.main(["--site", str(tmp_path / "figsite"), "--only", CHEAPEST_SLUG]) == 0
+    assert {p for p in (REPO / "docs").rglob("*")} == before
+
+
+def test_render_atlas_default_output_unchanged(tmp_path, monkeypatch):
+    import datetime
+
+    import jaxfne.vis.atlas_suite as suite
+
+    real_datetime = datetime.datetime
+
+    class _Frozen(real_datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return real_datetime(2026, 1, 1, tzinfo=tz)
+
+    monkeypatch.setattr(datetime, "datetime", _Frozen)
+    spec = importlib.util.spec_from_file_location(
+        "generate_doc_page_atlases", REPO / "scripts" / "generate_doc_page_atlases.py")
+    dpa = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(dpa)
+    title, model, signals, kw = dpa.spec_two_neuron_ei()
+    default = suite.render_atlas(model, signals, out_dir=str(tmp_path / "a"),
+                                 title=title, **kw)
+    assert isinstance(default, dict), "the default return stays the manifest dict"
+    with_figures = suite.render_atlas(model, signals, out_dir=str(tmp_path / "b"),
+                                      title=title, return_figures=True, **kw)
+    assert isinstance(with_figures, tuple) and with_figures[0] == default
+    manifest, figures = with_figures
+    assert set(figures) == {p["file"] for p in manifest["panels"]
+                             if p["status"] == "AVAILABLE"}
+    # Plotly stamps a fresh random id on every to_html call (the div id,
+    # repeated in the newPlot script, plus per-trace uids), so two runs are
+    # never byte-identical; normalize those ids and require everything else
+    # to match exactly.
+    uuid = re.compile(rb'"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}"')
+    for name in sorted((tmp_path / "a").iterdir()):
+        other = tmp_path / "b" / name.name
+        assert other.is_file(), f"{name.name} missing from the keyword run"
+        assert (uuid.sub(b'"X"', other.read_bytes())
+                == uuid.sub(b'"X"', name.read_bytes())), f"{name.name} differs"
+
+
+def test_site_builds_a_docs_visual_slug(tmp_path, monkeypatch):
+    # The visual path keys its Figure by the panel file; a slug key failed
+    # both visuals on the first CI build (Dashboard run 39679832206).
+    import sys
+    import types
+
+    import plotly.graph_objects as go
+
+    import jaxfne.vis.exporters as exporters
+
+    slug = bda.VISUAL_SLUGS[0]
+    fake = types.ModuleType("generate_docs_visuals")
+    fake.FIGURES = {slug: lambda: go.Figure(go.Scatter(x=[0, 1], y=[0, 1]),
+                                            layout={"title": {"text": "visual"}})}
+    monkeypatch.setitem(sys.modules, "generate_docs_visuals", fake)
+    monkeypatch.setattr(exporters, "_write_image",
+                        lambda fig, path: pathlib.Path(path).write_bytes(b"\x89PNG\r\n\x1a\n"))
+    site = tmp_path / "figsite"
+    assert bda.main(["--site", str(site), "--only", slug]) == 0
+    manifest = json.loads((site / "manifest.json").read_text(encoding="utf-8"))
+    [entry] = manifest["figures"]
+    assert entry["status"] == "available" and entry["title"] == "visual"
+    assert (site / entry["html"]).is_file() and (site / entry["png"]).is_file()
+
+
+def test_site_completeness_fails_when_png_missing(tmp_path):
+    site = tmp_path / "site"
+    (site / "s").mkdir(parents=True)
+    (site / "s" / "raster.html").write_bytes(b"<html></html>")
+    (site / "s" / "hdp.html").write_bytes(b"<html></html>")
+    (site / "s" / "raster.png").write_bytes(b"\x89PNG" + b"\x00" * 16)
+    manifest = {"schema": bda.SITE_SCHEMA, "build_sha": "0" * 40, "figures": [
+        {"slug": "s", "panel": "raster", "html": "s/raster.html",
+         "png": "s/raster.png", "title": "t", "status": "available",
+         "docs_pages": []},
+        {"slug": "s", "panel": "hdp", "html": "s/hdp.html",
+         "title": "t", "status": "omitted", "docs_pages": []}]}
+    (site / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    assert bda.check_site_figures(site) == []
+    (site / "s" / "raster.png").unlink()
+    problems = bda.check_site_figures(site)
+    assert len(problems) == 1 and "png missing" in problems[0], problems
+
+
+def test_site_covers_every_registry_etude():
+    registry = bda.load_registry()
+    assert [e["slug"] for e in registry["etudes"]] == [
+        "experiment_a",
+        "hdp_controllability_reachability",
+        "multiscale_observation",
+        "heterogeneous_emitters",
+    ]
+    known = bda.site_slugs(registry)
+    for slug in ("experiment_a", "hdp_controllability_reachability",
+                 "multiscale_observation", "heterogeneous_emitters"):
+        assert slug in known, f"--site must cover the {slug} etude"
+        assert slug in bda.ETUDE_SITE_MODES
+
+
+def test_docs_figures_check_passes_on_tree(capsys):
+    assert bda.docs_figures_check() == 0
+    out = capsys.readouterr().out
+    assert "docs-figures-check:" in out and "0 problems" in out
+
+
+def test_docs_figures_check_fails_on_planted_iframe(tmp_path, monkeypatch, capsys):
+    page = REPO / "docs" / "index.md"
+    text = page.read_text(encoding="utf-8")
+    planted = ('<iframe src="../_static/atlas/readme/raster.html"></iframe>\n' + text)
+    monkeypatch.setattr(bda, "docs_pages", lambda: {page: planted})
+    assert bda.docs_figures_check() == 1
+    assert "not in allowlist" in capsys.readouterr().out
+
+
+def test_docs_figures_check_fails_on_relative_figure_link(tmp_path, monkeypatch, capsys):
+    page = REPO / "docs" / "index.md"
+    text = "[raster](_static/atlas/calibration_100/raster.html)\n"
+    monkeypatch.setattr(bda, "docs_pages", lambda: {page: text})
+    assert bda.docs_figures_check() == 1
+    assert "figure-site URL" in capsys.readouterr().out
+
+
+def test_site_continues_past_a_slug_that_refuses(tmp_path, monkeypatch, capsys):
+    # An etude rerun refuses with SystemExit when a frozen claim does not
+    # reproduce; it killed the whole CI site build (run 39693463744).
+    first, second = bda.VISUAL_SLUGS[:2]
+    built = []
+
+    def fake(slug, out, registry, pages):
+        if slug == first:
+            raise SystemExit("tuned theta drift vs frozen checkpoint")
+        built.append(slug)
+        return []
+
+    monkeypatch.setattr(bda, "_build_site_slug", fake)
+    assert bda.main(["--site", str(tmp_path / "site"), "--only", f"{first},{second}"]) == 1
+    assert built == [second]
+    assert f"[{first}] SITE ERROR" in capsys.readouterr().out
+
+
+def test_site_builds_the_hdp_etude_from_the_frozen_theta(tmp_path, monkeypatch):
+    # The HDP etude's AGSDR tune reaches another optimum on GitHub's runner (O-59);
+    # the site takes the frozen theta_hat and keeps the mode's firing checks.
+    import scripts.rerun_etude_figures as rerun
+
+    seen = {}
+
+    def fake(out_dir, figures=None, **kw):
+        seen.update(kw)
+        return []
+
+    monkeypatch.setitem(rerun.MODES, "hdp_mcc3", ("hdp_controllability_reachability", fake))
+    pages = {}
+    assert bda._build_site_etude_slug("hdp_controllability_reachability", tmp_path,
+                                      bda.load_registry(), pages) == []
+    assert seen == {"retune": False}
+
+
+def test_site_fails_when_docs_cite_an_omitted_figure():
+    # The first etude build listed every rerun panel as omitted while the
+    # docs showed their stills; the completeness check alone passed it.
+    page = REPO / "docs" / "etudes" / "e.md"
+    text = (f"![r]({bda.FIGURES_URL}e/raster.png)\n"
+            f"[r]({bda.FIGURES_URL}e/raster.html) · [x]({bda.FIGURES_URL}other/raster.html)\n")
+    omitted = [{"slug": "e", "panel": "raster", "html": "e/raster.html", "status": "omitted"}]
+    problems = bda.check_cited_figures(omitted, ["e"], {page: text})
+    assert len(problems) == 2 and all("e/raster." in p for p in problems), problems
+    available = [dict(omitted[0], status="available", png="e/raster.png")]
+    assert bda.check_cited_figures(available, ["e"], {page: text}) == []
+
+
+# --- Dashboard Figures tab: static wiring of index.html, app.js and style.css ---
+#
+# No browser here. The tests read the three dashboard files as text and pin the
+# tab mechanics (same data-tab wiring as the other tabs), the figsite manifest
+# URL, the docs-page to Read the Docs mapping and the card pieces.
+
+DASHBOARD = REPO / "dashboard"
+RTD_BASE = "https://jaxfne.readthedocs.io/en/latest/"
+
+
+def _dash(name):
+    return (DASHBOARD / name).read_text(encoding="utf-8")
+
+
+def test_figures_tab_wired_like_the_other_tabs():
+    tabs = re.findall(r'<a href="#([a-z]+)" data-tab="([a-z]+)" role="tab">', _dash("index.html"))
+    assert tabs, "the tab nav must hold wired tab links"
+    assert all(h == d for h, d in tabs), f"each tab's href must name its data-tab: {tabs}"
+    names = [d for _, d in tabs]
+    assert "figures" in names, f"the nav must hold a Figures tab: {names}"
+    assert names.index("validation") < names.index("figures") < names.index("roadmap"), names
+    js = _dash("app.js")
+    assert '"figures"' in js, "TABS must route #figures"
+    assert 'r.tab === "figures"' in js, "render must dispatch the figures tab"
+
+
+def test_figures_tab_fetches_the_figsite_manifest_and_names_it_on_failure():
+    js = _dash("app.js")
+    assert '"../figures/manifest.json"' in js, "the tab reads the manifest relative to the dashboard page"
+    assert "Could not load the figure manifest from" in js
+    assert "../figures/manifest.json" in js.split("Could not load the figure manifest from")[1][:300] or \
+        "FIG_MANIFEST_URL" in js.split("Could not load the figure manifest from")[1][:300], (
+        "the failure line must name the manifest URL"
+    )
+
+
+def test_figures_tab_maps_docs_pages_to_read_the_docs():
+    assert RTD_BASE in (REPO / "README.md").read_text(encoding="utf-8"), (
+        "the RTD base must be stated in README.md"
+    )
+    js = _dash("app.js")
+    assert RTD_BASE in js, "app.js must map docs pages onto the README's RTD base"
+    assert 'replace(/^docs\\//, "")' in js, "docs/<path>.md loses its docs/ prefix"
+    assert 'replace(/\\.md$/, "")' in js, "docs/<path>.md loses its .md suffix"
+    assert '"/index"' in js, "docs/<dir>/index.md maps to the folder URL"
+
+
+def test_figures_tab_cards_and_style_use_the_dashboard_tokens():
+    js = _dash("app.js")
+    assert 'img.loading = "lazy"' in js, "stills load lazily"
+    assert "img.alt" in js, "stills carry the figure title as alt text"
+    assert '"Interactive"' in js, "each card links its Interactive html"
+    assert '"Omitted: "' in js, "omitted panels collapse to one muted line per slug"
+    assert "slice(0, 12)" in js, "the header shows the first 12 of build_sha"
+    assert "slug, title or panel" in js, "the filter box names what it filters"
+    css = _dash("style.css")
+    assert ".fig-grid" in css and ".fig-card" in css, "the cards reuse the dashboard surface tokens"
+    assert "var(--surface)" in css.split(".fig-card")[1].split("}")[0], (
+        "fig cards sit on the dashboard surface token"
+    )

@@ -14,15 +14,25 @@ Modes:
                             also runs each etude generator once and checks its HTML.
                             Then rewrite gallery.md
     --check                 compare the tracked manifests with the registry; generate nothing
+    --site OUT [--only a,b] build the standalone figure site: every atlas panel, every
+                            etude panel and the docs visuals as OUT/<slug>/<panel>.html
+                            (standalone page of the panel's Figure) plus .png stills
+                            and a manifest.json. Never writes under docs/;
+                            --build/--check are unchanged
+    --docs-figures-check    fail on any docs figure iframe outside the allowlist
+                            or any docs link to a docs/_static figure page
 
 Slugs are registry slugs: the atlas/<slug> directories, ``three_area`` for
 atlas_three_area, and ``readme`` for the top-level atlas/ (the canonical README atlas,
-built by generate_readme_atlas.py --html-only).
+built by generate_readme_atlas.py --html-only), plus the four registry etude slugs
+(``experiment_a``, ``hdp_controllability_reachability``,
+``multiscale_observation``, ``heterogeneous_emitters``).
 
 Usage:
     python scripts/build_docs_assets.py --registry-write
     python scripts/build_docs_assets.py --build --slug two_neuron_ei,three_area
     python scripts/build_docs_assets.py --check
+    python scripts/build_docs_assets.py --docs-figures-check
 """
 
 from __future__ import annotations
@@ -34,6 +44,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -51,6 +62,33 @@ STATE_FIELDS = ("figure_state", "promotion")
 README_SLUG = "readme"
 THREE_AREA_SLUG = "three_area"
 ETUDE_KEYS = ("slug", "dir", "generator", "html")
+
+# Standalone figure site (Phase A of the docs-figures plan): every atlas panel
+# and the docs visuals as OUT/<slug>/<panel>.html (full standalone page of the
+# panel's Plotly figure, plotly.js from the CDN) plus OUT/<slug>/<panel>.png
+# (the same Figure through exporters._write_image). PNG raster size is fixed;
+# the kaleido scale is its default of 1.
+FIG_PNG_WIDTH = 1000
+FIG_PNG_HEIGHT = 760
+FIG_PNG_SCALE = 1
+VISUAL_SLUGS = ("column_network", "area_graph_n20")
+SITE_SCHEMA = "figsite.v1"
+
+# Public figure site: every docs still and "Interactive version" link points
+# here (published by the Dashboard workflow's figures job from --site output).
+FIGURES_URL = "https://hnxj.github.io/jaxfne/figures/"
+
+# Etude slug -> mode key in scripts/rerun_etude_figures.py MODES, except
+# experiment_a, whose panels come from scripts/plot_frozen_etude_panels.py.
+ETUDE_SITE_MODES = {
+    "experiment_a": "experiment_a",
+    "hdp_controllability_reachability": "hdp_mcc3",
+    "multiscale_observation": "multiscale",
+    "heterogeneous_emitters": "heterogeneous",
+}
+# Modes whose stochastic tune reproduces only on the machine that froze it (O-59): the site
+# takes their frozen theta_hat; their firing checks still run.
+FROZEN_THETA_MODES = {"hdp_mcc3"}
 
 
 def rel(path: Path) -> str:
@@ -307,7 +345,10 @@ def check() -> int:
         print(f"  - {p}")
     print(f"copies: {len(registry.get('copies', []))} checked, {len(copy_problems)} problems")
     failed = bool(problems or link_problems or copy_problems)
-    return 1 if failed or examined == 0 or atlas_links == 0 else 0
+    # atlas_links is informational only: after the docs-figures rewrite every
+    # figure link is an absolute figure-site URL, so zero relative atlas links
+    # is the expected steady state, not a failure.
+    return 1 if failed or examined == 0 else 0
 
 
 def run_copies(registry: dict) -> int:
@@ -475,6 +516,303 @@ def build(slugs: list[str]) -> int:
     return 0 if gallery.returncode == 0 and not etude_errors and not copy_errors else 1
 
 
+def site_slugs(registry: dict) -> list[str]:
+    """Every atlas slug in build order, then every etude slug, then the docs visuals."""
+    return ([e["slug"] for e in registry["atlases"]] + [e["slug"] for e in registry["etudes"]]
+            + list(VISUAL_SLUGS))
+
+
+def pages_showing(target: str, pages: dict[Path, str],
+                  figure_urls: tuple[str, ...] = ()) -> list[str]:
+    """Docs pages holding an .html link that resolves to ``target`` (repo-relative).
+
+    ``figure_urls`` are absolute figure-site URLs for the same figure; after the
+    docs-figures rewrite the pages hold those instead of the relative link.
+    """
+    hits = []
+    for page, text in pages.items():
+        if any(url in text for url in figure_urls):
+            hits.append(rel(page))
+            continue
+        for _offset, link, raw_html in html_links(text):
+            if rel(Path(os.path.normpath(link_base(page, raw_html) / link))) == target:
+                hits.append(rel(page))
+                break
+    return sorted(hits)
+
+
+def _git_head() -> str:
+    try:
+        proc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(ROOT),
+                              capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+    return proc.stdout.strip() or "unknown"
+
+
+def _site_figure_source(slug: str):
+    """(kind, title, model, signals, render_kw, doc_dir) for one site slug.
+
+    Atlas slugs re-simulate their registry spec; the visuals reuse their
+    generator's figure builder. Nothing is written here.
+    """
+    scripts = str(ROOT / "scripts")
+    if scripts not in sys.path:
+        sys.path.insert(0, scripts)
+    if slug in VISUAL_SLUGS:
+        import generate_docs_visuals as gv
+
+        fig = gv.FIGURES[slug]()
+        title = str(getattr(fig.layout.title, "text", "") or slug)
+        return ("visual", title, None, None, {}, "docs/_static/visuals", {f"{slug}.html": fig})
+    import generate_doc_page_atlases as dpa
+
+    if slug == README_SLUG:
+        import generate_readme_atlas as gra
+
+        model, signals = gra.build_canonical_model()
+        title = gra.CANONICAL_TITLE
+        kw: dict = {"duration_ms": gra.CANONICAL_DURATION_MS,
+                    "dt_ms": gra.CANONICAL_DT_MS, "seed": gra.CANONICAL_SEED}
+    else:
+        title, model, signals, kw = dpa.SPECS[slug]()
+    return ("atlas", title, model, signals, kw, "", {})
+
+
+def _build_site_slug(slug: str, out: Path, registry: dict, pages: dict[Path, str]) -> list[dict]:
+    """Write OUT/<slug>/<panel>.html + .png; return the slug's manifest entries."""
+    from jaxfne.vis.atlas_suite import render_atlas
+    from jaxfne.vis.exporters import _write_image
+
+    kind, title, model, signals, kw, doc_dir, visual_figs = _site_figure_source(slug)
+    by_slug = {e["slug"]: e for e in registry["atlases"]}
+    slug_dir = out / slug
+    slug_dir.mkdir(parents=True, exist_ok=True)
+    entries: list[dict] = []
+    if kind == "visual":
+        panels = [{"file": f"{slug}.html", "panel": slug, "status": "AVAILABLE"}]
+        figures = visual_figs
+        doc_targets = {f"{slug}.html": f"{doc_dir}/{slug}.html"}
+        wrapped: dict[str, Path] = {}
+    else:
+        tmpdir = tempfile.TemporaryDirectory()
+        manifest, figures = render_atlas(model, signals, out_dir=tmpdir.name, title=title,
+                                         return_figures=True, **kw)
+        panels = manifest["panels"]
+        entry = by_slug[slug]
+        doc_targets = {p["file"]: f"{entry['dir']}/{p['file']}" for p in panels}
+        wrapped = {p["file"]: Path(tmpdir.name) / p["file"] for p in panels}
+    for panel in panels:
+        name = panel["file"]
+        stem = name[:-len(".html")] if name.endswith(".html") else name
+        fig = figures.get(name)
+        html_rel = f"{slug}/{name}"
+        label = panel.get("panel", stem)
+        docs = pages_showing(doc_targets[name], pages)
+        if fig is None:
+            # No Figure to stand alone: keep the existing wrapped omission page.
+            shutil.copyfile(wrapped[name], slug_dir / name)
+            entries.append({"slug": slug, "panel": stem, "html": html_rel,
+                            "title": label, "status": "omitted", "docs_pages": docs})
+            continue
+        fig.write_html(str(slug_dir / name), include_plotlyjs="cdn", full_html=True)
+        fig.update_layout(width=FIG_PNG_WIDTH, height=FIG_PNG_HEIGHT)
+        # Kaleido's own default scale is 1 == FIG_PNG_SCALE; _write_image only
+        # retries its teardown failure (P-011).
+        _write_image(fig, str(slug_dir / f"{stem}.png"))
+        if kind == "visual":
+            label = title
+        entries.append({"slug": slug, "panel": stem, "html": html_rel,
+                        "png": f"{slug}/{stem}.png", "title": label,
+                        "status": "available", "docs_pages": docs})
+    if kind != "visual":
+        tmpdir.cleanup()
+    return entries
+
+
+def _build_site_etude_slug(slug: str, out: Path, registry: dict,
+                          pages: dict[Path, str]) -> list[dict]:
+    """Write OUT/<slug>/<panel>.html + .png from the etude's own figure builders.
+
+    experiment_a replays its frozen bundle (no resimulation); the other etudes
+    rerun their deterministic figure modes with the figures handed back instead
+    of only written to disk.
+    """
+    from jaxfne.vis.exporters import _write_image
+
+    slug_dir = out / slug
+    slug_dir.mkdir(parents=True, exist_ok=True)
+    figures: dict = {}
+    tmpdir = tempfile.TemporaryDirectory()
+    try:
+        if slug == "experiment_a":
+            from scripts.plot_frozen_etude_panels import panels_experiment_a
+
+            panels = panels_experiment_a(ROOT / "artifacts" / "etudes" / "experiment_a",
+                                         Path(tmpdir.name), figures=figures)
+        else:
+            from scripts.rerun_etude_figures import MODES
+
+            key = ETUDE_SITE_MODES[slug]
+            built_slug, fn = MODES[key]
+            assert built_slug == slug, f"etude site mode {key} builds {built_slug}, not {slug}"
+            kw = {"retune": False} if key in FROZEN_THETA_MODES else {}
+            panels = fn(Path(tmpdir.name), figures=figures, **kw)
+        entry = {e["slug"]: e for e in registry["etudes"]}[slug]
+        note = ({"note": "built from the frozen checkpoint theta_hat; the AGSDR tune is not "
+                         "re-run here (O-59)"} if ETUDE_SITE_MODES[slug] in FROZEN_THETA_MODES
+                else {})
+        entries: list[dict] = []
+        for panel in panels:
+            name = panel["file"]
+            stem = name[:-len(".html")] if name.endswith(".html") else name
+            fig = figures.get(name)
+            label = panel.get("panel", stem)
+            docs = pages_showing(
+                f"{entry['dir']}/{name}", pages,
+                (f"{FIGURES_URL}{slug}/{stem}.html", f"{FIGURES_URL}{slug}/{stem}.png"))
+            if fig is None:
+                # No Figure to stand alone: keep the existing wrapped omission page.
+                shutil.copyfile(Path(tmpdir.name) / name, slug_dir / name)
+                entries.append({"slug": slug, "panel": stem, "html": f"{slug}/{name}",
+                                "title": label, "status": "omitted", "docs_pages": docs})
+                continue
+            fig.write_html(str(slug_dir / name), include_plotlyjs="cdn", full_html=True)
+            fig.update_layout(width=FIG_PNG_WIDTH, height=FIG_PNG_HEIGHT)
+            # Kaleido's own default scale is 1 == FIG_PNG_SCALE; _write_image only
+            # retries its teardown failure (P-011).
+            _write_image(fig, str(slug_dir / f"{stem}.png"))
+            entries.append({"slug": slug, "panel": stem, "html": f"{slug}/{name}",
+                            "png": f"{slug}/{stem}.png", "title": label,
+                            "status": "available", "docs_pages": docs, **note})
+        return entries
+    finally:
+        tmpdir.cleanup()
+
+
+def check_site_figures(site: Path) -> list[str]:
+    """Every non-omitted figure needs its html and a non-empty png."""
+    manifest = read_json(Path(site) / "manifest.json")
+    problems = []
+    for fig in manifest.get("figures", []):
+        label = f"{fig.get('slug')}/{fig.get('panel')}"
+        html = Path(site) / str(fig.get("html", ""))
+        if not html.is_file():
+            problems.append(f"{label}: html missing at {fig.get('html')}")
+        if fig.get("status") == "omitted":
+            continue
+        png = Path(site) / str(fig.get("png", ""))
+        if not png.is_file():
+            problems.append(f"{label}: png missing at {fig.get('png')}")
+        elif png.stat().st_size == 0:
+            problems.append(f"{label}: png empty at {fig.get('png')}")
+    return problems
+
+
+# Docs figures are Still / Interactive tab pairs whose iframe frames the
+# figure site; no relative iframe may remain (the four unmapped pages below
+# are left as-is), and no relative link may point at a figure page (atlas,
+# etude or visual dirs).
+ALLOWLISTED_FIGURE_IFRAMES = {
+    "docs/assets/interactive/v037_source_column_3d.html",
+    "docs/assets/interactive/izhikevich_single_emitter_explorer.html",
+    "docs/_static/jaxley_interop/vm_dark.html",
+    "docs/assets/showcases/v1_v4_pfc_network3d.html",
+}
+_IFRAME_SRC_RE = re.compile(r"<iframe\b[^>]*\bsrc\s*=\s*[\"']([^\"'#?]+?\.html)",
+                            re.IGNORECASE | re.DOTALL)
+
+
+def docs_figures_check() -> int:
+    """Fail on a non-allowlisted docs iframe or a relative figure-page link."""
+    registry = load_registry()
+    figure_dirs = ({e["dir"] for e in registry["atlases"]}
+                   | {e["dir"] for e in registry["etudes"]} | {"docs/_static/visuals"})
+    pages = docs_pages()
+    iframe_hits = link_hits = 0
+    problems: list[str] = []
+    for page in sorted(pages):
+        text = pages[page]
+        for m in _IFRAME_SRC_RE.finditer(text):
+            src = m.group(1).strip()
+            if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:|^/", src) or not src.endswith(".html"):
+                continue
+            target = rel(Path(os.path.normpath(link_base(page, True) / src)))
+            iframe_hits += 1
+            if target not in ALLOWLISTED_FIGURE_IFRAMES:
+                line = text.count("\n", 0, m.start()) + 1
+                problems.append(f"{rel(page)}:{line}: iframe {src} not in allowlist")
+        for off, link, raw in html_links(text):
+            target = Path(os.path.normpath(link_base(page, raw) / link))
+            if rel(target.parent) not in figure_dirs or not link.endswith(".html"):
+                continue
+            link_hits += 1
+            line = text.count("\n", 0, off) + 1
+            problems.append(f"{rel(page)}:{line}: figure link {link} must be a figure-site URL")
+    for p in problems:
+        print(f"  - {p}")
+    print(f"docs-figures-check: {iframe_hits} iframes, {link_hits} figure links, "
+          f"{len(problems)} problems in {len(pages)} pages")
+    return 1 if problems else 0
+
+
+def check_cited_figures(entries: list[dict], slugs: list[str],
+                        pages: dict[Path, str]) -> list[str]:
+    """Every figure-site URL a docs page cites for a built slug must be an available file.
+
+    The completeness check alone passed a build whose rerun etudes were all
+    omitted while the docs showed their stills.
+    """
+    held = {e["html"] for e in entries if e["status"] == "available"}
+    held |= {e["png"] for e in entries if e["status"] == "available"}
+    url = re.compile(re.escape(FIGURES_URL) + r"(?P<slug>[^/)\s\"']+)/(?P<file>[^)\s\"'#?]+)")
+    problems = []
+    for page, text in pages.items():
+        for m in url.finditer(text):
+            target = f"{m['slug']}/{m['file']}"
+            if m["slug"] in slugs and target not in held:
+                problems.append(f"{rel(page)}: cites {target}, which this build did not produce")
+    return sorted(set(problems))
+
+
+def build_site(site: str | Path, only: list[str]) -> int:
+    """Build the standalone figure site into OUT (never under docs/)."""
+    registry = load_registry()
+    known = site_slugs(registry)
+    wanted = only or known
+    unknown = [s for s in wanted if s not in known]
+    if unknown:
+        raise SystemExit(f"unknown site slugs {unknown}; known slugs {known}")
+    _repo_guard()
+    out = Path(site)
+    pages = docs_pages()
+    build_sha = _git_head()
+    etude_slugs = {e["slug"] for e in registry["etudes"]}
+    entries: list[dict] = []
+    errors = 0
+    for slug in wanted:
+        try:
+            if slug in etude_slugs:
+                entries.extend(_build_site_etude_slug(slug, out, registry, pages))
+            else:
+                entries.extend(_build_site_slug(slug, out, registry, pages))
+            print(f"{slug}: {len([e for e in entries if e['slug'] == slug])} figures")
+        # The etude reruns refuse with SystemExit when a frozen claim does not reproduce.
+        except (Exception, SystemExit) as exc:  # noqa: BLE001 -- one slug must not kill the site
+            errors += 1
+            print(f"[{slug}] SITE ERROR: {exc!r}")
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "manifest.json").write_text(
+        json.dumps({"schema": SITE_SCHEMA, "build_sha": build_sha,
+                    "figures": entries}, indent=2) + "\n", encoding="utf-8")
+    problems = check_site_figures(out) + check_cited_figures(entries, wanted, pages)
+    for p in problems:
+        print(f"  - {p}")
+    print(f"site: {len(entries)} figures, {errors} errors, "
+          f"{len(problems)} completeness problems -> {out}")
+    return 1 if errors or problems else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -485,14 +823,26 @@ def main(argv: list[str] | None = None) -> int:
                       help="regenerate atlases and compare them with the registry")
     mode.add_argument("--check", action="store_true",
                       help="compare tracked manifests with the registry; generate nothing")
+    mode.add_argument("--site", metavar="OUT", default=None,
+                      help="build the standalone figure site (HTML + PNG + manifest) into OUT")
+    mode.add_argument("--docs-figures-check", action="store_true",
+                      help="fail on a non-allowlisted docs iframe or relative figure link")
     parser.add_argument("--slug", default="", help="comma-separated registry slugs for --build (default: all)")
+    parser.add_argument("--only", default="",
+                        help="comma-separated site slugs for --site (default: all atlases + etudes + visuals)")
     args = parser.parse_args(argv)
     if args.slug and not args.build:
         parser.error("--slug applies to --build only")
+    if args.only and args.site is None:
+        parser.error("--only applies to --site only")
     if args.registry_write:
         return write_registry()
     if args.check:
         return check()
+    if args.docs_figures_check:
+        return docs_figures_check()
+    if args.site is not None:
+        return build_site(args.site, [s.strip() for s in args.only.split(",") if s.strip()])
     return build([s.strip() for s in args.slug.split(",") if s.strip()])
 
 

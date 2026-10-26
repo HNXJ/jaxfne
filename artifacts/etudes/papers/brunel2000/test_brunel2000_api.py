@@ -247,6 +247,18 @@ def test_score_label_grid_fixed_in_time():
     assert labels == {0.5: "oscillatory", 0.1: "oscillatory"}, labels
 
 
+def test_run_manifest_declares_seeds_and_regime(tmp_path):
+    """The manifest covers every P4 key class: code SHA, backend, dtype, seeds, regime."""
+    import json
+
+    L.run(0, "p4keys", tmp_path, point="D", n=50, T_s=0.02)
+    m = json.loads((tmp_path / "manifest.json").read_text())
+    assert m["seeds"] == [0], "one run at seed 0"
+    assert set(m["activity_regime"]) == {m["runs"][0]["file"]}
+    assert (m["activity_regime"][m["runs"][0]["file"]]
+            == m["runs"][0]["regime"]["label"])
+
+
 def test_run_consumes_dt(tmp_path):
     """``run(dt_ms=...)`` sets the step count and the manifest dt (G4 convergence runs)."""
     import json

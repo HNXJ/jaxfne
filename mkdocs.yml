@@ -86,9 +86,22 @@ theme:
     - search.highlight
     - content.code.copy
   palette:
-    - scheme: slate
-      primary: orange
-      accent: gray
+    # Two schemes with a toggle (as in jnwb); `media` makes the first entry the default for a
+    # visitor whose OS prefers dark. Colors come from docs/_static/theme_override.css.
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
 
 extra_css:
   - _static/theme_override.css
@@ -178,6 +191,7 @@ nav:
           - TFNE Algebra: theory/doctrine/tfne_algebra.md
           - Relative Quantities: theory/doctrine/relative_quantity_grammar.md
           - TFNE Containment and Composition: theory/doctrine/tfne_containment_architecture.md
+          - Definition Map: theory/doctrine/definition_map.md
           - TFNE–JDNA Boundary: theory/doctrine/tfne_jdna_boundary.md
 
   - API:
@@ -239,7 +253,7 @@ nav:
           - RBD State Memory: theory/memory/protocol_h_rbd_memory.md
           - HDP Parameter Memory: theory/memory/protocol_w_hdp_parameter_memory.md
 extra:
-  jaxfne_version: "0.5.7"
+  jaxfne_version: "0.5.8"
   redirect_maps:
     api/augment.md: reference/api/core/augment.md
     api/core.md: reference/api/core/core.md

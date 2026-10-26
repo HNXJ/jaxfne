@@ -16,7 +16,6 @@ if str(_repo_root) not in sys.path:
 os.environ.setdefault("JAX_PLATFORMS", "cpu")
 
 import numpy as np
-import pytest
 
 import jaxfne as jtfne
 assert "site-packages" not in jtfne.__file__, (
@@ -197,7 +196,6 @@ def test_istdp_ie():
         "plastic magnitudes must stay within the (0, 100) clip"
 
 
-@pytest.mark.xfail(strict=True)
 def test_per_channel_rates_gap():
     """Per-channel Poisson rates compile to distinct sources (gap G-SC)."""
     from jaxfne.inputs import compile_poisson_sources

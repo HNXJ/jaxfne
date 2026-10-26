@@ -268,6 +268,49 @@ def _checked_lambda(value):
     return ("schedule", arr)
 
 
+def _check_target_groups(groups, M, n_steps, lam):
+    """Validate ``ext_target_groups`` against the drive; return a spec dict, or None."""
+    if groups is None:
+        return None
+    g = np.asarray(groups)
+    if g.ndim != 1 or g.shape[0] != M:
+        raise ValueError(
+            "ext_target_groups must hold one int group per target "
+            f"(shape ({M},)); got shape {g.shape}"
+        )
+    gf = g.astype(np.float64)
+    if not np.all(np.isfinite(gf)) or np.any(gf != np.round(gf)) or np.any(gf < 0):
+        raise ValueError("ext_target_groups must hold integers >= 0")
+    kind, val = lam
+    if kind != "schedule" or np.asarray(val).ndim != 2:
+        raise ValueError(
+            "ext_target_groups needs a 2-d [n_steps, G] ext_lambda schedule "
+            f"(one rate per group per step); got {kind}"
+        )
+    sched = np.asarray(val, dtype=np.float64)
+    if sched.shape[0] != n_steps:
+        raise ValueError(
+            "ext_lambda schedule with per-group rates must have shape "
+            f"({n_steps}, G); got {sched.shape}"
+        )
+    G = int(sched.shape[1])
+    gi = gf.astype(np.int64)
+    if gi.max() >= G:
+        raise ValueError(
+            f"ext_target_groups names group {int(gi.max())} but the ext_lambda "
+            f"schedule holds {G} groups"
+        )
+    sizes = [int(np.sum(gi == c)) for c in range(G)]
+    if any(s == 0 for s in sizes):
+        raise ValueError(
+            f"ext_target_groups leaves a group empty (sizes {sizes}): "
+            "every group needs at least one target cell"
+        )
+    order = np.argsort(gi, kind="stable")
+    unorder = np.argsort(order, kind="stable")
+    return {"G": G, "sizes": sizes, "order": order, "unorder": unorder}
+
+
 def _check_drive_window(n_steps, t_start_steps, t_stop_steps) -> "tuple[int, int] | None":
     """Validate the kernel's optional drive-window step bounds.
 
@@ -483,6 +526,7 @@ def simulate_adex(
     ext_receptor=None,
     ext_delay_steps=None,
     key=None,
+    ext_target_groups=None,
     ext_t_start_steps=None,
     ext_t_stop_steps=None,
 ) -> dict[str, Any]:
@@ -532,6 +576,14 @@ def simulate_adex(
     ``ext_lambda`` takes the historical path bit-identically; a schedule is drawn
     per step (``poisson(ks, lam[t])`` under the same one-split-per-step key
     stream) and validated against ``(n_steps, M)`` here, where both are known.
+
+    ``ext_target_groups`` (int ``[M]``, one group per target, given with the six
+    drive arguments or refused) selects the grouped path: ``ext_lambda`` must
+    then be a 2-d ``[n_steps, G]`` per-group schedule, each group non-empty,
+    and step ``t`` draws each group ``g`` separately as
+    ``poisson(fold_in(fold_in(key, g), t), lam[t, g])`` over its member cells,
+    so groups own independent streams while the scalar path above is
+    byte-identical.
 
     ``ext_t_start_steps``/``ext_t_stop_steps`` (both given or both None) restrict
     the drive to steps ``[t_start, t_stop)``: they must be int step indices with
@@ -641,6 +693,12 @@ def simulate_adex(
     )
     L_edge = int(delay_eff.max()) if E else 0
     if ext is None:
+        if ext_target_groups is not None:
+            raise ValueError(
+                "ext_target_groups needs the external drive; got "
+                f"{np.asarray(ext_target_groups).tolist()} with no ext_targets -- "
+                "pass the six drive arguments with a 2-d [n_steps, G] schedule, or neither"
+            )
         if ext_t_start_steps is not None or ext_t_stop_steps is not None:
             raise ValueError(
                 "ext_t_start_steps/ext_t_stop_steps need the external drive; got "
@@ -651,11 +709,13 @@ def simulate_adex(
         d_ext = 0
         M = 0
         window = None
+        grouped = None
     else:
         d_ext = int(ext["delay"]) + (1 if step_order == "brian2" else 0)
         L = max(L_edge, d_ext, 1)
         M = int(ext["targets"].shape[0])
         window = _check_drive_window(n_steps, ext_t_start_steps, ext_t_stop_steps)
+        grouped = _check_target_groups(ext_target_groups, M, n_steps, ext["lambda"])
         if int(ext["delay"]) == 0 and step_order == "brian2":
             raise ValueError(
                 "ext_delay_steps=0 requests a same-step drive, which step_order='brian2' "
@@ -709,6 +769,10 @@ def simulate_adex(
         w_ext_j = jnp.asarray(ext["weight"], dtype)
         rec_ext = int(ext["receptor"])
         lam_kind, lam_val = ext["lambda"]
+        grp_G = 0
+        grp_sizes: list[int] = []
+        grp_unorder_j = None
+        grp_base = None
         if lam_kind == "scalar":
             lam_f: Any = float(lam_val)
             lam_1d = None
@@ -724,7 +788,7 @@ def simulate_adex(
                     )
                 lam_1d = jnp.asarray(sched, dtype)
                 lam_2d = None
-            else:
+            elif grouped is None:
                 if sched.shape != (n_steps, M):
                     raise ValueError(
                         "ext_lambda schedule with per-target rates must have shape "
@@ -732,6 +796,14 @@ def simulate_adex(
                     )
                 lam_1d = None
                 lam_2d = jnp.asarray(sched, dtype)
+            else:
+                assert grouped is not None
+                lam_1d = None
+                lam_2d = jnp.asarray(sched, dtype)
+                grp_G = int(grouped["G"])
+                grp_sizes = [int(s) for s in grouped["sizes"]]
+                grp_unorder_j = jnp.asarray(grouped["unorder"])
+                grp_base = ext["key"]
 
     # A constant current is closed over, so no [n_steps, N] array is built for it.
     I_const = jnp.zeros((N,), dtype)
@@ -815,13 +887,27 @@ def simulate_adex(
             n_unres = jnp.sum(_prev & has_out0_j).astype(jnp.int32)
         ring = ring.at[t % L].set(spk)
         if ext is not None:
-            if lam_1d is None and lam_2d is None:
+            if grouped is not None:
+                assert grp_base is not None and grp_unorder_j is not None
+                lam_g = lam_2d[t]
+                segs = [
+                    jax.random.poisson(
+                        jax.random.fold_in(jax.random.fold_in(grp_base, g), t),
+                        lam_g[g],
+                        shape=(grp_sizes[g],),
+                    )
+                    for g in range(grp_G)
+                ]
+                extc = jnp.concatenate(segs)[grp_unorder_j].astype(jnp.int32)
+            elif lam_1d is None and lam_2d is None:
                 lam_t = lam_f
+                extc = jax.random.poisson(ks, lam_t, shape=(M,)).astype(jnp.int32)
             elif lam_2d is None:
                 lam_t = lam_1d[t]
+                extc = jax.random.poisson(ks, lam_t, shape=(M,)).astype(jnp.int32)
             else:
                 lam_t = lam_2d[t]
-            extc = jax.random.poisson(ks, lam_t, shape=(M,)).astype(jnp.int32)
+                extc = jax.random.poisson(ks, lam_t, shape=(M,)).astype(jnp.int32)
             if window is not None:
                 t0, t1 = window
                 extc = jnp.where((t >= t0) & (t < t1), extc, jnp.zeros_like(extc))
@@ -851,13 +937,27 @@ def simulate_adex(
         else:
             added = jnp.zeros((N, R), dtype)
         g = g * decay_j[None, :] + added
-        if lam_1d is None and lam_2d is None:
+        if grouped is not None:
+            assert grp_base is not None and grp_unorder_j is not None
+            lam_g = lam_2d[t]
+            segs = [
+                jax.random.poisson(
+                    jax.random.fold_in(jax.random.fold_in(grp_base, g), t),
+                    lam_g[g],
+                    shape=(grp_sizes[g],),
+                )
+                for g in range(grp_G)
+            ]
+            extc = jnp.concatenate(segs)[grp_unorder_j].astype(jnp.int32)
+        elif lam_1d is None and lam_2d is None:
             lam_t = lam_f
+            extc = jax.random.poisson(ks, lam_t, shape=(M,)).astype(jnp.int32)
         elif lam_2d is None:
             lam_t = lam_1d[t]
+            extc = jax.random.poisson(ks, lam_t, shape=(M,)).astype(jnp.int32)
         else:
             lam_t = lam_2d[t]
-        extc = jax.random.poisson(ks, lam_t, shape=(M,)).astype(jnp.int32)
+            extc = jax.random.poisson(ks, lam_t, shape=(M,)).astype(jnp.int32)
         if window is not None:
             t0, t1 = window
             extc = jnp.where((t >= t0) & (t < t1), extc, jnp.zeros_like(extc))

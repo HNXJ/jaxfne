@@ -55,6 +55,40 @@ def _source_proxy_from_components(
 # Gaussian draw is scaled so the per-ms noise variance is dt-invariant.
 DT_REF_MS = 0.5
 
+# Realized Izhikevich update orders on the dense kernel. ``default`` is the
+# historical path (post-update threshold test, ``weights @ prev_spikes``);
+# ``net_m`` is the paper's net.m order (threshold test on the v left by the
+# previous step, within-step ``weights @ fired``, two 0.5 ms v half-steps and
+# one u step per 1 ms step).
+IZHIKEVICH_UPDATE_ORDERS = ("default", "net_m")
+
+
+def _require_net_m_zero_noise(noise_scale: "jax.Array | float | None") -> None:
+    """Fail closed unless ``noise_scale`` is explicitly zero for ``net_m``.
+
+    The net.m order realizes the paper's noise-free thal drive
+    (``I = thal[t] + S @ fired``); ``None`` would silently apply the 0.5
+    default noise and any nonzero value would diverge from the oracle.
+    """
+    if noise_scale is None:
+        raise ValueError(
+            "update_order='net_m' realizes the paper's noise-free thal drive "
+            "(I = thal[t] + S @ fired); pass noise_scale=0.0 explicitly "
+            "(None would apply the 0.5 default noise)"
+        )
+    try:
+        host = np.asarray(noise_scale)
+    except Exception:
+        raise ValueError(
+            "update_order='net_m' requires a concrete noise_scale=0.0 "
+            "(zero cannot be verified under trace)"
+        )
+    if not bool(np.all(host == 0)):
+        raise ValueError(
+            "update_order='net_m' realizes the paper's noise-free thal drive; "
+            f"got nonzero noise_scale={noise_scale!r}"
+        )
+
 
 def _noise_coef(
     noise_scale: "jax.Array | float | None", dt_ms: float, dtype: Any
@@ -481,6 +515,7 @@ def simulate_eig_izhikevich(
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
+    update_order: str = "default",
 ) -> tuple[jax.Array, jax.Array, jax.Array]:
     """Simulate a reduced EIG Izhikevich scaffold using ``jax.lax.scan``.
 
@@ -504,7 +539,26 @@ def simulate_eig_izhikevich(
     step 0.5 ms (``DT_REF_MS``); the realized value is scaled by
     ``sqrt(0.5 / dt_ms)``. No physical-amplitude or calibration claim is
     introduced.
+
+    ``update_order`` selects the update order: ``"default"`` is the path above;
+    ``"net_m"`` is the paper's net.m order (one ``jax.lax.scan`` step is 1 ms:
+    threshold test on the v left by the previous step, reset of the fired
+    cells, ``I = drive + schedule[t] + W @ fired``, two 0.5 ms forward-Euler v
+    half-steps with the same current and no clamp, then one u step on the v
+    after both half-steps). ``net_m`` requires ``dt_ms == 1.0`` (the oracle
+    hard-codes two 0.5 ms half-steps) and an explicit ``noise_scale=0.0`` (the
+    paper's drive is noise-free thal); both refuse otherwise. Its ``voltages``
+    rows are the v each step's threshold test reads and its ``spikes`` rows are
+    that step's fired cells, matching ``kernel_net_m.simulate_net_m`` row for
+    row. ``silence_mask`` applies with the same pin-to-c pattern as the
+    default path (an all-ones mask is an exact no-op).
     """
+
+    if update_order not in IZHIKEVICH_UPDATE_ORDERS:
+        raise ValueError(
+            f"update_order must be one of {list(IZHIKEVICH_UPDATE_ORDERS)}; "
+            f"got {update_order!r}"
+        )
 
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
@@ -515,6 +569,49 @@ def simulate_eig_izhikevich(
     weights = params.W.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
+
+    if update_order == "net_m":
+        if float(dt_ms) != 1.0:
+            raise ValueError(
+                "update_order='net_m' hard-codes two 0.5 ms v half-steps per "
+                f"1 ms step; dt_ms must be 1.0, got {dt_ms!r}"
+            )
+        _require_net_m_zero_noise(noise_scale)
+        if silence_mask is not None:
+            s_mask = silence_mask.astype(jdtype)
+        else:
+            s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
+        if drive_schedule is None:
+            sched = jnp.zeros((int(n_steps), params.v0.shape[0]), dtype=jdtype)
+        else:
+            sched = drive_schedule.astype(jdtype)
+
+        def step_net_m(carry, sched_t):
+            """One net.m-order 1 ms step: test, reset, drive, two v half-steps, one u step."""
+            v, u = carry
+            v_test = v
+            fired = (v >= 30.0) & (s_mask > 0.5)
+            v_r = jnp.where(fired, c, v)
+            u_r = jnp.where(fired, u + d, u)
+            cur = sched_t + drive + jnp.matmul(weights, fired.astype(jdtype))
+            v1 = v_r + 0.5 * (0.04 * v_r * v_r + 5.0 * v_r + 140.0 - u_r + cur)
+            v2 = v1 + 0.5 * (0.04 * v1 * v1 + 5.0 * v1 + 140.0 - u_r + cur)
+            u_next = u_r + a * (b * v2 - u_r)
+            spikes = fired.astype(jdtype)
+            source_proxy = _source_proxy_from_components(
+                cur, spikes, source_scale, dtype=jdtype
+            )
+            v_out = jnp.where(s_mask > 0.5, v_test, c)
+            v_carry = jnp.where(s_mask > 0.5, v2, c)
+            return (v_carry, u_next), (v_out, spikes, source_proxy)
+
+        _, (voltages, spikes, sources) = jax.lax.scan(
+            step_net_m,
+            (params.v0.astype(jdtype), params.u0.astype(jdtype)),
+            sched,
+        )
+        return voltages, spikes, sources
+
     noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
 
     if silence_mask is not None:

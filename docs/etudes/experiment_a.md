@@ -74,13 +74,16 @@ python scripts/run_experiment_a.py
 
 === "Interactive"
 
-    <iframe class="jx-frame" src="../../_static/etudes/experiment_a/index.html" loading="lazy" title="Experiment A bundle figure"></iframe>
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/experiment_a/raster.html" loading="lazy" title="Experiment A bundle figure"></iframe>
 
-Rendered still from the frozen `canonical_source.npz` (no resimulation; `python scripts/plot_experiment_a_still.py`). [Open full page](../_static/etudes/experiment_a/index.html).
+*The Interactive tab shows the spike-raster panel; every panel is linked under Interactive panels below.*
+
+
+Rendered still from the frozen `canonical_source.npz` (no resimulation; `python scripts/plot_experiment_a_still.py`).
 
 ## Interactive panels (dark)
 
-Panels built directly from the frozen `canonical_source.npz` — no resimulation of any kind: [index](../_static/etudes/experiment_a/index.html) · [raster](../_static/etudes/experiment_a/raster.html) · [traces](../_static/etudes/experiment_a/traces.html) · [H](../_static/etudes/experiment_a/h_dynamics.html) · [LFP](../_static/etudes/experiment_a/lfp.html) · [oscillatory](../_static/etudes/experiment_a/oscillatory.html).
+Panels built directly from the frozen `canonical_source.npz` — no resimulation of any kind: [H dynamics](https://hnxj.github.io/jaxfne/figures/experiment_a/h_dynamics.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/experiment_a/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/experiment_a/oscillatory.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/experiment_a/raster.html) · [Membrane traces](https://hnxj.github.io/jaxfne/figures/experiment_a/traces.html)
 
 Regenerate: `python scripts/plot_frozen_etude_panels.py --etude experiment_a`.
 

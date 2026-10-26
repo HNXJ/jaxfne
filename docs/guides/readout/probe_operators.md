@@ -335,6 +335,6 @@ print(emm_readout.report)
 
 ## Interactive atlas (dark)
 
-The guide's API snippet is aspirational (`...` placeholders); dark-theme Plotly panels from a minimal 200 ms completion (32 neurons, dt 0.5 ms, seed 0): [index](../../_static/atlas/probe_32/index.html) · [schema](../../_static/atlas/probe_32/schema.html) · [3D](../../_static/atlas/probe_32/network_3d.html) · [raster](../../_static/atlas/probe_32/raster.html) · [LFP](../../_static/atlas/probe_32/lfp.html) · [H](../../_static/atlas/probe_32/h_dynamics.html) · [HDP](../../_static/atlas/probe_32/hdp.html) · [oscillatory](../../_static/atlas/probe_32/oscillatory.html).
+The guide's API snippet is aspirational (`...` placeholders); dark-theme Plotly panels from a minimal 200 ms completion (32 neurons, dt 0.5 ms, seed 0): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/probe_32/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/probe_32/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/probe_32/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/probe_32/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/probe_32/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug probe_32`.

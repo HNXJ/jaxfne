@@ -168,7 +168,7 @@ contact depths raise an error.
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from a minimal 200 ms completion (dt 0.5 ms, seed 0) of the page's 100-neuron circuit — the page's own simulate call is a placeholder: [index](../../_static/atlas/calibration_100/index.html) · [schema](../../_static/atlas/calibration_100/schema.html) · [3D](../../_static/atlas/calibration_100/network_3d.html) · [raster](../../_static/atlas/calibration_100/raster.html) · [LFP](../../_static/atlas/calibration_100/lfp.html) · [H](../../_static/atlas/calibration_100/h_dynamics.html) · [HDP](../../_static/atlas/calibration_100/hdp.html) · [oscillatory](../../_static/atlas/calibration_100/oscillatory.html).
+Dark-theme Plotly panels from a minimal 200 ms completion (dt 0.5 ms, seed 0) of the page's 100-neuron circuit — the page's own simulate call is a placeholder: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/calibration_100/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/calibration_100/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/calibration_100/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/calibration_100/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/calibration_100/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug calibration_100`.
 

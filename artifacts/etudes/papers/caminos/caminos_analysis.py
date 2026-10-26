@@ -30,10 +30,31 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
+# P-025 repo-root guard: pull jaxfne from this checkout, never site-packages.
+_ROOT = str(Path(__file__).resolve().parents[4])
+if sys.path[:1] != [_ROOT]:
+    sys.path.insert(0, _ROOT)
+
+import jaxfne as jtfne  # noqa: E402
+
+assert "site-packages" not in jtfne.__file__, "caminos_analysis must run the checkout's jaxfne"
+
+from jaxfne.analysis import (  # noqa: E402
+    aperiodic_log10,
+    aperiodic_spectral_peak,
+    fit_aperiodic,
+    oscillation_call,
+    population_rates,
+    rate_welch_psd,
+    welch_numpy,
+    welch_spectrum,
+    xcorr_peak_lag,
+)
+
 import numpy as np
-from scipy.optimize import curve_fit
 
 DISCARD_S = 2.0  # prereg Runs: first 2 s discarded (4 x tau_w)
 WIN_S = 1.0  # prereg: Welch 1 s Hann windows
@@ -78,87 +99,9 @@ def kept_slice(n_steps, dt):
     return slice(cut, None)
 
 
-def population_rates(counts, dt, sizes):
-    """Mean rate (Hz) per population over the kept window (R3)."""
-    arr = _as_float_counts(counts)
-    keep = arr[kept_slice(arr.shape[0], dt)]
-    dur = keep.shape[0] * dt
-    return {p: float(keep[:, i].sum() / dur / sizes[p]) for i, p in enumerate(POPS)}
-
-
-def welch_numpy(x, fs, nperseg, noverlap):
-    """Welch power density with Hann windows (fallback, no scipy needed).
-
-    Same convention as ``scipy.signal.welch`` with ``detrend=False`` and
-    ``scaling="density"``: segments demeaned here, scale
-    ``1 / (fs * sum(win**2))``, one-sided doubling off DC/Nyquist.
-    """
-    x = np.asarray(x, dtype=float)
-    step = nperseg - noverlap
-    win = np.hanning(nperseg)
-    scale = 1.0 / (fs * float(np.sum(win**2)))
-    acc = None
-    n = 0
-    for start in range(0, len(x) - nperseg + 1, step):
-        seg = x[start:start + nperseg]
-        seg = seg - seg.mean()
-        spec = np.fft.rfft(win * seg)
-        pxx = (spec.real**2 + spec.imag**2) * scale
-        if nperseg % 2 == 0:
-            pxx[1:-1] *= 2.0
-        else:
-            pxx[1:] *= 2.0
-        acc = pxx if acc is None else acc + pxx
-        n += 1
-    if n == 0:
-        raise ValueError("signal shorter than one window: %d < %d" % (len(x), nperseg))
-    return np.fft.rfftfreq(nperseg, 1.0 / fs), acc / n
-
-
-def welch_spectrum(x, fs, nperseg, noverlap):
-    """Welch density via scipy when present, else :func:`welch_numpy`."""
-    try:
-        from scipy.signal import welch as _welch
-    except ImportError:
-        return welch_numpy(x, fs, nperseg, noverlap)
-    return _welch(x, fs=fs, window="hann", nperseg=nperseg,
-                  noverlap=noverlap, detrend=False, scaling="density")
-
-
-def aperiodic_log10(f, a, k, chi):
-    """Aperiodic model in log10 power (v4): log10 P = a - log10(k + f**chi)."""
-    return a - np.log10(k + np.power(f, chi))
-
-
-def fit_aperiodic(freqs, pxx, keep):
-    """Bounded least-squares fit of the aperiodic model on the bins in ``keep``.
-
-    Bounds: k >= 0, chi in [0, 5], a free. Start: k0 = 1, chi0 = 1, and a0 set
-    so the model equals the median log10 power at the median fitted frequency.
-    Returns ``(a, k, chi)``.
-    """
-    f = freqs[keep]
-    y = np.log10(pxx[keep])
-    a0 = float(np.median(y) + np.log10(INIT_K + np.median(f) ** INIT_CHI))
-    popt, _ = curve_fit(aperiodic_log10, f, y, p0=[a0, INIT_K, INIT_CHI],
-                        bounds=([-np.inf, K_MIN, CHI_BOUNDS[0]],
-                                [np.inf, np.inf, CHI_BOUNDS[1]]),
-                        maxfev=20000)
-    return tuple(float(v) for v in popt)
-
-
 def e_welch(e_rate, dt):
     """Welch PSD of the E rate as the scorer computes it: mean removed, 1 s Hann, 50 % overlap."""
-    x = np.asarray(e_rate, dtype=float)
-    x = x - x.mean()
-    fs = 1.0 / dt
-    nperseg = int(round(WIN_S * fs))
-    return welch_spectrum(x, fs, nperseg, nperseg // 2)
-
-
-def oscillation_call(peak_excess, edge_ok, pe_threshold=PE_THRESHOLD):
-    """The v6 rule (item 6): PE >= pe_threshold, f_pk off the band edges. No local-max test."""
-    return bool(peak_excess >= pe_threshold and edge_ok)
+    return rate_welch_psd(e_rate, dt, win_s=WIN_S, overlap_frac=OVERLAP_FRAC)
 
 
 def spectral_peak(e_rate, dt, pe_threshold=PE_THRESHOLD):
@@ -172,21 +115,19 @@ def spectral_peak(e_rate, dt, pe_threshold=PE_THRESHOLD):
     refit parameters ``fit`` and the first fit's parameters ``fit_pass1``.
     """
     freqs, pxx = e_welch(e_rate, dt)
-    fit_band = (freqs >= FIT_LO_HZ) & (freqs <= FIT_HI_HZ)
-    pk_idx = np.flatnonzero((freqs >= BAND_LO_HZ) & (freqs <= BAND_HI_HZ))
-    if pk_idx.size == 0:
-        raise ValueError("no frequency bins in 20-80 Hz")
-    pars1 = fit_aperiodic(freqs, pxx, fit_band)
-    resid = np.log10(pxx) - aperiodic_log10(freqs, *pars1)
-    i = int(pk_idx[np.argmax(resid[pk_idx])])
-    f_pk = float(freqs[i])
-    pars2 = fit_aperiodic(freqs, pxx,
-                          fit_band & (np.abs(freqs - f_pk) > EXCL_HALF_HZ))
-    background = float(10.0 ** aperiodic_log10(f_pk, *pars2))
-    pe = float(pxx[i]) / background
-    local_max = bool(pxx[i] > pxx[i - 1] and pxx[i] > pxx[i + 1])
-    edge_ok = bool(abs(f_pk - BAND_LO_HZ) > EDGE_HZ
-                   and abs(f_pk - BAND_HI_HZ) > EDGE_HZ)
+    pk = aperiodic_spectral_peak(
+        freqs, pxx,
+        fit_lo_hz=FIT_LO_HZ, fit_hi_hz=FIT_HI_HZ,
+        band_lo_hz=BAND_LO_HZ, band_hi_hz=BAND_HI_HZ,
+        excl_half_hz=EXCL_HALF_HZ, edge_hz=EDGE_HZ,
+    )
+    f_pk = pk["peak_freq_Hz"]
+    pe = pk["peak_excess"]
+    background = pk["background_Hz"]
+    local_max = pk["local_max"]
+    edge_ok = pk["edge_ok"]
+    pars1 = pk["fit_pass1"]
+    pars2 = pk["fit"]
     return {
         "peak_freq_Hz": f_pk,
         "peak_excess": pe,
@@ -220,20 +161,7 @@ def pv_som_lag(counts, dt, sizes):
     kernel = _gaussian_kernel(SMOOTH_MS / dt_ms)
     pv_s = np.convolve(pv, kernel, mode="same")
     som_s = np.convolve(som, kernel, mode="same")
-    a = som_s - som_s.mean()
-    v = pv_s - pv_s.mean()
-    n = len(a)
-    max_lag = int(round(LAG_WINDOW_MS / dt_ms))
-    # Correlation only inside the window: the full np.correlate is O(N^2) (about
-    # 14 s per run) and gives the same argmax.
-    lags = np.arange(-max_lag, max_lag + 1)
-    cc = np.empty(lags.size)
-    for j, lag in enumerate(lags):
-        if lag >= 0:
-            cc[j] = np.dot(a[lag:], v[:n - lag])
-        else:
-            cc[j] = np.dot(a[:n + lag], v[-lag:])
-    lag_steps = int(lags[int(np.argmax(cc))])
+    lag_steps = xcorr_peak_lag(som_s, pv_s, dt_ms, window_ms=LAG_WINDOW_MS)
     lag_ms = lag_steps * dt_ms  # positive: SOM after PV
     return float(lag_ms)
 
@@ -246,7 +174,7 @@ def analyze_run(counts, dt, sizes, pe_threshold=PE_THRESHOLD):
     arr = _as_float_counts(counts)
     keep = arr[kept_slice(arr.shape[0], dt)]
     spikes = {p: int(keep[:, i].sum()) for i, p in enumerate(POPS)}
-    rates = population_rates(arr, dt, sizes)
+    rates = population_rates(arr, dt, sizes, pops=POPS, discard_s=DISCARD_S)
     out = {
         "rates_Hz": rates,
         "spikes_kept": spikes,

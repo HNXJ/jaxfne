@@ -41,6 +41,7 @@ from scipy.optimize import curve_fit
 from scipy.signal import lfilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4]))  # P-025: repo root before the covered sibling import
 import caminos_analysis as ca  # noqa: E402
 
 NE = 8000

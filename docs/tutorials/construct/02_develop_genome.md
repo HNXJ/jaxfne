@@ -33,14 +33,14 @@ Provenance is additive: `tensor.provenance["genome_sha256"]` == `genome_rules_ha
 
 === "Interactive"
 
-    <iframe class="jx-frame" src="../../../_static/visuals/column_network.html" loading="lazy" title="The developed column in 3-D"></iframe>
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/column_network/column_network.html" loading="lazy" title="The developed column in 3-D"></iframe>
 
-The developed column in 3-D: 1000 neurons and a sample of 800 realized edges, split by presynaptic cell-type name, `E*` types vs the rest (toggle each group in the legend). [Open full page](../../_static/visuals/column_network.html).
+The developed column in 3-D: 1000 neurons and a sample of 800 realized edges, split by presynaptic cell-type name, `E*` types vs the rest (toggle each group in the legend). [Open full page](https://hnxj.github.io/jaxfne/figures/column_network/column_network.html).
 
 Next: inspect the realized tensor before any simulation.
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column: [index](../../_static/atlas/index.html) · [schema](../../_static/atlas/schema.html) · [3D](../../_static/atlas/network_3d.html) · [raster](../../_static/atlas/raster.html) · [LFP](../../_static/atlas/lfp.html) · [H](../../_static/atlas/h_dynamics.html) · [HDP](../../_static/atlas/hdp.html) · [oscillatory](../../_static/atlas/oscillatory.html).
+Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)
 
 Regenerate: `python scripts/generate_readme_atlas.py --html-only`.

@@ -45,7 +45,9 @@ def _write(fig, out_dir: pathlib.Path, name: str) -> int:  # type: ignore[no-unt
     return p.stat().st_size
 
 
-def panels_experiment_a(bundle: pathlib.Path, out_dir: pathlib.Path) -> list[dict]:
+def panels_experiment_a(
+    bundle: pathlib.Path, out_dir: pathlib.Path, figures: dict | None = None
+) -> list[dict]:
     import numpy as np
     import plotly.graph_objects as go
     from jaxfne.fields import project_laminar_sources
@@ -70,6 +72,8 @@ def panels_experiment_a(bundle: pathlib.Path, out_dir: pathlib.Path) -> list[dic
 
     def emit(filename: str, panel: str, evidence: str, fig) -> None:  # type: ignore[no-untyped-def]
         fig = _dark(fig, panel)
+        if figures is not None:
+            figures[filename] = fig
         nbytes = _write(fig, out_dir, filename)
         panels.append(
             {

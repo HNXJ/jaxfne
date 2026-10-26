@@ -116,7 +116,8 @@ def main() -> int:
     if frozen_bad:
         rc = 4
     if rc == 0:
-        print("integrity PASS (project + global manifests, frozen paths)")
+        scope = "project + global manifests" if GLOBAL_MANIFEST.exists() else "project manifest only, global absent"
+        print(f"integrity PASS ({scope}, frozen paths)")
     else:
         print(f"integrity FAIL (exit {rc})")
     return rc

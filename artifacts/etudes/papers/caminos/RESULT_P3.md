@@ -6,6 +6,10 @@ oscillates at p = 0.02 while E fires at 0.61–0.62 Hz, and all seeds oscillate 
 This rests on the v7 assumption that Fig. 1E scales the drive with p; the paper does not
 state it for the sweep. Nothing was tuned after scoring.
 
+The P3 criterion R2 (lag positive, mean 6–11 ms) is met. Against the paper's 8.5 ms (PLoS CB, primary)
+the lag is off (e 0.15–0.26) and is recorded as a finding that needs X (`CALIBRATION.md` §10, Hamm
+2026-10-14); the P3 PASS on R2 is not a reproduction of the 8.5 ms lag.
+
 ## R4v7 (amendment v7, signed 2026-10-12)
 
 - Runs: WSL2 CUDA, float32, dt 0.1 ms, T 12 s, seeds 1–3 at p = 0.02–0.10, one run at a time,

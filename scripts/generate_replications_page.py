@@ -17,12 +17,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "dashboard" / "sources.json"
+DERIVED = ROOT / "dashboard" / "data" / "replications.json"
 OUT = ROOT / "docs" / "start" / "replications.md"
 DASHBOARD = "https://hnxj.github.io/jaxfne/dashboard/"
 
 
 def cell(text: str) -> str:
     return str(text).replace("|", "\\|").replace("\n", " ")
+
+
+def verdict_cells(p: dict) -> list:
+    """Paper, library-path and methods verdicts from the derived summary, falling back to the
+    recorded verdict for rows that predate it. A missing verdict shows as an em dash."""
+    summary = p.get("verdict_summary") or {}
+    paper_v = summary.get("paper", p.get("verdict"))
+    lib = summary.get("library") or {}
+    library_v = f"{lib['stage']} {str(lib['verdict']).upper()}" if lib else None
+    return [paper_v, library_v, summary.get("methods")]
 
 
 def render(sources: dict) -> str:
@@ -34,19 +45,25 @@ def render(sources: dict) -> str:
         "verdicts and figures. Stages P0–P7 run from selection to insight; a replication counts",
         "as done with jaxfne only when it runs through the library (P6).",
         "",
-        f'<iframe class="jx-frame" src="{DASHBOARD}" loading="lazy" title="Replication dashboard"></iframe>',
+        f"[Open the replication dashboard]({DASHBOARD})",
         "",
-        "| Paper | Class | Release | Stage | Verdict |",
-        "|---|---|---|---|---|",
+        "| Paper | Class | Release | Stage | Paper | Library | Methods |",
+        "|---|---|---|---|---|---|---|",
     ]
     for p in sources["papers"]:
         verdict = p.get("verdict") or "—"
         if p.get("verdict_note"):
             verdict = f"{verdict}: {p['verdict_note']}"
+        paper_v, library_v, methods_v = verdict_cells(p)
+        if p.get("verdict_note"):
+            paper_v = f"{paper_v or '—'}: {p['verdict_note']}"
+        else:
+            paper_v = paper_v or "—"
         title = f"[{cell(p['title'])}]({DASHBOARD}#model/{p['id']})"
         lines.append(
             f"| {title}<br>{cell(p['citation'])} | {cell(p['class'])} | {cell(p['release'])} "
-            f"| {cell(p.get('stage') or '—')} | {cell(verdict)} |"
+            f"| {cell(p.get('stage') or '—')} | {cell(paper_v)} "
+            f"| {cell(library_v or '—')} | {cell(methods_v or '—')} |"
         )
     roadmap = sources.get("roadmap", [])
     if roadmap:
@@ -63,7 +80,15 @@ def main(argv=None) -> int:
     mode.add_argument("--check", action="store_true")
     args = parser.parse_args(argv)
 
-    text = render(json.loads(SOURCES.read_text(encoding="utf-8")))
+    sources = json.loads(SOURCES.read_text(encoding="utf-8"))
+    # sources.json holds no derived verdicts; the library and methods columns come from the
+    # derived data that `build_dashboard_data.py` writes, so the page shows what the dashboard shows.
+    if DERIVED.exists():
+        summaries = {p["id"]: p.get("verdict_summary") for p in json.loads(DERIVED.read_text(encoding="utf-8"))["papers"]}
+        for p in sources["papers"]:
+            if summaries.get(p["id"]):
+                p["verdict_summary"] = summaries[p["id"]]
+    text = render(sources)
     if args.write:
         OUT.write_bytes(text.encode("utf-8"))
         print(f"wrote {OUT.relative_to(ROOT)}")

@@ -643,3 +643,90 @@ def test_p3_sens_report_scores_both_arms_short(tmp_path):
     with pytest.raises(SystemExit):
         r.cmd_sens_report("S2", sd, kd, tmp_path / "bad.json")  # label mismatch
 
+
+# --- B2b: core net_m update order on the dense Izhikevich kernel ---------------------------
+#
+# The paper's net.m order as a core option of simulate_eig_izhikevich
+# (update_order="default" | "net_m"). Default stays bit-identical; net_m
+# reproduces kernel_net_m.simulate_net_m bit-for-bit (compared in
+# tests/test_izh_amendments.py); anything that cannot realize the order refuses.
+
+
+def _b2b_tiny_params(jnp, n=6):
+    from jaxfne.emitters import IzhikevichParams
+
+    return IzhikevichParams(
+        a=jnp.full((n,), 0.02), b=jnp.full((n,), 0.2),
+        c=jnp.full((n,), -65.0), d=jnp.full((n,), 8.0),
+        drive=jnp.zeros((n,)), sign=jnp.ones((n,)),
+        W=jnp.eye(n) * 0.5,
+        v0=jnp.full((n,), -65.0), u0=jnp.full((n,), -13.0),
+        source_scale=jnp.ones((n,)), labels=("E",) * n)
+
+
+def test_b2b_explicit_default_matches_legacy_bit_for_bit():
+    import jax
+    import jax.numpy as jnp
+
+    from jaxfne.emitters import simulate_eig_izhikevich
+
+    p = _b2b_tiny_params(jnp)
+    key = jax.random.PRNGKey(0)
+    legacy = simulate_eig_izhikevich(p, 40, 0.5, key, dtype="float32")
+    pinned = simulate_eig_izhikevich(p, 40, 0.5, key, dtype="float32",
+                                     update_order="default")
+    for a, b in zip(legacy, pinned):
+        assert np.array_equal(np.asarray(a), np.asarray(b))
+
+
+def test_b2b_unknown_update_order_refuses():
+    import jax
+    import jax.numpy as jnp
+
+    from jaxfne.emitters import simulate_eig_izhikevich
+
+    with pytest.raises(ValueError, match="update_order"):
+        simulate_eig_izhikevich(_b2b_tiny_params(jnp), 4, 0.5,
+                                jax.random.PRNGKey(0), update_order="brian2")
+
+
+def test_b2b_net_m_refuses_non_1ms_dt():
+    import jax
+    import jax.numpy as jnp
+
+    from jaxfne.emitters import simulate_eig_izhikevich
+
+    with pytest.raises(ValueError, match="1.0"):
+        simulate_eig_izhikevich(_b2b_tiny_params(jnp), 4, 0.5,
+                                jax.random.PRNGKey(0), update_order="net_m",
+                                noise_scale=0.0)
+
+
+def test_b2b_net_m_refuses_implicit_or_nonzero_noise():
+    import jax
+    import jax.numpy as jnp
+
+    from jaxfne.emitters import simulate_eig_izhikevich
+
+    p = _b2b_tiny_params(jnp)
+    with pytest.raises(ValueError, match="noise_scale=0.0"):
+        simulate_eig_izhikevich(p, 4, 1.0, jax.random.PRNGKey(0),
+                                update_order="net_m")
+    with pytest.raises(ValueError, match="noise_scale"):
+        simulate_eig_izhikevich(p, 4, 1.0, jax.random.PRNGKey(0),
+                                update_order="net_m", noise_scale=0.5)
+
+
+def test_b2b_emitter_declares_net_m_order():
+    import jaxfne as jtfne
+
+    cfg = jtfne.Configuration().emitter(family="izhikevich",
+                                        izhikevich_update_order="net_m")
+    assert cfg.emitters[0]["izhikevich_update_order"] == "net_m"
+    with pytest.raises(ValueError, match="izhikevich_update_order"):
+        jtfne.Configuration().emitter(family="izhikevich",
+                                      izhikevich_update_order="noisy")
+    with pytest.raises(ValueError, match="izhikevich_update_order"):
+        jtfne.Configuration().emitter(family="adex",
+                                      izhikevich_update_order="net_m")
+

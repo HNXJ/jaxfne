@@ -110,7 +110,7 @@ def main():
 
     if not dist_path.exists() or not dist_path.is_dir():
         if args.allow_missing_dist:
-            print(f"dist/ not found at {dist_path}. --allow-missing-dist set. Skipping.")
+            print(f"NOT EXAMINED: dist/ not found at {dist_path}. --allow-missing-dist set. Skipping.")
             sys.exit(0)
         else:
             print(f"ERROR: dist/ directory not found at {dist_path}. Build artifacts first.")
@@ -119,7 +119,7 @@ def main():
     artifacts = list(dist_path.iterdir())
     if not artifacts:
         if args.allow_missing_dist:
-            print("dist/ is empty. --allow-missing-dist set. Skipping.")
+            print("NOT EXAMINED: dist/ is empty. --allow-missing-dist set. Skipping.")
             sys.exit(0)
         else:
             print("ERROR: dist/ is empty. Build artifacts first.")

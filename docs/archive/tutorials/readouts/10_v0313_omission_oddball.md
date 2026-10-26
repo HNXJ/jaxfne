@@ -139,6 +139,6 @@ This tutorial does **NOT** cover:
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the page's 60-neuron column under plain drive (1000 ms, dt 0.5 ms, seed 42; the standard/deviant/omission conditions are declared via `jtfne.omission_oddball_paradigm` on top of this circuit): [index](../../../_static/atlas/omission_60/index.html) · [schema](../../../_static/atlas/omission_60/schema.html) · [3D](../../../_static/atlas/omission_60/network_3d.html) · [raster](../../../_static/atlas/omission_60/raster.html) · [LFP](../../../_static/atlas/omission_60/lfp.html) · [H](../../../_static/atlas/omission_60/h_dynamics.html) · [HDP](../../../_static/atlas/omission_60/hdp.html) · [oscillatory](../../../_static/atlas/omission_60/oscillatory.html).
+Dark-theme Plotly panels from the page's 60-neuron column under plain drive (1000 ms, dt 0.5 ms, seed 42; the standard/deviant/omission conditions are declared via `jtfne.omission_oddball_paradigm` on top of this circuit): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/omission_60/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/omission_60/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/omission_60/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/omission_60/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/omission_60/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug omission_60`.

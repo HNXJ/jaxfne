@@ -22,6 +22,7 @@ from jaxfne.hdp_rule import (
     expected_aux_shape,
     list_registered_hdp_rules,
     register_hdp_rule,
+    superpose_hdp_rules,
 )
 
 
@@ -815,3 +816,208 @@ def test_malformed_definitions_rejected_loudly():
         jax.jit(lambda: sim(params, edges, 4, 1.0, jax.random.PRNGKey(0),
                             drive_schedule=drive[:4], noise_scale=0.0,
                             hdp_rule="gen01_bad_jit")[0])()
+
+
+# --- Reader spike-timing traces (HDP-READER-02) -------------------------------
+# trace_ltp/trace_ltd/trace_stdp carry per-neuron spike traces with
+# jump-then-decay updates (H <- decay * (H + spike)); dw is a rate
+# (spike / dt), so one pair changes w by exactly A * exp(-Delta t / tau)
+# at any dt, and the additive superposition of the two one-sided rules
+# reproduces the joint rule exactly.
+
+
+def _zero_h_init(params, h_shape):
+    n = int(params.v0.shape[0])
+    return {"v": params.v0.astype(jnp.float32),
+            "u": params.u0.astype(jnp.float32),
+            "prev_spikes": jnp.zeros((n,)),
+            "syn_state": jnp.zeros((1,)),
+            "H_final": jnp.zeros((n,) + tuple(h_shape))}
+
+
+def test_trace_ltp_textbook_magnitude():
+    params, edges, drive = _two_neuron()
+    ns = 10
+    force = np.zeros((ns, 2), dtype=bool)
+    force[5, 0] = True
+    force[6, 1] = True
+    _, S, _, diag = sim(params, edges, ns, 1.0, jax.random.PRNGKey(0),
+                        drive_schedule=jnp.zeros((ns, 2), dtype=jnp.float32),
+                        forced_spikes=force, init_state=_zero_h_init(params, ()),
+                        hdp_rule="trace_ltp",
+                        hdp_rule_params={"tau_plus": 17.0, "A_plus": 0.005},
+                        noise_scale=0.0)
+    H = np.asarray(diag["H_trace"]).reshape(ns, 2)
+    assert float(np.asarray(S)[5, 0]) == 1.0, "fixture must force the pre spike"
+    assert float(np.asarray(S)[6, 1]) == 1.0, "fixture must force the post spike"
+    d = np.exp(-1.0 / 17.0)
+    np.testing.assert_allclose(H[5, 0], d, rtol=1e-6, atol=0)
+    np.testing.assert_allclose(H[6, 0], d ** 2, rtol=1e-6, atol=0)
+    np.testing.assert_allclose(H[7, 0], d ** 3, rtol=1e-6, atol=0)
+    np.testing.assert_allclose(H[6, 1], d, rtol=1e-6, atol=0)
+    np.testing.assert_allclose(H[7, 1], d ** 2, rtol=1e-6, atol=0)
+    assert np.all(H[:5, :] == 0.0)
+    # One-step pair: dw reads the start-of-step trace (d), w += dt * A*d/dt.
+    np.testing.assert_allclose(np.asarray(diag["w_final"]), [0.2 + 0.005 * d],
+                               rtol=1e-6, atol=0)
+
+
+def test_trace_ltd_textbook_magnitude():
+    params, edges, drive = _two_neuron()
+    ns = 10
+    force = np.zeros((ns, 2), dtype=bool)
+    force[5, 0] = True
+    force[6, 1] = True
+    force[7, 0] = True
+    _, S, _, diag = sim(params, edges, ns, 1.0, jax.random.PRNGKey(0),
+                        drive_schedule=jnp.zeros((ns, 2), dtype=jnp.float32),
+                        forced_spikes=force, init_state=_zero_h_init(params, ()),
+                        hdp_rule="trace_ltd",
+                        hdp_rule_params={"tau_minus": 34.0, "A_minus": 0.00525},
+                        noise_scale=0.0)
+    H = np.asarray(diag["H_trace"]).reshape(ns, 2)
+    assert float(np.asarray(S)[7, 0]) == 1.0, "fixture must force the late pre spike"
+    d = np.exp(-1.0 / 34.0)
+    np.testing.assert_allclose(H[6, 1], d, rtol=1e-6, atol=0)
+    np.testing.assert_allclose(H[7, 1], d ** 2, rtol=1e-6, atol=0)
+    np.testing.assert_allclose(H[5, 0], d, rtol=1e-6, atol=0)
+    np.testing.assert_allclose(H[6, 0], d ** 2, rtol=1e-6, atol=0)
+    np.testing.assert_allclose(H[7, 0], d + d ** 3, rtol=1e-6, atol=0)
+    assert np.all(H[:5, :] == 0.0)
+    # Late pre spike reads the start-of-step post trace (d); the step-5 pre
+    # arrival reads 0.
+    np.testing.assert_allclose(np.asarray(diag["w_final"]),
+                               [0.2 - 0.00525 * d],
+                               rtol=1e-6, atol=0)
+
+
+def test_superposed_ltp_ltd_equals_trace_stdp():
+    params, edges, drive = _two_neuron()
+    if "gen01_reader_sup_stdp" not in list_registered_hdp_rules():
+        superpose_hdp_rules("gen01_reader_sup_stdp", ["trace_ltp", "trace_ltd"])
+    ns = 10
+    force = np.zeros((ns, 2), dtype=bool)
+    force[5, 0] = True
+    force[6, 1] = True
+    force[7, 0] = True
+    run_kw = dict(drive_schedule=jnp.zeros((ns, 2), dtype=jnp.float32),
+                  forced_spikes=force, init_state=_zero_h_init(params, (2,)),
+                  noise_scale=0.0)
+    V_sup, S_sup, _, diag_sup = sim(params, edges, ns, 1.0, jax.random.PRNGKey(0),
+                                    hdp_rule="gen01_reader_sup_stdp", **run_kw)
+    V_std, S_std, _, diag_std = sim(params, edges, ns, 1.0, jax.random.PRNGKey(0),
+                                    hdp_rule="trace_stdp", **run_kw)
+    assert np.array_equal(np.asarray(V_sup), np.asarray(V_std))
+    assert np.array_equal(np.asarray(S_sup), np.asarray(S_std))
+    np.testing.assert_allclose(np.asarray(diag_sup["H_trace"]),
+                               np.asarray(diag_std["H_trace"]), rtol=0, atol=0)
+    np.testing.assert_allclose(np.asarray(diag_sup["w_final"]),
+                               np.asarray(diag_std["w_final"]), rtol=0, atol=0)
+
+
+def test_superpose_refuses_aux_carrying_components():
+    with pytest.raises(ValueError, match="aux"):
+        superpose_hdp_rules("gen01_reader_bad_sup",
+                            ["trace_ltp", "eligibility_trace_gain"])
+
+
+def _stdp_pair_run(dt_ms, pre_step, post_step, ns, rule, rule_params, h_shape=()):
+    params, edges, _ = _two_neuron()
+    force = np.zeros((ns, 2), dtype=bool)
+    force[pre_step, 0] = True
+    force[post_step, 1] = True
+    _, S, _, diag = sim(params, edges, ns, dt_ms, jax.random.PRNGKey(0),
+                        drive_schedule=jnp.zeros((ns, 2), dtype=jnp.float32),
+                        forced_spikes=force, init_state=_zero_h_init(params, h_shape),
+                        hdp_rule=rule, hdp_rule_params=rule_params,
+                        noise_scale=0.0)
+    S = np.asarray(S)
+    assert float(S[pre_step, 0]) == 1.0 and float(S[post_step, 1]) == 1.0
+    assert float(S.sum()) == 2.0, "fixture must stay silent outside the pair"
+    return diag
+
+
+def test_trace_pair_magnitude_dt_invariant():
+    # One pair changes w by exactly A*exp(-Delta t/tau) at any dt: dw is a
+    # rate (S/dt per step), so w += dt*dw is dt-free. Kernel runs float32
+    # here, so magnitudes are pinned at rtol=1e-5.
+    for dt_ms, pre_step, post_step, ns in ((0.05, 20, 120, 150),
+                                           (0.5, 4, 14, 24)):
+        diag = _stdp_pair_run(dt_ms, pre_step, post_step, ns,
+                              "trace_ltp", {"tau_plus": 17.0, "A_plus": 0.005})
+        w = float(np.asarray(diag["w_final"])[0])
+        assert 1e-3 < w < 50.0, "soft bounds must not bind the pair"
+        np.testing.assert_allclose(w, 0.2 + 0.005 * np.exp(-5.0 / 17.0),
+                                   rtol=1e-5, atol=0)
+        # -5 ms pair (post 5 ms before pre) depresses by A_minus*exp(-5/34).
+        diag = _stdp_pair_run(dt_ms, post_step, pre_step, ns,
+                              "trace_ltd", {"tau_minus": 34.0, "A_minus": 0.00525})
+        w = float(np.asarray(diag["w_final"])[0])
+        assert 1e-3 < w < 50.0, "soft bounds must not bind the pair"
+        np.testing.assert_allclose(w, 0.2 - 0.00525 * np.exp(-5.0 / 34.0),
+                                   rtol=1e-5, atol=0)
+
+
+def test_trace_same_step_pair_gives_zero():
+    # dw reads the start-of-step trace, so a same-step pair sees H=0: no
+    # weight change, while both traces still jump-then-decay within the step.
+    params, edges, _ = _two_neuron()
+    ns = 10
+    force = np.zeros((ns, 2), dtype=bool)
+    force[5, 0] = True
+    force[5, 1] = True
+    _, S, _, diag = sim(params, edges, ns, 1.0, jax.random.PRNGKey(0),
+                        drive_schedule=jnp.zeros((ns, 2), dtype=jnp.float32),
+                        forced_spikes=force, init_state=_zero_h_init(params, ()),
+                        hdp_rule="trace_ltp",
+                        hdp_rule_params={"tau_plus": 17.0, "A_plus": 0.005},
+                        noise_scale=0.0)
+    assert float(np.asarray(S)[5, 0]) == 1.0 and float(np.asarray(S)[5, 1]) == 1.0
+    # float32(0.2) is one ulp off the Python literal, so pin at rtol=1e-6:
+    # a true pair moves w ~2e-2 relative, a same-step pair must not move it.
+    np.testing.assert_allclose(np.asarray(diag["w_final"]), [0.2], rtol=1e-6, atol=0)
+    H = np.asarray(diag["H_trace"]).reshape(ns, 2)
+    np.testing.assert_allclose(H[5, :], [np.exp(-1.0 / 17.0)] * 2, rtol=1e-6, atol=0)
+
+
+def test_superposed_namespaced_params_isolate_ltp_term():
+    if "gen01_reader_sup_ns" not in list_registered_hdp_rules():
+        superpose_hdp_rules("gen01_reader_sup_ns", ["trace_ltp", "trace_ltd"])
+    params, edges, _ = _two_neuron()
+    ns = 10
+    force = np.zeros((ns, 2), dtype=bool)
+    force[5, 0] = True
+    force[6, 1] = True
+    force[7, 0] = True
+    run_kw = dict(drive_schedule=jnp.zeros((ns, 2), dtype=jnp.float32),
+                  forced_spikes=force, init_state=_zero_h_init(params, (2,)),
+                  noise_scale=0.0)
+    _, _, _, diag_ns = sim(params, edges, ns, 1.0, jax.random.PRNGKey(0),
+                           hdp_rule="gen01_reader_sup_ns",
+                           hdp_rule_params={"trace_ltp": {"A_plus": 0.01}},
+                           **run_kw)
+    # The namespaced override reaches only the LTP component: identical to
+    # trace_stdp with the flat A_plus override, bit-exact.
+    _, _, _, diag_std = sim(params, edges, ns, 1.0, jax.random.PRNGKey(0),
+                            hdp_rule="trace_stdp",
+                            hdp_rule_params={"A_plus": 0.01},
+                            **run_kw)
+    np.testing.assert_allclose(np.asarray(diag_ns["H_trace"]),
+                               np.asarray(diag_std["H_trace"]), rtol=0, atol=0)
+    np.testing.assert_allclose(np.asarray(diag_ns["w_final"]),
+                               np.asarray(diag_std["w_final"]), rtol=0, atol=0)
+    # ... and it took effect (differs from the all-defaults run).
+    _, _, _, diag_dflt = sim(params, edges, ns, 1.0, jax.random.PRNGKey(0),
+                             hdp_rule="gen01_reader_sup_ns", **run_kw)
+    assert not np.allclose(np.asarray(diag_ns["w_final"]),
+                           np.asarray(diag_dflt["w_final"]), rtol=1e-6, atol=0)
+    # A flat key in the superposed params is refused, naming it.
+    with pytest.raises(ValueError, match="A_plus"):
+        sim(params, edges, ns, 1.0, jax.random.PRNGKey(0),
+            hdp_rule="gen01_reader_sup_ns",
+            hdp_rule_params={"A_plus": 0.01}, **run_kw)
+    # A non-mapping component entry is refused, naming the component.
+    with pytest.raises(ValueError, match="trace_ltp"):
+        sim(params, edges, ns, 1.0, jax.random.PRNGKey(0),
+            hdp_rule="gen01_reader_sup_ns",
+            hdp_rule_params={"trace_ltp": 0.5}, **run_kw)

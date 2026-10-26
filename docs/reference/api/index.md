@@ -12,7 +12,7 @@ The root public contract is **208 symbols** (195 CANONICAL + 13 COMPATIBILITY) i
 and [`artifacts/assurance/api_contracts/public_surface_contract_v0413.json`](https://github.com/HNXJ/jaxfne/blob/main/artifacts/assurance/api_contracts/public_surface_contract_v0413.json).
 See [Public surface contract](../public_surface_contract.md).
 
-**Advanced** symbols (73) and **experimental/internal** symbols (13) are
+**Advanced** symbols (74) and **experimental/internal** symbols (13) are
 importable from submodules but are not root exports.
 
 !!! note "Proxy readouts"
@@ -161,6 +161,9 @@ Import from the defining submodule (see `ADVANCED_NAMESPACE` in
 | Plasticity | `jaxfne.plasticity` — `STDPPlasticityConfig`, `update_stdp_weights_jax` |
 | Solvers | `jaxfne.solvers` — `EulerSolver`, `DiffraxSolver` |
 | Spectral | `jaxfne.analysis.spectral` — `spectrolaminar_psd_jax` |
+
+Trials and datasets: `TrialSpec`, `TrialBatch`, `TrialResult`, `TrialBatchResult`, `ParadigmEvent`,
+`DatasetSpec`, `dataset_spec`, `omission_oddball_paradigm`, `standard_visual_omission`, `stimulus_schedule`.
 
 ## Minimal workflow
 

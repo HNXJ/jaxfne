@@ -430,7 +430,13 @@ def check(doc):
         for line in bad:
             print(f"mismatch: {line}", file=sys.stderr)
         return 1
-    print(f"fresh: {SCORE_PATH} matches a recomputation within rtol {RTOL:g}")
+    print(f"fresh: {SCORE_PATH} matches a recomputation within rtol {RTOL:g} "
+          f"(errors under {NOISE_FRACTION:g} x tolerance in both copies count as rounding residuals)")
+    unchecked = sorted(name for name, row in doc["checks"].items()
+                       if "skipped" in row and "skipped" not in stored["checks"][name])
+    if unchecked:
+        # The stored rows stand; this environment lacks their optional dependency and did not recompute them.
+        print(f"not rechecked here: {', '.join(unchecked)}")
     return 0
 
 

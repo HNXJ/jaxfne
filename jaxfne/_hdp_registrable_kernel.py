@@ -72,6 +72,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     step_indices: jax.Array | None = None,
     plasticity_mask: jax.Array | None = None,
     v_floor: jax.Array | float | None = None,
+    forced_spikes: jax.Array | None = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Edge-list Izhikevich simulation with a registered HDP rule.
 
@@ -84,6 +85,10 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     ``record_stride`` / ``record_h_subset`` / ``record_w_subset`` are the
     0.5.3 item 2 declared H/W recording budgets (defaults = full
     recording); kept frames equal full-trace frames exactly.
+    ``forced_spikes`` (optional ``(n_steps, n_neurons)`` boolean mask) ORs an
+    explicit spike clamp into the threshold test: masked entries spike with
+    the membrane held at reset ``c``, downstream-identical to a natural
+    spike. ``None`` (default) keeps the exact prior trajectory bit-for-bit.
     ``noise_schedule`` optionally supplies the exact per-step unit-noise
     draws; the Model plain path passes the continuation-chain schedule so
     chunked == continuous (membrane and per-rule streams), while ``None``
@@ -111,6 +116,33 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
         plastic_edge = jnp.asarray(_mask_raw > 0.5)
     else:
         plastic_edge = None
+    if forced_spikes is not None:
+        _n_neurons = int(params.v0.shape[0])
+        try:
+            _force_raw = np.asarray(forced_spikes)
+        except Exception:
+            _force_raw = None
+        if _force_raw is None:
+            # A tracer under jit (a concrete JAX array always converts):
+            # static shape check only; value checks need concrete values.
+            _force_traced = jnp.asarray(forced_spikes)
+            if tuple(int(d) for d in _force_traced.shape) != (int(n_steps), _n_neurons):
+                raise ValueError(
+                    "forced_spikes must have shape "
+                    f"({int(n_steps)}, {_n_neurons}), got {_force_traced.shape}"
+                )
+            forced_rows = _force_traced > 0.5
+        else:
+            if _force_raw.shape != (int(n_steps), _n_neurons):
+                raise ValueError(
+                    "forced_spikes must have shape "
+                    f"({int(n_steps)}, {_n_neurons}), got {_force_raw.shape}"
+                )
+            if not bool(np.all(np.isfinite(_force_raw))):
+                raise ValueError("forced_spikes must be finite (got NaN/inf)")
+            forced_rows = jnp.asarray(_force_raw > 0.5)
+    else:
+        forced_rows = None
     h_min, h_max = descriptor.h_bounds
     w_floor, w_ceiling = descriptor.w_bounds
     b_min, b_max = descriptor.b_bounds
@@ -359,14 +391,59 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
                 outputs = (v_reset, spikes, source_proxy, H_next, aux_next, b_next)
             return carry_out, outputs
 
+        def step_forced(carry, xs):
+            # Forced-spike twin of step: identical except the threshold test
+            # ORs the per-step clamp mask in. The silence gate still applies
+            # (a silenced neuron stays silent), and the reset path, HDP rule
+            # inputs and synaptic fan-out see the forced spike exactly as a
+            # natural one.
+            (sched_t, noise_t, _, rkey_t, forced_t) = xs
+            v, u, prev_spikes, syn_state, H, w, aux, bias = carry
+            edge_current = w * syn_state
+            syn = _segment_sum(edge_current, post, n_neurons)
+            if use_b:
+                current_native = (drive + sched_t + bias + syn
+                                  + noise_coef * noise_t)
+            else:
+                current_native = drive + sched_t + syn + noise_coef * noise_t
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            v_next = v + dt * dv
+            u_next = u + dt * du
+            if v_floor_arr is not None:
+                v_next = jnp.maximum(v_next, v_floor_arr)
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = ((v_next >= 30.0) | forced_t) & (s_mask > 0.5)
+            spikes = spikes_bool.astype(jdtype)
+            H_next, w_next, aux_next, b_next = _apply_rule(
+                H, aux, bias, v, u, spikes, prev_spikes, syn_state, w, None, rkey_t
+            )
+            v_reset = jnp.where(spikes_bool, c, v_next)
+            u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+            syn_next = syn_state * decay + spikes[pre]
+            source_proxy = _source_proxy_from_components(
+                current_native, spikes, source_scale, dtype=jdtype
+            )
+            carry_out = (v_reset, u_reset, spikes, syn_next, H_next, w_next, aux_next, b_next)
+            if record_weight_trace:
+                outputs = (v_reset, spikes, source_proxy, H_next, w_next, aux_next, b_next)
+            else:
+                outputs = (v_reset, spikes, source_proxy, H_next, aux_next, b_next)
+            return carry_out, outputs
+
         if rule_bases is None:
             rule_step_keys = jax.vmap(lambda t: jax.random.fold_in(rule_base_key, t))(step_ids)
         else:
             rule_step_keys = jax.vmap(lambda rb, t: jax.random.fold_in(rb, t))(rule_bases, step_ids)
 
-        final, scan_outputs = jax.lax.scan(
-            step, init, xs=(sched, bulk_noise, step_ids, rule_step_keys)
-        )
+        if forced_rows is None:
+            final, scan_outputs = jax.lax.scan(
+                step, init, xs=(sched, bulk_noise, step_ids, rule_step_keys)
+            )
+        else:
+            final, scan_outputs = jax.lax.scan(
+                step_forced, init,
+                xs=(sched, bulk_noise, step_ids, rule_step_keys, forced_rows),
+            )
         if record_weight_trace:
             voltages, spikes, sources, H_trace, w_trace, aux_trace, b_trace = scan_outputs
         else:
@@ -424,10 +501,9 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
         if isinstance(off, int):
             step_indices_arr = jnp.arange(off, off + int(n_steps), dtype=jnp.int32)
         else:
-            step_indices_arr = jnp.arange(
-                off,
-                off + jnp.asarray(int(n_steps), dtype=jnp.int32),
-                dtype=jnp.int32,
+            # off may be traced under jit: shift a concrete-length range.
+            step_indices_arr = jnp.asarray(off, dtype=jnp.int32) + jnp.arange(
+                int(n_steps), dtype=jnp.int32
             )
 
     if init_state is not None and "v" in init_state:
@@ -496,6 +572,47 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
             outputs = (v_reset, spikes, source_proxy, H_next, aux_next, b_next)
         return carry_out, outputs
 
+    def step_delayed_forced(carry, xs_t):
+        # Forced-spike twin of step_delayed: identical except the threshold
+        # test ORs the per-step clamp mask in. The forced spike enters the
+        # delay ring through the same write path as a natural spike, so
+        # downstream arrival is delay-shifted exactly as usual.
+        t_idx, sched_t, noise_t, rkey_t, forced_t = xs_t
+        v, u, prev_spikes, syn_state, H, w, aux, bias, spike_hist = carry
+        edge_current = w * syn_state
+        syn = _segment_sum(edge_current, post, n_neurons)
+        if use_b:
+            current_native = (drive + sched_t + bias + syn
+                              + noise_coef * noise_t)
+        else:
+            current_native = drive + sched_t + syn + noise_coef * noise_t
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        v_next = v + dt * dv
+        u_next = u + dt * du
+        if v_floor_arr is not None:
+            v_next = jnp.maximum(v_next, v_floor_arr)
+        v_next = jnp.where(s_mask > 0.5, v_next, c)
+        spikes_bool = ((v_next >= 30.0) | forced_t) & (s_mask > 0.5)
+        spikes = spikes_bool.astype(jdtype)
+        presyn = _delayed_presynaptic_spikes(spikes, spike_hist, t_idx, pre, delay_steps_arr)
+        H_next, w_next, aux_next, b_next = _apply_rule(
+            H, aux, bias, v, u, spikes, prev_spikes, syn_state, w, presyn, rkey_t
+        )
+        v_reset = jnp.where(spikes_bool, c, v_next)
+        u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+        syn_next = syn_state * decay + presyn
+        slot = jnp.mod(t_idx, bufsize)
+        spike_hist_next = spike_hist.at[slot].set(spikes)
+        source_proxy = _source_proxy_from_components(
+            current_native, spikes, source_scale, dtype=jdtype
+        )
+        carry_out = (v_reset, u_reset, spikes, syn_next, H_next, w_next, aux_next, b_next, spike_hist_next)
+        if record_weight_trace:
+            outputs = (v_reset, spikes, source_proxy, H_next, w_next, aux_next, b_next)
+        else:
+            outputs = (v_reset, spikes, source_proxy, H_next, aux_next, b_next)
+        return carry_out, outputs
+
     if rule_bases is None:
         rule_step_keys = jax.vmap(lambda t: jax.random.fold_in(rule_base_key, t))(step_indices_arr)
     else:
@@ -503,9 +620,15 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
             rule_bases, step_indices_arr
         )
 
-    final, scan_outputs = jax.lax.scan(
-        step_delayed, init, xs=(step_indices_arr, sched, bulk_noise, rule_step_keys)
-    )
+    if forced_rows is None:
+        final, scan_outputs = jax.lax.scan(
+            step_delayed, init, xs=(step_indices_arr, sched, bulk_noise, rule_step_keys)
+        )
+    else:
+        final, scan_outputs = jax.lax.scan(
+            step_delayed_forced, init,
+            xs=(step_indices_arr, sched, bulk_noise, rule_step_keys, forced_rows),
+        )
     if record_weight_trace:
         voltages, spikes, sources, H_trace, w_trace, aux_trace, b_trace = scan_outputs
     else:

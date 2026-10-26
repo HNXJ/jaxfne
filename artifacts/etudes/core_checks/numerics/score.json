@@ -1,0 +1,25 @@
+{
+  "checks": {
+    "euler_scan_exponential_decay": {
+      "error": 0.0018471387918341797,
+      "tolerance": 0.002,
+      "pass": true,
+      "reference": "closed-form exponential exp(-1)"
+    },
+    "euler_solve_ode_decay": {
+      "error": 3.5121843044993994e-08,
+      "tolerance": 1e-05,
+      "pass": true,
+      "reference": "closed-form Euler iterate y_init * 0.9**20"
+    },
+    "source_scale_gradient_fd": {
+      "error": 0.0001373291015625,
+      "tolerance": 0.001,
+      "pass": true,
+      "reference": "central finite differences",
+      "seed": 3
+    }
+  },
+  "pass": true,
+  "skipped": []
+}

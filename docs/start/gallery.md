@@ -96,16 +96,10 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 
 Seven fixed panels, always emitted (`schema`, `network_3d`, `raster` as **OBSERVED**; `lfp`, `h_dynamics`, `hdp`, `oscillatory` as **DERIVED**), each carrying a provenance card (`config_hash`, N, edges, steps, dt, jaxfne version). A panel whose declared inputs cannot be met renders an explicit omission card:
 
-<iframe class="jx-frame" src="../../_static/atlas_three_area/index.html" loading="lazy" title="Three-area atlas dashboard"></iframe>
+![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.png)
+*V1-V4-PFC three-area hierarchy (100/area): spike raster.*
 
-- [Index Dashboard (`index.html`)](../_static/atlas_three_area/index.html)
-- [Panel 1: Circuit Schematic (`schema.html`)](../_static/atlas_three_area/schema.html)
-- [Panel 2: Network 3D (`network_3d.html`)](../_static/atlas_three_area/network_3d.html)
-- [Panel 3: Spike Raster (`raster.html`)](../_static/atlas_three_area/raster.html)
-- [Panel 4: LFP Proxy (`lfp.html`)](../_static/atlas_three_area/lfp.html)
-- [Panel 5: H Dynamics (`h_dynamics.html`)](../_static/atlas_three_area/h_dynamics.html)
-- [Panel 6: HDP Plasticity (`hdp.html`)](../_static/atlas_three_area/hdp.html)
-- [Panel 7: Oscillatory Response (`oscillatory.html`)](../_static/atlas_three_area/oscillatory.html)
+Interactive figures: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/three_area/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/three_area/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/three_area/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/three_area/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/three_area/oscillatory.html)
 
 ```python
 import jaxfne as jtfne
@@ -138,201 +132,351 @@ Evidence index of validated atlases (25 models). Generated from committed `manif
 
 State `validated` · N=100 · edges=9900 · steps=400 · config `96761084e110` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/calibration_100/index.html" loading="lazy" title="Calibration-ready column, minimal run (100n, 200 ms) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/calibration_100/index.html) · [Circuit schematic](../_static/atlas/calibration_100/schema.html) · [Network 3D](../_static/atlas/calibration_100/network_3d.html) · [Spike raster](../_static/atlas/calibration_100/raster.html) · [LFP proxy](../_static/atlas/calibration_100/lfp.html) · [H dynamics](../_static/atlas/calibration_100/h_dynamics.html) · [HDP plasticity](../_static/atlas/calibration_100/hdp.html) · [Oscillatory response](../_static/atlas/calibration_100/oscillatory.html)
+    ![Calibration-ready column, minimal run (100n, 200 ms)](https://hnxj.github.io/jaxfne/figures/calibration_100/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/calibration_100/raster.html" loading="lazy" title="Calibration-ready column, minimal run (100n, 200 ms)"></iframe>
+
+*Calibration-ready column, minimal run (100n, 200 ms): spike raster.*
 
 ### `atlas/canonical_etude_1000` — Canonical-column etude, uniform drive (1000n)
 
 State `validated` · N=1000 · edges=999000 · steps=2000 · config `b8ec3bc1536d` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/canonical_etude_1000/index.html" loading="lazy" title="Canonical-column etude, uniform drive (1000n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/canonical_etude_1000/index.html) · [Circuit schematic](../_static/atlas/canonical_etude_1000/schema.html) · [Network 3D](../_static/atlas/canonical_etude_1000/network_3d.html) · [Spike raster](../_static/atlas/canonical_etude_1000/raster.html) · [LFP proxy](../_static/atlas/canonical_etude_1000/lfp.html) · [H dynamics](../_static/atlas/canonical_etude_1000/h_dynamics.html) · [HDP plasticity](../_static/atlas/canonical_etude_1000/hdp.html) · [Oscillatory response](../_static/atlas/canonical_etude_1000/oscillatory.html)
+    ![Canonical-column etude, uniform drive (1000n)](https://hnxj.github.io/jaxfne/figures/canonical_etude_1000/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/canonical_etude_1000/raster.html" loading="lazy" title="Canonical-column etude, uniform drive (1000n)"></iframe>
+
+*Canonical-column etude, uniform drive (1000n): spike raster.*
 
 ### `atlas/config_grammar_1000` — Configuration-grammar column, smoke-scale (1000n, 200 ms)
 
 State `validated` · N=1000 · edges=999000 · steps=400 · config `4665fb608374` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/config_grammar_1000/index.html" loading="lazy" title="Configuration-grammar column, smoke-scale (1000n, 200 ms) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/config_grammar_1000/index.html) · [Circuit schematic](../_static/atlas/config_grammar_1000/schema.html) · [Network 3D](../_static/atlas/config_grammar_1000/network_3d.html) · [Spike raster](../_static/atlas/config_grammar_1000/raster.html) · [LFP proxy](../_static/atlas/config_grammar_1000/lfp.html) · [H dynamics](../_static/atlas/config_grammar_1000/h_dynamics.html) · [HDP plasticity](../_static/atlas/config_grammar_1000/hdp.html) · [Oscillatory response](../_static/atlas/config_grammar_1000/oscillatory.html)
+    ![Configuration-grammar column, smoke-scale (1000n, 200 ms)](https://hnxj.github.io/jaxfne/figures/config_grammar_1000/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/config_grammar_1000/raster.html" loading="lazy" title="Configuration-grammar column, smoke-scale (1000n, 200 ms)"></iframe>
+
+*Configuration-grammar column, smoke-scale (1000n, 200 ms): spike raster.*
 
 ### `atlas/ei_population_100` — Chainable E/I population (100n)
 
 State `validated` · N=100 · edges=9900 · steps=2000 · config `8c242da2a84d` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/ei_population_100/index.html" loading="lazy" title="Chainable E/I population (100n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/ei_population_100/index.html) · [Circuit schematic](../_static/atlas/ei_population_100/schema.html) · [Network 3D](../_static/atlas/ei_population_100/network_3d.html) · [Spike raster](../_static/atlas/ei_population_100/raster.html) · [LFP proxy](../_static/atlas/ei_population_100/lfp.html) · [H dynamics](../_static/atlas/ei_population_100/h_dynamics.html) · [HDP plasticity](../_static/atlas/ei_population_100/hdp.html) · [Oscillatory response](../_static/atlas/ei_population_100/oscillatory.html)
+    ![Chainable E/I population (100n)](https://hnxj.github.io/jaxfne/figures/ei_population_100/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/ei_population_100/raster.html" loading="lazy" title="Chainable E/I population (100n)"></iframe>
+
+*Chainable E/I population (100n): spike raster.*
 
 ### `atlas/evoked_l4` — Evoked L4 drive, evoked condition (100n)
 
 State `validated` · N=100 · edges=9900 · steps=3000 · config `872f598151ed` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/evoked_l4/index.html" loading="lazy" title="Evoked L4 drive, evoked condition (100n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/evoked_l4/index.html) · [Circuit schematic](../_static/atlas/evoked_l4/schema.html) · [Network 3D](../_static/atlas/evoked_l4/network_3d.html) · [Spike raster](../_static/atlas/evoked_l4/raster.html) · [LFP proxy](../_static/atlas/evoked_l4/lfp.html) · [H dynamics](../_static/atlas/evoked_l4/h_dynamics.html) · [HDP plasticity](../_static/atlas/evoked_l4/hdp.html) · [Oscillatory response](../_static/atlas/evoked_l4/oscillatory.html)
+    ![Evoked L4 drive, evoked condition (100n)](https://hnxj.github.io/jaxfne/figures/evoked_l4/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/evoked_l4/raster.html" loading="lazy" title="Evoked L4 drive, evoked condition (100n)"></iframe>
+
+*Evoked L4 drive, evoked condition (100n): spike raster.*
 
 ### `atlas/hdp_10` — HDP circuit, full recording (10n, 100 ms)
 
 State `validated` · N=10 · edges=90 · steps=200 · config `14c5b4f994b9` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/hdp_10/index.html" loading="lazy" title="HDP circuit, full recording (10n, 100 ms) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/hdp_10/index.html) · [Circuit schematic](../_static/atlas/hdp_10/schema.html) · [Network 3D](../_static/atlas/hdp_10/network_3d.html) · [Spike raster](../_static/atlas/hdp_10/raster.html) · [LFP proxy](../_static/atlas/hdp_10/lfp.html) · [H dynamics](../_static/atlas/hdp_10/h_dynamics.html) · [HDP plasticity](../_static/atlas/hdp_10/hdp.html) · [Oscillatory response](../_static/atlas/hdp_10/oscillatory.html)
+    ![HDP circuit, full recording (10n, 100 ms)](https://hnxj.github.io/jaxfne/figures/hdp_10/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/hdp_10/raster.html" loading="lazy" title="HDP circuit, full recording (10n, 100 ms)"></iframe>
+
+*HDP circuit, full recording (10n, 100 ms): spike raster.*
 
 ### `atlas/hdp_1000` — HDP column, short run (1000n, 200 ms)
 
 State `validated` · N=1000 · edges=999000 · steps=400 · config `a6746c86b439` · jaxfne 0.5.5
 
-<iframe class="jx-frame" src="../../_static/atlas/hdp_1000/index.html" loading="lazy" title="HDP column, short run (1000n, 200 ms) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/hdp_1000/index.html) · [Circuit schematic](../_static/atlas/hdp_1000/schema.html) · [Network 3D](../_static/atlas/hdp_1000/network_3d.html) · [Spike raster](../_static/atlas/hdp_1000/raster.html) · [LFP proxy](../_static/atlas/hdp_1000/lfp.html) · [H dynamics](../_static/atlas/hdp_1000/h_dynamics.html) · [HDP plasticity](../_static/atlas/hdp_1000/hdp.html) · [Oscillatory response](../_static/atlas/hdp_1000/oscillatory.html)
+    ![HDP column, short run (1000n, 200 ms)](https://hnxj.github.io/jaxfne/figures/hdp_1000/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/hdp_1000/raster.html" loading="lazy" title="HDP column, short run (1000n, 200 ms)"></iframe>
+
+*HDP column, short run (1000n, 200 ms): spike raster.*
 
 ### `atlas/homeostasis_1000` — Homeostasis column (1000n)
 
 State `validated` · N=1000 · edges=999000 · steps=2000 · config `4dbc78e75818` · jaxfne 0.5.5
 
-<iframe class="jx-frame" src="../../_static/atlas/homeostasis_1000/index.html" loading="lazy" title="Homeostasis column (1000n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/homeostasis_1000/index.html) · [Circuit schematic](../_static/atlas/homeostasis_1000/schema.html) · [Network 3D](../_static/atlas/homeostasis_1000/network_3d.html) · [Spike raster](../_static/atlas/homeostasis_1000/raster.html) · [LFP proxy](../_static/atlas/homeostasis_1000/lfp.html) · [H dynamics](../_static/atlas/homeostasis_1000/h_dynamics.html) · [HDP plasticity](../_static/atlas/homeostasis_1000/hdp.html) · [Oscillatory response](../_static/atlas/homeostasis_1000/oscillatory.html)
+    ![Homeostasis column (1000n)](https://hnxj.github.io/jaxfne/figures/homeostasis_1000/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/homeostasis_1000/raster.html" loading="lazy" title="Homeostasis column (1000n)"></iframe>
+
+*Homeostasis column (1000n): spike raster.*
 
 ### `atlas/lfp_csd_12` — LFP/CSD laminar column (12n)
 
 State `validated` · N=12 · edges=132 · steps=2000 · config `a07c380b8304` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/lfp_csd_12/index.html" loading="lazy" title="LFP/CSD laminar column (12n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/lfp_csd_12/index.html) · [Circuit schematic](../_static/atlas/lfp_csd_12/schema.html) · [Network 3D](../_static/atlas/lfp_csd_12/network_3d.html) · [Spike raster](../_static/atlas/lfp_csd_12/raster.html) · [LFP proxy](../_static/atlas/lfp_csd_12/lfp.html) · [H dynamics](../_static/atlas/lfp_csd_12/h_dynamics.html) · [HDP plasticity](../_static/atlas/lfp_csd_12/hdp.html) · [Oscillatory response](../_static/atlas/lfp_csd_12/oscillatory.html)
+    ![LFP/CSD laminar column (12n)](https://hnxj.github.io/jaxfne/figures/lfp_csd_12/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/lfp_csd_12/raster.html" loading="lazy" title="LFP/CSD laminar column (12n)"></iframe>
+
+*LFP/CSD laminar column (12n): spike raster.*
 
 ### `atlas` — Canonical V1 Column (1000n)
 
-State `validated` · N=1000 · edges=215785 · steps=2000 · config `91f037cf383e` · jaxfne 0.5.7
+State `validated` · N=1000 · edges=215785 · steps=2000 · config `91f037cf383e` · jaxfne 0.5.8
 
-<iframe class="jx-frame" src="../../_static/atlas/index.html" loading="lazy" title="Canonical V1 Column (1000n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/index.html) · [Circuit schematic](../_static/atlas/schema.html) · [Network 3D](../_static/atlas/network_3d.html) · [Spike raster](../_static/atlas/raster.html) · [LFP proxy](../_static/atlas/lfp.html) · [H dynamics](../_static/atlas/h_dynamics.html) · [HDP plasticity](../_static/atlas/hdp.html) · [Oscillatory response](../_static/atlas/oscillatory.html)
+    ![Canonical V1 Column (1000n)](https://hnxj.github.io/jaxfne/figures/readme/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/readme/raster.html" loading="lazy" title="Canonical V1 Column (1000n)"></iframe>
+
+*Canonical V1 Column (1000n): spike raster.*
 
 ### `atlas/network_100_ei` — Balanced E/I population (100n)
 
 State `validated` · N=100 · edges=9900 · steps=1000 · config `e58d76183666` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/network_100_ei/index.html" loading="lazy" title="Balanced E/I population (100n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/network_100_ei/index.html) · [Circuit schematic](../_static/atlas/network_100_ei/schema.html) · [Network 3D](../_static/atlas/network_100_ei/network_3d.html) · [Spike raster](../_static/atlas/network_100_ei/raster.html) · [LFP proxy](../_static/atlas/network_100_ei/lfp.html) · [H dynamics](../_static/atlas/network_100_ei/h_dynamics.html) · [HDP plasticity](../_static/atlas/network_100_ei/hdp.html) · [Oscillatory response](../_static/atlas/network_100_ei/oscillatory.html)
+    ![Balanced E/I population (100n)](https://hnxj.github.io/jaxfne/figures/network_100_ei/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/network_100_ei/raster.html" loading="lazy" title="Balanced E/I population (100n)"></iframe>
+
+*Balanced E/I population (100n): spike raster.*
 
 ### `atlas/objective_60` — Objective-grammar chain, pre-tune (60n)
 
 State `validated` · N=60 · edges=3540 · steps=400 · config `48f956974352` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/objective_60/index.html" loading="lazy" title="Objective-grammar chain, pre-tune (60n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/objective_60/index.html) · [Circuit schematic](../_static/atlas/objective_60/schema.html) · [Network 3D](../_static/atlas/objective_60/network_3d.html) · [Spike raster](../_static/atlas/objective_60/raster.html) · [LFP proxy](../_static/atlas/objective_60/lfp.html) · [H dynamics](../_static/atlas/objective_60/h_dynamics.html) · [HDP plasticity](../_static/atlas/objective_60/hdp.html) · [Oscillatory response](../_static/atlas/objective_60/oscillatory.html)
+    ![Objective-grammar chain, pre-tune (60n)](https://hnxj.github.io/jaxfne/figures/objective_60/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/objective_60/raster.html" loading="lazy" title="Objective-grammar chain, pre-tune (60n)"></iframe>
+
+*Objective-grammar chain, pre-tune (60n): spike raster.*
 
 ### `atlas/omission_60` — Omission-oddball column, plain drive (60n)
 
 State `validated` · N=60 · edges=3540 · steps=2000 · config `f3305c133965` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/omission_60/index.html" loading="lazy" title="Omission-oddball column, plain drive (60n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/omission_60/index.html) · [Circuit schematic](../_static/atlas/omission_60/schema.html) · [Network 3D](../_static/atlas/omission_60/network_3d.html) · [Spike raster](../_static/atlas/omission_60/raster.html) · [LFP proxy](../_static/atlas/omission_60/lfp.html) · [H dynamics](../_static/atlas/omission_60/h_dynamics.html) · [HDP plasticity](../_static/atlas/omission_60/hdp.html) · [Oscillatory response](../_static/atlas/omission_60/oscillatory.html)
+    ![Omission-oddball column, plain drive (60n)](https://hnxj.github.io/jaxfne/figures/omission_60/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/omission_60/raster.html" loading="lazy" title="Omission-oddball column, plain drive (60n)"></iframe>
+
+*Omission-oddball column, plain drive (60n): spike raster.*
 
 ### `atlas/operator_chain_40` — Operator-composition column (40n)
 
 State `validated` · N=40 · edges=1560 · steps=200 · config `d22bc040c652` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/operator_chain_40/index.html" loading="lazy" title="Operator-composition column (40n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/operator_chain_40/index.html) · [Circuit schematic](../_static/atlas/operator_chain_40/schema.html) · [Network 3D](../_static/atlas/operator_chain_40/network_3d.html) · [Spike raster](../_static/atlas/operator_chain_40/raster.html) · [LFP proxy](../_static/atlas/operator_chain_40/lfp.html) · [H dynamics](../_static/atlas/operator_chain_40/h_dynamics.html) · [HDP plasticity](../_static/atlas/operator_chain_40/hdp.html) · [Oscillatory response](../_static/atlas/operator_chain_40/oscillatory.html)
+    ![Operator-composition column (40n)](https://hnxj.github.io/jaxfne/figures/operator_chain_40/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/operator_chain_40/raster.html" loading="lazy" title="Operator-composition column (40n)"></iframe>
+
+*Operator-composition column (40n): spike raster.*
 
 ### `atlas/probe_32` — Probe-operators circuit, minimal run (32n, 200 ms)
 
 State `validated` · N=32 · edges=992 · steps=400 · config `5690a65f088b` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/probe_32/index.html" loading="lazy" title="Probe-operators circuit, minimal run (32n, 200 ms) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/probe_32/index.html) · [Circuit schematic](../_static/atlas/probe_32/schema.html) · [Network 3D](../_static/atlas/probe_32/network_3d.html) · [Spike raster](../_static/atlas/probe_32/raster.html) · [LFP proxy](../_static/atlas/probe_32/lfp.html) · [H dynamics](../_static/atlas/probe_32/h_dynamics.html) · [HDP plasticity](../_static/atlas/probe_32/hdp.html) · [Oscillatory response](../_static/atlas/probe_32/oscillatory.html)
+    ![Probe-operators circuit, minimal run (32n, 200 ms)](https://hnxj.github.io/jaxfne/figures/probe_32/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/probe_32/raster.html" loading="lazy" title="Probe-operators circuit, minimal run (32n, 200 ms)"></iframe>
+
+*Probe-operators circuit, minimal run (32n, 200 ms): spike raster.*
 
 ### `atlas/scale_100` — Suite No. 3 scale N=100 (async patch)
 
 State `validated` · N=100 · edges=9900 · steps=2000 · config `96a6c894ecad` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/scale_100/index.html" loading="lazy" title="Suite No. 3 scale N=100 (async patch) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/scale_100/index.html) · [Circuit schematic](../_static/atlas/scale_100/schema.html) · [Network 3D](../_static/atlas/scale_100/network_3d.html) · [Spike raster](../_static/atlas/scale_100/raster.html) · [LFP proxy](../_static/atlas/scale_100/lfp.html) · [H dynamics](../_static/atlas/scale_100/h_dynamics.html) · [HDP plasticity](../_static/atlas/scale_100/hdp.html) · [Oscillatory response](../_static/atlas/scale_100/oscillatory.html)
+    ![Suite No. 3 scale N=100 (async patch)](https://hnxj.github.io/jaxfne/figures/scale_100/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/scale_100/raster.html" loading="lazy" title="Suite No. 3 scale N=100 (async patch)"></iframe>
+
+*Suite No. 3 scale N=100 (async patch): spike raster.*
 
 ### `atlas/single_neuron` — Single neuron (1n)
 
 State `validated` · N=1 · edges=0 · steps=1000 · config `0cb7b98c0189` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/single_neuron/index.html" loading="lazy" title="Single neuron (1n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/single_neuron/index.html) · [Circuit schematic](../_static/atlas/single_neuron/schema.html) · [Network 3D](../_static/atlas/single_neuron/network_3d.html) · [Spike raster](../_static/atlas/single_neuron/raster.html) · [LFP proxy](../_static/atlas/single_neuron/lfp.html) · [H dynamics](../_static/atlas/single_neuron/h_dynamics.html) · [HDP plasticity](../_static/atlas/single_neuron/hdp.html) · [Oscillatory response](../_static/atlas/single_neuron/oscillatory.html)
+    ![Single neuron (1n)](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/single_neuron/raster.html" loading="lazy" title="Single neuron (1n)"></iframe>
+
+*Single neuron (1n): spike raster.*
 
 ### `atlas/source_column_48` — Source-bookkeeping column (48n)
 
 State `validated` · N=48 · edges=2256 · steps=2000 · config `e29a9e61e9eb` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/source_column_48/index.html" loading="lazy" title="Source-bookkeeping column (48n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/source_column_48/index.html) · [Circuit schematic](../_static/atlas/source_column_48/schema.html) · [Network 3D](../_static/atlas/source_column_48/network_3d.html) · [Spike raster](../_static/atlas/source_column_48/raster.html) · [LFP proxy](../_static/atlas/source_column_48/lfp.html) · [H dynamics](../_static/atlas/source_column_48/h_dynamics.html) · [HDP plasticity](../_static/atlas/source_column_48/hdp.html) · [Oscillatory response](../_static/atlas/source_column_48/oscillatory.html)
+    ![Source-bookkeeping column (48n)](https://hnxj.github.io/jaxfne/figures/source_column_48/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/source_column_48/raster.html" loading="lazy" title="Source-bookkeeping column (48n)"></iframe>
+
+*Source-bookkeeping column (48n): spike raster.*
 
 ### `atlas/suite1_column` — Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms)
 
 State `validated` · N=48 · edges=2256 · steps=2000 · config `316023c3edc9` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/suite1_column/index.html" loading="lazy" title="Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/suite1_column/index.html) · [Circuit schematic](../_static/atlas/suite1_column/schema.html) · [Network 3D](../_static/atlas/suite1_column/network_3d.html) · [Spike raster](../_static/atlas/suite1_column/raster.html) · [LFP proxy](../_static/atlas/suite1_column/lfp.html) · [H dynamics](../_static/atlas/suite1_column/h_dynamics.html) · [HDP plasticity](../_static/atlas/suite1_column/hdp.html) · [Oscillatory response](../_static/atlas/suite1_column/oscillatory.html)
+    ![Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms)](https://hnxj.github.io/jaxfne/figures/suite1_column/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/suite1_column/raster.html" loading="lazy" title="Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms)"></iframe>
+
+*Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms): spike raster.*
 
 ### `atlas/suite2_net1` — Suite No. 2 net1 (100n)
 
 State `validated` · N=100 · edges=9900 · steps=2000 · config `2cc90a7c1ef0` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/suite2_net1/index.html" loading="lazy" title="Suite No. 2 net1 (100n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/suite2_net1/index.html) · [Circuit schematic](../_static/atlas/suite2_net1/schema.html) · [Network 3D](../_static/atlas/suite2_net1/network_3d.html) · [Spike raster](../_static/atlas/suite2_net1/raster.html) · [LFP proxy](../_static/atlas/suite2_net1/lfp.html) · [H dynamics](../_static/atlas/suite2_net1/h_dynamics.html) · [HDP plasticity](../_static/atlas/suite2_net1/hdp.html) · [Oscillatory response](../_static/atlas/suite2_net1/oscillatory.html)
+    ![Suite No. 2 net1 (100n)](https://hnxj.github.io/jaxfne/figures/suite2_net1/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/suite2_net1/raster.html" loading="lazy" title="Suite No. 2 net1 (100n)"></iframe>
+
+*Suite No. 2 net1 (100n): spike raster.*
 
 ### `atlas/two_neuron_ei` — Two-neuron E/I (2n)
 
 State `validated` · N=2 · edges=2 · steps=1000 · config `8ae5b8435e85` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/two_neuron_ei/index.html" loading="lazy" title="Two-neuron E/I (2n) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/two_neuron_ei/index.html) · [Circuit schematic](../_static/atlas/two_neuron_ei/schema.html) · [Network 3D](../_static/atlas/two_neuron_ei/network_3d.html) · [Spike raster](../_static/atlas/two_neuron_ei/raster.html) · [LFP proxy](../_static/atlas/two_neuron_ei/lfp.html) · [H dynamics](../_static/atlas/two_neuron_ei/h_dynamics.html) · [HDP plasticity](../_static/atlas/two_neuron_ei/hdp.html) · [Oscillatory response](../_static/atlas/two_neuron_ei/oscillatory.html)
+    ![Two-neuron E/I (2n)](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.html" loading="lazy" title="Two-neuron E/I (2n)"></iframe>
+
+*Two-neuron E/I (2n): spike raster.*
 
 ### `atlas/v1_column` — 600n population, laminar readout
 
 State `validated` · N=600 · edges=359400 · steps=2000 · config `c79b0c87047f` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/v1_column/index.html" loading="lazy" title="600n population, laminar readout dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/v1_column/index.html) · [Circuit schematic](../_static/atlas/v1_column/schema.html) · [Network 3D](../_static/atlas/v1_column/network_3d.html) · [Spike raster](../_static/atlas/v1_column/raster.html) · [LFP proxy](../_static/atlas/v1_column/lfp.html) · [H dynamics](../_static/atlas/v1_column/h_dynamics.html) · [HDP plasticity](../_static/atlas/v1_column/hdp.html) · [Oscillatory response](../_static/atlas/v1_column/oscillatory.html)
+    ![600n population, laminar readout](https://hnxj.github.io/jaxfne/figures/v1_column/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/v1_column/raster.html" loading="lazy" title="600n population, laminar readout"></iframe>
+
+*600n population, laminar readout: spike raster.*
 
 ### `atlas/v1_pfc_dual` — V1-PFC dual column, single AAAB trial (200n, no HDP carryover)
 
 State `validated` · N=200 · edges=240 · steps=2000 · config `f9433f57d4d5` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/v1_pfc_dual/index.html" loading="lazy" title="V1-PFC dual column, single AAAB trial (200n, no HDP carryover) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/v1_pfc_dual/index.html) · [Circuit schematic](../_static/atlas/v1_pfc_dual/schema.html) · [Network 3D](../_static/atlas/v1_pfc_dual/network_3d.html) · [Spike raster](../_static/atlas/v1_pfc_dual/raster.html) · [LFP proxy](../_static/atlas/v1_pfc_dual/lfp.html) · [H dynamics](../_static/atlas/v1_pfc_dual/h_dynamics.html) · [HDP plasticity](../_static/atlas/v1_pfc_dual/hdp.html) · [Oscillatory response](../_static/atlas/v1_pfc_dual/oscillatory.html)
+    ![V1-PFC dual column, single AAAB trial (200n, no HDP carryover)](https://hnxj.github.io/jaxfne/figures/v1_pfc_dual/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/v1_pfc_dual/raster.html" loading="lazy" title="V1-PFC dual column, single AAAB trial (200n, no HDP carryover)"></iframe>
+
+*V1-PFC dual column, single AAAB trial (200n, no HDP carryover): spike raster.*
 
 ### `atlas/v1v4_80` — V1-V4 scaffold (80/area)
 
 State `validated` · N=160 · edges=12891 · steps=2000 · config `0699b80ad44b` · jaxfne 0.5.0
 
-<iframe class="jx-frame" src="../../_static/atlas/v1v4_80/index.html" loading="lazy" title="V1-V4 scaffold (80/area) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas/v1v4_80/index.html) · [Circuit schematic](../_static/atlas/v1v4_80/schema.html) · [Network 3D](../_static/atlas/v1v4_80/network_3d.html) · [Spike raster](../_static/atlas/v1v4_80/raster.html) · [LFP proxy](../_static/atlas/v1v4_80/lfp.html) · [H dynamics](../_static/atlas/v1v4_80/h_dynamics.html) · [HDP plasticity](../_static/atlas/v1v4_80/hdp.html) · [Oscillatory response](../_static/atlas/v1v4_80/oscillatory.html)
+    ![V1-V4 scaffold (80/area)](https://hnxj.github.io/jaxfne/figures/v1v4_80/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/v1v4_80/raster.html" loading="lazy" title="V1-V4 scaffold (80/area)"></iframe>
+
+*V1-V4 scaffold (80/area): spike raster.*
 
 ### `atlas_three_area` — V1-V4-PFC three-area hierarchy (100/area)
 
 State `validated` · N=300 · edges=30105 · steps=1000 · config `84f67ccf815f` · jaxfne 0.5.5
 
-<iframe class="jx-frame" src="../../_static/atlas_three_area/index.html" loading="lazy" title="V1-V4-PFC three-area hierarchy (100/area) dashboard"></iframe>
+=== "Still"
 
-[Open full page](../_static/atlas_three_area/index.html) · [Circuit schematic](../_static/atlas_three_area/schema.html) · [Network 3D](../_static/atlas_three_area/network_3d.html) · [Spike raster](../_static/atlas_three_area/raster.html) · [LFP proxy](../_static/atlas_three_area/lfp.html) · [H dynamics](../_static/atlas_three_area/h_dynamics.html) · [HDP plasticity](../_static/atlas_three_area/hdp.html) · [Oscillatory response](../_static/atlas_three_area/oscillatory.html)
+    ![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/three_area/raster.html" loading="lazy" title="V1-V4-PFC three-area hierarchy (100/area)"></iframe>
+
+*V1-V4-PFC three-area hierarchy (100/area): spike raster.*
 
 <!-- ATLAS-INDEX:END -->
 

@@ -302,16 +302,25 @@ def _apply_cell_params(
                 f"cell_params(selector={dict(selector)!r}) is not realized on this construction "
                 "route: it builds one unlayered population"
             )
-        matched = 0
-        for i in range(len(labels)):
-            if "cell_type" in selector and labels[i] != selector["cell_type"]:
+        hits = [
+            i for i in range(len(labels))
+            if not ("cell_type" in selector and labels[i] != selector["cell_type"])
+            and not ("layer" in selector and layer_labels[i] != selector["layer"])
+        ]
+        matched = len(hits)
+        for key in arrays:
+            if key not in overrides:
                 continue
-            if "layer" in selector and layer_labels[i] != selector["layer"]:
-                continue
-            matched += 1
-            for key in arrays:
-                if key in overrides:
-                    arrays[key][i] = float(overrides[key])
+            value = overrides[key]
+            if isinstance(value, (list, tuple)):
+                if len(value) != matched:
+                    raise ValueError(
+                        f"cell_params(selector={dict(selector)!r}): {key!r} has {len(value)} values but the "
+                        f"selector matches {matched} neurons; give one value per matched neuron or a scalar"
+                    )
+                arrays[key][hits] = np.asarray(value, dtype=float)
+            elif matched:
+                arrays[key][hits] = float(value)
         if not matched:
             if "cell_type" in selector and str(selector["cell_type"]) in declared:
                 continue

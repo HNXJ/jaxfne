@@ -1,18 +1,20 @@
 {
   "counts": {
-    "archive": 15,
+    "archive": 17,
     "benchmark": 1,
-    "dated": 18,
+    "dated": 22,
     "frozen": 28,
     "legacy": 32,
     "prereg": 104,
-    "receipts": 8
+    "receipts": 9
   },
   "paths": {
     "artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md": "8bba084e6ba9a9cc17af8086642a57678db88f6d2c7f7fbf40c7cb145ebfb98c",
     "artifacts/archive/0.5.x/decisions_and_caveats_2026-10-12.md": "a75f10621f53b15e9edf515ec8bdc691efdcad18eb78315caba9ccb5f528cbfc",
     "artifacts/archive/0.5.x/issues_closed.md": "22f44d9e9f052491a8fdece482225bc7bc0816f3f5f4b62269025ec172654a04",
+    "artifacts/archive/0.5.x/issues_closed/issues_closed_2026-10-26.md": "d9656ac8a370ff345978d050157da58dbb48031e70309fd63785d2a1f449f5af",
     "artifacts/archive/0.5.x/issues_closed_2026-10-20.md": "d4e89b68acb505f1f49232856e085f232d343b1e86de45c416fd85516418a385",
+    "artifacts/archive/0.5.x/issues_closed_2026-10-25.md": "c0cd95128633b1e76a842a2aff3628644e51b3378e85a52efdcebd68eebabd08",
     "artifacts/archive/0.5.x/refreeze_2026-09-30/artifacts/etudes/hdp_controllability_reachability/metrics.json": "60941daca1c27df2fe72803345f35572c7a2fc7cd6795f9a057e530fa70e5eb4",
     "artifacts/archive/0.5.x/refreeze_2026-09-30/artifacts/mcc3_10s_checkpoint/mcc3_10s_manifest.json": "22ad4b67361e8314227373ee1d20325ce4c89a7bed20fd254bd507d9ba49d61e",
     "artifacts/archive/0.5.x/refreeze_2026-09-30/artifacts/mcc3_10s_checkpoint/mcc3_10s_pre_post.png": "5699bca1b50b956b972e3cf01db894629e711869c7ae83a2b875974751d1efae",
@@ -133,6 +135,7 @@
     "artifacts/etudes/papers/pcl/prereg/scores/fig3_v5_t2_0-4.json": "bf2edaa1be10fbd6dc8ee75fff4750b5429570898a895c0149d22a69c5fa62cf",
     "artifacts/etudes/papers/pcl/prereg/scores/fig3_v5_t2_all.json": "8ea47e45772ec61206f7a04eb498b1a670b926205bd830c51892e71646a234f8",
     "artifacts/etudes/papers/pcl/prereg/scores/fig3_v5_t2_even.json": "394367aec79ac12a4b556c9c878ae9233d360d7c9aa701e32e132d9944797b47",
+    "artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md": "cbe27393e16e41339c9e7b21398973ecbd747bd4a2292053d772ec4f9b637409",
     "artifacts/etudes/papers/potjans2014/PREREG_P3.md": "f9849155e44feb85981ac9436519c2aabeb7bf2c753491dac5bac44ccd143968",
     "artifacts/etudes/papers/vogels2011/PREREG_P3.md": "872c97fe2d0cd64887a1de735f4102660d1844b5bb952962bf3a19f39dcec126",
     "artifacts/figures/publication/fig01_tfne_grammar.png": "707c3fec9f4b6747551e994897f70910c41ff88d5ed5a7b6910b441bc2e65678",
@@ -198,6 +201,7 @@
     "artifacts/publication/pec_consolidation_receipt.json": "fe8f5b1b43167f259ef65fc835093bdd97b8adb4d65bffd7b876edf3209f27b7",
     "artifacts/publication/pec_consolidation_spec.json": "8e46ada96f257fbd9be28a2139f954662851fc8723c977019aafe94bc1c2f9b2",
     "artifacts/publication/publication_evidence_index.json": "67fc691dff28feca1e7a58c7106c50987b9e4e887d101b09b2a77021f22262cd",
+    "artifacts/release/budget_amendment_2026-10-23.md": "8826caecf03fe71c8ca69eb6dd0e9bcdf6fd54c30f8bf75c207fcb7b6a2fdfa1",
     "artifacts/release/v0_4_16_release_receipt.json": "a6119f61d0f65aee1a92566703ea0d918482dab0e192c07f134f1150d762bc38",
     "artifacts/release/v0_4_22_release_receipt.json": "f385e285d094b5b50c7f51dae2fd6e123d2ddb3b46d02ba456c8f606800b42e2",
     "artifacts/release/v0_4_23_release_receipt.json": "c4d690cd7039020c66834d5f6534aa8f676fd3f2d3344b653d9bdf402d082fa9",
@@ -206,6 +210,7 @@
     "artifacts/release/v0_5_0_release_receipt.json": "cf0e5e78a9c10bfca53b668e1d1df97eb169bcd2dbf8ee6db8eb9115f32b0742",
     "artifacts/release/v0_5_5_seal_notes_draft.md": "2e53c2587b258f457771b5667e6ed8406200ce9cc827c2b69d4e387a5f1871bd",
     "artifacts/release/v0_5_6_release_receipt.json": "e55ed2ac568c0bf171c1abeb684a178ff0dca623c88951c2da26eb1bcf19ab81",
+    "artifacts/release/v0_5_7_release_receipt.json": "6cee1c8075918a2aeb0478d2a9acf26dea944082600d91f7479f35157535d96c",
     "artifacts/runs/benchmark/agent_tasks_055.json": "91dd839b4f8dd0828e3f44218199f6bbcd62fbe64e66f6dead9d266f02a4860c"
   }
 }

@@ -203,12 +203,15 @@ Emitter variation is a **later** étude on the same observation stack.
 
 === "Interactive"
 
-    <iframe class="jx-frame" src="../../_static/etudes/multiscale_observation/index.html" loading="lazy" title="Multiscale observation bundle figure"></iframe>
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/multiscale_observation/raster.html" loading="lazy" title="Multiscale observation bundle figure"></iframe>
 
-Committed bundle still (`artifacts/etudes/bundles/multiscale_observation/figure.png`). [Open full page](../_static/etudes/multiscale_observation/index.html).
+*The Interactive tab shows the spike-raster panel; every panel is linked under Interactive panels below.*
+
+
+Committed bundle still (`artifacts/etudes/bundles/multiscale_observation/figure.png`).
 
 ## Interactive panels (dark)
 
-Reproduced group-A panels — deterministic rerun of the frozen protocol; spikes/positions hash-identical to the bundle, V_m/Q float hashes drift across environments (JAX version unrecorded at bundle time, see P-003), all published bundle claims re-verified within protocol tolerance: [index](../_static/etudes/multiscale_observation/index.html) · [raster](../_static/etudes/multiscale_observation/raster.html) · [traces](../_static/etudes/multiscale_observation/traces.html) · [LFP](../_static/etudes/multiscale_observation/lfp.html) · [CSD](../_static/etudes/multiscale_observation/csd.html) · [oscillatory](../_static/etudes/multiscale_observation/oscillatory.html).
+Reproduced group-A panels — deterministic rerun of the frozen protocol; spikes/positions hash-identical to the bundle, V_m/Q float hashes drift across environments (JAX version unrecorded at bundle time, see P-003), all published bundle claims re-verified within protocol tolerance: [CSD proxy](https://hnxj.github.io/jaxfne/figures/multiscale_observation/csd.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/multiscale_observation/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/multiscale_observation/oscillatory.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/multiscale_observation/raster.html) · [Membrane traces](https://hnxj.github.io/jaxfne/figures/multiscale_observation/traces.html)
 
 Regenerate: `python scripts/rerun_etude_figures.py --etude multiscale` (aborts on drift).

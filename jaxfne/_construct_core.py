@@ -65,6 +65,7 @@ from ._construct_population import (
 )
 from ._construct_extras import operator_status
 from ._construct_adex import construct_adex_model
+from ._construct_hh import construct_hh_model
 
 
 def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
@@ -511,22 +512,22 @@ def _homeostasis_params_cache_fingerprint(hp: Mapping[str, Any]) -> tuple:
         if isinstance(v, (bool, int, float, str)) or v is None:
             items.append((k, v))
         elif isinstance(v, Mapping):
-            items.append((k, tuple(sorted(v.items()))))
+            items.append((k, _homeostasis_params_cache_fingerprint(v)))
         else:
             arr = _np.asarray(v)
             items.append((k, "array", arr.shape, str(arr.dtype), hash(arr.tobytes())))
     return tuple(items)
 
 
-_SUPPORTED_EMITTER_FAMILIES = frozenset({"izhikevich", "homeostatic_ei", "adex"})
+_SUPPORTED_EMITTER_FAMILIES = frozenset({"izhikevich", "homeostatic_ei", "adex", "hh"})
 
 
 def _construct_validate_config(cfg: "Configuration") -> None:
     """``construct()`` stage: validate config + fail loudly on unsupported emitter family."""
     issues = cfg.validate()["issues"]
-    if cfg.emitters and cfg.emitters[0].get("family") == "adex":
-        # The adex route refuses field() and probe() at construct, so the generic
-        # requirement that one be declared does not apply to it.
+    if cfg.emitters and cfg.emitters[0].get("family") in ("adex", "hh"):
+        # The adex and hh routes refuse field() and probe() at construct, so the generic
+        # requirement that one be declared does not apply to them.
         issues = [i for i in issues if i not in ("no_field_declared", "no_probes_declared")]
     if issues:
         raise ValueError(f"Invalid jaxfne configuration: {issues}")
@@ -774,11 +775,15 @@ def _record_connectivity_compilation(
     return replace(cfg, metadata=metadata)
 
 
-def _reject_duplicate_explicit_edges(edge_list: "EdgeList") -> None:
+def _reject_duplicate_explicit_edges(edge_list: "EdgeList", *, exempt_ranges=None) -> None:
     """Reject accidental duplicate explicit synaptic identities.
 
     Distinct receptor/mechanism indices are valid parallel edges. The identity
-    rejected here is exactly ``(pre, post, receptor_index)``.
+    rejected here is exactly ``(pre, post, receptor_index)``. ``exempt_ranges``
+    lists the edge blocks compiled from ``sampling="multinomial"`` rules: an
+    identity repeated entirely inside ONE declared block is the declared
+    with-replacement outcome, while an identity repeating across two blocks or
+    spanning an exempt and a non-exempt source is still an accident and raises.
     """
     import numpy as _np
 
@@ -792,7 +797,20 @@ def _reject_duplicate_explicit_edges(edge_list: "EdgeList") -> None:
         ),
         axis=1,
     )
-    if len(_np.unique(identities, axis=0)) != edge_list.n_edges:
+    n = identities.shape[0]
+    block = _np.full(n, -1, dtype=_np.int64)
+    if exempt_ranges:
+        for bid, (lo, hi) in enumerate(exempt_ranges):
+            block[lo:hi] = bid
+    uniq, inverse = _np.unique(identities, axis=0, return_inverse=True)
+    inverse = _np.asarray(inverse).reshape(-1)
+    for u in range(uniq.shape[0]):
+        occ = _np.flatnonzero(inverse == u)
+        if occ.size < 2:
+            continue
+        bids = block[occ]
+        if exempt_ranges and int(bids[0]) >= 0 and bool(_np.all(bids == bids[0])):
+            continue
         raise ValueError(
             "explicit NeuronalTensor connectivity produced duplicate "
             "executable synaptic identities; identity is "
@@ -902,6 +920,17 @@ def _construct_compile_connections(
                     ".mechanisms() declaration. Declare mechanisms for all rules, or drop "
                     "in_degree -- the exact count cannot be applied on the sign-only path."
                 )
+            _multi = [r.get("name") for r in _conn_rules
+                      if r.get("sampling") == "multinomial"]
+            if _multi:
+                raise ValueError(
+                    f"connection rule(s) {_multi} declare sampling='multinomial', "
+                    "which is only honoured by the mechanism-aware compiler. That "
+                    "compiler runs only when every declared rule carries a mechanism= "
+                    "reference resolvable against a .mechanisms() declaration. Declare "
+                    "mechanisms for all rules, or drop sampling='multinomial' -- "
+                    "with-replacement draws cannot be applied on the sign-only path."
+                )
             _uncompilable = {}
             for r in _conn_rules:
                 _keys = [
@@ -946,7 +975,18 @@ def _construct_compile_connections(
             _sharing = None
         declared_edge_count = sum(int(count) for count in _counts)
         if connectivity_mode == "explicit" and _conn_edges is not None:
-            _reject_duplicate_explicit_edges(_conn_edges)
+            _exempt_ranges = None
+            if any(r.get("sampling") == "multinomial" for r in _conn_rules):
+                # Rule-order edge blocks align with _counts: the blocks compiled
+                # from with-replacement rules carry declared duplicates, scoped
+                # per block (cross-block repeats stay accidental and raise).
+                _exempt_ranges = []
+                _lo = 0
+                for _rule, _cnt in zip(_conn_rules, _counts):
+                    if _rule.get("sampling") == "multinomial":
+                        _exempt_ranges.append((_lo, _lo + int(_cnt)))
+                    _lo += int(_cnt)
+            _reject_duplicate_explicit_edges(_conn_edges, exempt_ranges=_exempt_ranges)
         if _conn_edges is not None and _conn_edges.n_edges > 0:
             edge_list = _concat_edge_lists(
                 edge_list, _conn_edges, presynaptic_sign=_np.asarray(_ep.sign)
@@ -1435,8 +1475,8 @@ def _construct_from_configuration(
     """Validate a :class:`Configuration` and build a runnable :class:`Model`.
 
     Raises ``ValueError`` if the configuration is invalid or names an
-    unsupported emitter family (only the Izhikevich, homeostatic_ei and adex
-    kernels are implemented; an explicitly declared family such as
+    unsupported emitter family (only the Izhikevich, homeostatic_ei, adex and
+    hh kernels are implemented; an explicitly declared family such as
     ``"lif"``/``"glif"`` fails loudly rather than silently substituting
     Izhikevich). An optional :class:`LaminarSourceGeometry` overrides
     geometry derived from the config. The returned model is a computational
@@ -1444,7 +1484,7 @@ def _construct_from_configuration(
     physical signals.
     """
     _construct_validate_config(cfg)
-    if not (cfg.emitters and cfg.emitters[0].get("family") == "adex"):
+    if not (cfg.emitters and cfg.emitters[0].get("family") in ("adex", "hh")):
         for rule in (cfg.metadata.get("circuit") or {}).get("connections", []):
             if isinstance(rule, Mapping) and rule.get("intra_step_rounds") is not None:
                 raise ValueError(
@@ -1468,6 +1508,13 @@ def _construct_from_configuration(
                 "its cells sit at zero positions and no geometry is read"
             )
         return construct_adex_model(cfg)
+    if cfg.emitters and cfg.emitters[0].get("family") == "hh":
+        if geometry is not None:
+            raise ValueError(
+                f"construct(geometry={geometry!r}) is not realized on the hh route: "
+                "its cells sit at zero positions and no geometry is read"
+            )
+        return construct_hh_model(cfg)
     # An absent gpu/tpu device fails here, not later at simulate() time.
     _require_metadata_backend_available(cfg.metadata)
     net = cfg.networks[0]

@@ -62,9 +62,9 @@ the tensor route is the only lif path (as in brunel lane).
 - declared deviations: 12 (D-VSHIFT, D-SCALE, D-DENSITY, D-WCONST,
   D-DCONST, D-EXT, D-TH, D-DT, D-V0, threshold strictness, v_min floor,
   dT carrier, no-autapse)
-- gaps: 5 (G-MULT, G-TAUSYN, G-POPDRIVE, G-WDIST, G-DDIST), each with an
-  `xfail(strict=True)` test naming the gap id and the smallest proposed
-  public API (see OPEN in the lane report).
+- gaps: 0 as of dev 2026-10-22 (all five closed with xfail unmarked: G-MULT
+  b4d4dc5c, G-TAUSYN 5a8d4ad4, G-POPDRIVE 47c8076b, G-WDIST + G-DDIST
+  9dc6afd3; G-MULT review fixes b2c2b117).
 
 ## Numerics declared
 

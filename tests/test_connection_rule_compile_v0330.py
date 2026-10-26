@@ -180,3 +180,146 @@ def test_dense_regime_shortfall_warns_on_self_exclusion():
     pre = np.asarray(r.edge_pre, dtype=int)
     post = np.asarray(r.edge_post, dtype=int)
     assert not np.any(pre == post)
+
+
+def _spread_neurons(n=20):
+    return (
+        [{"neuron_id": i, "area": "V1", "layer": "L4", "cell_type": "E"}
+         for i in range(n)]
+        + [{"neuron_id": n + j, "area": "V1", "layer": "L4", "cell_type": "PV"}
+           for j in range(n)]
+    )
+
+
+def _compile_delay_spread(delay_ms, delay_std_ms, seed=7, n=20):
+    conn = [{"name": "E_PV", "source": {"cell_type": "E"},
+             "target": {"cell_type": "PV"}, "weight": 0.1,
+             "mechanism": "ampa", "delay_ms": delay_ms,
+             "delay_std_ms": delay_std_ms}]
+    return jtfne.compile_connection_rules(_spread_neurons(n), conn, MECHS,
+                                          seed=seed)
+
+
+def test_delay_std_spread_snapped_to_grid():
+    """G-DDIST (compiler): per-edge Gaussian delays snap half-up to dt steps."""
+    import math as _math
+
+    a = _compile_delay_spread(1.5, 0.75, seed=7)
+    b = _compile_delay_spread(1.5, 0.75, seed=7)
+    d = np.asarray(a.edge_delay_ms, dtype=np.float64)
+    assert a.n_edges == 20 * 20, "spread changes no pairing"
+    assert np.array_equal(d, np.asarray(b.edge_delay_ms, dtype=np.float64))
+    assert bool((d >= 0.0).all()), "folded draws stay non-negative"
+    assert bool((d != d[0]).any()), "spread realizes per-edge delays"
+    el = a.to_edge_list(dt_ms=0.5)
+    steps = np.asarray(el.delay_steps, dtype=np.int64)
+    expect = np.array([0 if v == 0.0 else max(1, int(_math.floor(v / 0.5 + 0.5)))
+                       for v in d], dtype=np.int64)
+    assert np.array_equal(steps, expect), "steps snap half-up, minimum 1"
+    assert bool((steps >= 1).all()), "positive draws keep a positive delay"
+    assert a.connection_table[0].get("delay_std_ms") == 0.75
+
+
+def test_delay_std_folds_negative_draws():
+    r = _compile_delay_spread(0.5, 1.0, seed=7)
+    d = np.asarray(r.edge_delay_ms, dtype=np.float64)
+    assert bool((d >= 0.0).all()), "folded draws stay non-negative"
+    el = r.to_edge_list(dt_ms=0.5)
+    assert bool((np.asarray(el.delay_steps) >= 0).all())
+
+
+def test_delay_std_requires_delay_ms():
+    conn = [{"name": "E_PV", "source": {"cell_type": "E"},
+             "target": {"cell_type": "PV"}, "weight": 0.1,
+             "mechanism": "ampa", "delay_std_ms": 0.75}]
+    with pytest.raises(ValueError, match="delay_std_ms"):
+        _compile(conn)
+
+
+def test_delay_std_negative_refused():
+    with pytest.raises(ValueError, match="delay_std_ms"):
+        _compile_delay_spread(1.5, -0.1)
+
+
+def test_spread_keys_refused_on_sign_only_fallback():
+    """The sign-only fallback compiler has no spread consumer (fail-closed)."""
+    from jaxfne._construct_connectivity import _compile_connection_rules as _fallback
+
+    labels = (["V1"] * 4, ["L4"] * 4, ["E", "E", "PV", "PV"])
+    sign = [1.0, 1.0, -1.0, -1.0]
+    with pytest.raises(ValueError, match="mechanism-aware"):
+        _fallback([{"name": "r", "source": {}, "target": {}, "weight": 0.1,
+                    "weight_std": 0.01}], *labels, sign, 4, None, 0, dt_ms=0.5)
+    with pytest.raises(ValueError, match="mechanism-aware"):
+        _fallback([{"name": "r", "source": {}, "target": {}, "weight": 0.1,
+                    "delay_ms": 1.5, "delay_std_ms": 0.1}], *labels, sign, 4,
+                   None, 0, dt_ms=0.5)
+
+
+def _lif_spread_tensor(**kw):
+    from jaxfne import neuronal_tensor as nt
+
+    delay_kw = {"delay_ms": 1.5} if kw.pop("with_delay", True) else {}
+    return nt.NeuronalTensor(
+        name="spread",
+        areas=[nt.Area(name="mc", layers=[nt.Layer(
+            name="L23", n_neurons=40,
+            neuron_types=[
+                nt.NeuronType.make("E", fraction=0.5, emitter="lif"),
+                nt.NeuronType.make("PV", fraction=0.5, emitter="lif"),
+            ])])],
+        area_connections=[nt.AreaConnection(
+            source_area="mc", source_layer="L23", source_neuron_type="E",
+            target_area="mc", target_layer="L23", target_neuron_type="PV",
+            mechanism="AMPA", static=nt.StaticParams(dT_ms=2.0),
+            plastic=nt.PlasticParams(w_mech=1.0,
+                                     w_std=kw.pop("w_std", 0.1)),
+            sampling="density", probability=0.5,
+            delay_std_ms=kw.pop("delay_std_ms", 0.75), **delay_kw,
+            **kw)],
+    )
+
+
+def _lif_spread_model(tensor, seed=3):
+    import jaxfne as jtfne
+    from jaxfne import neuronal_tensor as nt
+
+    return jtfne.construct(
+        tensor, nt.RuntimeConfiguration(seed=seed, duration_ms=10.0,
+                                        dt_ms=0.5, emitter="lif"))
+
+
+def test_tensor_spread_lif_route_per_edge():
+    """G-WDIST/G-DDIST (tensor): lif route realizes per-edge spreads."""
+    model = _lif_spread_model(_lif_spread_tensor())
+    el = model.params["edge_list"]
+    w = np.asarray(el.weight, dtype=np.float64)
+    steps = np.asarray(el.delay_steps, dtype=np.int64)
+    assert w.size > 0, "fixture must wire edges"
+    assert bool((w != w[0]).any()), "weights vary per edge"
+    assert bool((w > 0).all()), "E-source weights keep their sign"
+    assert bool((steps != steps[0]).any()), "delays vary per edge"
+    assert bool((steps >= 1).all()), "spread delays stay positive"
+    again = _lif_spread_model(_lif_spread_tensor())
+    assert np.array_equal(w, np.asarray(again.params["edge_list"].weight,
+                                        dtype=np.float64)), "fixed seed replays"
+
+
+def test_tensor_spread_refusals():
+    from jaxfne import neuronal_tensor as nt
+
+    with pytest.raises(ValueError, match="w_std"):
+        _lif_spread_model(_lif_spread_tensor(w_std=-0.1))
+    with pytest.raises(ValueError, match="delay_std_ms"):
+        _lif_spread_model(_lif_spread_tensor(delay_std_ms=-0.1))
+    with pytest.raises(ValueError, match="delay_std_ms"):
+        _lif_spread_model(_lif_spread_tensor(with_delay=False))
+    with pytest.raises(ValueError, match="delay_std_ms"):
+        nt.AreaConnection(
+            source_area="mc", source_layer="L23", source_neuron_type="E",
+            target_area="mc", target_layer="L23", target_neuron_type="E",
+            mechanism="AMPA", static=nt.StaticParams(dT_ms=2.0),
+            plastic=nt.PlasticParams(w_mech=1.0),
+            delay_ms=1.5, delay_std_ms=0.75,
+            conduction_velocity_m_per_s=1.0,
+            sampling="density", probability=0.5)

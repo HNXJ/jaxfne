@@ -8,9 +8,11 @@ another script to test; it is used to show that these tests fail against a stub.
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -533,9 +535,12 @@ def core_score():
     }}
 
 
-def core_paper(sha, criteria):
-    return paper(sha, **{"class": "core method", "stage": None, "preregs": [],
+def core_paper(sha, criteria, grammar=("Field", "Probe")):
+    spec = paper(sha, **{"class": "core method", "stage": None, "preregs": [],
                          "files": {"main": "scores/main.json"}, "criteria": criteria})
+    if grammar is not None:
+        spec["grammar"] = list(grammar)
+    return spec
 
 
 def test_core_method_builds_values_verdicts_and_references_from_the_scorer_file(tmp_path):
@@ -551,6 +556,7 @@ def test_core_method_builds_values_verdicts_and_references_from_the_scorer_file(
     assert proc.returncode == 0, proc.stderr
     got = load_out(root)["papers"][0]
     assert (got["class"], got["stage"], got["verdict"], got["preregs"]) == ("core method", None, None, [])
+    assert got["grammar"] == ["Field", "Probe"]
     live, skipped = got["criteria"]
     assert (live["value"], live["verdict"]) == (1e-9, "pass")
     assert live["reference"] == "primary-current field"
@@ -589,6 +595,37 @@ def test_core_method_refuses_and_names_the_paper(tmp_path, criteria, needle):
     assert not (root / REL_OUT).exists(), "no data file may be written on error"
 
 
+@pytest.mark.parametrize("grammar, needle", [
+    (None, "names grammar stages from"),
+    ([], "names grammar stages from"),
+    (["Field", "Membrane"], "names grammar stages from"),
+    (["Probe", "Field"], "unique and in grammar order"),
+    (["Field", "Field"], "unique and in grammar order"),
+])
+def test_core_method_refuses_bad_grammar_stages(tmp_path, grammar, needle):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": core_score()})
+    write_sources(root, [core_paper(sha, [core_criterion("meg_radial")], grammar=grammar)])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and needle in proc.stderr, proc.stderr
+    assert not (root / REL_OUT).exists(), "no data file may be written on error"
+
+
+def test_grammar_stages_only_on_core_method_rows(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": core_score()})
+    spec = paper(sha)
+    spec["grammar"] = ["Emitter"]
+    assert spec["class"] != "core method", "fixture must be a non-core paper"
+    write_sources(root, [spec])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "only a core-method entry names grammar stages" in proc.stderr, proc.stderr
+
+
 def test_core_method_skippable_criterion_names_its_entry(tmp_path):
     root = tmp_path / "repo"
     sha = make_repo(root, {"scores/main.json": core_score()})
@@ -606,3 +643,222 @@ def test_core_method_skippable_criterion_names_its_entry(tmp_path):
     proc = run(root)
     assert proc.returncode == 0, proc.stderr
     assert load_out(root)["papers"][0]["criteria"][0]["verdict"] == "pending"
+
+
+# ---- DASH-P0: the three-verdict distinction, provenance and failure visibility ----
+
+LIB_PASS = {"_comment": "mirrors scores/p6.json key p6.verdict at the lane SHA",
+            "stage": "P6", "file": "p6", "key": "p6.verdict"}
+
+
+def scored_paper(sha, verdict_value, **over):
+    spec = {
+        "class": "mixed", "verdict": "mixed",
+        "verdict_note": "R1 reproduced; R4 missed",
+        "preregs": [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}],
+        "stage": "P6",
+        "files": {"main": "scores/main.json", "p6": "scores/p6.json"},
+        "criteria": [criterion(value={"file": "main", "key": "val"})],
+        "library_path": dict(LIB_PASS),
+    }
+    spec.update(over)
+    return paper(sha, **spec)
+
+
+def real_doc():
+    return json.loads((REPO / "dashboard" / "data" / "replications.json").read_text(encoding="utf-8"))
+
+
+def real_paper(doc, pid):
+    return next(p for p in doc["papers"] if p["id"] == pid)
+
+
+def test_verdict_summary_three_verdicts_for_a_scored_row(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5, "ok": True},
+                           "scores/p6.json": {"p6": {"verdict": "pass"}}})
+    write_sources(root, [scored_paper(sha, None)])
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    got = load_out(root)["papers"][0]["verdict_summary"]
+    assert got["kind"] == "paper" and got["paper"] == "mixed"
+    assert got["library"]["stage"] == "P6" and got["library"]["verdict"] == "pass"
+    assert got["library"]["evidence"]["path"] == "scores/p6.json"
+    assert got["methods"] is None
+    assert got["failed_criteria"] == [] and got["pending_criteria"] == []
+
+
+@pytest.mark.parametrize("lane_value, want", [
+    ("pass", "pass"), ("fail", "fail"), ("incomplete", "fail"), (None, "pending"),
+])
+def test_library_path_maps_lane_verdicts(tmp_path, lane_value, want):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5, "ok": True},
+                           "scores/p6.json": {"p6": {"verdict": lane_value}}})
+    write_sources(root, [scored_paper(sha, None)])
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    assert load_out(root)["papers"][0]["verdict_summary"]["library"]["verdict"] == want
+
+
+def test_removing_the_p6_receipt_flips_library_to_pending_and_keeps_paper(tmp_path):
+    # Hamm's enforcement point: a missing library receipt renders the library
+    # verdict pending (unknown), and the scientific verdict does not move.
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5, "ok": True}})
+    spec = scored_paper(sha, None, library_path=dict(LIB_PASS),
+                        files={"main": "scores/main.json",
+                               "p6": {"path": "scores/p6.json", "allow_missing": True}})
+    write_sources(root, [spec])
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    got = load_out(root)["papers"][0]["verdict_summary"]
+    assert got["library"]["verdict"] == "pending", got
+    assert got["library"]["stage"] == "P6"
+    assert got["paper"] == "mixed", "the scientific verdict must not move"
+
+
+def test_core_method_with_no_criteria_is_refused_not_pass(tmp_path):
+    # An empty examined set is not a pass: a core-method row without criteria
+    # is refused outright, so no empty pass can ever render.
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": core_score()})
+    write_sources(root, [core_paper(sha, [])])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "needs non-empty criteria" in proc.stderr, proc.stderr
+
+
+def test_library_path_absent_without_a_block(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5, "ok": True}})
+    spec = scored_paper(sha, None, files={"main": "scores/main.json"})
+    del spec["library_path"]
+    write_sources(root, [spec])
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    assert load_out(root)["papers"][0]["verdict_summary"]["library"] is None
+
+
+def test_library_path_missing_key_is_refused(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5, "ok": True},
+                           "scores/p6.json": {"p6": {}}})
+    assert "verdict" not in json.loads((root / "scores" / "p6.json").read_text(encoding="utf-8"))["p6"]
+    write_sources(root, [scored_paper(sha, None)])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and "p6.verdict" in proc.stderr, proc.stderr
+    assert not (root / REL_OUT).exists(), "no data file may be written on error"
+
+
+def test_core_method_row_carries_null_paper_and_methods_verdict(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": core_score()})
+    write_sources(root, [core_paper(sha, [core_criterion("meg_radial"), core_criterion("eeg_mne")])])
+    assert "prereg" not in core_criterion("meg_radial"), "core criteria take no prereg"
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    got = load_out(root)["papers"][0]["verdict_summary"]
+    assert got["kind"] == "core_method" and got["paper"] is None
+    assert got["library"] is None
+    assert got["methods"] == "pending", "one live pass and one pending check is pending, not passing"
+
+
+def test_overview_counts_exclude_core_method_rows(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": dict(core_score(), **{"val": 1.5, "ok": True})})
+    good = paper(sha, **{"class": "reproduced", "verdict": "reproduced",
+                         "preregs": [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}],
+                         "stage": "P3", "files": {"main": "scores/main.json"},
+                         "criteria": [criterion(value={"file": "main", "key": "val"})]})
+    write_sources(root, [good, core_paper(sha, [core_criterion("meg_radial")])])
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    overview = load_out(root)["overview"]
+    assert overview["papers"] == 1, "the core-method row must not enter the paper denominator"
+    assert overview["by_paper"] == {"reproduced": 1}
+    assert overview["criteria"] == {"pass": 1, "fail": 0, "pending": 0}
+    assert overview["core_methods"]["rows"] == 1
+    assert overview["core_methods"]["criteria"] == {"pass": 1, "fail": 0, "pending": 0}
+
+
+def test_generated_carries_provenance_and_a_stable_revision(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5, "ok": True}})
+    write_sources(root, [paper(sha, files={"main": "scores/main.json"},
+                               criteria=[criterion(value={"file": "main", "key": "val"})])])
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    module = load_module(SCRIPT)
+    first = load_out(root)
+    gen = first["generated"]
+    assert re.fullmatch(r"[0-9a-f]{40}", gen["dev_sha"]), "the generating commit must be recorded"
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", gen["utc"]), "generation UTC must be recorded"
+    assert re.fullmatch(r"[0-9a-f]{64}", gen["data_revision"]), "a deploy-comparable revision must be recorded"
+    assert gen["data_revision"] == module.content_revision(first), "the revision must hash the content"
+
+    again = run(root)
+    assert again.returncode == 0, again.stderr
+    assert load_out(root)["generated"]["data_revision"] == gen["data_revision"], (
+        "the revision must be stable across regenerations (timestamps excluded)")
+
+
+def test_stale_generated_timestamp_flags_a_warning():
+    module = load_module(SCRIPT)
+    now = datetime(2026, 10, 23, tzinfo=timezone.utc)
+    fresh = {"utc": "2026-10-22T12:00:00Z"}
+    assert module.stale_warning(fresh, now) is None, "a day-old data file is fresh"
+    stale = {"utc": "2026-01-01T00:00:00Z"}
+    warning = module.stale_warning(stale, now)
+    assert warning is not None and "tale" in warning and "2026-01-01" in warning, (
+        "a deliberately stale fixture must warn, never pass silent")
+    assert module.stale_warning({"utc": "not a timestamp"}, now) is not None, (
+        "an unreadable timestamp must warn, never read green")
+    assert "stale-banner" in (REPO / "dashboard" / "app.js").read_text(encoding="utf-8"), (
+        "the renderer must wire the stale warning to a visible banner")
+    assert 'id="stale-banner"' in (REPO / "dashboard" / "index.html").read_text(encoding="utf-8"), (
+        "the page must hold the stale banner element")
+
+
+def test_real_caminos_shows_all_three_verdicts_and_the_lag():
+    got = real_paper(real_doc(), "caminos")["verdict_summary"]
+    assert got["paper"] == "mixed" and got["kind"] == "paper"
+    assert got["library"] == {"stage": "P6", "verdict": "pass",
+                              "evidence": got["library"]["evidence"]}, "library must read P6 PASS"
+    row = real_paper(real_doc(), "caminos")
+    assert "6.47" in row["verdict_note"] and "8.5" in row["verdict_note"], (
+        "the 6.47-vs-8.5 ms lag discrepancy must stay in the row")
+
+
+def test_real_brunel_stays_conditional_with_its_disclosure():
+    row = real_paper(real_doc(), "brunel2000")
+    assert row["verdict_summary"]["paper"] == "reproduced (conditional)"
+    assert row["stage"] == "P5"
+    assert "classifier" in row["verdict_note"], "the classifier-change disclosure must stay visible"
+
+
+def test_real_pcl_fig3_shows_its_signed_fail_and_fidelity_status():
+    row = real_paper(real_doc(), "pcl-fig3")
+    fails = {c["id"] + " " + c.get("group", ""): c["reason"] for c in row["verdict_summary"]["failed_criteria"]}
+    assert "T2 v5 simple" in fails and "flat line" in fails["T2 v5 simple"], (
+        "the signed T2 v5 simple FAIL must stay adjacent to the passes")
+    assert "flat line" in row["summary"], "the fidelity-audit status must stay in the row"
+
+
+def test_real_overview_excludes_core_method_rows():
+    doc = real_doc()
+    assert doc["overview"]["papers"] == sum(1 for p in doc["papers"]
+                                           if p["verdict_summary"]["kind"] == "paper")
+    assert all(p["verdict_summary"]["paper"] is None and p["verdict_summary"]["kind"] == "core_method"
+               for p in doc["papers"] if p["class"] == "core method")
+    assert sum(doc["overview"]["by_paper"].values()) == doc["overview"]["papers"]

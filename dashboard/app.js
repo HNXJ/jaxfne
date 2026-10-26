@@ -603,7 +603,7 @@ var CLASSES = [
     def: "Analytic checks of a core method against closed-form references, scored by a script; not a paper replication." }
 ];
 var SCORED_CLASSES = ["reproduced", "reproduced (conditional)", "mixed", "failed"];
-var TABS = ["overview", "models", "validation", "roadmap", "method"];
+var TABS = ["overview", "models", "validation", "figures", "roadmap", "method"];
 
 function classInfo(id) {
   var hit = null;
@@ -686,6 +686,19 @@ function paperCard(paper) {
     chips.appendChild(verdictChip(paper.verdict));
     if (paper.verdict_note) chips.appendChild(el("span", " " + paper.verdict_note));
   }
+  var summary = paper.verdict_summary || null;
+  if (summary && summary.library) {
+    chips.appendChild(el("span", " "));
+    var lib = el("span", "Library " + summary.library.stage + ": ");
+    lib.appendChild(verdictChip(summary.library.verdict));
+    chips.appendChild(lib);
+  }
+  if (summary && summary.kind === "core_method" && summary.methods) {
+    chips.appendChild(el("span", " "));
+    var meth = el("span", "Methods: ");
+    meth.appendChild(verdictChip(summary.methods));
+    chips.appendChild(meth);
+  }
   card.appendChild(chips);
   if (paper.question) card.appendChild(el("p", paper.question));
   if ((paper.criteria || []).length) card.appendChild(el("p", passCount(paper))).className = "pass-count";
@@ -695,6 +708,15 @@ function paperCard(paper) {
 function renderOverview(view, data) {
   var papers = data.papers || [];
   view.appendChild(el("h2", "Overview"));
+  // Paper denominators exclude core-method rows; core checks are counted apart.
+  if (data.overview) {
+    var o = data.overview;
+    var core = o.core_methods || { rows: 0, criteria: { pass: 0, fail: 0, pending: 0 } };
+    view.appendChild(el("p", o.papers + " paper replications · criteria pass " +
+      o.criteria.pass + " / fail " + o.criteria.fail + " / pending " + o.criteria.pending +
+      " · " + core.rows + " core-method rows (" +
+      core.criteria.pass + " / " + core.criteria.fail + " / " + core.criteria.pending + ")")).className = "small";
+  }
   var kpis = el("div");
   kpis.className = "kpis";
   var planned = data.roadmap || [];
@@ -757,6 +779,19 @@ function renderModel(view, data, paper) {
     if (paper.verdict_note) chips.appendChild(el("span", " " + paper.verdict_note));
   }
   card.appendChild(chips);
+  var summary = paper.verdict_summary || null;
+  if (summary && summary.library) {
+    var libLine = el("p");
+    libLine.className = "small";
+    libLine.appendChild(el("span", "Library path (" + summary.library.stage + "): "));
+    libLine.appendChild(verdictChip(summary.library.verdict));
+    var libEv = summary.library.evidence || {};
+    if (libEv.url) {
+      libLine.appendChild(el("span", " — "));
+      libLine.appendChild(link(libEv.url, libEv.path || "", "ev-link"));
+    }
+    card.appendChild(libLine);
+  }
   if (paper.stage) card.appendChild(stageTrack(paper.stage));
   if ((paper.stage_artifacts || []).length) card.appendChild(stageArtifacts(paper));
   var lane = paper.lane || {};
@@ -927,12 +962,30 @@ function renderValidation(view, data) {
   }
   select.addEventListener("change", fill);
   view.appendChild(el("h3", "Core method checks"));
-  view.appendChild(el("p", "Analytic checks of core methods against closed-form references. Values are copied from the scorer files at the commits shown; the page computes no verdict.")).className = "small";
+  view.appendChild(el("p", "Checks of core methods against independent references (closed forms, hand values, finite differences, other libraries), grouped by the grammar stage they support. Values are copied from the scorer files at the commits shown; the page computes no verdict.")).className = "small";
+  var coreRows = [];
+  (data.papers || []).forEach(function (p) {
+    if (p["class"] !== "core method") return;
+    (p.criteria || []).forEach(function (c) { coreRows.push({ p: p, c: c }); });
+  });
+  // Rows sort by the first grammar stage of their method, in grammar order.
+  var GRAMMAR = ["Emitter", "Source", "Field", "Probe", "Objective", "Optimizer", "RBD/HDP", "Numerics"];
+  function grammarRank(p) {
+    var g = (p.grammar || [])[0];
+    var i = GRAMMAR.indexOf(g);
+    return i < 0 ? GRAMMAR.length : i;
+  }
+  coreRows.sort(function (a, b) { return grammarRank(a.p) - grammarRank(b.p); });
+  var coverage = GRAMMAR.map(function (g) {
+    var n = coreRows.filter(function (r) { return (r.p.grammar || []).indexOf(g) >= 0; }).length;
+    return g + " " + n;
+  });
+  view.appendChild(el("p", "Checks per stage: " + coverage.join(" · "))).className = "small";
   var coreTable = el("table");
   coreTable.className = "validation";
   var coreHead = el("thead");
   var coreHr = el("tr");
-  labels.forEach(function (h) { coreHr.appendChild(el("th", h)); });
+  ["Stage"].concat(labels).forEach(function (h) { coreHr.appendChild(el("th", h)); });
   coreHead.appendChild(coreHr);
   coreTable.appendChild(coreHead);
   var coreBody = el("tbody");
@@ -940,12 +993,15 @@ function renderValidation(view, data) {
   view.appendChild(coreTable);
   function fillCore() {
     clear(coreBody);
-    (data.papers || []).forEach(function (p) {
-      if (p["class"] !== "core method") return;
-      (p.criteria || []).forEach(function (c) {
-        if (select.value !== "all" && c.verdict !== select.value) return;
-        paintRow(p, c, coreBody);
-      });
+    coreRows.forEach(function (r) {
+      if (select.value !== "all" && r.c.verdict !== select.value) return;
+      paintRow(r.p, r.c, coreBody);
+      var row = coreBody.lastChild;
+      var td = el("td", (r.p.grammar || []).join(", ") || "—");
+      var lab = el("span", "Stage: ");
+      lab.className = "cell-label";
+      td.insertBefore(lab, td.firstChild);
+      row.insertBefore(td, row.firstChild);
     });
   }
   fill();
@@ -1042,6 +1098,135 @@ function renderMethod(view) {
   view.appendChild(rules);
 }
 
+/* ---- Figures tab: the standalone figure site's manifest, one fetch per page view ---- */
+
+var FIG_MANIFEST_URL = "../figures/manifest.json";
+// Read the Docs base, as stated in README.md and pyproject.toml.
+var RTD_BASE = "https://jaxfne.readthedocs.io/en/latest/";
+
+// docs/<path>.md -> the RTD page URL; docs/<dir>/index.md -> the folder URL.
+function docsUrl(page) {
+  var rest = String(page).replace(/^docs\//, "").replace(/\.md$/, "");
+  if (rest === "index") return RTD_BASE;
+  if (rest.slice(-"/index".length) === "/index") rest = rest.slice(0, -"/index".length);
+  return RTD_BASE + rest + "/";
+}
+
+function figMatches(fig, query) {
+  var hay = ((fig.slug || "") + " " + (fig.title || "") + " " + (fig.panel || "")).toLowerCase();
+  return hay.indexOf(query) >= 0;
+}
+
+function figCard(fig) {
+  var card = el("article");
+  card.className = "fig-card";
+  var img = document.createElement("img");
+  img.src = "../figures/" + fig.png;
+  img.alt = fig.title || ((fig.slug || "") + " " + (fig.panel || ""));
+  img.loading = "lazy";
+  card.appendChild(img);
+  card.appendChild(el("h4", fig.panel || ""));
+  var inter = el("p");
+  inter.appendChild(link("../figures/" + fig.html, "Interactive"));
+  card.appendChild(inter);
+  (fig.docs_pages || []).forEach(function (page) {
+    var line = el("p");
+    line.className = "small";
+    line.appendChild(link(docsUrl(page), page));
+    card.appendChild(line);
+  });
+  if (fig.note) {
+    var note = el("p", fig.note);
+    note.className = "small";
+    card.appendChild(note);
+  }
+  return card;
+}
+
+function paintFigList(box, manifest, query) {
+  clear(box);
+  var seen = {};
+  var slugs = [];
+  (manifest.figures || []).forEach(function (fig) {
+    if (!figMatches(fig, query)) return;
+    if (!seen[fig.slug]) { seen[fig.slug] = []; slugs.push(fig.slug); }
+    seen[fig.slug].push(fig);
+  });
+  slugs.sort();
+  if (!slugs.length) {
+    box.appendChild(el("p", "No figures match the filter."));
+    return;
+  }
+  slugs.forEach(function (slug) {
+    var group = seen[slug];
+    var first = null;
+    group.forEach(function (fig) { if (!first && fig.status === "available") first = fig; });
+    if (!first) first = group[0];
+    box.appendChild(el("h3", slug + " — " + (first.title || first.panel || "")));
+    var grid = el("div");
+    grid.className = "fig-grid";
+    group.forEach(function (fig) {
+      if (fig.status === "available" && fig.png) grid.appendChild(figCard(fig));
+    });
+    if (grid.firstChild) box.appendChild(grid);
+    var omitted = group.filter(function (fig) { return fig.status !== "available" || !fig.png; })
+      .map(function (fig) { return fig.panel; });
+    if (omitted.length) {
+      var line = el("p", "Omitted: " + omitted.join(", "));
+      line.className = "small";
+      box.appendChild(line);
+    }
+  });
+}
+
+function renderFigTab(view, manifest) {
+  view.appendChild(el("h2", "Figures"));
+  var head = el("p", "build " + String(manifest.build_sha || "unknown").slice(0, 12) +
+    " · " + (manifest.figures || []).length + " figures");
+  head.className = "small";
+  view.appendChild(head);
+  var bar = el("div");
+  bar.className = "toolbar";
+  var label = el("label", "Filter ");
+  var input = document.createElement("input");
+  input.type = "search";
+  input.placeholder = "slug, title or panel";
+  input.setAttribute("aria-label", "Filter figures by slug, title or panel");
+  label.appendChild(input);
+  bar.appendChild(label);
+  view.appendChild(bar);
+  var box = el("div");
+  view.appendChild(box);
+  paintFigList(box, manifest, "");
+  input.addEventListener("input", function () {
+    paintFigList(box, manifest, String(input.value).toLowerCase());
+  });
+}
+
+function renderFigures(view) {
+  if (window.__figsite) {
+    renderFigTab(view, window.__figsite);
+    return;
+  }
+  view.appendChild(el("p", "Loading the figure manifest…"));
+  fetch(FIG_MANIFEST_URL).then(function (r) {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function (manifest) {
+    window.__figsite = manifest;
+    if (route().tab !== "figures") return;
+    var fresh = document.getElementById("view");
+    clear(fresh);
+    renderFigTab(fresh, manifest);
+  }).catch(function (err) {
+    if (route().tab !== "figures") return;
+    var fresh = document.getElementById("view");
+    clear(fresh);
+    fresh.appendChild(el("p", "Could not load the figure manifest from " +
+      FIG_MANIFEST_URL + ": " + (err && err.message ? err.message : err)));
+  });
+}
+
 function route() {
   var h = location.hash ? decodeURIComponent(location.hash.slice(1)) : "overview";
   if (h.indexOf("model/") === 0) return { tab: "models", id: h.slice(6) };
@@ -1056,7 +1241,9 @@ function render(data) {
   figureImages = [];
   var r = route();
   Array.prototype.forEach.call(document.querySelectorAll("#tabs a"), function (a) {
-    if (a.getAttribute("data-tab") === r.tab) a.setAttribute("aria-current", "page");
+    var on = a.getAttribute("data-tab") === r.tab;
+    a.setAttribute("aria-selected", on ? "true" : "false");
+    if (on) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   });
   var papers = data.papers || [];
@@ -1067,6 +1254,7 @@ function render(data) {
     else view.appendChild(el("p", "No model with id " + r.id + "."));
   } else if (r.tab === "models") renderModels(view, data);
   else if (r.tab === "validation") renderValidation(view, data);
+  else if (r.tab === "figures") renderFigures(view);
   else if (r.tab === "roadmap") renderRoadmap(view, data);
   else if (r.tab === "method") renderMethod(view);
   else renderOverview(view, data);
@@ -1086,6 +1274,8 @@ function renderHeader(data) {
   var generated = document.getElementById("generated");
   clear(generated);
   generated.appendChild(el("span", "Generated " + ((data.generated && data.generated.utc) || "unknown")));
+  var rev = data.generated && data.generated.data_revision;
+  if (rev) generated.appendChild(el("span", " · data " + String(rev).slice(0, 12)));
   var sha = (data.generated && data.generated.dev_sha) || "";
   var devLink = document.getElementById("devsha");
   clear(devLink);
@@ -1094,6 +1284,32 @@ function renderHeader(data) {
   var doc = document.getElementById("replications-doc");
   doc.href = "https://github.com/hnxj/jaxfne/blob/dev/artifacts/etudes/meta/REPLICATIONS.md";
   document.getElementById("banner").hidden = !data.sample;
+  var staleBanner = document.getElementById("stale-banner");
+  if (staleBanner) {
+    var warning = staleWarning(data.generated);
+    if (warning) {
+      staleBanner.textContent = warning;
+      staleBanner.hidden = false;
+    } else {
+      staleBanner.hidden = true;
+    }
+  }
+}
+
+/* Freshness: the generated stamp is older than STALE_AFTER_DAYS, or unreadable,
+// so the page warns instead of reading green. Mirrors stale_warning in
+// scripts/build_dashboard_data.py. */
+var STALE_AFTER_DAYS = 14;
+
+function staleWarning(generated) {
+  var utc = generated && generated.utc;
+  var seen = utc ? Date.parse(utc) : NaN;
+  if (isNaN(seen)) return "Generated timestamp is unreadable; treat this data file as stale.";
+  var days = Math.floor((Date.now() - seen) / 86400000);
+  if (days >= STALE_AFTER_DAYS) {
+    return "Stale data: generated " + utc + " (" + days + " days ago); regenerate before citing.";
+  }
+  return null;
 }
 
 function loadData() {

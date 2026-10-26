@@ -165,7 +165,6 @@ def test_score_keys():
     assert pops["L23E"]["n"] == 5, "per-population sizes"
 
 
-@pytest.mark.xfail(strict=True, reason="G-MULT: no with-replacement sampler")
 def test_gap_multapse_sampler():
     """Paper wiring draws K synapses per projection with replacement
     (multapses allowed, SOURCE_P1.md section 1); the core draws distinct
@@ -197,7 +196,6 @@ def test_gap_multapse_sampler():
     assert model is not None, "multapse sampler must construct"
 
 
-@pytest.mark.xfail(strict=True, reason="G-TAUSYN: no synaptic current filter")
 def test_gap_tau_syn_filter():
     """Paper PSCs decay with tau_syn = 0.5 ms (SOURCE_P1.md section 1); the
     lif route sums delta arrivals with no filter. Proposed: tau_syn_ms LIF
@@ -219,7 +217,6 @@ def test_gap_tau_syn_filter():
     assert model is not None, "tau_syn_ms must construct and filter arrivals"
 
 
-@pytest.mark.xfail(strict=True, reason="G-POPDRIVE: poisson target is all-only")
 def test_gap_per_population_drive():
     """Paper external input is per-population k_ext trains (SOURCE_P1.md
     section 2: 1600-2900 per cell); poisson_drive target="all" is the only
@@ -235,7 +232,6 @@ def test_gap_per_population_drive():
         "targeted drive must simulate"
 
 
-@pytest.mark.xfail(strict=True, reason="G-WDIST: no per-rule weight spread")
 def test_gap_weight_distribution():
     """Paper weights are Gaussian w +- delta_w, sign-preserving
     (SOURCE_P1.md section 2); the core realizes one constant per rule.
@@ -267,7 +263,6 @@ def test_gap_weight_distribution():
     assert model is not None, "weight spread must construct"
 
 
-@pytest.mark.xfail(strict=True, reason="G-DDIST: no per-rule delay spread")
 def test_gap_delay_distribution():
     """Paper delays are Gaussian d +- delta_d, sign-preserving and snapped
     to the grid (SOURCE_P1.md section 2); the core fans one constant per

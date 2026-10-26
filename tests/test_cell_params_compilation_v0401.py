@@ -43,3 +43,43 @@ def test_cell_params_compilation():
     pv_indices = [i for i, lbl in enumerate(labels) if lbl == "PV"]
     for idx in pv_indices:
         assert np.isclose(a[idx], 0.10), f"PV neuron at index {idx} had a={a[idx]}, expected 0.10"
+
+
+def _het_cfg(c_values=None, drive=None):
+    cfg = (jtfne.Configuration()
+        .runtime(seed=42, dtype="float32", duration_ms=50.0, dt_ms=0.5)
+        .column(name="v1_col", layers=["L4"], n=100)
+        .cell_types({"E": 0.8, "PV": 0.2})
+        .connectivity()
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes"]))
+    params = {}
+    if c_values is not None:
+        params["c"] = c_values
+    if drive is not None:
+        params["drive"] = drive
+    return cfg.cell_params({"cell_type": "E"}, params) if params else cfg
+
+
+def test_cell_params_accepts_one_value_per_matched_cell():
+    n_e = sum(lbl == "E" for lbl in jtfne.construct(_het_cfg()).params["emitter"].labels)
+    c_values = [-65.0 + 0.5 * i for i in range(n_e)]
+    emitter = jtfne.construct(_het_cfg(c_values)).params["emitter"]
+    e = [i for i, lbl in enumerate(emitter.labels) if lbl == "E"]
+    assert np.allclose(np.asarray(emitter.c)[e], c_values)
+    assert len(set(np.asarray(emitter.c)[e].tolist())) == n_e, "values must differ per cell"
+
+
+def test_cell_params_refuses_a_value_list_of_the_wrong_length():
+    import pytest
+
+    with pytest.raises(ValueError, match="2 values.*matches"):
+        jtfne.construct(_het_cfg([-65.0, -60.0]))
+
+
+def test_per_cell_drive_changes_the_simulated_spikes():
+    n_e = sum(lbl == "E" for lbl in jtfne.construct(_het_cfg()).params["emitter"].labels)
+    uniform = jtfne.simulate(jtfne.construct(_het_cfg(drive=[6.0] * n_e)))
+    graded = jtfne.simulate(jtfne.construct(_het_cfg(drive=[2.0 + 8.0 * i / n_e for i in range(n_e)])))
+    assert float(np.asarray(uniform.get("spk")).sum()) > 0, "fixture must spike"
+    assert not np.array_equal(np.asarray(uniform.get("spk")), np.asarray(graded.get("spk")))

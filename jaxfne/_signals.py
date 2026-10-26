@@ -16,6 +16,7 @@ import hashlib
 import math
 import numbers
 import warnings
+from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
 from typing import Any, Callable, Mapping, Optional, Sequence
 
@@ -740,6 +741,55 @@ class RunReceipt:
 import numpy as _np  # used only in StimulusSchedule.to_array; no JAX tracing
 
 
+def resolve_poisson_drive_target(model, target) -> Optional[list[int]]:
+    """Resolve a current-route ``poisson_drive`` target to neuron indices.
+
+    ``"all"`` returns None (every neuron; the draw runs unmasked). An
+    ``(area, layer, cell_type)`` triple of strings resolves through
+    :func:`paradigm_target_indices_from_model` (``Model.select`` rows), so
+    targeted drive and paradigm drive name populations one way. A triple
+    that resolves to zero neurons is refused with a message naming the
+    parts; any other non-``"all"`` target is refused exactly as
+    :func:`_make_poisson_drive` refuses it.
+    """
+    if isinstance(target, str):
+        if target == "all":
+            return None
+        raise ValueError(
+            f"poisson_drive target {target!r} is not implemented; only 'all' "
+            "(every neuron) is supported"
+        )
+    if isinstance(target, (tuple, list)):
+        parts = tuple(target)
+        if len(parts) != 3 or not all(isinstance(p, str) for p in parts):
+            raise ValueError(
+                f"poisson_drive target {target!r} must be 'all' or an "
+                "(area, layer, cell_type) triple of strings"
+            )
+        try:
+            idx = paradigm_target_indices_from_model(
+                model, area=parts[0], layer=parts[1], cell_type=parts[2])
+        except ValueError as exc:
+            raise ValueError(
+                f"poisson_drive target {target!r} resolves to no neurons "
+                f"(area={parts[0]!r}, layer={parts[1]!r}, "
+                f"cell_type={parts[2]!r}); refusing a targeted drive that "
+                "would reach nothing"
+            ) from exc
+        if len(idx) == 0:
+            raise ValueError(
+                f"poisson_drive target {target!r} resolves to no neurons "
+                f"(area={parts[0]!r}, layer={parts[1]!r}, "
+                f"cell_type={parts[2]!r}); refusing a targeted drive that "
+                "would reach nothing"
+            )
+        return [int(i) for i in idx]
+    raise ValueError(
+        f"poisson_drive target {target!r} is not implemented; only 'all' "
+        "(every neuron) is supported"
+    )
+
+
 def _make_poisson_drive(
     n_steps: int,
     n_neurons: int,
@@ -747,8 +797,10 @@ def _make_poisson_drive(
     amplitude: float,
     dt_ms: float,
     seed: int,
-    target: str = "all",
+    target: "str | Sequence[str]" = "all",
     counts: int = 1,
+    *,
+    target_indices=None,
 ) -> jax.Array:
     """Generate a Poisson stochastic drive array.
 
@@ -760,12 +812,31 @@ def _make_poisson_drive(
     (Brunel 2000: Cext external trains per cell), drawn as a single
     ``binomial(C, p)`` per step per cell — the exact sum distribution of C
     Bernoulli trials. Output is finite and bounded.
-    Only ``target="all"`` is implemented; any other target raises ``ValueError``
-    rather than driving every neuron under another name. ``counts`` must be
-    a positive integer (bools, non-integral numbers and values < 1 are
-    refused, never coerced).
+    ``target`` is ``"all"`` (every neuron) or an ``(area, layer, cell_type)``
+    triple of strings naming one population. A triple draws the same
+    per-neuron realization as ``"all"`` and then zeroes every column outside
+    ``target_indices`` (resolved from a model with
+    ``resolve_poisson_drive_target``), so the counts/amplitude/rate_hz
+    contract per neuron is unchanged. A triple without ``target_indices``
+    is refused, never run as all-drive; any other non-``"all"`` target
+    raises ``ValueError`` rather than driving every neuron under another
+    name. ``counts`` must be a positive integer (bools, non-integral numbers
+    and values < 1 are refused, never coerced).
     """
-    if target != "all":
+    if isinstance(target, (tuple, list)):
+        parts = tuple(target)
+        if len(parts) != 3 or not all(isinstance(p, str) for p in parts):
+            raise ValueError(
+                f"poisson_drive target {target!r} must be 'all' or an "
+                "(area, layer, cell_type) triple of strings"
+            )
+        if target_indices is None:
+            raise ValueError(
+                f"poisson_drive target {target!r} is an (area, layer, "
+                "cell_type) triple: pass target_indices resolved from a "
+                "model (resolve_poisson_drive_target), never a bare triple"
+            )
+    elif target != "all":
         raise ValueError(
             f"poisson_drive target {target!r} is not implemented; only 'all' "
             "(every neuron) is supported"
@@ -792,9 +863,52 @@ def _make_poisson_drive(
     key = jax.random.PRNGKey(int(seed))
     if counts == 1:
         noise = jax.random.bernoulli(key, p=prob, shape=(int(n_steps), int(n_neurons)))
-        return (jnp.asarray(noise, dtype=jnp.float32) * float(amplitude))
-    events = jax.random.binomial(key, n=counts, p=prob, shape=(int(n_steps), int(n_neurons)))
-    return (jnp.asarray(events, dtype=jnp.float32) * float(amplitude))
+        full = (jnp.asarray(noise, dtype=jnp.float32) * float(amplitude))
+    else:
+        events = jax.random.binomial(key, n=counts, p=prob, shape=(int(n_steps), int(n_neurons)))
+        full = (jnp.asarray(events, dtype=jnp.float32) * float(amplitude))
+    if target_indices is None:
+        return full
+    try:
+        entries = list(target_indices)
+    except TypeError:
+        raise ValueError(
+            f"poisson_drive target_indices={target_indices!r} must be a "
+            "sequence of integer neuron indices"
+        ) from None
+    idx: list[int] = []
+    for entry in entries:
+        if isinstance(entry, bool):
+            raise ValueError(
+                f"poisson_drive target_indices holds {entry!r}: entries must "
+                "be integer neuron indices"
+            )
+        try:
+            as_int = int(entry)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"poisson_drive target_indices holds {entry!r}: entries must "
+                "be integer neuron indices"
+            ) from None
+        if bool(entry != as_int):
+            raise ValueError(
+                f"poisson_drive target_indices holds {entry!r}: entries must "
+                "be integer neuron indices"
+            )
+        if as_int < 0 or as_int >= int(n_neurons):
+            raise ValueError(
+                f"poisson_drive target_indices holds {entry!r}: index out of "
+                f"range for n_neurons={int(n_neurons)}"
+            )
+        idx.append(as_int)
+    if not idx:
+        raise ValueError(
+            "poisson_drive target_indices is empty; refusing a targeted "
+            "drive that would reach no neuron"
+        )
+    keep = jnp.zeros((int(n_neurons),), dtype=jnp.float32)
+    keep = keep.at[jnp.asarray(idx, dtype=jnp.int32)].set(1.0)
+    return full * keep[None, :]
 
 
 def poisson_chunk_seed(poisson_seed: int, chunk_index: int) -> int:
@@ -954,6 +1068,116 @@ class StimulusSchedule:
 
 
 _KNOWN_LAYERS = frozenset({"L1", "L2/3", "L4", "L5", "L6", "unspecified"})
+
+
+@dataclass(frozen=True)
+class SpikeTrainInput:
+    """Explicit per-neuron forced-spike clamp for reader experiments.
+
+    Maps neuron indices to the spike times (ms) forced on them: every listed
+    ``(neuron, time)`` pair is realized as a spike (``spikes=1``) with the
+    membrane held at reset ``c``, indistinguishable downstream from a
+    natural spike. Only the Izhikevich edge-list registered-rule kernel
+    realizes it (``Model.simulate(sim, SpikeTrainInput(...))``); every other
+    route refuses it, as do ``poisson_drive`` and ablations. Continuation
+    composes with it on that kernel: each segment's times are relative to
+    the segment's start, and chunked forced runs reproduce the continuous
+    forced run.
+    No calibrated-current claim is made: this is a spike clamp, not a drive.
+    """
+
+    spike_times: Mapping[int, Sequence[float]]
+    n_neurons: int
+    claim_level: str = "computational_scaffold"
+
+    def __post_init__(self) -> None:
+        if isinstance(self.n_neurons, bool) or not isinstance(self.n_neurons, numbers.Integral):
+            raise ValueError(
+                f"SpikeTrainInput n_neurons={self.n_neurons!r} must be a positive integer"
+            )
+        if int(self.n_neurons) <= 0:
+            raise ValueError(
+                f"SpikeTrainInput n_neurons={self.n_neurons!r} must be a positive integer"
+            )
+        if not isinstance(self.spike_times, Mapping):
+            raise ValueError(
+                "SpikeTrainInput spike_times must be a mapping of "
+                f"neuron index -> sequence of times in ms; got {type(self.spike_times).__name__}"
+            )
+        for neuron, times in self.spike_times.items():
+            if isinstance(neuron, bool) or not isinstance(neuron, numbers.Integral):
+                raise ValueError(
+                    f"SpikeTrainInput neuron {neuron!r} is not an integer neuron index "
+                    f"(n_neurons={int(self.n_neurons)})"
+                )
+            if int(neuron) < 0 or int(neuron) >= int(self.n_neurons):
+                raise ValueError(
+                    f"SpikeTrainInput neuron {int(neuron)} out of range "
+                    f"for n_neurons={int(self.n_neurons)}"
+                )
+            if isinstance(times, (str, bytes)) or not isinstance(times, Iterable):
+                raise ValueError(
+                    f"SpikeTrainInput neuron {int(neuron)} times must be a sequence "
+                    f"of spike times in ms; got {type(times).__name__}"
+                )
+            for t in times:
+                if isinstance(t, bool) or not isinstance(t, numbers.Real):
+                    raise ValueError(
+                        f"SpikeTrainInput neuron {int(neuron)} has non-numeric "
+                        f"spike time {t!r}; times must be finite ms values"
+                    )
+                if not math.isfinite(float(t)):
+                    raise ValueError(
+                        f"SpikeTrainInput neuron {int(neuron)} has non-finite "
+                        f"spike time {t!r}; times must be finite ms values"
+                    )
+                if float(t) < 0.0:
+                    raise ValueError(
+                        f"SpikeTrainInput neuron {int(neuron)} has negative "
+                        f"spike time {float(t)}; times must be >= 0 ms"
+                    )
+
+    def to_array(self, n_steps: int, dt_ms: float) -> "jax.Array":
+        """Materialize an ``(n_steps, n_neurons)`` boolean forced-spike mask.
+
+        Each time maps to ``floor(time_ms / dt_ms + 1e-9)``: bin
+        ``[n*dt, (n+1)*dt)``. The 1e-9-step epsilon absorbs float-division
+        dust (2.35/0.05 reads 46.999... in float64); sub-epsilon differences
+        (femtosecond scale at ms dt) join the upper bin. A time at or past
+        the run duration (step >= n_steps) or two times sharing one neuron
+        bin raise ``ValueError`` naming the neuron.
+        """
+        import numpy as _np
+
+        mask = _np.zeros((int(n_steps), int(self.n_neurons)), dtype=bool)
+        for neuron, times in self.spike_times.items():
+            seen: set[int] = set()
+            for t in times:
+                step = int(math.floor(float(t) / float(dt_ms) + 1e-9))
+                if step >= int(n_steps):
+                    raise ValueError(
+                        f"SpikeTrainInput neuron {int(neuron)} spike time "
+                        f"{float(t)} ms maps to step {step}, beyond "
+                        f"n_steps={int(n_steps)} (dt_ms={float(dt_ms)})"
+                    )
+                if step in seen:
+                    raise ValueError(
+                        f"SpikeTrainInput neuron {int(neuron)} has two spike times "
+                        f"in step bin {step} (dt_ms={float(dt_ms)}); one spike per bin"
+                    )
+                seen.add(step)
+                mask[step, int(neuron)] = True
+        return jnp.asarray(mask)
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "type": "spike_train_input",
+            "n_neurons": int(self.n_neurons),
+            "n_spikes": sum(len(v) for v in self.spike_times.values()),
+            "spike_times": {str(int(k)): [float(t) for t in v] for k, v in self.spike_times.items()},
+            "claim_level": self.claim_level,
+        })
 
 
 @dataclass(frozen=True)

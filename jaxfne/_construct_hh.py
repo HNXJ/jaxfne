@@ -1,9 +1,11 @@
 """Standalone ``construct_hh_model()`` for the ``emitters_hh`` kernel (GSDR lane).
 
-The HH route is deliberately NOT wired into :func:`jaxfne.core.construct`
-dispatch (that would change an existing public function): the etude calls
-:func:`construct_hh_model` directly, the CAMINOS route-(c) precedent
-(``artifacts/etudes/caminos/caminos_api.py``).
+The default single-compartment form is wired into :func:`jaxfne.core.construct`
+dispatch (``Configuration.emitter(family="hh")``): that entry point is a façade
+over :func:`construct_hh_model` with no arguments of its own. The morphology /
+``weight_unit`` / ``gate_init`` forms stay direct calls (the etude calls
+:func:`construct_hh_model` for those, the CAMINOS route-(c) precedent
+(``artifacts/etudes/caminos/caminos_api.py``)).
 
 ``Configuration`` wires the circuit only: ``network(n=, cell_types=)`` sets
 the population, ``mechanisms()`` declares the graded-synapse receptors, and
@@ -197,10 +199,13 @@ def construct_hh_model(cfg: Any, morphology: Any = None, *,
     from ._construct_core import _construct_build_static
 
     if getattr(cfg, "emitters", None):
-        raise ValueError(
-            "the hh route takes no emitter() declaration: the kernel is fixed to classic HH; "
-            f"got {cfg.emitters!r}"
-        )
+        _em = list(cfg.emitters)
+        if len(_em) != 1 or set(_em[0]) != {"family"} or _em[0].get("family") != "hh":
+            raise ValueError(
+                "the hh route takes emitter(family='hh') only (no other emitter keys; "
+                f"morphology/weight_unit/gate_init are construct_hh_model() arguments, "
+                f"not emitter keys): got {cfg.emitters!r}"
+            )
     n, labels = _hh_population(cfg)
     dtype_name = str(cfg.metadata.get("dtype", "float32"))
     dtype = jnp.dtype(dtype_name)

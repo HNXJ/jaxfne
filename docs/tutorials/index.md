@@ -68,10 +68,10 @@ hierarchy order, one chord per connected pair, chord width by edge count.
 
 === "Interactive"
 
-    <iframe class="jx-frame" src="../_static/visuals/area_graph_n20.html" loading="lazy" title="G_20 area graph"></iframe>
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.html" loading="lazy" title="G_20 area graph"></iframe>
 
-[Open full page](../_static/visuals/area_graph_n20.html). Reference atlas of the
-1000 ms column run: [index](../_static/atlas/index.html) · [schema](../_static/atlas/schema.html) · [3D](../_static/atlas/network_3d.html) · [raster](../_static/atlas/raster.html) · [LFP](../_static/atlas/lfp.html) · [oscillatory](../_static/atlas/oscillatory.html).
+[Open full page](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.html). Reference atlas of the
+1000 ms column run: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)
 
 All notebooks follow the [Colab notebook standard](notebook_standard.md).
 Frozen scientific demonstrations are the **[Études](../etudes/index.md)**; the pages on this index are tutorials.

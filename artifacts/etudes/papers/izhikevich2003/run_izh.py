@@ -271,12 +271,21 @@ def cmd_fig3(out_dir, seeds, t_s, sensitivity=None):
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     entries = {}
+    regimes = {}
     for seed in seeds:
         rows, cols, n_steps, key_hex = run_fig3_seed(seed, t_s)
         np.savez_compressed(out / f"{seed}.npz",
                             spike_rows=rows, spike_cols=cols,
                             n_steps=np.int64(n_steps),
                             n_cells=np.int64(1000), dt_ms=np.float64(FIG3_DT))
+        cells = [[] for _ in range(1000)]
+        for r, c_ in zip(np.asarray(rows).tolist(), np.asarray(cols).tolist()):
+            cells[int(c_)].append(int(r))
+        # Kept-window per-population regimes from this seed's own spikes
+        # (E = cols 0-799, I = cols 800-999 per build_fig3_network).
+        regimes[str(seed)] = _kept_window_regime(
+            cells, n_steps, FIG3_DT,
+            populations={"E": np.arange(800), "I": np.arange(800, 1000)})
         entries[str(seed)] = {"seed": seed, "file": f"{seed}.npz",
                               "n_steps": n_steps, "dt_ms": FIG3_DT,
                               "dtype": FIG3_DTYPE, "T_s": t_s,
@@ -287,7 +296,8 @@ def cmd_fig3(out_dir, seeds, t_s, sensitivity=None):
                 "code_sha": _git_sha(), "backend": _jax_backend(),
                 "kernel": "jaxfne.emitters.simulate_eig_izhikevich",
                 "dtype": FIG3_DTYPE, "dt_ms": FIG3_DT, "T_s": t_s,
-                "seeds": list(seeds), "sensitivity": sensitivity, "runs": entries}
+                "seeds": list(seeds), "sensitivity": sensitivity, "runs": entries,
+                "activity_regime": regimes}
     (out / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
     print(f"wrote {len(entries)} Fig. 3 seeds to {out}")
     return manifest

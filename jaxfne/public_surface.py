@@ -418,6 +418,10 @@ _ADVANCED: Final[frozenset[str]] = frozenset(
         # Named registered rules: the module is the symbol (as with tfne
         # above), so rule math stays namespaced instead of hoisted to root.
         "istdp_vogels2011",
+        # Spike-train reader clamp: explicit per-neuron forced-spike input
+        # realized only by the registered-rule kernel (via Model.simulate);
+        # root-reachable, outside __all__ like the other engine utilities.
+        "SpikeTrainInput",
         # Frozen trained-W0 provenance (T-25: root attrs, not __all__)
         "W0Provenance",
         "with_trained_weights",
@@ -512,6 +516,7 @@ ADVANCED_NAMESPACE: Final[dict[str, str]] = {
     "boundedness_report": "jaxfne._long_diagnostics",
     "stability_report": "jaxfne._long_diagnostics",
     "XSource": "jaxfne.inputs",
+    "SpikeTrainInput": "jaxfne._signals",
     "SanityDeltaConfig": "jaxfne.sanity_delta",
     "SurrogateConfig": "jaxfne._runtime_config",
     "surrogate_config": "jaxfne._runtime_config",

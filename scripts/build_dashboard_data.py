@@ -18,6 +18,7 @@ docs/reference/references.md; parse_studies refuses a row it cannot read.
 """
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -507,6 +508,26 @@ def check_class(spec):
 
 STAGES = ("P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7")
 
+# Grammar stages a core-method row supports, in the order of the scientific grammar
+# (Emitter -> Source -> Field -> Probe -> Objective -> Optimizer), then the adaptive dynamics
+# (RBD/HDP) and the numerics every stage runs on.
+GRAMMAR = ("Emitter", "Source", "Field", "Probe", "Objective", "Optimizer", "RBD/HDP", "Numerics")
+
+
+def check_grammar(spec):
+    """The grammar stages of a core-method row: a non-empty list from GRAMMAR, in GRAMMAR order.
+    Other classes carry none."""
+    grammar = spec.get("grammar")
+    if spec.get("class") != "core method":
+        if grammar is not None:
+            raise BuildError(f"paper {spec['id']}: only a core-method entry names grammar stages")
+        return None
+    if not grammar or any(g not in GRAMMAR for g in grammar):
+        raise BuildError(f"paper {spec['id']}: a core-method entry names grammar stages from {list(GRAMMAR)}")
+    if list(grammar) != sorted(set(grammar), key=GRAMMAR.index):
+        raise BuildError(f"paper {spec['id']}: grammar stages are unique and in grammar order")
+    return list(grammar)
+
 
 def build_stage_artifacts(p, spec):
     """Per-stage files at the lane SHA, in stage order. A stage past the paper's own stage, an
@@ -544,16 +565,20 @@ def check_dev_lane(spec):
 def build_paper(spec, files, repo_url):
     check_dev_lane(spec)
     p = Paper(spec, files, repo_url)
+    cls = check_class(spec)
+    criteria = [build_criterion(p, c) for c in spec.get("criteria", [])]
+    library = build_library_path(p, spec)
     return {
         "id": spec["id"],
         "title": spec["title"],
         "citation": spec["citation"],
-        "class": check_class(spec),
+        "class": cls,
         "question": spec.get("question", ""),
         "page": model_page(spec),
         "release": spec["release"],
         "tier": spec["tier"],
         "stage": spec.get("stage"),
+        "grammar": check_grammar(spec),
         "lane": {"branch": spec["lane"]["branch"], "sha": spec["lane"]["sha"]},
         "stage_artifacts": build_stage_artifacts(p, spec),
         "verdict": spec.get("verdict"),
@@ -563,10 +588,93 @@ def build_paper(spec, files, repo_url):
             {"id": pr["id"], "signed": pr["signed"], "path": pr["path"], "url": p.prereg_url(pr["path"])}
             for pr in spec.get("preregs", [])
         ],
-        "criteria": [build_criterion(p, c) for c in spec.get("criteria", [])],
+        "criteria": criteria,
         "sensitivity": build_sensitivity(p, spec),
         "charts": [build_chart(p, ch) for ch in spec.get("charts", [])],
         "open": list(spec.get("open", [])),
+        "verdict_summary": build_verdict_summary(spec, criteria, library),
+    }
+
+
+def build_library_path(p, spec):
+    """The scored-apart library route (B1): one value from a lane file, mapped to pass/fail/pending.
+
+    The block names its stage, file and dotted key; the value is derived from the scorer file,
+    never hand-written. A missing key is refused; a null, or an absent allow_missing file, is
+    pending, never a pass. A paper without the block carries no library verdict."""
+    block = spec.get("library_path")
+    if block is None:
+        return None
+    if spec.get("class") == "core method":
+        raise BuildError(f"paper {p.id}: a core-method entry carries no library_path")
+    if not isinstance(block, dict):
+        raise BuildError(f"paper {p.id}: library_path is not a block")
+    for field in ("stage", "file", "key"):
+        if not block.get(field):
+            raise BuildError(f"paper {p.id}: library_path needs a non-empty {field!r}")
+    if block["stage"] not in STAGES:
+        raise BuildError(f"paper {p.id}: library_path stage {block['stage']!r} is not one of {list(STAGES)}")
+    name, key = block["file"], block["key"]
+    if p.absent(name):
+        return {"stage": block["stage"], "verdict": "pending", "evidence": p.evidence(name)}
+    flag = p.value(name, key)
+    if flag is None:
+        # A scorer row that stays null (a skipped check) shows as pending, never as a pass.
+        verdict = "pending"
+    elif flag == "pass":
+        verdict = "pass"
+    elif flag in ("fail", "incomplete"):
+        # An incomplete library run scores as a fail, as in verdict_of.
+        verdict = "fail"
+    else:
+        raise BuildError(f"paper {p.id}: library file {name} key {key} is not pass, fail or incomplete")
+    return {"stage": block["stage"], "verdict": verdict, "evidence": p.evidence(name)}
+
+
+def build_verdict_summary(spec, criteria, library):
+    """The three verdicts side by side, all derived: the paper verdict from the sources entry,
+    the library verdict from the lane's library-path score, the methods verdict from the
+    core-method criteria. Failed and pending criteria ride along so no fail averages away."""
+    failed = [c for c in criteria if c["verdict"] == "fail"]
+    pending = [c for c in criteria if c["verdict"] == "pending"]
+    if spec.get("class") == "core method":
+        if failed:
+            methods = "fail"
+        elif pending:
+            # One live pass and one pending check is pending, not passing.
+            methods = "pending"
+        else:
+            methods = "pass"
+        return {"kind": "core_method", "paper": None, "library": None, "methods": methods,
+                "failed_criteria": failed, "pending_criteria": pending}
+    return {"kind": "paper", "paper": spec.get("verdict"), "library": library, "methods": None,
+            "failed_criteria": failed, "pending_criteria": pending}
+
+
+def build_overview(papers):
+    """Paper denominators exclude core-method rows; core checks are counted apart."""
+    rows = [p for p in papers if p["verdict_summary"]["kind"] == "paper"]
+    core = [p for p in papers if p["verdict_summary"]["kind"] == "core_method"]
+
+    def counts(ps):
+        n = {"pass": 0, "fail": 0, "pending": 0}
+        for paper in ps:
+            for c in paper["criteria"]:
+                if c["verdict"] in n:
+                    n[c["verdict"]] += 1
+        return n
+
+    by_paper = {}
+    for paper in rows:
+        key = paper["verdict_summary"]["paper"]
+        if key is None:
+            key = paper["class"]
+        by_paper[key] = by_paper.get(key, 0) + 1
+    return {
+        "papers": len(rows),
+        "by_paper": by_paper,
+        "criteria": counts(rows),
+        "core_methods": {"rows": len(core), "criteria": counts(core)},
     }
 
 
@@ -647,6 +755,33 @@ def dev_sha():
     return sha
 
 
+def content_revision(doc):
+    """sha256 over the document without `generated`: a deploy-comparable revision that stays
+    stable across regenerations (the timestamp lives in `generated`)."""
+    content = {k: v for k, v in doc.items() if k != "generated"}
+    canonical = json.dumps(content, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+STALE_AFTER_DAYS = 14
+
+
+def stale_warning(generated, now=None):
+    """None when the data file is fresh; a warning naming its date when the generated stamp is
+    older than STALE_AFTER_DAYS or unreadable. Never a silent green badge."""
+    if now is None:
+        now = datetime.now(timezone.utc)
+    utc = (generated or {}).get("utc")
+    try:
+        seen = datetime.strptime(utc, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    except (TypeError, ValueError):
+        return f"stale: generated timestamp {utc!r} is unreadable; treat this data file as stale"
+    age_days = (now - seen).days
+    if age_days >= STALE_AFTER_DAYS:
+        return f"stale: data generated {utc} is {age_days} days old; regenerate before citing it"
+    return None
+
+
 def build_document():
     try:
         sources = json.loads(SOURCES.read_text(encoding="utf-8"))
@@ -660,7 +795,7 @@ def build_document():
         studies = parse_studies(REFERENCES.read_text(encoding="utf-8"))
     except OSError as exc:
         raise BuildError(f"cannot read {REFERENCES}: {exc}")
-    return {
+    doc = {
         "schema": SCHEMA,
         "sample": False,
         "generated": {
@@ -668,9 +803,12 @@ def build_document():
             "dev_sha": dev_sha(),
         },
         "papers": papers,
+        "overview": build_overview(papers),
         "roadmap": list(sources.get("roadmap", [])),
         "studies": studies,
     }
+    doc["generated"]["data_revision"] = content_revision(doc)
+    return doc
 
 
 def join(path, key):

@@ -48,7 +48,7 @@ rates_hz = signals.spikes.mean(axis=0) * 1000.0 / 0.1
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from this page's circuit (500 ms, dt 0.5 ms, seed 0; the page shows dt 0.1 ms): [index](../../../_static/atlas/two_neuron_ei/index.html) · [schema](../../../_static/atlas/two_neuron_ei/schema.html) · [3D](../../../_static/atlas/two_neuron_ei/network_3d.html) · [raster](../../../_static/atlas/two_neuron_ei/raster.html) · [LFP](../../../_static/atlas/two_neuron_ei/lfp.html) · [H](../../../_static/atlas/two_neuron_ei/h_dynamics.html) · [HDP](../../../_static/atlas/two_neuron_ei/hdp.html) · [oscillatory](../../../_static/atlas/two_neuron_ei/oscillatory.html).
+Dark-theme Plotly panels from this page's circuit (500 ms, dt 0.5 ms, seed 0; the page shows dt 0.1 ms): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug two_neuron_ei`.
 

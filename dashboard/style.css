@@ -175,6 +175,13 @@ tr.group-row th { background: var(--bg); }
 .chart-fig figcaption { font-size: 13px; color: var(--muted); margin-top: 4px; }
 .js-plotly-plot, .plotly { max-width: 100%; }
 .static-fig img { max-width: 100%; height: auto; }
+
+/* Figures tab: slug groups of still cards, reusing the surface and border tokens. */
+.fig-grid { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); margin: 12px 0 24px; }
+.fig-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+.fig-card img { max-width: 100%; height: auto; display: block; border-radius: 4px; }
+.fig-card h4 { margin: 8px 0 4px; font-size: 15px; }
+.fig-card p { margin: 4px 0; }
 details summary { min-height: 32px; cursor: pointer; padding: 6px 0; }
 
 /* Sensitivity. */

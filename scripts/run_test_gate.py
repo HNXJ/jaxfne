@@ -138,6 +138,7 @@ CHECK_FAMILIES = {
     "vocabulary_audit",
     "docs_orphans_check",
     "doc_code_integrity_audit",
+    "docs_figures_check",
     "record_integrity",
     "replication_audit",
     "etude_no_resim",
@@ -207,6 +208,7 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "docs_figures_check",
         "record_integrity",
         "replication_audit",
         "etude_no_resim",
@@ -231,6 +233,7 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "docs_figures_check",
         "record_integrity",
         "replication_audit",
         "etude_no_resim",
@@ -261,6 +264,7 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "docs_figures_check",
         "record_integrity",
         "replication_audit",
         "etude_no_resim",
@@ -292,6 +296,7 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "docs_figures_check",
         "record_integrity",
         "replication_audit",
         "etude_no_resim",
@@ -576,6 +581,10 @@ AUDIT_STEPS: list[tuple[str, list[str]]] = [
         "doc_code_integrity_audit",
         [sys.executable, "scripts/audit_doc_code_integrity.py", "--check"],
     ),
+    (
+        "docs_figures_check",
+        [sys.executable, "scripts/build_docs_assets.py", "--docs-figures-check"],
+    ),
     ("tree_size_audit", [sys.executable, "scripts/check_tree_size.py", "--check"]),
     ("record_integrity", [sys.executable, "scripts/check_record_integrity.py", "--check"]),
     (
@@ -623,6 +632,7 @@ DOCS_AUDIT_FAMILIES = {
     "vocabulary_audit",
     "docs_orphans_check",
     "doc_code_integrity_audit",
+    "docs_figures_check",
 }
 
 

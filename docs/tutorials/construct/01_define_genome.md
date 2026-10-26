@@ -35,14 +35,14 @@ Tolerance example (L1): `E (0.45,0.55) SST (0.1,0.2) VIP (0.3,0.4)` — realized
 
 === "Interactive"
 
-    <iframe class="jx-frame" src="../../../_static/atlas/schema.html" loading="lazy" title="Realized block schematic of canonical-v1-column-1000n"></iframe>
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/readme/schema.html" loading="lazy" title="Realized block schematic of canonical-v1-column-1000n"></iframe>
 
-Realized block schematic of `canonical-v1-column-1000n` from the pinned reference run (seed 0): the layers, cell types and population counts these rules produce. [Open full page](../../_static/atlas/schema.html).
+Realized block schematic of `canonical-v1-column-1000n` from the pinned reference run (seed 0): the layers, cell types and population counts these rules produce. [Open full page](https://hnxj.github.io/jaxfne/figures/readme/schema.html).
 
 Next: [02 — Develop](02_develop_genome.md) — `develop(genome, K_D)` realizes one phenotype.
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column: [index](../../_static/atlas/index.html) · [schema](../../_static/atlas/schema.html) · [3D](../../_static/atlas/network_3d.html) · [raster](../../_static/atlas/raster.html) · [LFP](../../_static/atlas/lfp.html) · [H](../../_static/atlas/h_dynamics.html) · [HDP](../../_static/atlas/hdp.html) · [oscillatory](../../_static/atlas/oscillatory.html).
+Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)
 
 Regenerate: `python scripts/generate_readme_atlas.py --html-only`.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Replication-checklist gate rows: R1, R6, S1, E3.
+"""Replication-checklist gate rows: R1, R4, R6, S1, S2, E1, E3, P4 (manifest).
 
 Paper registry: ``dashboard/sources.json`` papers[] (``id``, ``stage``,
 ``stage_artifacts``, ``preregs``). Paper folders: ``artifacts/etudes/papers/*/``.
@@ -18,6 +18,12 @@ SHA, so this gate does not re-check their working-tree existence.
   maps to ``artifacts/etudes/papers/<id>/`` (then ``<id>`` before the first
   ``"-"``) when that folder exists. Disagreeing segments, or no folder at all,
   is a finding.
+- R4: a paper counts as replicated with jaxfne only at P6: a paper whose
+  recorded verdict is exactly ``reproduced`` holds its P6 stage result file
+  (the P6 entry of its ``stage_artifacts``, resolved on disk the way R1
+  resolves record files). A paper below P6, or with verdict ``reproduced
+  (conditional)``, ``mixed``, ``in progress``, ``not started`` or ``failed``,
+  is not a finding.
 - R6: at most 7 files and 7 folders per paper folder (direct children, no ``__pycache__``).
 - S1: no ``.py`` under a paper folder runs outside code: ``subprocess.*``,
   ``os.system``/``popen``/``startfile``/``fork``/``forkpty``/``exec*``/``spawn*``/
@@ -40,10 +46,45 @@ SHA, so this gate does not re-check their working-tree existence.
   ``--exec-path*`` or a ``shell=``, ``executable=``, ``env=`` or
   ``preexec_fn=`` keyword is present; a non-constant argv element stays a
   finding, except the directory right after ``-C``.
+- S2: a transcription of the authors' model (an oracle) is imported only by
+  tests or gate scripts, never by the scored path: ``import X``,
+  ``from X import``, ``from .X import``, ``importlib.import_module("X")``
+  with a constant, and ``spec_from_file_location`` with a constant path that
+  resolves to the oracle (module scope and function scope both count).
+  Oracle modules are the paper's ``stage_artifacts`` entries labelled
+  oracle/transcription/reference arm (mapped onto
+  ``artifacts/etudes/papers/`` the way R1 maps them, so a stale path still
+  maps; a label naming a ``.py`` file that does not exist is not an S2
+  finding) and ``*_ref.py``, ``*_ref_*.py``, ``*reference*.py`` files under
+  the paper folders. Allowed importers are ``test_*``/``gate_*`` files,
+  files under a ``tests/`` directory, and sibling oracles of the same paper.
+- E1: the scored run builds and simulates through jaxfne
+  (``Configuration``/``CircuitSpec`` -> ``construct`` -> ``Model`` ->
+  ``simulate``): the paper's P4 ``stage_artifacts`` entries (mapped onto
+  ``artifacts/etudes/papers/`` the way oracles map; labels naming an oracle
+  or a test, ``test_*`` basenames and ``*_ref*``/``*reference*`` names
+  excluded; existing files only) hold at least one ``construct`` call (bare
+  or attribute) and one attribute ``.simulate`` call, in any scope, across
+  the modules. Papers below P4 and ``core method`` entries are skipped.
 - E3: no top-level ``def NAME(`` under a paper folder shadows a public
   ``jaxfne.analysis`` name (collected recursively under ``jaxfne/analysis*``,
   including ``__all__`` re-exports; a method named like a core function is not
   a copy).
+- P4 (manifest): every run writes a manifest with code SHA, backend, dtype,
+  seeds and the activity-regime block: the paper's P4 ``stage_artifacts``
+  entries (the same scored modules E1 checks; labels naming an oracle or a
+  test, ``test_*`` basenames and ``*_ref*``/``*reference*`` names excluded)
+  hold one manifest writer covering one key from each class. A writer is a
+  dict display or ``dict(...)`` call assigned to a name containing
+  ``manifest``, or passed to ``json.dump``/``json.dumps``/``write_text``
+  (attribute calls; a name resolves to its first bound literal); the dicts
+  passed to one call of a function named like ``*manifest*`` count together
+  as one writer. Required
+  classes, in finding order: code SHA {git_sha, code_sha, sha, commit, baseline_sha},
+  backend {backend}, dtype {dtype}, seeds {seed, seeds}, regime {regime,
+  activity_regime} (exact match, case-sensitive; every member is a key a real
+  paper writer uses). Papers below P4 and ``core method`` entries are
+  skipped; a paper with no scored module is E1's finding, not P4 (manifest)'s.
 
 Known violations live in ``scripts/replication_known_violations.json`` as
 ``{"rule", "path", "message", "reason", "todo"}`` and match findings on
@@ -63,6 +104,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import fnmatch
 import json
 import os
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -727,6 +769,487 @@ def check_s1_file(tree: ast.Module, rel: str, here: Path, root: Path) -> list[st
     return issues
 
 
+#: Stage-artifact label fragments that mark a transcription of the authors' model.
+ORACLE_LABEL_KEYWORDS = ("oracle", "transcription", "reference arm")
+
+
+def _is_oracle_label(label: str) -> bool:
+    """Whether a stage_artifacts label names an oracle (case-insensitive)."""
+    low = label.lower()
+    return any(key in low for key in ORACLE_LABEL_KEYWORDS)
+
+
+def _label_oracle_rel(path: str) -> str | None:
+    """Repo-relative oracle path for a stage_artifacts entry, or None.
+
+    The ``<name>`` segment maps onto ``artifacts/etudes/papers/<name>/`` the
+    way R1 maps it (the folders moved there), so a stale pinned path still
+    maps. Only ``.py`` entries count.
+    """
+    if Path(path).suffix != ".py":
+        return None
+    parts = Path(path).parts
+    if len(parts) < 3 or parts[0] != "artifacts" or parts[1] != "etudes":
+        return None
+    rest = parts[2:]
+    if rest[0] == "papers":
+        rest = rest[1:]
+    if len(rest) < 2 or not rest[0]:
+        return None
+    return PAPERS_REL.joinpath(*rest).as_posix()
+
+
+def _is_oracle_name(basename: str) -> bool:
+    """Whether a file basename marks an oracle transcription."""
+    return (
+        fnmatch.fnmatchcase(basename, "*_ref.py")
+        or fnmatch.fnmatchcase(basename, "*_ref_*.py")
+        or fnmatch.fnmatchcase(basename, "*reference*.py")
+    )
+
+
+def oracle_files(papers: list[dict], root: Path) -> dict[str, Path]:
+    """(repo-relative posix, absolute path) oracle modules, per paper folder.
+
+    Labelled oracles resolve through the R1 folder mapping; a label naming a
+    ``.py`` file that does not exist is not an oracle (R1 and the dashboard
+    build own existence). Name oracles match ``*_ref.py``, ``*_ref_*.py`` or
+    ``*reference*.py`` under the paper folders.
+    """
+    oracles: dict[str, Path] = {}
+    for paper in papers:
+        stages = paper.get("stage_artifacts")
+        if isinstance(stages, dict):
+            for items in stages.values():
+                if isinstance(items, list):
+                    for item in items:
+                        if (
+                            isinstance(item, dict)
+                            and isinstance(item.get("label"), str)
+                            and isinstance(item.get("path"), str)
+                            and _is_oracle_label(item["label"])
+                        ):
+                            rel = _label_oracle_rel(item["path"])
+                            if rel is not None and (root / rel).is_file():
+                                oracles.setdefault(rel, root / rel)
+    for path in _paper_py_files(root):
+        if _is_oracle_name(path.name):
+            oracles.setdefault(_rel(path, root), path)
+    return oracles
+
+
+def _norm(path: Path | PurePosixPath | PureWindowsPath) -> str:
+    return os.path.normcase(os.path.normpath(str(path)))
+
+
+def _s2_paper(rel: str) -> str | None:
+    """The paper folder name for a repo-relative path under papers/, or None."""
+    parts = PurePosixPath(rel).parts
+    if (
+        len(parts) > 3
+        and parts[0] == "artifacts"
+        and parts[1] == "etudes"
+        and parts[2] == "papers"
+    ):
+        return parts[3]
+    return None
+
+
+def _s2_module_candidates(name: str, base: Path) -> list[Path]:
+    """Candidate files for a dotted module name anchored at one directory."""
+    stem = Path(*name.split("."))
+    return [base / (str(stem) + ".py"), base / stem / "__init__.py"]
+
+
+def _resolve_s2_module(
+    name: str, here: Path, paper_root: Path, level: int
+) -> Path | None:
+    """The file a module name resolves to, or None when it resolves nowhere.
+
+    Absolute names resolve beside the importer, then at the paper root (the
+    paper folders run with their own directory on ``sys.path``); relative
+    names resolve beside the importer. Only existing files count.
+    """
+    if level:
+        base = here.parent
+        for _ in range(level - 1):
+            base = base.parent
+        candidates = _s2_module_candidates(name, base)
+    else:
+        candidates = _s2_module_candidates(name, here.parent) + _s2_module_candidates(
+            name, paper_root
+        )
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _s2_module_refs(tree: ast.Module) -> list[tuple[str, int]]:
+    """(module name, relative level) for every import statement, any scope."""
+    refs: list[tuple[str, int]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for a in node.names:
+                refs.append((a.name, 0))
+        elif isinstance(node, ast.ImportFrom):
+            if node.module is not None:
+                refs.append((node.module, node.level))
+            else:
+                for a in node.names:
+                    if a.name != "*":
+                        refs.append((a.name, node.level))
+    return refs
+
+
+def check_s2(
+    parsed: list[tuple[str, Path, ast.Module | None]], papers: list[dict], root: Path
+) -> list[tuple[str, str, str]]:
+    """S2 findings: a non-test, non-gate file importing an oracle module."""
+    oracles = oracle_files(papers, root)
+    by_abs = {_norm(path): rel for rel, path in oracles.items()}
+    by_paper: dict[str | None, set[str]] = {}
+    for rel, path in oracles.items():
+        by_paper.setdefault(_s2_paper(rel), set()).add(_norm(path))
+    findings: set[tuple[str, str, str]] = set()
+    for rel, here, tree in parsed:
+        if tree is None:
+            continue
+        paper = _s2_paper(rel)
+        if paper is None:
+            continue
+        if here.name.startswith(("test_", "gate_")):
+            continue
+        if "tests" in PurePosixPath(rel).parts:
+            continue
+        if _norm(here) in by_paper.get(paper, set()):
+            continue  # a sibling oracle of the same paper
+        paper_root = root / PAPERS_REL / paper
+        bindings = _collect_bindings(tree)
+        mods, names = _collect_imports(tree)
+        hits: set[str] = set()
+        for name, level in _s2_module_refs(tree):
+            target = _resolve_s2_module(name, here, paper_root, level)
+            if target is not None and _norm(target) in by_abs:
+                hits.add(by_abs[_norm(target)])
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            mod, attr = _call_target(node.func, mods, names)
+            if mod == "importlib" and attr == "import_module":
+                if (
+                    node.args
+                    and isinstance(node.args[0], ast.Constant)
+                    and isinstance(node.args[0].value, str)
+                ):
+                    target = _resolve_s2_module(node.args[0].value, here, paper_root, 0)
+                    if target is not None and _norm(target) in by_abs:
+                        hits.add(by_abs[_norm(target)])
+            elif mod == "importlib" and attr == "spec_from_file_location":
+                loc = None
+                if len(node.args) >= 2:
+                    loc = node.args[1]
+                else:
+                    for kw in node.keywords:
+                        if kw.arg == "location":
+                            loc = kw.value
+                            break
+                if loc is not None:
+                    resolved = _resolve_expr(loc, bindings, here)
+                    if resolved is not None and _norm(resolved) in by_abs:
+                        hits.add(by_abs[_norm(resolved)])
+        for oracle_rel in hits:
+            findings.add(("S2", rel, "imports oracle " + oracle_rel))
+    return sorted(findings)
+
+
+def _is_test_label(label: str) -> bool:
+    """Whether a stage_artifacts label names a test module."""
+    return "test" in label.lower()
+
+
+def e1_scored_modules(paper: dict, root: Path) -> list[Path]:
+    """The paper's scored P4 modules: existing .py files, oracles and tests excluded.
+
+    P4 ``stage_artifacts`` entries map onto ``artifacts/etudes/papers/`` the
+    way S2 oracles map. Entries whose label marks an oracle or a test,
+    ``test_*`` basenames and oracle names do not count.
+    """
+    modules = []
+    stages = paper.get("stage_artifacts")
+    if not isinstance(stages, dict):
+        return []
+    items = stages.get("P4")
+    if not isinstance(items, list):
+        return []
+    for item in items:
+        if not (isinstance(item, dict) and isinstance(item.get("path"), str)):
+            continue
+        label = item.get("label", "")
+        if isinstance(label, str) and (_is_oracle_label(label) or _is_test_label(label)):
+            continue
+        rel = _label_oracle_rel(item["path"])
+        if rel is None:
+            continue
+        if Path(rel).name.startswith("test_") or _is_oracle_name(Path(rel).name):
+            continue
+        candidate = root / rel
+        if candidate.is_file():
+            modules.append(candidate)
+    return modules
+
+
+def _e1_calls(tree: ast.Module) -> tuple[bool, bool]:
+    """(construct call, .simulate call) anywhere in one module, any scope."""
+    saw_construct = saw_simulate = False
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if isinstance(func, ast.Name) and func.id == "construct":
+            saw_construct = True
+        elif isinstance(func, ast.Attribute) and func.attr == "construct":
+            saw_construct = True
+        elif isinstance(func, ast.Attribute) and func.attr == "simulate":
+            saw_simulate = True
+    return saw_construct, saw_simulate
+
+
+def check_e1(papers: list[dict], root: Path) -> list[tuple[str, str, str]]:
+    """E1 findings: the scored P4 modules must call construct( and .simulate(."""
+    findings = []
+    for paper in papers:
+        if paper.get("class") == "core method":
+            continue
+        stage = paper.get("stage")
+        if stage not in STAGE_ORDER or STAGE_ORDER.index(stage) < STAGE_ORDER.index("P4"):
+            continue
+        folder_rel = paper_folder(paper, root)
+        if folder_rel is None:
+            continue  # R1 owns folders no stage_artifacts path names
+        modules = e1_scored_modules(paper, root)
+        if not modules:
+            findings.append(("E1", folder_rel, "no scored P4 module listed"))
+            continue
+        saw_construct = saw_simulate = False
+        for module in modules:
+            try:
+                tree = ast.parse(module.read_bytes().decode("utf-8"))
+            except (OSError, ValueError, SyntaxError):
+                continue
+            has_construct, has_simulate = _e1_calls(tree)
+            saw_construct = saw_construct or has_construct
+            saw_simulate = saw_simulate or has_simulate
+        if saw_construct and saw_simulate:
+            continue
+        if saw_construct:
+            findings.append(
+                ("E1", folder_rel, "scored P4 modules call construct( but not .simulate(")
+            )
+        elif saw_simulate:
+            findings.append(
+                ("E1", folder_rel, "scored P4 modules call .simulate( but not construct(")
+            )
+        else:
+            findings.append(
+                ("E1", folder_rel, "no scored P4 module calls construct( or .simulate(")
+            )
+    return findings
+
+
+#: P4 (manifest) required key classes, in finding order. Each class is
+#: satisfied by one exact (case-sensitive) key from its set.
+P4_KEY_CLASSES = (
+    ("code SHA", ("git_sha", "code_sha", "sha", "commit", "baseline_sha")),
+    ("backend", ("backend",)),
+    ("dtype", ("dtype",)),
+    ("seeds", ("seed", "seeds")),
+    ("regime", ("regime", "activity_regime")),
+)
+
+#: Attribute calls a manifest writer may be passed to (``json.dump``,
+#: ``json.dumps``, ``Path.write_text`` and the like).
+P4_SINK_CALLS = ("dump", "dumps", "write_text")
+
+
+def _p4_dict_keys(node: ast.AST) -> set[str] | None:
+    """String keys of a manifest-writer-shaped node, else None.
+
+    A dict display contributes its constant string keys; a ``dict(...)``
+    call contributes its keyword names. Anything else (a load, a merge, a
+    name) is not a statically readable writer.
+    """
+    if isinstance(node, ast.Dict):
+        return {
+            key.value
+            for key in node.keys
+            if isinstance(key, ast.Constant) and isinstance(key.value, str)
+        }
+    if (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "dict"
+    ):
+        return {kw.arg for kw in node.keywords if kw.arg is not None}
+    return None
+
+
+def _p4_literal_bindings(tree: ast.Module) -> dict[str, ast.AST]:
+    """Name to its first bound dict-display / ``dict(...)`` value."""
+    bindings: dict[str, ast.AST] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            targets = node.targets
+            value = node.value
+        elif (
+            isinstance(node, ast.AnnAssign)
+            and isinstance(node.target, ast.Name)
+            and node.value is not None
+        ):
+            targets = [node.target]
+            value = node.value
+        else:
+            continue
+        if (
+            len(targets) == 1
+            and isinstance(targets[0], ast.Name)
+            and _p4_dict_keys(value) is not None
+        ):
+            bindings.setdefault(targets[0].id, value)
+    return bindings
+
+
+def _p4_writers(tree: ast.Module) -> list[tuple[int, int, set[str]]]:
+    """(lineno, column, keys) manifest writers of one module, in file order.
+
+    A dict display or ``dict(...)`` call counts when it is assigned to a
+    name containing ``manifest``, or passed to ``json.dump`` /
+    ``json.dumps`` / ``write_text`` (a passed name resolves to its first
+    bound literal; subscript stores and loads never count).
+    """
+    found: dict[tuple[int, int], set[str]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Assign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            if any(
+                isinstance(target, ast.Name) and "manifest" in target.id
+                for target in targets
+            ):
+                keys = _p4_dict_keys(node.value)
+                if keys is not None:
+                    found.setdefault(
+                        (node.lineno, node.col_offset), keys
+                    )
+    bindings = _p4_literal_bindings(tree)
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        args: list[ast.AST] = list(node.args) + [kw.value for kw in node.keywords]
+        name = func.id if isinstance(func, ast.Name) else (
+            func.attr if isinstance(func, ast.Attribute) else "")
+        if "manifest" in name.lower():
+            # A manifest helper (write_manifest(out, record, static)) merges the dicts it is
+            # given into one manifest: their keys count together as one writer.
+            merged: set[str] = set()
+            for arg in args:
+                if isinstance(arg, ast.Name) and arg.id in bindings:
+                    arg = bindings[arg.id]
+                keys = _p4_dict_keys(arg)
+                if keys is not None:
+                    merged |= keys
+            if merged:
+                found.setdefault((node.lineno, node.col_offset), merged)
+            continue
+        if not (isinstance(func, ast.Attribute) and func.attr in P4_SINK_CALLS):
+            continue
+        for arg in args:
+            if isinstance(arg, ast.Starred):
+                arg = arg.value
+            if isinstance(arg, ast.Name) and arg.id in bindings:
+                arg = bindings[arg.id]
+            keys = _p4_dict_keys(arg)
+            if keys is not None:
+                found.setdefault((arg.lineno, arg.col_offset), keys)
+    return sorted((line, col, keys) for (line, col), keys in found.items())
+
+
+def check_p4(papers: list[dict], root: Path) -> list[tuple[str, str, str]]:
+    """P4 (manifest) findings: one scored-modules manifest covering every key class."""
+    findings = []
+    for paper in papers:
+        if paper.get("class") == "core method":
+            continue
+        stage = paper.get("stage")
+        if stage not in STAGE_ORDER or STAGE_ORDER.index(stage) < STAGE_ORDER.index("P4"):
+            continue
+        folder_rel = paper_folder(paper, root)
+        if folder_rel is None:
+            continue  # R1 owns folders no stage_artifacts path names
+        modules = e1_scored_modules(paper, root)
+        if not modules:
+            continue  # no scored module is E1's finding, not P4 (manifest)'s
+        best: tuple[set[str], int, int] | None = None
+        for module in modules:
+            try:
+                tree = ast.parse(module.read_bytes().decode("utf-8"))
+            except (OSError, ValueError, SyntaxError):
+                continue
+            for lineno, col, keys in _p4_writers(tree):
+                covered = {
+                    cls for cls, members in P4_KEY_CLASSES if keys & set(members)
+                }
+                if best is None or len(covered) > len(best[0]):
+                    best = (covered, lineno, col)
+        if best is None:
+            findings.append(
+                ("P4", folder_rel, "no manifest writer in the scored P4 modules")
+            )
+            continue
+        covered, _, _ = best
+        if len(covered) == len(P4_KEY_CLASSES):
+            continue
+        missing = [cls for cls, _ in P4_KEY_CLASSES if cls not in covered]
+        findings.append(
+            ("P4", folder_rel, "manifest writer lacks " + ", ".join(missing))
+        )
+    return findings
+
+
+def check_r4(papers: list[dict], root: Path) -> list[tuple[str, str, str]]:
+    """R4 findings: a paper claiming replication must hold its P6 result file."""
+    findings = []
+    for paper in papers:
+        if paper.get("verdict") != "reproduced":
+            continue  # only a full-replication claim counts, not a stage-level one
+        pid = paper.get("id", "?")
+        stage = paper.get("stage")
+        if stage in STAGE_ORDER and STAGE_ORDER.index(stage) < STAGE_ORDER.index("P6"):
+            continue  # a paper below P6 is not a finding
+        stages = paper.get("stage_artifacts")
+        items = stages.get("P6") if isinstance(stages, dict) else None
+        paths = (
+            [
+                item["path"]
+                for item in items
+                if isinstance(item, dict) and isinstance(item.get("path"), str)
+            ]
+            if isinstance(items, list)
+            else []
+        )
+        if any((root / path).is_file() for path in paths):
+            continue
+        folder_rel = paper_folder(paper, root)
+        findings.append(
+            (
+                "R4",
+                folder_rel if folder_rel is not None else SOURCES_REL.as_posix(),
+                f"paper {pid!r} claims reproduced without a P6 result file",
+            )
+        )
+    return findings
+
+
 def _all_names(tree: ast.Module) -> set[str]:
     """Non-private names of one ``__all__`` list/tuple assignment."""
     names: set[str] = set()
@@ -836,6 +1359,10 @@ def collect_findings(root: Path) -> list[tuple[str, str, str]]:
         check_r1(papers, root)
         + check_r6(root)
         + s1
+        + check_s2(parsed, papers, root)
+        + check_e1(papers, root)
+        + check_p4(papers, root)
+        + check_r4(papers, root)
         + e3
     )
     return sorted(set(findings))

@@ -28,6 +28,10 @@ unknown).
   rest with the paper 1e-10 init (near-zero initial inhibition); the pilot
   settles the two-segment route and shows I-to-E growth, not the rate
   (PORT_SPEC §18 scored at P3).
+- 2026-10-20: segment B ran with per-neuron traces, whose presynaptic trace summed arrivals over
+  each I cell's outgoing edges, so its potentiation was scaled by the out-degree; the traces are
+  per synapse since `changelog.d/istdp_vogels2011_traces.fixed.md`. w_ie_final_mean 2.42 nS is
+  superseded; rerun segment B before P3.
 
 ## Provenance
 

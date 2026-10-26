@@ -38,12 +38,12 @@ This is the endpoint: every earlier step's variable carries forward to a compara
 
 === "Interactive"
 
-    <iframe class="jx-frame" src="../../../_static/atlas/oscillatory.html" loading="lazy" title="Power spectrum of the reference run"></iframe>
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html" loading="lazy" title="Power spectrum of the reference run"></iframe>
 
-Power spectrum of the reference run: the baseline that nulls and lesions are compared against. [Open full page](../../_static/atlas/oscillatory.html).
+Power spectrum of the reference run: the baseline that nulls and lesions are compared against. [Open full page](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html).
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column — the baseline the nulls/lesions compare against: [index](../../_static/atlas/index.html) · [schema](../../_static/atlas/schema.html) · [3D](../../_static/atlas/network_3d.html) · [raster](../../_static/atlas/raster.html) · [LFP](../../_static/atlas/lfp.html) · [H](../../_static/atlas/h_dynamics.html) · [HDP](../../_static/atlas/hdp.html) · [oscillatory](../../_static/atlas/oscillatory.html).
+Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column — the baseline the nulls/lesions compare against: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)
 
 Regenerate: `python scripts/generate_readme_atlas.py --html-only`.

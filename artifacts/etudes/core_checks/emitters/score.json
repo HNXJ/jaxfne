@@ -1,0 +1,48 @@
+{
+  "checks": {
+    "lif_membrane_decay": {
+      "error": 2.5975216644269494e-07,
+      "tolerance": 1e-05,
+      "pass": true,
+      "reference": "closed-form membrane decay 5*exp(-t/tau_m)"
+    },
+    "lif_refractory_subtraction": {
+      "error": 1.074325812311372e-06,
+      "tolerance": 1e-05,
+      "pass": true,
+      "reference": "hand decay-plus-refractory sum"
+    },
+    "adex_lif_limit": {
+      "error": 0.0,
+      "tolerance": 6.487499999999999e-05,
+      "pass": true,
+      "reference": "hand Euler LIF update in float32 operation order"
+    },
+    "hh_gate_exponential_euler": {
+      "error": 2.0551529089640752e-09,
+      "tolerance": 0.0001,
+      "pass": true,
+      "reference": "exact exponential-Euler gate step at frozen rates"
+    },
+    "graded_synapse_steady_state": {
+      "error": 3.251162439266153e-08,
+      "tolerance": 0.01,
+      "pass": true,
+      "reference": "steady state tauD/(tauD+tauR)"
+    },
+    "rate_ou_stationary_variance": {
+      "error": 0.003862968491676501,
+      "tolerance": 0.05,
+      "pass": true,
+      "reference": "Euler-Maruyama stationary variance sigma^2/(2-dt/tau), seed 3"
+    },
+    "rate_transfer_functions": {
+      "error": 7.440151952041671e-44,
+      "tolerance": 1e-09,
+      "pass": true,
+      "reference": "hand transfer values ([0,0,1,2]; sigmoid 0, 1, 2/(1+e^-1), 2)"
+    }
+  },
+  "pass": true,
+  "skipped": []
+}

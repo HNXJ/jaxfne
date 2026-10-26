@@ -36,5 +36,13 @@ option; receipts `.../brunel2000_p3v4/unscored_f64/`, manifest sha256 cf233ec057
 rate 37.955 Hz against 37.950 in float32 (0.012%), CV 0.406 against 0.405, κ 0.204 against 0.204,
 spectral excess 2.88 against 2.95. Q3 and E3 hold in both; float32 is adequate here.
 
-Sensitivity set S1–S3 (declared in v4) has not run; S1 needs the fixed-in-degree lane option
-(release plan B5).
+Sensitivity set (declared in v4; never enters the score, checklist P6). S2 and S3 ran on seeds 4-5 at
+points A-D (code `cc64eb73`, CPU float32; receipts `.../brunel2000_p3v4/unscored_S2/` and `unscored_S3/`,
+manifest sha256 `5d32bdcc3d9a21a650d969b3e711666c052d53f48042020fe1e5037749742300` and
+`1adea95b6f832a8f73fc094e7be8547e4037548fd25b9747e348dea6ddec1a49`). S2 (5000 ms runs, last 4500 ms
+scored): every point keeps its regime label and its rate within 1.5% of the scored run (A 333.3 Hz,
+B 59.2-59.4, C 37.9, D 5.5-5.6). S3 (dt 0.05 ms): labels hold except C seed 4, which reads oscillatory
+(spectral excess 5.46 against 2.95 scored; seed 5 stays irregular at 4.54), and B's CV rises from 0.78-0.83
+to 0.93-0.97. Point C's irregular label is therefore close to the classifier's boundary under a halved
+step; no verdict changes (the conditional rests on the E5 band, stated above). S1 (finite size) has not
+run; it needs the fixed-in-degree lane option (release plan B5).

@@ -66,8 +66,10 @@ def _interarea_W(
         # Anatomical routing. "L2/3" matches both merged and split schemes
         # (see _interarea_layer_set), so one feedforward pair suffices.
         pairs = [("L2/3", "L4"), ("L6", "L1"), ("L6", "L5")]
-    p_ff = float(spec.get("p_feedforward", 0.3) or 0.0)
-    p_fb = float(spec.get("p_feedback", 0.2) or 0.0)
+    p_ff = spec.get("p_feedforward")
+    p_ff = 0.3 if p_ff is None else float(p_ff)
+    p_fb = spec.get("p_feedback")
+    p_fb = 0.2 if p_fb is None else float(p_fb)
     ff_range = tuple(spec.get("feedforward_weight_range") or (0.5, 2.0))
     fb_range = tuple(spec.get("feedback_weight_range") or (0.3, 1.5))
     seed = spec.get("seed")
@@ -234,6 +236,15 @@ def _compile_connection_rules(
             raise ValueError(
                 f"connection rule {rule.get('name')!r} sampling must be 'density' "
                 f"or 'bernoulli'; got {sampling!r}"
+            )
+        if rule.get("weight_std") is not None or rule.get("delay_std_ms") is not None:
+            raise ValueError(
+                f"connection rule {rule.get('name')!r} declares a per-edge spread "
+                f"(weight_std={rule.get('weight_std')!r}, "
+                f"delay_std_ms={rule.get('delay_std_ms')!r}) but no resolvable "
+                "mechanism; the sign-only fallback has no spread consumer — "
+                "declare a resolvable mechanism= so the mechanism-aware "
+                "compiler draws the spread"
             )
         pre_idx = _np.where(
             _connection_selector_mask(src, area_labels, layer_labels, cell_labels, model_labels)

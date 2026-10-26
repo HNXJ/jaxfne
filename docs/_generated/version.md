@@ -1,1 +1,1 @@
-Current source version: 0.5.7
+Current source version: 0.5.8

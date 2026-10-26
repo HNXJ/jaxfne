@@ -1,0 +1,48 @@
+{
+  "checks": {
+    "adex_single_cell_oracle": {
+      "error": 4.4415816186632005e-06,
+      "tolerance": 1.0,
+      "pass": true,
+      "reference": "float64 NumPy transcription of caminos_jax.adex_step (SI units)",
+      "test": "tests/test_emitters_adex.py:165",
+      "worst_abs_deviation": {
+        "V_mV": 1.9824142327706795e-12,
+        "w_pA": 6.252776074688882e-13,
+        "spike_mismatches": 0
+      }
+    },
+    "adex_network_oracle": {
+      "error": 2.469977596775782e-07,
+      "tolerance": 1.0,
+      "pass": true,
+      "reference": "float64 NumPy hand-coded loop of the two-cell network (transcription)",
+      "test": "tests/test_emitters_adex.py:196",
+      "cases": {
+        "exp/default": 4.051004613741971e-08,
+        "exp/brian2": 2.469977596775782e-07,
+        "euler/default": 9.02357220818373e-08,
+        "euler/brian2": 5.216761032746669e-08
+      }
+    },
+    "multicompartment_hh_jaxley": {
+      "error": 0.008250982545410384,
+      "tolerance": 1.0,
+      "pass": true,
+      "reference": "jaxley 0.14.0 jx.integrate, external",
+      "test": "tests/test_hh_multicompartment.py:44",
+      "worst_abs_deviation_mV": 8.290257369480969e-12
+    },
+    "gsdr_mcdp_oracle_zscored": {
+      "error": 3.401779140704578e-10,
+      "tolerance": 1.0,
+      "pass": true,
+      "reference": "float64 NumPy transcription of the lane oracle (PORT_SPEC section 10)",
+      "test": "tests/test_gsdr_mcdp.py:64",
+      "seed": 23,
+      "worst_abs_deviation": 7.771561172376096e-16
+    }
+  },
+  "pass": true,
+  "skipped": []
+}

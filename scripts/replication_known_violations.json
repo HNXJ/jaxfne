@@ -65,8 +65,8 @@
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/pcl",
-    "message": "holds 22 files (at most 7)",
-    "reason": "audit 2026-10-17",
+    "message": "holds 23 files (at most 7)",
+    "reason": "audit 2026-10-17; recount 2026-10-24 after the PCL-R1 receipt landed",
     "todo": "T-30"
   },
   {
@@ -162,13 +162,6 @@
   },
   {
     "rule": "S1",
-    "path": "artifacts/etudes/papers/pcl/port/run_tuning.py",
-    "message": "line 47: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
-  },
-  {
-    "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/port/test_pcl_binned_jax.py",
     "message": "line 29: sys.path.insert adds a path that cannot be resolved",
     "reason": "audit 2026-10-17",
@@ -187,5 +180,40 @@
     "message": "line 46: sys.path.insert adds a path that cannot be resolved",
     "reason": "audit 2026-10-17",
     "todo": "T-30"
+  },
+  {
+    "rule": "S2",
+    "path": "artifacts/etudes/papers/caminos/run_caminos.py",
+    "message": "imports oracle artifacts/etudes/papers/caminos/caminos_jax.py",
+    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
+    "todo": "B4 S2 follow-up"
+  },
+  {
+    "rule": "S2",
+    "path": "artifacts/etudes/papers/pcl/port/pcl_binned_jax.py",
+    "message": "imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref.py",
+    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
+    "todo": "B4 S2 follow-up"
+  },
+  {
+    "rule": "S2",
+    "path": "artifacts/etudes/papers/pcl/port/run_tuning.py",
+    "message": "imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref.py",
+    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
+    "todo": "B4 S2 follow-up"
+  },
+  {
+    "rule": "S2",
+    "path": "artifacts/etudes/papers/pcl/port/run_tuning.py",
+    "message": "imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref_numba.py",
+    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
+    "todo": "B4 S2 follow-up"
+  },
+  {
+    "rule": "E1",
+    "path": "artifacts/etudes/papers/izhikevich2003",
+    "message": "no scored P4 module calls construct( or .simulate(",
+    "reason": "found by E1 when the rule landed (B4); the scored path does not route through construct/simulate",
+    "todo": "B4 E1 follow-up"
   }
 ]

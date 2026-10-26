@@ -229,25 +229,114 @@ def test_engine_flag_defaults_to_numba():
     assert args.engine == "core"
 
 
-def test_core_full_run_refused_names_gap():
-    old = rt._ENGINE
-    rt._ENGINE = "core"
+def test_core_matches_numba_all_modes():
+    """ENGINE RULE: numba-vs-core equality pin on the synthetic seed-0 burst.
+
+    Each inhibition mode replays the same 400-event feed through
+    run_core_events; counts, per-spike times and cell ids must equal the
+    numba oracle exactly (the scan carries the network's own cell
+    parameters, so the default 30 mV simple threshold applies on both
+    sides). Slow (~10 s per mode: one construct + simulate each).
+    """
+    for mode in ("full", "local-only", "no-local", "no-local-simple"):
+        net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+        rt.apply_inhibition_mode(net, mode)
+        t, x, y, p = _burst()
+        nbn = copy.deepcopy(net)
+        nb.run_numba(nbn, t, x, y, p)
+        sc = np.array([len(c.spikes) for c in nbn.s_cells], dtype=np.int32)
+        cc = np.array([len(c.spikes) for c in nbn.c_cells], dtype=np.int32)
+        assert sc.max() <= 1 and cc.max() <= 1, (
+            f"{mode}: fixture must stay single-spike (scan returns first-spike times only)")
+        es_t, es_o = rt._gather(nbn.s_cells)
+        ec_t, ec_o = rt._gather(nbn.c_cells)
+        got = rt.run_core_events(net, t, x, y, p)
+        assert np.array_equal(got["simple_counts"], sc), mode
+        assert np.array_equal(got["complex_counts"], cc), mode
+        assert np.array_equal(got["simple_times_us"], es_t), mode
+        assert np.array_equal(got["simple_times_cell"], es_o), mode
+        assert np.array_equal(got["complex_times_us"], ec_t), mode
+        assert np.array_equal(got["complex_times_cell"], ec_o), mode
+        assert int(got["n_events"]) == 400, mode
+
+
+def test_core_lif_params_follow_network_config():
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    simple, complex_ = rt._core_lif_params(net)
+    assert simple["v_thresh_mV"] == float(net.scfg.VTHRESH) == 30.0
+    assert complex_["v_thresh_mV"] == float(net.ccfg.VTHRESH) == 3.0
+    assert simple["tau_m_ms"] == float(net.scfg.TAU_M) / 1000.0 == 18.0
+    assert complex_["tau_m_ms"] == float(net.ccfg.TAU_M) / 1000.0 == 50.0
+    assert "tau_sra_ms" not in complex_  # the oracle carries no complex adaptation term
+    assert complex_["delta_sra_mV"] == 0.0
+
+
+def test_core_multispike_refused():
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    n = 2000
+    t = (np.arange(n, dtype=np.int64) + 1) * 20
+    x = np.full(n, 170, dtype=np.int64)
+    y = np.full(n, 130, dtype=np.int64)
+    p = np.zeros(n, dtype=np.int64)
+    nbn = copy.deepcopy(net)
+    nb.run_numba(nbn, t, x, y, p)
+    s_max = max(len(c.spikes) for c in nbn.s_cells)
+    assert s_max == 2, f"fixture must multi-spike, got max {s_max}"
     try:
-        try:
-            rt._run_one(("missing-src.npz", "missing-dst.npz"))
-        except NotImplementedError as exc:
-            assert "cascade" in str(exc)
-        else:
-            raise AssertionError("engine core must refuse the full-network run")
-        try:
-            rt._init_worker("full", "core")
-        except NotImplementedError as exc:
-            assert "cascade" in str(exc)
-        else:
-            raise AssertionError("engine core must refuse the worker init")
-    finally:
-        rt._ENGINE = old
-    assert rt._ENGINE == old
+        rt.run_core_events(net, t, x, y, p)
+    except NotImplementedError as exc:
+        assert "twice" in str(exc)
+    else:
+        raise AssertionError("a multi-spike file must be refused, never approximated")
+
+
+def test_core_unsorted_and_empty_refused():
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    t, x, y, p = _burst()
+    rev = slice(None, None, -1)
+    try:
+        rt.run_core_events(net, t[rev], x[rev], y[rev], p[rev])
+    except ValueError as exc:
+        assert "time-ordered" in str(exc)
+    else:
+        raise AssertionError("unsorted events must be refused")
+    try:
+        rt.run_core_events(net, t[:0], x[:0], y[:0], p[:0])
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("an empty slice must be refused")
+
+
+def test_core_past_interval_refused():
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    dt = int(net.measurement_interval)
+    t = np.array([dt + 1], dtype=np.int64)
+    x = np.array([170], dtype=np.int64)
+    y = np.array([130], dtype=np.int64)
+    p = np.array([0], dtype=np.int64)
+    try:
+        rt.run_core_events(net, t, x, y, p)
+    except NotImplementedError as exc:
+        assert "measurement interval" in str(exc)
+    else:
+        raise AssertionError("events past the measurement interval must be refused")
+
+
+def test_build_s1_scan_tensor_lif_partial_refused():
+    from jaxfne.pcl_topology import build_s1_scan_tensor
+
+    simple, _ = rt._core_lif_params(
+        ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH)))
+    try:
+        build_s1_scan_tensor(ns=8, nc=4, lif_simple=simple)
+    except ValueError as exc:
+        assert "together" in str(exc)
+    else:
+        raise AssertionError("a partial LIF declaration must be refused")
+    ten = build_s1_scan_tensor(ns=8, nc=4)  # undeclared still builds
+    assert [nt.name for lay in ten.areas[0].layers for nt in lay.neuron_types] == [
+        "simple", "complex"]
 
 
 def test_core_smoke_z_from_tree_core():

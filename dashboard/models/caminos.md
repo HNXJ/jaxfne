@@ -40,8 +40,8 @@ Euler, dt = 0.1 ms.
 ## Implementation
 
 Standalone JAX port on lane `l2-caminos` (`artifacts/etudes/papers/caminos/caminos_jax.py`), WSL2 CUDA,
-float32. It imports no jaxfne code, so under rule B1 the paper is not yet replicated *with
-jaxfne*. The library path (P6) is in build: the AdEx conductance kernel
+float32. It imports no jaxfne code. The library path (P6, prereg v2 signed 2026-10-13) passes
+through the public API (`RESULT_P6.md`): the AdEx conductance kernel
 `jaxfne.emitters.simulate_adex` matches a float64 transcription of this port's cell and
 recurrent step within rtol 1e-6 (`tests/test_emitters_adex.py`).
 

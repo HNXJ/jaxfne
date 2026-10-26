@@ -1,8 +1,8 @@
 """GSDR Fig. 6 baseline on the jaxfne core HH route (P3 runner, PORT_SPEC.md).
 
 Builds the 36 E / 8 Ig / 6 Il circuit only from the jaxfne public API,
-constructs it with ``jaxfne._construct_hh.construct_hh_model`` (standalone;
-NOT wired into ``construct()`` dispatch), and runs it through
+constructs it with ``jaxfne.construct()`` (``emitter(family="hh")`` dispatches
+to ``jaxfne._construct_hh.construct_hh_model``), and runs it through
 ``jaxfne.emitters_hh.simulate_hh``. No scored runs: outputs land in the
 caller's directory (``scratch/gsdr2026/``), never under a ``scored`` path.
 
@@ -107,6 +107,7 @@ def build_spec(local_seed=1, edge_seed=0, weight_unit="density"):
         .network(name="gsdr50", n=N_CELLS,
                  cell_types={"E": N_E / N_CELLS, "Ig": N_IG / N_CELLS,
                              "Il": N_IL / N_CELLS})
+        .emitter(family="hh")
         .mechanisms(name="ampa", kind="receptor",
                     params={"tau_ms": 2.0, "reversal_mV": 0.0, "tau_r_ms": 0.2,
                             "slope_mV": 5.0, "v_th_mV": -20.0, "s0": 0.1})
@@ -426,6 +427,7 @@ def run_trial(stim_amp, *, g_seed=0, ou_seed=0, local_seed=1, edge_seed=0,
     import jax
     import numpy as np
 
+    import jaxfne as jtfne
     from jaxfne._construct_hh import construct_hh_model, hh_kernel_args
     from jaxfne.emitters_hh import simulate_hh
 
@@ -490,7 +492,7 @@ def run_trial(stim_amp, *, g_seed=0, ou_seed=0, local_seed=1, edge_seed=0,
         return result, {"v": v, "g": np.asarray(g, dtype=np.float32),
                         "local_posts": local_posts}
     cfg, local_posts = build_spec(local_seed=local_seed, edge_seed=edge_seed)
-    model = construct_hh_model(cfg)
+    model = jtfne.construct(cfg)
     st = model.static["hh"]
     assert int(st["pre"].shape[0]) == N_AMPA_EDGES + N_GABAA_GLOBAL_EDGES + N_GABAA_LOCAL_EDGES
     rec = np.asarray(st["receptor"])

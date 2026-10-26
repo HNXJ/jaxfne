@@ -371,6 +371,7 @@ def build_atlas(
     seed: int | None = None,
     title: str = "Model atlas",
     provenance: Dict[str, Any] | None = None,
+    return_figures: bool = False,
 ) -> Dict[str, Any]:
     """Build the 7-panel atlas for any model. Never skips a fixed panel.
 
@@ -384,6 +385,10 @@ def build_atlas(
     ``recording_budget``); undiscoverable fields record ``null``, never a
     guess. Every emitted manifest starts at figure state ``GENERATED``.
     Returns the manifest dict and writes ``<out_dir>/*.html`` + manifest.json.
+    With ``return_figures=True`` returns ``(manifest, figures)`` where figures
+    maps each AVAILABLE panel file to its built Plotly Figure; omitted and
+    placeholder panels have no Figure. The default (False) writes
+    byte-identical output to before the keyword existed.
     """
     if signals is None:
         if simulate_fn is not None:
@@ -398,6 +403,7 @@ def build_atlas(
     return render_atlas(
         model, signals, out_dir=out_dir, title=title, provenance=provenance,
         seed=seed, duration_ms=duration_ms, dt_ms=dt_ms,
+        return_figures=return_figures,
     )
 
 
@@ -412,6 +418,7 @@ def render_atlas(
     duration_ms: float | None = None,
     dt_ms: float | None = None,
     hdp: Dict[str, Any] | None = None,
+    return_figures: bool = False,
 ) -> Dict[str, Any]:
     """Build the 7-panel atlas from given data only; never runs the model.
 
@@ -423,6 +430,10 @@ def render_atlas(
     ``hdp`` ({H_trace, w_trace, ...}) is the diagnostics of the run that
     produced ``signals``; when omitted the H/HDP panels read the model's
     latest-run diagnostics, which is wrong if the model ran again since.
+    With ``return_figures=True`` returns ``(manifest, figures)`` where figures
+    maps each AVAILABLE panel file to its built Plotly Figure; omitted and
+    placeholder panels have no Figure. The default (False) returns the
+    manifest only and writes byte-identical output.
     """
     from jaxfne.vis import canonical as C
 
@@ -477,6 +488,7 @@ def render_atlas(
 
     os.makedirs(out_dir, exist_ok=True)
     manifest_panels: List[Dict[str, Any]] = []
+    figures: Dict[str, Any] = {}
 
     def _apply_dark_theme(fig: Any) -> Any:
         # Presentation only (never information/semantics): match the slate
@@ -497,6 +509,7 @@ def render_atlas(
         try:
             fig = _apply_dark_theme(make_fig())
             fig_html = fig.to_html(include_plotlyjs="cdn", full_html=False)
+            figures[filename] = fig
         except _OmitPanel as omit:
             degradation_status = "OMITTED"
             fig_html = _empty_note_fig(f"{panel}: omitted — {omit}").to_html(
@@ -645,4 +658,6 @@ def render_atlas(
     }
     with open(os.path.join(out_dir, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
+    if return_figures:
+        return manifest, figures
     return manifest

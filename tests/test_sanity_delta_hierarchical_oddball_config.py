@@ -148,3 +148,15 @@ def test_hierarchical_global_local_oddball_clamps_claim_level_escalation():
     assert cfg.claim_level == "computational_scaffold"
     assert cfg.physical_amplitude_calibrated is False
     assert cfg.field_solver_status == "linear_solver"
+
+
+def test_unrealized_hierarchy_and_stimulus_frequency_are_refused():
+    # The runtime wires the canonical hierarchy and applies no stimulus frequency, so other values
+    # would be stored and change nothing: they are refused by name.
+    with pytest.raises(ValueError, match="stimulus_frequency_hz"):
+        jtfne.SanityDeltaConfig.hierarchical_global_local_oddball(stimulus_frequency_hz=40.0)
+    with pytest.raises(ValueError, match="hierarchy"):
+        jtfne.SanityDeltaConfig.hierarchical_global_local_oddball(
+            hierarchy=(("V1a", "V4"), ("V1b", "V4"), ("V4", "PFC"), ("MT", "PFC")))
+    cfg = jtfne.SanityDeltaConfig.hierarchical_global_local_oddball()
+    assert cfg.stimulus_frequency_hz == 100.0 and len(cfg.hierarchy) == 4

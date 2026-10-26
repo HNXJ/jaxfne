@@ -11,6 +11,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from scripts import check_replications as cr
 from scripts import run_test_gate as rtg
 from scripts.run_test_gate import AUDIT_STEPS, CHECK_FAMILIES, GATE_CHECK_FAMILIES
@@ -223,6 +225,156 @@ def test_s1_git_shell_keyword_fails(tmp_path):
     )
 
 
+def _s2_paper_entry(pid: str, label: str, path: str) -> dict:
+    return {
+        "id": pid,
+        "stage": "P1",
+        "stage_artifacts": {"P1": [{"label": label, "path": path}]},
+        "preregs": [],
+    }
+
+
+def test_s2_labelled_oracle_import_fails(tmp_path):
+    _registry(tmp_path, [_s2_paper_entry(
+        "s2lab", "oracle transcription", "artifacts/etudes/s2lab/oracle_trans.py")])
+    oracle = _write(tmp_path, "artifacts/etudes/papers/s2lab/oracle_trans.py", "VALUE = 1\n")
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/s2lab/run.py",
+        "import oracle_trans\nprint(oracle_trans.VALUE)\n",
+    )
+    _write(tmp_path, "artifacts/etudes/papers/s2lab/SOURCE_P1.md")
+    assert oracle.is_file(), "fixture must hold the labelled oracle"
+    assert "import oracle_trans" in run.read_text(encoding="utf-8"), (
+        "fixture must import the oracle"
+    )
+    findings = cr.collect_findings(tmp_path)
+    assert (
+        "S2",
+        "artifacts/etudes/papers/s2lab/run.py",
+        "imports oracle artifacts/etudes/papers/s2lab/oracle_trans.py",
+    ) in findings
+
+
+def test_s2_test_gate_and_tests_importers_pass(tmp_path):
+    _registry(tmp_path, [_s2_paper_entry(
+        "s2ok", "oracle transcription", "artifacts/etudes/s2ok/oracle_trans.py")])
+    _write(tmp_path, "artifacts/etudes/papers/s2ok/oracle_trans.py", "VALUE = 1\n")
+    test_run = _write(
+        tmp_path, "artifacts/etudes/papers/s2ok/test_run.py", "import oracle_trans\n")
+    gate_run = _write(
+        tmp_path, "artifacts/etudes/papers/s2ok/gate_run.py", "import oracle_trans\n")
+    nested = _write(
+        tmp_path, "artifacts/etudes/papers/s2ok/tests/check.py", "import oracle_trans\n")
+    _write(tmp_path, "artifacts/etudes/papers/s2ok/SOURCE_P1.md")
+    for importer in (test_run, gate_run, nested):
+        assert "import oracle_trans" in importer.read_text(encoding="utf-8"), (
+            "fixture must import the oracle"
+        )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "S2"] == [], (
+        "test_, gate_ and tests/ importers of the oracle stay clean"
+    )
+
+
+def test_s2_ref_name_oracle_fails(tmp_path):
+    _registry(tmp_path, [])
+    oracle = _write(tmp_path, "artifacts/etudes/papers/q/mod_ref.py", "VALUE = 1\n")
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/q/run.py",
+        "import mod_ref\nprint(mod_ref.VALUE)\n",
+    )
+    assert oracle.is_file(), "fixture must hold the *_ref.py oracle"
+    assert "import mod_ref" in run.read_text(encoding="utf-8"), (
+        "fixture must import the oracle"
+    )
+    findings = cr.collect_findings(tmp_path)
+    assert (
+        "S2",
+        "artifacts/etudes/papers/q/run.py",
+        "imports oracle artifacts/etudes/papers/q/mod_ref.py",
+    ) in findings
+
+
+def test_s2_relative_and_function_scope_imports_fail(tmp_path):
+    _registry(tmp_path, [])
+    oracle = _write(tmp_path, "artifacts/etudes/papers/r/sib_ref.py", "VALUE = 1\n")
+    rel = _write(
+        tmp_path, "artifacts/etudes/papers/r/rel.py", "from .sib_ref import VALUE\n")
+    func = _write(
+        tmp_path,
+        "artifacts/etudes/papers/r/func.py",
+        "def f():\n    import sib_ref\n    return sib_ref.VALUE\n",
+    )
+    assert oracle.is_file(), "fixture must hold the *_ref.py oracle"
+    assert "from .sib_ref import" in rel.read_text(encoding="utf-8"), (
+        "fixture must hold the relative import"
+    )
+    assert "import sib_ref" in func.read_text(encoding="utf-8"), (
+        "fixture must hold the function-scope import"
+    )
+    findings = cr.collect_findings(tmp_path)
+    assert (
+        "S2",
+        "artifacts/etudes/papers/r/rel.py",
+        "imports oracle artifacts/etudes/papers/r/sib_ref.py",
+    ) in findings
+    assert (
+        "S2",
+        "artifacts/etudes/papers/r/func.py",
+        "imports oracle artifacts/etudes/papers/r/sib_ref.py",
+    ) in findings
+
+
+def test_s2_oracle_importing_sibling_oracle_passes(tmp_path):
+    _registry(tmp_path, [])
+    first = _write(
+        tmp_path, "artifacts/etudes/papers/s/a_ref.py", "import b_ref\nprint(b_ref.VALUE)\n")
+    _write(tmp_path, "artifacts/etudes/papers/s/b_ref.py", "VALUE = 1\n")
+    assert "import b_ref" in first.read_text(encoding="utf-8"), (
+        "fixture must import the sibling oracle"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "S2"] == [], (
+        "an oracle importing a sibling oracle of the same paper stays clean"
+    )
+
+
+def test_s2_missing_labelled_oracle_passes(tmp_path):
+    _registry(tmp_path, [_s2_paper_entry(
+        "ghost", "reference arm", "artifacts/etudes/ghost/missing_oracle.py")])
+    run = _write(
+        tmp_path, "artifacts/etudes/papers/ghost/run.py", "import missing_oracle\n")
+    _write(tmp_path, "artifacts/etudes/papers/ghost/SOURCE_P1.md")
+    assert not (tmp_path / "artifacts/etudes/papers/ghost/missing_oracle.py").exists(), (
+        "fixture oracle must be missing"
+    )
+    assert "import missing_oracle" in run.read_text(encoding="utf-8"), (
+        "fixture must hold the import"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "S2"] == [], (
+        "a label naming a missing .py yields no S2 finding"
+    )
+
+
+@pytest.mark.parametrize("source", [
+    "import importlib\nm = importlib.import_module('net_ref')\n",
+    "import importlib.util\nfrom pathlib import Path\nHERE = Path(__file__).resolve().parent\n"
+    "spec = importlib.util.spec_from_file_location('n', HERE / 'net_ref.py')\n",
+], ids=["import_module", "spec_from_file_location"])
+def test_s2_dynamic_oracle_load_fails(tmp_path, source):
+    _registry(tmp_path, [])
+    oracle = _write(tmp_path, "artifacts/etudes/papers/dyn/net_ref.py", "VALUE = 1\n")
+    run = _write(tmp_path, "artifacts/etudes/papers/dyn/run.py", source)
+    assert oracle.is_file() and "net_ref" in run.read_text(encoding="utf-8"), (
+        "fixture must hold the oracle and a dynamic load of it"
+    )
+    assert (
+        "S2",
+        "artifacts/etudes/papers/dyn/run.py",
+        "imports oracle artifacts/etudes/papers/dyn/net_ref.py",
+    ) in cr.collect_findings(tmp_path)
+
+
 def test_e3_shadow_fails(tmp_path):
     _registry(tmp_path, [])
     _write(tmp_path, "jaxfne/analysis.py", "def tally_signal(x):\n    return x\n")
@@ -303,6 +455,221 @@ def test_r1_no_artifacts_no_folder_reports(tmp_path):
         rule == "R1" and path == "dashboard/sources.json" and "ww-at01" in msg
         for rule, path, msg in findings
     ), "a paper naming no folder must fail R1"
+
+
+def _e1_paper(pid: str, p4: list[dict] | None, stage: str = "P4",
+              cls: str = "in progress") -> dict:
+    entry: dict = {"id": pid, "stage": stage, "class": cls, "preregs": []}
+    if p4 is None:
+        entry["stage_artifacts"] = {
+            "P1": [{"label": "source", "path": f"artifacts/etudes/{pid}/SOURCE_P1.md"}]}
+    else:
+        entry["stage_artifacts"] = {"P4": p4}
+    return entry
+
+
+def _e1_entry(pid: str, label: str, name: str) -> dict:
+    return {"label": label, "path": f"artifacts/etudes/{pid}/{name}"}
+
+
+def test_e1_construct_and_simulate_passes(tmp_path):
+    _registry(tmp_path, [_e1_paper("e1ok", [_e1_entry("e1ok", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/e1ok/run.py",
+                 "import J\nmodel = J.construct(spec)\nsignals = model.simulate(sim)\n")
+    text = run.read_text(encoding="utf-8")
+    assert "construct(" in text and ".simulate(" in text, (
+        "fixture must call construct( and .simulate("
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "E1"] == [], (
+        "a scored module calling both stays clean"
+    )
+
+
+def test_e1_neither_fails(tmp_path):
+    _registry(tmp_path, [_e1_paper("e1no", [_e1_entry("e1no", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/e1no/run.py", "VALUE = 1\n")
+    text = run.read_text(encoding="utf-8")
+    assert "construct(" not in text and ".simulate(" not in text, (
+        "fixture must call neither"
+    )
+    assert (
+        "E1",
+        "artifacts/etudes/papers/e1no",
+        "no scored P4 module calls construct( or .simulate(",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_e1_construct_only_fails(tmp_path):
+    _registry(tmp_path, [_e1_paper("e1c", [_e1_entry("e1c", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/e1c/run.py",
+                 "import J\nmodel = J.construct(spec)\n")
+    text = run.read_text(encoding="utf-8")
+    assert "construct(" in text and ".simulate(" not in text, (
+        "fixture must call construct( without .simulate("
+    )
+    assert (
+        "E1",
+        "artifacts/etudes/papers/e1c",
+        "scored P4 modules call construct( but not .simulate(",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_e1_oracle_and_test_calls_do_not_count(tmp_path):
+    _registry(tmp_path, [_e1_paper("e1o", [
+        _e1_entry("e1o", "model", "run.py"),
+        _e1_entry("e1o", "oracle transcription", "oracle_mod.py"),
+        _e1_entry("e1o", "tests", "test_mod.py"),
+    ])])
+    _write(tmp_path, "artifacts/etudes/papers/e1o/run.py", "VALUE = 1\n")
+    both = "import J\nmodel = J.construct(spec)\nsignals = model.simulate(sim)\n"
+    oracle = _write(tmp_path, "artifacts/etudes/papers/e1o/oracle_mod.py", both)
+    test_mod = _write(tmp_path, "artifacts/etudes/papers/e1o/test_mod.py", both)
+    for path in (oracle, test_mod):
+        text = path.read_text(encoding="utf-8")
+        assert "construct(" in text and ".simulate(" in text, (
+            "fixture must hold both calls outside the scored module"
+        )
+    assert (
+        "E1",
+        "artifacts/etudes/papers/e1o",
+        "no scored P4 module calls construct( or .simulate(",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_e1_p3_paper_out_of_scope(tmp_path):
+    papers = [_e1_paper("e1p3", [_e1_entry("e1p3", "model", "run.py")], stage="P3")]
+    _registry(tmp_path, papers)
+    _write(tmp_path, "artifacts/etudes/papers/e1p3/run.py", "VALUE = 1\n")
+    assert papers[0]["stage"] == "P3", "fixture must stay below P4"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "E1"] == [], (
+        "a P3 paper is out of scope"
+    )
+
+
+def test_e1_core_method_out_of_scope(tmp_path):
+    papers = [_e1_paper("e1core", [_e1_entry("e1core", "model", "run.py")],
+                        stage="P5", cls="core method")]
+    _registry(tmp_path, papers)
+    _write(tmp_path, "artifacts/etudes/papers/e1core/run.py", "VALUE = 1\n")
+    assert papers[0]["class"] == "core method", "fixture must be a core method"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "E1"] == [], (
+        "a core-method entry is out of scope"
+    )
+
+
+def test_e1_no_scored_module_listed(tmp_path):
+    papers = [_e1_paper("e1empty", None)]
+    _registry(tmp_path, papers)
+    assert "P4" not in papers[0]["stage_artifacts"], (
+        "fixture must name no P4 module"
+    )
+    assert (
+        "E1",
+        "artifacts/etudes/papers/e1empty",
+        "no scored P4 module listed",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_p4_full_writer_passes(tmp_path):
+    _registry(tmp_path, [_e1_paper("p4ok", [_e1_entry("p4ok", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/p4ok/run.py",
+                 'import json\nmanifest = {"git_sha": "abc", "backend": "cpu", '
+                 '"dtype": "float32", "seed": 1, "regime": "AI"}\n'
+                 'json.dumps(manifest)\n')
+    text = run.read_text(encoding="utf-8")
+    for key in ("git_sha", "backend", "dtype", "seed", "regime"):
+        assert '"%s"' % key in text, "fixture must hold every P4 key class"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "P4"] == [], (
+        "a writer covering all five classes stays clean"
+    )
+
+
+def test_p4_missing_dtype_and_regime_fails(tmp_path):
+    _registry(tmp_path, [_e1_paper("p4mr", [_e1_entry("p4mr", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/p4mr/run.py",
+                 'manifest = {"git_sha": "abc", "backend": "cpu", "seed": 1}\n')
+    text = run.read_text(encoding="utf-8")
+    assert '"dtype"' not in text and '"regime"' not in text, (
+        "fixture must lack exactly dtype and regime"
+    )
+    assert (
+        "P4",
+        "artifacts/etudes/papers/p4mr",
+        "manifest writer lacks dtype, regime",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_p4_no_writer_fails(tmp_path):
+    _registry(tmp_path, [_e1_paper("p4nw", [_e1_entry("p4nw", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/p4nw/run.py", "VALUE = 1\n")
+    assert "manifest" not in run.read_text(encoding="utf-8"), (
+        "fixture must hold no manifest writer"
+    )
+    assert (
+        "P4",
+        "artifacts/etudes/papers/p4nw",
+        "no manifest writer in the scored P4 modules",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_p4_unnamed_writer_passed_to_dumps_passes(tmp_path):
+    _registry(tmp_path, [_e1_paper("p4un", [_e1_entry("p4un", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/p4un/run.py",
+                 'import json\ndata = {"git_sha": "abc", "backend": "cpu", '
+                 '"dtype": "float32", "seed": 1, "regime": "AI"}\n'
+                 'json.dumps(data)\n')
+    text = run.read_text(encoding="utf-8")
+    assert "manifest" not in text, "fixture writer must not be named manifest"
+    assert "json.dumps(data)" in text, "fixture must pass the writer to json.dumps"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "P4"] == [], (
+        "a writer passed to json.dumps counts without the manifest name"
+    )
+
+
+def test_p4_manifest_helper_merges_its_dict_arguments(tmp_path):
+    _registry(tmp_path, [_e1_paper("p4hp", [_e1_entry("p4hp", "model", "run.py")])])
+    run = _write(tmp_path, "artifacts/etudes/papers/p4hp/run.py",
+                 'static = {"baseline_sha": "abc", "backend": "cpu"}\n'
+                 'record = {"dtype": "float32", "seeds": [1, 2]}\n'
+                 '_write_manifest("out", record, static)\n')
+    text = run.read_text(encoding="utf-8")
+    assert "_write_manifest(" in text and '"regime"' not in text, (
+        "fixture must pass two dicts to a manifest helper and lack only the regime"
+    )
+    assert (
+        "P4",
+        "artifacts/etudes/papers/p4hp",
+        "manifest writer lacks regime",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_p4_oracle_only_writer_does_not_count(tmp_path):
+    _registry(tmp_path, [_e1_paper("p4or", [
+        _e1_entry("p4or", "model", "run.py"),
+        _e1_entry("p4or", "oracle transcription", "oracle_mod.py"),
+    ])])
+    _write(tmp_path, "artifacts/etudes/papers/p4or/run.py", "VALUE = 1\n")
+    oracle = _write(tmp_path, "artifacts/etudes/papers/p4or/oracle_mod.py",
+                    'manifest = {"git_sha": "abc", "backend": "cpu", '
+                    '"dtype": "float32", "seed": 1, "regime": "AI"}\n')
+    text = oracle.read_text(encoding="utf-8")
+    for key in ("git_sha", "backend", "dtype", "seed", "regime"):
+        assert '"%s"' % key in text, "fixture oracle must hold the full writer"
+    assert (
+        "P4",
+        "artifacts/etudes/papers/p4or",
+        "no manifest writer in the scored P4 modules",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_p4_p3_paper_out_of_scope(tmp_path):
+    papers = [_e1_paper("p4p3", [_e1_entry("p4p3", "model", "run.py")], stage="P3")]
+    _registry(tmp_path, papers)
+    _write(tmp_path, "artifacts/etudes/papers/p4p3/run.py", "VALUE = 1\n")
+    assert papers[0]["stage"] == "P3", "fixture must stay below P4"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "P4"] == [], (
+        "a P3 paper is out of scope"
+    )
 
 
 def test_missing_allowlist_fails_check(tmp_path):
@@ -674,3 +1041,101 @@ def test_s1_posix_root_path_is_outside_on_every_os(tmp_path):
     )
     messages = [m for r, _, m in cr.collect_findings(tmp_path) if r == "S1"]
     assert messages == ["line 2: sys.path.insert adds a path outside the repository (/tmp/elsewhere)"]
+
+
+def _r4_paper(pid: str, verdict, stage: str = "P6", p6: list[dict] | None = None) -> dict:
+    entry: dict = {
+        "id": pid,
+        "stage": stage,
+        "stage_artifacts": {
+            "P1": [{"label": "source", "path": f"artifacts/etudes/papers/{pid}/SOURCE_P1.md"}]},
+        "preregs": [],
+        "verdict": verdict,
+    }
+    if p6 is not None:
+        entry["stage_artifacts"]["P6"] = p6
+    return entry
+
+
+def _r4_p6_records(root: Path, pid: str) -> None:
+    """Every R1 record a stage-P6 paper needs, including the P6 result file."""
+    for name in ("SOURCE_P1.md", "PORT_SPEC.md", "PREREG_P3.md",
+                 "LEDGER.md", "RESULT_P3.md", "RESULT_P6.md"):
+        _write(root, f"artifacts/etudes/papers/{pid}/{name}")
+
+
+def test_r4_reproduced_without_p6_entry_fails(tmp_path):
+    papers = [_r4_paper("r4noentry", "reproduced")]
+    _registry(tmp_path, papers)
+    _r4_p6_records(tmp_path, "r4noentry")
+    assert "P6" not in papers[0]["stage_artifacts"], (
+        "fixture must list no P6 stage_artifacts entry"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "R1"] == [], (
+        "the folder holds every R1 record, so only R4 may fire"
+    )
+    assert (
+        "R4",
+        "artifacts/etudes/papers/r4noentry",
+        "paper 'r4noentry' claims reproduced without a P6 result file",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_r4_reproduced_with_missing_p6_file_fails(tmp_path):
+    papers = [_r4_paper("r4miss", "reproduced",
+                        p6=[{"label": "result P6",
+                             "path": "artifacts/etudes/papers/r4miss/RESULT_P6_v2.md"}])]
+    _registry(tmp_path, papers)
+    _r4_p6_records(tmp_path, "r4miss")
+    assert not (tmp_path / "artifacts/etudes/papers/r4miss/RESULT_P6_v2.md").exists(), (
+        "fixture P6 entry must name a file absent from disk"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "R1"] == [], (
+        "the folder holds every R1 record, so only R4 may fire"
+    )
+    assert (
+        "R4",
+        "artifacts/etudes/papers/r4miss",
+        "paper 'r4miss' claims reproduced without a P6 result file",
+    ) in cr.collect_findings(tmp_path)
+
+
+def test_r4_reproduced_with_p6_file_passes(tmp_path):
+    papers = [_r4_paper("r4ok", "reproduced",
+                        p6=[{"label": "result P6",
+                             "path": "artifacts/etudes/papers/r4ok/RESULT_P6.md"}])]
+    _registry(tmp_path, papers)
+    _r4_p6_records(tmp_path, "r4ok")
+    assert (tmp_path / "artifacts/etudes/papers/r4ok/RESULT_P6.md").is_file(), (
+        "fixture P6 entry must resolve on disk"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "R4"] == [], (
+        "a reproduced paper whose P6 entry resolves stays clean"
+    )
+
+
+def test_r4_reproduced_below_p6_out_of_scope(tmp_path):
+    papers = [_r4_paper("r4p5", "reproduced", stage="P5")]
+    _registry(tmp_path, papers)
+    for name in ("SOURCE_P1.md", "PORT_SPEC.md", "PREREG_P3.md",
+                 "LEDGER.md", "RESULT_P3.md"):
+        _write(tmp_path, f"artifacts/etudes/papers/r4p5/{name}")
+    assert papers[0]["stage"] == "P5", "fixture must stay below P6"
+    assert "P6" not in papers[0]["stage_artifacts"], "fixture must list no P6 entry"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "R4"] == [], (
+        "a reproduced claim below P6 is not an R4 finding"
+    )
+
+
+@pytest.mark.parametrize("verdict", [
+    "reproduced (conditional)", "mixed", "in progress", "not started", "failed",
+])
+def test_r4_non_replication_verdicts_pass(tmp_path, verdict):
+    papers = [_r4_paper("r4nv", verdict)]
+    _registry(tmp_path, papers)
+    _r4_p6_records(tmp_path, "r4nv")
+    assert papers[0]["verdict"] == verdict, "fixture must hold the verdict it is named after"
+    assert "P6" not in papers[0]["stage_artifacts"], "fixture must list no P6 entry"
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "R4"] == [], (
+        f"verdict {verdict!r} is a stage-level claim, not a full-replication claim"
+    )

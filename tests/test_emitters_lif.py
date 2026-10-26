@@ -18,7 +18,7 @@ from jaxfne.emitters_lif import (
 
 _LIF_FLOAT_FIELDS = (
     "tau_m_ms", "v_thresh_mV", "v_reset_mV", "v_min_mV", "eta_rp_mV",
-    "tau_rp_ms", "tau_sra_ms", "delta_sra_mV",
+    "tau_rp_ms", "tau_sra_ms", "delta_sra_mV", "tau_syn_ms",
 )
 
 
@@ -61,6 +61,91 @@ def test_make_lif_params_refusals():
         pass
     else:
         raise AssertionError("override for absent type must raise")
+
+
+def test_tau_syn_default_zero_means_unfiltered():
+    """Absent tau_syn_ms defaults to 0 (the delta-summing path, unchanged)."""
+    assert float(LIF_CELL_TYPE_DEFAULTS["simple"]["tau_syn_ms"]) == 0.0
+    assert float(LIF_CELL_TYPE_DEFAULTS["complex"]["tau_syn_ms"]) == 0.0
+    p = _simple_f32()
+    assert bool((np.asarray(p.tau_syn_ms) == 0.0).all())
+
+
+def _tau_drive_3x2():
+    I_ext = np.zeros((3, 2), np.float32)
+    I_ext[0, 0] = 30.0
+    I_ext[1, 0] = 30.0
+    return I_ext
+
+
+def _tau_edge_kw(weight):
+    return dict(
+        n_steps=3, dt_ms=0.5,
+        edge_pre=np.array([0]), edge_post=np.array([1]),
+        edge_weight=np.array([weight]), edge_delay_steps=np.array([1]),
+        I_ext_pA=jnp.asarray(_tau_drive_3x2()),
+    )
+
+
+def _simple_f32_two():
+    return _as_f32(make_lif_params(("simple", "simple")))
+
+
+def test_tau_syn_filter_decay_form():
+    """G-TAUSYN decay form: a delta arrival sums fully, then decays as exp(-dt/tau_syn).
+
+    Weight-4 arrivals at steps 1, 2 (cell 0 spikes steps 0, 1; delay 1):
+    g_1 = 4.0, g_2 = 4.0*exp(-1) + 4.0, V_2 = V_1*exp(-dt/tau_m) + g_2.
+    """
+    p = _as_f32(make_lif_params(("simple", "simple"),
+                                {"simple": {"tau_syn_ms": 0.5}}))
+    out = simulate_lif_edge(p, **_tau_edge_kw(4.0), record_v=True)
+    spk = np.asarray(out["spikes"])
+    assert spk[:, 0].tolist() == [True, True, False]
+    assert not bool(spk[:, 1].any())
+    assert abs(float(out["V_mV"][1, 1]) - 4.0) < 1e-6
+    want = (4.0 * math.exp(-0.5 / 18.0) + 4.0 * math.exp(-1.0) + 4.0)
+    assert abs(float(out["V_mV"][2, 1]) - want) < 1e-5, (float(out["V_mV"][2, 1]), want)
+
+
+def test_tau_syn_changes_spikes_at_fixed_seed():
+    """The filter is consumed by the kernel: same seed, spikes differ."""
+    kw = _tau_edge_kw(5.0)
+    base = simulate_lif_edge(_simple_f32_two(), **kw)
+    filt = simulate_lif_edge(
+        _as_f32(make_lif_params(("simple", "simple"),
+                                {"simple": {"tau_syn_ms": 0.5}})), **kw)
+    assert not bool(np.asarray(base["spikes"])[:, 1].any()), "delta path stays silent"
+    assert bool(np.asarray(filt["spikes"])[2, 1]), "filtered path spikes step 2"
+    assert bool((np.asarray(base["spikes"]) != np.asarray(filt["spikes"])).any())
+
+
+def test_tau_syn_refusals_name_the_field():
+    """Declared tau_syn_ms must be a finite number > 0 in ms (fail-closed)."""
+    for bad in (0.0, -1.0, float("nan"), float("inf"), "0.5", True, None):
+        try:
+            make_lif_params(("simple",), {"simple": {"tau_syn_ms": bad}})
+        except ValueError as exc:
+            assert "finite number > 0" in str(exc), str(exc)
+        else:
+            raise AssertionError(f"tau_syn_ms={bad!r} must raise")
+
+
+def test_tau_syn_tensor_override_constructs_and_refuses():
+    """Tensor-route plumbing carries tau_syn_ms per triple, fail-closed."""
+    from jaxfne.emitters_lif import lif_network_params_from_labels
+
+    p = lif_network_params_from_labels(
+        ("E",), lif_overrides={"E": {"tau_syn_ms": 0.5}})
+    assert abs(float(np.asarray(p.tau_syn_ms)[0]) - 0.5) < 1e-12
+    for bad in (0.0, -2.0, float("nan"), float("inf")):
+        try:
+            lif_network_params_from_labels(
+                ("E",), lif_overrides={"E": {"tau_syn_ms": bad}})
+        except ValueError as exc:
+            assert "finite number > 0" in str(exc), str(exc)
+        else:
+            raise AssertionError(f"tau_syn_ms={bad!r} must raise")
 
 
 def test_membrane_decay_closed_form():
@@ -605,3 +690,138 @@ def test_feed_channel_refusals_name_the_channel():
             pass
         else:
             raise AssertionError(f"{sorted(kw)} must raise")
+
+
+def test_event_order_differs_from_event_scan_on_order_sensitive_drive():
+    """Negative control: the resolution key names a realized policy, not a label.
+
+    Two same-bin events at one two-cell position (cell 1 fed 12 mV at
+    100 us, cell 0 fed 20 mV at 400 us, mutual 8 mV inhibition): the exact
+    ``event_scan`` replay spikes both cells (one immediate subtraction
+    each), while the per-step ``event_order`` cascade with one round keeps
+    only the first-visited winner. Same physical drive, different spike
+    outcomes on the default seed.
+    """
+    from jaxfne.pcl_topology import (
+        event_scan_events,
+        event_scan_tables,
+        local_inhibition_blocks,
+    )
+
+    w_s = np.zeros((2, 2, 1, 1), dtype=np.float64)
+    w_s[1, 0, 0, 0] = 12.0
+    w_s[0, 1, 0, 0] = 20.0
+    tables = event_scan_tables(
+        nx=1, ny=1, nd=2, cx=1, cy=1, cd=1,
+        origins_x=[2.0], origins_y=[2.0], size=(1, 1), weights=w_s,
+        c_cover={(0, 0): [(0, 0)]}, c_ox=[0], c_oy=[0], c_size=(1, 1),
+        c_weights=np.zeros((1, 1, 1, 2), dtype=np.float64),
+        vw=4, vh=4, inhib_range=(0, 0),
+    )
+    events = event_scan_events(
+        np.array([100, 400]), np.array([2, 2]),
+        np.array([2, 2]), np.array([0, 1]),
+        dt_ms=0.5, n_steps=1, vw=4, vh=4,
+    )
+    p = _as_f32(make_lif_params(("simple", "simple", "complex")))
+    groups = np.array([0, 0, 1], dtype=np.int64)
+    blocks = local_inhibition_blocks(
+        groups,
+        li_pre=np.array([1, 0]), li_post=np.array([0, 1]),
+        li_weight=np.array([8.0, 8.0]),
+    )
+    scan = simulate_lif_edge(
+        p, n_steps=1, dt_ms=0.5,
+        local_inhibition_groups=jnp.asarray(groups),
+        local_inhibition_resolution="event_scan",
+        local_inhibition_blocks=blocks,
+        event_scan_events=events,
+        event_scan_tables=tables,
+    )
+    assert [bool(s) for s in scan["spikes"][0]] == [True, True, False]
+    # The same two events binned: cell 1 fed 12 mV, cell 0 fed 20 mV.
+    visit = np.zeros((1, 2, 2), dtype=np.int32)
+    visit[0, 0, :] = [1, 0]
+    visit[0, 1, :] = [0, -1]
+    order = simulate_lif_edge(
+        p, n_steps=1, dt_ms=0.5,
+        feed_current=jnp.array([[12.0, 20.0, 0.0]], jnp.float32),
+        feed_arrivals=jnp.array([[1.0, 1.0, 0.0]], jnp.float32),
+        local_inhibition_rounds=1,
+        local_inhibition_groups=jnp.asarray(groups),
+        local_inhibition_resolution="event_order",
+        local_inhibition_blocks=blocks,
+        local_inhibition_visit_order=jnp.asarray(visit),
+    )
+    assert [bool(s) for s in order["spikes"][0]] == [False, True, False]
+    assert (
+        np.asarray(scan["spikes"]) != np.asarray(order["spikes"])
+    ).any(), "order-sensitive drive must separate the policies"
+
+
+def test_resolution_refusals_list_the_supported_policies():
+    """Unknown resolutions are refused with the supported list, never mapped."""
+    from jaxfne.pcl_topology import LOCAL_INHIBITION_RESOLUTIONS
+
+    p = _simple_f32()
+    for bad in ("per_event", "PER_EVENT", "event-scan", ""):
+        try:
+            simulate_lif_edge(
+                p, n_steps=1, dt_ms=0.5,
+                feed_current=jnp.zeros((1, 1), jnp.float32),
+                feed_arrivals=jnp.zeros((1, 1), jnp.float32),
+                local_inhibition_rounds=1,
+                local_inhibition_resolution=bad,
+            )
+        except ValueError as exc:
+            for name in LOCAL_INHIBITION_RESOLUTIONS:
+                assert name in str(exc), f"{bad!r} refusal must list {name}"
+        else:
+            raise AssertionError(f"{bad!r} must raise")
+
+
+def test_policies_are_deterministic_per_seed_without_continuation():
+    """Pin what exists: each policy repeats bit-identically on a fixed seed.
+
+    The LIF edge route exposes no continuation (state enters only via
+    ``V0_mV``; adaptation ``A`` and ``t_last`` always start fresh), so a
+    chunked resume is not constructible here — continuation equality
+    lives on the construct/simulate path (``jaxfne._pipeline``). What the
+    route does guarantee is exact repeat determinism under every
+    supported policy, pinned here on one fixed two-step drive.
+    """
+    from jaxfne.pcl_topology import local_inhibition_blocks
+
+    p = _as_f32(make_lif_params(("simple", "simple")))
+    groups = np.array([0, 0], dtype=np.int64)
+    blocks = local_inhibition_blocks(
+        groups,
+        li_pre=np.array([1, 0]), li_post=np.array([0, 1]),
+        li_weight=np.array([8.0, 8.0]),
+    )
+    visit = jnp.asarray(np.array([[[1, 0]], [[0, 1]]], dtype=np.int32))
+    feed_i = jnp.array([[12.0, 12.0], [12.0, 0.0]], jnp.float32)
+    feed_n = jnp.array([[1.0, 1.0], [1.0, 0.0]], jnp.float32)
+    cfgs = [
+        dict(local_inhibition_rounds=1,
+             local_inhibition_groups=jnp.asarray(groups)),
+        dict(local_inhibition_rounds=1,
+             local_inhibition_groups=jnp.asarray(groups),
+             local_inhibition_resolution="whole_step"),
+        dict(local_inhibition_rounds=1,
+             local_inhibition_groups=jnp.asarray(groups),
+             local_inhibition_resolution="event_order",
+             local_inhibition_blocks=blocks,
+             local_inhibition_visit_order=visit),
+    ]
+    for cfg in cfgs:
+        first = simulate_lif_edge(
+            p, n_steps=2, dt_ms=0.5, feed_current=feed_i,
+            feed_arrivals=feed_n, record_v=True, **cfg)
+        second = simulate_lif_edge(
+            p, n_steps=2, dt_ms=0.5, feed_current=feed_i,
+            feed_arrivals=feed_n, record_v=True, **cfg)
+        assert bool((np.asarray(first["spikes"])
+                     == np.asarray(second["spikes"])).all())
+        assert bool((np.asarray(first["V_mV"])
+                     == np.asarray(second["V_mV"])).all())

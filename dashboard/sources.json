@@ -33,7 +33,7 @@
       },
       "verdict": "mixed",
       "verdict_note": "Reproduced under v7 (amended after v6 R4 failed): f_pk, rates and R4. Missed: against PLoS CB (primary, Hamm 2026-10-14) the PV→SOM lag by the ref. 42 method is 6.47 ms against 8.5 ms (off, e 0.24), a finding that needs X. Library path, scored apart: P6 v2 PASS through the public API (Q1–Q5, C1). The 0.1 ms delay sensitivity gives the preprint's ≈ 7 ms",
-      "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07. The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep. At p = 0.07 the v6 and v7 runs are identical for all five seeds, so R1–R3 and R4v7 score one realization there.",
+      "summary": "Gamma and the rate order reproduce at p = 0.07; the PV→SOM lag is a finding that needs X (6.3–7.2 ms against 8.5 ms, e 0.15–0.26; CALIBRATION §10). The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep. At p = 0.07 the v6 and v7 runs are identical for all five seeds, so R1–R3 and R4v7 score one realization there.",
       "preregs": [
         {"id": "v6", "signed": "2026-10-11", "path": "artifacts/etudes/caminos/PREREG_P3.md"},
         {"id": "v7 (R4 only)", "signed": "2026-10-12", "path": "artifacts/etudes/caminos/PREREG_P3_v7_R4.md"},
@@ -42,8 +42,10 @@
       "files": {
         "main": "artifacts/etudes/caminos/scores/score.json",
         "sens": "artifacts/etudes/caminos/scores/sensitivity_S1_S5.json",
-        "v7": {"path": "artifacts/etudes/caminos/scores/score_v7.json", "allow_missing": true}
+        "v7": {"path": "artifacts/etudes/caminos/scores/score_v7.json", "allow_missing": true},
+        "p6": "artifacts/etudes/caminos/scores/p6_v2_score.json"
       },
+      "library_path": {"stage": "P6", "file": "p6", "key": "p6.verdict"},
       "criteria": [
         {"id": "R1", "claim": "the network oscillates at about 35 Hz", "estimand": "peak frequency f_pk of the E rate spectrum, seeds 1–5 at p = 0.07", "criterion": "every seed oscillates, f_pk 30–40 Hz",
          "value": {"file": "main", "key": "r1.mean_peak_freq_Hz"}, "unit": "Hz", "value_label": "mean f_pk", "paper_value": "≈ 35 Hz",
@@ -109,7 +111,7 @@
       "open": [
         "R4v7 rests on the drive scaling as p·NE across the sweep; the paper does not state it.",
         "With the drive fixed at 560 sources (v6), every p oscillates; the onset needs the drive to scale with p. Shared-drive variant dropped (Hamm 2026-10-12).",
-        "P6 library path not attempted (B1)."
+        "The PV→SOM lag stays a finding that needs X; true zero delay runs once core gap G12 closes (CALIBRATION §10-11)."
       ]
     },
     {
@@ -136,7 +138,7 @@
                {"label": "scores v5", "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json"}]
       },
       "verdict": null,
-      "summary": "Preregistrations v4 and v5 were scored and did not pass; a new protocol follows (Hamm 2026-10-13). Orientation tuning and the simple/complex phase split reproduce. v5 scores the sf curve against the digitized Fig. 3: simple cells fail (10/16 points, error 1.5 times a flat line), complex cells miss the shape guard by 0.02. Under v5, T4 (frequency doubling, C3) passes on the v4 numbers.",
+      "summary": "Preregistrations v4 and v5 were scored and did not pass; a new protocol follows (Hamm 2026-10-13). Orientation tuning and the simple/complex phase split reproduce. v5 scores the sf curve against the digitized Fig. 3: simple cells fail (10/16 points, error 1.5 times a flat line), complex cells miss the shape guard by 0.02. Under v5, T4 (frequency doubling, C3) passes on the v4 numbers. The PCL-R1 fidelity audit (closed 2026-10-24, receipt `artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md`) attributes six findings to implementation and selection fidelity; PCL is not reproduced and the signed v5 T2 failure stands.",
       "preregs": [{"id": "v4", "signed": "2026-10-11", "path": "artifacts/etudes/pcl/prereg/P3_fig3.md"},
                   {"id": "v5", "signed": "2026-10-13", "path": "artifacts/etudes/pcl/prereg/P3_fig3_v5.md"}],
       "files": {
@@ -387,7 +389,7 @@
       "stage": "P1",
       "lane": {"branch": "dev", "sha": "7ac1bb47b5805b046a4790d9d6456ed23c706eb7"},
       "stage_artifacts": {"P1": [{"label": "source record (draft)", "path": "artifacts/etudes/papers/gsdr2026/SOURCE_P1.md"}]},
-      "summary": "Source record drafted. A pilot fit in the lane reached a saturated regime (κ ≈ 0.95 against 0.0156 in the data); the next step is a sweep of g = J_I/J_E at fixed drive before any further fit.",
+      "summary": "Source record drafted. Pilot fits in the lane (unscored, run without MCDP; P-039) stay saturated: κ 0.60 on the 500-generation reference refit against 0.0156 in the data. The ruled next step is MCDP on as an outer-loop HDP step (`mcdp_hdp_step`) in the B8 pilot, then the prereg.",
       "preregs": [],
       "files": {},
       "criteria": [],
@@ -405,7 +407,7 @@
       "tier": "T-port",
       "stage": "P3",
       "lane": {"branch": "dev", "sha": "6f85f5c3056edf91b89ea2a61efce758000d0a69"},
-      "summary": "The AdEx core features the port needs are on dev (Vpeak detection threshold, external-drive schedules, capped Bernoulli sampling). The port is built in the lane clone (28 lane tests pass); its preregistration is drafted and unsigned, and scored seeds 1–8 (S2) are queued.",
+      "summary": "The AdEx core features the port needs are on dev (Vpeak detection threshold, external-drive schedules, capped Bernoulli sampling). The port is built in the lane clone (28 lane tests pass); its preregistration is drafted and unsigned. Unscored pilot (CALIBRATION step 6): seeds 1–8 ran at the declared baseline; E1 holds on 4 of 8 seeds under the authors' Vpeak, E2 stays off on every live seed, and the E4 rate order is off (hyperactive, about 5x); the held-out seeds 4–8 are spent, so a scored run needs a new protocol on fresh seeds.",
       "preregs": [],
       "files": {},
       "criteria": [],
@@ -431,6 +433,7 @@
                {"label": "tests", "path": "artifacts/etudes/papers/brunel2000/test_brunel2000_api.py"},
                {"label": "pilots", "path": "artifacts/etudes/papers/brunel2000/CALIBRATION.md"}],
         "P3": [{"label": "prereg v4 (signed)", "path": "artifacts/etudes/papers/brunel2000/PREREG_P3_v4.md"}],
+        "P4": [{"label": "lane api (scored route)", "path": "artifacts/etudes/papers/brunel2000/brunel2000_api.py"}],
         "P5": [{"label": "result", "path": "artifacts/etudes/papers/brunel2000/RESULT_P3.md"},
                {"label": "scores", "path": "artifacts/etudes/papers/brunel2000/score_p3.json"}]
       },
@@ -474,7 +477,7 @@
       ],
       "sensitivity": [],
       "charts": [],
-      "open": ["Sensitivity set S1 (N = 6250, fixed in-degrees; needs a lane option), S2 (5 s window), S3 (dt 0.05 ms) declared in v4, not yet run.", "Library path P6 and the P7 insight page."]
+      "open": ["Sensitivity set S1 (N = 6250, fixed in-degrees) needs a lane option and has not run; S2 (5 s window) and S3 (dt 0.05 ms) ran unscored on seeds 4-5: labels hold except point C seed 4 at dt 0.05 (RESULT_P3).", "Library path P6 and the P7 insight page."]
     },
     {
       "id": "potjans2014",
@@ -485,7 +488,7 @@
       "page": "models/potjans2014.md",
       "release": "0.5.9",
       "tier": "T-jaxfne",
-      "stage": "P1",
+      "stage": "P2",
       "lane": {"branch": "dev", "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"},
       "summary": "P1 source record written from the open-access PMC record. Fig. 6 claims (reference rates 0.86/4.45/7.59/1.09 Hz, CV above 0.8, L5e-highest/L6-lowest synchrony) and the Table 5 connectivity map are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
       "preregs": [],
@@ -504,7 +507,7 @@
       "page": "models/vogels2011.md",
       "release": "0.5.8",
       "tier": "T-jaxfne",
-      "stage": "P1",
+      "stage": "P2",
       "lane": {"branch": "dev", "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"},
       "summary": "P1 source record written from the authors' ModelDB code (the MATLAB script was in the Science SOM) plus the open-access 2013 review. Coded target rho0 = 3 Hz; paper-stated realized rates/CVs stay unknown (full text paywalled). The lane runs on the jaxfne core only; next per rule B8 is the pilot, then signature, then fresh seeds.",
       "preregs": [],
@@ -523,7 +526,7 @@
       "page": "models/mejias2016.md",
       "release": "0.5.9",
       "tier": "T-jaxfne",
-      "stage": "P1",
+      "stage": "P2",
       "lane": {"branch": "dev", "sha": "f8c05f04aefc1b14b27d1972ae57ffa07f888697"},
       "summary": "P1 source record written from the open-access PMC record. Fig. 2-3 claims (gamma ~40 Hz, alpha ~10 Hz, PAC, alpha-suppression link) and Fig. 6-7 claims (SLN-DAI correlation, functional hierarchy, laminar-input jumps) are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
       "preregs": [],
@@ -537,11 +540,11 @@
       "id": "head-forward",
       "title": "Analytic EEG/MEG forward checks of jaxfne.fields.head",
       "citation": "Sarvas 1987 (MEG); Frank 1952 (EEG)",
-      "class": "core method",
+      "class": "core method", "grammar": ["Field", "Probe"],
       "question": "Does the spherical-head MEG/EEG forward code agree with independent analytic references?",
       "release": "0.5.7",
       "tier": "T-jaxfne",
-      "lane": {"branch": "dev", "sha": "214c853b654f34c65edb2b4535128d848fd272a6"},
+      "lane": {"branch": "dev", "sha": "a13884f58b908a711bd747e34c99327d41bd036c"},
       "summary": "Nine analytic agreements of the spherical-head forward code, scored from the inputs of tests/test_head_forward.py: radial and full-vector MEG against the primary-current field and scalar-potential quadrature, radial-dipole silence, EEG against the Neumann series and the MNE single shell, conductivity reciprocity, the average-reference null, line-source LFP against scipy quadrature of the line-source integral and its point-dipole far field.",
       "preregs": [],
       "files": {
@@ -588,6 +591,935 @@
       "sensitivity": [],
       "charts": [],
       "open": ["No paper values: analytic agreements of a core method, not a replication.", "eeg-mne needs the optional mne package and shows pending without it."]
+    },
+    {
+      "id": "emitter-closed-form",
+      "title": "Emitter closed-form checks of the jaxfne emitter kernels",
+      "citation": "closed-form and hand-computed references in the pinned tests (no paper value)",
+      "class": "core method", "grammar": ["Emitter"],
+      "question": "Do the LIF, AdEx, HH, graded-synapse and rate emitter kernels agree with independent closed-form references?",
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "lane": {
+        "branch": "dev",
+        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
+      },
+      "summary": "Seven analytic agreements of the emitter kernels, scored from the inputs of tests/test_emitters_lif.py, tests/test_adex_lif_limit.py, tests/test_emitters_hh.py and tests/test_emitters_rate.py: LIF membrane decay and per-arrival refractory subtraction against closed forms, the AdEx LIF limit against the hand Euler update, the HH gate update against exact exponential Euler, the graded synapse against its steady state, the rate OU stationary variance against the Euler-Maruyama formula, and threshold-linear and sigmoid transfer against hand values.",
+      "preregs": [],
+      "files": {
+        "main": "artifacts/etudes/core_checks/emitters/score.json"
+      },
+      "criteria": [
+        {
+          "id": "lif-membrane-decay",
+          "entry": "lif_membrane_decay",
+          "claim": "silent LIF decay equals 5·exp(−t/tau_m)",
+          "estimand": "worst-case |deviation| over 10 steps from 5 mV",
+          "criterion": "error ≤ 1e-5",
+          "value": {
+            "file": "main",
+            "key": "checks.lif_membrane_decay.error"
+          },
+          "unit": "mV",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.lif_membrane_decay.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.lif_membrane_decay.reference"
+          }
+        },
+        {
+          "id": "lif-refractory-subtraction",
+          "entry": "lif_refractory_subtraction",
+          "claim": "one arrival on a just-spiked cell subtracts the refractory transient",
+          "estimand": "worst-case |deviation| of one step against the hand decay-plus-subtraction sum",
+          "criterion": "error ≤ 1e-5",
+          "value": {
+            "file": "main",
+            "key": "checks.lif_refractory_subtraction.error"
+          },
+          "unit": "mV",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.lif_refractory_subtraction.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.lif_refractory_subtraction.reference"
+          }
+        },
+        {
+          "id": "adex-lif-limit",
+          "entry": "adex_lif_limit",
+          "claim": "the Delta=0 AdEx step equals the hand Euler LIF update",
+          "estimand": "|deviation| of one subthreshold step from −65 mV at 200 pA",
+          "criterion": "error ≤ 1e-6·|want|",
+          "value": {
+            "file": "main",
+            "key": "checks.adex_lif_limit.error"
+          },
+          "unit": "mV",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.adex_lif_limit.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.adex_lif_limit.reference"
+          }
+        },
+        {
+          "id": "hh-gate-exponential-euler",
+          "entry": "hh_gate_exponential_euler",
+          "claim": "the HH m-gate update equals exact exponential Euler at frozen rates",
+          "estimand": "|deviation| of one gate update at −70 mV",
+          "criterion": "error ≤ 1e-4",
+          "value": {
+            "file": "main",
+            "key": "checks.hh_gate_exponential_euler.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.hh_gate_exponential_euler.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.hh_gate_exponential_euler.reference"
+          }
+        },
+        {
+          "id": "graded-synapse-steady-state",
+          "entry": "graded_synapse_steady_state",
+          "claim": "a clamped depolarized synapse reaches tauD/(tauD+tauR)",
+          "estimand": "|deviation| after 2000 steps at Vpre 20 mV",
+          "criterion": "error ≤ 0.01",
+          "value": {
+            "file": "main",
+            "key": "checks.graded_synapse_steady_state.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.graded_synapse_steady_state.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.graded_synapse_steady_state.reference"
+          }
+        },
+        {
+          "id": "rate-ou-stationary-variance",
+          "entry": "rate_ou_stationary_variance",
+          "claim": "the rate OU stationary variance equals sigma^2/(2−dt/tau)",
+          "estimand": "worst-case relative deviation at dt 0.1 and 1.0 ms (seed 3)",
+          "criterion": "relative error ≤ 0.05",
+          "value": {
+            "file": "main",
+            "key": "checks.rate_ou_stationary_variance.error"
+          },
+          "unit": "",
+          "value_label": "max relative deviation",
+          "verdict": {
+            "file": "main",
+            "key": "checks.rate_ou_stationary_variance.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.rate_ou_stationary_variance.reference"
+          }
+        },
+        {
+          "id": "rate-transfer-functions",
+          "entry": "rate_transfer_functions",
+          "claim": "threshold-linear and sigmoid transfer equal hand values",
+          "estimand": "worst-case |deviation| over 4 threshold-linear and 2 sigmoid points",
+          "criterion": "error ≤ 1e-9",
+          "value": {
+            "file": "main",
+            "key": "checks.rate_transfer_functions.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.rate_transfer_functions.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.rate_transfer_functions.reference"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No paper values: analytic agreements of a core method, not a replication."
+      ]
+    },
+    {
+      "id": "field-invariants",
+      "title": "Core checks of the field and probe invariants in jaxfne.fields",
+      "citation": "Nicholson and Freeman 1975 (CSD three-point stencil); Gauss's law in one dimension",
+      "class": "core method", "grammar": ["Source", "Field", "Probe"],
+      "question": "Do the field and probe operators satisfy their stated invariants against independent references?",
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "lane": {
+        "branch": "dev",
+        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
+      },
+      "summary": "Six agreements of the field and probe operators, scored from the inputs of their pinned tests: LinearReadout, EEG and MEG proxies superpose and scale against the hand formula S W^T; csd_tensor is zero on a constant and -phi'' on a quadratic at interior contacts; the cable filter gain equals the exact discrete response of its one-pole cascade at 5, 20 and 100 Hz; the one-dimensional Poisson solver's flux obeys Gauss's law.",
+      "preregs": [],
+      "files": {
+        "main": "artifacts/etudes/core_checks/fields/score.json"
+      },
+      "criteria": [
+        {
+          "id": "operator-superposition",
+          "entry": "operator_superposition",
+          "claim": "LinearReadout, EEG and MEG proxies superpose and scale",
+          "estimand": "worst-case |deviation| over three operators, superposition and scaling, 50 x 10 float32 inputs (seed 100)",
+          "criterion": "error ≤ 1e-5 + 1e-5·max|Y|",
+          "value": {
+            "file": "main",
+            "key": "checks.operator_superposition.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.operator_superposition.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.operator_superposition.reference"
+          }
+        },
+        {
+          "id": "csd-flat-potential-zero",
+          "entry": "csd_flat_potential_zero",
+          "claim": "CSD of a potential constant across contacts is zero",
+          "estimand": "max |CSD| over 5 x 8 contacts for a constant potential 3.7",
+          "criterion": "error ≤ 1e-5",
+          "value": {
+            "file": "main",
+            "key": "checks.csd_flat_potential_zero.error"
+          },
+          "unit": "",
+          "value_label": "max |CSD|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.csd_flat_potential_zero.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.csd_flat_potential_zero.reference"
+          }
+        },
+        {
+          "id": "csd-quadratic-potential",
+          "entry": "csd_quadratic_potential",
+          "claim": "CSD of a quadratic in depth equals -phi'' at interior contacts",
+          "estimand": "worst-case |deviation| over three quadratics at interior contacts (float64)",
+          "criterion": "error ≤ 1e-6·max|−phi''|",
+          "value": {
+            "file": "main",
+            "key": "checks.csd_quadratic_potential.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.csd_quadratic_potential.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.csd_quadratic_potential.reference"
+          }
+        },
+        {
+          "id": "cable-filter-transfer",
+          "entry": "cable_filter_transfer",
+          "claim": "the cable filter gain equals the exact discrete response of its one-pole cascade at 5, 20 and 100 Hz",
+          "estimand": "worst-case relative gain deviation at 5, 20 and 100 Hz, tau 20 ms, dt 0.5 ms, order 2",
+          "criterion": "relative error ≤ 1e-6",
+          "value": {
+            "file": "main",
+            "key": "checks.cable_filter_transfer.error"
+          },
+          "unit": "",
+          "value_label": "max relative deviation",
+          "verdict": {
+            "file": "main",
+            "key": "checks.cable_filter_transfer.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.cable_filter_transfer.reference"
+          }
+        },
+        {
+          "id": "poisson-1d-flux-magnitude",
+          "entry": "poisson_1d_flux_magnitude",
+          "claim": "the one-dimensional solver's flux carries Q dx across the source-sink span",
+          "estimand": "worst-case relative deviation of |interior flux| from Q dx at N = 21, 41, 81",
+          "criterion": "relative error ≤ 1e-3",
+          "value": {
+            "file": "main",
+            "key": "checks.poisson_1d_flux_magnitude.error"
+          },
+          "unit": "",
+          "value_label": "max relative deviation",
+          "verdict": {
+            "file": "main",
+            "key": "checks.poisson_1d_flux_magnitude.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.poisson_1d_flux_magnitude.reference"
+          }
+        },
+        {
+          "id": "poisson-1d-flux-span",
+          "entry": "poisson_1d_flux_span",
+          "claim": "the one-dimensional solver's flux vanishes outside the source-sink span and is constant inside",
+          "estimand": "worst-case |flux| outside the span and std inside, N = 81",
+          "criterion": "error ≤ 1e-4",
+          "value": {
+            "file": "main",
+            "key": "checks.poisson_1d_flux_span.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.poisson_1d_flux_span.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.poisson_1d_flux_span.reference"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No paper values: analytic and hand-formula agreements of a core method, not a replication.",
+        "cable-filter-transfer is scored against the exact discrete-time response of the realised one-pole cascade, not the continuous RC transfer."
+      ]
+    },
+    {
+      "id": "plasticity-hand-values",
+      "title": "Hand-value plasticity checks of the jaxfne core",
+      "citation": "Vogels et al., Science 334(6062):1569-1573; docs/guides/state/hdp.md (barrier equilibrium); protocol D2a F1 relaxation",
+      "class": "core method", "grammar": ["RBD/HDP"],
+      "question": "Does the plasticity core agree with hand-computed updates, derived fixed points and a closed-form relaxation?",
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "lane": {
+        "branch": "dev",
+        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
+      },
+      "summary": "Six hand-value agreements of the plasticity core, scored from the inputs of tests/test_istdp_vogels2011.py, tests/test_hdp_barrier_equilibrium.py and tests/test_protocol_d_d2a_autonomous_relaxation.py: the iSTDP depression constant against the paper 0.12, lone-pre and post pairing steps against hand updates, pure-barrier relaxation against the derived fixed points H*=1 and H*=5.05, and the Euler H_K trace against the closed-form F1 solution.",
+      "preregs": [],
+      "files": {
+        "main": "artifacts/etudes/core_checks/plasticity/score.json"
+      },
+      "criteria": [
+        {
+          "id": "istdp-alpha",
+          "entry": "istdp_alpha_paper_value",
+          "claim": "alpha = 2*rho0*tau equals the paper 0.12",
+          "estimand": "max |deviation| of alpha and resolved alpha from 0.12",
+          "criterion": "error ≤ 1e-6·0.12",
+          "value": {
+            "file": "main",
+            "key": "checks.istdp_alpha_paper_value.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.istdp_alpha_paper_value.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.istdp_alpha_paper_value.reference"
+          }
+        },
+        {
+          "id": "istdp-pre",
+          "entry": "istdp_pre_depresses",
+          "claim": "a lone presynaptic spike depresses by (0-alpha)*eta with unit trace jumps",
+          "estimand": "worst per-element relative deviation of d_aux and d_edge_weight from the hand update (zero reference entries exact)",
+          "criterion": "relative deviation below 1e-12",
+          "value": {
+            "file": "main",
+            "key": "checks.istdp_pre_depresses.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.istdp_pre_depresses.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.istdp_pre_depresses.reference"
+          }
+        },
+        {
+          "id": "istdp-post",
+          "entry": "istdp_post_potentiates",
+          "claim": "a postsynaptic spike potentiates by A_pre*eta at A_pre = 0.5",
+          "estimand": "worst per-element relative deviation of d_aux and d_edge_weight from the hand update (zero reference entries exact)",
+          "criterion": "relative deviation below 1e-12",
+          "value": {
+            "file": "main",
+            "key": "checks.istdp_post_potentiates.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.istdp_post_potentiates.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.istdp_post_potentiates.reference"
+          }
+        },
+        {
+          "id": "barrier-ratio-100",
+          "entry": "hdp_barrier_ratio_100",
+          "claim": "pure-barrier relaxation reaches H* = 1 at barrier_d/barrier_c = 100",
+          "estimand": "relaxed mean H after 4000 steps from H0 = 3.0",
+          "criterion": "|H − 1| below 0.05",
+          "value": {
+            "file": "main",
+            "key": "checks.hdp_barrier_ratio_100.error"
+          },
+          "unit": "",
+          "value_label": "|H − 1|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.hdp_barrier_ratio_100.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.hdp_barrier_ratio_100.reference"
+          }
+        },
+        {
+          "id": "barrier-ratio-1",
+          "entry": "hdp_barrier_ratio_1",
+          "claim": "pure-barrier relaxation reaches H* = 5.05 at barrier_d/barrier_c = 1",
+          "estimand": "relaxed mean H after 4000 steps from H0 = 3.0",
+          "criterion": "|H − 5.05| below 0.1 with |H − 1| above 1.0",
+          "value": {
+            "file": "main",
+            "key": "checks.hdp_barrier_ratio_1.error"
+          },
+          "unit": "",
+          "value_label": "|H − 5.05|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.hdp_barrier_ratio_1.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.hdp_barrier_ratio_1.reference"
+          }
+        },
+        {
+          "id": "d2a-bracket",
+          "entry": "rbd_d2a_analytic_bracket",
+          "claim": "the kernel H_K trajectory brackets the scorer-side closed F1 form",
+          "estimand": "worst-case |kernel H_K − closed form| at t = 50, 500, 1500 ms",
+          "criterion": "max|deviation| below 0.05",
+          "value": {
+            "file": "main",
+            "key": "checks.rbd_d2a_analytic_bracket.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.rbd_d2a_analytic_bracket.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.rbd_d2a_analytic_bracket.reference"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No paper values beside the stated iSTDP constant: hand-value agreements of a core method, not a replication.",
+        "The iSTDP checks use out-degree 1; the per-synapse trace fix lives in the kernel LFP lane (todo section 2), not yet on dev.",
+        "Stochastic inputs are pinned to seed 0."
+      ]
+    },
+    {
+      "id": "objective-optimizer-references",
+      "title": "Objective and optimizer stages against closed forms and independent references",
+      "citation": "analytic references; no paper value",
+      "class": "core method", "grammar": ["Objective", "Optimizer"],
+      "question": "Do the objective-stage nulls, synchrony and score formulas, the parameter-bounds projection and the four quadratic transforms agree with closed forms and independent references?",
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "lane": {
+        "branch": "dev",
+        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
+      },
+      "summary": "Eleven agreements of the objective stage (polarity, layer-shuffle and uniform-gain nulls, synchrony limits, the sigma-precision sample count, the spectrolaminar score of a known profile) and the optimizer stage (the parameter-bounds projection against np.clip, and the quadratic minima of the sdr, gsdr, agsdr and gsgd transforms), scored from the core functions with fixed seeds. The phase-randomized null and optax_adam were dropped: the first takes no FFT, the second is a declaration only.",
+      "preregs": [],
+      "files": {
+        "main": "artifacts/etudes/core_checks/objectives/score.json"
+      },
+      "criteria": [
+        {
+          "id": "polarity-null",
+          "entry": "polarity_null_flips_sign",
+          "claim": "the polarity null returns minus each profile",
+          "estimand": "worst-case |deviation| over 64 bins of both profiles",
+          "criterion": "error ≤ 1e-12·scale",
+          "value": {
+            "file": "main",
+            "key": "checks.polarity_null_flips_sign.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.polarity_null_flips_sign.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.polarity_null_flips_sign.reference"
+          }
+        },
+        {
+          "id": "layer-shuffle-null",
+          "entry": "layer_shuffle_null_permutes",
+          "claim": "the layer shuffle permutes the rows of each profile",
+          "estimand": "worst-case |deviation| of sorted values over 64 bins",
+          "criterion": "error ≤ 1e-12·scale",
+          "value": {
+            "file": "main",
+            "key": "checks.layer_shuffle_null_permutes.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.layer_shuffle_null_permutes.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.layer_shuffle_null_permutes.reference"
+          }
+        },
+        {
+          "id": "uniform-gain-null",
+          "entry": "uniform_gain_null_scales",
+          "claim": "the uniform gain null scales both profiles by one gain",
+          "estimand": "worst-case |deviation| from the seeded gain times the input",
+          "criterion": "error ≤ 1e-12·scale",
+          "value": {
+            "file": "main",
+            "key": "checks.uniform_gain_null_scales.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.uniform_gain_null_scales.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.uniform_gain_null_scales.reference"
+          }
+        },
+        {
+          "id": "synchrony-limits",
+          "entry": "synchrony_metric_limits",
+          "claim": "synchrony is 1 for identical channels and 0 for complementary ones",
+          "estimand": "worst-case |deviation| of two closed-form values",
+          "criterion": "error ≤ 1e-12",
+          "value": {
+            "file": "main",
+            "key": "checks.synchrony_metric_limits.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.synchrony_metric_limits.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.synchrony_metric_limits.reference"
+          }
+        },
+        {
+          "id": "null-samples",
+          "entry": "null_samples_closed_form",
+          "claim": "the null-sample count follows 1 + 1/(2 rse²)",
+          "estimand": "worst-case count deviation at rse 0.5, 0.25 and 0.125",
+          "criterion": "count error ≤ 0.5 (exact)",
+          "value": {
+            "file": "main",
+            "key": "checks.null_samples_closed_form.error"
+          },
+          "unit": "samples",
+          "value_label": "max |count deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.null_samples_closed_form.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.null_samples_closed_form.reference"
+          }
+        },
+        {
+          "id": "spectrolaminar-known-profile",
+          "entry": "spectrolaminar_score_known_profile",
+          "claim": "the spectrolaminar score of a known profile equals its closed form",
+          "estimand": "worst-case |deviation| in percentage points, ideal and reversed readouts",
+          "criterion": "error ≤ 1e-12·100",
+          "value": {
+            "file": "main",
+            "key": "checks.spectrolaminar_score_known_profile.error"
+          },
+          "unit": "%",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.spectrolaminar_score_known_profile.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.spectrolaminar_score_known_profile.reference"
+          }
+        },
+        {
+          "id": "box-projection",
+          "entry": "box_projection_is_clip",
+          "claim": "the parameter-bounds projection equals np.clip",
+          "estimand": "worst-case |deviation| over 50 proposals in 4 dimensions",
+          "criterion": "error ≤ 1e-12·scale",
+          "value": {
+            "file": "main",
+            "key": "checks.box_projection_is_clip.error"
+          },
+          "unit": "",
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.box_projection_is_clip.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.box_projection_is_clip.reference"
+          }
+        },
+        {
+          "id": "sdr-minimum",
+          "entry": "sdr_quadratic_minimum",
+          "claim": "sdr_transform contracts at the closed-form rate with noise off",
+          "estimand": "relative deviation of the final-to-start distance ratio from 0.8^100",
+          "criterion": "deviation ≤ 1e-6",
+          "value": {
+            "file": "main",
+            "key": "checks.sdr_quadratic_minimum.error"
+          },
+          "unit": "",
+          "value_label": "deviation",
+          "verdict": {
+            "file": "main",
+            "key": "checks.sdr_quadratic_minimum.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.sdr_quadratic_minimum.reference"
+          }
+        },
+        {
+          "id": "gsdr-minimum",
+          "entry": "gsdr_quadratic_minimum",
+          "claim": "gsdr_transform contracts at the closed-form rate with noise off",
+          "estimand": "relative deviation of the final-to-start distance ratio from 0.8^100",
+          "criterion": "deviation ≤ 1e-6",
+          "value": {
+            "file": "main",
+            "key": "checks.gsdr_quadratic_minimum.error"
+          },
+          "unit": "",
+          "value_label": "deviation",
+          "verdict": {
+            "file": "main",
+            "key": "checks.gsdr_quadratic_minimum.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.gsdr_quadratic_minimum.reference"
+          }
+        },
+        {
+          "id": "agsdr-minimum",
+          "entry": "agsdr_quadratic_minimum",
+          "claim": "agsdr_transform (experimental) follows its update recurrence with noise off",
+          "estimand": "max deviation from a float64 NumPy recurrence after 100 steps, per max|x_0 - x*|",
+          "criterion": "deviation ≤ 1e-12",
+          "value": {
+            "file": "main",
+            "key": "checks.agsdr_quadratic_minimum.error"
+          },
+          "unit": "",
+          "value_label": "deviation",
+          "verdict": {
+            "file": "main",
+            "key": "checks.agsdr_quadratic_minimum.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.agsdr_quadratic_minimum.reference"
+          }
+        },
+        {
+          "id": "gsgd-minimum",
+          "entry": "gsgd_quadratic_minimum",
+          "claim": "the plain gradient step contracts at the closed-form rate",
+          "estimand": "relative deviation of the final-to-start distance ratio from 0.8^100",
+          "criterion": "deviation ≤ 1e-6",
+          "value": {
+            "file": "main",
+            "key": "checks.gsgd_quadratic_minimum.error"
+          },
+          "unit": "",
+          "value_label": "deviation",
+          "verdict": {
+            "file": "main",
+            "key": "checks.gsgd_quadratic_minimum.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.gsgd_quadratic_minimum.reference"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No paper values: analytic agreements of core methods, not a replication.",
+        "The four quadratic tolerances are 2 x a recorded run: regression guards, not accuracy claims.",
+        "phase_null_keeps_power and optax_adam_quadratic_minimum were dropped; the README gives the reasons."
+      ]
+    },
+    {
+      "charts": [],
+      "citation": "Closed-form exponential and Euler iterate; central finite differences (no paper values)",
+      "class": "core method", "grammar": ["Numerics"],
+      "criteria": [
+        {
+          "claim": "the forward-Euler scan of dy/dt = -y equals exp(-1)",
+          "criterion": "error ≤ 2e-3",
+          "entry": "euler_scan_exponential_decay",
+          "estimand": "worst-case |deviation| of y(1) from exp(-1) over 100 steps at dt=0.01",
+          "id": "euler-exponential-decay",
+          "reference": {
+            "file": "main",
+            "key": "checks.euler_scan_exponential_decay.reference"
+          },
+          "unit": "",
+          "value": {
+            "file": "main",
+            "key": "checks.euler_scan_exponential_decay.error"
+          },
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.euler_scan_exponential_decay.pass"
+          }
+        },
+        {
+          "claim": "solve_ode with method=euler on dy/dt = -y equals y_init * 0.9**20",
+          "criterion": "error ≤ 1e-5",
+          "entry": "euler_solve_ode_decay",
+          "estimand": "worst-case |deviation| of y(2) from the closed-form iterate over 20 steps at dt=0.1 on [1.0, 2.0]",
+          "id": "euler-solve-ode-decay",
+          "reference": {
+            "file": "main",
+            "key": "checks.euler_solve_ode_decay.reference"
+          },
+          "unit": "",
+          "value": {
+            "file": "main",
+            "key": "checks.euler_solve_ode_decay.error"
+          },
+          "value_label": "max |deviation|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.euler_solve_ode_decay.pass"
+          }
+        },
+        {
+          "claim": "autodiff d(loss)/d(source_scale) equals central finite differences",
+          "criterion": "error ≤ 1e-3",
+          "entry": "source_scale_gradient_fd",
+          "estimand": "|autodiff − FD| at s=1 with h=1e-2 on the pinned 8-neuron run (seed 3)",
+          "id": "source-scale-gradient",
+          "reference": {
+            "file": "main",
+            "key": "checks.source_scale_gradient_fd.reference"
+          },
+          "unit": "",
+          "value": {
+            "file": "main",
+            "key": "checks.source_scale_gradient_fd.error"
+          },
+          "value_label": "|autodiff − FD|",
+          "verdict": {
+            "file": "main",
+            "key": "checks.source_scale_gradient_fd.pass"
+          }
+        }
+      ],
+      "files": {
+        "main": "artifacts/etudes/core_checks/numerics/score.json"
+      },
+      "id": "numerics-references",
+      "lane": {
+        "branch": "dev",
+        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
+      },
+      "open": [
+        "No paper values: analytic and finite-difference agreements of a core method, not a replication.",
+        "The linear-rescale gradient test is not a row: it differentiates a loss defined inside the test, not a jaxfne function. window_kappa is not a row: it is lane code, not jaxfne/."
+      ],
+      "preregs": [],
+      "question": "Do the core integrator and the declared differentiable path agree with independent references?",
+      "release": "0.5.8",
+      "sensitivity": [],
+      "summary": "Three core-method agreements, scored from the inputs of tests/test_v0331_euler_solver.py, tests/test_solvers.py and tests/test_gradient_checks_v0417.py: the forward-Euler scan against the closed-form exponential, solve_ode against the closed-form Euler iterate, and the source_scale autodiff gradient against central finite differences.",
+      "tier": "T-jaxfne",
+      "title": "Core-method numerics checks: integrators and autodiff gradients"
+    },
+    {
+      "id": "port-oracle-parity",
+      "title": "Core-vs-oracle parity checks of the AdEx, multi-compartment HH and MCDP routes",
+      "citation": "",
+      "class": "core method", "grammar": ["Emitter", "Optimizer"],
+      "question": "Do jaxfne core routes agree with independent implementations of the same equations?",
+      "release": "0.5.8",
+      "tier": "T-jaxfne",
+      "lane": {
+        "branch": "dev",
+        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
+      },
+      "summary": "Four core-versus-oracle agreements, scored from the inputs of their pinned tests: single AdEx cells and a two-cell AdEx network against float64 NumPy transcriptions, the four-compartment HH cell against jaxley 0.14.0, and the MCDP factors of two pre/post groups against the lane-oracle transcription.",
+      "preregs": [],
+      "files": {
+        "main": "artifacts/etudes/core_checks/ports/score.json"
+      },
+      "criteria": [
+        {
+          "id": "adex-single-cell",
+          "entry": "adex_single_cell_oracle",
+          "claim": "AdEx single cells under a step current equal the float64 transcription",
+          "estimand": "worst ratio of |deviation| to atol + rtol·|ref| over V and w, with spike mismatches as whole units",
+          "criterion": "ratio ≤ 1 (rtol 1e-6, atol 1e-9)",
+          "value": {
+            "file": "main",
+            "key": "checks.adex_single_cell_oracle.error"
+          },
+          "unit": "",
+          "value_label": "worst ratio to bound",
+          "verdict": {
+            "file": "main",
+            "key": "checks.adex_single_cell_oracle.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.adex_single_cell_oracle.reference"
+          }
+        },
+        {
+          "id": "adex-network",
+          "entry": "adex_network_oracle",
+          "claim": "the two-cell AdEx network equals the hand-coded float64 loop in four decay and step-order cases",
+          "estimand": "worst ratio of |deviation| to atol + rtol·|ref| over V, with spike mismatches as whole units",
+          "criterion": "ratio ≤ 1 (rtol 1e-6, atol 1e-9)",
+          "value": {
+            "file": "main",
+            "key": "checks.adex_network_oracle.error"
+          },
+          "unit": "",
+          "value_label": "worst ratio to bound",
+          "verdict": {
+            "file": "main",
+            "key": "checks.adex_network_oracle.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.adex_network_oracle.reference"
+          }
+        },
+        {
+          "id": "multicompartment-hh",
+          "entry": "multicompartment_hh_jaxley",
+          "may_skip": true,
+          "claim": "the four-compartment HH cell equals jaxley 0.14.0 jx.integrate",
+          "estimand": "worst ratio of |deviation| to atol + rtol·|ref| over four compartments",
+          "criterion": "ratio ≤ 1 (rtol 1e-12, atol 1e-9)",
+          "value": {
+            "file": "main",
+            "key": "checks.multicompartment_hh_jaxley.error"
+          },
+          "unit": "",
+          "value_label": "worst ratio to bound",
+          "verdict": {
+            "file": "main",
+            "key": "checks.multicompartment_hh_jaxley.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.multicompartment_hh_jaxley.reference"
+          }
+        },
+        {
+          "id": "mcdp-zscored",
+          "entry": "gsdr_mcdp_oracle_zscored",
+          "claim": "the MCDP factors of two pre/post groups equal the lane-oracle transcription",
+          "estimand": "worst ratio of |deviation| to rtol·|ref| over both groups, seed 23",
+          "criterion": "ratio ≤ 1 (rtol 1e-5)",
+          "value": {
+            "file": "main",
+            "key": "checks.gsdr_mcdp_oracle_zscored.error"
+          },
+          "unit": "",
+          "value_label": "worst ratio to bound",
+          "verdict": {
+            "file": "main",
+            "key": "checks.gsdr_mcdp_oracle_zscored.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.gsdr_mcdp_oracle_zscored.reference"
+          }
+        }
+      ]
     }
   ],
   "roadmap": [

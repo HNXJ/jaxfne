@@ -103,7 +103,7 @@ Run one condition per call: `paradigm.condition(...)` selects it, and a full
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the evoked condition (1500 ms, dt 0.5 ms, seed 7; the page shows dt 0.1 ms): [index](../../_static/atlas/evoked_l4/index.html) · [schema](../../_static/atlas/evoked_l4/schema.html) · [3D](../../_static/atlas/evoked_l4/network_3d.html) · [raster](../../_static/atlas/evoked_l4/raster.html) · [LFP](../../_static/atlas/evoked_l4/lfp.html) · [H](../../_static/atlas/evoked_l4/h_dynamics.html) · [HDP](../../_static/atlas/evoked_l4/hdp.html) · [oscillatory](../../_static/atlas/evoked_l4/oscillatory.html).
+Dark-theme Plotly panels from the evoked condition (1500 ms, dt 0.5 ms, seed 7; the page shows dt 0.1 ms): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/evoked_l4/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/evoked_l4/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/evoked_l4/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/evoked_l4/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/evoked_l4/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug evoked_l4`.
 

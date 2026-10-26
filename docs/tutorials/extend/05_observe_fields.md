@@ -36,14 +36,14 @@ Rules:
 
 === "Interactive"
 
-    <iframe class="jx-frame" src="../../../_static/atlas/lfp.html" loading="lazy" title="Laminar LFP proxy read from the frozen trajectory"></iframe>
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/readme/lfp.html" loading="lazy" title="Laminar LFP proxy read from the frozen trajectory"></iframe>
 
-Laminar LFP proxy read from the frozen trajectory, in relative units (calibration is a separate, explicit step). [Open full page](../../_static/atlas/lfp.html).
+Laminar LFP proxy read from the frozen trajectory, in relative units (calibration is a separate, explicit step). [Open full page](https://hnxj.github.io/jaxfne/figures/readme/lfp.html).
 
 Next: [06 — Add state](06_add_state.md) — carry a per-neuron `H` container.
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column: [index](../../_static/atlas/index.html) · [schema](../../_static/atlas/schema.html) · [3D](../../_static/atlas/network_3d.html) · [raster](../../_static/atlas/raster.html) · [LFP](../../_static/atlas/lfp.html) · [H](../../_static/atlas/h_dynamics.html) · [HDP](../../_static/atlas/hdp.html) · [oscillatory](../../_static/atlas/oscillatory.html).
+Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)
 
 Regenerate: `python scripts/generate_readme_atlas.py --html-only`.

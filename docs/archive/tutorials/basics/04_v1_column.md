@@ -65,7 +65,7 @@ print("Emitted panels:", [p["panel"] for p in manifest["panels"]])
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from this page's circuit (1000 ms, dt 0.5 ms, seed 0; the page shows dt 0.1 ms): [index](../../../_static/atlas/v1_column/index.html) · [schema](../../../_static/atlas/v1_column/schema.html) · [3D](../../../_static/atlas/v1_column/network_3d.html) · [raster](../../../_static/atlas/v1_column/raster.html) · [LFP](../../../_static/atlas/v1_column/lfp.html) · [H](../../../_static/atlas/v1_column/h_dynamics.html) · [HDP](../../../_static/atlas/v1_column/hdp.html) · [oscillatory](../../../_static/atlas/v1_column/oscillatory.html).
+Dark-theme Plotly panels from this page's circuit (1000 ms, dt 0.5 ms, seed 0; the page shows dt 0.1 ms): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/v1_column/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/v1_column/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/v1_column/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/v1_column/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/v1_column/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug v1_column`.
 

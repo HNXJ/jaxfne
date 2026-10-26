@@ -1,0 +1,42 @@
+{
+  "checks": {
+    "istdp_alpha_paper_value": {
+      "error": 0.0,
+      "tolerance": 1.2e-07,
+      "pass": true,
+      "reference": "paper value alpha = 2*rho0*tau = 0.12 (Vogels et al. 2011)"
+    },
+    "istdp_pre_depresses": {
+      "error": 0.0,
+      "tolerance": 1e-12,
+      "pass": true,
+      "reference": "hand pairing update w += (0-alpha)*eta, A += 1 (Vogels et al. 2011)"
+    },
+    "istdp_post_potentiates": {
+      "error": 0.0,
+      "tolerance": 1e-12,
+      "pass": true,
+      "reference": "hand pairing update w += A_pre*eta with A_pre = 0.5 (Vogels et al. 2011)"
+    },
+    "hdp_barrier_ratio_100": {
+      "error": 0.00016176700592041016,
+      "tolerance": 0.05,
+      "pass": true,
+      "reference": "derived pure-barrier fixed point H* = 1 at barrier_d/barrier_c = 100 (seed 0)"
+    },
+    "hdp_barrier_ratio_1": {
+      "error": 7.181167602521299e-05,
+      "tolerance": 0.1,
+      "pass": true,
+      "reference": "derived pure-barrier fixed point H* = 5.05 at barrier_d/barrier_c = 1 (seed 0)"
+    },
+    "rbd_d2a_analytic_bracket": {
+      "error": 0.00015200243736912533,
+      "tolerance": 0.05,
+      "pass": true,
+      "reference": "scorer-side closed form H_K(t) = 1 + (H0-1) exp(-t/tau_K) (kernel seed 0)"
+    }
+  },
+  "pass": true,
+  "skipped": []
+}

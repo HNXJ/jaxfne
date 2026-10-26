@@ -113,3 +113,61 @@ def test_unknown_weight_mode_fails():
 def test_nonfinite_scalar_weight_fails():
     with pytest.raises(ValueError, match="finite"):
         _compile(float("inf"))
+
+
+def _big_neurons(n_pre=40, n_post=40):
+    return (
+        [{"neuron_id": i, "area": "V1", "layer": "L4", "cell_type": "E"}
+         for i in range(n_pre)]
+        + [{"neuron_id": n_pre + j, "area": "V1", "layer": "L4", "cell_type": "PV"}
+           for j in range(n_post)]
+    )
+
+
+def _compile_spread(weight, weight_std, seed=7, n_pre=40, n_post=40):
+    conn = [{"name": "E_PV", "source": {"cell_type": "E"},
+             "target": {"cell_type": "PV"}, "weight": weight,
+             "weight_std": weight_std, "mechanism": "ampa"}]
+    return jtfne.compile_connection_rules(_big_neurons(n_pre, n_post), conn,
+                                          MECHS, seed=seed)
+
+
+def test_weight_std_spread_per_edge_and_deterministic():
+    """G-WDIST (compiler): per-edge Gaussian weight draws, seed-deterministic."""
+    a = _compile_spread(0.5, 0.05, seed=7)
+    b = _compile_spread(0.5, 0.05, seed=7)
+    w = np.asarray(a.edge_weight, dtype=np.float64)
+    assert a.n_edges == 40 * 40, "spread changes no pairing"
+    assert np.array_equal(w, np.asarray(b.edge_weight, dtype=np.float64))
+    assert bool((w != w[0]).any()), "spread realizes per-edge weights"
+    assert abs(float(w.mean()) - 0.5) < 0.01, "empirical mean tracks the rule mean"
+    assert abs(float(w.std()) - 0.05) < 0.01, "empirical std tracks the rule std"
+
+
+def test_weight_std_folds_sign_at_zero():
+    """G-WDIST (compiler): sub-zero Gaussian draws fold to a fixed sign."""
+    r = _compile_spread(0.02, 0.05, seed=7)
+    w = np.asarray(r.edge_weight, dtype=np.float64)
+    assert bool((w >= 0.0).all()), "folded draws keep the rule sign"
+    assert bool((w != w[0]).any()), "spread realizes per-edge weights"
+
+
+def test_weight_std_zero_is_scalar():
+    r = _compile_spread(0.5, 0.0, seed=7)
+    assert np.allclose(np.asarray(r.edge_weight), 0.5)
+    assert r.connection_table[0].get("weight_std") == 0.0
+
+
+def test_weight_std_negative_refused():
+    with pytest.raises(ValueError, match="weight_std"):
+        _compile_spread(0.5, -0.01)
+
+
+def test_weight_std_nonfinite_refused():
+    with pytest.raises(ValueError, match="weight_std"):
+        _compile_spread(0.5, float("inf"))
+
+
+def test_weight_std_needs_scalar_weight():
+    with pytest.raises(ValueError, match="weight_std"):
+        _compile_spread({"mode": "scalar", "value": 0.5}, 0.05)

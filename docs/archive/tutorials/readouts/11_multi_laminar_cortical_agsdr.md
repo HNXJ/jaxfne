@@ -123,7 +123,7 @@ The lesioned population stays silenced for the run; per-area firing rates are co
 
 ## Interactive atlas (dark)
 
-This page's workshop flow runs through `tutorial_utils` (dict-based trials, rather than a `Model`), so the panels below come from the closest `Model` equivalent — `suite2_v1_v4_config` (80 neurons/area, 1000 ms, dt 0.5 ms, seed 42): [index](../../../_static/atlas/v1v4_80/index.html) · [schema](../../../_static/atlas/v1v4_80/schema.html) · [3D](../../../_static/atlas/v1v4_80/network_3d.html) · [raster](../../../_static/atlas/v1v4_80/raster.html) · [LFP](../../../_static/atlas/v1v4_80/lfp.html) · [H](../../../_static/atlas/v1v4_80/h_dynamics.html) · [HDP](../../../_static/atlas/v1v4_80/hdp.html) · [oscillatory](../../../_static/atlas/v1v4_80/oscillatory.html).
+This page's workshop flow runs through `tutorial_utils` (dict-based trials, rather than a `Model`), so the panels below come from the closest `Model` equivalent — `suite2_v1_v4_config` (80 neurons/area, 1000 ms, dt 0.5 ms, seed 42): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/v1v4_80/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/v1v4_80/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/v1v4_80/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/v1v4_80/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/v1v4_80/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug v1v4_80`.
 

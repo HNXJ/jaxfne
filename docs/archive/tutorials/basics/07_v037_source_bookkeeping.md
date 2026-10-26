@@ -37,6 +37,7 @@ Below is a **standalone Plotly HTML** laminar column with:
   src="../../../../assets/interactive/v037_source_column_3d.html"
   width="100%"
   height="800"
+  title="Source column 3-D"
   style="border: 1px solid #ccc; margin: 20px 0;">
   <p>
     If the visualization doesn't load, you can open it directly:
@@ -332,6 +333,6 @@ Feedback? Open an issue: [jaxfne/issues](https://github.com/HNXJ/jaxfne/issues)
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from this page's 48-neuron column (1000 ms, dt 0.5 ms, seed 42; the page shows dt 0.1 ms), complementing the 3D view above: [index](../../../_static/atlas/source_column_48/index.html) · [schema](../../../_static/atlas/source_column_48/schema.html) · [3D](../../../_static/atlas/source_column_48/network_3d.html) · [raster](../../../_static/atlas/source_column_48/raster.html) · [LFP](../../../_static/atlas/source_column_48/lfp.html) · [H](../../../_static/atlas/source_column_48/h_dynamics.html) · [HDP](../../../_static/atlas/source_column_48/hdp.html) · [oscillatory](../../../_static/atlas/source_column_48/oscillatory.html).
+Dark-theme Plotly panels from this page's 48-neuron column (1000 ms, dt 0.5 ms, seed 42; the page shows dt 0.1 ms), complementing the 3D view above: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/source_column_48/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/source_column_48/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/source_column_48/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/source_column_48/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/source_column_48/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug source_column_48`.

@@ -5,84 +5,159 @@ are deleted (history: git; the pre-2026-09-27 stack and the sealed 0.5.0–0.5.5
 `artifacts/archive/0.5.x/`). Rules: `artifacts/AGENTS.md`. Facts: `artifacts/fact_stack.md` (Hamm
 edits). Open issues: `artifacts/assurance/issue_log/ISSUE_LOG.md`. Other editors change this file: re-read
 first, amend in place.
+After 0.5.8, rows serve G-0 (`artifacts/programme/design/plans/arxiv_paper_plan.md`): each names its F, S or C id.
+G-0 findings from lanes L1-L3 (2026-10-25):
+- [A] C4, F2: localized connectivity draws depend on absolute bucket position (`connectivity._candidate_pairs_localized`); a
+  translation changes 27 of 50 edges under one seed (strict xfail in `tests/test_geometry_invariants.py`). Bucket
+  relative to the population and order candidates by id, then drop the xfail.
+- [A] C7, S7: `AugmentationRecord` keeps seed and jitter only inside `spec_digest` (strict xfail in
+  `tests/test_augment_determinism.py`); expose them as plain fields.
+- [A] C3, S1: `docs/theory/doctrine/definition_map.md` lists 5 definitions with no symbol (D17, D26, D28, D34, D35)
+  and 9 realized only by private names; give each a public symbol and test, or record why not.
+- [H] C6, S6: benchmark protocol choices (`artifacts/programme/benchmarks/README.md`); brian2 and NEST not installed.
 
 ## 1. Decisions waiting on Hamm (they unblock items below)
 
 Ruled 2026-10-20: release plan D1 (a), archive the unreferenced and ungated scripts with an index
-(worker running); D3 approved. Open, recommendation first: D2 (Destexhe and GSDR preregs, after
+(15 left); D3 approved. Open, recommendation first: D2 (Destexhe and GSDR preregs, after
 their pilots); a state clamp on the plain Izhikevich path (T-19, changes outputs); extending the same-layer zeroing rule
 to I/Inl/Ing (T-18 remainder, a model change); the manuscript tree and other archive moves (T-17).
 Earlier rulings sit in the rows they
 govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATIONS.md` (Izhikevich
 2003 and CAMINOS P6 move to 0.5.7); finished rows are in git history.
 
-- T-3 [A] PCL Fig. 3 stays in progress (Hamm 2026-10-13: it must replicate). v4 FAIL stands
-  (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). v5 signed by Hamm 2026-10-13 on `pcl-port`
-  89e45191 (`prereg/P3_fig3_v5.md`; signature recorded in 640cb97c): T2 runs the authors'
-  `plot_fqcy` procedure on the port and scores it per K/k point against Fig. 3c,d digitized
-  (`reference/fig3_freq_digitized.json`, ε 0.04) with a shape guard; A1 even phases; T4 drops
-  the sign requirement, and its outcome is known from v4. v5 scored 2026-10-13 (`pcl-port`
-  8f75acd0, `prereg/P3_fig3_v5_result.md`): FAIL on T2. Simple 10/16 points, SSE 1.50 × flat
-  (higher off-peak response at K/k 0.6–0.8 and 1.3); complex 12/15, SSE 0.52 × flat (guard 0.5;
-  passes with all 10 phases, not scored). S6/S7 diagnostic (unscored, `prereg/
-  P3_fig3_diagnostic.md`): simple fails under both; complex passes with the 62.5 ms window
-  (0.48); measured periods follow (20 − i)/2 px, supporting A2. Hamm 2026-10-13: investigate port
-  fidelity, port-side only (never run the authors' code). Fidelity audit (read-only): (1) the
-  C++ runs cSTDP3 without local inhibition ("static" is not "local", SpikingNetwork.cpp:351);
-  the port reads "static" as local (declared alias, untested); (2) the C++ keeps STDP on and
-  weights across files during tuning, the port freezes and reloads; (3) the authors' writer
-  reads neuron files 0–63, which by index is column (0,0), against the port's (4,4)
-  (unresolved: (0,0) lies outside the stimulated band). In flight: an unscored tuning run with
-  local inhibition off (`F:\warehouse\pcl\diag_runs\`). Then P6 (B1). Closes when: a signed prereg reproduces Fig. 3, or Hamm
-  closes it, and the P6 attempt is recorded.
+- T-3 [A] PCL REOPENED (Hamm 2026-10-23: replication improvement authorized). The signed v5
+  T2 FAIL stays immutable historical evidence; its status as the final assessment is withdrawn
+  and a NEW PCL replication attempt opens, in stages:
+  PCL-R1 audit implementation fidelity (resolve the three fidelity-audit findings: local
+  inhibition reading, STDP persistence across files, the authors' selected neuron indices);
+  PCL-R2 reproduce the reference implementation on identical inputs (behavior and estimators);
+  PCL-R3 diagnose residual differences (attribute to implementation, parameters, stochastic
+  variation, or model assumptions); PCL-R4 run the corrected replication (freeze the NEW
+  protocol before confirmatory execution — B8); PCL-R5 score: exact PASS, approximate
+  agreement, or FAIL on predeclared criteria.
+  Approximate reproduction: per observable, normalized discrepancy
+  e_j = d_j(yhat_j, y_ref_j)/s_j with d_j a declared distance and s_j a preregistered
+  normalization scale; TWO independent outcomes - exact reproduction (the original criteria)
+  and approximate reproduction (separately declared scientific tolerances including
+  uncertainty and stochastic variability); approximate agreement is never labeled an exact
+  pass; if neither succeeds, retain the negative result and quantify the remaining
+  discrepancy. Constraints: fidelity corrections before parameter tuning; no post-hoc
+  relaxation of the original thresholds; B2c core integration (4a07072e) is a prerequisite,
+  not evidence of paper reproduction; the dashboard shows the historical failure alongside
+  the latest independently scored outcome. Priority: after B1 stage 2, before lower-priority
+  work. (Historical state below.) R1 CLOSED - FIDELITY AUDIT (2026-10-24; receipt
+  `artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md`, hash-pinned; NOT PCL REPRODUCED;
+  the signed v5 T2 FAIL immutable). Six findings, attributions and design dependencies: F1 local
+  inhibition - implementation (reference-faithful inhibition); F2 STDP persistence - implementation
+  (explicit training-file continuation); F3 serialization - implementation (canonical serialization);
+  F4 scored state is not weights-only - implementation (complete continuation state: Y =
+  F(W0, C0, I; theta), matching W0 without C0 does not preserve Y); F5 the core scan cannot replay
+  the real file - implementation (replay capability and adaptation semantics); F6 column selection -
+  observation/selection fidelity, same-run DeltaY_selection = 422 with (0,0) entirely silent
+  (reference-faithful observation selection; correcting selection alone is inferred, not
+  established, to resolve T2). Next authorized stage: the READ-ONLY PCL-R2/R4 design study
+  (two alternatives, the oracle state-variable mapping to X/H/W/B/K, a continuation-equivalence
+  test, generalization beyond PCL; stop before runtime changes). Historical state (records in
+  `papers/pcl/prereg/` and `LEDGER.md`): v4 FAIL stands (`pcl-port` 5640ce18: T1, T3 pass; T2, T4
+  fail). v5 signed by Hamm 2026-10-13 (`prereg/P3_fig3_v5.md`, 89e45191); scored 2026-10-13 (8f75acd0,
+  `prereg/P3_fig3_v5_result.md`): FAIL on T2 (simple 10/16 points, SSE 1.50 × flat; complex 12/15,
+  SSE 0.52 × flat, guard 0.5). The S6/S7 diagnostic is unscored. The three fidelity findings of
+  2026-10-13 became R1's F1, F2 and F6. Then P6 (B1). Closes when: a signed prereg reproduces Fig. 3,
+  or Hamm closes it, and the P6 attempt is recorded.
 
-## 2. Next release: 0.5.7 (truthful core)
+## 2. Next release: 0.5.8 (core-compliant replications)
 
-Plan: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md` (Hamm 2026-10-19); exit gate in its
-section 6. Packages A1-A7 are on dev or in the push now gating; what is left, fastest first:
+0.5.7 published 2026-10-21 (tag v0.5.7 on main 03a86014, GitHub Release, PyPI; receipt
+`artifacts/release/v0_5_7_release_receipt.json`). Plan: `artifacts/etudes/meta/release_plan_0.5.7-0.5.10.md`.
 
-| Order | Item | ETA | Who |
-|---|---|---|---|
-| 4 | Brunel S2 (5 s window) and S3 (dt 0.05 ms) sensitivity, seeds 4-5, unscored: running detached on the WSL CPU since 2026-10-20 (`brunel_s23_chain.sh`, out `C:/workspace/jaxfne_receipts/brunel2000_p3v4/unscored_S2`, `unscored_S3`); RESULT_P3 sensitivity section | about 5 h compute | dispatcher reads |
-| 5 | Head-forward core checks: the two line-source LFP agreements of `tests/test_head_forward.py`; tolerances moved out of the check functions so a test can tighten them and see a fail | 1 h | Muse |
-| 6 | A9: assemble the fragments, `release_body.py --tag v0.5.7` claim check (closes T-10), rc gate, second review, receipt under `artifacts/release/` | 2-3 h | dispatcher, worker gate runs |
-| 7 | Tag, main, PyPI and RTD `stable` | after 6 | `[H]` go |
+- 0.5.8 candidate (2026-10-26): version 0.5.8, changelog section (21 bullets), canonical atlas at
+  0.5.8, P-037 closed, O-41 closed (RTD latest and stable at 03a86014 serve all 25 étude files).
+  Left [A]: broad gate 0 failed, push dev, CI green on the SHA, rc gate, second review, receipt
+  `artifacts/release/v0_5_8_release_receipt.json`. Then [H]: tag, main, GitHub Release, PyPI.
 
-Moved to 0.5.8 with reason (plan section 1: missed work never blocks its release): Destexhe and
-GSDR B8 pilots and their preregs (A8 part; days of runs, signature `[H]`); Brunel S1 (needs the
-fixed-in-degree option, B5).
+- Jitter reader (Hamm 2026-10-22): protocol (a) PASS on all four runs (A1/A2, seeds 0,1; w_pat -> 2.0
+  bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak
+  (0.33-0.67). Readout follow-up (w_max, larger frozen sets) is Hamm's call; lane paused until then.
 
-Then 0.5.8 (core-compliant replications), in order: B4 checklist rules in `check_replications.py`;
-B1 estimators into `jaxfne.analysis`; B5 lane gaps (Brunel S1 option, Vogels G-SC, Potjans G-MULT
-to G-DDIST); B3 batching; B2 routes through `construct`; Destexhe and GSDR pilots, then preregs (the GSDR fit
-with MCDP on via `mcdp_hdp_step`, Hamm 2026-10-20); Jansen and Rit 1995 opens the EEG/MEG lane
-(Hamm 2026-10-20; P0 in REPLICATIONS): a neural-mass emitter in the core, then P1.
+- Brunel S1 (finite size, N=6250, in-degrees fixed) needs the fixed-in-degree lane option (release plan B5);
+  S2 and S3 are recorded in `RESULT_P3.md` (2026-10-25).
+- Dashboard three-verdict distinction (Hamm 2026-10-23 P0 feedback, bundle
+  `C:/Users/nejath/Downloads/JAXFNE_SOURCES_AND_DASHBOARD_REVIEW_2026-10-23/`): LANDED 06a44180 -
+  verdict_summary (paper/library/methods) derived from records, core-method rows out of the paper
+  denominators, data_revision + stale warning, failed criteria ride the row. P1 (estimator/units/
+  seeds/prereg exposure) and P2 (commands/runtime/memory) queued behind the P0 acceptance.
+- Kernel LFP lane `cl-klfp` [A]: f57aae0f landed on dev as 85199ade (0.5.8; the plasticity scorer's
+  iSTDP checks read per-edge traces). 6eb3c6b8, 44cd0111, ff45364b (hybrid kernel LFP) go to 0.5.10.
+  Then the validation backbone continues (iSTDP out-degree check in plasticity, kernel LFP checks in fields).
+- Dashboard/docs adoption from jnwb (Hamm 2026-10-24, all four: [A], not 0.5.8-blocking, moves to 0.5.9
+  if unfinished): (a) docs stills get generated `.dark.png` twins (`#only-light`/`#only-dark`); (b) JSON
+  Schema with 40-hex SHA patterns for `replications.json`, validated in `build_dashboard_data.py
+  --check`; (c) sha256 of each committed receipt on its evidence item; (d) a test that loads
+  `dashboard/index.html` + `app.js` in a real page. Joint rulings: both dashboards use the jaxfne verdict
+  set and publish on every dev push; style files stay per repo, aligned by convention. Tree budget
+  (Hamm 2026-10-24: the repo stays well below 100 MB, read as 100,000,000 bytes, so a budget
+  amendment for the twins is fine): record the measured delta in the amendment file.
+- Interactive figure theme (Hamm ruled for jnwb 2026-10-24: one HTML per figure that follows the site
+  theme, no light/dark twins): jaxfne's interactive panels are one HTML each but built with a fixed
+  `plotly_dark` template (`jaxfne/vis/atlas_suite.py`, `network_inspect.py`, `tutorial_panels.py`,
+  `scripts/generate_docs_visuals.py`, `generate_doc_page_atlases.py`). [A] make them follow the
+  reader's theme (iframe reads `prefers-color-scheme` / the parent's `data-theme`); closes when a
+  panel renders light and dark from the same file. Not 0.5.8-blocking.
+- Docs figures leftovers (0.5.9; docs build hygiene, outside the 0.5.8 engineering scope): (1) stop the
+  `docs/_static` HTML builds and delete those tracked files (frees tree budget); (2) the four allowlisted
+  iframes in `build_docs_assets.py` get a figure-site build or a still.
+
+In order (Hamm 2026-10-22: work until the 0.5.8 todos and open issues are empty; open issues become
+todos once their close is decided; checkpoint when both are empty; Muse Spark 1.3 code packets in
+clones, verified before integration):
+1. [A] B4 PARTIAL (R4 8136beea, P4 d5b07498, caminos + brunel E1 33e66089; findings 38 -> 31, all
+   known, 0 unlisted; B1, B2, B3, B5 CLOSED 2026-10-22/24, evidence in git and the handoff).
+   Remaining, each removing its known finding: izhikevich2003 E1 is BLOCKED on a construct path
+   for the P3b arm's heterogeneous per-cell parameters (dt=0.5 + noise, default order; Hamm:
+   a core capability or an exception on the finding); the S2 set (4 oracle-import findings) is
+   protocol-gated: pcl closes at PCL-R4's new prereg, caminos by re-running its scored P3 sweeps
+   on the verified core route (Hamm's call).
+   Constraints kept from the closed items: B3 numerical contract (spikes/RNG exact; V_m
+   atol 1e-4 mV; bitwise V_m tests retained as platform diagnostics); the signed PCL T2 failure,
+   CAMINOS mixed verdict and Brunel conditional verdict are never promoted by integration
+   success; the dashboard's three-verdict separation stays invariant.
+7. [A] B8 pilots then preregs: Destexhe and GSDR (the GSDR fit with MCDP on via `mcdp_hdp_step`);
+   then each lane's P3 prereg for signature; Jansen-Rit 1995 opens the EEG/MEG lane (a neural-mass
+   emitter in the core, then P1).
+8. [A] B6 split closed lane folders by kind (tree degree) once their lanes close.
+Open-stack rows (each closes its `O-n`; the open stack empties when these close; audits 2026-10-25):
+- T-O61 cosmetic [A] (wording approved by Hamm 2026-10-25): tier labels differ, REPLICATIONS against dashboard.
+- [A] Check whether the manifests hash `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log`; if none does, record it.
+- [A] `runtime_report()` (`jaxfne/_runtime_config.py`) records `jit: true` for "auto" even when `resolve_jit` runs eager
+  (n_steps x n_units <= 50,000; L3 benchmark 2026-10-25); report the resolved value (0.5.9, F4).
+- T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
+- T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
+- T-O68 [H] local copies and the layout rule (see O-68): each held copy is deleted or sits at
+  `E:/repos/<name>` or `E:/repos/_wt/<repo>/<task>`.
+- Moved to 0.5.9 (scope freeze 2026-10-25; evidence rules unchanged, the PCL T2 failure and the CAMINOS mixed verdict stand): CAMINOS S2 re-run, PCL-R2 to R5 and the PCL-R4 prereg, the Destexhe, GSDR, Potjans and Vogels preregs; izhikevich2003 E1 closure (per-edge uniform weights and
+  per-cell Gaussian noise on the construct path, then a P6-style library-path prereg Hamm signs; Hamm 2026-10-25);
+  the kernel LFP commits of `cl-klfp` (0.5.10). In 0.5.8: per-cell `cell_params`, the Vogels per-synapse fix.
+- [H] Signatures: the 0.5.8 preregs from item 7 (Izhikevich v7 and v8.2 and CAMINOS P6 v2 are signed, 2026-10-13).
 Blocked: T-11 (jnwb), T-16 and T-17 `[H]`, deferred list (section 5).
 
 ## 2a. Standing from 0.5.6 (Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
 - R2 restated (Hamm 2026-10-14): bytes -10% against the 0.5.5 tag (met: 86.8 MB
   tracked at 1bfdaa84 against 126.0 MB at the tag) plus files at the recorded budget with
-  reasons on record (2438 tracked, `budget_files` 2438 in
-  `scripts/tree_size_allowlist.json`, 2026-10-18; each raise from 2269, its reason and
-  authorization are in this line's git history and c4056347; 2372 -> 2400 for the Destexhe lane
-  and the O-8 test, 2026-10-16; 2400 -> 2428 on 2026-10-17 for the GSDR lane, its diagnostics,
-  the regime tests and the HH tests, each raise in its commit: fdd797ce, d0c1faae, 405378e8,
-  c6f052af, bb55e631, 5615fb98, 844900c6; 2428 -> 2436 on 2026-10-18 for the 10 changelog
-  fragments since v0.5.6, which the assembler deletes at release; 2436 -> 2438 on 2026-10-18
-  for the GSDR regime diagnostic at the reference g* and its test). The
-  regenerable docs assets are untracked already: the 9 registry `copies` dests under
-  `docs/assets/etudes/` and all atlas/etude HTML are build products of
-  `scripts/build_docs_assets.py --build` (the Read the Docs `pre_build` path) and gitignored.
-  No further class qualifies: the 9 `docs/_static/gallery/*.png` (embedded by `docs/start/gallery.md`,
-  rewritten only as an index by `generate_gallery.py --write`, never rasterized by the build
-  path), the 12 `docs/_static/tutorial_figures/*.png` (no caller in the build path), and every
-  other tracked `docs/assets/` file (its generator, if one exists, is not in the build path;
-  `--html-only` skips PNG rasterization) would leave broken embeds if untracked, so all stay
-  tracked.
+  reasons on record (`budget_files` and `budget_bytes` in `scripts/tree_size_allowlist.json`; each
+  raise is in `artifacts/release/budget_amendment_2026-10-23.md` or its commit). The regenerable
+  docs assets (the 9 registry `copies` dests, atlas and étude HTML) are build products of
+  `scripts/build_docs_assets.py --build` and gitignored. No further class qualifies: the gallery
+  and tutorial-figure PNGs and every other tracked `docs/assets/` file are outside the build path,
+  so untracking them would break embeds.
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
   push dev. Standing item. Closes when: `python scripts/build_dashboard_data.py --check` passes
   on each push.
+- T-8b [A] After each dev push, refresh the lane dashboard artifact (skill `jaxfne-dashboard`).
+- 0.5.10 candidate: `coherence_radius_um` readout in `jaxfne.fields.kernel_lfp` (currents sum in
+  phase within R_c, random phase between patches), with the two limit tests (R_c = sheet radius
+  gives the coherent sheet; R_c of one cell gives incoherent summation). After the kernel LFP lane.
 
 ## 3. 0.5.6–0.5.10 programme
 
@@ -140,10 +215,8 @@ run on WSL2 CUDA.
   - PCL: Fig. 3 rescored on the core (full-network mapping of feed, complex pooling and
     lateral/top-down paths onto the LIF tensor route; the numba port stays the event-exact
     oracle); the next core protocol declares T4 up front.
-- T-10 [A] G-1 (meet 204dfdaa): port jnwb's `changelog.d`, `assemble_changelog.py`,
-  `release_body.py` and claim check; release body as tables. Closes when: `release_body.py --tag <next>` passes.
-  The port itself landed (924f2423, 78d293d9); only the closing check waits for a tag.
-  Then the errors page (the docs newline check holds: `docs/reference/changelog.md` and
+- T-10b [A] jnwb cross-learning follow-ups (T-10 closed 2026-10-21: `release_body.py --tag
+  v0.5.7 --check` passed and built the v0.5.7 release body): the errors page (the docs newline check holds: `docs/reference/changelog.md` and
   `docs/_static/atlas/manifest.json` are all CRLF at HEAD, 745 and 136 lines, 2026-10-20), a
   proxy-claim wording gate, AST-hash freezing of validated kernels
   (`artifacts/control/harness/jnwb_cross_learning.md`).
@@ -259,8 +332,8 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
     no folder.
   - Tree caps: `papers/pcl/`, `caminos/`, `izhikevich2003/` over 7 (section 5).
   Gate: `scripts/check_replications.py --check` (families replication_audit, etude_no_resim, run
-  by the dev gate too) against `scripts/replication_known_violations.json` (25 findings,
-  2026-10-18); a fix removes its entry. Closes when: every paper passes the checker without a listed violation, or each listed one
+  by the dev gate too) against `scripts/replication_known_violations.json` (31 findings,
+  2026-10-25); a fix removes its entry. Closes when: every paper passes the checker without a listed violation, or each listed one
   carries Hamm's exception.
 - CAMINOS lag (6.47 against 8.5 ms): Hamm attributes the gap to the paper's estimator rather than
   the model; class stays verified, the lag stays a recorded finding, no fit.
@@ -295,8 +368,6 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   `tests/test_artifacts_tree_degree.py` while their lanes are open: `etudes/papers/caminos/`,
   `etudes/papers/izhikevich2003/`. Trigger: a lane closes; then split by kind or give the
   exception a path-addressing reason.
-- (from the open stack, 2026-10-18) Scratch clones and finished Muse sessions in the session
-  scratchpad. Trigger: their lanes land; delete then (check alternates dependents first).
 1. AT-10-R6: RSS growth (+80–98 MB over 4 chunks of the 20-area run): resolve against the XLA cache
    before any run over 100 s (0.5.8 laminar models on GPU). WSL2 CUDA 20-area receipts
    (`scratch/wsl_cuda_2026-10-09/`, gitignored): one unexplained failed GPU run. Closes when:
@@ -305,7 +376,7 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 3. Architecture split (`emitters/`, `tfne.py`; `artifacts/audit/reviews/deep_review_89_2026-10-04.md` §5)
    only as a measured bottleneck.
 4. C5–C7 numerical deferrals: need a signed-zero/NaN exactness contract.
-5. UNTESTED-exact refusal tail; placeholder notebooks and artifact-gated skips; post-0.4.14 aliases.
+5. UNTESTED-exact refusal tail; artifact-gated skips (O-67); post-0.4.14 aliases.
 6. S27 population definition family, when CTX-01 cannot express one.
 7. Agent-native step 10: MCP or another transport.
 9. From 0.5.4: item 1b (S20.1 ordering, needs Hamm) and item 0 (`X[k]` frontier override).
@@ -314,11 +385,11 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 11. Field Approximation Atlas ladder (deep review 89 §7).
 12. Rule proposal (deep review 89 §12): new mechanism ⇒ reference model, discriminator and
     reduction test; adoption is Hamm's.
-13. 0.5.7 (Hamm 2026-10-13): Izhikevich 2003 P3 prereg draft v7 (calibration passed at θ = 4,
-    `artifacts/etudes/papers/izhikevich2003/calibration/calibration_v7_15f36087.json`) for signature,
-    then S1 reference arm `net_reference.py` and the scored runs. CAMINOS P6 prereg (Fig. 1
-    through `emitter(family="adex")`, `connections(sampling="bernoulli")`,
-    `Simulation(poisson_drive=)`; F1–F6 landed) for signature and its equivalence test.
+13. Stored-only fields left after the 2026-10-25 audit (cosmetic): `LaminarColumnConfig.cell_colors`,
+    `cell_signs`, `cy_m` (tutorial scaffold), `HDPRuleContext.exc_mask` (context offered to rules; built-in
+    rules do not read it), `SanityDeltaConfig` validation by `assert` (stripped under `python -O`; the
+    existing test expects `AssertionError`). The `physical_amplitude_calibrated=True` overwrite is the
+    truth-gate clamp, tested as intended. Trigger: a caller needs one of them.
 
 Tracks (standing directions): P performance (optimize profiled components only) · T testing
 (cheapest gate per defect class) · S skills · I integration (one implementation, many entrances) ·

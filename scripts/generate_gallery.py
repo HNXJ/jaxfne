@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 STATIC = ROOT / "docs" / "_static"
@@ -27,6 +28,11 @@ LISTED_STATES = ("validated", "canonical")
 
 
 REGISTRY = STATIC / "atlas_registry.json"
+
+# Public figure site: every still and Interactive-tab iframe points here
+# (published by the Dashboard workflow's figures job from --site output).
+FIGURES_URL = "https://hnxj.github.io/jaxfne/figures/"
+SHA_RE = re.compile(r"\b[0-9a-f]{40}\b")
 
 
 def _unbuilt(rel: str, panels: list[dict], registry: dict) -> list[str]:
@@ -82,6 +88,29 @@ def collect() -> tuple[list[dict], list[str]]:
     return entries, problems
 
 
+def _figure_slug(rel: str) -> str:
+    """Registry atlas dir -> figure-site slug (mirrors build_docs_assets)."""
+    if rel == "atlas":
+        return "readme"
+    if rel == "atlas_three_area":
+        return "three_area"
+    assert rel.startswith("atlas/"), f"gallery entry outside atlas/: {rel}"
+    return rel[len("atlas/"):]
+
+
+def _representative_file(panels: list[dict]) -> str:
+    """One panel standing for the whole atlas: raster.html, else the first
+    sorted raster*, else the first sorted panel file."""
+    avail = [p["file"] for p in panels if str(p.get("status", "")).upper() == "AVAILABLE"]
+    names = avail or [p["file"] for p in panels]
+    if "raster.html" in names:
+        return "raster.html"
+    raster = sorted(n for n in names if n.startswith("raster"))
+    if raster:
+        return raster[0]
+    return sorted(names)[0]
+
+
 def render(entries: list[dict]) -> str:
     lines = [START, "",
              f"Evidence index of validated atlases ({len(entries)} models). "
@@ -89,23 +118,27 @@ def render(entries: list[dict]) -> str:
              "run `python scripts/generate_gallery.py --write`.", ""]
     for e in entries:
         slug, m, state = e["slug"], e["manifest"], e["state"]
-        base = e["base"]
-        lines.append(f"### `{slug}` — {m.get('title', slug)}")
+        fslug = _figure_slug(slug)
+        stem = _representative_file(m["panels"])[:-len(".html")]
+        title = str(m.get("title", slug))
+        lines.append(f"### `{slug}` — {title}")
         lines.append("")
         lines.append(f"State `{state}` · N={m.get('n_neurons')} · "
                      f"edges={m.get('n_edges')} · steps={m.get('n_steps')} · "
                      f"config `{str(m.get('config_hash'))[:12]}` · "
                      f"jaxfne {m.get('jaxfne_version')}")
         lines.append("")
-        links = " · ".join(
-            f"[{p['panel']}]({base}{p['file']})" for p in m["panels"])
-        # Links are relative to docs/start/gallery.md; raw HTML is served unrewritten from the
-        # page URL /start/gallery/, one level deeper.
-        lines.append(
-            f'<iframe class="jx-frame" src="../{base}index.html" loading="lazy" '
-            f'title="{m.get("title", "atlas")} dashboard"></iframe>')
+        # Still / Interactive tab pair, the docs figure form (Hamm 2026-10-21).
+        lines.append('=== "Still"')
         lines.append("")
-        lines.append(f"[Open full page]({base}index.html) · {links}")
+        lines.append(f"    ![{title}]({FIGURES_URL}{fslug}/{stem}.png)")
+        lines.append("")
+        lines.append('=== "Interactive"')
+        lines.append("")
+        lines.append(f'    <iframe class="jx-frame" src="{FIGURES_URL}{fslug}/{stem}.html" '
+                     f'loading="lazy" title="{title}"></iframe>')
+        lines.append("")
+        lines.append(f"*{title}: spike raster.*")
         lines.append("")
     lines.append(END)
     return "\n".join(lines) + "\n"
@@ -132,18 +165,22 @@ def main(argv=None) -> int:
         return 1
     block = render(entries)
     if args.write:
-        text = GALLERY.read_text(encoding="utf-8")
+        raw = GALLERY.read_bytes()
+        text = raw.decode("utf-8").replace("\r\n", "\n")
         if START not in text or END not in text:
             raise SystemExit("gallery.md lacks ATLAS-INDEX markers")
         before = text.split(START)[0]
         after = text.split(END)[1]
         if after.startswith("\n"):  # block ends with END's line break; keep one so writes are idempotent
             after = after[1:]
-        GALLERY.write_text(before + block + after, encoding="utf-8")
+        newline = "\r\n" if b"\r\n" in raw else "\n"
+        GALLERY.write_bytes((before + block + after).replace("\n", newline).encode("utf-8"))
         print(f"gallery rewritten: {len(entries)} atlases")
         return 0
-    expected = block.split(START)[1].split(END)[0]  # parsed as current_block() parses the file
-    if current_block() != expected:
+    # Never compare SHA values: the recorded git HEAD moves with unrelated
+    # commits while the block stays current.
+    expected = SHA_RE.sub("0" * 40, block.split(START)[1].split(END)[0])
+    if SHA_RE.sub("0" * 40, current_block() or "") != expected:
         print("gallery.md index is stale against the manifests; run "
               "`python scripts/generate_gallery.py --write`")
         return 1

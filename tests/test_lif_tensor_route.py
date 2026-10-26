@@ -11,7 +11,12 @@ rule only, and every unconsumed input is refused naming itself.
 import numpy as np
 import pytest
 
+import jax
+import jax.numpy as jnp
+import jaxlib
+
 import jaxfne as jtfne
+from jaxfne._model_simulate import simulate_lif_seed_batch
 from jaxfne import neuronal_tensor as nt
 from jaxfne.emitters_lif import LIFNetworkParams
 
@@ -658,3 +663,298 @@ def test_lif_event_scan_refuses_unmapped_inputs_by_name():
             paradigm=drive)
     with pytest.raises((ValueError, TypeError), match="paradigm"):
         _lif_sim(model=_lif_model(), paradigm=drive)
+
+
+# T-32c seed batching: one compiled call over N seeds, each member keyed
+# PRNGKey(seed_i), bit-equal to N serial runs.
+
+
+def _lif_seed_batch_sim(**kwargs):
+    base = dict(
+        duration_ms=DUR_MS, dt_ms=DT_MS,
+        poisson_drive={"rate_hz": 50.0, "amplitude": 100.0},
+        runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list"))
+    base.update(kwargs)
+    return jtfne.Simulation(**base)
+
+
+# T-32c numerical contract (Hamm ruling 2026-10-23, option a): spikes bitwise
+# exact; V_m allclose rtol=0, atol=1e-4 mV (provisional, ~2x the largest WSL
+# discrepancy observed; do NOT raise on a future failure). H_final/w_final use
+# the same atol: they share the float32 codegen origin as V_m and were exact
+# where observed. Bitwise tests stay as platform diagnostics (bitwise_diagnostic).
+V_RTOL = 0.0
+V_ATOL_MV = 1e-4
+HW_ATOL = 1e-4
+EVIDENCE = {
+    "jax": jax.__version__,
+    "jaxlib": jaxlib.__version__,
+    "backend": jax.default_backend(),
+    "device": str(jax.devices()[0]),
+    "dtype": "float32",
+    "x64": bool(jax.config.read("jax_enable_x64")),
+}
+
+
+@pytest.mark.bitwise_diagnostic
+@pytest.mark.xfail(strict=False, reason="bitwise V_m is platform/run-dependent; diagnostic evidence only")
+def test_lif_seed_batch_matches_serial_per_member():
+    """DIAGNOSTIC (bitwise_diagnostic): bitwise V_m holds on Windows CPU and some
+    WSL runs; other WSL runs show ulp-scale V_m differences (max ~5e-5 mV).
+    Spike assertions are contract; V_m bitwise here is evidence, not gate."""
+    model = _spiking_lif_model()
+    seeds = [11, 12, 13]
+    out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), seeds)
+    assert [int(s) for s in out["metadata"]["seeds"]] == seeds
+    for k, s in enumerate(seeds):
+        ref = model.simulate(_lif_seed_batch_sim(seed=s))
+        assert np.array_equal(np.asarray(out["spikes"][k]), np.asarray(ref.spikes))
+        assert np.array_equal(np.asarray(out["V_m"][k]), np.asarray(ref.V_m))
+
+
+def test_lif_seed_batch_members_are_independent():
+    model = _spiking_lif_model()
+    out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), [11, 12, 13])
+    spk = np.asarray(out["spikes"])
+    assert int(spk.sum()) > 0, "fixture must spike"
+    assert not (np.array_equal(spk[0], spk[1]) and np.array_equal(spk[1], spk[2]))
+    same = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), [7, 7])
+    assert np.array_equal(np.asarray(same["spikes"][0]), np.asarray(same["spikes"][1]))
+
+
+@pytest.mark.bitwise_diagnostic
+@pytest.mark.xfail(strict=False, reason="bitwise V_m is platform/run-dependent; diagnostic evidence only")
+def test_lif_seed_batch_matches_serial_under_hdp_rule():
+    """DIAGNOSTIC (bitwise_diagnostic): same platform note as the serial-parity
+    diagnostic above, under the pcl_stdp rule."""
+    model = _spiking_lif_model()
+    n_edges = int(_edge_arrays(model)[0].shape[0])
+    runtime = _lif_hdp_runtime(_pcl_rule_params(n_edges, eta=0.5))
+    seeds = [11, 12, 13]
+    out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(runtime=runtime), seeds)
+    for k, s in enumerate(seeds):
+        ref = model.simulate(_lif_seed_batch_sim(seed=s, runtime=runtime))
+        assert np.array_equal(np.asarray(out["spikes"][k]), np.asarray(ref.spikes))
+        assert np.array_equal(np.asarray(out["V_m"][k]), np.asarray(ref.V_m))
+
+
+def test_lif_seed_batch_states_the_continuation_refusal():
+    assert "continuation" in simulate_lif_seed_batch.__doc__
+
+
+def test_lif_seed_batch_is_permutation_and_batch_size_invariant():
+    model = _spiking_lif_model()
+    fwd = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), [11, 12, 13])
+    rev = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), [13, 11, 12])
+    for k, s in enumerate([13, 11, 12]):
+        j = [11, 12, 13].index(s)
+        assert np.array_equal(np.asarray(rev["spikes"][k]), np.asarray(fwd["spikes"][j]))
+        assert np.array_equal(np.asarray(rev["V_m"][k]), np.asarray(fwd["V_m"][j]))
+    wide = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), [11, 12, 13, 14])
+    slim = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), [11, 12])
+    for k in range(2):
+        assert np.array_equal(np.asarray(wide["spikes"][k]), np.asarray(slim["spikes"][k]))
+        assert np.array_equal(np.asarray(wide["V_m"][k]), np.asarray(slim["V_m"][k]))
+
+
+def test_lif_seed_batch_final_weights_match_the_edge_list():
+    from jaxfne._construct_lif import lif_edge_arrays
+    model = _spiking_lif_model()
+    out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), [11, 12])
+    want = np.asarray(lif_edge_arrays(model)["weight"], dtype=float)
+    assert want.shape[0] > 0, "fixture must carry executed edges"
+    for k in range(2):
+        assert np.allclose(np.asarray(out["w_final"][k], dtype=float), want)
+
+
+@pytest.mark.bitwise_diagnostic
+@pytest.mark.xfail(strict=False, reason="bitwise H_final/w_final is platform/run-dependent; diagnostic evidence only")
+def test_lif_seed_batch_hdp_final_state_matches_serial_diagnostics():
+    """DIAGNOSTIC (bitwise_diagnostic): bitwise H_final/w_final holds on Windows
+    CPU; cross-form float32 codegen may differ at ulp scale elsewhere."""
+    model = _spiking_lif_model()
+    n_edges = int(_edge_arrays(model)[0].shape[0])
+    runtime = _lif_hdp_runtime(_pcl_rule_params(n_edges, eta=0.5))
+    seeds = [11, 12, 13]
+    out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(runtime=runtime), seeds)
+    assert "H_final" in out
+    for k, s in enumerate(seeds):
+        model.simulate(_lif_seed_batch_sim(seed=s, runtime=runtime))
+        diag = model.last_hdp_diagnostics()
+        assert np.array_equal(np.asarray(out["H_final"][k]), np.asarray(diag["H_final"]))
+        assert np.array_equal(np.asarray(out["w_final"][k]), np.asarray(diag["w_final"]))
+
+
+def test_lif_seed_batch_contract_spikes_exact_voltage_close():
+    """CONTRACT: spikes bitwise at every timestep; V_m allclose rtol=0, atol=1e-4."""
+    model = _spiking_lif_model()
+    seeds = [11, 12, 13]
+    out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), seeds)
+    worst = 0.0
+    for k, s in enumerate(seeds):
+        ref = model.simulate(_lif_seed_batch_sim(seed=s))
+        b_spk = np.asarray(out["spikes"][k])
+        r_spk = np.asarray(ref.spikes)
+        assert b_spk.shape == r_spk.shape
+        for t in range(b_spk.shape[0]):
+            assert np.array_equal(b_spk[t], r_spk[t]), f"spike mismatch seed {s} step {t}"
+        np.testing.assert_allclose(np.asarray(out["V_m"][k]), np.asarray(ref.V_m),
+                                   rtol=V_RTOL, atol=V_ATOL_MV)
+        worst = max(worst, float(np.max(np.abs(
+            np.asarray(out["V_m"][k], dtype=float) - np.asarray(ref.V_m, dtype=float)))))
+    print(f"lif contract max |dV| mV: {worst:.3e} evidence: {EVIDENCE}")
+    assert worst <= V_ATOL_MV
+
+
+def test_lif_seed_batch_hdp_contract_states_close():
+    """CONTRACT under pcl_stdp: spikes exact; V/H/w allclose with stated atols."""
+    model = _spiking_lif_model()
+    n_edges = int(_edge_arrays(model)[0].shape[0])
+    runtime = _lif_hdp_runtime(_pcl_rule_params(n_edges, eta=0.5))
+    seeds = [11, 12, 13]
+    out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(runtime=runtime), seeds)
+    worst_v = worst_h = worst_w = 0.0
+    for k, s in enumerate(seeds):
+        ref = model.simulate(_lif_seed_batch_sim(seed=s, runtime=runtime))
+        assert np.array_equal(np.asarray(out["spikes"][k]), np.asarray(ref.spikes))
+        np.testing.assert_allclose(np.asarray(out["V_m"][k]), np.asarray(ref.V_m),
+                                   rtol=V_RTOL, atol=V_ATOL_MV)
+        diag = model.last_hdp_diagnostics()
+        np.testing.assert_allclose(np.asarray(out["H_final"][k]), np.asarray(diag["H_final"]),
+                                   rtol=0.0, atol=HW_ATOL)
+        np.testing.assert_allclose(np.asarray(out["w_final"][k]), np.asarray(diag["w_final"]),
+                                   rtol=0.0, atol=HW_ATOL)
+        worst_v = max(worst_v, float(np.max(np.abs(
+            np.asarray(out["V_m"][k], dtype=float) - np.asarray(ref.V_m, dtype=float)))))
+        worst_h = max(worst_h, float(np.max(np.abs(
+            np.asarray(out["H_final"][k], dtype=float)
+            - np.asarray(diag["H_final"], dtype=float)))))
+        worst_w = max(worst_w, float(np.max(np.abs(
+            np.asarray(out["w_final"][k], dtype=float)
+            - np.asarray(diag["w_final"], dtype=float)))))
+    print(f"lif hdp max |dV|={worst_v:.3e} |dH|={worst_h:.3e} |dw|={worst_w:.3e} {EVIDENCE}")
+    assert worst_v <= V_ATOL_MV and worst_h <= HW_ATOL and worst_w <= HW_ATOL
+
+
+def test_lif_seed_batch_repeated_compiled_runs_are_bit_identical():
+    """Batched side self-deterministic: two compiled calls agree bitwise."""
+    model = _spiking_lif_model()
+    a = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), [11, 12, 13])
+    b = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), [11, 12, 13])
+    for key in ("spikes", "V_m", "w_final"):
+        assert np.array_equal(np.asarray(a[key]), np.asarray(b[key]))
+
+
+def test_lif_seed_batch_vmap_form_matches_contract():
+    """Same seeds across scalar, vmap and compiled forms: spikes exact, V close."""
+    from jaxfne._construct_lif import lif_edge_arrays
+    from jaxfne._signals import (
+        _make_poisson_drive,
+        poisson_chunk_seed,
+        resolve_poisson_drive_target,
+    )
+    from jaxfne.emitters_lif import simulate_lif_edge
+
+    model = _spiking_lif_model()
+    seeds = [11, 12, 13]
+    sim0 = _lif_seed_batch_sim()
+    dtype = sim0.resolved_runtime.jnp_dtype
+    emitter = model.params["emitter"]
+    edges = lif_edge_arrays(model)
+    params = emitter.to_lif_params()
+    n = emitter.n_neurons
+    steps = sim0.n_steps
+    pd = sim0.poisson_drive
+    drive = jnp.asarray(emitter.drive, dtype=dtype)
+    drive_2d = jnp.broadcast_to(drive, (steps, n))
+    rows = jnp.stack([
+        drive_2d + jnp.asarray(_make_poisson_drive(
+            steps, n, float(pd.get("rate_hz", 2.0)), float(pd.get("amplitude", 0.5)),
+            sim0.dt_ms, poisson_chunk_seed(s + 7919, 0), "all",
+            int(pd.get("counts", 1)),
+            target_indices=resolve_poisson_drive_target(model, "all")), dtype=dtype)
+        for s in seeds])
+    keys = jnp.stack([jax.random.PRNGKey(s) for s in seeds])
+    vmapped = jax.jit(jax.vmap(lambda dk: simulate_lif_edge(
+        params, n_steps=steps, dt_ms=sim0.dt_ms,
+        edge_pre=edges["pre"], edge_post=edges["post"], edge_weight=edges["weight"],
+        edge_delay_steps=edges["delay_steps"], edge_group=edges.get("group"),
+        I_ext_pA=dk[0], record_v=True, key=dk[1])))((rows, keys))
+    batched = simulate_lif_seed_batch(model, sim0, seeds)
+    worst = 0.0
+    for k, s in enumerate(seeds):
+        ref = model.simulate(_lif_seed_batch_sim(seed=s))
+        assert np.array_equal(np.asarray(vmapped["spikes"][k]), np.asarray(ref.spikes))
+        np.testing.assert_allclose(np.asarray(vmapped["V_mV"][k]), np.asarray(ref.V_m),
+                                   rtol=V_RTOL, atol=V_ATOL_MV)
+        assert np.array_equal(np.asarray(vmapped["spikes"][k]),
+                              np.asarray(batched["spikes"][k]))
+        worst = max(worst, float(np.max(np.abs(
+            np.asarray(vmapped["V_mV"][k], dtype=float)
+            - np.asarray(batched["V_m"][k], dtype=float)))))
+    print(f"lif vmap-vs-batch max |dV| mV: {worst:.3e} evidence: {EVIDENCE}")
+    assert worst <= V_ATOL_MV
+
+
+def test_lif_seed_batch_near_threshold_stays_spike_exact():
+    """Sensitive case: a member passing within 0.5 mV of threshold stays exact."""
+    model = _spiking_lif_model()
+    vth = np.asarray(model.params["emitter"].to_lif_params().v_thresh_mV, dtype=float)
+    pick = None
+    for amp in (60.0, 100.0, 140.0, 200.0):
+        sim = _lif_seed_batch_sim(
+            poisson_drive={"rate_hz": 50.0, "amplitude": amp},
+            runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list"))
+        probe = simulate_lif_seed_batch(model, sim, [11])
+        gap = float(np.min(np.abs(np.asarray(probe["V_m"][0], dtype=float) - vth[None, :])))
+        if gap < 0.5:
+            pick = (amp, gap)
+            break
+    assert pick is not None, "fixture has no near-threshold pass"
+    amp, gap = pick
+    sim = _lif_seed_batch_sim(
+        poisson_drive={"rate_hz": 50.0, "amplitude": amp},
+        runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list"))
+    out = simulate_lif_seed_batch(model, sim, [11, 12])
+    for k, s in enumerate([11, 12]):
+        ref = model.simulate(_lif_seed_batch_sim(
+            seed=s, poisson_drive={"rate_hz": 50.0, "amplitude": amp},
+            runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")))
+        assert np.array_equal(np.asarray(out["spikes"][k]), np.asarray(ref.spikes))
+        np.testing.assert_allclose(np.asarray(out["V_m"][k]), np.asarray(ref.V_m),
+                                   rtol=V_RTOL, atol=V_ATOL_MV)
+    print(f"lif near-threshold min |V-vth| mV: {gap:.3e} at amplitude {amp}")
+
+
+def test_lif_seed_batch_benchmark_compile_steady_and_memory():
+    """Benchmark: compile vs steady-state vs warm serial; output bytes pinned."""
+    import time
+    import tracemalloc
+
+    model = _spiking_lif_model()
+    seeds = [11, 12, 13]
+    t0 = time.perf_counter()
+    out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), seeds)
+    t_compile = time.perf_counter() - t0
+    tracemalloc.start()
+    t0 = time.perf_counter()
+    out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), seeds)
+    t_steady = time.perf_counter() - t0
+    _, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    for _ in range(2):
+        for s in seeds:
+            model.simulate(_lif_seed_batch_sim(seed=s))
+    t0 = time.perf_counter()
+    for s in seeds:
+        model.simulate(_lif_seed_batch_sim(seed=s))
+    t_serial = time.perf_counter() - t0
+    n_b = len(seeds)
+    n_t = int(DUR_MS / DT_MS)
+    n_n = 6
+    assert np.asarray(out["spikes"]).shape == (n_b, n_t, n_n)
+    assert np.asarray(out["V_m"]).shape == (n_b, n_t, n_n)
+    print(f"lif bench compile={t_compile:.3f}s steady={t_steady:.3f}s "
+          f"serial3={t_serial:.3f}s host_peak_MiB={peak / 2 ** 20:.1f} "
+          f"bytes={np.asarray(out['spikes']).nbytes + np.asarray(out['V_m']).nbytes}")
+    assert t_steady <= t_serial

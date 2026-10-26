@@ -323,10 +323,11 @@ def _check_probe_kwargs(kwargs: Mapping[str, Any]) -> None:
 
 _EMITTER_KEYS = (
     "family", "preset", "homeostatic_ei_rules", "homeostatic_ei_bound_mode",
-    "adex_decay", "adex_step_order",
+    "adex_decay", "adex_step_order", "izhikevich_update_order",
 )
 _ADEX_DECAYS = ("exp", "euler")
 _ADEX_STEP_ORDERS = ("default", "brian2")
+_IZHIKEVICH_UPDATE_ORDERS = ("default", "net_m")
 # construct reads name, n and cell_types; kind is a label; p_connect is checked against the
 # route's connectivity; layers come from column(). column()/cell_types() build _BUILT_NETWORK_KINDS.
 _NETWORK_KEYS = ("name", "n", "cell_types", "kind", "p_connect", "layers")
@@ -539,6 +540,16 @@ class Configuration:
             _refuse_unrealized("emitter", "adex_decay", kwargs["adex_decay"], _ADEX_DECAYS)
         if kwargs.get("adex_step_order") is not None:
             _refuse_unrealized("emitter", "adex_step_order", kwargs["adex_step_order"], _ADEX_STEP_ORDERS)
+        izhi_keys = sorted(k for k in kwargs if k.startswith("izhikevich_"))
+        if izhi_keys and kwargs.get("family") not in ("izhikevich", None):
+            raise ValueError(
+                f"emitter({izhi_keys[0]}=...) is not realized for family={kwargs.get('family')!r}: "
+                "construct reads it for family='izhikevich' only "
+                "(or an undeclared family, which defaults to izhikevich)"
+            )
+        if kwargs.get("izhikevich_update_order") is not None:
+            _refuse_unrealized("emitter", "izhikevich_update_order",
+                               kwargs["izhikevich_update_order"], _IZHIKEVICH_UPDATE_ORDERS)
         if self.emitters:
             check_emitter_conflict(self.emitters[0], kwargs)
         return replace(self, emitters=[*self.emitters, dict(kwargs)])
@@ -981,7 +992,9 @@ class Configuration:
         self, selector: Mapping[str, Any], params: Mapping[str, Any]
     ) -> "Configuration":
         """Override Izhikevich ``a``/``b``/``c``/``d``/``drive`` for neurons matching a
-        ``cell_type`` and/or ``layer`` selector; applied at ``construct()``."""
+        ``cell_type`` and/or ``layer`` selector; applied at ``construct()``. A value is a
+        scalar for every matched neuron or a list with one value per matched neuron, in
+        neuron-index order (a length mismatch is refused)."""
         bad_sel = sorted(set(selector) - {"cell_type", "layer"})
         bad_par = sorted(set(params) - {"a", "b", "c", "d", "drive"})
         if bad_sel or bad_par:
@@ -1027,6 +1040,8 @@ class Configuration:
         in_degree: Optional[int] = None,
         spatial_sigma: Optional[float] = None,
         delay_ms: Optional[float] = None,
+        weight_std: Optional[float] = None,
+        delay_std_ms: Optional[float] = None,
         intra_step_rounds: Optional[int] = None,
         sampling: str = "density",
         footprint: Optional[Mapping[str, Any]] = None,
@@ -1056,7 +1071,10 @@ class Configuration:
         ``in_degree`` (a positive int), and is refused with ``probability``,
         ``max_in_degree``, ``footprint`` and the Bernoulli samplings, and on
         the sign-only fallback path (which honours ``"density"``/``"bernoulli"``
-        only). ``weight`` is the native edge magnitude
+        only). ``"multinomial"`` draws exactly ``round(p*n_post)`` synapses
+        per rule with replacement (multapses allowed); it is refused with
+        ``in_degree``, ``max_in_degree`` and on the sign-only fallback path.
+        ``weight`` is the native edge magnitude
         (default ``1/sqrt(n)``),
         and ``sign`` is ``"excitatory"``/``"inhibitory"``/``"signed"`` (``"signed"`` or
         unset follows the presynaptic neuron's intrinsic sign). When any rule
@@ -1076,7 +1094,17 @@ class Configuration:
         ``round(delay_ms / dt_ms)`` (0.5.2 decision 0b) at the configuration's
         ``dt_ms``, and both the configured ms and the realized steps are
         recorded. A positive delay rounding to 0 steps is refused rather than
-        dropped. ``intra_step_rounds`` (None = undeclared = current behaviour)
+        dropped. ``weight_std`` (None = undeclared = one constant weight per
+        rule) is the per-rule Gaussian weight spread in native units: the
+        mechanism-aware compiler draws one weight per edge around the scalar
+        ``weight`` mean and folds sub-zero draws at zero (fixed sign).
+        ``delay_std_ms`` (None = undeclared = one constant delay per rule) is
+        the per-rule Gaussian delay spread in ms: the mechanism-aware compiler
+        draws one delay per edge around the scalar ``delay_ms`` mean (which it
+        requires) and folds sub-zero draws at zero (positive delays). Both
+        spreads are refused on the sign-only fallback path (fail-closed: that
+        compiler has no spread consumer), and a non-scalar ``weight`` with
+        ``weight_std`` is refused by the compiler. ``intra_step_rounds`` (None = undeclared = current behaviour)
         declares the intra-step fixed point for this connection on the adex
         route: a positive int R admitting a ``delay_ms`` that rounds to 0 steps
         on that connection only (delay 0 means "resolved inside the step"; R
@@ -1129,14 +1157,37 @@ class Configuration:
                 raise ValueError(
                     f"connection {name!r} delay_ms must be finite and >= 0; got {delay_ms!r}"
                 )
+        for _key, _val in (("weight_std", weight_std), ("delay_std_ms", delay_std_ms)):
+            if _val is None:
+                continue
+            if isinstance(_val, bool) or isinstance(_val, str):
+                raise ValueError(
+                    f"connection {name!r} {_key} must be a finite number >= 0; got {_val!r}"
+                )
+            try:
+                _std = float(_val)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"connection {name!r} {_key} must be a finite number >= 0; got {_val!r}"
+                )
+            if not math.isfinite(_std) or _std < 0.0:
+                raise ValueError(
+                    f"connection {name!r} {_key} must be finite and >= 0; got {_val!r}"
+                )
+        if delay_std_ms is not None and delay_ms is None:
+            raise ValueError(
+                f"connection {name!r} declares delay_std_ms={delay_std_ms!r} without "
+                "delay_ms; the spread draws around one scalar mean -- declare both"
+            )
         if not isinstance(sampling, str) or sampling not in {
             "density", "bernoulli", "capped_bernoulli", "fixed_indegree",
+            "multinomial",
         }:
             raise ValueError(
                 f"connection {name!r} sampling must be 'density', 'bernoulli', "
-                f"'capped_bernoulli' or 'fixed_indegree'; got {sampling!r}"
+                f"'capped_bernoulli', 'fixed_indegree' or 'multinomial'; got {sampling!r}"
             )
-        if sampling in ("bernoulli", "capped_bernoulli") and max_in_degree is not None:
+        if sampling in ("bernoulli", "capped_bernoulli", "multinomial") and max_in_degree is not None:
             raise ValueError(
                 f"connection {name!r} sampling={sampling!r} is not implemented with "
                 "max_in_degree (localized sampling); omit one of them"
@@ -1148,7 +1199,7 @@ class Configuration:
                 "without in_degree; the fixed-indegree sampler draws exactly "
                 "in_degree presynaptic partners per post cell -- declare both"
             )
-        if sampling in ("bernoulli", "capped_bernoulli") and in_degree is not None:
+        if sampling in ("bernoulli", "capped_bernoulli", "multinomial") and in_degree is not None:
             raise ValueError(
                 f"connection {name!r} sampling={sampling!r} is not implemented "
                 f"with in_degree={in_degree!r} (exact fixed in-degree); "
@@ -1228,6 +1279,12 @@ class Configuration:
             "delay_ms": float(delay_ms) if delay_ms is not None else None,
             "status": "declared_not_compiled",
         }
+        if weight_std is not None:
+            # Stored only when declared so existing config hashes stay unchanged.
+            entry["weight_std"] = float(weight_std)
+        if delay_std_ms is not None:
+            # Stored only when declared so existing config hashes stay unchanged.
+            entry["delay_std_ms"] = float(delay_std_ms)
         if intra_step_rounds is not None:
             # Stored only when declared so existing config hashes stay unchanged.
             entry["intra_step_rounds"] = validate_rounds(
@@ -1241,7 +1298,7 @@ class Configuration:
             }
         if sharing_mode is not None:
             entry["weight_sharing"] = sharing_mode
-        if sampling in ("bernoulli", "capped_bernoulli", "fixed_indegree"):
+        if sampling in ("bernoulli", "capped_bernoulli", "fixed_indegree", "multinomial"):
             # Stored only when non-default so existing config hashes stay unchanged.
             entry["sampling"] = sampling
         if in_degree is not None:

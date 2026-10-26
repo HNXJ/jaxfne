@@ -14,6 +14,8 @@ This test suite validates all 11 public builders in jaxfne.builders:
 - validate_configuration
 """
 
+import pathlib
+
 import pytest
 import jaxfne as jtfne
 from jaxfne.builders import Configuration
@@ -512,3 +514,30 @@ class TestJSONSafety:
             json.dumps(result, allow_nan=False)
         except (ValueError, TypeError) as e:
             pytest.fail(f"validate_configuration output not JSON-safe: {e}")
+
+
+REFERENCE = pathlib.Path(__file__).resolve().parents[1] / "docs" / "reference"
+
+# Exported for tutorials, suite presets and internal wiring; not yet described in the reference.
+EXEMPT = frozenset("""
+AxisSpec CANONICAL_LAYERS_6L CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L CANONICAL_Z_BANDS
+CANONICAL_Z_BANDS_5L ConnectionCompileResult FLAT_CELL_TYPE_FRACTIONS GSGDState
+NEURONAL_TENSOR_SCHEMA_VERSION NodeIdentity build_tutorial_laminar_column checkpoint_state
+configs_dir coop_omission_oddball_for_model coop_omission_oddball_for_neuronal_tensor
+coop_omission_oddball_paradigm default_basis_spec ensemble_member_seed evoked_l4_drive_paradigm
+export_tutorial_artifacts get_signal optax_sgd paradigm_target_indices_from_model
+plot_spectrolaminar_suite provenance_receipt require_optax save_figure save_figures
+select_neurons sha256_text spectrolaminar_motif_score step_gsgd_transform
+suite2_celltype_presets suite2_four_celltype_config suite2_net1_config suite2_run_bundle
+suite2_simulation suite2_single_neuron_config suite2_tune_noise_agsdr_adam
+suite2_v1_v4_config validate_neuronal_tensor
+""".split())
+
+
+def test_every_exported_name_is_documented_or_exempt():
+    text = "\n".join(p.read_text(encoding="utf-8") for p in REFERENCE.rglob("*.md"))
+    assert text, "docs/reference holds no pages"
+    missing = sorted(n for n in jtfne.__all__ if n not in text and n not in EXEMPT)
+    assert not missing, f"undocumented and not exempt: {missing}"
+    stale = sorted(n for n in EXEMPT if n in text or n not in jtfne.__all__)
+    assert not stale, f"exempt but documented or no longer exported: {stale}"

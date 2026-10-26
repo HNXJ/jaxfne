@@ -1,0 +1,76 @@
+{
+  "schema": "jaxfne.release_receipt.v1",
+  "programme": "v0.5.7",
+  "version": "0.5.7",
+  "status": "published",
+  "seal_verdict": "PUBLISHED: every rc family passes on the candidate tree; main CI green on the main merge commit 03a86014; tag v0.5.7, GitHub Release and PyPI upload done 2026-10-21 (Hamm 2026-10-20: full 0.5.7 release).",
+  "receipt_timestamp_utc": "2026-10-21T12:07:39Z",
+  "published_predecessor": "v0.5.6",
+  "supersedes": "artifacts/release/v0_5_6_release_receipt.json",
+  "write_once": false,
+  "tested_sha": "508dffa979ceac23ee220a286d9d61e08d99e022",
+  "tested_tree_sha": "e6bdd3ba5e5c4a68b3c745242f0461f92c97a6ff",
+  "tree_identity": "dev 2bdc1701 (merge of main, dev tree kept) and main 03a86014 (the tagged commit) carry the tested tree e6bdd3ba",
+  "branch": "dev",
+  "receipt_commit_note": "The receipt commit is a new SHA and cannot contain its own hash; the tested SHA and tree above carry all gates and CI evidence in this file.",
+  "gates": {
+    "rc_gate": {
+      "command": "python scripts/run_test_gate.py rc, then the families after pytest_slow run separately (WSL DNS was down for the package families)",
+      "verdict": "PASS on 508dffa9, every family",
+      "families": {
+        "environment_parity": "PASS",
+        "report": "PASS (fail_count 0)",
+        "pytest_broad": "6917 passed, 72 skipped, 0 failed",
+        "replication_lanes": "brunel2000 18, caminos 114, mejias2016 9, pcl 71 (12 skipped), potjans2014 9 (5 xfailed), qlearning 9, vogels2011 10 (1 xfailed) passed",
+        "pytest_slow": "32 passed, 1 skipped; test_sdist_excludes_harness_trees failed in WSL only because pip could not resolve pypi.org (empty /etc/resolv.conf) and passed on Windows Python (85 s)",
+        "pytest_notebook": "30 passed, 4 deselected",
+        "docs_build_strict": "PASS",
+        "examples_smoke": "PASS, 18 examples",
+        "package_build": "PASS (Windows Python, isolated build)",
+        "twine_check": "PASSED on jaxfne-0.5.7-py3-none-any.whl and jaxfne-0.5.7.tar.gz",
+        "isolated_wheel_smoke": "PASS (fresh venv, wheel smoke OK: 0.5.7)",
+        "clean_tree": "git status clean after every family"
+      },
+      "earlier_runs": "rc on d7cbba75 and 508dffa9 failed only 120 s subprocess timeouts under machine load (mkdocs strict, example notebooks), each passing alone; the mkdocs test limit became 600 s in 508dffa9"
+    },
+    "junit_parity": {
+      "checker": "scripts/check_junit_parity.py",
+      "release_ci_run": 39565883872,
+      "release_ci_sha": "508dffa979ceac23ee220a286d9d61e08d99e022",
+      "verdict": "node sets equal on both legs (7053 = 7053), 0 failures; 6 outcome differences, each explained",
+      "explained_differences": {
+        "tests.test_closure_hp_reconciliation.TestSdistHygiene::test_sdist_excludes_harness_trees": "rc failure from WSL DNS (see pytest_slow); CI passed; passed locally on Windows",
+        "tests.test_gsdr2026_labels::test_real_file_axes_groups_and_hashes": "rc passed with the warehouse files present; CI skipped (data gated)",
+        "tests.test_pcl_stage_c::test_stage_c_oracle_20clip_record": "rc passed with the warehouse inputs; CI skipped (data gated)",
+        "tests.test_pcl_stage_c::test_stage_c_tensor_route_20clip_receipt": "rc passed with the warehouse inputs; CI skipped (data gated)",
+        "tests.test_pcl_stage_c::test_stage_c_tensor_route_matches_oracle_on_slice": "rc passed with the warehouse inputs; CI skipped (data gated)",
+        "tests.test_lane_dashboard_page::test_app_js_parses": "rc skipped (node absent in the WSL gate venv); CI passed"
+      }
+    },
+    "release_body": "python scripts/release_body.py --tag v0.5.7 --check: PASS",
+    "dashboard": "build_dashboard_data.py --check fresh; check_replications.py --check findings=27 known=27 unlisted=0"
+  },
+  "ci": {
+    "candidate": {
+      "commit": "508dffa979ceac23ee220a286d9d61e08d99e022",
+      "CI (Fast)": {"run_id": 39565884065, "conclusion": "success"},
+      "Release CI (workflow_dispatch, slow tests included)": {"workflow": "release_ci.yml", "run_id": 39565883872, "conclusion": "success"}
+    },
+    "main_merge": {
+      "commit": "03a86014d811e9cb4b33fc9728512cb2a488023a",
+      "pull_request": 113,
+      "CI (Fast)": {"run_id": 39585668154, "conclusion": "success"},
+      "Release CI (push, slow tests included)": {"workflow": "release_ci.yml", "run_id": 39585668167, "conclusion": "success"}
+    },
+    "reviews": "Muse (opencode) adversarial review of the candidate diff: no blocking defect; its atlas-provenance note was acted on (canonical atlas regenerated at 0.5.7). PR 113: no review threads; Macroscope skipped."
+  },
+  "distribution": {
+    "build_backend": "setuptools (pyproject.toml)",
+    "local_verification": "twine check PASSED on jaxfne-0.5.7-py3-none-any.whl (sha256 5a327d34125f6c623f3a6376e1743fd437f7fc68ce6aff777037d5d93aad15c6) and jaxfne-0.5.7.tar.gz (sha256 f9ce6766be0f6d46848370335bdf7204e2ad2bd9598550b04a025d91ee7ce9fe), built locally from 508dffa9; the PyPI files are the Publish workflow's own build",
+    "tag": "v0.5.7 (annotated bd1af428, tagger hnxj) on main 03a86014d811e9cb4b33fc9728512cb2a488023a",
+    "github_release": "https://github.com/HNXJ/jaxfne/releases/tag/v0.5.7 (published 2026-10-21T11:50:56Z)",
+    "pypi": "jaxfne 0.5.7 live on PyPI; Publish run 39595006450 success (2026-10-21T11:51:41Z)",
+    "pypi_publish_method": "trusted publishing (GitHub Actions Publish workflow on release) per v0.5.0 precedent"
+  },
+  "blockers_to_seal": []
+}

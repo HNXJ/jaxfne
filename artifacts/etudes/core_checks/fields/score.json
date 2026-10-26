@@ -1,0 +1,41 @@
+{
+  "checks": {
+    "operator_superposition": {
+      "error": 0.03901627116073578,
+      "tolerance": 1.0,
+      "pass": true,
+      "reference": "superposition and scaling against Y = S W^T (float64 numpy hand formula; seed 100)"
+    },
+    "csd_flat_potential_zero": {
+      "error": 0.0,
+      "tolerance": 1e-05,
+      "pass": true,
+      "reference": "zero: second difference of a constant (all 8 contacts)"
+    },
+    "csd_quadratic_potential": {
+      "error": 4.796163466380676e-14,
+      "tolerance": 4.9999999999999996e-06,
+      "pass": true,
+      "reference": "-phi'' = -2a at interior contacts for phi = a z^2 + b z + c (no conductivity, sigma = 1)"
+    },
+    "cable_filter_transfer": {
+      "error": 3.474829224359155e-07,
+      "tolerance": 1e-06,
+      "pass": true,
+      "reference": "exact discrete response of the cascade, |H| = (alpha / |1 - (1-alpha) e^{-j 2 pi f dt}|)^order, alpha = 1 - exp(-dt/tau), at 5, 20, 100 Hz (tau 20 ms, dt 0.5 ms; relative)"
+    },
+    "poisson_1d_flux_magnitude": {
+      "error": 3.425031900400333e-05,
+      "tolerance": 0.001,
+      "pass": true,
+      "reference": "Gauss's law: interior flux = -Q dx at N = 21, 41, 81 (signed, relative)"
+    },
+    "poisson_1d_flux_span": {
+      "error": 2.5704503059387207e-06,
+      "tolerance": 0.0001,
+      "pass": true,
+      "reference": "Gauss's law: flux zero outside [src, sink) and constant inside (N = 81, absolute)"
+    }
+  },
+  "pass": true
+}

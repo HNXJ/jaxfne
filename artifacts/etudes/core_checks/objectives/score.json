@@ -1,0 +1,86 @@
+{
+  "checks": {
+    "polarity_null_flips_sign": {
+      "error": 0.0,
+      "tolerance": 2.5695115129905117e-12,
+      "pass": true,
+      "reference": "minus its input, exact negation of both profiles",
+      "stage": "objective"
+    },
+    "layer_shuffle_null_permutes": {
+      "error": 0.0,
+      "tolerance": 2.6121658902192062e-12,
+      "pass": true,
+      "reference": "sorted values of the input, the multiset a permutation keeps",
+      "stage": "objective"
+    },
+    "uniform_gain_null_scales": {
+      "error": 0.0,
+      "tolerance": 2.924970571840865e-12,
+      "pass": true,
+      "reference": "input times the seeded generator's first uniform(0.1, 1) draw",
+      "stage": "objective"
+    },
+    "synchrony_metric_limits": {
+      "error": 0.0,
+      "tolerance": 1e-12,
+      "pass": true,
+      "reference": "closed form: identical channels 1; one complementary pair r = -1, clipped to 0",
+      "stage": "objective"
+    },
+    "null_samples_closed_form": {
+      "error": 0.0,
+      "tolerance": 0.5,
+      "pass": true,
+      "reference": "n = ceil(1 + 1/(2 rse^2)): 3, 5, 9 and 33 samples at rse 0.5, 0.4, 0.25 and 0.125",
+      "stage": "objective"
+    },
+    "spectrolaminar_score_known_profile": {
+      "error": 3.552713678800501e-15,
+      "tolerance": 1e-10,
+      "pass": true,
+      "reference": "100 for an ideal readout; 100 exp(-3 x 0.8) for the reversed profile (MSE 0.4 per band)",
+      "stage": "objective"
+    },
+    "box_projection_is_clip": {
+      "error": 0.0,
+      "tolerance": 2e-12,
+      "pass": true,
+      "reference": "np.clip of each row to [lows, highs]",
+      "stage": "optimizer"
+    },
+    "sdr_quadratic_minimum": {
+      "error": 5.6310463582512106e-08,
+      "tolerance": 1e-06,
+      "pass": true,
+      "reference": "closed-form trajectory: ||x_100 - x*|| / ||x_0 - x*|| = 0.8^100 from x_0 = 0, x* = (1, -2, 0.5, 3); error = relative deviation from 0.8^100; inner optax.sgd(0.1), noise off",
+      "stage": "optimizer"
+    },
+    "gsdr_quadratic_minimum": {
+      "error": 5.6310463582512106e-08,
+      "tolerance": 1e-06,
+      "pass": true,
+      "reference": "closed-form trajectory: ||x_100 - x*|| / ||x_0 - x*|| = 0.8^100 from x_0 = 0, x* = (1, -2, 0.5, 3); error = relative deviation from 0.8^100; inner optax.sgd(0.1), noise off",
+      "stage": "optimizer"
+    },
+    "agsdr_quadratic_minimum": {
+      "error": 0.0,
+      "tolerance": 1e-12,
+      "pass": true,
+      "reference": "independent float64 NumPy recurrence of the transform update (U_t = (1 - a_t) D_t, D_t = -0.1 grad_t, a_0 = 0.5, v_{t+1} = 0.99 v_t + 0.01 var(D_t), a_{t+1} = clip((u + eps) / (u + v_{t+1} + 2 eps)), u = 0, eps = 1e-6; loss falls every step so no deselection reset fires); error = max|x_core - x_ref| / max|x_0 - x*|; inner optax.sgd(0.1), noise off; experimental transform",
+      "stage": "optimizer"
+    },
+    "gsgd_quadratic_minimum": {
+      "error": 5.6310463582512106e-08,
+      "tolerance": 1e-06,
+      "pass": true,
+      "reference": "closed-form trajectory: ||x_100 - x*|| / ||x_0 - x*|| = 0.8^100 from x_0 = 0, x* = (1, -2, 0.5, 3); error = relative deviation from 0.8^100; eta 0.1",
+      "stage": "optimizer"
+    }
+  },
+  "pass": true,
+  "dropped": {
+    "phase_null_keeps_power": "phase_randomized_null multiplies each entry by the cosine of an independent uniform angle (jaxfne/objectives.py). Its inputs are band-power profiles, not time series, so a spectral invariant does not apply; no check was written for it.",
+    "optax_adam_quadratic_minimum": "optax_adam returns an OptimizerSpec declaration (jaxfne/optim/core.py); its update runs only inside Model.tune(), not on a plain function, so a quadratic run would test optax, not core code."
+  }
+}

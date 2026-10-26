@@ -782,11 +782,71 @@ def _drive_error(detail: str) -> ValueError:
     )
 
 
+def _checked_grouped_rates(drive: Mapping[str, Any]) -> list[float]:
+    """Validate a listed ``rate_hz``: non-empty, finite, >= 0, distinct."""
+    rates = list(drive["rate_hz"])
+    if not rates:
+        raise _drive_error(f"rate_hz={rates!r} must name at least one rate")
+    seen: set[float] = set()
+    for rate in rates:
+        if not (_finite_real(rate) and float(rate) >= 0):
+            raise _drive_error(f"rate_hz={rates!r} must hold rates >= 0")
+        if float(rate) in seen:
+            raise _drive_error(f"rate_hz={rates!r} must hold distinct rates")
+        seen.add(float(rate))
+    return [float(rate) for rate in rates]
+
+
+def _grouped_drive_specs(
+    drive: Mapping[str, Any],
+    rates: list[float],
+    targets: Any,
+    dt: float,
+    sim: Any,
+) -> dict[str, Any]:
+    """Grouped drive specs: per-group lambdas, a 2-d schedule and target groups.
+
+    The declared ``n_sources`` channels split evenly across the groups; the
+    target cells split evenly into contiguous subsets, one per group in the
+    declared order. ``ext_lambda`` is the ``[n_steps, G]`` per-group schedule
+    (``share * rate_g * dt_ms / 1000``) and ``ext_target_groups`` maps each
+    target to its group column, so the kernel draws one stream per group.
+    """
+    total = int(drive["n_sources"])
+    n_groups = len(rates)
+    if total % n_groups:
+        raise _drive_error(
+            f"n_sources={total!r} must split evenly across {n_groups} rates"
+        )
+    n_targets = int(np.asarray(targets).size)
+    if n_groups > n_targets:
+        raise _drive_error(
+            f"rate_hz={rates!r} names {n_groups} rates for {n_targets} target "
+            "cells: each group needs at least one cell, so a group would hold "
+            "an empty target subset -- declare at most one rate per target cell"
+        )
+    if n_targets % n_groups:
+        raise _drive_error(
+            f"{n_targets} target cells must split evenly across {n_groups} rates"
+        )
+    share = total // n_groups
+    per_group = [float(share * rate * dt / 1000.0) for rate in rates]
+    n_steps = int(sim.n_steps)
+    return {
+        "ext_targets": targets,
+        "ext_lambda": np.tile(np.asarray(per_group)[None, :], (n_steps, 1)),
+        "ext_target_groups": np.repeat(np.arange(n_groups), n_targets // n_groups),
+    }
+
+
 def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     """Keyword arguments for the kernel's external drive on ``model`` (``ext_*`` plus ``key``).
 
     Empty when ``sim.poisson_drive`` is None. ``ext_lambda`` is
-    ``n_sources * rate_hz * dt_ms / 1000`` (ms to s); the key is
+    ``n_sources * rate_hz * dt_ms / 1000`` (ms to s); a listed ``rate_hz``
+    splits the channels evenly across the groups and rides a 2-d
+    ``[n_steps, G]`` per-group schedule with ``ext_target_groups`` mapping
+    each target to its group column (see ``_grouped_drive_specs``); the key is
     ``jax.random.PRNGKey(seed)``; targets are the cells whose type is listed in
     ``target_cell_types``, in index order; the receptor is the mechanism's declaration
     index; the delay is realized by the plain route's rule, except a delay rounding
@@ -824,7 +884,10 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     if int(n_sources) < 1:
         raise _drive_error(f"n_sources={n_sources!r} must be an int >= 1")
     rate_hz = drive["rate_hz"]
-    if not (_finite_real(rate_hz) and float(rate_hz) > 0):
+    grouped_rates: list[float] | None = None
+    if isinstance(rate_hz, (list, tuple)):
+        grouped_rates = _checked_grouped_rates(drive)
+    elif not (_finite_real(rate_hz) and float(rate_hz) > 0):
         raise _drive_error(f"rate_hz={rate_hz!r} must be > 0")
     weight_nS = drive["weight_nS"]
     if not (_finite_real(weight_nS) and float(weight_nS) >= 0):
@@ -887,14 +950,21 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     targets = np.asarray(
         [i for i, lab in enumerate(labels) if lab in set(wanted)], dtype=np.int64
     )
-    out = {
-        "ext_targets": targets,
-        "ext_lambda": float(int(n_sources) * float(rate_hz) * dt / 1000.0),
-        "ext_weight_nS": float(weight_nS),
-        "ext_receptor": int(receptor_names.index(mechanism)),
-        "ext_delay_steps": int(delay_steps),
-        "key": jax.random.PRNGKey(int(seed)),
-    }
+    if grouped_rates is not None:
+        out = _grouped_drive_specs(drive, grouped_rates, targets, dt, sim)
+    else:
+        out = {
+            "ext_targets": targets,
+            "ext_lambda": float(int(n_sources) * float(rate_hz) * dt / 1000.0),
+        }
+    out.update(
+        {
+            "ext_weight_nS": float(weight_nS),
+            "ext_receptor": int(receptor_names.index(mechanism)),
+            "ext_delay_steps": int(delay_steps),
+            "key": jax.random.PRNGKey(int(seed)),
+        }
+    )
     t_start_ms = drive.get("t_start_ms")
     t_stop_ms = drive.get("t_stop_ms")
     if (t_start_ms is None) != (t_stop_ms is None):

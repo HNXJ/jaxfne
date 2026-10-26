@@ -434,6 +434,8 @@ from ._long_diagnostics import (
 )
 # T-24 frozen input sources (ADVANCED tier: root attrs, not __all__).
 from .inputs import XSource
+# Spike-train reader clamp (ADVANCED tier: root attr, not __all__).
+from ._signals import SpikeTrainInput
 
 from .public_surface import PUBLIC_EXPORTS
 

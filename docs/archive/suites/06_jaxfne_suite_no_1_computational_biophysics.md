@@ -49,6 +49,6 @@ Core figures:
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from a smoke-scale 1000 ms run (dt 0.5 ms, seed 44) of the notebook's 48-neuron laminar column (the notebook runs 5000 ms at dt 0.1 ms): [index](../../_static/atlas/suite1_column/index.html) · [schema](../../_static/atlas/suite1_column/schema.html) · [3D](../../_static/atlas/suite1_column/network_3d.html) · [raster](../../_static/atlas/suite1_column/raster.html) · [LFP](../../_static/atlas/suite1_column/lfp.html) · [H](../../_static/atlas/suite1_column/h_dynamics.html) · [HDP](../../_static/atlas/suite1_column/hdp.html) · [oscillatory](../../_static/atlas/suite1_column/oscillatory.html).
+Dark-theme Plotly panels from a smoke-scale 1000 ms run (dt 0.5 ms, seed 44) of the notebook's 48-neuron laminar column (the notebook runs 5000 ms at dt 0.1 ms): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/suite1_column/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/suite1_column/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/suite1_column/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/suite1_column/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/suite1_column/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug suite1_column`.
