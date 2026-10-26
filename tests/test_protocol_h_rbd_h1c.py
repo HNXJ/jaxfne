@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -254,3 +256,78 @@ def test_h_at_one_matches_legacy_with_beta():
     )
     assert float(jnp.max(jnp.abs(v0 - v1))) == 0.0
     assert float(jnp.max(jnp.abs(s0 - s1))) == 0.0
+
+
+# Each case routes to one drive-composition site in simulate_edge_recurrent_izhikevich_rbd:
+#   delay 0 (any schedule)          -> step_rbd (non-delayed)
+#   delay > 0, no drive_schedule    -> step_delayed_rbd
+#   delay > 0, with drive_schedule  -> step_delayed_rbd_sched
+_SITE_CASES = [
+    pytest.param(0, True, id="site_step_rbd"),
+    pytest.param(2, False, id="site_step_delayed_rbd"),
+    pytest.param(2, True, id="site_step_delayed_rbd_sched"),
+]
+
+
+def _site_case(delay, scheduled):
+    """Two-neuron ring; neuron 0 drives neuron 1 so that H moves under kappa_H > 0."""
+    n_steps = 120
+    params, edges = _two_neuron_ring()
+    edges = replace(edges, delay_steps=jnp.full((2,), delay, dtype=jnp.int32))
+    drive_schedule = None
+    if scheduled:
+        drive_schedule = jnp.zeros((n_steps, 2), dtype=jnp.float32).at[10:80, 0].set(35.0)
+    else:
+        params = replace(params, drive=jnp.asarray([35.0, 0.0], dtype=jnp.float32))
+    return params, edges, n_steps, drive_schedule
+
+
+def _h_free_run(params, edges, n_steps, drive_schedule):
+    return simulate_edge_recurrent_izhikevich(
+        params,
+        edges,
+        n_steps,
+        1.0,
+        jax.random.PRNGKey(0),
+        dtype="float32",
+        drive_schedule=drive_schedule,
+        noise_scale=0.0,
+    )
+
+
+@pytest.mark.parametrize("delay, scheduled", _SITE_CASES)
+def test_rbd_site_beta_zero_equals_h_free_kernel(delay, scheduled):
+    """beta_H=0 at every composition site: V, spikes and u equal the H-free kernel."""
+    params, edges, n_steps, drive_schedule = _site_case(delay, scheduled)
+    v, s, _, st = _run_rbd(
+        params,
+        edges,
+        n_steps=n_steps,
+        drive_schedule=drive_schedule,
+        rbd_family="f1",
+        kappa_h=2.0,
+        beta_h=0.0,
+    )
+    assert float(jnp.max(jnp.abs(st["H_trace"] - 1.0))) > 1e-3, "fixture must move H"
+    v0, s0, _, st0 = _h_free_run(params, edges, n_steps, drive_schedule)
+    np.testing.assert_array_equal(np.asarray(v), np.asarray(v0))
+    np.testing.assert_array_equal(np.asarray(s), np.asarray(s0))
+    np.testing.assert_array_equal(np.asarray(st["u"]), np.asarray(st0["u"]))
+
+
+@pytest.mark.parametrize("delay, scheduled", _SITE_CASES)
+def test_rbd_site_beta_positive_changes_v(delay, scheduled):
+    """Non-vacuous arm: beta_H=0.5 at every composition site must move V off the H-free kernel."""
+    params, edges, n_steps, drive_schedule = _site_case(delay, scheduled)
+    v, _, _, st = _run_rbd(
+        params,
+        edges,
+        n_steps=n_steps,
+        drive_schedule=drive_schedule,
+        rbd_family="f1",
+        kappa_h=2.0,
+        beta_h=0.5,
+    )
+    assert float(jnp.max(jnp.abs(st["H_trace"] - 1.0))) > 1e-3, "fixture must move H"
+    v0, _, _, _ = _h_free_run(params, edges, n_steps, drive_schedule)
+    assert not np.array_equal(np.asarray(v), np.asarray(v0))
