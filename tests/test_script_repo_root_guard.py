@@ -205,9 +205,11 @@ def _first_cover_line(path: Path, tree: ast.Module, covered: set[Path]) -> int |
 
 
 def _all_files() -> list[Path]:
+    # artifacts/_temp/ is the gitignored scratch area: local, never shipped, out of scope.
+    temp = REPO / "artifacts" / "_temp"
     out: list[Path] = []
     for root in ROOTS:
-        out.extend(sorted((REPO / root).rglob("*.py")))
+        out.extend(p for p in sorted((REPO / root).rglob("*.py")) if temp not in p.parents)
     return out
 
 
