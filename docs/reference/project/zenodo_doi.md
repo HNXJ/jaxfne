@@ -18,11 +18,12 @@ Official reference: [Zenodo versioning FAQ](https://zenodo.org/help/versioning).
 | **Concept DOI** | Yes (one per project) | Landing page of the **latest** version | README badge, “cite this software” generically, `CITATION.cff` project id |
 | **Version DOI** | No (new one each Release) | That exact snapshot | Papers / receipts that must pin a specific release |
 
-jaxfne (Zenodo API, 2026-10-16: 16 versions, v0.4.7 to v0.5.6, all under one concept):
+jaxfne (Zenodo API, 2026-10-16: 16 versions, v0.4.7 to v0.5.6, all under one concept; v0.5.7 record read 2026-10-26):
 
 ```text
 v0.4.7 (version DOI):  10.5281/zenodo.21448156
 v0.5.6 (version DOI):  10.5281/zenodo.23404707
+v0.5.7 (version DOI):  10.5281/zenodo.23566508   ← Zenodo date 2026-10-22; GitHub Release 2026-10-21 (UTC)
 Concept DOI (all versions): 10.5281/zenodo.21448155   ← in CITATION.cff, README, citation.md
 ```
 
