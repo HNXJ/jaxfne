@@ -664,7 +664,7 @@ quantitative regimes.
 | CL-20 | deterministic_numerical_property | 1 |
 | CL-21 | method_reproducibility | — (reproduction verification) |
 
-Basis: `publication_claim_ledger.json` (all 21 rows verbatim from the `evidence_regime`
+Basis: `publication_claim_ledger.json` (rows CL-01 to CL-21 verbatim from the `evidence_regime`
 field); family mapping follows Methods §12.
 
 ---

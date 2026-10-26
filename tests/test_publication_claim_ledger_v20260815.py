@@ -91,6 +91,36 @@ def test_c3_scope_qualifier_preserved(ledger):
     assert "preregistered" in cl6["allowed_manuscript_language"]
 
 
+# Evidence that was never tracked (the E2 delta cited it as written, H4 merge 2026-10-26).
+# Listed so the defect stays visible; an entry that resolves fails as stale.
+KNOWN_UNTRACKED = {
+    ("CL-34", "artifacts/developer/resolution/34_E2_FIGURE_CLAIM_REMAP.md"),
+    ("CL-34", "artifacts/developer/resolution/35_E2_EVIDENCE_VERSIONING_PLAN.md"),
+}
+
+
+def _json_key(path, dotted):
+    """True when the dotted key path resolves from some object in the file (fragments may start mid-tree)."""
+
+    def resolves(node):
+        for part in dotted.split("."):
+            if not isinstance(node, dict) or part not in node:
+                return False
+            node = node[part]
+        return True
+
+    stack = [json.loads(path.read_text(encoding="utf-8"))]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, dict):
+            if resolves(node):
+                return True
+            stack.extend(node.values())
+        elif isinstance(node, list):
+            stack.extend(node)
+    return False
+
+
 def test_evidence_artifacts_resolve_to_tracked_paths(ledger):
     import subprocess
 
@@ -100,9 +130,15 @@ def test_evidence_artifacts_resolve_to_tracked_paths(ledger):
             ["git", "ls-files"], cwd=root, capture_output=True, text=True, check=True
         ).stdout.splitlines()
     )
+    untracked = set()
     for c in ledger["ledger"]:
         for art in c["evidence_artifacts"]:
             if "*" in art:
                 continue
-            rel = art.replace("\\", "/")
-            assert rel in tracked, f"{c['claim_id']}: untracked artifact {art}"
+            rel, _, key = art.replace("\\", "/").partition("#")
+            if rel not in tracked:
+                untracked.add((c["claim_id"], rel))
+                continue
+            if key:
+                assert _json_key(root / rel, key), f"{c['claim_id']}: no key {key!r} in {rel}"
+    assert untracked == KNOWN_UNTRACKED, f"untracked evidence: {sorted(untracked ^ KNOWN_UNTRACKED)}"

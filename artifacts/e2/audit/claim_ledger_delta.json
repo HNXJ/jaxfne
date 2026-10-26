@@ -1,6 +1,6 @@
 {
   "schema": "jaxfne.audit.claim_ledger_delta.v1",
-  "description": "Additive claim-ledger delta: base 21 rows CL-01..21 bit-identical to publication_claim_ledger.json; delta rows CL-22..29 extend per 28:147-158 and 34; polarity NEGATIVE/UNRESOLVED with forbidden_overclaim preserved; publication_claim_ledger.json NOT rewritten",
+  "description": "Additive claim-ledger delta: base 21 rows CL-01..21 bit-identical to publication_claim_ledger.json; delta rows CL-27..34 extend per 28:147-158 and 34; polarity NEGATIVE/UNRESOLVED with forbidden_overclaim preserved; publication_claim_ledger.json NOT rewritten",
   "generated_at": "2026-08-26T02:14:38Z",
   "parent_e1": "07b1c04af9ea98176bc45350528f3312375f7d24",
   "parent_e1_short": "07b1c04",
@@ -91,7 +91,7 @@
   },
   "delta_ledger": [
     {
-      "claim_id": "CL-22",
+      "claim_id": "CL-27",
       "claim": "V1 ~1000-neuron sparse E/I circuit PING-like rhythm not detected at theta* under frozen conjunctive criteria (intact 0/5 PING_LIKE); ~7 Hz synchronous population-pulse regime with harmonic-comb gamma peaks, not PING oscillator (V1 NEGATIVE_NOT_PING_LIKE)",
       "allowed_manuscript_language": "In the preregistered confirmatory arm (V1: 7 arms x 5 seeds at theta*), networks met adequacy gates in 5/5 seeds but satisfied none of the four frozen PING-classifier criteria in any seed (verdict NEGATIVE_NOT_PING_LIKE), instead exhibiting a ~7 Hz globally synchronous population-pulse rhythm whose gamma-band spectral peaks fall below the frozen prominence gate; these results therefore support only the bounded statement that no PING-like signature was detected at theta* under the frozen criteria, carry no implication about other regions of the parameter space, and are independent of the CL-06 NO_WAVE result",
       "evidence_artifacts": [
@@ -170,7 +170,7 @@
       "status": "NEGATIVE"
     },
     {
-      "claim_id": "CL-23",
+      "claim_id": "CL-28",
       "claim": "V1/V2 field/probe observation is pure downstream composition of accepted source (linear F, Q=0=>Y=0, probe-invariance (X,H,B,Q,G)_P1 = (X,H,B,Q,G)_P2, observation_off => E4->E3) on ~1000-neuron rhythm/oddball windows",
       "allowed_manuscript_language": "Field and probe readouts are linear downstream compositions of the frozen relative source; downstream LFP-like readouts are proxy-level and not calibrated to physical amplitude",
       "evidence_artifacts": [
@@ -182,7 +182,7 @@
       "figure_or_table_destination": "Fig. 8 observation-purity panel (staged) + Methods observation boundary",
       "forbidden_overclaim": "Do not claim downstream LFP/CSD/EEG/MEG proxy is licensed for inference beyond method illustration; physical_amplitude_calibrated=false; no field-feedback or inversion claim; if gate fails downstream LFP proxy claims withheld per purity hygiene",
       "manuscript_destination": "Methods (observation boundary) + Fig. 8 caption purity note",
-      "null_or_control": "Linearity check F(aQ1+bQ2)=aF(Q1)+bF(Q2); zero-source gate Q=0 => Y=0; probe-invariance (X,H,B,Q,G) bit-exact when probes differ; continuation/delay_state bit-exact; staged: neural CL-22 stays even if purity FAIL",
+      "null_or_control": "Linearity check F(aQ1+bQ2)=aF(Q1)+bF(Q2); zero-source gate Q=0 => Y=0; probe-invariance (X,H,B,Q,G) bit-exact when probes differ; continuation/delay_state bit-exact; staged: neural CL-27 stays even if purity FAIL",
       "provenance": "Inherited from E1 CL-03/CL-16 purity discipline (probe-independence receipts) + E2 masks owner_mask_spec_hash 51105b03, owner_mask_bytes_hash 83af8971; to be re-verified on V1/V2 carriers under e2b_v* executors when phase-matched control executes; parent_e1 07b1c04",
       "quantitative_result": {
         "purity_reverified_on_V1V2_carriers": false,
@@ -195,7 +195,7 @@
       "status": "UNRESOLVED"
     },
     {
-      "claim_id": "CL-24",
+      "claim_id": "CL-29",
       "claim": "V2 SSA multi-channel oddball shows no stimulus-specific adaptation at theta* (pooled SI -0.084 BCa [-0.108,-0.034], deviant below standard, pooled swap asymmetry 0.426 >> 0.10; V2 NEGATIVE: FAIL_SI_gate + FAIL_swap_asymmetry + SIGN_deviant_below_standard)",
       "allowed_manuscript_language": "In the confirmatory SSA arm (V2: 20 replicates x 5 blocks under e2_ssa_spec.v6), networks met adequacy gates in 20/20 replicates but showed no stimulus-specific adaptation: pooled SI = -0.084 (BCa [-0.108, -0.034], deviant below standard) with role-reversal asymmetry 0.426 >> 0.10 (frozen S2 falsifier), i.e., spatial-identity attenuation rather than deviance detection; verdict NEGATIVE with failure taxonomy retained",
       "evidence_artifacts": [
@@ -297,7 +297,7 @@
       "status": "NEGATIVE"
     },
     {
-      "claim_id": "CL-25",
+      "claim_id": "CL-30",
       "claim": "SSA mechanistic attribution via typed H_K->b_eff expression (D(1,Gamma,0) vs N1(1,I,0) Delta_mech SI >=0.08 with H_K>1+theta_H, leak |Delta_leak|<0.05) not demonstrated; mechanism-matrix S4 CONFIRMATORY_DEFERRED_v3 (8 cells H_write x Gamma_H x HDP) — no D vs N1 contrast executed (UNRESOLVED)",
       "allowed_manuscript_language": "Mechanistic attribution of SSA to the tested RBS path was not assessed in this epoch; mechanism-matrix remains deferred and no D-C contrast is reported",
       "evidence_artifacts": [
@@ -321,7 +321,7 @@
       "status": "UNRESOLVED"
     },
     {
-      "claim_id": "CL-26",
+      "claim_id": "CL-31",
       "claim": "Typed H state as contingency on V1/V2 circuits: H=H* recovery => bit-exact baseline, H!=H* with Gamma_H=I causally invisible to rhythm/SSA on W (latent storage vs expression separation) — tiered gates 94/95 not executed in this epoch (UNRESOLVED)",
       "allowed_manuscript_language": "Typed H-state contingency was declared but not executed on the V1/V2 ~1000-neuron carriers in this epoch; H=H* and Gamma=I invisibility remain to be demonstrated per 28 Block D",
       "evidence_artifacts": [
@@ -339,7 +339,7 @@
       "status": "UNRESOLVED"
     },
     {
-      "claim_id": "CL-27",
+      "claim_id": "CL-32",
       "claim": "Neutral HDP ride-along on V1/V2 (W=W0*exp(omega), tau dω/dt=κΔH - λω, ω(t)=ω0 exp(-λt/tau), latent disablement Gamma=I still invisible while ω logged, W frozen during readout or applied post-assay) — optional gated, not authorized in this epoch; closed-loop stability remains UNRESOLVED per W3b 0 S/1944 X/243 D discipline",
       "allowed_manuscript_language": "Neutral HDP staging, if ever authorized, would keep W frozen during rhythm/SSA readout; closed-loop stability is not claimed and remains flagged-open",
       "evidence_artifacts": [
@@ -364,7 +364,7 @@
       "status": "UNRESOLVED"
     },
     {
-      "claim_id": "CL-28",
+      "claim_id": "CL-33",
       "claim": "Evidence layering & manifests green (directory lattice prereg->exploratory->confirmatory raw->summary->figures->manifests->audits, provenance sidecar wall_clock/python/jax/platform, hash replay, decoded-pixel reproducibility) — lattice exists but manifest green not claimed until cross_e2_audit PASS in this epoch (UNRESOLVED pending audit generator)",
       "allowed_manuscript_language": "Evidence layering follows the preregistry-tolerated file lattice; manifest and audit green are to be assessed by the cross-audit generator",
       "evidence_artifacts": [
@@ -390,7 +390,7 @@
       "status": "UNRESOLVED"
     },
     {
-      "claim_id": "CL-29",
+      "claim_id": "CL-34",
       "claim": "Figure synthesis Figs.8-9 first-class (fig08_e2_ping_spec.json Fig08.V1_A..H, fig09_e2_ssa_spec.json Fig09.V2_A..F, pinned generators scripts/internal/publication/fig08/09) not yet promoted; generation awaits supplement S-Pulse/S18 freeze and manifest green (UNRESOLVED pending render)",
       "allowed_manuscript_language": "New figures are first-class, generated from frozen specs+raw+summaries via pinned scripts with receipt authority and excluded-content lists; no hand-retouched data pixels",
       "evidence_artifacts": [
@@ -874,7 +874,7 @@
       "status": "METHOD_ONLY"
     },
     {
-      "claim_id": "CL-22",
+      "claim_id": "CL-27",
       "claim": "V1 ~1000-neuron sparse E/I circuit PING-like rhythm not detected at theta* under frozen conjunctive criteria (intact 0/5 PING_LIKE); ~7 Hz synchronous population-pulse regime with harmonic-comb gamma peaks, not PING oscillator (V1 NEGATIVE_NOT_PING_LIKE)",
       "allowed_manuscript_language": "In the preregistered confirmatory arm (V1: 7 arms x 5 seeds at theta*), networks met adequacy gates in 5/5 seeds but satisfied none of the four frozen PING-classifier criteria in any seed (verdict NEGATIVE_NOT_PING_LIKE), instead exhibiting a ~7 Hz globally synchronous population-pulse rhythm whose gamma-band spectral peaks fall below the frozen prominence gate; these results therefore support only the bounded statement that no PING-like signature was detected at theta* under the frozen criteria, carry no implication about other regions of the parameter space, and are independent of the CL-06 NO_WAVE result",
       "evidence_artifacts": [
@@ -953,7 +953,7 @@
       "status": "NEGATIVE"
     },
     {
-      "claim_id": "CL-23",
+      "claim_id": "CL-28",
       "claim": "V1/V2 field/probe observation is pure downstream composition of accepted source (linear F, Q=0=>Y=0, probe-invariance (X,H,B,Q,G)_P1 = (X,H,B,Q,G)_P2, observation_off => E4->E3) on ~1000-neuron rhythm/oddball windows",
       "allowed_manuscript_language": "Field and probe readouts are linear downstream compositions of the frozen relative source; downstream LFP-like readouts are proxy-level and not calibrated to physical amplitude",
       "evidence_artifacts": [
@@ -965,7 +965,7 @@
       "figure_or_table_destination": "Fig. 8 observation-purity panel (staged) + Methods observation boundary",
       "forbidden_overclaim": "Do not claim downstream LFP/CSD/EEG/MEG proxy is licensed for inference beyond method illustration; physical_amplitude_calibrated=false; no field-feedback or inversion claim; if gate fails downstream LFP proxy claims withheld per purity hygiene",
       "manuscript_destination": "Methods (observation boundary) + Fig. 8 caption purity note",
-      "null_or_control": "Linearity check F(aQ1+bQ2)=aF(Q1)+bF(Q2); zero-source gate Q=0 => Y=0; probe-invariance (X,H,B,Q,G) bit-exact when probes differ; continuation/delay_state bit-exact; staged: neural CL-22 stays even if purity FAIL",
+      "null_or_control": "Linearity check F(aQ1+bQ2)=aF(Q1)+bF(Q2); zero-source gate Q=0 => Y=0; probe-invariance (X,H,B,Q,G) bit-exact when probes differ; continuation/delay_state bit-exact; staged: neural CL-27 stays even if purity FAIL",
       "provenance": "Inherited from E1 CL-03/CL-16 purity discipline (probe-independence receipts) + E2 masks owner_mask_spec_hash 51105b03, owner_mask_bytes_hash 83af8971; to be re-verified on V1/V2 carriers under e2b_v* executors when phase-matched control executes; parent_e1 07b1c04",
       "quantitative_result": {
         "purity_reverified_on_V1V2_carriers": false,
@@ -978,7 +978,7 @@
       "status": "UNRESOLVED"
     },
     {
-      "claim_id": "CL-24",
+      "claim_id": "CL-29",
       "claim": "V2 SSA multi-channel oddball shows no stimulus-specific adaptation at theta* (pooled SI -0.084 BCa [-0.108,-0.034], deviant below standard, pooled swap asymmetry 0.426 >> 0.10; V2 NEGATIVE: FAIL_SI_gate + FAIL_swap_asymmetry + SIGN_deviant_below_standard)",
       "allowed_manuscript_language": "In the confirmatory SSA arm (V2: 20 replicates x 5 blocks under e2_ssa_spec.v6), networks met adequacy gates in 20/20 replicates but showed no stimulus-specific adaptation: pooled SI = -0.084 (BCa [-0.108, -0.034], deviant below standard) with role-reversal asymmetry 0.426 >> 0.10 (frozen S2 falsifier), i.e., spatial-identity attenuation rather than deviance detection; verdict NEGATIVE with failure taxonomy retained",
       "evidence_artifacts": [
@@ -1080,7 +1080,7 @@
       "status": "NEGATIVE"
     },
     {
-      "claim_id": "CL-25",
+      "claim_id": "CL-30",
       "claim": "SSA mechanistic attribution via typed H_K->b_eff expression (D(1,Gamma,0) vs N1(1,I,0) Delta_mech SI >=0.08 with H_K>1+theta_H, leak |Delta_leak|<0.05) not demonstrated; mechanism-matrix S4 CONFIRMATORY_DEFERRED_v3 (8 cells H_write x Gamma_H x HDP) — no D vs N1 contrast executed (UNRESOLVED)",
       "allowed_manuscript_language": "Mechanistic attribution of SSA to the tested RBS path was not assessed in this epoch; mechanism-matrix remains deferred and no D-C contrast is reported",
       "evidence_artifacts": [
@@ -1104,7 +1104,7 @@
       "status": "UNRESOLVED"
     },
     {
-      "claim_id": "CL-26",
+      "claim_id": "CL-31",
       "claim": "Typed H state as contingency on V1/V2 circuits: H=H* recovery => bit-exact baseline, H!=H* with Gamma_H=I causally invisible to rhythm/SSA on W (latent storage vs expression separation) — tiered gates 94/95 not executed in this epoch (UNRESOLVED)",
       "allowed_manuscript_language": "Typed H-state contingency was declared but not executed on the V1/V2 ~1000-neuron carriers in this epoch; H=H* and Gamma=I invisibility remain to be demonstrated per 28 Block D",
       "evidence_artifacts": [
@@ -1122,7 +1122,7 @@
       "status": "UNRESOLVED"
     },
     {
-      "claim_id": "CL-27",
+      "claim_id": "CL-32",
       "claim": "Neutral HDP ride-along on V1/V2 (W=W0*exp(omega), tau dω/dt=κΔH - λω, ω(t)=ω0 exp(-λt/tau), latent disablement Gamma=I still invisible while ω logged, W frozen during readout or applied post-assay) — optional gated, not authorized in this epoch; closed-loop stability remains UNRESOLVED per W3b 0 S/1944 X/243 D discipline",
       "allowed_manuscript_language": "Neutral HDP staging, if ever authorized, would keep W frozen during rhythm/SSA readout; closed-loop stability is not claimed and remains flagged-open",
       "evidence_artifacts": [
@@ -1147,7 +1147,7 @@
       "status": "UNRESOLVED"
     },
     {
-      "claim_id": "CL-28",
+      "claim_id": "CL-33",
       "claim": "Evidence layering & manifests green (directory lattice prereg->exploratory->confirmatory raw->summary->figures->manifests->audits, provenance sidecar wall_clock/python/jax/platform, hash replay, decoded-pixel reproducibility) — lattice exists but manifest green not claimed until cross_e2_audit PASS in this epoch (UNRESOLVED pending audit generator)",
       "allowed_manuscript_language": "Evidence layering follows the preregistry-tolerated file lattice; manifest and audit green are to be assessed by the cross-audit generator",
       "evidence_artifacts": [
@@ -1173,7 +1173,7 @@
       "status": "UNRESOLVED"
     },
     {
-      "claim_id": "CL-29",
+      "claim_id": "CL-34",
       "claim": "Figure synthesis Figs.8-9 first-class (fig08_e2_ping_spec.json Fig08.V1_A..H, fig09_e2_ssa_spec.json Fig09.V2_A..F, pinned generators scripts/internal/publication/fig08/09) not yet promoted; generation awaits supplement S-Pulse/S18 freeze and manifest green (UNRESOLVED pending render)",
       "allowed_manuscript_language": "New figures are first-class, generated from frozen specs+raw+summaries via pinned scripts with receipt authority and excluded-content lists; no hand-retouched data pixels",
       "evidence_artifacts": [
@@ -1201,28 +1201,28 @@
     "delta_rows": 8,
     "total_rows": 29,
     "delta_claim_ids": [
-      "CL-22",
-      "CL-23",
-      "CL-24",
-      "CL-25",
-      "CL-26",
       "CL-27",
       "CL-28",
-      "CL-29"
+      "CL-29",
+      "CL-30",
+      "CL-31",
+      "CL-32",
+      "CL-33",
+      "CL-34"
     ]
   },
   "polarity_summary": {
     "NEGATIVE_delta": [
-      "CL-22",
-      "CL-24"
+      "CL-27",
+      "CL-29"
     ],
     "UNRESOLVED_delta": [
-      "CL-23",
-      "CL-25",
-      "CL-26",
-      "CL-27",
       "CL-28",
-      "CL-29"
+      "CL-30",
+      "CL-31",
+      "CL-32",
+      "CL-33",
+      "CL-34"
     ],
     "SUPPORTED_delta": []
   },
@@ -1243,8 +1243,8 @@
       "CL-19"
     ],
     "forbidden_overclaim_audit": "PASS",
-    "forbidden_overclaim_detail": "All 6 E1 NEGATIVE/UNRESOLVED rows retain exact forbidden_overclaim strings; delta rows CL-22..29 each carry explicit forbidden_overclaim (NEGATIVE/UNRESOLVED discipline)",
-    "W3b_discipline": "N_S=0, N_X=1944, X=1944, D=243, total 2187 preserved as unresolved_not_negative in CL-11/CL-19 and CL-27",
+    "forbidden_overclaim_detail": "All 6 E1 NEGATIVE/UNRESOLVED rows retain exact forbidden_overclaim strings; delta rows CL-27..34 each carry explicit forbidden_overclaim (NEGATIVE/UNRESOLVED discipline)",
+    "W3b_discipline": "N_S=0, N_X=1944, X=1944, D=243, total 2187 preserved as unresolved_not_negative in CL-11/CL-19 and CL-32",
     "publication_claim_ledger_not_rewritten": true,
     "publication_claim_ledger_rows_stays": 21,
     "delta_is_additive": true,
@@ -1258,9 +1258,9 @@
     "write_once": true
   },
   "provenance": {
-    "generating_code": "artifacts/e2/audit/claim_ledger_delta.json generated by CL-22..29 additive pass; no E1 receipt edited; git diff --name-only 07b1c04 -- artifacts/publication/publication_claim_ledger.json must be empty",
+    "generating_code": "artifacts/e2/audit/claim_ledger_delta.json generated by CL-27..34 additive pass; no E1 receipt edited; git diff --name-only 07b1c04 -- artifacts/publication/publication_claim_ledger.json must be empty",
     "base_ledger_snapshot_embedded": "ledger[0:21] is exact deep copy of artifacts/publication/publication_claim_ledger.json ledger at sha 823b6e9c",
-    "delta_ledger_definition": "delta rows CL-22..29 per 28_E2_REVISED_FINAL_GOALS.md:147-158 Block B/C/D/E/F and 34_E2_FIGURE_CLAIM_REMAP.md s3.2 prospectives, now instantiated with observed E2 negatives (V1 0/5, V2 pooled SI -0.084) and staged UNRESOLVED for not-yet-executed H/HDP/manifest/figure gates",
+    "delta_ledger_definition": "delta rows CL-27..34 per 28_E2_REVISED_FINAL_GOALS.md:147-158 Block B/C/D/E/F and 34_E2_FIGURE_CLAIM_REMAP.md s3.2 prospectives, now instantiated with observed E2 negatives (V1 0/5, V2 pooled SI -0.084) and staged UNRESOLVED for not-yet-executed H/HDP/manifest/figure gates",
     "E2_SYNTHESIS_source": "artifacts/e2/E2_SYNTHESIS.md HEAD d84fa80 + artifacts/e2/S_PULSE_CHARACTERIZATION.md",
     "receipt_shas": {
       "v1_ping_receipt": "bfa7b1feabae",
