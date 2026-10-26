@@ -7,6 +7,10 @@ edits). Open issues: `artifacts/assurance/issue_log/ISSUE_LOG.md`. Other editors
 first, amend in place.
 After 0.5.8, rows serve G-0 (`artifacts/programme/design/plans/arxiv_paper_plan.md`): each names its F, S or C id.
 G-0 findings from lanes L1-L9 (2026-10-25/26):
+- [A] C9, C2: 16 gaps in `artifacts/programme/paper/reproducibility_audit.md` section 7. Agent rows: a figure
+  lock file, the publication gate in a workflow, a clean-checkout figure job, the v0.5.7 version DOI
+  (10.5281/zenodo.23566508) in the citation record. [H] rows: the LICENSE name "H N", the data and code
+  statement, external data licences (PCL, CAMINOS), the F1-F8 to frozen fig01-fig07 mapping, S16 generators.
 - [H] C10: `docs/reference/references.md` lists 112 entries, 94 figure-linked, against the 80 cap
   (`artifacts/programme/paper/references_inventory.md`: plasticity 8 and fitting 7 short; other 20, fields 7,
   tools 4 over; JAX itself uncited; E054 repeats E004). The cut and the category map are Hamm's call.
