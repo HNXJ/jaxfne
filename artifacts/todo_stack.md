@@ -155,8 +155,11 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
 - [A] Check whether the manifests hash `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log`; if none does, record it.
 - T-O69 [A] 0.5.9 lanes per the release plan, at most 3 Haiku workers in clones under `E:/repos/_wt/jaxfne/`.
   Running: E1 core (`connections(weight_range=)`, `Simulation(gaussian_drive=)`, realize or refuse per kernel;
-  P-045), Brunel S1 lane option `in_degree=(CE, CI)` then the S1 runs (A-D, seeds 4-8, N=6250). Next: the S2
-  generator, the coupling-bypass mutant (9B), evidence writers into `artifacts/_temp/`.
+  P-045), the coupling-bypass check (9B), evidence writers into `artifacts/_temp/` (9F). Brunel S1 option on
+  dev; the S1 runs (A-D, seeds 4-8, N=6250) start once it is pushed. Next: PORT_SPEC citations by symbol (73
+  `jaxfne/*.py:N` citations in brunel2000, mejias2016, potjans2014, vogels2011 are stale, e.g. brunel row 8
+  cites the Bernoulli sampler for fixed in-degree) with a check that refuses line citations. The S2 generator
+  waits on the D35 calibration call (C3 row).
 - T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
   and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
