@@ -12,8 +12,10 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
   run (40346237854, Linux): all 7 figures render at the frozen dimensions; RGBA matches for fig01, 02, 06, 07
   and differs for fig03-05; bytes differ for all (pixels and bytes are pinned to the macOS freeze platform). Closed 2026-10-26: the v0.5.7
   version DOI is in `docs/reference/project/zenodo_doi.md`; the 0.5.7 date in the release authority file
-  matches the GitHub Release (2026-10-21 UTC; Zenodo dates its record 2026-10-22). [H] rows: the LICENSE name
-  "H N", the data and code statement, external data licences (PCL, CAMINOS), S16 generators.
+  matches the GitHub Release (2026-10-21 UTC; Zenodo dates its record 2026-10-22). H5 ruled 2026-10-26: LICENSE
+  names Hamed Nejat; cite, never redistribute; PCL code, PCL data and CAMINOS mean-field code are CC-BY 4.0
+  (SOURCE_P1 files). Left: the data and code statement text (0.5.11 manuscript); PCL's natural-image set and
+  DVS128/N-MNIST licences unknown; S16 generators.
 - [H] C10: `docs/reference/references.md` lists 112 entries, 94 figure-linked, against the 80 cap
   (`artifacts/programme/paper/references_inventory.md`: plasticity 8 and fitting 7 short; other 20, fields 7,
   tools 4 over; JAX itself uncited; E054 repeats E004). The cut and the category map are Hamm's call.
@@ -27,13 +29,11 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
   (`apply_calibration`, `CalibrationSpec`). No symbol: D28 (`ValueTag` lacks B, R, E, T). D31 and D32 need a code
   path that exposes a_eff and the AdEx clip. Public API choices: orchestrator, then Hamm. S1 and S5 regenerate
   with `python scripts/publication_figures/supplement.py`; S2 and the F1, F3 generators remain.
-- [H] C1: `python scripts/check_manuscript_claims.py` (lane L12) counts 0 cited ids missing from the ledger, 0
-  statuses outside the tier set, 5 uncited ledger ids (CL-22 to CL-26) and 17 orphan candidates (abstract 1,
-  results 16; results.md cites no CL id). CL-22 to CL-26 name AT-10 claims in
-  `artifacts/publication/publication_claim_ledger.json` and E2 V1/V2 claims in
-  `artifacts/e2/audit/claim_ledger_delta.json` (CL-22 to CL-29), which the S.18 traceability map follows; the
-  manuscript supplement says "all 21 rows" against 26. Which numbering holds is Hamm's call; the results
-  citations follow it.
+- [A] C1: H4 ruled 2026-10-26 and landed: the ledger holds CL-01 to CL-34 (E2 V1/V2 claims are CL-27 to CL-34).
+  Left: results.md cites no CL id (17 orphan candidates in `check_manuscript_claims.py`); CL-34 cites two
+  `artifacts/developer/resolution/` documents that were never tracked (`KNOWN_UNTRACKED` in
+  `tests/test_publication_claim_ledger_v20260815.py`): point it at tracked Fig. 8/9 evidence or record it as
+  unsupported; `claim_ledger_delta.json` still describes its base as 21 rows.
 - [H] C6, S6: benchmark protocol choices (`artifacts/programme/benchmarks/README.md`); brian2 and NEST not installed.
   `scripts/cortical_column_localized_workflow.build_config`, which the Izhikevich benchmark calls, raises at HEAD: the
   builder refuses `geometry='uniform3d'` with `layers` and `ei_profile='canonical'`. The repair picks a geometry.
@@ -153,6 +153,11 @@ clones, verified before integration):
 Open-stack rows (each closes its `O-n`; the open stack empties when these close; audits 2026-10-25):
 - T-O61 cosmetic [A] (wording approved by Hamm 2026-10-25): tier labels differ, REPLICATIONS against dashboard.
 - [A] Check whether the manifests hash `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log`; if none does, record it.
+- T-O69 [A] 0.5.9 lanes per the release plan, at most 3 Haiku workers in clones under `E:/repos/_wt/jaxfne/`;
+  next after the running three: Izhikevich E1 on the construct path (9C, orchestrator designs the API), the S2
+  generator, Brunel S1 `fixed_indegree` (9C), the coupling-bypass mutant (9B).
+- T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
+  and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
 - T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
 - T-O68 [H] local copies and the layout rule (see O-68): each held copy is deleted or sits at

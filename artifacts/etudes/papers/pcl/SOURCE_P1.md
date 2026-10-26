@@ -42,7 +42,7 @@ Causal STDP on every connection, applied at each postsynaptic spike over the eve
 - Paper: open access (observed nature.com article page).
 - Reference code: github.com/comsee-research/Predictive-Coding-Light, C++ event-driven (observed README.md:4-6, PORT_SPEC.md:5-6). Read as text only; the transcription lists its source files with line ranges (observed port/pcl_event_ref.py:1-13).
 - Archived code: Zenodo 10.5281/zenodo.16836801, CC-BY 4.0 (observed PORT_SPEC.md:3-4).
-- Trained networks and data: Zenodo 10.5281/zenodo.16813454, local copy `F:\warehouse\pcl\zenodo` (observed PORT_SPEC.md:4-5). That archive's licence is **unknown** here.
+- Trained networks and data: Zenodo 10.5281/zenodo.16813454, local copy `F:\warehouse\pcl\zenodo` (observed PORT_SPEC.md:4-5). Licence CC-BY 4.0 (Zenodo API, latest version 10.5281/zenodo.16813455, read 2026-10-26).
 - Fig. 3 source image: CC BY-NC-ND 4.0, kept outside the repo (`F:\warehouse\pcl\paper\`), SHA-256 checked per run (observed P3_fig3_v5.md:26-28).
 - Natural-image training set identity and licence: **unknown** (the lane records read name only "natural images").
 - `test7` stimulus provenance: **unknown** (only its axes were measured from the events).

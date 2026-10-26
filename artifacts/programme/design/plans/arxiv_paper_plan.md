@@ -89,3 +89,6 @@ manuscript rewrite, refreeze (C2), review (C11), arXiv (C12). 0.6.0: acceptance.
   fig07 stay frozen evidence outside the paper.
 - 2026-10-26 (Hamm, H2): D21 maps to `jaxfne.emitters.resolve_edge_weight`; D34 becomes the public
   `jaxfne.emitters.rbd_recurrent_gain`.
+- 2026-10-26 (Hamm, H4): the publication ledger keeps CL-1 to CL-26; the E2 V1/V2 claims are CL-27 to
+  CL-34. H5: LICENSE names Hamed Nejat; the data and code statement cites third-party inputs by DOI and
+  licence and never redistributes them.

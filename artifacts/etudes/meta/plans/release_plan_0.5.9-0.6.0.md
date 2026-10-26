@@ -34,9 +34,9 @@ runs wait for signatures. At most 3 lanes.
 |---|---|---|
 | H1 | F1–F8 against frozen fig01–fig07 | Ruled 2026-10-26: F1 fig01, F3 fig06, S15 fig05; fig02–04 and fig07 stay frozen evidence outside the paper |
 | H2 | 9A names | Ruled 2026-10-26: D21 maps to the existing public `resolve_edge_weight`; D34 becomes public `rbd_recurrent_gain` |
-| H3 | Signatures | Potjans, Vogels; GSDR, Destexhe after pilots; Izhikevich E1; PCL-R4 |
-| H4 | C1 numbering CL-22 to CL-26 | before 0.5.11 |
-| H5 | LICENSE name, data statement, data licences | before 0.5.11 |
+| H3 | Signatures | Open: the Potjans and Vogels preregs are templates; estimands and pilots first, then signature; GSDR, Destexhe after pilots; Izhikevich E1; PCL-R4 |
+| H4 | C1 numbering CL-22 to CL-26 | Ruled 2026-10-26: the ledger keeps CL-1 to CL-26; E2 claims are CL-27 to CL-34 |
+| H5 | LICENSE name, data statement, data licences | Ruled 2026-10-26: LICENSE names Hamed Nejat; third-party inputs are cited by DOI and licence and never redistributed |
 
 ## Later releases
 
