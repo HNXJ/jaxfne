@@ -82,6 +82,8 @@ by `atlas_run.json`). They are already inside the measured tree. A raise by thei
 budget to 100,827,299 bytes, above the standing 100,000,000 cap, so it is not applied; Hamm decides.
 Sixth increment: +8,000 bytes and +1 file (90,233,000 -> 90,241,000; 2561 -> 2562) for the paper plan
 `artifacts/programme/design/plans/arxiv_paper_plan.md` (G-0, Hamm 2026-10-25: "6kb is ok"), its goal and
-todo lines, and this entry. Second to sixth increments: +36,000 bytes (90,205,000 -> 90,241,000) and
-+3 files (2559 -> 2562). Further raises wait
+todo lines, and this entry; +1 file (2563) for the cherry-picked Vogels fix fragment
+`changelog.d/istdp_vogels2011_traces.fixed.md`, reclaimed at release when `assemble_changelog.py` deletes
+the fragments. Second to sixth increments: +36,000 bytes (90,205,000 -> 90,241,000) and +4 files
+(2559 -> 2563). Further raises wait
 for a consolidated review.

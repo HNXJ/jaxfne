@@ -58,7 +58,7 @@ def _ctx(*, spikes, pre_sp, aux=None, rule_params=None):
     n = 2
     return HDPRuleContext(
         H=jnp.ones((n,)),
-        aux=jnp.zeros((n, 2)) if aux is None else jnp.asarray(aux),
+        aux=jnp.zeros((1, 2)) if aux is None else jnp.asarray(aux),  # (A_pre, A_post) of the one edge
         v=jnp.zeros((n,)),
         u=jnp.zeros((n,)),
         spikes=jnp.asarray(spikes, dtype=jnp.float64),
@@ -96,12 +96,12 @@ def test_alpha_default_is_paper_value():
 
 
 def test_pre_spike_depresses_without_post_trace():
-    """Lone presynaptic spike on neuron 1: A_pre[1] += 1 (and its own
-    A_post[1] += 1, every neuron carries both traces), w += (0-alpha)*eta."""
+    """Lone presynaptic arrival on the edge 1 -> 0: its A_pre += 1, its
+    A_post unchanged (neuron 0 is silent), w += (0-alpha)*eta."""
     upd = _step(_ctx(spikes=[0.0, 1.0], pre_sp=[1.0]))
     np.testing.assert_allclose(np.asarray(upd.dH), [0.0, 0.0], rtol=0, atol=0)
     np.testing.assert_allclose(
-        np.asarray(upd.d_aux), [[0.0, 0.0], [1.0 / DT_MS, 1.0 / DT_MS]], rtol=1e-12,
+        np.asarray(upd.d_aux), [[1.0 / DT_MS, 0.0]], rtol=1e-12,
     )
     np.testing.assert_allclose(
         np.asarray(upd.d_theta["edge_weight"]),
@@ -112,10 +112,10 @@ def test_pre_spike_depresses_without_post_trace():
 
 def test_post_spike_potentiates_with_pre_trace():
     """Postsynaptic spike with A_pre = 0.5: A_post += 1, w += 0.5*eta."""
-    aux = [[0.0, 0.0], [0.5, 0.0]]
+    aux = [[0.5, 0.0]]
     upd = _step(_ctx(spikes=[1.0, 0.0], pre_sp=[0.0], aux=aux))
     np.testing.assert_allclose(
-        np.asarray(upd.d_aux), [[0.0, 1.0 / DT_MS], [-0.5 / TAU_MS, 0.0]], rtol=1e-12,
+        np.asarray(upd.d_aux), [[-0.5 / TAU_MS, 1.0 / DT_MS]], rtol=1e-12,
     )
     np.testing.assert_allclose(
         np.asarray(upd.d_theta["edge_weight"]), [ETA * 0.5 / DT_MS], rtol=1e-12,
@@ -216,8 +216,42 @@ def test_kernel_moves_i_to_e_and_freezes_e_edges():
         np.asarray(out["H_final"], dtype=float), [1.0, 1.0], rtol=0, atol=0,
     )
     aux = np.asarray(out["aux_final"], dtype=float)
-    assert aux.shape == (2, 2), "aux carries (A_pre, A_post) per neuron"
-    assert aux[1, 0] > 0.5, "pre trace must hold the t=50 arrival"
+    assert aux.shape == (2, 2), "aux carries (A_pre, A_post) per edge"
+    assert aux[1, 0] > 0.5, "the I-to-E edge's pre trace must hold the t=50 arrival"
+
+
+def test_presynaptic_trace_counts_one_per_spike_on_every_synapse():
+    """One PV cell projects to three E cells. Its forced spike (t=30) arrives at t=50 on all three
+    edges; E cell 1 alone spikes at t=55. Each synapse's pre trace jumps by 1 (the authors' traces are
+    per synapse), so only edge 0 potentiates, by eta*A_pre with A_pre = 1 decayed 4 steps; a trace
+    shared per presynaptic neuron would jump by the out-degree (3)."""
+    I_pA = np.full((N_STEPS, 4), -500.0)
+    I_pA[30, 0] = 1e5
+    I_pA[55, 1] = 1e5
+    out = simulate_adex_hdp_registered(
+        make_adex_params(("PV", "E", "E", "E")),
+        n_steps=N_STEPS,
+        dt_ms=DT_MS,
+        edge_pre=[0, 0, 0],
+        edge_post=[1, 2, 3],
+        edge_weight_nS=[3.0, 3.0, 3.0],
+        edge_receptor=[0, 0, 0],
+        edge_delay_steps=[20, 20, 20],
+        receptor_reversal_mV=(-80.0,),
+        receptor_tau_ms=(5.0,),
+        decay="exp",
+        I_ext_pA=I_pA,
+        record_v=False,
+        hdp_rule=ISTDP_RULE_NAME,
+        plasticity_mask=istdp_plasticity_mask([True, True, True], [True, True, True]),
+        seed=0,
+    )
+    spikes = np.asarray(out["spikes"], dtype=bool)
+    assert [(int(t), int(c)) for t, c in np.argwhere(spikes)] == [(30, 0), (55, 1)], "fixture spikes"
+    w = np.asarray(out["w_final_nS"], dtype=float)
+    decayed = (1.0 - DT_MS / TAU_MS) ** 4
+    np.testing.assert_allclose(w, [3.0 + ETA * (decayed - ALPHA), 3.0 - ETA * ALPHA, 3.0 - ETA * ALPHA],
+                               rtol=1e-9)
 
 
 def test_kernel_refuses_bad_mask_shape():
