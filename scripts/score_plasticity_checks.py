@@ -126,7 +126,7 @@ def _istdp_ctx(spikes, pre_sp, aux=None, rule_params=None):
     n = 2
     return HDPRuleContext(
         H=jnp.ones((n,)),
-        aux=jnp.zeros((n, 2)) if aux is None else jnp.asarray(aux),
+        aux=jnp.zeros((1, 2)) if aux is None else jnp.asarray(aux),  # (A_pre, A_post) of the one edge
         v=jnp.zeros((n,)),
         u=jnp.zeros((n,)),
         spikes=jnp.asarray(spikes, dtype=jnp.float64),
@@ -151,7 +151,7 @@ def check_istdp_pre_depresses():
         upd = rule_fn(_istdp_ctx(spikes=[0.0, 1.0], pre_sp=[1.0]))
         d_aux = np.asarray(upd.d_aux, dtype=float)
         dw = np.asarray(upd.d_theta["edge_weight"], dtype=float)
-    want_aux = np.array([[0.0, 0.0], [1.0 / DT_MS, 1.0 / DT_MS]])
+    want_aux = np.array([[1.0 / DT_MS, 0.0]])
     want_dw = np.array([ETA * (0.0 - ALPHA) / DT_MS])
     error = max(_relative_error(d_aux, want_aux), _relative_error(dw, want_dw))
     (tolerance,) = TOLERANCES["istdp_pre_depresses"]
@@ -163,10 +163,10 @@ def check_istdp_post_potentiates():
     """Postsynaptic step drives against the hand pairing update (rtol 1e-12)."""
     with _x64():
         _, rule_fn = get_hdp_rule(ISTDP_RULE_NAME)
-        upd = rule_fn(_istdp_ctx(spikes=[1.0, 0.0], pre_sp=[0.0], aux=[[0.0, 0.0], [0.5, 0.0]]))
+        upd = rule_fn(_istdp_ctx(spikes=[1.0, 0.0], pre_sp=[0.0], aux=[[0.5, 0.0]]))
         d_aux = np.asarray(upd.d_aux, dtype=float)
         dw = np.asarray(upd.d_theta["edge_weight"], dtype=float)
-    want_aux = np.array([[0.0, 1.0 / DT_MS], [-0.5 / TAU_MS, 0.0]])
+    want_aux = np.array([[-0.5 / TAU_MS, 1.0 / DT_MS]])
     want_dw = np.array([ETA * 0.5 / DT_MS])
     error = max(_relative_error(d_aux, want_aux), _relative_error(dw, want_dw))
     (tolerance,) = TOLERANCES["istdp_post_potentiates"]

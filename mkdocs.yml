@@ -191,6 +191,7 @@ nav:
           - TFNE Algebra: theory/doctrine/tfne_algebra.md
           - Relative Quantities: theory/doctrine/relative_quantity_grammar.md
           - TFNE Containment and Composition: theory/doctrine/tfne_containment_architecture.md
+          - Definition Map: theory/doctrine/definition_map.md
           - TFNE–JDNA Boundary: theory/doctrine/tfne_jdna_boundary.md
 
   - API:

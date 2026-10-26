@@ -6,6 +6,15 @@ are deleted (history: git; the pre-2026-09-27 stack and the sealed 0.5.0–0.5.5
 edits). Open issues: `artifacts/assurance/issue_log/ISSUE_LOG.md`. Other editors change this file: re-read
 first, amend in place.
 After 0.5.8, rows serve G-0 (`artifacts/programme/design/plans/arxiv_paper_plan.md`): each names its F, S or C id.
+G-0 findings from lanes L1-L3 (2026-10-25):
+- [A] C4, F2: localized connectivity draws depend on absolute bucket position (`connectivity._candidate_pairs_localized`); a
+  translation changes 27 of 50 edges under one seed (strict xfail in `tests/test_geometry_invariants.py`). Bucket
+  relative to the population and order candidates by id, then drop the xfail.
+- [A] C7, S7: `AugmentationRecord` keeps seed and jitter only inside `spec_digest` (strict xfail in
+  `tests/test_augment_determinism.py`); expose them as plain fields.
+- [A] C3, S1: `docs/theory/doctrine/definition_map.md` lists 5 definitions with no symbol (D17, D26, D28, D34, D35)
+  and 9 realized only by private names; give each a public symbol and test, or record why not.
+- [H] C6, S6: benchmark protocol choices (`artifacts/programme/benchmarks/README.md`); brian2 and NEST not installed.
 
 ## 1. Decisions waiting on Hamm (they unblock items below)
 
@@ -114,21 +123,19 @@ clones, verified before integration):
    emitter in the core, then P1).
 8. [A] B6 split closed lane folders by kind (tree degree) once their lanes close.
 Open-stack rows (each closes its `O-n`; the open stack empties when these close; audits 2026-10-25):
-- T-O61 follow-up [H] read the 2026-10-25 wording changes: CAMINOS lag as a finding (`LEDGER.md` R2,
-  `RESULT_P3.md` note, dashboard summary), Destexhe pilot and spent seeds, GSDR κ 0.60, Potjans, Vogels and
-  Mejias at stage P2, PCL-R1 sentence; cosmetic: tier labels differ, REPLICATIONS against dashboard.
-- T-O66 [H] tree budget: the three AT-10-N20 `lfp.html` stay (Hamm 2026-10-25, referenced by the bundle
-  manifests). A raise by their cost passes the 100,000,000 cap (amendment, consolidated review):
-  Hamm sets the headroom or the cap. `docs/assets/readme/hdp.png` stays (README-still test).
-  Open: `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log` if the manifests do not hash it.
+- T-O61 cosmetic [A] (wording approved by Hamm 2026-10-25): tier labels differ, REPLICATIONS against dashboard.
+- [A] Check whether the manifests hash `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log`; if none does, record it.
+- [A] `runtime_report()` (`jaxfne/_runtime_config.py`) records `jit: true` for "auto" even when `resolve_jit` runs eager
+  (n_steps x n_units <= 50,000; L3 benchmark 2026-10-25); report the resolved value (0.5.9, F4).
 - T-O41 [A] RTD stand-ins: build the étude pages on Read the Docs or take them out of the RTD nav;
   check: a Read the Docs build succeeds and `.readthedocs.yaml` or the nav matches the choice.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
 - T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
 - T-O68 [H] local copies and the layout rule (see O-68): each held copy is deleted or sits at
   `E:/repos/<name>` or `E:/repos/_wt/<repo>/<task>`.
-- Moved to 0.5.9 (scope freeze 2026-10-25; evidence rules unchanged, the PCL T2 failure and the CAMINOS mixed verdict stand): CAMINOS S2 re-run, PCL-R2 to R5 and the PCL-R4 prereg, the Destexhe, GSDR, Potjans and Vogels preregs.
-  Stays in 0.5.8: izhikevich2003 E1 construct path, `cl-klfp` after diff review and gates, O-66 (route open).
+- Moved to 0.5.9 (scope freeze 2026-10-25; evidence rules unchanged, the PCL T2 failure and the CAMINOS mixed verdict stand): CAMINOS S2 re-run, PCL-R2 to R5 and the PCL-R4 prereg, the Destexhe, GSDR, Potjans and Vogels preregs; izhikevich2003 E1 closure (per-edge uniform weights and
+  per-cell Gaussian noise on the construct path, then a P6-style library-path prereg Hamm signs; Hamm 2026-10-25);
+  the kernel LFP commits of `cl-klfp` (0.5.10). In 0.5.8: per-cell `cell_params`, the Vogels per-synapse fix.
 - [H] Signatures: the 0.5.8 preregs from item 7 (Izhikevich v7 and v8.2 and CAMINOS P6 v2 are signed, 2026-10-13).
 Blocked: T-11 (jnwb), T-16 and T-17 `[H]`, deferred list (section 5).
 

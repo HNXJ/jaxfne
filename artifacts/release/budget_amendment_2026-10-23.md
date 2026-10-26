@@ -87,3 +87,11 @@ todo lines, and this entry; +1 file (2563) for the cherry-picked Vogels fix frag
 the fragments. Second to sixth increments: +36,000 bytes (90,205,000 -> 90,241,000) and +4 files
 (2559 -> 2563). Further raises wait
 for a consolidated review.
+
+## Consolidated raise, 2026-10-25 (Hamm: option a)
+
+Budget 90,241,000 -> 95,000,000 bytes and 2563 -> 2700 files, signed by Hamm in chat 2026-10-25 (option
+a of three: one raise below the 100,000,000 cap; a raise by the `lfp.html` cost to 100,835,299 with a
+lifted cap and per-change increments were declined). Measured tree before the raise: 90,240,360 bytes,
+2563 files. Headroom 4,759,640 bytes and 137 files covers the paper programme G-0 (0.5.9 to 0.6.0:
+figures, receipts, tests). O-66 closes: the three AT-10-N20 `lfp.html` stay.
