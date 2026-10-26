@@ -400,7 +400,7 @@ def main():
     parser.add_argument(
         "--out-root",
         type=str,
-        default="outputs/",
+        default="artifacts/_temp/outputs/",
         help="Output root directory; each tutorial writes to <out-root>/<name>",
     )
     parser.add_argument(
