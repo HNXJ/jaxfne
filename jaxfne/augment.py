@@ -29,7 +29,7 @@ import hashlib
 import json
 import math
 import numbers
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, fields, replace
 from typing import Any, ClassVar, Optional, Sequence
 
 import numpy as np
@@ -369,6 +369,11 @@ class AugmentationRecord:
     spec_digest: str = ""
     base_digest: str = ""
     notes: tuple[str, ...] = ()
+    # The spec's seed K_V as plain data; None when the spec carries no seed.
+    k_v: Optional[int] = None
+    # One (name, jitter) pair per jittered field of each realized transform, in
+    # realized order; name is "<transform class>.<field stem>", e.g. "ThetaX.g".
+    jitters: tuple[tuple[str, float], ...] = ()
 
 
 def _check_finite(value: Any, where: str) -> float:
@@ -1159,6 +1164,23 @@ def _apply_h0(
     _flush_rebuilt(tensor, inter_new, cross_new)
 
 
+def _jitter_pairs(record: Any) -> tuple[tuple[str, float], ...]:
+    """(``"<class>.<stem>"``, jitter) for each jittered field of one transform, in field order.
+
+    A field is jittered when its name ends in ``jitter`` and its value is > 0;
+    the stem drops the ``_jitter`` suffix (``g_jitter`` -> ``g``), and a bare
+    ``jitter`` field keeps its name.
+    """
+    pairs: list[tuple[str, float]] = []
+    for field in fields(record):
+        if not field.name.endswith("jitter"):
+            continue
+        value = float(getattr(record, field.name))
+        if value > 0.0:
+            pairs.append((f"{type(record).__name__}.{field.name.removesuffix('_jitter')}", value))
+    return tuple(pairs)
+
+
 def augment(
     tensor: NeuronalTensor, spec: AugmentationSpec
 ) -> tuple[NeuronalTensor, AugmentationRecord]:
@@ -1248,12 +1270,15 @@ def augment(
                 realized.append(axis)
         else:  # fail closed: no silent skip of a known axis
             raise ValueError(f"augmentation axis {axis!r} has no packet-1 implementation")
+    jitters = tuple(pair for axis in realized for pair in _jitter_pairs(by_axis[axis]))
     return out, AugmentationRecord(
         realized_order=tuple(realized),
         changes=tuple(changes),
         spec_digest=spec.digest(),
         base_digest=base_digest,
         notes=tuple(notes),
+        k_v=None if spec.k_v is None else int(spec.k_v),
+        jitters=jitters,
     )
 
 

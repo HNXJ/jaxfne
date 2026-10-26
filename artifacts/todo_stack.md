@@ -16,8 +16,6 @@ G-0 findings from lanes L1-L6 (2026-10-25/26):
 - [A] C4, F2: localized connectivity draws depend on absolute bucket position (`connectivity._candidate_pairs_localized`); a
   translation changes 27 of 50 edges under one seed (strict xfail in `tests/test_geometry_invariants.py`). Bucket
   relative to the population and order candidates by id, then drop the xfail.
-- [A] C7, S7: `AugmentationRecord` keeps seed and jitter only inside `spec_digest` (strict xfail in
-  `tests/test_augment_determinism.py`); expose them as plain fields.
 - [A] C3, S1: `docs/theory/doctrine/definition_map.md` lists 5 definitions with no symbol (D17, D26, D28, D34, D35)
   and 9 realized only by private names; give each a public symbol and test, or record why not.
 - [H] C6, S6: benchmark protocol choices (`artifacts/programme/benchmarks/README.md`); brian2 and NEST not installed.
@@ -135,8 +133,6 @@ clones, verified before integration):
 Open-stack rows (each closes its `O-n`; the open stack empties when these close; audits 2026-10-25):
 - T-O61 cosmetic [A] (wording approved by Hamm 2026-10-25): tier labels differ, REPLICATIONS against dashboard.
 - [A] Check whether the manifests hash `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log`; if none does, record it.
-- [A] `runtime_report()` (`jaxfne/_runtime_config.py`) records `jit: true` for "auto" even when `resolve_jit` runs eager
-  (n_steps x n_units <= 50,000; L3 benchmark 2026-10-25); report the resolved value (0.5.9, F4).
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
 - T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
 - T-O68 [H] local copies and the layout rule (see O-68): each held copy is deleted or sits at

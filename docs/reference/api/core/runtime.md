@@ -266,7 +266,9 @@ Get runtime environment information.
 - `available_devices` (list[str]): Available compute devices
 - `selected_backend` / `backend` / `requested_backend` / `actual_backend` (str), `backend_enforced` (bool), `backend_warning` (str | None) — if a non-`"auto"` backend is requested but unavailable on this machine, `runtime_report()` performs an "honest downgrade": `actual_backend` falls back to JAX's real default, `backend_enforced=False`, and `backend_warning` is set to `requested_backend_unavailable:requested=...`  rather than falsely claiming the requested device is in use
 - `requested_dtype` / `actual_dtype` / `dtype` (str), `x64_enabled` (bool)
-- `jit` / `vmap` (bool), `precision` (str), `seed` (int), `n_steps` (int)
+- `jit` (bool | None): the jit decision the kernel used; a report made outside a run gives the policy when it is a bool and None under `"auto"`
+- `jit_policy` (bool | `"auto"`): the requested policy
+- `vmap` (bool), `precision` (str), `seed` (int), `n_steps` (int)
 - `recurrent_backend` / `synaptic_kernel` (str)
 - `enable_homeostasis` / `homeostasis_params`, `enable_hdp` / `hdp_params`
 

@@ -1522,6 +1522,13 @@ def simulate(
     elif hasattr(paradigm, "to_dict"):
         paradigm_meta = paradigm.to_dict()
 
+    # Continuation segments always compile (compile_step_fn and the forced twin wrap
+    # jax.jit); the single call takes the _simulate_arrays decision, same arguments.
+    segment_jit = (
+        True
+        if (continuation is not None or return_state)
+        else runtime_cfg.resolve_jit(sim.n_steps, self.params["emitter"].n_neurons)
+    )
     metadata: dict[str, Any] = {
         "config_hash": config_hash(self.cfg),
         "source_calibration_status": self.cfg.metadata.get("source_calibration_status"),
@@ -1534,7 +1541,7 @@ def simulate(
         "record_sources": bool(sim.record_sources),
         "record_fields": bool(sim.record_fields),
         "plasticity_gain": sim.plasticity,
-        "runtime": runtime_cfg.runtime_report(),
+        "runtime": runtime_cfg.runtime_report(effective_jit=segment_jit),
         "recurrent_backend": runtime_cfg.recurrent_backend,
         "synaptic_kernel": runtime_cfg.synaptic_kernel,
         "source_model": _SOURCE_PROXY_METADATA,
@@ -1688,7 +1695,8 @@ def _simulate_homeostatic_ei(
         "duration_ms": float(sim.duration_ms),
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
-        "runtime": runtime_cfg.runtime_report(),
+        # simulate_homeostatic_ei is jax.jit-decorated: the kernel always compiles.
+        "runtime": runtime_cfg.runtime_report(effective_jit=True),
         "hdp": {
             "enabled": True,
             "rules": {
@@ -1764,7 +1772,7 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
         "duration_ms": float(sim.duration_ms),
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
-        "runtime": runtime_cfg.runtime_report(),
+        "runtime": runtime_cfg.runtime_report(effective_jit=False),
         "physical_amplitude_calibrated": False,
         "network": static["network"],
         "receptors": list(static["receptor_names"]),
@@ -1889,7 +1897,7 @@ def _simulate_hh(
         "duration_ms": float(sim.duration_ms),
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
-        "runtime": runtime_cfg.runtime_report(),
+        "runtime": runtime_cfg.runtime_report(effective_jit=False),
         "physical_amplitude_calibrated": False,
         "network": static["network"],
         "receptors": list(static["receptor_names"]),
@@ -1999,7 +2007,7 @@ def _simulate_rate(
         "duration_ms": float(sim.duration_ms),
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
-        "runtime": runtime_cfg.runtime_report(),
+        "runtime": runtime_cfg.runtime_report(effective_jit=False),
         "physical_amplitude_calibrated": False,
         # The route emits no spikes: the rate traces ride V_m and the spikes
         # array is all-False. No sources and no field are recorded either.
@@ -2329,7 +2337,7 @@ def _simulate_lif(
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
         "paradigm": paradigm_meta,
-        "runtime": runtime_cfg.runtime_report(),
+        "runtime": runtime_cfg.runtime_report(effective_jit=effective_jit),
         "physical_amplitude_calibrated": False,
         # The route records no sources and no field; the record flags change nothing here.
         "not_recorded": ["sources", "field"],
@@ -2474,7 +2482,8 @@ def _simulate_lif_scan(
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
         "paradigm": drive.to_dict(),
-        "runtime": runtime_cfg.runtime_report(),
+        # The event-scan replay compiles _JIT_EVENT_SCAN unconditionally.
+        "runtime": runtime_cfg.runtime_report(effective_jit=True),
         "physical_amplitude_calibrated": False,
         # The replay returns finals only; the record flags change nothing here.
         "not_recorded": ["sources", "field"],
@@ -2789,6 +2798,13 @@ def simulate_batch(
         )
     else:
         batch_status = "vmap_seed_batch_v0.0.8"
+    # Only the vmap branch consults resolve_jit (at the compile decision above);
+    # the python loop runs the kernels without a jit wrapper.
+    batch_jit = (
+        runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons, batch=int(n_seeds))
+        if effective_vmap
+        else False
+    )
     return {
         "V_m": voltages.astype(runtime_cfg.jnp_dtype),
         "spikes": spikes,
@@ -2799,7 +2815,7 @@ def simulate_batch(
                 "batch_execution_mode": batch_execution_mode,
                 "n_seeds": int(n_seeds),
                 "seed": base_seed,
-                "runtime": runtime_cfg.runtime_report(),
+                "runtime": runtime_cfg.runtime_report(effective_jit=batch_jit),
                 "field_claim_level": "proxy_readout",
                 "physical_amplitude_calibrated": False,
                 "recurrent_backend": runtime_cfg.recurrent_backend,
@@ -2905,7 +2921,8 @@ def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict
                 "key_derivation": "per-member PRNGKey(seed_i), serial-identical",
                 "n_steps": int(sim.n_steps),
                 "continuation": "not_realized_use_serial_simulate",
-                "runtime": runtime_cfg.runtime_report(),
+                # The batch is one jax.jit-compiled lax.map (cache miss builds it).
+                "runtime": runtime_cfg.runtime_report(effective_jit=True),
                 "physical_amplitude_calibrated": False,
             }
         ),
@@ -3071,7 +3088,8 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
                 "key_derivation": "poisson_chunk_seed(seed_i + 7919, 0) + PRNGKey(seed_i), serial-identical",
                 "n_steps": int(sim.n_steps),
                 "continuation": "not_realized_use_serial_simulate",
-                "runtime": runtime_cfg.runtime_report(),
+                # The batch is one jax.jit-compiled lax.map (cache miss builds it).
+                "runtime": runtime_cfg.runtime_report(effective_jit=True),
                 "physical_amplitude_calibrated": False,
             }
         ),

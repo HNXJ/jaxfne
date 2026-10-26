@@ -155,14 +155,19 @@ class RuntimeConfig:
                 "before building arrays and request dtype='float64'"
             )
 
-    def resolve_jit(self, n_steps: int, n_units: int, batch: int = 1) -> bool:
-        """Resolve the effective JIT compilation status based on policy and parameters."""
-        if isinstance(self.jit, bool):
-            return self.jit
+    def _jit_policy(self) -> bool | str:
+        """The requested jit policy: True, False or "auto" (validated in ``__post_init__``)."""
         jit_str = str(self.jit).lower()
         if jit_str == "auto":
-            return (n_steps * n_units * batch) > 50000
+            return "auto"
         return jit_str in {"true", "1"}
+
+    def resolve_jit(self, n_steps: int, n_units: int, batch: int = 1) -> bool:
+        """Resolve the effective JIT compilation status based on policy and parameters."""
+        policy = self._jit_policy()
+        if policy == "auto":
+            return (n_steps * n_units * batch) > 50000
+        return policy
 
     def resolve_vmap(self, batch: int) -> bool:
         """Resolve the effective vmap vectorization status based on policy and batch size."""
@@ -207,11 +212,14 @@ class RuntimeConfig:
             return jnp.bfloat16
         return jnp.float32
 
-    def runtime_report(self) -> dict[str, Any]:
+    def runtime_report(self, effective_jit: Optional[bool] = None) -> dict[str, Any]:
         """Compile a summary of JAX system runtime, backend, and device topology.
 
         Detects requested vs actual execution backends (CPU, GPU, or TPU) and
         validates system properties.
+
+        ``effective_jit`` is the jit decision the kernel used. When it is None,
+        ``jit`` reports the policy if the policy is a bool and None under "auto".
 
         Returns
         -------
@@ -220,6 +228,11 @@ class RuntimeConfig:
         """
         from .io import json_safe
 
+        policy = self._jit_policy()
+        if effective_jit is not None:
+            jit_report: Optional[bool] = bool(effective_jit)
+        else:
+            jit_report = policy if isinstance(policy, bool) else None
         devices = [str(device) for device in jax.devices()]
         default_backend = jax.default_backend()
         requested_backend = self.selected_backend  # alias for selected (user-requested)
@@ -272,7 +285,8 @@ class RuntimeConfig:
             "requested_dtype": self.requested_dtype,
             "actual_dtype": self.actual_dtype,
             "dtype": self.dtype,
-            "jit": bool(self.jit),
+            "jit": jit_report,
+            "jit_policy": policy,
             "vmap": bool(self.vmap),
             "precision": self.precision,
             "x64_enabled": bool(jax.config.read("jax_enable_x64")),

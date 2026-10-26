@@ -71,10 +71,14 @@ seed `K_S`.
 
 `augment` returns `(new_tensor, record)` where `record` is an
 `AugmentationRecord(realized_order, changes, spec_digest, base_digest,
-notes)`:
+notes, k_v, jitters)`:
 
 - `changes` — one `ProvenanceEntry(address, axis, before, after, origin)`
   per rewritten value, in sampling order.
+- `k_v` — the spec's seed `K_V` as an int, or `None` when the spec has no seed.
+- `jitters` — one `(name, jitter)` pair per jittered field of each realized
+  transform, in realized order; `name` is `"<transform>.<field>"`, for example
+  `("ThetaX.g", 0.2)` for `g_jitter`.
 - `origin` — `"augmented"` for a deterministic rewrite,
   `"augment-sampled"` for a value that drew under `K_V`.
 - `spec_digest` — stable digest of the spec (canonical axis order).

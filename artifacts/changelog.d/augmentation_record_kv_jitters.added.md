@@ -1,0 +1,1 @@
+- `AugmentationRecord` gains `k_v`, the spec's seed as plain data, and `jitters`, one `(name, jitter)` pair per jittered field of each realized transform. Provenance now reads the seed and the jitter values from the record itself.
