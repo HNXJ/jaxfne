@@ -77,12 +77,6 @@ PCL_F = 1.0
 PCL_LAM = 1.5
 PCL_ETA = 0.1
 
-ISTDP_NO_ZERO_REASON = (
-    "no zero-drive parameter: resolve_istdp_params refuses eta=0.0 (eta must be a finite "
-    "float > 0), and the weight drive is eta*(...), so no accepted setting removes it"
-)
-
-
 @dataclass(frozen=True)
 class Net:
     """One small network with the HDP-free runner and the registered-rule runner."""
@@ -106,7 +100,6 @@ class Case:
     zero: Callable[[Net], dict[str, Any]]  # zero weight-drive setting
     nonzero: Callable[[Net], dict[str, Any] | None]  # None = descriptor defaults
     h_moves_at_zero: bool  # expected: H changes at zero weight drive
-    zero_xfail: str | None = None  # strict-xfail reason when no zero setting exists
 
 
 def _izh_edges() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -342,7 +335,6 @@ CASES: dict[str, Case] = {
         zero=lambda net: {"eta": 0.0},
         nonzero=lambda net: None,
         h_moves_at_zero=False,
-        zero_xfail=ISTDP_NO_ZERO_REASON,
     ),
 }
 
@@ -369,18 +361,6 @@ def _case(name: str) -> Case:
     return CASES[name]
 
 
-def _zero_param(name: str) -> Any:
-    case = CASES.get(name)
-    if case is not None and case.zero_xfail is not None:
-        return pytest.param(
-            name,
-            marks=pytest.mark.xfail(
-                strict=True, raises=ValueError, reason=case.zero_xfail
-            ),
-        )
-    return name
-
-
 def _assert_cells_active(base: np.ndarray, net: Net) -> None:
     """Precondition: the HDP-free run spikes, and some edge has an active pre and post cell."""
     assert base.sum() > 0, "fixture must spike"
@@ -390,7 +370,7 @@ def _assert_cells_active(base: np.ndarray, net: Net) -> None:
     )
 
 
-@pytest.mark.parametrize("name", [_zero_param(n) for n in _LIVE_RULES])
+@pytest.mark.parametrize("name", _LIVE_RULES)
 def test_zero_drive_reduces_to_base_model(name: str) -> None:
     case = _case(name)
     net = _net(case.family)

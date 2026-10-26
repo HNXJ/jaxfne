@@ -95,6 +95,17 @@ def test_alpha_default_is_paper_value():
     assert resolve_istdp_params({})["alpha"] == pytest.approx(0.12)
 
 
+def test_eta_zero_is_accepted():
+    """eta = 0 is the neutral setting: every weight update is zero."""
+    assert resolve_istdp_params({"eta": 0.0})["eta"] == 0.0
+
+
+@pytest.mark.parametrize("eta", [-1e-3, float("nan"), float("inf")])
+def test_negative_or_nonfinite_eta_is_refused(eta):
+    with pytest.raises(ValueError, match="eta must be a finite float >= 0"):
+        resolve_istdp_params({"eta": eta})
+
+
 def test_pre_spike_depresses_without_post_trace():
     """Lone presynaptic arrival on the edge 1 -> 0: its A_pre += 1, its
     A_post unchanged (neuron 0 is silent), w += (0-alpha)*eta."""

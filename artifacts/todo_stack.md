@@ -6,10 +6,7 @@ are deleted (history: git; the pre-2026-09-27 stack and the sealed 0.5.0–0.5.5
 edits). Open issues: `artifacts/assurance/issue_log/ISSUE_LOG.md`. Other editors change this file: re-read
 first, amend in place.
 After 0.5.8, rows serve G-0 (`artifacts/programme/design/plans/arxiv_paper_plan.md`): each names its F, S or C id.
-G-0 findings from lanes L1-L6 (2026-10-25/26):
-- [A] C5, S5: `istdp_vogels2011` refuses `eta=0`, so its zero-drive identity is a strict xfail in
-  `tests/test_hdp_reduction_identity.py` (the all-False mask identity holds); accept `eta=0` as the neutral
-  setting, then drop the xfail. The other six registered rules reduce to the HDP-free kernel exactly.
+G-0 findings from lanes L1-L9 (2026-10-25/26):
 - [H] C10: `docs/reference/references.md` lists 112 entries, 94 figure-linked, against the 80 cap
   (`artifacts/programme/paper/references_inventory.md`: plasticity 8 and fitting 7 short; other 20, fields 7,
   tools 4 over; JAX itself uncited; E054 repeats E004). The cut and the category map are Hamm's call.

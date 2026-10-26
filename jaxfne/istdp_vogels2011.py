@@ -64,9 +64,10 @@ def resolve_istdp_params(params: Mapping[str, Any]) -> dict[str, float]:
 
     Accepts the merged ``{**default_params, **rule_params}`` mapping (or a
     partial one; missing keys take paper defaults) and returns concrete
-    floats with ``alpha`` derived. Refuses non-finite values and non-positive
-    ``eta``/``tau_stdp_ms`` by name; the jitted step selects the same
-    ``alpha`` through :func:`istdp_alpha`.
+    floats with ``alpha`` derived. Refuses non-finite values, negative
+    ``eta`` and non-positive ``tau_stdp_ms`` by name; ``eta=0`` is the neutral
+    setting (no weight change). The jitted step selects the same ``alpha``
+    through :func:`istdp_alpha`.
     """
     merged = {"eta": ETA_DEFAULT, "tau_stdp_ms": TAU_STDP_MS_DEFAULT,
               "rho0_hz": RHO0_HZ_DEFAULT}
@@ -74,8 +75,8 @@ def resolve_istdp_params(params: Mapping[str, Any]) -> dict[str, float]:
     eta = float(merged["eta"])
     tau = float(merged["tau_stdp_ms"])
     rho0 = float(merged["rho0_hz"])
-    if not np.isfinite(eta) or not eta > 0.0:
-        raise ValueError(f"istdp_vogels2011 eta must be a finite float > 0; got {merged['eta']!r}")
+    if not np.isfinite(eta) or not eta >= 0.0:
+        raise ValueError(f"istdp_vogels2011 eta must be a finite float >= 0; got {merged['eta']!r}")
     if not np.isfinite(tau) or not tau > 0.0:
         raise ValueError(
             f"istdp_vogels2011 tau_stdp_ms must be a finite float > 0; got {merged['tau_stdp_ms']!r}"
