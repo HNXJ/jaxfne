@@ -19,7 +19,7 @@ MIN_ROWS = 15
 KNOWN_GAPS = frozenset({"D17", "D26", "D28", "D34", "D35"})
 
 # Rows whose Symbol has a path segment starting with "_": internal realizations.
-INTERNAL_ONLY = frozenset({"D9", "D15", "D16", "D20", "D21", "D22", "D30", "D31", "D32"})
+INTERNAL_ONLY = frozenset({"D21", "D31", "D32"})
 
 _HEADER = ["Id", "Definition", "Source", "Symbol", "Test"]
 

@@ -21,8 +21,13 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
   (worker receipt: an 11x11 grid quarter turn changes 2 of 484) because the bucket neighbourhood is axis-aligned.
   Exact turn invariance needs a radius cutoff on candidates, a change to the candidate law: settle it with the C4
   claim wording. The 100k tutorial notebook and the w8/w10 baselines keep pre-L8 draws as historical receipts.
-- [A] C3, S1: `docs/theory/doctrine/definition_map.md` lists 5 definitions with no symbol (D17, D26, D28, D34, D35)
-  and 9 realized only by private names; give each a public symbol and test, or record why not.
+- [A] C3, S1: `docs/theory/doctrine/definition_map.md` lists 5 definitions with no symbol and 3 realized only by
+  private names (lane L10 moved D9, D15, D16, D20, D22, D30 to the public operation that realizes them, each with a
+  test that reads the map). Several candidates each: D17 (`tfne.System`, `ExplicitModel.boundaries`,
+  `Realization.s["boundaries"]`), D26 (two emitters sites, `HDPRuleUpdate.dH`), D35 (`apply_calibration`,
+  `CalibrationSpec`). No symbol: D28 (`ValueTag` lacks B, R, E, T). New public names proposed: D21
+  `resolved_edge_weight`, D34 `rbd_recurrent_gain` (both `jaxfne/emitters.py`); D31 and D32 need a code path
+  that exposes a_eff and the AdEx clip. Public API choices: orchestrator, then Hamm.
 - [H] C6, S6: benchmark protocol choices (`artifacts/programme/benchmarks/README.md`); brian2 and NEST not installed.
   `scripts/cortical_column_localized_workflow.build_config`, which the Izhikevich benchmark calls, raises at HEAD: the
   builder refuses `geometry='uniform3d'` with `layers` and `ei_profile='canonical'`. The repair picks a geometry.
