@@ -220,7 +220,7 @@ def test_gap_tau_syn_filter():
 def test_gap_per_population_drive():
     """Paper external input is per-population k_ext trains (SOURCE_P1.md
     section 2: 1600-2900 per cell); poisson_drive target="all" is the only
-    path (jaxfne/_signals.py:768-772). Proposed: a triple target."""
+    path (`resolve_poisson_drive_target` in `jaxfne/_signals.py`). Proposed: a triple target."""
     model = _lif_model()
     sim = jtfne.Simulation(
         duration_ms=20.0, dt_ms=DT, seed=0,

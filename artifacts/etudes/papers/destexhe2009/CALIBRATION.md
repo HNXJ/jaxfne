@@ -172,9 +172,9 @@ others ≤ 2 s). E1 FAILs everywhere, so E2/E3 again score a transient.
 Kick rate × kick fraction cannot sustain; no θ* from kick-D.
 
 Fidelity addition for this step: `subset_drive_kwargs`
-(`jaxfne/adex_destexhe.py:146`) keeps the core drive validation and
+(`subset_drive_kwargs` in `jaxfne/adex_destexhe.py`) keeps the core drive validation and
 rate/weight/receptor/delay/key, then keeps a seeded fraction of RS
- targets; `run_continuous` (`artifacts/etudes/papers/destexhe2009/destexhe_api.py:409`)
+ targets; `run_continuous` in `artifacts/etudes/papers/destexhe2009/destexhe_api.py`
 exposes it as `kick_fraction` plus `kick_rate_hz`, reached through
 `run_destexhe.py fig6b_cont`. No paper value moved.
 
@@ -229,7 +229,7 @@ kick fraction 0.02–1.0 (F5 shape; 0.02–0.10 of RS ≈ paper 2–10% of the
 net, larger fractions over-kick controls); delay no range (kernel
 minimum); ge/gi paper-states-exactly (6/67 nS, deviation needs a
 reason — not moved here); b not in D (Fig. 6A vs 6B control contrast).
-`agsdr` interface read (`jaxfne/optim/core.py:252`) but no fit launched;
+`agsdr` interface read (`agsdr` in `jaxfne/optim/core.py`) but no fit launched;
 manual a scan used so far.
 
 Smallest |a|: a = 2 Hz is the first technically alive point (37 spikes
@@ -269,13 +269,13 @@ live code):
 | 2 | a / b RSweak | a = 0.001 µS → 1 nS (73, 153), b = 0.005 nA = 5 pA (75, final assignment) | 1 nS / 5 pA | yes |
 | 3 | a / b FS | a = 0.001 µS → 1 nS (78, 161), b = 0 (79) | 1 nS / 0 | yes — G1 resolved, port assumption correct |
 | 4 | Vreset / refractory | VBOT = −60 (88), REFRACTORY = 2.5 ms (89; PyNN gets +DT → 2.6, 152) | −60, 25 steps = 2.5 ms | yes (≈; 0.1 ms negligible) |
-| 5 | Spike detection | `v_thresh` = VTR = −50, `v_spike` = VTR+1e-6 (152–153): detection ≈ VT | `VT + 5Δ` = −37.5 (`jaxfne/emitters_adex.py:127,142`) | NO (F6, real; core-owned, no in-lane fix) |
+| 5 | Spike detection | `v_thresh` = VTR = −50, `v_spike` = VTR+1e-6 (152–153): detection ≈ VT | `VT + 5Δ` = −37.5 (`adex_step` in `jaxfne/emitters_adex.py`) | NO (F6, real; core-owned, no in-lane fix) |
 | 6 | dt / method | DT = 0.1 (58), fixed-step (`use_cvode=False`, setup 272) | dt = 0.1 explicit Euler | yes (≈; NEURON backward-Euler detail unstated, no fix) |
 | 7 | ge / gi / τE / τI / reversals | 0.006/0.067 µS = 6/67 nS (99–100), 5/10 ms (95–96), 0/−80 mV (97–98) | identical | yes |
 | 8 | Connection rule | capped Bernoulli: per cell up to C_E = int(N_E·p) exc + C_I = int(N_I·p) inh inputs, ordered scan, `i != j` (194–224); p inverse-N rescaled (108) | pure Bernoulli p, autapses excluded | PARTIAL (F7; cap trims ≈7% exc / ≈14% inh at N = 2000, normal-approx, inferred; core-owned, no in-lane fix) |
 | 9 | N / fractions | 80/20 E/I (104–106; file N = 500, Fig. 6 N = 2000 per paper) | 1600 + 400 | yes |
 | 10 | Delay | `delay=DT` edges + kick (209, 224, 264) | 1 step = 0.1 ms | yes (F1 stands) |
-| 11 | Kick | N_STIM = N/5 = 20% net, first cells, all excitatory (118, 258); 20 synapses/cell (120) × exponential ISI 70 ms (121, 242–264) ≡ Poisson ≈ 285.7 Hz aggregate; weight AMPA (264); 50 ms (119) | code-value probe kf 0.25 of RS @286 Hz = same distribution (`_construct_adex.py:512`: λ = n·rate·dt/1000) | code value reproduced; paper TEXT says 2–10% — text-vs-code discrepancy documented, both probed |
+| 11 | Kick | N_STIM = N/5 = 20% net, first cells, all excitatory (118, 258); 20 synapses/cell (120) × exponential ISI 70 ms (121, 242–264) ≡ Poisson ≈ 285.7 Hz aggregate; weight AMPA (264); 50 ms (119) | code-value probe kf 0.25 of RS @286 Hz = same distribution (`adex_external_drive_kwargs` in `jaxfne/_construct_adex.py`: λ = n·rate·dt/1000) | code value reproduced; paper TEXT says 2–10% — text-vs-code discrepancy documented, both probed |
 | 12 | Initial conditions | `initialize(v=-60, w=0)` uniform (174) | V0 = EL, w = 0 | yes |
 | 13 | Reset order (V reset, w += b, ref) | PyNN EIF semantics at detection; no finer order readable | `adex_step` resets V, `w += b`, ref set | no finding |
 

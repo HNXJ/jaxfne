@@ -18,10 +18,10 @@ kernel arguments with the registered `istdp_vogels2011` rule and an I-to-E
 `plasticity_mask` (the adex `Model.simulate` path runs the static kernel
 only). The conductance route is the only core
 path with reversal-potential synapses: the LIF route is current-based and
-carries reversals as metadata only (`jaxfne/emitters.py:4462-4464`;
-`jaxfne/emitters_lif.py:1`). Estimators from `jaxfne.analysis`
+carries reversals as metadata only (`jaxfne/emitters.py`;
+`jaxfne/emitters_lif.py`). Estimators from `jaxfne.analysis`
 (checklist E3): `activity_regime` (rate_hz/cv_isi/kappa/label,
-`jaxfne/analysis/metrics.py:621-697`, kappa at `:482`).
+`activity_regime` in `jaxfne/analysis/metrics.py`, kappa at `wang_buzsaki_kappa` in `jaxfne/analysis/metrics.py`).
 
 ## Model form (checklist E5)
 
@@ -43,24 +43,24 @@ carries reversals as metadata only (`jaxfne/emitters.py:4462-4464`;
 
 ## Per-element rows
 
-| # | Element (paper) | Core path (file:line) | Status |
+| # | Element (paper) | Core path | Status |
 |---|---|---|---|
-| 1 | Leak + threshold: gl=10 nS, memc=200 pF (tau 20 ms), el=-60 mV, vt=-50 mV (`SOURCE_P1.md` §2) | `NeuronType.make("E"/"PV", emitter="adex", emitter_params={C_pF:200, gL_nS:10, EL_mV:-60, VT_mV:-50, ...})`; AdEx defaults in `jaxfne/emitters_adex.py:29-42`, overrides applied per triple in `jaxfne/_construct_adex.py:364-429` | exact (probe: realized C/gL/EL/VT equal the paper on every cell) |
-| 2 | Reset to el, refractory 5 ms (`SOURCE_P1.md` §1-§2) | `Vreset_mV=-60.0` override, `Tref_ms=5.0` (already the Table-1 default, `jaxfne/emitters_adex.py:29-42`) | exact (probe: realized Vreset/Tref equal the paper) |
-| 3 | No adaptation in the paper cells (plain LIF) | `a_nS=0.0, b_pA=0.0` overrides on both types (E Table-1 defaults carry `a=4, b=50`; PV defaults already 0, `jaxfne/emitters_adex.py:29-42`) | exact after zeroing (probe: realized a/b are 0) |
+| 1 | Leak + threshold: gl=10 nS, memc=200 pF (tau 20 ms), el=-60 mV, vt=-50 mV (`SOURCE_P1.md` §2) | `NeuronType.make("E"/"PV", emitter="adex", emitter_params={C_pF:200, gL_nS:10, EL_mV:-60, VT_mV:-50, ...})`; AdEx defaults in `ADEX_CELL_TYPE_DEFAULTS` in `jaxfne/emitters_adex.py`, overrides applied per triple in `_apply_triple_param_overrides` in `jaxfne/_construct_adex.py` | exact (probe: realized C/gL/EL/VT equal the paper on every cell) |
+| 2 | Reset to el, refractory 5 ms (`SOURCE_P1.md` §1-§2) | `Vreset_mV=-60.0` override, `Tref_ms=5.0` (already the Table-1 default, `ADEX_CELL_TYPE_DEFAULTS` in `jaxfne/emitters_adex.py`) | exact (probe: realized Vreset/Tref equal the paper) |
+| 3 | No adaptation in the paper cells (plain LIF) | `a_nS=0.0, b_pA=0.0` overrides on both types (E Table-1 defaults carry `a=4, b=50`; PV defaults already 0, `ADEX_CELL_TYPE_DEFAULTS` in `jaxfne/emitters_adex.py`) | exact after zeroing (probe: realized a/b are 0) |
 | 4 | No exponential spike-sharpness term (LIF, not AdEx) | `Delta_mV=0.0` override on both types: the exact LIF limit inside `adex_step` (`jnp.where` on Delta == 0, `jaxfne/emitters_adex.py`), bit-identical to the AdEx formula for Delta > 0 | exact (probe: realized Delta is 0.0 on every cell; pinned by `tests/test_adex_lif_limit.py`) |
-| 5 | V0 unstated (cells start below threshold) | V0 = EL (kernel rest, `jaxfne/emitters_adex.py:738`); no V0 declared | deviation (declared; paper unknown, `SOURCE_P1.md` §2) |
-| 6 | Conductance synapses tau_ampa=5 ms, tau_gaba=10 ms, EAMPA=0 mV, EGABA/er=-80 mV (`SOURCE_P1.md` §2) | `StaticParams(dT_ms=5.0/10.0, reversal_potentials_mV={...})`; reversal mandatory on the adex route (`jaxfne/neuronal_tensor.py:2902-2909`); kernel `I = sum_r g[:,r]*(E_r-V)` (`jaxfne/emitters_adex.py:487-504`) | exact (probe: realized receptor tau (5.0, 10.0), reversal (0.0, -80.0)) |
-| 7 | Fixed weights E-to-all 0.3, I-to-I 3 (nS, `SOURCE_P1.md` §2) | Realized weight `polarity * w_mech*g_mech/sqrt(total_n)` nS (`jaxfne/neuronal_tensor.py:2464-2475,2932-2933`); lane sets `w_mech = 0.3*sqrt(N)` (E), `3.0*sqrt(N)` (I-to-I) | exact (probe: realized E +0.3, I -3.0 nS) |
+| 5 | V0 unstated (cells start below threshold) | V0 = EL (kernel rest, `simulate_adex` in `jaxfne/emitters_adex.py`); no V0 declared | deviation (declared; paper unknown, `SOURCE_P1.md` §2) |
+| 6 | Conductance synapses tau_ampa=5 ms, tau_gaba=10 ms, EAMPA=0 mV, EGABA/er=-80 mV (`SOURCE_P1.md` §2) | `StaticParams(dT_ms=5.0/10.0, reversal_potentials_mV={...})`; reversal mandatory on the adex route (`_wire_adex_connection` in `jaxfne/neuronal_tensor.py`); kernel `I = sum_r g[:,r]*(E_r-V)` (`simulate_adex` in `jaxfne/emitters_adex.py`) | exact (probe: realized receptor tau (5.0, 10.0), reversal (0.0, -80.0)) |
+| 7 | Fixed weights E-to-all 0.3, I-to-I 3 (nS, `SOURCE_P1.md` §2) | Realized weight `polarity * w_mech*g_mech/sqrt(total_n)` nS (`_connection_edge_weight` in `jaxfne/neuronal_tensor.py`; `_wire_adex_connection` in `jaxfne/neuronal_tensor.py`); lane sets `w_mech = 0.3*sqrt(N)` (E), `3.0*sqrt(N)` (I-to-I) | exact (probe: realized E +0.3, I -3.0 nS) |
 | 8 | I-to-E plastic: init 1e-10, pairing potentiation + per-pre-spike depression (`eta=1e-2`, `alpha=2*rho0*tau_stdp`), cap gmax=100 (`SOURCE_P1.md` §1-§2) | Registered rule `istdp_vogels2011` (`jaxfne/istdp_vogels2011.py`): paper defaults eta 1e-2, tau 20 ms, rho0 3 Hz with alpha always derived (0.12), clip (0, 100); segment B runs it through `simulate_adex_hdp_registered` with the I-to-E `plasticity_mask` (E-to-all and I-to-I frozen bit-identically) | exact (pinned by `tests/test_istdp_vogels2011.py` and the lane `test_istdp_ie`; G-IE closed) |
-| 9 | I-to-E weight in the port | `w_mech = 1e-10*sqrt(N)` (the paper init), sign negative from the PV source (`jaxfne/neuronal_tensor.py:2932`); the static segment holds it, the plastic segment grows it from rest | exact init (probe: realized I-to-E -1e-10 nS; growth scored at P3) |
-| 10 | Sparse epsilon=0.02, NE=8000, NI=2000, NI=NE/4 (`SOURCE_P1.md` §2) | Density sampler: exact total `round(p*n_pre*n_post)` per rule (`jaxfne/connectivity.py:290-344`); fractions 0.8/0.2 split counts exactly | exact (probe: realized totals equal round(0.02*n_pre*n_post) per rule) |
+| 9 | I-to-E weight in the port | `w_mech = 1e-10*sqrt(N)` (the paper init), sign negative from the PV source (`_wire_adex_connection` in `jaxfne/neuronal_tensor.py`); the static segment holds it, the plastic segment grows it from rest | exact init (probe: realized I-to-E -1e-10 nS; growth scored at P3) |
+| 10 | Sparse epsilon=0.02, NE=8000, NI=2000, NI=NE/4 (`SOURCE_P1.md` §2) | Density sampler: exact total `round(p*n_pre*n_post)` per rule (`_candidate_pairs` in `jaxfne/connectivity.py`); fractions 0.8/0.2 split counts exactly | exact (probe: realized totals equal round(0.02*n_pre*n_post) per rule) |
 | 11 | Fixed indegree per cell | Brian random sparse wiring is binomial per cell, matching the density sampler; no exact-indegree claim in the sources read | exact (sampler matches the authors' code form) |
-| 12 | Delay: none stated in the sources read (Brian default) | Adex route refuses a rule without a delay (`jaxfne/neuronal_tensor.py:2943-2951`); lane declares `delay_ms=0.1` per rule, realized by the route as exactly 1 step at dt=0.1 | deviation D-DELAY (declared assumption; paper unknown) |
-| 13 | Background current bgcurrent=200 pA on every cell (`SOURCE_P1.md` §2) | Per-triple `drive=200.0` bridged as `tensor_triple_drive` pA (`jaxfne/_construct_adex.py:306-356`), realized as `I_ext_pA` (`jaxfne/_construct_adex.py:699-700`) | exact (probe: realized 200.0 pA on every cell; pilot spikes) |
-| 14 | Single-cell setup: 8 tuned input channels, per-group rates, 1000 trains (`SOURCE_P1.md` §2) | One `Simulation` carries one Poisson rate for all targets (`compile_poisson_sources`, `jaxfne/inputs.py:385-458`: single `rate_hz`, shared by `target_cell_types`) | gap G-SC (pinned by `test_per_channel_rates_gap`, xfail; differentiation additionally blocked by G-IE) |
+| 12 | Delay: none stated in the sources read (Brian default) | Adex route refuses a rule without a delay (`_wire_adex_connection` in `jaxfne/neuronal_tensor.py`); lane declares `delay_ms=0.1` per rule, realized by the route as exactly 1 step at dt=0.1 | deviation D-DELAY (declared assumption; paper unknown) |
+| 13 | Background current bgcurrent=200 pA on every cell (`SOURCE_P1.md` §2) | Per-triple `drive=200.0` bridged as `tensor_triple_drive` pA (`_adex_triple_drive_pA` in `jaxfne/_construct_adex.py`), realized as `I_ext_pA` (`adex_kernel_args` in `jaxfne/_construct_adex.py`) | exact (probe: realized 200.0 pA on every cell; pilot spikes) |
+| 14 | Single-cell setup: 8 tuned input channels, per-group rates, 1000 trains (`SOURCE_P1.md` §2) | One `Simulation` carries one Poisson rate for all targets (`compile_poisson_sources` in `jaxfne/inputs.py`: single `rate_hz`, shared by `target_cell_types`) | gap G-SC (pinned by `test_per_channel_rates_gap`, xfail; differentiation additionally blocked by G-IE) |
 | 15 | Integrator, dt, duration (paper: dt=0.1 ms coded; solver/order unstated) | Conductance decay `exp(-dt/tau)` (`decay="exp"`); dt=0.1 ms exact; pilot T=1.0 s, seed 0 (checklist P2) | deviation (declared; convergence check at P3) |
-| 16 | Population sizes NE/NI = 0.8N/0.2N | Fractions split counts exactly (probe: 16/4 at N=20); sparse wiring via same-area `AreaConnection(probability=0.02)` (`jaxfne/neuronal_tensor.py:685-688`); `InterConnection` has no probability (all-to-all) so the lane uses `AreaConnection`s | exact |
+| 16 | Population sizes NE/NI = 0.8N/0.2N | Fractions split counts exactly (probe: 16/4 at N=20); sparse wiring via same-area `AreaConnection(probability=0.02)` (`AreaConnection` in `jaxfne/neuronal_tensor.py`); `InterConnection` has no probability (all-to-all) so the lane uses `AreaConnection`s | exact |
 | 17 | No autapses stated | Self-edges dropped by default (`allow_self` None) | deviation (declared; paper unknown) |
 | 18 | Estimands: excitatory rate to rho0=3 Hz; Before (0.8-1.0 s) vs After (last 0.2 s) rasters (`SOURCE_P1.md` §2-§3) | `activity_regime` rate_hz/cv_isi/kappa/label (checklist E3; no lane-local estimator) | exact (estimator choice; values scored at P3) |
 

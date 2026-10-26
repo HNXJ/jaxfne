@@ -112,7 +112,7 @@ def build_spec(point="D", n=1250, seed=0, in_degree=None):
     ``in_degree=None`` is the paper default (CE = 0.1 NE, CI = 0.1 NI). A pair
     ``(CE, CI)`` fixes the exact fan-in at any ``n`` (S1 finite size). The
     weight stays ``J*sqrt(n)``: the kernel divides every edge by
-    ``sqrt(total_n)`` (``jaxfne/neuronal_tensor.py:2684``), and ``total_n``
+    ``sqrt(total_n)`` (``_connection_edge_weight`` in ``jaxfne/neuronal_tensor.py``), and ``total_n``
     is this ``n``, so the realized PSP is J at every ``n``.
     """
     del seed  # wiring draws seed from RuntimeConfiguration at construct time

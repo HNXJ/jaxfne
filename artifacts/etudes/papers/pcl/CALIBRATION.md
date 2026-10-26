@@ -121,7 +121,7 @@ drive is part of x; same-step interactions are declared intra-step fixed point.
   covering cell's own `w_c` weight; characterization, green on baseline too —
   the new mapping is the S1 assembly in `test_pcl_stage_c`). Pooling
   positions are simple-grid indices against complex origins
-  (`pcl_event_ref.py:423-428`), not pixels.
+  (`c_cover` in `pcl_event_ref.py`), not pixels.
 - `tests/test_emitters_lif.py + tests/test_pcl_topology.py`: 70 passed.
   `test_lif_tensor_route + test_readme_atlas_pin + test_jdna_area_rules_055`:
   43 passed. Ruff on touched files: only the 2 pre-existing HEAD errors
@@ -130,7 +130,7 @@ drive is part of x; same-step interactions are declared intra-step fixed point.
 - θ* = θ₀.
 - X (remaining): the per-event depth-sequential cascade — one event's
   candidates visited in ascending index with immediate spike-then-inhibit
-  (`port/pcl_event_ref.py:663-697`) — has no clock-step expression; the cap
+  (`_add_event` in `port/pcl_event_ref.py`) — has no clock-step expression; the cap
   resolves once per step, not once per event.
   |a| unquantified — no partial mapping exists to score. This is the protocol's step-6
   outcome: the paper's model needs something the core grammar does not yet state.
@@ -171,7 +171,7 @@ Oracle v5 verdict (FAIL on T2) stands unchanged.
   complex max 2 (16/18261 bins ≥2).
 - Declared setting, reasoned from the above (not from best r):
   `resolution="event_order"`, dt=0.5 ms, rounds=4. Each position resolves
-  `n_rounds` winners per step (`jaxfne/emitters_lif.py:163`); rounds=4 is the
+  `n_rounds` winners per step (`lif_step` in `jaxfne/emitters_lif.py`); rounds=4 is the
   smallest probed value covering the oracle-observed max of 3 with one spare
   pass (rounds=2 caps below the observed max; rounds=8 admits far more than
   observed). dt=0.1 + rounds=4 is near-identical (combined r 0.8480 vs
@@ -218,7 +218,7 @@ Oracle v5 verdict (FAIL on T2) stands unchanged.
   ascending with exact inter-event decay (`exp` from integer event times),
   and each spike runs local inhibition, then lateral (when flagged), then
   the forward pass — complex spikes run complex-local inhibition, then
-  top-down — exactly as `pcl_event_ref.py:663-720`. No rounds parameter:
+  top-down — exactly as `_add_event` in `pcl_event_ref.py`. No rounds parameter:
   the stream order is the order. Builders: `event_scan_tables`
   (cover/forward/lateral/top-down transcription of `:393-477`) and
   `event_scan_events` (stable time-sorted `(M,4)` rows). Scan-only

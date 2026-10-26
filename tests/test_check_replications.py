@@ -8,7 +8,10 @@ check body or its call site fails the test.
 
 from __future__ import annotations
 
+import ast
+import fnmatch
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -16,6 +19,15 @@ import pytest
 from scripts import check_replications as cr
 from scripts import run_test_gate as rtg
 from scripts.run_test_gate import AUDIT_STEPS, CHECK_FAMILIES, GATE_CHECK_FAMILIES
+
+ROOT = Path(__file__).resolve().parents[1]
+PAPERS_DIR = ROOT / "artifacts" / "etudes" / "papers"
+# Signed or historical records: their citations stay as written.
+SIGNED_RECORD_GLOBS = ("PREREG_P3*.md", "RESULT*.md", "LEDGER.md")
+LINE_CITE = re.compile(r"jaxfne/[A-Za-z0-9_/]+\.py:[0-9]")
+SYMBOL_CITE = re.compile(
+    r"`([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?)` in `(jaxfne/[A-Za-z0-9_/]+\.py)`"
+)
 
 
 def _write(root: Path, rel: str, text: str = "x") -> Path:
@@ -1139,3 +1151,54 @@ def test_r4_non_replication_verdicts_pass(tmp_path, verdict):
     assert [f for f in cr.collect_findings(tmp_path) if f[0] == "R4"] == [], (
         f"verdict {verdict!r} is a stage-level claim, not a full-replication claim"
     )
+
+
+def _paper_records() -> list[Path]:
+    """Every paper markdown record except the signed or historical ones."""
+    return [
+        md for md in sorted(PAPERS_DIR.rglob("*.md"))
+        if not any(fnmatch.fnmatch(md.name, g) for g in SIGNED_RECORD_GLOBS)
+    ]
+
+
+def _defined_names(source: Path) -> set[str]:
+    """Module-level defs, classes and assignments, plus Class.method, read with ast."""
+    names: set[str] = set()
+    for node in ast.parse(source.read_text(encoding="utf-8")).body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names.add(node.name)
+            if isinstance(node, ast.ClassDef):
+                names.update(
+                    f"{node.name}.{sub.name}" for sub in node.body
+                    if isinstance(sub, (ast.FunctionDef, ast.AsyncFunctionDef))
+                )
+        elif isinstance(node, ast.Assign):
+            names.update(t.id for t in node.targets if isinstance(t, ast.Name))
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            names.add(node.target.id)
+    return names
+
+
+def test_paper_records_cite_no_core_line_numbers():
+    records = _paper_records()
+    assert records, "fixture must scan at least one paper record"
+    hits = []
+    for md in records:
+        rel = md.relative_to(ROOT).as_posix()
+        for n, line in enumerate(md.read_text(encoding="utf-8").splitlines(), 1):
+            hits += [f"{rel}:{n} {m.group(0)}" for m in LINE_CITE.finditer(line)]
+    assert not hits, "core code cited by line number (cite a symbol): " + "; ".join(hits)
+
+
+def test_backticked_core_symbols_resolve_at_head():
+    examined = []
+    unresolved = []
+    for md in _paper_records():
+        rel = md.relative_to(ROOT).as_posix()
+        for name, path in SYMBOL_CITE.findall(md.read_text(encoding="utf-8")):
+            examined.append(f"{rel}: `{name}` in {path}")
+            source = ROOT / path
+            if not source.is_file() or name not in _defined_names(source):
+                unresolved.append(f"{rel}: `{name}` is not defined in {path}")
+    assert examined, "no `name` in `jaxfne/<path>.py` citation was examined"
+    assert not unresolved, "; ".join(unresolved)
