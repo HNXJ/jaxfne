@@ -186,7 +186,12 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   release notes, examples and the docs/archive manifest (5ae19017); examples v031/v032 name canonical JSON
   targets that are absent; examples 03/05 fall back to V_m for EEG/MEG; except-pass handlers in examples;
   `_tutorial_runtime` defaults an empty env with `or`; `consolidate_hdp_controllability_etude.py:38,254`
-  names the absent `hdp_mvc_etude.py`; `upload_testpypi.sh:20` names the absent RELEASE_CHECKLIST.md.
+  names the absent `hdp_mvc_etude.py`; `upload_testpypi.sh:20` names the absent RELEASE_CHECKLIST.md; `protocol_c/d/e/__init__.py` docstrings
+  read "receipts.Checkout" with a missing space; `paradigm.py:945` comment says it replaces the module in
+  `sys.modules`, the code only reads it; `sanity_delta.py:738` "Save task schedule" assigns a path only. Under tests/: about 60 comment paths that
+  do not resolve (for example `artifacts/audit/*` in `test_artifacts_root_layout.py:211`, COLAB.md in
+  `test_manifest_readout.py:91`, PREREG_P3.md and run_izh.py in `test_izh_analysis.py:264`), and a dev-gate
+  warning "compiled 2 times! Invariant N_compile <= 1 violated" not yet traced.
 - T-RG [external] komposer `run_guard.py stop` fell back to the payload cwd and blamed a subagent for the
   dispatcher's own broad gate (2026-10-27); fix in komposer, then reinstall.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
