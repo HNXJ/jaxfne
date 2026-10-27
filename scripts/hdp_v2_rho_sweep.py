@@ -28,6 +28,7 @@ formula changes materially.
 from __future__ import annotations
 
 import sys
+import textwrap  # planted F401: CI plan step A proof, never merged
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
