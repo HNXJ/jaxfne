@@ -1491,19 +1491,31 @@ EVENT_SCAN_W_UPDATE_POP_KEYS = (
     "norm_factor", "eta_inh",
 )
 EVENT_SCAN_W_UPDATE_MODES = ("off", "excitatory", "inhibitory", "all")
+#: PCL-L3d constants of the simple mapping: the oracle's products (pcl_event_ref.py:178-181)
+#: and the normalisation targets (:259, :284-286). The top-down keys are consumed when the
+#: simple mode is "inhibitory"/"all" and top-down is on; the lateral keys likewise.
+EVENT_SCAN_W_UPDATE_TD_KEYS = ("ptiLTP", "ptiLTD", "topdown_norm_factor")
+EVENT_SCAN_W_UPDATE_LAT_KEYS = ("pliLTP", "pliLTD", "lateral_norm_factor")
+EVENT_SCAN_W_UPDATE_INH_KEYS = EVENT_SCAN_W_UPDATE_TD_KEYS + EVENT_SCAN_W_UPDATE_LAT_KEYS
 
 
-def _w_update_population(value: Any, *, name: str, label: str) -> dict[str, Any]:
-    """One population mapping of an event-scan plasticity declaration (fail-closed)."""
+def _w_update_population(value: Any, *, name: str, label: str,
+                         extra_keys: tuple[str, ...] = ()) -> dict[str, Any]:
+    """One population mapping of an event-scan plasticity declaration (fail-closed).
+
+    ``extra_keys`` are the optional keys this population may carry; each one present is
+    checked as a finite real like the required keys.
+    """
     if not isinstance(value, Mapping):
         raise ValueError(
             f"{label}: w_update[{name!r}] must be a mapping with keys "
             f"{list(EVENT_SCAN_W_UPDATE_POP_KEYS)}; got {type(value).__name__}")
-    unknown = sorted((k for k in value if k not in EVENT_SCAN_W_UPDATE_POP_KEYS), key=repr)
+    allowed = EVENT_SCAN_W_UPDATE_POP_KEYS + tuple(extra_keys)
+    unknown = sorted((k for k in value if k not in allowed), key=repr)
     if unknown:
         raise ValueError(
             f"{label}: w_update[{name!r}] holds unknown key(s) {unknown}; allowed keys "
-            f"are {list(EVENT_SCAN_W_UPDATE_POP_KEYS)}")
+            f"are {list(allowed)}")
     missing = [k for k in EVENT_SCAN_W_UPDATE_POP_KEYS if k not in value]
     if missing:
         raise ValueError(f"{label}: w_update[{name!r}] is missing {missing}")
@@ -1513,7 +1525,8 @@ def _w_update_population(value: Any, *, name: str, label: str) -> dict[str, Any]
             f"{label}: w_update[{name!r}]['mode'] must be one of "
             f"{list(EVENT_SCAN_W_UPDATE_MODES)}; got {mode!r}")
     out: dict[str, Any] = {"mode": str(mode)}
-    for key in EVENT_SCAN_W_UPDATE_POP_KEYS[1:]:
+    present_extra = tuple(k for k in extra_keys if k in value)
+    for key in EVENT_SCAN_W_UPDATE_POP_KEYS[1:] + present_extra:
         raw = value[key]
         if (isinstance(raw, bool) or not isinstance(raw, numbers.Real)
                 or not math.isfinite(float(raw))):
@@ -1538,10 +1551,11 @@ def check_event_scan_w_update(
     ``wi_c`` is ``(cd, cd)``). Both populations' ``excitatory``/``all`` modes
     run the buffer update (simple: ``pcl_event_ref.py:543-574``, complex:
     :608-646); a complex ``"inhibitory"`` mode is a no-op there, as in the
-    oracle. A simple ``mode`` of ``"inhibitory"`` or ``"all"`` is refused while
-    the tables carry lateral or top-down inhibition (PCL-L3d, which lands the
-    lateral and top-down weights). Every refusal names ``label`` and the
-    offending key.
+    oracle. A simple ``mode`` of ``"inhibitory"`` or ``"all"`` runs the lateral and
+    top-down update (PCL-L3d, pcl_event_ref.py:575-602) where the tables carry that
+    pathway; it then needs the pathway's keys (``EVENT_SCAN_W_UPDATE_TD_KEYS`` and
+    ``EVENT_SCAN_W_UPDATE_LAT_KEYS``), and those keys are refused where no mode in use
+    consumes them. Every refusal names ``label`` and the offending key.
     """
     if not isinstance(w_update, Mapping):
         raise ValueError(
@@ -1582,12 +1596,29 @@ def check_event_scan_w_update(
             f"{label}: w_update['decay'] must be finite reals of shape ({n_cells},); "
             f"got shape {dec.shape} dtype {dec.dtype}")
     cpop = _w_update_population(w_update["complex"], name="complex", label=label)
-    spop =_w_update_population(w_update["simple"], name="simple", label=label)
-    if spop["mode"] in ("inhibitory", "all") and (lateral_on or topdown_on):
-        raise ValueError(
-            f"{label}: w_update['simple']['mode'] {spop['mode']!r} changes the lateral "
-            "and top-down weights, which lands in PCL-L3d; the tables carry "
-            f"lateral_on={bool(lateral_on)}, topdown_on={bool(topdown_on)}")
+    spop = _w_update_population(
+        w_update["simple"], name="simple", label=label,
+        extra_keys=EVENT_SCAN_W_UPDATE_INH_KEYS)
+    # The PCL-L3d keys are consumed only when the simple mode is "inhibitory"/"all" and the
+    # pathway is on. A consumed key that is missing is named; a present key that nothing in
+    # use consumes is refused by name (a stored-but-unconsumed parameter is a defect).
+    used: set[str] = set()
+    if spop["mode"] in ("inhibitory", "all"):
+        if topdown_on:
+            used |= set(EVENT_SCAN_W_UPDATE_TD_KEYS)
+        if lateral_on:
+            used |= set(EVENT_SCAN_W_UPDATE_LAT_KEYS)
+    for key in EVENT_SCAN_W_UPDATE_INH_KEYS:
+        if key in used and key not in spop:
+            raise ValueError(
+                f"{label}: w_update['simple'] is missing {key!r}; simple mode "
+                f"{spop['mode']!r} with lateral_on={bool(lateral_on)}, "
+                f"topdown_on={bool(topdown_on)} consumes it")
+        if key not in used and key in spop:
+            raise ValueError(
+                f"{label}: w_update['simple'][{key!r}] is set but simple mode "
+                f"{spop['mode']!r} with lateral_on={bool(lateral_on)}, "
+                f"topdown_on={bool(topdown_on)} consumes no such key")
     return {
         "rule": EVENT_SCAN_W_UPDATE_RULE,
         "buffer_capacity": int(cap),

@@ -449,6 +449,99 @@ def test_core_inhibitory_simple_mode_matches_oracle(monkeypatch):
     assert np.array_equal(got["wi_s"], oracle.wi_s)
 
 
+def _spikes_between(spike_lists, s0, s1):
+    """Spikes of the listed cells strictly between two times (a buffer's possible entries)."""
+    total = 0
+    for sp in spike_lists:
+        arr = np.asarray(sp, dtype=np.int64)
+        total += int(np.sum((arr > s0) & (arr < s1)))
+    return total
+
+
+def _check_inhibitory_simple_against_oracle(cap, monkeypatch, *, min_buffered):
+    """Simple "all" with lateral and top-down on replays the oracle's inhibitory update exactly.
+
+    The complex population learns excitatory only. The 2000-event multi-spike fixture runs
+    through the oracle (learning on) and through run_core_events(learning=True). Spikes must
+    be equal; w_s, wi_s, w_c, wi_c, lat_w and td_w agree at rtol 1e-12. lat_w and td_w are in
+    the scan's layout: lat_w[n, j] = LAT[lat_idx[n, j], n] and td_w[c, j] = TD[td_idx[c, j], c].
+    Preconditions: LAT and TD move; some simple cell gets lateral and top-down entries in one
+    interval between two of its spikes; with ``cap`` below the default, some cell receives more
+    than ``min_buffered`` entries of one kind between two of its spikes (so the cap drops some).
+    """
+    monkeypatch.setattr(ref, "CAP", cap)
+    net = ref.PCLEventRef(seed=0, learning=True,
+                          layer_inhibitions=[["local", "lateral"], ["local", "topdown"]])
+    net.ccfg.STDP_LEARNING = "excitatory"
+    net.scfg.STDP_LEARNING = "all"
+    assert net.lat_on and net.td_on, "fixture must carry lateral and top-down"
+    w_init = net.w_s.copy()
+    lat_init = net.LAT.copy()
+    td_init = net.TD.copy()
+    n = 2000
+    t = (np.arange(n, dtype=np.int64) + 1) * 20
+    x = np.full(n, 170, dtype=np.int64)
+    y = np.full(n, 130, dtype=np.int64)
+    p = np.zeros(n, dtype=np.int64)
+    oracle = copy.deepcopy(net)
+    oracle.run(t, x, y, p)
+    s_max = max(len(c.spikes) for c in oracle.s_cells)
+    assert s_max >= 2, f"fixture must multi-spike, got max {s_max}"
+    assert not np.array_equal(oracle.w_s, w_init), "fixture must move w_s"
+    assert not np.array_equal(oracle.LAT, lat_init), "fixture must move LAT"
+    assert not np.array_equal(oracle.TD, td_init), "fixture must move TD"
+    lat_max = 0
+    td_max = 0
+    both = False
+    for m, cell in enumerate(oracle.s_cells):
+        lat_src = [oracle.s_cells[int(q)].spikes for q in np.flatnonzero(oracle.lat_mask[:, m])]
+        td_src = [oracle.c_cells[int(c)].spikes for c in np.flatnonzero(oracle.td_mask[m, :])]
+        for s0, s1 in zip(cell.spikes[:-1], cell.spikes[1:]):
+            n_lat = _spikes_between(lat_src, s0, s1)
+            n_td = _spikes_between(td_src, s0, s1)
+            lat_max = max(lat_max, n_lat)
+            td_max = max(td_max, n_td)
+            both = both or (n_lat > 0 and n_td > 0)
+    assert both, "fixture must give a simple cell lateral and top-down entries before a spike"
+    assert max(lat_max, td_max) > min_buffered, (
+        f"fixture must buffer more than {min_buffered} entries of one kind, "
+        f"got lateral {lat_max}, top-down {td_max}")
+    sc = np.array([len(c.spikes) for c in oracle.s_cells], dtype=np.int32)
+    cc = np.array([len(c.spikes) for c in oracle.c_cells], dtype=np.int32)
+    es_t, es_o = rt._gather(oracle.s_cells)
+    ec_t, ec_o = rt._gather(oracle.c_cells)
+    got = rt.run_core_events(net, t, x, y, p, learning=True)
+    assert np.array_equal(got["simple_counts"], sc)
+    assert np.array_equal(got["complex_counts"], cc)
+    assert np.array_equal(got["simple_times_us"], es_t)
+    assert np.array_equal(got["simple_times_cell"], es_o)
+    assert np.array_equal(got["complex_times_us"], ec_t)
+    assert np.array_equal(got["complex_times_cell"], ec_o)
+    np.testing.assert_allclose(got["w_s"], oracle.w_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["wi_s"], oracle.wi_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["w_c"], oracle.w_c, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["wi_c"], oracle.wi_c, rtol=1e-12, atol=0)
+    tables = rt._core_tables(net)[0]
+    lat_idx, lat_n = tables["lat_idx"], tables["lat_n"]
+    td_idx, td_n = tables["td_idx"], tables["td_n"]
+    lat_ok = np.arange(lat_idx.shape[1])[None, :] < lat_n[:, None]
+    td_ok = np.arange(td_idx.shape[1])[None, :] < td_n[:, None]
+    lat_want = np.where(lat_ok, oracle.LAT[lat_idx, np.arange(lat_idx.shape[0])[:, None]], 0.0)
+    td_want = np.where(td_ok, oracle.TD[td_idx, np.arange(td_idx.shape[0])[:, None]], 0.0)
+    np.testing.assert_allclose(np.asarray(got["lat_w"])[lat_ok], lat_want[lat_ok],
+                               rtol=1e-12, atol=0)
+    np.testing.assert_allclose(np.asarray(got["td_w"])[td_ok], td_want[td_ok],
+                               rtol=1e-12, atol=0)
+
+
+def test_core_inhibitory_lateral_topdown_matches_oracle(monkeypatch):
+    _check_inhibitory_simple_against_oracle(1000, monkeypatch, min_buffered=0)
+
+
+def test_core_inhibitory_lateral_topdown_matches_oracle_cap3(monkeypatch):
+    _check_inhibitory_simple_against_oracle(3, monkeypatch, min_buffered=3)
+
+
 def _complex_buffered_forwards(oracle):
     """Largest number of buffered complex events at a complex spike, counted from the spike logs.
 

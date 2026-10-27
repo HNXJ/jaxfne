@@ -1,0 +1,1 @@
+- The `event_scan` buffer plasticity covers the simple cells' inhibitory update: with simple mode `"inhibitory"` or `"all"`, the PCL reference's lateral and top-down STDP moves the lateral and top-down weight rows (returned in `weights_final` as `lat_w` and `td_w`); the declaration names `ptiLTP`, `ptiLTD`, `pliLTP`, `pliLTD`, `topdown_norm_factor` and `lateral_norm_factor`.

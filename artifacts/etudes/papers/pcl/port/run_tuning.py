@@ -284,14 +284,36 @@ def _core_h_update(net, t0):
     }
 
 
+def _simple_population(net):
+    """The simple mapping of the declaration, with the PCL-L3d keys of each pathway in use.
+
+    The oracle's lateral and top-down blocks run only in the "inhibitory"/"all" modes
+    (pcl_event_ref.py:575-602), and each only where its pathway is on. The kernel refuses a
+    key that no mode in use consumes, so the keys are declared only then.
+    """
+    sc = net.scfg
+    pop = {"mode": sc.STDP_LEARNING, "eLTP": float(sc.eLTP), "eLTD": float(sc.eLTD),
+           "iLTP": float(sc.iLTP), "iLTD": float(sc.iLTD),
+           "tau_ltp_us": float(sc.TAU_LTP), "tau_ltd_us": float(sc.TAU_LTD),
+           "norm_factor": float(sc.NORM_FACTOR), "eta_inh": float(sc.ETA_INH)}
+    if sc.STDP_LEARNING in ("inhibitory", "all"):
+        if net.td_on:
+            pop.update(ptiLTP=float(sc.ptiLTP), ptiLTD=float(sc.ptiLTD),
+                       topdown_norm_factor=float(sc.TOPDOWN_NORM_FACTOR))
+        if net.lat_on:
+            pop.update(pliLTP=float(sc.pliLTP), pliLTD=float(sc.pliLTD),
+                       lateral_norm_factor=float(sc.LATERAL_NORM_FACTOR))
+    return pop
+
+
 def _core_w_update(net):
     """The oracle's buffer plasticity (simple :543-574, complex :608-646) as a w_update.
 
     The buffer capacity is ``ref.CAP``, the length the oracle's cell deques were built with;
     a network built under another capacity is refused, so the replay and the oracle drop the
     same entries. Both populations carry their own mode and constants; the kernel runs the
-    complex update in ``"excitatory"``/``"all"``. Lateral and top-down learning are refused by
-    the kernel declaration (PCL-L3d).
+    complex update in ``"excitatory"``/``"all"``. The simple lateral and top-down update
+    (PCL-L3d) rides in the simple mapping (see ``_simple_population``).
     """
     built = int(net.s_cells[0].ev.maxlen)
     if built != int(ref.CAP):
@@ -305,10 +327,7 @@ def _core_w_update(net):
         "wi_s": np.asarray(net.wi_s, dtype=np.float64),
         "wi_c": np.asarray(net.wi_c, dtype=np.float64),
         "decay": np.array([cell.decay for cell in net.s_cells + net.c_cells], dtype=np.float64),
-        "simple": {"mode": sc.STDP_LEARNING, "eLTP": float(sc.eLTP), "eLTD": float(sc.eLTD),
-                   "iLTP": float(sc.iLTP), "iLTD": float(sc.iLTD),
-                   "tau_ltp_us": float(sc.TAU_LTP), "tau_ltd_us": float(sc.TAU_LTD),
-                   "norm_factor": float(sc.NORM_FACTOR), "eta_inh": float(sc.ETA_INH)},
+        "simple": _simple_population(net),
         "complex": {"mode": cc.STDP_LEARNING, "eLTP": float(cc.eLTP), "eLTD": float(cc.eLTD),
                     "iLTP": float(cc.iLTP), "iLTD": float(cc.iLTD),
                     "tau_ltp_us": float(cc.TAU_LTP), "tau_ltd_us": float(cc.TAU_LTD),
@@ -327,7 +346,8 @@ def run_core_events(net, t, x, y, p, *, learning=False):
     (the scan sorts; the oracle follows file order) and an empty slice. The oracle's
     periodic rate and threshold update runs inside the scan (_core_h_update).
     ``learning=True`` declares the buffer plasticity (_core_w_update) and also returns
-    the final shared matrices as w_s, wi_s, w_c and wi_c; frozen weights otherwise.
+    the final shared matrices as w_s, wi_s, w_c and wi_c, and the final lateral and top-down
+    weights in the scan layout as lat_w and td_w; frozen weights otherwise.
     """
     import jaxfne as jtfne
     jtfne.enable_x64()  # the scan kernel integrates in float64 (as the oracle does)
@@ -391,6 +411,9 @@ def run_core_events(net, t, x, y, p, *, learning=False):
         out["wi_s"] = np.asarray(final["wi_s"], dtype=np.float64)
         out["w_c"] = np.asarray(final["w_c"], dtype=np.float64)
         out["wi_c"] = np.asarray(final["wi_c"], dtype=np.float64)
+        # The scan's layouts: lat_w[n, j] = LAT[lat_idx[n, j], n], td_w[c, j] = TD[td_idx[c, j], c].
+        out["lat_w"] = np.asarray(final["lat_w"], dtype=np.float64)
+        out["td_w"] = np.asarray(final["td_w"], dtype=np.float64)
     return out
 
 

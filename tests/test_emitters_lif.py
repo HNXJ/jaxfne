@@ -1189,9 +1189,18 @@ def test_policies_are_deterministic_per_seed_without_continuation():
                      == np.asarray(second["V_mV"])).all())
 
 
+#: Lateral and top-down constants of a PCL-L3d declaration (the products of the oracle's
+#: ETA_ILTP/ETA_ILTD with its normalisation factors, declared directly).
+_INH_LAT = {"pliLTP": 0.5, "pliLTD": 0.25, "lateral_norm_factor": 40.0}
+_INH_TD = {"ptiLTP": 0.5, "ptiLTD": 0.25, "topdown_norm_factor": 40.0}
+
+
 def _w_update(*, nd=1, cd=1, simple_mode="excitatory", complex_mode="off",
-              cap=8, wi_s=None):
-    """A PCL buffer-STDP declaration with constants that a hand check can carry."""
+              cap=8, wi_s=None, lateral=False, topdown=False):
+    """A PCL buffer-STDP declaration with constants that a hand check can carry.
+
+    ``lateral``/``topdown`` add the PCL-L3d keys to the simple mapping.
+    """
 
     def population(mode):
         return {
@@ -1200,12 +1209,17 @@ def _w_update(*, nd=1, cd=1, simple_mode="excitatory", complex_mode="off",
             "norm_factor": 50.0, "eta_inh": 1500.0,
         }
 
+    simple = population(simple_mode)
+    if lateral:
+        simple.update(_INH_LAT)
+    if topdown:
+        simple.update(_INH_TD)
     return {
         "rule": "pcl_buffer_stdp", "buffer_capacity": cap,
         "wi_s": np.zeros((nd, nd)) if wi_s is None else np.asarray(wi_s),
         "wi_c": np.zeros((cd, cd)),
         "decay": np.ones((nd + cd,)),
-        "simple": population(simple_mode), "complex": population(complex_mode),
+        "simple": simple, "complex": population(complex_mode),
     }
 
 
@@ -1335,11 +1349,16 @@ def test_event_scan_stdp_refusals_name_the_channel():
     for mode in ("excitatory", "all", "inhibitory"):
         simulate_lif_edge(p, event_scan_w_update=_w_update(complex_mode=mode), **kw)
 
+    # PCL-L3d: a lateral simple inhibitory mode needs its three keys, named when missing;
+    # the keys are refused by name when no mode in use consumes them.
     p, kw = _stdp_chain_fixture(lateral_on=True)
-    with pytest.raises(ValueError, match="PCL-L3d"):
-        simulate_lif_edge(p, event_scan_w_update=_w_update(simple_mode="all"), **kw)
-    with pytest.raises(ValueError, match="PCL-L3d"):
-        simulate_lif_edge(p, event_scan_w_update=_w_update(simple_mode="inhibitory"), **kw)
+    missing = _w_update(simple_mode="all", lateral=True)
+    del missing["simple"]["pliLTP"]
+    with pytest.raises(ValueError, match="pliLTP"):
+        simulate_lif_edge(p, event_scan_w_update=missing, **kw)
+    stray = _w_update(simple_mode="excitatory", lateral=True)
+    with pytest.raises(ValueError, match="pliLTP"):
+        simulate_lif_edge(p, event_scan_w_update=stray, **kw)
 
     p, kw = _stdp_chain_fixture()
     with pytest.raises(ValueError, match="rule"):
@@ -1351,6 +1370,89 @@ def test_event_scan_stdp_refusals_name_the_channel():
     with pytest.raises(ValueError, match="event_scan_w_update"):
         simulate_lif_edge(p, n_steps=1, dt_ms=0.5,
                           event_scan_w_update=_w_update())
+
+
+def _lateral_pair_fixture():
+    """Two simple cells at neighbouring pixels, one lateral link each way; events at 100, 150, 200 us.
+
+    Cell A (pixel 0) spikes at 100 and 200, cell B (pixel 1) at 150: A's spike at 100 is B's
+    lateral source, B's spike at 150 is A's. The lateral weights are LAT[B, A] = 3 and
+    LAT[A, B] = 2, so the rows hold one entry each (lat_count == 1). One complex cell covers
+    both pixels; it never reaches the simple cells (top-down off).
+    """
+    from jaxfne.pcl_topology import (
+        event_scan_events,
+        event_scan_tables,
+        local_inhibition_blocks,
+    )
+
+    w_s = np.zeros((1, 2, 1, 1), dtype=np.float64)
+    w_s[0, 0, 0, 0] = 40.0
+    w_s[0, 1, 0, 0] = 4.0
+    lat_mat = np.array([[0.0, 2.0], [3.0, 0.0]])  # lat_mat[target, source]
+    tables = event_scan_tables(
+        nx=2, ny=1, nd=1, cx=1, cy=1, cd=1,
+        origins_x=[0, 1], origins_y=[0], size=(1, 1), weights=w_s,
+        c_cover={(0, 0): [(0, 0)], (1, 0): [(0, 0)]}, c_ox=[0], c_oy=[0], c_size=(2, 1),
+        c_weights=np.full((1, 2, 1, 1), 40.0, dtype=np.float64),
+        vw=2, vh=1, inhib_range=(1, 0), lateral_on=True, lateral_weights=lat_mat,
+    )
+    events = event_scan_events(
+        np.array([100, 150, 200]), np.array([0, 1, 0]), np.zeros(3, dtype=np.int64),
+        np.zeros(3, dtype=np.int64), dt_ms=0.5, n_steps=1, vw=2, vh=1,
+    )
+    p = _as_f32(make_lif_params(("simple", "simple", "complex")))
+    groups = np.array([0, 1, 2], dtype=np.int64)
+    blocks = local_inhibition_blocks(
+        groups,
+        li_pre=np.zeros(0, dtype=np.int64), li_post=np.zeros(0, dtype=np.int64),
+        li_weight=np.zeros(0, dtype=np.float64),
+    )
+    kw = dict(
+        n_steps=1, dt_ms=0.5,
+        local_inhibition_groups=jnp.asarray(groups),
+        local_inhibition_resolution="event_scan",
+        local_inhibition_blocks=blocks,
+        event_scan_events=events,
+        event_scan_tables=tables,
+    )
+    return p, kw
+
+
+def _lateral_rule(w0, *, t_i, t_now, t_last, ltp, ltd, tau=40000.0):
+    """The oracle's lateral update for one weight (pcl_event_ref.py:589-602), written from the rule.
+
+    LTP runs on the weight read before the update; LTD (only after a previous spike of the
+    target) reads the same value. The entry is clipped at 0. The row is not normalised here
+    because each row holds one entry (lat_count == 1, :601).
+    """
+    wj = w0
+    w = wj + (50.0 - wj) * 0.02 * ltp * math.exp(-(t_now - t_i) / tau)
+    if t_last != 0:
+        w = w + (wj * 0.02) * ltd * math.exp(-(t_i - t_last) / tau)
+    return max(w, 0.0)
+
+
+def test_event_scan_lateral_two_spikes_match_the_rule():
+    """The scan's lateral rows after the second spike equal the rule, written out in the test.
+
+    B's spike at 150 moves LAT[B, A] (LTP only: B never spiked before, so no LTD); A's spike at
+    200 moves LAT[A, B] by LTP and LTD on the entry B pushed at 150 (A last spiked at 100).
+    Each row holds one entry, so neither row is normalised (lat_count == 1). The test checks
+    the spike counts first, so the second spike of A is a real precondition.
+    """
+    p, kw = _lateral_pair_fixture()
+    declared = _w_update(simple_mode="inhibitory", lateral=True)
+    declared["decay"] = np.ones((3,))  # one entry per cell: two simple cells and one complex
+    out = simulate_lif_edge(p, event_scan_w_update=declared, **kw)
+    counts = np.asarray(out["counts"])
+    assert counts[0] == 2 and counts[1] == 1, "fixture must spike A twice and B once"
+    w_ba = _lateral_rule(3.0, t_i=100, t_now=150, t_last=0, ltp=0.5, ltd=0.25)
+    w_ab = _lateral_rule(2.0, t_i=150, t_now=200, t_last=100, ltp=0.5, ltd=0.25)
+    got = np.asarray(out["weights_final"]["lat_w"])
+    np.testing.assert_allclose(got[0, 0], w_ba, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got[1, 0], w_ab, rtol=1e-12, atol=0)
+    assert float(got[0, 0]) != 3.0 and float(got[1, 0]) != 2.0, "the rule must move both rows"
 
 
 def _complex_chain_fixture():
