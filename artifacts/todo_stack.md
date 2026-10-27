@@ -31,13 +31,11 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
   specializer `PV[model=IZH]` (`7_tfne_algebra.md`) does not (the parser takes `Base[NAME]`). S1 and
   S5 regenerate with `python scripts/publication_figures/supplement.py`; F1 and F3 are frozen fig01 and fig06
   (H1), rebuilt by the publication gate; the S2 generator remains.
-- [A] C1: H4 ruled 2026-10-26 and landed: the ledger holds CL-01 to CL-34 (E2 V1/V2 claims are CL-27 to CL-34).
-  Left: results.md cites no CL id (17 orphan candidates in `check_manuscript_claims.py`); CL-34 cites two
-  `artifacts/developer/resolution/` documents that were never tracked (`KNOWN_UNTRACKED` in
-  `tests/test_publication_claim_ledger_v20260815.py`). Tracked candidates: `artifacts/publication/final/`
-  `e2_fig08_ping_receipt.json` and `e2_fig09_ssa_receipt.json` (2026-08-26); repoint CL-34 once one is shown
-  to carry its claim, else record it as unsupported. `claim_ledger_delta.json` still says base 21 rows; no
-  reader uses it.
+- [A then H] C1: the ledger holds CL-01 to CL-34; CL-34 cites its two render receipts (UNRESOLVED: one render,
+  no reproduction; the receipt hashes are tested). Audit `artifacts/programme/paper/claim_alignment_audit.md`
+  (2026-10-27) maps the 17 orphan paragraphs. To reach 0: ledger rows for the A-1a, A-1b, A-2 and A-3 receipts
+  (orchestrator drafts), Hamm's ruling on 7 manuscript-ledger conflicts and on the CL id format, then the ids.
+  `claim_ledger_delta.json` still says base 21 rows; no reader uses it.
 - [H] C6, S6: benchmark protocol choices (`artifacts/programme/benchmarks/README.md`); brian2 and NEST not installed.
   `scripts/cortical_column_localized_workflow.build_config`, which the Izhikevich benchmark calls, raises at HEAD: the
   builder refuses `geometry='uniform3d'` with `layers` and `ei_profile='canonical'`. The repair picks a geometry.
@@ -102,7 +100,9 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   (2026-10-26); closes when rc on the next candidate runs end to end. Evidence writers and the checklist write
   under `artifacts/_temp/` (2026-10-26). The figure lock `.github/figure_env_lock.txt` (freeze of passing
   Release CI 40444082095) constrains the publication job, which renders on a clean checkout and fails when
-  its freeze differs from the lock. Left: rc end to end on the candidate.
+  its freeze differs from the lock. The rc dry run on 666758cb (2026-10-27) passed every family up to JUnit
+  parity, which failed on the dashboard test's module-level skip (fixed, 7cf4e2b4). Left: parity, build, twine
+  and wheel smoke on the next candidate.
 
 - Jitter reader (Hamm 2026-10-22): protocol (a) PASS on all four runs (A1/A2, seeds 0,1; w_pat -> 2.0
   bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak
@@ -122,15 +122,9 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   set and publish on every dev push; style files stay per repo, aligned by convention. Tree budget
   (Hamm 2026-10-24: the repo stays well below 100 MB, read as 100,000,000 bytes, so a budget
   amendment for the twins is fine): record the measured delta in the amendment file.
-- Interactive figure theme (Hamm ruled for jnwb 2026-10-24: one HTML per figure that follows the site
-  theme, no light/dark twins): jaxfne's interactive panels are one HTML each but built with a fixed
-  `plotly_dark` template (`jaxfne/vis/atlas_suite.py`, `network_inspect.py`, `tutorial_panels.py`,
-  `scripts/generate_docs_visuals.py`, `generate_doc_page_atlases.py`). [A] make them follow the
-  reader's theme (iframe reads `prefers-color-scheme` / the parent's `data-theme`); closes when a
-  panel renders light and dark from the same file. Not 0.5.8-blocking.
-- Docs figures leftovers (0.5.9; docs build hygiene, outside the 0.5.8 engineering scope): (1) stop the
-  `docs/_static` HTML builds and delete those tracked files (frees tree budget); (2) the four allowlisted
-  iframes in `build_docs_assets.py` get a figure-site build or a still.
+- Docs figures leftovers (0.5.9): the four allowlisted iframes in `build_docs_assets.py` (two on archived
+  tutorial pages) get a figure-site build or a still; `docs/_static/jaxley_interop/vm_dark.html`, one of
+  them, is the last tracked `docs/_static` HTML. Figure-site panels follow the docs theme (f1074845).
 
 In order (Hamm 2026-10-22: work until the 0.5.8 todos and open issues are empty; open issues become
 todos once their close is decided; checkpoint when both are empty; Muse Spark 1.3 code packets in

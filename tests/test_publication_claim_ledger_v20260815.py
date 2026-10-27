@@ -91,12 +91,9 @@ def test_c3_scope_qualifier_preserved(ledger):
     assert "preregistered" in cl6["allowed_manuscript_language"]
 
 
-# Evidence that was never tracked (the E2 delta cited it as written, H4 merge 2026-10-26).
-# Listed so the defect stays visible; an entry that resolves fails as stale.
-KNOWN_UNTRACKED = {
-    ("CL-34", "artifacts/developer/resolution/34_E2_FIGURE_CLAIM_REMAP.md"),
-    ("CL-34", "artifacts/developer/resolution/35_E2_EVIDENCE_VERSIONING_PLAN.md"),
-}
+# Evidence that was never tracked, listed so the defect stays visible; an entry that resolves fails
+# as stale. Empty since CL-34 cites its render receipts (2026-10-27).
+KNOWN_UNTRACKED: set = set()
 
 
 def _json_key(path, dotted):
@@ -142,3 +139,24 @@ def test_evidence_artifacts_resolve_to_tracked_paths(ledger):
             if key:
                 assert _json_key(root / rel, key), f"{c['claim_id']}: no key {key!r} in {rel}"
     assert untracked == KNOWN_UNTRACKED, f"untracked evidence: {sorted(untracked ^ KNOWN_UNTRACKED)}"
+
+
+def test_cl34_render_receipts_match_the_tracked_figures(ledger):
+    import hashlib
+
+    root = __import__("pathlib").Path(__file__).resolve().parents[1]
+    cl34 = next(c for c in ledger["ledger"] if c["claim_id"] == "CL-34")
+    receipts = [art.partition("#")[0] for art in cl34["evidence_artifacts"]]
+    assert len(receipts) == 2, "fixture: CL-34 cites the fig08 and fig09 receipts"
+    for rel in receipts:
+        files = json.loads((root / rel).read_text(encoding="utf-8"))["files"]
+        assert files, f"{rel} lists no figures"
+        for name, entry in files.items():
+            data = (root / "artifacts" / entry["path"]).read_bytes()
+            assert len(data) == entry["bytes"], f"{name}: size differs from {rel}"
+            assert hashlib.sha256(data).hexdigest() == entry["sha256"], f"{name}: sha256 differs from {rel}"
+    promoted = cl34["quantitative_result"]["promoted_hashes"]
+    combined = {name: e["sha256"] for rel in receipts
+                for name, e in json.loads((root / rel).read_text(encoding="utf-8"))["files"].items()
+                if name.endswith("_combined.png")}
+    assert promoted == combined

@@ -857,25 +857,28 @@
     },
     {
       "allowed_manuscript_language": "New figures are first-class, generated from frozen specs+raw+summaries via pinned scripts with receipt authority and excluded-content lists; no hand-retouched data pixels",
-      "claim": "Figure synthesis Figs.8-9 first-class (fig08_e2_ping_spec.json Fig08.V1_A..H, fig09_e2_ssa_spec.json Fig09.V2_A..F, pinned generators scripts/internal/publication/fig08/09) not yet promoted; generation awaits supplement S-Pulse/S18 freeze and manifest green (UNRESOLVED pending render)",
+      "claim": "Figure synthesis Figs.8-9 first-class (fig08_e2_ping_spec.json Fig08.V1_A..H, fig09_e2_ssa_spec.json Fig09.V2_A..F, pinned generators scripts/internal/publication/fig08/09) rendered once (2026-08-26, supplement-only S18); decoded-pixel reproduction from the generators not run, and the generators are archived in scripts/archive/ (UNRESOLVED)",
       "claim_id": "CL-34",
       "evidence_artifacts": [
-        "artifacts/developer/resolution/34_E2_FIGURE_CLAIM_REMAP.md",
-        "artifacts/developer/resolution/35_E2_EVIDENCE_VERSIONING_PLAN.md"
+        "artifacts/publication/final/e2_fig08_ping_receipt.json#files",
+        "artifacts/publication/final/e2_fig09_ssa_receipt.json#files"
       ],
       "evidence_regime": "method_reproducibility (figure generation discipline)",
       "figure_or_table_destination": "Fig. 8 V1 PING (supplement S-Pulse) + Fig. 9 V2 SSA (supplement) \u2014 to be promoted to publication/final when green",
       "forbidden_overclaim": "Do not claim hand-polished Figs.8/9 data pixels; no manual retouching; decorative annotation only via code-reviewed commit and new hash; Figs.1-7 PNGs remain byte-identical to frozen hashes",
       "manuscript_destination": "Figures + Supplementary",
       "null_or_control": "Decoded-pixel reproducibility 7/7 gate pattern reused for Fig.8/9; spec-listed generation scripts fig08_e2_ping.py / fig09_e2_ssa.py reproduce PNGs decoded-pixel identical from summary+raw",
-      "provenance": "34 \u00a7\u00a72.1/3.2 + 35 \u00a75.3; parent_e1 07b1c04; existing E1 spec hashes be227d/a4c444 etc unchanged; E2 spec hashes b89a09c/0df9bfe parent; generation not yet run in this delta epoch",
+      "provenance": "34 \u00a7\u00a72.1/3.2 + 35 \u00a75.3 (resolution notes, never tracked); parent_e1 07b1c04; existing E1 spec hashes be227d/a4c444 etc unchanged; E2 spec hashes b89a09c/0df9bfe parent; rendered 2026-08-26 at 17eab623, receipts e2_fig08_ping_receipt.json and e2_fig09_ssa_receipt.json (every listed PNG matches its sha256, tests/test_publication_claim_ledger_v20260815.py)",
       "quantitative_result": {
         "fig08_panels": 7,
         "fig09_panels": 6,
-        "promoted_hashes": null,
-        "decoded_pixel_repro": "pending"
+        "promoted_hashes": {
+          "e2_fig08_ping_combined.png": "f626df8c0a4e8fa56d219ce18ffad15e8d9455d959beedc36648ad0ed5355d5f",
+          "e2_fig09_ssa_combined.png": "db36dfc34f307e36473fbe2a40725ae11f93ea968fbf6e6d0cce833aca510ac3"
+        },
+        "decoded_pixel_repro": "not run"
       },
-      "statistical_validation": "decoded-pixel equality (pending generation)",
+      "statistical_validation": "decoded-pixel equality not run (one render recorded)",
       "status": "UNRESOLVED"
     }
   ],
