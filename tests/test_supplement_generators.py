@@ -80,13 +80,8 @@ def s5_payload(s5_out: Path) -> dict:
 
 
 def test_s5_covers_the_live_registry(s5_payload: dict) -> None:
-    from jaxfne.hdp_rule import get_hdp_rule, list_registered_hdp_rules
-
-    live = {
-        name
-        for name in list_registered_hdp_rules()
-        if get_hdp_rule(name)[1].__module__.startswith("jaxfne.")
-    }
+    # The core-rule filter is owned by the identity test module, which S5 itself calls.
+    live = set(supplement.load_identity_module()._core_rule_names())
     assert live, "the registry snapshot is empty"
     assert {row["rule"] for row in s5_payload["rules"]} == live
 

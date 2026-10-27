@@ -344,12 +344,15 @@ def _core_rule_names() -> tuple[str, ...]:
 
     test_hdp_v_floor.py registers a test-only rule at import. Excluding by module
     keeps the check independent of collection order. Rules registered inside test
-    bodies run after collection, so the snapshot does not see them.
+    bodies run after collection, so the snapshot does not see them; the supplement
+    S5 generator calls this at run time, so a rule built by ``superpose_hdp_rules``
+    (a closure defined in ``jaxfne.hdp_rule``) is excluded by its qualname.
     """
     return tuple(
         name
         for name in list_registered_hdp_rules()
         if get_hdp_rule(name)[1].__module__.startswith("jaxfne.")
+        and "<locals>" not in get_hdp_rule(name)[1].__qualname__
     )
 
 
@@ -423,3 +426,19 @@ def test_case_table_covers_live_registry() -> None:
     assert not missing and not stale, (
         f"rules without a case: {missing}; cases without a rule: {stale}"
     )
+
+
+def test_runtime_superposed_rule_is_not_a_core_rule() -> None:
+    # Release CI 40433612421: a superposed rule left registered by an earlier test
+    # reached the S5 supplement as a core rule without a case.
+    from jaxfne import hdp_rule
+    from jaxfne.hdp_rule import superpose_hdp_rules
+
+    name = "_reduction_identity_probe_sup"
+    superpose_hdp_rules(name, ["trace_ltp", "trace_ltd"])
+    try:
+        assert name in list_registered_hdp_rules(), "fixture must register the rule"
+        assert name not in _core_rule_names()
+        assert set(_core_rule_names()) == set(_LIVE_RULES)
+    finally:
+        hdp_rule._REGISTRY.pop(name, None)
