@@ -1477,6 +1477,130 @@ def check_event_scan_h_update(h_update: Any, n_cells: int, *, label: str) -> dic
     }
 
 
+#: Keys of an event-scan plasticity declaration (``simulate_lif_edge(event_scan_w_update=...)``):
+#: the oracle's simple-cell excitatory update over the event buffers
+#: (``pcl_event_ref.py:543-574``, buffers from :663-694). ``wi_s``/``wi_c`` are the
+#: shared local-inhibition matrices, ``decay`` the per-cell learning decay (ns + nc).
+EVENT_SCAN_W_UPDATE_KEYS = (
+    "rule", "buffer_capacity", "wi_s", "wi_c", "decay", "simple", "complex",
+)
+EVENT_SCAN_W_UPDATE_RULE = "pcl_buffer_stdp"
+#: Keys of each population mapping (``simple``, ``complex``).
+EVENT_SCAN_W_UPDATE_POP_KEYS = (
+    "mode", "eLTP", "eLTD", "iLTP", "iLTD", "tau_ltp_us", "tau_ltd_us",
+    "norm_factor", "eta_inh",
+)
+EVENT_SCAN_W_UPDATE_MODES = ("off", "excitatory", "inhibitory", "all")
+
+
+def _w_update_population(value: Any, *, name: str, label: str) -> dict[str, Any]:
+    """One population mapping of an event-scan plasticity declaration (fail-closed)."""
+    if not isinstance(value, Mapping):
+        raise ValueError(
+            f"{label}: w_update[{name!r}] must be a mapping with keys "
+            f"{list(EVENT_SCAN_W_UPDATE_POP_KEYS)}; got {type(value).__name__}")
+    unknown = sorted((k for k in value if k not in EVENT_SCAN_W_UPDATE_POP_KEYS), key=repr)
+    if unknown:
+        raise ValueError(
+            f"{label}: w_update[{name!r}] holds unknown key(s) {unknown}; allowed keys "
+            f"are {list(EVENT_SCAN_W_UPDATE_POP_KEYS)}")
+    missing = [k for k in EVENT_SCAN_W_UPDATE_POP_KEYS if k not in value]
+    if missing:
+        raise ValueError(f"{label}: w_update[{name!r}] is missing {missing}")
+    mode = value["mode"]
+    if mode not in EVENT_SCAN_W_UPDATE_MODES:
+        raise ValueError(
+            f"{label}: w_update[{name!r}]['mode'] must be one of "
+            f"{list(EVENT_SCAN_W_UPDATE_MODES)}; got {mode!r}")
+    out: dict[str, Any] = {"mode": str(mode)}
+    for key in EVENT_SCAN_W_UPDATE_POP_KEYS[1:]:
+        raw = value[key]
+        if (isinstance(raw, bool) or not isinstance(raw, numbers.Real)
+                or not math.isfinite(float(raw))):
+            raise ValueError(
+                f"{label}: w_update[{name!r}][{key!r}] must be a finite real number; "
+                f"got {raw!r}")
+        out[key] = float(raw)
+    for key in ("tau_ltp_us", "tau_ltd_us"):
+        if out[key] <= 0.0:
+            raise ValueError(
+                f"{label}: w_update[{name!r}][{key!r}] must be > 0; got {out[key]!r}")
+    return out
+
+
+def check_event_scan_w_update(
+    w_update: Any, n_cells: int, *, nd: int, cd: int,
+    lateral_on: bool, topdown_on: bool, label: str,
+) -> dict[str, Any]:
+    """Validate an event-scan plasticity declaration over ``n_cells`` (fail-closed).
+
+    ``nd``/``cd`` are the simple and complex depths (``wi_s`` is ``(nd, nd)``,
+    ``wi_c`` is ``(cd, cd)``). This lane lands the simple excitatory update
+    only: a complex ``mode`` other than ``"off"`` is refused (PCL-L3c), and a
+    simple ``mode`` of ``"inhibitory"`` or ``"all"`` is refused while the
+    tables carry lateral or top-down inhibition (PCL-L3d). Every refusal
+    names ``label`` and the offending key.
+    """
+    if not isinstance(w_update, Mapping):
+        raise ValueError(
+            f"{label}: w_update must be a mapping with keys "
+            f"{list(EVENT_SCAN_W_UPDATE_KEYS)}; got {type(w_update).__name__}")
+    unknown = sorted((k for k in w_update if k not in EVENT_SCAN_W_UPDATE_KEYS), key=repr)
+    if unknown:
+        raise ValueError(
+            f"{label}: w_update holds unknown key(s) {unknown}; allowed keys are "
+            f"{list(EVENT_SCAN_W_UPDATE_KEYS)}")
+    missing = [k for k in EVENT_SCAN_W_UPDATE_KEYS if k not in w_update]
+    if missing:
+        raise ValueError(f"{label}: w_update is missing {missing}")
+    if w_update["rule"] != EVENT_SCAN_W_UPDATE_RULE:
+        raise ValueError(
+            f"{label}: w_update['rule'] must be {EVENT_SCAN_W_UPDATE_RULE!r}; "
+            f"got {w_update['rule']!r}")
+    cap = w_update["buffer_capacity"]
+    if isinstance(cap, bool) or not isinstance(cap, numbers.Integral) or int(cap) < 1:
+        raise ValueError(
+            f"{label}: w_update['buffer_capacity'] must be an integer >= 1; got {cap!r}")
+
+    def _matrix(key: str, side: int) -> np.ndarray:
+        arr = np.asarray(w_update[key])
+        if (arr.shape != (side, side) or arr.dtype.kind not in "iuf"
+                or not bool(np.all(np.isfinite(arr)))):
+            raise ValueError(
+                f"{label}: w_update[{key!r}] must be finite reals of shape "
+                f"({side}, {side}); got shape {arr.shape} dtype {arr.dtype}")
+        return arr.astype(np.float64)
+
+    wi_s = _matrix("wi_s", nd)
+    wi_c = _matrix("wi_c", cd)
+    dec = np.asarray(w_update["decay"])
+    if (dec.shape != (n_cells,) or dec.dtype.kind not in "iuf"
+            or not bool(np.all(np.isfinite(dec)))):
+        raise ValueError(
+            f"{label}: w_update['decay'] must be finite reals of shape ({n_cells},); "
+            f"got shape {dec.shape} dtype {dec.dtype}")
+    cpop = _w_update_population(w_update["complex"], name="complex", label=label)
+    if cpop["mode"] != "off":
+        raise ValueError(
+            f"{label}: w_update['complex']['mode'] must be 'off' in this lane; complex "
+            f"learning lands in PCL-L3c; got {cpop['mode']!r}")
+    spop = _w_update_population(w_update["simple"], name="simple", label=label)
+    if spop["mode"] in ("inhibitory", "all") and (lateral_on or topdown_on):
+        raise ValueError(
+            f"{label}: w_update['simple']['mode'] {spop['mode']!r} changes the lateral "
+            "and top-down weights, which lands in PCL-L3d; the tables carry "
+            f"lateral_on={bool(lateral_on)}, topdown_on={bool(topdown_on)}")
+    return {
+        "rule": EVENT_SCAN_W_UPDATE_RULE,
+        "buffer_capacity": int(cap),
+        "wi_s": wi_s,
+        "wi_c": wi_c,
+        "decay": dec.astype(np.float64),
+        "simple": spop,
+        "complex": cpop,
+    }
+
+
 class EventScanDrive:
     """The event-scan replay as a declared x-source paradigm object.
 
@@ -1495,7 +1619,9 @@ class EventScanDrive:
     here is refused naming ``EventScanDrive``. ``h_update`` (None, or the
     mapping :func:`check_event_scan_h_update` validates) declares the
     oracle's periodic rate and threshold update; None keeps the thresholds
-    fixed at the params' ``v_thresh_mV``.
+    fixed at the params' ``v_thresh_mV``. ``w_update`` (None, or the mapping
+    :func:`check_event_scan_w_update` validates) declares the oracle's buffer
+    plasticity; None keeps the weights frozen.
     """
 
     def __init__(
@@ -1508,6 +1634,7 @@ class EventScanDrive:
         dt_ms: float,
         n_steps: int,
         h_update: "Mapping[str, Any] | None" = None,
+        w_update: "Mapping[str, Any] | None" = None,
     ) -> None:
         name = type(self).__name__
         ev = np.asarray(events)
@@ -1565,6 +1692,12 @@ class EventScanDrive:
         self.h_update = (
             None if h_update is None
             else check_event_scan_h_update(h_update, ns + nc, label=name))
+        self.w_update = (
+            None if w_update is None
+            else check_event_scan_w_update(
+                w_update, ns + nc, nd=int(tables["nd"]), cd=int(tables["cd"]),
+                lateral_on=bool(tables["lat_on"]), topdown_on=bool(tables["td_on"]),
+                label=name))
 
     def to_dict(self) -> dict[str, Any]:
         """Small receipt (shapes and grid only; the arrays ride the run)."""
@@ -1577,6 +1710,7 @@ class EventScanDrive:
             "ns": int(tables["ns"]),
             "nc": int(tables["nc"]),
             "h_update": self.h_update is not None,
+            "w_update": self.w_update is not None,
         }
 
 

@@ -2614,7 +2614,8 @@ def _simulate_lif_scan(
     (``scan_threshold_mV``, ``scan_rate_hz``, ``scan_interval_count``,
     ``scan_last_update_us``); without an ``h_update`` the thresholds stay
     at the params' values. ``scan_weights_final`` holds the final float64
-    weights (``w_s``, ``w_c``, ``lat_w``, ``td_w``, ``blocks_w``).
+    weights (``w_s``, ``w_c``, ``lat_w``, ``td_w``, ``blocks_w``; plus
+    ``wi_s`` and ``wi_c`` under a declared ``w_update``).
     """
     from .emitters_lif import simulate_lif_edge
     from .pcl_topology import EventScanDrive
@@ -2685,6 +2686,7 @@ def _simulate_lif_scan(
             event_scan_events=_np.asarray(drive.events),
             event_scan_tables=drive.tables,
             event_scan_h_update=drive.h_update,
+            event_scan_w_update=drive.w_update,
         )
     time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
     metadata: dict = {

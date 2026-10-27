@@ -1,0 +1,1 @@
+- The `event_scan` replay takes an optional simple-cell buffer plasticity (`EventScanDrive(w_update=...)`, `simulate_lif_edge(event_scan_w_update=...)`): the PCL reference's simple excitatory update moves the shared simple weights and local-inhibition rows at each simple spike, and the scan returns them in `weights_final`.

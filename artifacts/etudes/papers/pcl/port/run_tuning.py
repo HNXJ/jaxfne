@@ -284,7 +284,44 @@ def _core_h_update(net, t0):
     }
 
 
-def run_core_events(net, t, x, y, p):
+def _core_w_update(net):
+    """The oracle's simple excitatory buffer plasticity (pcl_event_ref.py:543-574) as a w_update.
+
+    The buffer capacity is ``ref.CAP``, the length the oracle's cell deques were built with;
+    a network built under another capacity is refused, so the replay and the oracle drop the
+    same entries. Complex learning lands in PCL-L3c: a network with ``ccfg.STDP_LEARNING`` other
+    than ``"off"`` is refused rather than replayed without its complex update. Lateral and
+    top-down learning are refused by the kernel declaration (PCL-L3d).
+    """
+    if net.ccfg.STDP_LEARNING != "off":
+        raise ValueError(
+            "core replay: ccfg.STDP_LEARNING "
+            f"{net.ccfg.STDP_LEARNING!r} is a complex learning mode, which lands in PCL-L3c; "
+            "set it to 'off' to replay the simple excitatory update")
+    built = int(net.s_cells[0].ev.maxlen)
+    if built != int(ref.CAP):
+        raise ValueError(
+            f"core replay: the network's cells were built with buffer capacity {built}; "
+            f"ref.CAP is {int(ref.CAP)}, so the replay would drop different entries")
+    sc, cc = net.scfg, net.ccfg
+    return {
+        "rule": "pcl_buffer_stdp",
+        "buffer_capacity": int(ref.CAP),
+        "wi_s": np.asarray(net.wi_s, dtype=np.float64),
+        "wi_c": np.asarray(net.wi_c, dtype=np.float64),
+        "decay": np.array([cell.decay for cell in net.s_cells + net.c_cells], dtype=np.float64),
+        "simple": {"mode": sc.STDP_LEARNING, "eLTP": float(sc.eLTP), "eLTD": float(sc.eLTD),
+                   "iLTP": float(sc.iLTP), "iLTD": float(sc.iLTD),
+                   "tau_ltp_us": float(sc.TAU_LTP), "tau_ltd_us": float(sc.TAU_LTD),
+                   "norm_factor": float(sc.NORM_FACTOR), "eta_inh": float(sc.ETA_INH)},
+        "complex": {"mode": "off", "eLTP": float(cc.eLTP), "eLTD": float(cc.eLTD),
+                    "iLTP": float(cc.iLTP), "iLTD": float(cc.iLTD),
+                    "tau_ltp_us": float(cc.TAU_LTP), "tau_ltd_us": float(cc.TAU_LTD),
+                    "norm_factor": float(cc.NORM_FACTOR), "eta_inh": float(cc.ETA_INH)},
+    }
+
+
+def run_core_events(net, t, x, y, p, *, learning=False):
     """Replay one camera-0 event slice through the jaxfne event-scan kernel.
 
     Returns the same per-file arrays _run_one writes (simple/complex_counts int32,
@@ -294,6 +331,8 @@ def run_core_events(net, t, x, y, p):
     The network is read, never mutated. Refusals, before any heavy work: unsorted times
     (the scan sorts; the oracle follows file order) and an empty slice. The oracle's
     periodic rate and threshold update runs inside the scan (_core_h_update).
+    ``learning=True`` declares the simple buffer plasticity (_core_w_update) and also
+    returns the final shared matrices as w_s and wi_s; frozen weights otherwise.
     """
     import jaxfne as jtfne
     jtfne.enable_x64()  # the scan kernel integrates in float64 (as the oracle does)
@@ -321,7 +360,8 @@ def run_core_events(net, t, x, y, p):
                                vw=net.VW, vh=net.VH)
     drive = EventScanDrive(events, tables, blocks, groups,
                            dt_ms=CORE_DT_MS, n_steps=n_steps,
-                           h_update=_core_h_update(net, t0))
+                           h_update=_core_h_update(net, t0),
+                           w_update=_core_w_update(net) if learning else None)
     dur = float(n_steps) * CORE_DT_MS
     lif_simple, lif_complex = _core_lif_params(net)
     model = jtfne.construct(
@@ -339,7 +379,7 @@ def run_core_events(net, t, x, y, p):
     order = np.lexsort((log_c, times))  # time then cell, as _gather
     times, owners = times[order], log_c[order]
     sm = owners < ns
-    return {
+    out = {
         "simple_counts": counts[:ns].astype(np.int32),
         "complex_counts": counts[ns:].astype(np.int32),
         "simple_times_us": times[sm],
@@ -350,6 +390,11 @@ def run_core_events(net, t, x, y, p):
         "final_threshold_mV": np.asarray(signals.metadata["scan_threshold_mV"], dtype=np.float64),
         "final_rate_hz": np.asarray(signals.metadata["scan_rate_hz"], dtype=np.float64),
     }
+    if learning:
+        final = signals.metadata["scan_weights_final"]
+        out["w_s"] = np.asarray(final["w_s"], dtype=np.float64)
+        out["wi_s"] = np.asarray(final["wi_s"], dtype=np.float64)
+    return out
 
 
 def _init_worker(inhibition: str = "full", engine: str = "numba") -> None:

@@ -354,6 +354,101 @@ def test_core_interval_update_matches_numba():
     assert int(got["n_events"]) == t.shape[0]
 
 
+def _check_simple_stdp_against_oracle(cap, monkeypatch, *, min_buffered):
+    """Simple excitatory buffer STDP replays the pure-Python oracle exactly.
+
+    Lateral and top-down are off and the complex population does not learn. The
+    2000-event multi-spike fixture of test_core_multispike_matches_numba runs through
+    the oracle (learning on) and through run_core_events(learning=True). Spike counts,
+    times and cells must be equal; the final w_s and wi_s agree at rtol 1e-12. With
+    ``cap`` below the oracle's default the deques drop entries, so the test checks that
+    some cell received more than ``min_buffered`` events between two of its spikes.
+    """
+    monkeypatch.setattr(ref, "CAP", cap)
+    net = ref.PCLEventRef(seed=0, learning=True, layer_inhibitions=[["local"], ["local"]])
+    net.ccfg.STDP_LEARNING = "off"
+    w_init = net.w_s.copy()
+    wi_init = net.wi_s.copy()
+    n = 2000
+    t = (np.arange(n, dtype=np.int64) + 1) * 20
+    x = np.full(n, 170, dtype=np.int64)
+    y = np.full(n, 130, dtype=np.int64)
+    p = np.zeros(n, dtype=np.int64)
+    oracle = copy.deepcopy(net)
+    oracle.run(t, x, y, p)
+    s_max = max(len(c.spikes) for c in oracle.s_cells)
+    assert s_max >= 2, f"fixture must multi-spike, got max {s_max}"
+    assert not np.array_equal(oracle.w_s, w_init), "fixture must move w_s"
+    assert not np.array_equal(oracle.wi_s, wi_init), "fixture must move wi_s"
+    buffered = 0
+    for cell in oracle.s_cells:
+        for s0, s1 in zip(cell.spikes[:-1], cell.spikes[1:]):
+            buffered = max(buffered, int(np.sum((t > s0) & (t <= s1))))
+    assert buffered > min_buffered, f"fixture must buffer more than {min_buffered} events, got {buffered}"
+    sc = np.array([len(c.spikes) for c in oracle.s_cells], dtype=np.int32)
+    cc = np.array([len(c.spikes) for c in oracle.c_cells], dtype=np.int32)
+    es_t, es_o = rt._gather(oracle.s_cells)
+    ec_t, ec_o = rt._gather(oracle.c_cells)
+    got = rt.run_core_events(net, t, x, y, p, learning=True)
+    assert np.array_equal(got["simple_counts"], sc)
+    assert np.array_equal(got["complex_counts"], cc)
+    assert np.array_equal(got["simple_times_us"], es_t)
+    assert np.array_equal(got["simple_times_cell"], es_o)
+    assert np.array_equal(got["complex_times_us"], ec_t)
+    assert np.array_equal(got["complex_times_cell"], ec_o)
+    np.testing.assert_allclose(got["w_s"], oracle.w_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["wi_s"], oracle.wi_s, rtol=1e-12, atol=0)
+
+
+def test_core_simple_stdp_matches_oracle(monkeypatch):
+    _check_simple_stdp_against_oracle(1000, monkeypatch, min_buffered=0)
+
+
+def test_core_simple_stdp_matches_oracle_cap3(monkeypatch):
+    _check_simple_stdp_against_oracle(3, monkeypatch, min_buffered=3)
+
+
+def test_core_inhibitory_simple_mode_matches_oracle(monkeypatch):
+    """Simple mode "inhibitory" with lateral and top-down off changes no matrix.
+
+    The oracle's simple update sits in its excitatory/all gate (pcl_event_ref.py:548-574),
+    and its inhibitory gate (:575) does nothing with lateral and top-down off. So the
+    oracle's w_s and wi_s stay at their initial values, and the replay with learning=True
+    must match the oracle's spikes exactly and its final matrices exactly. Same
+    2000-event multi-spike fixture as the excitatory test.
+    """
+    monkeypatch.setattr(ref, "CAP", 1000)
+    net = ref.PCLEventRef(seed=0, learning=True, layer_inhibitions=[["local"], ["local"]])
+    net.ccfg.STDP_LEARNING = "off"
+    net.scfg.STDP_LEARNING = "inhibitory"
+    w_init = net.w_s.copy()
+    wi_init = net.wi_s.copy()
+    n = 2000
+    t = (np.arange(n, dtype=np.int64) + 1) * 20
+    x = np.full(n, 170, dtype=np.int64)
+    y = np.full(n, 130, dtype=np.int64)
+    p = np.zeros(n, dtype=np.int64)
+    oracle = copy.deepcopy(net)
+    oracle.run(t, x, y, p)
+    s_max = max(len(c.spikes) for c in oracle.s_cells)
+    assert s_max >= 2, f"fixture must multi-spike, got max {s_max}"
+    assert np.array_equal(oracle.w_s, w_init), "inhibitory mode must not move w_s"
+    assert np.array_equal(oracle.wi_s, wi_init), "inhibitory mode must not move wi_s"
+    sc = np.array([len(c.spikes) for c in oracle.s_cells], dtype=np.int32)
+    cc = np.array([len(c.spikes) for c in oracle.c_cells], dtype=np.int32)
+    es_t, es_o = rt._gather(oracle.s_cells)
+    ec_t, ec_o = rt._gather(oracle.c_cells)
+    got = rt.run_core_events(net, t, x, y, p, learning=True)
+    assert np.array_equal(got["simple_counts"], sc)
+    assert np.array_equal(got["complex_counts"], cc)
+    assert np.array_equal(got["simple_times_us"], es_t)
+    assert np.array_equal(got["simple_times_cell"], es_o)
+    assert np.array_equal(got["complex_times_us"], ec_t)
+    assert np.array_equal(got["complex_times_cell"], ec_o)
+    assert np.array_equal(got["w_s"], oracle.w_s)
+    assert np.array_equal(got["wi_s"], oracle.wi_s)
+
+
 def test_build_s1_scan_tensor_lif_partial_refused():
     from jaxfne.pcl_topology import build_s1_scan_tensor
 
