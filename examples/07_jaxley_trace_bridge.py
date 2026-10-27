@@ -62,7 +62,7 @@ def generate_synthetic_voltage_trace(n_time: int, n_neurons: int, seed: int = 42
 
 def main():
     # === 1. Create synthetic voltage traces ===
-    # 500 timesteps (100 ms at 0.2 ms dt), 16 neurons
+    # 500 timesteps (50 ms at 0.1 ms dt), 16 neurons
     n_time, n_neurons = 500, 16
     dt_ms = 0.1
 

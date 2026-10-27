@@ -833,6 +833,8 @@ def main(update_canonical: bool = False):
     else:
         # matplotlib not available; provide empty figures dict
         atlas_manifest["figures"] = {}
+        manifest_path = OUT / "manifest.json"
+        write_json(manifest_path, atlas_manifest)
         print("(Figures skipped - matplotlib not installed)")
 
     return {

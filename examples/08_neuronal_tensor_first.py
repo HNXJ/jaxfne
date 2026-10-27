@@ -10,6 +10,8 @@ below never builds one directly.
 import sys
 from pathlib import Path
 
+import numpy as np
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import jaxfne as jtfne
@@ -66,5 +68,5 @@ signals = jtfne.simulate(model, duration_ms=200.0, dt_ms=0.5, seed=0)
 
 print(f"n_neurons: {model.params['emitter'].n_neurons}")
 print(f"recurrent_backend: {model.cfg.metadata.get('recurrent_backend')}")
-print(f"spikes finite: {bool(signals.spikes.sum() >= 0)}")
+print(f"spikes finite: {bool(np.isfinite(np.asarray(signals.spikes)).all())}")
 print(f"mean rate (Hz): {float(signals.spikes.mean()) * 1000.0 / 0.5:.2f}")
