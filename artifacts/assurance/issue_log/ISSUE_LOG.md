@@ -110,3 +110,20 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   saturates (2000 Hz); the E1 pilot declares tau 1e-3 ms, where the decay is exactly 0 in float32
   at dt 0.5 ms (`izhikevich2003/core/run_izh_core.py`). Possible change: a named instantaneous
   receptor on the edge route, equal to the tau -> 0 limit.
+
+### P-052
+
+- Date: 2026-10-27. Type: SCIENCE. Area: gradient path of the Izhikevich dense route
+  (`jaxfne/optim/handles.py`, `SurrogateConfig` in `_runtime_config.py`). Severity: high for any
+  training or credit-assignment claim; none for forward simulation.
+- The hard spike threshold carries no derivative, and the surrogate exists only at the loss
+  (sigmoid soft rate on `V_m`); `SurrogateConfig` is a declaration only. So the gradient never
+  crosses from one neuron to another through `W . spikes`. Reproduction
+  (`scripts/perf/recurrent_grad_check.py`, N=20 E/PV, 2000 steps, float64, CPU): Jacobian of
+  per-neuron mean `V_m` w.r.t. per-neuron `a`, off-diagonal max 0 (0 of 380 nonzero), while a
+  central finite difference on `a[0]` moves all 19 other neurons' mean `V_m` (max 3.8 mV per unit).
+  The compiled gradient at N=3200 has one dot (forward `W @ spikes`) and no transpose in the
+  backward loop, so gradient timings (precision profile 2026-10-27) are a lower bound on training.
+- Possible change: a kernel-level surrogate (`custom_jvp` on the spike threshold, e.g. the declared
+  `straight_through` or `sigmoid_beta`), then the same check shows nonzero off-diagonal entries
+  matching the surrogate derivative. Which surrogate is Hamm's call (it defines the training model).
