@@ -770,12 +770,49 @@ def _log_spike(LOGT, LOGC, LOGN, spk, ti, cell):
     return LOGT, LOGC, LOGN + spk.astype(LOGN.dtype)
 
 
+class _ScanCarry(NamedTuple):
+    """The event-scan carry: one ``lax.scan`` step per event, one field per array.
+
+    State (one dummy cell past the population): ``V`` membrane, ``A``
+    adaptation, ``TL`` last update, ``TS`` last spike, ``CNT`` spike count,
+    ``FST`` first spike (us, -1 before), ``BIN`` per-bin spike flags, and the
+    spike log ``LOGT``/``LOGC`` with ``LOGN`` counting every spike. The
+    periodic H update: ``TH`` threshold, ``RATE`` rate, ``CSNAP`` the count
+    snapshot at the last update, ``LUP`` the time of that update.
+    Weights (float64, read-only in this pass): ``WS`` shared simple
+    ``(nd, 2, sx, sy)``, ``WC`` shared complex ``(cd, csx, csy, nd)``, ``LATW``
+    lateral ``(ns, lmax)``, ``TDW`` top-down ``(nc, tmax)`` and ``BLK`` the
+    inhibition blocks ``(G, D, D)``. Each stage returns the carry through
+    ``_replace``, so a later stage reaches any field, CSNAP included.
+    """
+
+    V: jax.Array
+    A: jax.Array
+    TL: jax.Array
+    TS: jax.Array
+    CNT: jax.Array
+    FST: jax.Array
+    BIN: jax.Array
+    LOGT: jax.Array
+    LOGC: jax.Array
+    LOGN: jax.Array
+    TH: jax.Array
+    RATE: jax.Array
+    CSNAP: jax.Array
+    LUP: jax.Array
+    WS: jax.Array
+    WC: jax.Array
+    LATW: jax.Array
+    TDW: jax.Array
+    BLK: jax.Array
+
+
 def _event_scan_loop(
-    V0, A0, EV, CELL, CMASK, SOX, SOY, WS,
-    FWD_IDX, FWD_W, FWD_N, LAT_IDX, LAT_W, LAT_N,
-    TD_IDX, TD_W, TD_N, MEMBERS, MMASK, BLK, POS_OF, LOC_OF,
+    V0, A0, EV, CELL, CMASK, SOX, SOY,
+    FWD_IDX, FWD_KEY, FWD_N, LAT_IDX, LAT_N, TD_IDX, TD_N,
+    MEMBERS, MMASK, POS_OF, LOC_OF,
     PCOL, GRID, FLAGS, BIN0, TH0, RATE0, LUP0, HTGT, HETA, HTMIN, HSC, HON,
-    LOGT0,
+    WS0, WC0, LATW0, TDW0, BLK0, LOGT0,
 ):
     """One exact event-oracle pass over a time-sorted event stream.
 
@@ -804,7 +841,11 @@ def _event_scan_loop(
     last update (``CNT - CSNAP``, the snapshot taken at that update), its
     threshold ``TH`` moves by ``HETA`` toward ``HTGT``, floored at ``HTMIN``.
     ``HSC[1]`` is the rate smoothing alpha. With ``HON`` 0 the thresholds
-    stay at ``TH0`` for the whole pass.
+    stay at ``TH0`` for the whole pass. The forward weight of a spike from
+    simple cell ``n`` onto the complex target at ``FWD_IDX[n, f]`` is
+    ``WC[cz, ex, ey, n % ND]`` for ``FWD_KEY[n, f] = (cz, ex, ey)``. The
+    weights ride the carry unchanged (no plasticity runs in this pass), and
+    the final carry is returned.
     """
     f = V0.dtype
     i32 = jnp.int32
@@ -849,10 +890,9 @@ def _event_scan_loop(
         TLc = TLc.at[safe].set(jnp.where(use, t, Tl))
         return Vc, Ac, TLc
 
-    def _event_body(carry, e):
+    def _event_body(c, e):
         # TH, RATE, CSNAP and LUP change only at the periodic update after the
-        # slot loop, so they stay fixed (closed over) while the cascade runs.
-        inner, (TH, RATE, CSNAP, LUP) = carry
+        # slot loop; the slot loop and the cascade pass them through unchanged.
         ti = e[0]
         x = e[1].astype(i32)
         y = e[2].astype(i32)
@@ -872,7 +912,6 @@ def _event_scan_loop(
                 sm[s], lambda c: _do_slot(s, c), lambda c: c, c)
 
         def _do_slot(s, c):
-            V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = c
             m = sm[s]
             n = slots[s]
             n0 = jnp.where(m, n, DUM)
@@ -887,142 +926,130 @@ def _event_scan_loop(
             k_s = jnp.where(m, k, 0)
             xr = x - SOX[ii_s]
             yr = y - SOY[jj_s]
-            w = jnp.where(m, WS[k_s, pp, xr, yr], jnp.zeros((), f))
-            Vd, Ad, Vn, cross = _excite_one(V, A, TL, TS, TH, n0, w, t)
+            w = jnp.where(m, c.WS[k_s, pp, xr, yr], jnp.zeros((), f))
+            Vd, Ad, Vn, cross = _excite_one(c.V, c.A, c.TL, c.TS, c.TH, n0, w, t)
             spk = m & cross
-            V = V.at[n0].set(
-                jnp.where(m, jnp.where(spk, PCOL[n0, 3], Vn), V[n0]))
-            A = A.at[n0].set(
-                jnp.where(m, Ad + jnp.where(spk, PCOL[n0, 7], zero_f), A[n0]))
-            TL = TL.at[n0].set(jnp.where(m, t, TL[n0]))
-            TS = TS.at[n0].set(jnp.where(spk, t, TS[n0]))
-            CNT = CNT.at[n0].set(CNT[n0] + spk.astype(i32))
-            FST = FST.at[n0].set(
-                jnp.where(spk & (FST[n0] < jnp.int64(0)), ti, FST[n0]))
-            BIN = BIN.at[b, n0].set(BIN[b, n0] | spk)
-            LOGT, LOGC, LOGN = _log_spike(LOGT, LOGC, LOGN, spk, ti, n0)
+            c = c._replace(
+                V=c.V.at[n0].set(
+                    jnp.where(m, jnp.where(spk, PCOL[n0, 3], Vn), c.V[n0])),
+                A=c.A.at[n0].set(
+                    jnp.where(m, Ad + jnp.where(spk, PCOL[n0, 7], zero_f), c.A[n0])),
+                TL=c.TL.at[n0].set(jnp.where(m, t, c.TL[n0])),
+                TS=c.TS.at[n0].set(jnp.where(spk, t, c.TS[n0])),
+                CNT=c.CNT.at[n0].set(c.CNT[n0] + spk.astype(i32)),
+                FST=c.FST.at[n0].set(
+                    jnp.where(spk & (c.FST[n0] < jnp.int64(0)), ti, c.FST[n0])),
+                BIN=c.BIN.at[b, n0].set(c.BIN[b, n0] | spk),
+            )
+            LOGT, LOGC, LOGN = _log_spike(c.LOGT, c.LOGC, c.LOGN, spk, ti, n0)
+            c = c._replace(LOGT=LOGT, LOGC=LOGC, LOGN=LOGN)
 
             def _cascade(c2):
-                V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = c2
                 g = POS_OF[n0]
                 k = LOC_OF[n0]
                 mm = MMASK[g] & (jnp.arange(D) != k)
                 V, A, TL = _inhibit_vec(
-                    V, A, TL, TS, MEMBERS[g], BLK[g, :, k], mm, t)
+                    c2.V, c2.A, c2.TL, c2.TS, MEMBERS[g], c2.BLK[g, :, k], mm, t)
+                c2 = c2._replace(V=V, A=A, TL=TL)
 
                 def _lat(c3):
-                    V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = c3
                     ln = LAT_N[n0]
                     use = jnp.arange(LMAX) < ln
                     V, A, TL = _inhibit_vec(
-                        V, A, TL, TS, LAT_IDX[n0], LAT_W[n0], use, t)
-                    return (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN)
+                        c3.V, c3.A, c3.TL, c3.TS, LAT_IDX[n0], c3.LATW[n0], use, t)
+                    return c3._replace(V=V, A=A, TL=TL)
 
                 lat_fire = (FLAGS[0] > 0) & (FLAGS[2] > 0)
-                V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = jax.lax.cond(
-                    lat_fire, _lat, lambda c3: c3,
-                    (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN))
+                c2 = jax.lax.cond(lat_fire, _lat, lambda c3: c3, c2)
 
                 def _fwd(ff, c4):
-                    V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = c4
                     fm = ff < FWD_N[n0]
                     c0 = jnp.where(fm, FWD_IDX[n0, ff], DUM)
-                    w = FWD_W[n0, ff]
+                    w = c4.WC[FWD_KEY[n0, ff, 0], FWD_KEY[n0, ff, 1],
+                              FWD_KEY[n0, ff, 2], n0 % ND]
                     _Vd, _Ad, Vn, cross = _excite_one(
-                        V, A, TL, TS, TH, c0, w, t)
+                        c4.V, c4.A, c4.TL, c4.TS, c4.TH, c0, w, t)
                     spkc = fm & cross
-                    V = V.at[c0].set(jnp.where(
-                        fm, jnp.where(spkc, PCOL[c0, 3], Vn), V[c0]))
-                    A = A.at[c0].set(jnp.where(
-                        fm,
-                        _Ad + jnp.where(spkc, PCOL[c0, 7], zero_f),
-                        A[c0]))
-                    TL = TL.at[c0].set(jnp.where(fm, t, TL[c0]))
-                    TS = TS.at[c0].set(jnp.where(spkc, t, TS[c0]))
-                    CNT = CNT.at[c0].set(CNT[c0] + spkc.astype(i32))
-                    FST = FST.at[c0].set(jnp.where(
-                        spkc & (FST[c0] < jnp.int64(0)), ti, FST[c0]))
-                    BIN = BIN.at[b, c0].set(BIN[b, c0] | spkc)
+                    c4 = c4._replace(
+                        V=c4.V.at[c0].set(jnp.where(
+                            fm, jnp.where(spkc, PCOL[c0, 3], Vn), c4.V[c0])),
+                        A=c4.A.at[c0].set(jnp.where(
+                            fm,
+                            _Ad + jnp.where(spkc, PCOL[c0, 7], zero_f),
+                            c4.A[c0])),
+                        TL=c4.TL.at[c0].set(jnp.where(fm, t, c4.TL[c0])),
+                        TS=c4.TS.at[c0].set(jnp.where(spkc, t, c4.TS[c0])),
+                        CNT=c4.CNT.at[c0].set(c4.CNT[c0] + spkc.astype(i32)),
+                        FST=c4.FST.at[c0].set(jnp.where(
+                            spkc & (c4.FST[c0] < jnp.int64(0)), ti, c4.FST[c0])),
+                        BIN=c4.BIN.at[b, c0].set(c4.BIN[b, c0] | spkc),
+                    )
                     LOGT, LOGC, LOGN = _log_spike(
-                        LOGT, LOGC, LOGN, spkc, ti, c0)
+                        c4.LOGT, c4.LOGC, c4.LOGN, spkc, ti, c0)
+                    c4 = c4._replace(LOGT=LOGT, LOGC=LOGC, LOGN=LOGN)
 
                     def _ccascade(c5):
-                        V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = c5
                         cg = POS_OF[c0]
                         ck = LOC_OF[c0]
                         cm = MMASK[cg] & (jnp.arange(D) != ck)
                         V, A, TL = _inhibit_vec(
-                            V, A, TL, TS, MEMBERS[cg], BLK[cg, :, ck], cm, t)
+                            c5.V, c5.A, c5.TL, c5.TS, MEMBERS[cg], c5.BLK[cg, :, ck], cm, t)
+                        c5 = c5._replace(V=V, A=A, TL=TL)
 
                         def _td(c6):
-                            V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = c6
                             cs = c0 - NS
                             use = jnp.arange(TMAX) < TD_N[cs]
                             V, A, TL = _inhibit_vec(
-                                V, A, TL, TS, TD_IDX[cs], TD_W[cs], use, t)
-                            return (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN)
+                                c6.V, c6.A, c6.TL, c6.TS, TD_IDX[cs], c6.TDW[cs], use, t)
+                            return c6._replace(V=V, A=A, TL=TL)
 
                         td_fire = (FLAGS[1] > 0) & (FLAGS[2] > 0)
-                        return jax.lax.cond(
-                            td_fire, _td, lambda c6: c6,
-                            (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN))
+                        return jax.lax.cond(td_fire, _td, lambda c6: c6, c5)
 
-                    return jax.lax.cond(
-                        spkc, _ccascade, lambda c5: c5,
-                        (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN))
+                    return jax.lax.cond(spkc, _ccascade, lambda c5: c5, c4)
 
                 # The fan-out loop is gated on the spike: without the
                 # ``cond`` every candidate would run FMAX masked excites.
                 return jax.lax.cond(
-                    spk, lambda c4: jax.lax.fori_loop(
-                        0, FMAX, _fwd, c4),
-                    lambda c4: c4,
-                    (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN))
+                    spk, lambda c4: jax.lax.fori_loop(0, FMAX, _fwd, c4),
+                    lambda c4: c4, c2)
 
-            return jax.lax.cond(
-                spk, _cascade, lambda c2: c2,
-                (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN))
+            return jax.lax.cond(spk, _cascade, lambda c2: c2, c)
 
-        V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = jax.lax.fori_loop(
-            0, SMAX, _slot, inner)
+        c = jax.lax.fori_loop(0, SMAX, _slot, c)
 
         # The periodic update (pcl_event_ref.py:746-762) after this event's
         # cascade: the rate integrates the spikes since the last update, the
         # threshold moves toward the target, then the update time moves.
-        dtl = (ti - LUP).astype(f)
+        dtl = (ti - c.LUP).astype(f)
         due = (HON > 0) & (dtl > HSC[0])
 
         def _interval(c):
-            TH_, RATE_, CSNAP_, LUP_, CNT_ = c
             alpha = HSC[1]
-            sps = (CNT_ - CSNAP_).astype(f) * (1e6 / dtl)
-            RATE_ = alpha * sps + (1.0 - alpha) * RATE_
+            sps = (c.CNT - c.CSNAP).astype(f) * (1e6 / dtl)
+            RATE_ = alpha * sps + (1.0 - alpha) * c.RATE
             TH_ = jnp.where(
                 RATE_ > HTGT,
-                TH_ + HETA * (1 - jnp.exp(HTGT - RATE_)),
-                TH_ - HETA * (1 - jnp.exp(RATE_ - HTGT)))
+                c.TH + HETA * (1 - jnp.exp(HTGT - RATE_)),
+                c.TH - HETA * (1 - jnp.exp(RATE_ - HTGT)))
             TH_ = jnp.where(TH_ < HTMIN, HTMIN, TH_)
-            return TH_, RATE_, CNT_, ti
+            return c._replace(TH=TH_, RATE=RATE_, CSNAP=c.CNT, LUP=ti)
 
-        TH, RATE, CSNAP, LUP = jax.lax.cond(
-            due, _interval, lambda c: (c[0], c[1], c[2], c[3]),
-            (TH, RATE, CSNAP, LUP, CNT))
-        return ((V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN),
-                (TH, RATE, CSNAP, LUP)), jnp.int32(0)
+        c = jax.lax.cond(due, _interval, lambda c: c, c)
+        return c, jnp.int32(0)
 
-    carry0 = (
-        (
-            V0, A0,
-            jnp.zeros((N1,), f), jnp.zeros((N1,), f),
-            jnp.zeros((N1,), jnp.int32), jnp.full((N1,), -1, dtype=jnp.int64),
-            BIN0, LOGT0, jnp.zeros(LOGT0.shape, i32), jnp.zeros((), i32),
-        ),
-        (TH0, RATE0, jnp.zeros((N1,), jnp.int32), LUP0),
+    carry0 = _ScanCarry(
+        V=V0, A=A0,
+        TL=jnp.zeros((N1,), f), TS=jnp.zeros((N1,), f),
+        CNT=jnp.zeros((N1,), jnp.int32),
+        FST=jnp.full((N1,), -1, dtype=jnp.int64),
+        BIN=BIN0, LOGT=LOGT0, LOGC=jnp.zeros(LOGT0.shape, i32),
+        LOGN=jnp.zeros((), i32),
+        TH=TH0, RATE=RATE0, CSNAP=jnp.zeros((N1,), jnp.int32), LUP=LUP0,
+        WS=WS0, WC=WC0, LATW=LATW0, TDW=TDW0, BLK=BLK0,
     )
-    ((V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN),
-     (TH, RATE, CSNAP, LUP)), _ = jax.lax.scan(_event_body, carry0, EV)
-    return (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN,
-            TH, RATE, CSNAP, LUP)
+    fin, _ = jax.lax.scan(_event_body, carry0, EV)
+    return fin
 
 
 _JIT_EVENT_SCAN = jax.jit(_event_scan_loop)
@@ -1056,7 +1083,8 @@ def _run_event_scan(
 
     Returns the kernel result dict (``spikes`` bool ``(n_steps, N)``,
     ``counts``, ``first_spike_us``, finals ``V``/``A``/``t_last``, an
-    empty ``w_final``, and the spike log ``spike_times_us`` and
+    empty ``w_final``, ``weights_final`` (the final float64 ``w_s``, ``w_c``,
+    ``lat_w``, ``td_w`` and ``blocks_w`` carried through the pass), and the spike log ``spike_times_us`` and
     ``spike_cells`` (int64, every spike in emission order)), plus the
     periodic-update receipts ``threshold_mV``, ``rate_hz`` and
     ``interval_count`` (each ``(N,)``) and ``last_update_us`` (int).
@@ -1136,10 +1164,12 @@ def _run_event_scan(
             "complex cells; the oracle carries no adaptation term there")
     try:
         w_s = np.asarray(tables["w_s"], dtype=np.float64)
+        w_c = np.asarray(tables["w_c"], dtype=np.float64)
         pix_pos = np.asarray(tables["pix_pos"])
         pix_n = np.asarray(tables["pix_n"])
         fwd_idx = np.asarray(tables["fwd_idx"])
         fwd_w = np.asarray(tables["fwd_w"], dtype=np.float64)
+        fwd_key = np.asarray(tables["fwd_key"])
         fwd_n = np.asarray(tables["fwd_n"])
         lat_idx = np.asarray(tables["lat_idx"])
         lat_n = np.asarray(tables["lat_n"])
@@ -1159,6 +1189,14 @@ def _run_event_scan(
             f"got {w_s.shape}")
     if not bool(np.all(np.isfinite(w_s))):
         raise ValueError("event_scan_tables['w_s'] must be finite")
+    csx = w_c.shape[1] if w_c.ndim == 4 else -1
+    csy = w_c.shape[2] if w_c.ndim == 4 else -1
+    if w_c.shape != (cd, csx, csy, nd) or csx < 1 or csy < 1:
+        raise ValueError(
+            f"event_scan_tables['w_c'] must have shape ({cd}, csx, csy, {nd}); "
+            f"got {w_c.shape}")
+    if not bool(np.all(np.isfinite(w_c))):
+        raise ValueError("event_scan_tables['w_c'] must be finite")
     lat_w = tables.get("lat_w", None)
     lat_w = None if lat_w is None else np.asarray(lat_w, dtype=np.float64)
     td_w = tables.get("td_w", None)
@@ -1224,6 +1262,22 @@ def _run_event_scan(
             "event_scan_tables['fwd_idx'] must name complex cells "
             f"(simple cells end at {ns}); the forward pass only feeds "
             "the complex layer")
+    if fwd_key.shape != (ns, fmax, 3) or fwd_key.dtype.kind not in "iu":
+        raise ValueError(
+            "event_scan_tables['fwd_key'] must hold integers (cz, ex, ey) with "
+            f"shape ({ns}, {fmax}, 3); got {fwd_key.shape} dtype {fwd_key.dtype}")
+    kz, kx, ky = (fwd_key[..., a][_fslot] for a in range(3))
+    if (bool((kz < 0).any()) or bool((kz >= cd).any())
+            or bool((kx < 0).any()) or bool((kx >= csx).any())
+            or bool((ky < 0).any()) or bool((ky >= csy).any())):
+        raise ValueError(
+            "event_scan_tables['fwd_key'] must name shared complex weights in "
+            f"[0, {cd}) x [0, {csx}) x [0, {csy}) at every used forward slot")
+    src_depth = np.broadcast_to((np.arange(ns) % nd)[:, None], (ns, fmax))[_fslot]
+    if not bool(np.array_equal(fwd_w[_fslot], w_c[kz, kx, ky, src_depth])):
+        raise ValueError(
+            "event_scan_tables['fwd_w'] must equal w_c[cz, ex, ey, n % nd] at "
+            "every used forward slot (fwd_key names the shared weight)")
     if (lat_idx.ndim != 2 or lat_idx.shape[0] != ns
             or lat_idx.dtype.kind not in "iu"):
         raise ValueError(
@@ -1381,21 +1435,15 @@ def _run_event_scan(
             jnp.asarray(cmask, dtype=bool),
             jnp.asarray(sox.astype(np.int64), dtype=jnp.int32),
             jnp.asarray(soy.astype(np.int64), dtype=jnp.int32),
-            jnp.asarray(w_s, dtype=jnp.float64),
             jnp.asarray(fwd_idx.astype(np.int64), dtype=jnp.int32),
-            jnp.asarray(fwd_w, dtype=jnp.float64),
+            jnp.asarray(fwd_key.astype(np.int64), dtype=jnp.int32),
             jnp.asarray(fwd_n.astype(np.int64), dtype=jnp.int32),
             jnp.asarray(lat_idx.astype(np.int64), dtype=jnp.int32),
-            jnp.asarray(np.zeros((ns, lmax), dtype=np.float64)
-                       if lat_w is None else lat_w, dtype=jnp.float64),
             jnp.asarray(lat_n.astype(np.int64), dtype=jnp.int32),
             jnp.asarray(td_idx.astype(np.int64), dtype=jnp.int32),
-            jnp.asarray(np.zeros((nc, tmax), dtype=np.float64)
-                       if td_w is None else td_w, dtype=jnp.float64),
             jnp.asarray(td_n.astype(np.int64), dtype=jnp.int32),
             jnp.asarray(members.astype(np.int64), dtype=jnp.int32),
             jnp.asarray(member_mask, dtype=bool),
-            jnp.asarray(weights, dtype=jnp.float64),
             jnp.asarray(pos_of, dtype=jnp.int32),
             jnp.asarray(loc_of, dtype=jnp.int32),
             jnp.asarray(pcol, dtype=jnp.float64),
@@ -1411,38 +1459,48 @@ def _run_event_scan(
             jnp.asarray(np.append(h_tmin, 0.0), dtype=jnp.float64),
             jnp.asarray(h_sc, dtype=jnp.float64),
             jnp.asarray(h_on, dtype=jnp.int64),
+            jnp.asarray(w_s, dtype=jnp.float64),
+            jnp.asarray(w_c, dtype=jnp.float64),
+            jnp.asarray(np.zeros((ns, lmax), dtype=np.float64)
+                       if lat_w is None else lat_w, dtype=jnp.float64),
+            jnp.asarray(np.zeros((nc, tmax), dtype=np.float64)
+                       if td_w is None else td_w, dtype=jnp.float64),
+            jnp.asarray(weights, dtype=jnp.float64),
         )
         cap = _spike_log_capacity(int(ev.shape[0]))
         out = _JIT_EVENT_SCAN(*args, jnp.zeros((cap,), dtype=jnp.int64))
-        n_logged = int(out[9])  # LOGN: every spike, past the capacity too
+        n_logged = int(out.LOGN)  # every spike, past the capacity too
         if n_logged > cap:
             # The first pass stored only cap entries; rerun once at the logged size.
             cap = n_logged
             out = _JIT_EVENT_SCAN(*args, jnp.zeros((cap,), dtype=jnp.int64))
-            if int(out[9]) != n_logged:
+            if int(out.LOGN) != n_logged:
                 raise RuntimeError(
                     "event-scan spike log changed on rerun: "
-                    f"{int(out[9])} spikes against {n_logged} logged")
-        V, A, _TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = out[:10]
-        TH_f, RATE_f, CSNAP_f, LUP_f = out[10:]
-        n_spk = int(LOGN)
+                    f"{int(out.LOGN)} spikes against {n_logged} logged")
+        fin = out
+        n_spk = int(fin.LOGN)
         t_last = jnp.where(
-            CNT[:N] > 0, TS[:N] / 1000.0,
+            fin.CNT[:N] > 0, fin.TS[:N] / 1000.0,
             jnp.full((N,), NEVER, dtype=jnp.float64))
         return {
-            "spikes": BIN[:, :N],
-            "V": V[:N],
-            "A": A[:N],
+            "spikes": fin.BIN[:, :N],
+            "V": fin.V[:N],
+            "A": fin.A[:N],
             "t_last": t_last,
             "w_final": jnp.zeros((0,), dtype=jnp.float64),
-            "counts": CNT[:N],
-            "first_spike_us": FST[:N],
-            "spike_times_us": LOGT[:n_spk],
-            "spike_cells": LOGC[:n_spk].astype(jnp.int64),
-            "threshold_mV": TH_f[:N],
-            "rate_hz": RATE_f[:N],
-            "interval_count": CNT[:N] - CSNAP_f[:N],
-            "last_update_us": int(LUP_f),
+            "weights_final": {
+                "w_s": fin.WS, "w_c": fin.WC, "lat_w": fin.LATW,
+                "td_w": fin.TDW, "blocks_w": fin.BLK,
+            },
+            "counts": fin.CNT[:N],
+            "first_spike_us": fin.FST[:N],
+            "spike_times_us": fin.LOGT[:n_spk],
+            "spike_cells": fin.LOGC[:n_spk].astype(jnp.int64),
+            "threshold_mV": fin.TH[:N],
+            "rate_hz": fin.RATE[:N],
+            "interval_count": fin.CNT[:N] - fin.CSNAP[:N],
+            "last_update_us": int(fin.LUP),
         }
 
 

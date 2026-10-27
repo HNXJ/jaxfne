@@ -1015,7 +1015,10 @@ def event_scan_tables(
     positions, ``fwd_idx``/``fwd_w``/``fwd_n`` forward targets,
     ``lat_idx``/``lat_w``/``lat_n`` + ``lat_on``,
     ``td_idx``/``td_w``/``td_n`` + ``td_on``, ``activation``) plus the
-    geometry and the shared ``w_s`` the kernel feeds from.
+    geometry and the shared ``w_s`` and ``w_c`` the kernel feeds from.
+    ``fwd_key`` (int ``(ns, fmax, 3)``) holds ``(cz, ex, ey)`` for every used
+    forward slot, so the forward weight is ``w_c[cz, ex, ey, n % nd]`` and
+    ``fwd_w`` is that value expanded per slot.
     """
     name = str(label)
     nx_i, ny_i, nd_i = _scan_whole(nx, name="nx", label=name), _scan_whole(ny, name="ny", label=name), _scan_whole(nd, name="nd", label=name)
@@ -1108,6 +1111,7 @@ def event_scan_tables(
     # Forward targets per simple cell (ascending complex index, oracle:708-720).
     fwd_idx_lists: list[list[int]] = [[] for _ in range(ns)]
     fwd_w_lists: list[list[float]] = [[] for _ in range(ns)]
+    fwd_key_lists: list[list[tuple[int, int, int]]] = [[] for _ in range(ns)]
     for i in range(nx_i):
         for j in range(ny_i):
             for k in range(nd_i):
@@ -1118,15 +1122,18 @@ def event_scan_tables(
                     for cz in range(cd_i):
                         fwd_idx_lists[n].append(base + cz)
                         fwd_w_lists[n].append(float(w_c[cz, ex, ey, k]))
+                        fwd_key_lists[n].append((cz, ex, ey))
     fmax = max(1, max([len(v) for v in fwd_idx_lists] + [0]))
     fwd_idx = np.zeros((ns, fmax), dtype=np.int64)
     fwd_w = np.zeros((ns, fmax), dtype=np.float64)
+    fwd_key = np.zeros((ns, fmax, 3), dtype=np.int64)
     fwd_n = np.zeros((ns,), dtype=np.int64)
     for n in range(ns):
         fwd_n[n] = len(fwd_idx_lists[n])
         if fwd_idx_lists[n]:
             fwd_idx[n, :len(fwd_idx_lists[n])] = np.asarray(fwd_idx_lists[n], dtype=np.int64)
             fwd_w[n, :len(fwd_w_lists[n])] = np.asarray(fwd_w_lists[n], dtype=np.float64)
+            fwd_key[n, :len(fwd_key_lists[n])] = np.asarray(fwd_key_lists[n], dtype=np.int64)
     # Lateral window (oracle:443-446): neighbor positions, own excluded.
     if not isinstance(inhib_range, Sequence) or len(list(inhib_range)) != 2:
         raise ValueError(f"{name} inhib_range must be a pair of whole pixels; got {inhib_range!r}")
@@ -1237,9 +1244,9 @@ def event_scan_tables(
         "nx": nx_i, "ny": ny_i, "nd": nd_i, "cx": cx_i, "cy": cy_i, "cd": cd_i,
         "ns": ns, "nc": nc, "vw": vw_i, "vh": vh_i,
         "s_ox": np.asarray(ox, dtype=np.int64), "s_oy": np.asarray(oy, dtype=np.int64),
-        "w_s": w_s,
+        "w_s": w_s, "w_c": w_c,
         "pix_pos": pix_pos, "pix_n": pix_n,
-        "fwd_idx": fwd_idx, "fwd_w": fwd_w, "fwd_n": fwd_n,
+        "fwd_idx": fwd_idx, "fwd_w": fwd_w, "fwd_key": fwd_key, "fwd_n": fwd_n,
         "lat_idx": lat_idx, "lat_w": lat_w, "lat_n": lat_n,
         "lat_on": bool(lateral_on),
         "td_idx": td_idx, "td_w": td_w, "td_n": td_n,

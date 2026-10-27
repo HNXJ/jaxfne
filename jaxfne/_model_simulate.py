@@ -2613,7 +2613,8 @@ def _simulate_lif_scan(
     update's thresholds, rates, interval counts and last-update time
     (``scan_threshold_mV``, ``scan_rate_hz``, ``scan_interval_count``,
     ``scan_last_update_us``); without an ``h_update`` the thresholds stay
-    at the params' values.
+    at the params' values. ``scan_weights_final`` holds the final float64
+    weights (``w_s``, ``w_c``, ``lat_w``, ``td_w``, ``blocks_w``).
     """
     from .emitters_lif import simulate_lif_edge
     from .pcl_topology import EventScanDrive
@@ -2710,6 +2711,9 @@ def _simulate_lif_scan(
         "scan_rate_hz": _np.asarray(out["rate_hz"]),
         "scan_interval_count": _np.asarray(out["interval_count"], dtype=_np.int64),
         "scan_last_update_us": int(out["last_update_us"]),
+        "scan_weights_final": {
+            key: _np.asarray(val, dtype=_np.float64)
+            for key, val in out["weights_final"].items()},
     }
     return Signals(
         time_ms=time_ms,

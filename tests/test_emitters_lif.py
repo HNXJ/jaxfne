@@ -681,6 +681,110 @@ def test_event_scan_spike_log_reruns_past_capacity(monkeypatch):
         assert np.array_equal(np.asarray(rerun[key]), np.asarray(base[key])), key
 
 
+# Outputs of the baseline kernel (commit 894c4401) on the two fixtures of the
+# test below, recorded by running that tree's _spike_chain_fixture and the
+# three-event fixture of test_event_scan_matches_oracle_event_for_event.
+_BASELINE_SPIKE_CHAIN = {
+    "spikes": [[True, True]],
+    "counts": [4, 4],
+    "first_spike_us": [100, 100],
+    "spike_times_us": [100, 100, 200, 200, 300, 300, 400, 400],
+    "spike_cells": [0, 1, 0, 1, 0, 1, 0, 1],
+    "V": [-10.0, -10.0],
+    "A": [0.0, 0.0],
+    "t_last": [0.4, 0.4],
+    "threshold_mV": [10.0, 3.0],
+    "rate_hz": [0.0, 0.0],
+    "interval_count": [4, 4],
+    "last_update_us": 0,
+}
+_BASELINE_THREE_EVENT = {
+    "spikes": [[True, True, False]],
+    "counts": [1, 1, 0],
+    "first_spike_us": [300, 100, -1],
+    "spike_times_us": [100, 300],
+    "spike_cells": [1, 0],
+    "V": [-10.0, -20.0, 0.0],
+    "A": [0.0, 0.0, 0.0],
+    "t_last": [0.3, 0.1, -1e30],
+    "threshold_mV": [10.0, 10.0, 3.0],
+    "rate_hz": [0.0, 0.0, 0.0],
+    "interval_count": [1, 1, 0],
+    "last_update_us": 0,
+}
+
+
+def test_event_scan_returns_unchanged_weights_without_plasticity():
+    """The scan returns the weights it carried, unchanged, with the baseline outputs.
+
+    Without plasticity each final weight equals its input table bit for bit
+    (``weights_final``). A None lateral or top-down table is the zero map the
+    kernel reads, so its final weight is zeros of the table's shape. The
+    outputs equal the values the baseline kernel (commit 894c4401) gave on
+    the same two fixtures: the spike-chain fixture and the three-event oracle
+    fixture.
+    """
+    from jaxfne.pcl_topology import (
+        event_scan_events,
+        event_scan_tables,
+        local_inhibition_blocks,
+    )
+
+    p, kw = _spike_chain_fixture()
+    tables = kw["event_scan_tables"]
+    blocks = kw["local_inhibition_blocks"]
+    assert float(np.abs(tables["w_s"]).sum()) > 0.0, "fixture must carry simple weights"
+    out = simulate_lif_edge(p, **kw)
+    wf = out["weights_final"]
+    assert np.array_equal(np.asarray(wf["w_s"]), tables["w_s"])
+    assert np.array_equal(np.asarray(wf["w_c"]), tables["w_c"])
+    assert np.array_equal(np.asarray(wf["blocks_w"]), blocks["weights"])
+    assert tables["lat_w"] is None and tables["td_w"] is None
+    assert np.array_equal(np.asarray(wf["lat_w"]), np.zeros(tables["lat_idx"].shape))
+    assert np.array_equal(np.asarray(wf["td_w"]), np.zeros(tables["td_idx"].shape))
+    for key, want in _BASELINE_SPIKE_CHAIN.items():
+        assert np.array_equal(np.asarray(out[key]), np.asarray(want)), key
+
+    w_s = np.zeros((2, 2, 1, 1), dtype=np.float64)
+    w_s[1, 0, 0, 0] = 12.0
+    w_s[0, 1, 0, 0] = 12.0
+    tables = event_scan_tables(
+        nx=1, ny=1, nd=2, cx=1, cy=1, cd=1,
+        origins_x=[2.0], origins_y=[2.0], size=(1, 1), weights=w_s,
+        c_cover={(0, 0): [(0, 0)]}, c_ox=[0], c_oy=[0], c_size=(1, 1),
+        c_weights=np.zeros((1, 1, 1, 2), dtype=np.float64),
+        vw=4, vh=4, inhib_range=(0, 0),
+    )
+    events = event_scan_events(
+        np.array([100, 200, 300]), np.array([2, 2, 2]),
+        np.array([2, 2, 2]), np.array([0, 1, 1]),
+        dt_ms=0.5, n_steps=1, vw=4, vh=4,
+    )
+    p = _as_f32(make_lif_params(("simple", "simple", "complex")))
+    groups = np.array([0, 0, 1], dtype=np.int64)
+    blocks = local_inhibition_blocks(
+        groups,
+        li_pre=np.array([1, 0]), li_post=np.array([0, 1]),
+        li_weight=np.array([8.0, 8.0]),
+    )
+    out = simulate_lif_edge(
+        p, n_steps=1, dt_ms=0.5,
+        local_inhibition_groups=jnp.asarray(groups),
+        local_inhibition_resolution="event_scan",
+        local_inhibition_blocks=blocks,
+        event_scan_events=events,
+        event_scan_tables=tables,
+    )
+    wf = out["weights_final"]
+    assert np.array_equal(np.asarray(wf["w_s"]), w_s)
+    assert np.array_equal(np.asarray(wf["w_c"]), tables["w_c"])
+    assert np.array_equal(np.asarray(wf["blocks_w"]), blocks["weights"])
+    assert np.array_equal(np.asarray(wf["lat_w"]), np.zeros(tables["lat_idx"].shape))
+    assert np.array_equal(np.asarray(wf["td_w"]), np.zeros(tables["td_idx"].shape))
+    for key, want in _BASELINE_THREE_EVENT.items():
+        assert np.array_equal(np.asarray(out[key]), np.asarray(want)), key
+
+
 def _interval_fixture():
     """One simple cell (12 mV per event, 10 mV threshold) and a silent complex cell, one pixel.
 

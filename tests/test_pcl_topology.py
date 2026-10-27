@@ -1154,6 +1154,119 @@ def test_event_scan_tables_refusals_name_themselves():
             raise AssertionError("scan-table refusal must raise")
 
 
+def _two_column_tables():
+    """Two simple columns (nd 2) under one complex cell that spans both (csx 2).
+
+    The complex cell sees ex = 0 and 1, and each forward slot reads its own
+    entry of w_c. Returns ``(tables, w_c)``.
+    """
+    from jaxfne.pcl_topology import event_scan_tables
+
+    w_s = np.zeros((2, 2, 1, 1), dtype=np.float64)
+    w_s[1, 0, 0, 0] = 12.0
+    w_s[0, 1, 0, 0] = 12.0
+    w_c = np.arange(1.0, 9.0).reshape(2, 2, 1, 2)
+    tables = event_scan_tables(
+        nx=2, ny=1, nd=2, cx=1, cy=1, cd=2,
+        origins_x=[0, 1], origins_y=[0], size=(1, 1), weights=w_s,
+        c_cover={(0, 0): [(0, 0)], (1, 0): [(0, 0)]},
+        c_ox=[0], c_oy=[0], c_size=(2, 1), c_weights=w_c,
+        vw=2, vh=1, inhib_range=(0, 0),
+    )
+    return tables, w_c
+
+
+def _oracle_forward_slots(*, nx, ny, nd, cy, cd, c_cover, c_ox, c_oy, ns, w_c):
+    """Forward targets per simple cell, transcribed from ``pcl_event_ref.py:708-720``.
+
+    The oracle's ``_forward`` visits complex cells in ascending index and
+    excites each with ``w_c[cz, ex, ey, k]`` at the source's depth ``k``. The
+    core numbers complex cells after the ``ns`` simple ones. Returns
+    ``{n: [(target, (cz, ex, ey), weight), ...]}``.
+    """
+    slots = {}
+    for i in range(nx):
+        for j in range(ny):
+            for k in range(nd):
+                n = (i * ny + j) * nd + k
+                row = []
+                for cx, cj in c_cover[(i, j)]:
+                    ex, ey = i - c_ox[cx], j - c_oy[cj]
+                    base = (cx * cy + cj) * cd
+                    for cz in range(cd):
+                        row.append((ns + base + cz, (cz, ex, ey),
+                                    float(w_c[cz, ex, ey, k])))
+                slots[n] = row
+    return slots
+
+
+def _assert_fwd_key_is_oracle_forward_map(tables, **geometry):
+    ns = int(tables["ns"])
+    want = _oracle_forward_slots(ns=ns, **geometry)
+    checked = 0
+    for n in range(ns):
+        rows = want[n]
+        assert int(tables["fwd_n"][n]) == len(rows), f"fwd_n[{n}]"
+        for f, (target, key, weight) in enumerate(rows):
+            assert int(tables["fwd_idx"][n, f]) == target, (n, f)
+            assert tuple(int(v) for v in tables["fwd_key"][n, f]) == key, (n, f)
+            assert tables["fwd_w"][n, f] == weight, (n, f)
+            checked += 1
+    return checked
+
+
+def test_event_scan_fwd_key_matches_oracle_forward_map():
+    """Fail-first (PCL-L3a): fwd_key names the shared weight each forward slot reads.
+
+    Checked on the micro network (its complex cell sees ex = ey = 0 only, so
+    this pins the cover and the keys) and on the two-column geometry, whose
+    complex cell sees ex = 0 and 1 with distinct w_c entries.
+    """
+    checked = _assert_fwd_key_is_oracle_forward_map(
+        _scan_micro_tables(), nx=1, ny=1, nd=2, cy=1, cd=1,
+        c_cover={(0, 0): [(0, 0)]}, c_ox=[0], c_oy=[0],
+        w_c=np.zeros((1, 1, 1, 2), dtype=np.float64))
+    wide, w_c = _two_column_tables()
+    checked += _assert_fwd_key_is_oracle_forward_map(
+        wide, nx=2, ny=1, nd=2, cy=1, cd=2,
+        c_cover={(0, 0): [(0, 0)], (1, 0): [(0, 0)]},
+        c_ox=[0], c_oy=[0], w_c=w_c)
+    assert checked > 0, "fixture must hold forward slots"
+    assert {int(v) for v in wide["fwd_key"][:, :, 1].ravel()} == {0, 1}, (
+        "two-column fixture must exercise ex = 0 and 1")
+
+
+def test_event_scan_refuses_fwd_w_that_disagrees_with_w_c():
+    """A forward-weight table that disagrees with the shared w_c is refused, naming fwd_w."""
+    import jax.numpy as jnp
+
+    from jaxfne.emitters_lif import make_lif_params, simulate_lif_edge
+    from jaxfne.pcl_topology import event_scan_events, local_inhibition_blocks
+
+    tables, _ = _two_column_tables()
+    events = event_scan_events(
+        np.array([100]), np.array([0]), np.array([0]), np.array([0]),
+        dt_ms=0.5, n_steps=1, vw=2, vh=1)
+    p = make_lif_params(("simple",) * 4 + ("complex",) * 2)
+    groups = np.array([0, 0, 1, 1, 2, 2], dtype=np.int64)
+    empty = np.zeros(0, dtype=np.int64)
+    blocks = local_inhibition_blocks(
+        groups, li_pre=empty, li_post=empty, li_weight=np.zeros(0))
+    kw = dict(
+        n_steps=1, dt_ms=0.5,
+        local_inhibition_groups=jnp.asarray(groups),
+        local_inhibition_resolution="event_scan",
+        local_inhibition_blocks=blocks,
+        event_scan_events=events,
+    )
+    simulate_lif_edge(p, event_scan_tables=tables, **kw)  # the declared tables run
+    bad = dict(tables)
+    bad["fwd_w"] = np.array(tables["fwd_w"], dtype=np.float64, copy=True)
+    bad["fwd_w"][0, 1] += 1.0
+    with pytest.raises(ValueError, match="fwd_w"):
+        simulate_lif_edge(p, event_scan_tables=bad, **kw)
+
+
 def test_validate_local_inhibition_event_scan_has_no_rounds():
     """Fail-first for Step 9: the scan replay resolves every event, no cap.
 
