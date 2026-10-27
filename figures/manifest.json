@@ -1,6 +1,6 @@
 {
   "schema": "figsite.v1",
-  "build_sha": "3f888890ec6f8a3f89cbdcf83d12c998d68f7a1d",
+  "build_sha": "0a6f8148fb4588f76ea409cee9132a41a7611e47",
   "figures": [
     {
       "slug": "calibration_100",
@@ -1776,6 +1776,15 @@
       "html": "area_graph_n20/area_graph_n20.html",
       "png": "area_graph_n20/area_graph_n20.png",
       "title": "G_20 hierarchy: 20 areas, inter-area edges",
+      "status": "available",
+      "docs_pages": []
+    },
+    {
+      "slug": "v037_source_column_3d",
+      "panel": "v037_source_column_3d",
+      "html": "v037_source_column_3d/v037_source_column_3d.html",
+      "png": "v037_source_column_3d/v037_source_column_3d.png",
+      "title": "<b>Interactive 3D Source/Field/Probe Cortical Column</b><br><sub>v0.3.7: Source Bookkeeping, Field Handoff, Probe Readout</sub>",
       "status": "available",
       "docs_pages": []
     }
