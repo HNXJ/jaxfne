@@ -163,8 +163,10 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   file the job installs with); the S2 generator waits on the D35 calibration call (C3 row).
 - T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
   and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots. Potjans draft 2026-10-26
-  (scale and bands wait on Hamm). Core `Simulation(poisson_drive=[...])` landed (lif route); next the lane's P2
-  refresh onto multinomial wiring, w_std, delay_std_ms, tau_syn_ms, per-population drive and the exact-charge pA map.
+  (scale and bands wait on Hamm). Core `Simulation(poisson_drive=[...])` landed (lif route). The P2 refresh
+  (multinomial wiring, w_std, delay_std_ms, tau_syn_ms, per-population drive, exact-charge pA map) waits on P-049:
+  multinomial caps the mean in-degree at 1; core change `in_degree` with multinomial after the E1 core lane lands
+  (same files). w_std, delay_std_ms, tau_syn_ms, dt 0.1 and the drive list are expressible (probe 2026-10-26).
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
 - T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
 - T-O68 [H] local copies and the layout rule (see O-68): each held copy is deleted or sits at

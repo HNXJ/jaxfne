@@ -68,3 +68,13 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   draws `v0`, so `u0 != b * v0` (the paper's `u = b.*v`); `cell_params` takes no `v0` or `u0`.
   The E1 library path needs a declared per-cell initial state; whether the default should follow
   `b` is Hamm's call (it moves existing realizations).
+
+### P-049
+
+- Date: 2026-10-26. Type: FRICTION. Area: `sampling="multinomial"` (`_candidate_pairs_multinomial`
+  in `jaxfne/connectivity.py`). Severity: high for the Potjans lane.
+- K = round(p * n_post) with p in (0, 1], so the mean in-degree is at most 1; the paper's K gives
+  in-degree -ln(1-C) * N_pre (497 for L5i->L5e at full N). `AreaConnection` refuses 54 of the 55
+  projections. Potjans PORT_SPEC row 8 calls G-MULT closed; it is not for this lane.
+- Proposed change: `in_degree=k` with `sampling="multinomial"` (refused together today) draws
+  K = round(k * n_post) synapses with replacement, so `in_degree` is the mean in-degree.
