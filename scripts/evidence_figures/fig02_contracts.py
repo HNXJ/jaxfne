@@ -101,7 +101,7 @@ def draw_figure() -> None:
 
     ax.text(7.0, 9.55, TITLE, ha="center", va="center", fontsize=15, fontweight="bold")
 
-    # Panel A — source bookkeeping
+    # Panel A: source bookkeeping
     pa_x, pa_y, pa_w, pa_h = 0.45, 6.55, 6.35, 2.55
     _panel(ax, pa_x, pa_y, pa_w, pa_h, "Panel A — source bookkeeping")
     panel_a_lines = [
@@ -118,7 +118,7 @@ def draw_figure() -> None:
         weight = "bold" if line.startswith("Gate:") else "normal"
         ax.text(pa_x + 0.2, pa_y + pa_h - 0.55 - i * 0.28, line, fontsize=7.5, va="top", fontweight=weight)
 
-    # Panel B — physical target equations
+    # Panel B: physical target equations
     pb_x, pb_y, pb_w, pb_h = 7.2, 6.55, 6.35, 2.55
     _panel(ax, pb_x, pb_y, pb_w, pb_h, "Panel B — physical target equations (reference)")
     equations = [
@@ -139,7 +139,7 @@ def draw_figure() -> None:
         style="italic",
     )
 
-    # Panel C — default jaxfne v0.3.x path
+    # Panel C: default jaxfne v0.3.x path
     pc_x, pc_y, pc_w, pc_h = 0.45, 4.35, 13.1, 1.75
     _panel(ax, pc_x, pc_y, pc_w, pc_h, "Panel C — default jaxfne v0.3.x path", facecolor="#E8F5E9", edgecolor="#2E7D32")
     panel_c_items = [
@@ -155,7 +155,7 @@ def draw_figure() -> None:
         row = i // 3
         ax.text(pc_x + 0.25 + col * 4.2, pc_y + pc_h - 0.55 - row * 0.38, f"• {item}", fontsize=8, va="top")
 
-    # Panel D — evidence ladder
+    # Panel D: evidence ladder
     pd_x, pd_y, pd_w, pd_h = 0.45, 1.55, 6.35, 2.45
     _panel(ax, pd_x, pd_y, pd_w, pd_h, "Panel D — evidence ladder")
     for i, step in enumerate(EVIDENCE_LADDER):
@@ -163,7 +163,7 @@ def draw_figure() -> None:
         weight = "bold" if i == 0 else "normal"
         ax.text(pd_x + 0.2, pd_y + pd_h - 0.5 - i * 0.32, step, fontsize=7.5, va="top", color=color, fontweight=weight)
 
-    # Panel E — status gates
+    # Panel E: status gates
     pe_x, pe_y, pe_w, pe_h = 7.2, 1.55, 6.35, 2.45
     _panel(ax, pe_x, pe_y, pe_w, pe_h, "Panel E — status gates")
     panel_e_lines = [

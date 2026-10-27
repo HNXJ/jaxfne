@@ -96,7 +96,7 @@ PROTECTED_TERMS = (
 )
 
 # Synonym clusters to examine for redundant meta-language. Words in the same
-# group are NOT automatically synonyms — the audit flags co-occurrence so a
+# group are NOT automatically synonyms; the audit flags co-occurrence so a
 # human can decide per context. The preferred map (PREFERRED_WORDS) states the
 # intended single word when a distinction is unnecessary.
 CLUSTERS = {

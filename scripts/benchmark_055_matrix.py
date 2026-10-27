@@ -11,7 +11,7 @@ one benchmark model declares a non-default drive: benchmark_050_baseline
 _hdp_model (.drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 8.0}),
 P-014 migration 9cc45659; dropped on the plain route until P-018, executes
 since). Every other builder declares nothing and realizes the emitter
-defaults (E 5.0, PV 3.0, SST 3.5, VIP 3.0) — the defaults 051 measured.
+defaults (E 5.0, PV 3.0, SST 3.5, VIP 3.0); the defaults 051 measured.
 The declared-drive map below names this explicitly; cells without an entry
 run the 051-identical builder chain.
 

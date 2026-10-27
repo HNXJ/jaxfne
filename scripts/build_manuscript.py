@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic manuscript PDF — P1-publication, Δscience=0. v0.4.17
+"""Deterministic manuscript PDF: P1-publication, Δscience=0. v0.4.17
 
 Concatenates docs/theory/publication/manuscript/*.md in fixed order
 abstract→introduction→methods→results→discussion→supplement,
@@ -151,7 +151,7 @@ def build(out: Path, backend: str = "auto") -> Path:
                 pass
             return out
         # Pandoc PDF failed (e.g. no pdf engine). Generate intermediate .tex for provenance
-        # but DO NOT return it when .pdf was requested — fall through to reportlab.
+        # but DO NOT return it when .pdf was requested; fall through to reportlab.
         try:
             tmp_tex = out.with_suffix(".tmp.tex")
             subprocess.run(["pandoc", str(tmp_md), "-o", str(tmp_tex)], check=False, capture_output=True, timeout=60)
@@ -160,7 +160,7 @@ def build(out: Path, backend: str = "auto") -> Path:
         # fall through to reportlab PDF
 
     if want_tex and backend in ("auto", "pandoc") and pandoc_available:
-        # Caller explicitly requested .tex — honor it via pandoc
+        # Caller explicitly requested .tex; honor it via pandoc
         cmd = ["pandoc", str(tmp_md), "-o", str(out)]
         subprocess.run(cmd, check=False, capture_output=True, timeout=60)
         if out.exists():

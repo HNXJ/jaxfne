@@ -1,11 +1,11 @@
-"""ED9 — homeostasis / adaptation controller evidence bundle.
+"""ED9: homeostasis / adaptation controller evidence bundle.
 
 Null + ablation + repeated-seed evidence that the minimal homeostatic
 resource/adaptation controller (intrinsic excitability bias g_i + optional
 homeostatic synaptic scaling) STABILIZES firing rates and reduces runaway/imbalance
 in the jaxfne proxy scaffold.
 
-This is COMPUTATIONAL-METHOD evidence only — NOT a biological-mechanism validation.
+This is COMPUTATIONAL-METHOD evidence only: NOT a biological-mechanism validation.
 Truth gates stay conservative (claim_level=computational_scaffold,
 biological_learning_claim=False, mechanism_claim_status=not_claimed). Objective
 success here does not imply mechanism support.

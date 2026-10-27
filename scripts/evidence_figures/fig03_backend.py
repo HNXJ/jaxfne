@@ -110,7 +110,7 @@ def draw_figure() -> None:
     ax.text(7.0, 9.55, TITLE, ha="center", va="center", fontsize=14, fontweight="bold")
     ax.text(7.0, 9.1, "import jaxfne as jtfne", ha="center", fontsize=9, family="monospace", color="#444444")
 
-    # Panel A — public object flow
+    # Panel A: public object flow
     pa_x, pa_y, pa_w, pa_h = 0.45, 6.4, 13.1, 2.7
     _panel(ax, pa_x, pa_y, pa_w, pa_h, "Panel A — public object flow")
     box_w, box_h = 1.85, 0.55
@@ -135,7 +135,7 @@ def draw_figure() -> None:
         if i < len(PUBLIC_FLOW) - 1:
             ax.text(x + box_w + 0.22, y_flow + 0.28, "->", fontsize=10, ha="center", color="#333333")
 
-    # Panel B — numerical hot path
+    # Panel B: numerical hot path
     pb_x, pb_y, pb_w, pb_h = 0.45, 4.55, 6.35, 1.55
     _panel(ax, pb_x, pb_y, pb_w, pb_h, "Panel B — numerical hot path (inside JIT)", facecolor="#FFF3E0", edgecolor="#E65100")
     hot_path = [
@@ -148,7 +148,7 @@ def draw_figure() -> None:
     for i, line in enumerate(hot_path):
         ax.text(pb_x + 0.2, pb_y + pb_h - 0.48 - i * 0.22, f"• {line}", fontsize=7.2, va="top")
 
-    # Panel C — outside-JIT layer
+    # Panel C: outside-JIT layer
     pc_x, pc_y, pc_w, pc_h = 7.2, 4.55, 6.35, 1.55
     _panel(ax, pc_x, pc_y, pc_w, pc_h, "Panel C — outside-JIT layer", facecolor="#F3E5F5", edgecolor="#6A1B9A")
     outside_jit = [
@@ -163,13 +163,13 @@ def draw_figure() -> None:
         row = i // 2
         ax.text(pc_x + 0.2 + col * 3.0, pc_y + pc_h - 0.48 - row * 0.28, f"• {line}", fontsize=7.2, va="top")
 
-    # Panel D — optional dependency boundary
+    # Panel D: optional dependency boundary
     pd_x, pd_y, pd_w, pd_h = 0.45, 2.55, 6.35, 1.65
     _panel(ax, pd_x, pd_y, pd_w, pd_h, "Panel D — optional dependency boundary", facecolor="#E0F2F1", edgecolor="#00695C")
     for i, line in enumerate(OPTIONAL_DEPENDENCY_POLICY):
         ax.text(pd_x + 0.2, pd_y + pd_h - 0.48 - i * 0.26, f"• {line}", fontsize=7.2, va="top")
 
-    # Panel E — reproducibility report
+    # Panel E: reproducibility report
     pe_x, pe_y, pe_w, pe_h = 7.2, 2.55, 6.35, 1.65
     _panel(ax, pe_x, pe_y, pe_w, pe_h, "Panel E — reproducibility report fields", facecolor="#E8F5E9", edgecolor="#2E7D32")
     for i, line in enumerate(RUNTIME_REPRODUCIBILITY_FIELDS):

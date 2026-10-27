@@ -3,7 +3,7 @@
 
 `docs/start/gallery.md` is output, not source, between the markers
 ``<!-- ATLAS-INDEX:START -->`` / ``<!-- ATLAS-INDEX:END -->``. Only atlases
-whose manifest reads VALIDATED or CANONICAL are listed — GENERATED outputs
+whose manifest reads VALIDATED or CANONICAL are listed; GENERATED outputs
 never enter the gallery. Every link is checked against docs/_static/atlas_registry.json,
 the record of the panels the docs build writes.
 

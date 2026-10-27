@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate 0.4.13 stable-surface contract under artifacts/developer/.
 
-This is a development/PRP artifact — not public documentation.
+This is a development/PRP artifact; not public documentation.
 """
 
 from __future__ import annotations
@@ -56,12 +56,12 @@ DOC_GRAMMAR = {
 
 # Explicit overrides beat heuristics.
 SYMBOL_OVERRIDES: dict[str, str] = {
-    # REMOVE — root stubs that raise or mislead
+    # REMOVE: root stubs that raise or mislead
     "read_nwb": "REMOVE",
     "write_nwb": "REMOVE",
     "GLIFEmitter": "REMOVE",
     "LIFEmitter": "REMOVE",
-    # NAMESPACED — must not read as second grammar
+    # NAMESPACED: must not read as second grammar
     "build_tutorial_laminar_column": "NAMESPACED",
     "select_neurons": "NAMESPACED",
     "kappa_synchrony": "NAMESPACED",

@@ -152,24 +152,6 @@ def clip_check(fig: Figure) -> dict:
     return {"pass": len(flagged) == 0, "flagged": flagged, "outside_canvas": outside, "protruding": protruding}
 
 
-def colors_present_in_png(png: Path, required: set[str] | None = None) -> set[str]:
-    """Every solid artist color we allow must appear among the frozen PNG pixels."""
-    from PIL import Image
-
-    with Image.open(png).convert("RGB") as im:
-        px = im.load()
-        w, h = im.size
-        colors = set()
-        target = required if required is not None else set()
-        for yy in range(h):
-            for xx in range(w):
-                c = px[xx, yy]
-                colors.add("#%02X%02X%02X" % c)
-                if target and target.issubset(colors):
-                    return colors
-        return colors
-
-
 def semantic_palette():
     return {
         "#1A4A8A", "#666666", "#8B4513", "#888888", "#F3F3F3", "#6A0DAD", "#F5E6FF",
@@ -184,18 +166,6 @@ def semantic_palette():
         # neutral grays from the frozen renders (axis/grid/annotation work)
         "#CCCCCC", "#000000", "#FFFFFF",
     }
-
-
-def render_info(png: Path):
-    from PIL import Image
-    with Image.open(png) as im:
-        dpi = im.info.get("dpi", (0, 0))
-        return {"size_px": list(im.size), "dpi": [round(float(d), 1) for d in dpi]}
-
-
-def is_vector_pdf(pdf: Path) -> bool:
-    head = pdf.read_bytes()[:4096]
-    return b"%PDF" in head
 
 
 REPO_ROOT = _REPO

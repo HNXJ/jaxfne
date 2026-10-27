@@ -2,7 +2,7 @@
 """Generate Extended Data ED6: benchmark scaling tables (local CPU receipt).
 
 CPU-safe evidence benchmark grid aligned with Fig5 axes. Local environment
-receipt only — no speedup or superiority claims.
+receipt only; no speedup or superiority claims.
 
 Outputs:
   artifacts/_temp/figures/evidence/ed06_benchmark_scaling_tables.png

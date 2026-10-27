@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MCC-3 10-second scientific checkpoint (analysis only — no package mutation)."""
+"""MCC-3 10-second scientific checkpoint (analysis only; no package mutation)."""
 
 from __future__ import annotations
 

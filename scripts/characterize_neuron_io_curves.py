@@ -36,7 +36,7 @@ def izhikevich_step(v, u, t, dt, a, b, c, d, I_input):
     Args:
         v: membrane potential (mV)
         u: recovery variable
-        t: current time (ms) — unused but kept for consistency
+        t: current time (ms); unused but kept for consistency
         dt: time step (ms)
         a, b, c, d: Izhikevich parameters
         I_input: injected current

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate Extended Data ED8: tutorial atlas coverage matrix.
 
-Receipt-driven atlas survey of tutorial notebooks and docs/tutorial pages.
+Receipt-driven atlas survey of tutorial notebooks and docs/tutorials pages.
 Does not claim full notebook execution unless artifact receipts exist.
 
 Outputs:

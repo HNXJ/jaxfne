@@ -458,7 +458,7 @@ check("q_markers_all_in_table", not unused and not missing,
 # ------------------------------------------------- 3. forbidden-overclaim scan
 
 FORBIDDEN = [
-    # (pattern, allowed paragraph ids — empty means never allowed, allow_if)
+    # (pattern, allowed paragraph ids; empty means never allowed, allow_if)
     (r"empirical\s+(result|quantity|claim)", [], r"no\s+empirical"),
     (r"physical\s+(amplitude\s+)?calibrat\w+", [], r"no\s+physical|was\s+not\s+performed|not\s+performed"),
     (r"\bcortex\b|\bcortical\b|\bin\s+vivo\b", [], None),
