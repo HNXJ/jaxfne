@@ -93,3 +93,13 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   (n=6250, about 7.8M edges, extrapolated about 9 h) sat in construct for 52 min and was stopped.
 - Resolved 2026-10-27 (9C-E1 core lane): one stable sort with per-group block bounds; 400k
   identities in about 2 s, against 89 s before (`test_explicit_duplicate_check_is_not_quadratic`).
+
+### P-051
+
+- Date: 2026-10-27. Type: FRICTION. Area: Izhikevich `edge_list` route. Severity: low.
+- The edge route filters every edge with its mechanism tau (`g <- g exp(-dt/tau) + spikes`), and
+  `weight_range` compiles only with a mechanism, so instantaneous coupling (Izhikevich 2003,
+  the dense route's `W @ prev_spikes`) has no named form on it. At tau 5 ms the Fig. 3 network
+  saturates (2000 Hz); the E1 pilot declares tau 1e-3 ms, where the decay is exactly 0 in float32
+  at dt 0.5 ms (`izhikevich2003/core/run_izh_core.py`). Possible change: a named instantaneous
+  receptor on the edge route, equal to the tau -> 0 limit.
