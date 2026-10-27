@@ -445,19 +445,28 @@ def _check_connection_max_in_degree(max_in_degree: "int | None", *, label: str) 
     return degree
 
 
-def _check_connection_in_degree(in_degree: "int | None", *, label: str) -> "int | None":
+def _check_connection_in_degree(
+    in_degree: "int | None", *, label: str, sampling: "str | None" = None,
+) -> "int | None":
     """Validate the exact-fixed-in-degree fan-in count shared by both connection types.
 
     None = undeclared = the ``probability`` density path; a declared value
     must be a positive integer (bools, non-integral numbers and values < 1
-    are refused, never coerced). When set, the rule compiles through the
-    exact fixed-indegree sampler with this per-post-neuron count instead of
-    the density path, so it is mutually exclusive with a declared
-    ``probability``, ``max_in_degree``, ``footprint`` and any sampling
-    other than ``"fixed_indegree"``.
+    are refused, never coerced). With ``sampling="multinomial"`` the value is
+    the mean in-degree instead: a finite number > 0, non-integer allowed, and
+    the rule draws ``round(in_degree * n_post)`` synapses with replacement.
+    When set, the rule compiles through the exact sampler with this
+    per-post-neuron count instead of the density path, so it is mutually
+    exclusive with a declared ``probability``, ``max_in_degree``,
+    ``footprint`` and any sampling other than ``"fixed_indegree"`` or
+    ``"multinomial"``.
     """
     if in_degree is None:
         return None
+    if sampling == "multinomial":
+        from .connectivity import _validate_multinomial_in_degree
+
+        return _validate_multinomial_in_degree(label, in_degree)
     if isinstance(in_degree, bool) or not isinstance(in_degree, numbers.Integral):
         raise ValueError(
             f"{label} in_degree must be a positive integer; "
@@ -535,8 +544,9 @@ class InterConnection:
     # with this per-post-neuron count instead of the density path;
     # mutually exclusive with a declared ``probability``, ``max_in_degree``,
     # ``footprint`` and any other sampling (refused jointly). Must be a
-    # positive integer when set. No consumer exists on the conductance
-    # (adex) route, so a declared value there is refused.
+    # positive integer when set; under ``sampling="multinomial"`` it is the
+    # mean in-degree (a finite number > 0). No consumer exists on the
+    # conductance (adex) route, so a declared value there is refused.
     in_degree: "int | None" = None
     # Per-rule self-edge opt-in (None = undeclared = self-edges dropped, the
     # historical behaviour). ``True`` keeps ``i == i`` pairs on every
@@ -601,7 +611,8 @@ class InterConnection:
         )
         object.__setattr__(
             self, "in_degree",
-            _check_connection_in_degree(self.in_degree, label="InterConnection"),
+            _check_connection_in_degree(
+                self.in_degree, label="InterConnection", sampling=self.sampling),
         )
         object.__setattr__(
             self, "allow_self",
@@ -651,12 +662,15 @@ class InterConnection:
                 "in_degree; the fixed-indegree sampler draws exactly in_degree "
                 "presynaptic partners per post cell — declare both"
             )
-        if self.in_degree is not None and self.sampling not in (None, "fixed_indegree"):
+        if self.in_degree is not None and self.sampling not in (
+            None, "fixed_indegree", "multinomial",
+        ):
             raise ValueError(
                 "InterConnection declares in_degree="
                 f"{self.in_degree!r} with sampling={self.sampling!r}; the "
                 "fixed-indegree sampler runs under sampling='fixed_indegree' "
-                "or the default — declare one or neither"
+                "or the default, and the mean in-degree under sampling="
+                "'multinomial' — declare one or neither"
             )
         if self.footprint is not None and self.sampling is not None:
             raise ValueError(
@@ -908,7 +922,8 @@ class AreaConnection:
             )
         object.__setattr__(
             self, "in_degree",
-            _check_connection_in_degree(self.in_degree, label="AreaConnection"),
+            _check_connection_in_degree(
+                self.in_degree, label="AreaConnection", sampling=self.sampling),
         )
         if self.in_degree is not None and self.probability is not None:
             raise ValueError(
@@ -972,12 +987,15 @@ class AreaConnection:
                 "in_degree; the fixed-indegree sampler draws exactly in_degree "
                 "presynaptic partners per post cell — declare both"
             )
-        if self.in_degree is not None and self.sampling not in (None, "fixed_indegree"):
+        if self.in_degree is not None and self.sampling not in (
+            None, "fixed_indegree", "multinomial",
+        ):
             raise ValueError(
                 "AreaConnection declares in_degree="
                 f"{self.in_degree!r} with sampling={self.sampling!r}; the "
                 "fixed-indegree sampler runs under sampling='fixed_indegree' "
-                "or the default — declare one or neither"
+                "or the default, and the mean in-degree under sampling="
+                "'multinomial' — declare one or neither"
             )
         if self.footprint is not None and self.sampling is not None:
             raise ValueError(
@@ -2973,7 +2991,13 @@ def _wire_connection(
     if conn_in_degree is not None:
         # Exact fixed in-degree replaces the density path (Configuration
         # refuses the combination), so the rule carries probability=None.
-        wire_kw["in_degree"] = int(conn_in_degree)
+        # Under sampling="multinomial" the declared value is the mean in-degree
+        # k (a float, non-integer allowed); otherwise the fixed count is an int.
+        wire_kw["in_degree"] = (
+            float(conn_in_degree)
+            if getattr(conn, "sampling", None) == "multinomial"
+            else int(conn_in_degree)
+        )
         wire_probability = None
     if conn_degree is not None and conn_in_degree is not None:
         # Unreachable through the declaring constructors (both refuse the

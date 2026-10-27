@@ -1077,8 +1077,10 @@ class Configuration:
         ``max_in_degree``, ``footprint`` and the Bernoulli samplings, and on
         the sign-only fallback path (which honours ``"density"``/``"bernoulli"``
         only). ``"multinomial"`` draws exactly ``round(p*n_post)`` synapses
-        per rule with replacement (multapses allowed); it is refused with
-        ``in_degree``, ``max_in_degree`` and on the sign-only fallback path.
+        per rule with replacement (multapses allowed); with ``in_degree=k`` (a
+        finite number > 0, the mean in-degree, non-integer allowed) it draws
+        ``round(k*n_post)`` instead. It is refused with ``max_in_degree``, with
+        ``in_degree`` together with ``probability``, and on the sign-only fallback path.
         ``weight`` is the native edge magnitude
         (default ``1/sqrt(n)``),
         and ``sign`` is ``"excitatory"``/``"inhibitory"``/``"signed"`` (``"signed"`` or
@@ -1206,14 +1208,19 @@ class Configuration:
                 f"connection {name!r} sampling={sampling!r} is not implemented with "
                 "max_in_degree (localized sampling); omit one of them"
             )
-        in_degree = _validate_config_in_degree(name, in_degree)
+        if sampling == "multinomial":
+            from .connectivity import _validate_multinomial_in_degree
+
+            in_degree = _validate_multinomial_in_degree(f"connection {name!r}", in_degree)
+        else:
+            in_degree = _validate_config_in_degree(name, in_degree)
         if sampling == "fixed_indegree" and in_degree is None:
             raise ValueError(
                 f"connection {name!r} declares sampling='fixed_indegree' "
                 "without in_degree; the fixed-indegree sampler draws exactly "
                 "in_degree presynaptic partners per post cell -- declare both"
             )
-        if sampling in ("bernoulli", "capped_bernoulli", "multinomial") and in_degree is not None:
+        if sampling in ("bernoulli", "capped_bernoulli") and in_degree is not None:
             raise ValueError(
                 f"connection {name!r} sampling={sampling!r} is not implemented "
                 f"with in_degree={in_degree!r} (exact fixed in-degree); "

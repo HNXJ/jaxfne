@@ -203,6 +203,30 @@ def _validate_in_degree(rule_name: str, in_degree: Any) -> "int | None":
     return degree
 
 
+def _validate_multinomial_in_degree(label: str, in_degree: Any) -> "float | None":
+    """Validate a ``sampling="multinomial"`` mean in-degree ``k`` (or pass None through).
+
+    The declared ``k`` is the mean in-degree: any finite real number > 0,
+    non-integer allowed, returned as a float. bools, non-numbers, non-finite
+    values and values <= 0 are refused, never coerced. ``label`` names the
+    declaring surface in the message.
+    """
+    if in_degree is None:
+        return None
+    if isinstance(in_degree, bool) or not isinstance(in_degree, numbers.Real):
+        raise ValueError(
+            f"{label} in_degree with sampling='multinomial' must be a finite "
+            f"positive number (the mean in-degree); got {in_degree!r}"
+        )
+    value = float(in_degree)
+    if not math.isfinite(value) or value <= 0.0:
+        raise ValueError(
+            f"{label} in_degree with sampling='multinomial' must be a finite "
+            f"positive number (the mean in-degree); got {in_degree!r}"
+        )
+    return value
+
+
 @dataclass(frozen=True)
 class ConnectionCompileResult:
     """Compiled sparse connectivity.
@@ -723,9 +747,11 @@ def _candidate_pairs_multinomial(
     Each of the K synapses draws its presynaptic and postsynaptic neuron
     independently and uniformly, giving binomial in/out-degree; a (pre, post)
     pair may repeat. ``probability=None`` -> ``p = 1.0``; ``p <= 0`` -> no
-    edges; the count rounds half-up (the delay grid's convention). With
-    ``allow_self=False`` and overlapping pools, self pairs are excluded by
-    drawing over the reduced valid pair space arithmetically, so exactly K
+    edges; the count rounds half-up (the delay grid's convention). A rule
+    declared with ``in_degree=k`` passes its mean in-degree ``k`` as
+    ``probability``, so ``K = round_half_up(k * n_post)`` for any finite
+    ``k > 0``. With ``allow_self=False`` and overlapping pools, self pairs are
+    excluded by drawing over the reduced valid pair space arithmetically, so exactly K
     kept pairs always come back; a rule whose valid pair space is empty while
     ``K > 0`` is refused. Sampling is deterministic given ``key`` and never
     materializes a dense n_pre x n_post pair grid.
@@ -1049,7 +1075,10 @@ def compile_connection_rules(
     refuses ``probability``, ``max_in_degree``, ``footprint`` and the
     Bernoulli samplings) or ``"multinomial"`` (exactly ``round(p*n_post)``
     synapses per rule drawn with replacement via
-    :func:`_candidate_pairs_multinomial`; it refuses ``in_degree``).
+    :func:`_candidate_pairs_multinomial`; with ``in_degree=k`` in place of
+    ``probability`` it draws ``round(k*n_post)`` instead, ``k`` being a finite
+    mean in-degree > 0, non-integer allowed; it refuses ``in_degree`` together
+    with ``probability``).
     Any other ``sampling`` value raises ``ValueError``.
 
     A rule may set ``delay_ms`` (configured axonal delay in ms, None =
@@ -1142,14 +1171,18 @@ def compile_connection_rules(
                 f"connection {rname!r} sampling must be 'density', 'bernoulli', "
                 f"'capped_bernoulli', 'fixed_indegree' or 'multinomial'; got {sampling!r}"
             )
-        in_degree = _validate_in_degree(rname, rule.get("in_degree"))
+        if sampling == "multinomial":
+            in_degree = _validate_multinomial_in_degree(
+                f"connection {rname!r}", rule.get("in_degree"))
+        else:
+            in_degree = _validate_in_degree(rname, rule.get("in_degree"))
         if sampling == "fixed_indegree" and in_degree is None:
             raise ValueError(
                 f"connection {rname!r} declares sampling='fixed_indegree' "
                 "without in_degree; the fixed-indegree sampler draws exactly "
                 "in_degree presynaptic partners per post cell -- declare both"
             )
-        if sampling in ("bernoulli", "capped_bernoulli", "multinomial") and in_degree is not None:
+        if sampling in ("bernoulli", "capped_bernoulli") and in_degree is not None:
             raise ValueError(
                 f"connection {rname!r} sampling={sampling!r} is not implemented "
                 f"with in_degree={in_degree!r} (exact fixed in-degree); "
@@ -1306,6 +1339,16 @@ def compile_connection_rules(
                     if rule.get("spatial_sigma") is None
                     else rule["spatial_sigma"]
                 ),
+                allow_self=rule_self,
+                key=rkey,
+            )
+        elif in_degree is not None and sampling == "multinomial":
+            # The declared mean in-degree k drives the probability form's
+            # with-replacement draw: K = round_half_up(k * n_post).
+            pairs = _candidate_pairs_multinomial(
+                pre_ids,
+                post_ids,
+                probability=in_degree,
                 allow_self=rule_self,
                 key=rkey,
             )
@@ -1490,6 +1533,10 @@ def compile_connection_rules(
         if sampling in ("bernoulli", "capped_bernoulli", "fixed_indegree", "multinomial"):
             # Recorded only when non-default, as in connections(), so density rows are unchanged.
             row["sampling"] = sampling
+        if sampling == "multinomial" and in_degree is not None:
+            # The declared mean in-degree is row["in_degree"]; the realized
+            # with-replacement count K is recorded beside it.
+            row["realized_k"] = len(pairs)
         connection_table.append(row)
 
     # Lists go through NumPy first: jnp.asarray walks a Python list element by element.
