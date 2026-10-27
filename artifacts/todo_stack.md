@@ -115,11 +115,9 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 - Kernel LFP lane `cl-klfp` [A]: f57aae0f landed on dev as 85199ade (0.5.8; the plasticity scorer's
   iSTDP checks read per-edge traces). 6eb3c6b8, 44cd0111, ff45364b (hybrid kernel LFP) go to 0.5.10.
   Then the validation backbone continues (iSTDP out-degree check in plasticity, kernel LFP checks in fields).
-- Dashboard/docs adoption from jnwb (Hamm 2026-10-24, all four: [A], not 0.5.8-blocking, moves to 0.5.9
-  if unfinished): (a) docs stills get generated `.dark.png` twins (`#only-light`/`#only-dark`); (b) JSON
-  Schema with 40-hex SHA patterns for `replications.json`, validated in `build_dashboard_data.py
-  --check`; (c) sha256 of each committed receipt on its evidence item; (d) a test that loads
-  `dashboard/index.html` + `app.js` in a real page. Joint rulings: both dashboards use the jaxfne verdict
+- Dashboard/docs adoption from jnwb (Hamm 2026-10-24, [A], not 0.5.8-blocking): (b) schema and (c) receipt
+  sha256 landed (1af9e78f); (d) the real-page test landed (de645465; it skips in CI, where no workflow
+  installs Playwright). Left: (a) docs stills get generated `.dark.png` twins (`#only-light`/`#only-dark`). Joint rulings: both dashboards use the jaxfne verdict
   set and publish on every dev push; style files stay per repo, aligned by convention. Tree budget
   (Hamm 2026-10-24: the repo stays well below 100 MB, read as 100,000,000 bytes, so a budget
   amendment for the twins is fine): record the measured delta in the amendment file.
