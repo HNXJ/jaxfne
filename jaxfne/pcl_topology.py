@@ -39,6 +39,7 @@ from __future__ import annotations
 import math
 import numbers
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -1630,6 +1631,124 @@ def check_event_scan_w_update(
     }
 
 
+#: The value that resets a per-cell threshold to the params' ``v_thresh_mV`` in a boundary map.
+EVENT_SCAN_RESET_THRESHOLD = "v_thresh_mV"
+
+
+@dataclass(frozen=True)
+class EventScanBoundary:
+    """The declared file-boundary map of an event-scan state (fail-closed).
+
+    ``carry`` names the state fields that pass to the next file unchanged. ``reset`` pairs
+    each other field with its value at the boundary: a number fills every cell (``0`` for
+    potentials, times, counters and cleared buffers); ``EVENT_SCAN_RESET_THRESHOLD`` resets
+    the threshold ``TH`` to the params' ``v_thresh_mV``. Every state field is declared
+    exactly once; an unknown, duplicate or missing name is refused by name. Pairs, not a
+    dict, keep the map hashable.
+    """
+
+    carry: tuple[str, ...]
+    reset: tuple[tuple[str, Any], ...]
+
+
+def check_event_scan_boundary(boundary: Any, *, label: str) -> tuple[tuple[str, ...], dict[str, Any]]:
+    """Validate an :class:`EventScanBoundary` against the state fields (fail-closed).
+
+    Returns ``(carry, reset)``. Every refusal names ``label`` and the offending key.
+    """
+    from .emitters_lif import EVENT_SCAN_STATE_FIELDS
+
+    if not isinstance(boundary, EventScanBoundary):
+        raise ValueError(
+            f"{label}: boundary must be an EventScanBoundary; got {type(boundary).__name__}")
+    allowed = tuple(EVENT_SCAN_STATE_FIELDS)
+    carry = tuple(boundary.carry)
+    reset_pairs = tuple(boundary.reset)
+    for pair in reset_pairs:
+        if not (isinstance(pair, tuple) and len(pair) == 2):
+            raise ValueError(
+                f"{label}: boundary reset entries must be (name, value) pairs; got {pair!r}")
+    names = list(carry) + [name for name, _ in reset_pairs]
+    unknown = sorted({k for k in names if k not in allowed}, key=repr)
+    if unknown:
+        raise ValueError(
+            f"{label}: boundary names unknown state field(s) {unknown}; allowed fields are "
+            f"{list(allowed)}")
+    dup = sorted({k for k in names if names.count(k) > 1}, key=repr)
+    if dup:
+        raise ValueError(f"{label}: boundary declares state field(s) {dup} more than once")
+    missing = [f for f in allowed if f not in names]
+    if missing:
+        raise ValueError(
+            f"{label}: boundary leaves state field(s) {missing} undeclared; every field must "
+            "carry or reset")
+    reset = dict(reset_pairs)
+    for name, value in reset_pairs:
+        if value == EVENT_SCAN_RESET_THRESHOLD:
+            if name != "TH":
+                raise ValueError(
+                    f"{label}: reset value {value!r} is only defined for 'TH', not {name!r}")
+            continue
+        if isinstance(value, (bool, np.bool_)):
+            continue  # a flag field (the complex "vspikes" flag) resets to False
+        if not isinstance(value, numbers.Real) or not math.isfinite(float(value)):
+            raise ValueError(
+                f"{label}: boundary reset of {name!r} must be a finite real number, a bool or "
+                f"{EVENT_SCAN_RESET_THRESHOLD!r}; got {value!r}")
+    return carry, reset
+
+
+def apply_event_scan_boundary(state: Mapping[str, Any], boundary: Any, *,
+                              v_thresh_pad: np.ndarray, label: str = "boundary") -> dict[str, Any]:
+    """The state a file starts from after the boundary map.
+
+    ``state`` holds every event-scan state field (validated by the caller). Carried fields
+    pass through; reset fields take their declared value with the field's shape and dtype.
+    ``v_thresh_pad`` is the per-cell threshold with the dummy cell appended, as ``TH`` holds it.
+    """
+    from .emitters_lif import EVENT_SCAN_STATE_FIELDS
+
+    _, reset = check_event_scan_boundary(boundary, label=label)
+    out: dict[str, Any] = {}
+    for field in EVENT_SCAN_STATE_FIELDS:
+        if field not in reset:
+            out[field] = state[field]
+            continue
+        ref = np.asarray(state[field])
+        value = reset[field]
+        if value == EVENT_SCAN_RESET_THRESHOLD:
+            th = np.asarray(v_thresh_pad, dtype=ref.dtype)
+            if th.shape != ref.shape:
+                raise ValueError(
+                    f"{label}: threshold reset needs shape {ref.shape}; got {th.shape}")
+            out[field] = th.copy()
+        else:
+            out[field] = np.full(ref.shape, value, dtype=ref.dtype)
+    return out
+
+
+def pcl_event_scan_boundary() -> EventScanBoundary:
+    """The PCL file boundary: the next file gets W and the reset neuron state.
+
+    W (the six weight families, the local-inhibition matrices and the blocks) carries.
+    Potentials, adaptation, the last-update and spike times, the threshold, the rate and the
+    spike-rate counter reset as ``Neuron::resetNeuron`` sets them (``neurons/Neuron.cpp:611-628``,
+    design study section 1); the measurement cursor ``LUP`` resets to the file origin (the
+    rebased clock's 0). The STDP and inhibition buffers clear to their empty state. The per-run
+    outputs (spike log, bins, first spike) are not state and are not declared.
+    """
+    carry = ("WS", "WC", "LATW", "TDW", "BLK", "WIS", "WIC")
+    reset = (
+        ("V", 0.0), ("A", 0.0), ("TL", 0.0), ("TS", 0.0), ("CNT", 0), ("CSNAP", 0),
+        ("TH", EVENT_SCAN_RESET_THRESHOLD), ("RATE", 0.0), ("LUP", 0),
+        ("TLS", 0.0), ("EVCLR", 0), ("LOCLR", 0), ("GLT", 0.0), ("GLS", 0), ("GCNT", 0),
+        ("CEV", 0.0), ("CEVCNT", 0), ("CEVCLR", 0), ("CLOCLR", 0), ("CKT", 0.0), ("CKH", False),
+        ("TDT", 0.0), ("TDK", 0), ("TDCNT", 0), ("TDCLR", 0),
+        ("LTT", 0.0), ("LTK", 0), ("LTCNT", 0), ("LTCLR", 0),
+    )
+    return EventScanBoundary(carry=carry, reset=reset)
+
+
 class EventScanDrive:
     """The event-scan replay as a declared x-source paradigm object.
 
@@ -1664,6 +1783,9 @@ class EventScanDrive:
         n_steps: int,
         h_update: "Mapping[str, Any] | None" = None,
         w_update: "Mapping[str, Any] | None" = None,
+        state: "Mapping[str, Any] | None" = None,
+        boundary: "EventScanBoundary | None" = None,
+        return_state: bool = False,
     ) -> None:
         name = type(self).__name__
         ev = np.asarray(events)
@@ -1727,6 +1849,20 @@ class EventScanDrive:
                 w_update, ns + nc, nd=int(tables["nd"]), cd=int(tables["cd"]),
                 lateral_on=bool(tables["lat_on"]), topdown_on=bool(tables["td_on"]),
                 label=name))
+        if state is not None and not isinstance(state, Mapping):
+            raise ValueError(
+                f"{name} state must be the event-scan state mapping; got {type(state).__name__}")
+        if boundary is not None and state is None:
+            raise ValueError(
+                f"{name} boundary needs a state: the map resets the state it is given")
+        if boundary is not None:
+            check_event_scan_boundary(boundary, label=name)
+        if not isinstance(return_state, (bool, np.bool_)):
+            raise ValueError(f"{name} return_state must be a bool; got {return_state!r}")
+        # The state rides the drive to simulate_lif_edge (event_scan_state); None is a fresh pass.
+        self.state = None if state is None else dict(state)
+        self.boundary = boundary
+        self.return_state = bool(return_state)
 
     def to_dict(self) -> dict[str, Any]:
         """Small receipt (shapes and grid only; the arrays ride the run)."""

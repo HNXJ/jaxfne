@@ -2687,6 +2687,9 @@ def _simulate_lif_scan(
             event_scan_tables=drive.tables,
             event_scan_h_update=drive.h_update,
             event_scan_w_update=drive.w_update,
+            event_scan_state=drive.state,
+            event_scan_boundary=drive.boundary,
+            event_scan_return_state=drive.return_state,
         )
     time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
     metadata: dict = {
@@ -2717,6 +2720,10 @@ def _simulate_lif_scan(
             key: _np.asarray(val, dtype=_np.float64)
             for key, val in out["weights_final"].items()},
     }
+    if drive.return_state:
+        # The persisted scan state, for a later pass (EventScanDrive(state=...)); absent otherwise.
+        metadata["scan_state"] = {
+            key: _np.asarray(val) for key, val in out["event_scan_state"].items()}
     return Signals(
         time_ms=time_ms,
         V_m=jnp.full(

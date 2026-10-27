@@ -846,6 +846,30 @@ class _ScanCarry(NamedTuple):
     LTCLR: jax.Array
 
 
+#: The event-scan state a continued pass carries and returns: every ``_ScanCarry`` field
+#: except the per-run outputs (``BIN``, ``FST``, the spike log). The state is a named
+#: subset of the carry rather than the whole carry, so a returned state holds no
+#: run-sized log; ``pcl_topology.EventScanBoundary`` must declare each name exactly once.
+#: ``counts`` are cumulative since the last reset (``CNT``), so a chunk reports the file's
+#: totals. ``WIS``/``WIC`` hold the learned inhibition matrices only under ``event_scan_w_update``;
+#: without learning the frozen inhibition is the blocks (``BLK``), and WIS/WIC are zeros.
+_SCAN_RUN_ONLY = ("BIN", "FST", "LOGT", "LOGC", "LOGN")
+EVENT_SCAN_STATE_FIELDS = tuple(f for f in _ScanCarry._fields if f not in _SCAN_RUN_ONLY)
+# The dtype each state field has in the carry (the scan's types must match its input).
+_SCAN_STATE_DTYPE = {
+    "V": np.float64, "A": np.float64, "TL": np.float64, "TS": np.float64,
+    "CNT": np.int32, "TH": np.float64, "RATE": np.float64, "CSNAP": np.int32,
+    "LUP": np.int64, "WS": np.float64, "WC": np.float64, "LATW": np.float64,
+    "TDW": np.float64, "BLK": np.float64, "TLS": np.float64, "EVCLR": np.int32,
+    "LOCLR": np.int32, "GLT": np.float64, "GLS": np.int32, "GCNT": np.int32,
+    "WIS": np.float64, "WIC": np.float64, "CEV": np.float64, "CEVCNT": np.int32,
+    "CEVCLR": np.int32, "CLOCLR": np.int32, "CKT": np.float64, "CKH": np.bool_,
+    "TDT": np.float64, "TDK": np.int32, "TDCNT": np.int32, "TDCLR": np.int32,
+    "LTT": np.float64, "LTK": np.int32, "LTCNT": np.int32, "LTCLR": np.int32,
+}
+assert set(_SCAN_STATE_DTYPE) == set(EVENT_SCAN_STATE_FIELDS)
+
+
 class _CPend(NamedTuple):
     """Complex state of one simple spike's forward pass (``clearn`` only).
 
@@ -876,7 +900,7 @@ def _event_scan_loop(
     MEMBERS, MMASK, POS_OF, LOC_OF,
     PCOL, GRID, FLAGS, BIN0, TH0, RATE0, LUP0, HTGT, HETA, HTMIN, HSC, HON,
     WS0, WC0, LATW0, TDW0, BLK0, WIS0, WIC0, DECAY, MDS, MDC, WUP, GLT0,
-    EVROW, EVIDX, EVQ, LOGT0, FAN, *, learn, clearn=False, inh=False,
+    EVROW, EVIDX, EVQ, LOGT0, FAN, *, learn, clearn=False, inh=False, S0=None,
 ):
     """One exact event-oracle pass over a time-sorted event stream.
 
@@ -984,17 +1008,21 @@ def _event_scan_loop(
     no_lpush = (jnp.bool_(False), jnp.int32(0), zero_f)
     no_tpush = (jnp.zeros((FMAX,), jnp.bool_), jnp.zeros((FMAX,), i32), zero_f)
 
-    def _excite_one(Vc, Ac, TLc, TSc, THc, n, w, t):
+    # Never-spiked gate. The C++ and the oracle use the time 0 as "never spiked", which
+    # a rebased file breaks (its first event is at 0, so a spike there looks unspoken).
+    # The gate is therefore the spike count CNT (count > 0 is "has spiked since reset"),
+    # never the time: CNT is carried and zeroed by the boundary map like the times.
+    def _excite_one(Vc, Ac, TLc, TSc, CNc, THc, n, w, t):
         p = PCOL[n]
         dt_ = t - TLc[n]
         Vd = Vc[n] * jnp.exp(-dt_ / p[0])
         Ad = Ac[n] * jnp.exp(-dt_ / p[1])
-        R = jnp.where(TSc[n] > zero_f,
+        R = jnp.where(CNc[n] > 0,
                       p[5] * jnp.exp(-(t - TSc[n]) / p[6]), zero_f)
         Vn = jnp.maximum(p[4], Vd + w - R - Ad)
         return Vd, Ad, Vn, Vn > THc[n]
 
-    def _inhibit_vec(Vc, Ac, TLc, TSc, ids, wts, use, t):
+    def _inhibit_vec(Vc, Ac, TLc, TSc, CNc, ids, wts, use, t):
         safe = jnp.where(use, ids, DUM)
         Vo = Vc[safe]
         Ao = Ac[safe]
@@ -1004,7 +1032,7 @@ def _event_scan_loop(
         dt_ = t - Tl
         Vd = Vo * jnp.exp(-dt_ / P[:, 0])
         Ad = Ao * jnp.exp(-dt_ / P[:, 1])
-        R = jnp.where(Ts > zero_f,
+        R = jnp.where(CNc[safe] > 0,
                       P[:, 5] * jnp.exp(-(t - Ts) / P[:, 6]),
                       jnp.zeros_like(Ts))
         Vn = jnp.maximum(P[:, 4], Vd - wts - R - Ad)
@@ -1030,6 +1058,8 @@ def _event_scan_loop(
         in every mode, :603-606).
         """
         tls = c.TLS[n0]
+        # A previous spike exists iff the count (already incremented at this spike) is >= 2.
+        tlsv = c.CNT[n0] >= 2
         dec = DECAY[n0]
         eLTP, eLTD, iLTP, iLTD = WUP[0], WUP[1], WUP[2], WUP[3]
         tau_p, tau_d, nrm, eta = WUP[4], WUP[5], WUP[6], WUP[7]
@@ -1059,7 +1089,7 @@ def _event_scan_loop(
             d_ltp = (3.0 - wj) * 0.33 * dec * eLTP * 1.0 * jnp.exp(-(t_now - ti) / tau_p)
             w1 = wj + d_ltp
             d_ltd = (wj * 0.33) * eLTD * 1.0 * jnp.exp(-(ti - tls) / tau_d)
-            w2 = jnp.where(tls != 0.0, w1 + d_ltd, w1)
+            w2 = jnp.where(tlsv, w1 + d_ltd, w1)
             w3 = jnp.where(w2 < 0.0, 0.0, w2)
             return W.at[pq, xq, yq].set(w3)
 
@@ -1076,7 +1106,7 @@ def _event_scan_loop(
             d_ltp = (50.0 - wj) * 0.02 * iLTP * jnp.exp(-(t_now - ti) / tau_p)
             w1 = wj + d_ltp
             d_ltd = (wj * 0.02) * iLTD * jnp.exp(-(ti - tls) / tau_d)
-            w2 = jnp.where(tls != 0.0, w1 + d_ltd, w1)
+            w2 = jnp.where(tlsv, w1 + d_ltd, w1)
             w3 = jnp.where(w2 < 0.0, 0.0, w2)
             return Wi.at[src].set(w3)
 
@@ -1132,6 +1162,8 @@ def _event_scan_loop(
         tau_p, tau_d = WUP[4], WUP[5]
         td_on = FLAGS[1] > 0
         lat_on = FLAGS[0] > 0
+        # Previous spike exists iff the count (already incremented at this spike) is >= 2.
+        tlsv = c.CNT[n0] >= 2
         # Top-down: entries of target n0, then the L1 norm of its row (oracle :577-588).
         cnt = c.TDCNT[n0]
         lo = jnp.maximum(c.TDCLR[n0], cnt - CAP)
@@ -1146,7 +1178,7 @@ def _event_scan_loop(
             wj = W[cs, j]
             w1 = wj + (50.0 - wj) * 0.02 * ptp * jnp.exp(-(t_now - ti) / tau_p)
             d2 = (wj * 0.02) * ptd * jnp.exp(-(ti - tls) / tau_d)
-            w2 = jnp.where(tls != 0.0, w1 + d2, w1)
+            w2 = jnp.where(tlsv, w1 + d2, w1)
             return W.at[cs, j].set(jnp.where(w2 < 0.0, 0.0, w2))
 
         TDW = jax.lax.fori_loop(0, n_td, td_body, c.TDW)
@@ -1172,7 +1204,7 @@ def _event_scan_loop(
             wj = W[src, j]
             w1 = wj + (50.0 - wj) * 0.02 * lp * jnp.exp(-(t_now - ti) / tau_p)
             d2 = (wj * 0.02) * ld * jnp.exp(-(ti - tls) / tau_d)
-            w2 = jnp.where(tls != 0.0, w1 + d2, w1)
+            w2 = jnp.where(tlsv, w1 + d2, w1)
             return W.at[src, j].set(jnp.where(w2 < 0.0, 0.0, w2))
 
         LATW = jax.lax.fori_loop(0, n_lt, lt_body, c.LATW)
@@ -1288,6 +1320,8 @@ def _event_scan_loop(
         ceLTP, ceLTD, ciLTP, ciLTD = WUP[9], WUP[10], WUP[11], WUP[12]
         ctp, ctd, cnrm, ceta = WUP[13], WUP[14], WUP[15], WUP[16]
         cnt1 = (c.CNT[c0] - c.CSNAP[c0]) == 1
+        # Previous spike exists iff the count (already incremented at this spike) is >= 2.
+        tlsv = c.CNT[c0] >= 2
         kh = c.CKH[c0]
         kt = c.CKT[c0]
         g_ev = c.CEVCNT[cp_]
@@ -1346,7 +1380,7 @@ def _event_scan_loop(
             wj = Wi[src]
             w1 = wj + (25.0 - wj) * 0.04 * ciLTP * jnp.exp(-(t_now - ti) / ctp)
             d2 = (w1 * 0.04) * ciLTD * jnp.exp(-(ti - tls) / ctd)
-            w2 = jnp.where(tls != 0.0, w1 + d2, jnp.where(w1 < 0.0, 0.0, w1))
+            w2 = jnp.where(tlsv, w1 + d2, jnp.where(w1 < 0.0, 0.0, w1))
             return Wi.at[src].set(w2)
 
         Wi = jax.lax.fori_loop(0, n_l, loc_body, c.WIC[cz_])
@@ -1459,7 +1493,7 @@ def _event_scan_loop(
             # Under learn the covering events were appended to each cell's list
             # before the excite (:679-680); EVROW/EVIDX/EVQ already hold them.
             w = jnp.where(m, c.WS[k_s, pp, xr, yr], jnp.zeros((), f))
-            Vd, Ad, Vn, cross = _excite_one(c.V, c.A, c.TL, c.TS, c.TH, n0, w, t)
+            Vd, Ad, Vn, cross = _excite_one(c.V, c.A, c.TL, c.TS, c.CNT, c.TH, n0, w, t)
             spk = m & cross
             if learn:
                 # TLS takes the previous spike time before TS moves to t.
@@ -1498,14 +1532,14 @@ def _event_scan_loop(
                 else:
                     wts = c2.BLK[g, :, k]
                 V, A, TL = _inhibit_vec(
-                    c2.V, c2.A, c2.TL, c2.TS, MEMBERS[g], wts, mm, t)
+                    c2.V, c2.A, c2.TL, c2.TS, c2.CNT, MEMBERS[g], wts, mm, t)
                 c2 = c2._replace(V=V, A=A, TL=TL)
 
                 def _lat(c3):
                     ln = LAT_N[n0]
                     use = jnp.arange(LMAX) < ln
                     V, A, TL = _inhibit_vec(
-                        c3.V, c3.A, c3.TL, c3.TS, LAT_IDX[n0], c3.LATW[n0], use, t)
+                        c3.V, c3.A, c3.TL, c3.TS, c3.CNT, LAT_IDX[n0], c3.LATW[n0], use, t)
                     return c3._replace(V=V, A=A, TL=TL)
 
                 lat_fire = (FLAGS[0] > 0) & (FLAGS[2] > 0)
@@ -1522,7 +1556,7 @@ def _event_scan_loop(
                     w = c4.WC[FWD_KEY[n0, ff, 0], FWD_KEY[n0, ff, 1],
                               FWD_KEY[n0, ff, 2], n0 % ND]
                     _Vd, _Ad, Vn, cross = _excite_one(
-                        c4.V, c4.A, c4.TL, c4.TS, c4.TH, c0, w, t)
+                        c4.V, c4.A, c4.TL, c4.TS, c4.CNT, c4.TH, c0, w, t)
                     spkc = fm & cross
                     if clearn:
                         # A block of candidates is one complex position (its cells are
@@ -1578,14 +1612,14 @@ def _event_scan_loop(
                         else:
                             cwts = c5.BLK[cg, :, ck]
                         V, A, TL = _inhibit_vec(
-                            c5.V, c5.A, c5.TL, c5.TS, MEMBERS[cg], cwts, cm, t)
+                            c5.V, c5.A, c5.TL, c5.TS, c5.CNT, MEMBERS[cg], cwts, cm, t)
                         c5 = c5._replace(V=V, A=A, TL=TL)
 
                         def _td(c6):
                             cs = c0 - NS
                             use = jnp.arange(TMAX) < TD_N[cs]
                             V, A, TL = _inhibit_vec(
-                                c6.V, c6.A, c6.TL, c6.TS, TD_IDX[cs], c6.TDW[cs], use, t)
+                                c6.V, c6.A, c6.TL, c6.TS, c6.CNT, TD_IDX[cs], c6.TDW[cs], use, t)
                             return c6._replace(V=V, A=A, TL=TL)
 
                         td_fire = (FLAGS[1] > 0) & (FLAGS[2] > 0)
@@ -1666,6 +1700,10 @@ def _event_scan_loop(
         LTCNT=jnp.zeros((NS,), i32) if inh else jnp.zeros((1,), i32),
         LTCLR=jnp.zeros((NS,), i32) if inh else jnp.zeros((1,), i32),
     )
+    if S0 is not None:
+        # A continued pass: the persisted fields (every _ScanCarry field but the per-run
+        # logs, BIN and FST) come from the caller's state, so the zeros above are replaced.
+        carry0 = carry0._replace(**S0)
     xs = (EV, EVQ) if learn else EV
     fin, _ = jax.lax.scan(_event_body, carry0, xs)
     return fin
@@ -1783,9 +1821,67 @@ def _event_scan_ranks(ev, cell, cmask, vw, ns):
     return row, ev_i[order], q
 
 
+def _event_scan_entry_state(state, boundary, *, N, v_thresh, learn, hu, wu, weights,
+                            w_s, w_c, lat_w, td_w, nd, cd):
+    """The state a continued pass starts from: the boundary map applied, then cross-checked.
+
+    The state is the authority for every value it carries. The inputs that also carry those
+    values (the h_update initial keys, the w_update wi matrices, the table and block weights)
+    must equal it, or the call is refused by name: an input that disagreed would otherwise
+    change nothing. Under learning the blocks are not read (the learned ``WIS``/``WIC`` are),
+    so they are not compared there. A learning pass also needs a boundary: its buffers index
+    the covering events of this call only, so a learning chunk must start a new file.
+    """
+    from .pcl_topology import apply_event_scan_boundary
+
+    label = "simulate_lif_edge event_scan_state"
+    expect = set(EVENT_SCAN_STATE_FIELDS)
+    extra = sorted(set(state) - expect, key=repr)
+    missing = sorted(expect - set(state), key=repr)
+    if extra or missing:
+        raise ValueError(
+            f"{label} must hold exactly the event-scan state fields; unknown {extra}, "
+            f"missing {missing}")
+    st = {f: np.asarray(state[f]) for f in EVENT_SCAN_STATE_FIELDS}
+    if learn and boundary is None:
+        raise ValueError(
+            f"{label} with event_scan_w_update needs event_scan_boundary: the learning "
+            "buffers index this call's covering events, so a learning pass must start a file")
+    if boundary is not None:
+        v_pad = np.append(np.asarray(v_thresh, dtype=np.float64), float(v_thresh[0]))
+        st = apply_event_scan_boundary(st, boundary, v_thresh_pad=v_pad, label=label)
+    if hu is not None:
+        if int(hu["last_update_us"]) != int(st["LUP"]):
+            raise ValueError(
+                f"{label} disagrees with h_update['last_update_us']: the state holds "
+                f"{int(st['LUP'])}, h_update says {int(hu['last_update_us'])}")
+        if not np.array_equal(hu["rate0_hz"], st["RATE"][:N]):
+            raise ValueError(f"{label} disagrees with h_update['rate0_hz']")
+        if hu["threshold0_mV"] is not None and not np.array_equal(
+                hu["threshold0_mV"], st["TH"][:N]):
+            raise ValueError(f"{label} disagrees with h_update['threshold0_mV']")
+    if wu is not None:
+        if not np.array_equal(wu["wi_s"], st["WIS"][:nd, :nd]):
+            raise ValueError(f"{label} disagrees with w_update['wi_s']")
+        if not np.array_equal(wu["wi_c"], st["WIC"][:cd, :cd]):
+            raise ValueError(f"{label} disagrees with w_update['wi_c']")
+    if not np.array_equal(w_s, st["WS"]):
+        raise ValueError(f"{label} disagrees with event_scan_tables['w_s']")
+    if not np.array_equal(w_c, st["WC"]):
+        raise ValueError(f"{label} disagrees with event_scan_tables['w_c']")
+    if lat_w is not None and not np.array_equal(lat_w, st["LATW"]):
+        raise ValueError(f"{label} disagrees with event_scan_tables['lat_w']")
+    if td_w is not None and not np.array_equal(td_w, st["TDW"]):
+        raise ValueError(f"{label} disagrees with event_scan_tables['td_w']")
+    if not learn and not np.array_equal(weights, st["BLK"]):
+        raise ValueError(f"{label} disagrees with local_inhibition_blocks")
+    return st
+
+
 def _run_event_scan(
     params, N, n_steps, t0_us, dt_us, groups, blocks,
     events, tables, V0_mV, h_update=None, w_update=None,
+    state=None, boundary=None, return_state=False,
 ):
     """Validate the event-scan inputs and run the exact event pass.
 
@@ -2200,6 +2296,18 @@ def _run_event_scan(
         zero_k = np.zeros((ns, 1), dtype=np.int64)
         fan_t = fan_l = (zero_k, zero_k, np.zeros((ns,), dtype=np.int64))
     fan = tuple(jnp.asarray(a, dtype=jnp.int32) for a in (*fan_t, *fan_l))
+    st_in = None
+    if state is not None:
+        if V0_mV is not None:
+            raise ValueError(
+                "V0_mV is set with event_scan_state; the state carries the potentials")
+        st_in = _event_scan_entry_state(
+            state, boundary, N=N, v_thresh=v_thresh, learn=learn,
+            hu=(hu if h_on else None), wu=(wu if learn else None), weights=weights,
+            w_s=w_s, w_c=w_c, lat_w=lat_w, td_w=td_w, nd=nd, cd=cd)
+    elif boundary is not None:
+        raise ValueError(
+            "event_scan_boundary is set without event_scan_state; the map resets a state")
     V0 = np.concatenate([v_init, np.zeros((1,), dtype=np.float64)])
     A0 = np.zeros((N + 1,), dtype=np.float64)
     # float64 under a local x64 context (restored on exit): event times are
@@ -2257,14 +2365,19 @@ def _run_event_scan(
             jnp.asarray(ev_q, dtype=jnp.int32),
         )
         cap = _spike_log_capacity(int(ev.shape[0]))
+        # A continued pass starts every persisted field from the state: S0 replaces the
+        # carry's fields, so the initial-value arguments above are not read on that path.
+        s0_j = None if st_in is None else {
+            f: jnp.asarray(st_in[f], dtype=_SCAN_STATE_DTYPE[f])
+            for f in EVENT_SCAN_STATE_FIELDS}
         out = _JIT_EVENT_SCAN(*args, jnp.zeros((cap,), dtype=jnp.int64), fan,
-                              learn=learn, clearn=clearn, inh=inh)
+                              learn=learn, clearn=clearn, inh=inh, S0=s0_j)
         n_logged = int(out.LOGN)  # every spike, past the capacity too
         if n_logged > cap:
             # The first pass stored only cap entries; rerun once at the logged size.
             cap = n_logged
             out = _JIT_EVENT_SCAN(*args, jnp.zeros((cap,), dtype=jnp.int64), fan,
-                                  learn=learn, clearn=clearn, inh=inh)
+                                  learn=learn, clearn=clearn, inh=inh, S0=s0_j)
             if int(out.LOGN) != n_logged:
                 raise RuntimeError(
                     "event-scan spike log changed on rerun: "
@@ -2281,7 +2394,7 @@ def _run_event_scan(
         t_last = jnp.where(
             fin.CNT[:N] > 0, fin.TS[:N] / 1000.0,
             jnp.full((N,), NEVER, dtype=jnp.float64))
-        return {
+        result = {
             "spikes": fin.BIN[:, :N],
             "V": fin.V[:N],
             "A": fin.A[:N],
@@ -2297,6 +2410,10 @@ def _run_event_scan(
             "interval_count": fin.CNT[:N] - fin.CSNAP[:N],
             "last_update_us": int(fin.LUP),
         }
+        if return_state:
+            # The persisted state only (no BIN, FST or spike log): a run-sized array stays out.
+            result["event_scan_state"] = {f: getattr(fin, f) for f in EVENT_SCAN_STATE_FIELDS}
+        return result
 
 
 def _run_event_scan_branch(
@@ -2308,6 +2425,7 @@ def _run_event_scan_branch(
     I_ext_pA, V0_mV, H0, record_v,
     hdp_rule, hdp_rule_params, plasticity_mask,
     feed_current, feed_arrivals, scan_h_update, scan_w_update,
+    scan_state=None, scan_boundary=None, scan_return_state=False,
 ):
     """Refuse every non-scan channel, then run the exact event replay.
 
@@ -2425,6 +2543,7 @@ def _run_event_scan_branch(
         params, N, n_steps, int(t0_us_f), int(dt_us_f),
         local_inhibition_groups, local_inhibition_blocks,
         scan_events, scan_tables, V0_mV, scan_h_update, scan_w_update,
+        state=scan_state, boundary=scan_boundary, return_state=scan_return_state,
     )
 
 
@@ -2456,6 +2575,9 @@ def simulate_lif_edge(
     event_scan_tables=None,
     event_scan_h_update=None,
     event_scan_w_update=None,
+    event_scan_state=None,
+    event_scan_boundary=None,
+    event_scan_return_state: bool = False,
     feed_current=None,
     feed_arrivals=None,
     key=None,
@@ -2603,6 +2725,17 @@ def simulate_lif_edge(
     under ``"event_scan"`` only; None keeps every weight frozen. The scan then
     also returns ``wi_s`` and ``wi_c`` in ``weights_final``, the final shared
     local-inhibition matrices.
+    ``event_scan_return_state=True`` adds ``event_scan_state``: the persisted
+    scan state (:data:`EVENT_SCAN_STATE_FIELDS`, the carry minus the per-run
+    bins, first spikes and spike log). ``event_scan_state`` (that mapping) starts a
+    pass from it instead of the initial-value inputs: ``V0_mV`` is then refused,
+    and the h_update initial keys, the w_update ``wi_s``/``wi_c`` and the table and
+    block weights must equal the state (refused by name otherwise).
+    ``event_scan_boundary`` (an ``EventScanBoundary`` from
+    :mod:`jaxfne.pcl_topology`) applies the file-boundary map to that state first
+    (carried fields pass, reset fields take their declared values). Chunks of one
+    file pass no boundary; a learning pass must pass one. Without these keywords the
+    outputs are unchanged.
 
     Raises ``ValueError`` naming the argument for every refused input.
     """
@@ -2736,13 +2869,20 @@ def simulate_lif_edge(
             edge_delay_steps, edge_group, I_ext_pA, V0_mV, H0, record_v,
             hdp_rule, hdp_rule_params, plasticity_mask,
             feed_current, feed_arrivals, event_scan_h_update,
-            event_scan_w_update,
+            event_scan_w_update, event_scan_state, event_scan_boundary,
+            event_scan_return_state,
         )
     if event_scan_h_update is not None:
         raise ValueError(
             "event_scan_h_update is set but resolution is "
             f"{_resolution!r}; the periodic rate and threshold update only "
             "runs under local_inhibition_resolution='event_scan'"
+        )
+    if event_scan_state is not None or event_scan_boundary is not None or event_scan_return_state:
+        raise ValueError(
+            "event_scan_state/event_scan_boundary/event_scan_return_state are set but "
+            f"resolution is {_resolution!r}; the continued scan state only runs under "
+            "local_inhibition_resolution='event_scan'"
         )
     if event_scan_w_update is not None:
         raise ValueError(

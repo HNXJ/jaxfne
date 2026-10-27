@@ -14,6 +14,7 @@ import copy
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 
@@ -771,3 +772,267 @@ def test_core_smoke_z_from_tree_core():
     spk = np.asarray(out["spikes"])
     assert spk[0, 0] and not spk[0, 1]
     assert spk[1, 1], spk  # 12 mV arrival crosses threshold 10
+
+
+# ----- PCL-L4: the file-boundary chain (design study section 4) -------------------------------
+# Each file starts at its own local time 0 (the rebased clock). The continuous oracle runs the
+# same files at offsets on one clock, with the file-boundary reset applied between them; the
+# chained runs start each file at 0. Equal spikes and weights mean the reset map is the one the
+# continuous run applies.
+
+
+def _file(n, *, spacing=20):
+    """One file's camera-0 events at one pixel: n events ``spacing`` us apart, the first at 0."""
+    t = np.arange(n, dtype=np.int64) * spacing
+    x = np.full(n, 170, dtype=np.int64)
+    y = np.full(n, 130, dtype=np.int64)
+    p = np.zeros(n, dtype=np.int64)
+    return t, x, y, p
+
+
+def _chain_files():
+    return [_file(1000, spacing=20), _file(1000, spacing=25), _file(1000, spacing=20)]
+
+
+def _offsets(files, gap=1000):
+    """Continuous clock: each file starts after the one before it, plus a gap."""
+    offs, o = [], 0
+    for t, *_ in files:
+        offs.append(o)
+        o += int(t[-1]) + gap
+    return offs
+
+
+def _file_reset(net, origin):
+    """The file-boundary reset (pcl_event_scan_boundary) applied to an oracle network.
+
+    Potentials, adaptation, times, thresholds, rates and counters go to their reset values,
+    and the STDP and inhibition buffers empty. The weights stay. ``origin`` is the new file's
+    clock origin (the measurement cursor).
+    """
+    for cells, cfg in ((net.s_cells, net.scfg), (net.c_cells, net.ccfg)):
+        for cell in cells:
+            cell.V = 0.0
+            cell.A = 0.0
+            cell.tlast = 0
+            cell.t_spk = 0
+            cell.t_last_spk = 0
+            cell.thr = float(cfg.VTHRESH)
+            cell.count = 0
+            cell.rate = 0.0
+            cell.decay = 1.0
+            cell.ev.clear()
+            cell.loc.clear()
+            cell.lat.clear()
+            cell.td.clear()
+            cell.vspikes.clear()
+    net._last_update = int(origin)
+
+
+def _new_spikes(cells, before, shift):
+    """Per-cell counts and (time, cell)-sorted spikes appended since ``before``, on the file's clock."""
+    per = [[s - shift for s in cell.spikes[n0:]] for cell, n0 in zip(cells, before)]
+    counts = np.array([len(sp) for sp in per], dtype=np.int32)
+    t_sorted, c_sorted = rt._gather([SimpleNamespace(spikes=sp) for sp in per])
+    return counts, t_sorted, c_sorted
+
+
+def _oracle_chain(oracle, files, offs):
+    """The continuous oracle over the files at their offsets; per file, its new spikes and the V at its end."""
+    per, v_end = [], []
+    for k, (t, x, y, p) in enumerate(files):
+        if k:
+            _file_reset(oracle, offs[k])
+        before_s = [len(c.spikes) for c in oracle.s_cells]
+        before_c = [len(c.spikes) for c in oracle.c_cells]
+        oracle.run(t + offs[k], x, y, p)
+        s = _new_spikes(oracle.s_cells, before_s, offs[k])
+        c = _new_spikes(oracle.c_cells, before_c, offs[k])
+        per.append((s, c))
+        v_end.append(np.array([cell.V for cell in oracle.s_cells + oracle.c_cells]))
+    return per, v_end
+
+
+def _core_chain(net, files, learning, boundary):
+    """The core replay file by file, the state carried through ``boundary`` between files."""
+    state, out = None, []
+    for t, x, y, p in files:
+        got = rt.run_core_events(net, t, x, y, p, learning=learning, state=state,
+                                 boundary=(boundary if state is not None else None),
+                                 return_state=True)
+        out.append(got)
+        state = got["state"]
+    return out, state
+
+
+def _assert_file_matches(got, want, k):
+    (sc, st, sx), (cc, ct, cx) = want
+    assert np.array_equal(got["simple_counts"], sc), f"file {k} simple counts"
+    assert np.array_equal(got["complex_counts"], cc), f"file {k} complex counts"
+    assert np.array_equal(got["simple_times_us"], st), f"file {k} simple times"
+    assert np.array_equal(got["simple_times_cell"], sx), f"file {k} simple cells"
+    assert np.array_equal(got["complex_times_us"], ct), f"file {k} complex times"
+    assert np.array_equal(got["complex_times_cell"], cx), f"file {k} complex cells"
+
+
+def test_numba_continuous_with_reset_equals_chained_files():
+    """Oracle against oracle: the numba run over the files with the reset at each boundary equals
+    the numba run chained file by file (each from 0). Spike counts and times exact; W bitwise
+    (learning off, so no weight moves). Preconditions: some spike, and no spike at a file's own
+    local time 0 (the numba port reads time 0 as never spiked, so a chained run must avoid it).
+    """
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    files = _chain_files()
+    offs = _offsets(files)
+    cont = copy.deepcopy(net)
+    chained = copy.deepcopy(net)
+    total = 0
+    for k, (t, x, y, p) in enumerate(files):
+        if k:
+            _file_reset(cont, offs[k])
+        before_s = [len(c.spikes) for c in cont.s_cells]
+        before_c = [len(c.spikes) for c in cont.c_cells]
+        nb.run_numba(cont, t + offs[k], x, y, p)
+        want = (_new_spikes(cont.s_cells, before_s, offs[k]),
+                _new_spikes(cont.c_cells, before_c, offs[k]))
+        if k:
+            _file_reset(chained, 0)
+        cb_s = [len(c.spikes) for c in chained.s_cells]
+        cb_c = [len(c.spikes) for c in chained.c_cells]
+        nb.run_numba(chained, t, x, y, p)
+        got_s = _new_spikes(chained.s_cells, cb_s, 0)
+        got_c = _new_spikes(chained.c_cells, cb_c, 0)
+        assert 0 not in got_s[1].tolist() + got_c[1].tolist(), f"file {k}: a spike at local time 0"
+        total += int(want[0][0].sum()) + int(want[1][0].sum())
+        assert np.array_equal(got_s[0], want[0][0]), f"file {k} simple counts"
+        assert np.array_equal(got_s[1], want[0][1]), f"file {k} simple times"
+        assert np.array_equal(got_s[2], want[0][2]), f"file {k} simple cells"
+        assert np.array_equal(got_c[0], want[1][0]), f"file {k} complex counts"
+        assert np.array_equal(got_c[1], want[1][1]), f"file {k} complex times"
+        assert np.array_equal(got_c[2], want[1][2]), f"file {k} complex cells"
+    assert total > 0, "fixture must spike"
+    assert np.array_equal(cont.w_s, chained.w_s) and np.array_equal(cont.w_c, chained.w_c)
+
+
+def _check_core_chain_against_oracle(*, learning):
+    from jaxfne.pcl_topology import pcl_event_scan_boundary
+
+    if learning:
+        net = ref.PCLEventRef(seed=0, learning=True, layer_inhibitions=copy.deepcopy(INH))
+        net.scfg.STDP_LEARNING = "all"
+        net.ccfg.STDP_LEARNING = "excitatory"
+    else:
+        net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    files = _chain_files()
+    offs = _offsets(files)
+    oracle = copy.deepcopy(net)
+    per, _ = _oracle_chain(oracle, files, offs)
+    assert max(len(c.spikes) for c in oracle.s_cells) >= 2, "fixture must multi-spike"
+    if learning:
+        assert not np.array_equal(oracle.w_s, net.w_s), "fixture must move w_s"
+        assert not np.array_equal(oracle.LAT, net.LAT), "fixture must move LAT"
+        assert not np.array_equal(oracle.TD, net.TD), "fixture must move TD"
+    chain, state = _core_chain(net, files, learning, pcl_event_scan_boundary())
+    for k in range(len(files)):
+        _assert_file_matches(chain[k], per[k], k)
+    nd, cd = int(net.ND), int(net.CD)
+    np.testing.assert_allclose(state["WS"], oracle.w_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(state["WC"], oracle.w_c, rtol=1e-12, atol=0)
+    if learning:
+        # WIS/WIC hold the learned matrices only under learning; without it the blocks carry them.
+        np.testing.assert_allclose(state["WIS"][:nd, :nd], oracle.wi_s, rtol=1e-12, atol=0)
+        np.testing.assert_allclose(state["WIC"][:cd, :cd], oracle.wi_c, rtol=1e-12, atol=0)
+    tables = rt._core_tables(net)[0]
+    lat_idx, lat_n = tables["lat_idx"], tables["lat_n"]
+    td_idx, td_n = tables["td_idx"], tables["td_n"]
+    lat_ok = np.arange(lat_idx.shape[1])[None, :] < lat_n[:, None]
+    td_ok = np.arange(td_idx.shape[1])[None, :] < td_n[:, None]
+    lat_want = np.where(lat_ok, oracle.LAT[lat_idx, np.arange(lat_idx.shape[0])[:, None]], 0.0)
+    td_want = np.where(td_ok, oracle.TD[td_idx, np.arange(td_idx.shape[0])[:, None]], 0.0)
+    np.testing.assert_allclose(np.asarray(state["LATW"])[lat_ok], lat_want[lat_ok],
+                               rtol=1e-12, atol=0)
+    np.testing.assert_allclose(np.asarray(state["TDW"])[td_ok], td_want[td_ok],
+                               rtol=1e-12, atol=0)
+
+
+def test_core_chain_matches_oracle_continuous_learning_off():
+    _check_core_chain_against_oracle(learning=False)
+
+
+def test_core_chain_matches_oracle_continuous_learning_on():
+    """Simple "all" with lateral and top-down, complex "excitatory": the learned state carries."""
+    _check_core_chain_against_oracle(learning=True)
+
+
+def test_core_chain_without_reset_differs_from_oracle():
+    """Negative control: carrying the whole state across a boundary (no reset) differs.
+
+    Preconditions: the potentials are nonzero at the first boundary, and the chained replay
+    of the second file differs from the continuous oracle on that file.
+    """
+    from jaxfne.emitters_lif import EVENT_SCAN_STATE_FIELDS
+    from jaxfne.pcl_topology import EventScanBoundary
+
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    files = _chain_files()
+    offs = _offsets(files)
+    oracle = copy.deepcopy(net)
+    per, v_end = _oracle_chain(oracle, files, offs)
+    assert bool(np.any(v_end[0] != 0.0)), "fixture must leave a nonzero potential at the boundary"
+    carry_all = EventScanBoundary(carry=tuple(EVENT_SCAN_STATE_FIELDS), reset=())
+    chain, _ = _core_chain(net, files, False, carry_all)
+    same = (np.array_equal(chain[1]["simple_counts"], per[1][0][0])
+            and np.array_equal(chain[1]["simple_times_us"], per[1][0][1])
+            and np.array_equal(chain[1]["complex_counts"], per[1][1][0])
+            and np.array_equal(chain[1]["complex_times_us"], per[1][1][1]))
+    assert not same, "the chain without the reset must differ from the continuous oracle"
+
+
+def test_core_two_chunks_through_state_equal_one_run():
+    """Within one file, two chunks through the state (no boundary) equal the single run bitwise."""
+    from jaxfne.emitters_lif import EVENT_SCAN_STATE_FIELDS
+
+    t, x, y, p = _file(2000)
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    whole = rt.run_core_events(net, t, x, y, p, return_state=True)
+    assert int(whole["simple_counts"].max()) >= 2, "fixture must multi-spike"
+    m = 1000
+    first = rt.run_core_events(net, t[:m], x[:m], y[:m], p[:m], t0=0, return_state=True)
+    second = rt.run_core_events(net, t[m:], x[m:], y[m:], p[m:], t0=0,
+                                state=first["state"], return_state=True)
+    # Counts are the cumulative spike counts the state carries (since its last reset), so the
+    # second chunk reports the file's totals; the spike log below is per run and is concatenated.
+    assert np.all(first["simple_counts"] <= second["simple_counts"])
+    assert np.array_equal(second["simple_counts"], whole["simple_counts"])
+    assert np.array_equal(second["complex_counts"], whole["complex_counts"])
+    for kind in ("simple", "complex"):
+        times = np.concatenate([first[f"{kind}_times_us"], second[f"{kind}_times_us"]])
+        cells = np.concatenate([first[f"{kind}_times_cell"], second[f"{kind}_times_cell"]])
+        order = np.lexsort((cells, times))
+        assert np.array_equal(times[order], whole[f"{kind}_times_us"]), kind
+        assert np.array_equal(cells[order], whole[f"{kind}_times_cell"]), kind
+    for field in EVENT_SCAN_STATE_FIELDS:
+        assert np.array_equal(np.asarray(second["state"][field]),
+                              np.asarray(whole["state"][field])), field
+
+
+def test_core_learning_chunk_without_boundary_is_refused():
+    """A learning pass must start a file: its buffers index only the covering events of one call."""
+    t, x, y, p = _file(1000)
+    net = ref.PCLEventRef(seed=0, learning=True, layer_inhibitions=copy.deepcopy(INH))
+    net.scfg.STDP_LEARNING = "all"
+    net.ccfg.STDP_LEARNING = "excitatory"
+    first = rt.run_core_events(net, t[:500], x[:500], y[:500], p[:500], learning=True,
+                               t0=0, return_state=True)
+    with pytest.raises(ValueError, match="event_scan_boundary"):
+        rt.run_core_events(net, t[500:], x[500:], y[500:], p[500:], learning=True,
+                           t0=0, state=first["state"])
+
+
+def test_core_boundary_without_state_is_refused():
+    from jaxfne.pcl_topology import pcl_event_scan_boundary
+
+    t, x, y, p = _file(10)
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    with pytest.raises(ValueError, match="needs a state"):
+        rt.run_core_events(net, t, x, y, p, boundary=pcl_event_scan_boundary())

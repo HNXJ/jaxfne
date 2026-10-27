@@ -172,7 +172,7 @@ def _gather(cells: list) -> tuple[np.ndarray, np.ndarray]:
     return t[order], o[order]
 
 
-def _core_tables(net):
+def _core_tables(net, st=None, learning=False):
     """Transcribe the loaded network's wiring into event-scan tables, blocks and groups.
 
     Reads the same arrays the numba path consumes (net.LAT rows-as-targets, net.TD
@@ -181,18 +181,26 @@ def _core_tables(net):
     replay as zero-weight calls, exactly as the oracle executes them. A layer whose local
     flag is off gets singleton groups with its triplets dropped, which is the oracle's
     skip: with no group-mates the cascade inhibits nobody and stamps nothing.
+
+    ``st`` (a continued event-scan state, boundary already applied) replaces the weights
+    with the carried ones: the shared w_s/w_c, the scan-layout lat_w/td_w and, under learning
+    only, the learned wi_s/wi_c (which then set the blocks). The state's weights are the ones the scan will use, so
+    the tables must hold them (simulate_lif_edge refuses any disagreement by name).
     """
     from jaxfne.pcl_topology import (event_scan_tables, local_inhibition_blocks,
                                      scan_inhibition_triplets)
 
     ns, nc = int(net.NS), int(net.NC)
+    nd, cd = int(net.ND), int(net.CD)
+    w_s = np.asarray(net.w_s if st is None else st["WS"], dtype=np.float64)
+    w_c = np.asarray(net.w_c if st is None else st["WC"], dtype=np.float64)
     tables = event_scan_tables(
         nx=net.NX, ny=net.NY, nd=net.ND, cx=net.CX, cy=net.CY, cd=net.CD,
         origins_x=[float(v) for v in net.s_ox], origins_y=[float(v) for v in net.s_oy],
-        size=(net.SX, net.SY), weights=np.asarray(net.w_s, dtype=np.float64),
+        size=(net.SX, net.SY), weights=w_s,
         c_cover=net.c_cover,
         c_ox=[int(v) for v in net.c_ox], c_oy=[int(v) for v in net.c_oy],
-        c_size=(net.CSX, net.CSY), c_weights=np.asarray(net.w_c, dtype=np.float64),
+        c_size=(net.CSX, net.CSY), c_weights=w_c,
         vw=net.VW, vh=net.VH,
         inhib_range=((net.Rx, net.Ry) if net.lat_on else (0, 0)),
         lateral_on=bool(net.lat_on),
@@ -202,6 +210,13 @@ def _core_tables(net):
         topdown_weights=(np.ascontiguousarray(net.TD.T, dtype=np.float64)
                          if net.td_on else None),
         activation=bool(net.activation))
+    if st is not None:
+        # The scan-layout lateral and top-down weights come from the state, not the matrices.
+        tables = dict(tables)
+        if net.lat_on:
+            tables["lat_w"] = np.asarray(st["LATW"], dtype=np.float64)
+        if net.td_on:
+            tables["td_w"] = np.asarray(st["TDW"], dtype=np.float64)
     groups = np.zeros(ns + nc, dtype=np.int64)
     for i in range(net.NX):
         for j in range(net.NY):
@@ -216,9 +231,14 @@ def _core_tables(net):
         groups[:ns] = ns + nc + np.arange(ns, dtype=np.int64)
     if not net.local_c:
         groups[ns:] = ns + nc + np.arange(nc, dtype=np.int64)
+    # Only a learning pass moves wi: the kernel fills the state's WIS/WIC from w_update and
+    # reads them for the blocks there. Without learning the state's WIS/WIC are zeros, so the
+    # blocks keep the network's wi, the same blocks the carried BLK holds.
+    learned = st is not None and learning
+    wi_s = np.asarray(st["WIS"][:nd, :nd] if learned else net.wi_s, dtype=np.float64)
+    wi_c = np.asarray(st["WIC"][:cd, :cd] if learned else net.wi_c, dtype=np.float64)
     pre, post, mag = scan_inhibition_triplets(
-        net.NX, net.NY, net.ND, net.CX, net.CY, net.CD, ns,
-        np.asarray(net.wi_s, dtype=np.float64), np.asarray(net.wi_c, dtype=np.float64))
+        net.NX, net.NY, net.ND, net.CX, net.CY, net.CD, ns, wi_s, wi_c)
     keep = np.ones(pre.shape[0], dtype=bool)
     if not net.local_s:
         keep &= pre >= ns
@@ -262,25 +282,36 @@ def _core_lif_params(net):
     return simple, complex_
 
 
-def _core_h_update(net, t0):
+def _core_h_update(net, t0, st=None):
     """The oracle's periodic rate and threshold update (pcl_event_ref.py:746-762) as an H update.
 
     Rates are Hz and thresholds mV, as the oracle holds them. Simple cells take the simple
     config's target, eta and minimum; complex cells carry zeros for all three (CellConfig),
     so their rates are tracked and their thresholds stay put. Times are rebased to t0 like
-    the feed. Cells are listed simple then complex, the scan's flat order.
+    the feed. Cells are listed simple then complex, the scan's flat order. ``st`` (a state
+    with its boundary applied) supplies the rate, threshold and update cursor instead of
+    the network's cells: the cursor is already in the file's rebased clock.
     """
     cells = list(net.s_cells) + list(net.c_cells)
     cfgs = [net.scfg] * len(net.s_cells) + [net.ccfg] * len(net.c_cells)
+    if st is None:
+        last_update = int(net._last_update) - int(t0)
+        rate0 = np.array([cell.rate for cell in cells], dtype=np.float64)
+        thr0 = np.array([cell.thr for cell in cells], dtype=np.float64)
+    else:
+        n = len(cells)
+        last_update = int(st["LUP"])
+        rate0 = np.asarray(st["RATE"], dtype=np.float64)[:n].copy()
+        thr0 = np.asarray(st["TH"], dtype=np.float64)[:n].copy()
     return {
         "measurement_interval_us": float(net.measurement_interval),
         "rate_alpha": float(ref.ALPHA),
         "target_rate_hz": np.array([cfg.TARGET_SPIKE_RATE for cfg in cfgs], dtype=np.float64),
         "threshold_eta_mV": np.array([cfg.ETA_SR for cfg in cfgs], dtype=np.float64),
         "threshold_min_mV": np.array([cfg.MIN_THRESH for cfg in cfgs], dtype=np.float64),
-        "last_update_us": int(net._last_update) - int(t0),
-        "rate0_hz": np.array([cell.rate for cell in cells], dtype=np.float64),
-        "threshold0_mV": np.array([cell.thr for cell in cells], dtype=np.float64),
+        "last_update_us": last_update,
+        "rate0_hz": rate0,
+        "threshold0_mV": thr0,
     }
 
 
@@ -306,14 +337,15 @@ def _simple_population(net):
     return pop
 
 
-def _core_w_update(net):
+def _core_w_update(net, st=None):
     """The oracle's buffer plasticity (simple :543-574, complex :608-646) as a w_update.
 
     The buffer capacity is ``ref.CAP``, the length the oracle's cell deques were built with;
     a network built under another capacity is refused, so the replay and the oracle drop the
     same entries. Both populations carry their own mode and constants; the kernel runs the
     complex update in ``"excitatory"``/``"all"``. The simple lateral and top-down update
-    (PCL-L3d) rides in the simple mapping (see ``_simple_population``).
+    (PCL-L3d) rides in the simple mapping (see ``_simple_population``). ``st`` supplies the
+    learned wi_s/wi_c of a continued pass.
     """
     built = int(net.s_cells[0].ev.maxlen)
     if built != int(ref.CAP):
@@ -321,11 +353,12 @@ def _core_w_update(net):
             f"core replay: the network's cells were built with buffer capacity {built}; "
             f"ref.CAP is {int(ref.CAP)}, so the replay would drop different entries")
     sc, cc = net.scfg, net.ccfg
+    nd, cd = int(net.ND), int(net.CD)
     return {
         "rule": "pcl_buffer_stdp",
         "buffer_capacity": int(ref.CAP),
-        "wi_s": np.asarray(net.wi_s, dtype=np.float64),
-        "wi_c": np.asarray(net.wi_c, dtype=np.float64),
+        "wi_s": np.asarray(net.wi_s if st is None else st["WIS"][:nd, :nd], dtype=np.float64),
+        "wi_c": np.asarray(net.wi_c if st is None else st["WIC"][:cd, :cd], dtype=np.float64),
         "decay": np.array([cell.decay for cell in net.s_cells + net.c_cells], dtype=np.float64),
         "simple": _simple_population(net),
         "complex": {"mode": cc.STDP_LEARNING, "eLTP": float(cc.eLTP), "eLTD": float(cc.eLTD),
@@ -335,7 +368,8 @@ def _core_w_update(net):
     }
 
 
-def run_core_events(net, t, x, y, p, *, learning=False):
+def run_core_events(net, t, x, y, p, *, learning=False, state=None, boundary=None,
+                    t0=None, return_state=False):
     """Replay one camera-0 event slice through the jaxfne event-scan kernel.
 
     Returns the same per-file arrays _run_one writes (simple/complex_counts int32,
@@ -348,6 +382,12 @@ def run_core_events(net, t, x, y, p, *, learning=False):
     ``learning=True`` declares the buffer plasticity (_core_w_update) and also returns
     the final shared matrices as w_s, wi_s, w_c and wi_c, and the final lateral and top-down
     weights in the scan layout as lat_w and td_w; frozen weights otherwise.
+    Continuation (PCL file chain): ``return_state=True`` adds ``state``, the persisted scan
+    state; ``state`` (that mapping) starts the pass from it, and ``boundary`` (a
+    ``pcl_topology.EventScanBoundary``, e.g. ``pcl_event_scan_boundary()``) applies the
+    file-boundary map first. ``t0`` (default: the first event) is the clock origin: a file
+    passes its own first event, a chunk of one file passes the file's origin. The state's
+    weights replace the network's, which is read, never mutated.
     """
     import jaxfne as jtfne
     jtfne.enable_x64()  # the scan kernel integrates in float64 (as the oracle does)
@@ -366,8 +406,16 @@ def run_core_events(net, t, x, y, p, *, learning=False):
     if bool((np.diff(t) < 0).any()):
         raise ValueError("core replay needs time-ordered events (the oracle follows file order)")
     ns, nc = int(net.NS), int(net.NC)
-    tables, blocks, groups = _core_tables(net)
-    t0 = int(t[0])
+    if boundary is not None and state is None:
+        raise ValueError("core replay: boundary needs a state; the map resets the state it is given")
+    t0 = int(t[0]) if t0 is None else int(t0)
+    if t0 > int(t[0]):
+        raise ValueError(f"core replay: t0 {t0} is after the first event {int(t[0])}")
+    # The state with its boundary applied: the inputs (tables, blocks, h and w updates) are
+    # built from it. The drive gets the raw state and the boundary, and the kernel applies
+    # the same map, so the two cannot disagree.
+    st = None if state is None else _post_boundary_state(net, state, boundary)
+    tables, blocks, groups = _core_tables(net, st, learning)
     tr = t - t0
     t_last = int(tr.max())
     n_steps = t_last // CORE_DT_US + 1 + 3
@@ -375,8 +423,9 @@ def run_core_events(net, t, x, y, p, *, learning=False):
                                vw=net.VW, vh=net.VH)
     drive = EventScanDrive(events, tables, blocks, groups,
                            dt_ms=CORE_DT_MS, n_steps=n_steps,
-                           h_update=_core_h_update(net, t0),
-                           w_update=_core_w_update(net) if learning else None)
+                           h_update=_core_h_update(net, t0, st),
+                           w_update=_core_w_update(net, st) if learning else None,
+                           state=state, boundary=boundary, return_state=return_state)
     dur = float(n_steps) * CORE_DT_MS
     lif_simple, lif_complex = _core_lif_params(net)
     model = jtfne.construct(
@@ -414,7 +463,34 @@ def run_core_events(net, t, x, y, p, *, learning=False):
         # The scan's layouts: lat_w[n, j] = LAT[lat_idx[n, j], n], td_w[c, j] = TD[td_idx[c, j], c].
         out["lat_w"] = np.asarray(final["lat_w"], dtype=np.float64)
         out["td_w"] = np.asarray(final["td_w"], dtype=np.float64)
+    if return_state:
+        out["state"] = dict(signals.metadata["scan_state"])
     return out
+
+
+def _post_boundary_state(net, state, boundary):
+    """The continued state after the file boundary (``boundary`` None keeps it as it is).
+
+    Every persisted field must be present; a missing or extra name is refused by name here,
+    before the map is applied, so the error names the field and not a KeyError.
+    """
+    from jaxfne.emitters_lif import EVENT_SCAN_STATE_FIELDS
+    from jaxfne.pcl_topology import apply_event_scan_boundary
+
+    expect = set(EVENT_SCAN_STATE_FIELDS)
+    extra = sorted(set(state) - expect, key=repr)
+    missing = sorted(expect - set(state), key=repr)
+    if extra or missing:
+        raise ValueError(
+            f"core replay state must hold exactly the event-scan state fields; "
+            f"unknown {extra}, missing {missing}")
+    st = {f: np.asarray(state[f]) for f in EVENT_SCAN_STATE_FIELDS}
+    if boundary is None:
+        return st
+    vth = np.array([net.scfg.VTHRESH] * int(net.NS) + [net.ccfg.VTHRESH] * int(net.NC),
+                   dtype=np.float64)
+    return apply_event_scan_boundary(
+        st, boundary, v_thresh_pad=np.append(vth, vth[0]), label="core replay")
 
 
 def _init_worker(inhibition: str = "full", engine: str = "numba") -> None:

@@ -1734,3 +1734,113 @@ def test_event_scan_stdp_wi_s_frozen_unless_simple_mode_excites(simple_mode):
         "fixture must put a group-mate spike between two spikes of cell 0")
     assert np.array_equal(np.asarray(out["weights_final"]["w_s"]), w_s), simple_mode
     assert np.array_equal(np.asarray(out["weights_final"]["wi_s"]), _WI_2), simple_mode
+
+
+def _two_event_cell(t_pair):
+    """One simple cell: a 40 mV event (polarity 0), then a 15 mV event (polarity 1), at t_pair.
+
+    The first event spikes the cell (threshold 10 mV). The second is sub-threshold, so its
+    final potential carries the refractory term the first spike leaves (about 10 mV decayed
+    over tau_rp 5 ms). The complex cell is wired with zero weight and never fires.
+    """
+    from jaxfne.pcl_topology import (
+        event_scan_events,
+        event_scan_tables,
+        local_inhibition_blocks,
+    )
+
+    w_s = np.zeros((1, 2, 1, 1), dtype=np.float64)
+    w_s[0, 0, 0, 0] = 40.0
+    w_s[0, 1, 0, 0] = 15.0
+    tables = event_scan_tables(
+        nx=1, ny=1, nd=1, cx=1, cy=1, cd=1,
+        origins_x=[0], origins_y=[0], size=(1, 1), weights=w_s,
+        c_cover={(0, 0): [(0, 0)]}, c_ox=[0], c_oy=[0], c_size=(1, 1),
+        c_weights=np.zeros((1, 1, 1, 1), dtype=np.float64),
+        vw=1, vh=1, inhib_range=(0, 0),
+    )
+    zeros = np.zeros(2, dtype=np.int64)
+    events = event_scan_events(
+        np.asarray(t_pair, dtype=np.int64), zeros, zeros,
+        np.array([0, 1], dtype=np.int64), dt_ms=0.5, n_steps=3, vw=1, vh=1,
+    )
+    p = _as_f32(make_lif_params(("simple", "complex")))
+    groups = np.array([0, 1], dtype=np.int64)
+    blocks = local_inhibition_blocks(
+        groups,
+        li_pre=np.zeros(0, dtype=np.int64), li_post=np.zeros(0, dtype=np.int64),
+        li_weight=np.zeros(0, dtype=np.float64),
+    )
+    return simulate_lif_edge(
+        p, n_steps=3, dt_ms=0.5,
+        local_inhibition_groups=jnp.asarray(groups),
+        local_inhibition_resolution="event_scan",
+        local_inhibition_blocks=blocks,
+        event_scan_events=events,
+        event_scan_tables=tables,
+    )
+
+
+def test_event_scan_time_zero_spike_keeps_its_refractory_term():
+    """A spike at rebased time 0 is a spike: the next event still feels its refractory term.
+
+    The never-spiked gate used to be the time 0 (the C++ sentinel), so a spike at 0 left no
+    refractory term behind. The run that spikes at 0 must equal the same run shifted to 1000 us
+    (where the spike is not at 0), potential for potential. Fixture: the first event spikes
+    the cell at 0 and the second, at 200 us, is sub-threshold.
+    """
+    at_zero = _two_event_cell((0, 200))
+    shifted = _two_event_cell((1000, 1200))
+    assert [int(t) for t in np.asarray(at_zero["spike_times_us"])] == [0], "fixture must spike at 0"
+    assert int(np.asarray(at_zero["counts"])[0]) == 1, "the second event must not spike"
+    assert int(np.asarray(shifted["counts"])[0]) == 1, "the shifted run must match"
+    v_zero = float(np.asarray(at_zero["V"])[0])
+    v_shift = float(np.asarray(shifted["V"])[0])
+    assert v_shift < 10.0, "fixture: the second event must stay below threshold"
+    assert v_zero == pytest.approx(v_shift, rel=1e-12, abs=0.0), (v_zero, v_shift)
+
+
+def test_event_scan_state_round_trip_without_events_is_unchanged():
+    """A second pass with no events, started from the returned state, returns that state unchanged."""
+    from jaxfne.emitters_lif import EVENT_SCAN_STATE_FIELDS
+
+    p, kw = _spike_chain_fixture()
+    first = simulate_lif_edge(p, **dict(kw, event_scan_return_state=True))
+    state = first["event_scan_state"]
+    assert set(state) == set(EVENT_SCAN_STATE_FIELDS)
+    assert int(np.asarray(state["CNT"])[0]) >= 1, "fixture must leave a spike count"
+    empty = dict(
+        kw, event_scan_events=np.zeros((0, 4), dtype=np.int64),
+        event_scan_state=state, event_scan_return_state=True,
+    )
+    second = simulate_lif_edge(p, **empty)
+    # counts are the cumulative spike counts the state carries, so they are unchanged too.
+    assert np.array_equal(np.asarray(second["counts"]), np.asarray(first["counts"]))
+    assert int(np.asarray(second["counts"]).sum()) >= 1, "the state must carry the spikes"
+    for field in EVENT_SCAN_STATE_FIELDS:
+        assert np.array_equal(
+            np.asarray(second["event_scan_state"][field]), np.asarray(state[field])), field
+
+
+def test_event_scan_boundary_refuses_unknown_and_missing_names():
+    """A boundary map names every state field once; an unknown or undeclared name is refused by name."""
+    from jaxfne.pcl_topology import (
+        EventScanBoundary,
+        check_event_scan_boundary,
+        pcl_event_scan_boundary,
+    )
+
+    good = pcl_event_scan_boundary()
+    check_event_scan_boundary(good, label="test")
+    bad_name = EventScanBoundary(carry=good.carry + ("NOPE",), reset=good.reset)
+    with pytest.raises(ValueError, match="NOPE"):
+        check_event_scan_boundary(bad_name, label="test")
+    missing = EventScanBoundary(carry=good.carry, reset=good.reset[:-1])
+    with pytest.raises(ValueError, match="undeclared"):
+        check_event_scan_boundary(missing, label="test")
+    p, kw = _spike_chain_fixture()
+    first = simulate_lif_edge(p, **dict(kw, event_scan_return_state=True))
+    with pytest.raises(ValueError, match="NOPE"):
+        simulate_lif_edge(
+            p, **dict(kw, event_scan_state=first["event_scan_state"],
+                      event_scan_boundary=bad_name))
