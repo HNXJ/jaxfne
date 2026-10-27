@@ -100,14 +100,6 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 `artifacts/release/v0_5_8_release_receipt.json`). Plan: `artifacts/etudes/meta/plans/release_plan_0.5.9-0.6.0.md`
 (packages 9A-9G; decisions H1-H5; 0.5.11 submission, 0.6.0 acceptance). A 0.5.9 release needs a new go from Hamm.
 
-- [A] 9F: the JUnit classifier reads the `data_gated`, `optional_oracle` and `bitwise_diagnostic` markers
-  (2026-10-26); closes when rc on the next candidate runs end to end. Evidence writers and the checklist write
-  under `artifacts/_temp/` (2026-10-26). The figure lock `.github/figure_env_lock.txt` (freeze of passing
-  Release CI 40444082095) constrains the publication job, which renders on a clean checkout and fails when
-  its freeze differs from the lock. The rc dry run on 666758cb (2026-10-27) passed every family up to JUnit
-  parity, which failed on the dashboard test's module-level skip (fixed, 7cf4e2b4). Left: parity, build, twine
-  and wheel smoke on the next candidate.
-
 - Jitter reader (Hamm 2026-10-22): protocol (a) PASS on all four runs (A1/A2, seeds 0,1; w_pat -> 2.0
   bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak
   (0.33-0.67). Readout follow-up (w_max, larger frozen sets) is Hamm's call; lane paused until then.
@@ -156,7 +148,8 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   9B closed 2026-10-27 with no code change: six mutants that bypass G_H (map body, untyped H, f0 neutrality,
   each of the three scan call sites) fail tests in `test_protocol_h_rbd_h1c.py`. 9G closed: theme, dashboard
   page test, iframes, light and dark stills, and the showcase on the figure site; only the explorer iframe
-  (a JavaScript app) stays allowlisted.
+  (a JavaScript app) stays allowlisted. 9F closed 2026-10-27: rc ran end to end on 0a6f8148 against Release CI
+  40474995167 (JUnit parity on both legs, 7611 tests, 0 unjustified; twine; wheel smoke).
 - T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
   and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots. Drafts: Potjans 2026-10-26,
   Vogels 2026-10-27 (full N, R-E e <= 0.20, O-DROP; the B8 pilot reruns segment B on the per-synapse traces;
