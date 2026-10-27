@@ -68,6 +68,8 @@ DEV_PYTEST_TARGETS = [
     # Prose hygiene ("X, not Y", em dashes); a docs edit with three hits passed CI Fast
     # and the docs gate on 2026-10-27.
     "tests/test_public_docs_hygiene.py",
+    # Canary chains: one seeded run per core data path, frozen in tests/canary_register.json.
+    "tests/test_canary_chains.py",
 ]
 
 # 0.5.1-4b(4): parallelize the independent pytest sweeps with xdist (already

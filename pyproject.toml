@@ -262,4 +262,5 @@ markers = [
   "optional_oracle: needs an optional third-party oracle through importorskip; no extra installs it, classified by the JUnit comparator",
   "notebook: interactive tutorial notebook execution tests",
   "release: complete T2 release-gate tests including docs and full examples",
+  "canary: seeded end-to-end data-path chains; outputs frozen in tests/canary_register.json (CI canary job)",
 ]

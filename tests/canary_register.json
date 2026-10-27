@@ -1,0 +1,82 @@
+{
+  "chains": {
+    "event_scan_replay": {
+      "exact": {
+        "raster_sha256": "e25db7eafd2a351f68e4316d3556d882c7941d93b796822541aa5679ac81309c",
+        "spikes/complex": 2,
+        "spikes/simple": 2,
+        "spikes/total": 4
+      },
+      "floats": {
+        "threshold_sum_mV": 27.0,
+        "w_c_sum": 50.00000000000001,
+        "w_s_sum": 50.0
+      }
+    },
+    "field_lfp_csd": {
+      "exact": {
+        "raster_sha256": "0e81d41d48404b7941d623c9d1c1a9d14459c35d2e2cdc88fc67f44518c23f7c",
+        "spikes/E": 11,
+        "spikes/PV": 1,
+        "spikes/SST": 11,
+        "spikes/VIP": 0,
+        "spikes/total": 23
+      },
+      "floats": {
+        "csd_rms": 201.6398590285745,
+        "lfp_rms": 13.703150183196167
+      }
+    },
+    "hdp_plastic_w": {
+      "exact": {
+        "raster_sha256": "151afdc8d5410eb33af5b23f78bef64c308d46573509baf9b5f0bf819c3f35b8",
+        "spikes/E": 11,
+        "spikes/PV": 1,
+        "spikes/SST": 11,
+        "spikes/VIP": 0,
+        "spikes/total": 23
+      },
+      "floats": {
+        "final_weight_sum": 1.7267623618245125,
+        "mean_V_m_mV": -69.2265831378065
+      }
+    },
+    "izhikevich_route": {
+      "exact": {
+        "raster_sha256": "dad9218bf20c8bfe35976e337cf47c9cd4cee984c6e49483c1e2392255929047",
+        "spikes/E": 10,
+        "spikes/PV": 10,
+        "spikes/total": 20
+      },
+      "floats": {
+        "mean_V_m_mV": -67.2099505367279
+      }
+    },
+    "lif_edge": {
+      "exact": {
+        "raster_sha256": "fe539c06afd2a0e28d92acaad56f81d63ec108f25b35f1a67561a7a01a5eb36f",
+        "spikes/E": 19,
+        "spikes/PV": 18,
+        "spikes/total": 37
+      },
+      "floats": {
+        "mean_V_m_mV": -2.5644185399015744
+      }
+    },
+    "objective_one_step": {
+      "exact": {
+        "gradient_steps": 1,
+        "raster_sha256": "2217cab02978ff51429668b608e250391c2f19edb47defb948041296fb55d6dc",
+        "spikes/E": 16,
+        "spikes/PV": 3,
+        "spikes/total": 19
+      },
+      "floats": {
+        "baseline_source_proxy_abs_mean": 20.824687957763672,
+        "gradient_step1": -867.3353881835938,
+        "loss_step1": 433.6676330566406,
+        "source_scale_after_step": 1.049999713897705
+      }
+    }
+  }
+}
