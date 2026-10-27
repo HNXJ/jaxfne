@@ -14,7 +14,7 @@ for v0.3 collector validation.
 Computational question: How does E→I excitatory drive and I→E inhibitory feedback
 shape the spike timing and voltage dynamics of a minimal coupled network?
 
-Status status: computational_scaffold, proxy_readout
+Status: computational_scaffold, proxy_readout
 Physical amplitude status allowed: False
 Model status: computational_scaffold
 Scope: Tutorial demonstrating jaxfne TFNE pipeline; not biological validation.
@@ -153,7 +153,7 @@ def main(update_canonical: bool = False):
 
     print("Setting up Izhikevich parameters (E + PV cell types)...")
     # Use E + PV (fast-spiking) as the two-neuron pair
-    # PV (index 1) has a=0.1, b=0.2, c=-65, d=2 — proper fast-spiking interneuron
+    # PV (index 1) has a=0.1, b=0.2, c=-65, d=2; proper fast-spiking interneuron
     params = izhikevich_eig_params(N_NEURONS, {"E": E_FRACTION, "PV": I_FRACTION})
     # Override per-neuron drives
     params = dataclasses.replace(params, drive=jnp.array([E_DRIVE, PV_DRIVE], dtype=jnp.float32))
@@ -181,7 +181,7 @@ def main(update_canonical: bool = False):
     # Convert to numpy for plotting and JSON
     V_m = np.array(voltages)               # (n_steps, 2)
     spikes_arr = np.array(spikes_arr_jax)  # (n_steps, 2)
-    syn_currents = np.array(syn_currents_jax)  # (n_steps, 2) — dynamic injection
+    syn_currents = np.array(syn_currents_jax)  # (n_steps, 2); dynamic injection
     sources = np.array(sources_jax)        # (n_steps, 2)
 
     # Run uncoupled simulation (g_ei=0, g_ie=0) for coupled_vs_uncoupled comparison figure
@@ -195,7 +195,7 @@ def main(update_canonical: bool = False):
         tau_syn_e_ms=TAU_SYN_E_MS,
         tau_syn_i_ms=TAU_SYN_I_MS,
     )
-    V_m_unc = np.array(voltages_unc)           # (n_steps, 2) — no coupling
+    V_m_unc = np.array(voltages_unc)           # (n_steps, 2); no coupling
     spikes_arr_unc = np.array(spikes_arr_unc_jax)  # (n_steps, 2)
 
     print(f"  V_m shape: {V_m.shape}")
@@ -339,7 +339,7 @@ def main(update_canonical: bool = False):
 
         # === Gate 1: Required embedded blocks ===
 
-        # basis block — immutable status checks (collector checks these)
+        # basis block: immutable status checks (collector checks these)
         "basis": {
             "run_status": "tutorial_scaffold",
             "model_status": "computational_scaffold",
@@ -351,10 +351,10 @@ def main(update_canonical: bool = False):
             "source_projection_mode": "proxy_no_field_solve",
         },
 
-        # probe_report block — all 8 operators (collector checks keys)
+        # probe_report block: all 8 operators (collector checks keys)
         "probe_report": probe_report,
 
-        # validation_report block — embedded (collector checks presence)
+        # validation_report block: embedded (collector checks presence)
         "validation_report": {
             "e_firing_rate_gate_2_25_hz": e_firing_rate_gate_pass,
             "i_firing_rate_gate_2_25_hz": i_firing_rate_gate_pass,
@@ -384,7 +384,7 @@ def main(update_canonical: bool = False):
             ]) else "FAIL",
         },
 
-        # conservation_proxy_diagnostics block — from model + firing rates
+        # conservation_proxy_diagnostics block: from model + firing rates
         "conservation_proxy_diagnostics": diag,
 
         # === Additional fields ===
@@ -745,10 +745,8 @@ def main(update_canonical: bool = False):
         # Write probe_report.json as a separate file for reference
         write_json(OUT / "probe_report.json", probe_report)
 
-        # Write separate validation_report for reference
         write_json(OUT / "validation_report.json", atlas_manifest["validation_report"])
 
-        # Metrics file
         write_json(OUT / "metrics.json", {
             "duration_ms": DURATION_MS,
             "dt_ms": DT_MS,
@@ -787,7 +785,7 @@ def main(update_canonical: bool = False):
         write_json(OUT / "asset_hashes.json", hashes)
 
         # Only update canonical docs manifests when explicitly requested
-        # (never during automated test runs — prevents tracked-file drift)
+        # (never during automated test runs; prevents tracked-file drift)
         if update_canonical:
             canonical_manifest_path = Path("docs/archive/tutorials_v030/manifests/v0303_two_neuron_ei_multimodal_manifest.json")
             canonical_manifest_path.parent.mkdir(parents=True, exist_ok=True)

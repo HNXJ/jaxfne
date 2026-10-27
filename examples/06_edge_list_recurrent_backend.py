@@ -5,7 +5,7 @@ Both remain proxy readout scaffolds: no PDE solve, no calibrated amplitudes,
 and no mechanism statement.
 
 Builds the circuit via Configuration. NeuronalTensor (examples/08_neuronal_tensor_first.py)
-also compiles to real (sparse) edges via InterConnection -- it is not a
+also compiles to real (sparse) edges via InterConnection; it is not a
 dense-only alternative.
 """
 

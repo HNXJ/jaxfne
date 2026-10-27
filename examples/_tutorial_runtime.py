@@ -2,7 +2,7 @@
 
 ``scripts/run_all_tutorials.py`` invokes each example as a separate process with
 no arguments, so its ``--out-root`` / ``--smoke`` / ``--write-figures`` flags had
-nowhere to go and were accepted and ignored -- configuration stored but never
+nowhere to go and were accepted and ignored; configuration stored but never
 consumed. These three environment variables are the channel; each example reads
 them through the helpers below, so a flag that changes nothing is a test
 failure rather than a silent no-op.
@@ -24,7 +24,7 @@ ENV_WRITE_FIGURES = "JAXFNE_TUTORIAL_WRITE_FIGURES"
 DEFAULT_OUT_ROOT = "outputs"
 
 # Smoke mode divides the simulated duration by this and nothing else. A fixed
-# integer divisor keeps the reduction deterministic and reproducible -- a
+# integer divisor keeps the reduction deterministic and reproducible: a
 # fraction of wall-clock, or a duration tuned per example, would not be.
 SMOKE_DIVISOR = 10
 # Below this the run is too short to produce the spikes the output contract

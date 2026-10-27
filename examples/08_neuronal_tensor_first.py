@@ -1,9 +1,9 @@
-"""Tensor-first workflow: build a NeuronalTensor (not a Configuration), save
+"""Tensor-first workflow: build a NeuronalTensor, save
 it to JSON, reload it, construct + simulate it.
 
 This is the canonical entry point for the Areas/Layers/NeuronTypes/Connections
 data model (see docs/reference/api/model/neuronal_tensor.md). `Configuration` is only touched
-internally by the bridge (`construct_neuronal_tensor`) -- the user-facing code
+internally by the bridge (`construct_neuronal_tensor`); the user-facing code
 below never builds one directly.
 """
 
@@ -55,7 +55,7 @@ feedforward = AreaConnection(
 
 tensor = NeuronalTensor(areas=[v1, mt], area_connections=[feedforward], name="v1_mt_tensor_first")
 
-# -- Configs are data, not code: save/reload the declared circuit as JSON ---
+# -- Configs are data: save/reload the declared circuit as JSON ---
 path = save_neuronal_tensor(tensor, "/tmp/v1_mt_tensor_first.json")
 tensor = load_neuronal_tensor(path)
 print(f"Saved + reloaded NeuronalTensor JSON at: {path}")

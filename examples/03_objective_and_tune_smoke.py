@@ -9,7 +9,7 @@ Model.tune() in v0.0.5 is a metadata-only scaffold:
   - The returned model is the same object (same_model is model).
   - tuning_status = 'metadata_only_v0.0.5'
 
-Scientific status status:
+Scientific status:
   run_status: tutorial_scaffold
   model_status: computational_scaffold
   field_model_status: proxy_readout

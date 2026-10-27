@@ -8,7 +8,7 @@ using jaxfne v0.2.30 stable toolbox.
 Writes atlas-compatible manifest to outputs/v030_01_single_neuron_izhikevich/
 for v0.3 collector validation.
 
-Status status: computational_scaffold, proxy_readout
+Status: computational_scaffold, proxy_readout
 Physical amplitude status allowed: False
 Model status: computational_scaffold
 """
@@ -156,7 +156,7 @@ def main(update_canonical: bool = False):
     print(f"  Firing rate gate (2-25 Hz): {'PASS' if firing_rate_gate_pass else 'FAIL'}")
     print()
 
-    # Source finite status — None-safe
+    # Source finite status; None-safe
     sources_finite: bool | None
     if signals.sources is not None:
         sources_finite = bool(jnp.all(jnp.isfinite(signals.sources)))
@@ -205,7 +205,7 @@ def main(update_canonical: bool = False):
 
         # === Gate 1: Required embedded blocks ===
 
-        # basis block — immutable status checks (collector checks these)
+        # basis block: immutable status checks (collector checks these)
         "basis": {
             "run_status": "tutorial_scaffold",
             "model_status": "computational_scaffold",
@@ -217,10 +217,10 @@ def main(update_canonical: bool = False):
             "source_projection_mode": "proxy_no_field_solve",
         },
 
-        # probe_report block — all 8 operators (collector checks keys)
+        # probe_report block: all 8 operators (collector checks keys)
         "probe_report": probe_report,
 
-        # validation_report block — embedded (collector checks presence)
+        # validation_report block: embedded (collector checks presence)
         "validation_report": {
             "firing_rate_gate_2_25_hz": firing_rate_gate_pass,
             "voltage_finite": bool(np.all(np.isfinite(V_m))),
@@ -243,7 +243,7 @@ def main(update_canonical: bool = False):
             ]) else "FAIL",
         },
 
-        # conservation_proxy_diagnostics block — from model + firing rate
+        # conservation_proxy_diagnostics block: from model + firing rate
         "conservation_proxy_diagnostics": diag,
 
         # === Additional fields ===
@@ -405,10 +405,8 @@ def main(update_canonical: bool = False):
     # Also write probe_report.json as a separate file for reference
     write_json(OUT / "probe_report.json", probe_report)
 
-    # Write separate validation_report for reference
     write_json(OUT / "validation_report.json", atlas_manifest["validation_report"])
 
-    # Metrics file
     write_json(OUT / "metrics.json", {
         "duration_ms": duration_ms,
         "dt_ms": dt_ms,

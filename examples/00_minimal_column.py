@@ -30,13 +30,11 @@ cfg = cfg.update_metadata(
 model = jtfne.construct(cfg)
 sim = jtfne.simulation(duration_ms=100.0, dt_ms=0.1, plasticity=0.0, seed=0)
 
-# Run simulation
 signals = model.simulate(sim)
 
 # Use canonical probe() method (record() is alias)
 readout = model.probe(signals, modes=["spikes", "V_m", "CSD", "LFP"])
 
-# Evaluate and manifest
 report = model.evaluate(signals, objective="smoke")
 manifest = model.manifest(signals)
 

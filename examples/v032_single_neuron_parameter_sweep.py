@@ -15,7 +15,7 @@ Per-condition gate semantics:
   - low_or_silent_out_of_target_regime: Hz < 2, finite
   - nonfinite_failure:                 any nonfinite output
 
-Status status: computational_scaffold, proxy_readout
+Status: computational_scaffold, proxy_readout
 Physical amplitude status allowed: False
 Model status: computational_scaffold
 """

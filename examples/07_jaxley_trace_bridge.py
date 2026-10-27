@@ -13,7 +13,7 @@ Generates:
     ├── validation_report.json   (status check verification)
     └── asset_hashes.json        (file integrity)
 
-Status status: computational_scaffold, proxy-voltage-only, no field computation.
+Status: computational_scaffold, proxy-voltage-only, no field computation.
 
 Usage:
     python examples/07_jaxley_trace_bridge.py
