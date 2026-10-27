@@ -313,19 +313,45 @@ def test_core_unsorted_and_empty_refused():
         raise AssertionError("an empty slice must be refused")
 
 
-def test_core_past_interval_refused():
+def test_core_interval_update_matches_numba():
+    """The periodic rate and threshold update replays exactly across three intervals.
+
+    Four 100-event bursts (20 us apart) start 120 ms apart, so the feed spans more than
+    three 100 ms measurement intervals and each burst after the first starts past the
+    interval since the last update. The default config carries ETA_TA 0, which never
+    moves a threshold, so this network's simple eta is set to 2 mV. Counts, per-spike
+    times and cells, and the final thresholds and rates must equal the numba run exactly.
+    """
     net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
-    dt = int(net.measurement_interval)
-    t = np.array([dt + 1], dtype=np.int64)
-    x = np.array([170], dtype=np.int64)
-    y = np.array([130], dtype=np.int64)
-    p = np.array([0], dtype=np.int64)
-    try:
-        rt.run_core_events(net, t, x, y, p)
-    except NotImplementedError as exc:
-        assert "measurement interval" in str(exc)
-    else:
-        raise AssertionError("events past the measurement interval must be refused")
+    net.scfg.ETA_SR = 2.0
+    mi = int(net.measurement_interval)
+    t = np.concatenate([k * 120000 + 1000 + np.arange(100, dtype=np.int64) * 20
+                        for k in range(4)])
+    x = np.full(t.shape[0], 170, dtype=np.int64)
+    y = np.full(t.shape[0], 130, dtype=np.int64)
+    p = np.zeros(t.shape[0], dtype=np.int64)
+    assert int(t[-1]) - int(t[0]) >= 3 * mi, "fixture must span three measurement intervals"
+    nbn = copy.deepcopy(net)
+    thr0 = np.array([c.thr for c in nbn.s_cells + nbn.c_cells])
+    nb.run_numba(nbn, t, x, y, p)
+    assert sum(len(c.spikes) for c in nbn.s_cells) > 0, "fixture must spike"
+    thr_nb = np.array([c.thr for c in nbn.s_cells + nbn.c_cells])
+    rate_nb = np.array([c.rate for c in nbn.s_cells + nbn.c_cells])
+    assert bool(np.any(thr_nb != thr0)), "fixture must move a threshold"
+    sc = np.array([len(c.spikes) for c in nbn.s_cells], dtype=np.int32)
+    cc = np.array([len(c.spikes) for c in nbn.c_cells], dtype=np.int32)
+    es_t, es_o = rt._gather(nbn.s_cells)
+    ec_t, ec_o = rt._gather(nbn.c_cells)
+    got = rt.run_core_events(net, t, x, y, p)
+    assert np.array_equal(got["simple_counts"], sc)
+    assert np.array_equal(got["complex_counts"], cc)
+    assert np.array_equal(got["simple_times_us"], es_t)
+    assert np.array_equal(got["simple_times_cell"], es_o)
+    assert np.array_equal(got["complex_times_us"], ec_t)
+    assert np.array_equal(got["complex_times_cell"], ec_o)
+    assert np.array_equal(got["final_threshold_mV"], thr_nb)
+    assert np.array_equal(got["final_rate_hz"], rate_nb)
+    assert int(got["n_events"]) == t.shape[0]
 
 
 def test_build_s1_scan_tensor_lif_partial_refused():

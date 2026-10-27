@@ -1,0 +1,1 @@
+- The `event_scan` replay takes an optional periodic rate and threshold update (`EventScanDrive(h_update=...)`, `simulate_lif_edge(event_scan_h_update=...)`), so the PCL tuning core engine replays past the measurement interval instead of refusing the file.

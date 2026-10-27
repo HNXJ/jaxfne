@@ -1393,6 +1393,83 @@ def scan_inhibition_triplets(
     )
 
 
+#: Keys of an event-scan H update (``EventScanDrive(h_update=...)`` and
+#: ``simulate_lif_edge(event_scan_h_update=...)``): the oracle's periodic rate
+#: and threshold adaptation (``pcl_event_ref.py:746-762``). The first six are
+#: required; ``rate0_hz`` defaults to zeros and ``threshold0_mV`` to the
+#: params' ``v_thresh_mV``.
+EVENT_SCAN_H_UPDATE_KEYS = (
+    "measurement_interval_us", "rate_alpha", "target_rate_hz",
+    "threshold_eta_mV", "threshold_min_mV", "last_update_us",
+    "rate0_hz", "threshold0_mV",
+)
+_EVENT_SCAN_H_UPDATE_REQUIRED = EVENT_SCAN_H_UPDATE_KEYS[:6]
+
+
+def check_event_scan_h_update(h_update: Any, n_cells: int, *, label: str) -> dict[str, Any]:
+    """Validate an event-scan H update over ``n_cells`` (fail-closed).
+
+    Returns a fresh dict holding every key; ``threshold0_mV`` is ``None`` when
+    undeclared (the params' ``v_thresh_mV`` rides at run time). Every refusal
+    names ``label`` and the offending key.
+    """
+    if not isinstance(h_update, Mapping):
+        raise ValueError(
+            f"{label}: h_update must be a mapping with keys "
+            f"{list(EVENT_SCAN_H_UPDATE_KEYS)}; got {type(h_update).__name__}")
+    unknown = sorted((k for k in h_update if k not in EVENT_SCAN_H_UPDATE_KEYS), key=repr)
+    if unknown:
+        raise ValueError(
+            f"{label}: h_update holds unknown key(s) {unknown}; allowed keys are "
+            f"{list(EVENT_SCAN_H_UPDATE_KEYS)}")
+    missing = [k for k in _EVENT_SCAN_H_UPDATE_REQUIRED if k not in h_update]
+    if missing:
+        raise ValueError(f"{label}: h_update is missing {missing}")
+
+    def _real(key: str) -> float:
+        value = h_update[key]
+        if (isinstance(value, bool) or not isinstance(value, numbers.Real)
+                or not math.isfinite(float(value))):
+            raise ValueError(
+                f"{label}: h_update[{key!r}] must be a finite real number; got {value!r}")
+        return float(value)
+
+    def _vec(key: str) -> np.ndarray:
+        arr = np.asarray(h_update[key])
+        if (arr.shape != (n_cells,) or arr.dtype.kind not in "iuf"
+                or not bool(np.all(np.isfinite(arr)))):
+            raise ValueError(
+                f"{label}: h_update[{key!r}] must be finite reals of shape "
+                f"({n_cells},); got shape {arr.shape} dtype {arr.dtype}")
+        return arr.astype(np.float64)
+
+    interval = _real("measurement_interval_us")
+    if interval <= 0.0:
+        raise ValueError(
+            f"{label}: h_update['measurement_interval_us'] must be > 0; got {interval!r}")
+    alpha = _real("rate_alpha")
+    if not 0.0 < alpha <= 1.0:
+        raise ValueError(
+            f"{label}: h_update['rate_alpha'] must lie in (0, 1]; got {alpha!r}")
+    last = h_update["last_update_us"]
+    if isinstance(last, bool) or not isinstance(last, numbers.Integral):
+        raise ValueError(
+            f"{label}: h_update['last_update_us'] must be an integer microsecond "
+            f"time; got {last!r}")
+    rate0 = h_update.get("rate0_hz")
+    th0 = h_update.get("threshold0_mV")
+    return {
+        "measurement_interval_us": interval,
+        "rate_alpha": alpha,
+        "target_rate_hz": _vec("target_rate_hz"),
+        "threshold_eta_mV": _vec("threshold_eta_mV"),
+        "threshold_min_mV": _vec("threshold_min_mV"),
+        "last_update_us": int(last),
+        "rate0_hz": np.zeros((n_cells,), dtype=np.float64) if rate0 is None else _vec("rate0_hz"),
+        "threshold0_mV": None if th0 is None else _vec("threshold0_mV"),
+    }
+
+
 class EventScanDrive:
     """The event-scan replay as a declared x-source paradigm object.
 
@@ -1408,7 +1485,10 @@ class EventScanDrive:
     replays exactly this stream through ``simulate_lif_edge``; every
     other simulate input that would change nothing (schedules, poisson,
     HDP, compiled edges) is refused by name there. Anything misshapen
-    here is refused naming ``EventScanDrive``.
+    here is refused naming ``EventScanDrive``. ``h_update`` (None, or the
+    mapping :func:`check_event_scan_h_update` validates) declares the
+    oracle's periodic rate and threshold update; None keeps the thresholds
+    fixed at the params' ``v_thresh_mV``.
     """
 
     def __init__(
@@ -1420,6 +1500,7 @@ class EventScanDrive:
         *,
         dt_ms: float,
         n_steps: int,
+        h_update: "Mapping[str, Any] | None" = None,
     ) -> None:
         name = type(self).__name__
         ev = np.asarray(events)
@@ -1474,6 +1555,9 @@ class EventScanDrive:
         self.groups = grp.astype(np.int64)
         self.dt_ms = float(dt_ms)
         self.n_steps = n_i
+        self.h_update = (
+            None if h_update is None
+            else check_event_scan_h_update(h_update, ns + nc, label=name))
 
     def to_dict(self) -> dict[str, Any]:
         """Small receipt (shapes and grid only; the arrays ride the run)."""
@@ -1485,6 +1569,7 @@ class EventScanDrive:
             "dt_ms": float(self.dt_ms),
             "ns": int(tables["ns"]),
             "nc": int(tables["nc"]),
+            "h_update": self.h_update is not None,
         }
 
 

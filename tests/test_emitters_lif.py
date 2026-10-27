@@ -681,6 +681,172 @@ def test_event_scan_spike_log_reruns_past_capacity(monkeypatch):
         assert np.array_equal(np.asarray(rerun[key]), np.asarray(base[key])), key
 
 
+def _interval_fixture():
+    """One simple cell (12 mV per event, 10 mV threshold) and a silent complex cell, one pixel.
+
+    Events at 500, 1500 and 60000 us. eta_rp is zero so the refractory term
+    never moves a crossing; delta_sra is zero so no adaptation term either.
+    """
+    from jaxfne.pcl_topology import (
+        event_scan_events,
+        event_scan_tables,
+        local_inhibition_blocks,
+    )
+
+    w_s = np.zeros((1, 2, 1, 1), dtype=np.float64)
+    w_s[0, 0, 0, 0] = 12.0
+    tables = event_scan_tables(
+        nx=1, ny=1, nd=1, cx=1, cy=1, cd=1,
+        origins_x=[0], origins_y=[0], size=(1, 1), weights=w_s,
+        c_cover={(0, 0): [(0, 0)]}, c_ox=[0], c_oy=[0], c_size=(1, 1),
+        c_weights=np.zeros((1, 1, 1, 1), dtype=np.float64),
+        vw=1, vh=1, inhib_range=(0, 0),
+    )
+    zeros = np.zeros(3, dtype=np.int64)
+    events = event_scan_events(
+        np.array([500, 1500, 60000]), zeros, zeros, zeros,
+        dt_ms=0.5, n_steps=130, vw=1, vh=1,
+    )
+    p = _as_f32(make_lif_params(("simple", "complex")))
+    p = p._replace(eta_rp_mV=jnp.zeros((2,), jnp.float32))
+    groups = np.array([0, 1], dtype=np.int64)
+    blocks = local_inhibition_blocks(
+        groups,
+        li_pre=np.zeros(0, dtype=np.int64), li_post=np.zeros(0, dtype=np.int64),
+        li_weight=np.zeros(0, dtype=np.float64),
+    )
+    kw = dict(
+        n_steps=130, dt_ms=0.5,
+        local_inhibition_groups=jnp.asarray(groups),
+        local_inhibition_resolution="event_scan",
+        local_inhibition_blocks=blocks,
+        event_scan_events=events,
+        event_scan_tables=tables,
+    )
+    return p, kw
+
+
+def _interval_h():
+    """The fixture's H update: 1 ms interval, alpha 0.6, 4 mV steps toward 0.75 Hz."""
+    return dict(
+        measurement_interval_us=1000.0, rate_alpha=0.6,
+        target_rate_hz=np.array([0.75, 0.0]),
+        threshold_eta_mV=np.array([4.0, 0.0]),
+        threshold_min_mV=np.array([4.0, 0.0]),
+        last_update_us=0,
+    )
+
+
+def _h_update_bad_cases():
+    """Each bad H update, paired with the key its refusal must name."""
+    base = _interval_h()
+    return [
+        ("rate_gain", dict(base, rate_gain=1.0)),
+        ("rate_alpha", {k: v for k, v in base.items() if k != "rate_alpha"}),
+        ("measurement_interval_us", dict(base, measurement_interval_us=0.0)),
+        ("rate_alpha", dict(base, rate_alpha=0.0)),
+        ("rate_alpha", dict(base, rate_alpha=1.5)),
+        ("rate_alpha", dict(base, rate_alpha=float("nan"))),
+        ("last_update_us", dict(base, last_update_us=1.5)),
+        ("last_update_us", dict(base, last_update_us=True)),
+        ("target_rate_hz", dict(base, target_rate_hz=np.zeros(3))),
+        ("threshold_eta_mV", dict(base, threshold_eta_mV=np.array([np.nan, 0.0]))),
+        ("threshold_min_mV", dict(base, threshold_min_mV=np.zeros((1, 2)))),
+        ("rate0_hz", dict(base, rate0_hz=np.zeros(3))),
+        ("threshold0_mV", dict(base, threshold0_mV=np.array([np.inf, 3.0]))),
+        ("h_update", [0.0, 1.0]),
+    ]
+
+
+def test_event_scan_interval_update_moves_threshold():
+    """The periodic update raises a threshold, and a later crossing of the old one stops spiking.
+
+    Plain-Python rule (pcl_event_ref.py:746-762): the 500 us spike is the one
+    spike of the first interval. The 1500 us event is the first past the
+    1000 us interval from 0, so the update runs after its cascade: the rate
+    0.6 * 1e6 / 1500 Hz passes the 0.75 Hz target and the 10 mV threshold rises
+    by 4 mV. The 60000 us event then carries 12 mV onto the decayed membrane,
+    crossing the old 10 mV but not the raised threshold; its own update sees
+    no spike and lowers the rate toward zero, still above target.
+    """
+    p, kw = _interval_fixture()
+    alpha, eta, tgt, tau_m_us = 0.6, 4.0, 0.75, 18000.0
+    out = simulate_lif_edge(p, event_scan_h_update=_interval_h(), **kw)
+
+    v2 = -10.0 * math.exp(-1000.0 / tau_m_us) + 12.0
+    rate2 = alpha * (1e6 / 1500.0) + (1.0 - alpha) * 0.0
+    th2 = 10.0 + eta * (1.0 - math.exp(tgt - rate2))
+    v3_pre = v2 * math.exp(-58500.0 / tau_m_us)
+    rate3 = alpha * 0.0 + (1.0 - alpha) * rate2
+    th3 = th2 + eta * (1.0 - math.exp(tgt - rate3))
+    assert v2 < 10.0, "fixture: 1500 us must not spike"
+    assert rate2 > tgt, "fixture: the first update must pass the target"
+    assert v3_pre + 12.0 > 10.0, "fixture: 60000 us must cross the old 10 mV"
+    assert v3_pre + 12.0 < th2, "fixture: 60000 us must stay under the raised threshold"
+    assert rate3 > tgt, "fixture: the second update stays above target"
+
+    assert [int(t) for t in np.asarray(out["spike_times_us"])] == [500]
+    assert np.asarray(out["counts"]).tolist() == [1, 0]
+    assert float(out["threshold_mV"][0]) == pytest.approx(th3, rel=1e-12)
+    assert float(out["threshold_mV"][1]) == 3.0
+    assert float(out["rate_hz"][0]) == pytest.approx(rate3, rel=1e-12)
+    assert np.asarray(out["interval_count"]).tolist() == [0, 0]
+    assert int(out["last_update_us"]) == 60000
+
+
+def test_event_scan_without_h_update_is_unchanged():
+    """With h_update None the thresholds stay at the params' 10 mV and the spikes follow the fixed rule.
+
+    By hand: 500 us spikes from rest; 1500 us leaves the membrane at 2.54 mV,
+    under 10 mV; the 60000 us event reaches 12.10 mV, spikes and resets to
+    -10 mV with no adaptation.
+    """
+    p, kw = _interval_fixture()
+    out = simulate_lif_edge(p, **kw)
+
+    v2 = -10.0 * math.exp(-1000.0 / 18000.0) + 12.0
+    assert v2 < 10.0
+    assert v2 * math.exp(-58500.0 / 18000.0) + 12.0 > 10.0
+    assert [int(t) for t in np.asarray(out["spike_times_us"])] == [500, 60000]
+    assert [int(c) for c in np.asarray(out["spike_cells"])] == [0, 0]
+    assert np.asarray(out["counts"]).tolist() == [2, 0]
+    assert np.asarray(out["first_spike_us"]).tolist() == [500, -1]
+    spikes = np.asarray(out["spikes"])
+    assert int(spikes.sum()) == 2 and bool(spikes[1, 0]) and bool(spikes[120, 0])
+    assert float(out["V"][0]) == pytest.approx(-10.0, rel=1e-12)
+    assert float(out["A"][0]) == 0.0
+    assert np.asarray(out["threshold_mV"]).tolist() == [10.0, 3.0]
+    assert float(out["rate_hz"][0]) == 0.0
+    assert int(out["last_update_us"]) == 0
+
+
+def test_event_scan_h_update_refusals_name_the_key():
+    """Each bad H update is refused by name, and an H update off the event scan is refused too."""
+    p, kw = _interval_fixture()
+    for key, bad in _h_update_bad_cases():
+        with pytest.raises(ValueError, match=key):
+            simulate_lif_edge(p, event_scan_h_update=bad, **kw)
+    whole_step = dict(kw, local_inhibition_resolution="whole_step")
+    with pytest.raises(ValueError, match="event_scan_h_update"):
+        simulate_lif_edge(p, event_scan_h_update=_interval_h(), **whole_step)
+
+
+def test_event_scan_drive_h_update_refusals_name_the_drive():
+    """EventScanDrive validates h_update itself, naming the drive and the key."""
+    from jaxfne.pcl_topology import EventScanDrive
+
+    _, kw = _interval_fixture()
+    args = (kw["event_scan_events"], kw["event_scan_tables"],
+            kw["local_inhibition_blocks"], np.array([0, 1]))
+    drive = EventScanDrive(*args, dt_ms=0.5, n_steps=130, h_update=_interval_h())
+    assert drive.to_dict()["h_update"] is True
+    assert EventScanDrive(*args, dt_ms=0.5, n_steps=130).to_dict()["h_update"] is False
+    for key, bad in _h_update_bad_cases():
+        with pytest.raises(ValueError, match="EventScanDrive") as exc:
+            EventScanDrive(*args, dt_ms=0.5, n_steps=130, h_update=bad)
+        assert key in str(exc.value), key
+
+
 def test_event_scan_refusals_name_the_channel():
     """Every event-scan parameter changes the realized object or is refused."""
     from jaxfne.pcl_topology import (

@@ -2609,7 +2609,11 @@ def _simulate_lif_scan(
 
     The scan returns finals only: ``V_m`` is all-NaN with per-cell
     counts, first-spike times and the spike log (every spike's time and
-    cell, in emission order) in the metadata receipt.
+    cell, in emission order) in the metadata receipt, plus the periodic
+    update's thresholds, rates, interval counts and last-update time
+    (``scan_threshold_mV``, ``scan_rate_hz``, ``scan_interval_count``,
+    ``scan_last_update_us``); without an ``h_update`` the thresholds stay
+    at the params' values.
     """
     from .emitters_lif import simulate_lif_edge
     from .pcl_topology import EventScanDrive
@@ -2679,6 +2683,7 @@ def _simulate_lif_scan(
             local_inhibition_blocks=drive.blocks,
             event_scan_events=_np.asarray(drive.events),
             event_scan_tables=drive.tables,
+            event_scan_h_update=drive.h_update,
         )
     time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
     metadata: dict = {
@@ -2701,6 +2706,10 @@ def _simulate_lif_scan(
         "scan_first_spike_us": _np.asarray(out["first_spike_us"]),
         "scan_spike_times_us": _np.asarray(out["spike_times_us"], dtype=_np.int64),
         "scan_spike_cells": _np.asarray(out["spike_cells"], dtype=_np.int64),
+        "scan_threshold_mV": _np.asarray(out["threshold_mV"]),
+        "scan_rate_hz": _np.asarray(out["rate_hz"]),
+        "scan_interval_count": _np.asarray(out["interval_count"], dtype=_np.int64),
+        "scan_last_update_us": int(out["last_update_us"]),
     }
     return Signals(
         time_ms=time_ms,

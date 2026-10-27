@@ -774,7 +774,8 @@ def _event_scan_loop(
     V0, A0, EV, CELL, CMASK, SOX, SOY, WS,
     FWD_IDX, FWD_W, FWD_N, LAT_IDX, LAT_W, LAT_N,
     TD_IDX, TD_W, TD_N, MEMBERS, MMASK, BLK, POS_OF, LOC_OF,
-    PCOL, GRID, FLAGS, BIN0, LOGT0,
+    PCOL, GRID, FLAGS, BIN0, TH0, RATE0, LUP0, HTGT, HETA, HTMIN, HSC, HON,
+    LOGT0,
 ):
     """One exact event-oracle pass over a time-sorted event stream.
 
@@ -795,6 +796,15 @@ def _event_scan_loop(
     spike's time and cell in emission order (a simple spike precedes the
     complex spikes it forwards); ``LOGN`` counts every spike, including those
     past K.
+
+    The declared H update (``HON`` > 0) runs the oracle's periodic update
+    (``pcl_event_ref.py:746-762``) after each event's whole cascade, once the
+    event lies past the measurement interval ``HSC[0]`` from the last update
+    ``LUP``: each cell's rate ``RATE`` (Hz) integrates the spikes since the
+    last update (``CNT - CSNAP``, the snapshot taken at that update), its
+    threshold ``TH`` moves by ``HETA`` toward ``HTGT``, floored at ``HTMIN``.
+    ``HSC[1]`` is the rate smoothing alpha. With ``HON`` 0 the thresholds
+    stay at ``TH0`` for the whole pass.
     """
     f = V0.dtype
     i32 = jnp.int32
@@ -810,7 +820,7 @@ def _event_scan_loop(
     T0_US, DT_US = GRID[4], GRID[5]
     zero_f = jnp.zeros((), f)
 
-    def _excite_one(Vc, Ac, TLc, TSc, n, w, t):
+    def _excite_one(Vc, Ac, TLc, TSc, THc, n, w, t):
         p = PCOL[n]
         dt_ = t - TLc[n]
         Vd = Vc[n] * jnp.exp(-dt_ / p[0])
@@ -818,7 +828,7 @@ def _event_scan_loop(
         R = jnp.where(TSc[n] > zero_f,
                       p[5] * jnp.exp(-(t - TSc[n]) / p[6]), zero_f)
         Vn = jnp.maximum(p[4], Vd + w - R - Ad)
-        return Vd, Ad, Vn, Vn > p[2]
+        return Vd, Ad, Vn, Vn > THc[n]
 
     def _inhibit_vec(Vc, Ac, TLc, TSc, ids, wts, use, t):
         safe = jnp.where(use, ids, DUM)
@@ -840,7 +850,9 @@ def _event_scan_loop(
         return Vc, Ac, TLc
 
     def _event_body(carry, e):
-        V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = carry
+        # TH, RATE, CSNAP and LUP change only at the periodic update after the
+        # slot loop, so they stay fixed (closed over) while the cascade runs.
+        inner, (TH, RATE, CSNAP, LUP) = carry
         ti = e[0]
         x = e[1].astype(i32)
         y = e[2].astype(i32)
@@ -876,7 +888,7 @@ def _event_scan_loop(
             xr = x - SOX[ii_s]
             yr = y - SOY[jj_s]
             w = jnp.where(m, WS[k_s, pp, xr, yr], jnp.zeros((), f))
-            Vd, Ad, Vn, cross = _excite_one(V, A, TL, TS, n0, w, t)
+            Vd, Ad, Vn, cross = _excite_one(V, A, TL, TS, TH, n0, w, t)
             spk = m & cross
             V = V.at[n0].set(
                 jnp.where(m, jnp.where(spk, PCOL[n0, 3], Vn), V[n0]))
@@ -917,7 +929,7 @@ def _event_scan_loop(
                     c0 = jnp.where(fm, FWD_IDX[n0, ff], DUM)
                     w = FWD_W[n0, ff]
                     _Vd, _Ad, Vn, cross = _excite_one(
-                        V, A, TL, TS, c0, w, t)
+                        V, A, TL, TS, TH, c0, w, t)
                     spkc = fm & cross
                     V = V.at[c0].set(jnp.where(
                         fm, jnp.where(spkc, PCOL[c0, 3], Vn), V[c0]))
@@ -971,17 +983,46 @@ def _event_scan_loop(
                 spk, _cascade, lambda c2: c2,
                 (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN))
 
-        return jax.lax.fori_loop(0, SMAX, _slot, carry), jnp.int32(0)
+        V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = jax.lax.fori_loop(
+            0, SMAX, _slot, inner)
+
+        # The periodic update (pcl_event_ref.py:746-762) after this event's
+        # cascade: the rate integrates the spikes since the last update, the
+        # threshold moves toward the target, then the update time moves.
+        dtl = (ti - LUP).astype(f)
+        due = (HON > 0) & (dtl > HSC[0])
+
+        def _interval(c):
+            TH_, RATE_, CSNAP_, LUP_, CNT_ = c
+            alpha = HSC[1]
+            sps = (CNT_ - CSNAP_).astype(f) * (1e6 / dtl)
+            RATE_ = alpha * sps + (1.0 - alpha) * RATE_
+            TH_ = jnp.where(
+                RATE_ > HTGT,
+                TH_ + HETA * (1 - jnp.exp(HTGT - RATE_)),
+                TH_ - HETA * (1 - jnp.exp(RATE_ - HTGT)))
+            TH_ = jnp.where(TH_ < HTMIN, HTMIN, TH_)
+            return TH_, RATE_, CNT_, ti
+
+        TH, RATE, CSNAP, LUP = jax.lax.cond(
+            due, _interval, lambda c: (c[0], c[1], c[2], c[3]),
+            (TH, RATE, CSNAP, LUP, CNT))
+        return ((V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN),
+                (TH, RATE, CSNAP, LUP)), jnp.int32(0)
 
     carry0 = (
-        V0, A0,
-        jnp.zeros((N1,), f), jnp.zeros((N1,), f),
-        jnp.zeros((N1,), jnp.int32), jnp.full((N1,), -1, dtype=jnp.int64),
-        BIN0, LOGT0, jnp.zeros(LOGT0.shape, i32), jnp.zeros((), i32),
+        (
+            V0, A0,
+            jnp.zeros((N1,), f), jnp.zeros((N1,), f),
+            jnp.zeros((N1,), jnp.int32), jnp.full((N1,), -1, dtype=jnp.int64),
+            BIN0, LOGT0, jnp.zeros(LOGT0.shape, i32), jnp.zeros((), i32),
+        ),
+        (TH0, RATE0, jnp.zeros((N1,), jnp.int32), LUP0),
     )
-    (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN), _ = jax.lax.scan(
-        _event_body, carry0, EV)
-    return V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN
+    ((V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN),
+     (TH, RATE, CSNAP, LUP)), _ = jax.lax.scan(_event_body, carry0, EV)
+    return (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN,
+            TH, RATE, CSNAP, LUP)
 
 
 _JIT_EVENT_SCAN = jax.jit(_event_scan_loop)
@@ -1009,16 +1050,18 @@ def _spike_log_capacity(n_events):
 
 def _run_event_scan(
     params, N, n_steps, t0_us, dt_us, groups, blocks,
-    events, tables, V0_mV,
+    events, tables, V0_mV, h_update=None,
 ):
     """Validate the event-scan inputs and run the exact event pass.
 
     Returns the kernel result dict (``spikes`` bool ``(n_steps, N)``,
     ``counts``, ``first_spike_us``, finals ``V``/``A``/``t_last``, an
     empty ``w_final``, and the spike log ``spike_times_us`` and
-    ``spike_cells`` (int64, every spike in emission order)). ``V``/``A``/
-    ``t_last`` are float64 regardless of the params dtype (see the x64 note
-    at the call). Every refusal names the offending channel.
+    ``spike_cells`` (int64, every spike in emission order)), plus the
+    periodic-update receipts ``threshold_mV``, ``rate_hz`` and
+    ``interval_count`` (each ``(N,)``) and ``last_update_us`` (int).
+    ``V``/``A``/``t_last`` are float64 regardless of the params dtype (see
+    the x64 note at the call). Every refusal names the offending channel.
     """
     grp = np.asarray(groups).ravel()
     if grp.shape != (N,) or grp.dtype.kind not in "iu":
@@ -1268,6 +1311,28 @@ def _run_event_scan(
                 f"V0_mV must be None or shape ({N},); got {v_init.shape}")
         if not bool(np.all(np.isfinite(v_init))):
             raise ValueError("V0_mV must be finite (got NaN/inf)")
+    # The declared H update (EventScanDrive.h_update): the oracle's periodic
+    # rate and threshold adaptation. None keeps the thresholds fixed (h_on 0).
+    v_thresh = np.asarray(cols["v_thresh_mV"], dtype=np.float64)
+    if h_update is None:
+        h_on = 0
+        h_sc = (0.0, 0.0)
+        h_last = 0
+        h_th0 = v_thresh
+        h_rate0 = h_tgt = h_eta = h_tmin = np.zeros((N,), dtype=np.float64)
+    else:
+        from .pcl_topology import check_event_scan_h_update
+
+        hu = check_event_scan_h_update(
+            h_update, N, label="simulate_lif_edge event_scan_h_update")
+        h_on = 1
+        h_sc = (hu["measurement_interval_us"], hu["rate_alpha"])
+        h_last = hu["last_update_us"]
+        h_th0 = v_thresh if hu["threshold0_mV"] is None else hu["threshold0_mV"]
+        h_rate0 = hu["rate0_hz"]
+        h_tgt = hu["target_rate_hz"]
+        h_eta = hu["threshold_eta_mV"]
+        h_tmin = hu["threshold_min_mV"]
     smax = max(1, pmax * nd)
     cell = np.full((vw * vh, smax), -1, dtype=np.int64)
     cmask = np.zeros((vw * vh, smax), dtype=bool)
@@ -1337,6 +1402,15 @@ def _run_event_scan(
             jnp.asarray([vw, nx, ny, nd, t0_us, dt_us], dtype=jnp.int64),
             jnp.asarray([lat_on, td_on, activation], dtype=jnp.int32),
             jnp.zeros((n_steps, N + 1), dtype=bool),
+            # The dummy cell (index N) rides with cell 0's values, as PCOL does.
+            jnp.asarray(np.append(h_th0, h_th0[0]), dtype=jnp.float64),
+            jnp.asarray(np.append(h_rate0, 0.0), dtype=jnp.float64),
+            jnp.asarray(h_last, dtype=jnp.int64),
+            jnp.asarray(np.append(h_tgt, 0.0), dtype=jnp.float64),
+            jnp.asarray(np.append(h_eta, 0.0), dtype=jnp.float64),
+            jnp.asarray(np.append(h_tmin, 0.0), dtype=jnp.float64),
+            jnp.asarray(h_sc, dtype=jnp.float64),
+            jnp.asarray(h_on, dtype=jnp.int64),
         )
         cap = _spike_log_capacity(int(ev.shape[0]))
         out = _JIT_EVENT_SCAN(*args, jnp.zeros((cap,), dtype=jnp.int64))
@@ -1349,7 +1423,8 @@ def _run_event_scan(
                 raise RuntimeError(
                     "event-scan spike log changed on rerun: "
                     f"{int(out[9])} spikes against {n_logged} logged")
-        V, A, _TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = out
+        V, A, _TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = out[:10]
+        TH_f, RATE_f, CSNAP_f, LUP_f = out[10:]
         n_spk = int(LOGN)
         t_last = jnp.where(
             CNT[:N] > 0, TS[:N] / 1000.0,
@@ -1364,6 +1439,10 @@ def _run_event_scan(
             "first_spike_us": FST[:N],
             "spike_times_us": LOGT[:n_spk],
             "spike_cells": LOGC[:n_spk].astype(jnp.int64),
+            "threshold_mV": TH_f[:N],
+            "rate_hz": RATE_f[:N],
+            "interval_count": CNT[:N] - CSNAP_f[:N],
+            "last_update_us": int(LUP_f),
         }
 
 
@@ -1375,7 +1454,7 @@ def _run_event_scan_branch(
     edge_pre, edge_post, edge_weight, edge_delay_steps, edge_group,
     I_ext_pA, V0_mV, H0, record_v,
     hdp_rule, hdp_rule_params, plasticity_mask,
-    feed_current, feed_arrivals,
+    feed_current, feed_arrivals, scan_h_update,
 ):
     """Refuse every non-scan channel, then run the exact event replay.
 
@@ -1492,7 +1571,7 @@ def _run_event_scan_branch(
     return _run_event_scan(
         params, N, n_steps, int(t0_us_f), int(dt_us_f),
         local_inhibition_groups, local_inhibition_blocks,
-        scan_events, scan_tables, V0_mV,
+        scan_events, scan_tables, V0_mV, scan_h_update,
     )
 
 
@@ -1522,6 +1601,7 @@ def simulate_lif_edge(
     local_inhibition_visit_order=None,
     event_scan_events=None,
     event_scan_tables=None,
+    event_scan_h_update=None,
     feed_current=None,
     feed_arrivals=None,
     key=None,
@@ -1656,7 +1736,13 @@ def simulate_lif_edge(
     (float64, as above), empty ``w_final``, per-cell ``counts`` and
     ``first_spike_us`` (``-1`` where a cell never spiked), and the spike log
     ``spike_times_us`` and ``spike_cells`` (int64, every spike in emission
-    order).
+    order). ``event_scan_h_update`` (None, or the mapping
+    :func:`jaxfne.pcl_topology.check_event_scan_h_update` validates) declares
+    the oracle's periodic rate and threshold update (``pcl_event_ref.py``
+    :746-762) under ``"event_scan"`` only; None keeps the thresholds at
+    ``v_thresh_mV``. The scan then also returns ``threshold_mV``, ``rate_hz``
+    and ``interval_count`` (spikes since the last update, each ``(N,)``) and
+    ``last_update_us`` (int).
 
     Raises ``ValueError`` naming the argument for every refused input.
     """
@@ -1789,7 +1875,13 @@ def simulate_lif_edge(
             event_scan_tables, edge_pre, edge_post, edge_weight,
             edge_delay_steps, edge_group, I_ext_pA, V0_mV, H0, record_v,
             hdp_rule, hdp_rule_params, plasticity_mask,
-            feed_current, feed_arrivals,
+            feed_current, feed_arrivals, event_scan_h_update,
+        )
+    if event_scan_h_update is not None:
+        raise ValueError(
+            "event_scan_h_update is set but resolution is "
+            f"{_resolution!r}; the periodic rate and threshold update only "
+            "runs under local_inhibition_resolution='event_scan'"
         )
     if event_scan_events is not None or event_scan_tables is not None:
         raise ValueError(

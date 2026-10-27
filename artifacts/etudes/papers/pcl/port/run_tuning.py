@@ -88,14 +88,9 @@ _ENGINE = "numba"
 # 0.5 ms grid is binary-exact and every event lands on it (500 us bins).
 CORE_DT_MS = 0.5
 CORE_DT_US = 500
-# Honest boundary of the core replay (run_core_events): the kernel runs frozen thresholds,
-# so a file reaching past the network's measurement interval would cross the oracle's
-# rate/threshold adaptation (pcl_event_ref.py), which has no scan expression. That file is
-# refused, never approximated. Per-spike times and cells come from the scan's spike log
-# (jaxfne/_model_simulate.py), so a cell that spikes more than once is replayed exactly.
-CORE_ADAPTATION = ("engine core cannot report this file: its events reach past the "
-                   "measurement interval, where the oracle adapts rates and thresholds "
-                   "(pcl_event_ref.py) and the frozen-threshold scan has no expression")
+# The oracle's periodic rate and threshold update (pcl_event_ref.py:746-762) runs in the scan
+# as a declared H update (_core_h_update). Per-spike times and cells come from the scan's
+# spike log (jaxfne/_model_simulate.py), so a cell that spikes more than once is replayed exactly.
 
 
 def apply_inhibition_mode(net, inhibition: str):
@@ -267,15 +262,38 @@ def _core_lif_params(net):
     return simple, complex_
 
 
+def _core_h_update(net, t0):
+    """The oracle's periodic rate and threshold update (pcl_event_ref.py:746-762) as an H update.
+
+    Rates are Hz and thresholds mV, as the oracle holds them. Simple cells take the simple
+    config's target, eta and minimum; complex cells carry zeros for all three (CellConfig),
+    so their rates are tracked and their thresholds stay put. Times are rebased to t0 like
+    the feed. Cells are listed simple then complex, the scan's flat order.
+    """
+    cells = list(net.s_cells) + list(net.c_cells)
+    cfgs = [net.scfg] * len(net.s_cells) + [net.ccfg] * len(net.c_cells)
+    return {
+        "measurement_interval_us": float(net.measurement_interval),
+        "rate_alpha": float(ref.ALPHA),
+        "target_rate_hz": np.array([cfg.TARGET_SPIKE_RATE for cfg in cfgs], dtype=np.float64),
+        "threshold_eta_mV": np.array([cfg.ETA_SR for cfg in cfgs], dtype=np.float64),
+        "threshold_min_mV": np.array([cfg.MIN_THRESH for cfg in cfgs], dtype=np.float64),
+        "last_update_us": int(net._last_update) - int(t0),
+        "rate0_hz": np.array([cell.rate for cell in cells], dtype=np.float64),
+        "threshold0_mV": np.array([cell.thr for cell in cells], dtype=np.float64),
+    }
+
+
 def run_core_events(net, t, x, y, p):
     """Replay one camera-0 event slice through the jaxfne event-scan kernel.
 
     Returns the same per-file arrays _run_one writes (simple/complex_counts int32,
     times_us int64 with times_cell int32 in the port's flat index order, n_events),
-    rebased back onto the file's raw timestamps. The network is read, never mutated.
-    Refusals, before any heavy work: unsorted times (the scan sorts; the oracle follows
-    file order), an empty slice, events past the measurement interval from the network's
-    last update (CORE_ADAPTATION).
+    rebased back onto the file's raw timestamps, plus the final thresholds (mV) and
+    rates (Hz) as final_threshold_mV and final_rate_hz, which _run_one does not save.
+    The network is read, never mutated. Refusals, before any heavy work: unsorted times
+    (the scan sorts; the oracle follows file order) and an empty slice. The oracle's
+    periodic rate and threshold update runs inside the scan (_core_h_update).
     """
     import jaxfne as jtfne
     jtfne.enable_x64()  # the scan kernel integrates in float64 (as the oracle does)
@@ -293,8 +311,6 @@ def run_core_events(net, t, x, y, p):
         raise ValueError("core replay needs at least one event to anchor t0")
     if bool((np.diff(t) < 0).any()):
         raise ValueError("core replay needs time-ordered events (the oracle follows file order)")
-    if int(t.max()) - int(net._last_update) > int(net.measurement_interval):
-        raise NotImplementedError(CORE_ADAPTATION)
     ns, nc = int(net.NS), int(net.NC)
     tables, blocks, groups = _core_tables(net)
     t0 = int(t[0])
@@ -304,7 +320,8 @@ def run_core_events(net, t, x, y, p):
     events = event_scan_events(tr, x, y, p, dt_ms=CORE_DT_MS, n_steps=n_steps,
                                vw=net.VW, vh=net.VH)
     drive = EventScanDrive(events, tables, blocks, groups,
-                           dt_ms=CORE_DT_MS, n_steps=n_steps)
+                           dt_ms=CORE_DT_MS, n_steps=n_steps,
+                           h_update=_core_h_update(net, t0))
     dur = float(n_steps) * CORE_DT_MS
     lif_simple, lif_complex = _core_lif_params(net)
     model = jtfne.construct(
@@ -330,6 +347,8 @@ def run_core_events(net, t, x, y, p):
         "complex_times_us": times[~sm],
         "complex_times_cell": (owners[~sm] - ns).astype(np.int32),
         "n_events": np.int64(int(t.shape[0])),
+        "final_threshold_mV": np.asarray(signals.metadata["scan_threshold_mV"], dtype=np.float64),
+        "final_rate_hz": np.asarray(signals.metadata["scan_rate_hz"], dtype=np.float64),
     }
 
 
@@ -405,6 +424,8 @@ def _run_one_core(job: tuple[str, str]) -> float:
         }
     else:
         arrays = run_core_events(_PRISTINE, t[keep], x[keep], y[keep], p[keep])
+        # The saved schema is the numba path's per-file output; the final state is for the tests.
+        del arrays["final_threshold_mV"], arrays["final_rate_hz"]
     arrays["wall_s"] = np.float64(time.perf_counter() - t_start)
     dst.parent.mkdir(parents=True, exist_ok=True)
     tmp = dst.with_name(dst.stem + ".tmp.npz")  # np.savez appends .npz unless the name ends with it
