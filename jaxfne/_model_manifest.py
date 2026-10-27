@@ -36,13 +36,13 @@ def manifest(
 
     The ``readout`` argument accepts any of:
 
-    * ``None`` — no readout section included.
-    * ``dict`` — passed through to the manifest as-is (legacy shape).
-    * ``list`` or ``tuple`` of :class:`ReadoutResult` objects — the canonical
+    * ``None``: no readout section included.
+    * ``dict``: passed through to the manifest as-is (legacy shape).
+    * ``list`` or ``tuple`` of :class:`ReadoutResult` objects: the canonical
       output of :meth:`compute_readout`.  Converted to a JSON-safe readout
       summary dict with ``readout_results`` and ``requested_metrics`` keys.
-    * ``list`` or ``tuple`` of ``dict`` — same conversion applied to each element.
-    * Single :class:`ReadoutResult` — wrapped in a list and handled as above.
+    * ``list`` or ``tuple`` of ``dict``: same conversion applied to each element.
+    * Single :class:`ReadoutResult`: wrapped in a list and handled as above.
     """
     readout_normalized = _normalize_manifest_readout(readout)
     runtime_report_dict = None
@@ -199,7 +199,7 @@ def manifest(
     # 0.5.2 PARAM-02: TFNE-declared delay, recorded only when a delay was
     # declared (absent declaration the manifest is unchanged). `declared_ms`
     # is the configured per-rule delay in ms; `realized_steps` the integer
-    # steps at `dt_ms` (0.5.2 decision 0b). Units are ms throughout —
+    # steps at `dt_ms` (0.5.2 decision 0b). Units are ms throughout;
     # never physical lengths or conductivities.
     _tfne_delay = (self.cfg.metadata or {}).get("tfne_delay")
     if _tfne_delay:
@@ -264,7 +264,7 @@ def manifest(
         }
     # v0.2.26: computation-basis block
     res["basis"] = _default_basis_dict()
-    # T-24: res["x_sources"] already carries the single vocabulary —
+    # T-24: res["x_sources"] already carries the single vocabulary;
     # build_manifest above took the model's derived constant entries plus
     # the run's Poisson rows from signals metadata.
     # v0.2.27: conservation-inspired proxy diagnostics

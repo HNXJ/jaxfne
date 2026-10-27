@@ -2,8 +2,8 @@
 
 Any model is ``(h, y) = f(x, h')`` with ``x : A : y`` on a NeuronalTensor ``A``
 (Hamm 2026-10-13): ``h`` carries RBS/H, plasticity traces and weights under
-HDP for every neuron model. This module factors the HDP machinery — rule
-resolution, aux-state layout, weight update, H state and recording budgets —
+HDP for every neuron model. This module factors the HDP machinery: rule
+resolution, aux-state layout, weight update, H state and recording budgets;
 so it runs with any emitter family's step function.
 
 Family step interface: a family supplies a per-neuron step
@@ -18,16 +18,16 @@ The HDP layer supplies presynaptic/postsynaptic spikes, ``aux``, ``H`` and
 
 Families and their plastic targets:
 
-- ``"izhikevich"`` — current-clamp edge list with signed weights; supports
+- ``"izhikevich"``: current-clamp edge list with signed weights; supports
   ``edge_weight`` (sign-preserving magnitude) and ``drive_bias``. The
   existing :func:`simulate_edge_recurrent_izhikevich_hdp_registered` is the
   reference implementation and is intentionally left as is.
-- ``"adex"`` — conductance synapses with plastic ``|w|`` (weight magnitude
+- ``"adex"``: conductance synapses with plastic ``|w|`` (weight magnitude
   in nS; the current sign lives in the receptor reversal, not the weight);
   supports ``edge_weight`` only. A rule whose descriptor needs anything else
   (e.g. ``drive_bias``) is refused by name via
   :func:`check_rule_family_support`.
-- ``"lif"`` — PCL current-based LIF on a signed edge list; supports
+- ``"lif"``: PCL current-based LIF on a signed edge list; supports
   ``edge_weight`` (sign-preserving magnitude, as on ``"izhikevich"``) and
   ``drive_bias`` (the rule's per-neuron ``bias`` adds to the step input in
   :func:`jaxfne.emitters_lif.simulate_lif_edge`).

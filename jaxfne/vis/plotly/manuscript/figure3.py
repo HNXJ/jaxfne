@@ -1,4 +1,4 @@
-"""Figure 3 — Cell-type perturbations: depth profile comparison across conditions."""
+"""Figure 3. Cell-type perturbations: depth profile comparison across conditions."""
 from __future__ import annotations
 
 from .._common import require_plotly

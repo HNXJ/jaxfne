@@ -48,7 +48,7 @@ def plot_network_3d(
 
     Supports rotation/zoom/hover natively (Plotly 3D scatter). If
     ``signals`` is given, per-point alpha encodes mean firing rate
-    (a lightweight proxy for "spike activity" — not an animation) for
+    (a lightweight proxy for "spike activity"; not an animation) for
     ``color_by="cell_type"``; Scatter3d marker.opacity is scalar-only, so the
     encoding rides on per-point ``rgba`` colors (P2).
 

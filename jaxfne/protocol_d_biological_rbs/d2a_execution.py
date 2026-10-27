@@ -1,4 +1,4 @@
-"""D2a autonomous H_K F1 relaxation — execution and gate receipts."""
+"""D2a autonomous H_K F1 relaxation: execution and gate receipts."""
 
 from __future__ import annotations
 

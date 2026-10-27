@@ -90,7 +90,7 @@ class PoseEdit:
     axis; ``translation_scale`` multiplies the translation first.
 
     Within one edit the operations apply in this fixed order: scale, then
-    rotation, then translation — i.e. ``(t * translation_scale) +
+    rotation, then translation, i.e. ``(t * translation_scale) +
     translation`` for the stored translation, with the rotation delta added
     to the stored ``rotation_deg`` in between (rotation and translation
     commute on the stored pose; both are additive on independent fields,
@@ -242,7 +242,7 @@ class ThetaX:
     ``static.dT_ms``.
 
     Only the conductance key equal to the connection's own ``mechanism`` is
-    rewritten — that is the only key ``construct`` consumes (defaulting to
+    rewritten, that is the only key ``construct`` consumes (defaulting to
     1.0 when absent); other keys are left untouched, draw nothing and get
     no entry, and requesting g scaling on a connection that does not declare
     its mechanism key is refused rather than materialising the default.

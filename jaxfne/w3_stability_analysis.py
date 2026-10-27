@@ -1,4 +1,4 @@
-"""Protocol W3 — closed-loop local stability analysis (analysis only, no W3 kernel).
+"""Protocol W3: closed-loop local stability analysis (analysis only, no W3 kernel).
 
 Derives equilibrium verification (gate zero), reduced antisymmetric Jacobian,
 and full discrete-time step-map Jacobian faithful to the implemented RBD +

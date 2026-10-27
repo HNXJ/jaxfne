@@ -575,7 +575,7 @@ def compile_step_fn(
         # by the Model-level runner post-stack (kernels apply it only to
         # multi-step traces, where it is exact).
         rwt = bool(kernel_kw.pop("record_weight_trace", record_weight_trace))
-        # NOTE (0.5.3 item 3): read-only lookup — the baseline and legacy
+        # NOTE (0.5.3 item 3): read-only lookup; the baseline and legacy
         # HDP kernels receive noise_scale via **kernel_kw below; only the
         # registered call (explicit args, no **kernel_kw) needs it forwarded.
         ns = kernel_kw.get("noise_scale", None)
@@ -753,7 +753,7 @@ def _ensemble_segment_schedule(
 
     Member ``m``'s rows are the matching slice of
     ``continuation_noise_schedule(PRNGKey(ensemble_member_seed(base_seed,
-    m, n)))`` — the exact rows the continuous ensemble path draws — so
+    m, n)))``, the exact rows the continuous ensemble path draws, so
     chunked continuation reproduces continuous runs on ensembles.
     Generation cost is O(start+length) random draws per segment.
     """
@@ -922,7 +922,7 @@ def run_continuation_strided(
     ``step_index``, ``delay_state``, ``chunk_index``).
 
     ``stride=1`` reproduces :func:`run_continuation` frames exactly but with
-    per-segment launch overhead — prefer :func:`run_continuation` then.
+    per-segment launch overhead; prefer :func:`run_continuation` then.
 
     ``noise_rows`` (0.5.4 item 1) is sliced per segment like the schedule.
 
@@ -970,7 +970,7 @@ def memory_report(
 ) -> dict[str, Any]:
     """Component memory preflight for one simulation run (23-REC-01, W17.2).
 
-    Pure shape/dtype arithmetic — executes nothing. Estimates persistent
+    Pure shape/dtype arithmetic; executes nothing. Estimates persistent
     (``model.params``), dynamic carry, delay ring, recording stacks, and
     transient draws for ``simulation`` (defaults like :class:`Simulation`
     when omitted) with decimation ``stride`` from ``recorder``

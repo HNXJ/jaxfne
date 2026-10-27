@@ -1,6 +1,6 @@
 """Core object model for :mod:`jaxfne`.
 
-Docs: ``docs/reference/api/core/core.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/core/core/) —
+Docs: ``docs/reference/api/core/core.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/core/core/):
 update that page when this module's public API changes.
 
 Design target: object-oriented public API, pure-JAX computational core.  The

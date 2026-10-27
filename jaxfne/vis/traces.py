@@ -96,7 +96,7 @@ def rate(signals: Any, **kwargs: Any) -> Any:
     Canonical numeric contract (P5): population mean rate in Hz via
     :func:`jaxfne.vis.core.binned_population_rate_hz`
     (``mean over units and steps in bin * (1000 / dt_ms)``, default
-    ``bin_ms=10.0``) — the same numbers as the Plotly renderer draws
+    ``bin_ms=10.0``); the same numbers as the Plotly renderer draws
     ungrouped. The time label is honest about provenance (P3): ``"Time (ms)"``
     only when the payload carries ``time_ms``.
     """

@@ -1,6 +1,6 @@
 """Preset registries for cell types and receptor kinetics.
 
-These are metadata only — no biological calibration or empirical validation.
+These are metadata only; no biological calibration or empirical validation.
 Truth status: computational_scaffold.
 """
 

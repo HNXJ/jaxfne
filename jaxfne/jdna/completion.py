@@ -108,7 +108,7 @@ def resolve(
 
     A declared value always wins (TFNE-declared). Otherwise the quantity's
     rule applies: canonical default, deterministic derivation, K_D sampling,
-    or refusal. Unknown quantity names are refused even when declared —
+    or refusal. Unknown quantity names are refused even when declared;
     accepting them would let a misspelled quantity pass as completed while
     downstream ignores it.
     """
@@ -217,7 +217,7 @@ def complete_tfne(realization: Any, seed: int) -> dict[str, Any]:
     Reads each realized leaf's neuron count from `I["neuron_paths"]` and its
     declared `G` body from `s["geometry"]`; realizes positions per leaf with
     one split of the development key each, in sorted leaf order. The input
-    realization is never mutated — the TFNE bridge is untouched; this is the
+    realization is never mutated; the TFNE bridge is untouched; this is the
     JDNA-side path that owns coordinates.
 
     Returns `{"positions", "origins", "seed", "domain"}` with positions and

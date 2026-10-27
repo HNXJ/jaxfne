@@ -1,6 +1,6 @@
 """Field admissibility validation for v0.2.0 theoretical gates.
 
-Docs: ``docs/reference/api/core/validation.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/core/validation/) —
+Docs: ``docs/reference/api/core/validation.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/core/validation/):
 update that page when this module's public API changes.
 
 This module provides validation functions for conductivity tensors, field finiteness,
@@ -1062,10 +1062,8 @@ def build_poisson_admissibility_report(
     dict
         JSON-safe Poisson admissibility report with validation results.
     """
-    # Check SPD conductivity
     cond_spd, cond_msg = validate_poisson_spd_conductivity(conductivity)
 
-    # Check source conservation
     cons_ok, cons_msg, cons_residual = validate_poisson_source_conservation(
         integrated_source, integrated_boundary_flux
     )

@@ -147,7 +147,6 @@ class SanityDeltaConfig:
         n_steps = int(self.duration_ms / self.dt_ms)
         n_neurons = len(self.areas) * self.neurons_per_area
 
-        # Compile weight matrix W
         W = sanity_runtime._build_weight_matrix(n_neurons)
 
         model_state = {

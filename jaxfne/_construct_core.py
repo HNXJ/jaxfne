@@ -76,7 +76,7 @@ def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
     a ``RuntimeConfig`` so that ``.runtime(dtype=..., recurrent_backend=..., jit=...)``
     set on a Configuration is actually honored by the high-level ``simulate`` path.
     Only non-None known keys are applied, so a config without explicit runtime
-    knobs yields the default RuntimeConfig (float32, dense, eager) — unchanged
+    knobs yields the default RuntimeConfig (float32, dense, eager); unchanged
     behavior. ``dtype="float64"`` raises unless JAX x64 is enabled before array
     construction (see ``RuntimeConfig.actual_dtype``).
     """
@@ -119,7 +119,7 @@ def simulate(
     When no explicit ``runtime``/``Simulation`` is given, the runtime declared on
     the model's :class:`Configuration` via ``.runtime(...)`` (``dtype``,
     ``recurrent_backend``, ``jit``, ``backend``, ``synaptic_kernel``) is
-    inherited — so ``cfg.runtime(dtype="float64")`` / ``recurrent_backend="edge_list"``
+    inherited, so ``cfg.runtime(dtype="float64")`` / ``recurrent_backend="edge_list"``
     actually take effect. A ``dtype=`` keyword overrides the inherited dtype.
     """
     if sim is None:
@@ -211,13 +211,13 @@ def _canonical_biophysics_depth_gating(emitter, positions):
 def _apply_canonical_dynamics_init(emitter, positions, cfg):
     """DYNAMICS-INIT half of canonical biophysics: random ``v0`` + deep-E grading.
 
-    * **Random ``v0``** ~ Uniform(-70, 0) mV per neuron — ALWAYS applied (keyed off
+    * **Random ``v0``** ~ Uniform(-70, 0) mV per neuron; ALWAYS applied (keyed off
       ``cfg.metadata["seed"]``). Identical initial potentials cause a synchronized
       t=0 onset volley (raster banding); randomizing removes that onset-response
       synchrony bias. Disable with ``cfg.runtime(random_v0=False)``.
     * **Deep-E "larger" grading** (laminar columns only, gated on
       ``cfg.metadata["canonical_biophysics"]``): excitatory neurons get a depth
-      gradient — ``source_scale`` 1.0->1.8 (bigger dipole), ``a`` 0.020->0.015
+      gradient: ``source_scale`` 1.0->1.8 (bigger dipole), ``a`` 0.020->0.015
       (slower recovery), ``d`` 8->10 (wider/stronger).
 
     Touches only the emitter (v0/a/d/source_scale) -- never edge_list. Returns
@@ -893,7 +893,7 @@ def _construct_compile_connections(
             # Tensor-posed wiring: the tensor bridge records each area's
             # Pose3D as metadata["tensor_pose"]; the localized sampler reads
             # a posed copy, while the stored positions are posed by the same
-            # rule after construction — one geometry. Absent (plain configs
+            # rule after construction; one geometry. Absent (plain configs
             # and all-default poses) the historical array passes through
             # untouched.
             _pose_spec = (cfg.metadata or {}).get("tensor_pose")

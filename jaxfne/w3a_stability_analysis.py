@@ -1,12 +1,12 @@
-"""Protocol W3a — activity-enabled closed-loop stability (analysis only).
+"""Protocol W3a: activity-enabled closed-loop stability (analysis only).
 
 Preserves frozen silent-rest W3 result at ``953d03b``. Scans tonic operating drive
 ``I_tonic`` with fixed nominal HDP parameters and characterizes activity-dependent
 ``b_HW``, loop gain, and stability margins.
 
 Gates (ordered):
-  W3a-FP — self-consistent active fixed point search
-  W3a-PO — periodic-orbit return-map / monodromy if FP with syn*>0 unavailable
+  W3a-FP: self-consistent active fixed point search
+  W3a-PO: periodic-orbit return-map / monodromy if FP with syn*>0 unavailable
 
 See ``artifacts/protocol_w/w3a_stability/w3a_stability_spec.json``.
 """

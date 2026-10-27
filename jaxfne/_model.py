@@ -552,7 +552,7 @@ class Model:
     Holds the source ``cfg``, the dynamic ``params`` pytree (arrays that may be
     tuned/traced), and ``static`` metadata (JIT-static, non-array). Construct via
     :func:`construct`; run via :func:`simulate` / :meth:`simulate`. Also exported
-    as the alias ``Net``. The model is a computational scaffold — its field and
+    as the alias ``Net``. The model is a computational scaffold; its field and
     probe outputs are proxy readouts, not calibrated physical signals.
     """
 
@@ -567,8 +567,8 @@ class Model:
         One frozen :class:`XSource` per realized ``(area, layer, cell_type)``
         group (one entry per distinct drive value within a group, in
         first-appearance order): the per-neuron drive channel ``simulate``
-        reads — ``params["emitter"].drive``, or ``static["adex"]``'s
-        ``triple_drive_pA`` on the AdEx route — grouped by the population's
+        reads: ``params["emitter"].drive``, or ``static["adex"]``'s
+        ``triple_drive_pA`` on the AdEx route, grouped by the population's
         own final area/layer/cell-type labels. Each entry carries
         ``n_neurons``, the count of neurons with exactly that target and
         value, so the per-neuron drive reconstructs as each value repeated
@@ -585,7 +585,7 @@ class Model:
         ``signals.metadata``), additive ``paradigm``/``StimulusSchedule``
         inputs and per-step ``drive_schedule`` arrays (time-varying, not
         constant sources), and routes without a constant drive channel at
-        all — the HH route (``HHParams`` carries no ``drive``) and the AdEx
+        all; the HH route (``HHParams`` carries no ``drive``) and the AdEx
         route without a declared triple drive (``triple_drive_pA`` None)
         both report ``()``.
         """
@@ -1150,7 +1150,7 @@ def with_emitter_parameters(
 
     Supports both scalar (uniform) and per-neuron (array) overrides.
     Per-neuron arrays take priority over scalars.
-    Explicit None checks used — zero-valued JAX arrays handled correctly.
+    Explicit None checks used; zero-valued JAX arrays handled correctly.
     """
     return model.with_emitter_parameters(
         a=a,

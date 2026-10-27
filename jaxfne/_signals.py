@@ -258,7 +258,7 @@ class Probe:
 
 # v0.3.29 signal-access key aliases. Maps user-facing keys to the real
 # underlying attribute. Only real, present readouts are listed: the core proxy
-# field carries lfp/csd/phi_e/source proxies — there is NO eeg/meg/emm readout.
+# field carries lfp/csd/phi_e/source proxies; there is NO eeg/meg/emm readout.
 _SIGNALS_GET_KEY_ALIASES: dict[str, str] = {
     "vm": "V_m", "v_m": "V_m", "voltage": "V_m", "V_m": "V_m",
     "spk": "spikes", "spike": "spikes", "spikes": "spikes", "raster": "spikes",
@@ -424,7 +424,7 @@ class Objective:
     """Declarative objective specification: losses, regularizers, and diagnostic gates.
 
     All specs are stored as plain dicts (no callables) so the objective is always
-    JSON-serializable.  Gate pass/fail is a computational diagnostic only — it does
+    JSON-serializable.  Gate pass/fail is a computational diagnostic only; it does
     not imply empirical validation or biological calibration.
     """
 
@@ -694,9 +694,9 @@ class ReadoutResult:
     JSON-safe via to_dict().
 
     Status values:
-        "computed"   — value was computed successfully.
-        "no_field"   — metric requires field output but signals has no field.
-        "unknown_metric" — metric not in _KNOWN_READOUT_METRICS.
+        "computed": value was computed successfully.
+        "no_field": metric requires field output but signals has no field.
+        "unknown_metric": metric not in _KNOWN_READOUT_METRICS.
     """
 
     spec_name: str
@@ -886,7 +886,7 @@ def _make_poisson_drive(
     ``counts=1`` (default) is one Bernoulli trial per step per cell, exactly
     the historical drive bit for bit; ``counts=C`` sums C independent trains
     (Brunel 2000: Cext external trains per cell), drawn as a single
-    ``binomial(C, p)`` per step per cell — the exact sum distribution of C
+    ``binomial(C, p)`` per step per cell: the exact sum distribution of C
     Bernoulli trials. Output is finite and bounded.
     ``target`` is ``"all"`` (every neuron) or an ``(area, layer, cell_type)``
     triple of strings naming one population. A triple draws the same
@@ -1260,7 +1260,7 @@ class SpikeTrainInput:
 class LaminarPopulation:
     """Metadata descriptor for one named laminar cell population.
 
-    Depth values are normalized proxy coordinates in [0, 1] — not physical
+    Depth values are normalized proxy coordinates in [0, 1]; not physical
     microns.  Overlapping depth ranges are allowed; co-located cell types
     (e.g. E and PV in the same layer) are anatomically expected.
     No physical-amplitude or calibration claim is made.
@@ -1410,7 +1410,7 @@ _KNOWN_METRICS = frozenset({
     "kappa_synchrony",
 })
 
-#: Config-metadata gate metrics — string-valued flags compared against
+#: Config-metadata gate metrics: string-valued flags compared against
 #: ``cfg.metadata`` rather than computed readout metrics.  These let an
 #: Objective declare truth/scope gates (e.g. claim_level) that
 #: are evaluated against the configuration, not the signals.
@@ -1432,8 +1432,8 @@ def _finite_or_none(value: float) -> Optional[float]:
 def _compute_kappa_synchrony_metric(spikes: Any) -> Optional[float]:
     """Vectorized mean pairwise spike-train correlation (kappa synchrony).
 
-    Matches :func:`jaxfne.tutorial_utils.kappa_synchrony` semantics — mean
-    Pearson correlation over neuron pairs with non-zero temporal variance —
+    Matches :func:`jaxfne.tutorial_utils.kappa_synchrony` semantics: mean
+    Pearson correlation over neuron pairs with non-zero temporal variance;
     but computed as a single correlation matrix multiply for speed in the
     per-candidate tuning loop.  Proxy diagnostic; not a biological invariant.
     Expects ``spikes`` shaped ``[n_timesteps, n_neurons]``. Returns NaN where
@@ -1622,7 +1622,7 @@ def _evaluate_gate_spec(
 
     Numeric gates are checked against computed readout ``metrics``.  Gates
     whose metric is a configuration flag (see ``_KNOWN_CONFIG_GATE_METRICS``)
-    are checked against ``cfg_meta`` via exact string comparison — this lets
+    are checked against ``cfg_meta`` via exact string comparison; this lets
     an Objective assert truth/scope gates (claim_level, …) that
     describe the configuration rather than the signals.
     """
@@ -1701,7 +1701,7 @@ _FIELD_REGIME_VALUES: frozenset[str] = frozenset(
     }
 )
 
-#: Regimes that are declared future — never claim implemented=True for these
+#: Regimes that are declared future; never claim implemented=True for these
 _FUTURE_FIELD_REGIMES: frozenset[str] = frozenset({"future_admittive", "future_maxwell"})
 
 #: Allowed values for BasisSpec.source_mode
@@ -1747,7 +1747,7 @@ class AxisSpec:
     (``active``), collapsed to a scalar or removed (``collapsed``), or
     indexed by an explicit label set (``indexed``).
 
-    These are documentation/contract objects — they do not affect JAX
+    These are documentation/contract objects; they do not affect JAX
     execution. They appear in manifest output to make axis semantics
     explicit and auditable.
 
@@ -1853,7 +1853,7 @@ class BasisSpec:
     @property
     def claim_allowed(self) -> bool:
         """Physical amplitude claims are always False in proxy/scaffold regimes."""
-        # Claims require solved field with calibrated conductivity — not as of v0.5.x
+        # Claims require solved field with calibrated conductivity; not as of v0.5.x
         return False
 
     @property

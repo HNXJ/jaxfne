@@ -753,7 +753,7 @@ def _apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], la
             ("TP", "DP")
         }
         # Vectorized population-pair mask (bit-identical to the prior O(N^2) Python
-        # double loop, which was ~N^2 Python-level iterations — ~1e8 at N=1e4).
+        # double loop, which was ~N^2 Python-level iterations, ~1e8 at N=1e4).
         # tcm_mask[i, j] = 1 iff (pop[j] (pre), pop[i] (post)) in allowed_pairs.
         uniq = list(dict.fromkeys(pop))
         code = {p: c for c, p in enumerate(uniq)}

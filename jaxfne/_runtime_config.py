@@ -25,8 +25,8 @@ class RuntimeConfig:
     """JAX runtime, dtype policy, and emitter control.
 
     Ownership (2026-08-22 W4 scoping): this class is the single canonical owner
-    of execution-policy semantics — backend, dtype, jit/vmap, recurrent/synaptic
-    kernel selection — for the Configuration construction path. The tensor
+    of execution-policy semantics: backend, dtype, jit/vmap, recurrent/synaptic
+    kernel selection, for the Configuration construction path. The tensor
     workflow uses :class:`jaxfne.neuronal_tensor.RuntimeConfiguration`, which
     ``construct(tensor, runtime=...)`` bridges into these same resolved
     semantics; the two types are path-scoped views, not competing policies.
@@ -245,7 +245,7 @@ class RuntimeConfig:
         #   otherwise enforced = False with a clean warning (no false claim).
         # v0.3.40: simulate() pins execution to the requested backend device via
         # ``_device_scope`` (jax.default_device) when that device is available, so
-        # a non-"auto" backend is genuinely enforced — not merely reported. The
+        # a non-"auto" backend is genuinely enforced; not merely reported. The
         # report mirrors that: enforced iff the requested backend resolves to an
         # available device. Unavailable devices are an honest downgrade.
         backend_warning: Optional[str] = None
@@ -309,7 +309,7 @@ def _resolve_backend_device(backend: Optional[str]):
 
     ``None``/``"auto"`` returns ``None`` (let JAX keep its default device).
     ``"cpu"``/``"gpu"``/``"tpu"`` return that backend's first device when it
-    exists, else ``None`` — an honest fallback that never crashes and never
+    exists, else ``None``; an honest fallback that never crashes and never
     falsely claims placement on an absent device.
     """
     if not backend or backend == "auto":

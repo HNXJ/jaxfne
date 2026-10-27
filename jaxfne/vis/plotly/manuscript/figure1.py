@@ -1,4 +1,4 @@
-"""Figure 1 — Model validation: raster, population rate, V_m, LFP proxy sanity."""
+"""Figure 1. Model validation: raster, population rate, V_m, LFP proxy sanity."""
 from __future__ import annotations
 
 from .._common import require_plotly
@@ -7,7 +7,7 @@ from ..lfp import plot_lfp
 
 
 def build(signals, model, *, title: str = "Figure 1 — Model validation"):
-    """Spike raster, population rate, V_m traces, LFP proxy — basic simulated-activity sanity checks."""
+    """Spike raster, population rate, V_m traces, LFP proxy: basic simulated-activity sanity checks."""
     require_plotly()
     from plotly.subplots import make_subplots
 

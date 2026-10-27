@@ -1,4 +1,4 @@
-"""E3 sparse owned H_K RBS composition — gates and receipt."""
+"""E3 sparse owned H_K RBS composition: gates and receipt."""
 
 from __future__ import annotations
 

@@ -372,11 +372,11 @@ def _apply_triple_param_overrides(
     ``{field: value}`` mapping (the shape
     :func:`jaxfne.neuronal_tensor._resolve_tensor_emitter_family` returns):
     each entry overrides the named AdEx fields on every harvested neuron of
-    exactly that triple, matching drive semantics — two triples sharing a
+    exactly that triple, matching drive semantics; two triples sharing a
     cell type may carry different values. Unknown fields, non-finite
     values (bools refused, never coerced) and entries matching no harvested
     neuron are refused. A ``Vpeak_mV`` override must lie above that neuron's
-    (post-override) ``EL_mV`` — absence is omitting the key (NaN), never an
+    (post-override) ``EL_mV``: absence is omitting the key (NaN), never an
     explicit value at or below rest. Returns the params with the overridden columns
     replaced (same dtype handling as the caller: float64 here, cast later).
     """

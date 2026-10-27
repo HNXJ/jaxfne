@@ -123,7 +123,7 @@ def _check_vpeak_override(ctype: str, value: Any, type_fields: Mapping[str, floa
     """Refuse a non-finite ``Vpeak_mV`` override or one at or below ``EL``.
 
     ``EL`` is the type's override when one is declared, else its reference
-    value; NaN (or any other non-finite value, or a bool) is refused — absence
+    value; NaN (or any other non-finite value, or a bool) is refused, absence
     is declared by omitting the key, never by an explicit NaN.
     """
     if isinstance(value, bool):
@@ -566,7 +566,7 @@ def simulate_adex(
 
     The external drive is opt-in through six keyword arguments that are all given or all
     None: ``ext_targets`` (int ``[M]`` cell indices, unique, in range), ``ext_lambda``
-    (mean count per step per target, >= 0 — either a scalar float, or a per-step
+    (mean count per step per target, >= 0, either a scalar float, or a per-step
     schedule array ``[n_steps]`` (shared by every target) or ``[n_steps, M]`` (per
     target); finite values >= 0, bools refused), ``ext_weight_nS`` (conductance per count, >= 0),
     ``ext_receptor`` (a valid receptor index), ``ext_delay_steps`` (int >= 0; 0 is the
@@ -619,7 +619,7 @@ def simulate_adex(
     step's update, only if ``record_v``: 4.6 GB in float32 at 9500 cells and 120000 steps),
     and the final ``V``, ``w``, ``ref`` and ``g``. With delay-0 edges, also
     ``fixed_point_unresolved`` (int32 ``[n_steps]``: per step, the number of
-    cells that newly spiked in the final round and own delay-0 out-edges —
+    cells that newly spiked in the final round and own delay-0 out-edges;
     nonzero only where the cap stopped the loop) and ``fixed_point_rounds``
     (int32 ``[n_steps]``: rounds run after round 0); absent otherwise. A nonzero
     unresolved count anywhere refuses with ``ValueError`` naming the cap, the
@@ -1085,8 +1085,8 @@ def simulate_adex_hdp_registered(
 ) -> dict[str, Any]:
     """AdEx conductance network with a registered HDP rule (lane 7, gap G3).
 
-    Same conductance network as :func:`simulate_adex` — same validation,
-    delays, external drive, and per-step order — except each edge's
+    Same conductance network as :func:`simulate_adex`; same validation,
+    delays, external drive, and per-step order, except each edge's
     conductance weight is the plastic magnitude ``|w|`` (nS) carried under
     HDP: the HDP layer (``jaxfne._hdp_family_kernel``) supplies presynaptic
     arrivals, postsynaptic spikes, ``aux``, ``H`` and ``W`` to any rule in
@@ -1115,7 +1115,7 @@ def simulate_adex_hdp_registered(
     ``seed`` (an int seed) via a domain-separated fold of
     ``PRNGKey(seed)`` so an explicit ``seed=0`` never equals the
     all-None ``PRNGKey(0)`` below, else ``fold_in`` of the external key
-    when present, else a fixed base — never drawn from, so
+    when present, else a fixed base; never drawn from, so
     the external stream stays bit-identical. This kernel has no model
     route (the adex ``simulate()`` path runs ``simulate_adex`` and
     refuses HDP inputs), so callers pass ``seed`` explicitly; a non-int

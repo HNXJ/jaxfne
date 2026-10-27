@@ -3,7 +3,7 @@
 The ``lif`` route reuses the current-based (Izhikevich) bridge population and
 edge sampling bit-exactly, then swaps the emitter object for
 :class:`jaxfne.emitters_lif.LIFNetworkParams`: same neurons, same signed
-edge list, same posed positions and velocity delays — only the executed
+edge list, same posed positions and velocity delays; only the executed
 point-neuron equations change. ``simulate()`` dispatches on the emitter type
 (see ``jaxfne._model_simulate._simulate_lif``) into
 :func:`jaxfne.emitters_lif.simulate_lif_edge`.
@@ -33,7 +33,7 @@ def _position_group_of_neuron(
 
     Neurons sharing an exact ``(x, y)`` compete (ids in first-appearance
     order); ``z`` distinguishes the competitors within a group. Missing or
-    non-finite positions are refused, naming ``label`` — without geometry
+    non-finite positions are refused, naming ``label``, without geometry
     there is nothing to group by.
     """
     seen: dict[tuple[float, float], int] = {}
@@ -156,7 +156,7 @@ def _lif_bridge_alias_tensor(
 
     The lif route samples its population through the current-based bridge,
     which refuses cell types outside
-    :data:`jaxfne.emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS` — including the
+    :data:`jaxfne.emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS`, including the
     PCL natives ``"simple"``/``"complex"``. Each such lif-only type is
     renamed 1:1 onto a free Izhikevich name (counts, fractions, drives,
     geometry and connection structure untouched, so every RNG draw is
@@ -166,7 +166,7 @@ def _lif_bridge_alias_tensor(
     renamed types only (the family is forced past resolution and
     ``param_overrides`` were already extracted from the original tensor).
     Names the bridge knows (``"E"``, ``"PV"``, ...) and names neither family
-    knows pass through untouched — a typo still fails in the bridge.
+    knows pass through untouched; a typo still fails in the bridge.
 
     Returns ``(bridge_tensor, restore)`` with ``restore`` mapping
     alias -> original. Without lif-only types the tensor is returned as-is
@@ -507,7 +507,7 @@ def construct_lif_tensor_model(
             declared_inhibition.append(entry)
     if declared_inhibition:
         # One spec executes per step; several distinct specs (different
-        # rounds, order or resolution) are refused by name — the kernel runs
+        # rounds, order or resolution) are refused by name; the kernel runs
         # a single intra-step fixed point per step, grouped per position below.
         # The scan replay carries no rounds (rounds-free specs record None).
         _distinct = sorted(

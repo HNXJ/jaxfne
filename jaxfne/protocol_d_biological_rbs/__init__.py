@@ -1,4 +1,4 @@
-"""Protocol D (0.4.17-D) — biological RBS containment specification.Checkout-coupled by design: loaders resolve spec/receipt paths against the
+"""Protocol D (0.4.17-D): biological RBS containment specification.Checkout-coupled by design: loaders resolve spec/receipt paths against the
 repository root ``artifacts/`` tree. Not part of the stable public API
 surface; functions only inside a full checkout.
 """

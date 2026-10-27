@@ -1,4 +1,4 @@
-"""D1 static H_K expression — frozen sweep and gate receipts."""
+"""D1 static H_K expression: frozen sweep and gate receipts."""
 
 from __future__ import annotations
 

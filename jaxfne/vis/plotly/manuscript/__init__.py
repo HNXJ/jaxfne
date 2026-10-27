@@ -16,10 +16,10 @@ __all__ = ["manuscript_figures", "figure0", "figure1", "figure2", "figure3", "fi
 def manuscript_figures(signals, model, *, perturbation_signals=None, hierarchy_signals=None) -> FigureBundle:
     """Build the full manuscript figure set as a :class:`FigureBundle`.
 
-    ``signals``/``model`` — the baseline run, used for Figures 0-2.
-    ``perturbation_signals`` — optional ``{condition: Signals}`` dict for
+    ``signals``/``model``: the baseline run, used for Figures 0-2.
+    ``perturbation_signals``: optional ``{condition: Signals}`` dict for
     Figure 3 (cell-type suppression); falls back to baseline-only if omitted.
-    ``hierarchy_signals`` — optional ``{condition: Signals}`` dict for
+    ``hierarchy_signals``: optional ``{condition: Signals}`` dict for
     Figure 4 (FF/FB manipulation); falls back to baseline-only if omitted.
     """
     figures = {

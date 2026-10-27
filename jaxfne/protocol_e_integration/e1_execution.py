@@ -1,4 +1,4 @@
-"""E1 two-area laminar hierarchy — construction, identity, gates, receipt."""
+"""E1 two-area laminar hierarchy: construction, identity, gates, receipt."""
 
 from __future__ import annotations
 

@@ -572,7 +572,6 @@ def _tune_multiparameter(
 
     cfg_meta = self.cfg.metadata
 
-    # Build base report
     base_report: dict[str, Any] = {
         "same_model_unchanged": True,
         "seed": int(seed),
@@ -875,7 +874,7 @@ def with_emitter_parameters(
             Overrides both scalar drive_scale and emitter.drive.
 
     Returns:
-        New Model — original is not mutated.
+        New Model; original is not mutated.
     """
     emitter = self._require_izhikevich_emitter("with_emitter_parameters")
     updates: dict[str, Any] = {}
@@ -939,7 +938,7 @@ def with_hdp_initial_state(
             native ``weight`` when not provided.
 
     Returns:
-        New Model — original is not mutated.
+        New Model; original is not mutated.
     """
     # Local import: _runtime_config_from_metadata stays in core.py (used by
     # both Model and the module-level simulate() function); deferring the

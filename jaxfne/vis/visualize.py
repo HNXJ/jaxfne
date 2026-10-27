@@ -2,7 +2,7 @@
 
 `sources = jtfne.simulate(model)` remains the sole simulation contract.
 `jtfne.visualize(model, signals)` is an additive, optional post-hoc layer
-that reuses the existing jaxfne.vis surface — it adds no numerics, no new
+that reuses the existing jaxfne.vis surface; it adds no numerics, no new
 field solver, and no physical-amplitude claim. All panels are proxy
 readouts (relative units) backed by the same Izhikevich scaffold.
 
@@ -19,9 +19,9 @@ readouts (relative units) backed by the same Izhikevich scaffold.
 
 Backend
 -------
-* ``backend="static"``  — matplotlib (default, Agg-safe, no GUI)
-* ``backend="plotly"``  — interactive Plotly (requires ``pip install jaxfne[viz]``)
-* ``backend="both"``    — return dict with ``*_static`` + ``*_plotly`` keys
+* ``backend="static"``: matplotlib (default, Agg-safe, no GUI)
+* ``backend="plotly"``: interactive Plotly (requires ``pip install jaxfne[viz]``)
+* ``backend="both"``: return dict with ``*_static`` + ``*_plotly`` keys
 
 Large-network handling
 ----------------------
@@ -33,7 +33,7 @@ Zero-overhead guarantee
 This module is *not* imported by ``jaxfne.core`` or ``jaxfne._model``.
 It is loaded lazily on first ``jtfne.visualize`` / ``jtfne.vis.visualize``
 attribute access (see :class:`jaxfne._RuntimeModuleWrapper`). A fresh
-``import jaxfne.core`` must not attach matplotlib/plotly — covered by
+``import jaxfne.core`` must not attach matplotlib/plotly; covered by
 ``test_simulation_engine_has_zero_graphics_overhead``.
 """
 
@@ -41,7 +41,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional, Sequence
 
-# Large-network thresholds — deterministic, artifact-visible in receipt.
+# Large-network thresholds; deterministic, artifact-visible in receipt.
 LARGE_N_RASTER = 2000
 LARGE_N_CONNECTIVITY = 600
 LARGE_N_GEOMETRY = 5000
@@ -210,7 +210,6 @@ def _hdp_diagnostics(model: Any, signals: Any) -> dict[str, Any]:
                     out.setdefault(k, v)
         except Exception:
             pass
-    # signals.metadata["hdp"]
     meta = getattr(signals, "metadata", {}) if not isinstance(signals, dict) else signals.get("metadata", {})
     if isinstance(meta, dict) and "hdp" in meta and isinstance(meta["hdp"], dict):
         for k, v in meta["hdp"].items():
@@ -237,7 +236,7 @@ def _panel_network_structure(model: Any, signals: Any, *, backend: str = "static
             try:
                 from jaxfne.vis.network3d import visualize_network_3d
 
-                # Cap for very large networks — caller-visible sample
+                # Cap for very large networks; caller-visible sample
                 rows = _neuron_rows(model, signals)
                 if len(rows) > LARGE_N_GEOMETRY:
                     import numpy as _np
@@ -332,7 +331,7 @@ def _panel_connectivity(model: Any, signals: Any, *, backend: str = "static") ->
             fig, ax = plt.subplots()
             ax.text(0.5, 0.5, f"Plotly connectivity unavailable:\n{exc}", ha="center", va="center")
             return fig
-    # static — handle dense vs sparse without O(N^2) alloc
+    # static: handle dense vs sparse without O(N^2) alloc
     from jaxfne.vis.core import require_matplotlib
 
     require_matplotlib()
@@ -358,7 +357,7 @@ def _panel_connectivity(model: Any, signals: Any, *, backend: str = "static") ->
     # Choose rendering path
     if edge is not None and edge["n_edges"] > 0:
         n_edges = edge["n_edges"]
-        # Large-edge cap — deterministic subsample
+        # Large-edge cap; deterministic subsample
         if n_edges > MAX_CONNECTIVITY_EDGES:
             rng = _np.random.default_rng(DEFAULT_SAMPLE_SEED)
             sel = rng.choice(n_edges, size=MAX_CONNECTIVITY_EDGES, replace=False)
@@ -443,7 +442,7 @@ def _panel_connectivity(model: Any, signals: Any, *, backend: str = "static") ->
 
 
 def _panel_parameter_summary(model: Any, signals: Any, *, backend: str = "static") -> Any:
-    # summary is intentionally identical across backends — text/table is a static concept;
+    # summary is intentionally identical across backends; text/table is a static concept;
     # for backend=plotly we return a Plotly Table figure.
     import numpy as _np
 
@@ -473,7 +472,6 @@ def _panel_parameter_summary(model: Any, signals: Any, *, backend: str = "static
     n_contacts = int(static.get("n_contacts", 16)) if isinstance(static, dict) else 16
     n_edges = int(edge["n_edges"]) if edge is not None else (int(_np.count_nonzero(W)) if W is not None else 0)
 
-    # weight stats
     weight_stats = None
     if edge is not None and edge["weight"] is not None and edge["weight"].size:
         w = edge["weight"]
@@ -592,7 +590,7 @@ def _panel_parameter_summary(model: Any, signals: Any, *, backend: str = "static
     lines.append("Note: all values are relative proxy units; no physical-amplitude claim.")
     ax_top.text(0.02, 0.98, "\n".join(lines), ha="left", va="top", fontsize=9, family="monospace", transform=ax_top.transAxes)
 
-    # Bottom panels — weight hist + layer/cell-type bar (if available)
+    # Bottom panels: weight hist + layer/cell-type bar (if available)
     ax_bl = fig.add_subplot(gs[1, 0])
     ax_br = fig.add_subplot(gs[1, 1])
     if weight_stats is not None:
@@ -653,7 +651,7 @@ def _panel_raster(model: Any, signals: Any, *, backend: str = "static") -> Any:
         ax.text(0.5, 0.5, "No spikes in signals", ha="center", va="center")
         ax.set_title("Raster — no data")
         return fig
-    # Large handling — random cap on rendered points (spike dots), deterministic
+    # Large handling: random cap on rendered points (spike dots), deterministic
     # Keep the underlying rate truth intact; only rendering is subsampled.
     if spikes.size > 0:
         n_neurons = spikes.shape[1] if spikes.ndim > 1 else 1
@@ -668,7 +666,7 @@ def _panel_raster(model: Any, signals: Any, *, backend: str = "static") -> Any:
                 note = f"sampled {MAX_RASTER_POINTS}/{total_dots} spikes for display (N={n_neurons})"
             else:
                 note = f"N={n_neurons} (large), all {total_dots} spikes shown" if total_dots else ""
-            # synthesize a lightweight signals holder that raster() understands — reuse raw arrays
+            # synthesize a lightweight signals holder that raster() understands; reuse raw arrays
             # Build a minimal holder and call raster with subsampled spikes matrix reconstructed as
             # sparse scatter here rather than reconstructing dense matrix.
             fig, ax = plt.subplots(figsize=(10, 4))
@@ -692,7 +690,7 @@ def _panel_raster(model: Any, signals: Any, *, backend: str = "static") -> Any:
             ax.set_ylabel(ylabel)
             ax.grid(True, alpha=0.2)
             return fig
-    # small — use existing vis
+    # small: use existing vis
     try:
         from jaxfne.vis.rasters import raster
 
@@ -754,7 +752,7 @@ def _panel_population_rates(model: Any, signals: Any, *, backend: str = "static"
             return fig
         except Exception:
             pass
-    # fallback — mean rate only
+    # fallback: mean rate only
     try:
         from jaxfne.vis.traces import rate
 
@@ -771,7 +769,7 @@ def _panel_population_rates(model: Any, signals: Any, *, backend: str = "static"
 
 def _panel_state_traces(model: Any, signals: Any, *, backend: str = "static") -> Any:
     # State traces panel is static-first; plotly path reuses the same matplotlib grid
-    # exported as Plotly via mpl-to-plotly would be opaque — instead we produce
+    # exported as Plotly via mpl-to-plotly would be opaque; instead we produce
     # plotly traces explicitly when backend==plotly.
     diag = _hdp_diagnostics(model, signals)
     has_H = any(k in diag for k in ("H_trace", "H_final", "H"))
@@ -808,7 +806,7 @@ def _panel_state_traces(model: Any, signals: Any, *, backend: str = "static") ->
                         fig.add_trace(go.Scatter(x=_np.asarray(time_ms)[:Ht.shape[0]], y=_np.mean(Ht, axis=1), mode="lines", name="H mean"), row=2, col=1)
                     elif Ht.ndim == 3:
                         fig.add_trace(go.Scatter(x=_np.asarray(time_ms)[:Ht.shape[0]], y=_np.mean(Ht, axis=(1,2)), mode="lines", name="H mean"), row=2, col=1)
-            # W trace — histogram of final weights
+            # W trace: histogram of final weights
             if has_W and rows_plot >= 2:
                 w = diag.get("w_final")
                 if w is None:
@@ -839,7 +837,7 @@ def _panel_state_traces(model: Any, signals: Any, *, backend: str = "static") ->
     fig, axes = plt.subplots(n_rows, 1, figsize=(10, 3.0 * n_rows), sharex=True, squeeze=False)
     axes = axes[:, 0].tolist()
 
-    # Row 0 — V traces
+    # Row 0: V traces
     ax = axes[0]
     if Vm is not None and time_ms is not None:
         if Vm.ndim == 1:
@@ -860,7 +858,7 @@ def _panel_state_traces(model: Any, signals: Any, *, backend: str = "static") ->
         ax.text(0.5, 0.5, "V_m not available", ha="center", va="center", transform=ax.transAxes)
         ax.set_title("State traces — V / H / W (proxy)")
 
-    # Row 1 — H
+    # Row 1: H
     if show_H:
         ax_h = axes[1]
         Ht = diag.get("H_trace")
@@ -893,7 +891,7 @@ def _panel_state_traces(model: Any, signals: Any, *, backend: str = "static") ->
             ax_h.text(0.5, 0.5, "H_trace not available (enable_hdp=True to record)", ha="center", va="center", transform=ax_h.transAxes)
             ax_h.set_ylabel("H (proxy)")
 
-    # Row 2 — W
+    # Row 2: W
     if show_W:
         ax_w = axes[-1]
         w_final = diag.get("w_final")
@@ -980,7 +978,7 @@ def _panel_source(model: Any, signals: Any, *, backend: str = "static") -> Any:
         t = _np.arange(src.shape[0])
     fig, axes = plt.subplots(2, 1, figsize=(10, 5), gridspec_kw={"height_ratios": [3, 1]}, sharex=True)
     ax_top, ax_bot = axes
-    # Top — traces (mean +/- std for large, sampled for small large)
+    # Top: traces (mean +/- std for large, sampled for small large)
     if src.ndim > 1 and src.shape[1] > MAX_TRACE_NEURONS:
         if src.shape[1] > 64:
             mean = _np.mean(src, axis=1)
@@ -1009,7 +1007,7 @@ def _panel_source(model: Any, signals: Any, *, backend: str = "static") -> Any:
         ax_top.set_title("Source Q(t) — per-neuron traces (proxy, uncalibrated)", fontsize=11)
     ax_top.set_ylabel("Source (proxy)")
     ax_top.grid(True, alpha=0.2)
-    # Bottom — absolute-mean evolution as Q summary (same semantics as _compute_all_metrics)
+    # Bottom: absolute-mean evolution as Q summary (same semantics as _compute_all_metrics)
     try:
         q_abs_mean = _np.mean(_np.abs(src), axis=1) if src.ndim > 1 else _np.abs(src)
         ax_bot.plot(t, q_abs_mean, color="teal", linewidth=1.0)
@@ -1055,7 +1053,7 @@ def _panel_field_probe(model: Any, signals: Any, *, backend: str = "static") -> 
         except Exception:
             # Fall back to matplotlib -> still return something
             backend = "static"
-    # static — delegate to existing vis, but also handle stacking for readability
+    # static: delegate to existing vis, but also handle stacking for readability
     try:
         from jaxfne.vis.traces import lfp as _lfp_static
 
@@ -1116,7 +1114,7 @@ def visualize(
     model : Model | None
         The :class:`jaxfne.Model` used to produce ``signals``. May be
         ``None`` when only ``signals``-only panels (raster/rates/…) are
-        desired — panels 1–3 will render as "unavailable" placeholders.
+        desired; panels 1–3 will render as "unavailable" placeholders.
     signals : Signals
         The :class:`jaxfne.Signals` returned by :func:`jaxfne.simulate`
         (or ``model.simulate``). Must carry ``time_ms`` and ``spikes`` at
@@ -1131,8 +1129,8 @@ def visualize(
         If provided, figures are written to this directory (and the manifest
         is returned alongside). ``formats`` controls file extensions.
     formats : Sequence[str]
-        Export formats for ``save_dir`` (e.g. ``("png","pdf","html")``
-        — ``html`` is only written for plotly figures).
+        Export formats for ``save_dir`` (e.g. ``("png","pdf","html")``;
+        ``html`` is only written for plotly figures).
     dpi : int
         Matplotlib export DPI.
     show : bool
@@ -1146,16 +1144,16 @@ def visualize(
         whose keys are the 8 panel names (or 16 keys when ``backend="both"``).
         When ``save_dir`` is set, the bundle is still returned and files are
         written as a side-effect; an additional ``.manifest`` attribute
-        (or second return element) is not needed — inspect ``bundle.figures``.
+        (or second return element) is not needed; inspect ``bundle.figures``.
 
     Notes
     -----
     * This function adds *no* simulation numerics. It is safe to call many
       times on the same ``(model, signals)`` without re-running the kernel.
-    * Large networks are handled by deterministic downsampling (seed 0) —
+    * Large networks are handled by deterministic downsampling (seed 0);
       panels never allocate ``N×N`` dense matrices for ``N > 600``.
     * All panels that show physical-like axes are explicitly labelled
-      "proxy" / "uncalibrated" — no physical-amplitude claim.
+      "proxy" / "uncalibrated"; no physical-amplitude claim.
 
     Examples
     --------
@@ -1188,7 +1186,7 @@ def visualize(
     bundle = FigureBundle(figures)
 
     if save_dir is not None:
-        # Export may raise if formats include "html" for static figs — export_figures
+        # Export may raise if formats include "html" for static figs; export_figures
         # already skips html for matplotlib figures, so this is safe.
         bundle.export(save_dir, formats=tuple(formats), dpi=int(dpi))
 
@@ -1236,7 +1234,7 @@ def _visualize_plotly(model: Any, signals: Any) -> Dict[str, Any]:
     }
 
 
-# Backwards-tick alias — some notebooks used `visualise` spelling historically.
+# Backwards-tick alias: some notebooks used `visualise` spelling historically.
 # Not advertised, but do not break search-and-replace across siloed copies.
 visualise = visualize
 

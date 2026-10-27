@@ -1,6 +1,6 @@
 """STDP/plasticity adaptation visualization suite.
 
-Moved from ``jaxfne.plasticity`` — keeps the legacy direct-to-disk save
+Moved from ``jaxfne.plasticity``; keeps the legacy direct-to-disk save
 behavior (writes 4 PNGs, returns ``None``) since downstream call sites pass
 ``fig_dir``/``prefix`` rather than expecting figure objects back.
 """

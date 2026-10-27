@@ -1,11 +1,11 @@
-"""PseudoGenome development viewer — G → D(K_D) → N (not storage).
+"""PseudoGenome development viewer: G → D(K_D) → N (not storage).
 
 Standalone HTML viewer that shows configured→realized development: genome JSON
 rules vs realized NeuronalTensor arrays (counts, positions, edges, weights,
 delays) and compares two developments with the same genome but different K_D
 (seeds).
 
-Δscience=0 — additive, read-only, optional. Never touches emitter kernels,
+Δscience=0; additive, read-only, optional. Never touches emitter kernels,
 samplers, or solver paths. Plotly is imported lazily inside the render
 function only when the viewer is used, so ``import jaxfne`` pays no graphics
 overhead when the viewer is not used.
@@ -38,7 +38,7 @@ from .column_viewer import _classify_edge as _edge_category
 
 
 # ---------------------------------------------------------------------------
-# Helpers — pure NumPy/JAX host reads, no simulation re-run beyond develop+construct
+# Helpers: pure NumPy/JAX host reads, no simulation re-run beyond develop+construct
 # ---------------------------------------------------------------------------
 
 
@@ -72,7 +72,7 @@ def _collect_one_development(genome, seed: int, *, construct_seed: int = 7, dura
             for nt in layer.neuron_types:
                 frac = float(nt.fraction or 0.0)
                 counts[str(nt.name)] = int(round(n * frac))
-            # correct rounding drift (largest remainder if needed) — use same logic as develop
+            # correct rounding drift (largest remainder if needed); use same logic as develop
             s = sum(counts.values())
             if s != n:
                 # adjust largest fractional part
@@ -144,7 +144,6 @@ def _collect_one_development(genome, seed: int, *, construct_seed: int = 7, dura
     weight_std = float(weight.std()) if n_edges else None
     weight_min = float(weight.min()) if n_edges else None
     weight_max = float(weight.max()) if n_edges else None
-    # provenance
     prov = getattr(tensor, "provenance", None)
 
     return {
@@ -179,7 +178,6 @@ def collect_pseudogenome_development_data(genome, seeds: Sequence[int] = (0, 1),
 
     rules_hash = genome_rules_hash(genome)
     constraints = declared_constraints(genome)
-    # genome rules summary
     genome_rules: dict[str, Any] = {
         "name": genome.name,
         "schema_version": genome.schema_version,
@@ -266,14 +264,14 @@ def render_pseudogenome_development_viewer(
 
     The HTML visualizes the configured→realized split:
 
-    * **Configured (G):** genome JSON rules — layer counts, per-layer
+    * **Configured (G):** genome JSON rules: layer counts, per-layer
       cell-type base fractions with tolerance bands, depth bands, geometry,
       typed connection rules, development parameters. The genome stores
       rules, never positions/edges.
     * **Development D(K_D):** the ``develop`` operator with independent PRNG
       domain K_D. Same G + same K_D → same N; same G + different K_D → different
       N within bands.
-    * **Realized (N):** NeuronalTensor arrays + constructed Model arrays —
+    * **Realized (N):** NeuronalTensor arrays + constructed Model arrays:
       per-layer integer counts, positions (x/y/z), EdgeList (pre/post, weights,
       delays, tau), degree.
 
@@ -284,7 +282,7 @@ def render_pseudogenome_development_viewer(
     seeds : Sequence[int]
         Two K_D seeds to compare (default ``(0, 1)``). Same genome, different K_D.
     construct_seed : int
-        K_S (runtime) seed used to construct both developments — held fixed so
+        K_S (runtime) seed used to construct both developments; held fixed so
         differences are attributable to K_D only (counts, edge realization), not K_S.
     output_path : str | Path
         Where to write the standalone HTML (Plotly.js via CDN).
@@ -391,7 +389,7 @@ def render_pseudogenome_development_viewer(
     if not conn_rows:
         conn_rows = "<tr><td colspan=5 class='note'>no inter_connections declared</td></tr>"
 
-    # realized counts rows — per-layer side-by-side for seed0 vs seed1
+    # realized counts rows: per-layer side-by-side for seed0 vs seed1
     realized_rows = ""
     for a0, a1 in zip(d0["layer_realized"], d1["layer_realized"]):
         c0_parts = []
@@ -416,7 +414,6 @@ def render_pseudogenome_development_viewer(
     }
 
     n_rules_inter = int(data["n_rules_inter"])
-    # verification
     verification: dict[str, Any] = {
         "genome_is_rules_not_storage": True,  # genome JSON has no positions/edges
         "genome_rules_hash": data["genome_rules_hash"],

@@ -11,7 +11,7 @@ def plot_connectivity(model, *, max_neurons: int = 300, title: str = "Recurrent 
 
     Neurons are ordered by (area, layer, cell_type) so block structure is
     visible. Subsamples to ``max_neurons`` if the column is larger (dense
-    NxN reconstruction is for visualization only — never used in the sim).
+    NxN reconstruction is for visualization only; never used in the sim).
     """
     require_plotly()
     import plotly.graph_objects as go

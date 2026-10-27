@@ -1,4 +1,4 @@
-"""E4 observation-chain composition — frozen trajectory, gates, receipt."""
+"""E4 observation-chain composition: frozen trajectory, gates, receipt."""
 
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ _BANNED_RECEIPT_TERMS = (
 
 @dataclass(frozen=True)
 class FrozenE4Trajectory:
-    """Single E3 simulate per seed — source of truth for all E4 observation."""
+    """Single E3 simulate per seed: source of truth for all E4 observation."""
 
     seed: int
     neural_mode: E3Mode

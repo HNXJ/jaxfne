@@ -1,4 +1,4 @@
-"""C3 prospective neural execution — frozen 60-cell geometry/delay experiment."""
+"""C3 prospective neural execution: frozen 60-cell geometry/delay experiment."""
 
 from __future__ import annotations
 

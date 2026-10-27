@@ -245,7 +245,7 @@ class ConnectionCompileResult:
     diagnostics: dict[str, Any] = field(default_factory=dict)
     # Configured per-edge delay in ms (0.0 where the rule declared none).
     # Realized steps are derived at construction, where dt is known, via
-    # :func:`delay_steps_from_ms` — never here.
+    # :func:`delay_steps_from_ms`; never here.
     edge_delay_ms: jax.Array | None = None
 
     @property
@@ -264,7 +264,7 @@ class ConnectionCompileResult:
         when given, each edge's ``delay_steps`` is
         :func:`delay_steps_from_ms` of its configured ms at that timestep
         (a positive delay rounding to 0 steps raises); when omitted, delays
-        stay zero — exactly the pre-0.5.2 EdgeList.
+        stay zero; exactly the pre-0.5.2 EdgeList.
         """
         from .emitters import EdgeList
 
@@ -910,7 +910,7 @@ def _stable_fold(seed: Any) -> int:
     """Deterministic 31-bit fold value from a weight-spec ``seed``.
 
     Uses the integer directly when possible, otherwise a content hash
-    (``hashlib.sha256``) — never the builtin ``hash()``, which is randomized
+    (``hashlib.sha256``); never the builtin ``hash()``, which is randomized
     per-process for strings (PEP 456 / ``PYTHONHASHSEED``) and would break the
     determinism contract for string seeds.
     """
@@ -1085,7 +1085,7 @@ def compile_connection_rules(
     undeclared): validated here (finite, >= 0), fanned out per edge onto
     ``edge_delay_ms``, and recorded on the connection-table row. Realization
     to integer steps happens at construction via :func:`delay_steps_from_ms`
-    (0.5.2 decision 0b), where ``dt`` is known — never here.
+    (0.5.2 decision 0b), where ``dt`` is known; never here.
 
     A rule may set ``intra_step_rounds`` (None = undeclared): the declared
     intra-step fixed point for zero-delay edges, realized on the adex route

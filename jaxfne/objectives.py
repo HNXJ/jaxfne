@@ -1,7 +1,7 @@
 """
 Spectrolaminar objective and null distribution functions.
 
-Docs: ``docs/reference/api/readout/objectives.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/readout/objectives/) —
+Docs: ``docs/reference/api/readout/objectives.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/readout/objectives/):
 update that page when this module's public API changes.
 
 This module implements spectrolaminar profile scoring with null distributions
@@ -338,7 +338,7 @@ def spectrolaminar_objective(
         Seed for the null-distribution generator. When provided, the null
         sample sequence is reproducible across runs while still drawing
         distinct samples within a single run. When ``None`` (default), an
-        unseeded generator is used — nondeterministic by design, preserving
+        unseeded generator is used; nondeterministic by design, preserving
         legacy behavior.
 
         Note: a single generator is shared across all null types in the order
@@ -354,7 +354,6 @@ def spectrolaminar_objective(
     """
     rejection_reasons = []
 
-    # Check teaching/control source
     if readout.get("metadata", {}).get("teaching_control_source", False):
         rejection_reasons.append("teaching_control_source_detected")
 
@@ -427,7 +426,6 @@ def spectrolaminar_objective(
             null_mean = np.mean(null_scores)
             null_std = np.std(null_scores)
 
-            # Compute actual profile score
             actual_report = spectrolaminar_profile_score(
                 readout, target_alpha_beta, target_gamma, similarity_metric
             )
@@ -468,7 +466,7 @@ def spectrolaminar_objective(
 
     if synchrony_spikes is not None and synchrony_metric is not None:
         # Degenerate/undefined synchrony is handled inside compute_synchrony_metric
-        # (returns 0.0). Implementation errors must propagate — swallowing would let a
+        # (returns 0.0). Implementation errors must propagate; swallowing would let a
         # failed gate appear as synchrony_rejection=False while synchrony_checked=True.
         synchrony_value = compute_synchrony_metric(
             synchrony_spikes, method=synchrony_metric

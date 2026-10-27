@@ -223,7 +223,7 @@ def geometry3d_from_config(cfg: Any, *, areas=None, cell_types=None, figsize=(9,
     """Internal: synthesise 3D geometry scatter from Configuration metadata.
 
     SYNTHETIC PROVENANCE (P4): the plotted coordinates are uniform random
-    draws (``rng(42)``), NOT declared geometry — they stand in for column
+    draws (``rng(42)``), NOT declared geometry; they stand in for column
     layout only. Axes are relative/synthetic units; no calibrated-mm mapping
     is implied. Do not use for field/geometry claims.
     """

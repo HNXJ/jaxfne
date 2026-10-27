@@ -1,4 +1,4 @@
-"""Interactive canonical cortical column viewer — realized EdgeList only.
+"""Interactive canonical cortical column viewer: realized EdgeList only.
 
 Standalone HTML viewer for a canonical cortical column (or any Model):
 layer, E/I class, position (x/y/z), phenotype, H ownership, degree,
@@ -9,7 +9,7 @@ source of truth, not just the configured spec (``cfg.metadata["connectivity"]``)
 A Configured→Realized table shows what was requested vs what was materialized.
 All numerics are read from the executed Model; no new simulation is run.
 
-Δscience = 0 — this module is additive, read-only, and optional. It never
+Δscience = 0; this module is additive, read-only, and optional. It never
 touches emitter kernels, samplers, or solver paths. Plotly is imported lazily
 inside the render function so ``import jaxfne`` pays no graphics overhead when
 the viewer is not used (enforced by ``test_simulation_engine_has_zero_graphics_overhead``).
@@ -38,7 +38,7 @@ from .core import is_E_cell_type as _is_E
 
 
 # ---------------------------------------------------------------------------
-# Data collection (pure NumPy/JAX host reads — no simulation, no Plotly)
+# Data collection (pure NumPy/JAX host reads; no simulation, no Plotly)
 # ---------------------------------------------------------------------------
 
 def _classify_edge(pre_is_E: bool, post_is_E: bool) -> str:
@@ -204,7 +204,7 @@ def collect_column_viewer_data(model, *, max_edges_for_stats: int = 200_000) -> 
         sample_idx = rng.choice(n_edges, size=max_edges_for_stats, replace=False)
     w_sample = weight[sample_idx] if n_edges else np.array([], dtype=float)
     delay_sample = delay_steps[sample_idx] if n_edges else np.array([], dtype=int)
-    # per-category weight means (full population, not sample — cheap reductions)
+    # per-category weight means (full population, not sample; cheap reductions)
     cat_w_mean: dict[str, float | None] = {}
     cat_w_std: dict[str, float | None] = {}
     for cat in ("E→E", "E→I", "I→E", "I→I"):
@@ -333,7 +333,7 @@ def render_column_viewer(
     Parameters
     ----------
     model : Model
-        Constructed ``jaxfne.Model`` (after ``construct()``) — the viewer
+        Constructed ``jaxfne.Model`` (after ``construct()``): the viewer
         reads its realized ``edge_list`` and ``neuron_table``.
     output_path : str | Path
         Where to write the HTML (parent directories created).
@@ -406,7 +406,7 @@ def render_column_viewer(
                 "text": hover, "hoverinfo": "text",
             })
 
-    # edge traces — one per category (E→E etc. + FF/FB) so toggle checkboxes can hide them
+    # edge traces: one per category (E→E etc. + FF/FB) so toggle checkboxes can hide them
     edge_traces: list[dict[str, Any]] = []
     edge_colors = {"E→E": "#66c2a5", "E→I": "#fc8d62", "I→E": "#8da0cb", "I→I": "#e78ac3", "FF": "#ffd92f", "FB": "#a6d854"}
     # cap per category deterministically (first N in file order, but sampled if > cap)
@@ -524,7 +524,6 @@ def render_column_viewer(
         f"<tr><td>Layers → counts</td><td>{json.dumps(configured.get('layer_fractions', {}), indent=0)[:300] if configured.get('layer_fractions') else '—'}</td><td>{json.dumps(realized['layer_counts'])}</td></tr>"
         f"<tr><td>Cell-type → counts</td><td>—</td><td>{json.dumps(realized['celltype_counts'])} phenotype distinct {len(realized['phenotype_counts'])}</td></tr>"
     )
-    # configured JSON pretty
     configured_pre = json.dumps(configured, indent=2, default=str) if configured else "{}"
     # escape for html
     def _esc(s: str) -> str:

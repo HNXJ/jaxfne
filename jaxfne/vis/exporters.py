@@ -1,4 +1,4 @@
-"""Canonical figure export — replaces save_figure/save_figures/save_png.
+"""Canonical figure export: replaces save_figure/save_figures/save_png.
 
 Single entry point for writing any jaxfne figure (matplotlib OR plotly) to
 disk. Detects the figure type; no caller-side backend branching needed.
@@ -30,7 +30,7 @@ def export_figure(fig, path, *, formats: tuple = ("html",), dpi: int = 150) -> d
     """Export one figure (matplotlib or plotly) to one or more formats.
 
     Matplotlib figures: ``formats`` should be image formats (``png``, ``svg``,
-    ``pdf``) — ``html`` is rejected. Plotly figures: ``html`` writes a
+    ``pdf``); ``html`` is rejected. Plotly figures: ``html`` writes a
     standalone interactive page; ``png``/``svg``/``pdf`` rasterize via kaleido.
 
     Returns ``{format: path}``.

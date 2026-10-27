@@ -2,7 +2,7 @@
 
 Docs: the laminar/spectrolaminar trial pipeline is documented in
 ``docs/tutorials/`` (https://jaxfne.readthedocs.io/en/latest/tutorials/) and the
-API catalog ``docs/reference/api/index.md`` — update those when this module changes.
+API catalog ``docs/reference/api/index.md``: update those when this module changes.
 """
 from __future__ import annotations
 
@@ -297,14 +297,14 @@ def kappa_synchrony(spikes: np.ndarray, dt_ms: float = 0.1) -> float:
         pairwise correlations, its diagonal is 1, and the mean over the
         ``M(M-1)`` off-diagonal entries equals ``(C.sum() - M) / (M(M-1))``. This
         is mathematically identical to the pairwise loop but runs as a single
-        BLAS matmul — O(N²·T) with no Python-level pair loop (≈1000× faster at
+        BLAS matmul, O(N²·T) with no Python-level pair loop (≈1000× faster at
         N≈400, and the only tractable form at N≈1000).
     """
     spikes = np.asarray(spikes, dtype=float)
     if spikes.size == 0 or spikes.ndim != 2:
         return float("nan")
 
-    # Shape is [T, N] — n_neurons is the second dimension
+    # Shape is [T, N]; n_neurons is the second dimension
     n_timesteps, n_neurons = spikes.shape
     if n_neurons < 2 or n_timesteps < 1:
         return float("nan")
@@ -335,7 +335,7 @@ def rate_synchrony_targets(
     Create an objective specification for AGSDR tuning toward rate and synchrony targets.
 
     Args:
-        target_rate_hz: target population firing rate (Hz). Default 10.0 — the
+        target_rate_hz: target population firing rate (Hz). Default 10.0; the
             canonical balanced cortical operating point.
         target_kappa_synchrony: target kappa synchrony value. Default 0.0
             (asynchronous-irregular), required for an unbiased spectrolaminar
@@ -848,7 +848,6 @@ def make_laminar_column_config(
             'VIP': {'a': 0.02,  'b': 0.20,  'c': -55.0, 'd': 6.0,  'drive': 5.0, 'noise': 0.5},
         }
 
-    # Validate all cell-type parameters
     _validate_cell_type_izh_params(cell_type_izh_params)
 
     if connectivity_spec is None:
@@ -1240,7 +1239,7 @@ def build_laminar_column(cfg: LaminarColumnConfig) -> dict:
 
             # Vertical-cylinder geometry: depth runs along z; the (x, y) base is a
             # circular cross-section of radius ``radius_rel * cx_m`` centred on the
-            # area. This is the "cylindric rule" — each area is a slender vertical
+            # area. This is the "cylindric rule": each area is a slender vertical
             # column, areas separated along x by ``area_x_rel``.
             layer_frac_min, layer_frac_max = next(
                 (f[1:] for f in cfg.layer_fractions if f[0] == layer),
@@ -1518,7 +1517,7 @@ def simulate_laminar_trials(
     inh_gain = float(control.get('local_inh_gain', 1.0))
 
     # Global Izhikevich params (per-neuron a,b,c,d,drive,sign) from labels; its
-    # built-in W is discarded — we build a custom multi-area W below.
+    # built-in W is discarded; we build a custom multi-area W below.
     params = izhikevich_params_from_labels(
         tuple(cell_labels), layer_labels=tuple(layer_labels), dtype=cfg.dtype,
     )
@@ -1921,7 +1920,7 @@ def spectrolaminar_from_trials(
     # Compute the spectral magnitude per trial, then average the per-trial
     # spectra. Averaging the raw signal in the TIME domain first (the previous
     # behavior) cancels every oscillation that is not phase-locked across trials
-    # and leaves mostly noise — which is why adding trials never cleaned up the
+    # and leaves mostly noise, which is why adding trials never cleaned up the
     # motif and the power spectrum looked like a checkerboard. Power/magnitude
     # averaging is the standard estimator for laminar oscillatory power: each
     # added trial genuinely reduces variance and reveals the band structure.
@@ -1955,8 +1954,8 @@ def spectrolaminar_from_trials(
     # profiles share a [0, 1] scale and visibly cross near L4.
     #
     # Computed from the raw spectral power `psd` (the same quantity panel B shows
-    # in log scale), NOT from the percentile-clipped log heatmap `relative_power`
-    # — clipping distorts true relative magnitudes across depth. Normalizing by
+    # in log scale), NOT from the percentile-clipped log heatmap `relative_power`;
+    # clipping distorts true relative magnitudes across depth. Normalizing by
     # the per-band max across channels is unaffected by degenerate
     # low-power channels (e.g. the top CSD contact ~0): a near-zero channel maps
     # to ~0, it cannot inflate the max.
@@ -1986,7 +1985,7 @@ def spectrolaminar_motif_score(alpha_beta, gamma) -> float:
     """Anti-correlation motif score between a deep alpha/beta and a
     superficial gamma depth profile (0-100; 100 = perfect anti-correlation).
 
-    Scores a profile against itself, not against an external target — see
+    Scores a profile against itself, not against an external target; see
     `spectrolaminar_similarity_kernel_jax` (jaxfne.analysis.spectral) for the
     target-based scorer; the two are not interchangeable.
     """

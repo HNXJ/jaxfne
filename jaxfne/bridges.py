@@ -21,8 +21,8 @@ def _install_jax_clip_compat() -> bool:
     jaxley (<=0.13) channel gating calls ``jax.numpy.clip(x, a_min=..., a_max=...)``.
     Recent JAX dropped those keyword names (use ``min=``/``max=``), so without a
     shim jaxley's HH/channel step raises ``TypeError`` and *no* Jaxley emitter can
-    integrate. This shim is idempotent and backward compatible — positional and
-    ``min=``/``max=`` calls still work — and is installed lazily only when needed.
+    integrate. This shim is idempotent and backward compatible, positional and
+    ``min=``/``max=`` calls still work; and is installed lazily only when needed.
 
     Returns
     -------
@@ -475,7 +475,7 @@ def _recorded_compartment_positions(module: Any, state: str = "v") -> Any:
     ``module.nodes`` (x/y/z columns). Returns an ``(n_recorded, 3)`` numpy array
     aligned with the recordings order, or ``None`` if positions are unavailable
     (no geometry, no matching recordings, or any structural mismatch). Only
-    structural lookup failures fall back to ``None`` — anything else propagates.
+    structural lookup failures fall back to ``None``; anything else propagates.
     """
     try:
         recs = module.recordings
@@ -884,7 +884,7 @@ class JaxleyBridge:
         Jaxley's channel/morphology toolset *and* gain tfne's homeostasis. Per recorded
         compartment (one per controlled cell), the controller maintains a slow activity
         trace ``r`` and injects an excitability current bias following tfne's restoring-bias
-        law (here parameterized by firing rate in Hz, which is dt-independent — unlike the
+        law (here parameterized by firing rate in Hz, which is dt-independent, unlike the
         Izhikevich kernel's per-step spike-fraction trace)::
 
             rate_w = spikes / window_seconds               # per-window firing rate (Hz)
@@ -895,10 +895,10 @@ class JaxleyBridge:
         Windows are stitched with continuous state resume (Jaxley ``all_states``), and
         per-cell current is injected via grad-safe ``data_stimulate`` (no module mutation).
         ``k_gain=0`` disables the controller (a clean null). Because Jaxley's ``integrate``
-        is a closed scan, the feedback runs at *window* cadence, not per step — a deliberate,
+        is a closed scan, the feedback runs at *window* cadence, not per step; a deliberate,
         documented approximation of the per-step Izhikevich homeostatic kernel.
 
-        The model must have at least one recording (``module.record(...)``) — recorded
+        The model must have at least one recording (``module.record(...)``); recorded
         compartments are the controlled cells. Output is a conservative proxy
         (``field=None``, ``physical_amplitude_calibrated=False``).
 
@@ -1056,7 +1056,7 @@ class JaxleyBridge:
         LFP/CSD/spectrolaminar readouts as the built-in emitter, but from a physically
         meaningful generator. The extracellular field is driven by the **reconstructed
         HH transmembrane ionic current** (see :func:`_reconstruct_hh_ionic_current`),
-        not a voltage/spike proxy — the Izhikevich/Fire channels are non-capacitive
+        not a voltage/spike proxy; the Izhikevich/Fire channels are non-capacitive
         (zero current) and cannot generate a field, so this path requires HH.
 
         Steps: install the clip shim, locate the HH compartments, record ``v`` plus the

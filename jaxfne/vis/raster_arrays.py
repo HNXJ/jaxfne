@@ -1,6 +1,6 @@
 """Spike-raster plotting from raw arrays (no Signals/Model object needed).
 
-Moved from ``jaxfne.export`` — for the Signals/Model-driven raster use
+Moved from ``jaxfne.export``; for the Signals/Model-driven raster use
 ``jaxfne.vis.raster`` (matplotlib) or ``jaxfne.vis.plot_raster`` (canonical,
 plotly by default).
 """

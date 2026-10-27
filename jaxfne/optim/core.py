@@ -490,7 +490,7 @@ def _resolve_optimizer(optimizer: Any) -> OptimizerSpec:
 class AGSDR:
     """Legacy AGSDR adapter retained for old notebooks and tests.
 
-    COMPATIBILITY surface — NOT the canonical AGSDR implementation. This class
+    COMPATIBILITY surface: NOT the canonical AGSDR implementation. This class
     only exposes metadata (``status()``) and does not execute optimization
     directly; ``Model.tune()`` accepts it via ``_resolve_optimizer``'s
     ``hasattr(optimizer, "status")`` branch. Prefer ``jtfne.agsdr(...)``, which
@@ -730,7 +730,6 @@ def _run_agsdr_optimization_loop(
     # Initialize deterministic JAX key for vectorized population proposal.
     base_key = jax.random.PRNGKey(int(seed))
 
-    # Extract parameter names and bounds
     param_names = sorted(parameter_bounds.keys())
     bounds_list = [parameter_bounds[name] for name in param_names]
 
@@ -1008,7 +1007,6 @@ def sdr_transform(
         sdr_state, inner_state = state
         import jax.numpy as jnp
 
-        # Apply inner optimizer update
         inner_updates, inner_state = inner_optimizer.update(updates, inner_state, params)
 
         # Add stochastic delta term using the explicit PRNG key

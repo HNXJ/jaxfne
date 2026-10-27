@@ -77,7 +77,7 @@ def _default_metadata() -> dict[str, Any]:
         "physical_amplitude_calibrated": False,
         "manifest_schema_version": "0.0.4",
         "operator_status": _default_operator_status(),
-        # Suite No. 2 truth gates — always present so validation passes regardless
+        # Suite No. 2 truth gates; always present so validation passes regardless
         # of which subset of chainable methods the caller uses.
         "connectivity_status": "declared_metadata_proxy",
         "geometry_mode": "declared_metadata_not_solved_3d_pde_grid",
@@ -767,7 +767,7 @@ class Configuration:
         """Declare a column's neuron population: total ``N`` + per-layer budget.
 
         ``neurons`` maps each layer to its share of the total (any positive
-        scale — counts like ``{"L2": 250}`` or fractions like ``{"L2": 0.25}``;
+        scale: counts like ``{"L2": 250}`` or fractions like ``{"L2": 0.25}``;
         they are normalized).  Keys must be names in ``layers`` and every layer needs
         a share; anything else is refused.  Allocation uses the same largest-remainder rule as
         cell-type allocation, so per-layer integer counts sum exactly to ``N``.
@@ -1784,8 +1784,8 @@ class Configuration:
         # Accumulate specs: each call adds one source->target projection. The
         # construct path (``_apply_connectivity``) already iterates a list of
         # specs, so multiple calls (e.g. one per adjacent area pair, or both
-        # directions of a pair) all materialize. Using a list here — rather than
-        # overwriting the single key — is what lets a full multi-area hierarchy wire.
+        # directions of a pair) all materialize. Using a list here, rather than
+        # overwriting the single key; is what lets a full multi-area hierarchy wire.
         existing = self.metadata.get("inter_column_connectivity")
         if isinstance(existing, list):
             specs = [*existing, inter_conn_spec]

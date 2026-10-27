@@ -1,7 +1,7 @@
 """Visual suites for laminar column tutorials (Etude No. 1).
 
 Docs: ``docs/tutorials/`` + ``docs/plotly_visualization.md``
-(https://jaxfne.readthedocs.io/en/latest/tutorials/) — update when these suites change.
+(https://jaxfne.readthedocs.io/en/latest/tutorials/): update when these suites change.
 """
 from __future__ import annotations
 
@@ -255,7 +255,7 @@ def activity_trace_suite(
     axes[0, 0].set_ylabel('Neuron index')
     axes[0, 0].set_title('Spike Raster')
 
-    # Panel 2: LFP traces — stacked per-channel waterfall (one row per contact,
+    # Panel 2: LFP traces: stacked per-channel waterfall (one row per contact,
     # non-overlapping), superficial contact at top, deep at bottom.
     lfp_win = lfp_mean[mask]                      # (T_win, n_contacts)
     n_ch = lfp_win.shape[1]
@@ -601,7 +601,7 @@ def spectrolaminar_suite_3panel(
 
         # ── Panel B: Depth x Frequency relative-power heatmap ─────────────────
         # Coarsen the frequency axis (wider bins) by averaging groups of
-        # `freq_bin_factor` adjacent frequency rows — reduces over-resolution.
+        # `freq_bin_factor` adjacent frequency rows; reduces over-resolution.
         heat = relative_power
         heat_freq = freq_hz
         k = max(1, int(freq_bin_factor))
@@ -680,7 +680,7 @@ def spectrolaminar_suite_3panel(
             axD.set_xlabel('Rate (Hz)')
             axD.legend(fontsize=8, loc='lower right')
 
-        # Superficial (pos < 0) at top, deep (pos > 0) at bottom — shared B/C(/D).
+        # Superficial (pos < 0) at top, deep (pos > 0) at bottom; shared B/C(/D).
         axB.set_ylim(pos_hi, pos_lo)
 
         if theme == "dark":

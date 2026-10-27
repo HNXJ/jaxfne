@@ -165,7 +165,7 @@ class SelectorSpec:
         ``ids`` by ``neuron_id`` membership). Input row order is preserved.
 
         A requested field that is absent from a row raises ``KeyError`` rather
-        than matching/skipping silently — selectors never invent metadata.
+        than matching/skipping silently; selectors never invent metadata.
 
         Returns an int32 JAX array of row positions. Empty results raise
         ``ValueError`` unless ``allow_empty=True`` (then an empty array).

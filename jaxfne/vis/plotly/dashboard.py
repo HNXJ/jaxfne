@@ -12,7 +12,7 @@ from .spectra import plot_psd, plot_depth_profile
 def create_dashboard(signals, model, *, output_html: str | None = None, title: str = "jaxfne run dashboard"):
     """Build a synchronized multi-panel dashboard (network / raster / rates / LFP / CSD / PSD / depth profile).
 
-    Proxy readouts only — LFP/CSD/PSD panels are linear-solver proxy fields,
+    Proxy readouts only; LFP/CSD/PSD panels are linear-solver proxy fields,
     not physical recordings. Returns the assembled ``plotly.graph_objects.Figure``;
     writes standalone HTML to ``output_html`` if given.
     """

@@ -251,7 +251,7 @@ def footprint_pairs(
     (the oracle's ``s_ox[i] <= x < s_ox[i] + SX`` cover test, oracle:418-421,
     with the post anchor at its posed position). Iteration is in post order,
     then pre order. The second return is the post slot per pair: co-located
-    post cells (exactly equal ``(x, y)``) numbered 0, 1, ... in post order —
+    post cells (exactly equal ``(x, y)``) numbered 0, 1, ... in post order:
     the receiving-depth index, i.e. the weight-sharing group under
     ``"patch"`` sharing. Missing/ragged coordinates and a bad declaration
     are refused by name.
@@ -311,7 +311,7 @@ def accumulate_shared_update(
 ) -> np.ndarray:
     """Scatter-mean edge updates onto the shared table (one row per group).
 
-    The shared weight moves by the mean update of its edges — the
+    The shared weight moves by the mean update of its edges; the
     patch-sharing equivalent of applying the group's STDP once.
     """
     table = np.asarray(shared, dtype=float)
@@ -812,7 +812,7 @@ def inhibition_visit_order(
     :func:`local_inhibition_blocks` dict (``members`` ``(G, D)`` and
     ``member_mask`` scope the positions). Returns int32 ``(n_steps, G, D)``:
     step ``b`` visits each position's member depths in ``(rank, local
-    index)`` order — event order first, ascending index on ties (the
+    index)`` order: event order first, ascending index on ties (the
     oracle visits same-time candidates in ascending index, oracle:666).
     Padded slots hold ``-1``. Anything misshapen, non-finite or
     N-disagreeing is refused by name.
@@ -852,7 +852,7 @@ def inhibition_visit_order(
             )
         loc = np.flatnonzero(mask[g])
         # One C argsort per position (not one lexsort per step): the key
-        # ``rank * depth + local`` sorts by (rank, local index) exactly —
+        # ``rank * depth + local`` sorts by (rank, local index) exactly;
         # whole-microsecond ranks times depth stay integral in float64.
         seq = loc[np.argsort(
             r64[:, mem] * float(depth) + loc[None, :].astype(np.float64),
@@ -997,14 +997,14 @@ def event_scan_tables(
     oracle:454); ``c_weights`` is ``(cd, csx, csy, nd)`` (shared complex
     matrix per depth, oracle:456); ``c_cover`` maps every simple ``(i, j)``
     to its covering complex ``(cx, cy)`` cells (recomputed from the geometry
-    and required exact — a missing position or an off-grid cell is refused).
+    and required exact; a missing position or an off-grid cell is refused).
     ``lateral_weights`` is None (an all-zero map, as the S1 local-only run
     leaves it) or ``(NS, NS)`` with rows read as targets (``LAT[m, n]`` is
     the weight from source ``n`` onto target ``m``, oracle:702); anything
     else is refused. ``topdown_weights`` is None or ``(NC, NS)`` with rows
     read as sources (row ``c`` holds source ``c``'s weights onto its simple
     targets); anything else is refused. All-zero maps store no weight
-    matrix (``lat_w``/``td_w`` None) but the calls still execute — a
+    matrix (``lat_w``/``td_w`` None) but the calls still execute; a
     zero-weight inhibition still subtracts ``R + A`` and stamps the time
     (oracle:256-269). ``inhib_range`` is the lateral ``(Rx, Ry)`` window;
     nonzero while lateral is off changes nothing and is refused by name.
@@ -1264,7 +1264,7 @@ def event_scan_events(
     """The event-scan visit list: the raw stream in timestamp order.
 
     Returns int64 ``(M, 4)`` rows ``[t_us, x, y, p]`` stably sorted by time
-    (file order within equal timestamps — the oracle visits same-time
+    (file order within equal timestamps; the oracle visits same-time
     candidates in ascending index, oracle:666, and the scan kernel visits
     each event's cells ascending). ``dt_ms`` must resolve to a whole number
     of microseconds; an event outside the ``[t0_us, t0_us + n_steps *
@@ -1719,14 +1719,14 @@ def build_s1_scan_tensor(ns: int, nc: int, *, name: str = "s1-scan",
 
     One area with a simple layer (``ns`` ``"simple"`` cells) followed by a
     complex layer (``nc`` ``"complex"`` cells), so the constructed
-    population order is ``["simple"] * ns + ["complex"] * nc`` — the
+    population order is ``["simple"] * ns + ["complex"] * nc``: the
     order the event-scan kernel indexes. Positions stay the default
     ``uniform_random`` geometry (the scan replays the declared
     :class:`EventScanDrive` groups, not construct geometry). A single
     declaration connection carries ``local_inhibition``
     ``{"resolution": "event_scan"}`` (rounds-free: the replay resolves
     every event, no cap); construct strips it from the bridge (it
-    compiles no edges — the scan has no edge expression) and records
+    compiles no edges; the scan has no edge expression) and records
     the spec, so ``simulate(paradigm=EventScanDrive(...))`` replays the
     stream exactly. ``ns``/``nc`` must be positive whole numbers.
     ``lif_simple``/``lif_complex`` are optional per-type LIF parameter

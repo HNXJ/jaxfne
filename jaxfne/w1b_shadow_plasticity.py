@@ -1,4 +1,4 @@
-"""Protocol W1b — RBD-generated shadow plasticity on minimal A⟷B pair.
+"""Protocol W1b: RBD-generated shadow plasticity on minimal A⟷B pair.
 
 Shadow contract: recurrent simulation uses fixed ``W_0``; ``omega`` integrates
 ``Delta H = H_pre - H_post`` passively and does **not** feed back.

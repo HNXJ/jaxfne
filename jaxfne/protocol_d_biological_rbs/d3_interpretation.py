@@ -1,4 +1,4 @@
-"""D3 prospective interpretation freeze — Q1/Q2/Q3 and D−N2 contrast."""
+"""D3 prospective interpretation freeze: Q1/Q2/Q3 and D−N2 contrast."""
 
 from __future__ import annotations
 

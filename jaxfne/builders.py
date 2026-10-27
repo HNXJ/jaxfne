@@ -1,7 +1,7 @@
 """Public builder and helper functions for cortical-column configuration.
 
 Docs: ``docs/reference/api/index.md`` "Column builders & the canonical prior"
-(https://jaxfne.readthedocs.io/en/latest/reference/api/) — update that page when these
+(https://jaxfne.readthedocs.io/en/latest/reference/api/): update that page when these
 builders' signatures or defaults change.
 
 High-level construction helpers for common cortical-column and multi-area
@@ -11,14 +11,14 @@ editing source.
 
 Two cell-type composition paths share the builders:
 
-* ``ei_profile="flat"`` (default) — depth-invariant E/PV/SST/VIP fractions with
+* ``ei_profile="flat"`` (default): depth-invariant E/PV/SST/VIP fractions with
   ``uniform3d`` placement. This is the legacy behavior, preserved unchanged.
-* ``ei_profile="canonical"`` — the verified ground-truth E:I gradient (E peaks
+* ``ei_profile="canonical"``: the verified ground-truth E:I gradient (E peaks
   deep to 95%, I peaks superficial at 50%, PV peaks at L2/L3, ≈66E:34I
   overall), with laminar placement so each neuron keeps its layer label. The
   gradient is exported as constants
   (:data:`CANONICAL_LAYER_CELL_TYPE_FRACTIONS`, :data:`CANONICAL_Z_BANDS`,
-  and the 5-layer variants) — query those directly rather than copying these
+  and the 5-layer variants); query those directly rather than copying these
   numbers, they are the source of truth.
 
 All builders preserve the truth gates:
@@ -43,17 +43,17 @@ DEFAULT_LAYERS: tuple[str, ...] = ("L1", "L2/3", "L4", "L5", "L6")
 #: Fully resolved canonical 6-layer set (L2/L3 split), superficial → deep.
 CANONICAL_LAYERS_6L: tuple[str, ...] = ("L1", "L2", "L3", "L4", "L5", "L6")
 
-#: Flat (depth-invariant) cell-type fractions — the legacy default.
+#: Flat (depth-invariant) cell-type fractions: the legacy default.
 FLAT_CELL_TYPE_FRACTIONS: dict[str, float] = {"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07}
 
-#: Canonical scaffold per-layer E:I composition — qualitative laminar scaffold
+#: Canonical scaffold per-layer E:I composition: qualitative laminar scaffold
 #: (user reference, 2026-06-19; provenance: scaffold, not calibrated measurements).
 #: E-fraction rises with depth (peaks L6 95%); I-fraction is highest superficial
 #: (L1 50% I, L2/L3 50% I); PV fraction peaks at L2/L3 (builder variant 25% each)
 #: / realized-genome variant peaks at L2 20% with tolerance bands (see
 #: jaxfne/jdna/genomes/canonical-v1-column-1000n.json, pseudogenome_v1);
 #: L1 is VIP-rich (those VIP specifically inhibit L1/2/3 SST); L6 has no PV/VIP.
-#: Overall builder scaffold ≈66E:34I (realized genome ~75.8E:25.2I — same qualitative
+#: Overall builder scaffold ≈66E:34I (realized genome ~75.8E:25.2I, same qualitative
 #: gradient, distinct quantitative scaffold; both value_tag="relative").
 #: Biological calibration: qualitative_laminar_scaffold=true,
 #: quantitative_cell_fraction=false, quantitative_connectivity=false.
@@ -251,7 +251,7 @@ def default_complete_configuration(
     dt_ms: float = 0.1,
 ) -> Configuration:
     """Create the broadest default Configuration: a laminar cortical column
-    wired to a non-laminar nucleus — cortex and subcortex in one config.
+    wired to a non-laminar nucleus; cortex and subcortex in one config.
 
     Combines what :func:`default_cortical_column_config` and
     :func:`default_nuclei_config` each declare into a single multi-area
@@ -260,7 +260,7 @@ def default_complete_configuration(
     connectivity: feedforward column→nucleus from its superficial layer,
     feedback nucleus→column into its first layer. The FF/FB direction is a
     structural choice mirroring how :func:`default_spectrolaminar_config`
-    wires two cortical areas — it is not a thalamocortical-circuit claim;
+    wires two cortical areas; it is not a thalamocortical-circuit claim;
     no biological-mechanism status is implied by the layer/area names.
 
     Parameters
@@ -384,7 +384,7 @@ def build_laminar_column(
         ``"flat"`` repeats ``cell_type_fractions`` across layers (legacy).
         ``"canonical"`` applies the verified ground-truth E:I gradient
         (E peaks deep to 95%, I peaks superficial at 50%, PV peaks at L2/L3,
-        ≈66E:34I overall) — requires the canonical 6- or 5-layer set.
+        ≈66E:34I overall); requires the canonical 6- or 5-layer set.
     geometry : {"auto", "uniform3d", "laminar"}, keyword-only, default "auto"
         Neuron placement. ``"uniform3d"`` scatters neurons in a cylinder as one
         ``"uniform_3d"`` layer with the flat composition; it refuses layer
@@ -841,7 +841,7 @@ def validate_configuration(
     strict : bool
         If True, fail on any gap; if False, list warnings only. Default: True.
         Failing means returning ``status: "FAIL"`` in the report dict, not
-        raising — unlike the ``util.validate_*`` family, which raises on
+        raising, unlike the ``util.validate_*`` family, which raises on
         strict. Check ``result["status"]``; do not assume success.
 
     Returns

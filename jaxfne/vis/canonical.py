@@ -17,7 +17,7 @@ can produce either backend's figure.
 Canonical Q/Phi consumption contract (0.5.2 item 8): the field entry points
 below (``plot_lfp``, ``plot_csd``, ``plot_psd``, ``plot_spectrogram``,
 ``plot_band_power``, ``plot_depth_profile``) draw only from declared
-canonical holders — ``signals.field`` (Phi: ``lfp_proxy``/``csd_proxy`` plus
+canonical holders: ``signals.field`` (Phi: ``lfp_proxy``/``csd_proxy`` plus
 ``contact_depths``) and ``signals.sources`` (Q, visualization-only route).
 No entry point synthesizes field contacts, depths, or field data: the Plotly
 renderers raise through :func:`jaxfne.vis.plotly._common.field_proxy` when
@@ -56,7 +56,7 @@ def _apply_layout(
     Every override defaults to "leave the underlying implementation's choice
     alone" (``None``/``True``) so this never changes a figure unless the
     caller explicitly asks for it. Anti-overlap layout itself is handled by
-    :func:`relative_layout` — this only sets labels/legend/colors/size.
+    :func:`relative_layout`; this only sets labels/legend/colors/size.
     """
     if fig is None:
         return fig
@@ -214,7 +214,7 @@ def plot_population_rate(
     Canonical numeric contract (P5): ungrouped (``model=None``) both backends
     draw population mean Hz from
     :func:`jaxfne.vis.core.binned_population_rate_hz` (``bin_ms=10.0``
-    default) — test numbers, not pixels. Grouped splitting
+    default); test numbers, not pixels. Grouped splitting
     (``group_by``) is a Plotly presentation option only.
     """
     _check_backend(backend)
@@ -474,7 +474,7 @@ def plot_depth_profile(
     height: Optional[int] = None,
     **kwargs,
 ) -> Any:
-    """Single-band power vs laminar depth — BACKENDS DIFFER (declared, P8).
+    """Single-band power vs laminar depth: BACKENDS DIFFER (declared, P8).
 
     STOP: no unifying authority exists. ``backend="plotly"`` draws the
     peak-normalized spectral readout
@@ -486,7 +486,7 @@ def plot_depth_profile(
     0.5.2 item 8 decision: KEEP the declared divergence. Unifying under one
     name requires choosing which quantity "depth profile" denotes
     (Phi-derived relative in-band power vs neuron counts from declared
-    geometry) and changing the other backend's drawn quantity — a
+    geometry) and changing the other backend's drawn quantity; a
     semantic/API choice outside this lane, and a 0.5.x Delta-semantics
     violation without its own authority. Both routes stay individually
     honest: the Plotly renderer consumes declared Phi (raises without

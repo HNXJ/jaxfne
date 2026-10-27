@@ -74,7 +74,7 @@ def validate_projection_invariants(
     ``tol=1e-6`` for ``row_normalize``; density-preserving mode reports the
     row-normalization check as not applicable.
     Returns a JSON-safe dict of per-invariant pass/fail diagnostics. This checks
-    the proxy operator's internal consistency only — it makes no claim of
+    the proxy operator's internal consistency only; it makes no claim of
     physical correctness.
     """
     kernel_norm_tests = _test_kernel_row_normalization(kernel, tol=1e-6)

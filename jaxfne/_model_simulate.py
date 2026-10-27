@@ -1435,7 +1435,7 @@ def simulate(
     ``poisson_drive`` composes with continuation: chunk 0 draws the declared
     Poisson seed (bit-identical to a plain single call with the same
     Simulation), and each later chunk derives its own seed deterministically
-    from ``(poisson_seed, chunk_index)`` — same process, independent
+    from ``(poisson_seed, chunk_index)``; same process, independent
     realization per chunk. HDP state (H, w), delays in flight and the PRNG
     chain continue across chunks as before. Explicit ``paradigm`` schedules
     carry no cursor: pass each segment only its own time window.
@@ -1620,7 +1620,7 @@ def simulate(
     if sim.record_fields:
         # The proxy admits only float32/float64 (refuses bfloat16 by name,
         # like the sibling poisson solver); bfloat16 dynamics project in
-        # float32 — the same exact upcast _pipeline applies before np.savez.
+        # float32: the same exact upcast _pipeline applies before np.savez.
         field_output = project_laminar_sources(
             sources=sources,
             positions=positions,
@@ -2207,8 +2207,8 @@ def _refuse_lif_inputs(
 
 #: ``hdp_params`` keys the lif route consumes when HDP runs (a registered
 #: rule only): the rule name, its params, and the per-edge plasticity gate.
-#: Every other key — including the legacy current-based gain vocabulary the
-#: default ``RuntimeConfig`` carries — is refused by name: those gains drive
+#: Every other key, including the legacy current-based gain vocabulary the
+#: default ``RuntimeConfig`` carries, is refused by name: those gains drive
 #: the Izhikevich HDP kernel, which the LIF equations cannot run.
 _LIF_HDP_CONSUMED_KEYS = frozenset({"hdp_rule", "hdp_rule_params", "plasticity_mask"})
 
@@ -2599,13 +2599,13 @@ def _simulate_lif_scan(
 
     The scan replays the timestamped stream carried by the paradigm
     :class:`jaxfne.pcl_topology.EventScanDrive` event by event through
-    ``simulate_lif_edge`` — each event excites its covered cells with
+    ``simulate_lif_edge``: each event excites its covered cells with
     exact inter-event decay, and each spike inhibits, lateralizes and
     forwards immediately. The replay resolves every event (no rounds
     cap), so every other simulate input that would change nothing is
     refused by name: non-scan paradigms (including schedules),
     ``poisson_drive``, HDP, and compiled edges (the scan tensor's replay
-    connection compiles none — anything else has no scan expression).
+    connection compiles none; anything else has no scan expression).
 
     The scan returns finals only: ``V_m`` is all-NaN with per-cell
     counts, first-spike times and the spike log (every spike's time and
@@ -2736,7 +2736,7 @@ def last_homeostasis_diagnostics(self) -> "Optional[dict[str, Any]]":
     ``(n_steps, n_neurons)``, or ``None`` if homeostasis was not enabled on
     the last run. When ``homeostasis_params["eta"] != 0`` (homeostatic
     synaptic plasticity active), the dict also carries ``w_final``
-    ``(n_edges,)`` and ``w_trace`` ``(n_steps, n_edges)`` — the plastic
+    ``(n_edges,)`` and ``w_trace`` ``(n_steps, n_edges)``: the plastic
     edge-weight trajectory. These are computational-control diagnostics
     (proxy), not a biological-mechanism claim.
     """
@@ -2921,7 +2921,7 @@ def simulate_batch(
         if homeo_on:
             # Homeostasis engages the sparse-edge homeostatic kernel; per-step
             # g_bias/r_trace diagnostics are dropped here (batch is a seed-replicate
-            # statistics utility — use simulate() for full diagnostics passthrough).
+            # statistics utility: use simulate() for full diagnostics passthrough).
             return simulate_edge_recurrent_izhikevich_homeostatic(
                 emitter,
                 self.params["edge_list"],

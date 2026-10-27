@@ -1,4 +1,4 @@
-"""Protocol C (0.4.17-C) — wave inference specification and receipts.Checkout-coupled by design: loaders resolve spec/receipt paths against the
+"""Protocol C (0.4.17-C): wave inference specification and receipts.Checkout-coupled by design: loaders resolve spec/receipt paths against the
 repository root ``artifacts/`` tree. Not part of the stable public API
 surface; functions only inside a full checkout.
 """

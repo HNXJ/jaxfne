@@ -1,7 +1,7 @@
 """Laminar and structural fields plotting submodules for jaxfne/vis.
 
 Docs: ``docs/reference/api/readout/fields.md`` + ``docs/guides/interop/plotly_visualization.md``
-(https://jaxfne.readthedocs.io/en/latest/) — update when these plots change.
+(https://jaxfne.readthedocs.io/en/latest/): update when these plots change.
 
 NumPy-isolated graphics for spectrolaminar power profiles, connectivity matrices,
 laminar profiles, multi-area layouts, and optimization objective histories.
@@ -252,7 +252,7 @@ def bandpower(
     """Plot mean spectral band power per contact.
 
     Canonical numeric contract (P5): absolute mean in-band Welch PSD per
-    contact (``nperseg=256`` shared with the Plotly renderer) — same numbers
+    contact (``nperseg=256`` shared with the Plotly renderer); same numbers
     as :func:`jaxfne.vis.plotly.spectra.plot_band_power` for the same band.
     """
     require_matplotlib()

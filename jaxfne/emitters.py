@@ -1,6 +1,6 @@
 """Emitter kernels for :mod:`jaxfne`.
 
-Docs: ``docs/reference/api/model/emitters.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/model/emitters/) —
+Docs: ``docs/reference/api/model/emitters.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/model/emitters/):
 update that page when this module's public API changes.
 
 The current implementation is a small E/I/G-like Izhikevich scaffold.  It is a
@@ -113,7 +113,7 @@ def _noise_coef(
 # Canonical Izhikevich cell-type parameter defaults.
 # Single source of truth for E/PV-like/SST-like/VIP-like reduced-model parameters.
 # Labels "E", "PV", "SST", "VIP" denote reduced emitter classes (E-like, PV-like,
-# SST-like, VIP-like) — phenomenological Izhikevich presets that do not warrant
+# SST-like, VIP-like): phenomenological Izhikevich presets that do not warrant
 # literal transcriptomic/morphological identity.
 IZHIKEVICH_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
     "E": {"a": 0.02, "b": 0.20, "c": -65.0, "d": 8.0, "drive": 5.0, "sign": CELL_TYPE_SIGN["E"]},
@@ -188,7 +188,7 @@ class IzhikevichParams:
 
     Fields:
     - labels: tuple of reduced-class labels (E-like, PV-like, SST-like,
-      VIP-like — stored as "E", "PV", "SST", "VIP"; no literal identity claim)
+      VIP-like: stored as "E", "PV", "SST", "VIP"; no literal identity claim)
     - layer_labels: optional tuple of layer names (L1, L2/3, L4, L5, L6, etc)
     """
 
@@ -278,7 +278,7 @@ def _izhikevich_dv_du(v, u, current_native, a, b, h_k=1.0):
 
 
 def _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, h_k):
-    """Protocol D1 — static recovery drive ``du = a * (H_K * b * v - u)``."""
+    """Protocol D1: static recovery drive ``du = a * (H_K * b * v - u)``."""
     return _izhikevich_dv_du(v, u, current_native, a, b, h_k)
 
 
@@ -349,7 +349,7 @@ def izhikevich_eig_params(
     dtype: str = "float32",
 ) -> IzhikevichParams:
     """Create E/PV-like/SST-like/VIP-like Izhikevich parameters (reduced
-    emitter classes — does not warrant literal PV/SST/VIP identity).
+    emitter classes; does not warrant literal PV/SST/VIP identity).
 
     Labels (stored without suffix; described with "-like" when claiming dynamics):
     - ``E``: E-like regular-spiking excitatory emitter.
@@ -522,8 +522,8 @@ def simulate_eig_izhikevich(
     Cell model: Izhikevich (2003), Eqs. 1-3, doi:10.1109/TNN.2003.820440, one
     forward-Euler step of ``dt_ms`` for ``v`` and ``u`` with the spike test after it.
 
-    Synaptic semantics: the dense backend couples ``weights @ prev_spikes``
-    — an instantaneous one-step spike-jump current with no synaptic time
+    Synaptic semantics: the dense backend couples ``weights @ prev_spikes``:
+    an instantaneous one-step spike-jump current with no synaptic time
     constant. This is a distinct supported synaptic model, NOT a
     trajectory-equivalent representation of the edge-list backend, whose
     synapses are receptor-filtered exponentials with per-edge ``tau_ms``
@@ -1622,7 +1622,7 @@ def simulate_edge_recurrent_izhikevich_static_h_k_recovery(
     noise_scale: "jax.Array | float | None" = None,
     init_state: "dict | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
-    """Protocol D1 — static ``H_K`` on Izhikevich recovery drive (``dot W=0``).
+    """Protocol D1: static ``H_K`` on Izhikevich recovery drive (``dot W=0``).
 
     Typed map (frozen D1):
 
@@ -1631,7 +1631,7 @@ def simulate_edge_recurrent_izhikevich_static_h_k_recovery(
     ``H_K`` is constant per neuron for the full run (``dH_K/dt = 0``). When
     ``H_K \\equiv 1``, this reduces to the classical
     :func:`simulate_edge_recurrent_izhikevich` zero-delay kernel (bit-exact target
-    with ``noise_scale`` matched). Nonzero edge delays are rejected — use the
+    with ``noise_scale`` matched). Nonzero edge delays are rejected; use the
     classical delay kernel without RBS for delay studies.
     ``noise_scale`` is defined at the reference step 0.5 ms (``DT_REF_MS``); the
     realized coefficient is scaled by ``sqrt(0.5 / dt_ms)``.
@@ -1742,7 +1742,7 @@ def _advance_h_k_f1_autonomous(
     dt: jax.Array,
     tau_k_ms: jax.Array,
 ) -> jax.Array:
-    """Protocol D2a — ``tau_K * dH_K/dt = 1 - H_K`` with ``kappa_K = 0`` (Euler)."""
+    """Protocol D2a: ``tau_K * dH_K/dt = 1 - H_K`` with ``kappa_K = 0`` (Euler)."""
     return H + dt * (1.0 - H) / tau_k_ms
 
 
@@ -1761,7 +1761,7 @@ def simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery(
     noise_scale: "jax.Array | float | None" = None,
     init_state: "dict | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
-    """Protocol D2a — autonomous F1 ``H_K`` relaxation on D1 recovery map.
+    """Protocol D2a: autonomous F1 ``H_K`` relaxation on D1 recovery map.
 
     Dynamics (frozen D2a):
 
@@ -1908,7 +1908,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
     init_state: "dict | None" = None,
     step_indices: "jax.Array | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
-    """Protocol E3 — owned D1/D2a ``H_K`` on delayed edge-recurrent Izhikevich.
+    """Protocol E3: owned D1/D2a ``H_K`` on delayed edge-recurrent Izhikevich.
 
     Coupling (frozen D1): ``du = a * (H_K * b * v - u)`` on all neurons; non-owners
     keep ``H_K \\equiv 1`` so ``b_eff = b``.
@@ -2126,7 +2126,7 @@ def _advance_h_a_trace(
     dt: jax.Array,
     tau_a_ms: jax.Array,
 ) -> jax.Array:
-    """Protocol D2b — ``tau_A * dH_A/dt = -H_A + S`` with ``S in {0, 1}`` (Euler)."""
+    """Protocol D2b: ``tau_A * dH_A/dt = -H_A + S`` with ``S in {0, 1}`` (Euler)."""
     return H_A + dt * (-H_A + S) / tau_a_ms
 
 
@@ -2137,7 +2137,7 @@ def _advance_h_k_activity_coupled(
     tau_k_ms: jax.Array,
     kappa_ak: jax.Array,
 ) -> jax.Array:
-    """Protocol D2b — uses **old** ``H_A^n`` in the ``H_K`` update (causal one-step lag)."""
+    """Protocol D2b: uses **old** ``H_A^n`` in the ``H_K`` update (causal one-step lag)."""
     return H_K + dt * ((1.0 - H_K) + kappa_ak * H_A_old) / tau_k_ms
 
 
@@ -2159,11 +2159,11 @@ def simulate_edge_recurrent_izhikevich_activity_h_k_rbd(
     noise_scale: "jax.Array | float | None" = None,
     init_state: "dict | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
-    """Protocol D2b — two-coordinate RBS ``[H_A, H_K]`` with node-local spike drive.
+    """Protocol D2b: two-coordinate RBS ``[H_A, H_K]`` with node-local spike drive.
 
     Frozen discrete updates (causal ordering):
 
-    ``S^n`` — binary per-neuron spike indicator in ``{0, 1}`` (timestep-independent
+    ``S^n``: binary per-neuron spike indicator in ``{0, 1}`` (timestep-independent
     unit event; not scaled by ``dt``).
 
     ``H_A^{n+1} = H_A^n + dt/tau_A * (-H_A^n + S^n)``
@@ -2523,7 +2523,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
     i_ref: float = 1.0,
     beta_h: float = 0.0,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
-    """Protocol H1 — RBD with fixed weights (``d_H=1``, ``dot W=0``).
+    """Protocol H1: RBD with fixed weights (``d_H=1``, ``dot W=0``).
 
     Couples the standard edge-recurrent Izhikevich kernel (including Protocol D
     finite delays when ``delay_steps > 0``) to scalar per-neuron RBS ``H_i``.
@@ -2538,9 +2538,9 @@ def simulate_edge_recurrent_izhikevich_rbd(
 
     ``F_H`` families:
 
-    * **F0** — RBS disabled: ``H_i \\equiv 1``
-    * **F1** — ``tau_H * dH_i/dt = (1 - H_i) + kappa_H * I_i^rel``
-    * **F2** — ``tau_H * dH_i/dt = (1/H_i - 1) + kappa_H * I_i^rel`` (requires ``H>0``)
+    * **F0**: RBS disabled: ``H_i \\equiv 1``
+    * **F1**: ``tau_H * dH_i/dt = (1 - H_i) + kappa_H * I_i^rel``
+    * **F2**: ``tau_H * dH_i/dt = (1/H_i - 1) + kappa_H * I_i^rel`` (requires ``H>0``)
 
     ``I_i^rel = I_i^rec / i_ref`` uses pre-gain recurrent input. Nonpositive
     ``G_H`` propagates non-finite activity (no clip).
@@ -2871,7 +2871,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     # Hard state bounds (numerical-stability safety net; set far outside normal
     # Izhikevich dynamics so they never alter physiological behaviour, only catch
     # overflow/underflow). With these, every step stays finite in float32 for any
-    # finite — or even +/-inf — input current. v upper is already caught by the
+    # finite, or even +/-inf, input current. v upper is already caught by the
     # spike reset; these guarantee the lower/recovery/synaptic state too.
     v_floor: float = -150.0,
     v_ceiling: float = 100.0,
@@ -2897,7 +2897,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
         r_star: target activity trace (default 0.05, ~expected spikes/step)
         tau_r_ms: slow leak timescale in ms (default 300, >> dt for stability)
         alpha: per-spike jump in r_i (default 1.0)
-        k_gain: homeostatic restoring gain (0 = disabled, default 1.0 — a gentle
+        k_gain: homeostatic restoring gain (0 = disabled, default 1.0; a gentle
             nudge that keeps rates in-band and synchrony low). This is a one-sided
             damper, not a bidirectional rate-setpoint controller: it can suppress
             firing below baseline but cannot reliably drive it above baseline
@@ -4999,7 +4999,7 @@ class IzhikevichEmitter(Emitter):
 
 
 class GLIFEmitter(Emitter):
-    """Generalized Leaky Integrate-and-Fire emitter — NOT implemented.
+    """Generalized Leaky Integrate-and-Fire emitter: NOT implemented.
 
     Intentional placeholder (exported for API-surface stability) for a future
     multi-compartment or highly parameterized GLIF implementation. It cannot be
@@ -5014,7 +5014,7 @@ class GLIFEmitter(Emitter):
 
 
 class LIFEmitter(Emitter):
-    """Leaky Integrate-and-Fire emitter — NOT implemented.
+    """Leaky Integrate-and-Fire emitter: NOT implemented.
 
     Intentional placeholder (exported for API-surface stability) for a future
     standard single-compartment LIF implementation. It cannot be constructed;

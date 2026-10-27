@@ -239,7 +239,7 @@ def hh_step(state, I_inj, params: HHParams, dt_ms: float):
 
     Gates advance by exact exponential Euler at frozen voltage; then voltage
     advances by backward Euler with the ionic current linearized at the new
-    gates (``(v + dt*c/Cm) / (1 + dt*G/Cm)``) — the reference operator split
+    gates (``(v + dt*c/Cm) / (1 + dt*G/Cm)``): the reference operator split
     (channels stepped before voltage). ``state`` is ``(v, m, h, n)``:
     membrane voltage (mV, absolute) and gating variables. ``I_inj`` is
     depolarizing-positive injected current (inward). Returns ``(v, m, h, n)``.

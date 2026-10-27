@@ -1,4 +1,4 @@
-"""Figure 4 — Hierarchical manipulations: band power comparison across conditions."""
+"""Figure 4. Hierarchical manipulations: band power comparison across conditions."""
 from __future__ import annotations
 
 from .._common import require_plotly

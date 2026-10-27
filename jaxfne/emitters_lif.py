@@ -217,8 +217,8 @@ def _cascade_step(state, I_tot, Kn, t_ms, params: LIFParams, dt_ms: float,
     per step, then each retinotopic position resolves ``n_rounds`` winner
     rounds in its declared visit order (``visit_t`` ``(G, D)`` local ids):
     a fed cell (``Kn > 0``) past the last winner whose visit value
-    ``V + I - Kn * RA`` clears strict ``V > v_thresh`` spikes at once —
-    reset, adaptation increment, time stamp — and subtracts its block
+    ``V + I - Kn * RA`` clears strict ``V > v_thresh`` spikes at once
+    (reset, adaptation increment, time stamp) and subtracts its block
     inhibition plus the target's refractory/adaptation from every later
     group-mate before the next visit. Winners keep reset-minus-upper
     inhibition, losers decayed-minus-all inhibition plus their input, both
@@ -329,7 +329,7 @@ def lif_step(state, I_mV, n_arr, t_ms, params: LIFParams, dt_ms: float,
     exactly (pre-reset voltage, undecayed adaptation, unstamped time), as if
     they had not crossed. Downstream (ring, HDP context) sees the capped
     spikes. A non-None ``cap_rounds`` must be a positive int; ``cap_order``
-    one of the two orders — anything else is refused.
+    one of the two orders; anything else is refused.
 
     ``cap_groups`` (None, or int ids of shape ``(n,)``) scopes the cap to one
     retinotopic position per group: the first-``cap_rounds`` rule resolves
@@ -1964,7 +1964,7 @@ def _run_event_scan(
     V0 = np.concatenate([v_init, np.zeros((1,), dtype=np.float64)])
     A0 = np.zeros((N + 1,), dtype=np.float64)
     # float64 under a local x64 context (restored on exit): event times are
-    # integer microseconds and the oracle is float64 — float32 decay rounding
+    # integer microseconds and the oracle is float64; float32 decay rounding
     # would move threshold crossings.
     with jax.enable_x64():
         args = (
@@ -2254,7 +2254,7 @@ def simulate_lif_edge(
     generic-tensor realization of the declared B3 intra-step fixed point
     (rounds and order from A). ``local_inhibition_groups`` (None, or int
     ids of shape ``(N,)``) scopes the cap to one retinotopic position per
-    group — cells sharing an id compete, so co-located depth slots resolve
+    group; cells sharing an id compete, so co-located depth slots resolve
     their own winners; ``None`` keeps the whole-population cap. Both rounds
     and order change who spikes, so both ride the call, and so do the
     groups.
@@ -2300,7 +2300,7 @@ def simulate_lif_edge(
     refused by name when missing, misshapen or disagreeing, and the blocks
     and visit order are refused outright under ``"whole_step"`` (they would
     change nothing). Under ``"event_order"`` the order must be
-    ``"ascending"`` — the visit array already encodes the tie-break, so a
+    ``"ascending"``: the visit array already encodes the tie-break, so a
     descending order would not drive the cells and is refused by name.
 
     ``I_ext_pA`` is None, shape ``[N]`` (every step), or ``[n_steps, N]``.

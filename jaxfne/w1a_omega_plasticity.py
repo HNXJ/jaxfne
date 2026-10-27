@@ -1,4 +1,4 @@
-"""Protocol W1a — single-edge log-weight plasticity (prescribed ΔH, no emitters).
+"""Protocol W1a: single-edge log-weight plasticity (prescribed ΔH, no emitters).
 
 Scalar state equation (W0 frozen):
 
@@ -47,7 +47,7 @@ class W1aConfig:
 
     @property
     def euler_stability_ratio(self) -> float:
-        """``λ_W Δt / τ_W`` — explicit Euler stability parameter."""
+        """``λ_W Δt / τ_W``: explicit Euler stability parameter."""
         return self.lambda_w * self.dt / self.tau_w
 
     @property
@@ -66,7 +66,7 @@ def omega_infinity(delta_h: float, cfg: W1aConfig) -> float:
 
 
 def weight_from_omega(omega: jax.Array | float, cfg: W1aConfig) -> jax.Array:
-    """``W = W_0 exp(ω)`` — structural positivity for finite ω."""
+    """``W = W_0 exp(ω)``: structural positivity for finite ω."""
     return jnp.asarray(cfg.w0, dtype=jnp.result_type(jnp.asarray(omega))) * jnp.exp(
         jnp.asarray(omega)
     )

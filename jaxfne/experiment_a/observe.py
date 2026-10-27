@@ -1,4 +1,4 @@
-"""B2 — independent observation operators at fixed (Q, G, M)."""
+"""B2: independent observation operators at fixed (Q, G, M)."""
 
 from __future__ import annotations
 

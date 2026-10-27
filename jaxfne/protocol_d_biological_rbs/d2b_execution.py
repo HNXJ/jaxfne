@@ -1,4 +1,4 @@
-"""D2b two-coordinate activity-coupled RBS — execution and gate receipts."""
+"""D2b two-coordinate activity-coupled RBS: execution and gate receipts."""
 
 from __future__ import annotations
 

@@ -194,7 +194,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
         )
         rule_bases = None
     else:
-        # 0.5.3 item 3 (P-010): chain-consistent draws — the same per-step
+        # 0.5.3 item 3 (P-010): chain-consistent draws: the same per-step
         # membrane keys as the continuation path, so chunked == continuous.
         from ._pipeline import _advance_prng_key  # lazy: _pipeline owns the chain
 

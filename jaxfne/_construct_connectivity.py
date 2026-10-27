@@ -198,7 +198,7 @@ def _compile_connection_rules(
     A rule's ``delay_ms`` (None = undeclared) is realized to ``delay_steps``
     via :func:`jaxfne.connectivity.delay_steps_from_ms` at ``dt_ms``
     (0.5.2 decision 0b); a declared delay with no known ``dt_ms`` raises
-    rather than zeroing. Rules without a delay produce zero steps —
+    rather than zeroing. Rules without a delay produce zero steps;
     exactly the pre-0.5.2 EdgeList.
 
     Returns ``(edge_list_or_None, per_rule_edge_counts)``.
@@ -410,7 +410,7 @@ def _compile_mechanism_aware_connection_rules(
     no rule produced edges), per-rule edge counts, and per-rule
     weight-sharing group lists (the compiler table's
     ``sharing_group_of_edge`` for footprint rules declaring
-    ``weight_sharing``, else None) — the groups align with each rule's
+    ``weight_sharing``, else None); the groups align with each rule's
     edges in order, for consumers (the lif route) that execute one shared
     weight per group.
 
@@ -932,7 +932,7 @@ def ensemble_member_seed(ensemble_seed: int, member: int, n_members: int) -> int
     alone with ``seed=ensemble_member_seed(S, m, n)`` therefore reproduces that
     member's slice of the ensemble trajectory exactly (plain edge_list path,
     no paradigm, no poisson_drive, cross-model edges zero). The derivation is
-    a sha256 domain tag — deterministic, version-stable, no JAX dependency.
+    a sha256 domain tag: deterministic, version-stable, no JAX dependency.
     """
     n = int(n_members)
     m = int(member)
@@ -1002,7 +1002,7 @@ def connect(
 
     This is the model-to-model composition operator of the jaxfne grammar
     (``construct`` builds one model; ``connect`` joins several). The result is a
-    normal ``Model`` — ``simulate`` / ``tune`` / ``manifest`` / ``vis.*`` all
+    normal ``Model``: ``simulate`` / ``tune`` / ``manifest`` / ``vis.*`` all
     work on it unchanged. The merge is purely structural and stays on the sparse
     edge_list backend: each member's neurons, per-neuron emitter parameters,
     positions, and recurrence are concatenated with index offsets, and optional

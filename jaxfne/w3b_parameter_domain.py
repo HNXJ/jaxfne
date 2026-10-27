@@ -1,4 +1,4 @@
-"""Protocol W3b — parameter-domain map for active robust HDP (analysis only).
+"""Protocol W3b: parameter-domain map for active robust HDP (analysis only).
 
 Branches from frozen W3a at ``08bd4a2``. Maps
 (I_tonic, kappa_H, kappa_W, lambda_W, tau_H, tau_W) to dynamical regimes using

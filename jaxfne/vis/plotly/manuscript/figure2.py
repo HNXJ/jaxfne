@@ -1,4 +1,4 @@
-"""Figure 2 — Spectrolaminar motif: CSD proxy, band power vs depth, depth profile."""
+"""Figure 2. Spectrolaminar motif: CSD proxy, band power vs depth, depth profile."""
 from __future__ import annotations
 
 from .._common import require_plotly

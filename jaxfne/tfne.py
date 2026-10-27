@@ -143,7 +143,7 @@ class TFNEError(ValueError):
 
 # S25 failure taxonomy: semantic failure classes, each a TFNEError so
 # existing handlers keep working. Parser/lexer structural errors stay
-# plain TFNEError — the vocabulary is semantic, not parser-specific.
+# plain TFNEError; the vocabulary is semantic, not parser-specific.
 class TFNEAddressUnknown(TFNEError):
     """A path or member reference resolving to nothing (S7/S25)."""
 
@@ -200,8 +200,8 @@ class TFNEProjectionRedundant(TFNEError):
 # Single capital letters that cannot name structural objects: O/X are the
 # composition operators (a definition under either name could never be
 # referenced), and H is the H-state tensor exclusively (no structural H).
-# Every other capital — including A, B, C, D used across the algebra and its
-# corpus, and JaxFNE runtime/pipeline letters such as E or Q — is a legal
+# Every other capital, including A, B, C, D used across the algebra and its
+# corpus, and JaxFNE runtime/pipeline letters such as E or Q, is a legal
 # object name; runtime meanings (X activity, W weights, Q source quantity,
 # ...) are preserved by keeping them out of the specification grammar rather
 # than by forbidding names. Single-letter names shadowing runtime vocabulary
@@ -585,7 +585,7 @@ class _Parser:
     def _parse_frontierdef(self) -> tuple[str, str, tuple[str, ...]]:
         """Parse ``in[A] := [m1, ...]`` / ``out[A] := [m1, ...]`` (S9).
 
-        Frontiers are interface metadata, so — like ``order[A]`` — they take
+        Frontiers are interface metadata, so, like ``order[A]``, they take
         a named property rather than a new operator. Members name immediate
         members of ``A`` (subset allowed: an interface need not expose every
         member); validation against the resolved model happens at resolve().
@@ -1574,8 +1574,8 @@ def _validate_frontier_members(
 ) -> tuple[str, ...]:
     """Validate one declared side into full member paths (`tfne/2` S9).
 
-    A declared frontier names a subset of the scope's immediate members —
-    an interface need not expose everything — but anything it cannot honour
+    A declared frontier names a subset of the scope's immediate members:
+    an interface need not expose everything; but anything it cannot honour
     exactly is refused with `E_FRONTIER_UNRESOLVED` rather than partially
     applied: unknown members, descendants rather than members, duplicates.
     """
@@ -1611,7 +1611,7 @@ def _verify_frontier_declarations(
 ) -> None:
     """End-of-resolve check: every declared frontier resolved and applied.
 
-    Bare scope names resolve only when unambiguous against the final model —
+    Bare scope names resolve only when unambiguous against the final model;
     applying to one of several same-named scopes would complete an interface
     the author did not single out. Leaf scopes cannot declare: a leaf object
     exposes only itself.
@@ -1924,7 +1924,7 @@ class _Resolver:
             right = self._endpoint_members(node.right, scope, "projection")
             if not left or not right:
                 # Atomicly dropped: an invalid resolved projection
-                # contributes nothing (S14) — no relation, no members.
+                # contributes nothing (S14); no relation, no members.
                 return _Expansion(members=(), fin=(), fout=())
             group = None
             if node.direction == "<>":
@@ -2105,7 +2105,7 @@ class _Resolver:
         if not members:
             # S14/S25 atomicity: inside a brace-group statement, a resolved
             # projection with no members contributes nothing instead of
-            # aborting the composite. Outside, it stays a hard error —
+            # aborting the composite. Outside, it stays a hard error;
             # an empty endpoint is never silently valid at top level.
             if self._brace_atomic:
                 return []
@@ -2507,8 +2507,8 @@ def _validate_tfne_delay_ms(rule: Any, delay: Any) -> "float | None":
     Declared in ms; ``None`` passes through (undeclared = current
     behaviour). Negative, non-finite or non-numeric delays fail closed
     (``E_DELAY_OUT_OF_RANGE``): relative timing must not acquire a
-    direction or an infinite horizon silently. The dt-dependent refusal —
-    a positive delay rounding to 0 steps — lands in
+    direction or an infinite horizon silently. The dt-dependent refusal,
+    a positive delay rounding to 0 steps, lands in
     :func:`to_configuration`, where ``dt`` is known.
     """
     if delay is None:
@@ -2957,7 +2957,7 @@ def to_neuronal_tensor(explicit: ExplicitModel):
         """Kinetics for one relation's connections (TFNE2-07/PARAM-03).
 
         The declared mechanism resolves to canonical or custom kinetics;
-        unresolvable names fail closed here — where invention would occur —
+        unresolvable names fail closed here, where invention would occur,
         rather than inheriting the 0.1 placeholder. `realize()` is
         unaffected: identity transfers without kinetics.
         """
@@ -3102,7 +3102,7 @@ def to_neuronal_tensor(explicit: ExplicitModel):
     )
     # P-023: mint this exact object into the neuronal_tensor carve-out
     # registry. The bridge recognizes genuine TFNE derivation only through
-    # that channel — the provenance dict above is inspectable metadata, not
+    # that channel; the provenance dict above is inspectable metadata, not
     # authority, since any caller can construct an equal dict.
     from .neuronal_tensor import _register_tfne_minted
 
@@ -3187,7 +3187,7 @@ def to_configuration(
     # not converge under dt-refinement.
     #
     # P-023: every realized mechanism is present in the bridge table by
-    # construction — the specs below and the tensor above both iterate the
+    # construction; the specs below and the tensor above both iterate the
     # same `explicit.relations` with the same mechanism-name function
     # (`_relation_mechanism` here, `params["mechanism"]` in `realize`), and
     # exclusions can only remove specs (the tensor ignores exclusions, so it
@@ -3269,7 +3269,7 @@ def to_configuration(
 def compose_delay_metadata(blocks: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     """Merge per-area ``tfne_delay`` records for the 0.5.4 composition operator.
 
-    0.5.4 HOOK — declared and importable only. Nothing in 0.5.2 calls this;
+    0.5.4 HOOK: declared and importable only. Nothing in 0.5.2 calls this;
     the composition operator (0.5.4 item 1) will use it to join each area's
     ``{"declared_ms": ..., "realized_steps": ..., "dt_ms": ...}`` record
     into one composed record. Pure merge: rule keys must be disjoint across
@@ -3337,7 +3337,7 @@ def _check_projection_redundancy(resolver: Any) -> None:
     """Reject explicit projections identical to rule output (S13/S25).
 
     Projection identity is `(src, dst, mechanism)` over realized leaves
-    with direction normalized — leaf-level, because a coarser explicit
+    with direction normalized; leaf-level, because a coarser explicit
     scope over an already-generated leaf route would double-count edges
     while looking structurally distinct. Any overlap between an explicit
     (bare) projection and canonically generated rule output is refused:
@@ -3437,7 +3437,7 @@ def resolve_mechanism(
     needs a sufficient executable definition (a finite positive `tau_ms`
     in the rule params); anything else fails closed. Absent mechanism
     means direct coupling (`tfne_direct`), matching the realization path's
-    long-standing default — silence is not read as a receptor claim.
+    long-standing default; silence is not read as a receptor claim.
     """
     params = dict(rule_params) if rule_params is not None else {}
     if name is None:

@@ -1,7 +1,7 @@
 """JAX-native spectral analysis and objectives for JAXFNE.
 
 Docs: ``docs/reference/api/index.md`` spectral-analysis section
-(https://jaxfne.readthedocs.io/en/latest/reference/api/) — update when this module changes.
+(https://jaxfne.readthedocs.io/en/latest/reference/api/): update when this module changes.
 
 Provides JIT-compilable, batchable functions for calculating PSDs, bandpower
 profiles, and similarity objectives.
@@ -32,11 +32,11 @@ def spectrolaminar_psd_jax(
     """Compute spectrolaminar PSD averaged across trials in a JAX-native way.
 
     Projects each contact's timeseries onto a bank of complex exponentials and
-    averages the magnitude spectrum across trials — a JIT-compilable, batchable
+    averages the magnitude spectrum across trials; a JIT-compilable, batchable
     DFT at the requested target frequencies.
 
     Window/normalization convention: ``window`` selects the taper applied to
-    each timeseries before projection — ``"rectangular"`` (default, no taper;
+    each timeseries before projection: ``"rectangular"`` (default, no taper;
     the historical behavior, bit-identical) or ``"hann"``. The projection uses
     an unnormalized rectangular DFT basis and divides by ``n_steps``; band
     profiles derived downstream are additionally peak-normalized per contact

@@ -269,7 +269,7 @@ def hdp_is_engaged(
 ) -> bool:
     """Single routing predicate for HDP execution (bulk + continuation).
 
-    Identity parameters alone route to the baseline kernel — except when the
+    Identity parameters alone route to the baseline kernel; except when the
     model carries explicitly seeded HDP state (``with_hdp_initial_state``):
     seeded non-uniform ``H`` drives real weight dynamics (``dw ~ ΔH``) even
     with null H-gains, so dropping it would silently discard user state the
@@ -354,7 +354,7 @@ def _eligibility_trace_gain_step(ctx: HDPRuleContext) -> HDPRuleUpdate:
     ``tau_e``; the weight drive is eligibility gated by postsynaptic ``H``.
     ``H`` keeps the event-coupled drive so the delayed chain
     ``event_{t-d} -> H_t -> P -> Theta_t -> I_t`` holds as for the
-    qualification rule. Not an STDP mechanism claim — an expressivity probe
+    qualification rule. Not an STDP mechanism claim; an expressivity probe
     for the aux-carrying primitive (non-empty ``aux`` continuation).
     """
     k_h = jnp.asarray(ctx.rule_params.get("k_h", 0.0), dtype=ctx.H.dtype)

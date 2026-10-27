@@ -372,7 +372,7 @@ def visualize_network_3d(
         Draw wireframe shells per area/column. Shape set by ``column_shape``.
     column_shape : str
         ``"cylinder"`` (default) draws a vertical cylinder wireframe per area
-        (circular x-y cross-section, depth on z — the "cylindric rule").
+        (circular x-y cross-section, depth on z: the "cylindric rule").
         ``"box"`` draws the legacy axis-aligned bounding box.
     column_segments : int
         Number of segments used to approximate each cylinder's circular rings.
@@ -385,7 +385,7 @@ def visualize_network_3d(
     depth_multiplier : float
         Display-only multiplier applied to the plotted depth (z) values
         (default ``1.0`` = no change). Does not rescale or mutate the
-        underlying neuron positions/data — only the rendered depth axis
+        underlying neuron positions/data; only the rendered depth axis
         (e.g. ``2.0`` displays a 0..1000 µm range as 0..2000).
     point_size : float
         Marker size (pixels) for the single-point neuron soma body.

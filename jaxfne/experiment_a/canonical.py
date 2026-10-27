@@ -1,4 +1,4 @@
-"""B1 — canonical source-of-truth dataset for Experiment A."""
+"""B1: canonical source-of-truth dataset for Experiment A."""
 
 from __future__ import annotations
 

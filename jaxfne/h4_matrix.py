@@ -1,4 +1,4 @@
-"""Protocol H4 — length × delay-heterogeneity factorial on activity-expressed RBD memory.
+"""Protocol H4: length × delay-heterogeneity factorial on activity-expressed RBD memory.
 
 Primary endpoint (pre-registered):
     M_X = ∫ [M_X(Δ) - M_{X,shuffle}(Δ)]_+ dΔ

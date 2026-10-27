@@ -83,7 +83,7 @@ def plot_band_power(
     """Absolute mean in-band power per contact, vs depth (P5 canonical contract).
 
     Same numbers as :func:`jaxfne.vis.fields.bandpower`: Welch PSD
-    (``nperseg=256``) averaged over in-band freqs, absolute proxy units —
+    (``nperseg=256``) averaged over in-band freqs, absolute proxy units;
     NOT normalized across depths, so a >2x vs shuffled comparison (tutorial
     07) remains meaningful. For the peak-normalized single-band view use
     :func:`plot_depth_profile`.
