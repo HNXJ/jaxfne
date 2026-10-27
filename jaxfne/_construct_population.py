@@ -283,20 +283,27 @@ def _apply_cell_params(
     declared: set[str],
 ) -> IzhikevichParams:
     """Apply ``cell_params()`` declarations in order: each sets ``a``/``b``/``c``/``d``/
-    ``drive`` of the neurons its ``cell_type``/``layer`` selector matches.
+    ``drive``/``v0``/``u0`` of the neurons its ``cell_type``/``layer`` selector matches.
     ``layer_labels=None`` (an unlayered population) refuses a ``layer`` selector.
     A ``cell_type`` selector matching no neuron is refused unless the type is in
     the declared composition (declared but rounded away: accepted, applies to
-    no neuron)."""
+    no neuron). A declared ``v0`` is refused while ``random_v0`` is on (the default),
+    because the random initial potential would overwrite it."""
     import numpy as np
 
     decls = (metadata.get("circuit") or {}).get("cell_params") or []
     if not decls:
         return params
-    arrays = {key: np.array(getattr(params, key)) for key in ("a", "b", "c", "d", "drive")}
+    arrays = {key: np.array(getattr(params, key)) for key in ("a", "b", "c", "d", "drive", "v0", "u0")}
     for decl in decls:
         selector = decl.get("selector", {})
         overrides = decl.get("params", {})
+        if "v0" in overrides and metadata.get("random_v0", True):
+            raise ValueError(
+                f"cell_params(selector={dict(selector)!r}) declares v0, but random_v0 is on "
+                "(the default): the random initial potential would overwrite it. Pass "
+                "runtime(random_v0=False) to realize a declared v0."
+            )
         if "layer" in selector and layer_labels is None:
             raise ValueError(
                 f"cell_params(selector={dict(selector)!r}) is not realized on this construction "

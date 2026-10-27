@@ -683,6 +683,15 @@ def _construct_build_network(
                 stacklevel=2,
             )
         network = make_eig_network(n=n, cell_type_fractions=cell_types)
+        if cfg.metadata.get("connectivity_mode") == "explicit":
+            # Explicit topology is authoritative, as in _apply_connectivity: the default
+            # all-to-all W is dropped (never converted to edges) and construct() appends
+            # only the declared rules onto an empty prebuilt graph (P-046).
+            network = replace(
+                network,
+                params=replace(network.params, W=jnp.zeros((0, 0), dtype=network.params.W.dtype)),
+            )
+            _prebuilt_edges = _empty_edge_list(network.params.v0.dtype)
         # drive() and cell_params() reach the emitter as on the population route (P-018).
         params = _apply_baseline_drive(network.params, cfg.metadata, _declared_cell_types(cfg))
         params = _apply_cell_params(
@@ -802,15 +811,26 @@ def _reject_duplicate_explicit_edges(edge_list: "EdgeList", *, exempt_ranges=Non
     if exempt_ranges:
         for bid, (lo, hi) in enumerate(exempt_ranges):
             block[lo:hi] = bid
-    uniq, inverse = _np.unique(identities, axis=0, return_inverse=True)
+    _uniq, inverse = _np.unique(identities, axis=0, return_inverse=True)
     inverse = _np.asarray(inverse).reshape(-1)
-    for u in range(uniq.shape[0]):
-        occ = _np.flatnonzero(inverse == u)
-        if occ.size < 2:
-            continue
-        bids = block[occ]
-        if exempt_ranges and int(bids[0]) >= 0 and bool(_np.all(bids == bids[0])):
-            continue
+    # One stable sort groups the edges by identity; a per-identity rescan of the full
+    # edge array was quadratic (P-050). A repeated identity is declared
+    # only when every occurrence lies in ONE exempt block (block >= 0, min == max).
+    order = _np.argsort(inverse, kind="stable")
+    sorted_ids = inverse[order]
+    starts = _np.flatnonzero(_np.r_[True, sorted_ids[1:] != sorted_ids[:-1]])
+    sizes = _np.diff(_np.r_[starts, n])
+    repeated = sizes > 1
+    if not bool(repeated.any()):
+        return
+    sorted_block = block[order]
+    bmin = _np.minimum.reduceat(sorted_block, starts)
+    bmax = _np.maximum.reduceat(sorted_block, starts)
+    if exempt_ranges:
+        declared = (bmin == bmax) & (bmin >= 0)
+    else:
+        declared = _np.zeros(starts.shape, dtype=bool)
+    if bool(_np.any(repeated & ~declared)):
         raise ValueError(
             "explicit NeuronalTensor connectivity produced duplicate "
             "executable synaptic identities; identity is "
@@ -1001,7 +1021,7 @@ def _construct_compile_connections(
         cfg = _record_connectivity_compilation(
             cfg,
             mode=connectivity_mode,
-            default_edge_count=(0 if connectivity_mode == "explicit" else default_edge_count),
+            default_edge_count=default_edge_count,
             declared_edge_count=declared_edge_count,
             total_edge_count=int(edge_list.n_edges),
         )

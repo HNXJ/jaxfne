@@ -991,16 +991,20 @@ class Configuration:
     def cell_params(
         self, selector: Mapping[str, Any], params: Mapping[str, Any]
     ) -> "Configuration":
-        """Override Izhikevich ``a``/``b``/``c``/``d``/``drive`` for neurons matching a
-        ``cell_type`` and/or ``layer`` selector; applied at ``construct()``. A value is a
-        scalar for every matched neuron or a list with one value per matched neuron, in
-        neuron-index order (a length mismatch is refused)."""
+        """Override Izhikevich ``a``/``b``/``c``/``d``/``drive``/``v0``/``u0`` for neurons
+        matching a ``cell_type`` and/or ``layer`` selector; applied at ``construct()``. A value
+        is a scalar for every matched neuron or a list with one value per matched neuron, in
+        neuron-index order (a length mismatch is refused). ``v0`` (initial membrane potential)
+        and ``u0`` (initial recovery variable) declare the initial state; a declared ``v0``
+        needs ``runtime(random_v0=False)``, since the default random initial potential would
+        overwrite it. An undeclared ``u0`` keeps the preset's value (it is not recomputed from
+        an overridden ``b``)."""
         bad_sel = sorted(set(selector) - {"cell_type", "layer"})
-        bad_par = sorted(set(params) - {"a", "b", "c", "d", "drive"})
+        bad_par = sorted(set(params) - {"a", "b", "c", "d", "drive", "v0", "u0"})
         if bad_sel or bad_par:
             raise ValueError(
                 f"cell_params: unsupported selector keys {bad_sel} / parameter keys {bad_par}; "
-                "selectors: cell_type, layer; parameters: a, b, c, d, drive"
+                "selectors: cell_type, layer; parameters: a, b, c, d, drive, v0, u0"
             )
         entry = {
             "selector": _circuit_json_safe(dict(selector), "cell_params.selector"),
