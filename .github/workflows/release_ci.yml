@@ -134,13 +134,16 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install package and dev+viz deps (renderer pin comes from the dev extra)
+      - name: Install package and dev+viz deps under the figure lock
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,viz,jaxley,jnwb]"
+          pip install -c .github/figure_env_lock.txt -e ".[dev,viz,jaxley,jnwb]"
 
       - name: Record the figure environment (source for the figure lock)
         run: pip freeze --exclude-editable > figure_env_freeze.txt
+
+      - name: The installed figure environment equals the lock
+        run: grep -v '^#' .github/figure_env_lock.txt | diff - figure_env_freeze.txt
 
       - name: Publication gate (Figures 1-7 vs frozen PNGs, frozen-path hashes, repo state)
         run: python scripts/run_test_gate.py publication

@@ -100,7 +100,9 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 
 - [A] 9F: the JUnit classifier reads the `data_gated`, `optional_oracle` and `bitwise_diagnostic` markers
   (2026-10-26); closes when rc on the next candidate runs end to end. Evidence writers and the checklist write
-  under `artifacts/_temp/` (2026-10-26). Left: the figure lock file and the clean-checkout figure job.
+  under `artifacts/_temp/` (2026-10-26). The figure lock `.github/figure_env_lock.txt` (freeze of passing
+  Release CI 40444082095) constrains the publication job, which renders on a clean checkout and fails when
+  its freeze differs from the lock. Left: rc end to end on the candidate.
 
 - Jitter reader (Hamm 2026-10-22): protocol (a) PASS on all four runs (A1/A2, seeds 0,1; w_pat -> 2.0
   bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak
