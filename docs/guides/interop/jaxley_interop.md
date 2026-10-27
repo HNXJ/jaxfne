@@ -156,15 +156,16 @@ Use jaxfne when you want to:
 
 ## Interactive panel (dark)
 
-The bridge returns `Signals` without a `Model`, so there is no full atlas for it — instead, the dark-theme membrane-potential panel of the HH run above, generated with the canonical `plot_membrane_potentials` plotter:
+The bridge returns `Signals` without a `Model`, so there is no full atlas for it — instead, the membrane-potential panel of the HH run above, generated with the canonical `plot_membrane_potentials` plotter:
 
-<iframe
-  src="../../../_static/jaxley_interop/vm_dark.html"
-  width="100%"
-  height="520px"
-  style="border: 1px solid #2e2e3a; border-radius: 8px; background: #0d1117;"
-  title="Jaxley HH single compartment V_m proxy (dark)"
-  loading="lazy"
-></iframe>
+=== "Still"
 
-Regenerate: `python scripts/generate_doc_page_atlases.py --slug jaxley_single`.
+    ![Jaxley HH single compartment V_m proxy](../../assets/visuals/jaxley_vm.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/jaxley_vm/jaxley_vm.html" loading="lazy" title="Jaxley HH single compartment V_m proxy"></iframe>
+
+[Open full page](https://hnxj.github.io/jaxfne/figures/jaxley_vm/jaxley_vm.html)
+
+Regenerate the still: `python scripts/generate_docs_visuals.py`.

@@ -698,8 +698,8 @@ SPECS = {
 }
 
 
-def spec_jaxley_single():
-    """Standalone dark vm panel for the Jaxley bridge (no Model -> no atlas)."""
+def jaxley_single_figure():
+    """Dark vm figure for the Jaxley bridge (no Model -> no atlas). Writes nothing."""
     import jaxley as jx
     from jaxley.channels import HH
 
@@ -720,44 +720,27 @@ def spec_jaxley_single():
         plot_bgcolor="#161b22",
         font=dict(color="#c9d1d9"),
     )
-    out = ROOT / "docs" / "_static" / "jaxley_interop" / "vm_dark.html"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(fig.to_html(include_plotlyjs="cdn", full_html=True), encoding="utf-8")
-    print(
-        f"[jaxley_single] wrote {out.relative_to(ROOT)} "
-        f"({out.stat().st_size}B) V_m={tuple(sig.V_m.shape)}",
-        flush=True,
-    )
+    return fig
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--list", action="store_true")
-    parser.add_argument("--slug", default="", help="comma-separated subset (plus 'jaxley_single')")
+    parser.add_argument("--slug", default="", help="comma-separated subset")
     args = parser.parse_args(argv)
 
-    names = list(SPECS) + ["jaxley_single"]
+    names = list(SPECS)
     if args.list:
         print("\n".join(names))
         return 0
 
-    wanted = (
-        [s.strip() for s in args.slug.split(",") if s.strip()]
-        if args.slug
-        else [s for s in names if s != "jaxley_single"]
-    )
+    wanted = [s.strip() for s in args.slug.split(",") if s.strip()] if args.slug else names
     unknown = [s for s in wanted if s not in names]
     if unknown:
         raise SystemExit(f"unknown slugs: {unknown}\nchoose from: {names}")
 
     failures = []
     for slug in wanted:
-        if slug == "jaxley_single":
-            try:
-                spec_jaxley_single()
-            except Exception as exc:  # noqa: BLE001
-                failures.append((slug, repr(exc)))
-            continue
         try:
             title, model, signals, kw = SPECS[slug]()
             _build_atlas(slug, title, model, signals, **kw)

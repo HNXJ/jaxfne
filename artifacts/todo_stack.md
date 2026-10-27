@@ -122,9 +122,9 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   set and publish on every dev push; style files stay per repo, aligned by convention. Tree budget
   (Hamm 2026-10-24: the repo stays well below 100 MB, read as 100,000,000 bytes, so a budget
   amendment for the twins is fine): record the measured delta in the amendment file.
-- Docs figures leftovers (0.5.9): the four allowlisted iframes in `build_docs_assets.py` (two on archived
-  tutorial pages) get a figure-site build or a still; `docs/_static/jaxley_interop/vm_dark.html`, one of
-  them, is the last tracked `docs/_static` HTML. Figure-site panels follow the docs theme (f1074845).
+- Docs figures leftovers (0.5.9): the jaxley V_m panel and the v037 column are figure-site pages with stills;
+  two iframes stay allowlisted in `build_docs_assets.py` with no writer: the archived Izhikevich explorer (a
+  JavaScript app) and `docs/assets/showcases/v1_v4_pfc_network3d.html` (a Plotly scatter3d that needs a builder).
 
 In order (Hamm 2026-10-22: work until the 0.5.8 todos and open issues are empty; open issues become
 todos once their close is decided; checkpoint when both are empty; Muse Spark 1.3 code packets in

@@ -16,6 +16,10 @@ Figures:
 * ``hdp_h_dynamics``, ``hdp_weights`` — stills of the H and W panels of the
   small full-recording HDP run (``generate_doc_page_atlases.spec_hdp_10``);
   their interactive pages are that atlas's own panels.
+* ``jaxley_vm`` — the dark V_m panel of the Jaxley HH run
+  (``generate_doc_page_atlases.jaxley_single_figure``); still only.
+* ``v037_source_column_3d`` — the 3-D source column
+  (``build_v037_source_column_3d.build_column_figure``); still only.
 
 Usage:
     python scripts/generate_docs_visuals.py
@@ -83,10 +87,24 @@ def hdp_weights():
     return _hdp_fig(_hdp_10_model())
 
 
-# Stills only: their interactive pages are docs/_static/atlas/hdp_10/{h_dynamics,hdp}.html.
+def jaxley_vm():
+    import generate_doc_page_atlases as dpa
+
+    return dpa.jaxley_single_figure()
+
+
+def v037_source_column_3d():
+    import build_v037_source_column_3d as v037
+
+    return v037.build_column_figure()
+
+
+# Stills only: the hdp pages are docs/_static/atlas/hdp_10/{h_dynamics,hdp}.html; the jaxley
+# and v037 pages are figure-site pages (build_docs_assets.py --site).
 FIGURES = {"column_network": column_network, "area_graph_n20": area_graph_n20,
-           "hdp_h_dynamics": hdp_h_dynamics, "hdp_weights": hdp_weights}
-STILL_ONLY = {"hdp_h_dynamics", "hdp_weights"}
+           "hdp_h_dynamics": hdp_h_dynamics, "hdp_weights": hdp_weights,
+           "jaxley_vm": jaxley_vm, "v037_source_column_3d": v037_source_column_3d}
+STILL_ONLY = {"hdp_h_dynamics", "hdp_weights", "jaxley_vm", "v037_source_column_3d"}
 
 
 def main() -> int:

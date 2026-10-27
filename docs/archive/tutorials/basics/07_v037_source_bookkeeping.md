@@ -33,19 +33,15 @@ Below is a **standalone Plotly HTML** laminar column with:
 
 ### View the Interactive Column
 
-<iframe 
-  src="../../../../assets/interactive/v037_source_column_3d.html"
-  width="100%"
-  height="800"
-  title="Source column 3-D"
-  style="border: 1px solid #ccc; margin: 20px 0;">
-  <p>
-    If the visualization doesn't load, you can open it directly:
-    <a href="../../../../assets/interactive/v037_source_column_3d.html" target="_blank">
-      v037_source_column_3d.html (opens in new tab)
-    </a>
-  </p>
-</iframe>
+=== "Still"
+
+    ![Source column 3-D](../../../assets/visuals/v037_source_column_3d.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/v037_source_column_3d/v037_source_column_3d.html" loading="lazy" title="Source column 3-D"></iframe>
+
+[Open full page](https://hnxj.github.io/jaxfne/figures/v037_source_column_3d/v037_source_column_3d.html)
 
 ---
 
