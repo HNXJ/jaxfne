@@ -4,7 +4,8 @@ headless Chromium and renders from the committed data.
 No network: the page is served from a local http.server thread, and every request to another host is answered
 locally (JS stubs for the three CDN scripts, an empty stylesheet) or aborted. The test copy drops the CDN
 integrity attributes, because a subresource-integrity check rejects any stub body. Skips when Playwright or its
-Chromium is not installed; any other failure fails the test.
+Chromium is not installed (per test, so every leg records the same JUnit nodes; ``optional_oracle`` lets the
+comparator classify the skip); any other failure fails the test.
 """
 import http.server
 import json
@@ -18,7 +19,7 @@ from urllib.parse import urlsplit
 
 import pytest
 
-sync_api = pytest.importorskip("playwright.sync_api")
+pytestmark = pytest.mark.optional_oracle
 
 REPO = Path(__file__).resolve().parents[1]
 DASH = REPO / "dashboard"
@@ -105,6 +106,7 @@ def _session(browser, site):
 
 @pytest.fixture(scope="module")
 def browser():
+    sync_api = pytest.importorskip("playwright.sync_api")
     with sync_api.sync_playwright() as pw:
         try:
             chromium = pw.chromium.launch(headless=True)
