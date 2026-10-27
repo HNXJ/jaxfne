@@ -684,6 +684,12 @@ def discover_pytest_lanes() -> list[str]:
     return sorted(lanes)
 
 
+# Lanes whose tests run under xdist (profiled 2026-10-27: pcl 542 s serial, 121 s with
+# xdist; caminos 247 s, 65 s; both pass the same tests). Short lanes stay serial, where
+# worker start-up would cost more than it saves.
+XDIST_LANES = {"pcl", "caminos"}
+
+
 def _lane_argv(lane: str) -> list[str]:
     return [
         sys.executable,
@@ -692,6 +698,7 @@ def _lane_argv(lane: str) -> list[str]:
         "-q",
         "-p",
         "no:cacheprovider",
+        *(PYTEST_XDIST_ARGS if lane in XDIST_LANES else []),
         f"{PAPER_LANES_DIR}/{lane}",
     ]
 

@@ -65,6 +65,15 @@ def test_lane_command_is_one_process_per_lane_dir():
     assert "no:cacheprovider" in argv
 
 
+def test_slow_lanes_run_under_xdist_and_short_ones_serial():
+    # Profiled 2026-10-27: pcl 542 s serial, 121 s with xdist; caminos 247 s, 65 s.
+    for lane in ("pcl", "caminos"):
+        argv = rtg._lane_argv(lane)
+        assert argv[-1] == f"{rtg.PAPER_LANES_DIR}/{lane}"
+        assert all(a in argv for a in rtg.PYTEST_XDIST_ARGS), lane
+    assert "-n" not in rtg._lane_argv("vogels2011")
+
+
 def _control_lanes(monkeypatch, lanes, returncodes, known):
     monkeypatch.setattr(rtg, "discover_pytest_lanes", lambda: list(lanes))
     monkeypatch.setattr(rtg, "LANE_PYTEST_KNOWN_FAILING", dict(known))

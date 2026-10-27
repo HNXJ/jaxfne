@@ -39,3 +39,15 @@ Audit 2026-10-27 (Hamm: a red check should mean something specific). Sources: `.
 
 Order: G and A first (measure, then the cheapest split), then B, C, D, E. Each lands with a test or a
 dispatched run showing the job fails on a planted defect of its class and passes on dev.
+
+## Status
+
+- G done 2026-10-27. Broad pytest 12.1 min under load. Slowest files: `emitters_hh` 198 s,
+  `tutorial_figure_contract_v0219` 181 s (three fixture setups of ~60 s), notebook smoke 141 s,
+  equivalence gate 104 s. Lanes serial 970 s: pcl 542, caminos 247, potjans2014 118, the other four
+  under 25 each. With xdist, pcl 121 s and caminos 65 s, the same tests passing.
+- A landed (c07b7df1): `static`, `docs`, `fast-test`, `examples`, `fast-build`. The ids `fast-test` and
+  `fast-build` stay because the dev and main rulesets require them; `fast-build` always runs and fails
+  when a needed job did not pass. Planted-defect run pending.
+- C, local half: pcl and caminos run under xdist in the broad gate (`XDIST_LANES`).
+- Docs gate gap closed (b4133826): the docs gate and the dev gate run `test_public_docs_hygiene.py`.
