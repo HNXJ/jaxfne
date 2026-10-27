@@ -184,6 +184,17 @@ def test_networkx_like_graph_supported_if_networkx_available():
     assert isinstance(fig, go.Figure)
 
 
+def test_show_edges_on_an_input_without_edges_is_refused():
+    """Rows carry no edges, so show_edges=True would change nothing: it is refused."""
+    _require_plotly_or_skip()
+    import jaxfne.vis as vis
+
+    assert not hasattr(_minimal_rows(), "edges"), "fixture: an input without edges"
+    with pytest.raises(ValueError, match="show_edges"):
+        vis.visualize_network_3d(_minimal_rows(), show_edges=True)
+    vis.visualize_network_3d(_minimal_rows())
+
+
 def test_core_import_does_not_require_plotly():
     """import jaxfne (and jaxfne.vis) must succeed without Plotly present."""
     # This test runs in the current interpreter, which may have Plotly.

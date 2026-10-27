@@ -121,7 +121,7 @@ _DEFAULT_CELL_COLORS: dict[str, str] = {
     "E":   "#d4a017",   # gold (filled circle)
     "PV":  "#1fd6d6",   # cyan (diamond)
     "SST": "#e840c8",   # magenta (square)
-    "VIP": "#ffffff",   # white (open circle) — needs the dark scene background
+    "VIP": "#7e57c2",   # violet (circle); reads on a light and a dark scene
 }
 
 _FALLBACK_COLORS = [
@@ -377,7 +377,7 @@ def visualize_network_3d(
     column_segments : int
         Number of segments used to approximate each cylinder's circular rings.
     show_edges : bool
-        Draw edges if data provides them (networkx graph only).
+        Draw a networkx graph's edges; any other input raises ``ValueError``.
     max_edges : int
         Maximum number of edges to render (capped for performance).
     seed : int
@@ -411,6 +411,11 @@ def visualize_network_3d(
     - Geometry is proxy/declared only. Not calibrated anatomical coordinates.
     """
     go = _require_plotly()
+    if show_edges and not hasattr(data, "edges"):
+        raise ValueError(
+            "visualize_network_3d: show_edges=True draws a networkx graph's edges, and "
+            f"{type(data).__name__} has none; jaxfne.vis.plotly.plot_network_3d(model, "
+            "show_edges=True) draws a model's edges")
 
     # ── Normalize input ────────────────────────────────────────────────────────
     rows = _coerce_to_rows(data, seed=seed)

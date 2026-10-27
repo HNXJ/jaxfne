@@ -73,7 +73,8 @@ ETUDE_KEYS = ("slug", "dir", "generator", "html")
 FIG_PNG_WIDTH = 1000
 FIG_PNG_HEIGHT = 760
 FIG_PNG_SCALE = 1
-VISUAL_SLUGS = ("column_network", "area_graph_n20", "jaxley_vm", "v037_source_column_3d")
+VISUAL_SLUGS = ("column_network", "area_graph_n20", "jaxley_vm", "v037_source_column_3d",
+                "v1_v4_pfc_network3d")
 SITE_SCHEMA = "figsite.v1"
 
 # Public figure site: every docs still and "Interactive version" link points
@@ -720,12 +721,11 @@ def check_site_figures(site: Path) -> list[str]:
 
 
 # Docs figures are Still / Interactive tab pairs whose iframe frames the
-# figure site; no relative iframe may remain (the two pages below have no
-# writer, and the explorer is a JavaScript app a still cannot show), and no
-# relative link may point at a figure page (atlas, etude or visual dirs).
+# figure site; no relative iframe may remain (the one page below is the
+# explorer, a JavaScript app a still cannot show), and no relative link may
+# point at a figure page (atlas, etude or visual dirs).
 ALLOWLISTED_FIGURE_IFRAMES = {
     "docs/assets/interactive/izhikevich_single_emitter_explorer.html",
-    "docs/assets/showcases/v1_v4_pfc_network3d.html",
 }
 _IFRAME_SRC_RE = re.compile(r"<iframe\b[^>]*\bsrc\s*=\s*[\"']([^\"'#?]+?\.html)",
                             re.IGNORECASE | re.DOTALL)

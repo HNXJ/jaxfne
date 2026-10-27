@@ -1,0 +1,1 @@
+- `visualize_network_3d(show_edges=True)` raises `ValueError` for an input without edges (a Model, rows, a table), where it drew nothing; `jaxfne.vis.plotly.plot_network_3d(model, show_edges=True)` draws a model's edges.

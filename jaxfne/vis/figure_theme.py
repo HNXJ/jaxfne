@@ -21,18 +21,21 @@ _XY_AXIS = re.compile(r"[xy]axis\d*")
 _SCENE = re.compile(r"scene\d*")
 
 
-def _axis(line: str, grid: str, tick: str) -> dict:
-    return {"linecolor": line, "gridcolor": grid, "tickcolor": tick, "zerolinecolor": grid}
+def _axis(ink: str, line: str, grid: str, tick: str) -> dict:
+    # "color" sets the tick labels and the axis title, which a figure may have fixed for one scheme.
+    return {"color": ink, "linecolor": line, "gridcolor": grid, "tickcolor": tick, "zerolinecolor": grid}
 
 
 def _palette(paper: str, plot: str, ink: str, line: str, grid: str, tick: str) -> dict:
-    axis = _axis(line, grid, tick)
+    axis = _axis(ink, line, grid, tick)
     # A 3D axis also paints its back plane, which the base template colours otherwise.
     plane = {**axis, "backgroundcolor": plot}
     return {
         "paper_bgcolor": paper,
         "plot_bgcolor": plot,
         "font": {"color": ink},
+        "title": {"font": {"color": ink}},
+        "legend": {"font": {"color": ink}},
         "xaxis": axis,
         "yaxis": axis,
         "scene": {"bgcolor": plot, "xaxis": plane, "yaxis": plane, "zaxis": plane},

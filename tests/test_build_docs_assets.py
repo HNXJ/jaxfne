@@ -252,10 +252,10 @@ def test_atlas_link_must_name_a_built_file():
 
 
 def test_other_html_link_must_name_a_file_on_disk():
-    # Non-registry HTML paths are checked on disk; the tracked showcase page is
+    # Non-registry HTML paths are checked on disk; the tracked explorer page is
     # such a file (the visuals/ HTML is an untracked build product since 2026-10-22).
-    target = "../../assets/showcases/v1_v4_pfc_network3d.html"
-    assert (REPO / "docs/assets/showcases/v1_v4_pfc_network3d.html").is_file(), "fixture needs a tracked page"
+    target = "../../assets/interactive/izhikevich_single_emitter_explorer.html"
+    assert (REPO / "docs/assets/interactive/izhikevich_single_emitter_explorer.html").is_file(), "fixture needs a tracked page"
     assert _link_problems("docs/etudes/p.md", f'<iframe src="{target}"></iframe>') == []
     missing = _link_problems("docs/etudes/p.md", '<iframe src="../../_static/etudes/none.html"></iframe>')
     assert len(missing) == 1 and "names no file" in missing[0], missing

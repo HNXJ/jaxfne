@@ -197,6 +197,9 @@ def _three_axis_figure() -> go.Figure:
     fig.add_trace(go.Scatter3d(x=[0, 1], y=[0, 1], z=[0, 1], mode="markers", name="c"), row=1, col=3)
     fig.update_layout(template="plotly_dark", paper_bgcolor="#0d1117", plot_bgcolor="#161b22",
                       font=dict(color="#c9d1d9"), scene=dict(bgcolor="#000000"))
+    # Text colours fixed for a dark page, as visualize_network_3d sets them.
+    fig.update_layout(title=dict(text="t", font=dict(color="#f0f0f0")), legend=dict(font=dict(color="#e0e0e0")),
+                      xaxis=dict(color="#cccccc"), scene=dict(xaxis=dict(color="#cccccc")))
     return fig
 
 
@@ -215,13 +218,17 @@ def test_apply_scheme_sets_the_palette_on_page_font_and_every_axis_and_leaves_th
         assert out.layout.plot_bgcolor == palette["plot_bgcolor"], scheme
         assert out.layout.font.color == palette["font"]["color"], scheme
         assert out.layout.template.layout.paper_bgcolor == palette["paper_bgcolor"], scheme
+        ink = palette["font"]["color"]
+        assert out.layout.title.font.color == ink and out.layout.legend.font.color == ink, scheme
         for a in axes:
             ax = out.layout[a]
+            assert ax.color == ink, (scheme, a)
             assert ax.linecolor == palette["xaxis"]["linecolor"], (scheme, a)
             assert ax.gridcolor == palette["xaxis"]["gridcolor"], (scheme, a)
             assert ax.tickcolor == palette["xaxis"]["tickcolor"], (scheme, a)
         assert out.layout.scene.bgcolor == palette["scene"]["bgcolor"], scheme
         for a in ("xaxis", "yaxis", "zaxis"):
+            assert out.layout.scene[a].color == ink, (scheme, a)
             assert out.layout.scene[a].linecolor == palette["scene"][a]["linecolor"], (scheme, a)
             assert out.layout.scene[a].gridcolor == palette["scene"][a]["gridcolor"], (scheme, a)
             # The back plane takes the plot colour; plotly_dark's own plane is near black.

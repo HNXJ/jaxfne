@@ -1,0 +1,1 @@
+- The V1-V4-PFC showcase network is a docs figure built from its quoted code: Still / Interactive tabs on the figure site, and the static `v1_v4_pfc_network3d.html` leaves the tree. Figure-site pages and stills set the title, legend and axis text in the scheme's ink, and `visualize_network_3d` draws VIP cells in violet, which reads on a light and a dark scene.

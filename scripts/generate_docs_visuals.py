@@ -21,6 +21,8 @@ Figures:
   (``generate_doc_page_atlases.jaxley_single_figure``); still only.
 * ``v037_source_column_3d`` — the 3-D source column
   (``build_v037_source_column_3d.build_column_figure``); still only.
+* ``v1_v4_pfc_network3d`` — the V1-V4-PFC hierarchy at 300 neurons/area, the code
+  quoted on the showcases page; still only.
 
 Usage:
     python scripts/generate_docs_visuals.py
@@ -99,12 +101,25 @@ def v037_source_column_3d():
     return v037.build_column_figure()
 
 
-# Stills only: the hdp pages are docs/_static/atlas/hdp_10/{h_dynamics,hdp}.html; the jaxley
-# and v037 pages are figure-site pages (build_docs_assets.py --site).
+def v1_v4_pfc_network3d():
+    cfg = jtfne.build_multi_area_columns(["V1", "V4", "PFC"], n_per_area=300, ei_profile="canonical")
+    cfg = cfg.set_emitter("izhikevich", "cortical_eig").probes(["spikes", "V_m"], n_contacts=16)
+    model = jtfne.construct(cfg)
+    return jtfne.vis.visualize_network_3d(
+        model,
+        title="V1-V4-PFC multi-area canonical columns (300 neurons/area)",
+        show_layers=True, show_column_shells=True,
+    )
+
+
+# Stills only: the hdp pages are docs/_static/atlas/hdp_10/{h_dynamics,hdp}.html; the jaxley,
+# v037 and v1_v4_pfc pages are figure-site pages (build_docs_assets.py --site).
 FIGURES = {"column_network": column_network, "area_graph_n20": area_graph_n20,
            "hdp_h_dynamics": hdp_h_dynamics, "hdp_weights": hdp_weights,
-           "jaxley_vm": jaxley_vm, "v037_source_column_3d": v037_source_column_3d}
-STILL_ONLY = {"hdp_h_dynamics", "hdp_weights", "jaxley_vm", "v037_source_column_3d"}
+           "jaxley_vm": jaxley_vm, "v037_source_column_3d": v037_source_column_3d,
+           "v1_v4_pfc_network3d": v1_v4_pfc_network3d}
+STILL_ONLY = {"hdp_h_dynamics", "hdp_weights", "jaxley_vm", "v037_source_column_3d",
+              "v1_v4_pfc_network3d"}
 
 
 def main() -> int:

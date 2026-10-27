@@ -21,19 +21,21 @@ model = jtfne.construct(cfg)
 jtfne.vis.visualize_network_3d(
     model,
     title="V1-V4-PFC multi-area canonical columns (300 neurons/area)",
-    show_layers=True, show_column_shells=True, show_edges=True, max_edges=600,
+    show_layers=True, show_column_shells=True,
     output_html="network3d.html",
 )
 ```
 
-<iframe
-  src="../../../assets/showcases/v1_v4_pfc_network3d.html"
-  width="100%"
-  height="700px"
-  style="border: 1px solid #2e2e3a; border-radius: 8px; background: #0d0d10;"
-  title="V1-V4-PFC multi-area network 3D"
-  loading="lazy"
-></iframe>
+=== "Still"
+
+    ![V1-V4-PFC multi-area canonical columns (300 neurons/area)](../../assets/visuals/v1_v4_pfc_network3d.png#only-light)
+    ![V1-V4-PFC multi-area canonical columns (300 neurons/area)](../../assets/visuals/v1_v4_pfc_network3d.dark.png#only-dark)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/v1_v4_pfc_network3d/v1_v4_pfc_network3d.html" loading="lazy" title="V1-V4-PFC multi-area network 3D"></iframe>
+
+[Open full page](https://hnxj.github.io/jaxfne/figures/v1_v4_pfc_network3d/v1_v4_pfc_network3d.html)
 
 Smaller-scale analogue with the full six-panel dark atlas: the V1–V4–PFC hierarchy at 100 neurons/area (this page builds 300/area) — Interactive figures: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/three_area/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/three_area/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/three_area/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/three_area/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/three_area/oscillatory.html)
 
