@@ -1,7 +1,7 @@
 # jax-fem interoperability (scoping stage)
 
 **Status: schema/contract only.** `JaxFemFieldBridge` verifies the optional
-dependency is installed and returns a status contract; it does not run a
+dependency is installed and returns a status contract. It does not run a
 real field solve yet. This page documents the current scope and the plan,
 not a working feature; see `artifacts/publication/publication_evidence_index.json`
 for the tracked field-solver backlog entry this serves.

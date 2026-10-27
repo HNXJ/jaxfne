@@ -82,7 +82,7 @@ Both `RunReceipt` and `ObjectiveReport` are dataclasses with JSON-safe
 contents; serialize them the same way as `manifest()`'s dict output (e.g.
 `json.dumps(jtfne.io.json_safe(receipt.__dict__), allow_nan=False)`), subject
 to the same NaN/Inf checks described above. The `manifest`/`compute_readout`
-path documented in this guide remains valid; it is not the newest
+path documented in this guide remains valid. It is not the newest
 recommended entry point. See `jaxfne/core.py` (`Model.run_receipt`,
 `Model.evaluate_report`) for the full signatures and docstrings; there is no
 separate `docs/api/` page for these two methods as of this writing.

@@ -65,6 +65,9 @@ DEV_PYTEST_TARGETS = [
     "tests/test_build_docs_assets.py",
     # Docs currency: no published current page states an older minor version as current.
     "tests/test_docs_version_currency.py",
+    # Prose hygiene ("X, not Y", em dashes); a docs edit with three hits passed CI Fast
+    # and the docs gate on 2026-10-27.
+    "tests/test_public_docs_hygiene.py",
 ]
 
 # 0.5.1-4b(4): parallelize the independent pytest sweeps with xdist (already
@@ -132,6 +135,7 @@ CHECK_FAMILIES = {
     "junit_parity",
     "compileall",
     "pytest_dev",
+    "pytest_docs",
     "lint_ruff",
     "docs_language_audit",
     "notebook_grammar_audit",
@@ -250,6 +254,7 @@ GATE_CHECK_FAMILIES = {
         "tree_size_audit",
     },
     "docs": {
+        "pytest_docs",
         "docs_language_audit",
         "notebook_grammar_audit",
         "vocabulary_audit",
@@ -643,10 +648,14 @@ def gate_report() -> None:
 
 
 def gate_docs() -> None:
-    """Quick docs gate: the documentation subset of the audit checks."""
+    """Quick docs gate: the documentation subset of the audit checks, then the prose hygiene tests."""
     for family, cmd in AUDIT_STEPS:
         if family in DOCS_AUDIT_FAMILIES:
             _run(cmd, family=family)
+    _run(
+        [sys.executable, "-m", "pytest", "tests/test_public_docs_hygiene.py", "-q", "--tb=short"],
+        family="pytest_docs",
+    )
 
 
 # --- Paper-lane pytest sweeps (family ``pytest_lanes``) -------------------------

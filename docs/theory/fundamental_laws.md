@@ -247,7 +247,7 @@ G_H(H;\beta_H) = 1 + \beta_H\,(H - 1),\qquad I_i^{\mathrm{drive}} = I_i^{\mathrm
 
 declared in `docs/theory/memory/protocol_h_rbd_memory.md` and `docs/theory/doctrine/tfne_containment_architecture.md`. The scalar model is thus **one realization** of \(H = z/z^*\); the same grammar extends to \(d_H \sim 10\)–\(100\) coordinates without changing the containment structure.
 
-> **Boundary: Physical derivation ends here. JaxFNE abstraction begins:** The choice \(z_k^*\) and the reduction map \(\mathcal R_k\) are **modeling decisions**. The code stores \(\mathbf H\) as a JAX array of shape `(n_neurons, d_H)` (or `(n_neurons,)` for \(d_H=1\)) and integrates \(\dot{\mathbf H} = F_H(\mathbf H, \mathbf x, \mathbf I, \mathbf W, \ldots)\) via explicit Euler inside the same `scan` as the emitter. No invariant forces \(H\) to remain near 1; f2 propagation with \(H \le 0\) yields non-finite \(H\) by design so that misuse is observable; it does not silently clip.
+> **Boundary: Physical derivation ends here. JaxFNE abstraction begins:** The choice \(z_k^*\) and the reduction map \(\mathcal R_k\) are **modeling decisions**. The code stores \(\mathbf H\) as a JAX array of shape `(n_neurons, d_H)` (or `(n_neurons,)` for \(d_H=1\)) and integrates \(\dot{\mathbf H} = F_H(\mathbf H, \mathbf x, \mathbf I, \mathbf W, \ldots)\) via explicit Euler inside the same `scan` as the emitter. No invariant forces \(H\) to remain near 1; f2 propagation with \(H \le 0\) yields non-finite \(H\) by design so that misuse is observable, with no silent clipping.
 
 ---
 
