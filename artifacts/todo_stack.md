@@ -85,8 +85,18 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   established, to resolve T2). The READ-ONLY R2/R4 design study landed
   (`papers/pcl/r2_r4_design_study_2026-10-27.md`): the C++ resets all neuron state after each file and keeps
   W, so the reference hand-off is W plus a declared reset map; it recommends (b), extending the core LIF event
-  scan (several spikes per cell, interval H updates, F_W in the scan, a boundary map). Next: Hamm picks (a) or
-  (b) and the F6 column; then R2. Historical state (records in
+  scan (several spikes per cell, interval H updates, F_W in the scan, a boundary map). Hamm chose (b)
+  2026-10-27. Core lanes, in order, each with its own test against the oracle: L1 several spikes per cell with
+  their times; L2 threshold and rate updated at the measurement interval; L3 F_W in the scan; L4 the boundary
+  map and the continuation-equivalence test. L1 landed 2026-10-27 (a21b5175; the port's core replay takes
+  multi-spike files). Design calls (orchestrator): adaptation potential and last-spike times are X, reset at a
+  file boundary as the C++ does; the spike-time log is output; F_W in the scan is the C++ buffer form
+  (`port/pcl_event_ref.py:543-646`), since the registered `pcl_stdp` is the paper's trace form (Eqs. 4-11)
+  and R2 targets the code; the gap between the two is an R3 question. Open: the F6 column
+  (Hamm, R4 prereg); the C++ binary for R2 does not build here without installs (2026-10-27 probe: no cmake
+  anywhere; OpenCV, HDF5 and PythonLibs REQUIRED in `libs/network/CMakeLists.txt:9-11`, absent; WSL has g++
+  13.3 but its network is down, O-58), so R2 compares against the port until Hamm allows the WSL installs.
+  Historical state (records in
   `papers/pcl/prereg/` and `LEDGER.md`): v4 FAIL stands (`pcl-port` 5640ce18: T1, T3 pass; T2, T4
   fail). v5 signed by Hamm 2026-10-13 (`prereg/P3_fig3_v5.md`, 89e45191); scored 2026-10-13 (8f75acd0,
   `prereg/P3_fig3_v5_result.md`): FAIL on T2 (simple 10/16 points, SSE 1.50 × flat; complex 12/15,
