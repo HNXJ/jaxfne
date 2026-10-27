@@ -93,7 +93,10 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   (e8e88c29), L3b simple buffer STDP (fbbd62fd; oracle-exact, w_s 3.6e-15) and L3c complex buffer STDP
   (8d0052dc; w_c 7.1e-15, wi_c 2.8e-14; the interval counter resets at each complex update, oracle :629)
   landed, and L3d lateral and top-down inhibitory STDP (oracle :575-602; lat_w 1.8e-14, td_w 4.4e-15 at
-  CAP 1000 and 3). L4 next. Contract: inhibition groups declare local inhibition on;
+  CAP 1000 and 3). L4 landed: `EventScanBoundary` and `pcl_event_scan_boundary()` (W carries; X, H and the
+  buffers reset as the C++ `resetAllNeurons` does); chained core equals the continuous oracle; never-spiked
+  reads the spike count. Core lanes L1-L4 closed; next is R2 on real files (the port's replay of the trained
+  network's training files through the chained scan), then R3. Contract: inhibition groups declare local inhibition on;
   with it off the port builds singleton groups. cSTDP3 sets `ETA_TA` 0
   (`configs/simple_cell_config.json:10`), so reference thresholds never move; L2's interval counter still
   gates complex STDP (`count == 1`, L3c). Design calls (orchestrator): adaptation potential and last-spike times are X, reset at a
