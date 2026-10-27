@@ -28,7 +28,8 @@ Realized `H` is the per-neuron mean over the last 1 s of a 2 s run (N=500, seeds
 
 === "Still"
 
-    ![Weight trajectories W](../../assets/visuals/hdp_weights.png)
+    ![Weight trajectories W](../../assets/visuals/hdp_weights.png#only-light)
+    ![Weight trajectories W](../../assets/visuals/hdp_weights.dark.png#only-dark)
 
 === "Interactive"
 

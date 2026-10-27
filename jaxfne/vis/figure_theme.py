@@ -27,13 +27,15 @@ def _axis(line: str, grid: str, tick: str) -> dict:
 
 def _palette(paper: str, plot: str, ink: str, line: str, grid: str, tick: str) -> dict:
     axis = _axis(line, grid, tick)
+    # A 3D axis also paints its back plane, which the base template colours otherwise.
+    plane = {**axis, "backgroundcolor": plot}
     return {
         "paper_bgcolor": paper,
         "plot_bgcolor": plot,
         "font": {"color": ink},
         "xaxis": axis,
         "yaxis": axis,
-        "scene": {"bgcolor": plot, "xaxis": axis, "yaxis": axis, "zaxis": axis},
+        "scene": {"bgcolor": plot, "xaxis": plane, "yaxis": plane, "zaxis": plane},
     }
 
 
@@ -89,6 +91,21 @@ def _update(palette: dict, xy: list[str], scenes: list[str]) -> dict:
     for scene in scenes:
         _flat(f"{scene}.", palette["scene"], update)
     return update
+
+
+def apply_scheme(fig, scheme: str):
+    """A copy of ``fig`` in one scheme's palette, through the same keys the page relays.
+
+    The docs stills are written from these copies, so a still and its page share one palette.
+    The input figure is not changed.
+    """
+    palettes = {"light": LIGHT, "dark": DARK}
+    if scheme not in palettes:
+        raise ValueError(f"scheme must be 'light' or 'dark', not {scheme!r}")
+    out = type(fig)(fig.to_dict())
+    xy, scenes = _axis_names(out)
+    out.update_layout(_update(palettes[scheme], xy, scenes))
+    return out
 
 
 def themed_html(fig, div_id: str = DIV_ID) -> str:

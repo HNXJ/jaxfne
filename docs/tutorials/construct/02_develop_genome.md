@@ -29,7 +29,8 @@ Provenance is additive: `tensor.provenance["genome_sha256"]` == `genome_rules_ha
 
 === "Still"
 
-    ![The developed column in 3-D](../../assets/visuals/column_network.png)
+    ![The developed column in 3-D](../../assets/visuals/column_network.png#only-light)
+    ![The developed column in 3-D](../../assets/visuals/column_network.dark.png#only-dark)
 
 === "Interactive"
 

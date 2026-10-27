@@ -1,0 +1,1 @@
+- Docs stills come in a light and a dark twin: each docs page shows the one matching the reader's colour scheme, and every figure-site panel publishes both `<panel>.png` and `<panel>.dark.png`.

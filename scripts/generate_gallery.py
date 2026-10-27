@@ -131,7 +131,8 @@ def render(entries: list[dict]) -> str:
         # Still / Interactive tab pair, the docs figure form (Hamm 2026-10-21).
         lines.append('=== "Still"')
         lines.append("")
-        lines.append(f"    ![{title}]({FIGURES_URL}{fslug}/{stem}.png)")
+        lines.append(f"    ![{title}]({FIGURES_URL}{fslug}/{stem}.png#only-light)")
+        lines.append(f"    ![{title}]({FIGURES_URL}{fslug}/{stem}.dark.png#only-dark)")
         lines.append("")
         lines.append('=== "Interactive"')
         lines.append("")

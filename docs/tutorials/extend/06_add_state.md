@@ -28,7 +28,8 @@ model2 = jtfne.restore_state(model, state)
 
 === "Still"
 
-    ![Hidden state H over time](../../assets/visuals/hdp_h_dynamics.png)
+    ![Hidden state H over time](../../assets/visuals/hdp_h_dynamics.png#only-light)
+    ![Hidden state H over time](../../assets/visuals/hdp_h_dynamics.dark.png#only-dark)
 
 === "Interactive"
 

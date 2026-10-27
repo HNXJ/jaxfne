@@ -187,3 +187,43 @@ def test_a_figure_opened_directly_follows_the_os_scheme(browser, site):
             _wait_for(page, DARK)
     finally:
         context.close()
+
+
+def _three_axis_figure() -> go.Figure:
+    """Two 2D subplots and one 3D scene, with the page colours the atlas builders set."""
+    fig = make_subplots(rows=1, cols=3, specs=[[{"type": "xy"}, {"type": "xy"}, {"type": "scene"}]])
+    fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], name="a"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=[0, 1], y=[1, 0], name="b"), row=1, col=2)
+    fig.add_trace(go.Scatter3d(x=[0, 1], y=[0, 1], z=[0, 1], mode="markers", name="c"), row=1, col=3)
+    fig.update_layout(template="plotly_dark", paper_bgcolor="#0d1117", plot_bgcolor="#161b22",
+                      font=dict(color="#c9d1d9"), scene=dict(bgcolor="#000000"))
+    return fig
+
+
+def test_apply_scheme_sets_the_palette_on_page_font_and_every_axis_and_leaves_the_input():
+    from jaxfne.vis.figure_theme import apply_scheme
+
+    fig = _three_axis_figure()
+    axes = ("xaxis", "yaxis", "xaxis2", "yaxis2")
+    keys = fig.layout.to_plotly_json()
+    assert all(a in keys for a in axes) and "scene" in keys, "fixture: two 2D axis pairs and one 3D scene"
+    before = fig.to_json()
+    for scheme, palette in (("light", LIGHT), ("dark", DARK)):
+        out = apply_scheme(fig, scheme)
+        assert out is not fig, "apply_scheme returns a copy"
+        assert out.layout.paper_bgcolor == palette["paper_bgcolor"], scheme
+        assert out.layout.plot_bgcolor == palette["plot_bgcolor"], scheme
+        assert out.layout.font.color == palette["font"]["color"], scheme
+        assert out.layout.template.layout.paper_bgcolor == palette["paper_bgcolor"], scheme
+        for a in axes:
+            ax = out.layout[a]
+            assert ax.linecolor == palette["xaxis"]["linecolor"], (scheme, a)
+            assert ax.gridcolor == palette["xaxis"]["gridcolor"], (scheme, a)
+            assert ax.tickcolor == palette["xaxis"]["tickcolor"], (scheme, a)
+        assert out.layout.scene.bgcolor == palette["scene"]["bgcolor"], scheme
+        for a in ("xaxis", "yaxis", "zaxis"):
+            assert out.layout.scene[a].linecolor == palette["scene"][a]["linecolor"], (scheme, a)
+            assert out.layout.scene[a].gridcolor == palette["scene"][a]["gridcolor"], (scheme, a)
+            # The back plane takes the plot colour; plotly_dark's own plane is near black.
+            assert out.layout.scene[a].backgroundcolor == palette["plot_bgcolor"], (scheme, a)
+    assert fig.to_json() == before, "the input figure must be unchanged"

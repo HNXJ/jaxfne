@@ -95,3 +95,10 @@ a of three: one raise below the 100,000,000 cap; a raise by the `lfp.html` cost 
 lifted cap and per-change increments were declined). Measured tree before the raise: 90,240,360 bytes,
 2563 files. Headroom 4,759,640 bytes and 137 files covers the paper programme G-0 (0.5.9 to 0.6.0:
 figures, receipts, tests). O-66 closes: the three AT-10-N20 `lfp.html` stay.
+
+## Docs still twins, 2026-10-27 (no raise)
+
+The light and dark twins of the six `docs/assets/visuals/` stills (Hamm 2026-10-24: a budget amendment for
+the twins is fine): +6 files and +850,688 bytes (six `.dark.png` 902,734 bytes; the six light stills
+replace the dark ones, 916,374 -> 864,328). Measured tree after the lane: 91,646,911 bytes, 2609 files,
+inside the consolidated budget.

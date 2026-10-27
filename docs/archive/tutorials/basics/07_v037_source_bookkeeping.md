@@ -35,7 +35,8 @@ Below is a **standalone Plotly HTML** laminar column with:
 
 === "Still"
 
-    ![Source column 3-D](../../../assets/visuals/v037_source_column_3d.png)
+    ![Source column 3-D](../../../assets/visuals/v037_source_column_3d.png#only-light)
+    ![Source column 3-D](../../../assets/visuals/v037_source_column_3d.dark.png#only-dark)
 
 === "Interactive"
 

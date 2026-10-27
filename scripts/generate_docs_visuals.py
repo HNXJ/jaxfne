@@ -3,7 +3,8 @@
 Outputs (both from the same Plotly figure, so still and page cannot drift):
 
 * ``docs/_static/visuals/<name>.html`` — interactive page (Plotly.js via CDN)
-* ``docs/assets/visuals/<name>.png``  — still shown inline next to the tutorial
+* ``docs/assets/visuals/<name>.png``  — light still shown inline next to the tutorial
+* ``docs/assets/visuals/<name>.dark.png`` — its dark twin (``#only-dark`` on the page)
 
 Figures:
 
@@ -40,6 +41,7 @@ for p in (ROOT, ROOT / "artifacts" / "atlas", ROOT / "scripts"):
 
 import jaxfne as jtfne  # noqa: E402
 from jaxfne.vis.exporters import _write_image  # noqa: E402  (retries Kaleido teardown, P-011)
+from jaxfne.vis.figure_theme import apply_scheme  # noqa: E402
 from jaxfne.vis.plotly.network import plot_area_graph, plot_network_3d  # noqa: E402
 
 assert "site-packages" not in sys.modules["jaxfne"].__file__, (
@@ -49,8 +51,6 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
 HTML_DIR = ROOT / "docs" / "_static" / "visuals"
 PNG_DIR = ROOT / "docs" / "assets" / "visuals"
 MAX_EDGES = 800
-THEME = dict(template="plotly_dark", paper_bgcolor="#0d1117", plot_bgcolor="#161b22",
-             font=dict(color="#c9d1d9"))
 
 
 def column_network():
@@ -112,12 +112,15 @@ def main() -> int:
     PNG_DIR.mkdir(parents=True, exist_ok=True)
     for name, make in FIGURES.items():
         fig = make()
-        fig.update_layout(**THEME, margin=dict(l=0, r=0, t=50, b=0))
-        if name not in STILL_ONLY:  # responsive page: no fixed size
-            fig.write_html(str(HTML_DIR / f"{name}.html"), include_plotlyjs="cdn", full_html=True)
-        fig.update_layout(width=1000, height=760)
-        _write_image(fig, str(PNG_DIR / f"{name}.png"))
-        print(f"wrote {name}: {'png' if name in STILL_ONLY else 'html + png'}")
+        fig.update_layout(margin=dict(l=0, r=0, t=50, b=0))
+        if name not in STILL_ONLY:  # responsive page: no fixed size; dark, as it always was
+            apply_scheme(fig, "dark").write_html(str(HTML_DIR / f"{name}.html"),
+                                                 include_plotlyjs="cdn", full_html=True)
+        for scheme, suffix in (("light", ".png"), ("dark", ".dark.png")):
+            still = apply_scheme(fig, scheme)
+            still.update_layout(width=1000, height=760)
+            _write_image(still, str(PNG_DIR / f"{name}{suffix}"))
+        print(f"wrote {name}: {'png' if name in STILL_ONLY else 'html + png'}, light and dark")
     return 0
 
 

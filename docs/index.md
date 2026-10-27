@@ -70,7 +70,8 @@ Full panel set, generation workflow, and provenance rules:
 [Canonical Atlas Suite guide](guides/interop/atlas_suite.md).
 
 Canonical 1000-neuron column, pinned 1000 ms reference run:
-![Canonical V1 Column (1000n)](https://hnxj.github.io/jaxfne/figures/readme/raster.png)
+![Canonical V1 Column (1000n)](https://hnxj.github.io/jaxfne/figures/readme/raster.png#only-light)
+![Canonical V1 Column (1000n)](https://hnxj.github.io/jaxfne/figures/readme/raster.dark.png#only-dark)
 *Canonical V1 Column (1000n): spike raster.*
 
 ([Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)).
@@ -80,7 +81,8 @@ inter-area edge counts ([full page](https://hnxj.github.io/jaxfne/figures/area_g
 
 === "Still"
 
-    ![Twenty-area hierarchy graph](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.png)
+    ![Twenty-area hierarchy graph](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.png#only-light)
+    ![Twenty-area hierarchy graph](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.dark.png#only-dark)
 
 === "Interactive"
 
@@ -90,7 +92,8 @@ Three-area hierarchy (`V1–V4–PFC`, 100 neurons/area, bidirectional
 feedforward/feedback): [Gallery 09](start/gallery.md#09-three-area-hierarchy-v1v4pfc)
 with the full six-panel atlas:
 
-![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.png)
+![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.png#only-light)
+![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.dark.png#only-dark)
 *V1-V4-PFC three-area hierarchy (100/area): spike raster.*
 
 ([Circuit schematic](https://hnxj.github.io/jaxfne/figures/three_area/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/three_area/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/three_area/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/three_area/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/three_area/oscillatory.html)).

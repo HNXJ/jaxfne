@@ -160,7 +160,8 @@ The bridge returns `Signals` without a `Model`, so there is no full atlas for it
 
 === "Still"
 
-    ![Jaxley HH single compartment V_m proxy](../../assets/visuals/jaxley_vm.png)
+    ![Jaxley HH single compartment V_m proxy](../../assets/visuals/jaxley_vm.png#only-light)
+    ![Jaxley HH single compartment V_m proxy](../../assets/visuals/jaxley_vm.dark.png#only-dark)
 
 === "Interactive"
 

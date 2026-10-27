@@ -96,7 +96,8 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 
 Seven fixed panels, always emitted (`schema`, `network_3d`, `raster` as **OBSERVED**; `lfp`, `h_dynamics`, `hdp`, `oscillatory` as **DERIVED**), each carrying a provenance card (`config_hash`, N, edges, steps, dt, jaxfne version). A panel whose declared inputs cannot be met renders an explicit omission card:
 
-![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.png)
+![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.png#only-light)
+![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.dark.png#only-dark)
 *V1-V4-PFC three-area hierarchy (100/area): spike raster.*
 
 Interactive figures: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/three_area/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/three_area/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/three_area/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/three_area/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/three_area/oscillatory.html)
@@ -134,7 +135,8 @@ State `validated` · N=100 · edges=9900 · steps=400 · config `96761084e110` �
 
 === "Still"
 
-    ![Calibration-ready column, minimal run (100n, 200 ms)](https://hnxj.github.io/jaxfne/figures/calibration_100/raster.png)
+    ![Calibration-ready column, minimal run (100n, 200 ms)](https://hnxj.github.io/jaxfne/figures/calibration_100/raster.png#only-light)
+    ![Calibration-ready column, minimal run (100n, 200 ms)](https://hnxj.github.io/jaxfne/figures/calibration_100/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -148,7 +150,8 @@ State `validated` · N=1000 · edges=999000 · steps=2000 · config `b8ec3bc1536
 
 === "Still"
 
-    ![Canonical-column etude, uniform drive (1000n)](https://hnxj.github.io/jaxfne/figures/canonical_etude_1000/raster.png)
+    ![Canonical-column etude, uniform drive (1000n)](https://hnxj.github.io/jaxfne/figures/canonical_etude_1000/raster.png#only-light)
+    ![Canonical-column etude, uniform drive (1000n)](https://hnxj.github.io/jaxfne/figures/canonical_etude_1000/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -162,7 +165,8 @@ State `validated` · N=1000 · edges=999000 · steps=400 · config `4665fb608374
 
 === "Still"
 
-    ![Configuration-grammar column, smoke-scale (1000n, 200 ms)](https://hnxj.github.io/jaxfne/figures/config_grammar_1000/raster.png)
+    ![Configuration-grammar column, smoke-scale (1000n, 200 ms)](https://hnxj.github.io/jaxfne/figures/config_grammar_1000/raster.png#only-light)
+    ![Configuration-grammar column, smoke-scale (1000n, 200 ms)](https://hnxj.github.io/jaxfne/figures/config_grammar_1000/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -176,7 +180,8 @@ State `validated` · N=100 · edges=9900 · steps=2000 · config `8c242da2a84d` 
 
 === "Still"
 
-    ![Chainable E/I population (100n)](https://hnxj.github.io/jaxfne/figures/ei_population_100/raster.png)
+    ![Chainable E/I population (100n)](https://hnxj.github.io/jaxfne/figures/ei_population_100/raster.png#only-light)
+    ![Chainable E/I population (100n)](https://hnxj.github.io/jaxfne/figures/ei_population_100/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -190,7 +195,8 @@ State `validated` · N=100 · edges=9900 · steps=3000 · config `872f598151ed` 
 
 === "Still"
 
-    ![Evoked L4 drive, evoked condition (100n)](https://hnxj.github.io/jaxfne/figures/evoked_l4/raster.png)
+    ![Evoked L4 drive, evoked condition (100n)](https://hnxj.github.io/jaxfne/figures/evoked_l4/raster.png#only-light)
+    ![Evoked L4 drive, evoked condition (100n)](https://hnxj.github.io/jaxfne/figures/evoked_l4/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -204,7 +210,8 @@ State `validated` · N=10 · edges=90 · steps=200 · config `14c5b4f994b9` · j
 
 === "Still"
 
-    ![HDP circuit, full recording (10n, 100 ms)](https://hnxj.github.io/jaxfne/figures/hdp_10/raster.png)
+    ![HDP circuit, full recording (10n, 100 ms)](https://hnxj.github.io/jaxfne/figures/hdp_10/raster.png#only-light)
+    ![HDP circuit, full recording (10n, 100 ms)](https://hnxj.github.io/jaxfne/figures/hdp_10/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -218,7 +225,8 @@ State `validated` · N=1000 · edges=999000 · steps=400 · config `a6746c86b439
 
 === "Still"
 
-    ![HDP column, short run (1000n, 200 ms)](https://hnxj.github.io/jaxfne/figures/hdp_1000/raster.png)
+    ![HDP column, short run (1000n, 200 ms)](https://hnxj.github.io/jaxfne/figures/hdp_1000/raster.png#only-light)
+    ![HDP column, short run (1000n, 200 ms)](https://hnxj.github.io/jaxfne/figures/hdp_1000/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -232,7 +240,8 @@ State `validated` · N=1000 · edges=999000 · steps=2000 · config `4dbc78e7581
 
 === "Still"
 
-    ![Homeostasis column (1000n)](https://hnxj.github.io/jaxfne/figures/homeostasis_1000/raster.png)
+    ![Homeostasis column (1000n)](https://hnxj.github.io/jaxfne/figures/homeostasis_1000/raster.png#only-light)
+    ![Homeostasis column (1000n)](https://hnxj.github.io/jaxfne/figures/homeostasis_1000/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -246,7 +255,8 @@ State `validated` · N=12 · edges=132 · steps=2000 · config `a07c380b8304` ·
 
 === "Still"
 
-    ![LFP/CSD laminar column (12n)](https://hnxj.github.io/jaxfne/figures/lfp_csd_12/raster.png)
+    ![LFP/CSD laminar column (12n)](https://hnxj.github.io/jaxfne/figures/lfp_csd_12/raster.png#only-light)
+    ![LFP/CSD laminar column (12n)](https://hnxj.github.io/jaxfne/figures/lfp_csd_12/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -260,7 +270,8 @@ State `validated` · N=1000 · edges=215785 · steps=2000 · config `91f037cf383
 
 === "Still"
 
-    ![Canonical V1 Column (1000n)](https://hnxj.github.io/jaxfne/figures/readme/raster.png)
+    ![Canonical V1 Column (1000n)](https://hnxj.github.io/jaxfne/figures/readme/raster.png#only-light)
+    ![Canonical V1 Column (1000n)](https://hnxj.github.io/jaxfne/figures/readme/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -274,7 +285,8 @@ State `validated` · N=100 · edges=9900 · steps=1000 · config `e58d76183666` 
 
 === "Still"
 
-    ![Balanced E/I population (100n)](https://hnxj.github.io/jaxfne/figures/network_100_ei/raster.png)
+    ![Balanced E/I population (100n)](https://hnxj.github.io/jaxfne/figures/network_100_ei/raster.png#only-light)
+    ![Balanced E/I population (100n)](https://hnxj.github.io/jaxfne/figures/network_100_ei/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -288,7 +300,8 @@ State `validated` · N=60 · edges=3540 · steps=400 · config `48f956974352` ·
 
 === "Still"
 
-    ![Objective-grammar chain, pre-tune (60n)](https://hnxj.github.io/jaxfne/figures/objective_60/raster.png)
+    ![Objective-grammar chain, pre-tune (60n)](https://hnxj.github.io/jaxfne/figures/objective_60/raster.png#only-light)
+    ![Objective-grammar chain, pre-tune (60n)](https://hnxj.github.io/jaxfne/figures/objective_60/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -302,7 +315,8 @@ State `validated` · N=60 · edges=3540 · steps=2000 · config `f3305c133965` �
 
 === "Still"
 
-    ![Omission-oddball column, plain drive (60n)](https://hnxj.github.io/jaxfne/figures/omission_60/raster.png)
+    ![Omission-oddball column, plain drive (60n)](https://hnxj.github.io/jaxfne/figures/omission_60/raster.png#only-light)
+    ![Omission-oddball column, plain drive (60n)](https://hnxj.github.io/jaxfne/figures/omission_60/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -316,7 +330,8 @@ State `validated` · N=40 · edges=1560 · steps=200 · config `d22bc040c652` ·
 
 === "Still"
 
-    ![Operator-composition column (40n)](https://hnxj.github.io/jaxfne/figures/operator_chain_40/raster.png)
+    ![Operator-composition column (40n)](https://hnxj.github.io/jaxfne/figures/operator_chain_40/raster.png#only-light)
+    ![Operator-composition column (40n)](https://hnxj.github.io/jaxfne/figures/operator_chain_40/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -330,7 +345,8 @@ State `validated` · N=32 · edges=992 · steps=400 · config `5690a65f088b` · 
 
 === "Still"
 
-    ![Probe-operators circuit, minimal run (32n, 200 ms)](https://hnxj.github.io/jaxfne/figures/probe_32/raster.png)
+    ![Probe-operators circuit, minimal run (32n, 200 ms)](https://hnxj.github.io/jaxfne/figures/probe_32/raster.png#only-light)
+    ![Probe-operators circuit, minimal run (32n, 200 ms)](https://hnxj.github.io/jaxfne/figures/probe_32/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -344,7 +360,8 @@ State `validated` · N=100 · edges=9900 · steps=2000 · config `96a6c894ecad` 
 
 === "Still"
 
-    ![Suite No. 3 scale N=100 (async patch)](https://hnxj.github.io/jaxfne/figures/scale_100/raster.png)
+    ![Suite No. 3 scale N=100 (async patch)](https://hnxj.github.io/jaxfne/figures/scale_100/raster.png#only-light)
+    ![Suite No. 3 scale N=100 (async patch)](https://hnxj.github.io/jaxfne/figures/scale_100/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -358,7 +375,8 @@ State `validated` · N=1 · edges=0 · steps=1000 · config `0cb7b98c0189` · ja
 
 === "Still"
 
-    ![Single neuron (1n)](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.png)
+    ![Single neuron (1n)](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.png#only-light)
+    ![Single neuron (1n)](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -372,7 +390,8 @@ State `validated` · N=48 · edges=2256 · steps=2000 · config `e29a9e61e9eb` �
 
 === "Still"
 
-    ![Source-bookkeeping column (48n)](https://hnxj.github.io/jaxfne/figures/source_column_48/raster.png)
+    ![Source-bookkeeping column (48n)](https://hnxj.github.io/jaxfne/figures/source_column_48/raster.png#only-light)
+    ![Source-bookkeeping column (48n)](https://hnxj.github.io/jaxfne/figures/source_column_48/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -386,7 +405,8 @@ State `validated` · N=48 · edges=2256 · steps=2000 · config `316023c3edc9` �
 
 === "Still"
 
-    ![Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms)](https://hnxj.github.io/jaxfne/figures/suite1_column/raster.png)
+    ![Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms)](https://hnxj.github.io/jaxfne/figures/suite1_column/raster.png#only-light)
+    ![Suite No. 1 laminar column, smoke-scale (48n, 1000 ms of 5000 ms)](https://hnxj.github.io/jaxfne/figures/suite1_column/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -400,7 +420,8 @@ State `validated` · N=100 · edges=9900 · steps=2000 · config `2cc90a7c1ef0` 
 
 === "Still"
 
-    ![Suite No. 2 net1 (100n)](https://hnxj.github.io/jaxfne/figures/suite2_net1/raster.png)
+    ![Suite No. 2 net1 (100n)](https://hnxj.github.io/jaxfne/figures/suite2_net1/raster.png#only-light)
+    ![Suite No. 2 net1 (100n)](https://hnxj.github.io/jaxfne/figures/suite2_net1/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -414,7 +435,8 @@ State `validated` · N=2 · edges=2 · steps=1000 · config `8ae5b8435e85` · ja
 
 === "Still"
 
-    ![Two-neuron E/I (2n)](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.png)
+    ![Two-neuron E/I (2n)](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.png#only-light)
+    ![Two-neuron E/I (2n)](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -428,7 +450,8 @@ State `validated` · N=600 · edges=359400 · steps=2000 · config `c79b0c87047f
 
 === "Still"
 
-    ![600n population, laminar readout](https://hnxj.github.io/jaxfne/figures/v1_column/raster.png)
+    ![600n population, laminar readout](https://hnxj.github.io/jaxfne/figures/v1_column/raster.png#only-light)
+    ![600n population, laminar readout](https://hnxj.github.io/jaxfne/figures/v1_column/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -442,7 +465,8 @@ State `validated` · N=200 · edges=240 · steps=2000 · config `f9433f57d4d5` �
 
 === "Still"
 
-    ![V1-PFC dual column, single AAAB trial (200n, no HDP carryover)](https://hnxj.github.io/jaxfne/figures/v1_pfc_dual/raster.png)
+    ![V1-PFC dual column, single AAAB trial (200n, no HDP carryover)](https://hnxj.github.io/jaxfne/figures/v1_pfc_dual/raster.png#only-light)
+    ![V1-PFC dual column, single AAAB trial (200n, no HDP carryover)](https://hnxj.github.io/jaxfne/figures/v1_pfc_dual/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -456,7 +480,8 @@ State `validated` · N=160 · edges=12891 · steps=2000 · config `0699b80ad44b`
 
 === "Still"
 
-    ![V1-V4 scaffold (80/area)](https://hnxj.github.io/jaxfne/figures/v1v4_80/raster.png)
+    ![V1-V4 scaffold (80/area)](https://hnxj.github.io/jaxfne/figures/v1v4_80/raster.png#only-light)
+    ![V1-V4 scaffold (80/area)](https://hnxj.github.io/jaxfne/figures/v1v4_80/raster.dark.png#only-dark)
 
 === "Interactive"
 
@@ -470,7 +495,8 @@ State `validated` · N=300 · edges=30105 · steps=1000 · config `84f67ccf815f`
 
 === "Still"
 
-    ![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.png)
+    ![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.png#only-light)
+    ![V1-V4-PFC three-area hierarchy (100/area)](https://hnxj.github.io/jaxfne/figures/three_area/raster.dark.png#only-dark)
 
 === "Interactive"
 

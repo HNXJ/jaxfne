@@ -104,7 +104,8 @@ Timesteps: 1000
 Spike rate: 0.00 spikes/ms
 ```
 
-![Single neuron (1n)](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.png)
+![Single neuron (1n)](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.png#only-light)
+![Single neuron (1n)](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.dark.png#only-dark)
 *Single neuron (1n): spike raster.*
 
 Interactive dark-theme panels for this run: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/single_neuron/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/single_neuron/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/single_neuron/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/single_neuron/oscillatory.html)
@@ -150,7 +151,8 @@ Inhibitory firing rate: 0.00 Hz
 ✓ Status checks immutable: physical_amplitude_calibrated = False
 ```
 
-![Two-neuron E/I (2n)](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.png)
+![Two-neuron E/I (2n)](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.png#only-light)
+![Two-neuron E/I (2n)](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.dark.png#only-dark)
 *Two-neuron E/I (2n): spike raster.*
 
 Interactive dark-theme panels for this circuit (500 ms, dt 0.5 ms): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/oscillatory.html)

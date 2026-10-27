@@ -172,6 +172,8 @@ docs/_static/etudes/experiment_a/*.html
 docs/_static/etudes/hdp_controllability_reachability/*.html
 docs/_static/etudes/multiscale_observation/*.html
 docs/_static/etudes/heterogeneous_emitters/*.html
+# generate_docs_visuals.py also writes interactive pages there; the docs show the figure-site pages.
+docs/_static/visuals/*.html
 # Etude figures under docs/assets are build products too: build_docs_assets.py --build copies them from artifacts/etudes/.
 docs/assets/etudes/pcl/c1b_kernels.png
 docs/assets/etudes/pcl/c1_kernels.png

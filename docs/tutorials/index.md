@@ -17,12 +17,15 @@ flowchart LR
 
 <div class="jx-cards">
   <a href="01_define_genome/"><img src="../assets/readme/schema.png" alt="Declared column structure"><strong>01 Define</strong><br/>PseudoGenome rules</a>
-  <a href="02_develop_genome/"><img src="../assets/visuals/column_network.png" alt="Developed column network"><strong>02 Develop</strong><br/>Genome → tensor</a>
+  <a href="02_develop_genome/"><img src="../assets/visuals/column_network.png#only-light" alt="Developed column network">
+  <img src="../assets/visuals/column_network.dark.png#only-dark" alt="Developed column network"><strong>02 Develop</strong><br/>Genome → tensor</a>
   <a href="03_inspect_tensor/"><img src="../assets/readme/network_3d.png" alt="Realized neuron positions"><strong>03 Inspect</strong><br/>Realized vs configured</a>
   <a href="04_simulate_tensor/"><img src="../assets/readme/raster.png" alt="Spike raster"><strong>04 Simulate</strong><br/>construct → Signals</a>
   <a href="05_observe_fields/"><img src="../assets/readme/lfp.png" alt="Laminar LFP proxy"><strong>05 Observe</strong><br/>Fields and probes</a>
-  <a href="06_add_state/"><img src="../assets/visuals/hdp_h_dynamics.png" alt="Hidden state H over time"><strong>06 Add state</strong><br/>H / RBS container</a>
-  <a href="07_add_dynamics/"><img src="../assets/visuals/hdp_weights.png" alt="Weight trajectories under HDP"><strong>07 Add dynamics</strong><br/>HDP adaptation</a>
+  <a href="06_add_state/"><img src="../assets/visuals/hdp_h_dynamics.png#only-light" alt="Hidden state H over time">
+  <img src="../assets/visuals/hdp_h_dynamics.dark.png#only-dark" alt="Hidden state H over time"><strong>06 Add state</strong><br/>H / RBS container</a>
+  <a href="07_add_dynamics/"><img src="../assets/visuals/hdp_weights.png#only-light" alt="Weight trajectories under HDP">
+  <img src="../assets/visuals/hdp_weights.dark.png#only-dark" alt="Weight trajectories under HDP"><strong>07 Add dynamics</strong><br/>HDP adaptation</a>
   <a href="08_compare_nulls/"><img src="../assets/readme/oscillatory.png" alt="Power spectrum"><strong>08 Compare</strong><br/>Nulls and lesions</a>
 </div>
 
@@ -64,7 +67,8 @@ hierarchy order, one chord per connected pair, chord width by edge count.
 
 === "Still"
 
-    ![G_20 area graph](../assets/visuals/area_graph_n20.png)
+    ![G_20 area graph](../assets/visuals/area_graph_n20.png#only-light)
+    ![G_20 area graph](../assets/visuals/area_graph_n20.dark.png#only-dark)
 
 === "Interactive"
 
