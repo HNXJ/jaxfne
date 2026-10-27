@@ -18,7 +18,7 @@ import numbers
 import warnings
 from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
-from typing import Any, Callable, Mapping, Optional, Sequence
+from typing import Any, Callable, Mapping, Optional, Sequence, Union
 
 import jax
 import jax.numpy as jnp
@@ -106,6 +106,22 @@ def _validate_gaussian_drive(value: Any) -> None:
             )
 
 
+def _validate_poisson_drive_container(poisson: Any) -> None:
+    """Refuse a ``poisson_drive`` whose container is neither a mapping nor a non-empty list.
+
+    Each entry is validated where it is realized (``check_current_route_poisson_drive``).
+    """
+    if isinstance(poisson, Mapping):
+        return
+    if isinstance(poisson, (list, tuple)) and poisson and all(
+            isinstance(entry, Mapping) for entry in poisson):
+        return
+    raise ValueError(
+        "Simulation.poisson_drive must be None, a mapping, or a non-empty list of mappings "
+        f"(one per population); got {poisson!r}"
+    )
+
+
 @dataclass(frozen=True)
 class Simulation:
     """Immutable specification of one simulation run.
@@ -118,7 +134,10 @@ class Simulation:
     homeostasis params, i.e. ``jaxfne.hdp_network.enable_plasticity`` or
     ``jaxfne.plasticity.STDPPlasticityConfig``),
     ``record_sources``/``record_fields`` (recording toggles), ``poisson_drive``
-    (optional drive spec), ``runtime`` (:class:`RuntimeConfig` override), and
+    (optional drive spec: one mapping, or a non-empty list of mappings with
+    pairwise disjoint ``(area, layer, cell_type)`` targets, realized on the lif
+    route only; the list sums one drive per population), ``runtime``
+    (:class:`RuntimeConfig` override), and
     ``ablation`` (None or one of ``E_silence``, ``I_silence``,
     ``disconnected_null``, ``shuffled_timing``). ``n_steps`` is
     ``duration_ms / dt_ms``, which must be an integer within 1e-9 relative
@@ -150,7 +169,7 @@ class Simulation:
     seed: int = 0
     record_sources: bool = True
     record_fields: bool = True
-    poisson_drive: Optional[dict] = None
+    poisson_drive: Optional[Union[dict, list]] = None
     runtime: RuntimeConfig | None = None
     ablation: Optional[str] = None
     gaussian_drive: Optional[dict] = None
@@ -177,6 +196,8 @@ class Simulation:
             )
         if self.gaussian_drive is not None:
             _validate_gaussian_drive(self.gaussian_drive)
+        if self.poisson_drive is not None:
+            _validate_poisson_drive_container(self.poisson_drive)
         if self.plasticity != 0:
             raise ValueError(
                 f"Simulation.plasticity={self.plasticity!r} is refused: the gain "

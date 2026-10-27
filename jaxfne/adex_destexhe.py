@@ -152,7 +152,10 @@ def subset_drive_kwargs(model: Any, sim: Any, fraction: float) -> dict[str, Any]
     import math
 
     from ._construct_adex import adex_external_drive_kwargs
+    from .inputs import refuse_poisson_drive_list
 
+    refuse_poisson_drive_list(
+        getattr(sim, "poisson_drive", None), "subset_drive_kwargs (adex_destexhe, emitter family 'adex')")
     try:
         frac = float(fraction)
     except (TypeError, ValueError):

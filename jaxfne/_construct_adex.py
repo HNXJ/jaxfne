@@ -863,6 +863,9 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     drive = sim.poisson_drive
     if drive is None:
         return {}
+    from .inputs import refuse_poisson_drive_list
+
+    refuse_poisson_drive_list(drive, "the adex route (emitter family 'adex')")
     if not isinstance(drive, Mapping):
         raise _drive_error(repr(drive))
     unknown = [

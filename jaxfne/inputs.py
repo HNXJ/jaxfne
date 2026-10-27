@@ -406,6 +406,21 @@ def check_current_route_poisson_drive(poisson: Mapping[str, Any]) -> None:
     )
 
 
+def refuse_poisson_drive_list(poisson: Any, route: str) -> None:
+    """Refuse the list form of ``Simulation.poisson_drive`` on a route that does not realize it.
+
+    The list form (one current-route mapping per population) is realized on the lif
+    route's drive path only: ``simulate`` and ``simulate_lif_seed_batch`` on emitter
+    family ``lif``. ``route`` names the refusing route in the message.
+    """
+    if isinstance(poisson, (list, tuple)):
+        raise ValueError(
+            "Simulation(poisson_drive=[...]) (a list of per-population drives) is realized "
+            f"only on the lif route (simulate and simulate_lif_seed_batch); {route} refuses "
+            "it: pass one mapping or drop the list"
+        )
+
+
 def _compile_grouped_adex_sources(
     poisson: Mapping[str, Any], targets: Any, rates: list
 ) -> tuple[XSource, ...]:
@@ -477,6 +492,27 @@ def compile_poisson_sources(
     """
     if poisson is None:
         return ()
+    if isinstance(poisson, (list, tuple)):
+        # The list form: one current-route declaration per population, concatenated in order.
+        if route == "adex":
+            raise ValueError(
+                "poisson_drive list form is current-route only; route='adex' takes one mapping"
+            )
+        if not poisson:
+            raise ValueError("poisson_drive list must hold at least one mapping")
+        entries: list[XSource] = []
+        for element in poisson:
+            if not isinstance(element, Mapping):
+                raise ValueError(
+                    f"poisson_drive list element {element!r} is not realized: it takes a mapping"
+                )
+            if "target_cell_types" in element:
+                raise ValueError(
+                    f"poisson_drive list element {dict(element)!r} names target_cell_types: "
+                    "the list form is current-route only; the AdEx route takes one mapping"
+                )
+            entries.extend(compile_poisson_sources(element, route="current"))
+        return tuple(entries)
     if not isinstance(poisson, Mapping):
         raise ValueError(f"poisson_drive {poisson!r} is not realized: it takes a mapping")
     detected = "adex" if "target_cell_types" in poisson else "current"
@@ -488,7 +524,16 @@ def compile_poisson_sources(
         check_current_route_poisson_drive(poisson)
         rate = poisson.get("rate_hz", 2.0)
         amplitude = poisson.get("amplitude", 0.5)
-        target = str(poisson.get("target", "all"))
+        raw_target = poisson.get("target", "all")
+        if (
+            isinstance(raw_target, (tuple, list))
+            and len(raw_target) == 3
+            and all(isinstance(part, str) for part in raw_target)
+        ):
+            # An (area, layer, cell_type) triple names one population: record its parts.
+            population: tuple[str, ...] = tuple(raw_target)
+        else:
+            population = (str(raw_target),)
         seed = poisson.get("seed", 0)
         if not _is_finite_real(rate) or float(rate) < 0.0:
             raise ValueError(f"poisson_drive rate_hz={rate!r} must be >= 0")
@@ -503,7 +548,7 @@ def compile_poisson_sources(
             current_schedule.append(("counts", int(poisson["counts"])))
         entry = XSource(
             kind="poisson",
-            targets=(target,),
+            targets=population,
             value=float(rate),
             unit="Hz",
             schedule=tuple(current_schedule),
@@ -557,6 +602,17 @@ def compile_poisson_sources_from_signals_metadata(
     recorded = (signals_metadata or {}).get("poisson_drive") if isinstance(signals_metadata, Mapping) else None
     if recorded is None:
         return ()
+    if isinstance(recorded, (list, tuple)):
+        # A recorded list holds one receipt per population; each compiles on its own.
+        entries: list[XSource] = []
+        for element in recorded:
+            if not isinstance(element, Mapping):
+                raise ValueError(
+                    f"recorded poisson_drive list element {element!r} is not a receipt mapping"
+                )
+            declared = {k: v for k, v in dict(element).items() if k not in _POISSON_RECEIPT_KEYS}
+            entries.extend(compile_poisson_sources(declared, route="auto"))
+        return tuple(entries)
     if not isinstance(recorded, Mapping):
         return ()
     declared = {k: v for k, v in dict(recorded).items() if k not in _POISSON_RECEIPT_KEYS}

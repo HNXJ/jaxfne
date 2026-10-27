@@ -55,6 +55,7 @@ from ._signals import (
     resolve_poisson_drive_target,
     poisson_chunk_seed,
 )
+from .inputs import check_current_route_poisson_drive, refuse_poisson_drive_list
 from ._model import _SOURCE_PROXY_METADATA, stimulus_schedule
 
 
@@ -1460,6 +1461,7 @@ def simulate(
                 "simulate(continuation=..., return_state=...) is not realized for emitter family "
                 "'hh': the route has no full-state continuation"
             )
+        refuse_poisson_drive_list(sim.poisson_drive, "simulate (emitter family 'hh')")
         if (
             paradigm is not None
             or sim.poisson_drive is not None
@@ -1505,6 +1507,7 @@ def simulate(
     if isinstance(self.params["emitter"], HomeostaticEIParams):
         if continuation is not None or return_state:
             raise ValueError("full-state continuation is not available for homeostatic_ei")
+        refuse_poisson_drive_list(sim.poisson_drive, "simulate (emitter family 'homeostatic_ei')")
         if (
             paradigm is not None
             or sim.poisson_drive is not None
@@ -1516,6 +1519,7 @@ def simulate(
             )
         return self._simulate_homeostatic_ei(sim, key, runtime_cfg)
 
+    refuse_poisson_drive_list(sim.poisson_drive, "simulate (emitter family 'izhikevich')")
     schedule = None
     forced_spikes = None
     spike_train_input = paradigm if isinstance(paradigm, SpikeTrainInput) else None
@@ -2077,6 +2081,7 @@ def _simulate_rate(
     n_neurons = emitter.n_neurons
 
     drive = _np_host.asarray(emitter.drive, dtype=_np_host.float64).ravel()
+    refuse_poisson_drive_list(sim.poisson_drive, "simulate (emitter family 'rate')")
     if sim.poisson_drive is not None:
         _pd = sim.poisson_drive
         from .inputs import check_current_route_poisson_drive
@@ -2201,6 +2206,107 @@ def _refuse_lif_inputs(
 _LIF_HDP_CONSUMED_KEYS = frozenset({"hdp_rule", "hdp_rule_params", "plasticity_mask"})
 
 
+def _poisson_entries(poisson: Any) -> list:
+    """A declared ``poisson_drive`` as its entries: a mapping is one entry, a list is its entries."""
+    return [poisson] if isinstance(poisson, Mapping) else list(poisson)
+
+
+def _lif_poisson_plan(
+    model: "Model", poisson: Any, *, seed_is_member: bool = False
+) -> list[tuple[Any, Any, Any]]:
+    """Validate each Poisson entry once and resolve its target: ``(entry, target, indices)``.
+
+    ``seed_is_member`` marks the seed batch, whose members carry the seed, so an entry
+    pinning ``seed`` is refused. A list of two or more entries needs an
+    ``(area, layer, cell_type)`` triple on every entry (``"all"`` names every neuron, so
+    it cannot share a list) and pairwise disjoint neurons: entries sharing a seed would
+    draw the same realization on shared neurons.
+    """
+    plan: list[tuple[Any, Any, Any]] = []
+    for entry in _poisson_entries(poisson):
+        check_current_route_poisson_drive(entry)
+        if seed_is_member and "seed" in entry:
+            raise ValueError(
+                "simulate_lif_seed_batch refuses a template pinning poisson_drive['seed'] "
+                f"({entry['seed']!r}): per-member keying needs the seed to ride the seeds argument"
+            )
+        target = entry.get("target", "all")
+        if isinstance(target, (tuple, list)):
+            plan.append((entry, tuple(target), resolve_poisson_drive_target(model, target)))
+        else:
+            plan.append((entry, str(target), None))
+    if len(plan) > 1:
+        for position, (_entry, target, indices) in enumerate(plan):
+            if indices is None:
+                raise ValueError(
+                    f"Simulation(poisson_drive=[...]) entry {position} has target {target!r}: "
+                    f"a list of {len(plan)} entries needs an (area, layer, cell_type) triple "
+                    "on every entry, since 'all' names every neuron and cannot share a list"
+                )
+        for i in range(len(plan)):
+            for j in range(i + 1, len(plan)):
+                shared = set(plan[i][2]) & set(plan[j][2])
+                if shared:
+                    raise ValueError(
+                        f"Simulation(poisson_drive=[...]) entries {i} and {j} target "
+                        f"overlapping neurons: {plan[i][1]!r} and {plan[j][1]!r} share "
+                        f"{len(shared)} neuron(s); list entries must target disjoint "
+                        "populations, because entries sharing a seed would draw the same "
+                        "realization on shared neurons"
+                    )
+    return plan
+
+
+def _lif_poisson_drive(
+    plan: list[tuple[Any, Any, Any]],
+    *,
+    n_steps: int,
+    n_neurons: int,
+    dt_ms: float,
+    default_seed: int,
+) -> Any:
+    """Sum over entries of the array ``_make_poisson_drive`` builds for each entry alone.
+
+    An entry draws from its own ``seed`` or ``default_seed`` (``sim.seed + 7919`` on the
+    serial route, the member's ``seed + 7919`` on the seed batch). Disjoint entries own
+    disjoint columns, so the sum is each population's own draw; a single entry returns
+    its array unchanged.
+    """
+    total = None
+    for entry, target, indices in plan:
+        arr = _make_poisson_drive(
+            n_steps=n_steps,
+            n_neurons=n_neurons,
+            rate_hz=float(entry.get("rate_hz", 2.0)),
+            amplitude=float(entry.get("amplitude", 0.5)),
+            dt_ms=dt_ms,
+            seed=poisson_chunk_seed(int(entry.get("seed", default_seed)), 0),
+            target=target,
+            counts=int(entry.get("counts", 1)),
+            target_indices=indices,
+        )
+        total = arr if total is None else total + arr
+    return total
+
+
+def _lif_poisson_receipt(entry: Mapping[str, Any], default_seed: int) -> dict[str, Any]:
+    """Run receipt for one declared entry; ``counts`` and ``target`` ride only when declared."""
+    receipt: dict[str, Any] = {
+        "rate_hz": float(entry.get("rate_hz", 2.0)),
+        "amplitude": float(entry.get("amplitude", 0.5)),
+        "seed": int(entry.get("seed", default_seed)),
+        "status": "stochastic_drive_applied",
+    }
+    if "counts" in entry:
+        # Recorded only when declared so default receipts stay unchanged.
+        receipt["counts"] = int(entry["counts"])
+    if "target" in entry:
+        # Recorded only when declared: an undeclared target reads as every neuron.
+        target = entry["target"]
+        receipt["target"] = list(target) if isinstance(target, (tuple, list)) else str(target)
+    return receipt
+
+
 def _simulate_lif(
     self: "Model",
     sim: Simulation,
@@ -2279,27 +2385,12 @@ def _simulate_lif(
     else:
         drive_2d_sched = jnp.broadcast_to(drive, (sim.n_steps, n_neurons))
     if sim.poisson_drive is not None:
-        _pd = sim.poisson_drive
-        from .inputs import check_current_route_poisson_drive
-
-        check_current_route_poisson_drive(_pd)
-        _pd_target = _pd.get("target", "all")
-        if isinstance(_pd_target, (tuple, list)):
-            _pd_target_arg = tuple(_pd_target)
-            _pd_target_idx: object = resolve_poisson_drive_target(self, _pd_target)
-        else:
-            _pd_target_arg = str(_pd_target)
-            _pd_target_idx = None
-        _poisson_arr = _make_poisson_drive(
+        _poisson_arr = _lif_poisson_drive(
+            _lif_poisson_plan(self, sim.poisson_drive),
             n_steps=sim.n_steps,
             n_neurons=n_neurons,
-            rate_hz=float(_pd.get("rate_hz", 2.0)),
-            amplitude=float(_pd.get("amplitude", 0.5)),
             dt_ms=sim.dt_ms,
-            seed=poisson_chunk_seed(int(_pd.get("seed", sim.seed + 7919)), 0),
-            target=_pd_target_arg,
-            counts=int(_pd.get("counts", 1)),
-            target_indices=_pd_target_idx,
+            default_seed=sim.seed + 7919,
         )
         drive_2d = drive_2d_sched + jnp.asarray(
             _poisson_arr, dtype=dtype
@@ -2453,16 +2544,13 @@ def _simulate_lif(
         "not_recorded": ["sources", "field"],
     }
     if sim.poisson_drive is not None:
-        _poisson_receipt = {
-            "rate_hz": float(sim.poisson_drive.get("rate_hz", 2.0)),
-            "amplitude": float(sim.poisson_drive.get("amplitude", 0.5)),
-            "seed": int(sim.poisson_drive.get("seed", sim.seed + 7919)),
-            "status": "stochastic_drive_applied",
-        }
-        if "counts" in sim.poisson_drive:
-            # Recorded only when declared so default receipts stay unchanged.
-            _poisson_receipt["counts"] = int(sim.poisson_drive["counts"])
-        metadata["poisson_drive"] = _poisson_receipt
+        _poisson_receipts = [
+            _lif_poisson_receipt(entry, sim.seed + 7919)
+            for entry in _poisson_entries(sim.poisson_drive)
+        ]
+        metadata["poisson_drive"] = (
+            _poisson_receipts[0] if isinstance(sim.poisson_drive, Mapping) else _poisson_receipts
+        )
     if hdp_rule_name is not None:
         metadata["hdp_rule"] = str(hdp_rule_name)
         metadata["hdp_rule_registered"] = True
@@ -2528,6 +2616,8 @@ def _simulate_lif_scan(
             "paradigm=EventScanDrive(events, tables, blocks, groups, "
             "dt_ms=..., n_steps=...) from jaxfne.pcl_topology"
         )
+    refuse_poisson_drive_list(
+        sim.poisson_drive, "simulate (lif local_inhibition resolution 'event_scan')")
     if sim.poisson_drive is not None:
         raise ValueError(
             "Simulation(poisson_drive=...) is not realized with "
@@ -2715,6 +2805,7 @@ def simulate_batch(
         runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
     # The batch kernel draws no Poisson drive, applies no ablation, always
     # returns sources and never builds a field.
+    refuse_poisson_drive_list(sim.poisson_drive, "simulate_batch")
     for _name in ("poisson_drive", "ablation", "gaussian_drive"):
         if getattr(sim, _name) is not None:
             raise ValueError(
@@ -2983,6 +3074,7 @@ def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict
         )
     runtime_cfg = sim.resolved_runtime
     kernel_kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+    refuse_poisson_drive_list(sim.poisson_drive, "simulate_adex_seed_batch (emitter family 'adex')")
     has_drive = sim.poisson_drive is not None
     drive_template: dict[str, Any] = {}
     drive_fp = ""
@@ -3058,7 +3150,6 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
     """
     from ._construct_lif import lif_edge_arrays
     from .emitters_lif import simulate_lif_edge
-    from .inputs import check_current_route_poisson_drive
 
     if not isinstance(self.params["emitter"], LIFNetworkParams):
         raise ValueError(
@@ -3096,25 +3187,11 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
     drive = jnp.asarray(emitter.drive, dtype=dtype)
     drive_2d = jnp.broadcast_to(drive, (sim.n_steps, n_neurons))
     if sim.poisson_drive is not None:
-        _pd = sim.poisson_drive
-        check_current_route_poisson_drive(_pd)
-        if "seed" in _pd:
-            raise ValueError(
-                "simulate_lif_seed_batch refuses a template pinning poisson_drive['seed'] "
-                f"({_pd['seed']!r}): per-member keying needs the seed to ride the seeds argument"
-            )
-        _tgt = _pd.get("target", "all")
-        if isinstance(_tgt, (tuple, list)):
-            _targ: Any = tuple(_tgt)
-            _tidx: Any = resolve_poisson_drive_target(self, _tgt)
-        else:
-            _targ, _tidx = str(_tgt), None
+        plan = _lif_poisson_plan(self, sim.poisson_drive, seed_is_member=True)
         drive_batch = jnp.stack([
-            drive_2d + jnp.asarray(_make_poisson_drive(
-                sim.n_steps, n_neurons, float(_pd.get("rate_hz", 2.0)),
-                float(_pd.get("amplitude", 0.5)), sim.dt_ms,
-                poisson_chunk_seed(s + 7919, 0), _targ,
-                int(_pd.get("counts", 1)), target_indices=_tidx), dtype=dtype)
+            drive_2d + jnp.asarray(_lif_poisson_drive(
+                plan, n_steps=sim.n_steps, n_neurons=n_neurons, dt_ms=sim.dt_ms,
+                default_seed=s + 7919), dtype=dtype)
             for s in seed_list
         ])
     else:
