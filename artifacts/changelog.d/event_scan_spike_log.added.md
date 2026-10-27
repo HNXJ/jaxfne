@@ -1,0 +1,1 @@
+- The `event_scan` replay records every spike's time and cell in emission order (`scan_spike_times_us`, `scan_spike_cells` in the metadata).

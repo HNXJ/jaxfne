@@ -756,11 +756,25 @@ def _check_event_order_inputs(
     )
 
 
+def _log_spike(LOGT, LOGC, LOGN, spk, ti, cell):
+    """Append ``(ti, cell)`` at index ``LOGN`` when ``spk``; ``LOGN`` counts every spike.
+
+    Past the capacity the write is dropped (the index is clamped and the old
+    value kept), so ``LOGN`` alone reports an overflow.
+    """
+    K = LOGT.shape[0]
+    wr = spk & (LOGN < K)
+    idx = jnp.minimum(LOGN, K - 1)
+    LOGT = LOGT.at[idx].set(jnp.where(wr, ti, LOGT[idx]))
+    LOGC = LOGC.at[idx].set(jnp.where(wr, cell, LOGC[idx]))
+    return LOGT, LOGC, LOGN + spk.astype(LOGN.dtype)
+
+
 def _event_scan_loop(
     V0, A0, EV, CELL, CMASK, SOX, SOY, WS,
     FWD_IDX, FWD_W, FWD_N, LAT_IDX, LAT_W, LAT_N,
     TD_IDX, TD_W, TD_N, MEMBERS, MMASK, BLK, POS_OF, LOC_OF,
-    PCOL, GRID, FLAGS, BIN0,
+    PCOL, GRID, FLAGS, BIN0, LOGT0,
 ):
     """One exact event-oracle pass over a time-sorted event stream.
 
@@ -776,7 +790,11 @@ def _event_scan_loop(
     ``fori_loop``): an unwound per-target loop would otherwise execute
     hundreds of masked excites for every non-spiking candidate. All
     updates are indexed scatters; the caller runs this in float64
-    (integer-microsecond event times against float64 taus).
+    (integer-microsecond event times against float64 taus). ``LOGT0`` (int64,
+    zeros, shape ``(K,)``) sets the spike-log capacity: the log keeps every
+    spike's time and cell in emission order (a simple spike precedes the
+    complex spikes it forwards); ``LOGN`` counts every spike, including those
+    past K.
     """
     f = V0.dtype
     i32 = jnp.int32
@@ -822,7 +840,7 @@ def _event_scan_loop(
         return Vc, Ac, TLc
 
     def _event_body(carry, e):
-        V, A, TL, TS, CNT, FST, BIN = carry
+        V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = carry
         ti = e[0]
         x = e[1].astype(i32)
         y = e[2].astype(i32)
@@ -842,7 +860,7 @@ def _event_scan_loop(
                 sm[s], lambda c: _do_slot(s, c), lambda c: c, c)
 
         def _do_slot(s, c):
-            V, A, TL, TS, CNT, FST, BIN = c
+            V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = c
             m = sm[s]
             n = slots[s]
             n0 = jnp.where(m, n, DUM)
@@ -870,9 +888,10 @@ def _event_scan_loop(
             FST = FST.at[n0].set(
                 jnp.where(spk & (FST[n0] < jnp.int64(0)), ti, FST[n0]))
             BIN = BIN.at[b, n0].set(BIN[b, n0] | spk)
+            LOGT, LOGC, LOGN = _log_spike(LOGT, LOGC, LOGN, spk, ti, n0)
 
             def _cascade(c2):
-                V, A, TL, TS, CNT, FST, BIN = c2
+                V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = c2
                 g = POS_OF[n0]
                 k = LOC_OF[n0]
                 mm = MMASK[g] & (jnp.arange(D) != k)
@@ -880,20 +899,20 @@ def _event_scan_loop(
                     V, A, TL, TS, MEMBERS[g], BLK[g, :, k], mm, t)
 
                 def _lat(c3):
-                    V, A, TL, TS, CNT, FST, BIN = c3
+                    V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = c3
                     ln = LAT_N[n0]
                     use = jnp.arange(LMAX) < ln
                     V, A, TL = _inhibit_vec(
                         V, A, TL, TS, LAT_IDX[n0], LAT_W[n0], use, t)
-                    return (V, A, TL, TS, CNT, FST, BIN)
+                    return (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN)
 
                 lat_fire = (FLAGS[0] > 0) & (FLAGS[2] > 0)
-                V, A, TL, TS, CNT, FST, BIN = jax.lax.cond(
+                V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = jax.lax.cond(
                     lat_fire, _lat, lambda c3: c3,
-                    (V, A, TL, TS, CNT, FST, BIN))
+                    (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN))
 
                 def _fwd(ff, c4):
-                    V, A, TL, TS, CNT, FST, BIN = c4
+                    V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = c4
                     fm = ff < FWD_N[n0]
                     c0 = jnp.where(fm, FWD_IDX[n0, ff], DUM)
                     w = FWD_W[n0, ff]
@@ -912,9 +931,11 @@ def _event_scan_loop(
                     FST = FST.at[c0].set(jnp.where(
                         spkc & (FST[c0] < jnp.int64(0)), ti, FST[c0]))
                     BIN = BIN.at[b, c0].set(BIN[b, c0] | spkc)
+                    LOGT, LOGC, LOGN = _log_spike(
+                        LOGT, LOGC, LOGN, spkc, ti, c0)
 
                     def _ccascade(c5):
-                        V, A, TL, TS, CNT, FST, BIN = c5
+                        V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = c5
                         cg = POS_OF[c0]
                         ck = LOC_OF[c0]
                         cm = MMASK[cg] & (jnp.arange(D) != ck)
@@ -922,21 +943,21 @@ def _event_scan_loop(
                             V, A, TL, TS, MEMBERS[cg], BLK[cg, :, ck], cm, t)
 
                         def _td(c6):
-                            V, A, TL, TS, CNT, FST, BIN = c6
+                            V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = c6
                             cs = c0 - NS
                             use = jnp.arange(TMAX) < TD_N[cs]
                             V, A, TL = _inhibit_vec(
                                 V, A, TL, TS, TD_IDX[cs], TD_W[cs], use, t)
-                            return (V, A, TL, TS, CNT, FST, BIN)
+                            return (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN)
 
                         td_fire = (FLAGS[1] > 0) & (FLAGS[2] > 0)
                         return jax.lax.cond(
                             td_fire, _td, lambda c6: c6,
-                            (V, A, TL, TS, CNT, FST, BIN))
+                            (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN))
 
                     return jax.lax.cond(
                         spkc, _ccascade, lambda c5: c5,
-                        (V, A, TL, TS, CNT, FST, BIN))
+                        (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN))
 
                 # The fan-out loop is gated on the spike: without the
                 # ``cond`` every candidate would run FMAX masked excites.
@@ -944,11 +965,11 @@ def _event_scan_loop(
                     spk, lambda c4: jax.lax.fori_loop(
                         0, FMAX, _fwd, c4),
                     lambda c4: c4,
-                    (V, A, TL, TS, CNT, FST, BIN))
+                    (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN))
 
             return jax.lax.cond(
                 spk, _cascade, lambda c2: c2,
-                (V, A, TL, TS, CNT, FST, BIN))
+                (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN))
 
         return jax.lax.fori_loop(0, SMAX, _slot, carry), jnp.int32(0)
 
@@ -956,10 +977,11 @@ def _event_scan_loop(
         V0, A0,
         jnp.zeros((N1,), f), jnp.zeros((N1,), f),
         jnp.zeros((N1,), jnp.int32), jnp.full((N1,), -1, dtype=jnp.int64),
-        BIN0,
+        BIN0, LOGT0, jnp.zeros(LOGT0.shape, i32), jnp.zeros((), i32),
     )
-    (V, A, TL, TS, CNT, FST, BIN), _ = jax.lax.scan(_event_body, carry0, EV)
-    return V, A, TL, TS, CNT, FST, BIN
+    (V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN), _ = jax.lax.scan(
+        _event_body, carry0, EV)
+    return V, A, TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN
 
 
 _JIT_EVENT_SCAN = jax.jit(_event_scan_loop)
@@ -980,6 +1002,11 @@ def _scan_table_int(tables, key):
     return int(value)
 
 
+def _spike_log_capacity(n_events):
+    """First-pass spike-log capacity of an event-scan run; an overflow reruns at the logged size."""
+    return max(1024, 2 * int(n_events))
+
+
 def _run_event_scan(
     params, N, n_steps, t0_us, dt_us, groups, blocks,
     events, tables, V0_mV,
@@ -987,10 +1014,11 @@ def _run_event_scan(
     """Validate the event-scan inputs and run the exact event pass.
 
     Returns the kernel result dict (``spikes`` bool ``(n_steps, N)``,
-    ``counts``, ``first_spike_us``, finals ``V``/``A``/``t_last`` and an
-    empty ``w_final``). ``V``/``A``/``t_last`` are float64 regardless of the
-    params dtype (see the x64 note at the call). Every refusal names the
-    offending channel.
+    ``counts``, ``first_spike_us``, finals ``V``/``A``/``t_last``, an
+    empty ``w_final``, and the spike log ``spike_times_us`` and
+    ``spike_cells`` (int64, every spike in emission order)). ``V``/``A``/
+    ``t_last`` are float64 regardless of the params dtype (see the x64 note
+    at the call). Every refusal names the offending channel.
     """
     grp = np.asarray(groups).ravel()
     if grp.shape != (N,) or grp.dtype.kind not in "iu":
@@ -1280,7 +1308,7 @@ def _run_event_scan(
     # integer microseconds and the oracle is float64 — float32 decay rounding
     # would move threshold crossings.
     with jax.enable_x64():
-        out = _JIT_EVENT_SCAN(
+        args = (
             jnp.asarray(V0, dtype=jnp.float64),
             jnp.asarray(A0, dtype=jnp.float64),
             jnp.asarray(ev),
@@ -1310,7 +1338,19 @@ def _run_event_scan(
             jnp.asarray([lat_on, td_on, activation], dtype=jnp.int32),
             jnp.zeros((n_steps, N + 1), dtype=bool),
         )
-        V, A, _TL, TS, CNT, FST, BIN = out
+        cap = _spike_log_capacity(int(ev.shape[0]))
+        out = _JIT_EVENT_SCAN(*args, jnp.zeros((cap,), dtype=jnp.int64))
+        n_logged = int(out[9])  # LOGN: every spike, past the capacity too
+        if n_logged > cap:
+            # The first pass stored only cap entries; rerun once at the logged size.
+            cap = n_logged
+            out = _JIT_EVENT_SCAN(*args, jnp.zeros((cap,), dtype=jnp.int64))
+            if int(out[9]) != n_logged:
+                raise RuntimeError(
+                    "event-scan spike log changed on rerun: "
+                    f"{int(out[9])} spikes against {n_logged} logged")
+        V, A, _TL, TS, CNT, FST, BIN, LOGT, LOGC, LOGN = out
+        n_spk = int(LOGN)
         t_last = jnp.where(
             CNT[:N] > 0, TS[:N] / 1000.0,
             jnp.full((N,), NEVER, dtype=jnp.float64))
@@ -1322,6 +1362,8 @@ def _run_event_scan(
             "w_final": jnp.zeros((0,), dtype=jnp.float64),
             "counts": CNT[:N],
             "first_spike_us": FST[:N],
+            "spike_times_us": LOGT[:n_spk],
+            "spike_cells": LOGC[:n_spk].astype(jnp.int64),
         }
 
 
@@ -1612,7 +1654,9 @@ def simulate_lif_edge(
     Under ``"event_scan"`` the result instead holds the exact replay:
     ``spikes`` (bool ``[n_steps, N]``), finals ``V``/``A``/``t_last``
     (float64, as above), empty ``w_final``, per-cell ``counts`` and
-    ``first_spike_us`` (``-1`` where a cell never spiked).
+    ``first_spike_us`` (``-1`` where a cell never spiked), and the spike log
+    ``spike_times_us`` and ``spike_cells`` (int64, every spike in emission
+    order).
 
     Raises ``ValueError`` naming the argument for every refused input.
     """

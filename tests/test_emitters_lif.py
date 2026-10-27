@@ -589,6 +589,98 @@ def test_event_scan_matches_oracle_event_for_event():
     assert [bool(s) for s in capped["spikes"][0]] == [True, False, False]
 
 
+def _spike_chain_fixture():
+    """One simple cell driven by four same-pixel events, each forwarded to one complex cell.
+
+    Simple weight 40 mV is far above the 10 mV simple threshold, so every event
+    spikes the simple cell (reset to -10 mV; refractory 10 mV at tau_rp 5 ms
+    moves the next crossing by well under a millivolt). Forward weight 40 mV is
+    far above the 3 mV complex threshold, so each simple spike spikes the
+    complex cell at the same event time.
+    """
+    from jaxfne.pcl_topology import (
+        event_scan_events,
+        event_scan_tables,
+        local_inhibition_blocks,
+    )
+
+    w_s = np.zeros((1, 2, 1, 1), dtype=np.float64)
+    w_s[0, 0, 0, 0] = 40.0
+    tables = event_scan_tables(
+        nx=1, ny=1, nd=1, cx=1, cy=1, cd=1,
+        origins_x=[0], origins_y=[0], size=(1, 1), weights=w_s,
+        c_cover={(0, 0): [(0, 0)]}, c_ox=[0], c_oy=[0], c_size=(1, 1),
+        c_weights=np.full((1, 1, 1, 1), 40.0, dtype=np.float64),
+        vw=1, vh=1, inhib_range=(0, 0),
+    )
+    zeros = np.zeros(4, dtype=np.int64)
+    events = event_scan_events(
+        np.array([100, 200, 300, 400]), zeros, zeros, zeros,
+        dt_ms=0.5, n_steps=1, vw=1, vh=1,
+    )
+    p = _as_f32(make_lif_params(("simple", "complex")))
+    groups = np.array([0, 1], dtype=np.int64)
+    blocks = local_inhibition_blocks(
+        groups,
+        li_pre=np.zeros(0, dtype=np.int64), li_post=np.zeros(0, dtype=np.int64),
+        li_weight=np.zeros(0, dtype=np.float64),
+    )
+    kw = dict(
+        n_steps=1, dt_ms=0.5,
+        local_inhibition_groups=jnp.asarray(groups),
+        local_inhibition_resolution="event_scan",
+        local_inhibition_blocks=blocks,
+        event_scan_events=events,
+        event_scan_tables=tables,
+    )
+    return p, kw
+
+
+def test_event_scan_logs_every_spike_in_emission_order():
+    """The event scan returns every spike's time and cell, in emission order.
+
+    By hand: events at 100, 200, 300 and 400 us each spike the simple cell
+    (cell 0), and each simple spike forwards to the complex cell (cell 1) at
+    the same time. Emission order is simple then the complex it forwards.
+    """
+    p, kw = _spike_chain_fixture()
+    out = simulate_lif_edge(p, **kw)
+    counts = np.asarray(out["counts"])
+    first = np.asarray(out["first_spike_us"])
+    log_t = np.asarray(out["spike_times_us"])
+    log_c = np.asarray(out["spike_cells"])
+    assert counts.max() >= 2, "fixture must spike the simple cell twice"
+    assert counts[1] >= 1, "fixture must forward a spike to the complex cell"
+    assert log_t.shape == log_c.shape == (int(counts.sum()),)
+    assert [int(t) for t in log_t] == [100, 100, 200, 200, 300, 300, 400, 400]
+    assert [int(c) for c in log_c] == [0, 1, 0, 1, 0, 1, 0, 1]
+    assert bool(np.all(np.diff(log_t) >= 0))
+    for cell in range(counts.shape[0]):
+        mine = log_t[log_c == cell]
+        assert mine.shape[0] == int(counts[cell])
+        assert int(mine[0]) == int(first[cell])
+
+
+def test_event_scan_spike_log_reruns_past_capacity(monkeypatch):
+    """A log that overflows its first capacity is rerun at the logged size, unchanged."""
+    import jaxfne.emitters_lif as lif
+
+    p, kw = _spike_chain_fixture()
+    base = simulate_lif_edge(p, **kw)
+    assert int(np.asarray(base["counts"]).sum()) >= 3, "fixture must hold at least 3 spikes"
+    calls = []
+
+    def _tiny_capacity(n_events):
+        calls.append(n_events)
+        return 1
+
+    monkeypatch.setattr(lif, "_spike_log_capacity", _tiny_capacity)
+    rerun = simulate_lif_edge(p, **kw)
+    assert calls == [4], "the patched capacity must drive the first pass (4 events)"
+    for key in ("spike_times_us", "spike_cells", "counts", "first_spike_us"):
+        assert np.array_equal(np.asarray(rerun[key]), np.asarray(base[key])), key
+
+
 def test_event_scan_refusals_name_the_channel():
     """Every event-scan parameter changes the realized object or is refused."""
     from jaxfne.pcl_topology import (

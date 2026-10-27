@@ -2608,7 +2608,8 @@ def _simulate_lif_scan(
     connection compiles none — anything else has no scan expression).
 
     The scan returns finals only: ``V_m`` is all-NaN with per-cell
-    counts and first-spike times in the metadata receipt.
+    counts, first-spike times and the spike log (every spike's time and
+    cell, in emission order) in the metadata receipt.
     """
     from .emitters_lif import simulate_lif_edge
     from .pcl_topology import EventScanDrive
@@ -2698,6 +2699,8 @@ def _simulate_lif_scan(
         "scan_resolution": "event_scan",
         "scan_counts": _np.asarray(out["counts"], dtype=_np.int64),
         "scan_first_spike_us": _np.asarray(out["first_spike_us"]),
+        "scan_spike_times_us": _np.asarray(out["spike_times_us"], dtype=_np.int64),
+        "scan_spike_cells": _np.asarray(out["spike_cells"], dtype=_np.int64),
     }
     return Signals(
         time_ms=time_ms,

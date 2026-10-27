@@ -88,16 +88,11 @@ _ENGINE = "numba"
 # 0.5 ms grid is binary-exact and every event lands on it (500 us bins).
 CORE_DT_MS = 0.5
 CORE_DT_US = 500
-# Honest boundary of the core replay (run_core_events): the scan kernel returns binned
-# spikes with counts and first-spike times only (jaxfne/_model_simulate.py), so a file in
-# which any cell spikes twice has unrecoverable per-spike times; and the kernel runs frozen
-# thresholds, so a file reaching past the network's measurement interval would cross the
-# oracle's rate/threshold adaptation (pcl_event_ref.py), which has no scan expression.
-# Either file is refused for that file, never approximated.
-CORE_MULTISPIKE = ("engine core cannot report this file: a cell spiked twice, and the scan "
-                   "replay returns counts with first-spike times only "
-                   "(jaxfne/_model_simulate.py); per-spike times are exact only when "
-                   "each cell spikes at most once")
+# Honest boundary of the core replay (run_core_events): the kernel runs frozen thresholds,
+# so a file reaching past the network's measurement interval would cross the oracle's
+# rate/threshold adaptation (pcl_event_ref.py), which has no scan expression. That file is
+# refused, never approximated. Per-spike times and cells come from the scan's spike log
+# (jaxfne/_model_simulate.py), so a cell that spikes more than once is replayed exactly.
 CORE_ADAPTATION = ("engine core cannot report this file: its events reach past the "
                    "measurement interval, where the oracle adapts rates and thresholds "
                    "(pcl_event_ref.py) and the frozen-threshold scan has no expression")
@@ -280,7 +275,7 @@ def run_core_events(net, t, x, y, p):
     rebased back onto the file's raw timestamps. The network is read, never mutated.
     Refusals, before any heavy work: unsorted times (the scan sorts; the oracle follows
     file order), an empty slice, events past the measurement interval from the network's
-    last update (CORE_ADAPTATION), and any cell spiking twice (CORE_MULTISPIKE).
+    last update (CORE_ADAPTATION).
     """
     import jaxfne as jtfne
     jtfne.enable_x64()  # the scan kernel integrates in float64 (as the oracle does)
@@ -321,15 +316,11 @@ def run_core_events(net, t, x, y, p):
                          runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")),
         paradigm=drive)
     counts = np.asarray(signals.metadata["scan_counts"], dtype=np.int64)
-    first = np.asarray(signals.metadata["scan_first_spike_us"], dtype=np.int64)
-    over = np.flatnonzero(counts > 1)
-    if over.size:
-        raise NotImplementedError(
-            f"{CORE_MULTISPIKE} (first {over.size} cells: {over[:8].tolist()})")
-    fired = np.flatnonzero(counts == 1)
-    times = (first[fired] + t0).astype(np.int64)
-    order = np.lexsort((fired.astype(np.int64), times))  # time then cell, as _gather
-    times, owners = times[order], fired[order]
+    log_t = np.asarray(signals.metadata["scan_spike_times_us"], dtype=np.int64)
+    log_c = np.asarray(signals.metadata["scan_spike_cells"], dtype=np.int64)
+    times = (log_t + t0).astype(np.int64)
+    order = np.lexsort((log_c, times))  # time then cell, as _gather
+    times, owners = times[order], log_c[order]
     sm = owners < ns
     return {
         "simple_counts": counts[:ns].astype(np.int32),

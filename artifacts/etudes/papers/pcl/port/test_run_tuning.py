@@ -246,8 +246,6 @@ def test_core_matches_numba_all_modes():
         nb.run_numba(nbn, t, x, y, p)
         sc = np.array([len(c.spikes) for c in nbn.s_cells], dtype=np.int32)
         cc = np.array([len(c.spikes) for c in nbn.c_cells], dtype=np.int32)
-        assert sc.max() <= 1 and cc.max() <= 1, (
-            f"{mode}: fixture must stay single-spike (scan returns first-spike times only)")
         es_t, es_o = rt._gather(nbn.s_cells)
         ec_t, ec_o = rt._gather(nbn.c_cells)
         got = rt.run_core_events(net, t, x, y, p)
@@ -271,7 +269,8 @@ def test_core_lif_params_follow_network_config():
     assert complex_["delta_sra_mV"] == 0.0
 
 
-def test_core_multispike_refused():
+def test_core_multispike_matches_numba():
+    """A file in which cells spike twice replays exactly: counts, per-spike times and cells."""
     net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
     n = 2000
     t = (np.arange(n, dtype=np.int64) + 1) * 20
@@ -282,12 +281,18 @@ def test_core_multispike_refused():
     nb.run_numba(nbn, t, x, y, p)
     s_max = max(len(c.spikes) for c in nbn.s_cells)
     assert s_max == 2, f"fixture must multi-spike, got max {s_max}"
-    try:
-        rt.run_core_events(net, t, x, y, p)
-    except NotImplementedError as exc:
-        assert "twice" in str(exc)
-    else:
-        raise AssertionError("a multi-spike file must be refused, never approximated")
+    sc = np.array([len(c.spikes) for c in nbn.s_cells], dtype=np.int32)
+    cc = np.array([len(c.spikes) for c in nbn.c_cells], dtype=np.int32)
+    es_t, es_o = rt._gather(nbn.s_cells)
+    ec_t, ec_o = rt._gather(nbn.c_cells)
+    got = rt.run_core_events(net, t, x, y, p)
+    assert np.array_equal(got["simple_counts"], sc)
+    assert np.array_equal(got["complex_counts"], cc)
+    assert np.array_equal(got["simple_times_us"], es_t)
+    assert np.array_equal(got["simple_times_cell"], es_o)
+    assert np.array_equal(got["complex_times_us"], ec_t)
+    assert np.array_equal(got["complex_times_cell"], ec_o)
+    assert int(got["n_events"]) == n
 
 
 def test_core_unsorted_and_empty_refused():
