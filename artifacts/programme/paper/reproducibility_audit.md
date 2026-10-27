@@ -124,16 +124,15 @@ Figures 1-7 test: `tests/test_equivalence_gate_v20260815.py:63-81` has no slow m
 
 ## 7. C9 and C2 gaps
 
-| Gap | Evidence | What would close it |
-|---|---|---|
 Closed by 2026-10-27: the figure lock `.github/figure_env_lock.txt` (82 pins, matplotlib 3.10.9) and the
 `publication` job of `release_ci.yml`, which installs under the lock on a fresh checkout and runs
 `run_test_gate.py publication`; the v0.5.7 version DOI in `zenodo_doi.md`; release target 0.5.8 and the 0.5.7
-date in the authority file; the LICENSE name and the F-to-fig mapping (H5, H1, Hamm 2026-10-26).
+date in the authority file; the LICENSE name and the F-to-fig mapping (H5, H1, Hamm 2026-10-26);
+`docs/requirements.txt` pins mkdocs 1.6.1, mkdocs-material 9.8.0 and pymdown-extensions 12.3, the versions
+Release CI 40444082095 installed (their own dependencies stay unpinned).
 
 | Gap | Evidence | What would close it |
 |---|---|---|
-| The figure lock pins no mkdocs | `.github/figure_env_lock.txt`; `docs/requirements.txt:1-3` | pin mkdocs where the docs build installs |
 | Frozen figures are write-once, and their generators list them as outputs | `frozen_manifest.json:2`; `scripts/publication_figures/fig01_grammar.py:1-10` | regenerate into scratch and compare, as the publication gate does, rather than overwrite |
 | Figures 1-7 test checks dimensions only off macOS | `tests/test_equivalence_gate_v20260815.py:74-81` | owner decision on the binding renderer and criterion off macOS |
 | Only F1 has a matching generator (predecessor numbering); the other 23 rows are partial or none | section 5 counts | build figure generators in the lanes the plan sequences (0.5.9 to 0.6.0), per `arxiv_paper_plan.md:78-80` |

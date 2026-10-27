@@ -7,8 +7,8 @@ edits). Open issues: `artifacts/assurance/issue_log/ISSUE_LOG.md`. Other editors
 first, amend in place.
 After 0.5.8, rows serve G-0 (`artifacts/programme/design/plans/arxiv_paper_plan.md`): each names its F, S or C id.
 G-0 findings from lanes L1-L9 (2026-10-25/26):
-- [A] C9, C2: 9 gaps left in `artifacts/programme/paper/reproducibility_audit.md` section 7 (refreshed
-  2026-10-27; the lock and the clean-checkout job closed theirs). The `publication` job in `release_ci.yml` (lane L11) passed its first
+- [A] C9, C2: 8 gaps left in `artifacts/programme/paper/reproducibility_audit.md` section 7 (refreshed
+  2026-10-27; the lock, the clean-checkout job and the mkdocs pin closed theirs). The `publication` job in `release_ci.yml` (lane L11) passed its first
   run (40346237854, Linux): all 7 figures render at the frozen dimensions; RGBA matches for fig01, 02, 06, 07
   and differs for fig03-05; bytes differ for all (pixels and bytes are pinned to the macOS freeze platform). Closed 2026-10-26: the v0.5.7
   version DOI is in `docs/reference/project/zenodo_doi.md`; the 0.5.7 date in the release authority file
