@@ -537,7 +537,8 @@ general-`n` kernel — for small illustrative demos.
 Multi-area Izhikevich simulation from a neuron metadata mapping (`neurons_df` with
 `area`/`layer`/`cell_type` keys), a dense connectivity matrix `W` (rescaled by `0.1` for gain
 compatibility), and an optional `source_tensor` used as `drive_schedule`
-(`jaxfne/emitters.py:1780`). Note the return order is `(spikes, voltages)`, the reverse of the
+(`jaxfne/emitters.py:1780`). `control_params` takes `drive_scale` (default 1.0) and `noise_scale`
+(undeclared: the kernel's 0.5). Note the return order is `(spikes, voltages)`, the reverse of the
 other `simulate_*` functions' `(voltages, spikes, ...)` order.
 
 ---

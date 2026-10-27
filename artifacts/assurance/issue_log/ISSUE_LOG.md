@@ -41,6 +41,10 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Found by the 9C-E1 packet (2026-10-26). Expected: realized or refused. Future change: refuse it
   where no kernel reads it, or pass it to the dense default order; the E1 `gaussian_drive` lands
   with the same realize-or-refuse rule.
+- Resolved 2026-10-27 (`tests/test_noise_scale_realized.py`): realized on the dense default order,
+  receptor_exponential (with `gaussian_drive`), every `simulate_batch` route and the multi-area kernel's
+  `control_params`; the plain-route jit cache keys carry it (a reused Model replayed the first value's
+  kernel, edge route included); `simulate_batch` refuses `net_m`. Undeclared stays 0.5 bit for bit.
 
 ### P-046
 

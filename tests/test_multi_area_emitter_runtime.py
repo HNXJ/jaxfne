@@ -104,5 +104,21 @@ def test_multi_area_emitter_empty_dataframe_raises():
         simulate_multi_area_izhikevich(neurons, positions, W)
 
 
+def test_multi_area_emitter_realizes_noise_scale():
+    # P-045: control_params["noise_scale"] reaches the kernel; undeclared keeps the 0.5 default.
+    neurons = MockNeuronsDataFrame(n=20)
+    positions = np.zeros((20, 3), dtype=np.float32)
+    W = np.zeros((20, 20), dtype=np.float32)
+
+    def volts(control):
+        return np.asarray(simulate_multi_area_izhikevich(
+            neurons, positions, W, control_params=control, n_steps=200, dt_ms=0.5, seed=3)[1])
+
+    base = volts(None)
+    assert float(np.std(base)) > 0.0, "fixture must give a nonzero V spread"
+    np.testing.assert_array_equal(base, volts({"noise_scale": 0.5}))
+    assert float(np.max(np.abs(base - volts({"noise_scale": 2.0})))) > 0.0
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

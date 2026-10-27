@@ -4529,6 +4529,7 @@ def simulate_receptor_exponential_izhikevich(
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
+    noise_scale: "jax.Array | float | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """v0.0.11 receptor-indexed exponential recurrent kernel.
 
@@ -4548,7 +4549,11 @@ def simulate_receptor_exponential_izhikevich(
 
     When ``drive_schedule`` is None the existing scan path is preserved exactly.
     When provided, it must have shape ``(n_steps, n_neurons)`` and is added as
-    native uncalibrated current at each timestep.
+    native uncalibrated current at each timestep. ``noise_scale`` sets the
+    stochastic-current coefficient: ``None`` keeps the historical 0.5 scalar; a
+    scalar or ``(n_neurons,)`` array gives per-neuron control of internal noise.
+    It is defined at the reference step 0.5 ms (``DT_REF_MS``); the realized
+    coefficient is scaled by ``sqrt(0.5 / dt_ms)``.
 
     Delay contract: this kernel has no finite-delay path; ``edges.delay_steps``
     must be all zero (negative values are rejected outright). Nonzero delays
@@ -4571,7 +4576,7 @@ def simulate_receptor_exponential_izhikevich(
     drive = params.drive.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
-    noise_coef = _noise_coef(0.5, dt_ms, jdtype)
+    noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = _resolved_edge_weight(edges, jdtype, params)
@@ -4786,7 +4791,8 @@ def simulate_multi_area_izhikevich(
     source_tensor : jax.Array, optional
         Driving source tensor [T, N]. If provided, used as drive_schedule.
     control_params : Mapping[str, float], optional
-        Control parameters including noise_scale (default 1.0).
+        ``drive_scale`` multiplies the drive (default 1.0); ``noise_scale`` is the
+        stochastic-current coefficient (undeclared: the kernel's 0.5).
     cfg : Any, optional
         Configuration object (used for metadata only).
     n_steps : int, optional
@@ -4809,7 +4815,7 @@ def simulate_multi_area_izhikevich(
     import jax.numpy as jnp
 
     if control_params is None:
-        control_params = {"noise_scale": 1.0}
+        control_params = {}
 
     n = len(neurons_df.get("area", [""]))
     if n == 0:
@@ -4867,6 +4873,7 @@ def simulate_multi_area_izhikevich(
         key=key,
         dtype=dtype,
         drive_schedule=source_tensor,
+        noise_scale=control_params.get("noise_scale", None),
     )
 
     return spikes, voltages

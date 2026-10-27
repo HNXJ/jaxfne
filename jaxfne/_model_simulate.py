@@ -248,21 +248,13 @@ def _gaussian_noise_for_route(
 ) -> "Optional[_np_host.ndarray]":
     """Per-cell ``noise_scale`` that realizes ``sim.gaussian_drive``, or None.
 
-    Raises every refusal the declaration needs on the Izhikevich routes: the
-    route's kernel must take a per-cell ``noise_scale`` (receptor_exponential
-    takes none), no other ``noise_scale`` may be declared on the run, and the
-    mapping must name exactly the model's cell types.
+    Raises every refusal the declaration needs on the Izhikevich routes: no
+    other ``noise_scale`` may be declared on the run, and the mapping must name
+    exactly the model's cell types.
     """
     decl = getattr(sim, "gaussian_drive", None)
     if decl is None:
         return None
-    if runtime_cfg.synaptic_kernel == "receptor_exponential":
-        raise ValueError(
-            "Simulation.gaussian_drive is not realized on synaptic_kernel="
-            "'receptor_exponential': simulate_receptor_exponential_izhikevich takes no "
-            "noise_scale (it hard-codes the 0.5 coefficient); use "
-            "synaptic_kernel='exponential' or drop gaussian_drive"
-        )
     if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
         raise ValueError(
             "Simulation.gaussian_drive is refused together with "
@@ -301,6 +293,16 @@ def _gaussian_cache_suffix(gauss) -> tuple:
     if gauss is None:
         return ()
     return (("gaussian_drive", tuple(float(x) for x in gauss)),)
+
+
+def _noise_scale_cache_suffix(hdp_params) -> tuple:
+    """Compile-cache key part for ``hdp_params['noise_scale']`` on the plain routes (empty if undeclared)."""
+    if not hdp_params or "noise_scale" not in hdp_params:
+        return ()
+    # Local import: see _simulate_arrays' matching comment below.
+    from .core import _homeostasis_params_cache_fingerprint
+
+    return _homeostasis_params_cache_fingerprint({"noise_scale": hdp_params["noise_scale"]})
 
 
 def _simulate_arrays(
@@ -857,7 +859,7 @@ def _simulate_arrays(
                 runtime_cfg.synaptic_kernel,
                 ablation_mode,
                 runtime_cfg.selected_backend,
-            ) + _gaussian_cache_suffix(gauss)
+            ) + _gaussian_cache_suffix(gauss) + _noise_scale_cache_suffix(runtime_cfg.hdp_params)
             with _device_scope(runtime_cfg.selected_backend):
                 if cache_key not in self._compiled_cache:
                     import time
@@ -877,10 +879,11 @@ def _simulate_arrays(
                                 _member_base_seed,
                                 _member_counts,
                             )
-                            if gauss is not None:
-                                extra_kw["noise_scale"] = gauss
-                            elif runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
-                                extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
+                        # P-045: both edge kernels take noise_scale (receptor_exponential too).
+                        if gauss is not None:
+                            extra_kw["noise_scale"] = gauss
+                        elif runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+                            extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
                         return kernel_fn(
                             emitter,
                             edges,
@@ -923,10 +926,11 @@ def _simulate_arrays(
                     _member_base_seed,
                     _member_counts,
                 )
-                if gauss is not None:
-                    extra_kw["noise_scale"] = gauss
-                elif runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
-                    extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
+            # P-045: both edge kernels take noise_scale (receptor_exponential too).
+            if gauss is not None:
+                extra_kw["noise_scale"] = gauss
+            elif runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+                extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
             return kernel_fn(
                 emitter,
                 edges,
@@ -944,6 +948,9 @@ def _simulate_arrays(
         if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
             _require_net_m_zero_noise(runtime_cfg.hdp_params["noise_scale"])
             dense_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
+    elif runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+        # P-045: default order realizes the declared coefficient (gauss below wins).
+        dense_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
     if gauss is not None:
         # The dense kernel takes the per-cell coefficient in default order; net_m
         # realizes no noise, so it admits only an all-zero declaration.
@@ -972,7 +979,7 @@ def _simulate_arrays(
             ablation_mode,
             runtime_cfg.selected_backend,
             update_order,
-        ) + _gaussian_cache_suffix(gauss)
+        ) + _gaussian_cache_suffix(gauss) + _noise_scale_cache_suffix(runtime_cfg.hdp_params)
         with _device_scope(runtime_cfg.selected_backend):
             if cache_key not in self._compiled_cache:
                 import time
@@ -2831,6 +2838,13 @@ def simulate_batch(
             "exponential synaptic kernel."
         )
     _refuse_dense_receptor_kernel(runtime_cfg)
+    _decls = getattr(self.cfg, "emitters", None) or []
+    _order = (_decls[0].get("izhikevich_update_order", "default") if _decls else "default") or "default"
+    if _order != "default":
+        raise ValueError(
+            f"simulate_batch runs the default Izhikevich update order; "
+            f"izhikevich_update_order={_order!r} is realized by simulate() per seed"
+        )
     if not hdp_on and not homeo_on:
         # HDP/homeostasis paths always use the sparse-edge kernel; only the
         # plain backend dispatch below can hand the dense kernel rule edges.
@@ -2872,6 +2886,7 @@ def simulate_batch(
                     hdp_rule=str(kernel_kwargs["hdp_rule"]),
                     hdp_rule_params=kernel_kwargs.get("hdp_rule_params", {}),
                     record_weight_trace=False,
+                    noise_scale=_hdp.get("noise_scale", None),
                 )[:3]
             return simulate_edge_recurrent_izhikevich_hdp(
                 emitter,
@@ -2911,6 +2926,7 @@ def simulate_batch(
                 v_ceiling=_hp.get("v_ceiling", 100.0),
                 u_abs_max=_hp.get("u_abs_max", 2000.0),
                 syn_abs_max=_hp.get("syn_abs_max", 1.0e4),
+                noise_scale=_hp.get("noise_scale", None),
             )[:3]
         if runtime_cfg.recurrent_backend == "edge_list":
             return edge_kernel_fn(
@@ -2920,9 +2936,11 @@ def simulate_batch(
                 sim.dt_ms,
                 k,
                 dtype=runtime_cfg.actual_dtype,
+                noise_scale=_hdp.get("noise_scale", None),
             )[:3]
         return simulate_eig_izhikevich(
-            emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype
+            emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype,
+            noise_scale=_hdp.get("noise_scale", None),
         )
 
     # v0.0.21: honor runtime.vmap flag behaviorally.
@@ -2950,7 +2968,7 @@ def simulate_batch(
             runtime_cfg.selected_backend,
             _homeostasis_params_cache_fingerprint(_hp) if homeo_on else (),
             _homeostasis_params_cache_fingerprint(_hdp) if hdp_on else (),
-        )
+        ) + _noise_scale_cache_suffix(_hdp)
         with _device_scope(runtime_cfg.selected_backend):
             effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons, batch=B)
             if effective_jit:

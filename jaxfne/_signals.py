@@ -149,11 +149,10 @@ class Simulation:
     that the Izhikevich kernels take, defined at the 0.5 ms reference step and
     scaled by ``sqrt(0.5/dt_ms)`` exactly as the existing current is, so the
     existing seed stream drives it and no new noise key is added. It is realized
-    on the Izhikevich routes (edge undelayed and delayed, dense in default and
-    ``net_m`` order, homeostatic, HDP, and continuation). It is refused on the
-    other emitter families, on ``synaptic_kernel='receptor_exponential'`` (its
-    kernel takes no ``noise_scale``), in ``simulate_batch`` (which does not consume
-    it), together with ``hdp_params['noise_scale']``, and, on ``net_m``, unless
+    on the Izhikevich routes (edge undelayed and delayed, ``receptor_exponential``,
+    dense in default and ``net_m`` order, homeostatic, HDP, and continuation). It is
+    refused on the other emitter families, in ``simulate_batch`` (which does not
+    consume it), together with ``hdp_params['noise_scale']``, and, on ``net_m``, unless
     every std is zero. The mapping must cover every model cell type and name no
     other; that is checked at simulate time.
     """

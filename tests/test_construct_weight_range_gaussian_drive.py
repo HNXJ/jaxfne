@@ -267,15 +267,21 @@ def test_gaussian_drive_net_m_admits_zero_and_refuses_nonzero():
         model.simulate(run(_gauss(3.0)))
 
 
-def test_gaussian_drive_refused_on_receptor_exponential_route():
+def test_gaussian_drive_realized_on_receptor_exponential_route():
+    # P-045: the receptor kernel takes a per-cell noise_scale; a uniform drive equals the scalar.
     model = _ei_model()
-    runtime = jtfne.RuntimeConfig(recurrent_backend="edge_list",
-                                  synaptic_kernel="receptor_exponential")
-    sim = jtfne.Simulation(duration_ms=10.0, dt_ms=0.5, seed=0, runtime=runtime,
-                           gaussian_drive=_gauss(3.0))
-    with pytest.raises(ValueError, match="receptor_exponential") as exc:
-        model.simulate(sim)
-    assert "simulate_receptor_exponential_izhikevich" in str(exc.value)
+
+    def run(gauss=None, hdp=None):
+        runtime = jtfne.RuntimeConfig(recurrent_backend="edge_list",
+                                      synaptic_kernel="receptor_exponential", hdp_params=hdp)
+        sim = jtfne.Simulation(duration_ms=50.0, dt_ms=0.5, seed=0, runtime=runtime,
+                               gaussian_drive=gauss)
+        return np.asarray(model.simulate(sim).V_m)
+
+    uniform = run(gauss=_gauss(3.0, 3.0))
+    assert float(np.std(uniform)) > 0.0, "fixture must give a nonzero V spread"
+    np.testing.assert_array_equal(uniform, run(hdp={"noise_scale": 3.0}))
+    assert float(np.max(np.abs(uniform - run(gauss=_gauss(3.0))))) > 0.0, "per-type stds must differ"
 
 
 def test_gaussian_drive_refused_with_hdp_noise_scale():
