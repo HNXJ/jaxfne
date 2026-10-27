@@ -90,9 +90,9 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   their times; L2 threshold and rate updated at the measurement interval; L3 F_W in the scan; L4 the boundary
   map and the continuation-equivalence test. L1 and L2 landed 2026-10-27 (a21b5175, 11a94a69; the port's
   core replay takes multi-spike files and runs past the measurement interval); L3a weights in the carry
-  (e8e88c29) and L3b simple buffer STDP (fbbd62fd; oracle-exact, w_s 3.6e-15) landed. L3c (complex,
-  running) must reset the interval counter at each complex update (oracle :629), so the complex rates the
-  periodic update reads differ from the frozen run. Contract: inhibition groups declare local inhibition on;
+  (e8e88c29), L3b simple buffer STDP (fbbd62fd; oracle-exact, w_s 3.6e-15) and L3c complex buffer STDP
+  (8d0052dc; w_c 7.1e-15, wi_c 2.8e-14; the interval counter resets at each complex update, oracle :629)
+  landed. L3d (lateral and top-down inhibitory STDP, oracle :575-602) is running; L4 follows. Contract: inhibition groups declare local inhibition on;
   with it off the port builds singleton groups. cSTDP3 sets `ETA_TA` 0
   (`configs/simple_cell_config.json:10`), so reference thresholds never move; L2's interval counter still
   gates complex STDP (`count == 1`, L3c). Design calls (orchestrator): adaptation potential and last-spike times are X, reset at a
@@ -174,6 +174,21 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   Unscored pilot (seed 0, T 1 s): scale 0.01 is 3.0e6 synapses, 57 s construct, 49 s simulate, 2.5 GB;
   scale 0.02 is 6.0e6, 86 s, 102 s, 4.0 GB. Linear in synapses (inferred), scale 0.1 needs about 3e8 synapses
   and 150 GB of the 192 GB RAM, so 10% runs on the CPU at the edge of memory or at a smaller scale.
+- T-CI [A] CI plan (`artifacts/etudes/meta/plans/ci_plan.md`, status there): G, A, E and the local half of C
+  landed 2026-10-27; A's planted-defect run passed (PR 117: only `static` and `fast-build` went red, closed).
+  Left: B canary chains, C CI `paper-lanes` job, D code-tree stamp, F rc reuses Release CI JUnit (Hamm
+  approved 2026-10-27); the first nightly after E is E's observation.
+- T-PR [H] Dependabot PRs target main: #115 ruff 0.17.1 -> 0.17.2 (dev pins 0.17.1), #116 mkdocs-material
+  >=9.8.0 (dev already pins ==9.8.0, so #116 is superseded at the next dev -> main merge). Remote branches
+  `caminos-p6`, `fix/rtd-mcc3-post-d1`, `izh2003`, `l2-caminos`, `pcl-port` are fully merged into dev;
+  deleting them is Hamm's call. `kernel-lfp` holds the 0.5.10 commits (row above).
+- T-OWN [A] Owner items from the 2026-10-27 cleanup lanes: the amplitude-status vocabulary left in docs,
+  release notes, examples and the docs/archive manifest (5ae19017); examples v031/v032 name canonical JSON
+  targets that are absent; examples 03/05 fall back to V_m for EEG/MEG; except-pass handlers in examples;
+  `_tutorial_runtime` defaults an empty env with `or`; `consolidate_hdp_controllability_etude.py:38,254`
+  names the absent `hdp_mvc_etude.py`; `upload_testpypi.sh:20` names the absent RELEASE_CHECKLIST.md.
+- T-RG [external] komposer `run_guard.py stop` fell back to the payload cwd and blamed a subagent for the
+  dispatcher's own broad gate (2026-10-27); fix in komposer, then reinstall.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
 - T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
 - T-O68 [H] local copies and the layout rule (see O-68): each held copy is deleted or sits at
