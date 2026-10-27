@@ -8,6 +8,7 @@ assertions read the realized model through its accessors.
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 import numpy as np
@@ -109,3 +110,27 @@ def test_scored_out_is_refused_before_compute(tmp_path):
         core.main(["pilot", "--out", str(tmp_path / "SCORED" / "pilot.json")])
     # A literal path: tmp_path carries the test name, which contains "scored".
     core.check_out("pilot/out.json")
+
+
+def test_score_seed_known_answer_matches_p5_seed1():
+    # Kernel route at the P5 settings, seed 1, through score_seed: N1-N4 must equal the signed
+    # P5 scores (p3_v7_score.json, fig3.seeds "1") exactly; floats to rtol 1e-12, except the
+    # peak excess, a least-squares fit whose last digits moved between the P5 SHA and this one
+    # on the same spikes (about 5e-8 relative, 2026-10-27): rtol 1e-6.
+    oracle = REPO_ROOT / "artifacts" / "etudes" / "papers" / "izhikevich2003" / "scores" / "p3_v7_score.json"
+    want = json.loads(oracle.read_text(encoding="utf-8"))["fig3"]["seeds"]["1"]
+    rows, cols, n_steps, _ = core.run_kernel_seed(1, core.lane.FIG3_T)
+    assert rows.size > 0, "fixture must spike at the P5 settings"
+    theta, alpha_band = core.lane.load_calibration()
+    got = core.score_seed(rows, cols, n_steps, theta, alpha_band)
+    assert set(got) == {"N1", "N2", "N3", "N4"}
+    for nid in ("N1", "N2", "N3", "N4"):
+        assert got[nid]["verdict"] == want[nid]["verdict"], (nid, got[nid], want[nid])
+        assert set(got[nid]["numbers"]) == set(want[nid]["numbers"]), nid
+        for key, value in want[nid]["numbers"].items():
+            real = got[nid]["numbers"][key]
+            if isinstance(value, float):
+                rtol = 1e-6 if key == "pe" else 1e-12
+                np.testing.assert_allclose(real, value, rtol=rtol, err_msg=f"{nid}.{key}")
+            else:
+                assert real == value, (nid, key, real, value)

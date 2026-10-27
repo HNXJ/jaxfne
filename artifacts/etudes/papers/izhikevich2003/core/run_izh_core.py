@@ -182,6 +182,21 @@ def run_kernel_seed(seed, t_s):
                                  "simulate_s": total - construct_s}
 
 
+def score_seed(rows, cols, n_steps, theta, alpha_band):
+    """N1-N4 for one seed from a spike raster, through ``run_izh.score_network_seed``.
+
+    ``rows``/``cols`` are spike time steps and cell indices (E 0-799, I 800-999), kernel or
+    library. The raster is grouped per cell exactly as ``run_izh.cmd_fig3`` groups it. Returns the
+    N1-N4 entries as the lane scorer computes them. Writes no file and adds no CLI command.
+    """
+    cells = [[] for _ in range(N)]
+    for r, c in zip(np.asarray(rows).tolist(), np.asarray(cols).tolist()):
+        cells[int(c)].append(int(r))
+    res = lane.score_network_seed(cells, int(n_steps), DT_MS, theta, alpha_band,
+                                  populations={"E": np.arange(N_E), "I": np.arange(N_E, N)})
+    return {nid: res[nid] for nid in ("N1", "N2", "N3", "N4")}
+
+
 def _mad(a, b):
     return float(np.max(np.abs(np.asarray(a, dtype=np.float64) - np.asarray(b, dtype=np.float64))))
 
