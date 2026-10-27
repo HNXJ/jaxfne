@@ -154,9 +154,11 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
 - [A] Check whether the manifests hash `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log`; if none does, record it.
 - T-O69 [A] 0.5.9 lanes per the release plan, at most 3 Haiku workers in clones under `E:/repos/_wt/jaxfne/`.
   E1 library path landed (b28bbb93, unscored pilot: rates within 1.4% of the kernel on seeds 0 and 1,
-  ampa tau 1e-3 ms as the instantaneous limit, P-051); next the P6-style library-path prereg for Hamm.
-  Next: P-049 (`in_degree` with multinomial), then the Potjans P2 refresh; Brunel S1 smoke on 3d7a5c9b,
-  then the runs; Release CI 40433612421 on 3d7a5c9b (40422532717 lost its 3.11 runner after 55 min).
+  ampa tau 1e-3 ms as the instantaneous limit, P-051). P6 drafted (`izhikevich2003/core/PREREG_P6.md`,
+  unsigned: seeds and Q5 wait on Hamm; gate 2 `score_seed` landed, peak excess equals P5 to about 5e-8
+  relative, so the signed text says rtol 1e-6 there). P-049 landed (a26097f8). Running: Potjans P2
+  refresh (clone `9c-potjans-p2`); Brunel S1 runs on 3d7a5c9b (smoke: construct 25 s, point C
+  irregular, 38.6 Hz); Release CI 40433612421 (40422532717 lost its 3.11 runner after 55 min).
   On dev: P-046 and P-050 fixes, `cell_params` v0/u0; LIF `poisson_drive` list; E1 core (`weight_range`, `gaussian_drive`; the delayed-edge route is realized but untested;
   hdp noise_scale stays P-045), citations by symbol, Brunel S1 option, 9B bypass checks (a moving H_K has a
   first-step reference only), the publication job's `pip freeze` artifact. Brunel S1 runs (A-D, seeds 4-8,
@@ -166,9 +168,8 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots. Drafts: Potjans 2026-10-26,
   Vogels 2026-10-27 (full N, R-E e <= 0.20, O-DROP; the B8 pilot reruns segment B on the per-synapse traces;
   scale and bands wait on Hamm). Core `Simulation(poisson_drive=[...])` landed (lif route). The P2 refresh
-  (multinomial wiring, w_std, delay_std_ms, tau_syn_ms, per-population drive, exact-charge pA map) waits on P-049:
-  multinomial caps the mean in-degree at 1; core change `in_degree` with multinomial after the E1 core lane lands
-  (same files). w_std, delay_std_ms, tau_syn_ms, dt 0.1 and the drive list are expressible (probe 2026-10-26).
+  (multinomial `in_degree=k`, w_std, delay_std_ms, tau_syn_ms, per-population drive, exact-charge pA map) is
+  running, with construct cost and RSS at scale 0.01 and 0.02.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
 - T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
 - T-O68 [H] local copies and the layout rule (see O-68): each held copy is deleted or sits at

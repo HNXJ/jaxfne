@@ -83,6 +83,9 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   projections. Potjans PORT_SPEC row 8 calls G-MULT closed; it is not for this lane.
 - Proposed change: `in_degree=k` with `sampling="multinomial"` (refused together today) draws
   K = round(k * n_post) synapses with replacement, so `in_degree` is the mean in-degree.
+- Resolved 2026-10-27 (9D, a26097f8): as proposed, on `Configuration.connections`, `AreaConnection`
+  and `InterConnection`; `in_degree` with `probability` is refused; rows record `realized_k`
+  (`tests/test_multinomial_in_degree.py`).
 
 ### P-050
 
