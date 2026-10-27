@@ -162,8 +162,9 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   N=6250) start after the smoke. Next: 9F figure lock (a passing Release CI run's freeze becomes the constraints
   file the job installs with); the S2 generator waits on the D35 calibration call (C3 row).
 - T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
-  and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots. Potjans draft 2026-10-26
-  (scale and bands wait on Hamm). Core `Simulation(poisson_drive=[...])` landed (lif route). The P2 refresh
+  and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots. Drafts: Potjans 2026-10-26,
+  Vogels 2026-10-27 (full N, R-E e <= 0.20, O-DROP; the B8 pilot reruns segment B on the per-synapse traces;
+  scale and bands wait on Hamm). Core `Simulation(poisson_drive=[...])` landed (lif route). The P2 refresh
   (multinomial wiring, w_std, delay_std_ms, tau_syn_ms, per-population drive, exact-charge pA map) waits on P-049:
   multinomial caps the mean in-degree at 1; core change `in_degree` with multinomial after the E1 core lane lands
   (same files). w_std, delay_std_ms, tau_syn_ms, dt 0.1 and the drive list are expressible (probe 2026-10-26).
