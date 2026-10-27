@@ -77,6 +77,8 @@ GitHub Actions should converge on the same gate names over time:
 `.github/workflows/notebook_execution.yml` handles `notebook`-marked tests separately
 (long-running notebook execution).
 
+On a nightly run, `release_ci.yml` skips its jobs when main's tree equals the tree of the last successful run; the `tree-check` job then cancels its own run. A cancelled run concludes `cancelled`, so the `--status success` lookups that select release evidence (`scripts/check_junit_parity.py`, `scripts/fetch_release_artifacts.sh`) never pick a skipped run that has no artifacts.
+
 ## Truth gates on outputs
 
 All manifests and evaluation reports carry conservative defaults:

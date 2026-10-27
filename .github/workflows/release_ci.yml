@@ -12,10 +12,67 @@ on:
 # Least-privilege: read-only checkout/test/build, no pushes or releases.
 permissions:
   contents: read
+  actions: read
 
 jobs:
+  # Nightly only: when main's tree equals the tree of the last successful run,
+  # every other job is skipped. Any other event, or any doubt, runs everything.
+  tree-check:
+    runs-on: ubuntu-latest
+    # Job-level write scope: only this job may cancel the run it is in.
+    permissions:
+      actions: write
+      contents: read
+    outputs:
+      skip: ${{ steps.decide.outputs.skip || 'false' }}
+    steps:
+      - name: Compare the tree with the last successful run
+        id: decide
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          skip=false
+          body=$(gh api "repos/${REPO}/actions/workflows/release_ci.yml/runs?branch=${BRANCH}&status=success&per_page=1") || body='{}'
+          prev_sha=$(printf '%s' "$body" | jq -r 'if (.workflow_runs? | type) != "array" then "" elif (.workflow_runs | length) == 0 then "" else .workflow_runs[0].head_sha end' 2>/dev/null) || prev_sha=""
+          if [ -z "$prev_sha" ]; then
+            echo "no successful release_ci run on ${BRANCH} in the response (no workflow_runs key, empty list, or API error): running every job"
+            echo "response: $(printf '%s' "$body" | head -c 300)"
+          else
+            tree_now=$(gh api "repos/${REPO}/git/commits/${HEAD_SHA}" --jq .tree.sha) || tree_now=""
+            tree_prev=$(gh api "repos/${REPO}/git/commits/${prev_sha}" --jq .tree.sha) || tree_prev=""
+            echo "tree of ${HEAD_SHA}: ${tree_now:-<unreadable>}"
+            echo "tree of last successful run ${prev_sha}: ${tree_prev:-<unreadable>}"
+            if [ -n "$tree_now" ] && [ -n "$tree_prev" ] && [ "$tree_now" = "$tree_prev" ]; then
+              skip=true
+              echo "decision: skip every job (trees equal)"
+            else
+              echo "decision: run every job (trees differ or unreadable)"
+            fi
+          fi
+          echo "skip=${skip}" >> "$GITHUB_OUTPUT"
+
+      - name: Cancel this run when the tree already passed
+        # A skipped nightly would otherwise conclude success with no artifacts,
+        # and the --status success lookups in scripts/check_junit_parity.py and
+        # scripts/fetch_release_artifacts.sh would select it over the run that
+        # has them. Cancelled runs are never selected by those lookups.
+        if: steps.decide.outputs.skip == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          echo "decision: skip=true (tree equals the last successful run); cancelling run ${RUN_ID}"
+          gh run cancel "${RUN_ID}" --repo "${REPO}"
+
   release-test:
     runs-on: ubuntu-latest
+    needs: tree-check
+    if: needs.tree-check.outputs.skip != 'true'
     strategy:
       matrix:
         # Same two-ended coverage as ci.yml: 3.11 is the oldest line the
@@ -73,7 +130,8 @@ jobs:
 
   release-build:
     runs-on: ubuntu-latest
-    needs: release-test
+    needs: [tree-check, release-test]
+    if: needs.tree-check.outputs.skip != 'true'
     steps:
       - uses: actions/checkout@v7
 
@@ -126,6 +184,8 @@ jobs:
   publication:
     # Off macOS the equivalence step compares decoded pixel dimensions only; pixels and bytes are informational.
     runs-on: ubuntu-latest
+    needs: tree-check
+    if: needs.tree-check.outputs.skip != 'true'
     steps:
       - uses: actions/checkout@v7
 
