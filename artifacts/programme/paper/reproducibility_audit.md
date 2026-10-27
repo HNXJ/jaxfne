@@ -126,21 +126,20 @@ Figures 1-7 test: `tests/test_equivalence_gate_v20260815.py:63-81` has no slow m
 
 | Gap | Evidence | What would close it |
 |---|---|---|
-| No lock file for the figure environment | Glob: only `docs/requirements.txt`; ranges at `pyproject.toml:44-47`, `:63`, `:67`; `docs/requirements.txt:1-3` | a committed lock (uv.lock or pinned requirements) covering jax, matplotlib, scipy and mkdocs |
-| viz extra admits matplotlib 3.11, which the manifest records as changing figure dimensions | `pyproject.toml:63` (<3.12); `frozen_manifest.json:36`, `:41-43`; `.readthedocs.yaml:14`; `dashboard.yml:92` | pin the renderer in the figure build path, or in the lock above |
+Closed by 2026-10-27: the figure lock `.github/figure_env_lock.txt` (82 pins, matplotlib 3.10.9) and the
+`publication` job of `release_ci.yml`, which installs under the lock on a fresh checkout and runs
+`run_test_gate.py publication`; the v0.5.7 version DOI in `zenodo_doi.md`; release target 0.5.8 and the 0.5.7
+date in the authority file; the LICENSE name and the F-to-fig mapping (H5, H1, Hamm 2026-10-26).
+
+| Gap | Evidence | What would close it |
+|---|---|---|
+| The figure lock pins no mkdocs | `.github/figure_env_lock.txt`; `docs/requirements.txt:1-3` | pin mkdocs where the docs build installs |
 | Frozen figures are write-once, and their generators list them as outputs | `frozen_manifest.json:2`; `scripts/publication_figures/fig01_grammar.py:1-10` | regenerate into scratch and compare, as the publication gate does, rather than overwrite |
-| Publication gate runs in no workflow and not in `gate_release` | `run_test_gate.py:916-938`, `:761-797`; no workflow match | a workflow step running `run_test_gate.py publication` at the paper tag |
 | Figures 1-7 test checks dimensions only off macOS | `tests/test_equivalence_gate_v20260815.py:74-81` | owner decision on the binding renderer and criterion off macOS |
-| Figure numbering: plan F1-F8 differs from frozen fig01-fig07 | `arxiv_paper_plan.md:22-29`; `frozen_manifest.json:25-31` | owner decides the mapping; not chosen here |
 | Only F1 has a matching generator (predecessor numbering); the other 23 rows are partial or none | section 5 counts | build figure generators in the lanes the plan sequences (0.5.9 to 0.6.0), per `arxiv_paper_plan.md:78-80` |
-| No clean-checkout job; CI does not regenerate the paper figure set from a fresh clone | `ci.yml:4-7`; `release_ci.yml:3-10`; `dashboard.yml:9-22` (figures job on dev only) | a clean-checkout job at the paper tag running each figure command |
-| Version DOI for v0.5.7 is in no repo file | grep for 23566508: no match; `zenodo_doi.md:21-25` stops at v0.5.6; Zenodo record 23566508 | add the version DOI to the manuscript citation at the paper tag (`citation.md:25-26` asks for one) |
-| Release target disagrees: 0.5.7 against 0.5.8 | `current_release_authorities.json:3`; `pyproject.toml:15`; `CITATION.cff:5` | owner or release authority updates the file |
-| Release date disagrees: 2026-10-21 against 2026-10-22 | `current_release_authorities.json:4`; Zenodo `publication_date` | owner checks the GitHub Release date and corrects the file |
-| Copyright name differs from author name | `LICENSE:3` "H N"; `pyproject.toml:20` "Hamed Nejat"; `CITATION.cff:17-18` "Nejat, Hamed" | owner confirms the legal name string |
 | No data and code availability statement | section 4 | owner writes the statement for the manuscript and README |
 | Paper licence CC BY 4.0 declared nowhere in the repo | `arxiv_paper_plan.md:3` | declare it with the manuscript source |
-| External data and code licences unknown | `artifacts/etudes/papers/pcl/SOURCE_P1.md:45`; `artifacts/etudes/papers/caminos/SOURCE_P1.md:39` | confirm the licences before the statement names them |
+| Licences of PCL's natural-image set, DVS128 and N-MNIST unknown (PCL code and data and the CAMINOS mean-field code are CC-BY 4.0) | `artifacts/etudes/papers/pcl/SOURCE_P1.md`; `artifacts/etudes/papers/caminos/SOURCE_P1.md` | confirm the licences before the statement names them |
 | No generator for Jansen-Rit or kernel-LFP (S16) | section 5, row S16 | owner builds a generator or drops them from S16 |
 | No NEST or Jaxley baseline script found (F4, S6) | section 5, rows F4 and S6 | build the baselines in the benchmark lane |
 

@@ -7,8 +7,8 @@ edits). Open issues: `artifacts/assurance/issue_log/ISSUE_LOG.md`. Other editors
 first, amend in place.
 After 0.5.8, rows serve G-0 (`artifacts/programme/design/plans/arxiv_paper_plan.md`): each names its F, S or C id.
 G-0 findings from lanes L1-L9 (2026-10-25/26):
-- [A] C9, C2: 16 gaps in `artifacts/programme/paper/reproducibility_audit.md` section 7. Agent rows: a figure
-  lock file, a clean-checkout figure job. The `publication` job in `release_ci.yml` (lane L11) passed its first
+- [A] C9, C2: 9 gaps left in `artifacts/programme/paper/reproducibility_audit.md` section 7 (refreshed
+  2026-10-27; the lock and the clean-checkout job closed theirs). The `publication` job in `release_ci.yml` (lane L11) passed its first
   run (40346237854, Linux): all 7 figures render at the frozen dimensions; RGBA matches for fig01, 02, 06, 07
   and differs for fig03-05; bytes differ for all (pixels and bytes are pinned to the macOS freeze platform). Closed 2026-10-26: the v0.5.7
   version DOI is in `docs/reference/project/zenodo_doi.md`; the 0.5.7 date in the release authority file
@@ -26,7 +26,9 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
 - [A] C3, S1: `docs/theory/doctrine/definition_map.md` lists 2 definitions with no symbol and 2 realized only by
   private names (D21, D34, D17 `tfne.System`, D26 `simulate_edge_recurrent_izhikevich_rbd` mapped 2026-10-26).
   D35: `apply_calibration` relabels the epistemic level and applies no Q -> Q_phys transform (doctrine or code
-  moves: Hamm's call). D28: `ValueTag` lacks B, R, E, T. D31 and D32 need a code path that exposes a_eff and
+  moves: Hamm's call). D28: B, R, E and T are semantic kinds held in plain arrays
+  (`relative_quantity_grammar.md` section 1); `ValueTag` is the calibration tag (calibrated, calibrated_proxy,
+  relative), another axis, so D28 needs a symbol choice (9A names, Hamm) or a doctrine-only mark. D31 and D32 need a code path that exposes a_eff and
   the AdEx clip. Boundary types parse in the spec's `x[type=current]` form (8fdeff4b); the object
   specializer `PV[model=IZH]` (`7_tfne_algebra.md`) does not (the parser takes `Base[NAME]`). S1 and
   S5 regenerate with `python scripts/publication_figures/supplement.py`; F1 and F3 are frozen fig01 and fig06
@@ -80,9 +82,11 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   the real file - implementation (replay capability and adaptation semantics); F6 column selection -
   observation/selection fidelity, same-run DeltaY_selection = 422 with (0,0) entirely silent
   (reference-faithful observation selection; correcting selection alone is inferred, not
-  established, to resolve T2). Next authorized stage: the READ-ONLY PCL-R2/R4 design study
-  (two alternatives, the oracle state-variable mapping to X/H/W/B/K, a continuation-equivalence
-  test, generalization beyond PCL; stop before runtime changes). Historical state (records in
+  established, to resolve T2). The READ-ONLY R2/R4 design study landed
+  (`papers/pcl/r2_r4_design_study_2026-10-27.md`): the C++ resets all neuron state after each file and keeps
+  W, so the reference hand-off is W plus a declared reset map; it recommends (b), extending the core LIF event
+  scan (several spikes per cell, interval H updates, F_W in the scan, a boundary map). Next: Hamm picks (a) or
+  (b) and the F6 column; then R2. Historical state (records in
   `papers/pcl/prereg/` and `LEDGER.md`): v4 FAIL stands (`pcl-port` 5640ce18: T1, T3 pass; T2, T4
   fail). v5 signed by Hamm 2026-10-13 (`prereg/P3_fig3_v5.md`, 89e45191); scored 2026-10-13 (8f75acd0,
   `prereg/P3_fig3_v5_result.md`): FAIL on T2 (simple 10/16 points, SSE 1.50 × flat; complex 12/15,
@@ -116,15 +120,10 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
 - Kernel LFP lane `cl-klfp` [A]: f57aae0f landed on dev as 85199ade (0.5.8; the plasticity scorer's
   iSTDP checks read per-edge traces). 6eb3c6b8, 44cd0111, ff45364b (hybrid kernel LFP) go to 0.5.10.
   Then the validation backbone continues (iSTDP out-degree check in plasticity, kernel LFP checks in fields).
-- Dashboard/docs adoption from jnwb (Hamm 2026-10-24, [A], not 0.5.8-blocking): (b) schema and (c) receipt
-  sha256 landed (1af9e78f); (d) the real-page test landed (de645465; it skips in CI, where no workflow
-  installs Playwright). Left: (a) docs stills get generated `.dark.png` twins (`#only-light`/`#only-dark`). Joint rulings: both dashboards use the jaxfne verdict
-  set and publish on every dev push; style files stay per repo, aligned by convention. Tree budget
-  (Hamm 2026-10-24: the repo stays well below 100 MB, read as 100,000,000 bytes, so a budget
-  amendment for the twins is fine): record the measured delta in the amendment file.
-- Docs figures leftovers (0.5.9): the jaxley V_m panel and the v037 column are figure-site pages with stills;
-  two iframes stay allowlisted in `build_docs_assets.py` with no writer: the archived Izhikevich explorer (a
-  JavaScript app) and `docs/assets/showcases/v1_v4_pfc_network3d.html` (a Plotly scatter3d that needs a builder).
+- [A] `visualize_network_3d` units: Model rows enter as metres (`coordinate_unit="m"`) and display in µm, while
+  the raw positions span 0 to 1 in depth and 0 to 3 across areas, so the showcase axes read up to 1M µm (as did
+  the removed page); `_UNIT_SCALE.get(unit, 1.0)` accepts any unit string. A fix refuses unknown units and labels
+  relative coordinates (public API).
 
 In order (Hamm 2026-10-22: work until the 0.5.8 todos and open issues are empty; open issues become
 todos once their close is decided; checkpoint when both are empty; Muse Spark 1.3 code packets in
@@ -154,6 +153,10 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   in `RESULT_P3.md` (D reads irregular at N=6250 on all seeds; no verdict change). 9F lock landed (3ab239f9);
   Release CI 40450227892 checks it installs. The S2 generator waits on the D35
   calibration call (C3 row). Untested: the E1 delayed-edge route. P-045 resolved (8406ca28).
+  9B closed 2026-10-27 with no code change: six mutants that bypass G_H (map body, untyped H, f0 neutrality,
+  each of the three scan call sites) fail tests in `test_protocol_h_rbd_h1c.py`. 9G closed: theme, dashboard
+  page test, iframes, light and dark stills, and the showcase on the figure site; only the explorer iframe
+  (a JavaScript app) stays allowlisted.
 - T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
   and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots. Drafts: Potjans 2026-10-26,
   Vogels 2026-10-27 (full N, R-E e <= 0.20, O-DROP; the B8 pilot reruns segment B on the per-synapse traces;
@@ -183,8 +186,9 @@ Blocked: T-11 (jnwb), T-16 and T-17 `[H]`, deferred list (section 5).
   and tutorial-figure PNGs and every other tracked `docs/assets/` file are outside the build path,
   so untracking them would break embeds.
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
-  push dev. Standing item. Closes when: `python scripts/build_dashboard_data.py --check` passes
-  on each push.
+  push dev. Standing item. Joint rulings with jnwb (Hamm 2026-10-24): both dashboards use the jaxfne
+  verdict set and publish on every dev push; style files stay per repo, aligned by convention. Closes when:
+  `python scripts/build_dashboard_data.py --check` passes on each push.
 - T-8b [A] After each dev push, refresh the lane dashboard artifact (skill `jaxfne-dashboard`).
 - 0.5.10 candidate: `coherence_radius_um` readout in `jaxfne.fields.kernel_lfp` (currents sum in
   phase within R_c, random phase between patches), with the two limit tests (R_c = sheet radius
