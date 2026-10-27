@@ -5,7 +5,7 @@ Covers the bug where model.manifest(signals, readouts) raised
 was the list returned by model.compute_readout().
 
 Tests A–E enumerate every supported readout argument shape.
-Test F validates the exact canonical v0.1 workflow documented in COLAB.md.
+Test F validates the exact canonical v0.1 workflow documented in docs/start/colab.md.
 Test G validates JSON strictness (no NaN).
 Test H validates truth gates are never escalated by the readout normaliser.
 """
@@ -88,11 +88,11 @@ def test_e_manifest_readout_list_of_dicts(_base):
     assert mf["readout_results"]["n_results"] == 2
 
 
-# ─── F. canonical v0.1 workflow (exact COLAB.md pattern) ────────────────────
+# ─── F. canonical v0.1 workflow (exact docs/start/colab.md pattern) ────────────────────
 
 
 def test_f_canonical_v1_workflow(_base):
-    """Exact copy-paste pattern from docs/COLAB.md must execute without error."""
+    """Exact copy-paste pattern from docs/start/colab.md must execute without error."""
     model, signals, readouts = _base
     manifest = model.manifest(signals, readouts)
     json.dumps(manifest, allow_nan=False)  # must not raise

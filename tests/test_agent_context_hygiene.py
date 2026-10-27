@@ -158,7 +158,7 @@ class TestAgentContextHygiene:
         """No current public-facing grammar may terminate in Evidence or revive the legacy chain."""
         surfaces = [
             # README and docs/index.md are minimum-word entry pages; grammars live
-            # in context.md and deeper docs.
+            # in artifacts/context.md and deeper docs.
             "artifacts/context.md",
             "docs/reference/api/index.md",
             "docs/reference/project/for_ai_agents.md",

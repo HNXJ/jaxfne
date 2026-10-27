@@ -114,7 +114,7 @@ def test_scored_out_is_refused_before_compute(tmp_path):
 
 def test_score_seed_known_answer_matches_p5_seed1():
     # Kernel route at the P5 settings, seed 1, through score_seed: N1-N4 must equal the signed
-    # P5 scores (p3_v7_score.json, fig3.seeds "1") exactly; floats to rtol 1e-12, except the
+    # P5 scores (artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json, fig3.seeds "1") exactly; floats to rtol 1e-12, except the
     # peak excess, a least-squares fit whose last digits moved between the P5 SHA and this one
     # on the same spikes (about 5e-8 relative, 2026-10-27): rtol 1e-6.
     oracle = REPO_ROOT / "artifacts" / "etudes" / "papers" / "izhikevich2003" / "scores" / "p3_v7_score.json"

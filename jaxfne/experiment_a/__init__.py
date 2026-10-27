@@ -1,4 +1,4 @@
-"""Experiment A (0.4.17-B): canonical multiscale observation étude.Checkout-coupled by design: loaders resolve spec/receipt paths against the
+"""Experiment A (0.4.17-B): canonical multiscale observation étude. Checkout-coupled by design: loaders resolve spec/receipt paths against the
 repository root ``artifacts/`` tree. Not part of the stable public API
 surface; functions only inside a full checkout.
 """

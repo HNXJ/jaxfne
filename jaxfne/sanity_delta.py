@@ -734,7 +734,7 @@ class TaskEpisode:
         )
         manifest.save(artifact_dir / "manifest.json")
 
-        # Save task schedule
+        # Write the task schedule to task_schedule.json
         task_schedule_path = artifact_dir / "task_schedule.json"
         task_schedule_path.write_text(json.dumps(self.task_schedule, indent=2))
 

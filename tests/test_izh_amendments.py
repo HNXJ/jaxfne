@@ -1,4 +1,4 @@
-"""Izhikevich amendment tests: v8.2 (PREREG_P3_v8.md) and the P3b arm and gate (PREREG_P3b.md).
+"""Izhikevich amendment tests: v8.2 (artifacts/etudes/papers/izhikevich2003/PREREG_P3_v8.md) and the P3b arm and gate (artifacts/etudes/papers/izhikevich2003/PREREG_P3b.md).
 
 Synthetic and fast: no scored runs, no F: paths. Each test uses a symbol added for its
 amendment, so on the baseline implementation it fails.
@@ -201,7 +201,7 @@ def test_v8_failed_git_status_reads_dirty(monkeypatch):
     assert r._v8_tree_dirty()
 
 
-# --- P3b (PREREG_P3b.md signed v4, gate amendment v5) ---
+# --- P3b (artifacts/etudes/papers/izhikevich2003/PREREG_P3b.md signed v4, gate amendment v5) ---
 
 ETUDE = REPO_ROOT / "artifacts" / "etudes" / "papers" / "izhikevich2003"
 NETREF_PATH = ETUDE / "net_reference.py"

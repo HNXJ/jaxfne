@@ -9,7 +9,7 @@ from jaxfne.fields import project_laminar_sources
 def test_projection_density_preserving_default_on_simulated_signals():
     """Default mode (density_preserving) does NOT make kernel rows sum to 1 --
     that property is specific to mode="row_normalize", which is no longer the
-    default (it erases source density/attenuation; see fields/proxy.py)."""
+    default (it erases source density/attenuation; see jaxfne/fields/proxy.py)."""
     cfg = jtfne.suite2_net1_config(seed=42, n=8, duration_ms=10.0, dt_ms=0.5)
     model = jtfne.construct(cfg)
     sim = jtfne.suite2_simulation(seed=42, duration_ms=10.0, dt_ms=0.5)

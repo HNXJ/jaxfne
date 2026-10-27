@@ -269,7 +269,7 @@ class TestDisconnectedNullHdpBoundary:
         assert np.abs(wf).max() <= 2.0 * 1.0e-3
 
     def test_elevated_gains_can_grow_above_floor(self):
-        """Boundary documented in guides/hdp.md: explicit elevated HDP gains
+        """Boundary documented in docs/guides/state/hdp.md: explicit elevated HDP gains
         (C_spike>0) can drive |w| above the floor even with zeroed initial
         weights; disconnected_null zeroes initial weights, not the dynamics."""
         cfg = jtfne.suite2_net1_config(seed=7, n=3, duration_ms=100.0, dt_ms=1.0)

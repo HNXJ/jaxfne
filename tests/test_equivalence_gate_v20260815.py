@@ -75,7 +75,7 @@ def test_equivalence_gate_reproducible_7_of_7(tmp_path):
             # Other platforms (CI Linux): PNG rendering is not byte/pixel
             # deterministic across font stacks; the gate still runs and
             # dimension-equality is enforced, while pixel/byte identity is
-            # recorded as informational (see equivalence_gate.py's
+            # recorded as informational (see scripts/publication_figures/equivalence_gate.py's
             # byte_identity_pinned()). The paper's reproducibility claims
             # rest on frozen receipts and tracked SHAs, not PNG bytes.
             pass

@@ -1,7 +1,7 @@
 """Smoke for jaxfne.vis.column_viewer: export contract + realized EdgeList invariants.
 
 Δscience=0; viewer is read-only, no kernel/sampler change.
-Covers F1 PARTIAL missing_delta: vis/__init__.py must re-export
+Covers F1 PARTIAL missing_delta: jaxfne/vis/__init__.py must re-export
 collect_column_viewer_data / render_column_viewer and expose
 jtfne.vis.column_viewer attribute, plus pytest smoke.
 """

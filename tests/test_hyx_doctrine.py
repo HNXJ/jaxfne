@@ -3,7 +3,7 @@
 Every model is written in the form (h, y) = f(x, h') on a neural tensor A
 (x : A : y): declared dynamics equal executed dynamics, geometry is part of
 A, and every space-dependent term reads it from A, so A -> A' changes the
-dynamics exactly through those terms (RESIDUAL_PROTOCOL.md, Engine).
+dynamics exactly through those terms (artifacts/etudes/meta/RESIDUAL_PROTOCOL.md, Engine).
 
 Behavior claims below hold on every routed emitter family
 (``sorted(ROUTABLE_TENSOR_EMITTER_FAMILIES)``); family-specific accessors

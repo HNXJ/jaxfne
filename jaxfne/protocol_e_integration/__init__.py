@@ -1,4 +1,4 @@
-"""Protocol E (0.4.17-E): integrated TFNE composition.Checkout-coupled by design: loaders resolve spec/receipt paths against the
+"""Protocol E (0.4.17-E): integrated TFNE composition. Checkout-coupled by design: loaders resolve spec/receipt paths against the
 repository root ``artifacts/`` tree. Not part of the stable public API
 surface; functions only inside a full checkout.
 """
