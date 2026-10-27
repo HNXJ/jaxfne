@@ -285,19 +285,14 @@ def _core_h_update(net, t0):
 
 
 def _core_w_update(net):
-    """The oracle's simple excitatory buffer plasticity (pcl_event_ref.py:543-574) as a w_update.
+    """The oracle's buffer plasticity (simple :543-574, complex :608-646) as a w_update.
 
     The buffer capacity is ``ref.CAP``, the length the oracle's cell deques were built with;
     a network built under another capacity is refused, so the replay and the oracle drop the
-    same entries. Complex learning lands in PCL-L3c: a network with ``ccfg.STDP_LEARNING`` other
-    than ``"off"`` is refused rather than replayed without its complex update. Lateral and
-    top-down learning are refused by the kernel declaration (PCL-L3d).
+    same entries. Both populations carry their own mode and constants; the kernel runs the
+    complex update in ``"excitatory"``/``"all"``. Lateral and top-down learning are refused by
+    the kernel declaration (PCL-L3d).
     """
-    if net.ccfg.STDP_LEARNING != "off":
-        raise ValueError(
-            "core replay: ccfg.STDP_LEARNING "
-            f"{net.ccfg.STDP_LEARNING!r} is a complex learning mode, which lands in PCL-L3c; "
-            "set it to 'off' to replay the simple excitatory update")
     built = int(net.s_cells[0].ev.maxlen)
     if built != int(ref.CAP):
         raise ValueError(
@@ -314,7 +309,7 @@ def _core_w_update(net):
                    "iLTP": float(sc.iLTP), "iLTD": float(sc.iLTD),
                    "tau_ltp_us": float(sc.TAU_LTP), "tau_ltd_us": float(sc.TAU_LTD),
                    "norm_factor": float(sc.NORM_FACTOR), "eta_inh": float(sc.ETA_INH)},
-        "complex": {"mode": "off", "eLTP": float(cc.eLTP), "eLTD": float(cc.eLTD),
+        "complex": {"mode": cc.STDP_LEARNING, "eLTP": float(cc.eLTP), "eLTD": float(cc.eLTD),
                     "iLTP": float(cc.iLTP), "iLTD": float(cc.iLTD),
                     "tau_ltp_us": float(cc.TAU_LTP), "tau_ltd_us": float(cc.TAU_LTD),
                     "norm_factor": float(cc.NORM_FACTOR), "eta_inh": float(cc.ETA_INH)},
@@ -331,8 +326,8 @@ def run_core_events(net, t, x, y, p, *, learning=False):
     The network is read, never mutated. Refusals, before any heavy work: unsorted times
     (the scan sorts; the oracle follows file order) and an empty slice. The oracle's
     periodic rate and threshold update runs inside the scan (_core_h_update).
-    ``learning=True`` declares the simple buffer plasticity (_core_w_update) and also
-    returns the final shared matrices as w_s and wi_s; frozen weights otherwise.
+    ``learning=True`` declares the buffer plasticity (_core_w_update) and also returns
+    the final shared matrices as w_s, wi_s, w_c and wi_c; frozen weights otherwise.
     """
     import jaxfne as jtfne
     jtfne.enable_x64()  # the scan kernel integrates in float64 (as the oracle does)
@@ -394,6 +389,8 @@ def run_core_events(net, t, x, y, p, *, learning=False):
         final = signals.metadata["scan_weights_final"]
         out["w_s"] = np.asarray(final["w_s"], dtype=np.float64)
         out["wi_s"] = np.asarray(final["wi_s"], dtype=np.float64)
+        out["w_c"] = np.asarray(final["w_c"], dtype=np.float64)
+        out["wi_c"] = np.asarray(final["wi_c"], dtype=np.float64)
     return out
 
 

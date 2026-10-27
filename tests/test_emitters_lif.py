@@ -1332,10 +1332,8 @@ def test_event_scan_stdp_mode_off_changes_nothing():
 def test_event_scan_stdp_refusals_name_the_channel():
     """Each refusal names the key it rejects and the later lane that lands it."""
     p, kw = _stdp_chain_fixture()
-    with pytest.raises(ValueError, match="PCL-L3c"):
-        simulate_lif_edge(p, event_scan_w_update=_w_update(complex_mode="excitatory"), **kw)
-    with pytest.raises(ValueError, match="complex"):
-        simulate_lif_edge(p, event_scan_w_update=_w_update(complex_mode="all"), **kw)
+    for mode in ("excitatory", "all", "inhibitory"):
+        simulate_lif_edge(p, event_scan_w_update=_w_update(complex_mode=mode), **kw)
 
     p, kw = _stdp_chain_fixture(lateral_on=True)
     with pytest.raises(ValueError, match="PCL-L3d"):
@@ -1353,6 +1351,135 @@ def test_event_scan_stdp_refusals_name_the_channel():
     with pytest.raises(ValueError, match="event_scan_w_update"):
         simulate_lif_edge(p, n_steps=1, dt_ms=0.5,
                           event_scan_w_update=_w_update())
+
+
+def _complex_chain_fixture():
+    """Two simple depths on one pixel and one complex cell; polarity-0 events at 100 and 200 us.
+
+    Depth 0 holds 40 at polarity 0 and 4 at polarity 1 and spikes at each event, forwarding
+    to the complex cell with weight 40 at depth entry 0. Depth 1 has zero weights, so it never
+    spikes and never forwards. The complex row holds [40, 4] over the simple depth, so the L1
+    normalisation of the row moves both entries and the hand check tests both.
+    """
+    from jaxfne.pcl_topology import (
+        event_scan_events,
+        event_scan_tables,
+        local_inhibition_blocks,
+    )
+
+    w_s = np.zeros((2, 2, 1, 1), dtype=np.float64)
+    w_s[0, 0, 0, 0] = 40.0
+    w_s[0, 1, 0, 0] = 4.0
+    tables = event_scan_tables(
+        nx=1, ny=1, nd=2, cx=1, cy=1, cd=1,
+        origins_x=[0], origins_y=[0], size=(1, 1), weights=w_s,
+        c_cover={(0, 0): [(0, 0)]}, c_ox=[0], c_oy=[0], c_size=(1, 1),
+        c_weights=np.array([[[[40.0, 4.0]]]], dtype=np.float64),
+        vw=1, vh=1, inhib_range=(0, 0), lateral_on=False,
+    )
+    zeros = np.zeros(2, dtype=np.int64)
+    events = event_scan_events(
+        np.array([100, 200]), zeros, zeros, zeros,
+        dt_ms=0.5, n_steps=1, vw=1, vh=1,
+    )
+    p = _as_f32(make_lif_params(("simple", "simple", "complex")))
+    groups = np.array([0, 0, 1], dtype=np.int64)
+    blocks = local_inhibition_blocks(
+        groups,
+        li_pre=np.zeros(0, dtype=np.int64), li_post=np.zeros(0, dtype=np.int64),
+        li_weight=np.zeros(0, dtype=np.float64),
+    )
+    kw = dict(
+        n_steps=1, dt_ms=0.5,
+        local_inhibition_groups=jnp.asarray(groups),
+        local_inhibition_resolution="event_scan",
+        local_inhibition_blocks=blocks,
+        event_scan_events=events,
+        event_scan_tables=tables,
+    )
+    return p, kw
+
+
+def _pcl_complex_rule(w, spikes, events, *, eLTP, eLTD, tau_ltp, tau_ltd, norm):
+    """The complex excitatory update for one cell, written from the rule (no JAX).
+
+    ``w`` holds the cell's row; every event is a buffered (time, entry 0) pair. At a complex
+    spike the buffer runs over the vspikes list ``[kept spike (if any), this spike]``: a pair
+    with spike time >= event time is LTP, otherwise LTD (the entry is re-read before each
+    pair). Each buffered entry is clipped at 0 after its pairs, the row is L1-normalised to
+    ``norm``, the buffer clears, and only this spike is kept.
+    """
+    w = list(w)
+    buf = []
+    kept = None
+    for t in events:
+        buf.append(t)
+        if t not in spikes:
+            continue
+        vsp = ([kept] if kept is not None else []) + [t]
+        for t_i in buf:
+            for tp in vsp:
+                wj = w[0]
+                if tp >= t_i:
+                    w[0] = wj + (4.0 - wj) * 0.25 * eLTP * math.exp(-abs(tp - t_i) / tau_ltp)
+                else:
+                    w[0] = wj + (wj * 0.25) * eLTD * math.exp(-abs(tp - t_i) / tau_ltd)
+            if w[0] < 0:
+                w[0] = 0.0
+        total = abs(w[0]) + abs(w[1])
+        if total != 0:
+            factor = norm / total
+            w = [x * factor for x in w]
+        buf = []
+        kept = t
+    return w
+
+
+def test_event_scan_stdp_complex_two_spikes_match_the_rule():
+    """The complex row after the second complex spike equals the rule, written out in the test.
+
+    The first complex spike runs the rule with one buffered event and no kept spike: one LTP
+    pair, then the row is normalised. The second spike has the first spike kept, so its
+    vspikes list holds two times: the buffered event (at the second spike's time) runs an LTD
+    pair against the first spike and an LTP pair against the second. The test checks both
+    complex spikes first, so the second spike is a real precondition.
+    """
+    p, kw = _complex_chain_fixture()
+    out = simulate_lif_edge(p, event_scan_w_update=_w_update(nd=2, complex_mode="excitatory"), **kw)
+    counts = np.asarray(out["counts"])
+    assert counts[0] == 2, "fixture must spike the simple depth 0 twice"
+    assert counts[2] == 2, "fixture must spike the complex cell twice"
+    want = _pcl_complex_rule(
+        [40.0, 4.0], spikes=(100, 200), events=(100, 200),
+        eLTP=2.0, eLTD=1.0, tau_ltp=40000.0, tau_ltd=40000.0, norm=50.0,
+    )
+    got = np.asarray(out["weights_final"]["w_c"])[0, 0, 0, :]
+    np.testing.assert_allclose(got, np.asarray(want), rtol=1e-12, atol=0)
+    assert float(got[0]) != 40.0 and float(got[0]) != 50.0, "the rule must move the entry"
+
+
+def test_event_scan_stdp_complex_inhibitory_changes_nothing():
+    """Complex mode "inhibitory" (and no complex excitatory gate) leaves w_c and wi_c unchanged.
+
+    The complex spikes still clear their buffers, but the oracle's complex update sits in
+    its excitatory/all gate (pcl_event_ref.py:613-644), so the spikes match the frozen run,
+    w_c stays at its table values and wi_c stays at zero. Complex mode "all" is the gate
+    that moves w_c, so the same fixture under "all" must move it.
+    """
+    p, kw = _complex_chain_fixture()
+    frozen = simulate_lif_edge(p, **kw)
+    declared = simulate_lif_edge(
+        p, event_scan_w_update=_w_update(nd=2, complex_mode="inhibitory"), **kw)
+    assert int(np.asarray(declared["counts"])[2]) == 2, "fixture must spike the complex cell twice"
+    for key in ("spikes", "counts", "first_spike_us", "spike_times_us",
+                "spike_cells", "V", "A", "t_last"):
+        assert np.array_equal(np.asarray(declared[key]), np.asarray(frozen[key])), key
+    assert np.array_equal(np.asarray(declared["weights_final"]["w_c"]),
+                          np.asarray(frozen["weights_final"]["w_c"]))
+    assert float(np.abs(np.asarray(declared["weights_final"]["wi_c"])).sum()) == 0.0
+    moved = simulate_lif_edge(p, event_scan_w_update=_w_update(nd=2, complex_mode="all"), **kw)
+    assert not np.array_equal(np.asarray(moved["weights_final"]["w_c"]),
+                              np.asarray(frozen["weights_final"]["w_c"]))
 
 
 def test_event_scan_stdp_blocks_must_agree_with_wi_s():

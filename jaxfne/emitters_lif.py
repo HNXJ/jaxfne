@@ -820,6 +820,41 @@ class _ScanCarry(NamedTuple):
     GCNT: jax.Array
     WIS: jax.Array
     WIC: jax.Array
+    # Complex buffer plasticity (``clearn`` only; dummy shapes otherwise). ``CEV``
+    # ``(NCP, CAP, 4)`` is one ring per complex position of (time, ex, ey, k) with
+    # pass-start push count ``CEVCNT``; ``CEVCLR[c]``/``CLOCLR[c]`` are the ring
+    # indices where complex cell c's ``ev``/``loc`` buffer starts; ``CKT``/``CKH``
+    # are the kept spike time and its flag (the oracle's one-element vspikes).
+    CEV: jax.Array
+    CEVCNT: jax.Array
+    CEVCLR: jax.Array
+    CLOCLR: jax.Array
+    CKT: jax.Array
+    CKH: jax.Array
+
+
+class _CPend(NamedTuple):
+    """Complex state of one simple spike's forward pass (``clearn`` only).
+
+    ``BT``/``BS`` (time, source depth) are the loc pushes that the current position's
+    block of candidates has made so far, ``BN`` of them, and ``BP`` is that block's
+    position. ``EV*`` (one row per candidate) are the position's ev pushes, made at the
+    block's first candidate; ``LP*`` (one row per candidate) are the loc pushes of the
+    complex spikes. The rings are written from these after the cond.
+    """
+
+    BT: jax.Array
+    BS: jax.Array
+    BN: jax.Array
+    BP: jax.Array
+    EVON: jax.Array
+    EVCP: jax.Array
+    EVJ: jax.Array
+    EVV: jax.Array
+    LPON: jax.Array
+    LPG: jax.Array
+    LPJ: jax.Array
+    LPV: jax.Array
 
 
 def _event_scan_loop(
@@ -828,7 +863,7 @@ def _event_scan_loop(
     MEMBERS, MMASK, POS_OF, LOC_OF,
     PCOL, GRID, FLAGS, BIN0, TH0, RATE0, LUP0, HTGT, HETA, HTMIN, HSC, HON,
     WS0, WC0, LATW0, TDW0, BLK0, WIS0, WIC0, DECAY, MDS, MDC, WUP, GLT0,
-    EVROW, EVIDX, EVQ, LOGT0, *, learn,
+    EVROW, EVIDX, EVQ, LOGT0, *, learn, clearn=False,
 ):
     """One exact event-oracle pass over a time-sorted event stream.
 
@@ -881,6 +916,13 @@ def _event_scan_loop(
     ``EV`` listed by ``EVIDX[EVROW[n]:EVROW[n + 1]]`` in stream order, and
     ``EVQ[e, s]`` is the rank of covering slot ``s`` of event ``e`` in its
     cell's list (-1 for empty slots). The scan walks ``(EV, EVQ)`` together.
+
+    ``clearn`` (static, under ``learn``) declares the complex excitatory update
+    (``pcl_event_ref.py:608-646``, ``weight_update_complex``). Each complex
+    position keeps a ring ``CEV`` of its forwarded events and its complex loc
+    entries ride the group log, both read inside the forward pass and written
+    after its cond (see ``_CPend``). Its weights are ``WUP[9:17]``:
+    ``[eLTP, eLTD, iLTP, iLTD, tau_ltp, tau_ltd, norm_factor, eta_inh]``.
     """
     f = V0.dtype
     i32 = jnp.int32
@@ -907,6 +949,11 @@ def _event_scan_loop(
     no_glt = jnp.zeros((1, 1), f)
     no_gls = jnp.zeros((1, 1), i32)
     no_push = (jnp.bool_(False), jnp.int32(0), jnp.int32(0), zero_f, jnp.int32(0))
+    # Complex rings (``clearn``): one CAP-deep ring per complex position, the group
+    # count of the loc log, and the dummy used inside the conds.
+    no_cev = jnp.zeros((1, 1, 4), f)
+    NG = GLT0.shape[0]
+    NCP = (N1 - 1 - NS) // CDs if clearn else 1
 
     def _excite_one(Vc, Ac, TLc, TSc, THc, n, w, t):
         p = PCOL[n]
@@ -1036,6 +1083,153 @@ def _event_scan_loop(
         push = (jnp.bool_(True), g, slot, t_now, src_dep)
         return c._replace(GCNT=gcnt, LOCLR=c.LOCLR.at[n0].set(gcnt[g])), push
 
+    def _cpend0():
+        return _CPend(
+            BT=jnp.zeros((CDs,), f), BS=jnp.zeros((CDs,), i32),
+            BN=jnp.zeros((), i32), BP=jnp.full((), -1, i32),
+            EVON=jnp.zeros((FMAX,), jnp.bool_), EVCP=jnp.zeros((FMAX,), i32),
+            EVJ=jnp.zeros((FMAX,), i32), EVV=jnp.zeros((FMAX, 4), f),
+            LPON=jnp.zeros((FMAX,), jnp.bool_), LPG=jnp.zeros((FMAX,), i32),
+            LPJ=jnp.zeros((FMAX,), i32), LPV=jnp.zeros((FMAX, 2), f))
+
+    def _cpush_of(p):
+        """The forward pass's complex pushes, returned from the cond (none without ``clearn``)."""
+        if not clearn:
+            return ()
+        return (p.EVON, p.EVCP, p.EVJ, p.EVV, p.LPON, p.LPG, p.LPJ, p.LPV)
+
+    no_cpush = _cpush_of(_cpend0())
+
+    def _cstdp(c, pend, ff, cev, glt, gls, c0, cp_, cz_, g, t_now, tls, cur):
+        """``ComplexNeuron::weightUpdate`` (oracle :608-646) at a complex spike of ``c0``.
+
+        Runs in the forward pass after the spike's count increment and before the
+        cell's local inhibition (oracle :723, then :725-733). ``cp_``/``cz_`` are the
+        cell's complex position and depth, ``g`` its loc-log group, ``tls`` its
+        previous spike time (the oracle's t_last_spk; 0 is the never-spiked sentinel)
+        and ``cur`` the ``(t, ex, ey, k)`` row this forward appended to the position's
+        ev buffer. ``cev``/``glt``/``gls`` are the rings as they stood before the pass.
+
+        Why the rings reproduce the per-cell deques. ``ev``: a complex cell's deque
+        holds the last CAP entries appended since its last spike. The position's ring
+        gets one entry per forward (at ``CEVCNT[cp_]``, this pass's entry is the newest);
+        the cell's window is ring indices ``max(CEVCLR[c0], total - CAP) .. total - 1``
+        with ``total = CEVCNT[cp_] + 1``, the last of them being ``cur``. ``loc``: the
+        group-mates' pushes since the cell's last spike are ring indices from
+        ``CLOCLR[c0]``; the pushes this pass made to the group sit in the pending block
+        ``BT``/``BS`` at ring indices ``GCNT[g] + j``. A block is one position's cells,
+        so no other pending push can reach this group. Step 1 runs only at
+        ``count == 1`` (oracle :614), with vspikes ``[kept spike if any, this spike]``
+        (:617, :630-631); step 2 runs in every excitatory/all pass (:632-644).
+        """
+        ceLTP, ceLTD, ciLTP, ciLTD = WUP[9], WUP[10], WUP[11], WUP[12]
+        ctp, ctd, cnrm, ceta = WUP[13], WUP[14], WUP[15], WUP[16]
+        cnt1 = (c.CNT[c0] - c.CSNAP[c0]) == 1
+        kh = c.CKH[c0]
+        kt = c.CKT[c0]
+        g_ev = c.CEVCNT[cp_]
+        tot_e = g_ev + 1
+        lo_e = jnp.maximum(c.CEVCLR[c0], tot_e - CAP)
+        n_e = jnp.where(cnt1, tot_e - lo_e, 0)
+
+        def _cpair(W, x, y, z, ti, tp, use):
+            # Oracle :617-625: t >= t_i is LTP (the spike follows the event), else LTD.
+            wj = W[x, y, z]
+            ltp = (4.0 - wj) * 0.25 * ceLTP * jnp.exp(-jnp.abs(tp - ti) / ctp)
+            ltd = (wj * 0.25) * ceLTD * jnp.exp(-jnp.abs(tp - ti) / ctd)
+            d = jnp.where(tp >= ti, ltp, ltd)
+            return W.at[x, y, z].set(jnp.where(use, wj + d, wj))
+
+        def ev_body(i, W):
+            j = lo_e + i
+            row = jnp.where(j < g_ev, cev[cp_, j % CAP], cur)
+            ti = row[0]
+            x = row[1].astype(i32)
+            y = row[2].astype(i32)
+            z = row[3].astype(i32)
+            W = _cpair(W, x, y, z, ti, kt, kh)
+            W = _cpair(W, x, y, z, ti, t_now, jnp.bool_(True))
+            v = W[x, y, z]
+            # Oracle :626-627: clip after all pairs of this event entry.
+            return W.at[x, y, z].set(jnp.where(v < 0.0, 0.0, v))
+
+        W0 = c.WC[cz_]
+        W = jax.lax.fori_loop(0, n_e, ev_body, W0)
+        tot = jnp.sum(jnp.abs(W))
+        # Oracle :628 L1-normalises the whole w_c[cz] to norm_factor.
+        W = jnp.where(tot != 0.0, W * (cnrm / tot), W)
+        W = jnp.where(cnt1, W, W0)
+        c = c._replace(
+            WC=c.WC.at[cz_].set(W),
+            CSNAP=c.CSNAP.at[c0].set(jnp.where(cnt1, c.CNT[c0], c.CSNAP[c0])),
+            CKT=c.CKT.at[c0].set(jnp.where(cnt1, t_now, kt)),
+            CKH=c.CKH.at[c0].set(jnp.where(cnt1, jnp.bool_(True), kh)),
+        )
+        # Step 2 (oracle :632-644): loc entries of the group, in push order; the
+        # re-read after LTP applies, and the clip only runs without a previous spike.
+        bt, bs, bn = pend.BT, pend.BS, pend.BN
+        g_lp = c.GCNT[g]
+        tot_l = g_lp + bn
+        lo_l = jnp.maximum(c.CLOCLR[c0], tot_l - CAP)
+        n_l = tot_l - lo_l
+
+        def loc_body(i, Wi):
+            j = lo_l + i
+            isr = j < g_lp
+            jr = j % CAP
+            jb = jnp.clip(j - g_lp, 0, CDs - 1)
+            ti = jnp.where(isr, glt[g, jr], bt[jb])
+            src = jnp.where(isr, gls[g, jr], bs[jb])
+            wj = Wi[src]
+            w1 = wj + (25.0 - wj) * 0.04 * ciLTP * jnp.exp(-(t_now - ti) / ctp)
+            d2 = (w1 * 0.04) * ciLTD * jnp.exp(-(ti - tls) / ctd)
+            w2 = jnp.where(tls != 0.0, w1 + d2, jnp.where(w1 < 0.0, 0.0, w1))
+            return Wi.at[src].set(w2)
+
+        Wi = jax.lax.fori_loop(0, n_l, loc_body, c.WIC[cz_])
+        row_i = Wi[:CDs]
+        tot_i = jnp.sum(jnp.abs(row_i))
+        # Oracle :644 L1-normalises the whole wi_c[cz] row to eta_inh.
+        row_i = jnp.where(tot_i != 0.0, row_i * (ceta / tot_i), row_i)
+        Wi = Wi.at[:CDs].set(row_i)
+        # Step 3 (oracle :645-646) clears both buffers; the own loc push is made
+        # after the read, as the oracle appends to the mates after the update.
+        j_own = g_lp + bn
+        c = c._replace(
+            WIC=c.WIC.at[cz_].set(Wi),
+            CEVCLR=c.CEVCLR.at[c0].set(g_ev + 1),
+            CLOCLR=c.CLOCLR.at[c0].set(j_own + 1),
+        )
+        pend = pend._replace(
+            BT=bt.at[bn].set(t_now), BS=bs.at[bn].set(cz_), BN=bn + 1,
+            LPON=pend.LPON.at[ff].set(True), LPG=pend.LPG.at[ff].set(g),
+            LPJ=pend.LPJ.at[ff].set(j_own),
+            LPV=pend.LPV.at[ff].set(jnp.stack([t_now, cz_.astype(f)])))
+        return c, pend
+
+    def _apply_cpush(c, cpush):
+        """Write one slot's complex pushes after its cond (``mode="drop"``: masked rows are dropped).
+
+        Each covering position appends one ev entry, so its rows are distinct. A loc
+        push lands at its ring index unless a later push of the same pass has already
+        filled the ring past it (the ring keeps the last CAP), so the kept rows are
+        distinct too and the scatter is order-free.
+        """
+        evon, evcp, evj, evv, lpon, lpg, lpj, lpv = cpush
+        rows = jnp.where(evon, evcp, NCP)
+        cev_new = c.CEV.at[rows, evj % CAP].set(evv, mode="drop")
+        cevcnt = c.CEVCNT.at[rows].add(evon.astype(i32), mode="drop")
+        rg = jnp.where(lpon, lpg, NG)
+        tot = jnp.zeros((NG,), i32).at[rg].add(1, mode="drop")
+        g_safe = jnp.where(lpon, lpg, 0)
+        keep = lpon & (lpj >= c.GCNT[g_safe] + tot[g_safe] - CAP)
+        rk = jnp.where(keep, lpg, NG)
+        glt_new = c.GLT.at[rk, lpj % CAP].set(lpv[:, 0], mode="drop")
+        gls_new = c.GLS.at[rk, lpj % CAP].set(lpv[:, 1].astype(i32), mode="drop")
+        gcnt_new = c.GCNT.at[rg].add(1, mode="drop")
+        return c._replace(CEV=cev_new, CEVCNT=cevcnt, GLT=glt_new, GLS=gls_new,
+                          GCNT=gcnt_new)
+
     def _event_body(c, xs):
         # TH, RATE, CSNAP and LUP change only at the periodic update after the
         # slot loop; the slot loop and the cascade pass them through unchanged.
@@ -1058,20 +1252,25 @@ def _event_scan_loop(
             # Padded slots (~half the slots on S1: mean pixel fanout 132
             # of SMAX 256) skip the excites entirely through a ``cond``:
             # without it every pad burns two exponentials whose results
-            # are discarded through ``m``. The loc log stays out of the cond.
-            glt, gls = c.GLT, c.GLS
+            # are discarded through ``m``. The loc logs and the complex ring
+            # stay out of the cond.
+            glt, gls, cev = c.GLT, c.GLS, c.CEV
             cs, push = jax.lax.cond(
-                sm[s], lambda cc: _do_slot(s, cc, glt, gls),
-                lambda cc: (cc, no_push), c._replace(GLT=no_glt, GLS=no_gls))
-            c = cs._replace(GLT=glt, GLS=gls)
+                sm[s], lambda cc: _do_slot(s, cc, glt, gls, cev),
+                lambda cc: (cc, (no_push, no_cpush)),
+                c._replace(GLT=no_glt, GLS=no_gls, CEV=no_cev))
+            c = cs._replace(GLT=glt, GLS=gls, CEV=cev)
+            spush, cpush = push
             if learn:
-                on, g, slot, t_v, src = push
+                on, g, slot, t_v, src = spush
                 c = c._replace(
                     GLT=c.GLT.at[g, slot].set(jnp.where(on, t_v, c.GLT[g, slot])),
                     GLS=c.GLS.at[g, slot].set(jnp.where(on, src, c.GLS[g, slot])))
+            if clearn:
+                c = _apply_cpush(c, cpush)
             return c
 
-        def _do_slot(s, c, glt, gls):
+        def _do_slot(s, c, glt, gls, cev):
             m = sm[s]
             n = slots[s]
             n0 = jnp.where(m, n, DUM)
@@ -1111,7 +1310,7 @@ def _event_scan_loop(
             c = c._replace(LOGT=LOGT, LOGC=LOGC, LOGN=LOGN)
 
             def _cascade(c2):
-                push = no_push
+                spush = no_push
                 if learn:
                     # The weight update runs before any inhibition (oracle :684).
                     c2 = _stdp_simple(c2, glt, gls, n0, n0 % NDs, t, qrow[s])
@@ -1119,7 +1318,7 @@ def _event_scan_loop(
                 k = LOC_OF[n0]
                 mm = MMASK[g] & (jnp.arange(D) != k)
                 if learn:
-                    c2, push = _loc_push(c2, g, n0, n0 % NDs, t)
+                    c2, spush = _loc_push(c2, g, n0, n0 % NDs, t)
                     wts = c2.WIS[MDS[g], n0 % NDs]
                 else:
                     wts = c2.BLK[g, :, k]
@@ -1137,7 +1336,8 @@ def _event_scan_loop(
                 lat_fire = (FLAGS[0] > 0) & (FLAGS[2] > 0)
                 c2 = jax.lax.cond(lat_fire, _lat, lambda c3: c3, c2)
 
-                def _fwd(ff, c4):
+                def _fwd(ff, st):
+                    c4, pend = st
                     fm = ff < FWD_N[n0]
                     c0 = jnp.where(fm, FWD_IDX[n0, ff], DUM)
                     w = c4.WC[FWD_KEY[n0, ff, 0], FWD_KEY[n0, ff, 1],
@@ -1145,6 +1345,27 @@ def _event_scan_loop(
                     _Vd, _Ad, Vn, cross = _excite_one(
                         c4.V, c4.A, c4.TL, c4.TS, c4.TH, c0, w, t)
                     spkc = fm & cross
+                    if clearn:
+                        # A block of candidates is one complex position (its cells are
+                        # contiguous, cz ascending, one block per covering position).
+                        # The block's first candidate pushes the position's ev entry
+                        # before any excite (oracle :708-720); the block's pending loc
+                        # state resets there. Reads use the rings as they stood before
+                        # the pass plus this pending state.
+                        cp_ = jnp.where(fm, (c0 - NS) // CDs, 0).astype(i32)
+                        cz_ = jnp.where(fm, (c0 - NS) % CDs, 0).astype(i32)
+                        cur = jnp.stack([t, FWD_KEY[n0, ff, 1].astype(f),
+                                         FWD_KEY[n0, ff, 2].astype(f),
+                                         (n0 % ND).astype(f)])
+                        newblk = fm & (cp_ != pend.BP)
+                        pend = pend._replace(
+                            BP=jnp.where(fm, cp_, pend.BP),
+                            BN=jnp.where(newblk, 0, pend.BN),
+                            EVON=pend.EVON.at[ff].set(newblk),
+                            EVCP=pend.EVCP.at[ff].set(cp_),
+                            EVJ=pend.EVJ.at[ff].set(c4.CEVCNT[cp_]),
+                            EVV=pend.EVV.at[ff].set(cur))
+                        ts_old = c4.TS[c0]
                     c4 = c4._replace(
                         V=c4.V.at[c0].set(jnp.where(
                             fm, jnp.where(spkc, PCOL[c0, 3], Vn), c4.V[c0])),
@@ -1163,10 +1384,16 @@ def _event_scan_loop(
                         c4.LOGT, c4.LOGC, c4.LOGN, spkc, ti, c0)
                     c4 = c4._replace(LOGT=LOGT, LOGC=LOGC, LOGN=LOGN)
 
-                    def _ccascade(c5):
+                    def _ccascade(s5):
+                        c5, p5 = s5
                         cg = POS_OF[c0]
                         ck = LOC_OF[c0]
                         cm = MMASK[cg] & (jnp.arange(D) != ck)
+                        if clearn:
+                            # The weight update runs before the cell's local inhibition
+                            # (oracle :723, then :725-733).
+                            c5, p5 = _cstdp(c5, p5, ff, cev, glt, gls, c0, cp_, cz_,
+                                            cg.astype(i32), t, ts_old, cur)
                         if learn:
                             cwts = c5.WIC[MDC[cg], (c0 - NS) % CDs]
                         else:
@@ -1183,18 +1410,20 @@ def _event_scan_loop(
                             return c6._replace(V=V, A=A, TL=TL)
 
                         td_fire = (FLAGS[1] > 0) & (FLAGS[2] > 0)
-                        return jax.lax.cond(td_fire, _td, lambda c6: c6, c5)
+                        return jax.lax.cond(td_fire, _td, lambda c6: c6, c5), p5
 
-                    return jax.lax.cond(spkc, _ccascade, lambda c5: c5, c4)
+                    return jax.lax.cond(spkc, _ccascade, lambda s5: s5, (c4, pend))
 
                 # The fan-out loop is gated on the spike: without the
                 # ``cond`` every candidate would run FMAX masked excites.
-                c2 = jax.lax.cond(
-                    spk, lambda c4: jax.lax.fori_loop(0, FMAX, _fwd, c4),
-                    lambda c4: c4, c2)
-                return c2, push
+                pend0 = _cpend0() if clearn else ()
+                c2, pend = jax.lax.cond(
+                    spk, lambda s: jax.lax.fori_loop(0, FMAX, _fwd, s),
+                    lambda s: s, (c2, pend0))
+                return c2, (spush, _cpush_of(pend))
 
-            return jax.lax.cond(spk, _cascade, lambda c2: (c2, no_push), c)
+            return jax.lax.cond(
+                spk, _cascade, lambda c2: (c2, (no_push, no_cpush)), c)
 
         c = jax.lax.fori_loop(0, SMAX, _slot, c)
 
@@ -1215,10 +1444,11 @@ def _event_scan_loop(
             TH_ = jnp.where(TH_ < HTMIN, HTMIN, TH_)
             return c._replace(TH=TH_, RATE=RATE_, CSNAP=c.CNT, LUP=ti)
 
-        glt, gls = c.GLT, c.GLS
+        glt, gls, cev = c.GLT, c.GLS, c.CEV
         c = jax.lax.cond(
-            due, _interval, lambda c: c, c._replace(GLT=no_glt, GLS=no_gls))
-        return c._replace(GLT=glt, GLS=gls), jnp.int32(0)
+            due, _interval, lambda c: c,
+            c._replace(GLT=no_glt, GLS=no_gls, CEV=no_cev))
+        return c._replace(GLT=glt, GLS=gls, CEV=cev), jnp.int32(0)
 
     carry0 = _ScanCarry(
         V=V0, A=A0,
@@ -1234,13 +1464,19 @@ def _event_scan_loop(
         GLT=GLT0, GLS=jnp.zeros(GLT0.shape, i32),
         GCNT=jnp.zeros((GLT0.shape[0],), i32),
         WIS=WIS0, WIC=WIC0,
+        CEV=jnp.zeros((NCP, CAP, 4), f) if clearn else no_cev,
+        CEVCNT=jnp.zeros((NCP,), i32) if clearn else jnp.zeros((1,), i32),
+        CEVCLR=jnp.zeros((N1,), i32) if clearn else jnp.zeros((1,), i32),
+        CLOCLR=jnp.zeros((N1,), i32) if clearn else jnp.zeros((1,), i32),
+        CKT=jnp.zeros((N1,), f) if clearn else jnp.zeros((1,), f),
+        CKH=jnp.zeros((N1,), jnp.bool_) if clearn else jnp.zeros((1,), jnp.bool_),
     )
     xs = (EV, EVQ) if learn else EV
     fin, _ = jax.lax.scan(_event_body, carry0, xs)
     return fin
 
 
-_JIT_EVENT_SCAN = jax.jit(_event_scan_loop, static_argnames=("learn",))
+_JIT_EVENT_SCAN = jax.jit(_event_scan_loop, static_argnames=("learn", "clearn"))
 
 
 def _scan_table_int(tables, key):
@@ -1685,9 +1921,10 @@ def _run_event_scan(
     wis0 = np.zeros((pad_m, pad_m), dtype=np.float64)
     wic0 = np.zeros((pad_m, pad_m), dtype=np.float64)
     decay0 = np.zeros((N + 1,), dtype=np.float64)
-    wup = np.zeros((9,), dtype=np.float64)
+    wup = np.zeros((17,), dtype=np.float64)
     if w_update is None:
         learn = False
+        clearn = False
         ring_cap = 1
     else:
         from .pcl_topology import check_event_scan_w_update
@@ -1703,10 +1940,19 @@ def _run_event_scan(
         wic0[:cd, :cd] = wu["wi_c"]
         decay0[:N] = wu["decay"]
         sp = wu["simple"]
-        wup[:] = [
+        cp_pop = wu["complex"]
+        # The complex update runs for "excitatory"/"all" (oracle :613); "inhibitory"
+        # has no complex effect, so it compiles without the complex path.
+        clearn = cp_pop["mode"] in ("excitatory", "all")
+        wup[:9] = [
             sp["eLTP"], sp["eLTD"], sp["iLTP"], sp["iLTD"], sp["tau_ltp_us"],
             sp["tau_ltd_us"], sp["norm_factor"], sp["eta_inh"],
             1.0 if sp["mode"] in ("excitatory", "all") else 0.0,
+        ]
+        wup[9:] = [
+            cp_pop["eLTP"], cp_pop["eLTD"], cp_pop["iLTP"], cp_pop["iLTD"],
+            cp_pop["tau_ltp_us"], cp_pop["tau_ltd_us"], cp_pop["norm_factor"],
+            cp_pop["eta_inh"],
         ]
     glt0 = np.zeros((ng, ring_cap), dtype=np.float64)
     if learn:
@@ -1772,12 +2018,14 @@ def _run_event_scan(
             jnp.asarray(ev_q, dtype=jnp.int32),
         )
         cap = _spike_log_capacity(int(ev.shape[0]))
-        out = _JIT_EVENT_SCAN(*args, jnp.zeros((cap,), dtype=jnp.int64), learn=learn)
+        out = _JIT_EVENT_SCAN(*args, jnp.zeros((cap,), dtype=jnp.int64),
+                              learn=learn, clearn=clearn)
         n_logged = int(out.LOGN)  # every spike, past the capacity too
         if n_logged > cap:
             # The first pass stored only cap entries; rerun once at the logged size.
             cap = n_logged
-            out = _JIT_EVENT_SCAN(*args, jnp.zeros((cap,), dtype=jnp.int64), learn=learn)
+            out = _JIT_EVENT_SCAN(*args, jnp.zeros((cap,), dtype=jnp.int64),
+                                  learn=learn, clearn=clearn)
             if int(out.LOGN) != n_logged:
                 raise RuntimeError(
                     "event-scan spike log changed on rerun: "

@@ -1535,11 +1535,13 @@ def check_event_scan_w_update(
     """Validate an event-scan plasticity declaration over ``n_cells`` (fail-closed).
 
     ``nd``/``cd`` are the simple and complex depths (``wi_s`` is ``(nd, nd)``,
-    ``wi_c`` is ``(cd, cd)``). This lane lands the simple excitatory update
-    only: a complex ``mode`` other than ``"off"`` is refused (PCL-L3c), and a
-    simple ``mode`` of ``"inhibitory"`` or ``"all"`` is refused while the
-    tables carry lateral or top-down inhibition (PCL-L3d). Every refusal
-    names ``label`` and the offending key.
+    ``wi_c`` is ``(cd, cd)``). Both populations' ``excitatory``/``all`` modes
+    run the buffer update (simple: ``pcl_event_ref.py:543-574``, complex:
+    :608-646); a complex ``"inhibitory"`` mode is a no-op there, as in the
+    oracle. A simple ``mode`` of ``"inhibitory"`` or ``"all"`` is refused while
+    the tables carry lateral or top-down inhibition (PCL-L3d, which lands the
+    lateral and top-down weights). Every refusal names ``label`` and the
+    offending key.
     """
     if not isinstance(w_update, Mapping):
         raise ValueError(
@@ -1580,11 +1582,7 @@ def check_event_scan_w_update(
             f"{label}: w_update['decay'] must be finite reals of shape ({n_cells},); "
             f"got shape {dec.shape} dtype {dec.dtype}")
     cpop = _w_update_population(w_update["complex"], name="complex", label=label)
-    if cpop["mode"] != "off":
-        raise ValueError(
-            f"{label}: w_update['complex']['mode'] must be 'off' in this lane; complex "
-            f"learning lands in PCL-L3c; got {cpop['mode']!r}")
-    spop = _w_update_population(w_update["simple"], name="simple", label=label)
+    spop =_w_update_population(w_update["simple"], name="simple", label=label)
     if spop["mode"] in ("inhibitory", "all") and (lateral_on or topdown_on):
         raise ValueError(
             f"{label}: w_update['simple']['mode'] {spop['mode']!r} changes the lateral "

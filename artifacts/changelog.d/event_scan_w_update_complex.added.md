@@ -1,0 +1,1 @@
+- The `event_scan` buffer plasticity covers complex cells: the PCL reference's complex excitatory update (spike-pair STDP over the cell's last two spikes, with its interval-counter reset) moves the shared complex weights and local-inhibition rows, returned in `weights_final`.
