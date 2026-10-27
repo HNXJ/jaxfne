@@ -41,3 +41,30 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Found by the 9C-E1 packet (2026-10-26). Expected: realized or refused. Future change: refuse it
   where no kernel reads it, or pass it to the dense default order; the E1 `gaussian_drive` lands
   with the same realize-or-refuse rule.
+
+### P-046
+
+- Date: 2026-10-26. Type: BUG. Area: Izhikevich configuration route, `connectivity_mode="explicit"`.
+  Severity: high (the receipt misstates the realized network).
+- Reproduction: `balanced_ei_population` n=40 (E 0.8), two `ampa` rules E->E and E->I at
+  probability 1, `update_metadata(connectivity_mode="explicit")`. Expected: only the 1248 declared
+  edges. Actual: 2808 edges, the 1560 default dense-W edges (|w| 0.0791) kept beside the declared
+  ones, while `connectivity_compilation` records `default_edge_count: 0`. At n=1000 the explicit
+  construct took 826 s against 1.7 s by default (9C-E1 pilot probe).
+- Blocks the E1 closure: the Fig. 3 network on the library path needs exactly the declared W.
+
+### P-047
+
+- Date: 2026-10-26. Type: BUG. Area: `Configuration.connections` selectors. Severity: medium
+  (P-014 class).
+- A rule with `target={"cell_type": "all"}` compiles 0 edges on both compilers and nothing refuses it
+  (`declared_rule_edge_count: 0`); `{}` selects every cell. Expected: a selector matching no cell
+  is refused by name.
+
+### P-048
+
+- Date: 2026-10-26. Type: SCIENCE. Area: Izhikevich initial state. Severity: low.
+- `u0` keeps the preset value (E -13, I +6.5) when `cell_params` overrides `b` and when `random_v0`
+  draws `v0`, so `u0 != b * v0` (the paper's `u = b.*v`); `cell_params` takes no `v0` or `u0`.
+  The E1 library path needs a declared per-cell initial state; whether the default should follow
+  `b` is Hamm's call (it moves existing realizations).
