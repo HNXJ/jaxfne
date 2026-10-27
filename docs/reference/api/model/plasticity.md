@@ -27,8 +27,8 @@ Configuration class for one STDP learning rule; holds all its hyperparameters.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `A_plus` | `float` | LTP (long-term potentiation) rate — scales weight increase on near-coincident pre→post firing. Default `0.01`. |
-| `A_minus` | `float` | LTD (long-term depression) rate — scales weight decrease on post→pre ordering. Default `0.012`. |
+| `A_plus` | `float` | LTP (long-term potentiation) rate: scales weight increase on near-coincident pre→post firing. Default `0.01`. |
+| `A_minus` | `float` | LTD (long-term depression) rate: scales weight decrease on post→pre ordering. Default `0.012`. |
 | `tau_plus` | `float` | Presynaptic trace decay time constant (ms). Default `20.0`. |
 | `tau_minus` | `float` | Postsynaptic trace decay time constant (ms). Default `20.0`. |
 | `w_min` | `float` | Hard lower bound on synaptic weights. Default `0.0`. |

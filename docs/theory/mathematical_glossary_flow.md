@@ -47,9 +47,9 @@ $F_\theta$ is the **Emitter → Source** bridge. It transforms parameter choices
 - **Izhikevich default** in jaxfne; other emitters supported via custom models
 
 **Implementation:**
-- `jaxfne.emitters.IzhikevichParams` — parameter container
-- `jaxfne.emitters.simulate_eig_izhikevich()` — forward simulation
-- `jaxfne/core.py` — Model interface
+- `jaxfne.emitters.IzhikevichParams`: parameter container
+- `jaxfne.emitters.simulate_eig_izhikevich()`: forward simulation
+- `jaxfne/core.py`: Model interface
 
 ---
 
@@ -91,8 +91,8 @@ $P_s$ is the **Source → Field** bridge. It transforms time-domain neural curre
 - **No double-counting** of synaptic current (forbidden pattern: using both synaptic conductance-based current and spike-based source in the same field computation)
 
 **Implementation:**
-- `jaxfne.fields.project_laminar_sources()` — source projection kernel
-- `jaxfne/core.py` → `Signals` — output structure
+- `jaxfne.fields.project_laminar_sources()`: source projection kernel
+- `jaxfne/core.py` → `Signals`: output structure
 - Manifest field: `source_calibration_status`
 
 ---
@@ -131,7 +131,7 @@ $\sigma_e$ is the **Field → Current** bridge. It encodes how tissue converts e
 - **Isotropy assumed** in current proxy mode (conductivity is scalar)
 
 **Implementation:**
-- `jaxfne.fields.project_laminar_sources()` — applies conductivity implicitly via kernel
+- `jaxfne.fields.project_laminar_sources()`: applies conductivity implicitly via kernel
 - Manifest: `field_solver_status`, `boundary_condition`, `gauge`
 
 ---
@@ -161,11 +161,11 @@ $q$ is the **Source → Field** boundary condition. It ensures the field solutio
 
 **Run boundary:**
 
-- **Current default**: `linear_solver` — a Relative-value declared projection
+- **Current default**: `linear_solver`; a Relative-value declared projection
 - **Reserved path**: `specified_future_solver` for an Absolute-value field solver (see [Limitations and future plans](../reference/project/limitations_and_future_plans.md))
 
 **Implementation:**
-- `jaxfne.fields.project_laminar_sources()` — declares but doesn't solve
+- `jaxfne.fields.project_laminar_sources()`: declares but doesn't solve
 - Manifest: `field_solver_status == "linear_solver"` means this equation is metadata only
 
 ---
@@ -200,7 +200,7 @@ CSD turns a field-current pattern into a source/sink-like readout. It is the pri
 - **Proxy-derived, rather than a direct biological measurement** (no physical conductivity or solved field)
 
 **Implementation:**
-- `jaxfne.fields.project_laminar_sources()` — computes CSD proxy directly
+- `jaxfne.fields.project_laminar_sources()`: computes CSD proxy directly
 - Manifest: `csd_sign_convention`, `field_model_status == "proxy_readout"`
 
 ---
@@ -236,8 +236,8 @@ $P_c$ is the **Field → Probe** bridge. It extracts spatially localized measure
 - See [Probe Operators](../guides/readout/probe_operators.md) for operator-specific statement boundaries
 
 **Implementation:**
-- `jaxfne.fields.probe_laminar_modes()` — operator definitions
-- `jaxfne/core.py` → Model.compute_readout() — readout computation
+- `jaxfne.fields.probe_laminar_modes()`: operator definitions
+- `jaxfne/core.py` → Model.compute_readout(): readout computation
 - Manifest: `operator_status` for each probe operator
 
 ---
@@ -264,7 +264,7 @@ EMM-proxy is a **relative within-run cost/activity index**. Biological energy co
 **Run boundary:**
 
 - **Proxy-only**
-- **Computational cost metric** — combines source and field norms. ATP consumption and metabolic rate are not measured
+- **Computational cost metric**: combines source and field norms. ATP consumption and metabolic rate are not measured
 - **Valid for relative within-run comparison** (e.g., which timestep is most active)
 - **Requires empirical calibration** for any biological interpretation statements
 
@@ -325,13 +325,13 @@ $\mathcal{R}[q_1 + q_2] \approx \mathcal{R}[q_1] + \mathcal{R}[q_2]$ when source
 
 **Practice:** combine emitter outputs into one `[T, N]` source array, then call
 `project_laminar_sources` once. Do not project populations separately and add
-readouts unless you have verified the weights are identical — the default
+readouts unless you have verified the weights are identical; the default
 Gaussian kernel is linear in source amplitude but not in neuron placement.
 
 **Code:** `jaxfne/fields/proxy.py` (`project_laminar_sources`), `validate_projection_invariants`.
 
 **Boundary:** superposition holds for the **proxy operator** rather than for a future
-nonlinear PDE solve (P2+ in Tensor Electromagnetics Scope (`docs/theory/tensor_electromagnetics_scope.md` — repository-internal reference, excluded from the built site)).
+nonlinear PDE solve (P2+ in Tensor Electromagnetics Scope (`docs/theory/tensor_electromagnetics_scope.md`: repository-internal reference, excluded from the built site)).
 
 ### Source projection
 
@@ -349,7 +349,7 @@ inside the modeled population.
 **Formal:** $\mathrm{CSD}(z,t) \approx \partial^2 \phi_e / \partial z^2$ on the contact axis.
 
 **Practice:** CSD-proxy is computed along the laminar contact grid after spatial
-projection — it is a discrete second difference on `phi_e_proxy`, rather than a volume
+projection; it is a discrete second difference on `phi_e_proxy`, rather than a volume
 divergence solve. Use `csd_tensor` when you need the stage factored out of the
 full projection chain.
 
@@ -360,11 +360,11 @@ full projection chain.
 **Formal:** $\int q\,\mathrm{d}V \approx 0$ is checked via the spatial mean of $q$ over contacts.
 
 **Practice:** `compute_conservation_proxy_diagnostics` reports
-`source_conservation_proxy_residual` — a scalar summary, distinct from a PDE residual.
+`source_conservation_proxy_residual`: a scalar summary, distinct from a PDE residual.
 Values near zero indicate spatial balance of the **proxy source**, rather than enforced
 continuity at a tissue boundary.
 
-**Code:** `jaxfne/fields/diagnostics.py`, Conservation Proxy Diagnostics (`docs/theory/notes/conservation_proxy_diagnostics.md` — repository-internal reference, excluded from the built site).
+**Code:** `jaxfne/fields/diagnostics.py`, Conservation Proxy Diagnostics (`docs/theory/notes/conservation_proxy_diagnostics.md`: repository-internal reference, excluded from the built site).
 
 ### Proxy-vs-solver ladder
 
@@ -397,8 +397,8 @@ When adding a new equation to jaxfne documentation:
 
 ## See Also
 
-- [Source-Field Equations](source_field_equations.md) — source bookkeeping, forbidden patterns
-- [Computation Basis](computation_basis.md) — extensibility rules
-- [Probe Operators](../guides/readout/probe_operators.md) — detailed operator statements
-- [Scope and Limitations](../reference/project/limitations_and_future_plans.md) — statement boundaries and scope
-- TFNE Operator Doctrine (`docs/theory/operator_doctrine.md` — repository-internal reference, excluded from the built site) — per-stage contract table indexing these equations
+- [Source-Field Equations](source_field_equations.md): source bookkeeping, forbidden patterns
+- [Computation Basis](computation_basis.md): extensibility rules
+- [Probe Operators](../guides/readout/probe_operators.md): detailed operator statements
+- [Scope and Limitations](../reference/project/limitations_and_future_plans.md): statement boundaries and scope
+- TFNE Operator Doctrine (`docs/theory/operator_doctrine.md`: repository-internal reference, excluded from the built site): per-stage contract table indexing these equations

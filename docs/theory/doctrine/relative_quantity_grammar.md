@@ -8,7 +8,7 @@ rules.
 ## 1. Quantity kinds
 
 Every numerical quantity in a jaxfne model belongs to exactly one of these
-kinds. The distinction is semantic, rather than a Python wrapper — inside JAX hot
+kinds. The distinction is semantic, rather than a Python wrapper; inside JAX hot
 kernels the values are plain arrays; the grammar governs *what the numbers
 mean* and *how they combine*.
 
@@ -16,10 +16,10 @@ $$B,\quad R,\quad E,\quad T$$
 
 | Kind | Meaning | Units | Example |
 |---|---|---|---|
-| **B** — base/model quantity | Physical/model baseline. Retains its actual units and semantics. Static/shared baseline that relative state modulates around. | physical (or declared model) units | `edges.weight` baseline `m0`; base drive `b`; base intrinsic `a_base` |
-| **R** — relative quantity | Dimensionless internal dynamic state or modulation. Zero (or another declared reference) represents the reference/base state where applicable. Its admissible domain is fixed by its geometry. | dimensionless | `H_i` (RBS coordinate), `r_p` relative gain modulation, `fraction` cell-type fractions |
-| **E** — effective quantity | The quantity actually used in dynamics, produced from a base and a relative modulation through an explicit mapping. | inherits base units | `p_eff = C_p(p0, r_p)` |
-| **T** — physical time quantity | Dimensional time (clock, delays, time constants, integration windows, timescales). Not a relative quantity. Do not normalize it into the R convention. | milliseconds (or seconds where the controller law declares `s`) | `dt_ms`, `duration_ms`, `delay_steps`, `tau_0_ms`, `tau_H_s`, timestamps |
+| **B**: base/model quantity | Physical/model baseline. Retains its actual units and semantics. Static/shared baseline that relative state modulates around. | physical (or declared model) units | `edges.weight` baseline `m0`; base drive `b`; base intrinsic `a_base` |
+| **R**: relative quantity | Dimensionless internal dynamic state or modulation. Zero (or another declared reference) represents the reference/base state where applicable. Its admissible domain is fixed by its geometry. | dimensionless | `H_i` (RBS coordinate), `r_p` relative gain modulation, `fraction` cell-type fractions |
+| **E**: effective quantity | The quantity actually used in dynamics, produced from a base and a relative modulation through an explicit mapping. | inherits base units | `p_eff = C_p(p0, r_p)` |
+| **T**: physical time quantity | Dimensional time (clock, delays, time constants, integration windows, timescales). Not a relative quantity. Do not normalize it into the R convention. | milliseconds (or seconds where the controller law declares `s`) | `dt_ms`, `duration_ms`, `delay_steps`, `tau_0_ms`, `tau_H_s`, timestamps |
 
 Effective physical values must be produced through **explicit mappings**; a
 relative value must never be silently treated as a physical quantity.
@@ -65,7 +65,7 @@ Rules:
   timestamps, integration windows, and adaptation/growth timescales all carry
   physical time units (milliseconds, or seconds where the controller law
   declares `s`).
-- The causal invariant is `t[n+1] > t[n]` — the simulation clock is
+- The causal invariant is `t[n+1] > t[n]`; the simulation clock is
   physical, monotonic, and forward-causal. Constant `dt` is a convenience and is optional.
 - Dimensionless state dynamics may use dimensional timescales:
   `tau_H * dH/dt = F(H, ...)` where `H` and `F` are dimensionless and `tau_H`
@@ -99,7 +99,7 @@ h_k = (meaning, domain, R_k, Gamma_k)
 
 The concrete per-coordinate table for the shipped HDP kernels lives in
 [`docs/guides/state/hdp.md`](../../guides/state/hdp.md) and
-`docs/theory/doctrine/rbs_rbd_hdp_inventory.md` (`docs/theory/doctrine/rbs_rbd_hdp_inventory.md` — repository-internal reference, excluded from the built site).
+`docs/theory/doctrine/rbs_rbd_hdp_inventory.md` (`docs/theory/doctrine/rbs_rbd_hdp_inventory.md`: repository-internal reference, excluded from the built site).
 
 ## 5. Effective-parameter mappings
 
@@ -110,7 +110,7 @@ parameter follows an explicit documented mapping:
 p_eff = C_p(p0, r_p)
 ```
 
-The mapping form depends on the parameter's semantics — additive,
+The mapping form depends on the parameter's semantics: additive,
 multiplicative, bounded, signed, etc. **Do not impose one mapping universally
 where it is mathematically inappropriate.**
 
@@ -119,28 +119,28 @@ The concrete HDP mappings:
 | Parameter | Base `p0` | Relative `r_p` | `p_eff = C_p(p0, r_p)` |
 |---|---|---|---|
 | Synaptic weight magnitude (node HDP) | `m0 = \|edges.weight\|` | H-derived basis `basis(H_post − H_pre)` | weight is an **integrated ODE state**: `dm/dt = ±K_HDP·basis·m + K_w_ctrl·(m0 − m)`; when plasticity is null (`K_HDP=0 ∧ K_w_ctrl=0`), `w(t) = w0` bitwise; when weight plasticity is active, subfloor weights (`\|w0\| < w_floor`) are clipped to `w_floor` |
-| Edge weight (population restoring) | sign of `w_baseline` (base magnitude not carried) | `θ_0 ∈ [0.1, 5.0]` | `w_eff = sign(w_baseline)·θ_0` — **magnitude-replacing**; the base magnitude is replaced, rather than multiplicatively scaled; θ=1 gives unit magnitude, so the base magnitude is not recovered. Documented limitation of this controller. |
-| Intrinsic `a` (population restoring) | `a_base` | `θ_1 ∈ [0.25, 4.0]` | `a_eff = a_base·θ_1` — multiplicative; θ=1 ⇒ `a_eff = a_base` (exact recovery) |
+| Edge weight (population restoring) | sign of `w_baseline` (base magnitude not carried) | `θ_0 ∈ [0.1, 5.0]` | `w_eff = sign(w_baseline)·θ_0`: **magnitude-replacing**; the base magnitude is replaced, rather than multiplicatively scaled; θ=1 gives unit magnitude, so the base magnitude is not recovered. Documented limitation of this controller. |
+| Intrinsic `a` (population restoring) | `a_base` | `θ_1 ∈ [0.25, 4.0]` | `a_eff = a_base·θ_1`: multiplicative; θ=1 ⇒ `a_eff = a_base` (exact recovery) |
 
 ## 6. Language and claim gates
 
 Documentation and publication prose must not silently destroy these
 semantics. The package's docs-language gate distinguishes at least:
 
-- **base** — physical/model baseline (retains units);
-- **relative** — dimensionless dynamic state/modulation;
-- **normalized** — a dimensionless rescaling (not automatically synonymous
+- **base**: physical/model baseline (retains units);
+- **relative**: dimensionless dynamic state/modulation;
+- **normalized**: a dimensionless rescaling (not automatically synonymous
   with "relative");
-- **effective** — the mapped output `C_p(p0, r_p)` (does **not** imply
+- **effective**: the mapped output `C_p(p0, r_p)` (does **not** imply
   empirically calibrated); in the construction/runtime chain, `effective`
   is reserved for causal evidence `ΔX` under intervention (ablation/shuffle
   comparison), while post-`simulate` runtime quantities are `executed`
   (`dt_ms`, `n_steps`, `dtype`, `H`/`W` sizes);
-- **executed** — the runtime-realized quantity after `simulate`
+- **executed**: the runtime-realized quantity after `simulate`
   (`Signals.time_ms`, `n_steps`, `dt_ms`, `dtype`); may differ from
   realized via dtype downgrade, dt rounding, or HDP enable;
-- **calibrated** — an explicit calibration transformation has been applied;
-- **physical** — a measured/absolute physical quantity.
+- **calibrated**: an explicit calibration transformation has been applied;
+- **physical**: a measured/absolute physical quantity.
 
 Construction/runtime vocabulary is therefore
 `configured` (declarative prior) → `realized` (after `construct`: concrete

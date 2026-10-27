@@ -2,9 +2,9 @@
 
 Runnable demos of jaxfne's structural, homeostatic, and plasticity
 controls. Every figure on this page comes from a real `construct()`/`simulate()`
-run with the exact parameters quoted in its caption — nothing here is a mockup.
+run with the exact parameters quoted in its caption. Nothing here is a mockup.
 
-All outputs use conservative scope defaults — see [Scope & status](../../reference/project/scope_and_status.md).
+All outputs use conservative scope defaults: see [Scope & status](../../reference/project/scope_and_status.md).
 
 ## Interactive 3D network: V1 → V4 → PFC hierarchy
 
@@ -37,7 +37,7 @@ jtfne.vis.visualize_network_3d(
 
 [Open full page](https://hnxj.github.io/jaxfne/figures/v1_v4_pfc_network3d/v1_v4_pfc_network3d.html)
 
-Smaller-scale analogue with the full six-panel dark atlas: the V1–V4–PFC hierarchy at 100 neurons/area (this page builds 300/area) — Interactive figures: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/three_area/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/three_area/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/three_area/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/three_area/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/three_area/oscillatory.html)
+Smaller-scale analogue with the full six-panel dark atlas: the V1–V4–PFC hierarchy at 100 neurons/area (this page builds 300/area). Interactive figures: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/three_area/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/three_area/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/three_area/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/three_area/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/three_area/oscillatory.html)
 
 ## Homeostasis: firing-rate change and full 10 s raster
 
@@ -50,7 +50,7 @@ k_gain=1.0)`.
 
 With homeostasis off the population settles to its natural ≈10 Hz
 asynchronous-irregular attractor (κ synchrony ≈ 0.016). Turning the kernel on
-drives the rate *above* `r*=10 Hz` rather than onto it — it kicks the population into
+drives the rate *above* `r*=10 Hz` rather than onto it; it kicks the population into
 a higher, `r*`-scaled regime (≈44 Hz here) within the first few hundred ms and
 holds it there for the rest of the 10 s run, with synchrony staying low
 (κ ≈ 0.0038). This is the documented one-sided-damper behavior of the kernel:
@@ -59,26 +59,26 @@ while the rate estimate `r` is below `r*` (always true early in a run, since
 `r` starts at 0), while stopping short of symmetrically suppressing activity
 back down once the network settles into the resulting higher-rate regime.
 Lowering `r*` below the natural baseline does shift the elevated regime down
-monotonically (e.g. `r*=5` → ≈28 Hz, `r*=3` → ≈20 Hz) — the controller's
+monotonically (e.g. `r*=5` → ≈28 Hz, `r*=3` → ≈20 Hz); the controller's
 effect is real and direction-correct, just short of exact setpoint tracking.
 
 ![Full 10 s raster, homeostasis on](../../assets/showcases/homeostasis_full_raster_10s.png)
 
-Vm stays in range in both runs (rest ≈ −84…−88 mV, spike peak ≈ +30 mV) —
+Vm stays in range in both runs (rest ≈ −84…−88 mV, spike peak ≈ +30 mV),
 finite end to end, NaN-free.
 
 ## Plasticity: closed-loop STDP under purely random stimulation
 
-`Configuration.plasticity()` is declaration-only — it records intent in the
+`Configuration.plasticity()` is declaration-only; it records intent in the
 manifest, which `Model.simulate()` leaves unconsumed. The wired
 synaptic-plasticity kernel runs through the separate streaming entry point,
 `jtfne.run_stdp_stream`, which updates the weight matrix `W` every timestep
 and feeds it back into the dynamics (genuine closed-loop online STDP).
 
 A 100-neuron E/I cloud network (`jtfne.make_ei_cloud_network(100, seed=42)`,
-70 E / 30 I) driven by **pure Gaussian noise** (structure-free stimulus —
+70 E / 30 I) driven by **pure Gaussian noise** (structure-free stimulus:
 amplitude calibrated to a rate-compliant ≈9.7 Hz baseline) for 10 s, with
-`plasticity_scale=0.1` — the scale [verified stable](../../../artifacts/legacy/reports/STDP_CLOSED_LOOP_REPORT.md)
+`plasticity_scale=0.1`: the scale [verified stable](../../../artifacts/legacy/reports/STDP_CLOSED_LOOP_REPORT.md)
 against runaway, where `plasticity_scale>=0.5` runs away instead:
 
 ```python
@@ -96,21 +96,21 @@ plasticity_config = jtfne.STDPPlasticityConfig(A_plus=0.01, A_minus=0.012)
 ![Activity stability and weight drift under random stimulation](../../assets/showcases/plasticity_random_stim_stability.png)
 
 Firing rate stays flat across all ten 1 s chunks (runaway-free), while the mean
-synaptic weight drifts measurably over the same window — purely from STDP
+synaptic weight drifts measurably over the same window, purely from STDP
 acting on uncorrelated, random drive.
 
 ![Excitatory weight distribution before vs after](../../assets/showcases/plasticity_weight_distribution.png)
 
 The excitatory weight distribution shifts down over the 10 s run (mean
 0.0547 → 0.0510): the stimulus lacks temporal structure, so little causal
-pre-before-post pairing occurs and net synaptic depression dominates — a
+pre-before-post pairing occurs and net synaptic depression dominates; a
 measured STDP effect, visible as a departure from a flat line.
 
 ## Spectrolaminar motif with depth-graded ("slow-deep") homeostasis
 
 The deep-α/β vs superficial-γ spectrolaminar crossover is a **regime property**
 (band-limited layer-local oscillations while global κ stays low), rather than a connectivity-
-weight or neuron-count effect alone — see `jaxfne-spectrolaminar-suite` and
+weight or neuron-count effect alone; see `jaxfne-spectrolaminar-suite` and
 `artifacts/tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb`. This run uses the
 canonical 10,000-neuron V1 column and layers a depth-graded homeostatic profile: deep layers (L5/L6) get a
 **slower** rate-integration time constant and a **wider** excitability-bias
@@ -137,13 +137,13 @@ the same homeostasis-kick effect documented above).
 
 **A methodology correction.** An earlier version of this page normalized each
 *depth contact's* spectrum across frequency and compared α/β vs γ within that
-normalization — which mostly measures the generic 1/f spectral shape rather than
+normalization, which mostly measures the generic 1/f spectral shape rather than
 laminar structure, and wrongly read as "zero crossover anywhere." The right
 test treats each band's own power-by-depth as a distribution over depth
 (normalized to sum to 1 across depth, separately per band) and asks where
 *that* distribution sits versus the other band's. Two distinct
 distributions over the same domain with equal total mass cannot dominate
-each other everywhere — they must cross at least once whenever they differ.
+each other everywhere; they must cross at least once whenever they differ.
 Re-run with that test, the 10k single-trial data shows **2 real
 crossings** (depth 0.065 and 0.710): α/β leads at the very-superficial and
 deep extremes, γ leads in between.
@@ -154,7 +154,7 @@ deep extremes, γ leads in between.
 noisy, so a second, simpler run isolates the question: 100-neuron canonical
 V1 column, 32 LFP-proxy contacts with the top 2 and bottom 2 dropped before
 analysis (boundary artifacts from the projection kernel), homeostasis on but
-gentle (`k_gain=0.1`, chosen so rate stays contained — 14.3±0.06 Hz across 20
+gentle (`k_gain=0.1`, chosen so rate stays contained: 14.3±0.06 Hz across 20
 seeds vs. a 10.2 Hz no-homeostasis baseline, κ=0.0114±0.0003), averaged over
 20 trials/seeds:
 
@@ -170,12 +170,12 @@ lfp_trials = jnp.stack([jtfne.simulate(model, duration_ms=2000.0, dt_ms=0.5, see
 psd = jtfne.spectrolaminar_psd_jax(lfp_trials[:, :, 2:-2], fs=2000.0)  # drop edge contacts
 ```
 
-This gives **3 real, reproducible crossings** (depth 0.401, 0.771, 0.932) —
+This gives **3 real, reproducible crossings** (depth 0.401, 0.771, 0.932):
 signal rather than noise: the rate/κ spread across seeds is tiny (±0.4%/±2.6%), and one
 crossing (depth ≈0.77) sits near the single-crossing region the 10k
 single-trial run shows at depth ≈0.71, despite the very different scale and
 contact count. Both bands' depth-distributions still peak at the *same*
-absolute depth (≈0.81, deep) — expected, since the canonical column's
+absolute depth (≈0.81, deep); expected, since the canonical column's
 deep-weighted dipole-size/density model (`_apply_canonical_biophysics`)
 boosts every frequency equally at depth; the crossings are a second-order
 *relative* effect riding on top of that shared envelope, alternating rather
@@ -185,24 +185,24 @@ than a single monotonic flip.
 (left), the depth × frequency relative-power heatmap (center), and the
 alpha-beta/gamma depth-distribution crossing (right, corrected methodology),
 all referenced to cortical position relative to L4 (negative = superficial,
-positive = deep) — 100-neuron canonical V1 column, homeostasis on
+positive = deep): 100-neuron canonical V1 column, homeostasis on
 (`r_star=10, k_gain=0.1`), 32 contacts with the 2 edge contacts dropped each
 side, 20-trial average:
 
 ![Spectrolaminar suite, 3-panel, corrected crossing methodology](../../assets/showcases/spectrolaminar_suite_corrected.png)
 
 The cell-density panel reproduces the canonical column's E:I gradient (E
-density rising toward deep layers, I subtypes — PV/SST/VIP — concentrated
+density rising toward deep layers, I subtypes: PV/SST/VIP, concentrated
 superficial) directly from `model.neuron_table()`, independent of the
 spectral panels. The crossing panel shows the alpha/beta and gamma
 depth-distributions tracking each other closely (97% similarity by total
-overlap) while still crossing three times — consistent with occasional
+overlap) while still crossing three times; consistent with occasional
 uncrossing and no global dominance, rather than a clean superficial/deep
 split.
 
 **A second correction: the relative crossings are real, but there is no
 absolute alpha/beta bump.** The crossing test above is entirely about
-*relative* power — each band's own depth-distribution, separately
+*relative* power: each band's own depth-distribution, separately
 normalized to sum to 1. It says nothing about whether deep cortex actually
 generates *more total power* in the alpha/beta band, or whether superficial
 cortex actively *suppresses* it. Both are real, distinct mechanistic claims
@@ -215,14 +215,14 @@ every layer shares:
 
 Fitting each group's own background trend (log-log slope, alpha/beta
 excluded from the fit) shows superficial and deep share **the same spectral
-shape** — slopes differ by only 0.02 (100-neuron run) and 0.07 (10k run), an
+shape**. Slopes differ by only 0.02 (100-neuron run) and 0.07 (10k run), an
 order of magnitude smaller than the slopes themselves (≈−0.8 and ≈−0.6).
 Deep sits uniformly above superficial by a roughly frequency-independent
-gain factor (mean ratio 1.56× and 1.39×, std 0.17 and 0.24 — flat across the
+gain factor (mean ratio 1.56× and 1.39×, std 0.17 and 0.24; flat across the
 whole spectrum rather than peaked in-band). And critically: in **both** groups, the
 alpha/beta band sits **at or below** that group's own extrapolated 1/f
 trend (residuals −0.15 to −0.22 log10-units, i.e. 60-70% of trend, in both
-superficial and deep) — staying under it. Both runs are free of any absolute
+superficial and deep); staying under it. Both runs are free of any absolute
 deep bump or absolute superficial notch isolated to 10-25 Hz.
 
 Read against the decision tree this finding is checked against: deep behaves
@@ -231,17 +231,17 @@ that tracks the shared 1/f trend), and superficial falls short of
 isolating an absorption notch too (it dips by about the same amount as
 deep does, rather than more). What the model currently produces is closer to "flat
 depth-dependent gain on top of an ordinary 1/f spectrum, same shape at every
-depth" — exactly what's expected from an asynchronous-irregular (broadband,
+depth". Exactly what's expected from an asynchronous-irregular (broadband,
 κ≈0) regime with a depth-weighted dipole-size/density readout, and exactly
 why the project's standing finding is that real band-limited laminar
 structure needs deliberately-engineered layer-localized oscillations (a fast
 superficial PV↔E gamma-PING loop, a slower resonant deep E-I loop) rather than
 parameter grading alone. The small relative crossings documented above are
 real in the strict mathematical sense, but they are second-order ripples
-riding on a spectrum that lacks genuine absolute band-selectivity — treat them
+riding on a spectrum that lacks genuine absolute band-selectivity. Treat them
 as exactly that, rather than as evidence of a deep resonator or superficial filter.
 
-**Honest summary.** Crossings are real and reproducible — the earlier "zero
+**Honest summary.** Crossings are real and reproducible; the earlier "zero
 crossover" claim was a method error, and no model finding supports it. But
 the absolute-power test above shows those crossings lack any genuine
 band-selective mechanism behind them: the spectrum carries flat depth gain and
@@ -251,21 +251,21 @@ literature's specific textbook pattern (a single flip,
 filter): both runs show an *alternating*, multi-crossing structure riding on
 a flat-gain broadband background instead. The deliberately-engineered
 oscillatory loops this project's prior work says the clean dichotomy needs
-remain the open, unimplemented piece — homeostatic/connectivity-weight
+remain the open, unimplemented piece: homeostatic/connectivity-weight
 grading clearly does *something* real to the relative depth structure, while
 stopping short (so far) of anything with absolute spectral selectivity.
 
 ## The cable-filter tensor: a frequency-selective LFP stage
 
-The finding directly above — flat depth gain everywhere in the default
-pipeline, with zero absolute band-selectivity — is a structural property of
+The finding directly above: flat depth gain everywhere in the default
+pipeline, with zero absolute band-selectivity, is a structural property of
 that pipeline, broader than this one run: `project_laminar_sources` is a
 purely *spatial* Gaussian-depth kernel, and the per-neuron `source_scale` gain
 graded by depth (1.0 superficial → 1.8 deep, `E` cells only) is frequency-flat.
 Both stages stay band-flat by construction, since each lacks a frequency axis. The
 package now adds a third stage that does: `cable_filter_sources`, a
 depth/cell-type-dependent passive-cable low-pass **tensor** applied to each
-neuron's source-proxy trace before spatial projection — the standard pipeline
+neuron's source-proxy trace before spatial projection; the standard pipeline
 shape is
 
 ```
@@ -283,7 +283,7 @@ fo = jtfne.project_laminar_sources(sources_filt, positions, n_contacts=32)
 
 `tau_s` is longest for deep `E` cells (long apical dendrites → low cutoff →
 relatively preserved low-frequency power) and shortest for `PV`
-interneurons (fast-spiking → high cutoff → gamma passes at every depth) —
+interneurons (fast-spiking → high cutoff → gamma passes at every depth),
 phenomenological rather than derived from a cable equation; `field_solver_status`
 stays `"linear_solver"` and `physical_amplitude_calibrated` stays `False`.
 
@@ -295,23 +295,23 @@ detrending:
 
 | band | unfiltered deep:superficial | filtered deep:superficial |
 |---|---|---|
-| theta (4–8 Hz) | ~flat gain only (no genuine band structure, see above) | 2.13 — unaffected |
-| alpha/beta (10–25 Hz) | same flat gain as every other band | **1.30 — stays deep-dominant** |
-| gamma (40–150 Hz) | same flat gain as every other band | **0.66 — flips to superficial-dominant** |
+| theta (4–8 Hz) | ~flat gain only (no genuine band structure, see above) | 2.13, unaffected |
+| alpha/beta (10–25 Hz) | same flat gain as every other band | **1.30, stays deep-dominant** |
+| gamma (40–150 Hz) | same flat gain as every other band | **0.66, flips to superficial-dominant** |
 
 This is an *absolute*, frequency-selective laminar effect
-this investigation has produced — a true band effect, distinct from a
+this investigation has produced: a true band effect, distinct from a
 relative-distribution crossing or a flat gain offset. `order=1` gives the same direction with a much
 weaker gamma flip (0.93, barely below parity); `order=2` (two cascaded
 single-pole sections) is the validated default for a clean split. Pushing
 `tau_e_deep` further (e.g. 8 ms) over-attenuates and erodes the alpha/beta
-deep-dominance it's supposed to preserve — the cutoff has to sit *between*
+deep-dominance it's supposed to preserve; the cutoff has to sit *between*
 alpha/beta and gamma, which excludes anything below alpha/beta.
 
 **Honest scope.** This is still a phenomenological filter tuned to produce
 the qualitative literature pattern (deep alpha/beta, superficial gamma). No
 cable-equation solve is performed, and the tau values are not derived from any measured
-or published dendritic biophysics — they were hand-tuned against this one
+or published dendritic biophysics. They were hand-tuned against this one
 falsification test. It is a different *mechanism class* from the
 flat-gain depth/dipole-size readout above (frequency-selective, beyond just
 depth-selective), and it composes cleanly with the existing LFP-proxy and
@@ -323,20 +323,20 @@ Three named, standalone operators now exist alongside the existing
 `project_laminar_sources` / `eeg_proxy_transform` / `meg_proxy_transform`
 readouts:
 
-- **`cable_filter_tau` / `cable_filter_sources`** — depth/cell-type-graded
+- **`cable_filter_tau` / `cable_filter_sources`**: depth/cell-type-graded
   passive-cable low-pass (frequency-domain, LFP stage; see above).
-- **`csd_tensor`** — the spatial second-derivative CSD stage, factored out of
+- **`csd_tensor`**: the spatial second-derivative CSD stage, factored out of
   `project_laminar_sources` so it can be recomputed standalone from any
   `[T, n_contacts]` potential-proxy array.
-- **`synaptic_tau_from_mechanism` / `synaptic_current_tensor`** — mechanism-name
+- **`synaptic_tau_from_mechanism` / `synaptic_current_tensor`**: mechanism-name
   (`AMPA`/`GABA_A`/`NMDA`/`GABA_B`) → tau lookup plus the standalone
   single-exponential synaptic filter already used inline by the recurrent
   emitter kernels. **Additive only**: `core._compile_connection_rules` still
   infers tau from weight sign alone (hardcoded exc=2 ms/inh=5 ms) regardless of
-  any declared mechanism — that inertness fix is deferred.
+  any declared mechanism; that inertness fix is deferred.
 
-These compose into one chain, and — unlike the cable-filter validation above,
-which used the one canonical V1 column all session — this was verified on a
+These compose into one chain, and, unlike the cable-filter validation above,
+which used the one canonical V1 column all session; this was verified on a
 deliberately *non-canonical* `Configuration` (3 layers instead of 6, a
 different cell-type mix, with `VIP` absent from the requested fractions) to confirm the
 chain is config-agnostic, general rather than tuned to one column:
@@ -370,12 +370,12 @@ All stages stayed finite and correctly shaped through the entire chain on the
 custom config (`tests/test_tensor_pipeline_custom_cfg.py`). One side-finding
 from this run, still open: requesting `cell_types={"E", "PV",
 "SST"}` (omitting `VIP`) on `laminar_cortex_config` still produced `VIP` neurons in
-the resulting `neuron_table()` — worth a separate look at how cell-type
+the resulting `neuron_table()`: worth a separate look at how cell-type
 fractions are normalized/defaulted, a question this pipeline work left untouched.
 
 **EMM stays out of this family.** `emm_proxy_transform` is a weighted
 spike-rate/source/field-potential cost functional rather than a linear leadfield or
-spatial/frequency filter — it sits outside the same `source -> tensor ->
+spatial/frequency filter; it sits outside the same `source -> tensor ->
 readout` composition as LFP/CSD/EEG/MEG above.
 
 [STDP_CLOSED_LOOP_REPORT](../../../artifacts/legacy/reports/STDP_CLOSED_LOOP_REPORT.md) ·

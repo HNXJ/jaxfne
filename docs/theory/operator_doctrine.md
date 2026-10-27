@@ -2,7 +2,7 @@
 
 Indexes the per-stage operator contract (domain, codomain, tensor rank,
 class, assumptions, units/status) for the seven-stage TFNE pipeline. Introduces no
-new operators, claim levels, or grammar — every fact below already exists in code
+new operators, claim levels, or grammar; every fact below already exists in code
 or in the linked pages; this page is the single table that ties them together.
 
 ## Purpose
@@ -19,16 +19,16 @@ the fluent `Configuration` builder chain are two views of one system:
 and the operator chain below its output. This page adds the per-stage contract
 table, gathered from where each fact is declared:
 
-- [Tensor-Network Ancestry](tensor_network_ancestry.md) — the basis-transform
+- [Tensor-Network Ancestry](tensor_network_ancestry.md): the basis-transform
   cascade (Emitter basis -> Source basis -> Field basis -> Readout basis) and the
   bridge-terms table.
-- [Mathematical Glossary Flow](mathematical_glossary_flow.md) — the formal
+- [Mathematical Glossary Flow](mathematical_glossary_flow.md): the formal
   equation, term glossary, and run boundary for each stage.
-- [Computation Basis](computation_basis.md) — canonical tensor shapes and the
+- [Computation Basis](computation_basis.md): canonical tensor shapes and the
   `field_regime` gating rule.
-- [Source/Field Equations](source_field_equations.md) — source bookkeeping and the
+- [Source/Field Equations](source_field_equations.md): source bookkeeping and the
   forbidden double-counting pattern.
-- [Tensor-Field Workflows](../guides/readout/tensor_field_workflows.md) — the probe-operator
+- [Tensor-Field Workflows](../guides/readout/tensor_field_workflows.md): the probe-operator
   tensor form.
 
 This page indexes those contracts and does not give their derivations.
@@ -61,7 +61,7 @@ pipeline label the seventh stage "Validation" rather than "Manifest". The codeba
 has one final stage, `Manifest`, in the "bookkeeping / truth gate" class above; it
 already includes the field-admissibility/source-conservation checks that live in
 `jaxfne/validation.py` (`validate_source_field_status`, `make_field_operator_status`,
-etc. — see [Field Validation](../reference/api/core/validation.md)) as part of producing that report.
+etc.; see [Field Validation](../reference/api/core/validation.md)) as part of producing that report.
 There is no separate eighth "Validation" stage to implement; "Validation" and
 "Manifest" name the same stage.
 
@@ -81,7 +81,7 @@ The "Class" column groups operators by what they do, independent of their pipeli
 | Search / gradient | Updates parameters from an objective | `agsdr`, `gsdr`, `optax_adam`, `random_search` |
 | Bookkeeping / truth gate | Produces a JSON-safe report without changing simulation state | `manifest`, `run_receipt`, `validate_source_field_status` |
 
-A solver class — a stage that solves rather than declares the field equation — is
+A solver class: a stage that solves rather than declares the field equation, is
 reserved and not implemented. See [Tensor Electromagnetics Scope](tensor_electromagnetics_scope.md)
 and the "Full electrodynamic solver" row in [Limitations and future plans](../reference/project/limitations_and_future_plans.md).
 
@@ -89,10 +89,10 @@ and the "Full electrodynamic solver" row in [Limitations and future plans](../re
 
 ## See Also
 
-- [Configuration Grammar](../guides/grammar/configuration_grammar.md) — the fluent/operator grammar reconciliation
-- [Tensor Operator Registry](../reference/api/readout/tensor_operators.md) — the live `operator_status()` registry and symbol mapping
-- [Tensor-Network Ancestry](tensor_network_ancestry.md) — basis-transform cascade and historical context
-- [Mathematical Glossary Flow](mathematical_glossary_flow.md) — per-equation glossary and run boundary
-- [Computation Basis](computation_basis.md) — canonical tensor shapes and the field-regime gating rule
-- [Tensor Electromagnetics Scope](tensor_electromagnetics_scope.md) — reserved field-solver stages
-- [Limitations and future plans](../reference/project/limitations_and_future_plans.md) — scope boundaries and reserved regimes
+- [Configuration Grammar](../guides/grammar/configuration_grammar.md): the fluent/operator grammar reconciliation
+- [Tensor Operator Registry](../reference/api/readout/tensor_operators.md): the live `operator_status()` registry and symbol mapping
+- [Tensor-Network Ancestry](tensor_network_ancestry.md): basis-transform cascade and historical context
+- [Mathematical Glossary Flow](mathematical_glossary_flow.md): per-equation glossary and run boundary
+- [Computation Basis](computation_basis.md): canonical tensor shapes and the field-regime gating rule
+- [Tensor Electromagnetics Scope](tensor_electromagnetics_scope.md): reserved field-solver stages
+- [Limitations and future plans](../reference/project/limitations_and_future_plans.md): scope boundaries and reserved regimes

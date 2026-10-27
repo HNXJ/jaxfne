@@ -3,15 +3,15 @@
 ## Purpose
 
 Conservation-inspired proxy diagnostics (`compute_conservation_proxy_diagnostics`)
-operate over the laminar-proxy field outputs — `source_proxy`, `phi_e_proxy`, `csd_proxy`, `lfp_proxy` —
+operate over the laminar-proxy field outputs: `source_proxy`, `phi_e_proxy`, `csd_proxy`, `lfp_proxy`,
 and produce JSON-safe scalar summaries for source/field validation.
 
 **Run boundary:**
 - Proxy diagnostics only, computed over existing proxy arrays. Calibration and the reserved physical-field regimes are catalogued in [Limitations and future plans](../../reference/project/limitations_and_future_plans.md).
 - `amplitude_status: false` (immutable).
 - `metabolism_status: false` (immutable).
-- `j_dot_e_proxy: null` — J_e is not computed in `linear_solver` mode.
-- `poynting_flux_proxy: null` — unimplemented.
+- `j_dot_e_proxy: null`: J_e is not computed in `linear_solver` mode.
+- `poynting_flux_proxy: null`: unimplemented.
 - `poisson_solver_status: not_implemented`.
 - `maxwell_solver_status: not_implemented`.
 - `stress_energy_tensor_status: not_implemented`.
@@ -97,7 +97,7 @@ Proxy mode reports `poynting_flux_proxy: null`. Poynting flux, stress-energy ten
 
 | Field | Type | Description |
 |---|---|---|
-| `diagnostic_status` | `"proxy"` | Always `"proxy"` — no physical status |
+| `diagnostic_status` | `"proxy"` | Always `"proxy"`; no physical status |
 | `diagnostic_version` | `"current"` | Version tag |
 | `model_status` | `"computational_scaffold"` | Always scaffold |
 | `field_solver_status` | str | Passed through; `"linear_solver"` by default |
@@ -176,10 +176,10 @@ Elliptic (Poisson) and volumetric (Maxwell) solvers, Poynting-flux and stress-en
 
 ## See Also
 
-- [Computation Basis](../computation_basis.md) — Field regime gating rules
-- [Mathematical Glossary Flow](../mathematical_glossary_flow.md) — Source/field equations
-- [Source/Field Equations](../source_field_equations.md) — Source modes and bookkeeping
-- [Probe Operators](../../guides/readout/probe_operators.md) — Readout operator statement boundaries
-- [Elliptic Field Equation Specification](../../guides/internal/poisson_admissibility.md) — admissibility mathematics
-- [Limitations and future plans](../../reference/project/limitations_and_future_plans.md) — scope boundaries and reserved regimes
-- [Tensor Electromagnetics Scope](../tensor_electromagnetics_scope.md) — reserved field-solver stages, including the P5 external-validation stage these reserved fields anticipate
+- [Computation Basis](../computation_basis.md): Field regime gating rules
+- [Mathematical Glossary Flow](../mathematical_glossary_flow.md): Source/field equations
+- [Source/Field Equations](../source_field_equations.md): Source modes and bookkeeping
+- [Probe Operators](../../guides/readout/probe_operators.md): Readout operator statement boundaries
+- [Elliptic Field Equation Specification](../../guides/internal/poisson_admissibility.md): admissibility mathematics
+- [Limitations and future plans](../../reference/project/limitations_and_future_plans.md): scope boundaries and reserved regimes
+- [Tensor Electromagnetics Scope](../tensor_electromagnetics_scope.md): reserved field-solver stages, including the P5 external-validation stage these reserved fields anticipate

@@ -13,7 +13,7 @@ there is no `Source` or `SourceTensor` object in jaxfne.
   adapter exists or is planned. Downstream code consumes the plain array plus the metadata
   surfaces described below.
 - The term "source schema" refers to the stable contract of (a) the trace array convention
-  and (b) the metadata keys that describe it — both documented on this page.
+  and (b) the metadata keys that describe it, both documented on this page.
 
 ## Canonical source contract
 

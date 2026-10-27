@@ -2,7 +2,7 @@
 
 If you use jaxfne, cite the software. Machine-readable
 metadata lives in [`CITATION.cff`](https://github.com/HNXJ/jaxfne/blob/main/CITATION.cff)
-at the repository root — GitHub derives its **Cite this repository** button from that file.
+at the repository root; GitHub derives its **Cite this repository** button from that file.
 
 ## Software citation (current)
 
@@ -43,7 +43,7 @@ Permanent version DOIs come from the **GitHub–Zenodo** integration when a
 2. Zenodo builds a deposit automatically under the concept DOI; confirm on the Zenodo project page.
 3. The concept DOI in `CITATION.cff`, `README.md` and this page stays unchanged.
 
-Detailed checklist: Zenodo release DOI guide (`docs/reference/project/zenodo_doi.md` — repository-internal reference, excluded from the built site).
+Detailed checklist: Zenodo release DOI guide (`docs/reference/project/zenodo_doi.md`: repository-internal reference, excluded from the built site).
 
 ## Component citations
 

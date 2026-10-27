@@ -1,7 +1,7 @@
 # jax-fem interoperability (scoping stage)
 
 **Status: schema/contract only.** `JaxFemFieldBridge` verifies the optional
-dependency is installed and returns a status contract — it does not run a
+dependency is installed and returns a status contract; it does not run a
 real field solve yet. This page documents the current scope and the plan,
 not a working feature; see `artifacts/publication/publication_evidence_index.json`
 for the tracked field-solver backlog entry this serves.
@@ -14,7 +14,7 @@ is currently a static, non-learned linear projection
 solve. [jax-fem](https://github.com/deepmodeling/jax-fem) is an actively
 maintained differentiable GPU-accelerated FEM library built on JAX, showing
 that a differentiable elliptic solve composing with jaxfne's existing
-differentiable spiking/HDP pipeline is feasible — the goal this bridge works
+differentiable spiking/HDP pipeline is feasible; the goal this bridge works
 toward is a differentiable volume-conductor solve for the laminar column
 geometry.
 
@@ -23,7 +23,7 @@ geometry.
 jax-fem is **GPLv3-licensed**, with commercial licensing available separately
 directly from the author (see jax-fem's own README/LICENSE). It is
 deliberately kept as an **optional extra**,
-and is **not** included in the `jaxfne[all]` bundle — installing it is a
+and is **not** included in the `jaxfne[all]` bundle; installing it is a
 separate, explicit choice:
 
 ```bash
@@ -53,23 +53,23 @@ bridge.construct()  # raises ImportError with an install hint if jax-fem isn't i
 - jax-fem's typical demos generate meshes via `gmsh` (an external mesh-generation
   tool), but `jax_fem.generate_mesh.Mesh` itself only needs raw `(points, cells)`
   arrays, and a gmsh-free `box_mesh(Nx, Ny, Nz, domain_x, domain_y, domain_z)`
-  helper already exists in the library — a layered laminar-column geometry
+  helper already exists in the library: a layered laminar-column geometry
   (a thin box, `Nx=Ny=1`, `Nz`=number of depth layers) does not require
   adopting `gmsh` as a dependency.
 - The real solve would subclass `jax_fem.problem.Problem`, defining
-  `get_tensor_map()` (the flux/conductivity term — piecewise-constant per
+  `get_tensor_map()` (the flux/conductivity term; piecewise-constant per
   layer, matching jaxfne's existing layer geometry) and `get_mass_map()`
   (the source term, fed from jaxfne's per-neuron source proxy), then call
   `jax_fem.solver.solver(problem)`.
 - Validation target: the classical "method of images" closed-form solution
   for a point current source in a planar-layered volume conductor with
-  piecewise-constant conductivity — the same problem family referenced in
+  piecewise-constant conductivity: the same problem family referenced in
   Pettersen/Einevoll-style forward-CSD-modeling literature. See
   `novelty::tfne-analytic-ground-truth-validation` in the tracked backlog.
 
 ## See also
 
-- [Source and Field Equations](../../theory/source_field_equations.md) — the current
+- [Source and Field Equations](../../theory/source_field_equations.md): the current
   `linear_solver`/`proxy_no_field_solve` default this bridge targets replacing.
-- [Jaxley interoperability](jaxley_interop.md) — the analogous, fully-working
+- [Jaxley interoperability](jaxley_interop.md): the analogous, fully-working
   optional-bridge pattern this one is modeled on.

@@ -744,7 +744,7 @@ custom Python callable bypasses `Configuration` entirely, via
 
 Builds a minimal all-pairwise E/I `HomeostaticEIParams` for any `n>=2` — the
 `scripts/`-level analog of `Configuration.set_emitter("homeostatic_ei")`, for ad hoc
-scripts/experiments needing a `HomeostaticEIParams` without
+experiment scripts needing a `HomeostaticEIParams` without
 `Configuration`/`construct()`. `G_max` defaults to `10.0/n` —
 holds the aggregate per-row Hebbian feedback ceiling (`n * G_max`) constant across `n`.
 </content>

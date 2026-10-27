@@ -20,7 +20,7 @@ TFNE operates on tensors with the following canonical dimensions:
 
 > **Scope note:** the $X$ above is the spatial-locations tensor dimension. The
 > TFNE algebra uses $X$ for cross/lateral architectural composition at
-> specification time — a different namespace (see
+> specification time; a different namespace (see
 > [TFNE Algebra](doctrine/tfne_algebra.md)).
 
 ### Canonical Shapes
@@ -104,7 +104,7 @@ When adding a new dimension:
 
 1. **Name it explicitly** in docstrings and Manifest
 2. **Document its size and meaning** (as "spike_threshold_samples", rather than "axis 2")
-3. **Test shape stability** — if shape changes unexpectedly, it breaks downstream operators
+3. **Test shape stability**: if shape changes unexpectedly, it breaks downstream operators
 4. **Collapse or broadcast.** Do not silently drop or pad dimensions
 
 ---
@@ -282,13 +282,13 @@ Computation-basis objects implemented in jaxfne:
 | `validate_basis_spec(spec)` | `jaxfne.validation` | Validates a BasisSpec or dict against computation-basis rules |
 | `manifest["basis"]` | `jaxfne.core.Model.manifest()` | Nested basis metadata block in every run manifest (populated by `jaxfne.core._default_basis_dict()`) |
 
-> **Note (re-verified 2026-07-03):** `basis_statement_gate()` does not exist —
+> **Note (re-verified 2026-07-03):** `basis_statement_gate()` does not exist,
 > absent from `jaxfne.validation`, from the whole `jaxfne` package, and from
 > `jaxfne.__all__`. This table previously claimed it as implemented; that was
 > false and has been removed. Physical-amplitude/claim-level eligibility is
 > represented directly in report dicts (`claim_level`,
-> `physical_amplitude_calibrated`, etc. — see
-> Tensor Operators — Report shapes (`docs/reference/api/readout/tensor_operators.md` — repository-internal reference, excluded from the built site))
+> `physical_amplitude_calibrated`, etc.; see
+> Tensor Operators: Report shapes (`docs/reference/api/readout/tensor_operators.md`: repository-internal reference, excluded from the built site))
 > rather than through a dedicated gate function. `AxisSpec`, `BasisSpec`, and
 > `default_basis_spec()` all exist in `jaxfne.core` and are re-exported at the
 > `jaxfne` top level (`jaxfne.AxisSpec` works directly) as documented.
@@ -303,16 +303,16 @@ Computation-basis objects implemented in jaxfne:
 | `reserved_admittive` | Declared reserved (v0.3.x) | **False** | **False** |
 | `reserved_maxwell` | Declared reserved (v0.3.x) | **False** | **False** |
 
-`solved_poisson`, `reserved_maxwell`, and `reserved_admittive` are **reserved markers** — they are named reserved markers only. `implemented=False`, `status_enabled=False` are structurally enforced and cannot be escalated. An elliptic-equation field solve for this regime requires separate approval before any implementation begins.
+`solved_poisson`, `reserved_maxwell`, and `reserved_admittive` are **reserved markers**; they are named reserved markers only. `implemented=False`, `status_enabled=False` are structurally enforced and cannot be escalated. An elliptic-equation field solve for this regime requires separate approval before any implementation begins.
 
 ---
 
 ## See Also
 
-- [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Core TFNE equations
-- [Source/Field Equations](source_field_equations.md) — Source modes, forbidden patterns, field metadata
-- Tensor-Network Ancestry (`docs/theory/tensor_network_ancestry.md` — repository-internal reference, excluded from the built site) — conceptual context: basis-transform rule and historical parallels
-- [Probe Operators](../guides/readout/probe_operators.md) — Readout operators and their statement boundaries
-- [Scope and Limitations](../reference/project/limitations_and_future_plans.md) — statement boundaries and scope
-- TFNE Operator Doctrine (`docs/theory/operator_doctrine.md` — repository-internal reference, excluded from the built site) — Per-stage rule table built on these tensor shapes
-- Tensor Electromagnetics Scope (`docs/theory/tensor_electromagnetics_scope.md` — repository-internal reference, excluded from the built site) — Reserved field-solver stages referenced by the reserved markers above
+- [Mathematical Glossary Flow](mathematical_glossary_flow.md): Core TFNE equations
+- [Source/Field Equations](source_field_equations.md): Source modes, forbidden patterns, field metadata
+- Tensor-Network Ancestry (`docs/theory/tensor_network_ancestry.md`: repository-internal reference, excluded from the built site): conceptual context: basis-transform rule and historical parallels
+- [Probe Operators](../guides/readout/probe_operators.md): Readout operators and their statement boundaries
+- [Scope and Limitations](../reference/project/limitations_and_future_plans.md): statement boundaries and scope
+- TFNE Operator Doctrine (`docs/theory/operator_doctrine.md`: repository-internal reference, excluded from the built site): Per-stage rule table built on these tensor shapes
+- Tensor Electromagnetics Scope (`docs/theory/tensor_electromagnetics_scope.md`: repository-internal reference, excluded from the built site): Reserved field-solver stages referenced by the reserved markers above

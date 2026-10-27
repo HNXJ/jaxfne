@@ -6,7 +6,7 @@ Probe declarations and multimodal readout channels for neural simulation output.
 
 A probe is a declarative metadata entry attached to a `Configuration` via
 `cfg.probes([...])` (or `Configuration.probe(**kwargs)`). It is purely
-declarative — it records intent (which readout modes to expect, how many
+declarative; it records intent (which readout modes to expect, how many
 laminar contacts, etc.) as JSON-safe metadata on the config. The actual
 readout arrays are produced at simulation time as fields on the real
 `Signals` dataclass (`jaxfne/core.py:2716-2725`):
@@ -47,7 +47,7 @@ class FieldOutput:
     def lfp(self) -> jax.Array: ...   # alias for lfp_proxy
 ```
 
-EEG-proxy / MEG-proxy / EMM-proxy are computed on demand only — they are
+EEG-proxy / MEG-proxy / EMM-proxy are computed on demand only; they are
 produced by explicit transform functions in `jaxfne/fields/probes.py`
 (`eeg_proxy_transform`, `meg_proxy_transform`, `emm_proxy_transform`), which
 the caller invokes with a leadfield/weighting matrix it supplies, separately
@@ -190,7 +190,7 @@ _SUITE2_PROXY_MODES = (
 ```
 
 `"SPK"`, `"Vm"` (capitalized-short form), and `"MUA-proxy"` are absent from
-the codebase entirely — they never appear in `_SUITE2_PROXY_MODES`,
+the codebase entirely. They never appear in `_SUITE2_PROXY_MODES`,
 `_SIGNALS_GET_KEY_ALIASES`, or `probe_laminar_modes`. Use the real names
 above.
 
@@ -219,7 +219,7 @@ against the retired `kind`/`mode`/`modes`-as-legacy-alias keys via
 `Signals` object and returns a list of `ReadoutResult`.
 
 The **real, complete** set of valid `metric` values is
-`_KNOWN_READOUT_METRICS` (`jaxfne/core.py:8287-8294`) — exactly six entries:
+`_KNOWN_READOUT_METRICS` (`jaxfne/core.py:8287-8294`). Exactly six entries:
 
 | Metric | Description |
 |--------|-------------|
@@ -232,7 +232,7 @@ The **real, complete** set of valid `metric` values is
 
 Any other `metric` string (e.g. `"mean_LFP"`, `"mean_EEG"`,
 `"burst_frequency_hz"`) falls outside `_KNOWN_READOUT_METRICS`; passing one
-is handled gracefully — `compute_readout` returns a `ReadoutResult` with
+is handled gracefully; `compute_readout` returns a `ReadoutResult` with
 `status="unknown_metric"` and `value=None` (`jaxfne/core.py:5039-5046`).
 Burst-frequency, peak-rate, min/max-voltage, and EEG/MEG/EMM metrics remain
 unwired in `compute_readout` today.
@@ -263,11 +263,11 @@ for r in readouts:
 
 `ProbeReport` was removed from the package entirely (confirmed:
 `grep -rn "class ProbeReport" jaxfne/` returns nothing). Two real, differently
-shaped things exist under similar names — treat them as distinct from the
+shaped things exist under similar names. Treat them as distinct from the
 removed `ProbeReport`:
 
 1. **`jaxfne.io.probe_report(n_probes, probe_types=None, metadata=None)`**
-   (`jaxfne/io.py:218-234`) — a plain JSON-bundle builder rather than a per-probe
+   (`jaxfne/io.py:218-234`): a plain JSON-bundle builder rather than a per-probe
    report object. It returns:
    ```python
    {
@@ -282,7 +282,7 @@ removed `ProbeReport`:
    report = probe_report(n_probes=2, probe_types={"V_m": 1, "spikes": 1})
    ```
 
-2. **`jaxfne.operator_status()`** (`jaxfne/_construct_extras.py:38`) — returns a
+2. **`jaxfne.operator_status()`** (`jaxfne/_construct_extras.py:38`): returns a
    dict mapping operator symbol names to readiness strings (e.g.
    `"prototype_api"`, `"not_implemented"`), a registry-level snapshot of
    operator readiness.
@@ -303,7 +303,7 @@ All probe/readout paths here are computational proxies:
   the depth axis). By the standard current-source-density convention, **positive
   CSD-proxy = extracellular current source = outward transmembrane current**;
   **negative CSD-proxy = extracellular current sink = inward transmembrane
-  current**. This is an uncalibrated proxy — the sign is an operator
+  current**. This is an uncalibrated proxy; the sign is an operator
   convention, distinct from a calibrated physiological measurement.
 - **Proxy field solver:** laminar field readouts are convolution-based proxies (`field_solver_status="linear_solver"`) rather than a solved Poisson/volume-conductor equation. EEG-proxy/MEG-proxy require a caller-supplied leadfield matrix and remain "toy" projections short of a realistic head model.
 
@@ -341,7 +341,7 @@ NaN or Inf values will fail `json.dumps(..., allow_nan=False)`.
 
 ## See also
 
-- [Probe Operators Guide](../../../guides/readout/probe_operators.md) — worked walkthroughs
-- [Fields API](fields.md) — Source projection and field computation (`FieldOutput`, `project_laminar_sources`)
-- [Core API](../core/core.md) — `Signals`, `Model`, `Configuration`, `ReadoutSpec`/`ReadoutResult`
+- [Probe Operators Guide](../../../guides/readout/probe_operators.md): worked walkthroughs
+- [Fields API](fields.md): Source projection and field computation (`FieldOutput`, `project_laminar_sources`)
+- [Core API](../core/core.md): `Signals`, `Model`, `Configuration`, `ReadoutSpec`/`ReadoutResult`
 - [API reference](../index.md)

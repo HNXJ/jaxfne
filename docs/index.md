@@ -46,14 +46,14 @@ model   = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms
 signals = jtfne.simulate(model)
 ```
 
-> Canonical example uses a qualitative laminar scaffold — see [Scope & status](reference/project/scope_and_status.md#biological-calibration-status-canonical-v1-column).
+> Canonical example uses a qualitative laminar scaffold; see [Scope & status](reference/project/scope_and_status.md#biological-calibration-status-canonical-v1-column).
 
 ## Main pages
 
-- [Quickstart](start/quickstart.md) — build paths, paradigms, H-state adaptation
-- [Tutorials](tutorials/index.md) — worked examples
-- [Canonical Atlas Suite](guides/interop/atlas_suite.md) — 7-panel interactive atlas
-- [Études](etudes/index.md) — demonstrated scientific propositions
+- [Quickstart](start/quickstart.md): build paths, paradigms, H-state adaptation
+- [Tutorials](tutorials/index.md): worked examples
+- [Canonical Atlas Suite](guides/interop/atlas_suite.md): 7-panel interactive atlas
+- [Études](etudes/index.md): demonstrated scientific propositions
 - [API reference](reference/api/index.md)
 - [H-state / HDP guide](guides/state/hdp.md)
 

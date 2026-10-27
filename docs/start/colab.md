@@ -290,5 +290,5 @@ Indicates a simulation issue (e.g., numerical instability). Check:
 
 ## See Also
 
-- [Computation Basis](../theory/computation_basis.md) — Detailed computation contract
-- Conservation Proxy Diagnostics (`docs/theory/notes/conservation_proxy_diagnostics.md` — repository-internal reference, excluded from the built site) — Diagnostics reference
+- [Computation Basis](../theory/computation_basis.md): Detailed computation contract
+- Conservation Proxy Diagnostics (`docs/theory/notes/conservation_proxy_diagnostics.md`: repository-internal reference, excluded from the built site): Diagnostics reference

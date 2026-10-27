@@ -36,7 +36,7 @@ print(sig.metadata["physical_amplitude_calibrated"])   # False (proxy gate)
 fig = jtfne.vis.vm(sig)                                 # plot like any tfne run
 ```
 
-Already ran `jaxley.integrate(...)` yourself? Convert the recordings directly —
+Already ran `jaxley.integrate(...)` yourself? Convert the recordings directly:
 recorded-compartment xyz are pulled from `module.nodes` into the metadata for
 downstream projection:
 
@@ -78,14 +78,14 @@ sig.metadata["homeostasis"]   # controller params + framing gates
 `k_gain=0` is a clean null (no bias). The controller runs at *window* cadence (Jaxley's
 `integrate` is a closed scan), a documented approximation of the per-step Izhikevich
 homeostatic kernel. **Framing:** this is a computational control proxy, rather than a claim of a biological
-mechanism — `biological_learning_claim=False`, `mechanism_claim_status="not_claimed"`.
+mechanism: `biological_learning_claim=False`, `mechanism_claim_status="not_claimed"`.
 Note: Jaxley single-compartment HH has a non-monotonic f-I curve (high current →
 depolarization block), so keep currents in the ~0.002–0.02 nA band for the default compartment.
 
 > **JAX compatibility shim.** Jaxley (≤0.13) channels call the
 > `jnp.clip(a_min=, a_max=)` keywords that recent JAX removed. Every Jaxley entry
 > point routes through `require_jaxley()`, which lazily installs a backward-compatible
-> shim so channel emitters actually integrate on current JAX — you do not need to do
+> shim so channel emitters actually integrate on current JAX; you do not need to do
 > anything. The metadata records `jax_clip_compat_installed` for transparency.
 
 ### Array-first trace bridge
@@ -115,13 +115,13 @@ print(f"Claim level: {signals.metadata['claim_level']}")  # computational_scaffo
 - Spike proxy derivation via voltage threshold (default 0.0 mV, configurable)
 - Conservative voltage-proxy source (ionic current mapping deferred)
 
-**Scope:** All bridge outputs use the package truth gates — see
+**Scope:** All bridge outputs use the package truth gates; see
 [Scope & status](../../reference/project/scope_and_status.md).
 
 **See also:**
-- `examples/07_jaxley_trace_bridge.py` — Full tutorial with layout conversion and threshold variation
-- `JaxleyTraceSpec` — Configuration for trace metadata, dt, spike threshold
-- `jaxley_trace_to_signals()` — Main conversion function
+- `examples/07_jaxley_trace_bridge.py`: Full tutorial with layout conversion and threshold variation
+- `JaxleyTraceSpec`: Configuration for trace metadata, dt, spike threshold
+- `jaxley_trace_to_signals()`: Main conversion function
 
 ### Bridging: array layout conventions
 
@@ -156,7 +156,7 @@ Use jaxfne when you want to:
 
 ## Interactive panel (dark)
 
-The bridge returns `Signals` without a `Model`, so there is no full atlas for it — instead, the membrane-potential panel of the HH run above, generated with the canonical `plot_membrane_potentials` plotter:
+The bridge returns `Signals` without a `Model`, so there is no full atlas for it; instead, the membrane-potential panel of the HH run above, generated with the canonical `plot_membrane_potentials` plotter:
 
 === "Still"
 

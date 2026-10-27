@@ -19,7 +19,7 @@ measurement window.
 
 ## AGSDR optimizer spec
 
-AGSDR = **Adaptive Genetic Stochastic Delta Rule** — the canonical black-box
+AGSDR = **Adaptive Genetic Stochastic Delta Rule**: the canonical black-box
 optimizer for `Model.tune` (multi-parameter engine:
 `jaxfne.optim._run_agsdr_optimization_loop`; scalar engine:
 `propose_blackbox_candidates`).
@@ -63,7 +63,7 @@ definition above. The authoritative source is
 |---|---|---|
 | **CANONICAL** | `agsdr()`, `AGSDROptimizerSpec`, `OptimizerSpec`, `_resolve_optimizer`, `_run_agsdr_optimization_loop`, `_agsdr_candidates_from_noise` | The multi-parameter `Model.tune` AGSDR engine (population + delta-rule center update + elitist anchor). |
 | **EXPERIMENTAL** | `agsdr_transform` | Optax `GradientTransformation` variant; NOT on the `Model.tune(optimizer="AGSDR")` path; exercised only by tests. |
-| **COMPATIBILITY** | `AGSDR`, `AGSDRState`, `step_agsdr_transform`, `propose_blackbox_candidates` | Legacy surfaces retained for old notebooks/tests. `AGSDRState`/`step_agsdr_transform` are documented misnomers: they back a plain gradient-descent step and do not implement canonical AGSDR. `propose_blackbox_candidates` is the legacy single-parameter two-phase shrinking-radius search — related to the canonical engine, rather than equivalent to it (fixed center, no population, no delta-rule update). |
+| **COMPATIBILITY** | `AGSDR`, `AGSDRState`, `step_agsdr_transform`, `propose_blackbox_candidates` | Legacy surfaces retained for old notebooks/tests. `AGSDRState`/`step_agsdr_transform` are documented misnomers: they back a plain gradient-descent step and do not implement canonical AGSDR. `propose_blackbox_candidates` is the legacy single-parameter two-phase shrinking-radius search; related to the canonical engine, rather than equivalent to it (fixed center, no population, no delta-rule update). |
 | **HYBRID** | `_tune_matrix_agsdr_optax` | Matrix/two-level path: canonical AGSDR outer proposals with an inner Optax (Adam) refinement surrogate; NOT mathematically identical to canonical AGSDR. |
 | **TUTORIAL** | `tune_laminar_agsdr` | Tutorial convenience wrapper; not the canonical engine. |
 

@@ -2,17 +2,17 @@
 
 With **empirical EEG, MEG, LFP, or CSD data**, jaxfne's default proxy
 readouts need calibration before amplitudes or units are meaningful.
-This guide lists the metadata and workflow hooks the package provides —
+This guide lists the metadata and workflow hooks the package provides,
 without claiming shipped outputs are already physically calibrated.
 
 ## Calibration-ready design
 
 jaxfne supports calibration workflows. The package:
 
-- **Preserves source identity** — track source origin (emitter type, cell type)
-- **Declares assumptions** — metadata fields state conductivity, solver, geometry models
-- **Supports geometry specification** — define layer/contact depths and spatial locations
-- **Allows empirical mapping** — workflows can include measured-to-model correspondences
+- **Preserves source identity**: track source origin (emitter type, cell type)
+- **Declares assumptions**: metadata fields state conductivity, solver, geometry models
+- **Supports geometry specification**: define layer/contact depths and spatial locations
+- **Allows empirical mapping**: workflows can include measured-to-model correspondences
 
 ## Next steps for calibration
 
@@ -63,12 +63,12 @@ spec = CalibrationSpec(
 
 ### Supported Modes
 
-- `uncalibrated_native` — Proxy readout, no calibration (default)
-- `toy_scale` — Illustrative calibration, pending validation
-- `relative_normalized` — Normalized relative to proxy baseline
-- `empirical_gain_candidate` — Candidate gain estimate, pending validation
-- `physical_units_candidate` — Candidate physical units, pending validation
-- `calibrated_empirical` — Calibration metadata declared (validation pending)
+- `uncalibrated_native`: Proxy readout, no calibration (default)
+- `toy_scale`: Illustrative calibration, pending validation
+- `relative_normalized`: Normalized relative to proxy baseline
+- `empirical_gain_candidate`: Candidate gain estimate, pending validation
+- `physical_units_candidate`: Candidate physical units, pending validation
+- `calibrated_empirical`: Calibration metadata declared (validation pending)
 
 ### Calibration Reports
 
@@ -94,7 +94,7 @@ report = make_calibration_report(spec, readout_kind="lfp_proxy")
 
 ## Biological calibration status
 
-Field-amplitude calibration (above) differs from **biological calibration** — whether the circuit's cell-type composition and connectivity are quantitatively fitted to empirical biology.
+Field-amplitude calibration (above) differs from **biological calibration**: whether the circuit's cell-type composition and connectivity are quantitatively fitted to empirical biology.
 
 ### Canonical V1 column (`canonical-v1-column-1000n`)
 
@@ -110,7 +110,7 @@ The shipped canonical V1 is intentionally scoped as a **qualitative laminar scaf
 
 **Reduced-emitter caveat.** The default emitter is a reduced Izhikevich point neuron. Labels `E`/`PV`/`SST`/`VIP` are **functional scaffold identities** (distinct `a`/`b`/`c`/`d`/`drive`/`sign` rows in `IZHIKEVICH_CELL_TYPE_DEFAULTS`) that provide dynamical heterogeneity; literal cell-type identity is not warranted. A label match does not imply transcriptomic, morphological, or biophysical identity with the named biological class. Do not present results as if `PV` in the model is proven to be biological PV interneurons; report as "PV-like reduced scaffold" unless an independent calibration/validation study supplies that warrant. No kernel change.
 
-To claim quantitative biological correspondence, supply an explicit layer-resolved validation study (stereology, connectomics, or transcriptomic mapping) and tag the derived circuit with its own citation and `value_tag` — do not reinterpret the shipped scaffold as already validated.
+To claim quantitative biological correspondence, supply an explicit layer-resolved validation study (stereology, connectomics, or transcriptomic mapping) and tag the derived circuit with its own citation and `value_tag`. Do not reinterpret the shipped scaffold as already validated.
 
 ### Dynamical regime: synchronous-regular
 
@@ -133,7 +133,7 @@ Excitatory in-degree exceeds inhibitory in-degree ($6.3 : 1$, equal synaptic wei
 - ✓ Metadata fields support calibration annotations
 - ✓ JSON output bundles preserve geometry and source information
 - ✓ Calibration specification contracts (metadata only, no physical amplitude upgrade)
-- ✓ Biological calibration status declared for canonical V1 (qualitative scaffold only: cell-fraction and connectivity both `false` — this section)
+- ✓ Biological calibration status declared for canonical V1 (qualitative scaffold only: cell-fraction and connectivity both `false`; this section)
 - ◐ Empirically validated calibration examples: planned
 - ◐ Empirically calibrated readouts: planned
 
@@ -168,7 +168,7 @@ contact depths raise an error.
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from a minimal 200 ms completion (dt 0.5 ms, seed 0) of the page's 100-neuron circuit — the page's own simulate call is a placeholder: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/calibration_100/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/calibration_100/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/calibration_100/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/calibration_100/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/calibration_100/oscillatory.html)
+Dark-theme Plotly panels from a minimal 200 ms completion (dt 0.5 ms, seed 0) of the page's 100-neuron circuit; the page's own simulate call is a placeholder: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/calibration_100/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/calibration_100/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/calibration_100/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/calibration_100/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/calibration_100/oscillatory.html)
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug calibration_100`.
 

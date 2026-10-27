@@ -9,8 +9,8 @@ Machine-readable receipt: `artifacts/assurance/api_contracts/public_surface_cont
 
 | Tier | Meaning |
 |------|---------|
-| **CANONICAL** | Root `__all__` — supported TFNE grammar |
-| **COMPATIBILITY** | Root `__all__` — deprecated aliases |
+| **CANONICAL** | Root `__all__`: supported TFNE grammar |
+| **COMPATIBILITY** | Root `__all__`: deprecated aliases |
 | **ADVANCED** | Importable from submodules; not root `__all__` |
 | **EXPERIMENTAL_INTERNAL** | Not part of the public contract |
 

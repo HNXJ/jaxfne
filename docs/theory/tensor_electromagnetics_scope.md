@@ -16,12 +16,12 @@ stage, without implying any of it is scheduled. Every stage past P0 is
 
 | Stage | Description | Status |
 |---|---|---|
-| **P0** | Proxy projection — Gaussian-leadfield source-to-field projection, finite-difference CSD | shipped |
-| **P1** | Declared geometry — boundary/gauge/conductivity fields carried as metadata and unsolved | shipped (`physical_field_solver_v040.PhysicalFieldSolverSpec`) |
-| **P2** | Boundary-aware solve — an elliptic field solve that honors a declared boundary condition and gauge | reserved |
-| **P3** | Discrete volume solve — a mesh/volume-conductor solve over declared geometry | reserved |
-| **P4** | Differentiable adjoint — a solve path compatible with gradient-based tuning | reserved |
-| **P5** | External validation — comparison against reference physical measurements | reserved |
+| **P0** | Proxy projection: Gaussian-leadfield source-to-field projection, finite-difference CSD | shipped |
+| **P1** | Declared geometry: boundary/gauge/conductivity fields carried as metadata and unsolved | shipped (`physical_field_solver_v040.PhysicalFieldSolverSpec`) |
+| **P2** | Boundary-aware solve: an elliptic field solve that honors a declared boundary condition and gauge | reserved |
+| **P3** | Discrete volume solve: a mesh/volume-conductor solve over declared geometry | reserved |
+| **P4** | Differentiable adjoint: a solve path compatible with gradient-based tuning | reserved |
+| **P5** | External validation: comparison against reference physical measurements | reserved |
 
 P0 and P1 ship today. P2 through P5 are unimplemented, unscheduled, and not
 promised; they record where the proxy/solved boundary lies.
@@ -56,9 +56,9 @@ guards the emitter stage would extend to this stage.
 ### P5 — External validation
 
 [Conservation-Inspired Proxy Diagnostics](notes/conservation_proxy_diagnostics.md)
-already reserves the relevant report fields for this stage —
+already reserves the relevant report fields for this stage:
 `poisson_solver_status`, `maxwell_solver_status`, `stress_energy_tensor_status`,
-`j_dot_e_proxy`, `poynting_flux_proxy` — all held at `"not_implemented"` or
+`j_dot_e_proxy`, `poynting_flux_proxy`: all held at `"not_implemented"` or
 `null` until a solved field exists to validate against reference measurements.
 
 ---
@@ -66,7 +66,7 @@ already reserves the relevant report fields for this stage —
 ## What does not change
 
 Reaching a reserved stage does not change `claim_level`,
-`physical_amplitude_calibrated`, or other scope metadata by itself — those
+`physical_amplitude_calibrated`, or other scope metadata by itself; those
 stay at conservative defaults until separate calibration evidence exists, per
 [Limitations and future plans](../reference/project/limitations_and_future_plans.md).
 
@@ -74,8 +74,8 @@ stay at conservative defaults until separate calibration evidence exists, per
 
 ## See Also
 
-- [Limitations and future plans](../reference/project/limitations_and_future_plans.md) — the regime table this page expands
-- [Conservation-Inspired Proxy Diagnostics](notes/conservation_proxy_diagnostics.md) — reserved report fields
-- [Elliptic Field Equation Specification](../guides/internal/poisson_admissibility.md) — admissibility gates for P2
-- [TFNE Operator Doctrine](operator_doctrine.md) — the solver operator class this page details
-- [Tensor-Network Ancestry](tensor_network_ancestry.md) — the reserved-path tone this page follows
+- [Limitations and future plans](../reference/project/limitations_and_future_plans.md): the regime table this page expands
+- [Conservation-Inspired Proxy Diagnostics](notes/conservation_proxy_diagnostics.md): reserved report fields
+- [Elliptic Field Equation Specification](../guides/internal/poisson_admissibility.md): admissibility gates for P2
+- [TFNE Operator Doctrine](operator_doctrine.md): the solver operator class this page details
+- [Tensor-Network Ancestry](tensor_network_ancestry.md): the reserved-path tone this page follows

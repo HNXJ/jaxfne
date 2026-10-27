@@ -2,7 +2,7 @@
 
 Two figures before analysis: what you built, and what it does.
 
-A run that executes still needs inspecting. Scalar summaries can miss structure the trajectories show — one window-averaged rate fits two runs with wholly different spike timing. Inspect the circuit, then the activity.
+A run that executes still needs inspecting. Scalar summaries can miss structure the trajectories show; one window-averaged rate fits two runs with wholly different spike timing. Inspect the circuit, then the activity.
 
 ## 1. Construct, then see the circuit
 
@@ -16,7 +16,7 @@ jaxfne.vis.network_hspice(model, path="circuit.png")
 
 A block schematic: input left, output right, areas as blocks, layers as
 rows, cell classes as chips, and one annotated arrow per cross-area projection with
-its edge count, mean weight and sign. No single neurons drawn — a
+its edge count, mean weight and sign. No single neurons drawn; a
 construction receipt for the built circuit.
 
 ![circuit](../../_static/model_inspection/case2_three_area_hspice_light.png)

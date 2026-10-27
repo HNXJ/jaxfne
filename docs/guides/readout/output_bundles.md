@@ -50,12 +50,12 @@ v0.0.4–v0.0.14**. It still works and is not scheduled for removal. For
 new code the canonical workflow is two typed, immutable, JSON-safe
 alternatives:
 
-- **`Model.run_receipt(signals, *, tags=None) -> RunReceipt`** — captures a
+- **`Model.run_receipt(signals, *, tags=None) -> RunReceipt`**: captures a
   completed simulation run for audit/reproducibility. Produces a
   deterministic `receipt_id` derived from `(config_hash, seed,
   jaxfne_version)`. Prefer this over `manifest()` for recording runs.
 - **`Model.evaluate_report(signals, objective, *, readout_specs=None,
-  readout=None) -> ObjectiveReport`** — evaluates an `Objective` and returns
+  readout=None) -> ObjectiveReport`**: evaluates an `Objective` and returns
   a frozen, JSON-safe report (losses, regularizers, gates,
   `all_gates_pass`, embedded readout results, and a `truth` dict with the
   standard status-gate fields: `claim_level`, `physical_amplitude_calibrated`,
@@ -82,7 +82,7 @@ Both `RunReceipt` and `ObjectiveReport` are dataclasses with JSON-safe
 contents; serialize them the same way as `manifest()`'s dict output (e.g.
 `json.dumps(jtfne.io.json_safe(receipt.__dict__), allow_nan=False)`), subject
 to the same NaN/Inf checks described above. The `manifest`/`compute_readout`
-path documented in this guide remains valid — it is not the newest
+path documented in this guide remains valid; it is not the newest
 recommended entry point. See `jaxfne/core.py` (`Model.run_receipt`,
 `Model.evaluate_report`) for the full signatures and docstrings; there is no
 separate `docs/api/` page for these two methods as of this writing.

@@ -186,7 +186,7 @@ giving approximately:
 \]
 
 Computationally: thousands of neurons may share a canonical parameter set while
-RBS produces local deviations — without storing a fully independent detailed
+RBS produces local deviations; without storing a fully independent detailed
 model per element unless the user chooses that resolution.
 
 ## 7. Fidelity as explicit user choice
@@ -226,10 +226,10 @@ Broader operator couplings are an **architectural target**, outside H1 scope.
 
 ## 9. References
 
-- `docs/theory/doctrine/rbs_rbd_hdp.md` — RBS/RBD/HDP index
-- `docs/theory/memory/protocol_h_rbd_memory.md` — Protocol H
-- `docs/theory/memory/protocol_h_h1b_h_to_x_gain.md` — emitter gain inventory
-- `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` — upstream math
+- `docs/theory/doctrine/rbs_rbd_hdp.md`: RBS/RBD/HDP index
+- `docs/theory/memory/protocol_h_rbd_memory.md`: Protocol H
+- `docs/theory/memory/protocol_h_h1b_h_to_x_gain.md`: emitter gain inventory
+- `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md`: upstream math
 
 ## 10. Naming scope under the canonical TFNE algebra
 

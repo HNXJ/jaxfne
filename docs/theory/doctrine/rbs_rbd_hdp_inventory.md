@@ -3,7 +3,7 @@
 **Checkout:** `dev` @ `724aa32` (post D₀/D₁)  
 **Inventory date:** 2026-08-13  
 **Migration executed:** 2026-08-13 (semantic refactor commit pending)  
-**Status:** inventory record — see `docs/theory/doctrine/rbs_rbd_hdp.md` for current doctrine
+**Status:** inventory record; see `docs/theory/doctrine/rbs_rbd_hdp.md` for current doctrine
 
 Target doctrine: [`rbs_rbd_hdp.md`](rbs_rbd_hdp.md)  
 Upstream authority (pending revision): `artifacts/project_sources/*.md`
@@ -20,11 +20,11 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 | `docs/guides/state/hdp.md` title/body | "H-state and HDP (Homeostasis-Dependent Plasticity)" | RBS + HDP (hidden-state dependent) | **A** |
 | `jaxfne/emitters.py` `simulate_edge_recurrent_izhikevich_hdp` docstring | "Homeostasis-Dependent Plasticity" | Hidden-state Dependent Plasticity | **A** |
 | `jaxfne/_config.py` `Configuration.hdp()` | "HDP (Homeostasis-Dependent Plasticity)" | **A** (docstring) + **D** (method name) |
-| `jaxfne/emitters_homeostatic_ei.py` | homeostatic EI triple dynamics | **B** — genuine homeostatic kernel | **B** |
+| `jaxfne/emitters_homeostatic_ei.py` | homeostatic EI triple dynamics | **B**: genuine homeostatic kernel | **B** |
 | `simulate_edge_recurrent_izhikevich_homeostatic` | per-neuron homeostatic trace `r_i`, `g_i` | **B** | **B** |
 | `docs/guides/state/homeostasis.md` | legacy homeostasis guide | **B** + cross-link to RBD | **B/A** |
 | `public_surface.py` comment | "H-state is the latent representation; not identical to HDP theory" | Already partially aligned; refine to RBS | **A** |
-| Project sources README | "v0.4.8" bundle snapshot | Version drift vs live `v0.4.15` — **do not treat inventory as current implementation** | **C** note |
+| Project sources README | "v0.4.8" bundle snapshot | Version drift vs live `v0.4.15`; **do not treat inventory as current implementation** | **C** note |
 
 **No implementation contradiction** found that blocks the doctrine (e.g. HDP kernel math matches generalized \(F_H, F_W\)); conflict is **terminological**; no numerical conflict is found.
 
@@ -47,7 +47,7 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 
 | File | Notes |
 |------|-------|
-| `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` | **Principal** — §8 HDP, H as homeostatic state, null naming |
+| `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` | **Principal**: §8 HDP, H as homeostatic state, null naming |
 | `artifacts/project_sources/1_global_rules_and_restrictions.md` | Continuation lists "H state" generically → RBS |
 | `artifacts/project_sources/2_jaxfne_objective_grammar.md` | HDP nulls, "H-state null" |
 | `artifacts/project_sources/5_docs_tutorials_etudes_and_suites.md` | HDP/adaptation tutorial types |
@@ -59,16 +59,16 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 
 | File | Occurrences (approx.) | Notes |
 |------|----------------------|-------|
-| `docs/guides/state/hdp.md` | 45+ | Primary user-facing doctrine page — full rewrite after upstream |
+| `docs/guides/state/hdp.md` | 45+ | Primary user-facing doctrine page; full rewrite after upstream |
 | `docs/reference/api/core/runtime.md` | 5+ | `enable_hdp`, `h_state_locality` descriptions |
 | `docs/reference/api/index.md` | 10+ | H-state/HDP index links |
 | `docs/reference/api/model/neuronal_tensor.md` | 11+ | HDP on tensor path |
-| `docs/reference/api/model/emitters.md` | 12+ | Mixed HDP + homeostatic_ei — split B vs A carefully |
-| `docs/etudes/hdp_controllability_reachability.md` | 7+ | Generalized-H evidence — map to RBS |
+| `docs/reference/api/model/emitters.md` | 12+ | Mixed HDP + homeostatic_ei: split B vs A carefully |
+| `docs/etudes/hdp_controllability_reachability.md` | 7+ | Generalized-H evidence: map to RBS |
 | `docs/reference/public_surface_contract.md` | 10+ | `hdp_param_groups` semantics |
 | `docs/start/quickstart.md`, `docs/index.md` | few | Navigation strings |
-| `artifacts/legacy/reports/HDP_REPORT.md` (was `docs/HDP_REPORT.md`) | 19+ | Internal report — relocated to legacy archive (DOC-01); historical |
-| `AGENTS.md` | if present | H grammar — align with RBS/RBD |
+| `artifacts/legacy/reports/HDP_REPORT.md` (was `docs/HDP_REPORT.md`) | 19+ | Internal report; relocated to legacy archive (DOC-01); historical |
+| `AGENTS.md` | if present | H grammar: align with RBS/RBD |
 
 ### Implementation docstrings (non-API behavior)
 
@@ -76,18 +76,18 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 |------|-------|
 | `jaxfne/emitters.py` | HDP kernel docstring, comments "Homeostasis-Dependent" |
 | `jaxfne/_model_simulate.py` | HDP dispatch comments |
-| `jaxfne/_hdp_adaptive.py` | population restoring — RBD controller language |
-| `jaxfne/_pipeline.py` | DynamicState "H" slot — document as RBS carry |
+| `jaxfne/_hdp_adaptive.py` | population restoring: RBD controller language |
+| `jaxfne/_pipeline.py` | DynamicState "H" slot: document as RBS carry |
 | `jaxfne/public_surface.py` | `hdp_param_groups` docstrings |
 | `jaxfne/neuronal_tensor.py` | HDP metadata fields |
-| `jaxfne/vis/hdp_diagnostics.py` | "homeostatic-plasticity" in module doc — split HDP vs homeostatic |
+| `jaxfne/vis/hdp_diagnostics.py` | "homeostatic-plasticity" in module doc: split HDP vs homeostatic |
 
 ### Skills
 
 | File | Notes |
 |------|-------|
-| `skills/jaxfne-science/SKILL.md` | F_H/F_Theta grammar — add RBS/RBD labels |
-| `.cursor/skills/jaxfne-core/SKILL.md` | dynamics/H routing | **REMOVED** — `.cursor/skills/` is gitignored and untracked |
+| `skills/jaxfne-science/SKILL.md` | F_H/F_Theta grammar: add RBS/RBD labels |
+| `.cursor/skills/jaxfne-core/SKILL.md` | dynamics/H routing | **REMOVED**: `.cursor/skills/` is gitignored and untracked |
 
 ---
 
@@ -111,7 +111,7 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 
 | Location | Notes |
 |----------|-------|
-| `docs/reference/changelog.md` | Version history — do not rewrite past releases |
+| `docs/reference/changelog.md` | Version history; do not rewrite past releases |
 | `artifacts/project_sources/README.md` | v0.4.8 snapshot label |
 | `docs/v047_refactor_audit.md` → `artifacts/legacy/v047_refactor_audit.md` | prior audit (relocated DOC-01) |
 | `artifacts/protocols/hdp/hdp_v2_rho_sweep/*` | measured receipts |
@@ -133,8 +133,8 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 | `compile_step_fn`, `scan_network`, `ContinuationState` | pipeline | Keep; document RBS in carry |
 | `simulate_edge_recurrent_izhikevich_hdp` | ADVANCED namespace | Keep symbol |
 | `HDPColumnConfig`, `hdp_network.build_model` | public builders | Keep; optional alias later |
-| `K_HDP`, `K_ctrl`, `hdp_rule` | parameter keys | Keep — HDP still valid acronym |
-| `EdgeList.delay_steps` | Protocol D (uncommitted) | **orthogonal** — RBD delay, a quantity outside RBS |
+| `K_HDP`, `K_ctrl`, `hdp_rule` | parameter keys | Keep; HDP still valid acronym |
+| `EdgeList.delay_steps` | Protocol D (uncommitted) | **orthogonal**: RBD delay, a quantity outside RBS |
 
 **Evidence:** `artifacts/assurance/api_contracts/public_surface_contract_v0413.json`, `tests/test_public_surface_contract_v0413.py`
 
@@ -144,7 +144,7 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 
 | File | Role |
 |------|------|
-| `jaxfne/emitters.py` (local) | `delay_steps`, finite edge delay — **RBD** recurrent coupling |
+| `jaxfne/emitters.py` (local) | `delay_steps`, finite edge delay: **RBD** recurrent coupling |
 | `tests/test_edge_delay_protocol_d016.py` | D₀/D₁ falsification |
 
 Commit **separately** from doctrine migration.
@@ -204,12 +204,12 @@ rg -n 'homeostasis-dependent plasticity|homeostatic state|HDP|H-state' jaxfne do
 Six-way classification applied to every H-carrying state in the live code.
 Authority: `docs/theory/doctrine/rbs_rbd_hdp.md`; campaign definitions:
 
-- **RBS_GENERAL** — generic RBS container (`H ∈ R^{d_H}`, identity-preserving).
-- **RBS_SPECIALIZATION** — a specialized RBS with declared semantics.
-- **HOMEOSTATIC_TRACE** — homeostatic traces (B-class terminology; do not rename).
-- **HDP_STATE** — HDP controller/plasticity dynamics state (`dH/dt = F_H`, `dW/dt = F_W(H,…)`).
-- **NOT_RBS** — configuration plumbing, caches, readouts, derived quantities.
-- **AMBIGUOUS** — semantics not yet declared; requires a typed coupling map.
+- **RBS_GENERAL**: generic RBS container (`H ∈ R^{d_H}`, identity-preserving).
+- **RBS_SPECIALIZATION**: a specialized RBS with declared semantics.
+- **HOMEOSTATIC_TRACE**: homeostatic traces (B-class terminology; do not rename).
+- **HDP_STATE**: HDP controller/plasticity dynamics state (`dH/dt = F_H`, `dW/dt = F_W(H,…)`).
+- **NOT_RBS**: configuration plumbing, caches, readouts, derived quantities.
+- **AMBIGUOUS**: semantics not yet declared; requires a typed coupling map.
 
 | State (symbol) | Where it lives | Dynamics / semantics | Class |
 |---|---|---|---|

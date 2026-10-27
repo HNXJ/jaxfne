@@ -3,9 +3,9 @@
 Zenodo archives GitHub Releases and mints DOIs. For jaxfne we care about two
 properties:
 
-1. **Updates with each public release** — keep the GitHub↔Zenodo hook enabled;
+1. **Updates with each public release**: keep the GitHub↔Zenodo hook enabled;
    every new **published** GitHub Release is archived automatically.
-2. **One stable DOI for the project** — use Zenodo’s **Concept DOI**. It does
+2. **One stable DOI for the project**: use Zenodo’s **Concept DOI**. It does
    not change when you ship `v0.4.7`, `v0.5.0`, …; it always resolves to the
    **latest** archived version.
 
@@ -41,7 +41,7 @@ Zenodo watches **published GitHub Releases** only.
 | Draft Release | No |
 
 So: keep polishing with internal tags if you want; turn on archival when you
-**publish** the real Release (done — first public Releases in 0.4.x; current 0.5.0, see `artifacts/release/` receipts).
+**publish** the real Release (done; first public Releases in 0.4.x; current 0.5.0, see `artifacts/release/` receipts).
 
 ## One-time setup (already done if the repo is flipped ON)
 
@@ -66,7 +66,7 @@ identifiers:
 ```
 
 4. Optionally also list the current **version DOI** in that release’s changelog
-   notes — do not replace the Concept DOI in `CITATION.cff` on every bump.
+   notes; do not replace the Concept DOI in `CITATION.cff` on every bump.
 5. Update [Citation](../citation.md) BibTeX with the Concept DOI for general
    cites; mention version DOI only when a paper needs a pinned snapshot.
 
@@ -76,7 +76,7 @@ identifiers:
 - **Each public GitHub Release** = automatic Zenodo update (requirement 1).
 - Internal tags without a GitHub Release do not update Zenodo.
 - Do not invent a DOI before Zenodo mints one.
-- Prefer `CITATION.cff` only (no `.zenodo.json` — Zenodo ignores CFF if both exist).
+- Prefer `CITATION.cff` only (no `.zenodo.json`; Zenodo ignores CFF if both exist).
 
 ## Scope
 

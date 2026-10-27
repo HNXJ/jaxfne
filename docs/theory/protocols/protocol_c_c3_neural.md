@@ -1,8 +1,8 @@
 # Neural Geometry and Delays
 
-*Prospective neural geometry/delay experiment — protocol C3, 0.4.17-C. Internal code retained in provenance.*
+*Prospective neural geometry/delay experiment: protocol C3, 0.4.17-C. Internal code retained in provenance.*
 
-**Status:** C3 **CLOSED** — prospective run executed; C4 interpretation frozen  
+**Status:** C3 **CLOSED**: prospective run executed; C4 interpretation frozen  
 **Spec:** `artifacts/protocol_c/c3_neural_experiment_spec.json`  
 **Execution:** `artifacts/protocol_c/c3_execution_receipt.json` (60 cells)  
 **Interpretation:** `artifacts/protocol_c/c4_interpretation_receipt.json` (outcome **C**)  
@@ -50,7 +50,7 @@ C2 did **not** validate HDP+delay continuation; C3 must not enable HDP.
 
 1. `ordered_uniform`
 2. `ordered_geometry_derived`
-3. `ordered_delay_shuffled` — same delay **multiset** as (2), permuted across edges
+3. `ordered_delay_shuffled`: same delay **multiset** as (2), permuted across edges
 4. `shuffled_uniform`
 5. `shuffled_geometry_derived`
 6. `shuffled_delay_shuffled`

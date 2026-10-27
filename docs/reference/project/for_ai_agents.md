@@ -7,12 +7,12 @@ jaxfne treats **AI-agent readability as a first-class design goal**, alongside h
 |---------|----------|------|
 | `docs/` + README | Humans | Tutorials, API reference, guides |
 | `artifacts/context.md` + `artifacts/control/skills/` + `artifacts/AGENTS.md` | AI coding agents | Router, verified workflows, and repository policy |
-| `artifacts/developer/` | Maintainers / agents, **local-only** | Developer working notes — gitignored since 2026-07-14 and absent from a fresh clone | <!-- optional -->
+| `artifacts/developer/` | Maintainers / agents, **local-only** | Developer working notes; gitignored since 2026-07-14 and absent from a fresh clone | <!-- optional -->
 
 ## Start here (agents)
 
-1. **Router:** read `artifacts/context.md` — canonical first contact; task-to-skill table lives there.
-2. **Import:** `import jaxfne as jtfne` — only public entry point.
+1. **Router:** read `artifacts/context.md`, the canonical first contact; task-to-skill table lives there.
+2. **Import:** `import jaxfne as jtfne`, the only public entry point.
 3. **Public API:** verify symbols against `jaxfne.public_surface` and live `tests/` before hand-rolling operators.
 4. **Repository policy:** `artifacts/AGENTS.md` (step completion, evidence discipline).
 5. **Evidence:** `artifacts/publication/publication_evidence_index.json` and `artifacts/publication/frozen_manifest.json` for frozen publication inputs.
@@ -28,7 +28,7 @@ Software execution grammar:      CircuitSpec -> construct -> Model -> simulate -
 
 Paradigm, Objective, and Trainer are optional downstream workflow components and are stages of neither grammar.
 
-`construct()` is the single dispatch — extend it, do not bypass.
+`construct()` is the single dispatch; extend it, do not bypass.
 
 ## Release gates (non-negotiable)
 
@@ -49,7 +49,7 @@ Release authorities live in `artifacts/release/current_release_authorities.json`
 
 ## Human docs cross-links
 
-- [Quickstart](../../start/quickstart.md) — three build paths, HDP, canonical column
+- [Quickstart](../../start/quickstart.md): three build paths, HDP, canonical column
 - [Configuration Grammar](../../guides/grammar/configuration_grammar.md)
 - [NeuronalTensor API](../api/model/neuronal_tensor.md)
 - [Jaxley interoperability](../../guides/interop/jaxley_interop.md)

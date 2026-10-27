@@ -98,7 +98,7 @@ Maps each population `name` to the `slice` of neuron indices it occupies
 
 Returns a deterministic `(n_units_total, 3)` array: `x=0`, `y=0`, `z`
 linearly spaced within each population's `[depth_min, depth_max]` range, in
-population order. No random sampling — feed directly into
+population order. No random sampling; feed directly into
 `project_laminar_sources(sources, positions=...)`.
 
 ### Building a `LaminarSourceGeometry`
@@ -133,7 +133,7 @@ Project emitter sources into laminar contact space.
 - `n_contacts` (int): Number of laminar contacts, default `16`
 - `width` (float): Gaussian kernel width, default `0.10`
 - `mode` (str): `"density_preserving"` (default) preserves absolute scale; `"row_normalize"` erases attenuation for contacts outside the modeled population
-- `dtype` (str | None): `None` (default) follows the input — float64 input with x64 enabled computes in float64, otherwise float32; `"float32"` / `"float64"` force the dtype (`"float64"` needs x64 first)
+- `dtype` (str | None): `None` (default) follows the input; float64 input with x64 enabled computes in float64, otherwise float32; `"float32"` / `"float64"` force the dtype (`"float64"` needs x64 first)
 
 **Returns:** `FieldOutput`
 
@@ -187,7 +187,7 @@ by `project_laminar_sources` / `project_sources_to_laminar_field`.
 - `source_proxy` (jax.Array): source density projected onto contacts, `[T, n_contacts]`
 - `phi_e_proxy` (jax.Array): extracellular potential proxy, `[T, n_contacts]`
 - `csd_proxy` (jax.Array): current source density proxy, `[T, n_contacts]`
-- `lfp_proxy` (jax.Array): local field potential proxy, `[T, n_contacts]` (currently identical to `phi_e_proxy` — see below)
+- `lfp_proxy` (jax.Array): local field potential proxy, `[T, n_contacts]` (currently identical to `phi_e_proxy`: see below)
 - `kernel` (jax.Array): the projection kernel/leadfield matrix, `[n_contacts, n_emitters]`
 - `contact_depths` (jax.Array): normalized `[0, 1]` depth of each contact, `[n_contacts]`
 - `diagnostics` (dict): field solution metadata and validation flags (see below)
@@ -201,7 +201,7 @@ by `project_laminar_sources` / `project_sources_to_laminar_field`.
 
 **Note:** `lfp_proxy` and `phi_e_proxy` are currently the same array
 (`jaxfne/fields/proxy.py:169-170` sets `lfp_proxy = source_proxy` then
-`phi_e_proxy = lfp_proxy`) — the module does not yet separate an LFP
+`phi_e_proxy = lfp_proxy`). The module does not yet separate an LFP
 readout from the raw potential proxy. `csd_proxy` is distinct,
 computed from `phi_e_proxy` via `csd_tensor`.
 
@@ -220,7 +220,7 @@ field_dict = json_safe(field.diagnostics)
 
 `diagnostics` is produced by `validate_projection_invariants` (structural
 invariants) merged with a field-solution report from
-`_make_field_solution_report`, plus a few extra keys — 46 keys total as of
+`_make_field_solution_report`, plus a few extra keys, 46 keys total as of
 this writing (verified via `sorted(field.diagnostics.keys())` on a live
 `project_laminar_sources` call). Every key below is always
 present, regardless of projection `mode`.
@@ -263,7 +263,7 @@ The keys relevant to status-gate/claim status:
 | `*_shape` keys | tuple[int, ...] | Shapes of `source`/`positions`/`kernel`/`source_proxy`/`phi_e_proxy`/`csd_proxy`/`lfp_proxy` |
 | `dtype` | str | dtype of the input `sources` array |
 
-No `amplitude_status` or `field_model_status` key (previously invented here) — the real names are `physical_amplitude_calibrated`
+No `amplitude_status` or `field_model_status` key (previously invented here). The real names are `physical_amplitude_calibrated`
 and `field_claim_level`. Similarly, `source_conservation_claim_allowed` is the
 real key replacing the invented `source_conservation_status`.
 
@@ -282,8 +282,8 @@ Extract the requested proxy readouts from a `FieldOutput`.
   `"LFP"`, `"J_e"`. The default extracts the full proxy set.
 
 **Returns:** a `dict` mapping each requested proxy to its `*_proxy` array (plus a
-`readout_metadata` entry). Requesting `"J_e"` returns a status string only —
-current density is never synthesized without a real field solver.
+`readout_metadata` entry). Requesting `"J_e"` returns a status string only.
+Current density is never synthesized without a real field solver.
 
 **Description:**
 An accessor over the laminar proxy outputs. All returned arrays are proxy
@@ -310,7 +310,7 @@ Assemble a proxy source tensor for laminar projection from the named `mode`.
   `spike_proxy` (`jax.Array`, optional): the per-mode source arrays.
 - `scale` (float, default `1.0`): multiplicative scale.
 
-**Returns:** `(source_array, metadata)` — the proxy source array plus a JSON-safe
+**Returns:** `(source_array, metadata)`: the proxy source array plus a JSON-safe
 metadata dict recording the mode and proxy status. A proxy source
 basis; no physical current density is represented.
 
@@ -375,13 +375,13 @@ emitter -> (source_scale gain tensor) -> source
 Per neuron, applies the cascaded single-pole transfer function
 `H[f, n] = 1 / (1 + 2j*pi*f*tau_s[n]) ** order` along the time
 axis via FFT. A phenomenological proxy for passive dendritic cable
-filtering — a Relative-value projection (`field_solver_status="linear_solver"`,
+filtering; a Relative-value projection (`field_solver_status="linear_solver"`,
 `physical_amplitude_calibrated=False`).
 
 Validated on a 100-neuron canonical V1 column (10 trials x 6000 ms,
 `cable_filter_tau` defaults, `order=2`): alpha/beta deep:superficial power
 ratio 1.30 (deep-dominant, same direction as the unfiltered baseline) and
-gamma deep:superficial power ratio 0.66 (flips to superficial-dominant — a
+gamma deep:superficial power ratio 0.66 (flips to superficial-dominant: a
 genuine absolute band-selective effect, absent from the unfiltered
 flat-gain baseline). `order=1` gives the same direction but a much weaker
 gamma flip (0.93); `order=2` is the sweep-selected default.
@@ -430,10 +430,10 @@ Spatial second-derivative CSD tensor (readout family, depth-axis stage).
 **Description:**
 `csd_proxy[c] = -(phi[c+1] - 2*phi[c] + phi[c-1]) / dz**2`, edge-padded at the
 boundaries. Factored out of `project_laminar_sources` (which still calls this
-function internally — confirmed byte-identical via regression test) so CSD
+function internally; confirmed byte-identical via regression test) so CSD
 can be recomputed standalone from any `[T, n_contacts]` potential-proxy array
 without re-running the full projection. Unlike `cable_filter_sources`, this is
-purely spatial (no frequency-domain analysis) — CSD is the 2nd
+purely spatial (no frequency-domain analysis). CSD is the 2nd
 spatial derivative of its input LFP-proxy, nothing more.
 
 **Example:**
@@ -447,7 +447,7 @@ csd = jtfne.csd_tensor(fo.phi_e_proxy, dz)  # == fo.csd_proxy
 
 ### `jaxfne.fields.experimental_poisson_1d(sources, conductivity, dx, boundary="mean_zero_neumann", gauge="mean_zero", precision="float32") -> (phi, residual, manifest)`
 
-An actual 1D Poisson PDE solve — distinct from the proxy operators above and
+An actual 1D Poisson PDE solve, distinct from the proxy operators above and
 from the fenced multi-dimensional placeholder below.
 
 **Where this sits in the field-solver layer:**
@@ -485,7 +485,7 @@ from the fenced multi-dimensional placeholder below.
 **Analytic validation reference:** the layered case's ground truth is the
 classical "two half-space" point-source volume-conductor result (reflection
 coefficient `k=(sigma1-sigma2)/(sigma1+sigma2)`, derived from continuity of
-potential and normal current density) — see
+potential and normal current density): see
 `tests/test_experimental_poisson_1d_layered.py`'s module docstring for the
 full derivation and 3 limiting-case sanity checks (uniform medium, insulating
 boundary, grounded boundary) before it's used to validate any solver output.
@@ -500,7 +500,7 @@ test requires N=321 to report `convergence_status="failed"` with residual_norm
 > 1e-3. `precision="float64"` with x64 enabled converges at N=300 in that
 test file.
 
-**Returns:** `(phi, residual, manifest)` —
+**Returns:** `(phi, residual, manifest)`:
 - `phi` (`jax.Array`): solved potential array.
 - `residual` (`jax.Array`): `A @ phi - b` residual of the assembled linear system.
 - `manifest` (`dict`): `claim_level="computational_scaffold"`,
@@ -525,7 +525,7 @@ assert manifest["convergence_status"] == "converged"
 
 Bridges real per-neuron depth positions (from `Model.neuron_table()`) and
 source values (e.g. a time-slice of `Signals.sources`) into
-`experimental_poisson_1d`'s 1D depth grid — direct integration of the
+`experimental_poisson_1d`'s 1D depth grid: direct integration of the
 finite-difference experimental 1D field operator with the Model/Signals object model. A
 separate opt-in accessor called after `construct()`/`simulate()`,
 fully independent of `project_laminar_sources` and the default
@@ -533,16 +533,16 @@ fully independent of `project_laminar_sources` and the default
 
 **Parameters:**
 - `neuron_table` (sequence of dict): from `Model.neuron_table()`; every row
-  needs a numeric `"z"` — raises `ValueError` when a row lacks one.
+  needs a numeric `"z"`; raises `ValueError` when a row lacks one.
 - `sources` (array, shape `(n_neurons,)`): per-neuron source values. Neurons
   sharing a depth bin are **summed** (jaxfne's source values are current-
   like; summing is the physically sensible aggregation), and the summed
-  value is passed to `experimental_poisson_1d` exactly as-is — per that
+  value is passed to `experimental_poisson_1d` exactly as-is; per that
   function's own convention (a node value `Q` produces a flux jump of
   `Q*dx`, confirmed in `tests/test_experimental_poisson_1d_convergence.py`).
   An explicit modeling choice, always stated here rather than left implicit.
 - `conductivity` (float or `jax.Array`): scalar or per-face array of shape
-  `(n_bins-1,)`, always caller-supplied — jaxfne treats every conductivity
+  `(n_bins-1,)`, always caller-supplied. Jaxfne treats every conductivity
   value as uncalibrated, so this is a required input here too, the same as
   every other field-projection entry point.
 - `n_bins` (int): depth-grid resolution. Keep below ~150 per
@@ -550,9 +550,9 @@ fully independent of `project_laminar_sources` and the default
 - `z_min`, `z_max` (float, optional): depth range; default to the actual
   min/max `z` in `neuron_table`.
 
-**Returns:** `(phi, residual, manifest)` — as `experimental_poisson_1d`, plus
+**Returns:** `(phi, residual, manifest)`: as `experimental_poisson_1d`, plus
 `manifest["bin_edges"]` (the depth grid) and `manifest["neurons_per_bin"]`
-(neuron count per bin, for transparency about the binning step — an empty
+(neuron count per bin, for transparency about the binning step; an empty
 bin simply gets source value 0).
 
 **Example:**
@@ -682,7 +682,7 @@ assert status["all_finite"]
 Check structural invariants of the laminar proxy projection (kernel
 row-normalization, finiteness, shape consistency). See
 [Validation API](../core/validation.md#validate_projection_invariants-sources-positions-kernel-source_proxy-phi_e_proxy-csd_proxy-lfp_proxy-moderow_normalize-dict)
-for the full parameter list — all keyword-only, returns a `dict` of
+for the full parameter list. All keyword-only, returns a `dict` of
 pass/fail diagnostics.
 
 **Example:**
@@ -722,7 +722,7 @@ print(f"Source L1: {diag['source_norm_l1']:.3f} [{diag['diagnostic_status']}]")
 
 $$\phi_{\mathrm{proxy}}(t,c) = \sum_{n=1}^{N} W_{cn} S_n(t)$$
 
-**Default (`mode="density_preserving"`):** $W_{cn} = \exp(-\|z_c - z_n\|^2 / 2\sigma^2)$ — preserves source density.
+**Default (`mode="density_preserving"`):** $W_{cn} = \exp(-\|z_c - z_n\|^2 / 2\sigma^2)$; preserves source density.
 
 **Optional (`mode="row_normalize"`):** row-stochastic $W$ with $\sum_n W_{cn} = 1$ for all contacts $c$.
 
@@ -773,6 +773,6 @@ Outputs with NaN or Inf fail serialization and must be diagnosed.
 
 ## See also
 
-- [Probe Operators](probes.md) — Readout operators using field outputs
-- [Computation Basis](../../../theory/computation_basis.md) — TFNE architecture overview
+- [Probe Operators](probes.md): Readout operators using field outputs
+- [Computation Basis](../../../theory/computation_basis.md): TFNE architecture overview
 - [API reference](../index.md)

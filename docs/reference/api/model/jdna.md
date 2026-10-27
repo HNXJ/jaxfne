@@ -17,8 +17,8 @@ jtfne.list_canonical_pseudogenomes()     # shipped genome names
 
 Deeper inspection helpers live in `jaxfne.jdna` (`genome_rules_hash`,
 `phenotype_sha256`, `declared_constraints`, `validate_genome`,
-`save_pseudogenome`, `genomes_dir`). Developmental completion — the defaults
-table, K_D sampling kernel, and per-value origins — lives in
+`save_pseudogenome`, `genomes_dir`). Developmental completion. The defaults
+table, K_D sampling kernel, and per-value origins; lives in
 `jaxfne.jdna.completion` (`resolve`, `realize_geometry`, `complete_tfne`,
 `COMPLETION_RULES`, `ORIGINS`); see the
 [TFNE–JDNA boundary doctrine](../../../theory/doctrine/tfne_jdna_boundary.md).
@@ -33,12 +33,12 @@ declared tolerance bands, geometry, and typed connection schemes.
 *how it is generated* (PseudoGenome). It never stores the terminal phenotype.
 
 **Input semantics.**
-- `name` — genome identifier (also the developed tensor's name).
-- `schema_version` — `"pseudogenome_v1"` (JSON schema version).
-- `description` — free prose; excluded from the rules hash.
-- `areas` — tuple of `AreaGenome` (layers + within-area connection scheme + pose).
-- `area_connections` — declared between-area rules.
-- `development_parameters` — global development knobs, e.g.
+- `name`: genome identifier (also the developed tensor's name).
+- `schema_version`: `"pseudogenome_v1"` (JSON schema version).
+- `description`: free prose; excluded from the rules hash.
+- `areas`: tuple of `AreaGenome` (layers + within-area connection scheme + pose).
+- `area_connections`: declared between-area rules.
+- `development_parameters`: global development knobs, e.g.
   `{"fraction_jitter_sigma": 0.01}` (std of the Gaussian jitter applied to
   cell-type base fractions before integer allocation).
 
@@ -53,14 +53,14 @@ declared tolerance bands, geometry, and typed connection schemes.
 absolute fraction bands; realized counts always fall inside
 `[floor(n*tol_lo), ceil(n*tol_hi)]`.
 
-**Adjacent objects.** `AreaGenome`, `LayerGenome`, `ConnectionRuleGenome` —
-the rule containers; `NeuronalTensor` — the developed phenotype.
+**Adjacent objects.** `AreaGenome`, `LayerGenome`, `ConnectionRuleGenome`:
+the rule containers; `NeuronalTensor`: the developed phenotype.
 
 **When to use.** To express phenotype families by rules; to generate
 constraint-satisfying phenotype ensembles; to record development provenance.
 
 **When not to use.** For a single fixed circuit, load a canonical
-NeuronalTensor directly — JDNA is optional.
+NeuronalTensor directly. JDNA is optional.
 
 **Determinism.** Purely deterministic; equality is structural (frozen
 dataclass).
@@ -103,13 +103,13 @@ pseudo-random (JAX PRNG), i.e. reproducible. Variation across seeds is
 
 ## Loaders
 
-- `load_pseudogenome(path | dict)` — load a genome from a JSON file or dict;
+- `load_pseudogenome(path | dict)`: load a genome from a JSON file or dict;
   rejects unknown `schema_version` values explicitly (no silent
   interpretation as v1; a registered migration path is required for future
   schemas).
-- `load_canonical_pseudogenome(name)` — load a shipped genome from
+- `load_canonical_pseudogenome(name)`: load a shipped genome from
   `jaxfne/jdna/genomes/` (package data); supports with/without `.json` suffix.
-- `list_canonical_pseudogenomes()` — shipped genome names.
+- `list_canonical_pseudogenomes()`: shipped genome names.
 
 **Minimal executable example**
 
@@ -138,7 +138,7 @@ manifest/evidence path.
 
 ## Related pages
 
-- [JDNA theory](../../../guides/grammar/jdna.md) — definitions, mathematics, limitations.
-- [NeuronalTensor](neuronal_tensor.md) — the phenotype schema.
-- [RBS / RBD / HDP](../../../guides/state/hdp.md) — runtime state semantics.
+- [JDNA theory](../../../guides/grammar/jdna.md): definitions, mathematics, limitations.
+- [NeuronalTensor](neuronal_tensor.md): the phenotype schema.
+- [RBS / RBD / HDP](../../../guides/state/hdp.md): runtime state semantics.
 - [Public surface contract](../../public_surface_contract.md).

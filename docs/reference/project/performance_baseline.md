@@ -89,7 +89,7 @@ Growth ratio per 10x step in N (this environment, single run):
 
 The generator's additional sparse case (N=100,000, `p_connect` bounded to
 mean degree ~50) ran at construct 35,320 ms / simulate 3,826 ms /
-peak RSS 822 MB — recorded for completeness; no scaling claim is drawn from it.
+peak RSS 822 MB; recorded for completeness; no scaling claim is drawn from it.
 
 ### Historical receipt (Apple Silicon, 2026-05-23; original artifact not retained)
 
@@ -110,7 +110,7 @@ Growth ratio per 10x step in N (single run, Apple Silicon CPU, jax 0.10.0):
 | 100 → 1,000 | 1.0x | 1.0x | 1.2x |
 | 1,000 → 10,000 | 1.2x | 20.6x | 8.7x |
 
-**Reading this honestly:** `construct` stays flat across all three sizes in both environments —
+**Reading this honestly:** `construct` stays flat across all three sizes in both environments;
 the measured cost here is dominated by fixed JAX/JIT setup overhead that does not depend on network size
 work, at least up to N=10,000. `simulate` and `peak_rss_mb` are a different story: going from
 N=1,000 to N=10,000 (a 10x step) costs 20.6x more simulate wall-clock / 8.7x more peak
@@ -119,12 +119,12 @@ Both ratios are well above the ~10x a linear-in-N path would show, and are in th
 consistent with the dense (`recurrent_backend="dense"`) O(N²) recurrent weight matrix documented
 in `jaxfne/core.py` (search `O(N^2)` there for the exact call sites). This is **evidence that the
 dense path is currently the dominant cost at N=10,000 in wall-clock and memory**, rather than a closed-form
-complexity proof — the script measures three points only, rather than a continuous curve, and runs on one
+complexity proof. The script measures three points only, rather than a continuous curve, and runs on one
 machine, one time.
 
 **What this changes about the "Statement Boundaries" below:** "Time scales linearly with neuron
 count and duration (within tested range)" no longer holds once the tested range is extended to
-N=10,000 — see the corrected statement boundaries.
+N=10,000; see the corrected statement boundaries.
 
 ---
 
@@ -195,7 +195,7 @@ Measurements are CPU-based; other platforms (Linux/NVIDIA, Intel) may differ sig
 ### What CANNOT be stated:
 
 ✗ "Time scales linearly with neuron count at all tested sizes" (false above N≈1,000; see Scaling
-  Evidence above — corrects the prior, narrower-range version of this claim)  
+  Evidence above. Corrects the prior, narrower-range version of this claim)  
 ✗ "jaxfne is faster than X simulator" (no comparative analysis)  
 ✗ "jaxfne scales to 1M neurons efficiently" (untested beyond N=10,000, extrapolation forbidden)  
 ✗ "Real-time factor = X" (depends on hardware, stimulus properties, and objective)  
@@ -253,12 +253,12 @@ All reserved work will maintain `local_environment_receipt_only` framing and avo
 
 ## References and Related Docs
 
-- `docs/archive/tutorials/readouts/tutorial_outputs.md` — tutorial runtime contracts
-- `scripts/benchmark_jaxfne.py` — benchmark source code
-- `scripts/benchmarks/scaling_benchmark.py` — N=100/1,000/10,000 scaling-evidence source code
-- `scripts/validate_json_safe.py` — JSON safety validator
-- `tests/test_performance_reports_v030.py` — performance report schema validation
-- `docs/reference/changelog.md` — version history and release notes
+- `docs/archive/tutorials/readouts/tutorial_outputs.md`: tutorial runtime contracts
+- `scripts/benchmark_jaxfne.py`: benchmark source code
+- `scripts/benchmarks/scaling_benchmark.py`: N=100/1,000/10,000 scaling-evidence source code
+- `scripts/validate_json_safe.py`: JSON safety validator
+- `tests/test_performance_reports_v030.py`: performance report schema validation
+- `docs/reference/changelog.md`: version history and release notes
 
 ---
 

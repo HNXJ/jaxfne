@@ -5,12 +5,12 @@ control that holds each neuron's firing rate near a set-point by adapting an
 intrinsic excitability bias. One extra parameter per emitter; switching
 it on does three things at once:
 
-- **Counters hyperactivity** — pulls runaway/saturated units back down.
-- **Counters hypoactivity** — nudges silent units into working range.
-- **Models short-term adaptation** — the slow rate trace yields spike-frequency
+- **Counters hyperactivity**: pulls runaway/saturated units back down.
+- **Counters hypoactivity**: nudges silent units into working range.
+- **Models short-term adaptation**: the slow rate trace yields spike-frequency
   adaptation.
 
-It is a *control method*, rather than a claim of a biological plasticity mechanism — a
+It is a *control method*, rather than a claim of a biological plasticity mechanism; a
 restoring controller on excitability, useful as stabilizer and as adaptation
 proxy. jaxfne is the mathematical backend; the configuration sets the
 controller's role in a model.
@@ -26,7 +26,7 @@ g  = clip(k_gain · (r_star − r), g_min, g_max)   # over-active → g < 0, und
 I  ← I + g                                        # excitability bias into the input current
 ```
 
-`k_gain` is the single dial. **`k_gain = 0` disables the controller — a clean
+`k_gain` is the single dial. **`k_gain = 0` disables the controller; a clean
 null control** for ablation runs. The default `k_gain = 1.0` is a gentle
 in-band nudge.
 
@@ -95,9 +95,9 @@ signals, diag = bridge.simulate_homeostatic(
 ```
 
 The injected current is hard-bounded (`current_clip_nA`) and finiteness is
-verified (`strict_finite=True` raises rather than masking) — the controller holds
+verified (`strict_finite=True` raises rather than masking). The controller holds
 the implicit solver in a finite regime under heterogeneous drive. See
-`JaxleyBridge.simulate_homeostatic` in the Bridges API (`docs/reference/api/model/bridges.md` — repository-internal reference, excluded from the built site).
+`JaxleyBridge.simulate_homeostatic` in the Bridges API (`docs/reference/api/model/bridges.md`: repository-internal reference, excluded from the built site).
 
 !!! warning "Stay in the monotonic f-I band (Jaxley path)"
     Jaxley single-compartment HH has a non-monotonic f-I curve (high current →
@@ -126,7 +126,7 @@ Regenerate: `python scripts/generate_doc_page_atlases.py --slug homeostasis_1000
 
 ## See also
 
-- Bridges API (`docs/reference/api/model/bridges.md` — repository-internal reference, excluded from the built site) — `simulate_homeostatic` parameters in full.
-- [Configuration Grammar](../grammar/configuration_grammar.md) — where the runtime and emitter fit in the chain.
-- [Jaxley Interoperability](../interop/jaxley_interop.md) — real channels/morphology as emitters.
-- [HDP](hdp.md) — the more structured per-neuron `H_i` controller (also works tensor-first, on a `NeuronalTensor`-built `Model`) if a single `k_gain` dial here isn't enough.
+- Bridges API (`docs/reference/api/model/bridges.md`: repository-internal reference, excluded from the built site): `simulate_homeostatic` parameters in full.
+- [Configuration Grammar](../grammar/configuration_grammar.md): where the runtime and emitter fit in the chain.
+- [Jaxley Interoperability](../interop/jaxley_interop.md): real channels/morphology as emitters.
+- [HDP](hdp.md): the more structured per-neuron `H_i` controller (also works tensor-first, on a `NeuronalTensor`-built `Model`) if a single `k_gain` dial here isn't enough.

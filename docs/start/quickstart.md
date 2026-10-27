@@ -1,7 +1,7 @@
 # Quickstart
 
-Simulate **laminar neural dynamics** — spikes, membrane traces, and depth-resolved
-field readouts (LFP, CSD, spectrolaminar PSD) — from a circuit defined once
+Simulate **laminar neural dynamics**: spikes, membrane traces, and depth-resolved
+field readouts (LFP, CSD, spectrolaminar PSD), from a circuit defined once
 and simulated reproducibly. JaxFNE couples specification, dynamics, biophysical
 state ($H$/RBS/RBD), plasticity, and geometry into sources, fields, and probes,
 from reduced emitters to compartmental models attached via bridges.
@@ -44,7 +44,7 @@ wrappers and laminar field projection.
 
 ## Which workflow should I use?
 
-Pick **one path per script** — they return different types:
+Pick **one path per script**; they return different types:
 
 | Goal | Path | Returns |
 |------|------|---------|
@@ -79,7 +79,7 @@ model   = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms
 signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
 ```
 
-**HDP plasticity** — pass `RuntimeConfig` (not `RuntimeConfiguration`) to `simulate()`:
+**HDP plasticity**: pass `RuntimeConfig` (not `RuntimeConfiguration`) to `simulate()`:
 
 ```python
 runtime_hdp = jtfne.RuntimeConfig(enable_hdp=True, hdp_params={
@@ -106,7 +106,7 @@ signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
 ```
 
 `ei_profile="canonical"` applies the verified laminar E:I gradient (E peaks deep,
-I peaks superficial, PV peaks at L2/L3, ≈66E:34I overall for the builder constant) — a **qualitative scaffold** (`qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false`; `value_tag="relative"`; provenance `jaxfne/jdna/genomes/canonical-v1-column-1000n.json`); the biology is not quantitatively calibrated. Reduced labels `E`/`PV`/`SST`/`VIP` are functional scaffold identities; literal cell-type identity is not warranted. `ei_profile="flat"`
+I peaks superficial, PV peaks at L2/L3, ≈66E:34I overall for the builder constant): a **qualitative scaffold** (`qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false`; `value_tag="relative"`; provenance `jaxfne/jdna/genomes/canonical-v1-column-1000n.json`); the biology is not quantitatively calibrated. Reduced labels `E`/`PV`/`SST`/`VIP` are functional scaffold identities; literal cell-type identity is not warranted. `ei_profile="flat"`
 keeps legacy depth-invariant composition.
 
 Multi-area: `jtfne.build_multi_area_columns(["V1", "V4", "PFC"], ei_profile="canonical")`.
@@ -133,7 +133,7 @@ model   = jtfne.construct(cfg)
 signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
 ```
 
-`plasticity()` records manifest intent only — STDP runs via separate `run_stdp_stream`; `simulate()` does not run it.
+`plasticity()` records manifest intent only; STDP runs via separate `run_stdp_stream`; `simulate()` does not run it.
 
 ## Typical workflow
 
@@ -164,13 +164,13 @@ manifest = jtfne.manifest(cfg, signals=signals)
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the pinned 1000 ms reference run of the canonical 1000-neuron column — the same tensor path as above (`load_canonical_neuronal_tensor`): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)
+Dark-theme Plotly panels from the pinned 1000 ms reference run of the canonical 1000-neuron column, the same tensor path as above (`load_canonical_neuronal_tensor`): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)
 
 Regenerate: `python scripts/generate_readme_atlas.py --html-only`.
 
 ## Scope & status
 
-Proxy readouts only — see [Scope & status](../reference/project/scope_and_status.md).
+Proxy readouts only; see [Scope & status](../reference/project/scope_and_status.md).
 
 ## Validate locally
 

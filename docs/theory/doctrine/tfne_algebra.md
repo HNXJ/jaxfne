@@ -1,6 +1,6 @@
 # TFNE Algebra
 
-**Language version:** `tfne/2` — `SEALED LANGUAGE`
+**Language version:** `tfne/2`; `SEALED LANGUAGE`
 **Canonical source:** `artifacts/project_sources/7_tfne_algebra.md`
 **Compiler:** `jaxfne.tfne` (specification-time; exercised by
 `tests/test_tfne_algebra.py`)
@@ -47,7 +47,7 @@ Design principle: factor at specification time; flatten at execution time.
 Flattening changes representation only; TFNE semantics are unchanged.
 
 TFNE constrains, possibly underdetermined; completion under `D + K_D`
-(JDNA), realization (Model), and execution are separate stages — see the
+(JDNA), realization (Model), and execution are separate stages; see the
 [TFNE–JDNA boundary](tfne_jdna_boundary.md). The pipeline above is the
 language-internal view; the compiler path runs through JDNA completion
 before construction.
@@ -92,7 +92,7 @@ Declared geometry is realized and executed as relative coordinates. `G`
 is recorded in `s["geometry"]`, and each declared range is a pair of
 fractions of the sampled (area, layer) block's extent within [0,1]: a
 declared sub-range changes the executed positions (sampled inside it),
-while an absent declaration — or a full [0,1] range — takes the
+while an absent declaration, or a full [0,1] range, takes the
 historical path bit-identically. A range outside [0,1] is refused
 (`E_GEOMETRY_OUT_OF_RANGE`): relative coordinates carry
 no physical (mm/um/conductivity/distance) semantics. Geometry is what
@@ -175,9 +175,9 @@ exact legacy behavior (S12).
 
 The entries left are missing features rather than wrong answers: the compiler
 rejects what it cannot express instead of realizing a different nervous system.
-The three clauses that did change realized biology — inverted exclusions,
+The three clauses that did change realized biology: inverted exclusions,
 off-by-one instance addressing, and ordered chains that fabricated projections
-the source never declared — are closed.
+the source never declared, are closed.
 
 Declared rule parameters are no longer among the gaps. They were: a declared
 `weight` of 0.5, 0.25 or 0.125 all executed at 0.353553, and a declared
@@ -196,7 +196,7 @@ The override is `order[A] := [...]`, defined by S20.1. It was previously a gap
 in the language rather than the compiler: the sealed text said a definition may
 "explicitly declare meaningful order" but gave no syntax, while its own opening
 sentence ruled out reading an enumeration as that declaration. S20.1 now
-settles it — ordering is metadata, so it takes a named property rather than a
+settles it; ordering is metadata, so it takes a named property rather than a
 new operator, and no other construct carries ordering.
 
 A declaration is refused unless it names every immediate member of its scope
@@ -241,7 +241,7 @@ $X$ and $H$ are rejected as structural object names.
 
 ## See Also
 
-- [TFNE Containment and Composition](tfne_containment_architecture.md) — operator factorization and RBS containers
-- [RBS, RBD and HDP](rbs_rbd_hdp.md) — state, dynamics, and plasticity grammar
-- [Computation Basis](../computation_basis.md) — canonical tensor shapes
-- [Relative Quantities](relative_quantity_grammar.md) — configured/realized/executed distinction
+- [TFNE Containment and Composition](tfne_containment_architecture.md): operator factorization and RBS containers
+- [RBS, RBD and HDP](rbs_rbd_hdp.md): state, dynamics, and plasticity grammar
+- [Computation Basis](../computation_basis.md): canonical tensor shapes
+- [Relative Quantities](relative_quantity_grammar.md): configured/realized/executed distinction

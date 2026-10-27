@@ -23,7 +23,7 @@ importable from submodules but are not root exports.
 !!! note "Biological scaffold — uncalibrated biology"
     The canonical V1 column (`canonical-v1-column-1000n`) is a qualitative laminar scaffold
     (`qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false`).
-    Per-layer fractions (`L1 E 0.50` etc.) and typed connectivity are scaffold values (`value_tag="relative"`), without quantitative calibration; reduced labels `E`/`PV`/`SST`/`VIP` are functional scaffold identities; literal cell-type identity is not warranted. See [Scope & status — Biological calibration](../project/scope_and_status.md#biological-calibration-status-canonical-v1-column) and [Calibration — Biological status](../../guides/state/calibration.md#biological-calibration-status).
+    Per-layer fractions (`L1 E 0.50` etc.) and typed connectivity are scaffold values (`value_tag="relative"`), without quantitative calibration; reduced labels `E`/`PV`/`SST`/`VIP` are functional scaffold identities; literal cell-type identity is not warranted. See [Scope & status: Biological calibration](../project/scope_and_status.md#biological-calibration-status-canonical-v1-column) and [Calibration: Biological status](../../guides/state/calibration.md#biological-calibration-status).
 
 ## Conceptual form
 
@@ -43,7 +43,7 @@ $$
 **Software:** CircuitSpec → `construct` → `Model` → `simulate` → `Signals`
 
 `CircuitSpec` is a **conceptual category** (`Configuration | NeuronalTensor`),
-not a concrete public production class — `construct` accepts either a
+not a concrete public production class; `construct` accepts either a
 `Configuration` or a `NeuronalTensor` (+ `RuntimeConfiguration`). It is
 unrelated to the experimental `jaxfne.experimental_hpc.CircuitSpec` type, which production `construct` does not accept.
 
@@ -156,11 +156,11 @@ Import from the defining submodule (see `ADVANCED_NAMESPACE` in
 
 | Area | Submodule examples |
 |------|-------------------|
-| Emitter kernels | `jaxfne.emitters` — `simulate_edge_recurrent_izhikevich`, `EdgeList` |
-| Bridges | `jaxfne.bridges` — `JaxleyBridge`, `JaxleyEmitterBridge` |
-| Plasticity | `jaxfne.plasticity` — `STDPPlasticityConfig`, `update_stdp_weights_jax` |
-| Solvers | `jaxfne.solvers` — `EulerSolver`, `DiffraxSolver` |
-| Spectral | `jaxfne.analysis.spectral` — `spectrolaminar_psd_jax` |
+| Emitter kernels | `jaxfne.emitters`: `simulate_edge_recurrent_izhikevich`, `EdgeList` |
+| Bridges | `jaxfne.bridges`: `JaxleyBridge`, `JaxleyEmitterBridge` |
+| Plasticity | `jaxfne.plasticity`: `STDPPlasticityConfig`, `update_stdp_weights_jax` |
+| Solvers | `jaxfne.solvers`: `EulerSolver`, `DiffraxSolver` |
+| Spectral | `jaxfne.analysis.spectral`: `spectrolaminar_psd_jax` |
 
 Trials and datasets: `TrialSpec`, `TrialBatch`, `TrialResult`, `TrialBatchResult`, `ParadigmEvent`,
 `DatasetSpec`, `dataset_spec`, `omission_oddball_paradigm`, `standard_visual_omission`, `stimulus_schedule`.

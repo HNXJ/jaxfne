@@ -2,7 +2,7 @@
 
 This page specifies **when a full elliptic (Poisson-type) field solve would be
 well-posed and consistent** in jaxfne's reserved field regimes. The **shipped
-package uses laminar proxy readouts** — read this if you are
+package uses laminar proxy readouts**: read this if you are
 extending or validating a future PDE path.
 
 > **Scope:** Admissibility mathematics (well-posedness, accuracy, consistency)
@@ -247,9 +247,9 @@ When an elliptic field solver is separately approved and implemented:
 - ✓ Admissibility specification defined
 - ✓ Five gates mathematically specified
 - ✓ Validation helpers implemented in `jaxfne.validation`
-- ✓ Conservation proxy diagnostics — proxy-scale mode
-- ⧉ Elliptic field solver — reserved regime ([Limitations and future plans](../../reference/project/limitations_and_future_plans.md))
-- ⧉ Physical amplitude claims — pending field solver implementation and calibration validation
+- ✓ Conservation proxy diagnostics: proxy-scale mode
+- ⧉ Elliptic field solver: reserved regime ([Limitations and future plans](../../reference/project/limitations_and_future_plans.md))
+- ⧉ Physical amplitude claims: pending field solver implementation and calibration validation
 
 **Public-output status:** Specification of admissibility conditions; proxy amplitudes stay relative pending calibration.
 `solved_poisson` regime is gated: `implemented=False`, `status_enabled=False`.

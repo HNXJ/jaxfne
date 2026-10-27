@@ -53,7 +53,7 @@ requested and actual dtype policy.
   `False`/`None` are accepted without effect.
 
 To change a setting, construct a new `RuntimeConfig(...)` with the desired
-fields — there is no `with_dtype`/`with_device` mutator API.
+fields; there is no `with_dtype`/`with_device` mutator API.
 
 **Example:**
 ```python
@@ -241,7 +241,7 @@ cfg = cfg.runtime(backend='tpu')
 ### Apple Silicon (Metal) and parallel CPU
 
 Neither needs jaxfne code: Apple Metal support comes from the external
-`jax-metal` plugin — install it and stock JAX exposes the device through
+`jax-metal` plugin; install it and stock JAX exposes the device through
 `jax.devices()`; jaxfne's `backend` selection and honest-downgrade rule
 apply unchanged. Parallel CPU execution likewise rides on stock JAX
 (threading, `jax.devices()`, `vmap`); jaxfne keeps no device pool of its
@@ -264,7 +264,7 @@ Get runtime environment information.
 - `jax_version` (str), `jaxlib_version` (str)
 - `default_backend` (str): JAX's own default backend
 - `available_devices` (list[str]): Available compute devices
-- `selected_backend` / `backend` / `requested_backend` / `actual_backend` (str), `backend_enforced` (bool), `backend_warning` (str | None) — if a non-`"auto"` backend is requested but unavailable on this machine, `runtime_report()` performs an "honest downgrade": `actual_backend` falls back to JAX's real default, `backend_enforced=False`, and `backend_warning` is set to `requested_backend_unavailable:requested=...`  rather than falsely claiming the requested device is in use
+- `selected_backend` / `backend` / `requested_backend` / `actual_backend` (str), `backend_enforced` (bool), `backend_warning` (str | None): if a non-`"auto"` backend is requested but unavailable on this machine, `runtime_report()` performs an "honest downgrade": `actual_backend` falls back to JAX's real default, `backend_enforced=False`, and `backend_warning` is set to `requested_backend_unavailable:requested=...`  rather than falsely claiming the requested device is in use
 - `requested_dtype` / `actual_dtype` / `dtype` (str), `x64_enabled` (bool)
 - `jit` (bool | None): the jit decision the kernel used; a report made outside a run gives the policy when it is a bool and None under `"auto"`
 - `jit_policy` (bool | `"auto"`): the requested policy
@@ -273,7 +273,7 @@ Get runtime environment information.
 - `enable_homeostasis` / `homeostasis_params`, `enable_hdp` / `hdp_params`
 
 For a smaller, standalone device/dtype probe that doesn't require a `RuntimeConfig`, use
-`get_jax_backend_report()` instead — keys `available_devices`, `default_backend`,
+`get_jax_backend_report()` instead: keys `available_devices`, `default_backend`,
 `x64_enabled`, `dtype_default` (it does NOT return jaxfne/numpy/python version or platform
 info; no jaxfne helper currently reports those). See "jaxfne.runtime Module Helpers" below
 for the access path, which is `importlib.import_module("jaxfne.runtime")`; the attribute form
@@ -297,7 +297,7 @@ from `jaxfne/core.py` (see above) and additionally defines three standalone help
 
 **Name-collision landmine:** `jaxfne.runtime` (attribute access on the `jaxfne` package)
 resolves to the `runtime()` *function* (re-exported from `core.py`); the `runtime.py`
-*module* is shadowed — this is deliberate, see the `_RuntimeModuleWrapper` in `jaxfne/__init__.py`.
+*module* is shadowed. This is deliberate, see the `_RuntimeModuleWrapper` in `jaxfne/__init__.py`.
 Neither `jtfne.runtime.get_jax_backend_report()` nor `import jaxfne.runtime as jtfne_runtime`
 reaches the module (both resolve `runtime` to the function via the same `__getattr__`
 interception, so `jtfne_runtime.get_jax_backend_report()` raises `AttributeError`). The only
@@ -316,7 +316,7 @@ report = jtfne_runtime.get_jax_backend_report()
 
 Lightweight environment/device probe. Returns a dict with `available_devices` (list[str]),
 `default_backend` (str), `x64_enabled` (bool), `dtype_default` (str). Does not require a
-`RuntimeConfig`/`Configuration` — call it standalone to check the environment before
+`RuntimeConfig`/`Configuration`. Call it standalone to check the environment before
 building anything.
 
 ### `set_precision_policy(dtype="float32", enable_x64=False)`
@@ -329,7 +329,7 @@ Sets JAX's *global* `jax_enable_x64` flag (process-wide; it applies to every `Ru
 `{requested_dtype, actual_dtype, x64_enabled, status}`. If `dtype="float64"` is requested
 without `enable_x64=True`, it warns (or raises under `JAXFNE_STRICT=1`) and falls back to
 float32 rather than silently claiming float64. Call this once at startup, matching the
-project-wide rule that x64 is set at startup — do not call it after arrays
+project-wide rule that x64 is set at startup. Do not call it after arrays
 have already been built.
 
 ### `safe_jit(fn, strict=False, **jit_kwargs)` / `safe_vmap(fn, in_axes=0, strict=False, **vmap_kwargs)`
@@ -340,7 +340,7 @@ batched_fn = jtfne_runtime.safe_vmap(my_fn, in_axes=0)
 ```
 
 Wrap a function with `jax.jit`/`jax.vmap`; on compilation/vectorization failure, they warn
-and return the original (eager/unbatched) function instead of raising — an honest fallback,
+and return the original (eager/unbatched) function instead of raising; an honest fallback,
 not a silent one, since a `RuntimeWarning` is always emitted. Pass `strict=True` (or set
 `JAXFNE_STRICT=1`) to raise instead of falling back.
 
@@ -396,6 +396,6 @@ print(f"Devices: {backend_report['available_devices']}")
 
 ## See also
 
-- [Core API](core.md) — Configuration and Model
-- [Quickstart](../../../start/quickstart.md) — Getting started
+- [Core API](core.md): Configuration and Model
+- [Quickstart](../../../start/quickstart.md): Getting started
 - [API reference](../index.md)

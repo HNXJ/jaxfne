@@ -7,8 +7,8 @@ Realization of the jaxfne RBS refactor. Upstream: `artifacts/project_sources/4_t
 `docs/theory/protocols/protocol_c_wave_evidence.md`); delay handling, biological RBS,
 and integration (Protocols D and E).
 
-**Containment architecture:** `docs/theory/doctrine/tfne_containment_architecture.md`
-— TFNE as composition model; \(H\) as unified dependency state; typed
+**Containment architecture:** `docs/theory/doctrine/tfne_containment_architecture.md`:
+TFNE as composition model; \(H\) as unified dependency state; typed
 operator couplings.
 
 ## Mission
@@ -84,7 +84,7 @@ instead represent several unresolved physical variables,
 H_{ik}=\mathcal R_k(\mathbf z_i).
 \]
 
-**Reference conventions (frozen — Protocol D D2b).** RBS coordinates need not
+**Reference conventions (frozen: Protocol D D2b).** RBS coordinates need not
 universally use reference value \(1\):
 
 \[
@@ -125,7 +125,7 @@ H_{\mathrm{Na}}\neq H_{\mathrm{DA}}\neq H_{\mathrm{STDP}}.
 **Operator scope.** RBS may eventually parameterize any physically appropriate
 TFNE operator (\(E,S,F,P\)), covering more than the emitter. Current code (H1a/H1b) is
 the minimal emitter-local slice. Cross-operator coupling requires explicit typed
-maps — see `docs/theory/doctrine/tfne_containment_architecture.md`.
+maps: see `docs/theory/doctrine/tfne_containment_architecture.md`.
 
 **Kernel-specific homeostasis is not erased.** A mechanism that genuinely
 implements homeostatic regulation (e.g. `homeostatic_ei`, legacy
@@ -387,11 +387,11 @@ Experimental ladder (see `docs/theory/memory/protocol_h_rbd_memory.md`):
 |------|-------|----------|
 | T1 | RBS state closure / full-state continuation (incl. \(\mathcal B_t\)) | H |
 | T2 | RBD equilibrium/stability (homeostasis established per equation; the name alone does not establish it) | H |
-| T3 | H-only fading memory with \(W\) frozen — quantitative \(M(\Delta)\) | H |
+| T3 | H-only fading memory with \(W\) frozen: quantitative \(M(\Delta)\) | H |
 | T4 | Topology/delay memory (no extension is valid) | H (**negative at H4**) |
 | T5 | HDP persistent parameter traces | W (W0 frozen; `docs/theory/memory/protocol_w_hdp_parameter_memory.md`) |
 | T6 | Canonical phenomena (adaptation, oddball, omission, …) | post-H/W |
-| T7 | Prediction/surprise — only after T1–T6 | post-H/W |
+| T7 | Prediction/surprise: only after T1–T6 | post-H/W |
 
 ## 11. Repository migration procedure
 

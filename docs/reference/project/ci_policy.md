@@ -53,7 +53,7 @@ This matters because release CI on `main` runs `pytest tests` with no marker
 filter. Matching check-family *names* does not prove matching test *sets*: the
 gate previously ran only `not slow` and `slow and not notebook`, so the 30 node
 ids carrying the `notebook` marker were executed by release CI and never by the
-RC gate — every family name lined up while the invariant was broken underneath.
+RC gate: every family name lined up while the invariant was broken underneath.
 `tests/test_release_gate_hierarchy.py` now checks exhaustiveness mechanically,
 and fails if release CI ever gains a marker filter or an `--ignore`, since the
 coverage argument depends on release CI selecting everything.
@@ -210,7 +210,7 @@ or the manifest names a different commit, or a hash differs, publishing fails
 rather than falling back to a build.
 
 The manifest is generated. Do not commit it. Committing it would change the tree,
-and therefore the commit SHA it claims to certify — the same self-reference the
+and therefore the commit SHA it claims to certify; the same self-reference the
 release-candidate attestation avoids. Retained artifacts live in the gitignored
 `artifacts/release_candidate/` locally and as CI artifacts remotely.
 

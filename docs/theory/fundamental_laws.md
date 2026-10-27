@@ -1,10 +1,10 @@
 # Fundamental-Law Appendix: From Charge Conservation to JaxFNE
 
-**Status:** Informational (derivation) — Δscience = 0. No kernel, solver, or calibration status changes. This appendix walks from elementary physical laws to the JaxFNE equations that appear in the glossary and pipeline; it explicitly marks where the physical derivation ends and the JaxFNE modeling abstraction begins.
+**Status:** Informational (derivation); Δscience = 0. No kernel, solver, or calibration status changes. This appendix walks from elementary physical laws to the JaxFNE equations that appear in the glossary and pipeline; it explicitly marks where the physical derivation ends and the JaxFNE modeling abstraction begins.
 
 **Companion maps:** [Source and field equations](source_field_equations.md) · [Mathematical glossary flow](mathematical_glossary_flow.md) · [Computation basis](computation_basis.md) · [References](../reference/references.md) · [Limitations and future plans](../reference/project/limitations_and_future_plans.md)
 
-> **Scope guard.** JaxFNE is a `computational_scaffold` with `field_solver_status = "linear_solver"` and `physical_amplitude_calibrated = False` by default. Every field/EEG/MEG/EMM/LFP/CSD output is a `proxy_readout` in relative proxy units, an uncalibrated physical claim — without physical amplitude calibration. This appendix is a **derivation narrative** that makes the physics→model steps explicit; it preserves the existing claim level, conductivity, and solver status without elevation.
+> **Scope guard.** JaxFNE is a `computational_scaffold` with `field_solver_status = "linear_solver"` and `physical_amplitude_calibrated = False` by default. Every field/EEG/MEG/EMM/LFP/CSD output is a `proxy_readout` in relative proxy units, an uncalibrated physical claim, without physical amplitude calibration. This appendix is a **derivation narrative** that makes the physics→model steps explicit; it preserves the existing claim level, conductivity, and solver status without elevation.
 
 > **What JaxFNE does not numerically solve in the shipped configuration.** JaxFNE does **not** solve the full Maxwell system, the Poisson/elliptic volume-conductor PDE, the Nernst–Planck ion electrodiffusion system, or a calibrated cable equation per compartment. Those laws are declared for reference; the shipped forward path evaluates **reduced emitters → linear source projection → Gaussian proxy field → probe readouts** as explicit computational proxies defined by kernel equations. Reserved PDE-solve regimes are catalogued in [Limitations](../reference/project/limitations_and_future_plans.md).
 
@@ -14,13 +14,13 @@
 
 For each equation class the appendix uses a three-part pattern:
 
-1. **Physical law** — the textbook law and its domain of validity.
-2. **Reduction / specialization** — the routinely-invoked biophysical specialization (e.g. Hodgkin–Huxley, single-exponential synapse).
-3. **JaxFNE modeling abstraction** — the declared computational operator actually evaluated, with the explicit boundary where derivation ends.
+1. **Physical law**: the textbook law and its domain of validity.
+2. **Reduction / specialization**: the routinely-invoked biophysical specialization (e.g. Hodgkin–Huxley, single-exponential synapse).
+3. **JaxFNE modeling abstraction**: the declared computational operator actually evaluated, with the explicit boundary where derivation ends.
 
 A section-boundary box such as
 
-> **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** …
+> **Boundary: Physical derivation ends here. JaxFNE abstraction begins:** …
 
 accompanies every equation so that no proxy operator is mistaken for a physical law that has been solved.
 
@@ -62,7 +62,7 @@ In neural tissue the relevant currents are:
 
 Their algebraic sum obeys Kirchhoff's current law at the membrane: transmembrane current entering the extracellular volume equals current leaving the intracellular compartment.
 
-> **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** JaxFNE does not integrate a charge-continuity PDE to obtain \(I\). Individual emitter kernels declare a **model current** `I(t)` (e.g. Izhikevich `current_native` plus spike impulse proxy) whose time integral is *interpreted* as charge moved, rather than derived from electrodiffusion. The quantity `source_proxy` in `Signals` is a relative-unit proxy, `source_calibration_status = "uncalibrated_izhikevich_native_current"`.
+> **Boundary: Physical derivation ends here. JaxFNE abstraction begins:** JaxFNE does not integrate a charge-continuity PDE to obtain \(I\). Individual emitter kernels declare a **model current** `I(t)` (e.g. Izhikevich `current_native` plus spike impulse proxy) whose time integral is *interpreted* as charge moved, rather than derived from electrodiffusion. The quantity `source_proxy` in `Signals` is a relative-unit proxy, `source_calibration_status = "uncalibrated_izhikevich_native_current"`.
 
 ---
 
@@ -112,12 +112,12 @@ A full biophysical simulator would at each timestep evaluate \(g_k(V,t)\) from g
 
 | Layer | Equation evaluated in shipped code | Physical terms kept literally? |
 |---|---|---|
-| `C_m dV/dt` | Absorbed into reduced dynamics \((v,u)\) | No — no explicit farads; \(v\) in internal proxy units |
-| \(I_{\mathrm{ion}}\) | Summarized inside \(\dot v = 0.04v^2+5v+140 - u + I\) (see §4) | No — kinetics are phenomenological |
-| \(I_{\mathrm{syn}}\) | Linear filtered spike input `syn_state * exp(-dt/tau) + spike` | Yes — as a linear filter; no \(g(V-E)\) conductance term |
-| \(I_{\mathrm{ext}}\) | `drive` + `drive_schedule` + `noise` | Yes — as an abstract current-like drive |
+| `C_m dV/dt` | Absorbed into reduced dynamics \((v,u)\) | No: no explicit farads; \(v\) in internal proxy units |
+| \(I_{\mathrm{ion}}\) | Summarized inside \(\dot v = 0.04v^2+5v+140 - u + I\) (see §4) | No: kinetics are phenomenological |
+| \(I_{\mathrm{syn}}\) | Linear filtered spike input `syn_state * exp(-dt/tau) + spike` | Yes: as a linear filter; no \(g(V-E)\) conductance term |
+| \(I_{\mathrm{ext}}\) | `drive` + `drive_schedule` + `noise` | Yes: as an abstract current-like drive |
 
-> **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** The shipped JaxFNE emitters do **not** time-step \(C_m dV/dt = I_{\mathrm{ext}} - I_{\mathrm{ion}} - I_{\mathrm{syn}}\) with calibrated \(C_m\) (µF·cm⁻²), physical \(g_k\) (mS·cm⁻²), and mV-referenced \(E_k\). They time-step a declared reduced system \((z \equiv (v,u))\) whose right-hand side is chosen to *reproduce spiking statistics* of the physical system. Reversal potentials appear only as metadata in `ReceptorSpec` (`reversal_mV`) and enter no dynamics (`docs/reference/api/model/emitters.md`). Physical units are recoverable only via an explicit calibration map \(\mathcal C\) that is not applied by default.
+> **Boundary: Physical derivation ends here. JaxFNE abstraction begins:** The shipped JaxFNE emitters do **not** time-step \(C_m dV/dt = I_{\mathrm{ext}} - I_{\mathrm{ion}} - I_{\mathrm{syn}}\) with calibrated \(C_m\) (µF·cm⁻²), physical \(g_k\) (mS·cm⁻²), and mV-referenced \(E_k\). They time-step a declared reduced system \((z \equiv (v,u))\) whose right-hand side is chosen to *reproduce spiking statistics* of the physical system. Reversal potentials appear only as metadata in `ReceptorSpec` (`reversal_mV`) and enter no dynamics (`docs/reference/api/model/emitters.md`). Physical units are recoverable only via an explicit calibration map \(\mathcal C\) that is not applied by default.
 
 **References:** Hodgkin & Huxley 1952; FitzHugh 1961; Morris & Lecar 1981; Brette & Gerstner 2005; reviews in Pettersen et al. 2012; Einevoll 2020 ([References](../reference/references.md)).
 
@@ -127,7 +127,7 @@ A full biophysical simulator would at each timestep evaluate \(g_k(V,t)\) from g
 
 ### 4.1 Why reductions exist
 
-Integrating §3 literally for \(10^2\)–\(10^4\) neurons with heterogeneous channels at \(dt < 0.05\) ms is computationally dominant. The dynamical-systems program (FitzHugh–Nagumo, Morris–Lecar, AdEx, Izhikevich) observes that the HH phase portrait near threshold is essentially two-dimensional — a fast excitation variable and a slower recovery variable. Izhikevich [Izhikevich 2003](../reference/references.md#neural-dynamics) showed that a quadratic integrate-and-fire plus linear recovery,
+Integrating §3 literally for \(10^2\)–\(10^4\) neurons with heterogeneous channels at \(dt < 0.05\) ms is computationally dominant. The dynamical-systems program (FitzHugh–Nagumo, Morris–Lecar, AdEx, Izhikevich) observes that the HH phase portrait near threshold is essentially two-dimensional: a fast excitation variable and a slower recovery variable. Izhikevich [Izhikevich 2003](../reference/references.md#neural-dynamics) showed that a quadratic integrate-and-fire plus linear recovery,
 
 \[
 \begin{aligned}
@@ -137,7 +137,7 @@ Integrating §3 literally for \(10^2\)–\(10^4\) neurons with heterogeneous cha
 \end{aligned}
 \]
 
-reproduces ~20 cortical firing patterns by tuning only \((a,b,c,d)\) — a reduction justified a posteriori by bifurcation analysis (the terms of §3 are not eliminated algebraically).
+reproduces ~20 cortical firing patterns by tuning only \((a,b,c,d)\); a reduction justified a posteriori by bifurcation analysis (the terms of §3 are not eliminated algebraically).
 
 ### 4.2 JaxFNE realization
 
@@ -153,7 +153,7 @@ Default parameters are per cell type (`E, PV, SST, VIP …`) and shared across p
 
 Other emitter classes (`GLIFEmitter`, `LIFEmitter`, `homeostatic_ei`) are typed holders for the same grammar point: a declared Markov transition \((\mathbf x_t,\mathbf H_t) \mapsto (\mathbf x_{t+1},\mathbf H_{t+1})\).
 
-> **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** The coefficients \(0.04, 5, 140\) and the threshold \(30\) are rescaled constants, rather than measured conductance or Nernst potential behind them, chosen so that \(v\) has a convenient numerical range for biphasic integration. The shipped kernels do not enforce ionic reversal bounds, Q10 temperature scaling, or gating-variable conservation as numerical invariants. Choosing a different emitter (e.g. a Jaxley compartmental model attached via `jaxfne.bridges`) is an explicit user decision that changes this boundary; it leaves the proxy status of downstream field readouts unchanged.
+> **Boundary: Physical derivation ends here. JaxFNE abstraction begins:** The coefficients \(0.04, 5, 140\) and the threshold \(30\) are rescaled constants, rather than measured conductance or Nernst potential behind them, chosen so that \(v\) has a convenient numerical range for biphasic integration. The shipped kernels do not enforce ionic reversal bounds, Q10 temperature scaling, or gating-variable conservation as numerical invariants. Choosing a different emitter (e.g. a Jaxley compartmental model attached via `jaxfne.bridges`) is an explicit user decision that changes this boundary; it leaves the proxy status of downstream field readouts unchanged.
 
 **References:** Izhikevich 2003; FitzHugh 1961; Nagumo et al. 1962; Morris & Lecar 1981; Brette & Gerstner 2005; Hines & Carnevale 1997 (NEURON); Deistler et al. 2025 (Jaxley) ([References](../reference/references.md)).
 
@@ -193,7 +193,7 @@ Multiple receptors are multiple decay constants: `standard_receptor_specs()` dec
 
 is the factored-out per-edge operator (see `docs/reference/api/model/emitters.md`). Its report carries `source_calibration_status = "metadata_only_uncalibrated"` and `physical_amplitude_calibrated = False`.
 
-> **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** The equation above is linear in \(s\) and ignores saturation, driving-force dependence \((V-E_{\mathrm{rev}})\), short-term depression/facilitation, and NMDA voltage dependence. Those effects belong to a richer kinetic model (not solved in the default path). JaxFNE's default excitatory/inhibitory tau split (2 ms / 5 ms) is a computational choice balanced for 10–100 Hz network dynamics; no specific voltage-clamp dataset is fitted.
+> **Boundary: Physical derivation ends here. JaxFNE abstraction begins:** The equation above is linear in \(s\) and ignores saturation, driving-force dependence \((V-E_{\mathrm{rev}})\), short-term depression/facilitation, and NMDA voltage dependence. Those effects belong to a richer kinetic model (not solved in the default path). JaxFNE's default excitatory/inhibitory tau split (2 ms / 5 ms) is a computational choice balanced for 10–100 Hz network dynamics; no specific voltage-clamp dataset is fitted.
 
 **References:** Standard receptor kinetics reviewed in Pettersen et al. 2012; Lindén et al. 2014; Hagen et al. 2018 ([References](../reference/references.md)).
 
@@ -247,7 +247,7 @@ G_H(H;\beta_H) = 1 + \beta_H\,(H - 1),\qquad I_i^{\mathrm{drive}} = I_i^{\mathrm
 
 declared in `docs/theory/memory/protocol_h_rbd_memory.md` and `docs/theory/doctrine/tfne_containment_architecture.md`. The scalar model is thus **one realization** of \(H = z/z^*\); the same grammar extends to \(d_H \sim 10\)–\(100\) coordinates without changing the containment structure.
 
-> **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** The choice \(z_k^*\) and the reduction map \(\mathcal R_k\) are **modeling decisions**. The code stores \(\mathbf H\) as a JAX array of shape `(n_neurons, d_H)` (or `(n_neurons,)` for \(d_H=1\)) and integrates \(\dot{\mathbf H} = F_H(\mathbf H, \mathbf x, \mathbf I, \mathbf W, \ldots)\) via explicit Euler inside the same `scan` as the emitter. No invariant forces \(H\) to remain near 1; f2 propagation with \(H \le 0\) yields non-finite \(H\) by design so that misuse is observable — it does not silently clip.
+> **Boundary: Physical derivation ends here. JaxFNE abstraction begins:** The choice \(z_k^*\) and the reduction map \(\mathcal R_k\) are **modeling decisions**. The code stores \(\mathbf H\) as a JAX array of shape `(n_neurons, d_H)` (or `(n_neurons,)` for \(d_H=1\)) and integrates \(\dot{\mathbf H} = F_H(\mathbf H, \mathbf x, \mathbf I, \mathbf W, \ldots)\) via explicit Euler inside the same `scan` as the emitter. No invariant forces \(H\) to remain near 1; f2 propagation with \(H \le 0\) yields non-finite \(H\) by design so that misuse is observable; it does not silently clip.
 
 ---
 
@@ -290,9 +290,9 @@ documented in `docs/reference/api/model/emitters.md` (Canonical source represent
 - `source_projection_mode = "proxy_no_field_solve"`
 - `source_decomposition = "proxy_reduced_emitter"`
 - `source_calibration_status = "uncalibrated_izhikevich_native_current"`
-- `source_scale` — explicit scalar preserving the map for later calibration
+- `source_scale`: explicit scalar preserving the map for later calibration
 
-> **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** The native current \(I_{\mathrm{native}}\) is the internal drive+recurrent+noise sum in Izhikevich proxy units. No amperes-per-membrane-area scale applies. The code does **not** enforce \(\nabla\!\cdot\!\mathbf J = -q\) as a numerical conservation constraint on \(Q\); a scalar conservation proxy \(\int q\, dV \approx 0\) is *reported* (see §13) rather than enforced. Declaring a different \(Q\) (e.g. a Jaxley-derived voltage-proxy current) is done via `jaxfne.bridges` and is recorded via `source_calibration_status`; the default code path does not do this.
+> **Boundary: Physical derivation ends here. JaxFNE abstraction begins:** The native current \(I_{\mathrm{native}}\) is the internal drive+recurrent+noise sum in Izhikevich proxy units. No amperes-per-membrane-area scale applies. The code does **not** enforce \(\nabla\!\cdot\!\mathbf J = -q\) as a numerical conservation constraint on \(Q\); a scalar conservation proxy \(\int q\, dV \approx 0\) is *reported* (see §13) rather than enforced. Declaring a different \(Q\) (e.g. a Jaxley-derived voltage-proxy current) is done via `jaxfne.bridges` and is recorded via `source_calibration_status`; the default code path does not do this.
 
 ---
 
@@ -330,7 +330,7 @@ with \(z_\alpha\) the contact depth, \(d_k\) the neuron depth in \([0,1]\), and 
 
 The kernel is factored out as `FieldOutput.kernel` so CSD proxy, LFP proxy, etc. can be recomputed without re-running projection.
 
-> **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** No elliptic PDE is assembled or solved; no matrix \(\mathcal L\) is formed; no iterative solver residual is reported (fields `solver_residual_l2_relative`, `n_iterations`, `converged` are `None` in the proxy branch). Conductivity \(\sigma_e\) is the scalar `proxy` placeholder, rather than a tensor measured in S·m⁻¹ behind it. The equation \(\nabla\!\cdot\!(-\sigma_e\nabla\phi_e)=q\) is **declared metadata** (`field_solver_status = "linear_solver"`, `field_claim_level = "proxy_readout"`) rather than a numerically enforced constraint. Promoting this to a real solve is the `solved_poisson` / `reserved_admittive` / `reserved_maxwell` ladder in [Limitations](../reference/project/limitations_and_future_plans.md) and [Computation basis](computation_basis.md) — reserved and unshipped.
+> **Boundary: Physical derivation ends here. JaxFNE abstraction begins:** No elliptic PDE is assembled or solved; no matrix \(\mathcal L\) is formed; no iterative solver residual is reported (fields `solver_residual_l2_relative`, `n_iterations`, `converged` are `None` in the proxy branch). Conductivity \(\sigma_e\) is the scalar `proxy` placeholder, rather than a tensor measured in S·m⁻¹ behind it. The equation \(\nabla\!\cdot\!(-\sigma_e\nabla\phi_e)=q\) is **declared metadata** (`field_solver_status = "linear_solver"`, `field_claim_level = "proxy_readout"`) rather than a numerically enforced constraint. Promoting this to a real solve is the `solved_poisson` / `reserved_admittive` / `reserved_maxwell` ladder in [Limitations](../reference/project/limitations_and_future_plans.md) and [Computation basis](computation_basis.md): reserved and unshipped.
 
 ---
 
@@ -362,7 +362,7 @@ edge-padded at the boundaries (`jaxfne/fields/proxy.py:1028`, `csd_tensor`). Sig
 
 Other probes are linear readouts \(y = \text{source} \cdot W^{\top}\) with a toy/declared leadfield \(W\) (`LinearReadout`, `eeg_proxy_transform`, `meg_proxy_transform`, `emm_proxy_transform`).
 
-> **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** The shipped probes are **simulated proxies**: `operator_status = "simulated_proxy"`, `leadfield_status = "toy_or_declared_proxy"`, `units_or_status = "relative_proxy_units"`. Return values are reported with `physical_amplitude_calibrated = False` and are not in pA, mV, or µA·mm⁻³. The EMM-proxy in particular is a normalized signaling-energy metric. ATP consumption is not measured.
+> **Boundary: Physical derivation ends here. JaxFNE abstraction begins:** The shipped probes are **simulated proxies**: `operator_status = "simulated_proxy"`, `leadfield_status = "toy_or_declared_proxy"`, `units_or_status = "relative_proxy_units"`. Return values are reported with `physical_amplitude_calibrated = False` and are not in pA, mV, or µA·mm⁻³. The EMM-proxy in particular is a normalized signaling-energy metric. ATP consumption is not measured.
 
 ---
 
@@ -385,15 +385,15 @@ JaxFNE governance: [RBS/RBD/HDP](doctrine/rbs_rbd_hdp.md) and [HDP guide](../gui
 
 ### 10.2 JaxFNE realization and ladder
 
-RBD alone already yields state memory with \( \dot W = 0\) — the definition of Protocol H — so adaptation and fading memory do **not** require plasticity. HDP is the optional slower loop \(\mathbf x \leftrightarrow \mathbf H \leftrightarrow \mathbf W\). The `emitters_homeostatic_ei` ladder stages \((x,G,H)\) with independent \(( \tau_x, \tau_G, \tau_H )\), exercised separately from the Izhikevich emitters.
+RBD alone already yields state memory with \( \dot W = 0\): the definition of Protocol H, so adaptation and fading memory do **not** require plasticity. HDP is the optional slower loop \(\mathbf x \leftrightarrow \mathbf H \leftrightarrow \mathbf W\). The `emitters_homeostatic_ei` ladder stages \((x,G,H)\) with independent \(( \tau_x, \tau_G, \tau_H )\), exercised separately from the Izhikevich emitters.
 
-> **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** Specific shipped rules (e.g. `signed_linear`, `hebbian_pairwise`, `cubic_penalty`) are **declared** phenomenological candidates, and no specific biological STDP curve is measured. The weight update defaults in `simulate_edge_recurrent_izhikevich_hdp` are a null/identity configuration unless explicit gains (`alpha, beta, gamma, delta, C_spike, K_HDP`) are set. Numerical optimization (AGSDR, Adam) is a distinct operator class `A` and is not HDP; conflating them violates `docs/theory/doctrine/rbs_rbd_hdp.md`.
+> **Boundary: Physical derivation ends here. JaxFNE abstraction begins:** Specific shipped rules (e.g. `signed_linear`, `hebbian_pairwise`, `cubic_penalty`) are **declared** phenomenological candidates, and no specific biological STDP curve is measured. The weight update defaults in `simulate_edge_recurrent_izhikevich_hdp` are a null/identity configuration unless explicit gains (`alpha, beta, gamma, delta, C_spike, K_HDP`) are set. Numerical optimization (AGSDR, Adam) is a distinct operator class `A` and is not HDP; conflating them violates `docs/theory/doctrine/rbs_rbd_hdp.md`.
 
 ---
 
 ## 11. Consolidated boundary map
 
-| # | Physical law (textbook) | Canonical equation | Physical derivation ends — JaxFNE evaluation begins |
+| # | Physical law (textbook) | Canonical equation | Physical derivation ends: JaxFNE evaluation begins |
 |---|---|---|---|
 | 1 | Charge conservation / continuity | \(I = dq/dt\), \(\partial_t \rho + \nabla\!\cdot\!\mathbf J = 0\) | JaxFNE declares model current `I(t)` as proxy; no continuity PDE solved |
 | 2 | Capacitive membrane + Hodgkin–Huxley branches | \(C_m dV/dt = I_{\mathrm{ext}} - I_{\mathrm{ion}} - I_{\mathrm{syn}}\) | Replaced by \(\dot z = F_\theta(z,u,t)\) with phenomenological \(F_\theta\) |
@@ -420,7 +420,7 @@ Explicitly **not solved numerically** in the default `linear_solver` configurati
 What **is** evaluated, reproducibly and differentiably in JAX:
 
 - A complete, deterministic dynamical chain \(X \to H \xrightarrow{S} Q \xrightarrow{\mathcal K} \Phi \xrightarrow{\mathcal P} Y\) with explicit shapes \([T,N] \to [T,X] \to [T,R]\), finite-valued outputs, and JSON-safe manifests (see [Computation basis](computation_basis.md)).
-- Typed, replaceable operators — any stage can be upgraded to a more physical realization (e.g. Jaxley emitters, FEM field solve) inside the same grammar without breaking the pipeline rule (see [TFNE Containment](doctrine/tfne_containment_architecture.md)).
+- Typed, replaceable operators: any stage can be upgraded to a more physical realization (e.g. Jaxley emitters, FEM field solve) inside the same grammar without breaking the pipeline rule (see [TFNE Containment](doctrine/tfne_containment_architecture.md)).
 - Proxy diagnostics that audit the scaffold (conservation proxy residual, gradient norms, bandpower) while remaining at `claim_level = "computational_scaffold"`.
 
 ---
@@ -438,7 +438,7 @@ The current proxy keeps these separated so that adding them later is an explicit
 - Emitter state \(v\) is "mV-like" but not mV; its scale is set by the Izhikevich rescaling; no patch-clamp calibration sets it.
 - Synaptic state \(s\) is dimensionless in the filter equation; its product with \(W\) is in internal weight·activity units.
 - Source \(Q\) is in `source_proxy` units (`source_scale` preserves the relative→physical map without applying it).
-- Field \(\Phi\) and readouts \(Y\) are in `relative_proxy_units` until a `CalibrationSpec` with `amplitude_status = true` and accompanying validation evidence is presented — which the shipped code never auto-elevates.
+- Field \(\Phi\) and readouts \(Y\) are in `relative_proxy_units` until a `CalibrationSpec` with `amplitude_status = true` and accompanying validation evidence is presented, which the shipped code never auto-elevates.
 
 The governing rule is [Relative-Quantity Grammar](doctrine/relative_quantity_grammar.md):
 
@@ -465,4 +465,4 @@ Every reference above is DOI-resolved in [References](../reference/references.md
 
 ## 15. Document history
 
-- 2026-08-28 — Created as an informational derivation appendix at `dev` head `aad8ce5` (requested derivation baseline `350730a`). Δscience = 0; no code, solver, or `physical_amplitude_calibrated` changes. Equations verified against `mkdocs.yml` arithmatex delimiters `\(…\)` / `\[…\]` and against existing rule files cited above.
+- 2026-08-28: Created as an informational derivation appendix at `dev` head `aad8ce5` (requested derivation baseline `350730a`). Δscience = 0; no code, solver, or `physical_amplitude_calibrated` changes. Equations verified against `mkdocs.yml` arithmatex delimiters `\(…\)` / `\[…\]` and against existing rule files cited above.

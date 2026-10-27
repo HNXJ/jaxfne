@@ -25,7 +25,7 @@ Real dataclass fields (`_config.py`):
 - `networks` (`list[dict]`, default `[]`)
 - `emitters` (`list[dict]`, default `[]`)
 - `fields` (`list[dict]`, default `[]`)
-- `probes` (`_ProbeDeclarations`, a list-like, callable proxy — see below)
+- `probes` (`_ProbeDeclarations`, a list-like, callable proxy: see below)
 - `metadata` (`dict`, default from `_default_metadata()`)
 
 `column`/`cell_type_map`/etc. are metadata written by the chainable methods below,
@@ -36,7 +36,7 @@ not top-level dataclass fields.
 Only methods verified against `core.py` are documented here; `Configuration` has many
 more (e.g. `plasticity`, `homeostasis`, `hdp`, `mechanisms`, `connections`, `lesions`,
 `trainables`, `objective_outputs`, `areas`, `layer_fractions`,
-`area_layer_cell_types`, `drive`, `objective`, `optimizer`, `validate`) — see
+`area_layer_cell_types`, `drive`, `objective`, `optimizer`, `validate`): see
 `jaxfne-config` / `jaxfne-modeling-optimization-schema` skills for the full list.
 
 #### `runtime(**kwargs) -> Configuration`
@@ -75,9 +75,9 @@ cfg = cfg.cell_types({"E": 0.8, "PV": 0.2})
 ```
 
 Valid labels for the Izhikevich emitter family are `E`, `PV`, `Inl`, `SST`,
-`Ing`, `VIP` (`jaxfne.emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS`) — stored keys for
+`Ing`, `VIP` (`jaxfne.emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS`): stored keys for
 reduced emitter classes, read as `E-like`, `PV-like`, `SST-like`, `VIP-like`
-(no literal biological identity; see `docs/reference/api/model/emitters.md` wording note) — only these
+(no literal biological identity; see `docs/reference/api/model/emitters.md` wording note); only these
 specific labels are accepted, a generic `"I"` aggregate label is rejected;
 `construct()` raises `ValueError: unknown Suite No. 2 cell type label` for
 any other string. `cell_types()` stores the dict as given; label
@@ -87,7 +87,7 @@ validation happens at `construct()` time.
 
 `_config.py`. Declares connectivity metadata into `metadata["connectivity"]`
 (merged with any prior call) and sets `metadata["connectivity_status"] =
-"declared_metadata_proxy"`. Declaration only — dynamics stay as
+"declared_metadata_proxy"`. Declaration only: dynamics stay as
 configured elsewhere.
 
 **Example:**
@@ -109,7 +109,7 @@ cfg = cfg.set_emitter("izhikevich", "cortical_eig")
 `_config.py` (`_ProbeDeclarations.__call__`). `cfg.probes` is itself a
 list-like object (read path: `len(cfg.probes)`, `cfg.probes[0]`) that is also
 **callable** (write path): calling it returns a new `Configuration` via
-`cfg._with_probe_modes(...)`. `modes` stays a declarative label list — calling this adds no
+`cfg._with_probe_modes(...)`. `modes` stays a declarative label list; calling this adds no
 physical-sensor claim.
 
 **Parameters:**
@@ -132,7 +132,7 @@ cfg = cfg.probes(["MUA-proxy", "source-proxy", "LFP-proxy"])
 jaxfne.Model
 ```
 
-`_model.py`. Frozen dataclass — the constructed, immutable, runnable model built
+`_model.py`. Frozen dataclass: the constructed, immutable, runnable model built
 from a validated `Configuration`. Also exported as alias `Net`. A computational
 scaffold: its field and probe outputs are proxy readouts rather than calibrated
 physical signals.
@@ -144,7 +144,7 @@ physical signals.
 - `static` (`dict[str, Any]`): JIT-static, non-array metadata
 
 `Model` attributes are `cfg`/`params`/`static` (no separate `geometry`/
-`basis_spec`) — geometry lives as nested data in `params`/`static` (e.g. `params["positions"]`,
+`basis_spec`); geometry lives as nested data in `params`/`static` (e.g. `params["positions"]`,
 `static["n_contacts"]`).
 
 ### Methods
@@ -200,7 +200,7 @@ signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=7)
 
 #### `compute_readout(signals: Signals, specs: Sequence[ReadoutSpec]) -> list[ReadoutResult]`
 
-`_model_readout.py`. Canonical v0.1 workflow method — computes scalar features from
+`_model_readout.py`. Canonical v0.1 workflow method: computes scalar features from
 `Signals`, one per `ReadoutSpec`. Returns a **list** of `ReadoutResult`, one
 per spec, in the same order.
 
@@ -216,7 +216,7 @@ readouts = model.compute_readout(signals, [
 
 `_model.py`. Compact JSON-safe metadata: `config_hash`, `n_units`,
 `n_contacts`, `claim_level`, `source_calibration_status`, `field_solver_status`,
-`field_claim_level`, `physical_amplitude_calibrated` (always `False` here — no
+`field_claim_level`, `physical_amplitude_calibrated` (always `False` here; no
 calibrated-amplitude claim).
 
 #### `neuron_table() -> list[dict]`
@@ -239,17 +239,17 @@ Raises `ValueError` on an empty match unless `allow_empty=True`; raises
 jaxfne.Simulation
 ```
 
-`_signals.py`. Frozen dataclass — immutable spec for one simulation run.
+`_signals.py`. Frozen dataclass: immutable spec for one simulation run.
 
 ### Fields
 
-- `duration_ms` (`float`, default `1000.0`) — must be positive and finite
-- `dt_ms` (`float`, default `0.05`) — must be positive and finite
+- `duration_ms` (`float`, default `1000.0`): must be positive and finite
+- `dt_ms` (`float`, default `0.05`): must be positive and finite
 - `plasticity` (`float`, default `0.0`)
 - `seed` (`int`, default `0`)
 - `record_sources` (`bool`, default `True`)
 - `record_fields` (`bool`, default `True`)
-- `poisson_drive` (`dict | None`, default `None`) — external drive consumed per emitter family; on the AdEx route it carries the CAMINOS Poisson keys plus the optional `"same_step": True` (see the AdEx family section of the emitters API doc)
+- `poisson_drive` (`dict | None`, default `None`): external drive consumed per emitter family; on the AdEx route it carries the CAMINOS Poisson keys plus the optional `"same_step": True` (see the AdEx family section of the emitters API doc)
 - `runtime` (`RuntimeConfig | None`, default `None`)
 - `ablation` (`str | None`, default `None`)
 
@@ -269,17 +269,17 @@ sim = jtfne.simulation(duration_ms=1000.0, dt_ms=0.1, seed=7)
 jaxfne.Signals
 ```
 
-`_signals.py`. Frozen dataclass — simulation output container.
+`_signals.py`. Frozen dataclass: simulation output container.
 
 ### Fields
 
 Real fields (`_signals.py`):
 
 - `time_ms` (`jax.Array`)
-- `V_m` (`jax.Array`) — membrane voltage, shape `(n_steps, n_units)`
-- `spikes` (`jax.Array`) — spike raster, shape `(n_steps, n_units)`
-- `sources` (`jax.Array | None`) — source density (present when `record_sources=True`)
-- `field` (`FieldOutput | None`) — laminar proxy field output (LFP/CSD/EEG/MEG proxies live inside this object, rather than as separate top-level `Signals` fields; present when `record_fields=True`)
+- `V_m` (`jax.Array`): membrane voltage, shape `(n_steps, n_units)`
+- `spikes` (`jax.Array`): spike raster, shape `(n_steps, n_units)`
+- `sources` (`jax.Array | None`): source density (present when `record_sources=True`)
+- `field` (`FieldOutput | None`): laminar proxy field output (LFP/CSD/EEG/MEG proxies live inside this object, rather than as separate top-level `Signals` fields; present when `record_fields=True`)
 - `metadata` (`dict[str, Any]`)
 
 `sources` (plural) is the source-density array; field
@@ -320,7 +320,7 @@ lfp = signals.get("lfp")  # raises ValueError if record_fields=False was used
 jaxfne.Objective
 ```
 
-`_signals.py`. Frozen dataclass — declarative objective specification (losses,
+`_signals.py`. Frozen dataclass: declarative objective specification (losses,
 regularizers, diagnostic gates). All specs are plain dicts (no callables), so the
 objective is always JSON-serializable. Gate pass/fail is a computational
 diagnostic rather than empirical validation.
@@ -339,7 +339,7 @@ diagnostic rather than empirical validation.
 jaxfne.objective() -> Objective
 ```
 
-`_construct_presets.py`. Returns a **fresh, empty `Objective()`** — equivalent to
+`_construct_presets.py`. Returns a **fresh, empty `Objective()`**; equivalent to
 `Objective()` directly. It does **not** take `name`/`metric`/`target`/`weight`
 keyword arguments; those belong to the instance methods below, called on the
 returned `Objective`.
@@ -401,7 +401,7 @@ extracting a scalar feature from `Signals`.
 - `metadata` (`dict | None`, keyword-only)
 
 Note: `name` and `metric` are positional-or-keyword; the remaining three are
-**keyword-only** (`*` in the signature) — `jtfne.readout_spec("x", "spike_rate_hz", time_window_ms=(0, 100))`; a positional third argument is not accepted.
+**keyword-only** (`*` in the signature): `jtfne.readout_spec("x", "spike_rate_hz", time_window_ms=(0, 100))`; a positional third argument is not accepted.
 
 **Available metrics** (`_KNOWN_READOUT_METRICS`, `_construct_extras.py`): `spike_rate_hz`,
 `spike_count`, `mean_V_m`, `csd_abs_mean`, `lfp_abs_mean`, `source_abs_mean`.
@@ -419,7 +419,7 @@ readout = jtfne.readout_spec("firing_rate", "spike_rate_hz")
 jaxfne.ReadoutResult
 ```
 
-`_signals.py`. Frozen dataclass — result of applying one `ReadoutSpec` to
+`_signals.py`. Frozen dataclass: result of applying one `ReadoutSpec` to
 `Signals`.
 
 ### Fields
@@ -427,7 +427,7 @@ jaxfne.ReadoutResult
 - `spec_name` (`str`)
 - `metric` (`str`)
 - `value` (`float | None`)
-- `status` (`str`, default `"computed"`) — one of `"computed"`, `"no_field"`, `"unknown_metric"` (also `"empty_time_window"` when a `time_window_ms` slice is empty)
+- `status` (`str`, default `"computed"`): one of `"computed"`, `"no_field"`, `"unknown_metric"` (also `"empty_time_window"` when a `time_window_ms` slice is empty)
 - `claim_level` (`str`, default `"computational_scaffold"`)
 - `physical_amplitude_calibrated` (`bool`, default `False`)
 - `metadata` (`dict`, default `{}`)
@@ -456,8 +456,8 @@ result_dict = readouts[0].to_dict()
 ### `construct(cfg, runtime=None, *, geometry=None) -> Model`
 
 `_construct_core.py`. Two call forms:
-- `construct(cfg)` / `construct(cfg, geometry=...)` — the `Configuration`-based path (original signature).
-- `construct(tensor, runtime)` — the `NeuronalTensor` path (0.4.7+): `tensor` is a `jaxfne.neuronal_tensor.NeuronalTensor`, `runtime` a `RuntimeConfiguration` (defaults to `RuntimeConfiguration()`).
+- `construct(cfg)` / `construct(cfg, geometry=...)`: the `Configuration`-based path (original signature).
+- `construct(tensor, runtime)`: the `NeuronalTensor` path (0.4.7+): `tensor` is a `jaxfne.neuronal_tensor.NeuronalTensor`, `runtime` a `RuntimeConfiguration` (defaults to `RuntimeConfiguration()`).
 
 Passing `runtime=` with a `Configuration` raises `ValueError` (a
 `Configuration` already carries runtime via `.runtime(...)`). Passing `geometry=`
@@ -499,7 +499,7 @@ sim = jtfne.simulation(duration_ms=1000.0, dt_ms=0.1, seed=7)
 
 ### `configuration() -> Configuration`
 
-`_construct_presets.py`. Returns a fresh, empty `Configuration()` — entry point for the
+`_construct_presets.py`. Returns a fresh, empty `Configuration()`; entry point for the
 chainable grammar `configuration().network(...).emitter(...)...`.
 
 **Example:**
@@ -515,5 +515,5 @@ ran with `record_fields=False`) rather than fabricating a placeholder.
 
 ### `objective() -> Objective`
 
-See [Objective](#objective) above — documented there since it's the constructor
+See [Objective](#objective) above; documented there since it's the constructor
 entry point for that class.

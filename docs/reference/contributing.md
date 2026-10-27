@@ -27,7 +27,7 @@ Use **`python3`** (3.11 and 3.14 tested). Canonical import: `import jaxfne as jt
 ## Before you open a PR
 
 1. **Scope:** Small, focused changes. Preserve public APIs unless the PR explicitly documents a break.
-2. **Claims:** Don't overclaim simulated outputs — see [Scope & status](project/scope_and_status.md).
+2. **Claims:** Don't overclaim simulated outputs; see [Scope & status](project/scope_and_status.md).
 3. **Visualization:** Simulation-signal plotting belongs in `jaxfne/vis/*` only.
 4. **Tests:** Add or extend tests for behavior you change. Do not weaken tests to hide failures.
 5. **Docs:** User-facing behavior changes need matching docs in the same PR.

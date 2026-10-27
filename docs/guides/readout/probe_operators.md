@@ -294,7 +294,7 @@ Calibration workflows and advanced tutorials live in the docs and examples.
 - Receptor-level synaptic dynamics (synaptic current modeling)
 - Empirically calibrated source projection
 - Hodgkin-Huxley ion channels with biophysical parameters
-- Full-PDE field solver — see [Limitations and future plans](../../reference/project/limitations_and_future_plans.md)
+- Full-PDE field solver: see [Limitations and future plans](../../reference/project/limitations_and_future_plans.md)
 - Empirically calibrated LFP/CSD readouts with validated sign conventions
 - Physical leadfields from anatomically-validated head models
 - Whole-brain connectivity integrated with laminar columns

@@ -5,7 +5,7 @@ jaxfne object grammar. The Jaxley bridge turns a Jaxley module into a first-clas
 jaxfne **emitter**: its `Signals` flow through the same probes,
 projections, objectives, and `jaxfne.vis.*` readouts as the built-in emitter.
 
-All bridge outputs are conservative proxies — `field` arrays are proxy readouts,
+All bridge outputs are conservative proxies. `field` arrays are proxy readouts,
 `physical_amplitude_calibrated=False`, and `claim_level="computational_scaffold"`.
 Biophysical fidelity follows the Jaxley model you provide (channels, morphology):
 jaxfne is the mathematical backend; the configuration sets the detail.
@@ -134,7 +134,7 @@ I_cell = base_current_nA + bias_current_scale · g
 Windows are stitched with continuous state resume (`all_states`); per-cell current
 is injected via grad-safe `data_stimulate`. `k_gain=0` disables the controller
 (a clean null). Because Jaxley's `integrate` is a closed scan, the feedback runs
-at *window* cadence — a documented approximation of the per-step built-in kernel.
+at *window* cadence; a documented approximation of the per-step built-in kernel.
 The injected current is hard-bounded (`current_clip_nA`) and finiteness is
 verified (`strict_finite=True` raises rather than masking).
 
@@ -168,5 +168,5 @@ available without the Jaxley dependency for tutorials.
 
 ## See also
 
-- [Jaxley Interoperability guide](../../../guides/interop/jaxley_interop.md) — end-to-end usage.
-- [Fields API](../readout/fields.md) — `project_laminar_sources` and the proxy field engine.
+- [Jaxley Interoperability guide](../../../guides/interop/jaxley_interop.md): end-to-end usage.
+- [Fields API](../readout/fields.md): `project_laminar_sources` and the proxy field engine.

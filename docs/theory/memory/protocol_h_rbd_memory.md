@@ -1,12 +1,12 @@
 # RBD State Memory
 
-*Fixed weights — protocol H, RBD state memory. Protocol identifier and fixed-weight qualifier retained in opening sentence and provenance.*
+*Fixed weights: protocol H, RBD state memory. Protocol identifier and fixed-weight qualifier retained in opening sentence and provenance.*
 
 **Status:** Protocol H **CLOSED** at H4 (prospective negative result frozen)  
 **H4 interpretation:** `artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json`  
-**Next ladder rung:** Protocol W — W0 contract frozen (`docs/theory/memory/protocol_w_hdp_parameter_memory.md`, `artifacts/protocol_w/w0_mathematical_contract.json`); **implementation not authorized**  
+**Next ladder rung:** Protocol W; W0 contract frozen (`docs/theory/memory/protocol_w_hdp_parameter_memory.md`, `artifacts/protocol_w/w0_mathematical_contract.json`); **implementation not authorized**  
 **Baseline:** `dev` @ `4569b5e` + H1c  
-**Prerequisite:** Protocol D₀/D₁ (`724aa32`) — finite edge-delay semantics  
+**Prerequisite:** Protocol D₀/D₁ (`724aa32`): finite edge-delay semantics  
 **Out of scope:** H5/H4 rescue, W implementation, D₂ geometry compiler
 
 ## 1. Scientific question
@@ -23,7 +23,7 @@ hidden-state dynamics and synaptic modification. Protocol H isolates the intrins
 
 **Checkpoint-1 conjecture (falsifiable, tested at H4):** recurrent geometry and delay
 heterogeneity can prolong or distribute fading state memory across \(\mathcal X_t\).
-**H4 outcome:** preregistered form **not supported** — see §6 and §13.
+**H4 outcome:** preregistered form **not supported**; see §6 and §13.
 
 ## 2. Experimental ladder
 
@@ -65,10 +65,10 @@ The complete discrete-time Markov state is
 
 where:
 
-- \(\mathbf x_t\) — emitter activity state (e.g. Izhikevich \((v,u)\), synaptic filters)
-- \(\mathbf H_t\) — RBS coordinates per neuron, \(\mathbf H_i(t)\in\mathbb R^{d_H}\)
-- \(\mathbf W_t\) — **frozen** in Protocol H (\(\mathbf W_{t+1}=\mathbf W_t\))
-- \(\mathcal B_t\) — delay history (spike ring buffer) whenever any
+- \(\mathbf x_t\): emitter activity state (e.g. Izhikevich \((v,u)\), synaptic filters)
+- \(\mathbf H_t\): RBS coordinates per neuron, \(\mathbf H_i(t)\in\mathbb R^{d_H}\)
+- \(\mathbf W_t\): **frozen** in Protocol H (\(\mathbf W_{t+1}=\mathbf W_t\))
+- \(\mathcal B_t\): delay history (spike ring buffer) whenever any
   `delay_steps > 0` (Protocol D)
 
 **Continuation contract (H2, implemented):** the RBD Markov state is
@@ -137,7 +137,7 @@ Delayed recurrent input (when enabled):
 \mathbf I_i(t)= \sum_j \mathcal C_{ji}\bigl(\mathbf x_j(t-\tau_{ji}),\,W_{ji}\bigr).
 \]
 
-Activity may feed back into \(F_H\) via \(\kappa_H I_i^{\mathrm{rel}}\) — see §4.5.
+Activity may feed back into \(F_H\) via \(\kappa_H I_i^{\mathrm{rel}}\): see §4.5.
 
 ### 4.5 \(I^{\mathrm{rel}}\) and baseline-one vs driven steady state
 
@@ -165,8 +165,8 @@ calibration**, rather than a claim that the driven attractor is at \(H=1\). With
 
 ### 4.6 H1 phase portrait (isolated, \(I^{\mathrm{rel}}=0\))
 
-F1: \(R_1(H)=1-H\) — antisymmetric about \(H=1\).  
-F2: \(R_2(H)=H^{-1}-1\) — stronger recovery below 1, slower decay above 1 despite
+F1: \(R_1(H)=1-H\); antisymmetric about \(H=1\).  
+F2: \(R_2(H)=H^{-1}-1\); stronger recovery below 1, slower decay above 1 despite
 matched Jacobian at \(H=1\). Receipt: `tests/test_protocol_h_rbd_h1_phase_portrait.py`.
 
 ### 4.3 \(F_H\) candidate families (not one canonical equation)
@@ -229,7 +229,7 @@ H_k(t_0^-)=1 \rightarrow H_k(t_0^+)=1+\delta_H,\qquad H_{i\neq k}=1.
 This interrogates \(\Delta H \rightarrow x/H/\mathcal B \rightarrow\) distributed
 fading state without the confound \(u\rightarrow x\rightarrow H\).
 
-**Secondary:** pulse-current perturbation — introduces an additional transfer path,
+**Secondary:** pulse-current perturbation; introduces an additional transfer path,
 reserved for later cross-checks, with the first memory test elsewhere.
 
 **Post-perturbation baseline:**
@@ -304,7 +304,7 @@ over seeds and perturbation instances. **No memory claim** without a quantitativ
 
 Secondary metrics (optional; none substitutes for a primary one): perturbation-aligned response
 difference between matched-input trajectories, autocorrelation of \(H\), recovery
-time constants — all pre-registered.
+time constants; all pre-registered.
 
 ## 6. Primary experiment matrix (H4 — **closed**, prospective negative result)
 
@@ -351,7 +351,7 @@ distinct kernels, e.g. exponential decay vs delayed recurrent peaks).
 
 "No memory extension" (\(\alpha_{\mathrm{length}}\approx 0\),
 \(\alpha_{\mathrm{heterogeneity}}\approx 0\), interaction null) is a **valid**
-H4 outcome — **observed** under the frozen prospective run (see §13).
+H4 outcome: **observed** under the frozen prospective run (see §13).
 
 **H4 prospective cell means (\(\mathcal M_X\)):**
 
@@ -425,7 +425,7 @@ HDP / \(\dot W \neq 0\) is **excluded** from Protocol H runs.
 | **H1c** | Postsynaptic recurrent gain \(G_H=1+\beta_H(H-1)\) | `tests/test_protocol_h_rbd_h1c.py` |
 | **H2** | Full-state continuation incl. `delay_state` + `continuation_step_offset` | `tests/test_protocol_h_rbd_h2.py` |
 | **H3** | Localized RBS perturbation + label-independent \(M_H,M_X,M_{X,H}\); \(D_H\) diagnostic | `jaxfne/h3_decodability.py`, `tests/test_protocol_h_rbd_h3.py` |
-| **H4** | Topology/delay matrix + \(\mathcal M_X\) factorial (§6) | `jaxfne/h4_matrix.py`, frozen receipts — **negative result** |
+| **H4** | Topology/delay matrix + \(\mathcal M_X\) factorial (§6) | `jaxfne/h4_matrix.py`, frozen receipts: **negative result** |
 
 **Protocol H:** **CLOSED** at H4. No H5 before W.
 
@@ -511,7 +511,7 @@ information-normalized metrics.
 detector and \(\Delta_{\max}\). Extending the observation window is H5/new protocol,
 not H4 correction.
 
-**Exploratory only:** \(\mathcal M_X^{SH}=0.052\) — candidate regime for a future
+**Exploratory only:** \(\mathcal M_X^{SH}=0.052\); candidate regime for a future
 independently preregistered study; not a revised H4 confirmation.
 
 **Scientific closure delivered by Protocol H:**
@@ -528,9 +528,9 @@ independently preregistered study; not a revised H4 confirmation.
 
 ## 13. References
 
-- `docs/theory/doctrine/rbs_rbd_hdp.md` — RBS/RBD/HDP definitions, §8 memory hypothesis
-- `docs/theory/memory/protocol_w_hdp_parameter_memory.md` — Protocol W (spec open)
-- `artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json` — H4 frozen interpretation
-- `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` — mathematical authority
-- `tests/test_edge_delay_protocol_d016.py` — Protocol D₀/D₁ tests
-- `docs/theory/memory/protocol_h_h1b_h_to_x_gain.md` — H1b \(H\rightarrow x\) gain specification
+- `docs/theory/doctrine/rbs_rbd_hdp.md`: RBS/RBD/HDP definitions, §8 memory hypothesis
+- `docs/theory/memory/protocol_w_hdp_parameter_memory.md`: Protocol W (spec open)
+- `artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json`: H4 frozen interpretation
+- `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md`: mathematical authority
+- `tests/test_edge_delay_protocol_d016.py`: Protocol D₀/D₁ tests
+- `docs/theory/memory/protocol_h_h1b_h_to_x_gain.md`: H1b \(H\rightarrow x\) gain specification

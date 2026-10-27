@@ -73,16 +73,16 @@ seed `K_S`.
 `AugmentationRecord(realized_order, changes, spec_digest, base_digest,
 notes, k_v, jitters)`:
 
-- `changes` — one `ProvenanceEntry(address, axis, before, after, origin)`
+- `changes`: one `ProvenanceEntry(address, axis, before, after, origin)`
   per rewritten value, in sampling order.
-- `k_v` — the spec's seed `K_V` as an int, or `None` when the spec has no seed.
-- `jitters` — one `(name, jitter)` pair per jittered field of each realized
+- `k_v`: the spec's seed `K_V` as an int, or `None` when the spec has no seed.
+- `jitters`: one `(name, jitter)` pair per jittered field of each realized
   transform, in realized order; `name` is `"<transform>.<field>"`, for example
   `("ThetaX.g", 0.2)` for `g_jitter`.
-- `origin` — `"augmented"` for a deterministic rewrite,
+- `origin`: `"augmented"` for a deterministic rewrite,
   `"augment-sampled"` for a value that drew under `K_V`.
-- `spec_digest` — stable digest of the spec (canonical axis order).
-- `base_digest` — identity digest of the input tensor.
+- `spec_digest`: stable digest of the spec (canonical axis order).
+- `base_digest`: identity digest of the input tensor.
 - A no-op `ScaleN` writes no scaling note; scaling keeps the existing
   `w/sqrt(N)` edge-weight rule.
 
@@ -98,8 +98,8 @@ distinct object, zero changed values.
   rounding to 0 steps is refused by `construct`, and augmentation does not check it.
 - `H_0` reaches the model as the target-group mean of `H`
   (`model.params["hdp_initial_H"]`) and is inert unless HDP is on.
-- `Theta_X` scales only `g_mech[conn.mechanism]` — the key `construct`
-  consumes — and refuses an undeclared one rather than materialising the
+- `Theta_X` scales only `g_mech[conn.mechanism]`; the key `construct`
+  consumes, and refuses an undeclared one rather than materialising the
   default.
 - `N` scaling keeps the `w/sqrt(N)` rule and refuses an allocation that
   zeroes a declared cell type.
@@ -130,6 +130,6 @@ signals = jtfne.simulate(model)
 
 ## Related pages
 
-- [NeuronalTensor](../model/neuronal_tensor.md) — the phenotype schema augment rewrites.
-- [JDNA](../model/jdna.md) — development (`K_D`) runs before augment (`K_V`).
-- [Core](core.md) — `construct` / `simulate` consume the augmented tensor.
+- [NeuronalTensor](../model/neuronal_tensor.md): the phenotype schema augment rewrites.
+- [JDNA](../model/jdna.md): development (`K_D`) runs before augment (`K_V`).
+- [Core](core.md): `construct` / `simulate` consume the augmented tensor.
