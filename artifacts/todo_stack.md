@@ -108,8 +108,6 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak
   (0.33-0.67). Readout follow-up (w_max, larger frozen sets) is Hamm's call; lane paused until then.
 
-- Brunel S1 (finite size, N=6250, in-degrees fixed) is running on the lane option (T-O69); S2 and S3 are
-  recorded in `RESULT_P3.md` (2026-10-25); S1 goes there as sensitivity when the 20 runs finish.
 - Dashboard three-verdict distinction (Hamm 2026-10-23 P0 feedback, bundle
   `C:/Users/nejath/Downloads/JAXFNE_SOURCES_AND_DASHBOARD_REVIEW_2026-10-23/`): LANDED 06a44180 -
   verdict_summary (paper/library/methods) derived from records, core-method rows out of the paper
@@ -158,9 +156,9 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   (221f1d01: superposed rules left registered by an earlier test reached S5 in the single-process run).
   P6 drafted (`izhikevich2003/core/PREREG_P6.md`, unsigned; seeds and Q5 wait on Hamm). The signed text
   changes two lines: gate 2 PE tolerance rtol 1e-6 (`score_seed` matches P5 to about 5e-8 relative), and R4
-  wording in place of "moves Fig. 3 to T-jaxfne" (Izhikevich is T-jaxfne already). Running: Brunel S1 (A-D,
-  seeds 4-8, N=6250, on 3d7a5c9b; 8 of 20 done). Next: Release CI on the pushed head, then 9F figure lock
-  (that run's freeze becomes the constraints file the job installs with); the S2 generator waits on the D35
+  wording in place of "moves Fig. 3 to T-jaxfne" (Izhikevich is T-jaxfne already). Brunel S1 is recorded
+  in `RESULT_P3.md` (D reads irregular at N=6250 on all seeds; no verdict change). 9F lock landed (3ab239f9);
+  Release CI 40450227892 checks it installs. The S2 generator waits on the D35
   calibration call (C3 row). Untested: the E1 delayed-edge route. P-045 resolved (8406ca28).
 - T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
   and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots. Drafts: Potjans 2026-10-26,

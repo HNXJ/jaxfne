@@ -44,5 +44,12 @@ scored): every point keeps its regime label and its rate within 1.5% of the scor
 B 59.2-59.4, C 37.9, D 5.5-5.6). S3 (dt 0.05 ms): labels hold except C seed 4, which reads oscillatory
 (spectral excess 5.46 against 2.95 scored; seed 5 stays irregular at 4.54), and B's CV rises from 0.78-0.83
 to 0.93-0.97. Point C's irregular label is therefore close to the classifier's boundary under a halved
-step; no verdict changes (the conditional rests on the E5 band, stated above). S1 (finite size) has not
-run; it needs the fixed-in-degree lane option (release plan B5).
+step; no verdict changes (the conditional rests on the E5 band, stated above). S1 (finite size: N=6250
+with the N=12500 in-degrees held) ran on seeds 4-8 at points A-D (code `3d7a5c9b`, CPU float32, jax
+0.10.1; receipts `.../brunel2000_p3v4/unscored_S1/`, manifest sha256
+`e9982b5fbdd5d25843d5a1c7b0f47fa91cecab4785854046d75643301fc097ae`). A, B and C keep their labels, with
+rates within +0.07% (A), +0.8 to +2.3% (B) and +1.5 to +2.3% (C) of the scored runs; B's CV rises from
+0.78-0.83 to 0.90-0.93. At D the rate moves by -7.6 to +4.0% and the label falls from oscillatory to
+irregular on all five seeds: spectral excess 3.4-4.0 against 5.1-7.9 scored, under the classifier's
+oscillation floor of 5 (`jaxfne.analysis.metrics`). Q2 at D does not hold at half size; D's slow global
+oscillation is weaker there. No verdict changes (the sensitivity set never enters the score).
