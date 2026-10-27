@@ -1147,7 +1147,7 @@ def test_policies_are_deterministic_per_seed_without_continuation():
 
     The LIF edge route exposes no continuation (state enters only via
     ``V0_mV``; adaptation ``A`` and ``t_last`` always start fresh), so a
-    chunked resume is not constructible here — continuation equality
+    chunked resume is not constructible here; continuation equality
     lives on the construct/simulate path (``jaxfne._pipeline``). What the
     route does guarantee is exact repeat determinism under every
     supported policy, pinned here on one fixed two-step drive.

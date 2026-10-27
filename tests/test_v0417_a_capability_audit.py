@@ -1,4 +1,4 @@
-"""0.4.17-A — frozen capability audit receipt tests."""
+"""0.4.17-A: frozen capability audit receipt tests."""
 
 from __future__ import annotations
 

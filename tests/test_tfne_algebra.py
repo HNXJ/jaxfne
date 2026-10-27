@@ -1095,7 +1095,7 @@ def test_declared_frontier_names_replica_members():
 
 def test_declared_frontier_applies_under_replicate_join():
     """`SEG^{3O}` chain tail is the only member an out-declaration can name
-    beyond the derived tail — declaring it changes nothing, pinning that
+    beyond the derived tail; declaring it changes nothing, pinning that
     derived and declared tails agree."""
     body = "SEG := [C = {E}; N = 1];\nQ := [C = {E}; N = 1];\nV := SEG^{3O};\nW := V O[k] Q;\nx : W : y\n"
     _, _, derived = _realize(_FRONTIER_RULES + body)
@@ -1119,7 +1119,7 @@ def test_declared_frontier_applies_under_replicate_join():
 ])
 def test_malformed_frontier_declarations_fail_closed(decl, body):
     """Unknown, nonlocal, duplicated, empty, or rescoped declarations are
-    refused as E_FRONTIER_UNRESOLVED — never partially applied."""
+    refused as E_FRONTIER_UNRESOLVED; never partially applied."""
     with pytest.raises(TFNEError, match="E_FRONTIER_UNRESOLVED"):
         _frontier_realize(body, decl + "\n")
 
@@ -1178,7 +1178,7 @@ V2 := L1 O L2 O L3 O L5;
 
 def test_rule_body_addresses_scopes_per_side():
     """`{L2,L3}>L3` binds left-members to right-member; `L5<{L2,L5}`
-    binds right-members back to left — left/right-relative addressing."""
+    binds right-members back to left; left/right-relative addressing."""
     src = ("O[cmc1] := [{L2,L3}>L3; L5<{L2,L5}];\n" + _LAMINAR
            + "V := V1 O[cmc1] V2;\nx : V : y\n")
     _, _, r = _realize(src)
@@ -1236,7 +1236,7 @@ def test_bare_dollar_denotes_whole_operand():
 
 def test_dollar_out_respects_declared_frontiers():
     """Rule expansion operates on resolved interfaces: with
-    `out[V1] := [L3]`, `$L.out` binds L3 only — no bypass."""
+    `out[V1] := [L3]`, `$L.out` binds L3 only; no bypass."""
     src = ("O[k] := [$L.out > $R.in];\nout[V1] := [L3];\n" + _LAMINAR
            + "V := V1 O[k] V2;\nx : V : y\n")
     _, _, r = _realize(src)
@@ -1385,7 +1385,7 @@ def test_prefix_applies_body_rules_per_pair():
 
 def test_atomic_group_drops_invalid_projection_keeps_valid():
     """A statement with an invalid resolved projection contributes
-    nothing — no nodes, no relations — while siblings realize fully."""
+    nothing: no nodes, no relations, while siblings realize fully."""
     _, _, r = _realize(
         _PREFIX_BASE
         + "A := [C = {E}; N = 1];\nB := [C = {E}; N = 2];\n"
@@ -1465,7 +1465,7 @@ def test_brace_statements_replay_digest_and_serialize():
 
 def test_canonical_mechanisms_resolve_to_canonical_kinetics():
     """The canonical vocabulary is exactly the canonical table, with its
-    taus, reversals, and signs — no copies, no drift."""
+    taus, reversals, and signs; no copies, no drift."""
     from jaxfne.emitters import standard_receptor_specs
     from jaxfne.tfne import (MECHANISM_CANONICAL, resolve_mechanism)
     table = standard_receptor_specs()
@@ -1612,7 +1612,7 @@ def test_semantic_failures_raise_typed_classes(spec, cls, code):
 
 
 def test_redundant_bare_projection_is_refused():
-    """A bare projection identical to rule output is invalid — even when
+    """A bare projection identical to rule output is invalid, even when
     the rule came from a body statement. Sharing one group scope makes
     the identities coincide exactly."""
     base = ("O[k] := [direction = >];\n"

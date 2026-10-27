@@ -1,4 +1,4 @@
-"""0.4.17-D D2b — two-coordinate activity-to-H_K coupling specification tests."""
+"""0.4.17-D D2b: two-coordinate activity-to-H_K coupling specification tests."""
 
 from __future__ import annotations
 

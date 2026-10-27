@@ -1,4 +1,4 @@
-"""0.4.17-C C3 — frozen neural geometry/delay experiment specification tests."""
+"""0.4.17-C C3: frozen neural geometry/delay experiment specification tests."""
 
 from __future__ import annotations
 

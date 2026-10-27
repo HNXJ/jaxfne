@@ -142,7 +142,7 @@ def test_optax_guarded_import_no_top_level_dependency():
     assert proc.returncode == 0, proc.stderr[-2000:]
     # Fresh `import jaxfne` must not pull in optax (measured: False).
     assert proc.stdout.strip() == "False"
-    # Only check the guard function is available — don't actually import optax
+    # Only check the guard function is available; don't actually import optax
     assert hasattr(jtfne, "require_optax")
     assert callable(jtfne.require_optax)
 
@@ -277,7 +277,7 @@ def test_no_gradient_claim_for_spiking_reset_without_surrogate():
     model = _model()
     obj = jtfne.objective().loss("rate_loss", target=20.0, metric="spike_rate_hz_mean")
 
-    # Explicitly non-differentiable — no surrogate declared
+    # Explicitly non-differentiable; no surrogate declared
     spec = jtfne.optax_adam(differentiability_status="non_differentiable", surrogate_status="none")
     same_model, report = model.tune(obj, optimizer=spec, steps=10)
 
@@ -299,7 +299,6 @@ def test_scalar_tune_report_includes_candidate_diagnostics():
     obj = jtfne.objective().loss("rate_loss", target=20.0, metric="spike_rate_hz_mean")
     _, report = model.tune(obj, optimizer="AGSDR", steps=5, seed=42)
 
-    # Check new report fields
     assert "candidate_values" in report
     assert "candidate_scores" in report
     assert "score_variance" in report

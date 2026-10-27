@@ -1,4 +1,4 @@
-"""Protocol W3 — stability analysis receipts (analysis only)."""
+"""Protocol W3: stability analysis receipts (analysis only)."""
 
 from __future__ import annotations
 

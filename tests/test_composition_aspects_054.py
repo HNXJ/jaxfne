@@ -1,4 +1,4 @@
-"""0.5.4 item 1 (E1b) — ensemble structural aspects, one by one.
+"""0.5.4 item 1 (E1b): ensemble structural aspects, one by one.
 
 Cross-area edges (explicit, with realized delays), geometry (offset_x keeps
 depth, separates x), probes/fields (run + finite), continuation (chunked ==

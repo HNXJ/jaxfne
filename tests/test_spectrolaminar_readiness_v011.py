@@ -162,7 +162,6 @@ def test_c_population_slices_cover_all_neurons():
     )
     slices = geom.population_slices()
 
-    # Check coverage
     all_covered = [False] * geom.n_units_total
     for s in slices.values():
         for i in range(s.start, s.stop):

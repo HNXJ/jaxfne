@@ -1,4 +1,4 @@
-"""0.5.4 item 1c — per-statement delay in S12 rule bodies.
+"""0.5.4 item 1c: per-statement delay in S12 rule bodies.
 
 Each inter-area projection in a rule body declares its own delay
 (`[delay=MS]`, alone or with `[mech=...]` in either order), overriding

@@ -1,29 +1,29 @@
 """Tests for v0.0.20 semantic correctness hardening.
 
 Covers all 9 behavioral bugs fixed:
-A. receipt_completeness       — duration_ms, dt_ms, n_steps, record flags in receipt
-B. receipt_id_determinism     — same payload → same id
-C. receipt_id_specificity     — different duration → different id
-D. manifest_backend           — used vs available backend separation
-E. manifest_no_signals        — manifest without signals reports unknown_not_run
-F. n_contacts_honored         — probe n_contacts propagates to model.static
-G. n_contacts_default         — absent n_contacts defaults to 16
-H. n_contacts_invalid         — n_contacts < 2 raises ValueError
-I. field_readout_time_window  — CSD readout sliced by time_window_ms
-J. field_readout_no_window    — CSD readout full array when no window given
-K. empty_window_status        — t0 >= t1 → status empty_time_window, value None
-L. negative_window_status     — negative start → empty_time_window, not NaN
-M. zero_width_window_status   — identical start/end → empty_time_window
-N. simulation_negative_dur    — Simulation(duration_ms < 0) raises ValueError
-O. simulation_zero_dur        — Simulation(duration_ms = 0) raises ValueError
-P. simulation_negative_dt     — Simulation(dt_ms < 0) raises ValueError
-Q. simulation_zero_dt         — Simulation(dt_ms = 0) raises ValueError
-R. simulation_valid_small     — Simulation(duration_ms=1.0, dt_ms=0.5) is valid
-S. record_sources_in_metadata — record_sources present in signals.metadata
-T. duration_in_metadata       — duration_ms present in signals.metadata
-U. dt_in_metadata             — dt_ms present in signals.metadata
-V. schema_constants           — _MANIFEST_SCHEMA_VERSION etc. are defined and non-empty
-W. receipt_schema_v020        — _RECEIPT_SCHEMA_VERSION contains "0.0.20"
+A. receipt_completeness       : duration_ms, dt_ms, n_steps, record flags in receipt
+B. receipt_id_determinism     : same payload → same id
+C. receipt_id_specificity     : different duration → different id
+D. manifest_backend           : used vs available backend separation
+E. manifest_no_signals        : manifest without signals reports unknown_not_run
+F. n_contacts_honored         : probe n_contacts propagates to model.static
+G. n_contacts_default         : absent n_contacts defaults to 16
+H. n_contacts_invalid         : n_contacts < 2 raises ValueError
+I. field_readout_time_window  : CSD readout sliced by time_window_ms
+J. field_readout_no_window    : CSD readout full array when no window given
+K. empty_window_status        : t0 >= t1 → status empty_time_window, value None
+L. negative_window_status     : negative start → empty_time_window, not NaN
+M. zero_width_window_status   : identical start/end → empty_time_window
+N. simulation_negative_dur    : Simulation(duration_ms < 0) raises ValueError
+O. simulation_zero_dur        : Simulation(duration_ms = 0) raises ValueError
+P. simulation_negative_dt     : Simulation(dt_ms < 0) raises ValueError
+Q. simulation_zero_dt         : Simulation(dt_ms = 0) raises ValueError
+R. simulation_valid_small     : Simulation(duration_ms=1.0, dt_ms=0.5) is valid
+S. record_sources_in_metadata : record_sources present in signals.metadata
+T. duration_in_metadata       : duration_ms present in signals.metadata
+U. dt_in_metadata             : dt_ms present in signals.metadata
+V. schema_constants           : _MANIFEST_SCHEMA_VERSION etc. are defined and non-empty
+W. receipt_schema_v020        : _RECEIPT_SCHEMA_VERSION contains "0.0.20"
 """
 
 import json

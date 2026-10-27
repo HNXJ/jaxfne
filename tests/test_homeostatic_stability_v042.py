@@ -2,7 +2,7 @@
 
 The homeostatic mode keeps each emitter in a stable operating regime AND hard-bounds
 its state, so a single neuron / simple component can never overflow or underflow in
-float32 — even under absurd or non-finite drive. These tests drive deliberately
+float32, even under absurd or non-finite drive. These tests drive deliberately
 extreme inputs and assert finite, in-range output.
 """
 import numpy as np

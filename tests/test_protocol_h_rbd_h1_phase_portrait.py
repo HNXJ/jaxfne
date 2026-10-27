@@ -1,4 +1,4 @@
-"""Protocol H1 — isolated F1/F2 phase portraits (I^rel=0).
+"""Protocol H1: isolated F1/F2 phase portraits (I^rel=0).
 
 Validates primitive RBD restoring asymmetry before network experiments:
 F1 symmetric about H=1; F2 stronger recovery below 1, slower decay above 1.

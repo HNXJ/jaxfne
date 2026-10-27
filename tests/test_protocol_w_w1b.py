@@ -1,4 +1,4 @@
-"""Protocol W1b — RBD-generated shadow plasticity on A⟷B."""
+"""Protocol W1b: RBD-generated shadow plasticity on A⟷B."""
 
 from __future__ import annotations
 

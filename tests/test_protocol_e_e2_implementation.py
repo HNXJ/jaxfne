@@ -1,4 +1,4 @@
-"""0.4.17-E E2 — typed delayed-coupling implementation tests."""
+"""0.4.17-E E2: typed delayed-coupling implementation tests."""
 
 from __future__ import annotations
 

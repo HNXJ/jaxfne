@@ -1,8 +1,8 @@
-"""0.5.4 item 3 — local vs inter-area observations as declared operators.
+"""0.5.4 item 3: local vs inter-area observations as declared operators.
 
 Per-area Q/Phi (`population_rate`, `multi_area_spectrolaminar_readout`)
 plus cross-area coupling (`cross_area_coherence`: magnitude-squared
-coherence with cross-spectrum phase) — all computed in the observation
+coherence with cross-spectrum phase); all computed in the observation
 layer (`jaxfne.fields`), never plotting-side. Adversarial silence
 (zero/constant inputs) is a declared `valid=False`, not a silent NaN.
 """

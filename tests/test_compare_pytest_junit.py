@@ -1,4 +1,4 @@
-"""Tests for scripts/compare_pytest_junit.py — per-node JUnit comparison."""
+"""Tests for scripts/compare_pytest_junit.py: per-node JUnit comparison."""
 
 from __future__ import annotations
 

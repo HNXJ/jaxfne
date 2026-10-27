@@ -59,7 +59,7 @@ def test_cable_filter_sources_shape_and_finite():
 
 def test_cable_filter_sources_attenuates_high_frequency_more_than_low():
     """A long-tau neuron should attenuate a fast oscillation more than a slow one,
-    relative to its own DC/low-frequency gain — the defining low-pass behavior."""
+    relative to its own DC/low-frequency gain, the defining low-pass behavior."""
     T = 4000
     dt_ms = 0.5
     dt_s = dt_ms / 1000.0

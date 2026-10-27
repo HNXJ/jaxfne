@@ -1,4 +1,4 @@
-"""0.4.17-D D2b — two-coordinate activity-coupled RBS implementation tests."""
+"""0.4.17-D D2b: two-coordinate activity-coupled RBS implementation tests."""
 
 from __future__ import annotations
 

@@ -138,7 +138,7 @@ def _assert_dynamic_equal(a, b):
 
 
 def test_p010_baseline_default_noise_4chunks_exact():
-    """P-010: plain vs 4-chunk chained, default live noise — bit-exact."""
+    """P-010: plain vs 4-chunk chained, default live noise; bit-exact."""
     model = _model()
     full, full_state, parts, states = _chain(model, _rt_base(), 12.0, 3.0)
     _assert_concat_equal(full, parts)
@@ -358,7 +358,7 @@ def test_plasticity_off_engaged_frozen_equals_fixed_w():
     assert not np.allclose(np.asarray(d_frozen["H_trace"]), 1.0)
     # V/sources: seeded structural ulp amplified by dynamics (see
     # docstring). Characterization bound with margin over the observed
-    # 1.8e-4 max — guards against future large divergence, claims no
+    # 1.8e-4 max; guards against future large divergence, claims no
     # equality.
     assert float(jnp.max(jnp.abs(s_frozen.V_m - s_off.V_m))) < 1e-3
     assert float(jnp.max(jnp.abs(s_frozen.sources - s_off.sources))) < 1e-3

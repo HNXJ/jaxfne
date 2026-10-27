@@ -111,7 +111,6 @@ class TestSanityDeltaModel:
         backup = model.initialize_backup(paradigm)
         episode = model.run_task(paradigm=paradigm, gate=paradigm.make_fixation_gate(), backup=backup)
 
-        # Check shapes
         assert episode.spikes.shape == (30000, 500)
         assert episode.vm.shape == (30000, 500)
         assert "lfp_proxy" in episode.source_terms

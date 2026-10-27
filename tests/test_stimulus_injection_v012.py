@@ -26,7 +26,7 @@ def _simple_condition(name="test_cond"):
     )
 
 
-# Test A — stimulus schedule construction
+# Test A: stimulus schedule construction
 def test_stimulus_schedule_construction():
     events = (
         {"label": "ev1", "onset_ms": 10.0, "duration_ms": 20.0, "amplitude": 5.0},
@@ -46,7 +46,7 @@ def test_stimulus_schedule_construction():
     json.dumps(d, allow_nan=False)
 
 
-# Test B — to_array shape and timing
+# Test B: to_array shape and timing
 def test_stimulus_schedule_to_array_shape_and_timing():
     events = (
         {"label": "stim", "onset_ms": 10.0, "duration_ms": 20.0, "amplitude": 10.0},
@@ -66,7 +66,7 @@ def test_stimulus_schedule_to_array_shape_and_timing():
     assert jnp.all(arr[30:, :] == 0)
 
 
-# Test C — zero amplitude or no drive event
+# Test C: zero amplitude or no drive event
 def test_zero_amplitude_or_no_drive_event():
     events = (
         {"label": "zero_amp", "onset_ms": 10.0, "duration_ms": 10.0, "amplitude": 0.0},
@@ -77,7 +77,7 @@ def test_zero_amplitude_or_no_drive_event():
     assert jnp.all(arr == 0)
 
 
-# Test D — simulate with stimulus schedule runs
+# Test D: simulate with stimulus schedule runs
 def test_simulate_with_stimulus_schedule_runs():
     model = jtfne.construct(_cfg(n=5))
     events = ({"label": "s1", "onset_ms": 5.0, "duration_ms": 5.0, "amplitude": 10.0},)
@@ -91,7 +91,7 @@ def test_simulate_with_stimulus_schedule_runs():
     assert "stimulus_schedule" in signals.metadata
 
 
-# Test E — simulate with paradigm condition runs
+# Test E: simulate with paradigm condition runs
 def test_simulate_with_paradigm_condition_runs():
     model = jtfne.construct(_cfg(n=5))
     cond = _simple_condition("test_cond")
@@ -102,7 +102,7 @@ def test_simulate_with_paradigm_condition_runs():
     assert signals.metadata["stimulus_injection_status"] == "native_drive_schedule_v0.0.12"
 
 
-# Test F — simulate_condition wrapper
+# Test F: simulate_condition wrapper
 def test_simulate_condition_wrapper():
     model = jtfne.construct(_cfg(n=5))
     cond = _simple_condition("wrap_cond")
@@ -118,7 +118,7 @@ def test_simulate_condition_wrapper():
     assert s1.metadata["condition_name"] == "wrap_cond"
 
 
-# Test G — default simulate backward compatibility
+# Test G: default simulate backward compatibility
 def test_default_simulate_backward_compatibility():
     model = jtfne.construct(_cfg(n=5))
     sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=42)
@@ -135,7 +135,7 @@ def test_default_simulate_backward_compatibility():
     assert jnp.array_equal(s1.V_m, s2.V_m)
 
 
-# Test H — stimulus injection reproducible
+# Test H: stimulus injection reproducible
 def test_stimulus_injection_reproducible():
     model = jtfne.construct(_cfg(n=5))
     cond = _simple_condition("repro")
@@ -148,7 +148,7 @@ def test_stimulus_injection_reproducible():
     assert jnp.array_equal(s1.spikes, s2.spikes)
 
 
-# Test I — stimulus injection truth gates unchanged
+# Test I: stimulus injection truth gates unchanged
 def test_stimulus_injection_truth_gates_unchanged():
     model = jtfne.construct(_cfg(n=5))
     cond = _simple_condition("truth")
@@ -167,7 +167,7 @@ def test_stimulus_injection_truth_gates_unchanged():
     assert labels.get("mechanism_claim_status", "not_claimed") == "not_claimed"
 
 
-# Test J — stimulus manifest json safe
+# Test J: stimulus manifest json safe
 def test_stimulus_manifest_json_safe():
     model = jtfne.construct(_cfg(n=5))
     cond = _simple_condition("json")
@@ -178,7 +178,7 @@ def test_stimulus_manifest_json_safe():
     json.dumps(manifest, allow_nan=False)
 
 
-# Test K — batch path no condition support yet
+# Test K: batch path no condition support yet
 def test_batch_path_no_condition_support_yet():
     # simulate_batch doesn't take paradigm yet, so it should run as None
     model = jtfne.construct(_cfg(n=5))

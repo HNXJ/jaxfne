@@ -1,4 +1,4 @@
-"""0.4.17-E E1 — hierarchy/runtime implementation tests."""
+"""0.4.17-E E1: hierarchy/runtime implementation tests."""
 
 from __future__ import annotations
 

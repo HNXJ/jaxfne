@@ -1,4 +1,4 @@
-"""Tests for v0.0.17 ReadoutSpec/ReadoutResult — declarative feature extraction.
+"""Tests for v0.0.17 ReadoutSpec/ReadoutResult: declarative feature extraction.
 
 A. readout_spec() factory returns ReadoutSpec with correct fields
 B. ReadoutSpec.to_dict() is JSON-safe
@@ -9,7 +9,7 @@ F. spike_count and mean_V_m metrics compute correctly
 G. csd_abs_mean and lfp_abs_mean metrics compute with field output
 H. no_field status when field absent and field metric requested
 I. unknown_metric status for unrecognized metric token
-J. time_window_ms slice respected — windowed result vs full result may differ
+J. time_window_ms slice respected; windowed result vs full result may differ
 K. n_contacts_slice restricts field depth dimension
 L. claim guards: physical_amplitude_calibrated False, claim_level scaffold
 M. _KNOWN_READOUT_METRICS exported and contains expected entries

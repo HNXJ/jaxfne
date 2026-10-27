@@ -933,7 +933,7 @@ def test_event_order_builders_visit_feed_order_per_position():
 
     Synthetic 1x2 grid (depth 2, N=4): ranks carry each fed cell's first
     event offset in the step, the visit arrays sort fed cells by
-    (rank, index) — event order first, ascending index on ties — scoped to
+    (rank, index): event order first, ascending index on ties, scoped to
     each retinotopic position, and the blocks hold the per-position
     inhibition magnitudes the cascade subtracts.
     """

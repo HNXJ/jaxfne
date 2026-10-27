@@ -13,8 +13,8 @@ F3: a stochastic registered HDP rule with no external drive draws its
     per-step noise from ``seed``: seeds 1 vs 2 differ, the same seed
     repeats exactly, and an explicit ``seed=0`` never equals the unset
     key (the adex ``simulate()`` route runs ``simulate_adex`` and
-    refuses HDP inputs — pinned by
-    ``tests/test_adex_route.py::test_construct_refusals_name_the_argument[runtime enable_hdp]`` —
+    refuses HDP inputs, pinned by
+    ``tests/test_adex_route.py::test_construct_refusals_name_the_argument[runtime enable_hdp]``;
     so no model path reaches this kernel).
 F1 residual: the tensor bridge refuses a declared ``n_neurons <= 0``
     by name instead of promoting it to one.

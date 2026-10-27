@@ -8,7 +8,7 @@ import jaxfne as jtfne
 
 
 def test_canonical_compact_summary_off_hot_path():
-    # no kernel change, no overhead when unused — summary is not called in construct/simulate hot path
+    # no kernel change, no overhead when unused; summary is not called in construct/simulate hot path
     assert hasattr(jtfne.util, "canonical_compact_summary")
     assert hasattr(jtfne, "canonical_compact_summary")
     cfg = jtfne.default_cortical_column_config(n=10, duration_ms=10, dt_ms=0.5)

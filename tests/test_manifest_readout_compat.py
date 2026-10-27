@@ -1,4 +1,4 @@
-"""Tests for manifest() readout argument compatibility — v0.0.23.
+"""Tests for manifest() readout argument compatibility, v0.0.23.
 
 Covers the bug where model.manifest(signals, readouts) raised
 ``AttributeError: 'list' object has no attribute 'get'`` when readouts

@@ -298,7 +298,7 @@ class TestSimulateTrials:
         """Per-cell-type Izhikevich overrides must change the real dynamics.
 
         Drives the E population hard vs not at all via cell_type_izh_params and
-        asserts the resulting E spike counts differ — confirming the override is
+        asserts the resulting E spike counts differ, confirming the override is
         applied to simulate_eig_izhikevich, not silently dropped.
         """
         from jaxfne.tutorial_utils import make_laminar_column_config

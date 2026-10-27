@@ -1,4 +1,4 @@
-"""Tests for v0.0.18 ObjectiveReport — structured objective evaluation.
+"""Tests for v0.0.18 ObjectiveReport: structured objective evaluation.
 
 A. Model.evaluate_report() returns ObjectiveReport
 B. ObjectiveReport.to_dict() is JSON-safe
@@ -84,7 +84,7 @@ def test_e_all_gates_pass_empty_objective():
 
 def test_f_all_gates_pass_false_when_gate_fails():
     model, signals = _make_model_signals()
-    # Gate: spike_rate_hz_mean below 0.001 — almost certainly fails since rate > 0
+    # Gate: spike_rate_hz_mean below 0.001; almost certainly fails since rate > 0
     obj = (
         jtfne.objective()
         .gate("impossible_gate", threshold=0.001, criterion="below", metric="spike_rate_hz_mean")

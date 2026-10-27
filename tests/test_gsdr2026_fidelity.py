@@ -1,7 +1,7 @@
 """GSDR lane fidelity tests: reference-unit conversions (PORT_SPEC.md D5/D9/units).
 
 Reference values observed in the Fig. 6 run sources (read as data):
-``HNXJ/GSDR`` ``misc/main.py`` + ``gsdr/models.py`` on jaxley 0.14.0 —
+``HNXJ/GSDR`` ``misc/main.py`` + ``gsdr/models.py`` on jaxley 0.14.0:
 stimulus in nA, synapse conductances in uS, OU channel current in mA/cm2,
 all combined in uA/cm2 via ``convert_point_process_to_distributed``
 (``I/A*1e5``) or the channel ``*1000``. The lane kernel works in uA/cm2

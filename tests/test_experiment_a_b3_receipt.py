@@ -1,4 +1,4 @@
-"""0.4.17-B B3 — Experiment A receipt bundle tests."""
+"""0.4.17-B B3: Experiment A receipt bundle tests."""
 
 from __future__ import annotations
 

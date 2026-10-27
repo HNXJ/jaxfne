@@ -194,7 +194,7 @@ class TestHdpOffNullConsistency:
         assert not np.array_equal(a1, b)
 
     def test_population_h_can_be_positive_unbounded_signed(self):
-        """F2: population-H is a fully unbounded signed controller state — it
+        """F2: population-H is a fully unbounded signed controller state; it
         can be positive when the rate exceeds the setpoint. The grammar doc
         declares domain (-inf,+inf)."""
         import sys

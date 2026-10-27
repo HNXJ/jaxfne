@@ -3,7 +3,7 @@
 A single compact TFNE source jointly exercises named reusable area
 definitions, layers with N/P allocation, O/X relations with typed rule
 bodies, declared in/out frontiers, mechanisms with kinetics, replication,
-order[A], and contextual atomicity — verified by semantic class across
+order[A], and contextual atomicity, verified by semantic class across
 TFNE -> JDNA completion -> JaxFNE Model -> executed model. Asymmetric
 values throughout so accidental defaults cannot pass.
 
@@ -147,7 +147,7 @@ def test_frontiers_own_only_their_interface():
 
 def test_mechanism_identity_and_kinetics_executed():
     """Both mechanisms transfer by identity and execute at canonical
-    kinetics — asymmetrically, so no uniform placeholder can pass."""
+    kinetics; asymmetrically, so no uniform placeholder can pass."""
     _, explicit, r = _ctx()
     model = jaxfne.construct(to_configuration(r, duration_ms=DURATION_MS, dt_ms=DT_MS))
     mechs = {c["mechanism"] for c in r.s["connection_table"]}

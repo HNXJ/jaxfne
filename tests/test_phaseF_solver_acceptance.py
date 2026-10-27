@@ -20,7 +20,7 @@ the package's established ``jnp.allclose`` defaults with rtol + atol = 1e-4.
 JIT note: ``jax.jit(project_laminar_sources)`` returns the proxy arrays; the
 metadata report surface (str/int-carrying diagnostics) is eager-only by
 design because JAX jit output validation permits array leaves only. The
-metadata assertions therefore run on the eager call — the same surface the
+metadata assertions therefore run on the eager call, the same surface the
 rest of the field suite gates.
 
 The experimental 1D Poisson entry points are intentionally not tested here;

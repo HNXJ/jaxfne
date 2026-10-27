@@ -256,7 +256,7 @@ def test_tensor_bridge_still_cannot_carry_parameters():
     `AreaConnection.probability` exists since 0.5.5 (JDNA's between-area
     rules fill it), but this TFNE bridge leaves it undeclared (None), so a
     TFNE probability still cannot land on the tensor. Declared delays DO ride the bridge for inspection
-    (`delay_ms` on both connection types, TFNE-PARAM-02) — but execution
+    (`delay_ms` on both connection types, TFNE-PARAM-02), but execution
     still reads the realized specs, so the bridge value and the executed
     steps are checked against each other rather than one standing in for
     the other.
@@ -449,7 +449,7 @@ def test_geometry_inspection_configured_realized_executed_manifest():
 
     Configured per-leaf `G` in `s["geometry"]`, realized fractional domains
     in `tfne_geometry` metadata, executed positions in `params["positions"]`
-    and `neuron_table()`, both recorded in the manifest — all pre-existing
+    and `neuron_table()`, both recorded in the manifest; all pre-existing
     surfaces, asserted together so the chain cannot drift apart silently.
     """
     spec = (
@@ -578,7 +578,7 @@ def _executed_taus(spec):
 
 
 def test_canonical_mechanism_kinetics_reach_execution():
-    """Each canonical receptor executes at its canonical tau — the value
+    """Each canonical receptor executes at its canonical tau: the value
     hand-written callers copy into dT_ms, now resolved, not inherited."""
     from jaxfne.emitters import standard_receptor_specs
 
@@ -603,7 +603,7 @@ def test_custom_mechanism_tau_reaches_execution():
 
 def test_asymmetric_mechanisms_keep_distinct_taus():
     """All mechanisms move together: AMPA and GABA_A execute at 2.0 and
-    5.0 in one model — no uniform placeholder, no E/I distortion."""
+    5.0 in one model; no uniform placeholder, no E/I distortion."""
     spec = (
         "O[k] := [direction = >; mechanism = AMPA; weight = 0.5];\n"
         "O[j] := [direction = >; mechanism = GABA_A; weight = 0.5];\n"

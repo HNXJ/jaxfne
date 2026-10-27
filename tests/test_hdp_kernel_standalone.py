@@ -477,7 +477,6 @@ def test_hdp_rule_families_signed_linear_signed_quadratic_product():
         tau_0_ms=5.0, noise_scale=0.0, K_ctrl=0.0, rho_passive=0.0
     )
 
-    # Run the three rule variants
     _, _, _, d_linear = hdp_kernel(
         p, edges, 50, 0.5, key, hdp_rule="signed_linear", **kw)
     _, _, _, d_quad = hdp_kernel(

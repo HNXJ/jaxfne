@@ -64,7 +64,7 @@ def test_wiring_counts_structure_and_no_autapses():
 def test_conductance_jump_scales_with_weight():
     # Subthreshold probe (2/4 nS): the jump scales with weight. At the S2
     # quantum (6 nS) the resting post cell already spikes under the authors'
-    # detection (Vpeak = VT = -50 mV, F6), so 6/12 nS no longer scales —
+    # detection (Vpeak = VT = -50 mV, F6), so 6/12 nS no longer scales;
     # see test_s2_quantum_spikes_resting_post below.
     low = D.epsp_peak(weight_nS=2.0)
     high = D.epsp_peak(weight_nS=4.0)
@@ -80,7 +80,7 @@ def test_s2_quantum_spikes_resting_post():
     ge-sized EPSP from rest crosses threshold; under the old core
     default (VT + 5*Delta = -37.5 mV) it stayed subthreshold. The
     port therefore over-spikes relative to the old default at the
-    same conductance drive — the wrong direction to explain S2 death
+    same conductance drive, the wrong direction to explain S2 death
     by under-drive (CALIBRATION.md step 5).
     """
     import jax.numpy as jnp

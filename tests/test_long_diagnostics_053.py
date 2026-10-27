@@ -4,7 +4,7 @@ Boundedness and stability are SEPARATE measurements; neither is inferred
 from the other. Boundedness = trajectories stay within declared bounds
 over long horizons. Stability = twin-trajectory perturbation assay:
 RETURNING (contracts), PERSISTING (neutral offset), DIVERGING (grows).
-Case B is bounded yet non-returning — the non-inference proof. d_H=1
+Case B is bounded yet non-returning: the non-inference proof. d_H=1
 throughout (H8).
 """
 

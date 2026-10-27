@@ -1,4 +1,4 @@
-"""Protocol H1 — RBD kernel with fixed weights (d_H=1, F0/F1/F2, Protocol D delays).
+"""Protocol H1: RBD kernel with fixed weights (d_H=1, F0/F1/F2, Protocol D delays).
 
 Tests: analytic F1 relaxation, equilibrium, matched Jacobian at H=1, fixed-W
 invariance, deterministic repeatability, finiteness, D0 zero-delay parity.

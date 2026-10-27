@@ -104,7 +104,6 @@ class TestFieldProxyAdmissibilityV024:
             requested_modes=["CSD", "LFP"],
         )
 
-        # Check key status fields
         assert status["field_solver_status"] == "linear_solver"
         assert status["source_projection_mode"] == "proxy_no_field_solve"
         assert status["source_calibration_status"] == "uncalibrated_izhikevich_native_current"

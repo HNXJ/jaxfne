@@ -98,7 +98,7 @@ def test_zero_delay_limit_bit_identical():
 
     The kernel already consumes `EdgeList.delay_steps`; this proves the new
     compiler chain adds nothing in the limit: identical trajectories,
-    identical edges (weights and all-zero steps), identical storage — while
+    identical edges (weights and all-zero steps), identical storage, while
     the manifest still records what was configured (absent stays absent,
     declared-zero records 0 ms -> 0 steps).
     """
@@ -184,7 +184,7 @@ def test_executed_delay_visible_in_edge_table():
 
     Configured ms in `I["connection_specs"]`, realized ms in
     `s["edge_delay_ms"]` and `tfne_delay` metadata, executed steps in
-    `edge_table()` — all pre-existing surfaces, asserted together so the
+    `edge_table()`: all pre-existing surfaces, asserted together so the
     chain cannot drift apart silently.
     """
     r = _realize(delay=DELAY_MS)
@@ -268,7 +268,7 @@ def test_composition_hook_declared_and_importable():
 
     The 0.5.4 composition operator will call it to join per-area delay
     records. Here it is only imported and unit-checked; execution never
-    invokes it — a two-rule model keeps one unmerged per-rule record.
+    invokes it; a two-rule model keeps one unmerged per-rule record.
     """
     from jaxfne.tfne import compose_delay_metadata
 

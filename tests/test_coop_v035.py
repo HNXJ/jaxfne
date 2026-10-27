@@ -7,7 +7,6 @@ def test_coop_paradigm_api():
     assert hasattr(jtfne.paradigm, "coop_omission_oddball_paradigm")
     assert jtfne.coop_omission_oddball_paradigm is jtfne.paradigm.coop_omission_oddball_paradigm
 
-    # Construct paradigm
     p = jtfne.coop_omission_oddball_paradigm(
         duration_ms=2000.0,
         dt_ms=0.5,

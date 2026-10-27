@@ -1,4 +1,4 @@
-"""0.4.17-E E5 — causal perturbation implementation tests."""
+"""0.4.17-E E5: causal perturbation implementation tests."""
 
 from __future__ import annotations
 

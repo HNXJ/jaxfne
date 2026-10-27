@@ -1,4 +1,4 @@
-"""Protocol H1c-C — postsynaptic recurrent-input gain (affine G_H)."""
+"""Protocol H1c-C: postsynaptic recurrent-input gain (affine G_H)."""
 
 from __future__ import annotations
 

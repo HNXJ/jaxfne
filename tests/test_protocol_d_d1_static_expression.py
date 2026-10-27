@@ -1,4 +1,4 @@
-"""0.4.17-D D1 — static H_K recovery expression tests."""
+"""0.4.17-D D1: static H_K recovery expression tests."""
 
 from __future__ import annotations
 

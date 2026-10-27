@@ -1,4 +1,4 @@
-"""Protocol W2 — frozen-omega parameter expression."""
+"""Protocol W2: frozen-omega parameter expression."""
 
 from __future__ import annotations
 

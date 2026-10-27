@@ -11,7 +11,7 @@ import pytest
 
 
 # ---------------------------------------------------------------------------
-# 1. Import smoke — module must load without errors
+# 1. Import smoke: module must load without errors
 # ---------------------------------------------------------------------------
 
 class TestImportSmoke:
@@ -37,7 +37,7 @@ class TestImportSmoke:
 
 
 # ---------------------------------------------------------------------------
-# 2. make_population_mesh — single-device fallback
+# 2. make_population_mesh: single-device fallback
 # ---------------------------------------------------------------------------
 
 class TestMakePopulationMesh:
@@ -136,7 +136,7 @@ class TestShardings:
 
 
 # ---------------------------------------------------------------------------
-# 4. get_sharding_context — bundle
+# 4. get_sharding_context: bundle
 # ---------------------------------------------------------------------------
 
 class TestGetShardingContext:

@@ -25,7 +25,7 @@ Five emitter runtime paths are covered:
 ``test_source_bookkeeping_v020.py`` already asserts the required fields and
 canonical string of ``source_bookkeeping`` on a single izhikevich config; this
 module adds the cross-path dimension and does not duplicate it. The
-homeostatic_ei path does NOT produce ``source_bookkeeping`` — its model-level
+homeostatic_ei path does NOT produce ``source_bookkeeping``; its model-level
 metadata (``jaxfne/_model_simulate.py`` ``_simulate_homeostatic_ei``) omits the
 dict by design. Its nearest supported surface is asserted instead:
 ``signals.metadata["source_calibration_status"]``, the params default, the
@@ -204,7 +204,7 @@ def test_homeostatic_ei_rejects_unsupported_drive_paths():
 
 
 def test_homeostatic_ei_direct_kernel_contract():
-    """Direct simulate_homeostatic_ei call with params — raw source trace array."""
+    """Direct simulate_homeostatic_ei call with params: raw source trace array."""
     import jax
 
     from jaxfne.emitters_homeostatic_ei import make_minimal_ei_params, simulate_homeostatic_ei

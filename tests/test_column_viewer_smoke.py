@@ -1,6 +1,6 @@
-"""Smoke for jaxfne.vis.column_viewer — export contract + realized EdgeList invariants.
+"""Smoke for jaxfne.vis.column_viewer: export contract + realized EdgeList invariants.
 
-Δscience=0 — viewer is read-only, no kernel/sampler change.
+Δscience=0; viewer is read-only, no kernel/sampler change.
 Covers F1 PARTIAL missing_delta: vis/__init__.py must re-export
 collect_column_viewer_data / render_column_viewer and expose
 jtfne.vis.column_viewer attribute, plus pytest smoke.
@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 def _build_canonical_model(n: int = 200):
-    """Canonical laminar column (E/I gradient) — small n for fast smoke."""
+    """Canonical laminar column (E/I gradient), small n for fast smoke."""
     import jaxfne as jtfne
 
     cfg = jtfne.build_laminar_column(n=n, ei_profile="canonical")
@@ -41,7 +41,7 @@ def test_column_viewer_exported_via_jtfne_vis():
     )
     assert callable(jtfne.vis.collect_column_viewer_data)
     assert callable(jtfne.vis.render_column_viewer)
-    # submodule identity — from import and attribute should align
+    # submodule identity: from import and attribute should align
     from jaxfne.vis.column_viewer import collect_column_viewer_data as direct
 
     assert jtfne.vis.collect_column_viewer_data is direct

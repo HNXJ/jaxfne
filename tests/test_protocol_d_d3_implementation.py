@@ -1,4 +1,4 @@
-"""0.4.17-D D3 — adaptation/recovery implementation and interpretation tests."""
+"""0.4.17-D D3: adaptation/recovery implementation and interpretation tests."""
 
 from __future__ import annotations
 

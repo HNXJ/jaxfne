@@ -1,4 +1,4 @@
-"""0.5.3 ENGINE item 1: H/W/K ownership — configured -> realized -> executed.
+"""0.5.3 ENGINE item 1: H/W/K ownership; configured -> realized -> executed.
 
 Doctrine: Atlas source 8 + docs/theory/doctrine/rbs_rbd_hdp.md.
 H is RBS (relative biophysical state); HDP is hidden-state dependent
@@ -6,8 +6,8 @@ plasticity (persistent-parameter dynamics). H != HDP: RBD remains
 meaningful with fixed weights (dW = 0).
 
 For each of H, W, K this battery pins the inspection surface at all
-three stages — configured (declared params), realized (model.params /
-DynamicState), executed (traces/finals/draws) — including which rule
+three stages: configured (declared params), realized (model.params /
+DynamicState), executed (traces/finals/draws), including which rule
 mutates which state. Read-only: no state containers are restructured;
 the small named helpers below only read existing surfaces.
 """
@@ -182,7 +182,7 @@ def test_h_null_pins_at_reference():
 
 def test_identity_params_route_to_baseline():
     """Ownership routing fact: identity HDP params disengage HDP at Model
-    level — HDP diagnostics stay None and the run is the fixed-W path."""
+    level; HDP diagnostics stay None and the run is the fixed-W path."""
     from jaxfne.hdp_rule import hdp_is_engaged
 
     model = _model()

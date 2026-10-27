@@ -33,7 +33,7 @@ def test_suite_no4_notebook_structure():
     code_cells = [c for c in nb.cells if c.cell_type == "code"]
     assert len(code_cells) >= 5, "Should have at least 5 code cells"
 
-    # Verify imports are present — accept colab-compatible setup cell or direct imports
+    # Verify imports are present; accept colab-compatible setup cell or direct imports
     all_code = " ".join("".join(c.source) for c in code_cells[:3])
     assert "import jaxfne" in all_code or "jaxfne" in code_cells[0].source, \
         "First 3 code cells should contain jaxfne import or setup"
@@ -104,7 +104,6 @@ def test_suite_no4_notebook_execution():
         pytest.skip("Optax not installed; skipping Suite No. 4 notebook execution")
 
     notebook_path = "artifacts/tutorials/suite/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb"
-    # Read notebook
     with open(notebook_path, "r", encoding="utf-8") as f:
         nb = nbformat.read(f, as_version=4)
 
@@ -126,7 +125,6 @@ def test_suite_no4_notebook_execution():
                 timeout=1200,  # 20 minutes for full execution
                 kernel_name=kernel_name,
             )
-            # Run all cells
             client.execute()
 
             # Verify notebook executed without errors

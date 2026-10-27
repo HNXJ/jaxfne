@@ -3,7 +3,7 @@
 Every test targets the TFNE->JDNA boundary doctrine
 (`docs/theory/doctrine/tfne_jdna_boundary.md`, source 7 S29.1): TFNE constrains,
 JDNA completes under D + K_D, every value records its origin. The TFNE
-bridge itself is never touched here — completion is the JDNA-side path.
+bridge itself is never touched here; completion is the JDNA-side path.
 """
 
 import jax.numpy as jnp

@@ -10,7 +10,6 @@ def test_resume_equivalence_full_mode():
     model = cfg.construct()
     backup = model.initialize_backup(paradigm)
     
-    # Run continuous
     episode_continuous = model.run_task(paradigm, paradigm.make_fixation_gate(), backup)
     
     # Resume at d4 segment

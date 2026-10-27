@@ -72,7 +72,7 @@ class TestEmitterFamilyValidation:
         """A config with no explicit emitter family must construct AND simulate.
 
         Exercise the default path end-to-end rather than asserting only that a
-        Model object exists — construct() never returns None, so a finite
+        Model object exists; construct() never returns None, so a finite
         simulation is the meaningful regression guard.
         """
         cfg = jtfne.suite2_four_celltype_config(seed=0, duration_ms=10.0, dt_ms=0.1)

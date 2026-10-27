@@ -1,4 +1,4 @@
-"""tune() must warn — never silently drop — mixed single/multi arguments."""
+"""tune() must warn, never silently drop, mixed single/multi arguments."""
 
 import warnings
 

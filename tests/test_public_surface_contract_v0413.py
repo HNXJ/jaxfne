@@ -99,7 +99,7 @@ def test_public_symbol_count_contraction_from_baseline():
     audit: register_hdp_rule + HDPRule* types, root attrs outside __all__;
     +1 tfne classified ADVANCED for TFNE-IMPORT-01: the compiler module itself
     is the symbol, reachable as jaxfne.tfne and outside __all__, so its generic
-    names — parse, resolve, realize — stay inside it;
+    names (parse, resolve, realize) stay inside it;
     +1 ensemble_member_seed CANONICAL for 0.5.4 composition member RNG domains;
     +1 ensemble_edge_ownership CANONICAL for 0.5.4 cross-area plasticity scoping;
     +13 augment CANONICAL for AUG-3 controlled NeuronalTensor transforms
@@ -136,7 +136,7 @@ def test_surrogate_config_pair_is_experimental_not_public():
 
 
 def test_registrable_hdp_surface_is_advanced_not_public():
-    """Post-0.4.24 audit: the generic registration surface is ADVANCED —
+    """Post-0.4.24 audit: the generic registration surface is ADVANCED:
     root-reachable and namespace-mapped, but outside the 208-name contract."""
     from jaxfne.public_surface import ADVANCED_NAMESPACE
 

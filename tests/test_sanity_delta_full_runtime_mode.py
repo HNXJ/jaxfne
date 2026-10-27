@@ -14,21 +14,17 @@ def test_full_runtime_mode_outputs():
     
     assert episode.runtime_mode == "full"
     
-    # Check shapes
     assert episode.vm.shape == (episode.model.n_steps, episode.model.n_neurons)
     assert episode.spikes.shape == (episode.model.n_steps, episode.model.n_neurons)
     
-    # Check that outputs are finite
     assert jnp.all(jnp.isfinite(episode.vm))
     assert jnp.all(jnp.isfinite(episode.spikes))
     
     # Check that vm has dynamic, non-default values (it evolved)
     assert not jnp.all(episode.vm == -65.0)
     
-    # Check that spikes occurred
     assert jnp.sum(episode.spikes) > 0
     
-    # Check proxy readouts
     assert "lfp_proxy" in episode.source_terms
     assert "csd_proxy" in episode.source_terms
     assert "eeg_proxy" in episode.source_terms

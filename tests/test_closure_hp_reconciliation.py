@@ -42,7 +42,7 @@ def _mk_tensor(depth: float) -> NeuronalTensor:
 
 
 # --------------------------------------------------------------------------- #
-# HP-01 — tensor-path RuntimeConfiguration wiring
+# HP-01: tensor-path RuntimeConfiguration wiring
 # --------------------------------------------------------------------------- #
 
 class TestTensorRuntimeConfiguration:
@@ -80,7 +80,7 @@ class TestTensorRuntimeConfiguration:
 
 
 # --------------------------------------------------------------------------- #
-# HP-05 — HDP + nonzero delay must be rejected loudly
+# HP-05: HDP + nonzero delay must be rejected loudly
 # --------------------------------------------------------------------------- #
 
 class TestHdpDelaySupported:
@@ -133,7 +133,7 @@ class TestHdpDelaySupported:
 
 
 # --------------------------------------------------------------------------- #
-# HP-07 — population-restoring H domain
+# HP-07: population-restoring H domain
 # --------------------------------------------------------------------------- #
 
 class TestPopulationHDomain:
@@ -163,7 +163,7 @@ class TestPopulationHDomain:
 
 
 # --------------------------------------------------------------------------- #
-# HP-09 — tensor identity / provenance through run_receipt
+# HP-09: tensor identity / provenance through run_receipt
 # --------------------------------------------------------------------------- #
 
 class TestProvenanceIdentity:
@@ -222,7 +222,7 @@ class TestProvenanceIdentity:
 
 
 # --------------------------------------------------------------------------- #
-# Fresh-review residuals — F7 backend validation, F3 null boundary
+# Fresh-review residuals: F7 backend validation, F3 null boundary
 # --------------------------------------------------------------------------- #
 
 class TestBackendValidation:
@@ -271,7 +271,7 @@ class TestDisconnectedNullHdpBoundary:
     def test_elevated_gains_can_grow_above_floor(self):
         """Boundary documented in guides/hdp.md: explicit elevated HDP gains
         (C_spike>0) can drive |w| above the floor even with zeroed initial
-        weights — disconnected_null zeroes initial weights, not the dynamics."""
+        weights; disconnected_null zeroes initial weights, not the dynamics."""
         cfg = jtfne.suite2_net1_config(seed=7, n=3, duration_ms=100.0, dt_ms=1.0)
         model = jtfne.construct(cfg)
         sim = jtfne.simulation(
@@ -288,7 +288,7 @@ class TestDisconnectedNullHdpBoundary:
 
 
 # --------------------------------------------------------------------------- #
-# HP-04 — sdist hygiene
+# HP-04: sdist hygiene
 # --------------------------------------------------------------------------- #
 
 class TestSdistHygiene:
@@ -310,7 +310,7 @@ class TestSdistHygiene:
 
 
 # --------------------------------------------------------------------------- #
-# HP-03 — conceptual CircuitSpec hygiene
+# HP-03: conceptual CircuitSpec hygiene
 # --------------------------------------------------------------------------- #
 
 class TestCircuitSpecHygiene:
@@ -322,7 +322,7 @@ class TestCircuitSpecHygiene:
 
 
 # --------------------------------------------------------------------------- #
-# HP-02 — objective fluent grammar
+# HP-02: objective fluent grammar
 # --------------------------------------------------------------------------- #
 
 class TestObjectiveGrammar:

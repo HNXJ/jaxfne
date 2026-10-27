@@ -1,4 +1,4 @@
-"""0.5.4 item 4 — cross-area plasticity owned by the projection.
+"""0.5.4 item 4: cross-area plasticity owned by the projection.
 
 `ensemble_edge_ownership` maps merged edge indices to member ranges and
 per-rule cross ranges (W_12, W_21 separately). A `plasticity_mask` built

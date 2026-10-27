@@ -77,7 +77,7 @@ def v033_produced(tmp_path_factory):
 
 
 # ============================================================================
-# Group 0: Existing tests (7 tests — preserved)
+# Group 0: Existing tests (7 tests, preserved)
 # ============================================================================
 
 def test_v033_tutorial_import(tmp_path, monkeypatch):

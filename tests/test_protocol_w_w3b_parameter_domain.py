@@ -1,4 +1,4 @@
-"""Protocol W3b — parameter-domain regime classification."""
+"""Protocol W3b: parameter-domain regime classification."""
 
 from __future__ import annotations
 

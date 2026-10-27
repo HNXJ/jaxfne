@@ -1,4 +1,4 @@
-"""Protocol H2 — complete RBD + delay_state continuation.
+"""Protocol H2: complete RBD + delay_state continuation.
 
 Pre-registered tolerance: bit-exact (float32, max abs diff == 0) with
 noise_scale=0 and deterministic drive schedules.

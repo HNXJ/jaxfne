@@ -1,4 +1,4 @@
-"""0.5.4 item 2 — hierarchical <-> flattened identity.
+"""0.5.4 item 2: hierarchical <-> flattened identity.
 
 A nested program (areas composed of layers, composed with a cross rule)
 and a flat program (leaf pairs composed directly, same leaf multiset in
