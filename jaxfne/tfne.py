@@ -817,29 +817,47 @@ class _Parser:
         body = self._parse_expr()
         return ObjDef(name=name, kind="expr", body=body)
 
+    def _boundary_type_span(self, q: int) -> Optional[tuple[Optional[str], str, int]]:
+        """Boundary type at token q: ``[NAME]`` or the algebra's ``[type=NAME]``.
+
+        Returns (key, type, index after "]"), key None for the bare form, or None.
+        """
+        t = self.toks
+        if q + 2 < len(t) and t[q] == ("SYM", "[") and t[q + 1][0] == "NAME":
+            if t[q + 2] == ("SYM", "]"):
+                return None, t[q + 1][1], q + 3
+            if (
+                q + 4 < len(t)
+                and t[q + 2] == ("SYM", "=")
+                and t[q + 3][0] == "NAME"
+                and t[q + 4] == ("SYM", "]")
+            ):
+                return t[q + 1][1], t[q + 3][1], q + 5
+        return None
+
+    def _boundary_type(self, span: tuple[Optional[str], str, int]) -> str:
+        key, btype, end = span
+        if key is not None and key != "type":
+            raise TFNEError(
+                f"boundary qualifier {key!r} is not a type; write [NAME] or [type=NAME]"
+            )
+        self.pos = end
+        return btype
+
     def _parse_system(self) -> System:
         x = x_type = None
-        # left boundary: lowercase NAME [ "[" type "]" ] ":" (not ":=...")
+        # left boundary: lowercase NAME [ "[" [ "type" "=" ] type "]" ] ":" (not ":=...")
         if self.peek()[0] == "NAME":
             t = self.toks
-            p = self.pos
-            q = p + 1
-            btype: Optional[str] = None
-            if (
-                q + 2 < len(t)
-                and t[q] == ("SYM", "[")
-                and t[q + 1][0] == "NAME"
-                and t[q + 2] == ("SYM", "]")
-            ):
-                btype = t[q + 1][1]
-                q += 3
+            q = self.pos + 1
+            span = self._boundary_type_span(q)
+            if span is not None:
+                q = span[2]
             if q < len(t) and t[q] == ("SYM", ":"):
                 x = self.expect("NAME")
                 _check_lower_name(x, "boundary")
-                if btype is not None:
-                    self.expect("SYM", "[")
-                    x_type = self.expect("NAME")
-                    self.expect("SYM", "]")
+                if span is not None:
+                    x_type = self._boundary_type(span)
                 self.expect("SYM", ":")
         body = self._parse_expr()
         y = y_type = None
@@ -850,9 +868,10 @@ class _Parser:
             y = self.expect("NAME")
             _check_lower_name(y, "boundary")
             if self.at_sym("["):
-                self.next()
-                y_type = self.expect("NAME")
-                self.expect("SYM", "]")
+                span = self._boundary_type_span(self.pos)
+                if span is None:
+                    raise TFNEError("expected [NAME] or [type=NAME] after the right boundary")
+                y_type = self._boundary_type(span)
         return System(x=x, x_type=x_type, body=body, y=y, y_type=y_type)
 
     # -- expressions ---------------------------------------------------- #

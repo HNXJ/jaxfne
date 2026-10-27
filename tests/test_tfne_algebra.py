@@ -365,6 +365,25 @@ def test_typed_boundaries_preserved():
                                  "y": "y", "y_type": "choice"}
 
 
+def test_typed_boundaries_accept_the_algebra_key_form():
+    # 7_tfne_algebra.md writes x[type=current]; it is the same boundary as x[current].
+    keyed = "Cell := [C = {cell}; N = 1]; x[type=current] : Cell : y[type=voltage]"
+    bare = "Cell := [C = {cell}; N = 1]; x[current] : Cell : y[voltage]"
+    assert _replay_ok(keyed) == _replay_ok(bare)
+    want = {"x": "x", "x_type": "current", "y": "y", "y_type": "voltage"}
+    assert _realize(keyed)[2].s["boundaries"] == want
+    assert _realize(bare)[2].s["boundaries"] == want
+
+
+@pytest.mark.parametrize("text", [
+    "Cell := [C = {cell}; N = 1]; x[model=hh] : Cell : y",
+    "Cell := [C = {cell}; N = 1]; x : Cell : y[model=hh]",
+])
+def test_boundary_key_other_than_type_is_refused(text):
+    with pytest.raises(TFNEError, match=r"\[type=NAME\]"):
+        parse(text)
+
+
 # --------------------------------------------------------------------------- #
 # 14. Shared biological type, different dynamical models
 # --------------------------------------------------------------------------- #

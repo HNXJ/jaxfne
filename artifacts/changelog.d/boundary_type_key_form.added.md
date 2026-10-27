@@ -1,0 +1,1 @@
+- `tfne.parse` reads a boundary type in the algebra's key form, `x[type=current] : A : y[type=voltage]`, as the same boundary as `x[current] : A : y[voltage]`; `normalize` writes the bare form. Any other key on a boundary (`x[model=hh]`) is refused.

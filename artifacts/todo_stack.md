@@ -27,7 +27,7 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
   private names (D21, D34, D17 `tfne.System`, D26 `simulate_edge_recurrent_izhikevich_rbd` mapped 2026-10-26).
   D35: `apply_calibration` relabels the epistemic level and applies no Q -> Q_phys transform (doctrine or code
   moves: Hamm's call). D28: `ValueTag` lacks B, R, E, T. D31 and D32 need a code path that exposes a_eff and
-  the AdEx clip. Notation: `7_tfne_algebra.md` writes `x[type=current]`, the parser reads `x[retina]`. S1 and
+  the AdEx clip. S1 and
   S5 regenerate with `python scripts/publication_figures/supplement.py`; F1 and F3 are frozen fig01 and fig06
   (H1), rebuilt by the publication gate; the S2 generator remains.
 - [A] C1: H4 ruled 2026-10-26 and landed: the ledger holds CL-01 to CL-34 (E2 V1/V2 claims are CL-27 to CL-34).
