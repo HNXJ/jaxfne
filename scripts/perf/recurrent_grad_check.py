@@ -13,6 +13,10 @@ import numpy as np  # noqa: E402
 import jaxfne as jtfne  # noqa: E402
 from precision_profile import HANDLE, _model  # noqa: E402
 
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
+
 N, STEPS, DT = 20, 2000, 0.1
 model = _model(N)
 W = None
