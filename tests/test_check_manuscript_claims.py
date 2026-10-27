@@ -127,6 +127,47 @@ def test_orphan_paragraph(tmp_path):
     assert "orphan_candidates" in strict_rep["failed"]
 
 
+TRACE = (
+    "# map\n\n"
+    "### [P1] First — `{CL-01}`\n\nP1 text.\n\n"
+    "### [P2]–[P3] Second and third — `{CL-02..CL-03, Q01}`\n\nP2-P3 text.\n"
+)
+SECTIONED_RESULTS = (
+    "# Results\n\n"
+    "## First\n\nFig. 1 shows 9 cells.\n\n"
+    "## Second\n\nFig. 2 shows 3 seeds.\n\n"
+    "## Third\n\nFig. 3 shows 4 sites.\n\n"
+    "## Appendix\n\nA table of 48 cases.\n"
+)
+
+
+def test_trace_map_carries_section_ids(tmp_path):
+    rows = [row("CL-01"), row("CL-02"), row("CL-03")]
+    ledger, mdir = make_case(tmp_path, rows, {"results.md": SECTIONED_RESULTS})
+    trace = tmp_path / "trace.md"
+    trace.write_text(TRACE, encoding="utf-8")
+    rc, rep = run(ledger, mdir, "--trace", str(trace))
+    assert rep["examined"]["trace_sections"] == 3, "fixture: the map labels sections 1 to 3"
+    # Sections 1-3 take their ids from the map; the unmapped appendix stays an orphan.
+    assert [(o["file"], o["line"]) for o in rep["orphan_candidates"]] == [("results.md", 17)]
+    assert rep["counts"]["uncited_ledger_ids"] == 0, "ids the map carries count as cited"
+    _, bare = run(ledger, mdir)
+    assert bare["counts"]["orphan_candidates"] == 4, "without the map every section is an orphan"
+
+
+def test_trace_map_past_the_last_section_is_unknown(tmp_path):
+    ledger, mdir = make_case(tmp_path, [row("CL-01")], {})
+    trace = tmp_path / "trace.md"
+    trace.write_text(TRACE, encoding="utf-8")
+    proc = subprocess.run(
+        [sys.executable, str(SCRIPT), "--ledger", str(ledger), "--manuscript-dir", str(mdir),
+         "--trace", str(trace)],
+        capture_output=True, text=True, encoding="utf-8", check=False,
+    )
+    assert proc.returncode == 2
+    assert "names P3" in proc.stderr
+
+
 def test_missing_ledger_is_unknown_not_clean(tmp_path):
     missing = tmp_path / "no_such_ledger.json"
     mdir = tmp_path / "manuscript"
@@ -152,3 +193,4 @@ def test_live_repo_reports_four_counts():
     assert set(rep["counts"]) == COUNT_KEYS
     assert all(isinstance(v, int) and v >= 0 for v in rep["counts"].values())
     assert rep["examined"]["ledger_rows"] > 0
+    assert rep["examined"]["trace_sections"] == 20, "the repo's traceability map labels P1 to P20"

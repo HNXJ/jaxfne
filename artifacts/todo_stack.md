@@ -31,10 +31,10 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
   specializer `PV[model=IZH]` (`7_tfne_algebra.md`) does not (the parser takes `Base[NAME]`). S1 and
   S5 regenerate with `python scripts/publication_figures/supplement.py`; F1 and F3 are frozen fig01 and fig06
   (H1), rebuilt by the publication gate; the S2 generator remains.
-- [A then H] C1: the ledger holds CL-01 to CL-34; CL-34 cites its two render receipts (UNRESOLVED: one render,
-  no reproduction; the receipt hashes are tested). Audit `artifacts/programme/paper/claim_alignment_audit.md`
-  (2026-10-27) maps the 17 orphan paragraphs. To reach 0: ledger rows for the A-1a, A-1b, A-2 and A-3 receipts
-  (orchestrator drafts), Hamm's ruling on 7 manuscript-ledger conflicts and on the CL id format, then the ids.
+- [H] C1: the ledger holds CL-01 to CL-34; CL-34 cites its two render receipts (UNRESOLVED: one render, no
+  reproduction; the receipt hashes are tested). The claims checker reads the traceability map that holds
+  results.md's ids: 2 orphans left (abstract.md:3, the appendix index), and 7 manuscript-ledger conflicts wait
+  on Hamm (`artifacts/programme/paper/claim_alignment_audit.md`, 2026-10-27).
   `claim_ledger_delta.json` still says base 21 rows; no reader uses it.
 - [H] C6, S6: benchmark protocol choices (`artifacts/programme/benchmarks/README.md`); brian2 and NEST not installed.
   `scripts/cortical_column_localized_workflow.build_config`, which the Izhikevich benchmark calls, raises at HEAD: the

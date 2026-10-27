@@ -7,8 +7,14 @@ Reports four measures:
   (4) orphan candidates: paragraphs in abstract.md and results.md that cite a
       figure (Fig, Figure) or state a number with a unit, and carry no CL id.
 
+results.md carries its ids in the traceability map: a heading
+"### [Pa]–[Pb] Title — `{CL-xx, CL-yy..CL-zz, Qnn}`" gives the ids of the a-th to
+b-th "## " sections of results.md, and a paragraph in such a section counts as
+citing them. The map is `../results_reconstruction/traceability/traceability_map.md`
+beside the manuscript directory when present, or --trace PATH.
+
 Usage: python scripts/check_manuscript_claims.py [--ledger PATH]
-       [--manuscript-dir PATH] [--check] [--strict] [--json]
+       [--manuscript-dir PATH] [--trace PATH] [--check] [--strict] [--json]
 
 Relative paths resolve against the repository root that holds this script.
 --check exits 1 when (1) or (3) fails. --strict exits 1 when any of (1) to (4)
@@ -39,6 +45,9 @@ UNIT_RE = re.compile(
     r"|(?:cells?|neurons?|seeds?|sites?|areas?|steps?|points?|conditions?|cases?"
     r"|trajectories|runs?|arms?|spikes?|edges?)\b)"
 )
+TRACE_BESIDE = Path("results_reconstruction") / "traceability" / "traceability_map.md"
+TRACE_HEAD_RE = re.compile(r"^### \[P(\d+)\](?:\s*[–-]\s*\[P(\d+)\])?.*`\{([^}]*)\}`")
+CL_RANGE_RE = re.compile(r"CL-(\d+)\.\.CL-(\d+)")
 
 
 class InputError(Exception):
@@ -86,7 +95,42 @@ def paragraphs(lines: list[str]):
         yield start, " ".join(buf)
 
 
-def scan(ledger_path: Path, manuscript_dir: Path) -> dict:
+def load_trace(path: Path) -> tuple[dict[int, list[str]], list[tuple[str, int]]]:
+    """(section number in "## " order of results.md -> its CL ids, [(CL id, map line)])."""
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError as exc:
+        raise InputError(f"cannot read trace map {path}: {exc}") from exc
+    sections: dict[int, list[str]] = {}
+    citations: list[tuple[str, int]] = []
+    for number, line in enumerate(lines, start=1):
+        match = TRACE_HEAD_RE.match(line)
+        if not match:
+            continue
+        first = int(match.group(1))
+        last = int(match.group(2) or first)
+        tags = match.group(3)
+        ids = [f"CL-{n:02d}" for a, b in CL_RANGE_RE.findall(tags) for n in range(int(a), int(b) + 1)]
+        ids += CL_RE.findall(CL_RANGE_RE.sub("", tags))
+        citations += [(cid, number) for cid in ids]
+        for section in range(first, last + 1):
+            sections[section] = ids
+    if not sections:
+        raise InputError(f"trace map {path} labels no section")
+    return sections, citations
+
+
+def section_of(lines: list[str]) -> list[int]:
+    """For each line, how many "## " headings precede or start it."""
+    out, count = [], 0
+    for raw in lines:
+        if raw.startswith("## "):
+            count += 1
+        out.append(count)
+    return out
+
+
+def scan(ledger_path: Path, manuscript_dir: Path, trace_path: Path | None = None) -> dict:
     rows = load_ledger(ledger_path)
     if not manuscript_dir.is_dir():
         raise InputError(f"manuscript dir {manuscript_dir} does not exist")
@@ -97,8 +141,21 @@ def scan(ledger_path: Path, manuscript_dir: Path) -> dict:
         if not (manuscript_dir / name).is_file():
             raise InputError(f"orphan-check file {name} missing from {manuscript_dir}")
 
+    if trace_path is None and (manuscript_dir.parent / TRACE_BESIDE).is_file():
+        trace_path = manuscript_dir.parent / TRACE_BESIDE
+    trace: dict[int, list[str]] = {}
     known = {row["claim_id"] for row in rows}
     cited: dict[str, list[tuple[str, int]]] = {}
+    if trace_path is not None:
+        trace, citations = load_trace(trace_path)
+        results_lines = (manuscript_dir / "results.md").read_text(encoding="utf-8").splitlines()
+        n_sections = sum(raw.startswith("## ") for raw in results_lines)
+        if max(trace) > n_sections:
+            raise InputError(
+                f"trace map {trace_path} names P{max(trace)}; results.md has {n_sections} sections"
+            )
+        for cid, number in citations:
+            cited.setdefault(cid, []).append((trace_path.name, number))
     for md in md_files:
         lines = md.read_text(encoding="utf-8").splitlines()
         for number, line in enumerate(lines, start=1):
@@ -126,6 +183,7 @@ def scan(ledger_path: Path, manuscript_dir: Path) -> dict:
     examined = 0
     for name in ORPHAN_FILES:
         lines = (manuscript_dir / name).read_text(encoding="utf-8").splitlines()
+        sections = section_of(lines)
         for number, text in paragraphs(lines):
             examined += 1
             reasons = []
@@ -133,7 +191,8 @@ def scan(ledger_path: Path, manuscript_dir: Path) -> dict:
                 reasons.append("figure")
             if UNIT_RE.search(text):
                 reasons.append("number_with_unit")
-            if reasons and not CL_RE.search(text):
+            mapped = name == "results.md" and trace.get(sections[number - 1])
+            if reasons and not CL_RE.search(text) and not mapped:
                 orphans.append(
                     {"file": name, "line": number, "reasons": reasons, "excerpt": text[:100]}
                 )
@@ -142,11 +201,13 @@ def scan(ledger_path: Path, manuscript_dir: Path) -> dict:
     return {
         "ledger": str(ledger_path),
         "manuscript_dir": str(manuscript_dir),
+        "trace": str(trace_path) if trace_path is not None else None,
         "examined": {
             "ledger_rows": len(rows),
             "cited_ids_distinct": len(cited),
             "manuscript_files": len(md_files),
             "orphan_paragraphs": examined,
+            "trace_sections": len(trace),
         },
         "observed_statuses": dict(observed),
         "tier_set": sorted(TIER_SET),
@@ -179,6 +240,7 @@ def print_text(report: dict) -> None:
         f"manuscript: {report['manuscript_dir']} ({ex['manuscript_files']} files, "
         f"{ex['cited_ids_distinct']} distinct CL ids cited)"
     )
+    print(f"trace map: {report['trace'] or 'none'} ({ex['trace_sections']} results.md sections mapped)")
     observed = ", ".join(f"{k}={v}" for k, v in sorted(report["observed_statuses"].items()))
     print(f"observed statuses: {observed}")
     print(f"tier set (declared): {', '.join(report['tier_set'])}")
@@ -210,13 +272,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--manuscript-dir", default=DEFAULT_MANUSCRIPT_DIR, help="directory of manuscript .md files"
     )
+    parser.add_argument(
+        "--trace", default=None, help="traceability map for results.md (default: the one beside the manuscript)"
+    )
     parser.add_argument("--check", action="store_true", help="exit 1 when (1) or (3) fails")
     parser.add_argument("--strict", action="store_true", help="exit 1 when any of (1) to (4) fails")
     parser.add_argument("--json", action="store_true", help="print the report as JSON")
     args = parser.parse_args(argv)
 
     try:
-        report = scan(resolve(args.ledger), resolve(args.manuscript_dir))
+        trace = resolve(args.trace) if args.trace else None
+        report = scan(resolve(args.ledger), resolve(args.manuscript_dir), trace)
     except InputError as exc:
         print(f"check_manuscript_claims: {exc}", file=sys.stderr)
         return 2

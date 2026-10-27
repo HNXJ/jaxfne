@@ -429,7 +429,8 @@ def _figure_hashes_match() -> bool:
     ok = True
     for i in range(1, 8):
         rec = load(ROOT / f"artifacts/publication/fig{i:02}_generation_receipt.json")
-        png = ROOT / rec["figure_path"]
+        # The receipts predate the move of figures/ under artifacts/.
+        png = ROOT / "artifacts" / rec["figure_path"]
         declared = rec["figure_sha256"]
         actual = hashlib.sha256(png.read_bytes()).hexdigest()
         if actual != declared:
