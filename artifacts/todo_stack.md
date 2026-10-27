@@ -122,8 +122,8 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   Then the validation backbone continues (iSTDP out-degree check in plasticity, kernel LFP checks in fields).
 - [A] `visualize_network_3d` units: Model rows enter as metres (`coordinate_unit="m"`) and display in µm, while
   the raw positions span 0 to 1 in depth and 0 to 3 across areas, so the showcase axes read up to 1M µm (as did
-  the removed page); `_UNIT_SCALE.get(unit, 1.0)` accepts any unit string. A fix refuses unknown units and labels
-  relative coordinates (public API).
+  the removed page). Unknown unit strings are refused (2026-10-27). Left: a label for relative coordinates
+  (public API).
 
 In order (Hamm 2026-10-22: work until the 0.5.8 todos and open issues are empty; open issues become
 todos once their close is decided; checkpoint when both are empty; Muse Spark 1.3 code packets in

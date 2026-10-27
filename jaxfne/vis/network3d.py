@@ -416,6 +416,10 @@ def visualize_network_3d(
             "visualize_network_3d: show_edges=True draws a networkx graph's edges, and "
             f"{type(data).__name__} has none; jaxfne.vis.plotly.plot_network_3d(model, "
             "show_edges=True) draws a model's edges")
+    for name, unit in (("coordinate_unit", coordinate_unit), ("display_unit", display_unit)):
+        if unit not in _UNIT_SCALE:
+            raise ValueError(
+                f"visualize_network_3d: {name}={unit!r} is not one of {sorted(_UNIT_SCALE)}")
 
     # ── Normalize input ────────────────────────────────────────────────────────
     rows = _coerce_to_rows(data, seed=seed)
@@ -423,8 +427,8 @@ def visualize_network_3d(
         raise ValueError("visualize_network_3d: no node data found in input.")
 
     # ── Coordinate scaling ─────────────────────────────────────────────────────
-    from_scale = _UNIT_SCALE.get(coordinate_unit, 1.0)
-    to_scale   = _UNIT_SCALE.get(display_unit, 1.0)
+    from_scale = _UNIT_SCALE[coordinate_unit]
+    to_scale   = _UNIT_SCALE[display_unit]
     scale      = to_scale / from_scale  # convert stored unit → display unit
 
     x_disp = np.array([r["x_m"] for r in rows]) * scale

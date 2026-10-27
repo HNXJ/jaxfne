@@ -195,6 +195,24 @@ def test_show_edges_on_an_input_without_edges_is_refused():
     vis.visualize_network_3d(_minimal_rows())
 
 
+@pytest.mark.parametrize("kwarg", ["coordinate_unit", "display_unit"])
+def test_an_unknown_unit_is_refused(kwarg):
+    """An unknown unit used to scale by 1.0 silently; it is refused by name, and a known one scales."""
+    _require_plotly_or_skip()
+    import jaxfne.vis as vis
+
+    with pytest.raises(ValueError, match=kwarg):
+        vis.visualize_network_3d(_minimal_rows(), **{kwarg: "furlong"})
+
+    def xs(unit):
+        fig = vis.visualize_network_3d(_minimal_rows(), coordinate_unit=unit, display_unit="um")
+        return np.concatenate([np.asarray(t.x, float) for t in fig.data if t.x is not None])
+
+    x_m, x_mm = xs("m"), xs("mm")
+    assert np.abs(x_m).max() > 0, "fixture must place a cell off the origin"
+    np.testing.assert_allclose(x_mm * 1e3, x_m, rtol=1e-12)
+
+
 def test_core_import_does_not_require_plotly():
     """import jaxfne (and jaxfne.vis) must succeed without Plotly present."""
     # This test runs in the current interpreter, which may have Plotly.
