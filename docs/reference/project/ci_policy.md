@@ -247,6 +247,11 @@ workflows exposed `test (3.12)`, `test (3.13)` and `build`, a required context
 could be satisfied by whichever run reported last, making enforcement weaker
 than it looked. A regression test rejects reintroduced collisions.
 
+`ci.yml` runs one job per failure class: `static` (compile, lint, audits, tree size), `docs` (strict
+build, orphans, doc-code integrity), `fast-test` (the dev gate on 3.11 and 3.14) and `examples` (both
+interpreters). `fast-build` needs all four, always runs, and fails first when any of them did not pass,
+so the required `fast-build` check covers `static`, `docs` and `examples`.
+
 `enforce_admins` is deliberately **off**. Turning it on would also enforce the
 existing `required_pull_request_reviews` against repository admins, which is a
 workflow decision separate from requiring CI, and is left to explicit approval.

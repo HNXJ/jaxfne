@@ -13,28 +13,17 @@ permissions:
   contents: read
 
 jobs:
-  fast-test:
+  static:
+    name: static
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # Coverage is deliberately the two ends of the supported range rather
-        # than every minor version: 3.11 as the oldest line the pinned extras
-        # resolve on, 3.14 as the newest and the interpreter the local
-        # release-candidate gate runs, so the gate no longer certifies on a
-        # version CI never exercises. 3.10 does not resolve at all (the dev/viz
-        # extras pin scipy==1.17.1, which ships no cp310 wheels).
-        # Wheel availability for both lines was checked against the index:
-        # scipy 1.17.1, matplotlib 3.10.9 and jaxlib 0.10.2 all publish cp311
-        # and cp314 manylinux wheels.
-        python-version: ["3.11", "3.14"]
 
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.11"
 
       - name: Install package and dev deps (dev — no viz/reportlab)
         if: github.ref != 'refs/heads/main'
@@ -83,6 +72,35 @@ jobs:
       - name: Audit notebook grammar
         run: PYTHONPATH=. python scripts/audit_notebook_grammar.py --check
 
+      - name: Tracked tree-size gate (blobs, budget + caps)
+        # Fails when the tracked tree grows back: over-cap files must be
+        # allow-listed, listed files may not grow >10%, total must fit budget.
+        run: PYTHONPATH=. python scripts/check_tree_size.py --check
+
+  docs:
+    name: docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install package and dev deps (dev — no viz/reportlab)
+        if: github.ref != 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,jaxley,jnwb]"
+
+      - name: Install package and dev+viz deps (main — with reportlab)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,viz,jaxley,jnwb]"
+
       - name: Install docs deps
         run: pip install -r docs/requirements.txt pyyaml
 
@@ -102,10 +120,42 @@ jobs:
         # the API; runs inside broad/release/rc gates too via run_test_gate.
         run: PYTHONPATH=. python scripts/audit_doc_code_integrity.py --check
 
-      - name: Tracked tree-size gate (blobs, budget + caps)
-        # Fails when the tracked tree grows back: over-cap files must be
-        # allow-listed, listed files may not grow >10%, total must fit budget.
-        run: PYTHONPATH=. python scripts/check_tree_size.py --check
+  # The job ids fast-test and fast-build are the required status checks of the dev and main
+  # rulesets ("fast-test (3.11)", "fast-test (3.14)", "fast-build"); keep them.
+  fast-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Coverage is deliberately the two ends of the supported range rather
+        # than every minor version: 3.11 as the oldest line the pinned extras
+        # resolve on, 3.14 as the newest and the interpreter the local
+        # release-candidate gate runs, so the gate no longer certifies on a
+        # version CI never exercises. 3.10 does not resolve at all (the dev/viz
+        # extras pin scipy==1.17.1, which ships no cp310 wheels).
+        # Wheel availability for both lines was checked against the index:
+        # scipy 1.17.1, matplotlib 3.10.9 and jaxlib 0.10.2 all publish cp311
+        # and cp314 manylinux wheels.
+        python-version: ["3.11", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package and dev deps (dev — no viz/reportlab)
+        if: github.ref != 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,jaxley,jnwb]"
+
+      - name: Install package and dev+viz deps (main — with reportlab)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,viz,jaxley,jnwb]"
 
       - name: Run fast tests (curated dev gate ~90s, viz boundary — reportlab skips)
         if: github.ref != 'refs/heads/main'
@@ -137,6 +187,34 @@ jobs:
           path: coverage.xml
           if-no-files-found: ignore
 
+  examples:
+    name: examples (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Same two-version range as the fast-test job (see the note there).
+        python-version: ["3.11", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package and dev deps (dev — no viz/reportlab)
+        if: github.ref != 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,jaxley,jnwb]"
+
+      - name: Install package and dev+viz deps (main — with reportlab)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,viz,jaxley,jnwb]"
+
       - name: Run examples
         # The list is owned by scripts/run_test_gate.py (RELEASE_EXAMPLES);
         # this step calls the `examples` gate instead of repeating it.
@@ -144,8 +222,19 @@ jobs:
 
   fast-build:
     runs-on: ubuntu-latest
-    needs: fast-test
+    needs: [static, docs, fast-test, examples]
+    # A required check whose job is skipped can read as passed, so this job always
+    # runs and fails first when any job it needs did not succeed.
+    if: always()
     steps:
+      - name: Needed jobs passed (static, docs, fast-test, examples)
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS"
+          exit 1
+
       - uses: actions/checkout@v7
 
       - name: Set up Python
