@@ -27,7 +27,8 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
   private names (D21, D34, D17 `tfne.System`, D26 `simulate_edge_recurrent_izhikevich_rbd` mapped 2026-10-26).
   D35: `apply_calibration` relabels the epistemic level and applies no Q -> Q_phys transform (doctrine or code
   moves: Hamm's call). D28: `ValueTag` lacks B, R, E, T. D31 and D32 need a code path that exposes a_eff and
-  the AdEx clip. S1 and
+  the AdEx clip. Boundary types parse in the spec's `x[type=current]` form (8fdeff4b); the object
+  specializer `PV[model=IZH]` (`7_tfne_algebra.md`) does not (the parser takes `Base[NAME]`). S1 and
   S5 regenerate with `python scripts/publication_figures/supplement.py`; F1 and F3 are frozen fig01 and fig06
   (H1), rebuilt by the publication gate; the S2 generator remains.
 - [A] C1: H4 ruled 2026-10-26 and landed: the ledger holds CL-01 to CL-34 (E2 V1/V2 claims are CL-27 to CL-34).
@@ -158,7 +159,7 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   wording in place of "moves Fig. 3 to T-jaxfne" (Izhikevich is T-jaxfne already). Running: Brunel S1 (A-D,
   seeds 4-8, N=6250, on 3d7a5c9b; 8 of 20 done). Next: Release CI on the pushed head, then 9F figure lock
   (that run's freeze becomes the constraints file the job installs with); the S2 generator waits on the D35
-  calibration call (C3 row). Untested: the E1 delayed-edge route; hdp noise_scale stays P-045.
+  calibration call (C3 row). Untested: the E1 delayed-edge route. P-045 resolved (8406ca28).
 - T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
   and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots. Drafts: Potjans 2026-10-26,
   Vogels 2026-10-27 (full N, R-E e <= 0.20, O-DROP; the B8 pilot reruns segment B on the per-synapse traces;
