@@ -89,7 +89,11 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   2026-10-27. Core lanes, in order, each with its own test against the oracle: L1 several spikes per cell with
   their times; L2 threshold and rate updated at the measurement interval; L3 F_W in the scan; L4 the boundary
   map and the continuation-equivalence test. L1 and L2 landed 2026-10-27 (a21b5175, 11a94a69; the port's
-  core replay takes multi-spike files and runs past the measurement interval). cSTDP3 sets `ETA_TA` 0
+  core replay takes multi-spike files and runs past the measurement interval); L3a weights in the carry
+  (e8e88c29) and L3b simple buffer STDP (fbbd62fd; oracle-exact, w_s 3.6e-15) landed. L3c (complex,
+  running) must reset the interval counter at each complex update (oracle :629), so the complex rates the
+  periodic update reads differ from the frozen run. Contract: inhibition groups declare local inhibition on;
+  with it off the port builds singleton groups. cSTDP3 sets `ETA_TA` 0
   (`configs/simple_cell_config.json:10`), so reference thresholds never move; L2's interval counter still
   gates complex STDP (`count == 1`, L3c). Design calls (orchestrator): adaptation potential and last-spike times are X, reset at a
   file boundary as the C++ does; the spike-time log is output; F_W in the scan is the C++ buffer form
