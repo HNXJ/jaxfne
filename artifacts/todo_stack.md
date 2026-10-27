@@ -153,10 +153,10 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
 - T-O61 cosmetic [A] (wording approved by Hamm 2026-10-25): tier labels differ, REPLICATIONS against dashboard.
 - [A] Check whether the manifests hash `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log`; if none does, record it.
 - T-O69 [A] 0.5.9 lanes per the release plan, at most 3 Haiku workers in clones under `E:/repos/_wt/jaxfne/`.
-  Running: E1 core gaps P-046 (explicit mode keeps the default coupling), P-047 (zero-match selector),
-  `cell_params` v0/u0 (P-048). The E1 pilot stopped on them; it resumes with
-  `runtime(random_v0=False)` and `connectivity.with_rule_allow_self_connections` (autapses, as the paper's S).
-  On dev: LIF `poisson_drive` list; E1 core (`weight_range`, `gaussian_drive`; the delayed-edge route is realized but untested;
+  Next: E1 pilot rerun on explicit mode, `cell_params` v0/u0 with `runtime(random_v0=False)` and
+  `connectivity.with_rule_allow_self_connections` (autapses, as the paper's S); P-049 (`in_degree` with
+  multinomial), then the Potjans P2 refresh; Brunel S1 smoke and runs on the P-050 fix.
+  On dev: P-046 and P-050 fixes, `cell_params` v0/u0; LIF `poisson_drive` list; E1 core (`weight_range`, `gaussian_drive`; the delayed-edge route is realized but untested;
   hdp noise_scale stays P-045), citations by symbol, Brunel S1 option, 9B bypass checks (a moving H_K has a
   first-step reference only), the publication job's `pip freeze` artifact. Brunel S1 runs (A-D, seeds 4-8,
   N=6250) start after the smoke. Next: 9F figure lock (a passing Release CI run's freeze becomes the constraints

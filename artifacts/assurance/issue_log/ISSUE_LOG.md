@@ -52,14 +52,17 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   ones, while `connectivity_compilation` records `default_edge_count: 0`. At n=1000 the explicit
   construct took 826 s against 1.7 s by default (9C-E1 pilot probe).
 - Blocks the E1 closure: the Fig. 3 network on the library path needs exactly the declared W.
+- Resolved 2026-10-27 (9C-E1 core lane): explicit mode starts from an empty graph on the plain
+  branch of `_construct_build_network`; the receipt records the realized default count
+  (`tests/test_izh_config_route_gaps.py`). `make_eig_network` still allocates the dropped (n, n) W.
 
 ### P-047
 
-- Date: 2026-10-26. Type: BUG. Area: `Configuration.connections` selectors. Severity: medium
-  (P-014 class).
-- A rule with `target={"cell_type": "all"}` compiles 0 edges on both compilers and nothing refuses it
-  (`declared_rule_edge_count: 0`); `{}` selects every cell. Expected: a selector matching no cell
-  is refused by name.
+- Date: 2026-10-26. Type: FRICTION. Area: `Configuration.connections` selectors. Severity: low.
+- A rule with `target={"cell_type": "all"}` compiles 0 edges on both compilers (`{}` selects every
+  cell). It is recorded, not silent: the rule's status reads `compiled_no_matching_edges`, a design
+  pinned by `test_connections_no_match_marked_compiled_no_edges`. A refusal would reverse it and break
+  that test (9C-E1 core packet, 2026-10-27); left as is. An `"all"` value is not a wildcard.
 
 ### P-048
 
@@ -68,6 +71,8 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   draws `v0`, so `u0 != b * v0` (the paper's `u = b.*v`); `cell_params` takes no `v0` or `u0`.
   The E1 library path needs a declared per-cell initial state; whether the default should follow
   `b` is Hamm's call (it moves existing realizations).
+- 2026-10-27: `cell_params` takes `v0` and `u0` (a declared `v0` needs `runtime(random_v0=False)`);
+  the default question stays open.
 
 ### P-049
 
@@ -78,3 +83,13 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   projections. Potjans PORT_SPEC row 8 calls G-MULT closed; it is not for this lane.
 - Proposed change: `in_degree=k` with `sampling="multinomial"` (refused together today) draws
   K = round(k * n_post) synapses with replacement, so `in_degree` is the mean in-degree.
+
+### P-050
+
+- Date: 2026-10-27. Type: PERF. Area: `_reject_duplicate_explicit_edges` in `jaxfne/_construct_core.py`.
+  Severity: high (blocks Brunel S1 and any large explicit-mode build).
+- One `flatnonzero(inverse == u)` per unique identity makes the check O(E^2): Brunel construct at
+  n=500 spends 1.27 s in it, at n=1000 (4x edges) 22.1 s (cProfile, 2026-10-27). The S1 smoke
+  (n=6250, about 7.8M edges, extrapolated about 9 h) sat in construct for 52 min and was stopped.
+- Resolved 2026-10-27 (9C-E1 core lane): one stable sort with per-group block bounds; 400k
+  identities in about 2 s, against 89 s before (`test_explicit_duplicate_check_is_not_quadratic`).
