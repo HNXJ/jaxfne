@@ -33,8 +33,10 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
 - [A] C1: H4 ruled 2026-10-26 and landed: the ledger holds CL-01 to CL-34 (E2 V1/V2 claims are CL-27 to CL-34).
   Left: results.md cites no CL id (17 orphan candidates in `check_manuscript_claims.py`); CL-34 cites two
   `artifacts/developer/resolution/` documents that were never tracked (`KNOWN_UNTRACKED` in
-  `tests/test_publication_claim_ledger_v20260815.py`): point it at tracked Fig. 8/9 evidence or record it as
-  unsupported; `claim_ledger_delta.json` still describes its base as 21 rows.
+  `tests/test_publication_claim_ledger_v20260815.py`). Tracked candidates: `artifacts/publication/final/`
+  `e2_fig08_ping_receipt.json` and `e2_fig09_ssa_receipt.json` (2026-08-26); repoint CL-34 once one is shown
+  to carry its claim, else record it as unsupported. `claim_ledger_delta.json` still says base 21 rows; no
+  reader uses it.
 - [H] C6, S6: benchmark protocol choices (`artifacts/programme/benchmarks/README.md`); brian2 and NEST not installed.
   `scripts/cortical_column_localized_workflow.build_config`, which the Izhikevich benchmark calls, raises at HEAD: the
   builder refuses `geometry='uniform3d'` with `layers` and `ei_profile='canonical'`. The repair picks a geometry.
@@ -103,8 +105,8 @@ govern (T-22 semantics defaults, T-25) and in `artifacts/etudes/meta/REPLICATION
   bound, above w_car in A2; receipts `cl-reader-cursor/reader_exp/out/protoA_*.json`); frozen readout weak
   (0.33-0.67). Readout follow-up (w_max, larger frozen sets) is Hamm's call; lane paused until then.
 
-- Brunel S1 (finite size, N=6250, in-degrees fixed) needs the fixed-in-degree lane option (release plan B5);
-  S2 and S3 are recorded in `RESULT_P3.md` (2026-10-25).
+- Brunel S1 (finite size, N=6250, in-degrees fixed) is running on the lane option (T-O69); S2 and S3 are
+  recorded in `RESULT_P3.md` (2026-10-25); S1 goes there as sensitivity when the 20 runs finish.
 - Dashboard three-verdict distinction (Hamm 2026-10-23 P0 feedback, bundle
   `C:/Users/nejath/Downloads/JAXFNE_SOURCES_AND_DASHBOARD_REVIEW_2026-10-23/`): LANDED 06a44180 -
   verdict_summary (paper/library/methods) derived from records, core-method rows out of the paper
@@ -136,9 +138,8 @@ todos once their close is decided; checkpoint when both are empty; Muse Spark 1.
 clones, verified before integration):
 1. [A] B4 PARTIAL (R4 8136beea, P4 d5b07498, caminos + brunel E1 33e66089; findings 38 -> 31, all
    known, 0 unlisted; B1, B2, B3, B5 CLOSED 2026-10-22/24, evidence in git and the handoff).
-   Remaining, each removing its known finding: izhikevich2003 E1 is BLOCKED on a construct path
-   for the P3b arm's heterogeneous per-cell parameters (dt=0.5 + noise, default order; Hamm:
-   a core capability or an exception on the finding); the S2 set (4 oracle-import findings) is
+   Remaining, each removing its known finding: izhikevich2003 E1 has its library path (b28bbb93) and
+   closes at the signed P6 (T-O69); the S2 set (4 oracle-import findings) is
    protocol-gated: pcl closes at PCL-R4's new prereg, caminos by re-running its scored P3 sweeps
    on the verified core route (Hamm's call).
    Constraints kept from the closed items: B3 numerical contract (spikes/RNG exact; V_m
@@ -150,26 +151,24 @@ clones, verified before integration):
    emitter in the core, then P1).
 8. [A] B6 split closed lane folders by kind (tree degree) once their lanes close.
 Open-stack rows (each closes its `O-n`; the open stack empties when these close; audits 2026-10-25):
-- T-O61 cosmetic [A] (wording approved by Hamm 2026-10-25): tier labels differ, REPLICATIONS against dashboard.
-- [A] Check whether the manifests hash `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log`; if none does, record it.
 - T-O69 [A] 0.5.9 lanes per the release plan, at most 3 Haiku workers in clones under `E:/repos/_wt/jaxfne/`.
-  E1 library path landed (b28bbb93, unscored pilot: rates within 1.4% of the kernel on seeds 0 and 1,
-  ampa tau 1e-3 ms as the instantaneous limit, P-051). P6 drafted (`izhikevich2003/core/PREREG_P6.md`,
-  unsigned: seeds and Q5 wait on Hamm; gate 2 `score_seed` landed, peak excess equals P5 to about 5e-8
-  relative, so the signed text says rtol 1e-6 there). P-049 landed (a26097f8). Running: Potjans P2
-  refresh (clone `9c-potjans-p2`); Brunel S1 runs on 3d7a5c9b (smoke: construct 25 s, point C
-  irregular, 38.6 Hz); Release CI 40433612421 (40422532717 lost its 3.11 runner after 55 min).
-  On dev: P-046 and P-050 fixes, `cell_params` v0/u0; LIF `poisson_drive` list; E1 core (`weight_range`, `gaussian_drive`; the delayed-edge route is realized but untested;
-  hdp noise_scale stays P-045), citations by symbol, Brunel S1 option, 9B bypass checks (a moving H_K has a
-  first-step reference only), the publication job's `pip freeze` artifact. Brunel S1 runs (A-D, seeds 4-8,
-  N=6250) start after the smoke. Next: 9F figure lock (a passing Release CI run's freeze becomes the constraints
-  file the job installs with); the S2 generator waits on the D35 calibration call (C3 row).
+  Landed: E1 library path (b28bbb93; rates within 1.4% of the kernel, ampa tau 1e-3 ms as the instantaneous
+  limit, P-051), P-049 (a26097f8), Potjans P2 (741c9375), the S5 registry fix for Release CI 40433612421
+  (221f1d01: superposed rules left registered by an earlier test reached S5 in the single-process run).
+  P6 drafted (`izhikevich2003/core/PREREG_P6.md`, unsigned; seeds and Q5 wait on Hamm). The signed text
+  changes two lines: gate 2 PE tolerance rtol 1e-6 (`score_seed` matches P5 to about 5e-8 relative), and R4
+  wording in place of "moves Fig. 3 to T-jaxfne" (Izhikevich is T-jaxfne already). Running: Brunel S1 (A-D,
+  seeds 4-8, N=6250, on 3d7a5c9b; 8 of 20 done). Next: Release CI on the pushed head, then 9F figure lock
+  (that run's freeze becomes the constraints file the job installs with); the S2 generator waits on the D35
+  calibration call (C3 row). Untested: the E1 delayed-edge route; hdp noise_scale stays P-045.
 - T-O70 [A then H] H3: fill the Potjans and Vogels prereg estimands (orchestrator), run the B8 pilots on seed 0
   and a known positive, then Hamm signs; GSDR and Destexhe follow their pilots. Drafts: Potjans 2026-10-26,
   Vogels 2026-10-27 (full N, R-E e <= 0.20, O-DROP; the B8 pilot reruns segment B on the per-synapse traces;
-  scale and bands wait on Hamm). Core `Simulation(poisson_drive=[...])` landed (lif route). The P2 refresh
-  (multinomial `in_degree=k`, w_std, delay_std_ms, tau_syn_ms, per-population drive, exact-charge pA map) is
-  running, with construct cost and RSS at scale 0.01 and 0.02.
+  scale and bands wait on Hamm). Potjans P2 route on dev (741c9375): multinomial `in_degree=k` held at every
+  scale, proportional w_std, delay_std_ms, tau_syn 0.5 ms, per-population drive, exact-charge pA map.
+  Unscored pilot (seed 0, T 1 s): scale 0.01 is 3.0e6 synapses, 57 s construct, 49 s simulate, 2.5 GB;
+  scale 0.02 is 6.0e6, 86 s, 102 s, 4.0 GB. Linear in synapses (inferred), scale 0.1 needs about 3e8 synapses
+  and 150 GB of the 192 GB RAM, so 10% runs on the CPU at the edge of memory or at a smaller scale.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).
 - T-O58 [H] WSL DNS (system setting); check: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
 - T-O68 [H] local copies and the layout rule (see O-68): each held copy is deleted or sits at
@@ -429,6 +428,9 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
     rules do not read it), `SanityDeltaConfig` validation by `assert` (stripped under `python -O`; the
     existing test expects `AssertionError`). The `physical_amplitude_calibrated=True` overwrite is the
     truth-gate clamp, tested as intended. Trigger: a caller needs one of them.
+14. `artifacts/protocol_w/w3b_parameter_domain/w3b_scan_run.log` is tracked (20853f32, with the lattice
+    receipt); no manifest hashes it and no reader names it. Trigger: the W3b receipt is refrozen or the
+    tree budget needs its bytes.
 
 Tracks (standing directions): P performance (optimize profiled components only) · T testing
 (cheapest gate per defect class) · S skills · I integration (one implementation, many entrances) ·
