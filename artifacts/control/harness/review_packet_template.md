@@ -1,6 +1,6 @@
 # Adversarial review packet (template)
 
-Launch: `python <opencode-delegate skill dir>/oc_delegate.py PACKET.md --tier review --dir <repo> --context <diff file>`
+Launch: `python <delegate-opencode skill dir>/oc_delegate.py PACKET.md --tier review --dir <repo> --context <diff file>`
 with the diff written by `git diff <base>..<head> > <scratch>/review.diff`. Read-only; the reviewer
 has none of the session context, so the packet must stand alone.
 

@@ -28,7 +28,7 @@ The repository's mathematical results are not used here; only its process is.
   a falsifier and a verification tier. Entries are grouped into families.
 - **P2 Verification tiers,** printed with every theory claim: T0 numerical (float64,
   several seeds); T1 certified numerics (interval or exact rational arithmetic);
-  T2 written proof checked by second-reviewer; T3 Lean. Lean is not installed on
+  T2 written proof checked by the reviewer agent; T3 Lean. Lean is not installed on
   this machine.
 - **P3 Dependency edges.** Each claim lists the claims it uses. A correction marks
   its dependents for review, as in item 4 above.
