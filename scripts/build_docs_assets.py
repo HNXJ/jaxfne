@@ -583,6 +583,7 @@ def _build_site_slug(slug: str, out: Path, registry: dict, pages: dict[Path, str
     """Write OUT/<slug>/<panel>.html + .png; return the slug's manifest entries."""
     from jaxfne.vis.atlas_suite import render_atlas
     from jaxfne.vis.exporters import _write_image
+    from jaxfne.vis.figure_theme import themed_html
 
     kind, title, model, signals, kw, doc_dir, visual_figs = _site_figure_source(slug)
     by_slug = {e["slug"]: e for e in registry["atlases"]}
@@ -615,7 +616,7 @@ def _build_site_slug(slug: str, out: Path, registry: dict, pages: dict[Path, str
             entries.append({"slug": slug, "panel": stem, "html": html_rel,
                             "title": label, "status": "omitted", "docs_pages": docs})
             continue
-        fig.write_html(str(slug_dir / name), include_plotlyjs="cdn", full_html=True)
+        (slug_dir / name).write_text(themed_html(fig), encoding="utf-8")
         fig.update_layout(width=FIG_PNG_WIDTH, height=FIG_PNG_HEIGHT)
         # Kaleido's own default scale is 1 == FIG_PNG_SCALE; _write_image only
         # retries its teardown failure (P-011).
@@ -639,6 +640,7 @@ def _build_site_etude_slug(slug: str, out: Path, registry: dict,
     of only written to disk.
     """
     from jaxfne.vis.exporters import _write_image
+    from jaxfne.vis.figure_theme import themed_html
 
     slug_dir = out / slug
     slug_dir.mkdir(parents=True, exist_ok=True)
@@ -677,7 +679,7 @@ def _build_site_etude_slug(slug: str, out: Path, registry: dict,
                 entries.append({"slug": slug, "panel": stem, "html": f"{slug}/{name}",
                                 "title": label, "status": "omitted", "docs_pages": docs})
                 continue
-            fig.write_html(str(slug_dir / name), include_plotlyjs="cdn", full_html=True)
+            (slug_dir / name).write_text(themed_html(fig), encoding="utf-8")
             fig.update_layout(width=FIG_PNG_WIDTH, height=FIG_PNG_HEIGHT)
             # Kaleido's own default scale is 1 == FIG_PNG_SCALE; _write_image only
             # retries its teardown failure (P-011).
