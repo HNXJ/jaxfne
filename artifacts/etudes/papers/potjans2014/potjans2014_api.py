@@ -8,8 +8,8 @@ caller's directory, never under a ``scored`` path
 (``lane_kit.refuse_scored_dir``). Every run writes a manifest with code SHA,
 backend, dtype, seeds and the activity-regime block (checklist P4).
 
-Port decisions live in ``PORT_SPEC.md``; stand-ins are declared deviations
-there (density wiring, constant weights/delays, uniform drive, mV scale).
+Port decisions live in ``PORT_SPEC.md``; declared deviations are there too
+(unfiltered drive kick, sub-step delay floor, spread proportional to the mean).
 """
 
 from __future__ import annotations
@@ -38,14 +38,15 @@ TAU_M_MS = 10.0
 THETA_MV = 15.0  # paper theta = -50 mV
 VRESET_MV = 0.0  # paper V_reset = -65 mV
 TREF_MS = 2.0
-DT_MS = 0.5
-W_E_MV = 0.1  # stand-in mV scale (PORT_SPEC D-SCALE); paper w = 87.8 pA
-G_REL = 4.0  # paper g (SOURCE_P1.md section 2)
-D_E_MS = 1.5  # paper excitatory mean delay
-D_I_MS = 1.0  # stand-in for paper 0.8 ms (PORT_SPEC D-GRID)
-NU_BG_HZ = 8.0  # paper background rate per train
-DRIVE_COUNTS = 2000  # stand-in uniform train count (PORT_SPEC D-EXT)
-DRIVE_AMPLITUDE_MV = 0.1
+DT_MS = 0.1  # paper step h = 0.1 ms (SOURCE_P1.md section 1)
+TAU_SYN_MS = 0.5  # paper tau_syn (SOURCE_P1.md section 2)
+C_M_PF = 250.0  # paper C_m (SOURCE_P1.md section 2)
+W_PA = 87.8  # paper excitatory w (SOURCE_P1.md section 2)
+W_SD_PA = 8.8  # paper delta_w (SOURCE_P1.md section 2)
+G_REL = -4.0  # paper g (SOURCE_P1.md section 2)
+D_E_MS, D_E_SD_MS = 1.5, 0.75  # paper d_e +- delta_d_e (section 2)
+D_I_MS, D_I_SD_MS = 0.8, 0.4  # paper d_i +- delta_d_i (section 2)
+NU_BG_HZ = 8.0  # paper background rate per train (SOURCE_P1.md section 2)
 DT_INERT_MS = 2.0  # P-023-required dT, inert on the lif route
 
 #: Cortical population sizes, paper Table 5 (SOURCE_P1.md section 2).
@@ -61,10 +62,22 @@ POP_N = {
 }
 LAYERS = ("L23", "L4", "L5", "L6")
 
+#: Reference external in-degree k_ext per population, paper Table 5
+#: (SOURCE_P1.md section 2). Each entry drives one population (row 12).
+K_EXT = {
+    ("L23", "E"): 1600,
+    ("L23", "PV"): 1500,
+    ("L4", "E"): 2100,
+    ("L4", "PV"): 1900,
+    ("L5", "E"): 2000,
+    ("L5", "PV"): 1900,
+    ("L6", "E"): 2900,
+    ("L6", "PV"): 2100,
+}
+
 #: Connection probabilities, paper Table 5 connectivity block
 #: ((to_layer, to_type), (from_layer, from_type)) -> p (SOURCE_P1.md section 2).
-#: Zero entries are absent (no rule); the Th column is folded into the
-#: uniform drive (PORT_SPEC D-TH).
+#: Zero entries are absent (no rule); the Th column is not wired (PORT_SPEC D-TH).
 PROB = {
     (("L23", "E"), ("L23", "E")): 0.101,
     (("L23", "E"), ("L23", "PV")): 0.169,
@@ -125,7 +138,8 @@ PROB = {
 
 #: Potjans-zeroed LIF extras: plain LIF with absolute reset, no PCL
 #: adaptation tail (PORT_SPEC row 6); hard refractory tau_ref = 2 ms via
-#: ``t_ref_ms`` (PORT_SPEC row 3).
+#: ``t_ref_ms`` (PORT_SPEC row 3); first-order synaptic filter tau_syn = 0.5 ms
+#: (PORT_SPEC row 11).
 _LIF_POTJANS = dict(
     tau_m_ms=TAU_M_MS,
     v_thresh_mV=THETA_MV,
@@ -136,6 +150,7 @@ _LIF_POTJANS = dict(
     tau_sra_ms=100.0,
     delta_sra_mV=0.0,
     t_ref_ms=TREF_MS,
+    tau_syn_ms=TAU_SYN_MS,
 )
 
 
@@ -164,28 +179,70 @@ def _pop_counts(n):
     return counts
 
 
-def _edge_magnitude_mv(src_layer, src_type, tgt_layer, tgt_type):
-    """Stand-in edge magnitude in mV (PORT_SPEC D-SCALE, D-L4)."""
-    mag = W_E_MV * G_REL if src_type == "PV" else W_E_MV
-    if (src_layer, src_type) == ("L4", "E") and (tgt_layer, tgt_type) == ("L23", "E"):
-        mag = 2.0 * W_E_MV
-    return float(mag)
+def _scale_counts(scale):
+    """Cell counts at ``scale`` of every POP_N: half-up, at least one cell."""
+    s = float(scale)
+    if not (math.isfinite(s) and s > 0.0):
+        raise ValueError("scale must be a finite number > 0; got %r" % (scale,))
+    return {pop: max(1, int(math.floor(POP_N[pop] * s + 0.5))) for pop in POP_N}
 
 
-def build_spec(n=800, seed=0):
-    """The lane network built only from the public API (PORT_SPEC.md rows)."""
+def _deposit_mv_per_pa():
+    """Total mV deposited by one arrival per pA of weight: tau_syn / C_m (row 14)."""
+    return TAU_SYN_MS / C_M_PF
+
+
+def _step_mv_per_pa():
+    """Per-step edge weight per pA: (1/C_m) tau_syn (1 - exp(-dt/tau_syn)).
+
+    The core's filter adds each arrival to ``g``, which decays by exp(-dt/tau)
+    per step and enters V directly, so this increment deposits
+    ``w tau_syn / C_m`` in total over the decay (row 14).
+    """
+    return TAU_SYN_MS * (1.0 - math.exp(-DT_MS / TAU_SYN_MS)) / C_M_PF
+
+
+def mean_in_degree(src, tgt):
+    """Mean in-degree k of projection src -> tgt: K_full / N_post_full (row 8).
+
+    K_full = ln(1 - C) / ln(1 - 1/(N_pre N_post)) draws with replacement give
+    the paper's connection probability C at full scale; k is held at every scale.
+    """
+    c = PROB[(tgt, src)]
+    n_pre, n_post = POP_N[src], POP_N[tgt]
+    k_full = math.log1p(-c) / math.log1p(-1.0 / (n_pre * n_post))
+    return k_full / n_post
+
+
+def _edge_mean_mv(src, tgt):
+    """Mean edge weight magnitude in mV per arrival (rows 9 and 14).
+
+    Excitatory w = 87.8 pA; inhibitory |g| w; L4e -> L2/3e doubled. The sign
+    comes from the mechanism.
+    """
+    pa = W_PA * (abs(G_REL) if src[1] == "PV" else 1.0)
+    if src == ("L4", "E") and tgt == ("L23", "E"):
+        pa *= 2.0
+    return pa * _step_mv_per_pa()
+
+
+def build_spec(n=800, seed=0, scale=None):
+    """The lane network built only from the public API (PORT_SPEC.md rows).
+
+    ``scale`` takes every population at that fraction of POP_N (half-up, at
+    least one cell); without it the cell counts are the fractions of ``n``.
+    """
     del seed  # wiring draws seed from RuntimeConfiguration at construct time
-    n = int(n)
-    total = float(n)
+    counts = _scale_counts(scale) if scale is not None else _pop_counts(int(n))
+    total = float(sum(counts.values()))
     layers = []
     for layer in LAYERS:
-        e_frac = float(POP_N[(layer, "E")]) / float(
-            POP_N[(layer, "E")] + POP_N[(layer, "PV")]
-        )
+        n_e, n_pv = counts[(layer, "E")], counts[(layer, "PV")]
+        e_frac = float(n_e) / float(n_e + n_pv)
         layers.append(
             nt.Layer(
                 name=layer,
-                n_neurons=int(_layer_sizes(n)[layer]),
+                n_neurons=int(n_e + n_pv),
                 neuron_types=[
                     nt.NeuronType.make("E", fraction=e_frac, emitter="lif",
                                        emitter_params=dict(_LIF_POTJANS),
@@ -198,9 +255,9 @@ def build_spec(n=800, seed=0):
             )
         )
     area_conns = []
-    for (tgt, src), p in sorted(PROB.items()):
+    for tgt, src in sorted(PROB):
         (tgt_layer, tgt_type), (src_layer, src_type) = tgt, src
-        mag = _edge_magnitude_mv(src_layer, src_type, tgt_layer, tgt_type)
+        mean_mv = _edge_mean_mv(src, tgt)
         area_conns.append(
             nt.AreaConnection(
                 source_area="mc", source_layer=src_layer,
@@ -209,10 +266,18 @@ def build_spec(n=800, seed=0):
                 target_neuron_type=tgt_type,
                 mechanism=("AMPA" if src_type == "E" else "GABA_A"),
                 static=nt.StaticParams(dT_ms=DT_INERT_MS),
-                plastic=nt.PlasticParams(w_mech=mag * math.sqrt(total)),
+                # The core scales the rule mean by 1/sqrt(total_n) but takes
+                # w_std raw, so the mean carries sqrt(total_n) and the spread
+                # is passed in mV as realized. The spread scales with the mean
+                # (delta_w / w on every rule): g w and 2 w are amplitude distributions.
+                plastic=nt.PlasticParams(
+                    w_mech=mean_mv * math.sqrt(total),
+                    w_std=mean_mv * W_SD_PA / W_PA,
+                ),
                 delay_ms=(D_E_MS if src_type == "E" else D_I_MS),
-                sampling="density",
-                probability=float(p),
+                delay_std_ms=(D_E_SD_MS if src_type == "E" else D_I_SD_MS),
+                sampling="multinomial",
+                in_degree=mean_in_degree(src, tgt),
             )
         )
     return nt.NeuronalTensor(
@@ -222,14 +287,28 @@ def build_spec(n=800, seed=0):
     )
 
 
+def build_drive(seed=0):
+    """One ``poisson_drive`` entry per population (row 12).
+
+    Each entry is k_ext trains of NU_BG_HZ onto its own (area, layer, cell_type)
+    triple. The amplitude is the full deposit w tau_syn / C_m of one arrival;
+    the core adds it unfiltered (declared deviation, row 12).
+    """
+    amp = W_PA * _deposit_mv_per_pa()
+    return [
+        {"rate_hz": NU_BG_HZ, "amplitude": amp, "counts": int(K_EXT[pop]),
+         "seed": int(seed), "target": ("mc", pop[0], pop[1])}
+        for pop in POP_N
+    ]
+
+
 def build_sim(T_s=1.0, dt_ms=DT_MS, seed=0):
-    """The ``Simulation`` for a run (duration, dt, uniform drive)."""
+    """The ``Simulation`` for a run (duration, dt, one drive entry per population)."""
     return J.Simulation(
         duration_ms=float(T_s) * 1000.0,
         dt_ms=float(dt_ms),
         seed=int(seed),
-        poisson_drive={"rate_hz": NU_BG_HZ, "amplitude": DRIVE_AMPLITUDE_MV,
-                       "counts": DRIVE_COUNTS, "seed": int(seed)},
+        poisson_drive=build_drive(seed),
         runtime=J.RuntimeConfig(recurrent_backend="edge_list"),
     )
 
@@ -271,7 +350,7 @@ def score_by_population(spikes, pop_ids, dt_ms=DT_MS):
     return out
 
 
-def run(seed, tag, out_dir, *, n=800, T_s=1.0, signed=False):
+def run(seed, tag, out_dir, *, n=800, scale=None, T_s=1.0, signed=False):
     """Build, run and write the raster plus the ``manifest.json`` the scorer reads."""
     import numpy as np
 
@@ -284,7 +363,7 @@ def run(seed, tag, out_dir, *, n=800, T_s=1.0, signed=False):
     entries = {e["file"]: e for e in prior["runs"]} if prior else {}
     t0 = time.perf_counter()
     model = J.construct(
-        build_spec(n=n, seed=seed),
+        build_spec(n=n, seed=seed, scale=scale),
         nt.RuntimeConfiguration(seed=int(seed),
                                 duration_ms=float(T_s) * 1000.0,
                                 dt_ms=DT_MS, emitter="lif"),
@@ -307,12 +386,12 @@ def run(seed, tag, out_dir, *, n=800, T_s=1.0, signed=False):
 
     os.replace(tmp, out / fname)
     entry = {"seed": int(seed), "tag": tag, "file": fname,
-             "n": int(n), "steps": int(spikes.shape[0]), "dt_ms": DT_MS,
+             "n": int(spikes.shape[1]), "scale": scale,
+             "total_synapses": int(np.asarray(model.params["edge_list"].pre).shape[0]),
+             "steps": int(spikes.shape[0]), "dt_ms": DT_MS,
              "duration_ms": float(T_s) * 1000.0, "dtype": "float32",
              "backend": "cpu",
-             "poisson_drive": {"rate_hz": NU_BG_HZ,
-                               "amplitude": DRIVE_AMPLITUDE_MV,
-                               "counts": DRIVE_COUNTS, "seed": int(seed)},
+             "poisson_drive": build_drive(seed),
              "wall_s": {"construct": t_construct, "simulate": t_simulate},
              "regime": regime, "pops": by_pop}
     entries[fname] = entry
