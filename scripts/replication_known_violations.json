@@ -147,41 +147,6 @@
     "todo": "T-30"
   },
   {
-    "rule": "S1",
-    "path": "artifacts/etudes/papers/pcl/port/pcl_binned_jax.py",
-    "message": "line 55: sys.path.insert adds a path that cannot be resolved",
-    "reason": "adds the repository root found by _repo_root(), a walk up to pyproject.toml that the static resolver does not follow.",
-    "todo": "T-44"
-  },
-  {
-    "rule": "S1",
-    "path": "artifacts/etudes/papers/pcl/port/pcl_event_ref.py",
-    "message": "line 54: sys.path.insert adds a path that cannot be resolved",
-    "reason": "adds the repository root found by _repo_root(), a walk up to pyproject.toml that the static resolver does not follow.",
-    "todo": "T-44"
-  },
-  {
-    "rule": "S1",
-    "path": "artifacts/etudes/papers/pcl/port/test_pcl_binned_jax.py",
-    "message": "line 29: sys.path.insert adds a path that cannot be resolved",
-    "reason": "adds the repository root found by _repo_root(), a walk up to pyproject.toml that the static resolver does not follow.",
-    "todo": "T-44"
-  },
-  {
-    "rule": "S1",
-    "path": "artifacts/etudes/papers/pcl/port/test_pcl_event_ref.py",
-    "message": "line 24: sys.path.insert adds a path that cannot be resolved",
-    "reason": "adds the repository root found by _repo_root(), a walk up to pyproject.toml that the static resolver does not follow.",
-    "todo": "T-44"
-  },
-  {
-    "rule": "S1",
-    "path": "artifacts/etudes/papers/pcl/port/validate_umap_order.py",
-    "message": "line 46: sys.path.insert adds a path that cannot be resolved",
-    "reason": "adds the repository root found by _repo_root(), a walk up to pyproject.toml that the static resolver does not follow.",
-    "todo": "T-44"
-  },
-  {
     "rule": "S2",
     "path": "artifacts/etudes/papers/caminos/run_caminos.py",
     "message": "imports oracle artifacts/etudes/papers/caminos/caminos_jax.py",

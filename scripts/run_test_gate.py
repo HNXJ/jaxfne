@@ -1080,8 +1080,76 @@ def _download_release_ci_junit(run_id: str, sha: str) -> list[Path]:
     return found
 
 
+def _test_modules() -> dict[str, str]:
+    """Dotted module name -> posix path of each test module; a JUnit classname starts with one of these."""
+    found: dict[str, str] = {}
+    for path in sorted((ROOT / "tests").rglob("*.py")):
+        rel = path.relative_to(ROOT).as_posix()
+        found[rel[: -len(".py")].replace("/", ".")] = rel
+    return found
+
+
+def _slow_node_ids() -> frozenset[str]:
+    """Node ids of the slow-marked tests, from collection only (no test runs). RuntimeError when collection fails."""
+    res = subprocess.run(
+        [sys.executable, "-m", "pytest", "tests", "--collect-only", "-q", "-m", "slow", "-p", "no:cacheprovider"],
+        cwd=ROOT, capture_output=True, text=True, check=False,
+    )
+    if res.returncode != 0:
+        raise RuntimeError(f"slow-test collection exited {res.returncode}")
+    ids = frozenset(
+        line.strip() for line in res.stdout.splitlines()
+        if re.fullmatch(r"tests/[^\s:]+\.py::\S.*", line.strip())
+    )
+    if not ids:
+        raise RuntimeError("slow-test collection named no node ids")
+    return ids
+
+
+def _node_id_from_junit(classname: str, name: str, modules: dict[str, str]) -> str | None:
+    """Pytest node id of a JUnit case: the longest dotted prefix of classname that is a test module, then
+    the classes, then the name. None when no test module matches."""
+    parts = classname.split(".")
+    for k in range(len(parts), 0, -1):
+        path = modules.get(".".join(parts[:k]))
+        if path is not None:
+            return "::".join([path, *parts[k:], name])
+    return None
+
+
+def _junit_key(node_id: str) -> tuple[str, str]:
+    """(classname, name) that pytest writes to JUnit for a node id. The inverse of _node_id_from_junit."""
+    head, bracket, params = node_id.partition("[")
+    path, *scopes = head.split("::")
+    func = scopes.pop()
+    module = path.removesuffix(".py").replace("/", ".")
+    return ".".join([module, *scopes]), func + bracket + params
+
+
+def _release_family(classname: str, name: str, modules: dict[str, str], slow_keys: frozenset) -> str | None:
+    """The reusable family of a JUnit case, or None when no test module matches it.
+
+    Mirrors the gate's expressions: a notebook-target module is pytest_notebook even when slow-marked
+    ("slow and not notebook"), a slow-marked case is pytest_slow, every other case is pytest_broad ("not slow").
+    """
+    node = _node_id_from_junit(classname, name, modules)
+    if node is None:
+        return None
+    if node.split("::", 1)[0] in NOTEBOOK_PYTEST_TARGETS:
+        return "pytest_notebook"
+    if (classname, name) in slow_keys:
+        return "pytest_slow"
+    return "pytest_broad"
+
+
 def _release_ci_junit_problem(paths: list[Path]) -> str | None:
-    """None when every matrix leg's JUnit reads, holds test cases and records no failure or error."""
+    """None when every matrix leg's JUnit reads, holds test cases, records no failure or error, and holds
+    at least one executed case (no <skipped> child) for each family in RELEASE_CI_REUSABLE_FAMILIES.
+
+    A family is read from each case's node id (_release_family). A skipped-only family does not stand in
+    for the local sweep; neither does a case that maps to no test module, or a failed slow collection.
+    Any returned problem means no reuse: the rc gate runs the families locally.
+    """
     names = {p.name for p in paths}
     missing = [
         f"pytest-results-{leg}.xml"
@@ -1090,6 +1158,7 @@ def _release_ci_junit_problem(paths: list[Path]) -> str | None:
     ]
     if missing:
         return f"JUnit missing for {missing}"
+    parsed: list[tuple[Path, list]] = []
     for path in paths:
         try:
             cases = list(ET.parse(path).getroot().iter("testcase"))
@@ -1100,6 +1169,25 @@ def _release_ci_junit_problem(paths: list[Path]) -> str | None:
         red = sum(1 for c in cases if c.find("failure") is not None or c.find("error") is not None)
         if red:
             return f"JUnit {path.name} records {red} failure(s) or error(s)"
+        parsed.append((path, cases))
+    try:
+        slow_keys = frozenset(_junit_key(node) for node in _slow_node_ids())
+    except (OSError, RuntimeError) as e:
+        return f"slow-test node ids unavailable ({e})"
+    modules = _test_modules()
+    for path, cases in parsed:
+        executed: set[str] = set()
+        for case in cases:
+            if case.find("skipped") is not None:
+                continue
+            classname, name = case.get("classname", ""), case.get("name", "")
+            family = _release_family(classname, name, modules, slow_keys)
+            if family is None:
+                return f"JUnit {path.name} case {classname}::{name} maps to no test module"
+            executed.add(family)
+        for family in RELEASE_CI_REUSABLE_FAMILIES:
+            if family not in executed:
+                return f"JUnit {path.name} has no executed {family} case"
     return None
 
 

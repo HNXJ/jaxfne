@@ -41,6 +41,8 @@ SHA, so this gate does not re-check their working-tree existence.
   ``from sys import path``, ``from builtins import __import__``) do not bypass
   the rule. ``sys.path`` mutation in any form (``insert``/``append``/``extend``,
   ``+=``, subscript assignment) goes through the same resolver.
+  A call to a module-level repo-root walk (``for c in (p, *p.parents)`` returning the first ``c``
+  with ``c / "pyproject.toml"``, probed on disk) resolves to that ancestor; any other call does not.
   A ``subprocess`` call whose argv is a list literal of string constants
   starting with ``"git"`` is exempt, unless an element is ``-c``/
   ``--exec-path*`` or a ``shell=``, ``executable=``, ``env=`` or
@@ -308,7 +310,9 @@ def _collect_bindings(tree: ast.Module) -> dict[str, ast.AST]:
 
     Function-local paths such as ``dl_path = _RUN_DIR / "data_labels.py"``
     resolve through module-level names, so sibling-module loads stay clean.
-    Parameters are not bindings: a bare parameter never resolves.
+    Parameters are not bindings: a bare parameter never resolves. Module-level
+    ``def`` nodes bind to themselves, so a call to one can resolve through
+    ``_repo_walk_result`` when its body is the repo-root walk (``_is_repo_walk``).
     """
     bindings: dict[str, ast.AST] = {}
     for node in ast.walk(tree):
@@ -324,7 +328,101 @@ def _collect_bindings(tree: ast.Module) -> dict[str, ast.AST]:
             and node.value is not None
         ):
             bindings.setdefault(node.target.id, node.value)
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef):
+            bindings[node.name] = node
     return bindings
+
+
+def _is_repo_walk(fn: ast.AST) -> bool:
+    """Whether a def is the repo-root walk: the first of ``(p, *p.parents)`` holding pyproject.toml.
+
+    Only this shape counts (every ``_repo_root`` copy in the PCL port folder): one positional
+    parameter ``p``; an optional docstring; ``for c in (p, *p.parents):`` whose body is
+    ``if (c / "pyproject.toml").is_file(): return c`` (``exists()`` also counts); an optional
+    trailing ``raise``. A function is never accepted by its name alone.
+    """
+    if not isinstance(fn, ast.FunctionDef):
+        return False
+    args = fn.args
+    if (
+        len(args.args) != 1
+        or args.posonlyargs
+        or args.defaults
+        or args.kwonlyargs
+        or args.vararg
+        or args.kwarg
+    ):
+        return False
+    param = args.args[0].arg
+    body = list(fn.body)
+    if (
+        body
+        and isinstance(body[0], ast.Expr)
+        and isinstance(body[0].value, ast.Constant)
+        and isinstance(body[0].value.value, str)
+    ):
+        body = body[1:]
+    if len(body) == 2 and isinstance(body[1], ast.Raise):
+        body = body[:1]
+    if len(body) != 1 or not isinstance(body[0], ast.For) or body[0].orelse:
+        return False
+    loop = body[0]
+    if not (isinstance(loop.target, ast.Name) and isinstance(loop.iter, ast.Tuple)):
+        return False
+    cand = loop.target.id
+    elts = loop.iter.elts
+    if len(elts) != 2 or not (isinstance(elts[0], ast.Name) and elts[0].id == param):
+        return False
+    star = elts[1]
+    if not (
+        isinstance(star, ast.Starred)
+        and isinstance(star.value, ast.Attribute)
+        and star.value.attr == "parents"
+        and isinstance(star.value.value, ast.Name)
+        and star.value.value.id == param
+    ):
+        return False
+    if len(loop.body) != 1 or not isinstance(loop.body[0], ast.If) or loop.body[0].orelse:
+        return False
+    branch = loop.body[0]
+    if len(branch.body) != 1 or not isinstance(branch.body[0], ast.Return):
+        return False
+    ret = branch.body[0].value
+    if not (isinstance(ret, ast.Name) and ret.id == cand):
+        return False
+    test = branch.test
+    if not (
+        isinstance(test, ast.Call)
+        and not test.args
+        and not test.keywords
+        and isinstance(test.func, ast.Attribute)
+        and test.func.attr in ("is_file", "exists")
+    ):
+        return False
+    probe = test.func.value
+    return (
+        isinstance(probe, ast.BinOp)
+        and isinstance(probe.op, ast.Div)
+        and isinstance(probe.left, ast.Name)
+        and probe.left.id == cand
+        and isinstance(probe.right, ast.Constant)
+        and probe.right.value == "pyproject.toml"
+    )
+
+
+def _repo_walk_result(start) -> Path | None:
+    """The first of ``(start, *start.parents)`` holding pyproject.toml on disk, or None.
+
+    The probe is a real ``is_file()`` on the resolved start path, so the result is the
+    ancestor the script itself would pick. A start that is not a concrete path is unresolvable.
+    """
+    if not isinstance(start, Path):
+        return None
+    for cand in (start, *start.parents):
+        if (cand / "pyproject.toml").is_file():
+            return cand
+    return None
 
 
 def _resolve_expr(node: ast.AST, bindings: dict[str, ast.AST], here: Path, depth: int = 0):
@@ -377,6 +475,14 @@ def _resolve_expr(node: ast.AST, bindings: dict[str, ast.AST], here: Path, depth
         return None
     if isinstance(node, ast.Call):
         func = node.func
+        if (
+            isinstance(func, ast.Name)
+            and isinstance(bindings.get(func.id), ast.FunctionDef)
+            and _is_repo_walk(bindings[func.id])
+            and len(node.args) == 1
+            and not node.keywords
+        ):
+            return _repo_walk_result(_resolve_expr(node.args[0], bindings, here, depth + 1))
         if (
             isinstance(func, ast.Name)
             and func.id in ("str", "Path")

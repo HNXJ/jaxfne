@@ -66,16 +66,16 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   mask orientation. Closes when: (11) is fixed with a failing test or ruled.
 - T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`; C, D, F landed 2026-10-27): `paper-lanes` passed its
   first CI run (aa92b43a, both legs, every lane ran) and joins `fast-build`'s needs after a second; F's reuse
-  records `pytest_slow` and `pytest_notebook` as passing when every CI case of that family skipped (review
-  2026-10-27: require one executed case per family); F's `gh` field names meet a live run at the first rc; a
+  requires one executed case per family in each JUnit leg (2026-10-28); the family mapping and the `gh` field
+  names meet a live run at the first rc; a
   `jaxfne.jdna` canary chain for B; E's first nightly is its observation. Closes when: `ci_plan.md` lists
   every step landed and observed.
 - T-44 [A] (E) T-32e: rules E1, S2, P4, R4 landed in `check_replications.py` (d2553d55, 66231ddb, 5c4a52a0,
   8136beea). Left: F3 ("a fidelity fix carries a test that fails on the parent commit") is per commit, so a
   file scan cannot check it (a CI step over commits tagged as fidelity fixes is the candidate); the
-  allowlist `scripts/replication_known_violations.json` (31 entries) shrinks to Hamm's exceptions; each S1
-  entry now names why its path is not static (temp copies, run-time arguments, `C:/workspace/pcl_diag`);
-  five pcl/port entries clear once S1 follows the `_repo_root()` walk to `pyproject.toml`. Closes when: F3 has
+  allowlist `scripts/replication_known_violations.json` (26 entries) shrinks to Hamm's exceptions; each S1
+  entry names why its path is not static (temp copies, run-time arguments, `C:/workspace/pcl_diag`); S1
+  follows the `_repo_root()` walk to `pyproject.toml` (2026-10-28, five entries cleared). Closes when: F3 has
   a check that fails on a planted fix without a failing test, and each allowlist entry is fixed or ruled.
 - T-10b [A] jnwb cross-learning (`control/harness/jnwb_cross_learning.md`): errors page, a proxy-claim
   wording gate, AST-hash freezing of validated kernels. Closes when: each lands with its test.

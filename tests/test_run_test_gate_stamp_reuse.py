@@ -49,10 +49,25 @@ TREE_FILES = {
 }
 TREE_FILES.update({path: "# stack\n" for path in STACK_PATHS})
 
+# One executed case per reusable family, against the fixed slow set and module map that fixed_suite pins.
+# The notebook module is slow-marked as real collection reports it, and it counts as pytest_notebook.
+FIXED_SLOW = frozenset({
+    "tests/test_a.py::test_slow",
+    "tests/test_suite_no1_notebook_execution.py::test_suite_no1_notebook_executes",
+})
+FIXED_MODULES = {
+    "tests.test_a": "tests/test_a.py",
+    "tests.test_suite_no1_notebook_execution": "tests/test_suite_no1_notebook_execution.py",
+}
+BROAD_CASE = '<testcase classname="tests.test_a" name="test_x"/>'
+SLOW_CASE = '<testcase classname="tests.test_a" name="test_slow"/>'
+NOTEBOOK_CASE = (
+    '<testcase classname="tests.test_suite_no1_notebook_execution" name="test_suite_no1_notebook_executes"/>'
+)
 GREEN_JUNIT = (
-    '<testsuites><testsuite name="pytest" tests="2">'
-    '<testcase classname="tests.test_a" name="test_x"/>'
-    '<testcase classname="tests.test_a" name="test_y">'
+    '<testsuites><testsuite name="pytest" tests="4">'
+    + BROAD_CASE + SLOW_CASE + NOTEBOOK_CASE
+    + '<testcase classname="tests.test_a" name="test_y">'
     '<skipped message="requires a POSIX shell"/></testcase>'
     "</testsuite></testsuites>"
 )
@@ -384,7 +399,14 @@ def test_no_stamp_is_refused_outside_the_broad_gate(gates, capsys):
 
 
 @pytest.fixture
-def release_ci(monkeypatch):
+def fixed_suite(monkeypatch):
+    """Pin the slow node ids and the test-module map that the JUnit family check reads."""
+    monkeypatch.setattr(rtg, "_slow_node_ids", lambda: FIXED_SLOW, raising=False)
+    monkeypatch.setattr(rtg, "_test_modules", lambda: dict(FIXED_MODULES), raising=False)
+
+
+@pytest.fixture
+def release_ci(monkeypatch, fixed_suite):
     """Answer gh for one Release CI run. The test sets the run list and the JUnit it downloads."""
     state = {"runs": [], "legs": LEGS, "junit": GREEN_JUNIT, "download_rc": 0, "error": None}
 
@@ -533,3 +555,77 @@ def test_reusable_families_are_release_ci_pytest_sweeps_only():
     assert set(rtg.RELEASE_CI_REUSABLE_FAMILIES) <= rtg.RELEASE_CI_GATE_FAMILIES
     assert "pytest_lanes" not in rtg.RELEASE_CI_REUSABLE_FAMILIES, "Release CI runs no paper lanes"
     assert "junit_parity" not in rtg.RELEASE_CI_REUSABLE_FAMILIES
+
+
+# --- F: the JUnit family check ---------------------------------------------------------
+
+
+def _leg_junit(tmp_path: Path, body: str) -> list[Path]:
+    """One JUnit per matrix leg, every leg holding ``body``."""
+    paths = []
+    for leg in LEGS:
+        path = tmp_path / f"pytest-results-{leg}.xml"
+        _write(path, '<testsuites><testsuite name="pytest">' + body + "</testsuite></testsuites>")
+        paths.append(path)
+    return paths
+
+
+def _skipped(case: str) -> str:
+    return case.replace("/>", '><skipped message="no kernel"/></testcase>')
+
+
+@pytest.mark.parametrize(
+    "node_id, classname, name",
+    [
+        ("tests/test_x.py::test_y", "tests.test_x", "test_y"),
+        ("tests/test_x.py::test_y[p]", "tests.test_x", "test_y[p]"),
+        ("tests/test_x.py::test_y[a.b]", "tests.test_x", "test_y[a.b]"),
+        ("tests/test_x.py::test_y[c::d]", "tests.test_x", "test_y[c::d]"),
+        ("tests/test_x.py::TestC::test_y", "tests.test_x.TestC", "test_y"),
+        ("tests/test_x.py::TestC::test_y[p]", "tests.test_x.TestC", "test_y[p]"),
+        ("tests/test_x.py::TestO::TestI::test_d", "tests.test_x.TestO.TestI", "test_d"),
+    ],
+)
+def test_node_id_and_junit_key_are_inverse(node_id, classname, name):
+    modules = {"tests.test_x": "tests/test_x.py"}
+    assert rtg._junit_key(node_id) == (classname, name)
+    assert rtg._node_id_from_junit(classname, name, modules) == node_id
+
+
+def test_junit_classname_with_no_test_module_maps_to_nothing():
+    modules = {"tests.test_x": "tests/test_x.py"}
+    assert rtg._node_id_from_junit("tests.other", "test_y", modules) is None
+    assert rtg._node_id_from_junit("docs.page", "test_z", modules) is None
+
+
+@pytest.mark.parametrize("family", ["pytest_broad", "pytest_slow", "pytest_notebook"])
+def test_family_with_only_skipped_cases_is_not_reused(tmp_path, fixed_suite, family):
+    # The notebook case is in the slow set too: with only the slow case skipped, it must still count as
+    # pytest_notebook, so pytest_slow stays unexecuted.
+    cases = {"pytest_broad": BROAD_CASE, "pytest_slow": SLOW_CASE, "pytest_notebook": NOTEBOOK_CASE}
+    body = "".join(_skipped(xml) if name == family else xml for name, xml in cases.items())
+    assert "<skipped" in body, "fixture must skip the family's case"
+    problem = rtg._release_ci_junit_problem(_leg_junit(tmp_path, body))
+    assert problem is not None, f"a {family} family with no executed case must not stand in"
+    assert "pytest-results-3.11.xml" in problem and f"no executed {family} case" in problem
+
+
+def test_one_executed_case_per_family_stands_in(tmp_path, fixed_suite):
+    body = BROAD_CASE + SLOW_CASE + NOTEBOOK_CASE
+    assert rtg._release_ci_junit_problem(_leg_junit(tmp_path, body)) is None
+
+
+def test_executed_case_outside_every_test_module_is_not_reused(tmp_path, fixed_suite):
+    stray = '<testcase classname="docs.page" name="test_z"/>'
+    body = BROAD_CASE + SLOW_CASE + NOTEBOOK_CASE + stray
+    problem = rtg._release_ci_junit_problem(_leg_junit(tmp_path, body))
+    assert problem is not None and "maps to no test module" in problem
+
+
+def test_failed_slow_collection_is_not_reused(tmp_path, fixed_suite, monkeypatch):
+    def collection_failed():
+        raise RuntimeError("slow-test collection exited 2")
+
+    monkeypatch.setattr(rtg, "_slow_node_ids", collection_failed)
+    problem = rtg._release_ci_junit_problem(_leg_junit(tmp_path, BROAD_CASE + SLOW_CASE + NOTEBOOK_CASE))
+    assert problem is not None and "slow-test node ids unavailable" in problem

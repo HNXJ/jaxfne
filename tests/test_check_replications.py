@@ -1056,6 +1056,94 @@ def test_s1_posix_root_path_is_outside_on_every_os(tmp_path):
     assert messages == ["line 2: sys.path.insert adds a path outside the repository (/tmp/elsewhere)"]
 
 
+#: The PCL port shape: a module-level walk to the nearest pyproject.toml.
+_REPO_WALK = '''def _repo_root(start: Path) -> Path:
+    for cand in (start, *start.parents):
+        if (cand / "pyproject.toml").is_file():
+            return cand
+    raise RuntimeError(f"no pyproject.toml above {start}")
+'''
+
+
+def test_s1_repo_root_walk_is_inside_on_every_os(tmp_path):
+    _registry(tmp_path, [])
+    _write(tmp_path, "pyproject.toml", "[project]\nname = 'fixture'\n")
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/walk/port/run.py",
+        "import sys\nfrom pathlib import Path\n\n" + _REPO_WALK
+        + "\n_ROOT = str(_repo_root(Path(__file__).resolve().parent))\n"
+        + "sys.path.insert(0, _ROOT)\n",
+    )
+    assert "_repo_root(Path(__file__)" in run.read_text(encoding="utf-8"), (
+        "fixture must build the repo root with the walk"
+    )
+    parsed = {rel: tree for rel, _, tree in cr.parse_paper_files(tmp_path)}
+    assert parsed.get("artifacts/etudes/papers/walk/port/run.py") is not None, (
+        "fixture must parse, so S1 examines it"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "S1"] == [], (
+        "a sys.path entry built by the repo-root walk stays inside the repository"
+    )
+
+
+def test_s1_repo_root_name_without_walk_fails(tmp_path):
+    _registry(tmp_path, [])
+    _write(tmp_path, "pyproject.toml", "[project]\nname = 'fixture'\n")
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/fake/run.py",
+        "import sys\nfrom pathlib import Path\n\n"
+        "def _repo_root(start: Path) -> Path:\n"
+        '    return Path("C:/elsewhere")\n\n'
+        "sys.path.insert(0, str(_repo_root(Path(__file__).resolve().parent)))\n",
+    )
+    assert 'Path("C:/elsewhere")' in run.read_text(encoding="utf-8"), (
+        "fixture must return a fixed outside path from a function named like the walk"
+    )
+    assert any(
+        rule == "S1"
+        and path == "artifacts/etudes/papers/fake/run.py"
+        and "sys.path.insert adds a path that cannot be resolved" in msg
+        for rule, path, msg in cr.collect_findings(tmp_path)
+    ), "a function named _repo_root without the walk shape must stay unresolvable"
+
+
+def test_s1_repo_root_walk_joined_outside_fails(tmp_path):
+    _registry(tmp_path, [])
+    _write(tmp_path, "pyproject.toml", "[project]\nname = 'fixture'\n")
+    walk_rel = "artifacts/etudes/papers/esc/port/walk_up.py"
+    ctrl_rel = "artifacts/etudes/papers/esc/port/parents_up.py"
+    _write(
+        tmp_path,
+        walk_rel,
+        "import sys\nfrom pathlib import Path\n\n" + _REPO_WALK
+        + "\n_ROOT = str(_repo_root(Path(__file__).resolve().parent) / \"..\")\n"
+        + "sys.path.insert(0, _ROOT)\n",
+    )
+    _write(
+        tmp_path,
+        ctrl_rel,
+        "import sys\nfrom pathlib import Path\n\n"
+        '_ROOT = str(Path(__file__).resolve().parents[5] / "..")\n'
+        "sys.path.insert(0, _ROOT)\n",
+    )
+    assert "parents[5]" in (tmp_path / ctrl_rel).read_text(encoding="utf-8"), (
+        "control must hold a parents[k] chain joined with .."
+    )
+    flagged = {
+        path: msg
+        for rule, path, msg in cr.collect_findings(tmp_path)
+        if rule == "S1"
+    }
+    assert set(flagged) == {walk_rel, ctrl_rel}, (
+        "a .. join escaping the repository is flagged for the walk and for parents[k]"
+    )
+    assert all("outside the repository" in flagged[p] for p in (walk_rel, ctrl_rel)), (
+        "the walk escape is named outside the repository, as the parents[k] escape is"
+    )
+
+
 def _r4_paper(pid: str, verdict, stage: str = "P6", p6: list[dict] | None = None) -> dict:
     entry: dict = {
         "id": pid,
