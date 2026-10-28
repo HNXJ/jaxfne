@@ -284,6 +284,14 @@ def run_at10(keep_bundle: bool = False) -> dict[str, Any]:
     output unchanged.
     """
     cfg = getattr(J, AT10_BUILDER)(areas=list(AT10_AREAS), n_per_area=AT10_N_PER_AREA)
+    # P-048 pins the pre-change default u0 (b * -65 per cell, float32-exact)
+    # so the frozen 0.5.5 task reproduces byte for byte. Declaring u0 needs
+    # no runtime(random_v0=False) (only a declared v0 does); v0 is untouched.
+    # All four types are in the builder's declared composition, so types the
+    # toy sample rounds away are accepted and apply to no neuron.
+    for _cell_type, _u0 in (("E", -13.0), ("PV", -13.0),
+                            ("SST", -16.25), ("VIP", 6.5)):
+        cfg = cfg.cell_params({"cell_type": _cell_type}, {"u0": _u0})
     cfg = (
         cfg.runtime(seed=TOY_SEED, duration_ms=AT10_DURATION_MS, dt_ms=TOY_DT_MS)
         .set_emitter(*AT10_EMITTER)

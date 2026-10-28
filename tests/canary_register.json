@@ -15,41 +15,41 @@
     },
     "field_lfp_csd": {
       "exact": {
-        "raster_sha256": "0e81d41d48404b7941d623c9d1c1a9d14459c35d2e2cdc88fc67f44518c23f7c",
-        "spikes/E": 11,
+        "raster_sha256": "a17ad91e474121731fd4db2c35202a410e000ece3a60578e166de11d359f3c92",
+        "spikes/E": 10,
         "spikes/PV": 1,
-        "spikes/SST": 11,
+        "spikes/SST": 10,
         "spikes/VIP": 0,
-        "spikes/total": 23
+        "spikes/total": 21
       },
       "floats": {
-        "csd_rms": 201.6398590285745,
-        "lfp_rms": 13.703150183196167
+        "csd_rms": 201.60815850263984,
+        "lfp_rms": 13.697460413972678
       }
     },
     "hdp_plastic_w": {
       "exact": {
-        "raster_sha256": "151afdc8d5410eb33af5b23f78bef64c308d46573509baf9b5f0bf819c3f35b8",
-        "spikes/E": 11,
+        "raster_sha256": "573bece579430318132436b89e3dc1a19d9992e3b7146f4beea565bfbe876009",
+        "spikes/E": 10,
         "spikes/PV": 1,
-        "spikes/SST": 11,
+        "spikes/SST": 10,
         "spikes/VIP": 0,
-        "spikes/total": 23
+        "spikes/total": 21
       },
       "floats": {
         "final_weight_sum": 1.7267623618245125,
-        "mean_V_m_mV": -69.2265831378065
+        "mean_V_m_mV": -69.96080188918579
       }
     },
     "izhikevich_route": {
       "exact": {
-        "raster_sha256": "dad9218bf20c8bfe35976e337cf47c9cd4cee984c6e49483c1e2392255929047",
+        "raster_sha256": "ada2165547822f7cb0b817a8ad7fb62714f9f8fd06e9a7d1e5177d3855e872d3",
         "spikes/E": 10,
         "spikes/PV": 10,
         "spikes/total": 20
       },
       "floats": {
-        "mean_V_m_mV": -67.2099505367279
+        "mean_V_m_mV": -69.78895951843262
       }
     },
     "jdna_develop": {
@@ -58,15 +58,15 @@
         "cells/V1.L4.PV": 24,
         "edges/total": 384,
         "edges_sha256": "55cb1240cbb227ea3cab7ad4d6fdc28f2ce074f1ec73ae57bd122d9321de3a1e",
-        "raster_sha256": "722bad91b21d3801c0968b8973f999e14a92f87f8109b2dd1a8b145e49b91268",
-        "spikes/E": 31,
-        "spikes/PV": 23,
-        "spikes/total": 54
+        "raster_sha256": "7cfec25436cf8c4af6cc1d7a3ae25327d8a2ede66796cbcc7cb096e6d9a0888f",
+        "spikes/E": 19,
+        "spikes/PV": 20,
+        "spikes/total": 39
       },
       "floats": {
         "edge_weight_sum": 60.71573066711426,
-        "mean_V_m_mV": -65.5058580543995,
-        "mean_rate_hz": 13.5,
+        "mean_V_m_mV": -67.44032106328011,
+        "mean_rate_hz": 9.75,
         "positions_mean": 0.169778078297774,
         "positions_std": 0.2640822717875815
       }
@@ -85,7 +85,7 @@
     "objective_one_step": {
       "exact": {
         "gradient_steps": 1,
-        "raster_sha256": "2217cab02978ff51429668b608e250391c2f19edb47defb948041296fb55d6dc",
+        "raster_sha256": "727e51437e240cec08f23fd5760e758721cd600998ad05f74ef16e5b9e71d96d",
         "spikes/E": 16,
         "spikes/PV": 3,
         "spikes/total": 19
