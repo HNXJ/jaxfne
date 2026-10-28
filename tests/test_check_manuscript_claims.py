@@ -193,4 +193,5 @@ def test_live_repo_reports_four_counts():
     assert set(rep["counts"]) == COUNT_KEYS
     assert all(isinstance(v, int) and v >= 0 for v in rep["counts"].values())
     assert rep["examined"]["ledger_rows"] > 0
-    assert rep["examined"]["trace_sections"] == 20, "the repo's traceability map labels P1 to P20"
+    # P21 maps the results appendix to CL-05 and CL-06 (Hamm 2026-10-28).
+    assert rep["examined"]["trace_sections"] == 21, "the repo's traceability map labels P1 to P21"

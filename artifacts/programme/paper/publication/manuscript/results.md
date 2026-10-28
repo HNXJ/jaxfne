@@ -131,7 +131,7 @@ presented as memory.
 
 ## H4: no positive length effect on decoded state memory
 
-Under the preregistered H4 identity-decoding assay on the 24-neuron ring, the four-factorial
+Under the preregistered H4 identity-decoding assay on rings of 3 and 12 neurons, the four-factorial
 endpoint measures are M_X = 0.0 (short, uniform), 0.0521 (short, heterogeneous), 0.0 (long,
 uniform), 0.0 (long, heterogeneous); factorial estimates are α_length = 0.0,
 α_heterogeneity = +0.0521, α_interaction = −0.0521. The interaction cancels the
@@ -201,7 +201,7 @@ With expression disabled (Γ_H = I), perturbing H_K leaves X unchanged bit-exact
 negative control of the propagation result . When the same local H_K
 perturbation is expressed through its typed Γ_H coupling, the E5 protocol — 3 arms
 (N0/N1/D) × 3 seeds = 9 trajectories — passes its sanity gates (N0 ≡ N1 bit-exactly
-on V_m, spikes and Q across all 3 seeds; H_K identical between the N1 and D arms) and classifies every seed as HIERARCHICAL_PROPAGATION (3/3). The perturbation
+on V_m, spikes and Q across all 3 seeds; H_K identical between the N1 and D arms) and is reproduced identically in all three protocol runs (classification HIERARCHICAL_PROPAGATION; the seeds are nominal run metadata). The perturbation
 response is measurable and localised: the owner cell shows mean |ΔV_m| 9.26 mV with 7
 additional spikes, a non-owner cell of the same area 2.43 mV with 0 additional spikes, and
 the other area (A1) 3.16 mV with 9 additional spikes. Propagation here is structural
@@ -212,8 +212,7 @@ feedforward/feedback claim .
 
 All main figures were rendered from a single frozen evidence set with per-file SHA-256
 provenance: each generation receipt records a figure SHA-256, and all seven declared hashes
-match the shipped figure bytes (7/7). The recorded equivalence gate confirms byte
-equality for 7/7 figure cases across the frozen and re-rendered artifacts. The figure
+match the shipped figure bytes (7/7). The recorded equivalence gate confirms decoded-pixel identity for 7/7 figure cases (byte-equal on the reference environment) across the frozen and re-rendered artifacts. The figure
 regeneration path is reproducible from a clean checkout per the documented entrypoint, with
 pinned dependencies (matplotlib ≥ 3.10.9, < 3.11; scipy == 1.17.1). Byte-for-byte
 reproduction is claimed only within the recorded equivalence gate.

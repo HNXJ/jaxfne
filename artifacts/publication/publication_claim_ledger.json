@@ -82,7 +82,7 @@
     },
     {
       "allowed_manuscript_language": "A validated traveling-wave estimator detected no traveling waves across the preregistered neural geometry/delay conditions",
-      "claim": "The frozen traveling-wave estimator passes synthetic validation gates (sync, standing-wave false-positive controls)",
+      "claim": "The traveling-wave estimator, revised once after registration (final module revision 684859a98da51de79887ec26ba8d7134e2fa0e97), passes synthetic validation gates (sync, standing-wave false-positive controls)",
       "claim_id": "CL-05",
       "evidence_artifacts": [
         "artifacts/publication/fig05_wave_spec.json",
@@ -102,7 +102,7 @@
     },
     {
       "allowed_manuscript_language": "No traveling waves were detected across the preregistered ring geometry/delay conditions",
-      "claim": "Prospective neural regimes yield predominantly NO_WAVE under the frozen estimator; C3 = negative outcome",
+      "claim": "Prospective neural regimes yield uniformly NO_WAVE (60/60 cells) under the frozen estimator; C3 = negative outcome",
       "claim_id": "CL-06",
       "evidence_artifacts": [
         "artifacts/publication/fig05_wave_spec.json",
@@ -115,7 +115,7 @@
       "null_or_control": "C1 synthetic positives + sync/standing-wave false-positive controls",
       "provenance": "Fig05.C3_NO_WAVE; receipt fig05_generation_receipt.json; DEMONSTRATED+NEGATIVE; outcome_letter C",
       "quantitative_result": {
-        "no_wave_conditions": "six-condition outcome: NO_WAVE predominant; structured-but-fails-traveling-gates minority"
+        "no_wave_conditions": "six-condition outcome: NO_WAVE uniform (60/60 cells); among NO_WAVE cells, 52 synchronous oscillations with near-zero wave number, 4 standing/flipping spatial gradients, 4 structured-but-fails traveling gates"
       },
       "statistical_validation": "domain coverage over preregistered conditions; no inferential statistics claimed",
       "status": "NEGATIVE"
@@ -662,7 +662,7 @@
     },
     {
       "allowed_manuscript_language": "In the confirmatory SSA arm (V2: 20 replicates x 5 blocks under e2_ssa_spec.v6), networks met adequacy gates in 20/20 replicates but showed no stimulus-specific adaptation: pooled SI = -0.084 (BCa [-0.108, -0.034], deviant below standard) with role-reversal asymmetry 0.426 >> 0.10 (frozen S2 falsifier), i.e., spatial-identity attenuation rather than deviance detection; verdict NEGATIVE with failure taxonomy retained",
-      "claim": "V2 SSA multi-channel oddball shows no stimulus-specific adaptation at theta* (pooled SI -0.084 BCa [-0.108,-0.034], deviant below standard, pooled swap asymmetry 0.426 >> 0.10; V2 NEGATIVE: FAIL_SI_gate + FAIL_swap_asymmetry + SIGN_deviant_below_standard)",
+      "claim": "V2 SSA multi-channel oddball shows no stimulus-specific adaptation at theta* (pooled SI -0.084 BCa [-0.108,-0.034], deviant below standard, maximum swap asymmetry over repetitions 0.426 >> 0.10; V2 NEGATIVE: FAIL_SI_gate + FAIL_swap_asymmetry + SIGN_deviant_below_standard)",
       "claim_id": "CL-29",
       "evidence_artifacts": [
         "artifacts/e2/preregistration/e2_ssa_spec.v6.json",

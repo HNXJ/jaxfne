@@ -105,6 +105,16 @@ Quantitative markers (post-freeze validation, reported separately):
 | Q26 | equivalence gate 7/7 byte-sha-equal | `equivalence_report.json` cases `byte_sha_equal` |
 | Q28 | pins present (matplotlib ≥3.10.9,<3.11; scipy ==1.17.1) | parsed from `pyproject.toml` |
 
+### [P21] Appendix: evidence provenance — `{CL-05, CL-06}`
+
+The appendix indexes secondary validation runs registered after the primary suite (Hamm 2026-10-28:
+mapped to the two claims they support).
+
+| Claim | Artifact |
+|---|---|
+| CL-05 estimator passes synthetic validation | A-1a `artifacts/protocol_c/p2v_a1a_synthetic_control/p2v_a1a_receipt.json` |
+| CL-06 C3 uniformly NO_WAVE | A-1b `p2v_a1b_dynamic_search/p2v_a1b_receipt.json`, A-2 `p2v_a2_sensitivity_floor/p2v_a2_receipt.json`, A-3 `p2v_a3_hdp_boundedness/p2v_a3_receipt.json` (under `artifacts/protocol_c/`) |
+
 ## Claim-coverage tally
 
 | Claim | Paragraph | Checked |
