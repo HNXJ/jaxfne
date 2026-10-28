@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-26T20:34:09Z",
-    "dev_sha": "0bc1e47a76d2a051b55087bf0c1c17c1f2c0d35b",
-    "data_revision": "804200028a418ec82f59d9c48e9f61e9d65c5db89b01dc4746baa51254f6b6e6"
+    "utc": "2026-10-28T16:05:45Z",
+    "dev_sha": "7425206abb44d1d3727a0f84890368f5dbd2fd6c",
+    "data_revision": "d51cf2fb15ff32788d1b45e035029f705fb84fa0614d0cd22a971d85fb22c42c"
   },
   "papers": [
     {
@@ -2985,7 +2985,7 @@
       "page": null,
       "release": "0.5.8",
       "tier": "T-jaxfne",
-      "stage": "P1",
+      "stage": "P2",
       "grammar": null,
       "lane": {
         "branch": "dev",
@@ -3033,7 +3033,7 @@
       "page": null,
       "release": "0.5.8",
       "tier": "T-port",
-      "stage": "P3",
+      "stage": "P2",
       "grammar": null,
       "lane": {
         "branch": "dev",
