@@ -48,6 +48,7 @@ import jax.numpy as jnp
 from .hdp_rule import (
     HDPRuleContext,
     HDPRuleDescriptor,
+    apply_registered_rule_update as apply_registered_rule_update,
     check_hdp_rule_params,
     expected_aux_shape,
     get_hdp_rule,
@@ -128,114 +129,8 @@ def hdp_init_carry(
     )
 
 
-def apply_registered_rule_update(
-    *,
-    descriptor: HDPRuleDescriptor,
-    rule_step: Callable[[HDPRuleContext], Any],
-    H: jax.Array,
-    aux: jax.Array,
-    bias: jax.Array,
-    v: jax.Array,
-    u: jax.Array,
-    spikes: jax.Array,
-    prev_spikes: jax.Array,
-    syn_state: jax.Array,
-    w: jax.Array,
-    pre: jax.Array,
-    post: jax.Array,
-    exc_mask: jax.Array | None,
-    dt: jax.Array,
-    n_neurons: int,
-    rule_params: Mapping[str, Any],
-    key: jax.Array,
-    pre_sp: jax.Array | None,
-    rule_name: str,
-    plasticity_mask: jax.Array | None = None,
-) -> tuple[jax.Array, jax.Array, jax.Array, jax.Array]:
-    """Integrate one registered-rule update; shared by every family kernel.
-
-    ``w`` is the family's plastic coordinate: per-edge signed efficacy when
-    ``exc_mask`` is given (Izhikevich sign-preserving magnitude update), or
-    per-edge magnitude (``|w|``, AdEx conductance) when ``exc_mask`` is
-    ``None``. ``plasticity_mask`` (per-edge bool, or ``None`` for all-plastic)
-    gates the weight update. Undeclared ``d_theta`` and ``j_theta`` keys fail
-    closed naming the rule. Rate terms integrate as ``x + dt * dx``; jump
-    terms add once, ``x + dt * dx + jx``. Returns
-    ``(H_next, w_next, aux_next, bias_next)``.
-    """
-    ctx = HDPRuleContext(
-        H=H,
-        aux=aux,
-        v=v,
-        u=u,
-        spikes=spikes,
-        prev_spikes=prev_spikes,
-        syn_state=syn_state,
-        w=w,
-        pre=pre,
-        post=post,
-        exc_mask=exc_mask if exc_mask is not None else jnp.ones_like(w, dtype=bool),
-        dt=dt,
-        n_neurons=n_neurons,
-        rule_params=rule_params,
-        key=key,
-        pre_sp=pre_sp,
-    )
-    upd = rule_step(ctx)
-    undeclared = [
-        k for k in (*(upd.d_theta or {}), *(upd.j_theta or {}))
-        if k not in descriptor.theta_targets
-    ]
-    if undeclared:
-        raise ValueError(
-            f"hdp_rule {rule_name!r} returned undeclared theta_targets "
-            f"{undeclared!r}; declared: {list(descriptor.theta_targets)}"
-        )
-    h_min_arr = jnp.asarray(descriptor.h_bounds[0], dtype=H.dtype)
-    h_max_arr = jnp.asarray(descriptor.h_bounds[1], dtype=H.dtype)
-    w_floor_arr = jnp.asarray(descriptor.w_bounds[0], dtype=w.dtype)
-    w_ceiling_arr = jnp.asarray(descriptor.w_bounds[1], dtype=w.dtype)
-    H_drift = H + dt * upd.dH
-    if upd.jH is not None:
-        H_drift = H_drift + upd.jH
-    H_next = jnp.clip(H_drift, h_min_arr, h_max_arr)
-    aux_next = aux
-    if upd.d_aux is not None:
-        aux_next = aux_next + dt * upd.d_aux
-    if upd.j_aux is not None:
-        aux_next = aux_next + upd.j_aux
-    dw = (upd.d_theta or {}).get("edge_weight")
-    jw = (upd.j_theta or {}).get("edge_weight")
-    if dw is not None or jw is not None:
-        # Magnitude: rate term scaled by dt, then the event jump, then the clip.
-        mag = w if exc_mask is None else jnp.abs(w)
-        if dw is not None:
-            mag = mag + dt * dw
-        if jw is not None:
-            mag = mag + jw
-        mag = jnp.clip(mag, w_floor_arr, w_ceiling_arr)
-        w_next = mag if exc_mask is None else jnp.where(exc_mask, mag, -mag)
-        if plasticity_mask is not None:
-            w_next = jnp.where(plasticity_mask, w_next, w)
-    else:
-        w_next = w
-    if "drive_bias" in descriptor.theta_targets:
-        db = (upd.d_theta or {}).get("drive_bias")
-        jb = (upd.j_theta or {}).get("drive_bias")
-        if db is None and jb is None:
-            b_next = bias
-        else:
-            b_drift = bias if db is None else bias + dt * db
-            if jb is not None:
-                b_drift = b_drift + jb
-            b_next = jnp.clip(
-                b_drift,
-                jnp.asarray(descriptor.b_bounds[0], dtype=bias.dtype),
-                jnp.asarray(descriptor.b_bounds[1], dtype=bias.dtype),
-            )
-    else:
-        b_next = bias
-    return H_next, w_next, aux_next, b_next
+# ``apply_registered_rule_update`` is defined on jaxfne.hdp_rule (D32 public
+# name) and imported above; this keeps the private path a bound alias.
 
 
 def assert_freeze_allclose(actual: Any, expected: Any, *, rtol: float = 1e-12) -> None:

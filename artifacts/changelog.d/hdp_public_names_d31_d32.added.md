@@ -1,0 +1,1 @@
+- `jaxfne.hdp_rule` now exposes `bind_theta_to_plant` (D31) and `apply_registered_rule_update` (D32) as public names; `jaxfne._hdp_adaptive.bind_theta_to_plant` and `jaxfne._hdp_family_kernel.apply_registered_rule_update` stay as aliases bound to the same objects, with no behavior change.

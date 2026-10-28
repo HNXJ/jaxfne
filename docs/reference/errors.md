@@ -405,7 +405,6 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 |---|---|
 | `ValueError` | `unknown HDP family {...}; expected one of {...}` |
 | `ValueError` | `hdp_rule {...} declares theta_targets {...} needing state the {...} family lacks; {...} supports {..` |
-| `ValueError` | `hdp_rule {...} returned undeclared theta_targets {...}; declared: {...}` |
 
 **`jaxfne/_hdp_registrable_kernel.py`**
 
@@ -1628,6 +1627,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | Class | Message |
 |---|---|
 | `ValueError` | `HDP rule {...} declares unknown aux_layout {...}; expected one of {...}` |
+| `ValueError` | `hdp_rule {...} returned undeclared theta_targets {...}; declared: {...}` |
 | `ValueError` | `HDP rule {...} is already registered` |
 | `ValueError` | `HDP rule {...} declares unknown aux_layout {...}; expected one of {...}` |
 | `ValueError` | `HDP rule {...} declares unknown theta_targets {...}; expected subset of {...}` |
