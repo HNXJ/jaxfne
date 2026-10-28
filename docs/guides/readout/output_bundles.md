@@ -87,6 +87,21 @@ recommended entry point. See `jaxfne/core.py` (`Model.run_receipt`,
 `Model.evaluate_report`) for the full signatures and docstrings; there is no
 separate `docs/api/` page for these two methods as of this writing.
 
+## Metadata keys
+
+The package in `jaxfne/` emits two claim keys. Four secondary keys appear in
+tutorial configurations, manifests and validation scripts; the package does
+not emit them.
+
+| Key | Written by | Meaning | Example value |
+|-----|------------|---------|---------------|
+| `claim_level` | the package in `jaxfne/` (run receipts and reports) | Top-level claim status of a simulation run or report | `DEMONSTRATED`, `REPRESENTATIONAL`, `computational_scaffold` |
+| `field_claim_level` | the package in `jaxfne/` (run receipts and reports) | Claim status of the field proxies in the same output | `proxy_readout` |
+| `amplitude_status` | tutorial scripts and exported manifests (for example `docs/_static/tutorial_figures/figure_manifest.json`) | Boolean flag that gates physical amplitude claims; always `false` in reports | `false` |
+| `run_status` | tutorial scripts, through `Configuration.update_metadata` (for example `scripts/generate_tutorial_figures.py`) | Label for the kind of run that wrote the output | `tutorial_scaffold` |
+| `model_status` | tutorial output manifests, read by validation scripts (`scripts/run_all_tutorials.py`, `scripts/validate_tutorial_outputs.py`) | Status label for the model; validation scripts accept it as a fallback key for `claim_level` | `computational_scaffold` |
+| `field_model_status` | tutorial output manifests, read by validation scripts | Status label for field-proxy readouts; validation scripts accept it as a fallback key for `field_claim_level` | `proxy_readout` |
+
 ## Output readout specs
 
 Common readout specifications:
