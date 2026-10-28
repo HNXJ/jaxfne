@@ -37,7 +37,7 @@ G-0 findings from lanes L1-L9 (2026-10-25/26):
   reproduction; the receipt hashes are tested). The claims checker reads the traceability map that holds
   results.md's ids: 2 orphans left (abstract.md:3, the appendix index), and 7 manuscript-ledger conflicts wait
   on Hamm (`artifacts/programme/paper/claim_alignment_audit.md`, 2026-10-27).
-  `claim_ledger_delta.json` still says base 21 rows; no reader uses it.
+  `claim_ledger_delta.json` still says base 21 rows; the supplement traceability map cites it for S.18 (CL-27..34).
 - [H] C6, S6: benchmark protocol choices (`artifacts/programme/benchmarks/README.md`); brian2 and NEST not installed.
   `scripts/cortical_column_localized_workflow.build_config`, which the Izhikevich benchmark calls, raises at HEAD: the
   builder refuses `geometry='uniform3d'` with `layers` and `ei_profile='canonical'`. The repair picks a geometry.
@@ -192,11 +192,21 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   targets that are absent; examples 03/05 fall back to V_m for EEG/MEG; except-pass handlers in examples;
   `_tutorial_runtime` defaults an empty env with `or`; `consolidate_hdp_controllability_etude.py:38,254`
   names the absent `hdp_mvc_etude.py`; `upload_testpypi.sh:20` names the absent RELEASE_CHECKLIST.md; `protocol_c/d/e/__init__.py` docstrings
-  read "receipts.Checkout" with a missing space; `paradigm.py:945` comment says it replaces the module in
-  `sys.modules`, the code only reads it; `sanity_delta.py:738` "Save task schedule" assigns a path only. Under tests/: about 60 comment paths that
+  read "receipts.Checkout" with a missing space. Under tests/: about 60 comment paths that
   do not resolve (for example `artifacts/audit/*` in `test_artifacts_root_layout.py:211`, COLAB.md in
   `test_manifest_readout.py:91`, PREREG_P3.md and run_izh.py in `test_izh_analysis.py:264`), and a dev-gate
   warning "compiled 2 times! Invariant N_compile <= 1 violated" not yet traced.
+- T-AUD [A] Muse audit 2026-10-27 at cfc839ab, findings left (fixed: surrogate beta <= 0 and method 'none'
+  refused, lane exit 5 fails, release examples restore figures after a failure, memory.md and T-OWN records):
+  PR and dev CI never run `slow` tests (`release_ci.yml:110-116`, `ci.yml:188-195`; CI plan C);
+  `test_release_ci_pytest_sweep_is_unfiltered` (`test_release_gate_hierarchy.py:378`) reads no `if:` trigger;
+  the `smoke`/`fast`/`integration` auto-markers (`tests/conftest.py:55-85`) are selected nowhere;
+  `test_script_repo_root_guard.py:230` accepts any "site-packages" substring as the assert;
+  `simulate_batch` refuses the surrogate on the dense route that `simulate` realizes; the multi-area helper
+  scales W by 0.1 against its docstring (`emitters.py` near 4883, callers untraced);
+  `fields/diagnostics.py:111` projection warnings never raise. Lane A read about a fifth of `jaxfne/`
+  (skipped: emitters_hh/adex/rate/lif internals, `_construct*`, pcl_topology, plasticity, HDP modules,
+  connectivity, inputs, validation, jdna, protocol_*): a second package audit is open.
 - T-RG [external] komposer `run_guard.py stop` fell back to the payload cwd and blamed a subagent for the
   dispatcher's own broad gate (2026-10-27); fix in komposer, then reinstall.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).

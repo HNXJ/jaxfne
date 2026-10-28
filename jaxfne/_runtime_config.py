@@ -157,10 +157,15 @@ class RuntimeConfig:
                 raise TypeError(
                     f"surrogate must be a SurrogateConfig or None; got {type(self.surrogate).__name__}"
                 )
-            if self.surrogate.method == "straight_through":
+            if self.surrogate.method != "sigmoid_beta":
                 raise ValueError(
-                    "surrogate method 'straight_through' is a declaration only; "
-                    "the kernels realize 'sigmoid_beta'"
+                    f"surrogate method {self.surrogate.method!r} is not realized by any kernel; "
+                    "the kernels realize 'sigmoid_beta' (pass surrogate=None for the hard spike)"
+                )
+            if not float(self.surrogate.beta) > 0.0:
+                raise ValueError(
+                    f"surrogate beta must be > 0 (1/mV); got {self.surrogate.beta!r}: 0 gives a zero "
+                    "gradient and a negative beta flips its sign"
                 )
         if self.x64_enabled and not bool(jax.config.read("jax_enable_x64")):
             raise ValueError(

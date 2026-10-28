@@ -88,6 +88,11 @@ def test_public_route_carries_the_surrogate():
 def test_unrealized_surrogates_and_routes_refuse():
     with pytest.raises(ValueError, match="straight_through"):
         jtfne.RuntimeConfig(surrogate=jtfne.SurrogateConfig(method="straight_through"))
+    with pytest.raises(ValueError, match="'none'"):
+        jtfne.RuntimeConfig(surrogate=jtfne.SurrogateConfig())
+    for beta in (0.0, -5.0):
+        with pytest.raises(ValueError, match="beta must be > 0"):
+            jtfne.RuntimeConfig(surrogate=jtfne.SurrogateConfig(method="sigmoid_beta", beta=beta))
     with pytest.raises(TypeError, match="SurrogateConfig"):
         jtfne.RuntimeConfig(surrogate="sigmoid_beta")
     params = _pair(jnp.asarray(0.02, jnp.float32))

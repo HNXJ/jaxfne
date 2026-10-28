@@ -468,13 +468,15 @@ def _local_package_version() -> str:
 
 def run_release_examples() -> None:
     """Run every RELEASE_EXAMPLES entry (family ``examples_smoke``)."""
-    for example in RELEASE_EXAMPLES:
-        _run([sys.executable, example], family="examples_smoke")
-        print(f"PASS: {example}", flush=True)
-    # Restore static docs figures that examples mirror to keep tree clean
-    subprocess.run(
-        ["git", "checkout", "--", "docs/archive/tutorials_v030/_static/figures"], cwd=ROOT, check=False
-    )
+    try:
+        for example in RELEASE_EXAMPLES:
+            _run([sys.executable, example], family="examples_smoke")
+            print(f"PASS: {example}", flush=True)
+    finally:
+        # Restore static docs figures that examples mirror to keep tree clean, also after a failure
+        subprocess.run(
+            ["git", "checkout", "--", "docs/archive/tutorials_v030/_static/figures"], cwd=ROOT, check=False
+        )
 
 
 def run_isolated_wheel_smoke(
@@ -715,9 +717,10 @@ def _run_lane(lane: str) -> int:
 def gate_pytest_lanes() -> None:
     """One pytest process per paper lane (family ``pytest_lanes``).
 
-    Exit code 5 (no tests collected) is accepted. A known-failing lane that still
-    fails is recorded in the ledger as exit 0 and named in its printed SKIP line; one
-    that passes or collects nothing is a stale entry and fails the family.
+    Exit code 5 (no tests collected) fails: a lane is discovered only when it holds a
+    tracked ``test_*.py``, so collecting nothing hides its tests. A known-failing lane
+    that still fails is recorded in the ledger as exit 0 and named in its printed SKIP
+    line; one that passes or collects nothing is a stale entry and fails the family.
     """
     failures: list[str] = []
     for lane in discover_pytest_lanes():
@@ -733,11 +736,11 @@ def gate_pytest_lanes() -> None:
         elif known is not None:
             print(f"SKIP known-failing lane {lane} (rc={rc}): {known}", flush=True)
             record_execution("pytest_lanes", argv, started, completed, 0)
-        elif rc in (0, 5):
-            print(f"{'PASS' if rc == 0 else 'NO TESTS'} lane {lane} (rc={rc})", flush=True)
+        elif rc == 0:
+            print(f"PASS lane {lane} (rc=0)", flush=True)
             record_execution("pytest_lanes", argv, started, completed, 0)
         else:
-            failures.append(f"{lane}: rc={rc}")
+            failures.append(f"{lane}: rc={rc}" + (" (no tests collected)" if rc == 5 else ""))
             print(f"FAIL lane {lane} (rc={rc})", flush=True)
             record_execution("pytest_lanes", argv, started, completed, rc)
     if failures:

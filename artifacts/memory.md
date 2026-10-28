@@ -47,7 +47,7 @@ Tiers per `jaxfne/public_surface.py`, which owns the full name list: CANONICAL, 
 | `jaxfne.connectivity` | Connection compilation | `compile_connection_rules`, `ConnectionCompileResult` |
 | `jaxfne.builders` + `jaxfne.presets` | Column and area construction | `build_laminar_column`, `build_multi_area_columns`, `CELL_TYPE_PRESETS` |
 | `jaxfne.optim` | Tuning optimizers | `agsdr`, `gsgd`, `random_search`, `OptimizerSpec` |
-| `jaxfne.paradigm` | Stimulus paradigms | `Paradigm`, `standard_visual_omission`, `rate_synchrony_targets` |
+| `jaxfne.paradigm` | Stimulus paradigms | `Paradigm`, `omission_oddball_paradigm` (root: `standard_visual_omission`) |
 | `jaxfne.io` | Evidence I/O | `save_receipt`, `config_hash`, `sha256_file` |
 | `jaxfne._pipeline` | State and continuation | `DynamicState`, `checkpoint_state`, `restore_state` |
 | `jaxfne.vis` (lazy) | View-only panels | `plot_raster`; `jaxfne.vis.atlas_suite` is the 7-panel Atlas contract |
