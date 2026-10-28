@@ -174,7 +174,9 @@ def analyze_run(counts, dt, sizes, pe_threshold=PE_THRESHOLD):
     arr = _as_float_counts(counts)
     keep = arr[kept_slice(arr.shape[0], dt)]
     spikes = {p: int(keep[:, i].sum()) for i, p in enumerate(POPS)}
-    rates = population_rates(arr, dt, sizes, pops=POPS, discard_s=DISCARD_S)
+    rates = population_rates(
+        arr, sizes=sizes, pops=POPS, dt_ms=dt * 1000.0, discard_ms=DISCARD_S * 1000.0
+    )
     out = {
         "rates_Hz": rates,
         "spikes_kept": spikes,

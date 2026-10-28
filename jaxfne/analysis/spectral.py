@@ -212,21 +212,22 @@ spectrolaminar_similarity_candidates_seeds_jax = jax.vmap(
 
 
 def welch_numpy(x, fs, nperseg, noverlap):
-    """Welch power density with Hann windows (fallback, no scipy needed).
+    """Welch power density with periodic Hann windows (fallback, no scipy needed).
 
-    Same convention as ``scipy.signal.welch`` with ``detrend=False`` and
-    ``scaling="density"``: segments demeaned here, scale
-    ``1 / (fs * sum(win**2))``, one-sided doubling off DC/Nyquist.
+    Same convention as the scipy branch of :func:`welch_spectrum`,
+    ``scipy.signal.welch(window="hann", detrend=False, scaling="density")``:
+    the window is the periodic Hann ``np.hanning(nperseg + 1)[:-1]``, segments
+    are not detrended, scale ``1 / (fs * sum(win**2))``, one-sided doubling off
+    DC/Nyquist.
     """
     x = _np.asarray(x, dtype=float)
     step = nperseg - noverlap
-    win = _np.hanning(nperseg)
+    win = _np.hanning(nperseg + 1)[:-1]
     scale = 1.0 / (fs * float(_np.sum(win**2)))
     acc = None
     n = 0
     for start in range(0, len(x) - nperseg + 1, step):
         seg = x[start:start + nperseg]
-        seg = seg - seg.mean()
         spec = _np.fft.rfft(win * seg)
         pxx = (spec.real**2 + spec.imag**2) * scale
         if nperseg % 2 == 0:

@@ -1,0 +1,1 @@
+- `welch_numpy`, the no-scipy fallback of `welch_spectrum`, now equals its scipy branch: the periodic Hann window that `scipy.signal.welch(window="hann")` uses, and no per-segment demeaning (`detrend=False`). Fallback PSD values change by up to about 0.5 % pointwise on white noise at nperseg 256, and at DC and the first bin for signals with a mean; the scipy path is unchanged.

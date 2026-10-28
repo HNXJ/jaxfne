@@ -1,0 +1,1 @@
+- `fleiss_kappa_binary` is the textbook Fleiss (1971) kappa for two categories, with bins as subjects and neurons as raters. Independent neurons give kappa near 0 (the old value on 20 independent Bernoulli trains at p 0.2 was -1.0); identical trains still give 1. NaN now means the whole raster is all active or all silent. Kappa values change.

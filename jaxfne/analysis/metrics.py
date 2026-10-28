@@ -10,6 +10,7 @@ descriptors, not biological validation. No biological truth claims are supported
 
 import numpy as np
 import operator
+import warnings
 from typing import Union, TYPE_CHECKING
 
 from scipy.signal import welch
@@ -25,10 +26,10 @@ def _bin_counts(
 ) -> np.ndarray:
     """Bin spikes into non-overlapping count windows.
 
-    Shared helper for the declared metric definitions. ``b = max(1,
-    round(bin_ms / dt_ms))`` steps per bin; bins are non-overlapping over
-    axis 1; the trailing partial bin is dropped. Returns a
-    ``(n_neurons, n_bins)`` float array, or ``(n_neurons, 0)`` when
+    Shared helper for the declared metric definitions. ``b = bin_ms / dt_ms``
+    steps per bin, which must be a whole number (else ValueError); bins are
+    non-overlapping over axis 1; the trailing partial bin is dropped. Returns
+    a ``(n_neurons, n_bins)`` float array, or ``(n_neurons, 0)`` when
     ``n_time // b == 0``.
     """
     spikes_array = np.asarray(spikes)
@@ -36,14 +37,8 @@ def _bin_counts(
     if spikes_array.ndim != 2:
         raise ValueError(f"spikes must be 2D array, got {spikes_array.ndim}D")
 
-    if bin_ms <= 0:
-        raise ValueError(f"bin_ms must be > 0, got {bin_ms}")
-
-    if dt_ms <= 0:
-        raise ValueError(f"dt_ms must be > 0, got {dt_ms}")
-
     n_neurons, n_time = spikes_array.shape
-    bin_samples = max(1, int(np.round(bin_ms / dt_ms)))
+    bin_samples = _validate_bin_steps(bin_ms, dt_ms)
     n_bins = n_time // bin_samples
 
     if n_bins == 0:
@@ -257,7 +252,9 @@ def fano_factor(
     spikes : (n_neurons, n_time) ndarray
         Spike indicator array.
     bin_size_ms : float, default=10.0
-        Binning window in milliseconds. Must be > 0.
+        Binning window in milliseconds. Must be a positive multiple of
+        ``dt_ms``, else ValueError naming ``bin_size_ms`` and the nearest
+        valid width.
     dt_ms : float, default=0.1
         Simulation timestep in milliseconds. Must be > 0.
 
@@ -299,6 +296,7 @@ def fano_factor(
     if dt_ms <= 0:
         raise ValueError(f"dt_ms must be > 0, got {dt_ms}")
 
+    _validate_bin_steps(bin_size_ms, dt_ms, name="bin_size_ms")
     binned = _bin_counts(spikes_array, bin_size_ms, dt_ms)
 
     if binned.shape[1] == 0:
@@ -334,7 +332,7 @@ def fleiss_kappa_binary(
     Measures inter-rater agreement (neurons as "raters") of whether each
     time bin is "active" or "silent". Range: [-1, 1].
     - κ = 1: perfect agreement (all neurons fire in sync)
-    - κ = 0: chance agreement (independent)
+    - κ ≈ 0: independent neurons give chance agreement
     - κ < 0: disagreement (anti-correlated)
 
     Parameters
@@ -343,14 +341,16 @@ def fleiss_kappa_binary(
         Spike indicator array. Shape: (n_neurons, n_time_steps).
         Binary (0/1) or continuous [0,1].
     bin_ms : float
-        Binning window in milliseconds.
+        Binning window in milliseconds. Must be a positive multiple of
+        ``dt_ms``, else ValueError naming ``bin_ms`` and the nearest valid
+        width.
     dt_ms : float
         Simulation timestep in milliseconds. Must be > 0.
 
     Returns
     -------
     float
-        Fleiss-kappa-like metric in [-1, 1].
+        Fleiss-kappa in [-1, 1].
         Returns NaN when kappa is mathematically undefined (fewer than 2
         neurons, zero time steps, zero full bins (``n_bins == 0``), expected
         agreement ``p_e == 1``, or a non-finite kappa) (undefined).
@@ -367,10 +367,15 @@ def fleiss_kappa_binary(
 
     Notes
     -----
-    - Adapted from Fleiss' kappa (Cohen's kappa for multiple raters).
-    - Computes: κ = (P_o - P_e) / (1 - P_e)
-      - P_o: observed agreement (fraction of neurons agreeing per bin)
-      - P_e: expected agreement under independence
+    - Textbook Fleiss (1971) kappa for two categories: each bin is a
+      subject, each neuron a rater, and a neuron is "active" in a bin when
+      it fires at least once there.
+    - With n neurons and n_i1 active and n_i0 silent in bin i:
+      P_i = (n_i1 (n_i1 - 1) + n_i0 (n_i0 - 1)) / (n (n - 1)),
+      P_bar = mean over bins of P_i, p_1 = total active / (n_bins n),
+      p_0 = 1 - p_1, P_e = p_1^2 + p_0^2, κ = (P_bar - P_e) / (1 - P_e).
+    - NaN when P_e = 1, which holds only when the whole raster is all
+      active or all silent.
     - Metric is dimensionless.
     - Claim level: computational_scaffold (not a formal statistical test).
 
@@ -388,12 +393,11 @@ def fleiss_kappa_binary(
         raise ValueError(f"dt_ms must be > 0, got {dt_ms}")
 
     n_neurons, n_time = spikes_array.shape
+    bin_samples = _validate_bin_steps(bin_ms, dt_ms)
 
     if n_neurons < 2 or n_time < 1:
         return float("nan")
 
-    # Compute bin size
-    bin_samples = max(1, int(np.round(bin_ms / dt_ms)))
     n_bins = n_time // bin_samples
 
     if n_bins == 0:
@@ -406,31 +410,25 @@ def fleiss_kappa_binary(
     # Each neuron is "active" in a bin if it fires at least once in that bin
     binned = np.any(binned_raw > 0, axis=2).astype(float)  # (n_neurons, n_bins)
 
-    # Compute observed agreement per bin
-    # For each bin, count neurons agreeing (all 0 or all 1)
-    n_agree_per_bin = np.sum(
-        (np.sum(binned, axis=0) == 0) | (np.sum(binned, axis=0) == n_neurons)
+    # Textbook Fleiss (1971), two categories: bins are subjects, neurons raters.
+    n_active = np.sum(binned, axis=0)  # active raters per bin
+    n_silent = n_neurons - n_active
+    p_i = (n_active * (n_active - 1) + n_silent * (n_silent - 1)) / (
+        n_neurons * (n_neurons - 1)
     )
-    p_o = n_agree_per_bin / n_bins  # observed proportion
+    p_bar = float(np.mean(p_i))  # mean observed agreement over bins
 
-    # Compute expected agreement (under independence)
-    # For each neuron, estimate P(fires) and P(silent)
-    p_fires = np.mean(binned, axis=1)
-    p_silent = 1.0 - p_fires
-
-    # P(random neuron fires | random neuron also fires)
-    p_both_fire = np.mean(p_fires**2)
-    # P(random neuron silent | random neuron also silent)
-    p_both_silent = np.mean(p_silent**2)
-
-    p_e = p_both_fire + p_both_silent
+    # Chance agreement from the pooled active and silent proportions
+    p_1 = float(np.sum(binned)) / (n_bins * n_neurons)
+    p_0 = 1.0 - p_1
+    p_e = p_1**2 + p_0**2
 
     # Fleiss-kappa
     if p_e >= 1.0:
         # No variance: expected agreement is 1, so kappa is undefined
         return float("nan")
 
-    kappa = (p_o - p_e) / (1.0 - p_e)
+    kappa = (p_bar - p_e) / (1.0 - p_e)
 
     # Handle NaN/Inf
     if not np.isfinite(kappa):
@@ -463,18 +461,24 @@ ACTIVITY_REGIME_DEFAULTS = {
 }
 
 
-def _validate_bin_steps(bin_ms: float, dt_ms: float) -> int:
-    """Steps per bin, refusing a bin width that misses the time grid."""
+def _validate_bin_steps(bin_ms: float, dt_ms: float, name: str = "bin_ms") -> int:
+    """Steps per bin, refusing a bin width that misses the time grid.
+
+    The message names ``name`` (the caller's bin argument) and the nearest
+    valid bin width.
+    """
     if dt_ms <= 0:
         raise ValueError(f"dt_ms must be > 0, got {dt_ms}")
     if bin_ms <= 0:
-        raise ValueError(f"bin_ms must be > 0, got {bin_ms}")
+        raise ValueError(f"{name} must be > 0, got {bin_ms}")
     ratio = bin_ms / dt_ms
     steps = int(round(ratio))
     if steps < 1 or abs(ratio - steps) > 1e-9 * abs(ratio):
+        nearest = max(1, steps) * dt_ms
         raise ValueError(
-            f"bin_ms={bin_ms!r} must be a positive multiple of dt_ms={dt_ms!r} "
-            f"(bin_ms / dt_ms = {ratio!r}, tolerance 1e-9 relative)"
+            f"{name}={bin_ms!r} must be a positive multiple of dt_ms={dt_ms!r} "
+            f"(bin / dt = {ratio!r}, tolerance 1e-9 relative); "
+            f"nearest valid bin width is {nearest:.12g} ms"
         )
     return steps
 
@@ -964,9 +968,10 @@ def pairwise_cc_binned_disjoint(
 ) -> float:
     r"""Mean Pearson correlation over disjoint pairs in binned spike counts.
 
-    Spikes are grouped into non-overlapping bins of ``max(1,
-    round(bin_ms / dt_ms))`` steps (trailing partial bin dropped); counts
-    (not binarized) fill a ``(n_bins, n_neurons)`` table. A seeded
+    Spikes are grouped into non-overlapping bins of ``bin_ms / dt_ms`` steps,
+    which must be a whole number (else ValueError naming ``bin_ms``); the
+    trailing partial bin is dropped. Counts (not binarized) fill a
+    ``(n_bins, n_neurons)`` table. A seeded
     permutation of the cells is cut into disjoint pairs (at most
     ``n_pairs``); the metric is the mean Pearson r over pairs where both
     binned trains have nonzero variance.
@@ -1011,7 +1016,7 @@ def pairwise_cc_binned_disjoint(
     pairing with no bin filtering.
     """
     arr = np.asarray(spikes, dtype=bool)
-    width = max(1, int(round(bin_ms / dt_ms)))
+    width = _validate_bin_steps(bin_ms, dt_ms)
     cut = (arr.shape[0] // width) * width
     binned = arr[:cut].reshape(cut // width, width, arr.shape[1]).sum(axis=1)
     n = arr.shape[1]
@@ -1079,23 +1084,53 @@ _POP_DEFAULTS = ("E", "PV", "SOM")
 _DISCARD_S_DEFAULT = 2.0
 
 
-def population_rates(counts, dt, sizes, pops=_POP_DEFAULTS, discard_s=_DISCARD_S_DEFAULT):
+def _seconds_from_ms_or_s(name_s, value_s, name_ms, value_ms, default_s=None):
+    """Seconds value of one quantity given as ``name_ms`` or the deprecated ``name_s``."""
+    if value_s is not None and value_ms is not None:
+        raise ValueError(f"pass only one of {name_ms} and {name_s}")
+    if value_ms is not None:
+        return float(value_ms) / 1000.0
+    if value_s is not None:
+        warnings.warn(
+            f"{name_s} is deprecated and will be removed; pass {name_ms} (ms) instead",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+        return float(value_s)
+    return default_s
+
+
+def population_rates(counts, dt=None, sizes=None, pops=_POP_DEFAULTS, discard_s=None,
+                     *, dt_ms=None, discard_ms=None):
     """Mean rate (Hz) per population over the kept window.
 
     ``counts`` is a per-step population count array ``[steps, n_pops]`` in
-    ``pops`` order; ``dt`` is the step in seconds; ``sizes`` maps each name
-    in ``pops`` to its cell count. Rows before ``discard_s`` are dropped
-    (prereg Runs: first 2 s discarded). Returns a dict of Python floats.
+    ``pops`` order; ``dt_ms`` is the step in milliseconds; ``sizes`` maps each
+    name in ``pops`` to its cell count. Rows before ``discard_ms`` are dropped
+    (default 2000 ms: prereg Runs discard the first 2 s). Returns a dict of
+    Python floats.
+
+    The seconds forms ``dt`` and ``discard_s`` are deprecated for one release
+    and emit DeprecationWarning. Passing both forms of one quantity raises
+    ValueError.
     """
+    if sizes is None:
+        raise TypeError("population_rates() missing required argument: 'sizes'")
+    dt_s = _seconds_from_ms_or_s("dt", dt, "dt_ms", dt_ms)
+    if dt_s is None:
+        raise TypeError("population_rates() needs dt_ms")
+    discard = _seconds_from_ms_or_s(
+        "discard_s", discard_s, "discard_ms", discard_ms, _DISCARD_S_DEFAULT
+    )
     arr = np.asarray(counts)
     if arr.ndim != 2 or arr.shape[1] != len(pops):
         raise ValueError("counts must be [steps, %d], got shape %r" % (len(pops), arr.shape))
-    cut = int(round(float(discard_s) / float(dt)))
+    cut = int(round(discard / dt_s))
     if cut >= arr.shape[0]:
         raise ValueError("run shorter than the %.g s discard: %d steps at dt=%g"
-                         % (discard_s, arr.shape[0], dt))
+                         % (discard, arr.shape[0], dt_s))
     keep = arr[cut:]
-    dur = keep.shape[0] * float(dt)
+    dur = keep.shape[0] * dt_s
     return {p: float(keep[:, i].sum() / dur / sizes[p]) for i, p in enumerate(pops)}
 
 

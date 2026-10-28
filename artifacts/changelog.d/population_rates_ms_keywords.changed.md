@@ -1,0 +1,1 @@
+- `population_rates` takes `dt_ms` and `discard_ms` in milliseconds. The seconds forms `dt` and `discard_s` still work for one release and emit a DeprecationWarning; passing both forms of one quantity raises ValueError. Results are unchanged up to float rounding.
