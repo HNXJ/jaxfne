@@ -9,7 +9,7 @@ Each line has its todo row, named in the line.
 - O-10 Harness proposals, jchat conference #29 (T-O10) | jynx keeper | since 2026-10-25 (opened 2026-10-15) | closes when each is taken or refused
 
 ## In flight
-- O-69 0.5.9 lanes: next T-38 compile guard, T-44 F3, T-55 (11); PCL R2 on real files (T-3) | orchestrator, Haiku workers | since 2026-10-26 | closes when each lands on dev or is recorded in the todo stack
+- O-69 0.5.9 lanes: next T-38 HH inputs, T-44 F3, T-55 (11); PCL R2 on real files (T-3) | orchestrator, Haiku workers | since 2026-10-26 | closes when each lands on dev or is recorded in the todo stack
 - O-70 H3 signatures: P3 v2 drafted for Potjans and Vogels (`prereg/P3_v2.md` in each lane); B8 pilots not run (T-O70) | orchestrator drafts, Hamm signs | since 2026-10-26 | closes when Hamm signs or defers each
 
 ## Hamm's calls

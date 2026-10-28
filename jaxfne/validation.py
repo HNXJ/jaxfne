@@ -1266,6 +1266,7 @@ class CompilationRegistry:
     def reset(self) -> None:
         """Reset the compilation counter, signature baselines, and modes."""
         self.traced_signatures: dict[tuple[str, tuple[int, int, int, int]], int] = {}
+        self.traced_cache_keys: dict[tuple[str, tuple], int] = {}
         self.baselines: dict[str, tuple[int, int, int, int]] = {}
         self.mode = "warning"  # "warning" | "exception" | "off"
 
@@ -1281,7 +1282,9 @@ class CompilationRegistry:
             raise ValueError(f"recompilation_guard mode must be 'warning', 'exception', or 'off'; got {mode!r}")
         self.mode = mode
 
-    def track_trace(self, name: str, signature: tuple[int, int, int, int]) -> None:
+    def track_trace(
+        self, name: str, signature: tuple[int, int, int, int], cache_key: tuple | None = None
+    ) -> None:
         """Track a tracer evaluation (compilation) for a function and check invariants.
 
         Parameters
@@ -1290,14 +1293,23 @@ class CompilationRegistry:
             Name of the monitored execution path (e.g., 'simulate').
         signature : tuple
             Execution shape signature (B, Z, C, T).
+        cache_key : tuple, optional
+            The caller's compile-cache key. ``traced_signatures`` counts every trace per
+            shape; the N_compile <= 1 check counts per cache key when one is given
+            (``traced_cache_keys``), so two entries that share a shape but differ in dtype,
+            backend or parameters are two expected compiles.
         """
         if self.mode == "off":
             return
 
         key = (name, signature)
-        if key not in self.traced_signatures:
-            self.traced_signatures[key] = 0
-        self.traced_signatures[key] += 1
+        self.traced_signatures[key] = self.traced_signatures.get(key, 0) + 1
+        if cache_key is None:
+            n_compiles = self.traced_signatures[key]
+        else:
+            ck = (name, cache_key)
+            self.traced_cache_keys[ck] = self.traced_cache_keys.get(ck, 0) + 1
+            n_compiles = self.traced_cache_keys[ck]
 
         # 1. Establish/Validate Baseline Signature
         if name not in self.baselines:
@@ -1315,11 +1327,11 @@ class CompilationRegistry:
                     import warnings
                     warnings.warn(msg, UserWarning)
 
-        # 2. Assert Compilation Invariant (N_compile <= 1 per signature)
-        if self.traced_signatures[key] > 1:
+        # 2. Assert Compilation Invariant (N_compile <= 1 per cache key, else per signature)
+        if n_compiles > 1:
             msg = (
                 f"Re-compilation guard alert: Function '{name}' with signature {signature} (B, Z, C, T) "
-                f"compiled {self.traced_signatures[key]} times! Invariant N_compile <= 1 violated."
+                f"compiled {n_compiles} times! Invariant N_compile <= 1 violated."
             )
             if self.mode == "exception":
                 raise ValueError(msg)
@@ -1340,6 +1352,7 @@ def make_recompilation_guard(
     Z: int,
     C: int,
     T: int,
+    cache_key: tuple | None = None,
 ) -> Any:
     """Wrap a Python function to track and guard compilation trace-time bounds.
 
@@ -1373,12 +1386,14 @@ def make_recompilation_guard(
         Neuron/compartment count.
     T : int
         Time simulation steps.
+    cache_key : tuple, optional
+        The caller's compile-cache key; compiles are counted per key (``track_trace``).
     """
     def wrapped(*args, **kwargs):
         # Runs once per genuine JAX retrace ONLY if this function is itself
         # passed to jax.jit before being called -- see the docstring above.
         """Documented public function `wrapped`."""
         compilation_registry.set_mode(recompilation_guard)
-        compilation_registry.track_trace(name, (B, Z, C, T))
+        compilation_registry.track_trace(name, (B, Z, C, T), cache_key)
         return fn(*args, **kwargs)
     return wrapped

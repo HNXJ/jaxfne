@@ -556,6 +556,7 @@ def _simulate_arrays(
                         Z=Z,
                         C=C,
                         T=T,
+                        cache_key=cache_key,
                     )
                     self._compiled_cache[cache_key] = jax.jit(target_fn)
                     t0 = time.perf_counter()
@@ -766,6 +767,7 @@ def _simulate_arrays(
                         Z=Z,
                         C=C,
                         T=T,
+                        cache_key=cache_key,
                     )
                     self._compiled_cache[cache_key] = jax.jit(target_fn)
                     t0 = time.perf_counter()
@@ -920,6 +922,7 @@ def _simulate_arrays(
                         Z=Z,
                         C=C,
                         T=T,
+                        cache_key=cache_key,
                     )
                     self._compiled_cache[cache_key] = jax.jit(target_fn)
                     t0 = time.perf_counter()
@@ -1021,7 +1024,8 @@ def _simulate_arrays(
                     )
 
                 target_fn = make_recompilation_guard(
-                    target_fn, name="simulate", recompilation_guard=guard_mode, B=B, Z=Z, C=C, T=T
+                    target_fn, name="simulate", recompilation_guard=guard_mode, B=B, Z=Z, C=C, T=T,
+                    cache_key=cache_key,
                 )
                 self._compiled_cache[cache_key] = jax.jit(target_fn)
                 t0 = time.perf_counter()
@@ -2552,6 +2556,7 @@ def _simulate_lif(
                     Z=n_edges,
                     C=int(n_neurons),
                     T=int(sim.n_steps),
+                    cache_key=cache_key,
                 )
                 self._compiled_cache[cache_key] = jax.jit(target_fn)
             out = self._compiled_cache[cache_key](drive_2d, hdp_kwargs.get("key"))
@@ -3058,6 +3063,7 @@ def simulate_batch(
                         Z=Z,
                         C=C,
                         T=T,
+                        cache_key=cache_key,
                     )
                     self._compiled_cache[cache_key] = jax.jit(run_mapped)
                     t0 = time.perf_counter()

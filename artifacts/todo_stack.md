@@ -37,16 +37,12 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   tree-equality skip fails open under five planted defects): the `smoke` and `fast` auto-markers
   (`tests/conftest.py:77-85`) and the registered `integration` marker are selected by no gate, workflow or
   Makefile (recommend deleting them; Hamm's call in T-53, since local `-m fast` use is unknown). Closes when: the markers are deleted or selected.
-- T-38 [A] (C) Left after lane C (2026-10-27; fixed: the multi-area W docstring states 0.1 * W, `held_steps`
-  documented as held element updates, a string `dt_ms` refused in the HH route; `simulate_batch` realizes the
-  surrogate; `visualize_network_3d` takes `relative` units): the "compiled 2 times" guard
-  (`validation.py:1322`) counts (name, B, Z, C, T) while the jit cache key holds more, so reused-Model tests in
-  `test_homeostasis_dispatch.py` warn (align the guard with the key, a semantics choice). The HH route has a
-  full-kernel gradient test and runs under x64 (`tests/test_hh_full_kernel_grad.py`, 2026-10-28); its
-  scalar inputs `noise_gain`, `receptor_s0`, `receptor_tau_*` are cut by `float()` or `np.asarray` at entry,
-  so only `edge_weight` carries a gradient. Recorded, no change: field projection warnings
-  are returned as data and no strict option exists; HH int32 counts stay below 2^31 at GSDR sizes
-  (15001 x 2230). Closes when: each is fixed with a failing test or documented.
+- T-38 [A] (C) Left (2026-10-28; the compile guard counts per cache key, the HH route has a full-kernel
+  gradient test and runs under x64): `simulate_hh`'s scalar inputs `noise_gain`, `receptor_s0`,
+  `receptor_tau_*` are cut by `float()` or `np.asarray` at entry (lane H1 report, not yet read in code), so
+  `edge_weight` is the differentiable input; its docstring does not say so. Recorded, no change: field
+  projection warnings are returned as data and no strict option exists; HH int32 counts stay below 2^31 at
+  GSDR sizes (15001 x 2230). Closes when: the differentiable inputs are verified and documented.
 - T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; after each dev
   push refresh the lane dashboard (skill `jaxfne-dashboard`). Closes when: `python
   scripts/build_dashboard_data.py --check` passes on each push.
