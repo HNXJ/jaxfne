@@ -60,4 +60,5 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 T-45 (D31, D32 public names wait on Hamm) and T-46 (licences, owner statement) in worker lanes (at
 most 3 at once); tag each fidelity fix with `Fidelity-fix: <node id>`; T-3 R2 waits on the WSL installs
 (O-58). The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned by frozen records,
-record pins or runtime paths, the root sits at its 7-folder limit, and no move is warranted.
+record pins or runtime paths, the unexempted root folders sit at the limit of 7
+(`tests/test_artifacts_tree_degree.py`), and no move is warranted.

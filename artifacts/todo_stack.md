@@ -1,17 +1,17 @@
 # todo stack
 
 Open work only, fastest first within each tier; prerequisites above dependents. `[A]` agent, `[H]` Hamm.
-Size: S under 1 h, M 1-4 h, L a day or more or heavy compute. Lane letters group rows that one Haiku 5.5
-`worker` can take in its own clone (`E:/repos/_wt/jaxfne/<lane>`), at most 3 lanes at a time, one writer
-per file set; the orchestrator verifies and commits. Done rows are deleted. The detail of each row
+Size: S under 1 h, M 1-4 h, L a day or more or heavy compute. Scope letters group rows that one Haiku 5.5
+`worker` can take in its own lane, a clone at `E:/repos/_wt/jaxfne/<lane>`, at most 3 lanes at a time, one
+writer per file set; the orchestrator verifies and commits. Done rows are deleted. The detail of each row
 before this rewrite is in `git show 6be045f7:artifacts/todo_stack.md` (each row names its old id).
 Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; standing rules B1-B8:
 `control/harness/evidence_and_workflow_rules.md`; paper goal G-0: `programme/design/plans/arxiv_paper_plan.md`
 (C, F and S ids); release plan: `etudes/meta/plans/release_plan_0.5.9-0.6.0.md`.
 
-## Lanes
+## Scopes
 
-| Lane | Scope | May write | Tier |
+| Scope | Covers | May write | Tier |
 |---|---|---|---|
 | R | records, dashboard sources, issue log | `artifacts/`, `dashboard/sources.json` | worker medium |
 | D | docs, examples, comments | `docs/`, `examples/`, `scripts/` text, `tests/` comments | worker medium |
