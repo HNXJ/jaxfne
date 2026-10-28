@@ -144,7 +144,11 @@ def _require_finite_dt(value: Any, name: str) -> None:
     Under ``jit`` the ``float()`` conversion fails loudly instead of
     validating; jitted use validates ``dt`` once at the entry point
     (:func:`simulate_hh` refuses a non-finite or non-positive ``dt_ms``).
+    A ``str`` or ``bytes`` value is refused with ``TypeError``, since
+    ``float()`` would parse ``"0.1"`` silently.
     """
+    if isinstance(value, (str, bytes)):
+        raise TypeError(f"{name} must be a real number; got {value!r}")
     try:
         dt = float(value)
     except (TypeError, ValueError):
@@ -659,8 +663,10 @@ def simulate_hh(
     exact exponential Euler and voltage by backward Euler at frozen gates
     (the :func:`hh_step` split); upward crossings of -20 mV are spikes.
     Held (non-finite) updates are counted in the scan carry and reported as
-    ``held_steps`` (``{"s": n, "ou": n}``); the GSDR fit maps a NaN loss to
-    inf and reverts the generation (PORT_SPEC.md section 10).
+    ``held_steps`` (``{"s": n, "ou": n}``): ``s`` is one per edge per held
+    step, ``ou`` one per OU element per held step, so each count is a count
+    of held element updates summed over the run, not of steps. The GSDR fit
+    maps a NaN loss to inf and reverts the generation (PORT_SPEC.md section 10).
 
     Returns a dict: ``spikes`` (bool ``[n_steps, N]``), ``V_mV``
     (``[n_steps, N]``, after each step's update, only if ``record_v``), the

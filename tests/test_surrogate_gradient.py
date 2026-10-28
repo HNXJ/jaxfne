@@ -106,3 +106,66 @@ def test_unrealized_surrogates_and_routes_refuse():
     with pytest.raises(ValueError, match="surrogate"):
         jtfne.simulate(jtfne.construct(cfg), duration_ms=5.0, dt_ms=0.1, seed=0,
                        runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list", surrogate=sg))
+
+
+SG = jtfne.SurrogateConfig(method="sigmoid_beta", beta=0.5)
+
+
+def _public_model():
+    cfg = (jtfne.configuration().network(n=12, cell_types={"E": 0.75, "PV": 0.25})
+           .emitter(family="izhikevich", preset="cortical_eig").field(domain="laminar_column", conductivity="proxy")
+           .probe(name="p", n_contacts=4))
+    return jtfne.construct(cfg)
+
+
+@pytest.mark.x64
+def test_batch_forward_is_bit_identical_with_the_surrogate():
+    """Fail-first on the base tree (simulate_batch refuses the surrogate).
+
+    The batch keys seed i by a split of PRNGKey(seed) and simulate keys it by
+    PRNGKey(seed), so the noise is declared zero: the run is then key-free and
+    each batch member must equal the looped simulate bit for bit.
+    """
+    model = _public_model()
+    hdp = {"noise_scale": 0.0}
+    rt = jtfne.RuntimeConfig(dtype="float64", jit=True, vmap=True, surrogate=SG, hdp_params=hdp)
+    batch = model.simulate_batch(jtfne.Simulation(duration_ms=100.0, dt_ms=0.1, seed=0, runtime=rt), n_seeds=2)
+    assert float(np.asarray(batch["spikes"]).sum()) > 0, "fixture must spike"
+    for i, seed in enumerate((0, 1)):
+        looped = jtfne.simulate(model, duration_ms=100.0, dt_ms=0.1, seed=seed, record_fields=False,
+                                runtime=jtfne.RuntimeConfig(dtype="float64", jit=True, surrogate=SG,
+                                                            hdp_params=hdp))
+        np.testing.assert_array_equal(np.asarray(batch["V_m"])[i], np.asarray(looped.V_m))
+        np.testing.assert_array_equal(np.asarray(batch["spikes"])[i], np.asarray(looped.spikes))
+
+
+@pytest.mark.x64
+def test_batch_gradient_crosses_neurons_only_with_the_surrogate():
+    """Fail-first on the base tree: the batch route carries the gradient across neurons, as the single route does."""
+    model = _public_model()
+    handle = "cells.izhikevich.a[all]"
+    theta = jnp.asarray(np.asarray(jtfne.get_parameter(model, handle)), jnp.float64)
+
+    def mean_v(th, surrogate):
+        rt = jtfne.RuntimeConfig(dtype="float64", jit=True, vmap=True, surrogate=surrogate)
+        sim = jtfne.Simulation(duration_ms=100.0, dt_ms=0.1, seed=0, runtime=rt)
+        out = jtfne.set_parameter(model, handle, th).simulate_batch(sim, n_seeds=2)
+        return jnp.mean(out["V_m"], axis=(0, 1))
+
+    off = lambda J: np.abs(J - np.diag(np.diag(J))).max()  # noqa: E731
+    assert off(np.asarray(jax.jacrev(mean_v)(theta, None))) == 0.0
+    assert off(np.asarray(jax.jacrev(mean_v)(theta, SG))) > 0.0
+
+
+@pytest.mark.parametrize("runtime_kw", [
+    {"recurrent_backend": "edge_list"},
+    {"enable_homeostasis": True},
+    {"enable_hdp": True},
+])
+def test_batch_still_refuses_the_surrogate_off_the_dense_route(runtime_kw):
+    """PIN: passes on the base implementation; the batch refuses the surrogate on every route but dense."""
+    model = _public_model()
+    rt = jtfne.RuntimeConfig(surrogate=SG, **runtime_kw)
+    sim = jtfne.Simulation(duration_ms=10.0, dt_ms=0.1, seed=0, runtime=rt)
+    with pytest.raises(ValueError, match="surrogate"):
+        model.simulate_batch(sim, n_seeds=2)

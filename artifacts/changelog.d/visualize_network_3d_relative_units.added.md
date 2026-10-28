@@ -1,0 +1,1 @@
+- `visualize_network_3d(coordinate_unit="relative", display_unit="relative")` shows relative coordinates unscaled, with `relative` axis labels. The two unit arguments must both be `relative` or both physical units.

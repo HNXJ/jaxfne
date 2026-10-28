@@ -1,0 +1,1 @@
+- `simulate_hh` and `simulate_hh_batch` refuse a string `dt_ms` (such as `"0.1"`) with a `TypeError` that names `dt_ms`. The single-cell entry used to fail later inside JAX with an unnamed error, and the batch entry accepted the string.

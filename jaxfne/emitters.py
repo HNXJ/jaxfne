@@ -4823,7 +4823,8 @@ def simulate_multi_area_izhikevich(
     positions_m : jax.Array
         Neuron positions [N, 3].
     W : jax.Array
-        Connectivity matrix [N, N].
+        Connectivity matrix [N, N]. The kernel receives ``0.1 * W`` (a fixed
+        gain for emitter compatibility, not a parameter).
     source_tensor : jax.Array, optional
         Driving source tensor [T, N]. If provided, used as drive_schedule.
     control_params : Mapping[str, float], optional

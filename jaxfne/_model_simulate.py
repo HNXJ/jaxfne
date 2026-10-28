@@ -2853,7 +2853,6 @@ def simulate_batch(
     base_seed = sim.seed if seed is None else int(seed)
     keys = jax.random.split(jax.random.PRNGKey(base_seed), int(n_seeds))
     emitter = self._require_izhikevich_emitter("simulate_batch")
-    _refuse_surrogate(runtime_cfg, "simulate_batch")
     _require_backend_available(runtime_cfg.selected_backend)
 
     # Sparse-direct models (placeholder dense W) must use the edge_list backend.
@@ -2892,6 +2891,19 @@ def simulate_batch(
             "exponential synaptic kernel."
         )
     _refuse_dense_receptor_kernel(runtime_cfg)
+    # P-052: the dense default-order kernel in ``one`` realizes the surrogate;
+    # the HDP, homeostasis and edge_list routes refuse it by name.
+    if hdp_on:
+        _refuse_surrogate(runtime_cfg, "the HDP kernel")
+    if homeo_on:
+        _refuse_surrogate(runtime_cfg, "the homeostasis kernel")
+    if runtime_cfg.recurrent_backend == "edge_list":
+        _refuse_surrogate(runtime_cfg, "the edge_list backend")
+    _batch_surrogate_beta = (
+        float(runtime_cfg.surrogate.beta)
+        if runtime_cfg.surrogate is not None and runtime_cfg.surrogate.method == "sigmoid_beta"
+        else None
+    )
     _decls = getattr(self.cfg, "emitters", None) or []
     _order = (_decls[0].get("izhikevich_update_order", "default") if _decls else "default") or "default"
     if _order != "default":
@@ -2995,6 +3007,7 @@ def simulate_batch(
         return simulate_eig_izhikevich(
             emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype,
             noise_scale=_hdp.get("noise_scale", None),
+            surrogate_beta=_batch_surrogate_beta,
         )
 
     # v0.0.21: honor runtime.vmap flag behaviorally.
@@ -3022,6 +3035,7 @@ def simulate_batch(
             runtime_cfg.selected_backend,
             _homeostasis_params_cache_fingerprint(_hp) if homeo_on else (),
             _homeostasis_params_cache_fingerprint(_hdp) if hdp_on else (),
+            _batch_surrogate_beta,
         ) + _noise_scale_cache_suffix(_hdp)
         with _device_scope(runtime_cfg.selected_backend):
             effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons, batch=B)

@@ -357,9 +357,13 @@ def visualize_network_3d(
     title : str
         Figure title. Default: "Network 3D visualization".
     coordinate_unit : str
-        Unit of stored coordinates (``"m"``, ``"mm"``, ``"um"``, ``"nm"``).
+        Unit of stored coordinates (``"m"``, ``"mm"``, ``"um"``, ``"nm"``, or
+        ``"relative"``).
     display_unit : str
-        Unit for display axes (``"m"``, ``"mm"``, ``"um"``, ``"nm"``).
+        Unit for display axes (``"m"``, ``"mm"``, ``"um"``, ``"nm"``, or
+        ``"relative"``). ``"relative"`` shows the stored values unscaled and labels
+        the axes relative; it must pair with ``coordinate_unit="relative"``, since
+        relative positions have no metre scale.
     show_layers : bool
         Draw translucent horizontal planes at inferred layer z-boundaries.
     layer_plane_opacity : float
@@ -417,9 +421,14 @@ def visualize_network_3d(
             f"{type(data).__name__} has none; jaxfne.vis.plotly.plot_network_3d(model, "
             "show_edges=True) draws a model's edges")
     for name, unit in (("coordinate_unit", coordinate_unit), ("display_unit", display_unit)):
-        if unit not in _UNIT_SCALE:
+        if unit not in _UNIT_SCALE and unit != "relative":
             raise ValueError(
-                f"visualize_network_3d: {name}={unit!r} is not one of {sorted(_UNIT_SCALE)}")
+                f"visualize_network_3d: {name}={unit!r} is not one of "
+                f"{sorted(_UNIT_SCALE) + ['relative']}")
+    if (coordinate_unit == "relative") != (display_unit == "relative"):
+        raise ValueError(
+            "visualize_network_3d: coordinate_unit and display_unit must both be 'relative' "
+            "or both physical units; relative positions have no metre scale")
 
     # ── Normalize input ────────────────────────────────────────────────────────
     rows = _coerce_to_rows(data, seed=seed)
@@ -427,8 +436,9 @@ def visualize_network_3d(
         raise ValueError("visualize_network_3d: no node data found in input.")
 
     # ── Coordinate scaling ─────────────────────────────────────────────────────
-    from_scale = _UNIT_SCALE[coordinate_unit]
-    to_scale   = _UNIT_SCALE[display_unit]
+    # "relative" (on both units, see above) keeps the stored values: scale 1.
+    from_scale = 1.0 if coordinate_unit == "relative" else _UNIT_SCALE[coordinate_unit]
+    to_scale   = 1.0 if display_unit == "relative" else _UNIT_SCALE[display_unit]
     scale      = to_scale / from_scale  # convert stored unit → display unit
 
     x_disp = np.array([r["x_m"] for r in rows]) * scale

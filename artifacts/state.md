@@ -12,8 +12,9 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   bit-identical, other routes refuse); the Muse audit at cfc839ab (six lanes) and its verified fixes;
   `run_stdp_stream` consumes `inh_mask`; PCL core lanes L1-L4 (multi-spike event scan, interval updates,
   F_W in the scan, `EventScanBoundary`), each oracle-exact; 9B, 9F, 9G closed; thin stacks (c88be711);
-  worker lanes R, D, T (0108594b).
-- Broad gate on 0108594b's tree: 7559 passed, 0 failed; all paper lanes pass. Report gate fail_count 0.
+  worker lanes R, D, T (0108594b); lane C: `simulate_batch` realizes the surrogate, HH `dt` refuses
+  strings, relative units in `visualize_network_3d`.
+- Broad gate on lane C's tree: 7575 passed, 0 failed; all paper lanes pass. Report gate fail_count 0.
 - CI Fast green through c88be711.
 
 ## Broken or in flight
@@ -21,7 +22,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - PCL R2 on real files is next (T-3); the C++ reference binary needs WSL installs (O-58).
 - The P-052 surrogate's off-diagonal gradient disagrees in sign with the finite difference (corr -0.2 to
   -0.4); its fitness for training is Hamm's call (`artifacts/runs/perf/profiles/precision_058.md`).
-- Lane C (T-38 to T-40) is done in its clone and not yet integrated; lane C2 (T-41 refusals) is running.
+- Lane C2 (T-41 refusals) is running in its clone.
 
 ## Generated files and their checks
 

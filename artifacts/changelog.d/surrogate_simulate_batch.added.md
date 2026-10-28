@@ -1,0 +1,1 @@
+- `Model.simulate_batch` realizes `RuntimeConfig(surrogate=SurrogateConfig(method="sigmoid_beta", beta=...))` on the dense Izhikevich default-order route, as `simulate` does: the gradient carries across neurons and the forward spikes stay hard. The HDP, homeostasis and edge_list routes still refuse the surrogate by name.

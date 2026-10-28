@@ -213,6 +213,46 @@ def test_an_unknown_unit_is_refused(kwarg):
     np.testing.assert_allclose(x_mm * 1e3, x_m, rtol=1e-12)
 
 
+def test_relative_units_label_axes_relative_without_scaling():
+    """Fail-first: relative rows get 'relative' axis labels and their stored values, unscaled."""
+    _require_plotly_or_skip()
+    import jaxfne.vis as vis
+
+    rows = _minimal_rows()
+    fig = vis.visualize_network_3d(rows, coordinate_unit="relative", display_unit="relative")
+    scene = fig.layout.scene
+    labels = [scene.xaxis.title.text, scene.yaxis.title.text, scene.zaxis.title.text]
+    assert labels == ["X (relative)", "Y (relative)", "Depth (relative)"]
+    assert not any("um" in s for s in labels)
+    for key, axis in (("x_m", "x"), ("y_m", "y"), ("z_m", "z")):
+        stored = np.sort([r[key] for r in rows])
+        assert np.abs(stored).max() > 0, "fixture must place a cell off the origin"
+        shown = np.concatenate([np.asarray(getattr(t, axis), float) for t in fig.data
+                                if getattr(t, axis) is not None])
+        np.testing.assert_allclose(np.sort(shown), stored, rtol=1e-12)
+
+
+def test_physical_units_keep_their_labels_and_scale():
+    """PIN: passes on the base implementation; the default m -> um output keeps its labels."""
+    _require_plotly_or_skip()
+    import jaxfne.vis as vis
+
+    fig = vis.visualize_network_3d(_minimal_rows())
+    assert fig.layout.scene.xaxis.title.text == "X (um)"
+    assert fig.layout.scene.zaxis.title.text == "Depth (um)"
+
+
+@pytest.mark.parametrize("coordinate_unit, display_unit", [("relative", "um"), ("m", "relative")])
+def test_relative_must_pair_with_relative(coordinate_unit, display_unit):
+    """Fail-first: a relative unit on one side only is refused; relative positions have no metre scale."""
+    _require_plotly_or_skip()
+    import jaxfne.vis as vis
+
+    with pytest.raises(ValueError, match="must both be 'relative'"):
+        vis.visualize_network_3d(_minimal_rows(), coordinate_unit=coordinate_unit,
+                                 display_unit=display_unit)
+
+
 def test_core_import_does_not_require_plotly():
     """import jaxfne (and jaxfne.vis) must succeed without Plotly present."""
     # This test runs in the current interpreter, which may have Plotly.

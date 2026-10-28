@@ -120,5 +120,33 @@ def test_multi_area_emitter_realizes_noise_scale():
     assert float(np.max(np.abs(base - volts({"noise_scale": 2.0})))) > 0.0
 
 
+def test_multi_area_docstring_states_w_scale():
+    """Fail-first on the base docstring: W is rescaled by 0.1 before the kernel."""
+    from jaxfne import emitters
+
+    doc = " ".join(emitters.simulate_multi_area_izhikevich.__doc__.split())
+    assert "0.1 * W" in doc
+
+
+def test_multi_area_realizes_w_times_0p1(monkeypatch):
+    """PIN: passes on the base implementation; pins the realized W scale."""
+    from jaxfne import emitters
+
+    seen = {}
+
+    def fake_kernel(params, **kwargs):
+        seen["W"] = np.asarray(params.W)
+        return None, None, None
+
+    monkeypatch.setattr(emitters, "simulate_eig_izhikevich", fake_kernel)
+    W = np.full((20, 20), 2.0, dtype=np.float32)
+    simulate_multi_area_izhikevich(
+        MockNeuronsDataFrame(n=20), np.zeros((20, 3), dtype=np.float32), W,
+        n_steps=10, seed=0,
+    )
+    assert "W" in seen, "fixture must reach the kernel"
+    np.testing.assert_allclose(seen["W"], 0.2, rtol=1e-6)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

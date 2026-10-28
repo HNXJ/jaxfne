@@ -36,15 +36,15 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   `fast` auto-markers (`tests/conftest.py:77-85`) and the registered `integration` marker are selected by no
   gate, workflow or Makefile (recommend deleting them); the nightly tree-equality skip of the release sweep is
   unchecked. Closes when: the markers are deleted or selected, and the skip has a test.
-- T-38 [A] (C) Small core findings: `fields/diagnostics.py:111` projection warnings never raise; the multi-area
-  helper scales W by 0.1 against its docstring (`emitters.py` near 4883, trace callers); the dev-gate warning
-  "compiled 2 times! Invariant N_compile <= 1 violated"; GSDR HH notes (`held_steps` counts edge elements
-  while the docstring says steps, int32 count scalars, `dt="0.1"` coerced, no full-kernel grad test).
-  Closes when: each is fixed with a test that fails first, or recorded here with its reason.
-- T-39 [A] (C) `simulate_batch` refuses the surrogate on the dense route that `simulate` realizes (additive).
-  Closes when: `tests/test_surrogate_gradient.py` covers `simulate_batch` equal to looped `simulate`.
-- T-40 [A] (C) `visualize_network_3d`: a label for relative coordinates (unknown unit strings already refuse).
-  Closes when: a test shows relative rows labelled relative.
+- T-38 [A] (C) Left after lane C (2026-10-27; fixed: the multi-area W docstring states 0.1 * W, `held_steps`
+  documented as held element updates, a string `dt_ms` refused in the HH route; `simulate_batch` realizes the
+  surrogate; `visualize_network_3d` takes `relative` units): the "compiled 2 times" guard
+  (`validation.py:1322`) counts (name, B, Z, C, T) while the jit cache key holds more, so reused-Model tests in
+  `test_homeostasis_dispatch.py` warn (align the guard with the key, a semantics choice); no full-kernel
+  gradient test for the HH route; with noise on, `simulate_batch` member i differs from `simulate(seed=i)`
+  (split keys against PRNGKey(i), by design, undocumented). Recorded, no change: field projection warnings
+  are returned as data and no strict option exists; HH int32 counts stay below 2^31 at GSDR sizes
+  (15001 x 2230). Closes when: each is fixed with a failing test or documented.
 - T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; after each dev
   push refresh the lane dashboard (skill `jaxfne-dashboard`). Closes when: `python
   scripts/build_dashboard_data.py --check` passes on each push.
