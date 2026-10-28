@@ -1,0 +1,1 @@
+- Matrix AGSDR tuning derives each inner-step fallback key by nested `fold_in` and each candidate's simulation seed from `SeedSequence([seed, gen, row])`; index packing collided once the population exceeded 10 or inner steps exceeded 100, and run seeds differing by a multiple of the population size shared simulation seeds.

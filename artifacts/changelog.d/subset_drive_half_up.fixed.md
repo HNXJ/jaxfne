@@ -1,0 +1,1 @@
+- `subset_drive_kwargs` rounds the kept target count half up: an exact half (e.g. 2.5 of 10 targets at fraction 0.25) keeps 3 targets, was 2.

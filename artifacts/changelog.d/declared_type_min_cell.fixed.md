@@ -1,0 +1,1 @@
+- `develop` refuses a layer whose declared cell type with positive fraction realizes zero cells, naming the type; its band lower bound floored to 0 and passed before.

@@ -1,0 +1,1 @@
+- Protocol E gate `G3` reports `support_only_on_O_H` as true only when H deviates from 1 on owners alone; the flag was always true and now follows the non-owner check.

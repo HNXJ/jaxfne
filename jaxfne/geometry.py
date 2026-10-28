@@ -11,7 +11,7 @@ EXC_FRACTION = 0.7
 W_INIT_MIN = 0.01
 W_INIT_MAX = 0.1
 
-def make_ei_cloud_network(n_neurons: int = 100, seed: int = 42) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+def make_ei_cloud_network(n_neurons: int = 100, seed: int = 0) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """Generates geometry and initial weights for a 100-neuron E-I cloud network.
     
     Returns:

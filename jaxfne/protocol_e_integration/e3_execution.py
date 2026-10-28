@@ -265,7 +265,7 @@ def verify_non_owner_h_k_support(H_trace: np.ndarray, owners: list[int], n_neuro
     owner_dev = H_trace[:, owners] - 1.0
     non_owner_dev = H_trace[:, non_owners] - 1.0
     non_owner_exact = bool(np.max(np.abs(non_owner_dev)) == 0.0)
-    support_only_owners = bool(np.max(np.abs(owner_dev)) == 0.0 or np.any(np.abs(owner_dev) > 0.0))
+    support_only_owners = non_owner_exact
     return {
         "passed": non_owner_exact,
         "max_abs_H_minus_1_non_owners": float(np.max(np.abs(non_owner_dev))),

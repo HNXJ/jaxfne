@@ -459,7 +459,8 @@ def test_jitter_without_tolerance_is_recorded_as_derived():
 
 
 def test_realized_fraction_none_is_refused_under_a_zero_lower_band():
-    """`nt.fraction or 0.0` counted a None fraction as absent; a zero fraction still passes.
+    """`nt.fraction or 0.0` counted a None fraction as absent. A zero fraction for a declared
+    type with positive fraction is refused (a declared type realizes >= 1 cell, ruling 2026-10-28).
 
     Stub-based: develop() always sets a numeric fraction, so the realized tensor is
     built from objects that carry the attributes the checker reads.
@@ -477,7 +478,8 @@ def test_realized_fraction_none_is_refused_under_a_zero_lower_band():
         types = [NS(name="E", fraction=1.0), NS(name="PV", fraction=pv_fraction)]
         return NS(areas=[NS(name="A1", layers=[NS(name="L1", n_neurons=10, neuron_types=types)])])
 
-    gn._check_realized_constraints(declared, realized(0.0))
+    with pytest.raises(ValueError, match="PV"):
+        gn._check_realized_constraints(declared, realized(0.0))
     with pytest.raises(ValueError, match="PV"):
         gn._check_realized_constraints(declared, realized(None))
     assert _counts_origin(_dev_genome({"fraction_jitter_sigma": 0.05})) == ORIGIN_SAMPLED

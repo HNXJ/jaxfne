@@ -178,7 +178,7 @@ def subset_drive_kwargs(model: Any, sim: Any, fraction: float) -> dict[str, Any]
     targets = np.asarray(base["ext_targets"])
     seed = sim.poisson_drive["seed"]
     rng = np.random.default_rng(int(seed))
-    k = max(1, int(round(frac * targets.size)))
+    k = max(1, int(math.floor(frac * targets.size + 0.5)))
     chosen = np.sort(rng.choice(targets, size=k, replace=False).astype(np.int64))
     out = dict(base)
     out["ext_targets"] = chosen

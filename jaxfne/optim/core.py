@@ -1379,6 +1379,25 @@ def agsdr_transform(
     return GradientTransformation(init=init, update=update)
 
 
+def _fallback_key(base_key: jax.Array, gen: int, row: int, inner_step: int) -> jax.Array:
+    """Key of the flat-gradient fallback at one inner step (nested fold_in: no index packing)."""
+    return jax.random.fold_in(
+        jax.random.fold_in(jax.random.fold_in(base_key, int(gen)), int(row)), int(inner_step)
+    )
+
+
+def _candidate_sim_seed(seed: int, gen: int, row: int) -> int:
+    """Simulation seed of one AGSDR candidate, from SeedSequence over (run seed, generation, row).
+
+    A negative run seed is taken modulo 2**64, since SeedSequence takes only
+    non-negative entropy.
+    """
+    import numpy as np
+
+    entropy = [int(seed) % (1 << 64), int(gen), int(row)]
+    return int(np.random.SeedSequence(entropy).generate_state(1)[0])
+
+
 def _tune_matrix_agsdr_optax(
     model: Any,
     objective: Any,
@@ -1655,7 +1674,7 @@ def _tune_matrix_agsdr_optax(
                             is_flatline = jnp.all(jnp.abs(grads_flat) < 1e-7)
 
                             # Adaptive fallback: inject stochastic step when gradient is flat
-                            key_fallback = jax.random.fold_in(base_key, int(gen) * 1000 + int(row) * 100 + int(inner_step))
+                            key_fallback = _fallback_key(base_key, gen, row, inner_step)
                             fallback_grads = jax.tree_util.tree_map(
                                 lambda g: jnp.where(
                                     is_flatline,
@@ -1695,7 +1714,7 @@ def _tune_matrix_agsdr_optax(
             # FINAL SCORING: real objective
             try:
                 candidate_signals = candidate_model.simulate(
-                    simulation.with_seed(int(seed) + gen * population_size + row)
+                    simulation.with_seed(_candidate_sim_seed(seed, gen, row))
                 )
                 candidate_report = candidate_model.evaluate(candidate_signals, objective, strict=strict)
                 score = candidate_report.get("total_loss")

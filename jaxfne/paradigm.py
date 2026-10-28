@@ -813,7 +813,7 @@ def coop_omission_oddball_paradigm(
     standard_amplitude: float = 5.0,
     pre_stimulus_buffer_ms: float = 200.0,
     target_indices: Optional[Sequence[int]] = None,
-    seed: int = 42,
+    seed: int = 0,
     name: str = "coop_omission_oddball"
 ) -> Paradigm:
     """Create a Continuous Omission Oddball Paradigm (COOP) stimulus sequence.

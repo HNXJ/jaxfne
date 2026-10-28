@@ -747,6 +747,8 @@ def _check_realized_constraints(genome: PseudoGenome, tensor: NeuronalTensor) ->
             for ct, frac in layer.cell_type_fractions.items():
                 tol = layer.fraction_tolerance.get(ct, (frac, frac))
                 lo = int(math.floor(layer.n_neurons * tol[0]))
+                if frac > 0.0:
+                    lo = max(1, lo)  # a declared type with positive fraction realizes >= 1 cell
                 hi = int(math.ceil(layer.n_neurons * tol[1]))
                 if not (lo <= counts.get(ct, 0) <= hi):
                     raise ValueError(
