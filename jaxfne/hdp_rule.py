@@ -98,11 +98,20 @@ class HDPRuleContext:
 
 @dataclass(frozen=True)
 class HDPRuleUpdate:
-    """Infinitesimal updates returned by a registered rule."""
+    """Updates returned by a registered rule.
+
+    ``dH``, ``d_aux`` and ``d_theta`` are rates: the kernel adds ``dt * d``.
+    ``jH``, ``j_aux`` and ``j_theta`` are per-event jumps: the kernel adds the
+    value once, with no ``dt`` factor, after the rate term and before the clip
+    where the coordinate has one. ``None`` means no jump.
+    """
 
     dH: jnp.ndarray
     d_aux: jnp.ndarray | None = None
     d_theta: Mapping[str, jnp.ndarray] | None = None
+    jH: jnp.ndarray | None = None
+    j_aux: jnp.ndarray | None = None
+    j_theta: Mapping[str, jnp.ndarray] | None = None
 
 
 _REGISTRY: dict[str, tuple[HDPRuleDescriptor, RuleStepFn]] = {}
@@ -319,7 +328,9 @@ def _synthetic_presyn_gain_step(ctx: HDPRuleContext) -> HDPRuleUpdate:
     """Qualification rule: event-coupled H and multiplicative edge-weight drive.
 
     With ``gamma=0`` and controlled presynaptic spikes, ``H`` and ``|w|`` evolve
-    predictably from the discrete update equations exercised in tests.
+    predictably from the discrete update equations exercised in tests. The
+    spike terms are per-event jumps (``jH``, ``j_theta``); only the decay of
+    ``H`` is a rate.
     """
     k_h = jnp.asarray(ctx.rule_params.get("k_h", 0.0), dtype=ctx.H.dtype)
     k_w = jnp.asarray(ctx.rule_params.get("k_w", 0.0), dtype=ctx.H.dtype)
@@ -329,10 +340,10 @@ def _synthetic_presyn_gain_step(ctx: HDPRuleContext) -> HDPRuleUpdate:
     # preserving the qualified HDP-01 discrete equations bit-exactly.
     pre_sp = ctx.pre_sp if ctx.pre_sp is not None else ctx.spikes[ctx.pre]
     dH = -gamma * (ctx.H - 1.0)
-    dH = dH + _segment_sum(k_h * pre_sp, ctx.post, ctx.n_neurons)
+    jH = _segment_sum(k_h * pre_sp, ctx.post, ctx.n_neurons)
     H_post = ctx.H[ctx.post]
-    dw = k_w * H_post * pre_sp * jnp.abs(ctx.w)
-    return HDPRuleUpdate(dH=dH, d_theta={"edge_weight": dw})
+    jw = k_w * H_post * pre_sp * jnp.abs(ctx.w)
+    return HDPRuleUpdate(dH=dH, jH=jH, j_theta={"edge_weight": jw})
 
 
 register_hdp_rule(
@@ -364,12 +375,12 @@ def _eligibility_trace_gain_step(ctx: HDPRuleContext) -> HDPRuleUpdate:
     pre_sp = ctx.pre_sp if ctx.pre_sp is not None else ctx.spikes[ctx.pre]
     post_sp = ctx.spikes[ctx.post]
     dH = -gamma * (ctx.H - 1.0)
-    dH = dH + _segment_sum(k_h * pre_sp, ctx.post, ctx.n_neurons)
+    jH = _segment_sum(k_h * pre_sp, ctx.post, ctx.n_neurons)
     dE = -ctx.aux / jnp.maximum(tau_e, jnp.asarray(1e-6, dtype=ctx.H.dtype))
-    dE = dE + pre_sp * post_sp
+    jE = pre_sp * post_sp
     H_post = ctx.H[ctx.post]
     dw = k_w * H_post * ctx.aux * jnp.abs(ctx.w)
-    return HDPRuleUpdate(dH=dH, d_aux=dE, d_theta={"edge_weight": dw})
+    return HDPRuleUpdate(dH=dH, jH=jH, d_aux=dE, j_aux=jE, d_theta={"edge_weight": dw})
 
 
 register_hdp_rule(
@@ -598,6 +609,9 @@ def superpose_hdp_rules(
         n_ctx = int(ctx.H.shape[0])
         dH_parts: list[jnp.ndarray] = []
         dw_accum: dict[str, jnp.ndarray] = {}
+        jH_parts: list[jnp.ndarray] = []
+        jH_used = False
+        jw_accum: dict[str, jnp.ndarray] = {}
         for (desc, step_fn), comp_name, width, off in zip(resolved, names, widths, offsets):
             part = ctx.H[..., off : off + width]
             if desc.h_shape:
@@ -627,6 +641,11 @@ def superpose_hdp_rules(
                 )
             got = jnp.reshape(upd.dH, (n_ctx, width))
             dH_parts.append(got)
+            if upd.jH is None:
+                jH_parts.append(jnp.zeros_like(got))
+            else:
+                jH_used = True
+                jH_parts.append(jnp.reshape(upd.jH, (n_ctx, width)))
             for target, drive in (upd.d_theta or {}).items():
                 if target in dw_accum and dw_accum[target].shape != drive.shape:
                     raise ValueError(
@@ -634,9 +653,18 @@ def superpose_hdp_rules(
                         f"{target!r} shape {dw_accum[target].shape} vs {drive.shape}"
                     )
                 dw_accum[target] = drive if target not in dw_accum else dw_accum[target] + drive
+            for target, jump in (upd.j_theta or {}).items():
+                if target in jw_accum and jw_accum[target].shape != jump.shape:
+                    raise ValueError(
+                        f"hdp_rule {name!r}: components disagree on j_theta "
+                        f"{target!r} shape {jw_accum[target].shape} vs {jump.shape}"
+                    )
+                jw_accum[target] = jump if target not in jw_accum else jw_accum[target] + jump
         return HDPRuleUpdate(
             dH=jnp.concatenate(dH_parts, axis=-1),
             d_theta=dict(dw_accum) or None,
+            jH=jnp.concatenate(jH_parts, axis=-1) if jH_used else None,
+            j_theta=dict(jw_accum) or None,
         )
 
     descriptor = HDPRuleDescriptor(

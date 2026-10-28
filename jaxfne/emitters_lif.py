@@ -24,8 +24,8 @@ network's own config decides. The simple adaptation increment defaults to 0
 (the default config's ``ETA_SRA``); per-network values ride ``overrides``.
 
 The registered-HDP-rule hook reuses the :class:`HDPRuleContext` /
-:class:`HDPRuleUpdate` contract of :mod:`jaxfne.hdp_rule` (same field names and
-rate-integration ``x + dt * dx``), so rules written against the Izhikevich
+:class:`HDPRuleUpdate` contract of :mod:`jaxfne.hdp_rule` (same field names,
+rates integrated as ``x + dt * dx`` and jumps added once), so rules written against the Izhikevich
 registrable kernel (``jaxfne/_hdp_registrable_kernel.py``) run here unchanged:
 per-edge delayed arrivals feed ``pre_sp``, per-neuron ``bias`` feeds the input
 when the rule declares the ``drive_bias`` target.
@@ -2598,8 +2598,8 @@ def simulate_lif_edge(
        when declared: at most that many winners keep their spikes per step,
        in that index order, inside the step);
     4. the registered rule (if any) observes the step through the
-       :class:`HDPRuleContext` contract and its rate update integrates as
-       ``x + dt * dx`` (H clipped to the descriptor bounds, weight magnitudes
+       :class:`HDPRuleContext` contract; its rates integrate as
+       ``x + dt * dx`` and its jumps add once (H clipped to the descriptor bounds, weight magnitudes
        to ``w_bounds`` with the initial sign kept, ``plasticity_mask`` gating
        which edges learn);
     5. this step's spikes are written into the ring.
@@ -3074,18 +3074,32 @@ def simulate_lif_edge(
                 key=step_keys[t_idx], pre_sp=arrived,
             )
             upd = rule_step(ctx)
-            undeclared = [k for k in (upd.d_theta or {}) if k not in descriptor.theta_targets]
+            undeclared = [
+                k for k in (*(upd.d_theta or {}), *(upd.j_theta or {}))
+                if k not in descriptor.theta_targets
+            ]
             if undeclared:
                 raise ValueError(
                     f"hdp_rule {hdp_rule!r} returned undeclared theta_targets "
                     f"{undeclared!r}; declared: {list(descriptor.theta_targets)}"
                 )
-            H = jnp.clip(H + dt * upd.dH, h_min, h_max)
+            H_drift = H + dt * upd.dH
+            if upd.jH is not None:
+                H_drift = H_drift + upd.jH
+            H = jnp.clip(H_drift, h_min, h_max)
             if upd.d_aux is not None:
                 aux = aux + dt * upd.d_aux
-            if upd.d_theta and "edge_weight" in upd.d_theta:
+            if upd.j_aux is not None:
+                aux = aux + upd.j_aux
+            dw = (upd.d_theta or {}).get("edge_weight")
+            jw = (upd.j_theta or {}).get("edge_weight")
+            if dw is not None or jw is not None:
                 wmag = jnp.abs(w)
-                wmag_next = jnp.clip(wmag + dt * upd.d_theta["edge_weight"], w_floor, w_ceiling)
+                if dw is not None:
+                    wmag = wmag + dt * dw
+                if jw is not None:
+                    wmag = wmag + jw
+                wmag_next = jnp.clip(wmag, w_floor, w_ceiling)
                 w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
                 w_next = jnp.where(plastic_edge, w_next, w) if plastic_edge is not None else w_next
                 if E:
@@ -3104,8 +3118,12 @@ def simulate_lif_edge(
                     w = w_next
             if use_b:
                 db = (upd.d_theta or {}).get("drive_bias")
-                if db is not None:
-                    bias = jnp.clip(bias + dt * db, b_min, b_max)
+                jb = (upd.j_theta or {}).get("drive_bias")
+                if db is not None or jb is not None:
+                    b_drift = bias if db is None else bias + dt * db
+                    if jb is not None:
+                        b_drift = b_drift + jb
+                    bias = jnp.clip(b_drift, b_min, b_max)
         ring = ring.at[t_idx % L].set(spk)
         out = (spk, V_n) if record_v else spk
         return (V_n, A_n, t_n, w, H, aux, bias, ring, spk, t_idx + 1, g), out
