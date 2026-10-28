@@ -227,9 +227,43 @@ def test_every_covered_file_guards_repo_root():
     assert not bad, f"P-025: {len(bad)} files pull jaxfne without a prior repo-root guard: {bad}"
 
 
+def _has_p025_assert(tree: ast.Module) -> bool:
+    """True when the file asserts ``"site-packages" not in <jaxfne module>.__file__``.
+
+    The module is ``sys.modules["jaxfne"]`` or a name bound by ``import jaxfne [as X]``.
+    Matched on the AST, so line breaks and quote style do not matter, while a comment or
+    string that merely contains "site-packages" does not match.
+    """
+    sysnames = _sys_names(tree) or {"sys"}
+    aliases = {a.asname or a.name for n in ast.walk(tree) if isinstance(n, ast.Import)
+               for a in n.names if a.name == "jaxfne"}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assert):
+            continue
+        test = node.test
+        if not (isinstance(test, ast.Compare) and len(test.ops) == 1
+                and isinstance(test.ops[0], ast.NotIn)):
+            continue
+        left, right = test.left, test.comparators[0]
+        if not (isinstance(left, ast.Constant) and left.value == "site-packages"):
+            continue
+        if not (isinstance(right, ast.Attribute) and right.attr == "__file__"):
+            continue
+        mod = right.value
+        if isinstance(mod, ast.Name) and mod.id in aliases:
+            return True
+        if (isinstance(mod, ast.Subscript) and isinstance(mod.slice, ast.Constant)
+                and mod.slice.value == "jaxfne" and isinstance(mod.value, ast.Attribute)
+                and mod.value.attr == "modules" and isinstance(mod.value.value, ast.Name)
+                and mod.value.value.id in sysnames):
+            return True
+    return False
+
+
 def test_scripts_and_artifacts_assert_repo_package():
     info = _load(_all_files())
     covered = _covered(info)
+    checked = 0
     bad = []
     for p in sorted(covered):
         if p.relative_to(REPO).parts[0] not in ASSERT_ROOTS:
@@ -237,7 +271,17 @@ def test_scripts_and_artifacts_assert_repo_package():
         tree, _ = info[p]
         plain, _ = _top_jaxfne(tree)
         if plain:
-            text = info[p][1]
-            if "site-packages" not in text:
+            checked += 1
+            if not _has_p025_assert(tree):
                 bad.append(str(p.relative_to(REPO)))
+    assert checked, "P-025 assert gate examined an empty file set"
     assert not bad, f"P-025: {len(bad)} files lack the site-packages assert: {bad}"
+
+
+def test_p025_assert_matcher_rejects_text_without_the_assert():
+    guard = 'assert "site-packages" not in {}.__file__, ("P-025")\n'
+    assert not _has_p025_assert(ast.parse("import jaxfne\n# site-packages\n"))
+    assert not _has_p025_assert(ast.parse('import jaxfne\nx = "site-packages"\n'))
+    assert not _has_p025_assert(ast.parse("import numpy as np\n" + guard.format("np")))
+    assert _has_p025_assert(ast.parse("import jaxfne as J\n" + guard.format("J")))
+    assert _has_p025_assert(ast.parse("import sys\nimport jaxfne\n" + guard.format('sys.modules["jaxfne"]')))

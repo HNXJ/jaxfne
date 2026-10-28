@@ -222,7 +222,7 @@ def test_links_on_tree_resolve():
 
 
 def test_raw_iframe_resolves_from_the_page_url():
-    # docs/guides/p.md is served at /guides/p/: a raw src needs two levels up to reach _static.
+    # A page served at /guides/p/: a raw src needs two levels up to reach _static.
     frame = '<iframe src="{}_static/atlas/two_neuron_ei/index.html"></iframe>'
     shallow = _link_problems("docs/guides/p.md", frame.format("../"))
     assert len(shallow) == 1 and "raw HTML" in shallow[0], shallow

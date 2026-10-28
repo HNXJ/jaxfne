@@ -119,7 +119,7 @@ def _two_cell_common(n_steps=800):
 
 
 def test_multicomp_two_cell_ampa_propagates():
-    # No oracle: jaxley 0.14.0 `synapses/__init__.py` exports only
+    # No oracle: jaxley 0.14.0's synapses package exports only
     # IonotropicSynapse/TanhConductance/TanhRate, no graded AMPA, so the
     # synapse leg has no reference implementation. Assert qualitative
     # propagation instead: the follower is silent without the edge and

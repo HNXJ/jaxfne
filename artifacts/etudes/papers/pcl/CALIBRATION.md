@@ -94,7 +94,7 @@ drive is part of x; same-step interactions are declared intra-step fixed point.
 - `test_lif_tensor_route + test_emitters_lif + test_pcl_topology +
   test_readme_atlas_pin + test_jdna_area_rules_055`: 108 passed.
 
-### Gap 3 — complex pooling + cover-table feed (feed + pooling CLOSED; Stage C OPEN)
+### Gap 3 — complex pooling + cover-table feed (feed + pooling CLOSED; Stage C CLOSED in Step 9)
 
 - `dvs_feed_arrays` (`jaxfne/pcl_topology.py`) bins DVS events to
   `(feed_current, feed_arrivals)` per simple cell: exact oracle `cover_x`/

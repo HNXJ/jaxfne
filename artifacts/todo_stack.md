@@ -23,24 +23,19 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 
 ## 1. Fast (S)
 
-- T-34 [A] (R) Records: `dashboard/sources.json` `stage_artifacts` cite pre-reorg paths; the dashboard shows
-  GSDR at P1 with P3 records present; `hh-at01` has no folder; PCL `CALIBRATION.md:24` keeps the
-  `no construct route (OPEN)` marker (old T-30, section 4). Closes when: `python scripts/build_dashboard_data.py
-  --check` and `python scripts/check_replications.py --check` pass with each fixed.
-- T-35 [A] (D) Owner items (old T-OWN): amplitude-status vocabulary in docs, release notes, examples and the
-  docs/archive manifest; examples v031/v032 name absent canonical JSON targets; examples 03/05 fall back to
-  V_m for EEG/MEG; except-pass handlers in examples; `_tutorial_runtime` defaults an empty env with `or`;
-  `consolidate_hdp_controllability_etude.py:38,254` names the absent `hdp_mvc_etude.py`;
-  `upload_testpypi.sh:20` names the absent RELEASE_CHECKLIST.md; `protocol_c/d/e/__init__.py` read
-  "receipts.Checkout". Closes when: each named string is gone and `python scripts/run_test_gate.py docs` passes.
-- T-36 [A] (D) About 60 comment paths under `tests/` do not resolve (e.g. `test_artifacts_root_layout.py:211`,
-  `test_manifest_readout.py:91`, `test_izh_analysis.py:264`). Closes when: a path resolver over `tests/`
-  comments reports 0.
-- T-37 [A] (T) Test findings (old T-AUD): `test_release_ci_pytest_sweep_is_unfiltered`
-  (`test_release_gate_hierarchy.py:378`) reads no `if:` trigger; the `smoke`/`fast`/`integration`
-  auto-markers (`tests/conftest.py:55-85`) are selected nowhere; `test_script_repo_root_guard.py:230`
-  accepts any "site-packages" substring; the E1 delayed-edge route has no test. Closes when: each check
-  fails on a planted defect.
+- T-35 [A] (D) Owner items left after lane D (2026-10-27; fixed: dead test-comment paths, 23 to 0, and the
+  TestPyPI checklist pointer; kept with reason: `_tutorial_runtime`'s `or` treats an empty env as unset,
+  the examples' except clauses already catch only ImportError): examples v031:435,439 and v032:557,563 write to
+  targets absent under `docs/archive/`; `consolidate_hdp_controllability_etude.py` (lines 34, 38, 59, 61, 275)
+  names `hdp_mvc_etude.py`, never tracked; examples 03:137 and 05:165 fall back to V_m for EEG/MEG; the
+  legacy amplitude keys (`physical_amplitude_claim_allowed` beside `amplitude_status`, kept by 5ae19017)
+  sit in 64 files, so the target vocabulary needs defining before a sweep. Closes when: each is fixed or
+  ruled kept, and `python scripts/run_test_gate.py docs` passes.
+- T-37 [A] (T) Left after lane T (2026-10-27; fixed: the release sweep test reads job and step `if:`, the
+  P-025 matcher needs the assert on the jaxfne module, the delayed-edge route has its test): the `smoke` and
+  `fast` auto-markers (`tests/conftest.py:77-85`) and the registered `integration` marker are selected by no
+  gate, workflow or Makefile (recommend deleting them); the nightly tree-equality skip of the release sweep is
+  unchecked. Closes when: the markers are deleted or selected, and the skip has a test.
 - T-38 [A] (C) Small core findings: `fields/diagnostics.py:111` projection warnings never raise; the multi-area
   helper scales W by 0.1 against its docstring (`emitters.py` near 4883, trace callers); the dev-gate warning
   "compiled 2 times! Invariant N_compile <= 1 violated"; GSDR HH notes (`held_steps` counts edge elements
@@ -56,16 +51,25 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 
 ## 2. Medium (M)
 
-- T-41 [A] (U) Audit the modules no lane read: `jaxfne/jdna/`, `jaxfne/tfne.py`, `jaxfne/optim/`,
-  `jaxfne/analysis/`, `jaxfne/protocol_*/`; two efforts, union verified by the orchestrator. Closes when:
-  each verified finding is fixed or has a row here.
+- T-41 [A] (C2) T-41 audit 2026-10-27 at c88be711 (two efforts over `jdna/`, `tfne.py`, `optim/`, `analysis/`,
+  `protocol_*/`): lane C2 in flight on ten refusals and receipt fields (jdna unknown geometry and
+  development keys, optim parameters accepted and never read, `learning_rate` 0 turned into 0.01, negative
+  `onset_ms`, `allow_self` string, TFNE relation-origin delay, protocol E `support_only_on_O_H`).
+  Estimator findings are in T-50. Closes when: lane C2 lands on dev.
+- T-55 [A] (C) T-41 findings reported by one audit lane from code reading, unverified: `optim/core.py:1622-1623`
+  clips matrices to +-1000 unless the name is `gAMPA_w` (declared bounds unenforced); `:1959-1967` the start
+  value 1.0 is not clipped to bounds and is returned when no step improves; `:1671-1675,1707-1717`
+  placeholder-W (edge-list) models report `[]` for the refined matrix; `optim/handles.py:301` a broad except
+  turns any error into a REVISE report; `optim/core.py:1013,1139,1290` fold_in on `state.step` reuses noise
+  while the loss does not advance; `optim/core.py:1762,1877` and `handles.py:352` record a seed no loop reads;
+  `jdna/genome.py:739-750` `fraction or 0.0` and a band lower bound 0 pass an absent type;
+  `jdna/completion.py:195` explicit `None` bounds are labelled TFNE-declared; `analysis/granger.py:139-146`
+  a degenerate fit returns 0.0; `analysis/metrics.py:1082-1093` `population_rates` takes dt in seconds while
+  its siblings take ms; `analysis/spectral.py:80,85` float32 phase (relative error 1.8e-4 at 1000 s).
+  Closes when: each is verified and fixed with a failing test, or recorded with its reason.
 - T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`): C `paper-lanes` CI job, D code-tree stamp, F rc
   reuses Release CI JUnit (approved 2026-10-27), a `jaxfne.jdna` canary chain for B; E's first nightly is
   its observation. Closes when: `ci_plan.md` lists every step landed.
-- T-43 [A] (U) `artifacts/` layout map: for each root folder list every reference (package, tests, scripts,
-  frozen manifests, record pins), class it movable or pinned, and draft a layout with at most 7 unexempted
-  folders. Moves wait on Hamm (frozen paths). Closes when: the map is in
-  `etudes/meta/plans/artifacts_layout_plan.md` and Hamm rules on it.
 - T-44 [A] (E) T-32e: script checklist rules E1, S2, F3, P4, R4 in `check_replications.py`. Closes when:
   each rule fails on a planted lane defect.
 - T-10b [A] jnwb cross-learning (`control/harness/jnwb_cross_learning.md`): errors page, a proxy-claim
@@ -118,7 +122,15 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   `synthetic_presyn_gain`, `eligibility_trace_gain` update per step without dt (`hdp_rule.py:318-372`);
   builders default seed 42 against `construct` 0; `adex_destexhe.py:181` rounds half-even; a state clamp on
   the plain Izhikevich path (T-19); same-layer zeroing for I/Inl/Ing (T-18); bfloat16 compute or storage.
-  Each changes outputs. Closes when: each is ruled.
+  Estimator calls from the T-41 audit: `fleiss_kappa_binary` (`analysis/metrics.py:411-426`) scores observed
+  agreement as unanimity and expected agreement pairwise, so independent trains give about -1 while its
+  docstring says 0; GSDR's kappa comes from it (`run_gsdr.py:295`; CALIBRATION 6.6 calls the estimator the
+  same as the authors'), so textbook Fleiss or the paper's form; `welch_numpy` (`analysis/spectral.py:205-231`)
+  uses a symmetric Hann window while its docstring says the scipy convention (PSD up to 15.7% apart); bins
+  off the dt grid are rounded silently in `fano_factor`, `fleiss_kappa_binary` and `metrics.py:1014` while
+  `wang_buzsaki_kappa` refuses them; optimizer seeds collide (`optim/core.py:1608` fold_in index at
+  population above 10; `:1646` simulation seeds `seed + gen*pop + row` shared by runs whose seeds differ by a
+  multiple of pop). Each changes outputs. Closes when: each is ruled.
 - T-51 [H] Protocol calls: P6 seeds and Q5 (`izhikevich2003/core/PREREG_P6.md`); Potjans and Vogels scale
   and bands; D2 Destexhe and GSDR preregs; CAMINOS S2 re-run; PCL F6 column and the WSL installs for the
   C++ binary; jitter reader follow-up (w_max, larger frozen sets). Closes when: each is ruled.
@@ -128,7 +140,9 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   radius cutoff); D35 `apply_calibration`; D28 symbol (9A names). Closes when: each is ruled.
 - T-53 [H] Repo calls: T-16 atlas test merge; T-17 the manuscript tree and five receipt-writing scripts;
   T-PR Dependabot #115, #116 and deleting the merged remote branches `caminos-p6`, `fix/rtd-mcc3-post-d1`,
-  `izh2003`, `l2-caminos`, `pcl-port`; dashboard P1 and P2 after the P0 acceptance; the 0.5.9 release go.
+  `izh2003`, `l2-caminos`, `pcl-port`; dashboard P1 and P2 after the P0 acceptance; GSDR's stage (REPLICATIONS
+  reads P1 with `PORT_SPEC.md` and an unsigned `PREREG_P3.md` on disk; Destexhe in the same state reads P3);
+  the 0.5.9 release go.
   Closes when: each is ruled.
 - T-O58 [H] WSL DNS. Closes when: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
 - T-O68 [H] Local copies (O-68). Closes when: each is at `E:/repos/<name>` or `E:/repos/_wt/<repo>/<task>`

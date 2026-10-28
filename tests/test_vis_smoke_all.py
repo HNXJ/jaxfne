@@ -343,7 +343,7 @@ def _case_plot_stdp_adaptation_suite():
         assert len(pngs) == 4, f"expected 4 PNGs, found {pngs}"
 
 
-# --- plotly/connectivity.py, csd.py, dashboard.py, lfp.py, metrics.py, raster.py, spectra.py ---
+# --- jaxfne/vis/plotly/connectivity.py, csd.py, dashboard.py, lfp.py, metrics.py, raster.py, spectra.py ---
 
 def _case_plot_connectivity():
     from jaxfne.vis.plotly.connectivity import plot_connectivity
@@ -877,7 +877,7 @@ CASES = [
     ("hdp_diagnostics.voltage_trace_with_spikes_by_celltype", _case_voltage_trace_with_spikes_by_celltype),
     # plasticity_viz.py
     ("plasticity_viz.plot_stdp_adaptation_suite", _case_plot_stdp_adaptation_suite),
-    # plotly/connectivity.py, csd.py, dashboard.py, lfp.py, metrics.py, raster.py, spectra.py
+    # jaxfne/vis/plotly/connectivity.py, csd.py, dashboard.py, lfp.py, metrics.py, raster.py, spectra.py
     ("plotly.connectivity.plot_connectivity", _case_plot_connectivity),
     ("plotly.csd.plot_csd", _case_plot_csd),
     ("plotly.dashboard.create_dashboard", _case_create_dashboard),

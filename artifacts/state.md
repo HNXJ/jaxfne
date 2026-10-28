@@ -42,4 +42,5 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-Fast tier of `todo_stack.md` in lanes R, D, T, C (at most 3 Haiku workers at once), then T-41 and T-43.
+Fast tier of `todo_stack.md` in lanes R, D, T, C (at most 3 Haiku workers at once), then T-41 and T-42. The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned
+by frozen records, record pins or runtime paths, the root sits at its 7-folder limit, and no move is warranted.

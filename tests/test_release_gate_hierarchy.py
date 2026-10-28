@@ -375,10 +375,52 @@ def test_notebook_selector_is_the_gap_the_other_two_leave():
         assert _selects(NOTEBOOK_MARKER_EXPR, slow=slow, notebook=notebook)
 
 
+def _release_ci_steps(text: str) -> list[dict]:
+    """Release CI steps in file order, each with its job id, the job's `if:` and its own `if:`/`run:`."""
+    rows: list[dict] = []
+    job, job_if, step = None, None, None
+    for line in text.splitlines():
+        if re.fullmatch(r"  [A-Za-z0-9_-]+:", line):
+            job, job_if, step = line.strip().rstrip(":"), None, None
+        elif line.startswith("    if: "):
+            job_if = line[len("    if: "):].strip()
+        elif line.startswith("      - "):
+            step = {"job": job, "job_if": job_if, "if": None, "run": None}
+            rows.append(step)
+        elif step is not None and line.startswith("        if: "):
+            step["if"] = line[len("        if: "):].strip()
+        elif step is not None and line.startswith("        run: "):
+            step["run"] = line[len("        run: "):].strip()
+    return rows
+
+
+# Triggers the unfiltered sweep must run on: pushes to main, the nightly schedule (its ref is
+# main) and manual dispatch. Pull requests get the filtered fast sweep by design.
+RC_SWEEP_TRIGGERS = (
+    {"event_name": "push", "ref": "refs/heads/main"},
+    {"event_name": "schedule", "ref": "refs/heads/main"},
+    {"event_name": "workflow_dispatch", "ref": "refs/heads/main"},
+)
+
+
+def _gh_if_holds(expr: str, trigger: dict) -> bool:
+    """Evaluate a workflow `if:` for one trigger, over the operators these workflows use.
+
+    `needs.<job>.outputs.<name>` is read as not skipped; the nightly tree-equality skip is
+    not checked here. An unsupported token raises, so the check fails closed.
+    """
+    py = re.sub(r"needs\.[\w-]+\.outputs\.[\w-]+", "'false'", expr)
+    py = re.sub(r"github\.event_name", "EVENT", py)
+    py = re.sub(r"github\.ref\b", "REF", py)
+    py = py.replace("||", " or ").replace("&&", " and ")
+    return bool(eval(py, {"__builtins__": {}}, {"EVENT": trigger["event_name"], "REF": trigger["ref"]}))
+
+
 def test_release_ci_pytest_sweep_is_unfiltered():
     """If release CI ever gains a -m filter, the exhaustiveness argument changes.
 
-    The proof that RC covers release rests on release CI selecting *everything*.
+    The proof that RC covers release rests on release CI selecting *everything*. A job or
+    step `if:` on the unfiltered sweep may not skip it on a trigger that must run it.
     """
     text = (ROOT / ".github" / "workflows" / "release_ci.yml").read_text(encoding="utf-8")
     # Inspect only the arguments after the `pytest` token: `python -m pytest`
@@ -393,6 +435,20 @@ def test_release_ci_pytest_sweep_is_unfiltered():
         assert "--ignore" not in args, (
             f"release CI sweep gained an --ignore: {args.strip()!r}"
         )
+    sweep_steps = [
+        s for s in _release_ci_steps(text)
+        if s["run"] and "python -m pytest" in s["run"] and " -m " not in s["run"].split("pytest", 1)[1]
+    ]
+    assert sweep_steps, "release_ci.yml has an unfiltered sweep line but no step runs it"
+    for s in sweep_steps:
+        for label, expr in (("step", s["if"]), (f"job {s['job']}", s["job_if"])):
+            if expr is None:
+                continue
+            for trig in RC_SWEEP_TRIGGERS:
+                assert _gh_if_holds(expr, trig), (
+                    f"release CI {label} `if: {expr}` skips the unfiltered sweep on "
+                    f"{trig['event_name']} (ref {trig['ref']})"
+                )
 
 
 def test_pytest_notebook_is_a_required_family():
