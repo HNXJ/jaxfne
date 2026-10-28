@@ -127,6 +127,16 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   entries (two mutant harnesses, `gate_p3b.py`, diag q7, q8) are permanent exceptions; PCL diag scripts
   read `PCL_DIAG_DIR`. Done 2026-10-28: the five merged remote branches deleted. Agent call: protocol E
   `support_only_on_O_H` is a tautology; the fix keeps the frozen receipt's value (true), so no new version.
+  Science (T-50), each output-changing with a changelog fragment: P-052 next is a beta by horizon scan
+  against the central finite difference; P-048 default `u0 = b * v0`; P-051 a named `instantaneous` edge
+  receptor (the tau -> 0 limit) with a dense-route test; the two HDP probe rules apply spike terms as
+  per-spike jumps (dt-invariant); `make_ei_cloud_network` and `coop_omission_oddball_paradigm` default seed
+  0; `adex_destexhe.py:181` rounds half-up; no state clamp on the plain Izhikevich path (T-19 closed); the
+  same-layer rule stays PV/SST/VIP with others refused (T-18 closed); bfloat16 is storage only; textbook
+  Fleiss for `fleiss_kappa_binary`; `welch_numpy` uses the periodic Hann (equal to scipy); off-grid bins
+  refuse everywhere; optimizer seeds by nested `fold_in` and `SeedSequence([seed, gen, row])`; a declared
+  jdna cell type realizes at least 1 cell; `population_rates` gains `dt_ms` and `discard_ms`, the seconds
+  form deprecated for one release.
 - T-50 [H] Science calls: P-052 slope (scan beta for agreement with the finite difference, or a surrogate
   scaled to the upstroke); P-048 `u0` default; P-051 a named instantaneous receptor; HDP probe rules
   `synthetic_presyn_gain`, `eligibility_trace_gain` update per step without dt (`hdp_rule.py:318-372`);
