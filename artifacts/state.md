@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@6337c002 · 2026-10-28
+Stamp: jaxfne@dev@752c38ec · 2026-10-28
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
@@ -40,7 +40,10 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - 2026-10-28 (b1d9dfe1 to 6337c002, first CLI-worker lanes): P-048 default `u0 = b * v0`, P-051 named
   `instantaneous` receptor (F3 accepts b1d9dfe1); the ten pins and fixtures the new u0 moved (AT-10 pins
   the old u0; the eligibility equivalence bounds w at 1e-6, eager and jit differ by 2.98e-08); D31 and
-  D32 are public names on `jaxfne.hdp_rule`.
+  D32 are public names on `jaxfne.hdp_rule`; C1 closed (7 conflicts, 0 orphans, P21 maps the appendix);
+  the claim keys table in `output_bundles.md`. Broad gate on 752c38ec: 7835 passed, 0 failed; the
+  qlearning lane's precondition (old features above 2) now holds for one seed of five under the new
+  u0, so it asserts the maximum over seeds.
 
 ## Broken or in flight
 
