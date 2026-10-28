@@ -674,6 +674,12 @@ def simulate_hh(
     Implemented with ``jax.lax.scan``; no dense ``N x N`` matrix. dtype
     follows ``params``.
 
+    Gradients: ``edge_weight`` is read as a JAX array and carries a gradient
+    through the full scan (``tests/test_hh_full_kernel_grad.py``). The
+    receptor arrays and ``receptor_s0`` are read as host numbers for
+    validation, as is ``noise_gain`` here (:func:`simulate_hh_batch` takes it
+    as a traced value), so none of them carries a gradient.
+
     Raises ``ValueError`` naming the argument for every refused input
     (``dt_ms`` must be finite and > 0; ``ou_tau`` is required when noise is
     live and must be finite and > 0; ``ou_sigma`` must be finite).

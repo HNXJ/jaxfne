@@ -37,12 +37,6 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   tree-equality skip fails open under five planted defects): the `smoke` and `fast` auto-markers
   (`tests/conftest.py:77-85`) and the registered `integration` marker are selected by no gate, workflow or
   Makefile (recommend deleting them; Hamm's call in T-53, since local `-m fast` use is unknown). Closes when: the markers are deleted or selected.
-- T-38 [A] (C) Left (2026-10-28; the compile guard counts per cache key, the HH route has a full-kernel
-  gradient test and runs under x64): `simulate_hh`'s scalar inputs `noise_gain`, `receptor_s0`,
-  `receptor_tau_*` are cut by `float()` or `np.asarray` at entry (lane H1 report, not yet read in code), so
-  `edge_weight` is the differentiable input; its docstring does not say so. Recorded, no change: field
-  projection warnings are returned as data and no strict option exists; HH int32 counts stay below 2^31 at
-  GSDR sizes (15001 x 2230). Closes when: the differentiable inputs are verified and documented.
 - T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; after each dev
   push refresh the lane dashboard (skill `jaxfne-dashboard`). Closes when: `python
   scripts/build_dashboard_data.py --check` passes on each push.
@@ -59,8 +53,12 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 - T-55 [A] (C) Left of the T-41 findings verified 2026-10-27 (lane C3 fixed 2-9, item 1 fixed 2026-10-28,
   each with a failing test): (11) `analysis/spectral.py:80` float32 phase, absolute error 0.168 rad at
   1000 s; `spectrolaminar_psd_jax` is jitted with traced `freqs` and x64 off, so float64 changes its jit
-  contract. Hamm's calls in T-50: absence under a band lower bound of 0, `population_rates` dt in seconds,
-  mask orientation. Closes when: (11) is fixed with a failing test or ruled.
+  contract. Measured 2026-10-28 (sinusoids at 40 and 147.3 Hz, fs 1000 Hz, against a float64 DFT at the
+  same freqs): max PSD error over peak 2.9e-4 at 10 s, 5.4e-3 at 100 s, 1.15e-1 at 1000 s. A float32 fix
+  inside jit: `frac(r * 2^k)` is exact for r = f/fs, so the phase is the fractional part of the sum over
+  the set bits of n; it changes every PSD at rounding level (published spectrolaminar outputs included),
+  so it is Hamm's call in T-50. Hamm's calls in T-50 also: absence under a band lower bound of 0,
+  `population_rates` dt in seconds, mask orientation. Closes when: (11) is ruled, then fixed with a test.
 - T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`; C, D, F landed 2026-10-27): `paper-lanes` passed its
   first CI run (aa92b43a, both legs, every lane ran) and joins `fast-build`'s needs after a second; F's reuse
   requires one executed case per family in each JUnit leg (2026-10-28); the family mapping and the `gh` field
@@ -139,7 +137,8 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   `excitatory_to_all` selects E target rows plus every row with mostly positive input, so all of W when I
   cells receive mostly excitatory input; Suite No. 4 pairs `gGABA_w` with
   `E_to_I` and its tests and notebook depend on it (E_to_E and `all` are unaffected; E2b builds its own
-  masks), so fix the masks (outputs change) or rename them. Each changes outputs. Closes when: each is ruled.
+  masks), so fix the masks (outputs change) or rename them; the float32 PSD phase fix in T-55 (11) (outputs
+  change at rounding level; 11.5% of peak at 1000 s without it). Each changes outputs. Closes when: each is ruled.
 - T-51 [H] Protocol calls: P6 seeds and Q5 (`izhikevich2003/core/PREREG_P6.md`); Potjans and Vogels scale
   and bands; D2 Destexhe and GSDR preregs; CAMINOS S2 re-run; PCL F6 column and the WSL installs for the
   C++ binary; jitter reader follow-up (w_max, larger frozen sets). Closes when: each is ruled.
