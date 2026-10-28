@@ -2,9 +2,13 @@
 
 Run: C:/workspace/venv_py314_jax011/Scripts/python.exe -I C:/workspace/pcl_diag/build_cache.py
 """
+import os
 import sys
 
-sys.path.insert(0, "C:/workspace/pcl_diag")
+DIAG_DIR = os.environ.get("PCL_DIAG_DIR", "")
+if not DIAG_DIR:
+    sys.exit("PCL_DIAG_DIR is unset: set it to the PCL diagnostic workspace folder")
+sys.path.insert(0, DIAG_DIR)
 
 import diag_common as dc  # noqa: E402
 

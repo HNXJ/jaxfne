@@ -73,77 +73,77 @@
     "rule": "S1",
     "path": "artifacts/etudes/papers/caminos/test_caminos_analysis.py",
     "message": "line 412: spec_from_file_location loads a path that cannot be resolved",
-    "reason": "loads a mutant copy written to pytest's tmp_path at run time, so the path is not static.",
+    "reason": "loads a mutant copy written to pytest's tmp_path at run time, so the path is not static. Hamm exception 2026-10-28 (permanent).",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/port/test_fig3_analysis.py",
     "message": "line 529: spec_from_file_location loads a path that cannot be resolved",
-    "reason": "mutant harness loads a temporary copy of fig3_analysis.py, as the CAMINOS harness does (2026-10-20)",
+    "reason": "mutant harness loads a temporary copy of fig3_analysis.py, as the CAMINOS harness does (2026-10-20). Hamm exception 2026-10-28 (permanent).",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/izhikevich2003/gate_p3b.py",
     "message": "line 28: spec_from_file_location loads a path that cannot be resolved",
-    "reason": "_load passes its path parameter to spec_from_file_location, so no static path reaches the call.",
+    "reason": "_load passes its path parameter to spec_from_file_location, so no static path reaches the call. Hamm exception 2026-10-28 (permanent).",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/build_cache.py",
-    "message": "line 7: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "adds C:/workspace/pcl_diag, a diagnostic workspace outside the repository.",
+    "message": "line 11: sys.path.insert adds a path that cannot be resolved",
+    "reason": "path from PCL_DIAG_DIR at run time; Hamm exception 2026-10-28",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/diag_common.py",
-    "message": "line 25: sys.path.insert adds a path that cannot be resolved",
-    "reason": "adds a clone outside this repository and C:/workspace/pcl_diag through a loop variable.",
+    "message": "line 36: sys.path.insert adds a path that cannot be resolved",
+    "reason": "path from PCL_DIAG_DIR at run time; Hamm exception 2026-10-28",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q2_sf_curve.py",
-    "message": "line 10: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "adds C:/workspace/pcl_diag, a diagnostic workspace outside the repository.",
+    "message": "line 14: sys.path.insert adds a path that cannot be resolved",
+    "reason": "path from PCL_DIAG_DIR at run time; Hamm exception 2026-10-28",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q3_rsf_dist.py",
-    "message": "line 11: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "adds C:/workspace/pcl_diag, a diagnostic workspace outside the repository.",
+    "message": "line 15: sys.path.insert adds a path that cannot be resolved",
+    "reason": "path from PCL_DIAG_DIR at run time; Hamm exception 2026-10-28",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q4_sf_edges.py",
-    "message": "line 10: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "adds C:/workspace/pcl_diag, a diagnostic workspace outside the repository.",
+    "message": "line 14: sys.path.insert adds a path that cannot be resolved",
+    "reason": "path from PCL_DIAG_DIR at run time; Hamm exception 2026-10-28",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q5_t4_split.py",
-    "message": "line 11: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "adds C:/workspace/pcl_diag, a diagnostic workspace outside the repository.",
+    "message": "line 15: sys.path.insert adds a path that cannot be resolved",
+    "reason": "path from PCL_DIAG_DIR at run time; Hamm exception 2026-10-28",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q7_t2_sweep.py",
     "message": "line 11: sys.path.insert adds a path that cannot be resolved",
-    "reason": "adds a directory given on the command line (sys.argv[1]), a run-time path.",
+    "reason": "adds a directory given on the command line (sys.argv[1]), a run-time path. Hamm exception 2026-10-28 (permanent).",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q8_v6_numbers.py",
     "message": "line 12: sys.path.insert adds a path that cannot be resolved",
-    "reason": "adds a directory given on the command line (sys.argv[1]), a run-time path.",
+    "reason": "adds a directory given on the command line (sys.argv[1]), a run-time path. Hamm exception 2026-10-28 (permanent).",
     "todo": "T-30"
   },
   {

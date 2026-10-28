@@ -5,9 +5,13 @@ T1/T2 fold). Uses fig3_analysis._sf_curve and _sf_flank_per_cell unchanged.
 Checks the recomputed R_sf against fig3_analysis.t1_t2 and the scored JSON.
 Run with -I.
 """
+import os
 import sys
 
-sys.path.insert(0, "C:/workspace/pcl_diag")
+DIAG_DIR = os.environ.get("PCL_DIAG_DIR", "")
+if not DIAG_DIR:
+    sys.exit("PCL_DIAG_DIR is unset: set it to the PCL diagnostic workspace folder")
+sys.path.insert(0, DIAG_DIR)
 
 import numpy as np  # noqa: E402
 

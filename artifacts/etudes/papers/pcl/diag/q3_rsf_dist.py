@@ -6,9 +6,13 @@ the cell at its own (ori*, sf*) divided by that cell's own flank (mean over
 for the 0/0 and x/0 rules. Fold and preferences from diag_common.fold_state
 (the scorer's T1/T2 fold). Run with -I.
 """
+import os
 import sys
 
-sys.path.insert(0, "C:/workspace/pcl_diag")
+DIAG_DIR = os.environ.get("PCL_DIAG_DIR", "")
+if not DIAG_DIR:
+    sys.exit("PCL_DIAG_DIR is unset: set it to the PCL diagnostic workspace folder")
+sys.path.insert(0, DIAG_DIR)
 
 import numpy as np  # noqa: E402
 

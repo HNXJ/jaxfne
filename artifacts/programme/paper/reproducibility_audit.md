@@ -11,7 +11,7 @@ Scope: lane L9 of `artifacts/programme/design/plans/arxiv_paper_plan.md`. Read-o
 | Lock file (uv.lock, poetry.lock, Pipfile.lock, conda file, requirements lock, constraints) | none found | Glob over the worktree; only `docs/requirements.txt` matched |
 | Build backend | exact: `hatchling==1.29.0` | `pyproject.toml:10` |
 | Runtime dependencies | ranges: jax and jaxlib >=0.4.25,<0.12; numpy >=1.24; scipy >=1.10 | `pyproject.toml:44-47` |
-| Exact pins in extras | `scipy==1.17.1` (viz and dev, Python below 3.15); `ruff==0.17.1` (dev) | `pyproject.toml:63`, `:74` |
+| Exact pins in extras | `scipy==1.17.1` (viz and dev, Python below 3.15); `ruff==0.17.2` (dev) | `pyproject.toml:63`, `:74` |
 | viz extra (used by Read the Docs and the dashboard figures job) | range `matplotlib>=3.10.9,<3.12`; plotly, kaleido, pandas, Pillow, reportlab unpinned | `pyproject.toml:63`; `.readthedocs.yaml:14`; `.github/workflows/dashboard.yml:92` |
 | dev extra | `matplotlib>=3.10.9,<3.11` (Python below 3.15); pytest, build, nbclient unpinned | `pyproject.toml:74` |
 | Docs requirements | ranges: mkdocs >=1.6.1, mkdocs-material >=9.7.7, pymdown-extensions >=12.3 | `docs/requirements.txt:1-3` |

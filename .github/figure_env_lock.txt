@@ -1,6 +1,7 @@
 # Figure lock (9F): pip freeze --exclude-editable of the Release CI publication job, run 40444082095
 # (430d2ce3, Python 3.11, ubuntu-latest). The publication job installs with it as constraints and
 # checks that its own freeze equals it. Regenerate from a passing run's figure-env-freeze artifact.
+# ruff set to 0.17.2 by hand on 2026-10-28 to match the dev pin (Hamm ruling; ruff has no dependencies).
 absl-py==2.5.1
 asttokens==3.0.2
 attrs==26.1.0
@@ -71,7 +72,7 @@ referencing==0.37.0
 reportlab==5.1.0
 rpds-py==2026.9.1
 ruamel.yaml==0.19.1
-ruff==0.17.1
+ruff==0.17.2
 scipy==1.17.1
 simplejson==4.2.0
 six==1.17.0

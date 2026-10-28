@@ -46,43 +46,12 @@ JUNIT_MARKERS = ("data_gated", "optional_oracle", "bitwise_diagnostic")
 
 
 def pytest_collection_modifyitems(config, items):
-    """Dynamically assign smoke, fast, slow, and notebook markers based on module taxonomies.
+    """Record the JUnit-classified markers as user properties.
 
-    Also records the JUnit-classified markers as user properties. Pytest writes
-    them into the testcase's <properties> block under the default xunit2 family.
+    Pytest writes them into the testcase's <properties> block under the default xunit2 family.
     Appending to item.user_properties avoids record_property, which warns under xunit2.
     """
-    smoke_modules = {
-        "test_api_smoke",
-        "test_root_import_lightweight",
-        "test_public_surface_contract_v0413",
-        "test_continuation_contract",
-        "test_public_docs_hygiene",
-        "test_agent_context_hygiene",
-        "test_core_class_hygiene",
-    }
-
-    fast_modules = smoke_modules | {
-        "test_signals_get_v0329",
-        "test_neuronal_tensor_connectivity",
-        "test_neuronal_tensor",
-        "test_connection_rule_compile_v0330",
-        "test_mcc",
-        "test_relative_grammar_invariants",
-        "test_closure_hp_reconciliation",
-        "test_agsdr_classification",
-        "test_jdna_truth_gate",
-    }
-
-    marker_smoke = pytest.mark.smoke
-    marker_fast = pytest.mark.fast
-
     for item in items:
-        mod_name = item.module.__name__.split(".")[-1]
-        if mod_name in smoke_modules:
-            item.add_marker(marker_smoke)
-        if mod_name in fast_modules:
-            item.add_marker(marker_fast)
         for name in JUNIT_MARKERS:
             if item.get_closest_marker(name) is not None:
                 item.user_properties.append((JUNIT_MARKER_PROPERTY, name))

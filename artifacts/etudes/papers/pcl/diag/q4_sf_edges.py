@@ -5,9 +5,13 @@ Two preference sets, both from fig3_analysis and reused:
   - all-phase preference (T3/T4): fig3_analysis.fit_prefs_all (all cells in the set)
 Index 0 and index 17 are the lowest and highest sf index (N_SF = 18). Run with -I.
 """
+import os
 import sys
 
-sys.path.insert(0, "C:/workspace/pcl_diag")
+DIAG_DIR = os.environ.get("PCL_DIAG_DIR", "")
+if not DIAG_DIR:
+    sys.exit("PCL_DIAG_DIR is unset: set it to the PCL diagnostic workspace folder")
+sys.path.insert(0, DIAG_DIR)
 
 import numpy as np  # noqa: E402
 

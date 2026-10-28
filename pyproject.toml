@@ -71,7 +71,7 @@ jnwb = ["jnwb>=0.2.9; python_version >= '3.12'", "pynwb>=3.1"]
 # that gate, so it pins <3.11; the viz extra deliberately does not, so ordinary
 # visualization users are unconstrained. Python 3.15 has no matplotlib 3.10 or
 # scipy 1.17.1 wheels, so there the pins lift and the gate test skips.
-dev = ["pytest", "pytest-cov", "pytest-xdist", "ruff==0.17.1", "build", "optax>=0.2", "matplotlib>=3.10.9,<3.11; python_version < '3.15'", "matplotlib>=3.11; python_version >= '3.15'", "scipy==1.17.1; python_version < '3.15'", "scipy>=1.18.1; python_version >= '3.15'", "plotly", "kaleido", "pandas", "ipywidgets", "nbformat", "nbclient", "ipykernel"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "ruff==0.17.2", "build", "optax>=0.2", "matplotlib>=3.10.9,<3.11; python_version < '3.15'", "matplotlib>=3.11; python_version >= '3.15'", "scipy==1.17.1; python_version < '3.15'", "scipy>=1.18.1; python_version >= '3.15'", "plotly", "kaleido", "pandas", "ipywidgets", "nbformat", "nbclient", "ipykernel"]
 all = ["jaxfne[opt,jaxley,viz,io,jnwb,dev]"]
 
 [tool.ruff]
@@ -252,9 +252,6 @@ exclude = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
-  "smoke: T0 tiny mathematical invariants, hygiene, and surface contracts (~10s)",
-  "fast: T1 fast development unit tests (<= 60s)",
-  "integration: multi-component end-to-end integration workflows",
   "slow: long-running multi-trial simulations and parameter sweeps",
   "x64: test requires jax_enable_x64; the conftest fixture enables it for the test",
   "bitwise_diagnostic: platform-dependent bitwise-identity probe (see test docstring); informational, never contract",
