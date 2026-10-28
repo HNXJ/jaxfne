@@ -1,0 +1,1 @@
+- Protocol D's drive window refuses a negative or non-finite `onset_ms` and a `duration_ms` that is not positive, in the D1 schedule and the D2b drive-off index; a negative onset had indexed the schedule from its end. The frozen D1 window is unchanged.

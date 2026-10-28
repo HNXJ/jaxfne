@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -56,14 +57,23 @@ def _build_isolated_circuit(spec: dict[str, Any]) -> tuple[IzhikevichParams, Edg
     return params, edges
 
 
+def _drive_steps(ev: dict[str, Any], dt: float) -> tuple[int, int]:
+    """Drive onset and duration in steps; a negative or non-finite onset, or a duration <= 0, is refused."""
+    onset_ms, duration_ms = float(ev["onset_ms"]), float(ev["duration_ms"])
+    if not math.isfinite(onset_ms) or onset_ms < 0.0:
+        raise ValueError(f"drive onset_ms must be finite and >= 0; got {ev['onset_ms']!r}")
+    if not math.isfinite(duration_ms) or duration_ms <= 0.0:
+        raise ValueError(f"drive duration_ms must be finite and > 0; got {ev['duration_ms']!r}")
+    return int(round(onset_ms / dt)), int(round(duration_ms / dt))
+
+
 def _drive_schedule(spec: dict[str, Any]) -> np.ndarray:
     sim = spec["simulation_policy"]
     n_steps = int(sim["n_steps"])
     n = int(sim["n_neurons"])
     dt = float(sim["dt_ms"])
     ev = sim["drive"]
-    onset = int(round(float(ev["onset_ms"]) / dt))
-    dur = int(round(float(ev["duration_ms"]) / dt))
+    onset, dur = _drive_steps(ev, dt)
     amp = float(ev["amplitude"])
     sched = np.zeros((n_steps, n), dtype=np.float32)
     end = min(n_steps, onset + dur)

@@ -45,9 +45,8 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 
 - T-41 [A] (C2) T-41 audit 2026-10-27 at c88be711 (two efforts over `jdna/`, `tfne.py`, `optim/`, `analysis/`,
   `protocol_*/`): lane C2 fixed 8 of 10 (jdna geometry and development keys, optim parameters never read,
-  `learning_rate` 0, `allow_self` string, TFNE relation-origin delay). Left: the negative `onset_ms` in
-  `protocol_d_biological_rbs/d1_execution.py:65` (the packet named an absent path); protocol E
-  `support_only_on_O_H` (`e3_execution.py:268`), whose receipt `e3_execution_receipt.json` is frozen
+  `learning_rate` 0, `allow_self` string, TFNE relation-origin delay; protocol D's drive window refuses a
+  negative onset, 2026-10-28). Left: protocol E `support_only_on_O_H` (`e3_execution.py:268`), whose receipt `e3_execution_receipt.json` is frozen
   write-once, so a fix needs a new receipt version (Hamm, H-rule on frozen receipts). Estimator findings are
   in T-50. Closes when: both are fixed or ruled.
 - T-55 [A] (C) Left of the T-41 findings verified 2026-10-27 (lane C3 fixed 2-9, item 1 fixed 2026-10-28,

@@ -17,7 +17,11 @@ from jaxfne.emitters import (
     simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery,
 )
 from jaxfne.io import _git_head, json_safe
-from jaxfne.protocol_d_biological_rbs.d1_execution import _build_isolated_circuit, _drive_schedule
+from jaxfne.protocol_d_biological_rbs.d1_execution import (
+    _build_isolated_circuit,
+    _drive_schedule,
+    _drive_steps,
+)
 from jaxfne.protocol_d_biological_rbs.d1_protocol import load_d1_spec
 from jaxfne.protocol_d_biological_rbs.d2a_protocol import load_d2a_spec
 from jaxfne.protocol_d_biological_rbs.d2b_protocol import (
@@ -181,9 +185,7 @@ def _run_d2b(
 
 def _drive_off_index(d1: dict[str, Any], sim: dict[str, Any]) -> int:
     ev = d1["simulation_policy"]["drive"]
-    dt = float(sim["dt_ms"])
-    onset = int(round(float(ev["onset_ms"]) / dt))
-    dur = int(round(float(ev["duration_ms"]) / dt))
+    onset, dur = _drive_steps(ev, float(sim["dt_ms"]))
     return min(int(sim["n_steps"]), onset + dur)
 
 
