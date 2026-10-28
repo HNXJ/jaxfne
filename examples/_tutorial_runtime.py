@@ -68,22 +68,13 @@ def duration_ms(full_ms: float) -> float:
     return max(SMOKE_MIN_MS, float(full_ms) / SMOKE_DIVISOR)
 
 
-def manifest_model_status(manifest: dict) -> str:
-    """Map canonical ``claim_level`` to the tutorial validation_report key.
-
-    ``model_status`` is a tutorial-contract field only (runner checks
-    ``validation_report.json``). The manifest schema exposes ``claim_level``;
-    read that here rather than treating ``model_status`` as canonical.
-    """
-    if "model_status" in manifest and manifest["model_status"] is not None:
-        return manifest["model_status"]
+def manifest_claim_level(manifest: dict) -> str:
+    """Canonical ``claim_level`` of a tutorial output, read from its manifest."""
     return manifest.get("claim_level", "computational_scaffold")
 
 
-def manifest_field_model_status(manifest: dict) -> str:
-    """Map canonical ``field_claim_level`` to tutorial ``field_model_status``."""
-    if "field_model_status" in manifest and manifest["field_model_status"] is not None:
-        return manifest["field_model_status"]
+def manifest_field_claim_level(manifest: dict) -> str:
+    """Canonical ``field_claim_level`` of a tutorial output, read from its manifest."""
     return manifest.get("field_claim_level", "proxy_readout")
 
 

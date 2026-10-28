@@ -60,7 +60,7 @@ python scripts/validate_tutorial_outputs.py outputs/
 
 Checks: manifest.json, probe_report.json, metrics.json, validation_report.json, asset_hashes.json, figures/*.png, source_data.json.
 
-Status checks verified: amplitude_status=False, model_status="computational_scaffold", field_model_status="proxy_readout".
+Status checks verified: amplitude_status=False, claim_level="computational_scaffold", field_claim_level="proxy_readout".
 
 ### Validate Static PNG + Interactive HTML
 
@@ -97,7 +97,7 @@ Adds validation:
   "unit_id": [...],
   "units_or_status": "binary_spike_event_proxy",
   "operator_kind": "spk",
-  "model_status": "computational_scaffold",
+  "claim_level": "computational_scaffold",
   "amplitude_status": false
 }
 ```
@@ -140,7 +140,7 @@ Adds validation:
   "gamma_profile": [...],
   "units_or_status": "relative_proxy_units",
   "operator_kind": "spectrolaminar_profile",
-  "model_status": "computational_scaffold",
+  "claim_level": "computational_scaffold",
   "amplitude_status": false
 }
 ```
@@ -172,8 +172,8 @@ Hashes are recomputed during validation and compared against recorded values; mi
 Interactive visualizations propagate the immutable status checks:
 
 - `amplitude_status`: Always **False** (no amplitude calibration)
-- `model_status`: Always **"computational_scaffold"** (no biological statements)
-- `field_model_status`: Always **"proxy_readout"** (simulated fields, rather than real ones)
+- `claim_level`: Always **"computational_scaffold"** (no biological statements)
+- `field_claim_level`: Always **"proxy_readout"** (simulated fields, rather than real ones)
 
 **What interactive HTML shows:**
 - Mathematical relationships between simulation variables (spike times, field power)

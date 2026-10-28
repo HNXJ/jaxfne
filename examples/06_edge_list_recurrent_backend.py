@@ -44,7 +44,7 @@ def main() -> None:
         "batch_metadata": batch["metadata"],
         "run_status": "tutorial_scaffold",
         "field_solver_status": "linear_solver",
-        "field_model_status": "proxy_readout",
+        "field_claim_level": "proxy_readout",
         "amplitude_status": False,
         "mechanism_status": "outside_run",
     }
@@ -53,7 +53,7 @@ def main() -> None:
     print("n_edges:", edge_payload["n_edges"])
     print("V_m shape:", tuple(signals.V_m.shape))
     print("batch shape:", tuple(batch["V_m"].shape))
-    print("field_model_status:", report["field_model_status"])
+    print("field_claim_level:", report["field_claim_level"])
     print("amplitude_status:", report["amplitude_status"])
 
 

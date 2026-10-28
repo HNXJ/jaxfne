@@ -164,14 +164,8 @@ def main():
 
     # === 8. Status metadata verification ===
     validation_report = {
-        "model_status": tutorial_runtime.manifest_model_status(manifest),
-        # Legacy alias: claim_level → model_status
-        "claim_level": manifest.get("claim_level", tutorial_runtime.manifest_model_status(manifest)),
-        "field_model_status": tutorial_runtime.manifest_field_model_status(manifest),
-        # Legacy alias: field_claim_level → field_model_status
-        "field_claim_level": manifest.get(
-            "field_claim_level", tutorial_runtime.manifest_field_model_status(manifest)
-        ),
+        "claim_level": tutorial_runtime.manifest_claim_level(manifest),
+        "field_claim_level": tutorial_runtime.manifest_field_claim_level(manifest),
         "field_solver_status": manifest.get("field_solver_status"),
         "source_calibration_status": manifest.get("source_calibration_status"),
         "amplitude_status": tutorial_runtime.manifest_amplitude_status(manifest),
@@ -243,7 +237,7 @@ def main():
         "unit_id": unit_ids,
         "units_or_status": "binary_spike_event_proxy",
         "operator_kind": "spk",
-        "model_status": tutorial_runtime.manifest_model_status(manifest),
+        "claim_level": tutorial_runtime.manifest_claim_level(manifest),
         "amplitude_status": tutorial_runtime.manifest_amplitude_status(manifest),
     }
 

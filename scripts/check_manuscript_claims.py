@@ -33,7 +33,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_LEDGER = "artifacts/publication/publication_claim_ledger.json"
-DEFAULT_MANUSCRIPT_DIR = "docs/theory/publication/manuscript"
+DEFAULT_MANUSCRIPT_DIR = "artifacts/programme/paper/publication/manuscript"
 ORPHAN_FILES = ("abstract.md", "results.md")
 # Status kinds named in the ledger's `purpose` field. The ledger test asserts four
 # of them and reserves UNSUPPORTED. No code owns this set; it is copied from prose.

@@ -41,7 +41,7 @@ MODE_AUTHORITIES = {
     ],
     "PUBLICATION": [
         "artifacts/publication/publication_evidence_index.json",
-        "docs/theory/publication/results_reconstruction/drafts/results_draft.md",
+        "artifacts/programme/paper/publication/results_reconstruction/drafts/results_draft.md",
         "artifacts/_temp/CURRENT_TASK.md",
     ],
     "SCIENCE": [

@@ -141,12 +141,13 @@ def validate_tutorial_output(tutorial_dir: pathlib.Path, tutorial_name: str,
 
             data = json.loads(json_str)
 
-            # Validate status checks
-            if "model_status" in data:
-                results["status_checks"]["model_status"] = data["model_status"]
-                if data["model_status"] != "computational_scaffold":
+            # Validate status checks; the legacy name is read only from receipts that predate claim_level
+            claim_key = "claim_level" if "claim_level" in data else "model_status"
+            if claim_key in data:
+                results["status_checks"][claim_key] = data[claim_key]
+                if data[claim_key] != "computational_scaffold":
                     raise ValueError(
-                        f"Invalid model_status: {data['model_status']} "
+                        f"Invalid {claim_key}: {data[claim_key]} "
                         f"(expected: computational_scaffold)"
                     )
 
@@ -159,11 +160,12 @@ def validate_tutorial_output(tutorial_dir: pathlib.Path, tutorial_name: str,
                         f"amplitude_status must be False, got {data['amplitude_status']}"
                     )
 
-            if "field_model_status" in data:
-                results["status_checks"]["field_model_status"] = data["field_model_status"]
-                if data["field_model_status"] != "proxy_readout":
+            field_key = "field_claim_level" if "field_claim_level" in data else "field_model_status"
+            if field_key in data:
+                results["status_checks"][field_key] = data[field_key]
+                if data[field_key] != "proxy_readout":
                     raise ValueError(
-                        f"Invalid field_model_status: {data['field_model_status']} "
+                        f"Invalid {field_key}: {data[field_key]} "
                         f"(expected: proxy_readout)"
                     )
 

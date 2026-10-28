@@ -7,7 +7,7 @@ that the full paradigm serializes to strict JSON.
 
 Scientific status:
   run_status: tutorial_scaffold
-  model_status: computational_scaffold
+  claim_level: computational_scaffold
   mechanism_status: outside_run
   empirical_validation_status: not_empirically_validated
 
@@ -81,7 +81,7 @@ def main():
 
     print("\n=== Scientific status status ===")
     print("  run_status: tutorial_scaffold")
-    print("  model_status: computational_scaffold")
+    print("  claim_level: computational_scaffold")
     print("  mechanism_status: outside_run")
     print("  mechanism_claim_status: not_claimed")
     print("  empirical_validation_status: not_empirically_validated")

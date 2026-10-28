@@ -237,5 +237,5 @@ registered claims):
 | A-3 | HDP trajectory boundedness (2 presets × 3 seeds) | `artifacts/protocol_c/p2v_a3_hdp_boundedness/p2v_a3_receipt.json` |
 
 Sentence/paragraph-level traceability (claims, receipts, forbidden-language mapping) is
-maintained in `docs/theory/publication/results_reconstruction/traceability/traceability_map.md`; quantitative
+maintained in `artifacts/programme/paper/publication/results_reconstruction/traceability/traceability_map.md`; quantitative
 markers {Qnn} are verified by `scripts/audit_results_draft.py`.

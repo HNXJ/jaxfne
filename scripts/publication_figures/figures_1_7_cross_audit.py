@@ -5,7 +5,7 @@ Read-only: does not modify frozen protocol results or figure scientific content.
 
 Outputs:
   artifacts/publication/figures_1_7_cross_figure_audit.json
-  docs/theory/publication/figures_1_7_cross_audit_summary.md
+  artifacts/programme/paper/publication/figures_1_7_cross_audit_summary.md
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from _pub_figure_common import ensure_publication_dirs, repo_root, repo_sha, utc_now_iso, write_json_strict
 from scripts.internal.publication.cross_figure_audit import run_cross_figure_audit
 
-SUMMARY_PATH = repo_root() / "docs" / "theory" / "publication" / "figures_1_7_cross_audit_summary.md"
+SUMMARY_PATH = repo_root() / "artifacts" / "programme" / "paper" / "publication" / "figures_1_7_cross_audit_summary.md"
 
 
 def build_summary(audit: dict) -> str:

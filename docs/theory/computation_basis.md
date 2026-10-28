@@ -185,7 +185,7 @@ Collapse rule: Can run single area with all-to-all connectivity if whole-brain i
 
 ```
 run_status: tutorial_scaffold
-model_status: computational_scaffold (new domain, candidate-status)
+claim_level: computational_scaffold (new domain, candidate-status)
 amplitude_status: False (connectivity not empirically calibrated)
 source_calibration_status: uncalibrated_multi_area_izhikevich
 field_solver_status: linear_solver (even for 3D, still proxy)

@@ -20,8 +20,8 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DRAFT = ROOT / "docs/theory/publication/results_reconstruction/drafts/results_draft.md"
-TRACE = ROOT / "docs/theory/publication/results_reconstruction/traceability/traceability_map.md"
+DRAFT = ROOT / "artifacts/programme/paper/publication/results_reconstruction/drafts/results_draft.md"
+TRACE = ROOT / "artifacts/programme/paper/publication/results_reconstruction/traceability/traceability_map.md"
 OUT = ROOT / "artifacts/publication/results_reconstruction/results_audit_receipt.json"
 
 

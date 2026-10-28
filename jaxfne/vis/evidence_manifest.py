@@ -55,8 +55,8 @@ def utc_now_iso() -> str:
 
 
 def evidence_checklist_path() -> Path:
-    """Return the evidence checklist path (docs/theory/publication/, since 72eafbbd)."""
-    return repo_root() / "docs" / "theory" / "publication" / "evidence_checklist.json"
+    """Return the evidence checklist path (artifacts/programme/paper/publication/)."""
+    return repo_root() / "artifacts" / "programme" / "paper" / "publication" / "evidence_checklist.json"
 
 
 def truth_gates() -> dict:

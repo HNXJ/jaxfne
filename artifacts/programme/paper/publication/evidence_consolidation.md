@@ -112,7 +112,7 @@ Six-panel compositional culmination: E1 hierarchy → E2 delays → E3 sparse RB
 | Artifact | Path |
 |----------|------|
 | Machine-readable audit | `artifacts/publication/figures_1_7_cross_figure_audit.json` |
-| Human summary | `docs/theory/publication/figures_1_7_cross_audit_summary.md` |
+| Human summary | `artifacts/programme/paper/publication/figures_1_7_cross_audit_summary.md` |
 | Generator | `scripts/publication_figures/figures_1_7_cross_audit.py` |
 
 Verifies terminology, polarity, frozen boundaries (H4−, C3−, D3−, W3b unresolved, E5+), Experiment-A Q provenance, and figure-to-PEC mapping. **Next:** Supplement assembly (S.1–S.4) → Introduction/literature → Discussion → Abstract → compliance; Results and Methods reconstruction drafts are complete (66/66 and 51/51 audit passes).

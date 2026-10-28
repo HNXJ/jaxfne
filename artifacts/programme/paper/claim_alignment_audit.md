@@ -1,7 +1,7 @@
 # Claim alignment audit (C1), 2026-10-27
 
-Manuscript `docs/theory/publication/manuscript/` against `artifacts/publication/publication_claim_ledger.json`.
-results.md carries its CL ids in `docs/theory/publication/results_reconstruction/traceability/traceability_map.md`
+Manuscript `artifacts/programme/paper/publication/manuscript/` against `artifacts/publication/publication_claim_ledger.json`.
+results.md carries its CL ids in `artifacts/programme/paper/publication/results_reconstruction/traceability/traceability_map.md`
 (the 4R revision moved them out of the prose; sections P1-P20 of results.md, the A-1a to A-3 numbers as
 Q markers checked by `scripts/audit_results_draft.py`, 70 of 70 checks pass; results.md is the draft without its
 Q markers). `python scripts/check_manuscript_claims.py` reads the

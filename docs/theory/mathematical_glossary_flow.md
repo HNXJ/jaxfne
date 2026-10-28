@@ -201,7 +201,7 @@ CSD turns a field-current pattern into a source/sink-like readout. It is the pri
 
 **Implementation:**
 - `jaxfne.fields.project_laminar_sources()`: computes CSD proxy directly
-- Manifest: `csd_sign_convention`, `field_model_status == "proxy_readout"`
+- Manifest: `csd_sign_convention`, `field_claim_level == "proxy_readout"`
 
 ---
 

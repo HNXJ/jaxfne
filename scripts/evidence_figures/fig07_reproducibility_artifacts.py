@@ -41,7 +41,7 @@ SOURCE_FILES = [
     "scripts/evidence_figures/fig07_reproducibility_artifacts.py",
     "scripts/evidence_figures/_figure_common.py",
     "scripts/evidence_inventory.py",
-    "docs/theory/publication/evidence_checklist.json",
+    "artifacts/programme/paper/publication/evidence_checklist.json",
 ]
 
 TITLE = "Evidence reproducibility artifact chain"

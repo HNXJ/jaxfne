@@ -99,9 +99,9 @@ Proxy mode reports `poynting_flux_proxy: null`. Poynting flux, stress-energy ten
 |---|---|---|
 | `diagnostic_status` | `"proxy"` | Always `"proxy"`; no physical status |
 | `diagnostic_version` | `"current"` | Version tag |
-| `model_status` | `"computational_scaffold"` | Always scaffold |
+| `claim_level` | `"computational_scaffold"` | Always scaffold |
 | `field_solver_status` | str | Passed through; `"linear_solver"` by default |
-| `field_model_status` | str | Passed through; `"proxy_readout"` by default |
+| `field_claim_level` | str | Passed through; `"proxy_readout"` by default |
 | `source_calibration_status` | str | Passed through from run metadata |
 | `amplitude_status` | `false` | Always `false` |
 | `metabolism_status` | `false` | Always `false` |

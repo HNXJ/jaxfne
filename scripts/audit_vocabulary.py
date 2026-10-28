@@ -54,7 +54,7 @@ DOC_SOURCES = (
 )
 
 # Exempt: dated snapshots / archived / frozen evidence / generated material not
-# live release-facing prose. docs/theory/publication/, docs/etudes/,
+# live release-facing prose. artifacts/programme/paper/publication/, docs/etudes/,
 # docs/theory/memory/protocol_*.md, and docs/theory/protocols/ are frozen evidence
 # surfaces; docs/reference/releases/ are dated snapshots; inventory records are dated
 # planning documents (developer roadmap archived to artifacts/developer/fullroadmap.md,
@@ -65,7 +65,7 @@ EXEMPT_PREFIXES = (
     "docs/archive/tutorials_v030/",
     "docs/reference/changelog.md",
     "docs/_generated/",
-    "docs/theory/publication/",
+    "artifacts/programme/paper/publication/",
     "docs/etudes/",
     "docs/theory/memory/protocol_",
     "docs/theory/protocols/",

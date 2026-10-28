@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Audit the final Supplement draft against the frozen evidence receipts.
 
-Re-derives every quantitative table value in docs/theory/publication/results_reconstruction/
+Re-derives every quantitative table value in artifacts/programme/paper/publication/results_reconstruction/
 supplement.md from the cited frozen receipts and fails (exit 1) on any mismatch.
 
 Checks
@@ -29,7 +29,7 @@ import sys
 from collections import Counter
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DRAFT = ROOT / "docs/theory/publication/results_reconstruction/drafts/supplement.md"
+DRAFT = ROOT / "artifacts/programme/paper/publication/results_reconstruction/drafts/supplement.md"
 OUT = ROOT / "artifacts/publication/results_reconstruction/supplement_audit_receipt.json"
 
 failures: list[str] = []

@@ -364,9 +364,9 @@ def main():
 
         "basis": {
             "run_status": "tutorial_scaffold",
-            "model_status": "computational_scaffold",
+            "claim_level": "computational_scaffold",
             "field_solver_status": "linear_solver",
-            "field_model_status": "proxy_readout",
+            "field_claim_level": "proxy_readout",
             "amplitude_status": False,
             "metabolism_status": False,
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
@@ -504,7 +504,7 @@ def main():
     with open(manifest_path) as f:
         loaded = json.load(f)
     assert loaded["basis"]["amplitude_status"] is False
-    assert loaded["basis"]["model_status"] == "computational_scaffold"
+    assert loaded["basis"]["claim_level"] == "computational_scaffold"
     assert set(loaded["probe_report"].keys()) == {
         "spikes", "V_m", "source", "lfp_proxy", "csd_proxy",
         "eeg_proxy", "meg_proxy", "emm_proxy",

@@ -367,7 +367,7 @@ def main():
         "gamma_profile": gamma_profile,
         "units_or_status": "relative_proxy_units",
         "operator_kind": "spectrolaminar_profile",
-        "model_status": tutorial_runtime.manifest_model_status(manifest),
+        "claim_level": tutorial_runtime.manifest_claim_level(manifest),
         "amplitude_status": tutorial_runtime.manifest_amplitude_status(manifest),
     }
 

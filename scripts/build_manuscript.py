@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Deterministic manuscript PDF: P1-publication, Δscience=0. v0.4.17
 
-Concatenates docs/theory/publication/manuscript/*.md in fixed order
+Concatenates artifacts/programme/paper/publication/manuscript/*.md in fixed order
 abstract→introduction→methods→results→discussion→supplement,
 injects figure embeds from artifacts/figures/publication/final/ (300 DPI, SHA-verified),
 reads captions from fig*_semantic_audit.json (no science vocab added),
@@ -121,7 +121,7 @@ def build(out: Path, backend: str = "auto") -> Path:
     validate_doi_syntax()
     parts = []
     for name in ORDER:
-        p = ROOT / f"docs/theory/publication/manuscript/{name}.md"
+        p = ROOT / f"artifacts/programme/paper/publication/manuscript/{name}.md"
         if not p.exists():
             raise SystemExit(f"missing manuscript part {p}")
         parts.append(p.read_text(encoding="utf-8"))

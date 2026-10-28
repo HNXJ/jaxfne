@@ -110,11 +110,13 @@ def validate_tutorial_output(
 
             # Extract status checks from manifest and validation_report
             if contract_file == "manifest.json":
-                if "model_status" in data:
-                    result["status_checks"]["model_status"] = data["model_status"]
-                    if data["model_status"] != "computational_scaffold":
+                # the legacy name is read only from receipts that predate claim_level
+                claim_key = "claim_level" if "claim_level" in data else "model_status"
+                if claim_key in data:
+                    result["status_checks"][claim_key] = data[claim_key]
+                    if data[claim_key] != "computational_scaffold":
                         raise ValueError(
-                            f"Invalid model_status in manifest.json: {data['model_status']} "
+                            f"Invalid {claim_key} in manifest.json: {data[claim_key]} "
                             f"(expected: computational_scaffold)"
                         )
 
@@ -128,19 +130,21 @@ def validate_tutorial_output(
                             f"got {data['amplitude_status']}"
                         )
 
-                if "field_model_status" in data:
-                    result["status_checks"]["field_model_status"] = data["field_model_status"]
-                    if data["field_model_status"] != "proxy_readout":
+                field_key = "field_claim_level" if "field_claim_level" in data else "field_model_status"
+                if field_key in data:
+                    result["status_checks"][field_key] = data[field_key]
+                    if data[field_key] != "proxy_readout":
                         raise ValueError(
-                            f"Invalid field_model_status in manifest: {data['field_model_status']} "
+                            f"Invalid {field_key} in manifest: {data[field_key]} "
                             f"(expected: proxy_readout)"
                         )
 
             if contract_file == "validation_report.json":
-                if "model_status" in data:
-                    if data["model_status"] != "computational_scaffold":
+                claim_key = "claim_level" if "claim_level" in data else "model_status"
+                if claim_key in data:
+                    if data[claim_key] != "computational_scaffold":
                         raise ValueError(
-                            f"Invalid model_status in validation_report.json: {data['model_status']}"
+                            f"Invalid {claim_key} in validation_report.json: {data[claim_key]}"
                         )
                 if "amplitude_status" in data:
                     if data["amplitude_status"] is not False:
@@ -186,8 +190,9 @@ def validate_tutorial_output(
         source_data = json.loads(source_data_str)
 
         # Validate status checks in source data
-        if source_data.get("model_status") != "computational_scaffold":
-            raise ValueError(f"source_data.json model_status must be computational_scaffold, got {source_data.get('model_status')}")
+        source_claim = source_data.get("claim_level", source_data.get("model_status"))
+        if source_claim != "computational_scaffold":
+            raise ValueError(f"source_data.json claim_level must be computational_scaffold, got {source_claim}")
         if source_data.get("amplitude_status") is not False:
             raise ValueError("source_data.json amplitude_status must be False")
 

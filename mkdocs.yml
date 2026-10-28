@@ -33,8 +33,6 @@ exclude_docs: |
   theory/tensor_electromagnetics_scope.md
   theory/tensor_network_ancestry.md
   theory/doctrine/rbs_rbd_hdp_inventory.md
-  theory/publication/evidence_consolidation.md
-  theory/publication/figures_1_7_cross_audit_summary.md
   reference/project/ci_policy.md
   archive/tutorial_figures.md
   _generated/operator_inventory.md
@@ -51,28 +49,6 @@ exclude_docs: |
   reference/project/zenodo_doi.md
   theory/notes/biophysical_model_comparison.md
   reference/glossary_of_methods.md
-  # Manuscript-in-progress working files (Publication phase): deliberately
-  # non-navigable on the public site -- delivery artifacts, not user docs.
-  theory/publication/results_reconstruction/drafts/abstract_draft.md
-  theory/publication/results_reconstruction/traceability/abstract_traceability_map.md
-  theory/publication/results_reconstruction/drafts/results_draft.md
-  theory/publication/results_reconstruction/traceability/traceability_map.md
-  theory/publication/results_reconstruction/drafts/methods_draft.md
-  theory/publication/results_reconstruction/traceability/methods_traceability_map.md
-  theory/publication/results_reconstruction/drafts/supplement_material.md
-  theory/publication/results_reconstruction/drafts/supplement.md
-  theory/publication/results_reconstruction/traceability/supplement_traceability_map.md
-  theory/publication/results_reconstruction/drafts/introduction_draft.md
-  theory/publication/results_reconstruction/traceability/introduction_traceability_map.md
-  theory/publication/results_reconstruction/drafts/discussion_draft.md
-  theory/publication/results_reconstruction/traceability/discussion_traceability_map.md
-  publication/manuscript/*
-  theory/publication/manuscript/abstract.md
-  theory/publication/manuscript/discussion.md
-  theory/publication/manuscript/introduction.md
-  theory/publication/manuscript/methods.md
-  theory/publication/manuscript/results.md
-  theory/publication/manuscript/supplement.md
 
 theme:
   name: material
@@ -210,6 +186,7 @@ nav:
       - Validation: reference/api/core/validation.md
       - Visualization: reference/api/readout/vis.md
       - JDNA: reference/api/model/jdna.md
+      - Errors: reference/errors.md
 
   - Appendix:
       - References: reference/references.md

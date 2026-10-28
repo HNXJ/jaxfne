@@ -24,7 +24,7 @@ cfg = cfg.probe(name="laminar_probe", modes=["spikes", "V_m", "source", "phi_e",
 # Optional: override with update_metadata()
 cfg = cfg.update_metadata(
     run_status="tutorial_scaffold",
-    model_status="computational_scaffold",
+    claim_level="computational_scaffold",
 )
 
 model = jtfne.construct(cfg)

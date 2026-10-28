@@ -11,8 +11,8 @@ Model.tune() in v0.0.5 is a metadata-only scaffold:
 
 Scientific status:
   run_status: tutorial_scaffold
-  model_status: computational_scaffold
-  field_model_status: proxy_readout
+  claim_level: computational_scaffold
+  field_claim_level: proxy_readout
   amplitude_status: false
   empirical_validation_status: not_empirically_validated
   mechanism_status: outside_run
@@ -121,7 +121,7 @@ def main():
     print("\n=== Full manifest (validation metadata) ===")
     print(f"  manifest_schema_version: {full_manifest['manifest_schema_version']!r}")
     _sfs = full_manifest.get('source_field_status', {})
-    print(f"  field_model_status: {_sfs.get('field_model_status', _sfs.get('field_claim_level', 'proxy_readout'))!r}")
+    print(f"  field_claim_level: {_sfs.get('field_claim_level', 'proxy_readout')!r}")
     _sfs2 = full_manifest.get('source_field_status', {})
     print(f"  amplitude_status: "
           f"{_sfs2.get('amplitude_status', _sfs2.get('physical_amplitude_calibrated', False))}")
@@ -132,8 +132,8 @@ def main():
 
     print("\n=== Scientific status status ===")
     print("  run_status: tutorial_scaffold")
-    print("  model_status: computational_scaffold")
-    print("  field_model_status: proxy_readout")
+    print("  claim_level: computational_scaffold")
+    print("  field_claim_level: proxy_readout")
     print("  amplitude_status: false")
     print("  empirical_validation_status: not_empirically_validated")
     print("  mechanism_status: outside_run")

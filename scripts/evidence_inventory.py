@@ -66,7 +66,7 @@ MANIFEST_PATHS = [
     "artifacts/publication/figures_1_7_cross_figure_audit.json",
     "artifacts/publication/publication_evidence_index.json",
     "artifacts/publication/publication_claim_ledger.json",
-    "docs/theory/publication/evidence_checklist.json",
+    "artifacts/programme/paper/publication/evidence_checklist.json",
 ]
 
 

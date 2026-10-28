@@ -223,7 +223,7 @@
     "ed10_release_archive_receipt": "python scripts/evidence_figures/ed10_release_archive_receipt.py"
   },
   "required_artifacts": [
-    "docs/theory/publication/evidence_checklist.json",
+    "artifacts/programme/paper/publication/evidence_checklist.json",
     "scripts/evidence_figures_inventory.py",
     "artifacts/_temp/outputs/evidence/inventory.json"
   ],
