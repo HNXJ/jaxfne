@@ -63,16 +63,8 @@ def write_json(path: Path, obj: Any) -> None:
         json.dump(obj, f, allow_nan=False, indent=2, sort_keys=True)
 
 
-def main(update_canonical: bool = False):
-    """Main tutorial execution.
-
-    Parameters
-    ----------
-    update_canonical : bool, default False
-        When True, write the canonical docs manifest to docs/archive/tutorials_v030/manifests/.
-        Tests should call main() with update_canonical=False (the default) to prevent
-        tracked tutorial artifact drift.
-    """
+def main():
+    """Main tutorial execution."""
 
     print("=" * 80)
     print("v0.3.1 Single Izhikevich Neuron Tutorial")
@@ -429,19 +421,6 @@ def main(update_canonical: bool = False):
     hashes["figures/v0301_single_neuron_voltage.png"] = voltage_hash
     hashes["figures/v0301_single_neuron_raster.png"] = raster_hash
     write_json(OUT / "asset_hashes.json", hashes)
-
-    # Only update canonical docs manifests when explicitly requested
-    if update_canonical:
-        canonical_manifest_path = Path("docs/archive/tutorials_v030/manifests/v0301_single_izhikevich_neuron_manifest.json")
-        canonical_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        write_json(canonical_manifest_path, atlas_manifest)
-
-        canonical_report_path = Path("docs/archive/tutorials_v030/reports/v0301_single_izhikevich_neuron_validation_report.json")
-        canonical_report_path.parent.mkdir(parents=True, exist_ok=True)
-        write_json(canonical_report_path, atlas_manifest["validation_report"])
-
-        print(f"Canonical manifest: {canonical_manifest_path}")
-        print(f"Canonical report: {canonical_report_path}")
 
     # ============================================================================
     # Summary

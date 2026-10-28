@@ -160,10 +160,8 @@ def main():
         else None
     )
 
-    # EEG, MEG, EMM operators use field signal
-    field_signal = (
-        signals.field.lfp_proxy if signals.field is not None else signals.V_m
-    )
+    # EEG, MEG, EMM operators read the declared field's LFP proxy
+    field_signal = signals.field.lfp_proxy
     eeg_readout = eeg_proxy_probe(field_signal)
     meg_readout = meg_proxy_probe(field_signal)
     emm_readout = emm_proxy_probe(field_signal)

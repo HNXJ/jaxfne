@@ -113,6 +113,18 @@ def test_gampa_scalar_parameter_edit_is_behaviorally_identical_to_prior_numpy_im
     assert np.array_equal(expected, actual)
 
 
+def test_zero_learning_rate_is_refused_not_replaced_by_default():
+    """learning_rate=0.0 was silently replaced by 0.01; a zero step is refused."""
+    import pytest
+
+    optimizer = jtfne.optax_adam(learning_rate=0.0, differentiability_status="declared_surrogate")
+    with pytest.raises(ValueError, match="learning_rate"):
+        _model().tune(
+            objectives=_rate_objective(), optimizer=optimizer, simulation=_sim(),
+            parameter="drive_gain", steps=2,
+        )
+
+
 def _edge_list_authoritative_model():
     """Small edge-list-authoritative model: placeholder emitter.W, topology in edge_list."""
     from dataclasses import replace

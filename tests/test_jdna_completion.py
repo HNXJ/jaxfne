@@ -6,6 +6,8 @@ JDNA completes under D + K_D, every value records its origin. The TFNE
 bridge itself is never touched here; completion is the JDNA-side path.
 """
 
+from types import SimpleNamespace
+
 import jax.numpy as jnp
 import pytest
 
@@ -105,6 +107,14 @@ def test_partial_domain_and_bad_distribution_fail_closed():
         realize_geometry({"z0": 2.0, "z1": 2.0}, 4, seed=0)
 
 
+def test_misspelled_geometry_key_is_refused_not_defaulted():
+    """zrange is not z_range: the key is refused, never silently defaulted."""
+    with pytest.raises(ValueError, match="zrange"):
+        realize_geometry({"zrange": (0.0, 5.0)}, 4, seed=0)
+    with pytest.raises(ValueError, match="distribtion"):
+        realize_geometry({"distribtion": "uniform"}, 4, seed=0)
+
+
 # --------------------------------------------------------------------------- #
 # complete_tfne(): per-leaf completion under K_D, bridge untouched
 # --------------------------------------------------------------------------- #
@@ -139,6 +149,18 @@ def test_complete_tfne_is_deterministic_in_seed():
     second = complete_tfne(r, seed=7)["positions"]
     for leaf in first:
         assert bool((first[leaf] == second[leaf]).all())
+
+
+def test_declared_geometry_for_absent_leaf_is_refused():
+    """A declared leaf with no realized neurons is refused, never dropped."""
+    prog = parse(_TFNE_GEO)
+    r = realize(tfne_resolve(prog), prog, seed=0)
+    assert "V.Ghost" not in set(r.I["neuron_paths"])
+    geometry = dict(r.s["geometry"])
+    geometry["V.Ghost"] = {"z0": 0.0, "z1": 1.0}
+    stub = SimpleNamespace(I=r.I, s=dict(r.s, geometry=geometry))
+    with pytest.raises(ValueError, match="V.Ghost"):
+        complete_tfne(stub, seed=7)
 
 
 # --------------------------------------------------------------------------- #

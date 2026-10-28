@@ -117,3 +117,17 @@ def test_statement_emit_roundtrip_stable():
     first = normalize(parse(PROG))
     assert normalize(parse(first)) == first
     assert _emit_rulestmt(_stmts()[1]) == "{L4} > L5 [mech=AMPA, delay=4.0]"
+
+
+def test_relation_origin_reports_the_compiled_statement_delay():
+    """A projection's origin reports the delay that compiles: its own
+    [delay=...], not the rule default (`delay = 1.0` in PROG)."""
+    program = parse(PROG)
+    explicit = resolve(program)
+    realized = realize(explicit, program, seed=0)
+    assert len(explicit.relations) == 3
+    assert all(rel.delay is not None for rel in explicit.relations)
+    origins = realized.I["rule_origins"]
+    for rel in explicit.relations:
+        assert origins[rel.key]["params"]["delay"] == rel.delay
+    assert sorted(o["params"]["delay"] for o in origins.values()) == [2.0, 3.0, 4.0]

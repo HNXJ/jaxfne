@@ -1,0 +1,1 @@
+- `develop` refuses a negative `fraction_jitter_sigma` and any development parameter other than `fraction_jitter_sigma` (a misspelled key was recorded as applied); a layer with no `fraction_tolerance` band, which takes the exact split, records its counts as derived instead of JDNA-sampled.

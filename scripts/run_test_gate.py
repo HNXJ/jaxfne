@@ -11,6 +11,8 @@ Gate vocabulary (single source of truth for local runs and CI references):
   rc           Full release-candidate verification (PRE_RELEASE_GATE >= RELEASE_CI_GATE)
   publication  Frozen scientific experiments and artifact validation
   examples     The RELEASE_EXAMPLES smoke list only (owner of the list)
+  paper-lanes  The paper-lane pytest sweeps only, the broad gate's lane list
+               (--lane NAME, repeatable, selects some lanes; CI job paper-lanes)
   wheel-smoke  The canonical isolated-wheel smoke in a given venv
                (owner of the smoke body; needs --venv-python)
 
@@ -714,16 +716,24 @@ def _run_lane(lane: str) -> int:
     return subprocess.run(cmd, cwd=ROOT, check=False, env=PYTEST_ENV).returncode
 
 
-def gate_pytest_lanes() -> None:
+def gate_pytest_lanes(lanes: list[str] | None = None) -> None:
     """One pytest process per paper lane (family ``pytest_lanes``).
+
+    ``lanes`` selects some lanes by folder name; the default is every discovered lane,
+    which is what the broad gate runs. An unknown name raises before any lane runs.
 
     Exit code 5 (no tests collected) fails: a lane is discovered only when it holds a
     tracked ``test_*.py``, so collecting nothing hides its tests. A known-failing lane
     that still fails is recorded in the ledger as exit 0 and named in its printed SKIP
     line; one that passes or collects nothing is a stale entry and fails the family.
     """
+    known = discover_pytest_lanes()
+    selected = known if lanes is None else list(lanes)
+    unknown = sorted(set(selected) - set(known))
+    if unknown:
+        raise ValueError(f"unknown paper lane(s) {unknown}; known lanes: {known}")
     failures: list[str] = []
-    for lane in discover_pytest_lanes():
+    for lane in selected:
         argv = _lane_argv(lane)
         started = _utcnow()
         rc = _run_lane(lane)
@@ -973,6 +983,7 @@ GATES = {
     "release-candidate": gate_rc,
     "publication": gate_publication,
     "examples": gate_examples,
+    "paper-lanes": gate_pytest_lanes,
     "wheel-smoke": gate_wheel_smoke,
 }
 
@@ -994,9 +1005,19 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="expected jaxfne version for the wheel-smoke gate (default: pyproject version)",
     )
+    parser.add_argument(
+        "--lane",
+        action="append",
+        default=None,
+        help="paper-lanes gate only: run this lane folder (repeatable; default: every discovered lane)",
+    )
     args = parser.parse_args(argv)
+    if args.lane is not None and args.gate != "paper-lanes":
+        parser.error("--lane applies to the paper-lanes gate only")
     if args.gate == "wheel-smoke":
         gate_wheel_smoke(venv_python=args.venv_python, expected_version=args.expected_version)
+    elif args.gate == "paper-lanes":
+        gate_pytest_lanes(args.lane)
     else:
         GATES[args.gate]()
     return 0

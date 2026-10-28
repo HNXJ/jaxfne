@@ -70,3 +70,15 @@ def test_source_scale_loop_falls_back_to_stub_for_multiple_losses():
     optimizer = jtfne.optax_adam(learning_rate=0.05, differentiability_status="declared_surrogate")
     result = model.tune(objectives=objective, optimizer=optimizer, simulation=sim, steps=5)
     assert result.summary["tuning_status"] == "optax_guarded_path_no_loop_v0.0.8"
+
+
+def test_zero_learning_rate_is_refused_not_replaced_by_default():
+    """learning_rate=0.0 was silently replaced by 0.01; a zero step is refused."""
+    import pytest
+
+    model = _model()
+    sim = jtfne.simulation(duration_ms=20.0, dt_ms=0.1, seed=0)
+    objective = jtfne.objective().loss("hit_target", metric="source_proxy_abs_mean", target=1.0)
+    optimizer = jtfne.optax_adam(learning_rate=0.0, differentiability_status="declared_surrogate")
+    with pytest.raises(ValueError, match="learning_rate"):
+        model.tune(objectives=objective, optimizer=optimizer, simulation=sim, steps=2)

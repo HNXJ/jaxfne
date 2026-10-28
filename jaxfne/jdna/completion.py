@@ -162,6 +162,12 @@ def _axis_range(declared: Mapping[str, Any], axis: str) -> tuple[float, float]:
     )
 
 
+#: Keys a declared geometry body may carry; any other key is refused.
+_GEOMETRY_KEYS = frozenset(
+    {"distribution"} | {f"{ax}{suffix}" for ax in "xyz" for suffix in ("0", "1", "_range")}
+)
+
+
 def realize_geometry(
     declared: Optional[Mapping[str, Any]], n: int, seed: int
 ) -> tuple[Any, dict[str, str]]:
@@ -179,6 +185,12 @@ def realize_geometry(
     `n == 0` yields an empty `(0, 3)` array deterministically.
     """
     body: Mapping[str, Any] = declared or {}
+    unknown = sorted(str(k) for k in body if k not in _GEOMETRY_KEYS)
+    if unknown:
+        raise ValueError(
+            f"unknown geometry key(s) {unknown}; JDNA honours only "
+            f"{sorted(_GEOMETRY_KEYS)}, and any other key would default its axis silently"
+        )
     if n < 0:
         raise ValueError(f"realize_geometry needs n >= 0; got {n}")
     distribution, dist_origin = resolve("geometry_distribution", body.get("distribution"))
@@ -235,6 +247,12 @@ def complete_tfne(realization: Any, seed: int) -> dict[str, Any]:
     positions: dict[str, Any] = {}
     origins: dict[str, Any] = {}
     geometry: Mapping[str, Any] = realization.s.get("geometry", {})
+    absent = sorted(str(k) for k in geometry if k not in counts)
+    if absent:
+        raise ValueError(
+            f"declared geometry for leaf {absent} has no realized neurons "
+            f"(realized leaves: {leaves}); refusing rather than dropping it silently"
+        )
     for leaf, subseed in zip(leaves, subseeds):
         pos, org = realize_geometry(geometry.get(leaf), counts[leaf], subseed)
         positions[leaf] = pos

@@ -1368,8 +1368,8 @@ def _validate_geometry_body(where: str, geometry: Mapping[str, Any]) -> None:
     and non-finite bounds are refused alongside, mirroring JDNA's
     `_axis_range` refusal rather than inventing a second policy. An
     undeclared axis defaults to the full extent downstream; `distribution`
-    and unknown keys pass through untouched (distribution support is a
-    downstream concern, not a language one).
+    and unknown keys pass through this check untouched, and JDNA completion
+    refuses unknown keys (`realize_geometry`).
     """
     for axis in ("x", "y", "z"):
         lo_key, hi_key, range_key = f"{axis}0", f"{axis}1", f"{axis}_range"
@@ -2526,6 +2526,19 @@ def _validate_tfne_delay_ms(rule: Any, delay: Any) -> "float | None":
     return ms
 
 
+def _rule_bool(rule: Any, key: str, value: Any) -> bool:
+    """Read a rule's boolean property: the bare word `true` or `false` (any case,
+    as `associative` is read), or a Python bool. Anything else is refused;
+    `bool()` would read the string "false" as true."""
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str) and value.lower() in ("true", "false"):
+        return value.lower() == "true"
+    raise TFNEError(f"rule {rule!r} {key} must be true or false; got {value!r}")
+
+
 def _rule_connection_params(
     params_in: Optional[Mapping[str, Any]], rule: Any = None
 ) -> dict[str, Any]:
@@ -2545,7 +2558,7 @@ def _rule_connection_params(
     weight = float(weight)
     if not np.isfinite(weight):
         raise TFNEError("rule weight must be finite")
-    allow_self = bool(params.get("allow_self", False))
+    allow_self = _rule_bool(rule, "allow_self", params.get("allow_self", False))
     return {
         "direction": direction,
         "mechanism": str(mechanism),
@@ -2788,6 +2801,7 @@ def realize(
                 if rel.rule
                 else _rule_connection_params(None),
                 **({"mechanism": rel.mechanism} if rel.mechanism is not None else {}),
+                **({"delay": rel.delay} if rel.delay is not None else {}),
             ),
         }
         for rel in explicit.relations

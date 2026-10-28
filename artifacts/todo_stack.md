@@ -23,26 +23,27 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 
 ## 1. Fast (S)
 
-- T-35 [A] (D) Owner items left after lane D (2026-10-27; fixed: dead test-comment paths, 23 to 0, and the
-  TestPyPI checklist pointer; kept with reason: `_tutorial_runtime`'s `or` treats an empty env as unset,
-  the examples' except clauses already catch only ImportError): examples v031:435,439 and v032:557,563 write to
-  targets absent under `docs/archive/`; `consolidate_hdp_controllability_etude.py` (lines 34, 38, 59, 61, 275)
-  names `hdp_mvc_etude.py`, never tracked; examples 03:137 and 05:165 fall back to V_m for EEG/MEG; the
-  legacy amplitude keys (`physical_amplitude_claim_allowed` beside `amplitude_status`, kept by 5ae19017)
-  sit in 64 files, so the target vocabulary needs defining before a sweep. Closes when: each is fixed or
-  ruled kept, and `python scripts/run_test_gate.py docs` passes.
+- T-35 [A] (D) Left after lane D (2026-10-27; fixed: dead test-comment paths, the TestPyPI pointer, the
+  v031-v033 `update_canonical` branch writing to targets removed in 72eafbbd, the V_m fallback for EEG/MEG in
+  examples 03 and 05; kept with reason: `_tutorial_runtime`'s `or`, the examples' ImportError clauses,
+  `consolidate_hdp_controllability_etude.py`, which refuses when its local receipts are absent, as its docs
+  say): metadata keys, two sets since 5ae19017: the package emits `claim_level` (20 files in `jaxfne/`) and
+  `field_claim_level` (25), while `amplitude_status`, `model_status`, `run_status`, `field_model_status`
+  (63, 53, 37, 24 files) live only outside `jaxfne/`; `physical_amplitude_claim_allowed` is a retired
+  migration key (`_construct_extras.py:567`). The canonical set is Hamm's call (T-53). Closes when: it is
+  ruled and swept, and `python scripts/run_test_gate.py docs` passes.
 - T-37 [A] (T) Left after lane T (2026-10-27; fixed: the release sweep test reads job and step `if:`, the
-  P-025 matcher needs the assert on the jaxfne module, the delayed-edge route has its test): the `smoke` and
-  `fast` auto-markers (`tests/conftest.py:77-85`) and the registered `integration` marker are selected by no
-  gate, workflow or Makefile (recommend deleting them); the nightly tree-equality skip of the release sweep is
-  unchecked. Closes when: the markers are deleted or selected, and the skip has a test.
+  P-025 matcher needs the assert on the jaxfne module, the delayed-edge route has its test, the nightly
+  tree-equality skip fails open under five planted defects): the `smoke` and `fast` auto-markers
+  (`tests/conftest.py:77-85`) and the registered `integration` marker are selected by no gate, workflow or
+  Makefile (recommend deleting them; Hamm's call in T-53, since local `-m fast` use is unknown). Closes when: the markers are deleted or selected.
 - T-38 [A] (C) Left after lane C (2026-10-27; fixed: the multi-area W docstring states 0.1 * W, `held_steps`
   documented as held element updates, a string `dt_ms` refused in the HH route; `simulate_batch` realizes the
   surrogate; `visualize_network_3d` takes `relative` units): the "compiled 2 times" guard
   (`validation.py:1322`) counts (name, B, Z, C, T) while the jit cache key holds more, so reused-Model tests in
   `test_homeostasis_dispatch.py` warn (align the guard with the key, a semantics choice); no full-kernel
-  gradient test for the HH route; with noise on, `simulate_batch` member i differs from `simulate(seed=i)`
-  (split keys against PRNGKey(i), by design, undocumented). Recorded, no change: field projection warnings
+  gradient test for the HH route (`simulate_batch` keying is now documented and tested,
+  `tests/test_simulate_batch_keys.py`). Recorded, no change: field projection warnings
   are returned as data and no strict option exists; HH int32 counts stay below 2^31 at GSDR sizes
   (15001 x 2230). Closes when: each is fixed with a failing test or documented.
 - T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; after each dev
@@ -52,26 +53,36 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 ## 2. Medium (M)
 
 - T-41 [A] (C2) T-41 audit 2026-10-27 at c88be711 (two efforts over `jdna/`, `tfne.py`, `optim/`, `analysis/`,
-  `protocol_*/`): lane C2 in flight on ten refusals and receipt fields (jdna unknown geometry and
-  development keys, optim parameters accepted and never read, `learning_rate` 0 turned into 0.01, negative
-  `onset_ms`, `allow_self` string, TFNE relation-origin delay, protocol E `support_only_on_O_H`).
-  Estimator findings are in T-50. Closes when: lane C2 lands on dev.
-- T-55 [A] (C) T-41 findings reported by one audit lane from code reading, unverified: `optim/core.py:1622-1623`
-  clips matrices to +-1000 unless the name is `gAMPA_w` (declared bounds unenforced); `:1959-1967` the start
-  value 1.0 is not clipped to bounds and is returned when no step improves; `:1671-1675,1707-1717`
-  placeholder-W (edge-list) models report `[]` for the refined matrix; `optim/handles.py:301` a broad except
-  turns any error into a REVISE report; `optim/core.py:1013,1139,1290` fold_in on `state.step` reuses noise
-  while the loss does not advance; `optim/core.py:1762,1877` and `handles.py:352` record a seed no loop reads;
-  `jdna/genome.py:739-750` `fraction or 0.0` and a band lower bound 0 pass an absent type;
-  `jdna/completion.py:195` explicit `None` bounds are labelled TFNE-declared; `analysis/granger.py:139-146`
-  a degenerate fit returns 0.0; `analysis/metrics.py:1082-1093` `population_rates` takes dt in seconds while
-  its siblings take ms; `analysis/spectral.py:80,85` float32 phase (relative error 1.8e-4 at 1000 s).
-  Closes when: each is verified and fixed with a failing test, or recorded with its reason.
-- T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`): C `paper-lanes` CI job, D code-tree stamp, F rc
-  reuses Release CI JUnit (approved 2026-10-27), a `jaxfne.jdna` canary chain for B; E's first nightly is
-  its observation. Closes when: `ci_plan.md` lists every step landed.
-- T-44 [A] (E) T-32e: script checklist rules E1, S2, F3, P4, R4 in `check_replications.py`. Closes when:
-  each rule fails on a planted lane defect.
+  `protocol_*/`): lane C2 fixed 8 of 10 (jdna geometry and development keys, optim parameters never read,
+  `learning_rate` 0, `allow_self` string, TFNE relation-origin delay). Left: the negative `onset_ms` in
+  `protocol_d_biological_rbs/d1_execution.py:65` (the packet named an absent path); protocol E
+  `support_only_on_O_H` (`e3_execution.py:268`), whose receipt `e3_execution_receipt.json` is frozen
+  write-once, so a fix needs a new receipt version (Hamm, H-rule on frozen receipts). Estimator findings are
+  in T-50. Closes when: both are fixed or ruled.
+- T-55 [A] (C3) T-41 findings verified by probe 2026-10-27 (lines at the commit after 6f41515c): (1) matrix
+  tune clips to +-1000 unless the name is `gAMPA_w` (`optim/core.py:1638`; `all_w` under bounds (0.5, 2.5)
+  came back in [-3.22, 3.22]); (2) the start value 1.0 is not clipped to bounds and is returned when no step
+  improves (`:1993,2001`); (3) placeholder-W (edge-list) models report `[]` as the refined matrix
+  (`:1685-1694`); (4) `optim/handles.py:302` turns any error into REVISE; (5) the public sdr, gsdr, agsdr
+  transforms keep `state.step` at 0 when no loss is passed, so noise repeats (`:1019,1034,1306`; in-tree
+  loops do not use them); (6) a recorded seed no loop reads (`:1803,1919`, `handles.py:360`; seeds 0 and 7
+  give identical results); (7) `jdna/genome.py:739` passes `fraction is None`; (8) `jdna/completion.py:207`
+  labels explicit `None` bounds TFNE-declared; (9) `analysis/granger.py:139-146` returns 0.0 on zero
+  variance; (11) `analysis/spectral.py:80` float32 phase (absolute error 0.168 rad at 1000 s; the reported
+  relative 1.8e-4 did not reproduce, 2.7e-7). Hamm's calls in T-50: absence under a band lower bound of 0
+  (7), `population_rates` dt in seconds against its siblings' ms (10, public API). Closes when: each listed
+  item is fixed with a failing test.
+- T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`; C's job `paper-lanes` landed 2026-10-27, its first
+  CI runs are the observation, then it joins `fast-build`'s needs): D code-tree stamp and F rc reuses
+  Release CI JUnit (approved 2026-10-27), one lane since both edit `run_test_gate.py`; a `jaxfne.jdna`
+  canary chain for B; E's first nightly is its observation. Closes when: `ci_plan.md` lists every step landed.
+- T-44 [A] (E) T-32e: rules E1, S2, P4, R4 landed in `check_replications.py` (d2553d55, 66231ddb, 5c4a52a0,
+  8136beea). Left: F3 ("a fidelity fix carries a test that fails on the parent commit") is per commit, so a
+  file scan cannot check it (a CI step over commits tagged as fidelity fixes is the candidate); the
+  allowlist `scripts/replication_known_violations.json` (31 entries) shrinks to Hamm's exceptions; each S1
+  entry now names why its path is not static (temp copies, run-time arguments, `C:/workspace/pcl_diag`);
+  five pcl/port entries clear once S1 follows the `_repo_root()` walk to `pyproject.toml`. Closes when: F3 has
+  a check that fails on a planted fix without a failing test, and each allowlist entry is fixed or ruled.
 - T-10b [A] jnwb cross-learning (`control/harness/jnwb_cross_learning.md`): errors page, a proxy-claim
   wording gate, AST-hash freezing of validated kernels. Closes when: each lands with its test.
 - T-45 [A] C3, S1 (`docs/theory/doctrine/definition_map.md`): D21, D34 have no symbol; D17, D26 are private
@@ -130,7 +141,10 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   off the dt grid are rounded silently in `fano_factor`, `fleiss_kappa_binary` and `metrics.py:1014` while
   `wang_buzsaki_kappa` refuses them; optimizer seeds collide (`optim/core.py:1608` fold_in index at
   population above 10; `:1646` simulation seeds `seed + gen*pop + row` shared by runs whose seeds differ by a
-  multiple of pop). Each changes outputs. Closes when: each is ruled.
+  multiple of pop). From T-55: may a cell type be absent when its band lower bound is 0 (`jdna/genome.py:744`);
+  `population_rates` takes dt in seconds while `mean_rate_hz` and `fano_factor` take `dt_ms`
+  (`analysis/metrics.py:1082`), a public rename or a documented exception. Each changes outputs. Closes when:
+  each is ruled.
 - T-51 [H] Protocol calls: P6 seeds and Q5 (`izhikevich2003/core/PREREG_P6.md`); Potjans and Vogels scale
   and bands; D2 Destexhe and GSDR preregs; CAMINOS S2 re-run; PCL F6 column and the WSL installs for the
   C++ binary; jitter reader follow-up (w_max, larger frozen sets). Closes when: each is ruled.
@@ -142,7 +156,8 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   T-PR Dependabot #115, #116 and deleting the merged remote branches `caminos-p6`, `fix/rtd-mcc3-post-d1`,
   `izh2003`, `l2-caminos`, `pcl-port`; dashboard P1 and P2 after the P0 acceptance; GSDR's stage (REPLICATIONS
   reads P1 with `PORT_SPEC.md` and an unsigned `PREREG_P3.md` on disk; Destexhe in the same state reads P3);
-  the 0.5.9 release go.
+  deleting the unselected `smoke`, `fast` and `integration` markers (T-37); the canonical metadata key set,
+  the package's `claim_level` family or the docs' `model_status` family (T-35); the 0.5.9 release go.
   Closes when: each is ruled.
 - T-O58 [H] WSL DNS. Closes when: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
 - T-O68 [H] Local copies (O-68). Closes when: each is at `E:/repos/<name>` or `E:/repos/_wt/<repo>/<task>`

@@ -2845,6 +2845,10 @@ def simulate_batch(
     This is a trial-replicate utility for notebook statistics.  It uses
     ``jax.vmap`` over PRNG keys and returns proxy arrays without changing the
     field-solver or calibration status.
+
+    Member ``i`` is keyed ``jax.random.split(PRNGKey(base_seed), n_seeds)[i]``,
+    with ``base_seed`` the ``seed`` argument or ``sim.seed``. With noise on, member
+    ``i`` therefore differs from ``simulate`` at ``seed=i`` and at ``seed=base_seed``.
     """
     # Local import: see _simulate_arrays' matching comment above.
     from .core import _resolve_homeostasis_k_gain, _homeostasis_params_cache_fingerprint

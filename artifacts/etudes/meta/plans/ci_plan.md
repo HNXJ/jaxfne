@@ -50,6 +50,9 @@ dispatched run showing the job fails on a planted defect of its class and passes
   `fast-build` stay because the dev and main rulesets require them; `fast-build` always runs and fails
   when a needed job did not pass. Planted-defect run pending.
 - C, local half: pcl and caminos run under xdist in the broad gate (`XDIST_LANES`); lanes 16 min to 6 min.
+  CI half (2026-10-27): job `paper-lanes` runs `run_test_gate.py paper-lanes` on dev pushes and pull
+  requests touching `artifacts/etudes/papers/` or `jaxfne/`; not in `fast-build`'s needs until its first
+  runs pass on CI.
 - E landed (2f21b125): a nightly on a tree that already passed cancels itself (a skipped run would
   conclude success without artifacts and shadow the real run in the rc and publish lookups). First
   nightly after landing is the observation.

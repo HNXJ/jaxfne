@@ -252,7 +252,10 @@ than it looked. A regression test rejects reintroduced collisions.
 `ci.yml` runs one job per failure class: `static` (compile, lint, audits, tree size), `docs` (strict
 build, orphans, doc-code integrity), `fast-test` (the dev gate on 3.11 and 3.14), `canary` (3.11) and `examples` (both
 interpreters). `fast-build` needs all five, always runs, and fails first when any of them did not pass,
-so the required `fast-build` check covers `static`, `docs`, `canary` and `examples`.
+so the required `fast-build` check covers `static`, `docs`, `canary` and `examples`. A sixth job,
+`paper-lanes` (both interpreters), runs the paper-lane tests through `run_test_gate.py paper-lanes`, the
+broad gate's lane list, on dev pushes and pull requests that change `artifacts/etudes/papers/` or
+`jaxfne/`; `fast-build` does not need it.
 
 The `canary` job runs `tests/test_canary_chains.py`: six seeded data-path chains whose spike counts, raster hashes and summaries are frozen in `tests/canary_register.json`, so a red canary means one data path changed its output and the unit tests then localise it.
 

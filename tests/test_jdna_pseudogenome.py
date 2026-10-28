@@ -16,6 +16,8 @@ import pytest
 
 import jaxfne as jtfne
 from jaxfne.jdna import (
+    ORIGIN_DERIVED,
+    ORIGIN_SAMPLED,
     PseudoGenome,
     AreaGenome,
     LayerGenome,
@@ -408,3 +410,50 @@ class TestCompatibility:
         raw = json.loads(p.read_text(encoding="utf-8"))
         assert "provenance" not in raw
         assert raw["schema_version"] == "neuronal_tensor_v1"
+
+
+# --------------------------------------------------------------------------- #
+# develop(): refuse development parameters it does not consume
+# --------------------------------------------------------------------------- #
+
+
+def _dev_genome(params, *, tolerance=True) -> PseudoGenome:
+    layer = LayerGenome(
+        name="L1", n_neurons=100, depth_band=(0.0, 0.5),
+        cell_type_fractions={"E": 0.75, "I": 0.25},
+        fraction_tolerance={"E": (0.65, 0.85), "I": (0.15, 0.35)} if tolerance else {},
+    )
+    return PseudoGenome(
+        name="dev-refusal", areas=(AreaGenome(name="A", layers=(layer,)),),
+        development_parameters=params,
+    )
+
+
+def test_negative_jitter_sigma_is_refused():
+    with pytest.raises(ValueError, match="fraction_jitter_sigma"):
+        develop(_dev_genome({"fraction_jitter_sigma": 0.05}), seed=0,
+                development_parameters={"fraction_jitter_sigma": -0.01})
+    with pytest.raises(ValueError, match="fraction_jitter_sigma"):
+        develop(_dev_genome({"fraction_jitter_sigma": -0.01}), seed=0)
+
+
+def test_misspelled_development_parameter_is_refused():
+    with pytest.raises(ValueError, match="fraction_jitter_sgima"):
+        develop(_dev_genome({"fraction_jitter_sigma": 0.05}), seed=0,
+                development_parameters={"fraction_jitter_sgima": 0.01})
+    with pytest.raises(ValueError, match="fraction_jitter_sgima"):
+        develop(_dev_genome({"fraction_jitter_sgima": 0.05}), seed=0)
+
+
+def _counts_origin(genome: PseudoGenome) -> str:
+    origins = develop(genome, seed=0).provenance["value_origins"]
+    return origins["areas.A.layers.L1"]["counts"]
+
+
+def test_jitter_without_tolerance_is_recorded_as_derived():
+    """A layer with no fraction_tolerance band takes the exact split and ignores
+    the jitter (prereg section 8), so its counts are derived, not JDNA-sampled."""
+    genome = _dev_genome({"fraction_jitter_sigma": 0.05}, tolerance=False)
+    assert not genome.areas[0].layers[0].fraction_tolerance
+    assert _counts_origin(genome) == ORIGIN_DERIVED
+    assert _counts_origin(_dev_genome({"fraction_jitter_sigma": 0.05})) == ORIGIN_SAMPLED

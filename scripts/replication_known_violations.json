@@ -73,7 +73,7 @@
     "rule": "S1",
     "path": "artifacts/etudes/papers/caminos/test_caminos_analysis.py",
     "message": "line 412: spec_from_file_location loads a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
+    "reason": "loads a mutant copy written to pytest's tmp_path at run time, so the path is not static.",
     "todo": "T-30"
   },
   {
@@ -87,99 +87,99 @@
     "rule": "S1",
     "path": "artifacts/etudes/papers/izhikevich2003/gate_p3b.py",
     "message": "line 28: spec_from_file_location loads a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
+    "reason": "_load passes its path parameter to spec_from_file_location, so no static path reaches the call.",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/build_cache.py",
     "message": "line 7: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "audit 2026-10-17",
+    "reason": "adds C:/workspace/pcl_diag, a diagnostic workspace outside the repository.",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/diag_common.py",
     "message": "line 25: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
+    "reason": "adds a clone outside this repository and C:/workspace/pcl_diag through a loop variable.",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q2_sf_curve.py",
     "message": "line 10: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "audit 2026-10-17",
+    "reason": "adds C:/workspace/pcl_diag, a diagnostic workspace outside the repository.",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q3_rsf_dist.py",
     "message": "line 11: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "audit 2026-10-17",
+    "reason": "adds C:/workspace/pcl_diag, a diagnostic workspace outside the repository.",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q4_sf_edges.py",
     "message": "line 10: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "audit 2026-10-17",
+    "reason": "adds C:/workspace/pcl_diag, a diagnostic workspace outside the repository.",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q5_t4_split.py",
     "message": "line 11: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "audit 2026-10-17",
+    "reason": "adds C:/workspace/pcl_diag, a diagnostic workspace outside the repository.",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q7_t2_sweep.py",
     "message": "line 11: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
+    "reason": "adds a directory given on the command line (sys.argv[1]), a run-time path.",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q8_v6_numbers.py",
     "message": "line 12: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
+    "reason": "adds a directory given on the command line (sys.argv[1]), a run-time path.",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/port/pcl_binned_jax.py",
     "message": "line 55: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
+    "reason": "adds the repository root found by _repo_root(), a walk up to pyproject.toml that the static resolver does not follow.",
+    "todo": "T-44"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/port/pcl_event_ref.py",
     "message": "line 54: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
+    "reason": "adds the repository root found by _repo_root(), a walk up to pyproject.toml that the static resolver does not follow.",
+    "todo": "T-44"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/port/test_pcl_binned_jax.py",
     "message": "line 29: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
+    "reason": "adds the repository root found by _repo_root(), a walk up to pyproject.toml that the static resolver does not follow.",
+    "todo": "T-44"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/port/test_pcl_event_ref.py",
     "message": "line 24: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
+    "reason": "adds the repository root found by _repo_root(), a walk up to pyproject.toml that the static resolver does not follow.",
+    "todo": "T-44"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/port/validate_umap_order.py",
     "message": "line 46: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
+    "reason": "adds the repository root found by _repo_root(), a walk up to pyproject.toml that the static resolver does not follow.",
+    "todo": "T-44"
   },
   {
     "rule": "S2",

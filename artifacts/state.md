@@ -13,8 +13,9 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   `run_stdp_stream` consumes `inh_mask`; PCL core lanes L1-L4 (multi-spike event scan, interval updates,
   F_W in the scan, `EventScanBoundary`), each oracle-exact; 9B, 9F, 9G closed; thin stacks (c88be711);
   worker lanes R, D, T (0108594b); lane C: `simulate_batch` realizes the surrogate, HH `dt` refuses
-  strings, relative units in `visualize_network_3d`.
-- Broad gate on lane C's tree: 7575 passed, 0 failed; all paper lanes pass. Report gate fail_count 0.
+  strings, relative units in `visualize_network_3d` (6f41515c); lanes C2 (T-41 refusals), E (S1 reasons),
+  T2 (`paper-lanes` CI job), the nightly skip test, dead example branches.
+- Broad gate on the lanes C2, E, T2 tree: 7623 passed, 0 failed; all paper lanes pass.
 - CI Fast green through c88be711.
 
 ## Broken or in flight
@@ -22,7 +23,8 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - PCL R2 on real files is next (T-3); the C++ reference binary needs WSL installs (O-58).
 - The P-052 surrogate's off-diagonal gradient disagrees in sign with the finite difference (corr -0.2 to
   -0.4); its fitness for training is Hamm's call (`artifacts/runs/perf/profiles/precision_058.md`).
-- Lane C2 (T-41 refusals) is running in its clone.
+- The `paper-lanes` CI job's first run is unobserved. T-55: 10 of 11 audit findings confirmed by probe; fix
+  lane C3 is next.
 
 ## Generated files and their checks
 

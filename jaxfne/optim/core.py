@@ -970,6 +970,12 @@ def sdr_transform(
         init(params) -> _TransformSDRState
         update(updates, state, params=None, key=None) -> (updates, new_state)
     """
+    for name, value, default in (("alpha_min", alpha_min, 0.0), ("alpha_max", alpha_max, 1.0)):
+        if value != default:
+            raise ValueError(
+                f"sdr_transform: {name}={value!r} is not consumed by this transform; "
+                f"only the default {default!r} is accepted"
+            )
     optax = require_optax()
 
     if inner_optimizer is None:
@@ -1100,6 +1106,11 @@ def gsdr_transform(
     -------
     optax.GradientTransformation-compatible object
     """
+    if checkpoint_n_steps != 50:
+        raise ValueError(
+            f"gsdr_transform: checkpoint_n_steps={checkpoint_n_steps!r} is not consumed by "
+            "this transform; only the default 50 is accepted"
+        )
     optax = require_optax()
 
     if inner_optimizer is None:
@@ -1240,6 +1251,11 @@ def agsdr_transform(
     -------
     optax.GradientTransformation-compatible object
     """
+    if checkpoint_n_steps != 50:
+        raise ValueError(
+            f"agsdr_transform: checkpoint_n_steps={checkpoint_n_steps!r} is not consumed by "
+            "this transform; only the default 50 is accepted"
+        )
     optax = require_optax()
 
     if inner_optimizer is None:
@@ -1759,6 +1775,24 @@ def _tune_matrix_agsdr_optax(
 _SOURCE_SCALE_LINEAR_METRICS = frozenset({"source_proxy_abs_mean"})
 
 
+def _tune_learning_rate(spec: "OptimizerSpec") -> float:
+    """Optax step size for a tune loop: the declared learning_rate, else 1e-2.
+
+    Only None takes the default; 0.0 is a declared value. Zero is refused: a
+    zero step returns the initial value as tuned, and a negative step ascends
+    the loss.
+    """
+    if spec.learning_rate is None:
+        return 1e-2
+    lr = float(spec.learning_rate)
+    if not lr > 0.0:
+        raise ValueError(
+            f"learning_rate must be > 0; got {spec.learning_rate!r}: a zero step "
+            "returns the initial value as tuned and a negative step ascends the loss"
+        )
+    return lr
+
+
 def _tune_source_scale_optax(
     model: Any,
     simulation: Any,
@@ -1820,7 +1854,7 @@ def _tune_source_scale_optax(
         return weight * (value - target) ** 2
 
     scale = jnp.asarray(old_scale, dtype=raw.dtype)
-    lr = float(spec.learning_rate) if spec.learning_rate else 1e-2
+    lr = _tune_learning_rate(spec)
     tx = optax.adam(lr) if spec.optimizer == "optax_adam" else optax.sgd(lr)
     opt_state = tx.init(scale)
 
@@ -1958,7 +1992,7 @@ def _tune_scalar_soft_rate_optax(
 
     init_value = 1.0
     value = jnp.asarray(init_value, dtype=jnp.float32)
-    lr = float(spec.learning_rate) if spec.learning_rate else 1e-2
+    lr = _tune_learning_rate(spec)
     tx = optax.adam(lr) if spec.optimizer == "optax_adam" else optax.sgd(lr)
     opt_state = tx.init(value)
 

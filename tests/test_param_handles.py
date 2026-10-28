@@ -434,6 +434,24 @@ def test_optax_surrogate_soft_rate_loop_runs():
     assert "drive.E.rate" in result.best_parameters
 
 
+def test_zero_learning_rate_refused_on_handle_soft_rate_path():
+    """learning_rate=0.0 was silently replaced by 0.01 on the handle path."""
+    model = _izh_model()
+    with pytest.raises(ValueError, match="learning_rate"):
+        jtfne.tune_handles(
+            model,
+            objectives=_rate_objective(12, 10.0),
+            optimizer=jtfne.optax_adam(
+                learning_rate=0.0, differentiability_status="declared_surrogate"
+            ),
+            parameters={"drive.E.rate": (1.0, 10.0)},
+            steps=2,
+            seed=0,
+            simulation=_izh_sim(),
+            surrogate="soft_rate",
+        )
+
+
 def test_concrete_edge_gradient_refused_up_front():
     model = _adex_model()
     with pytest.raises(ValueError, match=re.escape("edges.weight[all]")):

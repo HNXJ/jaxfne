@@ -839,3 +839,46 @@ def test_tune_history_carries_complete_per_candidate_outputs():
     best_value, best_score = min(finite, key=lambda pair: pair[1])
     assert result.best_score == best_score
     assert result.summary["best_parameter_value"] == best_value
+
+
+# --------------------------------------------------------------------------- #
+# Refusals: parameters a kernel does not consume, unknown hyperparameter keys
+# --------------------------------------------------------------------------- #
+
+
+def test_unconsumed_transform_parameters_are_refused():
+    """sdr_transform never reads alpha_min/alpha_max; gsdr_transform and
+    agsdr_transform never read checkpoint_n_steps. Non-default values are
+    refused; the defaults stay accepted."""
+    from jaxfne.optim.core import agsdr_transform, gsdr_transform, sdr_transform
+
+    with pytest.raises(ValueError, match="alpha_min.*not consumed"):
+        sdr_transform(alpha_min=0.2)
+    with pytest.raises(ValueError, match="alpha_max.*not consumed"):
+        sdr_transform(alpha_max=0.5)
+    with pytest.raises(ValueError, match="checkpoint_n_steps.*not consumed"):
+        gsdr_transform(checkpoint_n_steps=3)
+    with pytest.raises(ValueError, match="checkpoint_n_steps.*not consumed"):
+        agsdr_transform(checkpoint_n_steps=3)
+    assert sdr_transform() is not None
+    assert gsdr_transform() is not None
+    assert agsdr_transform() is not None
+
+
+@pytest.mark.parametrize(
+    "kernel_name",
+    ["step_sdr_transform", "step_gsdr_transform", "step_agsdr_transform", "step_gsgd_transform"],
+)
+def test_step_kernels_refuse_unknown_hyperparameters(kernel_name):
+    """Each step kernel reads only eta; a misspelled key must not fall back to 0.01."""
+    import jax.numpy as jnp
+
+    import jaxfne.optim as optim
+
+    kernel = getattr(optim, kernel_name)
+    u_t = jnp.array([1.0, 2.0], dtype=jnp.float32)
+    grad_l = jnp.array([0.5, -1.0], dtype=jnp.float32)
+    with pytest.raises(ValueError, match="etaa"):
+        kernel(u_t, grad_l, None, {"eta": 0.1, "etaa": 0.2})
+    u_next, _ = kernel(u_t, grad_l, None, {"eta": 0.1})
+    assert jnp.allclose(u_next, u_t - 0.1 * grad_l)

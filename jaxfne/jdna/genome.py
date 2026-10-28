@@ -750,6 +750,10 @@ def _check_realized_constraints(genome: PseudoGenome, tensor: NeuronalTensor) ->
                     )
 
 
+#: Development parameters `develop` consumes; any other key is refused.
+_DEVELOPMENT_PARAMETER_KEYS = frozenset({"fraction_jitter_sigma"})
+
+
 def develop(
     genome: PseudoGenome,
     seed: int = 0,
@@ -803,7 +807,15 @@ def develop(
     params = dict(genome.development_parameters)
     if development_parameters is not None:
         params.update(development_parameters)
+    unknown = sorted(str(k) for k in params if k not in _DEVELOPMENT_PARAMETER_KEYS)
+    if unknown:
+        raise ValueError(
+            f"unknown development parameter(s) {unknown}; develop consumes only "
+            f"{sorted(_DEVELOPMENT_PARAMETER_KEYS)}, and would record the others as applied"
+        )
     sigma = float(params.get("fraction_jitter_sigma", 0.0))
+    if sigma < 0.0:
+        raise ValueError(f"fraction_jitter_sigma must be >= 0; got {sigma!r}")
 
     key = jax.random.PRNGKey(int(seed))
     areas: list[Area] = []
@@ -819,7 +831,9 @@ def develop(
             area_key, layer_key = jax.random.split(area_key)
             counts = _allocate_counts(layer, sigma, layer_key)
             value_origins[f"areas.{area.name}.layers.{layer.name}"] = {
-                "counts": (ORIGIN_SAMPLED if sigma > 0 else ORIGIN_DERIVED),
+                # A layer without a tolerance band ignores the jitter (exact split).
+                "counts": (ORIGIN_SAMPLED if sigma > 0 and layer.fraction_tolerance
+                           else ORIGIN_DERIVED),
                 "geometry": {
                     "distribution": (ORIGIN_DECLARED
                                      if "distribution" in layer.geometry
