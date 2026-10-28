@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@9a1efe20 · 2026-10-28
+Stamp: jaxfne@dev@a7d63fff · 2026-10-28
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
@@ -24,8 +24,14 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - 2026-10-28 on dev (d3fbad69 to 9a1efe20): matrix masks follow `W[post, pre]` with `I_to_E`; exact
   float32 PSD phase; F3 check `scripts/check_fidelity_fix.py` over `Fidelity-fix:` trailers, a CI
   `paper-lanes` step (T-44 F3).
-- Broad gate on 9a1efe20's tree: 7743 passed, 0 failed; all paper lanes pass.
-- CI Fast on 9a1efe20 green (run 40697196089); its F3 step accepted both tagged fixes (2 of 3 commits).
+- 2026-10-28 on dev (9d338ba3 to a7d63fff): T-R28 wave 1. Records: markers deleted, ruff 0.17.2 (the
+  figure lock line too), GSDR and Destexhe at P2, the 11 S1 allowlist entries are Hamm's exceptions, PCL
+  diag scripts read `PCL_DIAG_DIR`. Analysis: textbook Fleiss kappa, every binned metric refuses off-grid
+  bins, `population_rates(dt_ms=, discard_ms=)`, `welch_numpy` equals the scipy branch. Core: seed-0
+  defaults, half-up drive subset, protocol E flag, jdna minimum of 1 cell, optimizer keys and seeds.
+  GSDR's pilot kappa values change under textbook Fleiss; its records stay unscored and unedited.
+- Broad gate on a7d63fff's tree: 7765 passed, 0 failed; paper lanes pass; F3 accepts the range
+  7425206a..a7d63fff (2 tagged commits of 3).
 
 ## Broken or in flight
 
@@ -57,8 +63,9 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-T-45 (D31, D32 public names wait on Hamm) and T-46 (licences, owner statement) in worker lanes (at
-most 3 at once); tag each fidelity fix with `Fidelity-fix: <node id>`; T-3 R2 waits on the WSL installs
-(O-58). The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned by frozen records,
+T-R28 wave 2 in worker lanes (at most 3 at once): P-048, P-051, HDP per-spike jumps, bfloat16 note;
+metadata sweep, publication move, errors page; D31, D32, D28 public names. D35 waits on Hamm: a public
+`jaxfne.fields.apply_calibration(obj, transform)` already exists. Tag each fidelity fix with
+`Fidelity-fix: <node id>`; T-3 R2 waits on the WSL installs (O-58). The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned by frozen records,
 record pins or runtime paths, the unexempted root folders sit at the limit of 7
 (`tests/test_artifacts_tree_degree.py`), and no move is warranted.

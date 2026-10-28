@@ -32,36 +32,23 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   (63, 53, 37, 24 files) live only outside `jaxfne/`; `physical_amplitude_claim_allowed` is a retired
   migration key (`_construct_extras.py:567`). Ruled: `claim_level` and `field_claim_level` (T-R28). Closes
   when: swept, and `python scripts/run_test_gate.py docs` passes.
-- T-37 [A] (T) Left after lane T (2026-10-27; fixed: the release sweep test reads job and step `if:`, the
-  P-025 matcher needs the assert on the jaxfne module, the delayed-edge route has its test, the nightly
-  tree-equality skip fails open under five planted defects): the `smoke` and `fast` auto-markers
-  (`tests/conftest.py:77-85`) and the registered `integration` marker are selected by no gate, workflow or
-  Makefile; ruled: delete all three (T-R28). Closes when: the markers are deleted.
+- T-56 [A] (C) Siblings of the wave-1 rulings (2026-10-28), each a ruling for Hamm or a fix by analogy:
+  `spectrolaminar_psd_jax` uses the symmetric `jnp.hanning` (scipy's `hann` is periodic);
+  `vis.core.binned_population_rate_hz` rounds an off-grid bin silently (documented for plots);
+  `_model_tune.py:471` seeds candidates `seed + idx`, so scans with adjacent seeds share simulation seeds.
+  Closes when: each is fixed with a test or ruled.
 - T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; after each dev
   push refresh the lane dashboard (skill `jaxfne-dashboard`). Closes when: `python
   scripts/build_dashboard_data.py --check` passes on each push.
 
 ## 2. Medium (M)
 
-- T-41 [A] (C2) T-41 audit 2026-10-27 at c88be711 (two efforts over `jdna/`, `tfne.py`, `optim/`, `analysis/`,
-  `protocol_*/`): lane C2 fixed 8 of 10 (jdna geometry and development keys, optim parameters never read,
-  `learning_rate` 0, `allow_self` string, TFNE relation-origin delay; protocol D's drive window refuses a
-  negative onset, 2026-10-28). Left: protocol E `support_only_on_O_H` (`e3_execution.py:268`), a tautology (always true); the
-  correct test (deviation only on owners) gives true on the frozen `e3_execution_receipt.json` too, so the fix
-  needs no new receipt version. Estimator rulings are in T-R28. Closes when: it is fixed with a test.
 - T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`; B, C, D, F landed): `paper-lanes` is in
   `fast-build`'s needs (2026-10-28, observed green on 760bcec3); F's reuse
   requires one executed case per family in each JUnit leg (2026-10-28); the family mapping and the `gh` field
   names meet a live run at the first rc; B has its seven chains (jdna develop added 2026-10-28) and
   runs as a CI stage first; E's first nightly is its observation. Closes when: `ci_plan.md` lists
   every step landed and observed.
-- T-44 [A] (E) T-32e: rules E1, S2, P4, R4 landed in `check_replications.py` (d2553d55, 66231ddb, 5c4a52a0,
-  8136beea) and F3 (`scripts/check_fidelity_fix.py`: a commit with a `Fidelity-fix: <node id>` trailer
-  names a test that fails on its parent; CI `paper-lanes` step, 2026-10-28). Left: the
-  allowlist `scripts/replication_known_violations.json` (26 entries) shrinks to Hamm's exceptions; each S1
-  entry names why its path is not static (temp copies, run-time arguments, `C:/workspace/pcl_diag`); S1
-  follows the `_repo_root()` walk to `pyproject.toml` (2026-10-28, five entries cleared). Closes when: each
-  allowlist entry is fixed or ruled.
 - T-10b [A] jnwb cross-learning (`control/harness/jnwb_cross_learning.md`): errors page, a proxy-claim
   wording gate, AST-hash freezing of validated kernels. Survey 2026-10-28 for the freeze: one kernel is
   checked bit for bit against an independent oracle (`simulate_eig_izhikevich`, net_m branch,
@@ -100,7 +87,8 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   core gaps Potjans G-TAUSYN, G-POPDRIVE, G-WDIST, G-DDIST, Vogels G-SC, Mejias G6 and phi(0)=1; the LIF
   edge kernel on GPU (13.4 GiB at 25000 x 12500); Brunel sensitivity S2, S3 (S1 is in `RESULT_P3.md`).
   Closes when: each lands with its test or record.
-- T-30 [A] (E) Replication conformance per paper (`scripts/replication_known_violations.json`, 31 findings):
+- T-30 [A] (E) Replication conformance per paper (`scripts/replication_known_violations.json`, 26 entries;
+  the 11 S1 entries are Hamm's exceptions, 2026-10-28):
   Izhikevich 2003 (net.m order through `construct`, closes at the signed P6), CAMINOS (estimators into
   `jaxfne.analysis`, P3 sweeps re-run on the core as an equivalence check), GSDR (HH in `construct()` dispatch,
   estimators), Destexhe (estimators, LEDGER, RESULT), pcl_h and Q-learning (phase records; pcl_h `sys.path`
@@ -120,25 +108,19 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 - T-R28 [A] Hamm's rulings 2026-10-28, each to apply then delete: F3 counts pytest exit 2 on the parent as
   failing (as built); D31, D32 become public names with the private ones as aliases, a map test each (T-45);
   T-10b drops the kernel freeze, the errors page covers `TFNEError`, `EpistemicRefusal` and a generated
-  index of refusal messages by module; delete the `smoke`, `fast`, `integration` markers (T-37); canonical
+  index of refusal messages by module; canonical
   metadata keys are `claim_level`, `field_claim_level`, docs and scripts swept, frozen receipts untouched
-  (T-35); ruff 0.17.2 on dev, close #115 and #116 with a pointer; T-16 closed, the atlas test files stay;
-  move `docs/theory/publication/` to `artifacts/programme/paper/` and drop its `exclude_docs` entries
-  (T-17); the four receipt-writing scripts stay (T-17); dashboard P0 accepted, P1 then P2 start; GSDR and
-  Destexhe read P2 (an unsigned prereg does not reach P3); 0.5.9 waits for 9A-9G; T-44 S1 run-time
-  entries (two mutant harnesses, `gate_p3b.py`, diag q7, q8) are permanent exceptions; PCL diag scripts
-  read `PCL_DIAG_DIR`. Done 2026-10-28: the five merged remote branches deleted. Agent call: protocol E
-  `support_only_on_O_H` is a tautology; the fix keeps the frozen receipt's value (true), so no new version.
+  (T-35); close #115 and #116 with a pointer to the ruff 0.17.2 commit 9d338ba3; T-16 closed, the atlas
+  test files stay; move `docs/theory/publication/` to `artifacts/programme/paper/` and drop its
+  `exclude_docs` entries (T-17); the four receipt-writing scripts stay (T-17); dashboard P0 accepted, P1
+  then P2 start; 0.5.9 waits for 9A-9G. Wave 1 landed 2026-10-28 (9d338ba3, 854cade9, a7d63fff): markers,
+  ruff, GSDR and Destexhe at P2, S1 exceptions, `PCL_DIAG_DIR`, the estimator rulings, seeds, rounding,
+  protocol E, jdna minimum.
   Science, each output-changing with a changelog fragment: P-052 next is a beta by horizon scan
   against the central finite difference; P-048 default `u0 = b * v0`; P-051 a named `instantaneous` edge
   receptor (the tau -> 0 limit) with a dense-route test; the two HDP probe rules apply spike terms as
-  per-spike jumps (dt-invariant); `make_ei_cloud_network` and `coop_omission_oddball_paradigm` default seed
-  0; `adex_destexhe.py:181` rounds half-up; no state clamp on the plain Izhikevich path (T-19 closed); the
-  same-layer rule stays PV/SST/VIP with others refused (T-18 closed); bfloat16 is storage only; textbook
-  Fleiss for `fleiss_kappa_binary`; `welch_numpy` uses the periodic Hann (equal to scipy); off-grid bins
-  refuse everywhere; optimizer seeds by nested `fold_in` and `SeedSequence([seed, gen, row])`; a declared
-  jdna cell type realizes at least 1 cell; `population_rates` gains `dt_ms` and `discard_ms`, the seconds
-  form deprecated for one release.
+  per-spike jumps (dt-invariant); no state clamp on the plain Izhikevich path (T-19 closed); the
+  same-layer rule stays PV/SST/VIP with others refused (T-18 closed); bfloat16 is storage only.
   Protocol: Izhikevich P6 scores seeds 2-6, Q5 option B, margins as drafted, signed once the
   `instantaneous` receptor replaces the tau 1e-3 ms coupling in its model table; Potjans P3 v2 at 10% with
   in-degree held, e <= 0.20; Vogels P3 v2 as drafted (full N, e <= 0.20, O-DROP ratio >= 2); Destexhe and
