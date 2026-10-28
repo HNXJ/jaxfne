@@ -99,6 +99,9 @@ class RuntimeConfig:
         "h_state_dim": 1, "h_state_readout": None, "h_state_coupling": None,
     })  # All income/spending/control gains default to 0.0 -- the documented
     # null control (H_i pinned at 1.0, weight term identically zero).
+    # P-052: spike-threshold surrogate gradient; realized on the dense Izhikevich
+    # default-order route only (sigmoid_beta), refused on every other route.
+    surrogate: Optional["SurrogateConfig"] = None
     # v0.0.3 compatibility names; if provided by old caller, they are folded in.
     device_type: Optional[str] = None
     dtype_primary: Optional[str] = None
@@ -149,6 +152,16 @@ class RuntimeConfig:
                 f"precision={self.precision!r} is not consumed by any kernel; "
                 "only 'default' is accepted"
             )
+        if self.surrogate is not None:
+            if not isinstance(self.surrogate, SurrogateConfig):
+                raise TypeError(
+                    f"surrogate must be a SurrogateConfig or None; got {type(self.surrogate).__name__}"
+                )
+            if self.surrogate.method == "straight_through":
+                raise ValueError(
+                    "surrogate method 'straight_through' is a declaration only; "
+                    "the kernels realize 'sigmoid_beta'"
+                )
         if self.x64_enabled and not bool(jax.config.read("jax_enable_x64")):
             raise ValueError(
                 "x64_enabled=True does not enable x64; call jaxfne.enable_x64() "
@@ -298,6 +311,7 @@ class RuntimeConfig:
             "homeostasis_params": dict(self.homeostasis_params) if self.enable_homeostasis else None,
             "enable_hdp": bool(self.enable_hdp),
             "hdp_params": json_safe(dict(self.hdp_params)) if self.enable_hdp else None,
+            "surrogate": self.surrogate.to_dict() if self.surrogate is not None else None,
             # Compatibility keys from v0.0.3.
             "device_type": self.selected_backend,
             "dtype_primary": self.actual_dtype,
@@ -366,12 +380,13 @@ def _jaxlib_version() -> str:
 
 @dataclass(frozen=True)
 class SurrogateConfig:
-    """Declared surrogate-gradient metadata for discontinuous emitter paths.
+    """Surrogate gradient for the spike threshold of discontinuous emitter paths.
 
-    The current implementation records the declaration only; it does not alter
-    the Izhikevich reset dynamics.  Optax paths may reference this object to
-    distinguish explicit surrogate intent from accidental differentiation
-    through hard spike resets.
+    ``RuntimeConfig(surrogate=SurrogateConfig(method="sigmoid_beta", beta=...))``
+    realizes ``sigmoid_beta`` on the dense Izhikevich default-order route
+    (:func:`jaxfne.emitters.spike_sigmoid_beta`, ``beta`` in 1/mV): forward
+    outputs are unchanged and the reset stays detached. ``straight_through``
+    remains a declaration only and ``RuntimeConfig`` refuses it.
     """
 
     method: str = "none"  # "none" | "straight_through" | "sigmoid_beta"

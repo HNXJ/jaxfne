@@ -86,6 +86,15 @@ def _refuse_dense_receptor_kernel(runtime_cfg: RuntimeConfig) -> None:
         )
 
 
+def _refuse_surrogate(runtime_cfg: RuntimeConfig, route: str) -> None:
+    """P-052: the surrogate is realized on the dense Izhikevich default-order route only."""
+    if getattr(runtime_cfg, "surrogate", None) is not None:
+        raise ValueError(
+            f"RuntimeConfig(surrogate=...) is realized on the dense Izhikevich default-order "
+            f"route only; this run takes {route}. Drop the surrogate or use that route"
+        )
+
+
 def _refuse_dense_connection_rules(model: Any, runtime_cfg: RuntimeConfig) -> None:
     """Refuse a dense run when compiled ``connections()`` rules exist.
 
@@ -372,6 +381,13 @@ def _simulate_arrays(
             "in params['edge_list']",
         )
         runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
+
+    if runtime_cfg.recurrent_backend == "edge_list":
+        _refuse_surrogate(runtime_cfg, "the edge_list backend")
+    if runtime_cfg.enable_homeostasis or runtime_cfg.enable_hdp:
+        _refuse_surrogate(runtime_cfg, "the homeostasis or HDP kernel")
+    if forced_spikes is not None:
+        _refuse_surrogate(runtime_cfg, "the SpikeTrainInput clamp")
 
     if "edge_list" in self.params:
         from .emitters import _edge_delay_steps_numpy
@@ -957,6 +973,13 @@ def _simulate_arrays(
         if update_order == "net_m":
             _require_net_m_zero_noise(gauss)
         dense_kw["noise_scale"] = gauss
+    surrogate_beta = (
+        float(runtime_cfg.surrogate.beta)
+        if runtime_cfg.surrogate is not None and runtime_cfg.surrogate.method == "sigmoid_beta"
+        else None
+    )
+    if surrogate_beta is not None:
+        dense_kw["surrogate_beta"] = surrogate_beta
     effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
     if effective_jit:
         if not hasattr(self, "_compiled_cache"):
@@ -979,6 +1002,7 @@ def _simulate_arrays(
             ablation_mode,
             runtime_cfg.selected_backend,
             update_order,
+            surrogate_beta,
         ) + _gaussian_cache_suffix(gauss) + _noise_scale_cache_suffix(runtime_cfg.hdp_params)
         with _device_scope(runtime_cfg.selected_backend):
             if cache_key not in self._compiled_cache:
@@ -1457,6 +1481,10 @@ def simulate(
     object.__setattr__(self, "_last_hdp_diag", None)
     object.__setattr__(self, "_last_homeostasis_diag", None)
     _refuse_gaussian_drive_family(self, sim)
+    if type(self.params["emitter"]) is not IzhikevichParams:
+        _refuse_surrogate(runtime_cfg, f"emitter family {type(self.params['emitter']).__name__}")
+    if continuation is not None or return_state:
+        _refuse_surrogate(runtime_cfg, "the continuation path")
 
     if isinstance(self.params["emitter"], AdExParams):
         _refuse_adex_inputs(self, sim, paradigm, continuation, return_state)
@@ -2825,6 +2853,7 @@ def simulate_batch(
     base_seed = sim.seed if seed is None else int(seed)
     keys = jax.random.split(jax.random.PRNGKey(base_seed), int(n_seeds))
     emitter = self._require_izhikevich_emitter("simulate_batch")
+    _refuse_surrogate(runtime_cfg, "simulate_batch")
     _require_backend_available(runtime_cfg.selected_backend)
 
     # Sparse-direct models (placeholder dense W) must use the edge_list backend.
@@ -3116,6 +3145,7 @@ def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict
             "per-member seeds ride poisson_drive['seed'], so leave Simulation.seed at 0"
         )
     runtime_cfg = sim.resolved_runtime
+    _refuse_surrogate(runtime_cfg, "simulate_adex_seed_batch")
     kernel_kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
     refuse_poisson_drive_list(sim.poisson_drive, "simulate_adex_seed_batch (emitter family 'adex')")
     has_drive = sim.poisson_drive is not None
@@ -3207,6 +3237,7 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
             "per-member seeds are the seeds argument, so leave Simulation.seed at 0"
         )
     runtime_cfg = sim.resolved_runtime
+    _refuse_surrogate(runtime_cfg, "simulate_lif_seed_batch")
     dtype = runtime_cfg.jnp_dtype
     emitter: LIFNetworkParams = self.params["emitter"]
     edges = lif_edge_arrays(self)

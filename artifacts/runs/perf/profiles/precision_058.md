@@ -21,10 +21,31 @@ timing is the median of 5 calls after one warm call, compile excluded, each call
 | bfloat16 | `V_m` is stored as bfloat16, while the recurrent dot runs in float32 (`f32[3200,1] dot` in the compiled module); time and spike counts equal float32's |
 | Accuracy against float64 | spike totals within 2 of float64 at every N; loss relative error 5e-4 to 5e-2 (chaotic divergence of spike timing); float32 and bfloat16 gradients have cosine 0.46 to 0.99 with the float64 gradient |
 
+## Surrogate gradient (P-052, sigmoid_beta)
+
+Same grid, gradient cells, with `RuntimeConfig(surrogate=SurrogateConfig(method="sigmoid_beta", beta=10))`
+(`precision_profile.py --surrogate-beta 10`); receipts under `gpu_surrogate_sigmoid_beta_10` and
+`recurrent_grad_check` in the JSON.
+
+| Question | Observation |
+|---|---|
+| Does the gradient cross neurons? | `recurrent_grad_check.py` (N 20, 2000 steps, float64, CPU): hard spike, off-diagonal 0 of 380 and no Wᵀ in the backward graph; sigmoid_beta at beta 10, 1 and 0.1 per mV, 323, 361 and 380 nonzero, Wᵀ present |
+| Does it match the finite difference? | No. Central differences on `a[0]` agree across h 1e-3 and 1e-4 (corr 0.94; 0.12 against h 1e-2); the surrogate column for the 19 other neurons has corr -0.38, -0.23 and -0.22 with it at beta 10, 1 and 0.1, sign agreement 7, 3 and 3 of 19 |
+| Per-step time, GPU, N 100 to 1600 | unchanged within run-to-run noise (ratio 0.69 to 1.35; a same-session rerun at float32 N 100 reads 102 µs hard, 83 µs surrogate) |
+| Per-step time, GPU, N 3200 | float32 146 to 232 µs, bfloat16 143 to 232 µs, float64 264 to 511 µs: one more W read per step (Wᵀ), 91 µs predicted at float32 and 183 µs at float64 |
+| Gradient memory | compiled temporaries +16% (float32 N 3200: 76 to 89 MB; float64: 150 to 174 MB), about 7 values per neuron-step |
+| Gradient norm | equal to the hard spike's at 250 and 500 steps; 10 to 1000 times larger from 1000 steps on (float32 N 100: 8.5e5 to 1.0e7), growing with T: backpropagation through the recurrence amplifies |
+
+The process peak of this grid (32 MB at N 100) is lower than the first grid's (64 MB); a same-session
+rerun reads 33.7 MB for both the hard spike and the surrogate, so the difference is between the two
+sessions and its cause is unknown.
+
 ## Limits
 
-- The gradient never crosses neurons (P-052): the backward pass carries no Wᵀ product, so gradient
-  timings are a lower bound on training with a kernel-level surrogate.
+- The surrogate is realized on the dense Izhikevich default-order route only; every other route and
+  `straight_through` refuse it. The reset stays detached. Its slope is in 1/mV; beta 10 (the
+  `SurrogateConfig` default) was not chosen for this neuron model.
+- `set_parameter` casts the parameter to its stored float32, so float64 gradients pass a float32 cast.
 - `cost_analysis` omits the dense matvec (FLOPs linear in N), so FLOP counts come from the trace.
 - Batched GPU results differ from unbatched ones beyond rtol 1e-5 for B 4 to 64; the size of the
   difference was not recorded.

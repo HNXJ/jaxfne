@@ -277,6 +277,24 @@ def _izhikevich_dv_du(v, u, current_native, a, b, h_k=1.0):
     return dv, du
 
 
+@jax.custom_jvp
+def spike_sigmoid_beta(x, beta):
+    """Heaviside spike ``x >= 0`` whose derivative is the sigmoid slope ``beta s (1 - s)``, ``s = sigmoid(beta x)``.
+
+    ``x`` is the distance to threshold in mV and ``beta`` is in 1/mV. The forward value is the hard spike
+    exactly; only the tangent is replaced (P-052).
+    """
+    return (x >= 0.0).astype(x.dtype)
+
+
+@spike_sigmoid_beta.defjvp
+def _spike_sigmoid_beta_jvp(primals, tangents):
+    x, beta = primals
+    x_dot, _ = tangents
+    s = jax.nn.sigmoid(beta * x)
+    return spike_sigmoid_beta(x, beta), beta * s * (1.0 - s) * x_dot
+
+
 def _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, h_k):
     """Protocol D1: static recovery drive ``du = a * (H_K * b * v - u)``."""
     return _izhikevich_dv_du(v, u, current_native, a, b, h_k)
@@ -516,6 +534,7 @@ def simulate_eig_izhikevich(
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
     update_order: str = "default",
+    surrogate_beta: float | None = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array]:
     """Simulate a reduced EIG Izhikevich scaffold using ``jax.lax.scan``.
 
@@ -552,12 +571,22 @@ def simulate_eig_izhikevich(
     that step's fired cells, matching ``kernel_net_m.simulate_net_m`` row for
     row. ``silence_mask`` applies with the same pin-to-c pattern as the
     default path (an all-ones mask is an exact no-op).
+
+    ``surrogate_beta`` (1/mV, default order only) emits the spikes through
+    :func:`spike_sigmoid_beta` on ``v_next - 30``: every output is unchanged,
+    and the gradient reaches presynaptic neurons through ``W @ spikes``. The
+    reset stays detached (it reads the hard spike). ``None`` keeps the hard
+    spike, whose gradient is zero.
     """
 
     if update_order not in IZHIKEVICH_UPDATE_ORDERS:
         raise ValueError(
             f"update_order must be one of {list(IZHIKEVICH_UPDATE_ORDERS)}; "
             f"got {update_order!r}"
+        )
+    if surrogate_beta is not None and update_order != "default":
+        raise ValueError(
+            f"surrogate_beta is realized in update_order='default' only; got {update_order!r}"
         )
 
     jdtype = _dtype_from_policy(dtype)
@@ -651,7 +680,14 @@ def simulate_eig_izhikevich(
         # Apply silence_mask
         v_next = jnp.where(s_mask > 0.5, v_next, c)
         spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
-        spikes = spikes_bool.astype(jdtype)
+        if surrogate_beta is None:
+            spikes = spikes_bool.astype(jdtype)
+        else:
+            spikes = jnp.where(
+                s_mask > 0.5,
+                spike_sigmoid_beta(v_next - 30.0, jnp.asarray(surrogate_beta, dtype=jdtype)),
+                jnp.zeros_like(v_next),
+            )
 
         v_reset = jnp.where(spikes_bool, c, v_next)
         u_reset = jnp.where(spikes_bool, u_next + d, u_next)

@@ -291,6 +291,7 @@ def _non_default(name, default):
         "x64_enabled": True,
         "synaptic_kernel": "receptor_exponential",
         "gaussian_drive": {"std_by_cell_type": {"E": 1.0}},
+        "surrogate": jtfne.SurrogateConfig(method="sigmoid_beta"),
     }
     if name in table:
         return table[name]

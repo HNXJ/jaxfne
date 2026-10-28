@@ -127,3 +127,10 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Possible change: a kernel-level surrogate (`custom_jvp` on the spike threshold, e.g. the declared
   `straight_through` or `sigmoid_beta`), then the same check shows nonzero off-diagonal entries
   matching the surrogate derivative. Which surrogate is Hamm's call (it defines the training model).
+- Resolved 2026-10-27 (Hamm chose sigmoid_beta): `RuntimeConfig(surrogate=SurrogateConfig("sigmoid_beta",
+  beta))` emits spikes through `emitters.spike_sigmoid_beta` on the dense default-order route; forward
+  outputs are bit-identical, other routes refuse it (`tests/test_surrogate_gradient.py`). The check now
+  shows Wᵀ in the backward graph and nonzero off-diagonal entries, whose direction disagrees with the
+  finite difference (corr -0.2 to -0.4) and whose norm grows with T; record in
+  `artifacts/runs/perf/profiles/precision_058.md`. The slope and whether a surrogate that disagrees with
+  the finite difference is fit for training stay open (Hamm).

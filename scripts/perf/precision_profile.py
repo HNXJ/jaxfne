@@ -62,7 +62,8 @@ def _memory(compiled) -> dict:
     return {k: int(getattr(mem, k)) for k in names if mem is not None and hasattr(mem, k)}
 
 
-def run_one(dtype: str, n: int, steps: int, mode: str, repeats: int, trace_dir: str | None) -> dict:
+def run_one(dtype: str, n: int, steps: int, mode: str, repeats: int, trace_dir: str | None,
+            surrogate_beta: float | None = None) -> dict:
     import jax
     import jax.numpy as jnp
     import numpy as np
@@ -78,11 +79,14 @@ def run_one(dtype: str, n: int, steps: int, mode: str, repeats: int, trace_dir: 
     jdtype = {"float64": jnp.float64, "float32": jnp.float32, "bfloat16": jnp.bfloat16}[dtype]
     theta0 = jnp.asarray(np.asarray(jtfne.get_parameter(model, HANDLE), dtype=np.float64), dtype=jdtype)
     groups = {"all": list(range(n))}
+    # P-052: the surrogate rides RuntimeConfig; without it the gradient stays per neuron.
+    sim_kw = ({"dtype": dtype} if surrogate_beta is None else {"runtime": jtfne.RuntimeConfig(
+        dtype=dtype, surrogate=jtfne.SurrogateConfig(method="sigmoid_beta", beta=surrogate_beta))})
 
     def loss(theta):
         candidate = jtfne.set_parameter(model, HANDLE, theta)
-        sig = jtfne.simulate(candidate, duration_ms=duration_ms, dt_ms=DT_MS, seed=0, dtype=dtype,
-                             record_fields=False)
+        sig = jtfne.simulate(candidate, duration_ms=duration_ms, dt_ms=DT_MS, seed=0, record_fields=False,
+                             **sim_kw)
         return _evaluate_soft_rate_targets(V_m=sig.V_m, groups=groups, targets_hz={"all": TARGET_HZ},
                                            duration_ms=duration_ms, dt_ms=DT_MS)
 
@@ -107,7 +111,7 @@ def run_one(dtype: str, n: int, steps: int, mode: str, repeats: int, trace_dir: 
     loss_val, grad = (out if mode == "grad" else (out, None))
     sig = jtfne.simulate(model, duration_ms=duration_ms, dt_ms=DT_MS, seed=0, dtype=dtype, record_fields=False)
     rec = {
-        "dtype": dtype, "n": n, "steps": steps, "dt_ms": DT_MS, "mode": mode,
+        "dtype": dtype, "n": n, "steps": steps, "dt_ms": DT_MS, "mode": mode, "surrogate_beta": surrogate_beta,
         "backend": jax.default_backend(), "device": str(device), "jax": jax.__version__,
         "jaxfne": jtfne.__version__, "python": platform.python_version(),
         "compile_s": t_compile, "run_s_median": float(np.median(times)), "run_s_all": times,
@@ -128,24 +132,27 @@ def run_one(dtype: str, n: int, steps: int, mode: str, repeats: int, trace_dir: 
     return rec
 
 
-def _grid(quick: bool) -> list[tuple[str, int, int, str]]:
+def _grid(quick: bool, modes: tuple[str, ...] = ("fwd", "grad")) -> list[tuple[str, int, int, str]]:
     ns = (100, 400) if quick else (100, 200, 400, 800, 1600, 3200)
     steps = (500, 1000) if quick else (250, 500, 1000, 2000, 4000)
     cells = []
     for dtype in DTYPES:
-        for mode in ("fwd", "grad"):
+        for mode in modes:
             cells += [(dtype, n, 1000, mode) for n in ns]
             cells += [(dtype, 100, s, mode) for s in steps if s != 1000]
     return cells
 
 
-def sweep(out: Path, quick: bool, repeats: int, timeout_s: int) -> None:
+def sweep(out: Path, quick: bool, repeats: int, timeout_s: int, modes: tuple[str, ...] = ("fwd", "grad"),
+          surrogate_beta: float | None = None) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     records = []
-    for dtype, n, steps, mode in _grid(quick):
+    for dtype, n, steps, mode in _grid(quick, modes):
         env = dict(os.environ, JAX_ENABLE_X64="1" if dtype == "float64" else "0")
         cmd = [sys.executable, str(Path(__file__).resolve()), "--one", "--dtype", dtype, "--n", str(n),
                "--steps", str(steps), "--mode", mode, "--repeats", str(repeats)]
+        if surrogate_beta is not None:
+            cmd += ["--surrogate-beta", str(surrogate_beta)]
         t0 = time.perf_counter()
         try:
             proc = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=timeout_s)
@@ -175,12 +182,15 @@ def main(argv=None) -> int:
     ap.add_argument("--trace-dir", default=None)
     ap.add_argument("--timeout", type=int, default=1200)
     ap.add_argument("--out", type=Path, default=ROOT / "artifacts" / "_temp" / "precision" / "grid.json")
+    ap.add_argument("--surrogate-beta", type=float, default=None, help="sigmoid_beta slope (1/mV); None: hard spike")
+    ap.add_argument("--modes", default="fwd,grad", help="sweep modes, comma separated")
     args = ap.parse_args(argv)
     if args.one:
-        print(json.dumps(run_one(args.dtype, args.n, args.steps, args.mode, args.repeats, args.trace_dir)))
+        print(json.dumps(run_one(args.dtype, args.n, args.steps, args.mode, args.repeats, args.trace_dir,
+                                 args.surrogate_beta)))
         return 0
     if args.sweep:
-        sweep(args.out, args.quick, args.repeats, args.timeout)
+        sweep(args.out, args.quick, args.repeats, args.timeout, tuple(args.modes.split(",")), args.surrogate_beta)
         return 0
     ap.error("pass --one or --sweep")
     return 2

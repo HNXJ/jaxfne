@@ -80,6 +80,9 @@ RT_CASES = {
     "device_type": ({}, {"device_type": "cpu"}, "policy"),
     "dtype_primary": ({}, {"dtype_primary": "bfloat16"}, "output"),
     "x64_enabled": ({}, {"x64_enabled": True}, "refuse"),
+    # consumer: emitters.spike_sigmoid_beta in the dense kernel; it changes the gradient only
+    # (tests/test_surrogate_gradient.py), so the forward run stays bit-identical
+    "surrogate": ({}, {"surrogate": jtfne.SurrogateConfig(method="sigmoid_beta", beta=0.5)}, "policy"),
 }
 
 
