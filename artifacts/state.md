@@ -27,7 +27,8 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   item 1: the matrix tune's inner loop bounds each masked entry by its scale of the base W and keeps the
   rest (76c1912a, broad gate 7697 passed, 0 failed); the named masks read `W[post, pre]` transposed
   (`E_to_I`, `excitatory_to_all`), a call for Hamm in T-50. Lanes E3 (S1 follows `_repo_root()`) and T4
-  (rc reuse needs an executed case per family) landed after it.
+  (rc reuse needs an executed case per family) landed at fbdd5f1d (broad gate 7714 passed, 0 failed); lanes
+  B1 (canary chain 7, jdna develop) and H1 (HH full-kernel gradient test, HH runs under x64) after it.
 
 ## Generated files and their checks
 

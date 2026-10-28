@@ -16,7 +16,7 @@ moved source scale) before it compares. Write the register once with
 a missing chain entry fails.
 
 Each chain reuses the smallest fixture of an existing test module (named in its
-docstring). A jdna develop chain (``jaxfne.jdna``) is not included yet.
+docstring).
 """
 
 from __future__ import annotations
@@ -427,3 +427,98 @@ def test_chain6_objective_and_one_optimizer_step():
     }
     assert all(np.isfinite(v) for v in floats.values()), "tune outputs must be finite"
     _check("objective_one_step", exact, floats)
+
+
+# --- chain 7: jdna develop -> construct -> simulate, sampled composition -----
+# Fixture: tests/test_jdna_scenarios.py::_tiny_deterministic_genome (one area,
+# one layer, E/PV, AMPA E->PV). That fixture has no fraction_tolerance band, so
+# its jitter is inert. This chain adds an E/PV band of [0.3, 0.7], sets
+# fraction_jitter_sigma to 0.2 and uses 40 neurons. Seed 0 then realizes E/PV
+# 16/24, not the unsampled 20/20. Edges are hashed as sorted (pre, post) pairs.
+
+
+def _jdna_genome():
+    from jaxfne.jdna import pseudogenome_from_dict
+
+    return pseudogenome_from_dict({
+        "name": "canary-jdna-develop",
+        "areas": [{
+            "name": "V1",
+            "layers": [{
+                "name": "L4", "n_neurons": 40, "depth_band": [0.0, 1.0],
+                "cell_type_fractions": {"E": 0.5, "PV": 0.5},
+                "fraction_tolerance": {"E": [0.3, 0.7], "PV": [0.3, 0.7]},
+            }],
+            "inter_connections": [{
+                "source_layer": "L4", "source_neuron_type": "E",
+                "target_layer": "L4", "target_neuron_type": "PV",
+                "mechanism": "AMPA",
+            }],
+        }],
+        "mechanism_tau_ms": {"AMPA": 2.0},
+        "development_parameters": {"fraction_jitter_sigma": 0.2},
+    })
+
+
+def test_chain7_jdna_develop_construct_simulate():
+    import jax.numpy as jnp
+
+    from jaxfne.emitters import resolve_edge_weight
+    from jaxfne.jdna import develop
+    from jaxfne.jdna.completion import ORIGIN_SAMPLED
+
+    duration_ms = 100.0
+    genome = _jdna_genome()
+    tensor = develop(genome, seed=0)
+    layer = tensor.areas[0].layers[0]
+    realized = {nt.name: int(round(layer.n_neurons * nt.fraction)) for nt in layer.neuron_types}
+    unsampled = develop(genome, seed=0, development_parameters={"fraction_jitter_sigma": 0.0})
+    unsampled_layer = unsampled.areas[0].layers[0]
+    unsampled_counts = {
+        nt.name: int(round(unsampled_layer.n_neurons * nt.fraction))
+        for nt in unsampled_layer.neuron_types
+    }
+    # Precondition: the sampled path ran and moved the composition off the unsampled default.
+    origin = tensor.provenance["value_origins"]["areas.V1.layers.L4"]["counts"]
+    assert origin == ORIGIN_SAMPLED, "fixture must take the sampled composition path"
+    assert realized != unsampled_counts, "fixture must move the cell counts off the default"
+
+    model = jtfne.construct(
+        tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=duration_ms, dt_ms=0.5))
+    labels = _labels(model)
+    lab = np.asarray([str(x) for x in labels])
+    for name, count in realized.items():
+        assert int((lab == name).sum()) == count, (
+            "the realized network must carry the developed cell counts")
+    sig = jtfne.simulate(model, duration_ms=duration_ms, dt_ms=0.5, seed=0)
+
+    el = model.params["edge_list"]
+    pre = np.asarray(el.pre, dtype=np.int64)
+    post = np.asarray(el.post, dtype=np.int64)
+    assert pre.size > 0, "fixture must carry edges"
+    order = np.lexsort((post, pre))
+    edges = np.ascontiguousarray(np.stack([pre[order], post[order]], axis=1).astype("<i8"))
+    # Weights go through the emitter's accessor: edge_list.weight may be compacted.
+    weight = np.asarray(resolve_edge_weight(
+        el, jnp.float32,
+        presynaptic_sign=jnp.asarray(model.params["emitter"].sign, dtype=jnp.float32)),
+        dtype=float)
+    assert weight.shape == (el.n_edges,), "resolved weights must align with the edges"
+    assert bool(np.any(weight != 0.0)), "fixture must carry nonzero weights"
+    pos = np.asarray(model.params["positions"], dtype=float)
+
+    exact = _summary(sig.spikes, labels)
+    for name, count in realized.items():
+        exact[f"cells/V1.L4.{name}"] = count
+    exact["edges/total"] = int(el.n_edges)
+    exact["edges_sha256"] = hashlib.sha256(edges.tobytes()).hexdigest()
+    n_cells = layer.n_neurons
+    rate_hz = exact["spikes/total"] / (n_cells * duration_ms / 1000.0)
+    floats = {
+        "mean_V_m_mV": _finite("V_m", sig.V_m),
+        "positions_mean": _finite("positions", pos),
+        "positions_std": _finite("positions_std", np.std(pos)),
+        "edge_weight_sum": _finite("edge_weight", weight.sum()),
+        "mean_rate_hz": _finite("mean_rate", rate_hz),
+    }
+    _check("jdna_develop", exact, floats)

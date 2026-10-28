@@ -52,6 +52,25 @@
         "mean_V_m_mV": -67.2099505367279
       }
     },
+    "jdna_develop": {
+      "exact": {
+        "cells/V1.L4.E": 16,
+        "cells/V1.L4.PV": 24,
+        "edges/total": 384,
+        "edges_sha256": "55cb1240cbb227ea3cab7ad4d6fdc28f2ce074f1ec73ae57bd122d9321de3a1e",
+        "raster_sha256": "722bad91b21d3801c0968b8973f999e14a92f87f8109b2dd1a8b145e49b91268",
+        "spikes/E": 31,
+        "spikes/PV": 23,
+        "spikes/total": 54
+      },
+      "floats": {
+        "edge_weight_sum": 60.71573066711426,
+        "mean_V_m_mV": -65.5058580543995,
+        "mean_rate_hz": 13.5,
+        "positions_mean": 0.169778078297774,
+        "positions_std": 0.2640822717875815
+      }
+    },
     "lif_edge": {
       "exact": {
         "raster_sha256": "fe539c06afd2a0e28d92acaad56f81d63ec108f25b35f1a67561a7a01a5eb36f",

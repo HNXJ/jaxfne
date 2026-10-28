@@ -850,7 +850,7 @@ def simulate_hh(
             # old gating; held steps are counted in the scan carry and
             # reported as held_steps (the GSDR fit maps a NaN loss to inf
             # and reverts the generation: PORT_SPEC.md section 10).
-            n_held_s = n_held_s + jnp.sum((~jnp.isfinite(new_s)).astype(jnp.int32))
+            n_held_s = n_held_s + jnp.sum((~jnp.isfinite(new_s)).astype(jnp.int32)).astype(jnp.int32)
             s = jnp.where(jnp.isfinite(new_s), new_s, s)
             gs = w_j * s
             g_syn = jax.ops.segment_sum(gs, post_j, num_segments=N)
@@ -859,7 +859,7 @@ def simulate_hh(
             xi = jax.random.normal(uk, shape=(N,), dtype=dtype)
             new_ou = ou + (0.0 - ou) / tau_j * dt_ms + sig_j * jnp.sqrt(2.0 / tau_j) * xi * jnp.sqrt(dt_ms)
             # As above: hold the old noise, count the held update.
-            n_held_ou = n_held_ou + jnp.sum((~jnp.isfinite(new_ou)).astype(jnp.int32))
+            n_held_ou = n_held_ou + jnp.sum((~jnp.isfinite(new_ou)).astype(jnp.int32)).astype(jnp.int32)
             ou = jnp.where(jnp.isfinite(new_ou), new_ou, ou)
         i_noise = -ou
         am, bm, ah, bh, an, bn = _hh_rate_coeffs(v)

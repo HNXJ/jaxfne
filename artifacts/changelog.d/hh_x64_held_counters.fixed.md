@@ -1,0 +1,1 @@
+- `simulate_hh` runs with `jax_enable_x64` on: its held-update counters stay int32 in the scan carry, as in the multicompartment kernel, where the sum had promoted them to int64 and the scan refused the carry.

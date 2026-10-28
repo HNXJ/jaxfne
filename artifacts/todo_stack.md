@@ -41,9 +41,10 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   documented as held element updates, a string `dt_ms` refused in the HH route; `simulate_batch` realizes the
   surrogate; `visualize_network_3d` takes `relative` units): the "compiled 2 times" guard
   (`validation.py:1322`) counts (name, B, Z, C, T) while the jit cache key holds more, so reused-Model tests in
-  `test_homeostasis_dispatch.py` warn (align the guard with the key, a semantics choice); no full-kernel
-  gradient test for the HH route (`simulate_batch` keying is now documented and tested,
-  `tests/test_simulate_batch_keys.py`). Recorded, no change: field projection warnings
+  `test_homeostasis_dispatch.py` warn (align the guard with the key, a semantics choice). The HH route has a
+  full-kernel gradient test and runs under x64 (`tests/test_hh_full_kernel_grad.py`, 2026-10-28); its
+  scalar inputs `noise_gain`, `receptor_s0`, `receptor_tau_*` are cut by `float()` or `np.asarray` at entry,
+  so only `edge_weight` carries a gradient. Recorded, no change: field projection warnings
   are returned as data and no strict option exists; HH int32 counts stay below 2^31 at GSDR sizes
   (15001 x 2230). Closes when: each is fixed with a failing test or documented.
 - T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; after each dev
@@ -67,8 +68,8 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 - T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`; C, D, F landed 2026-10-27): `paper-lanes` passed its
   first CI run (aa92b43a, both legs, every lane ran) and joins `fast-build`'s needs after a second; F's reuse
   requires one executed case per family in each JUnit leg (2026-10-28); the family mapping and the `gh` field
-  names meet a live run at the first rc; a
-  `jaxfne.jdna` canary chain for B; E's first nightly is its observation. Closes when: `ci_plan.md` lists
+  names meet a live run at the first rc; B has its seven chains (jdna develop added 2026-10-28) and
+  runs as a CI stage first; E's first nightly is its observation. Closes when: `ci_plan.md` lists
   every step landed and observed.
 - T-44 [A] (E) T-32e: rules E1, S2, P4, R4 landed in `check_replications.py` (d2553d55, 66231ddb, 5c4a52a0,
   8136beea). Left: F3 ("a fidelity fix carries a test that fails on the parent commit") is per commit, so a
