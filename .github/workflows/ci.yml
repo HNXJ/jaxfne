@@ -304,13 +304,19 @@ jobs:
 
   fast-build:
     runs-on: ubuntu-latest
-    needs: [static, docs, fast-test, canary, examples]
+    needs: [static, docs, fast-test, canary, examples, paper-lanes]
     # A required check whose job is skipped can read as passed, so this job always
-    # runs and fails first when any job it needs did not succeed.
+    # runs and fails first when any job it needs did not succeed. paper-lanes is
+    # skipped by its own if: outside pull requests and dev; there a skip is expected.
     if: always()
     steps:
-      - name: Needed jobs passed (static, docs, fast-test, canary, examples)
-        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+      - name: Needed jobs passed (static, docs, fast-test, canary, examples, paper-lanes)
+        if: >-
+          contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') ||
+          needs.static.result == 'skipped' || needs.docs.result == 'skipped' ||
+          needs.fast-test.result == 'skipped' || needs.canary.result == 'skipped' ||
+          needs.examples.result == 'skipped' ||
+          (needs.paper-lanes.result == 'skipped' && (github.event_name == 'pull_request' || github.ref == 'refs/heads/dev'))
         env:
           RESULTS: ${{ toJSON(needs) }}
         run: |

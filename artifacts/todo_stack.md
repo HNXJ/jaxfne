@@ -58,8 +58,8 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   the set bits of n; it changes every PSD at rounding level (published spectrolaminar outputs included),
   so it is Hamm's call in T-50. Hamm's calls in T-50 also: absence under a band lower bound of 0,
   `population_rates` dt in seconds, mask orientation. Closes when: (11) is ruled, then fixed with a test.
-- T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`; C, D, F landed 2026-10-27): `paper-lanes` passed its
-  first CI run (aa92b43a, both legs, every lane ran) and joins `fast-build`'s needs after a second; F's reuse
+- T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`; B, C, D, F landed): `paper-lanes` is in
+  `fast-build`'s needs (2026-10-28; its first run under the new guard is the observation); F's reuse
   requires one executed case per family in each JUnit leg (2026-10-28); the family mapping and the `gh` field
   names meet a live run at the first rc; B has its seven chains (jdna develop added 2026-10-28) and
   runs as a CI stage first; E's first nightly is its observation. Closes when: `ci_plan.md` lists
@@ -72,7 +72,13 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   follows the `_repo_root()` walk to `pyproject.toml` (2026-10-28, five entries cleared). Closes when: F3 has
   a check that fails on a planted fix without a failing test, and each allowlist entry is fixed or ruled.
 - T-10b [A] jnwb cross-learning (`control/harness/jnwb_cross_learning.md`): errors page, a proxy-claim
-  wording gate, AST-hash freezing of validated kernels. Closes when: each lands with its test.
+  wording gate, AST-hash freezing of validated kernels. Survey 2026-10-28 for the freeze: one kernel is
+  checked bit for bit against an independent oracle (`simulate_eig_izhikevich`, net_m branch,
+  `tests/test_izh_amendments.py::test_b2b_core_net_m_matches_oracle_bit_for_bit`); AdEx, HH, LIF and local
+  inhibition use tolerances, and the AdEx drive oracle calls `adex_step` itself, so the freeze would cover
+  one function (low value; recommend dropping it). jaxfne exports two error classes (`TFNEError`,
+  `EpistemicRefusal`); its refusals are `ValueError`s named in messages, so an errors page needs a scope.
+  Closes when: each lands with its test or is dropped.
 - T-45 [A] C3, S1 (`docs/theory/doctrine/definition_map.md`): D21, D34 have no symbol; D17, D26 are private
   names; the object specializer `PV[model=IZH]` does not parse (`Base[NAME]` only); D31, D32 need a code path
   exposing a_eff and the AdEx clip; the S2 generator waits on D35 (H). Closes when: the map has no

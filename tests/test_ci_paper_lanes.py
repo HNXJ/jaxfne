@@ -132,6 +132,50 @@ def _setup_failures(text: str, block: str) -> list[str]:
     return out
 
 
+def _guard_holds(expr: str, results: dict[str, str], event: str, ref: str) -> bool:
+    """Evaluate fast-build's guard ``if:`` (true means the build fails) for job results and one trigger."""
+    py = re.sub(r"contains\(needs\.\*\.result, '(\w+)'\)", r"('\1' in R.values())", expr)
+    py = re.sub(r"needs\.([A-Za-z0-9_-]+)\.result", r"R['\1']", py)
+    py = re.sub(r"github\.event_name", "EVENT", py)
+    py = re.sub(r"github\.ref\b", "REF", py)
+    py = py.replace("||", " or ").replace("&&", " and ")
+    return bool(eval(py, {"__builtins__": {}}, {"R": results, "EVENT": event, "REF": ref}))
+
+
+def _build_failures(text: str, block: str) -> list[str]:
+    """fast-build needs the job and fails on its skip exactly where the job's own if: holds."""
+    build = _job_block(text, "fast-build")
+    needs = re.search(r"^    needs: \[([^\]]*)\]", build, re.M)
+    if needs is None:
+        return ["fast-build has no needs list"]
+    names = [n.strip() for n in needs.group(1).split(",")]
+    if JOB not in names:
+        return [f"fast-build does not need `{JOB}`"]
+    step = _step_of(build, "Needed jobs passed")
+    guard = re.search(r"if: >-\n((?:          .+\n)+)", step + "\n")
+    if guard is None:
+        return ["fast-build has no folded guard if:"]
+    expr = " ".join(line.strip() for line in guard.group(1).splitlines())
+    job_if = re.search(r"^    if: (.+)$", block, re.M)
+    out: list[str] = []
+    for event, ref, _ in TRIGGERS:
+        job_runs = True if job_if is None else _if_holds(job_if.group(1).strip(), event, ref)
+        ok = {n: "success" for n in names}
+        try:
+            if _guard_holds(expr, ok, event, ref):
+                out.append(f"guard fails a green build on {event} {ref}")
+            for n in names:
+                skipped = {**ok, n: "skipped"}
+                want = n != JOB or job_runs
+                if _guard_holds(expr, skipped, event, ref) != want:
+                    out.append(f"guard {'passes' if want else 'fails'} a skipped {n} on {event} {ref}")
+                if not _guard_holds(expr, {**ok, n: "failure"}, event, ref):
+                    out.append(f"guard passes a failed {n} on {event} {ref}")
+        except Exception as exc:  # unsupported expression: report, do not pass
+            return [f"fast-build guard {expr!r} cannot be evaluated ({exc})"]
+    return out
+
+
 def check(text: str) -> dict[str, list[str]]:
     """Failures by category; an empty dict means the job meets the plan."""
     block = _job_block(text, JOB)
@@ -142,6 +186,7 @@ def check(text: str) -> dict[str, list[str]]:
         "paths": _path_failures(block),
         "runner": _runner_failures(block),
         "setup": _setup_failures(text, block),
+        "build": _build_failures(text, block),
     }
     return {name: items for name, items in found.items() if items}
 
@@ -173,6 +218,10 @@ def test_job_calls_the_gate_lane_runner_not_a_lane_list(ci_text):
 
 def test_job_sets_up_python_and_installs_like_fast_test(ci_text):
     _assert_clean(ci_text, "setup")
+
+
+def test_fast_build_needs_the_job_and_fails_on_its_skip_where_it_runs(ci_text):
+    _assert_clean(ci_text, "build")
 
 
 # Each variant is a planted defect in the real file: the anchor must match exactly once,
@@ -231,6 +280,24 @@ PLANTED = [
         "if: github.ref == 'refs/heads/dev'",
         "trigger",
         id="pull-requests-dropped",
+    ),
+    pytest.param(
+        "needs: [static, docs, fast-test, canary, examples, paper-lanes]",
+        "needs: [static, docs, fast-test, canary, examples]",
+        "build",
+        id="fast-build-drops-the-job",
+    ),
+    pytest.param(
+        "(needs.paper-lanes.result == 'skipped' && (github.event_name == 'pull_request' || github.ref == 'refs/heads/dev'))",
+        "needs.paper-lanes.result == 'skipped'",
+        "build",
+        id="skip-fails-main-pushes",
+    ),
+    pytest.param(
+        "          needs.examples.result == 'skipped' ||\n",
+        "",
+        "build",
+        id="skipped-examples-passes",
     ),
     pytest.param(
         "\n  paper-lanes:\n    name:",
