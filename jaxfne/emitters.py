@@ -988,6 +988,13 @@ def resolve_receptor_index(edges: EdgeList) -> jax.Array:
     return edges.receptor_index.astype(jnp.int32)
 
 
+# Name of the mechanism whose ``tau_ms`` is the tau -> 0 limit (P-051, ruled 2026-10-28).
+# Its edge current at step t is the weighted sum of presynaptic spikes at t-1, with no
+# carry-over: the dense backend's ``weights @ prev_spikes``. It is the only mechanism
+# that may declare ``tau_ms = 0``.
+INSTANTANEOUS_MECHANISM = "instantaneous"
+
+
 def resolve_edge_tau_ms(edges: EdgeList, jdtype: Any) -> jax.Array:
     """Materialize per-edge ``tau_ms`` for kernel consumption."""
     if edges.tau_storage == "sign_from_receptor":
@@ -1458,7 +1465,12 @@ def simulate_edge_recurrent_izhikevich(
     Synaptic semantics: each edge carries a receptor-filtered exponential
     synaptic state (``tau_ms`` per edge); this is a distinct supported
     synaptic model and is NOT trajectory-equivalent to the dense backend's
-    instantaneous ``weights @ prev_spikes`` coupling.
+    instantaneous ``weights @ prev_spikes`` coupling. The mechanism named
+    ``instantaneous`` (``tau_ms`` 0, the tau -> 0 limit) is the exception: its
+    current at step t is the weighted sum of presynaptic spikes at t-1, as on the
+    dense backend. Its zero tau is floored at 1e-6 ms like every edge tau, so the
+    decay underflows to exactly 0 at ``dt_ms`` of 1e-3 ms or more in float32 and
+    float64.
 
     The implementation uses ``jax.lax.scan`` over time and
     ``jax.ops.segment_sum`` over edges. It is JIT/vmap compatible and preserves

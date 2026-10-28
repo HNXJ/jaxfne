@@ -1,0 +1,1 @@
+- The Izhikevich default initial recovery state is `u0 = b * v0` per cell, from the realized `b` (after `cell_params`) and `v0` (after `random_v0`). A declared `u0` still wins. Default-route realizations move, because `random_v0` is on by default.

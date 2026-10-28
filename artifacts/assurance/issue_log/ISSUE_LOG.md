@@ -47,6 +47,11 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   `b` is Hamm's call (it moves existing realizations).
 - 2026-10-27: `cell_params` takes `v0` and `u0` (a declared `v0` needs `runtime(random_v0=False)`);
   the default question stays open.
+- 2026-10-28: ruled and fixed (Hamm: the default is `u0 = b * v0`). `_apply_default_u0`
+  (`jaxfne/_construct_population.py`) runs in `construct()` after the canonical block, on the realized
+  `b` and `v0`; a declared `u0` still wins. Tests: `tests/test_izh_default_u0.py`. The default route
+  moves (`random_v0` is on by default); the three izhi pins in `tests/test_inputs_xsource_t24.py` were
+  re-recorded.
 
 ### P-051
 
@@ -57,6 +62,11 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   saturates (2000 Hz); the E1 pilot declares tau 1e-3 ms, where the decay is exactly 0 in float32
   at dt 0.5 ms (`izhikevich2003/core/run_izh_core.py`). Possible change: a named instantaneous
   receptor on the edge route, equal to the tau -> 0 limit.
+- 2026-10-28: ruled and fixed (Hamm: a named instantaneous receptor). `instantaneous` on the
+  `edge_list` route: the current at step t is the weighted sum of presynaptic spikes at t-1, with no
+  carry-over. It compiles with `weight_range` and must declare `tau_ms=0.0`
+  (`emitters.INSTANTANEOUS_MECHANISM`). Tests: `tests/test_izh_instantaneous_receptor.py`; dense and
+  edge rasters are identical and V agrees at rtol 1e-10.
 
 ### P-052
 

@@ -1106,6 +1106,8 @@ def compile_connection_rules(
         else jnp.float32
     )
 
+    from .emitters import INSTANTANEOUS_MECHANISM
+
     mechanism_table: list[dict[str, Any]] = []
     mech_index: dict[str, int] = {}
     for i, m in enumerate(mechanisms):
@@ -1114,7 +1116,13 @@ def compile_connection_rules(
             raise ValueError("mechanism declaration missing 'name'")
         params = dict(m.get("params", {}))
         tau = params.get("tau_ms", m.get("tau_ms"))
-        if tau is not None and (not math.isfinite(float(tau)) or float(tau) <= 0.0):
+        if name == INSTANTANEOUS_MECHANISM:
+            # P-051: the tau -> 0 limit is the one zero tau, and it must be declared exactly.
+            if tau is None or float(tau) != 0.0:
+                raise ValueError(
+                    f"mechanism {name!r} is the tau -> 0 limit: declare tau_ms=0.0; got {tau!r}"
+                )
+        elif tau is not None and (not math.isfinite(float(tau)) or float(tau) <= 0.0):
             raise ValueError(f"mechanism {name!r} tau_ms must be finite and positive; got {tau!r}")
         mech_index[name] = i
         mechanism_table.append(

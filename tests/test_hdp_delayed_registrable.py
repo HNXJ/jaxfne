@@ -459,12 +459,14 @@ def test_forced_spike_trials_reuse_compilation():
 def test_forced_spike_continuation_segment_relative():
     # Fix 3: SpikeTrainInput composes with return_state/continuation; each
     # segment's spike times are relative to that segment's start, so chunked
-    # forced runs reproduce the continuous forced run.
+    # forced runs reproduce the continuous forced run. The reference also returns
+    # its state: XLA compiles return_state=True and False as different programs, which
+    # may differ by one float32 ulp in V_m (test_continuation_contract compares the same way).
     model, rt = _reader_model()
     n = int(model.params["emitter"].n_neurons)
-    full = jtfne.simulate(
+    full, _ = jtfne.simulate(
         model, jtfne.simulation(duration_ms=20.0, dt_ms=1.0, seed=5, runtime=rt),
-        jtfne.SpikeTrainInput({0: [5.0], 1: [15.0]}, n_neurons=n))
+        jtfne.SpikeTrainInput({0: [5.0], 1: [15.0]}, n_neurons=n), return_state=True)
     s1, st1 = jtfne.simulate(
         model, jtfne.simulation(duration_ms=10.0, dt_ms=1.0, seed=5, runtime=rt),
         jtfne.SpikeTrainInput({0: [5.0]}, n_neurons=n), return_state=True)

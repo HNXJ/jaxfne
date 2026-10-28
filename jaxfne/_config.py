@@ -997,8 +997,8 @@ class Configuration:
         neuron-index order (a length mismatch is refused). ``v0`` (initial membrane potential)
         and ``u0`` (initial recovery variable) declare the initial state; a declared ``v0``
         needs ``runtime(random_v0=False)``, since the default random initial potential would
-        overwrite it. An undeclared ``u0`` keeps the preset's value (it is not recomputed from
-        an overridden ``b``)."""
+        overwrite it. An undeclared ``u0`` is ``b * v0`` per neuron, from the realized ``b`` and
+        ``v0`` (P-048); a declared ``u0`` wins."""
         bad_sel = sorted(set(selector) - {"cell_type", "layer"})
         bad_par = sorted(set(params) - {"a", "b", "c", "d", "drive", "v0", "u0"})
         if bad_sel or bad_par:

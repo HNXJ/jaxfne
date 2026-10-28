@@ -1,0 +1,1 @@
+- Fixes P-051: `instantaneous` is a named receptor on the Izhikevich `edge_list` route, the tau -> 0 limit. Declare it with `tau_ms=0.0`; it compiles with `weight_range`, and a presynaptic spike acts for one step only.

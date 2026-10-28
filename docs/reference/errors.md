@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2308 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2309 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -898,6 +898,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `connection {...} unknown weight mode {...}` |
 | `ValueError` | `dtype='float64' requested but JAX x64 is not enabled -- call jax.config.update("jax_enable_x64", Tru` |
 | `ValueError` | `mechanism declaration missing 'name'` |
+| `ValueError` | `mechanism {...} is the tau -> 0 limit: declare tau_ms=0.0; got {...}` |
 | `ValueError` | `mechanism {...} tau_ms must be finite and positive; got {...}` |
 | `ValueError` | `connection {...} declares intra_step_rounds={...}: the intra-step fixed point is realized on the ade` |
 | `ValueError` | `connection {...} sampling must be 'density', 'bernoulli', 'capped_bernoulli', 'fixed_indegree' or 'm` |

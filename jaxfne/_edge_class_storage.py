@@ -16,6 +16,7 @@ import jax.numpy as jnp
 import numpy as np
 
 from .emitters import (
+    INSTANTANEOUS_MECHANISM,
     EdgeList,
     resolve_edge_delay_steps,
     resolve_edge_tau_ms,
@@ -117,6 +118,9 @@ def build_declared_mechanism_tau_table(metadata: Mapping[str, Any]) -> np.ndarra
         if tau is None:
             return None
         tau_f = float(tau)
+        if m.get("name") == INSTANTANEOUS_MECHANISM and tau_f == 0.0:
+            taus.append(0.0)  # P-051: the tau -> 0 limit, the one declared zero
+            continue
         if not np.isfinite(tau_f) or tau_f <= 0.0:
             return None
         taus.append(tau_f)

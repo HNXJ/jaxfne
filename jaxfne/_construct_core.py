@@ -60,6 +60,7 @@ from ._construct_population import (
     _DENSE_CONNECTIVITY_WARN_N,
     _apply_baseline_drive,
     _apply_cell_params,
+    _apply_default_u0,
     _declared_cell_types,
     _neuron_population_from_config,
 )
@@ -1560,6 +1561,10 @@ def _construct_from_configuration(
             emitter_params, emitter_params.labels, (geometry_meta or {}).get("layer_labels"),
             cfg.metadata, emitter_params.a.dtype, _declared_cell_types(cfg),
         )
+    # P-048: u0 = b * v0 per cell, once b (cell_params) and v0 (random draw) are realized.
+    emitter_params = _apply_default_u0(
+        emitter_params, emitter_params.labels, (geometry_meta or {}).get("layer_labels"), cfg.metadata
+    )
     network = replace(network, params=emitter_params)
 
     cfg, edge_list = _construct_compile_connections(
