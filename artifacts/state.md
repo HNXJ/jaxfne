@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@760bcec3 · 2026-10-28
+Stamp: jaxfne@dev@9a1efe20 · 2026-10-28
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
@@ -21,8 +21,11 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   allowlist entries cleared); canary chain 7, jdna develop (T-42 B); HH full-kernel gradient test and HH
   under x64; the compile guard counts per cache key (T-38 closed); protocol D refuses a negative drive
   onset (T-41); `fast-build` needs `paper-lanes` (T-42 C).
-- Broad gate on 760bcec3's tree: 7728 passed, 0 failed; all paper lanes pass.
-- CI Fast green through c1128ce5.
+- 2026-10-28 on dev (d3fbad69 to 9a1efe20): matrix masks follow `W[post, pre]` with `I_to_E`; exact
+  float32 PSD phase; F3 check `scripts/check_fidelity_fix.py` over `Fidelity-fix:` trailers, a CI
+  `paper-lanes` step (T-44 F3).
+- Broad gate on 9a1efe20's tree: 7743 passed, 0 failed; all paper lanes pass.
+- CI Fast on 9a1efe20 green (run 40697196089); its F3 step accepted both tagged fixes (2 of 3 commits).
 
 ## Broken or in flight
 
@@ -33,7 +36,6 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   tunes `gGABA_w` with it); `spectrolaminar_psd_jax` takes its phase from exact float32 remainders
   (broadband noise against float64: 2.4e-4 to 1e-6 of peak at 10 s, 2e-2 to 4e-6 at 1000 s). The T-55
   sinusoid figure (11.5% at 1000 s) was relative to an off-grid leakage peak and overstated the error.
-- CI Fast on 760bcec3: every job green, `fast-build` with `paper-lanes` in its needs (run 40651924091).
 
 ## Generated files and their checks
 
@@ -55,7 +57,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-T-44 F3 (a CI step over commits tagged as
-fidelity fixes), T-45 and T-46 in worker lanes (at most 3 at once); T-3 R2 waits on the WSL installs
+T-45 (D31, D32 public names wait on Hamm) and T-46 (licences, owner statement) in worker lanes (at
+most 3 at once); tag each fidelity fix with `Fidelity-fix: <node id>`; T-3 R2 waits on the WSL installs
 (O-58). The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned by frozen records,
 record pins or runtime paths, the root sits at its 7-folder limit, and no move is warranted.

@@ -70,10 +70,12 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   one function (low value; recommend dropping it). jaxfne exports two error classes (`TFNEError`,
   `EpistemicRefusal`); its refusals are `ValueError`s named in messages, so an errors page needs a scope.
   Closes when: each lands with its test or is dropped.
-- T-45 [A] C3, S1 (`docs/theory/doctrine/definition_map.md`): D21, D34 have no symbol; D17, D26 are private
-  names; the object specializer `PV[model=IZH]` does not parse (`Base[NAME]` only); D31, D32 need a code path
-  exposing a_eff and the AdEx clip; the S2 generator waits on D35 (H). Closes when: the map has no
-  unsymboled row and `python scripts/publication_figures/supplement.py` regenerates S1, S2, S5.
+- T-45 [A] C3, S1 (`docs/theory/doctrine/definition_map.md`; D17, D21, D26, D34 map to public symbols,
+  0bc1e47a and 201750c9): D28 and D35 have no symbol (KNOWN_GAPS; the S2 generator waits on D35, H); D31,
+  D32 map to private names (`_hdp_adaptive.bind_theta_to_plant`, `_hdp_family_kernel.apply_registered_rule_update`),
+  so a public name is Hamm's call as for D34 in H2; the object specializer `PV[model=IZH]` does not parse
+  (`Base[NAME]` only). Closes when: the map has no unsymboled row and
+  `python scripts/publication_figures/supplement.py` regenerates S1, S2, S5.
 - T-46 [A] C9, C2: 8 gaps in `programme/paper/reproducibility_audit.md` section 7 (the `publication` job passed;
   fig03-05 RGBA and all bytes differ from the macOS freeze); left: the data and code statement (0.5.11), the
   PCL natural-image and DVS128/N-MNIST licences, S16 generators. Closes when: section 7 lists 0 gaps.
