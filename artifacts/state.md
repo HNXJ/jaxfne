@@ -64,8 +64,8 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 ## Next action
 
 T-R28 wave 2 in worker lanes (at most 3 at once): P-048, P-051, HDP per-spike jumps, bfloat16 note;
-metadata sweep, publication move, errors page; D31, D32, D28 public names. D35 waits on Hamm: a public
-`jaxfne.fields.apply_calibration(obj, transform)` already exists. Tag each fidelity fix with
+metadata sweep, publication move, errors page; then D31, D32, D28 public names (D35 maps to
+`jaxfne.fields.apply_calibration`, Hamm 2026-10-28). Tag each fidelity fix with
 `Fidelity-fix: <node id>`; T-3 R2 waits on the WSL installs (O-58). The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned by frozen records,
 record pins or runtime paths, the unexempted root folders sit at the limit of 7
 (`tests/test_artifacts_tree_degree.py`), and no move is warranted.

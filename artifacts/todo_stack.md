@@ -58,7 +58,8 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   `EpistemicRefusal`); its refusals are `ValueError`s named in messages, so an errors page needs a scope.
   Closes when: each lands with its test or is dropped.
 - T-45 [A] C3, S1 (`docs/theory/doctrine/definition_map.md`; D17, D21, D26, D34 map to public symbols,
-  0bc1e47a and 201750c9): D28 and D35 have no symbol (KNOWN_GAPS; the S2 generator waits on D35, H); D31,
+  0bc1e47a and 201750c9; D35 maps to `jaxfne.fields.apply_calibration`, Hamm 2026-10-28): D28 has no
+  symbol (KNOWN_GAPS); D31,
   D32 map to private names (`_hdp_adaptive.bind_theta_to_plant`, `_hdp_family_kernel.apply_registered_rule_update`),
   so a public name is Hamm's call as for D34 in H2; the object specializer `PV[model=IZH]` does not parse
   (`Base[NAME]` only). Closes when: the map has no unsymboled row and
@@ -133,7 +134,7 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   repetitions, CL-05 names its one post-registration revision, the other five conflicts and both orphans
   are text fixes against the ledger and receipts; C4 adds a Euclidean radius cutoff (rotation-invariant
   candidates, an arbitrary-angle S3 test); C6 uses `geometry="laminar"` and declares Brian2 and Jaxley
-  baselines; D35 becomes public `apply_calibration(quantity, geometry, theta)`; D28 becomes public
+  baselines; D35 maps to `jaxfne.fields.apply_calibration` (done 2026-10-28); D28 becomes public
   `QuantityKind` (B, R, E, T).
   Local copies (O-68): rescue what a record cites into the repo or `F:/warehouse` with a `state.md`
   pointer, list each deletion for Hamm, delete one at a time. jarness selfcheck: propose to the jynx keeper
