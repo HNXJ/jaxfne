@@ -59,9 +59,10 @@ def simulate_stdp_euler_step(
     trace_pre_next = trace_pre * (1.0 - dt_ms / tau_plus) + spiked.astype(jnp.float32)
     trace_post_next = trace_post * (1.0 - dt_ms / tau_minus) + spiked.astype(jnp.float32)
     
-    # Shared STDP weight kernel (see plasticity.stdp_weight_update).
+    # Shared STDP weight kernel (see plasticity.stdp_weight_update). Presynaptic columns flagged in
+    # inh_mask are frozen even where exc_mask also flags them; complementary masks change nothing.
     W_next = stdp_weight_update(
-        W, trace_pre, trace_post, spiked, exc_mask,
+        W, trace_pre, trace_post, spiked, exc_mask & ~inh_mask,
         A_plus, A_minus, plasticity_scale, w_min, w_max,
     )
     
@@ -87,7 +88,10 @@ def run_stdp_stream(
     downsample_factor: int = 10
 ) -> Tuple[Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, STDPState], Dict[str, Any]]:
     """Runs simulation in a chunked, streaming fashion to avoid memory explosion.
-    
+
+    STDP updates the outgoing weights (columns of ``W``) of presynaptic neurons in ``exc_mask`` that
+    are not in ``inh_mask``; the outgoing weights of every ``inh_mask`` neuron stay fixed.
+
     Returns:
         tuple: (v_final, u_final, s_final, final_stdp_state)
         dict: traj_dict containing downsampled trajectories and chunk statistics.

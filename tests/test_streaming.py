@@ -87,6 +87,23 @@ def test_run_stdp_stream_downsample_factor_reduces_trajectory_length():
     assert traj["vm"].shape[0] == int(np.ceil(20 / 4))
 
 
+def test_run_stdp_stream_inh_mask_freezes_inhibitory_presynaptic_columns():
+    """A presynaptic neuron flagged in inh_mask keeps its outgoing weights, even when exc_mask also flags it."""
+    inputs = _build_stdp_inputs(n_steps=200)
+    n = int(inputs["exc_mask"].shape[0])
+    W0 = np.asarray(inputs["stdp_state"].W)
+    inputs["exc_mask"] = jnp.ones(n, dtype=bool)
+    inputs["stim_drive"] = jnp.full((200, n), 15.0, dtype=jnp.float32)
+    free = dict(inputs, inh_mask=jnp.zeros(n, dtype=bool))
+    (_, _, _, final_free), traj = jtfne.run_stdp_stream(**free, chunk_size_ms=100.0, downsample_factor=1)
+    k = int(np.argmax(np.asarray(traj["spk"]).sum(axis=0)))
+    assert np.asarray(traj["spk"])[:, k].sum() > 0, "fixture must spike"
+    assert not np.array_equal(np.asarray(final_free.W)[:, k], W0[:, k]), "fixture: column k must learn"
+    masked = dict(inputs, inh_mask=jnp.zeros(n, dtype=bool).at[k].set(True))
+    (_, _, _, final_masked), _ = jtfne.run_stdp_stream(**masked, chunk_size_ms=100.0, downsample_factor=1)
+    np.testing.assert_array_equal(np.asarray(final_masked.W)[:, k], W0[:, k])
+
+
 def test_agsdr_legacy_adapter_direct_construction():
     """jtfne.AGSDR() must be directly constructible with default and explicit params."""
     spec = jtfne.AGSDR()

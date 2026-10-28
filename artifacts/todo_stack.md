@@ -208,8 +208,8 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   (skipped: emitters_hh/adex/rate/lif internals, `_construct*`, pcl_topology, plasticity, HDP modules,
   connectivity, inputs, validation, jdna, protocol_*). Lanes A2 and A3 (kernels, construction, plasticity,
   HDP; fixed: STDP-stream trace taus below dt refuse, `record_dH_components` with a registered HDP rule
-  refuses at compile in place of a KeyError at the first step) left: `run_stdp_stream` takes `inh_mask` and
-  never reads it (public argument: consume or deprecate is Hamm's call); `synthetic_presyn_gain` and
+  refuses at compile in place of a KeyError at the first step; `run_stdp_stream` consumes `inh_mask`, Hamm
+  2026-10-27) left: `synthetic_presyn_gain` and
   `eligibility_trace_gain` (`hdp_rule.py:318-372`) update per step without dt, and `tau_e` decays per step;
   the builders default a None seed to 42 (`builders.py:223,234,310,321`) and `construct` to 0
   (`_construct_core.py:230`); `adex_destexhe.py:181` rounds the kicked fraction half-even. Unread by any

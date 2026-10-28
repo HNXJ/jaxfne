@@ -1,0 +1,1 @@
+- `run_stdp_stream` consumes `inh_mask`: the outgoing weights of every presynaptic neuron in `inh_mask` stay fixed, also where `exc_mask` flags the same neuron; complementary masks (`make_ei_cloud_network`) give unchanged results.
