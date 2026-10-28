@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@a7d63fff · 2026-10-28
+Stamp: jaxfne@dev@b1d9dfe1 · 2026-10-28
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
@@ -30,11 +30,18 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   bins, `population_rates(dt_ms=, discard_ms=)`, `welch_numpy` equals the scipy branch. Core: seed-0
   defaults, half-up drive subset, protocol E flag, jdna minimum of 1 cell, optimizer keys and seeds.
   GSDR's pilot kappa values change under textbook Fleiss; its records stay unscored and unedited.
-- Broad gate on a7d63fff's tree: 7765 passed, 0 failed; paper lanes pass; F3 accepts the range
-  7425206a..a7d63fff (2 tagged commits of 3).
+- 2026-10-28 on dev (61978d91 to 8f3ce57e): D35 maps to `jaxfne.fields.apply_calibration`; T-R28 wave 2.
+  HDP: the two probe rules apply spike terms as per-event jumps (`HDPRuleUpdate.jH`, `j_aux`, `j_theta`),
+  dt-invariant. Runtime: bfloat16 is storage only (float32 compute, one cast of every recorded float
+  array, field readouts included, Hamm 2026-10-28). Docs: paper drafts moved to
+  `artifacts/programme/paper/publication/`, `claim_level` and `field_claim_level` swept,
+  `docs/reference/errors.md` with a generated refusal index. Broad gate on 8f3ce57e: 7819 passed, 0
+  failed, paper lanes pass; F3 accepts 61978d91..8f3ce57e (2 tagged of 3).
 
 ## Broken or in flight
 
+- b1d9dfe1 (local, unpushed): P-048 default `u0 = b * v0`, P-051 `instantaneous` receptor; F3 accepts it.
+  Broad gate: 10 failed, 7823 passed, every failure from the moved default trajectories (T-57, two lanes).
 - PCL R2 on real files is next (T-3); the C++ reference binary needs WSL installs (O-58).
 - The P-052 surrogate's off-diagonal gradient disagrees in sign with the finite difference (corr -0.2 to
   -0.4); its fitness for training is Hamm's call (`artifacts/runs/perf/profiles/precision_058.md`).
@@ -64,9 +71,9 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-T-R28 wave 2 in worker lanes (at most 3 at once): P-048, P-051, HDP per-spike jumps, bfloat16 note;
-metadata sweep, publication move, errors page; then D31, D32, D28 public names (D35 maps to
-`jaxfne.fields.apply_calibration`, Hamm 2026-10-28). Tag each fidelity fix with
-`Fidelity-fix: <node id>`; T-3 R2 waits on the WSL installs (O-58). The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned by frozen records,
+Work goes to the CLI workers (opencode Muse, Cursor GLM 5.3 flash, agy Gemini; Hamm 2026-10-28), at most
+3 lanes, cloned from a still base at `E:/repos/_wt/jaxfne/base`. T-57 first (push b1d9dfe1 with its
+fixes), then D31 and D32 public names (Muse) and the T-35 keys table (Cursor), then the C1 text edits from
+agy's draft. Tag each fidelity fix with `Fidelity-fix: <node id>`; T-3 R2 waits on the WSL installs (O-58). The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned by frozen records,
 record pins or runtime paths, the unexempted root folders sit at the limit of 7
 (`tests/test_artifacts_tree_degree.py`), and no move is warranted.

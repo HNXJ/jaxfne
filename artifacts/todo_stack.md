@@ -23,15 +23,15 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 
 ## 1. Fast (S)
 
-- T-35 [A] (D) Left after lane D (2026-10-27; fixed: dead test-comment paths, the TestPyPI pointer, the
-  v031-v033 `update_canonical` branch writing to targets removed in 72eafbbd, the V_m fallback for EEG/MEG in
-  examples 03 and 05; kept with reason: `_tutorial_runtime`'s `or`, the examples' ImportError clauses,
-  `consolidate_hdp_controllability_etude.py`, which refuses when its local receipts are absent, as its docs
-  say): metadata keys, two sets since 5ae19017: the package emits `claim_level` (20 files in `jaxfne/`) and
-  `field_claim_level` (25), while `amplitude_status`, `model_status`, `run_status`, `field_model_status`
-  (63, 53, 37, 24 files) live only outside `jaxfne/`; `physical_amplitude_claim_allowed` is a retired
-  migration key (`_construct_extras.py:567`). Ruled: `claim_level` and `field_claim_level` (T-R28). Closes
-  when: swept, and `python scripts/run_test_gate.py docs` passes.
+- T-57 [A] (T, C) b1d9dfe1 (P-048 default u0, P-051 `instantaneous`, local, unpushed) fails 10 tests in
+  the broad gate, all from the moved default trajectories: five canary chains, the t18 spike hash and the
+  narrow tune pins (re-record, Cursor lane `pins`); `test_equiv01_table[eligibility]` (the two routes'
+  w traces differ, diagnosis), the closure-hp growth fixture, AT-10 pins the old u0 (Hamm 2026-10-28)
+  (Muse lane `fixa`). Closes when: the broad gate passes on the fixed commit and it is pushed.
+- T-35 [A] (D) The secondary metadata keys stay (Hamm 2026-10-28): `amplitude_status`, `run_status`,
+  `model_status`, `field_model_status` (63, 38, 39, 13 files, none in `jaxfne/`), documented in one table
+  in `docs/guides/readout/output_bundles.md` beside `claim_level` and `field_claim_level` (packet KEYS).
+  Closes when: the table lands and `python scripts/run_test_gate.py docs` passes.
 - T-56 [A] (C) Siblings of the wave-1 rulings (2026-10-28), each a ruling for Hamm or a fix by analogy:
   `spectrolaminar_psd_jax` uses the symmetric `jnp.hanning` (scipy's `hann` is periodic);
   `vis.core.binned_population_rate_hz` rounds an off-grid bin silently (documented for plots);
@@ -49,14 +49,9 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   names meet a live run at the first rc; B has its seven chains (jdna develop added 2026-10-28) and
   runs as a CI stage first; E's first nightly is its observation. Closes when: `ci_plan.md` lists
   every step landed and observed.
-- T-10b [A] jnwb cross-learning (`control/harness/jnwb_cross_learning.md`): errors page, a proxy-claim
-  wording gate, AST-hash freezing of validated kernels. Survey 2026-10-28 for the freeze: one kernel is
-  checked bit for bit against an independent oracle (`simulate_eig_izhikevich`, net_m branch,
-  `tests/test_izh_amendments.py::test_b2b_core_net_m_matches_oracle_bit_for_bit`); AdEx, HH, LIF and local
-  inhibition use tolerances, and the AdEx drive oracle calls `adex_step` itself, so the freeze would cover
-  one function (low value; recommend dropping it). jaxfne exports two error classes (`TFNEError`,
-  `EpistemicRefusal`); its refusals are `ValueError`s named in messages, so an errors page needs a scope.
-  Closes when: each lands with its test or is dropped.
+- T-10b [A] jnwb cross-learning (`control/harness/jnwb_cross_learning.md`): the errors page landed
+  (8f3ce57e) and the kernel freeze is dropped (Hamm 2026-10-28); left: a proxy-claim wording gate.
+  Closes when: it lands with its test or is dropped.
 - T-45 [A] C3, S1 (`docs/theory/doctrine/definition_map.md`; D17, D21, D26, D34 map to public symbols,
   0bc1e47a and 201750c9; D35 maps to `jaxfne.fields.apply_calibration`, Hamm 2026-10-28): D28 has no
   symbol (KNOWN_GAPS); D31,
@@ -106,36 +101,24 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 
 ## 4. Waiting on Hamm
 
-- T-R28 [A] Hamm's rulings 2026-10-28, each to apply then delete: F3 counts pytest exit 2 on the parent as
-  failing (as built); D31, D32 become public names with the private ones as aliases, a map test each (T-45);
-  T-10b drops the kernel freeze, the errors page covers `TFNEError`, `EpistemicRefusal` and a generated
-  index of refusal messages by module; canonical
-  metadata keys are `claim_level`, `field_claim_level`, docs and scripts swept, frozen receipts untouched
-  (T-35); close #115 and #116 with a pointer to the ruff 0.17.2 commit 9d338ba3; T-16 closed, the atlas
-  test files stay; move `docs/theory/publication/` to `artifacts/programme/paper/` and drop its
-  `exclude_docs` entries (T-17); the four receipt-writing scripts stay (T-17); dashboard P0 accepted, P1
-  then P2 start; 0.5.9 waits for 9A-9G. Wave 1 landed 2026-10-28 (9d338ba3, 854cade9, a7d63fff): markers,
-  ruff, GSDR and Destexhe at P2, S1 exceptions, `PCL_DIAG_DIR`, the estimator rulings, seeds, rounding,
-  protocol E, jdna minimum.
+- T-R28 [A] Hamm's rulings 2026-10-28 still to apply (wave 1 and wave 2 landed: 9d338ba3 to b1d9dfe1):
+  D31, D32 become public names with the private ones as aliases, a map test each (T-45); dashboard P1
+  then P2; 0.5.9 waits for 9A-9G.
   Science, each output-changing with a changelog fragment: P-052 next is a beta by horizon scan
-  against the central finite difference; P-048 default `u0 = b * v0`; P-051 a named `instantaneous` edge
-  receptor (the tau -> 0 limit) with a dense-route test; the two HDP probe rules apply spike terms as
-  per-spike jumps (dt-invariant); no state clamp on the plain Izhikevich path (T-19 closed); the
-  same-layer rule stays PV/SST/VIP with others refused (T-18 closed); bfloat16 is storage only.
+  against the central finite difference.
   Protocol: Izhikevich P6 scores seeds 2-6, Q5 option B, margins as drafted, signed once the
-  `instantaneous` receptor replaces the tau 1e-3 ms coupling in its model table; Potjans P3 v2 at 10% with
-  in-degree held, e <= 0.20; Vogels P3 v2 as drafted (full N, e <= 0.20, O-DROP ratio >= 2); Destexhe and
-  GSDR reserve scoring seeds 9-13 (pilots 0-3, GSDR fit 1-3), signatures after pilots (O-70); the CAMINOS
-  core-route rerun is an equivalence check against the frozen result (same prereg and seeds, within its
-  between-seed range); PCL R4 scores the driven column (4,4) and reports (0,0) beside it; WSL: Hamm fixes
-  DNS (O-58), then the agent installs the C++ build packages; the jitter reader reruns the frozen readout on
-  larger sets first, `w_max` only if it stays weak, receipts into the repo.
+  `instantaneous` receptor (landed b1d9dfe1) replaces the tau 1e-3 ms coupling in its model table; Potjans
+  P3 v2 at 10% with in-degree held, e <= 0.20; Vogels P3 v2 as drafted (full N, e <= 0.20, O-DROP ratio
+  >= 2); Destexhe and GSDR reserve scoring seeds 9-13 (pilots 0-3, GSDR fit 1-3), signatures after pilots
+  (O-70); the CAMINOS core-route rerun is an equivalence check against the frozen result (same prereg and
+  seeds, within its between-seed range); PCL R4 scores the driven column (4,4) and reports (0,0) beside
+  it; WSL: Hamm fixes DNS (O-58), then the agent installs the C++ build packages; the jitter reader reruns
+  the frozen readout on larger sets first, `w_max` only if it stays weak, receipts into the repo.
   Paper: no cap on references (C10 keeps the DOI check); C1: CL-29 states 0.426 as the maximum over
   repetitions, CL-05 names its one post-registration revision, the other five conflicts and both orphans
-  are text fixes against the ledger and receipts; C4 adds a Euclidean radius cutoff (rotation-invariant
-  candidates, an arbitrary-angle S3 test); C6 uses `geometry="laminar"` and declares Brian2 and Jaxley
-  baselines; D35 maps to `jaxfne.fields.apply_calibration` (done 2026-10-28); D28 becomes public
-  `QuantityKind` (B, R, E, T).
+  are text fixes against the ledger and receipts (agy drafting the edits); C4 adds a Euclidean radius
+  cutoff (rotation-invariant candidates, an arbitrary-angle S3 test); C6 uses `geometry="laminar"` and
+  declares Brian2 and Jaxley baselines; D28 becomes public `QuantityKind` (B, R, E, T).
   Local copies (O-68): rescue what a record cites into the repo or `F:/warehouse` with a `state.md`
   pointer, list each deletion for Hamm, delete one at a time. jarness selfcheck: propose to the jynx keeper
   that selfcheck skips files a workspace declares as history (record pins, receipt trees).
