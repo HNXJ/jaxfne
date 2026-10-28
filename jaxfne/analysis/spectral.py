@@ -75,9 +75,18 @@ def spectrolaminar_psd_jax(
     if freqs is None:
         freqs = jnp.linspace(1.0, 150.0, 96, dtype=jnp.float32)
     n_trials, n_steps, n_contacts = tapered.shape
-    sample_idx = jnp.arange(n_steps, dtype=freqs.dtype)
+    # Phase of sample n in cycles is (f * n mod fs) / fs. Formed as (f / fs) * n in float32 it
+    # loses ~log2(n) bits. f * 2**k and its remainder mod fs are exact, so sum the remainders
+    # over the set bits k of n; only that short sum and the final division round.
+    n_bits = max(1, (n_steps - 1).bit_length())
+    pow2 = (2.0 ** jnp.arange(n_bits)).astype(freqs.dtype)
+    fs_t = jnp.asarray(fs, dtype=freqs.dtype)
+    rem_k = jax.lax.rem(freqs[:, None] * pow2[None, :], fs_t)
+    bits = ((jnp.arange(n_steps)[:, None] >> jnp.arange(n_bits)[None, :]) & 1).astype(freqs.dtype)
+    rem_n = jnp.einsum("fk,sk->fs", rem_k, bits, precision=jax.lax.Precision.HIGHEST)
+    cycles = jax.lax.rem(rem_n, fs_t) / fs_t
     # basis: (n_freqs, n_steps)
-    basis = jnp.exp(-1j * 2.0 * jnp.pi * (freqs[:, None] / fs) * sample_idx[None, :])
+    basis = jnp.exp(-1j * 2.0 * jnp.pi * cycles)
     # DFT projection: (n_freqs, n_steps) @ (n_trials, n_steps, n_contacts) -> (n_trials, n_freqs, n_contacts)
     spec = jnp.einsum("fs,tsc->tfc", basis, tapered)
     # Average magnitude across trials, normalized by timesteps
