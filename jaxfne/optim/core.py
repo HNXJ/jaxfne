@@ -1477,6 +1477,31 @@ def _tune_matrix_agsdr_optax(
             "matrix tune with an inner optimizer refuses a placeholder emitter.W "
             "(recurrent_backend='edge_list'): the refined matrix would be reported as []"
         )
+    # MatrixParameterSpec.bounds scale the masked entries of the base W, so the inner loop keeps each
+    # masked entry within [lo, hi] times its base value (sign kept) and leaves unmasked entries fixed.
+    from jaxfne._model_tune import _mask_for_parameter
+
+    W0 = np.asarray(emitter0.W, dtype=float)
+    w_lo = np.full(W0.shape, -np.inf)
+    w_hi = np.full(W0.shape, np.inf)
+    w_free = np.zeros(W0.shape, dtype=bool)
+    for _name, _spec in param_specs.items():
+        if not isinstance(_spec, MatrixParameterSpec) or getattr(_spec, "target", "W") != "W":
+            continue
+        _mask = np.asarray(_mask_for_parameter(model, _name, _spec.mask), dtype=bool)
+        _a, _b = float(_spec.bounds[0]) * W0, float(_spec.bounds[1]) * W0
+        w_lo[_mask] = np.maximum(w_lo[_mask], np.minimum(_a, _b)[_mask])
+        w_hi[_mask] = np.minimum(w_hi[_mask], np.maximum(_a, _b)[_mask])
+        w_free |= _mask
+    if (w_free & (w_lo > w_hi)).any():
+        raise ValueError(
+            "declared matrix parameters overlap on entries whose scale bounds have no common value; "
+            "the refined W cannot honour every declared pair"
+        )
+    w_free_flat = jnp.asarray(w_free.reshape(-1))
+    w_lo_flat = jnp.asarray(np.where(w_free, w_lo, 0.0).reshape(-1))
+    w_hi_flat = jnp.asarray(np.where(w_free, w_hi, 0.0).reshape(-1))
+
     # Extract group rate targets for inner soft-rate surrogate
     # Try to parse groups and target rates from the objective
     groups_for_inner: dict = {}
@@ -1642,11 +1667,13 @@ def _tune_matrix_agsdr_optax(
 
                             updates, opt_state = inner_optimizer.update(fallback_grads, opt_state)
                             current_W = optax.apply_updates(current_W, updates)
-                            # Clip to declared parameter bounds
-                            # For gAMPA_w, use the bounds from MatrixParameterSpec
-                            param_lower = float(param_specs.get("gAMPA_w").bounds[0]) if "gAMPA_w" in param_specs else -1000.0
-                            param_upper = float(param_specs.get("gAMPA_w").bounds[1]) if "gAMPA_w" in param_specs else 1000.0
-                            current_W = jnp.clip(current_W, param_lower, param_upper)
+                            # Masked entries stay within their declared scale of the base W;
+                            # unmasked entries keep the candidate's value.
+                            current_W = jnp.where(
+                                w_free_flat,
+                                jnp.clip(current_W, w_lo_flat.astype(current_W.dtype), w_hi_flat.astype(current_W.dtype)),
+                                W_init,
+                            )
                         except _CANDIDATE_FAILURES:
                             fallback_counts["inner_loop_step_failed"] += 1
                             break  # Inner loop failed; use AGSDR candidate as-is

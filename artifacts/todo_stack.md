@@ -59,15 +59,11 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   `support_only_on_O_H` (`e3_execution.py:268`), whose receipt `e3_execution_receipt.json` is frozen
   write-once, so a fix needs a new receipt version (Hamm, H-rule on frozen receipts). Estimator findings are
   in T-50. Closes when: both are fixed or ruled.
-- T-55 [A] (C) Left of the T-41 findings verified 2026-10-27 (lane C3 fixed 2-9, each with a failing test):
-  (1) the matrix tune's inner loop clips absolute `emitter.W`, every entry, to `gAMPA_w`'s bounds when that
-  name is declared and to +-1000 otherwise (`optim/core.py:1656`; `all_w` under bounds (0.5, 2.5) came back
-  in [-3.22, 3.22]), while `MatrixParameterSpec.bounds` are multiplicative scaling bounds on the masked
-  entries (`_model.py:98`); the fix bounds W/W0 on the masked entries and leaves the others and their signs
-  alone (main model); (11) `analysis/spectral.py:80` float32 phase, absolute error 0.168 rad at 1000 s;
-  `spectrolaminar_psd_jax` is jitted with traced `freqs` and x64 off, so float64 changes its jit contract.
-  Hamm's calls in T-50: absence under a band lower bound of 0, `population_rates` dt in seconds. Closes when:
-  (1) and (11) are fixed with a failing test, or (11) is ruled.
+- T-55 [A] (C) Left of the T-41 findings verified 2026-10-27 (lane C3 fixed 2-9, item 1 fixed 2026-10-28,
+  each with a failing test): (11) `analysis/spectral.py:80` float32 phase, absolute error 0.168 rad at
+  1000 s; `spectrolaminar_psd_jax` is jitted with traced `freqs` and x64 off, so float64 changes its jit
+  contract. Hamm's calls in T-50: absence under a band lower bound of 0, `population_rates` dt in seconds,
+  mask orientation. Closes when: (11) is fixed with a failing test or ruled.
 - T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`; C, D, F landed 2026-10-27): `paper-lanes` passed its
   first CI run (aa92b43a, both legs, every lane ran) and joins `fast-build`'s needs after a second; F's reuse
   records `pytest_slow` and `pytest_notebook` as passing when every CI case of that family skipped (review
@@ -137,12 +133,16 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   same as the authors'), so textbook Fleiss or the paper's form; `welch_numpy` (`analysis/spectral.py:205-231`)
   uses a symmetric Hann window while its docstring says the scipy convention (PSD up to 15.7% apart); bins
   off the dt grid are rounded silently in `fano_factor`, `fleiss_kappa_binary` and `metrics.py:1014` while
-  `wang_buzsaki_kappa` refuses them; optimizer seeds collide (`optim/core.py:1608` fold_in index at
-  population above 10; `:1646` simulation seeds `seed + gen*pop + row` shared by runs whose seeds differ by a
+  `wang_buzsaki_kappa` refuses them; optimizer seeds collide (`optim/core.py:1658` fold_in index at
+  population above 10; `:1698` simulation seeds `seed + gen*pop + row` shared by runs whose seeds differ by a
   multiple of pop). From T-55: may a cell type be absent when its band lower bound is 0 (`jdna/genome.py:744`);
   `population_rates` takes dt in seconds while `mean_rate_hz` and `fano_factor` take `dt_ms`
-  (`analysis/metrics.py:1082`), a public rename or a documented exception. Each changes outputs. Closes when:
-  each is ruled.
+  (`analysis/metrics.py:1082`), a public rename or a documented exception; the named matrix masks read
+  `W[post, pre]` transposed (`_model_tune.py:1118-1145`): `E_to_I` selects I-to-E entries and
+  `excitatory_to_all` selects E target rows plus every row with mostly positive input, so all of W when I
+  cells receive mostly excitatory input; Suite No. 4 pairs `gGABA_w` with
+  `E_to_I` and its tests and notebook depend on it (E_to_E and `all` are unaffected; E2b builds its own
+  masks), so fix the masks (outputs change) or rename them. Each changes outputs. Closes when: each is ruled.
 - T-51 [H] Protocol calls: P6 seeds and Q5 (`izhikevich2003/core/PREREG_P6.md`); Potjans and Vogels scale
   and bands; D2 Destexhe and GSDR preregs; CAMINOS S2 re-run; PCL F6 column and the WSL installs for the
   C++ binary; jitter reader follow-up (w_max, larger frozen sets). Closes when: each is ruled.

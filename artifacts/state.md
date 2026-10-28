@@ -23,8 +23,9 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - PCL R2 on real files is next (T-3); the C++ reference binary needs WSL installs (O-58).
 - The P-052 surrogate's off-diagonal gradient disagrees in sign with the finite difference (corr -0.2 to
   -0.4); its fitness for training is Hamm's call (`artifacts/runs/perf/profiles/precision_058.md`).
-- Lane C3 (T-55 items 2-9) and lane T3 (broad stamp, rc reuse of Release CI JUnit; independent review PASS)
-  landed with the broad gate at 7694 passed, 0 failed. Next: T-55 item 1, matrix bounds as scaling (main tree).
+- Lanes C3 (T-55 items 2-9) and T3 (broad stamp, rc reuse of Release CI JUnit) landed at a95a40bb. T-55
+  item 1: the matrix tune's inner loop bounds each masked entry by its scale of the base W and keeps the
+  rest; the named masks read `W[post, pre]` transposed (`E_to_I`, `excitatory_to_all`), a call for Hamm in T-50.
 
 ## Generated files and their checks
 

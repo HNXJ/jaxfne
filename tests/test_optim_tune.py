@@ -951,3 +951,70 @@ def test_transform_step_advances_when_no_loss_is_passed(make):
     assert np.any(np.asarray(first) != 0.0), "fixture must draw noise"
     assert not np.array_equal(np.asarray(first), np.asarray(second)), \
         "same key at the same step repeated the noise"
+
+
+# T-55 item 1: matrix bounds scale the masked entries of the base matrix (MatrixParameterSpec.bounds).
+
+
+@pytest.mark.parametrize("name", ["gAMPA_w", "all_w"])
+def test_matrix_inner_loop_keeps_masked_scale_in_bounds_and_others_fixed(name):
+    """The inner loop keeps each masked entry within bounds times its base value and leaves the rest."""
+    optax = pytest.importorskip("optax")
+    import numpy as np
+    from jaxfne._model_tune import _mask_for_parameter
+
+    cfg = (
+        jtfne.configuration()
+        .network(name="V1", kind="cortical_column", n=12, cell_types={"E": 0.8, "PV": 0.2})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        .probe(name="laminar_probe", modes=["spikes", "V_m"])
+    )
+    model = jtfne.construct(cfg)
+    sim = jtfne.simulation(duration_ms=20.0, dt_ms=0.1, seed=0)
+    obj = jtfne.rate_targets(groups={"E": list(range(9)), "I": list(range(9, 12))},
+                             targets_hz={"E": 10.0, "I": 5.0})
+    lo, hi = 0.5, 2.5
+    # E_to_E: symmetric in (post, pre), so the mask orientation question in T-50 does not enter.
+    spec = jtfne.matrix_parameter(mask="E_to_E", bounds=(lo, hi))
+    opt = jtfne.agsdr(parameters={name: spec}, inner_optimizer=optax.adam(learning_rate=1.0),
+                      inner_steps=3, generations=1, population_size=2, seed=0)
+    res = model.tune(objectives=obj, optimizer=opt, simulation=sim)
+
+    W0 = np.asarray(model.params["emitter"].W, dtype=float)
+    W = np.asarray(res.best_parameters[name], dtype=float)
+    mask = np.asarray(_mask_for_parameter(model, name, "E_to_E"), dtype=bool)
+    assert W.shape == W0.shape
+    assert (~mask & (W0 < 0)).any(), "fixture must hold negative weights outside the mask"
+    assert (mask & (W0 != 0)).any(), "fixture must hold masked nonzero weights"
+    assert not np.allclose(W[mask], W0[mask]), "fixture must move the masked entries"
+    np.testing.assert_array_equal(W[~mask], W0[~mask])
+    scaled = mask & (W0 != 0)
+    ratio = W[scaled] / W0[scaled]
+    assert ratio.min() >= lo - 1e-6 and ratio.max() <= hi + 1e-6, (ratio.min(), ratio.max())
+    np.testing.assert_array_equal(W[mask & (W0 == 0)], 0.0)
+
+
+def test_matrix_inner_loop_refuses_disjoint_declared_scales():
+    """Two matrix parameters whose scale bounds share no value cannot both hold on one entry."""
+    optax = pytest.importorskip("optax")
+    cfg = (
+        jtfne.configuration()
+        .network(name="V1", kind="cortical_column", n=12, cell_types={"E": 0.8, "PV": 0.2})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        .probe(name="laminar_probe", modes=["spikes"])
+    )
+    model = jtfne.construct(cfg)
+    sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0)
+    obj = jtfne.rate_targets(groups={"E": list(range(9))}, targets_hz={"E": 10.0})
+    opt = jtfne.agsdr(
+        parameters={
+            "a_w": jtfne.matrix_parameter(mask="all", bounds=(0.5, 1.0)),
+            "b_w": jtfne.matrix_parameter(mask="all", bounds=(2.0, 3.0)),
+        },
+        inner_optimizer=optax.adam(learning_rate=1.0), inner_steps=1, generations=1,
+        population_size=2, seed=0,
+    )
+    with pytest.raises(ValueError, match="no common value"):
+        model.tune(objectives=obj, optimizer=opt, simulation=sim)
