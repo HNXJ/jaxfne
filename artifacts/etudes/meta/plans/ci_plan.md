@@ -56,4 +56,8 @@ dispatched run showing the job fails on a planted defect of its class and passes
 - E landed (2f21b125): a nightly on a tree that already passed cancels itself (a skipped run would
   conclude success without artifacts and shadow the real run in the rc and publish lookups). First
   nightly after landing is the observation.
+- D, lane T3 (uncommitted, 2026-10-27): `broad` writes `artifacts/_temp/broad_gate_stamp.json` after a full pass in a clean tree. The key is the index entries of every tracked path except the six stack files, plus the interpreter; a matching key runs the report audits and the tests that name a stack file (family `pytest_stack_readers`, found by `git grep` at run time), and `--no-stamp` forces the full run.
+  Tests: `tests/test_run_test_gate_stamp_reuse.py`; direct gate calls never read or write the stamp.
+- F, lane T3 (uncommitted, 2026-10-27): `rc` reuses the three pytest families (broad, slow, notebook) when Release CI's run for HEAD passed on the same tree, ran on main or by dispatch, and its JUnit covers both legs with no failure; the attestation names the run, tree and families.
+  Any other case runs the full rc and prints why; lanes, audits, build and wheel smoke still run here.
 - Docs gate gap closed (b4133826): the docs gate and the dev gate run `test_public_docs_hygiene.py`.

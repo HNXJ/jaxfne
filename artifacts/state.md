@@ -23,8 +23,8 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - PCL R2 on real files is next (T-3); the C++ reference binary needs WSL installs (O-58).
 - The P-052 surrogate's off-diagonal gradient disagrees in sign with the finite difference (corr -0.2 to
   -0.4); its fitness for training is Hamm's call (`artifacts/runs/perf/profiles/precision_058.md`).
-- Running in clones: lane C3 (T-55 fixes), lane T3 (T-42 D code-tree stamp, F rc reuses Release CI JUnit).
-  The `paper-lanes` CI job's first run is the observation for T-42 C.
+- Lane C3 (T-55 items 2-9) and lane T3 (broad stamp, rc reuse of Release CI JUnit; independent review PASS)
+  landed with the broad gate at 7694 passed, 0 failed. Next: T-55 item 1, matrix bounds as scaling (main tree).
 
 ## Generated files and their checks
 

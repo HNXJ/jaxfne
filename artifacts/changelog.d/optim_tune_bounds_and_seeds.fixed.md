@@ -1,0 +1,5 @@
+- The matrix tune with an inner optimizer refuses a placeholder `emitter.W` on the edge-list backend by name, since its refined matrix was reported as `[]`.
+- The scalar soft-rate tune starts at 1.0 clipped to its declared bounds, so a run with no improving step no longer returns a value outside them.
+- The `sdr_transform`, `gsdr_transform` and `agsdr_transform` step counter advances on every update, so the noise no longer repeats when no loss is passed.
+- The gradient tune loops (source scale, scalar soft rate and the handle soft-rate loop) accept a `seed` only when it is 0 or the seed of the simulation they run on, and record that simulation's seed in the summary. A `seed` that differs from the simulation's, as with `simulation=` given, is refused, because the loops read no seed of their own.
+- `tune_handles` reports REVISE only for `ValueError` refusals from the AGSDR loop; any other error propagates.

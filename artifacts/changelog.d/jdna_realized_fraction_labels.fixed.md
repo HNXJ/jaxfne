@@ -1,0 +1,2 @@
+- JDNA refuses a realized cell type whose fraction is `None` instead of counting it as absent under a band with a lower bound of 0.
+- An explicit `None` geometry bound is treated as absent, so its axis is labelled `JDNA-default`, not `TFNE-declared`.

@@ -456,4 +456,28 @@ def test_jitter_without_tolerance_is_recorded_as_derived():
     genome = _dev_genome({"fraction_jitter_sigma": 0.05}, tolerance=False)
     assert not genome.areas[0].layers[0].fraction_tolerance
     assert _counts_origin(genome) == ORIGIN_DERIVED
+
+
+def test_realized_fraction_none_is_refused_under_a_zero_lower_band():
+    """`nt.fraction or 0.0` counted a None fraction as absent; a zero fraction still passes.
+
+    Stub-based: develop() always sets a numeric fraction, so the realized tensor is
+    built from objects that carry the attributes the checker reads.
+    """
+    from types import SimpleNamespace as NS
+
+    from jaxfne.jdna import genome as gn
+
+    layer = NS(name="L1", n_neurons=10, cell_types_fractions=None,
+               cell_type_fractions={"E": 0.5, "PV": 0.5},
+               fraction_tolerance={"E": (0.5, 1.0), "PV": (0.0, 0.6)})
+    declared = NS(areas=[NS(name="A1", layers=[layer])])
+
+    def realized(pv_fraction):
+        types = [NS(name="E", fraction=1.0), NS(name="PV", fraction=pv_fraction)]
+        return NS(areas=[NS(name="A1", layers=[NS(name="L1", n_neurons=10, neuron_types=types)])])
+
+    gn._check_realized_constraints(declared, realized(0.0))
+    with pytest.raises(ValueError, match="PV"):
+        gn._check_realized_constraints(declared, realized(None))
     assert _counts_origin(_dev_genome({"fraction_jitter_sigma": 0.05})) == ORIGIN_SAMPLED

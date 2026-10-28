@@ -133,6 +133,8 @@ all of the following hold:
   actually ran, with both timestamps and a zero exit;
 - `observed_pass_families >= RELEASE_CI_GATE_FAMILIES`.
 
+A family reused from Release CI counts as run: its record names the Release CI run and tree, and its `reused_from` field shows that no local run produced it. The broad stamp is a local, gitignored developer-loop receipt and is not attestation evidence.
+
 `observed_pass_families` and `pre_release_subsumes_ci` are **re-derived** from
 the ledger during verification and cross-checked against the stored values, so
 editing either field by hand cannot authorize a release. See

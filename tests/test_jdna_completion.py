@@ -98,6 +98,13 @@ def test_empty_population_realizes_empty_positions():
     assert origins["positions"] == ORIGIN_SAMPLED
 
 
+def test_explicit_none_bounds_are_labelled_default_not_declared():
+    """Explicit None bounds are absent: the axis takes the unit fallback and says default."""
+    pos, origins = realize_geometry({"x0": None, "x1": None}, 16, seed=0)
+    assert origins["x"] == ORIGIN_DEFAULT
+    assert float(pos[:, 0].min()) >= 0.0 and float(pos[:, 0].max()) <= 1.0
+
+
 def test_partial_domain_and_bad_distribution_fail_closed():
     with pytest.raises(ValueError, match="partial z domain"):
         realize_geometry({"z0": 1.0}, 4, seed=0)

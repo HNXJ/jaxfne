@@ -59,23 +59,21 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   `support_only_on_O_H` (`e3_execution.py:268`), whose receipt `e3_execution_receipt.json` is frozen
   write-once, so a fix needs a new receipt version (Hamm, H-rule on frozen receipts). Estimator findings are
   in T-50. Closes when: both are fixed or ruled.
-- T-55 [A] (C3) T-41 findings verified by probe 2026-10-27 (lines at the commit after 6f41515c): (1) matrix
-  tune clips to +-1000 unless the name is `gAMPA_w` (`optim/core.py:1638`; `all_w` under bounds (0.5, 2.5)
-  came back in [-3.22, 3.22]); (2) the start value 1.0 is not clipped to bounds and is returned when no step
-  improves (`:1993,2001`); (3) placeholder-W (edge-list) models report `[]` as the refined matrix
-  (`:1685-1694`); (4) `optim/handles.py:302` turns any error into REVISE; (5) the public sdr, gsdr, agsdr
-  transforms keep `state.step` at 0 when no loss is passed, so noise repeats (`:1019,1034,1306`; in-tree
-  loops do not use them); (6) a recorded seed no loop reads (`:1803,1919`, `handles.py:360`; seeds 0 and 7
-  give identical results); (7) `jdna/genome.py:739` passes `fraction is None`; (8) `jdna/completion.py:207`
-  labels explicit `None` bounds TFNE-declared; (9) `analysis/granger.py:139-146` returns 0.0 on zero
-  variance; (11) `analysis/spectral.py:80` float32 phase (absolute error 0.168 rad at 1000 s; the reported
-  relative 1.8e-4 did not reproduce, 2.7e-7). Hamm's calls in T-50: absence under a band lower bound of 0
-  (7), `population_rates` dt in seconds against its siblings' ms (10, public API). Closes when: each listed
-  item is fixed with a failing test.
-- T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`; C's job `paper-lanes` landed 2026-10-27, its first
-  CI runs are the observation, then it joins `fast-build`'s needs): D code-tree stamp and F rc reuses
-  Release CI JUnit (approved 2026-10-27), one lane since both edit `run_test_gate.py`; a `jaxfne.jdna`
-  canary chain for B; E's first nightly is its observation. Closes when: `ci_plan.md` lists every step landed.
+- T-55 [A] (C) Left of the T-41 findings verified 2026-10-27 (lane C3 fixed 2-9, each with a failing test):
+  (1) the matrix tune's inner loop clips absolute `emitter.W`, every entry, to `gAMPA_w`'s bounds when that
+  name is declared and to +-1000 otherwise (`optim/core.py:1656`; `all_w` under bounds (0.5, 2.5) came back
+  in [-3.22, 3.22]), while `MatrixParameterSpec.bounds` are multiplicative scaling bounds on the masked
+  entries (`_model.py:98`); the fix bounds W/W0 on the masked entries and leaves the others and their signs
+  alone (main model); (11) `analysis/spectral.py:80` float32 phase, absolute error 0.168 rad at 1000 s;
+  `spectrolaminar_psd_jax` is jitted with traced `freqs` and x64 off, so float64 changes its jit contract.
+  Hamm's calls in T-50: absence under a band lower bound of 0, `population_rates` dt in seconds. Closes when:
+  (1) and (11) are fixed with a failing test, or (11) is ruled.
+- T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`; C, D, F landed 2026-10-27): `paper-lanes` passed its
+  first CI run (aa92b43a, both legs, every lane ran) and joins `fast-build`'s needs after a second; F's reuse
+  records `pytest_slow` and `pytest_notebook` as passing when every CI case of that family skipped (review
+  2026-10-27: require one executed case per family); F's `gh` field names meet a live run at the first rc; a
+  `jaxfne.jdna` canary chain for B; E's first nightly is its observation. Closes when: `ci_plan.md` lists
+  every step landed and observed.
 - T-44 [A] (E) T-32e: rules E1, S2, P4, R4 landed in `check_replications.py` (d2553d55, 66231ddb, 5c4a52a0,
   8136beea). Left: F3 ("a fidelity fix carries a test that fails on the parent commit") is per commit, so a
   file scan cannot check it (a CI step over commits tagged as fidelity fixes is the candidate); the

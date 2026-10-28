@@ -16,7 +16,7 @@ Optimizer grammar:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Callable, Optional
 
 import jax
@@ -1030,7 +1030,8 @@ def sdr_transform(
         )
 
         # Update best-loss tracking and EMA variance if loss provided
-        new_sdr_state = sdr_state
+        # The step counter keys the noise (fold_in above), so it advances on every update.
+        new_sdr_state = replace(sdr_state, step=sdr_state.step + 1)
         if loss is not None and params is not None:
             is_improvement = loss < sdr_state.best_loss
             new_best_loss = jnp.minimum(sdr_state.best_loss, loss)
@@ -1160,7 +1161,7 @@ def gsdr_transform(
             stochastic_delta,
         )
 
-        new_gsdr_state = gsdr_state
+        new_gsdr_state = replace(gsdr_state, step=gsdr_state.step + 1)
         if loss is not None and params is not None:
             is_improvement = loss < gsdr_state.best_loss
             new_best_loss = jnp.minimum(gsdr_state.best_loss, loss)
@@ -1327,7 +1328,7 @@ def agsdr_transform(
             base_representation
         )
 
-        new_agsdr_state = agsdr_state
+        new_agsdr_state = replace(agsdr_state, step=agsdr_state.step + 1)
         if loss is not None and params is not None:
             is_improvement = loss < agsdr_state.best_loss
             new_best_loss = jnp.minimum(agsdr_state.best_loss, loss)
@@ -1468,6 +1469,14 @@ def _tune_matrix_agsdr_optax(
     import jax.numpy as jnp
     import numpy as np
 
+    from jaxfne.emitters import is_placeholder_dense_W
+
+    emitter0 = model.params["emitter"]
+    if is_placeholder_dense_W(emitter0.W, emitter0.n_neurons) and "edge_list" in model.params:
+        raise ValueError(
+            "matrix tune with an inner optimizer refuses a placeholder emitter.W "
+            "(recurrent_backend='edge_list'): the refined matrix would be reported as []"
+        )
     # Extract group rate targets for inner soft-rate surrogate
     # Try to parse groups and target rates from the objective
     groups_for_inner: dict = {}
@@ -1818,6 +1827,14 @@ def _tune_source_scale_optax(
     """
     import math as _math
 
+    if int(seed) not in (0, int(simulation.seed)):
+        raise ValueError(
+            f"source_scale gradient loop reads no seed of its own: seed={seed!r} applies only to the "
+            f"default simulation, and this simulation has seed={int(simulation.seed)!r}. Pass seed=0, "
+            "or build the simulation with that seed"
+        )
+    base_report = {**base_report, "seed": int(simulation.seed)}
+
     optax = require_optax()
 
     from jaxfne.core import TuneResult, json_safe, _model_with_scalar_parameter
@@ -1940,6 +1957,14 @@ def _tune_scalar_soft_rate_optax(
     """
     import math as _math
 
+    if int(seed) not in (0, int(simulation.seed)):
+        raise ValueError(
+            f"scalar soft-rate gradient loop reads no seed of its own: seed={seed!r} applies only to the "
+            f"default simulation, and this simulation has seed={int(simulation.seed)!r}. Pass seed=0, "
+            "or build the simulation with that seed"
+        )
+    base_report = {**base_report, "seed": int(simulation.seed)}
+
     optax = require_optax()
 
     from jaxfne.core import TuneResult, json_safe, _model_with_scalar_parameter, _evaluate_soft_rate_targets
@@ -1990,7 +2015,8 @@ def _tune_scalar_soft_rate_optax(
             dt_ms=float(simulation.dt_ms),
         )
 
-    init_value = 1.0
+    # The start is 1.0 clipped to the declared bounds (it is returned when no step improves).
+    init_value = min(max(1.0, float(bounds[0])), float(bounds[1]))
     value = jnp.asarray(init_value, dtype=jnp.float32)
     lr = _tune_learning_rate(spec)
     tx = optax.adam(lr) if spec.optimizer == "optax_adam" else optax.sgd(lr)

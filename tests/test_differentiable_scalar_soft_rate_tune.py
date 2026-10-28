@@ -12,6 +12,8 @@ step dynamics). The soft-rate surrogate lives only at the loss level
 (_evaluate_soft_rate_targets, reused from the already-tested AGSDR two-level
 inner loop, not reinvented).
 """
+import pytest
+
 import jaxfne as jtfne
 
 
@@ -200,3 +202,55 @@ def test_concrete_edge_list_scaling_unchanged_at_asymmetric_values():
             seen[(parameter, scale)] = weights
     assert not np.array_equal(seen[("synaptic_gain", 0.7)], seen[("synaptic_gain", 1.3)])
     assert not np.array_equal(seen[("gAMPA", 0.7)], seen[("gAMPA", 1.3)])
+
+
+@pytest.mark.parametrize("bounds", [(0.0, 0.5), (1.5, 3.0)])
+def test_returned_value_stays_inside_declared_bounds(bounds):
+    """The start value 1.0 was not clipped to bounds and was returned when no step improved."""
+    result = _model().tune(
+        objectives=_rate_objective(), optimizer=_optax_adam(), simulation=_sim(),
+        parameter="drive_gain", bounds=bounds, steps=2,
+    )
+    assert result.summary["tuning_status"] == "differentiable_scalar_soft_rate_loop_v0.1"
+    value = result.best_parameters["drive_gain"]
+    assert bounds[0] <= value <= bounds[1], f"best {value} outside declared bounds {bounds}"
+
+
+def test_nondefault_seed_is_refused_on_the_scalar_soft_rate_loop():
+    """seed=7 against a seed-0 simulation: the loop reads no seed of its own, so it is refused."""
+    with pytest.raises(ValueError, match="seed"):
+        _model().tune(
+            objectives=_rate_objective(), optimizer=_optax_adam(), simulation=_sim(),
+            parameter="drive_gain", steps=2, seed=7,
+        )
+
+
+def test_seed_without_simulation_builds_the_default_simulation_from_it():
+    """tune(seed=7) with no simulation: the default simulation takes seed 7, and the summary records 7."""
+    result = _model().tune(
+        objectives=_rate_objective(), optimizer=_optax_adam(),
+        parameter="drive_gain", steps=2, seed=7,
+    )
+    assert result.summary["tuning_status"] == "differentiable_scalar_soft_rate_loop_v0.1"
+    assert result.summary["seed"] == 7
+
+
+def test_seed_that_differs_from_the_simulation_seed_is_refused():
+    """simulation.seed=3 with seed=7: seed 7 would apply to nothing, so it is refused."""
+    sim3 = jtfne.simulation(duration_ms=50.0, dt_ms=0.1, seed=3)
+    with pytest.raises(ValueError, match="seed"):
+        _model().tune(
+            objectives=_rate_objective(), optimizer=_optax_adam(), simulation=sim3,
+            parameter="drive_gain", steps=2, seed=7,
+        )
+
+
+def test_zero_seed_runs_on_a_seeded_simulation_and_records_its_seed():
+    """simulation.seed=3 with seed=0: the loop runs, and the summary records the seed that applied (3)."""
+    sim3 = jtfne.simulation(duration_ms=50.0, dt_ms=0.1, seed=3)
+    result = _model().tune(
+        objectives=_rate_objective(), optimizer=_optax_adam(), simulation=sim3,
+        parameter="drive_gain", steps=2,
+    )
+    assert result.summary["tuning_status"] == "differentiable_scalar_soft_rate_loop_v0.1"
+    assert result.summary["seed"] == 3

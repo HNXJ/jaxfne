@@ -195,3 +195,19 @@ class TestGrangerRefusals:
             granger_spectral(x, y, DT_MS, 2, np.array([0.0]))
         with pytest.raises(ValueError, match="Nyquist"):
             granger_spectral(x, y, DT_MS, 2, np.array([1000.0]))
+
+
+class TestZeroResidualVariance:
+    def test_silent_series_is_refused_not_read_as_zero_coupling(self):
+        """A series with zero variance gave 0.0 spectra silently; it is refused."""
+        x, _ = _drive(n=2000, direction="uncoupled")
+        with pytest.raises(ValueError, match="zero variance"):
+            granger_spectral(x, np.zeros(len(x)), DT_MS, 2, FREQS)
+
+    def test_constant_series_is_refused_not_read_as_zero_coupling(self):
+        """A constant series leaves a rounding-sized residual (about 1e-32), so variance must catch it."""
+        x, y = _drive(n=2000, direction="uncoupled")
+        with pytest.raises(ValueError, match="zero variance"):
+            granger_spectral(np.ones(len(x)), y, DT_MS, 2, FREQS)
+        with pytest.raises(ValueError, match="zero variance"):
+            granger_spectral(x, np.full(len(y), 3.5), DT_MS, 2, FREQS)

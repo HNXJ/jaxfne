@@ -204,7 +204,10 @@ def realize_geometry(
     for axis in "xyz":
         lo, hi = _axis_range(body, axis)
         domain.append((lo, hi))
-        if (axis + "0" in body and axis + "1" in body) or (axis + "_range" in body):
+        # An explicit None bound is absent, so the axis is labelled default, as _axis_range treats it.
+        if (body.get(axis + "0") is not None and body.get(axis + "1") is not None) or (
+            body.get(axis + "_range") is not None
+        ):
             origins[axis] = ORIGIN_DECLARED
         else:
             origins[axis] = ORIGIN_DEFAULT

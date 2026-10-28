@@ -882,3 +882,72 @@ def test_step_kernels_refuse_unknown_hyperparameters(kernel_name):
         kernel(u_t, grad_l, None, {"eta": 0.1, "etaa": 0.2})
     u_next, _ = kernel(u_t, grad_l, None, {"eta": 0.1})
     assert jnp.allclose(u_next, u_t - 0.1 * grad_l)
+
+
+# ---------------------------------------------------------------------------
+# T-55 (lane C3): matrix tune placeholder W refusal, transform step
+# ---------------------------------------------------------------------------
+
+
+def test_matrix_tune_refuses_placeholder_w_on_edge_backend():
+    """A placeholder (0, 0) emitter.W reported the refined matrix as []; it is refused by name."""
+    from dataclasses import replace
+
+    import jax.numpy as jnp
+    import optax
+
+    from jaxfne._model import Model
+
+    cfg = (
+        jtfne.configuration()
+        .runtime(seed=0, recurrent_backend="edge_list")
+        .network(name="V1", kind="cortical_column", n=10, cell_types={"E": 0.5, "PV": 0.5})
+        .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 8.0})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        .probe(name="probe", modes=["spikes", "V_m"])
+    )
+    base = jtfne.construct(cfg)
+    emitter = base.params["emitter"]
+    new_emitter = replace(emitter, W=jnp.zeros((0, 0), dtype=emitter.W.dtype))
+    model = Model(cfg=base.cfg, params={**base.params, "emitter": new_emitter}, static=dict(base.static))
+    sim = jtfne.simulation(duration_ms=40.0, dt_ms=0.1, seed=0)
+    obj = jtfne.rate_targets(
+        groups={"E": list(range(5)), "I": list(range(5, 10))},
+        targets_hz={"E": 10.0, "I": 5.0},
+    )
+    opt = jtfne.agsdr(
+        parameters={"gAMPA_w": jtfne.matrix_parameter(mask="all", bounds=(0.5, 2.5))},
+        inner_optimizer=optax.adam(learning_rate=1e-2),
+        inner_steps=2,
+        generations=1,
+        population_size=2,
+        seed=0,
+    )
+    with pytest.raises(ValueError, match="edge_list"):
+        model.tune(objectives=obj, optimizer=opt, simulation=sim)
+
+
+@pytest.mark.parametrize("make", ["sdr_transform", "gsdr_transform", "agsdr_transform"])
+def test_transform_step_advances_when_no_loss_is_passed(make):
+    """The noise key is fold_in(key, state.step); a step held at 0 repeats the noise."""
+    import jax
+    import jax.numpy as jnp
+    import numpy as np
+
+    try:
+        optax = jtfne.require_optax()
+    except ImportError:
+        return
+
+    transform = getattr(jtfne, make)(inner_optimizer=optax.sgd(0.0), stochastic_scale=1.0)
+    params = jnp.zeros((4,), dtype=jnp.float32)
+    grad = jnp.ones((4,), dtype=jnp.float32)
+    key = jax.random.PRNGKey(0)
+    state = transform.init(params)
+    first, state = transform.update(grad, state, params=params, key=key)
+    second, state = transform.update(grad, state, params=params, key=key)
+    assert int(state[0].step) == 2, "step must advance on every update, loss or not"
+    assert np.any(np.asarray(first) != 0.0), "fixture must draw noise"
+    assert not np.array_equal(np.asarray(first), np.asarray(second)), \
+        "same key at the same step repeated the noise"

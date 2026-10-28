@@ -82,3 +82,25 @@ def test_zero_learning_rate_is_refused_not_replaced_by_default():
     optimizer = jtfne.optax_adam(learning_rate=0.0, differentiability_status="declared_surrogate")
     with pytest.raises(ValueError, match="learning_rate"):
         model.tune(objectives=objective, optimizer=optimizer, simulation=sim, steps=2)
+
+
+def test_nondefault_seed_is_refused_on_the_source_scale_loop():
+    """The loop reads no seed; a nonzero seed was recorded in the summary as if it applied."""
+    import pytest
+
+    model = _model()
+    sim = jtfne.simulation(duration_ms=20.0, dt_ms=0.1, seed=0)
+    objective = jtfne.objective().loss("hit_target", metric="source_proxy_abs_mean", target=1.0)
+    optimizer = jtfne.optax_adam(learning_rate=0.05, differentiability_status="declared_surrogate")
+    with pytest.raises(ValueError, match="seed"):
+        model.tune(objectives=objective, optimizer=optimizer, simulation=sim, steps=2, seed=7)
+
+
+def test_source_scale_summary_records_the_simulation_seed_that_applied():
+    model = _model()
+    sim = jtfne.simulation(duration_ms=20.0, dt_ms=0.1, seed=0)
+    objective = jtfne.objective().loss("hit_target", metric="source_proxy_abs_mean", target=1.0)
+    optimizer = jtfne.optax_adam(learning_rate=0.05, differentiability_status="declared_surrogate")
+    result = model.tune(objectives=objective, optimizer=optimizer, simulation=sim, steps=2)
+    assert result.summary["tuning_status"] == "differentiable_source_scale_loop_v0.1"
+    assert result.summary["seed"] == 0

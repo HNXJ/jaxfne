@@ -299,7 +299,7 @@ def _tune_handles_blackbox(
                 name: 0.5 * (lo + hi) for name, (lo, hi) in bounds.items()
             },
         )
-    except Exception as exc:
+    except ValueError as exc:  # the loop's refusals (bounds, grid sizes); any other error is a bug
         report = {
             **base_report,
             "tuning_status": "handles_agsdr_error",
@@ -367,6 +367,14 @@ def _tune_handles_soft_rate_optax(
     a custom gradient. Edge-list and adex edge paths are refused by the
     caller before this loop (concrete-only writes cannot carry a tracer).
     """
+    if int(seed) not in (0, int(simulation.seed)):
+        raise ValueError(
+            f"soft-rate handle gradient loop reads no seed of its own: seed={seed!r} applies only to the "
+            f"default simulation, and this simulation has seed={int(simulation.seed)!r}. Pass seed=0, "
+            "or build the simulation with that seed"
+        )
+    base_report = {**base_report, "seed": int(simulation.seed), "optimizer_seed": None}
+
     import jax
     import jax.numpy as jnp
 

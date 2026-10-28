@@ -6,9 +6,13 @@ Gate vocabulary (single source of truth for local runs and CI references):
   dev          Curated architectural gate (~1 minute)
   report       All audit checks without the pytest sweeps (~1 minute)
   docs         The documentation subset of the audit checks (~30 seconds)
-  broad        Repository-wide ``-m "not slow"`` (~8 minutes)
+  broad        Repository-wide ``-m "not slow"`` (~8 minutes). The CLI reuses a passing
+               run's stamp when the code tree is unchanged (report audits only);
+               --no-stamp forces the full run
   release      Broad + slow markers + release examples/docs checks
-  rc           Full release-candidate verification (PRE_RELEASE_GATE >= RELEASE_CI_GATE)
+  rc           Full release-candidate verification (PRE_RELEASE_GATE >= RELEASE_CI_GATE).
+               Pytest sweeps that Release CI ran on this tree are reused from its JUnit when
+               that run passed; every other family runs here
   publication  Frozen scientific experiments and artifact validation
   examples     The RELEASE_EXAMPLES smoke list only (owner of the list)
   paper-lanes  The paper-lane pytest sweeps only, the broad gate's lane list
@@ -24,11 +28,15 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import hashlib
 import json
 import os
+import re
+import shutil
 import subprocess
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -171,6 +179,8 @@ CHECK_FAMILIES = {
     "twine_check",
     "isolated_wheel_smoke",
     "publication_equivalence",
+    # The broad stamp's reuse path: the tests that name a stack file, run after a stamp match.
+    "pytest_stack_readers",
 }
 
 RELEASE_CI_GATE_FAMILIES = {
@@ -392,6 +402,37 @@ def record_execution(
     if int(exit_code) != 0:
         rec["exit_code"] = int(exit_code)
         rec["status"] = "FAIL"
+
+
+def record_reuse(family: str, reuse: dict) -> None:
+    """Record ``family`` as executed on Release CI for this tree, not by a local run.
+
+    The record names the CI run and tree it rests on. The reconciler reads it like any
+    successful execution; ``reused_from`` shows that no local run produced it.
+    """
+    run_id, tree = reuse["run_id"], reuse["tree_sha"]
+    workflow = reuse["workflow"]
+    _OBSERVATIONS[family] = {
+        "family": family,
+        "command": f"reused from {workflow} run {run_id} (tree {tree})",
+        "commands": [
+            {"argv": ["reused", workflow, f"run={run_id}", f"tree={tree}"], "exit_code": 0}
+        ],
+        "started": reuse["created"],
+        "completed": reuse["updated"],
+        "exit_code": 0,
+        "status": "PASS",
+        "evidence": [
+            f"reused: {workflow} run {run_id} concluded success on tree {tree}; "
+            f"JUnit {', '.join(reuse['junit'])}"
+        ],
+        "reused_from": {
+            "workflow": workflow,
+            "run_id": run_id,
+            "head_sha": reuse["head_sha"],
+            "tree_sha": tree,
+        },
+    }
 
 
 def observed_pass_families() -> set[str]:
@@ -757,7 +798,159 @@ def gate_pytest_lanes(lanes: list[str] | None = None) -> None:
         raise RuntimeError("pytest_lanes failed: " + "; ".join(failures))
 
 
-def gate_broad() -> None:
+# --- Code-tree stamp (broad CLI only) ------------------------------------------
+#
+# A passing ``broad`` run writes a stamp keyed by the tree it tested: the index entries of every
+# tracked path except the six stack files, the interpreter, and no modified or untracked file
+# outside those six. The next ``broad`` whose key matches runs the report audits and the tests
+# that name a stack file (their results depend on the stacks, which are excluded from the key).
+# Any doubt runs everything: no stamp, an unreadable or mismatched stamp, a dirty tree, no git
+# answer, or no stack-reading test. Direct calls (release, rc, tests) never read or write the stamp.
+
+BROAD_STAMP_SCHEMA = "jaxfne.broad_gate_stamp.v1"
+# The owner's state files. Edits to them do not change the key; the tests that read them rerun.
+STAMP_STATE_FILES = (
+    "artifacts/todo_stack.md",
+    "artifacts/open_stack.md",
+    "artifacts/state.md",
+    "artifacts/memory.md",
+    "artifacts/goal_stack.md",
+    "artifacts/fact_stack.md",
+)
+
+
+def _stamp_pathspec() -> list[str]:
+    """Every tracked path, minus the exact state files (exclude magic, same in key and dirty check)."""
+    return [".", *(f":(exclude){path}" for path in STAMP_STATE_FILES)]
+
+
+def _stack_reader_tests() -> list[str]:
+    """Tracked .py files under tests/ that name a stack file, found by git grep at run time."""
+    args = [arg for path in STAMP_STATE_FILES for arg in ("-e", Path(path).name)]
+    try:
+        out = _git_out("grep", "-l", "-F", *args, "--", "tests")
+    except (OSError, subprocess.CalledProcessError):  # git grep exits 1 when nothing matches
+        return []
+    return sorted(line for line in out.splitlines() if line.endswith(".py"))
+
+
+def broad_stamp_path() -> Path:
+    """Gitignored (artifacts/_temp/): the receipt of the last passing ``broad`` run."""
+    return ROOT / "artifacts" / "_temp" / "broad_gate_stamp.json"
+
+
+def _installed_versions() -> str:
+    """Installed distributions as sorted ``name==version`` lines (a dependency upgrade changes the key)."""
+    from importlib import metadata
+
+    return "\n".join(
+        sorted({f"{d.metadata['Name']}=={d.version}" for d in metadata.distributions()})
+    )
+
+
+def _interpreter_id() -> str:
+    return f"{sys.version}\n{sys.executable}\n{_installed_versions()}"
+
+
+def _code_tree_key() -> str | None:
+    """sha256 over the tracked tree's index entries (minus the state files) and the interpreter; None if git cannot say."""
+    try:
+        listing = _git_out("ls-files", "-s", "--", *_stamp_pathspec())
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    digest = hashlib.sha256()
+    digest.update(listing.encode("utf-8"))
+    digest.update(b"\n" + _interpreter_id().encode("utf-8"))
+    return digest.hexdigest()
+
+
+def _tree_dirty() -> str | None:
+    """None when no tracked or untracked file outside the state files differs; otherwise why not."""
+    try:
+        out = _git_out(
+            "status", "--porcelain", "--untracked-files=all", "--", *_stamp_pathspec()
+        )
+    except (OSError, subprocess.CalledProcessError) as e:
+        return f"git status failed ({e})"
+    if out:
+        return f"modified or untracked files outside the state files ({out.splitlines()[0].strip()})"
+    return None
+
+
+def _stamp_mismatch(key: str) -> str | None:
+    """None when the stamp on disk is a readable broad stamp for ``key``; otherwise why not."""
+    path = broad_stamp_path()
+    if not path.is_file():
+        return "no broad stamp"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        return f"unreadable broad stamp ({e})"
+    if not isinstance(data, dict) or data.get("schema") != BROAD_STAMP_SCHEMA:
+        return "broad stamp has an unknown schema"
+    if data.get("key") != key:
+        return "the code tree changed since the stamp was written"
+    return None
+
+
+def _write_broad_stamp(key: str) -> Path:
+    path = broad_stamp_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    stamp = {
+        "schema": BROAD_STAMP_SCHEMA,
+        "key": key,
+        "written_utc": _utcnow(),
+        "head": _git_out("rev-parse", "HEAD"),
+    }
+    path.write_text(json.dumps(stamp, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def _run_or_reuse(family: str, cmd: list[str], reuse: dict | None) -> None:
+    """Run one pytest sweep, or record it as executed on Release CI when ``reuse`` covers it."""
+    if reuse is not None and family in RELEASE_CI_REUSABLE_FAMILIES:
+        record_reuse(family, reuse)
+        print(
+            f"+ {family}: reused from {RELEASE_CI_WORKFLOW} run {reuse['run_id']} "
+            f"(tree {reuse['tree_sha']}); not rerun here",
+            flush=True,
+        )
+        return
+    _run(cmd, family=family)
+
+
+def gate_broad(*, stamp: str | None = None, reuse: dict | None = None) -> None:
+    """The broad gate: report audits, the broad pytest sweep, then the paper lanes.
+
+    ``stamp`` is for the ``broad`` CLI only. None (release, rc, direct calls) reads and writes
+    no stamp. "reuse" runs the report audits and the stack-reading tests when the stamp matches
+    the tree (family ``pytest_stack_readers``). "force"
+    (--no-stamp) runs everything. A full run in a clean tree writes the stamp.
+    ``reuse`` is the Release CI evidence the rc gate found (see ``_release_ci_reuse``).
+    """
+    key = dirty = None
+    if stamp is not None:
+        key = _code_tree_key()
+        dirty = _tree_dirty()
+    if stamp == "reuse":
+        block = dirty or ("code-tree key unavailable" if key is None else _stamp_mismatch(key))
+        stack_tests = _stack_reader_tests() if block is None else []
+        if block is None and not stack_tests:
+            block = "no tracked test file names a stack file"
+        if block is None:
+            print(
+                f"+ broad stamp reused: code-tree key {key} matches a passing broad run; "
+                f"running the report audits and {len(stack_tests)} stack-reading test file(s)",
+                flush=True,
+            )
+            gate_report()
+            _run(
+                [sys.executable, "-m", "pytest", *stack_tests, "-q", "-m", BROAD_MARKER_EXPR,
+                 "--tb=short", "-rs"],
+                family="pytest_stack_readers",
+            )
+            return
+        print(f"+ broad stamp not reused: {block}; running the full broad gate", flush=True)
     _run(
         [sys.executable, "-m", "compileall", "-q", "jaxfne", "tests", "scripts", "examples"],
         family="compileall",
@@ -785,12 +978,14 @@ def gate_broad() -> None:
     ]
     for path in BROAD_PYTEST_IGNORE:
         cmd.extend(["--ignore", path])
-    _run(cmd, family="pytest_broad")
+    _run_or_reuse("pytest_broad", cmd, reuse)
     gate_pytest_lanes()
+    if stamp is not None and key is not None and dirty is None and reuse is None:
+        print(f"+ broad stamp written: {_write_broad_stamp(key)}", flush=True)
 
 
-def gate_release() -> None:
-    gate_broad()
+def gate_release(*, reuse: dict | None = None) -> None:
+    gate_broad(reuse=reuse)
     junit_dir = ROOT / "artifacts" / "attestations"
     junit_dir.mkdir(parents=True, exist_ok=True)
     slow_cmd = [
@@ -808,7 +1003,7 @@ def gate_release() -> None:
     ]
     for path in BROAD_PYTEST_IGNORE:
         slow_cmd.extend(["--ignore", path])
-    _run(slow_cmd, family="pytest_slow")
+    _run_or_reuse("pytest_slow", slow_cmd, reuse)
     notebook_cmd = [
         sys.executable,
         "-m",
@@ -823,9 +1018,157 @@ def gate_release() -> None:
     ]
     for path in BROAD_PYTEST_IGNORE:
         notebook_cmd.extend(["--ignore", path])
-    _run(notebook_cmd, family="pytest_notebook")
+    _run_or_reuse("pytest_notebook", notebook_cmd, reuse)
     _run([sys.executable, "-m", "mkdocs", "build", "--strict"], family="docs_build_strict")
     run_release_examples()
+
+
+# --- Release CI evidence for the rc gate (pytest family reuse) ------------------
+#
+# release_ci.yml runs the unfiltered pytest sweep on main, on its schedule and on dispatch.
+# When the run for HEAD passed on this exact tree, its JUnit stands in for the three pytest
+# families below and the rc gate does not rerun them. Lanes stay local: Release CI runs no
+# paper lanes. Any doubt runs the full rc, and the reason is printed.
+
+RELEASE_CI_WORKFLOW = "release_ci.yml"
+# The release-test matrix legs in release_ci.yml (tests/test_run_test_gate_stamp_reuse.py pins them).
+RELEASE_CI_LEGS = ("3.11", "3.14")
+RELEASE_CI_REUSABLE_FAMILIES = ("pytest_broad", "pytest_slow", "pytest_notebook")
+RELEASE_CI_RUN_FIELDS = "databaseId,headSha,headBranch,event,status,conclusion,createdAt,updatedAt"
+
+
+def _gh(*args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["gh", *args], cwd=ROOT, capture_output=True, text=True, check=False)
+
+
+def _gh_json(*args: str) -> tuple[object | None, str]:
+    """Parsed JSON from one gh call, or (None, why)."""
+    try:
+        res = _gh(*args)
+    except OSError as e:
+        return None, f"gh is unavailable ({e})"
+    if res.returncode != 0:
+        return None, f"gh failed ({res.stderr.strip()})"
+    try:
+        return json.loads(res.stdout), ""
+    except ValueError as e:
+        return None, f"gh printed no JSON ({e})"
+
+
+def _runs_unfiltered_sweep(run: dict) -> bool:
+    """Mirror release_ci.yml: the unfiltered sweep runs on any dispatch, and on push or schedule on main."""
+    event = run.get("event")
+    return event == "workflow_dispatch" or (
+        event in ("push", "schedule") and run.get("headBranch") == "main"
+    )
+
+
+def _download_release_ci_junit(run_id: str, sha: str) -> list[Path]:
+    """Download the run's pytest JUnit into artifacts/attestations/ci-junit/<sha>, cleared first."""
+    if not re.fullmatch(r"[0-9a-f]{40}", sha):
+        raise RuntimeError(f"{sha!r} is not a full commit SHA")
+    target = ROOT / "artifacts" / "attestations" / "ci-junit" / sha
+    if target.exists():
+        shutil.rmtree(target)
+    target.mkdir(parents=True, exist_ok=True)
+    res = _gh("run", "download", run_id, "--pattern", "pytest-results-*", "--dir", str(target))
+    if res.returncode != 0:
+        raise RuntimeError(f"gh run download failed ({res.stderr.strip()})")
+    found = sorted(target.rglob("pytest-results-*.xml"))
+    if not found:
+        raise RuntimeError(f"run {run_id} has no pytest-results-*.xml artifact")
+    return found
+
+
+def _release_ci_junit_problem(paths: list[Path]) -> str | None:
+    """None when every matrix leg's JUnit reads, holds test cases and records no failure or error."""
+    names = {p.name for p in paths}
+    missing = [
+        f"pytest-results-{leg}.xml"
+        for leg in RELEASE_CI_LEGS
+        if f"pytest-results-{leg}.xml" not in names
+    ]
+    if missing:
+        return f"JUnit missing for {missing}"
+    for path in paths:
+        try:
+            cases = list(ET.parse(path).getroot().iter("testcase"))
+        except (ET.ParseError, OSError) as e:
+            return f"JUnit {path.name} cannot be read ({e})"
+        if not cases:
+            return f"JUnit {path.name} holds no test cases"
+        red = sum(1 for c in cases if c.find("failure") is not None or c.find("error") is not None)
+        if red:
+            return f"JUnit {path.name} records {red} failure(s) or error(s)"
+    return None
+
+
+def _release_ci_reuse() -> tuple[dict | None, str]:
+    """The Release CI run that stands in for the local pytest sweeps, or (None, why not)."""
+    try:
+        head = _git_out("rev-parse", "HEAD")
+        tree = _git_out("rev-parse", "HEAD^{tree}")
+    except (OSError, subprocess.CalledProcessError) as e:
+        return None, f"git failed ({e})"
+    runs, why = _gh_json(
+        "run", "list", "--workflow", RELEASE_CI_WORKFLOW, "--commit", head,
+        "--status", "success", "--limit", "1", "--json", RELEASE_CI_RUN_FIELDS,
+    )
+    if runs is None:
+        return None, why
+    if not isinstance(runs, list) or not runs or not isinstance(runs[0], dict):
+        return None, f"no successful {RELEASE_CI_WORKFLOW} run for HEAD"
+    run = runs[0]
+    run_id = str(run.get("databaseId", ""))
+    if run.get("status") != "completed" or run.get("conclusion") != "success":
+        return None, f"run {run_id} concluded {run.get('conclusion')!r}, not 'success'"
+    if not _runs_unfiltered_sweep(run):
+        return None, (
+            f"run {run_id} is a {run.get('event')} run on {run.get('headBranch')!r}; "
+            "its pytest sweep is filtered"
+        )
+    head_sha = str(run.get("headSha", ""))
+    if not re.fullmatch(r"[0-9a-f]{40}", head_sha):
+        return None, f"run {run_id} has no full head SHA"
+    try:
+        run_tree = _git_out("rev-parse", f"{head_sha}^{{tree}}")
+    except (OSError, subprocess.CalledProcessError):
+        return None, f"run {run_id} head {head_sha} is not a local commit"
+    if run_tree != tree:
+        return None, f"run {run_id} tree {run_tree} differs from HEAD^{{tree}} {tree}"
+    if not run.get("createdAt") or not run.get("updatedAt"):
+        return None, f"run {run_id} has no timestamps"
+    try:
+        paths = _download_release_ci_junit(run_id, head_sha)
+    except (OSError, RuntimeError) as e:
+        return None, str(e)
+    problem = _release_ci_junit_problem(paths)
+    if problem is not None:
+        return None, problem
+    reuse = {
+        "workflow": RELEASE_CI_WORKFLOW,
+        "run_id": run_id,
+        "head_sha": head_sha,
+        "tree_sha": tree,
+        "event": run.get("event"),
+        "head_branch": run.get("headBranch"),
+        "conclusion": "success",
+        "created": run["createdAt"],
+        "updated": run["updatedAt"],
+        "junit": sorted(p.name for p in paths),
+    }
+    return reuse, ""
+
+
+def _reuse_summary(reuse: dict | None) -> dict | None:
+    if reuse is None:
+        return None
+    return {
+        **reuse,
+        "families": sorted(RELEASE_CI_REUSABLE_FAMILIES),
+        # No local RC sweep ran, so there is no RC JUnit for the per-node comparison.
+        "skipped_locally": ["junit_parity"],
+    }
 
 
 def gate_rc() -> None:
@@ -836,6 +1179,8 @@ def gate_rc() -> None:
     for all blocking test and check families.
 
     Executes:
+    0. Release CI reuse, when its run for HEAD passed on this tree: the three pytest
+       sweep families are recorded from its JUnit, not rerun (the reason is printed otherwise)
     1. gate_release() (broad + slow + mkdocs strict + release examples)
     2. Isolated package build (wheel and sdist)
     3. Twine check
@@ -849,13 +1194,23 @@ def gate_rc() -> None:
     # under-covers release CI while still reporting PASS. Checked first so the
     # failure is loud and cheap.
     _run([sys.executable, "scripts/check_environment_parity.py"], family="environment_parity")
-    gate_release()
+    reuse, why = _release_ci_reuse()
+    if reuse is None:
+        print(f"+ Release CI reuse off: {why}. Running the full RC sweeps.", flush=True)
+        gate_release()
 
-    # Per-node RC-vs-CI comparison. gate_release() has just written the three
-    # RC JUnit sweeps; this compares every node ID against the blocking CI
-    # evidence for this exact commit. Advisory until now, which meant a
-    # divergence could pass unread -- a check nobody runs is not a check.
-    _run([sys.executable, "scripts/check_junit_parity.py"], family="junit_parity")
+        # Per-node RC-vs-CI comparison. gate_release() has just written the three
+        # RC JUnit sweeps; this compares every node ID against the blocking CI
+        # evidence for this exact commit. Advisory until now, which meant a
+        # divergence could pass unread -- a check nobody runs is not a check.
+        _run([sys.executable, "scripts/check_junit_parity.py"], family="junit_parity")
+    else:
+        print(
+            f"+ Release CI reuse on: run {reuse['run_id']} (tree {reuse['tree_sha']}) supplies "
+            f"{', '.join(sorted(RELEASE_CI_REUSABLE_FAMILIES))}; those sweeps are not rerun",
+            flush=True,
+        )
+        gate_release(reuse=reuse)
 
     with tempfile.TemporaryDirectory(prefix="jaxfne_rc_dist_") as tmp_dist:
         print(f"+ Building distribution artifacts in {tmp_dist}...", flush=True)
@@ -893,7 +1248,7 @@ def gate_rc() -> None:
 
             run_isolated_wheel_smoke(venv_py, _local_package_version(), cwd=tmp_venv)
 
-    attestation_out = write_rc_attestation()
+    attestation_out = write_rc_attestation(reuse=reuse)
     print(f"\nRC GATE PASS: attestation written to {attestation_out}", flush=True)
 
 
@@ -902,13 +1257,15 @@ def _git_out(*args: str) -> str:
     return res.stdout.strip()
 
 
-def build_rc_attestation() -> dict:
+def build_rc_attestation(reuse: dict | None = None) -> dict:
     """Assemble the RC attestation strictly from observed execution results.
 
     Nothing here is asserted as a literal: ``observed_pass_families`` is derived
     from the execution ledger, ``pre_release_subsumes_ci`` is derived from that
     set, and ``status`` is derived from both. A family that was declared but
-    never executed has no ledger record and therefore cannot appear.
+    never executed has no ledger record and therefore cannot appear. A family
+    reused from Release CI has a record that names its run and tree
+    (``reused_from``); ``release_ci_reuse`` names the run for the whole gate.
     """
     families = [_OBSERVATIONS[k] for k in sorted(_OBSERVATIONS)]
     observed = observed_pass_families()
@@ -927,6 +1284,7 @@ def build_rc_attestation() -> dict:
         "families": families,
         # DERIVED from the ledger, never asserted as a literal.
         "pre_release_subsumes_ci": bool(subsumes),
+        "release_ci_reuse": _reuse_summary(reuse),
         "status": "PASS" if (subsumes and all_passed) else "FAIL",
     }
 
@@ -937,10 +1295,10 @@ def attestation_path() -> Path:
     return Path(override) if override else DEFAULT_ATTESTATION_PATH
 
 
-def write_rc_attestation(out_path: Path | None = None) -> Path:
+def write_rc_attestation(out_path: Path | None = None, *, reuse: dict | None = None) -> Path:
     out = out_path or attestation_path()
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(build_rc_attestation(), indent=2) + "\n", encoding="utf-8")
+    out.write_text(json.dumps(build_rc_attestation(reuse), indent=2) + "\n", encoding="utf-8")
     return out
 
 
@@ -1011,13 +1369,22 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="paper-lanes gate only: run this lane folder (repeatable; default: every discovered lane)",
     )
+    parser.add_argument(
+        "--no-stamp",
+        action="store_true",
+        help="broad gate only: run every family even when a passing run's stamp matches the code tree",
+    )
     args = parser.parse_args(argv)
     if args.lane is not None and args.gate != "paper-lanes":
         parser.error("--lane applies to the paper-lanes gate only")
+    if args.no_stamp and args.gate != "broad":
+        parser.error("--no-stamp applies to the broad gate only")
     if args.gate == "wheel-smoke":
         gate_wheel_smoke(venv_python=args.venv_python, expected_version=args.expected_version)
     elif args.gate == "paper-lanes":
         gate_pytest_lanes(args.lane)
+    elif args.gate == "broad":
+        gate_broad(stamp="force" if args.no_stamp else "reuse")
     else:
         GATES[args.gate]()
     return 0

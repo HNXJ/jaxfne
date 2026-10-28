@@ -87,6 +87,11 @@ def granger_spectral(
             f"least-squares fit needs at least {3 * order} post-lag samples; "
             "pass longer traces or a smaller order"
         )
+    if float(np.ptp(xa)) == 0.0 or float(np.ptp(ya)) == 0.0:
+        raise ValueError(
+            "granger_spectral: a constant series (zero variance) has no directed spectrum; "
+            "the spectra are undefined, not zero"
+        )
     freqs = np.asarray(freqs_hz, dtype=float).ravel()
     if freqs.size == 0 or not bool(np.isfinite(freqs).all()):
         raise ValueError("granger freqs_hz takes a non-empty finite array")
@@ -115,6 +120,11 @@ def granger_spectral(
         Aks[k, 1, 0] = coef[2 * k, 1]
         Aks[k, 1, 1] = coef[2 * k + 1, 1]
     sxx, sxy, syy = sigma[0, 0], sigma[0, 1], sigma[1, 1]
+    if not (sxx > 0.0 and syy > 0.0):
+        raise ValueError(
+            "granger_spectral: a series has zero residual variance under the VAR fit "
+            "(constant or exactly predicted), so its directed spectra are undefined, not zero"
+        )
     cond_xx = sxx - sxy * sxy / syy if syy > 0.0 else 0.0
     cond_yy = syy - sxy * sxy / sxx if sxx > 0.0 else 0.0
     gc_xy = np.zeros_like(freqs)

@@ -736,7 +736,12 @@ def _check_realized_constraints(genome: PseudoGenome, tensor: NeuronalTensor) ->
                 )
             counts = {nt.name: 0 for nt in realized.neuron_types}
             for nt in realized.neuron_types:
-                counts[nt.name] = int(round(realized.n_neurons * (nt.fraction or 0.0)))
+                if nt.fraction is None:
+                    raise ValueError(
+                        f"layer {layer.name!r} cell type {nt.name!r} has no realized fraction; "
+                        "its count cannot be checked against the declared band"
+                    )
+                counts[nt.name] = int(round(realized.n_neurons * nt.fraction))
             if sum(counts.values()) != realized.n_neurons:
                 raise ValueError(f"layer {layer.name!r}: counts do not sum to n_neurons")
             for ct, frac in layer.cell_type_fractions.items():
