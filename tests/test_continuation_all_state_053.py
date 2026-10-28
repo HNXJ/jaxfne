@@ -92,6 +92,16 @@ def _rt_registered(noise=0.0, **over):
     )
 
 
+def test_dH_components_refused_for_a_registered_rule():
+    from jaxfne._pipeline import compile_step_fn
+
+    hp = dict(_rt_registered().hdp_params)
+    hp.pop("noise_scale")
+    with pytest.raises(ValueError, match="record_dH_components"):
+        compile_step_fn(_model(), dt_ms=DT, kernel="hdp", record_dH_components=True, **hp)
+    compile_step_fn(_model(), dt_ms=DT, kernel="hdp", **hp)  # the same rule compiles without it
+
+
 def _chain(model, runtime, total_ms, chunk_ms, seed=17):
     """Run total_ms as chained chunks; return (full, parts, states)."""
     common = dict(

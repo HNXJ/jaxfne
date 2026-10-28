@@ -523,6 +523,11 @@ def compile_step_fn(
     _rule_name = hdp_kwargs.get("hdp_rule")
     if _is_registered(_rule_name):
         check_hdp_rule_params(str(_rule_name), hdp_kwargs.get("hdp_rule_params"))
+        if record_dH_components and kernel == "hdp":
+            raise ValueError(
+                f"record_dH_components=True records the legacy kernel's five dH terms; the registered "
+                f"hdp_rule={_rule_name!r} has no such decomposition"
+            )
     elif "hdp_rule_params" in hdp_kwargs:
         _rp = hdp_kwargs["hdp_rule_params"]
         raise ValueError(

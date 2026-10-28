@@ -206,7 +206,14 @@ Open-stack rows (each closes its `O-n`; the open stack empties when these close;
   scales W by 0.1 against its docstring (`emitters.py` near 4883, callers untraced);
   `fields/diagnostics.py:111` projection warnings never raise. Lane A read about a fifth of `jaxfne/`
   (skipped: emitters_hh/adex/rate/lif internals, `_construct*`, pcl_topology, plasticity, HDP modules,
-  connectivity, inputs, validation, jdna, protocol_*): a second package audit is open.
+  connectivity, inputs, validation, jdna, protocol_*). Lanes A2 and A3 (kernels, construction, plasticity,
+  HDP; fixed: STDP-stream trace taus below dt refuse, `record_dH_components` with a registered HDP rule
+  refuses at compile in place of a KeyError at the first step) left: `run_stdp_stream` takes `inh_mask` and
+  never reads it (public argument: consume or deprecate is Hamm's call); `synthetic_presyn_gain` and
+  `eligibility_trace_gain` (`hdp_rule.py:318-372`) update per step without dt, and `tau_e` decays per step;
+  the builders default a None seed to 42 (`builders.py:223,234,310,321`) and `construct` to 0
+  (`_construct_core.py:230`); `adex_destexhe.py:181` rounds the kicked fraction half-even. Unread by any
+  lane: `jdna/`, `tfne`, `optim/`, `analysis/`, `protocol_*/`.
 - T-RG [external] komposer `run_guard.py stop` fell back to the payload cwd and blamed a subagent for the
   dispatcher's own broad gate (2026-10-27); fix in komposer, then reinstall.
 - T-O10 [external] jynx keeper takes or refuses each harness proposal (jchat conference #29).

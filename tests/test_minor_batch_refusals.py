@@ -65,14 +65,18 @@ def test_clip_compat_install_uninstall_roundtrip():
     assert uninstall_jax_clip_compat() is installed
 
 
-def test_stdp_stream_dt_guard():
-    """dt above the synaptic time constant refuses (negative decay factor)."""
+@pytest.mark.parametrize(
+    "dt, taus, match",
+    [(6.0, {}, "SYN_TAU_MS"), (2.0, {"tau_plus": 1.0}, "tau_plus"), (2.0, {"tau_minus": 1.5}, "tau_minus")],
+)
+def test_stdp_stream_dt_guard(dt, taus, match):
+    """dt above the synaptic or an STDP trace time constant refuses (negative decay factor)."""
     n = 8
     rng = np.random.RandomState(0)
     stim = jnp.asarray(rng.uniform(0.0, 8.0, size=(10, n)), dtype=jnp.float32)
     zeros = jnp.zeros(n)
     state = jtfne.STDPState(W=jnp.zeros((n, n)), trace_pre=zeros, trace_post=zeros)
-    with pytest.raises(ValueError, match="SYN_TAU_MS"):
+    with pytest.raises(ValueError, match=match):
         jtfne.run_stdp_stream(
             v_init=jnp.full(n, -65.0),
             u_init=zeros,
@@ -80,8 +84,8 @@ def test_stdp_stream_dt_guard():
             stdp_state=state,
             stim_drive=stim,
             noise=jnp.zeros((10, n)),
-            solver_config=jtfne.SolverConfig(method="euler", dt=6.0),
-            plasticity_config=jtfne.STDPPlasticityConfig(A_plus=0.01, A_minus=0.012),
+            solver_config=jtfne.SolverConfig(method="euler", dt=dt),
+            plasticity_config=jtfne.STDPPlasticityConfig(A_plus=0.01, A_minus=0.012, **taus),
             plasticity_scale=0.1,
             exc_mask=jnp.ones(n, dtype=bool),
             inh_mask=jnp.zeros(n, dtype=bool),

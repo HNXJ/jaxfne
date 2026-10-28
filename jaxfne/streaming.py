@@ -98,6 +98,13 @@ def run_stdp_stream(
             f"dt_ms={dt_ms} exceeds SYN_TAU_MS={SYN_TAU_MS} (minor batch): "
             "the synaptic decay factor (1 - dt/tau) would go negative."
         )
+    for name in ("tau_plus", "tau_minus"):
+        tau = float(getattr(plasticity_config, name))
+        if dt_ms > tau:
+            raise ValueError(
+                f"dt_ms={dt_ms} exceeds {name}={tau}: the STDP trace decay factor "
+                "(1 - dt/tau) would go negative."
+            )
     total_steps = stim_drive.shape[0]
     chunk_steps = int(chunk_size_ms / dt_ms)
     n_chunks = int(np.ceil(total_steps / chunk_steps))
