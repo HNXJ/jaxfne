@@ -13,6 +13,6 @@ Each line has its todo row, named in the line.
 - O-70 H3 signatures: P3 v2 drafted for Potjans and Vogels (`prereg/P3_v2.md` in each lane); B8 pilots not run (T-O70) | orchestrator drafts, Hamm signs | since 2026-10-26 | closes when Hamm signs or defers each
 
 ## Hamm's calls
-- O-71 Science, protocol, paper and repo calls batched in T-50 to T-53 (P-052 slope, P6 seeds, C10 and C1, the 0.5.9 go among them) | Hamm | since 2026-10-27 | closes when each is ruled
+- O-72 Apply Hamm's 53 rulings of 2026-10-28 (T-R28) | orchestrator, Haiku workers | since 2026-10-28 | closes when T-R28 is empty
 - O-58 WSL DNS: `/etc/resolv.conf` is empty, so pip and isolated builds fail inside WSL (T-O58) | Hamm (system setting) | since 2026-10-25 (opened 2026-10-21) | closes when `pip download jaxfne==0.5.7 --no-deps` works in WSL
-- O-68 Local copies held after the 2026-10-25 cleanup: `cl-reader-cursor` (`reader_exp/` unreviewed), `jaxfne-wt-p022`, four WSL copies, non-git leftovers (`jaxfne_rc057`, `jaxfne_receipts`, `jaxfne_reader_exp`, `jaxfne_pclr1_audit`, `F:/warehouse` leftovers, keeper worktrees with broken gitfiles) (T-O68) | Hamm | since 2026-10-25 | closes when each copy is kept at a rule-conforming path or deleted
+- O-68 Local copies held after the 2026-10-25 cleanup: `cl-reader-cursor` (`reader_exp/` unreviewed), `jaxfne-wt-p022`, four WSL copies, non-git leftovers (`jaxfne_rc057`, `jaxfne_receipts`, `jaxfne_reader_exp`, `jaxfne_pclr1_audit`, `F:/warehouse` leftovers, keeper worktrees with broken gitfiles); ruled 2026-10-28: rescue cited files, list each deletion, delete (T-R28) | orchestrator | since 2026-10-25 | closes when each copy is rescued and deleted

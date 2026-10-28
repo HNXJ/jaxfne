@@ -1,7 +1,7 @@
 # jaxfne arXiv paper plan (Hamm 2026-10-25)
 
 Goal G-0: submit one jaxfne paper to arXiv (q-bio.NC, cross-list cs.NE, CC BY 4.0) with 8 main
-figures, 16 supplementary figures, at most 80 references, and checklist C1-C12 at 100/100.
+figures, 16 supplementary figures, references with DOIs (no cap, Hamm 2026-10-28), and checklist C1-C12 at 100/100.
 Scope rule: every paper task names its figure (F1-F8, S1-S16) or checklist item (C1-C12). Work that
 maps to none waits until Hamm amends this file (dated entry at the end). Releases 0.5.9 to 0.5.11
 serve this plan first; 0.6.0 is the acceptance release (amendment 2026-10-26).
@@ -69,7 +69,7 @@ optimization 9; reproducibility and preregistration 6; other 10. Each in
 | C7 | Augmentation ensemble study with provenance | 6 | two seeds change output; same seed reproduces |
 | C8 | The 7 replications: preregs signed, public path, verdicts in F5-F7 or S-figures | 14 | F8 and S15 match the dashboard data |
 | C9 | Reproducibility: lock file, Zenodo DOI, license, data and code statement | 8 | fresh-clone build of all figures |
-| C10 | Manuscript current; at most 80 references with DOIs; figures pass the visual-style audit | 7 | reference count, DOI check, render audit |
+| C10 | Manuscript current; references with DOIs; figures pass the visual-style audit | 7 | DOI check, render audit |
 | C11 | Independent science review: second reviewer, then an external reader | 3 | findings fixed or recorded |
 | C12 | arXiv mechanics: TeX builds on arXiv TeX Live; category; endorsement; ancillary files | 2 | arXiv preview compiles |
 

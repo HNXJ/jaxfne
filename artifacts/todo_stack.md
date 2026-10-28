@@ -30,13 +30,13 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   say): metadata keys, two sets since 5ae19017: the package emits `claim_level` (20 files in `jaxfne/`) and
   `field_claim_level` (25), while `amplitude_status`, `model_status`, `run_status`, `field_model_status`
   (63, 53, 37, 24 files) live only outside `jaxfne/`; `physical_amplitude_claim_allowed` is a retired
-  migration key (`_construct_extras.py:567`). The canonical set is Hamm's call (T-53). Closes when: it is
-  ruled and swept, and `python scripts/run_test_gate.py docs` passes.
+  migration key (`_construct_extras.py:567`). Ruled: `claim_level` and `field_claim_level` (T-R28). Closes
+  when: swept, and `python scripts/run_test_gate.py docs` passes.
 - T-37 [A] (T) Left after lane T (2026-10-27; fixed: the release sweep test reads job and step `if:`, the
   P-025 matcher needs the assert on the jaxfne module, the delayed-edge route has its test, the nightly
   tree-equality skip fails open under five planted defects): the `smoke` and `fast` auto-markers
   (`tests/conftest.py:77-85`) and the registered `integration` marker are selected by no gate, workflow or
-  Makefile (recommend deleting them; Hamm's call in T-53, since local `-m fast` use is unknown). Closes when: the markers are deleted or selected.
+  Makefile; ruled: delete all three (T-R28). Closes when: the markers are deleted.
 - T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; after each dev
   push refresh the lane dashboard (skill `jaxfne-dashboard`). Closes when: `python
   scripts/build_dashboard_data.py --check` passes on each push.
@@ -46,9 +46,9 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 - T-41 [A] (C2) T-41 audit 2026-10-27 at c88be711 (two efforts over `jdna/`, `tfne.py`, `optim/`, `analysis/`,
   `protocol_*/`): lane C2 fixed 8 of 10 (jdna geometry and development keys, optim parameters never read,
   `learning_rate` 0, `allow_self` string, TFNE relation-origin delay; protocol D's drive window refuses a
-  negative onset, 2026-10-28). Left: protocol E `support_only_on_O_H` (`e3_execution.py:268`), whose receipt `e3_execution_receipt.json` is frozen
-  write-once, so a fix needs a new receipt version (Hamm, H-rule on frozen receipts). Estimator findings are
-  in T-50. Closes when: both are fixed or ruled.
+  negative onset, 2026-10-28). Left: protocol E `support_only_on_O_H` (`e3_execution.py:268`), a tautology (always true); the
+  correct test (deviation only on owners) gives true on the frozen `e3_execution_receipt.json` too, so the fix
+  needs no new receipt version. Estimator rulings are in T-R28. Closes when: it is fixed with a test.
 - T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`; B, C, D, F landed): `paper-lanes` is in
   `fast-build`'s needs (2026-10-28, observed green on 760bcec3); F's reuse
   requires one executed case per family in each JUnit leg (2026-10-28); the family mapping and the `gh` field
@@ -85,13 +85,15 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 - T-3 [A] (P) PCL replication, option (b) (Hamm 2026-10-27). Core lanes L1-L4 closed. Next: R2, the
   port's replay of the trained network's training files through the chained scan, compared with the port
   (the C++ binary needs WSL installs, O-58); then R3 (attribute each residual: implementation, parameters,
-  stochastic, model); R4 prereg, declaring T4 up front (F6 column is Hamm's); R5 score, exact and approximate as separate outcomes.
+  stochastic, model); R4 prereg, declaring T4 up front (F6: the driven column (4,4)); R5 score, exact and approximate as separate outcomes.
   The signed v5 T2 FAIL stays. Closes when: a signed prereg reproduces Fig. 3 or Hamm closes it.
 - T-22, T-25 [A] (P) After T-3 R2: PCL B3 on the intra-step operator with the core mapping; PCL trained
   weights load as A' (`with_trained_weights`). Closes when: both run on the core with tests.
 - T-O70 [A then H] H3 preregs: Potjans and Vogels estimands, B8 pilots on seed 0 and a known positive
-  (Potjans scale 0.1 needs about 150 GB RAM: CPU at the edge or a smaller scale), then Hamm signs; GSDR and
-  Destexhe pilots (new reserved seeds; Destexhe 4-8 spent). Closes when: Hamm signs or defers each.
+  (Potjans at 10% with in-degree held is about 3e7 synapses: the 1% and 2% pilots, 3.0e6 and 6.0e6
+  synapses at 2.5 and 4.0 GB, extrapolate to roughly 16 GB, inferred; the earlier 3e8 and 150 GB was the
+  full-scale count), then Hamm signs; GSDR and Destexhe pilots (scoring seeds 9-13). Closes when: Hamm
+  signs or defers each.
 - T-32 [A] (E) One replication a day (Hamm 2026-10-19): GSDR fit on `simulate_hh_batch` with
   `gsdr_mcdp_transform`; T-32c seed and candidate batching for the AdEx and LIF routes and `Model.tune`
   (`_model_tune.py:451`); T-32d core homes for lane analysis (ISI ratio and CV, aperiodic fit, tuning fit);
@@ -100,7 +102,7 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   Closes when: each lands with its test or record.
 - T-30 [A] (E) Replication conformance per paper (`scripts/replication_known_violations.json`, 31 findings):
   Izhikevich 2003 (net.m order through `construct`, closes at the signed P6), CAMINOS (estimators into
-  `jaxfne.analysis`, P3 sweeps re-run on the core: Hamm's call), GSDR (HH in `construct()` dispatch,
+  `jaxfne.analysis`, P3 sweeps re-run on the core as an equivalence check), GSDR (HH in `construct()` dispatch,
   estimators), Destexhe (estimators, LEDGER, RESULT), pcl_h and Q-learning (phase records; pcl_h `sys.path`
   imports), PCL (closes at the R4 prereg). Closes when: `check_replications.py --check` lists no violation
   without Hamm's exception.
@@ -127,7 +129,7 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   entries (two mutant harnesses, `gate_p3b.py`, diag q7, q8) are permanent exceptions; PCL diag scripts
   read `PCL_DIAG_DIR`. Done 2026-10-28: the five merged remote branches deleted. Agent call: protocol E
   `support_only_on_O_H` is a tautology; the fix keeps the frozen receipt's value (true), so no new version.
-  Science (T-50), each output-changing with a changelog fragment: P-052 next is a beta by horizon scan
+  Science, each output-changing with a changelog fragment: P-052 next is a beta by horizon scan
   against the central finite difference; P-048 default `u0 = b * v0`; P-051 a named `instantaneous` edge
   receptor (the tau -> 0 limit) with a dense-route test; the two HDP probe rules apply spike terms as
   per-spike jumps (dt-invariant); `make_ei_cloud_network` and `coop_omission_oddball_paradigm` default seed
@@ -137,40 +139,24 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   refuse everywhere; optimizer seeds by nested `fold_in` and `SeedSequence([seed, gen, row])`; a declared
   jdna cell type realizes at least 1 cell; `population_rates` gains `dt_ms` and `discard_ms`, the seconds
   form deprecated for one release.
-- T-50 [H] Science calls: P-052 slope (scan beta for agreement with the finite difference, or a surrogate
-  scaled to the upstroke); P-048 `u0` default; P-051 a named instantaneous receptor; HDP probe rules
-  `synthetic_presyn_gain`, `eligibility_trace_gain` update per step without dt (`hdp_rule.py:318-372`);
-  builders default seed 42 against `construct` 0; `adex_destexhe.py:181` rounds half-even; a state clamp on
-  the plain Izhikevich path (T-19); same-layer zeroing for I/Inl/Ing (T-18); bfloat16 compute or storage.
-  Estimator calls from the T-41 audit: `fleiss_kappa_binary` (`analysis/metrics.py:411-426`) scores observed
-  agreement as unanimity and expected agreement pairwise, so independent trains give about -1 while its
-  docstring says 0; GSDR's kappa comes from it (`run_gsdr.py:295`; CALIBRATION 6.6 calls the estimator the
-  same as the authors'), so textbook Fleiss or the paper's form; `welch_numpy` (`analysis/spectral.py:205-231`)
-  uses a symmetric Hann window while its docstring says the scipy convention (PSD up to 15.7% apart); bins
-  off the dt grid are rounded silently in `fano_factor`, `fleiss_kappa_binary` and `metrics.py:1014` while
-  `wang_buzsaki_kappa` refuses them; optimizer seeds collide (`optim/core.py:1658` fold_in index at
-  population above 10; `:1698` simulation seeds `seed + gen*pop + row` shared by runs whose seeds differ by a
-  multiple of pop). Also from that audit: may a cell type be absent when its band lower bound is 0 (`jdna/genome.py:744`);
-  `population_rates` takes dt in seconds while `mean_rate_hz` and `fano_factor` take `dt_ms`
-  (`analysis/metrics.py:1082`), a public rename or a documented exception. Each changes outputs. Closes
-  when: each is ruled.
-- T-51 [H] Protocol calls: P6 seeds and Q5 (`izhikevich2003/core/PREREG_P6.md`); Potjans and Vogels scale
-  and bands; D2 Destexhe and GSDR preregs; CAMINOS S2 re-run; PCL F6 column and the WSL installs for the
-  C++ binary; jitter reader follow-up (w_max, larger frozen sets). Closes when: each is ruled.
-- T-52 [H] Paper calls (G-0): C10 cut 112 references to 80; C1 2 orphans and 7 manuscript-ledger conflicts
-  (`programme/paper/claim_alignment_audit.md`); C6 benchmark protocol and a geometry for
-  `cortical_column_localized_workflow.build_config` (raises at HEAD); C4 turn invariance (claim wording or a
-  radius cutoff); D35 `apply_calibration`; D28 symbol (9A names). Closes when: each is ruled.
-- T-53 [H] Repo calls: T-16 atlas test merge; T-17 the manuscript tree and five receipt-writing scripts;
-  T-PR Dependabot #115, #116 and deleting the merged remote branches `caminos-p6`, `fix/rtd-mcc3-post-d1`,
-  `izh2003`, `l2-caminos`, `pcl-port`; dashboard P1 and P2 after the P0 acceptance; GSDR's stage (REPLICATIONS
-  reads P1 with `PORT_SPEC.md` and an unsigned `PREREG_P3.md` on disk; Destexhe in the same state reads P3);
-  deleting the unselected `smoke`, `fast` and `integration` markers (T-37); the canonical metadata key set,
-  the package's `claim_level` family or the docs' `model_status` family (T-35); the 0.5.9 release go.
-  Closes when: each is ruled.
+  Protocol: Izhikevich P6 scores seeds 2-6, Q5 option B, margins as drafted, signed once the
+  `instantaneous` receptor replaces the tau 1e-3 ms coupling in its model table; Potjans P3 v2 at 10% with
+  in-degree held, e <= 0.20; Vogels P3 v2 as drafted (full N, e <= 0.20, O-DROP ratio >= 2); Destexhe and
+  GSDR reserve scoring seeds 9-13 (pilots 0-3, GSDR fit 1-3), signatures after pilots (O-70); the CAMINOS
+  core-route rerun is an equivalence check against the frozen result (same prereg and seeds, within its
+  between-seed range); PCL R4 scores the driven column (4,4) and reports (0,0) beside it; WSL: Hamm fixes
+  DNS (O-58), then the agent installs the C++ build packages; the jitter reader reruns the frozen readout on
+  larger sets first, `w_max` only if it stays weak, receipts into the repo.
+  Paper: no cap on references (C10 keeps the DOI check); C1: CL-29 states 0.426 as the maximum over
+  repetitions, CL-05 names its one post-registration revision, the other five conflicts and both orphans
+  are text fixes against the ledger and receipts; C4 adds a Euclidean radius cutoff (rotation-invariant
+  candidates, an arbitrary-angle S3 test); C6 uses `geometry="laminar"` and declares Brian2 and Jaxley
+  baselines; D35 becomes public `apply_calibration(quantity, geometry, theta)`; D28 becomes public
+  `QuantityKind` (B, R, E, T).
+  Local copies (O-68): rescue what a record cites into the repo or `F:/warehouse` with a `state.md`
+  pointer, list each deletion for Hamm, delete one at a time. jarness selfcheck: propose to the jynx keeper
+  that selfcheck skips files a workspace declares as history (record pins, receipt trees).
 - T-O58 [H] WSL DNS. Closes when: `pip download jaxfne==0.5.7 --no-deps` works in WSL.
-- T-O68 [H] Local copies (O-68). Closes when: each is at `E:/repos/<name>` or `E:/repos/_wt/<repo>/<task>`
-  or deleted.
 - Directions recorded, open: augmentation runs (`programme/design/plans/augment_science_runs_plan.md`);
   `pcl_stdp_h2` for new work; structural HDP; primate primary-connection mode; theory family F3, F4 or F5
   and Lean proofs; Python 3.15 in CI once its wheels exist.
