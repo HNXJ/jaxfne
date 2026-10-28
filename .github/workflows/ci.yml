@@ -288,6 +288,7 @@ jobs:
           run=true
           if [ -n "$base" ] && [ "$base" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$base^{commit}" 2>/dev/null; then
             changed=$(git diff --name-only "$base" "$GITHUB_SHA")
+            echo "range=$base..$GITHUB_SHA" >> "$GITHUB_OUTPUT"
             run=false
             if printf '%s\n' "$changed" | grep -E "$LANE_PATHS_RE" >/dev/null; then run=true; fi
           fi
@@ -301,6 +302,14 @@ jobs:
       - name: Paper lanes not run (no lane or package change)
         if: steps.changes.outputs.run != 'true'
         run: echo "no change under artifacts/etudes/papers/ or jaxfne/; paper lanes skipped"
+
+      # F3: each commit with a "Fidelity-fix: <pytest node id>" trailer names a test that
+      # fails on its parent commit and passes on the commit itself.
+      - name: Fidelity fixes carry a test that fails on the parent (F3)
+        if: matrix.python-version == '3.14' && steps.changes.outputs.range != ''
+        env:
+          F3_RANGE: ${{ steps.changes.outputs.range }}
+        run: python scripts/check_fidelity_fix.py --range "$F3_RANGE"
 
   fast-build:
     runs-on: ubuntu-latest

@@ -29,8 +29,10 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - PCL R2 on real files is next (T-3); the C++ reference binary needs WSL installs (O-58).
 - The P-052 surrogate's off-diagonal gradient disagrees in sign with the finite difference (corr -0.2 to
   -0.4); its fitness for training is Hamm's call (`artifacts/runs/perf/profiles/precision_058.md`).
-- New calls for Hamm in T-50: the named matrix masks read `W[post, pre]` transposed (`E_to_I` selects
-  I-to-E; Suite No. 4 depends on it); the float32 PSD phase fix (T-55 (11): 11.5% of peak at 1000 s).
+- Hamm ruled "fix" on both 2026-10-28: matrix masks follow `W[post, pre]` (new `I_to_E`; Suite No. 4
+  tunes `gGABA_w` with it); `spectrolaminar_psd_jax` takes its phase from exact float32 remainders
+  (broadband noise against float64: 2.4e-4 to 1e-6 of peak at 10 s, 2e-2 to 4e-6 at 1000 s). The T-55
+  sinusoid figure (11.5% at 1000 s) was relative to an off-grid leakage peak and overstated the error.
 - CI Fast on 760bcec3: every job green, `fast-build` with `paper-lanes` in its needs (run 40651924091).
 
 ## Generated files and their checks

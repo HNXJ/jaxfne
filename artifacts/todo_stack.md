@@ -49,15 +49,6 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   negative onset, 2026-10-28). Left: protocol E `support_only_on_O_H` (`e3_execution.py:268`), whose receipt `e3_execution_receipt.json` is frozen
   write-once, so a fix needs a new receipt version (Hamm, H-rule on frozen receipts). Estimator findings are
   in T-50. Closes when: both are fixed or ruled.
-- T-55 [A] (C) Left of the T-41 findings verified 2026-10-27 (lane C3 fixed 2-9, item 1 fixed 2026-10-28,
-  each with a failing test): (11) `analysis/spectral.py:80` float32 phase, absolute error 0.168 rad at
-  1000 s; `spectrolaminar_psd_jax` is jitted with traced `freqs` and x64 off, so float64 changes its jit
-  contract. Measured 2026-10-28 (sinusoids at 40 and 147.3 Hz, fs 1000 Hz, against a float64 DFT at the
-  same freqs): max PSD error over peak 2.9e-4 at 10 s, 5.4e-3 at 100 s, 1.15e-1 at 1000 s. A float32 fix
-  inside jit: `frac(r * 2^k)` is exact for r = f/fs, so the phase is the fractional part of the sum over
-  the set bits of n; it changes every PSD at rounding level (published spectrolaminar outputs included),
-  so it is Hamm's call in T-50. Hamm's calls in T-50 also: absence under a band lower bound of 0,
-  `population_rates` dt in seconds, mask orientation. Closes when: (11) is ruled, then fixed with a test.
 - T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`; B, C, D, F landed): `paper-lanes` is in
   `fast-build`'s needs (2026-10-28, observed green on 760bcec3); F's reuse
   requires one executed case per family in each JUnit leg (2026-10-28); the family mapping and the `gh` field
@@ -65,12 +56,12 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   runs as a CI stage first; E's first nightly is its observation. Closes when: `ci_plan.md` lists
   every step landed and observed.
 - T-44 [A] (E) T-32e: rules E1, S2, P4, R4 landed in `check_replications.py` (d2553d55, 66231ddb, 5c4a52a0,
-  8136beea). Left: F3 ("a fidelity fix carries a test that fails on the parent commit") is per commit, so a
-  file scan cannot check it (a CI step over commits tagged as fidelity fixes is the candidate); the
+  8136beea) and F3 (`scripts/check_fidelity_fix.py`: a commit with a `Fidelity-fix: <node id>` trailer
+  names a test that fails on its parent; CI `paper-lanes` step, 2026-10-28). Left: the
   allowlist `scripts/replication_known_violations.json` (26 entries) shrinks to Hamm's exceptions; each S1
   entry names why its path is not static (temp copies, run-time arguments, `C:/workspace/pcl_diag`); S1
-  follows the `_repo_root()` walk to `pyproject.toml` (2026-10-28, five entries cleared). Closes when: F3 has
-  a check that fails on a planted fix without a failing test, and each allowlist entry is fixed or ruled.
+  follows the `_repo_root()` walk to `pyproject.toml` (2026-10-28, five entries cleared). Closes when: each
+  allowlist entry is fixed or ruled.
 - T-10b [A] jnwb cross-learning (`control/harness/jnwb_cross_learning.md`): errors page, a proxy-claim
   wording gate, AST-hash freezing of validated kernels. Survey 2026-10-28 for the freeze: one kernel is
   checked bit for bit against an independent oracle (`simulate_eig_izhikevich`, net_m branch,
@@ -135,15 +126,10 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   off the dt grid are rounded silently in `fano_factor`, `fleiss_kappa_binary` and `metrics.py:1014` while
   `wang_buzsaki_kappa` refuses them; optimizer seeds collide (`optim/core.py:1658` fold_in index at
   population above 10; `:1698` simulation seeds `seed + gen*pop + row` shared by runs whose seeds differ by a
-  multiple of pop). From T-55: may a cell type be absent when its band lower bound is 0 (`jdna/genome.py:744`);
+  multiple of pop). Also from that audit: may a cell type be absent when its band lower bound is 0 (`jdna/genome.py:744`);
   `population_rates` takes dt in seconds while `mean_rate_hz` and `fano_factor` take `dt_ms`
-  (`analysis/metrics.py:1082`), a public rename or a documented exception; the named matrix masks read
-  `W[post, pre]` transposed (`_model_tune.py:1118-1145`): `E_to_I` selects I-to-E entries and
-  `excitatory_to_all` selects E target rows plus every row with mostly positive input, so all of W when I
-  cells receive mostly excitatory input; Suite No. 4 pairs `gGABA_w` with
-  `E_to_I` and its tests and notebook depend on it (E_to_E and `all` are unaffected; E2b builds its own
-  masks), so fix the masks (outputs change) or rename them; the float32 PSD phase fix in T-55 (11) (outputs
-  change at rounding level; 11.5% of peak at 1000 s without it). Each changes outputs. Closes when: each is ruled.
+  (`analysis/metrics.py:1082`), a public rename or a documented exception. Each changes outputs. Closes
+  when: each is ruled.
 - T-51 [H] Protocol calls: P6 seeds and Q5 (`izhikevich2003/core/PREREG_P6.md`); Potjans and Vogels scale
   and bands; D2 Destexhe and GSDR preregs; CAMINOS S2 re-run; PCL F6 column and the WSL installs for the
   C++ binary; jitter reader follow-up (w_max, larger frozen sets). Closes when: each is ruled.
