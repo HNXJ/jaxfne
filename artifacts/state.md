@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@aa92b43a · 2026-10-27
+Stamp: jaxfne@dev@760bcec3 · 2026-10-28
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
@@ -15,22 +15,23 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   worker lanes R, D, T (0108594b); lane C: `simulate_batch` realizes the surrogate, HH `dt` refuses
   strings, relative units in `visualize_network_3d` (6f41515c); lanes C2 (T-41 refusals), E (S1 reasons),
   T2 (`paper-lanes` CI job), the nightly skip test, dead example branches.
-- Broad gate on the lanes C2, E, T2 tree: 7623 passed, 0 failed; all paper lanes pass.
-- CI Fast green through c88be711.
+- 2026-10-28 on dev (a95a40bb to 760bcec3): T-55 items 1-9 (matrix tune bounds scale the masked W
+  entries and keep signs; refusals and seeds in optim, jdna, granger); broad-gate stamp and rc reuse of
+  Release CI JUnit with an executed case per family (T-42 D, F); S1 follows `_repo_root()` (T-44, five
+  allowlist entries cleared); canary chain 7, jdna develop (T-42 B); HH full-kernel gradient test and HH
+  under x64; the compile guard counts per cache key (T-38 closed); protocol D refuses a negative drive
+  onset (T-41); `fast-build` needs `paper-lanes` (T-42 C).
+- Broad gate on 760bcec3's tree: 7728 passed, 0 failed; all paper lanes pass.
+- CI Fast green through c1128ce5.
 
 ## Broken or in flight
 
 - PCL R2 on real files is next (T-3); the C++ reference binary needs WSL installs (O-58).
 - The P-052 surrogate's off-diagonal gradient disagrees in sign with the finite difference (corr -0.2 to
   -0.4); its fitness for training is Hamm's call (`artifacts/runs/perf/profiles/precision_058.md`).
-- Lanes C3 (T-55 items 2-9) and T3 (broad stamp, rc reuse of Release CI JUnit) landed at a95a40bb. T-55
-  item 1: the matrix tune's inner loop bounds each masked entry by its scale of the base W and keeps the
-  rest (76c1912a, broad gate 7697 passed, 0 failed); the named masks read `W[post, pre]` transposed
-  (`E_to_I`, `excitatory_to_all`), a call for Hamm in T-50. Lanes E3 (S1 follows `_repo_root()`) and T4
-  (rc reuse needs an executed case per family) landed at fbdd5f1d (broad gate 7714 passed, 0 failed); lanes
-  B1 (canary chain 7, jdna develop) and H1 (HH full-kernel gradient test, HH runs under x64) at 4d57ca48
-  (broad gate 7717 passed, 0 failed); the compile guard counts per cache key (0d7f0fed, 7719 passed, 0
-  failed), and the `simulate_hh` docstring names its differentiable input (T-38 closed).
+- New calls for Hamm in T-50: the named matrix masks read `W[post, pre]` transposed (`E_to_I` selects
+  I-to-E; Suite No. 4 depends on it); the float32 PSD phase fix (T-55 (11): 11.5% of peak at 1000 s).
+- CI Fast on 760bcec3: every job green, `fast-build` with `paper-lanes` in its needs (run 40651924091).
 
 ## Generated files and their checks
 
@@ -52,5 +53,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-Fast tier of `todo_stack.md` in lanes R, D, T, C (at most 3 Haiku workers at once), then T-41 and T-42. The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned
-by frozen records, record pins or runtime paths, the root sits at its 7-folder limit, and no move is warranted.
+T-44 F3 (a CI step over commits tagged as
+fidelity fixes), T-45 and T-46 in worker lanes (at most 3 at once); T-3 R2 waits on the WSL installs
+(O-58). The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned by frozen records,
+record pins or runtime paths, the root sits at its 7-folder limit, and no move is warranted.

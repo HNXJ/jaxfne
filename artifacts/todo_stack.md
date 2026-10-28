@@ -59,7 +59,7 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   so it is Hamm's call in T-50. Hamm's calls in T-50 also: absence under a band lower bound of 0,
   `population_rates` dt in seconds, mask orientation. Closes when: (11) is ruled, then fixed with a test.
 - T-42 [A] (T) CI plan (`etudes/meta/plans/ci_plan.md`; B, C, D, F landed): `paper-lanes` is in
-  `fast-build`'s needs (2026-10-28; its first run under the new guard is the observation); F's reuse
+  `fast-build`'s needs (2026-10-28, observed green on 760bcec3); F's reuse
   requires one executed case per family in each JUnit leg (2026-10-28); the family mapping and the `gh` field
   names meet a live run at the first rc; B has its seven chains (jdna develop added 2026-10-28) and
   runs as a CI stage first; E's first nightly is its observation. Closes when: `ci_plan.md` lists
