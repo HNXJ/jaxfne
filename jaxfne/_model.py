@@ -85,7 +85,9 @@ class MatrixParameterSpec:
     Used in multi-parameter optimization to specify that a named parameter
     maps to a matrix (e.g., the synaptic weight matrix W) rather than a scalar.
     The mask field selects which matrix entries are subject to scaling:
-    E_to_E, E_to_I, excitatory_to_all, or all.
+    E_to_E, E_to_I, I_to_E, excitatory_to_all, or all. The matrix is
+    ``[post, pre]``, so ``E_to_I`` selects entries from an E source to an I
+    target and ``excitatory_to_all`` every entry with an excitatory source.
 
     The name is always the dict key in the parameters argument to
     :func:; do **not** add a name field here.
@@ -93,8 +95,8 @@ class MatrixParameterSpec:
     Attributes
     ----------
     mask : str
-        Which matrix entries to scale: "E_to_E", "E_to_I",
-        "excitatory_to_all", or "all".
+        Which matrix entries to scale: "E_to_E", "E_to_I", "I_to_E",
+        "excitatory_to_all", or "all" (source to target).
     bounds : tuple[float, float]
         (lower, upper) multiplicative scaling bounds.
     init : str
@@ -129,8 +131,9 @@ def matrix_parameter(
     Parameters
     ----------
     mask : str
-        Which matrix entries to scale: "E_to_E", "E_to_I",
-        "excitatory_to_all", or "all".
+        Which matrix entries to scale: "E_to_E", "E_to_I", "I_to_E",
+        "excitatory_to_all", or "all" (source to target; the matrix is
+        ``[post, pre]``).
     bounds : tuple[float, float]
         (lower, upper) multiplicative scaling bounds.
     init : str

@@ -1095,7 +1095,10 @@ def _mask_for_parameter(
     parameter_name : str
         Name of the parameter (used only for error messages).
     mask_type : str
-        One of: "E_to_E", "E_to_I", "excitatory_to_all", "all".
+        One of: "E_to_E", "E_to_I", "I_to_E", "excitatory_to_all", "all". The
+        matrix is ``[post, pre]``: ``E_to_I`` selects rows of I targets and
+        columns of E sources; ``excitatory_to_all`` selects every column whose
+        source is excitatory.
     target : str
         Name of the emitter dataclass field the mask applies to (default
         "W"; e.g. "G" for the homeostatic_ei emitter's conductance matrix).
@@ -1118,18 +1121,18 @@ def _mask_for_parameter(
     if mask_type == "all":
         return jnp.ones((n, n), dtype=bool)
 
+    # W[post, pre]: rows are targets, columns are sources.
     if mask_type == "excitatory_to_all":
-        # Scale entries in rows corresponding to excitatory neurons (positive out-degree).
-        # We identify E neurons by their sign label or by majority positive outgoing weights.
-        row_mask = _np_mask.zeros(n, dtype=bool)
-        for i in range(n):
-            # E neurons: positive outgoing (sign > 0) or labeled E
-            label = emitter.labels[i] if i < len(emitter.labels) else ""
-            if label.startswith("E") or _np_mask.sum(W[i, :] > 0) > _np_mask.sum(W[i, :] < 0):
-                row_mask[i] = True
-        return jnp.asarray(_np_mask.outer(row_mask, _np_mask.ones(n, dtype=bool)), dtype=bool)
+        # Every entry whose source column is excitatory: labeled E, or with mostly positive
+        # outgoing weights W[:, j].
+        col_mask = _np_mask.zeros(n, dtype=bool)
+        for j in range(n):
+            label = emitter.labels[j] if j < len(emitter.labels) else ""
+            if label.startswith("E") or _np_mask.sum(W[:, j] > 0) > _np_mask.sum(W[:, j] < 0):
+                col_mask[j] = True
+        return jnp.asarray(_np_mask.outer(_np_mask.ones(n, dtype=bool), col_mask), dtype=bool)
 
-    # E_to_E and E_to_I: identify E vs I neurons by labels
+    # E_to_E, E_to_I and I_to_E: identify E vs I neurons by labels
     e_mask = _np_mask.zeros(n, dtype=bool)
     i_mask = _np_mask.zeros(n, dtype=bool)
     for idx in range(n):
@@ -1139,14 +1142,17 @@ def _mask_for_parameter(
         else:
             i_mask[idx] = True
 
+    # outer(target rows, source columns)
     if mask_type == "E_to_E":
         return jnp.asarray(_np_mask.outer(e_mask, e_mask), dtype=bool)
     if mask_type == "E_to_I":
+        return jnp.asarray(_np_mask.outer(i_mask, e_mask), dtype=bool)
+    if mask_type == "I_to_E":
         return jnp.asarray(_np_mask.outer(e_mask, i_mask), dtype=bool)
 
     raise ValueError(
         f"Unknown mask type for parameter {parameter_name!r}: {mask_type!r}. "
-        "Supported: E_to_E, E_to_I, excitatory_to_all, all"
+        "Supported: E_to_E, E_to_I, I_to_E, excitatory_to_all, all"
     )
 
 
