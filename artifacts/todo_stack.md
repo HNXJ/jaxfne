@@ -23,11 +23,6 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 
 ## 1. Fast (S)
 
-- T-57 [A] (T, C) b1d9dfe1 (P-048 default u0, P-051 `instantaneous`, local, unpushed) fails 10 tests in
-  the broad gate, all from the moved default trajectories: five canary chains, the t18 spike hash and the
-  narrow tune pins (re-record, Cursor lane `pins`); `test_equiv01_table[eligibility]` (the two routes'
-  w traces differ, diagnosis), the closure-hp growth fixture, AT-10 pins the old u0 (Hamm 2026-10-28)
-  (Muse lane `fixa`). Closes when: the broad gate passes on the fixed commit and it is pushed.
 - T-35 [A] (D) The secondary metadata keys stay (Hamm 2026-10-28): `amplitude_status`, `run_status`,
   `model_status`, `field_model_status` (63, 38, 39, 13 files, none in `jaxfne/`), documented in one table
   in `docs/guides/readout/output_bundles.md` beside `claim_level` and `field_claim_level` (packet KEYS).
@@ -53,11 +48,9 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   (8f3ce57e) and the kernel freeze is dropped (Hamm 2026-10-28); left: a proxy-claim wording gate.
   Closes when: it lands with its test or is dropped.
 - T-45 [A] C3, S1 (`docs/theory/doctrine/definition_map.md`; D17, D21, D26, D34 map to public symbols,
-  0bc1e47a and 201750c9; D35 maps to `jaxfne.fields.apply_calibration`, Hamm 2026-10-28): D28 has no
-  symbol (KNOWN_GAPS); D31,
-  D32 map to private names (`_hdp_adaptive.bind_theta_to_plant`, `_hdp_family_kernel.apply_registered_rule_update`),
-  so a public name is Hamm's call as for D34 in H2; the object specializer `PV[model=IZH]` does not parse
-  (`Base[NAME]` only). Closes when: the map has no unsymboled row and
+  0bc1e47a and 201750c9; D35 maps to `jaxfne.fields.apply_calibration`; D31, D32 map to
+  `jaxfne.hdp_rule` public names, 6337c002): D28 has no symbol (KNOWN_GAPS; ruled public `QuantityKind`);
+  the object specializer `PV[model=IZH]` does not parse (`Base[NAME]` only). Closes when: the map has no unsymboled row and
   `python scripts/publication_figures/supplement.py` regenerates S1, S2, S5.
 - T-46 [A] C9, C2: 8 gaps in `programme/paper/reproducibility_audit.md` section 7 (the `publication` job passed;
   fig03-05 RGBA and all bytes differ from the macOS freeze); left: the data and code statement (0.5.11), the
@@ -102,8 +95,7 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 ## 4. Waiting on Hamm
 
 - T-R28 [A] Hamm's rulings 2026-10-28 still to apply (wave 1 and wave 2 landed: 9d338ba3 to b1d9dfe1):
-  D31, D32 become public names with the private ones as aliases, a map test each (T-45); dashboard P1
-  then P2; 0.5.9 waits for 9A-9G.
+  dashboard P1 then P2; 0.5.9 waits for 9A-9G.
   Science, each output-changing with a changelog fragment: P-052 next is a beta by horizon scan
   against the central finite difference.
   Protocol: Izhikevich P6 scores seeds 2-6, Q5 option B, margins as drafted, signed once the
