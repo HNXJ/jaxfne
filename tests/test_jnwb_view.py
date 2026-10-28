@@ -75,7 +75,7 @@ def test_a_count_of_two_gives_two_spike_times():
 
 def test_bfloat16_simulation_is_accepted_at_its_declared_dt(model):
     sig = jtfne.simulate(model, duration_ms=100, dt_ms=0.1, seed=0, dtype="bfloat16")
-    assert np.asarray(sig.time_ms).dtype.itemsize == 2, "fixture must build a bfloat16 axis"
+    assert np.asarray(sig.time_ms).dtype.itemsize == 4, "fixture must build a float32 axis (bfloat16 is storage only)"
     view = to_jnwb(sig)
     assert view.dt_ms == 0.1
     assert view.V_m.dtype == np.float32

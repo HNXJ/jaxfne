@@ -35,6 +35,11 @@ class RuntimeConfig:
     before array construction.  The manifest always reports both requested
     and actual dtype policy.
 
+    ``dtype='bfloat16'`` is a storage dtype only. Every route integrates its
+    dynamics at ``compute_dtype`` (float32), and its recorded arrays are cast
+    once at the end to ``jnp_dtype`` (bfloat16). The time axis is always
+    float32, because time is not a state variable.
+
     jit selects XLA compilation: True/False force it on/off,
     auto (default) enables it iff n_steps * n_units * batch > 50000.
 
@@ -67,7 +72,7 @@ class RuntimeConfig:
     """
 
     backend: str = "auto"  # "auto" | "cpu" | "gpu" | "tpu"
-    dtype: str = "float32"  # "float32" | "float64"
+    dtype: str = "float32"  # "float32" | "float64" | "bfloat16" (storage only: dynamics float32)
     # 0.5.1 opt051_1: default auto (jit iff n_steps*n_units*batch > 50000).
     jit: bool | str = "auto"
     vmap: bool | str = False
@@ -229,6 +234,20 @@ class RuntimeConfig:
         if self.actual_dtype == "bfloat16":
             return jnp.bfloat16
         return jnp.float32
+
+    @property
+    def compute_dtype(self) -> str:
+        """Dtype the dynamics integrate in: float64 when requested, else float32.
+
+        bfloat16 is storage only, so it integrates in float32. ``actual_dtype``
+        still reports the requested and stored dtype.
+        """
+        return "float64" if self.actual_dtype == "float64" else "float32"
+
+    @property
+    def jnp_compute_dtype(self) -> jnp.dtype:
+        """The jax dtype of :attr:`compute_dtype`."""
+        return jnp.float64 if self.compute_dtype == "float64" else jnp.float32
 
     def runtime_report(self, effective_jit: Optional[bool] = None) -> dict[str, Any]:
         """Compile a summary of JAX system runtime, backend, and device topology.

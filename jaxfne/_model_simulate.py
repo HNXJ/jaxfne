@@ -194,6 +194,32 @@ def _hdp_kernel_kwargs(hp: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _storage(arr, runtime_cfg: RuntimeConfig):
+    """Cast a recorded float array to the storage dtype (bfloat16 is storage only).
+
+    The dynamics integrate at ``compute_dtype``; only a bfloat16 run changes here, and
+    only its float arrays. Integer and bool arrays, and every other dtype, pass through.
+    """
+    if runtime_cfg.actual_dtype != "bfloat16":
+        return arr
+    if not jnp.issubdtype(jnp.asarray(arr).dtype, jnp.floating):
+        return arr
+    return jnp.asarray(arr).astype(runtime_cfg.jnp_dtype)
+
+
+def _store_field(field, runtime_cfg: RuntimeConfig):
+    """Cast the proxy readouts of a FieldOutput to the storage dtype; kernel and geometry stay."""
+    if field is None or runtime_cfg.actual_dtype != "bfloat16":
+        return field
+    return replace(
+        field,
+        source_proxy=_storage(field.source_proxy, runtime_cfg),
+        phi_e_proxy=_storage(field.phi_e_proxy, runtime_cfg),
+        csd_proxy=_storage(field.csd_proxy, runtime_cfg),
+        lfp_proxy=_storage(field.lfp_proxy, runtime_cfg),
+    )
+
+
 def _chain_noise_schedule(key, n_steps, n_neurons, jnp_dtype, base_seed=None, member_counts=None):
     """Chain-consistent unit-noise schedule, ensemble-aware (0.5.4 item 1).
 
@@ -366,7 +392,7 @@ def _simulate_arrays(
 
     # Build silence_mask if E_silence or I_silence is requested
     n_neurons = emitter.v0.shape[0]
-    jdtype = _dtype_from_policy(runtime_cfg.actual_dtype)
+    jdtype = _dtype_from_policy(runtime_cfg.compute_dtype)
     ablation_mode = getattr(sim, "ablation", None)
     # Per-cell gaussian noise_scale (None when gaussian_drive is undeclared).
     gauss = _gaussian_noise_for_route(self, sim, runtime_cfg)
@@ -484,7 +510,7 @@ def _simulate_arrays(
                 sim.n_steps,
                 sim.dt_ms,
                 k,
-                dtype=runtime_cfg.actual_dtype,
+                dtype=runtime_cfg.compute_dtype,
                 drive_schedule=s,
                 silence_mask=silence_mask,
                 noise_scale=gauss if gauss is not None else hp.get("noise_scale", None),
@@ -492,7 +518,7 @@ def _simulate_arrays(
                     k,
                     sim.n_steps,
                     emitter.n_neurons,
-                    runtime_cfg.jnp_dtype,
+                    runtime_cfg.jnp_compute_dtype,
                     _member_base_seed,
                     _member_counts,
                 ),
@@ -619,7 +645,7 @@ def _simulate_arrays(
         _hdp_w0 = self.params.get("hdp_initial_w")
         init_state = None
         if _hdp_H0 is not None or _hdp_w0 is not None:
-            _idt = runtime_cfg.actual_dtype
+            _idt = runtime_cfg.compute_dtype
             init_state = {
                 "v": emitter.v0.astype(_idt),
                 "u": emitter.u0.astype(_idt),
@@ -649,7 +675,7 @@ def _simulate_arrays(
                     sim.n_steps,
                     sim.dt_ms,
                     k,
-                    dtype=runtime_cfg.actual_dtype,
+                    dtype=runtime_cfg.compute_dtype,
                     drive_schedule=s,
                     silence_mask=silence_mask,
                     init_state=init_state,
@@ -661,7 +687,7 @@ def _simulate_arrays(
                         k,
                         sim.n_steps,
                         emitter.n_neurons,
-                        runtime_cfg.jnp_dtype,
+                        runtime_cfg.jnp_compute_dtype,
                         _member_base_seed,
                         _member_counts,
                     ),
@@ -681,7 +707,7 @@ def _simulate_arrays(
                     sim.n_steps,
                     sim.dt_ms,
                     k,
-                    dtype=runtime_cfg.actual_dtype,
+                    dtype=runtime_cfg.compute_dtype,
                     drive_schedule=s,
                     silence_mask=silence_mask,
                     init_state=init_state,
@@ -689,7 +715,7 @@ def _simulate_arrays(
                         k,
                         sim.n_steps,
                         emitter.n_neurons,
-                        runtime_cfg.jnp_dtype,
+                        runtime_cfg.jnp_compute_dtype,
                         _member_base_seed,
                         _member_counts,
                     ),
@@ -893,7 +919,7 @@ def _simulate_arrays(
                                 k,
                                 sim.n_steps,
                                 emitter.n_neurons,
-                                runtime_cfg.jnp_dtype,
+                                runtime_cfg.jnp_compute_dtype,
                                 _member_base_seed,
                                 _member_counts,
                             )
@@ -908,7 +934,7 @@ def _simulate_arrays(
                             sim.n_steps,
                             sim.dt_ms,
                             k,
-                            dtype=runtime_cfg.actual_dtype,
+                            dtype=runtime_cfg.compute_dtype,
                             drive_schedule=s,
                             silence_mask=silence_mask,
                             **extra_kw,
@@ -941,7 +967,7 @@ def _simulate_arrays(
                     key,
                     sim.n_steps,
                     emitter.n_neurons,
-                    runtime_cfg.jnp_dtype,
+                    runtime_cfg.jnp_compute_dtype,
                     _member_base_seed,
                     _member_counts,
                 )
@@ -956,7 +982,7 @@ def _simulate_arrays(
                 sim.n_steps,
                 sim.dt_ms,
                 key,
-                dtype=runtime_cfg.actual_dtype,
+                dtype=runtime_cfg.compute_dtype,
                 drive_schedule=sched,
                 silence_mask=silence_mask,
                 **extra_kw,
@@ -1017,7 +1043,7 @@ def _simulate_arrays(
                         sim.n_steps,
                         sim.dt_ms,
                         k,
-                        dtype=runtime_cfg.actual_dtype,
+                        dtype=runtime_cfg.compute_dtype,
                         drive_schedule=s,
                         silence_mask=silence_mask,
                         **dense_kw,
@@ -1043,7 +1069,7 @@ def _simulate_arrays(
             sim.n_steps,
             sim.dt_ms,
             key,
-            dtype=runtime_cfg.actual_dtype,
+            dtype=runtime_cfg.compute_dtype,
             drive_schedule=sched,
             silence_mask=silence_mask,
             **dense_kw,
@@ -1179,9 +1205,9 @@ def _simulate_continuation_arrays(
     emitter: IzhikevichParams = self.params["emitter"]
     n_neurons = emitter.n_neurons
     if drive_schedule is None:
-        schedule = jnp.zeros((sim.n_steps, n_neurons), dtype=runtime_cfg.jnp_dtype)
+        schedule = jnp.zeros((sim.n_steps, n_neurons), dtype=runtime_cfg.jnp_compute_dtype)
     else:
-        schedule = jnp.asarray(drive_schedule, dtype=runtime_cfg.jnp_dtype)
+        schedule = jnp.asarray(drive_schedule, dtype=runtime_cfg.jnp_compute_dtype)
         if schedule.shape != (sim.n_steps, n_neurons):
             raise ValueError(
                 f"drive schedule shape must be ({sim.n_steps}, {n_neurons}), got {schedule.shape}"
@@ -1274,7 +1300,7 @@ def _simulate_continuation_arrays(
     if _cont_counts is not None:
         _cont_start = 0 if continuation is None else int(state.step_index)
         _cont_noise_rows = _ensemble_segment_schedule(
-            _cont_counts, sim.seed, _cont_start, sim.n_steps, runtime_cfg.jnp_dtype
+            _cont_counts, sim.seed, _cont_start, sim.n_steps, runtime_cfg.jnp_compute_dtype
         )
 
     if _forced_rows is None:
@@ -1588,7 +1614,7 @@ def simulate(
         schedule = self._resolve_stimulus_schedule(paradigm, sim, runtime_cfg)
     drive_array: Optional[Any] = None
     if schedule is not None:
-        drive_array = schedule.to_array(sim.n_steps, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+        drive_array = schedule.to_array(sim.n_steps, sim.dt_ms, dtype=runtime_cfg.compute_dtype)
     if sim.poisson_drive is not None:
         _emitter: IzhikevichParams = self.params["emitter"]
         _pd = sim.poisson_drive
@@ -1643,21 +1669,21 @@ def simulate(
             forced_spikes=forced_spikes,
         )
         continuation_out = None
-    time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
-        sim.dt_ms, dtype=runtime_cfg.jnp_dtype
+    time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_compute_dtype) * jnp.asarray(
+        sim.dt_ms, dtype=runtime_cfg.jnp_compute_dtype
     )
-    positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_dtype)
+    positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_compute_dtype)
     field_output = None
     poisson_final_step = None
     if sim.record_fields:
-        # The proxy admits only float32/float64 (refuses bfloat16 by name,
-        # like the sibling poisson solver); bfloat16 dynamics project in
-        # float32: the same exact upcast _pipeline applies before np.savez.
+        # The proxy admits only float32/float64 (it refuses bfloat16 by name,
+        # like the sibling poisson solver). bfloat16 is storage only, so the
+        # projection runs at the compute dtype.
         field_output = project_laminar_sources(
             sources=sources,
             positions=positions,
             n_contacts=self.static.get("n_contacts", 16),
-            dtype="float32" if runtime_cfg.actual_dtype == "bfloat16" else runtime_cfg.actual_dtype,
+            dtype=runtime_cfg.compute_dtype,
         )
         poisson_final_step = _maybe_poisson_final_step(self, sources)
 
@@ -1760,7 +1786,7 @@ def simulate(
         V_m=voltages.astype(runtime_cfg.jnp_dtype),
         spikes=spikes,
         sources=sources.astype(runtime_cfg.jnp_dtype) if sim.record_sources else None,
-        field=field_output,
+        field=_store_field(field_output, runtime_cfg),
         metadata=metadata,
     )
     if return_state:
@@ -1792,11 +1818,11 @@ def _simulate_homeostatic_ei(
         activation_rule=emitter.activation_rule_name,
         conductance_rule=emitter.conductance_rule_name,
         homeostasis_rule=emitter.homeostasis_rule_name,
-        dtype=runtime_cfg.actual_dtype,
+        dtype=runtime_cfg.compute_dtype,
         bound_mode=emitter.bound_mode,
     )
-    time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
-        sim.dt_ms, dtype=runtime_cfg.jnp_dtype
+    time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_compute_dtype) * jnp.asarray(
+        sim.dt_ms, dtype=runtime_cfg.jnp_compute_dtype
     )
     source_mode = "homeostatic_ei_activity_proxy"
     source_mode_class = "specialized"
@@ -1813,14 +1839,14 @@ def _simulate_homeostatic_ei(
     }
     field_output = None
     if sim.record_fields:
-        positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_dtype)
-        # bfloat16 dynamics project in float32; the proxy refuses bfloat16
-        # by name (see _resolve_proxy_dtype), like the sibling poisson solver.
+        positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_compute_dtype)
+        # bfloat16 is storage only: the projection runs at the compute dtype. The
+        # proxy refuses bfloat16 by name (see _resolve_proxy_dtype).
         field_output = project_laminar_sources(
             sources=sources,
             positions=positions,
             n_contacts=self.static.get("n_contacts", 16),
-            dtype="float32" if runtime_cfg.actual_dtype == "bfloat16" else runtime_cfg.actual_dtype,
+            dtype=runtime_cfg.compute_dtype,
         )
         field_output = replace(
             field_output,
@@ -1858,8 +1884,8 @@ def _simulate_homeostatic_ei(
                 "homeostasis_rule": emitter.homeostasis_rule_name,
                 "bound_mode": emitter.bound_mode,
             },
-            "H_trace": H_history,
-            "G_trace": G_history,
+            "H_trace": _storage(H_history, runtime_cfg),
+            "G_trace": _storage(G_history, runtime_cfg),
             "error": bool(diag["error"]),
         },
     }
@@ -1868,7 +1894,7 @@ def _simulate_homeostatic_ei(
         V_m=voltages.astype(runtime_cfg.jnp_dtype),
         spikes=spikes,
         sources=sources.astype(runtime_cfg.jnp_dtype) if sim.record_sources else None,
-        field=field_output,
+        field=_store_field(field_output, runtime_cfg),
         metadata=metadata,
     )
 
@@ -1907,8 +1933,8 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
     """
     from ._construct_adex import adex_external_drive_kwargs, adex_kernel_args
 
-    dtype = runtime_cfg.jnp_dtype
-    kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+    dtype = runtime_cfg.jnp_compute_dtype
+    kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.compute_dtype)
     drive_kwargs = adex_external_drive_kwargs(self, sim)
     out = simulate_adex(
         **kwargs, **drive_kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True
@@ -1993,7 +2019,7 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
             metadata["poisson_drive"]["same_step"] = True
     return Signals(
         time_ms=time_ms,
-        V_m=out["V_mV"].astype(dtype),
+        V_m=out["V_mV"].astype(runtime_cfg.jnp_dtype),
         spikes=out["spikes"],
         sources=None,
         field=None,
@@ -2036,7 +2062,7 @@ def _simulate_hh(
             "run key derives from the declared connectivity edge seed "
             f"(edge_seed={int(static['edge_seed'])}); leave seed at 0 here"
         )
-    dtype = runtime_cfg.jnp_dtype
+    dtype = runtime_cfg.jnp_compute_dtype
     kwargs = hh_kernel_args(self, sim.dt_ms)
     out = simulate_hh(
         **kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True
@@ -2059,7 +2085,7 @@ def _simulate_hh(
     }
     return Signals(
         time_ms=time_ms,
-        V_m=out["V_mV"].astype(dtype),
+        V_m=out["V_mV"].astype(runtime_cfg.jnp_dtype),
         spikes=out["spikes"],
         sources=None,
         field=None,
@@ -2114,7 +2140,7 @@ def _simulate_rate(
     from ._construct_rate import rate_edge_arrays
     from .emitters_rate import simulate_rate_edge
 
-    dtype = runtime_cfg.jnp_dtype
+    dtype = runtime_cfg.jnp_compute_dtype
     emitter: RateNetworkParams = self.params["emitter"]
     edges = rate_edge_arrays(self)
     n_neurons = emitter.n_neurons
@@ -2181,7 +2207,7 @@ def _simulate_rate(
     n_steps, n_units = out["rates"].shape
     return Signals(
         time_ms=time_ms,
-        V_m=jnp.asarray(out["rates"], dtype=dtype),
+        V_m=jnp.asarray(out["rates"], dtype=runtime_cfg.jnp_dtype),
         spikes=jnp.zeros((n_steps, n_units), dtype=bool),
         sources=None,
         field=None,
@@ -2373,7 +2399,7 @@ def _simulate_lif(
     from ._construct_lif import lif_edge_arrays
     from .emitters_lif import simulate_lif_edge
 
-    dtype = runtime_cfg.jnp_dtype
+    dtype = runtime_cfg.jnp_compute_dtype
     emitter: LIFNetworkParams = self.params["emitter"]
     edges = lif_edge_arrays(self)
     n_neurons = emitter.n_neurons
@@ -2418,7 +2444,7 @@ def _simulate_lif(
                 "built for this population"
             )
         paradigm_arr = schedule.to_array(
-            sim.n_steps, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+            sim.n_steps, sim.dt_ms, dtype=runtime_cfg.compute_dtype)
         drive_2d_base = jnp.broadcast_to(drive, (sim.n_steps, n_neurons))
         drive_2d_sched = drive_2d_base + jnp.asarray(paradigm_arr, dtype=dtype)
     else:
@@ -2611,7 +2637,7 @@ def _simulate_lif(
         metadata["local_inhibition"] = dict(inhibition_spec)
     return Signals(
         time_ms=time_ms,
-        V_m=out["V_mV"].astype(dtype),
+        V_m=out["V_mV"].astype(runtime_cfg.jnp_dtype),
         spikes=out["spikes"],
         sources=None,
         field=None,
@@ -2707,7 +2733,7 @@ def _simulate_lif_scan(
             f"model has {int(n_neurons)} neurons; build the drive for "
             "this population"
         )
-    dtype = runtime_cfg.jnp_dtype
+    dtype = runtime_cfg.jnp_compute_dtype
     with _device_scope(runtime_cfg.selected_backend):
         out = simulate_lif_edge(
             emitter.to_lif_params(),
@@ -2760,7 +2786,7 @@ def _simulate_lif_scan(
     return Signals(
         time_ms=time_ms,
         V_m=jnp.full(
-            (int(sim.n_steps), int(n_neurons)), jnp.nan, dtype=dtype),
+            (int(sim.n_steps), int(n_neurons)), jnp.nan, dtype=runtime_cfg.jnp_dtype),
         spikes=out["spikes"],
         sources=None,
         field=None,
@@ -2957,7 +2983,7 @@ def simulate_batch(
                     sim.n_steps,
                     sim.dt_ms,
                     k,
-                    dtype=runtime_cfg.actual_dtype,
+                    dtype=runtime_cfg.compute_dtype,
                     hdp_rule=str(kernel_kwargs["hdp_rule"]),
                     hdp_rule_params=kernel_kwargs.get("hdp_rule_params", {}),
                     record_weight_trace=False,
@@ -2969,9 +2995,9 @@ def simulate_batch(
                 sim.n_steps,
                 sim.dt_ms,
                 k,
-                dtype=runtime_cfg.actual_dtype,
+                dtype=runtime_cfg.compute_dtype,
                 noise_schedule=continuation_noise_schedule(
-                    k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                    k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_compute_dtype
                 ),
                 **kernel_kwargs,
             )[:3]
@@ -2985,7 +3011,7 @@ def simulate_batch(
                 sim.n_steps,
                 sim.dt_ms,
                 k,
-                dtype=runtime_cfg.actual_dtype,
+                dtype=runtime_cfg.compute_dtype,
                 r_star=_hp.get("r_star", 0.05),
                 tau_r_ms=_hp.get("tau_r_ms", 300.0),
                 alpha=_hp.get("alpha", 1.0),
@@ -3010,11 +3036,11 @@ def simulate_batch(
                 sim.n_steps,
                 sim.dt_ms,
                 k,
-                dtype=runtime_cfg.actual_dtype,
+                dtype=runtime_cfg.compute_dtype,
                 noise_scale=_hdp.get("noise_scale", None),
             )[:3]
         return simulate_eig_izhikevich(
-            emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype,
+            emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.compute_dtype,
             noise_scale=_hdp.get("noise_scale", None),
             surrogate_beta=_batch_surrogate_beta,
         )
@@ -3170,7 +3196,7 @@ def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict
         )
     runtime_cfg = sim.resolved_runtime
     _refuse_surrogate(runtime_cfg, "simulate_adex_seed_batch")
-    kernel_kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+    kernel_kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.compute_dtype)
     refuse_poisson_drive_list(sim.poisson_drive, "simulate_adex_seed_batch (emitter family 'adex')")
     has_drive = sim.poisson_drive is not None
     drive_template: dict[str, Any] = {}
@@ -3212,8 +3238,8 @@ def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict
         batched = self._compiled_cache[cache_key](keys)
     return {
         "spikes": batched["spikes"],
-        "V_m": batched["V_mV"],
-        "final": {k: batched[k] for k in ("V", "w", "ref", "g")},
+        "V_m": _storage(batched["V_mV"], runtime_cfg),
+        "final": {k: _storage(batched[k], runtime_cfg) for k in ("V", "w", "ref", "g")},
         "metadata": json_safe(
             {
                 "emitter_family": "adex",
@@ -3262,7 +3288,7 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
         )
     runtime_cfg = sim.resolved_runtime
     _refuse_surrogate(runtime_cfg, "simulate_lif_seed_batch")
-    dtype = runtime_cfg.jnp_dtype
+    dtype = runtime_cfg.jnp_compute_dtype
     emitter: LIFNetworkParams = self.params["emitter"]
     edges = lif_edge_arrays(self)
     n_neurons = emitter.n_neurons
@@ -3366,8 +3392,8 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
         batched = self._compiled_cache[cache_key]((drive_batch, keys))
     out: dict[str, Any] = {
         "spikes": batched["spikes"],
-        "V_m": batched["V_mV"],
-        "w_final": batched["w_final"],
+        "V_m": _storage(batched["V_mV"], runtime_cfg),
+        "w_final": _storage(batched["w_final"], runtime_cfg),
         "metadata": json_safe(
             {
                 "emitter_family": "lif",
@@ -3382,7 +3408,7 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
         ),
     }
     if "H_final" in batched:
-        out["H_final"] = batched["H_final"]
+        out["H_final"] = _storage(batched["H_final"], runtime_cfg)
     return out
 
 

@@ -946,7 +946,7 @@ def with_hdp_initial_state(
     # `from ._model import Model`.
     from .core import _runtime_config_from_metadata
 
-    jdtype = _runtime_config_from_metadata(self.cfg.metadata).jnp_dtype
+    jdtype = _runtime_config_from_metadata(self.cfg.metadata).jnp_compute_dtype
     new_params = dict(self.params)
     if H0 is not None:
         new_params["hdp_initial_H"] = jnp.asarray(H0, dtype=jdtype)
