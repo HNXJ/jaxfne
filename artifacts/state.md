@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@6be045f7 · 2026-10-27
+Stamp: jaxfne@dev@0108594b · 2026-10-27
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
@@ -11,16 +11,17 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - 2026-10-27 on dev: P-052 `sigmoid_beta` surrogate on the dense Izhikevich default route (forward
   bit-identical, other routes refuse); the Muse audit at cfc839ab (six lanes) and its verified fixes;
   `run_stdp_stream` consumes `inh_mask`; PCL core lanes L1-L4 (multi-spike event scan, interval updates,
-  F_W in the scan, `EventScanBoundary`), each oracle-exact; 9B, 9F, 9G closed.
-- Broad gate on the inh_mask change: 7557 passed, 0 failed; all paper lanes passed.
-- CI Fast green on cfc839ab and 6d27166a.
+  F_W in the scan, `EventScanBoundary`), each oracle-exact; 9B, 9F, 9G closed; thin stacks (c88be711);
+  worker lanes R, D, T (0108594b).
+- Broad gate on 0108594b's tree: 7559 passed, 0 failed; all paper lanes pass. Report gate fail_count 0.
+- CI Fast green through c88be711.
 
 ## Broken or in flight
 
 - PCL R2 on real files is next (T-3); the C++ reference binary needs WSL installs (O-58).
 - The P-052 surrogate's off-diagonal gradient disagrees in sign with the finite difference (corr -0.2 to
   -0.4); its fitness for training is Hamm's call (`artifacts/runs/perf/profiles/precision_058.md`).
-- CI on 8c86b633 and later: not checked at this stamp.
+- Lane C (T-38 to T-40) is done in its clone and not yet integrated; lane C2 (T-41 refusals) is running.
 
 ## Generated files and their checks
 
