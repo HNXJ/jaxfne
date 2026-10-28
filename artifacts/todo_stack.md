@@ -115,6 +115,18 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 
 ## 4. Waiting on Hamm
 
+- T-R28 [A] Hamm's rulings 2026-10-28, each to apply then delete: F3 counts pytest exit 2 on the parent as
+  failing (as built); D31, D32 become public names with the private ones as aliases, a map test each (T-45);
+  T-10b drops the kernel freeze, the errors page covers `TFNEError`, `EpistemicRefusal` and a generated
+  index of refusal messages by module; delete the `smoke`, `fast`, `integration` markers (T-37); canonical
+  metadata keys are `claim_level`, `field_claim_level`, docs and scripts swept, frozen receipts untouched
+  (T-35); ruff 0.17.2 on dev, close #115 and #116 with a pointer; T-16 closed, the atlas test files stay;
+  move `docs/theory/publication/` to `artifacts/programme/paper/` and drop its `exclude_docs` entries
+  (T-17); the four receipt-writing scripts stay (T-17); dashboard P0 accepted, P1 then P2 start; GSDR and
+  Destexhe read P2 (an unsigned prereg does not reach P3); 0.5.9 waits for 9A-9G; T-44 S1 run-time
+  entries (two mutant harnesses, `gate_p3b.py`, diag q7, q8) are permanent exceptions; PCL diag scripts
+  read `PCL_DIAG_DIR`. Done 2026-10-28: the five merged remote branches deleted. Agent call: protocol E
+  `support_only_on_O_H` is a tautology; the fix keeps the frozen receipt's value (true), so no new version.
 - T-50 [H] Science calls: P-052 slope (scan beta for agreement with the finite difference, or a surrogate
   scaled to the upstroke); P-048 `u0` default; P-051 a named instantaneous receptor; HDP probe rules
   `synthetic_presyn_gain`, `eligibility_trace_gain` update per step without dt (`hdp_rule.py:318-372`);
