@@ -1,0 +1,1 @@
+- Changed `Model.tune` multi-parameter candidate simulations to use per-candidate seeds from SeedSequence over the optimizer seed and (generation, row), matching the scalar scan and optimizer scheme.

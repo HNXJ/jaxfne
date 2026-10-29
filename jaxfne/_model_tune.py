@@ -189,7 +189,8 @@ def tune(
     In the ``parameter=`` scan, candidate simulation seeds come from SeedSequence
     over (seed, 0, candidate index), the optimizer's ``_candidate_sim_seed``
     scheme, so scans with adjacent seeds share no simulation seed. The
-    multi-parameter path simulates every candidate with the given simulation seed.
+    multi-parameter path seeds each candidate from SeedSequence over the
+    optimizer seed and (generation, row) through the same scheme.
     """
     from .optim import _resolve_optimizer, propose_blackbox_candidates, require_optax
     from .optim.core import _candidate_sim_seed
@@ -577,6 +578,7 @@ def _tune_multiparameter(
         _run_agsdr_optimization_loop,
         _tune_matrix_agsdr_optax,
     )
+    from .optim.core import _candidate_sim_seed
 
     cfg_meta = self.cfg.metadata
 
@@ -669,9 +671,15 @@ def _tune_multiparameter(
     rejections_map = []
     candidate_evaluations: list[dict[str, Any]] = []
 
+    # Call counter mapping evaluate_fn calls to (generation, row) in the order
+    # _run_agsdr_optimization_loop calls them (row-major over the population).
+    _candidate_calls = [0]
+
     # Define scoring function for AGSDR loop
     def evaluate_fn(candidate_params: dict[str, float]) -> float:
         """Evaluate a candidate parameter dict and return loss."""
+        gen, row = divmod(_candidate_calls[0], int(population_size))
+        _candidate_calls[0] += 1
         reasons = []
         candidate_model = None
         candidate_report: dict[str, Any]
@@ -682,7 +690,9 @@ def _tune_multiparameter(
                 candidate_params,
                 param_specs if param_specs else None,
             )
-            candidate_signals = candidate_model.simulate(simulation)
+            candidate_signals = candidate_model.simulate(
+                simulation.with_seed(_candidate_sim_seed(int(seed), gen, row))
+            )
             state_diagnostics = candidate_model.last_hdp_diagnostics()
             if state_diagnostics is None:
                 candidate_report = candidate_model.evaluate(

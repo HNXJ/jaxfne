@@ -76,3 +76,43 @@ def test_adjacent_scans_share_no_simulation_seed():
     _, seeds0 = _scan(model, _sim(), seed=0)
     _, seeds1 = _scan(model, _sim(), seed=1)
     assert not set(seeds0) & set(seeds1), "adjacent scans share no simulation seed"
+
+
+def _multiparam_scan(model, sim, seed, generations=2, population_size=3):
+    """Run a two-parameter tune, recording each candidate simulation's seed."""
+    recorded = []
+    orig_with_seed = jtfne.Simulation.with_seed
+
+    def wrapper(self, seed_value, *args, **kwargs):
+        recorded.append(int(seed_value))
+        return orig_with_seed(self, seed_value, *args, **kwargs)
+
+    jtfne.Simulation.with_seed = wrapper
+    try:
+        result = model.tune(
+            objectives=_objective(),
+            optimizer=jtfne.agsdr(),
+            simulation=sim,
+            parameters={"drive_gain": (0.5, 1.5), "source_scale": (0.5, 2.0)},
+            generations=generations,
+            population_size=population_size,
+            seed=seed,
+        )
+    finally:
+        jtfne.Simulation.with_seed = orig_with_seed
+    n = generations * population_size
+    assert len(recorded) == n, f"expected {n} candidate simulations, got {len(recorded)}"
+    return result, recorded
+
+
+def test_multiparam_candidate_seeds():
+    model = _model()
+    assert float(np.asarray(model.simulate(_sim()).spikes).sum()) > 0, "fixture must spike"
+    _, recorded = _multiparam_scan(model, _sim(), seed=0)
+    assert len(set(recorded)) == len(recorded), "seeds within one tune are distinct"
+    expected = [
+        _candidate_sim_seed(0, gen, row) for gen in (0, 1) for row in (0, 1, 2)
+    ]
+    assert recorded == expected
+    _, seeds1 = _multiparam_scan(model, _sim(), seed=1)
+    assert not set(recorded) & set(seeds1), "adjacent tunes share no simulation seed"
