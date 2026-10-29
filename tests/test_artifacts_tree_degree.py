@@ -56,6 +56,8 @@ CYCLIC_EXEMPT = {"changelog.d"}
 EXEMPT_FOLDERS = {
     "": "root: see ROOT_EXEMPT; the remaining entries must fit the limit",
     "figures/publication/final": "publication/polish/ and publication/final/ receipts cite each render",
+    "etudes/bundles/heterogeneous_emitters": "frozen bundle (metrics.json, provenance.json) plus "
+               "metrics_post_p048.json, the post-P-048 digest that rerun_etude_figures.py checks",
     "release": "current_release_authorities.json (frozen in place) cites receipts here; "
                "past receipts keep the paths they were written with",
     "atlas": "the four scripts the frozen 0.5.5 benchmark cites and the sibling modules they import",
