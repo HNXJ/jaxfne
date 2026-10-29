@@ -414,6 +414,7 @@ _ADVANCED: Final[frozenset[str]] = frozenset(
         "HDPRuleContext",
         "HDPRuleDescriptor",
         "HDPRuleUpdate",
+        "QuantityKind",
         "register_hdp_rule",
         # Named registered rules: the module is the symbol (as with tfne
         # above), so rule math stays namespaced instead of hoisted to root.
@@ -509,6 +510,7 @@ ADVANCED_NAMESPACE: Final[dict[str, str]] = {
     "HDPRuleDescriptor": "jaxfne.hdp_rule",
     "HDPRuleUpdate": "jaxfne.hdp_rule",
     "HDPRuleContext": "jaxfne.hdp_rule",
+    "QuantityKind": "jaxfne.hdp_rule",
     "W0Provenance": "jaxfne.neuronal_tensor",
     "with_trained_weights": "jaxfne.neuronal_tensor",
     "spectrolaminar_psd_jax": "jaxfne.analysis.spectral",

@@ -404,6 +404,7 @@ from .hdp_rule import (
     HDPRuleContext,
     HDPRuleDescriptor,
     HDPRuleUpdate,
+    QuantityKind,
     register_hdp_rule,
 )
 # T-25 frozen trained-W0 provenance (ADVANCED tier: root attrs, not __all__).

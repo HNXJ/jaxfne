@@ -1,0 +1,1 @@
+- Added public `jaxfne.hdp_rule.QuantityKind` (D28): `B`, `R`, `E`, `T` vocabulary for the relative-quantity grammar; no behavior change.

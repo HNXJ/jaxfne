@@ -15,6 +15,7 @@ from __future__ import annotations
 from collections.abc import Mapping as _Mapping
 from collections.abc import Sequence as _Sequence
 from dataclasses import dataclass, field
+import enum
 from typing import Any, Callable, Mapping
 
 import jax
@@ -28,6 +29,19 @@ from ._hdp_adaptive import (
 from .emitters import _segment_sum
 
 RuleStepFn = Callable[["HDPRuleContext"], "HDPRuleUpdate"]
+
+
+class QuantityKind(str, enum.Enum):
+    """Quantity kinds of the relative-quantity grammar (D28).
+
+    Vocabulary only: the doctrine names what each numerical quantity
+    is (base, relative, effective, time). No mapping or use lives here.
+    """
+
+    B = "B"  # base/model quantity: physical baseline the relative state modulates around
+    R = "R"  # relative quantity: dimensionless internal dynamic state or modulation
+    E = "E"  # effective quantity: mapped output C_p(p0, r_p) actually used in dynamics
+    T = "T"  # physical time quantity: dimensional clock, delays and time constants
 
 
 @dataclass(frozen=True)
