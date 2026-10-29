@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@752c38ec · 2026-10-28
+Stamp: jaxfne@dev@0d837703 · 2026-10-28
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
@@ -43,7 +43,9 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   D32 are public names on `jaxfne.hdp_rule`; C1 closed (7 conflicts, 0 orphans, P21 maps the appendix);
   the claim keys table in `output_bundles.md`. Broad gate on 752c38ec: 7835 passed, 0 failed; the
   qlearning lane's precondition (old features above 2) now holds for one seed of five under the new
-  u0, so it asserts the maximum over seeds.
+  u0, so it asserts the maximum over seeds. 2026-10-28 (c3e1035a on, local): D28 is the public
+  `QuantityKind` (ADVANCED tier), the definition map has no gap; the results audit writes its
+  receipt only with `--write`.
 
 ## Broken or in flight
 
@@ -77,7 +79,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 ## Next action
 
 Work goes to the CLI workers (opencode Muse, Cursor GLM 5.3 flash, agy Gemini; Hamm 2026-10-28), at most
-3 lanes, cloned from a still base at `E:/repos/_wt/jaxfne/base`. Next: the T-35 keys table (Cursor) and the C1 text edits from agy's verified draft (CL-06 corrected in the
-ledger, Hamm 2026-10-28). Tag each fidelity fix with `Fidelity-fix: <node id>`; T-3 R2 waits on the WSL installs (O-58). The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned by frozen records,
+3 lanes, cloned from a still base at `E:/repos/_wt/jaxfne/base`. Next: T-56 siblings need Hamm's rulings;
+then C4 (radius cutoff), C6 (laminar benchmark), the P-052 beta scan. Tag each fidelity fix with `Fidelity-fix: <node id>`; T-3 R2 waits on the WSL installs (O-58). The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned by frozen records,
 record pins or runtime paths, the unexempted root folders sit at the limit of 7
 (`tests/test_artifacts_tree_degree.py`), and no move is warranted.

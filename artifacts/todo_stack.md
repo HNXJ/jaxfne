@@ -32,11 +32,9 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   `vis.core.binned_population_rate_hz` rounds an off-grid bin silently (documented for plots);
   `_model_tune.py:471` seeds candidates `seed + idx`, so scans with adjacent seeds share simulation seeds.
   Closes when: each is fixed with a test or ruled.
-- T-58 [A] (T) `scripts/audit_results_draft.py` rewrites its `write_once` receipt
-  (`artifacts/publication/results_reconstruction/results_audit_receipt.json`) on every run (two stale
-  `docs\theory\publication` path strings still sit in the committed receipt) and crashes on a cp1252
-  console. Closes when: the script writes only under `artifacts/_temp/` or checks the receipt, and
-  prints ASCII.
+- T-58 [A] (T) The committed `results_audit_receipt.json` still holds two stale `docs\theory\publication`
+  path strings; the audit now writes it only with `--write` (0d837703). Closes when: Hamm rules whether
+  the receipt (marked `write_once`) is re-recorded with `--write`, or kept as frozen.
 - T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; after each dev
   push refresh the lane dashboard (skill `jaxfne-dashboard`). Closes when: `python
   scripts/build_dashboard_data.py --check` passes on each push.
@@ -54,7 +52,7 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   Closes when: it lands with its test or is dropped.
 - T-45 [A] C3, S1 (`docs/theory/doctrine/definition_map.md`; D17, D21, D26, D34 map to public symbols,
   0bc1e47a and 201750c9; D35 maps to `jaxfne.fields.apply_calibration`; D31, D32 map to
-  `jaxfne.hdp_rule` public names, 6337c002): D28 has no symbol (KNOWN_GAPS; ruled public `QuantityKind`);
+  `jaxfne.hdp_rule` public names, 6337c002; D28 maps to `jaxfne.hdp_rule.QuantityKind`, 1aad086a);
   the object specializer `PV[model=IZH]` does not parse (`Base[NAME]` only). Closes when: the map has no unsymboled row and
   `python scripts/publication_figures/supplement.py` regenerates S1, S2, S5.
 - T-46 [A] C9, C2: 8 gaps in `programme/paper/reproducibility_audit.md` section 7 (the `publication` job passed;
@@ -111,11 +109,9 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   seeds, within its between-seed range); PCL R4 scores the driven column (4,4) and reports (0,0) beside
   it; WSL: Hamm fixes DNS (O-58), then the agent installs the C++ build packages; the jitter reader reruns
   the frozen readout on larger sets first, `w_max` only if it stays weak, receipts into the repo.
-  Paper: no cap on references (C10 keeps the DOI check); C1: CL-29 states 0.426 as the maximum over
-  repetitions, CL-05 names its one post-registration revision, the other five conflicts and both orphans
-  are text fixes against the ledger and receipts (agy drafting the edits); C4 adds a Euclidean radius
-  cutoff (rotation-invariant candidates, an arbitrary-angle S3 test); C6 uses `geometry="laminar"` and
-  declares Brian2 and Jaxley baselines; D28 becomes public `QuantityKind` (B, R, E, T).
+  Paper: no cap on references (C10 keeps the DOI check); C4 adds a Euclidean radius cutoff
+  (rotation-invariant candidates, an arbitrary-angle S3 test); C6 uses `geometry="laminar"` and declares
+  Brian2 and Jaxley baselines.
   Local copies (O-68): rescue what a record cites into the repo or `F:/warehouse` with a `state.md`
   pointer, list each deletion for Hamm, delete one at a time. jarness selfcheck: propose to the jynx keeper
   that selfcheck skips files a workspace declares as history (record pins, receipt trees).
