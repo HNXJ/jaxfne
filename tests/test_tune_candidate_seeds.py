@@ -1,8 +1,8 @@
 """Model.tune candidate seeds follow the optimizer's SeedSequence scheme (T56C).
 
 The scalar black-box loop seeds each candidate simulation with
-``_candidate_sim_seed(seed, 0, idx)`` -- the same function the AGSDR
-optimizer uses -- so scans with adjacent run seeds share no simulation
+``_candidate_sim_seed(seed, 0, idx)``, the same function the AGSDR
+optimizer uses, so scans with adjacent run seeds share no simulation
 seed (the old ``seed + idx`` scheme shared every seed but the first).
 """
 

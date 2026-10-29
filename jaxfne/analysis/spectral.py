@@ -68,7 +68,7 @@ def spectrolaminar_psd_jax(
         taper = jnp.ones_like(signal)
     elif window == "hann":
         n_steps = jnp.shape(signal)[1]
-        # periodic Hann: w[k] = 0.5 - 0.5 cos(2 pi k / N), same as scipy's
+        # periodic Hann: w[k] = 0.5 - 0.5 cos(2 pi k / N), as scipy's
         # ``hann`` with ``fftbins=True`` (the ``welch_*`` convention)
         taper = jnp.hanning(n_steps + 1)[:-1].astype(signal.dtype)[None, :, None]
     else:

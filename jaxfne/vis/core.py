@@ -122,8 +122,7 @@ def binned_population_rate_hz(
     relative to the first sample. ``bin_ms`` must be a positive multiple of
     ``dt_ms``. Short inputs (``T < bin_steps``) yield one
     bin over the available steps (overall mean, as in the tutorials).
-    Input dtype is preserved (no float32→float64 upcast): float32 simulation
-    data stays float32 through the reduction.
+    Input dtype is preserved through the reduction (no float32→float64 upcast).
     """
     arr = np.asarray(spikes)
     if arr.ndim != 2:
