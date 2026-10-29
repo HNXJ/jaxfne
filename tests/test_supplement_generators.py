@@ -61,7 +61,8 @@ def test_s1_lists_every_map_row_with_its_status(tmp_path: Path) -> None:
         )
         statuses[row_id] = want
 
-    assert set(statuses.values()) == {"mapped", "open"}, "need at least one mapped and one open row"
+    # D28 closed the last open row (2026-10-28): "open" appears only while a row names no symbol.
+    assert set(statuses.values()) <= {"mapped", "open"} and "mapped" in statuses.values()
     assert counts["rows"] == len(expected)
     assert counts["mapped"] == sum(s == "mapped" for s in statuses.values())
     assert counts["open"] == sum(s == "open" for s in statuses.values())

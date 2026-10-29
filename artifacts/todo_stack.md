@@ -32,9 +32,6 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   `vis.core.binned_population_rate_hz` rounds an off-grid bin silently (documented for plots);
   `_model_tune.py:471` seeds candidates `seed + idx`, so scans with adjacent seeds share simulation seeds.
   Closes when: each is fixed with a test or ruled.
-- T-58 [A] (T) The committed `results_audit_receipt.json` still holds two stale `docs\theory\publication`
-  path strings; the audit now writes it only with `--write` (0d837703). Closes when: Hamm rules whether
-  the receipt (marked `write_once`) is re-recorded with `--write`, or kept as frozen.
 - T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; after each dev
   push refresh the lane dashboard (skill `jaxfne-dashboard`). Closes when: `python
   scripts/build_dashboard_data.py --check` passes on each push.
