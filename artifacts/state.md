@@ -79,7 +79,6 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 ## Next action
 
 Work goes to the CLI workers (opencode Muse, Cursor GLM 5.3 flash, agy Gemini; Hamm 2026-10-28), at most
-3 lanes, cloned from a still base at `E:/repos/_wt/jaxfne/base`. Next: T-56 siblings need Hamm's rulings;
-then C4 (radius cutoff), C6 (laminar benchmark), the P-052 beta scan. Tag each fidelity fix with `Fidelity-fix: <node id>`; T-3 R2 waits on the WSL installs (O-58). The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned by frozen records,
+3 lanes, cloned from a still base at `E:/repos/_wt/jaxfne/base`. T-56 landed (periodic Hann, off-grid bin refusal, tune seeds; ba78f7ee to 66f32038). Next: C4 (radius cutoff), C6 (laminar benchmark), the P-052 beta scan. Tag each fidelity fix with `Fidelity-fix: <node id>`; T-3 R2 waits on the WSL installs (O-58). The `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned by frozen records,
 record pins or runtime paths, the unexempted root folders sit at the limit of 7
 (`tests/test_artifacts_tree_degree.py`), and no move is warranted.

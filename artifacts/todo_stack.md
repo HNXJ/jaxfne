@@ -27,11 +27,6 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   `model_status`, `field_model_status` (63, 38, 39, 13 files, none in `jaxfne/`), documented in one table
   in `docs/guides/readout/output_bundles.md` beside `claim_level` and `field_claim_level` (packet KEYS).
   Closes when: the table lands and `python scripts/run_test_gate.py docs` passes.
-- T-56 [A] (C) Siblings of the wave-1 rulings (2026-10-28), each a ruling for Hamm or a fix by analogy:
-  `spectrolaminar_psd_jax` uses the symmetric `jnp.hanning` (scipy's `hann` is periodic);
-  `vis.core.binned_population_rate_hz` rounds an off-grid bin silently (documented for plots);
-  `_model_tune.py:471` seeds candidates `seed + idx`, so scans with adjacent seeds share simulation seeds.
-  Closes when: each is fixed with a test or ruled.
 - T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; after each dev
   push refresh the lane dashboard (skill `jaxfne-dashboard`). Closes when: `python
   scripts/build_dashboard_data.py --check` passes on each push.
