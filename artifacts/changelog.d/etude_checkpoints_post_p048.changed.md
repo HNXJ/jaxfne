@@ -1,0 +1,1 @@
+- Re-recorded the `hdp_controllability_reachability`, `multiscale_observation` and `heterogeneous_emitters` etude checkpoints beside the frozen files (`mcc3_10s_post_p048_digest.json`, `metrics_post_p048.json`) after P-048 moved default-route spikes; `scripts/rerun_etude_figures.py` checks the new digests with exact equality.

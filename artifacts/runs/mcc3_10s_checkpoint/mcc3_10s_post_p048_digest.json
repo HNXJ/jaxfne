@@ -1,0 +1,38 @@
+{
+ "abc_table": {
+  "total_spikes": {
+   "B": 544
+  }
+ },
+ "abc_table_frozen_theta": {
+  "total_spikes": {
+   "B": 1054
+  }
+ },
+ "agsdr": {
+  "theta_hat": {
+   "m_EE": 0.15811388194561005,
+   "m_EI": 0.15811388194561005,
+   "m_IE": 0.15811388194561005,
+   "m_II": 0.15811388194561005
+  }
+ },
+ "firing": {
+  "B": {
+   "E_rate_hz": 10.721442222595215,
+   "I_rate_hz": 0.0,
+   "population_rate_hz": 5.360721111297607
+  }
+ },
+ "firing_frozen_theta": {
+  "B": {
+   "E_rate_hz": 10.721442222595215,
+   "I_rate_hz": 10.220440864562988,
+   "population_rate_hz": 10.470942497253418
+  }
+ },
+ "note": "Re-recorded condition-B fields after P-048 (b1d9dfe1, Hamm 2026-10-28: Izhikevich default u0 = b * v0), an intended model change. The AGSDR tune reaches a new optimum (uniform across the four multipliers); condition B is recorded under the tuned theta (retune=True CLI path: firing/abc_table) and under the frozen theta (retune=False figure-site path: *_frozen_theta). mcc3_10s_metrics_digest.json stays the pre-D1 record; mcc3_10s_post_d1_digest.json stays the post-D1 record. Computed on this clone by the code path of scripts/rerun_etude_figures.py::mode_hdp_mcc3.",
+ "regenerated_after_commit": "b1d9dfe1cd3aeba4c2d233283563d97d48f35d88",
+ "schema": "jaxfne.mcc3_10s_post_p048_digest.v1",
+ "supersedes_fields_of": "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_post_d1_digest.json"
+}

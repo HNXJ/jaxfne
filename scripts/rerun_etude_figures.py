@@ -128,7 +128,9 @@ def mode_multiscale(out_dir: pathlib.Path, figures: dict | None = None) -> list[
     )
 
     bundle_metrics = json.loads(
-        (ROOT / "artifacts/etudes/bundles/multiscale_observation/metrics.json").read_text(encoding="utf-8")
+        (ROOT / "artifacts/etudes/bundles/multiscale_observation/metrics_post_p048.json").read_text(
+            encoding="utf-8"
+        )
     )
     committed = bundle_metrics["cause_hashes"]
     cfg = build_config()
@@ -351,7 +353,9 @@ def mode_heterogeneous(out_dir: pathlib.Path, figures: dict | None = None) -> li
     )
 
     bundle_het = json.loads(
-        (ROOT / "artifacts/etudes/bundles/heterogeneous_emitters/metrics.json").read_text(encoding="utf-8")
+        (ROOT / "artifacts/etudes/bundles/heterogeneous_emitters/metrics_post_p048.json").read_text(
+            encoding="utf-8"
+        )
     )
     committed = bundle_het
     n_steps = int(round(DURATION_MS / DT_MS))
@@ -538,15 +542,16 @@ def mode_hdp_mcc3(
     import scripts.mcc3_10s_scientific_checkpoint as M3
 
     # The full 54.8 MB metrics file left the tree (2026-10-06 compaction); the digest
-    # holds the fields compared below (theta_hat, firing.B, total_spikes.B). The condition-B
-    # fields moved with D1 (P-035); they are checked against the post-D1 digest.
+    # holds the fields compared below (theta_hat, firing.B, total_spikes.B). The tune
+    # optimum and condition-B fields moved with P-048; they are checked against the
+    # post-P-048 digest, with the frozen-theta section for the retune=False figure path.
     committed = json.loads(
         (ROOT / "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_metrics_digest.json").read_text(
             encoding="utf-8"
         )
     )
-    post_d1 = json.loads(
-        (ROOT / "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_post_d1_digest.json").read_text(
+    post_p048 = json.loads(
+        (ROOT / "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_post_p048_digest.json").read_text(
             encoding="utf-8"
         )
     )
@@ -573,21 +578,24 @@ def mode_hdp_mcc3(
     if retune:
         tune_result = base.tune(objectives=objective, optimizer=optimizer, simulation=tune_sim)
         thetah = {k: float(v) for k, v in dict(tune_result.best_parameters).items()}
-        if thetah != frozen_theta:
-            raise SystemExit(f"tuned theta drift vs frozen checkpoint: {thetah}")
+        if thetah != post_p048["agsdr"]["theta_hat"]:
+            raise SystemExit(f"tuned theta drift vs post-P-048 digest: {thetah}")
     else:
         thetah = frozen_theta
     sim_10s_on = J.simulation(
         duration_ms=M3.DURATION_MS, dt_ms=M3.DT_MS, seed=M3.SIM_SEED, runtime=M3.mcc3_runtime(True)
     )
     B = M3.run_condition(base, thetah, specs, sim_10s_on, objective, "B")
-    if post_d1["agsdr"]["theta_hat"] != committed["agsdr"]["theta_hat"]:
-        raise SystemExit("post-D1 digest theta differs from the frozen checkpoint")
-    want = post_d1["firing"]["B"]
+    if retune:
+        want = post_p048["firing"]["B"]
+        want_spikes = post_p048["abc_table"]["total_spikes"]["B"]
+    else:
+        want = post_p048["firing_frozen_theta"]["B"]
+        want_spikes = post_p048["abc_table_frozen_theta"]["total_spikes"]["B"]
     for key in ("population_rate_hz", "E_rate_hz", "I_rate_hz"):
         if B[key] != want[key]:
             raise SystemExit(f"condition-B {key} drift: {B[key]} vs {want[key]}")
-    if B["spike_total"] != post_d1["abc_table"]["total_spikes"]["B"]:
+    if B["spike_total"] != want_spikes:
         raise SystemExit("condition-B spike_total drift")
 
     signals = B["signals"]
@@ -753,7 +761,7 @@ def mode_hdp_mcc3(
             "n_neurons": 10,
             "n_steps": int(round(M3.DURATION_MS / M3.DT_MS)),
             "simulation_runs": 2,
-            "rerun_note": "tune + condition B reproduced; theta_hat matches the committed checkpoint, firing.B the post-D1 digest (P-035)",
+            "rerun_note": "tune + condition B reproduced; theta_hat matches the post-P-048 digest, firing.B the post-P-048 digest (P-048)",
         },
     )
     return panels
