@@ -1,0 +1,1 @@
+- `spectrolaminar_psd_jax` `window="hann"` applies the periodic Hann (scipy `hann` with `fftbins=True`, the `welch_*` convention); `window="hann"` results change slightly.

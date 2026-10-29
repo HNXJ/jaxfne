@@ -37,7 +37,9 @@ def spectrolaminar_psd_jax(
 
     Window/normalization convention: ``window`` selects the taper applied to
     each timeseries before projection: ``"rectangular"`` (default, no taper;
-    the historical behavior, bit-identical) or ``"hann"``. The projection uses
+    the historical behavior, bit-identical) or ``"hann"`` (the periodic Hann,
+    w[k] = 0.5 - 0.5 cos(2 pi k / N), matching scipy's ``hann`` with
+    ``fftbins=True``). The projection uses
     an unnormalized rectangular DFT basis and divides by ``n_steps``; band
     profiles derived downstream are additionally peak-normalized per contact
     (see :func:`bandpower_jax`), so absolute amplitude scale is not preserved
@@ -54,7 +56,8 @@ def spectrolaminar_psd_jax(
         Target frequencies of shape ``(n_freqs,)``. Default: 96 points linearly
         spaced over 1–150 Hz, the canonical spectrolaminar band.
     window : str, default "rectangular"
-        Taper convention (static under JIT): ``"rectangular"`` or ``"hann"``.
+        Taper convention (static under JIT): ``"rectangular"`` or ``"hann"``
+        (the periodic Hann).
 
     Returns
     -------
@@ -65,7 +68,9 @@ def spectrolaminar_psd_jax(
         taper = jnp.ones_like(signal)
     elif window == "hann":
         n_steps = jnp.shape(signal)[1]
-        taper = jnp.hanning(n_steps).astype(signal.dtype)[None, :, None]
+        # periodic Hann: w[k] = 0.5 - 0.5 cos(2 pi k / N), same as scipy's
+        # ``hann`` with ``fftbins=True`` (the ``welch_*`` convention)
+        taper = jnp.hanning(n_steps + 1)[:-1].astype(signal.dtype)[None, :, None]
     else:
         raise ValueError(
             f"unsupported spectral window {window!r}; "
