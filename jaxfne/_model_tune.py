@@ -185,8 +185,13 @@ def tune(
 
     This is a computational scaffold: no biological calibration, no field-solver upgrade,
     and no optimizer-selected mechanism claim are made.
+
+    Candidate simulation seeds come from SeedSequence over
+    (seed, 0, candidate index) -- the optimizer's ``_candidate_sim_seed``
+    scheme -- so scans with adjacent seeds share no simulation seed.
     """
     from .optim import _resolve_optimizer, propose_blackbox_candidates, require_optax
+    from .optim.core import _candidate_sim_seed
 
     # Normalize objectives vs objective
     if objectives is not None:
@@ -468,7 +473,9 @@ def tune(
     warnings: list[str] = []
     for idx, candidate_value in enumerate(candidates):
         candidate_model = _model_with_scalar_parameter(self, parameter, float(candidate_value))
-        candidate_signals = candidate_model.simulate(sim.with_seed(int(seed) + idx))
+        candidate_signals = candidate_model.simulate(
+            sim.with_seed(_candidate_sim_seed(int(seed), 0, idx))
+        )
         candidate_report = candidate_model.evaluate(candidate_signals, objective, strict=strict)
         score = candidate_report.get("total_loss")
         gates_pass = bool(candidate_report.get("all_gates_pass", False))

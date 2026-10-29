@@ -490,8 +490,8 @@ def test_narrow_drive_gain_blackbox_unchanged():
         parameter="drive_gain", bounds=(0.5, 1.5), steps=4, seed=0,
     )
     assert set(result.best_parameters) == {"best_value"}
-    # P-048 (u0 = b * v0), 2026-10-28; was 0.84114316166169
-    np.testing.assert_allclose(result.best_parameters["best_value"], 1.2579544029403025, rtol=1e-12)
+    # tune candidate seeds via SeedSequence (Hamm 2026-10-28); was 1.2579544029403025
+    np.testing.assert_allclose(result.best_parameters["best_value"], 0.84114316166169, rtol=1e-12)
     # P-048 (u0 = b * v0), 2026-10-28; was 0.07111111111111111 (unchanged)
     np.testing.assert_allclose(result.best_score, 0.07111111111111111, rtol=1e-12)
 
