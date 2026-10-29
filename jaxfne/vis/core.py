@@ -12,6 +12,8 @@ from typing import Any
 import jax
 import numpy as np
 
+from jaxfne.analysis.metrics import _validate_bin_steps
+
 
 @dataclass(frozen=True)
 class FigureResult:
@@ -117,8 +119,8 @@ def binned_population_rate_hz(
     (:func:`jaxfne.vis.plotly.raster.plot_population_rates`) renderers (P5):
     ``rate = mean over units and steps in bin * (1000 / dt_ms)``. ``spikes``
     is ``(n_steps, n_units)``. Returns ``    (centers_ms, rate_hz)`` with centers
-    relative to the first sample. ``bin_ms <= dt_ms`` collapses to the
-    per-step instantaneous rate. Short inputs (``T < bin_steps``) yield one
+    relative to the first sample. ``bin_ms`` must be a positive multiple of
+    ``dt_ms``. Short inputs (``T < bin_steps``) yield one
     bin over the available steps (overall mean, as in the tutorials).
     Input dtype is preserved (no float32→float64 upcast): float32 simulation
     data stays float32 through the reduction.
@@ -131,7 +133,7 @@ def binned_population_rate_hz(
     if not np.isfinite(bin_ms) or bin_ms <= 0:
         raise ValueError(f"bin_ms must be positive, got {bin_ms!r}")
     n_steps = arr.shape[0]
-    bin_steps = max(1, int(round(bin_ms / dt_ms)))
+    bin_steps = _validate_bin_steps(bin_ms, dt_ms, name="bin_ms")
     n_bins = n_steps // bin_steps
     if n_bins == 0:
         return np.array([0.0]), np.array([float(arr.mean()) * (1000.0 / dt_ms)])
