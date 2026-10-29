@@ -32,6 +32,21 @@ def test_offgrid_bin_refused():
         binned_population_rate_hz(_fixture(), DT_OFF, BIN_MS)
 
 
+def test_float32_grid_bin_accepted():
+    """The time grid is float32, so dt read back from it misses 1e-9 relative."""
+    from jaxfne.vis.core import binned_population_rate_hz
+
+    dt_f32 = float(np.float32(0.1))
+    arr = np.zeros((500, 3))
+    arr[::7, 0] = 1.0
+    arr[100:130, 1] = 1.0
+    assert arr.sum() > 0
+    centers, rate = binned_population_rate_hz(arr, dt_f32, BIN_MS)
+    hand = arr.reshape(5, 100, -1).mean(axis=(1, 2)) * (1000.0 / dt_f32)
+    assert rate.shape == (5,)
+    np.testing.assert_allclose(rate, hand, rtol=1e-6)
+
+
 def test_ongrid_bin_matches_hand_reshape_mean():
     from jaxfne.vis.core import binned_population_rate_hz
 

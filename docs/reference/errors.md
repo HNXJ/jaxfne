@@ -741,7 +741,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `dt_ms must be > 0, got {...}` |
 | `ValueError` | `dt_ms must be > 0, got {...}` |
 | `ValueError` | `{...} must be > 0, got {...}` |
-| `ValueError` | `{...}={...} must be a positive multiple of dt_ms={...} (bin / dt = {...}, tolerance 1e-9 relative); ` |
+| `ValueError` | `{...}={...} must be a positive multiple of dt_ms={...} (bin / dt = {...}, tolerance {...} relative);` |
 | `ValueError` | `spikes must be 2D [n_steps, n_neurons], got {...}D` |
 | `ValueError` | `unknown activity_regime threshold(s): {...}; known: {...}` |
 | `ValueError` | `spikes must be 2D [n_steps, n_neurons], got {...}D` |

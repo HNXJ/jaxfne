@@ -186,9 +186,10 @@ def tune(
     This is a computational scaffold: no biological calibration, no field-solver upgrade,
     and no optimizer-selected mechanism claim are made.
 
-    Candidate simulation seeds come from SeedSequence over
-    (seed, 0, candidate index), the optimizer's ``_candidate_sim_seed``
-    scheme, so scans with adjacent seeds share no simulation seed.
+    In the ``parameter=`` scan, candidate simulation seeds come from SeedSequence
+    over (seed, 0, candidate index), the optimizer's ``_candidate_sim_seed``
+    scheme, so scans with adjacent seeds share no simulation seed. The
+    multi-parameter path simulates every candidate with the given simulation seed.
     """
     from .optim import _resolve_optimizer, propose_blackbox_candidates, require_optax
     from .optim.core import _candidate_sim_seed

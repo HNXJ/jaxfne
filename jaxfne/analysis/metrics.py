@@ -461,11 +461,11 @@ ACTIVITY_REGIME_DEFAULTS = {
 }
 
 
-def _validate_bin_steps(bin_ms: float, dt_ms: float, name: str = "bin_ms") -> int:
+def _validate_bin_steps(bin_ms: float, dt_ms: float, name: str = "bin_ms", rel_tol: float = 1e-9) -> int:
     """Steps per bin, refusing a bin width that misses the time grid.
 
     The message names ``name`` (the caller's bin argument) and the nearest
-    valid bin width.
+    valid bin width. ``rel_tol`` is the relative tolerance on ``bin_ms / dt_ms``.
     """
     if dt_ms <= 0:
         raise ValueError(f"dt_ms must be > 0, got {dt_ms}")
@@ -473,11 +473,11 @@ def _validate_bin_steps(bin_ms: float, dt_ms: float, name: str = "bin_ms") -> in
         raise ValueError(f"{name} must be > 0, got {bin_ms}")
     ratio = bin_ms / dt_ms
     steps = int(round(ratio))
-    if steps < 1 or abs(ratio - steps) > 1e-9 * abs(ratio):
+    if steps < 1 or abs(ratio - steps) > rel_tol * abs(ratio):
         nearest = max(1, steps) * dt_ms
         raise ValueError(
             f"{name}={bin_ms!r} must be a positive multiple of dt_ms={dt_ms!r} "
-            f"(bin / dt = {ratio!r}, tolerance 1e-9 relative); "
+            f"(bin / dt = {ratio!r}, tolerance {rel_tol:g} relative); "
             f"nearest valid bin width is {nearest:.12g} ms"
         )
     return steps

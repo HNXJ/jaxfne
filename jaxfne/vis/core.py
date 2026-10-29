@@ -132,7 +132,8 @@ def binned_population_rate_hz(
     if not np.isfinite(bin_ms) or bin_ms <= 0:
         raise ValueError(f"bin_ms must be positive, got {bin_ms!r}")
     n_steps = arr.shape[0]
-    bin_steps = _validate_bin_steps(bin_ms, dt_ms, name="bin_ms")
+    # The time grid is float32, so dt read back from it carries ~1e-8 relative error.
+    bin_steps = _validate_bin_steps(bin_ms, dt_ms, name="bin_ms", rel_tol=1e-6)
     n_bins = n_steps // bin_steps
     if n_bins == 0:
         return np.array([0.0]), np.array([float(arr.mean()) * (1000.0 / dt_ms)])
