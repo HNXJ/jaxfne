@@ -543,8 +543,9 @@ def mode_hdp_mcc3(
 
     # The full 54.8 MB metrics file left the tree (2026-10-06 compaction); the digest
     # holds the fields compared below (theta_hat, firing.B, total_spikes.B). The tune
-    # optimum and condition-B fields moved with P-048; they are checked against the
-    # post-P-048 digest, with the frozen-theta section for the retune=False figure path.
+    # optimum and condition-B fields moved with P-048 and again with the 9ade2f8f seed
+    # fix; the retune=True CLI path is checked against the post-seedfix digest, with
+    # the frozen-theta section of the post-P-048 digest for the retune=False figure path.
     committed = json.loads(
         (ROOT / "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_metrics_digest.json").read_text(
             encoding="utf-8"
@@ -552,6 +553,11 @@ def mode_hdp_mcc3(
     )
     post_p048 = json.loads(
         (ROOT / "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_post_p048_digest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    post_seedfix = json.loads(
+        (ROOT / "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_post_seedfix_digest.json").read_text(
             encoding="utf-8"
         )
     )
@@ -578,8 +584,8 @@ def mode_hdp_mcc3(
     if retune:
         tune_result = base.tune(objectives=objective, optimizer=optimizer, simulation=tune_sim)
         thetah = {k: float(v) for k, v in dict(tune_result.best_parameters).items()}
-        if thetah != post_p048["agsdr"]["theta_hat"]:
-            raise SystemExit(f"tuned theta drift vs post-P-048 digest: {thetah}")
+        if thetah != post_seedfix["agsdr"]["theta_hat"]:
+            raise SystemExit(f"tuned theta drift vs post-seedfix digest: {thetah}")
     else:
         thetah = frozen_theta
     sim_10s_on = J.simulation(
@@ -587,8 +593,8 @@ def mode_hdp_mcc3(
     )
     B = M3.run_condition(base, thetah, specs, sim_10s_on, objective, "B")
     if retune:
-        want = post_p048["firing"]["B"]
-        want_spikes = post_p048["abc_table"]["total_spikes"]["B"]
+        want = post_seedfix["firing"]["B"]
+        want_spikes = post_seedfix["abc_table"]["total_spikes"]["B"]
     else:
         want = post_p048["firing_frozen_theta"]["B"]
         want_spikes = post_p048["abc_table_frozen_theta"]["total_spikes"]["B"]
@@ -761,7 +767,15 @@ def mode_hdp_mcc3(
             "n_neurons": 10,
             "n_steps": int(round(M3.DURATION_MS / M3.DT_MS)),
             "simulation_runs": 2,
-            "rerun_note": "tune + condition B reproduced; theta_hat matches the post-P-048 digest, firing.B the post-P-048 digest (P-048)",
+            "rerun_note": (
+                "tune + condition B reproduced; theta_hat matches the post-seedfix digest, "
+                "firing.B the post-seedfix digest (seedfix)"
+            )
+            if retune
+            else (
+                "condition B reproduced from the frozen theta; firing.B matches the "
+                "frozen-theta section of the post-P-048 digest (P-048)"
+            ),
         },
     )
     return panels
