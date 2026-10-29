@@ -9,11 +9,13 @@ Checks
   3. forbidden-overclaim: per-claim forbidden language from the claim ledger may appear
      only inside the listed allowed paragraphs (see traceability_map.md).
 
-Writes artifacts/publication/results_reconstruction/results_audit_receipt.json.
+Writes artifacts/publication/results_reconstruction/results_audit_receipt.json
+only with --write; by default it audits and reports without writing the receipt.
 Fails (exit 1) on any violation.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import pathlib
 import re
@@ -521,6 +523,11 @@ for name, ok in sanity_checks:
 
 # ---------------------------------------------------------------- write receipt
 
+parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+parser.add_argument("--write", action="store_true",
+                    help="write the audit receipt (default: report only, write nothing)")
+args = parser.parse_args()
+
 ok = not failures
 receipt = {
     "schema": "jaxfne.publication.results_audit_receipt.v1",
@@ -534,9 +541,10 @@ receipt = {
     "checks": checks,
     "failures": failures,
 }
-OUT.parent.mkdir(parents=True, exist_ok=True)
-OUT.write_text(json.dumps(receipt, indent=2, sort_keys=True))
-print(f"{len(checks)} checks, {len(failures)} failures → {receipt['status']}")
+if args.write:
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_text(json.dumps(receipt, indent=2, sort_keys=True))
+print(f"{len(checks)} checks, {len(failures)} failures -> {receipt['status']}")
 for f in failures:
     print("  FAIL:", f)
 sys.exit(1 if failures else 0)
