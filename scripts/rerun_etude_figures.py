@@ -353,7 +353,7 @@ def mode_heterogeneous(out_dir: pathlib.Path, figures: dict | None = None) -> li
     )
 
     bundle_het = json.loads(
-        (ROOT / "artifacts/runs/heterogeneous_emitters_checkpoint/metrics_post_p048.json").read_text(
+        (ROOT / "artifacts/etudes/bundles/heterogeneous_emitters/metrics_post_p048.json").read_text(
             encoding="utf-8"
         )
     )
