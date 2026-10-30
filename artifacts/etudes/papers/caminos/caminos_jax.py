@@ -396,15 +396,72 @@ def build_network(key, p=None, NE=None, NPV=None, NSOM=None, indegree="bernoulli
     return {"NE": NE, "NPV": NPV, "NSOM": NSOM, "p": p, "blocks": blocks}
 
 
-def _concat_params(sizes, dtype, param_set="default"):
-    """Per-neuron parameter arrays in [E | PV | SOM] order."""
+_SWAP_NAMES = ("VT_V", "EL_V", "Delta_V", "Tref_s", "tauw_s", "a_S", "b_A")
+
+
+def _concat_params(sizes, dtype, param_set="default", swap=False):
+    """Per-neuron parameter arrays in [E | PV | SOM] order.
+
+    With ``swap`` (opt-in manipulation) the PV and SOM *neuronal* parameters
+    are exchanged for the seven Table 1 numbers that define the AdEx response
+    (VT, EL, Delta, Tref, tau_w, a, b); Vreset, C and gL keep each cell's own
+    values, and connectivity, decays, weights and drive are untouched. The
+    4 Hz external drive stays on the PV indices.
+    """
+    src_of = {"E": "E", "PV": "SOM", "SOM": "PV"} if swap else dict(E="E", PV="PV", SOM="SOM")
     out = {}
     for name in ("VT_V", "Delta_V", "Tref_s", "tauw_s", "a_S", "b_A",
                  "C_F", "gL_S", "EL_V", "Vreset_V"):
         out[name] = jnp.concatenate(
-            [jnp.full((sizes[k],), cell_params(k, param_set)[name], dtype=dtype) for k in CELL_TYPES]
+            [jnp.full((sizes[k],), cell_params(src_of[k] if name in _SWAP_NAMES else k,
+                                               param_set)[name], dtype=dtype) for k in CELL_TYPES]
         )
     return out
+
+
+# Manipulated subsets (PV/SOM only) are drawn from ``key`` through
+# ``jax.random.fold_in`` with these constants, one per manipulation, never
+# from the ``k_net``/``k_ext`` streams: the default random draws are untouched.
+_SILENCE_TAG = 911
+_REPLACE_TAG = 417
+
+
+def manip_mask(key, spec, sizes, kind="silence"):
+    """Boolean mask over [E | PV | SOM] marking the manipulated subset.
+
+    ``spec`` maps a type in ``("PV", "SOM")`` to a fraction in [0, 1]; the
+    subset size is ``round(frac * N_type)``, drawn as the first entries of a
+    permutation seeded from ``fold_in(key, tag)`` (tag: silencing 911,
+    replacement 417, folded again per type). Unknown type keys or fractions
+    outside [0, 1] raise ValueError. Returns a bool array of length
+    ``NE + NPV + NSOM``.
+    """
+    if kind == "silence":
+        tag = _SILENCE_TAG
+    elif kind == "replace":
+        tag = _REPLACE_TAG
+    else:
+        raise ValueError("kind must be 'silence' or 'replace', got %r" % (kind,))
+    if not isinstance(spec, dict) or not spec:
+        raise ValueError("%s must be a non-empty dict of fractions, got %r" % (kind, spec))
+    for t in spec:
+        if t not in ("PV", "SOM"):
+            raise ValueError("%s types must be 'PV' or 'SOM', got %r" % (kind, t))
+    mask = jnp.zeros((sum(int(sizes[k]) for k in CELL_TYPES),), bool)
+    k0 = jax.random.fold_in(key, tag)
+    offset = 0
+    for i, t in enumerate(CELL_TYPES):
+        n = int(sizes[t])
+        if t in spec:
+            frac = spec[t]
+            if not (isinstance(frac, (int, float)) and 0.0 <= float(frac) <= 1.0):
+                raise ValueError("%s fraction must be in [0, 1], got %r" % (kind, frac))
+            n_sel = int(round(float(frac) * n))
+            if n_sel > 0:
+                idx = jax.random.permutation(jax.random.fold_in(k0, i + 1), n)[:n_sel]
+                mask = mask.at[offset + idx].set(True)
+        offset += n
+    return mask
 
 
 def route_inputs(blocks, q, arr, earr, sizes, dtype):
@@ -434,7 +491,8 @@ def route_inputs(blocks, q, arr, earr, sizes, dtype):
 
 def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
              NE=None, NPV=None, NSOM=None, indegree="bernoulli", ext="private",
-             step_order="default", ext_sources="fixed", param_set="default"):
+             step_order="default", ext_sources="fixed", param_set="default",
+             silence=None, replace=None, replace_rate_hz=None, swap=False):
     """Run the full E/PV/SOM network for ``T`` seconds (Euler, step ``dt``).
 
     ``p`` and ``NE/NPV/NSOM`` default to the selected set (reference:
@@ -452,6 +510,17 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
     ``ext_sources="pNE"`` (exploratory, ``round(p*NE)`` sources instead of
     the fixed 560). ``param_set="cellrep"`` selects the Cell Reports 2025
     set (notebook cell 1), whose zero delay maps to a 1-step ring.
+
+    Opt-in manipulations (paper Methods; defaults off, the default path is
+    untouched): ``silence`` removes a fraction of PV or SOM cells (dict such
+    as ``{"PV": 0.4}``; they never spike and send nothing), ``replace``
+    keeps a fraction's connections but replaces each of its spikes by an
+    independent Poisson train at ``replace_rate_hz[type]`` Hz per cell (rate
+    dict required when ``replace`` is set; the Poisson spikes enter the
+    delay ring), and ``swap=True`` exchanges the PV and SOM AdEx parameters
+    (Table 1: VT, EL, Delta, Tref, tau_w, a, b) while keeping connectivity,
+    decays, weights, and the 4 Hz drive on PV. Manipulated subsets come from
+    :func:`manip_mask` (fold-in constants, never the k_net/k_ext streams).
 
     Per step, in order: (i) pop spikes (recurrent booleans, external
     integer counts) delayed by ``round(tau_d / dt)`` steps from the ring
@@ -487,7 +556,30 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
         ext_map_i = build_ext_map(k_map, p, n_src, NE + NPV).astype(jnp.int32).T
     else:
         ext_map_i = None
-    par = _concat_params(sizes, dtype, param_set)
+    par = _concat_params(sizes, dtype, param_set, swap=swap)
+
+    # Opt-in manipulations: masks are concrete Python-side arrays drawn from
+    # fold_in(key, ...) (never k_net/k_ext), so the default draw order in
+    # step_fn is untouched. Silencing wins over replacement on overlap.
+    sil_mask = None
+    rep_mask = None
+    rep_idx = None
+    lam_rep = None
+    if silence is not None:
+        sil_mask = manip_mask(key, silence, sizes, "silence")
+    if replace is not None:
+        if not isinstance(replace_rate_hz, dict) or not replace_rate_hz:
+            raise ValueError("replace_rate_hz (dict of mean rate in Hz per type) "
+                             "is required when replace is set, got %r" % (replace_rate_hz,))
+        for t in replace:
+            if t not in replace_rate_hz:
+                raise ValueError("replace_rate_hz must give a rate for every replaced "
+                                 "type; missing %r" % (t,))
+        rep_mask = manip_mask(key, replace, sizes, "replace")
+        rep_idx = jnp.flatnonzero(rep_mask)
+        lam_rep = jnp.asarray(
+            [float(replace_rate_hz.get(t, 0.0)) * dt
+             for t in CELL_TYPES for _ in range(int(sizes[t]))], dtype=dtype)[rep_idx]
 
     def _f(x):
         return jnp.asarray(x, dtype=dtype)
@@ -539,6 +631,15 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
             extc = jnp.matmul(ext_map_i, trains).astype(jnp.int32)
         else:
             extc = jax.random.poisson(ks, lam, shape=(NE + NPV,)).astype(jnp.int32)
+        if replace is not None:
+            # Replaced cells: the AdEx spike is discarded and an independent
+            # Poisson draw per replaced cell decides the emitted spike, which
+            # still enters the delay ring (spike count kept, timing replaced).
+            rkey, kr = jax.random.split(rkey)
+            po = jax.random.poisson(kr, lam_rep)
+            spk = spk.at[rep_idx].set(po > 0)
+        if sil_mask is not None:
+            spk = spk & ~sil_mask
         ring = ring.at[head].set(spk)
         ering = ering.at[head].set(extc)
         head = (head + 1) % n_delay

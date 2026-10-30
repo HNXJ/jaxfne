@@ -796,3 +796,98 @@ def test_cellrep_default_unchanged():
     assert (net["NE"], net["NPV"], net["NSOM"], net["p"]) == (40, 8, 8, 0.07), "default sizes/p"
     assert ("PV", "SOM") not in net["blocks"] and ("SOM", "SOM") not in net["blocks"], (
         "default absent blocks")
+
+
+# --- Opt-in manipulations: silencing, spike replacement, PV/SOM swap (MANIP) ---
+
+MANIP_KW = dict(p=0.07, NE=200, NPV=40, NSOM=40)
+MANIP_SEED = 3
+# Baseline per-step counts [steps, 3] recorded from the UNEDITED file at
+# 878160ae: cj.simulate(jax.random.key(11), 0.05, p=0.07, NE=200, NPV=40,
+# NSOM=40) on the unedited file (x64 on, as this test module; sums [441, 135, 53]).
+_MANIP_PIN = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 1, 0], [1, 0, 0], [1, 2, 0], [2, 0, 0], [0, 1, 0], [2, 1, 0], [0, 0, 0], [1, 1, 0], [1, 2, 0], [2, 1, 0], [4, 0, 0], [4, 0, 0], [1, 0, 0], [1, 2, 0], [4, 1, 0], [2, 0, 0], [1, 0, 0], [3, 1, 0], [4, 2, 0], [2, 0, 0], [5, 1, 0], [0, 1, 0], [3, 2, 0], [3, 1, 0], [5, 1, 0], [7, 0, 0], [3, 1, 0], [4, 0, 0], [2, 0, 0], [3, 0, 0], [1, 0, 0], [2, 0, 0], [1, 0, 0], [4, 1, 0], [4, 0, 0], [5, 2, 0], [2, 1, 0], [3, 0, 0], [6, 2, 0], [4, 0, 0], [4, 0, 0], [1, 0, 0], [1, 0, 0], [6, 1, 0], [6, 0, 0], [2, 0, 0], [2, 2, 0], [3, 1, 0], [2, 0, 0], [1, 0, 0], [2, 0, 0], [2, 0, 0], [1, 0, 0], [4, 0, 0], [1, 0, 0], [1, 0, 0], [5, 1, 0], [1, 1, 0], [2, 0, 0], [5, 0, 0], [1, 0, 0], [3, 0, 0], [2, 1, 0], [2, 1, 0], [2, 0, 0], [2, 0, 0], [1, 0, 0], [0, 0, 0], [3, 0, 1], [1, 0, 0], [0, 1, 0], [1, 0, 1], [1, 0, 1], [0, 1, 3], [2, 0, 0], [2, 1, 1], [2, 0, 1], [1, 0, 1], [2, 0, 1], [1, 0, 2], [1, 0, 0], [0, 0, 0], [1, 0, 3], [0, 1, 3], [0, 1, 1], [0, 0, 0], [0, 0, 0], [0, 1, 2], [0, 0, 2], [1, 0, 1], [0, 1, 2], [0, 1, 2], [1, 0, 1], [0, 2, 1], [1, 1, 1], [0, 0, 0], [1, 1, 0], [0, 0, 1], [0, 0, 1], [2, 0, 1], [1, 0, 1], [1, 0, 1], [0, 0, 1], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 1], [0, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0], [0, 1, 0], [1, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 0], [3, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [3, 0, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [2, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [2, 0, 0], [2, 2, 0], [0, 0, 0], [2, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 2, 0], [2, 0, 0], [2, 0, 0], [0, 1, 0], [1, 1, 0], [2, 0, 0], [1, 0, 0], [0, 0, 0], [3, 1, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0], [1, 0, 0], [3, 0, 0], [0, 0, 0], [1, 1, 0], [2, 1, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 1, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0], [3, 0, 0], [0, 1, 0], [0, 0, 0], [1, 0, 0], [2, 0, 0], [0, 0, 0], [2, 0, 0], [2, 0, 0], [2, 1, 0], [2, 0, 0], [2, 0, 0], [0, 0, 0], [2, 0, 0], [1, 1, 0], [2, 1, 0], [2, 0, 0], [2, 1, 0], [0, 0, 0], [0, 2, 0], [1, 1, 0], [2, 1, 0], [2, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [3, 0, 0], [3, 1, 0], [1, 0, 0], [3, 0, 0], [1, 0, 0], [1, 0, 0], [2, 0, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [3, 0, 0], [0, 0, 0], [1, 1, 0], [3, 0, 0], [0, 0, 0], [1, 2, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 0, 0], [4, 0, 0], [1, 0, 0], [1, 0, 0], [1, 1, 0], [0, 2, 0], [0, 0, 0], [1, 0, 0], [3, 0, 0], [0, 0, 0], [1, 2, 0], [0, 0, 0], [0, 0, 0], [5, 0, 0], [4, 0, 0], [1, 0, 0], [0, 0, 0], [2, 0, 0], [1, 0, 0], [2, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [2, 0, 0], [2, 1, 0], [2, 0, 0], [2, 0, 0], [0, 0, 0], [4, 0, 0], [1, 0, 0], [1, 0, 0], [1, 1, 0], [0, 0, 0], [0, 0, 0], [2, 0, 1], [0, 1, 0], [1, 0, 0], [1, 0, 0], [2, 2, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [1, 2, 0], [1, 1, 0], [1, 0, 0], [0, 0, 0], [3, 0, 0], [2, 0, 0], [0, 0, 0], [4, 1, 0], [0, 1, 0], [1, 0, 1], [1, 1, 0], [2, 0, 0], [0, 0, 0], [4, 2, 0], [2, 0, 0], [1, 0, 0], [2, 0, 0], [1, 1, 0], [1, 0, 0], [1, 1, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [2, 1, 0], [0, 1, 0], [0, 0, 0], [1, 1, 0], [1, 0, 0], [2, 0, 0], [0, 1, 0], [1, 2, 1], [2, 0, 0], [0, 2, 0], [1, 0, 0], [2, 0, 0], [1, 0, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 1], [3, 0, 0], [0, 0, 1], [0, 0, 1], [2, 1, 1], [0, 1, 0], [2, 1, 0], [0, 1, 0], [3, 0, 0], [0, 0, 0], [0, 1, 0], [1, 0, 1], [0, 1, 0], [2, 0, 0], [0, 0, 0], [1, 0, 0], [2, 0, 0], [1, 0, 1], [1, 0, 0], [1, 1, 1], [0, 0, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 2, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 2, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 2], [2, 1, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [1, 0, 0], [2, 1, 0]]
+
+
+def test_default_unchanged():
+    """MANIP: the default path (silence/replace/swap all off) still gives
+    the per-step counts pinned from the unedited file at 878160ae."""
+    counts, _ = cj.simulate(jax.random.key(11), 0.05, **MANIP_KW)
+    assert np.asarray(counts).tolist() == _MANIP_PIN
+
+
+def test_silence_pv_all_no_pv_spikes():
+    """MANIP silencing: all PV cells silenced -> zero PV spikes, E active."""
+    counts, _ = cj.simulate(jax.random.key(MANIP_SEED), 0.2, silence={"PV": 1.0},
+                            **MANIP_KW)
+    c = np.asarray(counts)
+    assert int(c[:, 0].sum()) > 0, "fixture precondition: E must spike"
+    assert int(c[:, 1].sum()) == 0, int(c[:, 1].sum())
+
+
+def test_silence_fraction_counts():
+    """MANIP silencing: round(0.5*40)=20 SOM cells silenced (via the exposed
+    mask helper); fully silenced cells emit no spikes; half-silencing cuts
+    the SOM output but does not remove it."""
+    sizes = {"E": 200, "PV": 40, "SOM": 40}
+    mask = cj.manip_mask(jax.random.key(MANIP_SEED), {"SOM": 0.5}, sizes, "silence")
+    m = np.asarray(mask)
+    assert int(m.sum()) == 20, int(m.sum())
+    assert int(m[:240].sum()) == 0, "only SOM cells may be masked"
+    c0, _ = cj.simulate(jax.random.key(MANIP_SEED), 0.2, **MANIP_KW)
+    c1, _ = cj.simulate(jax.random.key(MANIP_SEED), 0.2, silence={"SOM": 0.5}, **MANIP_KW)
+    c2, _ = cj.simulate(jax.random.key(MANIP_SEED), 0.2, silence={"SOM": 1.0}, **MANIP_KW)
+    s0 = int(np.asarray(c0)[:, 2].sum())
+    s1 = int(np.asarray(c1)[:, 2].sum())
+    s2 = int(np.asarray(c2)[:, 2].sum())
+    assert s0 > 0, "fixture precondition: SOM spikes without silencing"
+    assert s2 == 0, "fully silenced cells emit no spikes"
+    assert 0 < s1 < s0, (s0, s1, s2)
+
+
+def test_replace_rate_matches_target():
+    """MANIP replacement: all PV spikes replaced by Poisson trains at
+    20 Hz per cell; population rate within 15% of the target."""
+    counts, _ = cj.simulate(jax.random.key(5), 2.0, replace={"PV": 1.0},
+                            replace_rate_hz={"PV": 20.0}, **MANIP_KW)
+    c = np.asarray(counts)
+    rate = float(c[:, 1].sum()) / (2.0 * 40)  # spikes/s per PV cell
+    assert rate > 0, rate
+    assert abs(rate - 20.0) <= 0.15 * 20.0, rate
+
+
+def test_replace_requires_rate():
+    """MANIP validation: replace without replace_rate_hz, a fraction outside
+    [0, 1] and an unknown type key are all refused with ValueError."""
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(5), 0.05, replace={"PV": 0.5}, **MANIP_KW)
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(5), 0.05, replace={"PV": 1.5},
+                    replace_rate_hz={"PV": 20.0}, **MANIP_KW)
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(5), 0.05, silence={"E": 0.5}, **MANIP_KW)
+
+
+def test_swap_exchanges_pv_som_params():
+    """MANIP swap: the per-neuron arrays built through the swap path give PV
+    cells the SOM values and SOM cells the PV values for the seven Table 1
+    numbers (VT, EL, Delta, Tref, tau_w, a, b); Vreset, C, gL keep their own
+    type; the kwarg runs end to end."""
+    sizes = {"E": 4, "PV": 3, "SOM": 5}
+    par = cj._concat_params(sizes, jnp.float32, "default", swap=True)
+    par0 = cj._concat_params(sizes, jnp.float32, "default")
+    lo, hi = 4, 7  # PV block is rows 4:7, SOM block rows 7:12
+    for name in ("VT_V", "EL_V", "Delta_V", "Tref_s", "tauw_s", "a_S", "b_A"):
+        pv = np.asarray(par[name])[lo:hi]
+        som = np.asarray(par[name])[hi:]
+        assert np.all(pv == cj.PARAMS["SOM_" + name]), (name, pv)
+        assert np.all(som == cj.PARAMS["PV_" + name]), (name, som)
+    for name in ("Vreset_V", "C_F", "gL_S"):
+        pv = np.asarray(par[name])[lo:hi]
+        som = np.asarray(par[name])[hi:]
+        assert np.all(pv == cj.PARAMS["PV_" + name]), (name, pv)
+        assert np.all(som == cj.PARAMS["SOM_" + name]), (name, som)
+        assert np.array_equal(np.asarray(par0[name]), np.asarray(par[name])), name
+    for name in ("EL_V", "Delta_V", "a_S", "b_A"):  # types differ on these four
+        assert not np.array_equal(np.asarray(par0[name]), np.asarray(par[name])), name
+    c, _ = cj.simulate(jax.random.key(1), 0.02, NE=40, NPV=8, NSOM=8, swap=True)
+    assert np.asarray(c).shape == (200, 3)
