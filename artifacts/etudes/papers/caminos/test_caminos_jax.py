@@ -1027,10 +1027,106 @@ def test_record_currents_signs():
 
 def test_record_currents_rejects_unknown():
     """A6: record='bogus' is refused with a ValueError whose message names
-    all three accepted values."""
+    all four accepted values."""
     with pytest.raises(ValueError) as ei:
         cj.simulate(jax.random.key(LANEA_SEED), 0.02, record="bogus",
                     **LANEA_KW)
     msg = str(ei.value)
-    for name in ("counts", "raster", "currents"):
+    for name in ("counts", "raster", "currents", "currents_by_source"):
         assert name in msg, (name, msg)
+
+
+def test_record_by_source_sums_to_currents():
+    """LANE-E: record='currents_by_source' returns a float32 [steps, 4]
+    array whose column pairs sum to the record='currents' columns to
+    float32 rounding: col 0 + col 1 = the gE-total current on the E cells,
+    col 2 + col 3 = the gI-total current."""
+    cur, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, record="currents",
+                         **LANEA_KW)
+    src, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         record="currents_by_source", **LANEA_KW)
+    cur, src = np.asarray(cur), np.asarray(src)
+    assert src.shape == (LANEA_STEPS, 4), src.shape
+    assert float(cur[:, 0].sum()) > 0, "precondition: gE current positive"
+    assert float(cur[:, 1].sum()) < 0, "precondition: gI current negative"
+    scale = max(float(np.abs(cur).max()), np.finfo(np.float32).tiny)
+    e_tot = src[:, 0] + src[:, 1]
+    i_tot = src[:, 2] + src[:, 3]
+    rel_e = float(np.max(np.abs(e_tot - cur[:, 0]))) / scale
+    rel_i = float(np.max(np.abs(i_tot - cur[:, 1]))) / scale
+    assert np.allclose(e_tot, cur[:, 0], rtol=1e-4, atol=1e-5 * scale), (
+        "gE split: max relative error to the largest term %.3e (gI %.3e)"
+        % (rel_e, rel_i))
+    assert np.allclose(i_tot, cur[:, 1], rtol=1e-4, atol=1e-5 * scale), (
+        "gI split: max relative error to the largest term %.3e (gE %.3e)"
+        % (rel_i, rel_e))
+
+
+def test_record_by_source_silenced_pv_zero_pv_column():
+    """LANE-E: with all PV cells silenced (zero PV spikes, checked through
+    the counts record under the same silence) the PV column of
+    record='currents_by_source' is exactly 0.0 everywhere, while the
+    E-recurrent column stays positive."""
+    cnt, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         silence={"PV": 1.0}, **LANEA_KW)
+    assert int(np.asarray(cnt)[:, 1].sum()) == 0, (
+        "precondition: silenced PV must not spike")
+    src, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         silence={"PV": 1.0}, record="currents_by_source",
+                         **LANEA_KW)
+    src = np.asarray(src)
+    assert src.shape == (LANEA_STEPS, 4), src.shape
+    assert np.all(src[:, 2] == 0.0), float(np.abs(src[:, 2]).max())
+    assert float(src[:, 0].sum()) > 0, (
+        "precondition: E recurrent still drives E under PV silencing")
+
+
+def test_record_by_source_silenced_som_zero_som_column():
+    """LANE-E: with all SOM cells silenced (zero SOM spikes, checked through
+    the counts record under the same silence) the SOM column of
+    record='currents_by_source' is exactly 0.0 everywhere."""
+    cnt, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         silence={"SOM": 1.0}, **LANEA_KW)
+    assert int(np.asarray(cnt)[:, 2].sum()) == 0, (
+        "precondition: silenced SOM must not spike")
+    src, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         silence={"SOM": 1.0}, record="currents_by_source",
+                         **LANEA_KW)
+    src = np.asarray(src)
+    assert src.shape == (LANEA_STEPS, 4), src.shape
+    assert np.all(src[:, 3] == 0.0), float(np.abs(src[:, 3]).max())
+
+
+def test_record_by_source_zero_drive():
+    """LANE-E: with the feedforward drive zeroed (all-zero ext_rate_schedule,
+    SOM drive 0 Hz) and no silencing nothing spikes, so all four columns of
+    record='currents_by_source' are exactly 0.0 every step; under the
+    default constant drive the external-drive column is positive."""
+    src, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         ext_rate_schedule=np.zeros(LANEA_STEPS),
+                         som_ext_rate_hz=0.0, record="currents_by_source",
+                         **LANEA_KW)
+    src = np.asarray(src)
+    assert src.shape == (LANEA_STEPS, 4), src.shape
+    assert np.all(src == 0.0), np.max(np.abs(src), axis=0)
+    d, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                       record="currents_by_source", **LANEA_KW)
+    assert float(np.asarray(d)[:, 1].sum()) > 0, (
+        "precondition: the default drive must reach E through column 1")
+
+
+def test_record_by_source_no_recurrence_is_external_only():
+    """LANE-E: with p=0 (no recurrent connections) only the external-drive
+    column of record='currents_by_source' is nonzero, and it equals the
+    record='currents' gE total; a swap of columns 0 and 1 would fail here."""
+    kw = dict(LANEA_KW, p=0.0)
+    src, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         record="currents_by_source", **kw)
+    cur, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         record="currents", **kw)
+    src, cur = np.asarray(src), np.asarray(cur)
+    assert src.shape == (LANEA_STEPS, 4), src.shape
+    assert float(src[:, 1].sum()) > 0, "precondition: external drive reaches E"
+    assert np.all(src[:, [0, 2, 3]] == 0.0), np.max(np.abs(src[:, [0, 2, 3]]), axis=0)
+    scale = max(float(np.abs(cur[:, 0]).max()), np.finfo(np.float32).tiny)
+    assert np.allclose(src[:, 1], cur[:, 0], rtol=1e-4, atol=1e-5 * scale)

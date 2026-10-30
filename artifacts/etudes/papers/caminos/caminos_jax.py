@@ -516,14 +516,20 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
     0.07, 8000/750/750; cellrep: 0.017, 8000/800/600) and are
     exposed only so small smoke nets can use this same path. ``record``
     is ``"counts"`` (per-step ``[E, PV, SOM]`` counts), ``"raster"``
-    (boolean spike raster of shape ``[steps, NE+NPV+NSOM]``) or
+    (boolean spike raster of shape ``[steps, NE+NPV+NSOM]``),
     ``"currents"`` (float32 ``[steps, 2]`` array; column 0 is the mean
     over E cells of ``gE * (ErevE - V)``, column 1 the mean over E cells
     of ``gI * (ErevI - V)``, both taken from the same ``gE``, ``gI`` and
     ``V`` that enter ``I_syn`` at that step, before ``adex_step`` updates
-    ``V``; units amperes per cell); any other value is refused. Seeding
-    comes only through ``key``: one split builds connectivity, the other
-    drives the external Poisson sources inside the scan.
+    ``V``; units amperes per cell) or ``"currents_by_source"`` (float32
+    ``[steps, 4]`` array; the same four means split by presynaptic source:
+    column 0 the E-recurrent part of ``gE``, column 1 the external-drive
+    part of ``gE``, column 2 the PV part of ``gI``, column 3 the SOM part
+    of ``gI``; columns 0+1 and 2+3 sum to the two ``"currents"`` columns
+    to float32 rounding; units amperes per cell); any other value is
+    refused. Seeding comes only through ``key``: one split builds
+    connectivity, the other drives the external Poisson sources inside the
+    scan.
 
     Opt-in variants (PREREG_P3.md Sensitivity; defaults reproduce the
     reference bit-for-bit): ``indegree="fixed"`` (S3, exact in-degree per
@@ -565,13 +571,17 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
     counts ``[E, PV, SOM]`` as int32 of shape ``[steps, 3]`` under
     ``record="counts"``, the boolean spike raster of shape
     ``[steps, NE+NPV+NSOM]`` under ``record="raster"`` (its per-type sums
-    equal the counts), or the float32 ``[steps, 2]`` mean synaptic current
-    into the E cells under ``record="currents"``; ``final_state`` is a
+    equal the counts), the float32 ``[steps, 2]`` mean synaptic current
+    into the E cells under ``record="currents"``, or the float32
+    ``[steps, 4]`` per-source mean synaptic current into the E cells under
+    ``record="currents_by_source"`` (columns: E recurrent, external drive,
+    PV, SOM; the per-source conductance states are scan-internal and are
+    not part of it); ``final_state`` is a
     dict with final ``V, w, ref, gE, gI`` plus sizes.
     """
-    if record not in ("counts", "raster", "currents"):
-        raise ValueError("record must be 'counts', 'raster' or 'currents', got %r"
-                         % (record,))
+    if record not in ("counts", "raster", "currents", "currents_by_source"):
+        raise ValueError("record must be 'counts', 'raster', 'currents' or "
+                         "'currents_by_source', got %r" % (record,))
     if ext not in ("private", "shared"):
         raise ValueError("ext must be 'private' or 'shared', got %r" % (ext,))
     P = _params_for(param_set)
@@ -721,14 +731,35 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
 
     want_raster = record == "raster"
     want_currents = record == "currents"
+    want_by_source = record == "currents_by_source"
     use_t = sched is not None or silence_onset_s is not None
 
     def step_fn(carry, t):
-        V, w, ref, gE, gI, ring, ering, head, rkey = carry
+        if want_by_source:
+            V, w, ref, gE, gI, ring, ering, head, rkey, gEE, gEx, gPE, gSE = carry
+        else:
+            V, w, ref, gE, gI, ring, ering, head, rkey = carry
         rkey, ks = jax.random.split(rkey)
         inc_gE, inc_gI = route_inputs(blocks, q, ring[head], ering[head], sizes, dtype)
         gE = gE * decay_e + inc_gE
         gI = gI * decay_i + inc_gI
+        if want_by_source:
+            # Per-source conductances on the E cells: same arrivals, weights
+            # and decays as the totals above (linear split, sums to gE[:NE]
+            # and gI[:NE] to float32 rounding); carried only for this record.
+            arr_t, earr_t = ring[head], ering[head]
+            decay_e_e = jnp.broadcast_to(decay_e, (n_tot,))[:NE]
+
+            def mv(pair, x):
+                return jnp.matmul(blocks[pair].T.astype(dtype), x.astype(dtype))
+
+            ae = arr_t[:NE]
+            ap = arr_t[NE:NE + NPV]
+            as_ = arr_t[NE + NPV:]
+            gEE = gEE * decay_e_e + q["q_ee"] * mv(("E", "E"), ae)
+            gEx = gEx * decay_e_e + q["q_ext"] * earr_t[:NE].astype(dtype)
+            gPE = gPE * decay_i + q["q_pe"] * mv(("PV", "E"), ap)
+            gSE = gSE * decay_i + q["q_se"] * mv(("SOM", "E"), as_)
         I = gE * (erev_e - V) + gI * (erev_i - V)
         if want_currents:
             # The two terms of I_syn restricted to the E cells, before
@@ -736,6 +767,15 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
             cur = jnp.stack([
                 jnp.mean(gE[:NE] * (erev_e - V[:NE])),
                 jnp.mean(gI[:NE] * (erev_i - V[:NE])),
+            ])
+        elif want_by_source:
+            # The same two terms split by presynaptic source, before
+            # adex_step updates V; mean over the E population.
+            cur = jnp.stack([
+                jnp.mean(gEE * (erev_e - V[:NE])),
+                jnp.mean(gEx * (erev_e - V[:NE])),
+                jnp.mean(gPE * (erev_i - V[:NE])),
+                jnp.mean(gSE * (erev_i - V[:NE])),
             ])
         (V, w, ref), spk = adex_step((V, w, ref), I, par, dt, step_order)
         if ext == "shared":
@@ -780,9 +820,17 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
             return (V, w, ref, gE, gI, ring, ering, head, rkey), (row, spk)
         if want_currents:
             return (V, w, ref, gE, gI, ring, ering, head, rkey), (row, cur)
+        if want_by_source:
+            return (V, w, ref, gE, gI, ring, ering, head, rkey,
+                    gEE, gEx, gPE, gSE), (row, cur)
         return (V, w, ref, gE, gI, ring, ering, head, rkey), row
 
     init = (v0, w0, r0, ge0, gi0, ring0, ering0, head0, k_ext)
+    if want_by_source:
+        # Per-source states enter the scan carry only for this record; the
+        # default counts/raster/currents carry is unchanged.
+        init = init + (jnp.zeros((NE,), dtype), jnp.zeros((NE,), dtype),
+                       jnp.zeros((NE,), dtype), jnp.zeros((NE,), dtype))
     if use_t:
         def _scan(c):
             return jax.lax.scan(step_fn, c, jnp.arange(steps))
@@ -795,6 +843,10 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
         out = raster
     elif want_currents:
         (V, w, ref, gE, gI, _, _, _, _), (_, currents) = jax.jit(_scan)(init)
+        jax.block_until_ready(currents)
+        out = currents
+    elif want_by_source:
+        (V, w, ref, gE, gI, _, _, _, _, _, _, _, _), (_, currents) = jax.jit(_scan)(init)
         jax.block_until_ready(currents)
         out = currents
     else:
