@@ -251,6 +251,8 @@ def lfp_phase(lfp, dt_s, lo_hz=25.0, hi_hz=45.0, order=4):
     0 < lo_hz < hi_hz < 0.5 / dt_s.
     """
     x = np.asarray(lfp, dtype=float)
+    if not dt_s > 0:
+        raise ValueError("dt_s must be positive, got %r" % (dt_s,))
     fs = 1.0 / float(dt_s)
     lo, hi = float(lo_hz), float(hi_hz)
     if not (0.0 < lo < hi < fs / 2.0):
@@ -308,7 +310,7 @@ def locking_by_type(raster, sizes, lfp, dt_s, lo_hz=25.0, hi_hz=45.0):
 def phase_aligned_mean(target, phase, n_bins=36):
     """Phase-aligned cycle average of a signal against a reference phase (Figure S2).
 
-    Methods "Mean averaging over cycles" (mmc2.txt lines 1780-1786, Cell Reports
+    Methods "Mean averaging over cycles" (mmc2.txt lines 1780-1787, Cell Reports
     2025): the instantaneous phase of a reference signal is unwrapped, cycle
     boundaries sit at the 2 pi crossings, and within each cycle the target is
     resampled onto a uniform phase grid by linear interpolation; the returned
@@ -358,8 +360,8 @@ def s2_profiles(counts, currents, sizes, dt_s, lfp, discard_s=DISCARD_S,
                 lo_hz=25.0, hi_hz=45.0, n_bins=36):
     """Phase-aligned cycle profiles of the currents and population rates (Figure S2).
 
-    Methods "Mean averaging over cycles" (mmc2.txt lines 1780-1786) with the
-    Figure S2 legend (mmc2.txt lines 1836-1841): each target is cycle-averaged
+    Methods "Mean averaging over cycles" (mmc2.txt lines 1780-1787) with the
+    Figure S2 legend (mmc2.txt lines 1836-1842): each target is cycle-averaged
     against :func:`lfp_phase` of the LFP proxy. ``counts`` is ``[steps, 3]``
     per-step spike counts [E | PV | SOM], ``currents`` is ``[steps, 4]`` mean
     currents [E recurrent | external drive | PV | SOM], ``sizes`` gives the
@@ -389,9 +391,11 @@ def s2_profiles(counts, currents, sizes, dt_s, lfp, discard_s=DISCARD_S,
                          % (n_steps, cur.shape[0], lfp_arr.shape[0]))
     if any(p not in sizes for p in POPS):
         raise ValueError("sizes must have the keys %s, got %s" % (POPS, sorted(sizes)))
-    if any(float(sizes[p]) <= 0.0 for p in POPS):
+    if any(not float(sizes[p]) > 0.0 for p in POPS):
         raise ValueError("population sizes must be positive, got %s"
                          % {p: sizes[p] for p in POPS})
+    if not discard_s >= 0.0:
+        raise ValueError("discard_s must be >= 0, got %r" % (discard_s,))
     cut = int(round(discard_s / dt_s))
     counts_arr, cur, lfp_arr = counts_arr[cut:], cur[cut:], lfp_arr[cut:]
     phase = lfp_phase(lfp_arr, dt_s, lo_hz=lo_hz, hi_hz=hi_hz)

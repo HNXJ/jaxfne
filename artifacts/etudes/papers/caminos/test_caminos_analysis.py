@@ -782,6 +782,12 @@ def test_lfp_phase_rejects_bad_band():
         ca.lfp_phase(np.zeros(1000), DT, lo_hz=50.0)
 
 
+def test_lfp_phase_rejects_nonpositive_dt():
+    """dt_s = 0 raises ValueError before the band check divides by it."""
+    with pytest.raises(ValueError):
+        ca.lfp_phase(np.zeros(1000), 0.0)
+
+
 def test_phase_aligned_mean_recovers_a_locked_profile():
     """A target locked to the reference phase averages back to its cycle profile (Figure S2).
 
@@ -961,3 +967,87 @@ def test_s2_rejects_mismatch():
         ca.s2_profiles(counts, currents, {"E": 20, "PV": 5}, DT, lfp, discard_s=0.0)
     with pytest.raises(ValueError):  # a size that is not positive
         ca.s2_profiles(counts, currents, {"E": 20, "PV": 0, "SOM": 5}, DT, lfp, discard_s=0.0)
+
+
+def test_s2_rejects_nan_size():
+    """A NaN size passes `<= 0.0`; the check must be `not > 0.0` and raise ValueError."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    counts = np.zeros((steps, 3))
+    currents = np.zeros((steps, 4))
+    lfp = np.cos(2.0 * np.pi * F_GAMMA * t)
+    with pytest.raises(ValueError):
+        ca.s2_profiles(counts, currents, {"E": float("nan"), "PV": 5, "SOM": 5},
+                       DT, lfp, discard_s=0.0)
+
+
+def test_s2_rejects_negative_discard():
+    """A negative discard_s must raise ValueError, not keep the tail."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    counts = np.zeros((steps, 3))
+    currents = np.zeros((steps, 4))
+    lfp = np.cos(2.0 * np.pi * F_GAMMA * t)
+    with pytest.raises(ValueError):
+        ca.s2_profiles(counts, currents, S2_SIZES, DT, lfp, discard_s=-2.0)
+
+
+def test_s2_column0_feeds_only_i_exc_and_total():
+    """Only column 0 nonzero: I_exc == I_total (nonzero); I_pv and I_som are zero.
+
+    Column 0 of the record="currents_by_source" output is the E-recurrent
+    current, which enters I_total as its E part; columns 2 and 3 must not.
+    """
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    currents = np.zeros((steps, 4))
+    currents[:, 0] = 1.0
+    res = ca.s2_profiles(np.zeros((steps, 3)), currents, S2_SIZES, DT,
+                         np.cos(2.0 * np.pi * F_GAMMA * t), discard_s=0.0)
+    assert np.max(np.abs(res["I_exc"])) > 0  # precondition: the output is nonzero
+    np.testing.assert_array_equal(res["I_exc"], res["I_total"])
+    np.testing.assert_array_equal(res["I_pv"], np.zeros_like(res["I_pv"]))
+    np.testing.assert_array_equal(res["I_som"], np.zeros_like(res["I_som"]))
+
+
+def test_s2_external_column_is_excluded():
+    """Only the external-drive column (1) nonzero: every current profile is exactly zero."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    currents = np.zeros((steps, 4))
+    currents[:, 1] = 1.0
+    res = ca.s2_profiles(np.zeros((steps, 3)), currents, S2_SIZES, DT,
+                         np.cos(2.0 * np.pi * F_GAMMA * t), discard_s=0.0)
+    np.testing.assert_array_equal(res["I_total"], np.zeros_like(res["I_total"]))
+    np.testing.assert_array_equal(res["I_exc"], np.zeros_like(res["I_exc"]))
+    np.testing.assert_array_equal(res["I_pv"], np.zeros_like(res["I_pv"]))
+    np.testing.assert_array_equal(res["I_som"], np.zeros_like(res["I_som"]))
+
+
+def test_s2_column2_feeds_only_i_pv():
+    """Only column 2 nonzero: I_pv nonzero; I_exc, I_som and I_total - I_pv are zero."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    currents = np.zeros((steps, 4))
+    currents[:, 2] = 1.0
+    res = ca.s2_profiles(np.zeros((steps, 3)), currents, S2_SIZES, DT,
+                         np.cos(2.0 * np.pi * F_GAMMA * t), discard_s=0.0)
+    assert np.max(np.abs(res["I_pv"])) > 0  # precondition: the output is nonzero
+    np.testing.assert_array_equal(res["I_exc"], np.zeros_like(res["I_exc"]))
+    np.testing.assert_array_equal(res["I_som"], np.zeros_like(res["I_som"]))
+    np.testing.assert_array_equal(res["I_total"] - res["I_pv"],
+                                  np.zeros_like(res["I_total"]))
+
+
+def test_s2_column3_feeds_only_i_som():
+    """Only column 3 nonzero: I_som nonzero; I_exc and I_pv are zero; I_total == I_som."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    currents = np.zeros((steps, 4))
+    currents[:, 3] = 1.0
+    res = ca.s2_profiles(np.zeros((steps, 3)), currents, S2_SIZES, DT,
+                         np.cos(2.0 * np.pi * F_GAMMA * t), discard_s=0.0)
+    assert np.max(np.abs(res["I_som"])) > 0  # precondition: the output is nonzero
+    np.testing.assert_array_equal(res["I_exc"], np.zeros_like(res["I_exc"]))
+    np.testing.assert_array_equal(res["I_pv"], np.zeros_like(res["I_pv"]))
+    np.testing.assert_array_equal(res["I_total"], res["I_som"])

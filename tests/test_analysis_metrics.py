@@ -1310,3 +1310,15 @@ class TestCaminosRasterIdentity:
         out = capi.ref42_phase_delay(counts, _CAMINOS_DT, 35.0)
         assert out["delay_ms"] is None
         assert out["n_spikes_PV"] == 0
+
+
+def test_population_rates_rejects_negative_discard():
+    """A negative discard_s or discard_ms must raise ValueError, not keep the tail."""
+    from jaxfne.analysis import population_rates
+
+    counts = np.ones((1000, 3))
+    sizes = {"E": 10, "PV": 10, "SOM": 10}
+    with pytest.raises(ValueError, match="discard"):
+        population_rates(counts, dt_ms=0.1, sizes=sizes, discard_ms=-100.0)
+    with pytest.raises(ValueError, match="discard"):
+        population_rates(counts, dt_ms=0.1, sizes=sizes, discard_s=-1.0)

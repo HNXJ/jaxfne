@@ -1122,6 +1122,8 @@ def population_rates(counts, dt=None, sizes=None, pops=_POP_DEFAULTS, discard_s=
     discard = _seconds_from_ms_or_s(
         "discard_s", discard_s, "discard_ms", discard_ms, _DISCARD_S_DEFAULT
     )
+    if not discard >= 0.0:
+        raise ValueError("discard must be >= 0, got %r" % (discard,))
     arr = np.asarray(counts)
     if arr.ndim != 2 or arr.shape[1] != len(pops):
         raise ValueError("counts must be [steps, %d], got shape %r" % (len(pops), arr.shape))
