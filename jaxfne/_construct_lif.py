@@ -188,7 +188,7 @@ def _lif_bridge_alias_tensor(
 
     _SCAN_EDGE_KEYS = (
         "footprint", "weight_sharing", "max_in_degree", "in_degree", "sampling",
-        "spatial_sigma", "delay_ms", "conduction_velocity_m_per_s",
+        "spatial_sigma", "spatial_radius", "delay_ms", "conduction_velocity_m_per_s",
         "allow_self",
     )
 

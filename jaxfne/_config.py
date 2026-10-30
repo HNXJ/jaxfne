@@ -1043,6 +1043,7 @@ class Configuration:
         max_in_degree: Optional[int] = None,
         in_degree: Optional[int] = None,
         spatial_sigma: Optional[float] = None,
+        spatial_radius: Optional[float] = None,
         delay_ms: Optional[float] = None,
         weight_std: Optional[float] = None,
         delay_std_ms: Optional[float] = None,
@@ -1300,6 +1301,9 @@ class Configuration:
             "delay_ms": float(delay_ms) if delay_ms is not None else None,
             "status": "declared_not_compiled",
         }
+        if spatial_radius is not None:
+            # Stored only when declared so existing config hashes stay unchanged.
+            entry["spatial_radius"] = float(spatial_radius)
         if weight_std is not None:
             # Stored only when declared so existing config hashes stay unchanged.
             entry["weight_std"] = float(weight_std)

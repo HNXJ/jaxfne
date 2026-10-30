@@ -356,6 +356,35 @@ def _check_connection_spatial_sigma(
     return sigma
 
 
+def _check_connection_spatial_radius(
+    spatial_radius: "float | None", *, label: str
+) -> "float | None":
+    """Validate the opt-in Euclidean cutoff shared by both connection types.
+
+    None = undeclared = the grid buckets alone; a declared value must be a
+    finite real number > 0 in mm (bools and strings refused, never coerced).
+    """
+    if spatial_radius is None:
+        return None
+    if isinstance(spatial_radius, bool) or isinstance(spatial_radius, str):
+        raise ValueError(
+            f"{label} spatial_radius must be a finite number > 0 in mm; "
+            f"got {spatial_radius!r}"
+        )
+    try:
+        radius = float(spatial_radius)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"{label} spatial_radius must be a finite number > 0 in mm; "
+            f"got {spatial_radius!r}"
+        )
+    if not (math.isfinite(radius) and radius > 0.0):
+        raise ValueError(
+            f"{label} spatial_radius must be finite and > 0 in mm; got {spatial_radius!r}"
+        )
+    return radius
+
+
 def _check_connection_allow_self(allow_self: "bool | None", *, label: str) -> "bool | None":
     """Validate the per-rule self-edge opt-in shared by both connection types.
 
@@ -530,6 +559,13 @@ class InterConnection:
     # declared metadata. Must be finite and > 0 when set. No consumer exists
     # on the conductance (adex) route, so a declared value there is refused.
     spatial_sigma: "float | None" = None
+    # Opt-in Euclidean cutoff in mm (None = undeclared = the grid buckets
+    # alone). Forwarded into the compiled connection rule, where the
+    # localized (``max_in_degree``) sampler keeps only pairs within this
+    # distance of the post neuron; needs ``max_in_degree`` (refused without
+    # it). Must be finite and > 0 when set. No consumer exists on the
+    # conductance (adex) route, so a declared value there is refused.
+    spatial_radius: "float | None" = None
     # Localized-sampling fan-in cap (None = undeclared = the ``probability``
     # density path). When set, the rule compiles through the localized
     # distance-weighted (``spatial_sigma``) sampler with this per-post-neuron
@@ -604,6 +640,10 @@ class InterConnection:
         object.__setattr__(
             self, "spatial_sigma",
             _check_connection_spatial_sigma(self.spatial_sigma, label="InterConnection"),
+        )
+        object.__setattr__(
+            self, "spatial_radius",
+            _check_connection_spatial_radius(self.spatial_radius, label="InterConnection"),
         )
         object.__setattr__(
             self, "max_in_degree",
@@ -811,6 +851,10 @@ class AreaConnection:
     # Same forwarding semantics as InterConnection.spatial_sigma; no consumer
     # on the conductance (adex) route.
     spatial_sigma: "float | None" = None
+    # Opt-in Euclidean cutoff in mm (None = undeclared = the grid buckets
+    # alone). Same forwarding semantics as InterConnection.spatial_radius;
+    # needs ``max_in_degree``; no consumer on the conductance (adex) route.
+    spatial_radius: "float | None" = None
     # Localized-sampling fan-in cap (None = undeclared = the ``probability``
     # density path). Same forwarding semantics as
     # InterConnection.max_in_degree; mutually exclusive with a declared
@@ -908,6 +952,10 @@ class AreaConnection:
         object.__setattr__(
             self, "spatial_sigma",
             _check_connection_spatial_sigma(self.spatial_sigma, label="AreaConnection"),
+        )
+        object.__setattr__(
+            self, "spatial_radius",
+            _check_connection_spatial_radius(self.spatial_radius, label="AreaConnection"),
         )
         object.__setattr__(
             self, "max_in_degree",
@@ -1314,6 +1362,7 @@ _CONNECTION_DEFAULTS_056 = {
     "conduction_velocity_m_per_s": None,
     "length_unit": "mm",
     "spatial_sigma": None,
+    "spatial_radius": None,
     "max_in_degree": None,
     "in_degree": None,
     "allow_self": None,
@@ -1510,6 +1559,7 @@ def _load_neuronal_tensor_impl(
                 conduction_velocity_m_per_s=ac.get("conduction_velocity_m_per_s"),
                 length_unit=ac.get("length_unit", "mm"),
                 spatial_sigma=ac.get("spatial_sigma"),
+                spatial_radius=ac.get("spatial_radius"),
                 max_in_degree=ac.get("max_in_degree"),
                 in_degree=ac.get("in_degree"),
                 allow_self=ac.get("allow_self"),
@@ -1546,6 +1596,7 @@ def _load_neuronal_tensor_impl(
                         conduction_velocity_m_per_s=ic.get("conduction_velocity_m_per_s"),
                         length_unit=ic.get("length_unit", "mm"),
                         spatial_sigma=ic.get("spatial_sigma"),
+                        spatial_radius=ic.get("spatial_radius"),
                         max_in_degree=ic.get("max_in_degree"),
                         in_degree=ic.get("in_degree"),
                         allow_self=ic.get("allow_self"),
@@ -2924,7 +2975,10 @@ def _wire_connection(
     with ``probability=None``; mutually exclusive with ``max_in_degree``
     and ``footprint``); a declared ``spatial_sigma``
     without ``max_in_degree`` has no consumer on the density path, so it
-    is refused here (``spatial_sigma needs max_in_degree``). A declared
+    is refused here (``spatial_sigma needs max_in_degree``); a declared
+    ``spatial_radius`` behaves the same (``spatial_radius needs
+    max_in_degree``) and, with ``max_in_degree``, is forwarded into the
+    rule. A declared
     ``footprint`` compiles deterministic pairs from the posed positions
     instead of sampling (``probability=None`` on the rule; ``probability``,
     ``max_in_degree`` and non-default ``sampling`` alongside it are refused
@@ -2972,6 +3026,15 @@ def _wire_connection(
         wire_kw["delay_ms"] = float(conn_delay)
     conn_sigma = getattr(conn, "spatial_sigma", None)
     conn_degree = getattr(conn, "max_in_degree", None)
+    conn_radius = getattr(conn, "spatial_radius", None)
+    if conn_radius is not None and conn_degree is None:
+        # Checked before spatial_sigma so a connection declaring both
+        # without the cap names the radius.
+        raise ValueError(
+            f"{label} declares spatial_radius={conn_radius!r} without "
+            "max_in_degree; spatial_radius needs max_in_degree (localized "
+            "sampling) — declare both or neither"
+        )
     if conn_sigma is not None and conn_degree is None:
         raise ValueError(
             f"{label} declares spatial_sigma={conn_sigma!r} without "
@@ -2982,6 +3045,10 @@ def _wire_connection(
         # Validated at declaration (finite, > 0); read by the localized
         # (``max_in_degree``) sampler.
         wire_kw["spatial_sigma"] = float(conn_sigma)
+    if conn_radius is not None:
+        # Validated at declaration (finite, > 0); the localized
+        # (``max_in_degree``) sampler keeps only pairs within this distance.
+        wire_kw["spatial_radius"] = float(conn_radius)
     if conn_degree is not None:
         # Localized sampling replaces the density path (Configuration
         # refuses the combination), so the rule carries probability=None.
@@ -3135,6 +3202,13 @@ def _wire_adex_connection(
             "the conductance (adex) route has no localized-sampling consumer "
             "(rule max_in_degree/spatial_sigma are refused there: only None "
             "is admitted) — leave spatial_sigma undeclared there"
+        )
+    if getattr(conn, "spatial_radius", None) is not None:
+        raise ValueError(
+            f"{label} declares spatial_radius={getattr(conn, 'spatial_radius')!r}; "
+            "the conductance (adex) route has no localized-sampling consumer "
+            "(rule max_in_degree/spatial_sigma/spatial_radius are refused there: only None "
+            "is admitted) — leave spatial_radius undeclared there"
         )
     if getattr(conn, "max_in_degree", None) is not None:
         raise ValueError(

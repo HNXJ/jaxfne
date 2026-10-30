@@ -818,6 +818,7 @@ def _candidate_pairs_localized(
     spatial_sigma: float,
     allow_self: bool,
     key: jax.Array,
+    spatial_radius: float | None = None,
 ) -> list[tuple[int, int]]:
     """Distance-limited edge sampling with a constant per-post in-degree cap.
 
@@ -848,6 +849,12 @@ def _candidate_pairs_localized(
     already-local neighborhood, not a bias away from "nearest" -- the Gaussian
     weighting still governs which of the (now-capped) candidates are chosen.
 
+    When ``spatial_radius`` is set, bucketing is skipped: candidates are
+    exactly the pre-neurons within that Euclidean distance of the post
+    neuron, so the candidate set is a function of distances only and a rigid
+    rotation of the population keeps it. When it is None, the sampler
+    follows the grid buckets alone.
+
     Uses ``numpy``'s RNG throughout, not ``jax.random`` -- this function is
     host-side/non-traced Python (per this module's own design doctrine), and
     numpy avoids per-call JAX dispatch overhead accumulating across N
@@ -861,25 +868,35 @@ def _candidate_pairs_localized(
     """
     if not pre_ids or not post_ids or max_in_degree <= 0:
         return []
-    cell_size = 3.0 * max(float(spatial_sigma), 1e-9)
-    # Anchor the grid at the pre population's minimum corner: a rigid translation of the
-    # population then leaves every bucket key, and so every candidate set, unchanged.
-    origin = np.min(np.stack([positions[nid] for nid in pre_ids]), axis=0)
+    radius = None if spatial_radius is None else float(spatial_radius)
+    if radius is None:
+        cell_size = 3.0 * max(float(spatial_sigma), 1e-9)
+        # Anchor the grid at the pre population's minimum corner: a rigid translation of the
+        # population then leaves every bucket key, and so every candidate set, unchanged.
+        origin = np.min(np.stack([positions[nid] for nid in pre_ids]), axis=0)
 
-    pre_buckets: dict[tuple[int, int, int], list[int]] = {}
-    for nid in pre_ids:
-        bucket = _spatial_bucket_key(positions[nid] - origin, cell_size)
-        pre_buckets.setdefault(bucket, []).append(nid)
+        pre_buckets: dict[tuple[int, int, int], list[int]] = {}
+        for nid in pre_ids:
+            bucket = _spatial_bucket_key(positions[nid] - origin, cell_size)
+            pre_buckets.setdefault(bucket, []).append(nid)
 
-    neighbor_offsets = [(dx, dy, dz) for dx in (-1, 0, 1) for dy in (-1, 0, 1) for dz in (-1, 0, 1)]
+        neighbor_offsets = [(dx, dy, dz) for dx in (-1, 0, 1) for dy in (-1, 0, 1) for dz in (-1, 0, 1)]
     pairs: list[tuple[int, int]] = []
     rng = np.random.default_rng(_stable_fold(int(jax.random.randint(key, (), 0, 2**31 - 1))))
     for post_id in post_ids:
         post_pos = positions[post_id]
-        bx, by, bz = _spatial_bucket_key(post_pos - origin, cell_size)
-        candidates: list[int] = []
-        for dx, dy, dz in neighbor_offsets:
-            candidates.extend(pre_buckets.get((bx + dx, by + dy, bz + dz), ()))
+        if radius is not None:
+            # Exact ball over every pre id: bucket walls are axis-aligned,
+            # so gathering through them would leak orientation into the
+            # candidate set under rotation.
+            all_pos = np.stack([positions[c] for c in pre_ids])
+            within = np.sum((all_pos - post_pos) ** 2, axis=1) <= radius * radius
+            candidates = [c for c, keep in zip(pre_ids, within) if keep]
+        else:
+            bx, by, bz = _spatial_bucket_key(post_pos - origin, cell_size)
+            candidates = []
+            for dx, dy, dz in neighbor_offsets:
+                candidates.extend(pre_buckets.get((bx + dx, by + dy, bz + dz), ()))
         if not allow_self and post_id in candidates:
             candidates = [c for c in candidates if c != post_id]
         if not candidates:
@@ -1060,6 +1077,11 @@ def compile_connection_rules(
     distance-weighted sampling (``spatial_sigma``, default 0.1, same units as
     neuron ``x``/``y``/``z``) rather than a flat O(n_pre*n_post) density
     target.
+    A rule may also set ``spatial_radius`` (None = undeclared = the grid
+    buckets alone): with ``max_in_degree`` set, only pairs within that
+    Euclidean distance (same units as ``x``/``y``/``z``) stay candidates, so a
+    rotation of the population keeps the realized edge set under one seed. It
+    needs ``max_in_degree`` and must be finite and > 0.
     Requires every selected neuron row to carry ``x``/``y``/``z``.
 
     A rule may set ``sampling`` to ``"density"`` (default: the realized unique
@@ -1215,6 +1237,17 @@ def compile_connection_rules(
                 f"connection {rname!r} sampling={sampling!r} is not implemented with "
                 "max_in_degree (localized sampling); omit one of them"
             )
+        # A declared spatial_radius has no consumer on the density path: it
+        # only parametrizes localized (max_in_degree) sampling, so carrying
+        # it without the cap is refused rather than silently ignored. It is
+        # checked before spatial_sigma so a rule declaring both without the
+        # cap names the radius.
+        if rule.get("max_in_degree") is None and rule.get("spatial_radius") is not None:
+            raise ValueError(
+                f"connection {rname!r} declares spatial_radius={rule.get('spatial_radius')!r} "
+                "without max_in_degree; spatial_radius needs max_in_degree "
+                "(localized sampling) -- declare both or neither"
+            )
         # A declared spatial_sigma has no consumer on the density path: it
         # only parametrizes localized (max_in_degree) sampling, so carrying
         # it without the cap is refused rather than silently ignored.
@@ -1224,6 +1257,25 @@ def compile_connection_rules(
                 "without max_in_degree; spatial_sigma needs max_in_degree "
                 "(localized sampling) -- declare both or neither"
             )
+        _radius = rule.get("spatial_radius")
+        if _radius is not None:
+            if isinstance(_radius, bool) or isinstance(_radius, str):
+                raise ValueError(
+                    f"connection {rname!r} spatial_radius must be a finite number "
+                    f"> 0 in mm; got {_radius!r}"
+                )
+            try:
+                _radius_f = float(_radius)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"connection {rname!r} spatial_radius must be a finite number "
+                    f"> 0 in mm; got {_radius!r}"
+                )
+            if not (math.isfinite(_radius_f) and _radius_f > 0.0):
+                raise ValueError(
+                    f"connection {rname!r} spatial_radius must be finite and "
+                    f"> 0 in mm; got {_radius!r}"
+                )
         # A declared footprint selects pairs deterministically from posed
         # positions (jaxfne.pcl_topology.footprint_pairs), so the stochastic
         # pair selectors must not also apply: probability, max_in_degree and
@@ -1346,6 +1398,13 @@ def compile_connection_rules(
                     _DEFAULT_SPATIAL_SIGMA
                     if rule.get("spatial_sigma") is None
                     else rule["spatial_sigma"]
+                ),
+                # Stored only when declared, so .get() covers rules written
+                # before the key existed.
+                spatial_radius=(
+                    None
+                    if rule.get("spatial_radius") is None
+                    else float(rule["spatial_radius"])
                 ),
                 allow_self=rule_self,
                 key=rkey,

@@ -923,6 +923,17 @@ def _construct_compile_connections(
             # The sign-only fallback compiler cannot honour max_in_degree. Refusing is
             # the only honest option: silently dropping the cap previously doubled the
             # network (a 10x sparsity request yielding a 2x denser result).
+            # A declared spatial_radius is refused before the cap so the
+            # radius -- which only parametrizes localized sampling -- names
+            # itself on this path.
+            _radius = [r.get("name") for r in _conn_rules if r.get("spatial_radius") is not None]
+            if _radius:
+                raise ValueError(
+                    f"connection rule(s) {_radius} declare spatial_radius, which only "
+                    "parametrizes max_in_degree sampling on the mechanism-aware compiler; "
+                    "spatial_radius needs max_in_degree. Declare mechanisms and the "
+                    "localized keys, or neither."
+                )
             _capped = [r.get("name") for r in _conn_rules if r.get("max_in_degree") is not None]
             if _capped:
                 raise ValueError(

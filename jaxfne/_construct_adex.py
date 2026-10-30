@@ -96,6 +96,7 @@ ADEX_UNSET_IS_DEFAULT = (
     ("Configuration", "metadata", "circuit", "connections", "*", "control_key"),
     ("Configuration", "metadata", "circuit", "connections", "*", "max_in_degree"),
     ("Configuration", "metadata", "circuit", "connections", "*", "spatial_sigma"),
+    ("Configuration", "metadata", "circuit", "connections", "*", "spatial_radius"),
 )
 
 # The flags _append_circuit writes: True once a circuit is declared, False until it is compiled.

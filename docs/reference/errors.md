@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2309 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2319 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -203,6 +203,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `explicit NeuronalTensor connectivity produced duplicate executable synaptic identities; identity is ` |
 | `ValueError` | `unsupported connectivity_mode for construction: {...}` |
 | `ValueError` | `connection rule(s) declare max_in_degree (spatially-localized sampling) or footprint (retinotopic pa` |
+| `ValueError` | `connection rule(s) {...} declare spatial_radius, which only parametrizes max_in_degree sampling on t` |
 | `ValueError` | `connection rule(s) {...} declare max_in_degree, which is only honoured by the mechanism-aware compil` |
 | `ValueError` | `connection rule(s) {...} declare in_degree, which is only honoured by the mechanism-aware compiler. ` |
 | `ValueError` | `connection rule(s) {...} declare sampling='multinomial', which is only honoured by the mechanism-awa` |
@@ -906,7 +907,11 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `connection {...} declares in_degree={...} with probability={...}; the fixed-indegree sampler draws a` |
 | `ValueError` | `connection {...} declares in_degree={...} with max_in_degree={...}; exact fixed in-degree and locali` |
 | `ValueError` | `connection {...} sampling={...} is not implemented with max_in_degree (localized sampling); omit one` |
+| `ValueError` | `connection {...} declares spatial_radius={...} without max_in_degree; spatial_radius needs max_in_de` |
 | `ValueError` | `connection {...} declares spatial_sigma={...} without max_in_degree; spatial_sigma needs max_in_degr` |
+| `ValueError` | `connection {...} spatial_radius must be a finite number > 0 in mm; got {...}` |
+| `ValueError` | `connection {...} spatial_radius must be a finite number > 0 in mm; got {...}` |
+| `ValueError` | `connection {...} spatial_radius must be finite and > 0 in mm; got {...}` |
 | `ValueError` | `connection {...} declares weight_sharing={...} without footprint; sharing groups are the footprint r` |
 | `ValueError` | `connection {...} declares footprint with probability={...}; the footprint rule selects pairs determi` |
 | `ValueError` | `connection {...} declares footprint with max_in_degree={...}; the footprint rule selects pairs deter` |
@@ -1851,6 +1856,9 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `{...} spatial_sigma must be a finite number > 0 in mm; got {...}` |
 | `ValueError` | `{...} spatial_sigma must be a finite number > 0 in mm; got {...}` |
 | `ValueError` | `{...} spatial_sigma must be finite and > 0 in mm; got {...}` |
+| `ValueError` | `{...} spatial_radius must be a finite number > 0 in mm; got {...}` |
+| `ValueError` | `{...} spatial_radius must be a finite number > 0 in mm; got {...}` |
+| `ValueError` | `{...} spatial_radius must be finite and > 0 in mm; got {...}` |
 | `ValueError` | `{...} allow_self must be a bool; got {...}` |
 | `ValueError` | `{...} {...} must be a finite number >= 0; got {...}` |
 | `ValueError` | `{...} {...} must be a finite number >= 0; got {...}` |
@@ -1974,11 +1982,13 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `P-023: {...} declares non-numeric time constant dT_ms={...}; time constants must be a finite number ` |
 | `ValueError` | `P-023: {...} declares inadmissible time constant dT_ms={...}; time constants must be finite and > 0 ` |
 | `ValueError` | `{...} declares allow_self=True but no self pair can exist ({...}.{...}.{...}->{...}.{...}.{...}): se` |
+| `ValueError` | `{...} declares spatial_radius={...} without max_in_degree; spatial_radius needs max_in_degree (local` |
 | `ValueError` | `{...} declares spatial_sigma={...} without max_in_degree; spatial_sigma needs max_in_degree (localiz` |
 | `ValueError` | `{...} declares both max_in_degree={...} and in_degree={...}; exact fixed in-degree and localized (di` |
 | `ValueError` | `{...} declares w_std={...} with weight_sharing={...}; a per-edge spread has no shared-row consumer —` |
 | `ValueError` | `{...} declares delay_std_ms={...} without delay_ms; the spread draws around one scalar mean — declar` |
 | `ValueError` | `{...} declares spatial_sigma={...}; the conductance (adex) route has no localized-sampling consumer ` |
+| `ValueError` | `{...} declares spatial_radius={...}; the conductance (adex) route has no localized-sampling consumer` |
 | `ValueError` | `{...} declares max_in_degree={...}; the conductance (adex) route has no localized-sampling consumer ` |
 | `ValueError` | `{...} declares in_degree={...}; the conductance (adex) route has no fixed-indegree consumer (exact p` |
 | `ValueError` | `{...} declares weight_sharing={...}; the conductance (adex) route has no shared-weight consumer (onl` |
