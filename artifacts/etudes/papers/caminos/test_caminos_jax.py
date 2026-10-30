@@ -891,3 +891,99 @@ def test_swap_exchanges_pv_som_params():
         assert not np.array_equal(np.asarray(par0[name]), np.asarray(par[name])), name
     c, _ = cj.simulate(jax.random.key(1), 0.02, NE=40, NPV=8, NSOM=8, swap=True)
     assert np.asarray(c).shape == (200, 3)
+
+
+# --- LANE-A opt-in Cell Reports mechanisms (record, onset, coupling, SOM drive, schedule) ---
+
+LANEA_KW = dict(p=0.07, NE=40, NPV=8, NSOM=8)
+LANEA_SEED = 7
+LANEA_T = 0.2
+LANEA_STEPS = 2000
+LANEA_NTOT = 56
+
+
+def test_record_raster_matches_counts():
+    """A1: record='raster' returns the boolean spike raster of shape
+    (steps, NE+NPV+NSOM); its per-type sums equal the counts run for the
+    same key and parameters; other record values are refused."""
+    c, f0 = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, **LANEA_KW)
+    r, f1 = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, record="raster",
+                        **LANEA_KW)
+    c, r = np.asarray(c), np.asarray(r)
+    assert r.dtype == bool and r.shape == (LANEA_STEPS, LANEA_NTOT), (r.dtype, r.shape)
+    assert [int(r[:, :40].sum()), int(r[:, 40:48].sum()), int(r[:, 48:].sum())] == (
+        c.sum(axis=0).tolist())
+    np.testing.assert_array_equal(np.asarray(f1["V"]), np.asarray(f0["V"]))
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, record="spikes", **LANEA_KW)
+
+
+def test_silence_onset_delays_mask():
+    """A2: with silence={'PV': 1.0} and onset 0.1 s, PV spikes before step
+    round(0.1/dt) = 1000 are kept (identical to the no-silence run) and PV
+    spikes after it are 0; an onset without silence is refused."""
+    onset_step = int(round(0.1 / float(cj.PARAMS["dt_s"])))
+    assert onset_step == 1000, onset_step
+    c0, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, **LANEA_KW)
+    assert int(np.asarray(c0)[:onset_step, 1].sum()) > 0, (
+        "precondition: PV spikes before the onset without silence")
+    c1, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                        silence={"PV": 1.0}, silence_onset_s=0.1, **LANEA_KW)
+    c1 = np.asarray(c1)
+    assert c1[:onset_step].tolist() == np.asarray(c0)[:onset_step].tolist()
+    assert int(c1[:onset_step, 1].sum()) > 0
+    assert int(c1[onset_step:, 1].sum()) == 0
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, silence_onset_s=0.1,
+                    **LANEA_KW)
+
+
+def test_coupling_changes_som_spikes():
+    """A3: PV->SOM at 2 nS changes the SOM count; zero weights reproduce the
+    default run bit-for-bit (connectivity and RNG untouched); unknown keys
+    are refused."""
+    kw = dict(p=0.07, NE=200, NPV=40, NSOM=40)
+    c0, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, **kw)
+    assert int(np.asarray(c0)[:, 2].sum()) > 0, "precondition: default SOM spikes"
+    c1, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                        coupling={"PV_SOM": 2e-9}, **kw)
+    assert int(np.asarray(c1)[:, 2].sum()) != int(np.asarray(c0)[:, 2].sum())
+    c2, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                        coupling={"PV_SOM": 0.0}, **kw)
+    np.testing.assert_array_equal(np.asarray(c2), np.asarray(c0))
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, coupling={"E_E": 1e-9},
+                    **kw)
+
+
+def test_som_ext_drive_raises_som_spikes():
+    """A4: a 4 Hz SOM drive gives more SOM spikes than 0 Hz with the same
+    key; 0 Hz reproduces the default run bit-for-bit."""
+    c0, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, **LANEA_KW)
+    s0 = int(np.asarray(c0)[:, 2].sum())
+    assert s0 >= 0, "precondition: 0 Hz SOM count is defined"
+    c0b, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, som_ext_rate_hz=0.0,
+                         **LANEA_KW)
+    np.testing.assert_array_equal(np.asarray(c0b), np.asarray(c0))
+    c4, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, som_ext_rate_hz=4.0,
+                        **LANEA_KW)
+    assert int(np.asarray(c4)[:, 2].sum()) > s0, (
+        s0, int(np.asarray(c4)[:, 2].sum()))
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, som_ext_rate_hz=-1.0,
+                    **LANEA_KW)
+
+
+def test_ext_rate_schedule_zero_silences_feedforward():
+    """A5: an all-zero schedule with no other drive leaves E and PV silent
+    (the constant 4 Hz run drives E); a wrong-length schedule is refused."""
+    c0, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, **LANEA_KW)
+    assert int(np.asarray(c0)[:, 0].sum()) > 0, "precondition: E spikes at 4 Hz"
+    cz, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                        ext_rate_schedule=jnp.zeros((LANEA_STEPS,)), **LANEA_KW)
+    cz = np.asarray(cz)
+    assert int(cz[:, 0].sum()) == 0, int(cz[:, 0].sum())
+    assert int(cz[:, 1].sum()) == 0, int(cz[:, 1].sum())
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                    ext_rate_schedule=jnp.zeros((LANEA_STEPS + 1,)), **LANEA_KW)

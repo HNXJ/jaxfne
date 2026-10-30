@@ -419,11 +419,14 @@ def _concat_params(sizes, dtype, param_set="default", swap=False):
     return out
 
 
-# Manipulated subsets (PV/SOM only) are drawn from ``key`` through
-# ``jax.random.fold_in`` with these constants, one per manipulation, never
-# from the ``k_net``/``k_ext`` streams: the default random draws are untouched.
+# Manipulated subsets (PV/SOM only) and the Cell Reports drive/coupling
+# blocks are drawn from ``key`` through ``jax.random.fold_in`` with these
+# constants, one per opt-in, never from the ``k_net``/``k_ext`` streams:
+# the default random draws are untouched.
 _SILENCE_TAG = 911
 _REPLACE_TAG = 417
+_COUPLING_TAG = 733
+_SOM_EXT_TAG = 529
 
 
 def manip_mask(key, spec, sizes, kind="silence"):
@@ -467,8 +470,10 @@ def manip_mask(key, spec, sizes, kind="silence"):
 def route_inputs(blocks, q, arr, earr, sizes, dtype):
     """Conductance increments (gE, gI) from delayed arrivals, in [E | PV | SOM] order.
 
-    ``arr`` holds recurrent spikes of all cells, ``earr`` external counts for E and PV.
-    E and external spikes raise gE; PV and SOM spikes raise gI (Table 2, E_rev I).
+    ``arr`` holds recurrent spikes of all cells, ``earr`` external counts for E and PV
+    (plus SOM when the SOM drive is on). E and external spikes raise gE; PV and SOM
+    spikes raise gI (Table 2, E_rev I). ``q`` may carry ``q_ps``/``q_ss`` (PV->SOM,
+    SOM->SOM weights, default 0.0); pairs absent from ``blocks`` contribute nothing.
     """
     NE, NPV, NSOM = sizes["E"], sizes["PV"], sizes["SOM"]
     ae, ap, as_ = arr[:NE], arr[NE:NE + NPV], arr[NE + NPV:]
@@ -476,15 +481,25 @@ def route_inputs(blocks, q, arr, earr, sizes, dtype):
     def mv(pair, x):
         return jnp.matmul(blocks[pair].T.astype(dtype), x.astype(dtype))
 
+    if earr.shape[0] > NE + NPV:  # opt-in SOM drive: per-cell SOM counts follow
+        ge_som_ext = q["q_ext"] * earr[NE + NPV:].astype(dtype)
+    else:
+        ge_som_ext = jnp.zeros((NSOM,), dtype)
+    gi_som_terms = []
+    if ("PV", "SOM") in blocks:  # opt-in coupling, default absent
+        gi_som_terms.append(q.get("q_ps", 0.0) * mv(("PV", "SOM"), ap))
+    if ("SOM", "SOM") in blocks:
+        gi_som_terms.append(q.get("q_ss", 0.0) * mv(("SOM", "SOM"), as_))
+    gi_som = sum(gi_som_terms) if gi_som_terms else jnp.zeros((NSOM,), dtype)
     ge = jnp.concatenate([
         q["q_ee"] * mv(("E", "E"), ae) + q["q_ext"] * earr[:NE].astype(dtype),
-        q["q_ep"] * mv(("E", "PV"), ae) + q["q_ext"] * earr[NE:].astype(dtype),
-        q["q_es"] * mv(("E", "SOM"), ae),
+        q["q_ep"] * mv(("E", "PV"), ae) + q["q_ext"] * earr[NE:NE + NPV].astype(dtype),
+        q["q_es"] * mv(("E", "SOM"), ae) + ge_som_ext,
     ])
     gi = jnp.concatenate([
         q["q_pe"] * mv(("PV", "E"), ap) + q["q_se"] * mv(("SOM", "E"), as_),
         q["q_pp"] * mv(("PV", "PV"), ap) + q["q_sp"] * mv(("SOM", "PV"), as_),
-        jnp.zeros((NSOM,), dtype),  # PV->SOM and SOM->SOM absent
+        gi_som,
     ])
     return ge, gi
 
@@ -492,15 +507,19 @@ def route_inputs(blocks, q, arr, earr, sizes, dtype):
 def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
              NE=None, NPV=None, NSOM=None, indegree="bernoulli", ext="private",
              step_order="default", ext_sources="fixed", param_set="default",
-             silence=None, replace=None, replace_rate_hz=None, swap=False):
+             silence=None, replace=None, replace_rate_hz=None, swap=False,
+             silence_onset_s=None, coupling=None, som_ext_rate_hz=0.0,
+             ext_rate_schedule=None):
     """Run the full E/PV/SOM network for ``T`` seconds (Euler, step ``dt``).
 
     ``p`` and ``NE/NPV/NSOM`` default to the selected set (reference:
     0.07, 8000/750/750; cellrep: 0.017, 8000/800/600) and are
     exposed only so small smoke nets can use this same path. ``record``
-    must be ``"counts"`` (any other value is refused). Seeding comes
-    only through ``key``: one split builds connectivity, the other
-    drives the external Poisson sources inside the scan.
+    is ``"counts"`` (per-step ``[E, PV, SOM]`` counts) or ``"raster"``
+    (boolean spike raster of shape ``[steps, NE+NPV+NSOM]``); any other
+    value is refused. Seeding comes only through ``key``: one split
+    builds connectivity, the other drives the external Poisson sources
+    inside the scan.
 
     Opt-in variants (PREREG_P3.md Sensitivity; defaults reproduce the
     reference bit-for-bit): ``indegree="fixed"`` (S3, exact in-degree per
@@ -522,18 +541,31 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
     decays, weights, and the 4 Hz drive on PV. Manipulated subsets come from
     :func:`manip_mask` (fold-in constants, never the k_net/k_ext streams).
 
+    Opt-in Cell Reports mechanisms (defaults off, the default path is
+    untouched): ``silence_onset_s`` delays the silencing mask to step
+    ``round(onset_s / dt)`` (refused without ``silence``), ``coupling``
+    sets the absent PV->SOM / SOM->SOM weights in S per connection (a dict
+    with keys ``"PV_SOM"`` and/or ``"SOM_SOM"``; unknown keys are refused),
+    ``som_ext_rate_hz`` adds a Poisson drive to SOM cells at this rate with
+    weight ``Q_ext_S`` (own folded key, existing draws unchanged), and
+    ``ext_rate_schedule`` replaces the constant E/PV feedforward rate with
+    a per-step Hz array of length ``steps``.
+
     Per step, in order: (i) pop spikes (recurrent booleans, external
     integer counts) delayed by ``round(tau_d / dt)`` steps from the ring
     buffers; (ii) decay conductances by ``(1 - dt / tau)`` and add
     ``Q * arrivals``; (iii) ``I_syn = gE (ErevE - V) + gI (ErevI - V)``;
     (iv) :func:`adex_step`; (v) push fresh spikes/counts into the rings.
 
-    Returns ``(counts, final_state)``: per-step population spike counts
-    ``[E, PV, SOM]`` as int32 of shape ``[steps, 3]``, and a dict with
-    final ``V, w, ref, gE, gI`` plus sizes.
+    Returns ``(out, final_state)``: ``out`` is per-step population spike
+    counts ``[E, PV, SOM]`` as int32 of shape ``[steps, 3]`` under
+    ``record="counts"``, or the boolean spike raster of shape
+    ``[steps, NE+NPV+NSOM]`` under ``record="raster"`` (its per-type sums
+    equal the counts); ``final_state`` is a dict with final ``V, w, ref,
+    gE, gI`` plus sizes.
     """
-    if record != "counts":
-        raise ValueError("only record='counts' is supported, got %r" % (record,))
+    if record not in ("counts", "raster"):
+        raise ValueError("record must be 'counts' or 'raster', got %r" % (record,))
     if ext not in ("private", "shared"):
         raise ValueError("ext must be 'private' or 'shared', got %r" % (ext,))
     P = _params_for(param_set)
@@ -547,10 +579,73 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
     n_delay = delay_steps(dt, step_order, param_set)
     n_src = ext_source_count(p, NE, ext_sources, param_set)
 
+    if silence_onset_s is not None and silence is None:
+        raise ValueError("silence_onset_s requires silence to be set, got %r"
+                         % (silence_onset_s,))
+    if silence_onset_s is None:
+        onset_step = 0
+    else:
+        try:
+            onset_step = int(round(float(silence_onset_s) / float(dt)))
+        except (TypeError, ValueError):
+            raise ValueError("silence_onset_s must be seconds as a number, got %r"
+                             % (silence_onset_s,))
+    try:
+        som_ext_rate_hz = float(som_ext_rate_hz)
+    except (TypeError, ValueError):
+        raise ValueError("som_ext_rate_hz must be a number (Hz), got %r"
+                         % (som_ext_rate_hz,))
+    if som_ext_rate_hz < 0.0:
+        raise ValueError("som_ext_rate_hz must be >= 0, got %r" % (som_ext_rate_hz,))
+    som_drive = som_ext_rate_hz != 0.0
+    lam_som = n_src * som_ext_rate_hz * float(dt)
+    if ext_rate_schedule is not None:
+        sched = jnp.asarray(ext_rate_schedule)
+        if sched.ndim != 1 or sched.shape[0] != steps:
+            raise ValueError("ext_rate_schedule must be a 1-D array of length steps "
+                             "(%d), got shape %s" % (steps, tuple(sched.shape)))
+        if bool(jnp.any(sched < 0)):
+            raise ValueError("ext_rate_schedule rates must be >= 0 Hz")
+    else:
+        sched = None
+
     k_net, k_ext = jax.random.split(key)
     net = build_network(k_net, p=p, NE=NE, NPV=NPV, NSOM=NSOM, indegree=indegree,
                         param_set=param_set)
     blocks = net["blocks"]
+    if coupling is None:
+        q_ps_val, q_ss_val = 0.0, 0.0
+    else:
+        if not isinstance(coupling, dict):
+            raise ValueError("coupling must be a dict with keys 'PV_SOM' and/or "
+                             "'SOM_SOM', got %r" % (coupling,))
+        for t in coupling:
+            if t not in ("PV_SOM", "SOM_SOM"):
+                raise ValueError("coupling keys must be 'PV_SOM' and/or 'SOM_SOM', "
+                                 "got %r" % (t,))
+        try:
+            q_ps_val = float(coupling.get("PV_SOM", 0.0))
+            q_ss_val = float(coupling.get("SOM_SOM", 0.0))
+        except (TypeError, ValueError):
+            raise ValueError("coupling weights must be numbers (S per connection), "
+                             "got %r" % (coupling,))
+        # Extra blocks come from fold_in(key, ...) (never k_net): the seven
+        # reference blocks are bit-for-bit the default ones for the same key.
+        kb = jax.random.split(jax.random.fold_in(key, _COUPLING_TAG), 2)
+        if "PV_SOM" in coupling:
+            if indegree == "fixed":
+                blocks[("PV", "SOM")] = _fixed_block(kb[0], p, NPV, NSOM,
+                                                     forbid_diag=False)
+            else:
+                blocks[("PV", "SOM")] = jax.random.bernoulli(kb[0], p, (NPV, NSOM))
+        if "SOM_SOM" in coupling:
+            if indegree == "fixed":
+                blocks[("SOM", "SOM")] = _fixed_block(kb[1], p, NSOM, NSOM,
+                                                      forbid_diag=True)
+            else:
+                blk = jax.random.bernoulli(kb[1], p, (NSOM, NSOM))
+                blk = blk.at[jnp.arange(NSOM), jnp.arange(NSOM)].set(False)
+                blocks[("SOM", "SOM")] = blk
     if ext == "shared":
         k_map, k_ext = jax.random.split(k_ext)
         ext_map_i = build_ext_map(k_map, p, n_src, NE + NPV).astype(jnp.int32).T
@@ -593,7 +688,7 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
     ge0 = jnp.zeros((n_tot,), dtype)
     gi0 = jnp.zeros((n_tot,), dtype)
     ring0 = jnp.zeros((n_delay, n_tot), bool)
-    ering0 = jnp.zeros((n_delay, NE + NPV), jnp.int32)
+    ering0 = jnp.zeros((n_delay, NE + NPV + (NSOM if som_drive else 0)), jnp.int32)
     head0 = jnp.int32(0)
 
     decay_e = _f(1.0 - dt / P["tauE_s"]) if "tauE_s" in P else jnp.concatenate([
@@ -615,9 +710,13 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
     sl = {"E": slice(0, NE), "PV": slice(NE, NE + NPV),
           "SOM": slice(NE + NPV, n_tot)}
     q ={"q_ee": q_ee, "q_ep": q_ep, "q_es": q_es, "q_pe": q_pe, "q_pp": q_pp,
-         "q_se": q_se, "q_sp": q_sp, "q_ext": q_ext}
+         "q_se": q_se, "q_sp": q_sp, "q_ext": q_ext,
+         "q_ps": _f(q_ps_val), "q_ss": _f(q_ss_val)}
 
-    def step_fn(carry, _):
+    want_raster = record == "raster"
+    use_t = sched is not None or silence_onset_s is not None
+
+    def step_fn(carry, t):
         V, w, ref, gE, gI, ring, ering, head, rkey = carry
         rkey, ks = jax.random.split(rkey)
         inc_gE, inc_gI = route_inputs(blocks, q, ring[head], ering[head], sizes, dtype)
@@ -627,10 +726,23 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
         (V, w, ref), spk = adex_step((V, w, ref), I, par, dt, step_order)
         if ext == "shared":
             rkey, kt = jax.random.split(rkey)
-            trains = jax.random.poisson(kt, lam_tr, shape=(n_src,)).astype(jnp.int32)
+            if sched is None:
+                trains = jax.random.poisson(kt, lam_tr, shape=(n_src,)).astype(jnp.int32)
+            else:
+                trains = jax.random.poisson(kt, sched[t] * float(dt),
+                                           shape=(n_src,)).astype(jnp.int32)
             extc = jnp.matmul(ext_map_i, trains).astype(jnp.int32)
         else:
-            extc = jax.random.poisson(ks, lam, shape=(NE + NPV,)).astype(jnp.int32)
+            if sched is None:
+                extc = jax.random.poisson(ks, lam, shape=(NE + NPV,)).astype(jnp.int32)
+            else:
+                extc = jax.random.poisson(ks, n_src * sched[t] * float(dt),
+                                         shape=(NE + NPV,)).astype(jnp.int32)
+        if som_drive:
+            # Own folded key: the E/PV draws above are unchanged.
+            somc = jax.random.poisson(jax.random.fold_in(ks, _SOM_EXT_TAG), lam_som,
+                                     shape=(NSOM,)).astype(jnp.int32)
+            extc = jnp.concatenate([extc, somc])
         if replace is not None:
             # Replaced cells: the AdEx spike is discarded and an independent
             # Poisson draw per replaced cell decides the emitted spike, which
@@ -639,19 +751,36 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
             po = jax.random.poisson(kr, lam_rep)
             spk = spk.at[rep_idx].set(po > 0)
         if sil_mask is not None:
-            spk = spk & ~sil_mask
+            if silence_onset_s is None:
+                spk = spk & ~sil_mask
+            else:
+                spk = spk & ~(sil_mask & (t >= onset_step))
         ring = ring.at[head].set(spk)
         ering = ering.at[head].set(extc)
         head = (head + 1) % n_delay
         ce = jnp.sum(spk[sl["E"]]).astype(jnp.int32)
         cp = jnp.sum(spk[sl["PV"]]).astype(jnp.int32)
         cs = jnp.sum(spk[sl["SOM"]]).astype(jnp.int32)
-        return (V, w, ref, gE, gI, ring, ering, head, rkey), jnp.array([ce, cp, cs])
+        row = jnp.array([ce, cp, cs])
+        if want_raster:
+            return (V, w, ref, gE, gI, ring, ering, head, rkey), (row, spk)
+        return (V, w, ref, gE, gI, ring, ering, head, rkey), row
 
     init = (v0, w0, r0, ge0, gi0, ring0, ering0, head0, k_ext)
-    (V, w, ref, gE, gI, _, _, _, _), counts = jax.jit(
-        lambda c: jax.lax.scan(step_fn, c, None, length=steps))(init)
-    jax.block_until_ready(counts)
+    if use_t:
+        def _scan(c):
+            return jax.lax.scan(step_fn, c, jnp.arange(steps))
+    else:
+        def _scan(c):
+            return jax.lax.scan(step_fn, c, None, length=steps)
+    if want_raster:
+        (V, w, ref, gE, gI, _, _, _, _), (_, raster) = jax.jit(_scan)(init)
+        jax.block_until_ready(raster)
+        out = raster
+    else:
+        (V, w, ref, gE, gI, _, _, _, _), counts = jax.jit(_scan)(init)
+        jax.block_until_ready(counts)
+        out = counts
     final = {"V": V, "w": w, "ref": ref, "gE": gE, "gI": gI,
              "NE": NE, "NPV": NPV, "NSOM": NSOM}
-    return counts, final
+    return out, final
