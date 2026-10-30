@@ -660,3 +660,139 @@ def test_p6_gate4_converter_known_answer(tmp_path):
     with pytest.raises(SystemExit):  # another code SHA into the same directory
         api.write_run(tmp_path, p=0.07, seed=3, T_s=12.0, counts=full, sizes=sizes,
                       wall_s=0.0, start_time="t", sha="b" * 40)
+
+
+# --- Cell Reports 2025 parameter set (CELLREP_PARAMS, notebook cell 1) ---
+
+_PARAMS_A508B24C = {
+    "E_VT_V": -50e-3,
+    "E_Delta_V": 2e-3,
+    "E_Tref_s": 5e-3,
+    "E_tauw_s": 500e-3,
+    "E_a_S": 4e-9,
+    "E_b_A": 50e-12,
+    "E_C_F": 200e-12,
+    "E_gL_S": 10e-9,
+    "E_EL_V": -65e-3,
+    "E_Vreset_V": -65e-3,
+    "PV_VT_V": -50e-3,
+    "PV_Delta_V": 0.5e-3,
+    "PV_Tref_s": 5e-3,
+    "PV_tauw_s": 500e-3,
+    "PV_a_S": 0.0,
+    "PV_b_A": 0.0,
+    "PV_C_F": 200e-12,
+    "PV_gL_S": 10e-9,
+    "PV_EL_V": -65e-3,
+    "PV_Vreset_V": -65e-3,
+    "SOM_VT_V": -50e-3,
+    "SOM_Delta_V": 2e-3,
+    "SOM_Tref_s": 5e-3,
+    "SOM_tauw_s": 500e-3,
+    "SOM_a_S": 4e-9,
+    "SOM_b_A": 80e-12,
+    "SOM_C_F": 200e-12,
+    "SOM_gL_S": 10e-9,
+    "SOM_EL_V": -55e-3,
+    "SOM_Vreset_V": -65e-3,
+    "tau_d_s": 2e-3,
+    "tauE_s": 2e-3,
+    "tauI_s": 8e-3,
+    "ErevE_V": 0.0,
+    "ErevI_V": -80e-3,
+    "Q_PV_E_S": 5e-9,
+    "Q_SOM_E_S": 5e-9,
+    "Q_PV_PV_S": 5e-9,
+    "Q_SOM_PV_S": 5e-9,
+    "Q_E_E_S": 2e-9,
+    "Q_E_PV_S": 3e-9,
+    "Q_E_SOM_S": 3e-9,
+    "Q_PV_SOM_S": 0.0,
+    "Q_SOM_SOM_S": 0.0,
+    "Q_ext_S": 2.5e-9,
+    "NE": 8000,
+    "NPV": 750,
+    "NSOM": 750,
+    "p": 0.07,
+    "ext_sources": 560,
+    "ext_rate_Hz": 4.0,
+    "dt_s": 1e-4,
+}
+
+
+def test_cellrep_params_match_notebook():
+    """CELLREP_PARAMS pins every oracle value from the authors' notebook
+    cell 1 (each message names the notebook cell; exact line numbers were
+    unreadable from this sandbox, so all cite cell 1)."""
+    P = cj.CELLREP_PARAMS
+    dt = float(cj.CELLREP_PARAMS["dt_s"])
+    assert P["NE"] == 8000, "nb cell 1: NE"
+    assert P["NPV"] == 800, "nb cell 1: NPV"
+    assert P["NSOM"] == 600, "nb cell 1: NSOM nominal 600"
+    assert P["p"] == 0.017, "nb cell 1: p"
+    assert P["p_E_PV_mult"] == 2.0, "nb cell 1: E->PV at 2p"
+    assert P["Q_PV_E_S"] == 6e-9, "nb cell 1: Q PV -> E"
+    assert P["Q_SOM_E_S"] == 5e-9, "nb cell 1: Q SOM -> E"
+    assert P["Q_PV_PV_S"] == 6e-9, "nb cell 1: Q PV -> PV"
+    assert P["Q_SOM_PV_S"] == 5e-9, "nb cell 1: Q SOM -> PV"
+    assert P["Q_E_E_S"] == 1.25e-9, "nb cell 1: Q E -> E"
+    assert P["Q_E_PV_S"] == 3.75e-9, "nb cell 1: Q E -> PV"
+    assert P["Q_E_SOM_S"] == 2.5e-9, "nb cell 1: Q E -> SOM"
+    assert P["Q_PV_SOM_S"] == 0.0, "nb cell 1: Q PV -> SOM absent"
+    assert P["Q_SOM_SOM_S"] == 0.0, "nb cell 1: Q SOM -> SOM absent"
+    assert P["Q_ext_S"] == 1.25e-9, "nb cell 1: Q Ext -> E, PV"
+    assert P["tauE_E_s"] == 5e-3, "nb cell 1: excitatory decay onto E"
+    assert P["tauE_PV_s"] == 1e-3, "nb cell 1: excitatory decay onto PV"
+    assert P["tauE_SOM_s"] == 2e-3, "nb cell 1: excitatory decay onto SOM"
+    assert P["tauI_s"] == 5e-3, "nb cell 1: GABA decay"
+    assert "tauE_s" not in P, "nb cell 1: no single excitatory decay"
+    want_adex = {
+        "E": {"EL_V": -60e-3, "Delta_V": 2e-3, "a_S": 4e-9, "b_A": 130e-12},
+        "PV": {"EL_V": -60e-3, "Delta_V": 0.5e-3, "a_S": 0.0, "b_A": 0.0},
+        "SOM": {"EL_V": -55e-3, "Delta_V": 1.5e-3, "a_S": 4e-9, "b_A": 25e-12},
+    }
+    for kind, fields in want_adex.items():
+        for field, value in fields.items():
+            assert P[kind + "_" + field] == value, ("nb cell 1: Table 1", kind, field)
+    for kind in ("E", "PV", "SOM"):
+        assert P[kind + "_VT_V"] == -50e-3, ("nb cell 1: Table 1 VT", kind)
+        assert P[kind + "_Tref_s"] == 5e-3, ("nb cell 1: Table 1 Tref", kind)
+        assert P[kind + "_tauw_s"] == 500e-3, ("nb cell 1: Table 1 tau_w", kind)
+        assert P[kind + "_C_F"] == 200e-12, ("nb cell 1: Table 1 C", kind)
+        assert P[kind + "_gL_S"] == 10e-9, ("nb cell 1: Table 1 gL", kind)
+        assert P[kind + "_Vreset_V"] == -65e-3, ("nb cell 1: Table 1 Vreset", kind)
+    assert P["ErevI_V"] == -80e-3, "nb cell 1: E_rev inhibitory"
+    assert P["ErevE_V"] == 0.0, "nb cell 1: E_rev excitatory"
+    assert P["tau_d_s"] == 0.0, "nb cell 1: no synaptic delay"
+    assert cj.delay_steps(dt, "default", "cellrep") == 1, "nb cell 1: zero delay -> 1-step ring"
+    assert P["ext_sources"] == 136 == int(0.017 * 8000), "nb cell 1: N_ext = int(p * NE)"
+    assert P["ext_rate_Hz"] == 4.0, "nb cell 1: 4 Hz to E and PV"
+    assert cj.ext_source_count(0.017, 8000, "fixed", "cellrep") == 136, "nb cell 1: source count"
+    assert cj.external_lam(0.017, 8000, dt, "fixed", "cellrep") == 136 * 4.0 * dt, (
+        "nb cell 1: drive lam")
+    assert cj.cell_params("E", "cellrep")["EL_V"] == -60e-3, "nb cell 1: EL (E)"
+    assert cj.cell_params("SOM", "cellrep")["Delta_V"] == 1.5e-3, "nb cell 1: Delta (SOM)"
+    net = cj.build_network(jax.random.key(11), p=0.3, NE=20, NPV=6, NSOM=6,
+                           indegree="fixed", param_set="cellrep")
+    assert ("PV", "SOM") not in net["blocks"], "nb cell 1: PV->SOM absent"
+    assert ("SOM", "SOM") not in net["blocks"], "nb cell 1: SOM->SOM absent"
+    assert (net["NE"], net["NPV"], net["NSOM"]) == (20, 6, 6), "cellrep sizes pass through"
+    ee = np.asarray(net["blocks"][("E", "E")])
+    epv = np.asarray(net["blocks"][("E", "PV")])
+    assert bool((ee.sum(axis=0) == 6).all()), "nb cell 1: E->E at p (round(0.3*20)=6)"
+    assert bool((epv.sum(axis=0) == 12).all()), "nb cell 1: E->PV at 2p (round(0.6*20)=12)"
+
+
+def test_cellrep_default_unchanged():
+    """The default set equals its a508b24c values, pinned literally."""
+    assert cj.PARAMS == _PARAMS_A508B24C, "default PARAMS must equal a508b24c"
+    assert cj._params_for("default") is cj.PARAMS, "default selection is PARAMS"
+    assert cj._params_for("cellrep") is cj.CELLREP_PARAMS, "cellrep selection is CELLREP_PARAMS"
+    assert "tauE_s" in cj.PARAMS, "default keeps its single excitatory decay"
+    dt = float(cj.PARAMS["dt_s"])
+    assert cj.delay_steps(dt) == 20, "default delay ring still 20 steps"
+    assert cj.ext_source_count(0.07, 8000, "fixed") == 560, "default source count still 560"
+    net = cj.build_network(jax.random.key(0), NE=40, NPV=8, NSOM=8)
+    assert (net["NE"], net["NPV"], net["NSOM"], net["p"]) == (40, 8, 8, 0.07), "default sizes/p"
+    assert ("PV", "SOM") not in net["blocks"] and ("SOM", "SOM") not in net["blocks"], (
+        "default absent blocks")

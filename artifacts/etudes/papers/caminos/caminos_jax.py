@@ -43,6 +43,11 @@ bit-for-bit for the same key.
   clamp (default 20 and 50).
 * ``ext_sources="pNE"`` (exploratory): source count ``round(p * NE)``
   instead of the fixed 560. Default ``"fixed"`` stays 560.
+* ``param_set="cellrep"`` (Cell Reports 2025 set, ``CELLREP_PARAMS``):
+  population sizes, probabilities, weights, decays and drive from the
+  authors' notebook cell 1 (no synaptic delay; E->PV at twice p). Every
+  other keyword keeps its default, which reproduces the reference
+  bit-for-bit for the same key.
 """
 
 from __future__ import annotations
@@ -117,6 +122,79 @@ PARAMS = {
     "dt_s": 1e-4,  # Methods, Euler dt (0.1 ms)
 }
 
+CELLREP_PARAMS = {
+    # --- Cell Reports 2025, authors' notebook cell 1: AdEx cells (SI units) ---
+    "E_VT_V": -50e-3,  # nb cell 1: VT (E)
+    "E_Delta_V": 2e-3,  # nb cell 1: Delta (E)
+    "E_Tref_s": 5e-3,  # nb cell 1: Tref (E)
+    "E_tauw_s": 500e-3,  # nb cell 1: tau_w (E)
+    "E_a_S": 4e-9,  # nb cell 1: a (E)
+    "E_b_A": 130e-12,  # nb cell 1: b (E)
+    "E_C_F": 200e-12,  # nb cell 1: C (E)
+    "E_gL_S": 10e-9,  # nb cell 1: gL (E)
+    "E_EL_V": -60e-3,  # nb cell 1: EL (E)
+    "E_Vreset_V": -65e-3,  # nb cell 1: Vreset (E)
+    "PV_VT_V": -50e-3,  # nb cell 1: VT (PV)
+    "PV_Delta_V": 0.5e-3,  # nb cell 1: Delta (PV)
+    "PV_Tref_s": 5e-3,  # nb cell 1: Tref (PV)
+    "PV_tauw_s": 500e-3,  # nb cell 1: tau_w (PV)
+    "PV_a_S": 0.0,  # nb cell 1: a (PV)
+    "PV_b_A": 0.0,  # nb cell 1: b (PV)
+    "PV_C_F": 200e-12,  # nb cell 1: C (PV)
+    "PV_gL_S": 10e-9,  # nb cell 1: gL (PV)
+    "PV_EL_V": -60e-3,  # nb cell 1: EL (PV)
+    "PV_Vreset_V": -65e-3,  # nb cell 1: Vreset (PV)
+    "SOM_VT_V": -50e-3,  # nb cell 1: VT (SOM)
+    "SOM_Delta_V": 1.5e-3,  # nb cell 1: Delta (SOM)
+    "SOM_Tref_s": 5e-3,  # nb cell 1: Tref (SOM)
+    "SOM_tauw_s": 500e-3,  # nb cell 1: tau_w (SOM)
+    "SOM_a_S": 4e-9,  # nb cell 1: a (SOM)
+    "SOM_b_A": 25e-12,  # nb cell 1: b (SOM)
+    "SOM_C_F": 200e-12,  # nb cell 1: C (SOM)
+    "SOM_gL_S": 10e-9,  # nb cell 1: gL (SOM)
+    "SOM_EL_V": -55e-3,  # nb cell 1: EL (SOM)
+    "SOM_Vreset_V": -65e-3,  # nb cell 1: Vreset (SOM)
+    # --- Cell Reports 2025, notebook cell 1: synapses (SI units) ---
+    # V_cut = V_T + 5 Delta is already how adex_step sets the threshold.
+    "tau_d_s": 0.0,  # nb cell 1: no synaptic delay
+    "tauE_E_s": 5e-3,  # nb cell 1: excitatory decay onto E
+    "tauE_PV_s": 1e-3,  # nb cell 1: excitatory decay onto PV
+    "tauE_SOM_s": 2e-3,  # nb cell 1: excitatory decay onto SOM
+    "tauI_s": 5e-3,  # nb cell 1: GABA decay, all inhibitory inputs
+    "ErevE_V": 0.0,  # nb cell 1: E_rev excitatory
+    "ErevI_V": -80e-3,  # nb cell 1: E_rev inhibitory
+    "Q_PV_E_S": 6e-9,  # nb cell 1: Q PV -> E
+    "Q_SOM_E_S": 5e-9,  # nb cell 1: Q SOM -> E
+    "Q_PV_PV_S": 6e-9,  # nb cell 1: Q PV -> PV
+    "Q_SOM_PV_S": 5e-9,  # nb cell 1: Q SOM -> PV
+    "Q_E_E_S": 1.25e-9,  # nb cell 1: Q E -> E
+    "Q_E_PV_S": 3.75e-9,  # nb cell 1: Q E -> PV
+    "Q_E_SOM_S": 2.5e-9,  # nb cell 1: Q E -> SOM
+    "Q_PV_SOM_S": 0.0,  # nb cell 1: Q PV -> SOM (absent)
+    "Q_SOM_SOM_S": 0.0,  # nb cell 1: Q SOM -> SOM (absent)
+    "Q_ext_S": 1.25e-9,  # nb cell 1: Q Ext -> E, PV
+    # --- Cell Reports 2025, notebook cell 1: network and drive ---
+    "NE": 8000,  # nb cell 1: E population size
+    "NPV": 800,  # nb cell 1: PV population size
+    "NSOM": 600,  # nb cell 1: SOM population size (nominal 600)
+    "p": 0.017,  # nb cell 1: connection probability
+    "p_E_PV_mult": 2.0,  # nb cell 1: E -> PV at twice p
+    "ext_sources": 136,  # nb cell 1: N_ext = int(p * NE)
+    "ext_rate_Hz": 4.0,  # nb cell 1: 4 Hz to E and PV, none to SOM
+    "dt_s": 1e-4,  # reference Euler step (0.1 ms); not an oracle value
+}
+
+PARAM_SETS = {"default": PARAMS, "cellrep": CELLREP_PARAMS}
+
+
+def _params_for(param_set="default"):
+    """Parameter dict for ``param_set``: ``PARAMS`` unless asked otherwise."""
+    try:
+        return PARAM_SETS[param_set]
+    except KeyError:
+        raise ValueError("param_set must be one of %s, got %r"
+                         % (sorted(PARAM_SETS), param_set))
+
 CELL_TYPES = ("E", "PV", "SOM")
 
 # Clip for the AdEx exponential argument (V - VT) / Delta. The spike
@@ -125,28 +203,31 @@ CELL_TYPES = ("E", "PV", "SOM")
 _EXP_ARG_MAX = 20.0
 
 
-def cell_params(kind):
-    """Per-type AdEx parameter dict in SI units, from ``PARAMS``."""
+def cell_params(kind, param_set="default"):
+    """Per-type AdEx parameter dict in SI units, from the selected set."""
+    P = _params_for(param_set)
     return {
-        "VT_V": PARAMS[kind + "_VT_V"],
-        "Delta_V": PARAMS[kind + "_Delta_V"],
-        "Tref_s": PARAMS[kind + "_Tref_s"],
-        "tauw_s": PARAMS[kind + "_tauw_s"],
-        "a_S": PARAMS[kind + "_a_S"],
-        "b_A": PARAMS[kind + "_b_A"],
-        "C_F": PARAMS[kind + "_C_F"],
-        "gL_S": PARAMS[kind + "_gL_S"],
-        "EL_V": PARAMS[kind + "_EL_V"],
-        "Vreset_V": PARAMS[kind + "_Vreset_V"],
+        "VT_V": P[kind + "_VT_V"],
+        "Delta_V": P[kind + "_Delta_V"],
+        "Tref_s": P[kind + "_Tref_s"],
+        "tauw_s": P[kind + "_tauw_s"],
+        "a_S": P[kind + "_a_S"],
+        "b_A": P[kind + "_b_A"],
+        "C_F": P[kind + "_C_F"],
+        "gL_S": P[kind + "_gL_S"],
+        "EL_V": P[kind + "_EL_V"],
+        "Vreset_V": P[kind + "_Vreset_V"],
     }
 
 
-def delay_steps(dt, step_order="default"):
+def delay_steps(dt, step_order="default", param_set="default"):
     """Delay-ring length for step ``dt``: ``round(tau_d / dt)`` by default
-    (20 at dt = 0.1 ms), one more under ``step_order="brian2"`` (S5)."""
+    (20 at dt = 0.1 ms), one more under ``step_order="brian2"`` (S5).
+    The cellrep set has no delay (tau_d = 0), which still maps to the
+    one-step floor: a spike emitted at step t is first read at step t+1."""
     if step_order not in ("default", "brian2"):
         raise ValueError("step_order must be 'default' or 'brian2', got %r" % (step_order,))
-    n = max(int(round(PARAMS["tau_d_s"] / float(dt))), 1)
+    n = max(int(round(_params_for(param_set)["tau_d_s"] / float(dt))), 1)
     return n + 1 if step_order == "brian2" else n
 
 
@@ -159,11 +240,12 @@ def refractory_steps(tref_s, dt, step_order="default"):
     return n - 1 if step_order == "brian2" else n
 
 
-def ext_source_count(p, NE, ext_sources="fixed"):
-    """External source count: the fixed 560 by default, ``round(p * NE)``
-    under ``ext_sources="pNE"`` (exploratory), or a positive int as given."""
+def ext_source_count(p, NE, ext_sources="fixed", param_set="default"):
+    """External source count: the set's fixed count by default (560
+    reference, 136 cellrep), ``round(p * NE)`` under ``ext_sources="pNE"``
+    (exploratory), or a positive int as given."""
     if ext_sources == "fixed":
-        return int(PARAMS["ext_sources"])
+        return int(_params_for(param_set)["ext_sources"])
     if ext_sources == "pNE":
         return int(round(float(p) * int(NE)))
     if isinstance(ext_sources, int) and ext_sources > 0:
@@ -172,9 +254,10 @@ def ext_source_count(p, NE, ext_sources="fixed"):
                      % (ext_sources,))
 
 
-def external_lam(p, NE, dt, ext_sources="fixed"):
+def external_lam(p, NE, dt, ext_sources="fixed", param_set="default"):
     """Per-cell external Poisson mean per step: ``n_src * rate * dt``."""
-    return ext_source_count(p, NE, ext_sources) * PARAMS["ext_rate_Hz"] * float(dt)
+    P = _params_for(param_set)
+    return ext_source_count(p, NE, ext_sources, param_set) * P["ext_rate_Hz"] * float(dt)
 
 
 def adex_step(state, I, p, dt, step_order="default"):
@@ -264,16 +347,19 @@ def shared_external_counts(key, steps, n_src, n_tgt, p, rate_hz, dt):
     return counts, ext_map
 
 
-def build_network(key, p=0.07, NE=8000, NPV=750, NSOM=750, indegree="bernoulli"):
+def build_network(key, p=None, NE=None, NPV=None, NSOM=None, indegree="bernoulli",
+                  param_set="default"):
     """Bernoulli connectivity between the E/PV/SOM blocks.
 
-    Every ordered pair connects independently with probability ``p``;
-    diagonal (autapse) entries of the E->E and PV->PV blocks are forced
-    to zero. PV->SOM and SOM->SOM are absent in the reference model, so
-    no blocks are built for them.
+    ``p``/sizes default to the selected set (reference: 0.07, 8000/750/750;
+    cellrep: 0.017, 8000/800/600). Every ordered pair connects independently
+    with probability ``p``, except E->PV under the cellrep set, which
+    connects at twice ``p``; diagonal (autapse) entries of the E->E and
+    PV->PV blocks are forced to zero. PV->SOM and SOM->SOM are absent in
+    both sets, so no blocks are built for them.
 
     Under ``indegree="fixed"`` (S3) every post cell instead gets exactly
-    ``round(p * N_pre)`` presynaptic partners per block, drawn without
+    ``round(pair_p * N_pre)`` presynaptic partners per block, drawn without
     replacement (no autapses in E->E, PV->PV).
 
     Returns a dict with sizes, ``p``, and ``blocks`` mapping
@@ -283,6 +369,11 @@ def build_network(key, p=0.07, NE=8000, NPV=750, NSOM=750, indegree="bernoulli")
     + 0.5625M (PV->PV) + 6.0M (SOM->E) + 0.5625M (SOM->PV)
     = 89.0625M entries ~= 85.0 MiB, acceptable on GPU.
     """
+    P = _params_for(param_set)
+    p = P["p"] if p is None else p
+    NE = P["NE"] if NE is None else NE
+    NPV = P["NPV"] if NPV is None else NPV
+    NSOM = P["NSOM"] if NSOM is None else NSOM
     sizes = {"E": NE, "PV": NPV, "SOM": NSOM}
     pairs = [("E", "E"), ("E", "PV"), ("E", "SOM"), ("PV", "E"),
              ("PV", "PV"), ("SOM", "E"), ("SOM", "PV")]
@@ -291,11 +382,13 @@ def build_network(key, p=0.07, NE=8000, NPV=750, NSOM=750, indegree="bernoulli")
     keys = jax.random.split(key, len(pairs))
     blocks = {}
     for k, (pre, post) in zip(keys, pairs):
+        mult = float(P.get("p_E_PV_mult", 1.0)) if (pre, post) == ("E", "PV") else 1.0
+        pp = p * mult
         if indegree == "fixed":
-            blocks[(pre, post)] = _fixed_block(k, p, sizes[pre], sizes[post],
+            blocks[(pre, post)] = _fixed_block(k, pp, sizes[pre], sizes[post],
                                                forbid_diag=(pre == post))
             continue
-        blk = jax.random.bernoulli(k, p, (sizes[pre], sizes[post]))
+        blk = jax.random.bernoulli(k, pp, (sizes[pre], sizes[post]))
         if pre == post:  # no autapses
             n = sizes[pre]
             blk = blk.at[jnp.arange(n), jnp.arange(n)].set(False)
@@ -303,13 +396,13 @@ def build_network(key, p=0.07, NE=8000, NPV=750, NSOM=750, indegree="bernoulli")
     return {"NE": NE, "NPV": NPV, "NSOM": NSOM, "p": p, "blocks": blocks}
 
 
-def _concat_params(sizes, dtype):
+def _concat_params(sizes, dtype, param_set="default"):
     """Per-neuron parameter arrays in [E | PV | SOM] order."""
     out = {}
     for name in ("VT_V", "Delta_V", "Tref_s", "tauw_s", "a_S", "b_A",
                  "C_F", "gL_S", "EL_V", "Vreset_V"):
         out[name] = jnp.concatenate(
-            [jnp.full((sizes[k],), cell_params(k)[name], dtype=dtype) for k in CELL_TYPES]
+            [jnp.full((sizes[k],), cell_params(k, param_set)[name], dtype=dtype) for k in CELL_TYPES]
         )
     return out
 
@@ -339,12 +432,13 @@ def route_inputs(blocks, q, arr, earr, sizes, dtype):
     return ge, gi
 
 
-def simulate(key, T, dt=1e-4, p=0.07, dtype=jnp.float32, record="counts",
+def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
              NE=None, NPV=None, NSOM=None, indegree="bernoulli", ext="private",
-             step_order="default", ext_sources="fixed"):
+             step_order="default", ext_sources="fixed", param_set="default"):
     """Run the full E/PV/SOM network for ``T`` seconds (Euler, step ``dt``).
 
-    ``NE/NPV/NSOM`` default to the reference sizes in ``PARAMS`` and are
+    ``p`` and ``NE/NPV/NSOM`` default to the selected set (reference:
+    0.07, 8000/750/750; cellrep: 0.017, 8000/800/600) and are
     exposed only so small smoke nets can use this same path. ``record``
     must be ``"counts"`` (any other value is refused). Seeding comes
     only through ``key``: one split builds connectivity, the other
@@ -356,7 +450,8 @@ def simulate(key, T, dt=1e-4, p=0.07, dtype=jnp.float32, record="counts",
     once from the key, per-cell counts summed over connected trains),
     ``step_order="brian2"`` (S5, 21-step ring and 49-step clamp),
     ``ext_sources="pNE"`` (exploratory, ``round(p*NE)`` sources instead of
-    the fixed 560).
+    the fixed 560). ``param_set="cellrep"`` selects the Cell Reports 2025
+    set (notebook cell 1), whose zero delay maps to a 1-step ring.
 
     Per step, in order: (i) pop spikes (recurrent booleans, external
     integer counts) delayed by ``round(tau_d / dt)`` steps from the ring
@@ -372,30 +467,33 @@ def simulate(key, T, dt=1e-4, p=0.07, dtype=jnp.float32, record="counts",
         raise ValueError("only record='counts' is supported, got %r" % (record,))
     if ext not in ("private", "shared"):
         raise ValueError("ext must be 'private' or 'shared', got %r" % (ext,))
-    NE = PARAMS["NE"] if NE is None else NE
-    NPV = PARAMS["NPV"] if NPV is None else NPV
-    NSOM = PARAMS["NSOM"] if NSOM is None else NSOM
+    P = _params_for(param_set)
+    p = P["p"] if p is None else p
+    NE = P["NE"] if NE is None else NE
+    NPV = P["NPV"] if NPV is None else NPV
+    NSOM = P["NSOM"] if NSOM is None else NSOM
     sizes = {"E": NE, "PV": NPV, "SOM": NSOM}
     n_tot = NE + NPV + NSOM
     steps = int(round(T / dt))
-    n_delay = delay_steps(dt, step_order)
-    n_src = ext_source_count(p, NE, ext_sources)
+    n_delay = delay_steps(dt, step_order, param_set)
+    n_src = ext_source_count(p, NE, ext_sources, param_set)
 
     k_net, k_ext = jax.random.split(key)
-    net = build_network(k_net, p=p, NE=NE, NPV=NPV, NSOM=NSOM, indegree=indegree)
+    net = build_network(k_net, p=p, NE=NE, NPV=NPV, NSOM=NSOM, indegree=indegree,
+                        param_set=param_set)
     blocks = net["blocks"]
     if ext == "shared":
         k_map, k_ext = jax.random.split(k_ext)
         ext_map_i = build_ext_map(k_map, p, n_src, NE + NPV).astype(jnp.int32).T
     else:
         ext_map_i = None
-    par = _concat_params(sizes, dtype)
+    par = _concat_params(sizes, dtype, param_set)
 
     def _f(x):
         return jnp.asarray(x, dtype=dtype)
 
     el = jnp.concatenate(
-        [jnp.full((sizes[k],), cell_params(k)["EL_V"], dtype=dtype) for k in CELL_TYPES]
+        [jnp.full((sizes[k],), cell_params(k, param_set)["EL_V"], dtype=dtype) for k in CELL_TYPES]
     )
     v0 = el
     w0 = jnp.zeros((n_tot,), dtype)
@@ -406,20 +504,22 @@ def simulate(key, T, dt=1e-4, p=0.07, dtype=jnp.float32, record="counts",
     ering0 = jnp.zeros((n_delay, NE + NPV), jnp.int32)
     head0 = jnp.int32(0)
 
-    decay_e = _f(1.0 - dt / PARAMS["tauE_s"])
-    decay_i = _f(1.0 - dt / PARAMS["tauI_s"])
-    erev_e = _f(PARAMS["ErevE_V"])
-    erev_i = _f(PARAMS["ErevI_V"])
-    q_ee = _f(PARAMS["Q_E_E_S"])
-    q_ep = _f(PARAMS["Q_E_PV_S"])
-    q_es = _f(PARAMS["Q_E_SOM_S"])
-    q_pe = _f(PARAMS["Q_PV_E_S"])
-    q_pp = _f(PARAMS["Q_PV_PV_S"])
-    q_se = _f(PARAMS["Q_SOM_E_S"])
-    q_sp = _f(PARAMS["Q_SOM_PV_S"])
-    q_ext = _f(PARAMS["Q_ext_S"])
-    lam = external_lam(p, NE, dt, ext_sources)
-    lam_tr = PARAMS["ext_rate_Hz"] * float(dt)
+    decay_e = _f(1.0 - dt / P["tauE_s"]) if "tauE_s" in P else jnp.concatenate([
+        jnp.full((sizes[k],), 1.0 - dt / P["tauE_" + k + "_s"], dtype=dtype)
+        for k in CELL_TYPES])  # cellrep set: excitatory decay per postsynaptic type
+    decay_i = _f(1.0 - dt / P["tauI_s"])
+    erev_e = _f(P["ErevE_V"])
+    erev_i = _f(P["ErevI_V"])
+    q_ee = _f(P["Q_E_E_S"])
+    q_ep = _f(P["Q_E_PV_S"])
+    q_es = _f(P["Q_E_SOM_S"])
+    q_pe = _f(P["Q_PV_E_S"])
+    q_pp = _f(P["Q_PV_PV_S"])
+    q_se = _f(P["Q_SOM_E_S"])
+    q_sp = _f(P["Q_SOM_PV_S"])
+    q_ext = _f(P["Q_ext_S"])
+    lam = external_lam(p, NE, dt, ext_sources, param_set)
+    lam_tr = P["ext_rate_Hz"] * float(dt)
     sl = {"E": slice(0, NE), "PV": slice(NE, NE + NPV),
           "SOM": slice(NE + NPV, n_tot)}
     q ={"q_ee": q_ee, "q_ep": q_ep, "q_es": q_es, "q_pe": q_pe, "q_pp": q_pp,
