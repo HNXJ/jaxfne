@@ -305,6 +305,55 @@ def locking_by_type(raster, sizes, lfp, dt_s, lo_hz=25.0, hi_hz=45.0):
     return {"ppc": ppc_by_type(groups, types), "mean_phase": mean_phase}
 
 
+def phase_aligned_mean(target, phase, n_bins=36):
+    """Phase-aligned cycle average of a signal against a reference phase (Figure S2).
+
+    Methods "Mean averaging over cycles" (mmc2.txt lines 1780-1786, Cell Reports
+    2025): the instantaneous phase of a reference signal is unwrapped, cycle
+    boundaries sit at the 2 pi crossings, and within each cycle the target is
+    resampled onto a uniform phase grid by linear interpolation; the returned
+    profile is the mean across cycles. The reference phase is supplied by the
+    caller, so the function is generic in the reference (for Figure S2 it is
+    :func:`lfp_phase` of the LFP proxy, an assumed 25-45 Hz band).
+
+    ``target`` is ``[steps]`` or ``[steps, k]``; ``phase`` is ``[steps]`` in
+    radians, wrapped or not (unwrapped here with ``np.unwrap``). A cycle is a
+    maximal run of steps with the same ``floor(phase / 2 pi)`` index; the first
+    and last runs are the partial cycles at the edges and are dropped, so only
+    complete cycles enter the mean. Returns ``(grid, mean, n_cycles)``:
+    ``grid`` the bin phases ``[n_bins]`` on ``[0, 2 pi)``, ``mean`` the
+    ``[n_bins]`` (1-D target) or ``[n_bins, k]`` (2-D target) cycle mean and
+    ``n_cycles`` the number of complete cycles averaged. Raises ValueError for
+    a length mismatch, ``n_bins < 2``, more than 2 target dimensions, or fewer
+    than one complete cycle.
+    """
+    x = np.asarray(target, dtype=float)
+    ph = np.unwrap(np.asarray(phase, dtype=float))
+    if x.ndim not in (1, 2):
+        raise ValueError("target must be [steps] or [steps, k], got shape %r" % (x.shape,))
+    if x.shape[0] != ph.shape[0]:
+        raise ValueError("target has %d steps but phase has %d" % (x.shape[0], ph.shape[0]))
+    n_bins = int(n_bins)
+    if n_bins < 2:
+        raise ValueError("n_bins must be >= 2, got %d" % n_bins)
+    index = np.floor(ph / (2.0 * np.pi)).astype(int)
+    bounds = np.concatenate(([0], np.flatnonzero(np.diff(index)) + 1, [ph.size]))
+    if bounds.size < 4:  # fewer than 3 runs leaves no cycle after dropping the edges
+        raise ValueError("fewer than one complete cycle: %d runs over %d steps"
+                         % (bounds.size - 1, ph.size))
+    grid = np.linspace(0.0, 2.0 * np.pi, n_bins, endpoint=False)
+    profiles = []
+    for a, b, k in zip(bounds[1:-2], bounds[2:-1], index[bounds[1:-2]]):  # runs 1..R-2, edges dropped
+        local = ph[a:b] - 2.0 * np.pi * k  # within-cycle phase in [0, 2 pi)
+        seg = x[a:b]
+        if seg.ndim == 1:
+            profiles.append(np.interp(grid, local, seg))
+        else:
+            profiles.append(np.stack([np.interp(grid, local, seg[:, j])
+                                      for j in range(seg.shape[1])], axis=1))
+    return grid, np.mean(profiles, axis=0), len(profiles)
+
+
 def _same(a, b):
     """Equal p values (floats from JSON) within 1e-9."""
     return abs(float(a) - float(b)) < 1e-9

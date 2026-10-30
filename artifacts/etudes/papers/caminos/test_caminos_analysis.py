@@ -780,3 +780,91 @@ def test_lfp_phase_rejects_bad_band():
     """lo_hz = 50 with hi_hz = 45 violates 0 < lo < hi and raises ValueError."""
     with pytest.raises(ValueError):
         ca.lfp_phase(np.zeros(1000), DT, lo_hz=50.0)
+
+
+def test_phase_aligned_mean_recovers_a_locked_profile():
+    """A target locked to the reference phase averages back to its cycle profile (Figure S2).
+
+    2 s at 35 Hz gives 70 maximal runs of one floor(2 pi f t / 2 pi) index (printed count
+    below). The drop rule removes the first AND last runs: the first run starts at phase 0
+    but its samples stop at 0.9975*2*pi (the 0.0035-cycle step does not divide the cycle,
+    285.714 steps per cycle), so it is partial like the last, and 68 complete cycles are
+    kept -- not the 69/70 of a derivation that counts the first run as complete.
+    """
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    phase = 2.0 * np.pi * F_GAMMA * t
+    target = 2.0 + np.cos(phase)
+    grid, mean, n_cycles = ca.phase_aligned_mean(target, phase)
+    print("n_cycles =", n_cycles)  # observed 68; derivation above
+    assert n_cycles == 68, n_cycles
+    assert grid.shape == (36,) and np.allclose(grid, 2.0 * np.pi * np.arange(36) / 36.0)
+    i0 = int(np.argmin(np.abs(grid)))  # bin at phase 0
+    ipi = int(np.argmin(np.abs(grid - np.pi)))  # bin nearest pi
+    assert abs(mean[i0] - 3.0) <= 0.01, (i0, mean[i0])
+    assert abs(mean[ipi] - 1.0) <= 0.01, (ipi, mean[ipi])
+
+
+def test_phase_aligned_mean_wraps_the_reference():
+    """The same target with the phase wrapped to (-pi, pi] gives the same mean to 1e-10."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    phase = 2.0 * np.pi * F_GAMMA * t
+    target = 2.0 + np.cos(phase)
+    _, mean_u, n_u = ca.phase_aligned_mean(target, phase)
+    _, mean_w, n_w = ca.phase_aligned_mean(target, np.angle(np.exp(1j * phase)))
+    assert n_u == n_w == 68, (n_u, n_w)
+    np.testing.assert_allclose(mean_w, mean_u, rtol=0, atol=1e-10)
+
+
+def test_phase_aligned_mean_unlocked_is_flat():
+    """A target independent of the phase averages to a flat profile.
+
+    Derivation of the bound: np.interp at a bin centre mixes only the two bracketing
+    samples, so one cycle's value at a bin has variance sigma**2 * (f**2 + (1 - f)**2)
+    with mean 2 sigma**2 / 3 over the fractional offsets f; the mean over n_cycles cycles
+    has std sigma * sqrt(2 / (3 * n_cycles)) (about 0.099 at 68 cycles). The packet's
+    sigma / sqrt(n_cycles * samples_per_bin) (samples_per_bin = steps / (n_cycles *
+    n_bins), about 0.042 here) assumes the whole bin width's ~8 samples average into the
+    bin, which point interpolation does not do; with that bound seed 61 realises a range
+    of 0.357 against 0.255 and the test cannot pass. The range of the 36 near-independent
+    bin means is about 4.3 std, so the 6-sigma bound below keeps a margin (observed 0.357,
+    bound 0.594).
+    """
+    steps = 20000
+    t = np.arange(steps) * DT
+    phase = 2.0 * np.pi * F_GAMMA * t
+    target = np.random.default_rng(61).standard_normal(steps)
+    _, mean, n_cycles = ca.phase_aligned_mean(target, phase)
+    assert n_cycles > 40, n_cycles  # precondition: enough cycles for a mean
+    sigma = float(target.std())
+    bound = 6.0 * sigma * np.sqrt(2.0 / (3.0 * n_cycles))
+    print("max-min =", float(mean.max() - mean.min()), "bound =", bound)  # observed 0.357
+    assert mean.max() - mean.min() < bound, (float(mean.max() - mean.min()), bound)
+
+
+def test_phase_aligned_mean_two_columns():
+    """A [steps, 2] target averages per column: column 1 mirrors column 0 around 2.0."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    phase = 2.0 * np.pi * F_GAMMA * t
+    target = np.stack([2.0 + np.cos(phase), 2.0 - np.cos(phase)], axis=1)
+    grid, mean, n_cycles = ca.phase_aligned_mean(target, phase)
+    assert mean.shape == (36, 2) and n_cycles == 68, (mean.shape, n_cycles)
+    _, ref, _ = ca.phase_aligned_mean(target[:, 0], phase)
+    np.testing.assert_allclose(mean[:, 0], ref, rtol=0, atol=1e-12)
+    np.testing.assert_allclose(mean[:, 1], 4.0 - ref, rtol=0, atol=0.01)
+
+
+def test_phase_aligned_mean_rejects_bad_input():
+    """Mismatched lengths, n_bins < 2, a 3-D target and no complete cycle raise ValueError."""
+    phase = 2.0 * np.pi * F_GAMMA * np.arange(2000) * DT
+    with pytest.raises(ValueError):  # one target step more than phase steps
+        ca.phase_aligned_mean(np.ones(len(phase) + 1), phase)
+    with pytest.raises(ValueError):  # n_bins below 2
+        ca.phase_aligned_mean(np.ones(20000), 2.0 * np.pi * F_GAMMA * np.arange(20000) * DT,
+                              n_bins=1)
+    with pytest.raises(ValueError):  # a 3-D target
+        ca.phase_aligned_mean(np.ones((100, 3, 2)), np.arange(100.0))
+    with pytest.raises(ValueError):  # constant phase 0: one run, no complete cycle
+        ca.phase_aligned_mean(np.ones(100), np.zeros(100))
