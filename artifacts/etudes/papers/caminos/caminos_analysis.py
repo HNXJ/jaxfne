@@ -56,6 +56,7 @@ from jaxfne.analysis import (  # noqa: E402
 )
 
 import numpy as np
+from scipy import signal as sp_signal
 
 DISCARD_S = 2.0  # prereg Runs: first 2 s discarded (4 x tau_w)
 WIN_S = 1.0  # prereg: Welch 1 s Hann windows
@@ -234,6 +235,74 @@ def ppc_by_type(phase_groups, types):
             vals = [v for v, t in zip(per, labels) if t == lab and not np.isnan(v)]
             by_type[lab] = float(np.mean(vals)) if vals else float("nan")
     return {"per_neuron": per, "by_type": by_type}
+
+
+def lfp_phase(lfp, dt_s, lo_hz=25.0, hi_hz=45.0, order=4):
+    """Phase of the LFP proxy in a gamma band, one value per step (Figure 1C).
+
+    Zero-phase Butterworth band-pass of order ``order`` between ``lo_hz`` and
+    ``hi_hz`` (scipy.signal.butter with ``btype="bandpass"``, applied on
+    second-order sections with scipy.signal.sosfiltfilt), then the analytic
+    signal (scipy.signal.hilbert); the returned phase angle is in radians,
+    in (-pi, pi], one per step. The filter family, order and band
+    (25-45 Hz) are assumptions: the Methods name neither the filter family
+    nor the order. ``lfp`` is typically the E-rate proxy from
+    :func:`jaxfne.analysis.ref42_lfp`. Raises ValueError unless
+    0 < lo_hz < hi_hz < 0.5 / dt_s.
+    """
+    x = np.asarray(lfp, dtype=float)
+    fs = 1.0 / float(dt_s)
+    lo, hi = float(lo_hz), float(hi_hz)
+    if not (0.0 < lo < hi < fs / 2.0):
+        raise ValueError("band must satisfy 0 < lo_hz < hi_hz < Nyquist = %g Hz "
+                         "(got lo=%r, hi=%r)" % (fs / 2.0, lo_hz, hi_hz))
+    sos = sp_signal.butter(int(order), [lo, hi], btype="bandpass", output="sos", fs=fs)
+    return np.angle(sp_signal.hilbert(sp_signal.sosfiltfilt(sos, x)))
+
+
+def locking_by_type(raster, sizes, lfp, dt_s, lo_hz=25.0, hi_hz=45.0):
+    """Spike-to-LFP phase locking per cell type (Figure 1C).
+
+    ``raster`` is the boolean ``[steps, NE+NPV+NSOM]`` spike train in
+    [E | PV | SOM] order (the ``record="raster"`` output); ``sizes`` gives the
+    three population counts in that order. ``lfp`` is the LFP proxy over the
+    same steps, typically :func:`jaxfne.analysis.ref42_lfp` of the counts.
+
+    Each neuron's spike steps take their LFP phase from
+    :func:`lfp_phase`; the per-neuron phases and the type labels go to
+    :func:`ppc_by_type` (PPC, paper ref. 36). Returns a dict ``{"ppc": ..,
+    "mean_phase": ..}`` with the :func:`ppc_by_type` result and, per type,
+    the circular mean of all that type's spike phases (NaN when the type has
+    no spikes). Raises ValueError when the raster's column count differs from
+    the sum of ``sizes`` or when ``lfp`` is not one value per raster step.
+    """
+    r = np.asarray(raster)
+    if r.ndim != 2:
+        raise ValueError("raster must be [steps, neurons], got shape %r" % (r.shape,))
+    if r.shape[1] != sum(int(sizes[p]) for p in POPS):
+        raise ValueError("raster has %d columns; sizes sum to %d"
+                         % (r.shape[1], sum(int(sizes[p]) for p in POPS)))
+    lfp_arr = np.asarray(lfp, dtype=float)
+    if lfp_arr.ndim != 1 or lfp_arr.shape[0] != r.shape[0]:
+        raise ValueError("lfp must have one value per raster step (%d), got shape %r"
+                         % (r.shape[0], lfp_arr.shape))
+    phase = lfp_phase(lfp_arr, dt_s, lo_hz=lo_hz, hi_hz=hi_hz)
+    groups, types, all_phases = [], [], {p: [] for p in POPS}
+    col = 0
+    for pop in POPS:
+        n = int(sizes[pop])
+        for j in range(col, col + n):
+            idx = np.flatnonzero(r[:, j])
+            ph = phase[idx]
+            groups.append(ph)
+            types.append(pop)
+            all_phases[pop].append(ph)
+        col += n
+    mean_phase = {}
+    for pop in POPS:
+        ph = np.concatenate(all_phases[pop]) if all_phases[pop] else np.array([])
+        mean_phase[pop] = float(np.angle(np.sum(np.exp(1j * ph)))) if ph.size else float("nan")
+    return {"ppc": ppc_by_type(groups, types), "mean_phase": mean_phase}
 
 
 def _same(a, b):

@@ -722,3 +722,61 @@ def test_ppc_by_type_length_mismatch_raises():
     """Three phase arrays with two type labels raise ValueError."""
     with pytest.raises(ValueError):
         ca.ppc_by_type([np.full(3, 0.3)] * 3, ["E", "PV"])
+
+
+def _cos35_peaks(lfp, dt):
+    """Steps where the sampled 35 Hz cosine peaks (interior maxima plus t = 0)."""
+    interior = lfp[1:-1]
+    steps = np.flatnonzero((interior > lfp[:-2]) & (interior >= lfp[2:])) + 1
+    if lfp.size > 1 and lfp[0] > lfp[1]:
+        steps = np.concatenate(([0], steps))
+    return steps, np.arange(lfp.size) * dt
+
+
+def test_lfp_phase_recovers_a_known_phase():
+    """A clean 35 Hz cosine has phase 0 at its own peaks (edges dropped)."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    lfp = np.cos(2.0 * np.pi * 35.0 * t)
+    peak_steps, t_steps = _cos35_peaks(lfp, DT)
+    assert peak_steps.size == 70, peak_steps.size  # precondition: 70 peaks in 2 s
+    phase = ca.lfp_phase(lfp, DT)
+    assert phase.shape == (steps,), phase.shape
+    keep = (t_steps[peak_steps] >= 0.2) & (t_steps[peak_steps] <= 1.8)
+    wrapped = np.angle(np.exp(1j * phase[peak_steps[keep]]))
+    assert np.max(np.abs(wrapped)) <= 0.05, np.max(np.abs(wrapped))
+
+
+def test_locking_by_type_phase_locked_vs_random():
+    """E spikes locked to LFP peaks give PPC > 0.8; Poisson PV and SOM give |PPC| < 0.05."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    lfp = np.cos(2.0 * np.pi * 35.0 * t)
+    peak_steps, _ = _cos35_peaks(lfp, DT)
+    raster = np.zeros((steps, 60), dtype=bool)
+    rng = np.random.default_rng(56)
+    for j in range(20):  # E: one spike per LFP peak, jittered by at most 1 ms (10 steps)
+        sp = peak_steps + rng.integers(-10, 11, size=peak_steps.size)
+        raster[sp[(sp >= 0) & (sp < steps)], j] = True
+    pv = np.random.default_rng(57).random((steps, 20)) < 20.0 * DT  # Poisson 20 Hz
+    som = np.random.default_rng(58).random((steps, 20)) < 10.0 * DT  # Poisson 10 Hz
+    raster[:, 20:40], raster[:, 40:60] = pv, som
+    assert int(pv.sum()) >= 100 and int(som.sum()) >= 100  # precondition: enough spikes
+    res = ca.locking_by_type(raster, {"E": 20, "PV": 20, "SOM": 20}, lfp, DT)
+    assert res["ppc"]["by_type"]["E"] > 0.8, res["ppc"]["by_type"]
+    assert abs(res["ppc"]["by_type"]["PV"]) < 0.05, res["ppc"]["by_type"]
+    assert abs(res["ppc"]["by_type"]["SOM"]) < 0.05, res["ppc"]["by_type"]
+
+
+def test_locking_by_type_rejects_shape_mismatch():
+    """A raster with one column too few raises ValueError."""
+    lfp = np.zeros(100)
+    with pytest.raises(ValueError):
+        ca.locking_by_type(np.zeros((100, 59), dtype=bool),
+                           {"E": 20, "PV": 20, "SOM": 20}, lfp, DT)
+
+
+def test_lfp_phase_rejects_bad_band():
+    """lo_hz = 50 with hi_hz = 45 violates 0 < lo < hi and raises ValueError."""
+    with pytest.raises(ValueError):
+        ca.lfp_phase(np.zeros(1000), DT, lo_hz=50.0)
