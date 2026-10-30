@@ -140,3 +140,58 @@ def test_welch_numpy_matches_scipy_periodic_hann():
     )
     assert_allclose(f_np, f_sp, rtol=1e-12)
     assert_allclose(p_np, p_sp, rtol=1e-10)
+
+
+# --- item 5: pairwise phase consistency (PPC; paper ref. 36) -------------------
+
+
+def test_ppc_uniform_phases_exact():
+    from jaxfne.analysis.spectral import pairwise_phase_consistency
+    n = 50
+    phases = 2.0 * np.pi * np.arange(n) / n
+    per, _ = pairwise_phase_consistency([phases])
+    assert_allclose(per[0], -1.0 / (n - 1), rtol=1e-12)
+
+
+def test_ppc_identical_phases_is_one():
+    from jaxfne.analysis.spectral import pairwise_phase_consistency
+    phases = np.full(7, 0.3)
+    per, _ = pairwise_phase_consistency([phases])
+    assert_allclose(per[0], 1.0, rtol=1e-12)
+
+
+def test_ppc_matches_pair_mean():
+    from jaxfne.analysis.spectral import pairwise_phase_consistency
+    rng = np.random.default_rng(57)
+    groups = [rng.uniform(-np.pi, np.pi, 5),
+              rng.uniform(-np.pi, np.pi, 9),
+              rng.uniform(-np.pi, np.pi, 20)]
+    expected = []
+    for ph in groups:
+        s = 0.0
+        m = len(ph)
+        for i in range(m):
+            for j in range(i + 1, m):
+                s += np.cos(ph[i] - ph[j])
+        expected.append(s / (m * (m - 1) / 2.0))
+    per, _ = pairwise_phase_consistency(groups)
+    assert_allclose(per, expected, rtol=1e-12)
+
+
+def test_ppc_fewer_than_two_spikes_is_nan():
+    from jaxfne.analysis.spectral import pairwise_phase_consistency
+    groups = [np.array([]), np.array([0.5]), np.zeros(4)]
+    assert max(len(g) for g in groups) >= 2, "at least one neuron needs >= 2 spikes"
+    per, mean = pairwise_phase_consistency(groups)
+    assert np.isnan(per[0])
+    assert np.isnan(per[1])
+    assert_allclose(per[2], 1.0, rtol=1e-12)
+    assert_allclose(mean, 1.0, rtol=1e-12)
+
+
+def test_ppc_population_mean_all_nan():
+    from jaxfne.analysis.spectral import pairwise_phase_consistency
+    groups = [np.array([]), np.array([1.2])]
+    per, mean = pairwise_phase_consistency(groups)
+    assert np.isnan(per).all()
+    assert np.isnan(mean)

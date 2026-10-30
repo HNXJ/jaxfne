@@ -400,3 +400,44 @@ def ref42_phase_delay(counts, dt_s, f_peak_hz, half_band_hz=5.0, *, drop_s=2.0,
     return {"delay_ms": delay_ms, "phase_PV_rad": pv_phi, "phase_SOM_rad": som_phi,
             "n_spikes_PV": n_pv, "n_spikes_SOM": n_som,
             "f_peak_Hz": f_peak, "half_band_Hz": half}
+
+
+def pairwise_phase_consistency(phase_groups):
+    """Pairwise phase consistency (PPC) per neuron (paper ref. 36).
+
+    For one neuron with ``n >= 2`` spike phases ``phi_1..phi_n`` (radians):
+
+        PPC = (|sum_k exp(i phi_k)|**2 - n) / (n * (n - 1))
+
+    which equals the mean of ``cos(phi_i - phi_j)`` over the ``n(n-1)/2``
+    unordered pairs ``i < j`` (Vinck et al. 2012, J Comput Neurosci; cited as
+    ref. 36 in the paper, whose Methods say only "the pairwise
+    phase-consistency measure, PPC").
+
+    A neuron with fewer than 2 spikes has no PPC and gets NaN.
+
+    Parameters
+    ----------
+    phase_groups : sequence of array-like
+        One 1-D array of spike phases (radians) per neuron; ragged lengths and
+        empty groups are allowed.
+
+    Returns
+    -------
+    per_neuron : ndarray of float
+        Per-neuron PPC; NaN where a neuron has fewer than 2 spikes.
+    mean : float
+        Population mean over the neurons that have a value (``np.nanmean``);
+        NaN when no neuron has a value.
+    """
+    groups = list(phase_groups)
+    per = _np.full(len(groups), _np.nan)
+    for i, ph in enumerate(groups):
+        ph = _np.asarray(ph, dtype=float).ravel()
+        n = ph.size
+        if n < 2:
+            continue
+        s = _np.abs(_np.sum(_np.exp(1j * ph)))
+        per[i] = (s * s - n) / (n * (n - 1.0))
+    mean = float(_np.nanmean(per)) if _np.any(~_np.isnan(per)) else _np.nan
+    return per, mean
