@@ -354,6 +354,63 @@ def phase_aligned_mean(target, phase, n_bins=36):
     return grid, np.mean(profiles, axis=0), len(profiles)
 
 
+def s2_profiles(counts, currents, sizes, dt_s, lfp, discard_s=DISCARD_S,
+                lo_hz=25.0, hi_hz=45.0, n_bins=36):
+    """Phase-aligned cycle profiles of the currents and population rates (Figure S2).
+
+    Methods "Mean averaging over cycles" (mmc2.txt lines 1780-1786) with the
+    Figure S2 legend (mmc2.txt lines 1836-1841): each target is cycle-averaged
+    against :func:`lfp_phase` of the LFP proxy. ``counts`` is ``[steps, 3]``
+    per-step spike counts [E | PV | SOM], ``currents`` is ``[steps, 4]`` mean
+    currents [E recurrent | external drive | PV | SOM], ``sizes`` gives the
+    three population counts. The external-drive column is excluded because
+    the paper's I_total is IExc + ISOM + IPV. ``lfp`` is one value per step,
+    supplied by the caller (an open ruling: summed E activity vs
+    N-normalised).
+
+    The first ``round(discard_s / dt_s)`` steps are discarded from all three
+    arrays. Returns ``{"grid": .., "n_cycles": .., "I_total": .., "I_exc": ..,
+    "I_pv": .., "I_som": .., "rate_E": .., "rate_PV": .., "rate_SOM": ..}``
+    with ``grid`` the ``[n_bins]`` bin phases on ``[0, 2 pi)`` and each
+    profile ``[n_bins]``. Raises ValueError when the step counts of
+    ``counts``, ``currents`` and ``lfp`` differ, when a key is missing from
+    ``sizes``, or when a size is not positive.
+    """
+    counts_arr = _as_float_counts(counts)
+    cur = np.asarray(currents, dtype=float)
+    if cur.ndim != 2 or cur.shape[1] != 4:
+        raise ValueError("currents must be [steps, 4], got shape %r" % (cur.shape,))
+    lfp_arr = np.asarray(lfp, dtype=float)
+    if lfp_arr.ndim != 1:
+        raise ValueError("lfp must be [steps], got shape %r" % (lfp_arr.shape,))
+    n_steps = counts_arr.shape[0]
+    if cur.shape[0] != n_steps or lfp_arr.shape[0] != n_steps:
+        raise ValueError("step counts differ: counts %d, currents %d, lfp %d"
+                         % (n_steps, cur.shape[0], lfp_arr.shape[0]))
+    if any(p not in sizes for p in POPS):
+        raise ValueError("sizes must have the keys %s, got %s" % (POPS, sorted(sizes)))
+    if any(float(sizes[p]) <= 0.0 for p in POPS):
+        raise ValueError("population sizes must be positive, got %s"
+                         % {p: sizes[p] for p in POPS})
+    cut = int(round(discard_s / dt_s))
+    counts_arr, cur, lfp_arr = counts_arr[cut:], cur[cut:], lfp_arr[cut:]
+    phase = lfp_phase(lfp_arr, dt_s, lo_hz=lo_hz, hi_hz=hi_hz)
+    targets = np.stack([
+        cur[:, 0] + cur[:, 2] + cur[:, 3],  # I_total: the external drive is excluded
+        cur[:, 0],
+        cur[:, 2],
+        cur[:, 3],
+        counts_arr[:, 0] / (sizes["E"] * dt_s),
+        counts_arr[:, 1] / (sizes["PV"] * dt_s),
+        counts_arr[:, 2] / (sizes["SOM"] * dt_s),
+    ], axis=1)
+    grid, mean, n_cycles = phase_aligned_mean(targets, phase, n_bins=n_bins)
+    return {"grid": grid, "n_cycles": n_cycles,
+            "I_total": mean[:, 0], "I_exc": mean[:, 1], "I_pv": mean[:, 2],
+            "I_som": mean[:, 3], "rate_E": mean[:, 4], "rate_PV": mean[:, 5],
+            "rate_SOM": mean[:, 6]}
+
+
 def _same(a, b):
     """Equal p values (floats from JSON) within 1e-9."""
     return abs(float(a) - float(b)) < 1e-9

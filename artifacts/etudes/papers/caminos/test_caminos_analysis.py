@@ -868,3 +868,96 @@ def test_phase_aligned_mean_rejects_bad_input():
         ca.phase_aligned_mean(np.ones((100, 3, 2)), np.arange(100.0))
     with pytest.raises(ValueError):  # constant phase 0: one run, no complete cycle
         ca.phase_aligned_mean(np.ones(100), np.zeros(100))
+
+
+S2_SIZES = {"E": 20, "PV": 5, "SOM": 5}
+
+
+def test_s2_itotal_is_the_three_source_sum():
+    """I_total is the E-recurrent + PV + SOM sum; the external drive is excluded.
+
+    The paper's I_total is IExc + ISOM + IPV, so the external-drive column
+    (column 1 of the record="currents_by_source" output) never enters. The
+    profiles are linear in their targets, so the cycle mean of the sum equals
+    the sum of the cycle means to floating-point error (2 s at 35 Hz gives 68
+    complete cycles, as in the phase_aligned_mean tests).
+    """
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    lfp = np.cos(2.0 * np.pi * F_GAMMA * t)
+    currents = np.random.default_rng(71).standard_normal((steps, 4))
+    counts = np.random.default_rng(72).poisson(5.0, size=(steps, 3))
+    res = ca.s2_profiles(counts, currents, S2_SIZES, DT, lfp, discard_s=0.0)
+    assert res["n_cycles"] >= 60, res["n_cycles"]  # precondition: enough cycles
+    np.testing.assert_allclose(res["I_total"],
+                               res["I_exc"] + res["I_pv"] + res["I_som"], rtol=0, atol=1e-12)
+    np.testing.assert_allclose(res["I_exc"],
+                               res["I_total"] - res["I_pv"] - res["I_som"], rtol=0, atol=1e-12)
+
+
+def test_s2_constant_rate_is_flat():
+    """Constant counts give the exact rate 4/(20 dt), 2/(5 dt), 1/(5 dt) at every bin."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    counts = np.zeros((steps, 3))
+    counts[:, 0], counts[:, 1], counts[:, 2] = 4.0, 2.0, 1.0
+    res = ca.s2_profiles(counts, np.zeros((steps, 4)), S2_SIZES, DT,
+                         np.cos(2.0 * np.pi * F_GAMMA * t), discard_s=0.0)
+    np.testing.assert_allclose(res["rate_E"], 4.0 / (S2_SIZES["E"] * DT), rtol=1e-9)
+    np.testing.assert_allclose(res["rate_PV"], 2.0 / (S2_SIZES["PV"] * DT), rtol=1e-9)
+    np.testing.assert_allclose(res["rate_SOM"], 1.0 / (S2_SIZES["SOM"] * DT), rtol=1e-9)
+
+
+def test_s2_rate_locked_to_lfp_peaks_at_phase_zero():
+    """A cosine rate locked to the LFP peaks at phase 0 and troughs at phase pi.
+
+    Float counts (5 + 4 cos) are allowed: the function divides and does not
+    require integers. The 0.01 * max-rate bound absorbs the small band-pass
+    phase offset at the bin centre (the lfp_phase peaks sit within 0.05 rad
+    of phase 0, as pinned in the lfp_phase test).
+    """
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    phase = 2.0 * np.pi * F_GAMMA * t
+    counts = np.zeros((steps, 3))
+    counts[:, 0] = 5.0 + 4.0 * np.cos(phase)
+    res = ca.s2_profiles(counts, np.zeros((steps, 4)), S2_SIZES, DT, np.cos(phase),
+                         discard_s=0.0)
+    assert res["n_cycles"] >= 60, res["n_cycles"]  # precondition: enough cycles
+    i0 = int(np.argmin(np.abs(res["grid"])))  # bin at phase 0
+    ipi = int(np.argmin(np.abs(res["grid"] - np.pi)))  # bin nearest pi
+    top = float(np.max(res["rate_E"]))
+    assert abs(res["rate_E"][i0] - 9.0 / (S2_SIZES["E"] * DT)) <= 0.01 * top, \
+        (i0, res["rate_E"][i0], top)
+    assert abs(res["rate_E"][ipi] - 1.0 / (S2_SIZES["E"] * DT)) <= 0.01 * top, \
+        (ipi, res["rate_E"][ipi], top)
+
+
+def test_s2_discards_the_leading_window():
+    """With discard_s = 2.0 the first 2 s (counts 100) are gone; rate_E is flat at 4/(20 dt)."""
+    steps = int(round(4.0 / DT))
+    cut = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    counts = np.zeros((steps, 3))
+    counts[:, 0] = np.concatenate([np.full(cut, 100.0), np.full(steps - cut, 4.0)])
+    kw = dict(currents=np.zeros((steps, 4)), sizes=S2_SIZES, dt_s=DT,
+              lfp=np.cos(2.0 * np.pi * F_GAMMA * t))
+    res = ca.s2_profiles(counts, **kw, discard_s=2.0)
+    np.testing.assert_allclose(res["rate_E"], 4.0 / (S2_SIZES["E"] * DT), rtol=1e-9)
+    res0 = ca.s2_profiles(counts, **kw, discard_s=0.0)
+    assert not np.allclose(res0["rate_E"], res["rate_E"], rtol=1e-9)  # precondition: exercised
+
+
+def test_s2_rejects_mismatch():
+    """A step-count mismatch, a missing size key and a non-positive size raise ValueError."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    counts = np.zeros((steps, 3))
+    currents = np.zeros((steps, 4))
+    lfp = np.cos(2.0 * np.pi * F_GAMMA * t)
+    with pytest.raises(ValueError):  # one current row fewer than count rows
+        ca.s2_profiles(counts, currents[:-1], S2_SIZES, DT, lfp, discard_s=0.0)
+    with pytest.raises(ValueError):  # sizes missing "SOM"
+        ca.s2_profiles(counts, currents, {"E": 20, "PV": 5}, DT, lfp, discard_s=0.0)
+    with pytest.raises(ValueError):  # a size that is not positive
+        ca.s2_profiles(counts, currents, {"E": 20, "PV": 0, "SOM": 5}, DT, lfp, discard_s=0.0)
