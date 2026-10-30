@@ -117,7 +117,7 @@ PARAMS = {
     "NPV": 750,  # Methods, PV population size
     "NSOM": 750,  # Methods, SOM population size
     "p": 0.07,  # Methods, connection probability
-    "ext_sources": 560,  # Methods, p * NE Poisson sources per target cell
+    "ext_sources": 560,  # Methods, p * NE Poisson sources; per-cell scope is an assumption (PORT_SPEC.md)
     "ext_rate_Hz": 4.0,  # Methods, rate per external source
     "dt_s": 1e-4,  # Methods, Euler dt (0.1 ms)
 }
