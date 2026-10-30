@@ -515,11 +515,15 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
     ``p`` and ``NE/NPV/NSOM`` default to the selected set (reference:
     0.07, 8000/750/750; cellrep: 0.017, 8000/800/600) and are
     exposed only so small smoke nets can use this same path. ``record``
-    is ``"counts"`` (per-step ``[E, PV, SOM]`` counts) or ``"raster"``
-    (boolean spike raster of shape ``[steps, NE+NPV+NSOM]``); any other
-    value is refused. Seeding comes only through ``key``: one split
-    builds connectivity, the other drives the external Poisson sources
-    inside the scan.
+    is ``"counts"`` (per-step ``[E, PV, SOM]`` counts), ``"raster"``
+    (boolean spike raster of shape ``[steps, NE+NPV+NSOM]``) or
+    ``"currents"`` (float32 ``[steps, 2]`` array; column 0 is the mean
+    over E cells of ``gE * (ErevE - V)``, column 1 the mean over E cells
+    of ``gI * (ErevI - V)``, both taken from the same ``gE``, ``gI`` and
+    ``V`` that enter ``I_syn`` at that step, before ``adex_step`` updates
+    ``V``; units amperes per cell); any other value is refused. Seeding
+    comes only through ``key``: one split builds connectivity, the other
+    drives the external Poisson sources inside the scan.
 
     Opt-in variants (PREREG_P3.md Sensitivity; defaults reproduce the
     reference bit-for-bit): ``indegree="fixed"`` (S3, exact in-degree per
@@ -559,13 +563,15 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
 
     Returns ``(out, final_state)``: ``out`` is per-step population spike
     counts ``[E, PV, SOM]`` as int32 of shape ``[steps, 3]`` under
-    ``record="counts"``, or the boolean spike raster of shape
+    ``record="counts"``, the boolean spike raster of shape
     ``[steps, NE+NPV+NSOM]`` under ``record="raster"`` (its per-type sums
-    equal the counts); ``final_state`` is a dict with final ``V, w, ref,
-    gE, gI`` plus sizes.
+    equal the counts), or the float32 ``[steps, 2]`` mean synaptic current
+    into the E cells under ``record="currents"``; ``final_state`` is a
+    dict with final ``V, w, ref, gE, gI`` plus sizes.
     """
-    if record not in ("counts", "raster"):
-        raise ValueError("record must be 'counts' or 'raster', got %r" % (record,))
+    if record not in ("counts", "raster", "currents"):
+        raise ValueError("record must be 'counts', 'raster' or 'currents', got %r"
+                         % (record,))
     if ext not in ("private", "shared"):
         raise ValueError("ext must be 'private' or 'shared', got %r" % (ext,))
     P = _params_for(param_set)
@@ -714,6 +720,7 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
          "q_ps": _f(q_ps_val), "q_ss": _f(q_ss_val)}
 
     want_raster = record == "raster"
+    want_currents = record == "currents"
     use_t = sched is not None or silence_onset_s is not None
 
     def step_fn(carry, t):
@@ -723,6 +730,13 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
         gE = gE * decay_e + inc_gE
         gI = gI * decay_i + inc_gI
         I = gE * (erev_e - V) + gI * (erev_i - V)
+        if want_currents:
+            # The two terms of I_syn restricted to the E cells, before
+            # adex_step updates V; mean over the E population.
+            cur = jnp.stack([
+                jnp.mean(gE[:NE] * (erev_e - V[:NE])),
+                jnp.mean(gI[:NE] * (erev_i - V[:NE])),
+            ])
         (V, w, ref), spk = adex_step((V, w, ref), I, par, dt, step_order)
         if ext == "shared":
             rkey, kt = jax.random.split(rkey)
@@ -764,6 +778,8 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
         row = jnp.array([ce, cp, cs])
         if want_raster:
             return (V, w, ref, gE, gI, ring, ering, head, rkey), (row, spk)
+        if want_currents:
+            return (V, w, ref, gE, gI, ring, ering, head, rkey), (row, cur)
         return (V, w, ref, gE, gI, ring, ering, head, rkey), row
 
     init = (v0, w0, r0, ge0, gi0, ring0, ering0, head0, k_ext)
@@ -777,6 +793,10 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
         (V, w, ref, gE, gI, _, _, _, _), (_, raster) = jax.jit(_scan)(init)
         jax.block_until_ready(raster)
         out = raster
+    elif want_currents:
+        (V, w, ref, gE, gI, _, _, _, _), (_, currents) = jax.jit(_scan)(init)
+        jax.block_until_ready(currents)
+        out = currents
     else:
         (V, w, ref, gE, gI, _, _, _, _), counts = jax.jit(_scan)(init)
         jax.block_until_ready(counts)

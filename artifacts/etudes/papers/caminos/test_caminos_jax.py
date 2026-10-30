@@ -987,3 +987,50 @@ def test_ext_rate_schedule_zero_silences_feedforward():
     with pytest.raises(ValueError):
         cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
                     ext_rate_schedule=jnp.zeros((LANEA_STEPS + 1,)), **LANEA_KW)
+
+
+# --- LANE-C: record="currents" (mean synaptic current into the E cells) ---
+
+def test_record_currents_zero_without_drive():
+    """A6: with the feedforward drive zeroed (all-zero ext_rate_schedule,
+    SOM drive 0 Hz) and no silencing nothing spikes, so both current
+    columns are exactly 0.0 every step; with the default constant drive
+    column 0 is positive."""
+    cur, _ = cj.simulate(jax.random.key(1), LANEA_T,
+                         ext_rate_schedule=np.zeros(LANEA_STEPS),
+                         som_ext_rate_hz=0.0, record="currents", **LANEA_KW)
+    cur = np.asarray(cur)
+    assert cur.shape == (LANEA_STEPS, 2), cur.shape
+    assert np.all(cur == 0.0), np.max(np.abs(cur), axis=0)
+    cdef, _ = cj.simulate(jax.random.key(1), LANEA_T, record="currents",
+                          **LANEA_KW)
+    assert float(np.asarray(cdef)[:, 0].sum()) > 0, (
+        "precondition: the default drive must give a positive gE current")
+
+
+def test_record_currents_signs():
+    """A6: with the default drive the excitatory column is >= 0 everywhere
+    and the inhibitory column is <= 0 everywhere (ErevE = 0 mV > V and
+    ErevI = -80 mV < V on every reachable trajectory), and column 0 is
+    positive overall."""
+    cur, _ = cj.simulate(jax.random.key(2), LANEA_T, record="currents",
+                         **LANEA_KW)
+    cur = np.asarray(cur)
+    assert cur.shape == (LANEA_STEPS, 2), cur.shape
+    assert float(cur[:, 0].sum()) > 0, float(cur[:, 0].sum())
+    if np.any(cur[:, 1] > 0.0):
+        i = int(np.flatnonzero(cur[:, 1] > 0.0)[0])
+        raise AssertionError("column 1 positive at step %d: %r" % (i, cur[i, 1]))
+    assert np.all(cur[:, 0] >= 0.0), float(cur[:, 0].min())
+    assert np.all(cur[:, 1] <= 0.0), float(cur[:, 1].max())
+
+
+def test_record_currents_rejects_unknown():
+    """A6: record='bogus' is refused with a ValueError whose message names
+    all three accepted values."""
+    with pytest.raises(ValueError) as ei:
+        cj.simulate(jax.random.key(LANEA_SEED), 0.02, record="bogus",
+                    **LANEA_KW)
+    msg = str(ei.value)
+    for name in ("counts", "raster", "currents"):
+        assert name in msg, (name, msg)
