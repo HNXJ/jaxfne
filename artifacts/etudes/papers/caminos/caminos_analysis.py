@@ -356,6 +356,26 @@ def phase_aligned_mean(target, phase, n_bins=36):
     return grid, np.mean(profiles, axis=0), len(profiles)
 
 
+def phase_backsteps(phase):
+    """Count the back-steps of a reference phase.
+
+    ``phase`` is ``[steps]`` in radians, wrapped or not (unwrapped here with
+    ``np.unwrap``). Returns ``{"negative_steps": .., "cross_back": ..}``:
+    ``negative_steps`` the number of consecutive-step differences of the
+    unwrapped phase that are strictly negative, ``cross_back`` the number of
+    steps where ``floor(unwrapped / 2 pi)`` decreases. Raises ValueError when
+    ``phase`` is not 1-D or has fewer than 2 samples.
+    """
+    arr = np.asarray(phase, dtype=float)
+    if arr.ndim != 1:
+        raise ValueError("phase must be [steps], got shape %r" % (arr.shape,))
+    if arr.size < 2:
+        raise ValueError("phase must have at least 2 samples, got %d" % arr.size)
+    ph = np.unwrap(arr)
+    return {"negative_steps": int(np.sum(np.diff(ph) < 0.0)),
+            "cross_back": int(np.sum(np.diff(np.floor(ph / (2.0 * np.pi))) < 0.0))}
+
+
 def s2_profiles(counts, currents, sizes, dt_s, lfp, discard_s=DISCARD_S,
                 lo_hz=25.0, hi_hz=45.0, n_bins=36):
     """Phase-aligned cycle profiles of the currents and population rates (Figure S2).
@@ -371,7 +391,10 @@ def s2_profiles(counts, currents, sizes, dt_s, lfp, discard_s=DISCARD_S,
     N-normalised).
 
     The first ``round(discard_s / dt_s)`` steps are discarded from all three
-    arrays. Returns ``{"grid": .., "n_cycles": .., "I_total": .., "I_exc": ..,
+    arrays. ``backsteps`` counts the back-steps of the reference phase
+    (:func:`phase_backsteps` of it); the averaging neither refuses nor drops
+    them (open ruling). Returns ``{"grid": .., "n_cycles": .., "backsteps": ..,
+    "I_total": .., "I_exc": ..,
     "I_pv": .., "I_som": .., "rate_E": .., "rate_PV": .., "rate_SOM": ..}``
     with ``grid`` the ``[n_bins]`` bin phases on ``[0, 2 pi)`` and each
     profile ``[n_bins]``. Raises ValueError when the step counts of
@@ -409,7 +432,7 @@ def s2_profiles(counts, currents, sizes, dt_s, lfp, discard_s=DISCARD_S,
         counts_arr[:, 2] / (sizes["SOM"] * dt_s),
     ], axis=1)
     grid, mean, n_cycles = phase_aligned_mean(targets, phase, n_bins=n_bins)
-    return {"grid": grid, "n_cycles": n_cycles,
+    return {"grid": grid, "n_cycles": n_cycles, "backsteps": phase_backsteps(phase),
             "I_total": mean[:, 0], "I_exc": mean[:, 1], "I_pv": mean[:, 2],
             "I_som": mean[:, 3], "rate_E": mean[:, 4], "rate_PV": mean[:, 5],
             "rate_SOM": mean[:, 6]}

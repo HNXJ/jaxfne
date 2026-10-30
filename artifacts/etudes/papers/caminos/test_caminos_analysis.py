@@ -876,6 +876,64 @@ def test_phase_aligned_mean_rejects_bad_input():
         ca.phase_aligned_mean(np.ones(100), np.zeros(100))
 
 
+def test_phase_backsteps_monotone_is_zero():
+    """A strictly increasing phase has zero negative steps and zero backward 2 pi crossings."""
+    t = np.arange(int(round(2.0 / DT))) * DT
+    phase = 2.0 * np.pi * F_GAMMA * t
+    assert ca.phase_backsteps(phase) == {"negative_steps": 0, "cross_back": 0}
+
+
+def test_phase_backsteps_counts_a_step_inside_a_bin():
+    """One backward step that stays inside one 2 pi bin: negative_steps 1, cross_back 0."""
+    phase = (np.arange(1000) * 0.001).copy()
+    assert phase.max() < 2.0 * np.pi  # precondition: the ramp stays inside one 2 pi bin
+    phase[500] = phase[499] - 0.005
+    res = ca.phase_backsteps(phase)
+    assert res["negative_steps"] == 1, res
+    assert res["cross_back"] == 0, res
+
+
+def test_phase_backsteps_counts_a_crossing_back():
+    """One step back across a 2 pi boundary: cross_back 1 and negative_steps 1."""
+    up = np.linspace(2.0 * np.pi - 0.05, 2.0 * np.pi + 0.05, 100)
+    phase = np.concatenate([up, [2.0 * np.pi - 0.01], [2.0 * np.pi + 0.05]])
+    assert int(np.sum(np.diff(phase) < 0.0)) == 1  # precondition: exactly one negative step
+    res = ca.phase_backsteps(phase)
+    assert res["cross_back"] == 1, res
+    assert res["negative_steps"] == 1, res
+
+
+def test_phase_backsteps_rejects_bad_input():
+    """A 2-D phase and a single-sample phase raise ValueError."""
+    with pytest.raises(ValueError):
+        ca.phase_backsteps(np.zeros((10, 2)))
+    with pytest.raises(ValueError):
+        ca.phase_backsteps(np.array([0.3]))
+
+
+def test_s2_profiles_reports_backsteps():
+    """s2_profiles reports the backsteps of its reference phase; the profiles are unchanged."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    lfp = np.cos(2.0 * np.pi * F_GAMMA * t)
+    currents = np.random.default_rng(71).standard_normal((steps, 4))
+    counts = np.random.default_rng(72).poisson(5.0, size=(steps, 3))
+    res = ca.s2_profiles(counts, currents, S2_SIZES, DT, lfp, discard_s=0.0)
+    phase = ca.lfp_phase(lfp, DT)
+    assert res["backsteps"] == ca.phase_backsteps(phase)
+    targets = np.stack([
+        currents[:, 0] + currents[:, 2] + currents[:, 3],  # I_total: the external drive is excluded
+        currents[:, 0],
+        currents[:, 2],
+        currents[:, 3],
+        counts[:, 0] / (S2_SIZES["E"] * DT),
+        counts[:, 1] / (S2_SIZES["PV"] * DT),
+        counts[:, 2] / (S2_SIZES["SOM"] * DT),
+    ], axis=1)
+    _, _, n_cycles = ca.phase_aligned_mean(targets, phase)
+    assert res["n_cycles"] == n_cycles, (res["n_cycles"], n_cycles)
+
+
 S2_SIZES = {"E": 20, "PV": 5, "SOM": 5}
 
 
