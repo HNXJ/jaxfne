@@ -72,7 +72,7 @@
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/caminos/test_caminos_analysis.py",
-    "message": "line 412: spec_from_file_location loads a path that cannot be resolved",
+    "message": "line 415: spec_from_file_location loads a path that cannot be resolved",
     "reason": "loads a mutant copy written to pytest's tmp_path at run time, so the path is not static. Hamm exception 2026-10-28 (permanent).",
     "todo": "T-30"
   },
