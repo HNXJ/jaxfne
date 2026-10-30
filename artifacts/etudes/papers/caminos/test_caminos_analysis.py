@@ -408,8 +408,11 @@ def _run_mutant(monkeypatch, tmp_path, old: bytes, new: bytes, check):
     assert raw.count(old) == 1, "mutant anchor not unique"
     _MUTANT_SEQ += 1
     name = "caminos_analysis_mutant_%d" % _MUTANT_SEQ
-    (tmp_path / (name + ".py")).write_bytes(raw.replace(old, new))
-    spec = importlib.util.spec_from_file_location(name, tmp_path / (name + ".py"))
+    # Mirror the repo depth: the module's repo-root guard reads parents[4].
+    mirror = tmp_path / "repo" / "artifacts" / "etudes" / "papers" / "caminos"
+    mirror.mkdir(parents=True, exist_ok=True)
+    (mirror / (name + ".py")).write_bytes(raw.replace(old, new))
+    spec = importlib.util.spec_from_file_location(name, mirror / (name + ".py"))
     assert spec is not None and spec.loader is not None, "cannot load mutant copy"
     mutant = importlib.util.module_from_spec(spec)
     monkeypatch.setitem(sys.modules, name, mutant)
@@ -686,3 +689,36 @@ def test_score_p6_q4_needs_the_e_floor_at_p002():
     res = score_p6.score(main, c1)
     assert res["criteria"]["Q4"]["r4"].get("e_floor_ok") is False
     assert res["verdict"] == "fail"
+
+
+def test_ppc_by_type_splits_types():
+    """PV neurons with identical phases give PPC 1.0; uniform SOM phases give -1/7."""
+    phases = [np.full(6, 0.3), np.full(6, 0.3),
+              np.array([2.0 * np.pi * k / 8 for k in range(8)]),
+              np.array([2.0 * np.pi * k / 8 for k in range(8)])]
+    types = ["PV", "PV", "SOM", "SOM"]
+    res = ca.ppc_by_type(phases, types)
+    np.testing.assert_allclose(res["by_type"]["PV"], 1.0, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(res["by_type"]["SOM"], -1.0 / 7.0, rtol=1e-12, atol=0)
+
+
+def test_ppc_by_type_nan_for_few_spikes():
+    """A 1-spike neuron has NaN PPC and does not pull its type mean off 1.0."""
+    phases = [np.array([0.3]), np.full(5, 0.3)]
+    assert any(np.asarray(p).size >= 2 for p in phases)  # precondition
+    res = ca.ppc_by_type(phases, ["E", "E"])
+    assert np.isnan(res["per_neuron"][0]), res["per_neuron"]
+    np.testing.assert_allclose(res["per_neuron"][1], 1.0, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(res["by_type"]["E"], 1.0, rtol=1e-12, atol=0)
+
+
+def test_ppc_by_type_all_nan_type():
+    """A type whose only neuron is empty maps to NaN."""
+    res = ca.ppc_by_type([np.array([])], ["SOM"])
+    assert np.isnan(res["by_type"]["SOM"]), res["by_type"]
+
+
+def test_ppc_by_type_length_mismatch_raises():
+    """Three phase arrays with two type labels raise ValueError."""
+    with pytest.raises(ValueError):
+        ca.ppc_by_type([np.full(3, 0.3)] * 3, ["E", "PV"])

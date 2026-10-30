@@ -47,6 +47,7 @@ from jaxfne.analysis import (  # noqa: E402
     aperiodic_spectral_peak,
     fit_aperiodic,
     oscillation_call,
+    pairwise_phase_consistency,
     population_rates,
     rate_welch_psd,
     welch_numpy,
@@ -211,6 +212,28 @@ def analyze_run(counts, dt, sizes, pe_threshold=PE_THRESHOLD):
 def _mean(xs):
     xs = [x for x in xs if x is not None]
     return float(np.mean(xs)) if xs else None
+
+
+def ppc_by_type(phase_groups, types):
+    """Pairwise phase consistency (PPC) per neuron, summarised by cell type.
+
+    Per-neuron values come from :func:`jaxfne.analysis.pairwise_phase_consistency`
+    (PPC; Vinck et al. 2012, paper ref. 36): the mean of ``cos(phi_i - phi_j)``
+    over unordered spike-phase pairs. A neuron with fewer than 2 spikes has no
+    PPC and gets NaN; a type whose neurons all lack a value maps to NaN.
+    """
+    groups = list(phase_groups)
+    labels = list(types)
+    if len(groups) != len(labels):
+        raise ValueError("phase_groups and types differ in length: %d vs %d"
+                         % (len(groups), len(labels)))
+    per, _ = pairwise_phase_consistency(groups)
+    by_type = {}
+    for lab in labels:
+        if lab not in by_type:
+            vals = [v for v, t in zip(per, labels) if t == lab and not np.isnan(v)]
+            by_type[lab] = float(np.mean(vals)) if vals else float("nan")
+    return {"per_neuron": per, "by_type": by_type}
 
 
 def _same(a, b):
