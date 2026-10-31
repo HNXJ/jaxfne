@@ -426,3 +426,75 @@ def test_run_writes_the_model_simulate_counts(tmp_path):
             == np.asarray(ref["spikes"])).all(), "the route carries no second mechanism"
     entry = json.loads((tmp_path / "manifest.json").read_text())["runs"][0]
     assert entry["seed"] == 1 and entry["steps"] == 20 and entry["p"] == 0.02
+
+
+# --- Cell Reports figure runners (packet FIG-A): Figures 3, 4, S3 ---
+
+# Small smoke net. The documented keywords stand in for the full-size
+# Figure protocol (param_set="cellrep", ext_sources="pNE", NE=8000): at
+# 400 E cells round(p*NE) = 7 pNE sources leave every population silent
+# (probed on the baseline), so the tests use simulate's documented
+# positive-int ``ext_sources`` mode plus the documented ``som_ext_rate_hz``
+# opt-in (SOM has no external drive otherwise) so every population fires.
+CF_SMOKE = {
+    "sizes": {"NE": 400, "NPV": 80, "NSOM": 80},
+    "ext_sources": 100,
+    "som_ext_rate_hz": 4.0,
+}
+
+
+def test_silence_fraction_zero_matches_baseline():
+    """Fraction 0 passes silence=None and reproduces the baseline counts."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=3.0, **CF_SMOKE)
+    assert sum(base["counts"].values()) > 0, "precondition: the baseline must fire"
+    row = cf.silence_sweep("SOM", [0.0], [1], T_s=3.0, **CF_SMOKE)[0]
+    assert row["pop"] == "SOM" and row["fraction"] == 0.0 and row["seed"] == 1
+    assert row["counts"] == base["counts"]
+
+
+def test_silence_full_som_removes_som_spikes():
+    """SOM at fraction 1.0 fires nothing over the kept window."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=3.0, **CF_SMOKE)
+    assert base["counts"]["SOM"] > 0, "precondition: baseline SOM must fire"
+    row = cf.silence_sweep("SOM", [1.0], [1], T_s=3.0, **CF_SMOKE)[0]
+    assert row["fraction"] == 1.0
+    assert row["counts"]["SOM"] == 0
+
+
+def test_replace_fraction_zero_matches_baseline():
+    """Fraction 0 passes replace=None and reproduces the baseline counts."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=3.0, **CF_SMOKE)
+    assert sum(base["counts"].values()) > 0, "precondition: the baseline must fire"
+    row = cf.replace_sweep("PV", [0.0], [1], rate_hz=4.0, T_s=3.0, **CF_SMOKE)[0]
+    assert row["pop"] == "PV" and row["fraction"] == 0.0 and row["seed"] == 1
+    assert row["counts"] == base["counts"]
+
+
+def test_s3_onset_refused_past_end():
+    """s3_paired refuses an onset at or past the end of the run."""
+    import cellrep_figures as cf
+
+    with pytest.raises(ValueError):
+        cf.s3_paired(1, onset_s=12.0, T_s=12.0)
+
+
+def test_s3_paired_returns_window_series():
+    """s3_paired returns control and silenced E rates over 5.9-6.2 s."""
+    import numpy as np
+
+    import cellrep_figures as cf
+
+    out = cf.s3_paired(1, T_s=6.3, **CF_SMOKE)
+    t = np.asarray(out["t_window_s"])
+    control = np.asarray(out["e_rate_control_hz"])
+    silenced = np.asarray(out["e_rate_silenced_hz"])
+    assert t[0] == pytest.approx(5.9, abs=1e-9)
+    assert t[-1] == pytest.approx(6.2, abs=1e-3)
+    assert control.shape == silenced.shape == t.shape
+    assert control.max() > 0, "precondition: the control E rate must be nonzero"
