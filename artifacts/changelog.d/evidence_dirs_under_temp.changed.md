@@ -1,0 +1,1 @@
+- `jaxfne.vis.evidence_manifest.ensure_evidence_dirs` and `manifest_path_for` write under `artifacts/_temp/` (`figures/evidence` and `outputs/evidence`), and the evidence figure scripts and the evidence checklist follow them, so the generated evidence folders stay out of the repository root.
