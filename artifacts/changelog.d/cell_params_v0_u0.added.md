@@ -1,0 +1,1 @@
+- `cell_params` declares the Izhikevich initial state, `v0` and `u0`, per matched neuron. A declared `v0` is refused while `random_v0` is on, since the random draw would overwrite it.

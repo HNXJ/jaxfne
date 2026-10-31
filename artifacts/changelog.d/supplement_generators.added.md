@@ -1,0 +1,1 @@
+- `scripts/publication_figures/supplement.py` regenerates Supplements S1, S2 and S5 in one command and returns 1 when an S2 row fails; S2 applies the public calibration transform (`jaxfne.fields.apply_calibration`) at the probe and field boundaries.

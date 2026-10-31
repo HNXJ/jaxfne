@@ -1,0 +1,1 @@
+- `connections(weight_range=(lo, hi))` draws each edge's magnitude `U[lo, hi)` from the rule's own stream, replacing a scalar weight. It excludes `weight_std` and is refused on the fallback path that infers receptors from weight signs.

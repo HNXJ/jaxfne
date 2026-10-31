@@ -1,0 +1,1 @@
+- `connectivity_mode="explicit"` on the configuration route starts from an empty graph instead of keeping the default dense coupling beside the declared rules, and the receipt records the realized default count.

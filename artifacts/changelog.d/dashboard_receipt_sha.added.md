@@ -1,0 +1,1 @@
+- Dashboard data gains a schema (`dashboard/replications.schema.json`); each receipt a paper names carries the sha256 of the bytes git holds at the paper's lane SHA, so a changed lane blob fails `--check`.

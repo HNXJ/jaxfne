@@ -1,0 +1,1 @@
+- The dashboard and the replications page score each paper: a paper may carry a `replica` block listing its result panels (pass 1, partial 0.5, fail or not run 0) with the excluded schematics and reasons; the builder validates the block and derives the score, and a paper lacking an inventory shows a dash.

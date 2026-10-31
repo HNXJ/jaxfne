@@ -1,0 +1,1 @@
+- `pairwise_phase_consistency(phase_groups)` in `jaxfne.analysis` returns the per-neuron pairwise phase consistency (Vinck et al. 2012) and the population mean; a neuron with fewer than two spikes reads NaN and stays out of the mean.

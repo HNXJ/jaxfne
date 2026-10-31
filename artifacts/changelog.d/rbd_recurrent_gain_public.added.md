@@ -1,0 +1,1 @@
+- `jaxfne.emitters` exposes `rbd_recurrent_gain` (D34) as a public name: the typed coupling map `G_H(H; beta_H) = 1 + beta_H (H - 1)` on the recurrent current, with the neutral family and gain returning 1. The private name stays as an alias bound to the same object, with behavior unchanged.

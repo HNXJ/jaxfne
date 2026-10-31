@@ -1,0 +1,1 @@
+- `Simulation(poisson_drive=[...])` takes a list of drive mappings on the `lif` route, one entry per population over pairwise disjoint `(area, layer, cell_type)` targets; a list of one equals the mapping bit for bit. Every other route refuses the list by name.
