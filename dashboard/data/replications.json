@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-28T16:05:45Z",
-    "dev_sha": "7425206abb44d1d3727a0f84890368f5dbd2fd6c",
-    "data_revision": "d51cf2fb15ff32788d1b45e035029f705fb84fa0614d0cd22a971d85fb22c42c"
+    "utc": "2026-10-31T18:08:22Z",
+    "dev_sha": "8b1c86dec908377407062cd469a72c68510b2dea",
+    "data_revision": "986065f62bb8e5f21c8f09b14a9e17642444ad4b03b346c519e38302d8c82e28"
   },
   "papers": [
     {
@@ -1213,6 +1213,140 @@
           }
         ],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": 7,
+        "panels": 28,
+        "excluded": 3,
+        "counts": {
+          "pass": 1,
+          "partial": 2,
+          "fail": 0,
+          "not run": 25
+        },
+        "same_as": null,
+        "scope": "Main-text Figs. 1-6 of the PLoS CB article (PMC13286281), read 2026-10-31. The Cell Reports 2025 figures scored in RESULT_FIGURES.md belong to another paper and do not count here.",
+        "items": [
+          {
+            "id": "1B",
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/caminos/LEDGER.md",
+            "note": "R2: SOM after PV, lag 7.04 ms; off against the paper's 8.5 ms (finding: needs X)"
+          },
+          {
+            "id": "1C",
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/scores/score.json",
+            "note": "R1 about 35 Hz and R3 PV > SOM > E pass"
+          },
+          {
+            "id": "1D",
+            "status": "not run",
+            "note": "mean-field model not ported"
+          },
+          {
+            "id": "1E",
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/caminos/scores/score_v7.json",
+            "note": "R4 fails under v6; R4v7 passes under the p·NE drive assumption"
+          },
+          {
+            "id": "2A",
+            "status": "not run"
+          },
+          {
+            "id": "2B",
+            "status": "not run"
+          },
+          {
+            "id": "2C",
+            "status": "not run"
+          },
+          {
+            "id": "2D",
+            "status": "not run"
+          },
+          {
+            "id": "2E",
+            "status": "not run"
+          },
+          {
+            "id": "2F",
+            "status": "not run"
+          },
+          {
+            "id": "3A",
+            "status": "not run"
+          },
+          {
+            "id": "3B",
+            "status": "not run"
+          },
+          {
+            "id": "3C",
+            "status": "not run"
+          },
+          {
+            "id": "3D",
+            "status": "not run"
+          },
+          {
+            "id": "3E",
+            "status": "not run"
+          },
+          {
+            "id": "3F",
+            "status": "not run"
+          },
+          {
+            "id": "4A bottom",
+            "status": "not run"
+          },
+          {
+            "id": "4B middle",
+            "status": "not run"
+          },
+          {
+            "id": "4B bottom",
+            "status": "not run"
+          },
+          {
+            "id": "5A left",
+            "status": "not run"
+          },
+          {
+            "id": "5A right",
+            "status": "not run"
+          },
+          {
+            "id": "5B top",
+            "status": "not run"
+          },
+          {
+            "id": "5B bottom left",
+            "status": "not run"
+          },
+          {
+            "id": "5B bottom right",
+            "status": "not run"
+          },
+          {
+            "id": "6A",
+            "status": "not run"
+          },
+          {
+            "id": "6B",
+            "status": "not run"
+          },
+          {
+            "id": "6C left",
+            "status": "not run"
+          },
+          {
+            "id": "6C right",
+            "status": "not run"
+          }
+        ]
       }
     },
     {
@@ -2227,6 +2361,20 @@
           }
         ],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     },
     {
@@ -2262,6 +2410,20 @@
         "methods": null,
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     },
     {
@@ -2461,6 +2623,20 @@
           }
         ],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     },
     {
@@ -2496,6 +2672,20 @@
         "methods": null,
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     },
     {
@@ -2974,6 +3164,92 @@
           }
         ],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": 58,
+        "panels": 13,
+        "excluded": 1,
+        "counts": {
+          "pass": 6,
+          "partial": 3,
+          "fail": 0,
+          "not run": 4
+        },
+        "same_as": null,
+        "scope": "Figs. 1-3 of the article (izhikevich.org spikes.pdf, read 2026-10-31); one panel per labelled trace. Post hoc passes (v8.2) count as partial.",
+        "items": [
+          {
+            "id": "1 RS",
+            "status": "not run",
+            "note": "model against rat motor cortex recordings not compared"
+          },
+          {
+            "id": "1 IB",
+            "status": "not run"
+          },
+          {
+            "id": "1 FS",
+            "status": "not run"
+          },
+          {
+            "id": "2 RS",
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "note": "C1"
+          },
+          {
+            "id": "2 IB",
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "note": "C2"
+          },
+          {
+            "id": "2 CH",
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "note": "C3"
+          },
+          {
+            "id": "2 FS",
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v8_score.json",
+            "note": "C4 fails under v7; passes under the post hoc v8.2 rule"
+          },
+          {
+            "id": "2 LTS",
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "note": "C5"
+          },
+          {
+            "id": "2 TC tonic",
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "note": "C6"
+          },
+          {
+            "id": "2 TC rebound",
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "note": "C7"
+          },
+          {
+            "id": "2 RZ",
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v8_score.json",
+            "note": "C8 fails under v7; passes under the post hoc v8.2 rule"
+          },
+          {
+            "id": "3 raster",
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "note": "N1, N3, N4 pass; N2 (ISI CV) fails"
+          },
+          {
+            "id": "3 v1(t)",
+            "status": "not run"
+          }
+        ]
       }
     },
     {
@@ -3022,6 +3298,20 @@
         "methods": null,
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     },
     {
@@ -3058,6 +3348,115 @@
         "methods": null,
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": 0,
+        "panels": 23,
+        "excluded": 1,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 23
+        },
+        "same_as": null,
+        "scope": "Figure claims recorded in SOURCE_P1.md (sections 2 and 5); panel letters of Figs. 2-5, 8, 9, 11 and 13 are not recorded, so each counts once.",
+        "items": [
+          {
+            "id": "1A",
+            "status": "not run"
+          },
+          {
+            "id": "1B",
+            "status": "not run"
+          },
+          {
+            "id": "1C",
+            "status": "not run"
+          },
+          {
+            "id": "1D",
+            "status": "not run"
+          },
+          {
+            "id": "1E",
+            "status": "not run"
+          },
+          {
+            "id": "1F",
+            "status": "not run"
+          },
+          {
+            "id": "2",
+            "status": "not run"
+          },
+          {
+            "id": "3",
+            "status": "not run"
+          },
+          {
+            "id": "4",
+            "status": "not run"
+          },
+          {
+            "id": "5",
+            "status": "not run"
+          },
+          {
+            "id": "6A",
+            "status": "not run"
+          },
+          {
+            "id": "6B",
+            "status": "not run",
+            "evidence": "artifacts/etudes/papers/destexhe2009/CALIBRATION.md",
+            "note": "unscored pilots die within about 2 s; no self-sustained AI state"
+          },
+          {
+            "id": "7A",
+            "status": "not run"
+          },
+          {
+            "id": "7B",
+            "status": "not run"
+          },
+          {
+            "id": "8",
+            "status": "not run"
+          },
+          {
+            "id": "9",
+            "status": "not run"
+          },
+          {
+            "id": "10A",
+            "status": "not run"
+          },
+          {
+            "id": "10B",
+            "status": "not run"
+          },
+          {
+            "id": "10C",
+            "status": "not run"
+          },
+          {
+            "id": "10D",
+            "status": "not run"
+          },
+          {
+            "id": "11",
+            "status": "not run"
+          },
+          {
+            "id": "12B",
+            "status": "not run"
+          },
+          {
+            "id": "13",
+            "status": "not run"
+          }
+        ]
       }
     },
     {
@@ -3390,6 +3789,20 @@
         "methods": null,
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     },
     {
@@ -3427,6 +3840,141 @@
         "methods": null,
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": 0,
+        "panels": 30,
+        "excluded": 4,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 30
+        },
+        "same_as": null,
+        "scope": "Main-text Figs. 1-12 (publisher page, read 2026-10-31). Panel lists of Figs. 7-10 come from a summary of the page, not the legends, and Fig. 7's letters are unverified.",
+        "items": [
+          {
+            "id": "2A",
+            "status": "not run"
+          },
+          {
+            "id": "2B",
+            "status": "not run"
+          },
+          {
+            "id": "2C",
+            "status": "not run"
+          },
+          {
+            "id": "2D",
+            "status": "not run"
+          },
+          {
+            "id": "3B",
+            "status": "not run"
+          },
+          {
+            "id": "3C",
+            "status": "not run"
+          },
+          {
+            "id": "3D",
+            "status": "not run"
+          },
+          {
+            "id": "3E",
+            "status": "not run"
+          },
+          {
+            "id": "4",
+            "status": "not run"
+          },
+          {
+            "id": "5A",
+            "status": "not run"
+          },
+          {
+            "id": "5B",
+            "status": "not run"
+          },
+          {
+            "id": "6A",
+            "status": "not run"
+          },
+          {
+            "id": "6B",
+            "status": "not run"
+          },
+          {
+            "id": "6C",
+            "status": "not run"
+          },
+          {
+            "id": "6D",
+            "status": "not run"
+          },
+          {
+            "id": "7A",
+            "status": "not run"
+          },
+          {
+            "id": "7B",
+            "status": "not run"
+          },
+          {
+            "id": "7C",
+            "status": "not run"
+          },
+          {
+            "id": "8A",
+            "status": "not run"
+          },
+          {
+            "id": "8B",
+            "status": "not run"
+          },
+          {
+            "id": "8C",
+            "status": "not run"
+          },
+          {
+            "id": "9A",
+            "status": "not run"
+          },
+          {
+            "id": "9B",
+            "status": "not run"
+          },
+          {
+            "id": "9C",
+            "status": "not run"
+          },
+          {
+            "id": "10A",
+            "status": "not run"
+          },
+          {
+            "id": "10B",
+            "status": "not run"
+          },
+          {
+            "id": "10C",
+            "status": "not run"
+          },
+          {
+            "id": "10D",
+            "status": "not run"
+          },
+          {
+            "id": "10E",
+            "status": "not run"
+          },
+          {
+            "id": "10F",
+            "status": "not run"
+          }
+        ]
       }
     },
     {
@@ -3464,6 +4012,20 @@
         "methods": null,
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     },
     {
@@ -3501,6 +4063,125 @@
         "methods": null,
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": 0,
+        "panels": 26,
+        "excluded": 8,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 26
+        },
+        "same_as": null,
+        "scope": "Main-text Figs. 1-7 (PMC5262462, read 2026-10-31). 2A and 3A pair a scheme with simulated traces and count as results.",
+        "items": [
+          {
+            "id": "2A",
+            "status": "not run"
+          },
+          {
+            "id": "2B",
+            "status": "not run"
+          },
+          {
+            "id": "2C",
+            "status": "not run"
+          },
+          {
+            "id": "3A",
+            "status": "not run"
+          },
+          {
+            "id": "3B",
+            "status": "not run"
+          },
+          {
+            "id": "3C",
+            "status": "not run"
+          },
+          {
+            "id": "4B",
+            "status": "not run"
+          },
+          {
+            "id": "4C",
+            "status": "not run"
+          },
+          {
+            "id": "4E",
+            "status": "not run"
+          },
+          {
+            "id": "4F",
+            "status": "not run"
+          },
+          {
+            "id": "5B",
+            "status": "not run"
+          },
+          {
+            "id": "5C",
+            "status": "not run"
+          },
+          {
+            "id": "5D",
+            "status": "not run"
+          },
+          {
+            "id": "6C",
+            "status": "not run"
+          },
+          {
+            "id": "6D",
+            "status": "not run"
+          },
+          {
+            "id": "6E",
+            "status": "not run"
+          },
+          {
+            "id": "6F",
+            "status": "not run"
+          },
+          {
+            "id": "6G",
+            "status": "not run"
+          },
+          {
+            "id": "6H",
+            "status": "not run"
+          },
+          {
+            "id": "7B",
+            "status": "not run"
+          },
+          {
+            "id": "7C",
+            "status": "not run"
+          },
+          {
+            "id": "7E",
+            "status": "not run"
+          },
+          {
+            "id": "7F",
+            "status": "not run"
+          },
+          {
+            "id": "7G",
+            "status": "not run"
+          },
+          {
+            "id": "7H",
+            "status": "not run"
+          },
+          {
+            "id": "7I",
+            "status": "not run"
+          }
+        ]
       }
     },
     {
@@ -3748,6 +4429,20 @@
         "methods": "pass",
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     },
     {
@@ -3947,6 +4642,20 @@
         "methods": "pass",
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     },
     {
@@ -4126,6 +4835,20 @@
         "methods": "pass",
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     },
     {
@@ -4304,6 +5027,20 @@
         "methods": "pass",
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     },
     {
@@ -4598,6 +5335,20 @@
         "methods": "pass",
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     },
     {
@@ -4706,6 +5457,20 @@
         "methods": "pass",
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     },
     {
@@ -4835,6 +5600,20 @@
         "methods": "pass",
         "failed_criteria": [],
         "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
       }
     }
   ],
