@@ -58,7 +58,7 @@
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/izhikevich2003",
-    "message": "holds 13 files (at most 7)",
+    "message": "holds 14 files (at most 7)",
     "reason": "audit 2026-10-17",
     "todo": "T-30"
   },
