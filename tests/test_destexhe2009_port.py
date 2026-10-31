@@ -205,6 +205,17 @@ def test_run_continuous_writes_free_window_only(tmp_path):
     assert nokick["spikes"].dtype == bool
 
 
+def test_fig6b_cont_cli_forwards_strong_adaptation(monkeypatch):
+    """The Fig. 6A control runs through the continuous CLI; the default stays the 6B network."""
+    from artifacts.etudes.papers.destexhe2009 import run_destexhe as R
+
+    seen = []
+    monkeypatch.setattr(R.D, "run_continuous", lambda *a, **k: seen.append(k) or {"steps": 1, "wall_s": 0.0})
+    for extra in ([], ["--strong-adaptation"]):
+        R.main(["fig6b_cont", "--seed", "0", "--out", "unused"] + extra)
+    assert [k["strong_adaptation"] for k in seen] == [False, True], seen
+
+
 def test_run_continuous_forwards_probability(tmp_path):
     """The Fig. 9 N-trend needs rescaled p through the continuous runner."""
     import json

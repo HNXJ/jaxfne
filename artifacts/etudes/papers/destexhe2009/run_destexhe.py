@@ -70,6 +70,7 @@ def cmd_fig6b_cont(args):
         v0_seed=args.v0_seed,
         ongoing=args.ongoing,
         probability=args.probability,
+        strong_adaptation=args.strong_adaptation,
     )
     print(
         "seed %d tag %s steps %d wall_s %.1f"
@@ -149,6 +150,8 @@ def build_parser():
     p6c.add_argument("--v0-seed", type=int, default=None)
     p6c.add_argument("--ongoing", action="store_true")
     p6c.add_argument("--probability", type=float, default=D.P)
+    p6c.add_argument("--strong-adaptation", action="store_true",
+                     help="Fig. 6A control: RS b = 40 pA (dies within seconds in the paper)")
     p6c.set_defaults(fn=cmd_fig6b_cont)
     ps = sub.add_parser("score", help="score a written raster")
     ps.add_argument("--seed", type=int, required=True)
