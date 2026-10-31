@@ -167,3 +167,106 @@ def test_score_seed_known_answer_matches_p5_seed1():
                 np.testing.assert_allclose(real, value, rtol=rtol, err_msg=f"{nid}.{key}")
             else:
                 assert real == value, (nid, key, real, value)
+
+
+def _p5_seed_oracle(seed):
+    oracle = (REPO_ROOT / "artifacts" / "etudes" / "papers" / "izhikevich2003"
+              / "scores" / "p3_v7_score.json")
+    return json.loads(oracle.read_text(encoding="utf-8"))["fig3"]["seeds"][str(seed)]
+
+
+def _assert_p6_numbers_equal(got, want):
+    # Same bar as the seed-1 known-answer test: verdicts and keys exact, floats to
+    # rtol 1e-12, peak excess to rtol 1e-6 (least-squares last digits moved post-P5).
+    assert set(got) == {"N1", "N2", "N3", "N4"}
+    for nid in ("N1", "N2", "N3", "N4"):
+        assert got[nid]["verdict"] == want[nid]["verdict"], (nid, got[nid], want[nid])
+        assert set(got[nid]["numbers"]) == set(want[nid]["numbers"]), nid
+        for key, value in want[nid]["numbers"].items():
+            real = got[nid]["numbers"][key]
+            if isinstance(value, float):
+                rtol = 1e-6 if key == "pe" else 1e-12
+                np.testing.assert_allclose(real, value, rtol=rtol, err_msg=f"{nid}.{key}")
+            else:
+                assert real == value, (nid, key, real, value)
+
+
+def test_score_one_seed_known_answer_matches_p5_seed2():
+    # Gate 2 through the calibration-reading scorer: on a kernel raster for P5 seed 2,
+    # score_one_seed returns that seed's P5 numbers exactly.
+    want = _p5_seed_oracle(2)
+    rows, cols, n_steps, _ = core.run_kernel_seed(2, core.lane.FIG3_T)
+    assert rows.size > 0, "fixture must spike at the P5 settings"
+    _assert_p6_numbers_equal(core.score_one_seed(rows, cols, n_steps), want)
+
+
+def test_score_one_seed_matches_lane_scorer_on_short_raster():
+    # Fast variant: on a short synthetic raster, the calibration-reading scorer equals
+    # run_izh.score_network_seed called with the calibration theta and alpha band.
+    rng = np.random.default_rng(0)
+    n_steps = 2000
+    idx = rng.choice(n_steps * core.N, size=2000, replace=False)
+    rows = (idx // core.N).astype(np.int64)
+    cols = (idx % core.N).astype(np.int64)
+    theta, alpha_band = core.lane.load_calibration()
+    cells = [[] for _ in range(core.N)]
+    for r, c in zip(rows.tolist(), cols.tolist()):
+        cells[int(c)].append(int(r))
+    want = core.lane.score_network_seed(
+        cells, n_steps, core.DT_MS, theta, alpha_band,
+        populations={"E": np.arange(core.N_E), "I": np.arange(core.N_E, core.N)})
+    got = core.score_one_seed(rows, cols, n_steps)
+    assert got == {nid: want[nid] for nid in ("N1", "N2", "N3", "N4")}
+
+
+def _p6_base_seed():
+    # One synthetic seed at the P5 means with the P5 verdicts (N1 pass, N2 fail,
+    # N3 pass, N4 pass): the verdict logic's passing case.
+    return {
+        "N1": {"verdict": "pass", "numbers": {"mean_rate_hz": 8.677}},
+        "N2": {"verdict": "fail",
+               "numbers": {"median_cv": 0.4028, "n_qualifying_cells": 975}},
+        "N3": {"verdict": "pass",
+               "numbers": {"f_pk": 9.1, "pe": 8.01, "local_max": True, "edge_ok": True}},
+        "N4": {"verdict": "pass",
+               "numbers": {"f_pk": 38.1, "pe": 5.83, "local_max": True, "edge_ok": True}},
+    }
+
+
+def _p6_case_seeds(mutate):
+    per_seed = {s: _p6_base_seed() for s in (2, 3, 4, 5, 6)}
+    mutate(per_seed)
+    return per_seed
+
+
+P6_VERDICT_CASES = {
+    # case: (mutation over the five seeds, expected Q verdicts)
+    "pass_all": (lambda p: None,
+                 {"Q1": "pass", "Q2": "pass", "Q3": "pass", "Q4": "pass", "Q5": "pass"}),
+    "fail_Q1": (lambda p: [p[s]["N1"]["numbers"].update(mean_rate_hz=9.5) for s in p],
+                {"Q1": "fail", "Q2": "pass", "Q3": "pass", "Q4": "pass", "Q5": "pass"}),
+    "fail_Q2": (lambda p: [p[s]["N2"]["numbers"].update(median_cv=0.42) for s in p],
+                {"Q1": "pass", "Q2": "fail", "Q3": "pass", "Q4": "pass", "Q5": "pass"}),
+    "fail_Q3": (lambda p: [p[s]["N3"]["numbers"].update(f_pk=11.0) for s in p],
+                {"Q1": "pass", "Q2": "pass", "Q3": "fail", "Q4": "pass", "Q5": "pass"}),
+    "fail_Q4": (lambda p: [p[s]["N4"]["numbers"].update(f_pk=45.0) for s in p],
+                {"Q1": "pass", "Q2": "pass", "Q3": "pass", "Q4": "fail", "Q5": "pass"}),
+    # Q5 alone: the numbers hold every margin but every seed calls N2 a pass,
+    # so the N2 verdicts no longer equal P5's fail.
+    "fail_Q5": (lambda p: [p[s]["N2"].update(verdict="pass") for s in p],
+                {"Q1": "pass", "Q2": "pass", "Q3": "pass", "Q4": "pass", "Q5": "fail"}),
+    # P5 forms the N2 arm verdict as "pass in every seed": one failing seed makes
+    # the arm fail, equal to P5, so Q5 still passes with the other four passing.
+    "pass_n2_arm_one_seed": (lambda p: [p[s]["N2"].update(verdict="pass") for s in (3, 4, 5, 6)],
+                             {"Q1": "pass", "Q2": "pass", "Q3": "pass", "Q4": "pass", "Q5": "pass"}),
+}
+
+
+@pytest.mark.parametrize("case", sorted(P6_VERDICT_CASES))
+def test_p6_verdict_logic_cases(case):
+    mutate, expected = P6_VERDICT_CASES[case]
+    got = core.evaluate_p6_verdicts(_p6_case_seeds(mutate))
+    assert set(got["criteria"]) == {"Q1", "Q2", "Q3", "Q4", "Q5"}
+    for q, verdict in expected.items():
+        assert got["criteria"][q]["verdict"] == verdict, (case, q, got["criteria"][q])
+    assert got["overall"] == ("pass" if case.startswith("pass_") else "fail"), case
