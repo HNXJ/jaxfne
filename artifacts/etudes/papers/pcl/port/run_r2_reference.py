@@ -192,6 +192,23 @@ def save_network(net: "ref.PCLEventRef", net_dir) -> Path:
     return root
 
 
+def init_network(configs_dir, net_dir, *, seed: int) -> Path:
+    """A shared starting folder: the three config JSONs plus the oracle's seeded init weights.
+
+    The C++ init is unseeded, so R2 starts both arms from this folder; the C++ loads its
+    weights because ``weights/<layer>/0.npy`` exists (``SpikingNetwork.cpp:641-697``).
+    """
+    src, root = Path(configs_dir), Path(net_dir)
+    if root.exists():
+        raise FileExistsError(f"init_network: refusing an existing folder: {root}")
+    (root / "configs").mkdir(parents=True)
+    for name in ("network_config.json", "simple_cell_config.json", "complex_cell_config.json"):
+        shutil.copyfile(src / name, root / "configs" / name)
+    for sub in ("figures", "gabors", "images", "statistics"):
+        (root / sub).mkdir()
+    return save_network(ref.PCLEventRef(root, seed=int(seed), learning=True), root)
+
+
 def run_oracle(net_dir, events_path, nb_pass: int, *, seed: int) -> dict:
     """Run the oracle on a C++-layout folder the way ``neuvisys-exe <net> <events> <nbPass>`` feeds it.
 
@@ -320,6 +337,10 @@ def _write_receipt(path: Path, record: dict) -> None:
 def _build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
+    i = sub.add_parser("init", help="write a starting folder: configs plus seeded init weights")
+    i.add_argument("--configs", required=True, help="folder holding the three config JSONs")
+    i.add_argument("--out", required=True)
+    i.add_argument("--seed", default=0, type=int)
     o = sub.add_parser("oracle", help="run the oracle on a network folder with learning on")
     o.add_argument("--net", required=True)
     o.add_argument("--events", required=True)
@@ -334,6 +355,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def main(argv=None) -> int:
     args = _build_parser().parse_args(argv)
+    if args.cmd == "init":
+        print(f"initialized {init_network(args.configs, args.out, seed=args.seed)}", flush=True)
+        return 0
     if args.cmd == "oracle":
         res = run_oracle(args.net, args.events, args.nb_pass, seed=args.seed)
         print(f"fed {res['n_events']} events in {args.nb_pass} pass(es); "

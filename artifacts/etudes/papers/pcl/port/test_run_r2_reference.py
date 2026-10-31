@@ -174,6 +174,18 @@ def test_f_nb_pass_feeds_the_file_again_shifted(tmp_path):
     assert train and max(train) > span, "the second pass must spike after the first pass's span"
 
 
+def test_h_init_writes_a_loadable_seeded_folder(tmp_path):
+    base = _make_base(tmp_path / "base")
+    a = r2.init_network(base / "configs", tmp_path / "ia", seed=3)
+    b = r2.init_network(base / "configs", tmp_path / "ib", seed=3)
+    c = r2.init_network(base / "configs", tmp_path / "ic", seed=4)
+    assert (a / "weights" / "0" / "0.npy").is_file(), "the C++ loads weights only when 0.npy exists"
+    assert r2.compare(a, b)["exact"] is True
+    assert r2.compare(a, c)["0"]["max_abs_weight_diff"] > 0.0, "the seed must change the init"
+    with pytest.raises(FileExistsError):
+        r2.init_network(base / "configs", a, seed=3)
+
+
 def test_g_spike_train_difference_breaks_exact(tmp_path):
     base = _make_base(tmp_path / "base")
     events = _make_events(tmp_path / "ev.h5")
