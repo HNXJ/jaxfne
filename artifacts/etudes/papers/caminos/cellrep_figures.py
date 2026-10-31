@@ -122,9 +122,9 @@ def run_cell(seed, *, T_s=12.0, silence=None, replace=None, replace_rate_hz=None
 
 
 def _sizes_tuple(sizes):
-    """NE/NPV/NSOM from a ``{"NE": ..}`` dict, or the cellrep defaults."""
+    """NE/NPV/NSOM from a ``{"NE": ..}`` dict, or the defaults of the active ``PARAM_SET``."""
     if sizes is None:
-        P = cj.CELLREP_PARAMS
+        P = cj.PARAM_SETS[PARAM_SET]
         return P["NE"], P["NPV"], P["NSOM"]
     missing = {"NE", "NPV", "NSOM"} - set(sizes)
     if missing:

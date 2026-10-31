@@ -633,6 +633,15 @@ def test_fig1c_control_keeps_the_baseline_and_adds_locking():
     assert "E" in got["ppc_by_type"]["by_type"]
 
 
+def test_default_sizes_follow_the_active_parameter_set(monkeypatch):
+    """Switching PARAM_SET to the PLoS CB set also switches the default population sizes."""
+    import cellrep_figures as cf
+
+    assert cf._sizes_tuple(None) == (8000, 800, 600)
+    monkeypatch.setattr(cf, "PARAM_SET", "default")
+    assert cf._sizes_tuple(None) == (8000, 750, 750)
+
+
 def test_s1_higher_p_increases_e_counts():
     """E counts rise from p = 0.01 to p = 0.3 on the smoke net (Figure S1)."""
     import cellrep_figures as cf

@@ -6,6 +6,8 @@ Usage: python run_figA.py <outdir> <values csv> <seeds csv> <what>
   values: fractions (silence/replace), Hz (fig2a, fig2b), ratios (fig6a), nS (fig5a, fig5b);
           ignored for s3, fig5c and fig1c.
 Env FIGA_T_S sets the run length in seconds (default 12; smoke runs use 3).
+Env FIGA_PARAM_SET picks the parameter set: cellrep (default, Cell Reports 2025) or default (PLoS CB 2026,
+whose Figs 2-4 network panels silence and randomize the reference model the same way).
 
 Writes <outdir>/<what>.json: one row per (value, seed) with scalars and short series.
 Rows that carry a spectrum keep its magnitude up to 60 Hz (psd_freqs_hz, psd_mag).
@@ -74,6 +76,9 @@ def main():
     values = [float(x) for x in values_csv.split(",")]
     seeds = [int(x) for x in seeds_csv.split(",")]
     t_s = float(os.environ.get("FIGA_T_S", "12"))
+    cf.PARAM_SET = os.environ.get("FIGA_PARAM_SET", "cellrep")
+    if cf.PARAM_SET not in ("cellrep", "default"):
+        raise SystemExit("FIGA_PARAM_SET must be cellrep or default")
     os.makedirs(outdir, exist_ok=True)
     t0 = time.time()
     rows = []
@@ -107,7 +112,9 @@ def main():
             elif what == "fig2b":
                 res = cf.fig2b_sweep(tdrates_hz=[v], seeds=seeds, T_s=t_s)
             elif what == "fig6a":
-                res = cf.fig6a_sweep(ratios=[v], seeds=seeds, T_s=t_s)
+                # interneuron total of the active set: 1400 (Cell Reports), 1500 (PLoS CB Fig 4A)
+                total = sum(cf._sizes_tuple(None)[1:])
+                res = cf.fig6a_sweep(ratios=[v], seeds=seeds, T_s=t_s, total=total)
             else:
                 kind = "PV_SOM" if what == "fig5a" else "SOM_SOM"
                 res = cf.coupling_sweep(kind, values_nS=[v], seeds=seeds, T_s=t_s)
@@ -134,6 +141,7 @@ def main():
         raise SystemExit("unknown what: %s" % what)
     payload = {
         "what": what,
+        "param_set": cf.PARAM_SET,
         "values": values,
         "seeds": seeds,
         "T_s": t_s,
