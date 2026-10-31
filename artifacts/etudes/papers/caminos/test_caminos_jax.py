@@ -1130,3 +1130,103 @@ def test_record_by_source_no_recurrence_is_external_only():
     assert np.all(src[:, [0, 2, 3]] == 0.0), np.max(np.abs(src[:, [0, 2, 3]]), axis=0)
     scale = max(float(np.abs(cur[:, 0]).max()), np.finfo(np.float32).tiny)
     assert np.allclose(src[:, 1], cur[:, 0], rtol=1e-4, atol=1e-5 * scale)
+
+
+# --- CORE-SCHED: time-varying SOM drive (Figure 2B) and E-to-E gain (Figure 6B) ---
+
+SCHED_KW = dict(p=0.07, NE=40, NPV=8, NSOM=8)
+SCHED_SEED = 7
+SCHED_T = 1.0
+SCHED_STEPS = 10000
+
+
+def test_som_schedule_constant_matches_som_rate():
+    """CORE-SCHED: a constant 4 Hz SOM schedule reproduces som_ext_rate_hz=4.0 exactly."""
+    assert SCHED_STEPS == int(round(SCHED_T / float(cj.PARAMS["dt_s"])))
+    c_rate, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                            som_ext_rate_hz=4.0, **SCHED_KW)
+    c_sched, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                             som_ext_rate_schedule=np.full(SCHED_STEPS, 4.0),
+                             **SCHED_KW)
+    assert int(np.asarray(c_rate)[:, 2].sum()) > 0, (
+        "precondition: SOM must spike at 4 Hz SOM drive")
+    np.testing.assert_array_equal(np.asarray(c_sched), np.asarray(c_rate))
+
+
+def test_som_schedule_zero_matches_default():
+    """CORE-SCHED: an all-zero SOM schedule reproduces the default run exactly."""
+    c0, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T, **SCHED_KW)
+    cz, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                        som_ext_rate_schedule=np.zeros(SCHED_STEPS), **SCHED_KW)
+    np.testing.assert_array_equal(np.asarray(cz), np.asarray(c0))
+
+
+def test_som_schedule_refuses_both():
+    """CORE-SCHED: a nonzero som_ext_rate_hz plus a schedule is refused."""
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(SCHED_SEED), SCHED_T, som_ext_rate_hz=4.0,
+                    som_ext_rate_schedule=np.zeros(SCHED_STEPS), **SCHED_KW)
+
+
+def test_som_schedule_on_off_moves_som():
+    """CORE-SCHED: 4 Hz for the first half and 0 Hz after gives fewer SOM
+    spikes in the second half than the first."""
+    half = SCHED_STEPS // 2
+    sched = np.zeros(SCHED_STEPS)
+    sched[:half] = 4.0
+    c, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                       som_ext_rate_schedule=sched, **SCHED_KW)
+    c = np.asarray(c)
+    first = int(c[:half, 2].sum())
+    second = int(c[half:, 2].sum())
+    assert first > 0, "precondition: first-half SOM must spike at 4 Hz"
+    assert second < first, (first, second)
+
+
+def test_ee_gain_ones_matches_default():
+    """CORE-SCHED: an all-ones E-to-E gain reproduces the default run exactly."""
+    c0, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T, **SCHED_KW)
+    c1, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                        ee_gain_schedule=np.ones(SCHED_STEPS), **SCHED_KW)
+    np.testing.assert_array_equal(np.asarray(c1), np.asarray(c0))
+
+
+def test_ee_gain_zero_silences_e_to_e():
+    """CORE-SCHED: a zero E-to-E gain changes the E counts and lowers the
+    mean E rate relative to the default."""
+    c0, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T, **SCHED_KW)
+    c0 = np.asarray(c0)
+    assert int(c0[:, 0].sum()) > 0, "precondition: E must spike by default"
+    c1, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                        ee_gain_schedule=np.zeros(SCHED_STEPS), **SCHED_KW)
+    c1 = np.asarray(c1)
+    assert not np.array_equal(c1[:, 0], c0[:, 0]), "E counts must change"
+    assert float(c1[:, 0].sum()) < float(c0[:, 0].sum()), (
+        c1[:, 0].sum(), c0[:, 0].sum())
+
+
+def test_ee_gain_refuses_negative_and_wrong_length():
+    """CORE-SCHED: a negative gain and a wrong-length gain are refused."""
+    bad = np.ones(SCHED_STEPS)
+    bad[0] = -1.0
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                    ee_gain_schedule=bad, **SCHED_KW)
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                    ee_gain_schedule=np.zeros(SCHED_STEPS + 1), **SCHED_KW)
+
+
+def test_ee_gain_transient_raises_e_rate_during_window():
+    """CORE-SCHED: a 1.6x E-to-E gain for 0.3 s mid-run raises the E count
+    inside the window relative to the same window of the default run."""
+    lo, hi = 3500, 6500  # 0.35-0.65 s of the 1.0 s run
+    gain = np.ones(SCHED_STEPS)
+    gain[lo:hi] = 1.6
+    c0, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T, **SCHED_KW)
+    w0 = int(np.asarray(c0)[lo:hi, 0].sum())
+    assert w0 > 0, "precondition: default window E must spike"
+    c1, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                        ee_gain_schedule=gain, **SCHED_KW)
+    w1 = int(np.asarray(c1)[lo:hi, 0].sum())
+    assert w1 > w0, (w0, w1)

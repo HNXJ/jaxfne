@@ -509,7 +509,8 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
              step_order="default", ext_sources="fixed", param_set="default",
              silence=None, replace=None, replace_rate_hz=None, swap=False,
              silence_onset_s=None, coupling=None, som_ext_rate_hz=0.0,
-             ext_rate_schedule=None):
+             ext_rate_schedule=None, som_ext_rate_schedule=None,
+             ee_gain_schedule=None):
     """Run the full E/PV/SOM network for ``T`` seconds (Euler, step ``dt``).
 
     ``p`` and ``NE/NPV/NSOM`` default to the selected set (reference:
@@ -559,7 +560,12 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
     ``som_ext_rate_hz`` adds a Poisson drive to SOM cells at this rate with
     weight ``Q_ext_S`` (own folded key, existing draws unchanged), and
     ``ext_rate_schedule`` replaces the constant E/PV feedforward rate with
-    a per-step Hz array of length ``steps``.
+    a per-step Hz array of length ``steps``. ``som_ext_rate_schedule`` is
+    the per-step counterpart of ``som_ext_rate_hz`` (Figure 2 SOM drive,
+    mmc2.txt lines 312-320 and legend 400; refused with a nonzero
+    ``som_ext_rate_hz``), and ``ee_gain_schedule`` multiplies the E-to-E
+    weight per step (Figure 6B 0.3 s transient, mmc2.txt lines 558-560 and
+    legend 646-649).
 
     Per step, in order: (i) pop spikes (recurrent booleans, external
     integer counts) delayed by ``round(tau_d / dt)`` steps from the ring
@@ -613,8 +619,6 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
                          % (som_ext_rate_hz,))
     if som_ext_rate_hz < 0.0:
         raise ValueError("som_ext_rate_hz must be >= 0, got %r" % (som_ext_rate_hz,))
-    som_drive = som_ext_rate_hz != 0.0
-    lam_som = n_src * som_ext_rate_hz * float(dt)
     if ext_rate_schedule is not None:
         sched = jnp.asarray(ext_rate_schedule)
         if sched.ndim != 1 or sched.shape[0] != steps:
@@ -624,6 +628,29 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
             raise ValueError("ext_rate_schedule rates must be >= 0 Hz")
     else:
         sched = None
+    if som_ext_rate_schedule is not None:
+        sched_som = jnp.asarray(som_ext_rate_schedule)
+        if sched_som.ndim != 1 or sched_som.shape[0] != steps:
+            raise ValueError("som_ext_rate_schedule must be a 1-D array of length "
+                             "steps (%d), got shape %s" % (steps, tuple(sched_som.shape)))
+        if bool(jnp.any(sched_som < 0)):
+            raise ValueError("som_ext_rate_schedule rates must be >= 0 Hz")
+        if som_ext_rate_hz != 0.0:
+            raise ValueError("pass only one SOM drive: som_ext_rate_hz=%r with "
+                             "som_ext_rate_schedule set" % (som_ext_rate_hz,))
+    else:
+        sched_som = None
+    if ee_gain_schedule is not None:
+        gain = jnp.asarray(ee_gain_schedule, dtype=dtype)
+        if gain.ndim != 1 or gain.shape[0] != steps:
+            raise ValueError("ee_gain_schedule must be a 1-D array of length steps "
+                             "(%d), got shape %s" % (steps, tuple(gain.shape)))
+        if bool(jnp.any(gain < 0)):
+            raise ValueError("ee_gain_schedule gains must be >= 0")
+    else:
+        gain = None
+    som_drive = som_ext_rate_hz != 0.0 or sched_som is not None
+    lam_som = n_src * som_ext_rate_hz * float(dt)
 
     k_net, k_ext = jax.random.split(key)
     net = build_network(k_net, p=p, NE=NE, NPV=NPV, NSOM=NSOM, indegree=indegree,
@@ -732,7 +759,8 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
     want_raster = record == "raster"
     want_currents = record == "currents"
     want_by_source = record == "currents_by_source"
-    use_t = sched is not None or silence_onset_s is not None
+    use_t = (sched is not None or sched_som is not None or gain is not None
+             or silence_onset_s is not None)
 
     def step_fn(carry, t):
         if want_by_source:
@@ -740,7 +768,11 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
         else:
             V, w, ref, gE, gI, ring, ering, head, rkey = carry
         rkey, ks = jax.random.split(rkey)
-        inc_gE, inc_gI = route_inputs(blocks, q, ring[head], ering[head], sizes, dtype)
+        if gain is None:
+            q_t = q
+        else:
+            q_t = dict(q, q_ee=q["q_ee"] * gain[t])
+        inc_gE, inc_gI = route_inputs(blocks, q_t, ring[head], ering[head], sizes, dtype)
         gE = gE * decay_e + inc_gE
         gI = gI * decay_i + inc_gI
         if want_by_source:
@@ -756,7 +788,7 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
             ae = arr_t[:NE]
             ap = arr_t[NE:NE + NPV]
             as_ = arr_t[NE + NPV:]
-            gEE = gEE * decay_e_e + q["q_ee"] * mv(("E", "E"), ae)
+            gEE = gEE * decay_e_e + q_t["q_ee"] * mv(("E", "E"), ae)
             gEx = gEx * decay_e_e + q["q_ext"] * earr_t[:NE].astype(dtype)
             gPE = gPE * decay_i + q["q_pe"] * mv(("PV", "E"), ap)
             gSE = gSE * decay_i + q["q_se"] * mv(("SOM", "E"), as_)
@@ -794,7 +826,8 @@ def simulate(key, T, dt=1e-4, p=None, dtype=jnp.float32, record="counts",
                                          shape=(NE + NPV,)).astype(jnp.int32)
         if som_drive:
             # Own folded key: the E/PV draws above are unchanged.
-            somc = jax.random.poisson(jax.random.fold_in(ks, _SOM_EXT_TAG), lam_som,
+            lam_som_t = lam_som if sched_som is None else n_src * sched_som[t] * float(dt)
+            somc = jax.random.poisson(jax.random.fold_in(ks, _SOM_EXT_TAG), lam_som_t,
                                      shape=(NSOM,)).astype(jnp.int32)
             extc = jnp.concatenate([extc, somc])
         if replace is not None:
