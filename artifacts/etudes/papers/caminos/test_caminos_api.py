@@ -633,3 +633,88 @@ def test_s1_higher_p_increases_e_counts():
     assert "phase_delay_rad" in rows[0]
     assert e_by_p[0.3] != e_by_p[0.01], \
         "p must move the E counts: p=0.01 -> %r, p=0.3 -> %r" % (e_by_p[0.01], e_by_p[0.3])
+
+
+# --- Cell Reports Figure 2 / Figure 6A runners (packet FIG-2/6A) ---
+
+FIG26_T_S = 3.0  # smoke run length for the Figure 2 / 6A tests
+
+
+def test_fig2a_zero_rate_is_silent_drive():
+    """Zero feedforward rate gives a smaller E count than the 4 Hz drive (Figure 2A)."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=FIG26_T_S, **CF_SMOKE)
+    assert base["counts"]["E"] > 0, "precondition: the rate-4 E count is nonzero"
+    row = cf.fig2a_sweep(rates_hz=[0.0], seeds=[1], T_s=FIG26_T_S, **CF_SMOKE)[0]
+    assert row["rate_hz"] == 0.0 and row["seed"] == 1
+    assert row["counts"]["E"] < base["counts"]["E"]
+
+
+def test_fig2b_zero_drive_matches_baseline():
+    """Zero SOM drive reproduces the no-SOM-drive counts exactly (Figure 2B top).
+
+    CF_SMOKE carries ``som_ext_rate_hz=4.0``, so the zero-drive row matches the
+    ``run_cell`` baseline without that key (default 0.0), not the CF_SMOKE baseline.
+    """
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=FIG26_T_S, sizes=CF_SMOKE["sizes"], ext_sources=100)
+    assert sum(base["counts"].values()) > 0, "precondition: the baseline must fire"
+    row = cf.fig2b_sweep(tdrates_hz=[0.0], seeds=[1], T_s=FIG26_T_S,
+                         sizes=CF_SMOKE["sizes"], ext_sources=100)[0]
+    assert row["tdrate_hz"] == 0.0 and row["seed"] == 1
+    assert row["counts"] == base["counts"]
+
+
+def test_fig2b_top_down_raises_som_counts():
+    """10 Hz top-down SOM drive gives more SOM counts than 0 Hz (Figure 2B top).
+
+    Observed on the smoke net: SOM is silent without the drive (0 Hz count 0),
+    so the reported precondition is the 10 Hz count firing, not a nonzero 0 Hz count.
+    """
+    import cellrep_figures as cf
+
+    kw = {"T_s": FIG26_T_S, "sizes": CF_SMOKE["sizes"], "ext_sources": 100}
+    lo = cf.fig2b_sweep(tdrates_hz=[0.0], seeds=[1], **kw)[0]
+    hi = cf.fig2b_sweep(tdrates_hz=[10.0], seeds=[1], **kw)[0]
+    assert hi["counts"]["SOM"] > 0, "precondition: the 10 Hz SOM count is nonzero"
+    assert hi["counts"]["SOM"] > lo["counts"]["SOM"], \
+        "top-down drive must raise SOM counts: 0 Hz -> %r, 10 Hz -> %r" \
+        % (lo["counts"]["SOM"], hi["counts"]["SOM"])
+
+
+def test_fig6a_ratio_splits_total():
+    """Ratio 1.0 splits total 100 into NPV = NSOM = 50 (Figure 6A)."""
+    import cellrep_figures as cf
+
+    row = cf.fig6a_sweep(ratios=[1.0], seeds=[1], total=100, T_s=FIG26_T_S,
+                         ext_sources=100, som_ext_rate_hz=4.0, NE=400)[0]
+    assert row["ratio"] == 1.0 and row["seed"] == 1
+    assert row["NPV"] == 50 and row["NSOM"] == 50
+    assert row["NPV"] + row["NSOM"] == 100
+    assert row["sizes"] == {"E": 400, "PV": 50, "SOM": 50}
+
+
+def test_fig6a_rejects_bad_ratio():
+    """fig6a_sweep refuses non-positive ratios and a non-positive total (Figure 6A)."""
+    import cellrep_figures as cf
+
+    with pytest.raises(ValueError):
+        cf.fig6a_sweep(ratios=[0.0], seeds=[1])
+    with pytest.raises(ValueError):
+        cf.fig6a_sweep(ratios=[-1.0], seeds=[1])
+    with pytest.raises(ValueError):
+        cf.fig6a_sweep(ratios=[1.0], seeds=[1], total=0)
+
+
+def test_fig2_refuses_missing_seeds():
+    """Each Figure 2/6A sweep raises ValueError when seeds is None."""
+    import cellrep_figures as cf
+
+    with pytest.raises(ValueError):
+        cf.fig2a_sweep(rates_hz=[4.0], seeds=None, T_s=FIG26_T_S, **CF_SMOKE)
+    with pytest.raises(ValueError):
+        cf.fig2b_sweep(tdrates_hz=[4.0], seeds=None, T_s=FIG26_T_S, **CF_SMOKE)
+    with pytest.raises(ValueError):
+        cf.fig6a_sweep(ratios=[1.0], seeds=None)

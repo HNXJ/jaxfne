@@ -197,6 +197,159 @@ def replace_sweep(pop, fractions, seeds, rate_hz, **kw):
     return rows
 
 
+# --- Cell Reports Figure 2 / Figure 6A runners (packet FIG-2/6A) ---
+
+FIG2A_RATES_HZ = tuple(float(i) for i in range(11))  # Fig 2A grid (mmc2 lines 283-292)
+FIG2B_TDRATES_HZ = tuple(float(i) for i in range(11))  # Fig 2B top grid (lines 312-320)
+FIG6A_RATIOS = (0.3, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0)  # Fig 6A grid (lines 533-570)
+
+
+def _attach_phase_delay(res, half_band_hz=5.0):
+    """Ref. 42 PV->SOM phase at the run's ``f_pk_hz`` (Figures 2, 6A, S1 style).
+
+    Calls :func:`jaxfne.analysis.ref42_phase_delay` on ``counts_kept`` with
+    ``half_band_hz``, ``drop_s=0.0`` and ``keep_s = T_s - 2`` (the kept
+    window starts after the 2 s discard, as in :func:`s1_sweep`). Sets
+    ``phase_delay`` (the full dict) and ``phase_delay_rad`` (wrapped
+    SOM-minus-PV, None when a group is silent). Both stay None when the
+    spectrum is degenerate (``f_pk_hz <= half_band_hz``, e.g. a silent E
+    group), where the band itself is refused.
+    """
+    from jaxfne.analysis import ref42_phase_delay
+
+    f_pk = float(res["f_pk_hz"])
+    half = float(half_band_hz)
+    delay, rad = None, None
+    if f_pk > half:
+        dur = float(res["T_s"]) - DISCARD_S
+        delay = ref42_phase_delay(np.asarray(res["counts_kept"]), res["dt_s"],
+                                  f_pk, half_band_hz=half,
+                                  drop_s=0.0, keep_s=dur)
+        phi_pv, phi_som = delay["phase_PV_rad"], delay["phase_SOM_rad"]
+        if phi_pv is not None and phi_som is not None:
+            rad = float(np.angle(np.exp(1j * (phi_som - phi_pv))))
+    res.update({"phase_delay": delay, "phase_delay_rad": rad})
+    return res
+
+
+def fig2a_sweep(rates_hz=None, seeds=None, **kw):
+    """Figure 2A sweep: tonic E/PV feedforward rate 0-10 Hz (mmc2 lines 283-292,
+    legend lines 394-399).
+
+    For each rate and seed this runs :func:`run_cell` with the constant E/PV
+    feedforward rate set to that value, via ``ext_rate_schedule`` (a constant
+    per-step Hz array; ``caminos_jax.simulate`` replaces its constant rate
+    with the schedule, docstring lines 561-562). ``rates_hz`` defaults to the
+    Figure's grid; every rate must be >= 0. Rows carry ``rate_hz``, ``seed``
+    and the :func:`run_cell` outputs plus ``phase_delay`` / ``phase_delay_rad``
+    (:func:`_attach_phase_delay`). ``kw`` goes to :func:`run_cell`.
+    """
+    if rates_hz is None:
+        rates_hz = FIG2A_RATES_HZ
+    if seeds is None:
+        raise ValueError("seeds must be given, got None")
+    t_s = float(kw.get("T_s", 12.0))
+    dt_s = float(kw.get("dt_s", DT_S))
+    steps = int(round(t_s / dt_s))
+    rows = []
+    for rate in rates_hz:
+        try:
+            rv = float(rate)
+        except (TypeError, ValueError):
+            raise ValueError("rate_hz must be a number >= 0, got %r" % (rate,))
+        if not (np.isfinite(rv) and rv >= 0.0):
+            raise ValueError("rate_hz must be >= 0, got %r" % (rate,))
+        sched = np.full(steps, rv)
+        for seed in seeds:
+            res = run_cell(seed, **{**kw, "ext_rate_schedule": sched})
+            _attach_phase_delay(res)
+            res.update({"rate_hz": rv, "seed": int(seed)})
+            rows.append(res)
+    return rows
+
+
+def fig2b_sweep(tdrates_hz=None, seeds=None, **kw):
+    """Figure 2B top sweep: top-down SOM drive 0-10 Hz at 4 Hz feedforward
+    (mmc2 lines 312-320, legend line 400).
+
+    As :func:`fig2a_sweep`, with the E/PV feedforward at its 4 Hz default and
+    ``som_ext_rate_hz`` set to each value (``caminos_jax.simulate`` lines
+    559-560). ``tdrates_hz`` defaults to the Figure's grid; every value must
+    be >= 0. Rows carry ``tdrate_hz``, ``seed`` and the :func:`run_cell`
+    outputs plus ``phase_delay`` / ``phase_delay_rad``.
+    """
+    if tdrates_hz is None:
+        tdrates_hz = FIG2B_TDRATES_HZ
+    if seeds is None:
+        raise ValueError("seeds must be given, got None")
+    rows = []
+    for rate in tdrates_hz:
+        try:
+            rv = float(rate)
+        except (TypeError, ValueError):
+            raise ValueError("tdrate_hz must be a number >= 0, got %r" % (rate,))
+        if not (np.isfinite(rv) and rv >= 0.0):
+            raise ValueError("tdrate_hz must be >= 0, got %r" % (rate,))
+        for seed in seeds:
+            res = run_cell(seed, **{**kw, "som_ext_rate_hz": rv})
+            _attach_phase_delay(res)
+            res.update({"tdrate_hz": rv, "seed": int(seed)})
+            rows.append(res)
+    return rows
+
+
+def fig6a_sweep(ratios=None, seeds=None, total=1400, **kw):
+    """Figure 6A sweep: SOM/PV density ratio at fixed interneuron total
+    (mmc2 lines 533-548, 558-570, legend lines 636-646).
+
+    The x-axis is the SOM/PV density ratio ``r = NSOM/NPV`` with
+    ``NPV + NSOM = total`` (the cellrep defaults 800/600 sum to 1400):
+    ``NPV = round(total / (1 + r))``, ``NSOM = total - NPV``. E stays at
+    ``NE = 8000`` (overridable as ``NE=...`` for smoke nets; ``sizes`` itself
+    is built here and refused in ``kw``). For each ratio and seed this runs
+    :func:`run_cell` with ``sizes = {"NE": NE, "NPV": NPV, "NSOM": NSOM}``.
+    ``ratios`` defaults to the Figure's grid; every ratio must be > 0 and
+    ``total`` a positive integer. Rows carry ``ratio``, ``NPV``, ``NSOM``,
+    ``seed`` and the outputs plus ``phase_delay_rad``.
+    """
+    if ratios is None:
+        ratios = FIG6A_RATIOS
+    if seeds is None:
+        raise ValueError("seeds must be given, got None")
+    if isinstance(total, bool) or not isinstance(total, (int, np.integer)) \
+            or int(total) <= 0:
+        raise ValueError("total must be a positive integer, got %r" % (total,))
+    total = int(total)
+    if "sizes" in kw:
+        raise ValueError("fig6a builds sizes from ratio/total; pass NE=... "
+                         "to override the E count, got sizes=%r" % (kw["sizes"],))
+    ne = kw.pop("NE", 8000)
+    if isinstance(ne, bool) or not isinstance(ne, (int, np.integer)) \
+            or int(ne) <= 0:
+        raise ValueError("NE must be a positive integer, got %r" % (ne,))
+    rows = []
+    for ratio in ratios:
+        try:
+            rv = float(ratio)
+        except (TypeError, ValueError):
+            raise ValueError("ratio must be > 0, got %r" % (ratio,))
+        if not (np.isfinite(rv) and rv > 0.0):
+            raise ValueError("ratio must be > 0, got %r" % (ratio,))
+        npv = int(round(total / (1.0 + rv)))
+        nsom = total - npv
+        if npv < 1 or nsom < 1:
+            raise ValueError("ratio %r splits total %d into NPV=%d, NSOM=%d; "
+                             "both must be >= 1" % (ratio, total, npv, nsom))
+        sizes = {"NE": int(ne), "NPV": npv, "NSOM": nsom}
+        for seed in seeds:
+            res = run_cell(seed, **{**kw, "sizes": sizes})
+            _attach_phase_delay(res)
+            res.update({"ratio": rv, "NPV": npv, "NSOM": nsom,
+                        "seed": int(seed)})
+            rows.append(res)
+    return rows
+
+
 def s3_paired(seed, *, onset_s=S3_ONSET_S, T_s=12.0, **kw):
     """Figure S3 pair (mmc2 lines 1852-1860): SOM fully silenced from ``onset_s``
     (default 6.04 s) against the unmanipulated control, same seed.
