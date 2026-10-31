@@ -1109,3 +1109,75 @@ def test_s2_column3_feeds_only_i_som():
     np.testing.assert_array_equal(res["I_exc"], np.zeros_like(res["I_exc"]))
     np.testing.assert_array_equal(res["I_pv"], np.zeros_like(res["I_pv"]))
     np.testing.assert_array_equal(res["I_total"], res["I_som"])
+
+
+# Figure 3/4/5/S1 colour-map estimators (mmc2.txt lines 1711-1753).
+
+def _tone_40hz():
+    """10 s of a unit 40 Hz sine at dt 1e-4 (no discard)."""
+    steps = int(round(10.0 / DT))
+    t = np.arange(steps) * DT
+    return np.sin(2.0 * np.pi * 40.0 * t)
+
+
+def test_colour_map_peaks_at_the_tone():
+    """The colour-map spectrum of a 40 Hz sine peaks within 0.2 Hz of 40 Hz."""
+    freqs, mag = ca.colour_map_spectrum(_tone_40hz(), DT, discard_s=0.0)
+    assert float(np.max(mag)) > 0.0  # precondition: a nonzero peak
+    assert abs(float(freqs[int(np.argmax(mag))]) - 40.0) <= 0.2, freqs[int(np.argmax(mag))]
+
+
+def test_colour_map_is_scale_invariant():
+    """Scaling the LFP by 7 leaves the normalised magnitude unchanged (rtol 1e-9).
+
+    np.allclose's default atol 1e-8 absorbs the ~1e-14 numerical zero bins of
+    an exactly-on-bin sine, whose last bits differ under the rescaling.
+    """
+    lfp = _tone_40hz()
+    _, mag = ca.colour_map_spectrum(lfp, DT, discard_s=0.0)
+    _, mag7 = ca.colour_map_spectrum(7.0 * lfp, DT, discard_s=0.0)
+    assert np.allclose(mag7, mag, rtol=1e-9)
+
+
+def test_band_power_captures_the_tone_band():
+    """A 40 Hz tone's 25-45 Hz band power equals the full-band integral (rtol 1e-3)."""
+    freqs, mag = ca.colour_map_spectrum(_tone_40hz(), DT, discard_s=0.0)
+    full = ca.band_power(mag, freqs, lo_hz=0.0, hi_hz=float(freqs[-1]))
+    assert full > 0.0  # precondition: a positive full-band integral
+    band = ca.band_power(mag, freqs, lo_hz=25.0, hi_hz=45.0)
+    np.testing.assert_allclose(band, full, rtol=1e-3, atol=0.0)
+
+
+def test_band_power_rejects_empty_band():
+    """An inverted band and a band with no bin in it both raise ValueError.
+
+    The no-bin case needs a bin width above 1 Hz (the 10 s tone's 0.1 Hz bins
+    cover 60-61), so the tone is 4001 samples (0.4001 s, bins about 2.5 Hz
+    apart: 59.99 and 62.48 straddle the band).
+    """
+    freqs, mag = ca.colour_map_spectrum(_tone_40hz(), DT, discard_s=0.0)
+    with pytest.raises(ValueError):  # lo above hi
+        ca.band_power(mag, freqs, lo_hz=45.0, hi_hz=25.0)
+    short = np.sin(2.0 * np.pi * 40.0 * np.arange(4001) * DT)
+    sfreqs, smag = ca.colour_map_spectrum(short, DT, discard_s=0.0)
+    assert not np.any((sfreqs >= 60.0) & (sfreqs <= 61.0))  # precondition
+    with pytest.raises(ValueError):  # no bin of the 40 Hz tone in 60-61 Hz
+        ca.band_power(smag, sfreqs, lo_hz=60.0, hi_hz=61.0)
+
+
+def test_max_rate_over_time_single_spike_bin():
+    """One bin with 3 spikes of 10 E cells gives peak_kernel * 3 / (n_e * dt) Hz per cell."""
+    steps = 1000
+    e_counts = np.zeros(steps)
+    e_counts[500] = 3.0  # well inside the 30-step kernel radius (sigma 10 steps)
+    kernel = ca._gaussian_kernel(1.0 / (DT * 1000.0))  # sigma_ms / dt_ms, as the module does
+    peak_kernel = float(np.max(kernel))
+    expected = peak_kernel * 3.0 / (10 * DT)
+    res = ca.max_rate_over_time(e_counts, DT, 10, sigma_ms=1.0)
+    np.testing.assert_allclose(res, expected, rtol=1e-9, atol=0.0)
+
+
+def test_max_rate_over_time_rejects_nonpositive_n():
+    """n_e = 0 raises ValueError (division by the population size)."""
+    with pytest.raises(ValueError):
+        ca.max_rate_over_time(np.zeros(100), DT, 0)

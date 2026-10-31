@@ -142,6 +142,69 @@ def spectral_peak(e_rate, dt, pe_threshold=PE_THRESHOLD):
     }
 
 
+def colour_map_spectrum(lfp, dt_s, discard_s=DISCARD_S):
+    """Magnitude spectrum of the LFP for the colour maps (Figures 3, 4, 5, S1).
+
+    Methods "Frequency analysis and color maps" (mmc2.txt lines 1721-1738):
+    the first ``round(discard_s / dt_s)`` steps are discarded, the kept
+    window is zero-meaned and normalised by its L2 norm (the paper's
+    x-hat = (x - x-bar) / (∫ |x - x-bar|^2 dt)^(1/2)), then the magnitude of
+    the one-sided FFT (``np.fft.rfft``) is returned with its frequencies.
+    Raises ValueError when ``dt_s`` is not positive or when fewer than 2
+    samples remain after the discard.
+    """
+    x = np.asarray(lfp, dtype=float)
+    if not dt_s > 0:
+        raise ValueError("dt_s must be positive, got %r" % (dt_s,))
+    cut = int(round(discard_s / dt_s))
+    if x.size - cut < 2:
+        raise ValueError("fewer than 2 samples remain: %d steps, discard %d" % (x.size, cut))
+    x = x[cut:]
+    x = x - x.mean()
+    x = x / np.sqrt(np.sum(x ** 2) * float(dt_s))
+    return np.fft.rfftfreq(x.size, d=float(dt_s)), np.abs(np.fft.rfft(x))
+
+
+def band_power(magnitude, freqs, lo_hz=25.0, hi_hz=45.0):
+    """Absolute gamma-band power of a colour-map magnitude spectrum (25-45 Hz).
+
+    Methods "Frequency analysis and color maps" (mmc2.txt lines 1741-1753):
+    the integral of ``magnitude**2`` over the bins with
+    ``lo_hz <= freqs <= hi_hz``, times the bin width ``freqs[1] - freqs[0]``.
+    The paper divides by a full-band integral, but its denominator is garbled
+    in the source text, so the absolute integral is returned, not a ratio.
+    Raises ValueError when ``lo_hz >= hi_hz`` or when no bin falls in the band.
+    """
+    f = np.asarray(freqs, dtype=float)
+    m = np.asarray(magnitude, dtype=float)
+    lo, hi = float(lo_hz), float(hi_hz)
+    if not lo < hi:
+        raise ValueError("band must satisfy lo_hz < hi_hz, got lo=%r, hi=%r" % (lo_hz, hi_hz))
+    in_band = (f >= lo) & (f <= hi)
+    if not np.any(in_band):
+        raise ValueError("no bin in [%g, %g] Hz over freqs %g..%g" % (lo, hi, f[0], f[-1]))
+    df = f[1] - f[0]
+    return float(np.sum(m[in_band] ** 2) * df)
+
+
+def max_rate_over_time(e_counts, dt_s, n_e, sigma_ms=1.0):
+    """Peak smoothed E rate in Hz per cell over time (Figures 3, 4, 5, S1).
+
+    ``e_counts`` is the per-step E spike count; it is convolved with the
+    module's Gaussian kernel of sigma ``sigma_ms`` (:func:`_gaussian_kernel`,
+    "same" mode, as in :func:`pv_som_lag`), divided by ``n_e * dt_s`` to give
+    Hz per cell (the paper's Equation 5, mmc2.txt lines 1711-1720), and the
+    maximum over time is returned as a float. Raises ValueError when ``n_e``
+    is not positive.
+    """
+    if not float(n_e) > 0.0:
+        raise ValueError("n_e must be positive, got %r" % (n_e,))
+    counts = np.asarray(e_counts, dtype=float)
+    kernel = _gaussian_kernel(float(sigma_ms) / (dt_s * 1000.0))
+    rate = np.convolve(counts, kernel, mode="same") / (float(n_e) * float(dt_s))
+    return float(np.max(rate))
+
+
 def _gaussian_kernel(sigma_steps):
     radius = int(3 * sigma_steps)
     g = np.arange(-radius, radius + 1, dtype=float)
