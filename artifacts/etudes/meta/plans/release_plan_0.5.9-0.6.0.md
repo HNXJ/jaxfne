@@ -38,6 +38,27 @@ runs wait for signatures. At most 3 lanes.
 | H4 | C1 numbering CL-22 to CL-26 | Ruled 2026-10-26: the ledger keeps CL-1 to CL-26; E2 claims are CL-27 to CL-34 |
 | H5 | LICENSE name, data statement, data licences | Ruled 2026-10-26: LICENSE names Hamed Nejat; third-party inputs are cited by DOI and licence and never redistributed |
 
+## 0.5.9 checklist and score
+
+Weights sum to 100: packages 70, exit gate (`release_plan_0.5.7-0.5.10.md` §6) 30. A row earns its
+weight only when its "Done when" check holds; partial credit is the share of its named checks that hold.
+Score on 2026-10-31 at dev 4ce58b4c: 28/100.
+
+| Id | Weight | Evidence 2026-10-31 | Score |
+|---|---|---|---|
+| 9A Language | 12 | `supplement.py`: S1 35 of 35 rows mapped; F1 generator `fig01_grammar.py`; no S2 generator; the specializer `PV[model=IZH]` waits on Hamm (T-45) | 8 |
+| 9B H-state | 10 | `supplement.py`: S5 regenerates for 7 rules; no coupling-bypass mutant test found in `tests/` | 5 |
+| 9C Emitters | 10 | `fixed_indegree` in `jaxfne/connectivity.py`; Izhikevich E1 not verified; P6 unsigned | 3 |
+| 9D Circuits | 12 | Potjans P3 v2 drafted, unsigned, pilots not run; CAMINOS core-route rerun open (T-30) | 0 |
+| 9E Plasticity, fit | 14 | Vogels P3 v2 drafted, unsigned; PCL R2 not run (T-3); GSDR pilot not run | 0 |
+| 9F Mechanics | 8 | `check_junit_parity.py` in the gate; `.github/figure_env_lock.txt`; `publication` job in `release_ci.yml`; rc gate not run (no candidate) | 6 |
+| 9G Carried | 4 | not checked | 0 |
+| Gate 1 packages closed or moved | 6 | 9A to 9E open | 0 |
+| Gate 2 broad, CI, replications, dashboard | 8 | broad gate exit 0 and CI (Fast) success on 4ce58b4c; `check_replications.py --check` 0 unlisted; dashboard `--check` fresh; repeat on the release SHA | 6 |
+| Gate 3 `release_body.py --check` | 4 | fails: `pyproject.toml` is 0.5.8, no v0.5.9 changelog section | 0 |
+| Gate 4 second review, receipt | 6 | not started | 0 |
+| Gate 5 tag, main, PyPI | 6 | Hamm's word | 0 |
+
 ## Later releases
 
 - 0.5.10: F2 with AT-10-N20 and the C4 turn-invariance wording; F4 with the benchmark prereg, Brian2,
