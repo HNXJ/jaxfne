@@ -15,11 +15,9 @@ Settings (packet 9C-E1 pilot 2):
 - Noise through ``Simulation.gaussian_drive`` at dt 0.5 ms: std E 5 sqrt(2), I 2 sqrt(2).
 - Recurrent backend ``edge_list``: the dense backend runs on ``emitter.W`` only and
   refuses compiled rule edges, so the declared rules run on the edge list.
-- Mechanism ``ampa`` (reversal 0 mV) is declared because ``weight_range`` is compiled
-  only on the mechanism-aware path. Its tau_ms is 1e-3, the instantaneous limit of the
-  edge_list filter: exp(-dt/tau) is exactly 0.0 in float32 at dt 0.5 ms, so each spike
-  enters the next step's current once, as ``W @ prev_spikes`` does in the kernel route
-  (``simulate_eig_izhikevich``). At tau 5 ms the same network saturates (2000 Hz, pilot 2).
+- Mechanism ``instantaneous`` (``tau_ms`` 0.0, the tau -> 0 limit, P-051): the current
+  at step t is the weighted sum of presynaptic spikes at t-1 with no carry-over, as
+  ``W @ prev_spikes`` is in the kernel route (``simulate_eig_izhikevich``).
 """
 
 from __future__ import annotations
@@ -60,16 +58,7 @@ NOISE_STD = {"E": 5.0 * np.sqrt(2.0), "I": 2.0 * np.sqrt(2.0)}
 W_RANGE = {"E": (0.0, 1.0), "I": (0.0, 2.0)}
 CELL_KEYS = ("a", "b", "c", "d", "v0", "u0", "drive")
 PE_CHANGE_STOP = 0.25  # packet stop rule: library vs kernel E or I rate differs by more than 25%
-TAU_MS = 1e-3  # ampa mechanism tau: the instantaneous limit of the edge_list synaptic filter
-
-
-def synaptic_decay(tau_ms=TAU_MS, dt_ms=DT_MS):
-    """Per-step decay exp(-dt/tau) of the edge_list synaptic state, evaluated in float32."""
-    return float(np.exp(np.float32(-dt_ms / tau_ms)))
-
-
-# Instantaneous limit: the decay must be exactly 0.0 in float32.
-assert synaptic_decay() == 0.0, f"edge_list decay is {synaptic_decay()!r}, expected 0.0"
+INSTANTANEOUS_TAU_MS = 0.0  # the tau -> 0 limit (P-051); the only zero tau the edge route accepts
 
 
 def check_out(out):
@@ -126,11 +115,11 @@ def build_core_model(seed):
         jtfne.configuration()
         .network(name="izh2003_fig3", kind="balanced_ei_population", n=N,
                  cell_types={"E": 0.8, "I": 0.2})
-        .mechanisms(name="ampa", kind="receptor", params={"tau_ms": TAU_MS, "reversal_mV": 0.0})
+        .mechanisms(name="instantaneous", kind="receptor", params={"tau_ms": INSTANTANEOUS_TAU_MS})
         .connections(name="e_all", source={"cell_type": "E"}, target={}, probability=1.0,
-                     mechanism="ampa", weight_range=W_RANGE["E"])
+                     mechanism="instantaneous", weight_range=W_RANGE["E"])
         .connections(name="i_all", source={"cell_type": "I"}, target={}, probability=1.0,
-                     mechanism="ampa", weight_range=W_RANGE["I"])
+                     mechanism="instantaneous", weight_range=W_RANGE["I"])
         .connectivity(edge_seed=int(seed))
         .cell_params({"cell_type": "E"}, payload["E"])
         .cell_params({"cell_type": "I"}, payload["I"])
@@ -249,8 +238,18 @@ def realization_checks(model, seed):
     rep["self_edges"] = int(np.sum(pre == post))
     tau = np.asarray(resolve_edge_tau_ms(edges, jnp.float32), dtype=np.float64)
     rep["tau_ms_unique"] = [float(x) for x in np.unique(tau)]
-    decay = np.exp(-np.float32(DT_MS) / tau.astype(np.float32))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        step = np.where(tau > 0, -np.float32(DT_MS) / tau.astype(np.float32),
+                        np.float32("-inf")).astype(np.float32)
+        decay = np.exp(step)
     rep["decay_float32_max"] = float(decay.max())
+    rep["mechanisms"] = [
+        {"name": m.get("name"), "tau_ms": (m.get("params") or {}).get("tau_ms")}
+        for m in model.cfg.metadata["circuit"]["mechanisms"]
+    ]
+    rep["connection_mechanisms"] = {
+        r["name"]: r.get("mechanism") for r in model.cfg.metadata["circuit"]["connections"]
+    }
     rep["receptor_index_unique"] = [int(x) for x in np.unique(np.asarray(resolve_receptor_index(edges)))]
     blocks = {}
     for t in ("E", "I"):
@@ -324,8 +323,8 @@ def cmd_pilot(out, t_s):
     doc = {"packet": "9C-E1 pilot 2 (unscored)", "code_sha": _git_sha(), "t_s": t_s,
            "dt_ms": DT_MS, "discard_ms": DISCARD_MS, "theta": theta,
            "alpha_band": list(alpha_band),
-           "synaptic": {"tau_ms_declared": TAU_MS, "dt_ms": DT_MS,
-                        "decay_float32": synaptic_decay()},
+           "synaptic": {"receptor": "instantaneous", "tau_ms_declared": INSTANTANEOUS_TAU_MS,
+                        "dt_ms": DT_MS},
            "runs": [], "realization": {}, "stop": None}
     _write(out, doc)
     models = {}

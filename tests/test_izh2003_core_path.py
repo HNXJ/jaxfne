@@ -84,12 +84,45 @@ def test_receipt_counts_and_no_default_coupling(real0):
     assert real0["emitter_W_has_coupling"] is False
 
 
-def test_synaptic_filter_is_the_instantaneous_limit(real0):
-    # The edge_list route filters each edge with its mechanism tau; 1e-3 ms makes
-    # exp(-dt/tau) exactly 0.0 in float32 at dt 0.5 ms, so each spike acts for one step.
-    assert real0["tau_ms_unique"] == pytest.approx([core.TAU_MS], rel=1e-6)
-    assert real0["decay_float32_max"] == 0.0
-    assert core.synaptic_decay() == 0.0
+def test_coupling_is_instantaneous(model0, real0):
+    # The run couples through the named instantaneous receptor (P-051, ruled 2026-10-28),
+    # not a small-tau filter: every rule declares it, every edge carries tau 0, and a
+    # single presynaptic spike reaches the postsynaptic current in the next step with
+    # weight W and is gone the step after.
+    import dataclasses
+
+    import jax
+    import jax.numpy as jnp
+
+    from jaxfne.emitters import (
+        INSTANTANEOUS_MECHANISM,
+        resolve_edge_weight,
+        simulate_edge_recurrent_izhikevich,
+    )
+
+    assert real0["mechanisms"] == [{"name": INSTANTANEOUS_MECHANISM, "tau_ms": 0.0}]
+    assert real0["connection_mechanisms"] == {"e_all": INSTANTANEOUS_MECHANISM,
+                                             "i_all": INSTANTANEOUS_MECHANISM}
+    assert real0["tau_ms_unique"] == [0.0]
+
+    edges = model0.params["edge_list"]
+    params = dataclasses.replace(model0.params["emitter"],
+                                 drive=jnp.zeros((core.N,), dtype=jnp.float32))
+    n_steps, s = 20, 5
+    sched = np.zeros((n_steps, core.N), dtype=np.float32)
+    sched[s, 0] = 300.0  # neuron 0 is forced to spike once, at step s
+    _, spikes, _, state = simulate_edge_recurrent_izhikevich(
+        params, edges, n_steps, core.DT_MS, jax.random.PRNGKey(0),
+        drive_schedule=jnp.asarray(sched), noise_scale=0.0, record_edge_current=True)
+    spk = np.asarray(spikes)
+    assert spk[s, 0] == 1, "fixture: neuron 0 spikes at the forced step"
+    cur = np.asarray(state["edge_current_trace"])
+    from_0 = np.asarray(edges.pre) == 0
+    assert from_0.any(), "fixture must hold edges from neuron 0"
+    w = np.asarray(resolve_edge_weight(edges, jnp.float32))
+    np.testing.assert_array_equal(cur[s, from_0], 0.0)  # the spike has not arrived yet
+    np.testing.assert_array_equal(cur[s + 1, from_0], w[from_0])  # next step, the full weight
+    np.testing.assert_array_equal(cur[s + 2:, from_0], 0.0)  # and no carry-over afterwards
 
 
 def test_seed_changes_spikes(model0):

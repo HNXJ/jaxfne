@@ -1,6 +1,7 @@
 # Izhikevich 2003 P6 preregistration: Fig. 3 through the jaxfne API (draft, UNSIGNED — no scored run may use it)
 
-Status: draft (2026-10-27); seeds, Q5 and the margins wait on Hamm. The P5 verdicts (`PREREG_P3.md`
+Status: draft, ready for signature (rulings 2026-10-28 applied); UNSIGNED — no scored
+run may use it. The P5 verdicts (`PREREG_P3.md`
 signed v7, amendment v8.2; `scores/p3_v7_score.json`) are the oracle. A signed P6 that fails leaves
 them as they are.
 
@@ -25,7 +26,7 @@ else changed after any outcome.
 | 800 E then 200 I | `network(kind="balanced_ei_population", n=1000, cell_types={"E": 0.8, "I": 0.2})` |
 | Per-cell a, b, c, d from the draw r (`k_r`); v0 −65 mV, u0 = b·v0 | `cell_params` per type with the P5 draw; `runtime(random_v0=False)` |
 | All-to-all S with self edges; W = 2S at dt 0.5 ms (E U[0, 1), I −U[0, 2)) | two rules at probability 1, `weight_range`, sign from the presynaptic I cells; `with_rule_allow_self_connections`; `connectivity_mode="explicit"`; `connectivity(edge_seed=s)` |
-| Instantaneous coupling (`W @ prev_spikes`) | `edge_list` backend, mechanism tau 1e-3 ms: exp(−dt/tau) is exactly 0 in float32 at dt 0.5 ms |
+| Instantaneous coupling (`W @ prev_spikes`) | `edge_list` backend, `instantaneous` receptor (`tau_ms` 0.0, the tau -> 0 limit, P-051): the current at step t is the weighted sum of presynaptic spikes at t-1, with no carry-over |
 | Noise 5·randn (E), 2·randn (I), × √2 at dt 0.5 ms | `Simulation(gaussian_drive={"std_by_cell_type": {"E": 5√2, "I": 2√2}})` |
 | dt 0.5 ms, T 10.2 s, first 200 ms discarded | `Simulation(dt_ms=0.5, duration_ms=10200)` |
 
@@ -44,8 +45,7 @@ Equivalence is stated on the estimands.
 
 ## Runs
 
-Seeds, Hamm's choice: (a, recommended) 2–6, none run on the library path; (b) 1–5, the P5 seeds,
-seed 1 seen in the pilot. CPU, float32.
+Seeds 2–6 (owner ruling 2026-10-28), none run on the library path. CPU, float32.
 
 ## Criteria
 
@@ -64,7 +64,7 @@ P6 passes when Q1–Q5 pass. A 2 SD margin is 3.2 SD of the difference of two 5-
 network identical to P5 fails Q1, Q2 or Q4 by seed noise with probability about 0.5 % (normal
 approximation).
 
-## Q5: Hamm's choice
+## Q5: option B chosen (owner ruling 2026-10-28)
 
 P5's own peak excess sits near θ. Under a normal approximation from the P5 seeds, one new seed
 falls below θ with probability 0.084 (N3) and 0.075 (N4); "PE ≥ θ in every seed" then fails on
@@ -72,8 +72,8 @@ five new seeds with probability 0.36 and 0.32, about 0.56 together, for a networ
 
 | Option | Q5 | False-fail |
 |---|---|---|
-| A | N1–N4 verdicts equal to P5 (N1 pass, N2 fail, N3 pass, N4 pass) | about 56 % |
-| B (recommended) | N1 and N2 verdicts equal to P5; N3 and N4 mean PE within 2 SD of P5 (5.8 and 2.5); per-seed band calls reported | under 1 % |
+| A (considered, not chosen) | N1–N4 verdicts equal to P5 (N1 pass, N2 fail, N3 pass, N4 pass) | about 56 % |
+| B (chosen) | N1 and N2 verdicts equal to P5; N3 and N4 mean PE within 2 SD of P5 (5.8 and 2.5); per-seed band calls reported | under 1 % |
 
 ## Outcome language
 
