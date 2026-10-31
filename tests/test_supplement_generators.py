@@ -1,7 +1,9 @@
-"""Supplement generators S1 and S5: outputs match the definition map and the identity test."""
+"""Supplement generators S1, S2 and S5: outputs match the map, the calibration
+transforms and the identity test."""
 
 from __future__ import annotations
 
+import dataclasses
 import importlib.util
 import json
 import re
@@ -9,6 +11,7 @@ import sys
 from pathlib import Path
 from types import ModuleType
 
+import numpy as np
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
@@ -111,3 +114,61 @@ def test_s5_markdown_has_a_row_per_rule_and_the_panel_is_a_png(
     assert len(table) == len(s5_payload["rules"]) + 1, "header plus one row per rule"
     png = (s5_out / "S5_reduction_identity.png").read_bytes()
     assert png.startswith(PNG_MAGIC), "S5 panel is not a PNG"
+
+
+# --- S2: relative quantities and calibration transforms ---------------------
+
+
+def test_s2_lists_at_least_one_calibration_transform(tmp_path: Path) -> None:
+    counts = supplement.write_s2(tmp_path)
+    assert counts["rows"] >= 1, "S2 must list at least one public calibration transform"
+    payload = json.loads((tmp_path / "S2_calibration.json").read_text(encoding="utf-8"))
+    assert len(payload["rows"]) == counts["rows"]
+    md = (tmp_path / "S2_calibration.md").read_text(encoding="utf-8")
+    assert md.startswith("# S2.")
+    for row in payload["rows"]:
+        assert row["code_path"], row["name"]
+        assert row["doctrine"], row["name"]
+
+
+def test_s2_every_row_check_passes(tmp_path: Path) -> None:
+    counts = supplement.write_s2(tmp_path)
+    assert counts["rows"] >= 1
+    assert counts["checked"] == counts["rows"]
+    assert counts["failed"] == 0
+    payload = json.loads((tmp_path / "S2_calibration.json").read_text(encoding="utf-8"))
+    for row in payload["rows"]:
+        assert row["passed"], row["name"]
+        assert row["input"] is not None and row["expected"] is not None, row["name"]
+        assert np.allclose(
+            np.asarray(row["output"], dtype=float),
+            np.asarray(row["expected"], dtype=float),
+            rtol=1e-12,
+            atol=0.0,
+        ), row["name"]
+
+
+def test_s2_perturbed_transform_fails_and_main_returns_1(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+) -> None:
+    import jaxfne.fields as fields_mod
+
+    real_apply = fields_mod.apply_calibration
+
+    def scaled_by_two(obj, transform):
+        out = real_apply(obj, transform)
+        swaps = {}
+        for f in dataclasses.fields(out):
+            v = getattr(out, f.name)
+            if hasattr(v, "dtype") and hasattr(v, "shape"):
+                swaps[f.name] = v * 2
+        assert swaps, "perturbed fake must scale a numeric payload"
+        return dataclasses.replace(out, **swaps)
+
+    monkeypatch.setattr(fields_mod, "apply_calibration", scaled_by_two)
+    counts = supplement.write_s2(tmp_path)
+    assert counts["rows"] >= 1
+    assert counts["failed"] == counts["rows"], "a x2 perturbation must fail every row"
+    monkeypatch.setattr(supplement, "write_s5", lambda out: [])
+    assert supplement.main(["--out", str(tmp_path)]) == 1
+    assert f"S2 rows={counts['rows']}" in capsys.readouterr().out

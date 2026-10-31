@@ -1,7 +1,9 @@
-"""Supplement items S1 (notation table) and S5 (HDP reduction identity).
+"""Supplement items S1 (notation table), S2 (calibration transforms) and S5
+(HDP reduction identity).
 
 S1 parses docs/theory/doctrine/definition_map.md. A row is mapped when its symbol and
-test are both named, otherwise open. S5 runs the reduction checks of
+test are both named, otherwise open. S2 applies every public calibration transform
+through the public API and records its numeric check. S5 runs the reduction checks of
 tests/test_hdp_reduction_identity.py for every core registered rule, through that
 module's own helpers, and writes the numbers its assertions use.
 """
@@ -22,6 +24,11 @@ REPO = Path(__file__).resolve().parents[2]
 DEFINITION_MAP = REPO / "docs/theory/doctrine/definition_map.md"
 IDENTITY_TEST = REPO / "tests/test_hdp_reduction_identity.py"
 DEFAULT_OUT = REPO / "artifacts/_temp/supplement"
+
+# The tree under test is this repo: a site-packages jaxfne (if installed) must
+# not shadow it when the generator runs as `python scripts/...` from elsewhere.
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
 
 FULL_WIDTH_IN = 7.2  # full text width, match-visual-style page box
 ROW_HEIGHT_IN = 0.32  # one rule per row in the S5 panel
@@ -77,6 +84,167 @@ def write_s1(out_dir: Path) -> dict[str, int]:
     ]
     (out_dir / "S1_notation.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     return {"rows": len(rows), "mapped": mapped, "open": open_rows}
+
+
+# --- S2: relative quantities and calibration transforms ----------------------
+#
+# Each row applies one public calibration authority through the public API to a
+# known relative input and records input, output and expected output. A row
+# passes when the calibrated values match the relative values within
+# rtol 1e-12 (exact equality for integers) and the epistemic level equals the
+# transform's target. apply_calibration is a relabel: values are preserved.
+
+S2_Rtol = 1e-12
+
+
+def _values_match(actual: object, expected: object) -> bool:
+    a = np.asarray(actual)
+    e = np.asarray(expected)
+    if a.shape != e.shape:
+        return False
+    if a.dtype.kind in "iu" and e.dtype.kind in "iu":
+        return bool(np.array_equal(a, e))
+    return bool(
+        np.allclose(a.astype(np.float64), e.astype(np.float64), rtol=S2_Rtol, atol=0.0)
+    )
+
+
+def _s2_probe_relative():
+    from jaxfne import fields as fields_mod
+
+    phi = np.array([[0.5, -1.25, 2.0], [0.125, 0.0, -0.75]])
+    return fields_mod.lfp_proxy_probe(phi)
+
+
+def _s2_field_relative():
+    from jaxfne import fields as fields_mod
+
+    phi = np.array([[0.5, -1.25, 2.0], [0.125, 0.0, -0.75]])
+    return fields_mod.FieldOutput(
+        source_proxy=phi,
+        phi_e_proxy=phi,
+        csd_proxy=phi,
+        lfp_proxy=phi,
+        kernel=np.eye(3),
+        contact_depths=np.array([0.0, 0.5, 1.0]),
+        diagnostics={},
+    )
+
+
+def _s2_specs() -> list[dict[str, object]]:
+    return [
+        {
+            "name": "jaxfne.fields.apply_calibration",
+            "code_path": "jaxfne/fields/probes.py:269 (transform jaxfne/fields/probes.py:167)",
+            "relative_quantity": "ProbeReadout data at RELATIVE_PROXY "
+            "(jaxfne/fields/probes.py:536 lfp_proxy_probe output; dimensionless)",
+            "absolute_quantity": "same data relabeled CALIBRATED",
+            "unit": "V",
+            "boundary": "probe",
+            "doctrine": "artifacts/AGENTS.md:32 "
+            "('Absolute units arise through explicit calibration transformations "
+            "at semantic boundaries'); "
+            "docs/theory/doctrine/definition_map.md:41 (D35 calibration boundary "
+            "C_S(Q; G, Theta))",
+            "build_relative": _s2_probe_relative,
+            "extract": lambda out: out.data,
+            "units": "V",
+            "conductivity": "declared_proxy_conductivity",
+            "distance": "declared_probe_geometry",
+            "target_level": "CALIBRATED",
+        },
+        {
+            "name": "jaxfne.fields.apply_calibration",
+            "code_path": "jaxfne/fields/probes.py:269 (transform jaxfne/fields/probes.py:167)",
+            "relative_quantity": "FieldOutput phi_e_proxy at RELATIVE_PROXY "
+            "(jaxfne/fields/proxy.py:56 uncalibrated simulation readout; dimensionless)",
+            "absolute_quantity": "same data relabeled REDUCED_PHYSICAL",
+            "unit": "V",
+            "boundary": "field",
+            "doctrine": "docs/theory/doctrine/rbs_rbd_hdp.md:290-296 "
+            "('Where physical calibration depends on geometry, make the boundary "
+            "explicit'; Q_phys = C_S(Q_tilde; G, Theta_cal)); "
+            "docs/theory/doctrine/relative_quantity_grammar.md:142 "
+            "('calibrated: an explicit calibration transformation has been applied')",
+            "build_relative": _s2_field_relative,
+            "extract": lambda out: out.phi_e_proxy,
+            "units": "V",
+            "conductivity": "declared_proxy_conductivity",
+            "distance": "declared_field_geometry",
+            "target_level": "REDUCED_PHYSICAL",
+        },
+    ]
+
+
+def _check_s2_row(spec: dict[str, object]) -> dict[str, object]:
+    from jaxfne import fields as fields_mod
+
+    rel = spec["build_relative"]()  # type: ignore[operator]
+    values_in = np.asarray(spec["extract"](rel), dtype=np.float64)  # type: ignore[operator]
+    transform = fields_mod.CalibrationTransform(
+        units=spec["units"],
+        conductivity=spec["conductivity"],
+        distance=spec["distance"],
+        target_level=spec["target_level"],
+    )
+    try:
+        out = fields_mod.apply_calibration(rel, transform)
+        values_out = np.asarray(spec["extract"](out), dtype=np.float64)  # type: ignore[operator]
+        level_ok = out.epistemic_level == transform.target_level
+        values_ok = _values_match(values_out, values_in)
+        passed = bool(level_ok and values_ok)
+        detail = f"level={out.epistemic_level} level_ok={level_ok} values_ok={values_ok}"
+    except Exception as exc:  # a refusal is a failed check, recorded not raised
+        values_out = None
+        passed = False
+        detail = f"{type(exc).__name__}: {exc}"
+    return {
+        "name": spec["name"],
+        "code_path": spec["code_path"],
+        "relative_quantity": spec["relative_quantity"],
+        "absolute_quantity": spec["absolute_quantity"],
+        "unit": spec["units"],
+        "boundary": spec["boundary"],
+        "doctrine": spec["doctrine"],
+        "target_level": spec["target_level"],
+        "input": values_in.tolist(),
+        "output": None if values_out is None else np.asarray(values_out).tolist(),
+        "expected": values_in.tolist(),
+        "passed": passed,
+        "detail": detail,
+    }
+
+
+def write_s2(out_dir: Path) -> dict[str, int]:
+    rows = [_check_s2_row(spec) for spec in _s2_specs()]
+    failed = sum(not row["passed"] for row in rows)
+    payload = {
+        "source": "jaxfne/fields/probes.py",
+        "rtol": S2_Rtol,
+        "rows": rows,
+    }
+    (out_dir / "S2_calibration.json").write_text(
+        json.dumps(payload, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+    )
+    lines = [
+        "# S2. Relative quantities and calibration transforms",
+        "",
+        "Each row applies a public calibration transform to a known relative input "
+        "through the public API. A row passes when the calibrated values match the "
+        f"relative values within rtol {S2_Rtol:g} (exact equality for integers) and "
+        "the epistemic level equals the transform target.",
+        "",
+        "| Transform | Relative in | Absolute out | Unit | Boundary | Check | Status |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    lines += [
+        f"| {r['name']} | {r['relative_quantity']} | {r['absolute_quantity']} "
+        f"| {r['unit']} | {r['boundary']} | {r['detail']} | "
+        f"{'pass' if r['passed'] else 'FAIL'} |"
+        for r in rows
+    ]
+    (out_dir / "S2_calibration.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return {"rows": len(rows), "checked": len(rows), "failed": failed}
 
 
 def load_identity_module() -> ModuleType:
@@ -205,10 +373,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     args.out.mkdir(parents=True, exist_ok=True)
     counts = write_s1(args.out)
+    s2 = write_s2(args.out)
     rules = write_s5(args.out)
     print(f"S1 rows={counts['rows']} mapped={counts['mapped']} open={counts['open']}")
+    print(f"S2 rows={s2['rows']} checked={s2['checked']} failed={s2['failed']}")
     print(f"S5 rules={len(rules)} out={args.out}")
-    return 0
+    return 1 if s2["failed"] else 0
 
 
 if __name__ == "__main__":
