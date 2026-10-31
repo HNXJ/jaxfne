@@ -194,12 +194,12 @@ the rules those releases were held to and are historical context for readers.
   connection to render. Five tracked Plotly pages now reference plotly.js 3.5.0 on the CDN with an
   SRI hash (their bundle was byte-identical to the CDN file), which cuts the tracked tree by 24 MB.
 - Python 3.15 groundwork. JAX/jaxlib ceiling raised from `<0.11` to `<0.12`, because jaxlib's first
-  Python 3.15 wheels are 0.11.1. The homeostatic-EI `cubic_penalty` NaN that set the old pin
-  no longer reproduces: its 30 tests (slow included) pass on JAX 0.11.2. JAX 0.11 rounds 2 of the
+  Python 3.15 wheels are 0.11.1. The homeostatic-EI `cubic_penalty` NaN behind the old pin
+  is gone on JAX 0.11.2: its 30 tests (slow included) pass there. JAX 0.11 rounds 2 of the
   48 laminar projection kernel entries 1 ulp differently (max relative 8.8e-8); the oracle pins
   both hashes. On Python 3.15 the `dev`/`viz` extras take scipy 1.18.1 and matplotlib 3.11, which
   have 3.15 wheels, and the frozen-figure equivalence gate tests skip there. CI does not yet run
-  3.15, and pyyaml and h5py (the `io` and `jnwb` extras) publish no 3.15 wheels yet.
+  3.15, and pyyaml and h5py (the `io` and `jnwb` extras) have yet to publish 3.15 wheels.
 - Etude HTML under `docs/_static/etudes/experiment_a/` and
   `docs/_static/etudes/hdp_controllability_reachability/` is a build product, like the atlas HTML.
   `scripts/build_docs_assets.py --build` runs each etude generator and checks the files listed
@@ -761,7 +761,7 @@ GitHub Release / TestPyPI / PyPI since v0.4.5.
 
 ### Added
 - **Étude 6 — Multi-Area Network**: V1→V2→V4→PFC hierarchy with feedforward + feedback, inter-areal connectivity census, interactive 3D layout, per-area depth rasters, and an async-irregular (κ) gate.
-- **Étude 7 — Multi-Trial Spectrolaminar Motif**: multi-trial depth × frequency relative power on a 1k canonical column, with the synchrony (κ) trust gate and the regime-based crossover caveat (oscillatory layers + low κ; N alone does not suffice).
+- **Étude 7 — Multi-Trial Spectrolaminar Motif**: multi-trial depth × frequency relative power on a 1k canonical column, with the synchrony (κ) trust gate and the regime-based crossover caveat (oscillatory layers + low κ; N by itself falls short).
 
 ## v0.4.3 (2026-06-21)
 
@@ -824,6 +824,6 @@ GitHub Release / TestPyPI / PyPI since v0.4.5.
 
 ## Earlier releases (v0.3.42 -- v0.2.0, 2026-04 -- 2026-06)
 
-Condensed history: public context hardening (v0.3.42), JAX kernel ports including spectral/STDP/connectivity helpers (v0.3.41), device-flexibility and hardening (v0.3.40), stable packaging consolidation v0.3.37--v0.3.39, multi-area laminar workshop and cylindric scaffold/spectrolaminar features (v0.3.26--v0.3.24), Etude No.1 completion (v0.3.21), field-proxy boundary and sharding/dtype improvements (v0.3.19--v0.3.17), and initial stable proxy operators/docs infrastructure (v0.2.3--v0.2.0). Full per-release notes preserved in git history; no API or scientific claim changes beyond those summarized.
+Condensed history: public context hardening (v0.3.42), JAX kernel ports including spectral/STDP/connectivity helpers (v0.3.41), device-flexibility and hardening (v0.3.40), stable packaging consolidation v0.3.37--v0.3.39, multi-area laminar workshop and cylindric scaffold/spectrolaminar features (v0.3.26--v0.3.24), Etude 1 completion (v0.3.21), field-proxy boundary and sharding/dtype improvements (v0.3.19--v0.3.17), and initial stable proxy operators/docs infrastructure (v0.2.3--v0.2.0). Full per-release notes preserved in git history; no API or scientific claim changes beyond those summarized.
 
 Reference: see git log and GitHub Releases for verbatim per-version notes.
