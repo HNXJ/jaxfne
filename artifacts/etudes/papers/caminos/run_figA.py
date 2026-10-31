@@ -2,9 +2,9 @@
 
 Usage: python run_figA.py <outdir> <values csv> <seeds csv> <what>
   what: silence_pv | silence_som | replace_pv | replace_som | s3
-        | fig2a | fig2b | fig6a | fig5a | fig5b | fig5c
+        | fig2a | fig2b | fig6a | fig5a | fig5b | fig5c | fig1c
   values: fractions (silence/replace), Hz (fig2a, fig2b), ratios (fig6a), nS (fig5a, fig5b);
-          ignored for s3 and fig5c.
+          ignored for s3, fig5c and fig1c.
 Env FIGA_T_S sets the run length in seconds (default 12; smoke runs use 3).
 
 Writes <outdir>/<what>.json: one row per (value, seed) with scalars and short series.
@@ -81,7 +81,8 @@ def main():
         pop = "PV" if what == "silence_pv" else "SOM"
         for s in seeds:
             for f in values:
-                rows += cf.silence_sweep(pop, [f], [s], T_s=t_s)
+                # to 200 Hz: Fig 3B's seizure-like state oscillates near 150 Hz (mmc2 379-380)
+                rows += keep_spectrum(cf.silence_sweep(pop, [f], [s], T_s=t_s), fmax_hz=200.0)
                 print("run", what, "seed", s, "fraction", f, flush=True)
     elif what in ("replace_pv", "replace_som"):
         pop = "PV" if what == "replace_pv" else "SOM"
@@ -96,7 +97,7 @@ def main():
         print("baseline", pop, "rate_hz", round(rate, 4), flush=True)
         for s in seeds:
             for f in values:
-                rows += keep_spectrum(cf.replace_sweep(pop, [f], [s], rate_hz=rate, T_s=t_s))
+                rows += keep_spectrum(cf.replace_sweep(pop, [f], [s], rate_hz=rate, T_s=t_s), fmax_hz=200.0)
                 print("run", what, "seed", s, "fraction", f, flush=True)
     elif what in ("fig2a", "fig2b", "fig6a", "fig5a", "fig5b"):
         # one value at a time, so each finished run is on disk (rows stream to the log)
@@ -112,11 +113,12 @@ def main():
                 res = cf.coupling_sweep(kind, values_nS=[v], seeds=seeds, T_s=t_s)
             rows += keep_spectrum(res)
             print("run", what, "value", v, "rows", len(res), flush=True)
-    elif what == "fig5c":
+    elif what in ("fig5c", "fig1c"):
+        run = cf.fig5c_swap if what == "fig5c" else cf.fig1c_control
         for s in seeds:
-            res = cf.fig5c_swap(s, T_s=t_s)
+            res = run(s, T_s=t_s)
             rows += keep_spectrum([res])
-            print("run fig5c seed", s, flush=True)
+            print("run", what, "seed", s, flush=True)
     elif what == "s3":
         for s in seeds:
             res = cf.s3_paired(s, T_s=t_s)

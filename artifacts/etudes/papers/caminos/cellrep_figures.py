@@ -576,6 +576,17 @@ def fig5c_swap(seed, **kw):
     ``preferred_phase_by_type`` (its per-type circular-mean spike phase).
     Returns the :func:`run_cell` dict with those keys added.
     """
+    return _locking_run(seed, True, **kw)
+
+
+def fig1c_control(seed, **kw):
+    """Figure 1C control run (mmc2 lines 254-268): the unswapped network with the
+    spike-LFP locking of :func:`fig5c_swap`, so Figure 5C has its comparison."""
+    return _locking_run(seed, False, **kw)
+
+
+def _locking_run(seed, swap, **kw):
+    """:func:`run_cell` (``swap`` as given) plus per-type spike-LFP locking over the window."""
     kw = dict(kw)
     if kw.get("raster_window", None) is None:
         t0, t1 = FIG5C_RASTER_WINDOW_S
@@ -583,7 +594,7 @@ def fig5c_swap(seed, **kw):
             raise ValueError("default Figure 5C window (%g, %g) s exceeds T_s=%g; "
                              "pass raster_window explicitly" % (t0, t1, kw.get("T_s", 12.0)))
         kw["raster_window"] = (t0, t1)
-    res = run_cell(seed, **{**kw, "swap": True})
+    res = run_cell(seed, **{**kw, "swap": swap})
     t0, t1 = (float(x) for x in kw["raster_window"])
     dt = res["dt_s"]
     i0, i1 = int(round(t0 / dt)), int(round(t1 / dt))

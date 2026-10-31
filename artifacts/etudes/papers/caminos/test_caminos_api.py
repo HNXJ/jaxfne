@@ -622,6 +622,17 @@ def test_fig5c_swap_moves_pv_and_som_counts():
     assert "locking_by_type" in got and "ppc_by_type" in got
 
 
+def test_fig1c_control_keeps_the_baseline_and_adds_locking():
+    """The Figure 1C control run is the unswapped baseline plus its spike-LFP locking."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=FIG5S1_T_S, **CF_SMOKE)
+    assert base["counts"]["E"] > 0, "precondition: the baseline E fires"
+    got = cf.fig1c_control(1, T_s=FIG5S1_T_S, **CF_SMOKE)
+    assert got["counts"] == base["counts"]
+    assert "E" in got["ppc_by_type"]["by_type"]
+
+
 def test_s1_higher_p_increases_e_counts():
     """E counts rise from p = 0.01 to p = 0.3 on the smoke net (Figure S1)."""
     import cellrep_figures as cf
