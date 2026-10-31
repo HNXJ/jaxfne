@@ -42,20 +42,20 @@ runs wait for signatures. At most 3 lanes.
 
 Weights sum to 100: packages 70, exit gate (`release_plan_0.5.7-0.5.10.md` §6) 30. A row earns its
 weight only when its "Done when" check holds; partial credit is the share of its named checks that hold.
-Score on 2026-10-31 at dev 4ce58b4c: 28/100.
+Score on 2026-10-31 at dev 8da66a42: 40/100 (28 at 4ce58b4c).
 
 | Id | Weight | Evidence 2026-10-31 | Score |
 |---|---|---|---|
-| 9A Language | 12 | `supplement.py`: S1 35 of 35 rows mapped; F1 generator `fig01_grammar.py`; no S2 generator; the specializer `PV[model=IZH]` waits on Hamm (T-45) | 8 |
-| 9B H-state | 10 | `supplement.py`: S5 regenerates for 7 rules; no coupling-bypass mutant test found in `tests/` | 5 |
-| 9C Emitters | 10 | `fixed_indegree` in `jaxfne/connectivity.py`; Izhikevich E1 not verified; P6 unsigned | 3 |
+| 9A Language | 12 | `definition_map.md` rows all name a symbol and a test; `supplement.py` regenerates S1 (35 of 35 mapped), S2 (2 calibration rows, 0 failed) and S5 in one command; F1 re-renders RGBA-identical in `run_test_gate.py publication`. The specializer `PV[model=IZH]` (T-45) is outside the "Done when" check | 12 |
+| 9B H-state | 10 | `tests/test_d34_typed_coupling.py`: the neutral reduction and the composition check fail under a bypass and a map-dropping mutant (hand-applied); S5 regenerates for 7 rules; F3 (fig06) re-renders RGBA-identical | 10 |
+| 9C Emitters | 10 | `fixed_indegree` in `jaxfne/connectivity.py`; Izhikevich P6 on the `instantaneous` receptor, `core/PREREG_P6_v2.md` ready for signature; E1 open until the signed P6 scores | 3 |
 | 9D Circuits | 12 | Potjans P3 v2 drafted, unsigned, pilots not run; CAMINOS core-route rerun open (T-30) | 0 |
-| 9E Plasticity, fit | 14 | Vogels P3 v2 drafted, unsigned; PCL R2 not run (T-3); GSDR pilot not run | 0 |
+| 9E Plasticity, fit | 14 | Vogels P3 v2 drafted, unsigned; its B8 pilot driver (`vogels2011_api.py pilot`) runs seed 0 and both known positives; PCL R2 not run (T-3); GSDR pilot not run | 0 |
 | 9F Mechanics | 8 | `check_junit_parity.py` in the gate; `.github/figure_env_lock.txt`; `publication` job in `release_ci.yml`; rc gate not run (no candidate) | 6 |
-| 9G Carried | 4 | not checked | 0 |
+| 9G Carried | 4 | dashboard schema `jaxfne-replications/2` with receipt hashes, dark twins, the replications page check and the theme are in place (agy sweep, observed); docs leftovers: changelog fragments for every v0.5.9 change | 3 |
 | Gate 1 packages closed or moved | 6 | 9A to 9E open | 0 |
 | Gate 2 broad, CI, replications, dashboard | 8 | broad gate exit 0 and CI (Fast) success on 4ce58b4c; `check_replications.py --check` 0 unlisted; dashboard `--check` fresh; repeat on the release SHA | 6 |
-| Gate 3 `release_body.py --check` | 4 | fails: `pyproject.toml` is 0.5.8, no v0.5.9 changelog section | 0 |
+| Gate 3 `release_body.py --check` | 4 | needs the release-day steps: version 0.5.9 in `pyproject.toml`, then `assemble_changelog.py --version 0.5.9 --date <day>` | 0 |
 | Gate 4 second review, receipt | 6 | not started | 0 |
 | Gate 5 tag, main, PyPI | 6 | Hamm's word | 0 |
 
