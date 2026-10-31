@@ -104,7 +104,9 @@ def stack_items() -> list[tuple[str, str]]:
     """(label, text) per open row: todo table rows ("todo <#>"), T-n bullets with their continuation
     lines, and O-n lines of the open stack, in file order."""
     items = []
-    for name, pat in (("todo_stack.md", r"^- (T-\d+[a-z]?)\b"), ("open_stack.md", r"^- (O-\d+)\b")):
+    # todo rows: bullets or numbered steps, optionally marked beside the path (U+2225) or owner's ([H])
+    todo_pat = r"^(?:-|\d+\.) (?:" + "∥" + r" )?(?:\[H\] )?(T-[A-Z]?\d+[a-z]?)\b"
+    for name, pat in (("todo_stack.md", todo_pat), ("open_stack.md", r"^- (O-\d+)\b")):
         p = ARTIFACTS / name
         if not p.is_file():
             continue
