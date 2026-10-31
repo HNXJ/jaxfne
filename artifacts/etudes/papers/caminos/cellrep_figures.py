@@ -43,6 +43,10 @@ import numpy as np
 
 import caminos_analysis as cca
 import caminos_jax as cj
+import jaxfne as jtfne
+
+assert "site-packages" not in jtfne.__file__, "cellrep_figures must run the checkout's jaxfne"
+
 from jaxfne.analysis import ref42_lfp
 
 PARAM_SET = "cellrep"  # Cell Reports 2025 notebook set throughout
