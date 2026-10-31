@@ -498,3 +498,71 @@ def test_s3_paired_returns_window_series():
     assert t[-1] == pytest.approx(6.2, abs=1e-3)
     assert control.shape == silenced.shape == t.shape
     assert control.max() > 0, "precondition: the control E rate must be nonzero"
+
+
+def test_replace_rows_carry_rate_hz():
+    """replace_sweep rows carry rate_hz and replace_rate_hz (Figure 4, mmc2 lines 500-504)."""
+    import cellrep_figures as cf
+
+    row = cf.replace_sweep("PV", [0.5], [1], rate_hz=4.0, T_s=3.0, **CF_SMOKE)[0]
+    assert row["rate_hz"] == 4.0
+    assert row["replace_rate_hz"] == {"PV": 4.0}
+
+
+def test_silence_half_fraction_changes_som_counts():
+    """silence_sweep at 0.5 changes the SOM counts (Figure 3, mmc2 lines 439-445)."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=3.0, **CF_SMOKE)
+    assert base["counts"]["SOM"] > 0, "precondition: the baseline SOM must fire"
+    row = cf.silence_sweep("SOM", [0.5], [1], T_s=3.0, **CF_SMOKE)[0]
+    assert row["counts"]["SOM"] != base["counts"]["SOM"]
+
+
+def test_replace_full_pv_changes_e_counts():
+    """replace_sweep at 1.0 changes the E counts (Figure 4, mmc2 lines 500-504)."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=3.0, **CF_SMOKE)
+    assert base["counts"]["E"] > 0, "precondition: the baseline E must fire"
+    row = cf.replace_sweep("PV", [1.0], [1], rate_hz=4.0, T_s=3.0, **CF_SMOKE)[0]
+    assert row["counts"]["E"] != base["counts"]["E"]
+
+
+def test_s3_window_uses_padded_smoothing():
+    """s3_paired smooths with full kernel support (padded 0.05 s each side)."""
+    import numpy as np
+
+    import caminos_analysis as cca
+    import cellrep_figures as cf
+
+    out = cf.s3_paired(1, T_s=6.3, **CF_SMOKE)
+    dt = out["dt_s"]
+    n_e = out["control"]["sizes"]["E"]
+    t0, t1 = cf.S3_WINDOW_S
+    p0, p1 = t0 - 0.05, t1 + 0.05
+    ref_run = cf.run_cell(1, T_s=6.3, raster_window=(p0, p1), **CF_SMOKE)
+    counts_pad = np.asarray(ref_run["raster_window"])[:, :n_e].sum(axis=1)
+    kernel = cca._gaussian_kernel(1.0 / (dt * 1000.0))
+    smooth_pad = np.convolve(counts_pad.astype(float), kernel, mode="same") / (n_e * dt)
+    i0p, i0, i1 = int(round(p0 / dt)), int(round(t0 / dt)), int(round(t1 / dt))
+    ref = smooth_pad[(i0 - i0p):(i0 - i0p) + (i1 - i0)]
+    assert np.allclose(np.asarray(out["e_rate_control_hz"]), ref, rtol=1e-12, atol=1e-12)
+
+
+def test_s3_silenced_differs_after_onset():
+    """s3_paired silencing changes the post-onset E rate; pre-onset is identical."""
+    import numpy as np
+
+    import cellrep_figures as cf
+
+    out = cf.s3_paired(1, T_s=6.3, **CF_SMOKE)
+    t = np.asarray(out["t_window_s"])
+    control = np.asarray(out["e_rate_control_hz"])
+    silenced = np.asarray(out["e_rate_silenced_hz"])
+    post = (t >= 6.04) & (t < 6.2)
+    pre = (t >= 5.9) & (t < 6.0)
+    assert control[post].mean() > 0, "precondition: the control post-onset E rate is nonzero"
+    assert float(np.max(np.abs(control[post] - silenced[post]))) > 0
+    assert silenced[post].mean() > control[post].mean()
+    assert float(np.max(np.abs(control[pre] - silenced[pre]))) == pytest.approx(0.0, abs=1e-12)

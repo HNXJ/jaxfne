@@ -186,23 +186,29 @@ def replace_sweep(pop, fractions, seeds, rate_hz, **kw):
     spike times are randomised. For each fraction and seed, :func:`run_cell`
     with ``replace={pop: f}`` and ``replace_rate_hz={pop: rate_hz}``;
     fraction 0 passes ``replace=None``. ``kw`` goes to :func:`run_cell`.
-    Rows carry ``pop``, ``fraction``, ``seed`` and ``rate_hz``.
+    Rows carry ``pop``, ``fraction``, ``seed``, ``rate_hz`` and ``replace_rate_hz``.
     """
-    return _manip_rows("replace", pop, fractions, seeds, kw,
+    rows = _manip_rows("replace", pop, fractions, seeds, kw,
                        {"replace_rate_hz": {pop: float(rate_hz)}})
+    for row in rows:
+        row["rate_hz"] = float(rate_hz)
+    return rows
 
 
 def s3_paired(seed, *, onset_s=S3_ONSET_S, T_s=12.0, **kw):
     """Figure S3 pair (mmc2 lines 1852-1860): SOM fully silenced from ``onset_s``
     (default 6.04 s) against the unmanipulated control, same seed.
 
-    Returns a dict with ``t_window_s``, ``e_rate_control_hz`` and
-    ``e_rate_silenced_hz`` (E rate in Hz per cell over the 5.9-6.2 s window,
-    smoothed with the :func:`caminos_analysis.max_rate_over_time` kernel),
-    and the two full :func:`run_cell` dicts as ``control`` / ``silenced``
-    (each with its 5.9-6.2 s ``raster_window``). ``kw`` goes to
-    :func:`run_cell`. Raises ValueError when ``onset_s >= T_s`` or when the
-    run ends before the Figure S3 window does.
+    The window is half-open [5.9, 6.2). Returns a dict with ``t_window_s``,
+    ``e_rate_control_hz`` and ``e_rate_silenced_hz`` (E rate in Hz per cell
+    over the window, smoothed with the
+    :func:`caminos_analysis.max_rate_over_time` kernel: the raster is taken
+    padded by 0.05 s on each side so the kernel has full support, smoothed,
+    then sliced back to the window), and the two full :func:`run_cell`
+    dicts as ``control`` / ``silenced`` (each with its 5.9-6.2 s
+    ``raster_window``). ``kw`` goes to :func:`run_cell`. Raises ValueError
+    when ``onset_s >= T_s``, when the run ends before the Figure S3 window
+    does, or when the padded window [5.85, 6.25) s exceeds the run.
     """
     onset = float(onset_s)
     T = float(T_s)
@@ -212,18 +218,25 @@ def s3_paired(seed, *, onset_s=S3_ONSET_S, T_s=12.0, **kw):
     if t1 > T:
         raise ValueError("the Figure S3 window ends at %g s; T_s=%g is too short"
                          % (t1, T))
-    win = {"raster_window": (t0, t1)}
+    p0, p1 = t0 - 0.05, t1 + 0.05
+    if not 0.0 <= p0 or not p1 <= T:
+        raise ValueError("the padded Figure S3 window [%g, %g) s exceeds [0, %g) s"
+                         % (p0, p1, T))
+    win = {"raster_window": (p0, p1)}
     control = run_cell(seed, T_s=T, **win, **kw)
     silenced = run_cell(seed, T_s=T, silence={"SOM": 1.0}, silence_onset_s=onset,
                         **win, **kw)
     dt = control["dt_s"]
-    i0 = int(round(t0 / dt))
-    t = (i0 + np.arange(control["raster_window"].shape[0])) * dt
+    i0, i1, i0p = int(round(t0 / dt)), int(round(t1 / dt)), int(round(p0 / dt))
+    off = i0 - i0p
+    t = (i0 + np.arange(i1 - i0)) * dt
     out = {"onset_s": onset, "T_s": T, "dt_s": dt, "t_window_s": t,
            "control": control, "silenced": silenced}
     for name, run in (("e_rate_control_hz", control),
                       ("e_rate_silenced_hz", silenced)):
         n_e = run["sizes"]["E"]
-        counts_win = np.asarray(run["raster_window"])[:, :n_e].sum(axis=1)
-        out[name] = _e_rate_series(counts_win, dt, n_e)
+        counts_pad = np.asarray(run["raster_window"])[:, :n_e].sum(axis=1)
+        out[name] = _e_rate_series(counts_pad, dt, n_e)[off:off + (i1 - i0)]
+    for run in (control, silenced):
+        run["raster_window"] = run["raster_window"][off:off + (i1 - i0)]
     return out
