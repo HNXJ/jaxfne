@@ -11,19 +11,15 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## 0.5.9
 
-1. T-67 [A] Record Izhikevich P6 PASS (signed v2, seeds 2-6, Q1-Q5; receipt
-   `F:/warehouse/izh2003/p6_v2_scored/p6_score.json`): `core/RESULT_P6.md` and `core/scores/p6_v2_score.json` in the
-   repo, the izhikevich P6 stage in `dashboard/sources.json`, the net.m conformance entry (T-30) closed. Closes when:
-   `build_dashboard_data.py --check` and `run_test_gate.py report` pass. Checklist: 9C to 10. → 3.
-2. T-68 [A] GSDR `--mcdp` (ES gradient, ruled 2026-10-31; lane `gsdres` reviewed, 19 tests): integrate, then pilots
+1. T-68 [A] GSDR `--mcdp` (ES gradient, ruled 2026-10-31; lane `gsdres` reviewed, 19 tests): integrate, then pilots
    on seeds 0-3 at a short budget. Closes when: pilot receipts exist and a P3 prereg draft names scoring seeds 9-13.
-   → [H] sign or defer (step 8).
-3. T-O70 [A] B8 pilots (running from clone `pilots` at 9eee4452; receipts under `F:/warehouse/vogels2011/P3v2_pilot`
+   → [H] sign or defer (step 7).
+2. T-O70 [A] B8 pilots (running from clone `pilots` at 9eee4452; receipts under `F:/warehouse/vogels2011/P3v2_pilot`
    and `F:/warehouse/potjans2014/P3v2_pilot`): Vogels seed 0, rho0 6 Hz, eta 0; Potjans 10% seed 0 and L5i→L5e
    lesion. Closes when: each known positive moves its estimand as the prereg says (rho0 6 breaks R-E; eta 0 fails
    O-DROP; the lesion moves R-L5E out of band). ⇒ a known positive that does not move: driver or estimand defect,
-   fix and rerun before any signature. ⇒ all move: → 9.
-4. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
+   fix and rerun before any signature. ⇒ all move: → 8.
+3. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
    behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
    test first and a changelog fragment:
    a. per-type AdEx `cell_params` and an adex `poisson_drive` list with per-target mechanisms (packet
@@ -35,76 +31,76 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    within its between-seed range (T-R28 ruling). ⇒ outside: attribute (parameters, drive, delay, random streams)
    before any rescoring. ⇒ inside: rerun the Cell Reports sweeps on the GPU, the S2 entry for `cellrep_figures.py`
    closes. Checklist: 9D CAMINOS half.
-5. T-3 [A] (P) PCL R2: replay the trained network's training files through the chained scan and compare with the
+4. T-3 [A] (P) PCL R2: replay the trained network's training files through the chained scan and compare with the
    port and the C++ reference (WSL `~/pcl_cpp`, test binary 7 of 7, `data/events/shapes.h5`). → R3, attribute each
    residual (implementation, parameters, stochastic, model). → R4 prereg declaring T4 up front (driven column (4,4),
-   (0,0) reported beside it) → [H] sign (step 8) → R5 score, exact and approximate apart. The signed v5 T2 FAIL
+   (0,0) reported beside it) → [H] sign (step 7) → R5 score, exact and approximate apart. The signed v5 T2 FAIL
    stays. Then T-22, T-25: PCL B3 on the intra-step operator; trained weights load as A' (`with_trained_weights`).
-6. T-69 [A] Destexhe pilots on the WSL GPU after step 13: `run_destexhe.py fig6b_cont --seed S --tag fig6b_cont
+5. T-69 [A] Destexhe pilots on the WSL GPU after step 12: `run_destexhe.py fig6b_cont --seed S --tag fig6b_cont
    --out <unscored dir> --kick-fraction 0.25 --kick-rate-hz 286` for seeds 0-3 (50-85 s each) → prereg draft (E1-E4,
-   scoring seeds 9-13) → [H] sign (step 8).
-7. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
+   scoring seeds 9-13) → [H] sign (step 7).
+6. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
    S3 test, C6 `geometry="laminar"` with Brian2 and Jaxley baselines declared.
-8. [H] Signatures, one at a time as each draft is ready: Potjans P3 v2, Vogels P3 v2, GSDR P3, Destexhe, PCL R4.
+7. [H] Signatures, one at a time as each draft is ready: Potjans P3 v2, Vogels P3 v2, GSDR P3, Destexhe, PCL R4.
    Each: sign ⇒ scored run from a fixed clone → result file, dashboard, checklist 9D/9E; defer ⇒ the package moves
    to 0.5.10 with its reason (Gate 1).
-9. T-70 [A] 9F: the rc gate end to end on the candidate (JUnit parity, figure lock, clean-checkout figure job;
+8. T-70 [A] 9F: the rc gate end to end on the candidate (JUnit parity, figure lock, clean-checkout figure job;
     Release CI JUnit reused for the same tree). 9G: a fragment for every change since v0.5.8; the assembled section
     under the hygiene caps (26 of 30 ghost hits on 2026-10-31).
-10. [H] Gate 1: every package 9A-9G closed or moved with its reason; Hamm rules each move.
-11. T-71 [A] Gates 2-4 on the release SHA: broad gate, CI, `check_replications.py --check` 0 unlisted, dashboard
+9. [H] Gate 1: every package 9A-9G closed or moved with its reason; Hamm rules each move.
+10. T-71 [A] Gates 2-4 on the release SHA: broad gate, CI, `check_replications.py --check` 0 unlisted, dashboard
     fresh; second review with its receipt; release day: version 0.5.9 in `pyproject.toml`,
     `assemble_changelog.py --version 0.5.9 --date <day>`, `release_body.py --check`.
-12. [H] Gate 5: Hamm's go → tag, main, Release, PyPI.
+11. [H] Gate 5: Hamm's go → tag, main, Release, PyPI.
 
 ## Beside the path (∥)
 
-13. ∥ T-63 [A] CAMINOS PLoS GPU panels (rerun from p2b after a CUDA illegal-address fault at SOM 80 %, seed 3):
+12. ∥ T-63 [A] CAMINOS PLoS GPU panels (rerun from p2b after a CUDA illegal-address fault at SOM 80 %, seed 3):
     score 2A-F, 3A-F and 4A bottom (`FIGA_PARAM_SET=default`) into a PLoS result file and the `caminos` replica
     block; `build_dashboard_data.py --check` passes. ⇒ the fault recurs at the same run: smallest failing case on
     the GPU before rerunning.
-14. ∥ T-59 [A] Cell Reports Fig S1 runner with its test; `replication_audit` reads clean in the report gate.
+13. ∥ T-59 [A] Cell Reports Fig S1 runner with its test; `replication_audit` reads clean in the report gate.
     Blocked-by: T-O73.
-15. ∥ T-O68 [A] Local copies (O-68): rescue each cited file into the repo or `F:/warehouse` with a `state.md`
+14. ∥ T-O68 [A] Local copies (O-68): rescue each cited file into the repo or `F:/warehouse` with a `state.md`
     pointer, delete one at a time (`cl-reader-cursor`, `jaxfne-wt-p022`, the four WSL copies, the non-git leftovers
     named in O-68), and the finished lane clones under `E:/repos/_wt/jaxfne/` after an alternates check.
-16. ∥ T-45 [A] The object specializer `PV[model=IZH]` parses (`Base[NAME]` only today). Closes when: it parses with
+15. ∥ T-45 [A] The object specializer `PV[model=IZH]` parses (`Base[NAME]` only today). Closes when: it parses with
     a test and S1 regenerates.
-17. ∥ T-46 [A] C9, C2: 8 gaps in `programme/paper/reproducibility_audit.md` section 7 (left: data and code statement,
-    PCL natural-image and DVS128/N-MNIST licences, S16 generators). → [H] close test (step 23).
-18. ∥ T-30 [A] Conformance for the rest (`scripts/replication_known_violations.json`; the S1 entries are Hamm's
+16. ∥ T-46 [A] C9, C2: 8 gaps in `programme/paper/reproducibility_audit.md` section 7 (left: data and code statement,
+    PCL natural-image and DVS128/N-MNIST licences, S16 generators). → [H] close test (step 22).
+17. ∥ T-30 [A] Conformance for the rest (`scripts/replication_known_violations.json`; the S1 entries are Hamm's
     exceptions): GSDR (HH in `construct()` dispatch, estimators), Destexhe (estimators, LEDGER, RESULT), pcl_h and
     Q-learning (phase records; pcl_h `sys.path` imports), PCL (closes at R4). Closes when: `check_replications.py
     --check` lists no violation without Hamm's exception.
-19. ∥ T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; then the lane
+18. ∥ T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; then the lane
     dashboard (skill `jaxfne-dashboard`).
-20. ∥ T-10b [A] jnwb cross-learning: a proxy-claim wording gate, or drop it. T-42 [A] CI plan steps observed at the
+19. ∥ T-10b [A] jnwb cross-learning: a proxy-claim wording gate, or drop it. T-42 [A] CI plan steps observed at the
     first rc. T-49 [A] split closed lane folders by kind as each lane closes (`caminos/`, `izhikevich2003/`,
     `brunel2000/`).
 
 ## Owner queue (asked one at a time, in this order)
 
-21. [H] T-O73 S1 drive: fixed (`ext_sources="fixed"`) or p·NE Poisson sources at 4 Hz (`SOURCE_P1.md` line 18,
-    `b8b38aea`); then private or shared sources (G3). Unblocks step 14.
-22. [H] T-65 CAMINOS Cell Reports 2A bottom, 2B bottom (t0), 6B (E→E gain): give the protocol values or exclude the
-    panels. Unblocks step 4d.
-23. [H] T-46 close test: section 7 closes at 0 gaps, or narrows to the 0.5.9 gaps.
-24. [H] T-62 Figure 1D (Onorato data): download permission (file name, source, size in `state.md`); which of panels
+20. [H] T-O73 S1 drive: fixed (`ext_sources="fixed"`) or p·NE Poisson sources at 4 Hz (`SOURCE_P1.md` line 18,
+    `b8b38aea`); then private or shared sources (G3). Unblocks step 13.
+21. [H] T-65 CAMINOS Cell Reports 2A bottom, 2B bottom (t0), 6B (E→E gain): give the protocol values or exclude the
+    panels. Unblocks step 3d.
+22. [H] T-46 close test: section 7 closes at 0 gaps, or narrows to the 0.5.9 gaps.
+23. [H] T-62 Figure 1D (Onorato data): download permission (file name, source, size in `state.md`); which of panels
     B, C, D hold.
-25. [H] P-052 surrogate fitness for training (`artifacts/runs/perf/profiles/precision_058.md`).
-26. [H] T-O74 to T-O79 retired selfcheck names in dated records: keep as history or edit.
+24. [H] P-052 surrogate fitness for training (`artifacts/runs/perf/profiles/precision_058.md`).
+25. [H] T-O74 to T-O79 retired selfcheck names in dated records: keep as history or edit.
 
 ## After 0.5.9
 
-27. 0.5.10: T-47 kernel-LFP commits 6eb3c6b8, 44cd0111, ff45364b, then the iSTDP out-degree and kernel LFP checks,
+26. 0.5.10: T-47 kernel-LFP commits 6eb3c6b8, 44cd0111, ff45364b, then the iSTDP out-degree and kernel LFP checks,
     then `coherence_radius_um` with its two limit tests; T-32 GSDR on `simulate_hh_batch`, seed and candidate
     batching for AdEx, LIF and `Model.tune` (`_model_tune.py:451`), core homes for lane analysis, Mejias G6, the
     LIF edge kernel on GPU; F2, F4, S16 per the release plan.
-28. 0.5.10: T-48 Jansen-Rit 1995 neural-mass emitter, then P1.
-29. After the 0.5.10 release and 7 replicated papers: T-54 [A then H] awesome-jax PR with Hamm's go.
-30. 0.5.11 and 0.6.0: the release plan's later sections.
+27. 0.5.10: T-48 Jansen-Rit 1995 neural-mass emitter, then P1.
+28. After the 0.5.10 release and 7 replicated papers: T-54 [A then H] awesome-jax PR with Hamm's go.
+29. 0.5.11 and 0.6.0: the release plan's later sections.
 
 External and gated: T-11 CAMINOS NWB excerpt for jnwb `tests/` (waits on jnwb's path); T-O10 the jynx keeper
 rules each harness proposal (jchat conference #29); T-RG komposer `run_guard.py stop` cwd fallback. Deferred, each

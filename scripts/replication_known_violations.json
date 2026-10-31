@@ -2,7 +2,7 @@
   {
     "rule": "R1",
     "path": "artifacts/etudes/papers/izhikevich2003",
-    "message": "stage P5 paper 'izhikevich2003' lacks the P5 record LEDGER.md",
+    "message": "stage P6 paper 'izhikevich2003' lacks the P5 record LEDGER.md",
     "reason": "audit 2026-10-17",
     "todo": "T-30"
   },
@@ -173,12 +173,5 @@
     "message": "imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref_numba.py",
     "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
     "todo": "B4 S2 follow-up"
-  },
-  {
-    "rule": "E1",
-    "path": "artifacts/etudes/papers/izhikevich2003",
-    "message": "no scored P4 module calls construct( or .simulate(",
-    "reason": "found by E1 when the rule landed (B4); the scored path does not route through construct/simulate",
-    "todo": "B4 E1 follow-up"
   }
 ]
