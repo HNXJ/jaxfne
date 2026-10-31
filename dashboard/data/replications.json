@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-31T18:32:10Z",
-    "dev_sha": "43c5f1cbd446effa024b374b58e69f5cbcb2102d",
-    "data_revision": "8f88337d773b2226cd0d46f29f077dd45830716df175aebb7a6e9ea650866da9"
+    "utc": "2026-10-31T19:55:29Z",
+    "dev_sha": "24040e1c7a0913c861a25855f89ee93d7aa4ca76",
+    "data_revision": "e5e791aa7197aa2c27775c081799c98a08f05a7a1adbffebbfb4aa98af0209d3"
   },
   "papers": [
     {
@@ -1215,14 +1215,14 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": 7,
+        "score": 21,
         "panels": 28,
         "excluded": 3,
         "counts": {
-          "pass": 1,
+          "pass": 5,
           "partial": 2,
-          "fail": 0,
-          "not run": 25
+          "fail": 1,
+          "not run": 20
         },
         "same_as": null,
         "scope": "Main-text Figs. 1-6 of the PLoS CB article (PMC13286281), read 2026-10-31. The Cell Reports 2025 figures scored in RESULT_FIGURES.md belong to another paper and do not count here.",
@@ -1241,8 +1241,9 @@
           },
           {
             "id": "1D",
-            "status": "not run",
-            "note": "mean-field model not ported"
+            "status": "fail",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md",
+            "note": "port of the printed mean field gives 12.5 Hz, not 35, and SOM above PV"
           },
           {
             "id": "1E",
@@ -1332,19 +1333,24 @@
           },
           {
             "id": "6A",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md",
+            "note": "37.3 Hz, PV leads SOM by 4.06 ms"
           },
           {
             "id": "6B",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md"
           },
           {
             "id": "6C left",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md"
           },
           {
             "id": "6C right",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md"
           }
         ]
       }
@@ -1386,12 +1392,12 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": 44,
+        "score": 47,
         "panels": 17,
         "excluded": 4,
         "counts": {
-          "pass": 3,
-          "partial": 9,
+          "pass": 4,
+          "partial": 8,
           "fail": 0,
           "not run": 5
         },
@@ -1408,7 +1414,7 @@
             "id": "1C",
             "status": "partial",
             "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md",
-            "note": "SOM lags PV by 6.8 ms (text: 6-7 ms); locking not compared"
+            "note": "SOM lags PV by 6.8 ms (text: 6-7 ms); PPC: PV highest in 3/3 seeds, PV > SOM > E in 1/3"
           },
           {
             "id": "2A top",
@@ -1479,9 +1485,9 @@
           },
           {
             "id": "5C",
-            "status": "partial",
+            "status": "pass",
             "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md",
-            "note": "lead reverses; control locking not run"
+            "note": "lead reverses; PPC 0.30-0.75 against -0.04 to 0.08 in the control"
           },
           {
             "id": "6A bottom",
@@ -3970,7 +3976,7 @@
       "stage_artifacts": [],
       "verdict": null,
       "verdict_note": null,
-      "summary": "P1 source record written from the open-access PMC record. Fig. 6 claims (reference rates 0.86/4.45/7.59/1.09 Hz, CV above 0.8, L5e-highest/L6-lowest synchrony) and the Table 5 connectivity map are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
+      "summary": "P1 source record written from the open-access PMC record. Fig. 6 claims (reference rates 0.86/4.45/7.59/1.09 Hz, CV above 0.8, L5e-highest/L6-lowest synchrony) and the Table 5 connectivity map are recorded with paper pointers. PORT_SPEC written and a smoke pilot run, unscored (CALIBRATION.md). Next per B8: signature, then fresh seeds.",
       "preregs": [],
       "criteria": [],
       "sensitivity": [],
@@ -4148,7 +4154,7 @@
       "sensitivity": [],
       "charts": [],
       "open": [
-        "Paper full text and SOM PDF unreachable; paper-stated Fig. 4 rates/CVs unknown until a legal copy is readable.",
+        "Accepted manuscript readable (local copy F:/warehouse/vogels/Vogels2011_Science_AM.pdf); it states the Fig. 4B AI state at 3-15 Hz.",
         "Conductance synapses vs the current-based core LIF is a P2 fidelity question.",
         "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."
       ],
@@ -4161,18 +4167,99 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": null,
-        "panels": 0,
-        "excluded": 0,
+        "score": 0,
+        "panels": 20,
+        "excluded": 6,
         "counts": {
           "pass": 0,
           "partial": 0,
           "fail": 0,
-          "not run": 0
+          "not run": 20
         },
         "same_as": null,
-        "scope": null,
-        "items": []
+        "scope": "Main-text Figs. 1-4 of the accepted manuscript (Imperial Spiral, Science_334_6062_2011.pdf), read 2026-10-31.",
+        "items": [
+          {
+            "id": "1D",
+            "status": "not run"
+          },
+          {
+            "id": "1E",
+            "status": "not run"
+          },
+          {
+            "id": "1F",
+            "status": "not run"
+          },
+          {
+            "id": "1G",
+            "status": "not run"
+          },
+          {
+            "id": "2B",
+            "status": "not run"
+          },
+          {
+            "id": "2C",
+            "status": "not run"
+          },
+          {
+            "id": "2D",
+            "status": "not run"
+          },
+          {
+            "id": "2E",
+            "status": "not run"
+          },
+          {
+            "id": "2F",
+            "status": "not run"
+          },
+          {
+            "id": "2G",
+            "status": "not run"
+          },
+          {
+            "id": "2H",
+            "status": "not run"
+          },
+          {
+            "id": "3C",
+            "status": "not run"
+          },
+          {
+            "id": "3D",
+            "status": "not run"
+          },
+          {
+            "id": "3E",
+            "status": "not run"
+          },
+          {
+            "id": "3F",
+            "status": "not run"
+          },
+          {
+            "id": "4A",
+            "status": "not run"
+          },
+          {
+            "id": "4B",
+            "status": "not run"
+          },
+          {
+            "id": "4C",
+            "status": "not run"
+          },
+          {
+            "id": "4D",
+            "status": "not run"
+          },
+          {
+            "id": "4E",
+            "status": "not run"
+          }
+        ]
       }
     },
     {
@@ -4193,7 +4280,7 @@
       "stage_artifacts": [],
       "verdict": null,
       "verdict_note": null,
-      "summary": "P1 source record written from the open-access PMC record. Fig. 2-3 claims (gamma ~40 Hz, alpha ~10 Hz, PAC, alpha-suppression link) and Fig. 6-7 claims (SLN-DAI correlation, functional hierarchy, laminar-input jumps) are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
+      "summary": "P1 source record written from the open-access PMC record. Fig. 2-3 claims (gamma ~40 Hz, alpha ~10 Hz, PAC, alpha-suppression link) and Fig. 6-7 claims (SLN-DAI correlation, functional hierarchy, laminar-input jumps) are recorded with paper pointers. A seed-0 smoke pilot runs the route end to end, unscored (CALIBRATION.md). Next per B8: signature, then fresh seeds.",
       "preregs": [],
       "criteria": [],
       "sensitivity": [],
