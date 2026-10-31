@@ -246,6 +246,8 @@ def run_plastic_segment(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False,
                          "tau_stdp_ms": rule_cfg["tau_stdp_ms"]},
         plasticity_mask=mask,
         seed=int(seed),
+        # The per-step |w| trace is n_steps x n_edges (about 720 GB at n = 10000, 9 s); only w_final is read.
+        record_w_trace=False,
     )
     t_simulate = time.perf_counter() - t0 - t_construct
     spikes = np.asarray(result["spikes"], dtype=bool)

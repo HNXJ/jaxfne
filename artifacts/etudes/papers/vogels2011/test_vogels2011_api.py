@@ -251,6 +251,24 @@ def test_plastic_defaults_unchanged(tmp_path):
         "explicit defaults must reproduce the default weights exactly"
 
 
+def test_plastic_segment_skips_the_weight_trace(tmp_path, monkeypatch):
+    """The plastic leg reads w_final only; the per-step |w| trace (n_steps x n_edges) is off, so the
+    n = 10000, 9 s pilot fits in memory (the traced run reached 80 GB and was OOM-killed, 2026-10-31)."""
+    import jaxfne.emitters_adex as E
+
+    real = E.simulate_adex_hdp_registered
+    seen = {}
+
+    def spy(*a, **k):
+        seen.update(k)
+        return real(*a, **k)
+
+    monkeypatch.setattr(E, "simulate_adex_hdp_registered", spy)
+    out = L.run_plastic_segment(0, "notrace", tmp_path / "nt", n=100, T_s=0.1)
+    assert seen.get("record_w_trace") is False, seen.keys()
+    assert np.asarray(out["spikes"]).shape[0] == 1000, "fixture must run the full segment"
+
+
 def test_plastic_refuses_unrealizable(tmp_path):
     """Values the API cannot realize are refused, never stored unused."""
     with pytest.raises(ValueError):
