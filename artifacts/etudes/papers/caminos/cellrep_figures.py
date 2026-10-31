@@ -350,6 +350,125 @@ def fig6a_sweep(ratios=None, seeds=None, total=1400, **kw):
     return rows
 
 
+# --- Cell Reports Figure 2 bottom / Figure 6B runners (packet FIG-2B6B) ---
+
+FIG2B_BOTTOM_AMP_HZ = 4.0  # Gaussian peak rate (mmc2 Methods lines 1688-1708)
+FIG2B_BOTTOM_WIDTH_S = 0.1  # Gaussian width D (mmc2 Methods lines 1688-1708)
+
+
+def _gaussian_drive_schedule(t0_s, T_s=12.0, dt_s=DT_S,
+                             amp_hz=FIG2B_BOTTOM_AMP_HZ,
+                             width_s=FIG2B_BOTTOM_WIDTH_S):
+    """Gaussian drive ``amp_hz * exp(-(t - t0)**2 / (2 * width_s**2))`` (Hz).
+
+    Sampled on the step grid (``t = i * dt_s``, length ``steps``) so it fits
+    the ``ext_rate_schedule`` / ``som_ext_rate_schedule`` length check of
+    :func:`caminos_jax.simulate` (Figure 2 bottom, mmc2 Methods 1688-1708).
+    """
+    steps = int(round(float(T_s) / float(dt_s)))
+    t = np.arange(steps) * float(dt_s)
+    return (float(amp_hz)
+            * np.exp(-((t - float(t0_s)) ** 2) / (2.0 * float(width_s) ** 2)))
+
+
+def fig2b_bottom_run(seed, *, t0_s, **kw):
+    """Figure 2 bottom run: non-stationary Gaussian input (mmc2 Methods 1688-1708,
+    text lines 313-320).
+
+    Both the feedforward E/PV rate and the top-down SOM rate are the Gaussian
+    ``4 * exp(-(t - t0)**2 / (2 * D**2))`` Hz with ``D = 0.1`` s, sampled on
+    the step grid and passed as ``ext_rate_schedule`` / ``som_ext_rate_schedule``
+    to :func:`run_cell` (with ``param_set="cellrep"``, ``ext_sources="pNE"``,
+    dt 1e-4 s, T 12 s, 2 s discard unless overridden in ``kw``). ``t0_s`` is
+    the caller-supplied peak time. Returns the :func:`run_cell` dict plus
+    ``phase_delay`` / ``phase_delay_rad`` (:func:`_attach_phase_delay`).
+    """
+    if seed is None:
+        raise ValueError("seed must be given, got None")
+    try:
+        t0 = float(t0_s)
+    except (TypeError, ValueError):
+        raise ValueError("t0_s must be a finite time in [0, T_s], got %r" % (t0_s,))
+    if not np.isfinite(t0):
+        raise ValueError("t0_s must be finite, got %r" % (t0_s,))
+    t_s = float(kw.get("T_s", 12.0))
+    if not 0.0 <= t0 <= t_s:
+        raise ValueError("t0_s must be in [0, T_s=%g], got %r" % (t_s, t0_s))
+    dt_s = float(kw.get("dt_s", DT_S))
+    sched = _gaussian_drive_schedule(t0, T_s=t_s, dt_s=dt_s)
+    kw = dict(kw)
+    kw.setdefault("ext_sources", "pNE")
+    res = run_cell(seed, **{**kw, "ext_rate_schedule": sched,
+                            "som_ext_rate_schedule": sched})
+    _attach_phase_delay(res)
+    res.update({"t0_s": t0})
+    return res
+
+
+def fig6b_run(seed, *, gain, t_start_s, dur_s=0.3, **kw):
+    """Figure 6B run: localized E-to-E increase for ``dur_s`` s
+    (mmc2 lines 558-560, legend lines 646-649).
+
+    ``ee_gain_schedule`` is 1.0 everywhere except ``gain`` on the steps with
+    ``t_start_s <= t < t_start_s + dur_s``; the magnitude is a caller argument
+    (the text states none). Same :func:`run_cell` arguments as
+    :func:`fig2b_bottom_run` (T 12 s, 2 s discard unless overridden in ``kw``).
+    Returns the :func:`run_cell` dict plus ``e_rate_hz_pre`` / ``e_rate_hz_window`` /
+    ``e_rate_hz_post`` (mean E rate per cell over the three equal-length spans
+    before, inside and after the window).
+    """
+    if seed is None:
+        raise ValueError("seed must be given, got None")
+    try:
+        g = float(gain)
+    except (TypeError, ValueError):
+        raise ValueError("gain must be a number >= 0, got %r" % (gain,))
+    if not (np.isfinite(g) and g >= 0.0):
+        raise ValueError("gain must be finite and >= 0, got %r" % (gain,))
+    try:
+        dur = float(dur_s)
+    except (TypeError, ValueError):
+        raise ValueError("dur_s must be a number > 0, got %r" % (dur_s,))
+    if not dur > 0.0:
+        raise ValueError("dur_s must be > 0, got %r" % (dur_s,))
+    try:
+        t_start = float(t_start_s)
+    except (TypeError, ValueError):
+        raise ValueError("t_start_s must be a number, got %r" % (t_start_s,))
+    t_s = float(kw.get("T_s", 12.0))
+    dt_s = float(kw.get("dt_s", DT_S))
+    if not (DISCARD_S <= t_start and t_start + dur <= t_s):
+        raise ValueError("window [%g, %g) s must lie inside [discard=%g, T_s=%g] s, "
+                         "got t_start_s=%r, dur_s=%r"
+                         % (t_start, t_start + dur, DISCARD_S, t_s, t_start_s, dur_s))
+    steps = int(round(t_s / dt_s))
+    t = np.arange(steps) * dt_s
+    sched = np.ones(steps)
+    sched[(t >= t_start) & (t < t_start + dur)] = g
+    kw = dict(kw)
+    kw.setdefault("ext_sources", "pNE")
+    res = run_cell(seed, **{**kw, "ee_gain_schedule": sched})
+    keep = np.asarray(res["counts_kept"])[:, 0]
+    cut = int(round(DISCARD_S / dt_s))
+    n_e = res["sizes"]["E"]
+
+    def _span_hz(a_s, b_s):
+        i0 = max(int(round(a_s / dt_s)) - cut, 0)
+        i1 = min(int(round(b_s / dt_s)) - cut, keep.shape[0])
+        seg = keep[i0:i1]
+        return float(seg.mean() / (n_e * dt_s)) if seg.size else 0.0
+
+    res.update({
+        "gain": g,
+        "t_start_s": t_start,
+        "dur_s": dur,
+        "e_rate_hz_pre": _span_hz(t_start - dur, t_start),
+        "e_rate_hz_window": _span_hz(t_start, t_start + dur),
+        "e_rate_hz_post": _span_hz(t_start + dur, t_start + 2.0 * dur),
+    })
+    return res
+
+
 def s3_paired(seed, *, onset_s=S3_ONSET_S, T_s=12.0, **kw):
     """Figure S3 pair (mmc2 lines 1852-1860): SOM fully silenced from ``onset_s``
     (default 6.04 s) against the unmanipulated control, same seed.

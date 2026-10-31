@@ -718,3 +718,90 @@ def test_fig2_refuses_missing_seeds():
         cf.fig2b_sweep(tdrates_hz=[4.0], seeds=None, T_s=FIG26_T_S, **CF_SMOKE)
     with pytest.raises(ValueError):
         cf.fig6a_sweep(ratios=[1.0], seeds=None)
+
+
+# --- Cell Reports Figure 2 bottom / Figure 6B runners (packet FIG-2B6B) ---
+
+FIG2B6B_T_S = 3.0  # smoke run length for the Figure 2 bottom / 6B tests
+FIG2B6B_SMOKE = {
+    "sizes": CF_SMOKE["sizes"],
+    "ext_sources": 100,
+}  # no constant SOM drive: the Gaussian schedule drives SOM (simulate
+# refuses a nonzero som_ext_rate_hz together with som_ext_rate_schedule)
+
+
+def test_fig2b_bottom_gaussian_schedule_shape():
+    """The Figure 2 bottom schedule peaks at 4 Hz at t0 and is ~0 at +-0.5 s."""
+    import numpy as np
+
+    import cellrep_figures as cf
+
+    sched = cf._gaussian_drive_schedule(1.5, T_s=FIG2B6B_T_S, dt_s=1e-4)
+    assert len(sched) == 30000, "schedule must cover every step"
+    peak = int(np.argmax(np.asarray(sched)))
+    assert abs(peak * 1e-4 - 1.5) <= 1e-4, \
+        "precondition: the peak sample is within one step of t0_s"
+    assert sched[peak] == pytest.approx(4.0, rel=1e-12)
+    assert sched[int(round(1.0 / 1e-4))] < 0.1
+    assert sched[int(round(2.0 / 1e-4))] < 0.1
+
+
+def test_fig2b_bottom_refuses_bad_t0():
+    """fig2b_bottom_run refuses a non-finite or out-of-range t0 and a None seed."""
+    import cellrep_figures as cf
+
+    with pytest.raises(ValueError):
+        cf.fig2b_bottom_run(1, t0_s=float("nan"), T_s=FIG2B6B_T_S, **FIG2B6B_SMOKE)
+    with pytest.raises(ValueError):
+        cf.fig2b_bottom_run(1, t0_s=-1.0, T_s=FIG2B6B_T_S, **FIG2B6B_SMOKE)
+    with pytest.raises(ValueError):
+        cf.fig2b_bottom_run(None, t0_s=1.5, T_s=FIG2B6B_T_S, **FIG2B6B_SMOKE)
+
+
+def test_fig2b_bottom_runs_on_small_net():
+    """fig2b_bottom_run returns the run_cell outputs plus phase_delay."""
+    import cellrep_figures as cf
+
+    res = cf.fig2b_bottom_run(1, t0_s=2.5, T_s=FIG2B6B_T_S, **FIG2B6B_SMOKE)
+    assert res["counts"]["E"] > 0, "precondition: the summed E count is nonzero"
+    for key in ("seed", "T_s", "dt_s", "sizes", "counts_kept", "counts",
+                "rates_Hz", "lfp", "spectrum", "f_pk_hz", "band_power_25_45",
+                "max_e_rate_hz", "phase_delay"):
+        assert key in res, "fig2b_bottom_run must carry the run_cell keys: %s" % key
+
+
+def test_fig6b_gain_one_matches_default():
+    """gain 1.0 reproduces the run_cell baseline E counts exactly (Figure 6B)."""
+    import cellrep_figures as cf
+
+    kw = {"T_s": FIG2B6B_T_S, **CF_SMOKE}
+    base = cf.run_cell(1, **kw)
+    assert base["counts"]["E"] > 0, "precondition: the default E count is nonzero"
+    got = cf.fig6b_run(1, gain=1.0, t_start_s=2.3, **kw)
+    assert got["counts"]["E"] == base["counts"]["E"]
+
+
+def test_fig6b_gain_zero_lowers_window_rate():
+    """gain 0.0 gives a lower E window rate than gain 1.0 at the same seed."""
+    import cellrep_figures as cf
+
+    kw = {"T_s": FIG2B6B_T_S, **CF_SMOKE}
+    full = cf.fig6b_run(1, gain=1.0, t_start_s=2.3, **kw)
+    assert full["e_rate_hz_window"] > 0, \
+        "precondition: the gain-1.0 window rate is nonzero"
+    zero = cf.fig6b_run(1, gain=0.0, t_start_s=2.3, **kw)
+    assert zero["e_rate_hz_window"] < full["e_rate_hz_window"]
+
+
+def test_fig6b_refuses_bad_inputs():
+    """fig6b_run refuses a negative gain, a non-positive window and a window
+    outside [discard, T_s] (Figure 6B)."""
+    import cellrep_figures as cf
+
+    kw = {"T_s": FIG2B6B_T_S, **CF_SMOKE}
+    with pytest.raises(ValueError):
+        cf.fig6b_run(1, gain=-0.5, t_start_s=2.3, **kw)
+    with pytest.raises(ValueError):
+        cf.fig6b_run(1, gain=1.0, t_start_s=2.3, dur_s=0.0, **kw)
+    with pytest.raises(ValueError):
+        cf.fig6b_run(1, gain=1.0, t_start_s=1.0, **kw)
