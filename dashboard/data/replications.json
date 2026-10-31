@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-31T19:55:29Z",
-    "dev_sha": "24040e1c7a0913c861a25855f89ee93d7aa4ca76",
-    "data_revision": "e5e791aa7197aa2c27775c081799c98a08f05a7a1adbffebbfb4aa98af0209d3"
+    "utc": "2026-10-31T22:12:30Z",
+    "dev_sha": "9eee4452c2e71fafb5f4efad648158c62b6c2b83",
+    "data_revision": "525a44805349cbd9958e4783d223435f0c79605743dffc9044f4520572b3d999"
   },
   "papers": [
     {
@@ -77,6 +77,12 @@
         {
           "stage": "P5",
           "items": [
+            {
+              "label": "reference arm runner (P5 scored sweeps)",
+              "path": "artifacts/etudes/caminos/run_caminos.py",
+              "url": "https://github.com/hnxj/jaxfne/blob/a4f13020d370491aad122977b4cc50b232cced0f/artifacts/etudes/caminos/run_caminos.py",
+              "sha256": "c9c7f884f86891f09d8d9adcb850319dbc3bed239eb0f778f1f3f04d718e7333"
+            },
             {
               "label": "result",
               "path": "artifacts/etudes/caminos/RESULT_P3.md",
@@ -1215,13 +1221,13 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": 21,
+        "score": 25,
         "panels": 28,
         "excluded": 3,
         "counts": {
-          "pass": 5,
+          "pass": 6,
           "partial": 2,
-          "fail": 1,
+          "fail": 0,
           "not run": 20
         },
         "same_as": null,
@@ -1241,9 +1247,9 @@
           },
           {
             "id": "1D",
-            "status": "fail",
+            "status": "pass",
             "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md",
-            "note": "port of the printed mean field gives 12.5 Hz, not 35, and SOM above PV"
+            "note": "33.5 Hz, PV > SOM > E, PV leads SOM by 7.8 ms; Table 3 term order taken from the authors' Zenodo code"
           },
           {
             "id": "1E",
@@ -1392,14 +1398,14 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": 47,
+        "score": 59,
         "panels": 17,
         "excluded": 4,
         "counts": {
-          "pass": 4,
+          "pass": 6,
           "partial": 8,
           "fail": 0,
-          "not run": 5
+          "not run": 3
         },
         "same_as": null,
         "scope": "Main-text Figs. 1-6 of the Cell Reports article (mmc2 text). Verdicts are descriptive, with tolerances set after the data (RESULT_FIGURES.md).",
@@ -1439,13 +1445,15 @@
           },
           {
             "id": "3A",
-            "status": "not run",
-            "note": "SOM rasters at 50 and 90% not compared"
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md",
+            "note": "amplitude falls at 50 and 90%; frequency +11% and +14%"
           },
           {
             "id": "3B",
-            "status": "not run",
-            "note": "PV rasters at 40, 70 and 90% not on the 25% grid"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md",
+            "note": "minor at 40%; 14.5 Hz synchrony at 70%; seizure-like at 90% with a 153 Hz component"
           },
           {
             "id": "3C top",
@@ -1455,9 +1463,9 @@
           },
           {
             "id": "3C bottom",
-            "status": "partial",
+            "status": "pass",
             "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md",
-            "note": "transition and seizure-like state at 100% only"
+            "note": "transition between 55 and 65%; seizure-like at 90 and 100%"
           },
           {
             "id": "4A",
