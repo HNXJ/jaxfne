@@ -34,11 +34,9 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-_dir = str(Path(__file__).resolve().parent)
-_root = str(Path(__file__).resolve().parents[4])
-for _p in (_dir, _root):  # P-025: the checkout's jaxfne, and the sibling port
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
+_repo_root = Path(__file__).resolve().parents[4]  # P-025: the checkout's jaxfne
+if str(_repo_root) not in sys.path:
+    sys.path.insert(0, str(_repo_root))
 
 import jax
 import numpy as np

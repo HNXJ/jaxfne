@@ -51,7 +51,7 @@
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/caminos",
-    "message": "holds 20 files (at most 7)",
+    "message": "holds 21 files (at most 7)",
     "reason": "audit 2026-10-17",
     "todo": "T-30"
   },
@@ -151,6 +151,13 @@
     "path": "artifacts/etudes/papers/caminos/run_caminos.py",
     "message": "imports oracle artifacts/etudes/papers/caminos/caminos_jax.py",
     "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
+    "todo": "B4 S2 follow-up"
+  },
+  {
+    "rule": "S2",
+    "path": "artifacts/etudes/papers/caminos/cellrep_figures.py",
+    "message": "imports oracle artifacts/etudes/papers/caminos/caminos_jax.py",
+    "reason": "added with the FIG-A runners (Figs 3, 4, S3); same import as run_caminos.py, the port the runners drive",
     "todo": "B4 S2 follow-up"
   },
   {
