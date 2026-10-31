@@ -136,7 +136,67 @@ PROB = {
     (("L6", "PV"), ("L6", "PV")): 0.144,
 }
 
-#: Potjans-zeroed LIF extras: plain LIF with absolute reset, no PCL
+#: Population-name aliases for lesions: paper-style names (``L5e``, ``L5i``,
+#: ``L2/3e``) map to the lane's ``(layer, cell_type)`` populations.
+#: Inhibitory aliases end in ``i`` or ``pv``; excitatory aliases end in ``e``.
+LESION_POP_ALIASES = {
+    "l23e": ("L23", "E"), "l2/3e": ("L23", "E"),
+    "l23i": ("L23", "PV"), "l2/3i": ("L23", "PV"),
+    "l23pv": ("L23", "PV"), "l2/3pv": ("L23", "PV"),
+    "l4e": ("L4", "E"),
+    "l4i": ("L4", "PV"), "l4pv": ("L4", "PV"),
+    "l5e": ("L5", "E"),
+    "l5i": ("L5", "PV"), "l5pv": ("L5", "PV"),
+    "l6e": ("L6", "E"),
+    "l6i": ("L6", "PV"), "l6pv": ("L6", "PV"),
+}
+
+#: Paper Table 6 reference rates (Hz) for the P3_v2 primary rows R-*.
+P3V2_REFERENCE_HZ = {
+    "L23E": 0.86,
+    "L4E": 4.45,
+    "L5E": 7.59,
+    "L6E": 1.09,
+}
+P3V2_CLOSE_E = 0.20
+
+
+def _resolve_lesion_pop(name, *, role):
+    """Map a lesion population name to a ``(layer, cell_type)`` pair."""
+    if isinstance(name, (tuple, list)) and len(name) == 2:
+        layer, ctype = str(name[0]), str(name[1])
+        key = (layer, "PV" if ctype.upper() in ("PV", "I") else ctype.upper())
+        if key in POP_N:
+            return key
+        raise ValueError("unknown lesion %s population %r" % (role, name))
+    key = str(name).strip().lower().replace("_", "")
+    if key in LESION_POP_ALIASES:
+        return LESION_POP_ALIASES[key]
+    raise ValueError("unknown lesion %s population %r" % (role, name))
+
+
+def _normalize_lesion(lesion):
+    """Normalize ``lesion`` to a list of ``((layer, type), (layer, type))`` pairs.
+
+    One projection is a 2-tuple of names, e.g. ``("L5i", "L5e")``; several
+    projections are a list of such pairs.
+    """
+    if lesion is None:
+        return []
+    if (isinstance(lesion, tuple) and len(lesion) == 2
+            and all(isinstance(x, str) for x in lesion)):
+        items = [lesion]
+    elif (isinstance(lesion, tuple) and len(lesion) == 2
+            and all(isinstance(x, (tuple, list)) and len(x) == 2 for x in lesion)):
+        items = [tuple(lesion)]
+    else:
+        items = list(lesion)
+    pairs = []
+    for item in items:
+        pre_name, post_name = item
+        pairs.append((_resolve_lesion_pop(pre_name, role="source"),
+                      _resolve_lesion_pop(post_name, role="target")))
+    return pairs
 #: adaptation tail (PORT_SPEC row 6); hard refractory tau_ref = 2 ms via
 #: ``t_ref_ms`` (PORT_SPEC row 3); first-order synaptic filter tau_syn = 0.5 ms
 #: (PORT_SPEC row 11).
@@ -226,13 +286,17 @@ def _edge_mean_mv(src, tgt):
     return pa * _step_mv_per_pa()
 
 
-def build_spec(n=800, seed=0, scale=None):
+def build_spec(n=800, seed=0, scale=None, lesion=None):
     """The lane network built only from the public API (PORT_SPEC.md rows).
 
     ``scale`` takes every population at that fraction of POP_N (half-up, at
     least one cell); without it the cell counts are the fractions of ``n``.
+    ``lesion`` removes whole projections through the public API, e.g.
+    ``lesion=("L5i", "L5e")`` drops every L5i -> L5e connection rule; unknown
+    population names are refused. The default None wires every projection.
     """
     del seed  # wiring draws seed from RuntimeConfiguration at construct time
+    lesions = _normalize_lesion(lesion)
     counts = _scale_counts(scale) if scale is not None else _pop_counts(int(n))
     total = float(sum(counts.values()))
     layers = []
@@ -256,6 +320,8 @@ def build_spec(n=800, seed=0, scale=None):
         )
     area_conns = []
     for tgt, src in sorted(PROB):
+        if (src, tgt) in lesions:
+            continue
         (tgt_layer, tgt_type), (src_layer, src_type) = tgt, src
         mean_mv = _edge_mean_mv(src, tgt)
         area_conns.append(
@@ -350,7 +416,68 @@ def score_by_population(spikes, pop_ids, dt_ms=DT_MS):
     return out
 
 
-def run(seed, tag, out_dir, *, n=800, scale=None, T_s=1.0, signed=False):
+def p3v2_estimands(spikes, pop_ids, dt_ms=DT_MS, t_s=None):
+    """P3_v2 estimands from a raster, estimators from ``jaxfne.analysis`` only.
+
+    Returns the primary rows R-* (relative error against Table 6), O-IE,
+    O-ORD and CV, plus the secondary SYN row: ``fano_factor`` per population
+    (up to 100 cells, 3 ms bins; the core estimator is the per-neuron mean
+    ratio, ``metrics.fano_factor``). Rates and CV read the kept window (first
+    0.5 s dropped when the run is longer than that); the window is recorded.
+    SYN is reported, never scored.
+    """
+    from jaxfne.analysis import fano_factor as _fano_factor
+
+    import numpy as np
+
+    arr = np.asarray(spikes, dtype=bool)
+    drop_steps = int(round(500.0 / float(dt_ms))) if t_s is None or t_s > 0.5 else 0
+    drop_steps = min(drop_steps, arr.shape[0] - 1)
+    kept = arr[drop_steps:]
+    rates, cvs = {}, {}
+    for pop in sorted(set(pop_ids)):
+        cols = np.array([i for i, q in enumerate(pop_ids) if q == pop])
+        sub = kept[:, cols]
+        n_spikes = int(sub.sum())
+        dur_s = float(sub.shape[0]) * float(dt_ms) / 1000.0
+        rates["%s%s" % pop] = (n_spikes / (len(cols) * dur_s)) if dur_s > 0 else 0.0
+        cvs["%s%s" % pop] = float(score(sub, dt_ms)["cv_isi"])
+    rows = {}
+    for key, y in sorted(P3V2_REFERENCE_HZ.items()):
+        z = float(rates.get(key, 0.0))
+        e = abs(z - y) / abs(y)
+        rows["R-%s" % key] = {"y_hz": y, "z_hz": z, "e": e,
+                              "pass": bool(e <= P3V2_CLOSE_E)}
+    oi_e = {}
+    for layer in LAYERS:
+        e_rate = float(rates.get("%sE" % layer, 0.0))
+        i_rate = float(rates.get("%sPV" % layer, 0.0))
+        oi_e[layer] = {"e_hz": e_rate, "i_hz": i_rate,
+                       "pass": bool(i_rate > e_rate)}
+    ord_row = {"L5E_highest": bool(
+        rates.get("L5E", 0.0) > max(rates.get(k, 0.0)
+                                    for k in ("L23E", "L4E", "L6E"))),
+               "L23E_below_L4E": bool(rates.get("L23E", 0.0) < rates.get("L4E", 0.0)),
+               "L6E_below_L4E": bool(rates.get("L6E", 0.0) < rates.get("L4E", 0.0))}
+    ord_row["pass"] = bool(all(ord_row.values()))
+    cv_row = {"cv_isi": {k: cvs[k] for k in sorted(cvs)},
+              "pass": bool(all(v > 0.8 for v in cvs.values()))}
+    syn = {}
+    for pop in sorted(set(pop_ids)):
+        cols = [i for i, q in enumerate(pop_ids) if q == pop][:100]
+        sub = np.asarray(kept[:, cols].T, dtype=float)
+        syn["%s%s" % pop] = float(_fano_factor(sub, bin_size_ms=3.0, dt_ms=float(dt_ms)))
+    return {"window_s": {"dropped_s": drop_steps * float(dt_ms) / 1000.0,
+                         "kept_s": float(kept.shape[0]) * float(dt_ms) / 1000.0},
+            "rates_hz": rates, "R": rows, "O-IE": oi_e,
+            "O-ORD": ord_row, "CV": cv_row,
+            "SYN_fano_3ms": syn,
+            "SYN_note": "reported, never scored; core fano_factor is the "
+                        "per-neuron mean ratio over up to 100 cells"}
+
+
+def run(seed, tag, out_dir, *, n=800, scale=None, T_s=1.0, signed=False,
+        lesion=None, pilot=False):
     """Build, run and write the raster plus the ``manifest.json`` the scorer reads."""
     import numpy as np
 
@@ -361,9 +488,10 @@ def run(seed, tag, out_dir, *, n=800, scale=None, T_s=1.0, signed=False):
     sha = lane_kit.git_sha(_repo_root)
     prior = lane_kit.refuse_existing(out, fname, sha, signed=signed)
     entries = {e["file"]: e for e in prior["runs"]} if prior else {}
+    lesions = _normalize_lesion(lesion)
     t0 = time.perf_counter()
     model = J.construct(
-        build_spec(n=n, seed=seed, scale=scale),
+        build_spec(n=n, seed=seed, scale=scale, lesion=lesion),
         nt.RuntimeConfiguration(seed=int(seed),
                                 duration_ms=float(T_s) * 1000.0,
                                 dt_ms=DT_MS, emitter="lif"),
@@ -379,6 +507,7 @@ def run(seed, tag, out_dir, *, n=800, scale=None, T_s=1.0, signed=False):
     pops = _pop_index(model)
     by_pop = score_by_population(spikes, pops)
     regime = score(spikes)
+    estimands = p3v2_estimands(spikes, pops, DT_MS, T_s)
     tmp = out / (fname + ".tmp")
     with open(tmp, "wb") as f:
         np.savez_compressed(f, spikes=spikes)
@@ -386,18 +515,79 @@ def run(seed, tag, out_dir, *, n=800, scale=None, T_s=1.0, signed=False):
 
     os.replace(tmp, out / fname)
     entry = {"seed": int(seed), "tag": tag, "file": fname,
+             "status": "unscored pilot" if pilot else ("signed" if signed else "unscored"),
              "n": int(spikes.shape[1]), "scale": scale,
+             "lesion": [[list(pre), list(post)] for pre, post in lesions],
              "total_synapses": int(np.asarray(model.params["edge_list"].pre).shape[0]),
              "steps": int(spikes.shape[0]), "dt_ms": DT_MS,
              "duration_ms": float(T_s) * 1000.0, "dtype": "float32",
              "backend": "cpu",
              "poisson_drive": build_drive(seed),
              "wall_s": {"construct": t_construct, "simulate": t_simulate},
-             "regime": regime, "pops": by_pop}
+             "regime": regime, "pops": by_pop, "estimands_p3v2": estimands}
     entries[fname] = entry
     manifest = {"git_sha": sha, "dtype": "float32", "backend": "cpu",
                 "runs": list(entries.values())}
     lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)
     return {"spikes": spikes, "steps": sim.n_steps, "regime": regime,
-            "pops": by_pop,
+            "pops": by_pop, "estimands": estimands,
             "wall_s": {"construct": t_construct, "simulate": t_simulate}}
+
+
+def _pilot(args):
+    """Run one unscored pilot and print its P3_v2 estimands."""
+    lesion = tuple(args.lesion) if args.lesion else None
+    tag = "pilot" + ("_lesion_%s_%s" % tuple(args.lesion) if args.lesion else "")
+    result = run(args.seed, tag, args.out, scale=args.scale, T_s=args.T_s,
+                 lesion=lesion, pilot=True)
+    try:
+        import resource
+
+        peak_kb = int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+    except Exception:
+        peak_kb = None
+    est = result["estimands"]
+    print("status: unscored pilot (seed %d, scale %s, T_s %s, lesion %s)"
+          % (args.seed, args.scale, args.T_s, lesion))
+    print("wall_s: construct %.1f simulate %.1f"
+          % (result["wall_s"]["construct"], result["wall_s"]["simulate"]))
+    if peak_kb is not None:
+        print("peak_rss_MB: %.1f" % (peak_kb / 1024.0,))
+    print("L5E rate_hz: %.4f (reference 7.59 Hz, e=%.3f)"
+          % (est["rates_hz"]["L5E"], est["R"]["R-L5E"]["e"]))
+    for key in sorted(est["R"]):
+        row = est["R"][key]
+        print("%s: z=%.4f y=%.2f e=%.3f %s"
+              % (key, row["z_hz"], row["y_hz"], row["e"],
+                 "PASS" if row["pass"] else "FAIL"))
+    for layer, row in sorted(est["O-IE"].items()):
+        print("O-IE %s: e=%.4f i=%.4f %s"
+              % (layer, row["e_hz"], row["i_hz"], "PASS" if row["pass"] else "FAIL"))
+    print("O-ORD: %s" % ("PASS" if est["O-ORD"]["pass"] else "FAIL"))
+    print("CV: %s" % ("PASS" if est["CV"]["pass"] else "FAIL"))
+    print("SYN_fano_3ms (reported, never scored): %s"
+          % ", ".join("%s=%.3f" % (k, v) for k, v in sorted(est["SYN_fano_3ms"].items())))
+    print("receipt: %s/manifest.json" % args.out)
+    return 0
+
+
+def main(argv=None):
+    """Command line: ``pilot --seed S --scale X --T-s T --out DIR [--lesion PRE POST]``."""
+    import argparse
+
+    parser = argparse.ArgumentParser(prog="potjans2014_api.py")
+    sub = parser.add_subparsers(dest="command", required=True)
+    pilot = sub.add_parser("pilot", help="run one unscored pilot (seed 0 only)")
+    pilot.add_argument("--seed", type=int, required=True)
+    pilot.add_argument("--scale", type=float, required=True)
+    pilot.add_argument("--T-s", type=float, required=True)
+    pilot.add_argument("--out", required=True)
+    pilot.add_argument("--lesion", nargs=2, default=None, metavar=("PRE", "POST"))
+    args = parser.parse_args(argv)
+    if args.command == "pilot":
+        return _pilot(args)
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

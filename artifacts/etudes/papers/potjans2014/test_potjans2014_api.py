@@ -328,6 +328,72 @@ def test_score_keys():
     assert pops["L23E"]["n"] == 5, "per-population sizes"
 
 
+def test_lesion_none_matches_baseline():
+    """``lesion=None`` realizes exactly the baseline edges (bit-identical)."""
+    from jaxfne import neuronal_tensor as nt
+
+    def _wired(**kw):
+        return jtfne.construct(
+            L.build_spec(n=800, seed=0, **kw),
+            nt.RuntimeConfiguration(seed=0, duration_ms=20.0, dt_ms=DT,
+                                    emitter="lif"))
+
+    a, b = _wired(), _wired(lesion=None)
+    for arr_a, arr_b in zip(_edges(a)[:2], _edges(b)[:2]):
+        assert np.array_equal(np.asarray(arr_a), np.asarray(arr_b)), \
+            "lesion=None must realize the baseline edges"
+
+
+def _pair_counts(model):
+    """Realized edge counts keyed ``(source, target)`` population pairs."""
+    pre, post, _, _, lab = _edges(model)
+    lab_arr = np.array(lab)
+    counts = {}
+    for tgt, src in L.PROB:
+        sel = ((lab_arr == np.array(src)).all(axis=1)[pre]
+               & (lab_arr == np.array(tgt)).all(axis=1)[post])
+        counts[(src, tgt)] = int(sel.sum())
+    return counts
+
+
+def test_lesion_removes_only_named_projection():
+    """``lesion=("L5i", "L5e")`` zeroes exactly the L5i -> L5e edges at n=800."""
+    from jaxfne import neuronal_tensor as nt
+
+    def _wired(**kw):
+        return jtfne.construct(
+            L.build_spec(n=800, seed=0, **kw),
+            nt.RuntimeConfiguration(seed=0, duration_ms=20.0, dt_ms=DT,
+                                    emitter="lif"))
+
+    base, cut = _wired(), _wired(lesion=("L5i", "L5e"))
+    base_counts, cut_counts = _pair_counts(base), _pair_counts(cut)
+    assert base_counts[(("L5", "PV"), ("L5", "E"))] > 0, \
+        "fixture: the baseline must wire L5i -> L5e"
+    assert cut_counts[(("L5", "PV"), ("L5", "E"))] == 0, \
+        "the lesion must remove every L5i -> L5e edge"
+    for pair in base_counts:
+        if pair == (("L5", "PV"), ("L5", "E")):
+            continue
+        assert cut_counts[pair] == base_counts[pair], \
+            "lesion must leave projection %s%s->%s%s untouched" % (pair[0] + pair[1])
+    spec = L.build_spec(n=800, seed=0, lesion=("L5i", "L5e"))
+    assert len(spec.area_connections) == 54, "one of the 55 rules is dropped"
+
+
+def test_lesion_unknown_refused():
+    """Unknown lesion population names are refused with ValueError."""
+    with pytest.raises(ValueError):
+        L.build_spec(n=800, seed=0, lesion=("L5x", "L5e"))
+    with pytest.raises(ValueError):
+        L.build_spec(n=800, seed=0, lesion=("L5i", "L9e"))
+    with pytest.raises(ValueError):
+        L.build_spec(n=800, seed=0, lesion=[("L5i", "L5e"), ("L4x", "L4E")])
+    ok = L.build_spec(n=800, seed=0,
+                       lesion=[("L5i", "L5e"), (("L4", "PV"), ("L4", "E"))])
+    assert len(ok.area_connections) == 53, "two named projections are dropped"
+
+
 def test_gap_multapse_sampler():
     """Paper wiring draws K synapses per projection with replacement
     (multapses allowed, SOURCE_P1.md section 1); the core draws distinct
