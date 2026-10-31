@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-31T21:06:48Z",
-    "dev_sha": "5ee2cdadf4caa1702f4692a3863d443085f3febe",
-    "data_revision": "feee795d64801bf6474e4e84849a9f0910b21d2c863a933661824c60b5493393"
+    "utc": "2026-10-31T21:34:46Z",
+    "dev_sha": "a295ee916417688ca9f8fed5c5cfc78d3011c56c",
+    "data_revision": "72c00d1e42c9dcf87c5e43fb72ae27c54ee62bca779604c88aa352d59f6f1a6e"
   },
   "papers": [
     {
@@ -1392,14 +1392,14 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": 47,
+        "score": 59,
         "panels": 17,
         "excluded": 4,
         "counts": {
-          "pass": 4,
+          "pass": 6,
           "partial": 8,
           "fail": 0,
-          "not run": 5
+          "not run": 3
         },
         "same_as": null,
         "scope": "Main-text Figs. 1-6 of the Cell Reports article (mmc2 text). Verdicts are descriptive, with tolerances set after the data (RESULT_FIGURES.md).",
@@ -1439,13 +1439,15 @@
           },
           {
             "id": "3A",
-            "status": "not run",
-            "note": "SOM rasters at 50 and 90% not compared"
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md",
+            "note": "amplitude falls at 50 and 90%; frequency +11% and +14%"
           },
           {
             "id": "3B",
-            "status": "not run",
-            "note": "PV rasters at 40, 70 and 90% not on the 25% grid"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md",
+            "note": "minor at 40%; 14.5 Hz synchrony at 70%; seizure-like at 90% with a 153 Hz component"
           },
           {
             "id": "3C top",
@@ -1455,9 +1457,9 @@
           },
           {
             "id": "3C bottom",
-            "status": "partial",
+            "status": "pass",
             "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md",
-            "note": "transition and seizure-like state at 100% only"
+            "note": "transition between 55 and 65%; seizure-like at 90 and 100%"
           },
           {
             "id": "4A",

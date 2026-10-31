@@ -53,16 +53,35 @@ f_pk (ref. 42 estimator) divided by 2π f_pk. Peak |X| over 5-60 Hz.
 | Fig 5C | swap: SOM leads PV; stronger locking than control (490-496) | SOM-parameter cells (PV slot) at 0.28 rad, PV-parameter cells at 0.68-0.78 rad, every seed; PPC 0.30-0.75 per type against -0.04 to 0.08 in the Fig 1C control | pass |
 | Fig 1C | PPC PV > SOM > E; SOM about 7 ms after PV (250-262) | control (mode `fig1c`, `F:\warehouse\caminos\figC_out\c1\`): PPC PV 0.035, 0.080, 0.055 is highest in every seed; SOM above E in seed 2 only; SOM-minus-PV phase 5.0, 6.9, 5.3 ms | partial: PV > SOM > E in 1 of 3 seeds |
 
+| Fig 6A bottom | higher SOM/PV slows the rhythm, about 40 to 15 Hz, amplitude rises (549-552) | f_pk 38.2 to 18.0 Hz over ratio 0.3-4; peak \|X\| 1.0 to 4.4x | pass |
+
 PPC uses the first 0.3 s after the discard (`FIG5C_RASTER_WINDOW_S`) in both 1C and 5C, so the control's
 small values are noisy; negative values are within its sampling error.
-| Fig 6A bottom | higher SOM/PV slows the rhythm, about 40 to 15 Hz, amplitude rises (549-552) | f_pk 38.2 to 18.0 Hz over ratio 0.3-4; peak \|X\| 1.0 to 4.4x | pass |
+
+## Figure 3 raster fractions and the finer PV grid (2026-10-31)
+
+Same setup; seeds 1, 2, 3; T 12 s. Modes `silence_som` (0, 0.5, 0.9), `silence_pv` (0, 0.4, 0.55, 0.6, 0.65, 0.7,
+0.9), `replace_som` (0, 0.5, 0.9), `replace_pv` (0, 0.4, 0.7). Receipts `F:\warehouse\caminos\figC_out\c3a`, `c3b`,
+`c4a`, `c4b`. High-frequency component = argmax of |X| over 60-250 Hz.
+
+| Panel | Paper claim (mmc2 361-386, 437-445) | Replication (seed means) | Verdict |
+|---|---|---|---|
+| Fig 3A (SOM 50%, 90%) | amplitude falls; no substantial frequency change | band power 0.67, 0.44 of baseline; f_pk 37.4, 38.3 Hz (+11%, +14%) | partial: frequency past the 10% tolerance |
+| Fig 3B top (PV 40%) | minor change at 20-50% | f_pk 31.6 Hz (-6%); band power 0.91 | pass |
+| Fig 3B middle (PV 70%) | sudden transition near 60% to periodic 10-15 Hz synchrony | f_pk 30.9 Hz at 55%, 23.5 ± 5.8 Hz at 60%, 15.5 Hz at 65%, 14.5 Hz at 70% with peak \|X\| 3.3x | pass |
+| Fig 3B bottom (PV 90%) | seizure-like beyond 80%: about 150 Hz, high E rate | max E 309 Hz, mean E 13.9 Hz (baseline 2.6); 60-250 Hz peak at 153 Hz | pass |
+| Fig 4A rasters (SOM 50%, 90%) | no change of frequency or stability | f_pk 36.3, 33.4 Hz; max E 4.2, 4.5 Hz | pass at the raster fractions |
+| Fig 4B rasters (PV 40%, 70%) | frequency falls toward 10 Hz | f_pk 25.4, 13.1 Hz; peak \|X\| 1.07x, 3.25x; band power 0.56, 0.52 | pass for frequency; amplitude open (below) |
+
+These runs settle the earlier Fig 3B rows: the transition lies between 55% and 65%, and the seizure state carries
+the 150 Hz component.
 
 ## Replica score (Cell Reports main text)
 
 17 result panels: 1B, 1C, 2A top, 2A bottom, 2B top, 2B bottom, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B,
 5C, 6A bottom, 6B. Excluded: 1A and 6B top (schematics), 1D (mouse data), 6A top (literature densities).
-Credit pass 1, partial 0.5: 1B, 2B top, 5C and 6A bottom pass; 1C, 2A top, 3C top, 3C bottom, 4A, 4B, 5A and
-5B partial; 2A bottom, 2B bottom, 3A, 3B (rasters at 40, 70, 90% not run) and 6B not run. Score 8/17 = 47/100.
+Credit pass 1, partial 0.5: 1B, 2B top, 3B, 3C bottom, 5C and 6A bottom pass; 1C, 2A top, 3A, 3C top, 4A, 4B,
+5A and 5B partial; 2A bottom, 2B bottom and 6B not run. Score 10/17 = 59/100.
 1B and 1C rest on the cellrep baseline (f_pk 33.7 Hz, delay 6.8 ms against the text's 6-7 ms, mmc2 804).
 The table rows labelled Fig 3A/3B and Fig 4A/4B above score the spectra of
 panels 3C top/bottom and 4A/4B.
@@ -71,5 +90,4 @@ panels 3C top/bottom and 4A/4B.
 
 - Fig 4B amplitude: the paper's own metric falls in our runs. The paper's text (mmc2 433) says amplitude rises.
   The pass on peak |X| holds only at 75%. Decide which metric is the claim before calling Fig 4B reproduced.
-- Fig 3B transition near 60%: needs a finer PV grid (55, 60, 65, 70%).
 - S3 beyond 6.2 s: needs a longer window.

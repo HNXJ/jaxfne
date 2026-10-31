@@ -31,10 +31,10 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   `etudes/papers/caminos/RESULT_FIGURES.md`). Closes when: an S1 runner with its test passes and the
   `replication_audit` family reads clean in `python scripts/run_test_gate.py report`. Blocked-by: T-O73.
   Effort: M, est. 2 h.
-- T-63 [A] (E) CAMINOS GPU queues (WSL `~/figC_queue.sh` then `~/figP_queue.sh`, launched 2026-10-31; 1C and 5C
-  scored): score Cell Reports 3A/3B and 4A/4B, then PLoS CB 2C-F, 3C-F and 4A bottom (`FIGA_PARAM_SET=default`).
-  Closes when: the verdicts are in `RESULT_FIGURES.md` and the two replica blocks of `dashboard/sources.json`, and
-  `python scripts/build_dashboard_data.py --check` passes. Blocked-by: none. Effort: L, about 6 h GPU.
+- T-63 [A] (E) CAMINOS GPU queue `~/figP_queue.sh` (WSL, running 2026-10-31; the Cell Reports figC runs are scored):
+  score PLoS CB 2C-F, 3C-F and 4A bottom (`FIGA_PARAM_SET=default`). Closes when: the verdicts are in a PLoS result
+  file and the `caminos` replica block of `dashboard/sources.json`, and `python scripts/build_dashboard_data.py
+  --check` passes. Blocked-by: none. Effort: L, about 4 h GPU.
 - T-3 [A] (P) PCL replication, option (b) (Hamm 2026-10-27). Core lanes L1-L4 closed. Next: R2, the
   port's replay of the trained network's training files through the chained scan, compared with the port
   (the C++ reference builds headless in WSL and its test binary passes 7 of 7, from a copy at `~/pcl_cpp`
