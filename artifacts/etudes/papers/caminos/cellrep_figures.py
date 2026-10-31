@@ -242,3 +242,131 @@ def s3_paired(seed, *, onset_s=S3_ONSET_S, T_s=12.0, **kw):
     for run in (control, silenced):
         run["raster_window"] = run["raster_window"][off:off + (i1 - i0)]
     return out
+
+
+# --- Cell Reports Figure 5 / S1 runners (packet FIG-5S1) ---
+
+FIG5A_VALUES_NS = (0.0, 2.0, 4.0, 6.0, 8.0, 10.0)  # Fig 5A grid (mmc2 lines 473-478)
+FIG5B_VALUES_NS = (0.0, 2.0, 4.0, 6.0, 8.0, 10.0)  # Fig 5B grid (mmc2 lines 479-480)
+S1_PROBABILITIES = (0.01, 0.02, 0.04, 0.08, 0.12, 0.16, 0.20, 0.25,
+                    0.30)  # Fig S1 grid (legend mmc2 lines 1808-1812)
+FIG5C_RASTER_WINDOW_S = (DISCARD_S, DISCARD_S + 0.3)  # 0.3 s after the discard
+
+
+def coupling_sweep(kind, values_nS=None, seeds=None, **kw):
+    """Figure 5A/5B coupling sweeps (mmc2 lines 473-480, legends 573-577).
+
+    ``kind`` is ``"PV_SOM"`` (Figure 5A: PV-to-SOM swept 0-10 nS, colour-map
+    LFP spectrum plus 25-45 Hz band power per value) or ``"SOM_SOM"``
+    (Figure 5B: SOM-to-SOM swept 0-10 nS with PV-to-SOM held at zero, mean
+    over the 10 s window); any other kind is refused. For each value and
+    seed this runs :func:`run_cell` with ``coupling={kind: v * 1e-9}``;
+    value 0 passes ``coupling=None`` (the paired baseline). The nS value is
+    the per-connection conductance, scaled by 1e-9 to S, consistent with
+    the cellrep ``Q_ext_S = 1.25e-9`` convention (caminos_jax.py
+    CELLREP_PARAMS). Rows carry ``kind``, ``value_nS``, ``seed`` and the
+    :func:`run_cell` outputs. ``values_nS`` defaults to the Figure's grid
+    for that kind; every value must be >= 0.
+    """
+    if kind not in ("PV_SOM", "SOM_SOM"):
+        raise ValueError("kind must be 'PV_SOM' or 'SOM_SOM', got %r" % (kind,))
+    if values_nS is None:
+        values_nS = FIG5A_VALUES_NS if kind == "PV_SOM" else FIG5B_VALUES_NS
+    if seeds is None:
+        raise ValueError("seeds must be given, got None")
+    rows = []
+    for value in values_nS:
+        try:
+            val = float(value)
+        except (TypeError, ValueError):
+            raise ValueError("value_nS must be a number >= 0, got %r" % (value,))
+        if not (np.isfinite(val) and val >= 0.0):
+            raise ValueError("value_nS must be >= 0, got %r" % (value,))
+        coup = None if val == 0.0 else {kind: val * 1e-9}
+        for seed in seeds:
+            res = run_cell(seed, **{**kw, "coupling": coup})
+            res.update({"kind": kind, "value_nS": val, "seed": int(seed)})
+            rows.append(res)
+    return rows
+
+
+def fig5c_swap(seed, **kw):
+    """Figure 5C swap run (mmc2 lines 481-496, Methods 1775-1778).
+
+    Runs :func:`run_cell` with ``swap=True`` (PV and SOM neuronal parameters
+    exchanged, connectivity unchanged, the 4 Hz drive staying on the PV
+    indices; caminos_jax.py ``swap``). ``raster_window`` passes through to
+    :func:`run_cell` exactly as in the FIG-A runners; when the caller gives
+    none, the first 0.3 s after the 2 s discard is used (fits both smoke
+    T_s = 3 s and full T_s = 12 s runs; override via ``raster_window``).
+    Adds ``locking_by_type`` (the :func:`caminos_analysis.locking_by_type`
+    result over the window), ``ppc_by_type`` (its per-type PPC part) and
+    ``preferred_phase_by_type`` (its per-type circular-mean spike phase).
+    Returns the :func:`run_cell` dict with those keys added.
+    """
+    kw = dict(kw)
+    if kw.get("raster_window", None) is None:
+        t0, t1 = FIG5C_RASTER_WINDOW_S
+        if not t1 <= float(kw.get("T_s", 12.0)):
+            raise ValueError("default Figure 5C window (%g, %g) s exceeds T_s=%g; "
+                             "pass raster_window explicitly" % (t0, t1, kw.get("T_s", 12.0)))
+        kw["raster_window"] = (t0, t1)
+    res = run_cell(seed, **{**kw, "swap": True})
+    t0, t1 = (float(x) for x in kw["raster_window"])
+    dt = res["dt_s"]
+    i0, i1 = int(round(t0 / dt)), int(round(t1 / dt))
+    lfp_win = np.asarray(res["lfp"])[i0:i1]
+    lock = cca.locking_by_type(np.asarray(res["raster_window"]), res["sizes"],
+                               lfp_win, dt)
+    res["locking_by_type"] = lock
+    res["ppc_by_type"] = lock["ppc"]
+    res["preferred_phase_by_type"] = lock["mean_phase"]
+    return res
+
+
+def s1_sweep(probabilities=None, seeds=None, **kw):
+    """Figure S1 connection-probability sweep (legend mmc2 lines 1808-1812).
+
+    For each p and seed this runs :func:`run_cell` with
+    ``ext_sources="fixed"`` and ``p=p`` (``run_cell`` forwards ``p`` through
+    ``**sim_kw`` to ``caminos_jax.simulate``, which takes ``p`` under that
+    name). The external source count is held fixed so only p changes; the
+    Methods do not say how the drive scales with p (inferred, decided here).
+    Rows carry ``p``, ``seed`` and the :func:`run_cell` outputs (colour-map
+    spectrum and max E rate per p) plus ``phase_delay`` (the full
+    :func:`jaxfne.analysis.ref42_phase_delay` dict on the kept PV/SOM
+    counts at the run's ``f_pk_hz``) and ``phase_delay_rad`` (its wrapped
+    SOM-minus-PV phase, None when a group is silent).
+    ``probabilities`` defaults to the Figure's grid; every p must be in
+    (0, 1).
+    """
+    from jaxfne.analysis import ref42_phase_delay
+
+    if probabilities is None:
+        probabilities = S1_PROBABILITIES
+    if seeds is None:
+        raise ValueError("seeds must be given, got None")
+    rows = []
+    for p in probabilities:
+        try:
+            pp = float(p)
+        except (TypeError, ValueError):
+            raise ValueError("p must be in (0, 1), got %r" % (p,))
+        if not 0.0 < pp < 1.0:
+            raise ValueError("p must be in (0, 1), got %r" % (p,))
+        for seed in seeds:
+            res = run_cell(seed, **{**kw, "ext_sources": "fixed", "p": pp})
+            f_pk = float(res["f_pk_hz"])
+            dur = float(res["T_s"]) - DISCARD_S
+            delay = ref42_phase_delay(np.asarray(res["counts_kept"]), res["dt_s"],
+                                      f_pk, half_band_hz=5.0,
+                                      drop_s=0.0, keep_s=dur)
+            phi_pv, phi_som = delay["phase_PV_rad"], delay["phase_SOM_rad"]
+            if phi_pv is None or phi_som is None:
+                phase_rad = None
+            else:
+                phase_rad = float(np.angle(np.exp(1j * (phi_som - phi_pv))))
+            res.update({"p": pp, "seed": int(seed), "phase_delay": delay,
+                        "phase_delay_rad": phase_rad})
+            rows.append(res)
+    return rows

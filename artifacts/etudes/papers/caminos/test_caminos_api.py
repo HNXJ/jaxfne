@@ -566,3 +566,70 @@ def test_s3_silenced_differs_after_onset():
     assert float(np.max(np.abs(control[post] - silenced[post]))) > 0
     assert silenced[post].mean() > control[post].mean()
     assert float(np.max(np.abs(control[pre] - silenced[pre]))) == pytest.approx(0.0, abs=1e-12)
+
+
+# --- Cell Reports Figure 5 / S1 runners (packet FIG-5S1) ---
+
+FIG5S1_T_S = 3.0  # smoke run length for the Figure 5 / S1 tests
+S1_SMOKE = {
+    "sizes": CF_SMOKE["sizes"],
+    "som_ext_rate_hz": CF_SMOKE["som_ext_rate_hz"],
+}  # S1 holds the drive fixed: no ext_sources key (s1_sweep forces "fixed")
+
+
+def test_coupling_zero_matches_baseline():
+    """Value 0 nS passes coupling=None and reproduces the baseline counts."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=FIG5S1_T_S, **CF_SMOKE)
+    assert sum(base["counts"].values()) > 0, "precondition: the baseline must fire"
+    row = cf.coupling_sweep("PV_SOM", [0.0], [1], T_s=FIG5S1_T_S, **CF_SMOKE)[0]
+    assert row["kind"] == "PV_SOM" and row["value_nS"] == 0.0 and row["seed"] == 1
+    assert row["counts"] == base["counts"]
+
+
+def test_coupling_pv_som_changes_som_activity():
+    """PV->SOM at 10 nS changes the SOM counts (Figure 5A, mmc2 lines 473-478)."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=FIG5S1_T_S, **CF_SMOKE)
+    assert base["counts"]["SOM"] > 0, "precondition: baseline SOM must fire"
+    row = cf.coupling_sweep("PV_SOM", [10.0], [1], T_s=FIG5S1_T_S, **CF_SMOKE)[0]
+    assert row["value_nS"] == 10.0
+    assert row["counts"]["SOM"] != base["counts"]["SOM"]
+
+
+def test_s1_rejects_p_out_of_range():
+    """s1_sweep refuses p outside (0, 1) (Figure S1, legend mmc2 lines 1808-1812)."""
+    import cellrep_figures as cf
+
+    with pytest.raises(ValueError):
+        cf.s1_sweep([0.0], [1], T_s=FIG5S1_T_S, **S1_SMOKE)
+    with pytest.raises(ValueError):
+        cf.s1_sweep([1.0], [1], T_s=FIG5S1_T_S, **S1_SMOKE)
+
+
+def test_fig5c_swap_moves_pv_and_som_counts():
+    """Swapping PV/SOM parameters moves the PV and SOM counts (Figure 5C)."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=FIG5S1_T_S, **CF_SMOKE)
+    assert sum(base["counts"].values()) > 0, "precondition: baseline total must fire"
+    got = cf.fig5c_swap(1, T_s=FIG5S1_T_S, **CF_SMOKE)
+    assert sum(got["counts"].values()) > 0, "precondition: swapped total must fire"
+    assert got["counts"] != base["counts"], \
+        "swap must move counts: base=%r swapped=%r" % (base["counts"], got["counts"])
+    assert "locking_by_type" in got and "ppc_by_type" in got
+
+
+def test_s1_higher_p_increases_e_counts():
+    """E counts rise from p = 0.01 to p = 0.3 on the smoke net (Figure S1)."""
+    import cellrep_figures as cf
+
+    rows = cf.s1_sweep([0.01, 0.3], [1], T_s=FIG5S1_T_S, **S1_SMOKE)
+    e_by_p = {r["p"]: r["counts"]["E"] for r in rows}
+    assert e_by_p[0.3] > 0, "precondition: the p = 0.3 E count is nonzero"
+    assert e_by_p[0.01] > 0, "precondition: the p = 0.01 E count is nonzero"
+    assert "phase_delay_rad" in rows[0]
+    assert e_by_p[0.3] != e_by_p[0.01], \
+        "p must move the E counts: p=0.01 -> %r, p=0.3 -> %r" % (e_by_p[0.01], e_by_p[0.3])
