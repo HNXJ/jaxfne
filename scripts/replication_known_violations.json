@@ -51,8 +51,8 @@
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/caminos",
-    "message": "holds 23 files (at most 7)",
-    "reason": "audit 2026-10-17; 23 files after the FIG-A receipt and runner (2026-10-31)",
+    "message": "holds 26 files (at most 7)",
+    "reason": "audit 2026-10-17; 26 files after the FIG-A runner and the mean-field port with its result (2026-10-31)",
     "todo": "T-30"
   },
   {

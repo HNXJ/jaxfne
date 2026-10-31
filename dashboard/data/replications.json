@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-31T19:03:42Z",
-    "dev_sha": "69b9868a9c8e292d7095c075eed336490c1e4de4",
-    "data_revision": "78f538ddf5765c0472332a2177169cb931236e495f4ad253f64ab257c57cf824"
+    "utc": "2026-10-31T19:29:53Z",
+    "dev_sha": "e21f928ce06e2fcf79795b9f4b089192ba3a9588",
+    "data_revision": "f9b6671b93e1dfd731faa08051f6233a2e528b4bd124164f1379ec026e30957e"
   },
   "papers": [
     {
@@ -1215,14 +1215,14 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": 7,
+        "score": 21,
         "panels": 28,
         "excluded": 3,
         "counts": {
-          "pass": 1,
+          "pass": 5,
           "partial": 2,
-          "fail": 0,
-          "not run": 25
+          "fail": 1,
+          "not run": 20
         },
         "same_as": null,
         "scope": "Main-text Figs. 1-6 of the PLoS CB article (PMC13286281), read 2026-10-31. The Cell Reports 2025 figures scored in RESULT_FIGURES.md belong to another paper and do not count here.",
@@ -1241,8 +1241,9 @@
           },
           {
             "id": "1D",
-            "status": "not run",
-            "note": "mean-field model not ported"
+            "status": "fail",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md",
+            "note": "port of the printed mean field gives 12.5 Hz, not 35, and SOM above PV"
           },
           {
             "id": "1E",
@@ -1332,19 +1333,24 @@
           },
           {
             "id": "6A",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md",
+            "note": "37.3 Hz, PV leads SOM by 4.06 ms"
           },
           {
             "id": "6B",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md"
           },
           {
             "id": "6C left",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md"
           },
           {
             "id": "6C right",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md"
           }
         ]
       }

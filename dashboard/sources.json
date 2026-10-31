@@ -12,7 +12,7 @@
         "panels": [
           {"id": "1B", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/LEDGER.md", "note": "R2: SOM after PV, lag 7.04 ms; off against the paper's 8.5 ms (finding: needs X)"},
           {"id": "1C", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/scores/score.json", "note": "R1 about 35 Hz and R3 PV > SOM > E pass"},
-          {"id": "1D", "status": "not run", "note": "mean-field model not ported"},
+          {"id": "1D", "status": "fail", "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md", "note": "port of the printed mean field gives 12.5 Hz, not 35, and SOM above PV"},
           {"id": "1E", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/scores/score_v7.json", "note": "R4 fails under v6; R4v7 passes under the p·NE drive assumption"},
           {"id": "2A", "status": "not run"}, {"id": "2B", "status": "not run"}, {"id": "2C", "status": "not run"},
           {"id": "2D", "status": "not run"}, {"id": "2E", "status": "not run"}, {"id": "2F", "status": "not run"},
@@ -21,8 +21,10 @@
           {"id": "4A bottom", "status": "not run"}, {"id": "4B middle", "status": "not run"}, {"id": "4B bottom", "status": "not run"},
           {"id": "5A left", "status": "not run"}, {"id": "5A right", "status": "not run"}, {"id": "5B top", "status": "not run"},
           {"id": "5B bottom left", "status": "not run"}, {"id": "5B bottom right", "status": "not run"},
-          {"id": "6A", "status": "not run"}, {"id": "6B", "status": "not run"}, {"id": "6C left", "status": "not run"},
-          {"id": "6C right", "status": "not run"}
+          {"id": "6A", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md", "note": "37.3 Hz, PV leads SOM by 4.06 ms"},
+          {"id": "6B", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md"},
+          {"id": "6C left", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md"},
+          {"id": "6C right", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md"}
         ],
         "excluded": [
           {"id": "1A", "reason": "circuit schematic"},
