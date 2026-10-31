@@ -576,7 +576,7 @@ def check_dev_lane(spec):
         raise BuildError(f"paper {spec['id']}: dev lane sha {lane['sha']} is not in HEAD's history")
 
 
-def build_paper(spec, files, repo_url):
+def build_paper(spec, files, repo_url, specs_by_id=None):
     check_dev_lane(spec)
     p = Paper(spec, files, repo_url)
     cls = check_class(spec)
@@ -607,6 +607,7 @@ def build_paper(spec, files, repo_url):
         "charts": [build_chart(p, ch) for ch in spec.get("charts", [])],
         "open": list(spec.get("open", [])),
         "verdict_summary": build_verdict_summary(spec, criteria, library),
+        "replica": build_replica(spec, specs_by_id or {spec["id"]: spec}),
     }
 
 
@@ -643,6 +644,64 @@ def build_library_path(p, spec):
     else:
         raise BuildError(f"paper {p.id}: library file {name} key {key} is not pass, fail or incomplete")
     return {"stage": block["stage"], "verdict": verdict, "evidence": p.evidence(name)}
+
+
+# Credit per result panel for the replica score; 100 means every result panel of the paper passes.
+REPLICA_CREDIT = {"pass": 1.0, "partial": 0.5, "fail": 0.0, "not run": 0.0}
+
+
+def replica_panels(pid, block):
+    """Validated (panels, excluded) of a replica block that lists panels."""
+    panels = block.get("panels")
+    if not isinstance(panels, list) or not panels:
+        raise BuildError(f"paper {pid}: replica needs at least one panel")
+    excluded = block.get("excluded", [])
+    seen = set()
+    for item in panels:
+        pan = item.get("id")
+        if pan in seen:
+            raise BuildError(f"paper {pid}: replica panel id {pan!r} repeats")
+        seen.add(pan)
+        if item.get("status") not in REPLICA_CREDIT:
+            raise BuildError(f"paper {pid}: replica panel {pan} status {item.get('status')!r} is not one of "
+                             f"{list(REPLICA_CREDIT)}")
+        ev = item.get("evidence")
+        if ev is not None and not (ROOT / ev).exists():
+            raise BuildError(f"paper {pid}: replica panel {pan} evidence {ev!r} does not exist")
+    for item in excluded:
+        if item.get("id") in seen:
+            raise BuildError(f"paper {pid}: replica id {item.get('id')!r} is both scored and excluded")
+        if not item.get("reason"):
+            raise BuildError(f"paper {pid}: replica excluded id {item.get('id')!r} needs a reason")
+    return panels, excluded
+
+
+def build_replica(spec, specs_by_id):
+    """Replica score 0-100 over the paper's result panels: pass 1, partial 0.5, fail and not run 0.
+
+    No block leaves the paper unscored (score None). `same_as` takes the panels of another paper
+    entry, for two dashboard rows of one paper. Excluded panels (schematics) carry a reason and stay
+    outside the denominator."""
+    pid = spec["id"]
+    block = spec.get("replica")
+    counts = {s: 0 for s in REPLICA_CREDIT}
+    if block is None:
+        return {"score": None, "panels": 0, "excluded": 0, "counts": counts, "same_as": None,
+                "scope": None, "items": []}
+    same_as = block.get("same_as")
+    source = block
+    if same_as is not None:
+        target = specs_by_id.get(same_as, {}).get("replica")
+        if not isinstance(target, dict) or "panels" not in target:
+            raise BuildError(f"paper {pid}: replica same_as {same_as!r} names no paper with panels")
+        source = target
+    panels, excluded = replica_panels(pid, source)
+    for item in panels:
+        counts[item["status"]] += 1
+    credit = sum(REPLICA_CREDIT[item["status"]] for item in panels)
+    score = int(100.0 * credit / len(panels) + 0.5)
+    return {"score": score, "panels": len(panels), "excluded": len(excluded), "counts": counts,
+            "same_as": same_as, "scope": source.get("scope"), "items": list(panels)}
 
 
 def build_verdict_summary(spec, criteria, library):
@@ -881,7 +940,8 @@ def build_document():
     if sources.get("schema") != SOURCES_SCHEMA:
         raise BuildError(f"sources schema is {sources.get('schema')!r}, expected {SOURCES_SCHEMA!r}")
     files = Files()
-    papers = [build_paper(s, files, sources["repo_url"]) for s in sources["papers"]]
+    specs_by_id = {s["id"]: s for s in sources["papers"]}
+    papers = [build_paper(s, files, sources["repo_url"], specs_by_id) for s in sources["papers"]]
     try:
         studies = parse_studies(REFERENCES.read_text(encoding="utf-8"))
     except OSError as exc:

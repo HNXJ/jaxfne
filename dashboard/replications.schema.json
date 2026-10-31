@@ -20,7 +20,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "class", "lane", "preregs", "criteria", "charts", "stage_artifacts", "verdict_summary"],
+        "required": ["id", "class", "lane", "preregs", "criteria", "charts", "stage_artifacts", "verdict_summary", "replica"],
         "properties": {
           "id": {"type": "string"},
           "class": {
@@ -120,6 +120,24 @@
                       "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
                     }
                   }
+                }
+              }
+            }
+          },
+          "replica": {
+            "type": "object",
+            "required": ["score", "panels", "excluded", "counts", "same_as", "items"],
+            "properties": {
+              "score": {"type": ["integer", "null"]},
+              "panels": {"type": "integer"},
+              "excluded": {"type": "integer"},
+              "same_as": {"type": ["string", "null"]},
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["id", "status"],
+                  "properties": {"status": {"type": "string", "enum": ["pass", "partial", "fail", "not run"]}}
                 }
               }
             }

@@ -462,6 +462,77 @@ def test_in_progress_with_an_empty_stage_is_refused(tmp_path):
     assert not (root / REL_OUT).exists(), "no data file may be written on error"
 
 
+def replica(*statuses, **over):
+    """A replica block with one panel per status, ids F1..Fn."""
+    block = {"scope": "fixture paper", "panels": [{"id": f"F{i + 1}", "status": s} for i, s in enumerate(statuses)]}
+    block.update(over)
+    return block
+
+
+def test_replica_score_counts_each_result_panel(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5}})
+    block = replica("pass", "pass", "partial", "fail", "not run",
+                    excluded=[{"id": "F0", "reason": "schematic"}])
+    write_sources(root, [paper(sha, replica=block)])
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    got = load_out(root)["papers"][0]["replica"]
+    # (1 + 1 + 0.5 + 0 + 0) / 5 = 0.5; the excluded schematic is outside the denominator.
+    assert got["score"] == 50, got
+    assert got["counts"] == {"pass": 2, "partial": 1, "fail": 1, "not run": 1}, got
+    assert (got["panels"], got["excluded"], got["same_as"]) == (5, 1, None), got
+
+
+def test_replica_absent_is_unscored(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5}})
+    spec = paper(sha)
+    assert "replica" not in spec, "fixture must carry no replica block"
+    write_sources(root, [spec])
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    got = load_out(root)["papers"][0]["replica"]
+    assert (got["score"], got["panels"]) == (None, 0), got
+
+
+def test_replica_same_as_takes_the_named_paper_score(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5}})
+    first = paper(sha, id="paper-a", replica=replica("pass", "fail", "fail", "fail"))
+    second = paper(sha, id="paper-b", replica={"same_as": "paper-a"})
+    write_sources(root, [first, second])
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    got = {p["id"]: p["replica"] for p in load_out(root)["papers"]}
+    assert got["paper-a"]["score"] == got["paper-b"]["score"] == 25, got
+    assert (got["paper-a"]["same_as"], got["paper-b"]["same_as"]) == (None, "paper-a"), got
+
+
+@pytest.mark.parametrize("block, needle", [
+    (replica("pass", "done"), "replica panel F2 status 'done'"),
+    ({"scope": "s", "panels": []}, "replica needs at least one panel"),
+    (replica("pass", "pass", panels=[{"id": "F1", "status": "pass"}, {"id": "F1", "status": "fail"}]),
+     "replica panel id 'F1' repeats"),
+    ({"same_as": "nowhere"}, "replica same_as 'nowhere' names no paper with panels"),
+    (replica("pass", panels=[{"id": "F1", "status": "pass", "evidence": "scores/absent.json"}]),
+     "replica panel F1 evidence 'scores/absent.json' does not exist"),
+    (replica("pass", excluded=[{"id": "F1", "reason": "schematic"}]), "replica id 'F1' is both scored and excluded"),
+])
+def test_replica_refuses_and_names_the_paper(tmp_path, block, needle):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5}})
+    write_sources(root, [paper(sha, replica=block)])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and needle in proc.stderr, proc.stderr
+    assert not (root / REL_OUT).exists(), "no data file may be written on error"
+
+
 def test_stage_artifacts_link_lane_files_in_stage_order(tmp_path):
     root = tmp_path / "repo"
     sha = make_repo(root, {"spec.json": {}, "prereg.json": {}, "result.json": {}})

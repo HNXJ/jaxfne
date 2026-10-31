@@ -22,7 +22,16 @@ def test_pipe_in_a_title_does_not_split_the_row():
     sources = {"papers": [{"id": "x", "title": "A | B", "citation": "C", "class": "reproduced (conditional)",
                            "release": "0.5.6", "stage": "P5", "verdict": "reproduced"}]}
     row = [ln for ln in render(sources).splitlines() if "#model/x" in ln][0]
-    assert row.count(" | ") == 6
+    assert row.count(" | ") == 7
+
+
+def test_replica_column_shows_the_score_or_a_dash():
+    base = {"title": "T", "citation": "C", "class": "in progress", "release": "0.5.9", "stage": "P3"}
+    doc = {"papers": [dict(base, id="x", replica={"score": 38}), dict(base, id="y", replica={"score": None}),
+                      dict(base, id="z")]}
+    rows = {ln.split("#model/")[1][0]: ln for ln in render(doc).splitlines() if "#model/" in ln}
+    assert "| 38/100 |" in rows["x"], rows["x"]
+    assert "| P3 | — |" in rows["y"] and "| P3 | — |" in rows["z"], (rows["y"], rows["z"])
 
 
 def test_page_columns_mirror_the_three_verdicts():
@@ -39,7 +48,7 @@ def test_page_columns_mirror_the_three_verdicts():
     rows = [ln for ln in render(doc).splitlines() if "#model/" in ln]
     assert len(rows) == 2
     assert "P6 PASS" in rows[0] and "mixed" in rows[0], "the paper and library verdicts share the row"
-    assert rows[1].count(" | ") == 6 and "pass" in rows[1], "the core-method row shows its methods verdict"
+    assert rows[1].count(" | ") == 7 and "pass" in rows[1], "the core-method row shows its methods verdict"
 
 
 def test_page_shows_the_derived_library_and_methods_verdicts():

@@ -47,8 +47,11 @@ def render(sources: dict) -> str:
         "",
         f"[Open the replication dashboard]({DASHBOARD})",
         "",
-        "| Paper | Class | Release | Stage | Paper | Library | Methods |",
-        "|---|---|---|---|---|---|---|",
+        "Replica is the share of the paper's result panels reproduced, out of 100 (pass 1, partial 0.5,",
+        "fail or not run 0); 100 is a full replica. A dash means no panel inventory yet.",
+        "",
+        "| Paper | Class | Release | Stage | Replica | Paper | Library | Methods |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     for p in sources["papers"]:
         verdict = p.get("verdict") or "—"
@@ -60,9 +63,11 @@ def render(sources: dict) -> str:
         else:
             paper_v = paper_v or "—"
         title = f"[{cell(p['title'])}]({DASHBOARD}#model/{p['id']})"
+        score = (p.get("replica") or {}).get("score")
+        replica_v = "—" if score is None else f"{score}/100"
         lines.append(
             f"| {title}<br>{cell(p['citation'])} | {cell(p['class'])} | {cell(p['release'])} "
-            f"| {cell(p.get('stage') or '—')} | {cell(paper_v)} "
+            f"| {cell(p.get('stage') or '—')} | {replica_v} | {cell(paper_v)} "
             f"| {cell(library_v or '—')} | {cell(methods_v or '—')} |"
         )
     roadmap = sources.get("roadmap", [])
@@ -84,10 +89,13 @@ def main(argv=None) -> int:
     # sources.json holds no derived verdicts; the library and methods columns come from the
     # derived data that `build_dashboard_data.py` writes, so the page shows what the dashboard shows.
     if DERIVED.exists():
-        summaries = {p["id"]: p.get("verdict_summary") for p in json.loads(DERIVED.read_text(encoding="utf-8"))["papers"]}
+        derived = {p["id"]: p for p in json.loads(DERIVED.read_text(encoding="utf-8"))["papers"]}
         for p in sources["papers"]:
-            if summaries.get(p["id"]):
-                p["verdict_summary"] = summaries[p["id"]]
+            built = derived.get(p["id"], {})
+            if built.get("verdict_summary"):
+                p["verdict_summary"] = built["verdict_summary"]
+            # The derived score, so the page shows what the dashboard shows (same_as resolved).
+            p["replica"] = built.get("replica")
     text = render(sources)
     if args.write:
         OUT.write_bytes(text.encode("utf-8"))

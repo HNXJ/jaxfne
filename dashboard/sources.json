@@ -7,6 +7,29 @@
       "id": "caminos",
       "title": "CAMINOS reference model, Fig. 1",
       "citation": "Tahvili, Vinck and di Volo, PLoS Comput Biol 2026",
+      "replica": {
+        "scope": "Main-text Figs. 1-6 of the PLoS CB article (PMC13286281), read 2026-10-31. The Cell Reports 2025 figures scored in RESULT_FIGURES.md belong to another paper and do not count here.",
+        "panels": [
+          {"id": "1B", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/LEDGER.md", "note": "R2: SOM after PV, lag 7.04 ms; off against the paper's 8.5 ms (finding: needs X)"},
+          {"id": "1C", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/scores/score.json", "note": "R1 about 35 Hz and R3 PV > SOM > E pass"},
+          {"id": "1D", "status": "not run", "note": "mean-field model not ported"},
+          {"id": "1E", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/scores/score_v7.json", "note": "R4 fails under v6; R4v7 passes under the p·NE drive assumption"},
+          {"id": "2A", "status": "not run"}, {"id": "2B", "status": "not run"}, {"id": "2C", "status": "not run"},
+          {"id": "2D", "status": "not run"}, {"id": "2E", "status": "not run"}, {"id": "2F", "status": "not run"},
+          {"id": "3A", "status": "not run"}, {"id": "3B", "status": "not run"}, {"id": "3C", "status": "not run"},
+          {"id": "3D", "status": "not run"}, {"id": "3E", "status": "not run"}, {"id": "3F", "status": "not run"},
+          {"id": "4A bottom", "status": "not run"}, {"id": "4B middle", "status": "not run"}, {"id": "4B bottom", "status": "not run"},
+          {"id": "5A left", "status": "not run"}, {"id": "5A right", "status": "not run"}, {"id": "5B top", "status": "not run"},
+          {"id": "5B bottom left", "status": "not run"}, {"id": "5B bottom right", "status": "not run"},
+          {"id": "6A", "status": "not run"}, {"id": "6B", "status": "not run"}, {"id": "6C left", "status": "not run"},
+          {"id": "6C right", "status": "not run"}
+        ],
+        "excluded": [
+          {"id": "1A", "reason": "circuit schematic"},
+          {"id": "4A top", "reason": "SOM/PV density ratios from the literature, a model input"},
+          {"id": "4B top", "reason": "stimulation protocol"}
+        ]
+      },
       "class": "mixed",
       "question": "Does the E–PV–SOM AdEx network give about 35 Hz gamma, SOM after PV, PV > SOM > E and an onset above a critical p?",
       "page": "models/caminos.md",
@@ -310,6 +333,24 @@
       "id": "izhikevich2003",
       "title": "Izhikevich 2003, Figs. 2 and 3 (single-cell patterns and the 1000-cell network)",
       "citation": "Izhikevich, IEEE Trans Neural Netw 2003",
+      "replica": {
+        "scope": "Figs. 1-3 of the article (izhikevich.org spikes.pdf, read 2026-10-31); one panel per labelled trace. Post hoc passes (v8.2) count as partial.",
+        "panels": [
+          {"id": "1 RS", "status": "not run", "note": "model against rat motor cortex recordings not compared"},
+          {"id": "1 IB", "status": "not run"}, {"id": "1 FS", "status": "not run"},
+          {"id": "2 RS", "status": "pass", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "C1"},
+          {"id": "2 IB", "status": "pass", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "C2"},
+          {"id": "2 CH", "status": "pass", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "C3"},
+          {"id": "2 FS", "status": "partial", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v8_score.json", "note": "C4 fails under v7; passes under the post hoc v8.2 rule"},
+          {"id": "2 LTS", "status": "pass", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "C5"},
+          {"id": "2 TC tonic", "status": "pass", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "C6"},
+          {"id": "2 TC rebound", "status": "pass", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "C7"},
+          {"id": "2 RZ", "status": "partial", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v8_score.json", "note": "C8 fails under v7; passes under the post hoc v8.2 rule"},
+          {"id": "3 raster", "status": "partial", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "N1, N3, N4 pass; N2 (ISI CV) fails"},
+          {"id": "3 v1(t)", "status": "not run"}
+        ],
+        "excluded": [{"id": "2 top", "reason": "model equations and parameter maps"}]
+      },
       "class": "in progress",
       "question": "Does jaxfne's existing Izhikevich kernel reproduce the paper's single-cell firing patterns (Fig. 2) and the 1000-cell network rhythm (Fig. 3)?",
       "page": "models/izhikevich2003.md",
@@ -401,6 +442,21 @@
       "id": "destexhe2009",
       "title": "Destexhe 2009, Fig. 6B (self-sustained asynchronous irregular state in an AdEx cortical network)",
       "citation": "Destexhe, J Comput Neurosci 2009",
+      "replica": {
+        "scope": "Figure claims recorded in SOURCE_P1.md (sections 2 and 5); panel letters of Figs. 2-5, 8, 9, 11 and 13 are not recorded, so each counts once.",
+        "panels": [
+          {"id": "1A", "status": "not run"}, {"id": "1B", "status": "not run"}, {"id": "1C", "status": "not run"},
+          {"id": "1D", "status": "not run"}, {"id": "1E", "status": "not run"}, {"id": "1F", "status": "not run"},
+          {"id": "2", "status": "not run"}, {"id": "3", "status": "not run"}, {"id": "4", "status": "not run"},
+          {"id": "5", "status": "not run"}, {"id": "6A", "status": "not run"},
+          {"id": "6B", "status": "not run", "evidence": "artifacts/etudes/papers/destexhe2009/CALIBRATION.md", "note": "unscored pilots die within about 2 s; no self-sustained AI state"},
+          {"id": "7A", "status": "not run"}, {"id": "7B", "status": "not run"}, {"id": "8", "status": "not run"},
+          {"id": "9", "status": "not run"}, {"id": "10A", "status": "not run"}, {"id": "10B", "status": "not run"},
+          {"id": "10C", "status": "not run"}, {"id": "10D", "status": "not run"}, {"id": "11", "status": "not run"},
+          {"id": "12B", "status": "not run"}, {"id": "13", "status": "not run"}
+        ],
+        "excluded": [{"id": "12A", "reason": "in vivo recording, no model output"}]
+      },
       "class": "in progress",
       "question": "Does the jaxfne AdEx core, at the paper's parameters, sustain the asynchronous irregular state of Fig. 6B with its rates, CV_ISI and pairwise correlation?",
       "release": "0.5.8",
@@ -483,6 +539,24 @@
       "id": "potjans2014",
       "title": "Potjans and Diesmann 2014 cortical microcircuit, Fig. 6 and Table 5",
       "citation": "Potjans and Diesmann, Cereb Cortex 24(3):785-806",
+      "replica": {
+        "scope": "Main-text Figs. 1-12 (publisher page, read 2026-10-31). Panel lists of Figs. 7-10 come from a summary of the page, not the legends, and Fig. 7's letters are unverified.",
+        "panels": [
+          {"id": "2A", "status": "not run"}, {"id": "2B", "status": "not run"}, {"id": "2C", "status": "not run"}, {"id": "2D", "status": "not run"},
+          {"id": "3B", "status": "not run"}, {"id": "3C", "status": "not run"}, {"id": "3D", "status": "not run"}, {"id": "3E", "status": "not run"},
+          {"id": "4", "status": "not run"}, {"id": "5A", "status": "not run"}, {"id": "5B", "status": "not run"},
+          {"id": "6A", "status": "not run"}, {"id": "6B", "status": "not run"}, {"id": "6C", "status": "not run"}, {"id": "6D", "status": "not run"},
+          {"id": "7A", "status": "not run"}, {"id": "7B", "status": "not run"}, {"id": "7C", "status": "not run"},
+          {"id": "8A", "status": "not run"}, {"id": "8B", "status": "not run"}, {"id": "8C", "status": "not run"},
+          {"id": "9A", "status": "not run"}, {"id": "9B", "status": "not run"}, {"id": "9C", "status": "not run"},
+          {"id": "10A", "status": "not run"}, {"id": "10B", "status": "not run"}, {"id": "10C", "status": "not run"},
+          {"id": "10D", "status": "not run"}, {"id": "10E", "status": "not run"}, {"id": "10F", "status": "not run"}
+        ],
+        "excluded": [
+          {"id": "1", "reason": "model definition schematic"}, {"id": "3A", "reason": "sampling geometry schematic"},
+          {"id": "11", "reason": "activity-flow diagram"}, {"id": "12", "reason": "pathway diagrams"}
+        ]
+      },
       "class": "in progress",
       "question": "Does the jaxfne core reproduce the microcircuit's spontaneous AI state: layer-specific rates, CV above 0.8 and L6-lowest synchrony?",
       "page": "models/potjans2014.md",
@@ -521,6 +595,26 @@
       "id": "mejias2016",
       "title": "Mejias et al. 2016 laminar multi-area model, Figs. 2-3 and 6-7",
       "citation": "Mejias, Murray, Kennedy and Wang, Sci Adv 2(11):e1601335",
+      "replica": {
+        "scope": "Main-text Figs. 1-7 (PMC5262462, read 2026-10-31). 2A and 3A pair a scheme with simulated traces and count as results.",
+        "panels": [
+          {"id": "2A", "status": "not run"}, {"id": "2B", "status": "not run"}, {"id": "2C", "status": "not run"},
+          {"id": "3A", "status": "not run"}, {"id": "3B", "status": "not run"}, {"id": "3C", "status": "not run"},
+          {"id": "4B", "status": "not run"}, {"id": "4C", "status": "not run"}, {"id": "4E", "status": "not run"}, {"id": "4F", "status": "not run"},
+          {"id": "5B", "status": "not run"}, {"id": "5C", "status": "not run"}, {"id": "5D", "status": "not run"},
+          {"id": "6C", "status": "not run"}, {"id": "6D", "status": "not run"}, {"id": "6E", "status": "not run"},
+          {"id": "6F", "status": "not run"}, {"id": "6G", "status": "not run"}, {"id": "6H", "status": "not run"},
+          {"id": "7B", "status": "not run"}, {"id": "7C", "status": "not run"}, {"id": "7E", "status": "not run"},
+          {"id": "7F", "status": "not run"}, {"id": "7G", "status": "not run"}, {"id": "7H", "status": "not run"},
+          {"id": "7I", "status": "not run"}
+        ],
+        "excluded": [
+          {"id": "1", "reason": "model schematic"}, {"id": "4A", "reason": "feedforward scheme"}, {"id": "4D", "reason": "feedback scheme"},
+          {"id": "5A", "reason": "protocol"}, {"id": "6A", "reason": "tract-tracing method"},
+          {"id": "6B", "reason": "anatomical network, a model input"}, {"id": "7A", "reason": "two-area scheme"},
+          {"id": "7D", "reason": "input protocol"}
+        ]
+      },
       "class": "in progress",
       "question": "Does the jaxfne core reproduce the laminar circuit's gamma/alpha rhythms, their interlaminar coupling, and the 30-area functional hierarchy from frequency-dependent Granger causality?",
       "page": "models/mejias2016.md",
