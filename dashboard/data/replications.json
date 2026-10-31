@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-31T19:29:53Z",
-    "dev_sha": "e21f928ce06e2fcf79795b9f4b089192ba3a9588",
-    "data_revision": "f9b6671b93e1dfd731faa08051f6233a2e528b4bd124164f1379ec026e30957e"
+    "utc": "2026-10-31T19:55:29Z",
+    "dev_sha": "24040e1c7a0913c861a25855f89ee93d7aa4ca76",
+    "data_revision": "e5e791aa7197aa2c27775c081799c98a08f05a7a1adbffebbfb4aa98af0209d3"
   },
   "papers": [
     {
@@ -1392,12 +1392,12 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": 44,
+        "score": 47,
         "panels": 17,
         "excluded": 4,
         "counts": {
-          "pass": 3,
-          "partial": 9,
+          "pass": 4,
+          "partial": 8,
           "fail": 0,
           "not run": 5
         },
@@ -1414,7 +1414,7 @@
             "id": "1C",
             "status": "partial",
             "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md",
-            "note": "SOM lags PV by 6.8 ms (text: 6-7 ms); locking not compared"
+            "note": "SOM lags PV by 6.8 ms (text: 6-7 ms); PPC: PV highest in 3/3 seeds, PV > SOM > E in 1/3"
           },
           {
             "id": "2A top",
@@ -1485,9 +1485,9 @@
           },
           {
             "id": "5C",
-            "status": "partial",
+            "status": "pass",
             "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md",
-            "note": "lead reverses; control locking not run"
+            "note": "lead reverses; PPC 0.30-0.75 against -0.04 to 0.08 in the control"
           },
           {
             "id": "6A bottom",
@@ -4154,7 +4154,7 @@
       "sensitivity": [],
       "charts": [],
       "open": [
-        "Paper full text and SOM PDF unreachable; paper-stated Fig. 4 rates/CVs unknown until a legal copy is readable.",
+        "Accepted manuscript readable (local copy F:/warehouse/vogels/Vogels2011_Science_AM.pdf); it states the Fig. 4B AI state at 3-15 Hz.",
         "Conductance synapses vs the current-based core LIF is a P2 fidelity question.",
         "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."
       ],
@@ -4167,18 +4167,99 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": null,
-        "panels": 0,
-        "excluded": 0,
+        "score": 0,
+        "panels": 20,
+        "excluded": 6,
         "counts": {
           "pass": 0,
           "partial": 0,
           "fail": 0,
-          "not run": 0
+          "not run": 20
         },
         "same_as": null,
-        "scope": null,
-        "items": []
+        "scope": "Main-text Figs. 1-4 of the accepted manuscript (Imperial Spiral, Science_334_6062_2011.pdf), read 2026-10-31.",
+        "items": [
+          {
+            "id": "1D",
+            "status": "not run"
+          },
+          {
+            "id": "1E",
+            "status": "not run"
+          },
+          {
+            "id": "1F",
+            "status": "not run"
+          },
+          {
+            "id": "1G",
+            "status": "not run"
+          },
+          {
+            "id": "2B",
+            "status": "not run"
+          },
+          {
+            "id": "2C",
+            "status": "not run"
+          },
+          {
+            "id": "2D",
+            "status": "not run"
+          },
+          {
+            "id": "2E",
+            "status": "not run"
+          },
+          {
+            "id": "2F",
+            "status": "not run"
+          },
+          {
+            "id": "2G",
+            "status": "not run"
+          },
+          {
+            "id": "2H",
+            "status": "not run"
+          },
+          {
+            "id": "3C",
+            "status": "not run"
+          },
+          {
+            "id": "3D",
+            "status": "not run"
+          },
+          {
+            "id": "3E",
+            "status": "not run"
+          },
+          {
+            "id": "3F",
+            "status": "not run"
+          },
+          {
+            "id": "4A",
+            "status": "not run"
+          },
+          {
+            "id": "4B",
+            "status": "not run"
+          },
+          {
+            "id": "4C",
+            "status": "not run"
+          },
+          {
+            "id": "4D",
+            "status": "not run"
+          },
+          {
+            "id": "4E",
+            "status": "not run"
+          }
+        ]
       }
     },
     {

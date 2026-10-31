@@ -147,7 +147,7 @@
         "scope": "Main-text Figs. 1-6 of the Cell Reports article (mmc2 text). Verdicts are descriptive, with tolerances set after the data (RESULT_FIGURES.md).",
         "panels": [
           {"id": "1B", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "cellrep baseline oscillates at 33.7 Hz"},
-          {"id": "1C", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "SOM lags PV by 6.8 ms (text: 6-7 ms); locking not compared"},
+          {"id": "1C", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "SOM lags PV by 6.8 ms (text: 6-7 ms); PPC: PV highest in 3/3 seeds, PV > SOM > E in 1/3"},
           {"id": "2A top", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "trend and delay pass; f_pk 14-63 Hz, not 7-80"},
           {"id": "2A bottom", "status": "not run", "note": "transient drive protocol unstated"},
           {"id": "2B top", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md"},
@@ -160,7 +160,7 @@
           {"id": "4B", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "frequency trend passes; amplitude metric open"},
           {"id": "5A", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "gamma reduced 60%, not abolished"},
           {"id": "5B", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "reduction 28%, past the minor tolerance"},
-          {"id": "5C", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "lead reverses; control locking not run"},
+          {"id": "5C", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "lead reverses; PPC 0.30-0.75 against -0.04 to 0.08 in the control"},
           {"id": "6A bottom", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md"},
           {"id": "6B", "status": "not run", "note": "E-to-E increase gain unstated"}
         ],
@@ -623,6 +623,28 @@
       "id": "vogels2011",
       "title": "Vogels et al. 2011, Fig. 4 (inhibitory STDP balancing a recurrent network) and Figs. 1-2 (single-cell detailed balance)",
       "citation": "Vogels et al., Science 334(6062):1569-1573",
+      "replica": {
+        "scope": "Main-text Figs. 1-4 of the accepted manuscript (Imperial Spiral, Science_334_6062_2011.pdf), read 2026-10-31.",
+        "panels": [
+          {"id": "1D", "status": "not run"}, {"id": "1E", "status": "not run"}, {"id": "1F", "status": "not run"},
+          {"id": "1G", "status": "not run"},
+          {"id": "2B", "status": "not run"}, {"id": "2C", "status": "not run"}, {"id": "2D", "status": "not run"},
+          {"id": "2E", "status": "not run"}, {"id": "2F", "status": "not run"}, {"id": "2G", "status": "not run"},
+          {"id": "2H", "status": "not run"},
+          {"id": "3C", "status": "not run"}, {"id": "3D", "status": "not run"}, {"id": "3E", "status": "not run"},
+          {"id": "3F", "status": "not run"},
+          {"id": "4A", "status": "not run"}, {"id": "4B", "status": "not run"}, {"id": "4C", "status": "not run"},
+          {"id": "4D", "status": "not run"}, {"id": "4E", "status": "not run"}
+        ],
+        "excluded": [
+          {"id": "1A", "reason": "feedforward inhibition schematic"},
+          {"id": "1B", "reason": "input schematic"},
+          {"id": "1C", "reason": "learning rule, a model input"},
+          {"id": "2A", "reason": "stimulus protocol"},
+          {"id": "3A", "reason": "rat A1 recordings"},
+          {"id": "3B", "reason": "rat A1 recordings"}
+        ]
+      },
       "class": "in progress",
       "question": "Does the jaxfne core, at the authors' parameters, reproduce the inhibitory-plasticity balance: the Fig. 4 network driven to its target rate and the Figs. 1-2 single-cell detailed balance?",
       "page": "models/vogels2011.md",
@@ -636,7 +658,7 @@
       "criteria": [],
       "sensitivity": [],
       "charts": [],
-      "open": ["Paper full text and SOM PDF unreachable; paper-stated Fig. 4 rates/CVs unknown until a legal copy is readable.", "Conductance synapses vs the current-based core LIF is a P2 fidelity question.", "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."]
+      "open": ["Accepted manuscript readable (local copy F:/warehouse/vogels/Vogels2011_Science_AM.pdf); it states the Fig. 4B AI state at 3-15 Hz.","Conductance synapses vs the current-based core LIF is a P2 fidelity question.", "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."]
     },
     {
       "id": "mejias2016",

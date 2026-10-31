@@ -27,11 +27,14 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
 
 ## 1. Blockers
 
-- T-59 [A] (E) Figs 5 and S1 runners: integrate the Muse write run made in a clone of dev head 5fc43f10
-  (`state.md`, Cell Reports replication; no runner for either figure is in the tree yet). Closes when: the two test
-  files of that packet pass under `python ~/.claude/bin/suite_lock.py --label jaxfne -- <their pytest command>` and
-  the `replication_audit` family reads clean in `python scripts/run_test_gate.py report`. Blocked-by: T-O73 for the
-  S1 part only. Effort: M, est. 2 h.
+- T-59 [A] (E) Cell Reports Fig S1 runner (Fig 5 runs through `run_figA.py`, verdicts in
+  `etudes/papers/caminos/RESULT_FIGURES.md`). Closes when: an S1 runner with its test passes and the
+  `replication_audit` family reads clean in `python scripts/run_test_gate.py report`. Blocked-by: T-O73.
+  Effort: M, est. 2 h.
+- T-63 [A] (E) CAMINOS GPU queues (WSL `~/figC_queue.sh` then `~/figP_queue.sh`, launched 2026-10-31; 1C and 5C
+  scored): score Cell Reports 3A/3B and 4A/4B, then PLoS CB 2C-F, 3C-F and 4A bottom (`FIGA_PARAM_SET=default`).
+  Closes when: the verdicts are in `RESULT_FIGURES.md` and the two replica blocks of `dashboard/sources.json`, and
+  `python scripts/build_dashboard_data.py --check` passes. Blocked-by: none. Effort: L, about 6 h GPU.
 - T-3 [A] (P) PCL replication, option (b) (Hamm 2026-10-27). Core lanes L1-L4 closed. Next: R2, the
   port's replay of the trained network's training files through the chained scan, compared with the port
   (the C++ reference builds headless in WSL and its test binary passes 7 of 7, from a copy at `~/pcl_cpp`
@@ -73,14 +76,6 @@ Open problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; stan
   fig03-05 RGBA and all bytes differ from the macOS freeze); left: the data and code statement (0.5.11), the
   PCL natural-image and DVS128/N-MNIST licences, S16 generators. Closes when: section 7 lists 0 gaps (close test
   under review, section 4). Blocked-by: the 0.5.11 data statement sits outside this release. Effort: M, est. 3 h.
-- T-60 [A] (E) Figs 2 and 6 runners (`state.md`, Cell Reports replication: pending). Closes when: a runner exists
-  for each figure and the `replication_audit` family reads clean in `python scripts/run_test_gate.py report`.
-  Blocked-by: none recorded. Effort: M, est. 4-6 h for both.
-- T-61 [A] (E) Figs 3, 4, S3 paper-scale runs and per-panel verdicts. The FIG-A runners sit on local dev
-  (`d58c3f70` to `4b0a6042`), not on origin/dev. Run on the local GPU in WSL `~/venv_jaxfne`. Closes when: the
-  per-panel verdicts are recorded and `python scripts/run_test_gate.py broad` on dev HEAD, run alone through
-  `suite_lock`, reads 0 failed in its summary line. Blocked-by: the WSL GPU claim (one GPU job at a time, jchat
-  `p-jaxfne`). Effort: L, est. 1-2 days, heavy compute.
 - T-O70 [A then H] H3 preregs: Potjans and Vogels estimands, B8 pilots on seed 0 and a known positive
   (Potjans at 10% with in-degree held is about 3e7 synapses: the 1% and 2% pilots, 3.0e6 and 6.0e6
   synapses at 2.5 and 4.0 GB, extrapolate to roughly 16 GB, inferred; the earlier 3e8 and 150 GB was the
@@ -135,6 +130,11 @@ Each row names the decision needed. None joins a lane.
 - T-O73 [H] (O-73) S1 drive: rule the drive first. The design under review holds it fixed (`ext_sources="fixed"`)
   while p varies; `SOURCE_P1.md` line 18 and commit `b8b38aea` give p·NE Poisson sources at 4 Hz. Then rule private
   vs shared sources (G3). Unblocks the S1 part of T-59. Closes when: Hamm rules and the S1 runner follows.
+- T-64 [H] CAMINOS PLoS CB Fig 1D: the mean-field port of the printed Methods gives 12.5 Hz against 35 Hz
+  (`etudes/papers/caminos/RESULT_MEANFIELD.md`). Decision: permission to download the authors' code (Zenodo
+  10.5281/zenodo.20391405) as the oracle. Closes when: Hamm rules; 1D is rescored against that code.
+- T-65 [H] CAMINOS Cell Reports 2A bottom, 2B bottom (t0) and 6B (E-to-E gain): the protocol values are not in
+  the text. Closes when: Hamm gives the values or excludes the panels.
 - T-62 [H] Figure 1D: permission to download the Onorato data. Needed: file name, source and size (`state.md`).
   Blocks Fig 1D only. `state.md` also says panels B, C and D are checked, with no record in the repo; Hamm confirms
   which panels hold.
