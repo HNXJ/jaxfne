@@ -9,6 +9,8 @@ import os
 import sys
 from pathlib import Path
 
+import pytest
+
 _repo_root = Path(__file__).resolve().parents[4]
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
@@ -211,3 +213,62 @@ def test_per_channel_rates_gap():
     })
     assert [e.value for e in entries] == [50.0, 100.0], \
         "one source per channel rate"
+
+
+def test_plastic_rho0_changes_realized_weights(tmp_path):
+    """rho0_hz=6 Hz (doubled alpha) moves the realized weights (P3 v2 B8)."""
+    base = L.run_plastic_segment(0, "base", tmp_path / "base", n=200, T_s=0.3)
+    doubled = L.run_plastic_segment(0, "dbl", tmp_path / "dbl", n=200,
+                                    T_s=0.3, rho0_hz=6.0)
+    assert doubled["rho0_hz"] == 6.0, "lesion run must record rho0 6 Hz"
+    assert int(np.asarray(doubled["spikes"], dtype=bool).sum()) > 0, \
+        "lesion fixture must spike"
+    assert base["w_ie_final_mean_nS"] != doubled["w_ie_final_mean_nS"], \
+        "doubled rho0 must change the realized I-to-E weights"
+
+
+def test_plastic_eta_zero_freezes_weights(tmp_path):
+    """eta=0 holds I-to-E at init while the default rule moves them (B8)."""
+    frozen = L.run_plastic_segment(0, "eta0", tmp_path / "eta0", n=200,
+                                   T_s=0.3, eta=0.0)
+    assert frozen["eta"] == 0.0, "lesion run must record eta 0"
+    assert frozen["w_ie_final_mean_nS"] == pytest.approx(1e-10), \
+        "eta=0 must hold I-to-E at the 1e-10 nS paper init"
+    moved = L.run_plastic_segment(0, "dflt", tmp_path / "dflt", n=200,
+                                  T_s=0.3)
+    assert moved["w_ie_final_mean_nS"] != pytest.approx(1e-10), \
+        "default eta must move I-to-E off init in 0.3 s"
+
+
+def test_plastic_defaults_unchanged(tmp_path):
+    """Explicit prereg defaults are bit-identical to the unparameterized call."""
+    a = L.run_plastic_segment(0, "imp", tmp_path / "imp", n=100, T_s=0.2)
+    b = L.run_plastic_segment(0, "exp", tmp_path / "exp", n=100, T_s=0.2,
+                              rho0_hz=3.0, eta=1e-2)
+    assert (np.asarray(a["spikes"]) == np.asarray(b["spikes"])).all(), \
+        "explicit defaults must reproduce the default raster bit-exactly"
+    assert a["w_ie_final_mean_nS"] == b["w_ie_final_mean_nS"], \
+        "explicit defaults must reproduce the default weights exactly"
+
+
+def test_plastic_refuses_unrealizable(tmp_path):
+    """Values the API cannot realize are refused, never stored unused."""
+    with pytest.raises(ValueError):
+        L.run_plastic_segment(0, "neg", tmp_path / "neg", n=20, T_s=0.1,
+                              eta=-1.0)
+    with pytest.raises(ValueError):
+        L.run_plastic_segment(0, "negrho", tmp_path / "negrho", n=20,
+                              T_s=0.1, rho0_hz=-1.0)
+
+
+def test_pilot_receipt_unscored(tmp_path):
+    """The pilot writes the prereg estimands, marked unscored (B8)."""
+    out = tmp_path / "pilot"
+    receipt = L.pilot(0, 20, 0.2, out)
+    assert receipt["verdict"] == "unscored pilot", "pilots are never scored"
+    assert (out / "pilot_receipt.json").exists(), "receipt must land on disk"
+    assert set(receipt) >= {"R-E", "O-DROP", "W-IE"}, "prereg estimands"
+    assert receipt["R-E"]["window_clamped"] is True, \
+        "a 0.2 s leg cannot hold the 1 s R-E window"
+    assert receipt["R-E"]["e"] >= 0.0, "relative error must be finite-sided"
+    assert receipt["O-DROP"]["ratio"] >= 0.0, "drop ratio must be finite-sided"
