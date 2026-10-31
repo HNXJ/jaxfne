@@ -12,7 +12,7 @@
         "panels": [
           {"id": "1B", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/LEDGER.md", "note": "R2: SOM after PV, lag 7.04 ms; off against the paper's 8.5 ms (finding: needs X)"},
           {"id": "1C", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/scores/score.json", "note": "R1 about 35 Hz and R3 PV > SOM > E pass"},
-          {"id": "1D", "status": "fail", "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md", "note": "port of the printed mean field gives 12.5 Hz, not 35, and SOM above PV"},
+          {"id": "1D", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md", "note": "33.5 Hz, PV > SOM > E, PV leads SOM by 7.8 ms; Table 3 term order taken from the authors' Zenodo code"},
           {"id": "1E", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/scores/score_v7.json", "note": "R4 fails under v6; R4v7 passes under the p·NE drive assumption"},
           {"id": "2A", "status": "not run"}, {"id": "2B", "status": "not run"}, {"id": "2C", "status": "not run"},
           {"id": "2D", "status": "not run"}, {"id": "2E", "status": "not run"}, {"id": "2F", "status": "not run"},

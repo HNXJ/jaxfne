@@ -130,9 +130,6 @@ Each row names the decision needed. None joins a lane.
 - T-O73 [H] (O-73) S1 drive: rule the drive first. The design under review holds it fixed (`ext_sources="fixed"`)
   while p varies; `SOURCE_P1.md` line 18 and commit `b8b38aea` give p·NE Poisson sources at 4 Hz. Then rule private
   vs shared sources (G3). Unblocks the S1 part of T-59. Closes when: Hamm rules and the S1 runner follows.
-- T-64 [H] CAMINOS PLoS CB Fig 1D: the mean-field port of the printed Methods gives 12.5 Hz against 35 Hz
-  (`etudes/papers/caminos/RESULT_MEANFIELD.md`). Decision: permission to download the authors' code (Zenodo
-  10.5281/zenodo.20391405) as the oracle. Closes when: Hamm rules; 1D is rescored against that code.
 - T-65 [H] CAMINOS Cell Reports 2A bottom, 2B bottom (t0) and 6B (E-to-E gain): the protocol values are not in
   the text. Closes when: Hamm gives the values or excludes the panels.
 - T-62 [H] Figure 1D: permission to download the Onorato data. Needed: file name, source and size (`state.md`).

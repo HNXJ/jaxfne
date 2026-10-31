@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-31T19:55:29Z",
-    "dev_sha": "24040e1c7a0913c861a25855f89ee93d7aa4ca76",
-    "data_revision": "e5e791aa7197aa2c27775c081799c98a08f05a7a1adbffebbfb4aa98af0209d3"
+    "utc": "2026-10-31T21:06:48Z",
+    "dev_sha": "5ee2cdadf4caa1702f4692a3863d443085f3febe",
+    "data_revision": "feee795d64801bf6474e4e84849a9f0910b21d2c863a933661824c60b5493393"
   },
   "papers": [
     {
@@ -1215,13 +1215,13 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": 21,
+        "score": 25,
         "panels": 28,
         "excluded": 3,
         "counts": {
-          "pass": 5,
+          "pass": 6,
           "partial": 2,
-          "fail": 1,
+          "fail": 0,
           "not run": 20
         },
         "same_as": null,
@@ -1241,9 +1241,9 @@
           },
           {
             "id": "1D",
-            "status": "fail",
+            "status": "pass",
             "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md",
-            "note": "port of the printed mean field gives 12.5 Hz, not 35, and SOM above PV"
+            "note": "33.5 Hz, PV > SOM > E, PV leads SOM by 7.8 ms; Table 3 term order taken from the authors' Zenodo code"
           },
           {
             "id": "1E",

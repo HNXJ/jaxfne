@@ -129,8 +129,10 @@ PARAMS = {
     "p": 0.07,  # line 183
     "N": {"E": 8000, "PV": 750, "SOM": 750},  # line 183
     "nu_ext": 4.0,  # Hz (line 184); f_ext = nu_ext p N_E (line 192)
-    # Table 3 (lines 220-252), columns P0, P_mu, P_sigma, P_tau, P_mu2, P_sigma2, P_tau2,
-    # P_mu_sigma, P_mu_tau, P_sigma_tau
+    # Table 3 (lines 220-252), values in column order P0..P9. The printed headers name the quadratic
+    # columns mu2, sigma2, tau2, mu_sigma, mu_tau, sigma_tau; the authors' code (Zenodo
+    # 10.5281/zenodo.20391405, TF_RS/TF_PV/TF_SST) applies the same values as mu2, mu_sigma, mu_tau,
+    # sigma2, sigma_tau, tau2. _rate follows the code: only that order gives Fig. 1D.
     "P": {
         "E": (-0.049734, 0.007999, 0.009232, -0.002773, 0.027645,
               -0.037666, 0.029874, -0.023012, -0.005805, 0.022400),  # lines 221-230
@@ -184,8 +186,8 @@ def _rate(ctype, nu_E, nu_PV, nu_SOM, w, params=PARAMS):
     mu0, dmu, s0, ds, t0, dt0 = params["base"][ctype]
     P = params["P"][ctype]
     x, y, z = (muV - mu0) / dmu, (sigma - s0) / ds, (TvN - t0) / dt0
-    V_thr = (P[0] + P[1] * x + P[2] * y + P[3] * z + P[4] * x * x + P[5] * y * y + P[6] * z * z
-             + P[7] * x * y + P[8] * x * z + P[9] * y * z)  # line 206
+    V_thr = (P[0] + P[1] * x + P[2] * y + P[3] * z + P[4] * x * x + P[5] * x * y + P[6] * x * z
+             + P[7] * y * y + P[8] * y * z + P[9] * z * z)  # line 206; term order of the authors' code
     Tv = TvN * params["C_m"][ctype] / params["g_L"][ctype]  # T_v = T_vN C_m / g_L
     # Line 207: g_L / (2 C_m T_vN) = 1 / (2 T_v).
     return muV, erfc((V_thr - muV) / (np.sqrt(2.0) * sigma)) / (2.0 * Tv)

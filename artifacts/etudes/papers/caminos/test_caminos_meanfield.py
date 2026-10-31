@@ -66,12 +66,13 @@ def test_unknown_coupling_is_refused():
 
 @pytest.mark.parametrize("ctype", mf.TYPES)
 def test_transfer_is_finite_nonnegative_and_monotone_in_inputs(ctype):
-    """Rate grid up to 5 Hz (the network's operating range): finite, >= 0, rises with nu_E for every type
-    and falls with nu_PV for E. SOM has no PV input (Q_PV->SOM = 0), so its output is exactly
-    independent of nu_PV. PV is pinned by the next test. The Table 3 polynomial is not monotone in nu_PV
-    for E once nu_E >= 10 Hz (85.26 Hz at nu_PV 0.5, 85.84 Hz at 2)."""
-    grid = [0.5, 1.0, 2.0, 3.5, 5.0]
-    out = np.array([[[mf.transfer(ctype, nE, nP, nS, 0.0) for nS in grid] for nP in grid] for nE in grid])
+    """Grid around the Fig. 1D operating point (E 1.6, PV 8.8, SOM 8.0 Hz): finite, >= 0, rises with
+    nu_E for every type and falls with nu_PV for E. SOM has no PV input (Q_PV->SOM = 0), so its output
+    is exactly independent of nu_PV. PV is pinned by the next test. With weak inhibition the fitted
+    polynomial is not monotone in nu_PV for E: at nu_E = nu_SOM = 0.5 Hz, 39.71 Hz at nu_PV 0.5 and
+    45.43 Hz at 2; at nu_E 10 Hz, 53.73 Hz at nu_PV 0.5 and 76.47 Hz at 2."""
+    gE, gP, gS = [0.5, 1.0, 1.5, 2.0, 3.0], [6.0, 7.0, 8.0, 9.0, 11.0], [5.0, 6.0, 7.0, 8.0, 10.0]
+    out = np.array([[[mf.transfer(ctype, nE, nP, nS, 0.0) for nS in gS] for nP in gP] for nE in gE])
     assert out.size == 125
     assert np.all(np.isfinite(out)) and np.all(out >= 0)
     assert np.ptp(out) > 0, "precondition: the outputs must differ"
@@ -83,10 +84,24 @@ def test_transfer_is_finite_nonnegative_and_monotone_in_inputs(ctype):
 
 
 def test_pv_transfer_rises_with_pv_input_at_low_rates_as_printed():
-    """Observed property of the printed Table 3 PV row: at nu_E = nu_SOM = 0.5 Hz the PV output rises
-    with nu_PV from 0.5 to 2 Hz (72.75 -> 74.99 Hz), then falls. Recorded, not corrected."""
+    """Observed property of the fitted PV polynomial: at nu_E = nu_SOM = 0.5 Hz the PV output rises
+    with nu_PV from 0.5 to 2 Hz (72.73 -> 74.15 Hz), then falls. Recorded, not corrected."""
     out = [mf.transfer("PV", 0.5, nP, 0.5, 0.0) for nP in (0.5, 1.0, 2.0, 5.0)]
     assert out[2] > out[0] and out[3] < out[0], out
+
+
+def test_fig1d_gamma_near_35_hz_with_pv_above_som_above_e():
+    """Fig. 1D (text line 22): oscillation at 35 Hz, PV > SOM > E. Fails with the quadratic terms in
+    the Table 3 header order (12.5 Hz, SOM above PV); passes in the order of the authors' code."""
+    t, nu, _ = mf.simulate_meanfield(4.0)
+    sel = t >= 2.0
+    e = nu[sel, 0]
+    assert np.ptp(e) > 0.5, "fixture must oscillate"
+    amp = np.abs(np.fft.rfft(e - e.mean()))
+    peak = np.fft.rfftfreq(e.size, t[1] - t[0])[1 + int(np.argmax(amp[1:]))]
+    assert abs(peak - 35.0) / 35.0 <= 0.15, peak
+    m = nu[sel].mean(axis=0)
+    assert m[1] > m[2] > m[0], m
 
 
 @pytest.mark.parametrize("ctype", mf.TYPES)
