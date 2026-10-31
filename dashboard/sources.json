@@ -138,6 +138,51 @@
       ]
     },
     {
+      "id": "caminos-cellrep",
+      "title": "CAMINOS figure claims, Figs. 1-6 (drive, silencing, randomization, connectivity, SOM/PV ratio)",
+      "citation": "Tahvili, Vinck and di Volo, Cell Reports 44:116131 (2025)",
+      "replica": {
+        "scope": "Main-text Figs. 1-6 of the Cell Reports article (mmc2 text). Verdicts are descriptive, with tolerances set after the data (RESULT_FIGURES.md).",
+        "panels": [
+          {"id": "1B", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "cellrep baseline oscillates at 33.7 Hz"},
+          {"id": "1C", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "SOM lags PV by 6.8 ms (text: 6-7 ms); locking not compared"},
+          {"id": "2A top", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "trend and delay pass; f_pk 14-63 Hz, not 7-80"},
+          {"id": "2A bottom", "status": "not run", "note": "transient drive protocol unstated"},
+          {"id": "2B top", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md"},
+          {"id": "2B bottom", "status": "not run", "note": "transient top-down protocol unstated"},
+          {"id": "3A", "status": "not run", "note": "SOM rasters at 50 and 90% not compared"},
+          {"id": "3B", "status": "not run", "note": "PV rasters at 40, 70 and 90% not on the 25% grid"},
+          {"id": "3C top", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "gradual reduction passes; not abolished at 100%"},
+          {"id": "3C bottom", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "transition and seizure-like state at 100% only"},
+          {"id": "4A", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "passes to 75%; frequency falls at 100%"},
+          {"id": "4B", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "frequency trend passes; amplitude metric open"},
+          {"id": "5A", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "gamma reduced 60%, not abolished"},
+          {"id": "5B", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "reduction 28%, past the minor tolerance"},
+          {"id": "5C", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "lead reverses; control locking not run"},
+          {"id": "6A bottom", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md"},
+          {"id": "6B", "status": "not run", "note": "E-to-E increase gain unstated"}
+        ],
+        "excluded": [
+          {"id": "1A", "reason": "circuit hypotheses schematic"}, {"id": "1D", "reason": "mouse V1 recordings"},
+          {"id": "6A top", "reason": "literature SOM/PV densities"}, {"id": "6B top", "reason": "stimulation protocol"}
+        ]
+      },
+      "class": "in progress",
+      "question": "Does the E–PV–SOM network reproduce the paper's figure claims on drive, silencing, spike-time randomization, PV–SOM connectivity and the SOM/PV ratio?",
+      "page": "models/caminos_cellrep.md",
+      "release": "0.5.9",
+      "tier": "T-port",
+      "stage": "P2",
+      "lane": {"branch": "dev", "sha": "4ce58b4cdcdcb0e29c996a3dcd2702182a6254f9"},
+      "summary": "Paper-scale runs of Figs. 2-6 and S3 on the standalone port, scored descriptively with tolerances set after the data. Figs. 2B top and 6A pass; most other panels pass in trend but miss an endpoint or a sub-claim. Transient-protocol panels (2A, 2B bottom, 6B) are not run.",
+      "preregs": [],
+      "files": {},
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": ["No preregistration: the verdicts are descriptive.", "Fig. 4B amplitude metric: band power falls, peak |X| rises.", "Figs. 2A bottom, 2B bottom and 6B need protocol values the text does not state."]
+    },
+    {
       "id": "pcl-fig3",
       "title": "Predictive coding light, Fig. 3 (simple and complex cell tuning)",
       "citation": "N'dri, Barbier, Teulière and Triesch, Nat Commun 2025",

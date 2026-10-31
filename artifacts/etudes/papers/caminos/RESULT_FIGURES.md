@@ -1,6 +1,6 @@
-# CAMINOS figure verdicts: Figures 3, 4, S3 (paper scale)
+# CAMINOS figure verdicts: Figures 2-6, S3 (paper scale)
 
-Status: partial. Figs 1D, 2, 5, 6 and S1 are not run. Verdicts below are descriptive. The paper gives
+Status: partial. Figs 2A bottom, 2B bottom, 6B and S1 are not run. Verdicts below are descriptive. The paper gives
 no numbers, so the tolerances were chosen after the data were seen; they are not pre-registered.
 
 ## Setup
@@ -36,6 +36,32 @@ no numbers, so the tolerances were chosen after the data were seen; they are not
 | Fig 4B | seizure-like at more than 80% | max E 327 Hz at 100% | pass at 100% |
 | S3 | after SOM silencing at 6.04 s, control dips; silenced rebounds | control dips to −1.1 Hz below its pre-onset mean; silenced rebounds +2.3 Hz at 6.08-6.11 s; traces identical before onset (all seeds) | partial |
 | S3 | prolonged deactivation; asynchronous regime | outside the 5.9-6.2 s window | not tested |
+
+## Figures 2, 5, 6A (paper scale, 2026-10-31)
+
+Same setup and tolerances; seeds 1, 2, 3; T 12 s. Runner modes `fig2a`, `fig2b`, `fig5a`, `fig5b`, `fig5c`,
+`fig6a`. Receipts `F:\warehouse\caminos\figB_out\` (one JSON per mode). Delay = wrapped SOM-minus-PV phase at
+f_pk (ref. 42 estimator) divided by 2π f_pk. Peak |X| over 5-60 Hz.
+
+| Panel | Paper claim (mmc2) | Replication (seed means) | Verdict |
+|---|---|---|---|
+| Fig 2A top | f_pk rises monotonically, about 7 to 80 Hz, over feedforward 0-10 Hz (286-288) | silent at 0-1 Hz; 13.6, 25.6, 33.7, 40.4, 46.9, 51.9, 57.1, 59.4, 63.4 Hz at 2-10 Hz | pass for the trend; range 14-63 Hz, not 7-80 |
+| Fig 2A top | PV-to-SOM delay falls from about 10 to 4 ms (293-295) | 9.8 ms at 2 Hz to 3.9 ms at 10 Hz, monotonic | pass |
+| Fig 2B top | top-down to SOM: amplitude rises, frequency falls, E rate falls, SOM lag persists (314-321) | f_pk 33.7 to 23.9 Hz; peak \|X\| 1.0 to 3.7x; E 2.58 to 1.86 Hz; delay 6.8 to 3.7 ms, positive throughout | pass (band power falls once f_pk leaves 25-45 Hz) |
+| Fig 5A | PV-to-SOM coupling abolishes gamma (474-478) | band power 0.65, 0.50, 0.45, 0.43, 0.40 of baseline at 2-10 nS | partial: reduced 60%, not abolished |
+| Fig 5B | SOM-to-SOM coupling, relatively minor reduction (479-481) | band power 0.72 of baseline at 10 nS; f_pk within 10% | partial: smaller than 5A, but past the 20% "minor" tolerance |
+| Fig 5C | swap: SOM leads PV; stronger locking than control (490-496) | SOM-parameter cells (PV slot) at 0.28 rad, PV-parameter cells at 0.68-0.78 rad, every seed | partial: the lead reverses; control locking not run for comparison |
+| Fig 6A bottom | higher SOM/PV slows the rhythm, about 40 to 15 Hz, amplitude rises (549-552) | f_pk 38.2 to 18.0 Hz over ratio 0.3-4; peak \|X\| 1.0 to 4.4x | pass |
+
+## Replica score (Cell Reports main text)
+
+17 result panels: 1B, 1C, 2A top, 2A bottom, 2B top, 2B bottom, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B,
+5C, 6A bottom, 6B. Excluded: 1A and 6B top (schematics), 1D (mouse data), 6A top (literature densities).
+Credit pass 1, partial 0.5: 1B, 2B top and 6A bottom pass; 1C, 2A top, 3C top, 3C bottom, 4A, 4B, 5A, 5B and
+5C partial; 2A bottom, 2B bottom, 3A, 3B (rasters at 40, 70, 90% not run) and 6B not run. Score 7.5/17 = 44/100.
+1B and 1C rest on the cellrep baseline (f_pk 33.7 Hz, delay 6.8 ms against the text's 6-7 ms, mmc2 804);
+1C locking is not compared. The table rows labelled Fig 3A/3B and Fig 4A/4B above score the spectra of
+panels 3C top/bottom and 4A/4B.
 
 ## Open
 
