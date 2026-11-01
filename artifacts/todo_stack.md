@@ -13,7 +13,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 1. T-68 [A] GSDR `--mcdp` (ES gradient, ruled 2026-10-31; lane `gsdres` reviewed, 19 tests): integrate, then pilots
    on seeds 0-3 at a short budget. Closes when: pilot receipts exist and a P3 prereg draft names scoring seeds 9-13.
-   → [H] sign or defer (step 7).
+   → [H] sign or defer (step 7). Status 2026-10-31: pilots done (loss 4494 → 4267-4352 on 4 of 4 seeds; best
+   candidates synchronous, kappa 0.90-1.00, active 1.00); `PREREG_P3_fit.md` drafted and pinned (G2 kappa < 0.1
+   on held-out trial seeds 14-18, optimizer seeds 9-13; expected FAIL), three owner decisions listed.
 2. T-O70 [A] B8 pilots (running from clone `pilots` at 9eee4452; receipts under `F:/warehouse/vogels2011/P3v2_pilot`
    and `F:/warehouse/potjans2014/P3v2_pilot`): Vogels seed 0, rho0 6 Hz, eta 0; Potjans 10% seed 0 and L5i→L5e
    lesion. Closes when: each known positive moves its estimand as the prereg says (rho0 6 breaks R-E; eta 0 fails
