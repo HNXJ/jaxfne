@@ -1,11 +1,12 @@
-"""Supplement items S1 (notation table), S2 (calibration transforms) and S5
-(HDP reduction identity).
+"""Supplement items S1 (notation table), S2 (calibration transforms), S5
+(HDP reduction identity) and S14 (the scored GSDR P3 fit).
 
 S1 parses docs/theory/doctrine/definition_map.md. A row is mapped when its symbol and
 test are both named, otherwise open. S2 applies every public calibration transform
 through the public API and records its numeric check. S5 runs the reduction checks of
 tests/test_hdp_reduction_identity.py for every core registered rule, through that
-module's own helpers, and writes the numbers its assertions use.
+module's own helpers, and writes the numbers its assertions use. S14 tabulates the
+scored GSDR P3 fit from its score JSON, through the scorer's own pass rule.
 """
 
 from __future__ import annotations
@@ -367,6 +368,84 @@ def plot_s5(rows: list[dict[str, object]], path: Path) -> None:
     plt.close(fig)
 
 
+# --- S14: the scored GSDR P3 fit ------------------------------------------------
+#
+# Each row scores one optimizer seed of the signed P3 fit
+# (artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md) through the scorer's own
+# rule: a seed passes when G2 (mean kappa_500_1000 over the held-out trials below 0.1)
+# and G3 (mean rate within 5-50 Hz) both hold; the fit passes when at least 4 of 5
+# seeds pass. Every number comes from run/p3_fit_score.json, never typed; the receipt
+# directory the score JSON names stays out (a local warehouse path, not evidence).
+
+P3_FIT_SCORE = (
+    REPO / "artifacts" / "etudes" / "papers" / "gsdr2026" / "run" / "p3_fit_score.json"
+)
+S14_PASS_SEEDS = 4
+
+
+def _s14_row_scored(row: dict[str, object]) -> dict[str, object]:
+    passed = bool(row["G2"]) and bool(row["G3"])
+    return {
+        "seed": row["seed"],
+        "loss_g0": row["loss_g0"],
+        "loss_g30": row["loss_g30"],
+        "kappa_mean": row["kappa_mean"],
+        "kappa_min": row["kappa_min"],
+        "kappa_max": row["kappa_max"],
+        "rate_mean_hz": row["rate_mean_hz"],
+        "G2": bool(row["G2"]),
+        "G3": bool(row["G3"]),
+        "passed": passed,
+    }
+
+
+def write_s14(out_dir: Path, score_path: Path = P3_FIT_SCORE) -> dict[str, object]:
+    payload = json.loads(score_path.read_text(encoding="utf-8"))
+    rows = [_s14_row_scored(row) for row in payload["rows"]]
+    passing = sum(row["passed"] for row in rows)
+    verdict = "PASS" if passing >= S14_PASS_SEEDS else "FAIL"
+    recorded = payload.get("verdict")
+    if recorded is not None and recorded != verdict:
+        raise ValueError(
+            f"{score_path}: recorded verdict {recorded!r} disagrees with "
+            f"{passing} of {len(rows)} seeds passing (needs {S14_PASS_SEEDS})"
+        )
+    out = {
+        "source": score_path.relative_to(REPO).as_posix()
+        if score_path.is_relative_to(REPO)
+        else score_path.name,
+        "code_sha": payload.get("code_sha"),
+        "prereg": payload.get("prereg"),
+        "pass_needs": S14_PASS_SEEDS,
+        "seeds_passing": passing,
+        "verdict": verdict,
+        "rows": rows,
+    }
+    (out_dir / "S14_gsdr_fit.json").write_text(
+        json.dumps(out, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+    )
+    lines = [
+        "# S14. Scored GSDR P3 fit",
+        "",
+        f"Source: `{out['source']}` (code {out['code_sha']}). A seed passes when G2 "
+        f"(mean kappa below 0.1 on held-out trials) and G3 (mean rate 5-50 Hz) both "
+        f"hold; the fit passes when at least {S14_PASS_SEEDS} of {len(rows)} seeds pass. "
+        f"Seeds passing: {passing}. **Verdict: {verdict}**.",
+        "",
+        "| seed | best loss g0 -> g30 | kappa mean [min, max] | rate Hz | G2 | G3 | pass |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    lines += [
+        f"| {r['seed']} | {r['loss_g0']:.2f} -> {r['loss_g30']:.2f} "
+        f"| {r['kappa_mean']:.3f} [{r['kappa_min']:.3f}, {r['kappa_max']:.3f}] "
+        f"| {r['rate_mean_hz']:.1f} | {'yes' if r['G2'] else 'no'} "
+        f"| {'yes' if r['G3'] else 'no'} | {'yes' if r['passed'] else 'no'} |"
+        for r in rows
+    ]
+    (out_dir / "S14_gsdr_fit.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return {"rows": len(rows), "passing": passing, "verdict": verdict}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
@@ -375,9 +454,11 @@ def main(argv: list[str] | None = None) -> int:
     counts = write_s1(args.out)
     s2 = write_s2(args.out)
     rules = write_s5(args.out)
+    s14 = write_s14(args.out)
     print(f"S1 rows={counts['rows']} mapped={counts['mapped']} open={counts['open']}")
     print(f"S2 rows={s2['rows']} checked={s2['checked']} failed={s2['failed']}")
     print(f"S5 rules={len(rules)} out={args.out}")
+    print(f"S14 rows={s14['rows']} passing={s14['passing']} verdict={s14['verdict']} out={args.out}")
     return 1 if s2["failed"] else 0
 
 

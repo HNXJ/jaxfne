@@ -148,6 +148,57 @@ def test_s2_every_row_check_passes(tmp_path: Path) -> None:
         ), row["name"]
 
 
+# --- S14: the scored GSDR P3 fit ------------------------------------------------
+
+
+def _s14_score() -> dict:
+    return json.loads(
+        (REPO / "artifacts" / "etudes" / "papers" / "gsdr2026" / "run" / "p3_fit_score.json")
+        .read_text(encoding="utf-8")
+    )
+
+
+def test_s14_lists_all_five_seeds_with_the_json_verdict(tmp_path: Path) -> None:
+    score = _s14_score()
+    assert len(score["rows"]) == 5, "the scored fit ran five optimizer seeds"
+
+    counts = supplement.write_s14(tmp_path)
+
+    assert counts["rows"] == 5 and counts["passing"] == score["seeds_passing"] == 0
+    payload = json.loads((tmp_path / "S14_gsdr_fit.json").read_text(encoding="utf-8"))
+    assert payload["verdict"] == score["verdict"] == "FAIL", "the verdict comes from the score JSON"
+    assert payload["seeds_passing"] == 0
+    assert [row["seed"] for row in payload["rows"]] == [row["seed"] for row in score["rows"]]
+    for want, got in zip(score["rows"], payload["rows"]):
+        for key in ("loss_g0", "loss_g30", "kappa_mean", "kappa_min", "kappa_max",
+                    "rate_mean_hz", "G2", "G3"):
+            assert got[key] == want[key], (want["seed"], key)
+
+    md_lines = (tmp_path / "S14_gsdr_fit.md").read_text(encoding="utf-8").splitlines()
+    assert md_lines[0].startswith("# S14.")
+    assert "**Verdict: FAIL**" in "\n".join(md_lines)
+    table = [line for line in md_lines if line.startswith("| ")]
+    assert len(table) == len(payload["rows"]) + 1, "header plus one row per seed"
+    for row in score["rows"]:
+        assert any(line.startswith(f"| {row['seed']} |") for line in table), row["seed"]
+
+
+def test_s14_a_four_pass_synthetic_score_passes(tmp_path: Path) -> None:
+    score = _s14_score()
+    rows = [dict(row, G2=True, G3=True) for row in score["rows"][:4]]
+    rows.append(dict(score["rows"][4], G2=False, G3=True))
+    synthetic = tmp_path / "synthetic_p3_fit_score.json"
+    synthetic.write_text(json.dumps({"rows": rows}), encoding="utf-8")
+    (tmp_path / "s14").mkdir()
+
+    counts = supplement.write_s14(tmp_path / "s14", score_path=synthetic)
+
+    assert counts["rows"] == 5 and counts["passing"] == 4
+    payload = json.loads((tmp_path / "s14" / "S14_gsdr_fit.json").read_text(encoding="utf-8"))
+    assert payload["verdict"] == "PASS"
+    assert "**Verdict: PASS**" in (tmp_path / "s14" / "S14_gsdr_fit.md").read_text(encoding="utf-8")
+
+
 def test_s2_perturbed_transform_fails_and_main_returns_1(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
 ) -> None:

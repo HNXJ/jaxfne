@@ -478,20 +478,29 @@
       "id": "gsdr2026",
       "title": "GSDR, Fig. 6 (a 50-neuron E, SST-like and PV-like circuit fitted to recorded spectra)",
       "citation": "Nejat, Sherfey and Bastos, PLOS One 2026",
-      "class": "in progress",
+      "class": "failed",
       "question": "Does GSDR fit the 50-neuron Hodgkin–Huxley circuit to the recorded spectra when the circuit and the optimizer run in jaxfne?",
       "release": "0.5.8",
       "tier": "T-jaxfne",
-      "stage": "P2",
-      "lane": {"branch": "dev", "sha": "7ac1bb47b5805b046a4790d9d6456ed23c706eb7"},
-      "stage_artifacts": {"P1": [{"label": "source record (draft)", "path": "artifacts/etudes/papers/gsdr2026/SOURCE_P1.md"}]},
-      "summary": "Source record drafted. Pilot fits in the lane (unscored, run without MCDP; P-039) stay saturated: κ 0.60 on the 500-generation reference refit against 0.0156 in the data. The ruled next step is MCDP on as an outer-loop HDP step (`mcdp_hdp_step`) in the B8 pilot, then the prereg.",
-      "preregs": [],
-      "files": {},
+      "stage": "P3",
+      "lane": {"branch": "dev", "sha": "899dccbaddf03c98bb35cf1897d3f4ee04318573"},
+      "stage_artifacts": {
+        "P1": [{"label": "source record (draft)", "path": "artifacts/etudes/papers/gsdr2026/SOURCE_P1.md"}],
+        "P3": [{"label": "fit prereg (signed)", "path": "artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md"},
+               {"label": "result", "path": "artifacts/etudes/papers/gsdr2026/RESULT_P3_fit.md"}]
+      },
+      "verdict": "failed",
+      "summary": "Signed P3 fit (optimizer seeds 9–13, 30 generations with MCDP, CPU float32): 0 of 5 seeds pass G2 and G3 (PASS needs 4). The fitted conductances stay synchronous on held-out trials (mean kappa 0.595–0.597 against the 0.1 gate) and fast (69.4–69.5 Hz against 5–50 Hz) while the loss falls 2.1–5.8 %.",
+      "preregs": [
+        {"id": "P3 fit", "signed": "2026-11-01", "path": "artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md"}
+      ],
+      "files": {
+        "main": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json"
+      },
       "criteria": [],
       "sensitivity": [],
       "charts": [],
-      "open": ["Port spec, calibration record and the pilot fit are in the lane clone and wait for integration on dev.", "The drive and J_E anchor for the g sweep are not yet recorded."]
+      "open": ["The next prereg names --morphology explicitly (RESULT_P3_fit.md: the reference-morphology evaluation is insensitive to the fitted conductances at stim 0.6).", "The drive and J_E anchor for the g sweep are not yet recorded."]
     },
     {
       "id": "destexhe2009",
