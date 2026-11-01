@@ -1,50 +1,35 @@
 # state
 
-Stamp: jaxfne@dev@4b0a6042 · 2026-10-31
+Stamp: jaxfne@dev@dceb49b0 · 2026-11-01
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
 ## Works (with evidence)
 
-- 0.5.8 published 2026-10-26: tag v0.5.8 on main 11957afa, GitHub Release, PyPI; receipt
-  `artifacts/release/v0_5_8_release_receipt.json`. 0.5.9 needs Hamm's go.
-- 2026-10-27 to 2026-10-28 on dev: P-052 `sigmoid_beta` surrogate on the dense Izhikevich default route;
-  PCL core lanes L1-L4, each oracle-exact; T-55 items 1-9; T-R28 waves 1 and 2 (Hamm's 53 rulings of
-  2026-10-28); matrix masks follow `W[post, pre]` (`I_to_E`); bfloat16 is storage only (float32 compute,
-  Hamm 2026-10-28); P-048 default `u0 = b * v0`; P-051 named `instantaneous` receptor; C1 closed; D28 public
-  `QuantityKind`; `fast-build` needs `paper-lanes`. Broad gate on 8f3ce57e: 7819 passed, 0 failed; on
-  752c38ec: 7835 passed, 0 failed.
-- `c3e1035a` (qlearning precondition over seeds, T-58) is on origin/dev (`git branch -r --contains`, 2026-10-30).
-- T-56 landed (periodic Hann, off-grid bin refusal, tune seeds; ba78f7ee to 66f32038).
+- 0.5.8 published 2026-10-26 (tag v0.5.8 on main 11957afa, Release, PyPI; `artifacts/release/v0_5_8_release_receipt.json`).
+  0.5.9 needs Hamm's go. Checklist score 52.7/100 at dceb49b0 (`etudes/meta/plans/release_plan_0.5.9-0.6.0.md`).
+- GSDR P3 fit signed (Hamm 2026-11-01) and scored FAIL, 0 of 5 seeds (`gsdr2026/RESULT_P3_fit.md`,
+  `run/p3_fit_score.json`); S14 (`supplement.py write_s14`), REPLICATIONS and dashboard updated (8f2e40ef).
+- CAMINOS PLoS CB Figs 2-4 network panels scored: 6 pass, 2 partial, 3 fail of 11 claims
+  (`caminos/RESULT_PLOS_FIGS.md`, b27cd476); receipts `F:/warehouse/caminos/figP_out/`.
+- AdEx registered-HDP kernel resumes from its returned state, split == whole bit-for-bit; Vogels pilot runs the
+  plastic leg in segments (f3d73cb1).
+- PCL R2: oracle equals the C++ reference on weights within rtol 1e-12 (pcl `CALIBRATION.md` R2, fe4231bf).
+- Destexhe P3 v3 pinned, unsigned (d1e495d0). Broad gate on 922270fd: 7904 passed, 0 failed.
 
 ## Broken or in flight
 
-- PCL R2 on real files is next (T-3). The C++ reference builds headless in WSL and its test binary passes
-  7 of 7 (T-3 in the working-tree `todo_stack.md`); the oracle comparison is not run yet.
-- O-58 (WSL DNS) is closed: `pip download jaxfne==0.5.7 --no-deps` returned rc 0 in WSL on 2026-10-30.
-- P-052 surrogate: the off-diagonal gradient disagrees in sign with the finite difference (corr -0.2 to
-  -0.4); its fitness for training is Hamm's call (`artifacts/runs/perf/profiles/precision_058.md`).
-- Spectrolaminar PSD: Hamm ruled "fix" on 2026-10-28; `spectrolaminar_psd_jax` takes its phase from exact
-  float32 remainders. The T-55 sinusoid figure (11.5% at 1000 s) was relative to an off-grid leakage peak.
+- Dev is 16 commits ahead of origin/dev; push waits on the broad gate at dceb49b0 (the gates at fddfe62b,
+  08a91712 and b27cd476 stopped on ruff F841, a stale `docs/reference/errors.md` and ruff E402, each fixed).
+- Vogels convergence pilot: n 10 000, 120 s plastic in 5 s segments, WSL GPU scope (relaunched 2026-11-01T02:44Z), clone
+  `~/jaxfne_pilots` at dceb49b0, receipts `~/vog_conv/s0_T120/` (launched, not complete).
+- Potjans O-80: LIF continuation landed (78e94621, after a Muse review round); the chunked Potjans pilot is next.
+- O-83: the CAMINOS PLoS `default` set leaves gamma intact under SOM silencing; unattributed.
 
-## Cell Reports replication (Tahvili et al.)
+## Open decisions for the owner
 
-- FIG-A runners for Figs 3, 4, S3 are on local dev and not on origin/dev: `d58c3f70` and `2add03c9`
-  (identical content to scratch commits `54b13c7c` and `fa40047b`, which sit on no branch), then `5fc43f10`
-  (tree-size budget), `d777526f` (audit fixes) and `4b0a6042` (checkout assertion).
-- Dev is 20 commits ahead of origin/dev (`git log --oneline origin/dev..dev`).
-- Figs 5 and S1 runner packet: pending integration; `cellrep_figures.py` has no runner for them yet.
-- Figure status: Fig 1 panels B, C and D checked (owner's brief, 2026-10-30; no record in the repo). Fig 1D
-  is blocked on Hamm's permission to download the Onorato data: file name, source and size needed (owner's
-  brief; no record in the repo). Figs 2, 5, 6 and S1 runners, all paper-scale runs and per-panel verdicts
-  are pending.
-
-## Open decision for the owner
-
-- S1 drive (O-73): the design under review holds the drive fixed (`ext_sources="fixed"`) while p varies; the
-  S1 runner is not written. Sources differ on the scaling: the design note says the Methods do not give it;
-  `SOURCE_P1.md` line 18 and commit `b8b38aea` give p·NE Poisson sources at 4 Hz. The open point is then
-  private vs shared sources (G3). Hamm to rule.
+Owner queue in `todo_stack.md` (O-82 T-45, T-O73 S1 drive, T-65, T-46, T-62, P-052, T-O74-79), Destexhe v3
+decisions, and the signatures as drafts are ready (Vogels and Potjans P3 v2, Destexhe, PCL R4).
 
 ## Generated files and their checks
 
@@ -60,16 +45,13 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Environment
 
-- Windows: `C:/workspace/venv_py314_jax011` (Python 3.14) runs the broad gate, one suite at a time on this
-  machine. WSL: `~/venv_jaxfne` (CUDA, one GPU job at a time, claimed in jchat `p-jaxfne`),
-  `~/venv_jaxfne_gate` (CPU gate), `~/venv_rtd313` (Read the Docs probes).
-- Tracked tree: `python scripts/check_tree_size.py --check`; budget in `scripts/tree_size_allowlist.json`.
-- `artifacts/` layout map (2026-10-27): 21 of 23 root folders are pinned by frozen records, record pins or
-  runtime paths; the unexempted root folders sit at the limit of 7 (`tests/test_artifacts_tree_degree.py`).
+- Windows: Python 3.14 runs the broad gate through `suite_lock.py`, one suite at a time. WSL: `~/venv_jaxfne`
+  (CUDA; each long job in its own `systemd-run` memory cap), `~/venv_jaxfne_gate` (CPU gate).
+- Tracked tree: `python scripts/check_tree_size.py --check`; budget 2747 files in `scripts/tree_size_allowlist.json`.
+- Large data outside git: `F:/warehouse/{caminos,gsdr,pcl,vogels2011,potjans2014}/` (receipts named in each
+  result file).
 
 ## Next action
 
-Work goes to the CLI workers (opencode Muse, Cursor GLM 5.3 flash, agy Gemini; Hamm 2026-10-28), at most 3
-lanes, cloned from a still base at `E:/repos/_wt/jaxfne/base`. Next: T-3 R2 (the WSL oracle run), C4 (radius
-cutoff), C6 (laminar benchmark), the P-052 beta scan, the Figs 5 and S1 runners. Tag each fidelity fix with
-`Fidelity-fix: <node id>`.
+Push dev after the broad gate passes; integrate `poisscan` after its fix round; read the Vogels rate course and
+fix T; attribute O-83; PCL oracle spike receipt then R3.

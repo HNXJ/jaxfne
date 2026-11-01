@@ -42,7 +42,7 @@ runs wait for signatures. At most 3 lanes.
 
 Weights sum to 100: packages 70, exit gate (`release_plan_0.5.7-0.5.10.md` §6) 30. A row earns its
 weight only when its "Done when" check holds; partial credit is the share of its named checks that hold.
-Score on 2026-10-31 at dev ff12072c: 48/100 (40 at 8da66a42, 28 at 4ce58b4c).
+Score on 2026-11-01 at dev dceb49b0: 52.7/100 (48 at ff12072c, 40 at 8da66a42, 28 at 4ce58b4c).
 
 | Id | Weight | Evidence 2026-10-31 | Score |
 |---|---|---|---|
@@ -50,7 +50,7 @@ Score on 2026-10-31 at dev ff12072c: 48/100 (40 at 8da66a42, 28 at 4ce58b4c).
 | 9B H-state | 10 | `tests/test_d34_typed_coupling.py`: the neutral reduction and the composition check fail under a bypass and a map-dropping mutant (hand-applied); S5 regenerates for 7 rules; F3 (fig06) re-renders RGBA-identical | 10 |
 | 9C Emitters | 10 | `fixed_indegree` in `jaxfne/connectivity.py`; Izhikevich P6 v2 signed (Hamm 2026-10-31) and scored PASS, Q1-Q5 on seeds 2-6 (`RESULT_P6.md`, `core/p6_v2_score.json`); E1 closed in `check_replications.py` (the core runner calls `construct` and `.simulate`) | 10 |
 | 9D Circuits | 12 | Potjans P3 v2 drafted, unsigned; its B8 pilot driver (`potjans2014_api.py pilot`) runs; CAMINOS S2 option A ruled: `run_caminos.py` labelled the P5 reference-arm runner, the Cell Reports core port open (T-30) | 0 |
-| 9E Plasticity, fit | 14 | Vogels P3 v2 drafted, unsigned; its B8 pilot driver (`vogels2011_api.py pilot`) runs seed 0 and both known positives; B8 pilots rerunning on WSL CPU (the Windows CPU run of the plastic segment deadlocked); PCL R2 harness in a lane, `neuvisys-exe` built in WSL; GSDR `fit_gsdr_500.py --mcdp` landed (ff12072c), pilots seeds 0-3 running | 0 |
+| 9E Plasticity, fit | 14 | GSDR P3 fit signed (Hamm 2026-11-01) and scored FAIL, 0 of 5 seeds (`RESULT_P3_fit.md`), shown in S14 (`supplement.py write_s14`): 1 of 3 papers. Vogels: pilots move both known positives, the baseline rate is not converged at 10 s, Hamm ruled T to convergence; segmented kernel landed (f3d73cb1), 120 s pilot on the WSL GPU. PCL: R2 oracle equals the C++ reference on weights (CALIBRATION R2); R3, R4 prereg open | 4.7 |
 | 9F Mechanics | 8 | `check_junit_parity.py` in the gate; `.github/figure_env_lock.txt`; `publication` job in `release_ci.yml`; rc gate not run (no candidate) | 6 |
 | 9G Carried | 4 | dashboard schema `jaxfne-replications/2` with receipt hashes, dark twins, the replications page check and the theme are in place (agy sweep, observed); changelog: each of the 55 `jaxfne/` commits since v0.5.8 maps to a fragment or changes no behavior (Muse sweep 2026-10-31; its two unmatched commits read by hand: 9c9cd3af docstring only, ac29227a gained `evidence_dirs_under_temp.changed.md`); assembled section 26 of 30 ghost hits | 4 |
 | Gate 1 packages closed or moved | 6 | 9D, 9E and 9F open | 0 |

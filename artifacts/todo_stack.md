@@ -11,11 +11,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## 0.5.9
 
-1. T-68 [A] GSDR P3 fit scored run under `PREREG_P3_fit_signed.md` (signed Hamm 2026-11-01): WSL clone
-   `~/jaxfne_gsdrP3` at 8516a005, `run_gsdr_p3.sh` (fits seeds 9-13, then `regime_at_gstar` on trial seeds 14-18),
-   receipts `F:/warehouse/gsdr/P3_fit_8516a005`. Closes when: `RESULT_P3_fit.md` holds the per-seed G1-G3 table and
-   verdict, the S figure shows it, dashboard and 9E updated. Status 2026-11-01: scored FAIL, 0 of 5 (899dccba,
-   `RESULT_P3_fit.md`); S14, REPLICATIONS and dashboard in lane `gsdrdash`.
 2. T-O70 [A] B8 pilots (running from clone `pilots` at 9eee4452; receipts under `F:/warehouse/vogels2011/P3v2_pilot`
    and `F:/warehouse/potjans2014/P3v2_pilot`): Vogels seed 0, rho0 6 Hz, eta 0; Potjans 10% seed 0 and L5i→L5e
    lesion. Closes when: each known positive moves its estimand as the prereg says (rho0 6 breaks R-E; eta 0 fails
@@ -25,8 +20,13 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    O-DROP 0.993 (fails as predicted); the all-cell rate still falls at 10 s (9.7, 9.2, 8.8 Hz in the last 3 s), so
    R-E cannot close on the baseline at the coded 10 s. iSTDP units and increments match `isp_brian.py` (Muse read,
    verified at `istdp_vogels2011.py:137`, `hdp_rule.py:244-247`). Hamm 2026-11-01: extend T until the baseline
-   converges (rate change < 0.1 Hz/s), then amend the prereg; segmented AdEx registered-rule kernel in lane
-   `vogchunk`. Potjans waits on O-80 (LIF continuation in lane `poisscan`).
+   converges (rate change < 0.1 Hz/s), then amend the prereg. Status 2026-11-01: segmented kernel landed
+   (f3d73cb1; n 2000 probe 8.09 Hz at 20 s, still falling); 120 s pilot at n 10 000 in 5 s segments running on the
+   WSL GPU (scope held by a background shell; the first launch as a unit died with its session; clone `~/jaxfne_pilots` at dceb49b0, receipts `~/vog_conv/s0_T120/`). Next: read
+   `e_rate_per_s_hz`, fix T where |Δrate| < 0.1 Hz/s, rerun the known positives at that T, amend the prereg (v3),
+   [H] sign. Potjans (O-80): LIF continuation landed (78e94621); next the Potjans driver runs its plastic-free
+   10 s pilot in chunks (`return_state`/`continuation`), the RSS stays under a 30 GB cap, then the L5i→L5e lesion
+   known positive.
 3. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
    behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
    test first and a changelog fragment:
@@ -71,10 +71,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Beside the path (∥)
 
-12. ∥ T-63 [A] CAMINOS PLoS GPU panels (rerun from p2b after a CUDA illegal-address fault at SOM 80 %, seed 3):
-    score 2A-F, 3A-F and 4A bottom (`FIGA_PARAM_SET=default`) into a PLoS result file and the `caminos` replica
-    block; `build_dashboard_data.py --check` passes. ⇒ the fault recurs at the same run: smallest failing case on
-    the GPU before rerunning.
+12. ∥ T-63b [A] CAMINOS PLoS (O-83 first): attribute the 2B/3B SOM miss (parameters that differ between the
+    `default` and `cellrep` sets, one at a time, SOM 90 % seed 1), then 2C-F, 3C-F: rerun 40 and 90 % saving rasters
+    and population traces (the figP rows keep spectra only), mean-field traces beside them. Closes when the replica
+    block scores them and O-83 holds an attribution.
 13. ∥ T-59 [A] Cell Reports Fig S1 runner with its test; `replication_audit` reads clean in the report gate.
     Blocked-by: T-O73.
 14. ∥ T-O68 [A] Local copies (O-68): rescue each cited file into the repo or `F:/warehouse` with a `state.md`
