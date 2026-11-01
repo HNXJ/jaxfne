@@ -19,16 +19,16 @@ if str(ROOT) not in sys.path:
 
 os.environ.setdefault("JAX_PLATFORMS", "cpu")
 
-import jax
-import numpy as np
+import jax  # noqa: E402
+import numpy as np  # noqa: E402
 
-import jaxfne as jtfne
+import jaxfne as jtfne  # noqa: E402
 assert "site-packages" not in jtfne.__file__, (
     "expected the repo jaxfne on sys.path, not site-packages"
 )
 
-from jaxfne.emitters_adex import make_adex_params, simulate_adex_hdp_registered
-from jaxfne.istdp_vogels2011 import ISTDP_RULE_NAME, istdp_plasticity_mask
+from jaxfne.emitters_adex import make_adex_params, simulate_adex_hdp_registered  # noqa: E402
+from jaxfne.istdp_vogels2011 import ISTDP_RULE_NAME, istdp_plasticity_mask  # noqa: E402
 
 DT_MS = 0.1
 N_STEPS = 1000
