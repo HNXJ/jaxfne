@@ -46,7 +46,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    stays. Then T-22, T-25: PCL B3 on the intra-step operator; trained weights load as A' (`with_trained_weights`).
    Status 2026-10-31: R2 on `shapes.h5` from one seeded init (`run_r2_reference.py`, 922270fd); C++ null exact
    on weights (O-81); oracle vs C++ exact within rtol 1e-12 on both layers (CALIBRATION R2, receipts
-   `F:/warehouse/pcl/r2_922270fd`). Next: oracle spike receipt, then R3 on the training files, then R4 prereg.
+   `F:/warehouse/pcl/r2_922270fd`); oracle receipt 2026-11-01 (111 195 spikes, weights exact again;
+   `F:/warehouse/pcl/orc_receipt_bafa4797`). Next: R3 on the training files, then R4 prereg.
 5. T-69 [A] Destexhe pilots on the WSL GPU after step 12: `run_destexhe.py fig6b_cont --seed S --tag fig6b_cont
    --out <unscored dir> --kick-fraction 0.25 --kick-rate-hz 286` for seeds 0-3 (50-85 s each) → prereg draft (E1-E4,
    scoring seeds 9-13) → [H] sign (step 7). Status 2026-10-31: pilots done (E1-E3 jointly on seed 0 of 0-3; E4 off,

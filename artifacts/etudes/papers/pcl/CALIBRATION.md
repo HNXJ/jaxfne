@@ -345,5 +345,8 @@ Layer 0 holds 5184 cells, layer 1 1152. The time-seeded `winnerTakeAll` left the
 this file. Wall: C++ 2:10 and 3:21, oracle 22:41 (3.5 GB). Receipts in `F:/warehouse/pcl/r2_922270fd/`
 (`null_cppA_cppB.json` 32adb148…, `init_vs_cppA.json` 0c89b952…, `r2_orc_cppA.json` c807ce5c…,
 `r2_orc_cppB.json` ef893192…). Verdict: R2 reproduces the reference weights to float64 rounding after a full
-learning pass. Open: the oracle CLI did not record its spike count (lane `revfix` adds an `oracle` receipt); R3
-attribution has no residual to attribute on this file, so R3 moves to the trained network's training files.
+learning pass. Oracle receipt (2026-11-01, `oracle --out` at bafa4797 from the same `init`, 14:47 wall, 3.5 GB):
+24 420 667 events, 111 195 spikes, last spike t 42 358 874; weights against C++ A exact again (layer 0 max |Δw|
+2.1e-13, layer 1 3.7e-13). Receipts `F:/warehouse/pcl/orc_receipt_bafa4797/` (`oracle_receipt.json` c21ca867…,
+`orc_vs_cppA.json` 52b5f73c…). R3 attribution has no residual to attribute on this file, so R3 moves to the trained
+network's training files.
