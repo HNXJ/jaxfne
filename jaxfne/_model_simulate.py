@@ -1544,7 +1544,8 @@ def simulate(
         # so an absent gpu/tpu fails here; the adex branch above already
         # refuses every non-default backend by name, so it needs no check.
         _require_backend_available(runtime_cfg.selected_backend)
-        return _simulate_lif(self, sim, runtime_cfg, paradigm)
+        return _simulate_lif(self, sim, runtime_cfg, paradigm,
+                               continuation=continuation, return_state=return_state)
 
     if isinstance(self.params["emitter"], RateNetworkParams):
         _refuse_rate_inputs(self, sim, paradigm, continuation, return_state)
@@ -2267,18 +2268,22 @@ def _refuse_lif_inputs(
 ) -> None:
     """Refuse the simulate() inputs the lif route does not consume, naming each.
 
-    Continuation and the Simulation/RuntimeConfig fields named in
+    Continuation rides ``LIFContinuationState`` (returned by
+    ``simulate(..., return_state=True)``); any other continuation value is
+    refused by name. The Simulation/RuntimeConfig fields named in
     ``_construct_lif.refuse_lif_simulation`` have no lif consumer. A
     paradigm resolves to a StimulusSchedule and rides the route as input
     current (see ``_simulate_lif``); an unresolvable paradigm type fails
     closed in ``_resolve_stimulus_schedule``, naming itself.
     """
     from ._construct_lif import refuse_lif_simulation
+    from ._pipeline import LIFContinuationState
 
-    if continuation is not None or return_state:
+    if continuation is not None and not isinstance(continuation, LIFContinuationState):
         raise ValueError(
-            "simulate(continuation=..., return_state=...) is not realized for emitter family "
-            "'lif': the route has no full-state continuation"
+            "simulate(continuation=...) on emitter family 'lif' takes a "
+            f"jaxfne._pipeline.LIFContinuationState returned by simulate(..., "
+            f"return_state=True); got {type(continuation).__name__}"
         )
     declared = model.static.get("lif", {}).get("local_inhibition")
     if declared:
@@ -2307,6 +2312,25 @@ def _refuse_lif_inputs(
                 "(rounds, order, resolution) specs on one tensor; the lif route's "
                 "grouped cap realizes one spec — declare one"
             )
+        if continuation is not None or return_state:
+            resolutions = {
+                str(spec[2])
+                for spec in specs
+            } if declared else {"whole_step"}
+            if "event_scan" in resolutions:
+                raise ValueError(
+                    "simulate(continuation=..., return_state=...) is not realized "
+                    "with local_inhibition resolution 'event_scan': the replay "
+                    "carries its own event_scan_state — continue through serial "
+                    "simulate_lif_edge event_scan_state"
+                )
+            if "event_order" in resolutions:
+                raise ValueError(
+                    "simulate(continuation=..., return_state=...) is not realized "
+                    "with local_inhibition resolution 'event_order': the cascade "
+                    "needs the per-step visit order of the whole run — run the "
+                    "whole grid in one simulate call"
+                )
     refuse_lif_simulation(sim, sim.resolved_runtime)
 
 
@@ -2376,13 +2400,16 @@ def _lif_poisson_drive(
     n_neurons: int,
     dt_ms: float,
     default_seed: int,
+    chunk_index: int = 0,
 ) -> Any:
     """Sum over entries of the array ``_make_poisson_drive`` builds for each entry alone.
 
     An entry draws from its own ``seed`` or ``default_seed`` (``sim.seed + 7919`` on the
     serial route, the member's ``seed + 7919`` on the seed batch). Disjoint entries own
     disjoint columns, so the sum is each population's own draw; a single entry returns
-    its array unchanged.
+    its array unchanged. Continued segments derive each entry's seed from
+    ``poisson_chunk_seed(seed, chunk_index)`` (chunk 0 is the declared seed,
+    bit-identical to a plain call).
     """
     total = None
     for entry, target, indices in plan:
@@ -2392,7 +2419,7 @@ def _lif_poisson_drive(
             rate_hz=float(entry.get("rate_hz", 2.0)),
             amplitude=float(entry.get("amplitude", 0.5)),
             dt_ms=dt_ms,
-            seed=poisson_chunk_seed(int(entry.get("seed", default_seed)), 0),
+            seed=poisson_chunk_seed(int(entry.get("seed", default_seed)), int(chunk_index)),
             target=target,
             counts=int(entry.get("counts", 1)),
             target_indices=indices,
@@ -2401,7 +2428,10 @@ def _lif_poisson_drive(
     return total
 
 
-def _lif_poisson_receipt(entry: Mapping[str, Any], default_seed: int) -> dict[str, Any]:
+def _lif_poisson_receipt(
+    entry: Mapping[str, Any], default_seed: int,
+    *, chunk_index: int | None = None, chunk_seed: int | None = None,
+) -> dict[str, Any]:
     """Run receipt for one declared entry; ``counts`` and ``target`` ride only when declared."""
     receipt: dict[str, Any] = {
         "rate_hz": float(entry.get("rate_hz", 2.0)),
@@ -2409,6 +2439,10 @@ def _lif_poisson_receipt(entry: Mapping[str, Any], default_seed: int) -> dict[st
         "seed": int(entry.get("seed", default_seed)),
         "status": "stochastic_drive_applied",
     }
+    if chunk_index is not None:
+        # Recorded only on continuation calls so plain-call receipts stay unchanged.
+        receipt["chunk_index"] = int(chunk_index)
+        receipt["chunk_seed"] = int(chunk_seed)
     if "counts" in entry:
         # Recorded only when declared so default receipts stay unchanged.
         receipt["counts"] = int(entry["counts"])
@@ -2419,12 +2453,95 @@ def _lif_poisson_receipt(entry: Mapping[str, Any], default_seed: int) -> dict[st
     return receipt
 
 
+def _validate_lif_continuation(
+    state: "Any", *, n_neurons: int, n_edges: int, delay_L: int,
+    dt_ms: float, hdp_rule_name: Any,
+) -> None:
+    """Check a carried lif state against the current model and grid, naming each gap."""
+    from ._pipeline import LIFContinuationState
+
+    if not isinstance(state, LIFContinuationState):
+        raise ValueError(
+            "simulate(continuation=...) on emitter family 'lif' takes a "
+            "jaxfne._pipeline.LIFContinuationState returned by simulate(..., "
+            f"return_state=True); got {type(state).__name__}"
+        )
+    if float(dt_ms) != float(state.dt_ms):
+        raise ValueError(
+            f"continuation dt_ms={float(state.dt_ms)} disagrees with the "
+            f"Simulation grid ({float(dt_ms)} ms); continued segments share one grid"
+        )
+    for _k, _shape in (("V", (n_neurons,)), ("A", (n_neurons,)),
+                       ("t_last", (n_neurons,)), ("w", (n_edges,)),
+                       ("ring", (delay_L, n_neurons)),
+                       ("prev_spikes", (n_neurons,)), ("g", (n_neurons,))):
+        _arr = getattr(state, _k, None)
+        if _arr is None:
+            raise ValueError(
+                f"continuation is missing {_k!r}; pass the "
+                "LIFContinuationState simulate(..., return_state=True) returned"
+            )
+        if tuple(jnp.asarray(_arr).shape) != tuple(_shape):
+            raise ValueError(
+                f"continuation {_k!r} has shape {tuple(jnp.asarray(_arr).shape)} "
+                f"but the model needs {_shape}; the state continues its own model"
+            )
+    if hdp_rule_name is None:
+        for _k in ("H", "aux", "bias"):
+            if getattr(state, _k, None) is not None:
+                raise ValueError(
+                    f"continuation {_k!r} is set but no HDP rule runs; "
+                    "the rule-free carry holds no rule state"
+                )
+    else:
+        if state.H is None:
+            raise ValueError(
+                "continuation 'H' is None but an HDP rule runs; pass the "
+                "LIFContinuationState simulate(..., return_state=True) returned"
+            )
+        if tuple(jnp.asarray(state.H).shape) != (n_neurons,):
+            raise ValueError(
+                f"continuation 'H' has shape {tuple(jnp.asarray(state.H).shape)} "
+                f"but the model needs ({n_neurons},)"
+            )
+        # The rule carry rides the same fresh shapes the kernel builds
+        # (aux from the rule's expected_aux_shape, bias per drive_bias),
+        # so a state from another rule or a dropped field fails here by name.
+        from .hdp_rule import expected_aux_shape, get_hdp_rule
+
+        descriptor, _ = get_hdp_rule(str(hdp_rule_name))
+        _aux_shape = tuple(expected_aux_shape(
+            descriptor, n_neurons=n_neurons, n_edges=n_edges))
+        _ax = state.aux
+        if _ax is None or tuple(jnp.asarray(_ax).shape) != _aux_shape:
+            raise ValueError(
+                "continuation 'aux' must have shape "
+                f"{_aux_shape}; got "
+                f"{None if _ax is None else tuple(jnp.asarray(_ax).shape)}"
+            )
+        if "drive_bias" in descriptor.theta_targets:
+            _bb = state.bias
+            if _bb is None or tuple(jnp.asarray(_bb).shape) != (n_neurons,):
+                raise ValueError(
+                    "continuation 'bias' must have shape "
+                    f"({n_neurons},); got "
+                    f"{None if _bb is None else tuple(jnp.asarray(_bb).shape)}"
+                )
+        elif state.bias is not None:
+            raise ValueError(
+                "continuation 'bias' is set but the rule declares no "
+                "drive_bias target"
+            )
+
+
 def _simulate_lif(
     self: "Model",
     sim: Simulation,
     runtime_cfg: RuntimeConfig,
     paradigm: Any = None,
-) -> Signals:
+    continuation: Any = None,
+    return_state: bool = False,
+) -> "Signals | tuple[Signals, Any]":
     """The lif emitter family's ``simulate()`` path (``jaxfne/emitters_lif``).
 
     Runs the PCL LIF edge kernel on the compiled edges
@@ -2442,6 +2559,17 @@ def _simulate_lif(
     is ensured registered here. The seeded ``hdp_initial_H`` carry rides
     the rule; ``hdp_initial_w`` is refused under a rule (edge weights come
     from the edge list) and the seeded H stays inert without one.
+
+    ``return_state=True`` returns ``(Signals, LIFContinuationState)`` and
+    ``continuation=`` starts the next segment from that state (global times
+    and the rule-noise stream continue, so split runs reproduce the whole
+    run bit-exactly; ``time_ms`` stays segment-local, starting at 0 each
+    call, as on the current-based continuation route). Continued Poisson
+    segments derive each entry's seed from ``poisson_chunk_seed(seed,
+    chunk_index)``; plain calls keep the baseline receipt exactly (chunk
+    fields ride every ``return_state=True`` or ``continuation=`` call). A
+    continued segment takes its rule-noise key from the state, so
+    ``sim.seed`` sets only the Poisson base seed there.
     """
     from ._construct_lif import lif_edge_arrays
     from .emitters_lif import simulate_lif_edge
@@ -2497,12 +2625,17 @@ def _simulate_lif(
     else:
         drive_2d_sched = jnp.broadcast_to(drive, (sim.n_steps, n_neurons))
     if sim.poisson_drive is not None:
+        from ._pipeline import LIFContinuationState as _LCS
+
+        _chunk_index = int(continuation.chunk_index) if isinstance(
+            continuation, _LCS) else 0
         _poisson_arr = _lif_poisson_drive(
             _lif_poisson_plan(self, sim.poisson_drive),
             n_steps=sim.n_steps,
             n_neurons=n_neurons,
             dt_ms=sim.dt_ms,
             default_seed=sim.seed + 7919,
+            chunk_index=_chunk_index,
         )
         drive_2d = drive_2d_sched + jnp.asarray(
             _poisson_arr, dtype=dtype
@@ -2575,11 +2708,47 @@ def _simulate_lif(
             )
     n_steps = sim.n_steps
     dt_ms = sim.dt_ms
+    is_cont = continuation is not None or return_state
+    _lif_init_state: dict[str, Any] | None = None
+    _lif_base_key = hdp_kwargs.get("key")
+    _chunk_index = 0
+    if continuation is not None:
+        from ._pipeline import LIFContinuationState as _LCS2
+
+        _delay_vals = jnp.asarray(edges["delay_steps"])
+        _delay_L = int(_delay_vals.max()) if int(edges["pre"].shape[0]) else 1
+        _validate_lif_continuation(
+            continuation, n_neurons=n_neurons,
+            n_edges=int(edges["pre"].shape[0]), delay_L=_delay_L,
+            dt_ms=sim.dt_ms, hdp_rule_name=hdp_rule_name,
+        )
+        assert isinstance(continuation, _LCS2)
+        _chunk_index = int(continuation.chunk_index)
+        _lif_init_state = {
+            "V": continuation.V, "A": continuation.A,
+            "t_last": continuation.t_last, "w": continuation.w,
+            "H": continuation.H, "aux": continuation.aux,
+            "bias": continuation.bias, "ring": continuation.ring,
+            "prev_spikes": continuation.prev_spikes, "g": continuation.g,
+            "step_index": int(continuation.step_index),
+        }
+        # The rule-noise stream folds the global step into one base key, so a
+        # continued segment reuses the first segment's key, not sim.seed.
+        _lif_base_key = continuation.prng_key
+        if "key" in hdp_kwargs:
+            hdp_kwargs = {**hdp_kwargs, "key": _lif_base_key}
 
     def _run_lif_kernel(drive_in, key_in):
         kw = dict(hdp_kwargs)
         if "key" in kw:
             kw["key"] = key_in
+        if _lif_init_state is not None:
+            kw["init_state"] = _lif_init_state
+            # The state carries the rule carry; the construct-seeded H0 would
+            # double-declare it (the kernel refuses H0 with init_state by name).
+            kw.pop("H0", None)
+        if return_state:
+            kw["return_state"] = True
         return simulate_lif_edge(
             lif_params,
             n_steps=n_steps,
@@ -2602,8 +2771,16 @@ def _simulate_lif(
     # The route honours the shared execution policy: requested backends run
     # inside _device_scope and an effective jit compiles the kernel (same
     # resolve_jit/_device_scope pattern as the izhikevich edge route).
+    # Continued segments run the kernel eager (the jit-vs-eager bit-identity
+    # is already pinned): the carry, not the cache key, is the contract.
     effective_jit = runtime_cfg.resolve_jit(sim.n_steps, n_neurons)
-    if effective_jit:
+    if is_cont:
+        # Continued segments run the kernel eager (see above); the receipt
+        # reports that eager decision, not the policy's.
+        effective_jit = False
+        with _device_scope(runtime_cfg.selected_backend):
+            out = _run_lif_kernel(drive_2d, _lif_base_key)
+    elif effective_jit:
         if not hasattr(self, "_compiled_cache"):
             object.__setattr__(self, "_compiled_cache", {})
         from .validation import make_recompilation_guard
@@ -2657,10 +2834,16 @@ def _simulate_lif(
         "not_recorded": ["sources", "field"],
     }
     if sim.poisson_drive is not None:
-        _poisson_receipts = [
-            _lif_poisson_receipt(entry, sim.seed + 7919)
-            for entry in _poisson_entries(sim.poisson_drive)
-        ]
+        _poisson_receipts = []
+        for entry in _poisson_entries(sim.poisson_drive):
+            if is_cont:
+                _poisson_receipts.append(_lif_poisson_receipt(
+                    entry, sim.seed + 7919, chunk_index=_chunk_index,
+                    chunk_seed=int(poisson_chunk_seed(
+                        int(entry.get("seed", sim.seed + 7919)), _chunk_index)),
+                ))
+            else:
+                _poisson_receipts.append(_lif_poisson_receipt(entry, sim.seed + 7919))
         metadata["poisson_drive"] = (
             _poisson_receipts[0] if isinstance(sim.poisson_drive, Mapping) else _poisson_receipts
         )
@@ -2682,13 +2865,26 @@ def _simulate_lif(
         metadata["n_sharing_groups"] = int(_np_sh.asarray(edge_group).max() + 1)
     if inhibition_spec is not None:
         metadata["local_inhibition"] = dict(inhibition_spec)
-    return Signals(
+    signals = Signals(
         time_ms=time_ms,
         V_m=out["V_mV"].astype(runtime_cfg.jnp_dtype),
         spikes=out["spikes"],
         sources=None,
         field=None,
         metadata=metadata,
+    )
+    if not return_state:
+        return signals
+    from ._pipeline import LIFContinuationState
+
+    _ls = out["lif_state"]
+    _key_out = _lif_base_key if _lif_base_key is not None else jax.random.PRNGKey(sim.seed)
+    return signals, LIFContinuationState(
+        V=_ls["V"], A=_ls["A"], t_last=_ls["t_last"], w=_ls["w"],
+        ring=_ls["ring"], prev_spikes=_ls["prev_spikes"], g=_ls["g"],
+        prng_key=_key_out, H=_ls["H"], aux=_ls["aux"], bias=_ls["bias"],
+        step_index=int(_ls["step_index"]), chunk_index=_chunk_index + 1,
+        dt_ms=float(sim.dt_ms),
     )
 
 

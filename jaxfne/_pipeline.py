@@ -102,6 +102,37 @@ class ContinuationState(NamedTuple):
     chunk_index: int = 0
 
 
+class LIFContinuationState(NamedTuple):
+    """Runtime continuation state for the lif edge-list route.
+
+    The lif kernel carry is not the Izhikevich ``(v, u, ...)`` carry, so it
+    rides its own state: membrane ``V``, adaptation ``A``, last-spike times
+    ``t_last``, shared edge weights ``w``, the finite-delay spike ring
+    ``ring`` ``(L, N)`` with ``L = max delay steps``, previous-step spikes
+    ``prev_spikes``, and the synaptic-filter state ``g``. ``H``, ``aux``
+    and ``bias`` ride only under a registered HDP rule (None otherwise).
+    ``prng_key`` is the base rule-noise key (per-step draws fold in the
+    global step index); ``step_index`` is the global step offset of the
+    next segment and ``chunk_index`` counts completed segments (0 fresh,
+    +1 per segment), driving each segment's Poisson seed.
+    """
+
+    V: jax.Array
+    A: jax.Array
+    t_last: jax.Array
+    w: jax.Array
+    ring: jax.Array
+    prev_spikes: jax.Array
+    g: jax.Array
+    prng_key: jax.Array
+    H: jax.Array | None = None
+    aux: jax.Array | None = None
+    bias: jax.Array | None = None
+    step_index: int = 0
+    chunk_index: int = 0
+    dt_ms: float = 0.5
+
+
 def continuation_noise_schedule(
     key: jax.Array,
     n_steps: int,

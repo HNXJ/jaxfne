@@ -2581,6 +2581,8 @@ def simulate_lif_edge(
     feed_current=None,
     feed_arrivals=None,
     key=None,
+    init_state=None,
+    return_state: bool = False,
 ) -> dict[str, Any]:
     """Simulate current-based PCL LIF cells on a sparse signed edge list.
 
@@ -2736,6 +2738,16 @@ def simulate_lif_edge(
     (carried fields pass, reset fields take their declared values). Chunks of one
     file pass no boundary; a learning pass must pass one. Without these keywords the
     outputs are unchanged.
+    ``init_state`` (None, or the mapping ``return_state=True`` returned)
+    starts the run from a carried kernel state instead of rest: ``V``,
+    ``A``, ``t_last``, ``w``, ``H``/``aux``/``bias`` (None without a
+    rule), ``ring`` ``(L, N)``, ``prev_spikes``, ``g`` and ``step_index``
+    (the global step offset the segment starts at). ``V0_mV``/``H0`` are
+    then refused (the state carries the potentials). Times stay global
+    (``t0_ms + global_step * dt_ms``) and the rule-noise stream folds in
+    the global step, so a split run reproduces the whole run
+    bit-exactly. ``return_state=True`` adds ``lif_state`` (that mapping
+    with the closing ``step_index``) without changing the outputs.
 
     Raises ``ValueError`` naming the argument for every refused input.
     """
@@ -2938,6 +2950,55 @@ def simulate_lif_edge(
     exc_mask = w0 >= 0
     L = int(edges["delay"].max()) if E else 1
 
+    _lif_start = 0
+    _lif_init: dict[str, Any] | None = None
+    if init_state is not None:
+        if not isinstance(init_state, Mapping):
+            raise ValueError(
+                f"init_state must be None or the mapping return_state=True "
+                f"returned; got {type(init_state).__name__}"
+            )
+        _lif_init = dict(init_state)
+        try:
+            _lif_start = int(_lif_init.get("step_index", 0))
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"init_state step_index={_lif_init.get('step_index')!r} must be "
+                "a non-negative integer"
+            )
+        if _lif_start < 0:
+            raise ValueError(
+                f"init_state step_index={_lif_start!r} must be a non-negative integer"
+            )
+        if V0_mV is not None:
+            raise ValueError(
+                "V0_mV is set with init_state; the state carries the potentials"
+            )
+        if H0 is not None:
+            raise ValueError(
+                "H0 is set with init_state; the state carries the rule carry"
+            )
+        for _k, _shape in (("V", (N,)), ("A", (N,)), ("t_last", (N,)),
+                           ("w", (E,)), ("ring", (L, N)),
+                           ("prev_spikes", (N,)), ("g", (N,))):
+            if _k not in _lif_init:
+                raise ValueError(
+                    f"init_state is missing {_k!r}; pass the mapping "
+                    "return_state=True returned"
+                )
+            _arr = jnp.asarray(_lif_init[_k])
+            if tuple(_arr.shape) != tuple(_shape):
+                raise ValueError(
+                    f"init_state {_k!r} must have shape {_shape}, "
+                    f"got {tuple(_arr.shape)}"
+                )
+        for _k in ("H", "aux", "bias"):
+            if _k not in _lif_init:
+                raise ValueError(
+                    f"init_state is missing {_k!r}; pass the mapping "
+                    "return_state=True returned"
+                )
+
     I_const = jnp.zeros((N,), dtype)
     I_all = None
     if I_ext_pA is not None:
@@ -2952,7 +3013,8 @@ def simulate_lif_edge(
             )
 
     if V0_mV is None:
-        V0 = jnp.zeros((N,), dtype)
+        V0 = jnp.zeros((N,), dtype) if _lif_init is None else jnp.asarray(
+            _lif_init["V"], dtype)
     else:
         V0 = jnp.asarray(V0_mV, dtype)
         if V0.shape != (N,):
@@ -2988,7 +3050,13 @@ def simulate_lif_edge(
     if H0 is not None and hdp_rule is None:
         raise ValueError("H0 is set but hdp_rule is None; H seeds the rule's carry only")
     H_init: jax.Array | None = None
-    if H0 is not None:
+    if _lif_init is not None:
+        _h = _lif_init["H"]
+        H_init = None if _h is None else jnp.asarray(_h, dtype)
+        if H_init is not None and H_init.shape != (N,):
+            raise ValueError(
+                f"init_state 'H' must be None or shape ({N},); got {H_init.shape}")
+    elif H0 is not None:
         H_init = jnp.asarray(H0, dtype)
         if H_init.shape != (N,):
             raise ValueError(f"H0 must be None or shape ({N},); got {H_init.shape}")
@@ -3008,6 +3076,38 @@ def simulate_lif_edge(
         aux0 = jnp.zeros(aux_shape, dtype)
         b_min = jnp.asarray(descriptor.b_bounds[0], dtype)
         b_max = jnp.asarray(descriptor.b_bounds[1], dtype)
+    if _lif_init is not None:
+        if descriptor is None:
+            for _k in ("H", "aux", "bias"):
+                if _lif_init[_k] is not None:
+                    raise ValueError(
+                        f"init_state {_k!r} is set but hdp_rule is None; "
+                        "the rule-free carry holds no rule state"
+                    )
+        else:
+            if _lif_init["H"] is None:
+                raise ValueError(
+                    "init_state 'H' is None but hdp_rule runs; pass the "
+                    "mapping return_state=True returned"
+                )
+            _ax = _lif_init["aux"]
+            if _ax is None or tuple(jnp.asarray(_ax).shape) != tuple(aux_shape):
+                raise ValueError(
+                    f"init_state 'aux' must have shape {tuple(aux_shape)}, "
+                    f"got {None if _ax is None else tuple(jnp.asarray(_ax).shape)}"
+                )
+            if use_b:
+                _bb = _lif_init["bias"]
+                if _bb is None or tuple(jnp.asarray(_bb).shape) != (N,):
+                    raise ValueError(
+                        "init_state 'bias' must have shape "
+                        f"({N},); got {None if _bb is None else tuple(jnp.asarray(_bb).shape)}"
+                    )
+            elif _lif_init["bias"] is not None:
+                raise ValueError(
+                    "init_state 'bias' is set but the rule declares no "
+                    "drive_bias target"
+                )
     if key is None:
         base_key = jax.random.PRNGKey(0)
     else:
@@ -3016,10 +3116,11 @@ def simulate_lif_edge(
         except Exception:
             raise ValueError(f"key must be a JAX PRNG key; got {key!r}")
         base_key = key
-    # Per-step rule-noise stream (fold_in of the step index); the kernel
+    # Per-step rule-noise stream (fold_in of the global step index); the kernel
     # ignores it without a rule, so rule-free runs stay exactly deterministic.
+    # A continued segment folds in global steps, matching the whole run.
     step_keys = jax.vmap(lambda t: jax.random.fold_in(base_key, t))(
-        jnp.arange(n_steps, dtype=jnp.int32)
+        jnp.arange(_lif_start, _lif_start + n_steps, dtype=jnp.int32)
     )
 
     dt = jnp.asarray(dt_ms, dtype=dtype)
@@ -3027,6 +3128,7 @@ def simulate_lif_edge(
     def body(carry, I_t):
         V, A, t_last, w, H, aux, bias, ring, prev_spk, t_idx, g = carry
         t = t0 + t_idx * float(dt_ms)
+        li = t_idx - _lif_start
         if E:
             arrived = ring[(t_idx - lag_j) % L, pre_j]
             I_net = _seg_sum(jnp.where(arrived, w, 0.0), post_j, N)
@@ -3039,22 +3141,22 @@ def simulate_lif_edge(
         if use_filter:
             syn = I_net
             if F_cur is not None:
-                syn = syn + F_cur[t_idx]
+                syn = syn + F_cur[li]
             g = g * decay_syn + syn
             I_tot = I_tot + g
         else:
             I_tot = I_tot + I_net
             if F_cur is not None:
-                I_tot = I_tot + F_cur[t_idx]
+                I_tot = I_tot + F_cur[li]
         if F_arr is not None:
-            n_net = n_net + F_arr[t_idx]
+            n_net = n_net + F_arr[li]
         if use_b:
             I_tot = I_tot + bias
         if use_cascade:
             (V_n, A_n, t_n), spk = _cascade_step(
                 (V, A, t_last), I_tot, n_net, t, params, float(dt_ms),
                 int(local_inhibition_rounds),
-                members_j, mask_j, blk_j, visit_j[t_idx],
+                members_j, mask_j, blk_j, visit_j[li],
             )
         else:
             (V_n, A_n, t_n), spk = lif_step(
@@ -3071,7 +3173,7 @@ def simulate_lif_edge(
                 prev_spikes=prev_spk.astype(dtype),
                 syn_state=arrived.astype(dtype), w=w, pre=pre_j, post=post_j,
                 exc_mask=exc_mask, dt=dt, n_neurons=N, rule_params=rule_params,
-                key=step_keys[t_idx], pre_sp=arrived,
+                key=step_keys[li], pre_sp=arrived,
             )
             upd = rule_step(ctx)
             undeclared = [
@@ -3132,12 +3234,27 @@ def simulate_lif_edge(
         Hc, auxc, bc = H0_arr, aux0, jnp.zeros((N,), dtype)
     else:
         Hc, auxc, bc = None, None, None
-    carry0 = (
-        V0, jnp.zeros((N,), dtype), jnp.full((N,), NEVER, dtype),
-        w0, Hc, auxc, bc, jnp.zeros((L, N), bool),
-        jnp.zeros((N,), bool), jnp.int32(0), jnp.zeros((N,), dtype),
-    )
-    (V_f, A_f, t_f, w_f, H_f, aux_f, b_f, _, _, _, _), ys = jax.lax.scan(
+    if _lif_init is not None:
+        carry0 = (
+            jnp.asarray(_lif_init["V"], dtype),
+            jnp.asarray(_lif_init["A"], dtype),
+            jnp.asarray(_lif_init["t_last"], dtype),
+            jnp.asarray(_lif_init["w"], dtype),
+            None if _lif_init["H"] is None else jnp.asarray(_lif_init["H"], dtype),
+            None if _lif_init["aux"] is None else jnp.asarray(_lif_init["aux"], dtype),
+            None if _lif_init["bias"] is None else jnp.asarray(_lif_init["bias"], dtype),
+            jnp.asarray(_lif_init["ring"], bool),
+            jnp.asarray(_lif_init["prev_spikes"], bool),
+            jnp.int32(_lif_start),
+            jnp.asarray(_lif_init["g"], dtype),
+        )
+    else:
+        carry0 = (
+            V0, jnp.zeros((N,), dtype), jnp.full((N,), NEVER, dtype),
+            w0, Hc, auxc, bc, jnp.zeros((L, N), bool),
+            jnp.zeros((N,), bool), jnp.int32(0), jnp.zeros((N,), dtype),
+        )
+    (V_f, A_f, t_f, w_f, H_f, aux_f, b_f, ring_f, prev_f, _, g_f), ys = jax.lax.scan(
         body, carry0, I_all, length=n_steps,
     )
     result: dict[str, Any] = {
@@ -3154,4 +3271,18 @@ def simulate_lif_edge(
         result["aux_final"] = aux_f
         if use_b:
             result["b_final"] = b_f
+    if return_state:
+        result["lif_state"] = {
+            "V": V_f,
+            "A": A_f,
+            "t_last": t_f,
+            "w": w_f,
+            "H": H_f,
+            "aux": aux_f,
+            "bias": b_f if use_b else None,
+            "ring": ring_f,
+            "prev_spikes": prev_f,
+            "g": g_f,
+            "step_index": int(_lif_start + n_steps),
+        }
     return result
