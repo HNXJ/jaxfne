@@ -383,20 +383,25 @@ report `scratch/destexhe2009/report_s2core.json`; scorer
 
 | seed | bins s0–s9 | alive | CV (e) | CC (abserr) | rate RS/FS Hz |
 |---|---|---|---|---|---|
-| 1 | 96469/93256/72283/0… | false | 2.426 (0.044) | 0.1109 (0.1059) | 12.85/14.12 |
-| 2 | ~88–107k all s | true | 2.613 (0.143) | 0.0051 (0.0001) | 49.18/49.40 |
-| 3 | ~92–101k all s | true | 2.664 (0.194) | 0.0038 (0.0012) | 47.31/50.19 |
-| 4 | ~85–94k s0–s7, 0 s8–s9 | false | 2.356 (0.114) | 0.0379 (0.0329) | 34.86/39.49 |
-| 5 | 87328/77073/41119/0… | false | 2.402 (0.068) | 0.1051 (0.1001) | 9.86/11.93 |
-| 6 | ~91–100k all s | true | 2.551 (0.081) | 0.0105 (0.0055) | 46.59/50.48 |
-| 7 | ~86–101k s0–s8, 10926 s9 | true | 2.567 (0.097) | 0.0159 (0.0109) | 40.87/44.31 |
-| 8 | ~73–93k s0–s6, 0 s7–s9 | false | 2.449 (0.021) | 0.0518 (0.0468) | 28.56/34.26 |
+| 1 | 96469/93256/72283/0… | false | 2.426 (0.018) | 0.1109 (0.1059) | 12.85/14.12 |
+| 2 | ~88–107k all s | true | 2.613 (0.058) | 0.0051 (0.0001) | 49.18/49.40 |
+| 3 | ~92–101k all s | true | 2.664 (0.079) | 0.0038 (0.0012) | 47.31/50.19 |
+| 4 | ~85–94k s0–s7, 0 s8–s9 | false | 2.356 (0.046) | 0.0379 (0.0329) | 34.86/39.49 |
+| 5 | 87328/77073/41119/0… | false | 2.402 (0.028) | 0.1051 (0.1001) | 9.86/11.93 |
+| 6 | ~91–100k all s | true | 2.551 (0.033) | 0.0105 (0.0055) | 46.59/50.48 |
+| 7 | ~86–101k s0–s8, 10926 s9 | true | 2.567 (0.039) | 0.0159 (0.0109) | 40.87/44.31 |
+| 8 | ~73–93k s0–s6, 0 s7–s9 | false | 2.449 (0.009) | 0.0518 (0.0468) | 28.56/34.26 |
 
-RS < FS holds on all 8 seeds. E2 closes only on dead seeds (1, 8);
-on alive seeds e = 0.081–0.194 (off). E3 closes on alive seeds 2, 3,
-6; seed 7 misses by 0.0009. Mean rates on sustained seeds are
-40–50 Hz — far above the E4 1–10 Hz order: a hyperactive attractor,
-not the paper's AI state.
+Erratum 2026-10-31: the CV column first held |z − y| (0.044 … 0.021);
+it now holds e = |z − y|/|y| as PREREG_P3.md and the step 1–5 tables
+define it. CVs, CCs and rates are unchanged.
+
+RS < FS holds on all 8 seeds. E2 closes on seeds 1, 4, 5, 6, 7, 8;
+of the alive seeds, 6 (e 0.033) and 7 (e 0.039) close and 2 (0.058)
+and 3 (0.079) are off. E3 closes on alive seeds 2, 3, 6; seed 7
+misses by 0.0009. Seed 6 closes E1, E2 and E3 jointly. Mean rates on
+sustained seeds are 40–50 Hz — far above the E4 1–10 Hz order: a
+hyperactive attractor, not the paper's AI state.
 
 Sensitivity at the core default (same protocol, `Vpeak_mV = NaN` on
 every cell via post-construction `_replace`; rasters
@@ -427,9 +432,10 @@ re-scores them per PREREG_P3.md.
 
 Verdict (unscored pilot): supersedes steps 1–5 OFF. E1 PASSES on 4/8 seeds under the
 authors' Vpeak (2, 3, 6 sustained; 7 alive but collapsing in s9);
-E3 closes on 2, 3, 6; E2 stays off on every alive seed; E4 rate
-order badly off (hyperactive ~5x). No θ* — no seed closes
-E1+E2+E3 jointly with E4 in-band. The miss moved: from death to a
+E3 closes on 2, 3, 6; E2 closes on alive seeds 6 and 7; seed 6
+closes E1+E2+E3 jointly; E4 rate order badly off (hyperactive ~5x)
+on every sustained seed. No θ* — no seed closes E1+E2+E3 jointly with
+E4 in-band. The miss moved: from death to a
 hyperactive attractor. Open moves: rate-order reduction without
 losing sustain (ge/gi absorption still untouched, needs a reason),
 and the X_bg trajectory of step 4 is unchanged.

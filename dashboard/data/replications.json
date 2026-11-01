@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-31T23:09:27Z",
-    "dev_sha": "b5048bebb2950eb6da18a6e1f4f64616737aab2a",
-    "data_revision": "4cc0064843817a8b2ab31bd5d534c1f0c7a70b91394bdce7d8d69aa13a203abc"
+    "utc": "2026-11-01T00:00:09Z",
+    "dev_sha": "3fcf6755862304d243cb7cbbe530677b36d187c0",
+    "data_revision": "1acbc407d04f78926392e84115fe850bea09ba773658227430c0682cfe000681"
   },
   "papers": [
     {
@@ -3537,7 +3537,7 @@
       "stage_artifacts": [],
       "verdict": null,
       "verdict_note": null,
-      "summary": "The AdEx core features the port needs are on dev (Vpeak detection threshold, external-drive schedules, capped Bernoulli sampling). The port is built in the lane clone (28 lane tests pass); its preregistration is drafted and unsigned. Unscored pilot (CALIBRATION step 6): seeds 1–8 ran at the declared baseline; E1 holds on 4 of 8 seeds under the authors' Vpeak, E2 stays off on every live seed, and the E4 rate order is off (hyperactive, about 5x); the held-out seeds 4–8 are spent, so a scored run needs a new protocol on fresh seeds.",
+      "summary": "The AdEx core features the port needs are on dev (Vpeak detection threshold, external-drive schedules, capped Bernoulli sampling). The port is built in the lane clone (28 lane tests pass); its preregistration is drafted and unsigned. Unscored pilot (CALIBRATION step 6): seeds 1–8 ran at the declared baseline; E1 holds on 4 of 8 seeds under the authors' Vpeak, E2 closes on live seeds 6 and 7, seed 6 closes E1 to E3 jointly, and the E4 rate order is off (hyperactive, about 5x); the held-out seeds 4–8 are spent, so a scored run needs a new protocol on fresh seeds.",
       "preregs": [],
       "criteria": [],
       "sensitivity": [],
