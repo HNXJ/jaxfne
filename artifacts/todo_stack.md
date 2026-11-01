@@ -11,11 +11,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## 0.5.9
 
-1. T-68 [A] GSDR `--mcdp` (ES gradient, ruled 2026-10-31; lane `gsdres` reviewed, 19 tests): integrate, then pilots
-   on seeds 0-3 at a short budget. Closes when: pilot receipts exist and a P3 prereg draft names scoring seeds 9-13.
-   → [H] sign or defer (step 7). Status 2026-10-31: pilots done (loss 4494 → 4267-4352 on 4 of 4 seeds; best
-   candidates synchronous, kappa 0.90-1.00, active 1.00); `PREREG_P3_fit.md` drafted and pinned (G2 kappa < 0.1
-   on held-out trial seeds 14-18, optimizer seeds 9-13; expected FAIL), three owner decisions listed.
+1. T-68 [A] GSDR P3 fit scored run under `PREREG_P3_fit_signed.md` (signed Hamm 2026-11-01): WSL clone
+   `~/jaxfne_gsdrP3` at 8516a005, `run_gsdr_p3.sh` (fits seeds 9-13, then `regime_at_gstar` on trial seeds 14-18),
+   receipts `F:/warehouse/gsdr/P3_fit_8516a005`. Closes when: `RESULT_P3_fit.md` holds the per-seed G1-G3 table and
+   verdict, the S figure shows it, dashboard and 9E updated. Pilots (unscored) predicted FAIL.
 2. T-O70 [A] B8 pilots (running from clone `pilots` at 9eee4452; receipts under `F:/warehouse/vogels2011/P3v2_pilot`
    and `F:/warehouse/potjans2014/P3v2_pilot`): Vogels seed 0, rho0 6 Hz, eta 0; Potjans 10% seed 0 and L5i→L5e
    lesion. Closes when: each known positive moves its estimand as the prereg says (rho0 6 breaks R-E; eta 0 fails
@@ -51,7 +50,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
    S3 test, C6 `geometry="laminar"` with Brian2 and Jaxley baselines declared.
-7. [H] Signatures, one at a time as each draft is ready: Potjans P3 v2, Vogels P3 v2, GSDR P3, Destexhe, PCL R4.
+7. [H] Signatures, one at a time as each draft is ready: Potjans P3 v2, Vogels P3 v2, Destexhe, PCL R4 (GSDR P3
+   fit signed 2026-11-01).
    Each: sign ⇒ scored run from a fixed clone → result file, dashboard, checklist 9D/9E; defer ⇒ the package moves
    to 0.5.10 with its reason (Gate 1).
 8. T-70 [A] 9F: the rc gate end to end on the candidate (JUnit parity, figure lock, clean-checkout figure job;
