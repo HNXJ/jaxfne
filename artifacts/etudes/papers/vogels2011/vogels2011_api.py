@@ -182,7 +182,8 @@ def run(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False):
 
 
 def run_plastic_segment(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False,
-                        rho0_hz=ISTDP_RHO0_HZ_DEFAULT, eta=ISTDP_ETA_DEFAULT):
+                        rho0_hz=ISTDP_RHO0_HZ_DEFAULT, eta=ISTDP_ETA_DEFAULT,
+                        plastic_segment_s=None):
     """Segment B: the registered iSTDP kernel from rest (PORT_SPEC rows 8-9).
 
     The adex ``Model.simulate`` path runs the static kernel only, so the
@@ -194,6 +195,15 @@ def run_plastic_segment(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False,
     ``rho0_hz`` and ``eta`` ride the rule defaults (3 Hz, 1e-2); an
     unrealizable value (negative, non-finite) is refused by
     ``resolve_istdp_params`` before anything runs, never stored unused.
+
+    ``plastic_segment_s`` runs the leg in segments of that length chained
+    by the kernel state: each segment after the first resumes the prior
+    segment's returned state, reproducing the one-segment run bit-for-bit
+    while holding only one segment plus per-step E tallies in memory. The
+    saved raster covers the last 1 s only (the R-E window); the receipt
+    carries the per-second E rate course (``e_rate_per_s_hz``, E columns
+    only) over each full second of the leg. ``None`` is one segment: the
+    full raster is saved, exactly as before.
     """
     import time
 
@@ -236,10 +246,11 @@ def run_plastic_segment(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False,
     mask = np.asarray(istdp_plasticity_mask(lab[pre] == "PV", lab[post] == "E"))
     w_init = np.abs(np.asarray(kw["edge_weight_nS"], dtype=float))
     n_steps = int(round(float(T_s) * 1000.0 / DT_MS))
-    result = simulate_adex_hdp_registered(
-        **kw,
-        n_steps=n_steps,
-        dt_ms=DT_MS,
+    e_cols = np.array([r["cell_type"] == "E"
+                       for r in model.neuron_table()], dtype=bool)
+    n_e = int(e_cols.sum())
+    steps_per_s = int(round(1000.0 / DT_MS))
+    rule_kwargs = dict(
         hdp_rule=ISTDP_RULE_NAME,
         hdp_rule_params={"eta": rule_cfg["eta"],
                          "rho0_hz": rule_cfg["rho0_hz"],
@@ -249,13 +260,62 @@ def run_plastic_segment(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False,
         # The per-step |w| trace is n_steps x n_edges (about 720 GB at n = 10000, 9 s); only w_final is read.
         record_w_trace=False,
     )
-    t_simulate = time.perf_counter() - t0 - t_construct
-    spikes = np.asarray(result["spikes"], dtype=bool)
-    assert spikes.shape == (n_steps, sum(
+    if plastic_segment_s is None:
+        result = simulate_adex_hdp_registered(
+            **kw,
+            n_steps=n_steps,
+            dt_ms=DT_MS,
+            **rule_kwargs,
+        )
+        t_simulate = time.perf_counter() - t0 - t_construct
+        spikes = np.asarray(result["spikes"], dtype=bool)
+        saved_start = 0
+        e_per_step = spikes[:, e_cols].sum(axis=1).astype(np.int64)
+        w_final = np.asarray(result["w_final_nS"], dtype=float)
+        seg_s = None
+    else:
+        from collections import deque
+
+        seg_s = float(plastic_segment_s)
+        if not (math.isfinite(seg_s) and seg_s > 0.0):
+            raise ValueError(
+                "plastic_segment_s must be a finite duration in s > 0; "
+                f"got {plastic_segment_s!r}"
+            )
+        seg_steps = max(1, int(round(seg_s * 1000.0 / DT_MS)))
+        last_s = min(n_steps, steps_per_s)
+        seg_state = None
+        e_tallies = []
+        keep = deque()
+        kept = 0
+        for start in range(0, n_steps, seg_steps):
+            ln = min(seg_steps, n_steps - start)
+            result = simulate_adex_hdp_registered(
+                **kw,
+                n_steps=ln,
+                dt_ms=DT_MS,
+                state=seg_state,
+                return_state=True,
+                **rule_kwargs,
+            )
+            seg_sp = np.asarray(result["spikes"], dtype=bool)
+            e_tallies.append(seg_sp[:, e_cols].sum(axis=1).astype(np.int64))
+            keep.append(seg_sp)
+            kept += ln
+            while kept - keep[0].shape[0] >= last_s:
+                kept -= keep.popleft().shape[0]
+            seg_state = result["state"]
+        t_simulate = time.perf_counter() - t0 - t_construct
+        tail = np.concatenate(list(keep), axis=0)
+        spikes = tail[-last_s:]
+        saved_start = n_steps - int(spikes.shape[0])
+        e_per_step = np.concatenate(e_tallies, axis=0)
+        w_final = np.asarray(result["w_final_nS"], dtype=float)
+    assert spikes.shape == (n_steps - saved_start, sum(
         1 for _ in model.neuron_table())), "raster must cover every neuron"
-    e_cols = np.array([r["cell_type"] == "E"
-                       for r in model.neuron_table()], dtype=bool)
-    w_final = np.asarray(result["w_final_nS"], dtype=float)
+    n_full_s = n_steps // steps_per_s
+    e_rate_per_s_hz = ([float(e_per_step[i * steps_per_s:(i + 1) * steps_per_s].sum())
+                        / float(n_e) for i in range(n_full_s)] if n_e else [])
     assert bool(np.all(w_final[~mask] == w_init[~mask])), \
         "frozen edges must stay bit-identical"
     regime = score(spikes, DT_MS)
@@ -277,6 +337,9 @@ def run_plastic_segment(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False,
                         "tau_stdp_ms": rule_cfg["tau_stdp_ms"],
                         "alpha": rule_cfg["alpha"],
                         "record_w_trace": False,
+                        "plastic_segment_s": seg_s,
+                        "spikes_window_steps": [saved_start, n_steps],
+                        "e_rate_per_s_hz": list(e_rate_per_s_hz),
                         "w_ie_init_nS": float(w_init[mask].max(initial=0.0)) if int(mask.sum()) else 0.0,
                         "w_ie_final_mean_nS": float(w_final[mask].mean()) if int(mask.sum()) else 0.0,
                         "n_plastic": int(mask.sum())}}
@@ -286,6 +349,7 @@ def run_plastic_segment(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False,
     lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)
     return {"spikes": spikes, "steps": n_steps, "regime": regime,
             "e_cols": e_cols,
+            "e_rate_per_s_hz": list(e_rate_per_s_hz),
             "w_ie_final_mean_nS": entry["plastic"]["w_ie_final_mean_nS"],
             "eta": rule_cfg["eta"], "rho0_hz": rule_cfg["rho0_hz"],
             "wall_s": {"construct": t_construct, "simulate": t_simulate}}
@@ -327,13 +391,16 @@ def _e_rate_hz(spikes, e_cols, start_step, end_step):
 
 
 def pilot(seed, n, T_s, out_dir, *, rho0_hz=ISTDP_RHO0_HZ_DEFAULT,
-          eta=ISTDP_ETA_DEFAULT):
+          eta=ISTDP_ETA_DEFAULT, plastic_segment_s=None):
     """B8 pilot: 1 s static then ``T_s`` plastic, with the prereg estimands.
 
     Unscored always (``signed=False``): R-E is the E mean rate over the last
     1 s of the plastic leg against y = 3 Hz (e = |z-y|/y, close at e <= 0.20)
     and O-DROP is the static-leg 0.8-1.0 s E rate over R-E's z (pass at
     ratio >= 2). Windows shorter than 1 s clamp to the leg with a note.
+    ``plastic_segment_s`` chains the plastic leg in segments of that length
+    (the saved plastic raster covers the R-E window only); R-E and O-DROP
+    read the same spikes through the same estimator as the one-segment run.
     Writes ``pilot_receipt.json`` (estimands, "unscored pilot", code SHA).
     """
     import time
@@ -344,7 +411,8 @@ def pilot(seed, n, T_s, out_dir, *, rho0_hz=ISTDP_RHO0_HZ_DEFAULT,
     a = run(int(seed), "segA", out_dir, n=int(n), T_s=STATIC_S)
     b = run_plastic_segment(int(seed), "segB", out_dir, n=int(n),
                             T_s=float(T_s), rho0_hz=float(rho0_hz),
-                            eta=float(eta))
+                            eta=float(eta),
+                            plastic_segment_s=plastic_segment_s)
     assert bool((np.asarray(a["e_cols"]) == np.asarray(b["e_cols"])).all()), \
         "static and plastic legs must share E columns"
     e_cols = a["e_cols"]
@@ -356,7 +424,9 @@ def pilot(seed, n, T_s, out_dir, *, rho0_hz=ISTDP_RHO0_HZ_DEFAULT,
     n_plastic = int(b["steps"])
     last_s = int(round(1.0 * 1000.0 / DT_MS))
     after_start = max(0, n_plastic - last_s)
-    z = _e_rate_hz(b["spikes"], e_cols, after_start, n_plastic)
+    saved_start = n_plastic - int(np.asarray(b["spikes"]).shape[0])
+    z = _e_rate_hz(b["spikes"], e_cols, after_start - saved_start,
+                   n_plastic - saved_start)
     e = abs(z - R_E_Y_HZ) / R_E_Y_HZ
     ratio = (before_hz / z) if z > 0 else (
         float("inf") if before_hz > 0 else float("nan"))
@@ -365,8 +435,10 @@ def pilot(seed, n, T_s, out_dir, *, rho0_hz=ISTDP_RHO0_HZ_DEFAULT,
         "seed": int(seed), "n": int(n), "T_s": float(T_s),
         "static_s": STATIC_S, "dt_ms": DT_MS,
         "eta": float(b["eta"]), "rho0_hz": float(b["rho0_hz"]),
+        "plastic_segment_s": None if plastic_segment_s is None else float(plastic_segment_s),
         "static_file": "spikes_seed%d_segA.npz" % int(seed),
         "plastic_file": "spikes_seed%d_segB.npz" % int(seed),
+        "e_rate_per_s_hz": list(b["e_rate_per_s_hz"]),
         "R-E": {"y_hz": R_E_Y_HZ, "z_hz": z, "e": e,
                 "criterion": "e <= %.2f" % R_E_BAND,
                 "window_steps": [after_start, n_plastic],
@@ -396,10 +468,12 @@ def main(argv=None):
     pp.add_argument("--out", required=True)
     pp.add_argument("--rho0-hz", type=float, default=ISTDP_RHO0_HZ_DEFAULT)
     pp.add_argument("--eta", type=float, default=ISTDP_ETA_DEFAULT)
+    pp.add_argument("--plastic-segment-s", type=float, default=None)
     args = p.parse_args(argv)
     if args.cmd == "pilot":
         receipt = pilot(args.seed, args.n, getattr(args, "T_s"), args.out,
-                        rho0_hz=args.rho0_hz, eta=args.eta)
+                        rho0_hz=args.rho0_hz, eta=args.eta,
+                        plastic_segment_s=args.plastic_segment_s)
         print("R-E z=%.3f Hz e=%.3f | O-DROP ratio=%.3f | %s"
               % (receipt["R-E"]["z_hz"], receipt["R-E"]["e"],
                  receipt["O-DROP"]["ratio"], receipt["verdict"]))

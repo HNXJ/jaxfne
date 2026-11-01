@@ -304,3 +304,34 @@ def test_plastic_manifest_records_w_trace_off(tmp_path):
     assert len(entries) == 1, "fixture must write exactly one run entry"
     assert entries[0]["plastic"]["record_w_trace"] is False, \
         "the entry must record record_w_trace false"
+
+
+def test_segmented_plastic_matches_unsegmented(tmp_path):
+    """Two 1 s segments chained by state reproduce the 2 s leg exactly."""
+    seg = L.run_plastic_segment(0, "sg", tmp_path / "sg", n=40, T_s=2.0,
+                                plastic_segment_s=1.0)
+    one = L.run_plastic_segment(0, "one", tmp_path / "one", n=40, T_s=2.0)
+    assert int(np.asarray(one["spikes"]).sum()) > 0, "fixture must spike"
+    assert (np.asarray(seg["spikes"])
+            == np.asarray(one["spikes"])[-seg["spikes"].shape[0]:]).all(), \
+        "the segmented leg must reproduce the run tail bit-exactly"
+    assert seg["e_rate_per_s_hz"] == one["e_rate_per_s_hz"], \
+        "the per-second E rate course must not depend on segmentation"
+    assert seg["w_ie_final_mean_nS"] == one["w_ie_final_mean_nS"], \
+        "the final I-to-E mean must not depend on segmentation"
+
+
+def test_segmented_pilot_matches_unsegmented_estimands(tmp_path):
+    """A short pilot with segments equals the unsegmented pilot's estimands."""
+    a = L.pilot(0, 40, 2.0, tmp_path / "u")
+    b = L.pilot(0, 40, 2.0, tmp_path / "s", plastic_segment_s=1.0)
+    assert b["R-E"]["z_hz"] == a["R-E"]["z_hz"], "R-E z must match"
+    assert b["R-E"]["e"] == a["R-E"]["e"], "R-E e must match"
+    assert b["O-DROP"]["ratio"] == a["O-DROP"]["ratio"], "O-DROP must match"
+    assert b["W-IE"]["w_ie_final_mean_nS"] == a["W-IE"]["w_ie_final_mean_nS"], \
+        "W-IE must match"
+    assert b["e_rate_per_s_hz"] == a["e_rate_per_s_hz"], "rate course must match"
+    u = np.load(tmp_path / "u" / "spikes_seed0_segB.npz")["spikes"]
+    s = np.load(tmp_path / "s" / "spikes_seed0_segB.npz")["spikes"]
+    assert (u[-s.shape[0]:] == s).all(), \
+        "the segmented raster must equal the unsegmented tail"

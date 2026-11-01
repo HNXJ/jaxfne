@@ -22,6 +22,13 @@ import numpy as np
 
 _STEP_ORDERS = ("default", "brian2")
 _DECAYS = ("exp", "euler")
+# State keys `simulate_adex_hdp_registered` writes under `return_state=True`
+# and reads back under `state=...`.
+_HDP_STATE_KEYS = (
+    "V_mV", "w_pA", "ref_steps", "g_nS", "delay_ring", "ext_ring", "step",
+    "ext_key", "hdp_key", "H", "W_nS", "aux", "bias", "prev_spikes",
+    "n_neurons", "n_edges", "n_receptors", "ring_length", "n_ext_targets",
+)
 # Same clip as the reference: the spike threshold binds at an argument of 5.
 _EXP_ARG_MAX = 20.0
 
@@ -1511,6 +1518,8 @@ def simulate_adex_hdp_registered(
     hdp_key=None,
     seed: int | None = None,
     record_w_trace: bool = True,
+    state: Mapping[str, Any] | None = None,
+    return_state: bool = False,
 ) -> dict[str, Any]:
     """AdEx conductance network with a registered HDP rule (lane 7, gap G3).
 
@@ -1553,6 +1562,19 @@ def simulate_adex_hdp_registered(
     :func:`simulate_adex` dict plus ``H_final``, ``w_final_nS``,
     ``aux_final``, ``H_trace``, ``w_trace_nS`` (when recorded),
     ``hdp_rule`` and ``hdp_rule_registered``.
+
+    ``state`` resumes a run from a state ``return_state=True`` returned:
+    the full final carry (``V``, adaptation current, refractory counters,
+    per-receptor conductances, the delay ring, plastic weights ``W``, rule
+    ``aux`` traces, ``H``, the step counter, and the external-drive and HDP
+    keys as they stood after the last step). A resumed call with the same
+    network arguments continues the unsegmented run bit-for-bit: spikes,
+    final ``V``/``W``/``aux``, and the Poisson drive (the key chain
+    continues from the state, so ``key``/``seed`` only rebuild the same
+    streams). A state from a different network size is refused, as are a
+    per-step ``ext_lambda`` schedule, a drive window, and ``V0_mV`` with
+    ``state`` (the carry restores ``V``). Defaults are unchanged: a call
+    without these arguments is bit-identical to the baseline.
     """
     from ._hdp_family_kernel import (  # lazy: hdp_rule owns .emitters, so top-level would cycle
         apply_registered_rule_update,
@@ -1736,6 +1758,81 @@ def simulate_adex_hdp_registered(
     else:
         rule_base = jax.random.PRNGKey(0)
 
+    if state is not None:
+        if not isinstance(state, Mapping):
+            raise ValueError(
+                f"state must be a mapping from return_state=True; got {type(state).__name__}"
+            )
+        missing = [k for k in _HDP_STATE_KEYS if k not in state]
+        if missing:
+            raise ValueError(
+                f"state is missing keys {missing}; pass back the full state mapping unmodified"
+            )
+        for name, want in (("n_neurons", N), ("n_edges", E),
+                           ("n_receptors", R), ("ring_length", L),
+                           ("n_ext_targets", M)):
+            if int(state[name]) != int(want):
+                raise ValueError(
+                    f"state {name}={state[name]} does not match this network "
+                    f"({name}={want}); a state resumes only the network that wrote it"
+                )
+        if V0_mV is not None:
+            raise ValueError(
+                "V0_mV does not combine with state; the state carry restores V"
+            )
+        if window is not None:
+            raise ValueError(
+                "ext_t_start_steps/ext_t_stop_steps do not combine with state; "
+                "a window is per call, while a state continues the step counter"
+            )
+        if ext is not None and (lam_1d is not None or lam_2d is not None):
+            raise ValueError(
+                "a per-step ext_lambda schedule does not combine with state; "
+                "it is indexed per call, while a state continues the step counter"
+            )
+        try:
+            jax.random.split(state["hdp_key"])
+        except Exception:
+            raise ValueError("state['hdp_key'] must be a JAX PRNG key") from None
+        rule_base = state["hdp_key"]
+        t0 = state["step"]
+        if isinstance(t0, bool) or not isinstance(t0, (int, np.integer)):
+            raise ValueError(
+                f"state['step'] must be an int step counter; got {t0!r}"
+            )
+        t0 = int(t0)
+        if t0 < 0:
+            raise ValueError(f"state['step'] must be >= 0; got {t0}")
+        carry_from_state = (
+            jnp.asarray(state["V_mV"], dtype),
+            jnp.asarray(state["w_pA"], dtype),
+            jnp.asarray(state["ref_steps"], np.int32),
+            jnp.asarray(state["g_nS"], dtype),
+            jnp.asarray(state["delay_ring"], bool),
+            jnp.asarray(state["ext_ring"], np.int32),
+            jnp.int32(t0),
+            state["ext_key"],
+            jnp.asarray(state["H"], dtype),
+            jnp.asarray(state["W_nS"], dtype),
+            jnp.asarray(state["aux"], dtype),
+            jnp.asarray(state["bias"], dtype),
+            jnp.asarray(state["prev_spikes"], dtype),
+        )
+        _fresh_shapes = (
+            V0.shape, (N,), (N,), (N, R), (L, N),
+            ((L, M) if ext is not None else (0,)),
+            (),
+            (tuple(jnp.shape(ext["key"])) if ext is not None else ()),
+            H0.shape, wmag0.shape, aux0.shape,
+            b0.shape, (N,),
+        )
+        for value, want_shape in zip(carry_from_state, _fresh_shapes):
+            if tuple(jnp.shape(value)) != tuple(want_shape):
+                raise ValueError(
+                    f"state carry shape {tuple(jnp.shape(value))} does not match "
+                    f"this network (expected {tuple(want_shape)})"
+                )
+
     def body_hdp(carry, I_t):
         V, w, ref, g, ring, ering, t, rkey, H, wmag, aux, bias, prev_spk = carry
         if ext is not None:
@@ -1821,15 +1918,18 @@ def simulate_adex_hdp_registered(
         b0,
         jnp.zeros((N,), dtype),
     )
-    (V, w, ref, g, _, _, _, _, Hf, wmagf, auxf, _, _), ys = jax.lax.scan(
+    if state is not None:
+        carry0 = carry_from_state
+    (Vf, wf, reff, gf, ringf, eringf, tf, rkeyf,
+     Hf, wmagf, auxf, biasf, prevf), ys = jax.lax.scan(
         body_hdp, carry0, I_all, length=n_steps
     )
     result = {
         "spikes": ys[0],
-        "V": V,
-        "w": w,
-        "ref": ref,
-        "g": g,
+        "V": Vf,
+        "w": wf,
+        "ref": reff,
+        "g": gf,
         "H_final": Hf,
         "w_final_nS": wmagf,
         "aux_final": auxf,
@@ -1837,6 +1937,28 @@ def simulate_adex_hdp_registered(
         "hdp_rule": hdp_rule,
         "hdp_rule_registered": True,
     }
+    if return_state:
+        result["state"] = {
+            "V_mV": Vf,
+            "w_pA": wf,
+            "ref_steps": reff,
+            "g_nS": gf,
+            "delay_ring": ringf,
+            "ext_ring": eringf,
+            "step": int(tf),
+            "ext_key": rkeyf,
+            "hdp_key": rule_base,
+            "H": Hf,
+            "W_nS": wmagf,
+            "aux": auxf,
+            "bias": biasf,
+            "prev_spikes": prevf,
+            "n_neurons": N,
+            "n_edges": E,
+            "n_receptors": R,
+            "ring_length": L,
+            "n_ext_targets": M,
+        }
     if record_v:
         result["V_mV"] = ys[1]
     if record_w_trace:
