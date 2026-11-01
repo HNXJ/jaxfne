@@ -416,10 +416,6 @@ def _adex_list_drive_kwargs(
 
     if len(entries) == 1 and not _entry_zero_rate(entries[0]):
         return adex_external_drive_kwargs(model, _dc.replace(sim, poisson_drive=entries[0]))
-    st = model.static["adex"]
-    receptor_names = list(st["receptor_names"])
-    labels = tuple(model.params["emitter"].labels)
-    dt = float(sim.dt_ms)
     per_targets: list[Any] = []
     lam: list[float] = []
     weight: list[float] = []
