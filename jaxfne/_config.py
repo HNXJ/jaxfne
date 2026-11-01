@@ -991,20 +991,29 @@ class Configuration:
     def cell_params(
         self, selector: Mapping[str, Any], params: Mapping[str, Any]
     ) -> "Configuration":
-        """Override Izhikevich ``a``/``b``/``c``/``d``/``drive``/``v0``/``u0`` for neurons
-        matching a ``cell_type`` and/or ``layer`` selector; applied at ``construct()``. A value
+        """Override per-neuron parameters for neurons matching a ``cell_type``
+        and/or ``layer`` selector; applied at ``construct()``. A value
         is a scalar for every matched neuron or a list with one value per matched neuron, in
         neuron-index order (a length mismatch is refused). ``v0`` (initial membrane potential)
         and ``u0`` (initial recovery variable) declare the initial state; a declared ``v0``
         needs ``runtime(random_v0=False)``, since the default random initial potential would
         overwrite it. An undeclared ``u0`` is ``b * v0`` per neuron, from the realized ``b`` and
-        ``v0`` (P-048); a declared ``u0`` wins."""
+        ``v0`` (P-048); a declared ``u0`` wins. The Izhikevich keys (``a``, ``b``, ``c``,
+        ``d``, ``drive``, ``v0``, ``u0``) run on the Izhikevich route; the AdEx keys (the
+        ``jaxfne.emitters_adex`` table: ``C_pF``, ``gL_nS``, ``EL_mV``, ``VT_mV``,
+        ``Delta_mV``, ``Vreset_mV``, ``tauw_ms``, ``a_nS``, ``b_pA``, ``Tref_ms``,
+        ``Vpeak_mV``) run on the ``adex`` route, one scalar per cell type. Each route
+        refuses the other's keys at ``construct()``."""
+        from .emitters_adex import _PARAM_FIELDS as _ADEX_PARAM_FIELDS
+
+        allowed = {"a", "b", "c", "d", "drive", "v0", "u0"} | set(_ADEX_PARAM_FIELDS)
         bad_sel = sorted(set(selector) - {"cell_type", "layer"})
-        bad_par = sorted(set(params) - {"a", "b", "c", "d", "drive", "v0", "u0"})
+        bad_par = sorted(set(params) - allowed)
         if bad_sel or bad_par:
             raise ValueError(
                 f"cell_params: unsupported selector keys {bad_sel} / parameter keys {bad_par}; "
-                "selectors: cell_type, layer; parameters: a, b, c, d, drive, v0, u0"
+                "selectors: cell_type, layer; parameters: a, b, c, d, drive, v0, u0, "
+                f"{', '.join(_ADEX_PARAM_FIELDS)}"
             )
         entry = {
             "selector": _circuit_json_safe(dict(selector), "cell_params.selector"),

@@ -1985,7 +1985,52 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
             ),
         }
     if sim.poisson_drive is not None:
-        if isinstance(sim.poisson_drive["rate_hz"], (list, tuple)):
+        if isinstance(sim.poisson_drive, (list, tuple)):
+            from ._construct_adex import _entry_zero_rate
+
+            solo_drive = (
+                sim.poisson_drive[0]
+                if len(sim.poisson_drive) == 1
+                and not _entry_zero_rate(sim.poisson_drive[0])
+                else None
+            )
+            if solo_drive is not None:
+                metadata["poisson_drive"] = {
+                    "n_sources": int(solo_drive["n_sources"]),
+                    "rate_hz": float(solo_drive["rate_hz"]),
+                    "weight_nS": float(solo_drive["weight_nS"]),
+                    "mechanism": str(solo_drive["mechanism"]),
+                    "target_cell_types": list(solo_drive["target_cell_types"]),
+                    "delay_ms": float(solo_drive["delay_ms"]),
+                    "seed": int(solo_drive["seed"]),
+                    "ext_lambda": float(drive_kwargs["ext_lambda"]),
+                    "status": "stochastic_drive_applied",
+                }
+            else:
+                recorded_entries = []
+                for entry in sim.poisson_drive:
+                    recorded = {
+                        "n_sources": int(entry["n_sources"]),
+                        "rate_hz": float(entry["rate_hz"]),
+                        "weight_nS": float(entry["weight_nS"]),
+                        "mechanism": str(entry["mechanism"]),
+                        "target_cell_types": list(entry["target_cell_types"]),
+                        "delay_ms": float(entry["delay_ms"]),
+                        "seed": int(entry["seed"]),
+                        "ext_lambda": float(
+                            int(entry["n_sources"]) * float(entry["rate_hz"])
+                            * float(sim.dt_ms) / 1000.0
+                        ),
+                    }
+                    for bound in ("t_start_ms", "t_stop_ms"):
+                        if bound in entry:
+                            recorded[bound] = float(entry[bound])
+                    recorded_entries.append(recorded)
+                metadata["poisson_drive"] = {
+                    "entries": recorded_entries,
+                    "status": "stochastic_drive_applied",
+                }
+        elif isinstance(sim.poisson_drive["rate_hz"], (list, tuple)):
             rates = [float(r) for r in sim.poisson_drive["rate_hz"]]
             per_group = [float(v) for v in _np_host.asarray(drive_kwargs["ext_lambda"])[0]]
             sizes = _np_host.asarray(drive_kwargs["ext_target_groups"])
@@ -2015,7 +2060,9 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
                 "ext_lambda": float(drive_kwargs["ext_lambda"]),
                 "status": "stochastic_drive_applied",
             }
-        if sim.poisson_drive.get("same_step", False) is True:
+        if not isinstance(sim.poisson_drive, (list, tuple)) and sim.poisson_drive.get(
+            "same_step", False
+        ) is True:
             metadata["poisson_drive"]["same_step"] = True
     return Signals(
         time_ms=time_ms,

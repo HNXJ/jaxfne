@@ -60,6 +60,10 @@ ADEX_CONSUMED = (
     ("Configuration", "metadata", "circuit", "mechanisms", "*", "params", "tau_ms"),
     ("Configuration", "metadata", "circuit", "mechanisms", "*", "params", "reversal_mV"),
     ("Configuration", "metadata", "circuit", "mechanisms", "*", "status"),
+    # cell_params(): per-type AdEx overrides (selector {"cell_type": ...}, scalar AdEx
+    # fields); the explicit pre-gate in refuse_adex_configuration refuses every other
+    # selector and key, so the allowlist admits the subtree whole.
+    ("Configuration", "metadata", "circuit", "cell_params", "**"),
     # connections(): the rule fields the compiler reads for this route; status is the builder's.
     ("Configuration", "metadata", "circuit", "connections", "*", "name"),
     ("Configuration", "metadata", "circuit", "connections", "*", "source", "**"),
@@ -198,6 +202,7 @@ def refuse_adex_configuration(cfg: Configuration) -> None:
     for key, written in _BUILDER_FLAGS:
         if key in cfg.metadata and not (circuit and cfg.metadata[key] is written):
             _refuse(("Configuration", "metadata", key), cfg.metadata[key])
+    _refuse_adex_cell_params(cfg)
     defaults = Configuration()
     metadata_default = {**_runtime_defaults(), **defaults.metadata}
     found: list[tuple[tuple, Any]] = []
@@ -206,6 +211,279 @@ def refuse_adex_configuration(cfg: Configuration) -> None:
         _unconsumed(getattr(cfg, f.name), default, ("Configuration", f.name), found)
     if found:
         _refuse(*found[0])
+
+
+# Izhikevich-only cell_params keys: declared for the union in Configuration.cell_params,
+# refused below -- the AdEx kernel has no such fields.
+_IZHIKEVICH_CELL_PARAMS_KEYS = frozenset({"a", "b", "c", "d", "drive", "v0", "u0"})
+
+
+def _refuse_adex_cell_params(cfg: Configuration) -> None:
+    """Refuse the cell_params entries the adex route does not realize, naming each key.
+
+    Realized: one entry per cell type with selector exactly ``{"cell_type": <type>}``
+    (a declared AdEx type present in ``network(cell_types=...)``) and params holding
+    scalar finite AdEx fields (``_ADEX_PARAM_FIELDS``) inside the kernel's physical
+    range (``C_pF``, ``gL_nS``, ``tauw_ms`` above 0; ``Tref_ms``, ``Delta_mV`` at or
+    above 0; an ``EL_mV`` above ``VT_mV`` is a valid tonically firing regime),
+    ``Vpeak_mV`` above the entry's
+    ``EL_mV``. Anything else -- another selector, an unknown or Izhikevich-only key,
+    a non-scalar value, an unphysical value, an undeclared type, a repeated
+    (type, field) pair -- raises ``ValueError`` naming the entry and the key.
+    """
+    from .emitters_adex import ADEX_CELL_TYPE_DEFAULTS
+
+    entries = (cfg.metadata.get("circuit") or {}).get("cell_params") or []
+    if not entries:
+        return
+    net = cfg.networks[0] if cfg.networks else {}
+    declared_types = set((net.get("cell_types") or {}))
+    seen: set[tuple[str, str]] = set()
+    for pos, entry in enumerate(entries):
+        where = f"cell_params entry {pos}"
+        selector = dict(entry.get("selector") or {})
+        if set(selector) != {"cell_type"}:
+            raise ValueError(
+                f"{where} selector {selector!r} is not realized for emitter family 'adex': "
+                "the adex route realizes per-type overrides with selector {'cell_type': <type>}"
+            )
+        ctype = selector["cell_type"]
+        if ctype not in ADEX_CELL_TYPE_DEFAULTS:
+            raise ValueError(
+                f"{where} names unknown AdEx cell type {ctype!r}; "
+                f"expected one of {sorted(ADEX_CELL_TYPE_DEFAULTS)}"
+            )
+        if ctype not in declared_types:
+            raise ValueError(
+                f"{where} names cell type {ctype!r}, which network(cell_types=...) "
+                "does not declare"
+            )
+        params = dict(entry.get("params") or {})
+        bad = sorted(set(params) - set(_ADEX_PARAM_FIELDS))
+        if bad:
+            izh = sorted(set(bad) & _IZHIKEVICH_CELL_PARAMS_KEYS)
+            hint = (
+                f"; Izhikevich-only keys {izh} run on the Izhikevich route" if izh else ""
+            )
+            raise ValueError(
+                f"{where} names parameter keys {bad} the adex route does not realize "
+                f"(expected a subset of {list(_ADEX_PARAM_FIELDS)}{hint})"
+            )
+        for field, value in params.items():
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, numbers.Real)
+                or not math.isfinite(value)
+            ):
+                raise ValueError(
+                    f"{where} {field}={value!r} is not realized for emitter family 'adex': "
+                    "it takes one finite real scalar per cell type"
+                )
+            _refuse_unphysical_cell_param(where, field, float(value))
+            if (str(ctype), str(field)) in seen:
+                raise ValueError(
+                    f"{where} repeats {field!r} for cell type {ctype!r}: "
+                    "one cell_params entry per (cell type, field)"
+                )
+            seen.add((str(ctype), str(field)))
+        vpeak = params.get("Vpeak_mV")
+        if vpeak is not None:
+            el = params.get("EL_mV", ADEX_CELL_TYPE_DEFAULTS[ctype]["EL_mV"])
+            if not float(vpeak) > float(el):
+                raise ValueError(
+                    f"{where} Vpeak_mV={vpeak!r} must be above EL_mV={el!r}"
+                )
+
+
+def _refuse_unphysical_cell_param(where: str, field: str, value: float) -> None:
+    """Refuse a ``cell_params`` value the kernel cannot integrate, naming the entry.
+
+    ``C_pF``, ``gL_nS`` and ``tauw_ms`` take values above 0; ``Tref_ms`` and
+    ``Delta_mV`` take values at or above 0 (``Delta_mV`` 0 runs the
+    conductance-LIF limit). An ``EL_mV`` above ``VT_mV`` is a valid
+    tonically firing regime and is realized.
+    """
+    positive = {"C_pF", "gL_nS", "tauw_ms"}
+    nonnegative = {"Tref_ms", "Delta_mV"}
+    if field in positive and not value > 0:
+        raise ValueError(
+            f"{where} {field}={value!r} is not realized for emitter family 'adex': "
+            f"it takes {field} above 0 for the kernel to integrate it"
+        )
+    if field in nonnegative and not value >= 0:
+        raise ValueError(
+            f"{where} {field}={value!r} is not realized for emitter family 'adex': "
+            f"it takes {field} at or above 0 for the kernel to integrate it"
+        )
+
+
+def _adex_cell_param_overrides(cfg: Configuration) -> dict[str, dict[str, float]]:
+    """Per-type AdEx overrides from the cell_params entries, for make_adex_params.
+
+    ``refuse_adex_configuration`` validates the entries first, so this only reshapes
+    them into the ``{cell type: {field: value}}`` mapping the kernel builder takes.
+    """
+    out: dict[str, dict[str, float]] = {}
+    entries = (cfg.metadata.get("circuit") or {}).get("cell_params") or []
+    for entry in entries:
+        ctype = str(entry["selector"]["cell_type"])
+        fields = out.setdefault(ctype, {})
+        for field, value in dict(entry.get("params") or {}).items():
+            fields[str(field)] = float(value)
+    return out
+
+
+
+
+
+def _checked_drive_list_entries(drive: Any) -> list[dict[str, Any]] | None:
+    """Validate a list-form adex drive; None for the mapping path.
+
+    A list entry carries exactly the mapping keys in ``_DRIVE_KEYS`` plus the
+    optional window, with scalar ``rate_hz`` and no ``same_step`` flag: the
+    multi-target kernel path realizes one delay per target, so a same-step
+    entry and a grouped-rate entry are refused. Entries naming
+    ``target_cell_types`` are adex entries; any other entry falls back to the
+    lif-list refusal (``refuse_poisson_drive_list``), which names the route.
+    Targets across entries must be pairwise disjoint; the shared window, when
+    declared, must match on every entry.
+    """
+    if drive is None or isinstance(drive, Mapping):
+        return None
+    if not isinstance(drive, (list, tuple)):
+        return None
+    from .inputs import refuse_poisson_drive_list
+
+    entries = [dict(e) if isinstance(e, Mapping) else e for e in drive]
+    for entry in entries:
+        if not isinstance(entry, Mapping) or "target_cell_types" not in entry:
+            refuse_poisson_drive_list(drive, "the adex route (emitter family 'adex')")
+    out: list[dict[str, Any]] = []
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            refuse_poisson_drive_list(drive, "the adex route (emitter family 'adex')")
+        assert isinstance(entry, Mapping)
+        unknown = [
+            k
+            for k in entry
+            if k not in _DRIVE_KEYS and k not in _DRIVE_WINDOW_KEYS
+        ]
+        if unknown or "same_step" in entry:
+            raise _drive_error(f"{dict(entry)!r} carries keys the list form cannot realize")
+        missing = [k for k in _DRIVE_KEYS if k not in entry]
+        if missing:
+            raise _drive_error(f"{dict(entry)!r} is missing keys {missing}")
+        if isinstance(entry["rate_hz"], (list, tuple)):
+            raise _drive_error(
+                f"rate_hz={entry['rate_hz']!r} in a list entry is not realized: "
+                "the list form takes one scalar rate per entry"
+            )
+        out.append(dict(entry))
+    return out
+
+
+def _entry_zero_rate(entry: Mapping[str, Any]) -> bool:
+    """Whether a list entry declares ``rate_hz`` 0: that target draws no counts.
+
+    A zero rate silences the entry while keeping it declared (targets stay
+    disjoint, the entry keeps its own seed stream); the mapping path still
+    refuses 0, so the probe below validates the entry at a nonzero rate and
+    the caller overrides its lambda to 0.
+    """
+    rate = entry.get("rate_hz")
+    return _finite_real(rate) and float(rate) == 0.0
+
+
+def _adex_list_drive_kwargs(
+    model: Model, sim: Any, entries: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Keyword arguments for a multi-entry adex drive list (the ``extm_*`` path).
+
+    Each entry repeats the mapping schema with a scalar rate (0 allowed: that
+    target draws no counts) and no same-step flag
+    (checked in ``_checked_drive_list_entries``); every remaining field
+    is validated entry by entry through the mapping path's own checks, so a
+    bad weight, mechanism, delay or seed names ``poisson_drive`` and the key.
+    Entry targets (cells whose type the entry lists, in index order) must be
+    pairwise disjoint, and a declared window must match on every entry: the
+    kernel carries one shared window. ``extm_lambda`` holds the per-target
+    mean count (``n_sources * rate_hz * dt_ms / 1000``); the key holds one row
+    per entry (``jax.random.PRNGKey`` of that entry's seed, in entry order),
+    and ``extm_entry_sizes`` holds one target count per entry, so each entry
+    draws its own segment under its own stream.
+    """
+    import dataclasses as _dc
+
+    if len(entries) == 1 and not _entry_zero_rate(entries[0]):
+        return adex_external_drive_kwargs(model, _dc.replace(sim, poisson_drive=entries[0]))
+    st = model.static["adex"]
+    receptor_names = list(st["receptor_names"])
+    labels = tuple(model.params["emitter"].labels)
+    dt = float(sim.dt_ms)
+    per_targets: list[Any] = []
+    lam: list[float] = []
+    weight: list[float] = []
+    receptor: list[int] = []
+    delay: list[int] = []
+    seeds: list[int] = []
+    windows: list[tuple[int, int] | None] = []
+    for entry in entries:
+        zeroed = _entry_zero_rate(entry)
+        probe_entry = dict(entry) if not zeroed else {**entry, "rate_hz": 1.0}
+        probe = _dc.replace(sim, poisson_drive=probe_entry)
+        kw = adex_external_drive_kwargs(model, probe)
+        targets = np.asarray(kw["ext_targets"], dtype=np.int64)
+        per_targets.append(targets)
+        lam.extend([0.0 if zeroed else float(kw["ext_lambda"])] * int(targets.size))
+        weight.extend([float(kw["ext_weight_nS"])] * int(targets.size))
+        receptor.extend([int(kw["ext_receptor"])] * int(targets.size))
+        delay.extend([int(kw["ext_delay_steps"])] * int(targets.size))
+        seeds.append(int(entry["seed"]))
+        w0 = entry.get("t_start_ms")
+        w1 = entry.get("t_stop_ms")
+        if (w0 is None) != (w1 is None):
+            raise _drive_error(
+                f"{dict(entry)!r} declares one window bound without the other"
+            )
+        windows.append(
+            (int(kw["ext_t_start_steps"]), int(kw["ext_t_stop_steps"]))
+            if w0 is not None
+            else None
+        )
+    flat = np.concatenate(per_targets) if per_targets else np.zeros((0,), np.int64)
+    if np.unique(flat).size != flat.size:
+        pairs = []
+        for i in range(len(per_targets)):
+            for j in range(i + 1, len(per_targets)):
+                if set(np.asarray(per_targets[i]).tolist()) & set(
+                    np.asarray(per_targets[j]).tolist()
+                ):
+                    pairs.append(f"entries {i} and {j}")
+        raise _drive_error(
+            f"drive list targets overlap ({', '.join(pairs)}): "
+            "entries must name pairwise disjoint cell types"
+        )
+    declared_windows = [w for w in windows if w is not None]
+    if declared_windows and (
+        len(declared_windows) != len(windows) or len(set(declared_windows)) != 1
+    ):
+        raise _drive_error(
+            "drive list windows differ across entries: declare one shared "
+            "t_start_ms/t_stop_ms pair on every entry, or on none"
+        )
+    key = jnp.stack([jax.random.PRNGKey(int(seed)) for seed in seeds])
+    out: dict[str, Any] = {
+        "extm_targets": np.concatenate(per_targets),
+        "extm_lambda": np.asarray(lam, dtype=np.float64),
+        "extm_weight_nS": np.asarray(weight, dtype=np.float64),
+        "extm_receptor": np.asarray(receptor, dtype=np.int64),
+        "extm_delay_steps": np.asarray(delay, dtype=np.int64),
+        "extm_entry_sizes": np.asarray([int(t.size) for t in per_targets], dtype=np.int64),
+        "key": key,
+    }
+    if declared_windows:
+        out["ext_t_start_steps"], out["ext_t_stop_steps"] = declared_windows[0]
+    return out
 
 
 def refuse_adex_simulation(sim: Any, cfg: Configuration) -> None:
@@ -366,6 +644,7 @@ def _apply_triple_param_overrides(
     params: AdExParams,
     rows: "Sequence[dict]",
     param_overrides: "Mapping[tuple[str, str, str], Mapping[str, float]]",
+    dtype=None,
 ) -> AdExParams:
     """Apply per-(area, layer, type) param overrides onto per-neuron columns.
 
@@ -375,11 +654,14 @@ def _apply_triple_param_overrides(
     each entry overrides the named AdEx fields on every harvested neuron of
     exactly that triple, matching drive semantics; two triples sharing a
     cell type may carry different values. Unknown fields, non-finite
-    values (bools refused, never coerced) and entries matching no harvested
+    values (bools refused, never coerced), values outside the kernel's
+    physical range (``C_pF``, ``gL_nS``, ``tauw_ms`` above 0; ``Tref_ms``,
+    ``Delta_mV`` at or above 0) and entries matching no harvested
     neuron are refused. A ``Vpeak_mV`` override must lie above that neuron's
-    (post-override) ``EL_mV``: absence is omitting the key (NaN), never an
+    (post-override) ``EL_mV`` (an ``EL_mV`` above ``VT_mV`` is a valid
+    tonically firing regime): absence is omitting the key (NaN), never an
     explicit value at or below rest. Returns the params with the overridden columns
-    replaced (same dtype handling as the caller: float64 here, cast later).
+    replaced at ``dtype`` (the caller's compute dtype; the single cast path).
     """
     if not isinstance(param_overrides, Mapping):
         raise ValueError(
@@ -419,6 +701,16 @@ def _apply_triple_param_overrides(
                     f"param_overrides[{key!r}][{field!r}]={value!r} is not "
                     "realized: it takes a finite real number"
                 )
+            if field in ("C_pF", "gL_nS", "tauw_ms") and not float(value) > 0:
+                raise ValueError(
+                    f"param_overrides[{key!r}][{field!r}]={value!r} is not "
+                    f"realized: it takes {field} above 0"
+                )
+            if field in ("Tref_ms", "Delta_mV") and not float(value) >= 0:
+                raise ValueError(
+                    f"param_overrides[{key!r}][{field!r}]={value!r} is not "
+                    f"realized: it takes {field} at or above 0"
+                )
         matched = [
             i
             for i, row in enumerate(rows)
@@ -457,8 +749,9 @@ def _apply_triple_param_overrides(
             )
     if not columns:
         return params
+    target = jnp.dtype(dtype) if dtype is not None else jnp.asarray(params.C_pF).dtype
     return params._replace(
-        **{field: jnp.asarray(column, dtype=jnp.float64) for field, column in columns.items()}
+        **{field: jnp.asarray(column, dtype=target) for field, column in columns.items()}
     )
 
 
@@ -513,7 +806,10 @@ def construct_adex_model(
     network_name = cfg.networks[0].get("name") if cfg.networks else None
 
     if neuron_rows is None:
-        params = _cast_params(make_adex_params(labels), jnp.dtype(dtype_name))
+        params = _cast_params(
+            make_adex_params(labels, _adex_cell_param_overrides(cfg)),
+            jnp.dtype(dtype_name),
+        )
         rows = [
             {"neuron_id": i, "area": "adex", "layer": "adex", "cell_type": labels[i]} for i in range(n)
         ]
@@ -543,8 +839,10 @@ def construct_adex_model(
             )
         params = _cast_params(
             _apply_triple_param_overrides(
-                make_adex_params(labels), rows,
+                make_adex_params(labels, _adex_cell_param_overrides(cfg)),
+                rows,
                 {} if param_overrides is None else param_overrides,
+                jnp.dtype(dtype_name),
             ),
             jnp.dtype(dtype_name),
         )
@@ -858,12 +1156,23 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     ``t_start_ms``/``t_stop_ms`` window rides as the kernel's
     ``ext_t_start_steps``/``ext_t_stop_steps`` (realized by the same rule at
     the run's ``dt_ms``, refused unless ``0 <= t_start < t_stop <= n_steps``);
-    undeclared, neither key is passed and the drive runs every step. Every
-    refusal names ``poisson_drive`` and the offending key.
+    undeclared, neither key is passed and the drive runs every step. A list of
+    mapping entries (each with scalar ``rate_hz`` and no ``same_step`` flag)
+    over pairwise disjoint targets returns the multi-target ``extm_*`` path
+    (see ``_adex_list_drive_kwargs``); a list of one delegates to the mapping
+    path. Every refusal names ``poisson_drive`` and the offending key.
     """
     drive = sim.poisson_drive
     if drive is None:
         return {}
+    listed = _checked_drive_list_entries(drive)
+    if listed is not None:
+        if not listed:
+            raise _drive_error(
+                "[] is empty: the adex route takes a non-empty list of one "
+                "mapping per entry over pairwise disjoint cell-type targets"
+            )
+        return _adex_list_drive_kwargs(model, sim, listed)
     from .inputs import refuse_poisson_drive_list
 
     refuse_poisson_drive_list(drive, "the adex route (emitter family 'adex')")

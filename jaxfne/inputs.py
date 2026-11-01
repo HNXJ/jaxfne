@@ -407,11 +407,16 @@ def check_current_route_poisson_drive(poisson: Mapping[str, Any]) -> None:
 
 
 def refuse_poisson_drive_list(poisson: Any, route: str) -> None:
-    """Refuse the list form of ``Simulation.poisson_drive`` on a route that does not realize it.
+    """Refuse the lif list form of ``Simulation.poisson_drive`` outside the lif route.
 
     The list form (one current-route mapping per population) is realized on the lif
     route's drive path only: ``simulate`` and ``simulate_lif_seed_batch`` on emitter
-    family ``lif``. ``route`` names the refusing route in the message.
+    family ``lif``. The adex route screens its own list form (one adex mapping per
+    entry, over disjoint cell-type targets) in
+    ``jaxfne._construct_adex.adex_external_drive_kwargs`` before this helper runs;
+    a list reaching this helper from the adex path holds current-route entries and
+    is refused all the same. ``route`` names the
+    refusing route in the message.
     """
     if isinstance(poisson, (list, tuple)):
         raise ValueError(
