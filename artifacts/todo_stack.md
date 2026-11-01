@@ -18,7 +18,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    and `F:/warehouse/potjans2014/P3v2_pilot`): Vogels seed 0, rho0 6 Hz, eta 0; Potjans 10% seed 0 and L5i→L5e
    lesion. Closes when: each known positive moves its estimand as the prereg says (rho0 6 breaks R-E; eta 0 fails
    O-DROP; the lesion moves R-L5E out of band). ⇒ a known positive that does not move: driver or estimand defect,
-   fix and rerun before any signature. ⇒ all move: → 8.
+   fix and rerun before any signature. ⇒ all move: → 8. Status 2026-10-31: relaunched from clone
+   `~/jaxfne_pilots` (c0b233d3) in `systemd-run --user --scope -p MemoryMax=30G`; Potjans waits on O-80.
 3. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
    behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
    test first and a changelog fragment:
@@ -36,9 +37,13 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    residual (implementation, parameters, stochastic, model). → R4 prereg declaring T4 up front (driven column (4,4),
    (0,0) reported beside it) → [H] sign (step 7) → R5 score, exact and approximate apart. The signed v5 T2 FAIL
    stays. Then T-22, T-25: PCL B3 on the intra-step operator; trained weights load as A' (`with_trained_weights`).
+   Status 2026-10-31: R2 on `shapes.h5` from one seeded init (`run_r2_reference.py`, 922270fd); C++ null exact
+   on weights (O-81); oracle-vs-C++ receipts pending in `F:/warehouse/pcl/r2_922270fd`.
 5. T-69 [A] Destexhe pilots on the WSL GPU after step 12: `run_destexhe.py fig6b_cont --seed S --tag fig6b_cont
    --out <unscored dir> --kick-fraction 0.25 --kick-rate-hz 286` for seeds 0-3 (50-85 s each) → prereg draft (E1-E4,
-   scoring seeds 9-13) → [H] sign (step 7).
+   scoring seeds 9-13) → [H] sign (step 7). Status 2026-10-31: pilots done (E1-E3 jointly on seed 0 of 0-3; E4 off,
+   48-49 Hz); `PREREG_P3_v2.md` drafted and pinned with three owner decisions (E4 gated or reported, 4-of-5
+   aggregation, sign or defer; outside the 0.5.9 checklist, S16). CALIBRATION step 6 erratum dc9b458c.
 6. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
@@ -67,7 +72,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     pointer, delete one at a time (`cl-reader-cursor`, `jaxfne-wt-p022`, the four WSL copies, the non-git leftovers
     named in O-68), and the finished lane clones under `E:/repos/_wt/jaxfne/` after an alternates check.
 15. ∥ T-45 [A] The object specializer `PV[model=IZH]` parses (`Base[NAME]` only today). Closes when: it parses with
-    a test and S1 regenerates.
+    a test and S1 regenerates. Blocked-by: O-82 (owner ruling on what `model=` realizes).
 16. ∥ T-46 [A] C9, C2: 8 gaps in `programme/paper/reproducibility_audit.md` section 7 (left: data and code statement,
     PCL natural-image and DVS128/N-MNIST licences, S16 generators). → [H] close test (step 22).
 17. ∥ T-30 [A] Conformance for the rest (`scripts/replication_known_violations.json`; the S1 entries are Hamm's
