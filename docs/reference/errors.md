@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2319 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2375 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -128,6 +128,15 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | Class | Message |
 |---|---|
 | `ValueError` | `{...} = {...} is set away from its default, and emitter family 'adex' does not consume it; remove it` |
+| `ValueError` | `{...} selector {...} is not realized for emitter family 'adex': the adex route realizes per-type ove` |
+| `ValueError` | `{...} names unknown AdEx cell type {...}; expected one of {...}` |
+| `ValueError` | `{...} names cell type {...}, which network(cell_types=...) does not declare` |
+| `ValueError` | `{...} names parameter keys {...} the adex route does not realize (expected a subset of {...}{...})` |
+| `ValueError` | `{...} {...}={...} is not realized for emitter family 'adex': it takes one finite real scalar per cel` |
+| `ValueError` | `{...} repeats {...} for cell type {...}: one cell_params entry per (cell type, field)` |
+| `ValueError` | `{...} Vpeak_mV={...} must be above EL_mV={...}` |
+| `ValueError` | `{...} {...}={...} is not realized for emitter family 'adex': it takes {...} above 0 for the kernel t` |
+| `ValueError` | `{...} {...}={...} is not realized for emitter family 'adex': it takes {...} at or above 0 for the ke` |
 | `ValueError` | `runtime({...}={...}) conflicts with Simulation({...}={...}): set {...} on Simulation only` |
 | `ValueError` | `network(n=...) is required for family 'adex': it sets the population size` |
 | `ValueError` | `network(cell_types=...) is required for family 'adex': it maps each cell type to its fraction (types` |
@@ -145,6 +154,8 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `param_overrides[{...}] {...} is not realized: it takes a mapping of AdEx field name to value` |
 | `ValueError` | `param_overrides[{...}] names unknown AdEx parameter field {...}; expected one of {...}` |
 | `ValueError` | `param_overrides[{...}][{...}]={...} is not realized: it takes a finite real number` |
+| `ValueError` | `param_overrides[{...}][{...}]={...} is not realized: it takes {...} above 0` |
+| `ValueError` | `param_overrides[{...}][{...}]={...} is not realized: it takes {...} at or above 0` |
 | `ValueError` | `param_overrides[{...}] is not realized: it matches no neuron of the harvested population` |
 | `ValueError` | `param_overrides leaves Vpeak_mV={...} at or below EL_mV={...} on neuron {...}; Vpeak_mV must be abov` |
 | `ValueError` | `neuron_rows and positions come as a harvested pair; pass both or neither` |
@@ -1043,6 +1054,11 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `overrides for cell type {...}: Vpeak_mV must be a finite float above EL; got {...}` |
 | `ValueError` | `overrides for cell type {...}: Vpeak_mV={...} cannot be checked against a non-real EL_mV={...}` |
 | `ValueError` | `overrides for cell type {...}: Vpeak_mV={...} must be above EL_mV={...}` |
+| `ValueError` | `overrides for cell type {...}: {...}={...} must be a finite real number` |
+| `ValueError` | `overrides for cell type {...}: {...}={...} must be a finite real number` |
+| `ValueError` | `overrides for cell type {...}: {...}={...} must be a finite real number` |
+| `ValueError` | `overrides for cell type {...}: {...}={...} must be {...} for the kernel to integrate it` |
+| `ValueError` | `overrides for cell type {...}: {...}={...} must be {...} for the kernel to integrate it` |
 | `ValueError` | `step_order must be 'default' or 'brian2', got {...}` |
 | `ValueError` | `{...} must be a number; got {...}` |
 | `ValueError` | `{...} must be a finite float >= 0; got {...}` |
@@ -1069,6 +1085,33 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `ext_receptor must index receptors in [0, {...}); got {...}` |
 | `ValueError` | `ext_delay_steps must be an integer >= {...}; got {...}` |
 | `ValueError` | `key must be a JAX PRNG key; got {...}` |
+| `ValueError` | `extm_lambda must be a finite float >= 0, a 1-d [M] array, or a 2-d [n_steps, M] array; got {...}` |
+| `ValueError` | `extm_lambda must be a finite float >= 0, a 1-d [M] array, or a 2-d [n_steps, M] array; got {...}` |
+| `ValueError` | `extm_lambda with per-target rates must have shape ({...},); got {...}` |
+| `ValueError` | `extm_lambda vector must hold finite values >= 0` |
+| `ValueError` | `extm_lambda schedule must have shape (n_steps, {...}); got {...}` |
+| `ValueError` | `extm_lambda schedule must hold finite values >= 0` |
+| `ValueError` | `extm key must hold one JAX PRNG key per entry with shape (n_entries, 2); got {...}` |
+| `ValueError` | `extm key holds one JAX PRNG key per entry with shape (n_entries, 2); got a single key of shape (2,):` |
+| `ValueError` | `extm key must hold one JAX PRNG key per entry with shape (n_entries, 2); got shape {...}` |
+| `ValueError` | `extm key must hold valid JAX PRNG keys; got {...}` |
+| `ValueError` | `multi-target drive arguments (extm_targets, extm_lambda, extm_weight_nS, extm_receptor, extm_delay_s` |
+| `ValueError` | `extm_targets must be one-dimensional, got shape {...}` |
+| `ValueError` | `extm_targets must hold integers` |
+| `ValueError` | `extm_targets must hold at least one cell index` |
+| `ValueError` | `extm_targets must index cells in [0, {...}); got min {...}, max {...}` |
+| `ValueError` | `extm_targets must hold unique cell indices; got {...}` |
+| `ValueError` | `extm_weight_nS must be a finite float >= 0 or a 1-d [{...}] array; got {...}` |
+| `ValueError` | `extm_weight_nS must be a finite float >= 0 or a 1-d [{...}] array; got {...}` |
+| `ValueError` | `extm_weight_nS must be a finite float >= 0 or a 1-d [{...}] array; got {...}` |
+| `ValueError` | `extm_receptor must have shape ({...},); got {...}` |
+| `ValueError` | `extm_receptor must index receptors in [0, {...}); got {...}` |
+| `ValueError` | `extm_delay_steps must have shape ({...},); got {...}` |
+| `ValueError` | `extm_delay_steps must hold integers >= 1; got {...}` |
+| `ValueError` | `extm_entry_sizes must hold one int entry size per key row (shape ({...},)); got {...}` |
+| `ValueError` | `extm_entry_sizes must hold one int entry size per key row (shape ({...},)); got shape {...}` |
+| `ValueError` | `extm_entry_sizes must hold integers >= 1; got {...}` |
+| `ValueError` | `extm_entry_sizes sums to {...} but extm_targets holds {...} cells; entries hold contiguous target bl` |
 | `ValueError` | `edge arrays must be all given or all None; missing {...}` |
 | `ValueError` | `{...} must be one-dimensional, got shape {...}` |
 | `ValueError` | `edge arrays must have equal lengths; got {...}` |
@@ -1093,13 +1136,16 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `receptor_reversal_mV and receptor_tau_ms must have the same length; got {...} and {...}` |
 | `ValueError` | `receptor_tau_ms must be > 0 for every receptor; got {...}` |
 | `ValueError` | `decay='euler' needs receptor_tau_ms > dt_ms ({...}); got {...}` |
+| `ValueError` | `ext_* and extm_* drive arguments cannot combine: pass one drive path or neither` |
 | `ValueError` | `ext_target_groups needs the external drive; got {...} with no ext_targets -- pass the six drive argu` |
 | `ValueError` | `ext_t_start_steps/ext_t_stop_steps need the external drive; got {...}/{...} with no ext_targets — pa` |
+| `ValueError` | `ext_target_groups needs the single-drive path; the multi-target path carries one stream per target a` |
 | `ValueError` | `ext_delay_steps=0 requests a same-step drive, which step_order='brian2' does not realize (it reads e` |
 | `ValueError` | `intra_step_rounds={...} needs the delay-0 edge arrays (edge0_pre, edge0_post, edge0_weight_nS, edge0` |
 | `ValueError` | `delay-0 edge arrays (edge0_pre, edge0_post, edge0_weight_nS, edge0_receptor) need intra_step_rounds;` |
 | `ValueError` | `ext_lambda schedule with one shared rate must have shape ({...},); got {...}` |
 | `ValueError` | `ext_lambda schedule with per-target rates must have shape ({...}, {...}); got {...}` |
+| `ValueError` | `extm_lambda schedule with per-target rates must have shape ({...}, {...}); got {...}` |
 | `ValueError` | `I_ext_pA must be None, shape ({...},) or ({...}, {...}); got {...}` |
 | `ValueError` | `V0_mV must be None or shape ({...},); got {...}` |
 | `ValueError` | `intra-step fixed point reached its cap intra_step_rounds={...} with {...} undelivered same-step spik` |
@@ -1121,6 +1167,16 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `V0_mV must be None or shape ({...},); got {...}` |
 | `ValueError` | `hdp_key must be a JAX PRNG key; got {...}` |
 | `ValueError` | `seed must be an int or None; got {...}` |
+| `ValueError` | `state must be a mapping from return_state=True; got {...}` |
+| `ValueError` | `state is missing keys {...}; pass back the full state mapping unmodified` |
+| `ValueError` | `state {...}={...} does not match this network ({...}={...}); a state resumes only the network that w` |
+| `ValueError` | `V0_mV does not combine with state; the state carry restores V` |
+| `ValueError` | `ext_t_start_steps/ext_t_stop_steps do not combine with state; a window is per call, while a state co` |
+| `ValueError` | `a per-step ext_lambda schedule does not combine with state; it is indexed per call, while a state co` |
+| `ValueError` | `state['hdp_key'] must be a JAX PRNG key` |
+| `ValueError` | `state['step'] must be an int step counter; got {...}` |
+| `ValueError` | `state['step'] must be >= 0; got {...}` |
+| `ValueError` | `state carry shape {...} does not match this network (expected {...})` |
 
 **`jaxfne/emitters_hh.py`**
 
