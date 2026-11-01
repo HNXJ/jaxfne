@@ -1,9 +1,10 @@
 """O-83 attribution: which parameter family makes SOM silencing lower gamma in the cellrep set but not in default.
 
 Usage: python attribute_o83.py <out json> [group ...]
-  groups: sizes, connectivity, delay, syn_tau, weights, adaptation, leak_threshold (default: all, in that order)
+  groups: sizes, connectivity, delay, syn_tau, weights, adaptation, leak_threshold (default: all, in that order),
+  and the controls default, cellrep (the unmodified sets)
 Each hybrid set is the PLoS ``default`` set with one family taken from ``cellrep``. Per hybrid: SOM silenced at
-fraction 0 and 0.9, seed 1, T 12 s (env FIGA_T_S overrides), metrics as in ``score_plos_figs.py`` (f_pk, band
+fraction 0 and 0.9, seed 1 (env O83_SEEDS, comma-separated, overrides), T 12 s (env FIGA_T_S overrides), metrics as in ``score_plos_figs.py`` (f_pk, band
 power 25-45 Hz, peak |X| 5-60 Hz, max E rate, population rates); the 0.9/0 band-power ratio is the attribution
 readout (default 1.00 seed mean, cellrep 0.44; RESULT_PLOS_FIGS.md, RESULT_FIGURES.md). Rows stream to the JSON
 after each hybrid. Exit 0, or 2 on usage.
@@ -41,8 +42,16 @@ GROUPS = {
 }
 
 
+CONTROLS = ("default", "cellrep")  # the unmodified sets: the attribution's two ends
+
+
 def hybrid(group):
-    """The default set with ``group``'s keys from cellrep; syn_tau drops the uniform tauE_s."""
+    """The default set with ``group``'s keys from cellrep; syn_tau drops the uniform tauE_s.
+
+    The controls return the unmodified ``default`` or ``cellrep`` set.
+    """
+    if group in CONTROLS:
+        return dict(cj.PARAM_SETS[group])
     P = dict(cj.PARAMS)
     if group == "syn_tau":
         P.pop("tauE_s")
@@ -60,14 +69,17 @@ def peak_mag(row, lo=5.0, hi=60.0):
 
 
 def summarize(rows):
-    base = next(r for r in rows if r["fraction"] == 0.0)
+    """Per row, metrics against the same seed's fraction-0 baseline."""
+    base = {r["seed"]: r for r in rows if r["fraction"] == 0.0}
     out = []
     for r in rows:
+        b = base[r["seed"]]
         out.append({
+            "seed": int(r["seed"]),
             "fraction": r["fraction"],
             "f_pk_hz": float(r["f_pk_hz"]),
-            "band_power_ratio": float(r["band_power_25_45"] / base["band_power_25_45"]),
-            "peak_mag_ratio": peak_mag(r) / peak_mag(base),
+            "band_power_ratio": float(r["band_power_25_45"] / b["band_power_25_45"]),
+            "peak_mag_ratio": peak_mag(r) / peak_mag(b),
             "max_e_rate_hz": float(r["max_e_rate_hz"]),
             "rates_hz": {k: float(v) for k, v in r["rates_Hz"].items()},
         })
@@ -80,23 +92,27 @@ def main():
         return 2
     out_path = sys.argv[1]
     groups = sys.argv[2:] or list(GROUPS)
-    unknown = [g for g in groups if g not in GROUPS]
+    unknown = [g for g in groups if g not in GROUPS and g not in CONTROLS]
     if unknown:
         print("unknown groups: %s" % unknown)
         return 2
     t_s = float(os.environ.get("FIGA_T_S", "12"))
-    result = {"T_s": t_s, "seed": 1, "fractions": [0.0, 0.9], "groups": {}}
+    seeds = [int(s) for s in os.environ.get("O83_SEEDS", "1").split(",")]
+    result = {"T_s": t_s, "seeds": seeds, "fractions": [0.0, 0.9], "groups": {}}
     for g in groups:
         name = "o83_" + g
         cj.PARAM_SETS[name] = hybrid(g)
         cf.PARAM_SET = name
         t0 = time.time()
-        rows = rf.keep_spectrum(cf.silence_sweep("SOM", [0.0, 0.9], [1], T_s=t_s), fmax_hz=200.0)
-        result["groups"][g] = {"swapped": {k: cj.CELLREP_PARAMS[k] for k in GROUPS[g]},
-                               "rows": summarize(rows), "elapsed_s": round(time.time() - t0, 1)}
-        s = result["groups"][g]["rows"][1]
-        print("group %s band_ratio %.3f f_pk %.1f max_e %.1f elapsed %.0f"
-              % (g, s["band_power_ratio"], s["f_pk_hz"], s["max_e_rate_hz"], time.time() - t0), flush=True)
+        rows = rf.keep_spectrum(cf.silence_sweep("SOM", [0.0, 0.9], seeds, T_s=t_s), fmax_hz=200.0)
+        swapped = {} if g in CONTROLS else {k: cj.CELLREP_PARAMS[k] for k in GROUPS[g]}
+        result["groups"][g] = {"swapped": swapped, "rows": summarize(rows),
+                               "elapsed_s": round(time.time() - t0, 1)}
+        for s in result["groups"][g]["rows"]:
+            if s["fraction"] > 0.0:
+                print("group %s seed %d band_ratio %.3f f_pk %.1f max_e %.1f elapsed %.0f"
+                      % (g, s["seed"], s["band_power_ratio"], s["f_pk_hz"], s["max_e_rate_hz"],
+                         time.time() - t0), flush=True)
         with open(out_path, "w", newline="\n") as fh:
             json.dump(result, fh, indent=1, sort_keys=True)
             fh.write("\n")
