@@ -14,7 +14,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 1. T-68 [A] GSDR P3 fit scored run under `PREREG_P3_fit_signed.md` (signed Hamm 2026-11-01): WSL clone
    `~/jaxfne_gsdrP3` at 8516a005, `run_gsdr_p3.sh` (fits seeds 9-13, then `regime_at_gstar` on trial seeds 14-18),
    receipts `F:/warehouse/gsdr/P3_fit_8516a005`. Closes when: `RESULT_P3_fit.md` holds the per-seed G1-G3 table and
-   verdict, the S figure shows it, dashboard and 9E updated. Pilots (unscored) predicted FAIL.
+   verdict, the S figure shows it, dashboard and 9E updated. Status 2026-11-01: scored FAIL, 0 of 5 (899dccba,
+   `RESULT_P3_fit.md`); S14, REPLICATIONS and dashboard in lane `gsdrdash`.
 2. T-O70 [A] B8 pilots (running from clone `pilots` at 9eee4452; receipts under `F:/warehouse/vogels2011/P3v2_pilot`
    and `F:/warehouse/potjans2014/P3v2_pilot`): Vogels seed 0, rho0 6 Hz, eta 0; Potjans 10% seed 0 and L5i→L5e
    lesion. Closes when: each known positive moves its estimand as the prereg says (rho0 6 breaks R-E; eta 0 fails
@@ -23,7 +24,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    `F:/warehouse/vogels2011/P3v2_pilot`): seed 0 R-E z 8.77 Hz (e 1.92), rho0 6 Hz z 9.99 (e 2.33), eta 0 z 161 Hz with
    O-DROP 0.993 (fails as predicted); the all-cell rate still falls at 10 s (9.7, 9.2, 8.8 Hz in the last 3 s), so
    R-E cannot close on the baseline at the coded 10 s. iSTDP units and increments match `isp_brian.py` (Muse read,
-   verified at `istdp_vogels2011.py:137`, `hdp_rule.py:244-247`). Potjans waits on O-80.
+   verified at `istdp_vogels2011.py:137`, `hdp_rule.py:244-247`). Hamm 2026-11-01: extend T until the baseline
+   converges (rate change < 0.1 Hz/s), then amend the prereg; segmented AdEx registered-rule kernel in lane
+   `vogchunk`. Potjans waits on O-80 (LIF continuation in lane `poisscan`).
 3. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
    behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
    test first and a changelog fragment:
