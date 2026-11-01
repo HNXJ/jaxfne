@@ -40,11 +40,12 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    (0,0) reported beside it) → [H] sign (step 7) → R5 score, exact and approximate apart. The signed v5 T2 FAIL
    stays. Then T-22, T-25: PCL B3 on the intra-step operator; trained weights load as A' (`with_trained_weights`).
    Status 2026-10-31: R2 on `shapes.h5` from one seeded init (`run_r2_reference.py`, 922270fd); C++ null exact
-   on weights (O-81); oracle-vs-C++ receipts pending in `F:/warehouse/pcl/r2_922270fd`.
+   on weights (O-81); oracle vs C++ exact within rtol 1e-12 on both layers (CALIBRATION R2, receipts
+   `F:/warehouse/pcl/r2_922270fd`). Next: oracle spike receipt, then R3 on the training files, then R4 prereg.
 5. T-69 [A] Destexhe pilots on the WSL GPU after step 12: `run_destexhe.py fig6b_cont --seed S --tag fig6b_cont
    --out <unscored dir> --kick-fraction 0.25 --kick-rate-hz 286` for seeds 0-3 (50-85 s each) → prereg draft (E1-E4,
    scoring seeds 9-13) → [H] sign (step 7). Status 2026-10-31: pilots done (E1-E3 jointly on seed 0 of 0-3; E4 off,
-   48-49 Hz); `PREREG_P3_v2.md` drafted and pinned with three owner decisions (E4 gated or reported, 4-of-5
+   48-49 Hz); `PREREG_P3_v3.md` (v2 misstated v1's E4 as gated) pinned with three owner decisions (E4 reported or gated, 4-of-5
    aggregation, sign or defer; outside the 0.5.9 checklist, S16). CALIBRATION step 6 erratum dc9b458c.
 6. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
