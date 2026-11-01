@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-01T00:00:09Z",
-    "dev_sha": "3fcf6755862304d243cb7cbbe530677b36d187c0",
-    "data_revision": "1acbc407d04f78926392e84115fe850bea09ba773658227430c0682cfe000681"
+    "utc": "2026-11-01T02:29:22Z",
+    "dev_sha": "8f2e40ef48ae46ec7243fa5cb678c4173dae01f8",
+    "data_revision": "fc2edfcce2f2018f5337c1b6e65f8b34d4430a97ee057adc23e26ad578532c15"
   },
   "papers": [
     {
@@ -1221,14 +1221,14 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": 25,
+        "score": 32,
         "panels": 28,
         "excluded": 3,
         "counts": {
-          "pass": 6,
-          "partial": 2,
-          "fail": 0,
-          "not run": 20
+          "pass": 7,
+          "partial": 4,
+          "fail": 2,
+          "not run": 15
         },
         "same_as": null,
         "scope": "Main-text Figs. 1-6 of the PLoS CB article (PMC13286281), read 2026-10-31. The Cell Reports 2025 figures scored in RESULT_FIGURES.md belong to another paper and do not count here.",
@@ -1259,11 +1259,15 @@
           },
           {
             "id": "2A",
-            "status": "not run"
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "frequency 34.1 to 5.1 Hz and max E rate pass; amplitude does not rise until 90 %; seizure-like from 60 %, not 70 %"
           },
           {
             "id": "2B",
-            "status": "not run"
+            "status": "fail",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "SOM silencing leaves gamma intact (band power 1.00-1.30 of baseline, SOM rate 0.61 Hz at 90 %); frequency rises 26 %"
           },
           {
             "id": "2C",
@@ -1283,11 +1287,15 @@
           },
           {
             "id": "3A",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "PV randomization like PV silencing: f_pk 23.7, 10.4 Hz; max E 312.8 Hz at 90 %"
           },
           {
             "id": "3B",
-            "status": "not run"
+            "status": "fail",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "SOM randomization like SOM silencing, but neither abolishes gamma (band power 1.21, 1.27)"
           },
           {
             "id": "3C",
@@ -1307,7 +1315,9 @@
           },
           {
             "id": "4A bottom",
-            "status": "not run"
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "frequency 39.4 to 21.1 Hz over SOM/PV 0.5-4 passes; amplitude rises to ratio 2, ratio 4 enters a high-rate state"
           },
           {
             "id": "4B middle",
@@ -3461,16 +3471,16 @@
       "id": "gsdr2026",
       "title": "GSDR, Fig. 6 (a 50-neuron E, SST-like and PV-like circuit fitted to recorded spectra)",
       "citation": "Nejat, Sherfey and Bastos, PLOS One 2026",
-      "class": "in progress",
+      "class": "failed",
       "question": "Does GSDR fit the 50-neuron Hodgkin–Huxley circuit to the recorded spectra when the circuit and the optimizer run in jaxfne?",
       "page": null,
       "release": "0.5.8",
       "tier": "T-jaxfne",
-      "stage": "P2",
+      "stage": "P3",
       "grammar": null,
       "lane": {
         "branch": "dev",
-        "sha": "7ac1bb47b5805b046a4790d9d6456ed23c706eb7"
+        "sha": "899dccbaddf03c98bb35cf1897d3f4ee04318573"
       },
       "stage_artifacts": [
         {
@@ -3479,26 +3489,51 @@
             {
               "label": "source record (draft)",
               "path": "artifacts/etudes/papers/gsdr2026/SOURCE_P1.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/7ac1bb47b5805b046a4790d9d6456ed23c706eb7/artifacts/etudes/papers/gsdr2026/SOURCE_P1.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/899dccbaddf03c98bb35cf1897d3f4ee04318573/artifacts/etudes/papers/gsdr2026/SOURCE_P1.md",
               "sha256": "e3b0289324080f4a2ac43010a12a9fe89ebdbe478ccac394b5054d6f668b972f"
+            }
+          ]
+        },
+        {
+          "stage": "P3",
+          "items": [
+            {
+              "label": "fit prereg (signed)",
+              "path": "artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/899dccbaddf03c98bb35cf1897d3f4ee04318573/artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md",
+              "sha256": "4dc8c272b9e24d4020104c1031d211c65c23d9dd36e472992568afccea4a5c38"
+            },
+            {
+              "label": "result",
+              "path": "artifacts/etudes/papers/gsdr2026/RESULT_P3_fit.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/899dccbaddf03c98bb35cf1897d3f4ee04318573/artifacts/etudes/papers/gsdr2026/RESULT_P3_fit.md",
+              "sha256": "e330de5a7fd00f9063e5c7647748117fbee7dd2c59b9d1670a84f410c4f96879"
             }
           ]
         }
       ],
-      "verdict": null,
+      "verdict": "failed",
       "verdict_note": null,
-      "summary": "Source record drafted. Pilot fits in the lane (unscored, run without MCDP; P-039) stay saturated: κ 0.60 on the 500-generation reference refit against 0.0156 in the data. The ruled next step is MCDP on as an outer-loop HDP step (`mcdp_hdp_step`) in the B8 pilot, then the prereg.",
-      "preregs": [],
+      "summary": "Signed P3 fit (optimizer seeds 9–13, 30 generations with MCDP, CPU float32): 0 of 5 seeds pass G2 and G3 (PASS needs 4). The fitted conductances stay synchronous on held-out trials (mean kappa 0.595–0.597 against the 0.1 gate) and fast (69.4–69.5 Hz against 5–50 Hz) while the loss falls 2.1–5.8 %.",
+      "preregs": [
+        {
+          "id": "P3 fit",
+          "signed": "2026-11-01",
+          "path": "artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/899dccbaddf03c98bb35cf1897d3f4ee04318573/artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md",
+          "sha256": "4dc8c272b9e24d4020104c1031d211c65c23d9dd36e472992568afccea4a5c38"
+        }
+      ],
       "criteria": [],
       "sensitivity": [],
       "charts": [],
       "open": [
-        "Port spec, calibration record and the pilot fit are in the lane clone and wait for integration on dev.",
+        "The next prereg names --morphology explicitly (RESULT_P3_fit.md: the reference-morphology evaluation is insensitive to the fitted conductances at stim 0.6).",
         "The drive and J_E anchor for the g sweep are not yet recorded."
       ],
       "verdict_summary": {
         "kind": "paper",
-        "paper": null,
+        "paper": "failed",
         "library": null,
         "methods": null,
         "failed_criteria": [],
@@ -5907,7 +5942,8 @@
     "papers": 13,
     "by_paper": {
       "mixed": 1,
-      "in progress": 11,
+      "in progress": 10,
+      "failed": 1,
       "reproduced (conditional)": 1
     },
     "criteria": {
