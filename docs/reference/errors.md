@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2375 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2401 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -501,11 +501,23 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `simulate() does not consume Simulation.seed on the hh family: the run key derives from the declared ` |
 | `ValueError` | `simulate(continuation=..., return_state=...) is not realized for emitter family 'rate': the route ha` |
 | `ValueError` | `simulate(paradigm=...) is not realized for emitter family 'rate': the route's declared input is Simu` |
-| `ValueError` | `simulate(continuation=..., return_state=...) is not realized for emitter family 'lif': the route has` |
+| `ValueError` | `simulate(continuation=...) on emitter family 'lif' takes a jaxfne._pipeline.LIFContinuationState ret` |
 | `ValueError` | `local_inhibition={...} declares several distinct (rounds, order, resolution) specs on one tensor; th` |
+| `ValueError` | `simulate(continuation=..., return_state=...) is not realized with local_inhibition resolution 'event` |
+| `ValueError` | `simulate(continuation=..., return_state=...) is not realized with local_inhibition resolution 'event` |
 | `ValueError` | `simulate_lif_seed_batch refuses a template pinning poisson_drive['seed'] ({...}): per-member keying ` |
 | `ValueError` | `Simulation(poisson_drive=[...]) entry {...} has target {...}: a list of {...} entries needs an (area` |
 | `ValueError` | `Simulation(poisson_drive=[...]) entries {...} and {...} target overlapping neurons: {...} and {...} ` |
+| `ValueError` | `simulate(continuation=...) on emitter family 'lif' takes a jaxfne._pipeline.LIFContinuationState ret` |
+| `ValueError` | `continuation dt_ms={...} disagrees with the Simulation grid ({...} ms); continued segments share one` |
+| `ValueError` | `continuation is missing {...}; pass the LIFContinuationState simulate(..., return_state=True) return` |
+| `ValueError` | `continuation {...} has shape {...} but the model needs {...}; the state continues its own model` |
+| `ValueError` | `continuation {...} is set but no HDP rule runs; the rule-free carry holds no rule state` |
+| `ValueError` | `continuation 'H' is None but an HDP rule runs; pass the LIFContinuationState simulate(..., return_st` |
+| `ValueError` | `continuation 'H' has shape {...} but the model needs ({...},)` |
+| `ValueError` | `continuation 'aux' must have shape {...}; got {...}` |
+| `ValueError` | `continuation 'bias' must have shape ({...},); got {...}` |
+| `ValueError` | `continuation 'bias' is set but the rule declares no drive_bias target` |
 | `ValueError` | `local_inhibition resolution {...} is not realized on the tensor simulate path: the cascade needs the` |
 | `ValueError` | `paradigm StimulusSchedule has n_neurons={...} but the lif model has {...} neurons; pass a schedule b` |
 | `ValueError` | `RuntimeConfig(enable_hdp=True) on emitter family 'lif' needs a registered hdp_rule; got hdp_rule={..` |
@@ -1458,6 +1470,14 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `local_inhibition_resolution='event_order' needs local_inhibition_groups; without positions there is ` |
 | `ValueError` | `local_inhibition_blocks is set but resolution is 'whole_step'; the cap resolves without per-position` |
 | `ValueError` | `local_inhibition_visit_order is set but resolution is 'whole_step'; the cap resolves in the declared` |
+| `ValueError` | `init_state must be None or the mapping return_state=True returned; got {...}` |
+| `ValueError` | `init_state step_index={...} must be a non-negative integer` |
+| `ValueError` | `init_state step_index={...} must be a non-negative integer` |
+| `ValueError` | `V0_mV is set with init_state; the state carries the potentials` |
+| `ValueError` | `H0 is set with init_state; the state carries the rule carry` |
+| `ValueError` | `init_state is missing {...}; pass the mapping return_state=True returned` |
+| `ValueError` | `init_state {...} must have shape {...}, got {...}` |
+| `ValueError` | `init_state is missing {...}; pass the mapping return_state=True returned` |
 | `ValueError` | `I_ext_pA must be None, shape ({...},) or ({...}, {...}); got {...}` |
 | `ValueError` | `V0_mV must be None or shape ({...},); got {...}` |
 | `ValueError` | `feed_current must be None or shape ({...}, {...}); got {...}` |
@@ -1467,8 +1487,14 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `feed_arrivals must hold non-negative event counts` |
 | `ValueError` | `feed_arrivals must hold whole event counts` |
 | `ValueError` | `H0 is set but hdp_rule is None; H seeds the rule's carry only` |
+| `ValueError` | `init_state 'H' must be None or shape ({...},); got {...}` |
 | `ValueError` | `H0 must be None or shape ({...},); got {...}` |
 | `ValueError` | `H0 must be finite (got NaN/inf)` |
+| `ValueError` | `init_state {...} is set but hdp_rule is None; the rule-free carry holds no rule state` |
+| `ValueError` | `init_state 'H' is None but hdp_rule runs; pass the mapping return_state=True returned` |
+| `ValueError` | `init_state 'aux' must have shape {...}, got {...}` |
+| `ValueError` | `init_state 'bias' must have shape ({...},); got {...}` |
+| `ValueError` | `init_state 'bias' is set but the rule declares no drive_bias target` |
 | `ValueError` | `key must be a JAX PRNG key; got {...}` |
 | `ValueError` | `hdp_rule {...} returned undeclared theta_targets {...}; declared: {...}` |
 
