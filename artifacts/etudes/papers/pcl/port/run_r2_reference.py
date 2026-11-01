@@ -1,30 +1,32 @@
 """PCL R2 comparison harness: run the event oracle on a C++-layout network folder.
 
-The authors' C++ side runs separately in WSL (``neuvisys-exe <net> <events.h5> <nbCount>``);
+The authors' C++ side runs separately in WSL (``neuvisys-exe <net> <events.h5> <nbPass>``);
 this module only reads its output folder. It runs the pure-path event oracle
 (``pcl_event_ref.PCLEventRef``, learning on) on a network folder in the C++ layout, saves
 the result back into that folder in the same layout the C++ ``save()`` writes, and compares
 two network folders after a run.
 
-C++ facts, verified against the port (not the C++ source, which is not on this machine):
-- Init weights are unseeded (``WeightMatrix.cpp:7``), so both arms must start from one
-  copied network folder (``copy_network``); the ``seed`` of ``run_oracle`` only seeds the
-  constructor's init weights, which loading overwrites.
-- The loader reads ``configs/*.json``, ``weights/0/<k>.npy`` and ``<k>lli.npy`` for
-  ``k`` in ``0..ND-1``, per-cell ``weights/0/<n>li.npy`` / ``<n>tdi.npy`` in iteration
-  order, per-cell ``weights/1/<c>.npy`` / ``<c>lli.npy``, and per-neuron ``<idx>.json``
-  (``spiking_rate`` and ``learning_decay`` only), in ``pcl_event_ref.py:333-360, 479-540``.
-- ``save()`` calls ``resetAllNeurons()`` before it writes (``NetworkHandle.cpp:200``;
-  design study section 1), so the written threshold, rate and decay are the reset values
-  (``VTHRESH``, 0, 1.0) while weights, ``count_spike`` and the spike train survive.
-- Two C++ runs from one folder may still differ (``Util::winnerTakeAll`` uses a
-  time-seeded ``std::sample``), so the comparison must also run C++ against C++ (a null)
-  before reading oracle-vs-C++ differences.
+C++ facts (the authors' source in WSL ``~/pcl_cpp``):
+- Init weights are unseeded (``WeightMatrix.cpp:7``), so both arms start from one copied
+  network folder (``init_network``, ``copy_network``); the ``seed`` of ``run_oracle`` only
+  seeds the constructor's init weights, which loading overwrites.
+- ``Util::winnerTakeAll`` uses a time-seeded ``std::sample``, so R2 runs C++ against C++
+  (a null) before reading oracle-vs-C++ differences.
+- ``save()`` calls ``resetAllNeurons()`` (``NetworkHandle.cpp:200``) before
+  ``saveNetwork()`` (233), and ``Neuron::resetNeuron`` zeroes ``m_totalSpike`` and clears
+  ``m_trackingSpikeTrain`` (``Neuron.cpp:616, 626``), so every saved ``<idx>.json``
+  carries ``count_spike`` 0 and an empty ``spike_train``; threshold, rate and decay are
+  the reset values while weights survive.
+- Layer-0 shared weights are written ``weights/0/<k>.npy`` with shape ``(2, 1, 1, W, H)``
+  (polarity, camera, synapse, x, y), float64; the oracle only supports one camera and
+  one synapse, so the two inserted axes are size 1. ``<k>lli.npy`` and the layer-1
+  files already match the C++ shapes.
+- R2 ``compare`` decides on weights (rtol 1e-12) with equal ``count_spike`` fields;
+  spike evidence is the run result (``n_spikes``, ``last_spike_t``), which the saved
+  folder no longer carries.
 
-``save_network`` mirrors that order: reset the neurons, then write. ``compare`` reads only
-``count_spike`` and the weight files, so the reset only affects the json fields a human
-diffs, never the verdict. ``networkState.json`` is not written: its schema is unknown here
-and neither the loader nor ``compare`` reads it.
+``save_network`` mirrors that order: reset the neurons, then write. ``networkState.json``
+is not written: its schema is unknown here and neither the loader nor ``compare`` reads it.
 """
 
 from __future__ import annotations
@@ -170,7 +172,8 @@ def save_network(net: "ref.PCLEventRef", net_dir) -> Path:
     d1.mkdir(parents=True, exist_ok=True)
     _reset_neurons(net)
     for k in range(net.ND):
-        np.save(d0 / f"{k}.npy", np.asarray(net.w_s[k], dtype=np.float64))
+        w = np.asarray(net.w_s[k], dtype=np.float64)[:, None, None, :, :]
+        np.save(d0 / f"{k}.npy", w)
         np.save(d0 / f"{k}lli.npy", np.asarray(net.wi_s[k], dtype=np.float64))
     if net.lat_on and net.LAT is not None:
         _save_inhibition_maps(d0, "li", net.lat_mask, net.LAT)
@@ -183,11 +186,11 @@ def save_network(net: "ref.PCLEventRef", net_dir) -> Path:
     for d, cells in ((d0, net.s_cells), (d1, net.c_cells)):
         for idx, cell in enumerate(cells):
             (d / f"{idx}.json").write_text(json.dumps({
-                "count_spike": int(len(cell.spikes)),
+                "count_spike": 0,  # reset on save; the run result carries the spikes
                 "threshold": float(cell.thr),
                 "spiking_rate": float(cell.rate),
                 "learning_decay": float(cell.decay),
-                "spike_train": [int(t) for t in cell.spikes],
+                "spike_train": [],  # reset on save; empty whatever the run did
             }), encoding="utf-8")
     return root
 
@@ -233,8 +236,15 @@ def run_oracle(net_dir, events_path, nb_pass: int, *, seed: int) -> dict:
     n = int(ev["t"].shape[0])
     for k in range(nb_pass):
         net.run(ev["t"] + k * span, ev["x"], ev["y"], ev["p"])
+    last_spike_t = -1
+    for cells in (net.s_cells, net.c_cells):
+        for cell in cells:
+            for t in cell.spikes:
+                if int(t) > last_spike_t:
+                    last_spike_t = int(t)
     save_network(net, net_dir)
-    return {"n_events": n * nb_pass, "n_spikes": int(net.n_spikes()), "net_dir": str(Path(net_dir))}
+    return {"n_events": n * nb_pass, "n_spikes": int(net.n_spikes()),
+            "last_spike_t": last_spike_t, "net_dir": str(Path(net_dir))}
 
 
 def _layer_sizes(net_dir: Path) -> tuple[tuple[int, int, int], tuple[int, int, int]]:
@@ -283,20 +293,18 @@ def compare(dir_a, dir_b) -> dict:
         fb = sorted(p.name for p in db.glob("*.npy"))
         if fa != fb:
             raise ValueError(f"compare: weights/{layer} file sets differ")
-        equal = equal_train = 0
+        equal = 0
         ta = tb = 0
-        trains_a = trains_b = False
         for idx in range(n):
             pa, pb = da / f"{idx}.json", db / f"{idx}.json"
             if not pa.is_file() or not pb.is_file():
                 raise ValueError(f"compare: neuron file {idx}.json "
                                  f"is missing in weights/{layer} on one side")
-            (ca, ra), (cb, rb) = _read_state(pa), _read_state(pb)
+            ca, _ = _read_state(pa)
+            cb, _ = _read_state(pb)
             ta += ca
             tb += cb
             equal += ca == cb
-            equal_train += ra == rb
-            trains_a, trains_b = trains_a or bool(ra), trains_b or bool(rb)
         max_abs = 0.0
         max_rel = 0.0
         weights_ok = True
@@ -314,11 +322,8 @@ def compare(dir_a, dir_b) -> dict:
                 max_rel = max(max_rel, float(rel.max()))
             if not np.allclose(A, B, rtol=RTOL, atol=0.0):
                 weights_ok = False
-        exact = equal == n and weights_ok and (not (trains_a and trains_b) or equal_train == n)
+        exact = equal == n and weights_ok
         out[str(layer)] = {"cells": n, "cells_equal_count": equal,
-                           # spike times are compared when both sides wrote trains (the C++
-                           # writes them only with TRACKING on); null otherwise
-                           "cells_equal_train": equal_train if trains_a and trains_b else None,
                            "total_spikes_a": ta, "total_spikes_b": tb,
                            "max_abs_weight_diff": max_abs,
                            "max_rel_weight_diff": max_rel, "exact": bool(exact)}

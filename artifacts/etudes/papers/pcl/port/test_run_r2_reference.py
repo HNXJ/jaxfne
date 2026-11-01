@@ -2,10 +2,11 @@
 
 A synthetic 2x2x2 + 1x1x2 network with local-only inhibition, one 40 mV weight that
 spikes on every event at pixel (1,1), and a 24-event camera-0 file. (a) runs the
-oracle from two copies and compares exact; (b) perturbs one weight by 1e-6 before
-the run and requires a nonzero diff with exact False; (c) requires a missing
-count_spike to be refused. Each run asserts its spikes first, so a silent fixture
-cannot pass.
+oracle from two copies and compares exact, with the spike check on the run result;
+(b) perturbs one weight by 1e-6 before the run and requires a nonzero diff with exact
+False; (c) requires a missing count_spike to be refused; (i) requires the save to
+mirror the C++ reset (count 0, empty train) and the (2, 1, 1, W, H) layer-0 shape.
+Each run asserts its spikes first, so a silent fixture cannot pass.
 """
 
 from __future__ import annotations
@@ -103,7 +104,7 @@ def test_a_two_oracle_runs_from_copies_compare_exact(tmp_path):
     assert rb["n_events"] == N_EVENTS and rb["n_spikes"] > 0, "fixture must spike"
     cmp = r2.compare(a, b)
     assert cmp["exact"] is True
-    assert cmp["0"]["total_spikes_a"] == cmp["0"]["total_spikes_b"] > 0
+    assert cmp["0"]["total_spikes_a"] == cmp["0"]["total_spikes_b"] == 0  # reset on save
     assert cmp["0"]["max_abs_weight_diff"] == 0.0
     assert cmp["1"]["exact"] is True  # silent complex layer agrees too
 
@@ -151,14 +152,6 @@ def test_d_copy_refuses_existing_dst_and_nb_pass_refused(tmp_path):
         r2.run_oracle(dst, events, 0, seed=0)
 
 
-def _spiking_cell_file(net: Path) -> Path:
-    """The layer-0 neuron file with a non-empty spike train (the fixture drives one cell)."""
-    hits = [p for p in sorted((net / "weights" / "0").glob("*.json"))
-            if json.loads(p.read_text(encoding="utf-8"))["spike_train"]]
-    assert hits, "fixture must spike"
-    return hits[0]
-
-
 def test_f_nb_pass_feeds_the_file_again_shifted(tmp_path):
     """nb_pass is the C++ nbPass: pass k repeats the file shifted by k * (last - first)."""
     base = _make_base(tmp_path / "base")
@@ -170,8 +163,7 @@ def test_f_nb_pass_feeds_the_file_again_shifted(tmp_path):
     assert r1["n_spikes"] > 0, "fixture must spike"
     assert r2_["n_events"] == 2 * r1["n_events"] == 2 * N_EVENTS
     span = 1000 * (N_EVENTS - 1)
-    train = json.loads(_spiking_cell_file(two).read_text(encoding="utf-8"))["spike_train"]
-    assert train and max(train) > span, "the second pass must spike after the first pass's span"
+    assert r2_["last_spike_t"] > span, "the second pass must spike after the first pass's span"
 
 
 def test_h_init_writes_a_loadable_seeded_folder(tmp_path):
@@ -184,22 +176,6 @@ def test_h_init_writes_a_loadable_seeded_folder(tmp_path):
     assert r2.compare(a, c)["0"]["max_abs_weight_diff"] > 0.0, "the seed must change the init"
     with pytest.raises(FileExistsError):
         r2.init_network(base / "configs", a, seed=3)
-
-
-def test_g_spike_train_difference_breaks_exact(tmp_path):
-    base = _make_base(tmp_path / "base")
-    events = _make_events(tmp_path / "ev.h5")
-    a = r2.copy_network(base, tmp_path / "a")
-    b = r2.copy_network(base, tmp_path / "b")
-    r2.run_oracle(a, events, 1, seed=0)
-    r2.run_oracle(b, events, 1, seed=0)
-    p = _spiking_cell_file(b)
-    state = json.loads(p.read_text(encoding="utf-8"))
-    state["spike_train"][-1] += 1  # same count, one spike moved by 1 us
-    p.write_text(json.dumps(state), encoding="utf-8")
-    cmp = r2.compare(a, b)
-    assert cmp["0"]["cells_equal_count"] == cmp["0"]["cells"]
-    assert cmp["0"]["cells_equal_train"] == cmp["0"]["cells"] - 1 and cmp["exact"] is False
 
 
 def test_e_compare_cli_writes_receipt(tmp_path):
@@ -217,3 +193,20 @@ def test_e_compare_cli_writes_receipt(tmp_path):
     assert len(rec["inputs"]["a"]["sha256"]) == 64
     assert rec["inputs"]["b"]["n_files"] == rec["inputs"]["a"]["n_files"] > 0
     assert rec["comparison"]["exact"] is True
+
+
+def test_i_save_mirrors_cpp_reset_and_shape(tmp_path):
+    """The save mirrors the C++ reset: (2, 1, 1, W, H) layer-0 weights, count 0, train []."""
+    base = _make_base(tmp_path / "base")
+    events = _make_events(tmp_path / "ev.h5")
+    net = r2.copy_network(base, tmp_path / "net")
+    res = r2.run_oracle(net, events, NB_PASS, seed=0)
+    assert res["n_spikes"] > 0, "fixture must spike"
+    for k in range(2):  # ND of the synthetic network; SX = SY = 2
+        arr = np.load(net / "weights" / "0" / f"{k}.npy")
+        assert arr.shape == (2, 1, 1, 2, 2), f"layer-0 weight {k}: {arr.shape}"
+    for layer, n in (("0", 8), ("1", 2)):  # NX*NY*ND and CX*CY*CD of the fixture
+        for idx in range(n):
+            state = json.loads((net / "weights" / layer / f"{idx}.json").read_text(encoding="utf-8"))
+            assert state["count_spike"] == 0, f"{layer}/{idx}.json count"
+            assert state["spike_train"] == [], f"{layer}/{idx}.json train"
