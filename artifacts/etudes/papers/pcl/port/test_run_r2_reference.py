@@ -99,7 +99,8 @@ def test_a_two_oracle_runs_from_copies_compare_exact(tmp_path):
     a = r2.copy_network(base, tmp_path / "a")
     b = r2.copy_network(base, tmp_path / "b")
     assert r2.main(["oracle", "--net", str(a), "--events", str(events),
-                    "--nb-pass", str(NB_PASS), "--seed", "0"]) == 0
+                    "--nb-pass", str(NB_PASS), "--seed", "0",
+                    "--out", str(tmp_path / "a_receipt.json")]) == 0
     rb = r2.run_oracle(b, events, NB_PASS, seed=0)
     assert rb["n_events"] == N_EVENTS and rb["n_spikes"] > 0, "fixture must spike"
     cmp = r2.compare(a, b)
@@ -210,3 +211,55 @@ def test_i_save_mirrors_cpp_reset_and_shape(tmp_path):
             state = json.loads((net / "weights" / layer / f"{idx}.json").read_text(encoding="utf-8"))
             assert state["count_spike"] == 0, f"{layer}/{idx}.json count"
             assert state["spike_train"] == [], f"{layer}/{idx}.json train"
+
+
+def test_j_exact_is_weights_only_with_counts_reset(tmp_path):
+    """`exact` decides on weights only; counts are reported, never gating."""
+    base = _make_base(tmp_path / "base")
+    a = r2.copy_network(base, tmp_path / "a")
+    b = r2.copy_network(base, tmp_path / "b")
+    for side in (a, b):
+        p = side / "weights" / "0" / "3.json"
+        state = json.loads(p.read_text(encoding="utf-8"))
+        state["count_spike"] = 5  # nonzero on both sides: the old count leg
+        p.write_text(json.dumps(state), encoding="utf-8")
+    cmp = r2.compare(a, b)
+    assert cmp["exact"] is True, "equal weights compare exact with nonzero counts"
+    assert cmp["0"]["total_spikes_a"] == cmp["0"]["total_spikes_b"] == 5
+    assert cmp["0"]["counts_reset"] is False, "nonzero counts are not a reset"
+    assert cmp["counts_reset"] is False
+    cmp0 = r2.compare(a, a)
+    assert cmp0["counts_reset"] is False
+
+
+def test_k_saved_folders_compare_exact_with_counts_reset(tmp_path):
+    """Saved folders (counts reset to 0) compare exact and report counts_reset true."""
+    base = _make_base(tmp_path / "base")
+    events = _make_events(tmp_path / "ev.h5")
+    a = r2.copy_network(base, tmp_path / "a")
+    b = r2.copy_network(base, tmp_path / "b")
+    ra = r2.run_oracle(a, events, NB_PASS, seed=0)
+    r2.run_oracle(b, events, NB_PASS, seed=0)
+    assert ra["n_spikes"] > 0, "fixture must spike"
+    cmp = r2.compare(a, b)
+    assert cmp["exact"] is True
+    assert cmp["counts_reset"] is True, "saved folders carry the C++ reset"
+
+
+def test_l_oracle_cli_writes_receipt(tmp_path):
+    """The oracle subcommand writes a receipt carrying the run result."""
+    base = _make_base(tmp_path / "base")
+    events = _make_events(tmp_path / "ev.h5")
+    net = r2.copy_network(base, tmp_path / "net")
+    out = tmp_path / "receipt.json"
+    assert r2.main(["oracle", "--net", str(net), "--events", str(events),
+                    "--nb-pass", str(NB_PASS), "--seed", "0",
+                    "--out", str(out)]) == 0
+    rec = json.loads(out.read_text(encoding="utf-8"))
+    assert rec["tool"] == "run_r2_reference" and rec["subcommand"] == "oracle"
+    assert len(rec["code_sha"]) == 40
+    assert len(rec["inputs"]["events"]["sha256"]) == 64
+    assert len(rec["inputs"]["net"]["sha256"]) == 64
+    assert rec["inputs"]["net"]["n_files"] > 0
+    assert rec["result"]["n_spikes"] > 0, "receipt must hold the run's spikes"
+    assert rec["result"]["n_events"] == N_EVENTS

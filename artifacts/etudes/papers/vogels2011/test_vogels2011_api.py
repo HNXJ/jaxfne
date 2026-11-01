@@ -290,3 +290,17 @@ def test_pilot_receipt_unscored(tmp_path):
         "a 0.2 s leg cannot hold the 1 s R-E window"
     assert receipt["R-E"]["e"] >= 0.0, "relative error must be finite-sided"
     assert receipt["O-DROP"]["ratio"] >= 0.0, "drop ratio must be finite-sided"
+
+
+def test_plastic_manifest_records_w_trace_off(tmp_path):
+    """The plastic manifest entry records that the per-step |w| trace is off."""
+    import json
+
+    out = tmp_path / "traceflag"
+    L.run_plastic_segment(0, "flag", out, n=20, T_s=0.1)
+    manifest = json.loads((out / "manifest.json").read_text())
+    entries = [e for e in manifest["runs"]
+               if e["file"] == "spikes_seed0_flag.npz"]
+    assert len(entries) == 1, "fixture must write exactly one run entry"
+    assert entries[0]["plastic"]["record_w_trace"] is False, \
+        "the entry must record record_w_trace false"

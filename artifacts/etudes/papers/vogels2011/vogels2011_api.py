@@ -276,6 +276,7 @@ def run_plastic_segment(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False,
                         "rho0_hz": rule_cfg["rho0_hz"],
                         "tau_stdp_ms": rule_cfg["tau_stdp_ms"],
                         "alpha": rule_cfg["alpha"],
+                        "record_w_trace": False,
                         "w_ie_init_nS": float(w_init[mask].max(initial=0.0)) if int(mask.sum()) else 0.0,
                         "w_ie_final_mean_nS": float(w_final[mask].mean()) if int(mask.sum()) else 0.0,
                         "n_plastic": int(mask.sum())}}

@@ -184,6 +184,7 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
     trajectory = []
     best = {"loss": float("inf"), "g": None, "components": None}
     total_wall = 0.0
+    es_clipped_total = 0
     start_gen = 0
     a_traj = []
     opt_state = None
@@ -235,6 +236,25 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
         if prior_morph != morphology:
             raise SystemExit("error: --resume with morphology %r over a %r fit"
                              % (morphology, prior_morph))
+        required = ["seed", "population"]
+        if mcdp:
+            required += ["es_sigma", "es_clipped_total"]
+        for _key in required:
+            if _key not in z.files:
+                raise SystemExit("error: --resume over a checkpoint without "
+                                 "%r: the checkpoint predates the "
+                                 "sampling-state record" % (_key,))
+        if int(z["seed"]) != int(seed):
+            raise SystemExit("error: --resume with seed %d over a checkpoint "
+                             "with seed %d" % (int(seed), int(z["seed"])))
+        if int(z["population"]) != int(population):
+            raise SystemExit("error: --resume with population %d over a "
+                             "checkpoint with population %d"
+                             % (int(population), int(z["population"])))
+        if mcdp and float(z["es_sigma"]) != float(es_s):
+            raise SystemExit("error: --resume with es_sigma %r over a "
+                             "checkpoint with es_sigma %r"
+                             % (float(es_s), float(z["es_sigma"])))
         ckpt_mcdp = "mcdp_gsdr_state" in z.files
         if bool(mcdp) != bool(ckpt_mcdp):
             raise SystemExit("error: --resume mode mismatch: checkpoint is "
@@ -248,6 +268,7 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                          _unpack_state(z["mcdp_inner_state"]))
             a_traj = [float(a) for a in
                       json.loads(str(z["mcdp_a_traj_json"]))]
+            es_clipped_total = int(z["es_clipped_total"])
         else:
             for _ in range(start_gen * (int(population) - 1)):
                 rng.standard_normal(n_params)
@@ -276,7 +297,11 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                     json.dumps(best["components"])),
                 "total_wall_s": np.float64(total_wall),
                 "next_gen": np.int64(next_gen),
-                "morphology": np.array(morphology)}
+                "morphology": np.array(morphology),
+                "seed": np.int64(int(seed)),
+                "population": np.int64(int(population)),
+                "es_sigma": np.float64(float(es_s)),
+                "es_clipped_total": np.int64(int(es_clipped_total))}
         if mcdp:
             gsdr_state, inner_state = opt_state
             ckpt["mcdp_gsdr_state"] = _pack_state(gsdr_state)
@@ -290,6 +315,7 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                  "trajectory": trajectory, "total_wall_s": float(total_wall)}
         if mcdp:
             partial["a_trajectory"] = [float(a) for a in a_traj]
+            partial["es_clipped_coords"] = int(es_clipped_total)
         (out / "manifest_partial.json").write_text(json.dumps(partial, indent=2))
 
     for gen in range(start_gen, int(generations)):
@@ -298,9 +324,14 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
             key = jax.random.fold_in(jax.random.PRNGKey(int(seed)), gen)
             dirs = [rng.standard_normal(n_params) for _ in range(k)]
             cands = [center.copy()]
+            es_clipped = 0
             for e in dirs:
-                cands.append(np.clip(center + es_s * e, 0.0, 10.0))
-                cands.append(np.clip(center - es_s * e, 0.0, 10.0))
+                for sgn in (1.0, -1.0):
+                    raw = center + sgn * es_s * e
+                    cand = np.clip(raw, 0.0, 10.0)
+                    es_clipped += int((cand != raw).sum())
+                    cands.append(cand)
+            es_clipped_total += es_clipped
             losses = []
             for i, cand in enumerate(cands):
                 loss, comp, wall = evaluate(cand, "g%dc%d" % (gen, i))
@@ -330,6 +361,9 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                     np.asarray(np.asarray(params_j) + np.asarray(updates),
                                dtype=np.float64), 0.0, 10.0)
             else:
+                # mcdp=None voids the epoch: gsdr_mcdp_transform.update
+                # returns zero updates with state unchanged
+                # (jaxfne/optim/gsdr.py:299-300).
                 zero = jax.numpy.zeros_like(
                     jax.numpy.asarray(center, dtype=jax.numpy.float32))
                 _, opt_state = transform.update(
@@ -340,7 +374,8 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                     key=key, mcdp=None)
             a_traj.append(float(opt_state[0].a))
             trajectory.append({"generation": gen, "best_loss": best["loss"],
-                               "components": best["components"]})
+                               "components": best["components"],
+                               "es_clipped_coords": int(es_clipped)})
             if (gen + 1) % CKPT_EVERY == 0:
                 write_ckpt(gen + 1)
                 print("CKPT gen %d best %.4f wall %.1fs"
@@ -425,6 +460,7 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
             "deviation": "authors use a reverse-mode gradient through "
                          "their loss; ruled 2026-10-31"}
         manifest["a_trajectory"] = [float(a) for a in a_traj]
+        manifest["es_clipped_coords"] = int(es_clipped_total)
     try:
         import jax as _jax
 

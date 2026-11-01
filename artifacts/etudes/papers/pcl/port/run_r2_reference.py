@@ -21,9 +21,11 @@ C++ facts (the authors' source in WSL ``~/pcl_cpp``):
   (polarity, camera, synapse, x, y), float64; the oracle only supports one camera and
   one synapse, so the two inserted axes are size 1. ``<k>lli.npy`` and the layer-1
   files already match the C++ shapes.
-- R2 ``compare`` decides on weights (rtol 1e-12) with equal ``count_spike`` fields;
-  spike evidence is the run result (``n_spikes``, ``last_spike_t``), which the saved
-  folder no longer carries.
+- R2 ``compare`` decides on weights (rtol 1e-12); the saved ``count_spike``
+  fields are still read (a missing field is refused) and reported per layer
+  (``cells_equal_count``, ``counts_reset``: true when every count on both
+  sides is 0) but do not gate ``exact``. Spike evidence is the run result
+  (``n_spikes``, ``last_spike_t``), which the saved folder no longer carries.
 
 ``save_network`` mirrors that order: reset the neurons, then write. ``networkState.json``
 is not written: its schema is unknown here and neither the loader nor ``compare`` reads it.
@@ -272,11 +274,14 @@ def compare(dir_a, dir_b) -> dict:
     """Compare two network folders after a run, per layer.
 
     Per layer: ``cells``, ``cells_equal_count`` (cells with equal ``count_spike``),
-    ``total_spikes_a`` / ``total_spikes_b``, ``max_abs_weight_diff`` and
+    ``total_spikes_a`` / ``total_spikes_b``, ``counts_reset`` (true when
+    every count on both sides is 0, as the C++ reset leaves them),
+    ``max_abs_weight_diff`` and
     ``max_rel_weight_diff`` over every weight file (relative: ``|a-b|/max(|a|,|b|)``,
-    0 where both are 0). ``exact`` holds when all counts are equal and every weight
-    file agrees within rtol 1e-12 (atol 0). The top-level ``exact`` holds when both
-    layers are exact. A missing neuron file, a missing ``count_spike`` field, a weight
+    0 where both are 0). ``exact`` holds when every weight file agrees
+    within rtol 1e-12 (atol 0); the counts are reported but do not gate it.
+    The top-level ``exact`` (and ``counts_reset``) hold when both
+    layers agree. A missing neuron file, a missing ``count_spike`` field, a weight
     file present on one side only, or a shape or dtype mismatch is refused.
     """
     a, b = Path(dir_a), Path(dir_b)
@@ -322,12 +327,15 @@ def compare(dir_a, dir_b) -> dict:
                 max_rel = max(max_rel, float(rel.max()))
             if not np.allclose(A, B, rtol=RTOL, atol=0.0):
                 weights_ok = False
-        exact = equal == n and weights_ok
+        exact = weights_ok
+        counts_reset = (ta == 0 and tb == 0)
         out[str(layer)] = {"cells": n, "cells_equal_count": equal,
                            "total_spikes_a": ta, "total_spikes_b": tb,
+                           "counts_reset": bool(counts_reset),
                            "max_abs_weight_diff": max_abs,
                            "max_rel_weight_diff": max_rel, "exact": bool(exact)}
     out["exact"] = bool(out["0"]["exact"] and out["1"]["exact"])
+    out["counts_reset"] = bool(out["0"]["counts_reset"] and out["1"]["counts_reset"])
     return out
 
 
@@ -351,6 +359,7 @@ def _build_parser() -> argparse.ArgumentParser:
     o.add_argument("--events", required=True)
     o.add_argument("--nb-pass", required=True, type=int, help="passes over the file (C++ nbPass)")
     o.add_argument("--seed", default=0, type=int)
+    o.add_argument("--out", required=True, help="receipt json")
     c = sub.add_parser("compare", help="compare two network folders after a run")
     c.add_argument("--a", required=True)
     c.add_argument("--b", required=True)
@@ -364,9 +373,22 @@ def main(argv=None) -> int:
         print(f"initialized {init_network(args.configs, args.out, seed=args.seed)}", flush=True)
         return 0
     if args.cmd == "oracle":
+        digest_before, n_before = _dir_digest(args.net)
         res = run_oracle(args.net, args.events, args.nb_pass, seed=args.seed)
+        _write_receipt(Path(args.out), {
+            "tool": "run_r2_reference",
+            "subcommand": "oracle",
+            "argv": sys.argv[1:] if argv is None else list(argv),
+            "code_sha": _code_sha(),
+            "inputs": {"net": {"path": str(Path(args.net)),
+                               "sha256": digest_before,
+                               "n_files": n_before},
+                       "events": {"path": str(Path(args.events)),
+                                  "sha256": _sha256_file(Path(args.events))}},
+            "result": res,
+        })
         print(f"fed {res['n_events']} events in {args.nb_pass} pass(es); "
-              f"spikes {res['n_spikes']}; saved {res['net_dir']}", flush=True)
+              f"spikes {res['n_spikes']}; saved {res['net_dir']} out={args.out}", flush=True)
         return 0
     cmp = compare(args.a, args.b)
     da, na = _dir_digest(args.a)
