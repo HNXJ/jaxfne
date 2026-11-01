@@ -44,9 +44,9 @@ Causal STDP on every connection, applied at each postsynaptic spike over the eve
 - Archived code: Zenodo 10.5281/zenodo.16836801, CC-BY 4.0 (observed PORT_SPEC.md:3-4).
 - Trained networks and data: Zenodo 10.5281/zenodo.16813454, local copy `F:\warehouse\pcl\zenodo` (observed PORT_SPEC.md:4-5). Licence CC-BY 4.0 (Zenodo API, latest version 10.5281/zenodo.16813455, read 2026-10-26).
 - Fig. 3 source image: CC BY-NC-ND 4.0, kept outside the repo (`F:\warehouse\pcl\paper\`), SHA-256 checked per run (observed P3_fig3_v5.md:26-28).
-- Natural-image training set identity and licence: **unknown** (the lane records read name only "natural images").
+- Natural-image training set: an event-based version of the Van Hateren natural images database, 2000 samples (the authors' PCL+ preprint, arxiv.org/abs/2605.12732, section II-D1, read 2026-10-31); hosted on the authors' UCA drive named in the repo README (`Datasets_PCL`, login wall). Its licence and that of the Van Hateren source: **unknown**.
 - `test7` stimulus provenance: **unknown** (only its axes were measured from the events).
-- Figs. 5-6 datasets (DVS128 Gesture, N-MNIST) are named in the article (observed article Results); their access and licences are **unknown** here.
+- Figs. 5-6 datasets: DVS128 Gesture (Amir et al., CVPR 2017), "released under a Creative Commons Attribution 4.0 license" (IBM page, Wayback snapshot 2021-01-28, read 2026-10-31); N-MNIST (Orchard et al. 2015), Creative Commons Attribution-ShareAlike 4.0 (garrickorchard.com/datasets/n-mnist, read 2026-10-31). Neither is redistributed here.
 - The authors' tuning-curve data archive is not opened, by decision (observed dashboard/sources.json, pcl-fig3 open items).
 
 ## 7. Gap list

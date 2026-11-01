@@ -138,7 +138,7 @@ Release CI 40444082095 installed (their own dependencies stay unpinned).
 | Only F1 has a matching generator (predecessor numbering); the other 23 rows are partial or none | section 5 counts | build figure generators in the lanes the plan sequences (0.5.9 to 0.6.0), per `arxiv_paper_plan.md:78-80` |
 | No data and code availability statement | section 4 | owner writes the statement for the manuscript and README |
 | Paper licence CC BY 4.0 declared nowhere in the repo | `arxiv_paper_plan.md:3` | declare it with the manuscript source |
-| Licences of PCL's natural-image set, DVS128 and N-MNIST unknown (PCL code and data and the CAMINOS mean-field code are CC-BY 4.0) | `artifacts/etudes/papers/pcl/SOURCE_P1.md`; `artifacts/etudes/papers/caminos/SOURCE_P1.md` | confirm the licences before the statement names them |
+| Licence of PCL's natural-image set (event-based Van Hateren, authors' UCA drive behind a login) unknown; DVS128 Gesture CC BY 4.0 and N-MNIST CC BY-SA 4.0 confirmed 2026-10-31 (PCL code and data and the CAMINOS mean-field code are CC-BY 4.0) | `artifacts/etudes/papers/pcl/SOURCE_P1.md` section 6; `artifacts/etudes/papers/caminos/SOURCE_P1.md` | ask the PCL authors for the natural-image set's licence, or name it as unknown in the statement |
 | No generator for Jansen-Rit or kernel-LFP (S16) | section 5, row S16 | owner builds a generator or drops them from S16 |
 | No NEST or Jaxley baseline script found (F4, S6) | section 5, rows F4 and S6 | build the baselines in the benchmark lane |
 
