@@ -20,13 +20,13 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    O-DROP 0.993 (fails as predicted); the all-cell rate still falls at 10 s (9.7, 9.2, 8.8 Hz in the last 3 s), so
    R-E cannot close on the baseline at the coded 10 s. iSTDP units and increments match `isp_brian.py` (Muse read,
    verified at `istdp_vogels2011.py:137`, `hdp_rule.py:244-247`). Hamm 2026-11-01: extend T until the baseline
-   converges (rate change < 0.1 Hz/s), then amend the prereg. Status 2026-11-01: segmented kernel landed
-   (f3d73cb1; n 2000 probe 8.09 Hz at 20 s, still falling); 120 s pilot at n 10 000 in 5 s segments running on the
-   WSL GPU (scope held by a background shell; the first launch as a unit died with its session; clone `~/jaxfne_pilots` at dceb49b0, receipts `~/vog_conv/s0_T120/`). Next: read
-   `e_rate_per_s_hz`, fix T where |Δrate| < 0.1 Hz/s, rerun the known positives at that T, amend the prereg (v3),
-   [H] sign. Potjans (O-80): LIF continuation landed (78e94621); next the Potjans driver runs its plastic-free
-   10 s pilot in chunks (`return_state`/`continuation`), the RSS stays under a 30 GB cap, then the L5i→L5e lesion
-   known positive.
+   converges, then amend the prereg. Status 2026-11-01: 120 s pilot (CALIBRATION, B8 convergence pilot): r_inf
+   4.17 Hz, tau 32 s, R-E e 0.38. Hamm ruled T 150 s with |slope| < 0.01 Hz/s over 20 s. Running in the WSL GPU
+   queue (`~/gpu_queue_1101.sh`, clone `~/jaxfne_pilots` at bafa4797, out `~/q1101/`): baseline, rho0 6 Hz, eta 0
+   at T 150 s. Next: copy receipts to `F:/warehouse/vogels2011/`, check each known positive moves, draft
+   `prereg/P3_v3.md` (T 150 s, the new convergence rule), [H] sign. Potjans (O-80): LIF continuation (78e94621) and
+   the segmented pilot (08ef8613, `--segment-s`) landed; next the 10 s pilot at scale 0.1 in 1 s segments under a
+   30 GB cap, then the L5i→L5e lesion known positive.
 3. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
    behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
    test first and a changelog fragment:
@@ -71,8 +71,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Beside the path (∥)
 
-12. ∥ T-63b [A] CAMINOS PLoS (O-83 first): attribute the 2B/3B SOM miss (parameters that differ between the
-    `default` and `cellrep` sets, one at a time, SOM 90 % seed 1), then 2C-F, 3C-F: rerun 40 and 90 % saving rasters
+12. ∥ T-63b [A] CAMINOS PLoS (O-83 first): attribute the 2B/3B SOM miss (`calibration/attribute_o83.py`, seven
+    parameter families, running first in the GPU queue; a T 3 s smoke gave band ratio 0.34 with the delay family
+    swapped), then 2C-F, 3C-F: rerun 40 and 90 % saving rasters
     and population traces (the figP rows keep spectra only), mean-field traces beside them. Closes when the replica
     block scores them and O-83 holds an attribution.
 13. ∥ T-59 [A] Cell Reports Fig S1 runner with its test; `replication_audit` reads clean in the report gate.

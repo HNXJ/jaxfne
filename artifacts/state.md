@@ -15,15 +15,17 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - AdEx registered-HDP kernel resumes from its returned state, split == whole bit-for-bit; Vogels pilot runs the
   plastic leg in segments (f3d73cb1).
 - PCL R2: oracle equals the C++ reference on weights within rtol 1e-12 (pcl `CALIBRATION.md` R2, fe4231bf).
-- Destexhe P3 v3 pinned, unsigned (d1e495d0). Broad gate on 922270fd: 7904 passed, 0 failed.
+- Destexhe P3 v3 pinned, unsigned (d1e495d0).
 
 ## Broken or in flight
 
-- Dev is 16 commits ahead of origin/dev; push waits on the broad gate at dceb49b0 (the gates at fddfe62b,
-  08a91712 and b27cd476 stopped on ruff F841, a stale `docs/reference/errors.md` and ruff E402, each fixed).
-- Vogels convergence pilot: n 10 000, 120 s plastic in 5 s segments, WSL GPU scope (relaunched 2026-11-01T02:44Z), clone
-  `~/jaxfne_pilots` at dceb49b0, receipts `~/vog_conv/s0_T120/` (launched, not complete).
-- Potjans O-80: LIF continuation landed (78e94621, after a Muse review round); the chunked Potjans pilot is next.
+- Dev is ahead of origin/dev (57d0c099) by the Vogels reader, the O-83 driver and the Potjans segments; push waits
+  on the broad gate at the dev tip.
+- Vogels: 120 s pilot converges to 4.17 Hz (tau 32 s; vogels `CALIBRATION.md`); Hamm ruled T 150 s. WSL GPU queue
+  (`~/gpu_queue_1101.sh`, clone `~/jaxfne_pilots` at bafa4797, out `~/q1101/`): O-83 attribution, then Vogels
+  baseline, rho0 6 Hz and eta 0 at T 150 s (launched, not complete).
+- Potjans O-80: LIF continuation (78e94621) and the segmented pilot (08ef8613) landed; the 10 s scale-0.1 pilot is next.
+- Last broad gate: 57d0c099, 7945 passed, 0 failed (pushed).
 - O-83: the CAMINOS PLoS `default` set leaves gamma intact under SOM silencing; unattributed.
 
 ## Open decisions for the owner
@@ -47,11 +49,11 @@ decisions, and the signatures as drafts are ready (Vogels and Potjans P3 v2, Des
 
 - Windows: Python 3.14 runs the broad gate through `suite_lock.py`, one suite at a time. WSL: `~/venv_jaxfne`
   (CUDA; each long job in its own `systemd-run` memory cap), `~/venv_jaxfne_gate` (CPU gate).
-- Tracked tree: `python scripts/check_tree_size.py --check`; budget 2747 files in `scripts/tree_size_allowlist.json`.
+- Tracked tree: `python scripts/check_tree_size.py --check`; budget 2751 files in `scripts/tree_size_allowlist.json`.
 - Large data outside git: `F:/warehouse/{caminos,gsdr,pcl,vogels2011,potjans2014}/` (receipts named in each
   result file).
 
 ## Next action
 
-Push dev after the broad gate passes; integrate `poisscan` after its fix round; read the Vogels rate course and
-fix T; attribute O-83; PCL oracle spike receipt then R3.
+Push dev after the broad gate passes; read the GPU queue (O-83 family, Vogels T 150 s with both known positives),
+then draft Vogels P3 v3; Potjans scale-0.1 10 s pilot; PCL oracle spike receipt then R3.

@@ -33,6 +33,19 @@ unknown).
   per synapse since `changelog.d/istdp_vogels2011_traces.fixed.md`. w_ie_final_mean 2.42 nS is
   superseded; rerun segment B before P3.
 
+## B8 convergence pilot (P2, seed 0, n 10 000, unscored, 2026-11-01)
+
+- Run: `vogels2011_api.py pilot --seed 0 --n 10000 --T-s 120 --plastic-segment-s 5` at dceb49b0, WSL CUDA float32,
+  32 min wall, 5.4 GB peak RSS. Receipts `F:/warehouse/vogels2011/conv_dceb49b0/s0_T120/` (`pilot_receipt.json`
+  sha256 9eb55150…242784). Read with `read_convergence.py`.
+- E rate course (observed): 76.5 Hz at 1 s, 8.2 at 10 s, 6.3 at 20 s, 4.8 at 60 s, 4.15 at 120 s. The 10 s-window
+  slope first falls below 0.1 Hz/s at 24 s, while the rate falls a further 2.2 Hz from 20 s to 120 s.
+- Fit r(t) = r_inf + A exp(-t/tau), t ≥ 20 s (derived): r_inf 4.17 ± 0.06 Hz, tau 31.7 ± 2.7 s, residual sd
+  0.17 Hz. Last 1 s, E cells: median 4.0 Hz, 10/90 % 1/7 Hz; the top 10 % carry 21 % of spikes (unimodal).
+- R-E at 120 s: z 4.15 Hz, e 0.38 (band 0.20); O-DROP ratio 38.7. The network converges above rho0 = 3 Hz.
+- Ruling (Hamm 2026-11-01): T 150 s (about 5 tau), convergence redefined as |slope| < 0.01 Hz/s over 20 s; the
+  baseline and both known positives (rho0 6 Hz, eta 0) rerun at T 150 s before the P3 v3 amendment.
+
 ## Provenance
 
 - Code SHA: (fill; one SHA per output directory, enforced by
