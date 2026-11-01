@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-01T02:16:15Z",
-    "dev_sha": "899dccbaddf03c98bb35cf1897d3f4ee04318573",
-    "data_revision": "97f67e1939e9bcd1e1177db94ee0d435bedeb7e2c92d8568c2a9ca54be7fbead"
+    "utc": "2026-11-01T02:29:22Z",
+    "dev_sha": "8f2e40ef48ae46ec7243fa5cb678c4173dae01f8",
+    "data_revision": "fc2edfcce2f2018f5337c1b6e65f8b34d4430a97ee057adc23e26ad578532c15"
   },
   "papers": [
     {
@@ -1221,14 +1221,14 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": 25,
+        "score": 32,
         "panels": 28,
         "excluded": 3,
         "counts": {
-          "pass": 6,
-          "partial": 2,
-          "fail": 0,
-          "not run": 20
+          "pass": 7,
+          "partial": 4,
+          "fail": 2,
+          "not run": 15
         },
         "same_as": null,
         "scope": "Main-text Figs. 1-6 of the PLoS CB article (PMC13286281), read 2026-10-31. The Cell Reports 2025 figures scored in RESULT_FIGURES.md belong to another paper and do not count here.",
@@ -1259,11 +1259,15 @@
           },
           {
             "id": "2A",
-            "status": "not run"
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "frequency 34.1 to 5.1 Hz and max E rate pass; amplitude does not rise until 90 %; seizure-like from 60 %, not 70 %"
           },
           {
             "id": "2B",
-            "status": "not run"
+            "status": "fail",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "SOM silencing leaves gamma intact (band power 1.00-1.30 of baseline, SOM rate 0.61 Hz at 90 %); frequency rises 26 %"
           },
           {
             "id": "2C",
@@ -1283,11 +1287,15 @@
           },
           {
             "id": "3A",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "PV randomization like PV silencing: f_pk 23.7, 10.4 Hz; max E 312.8 Hz at 90 %"
           },
           {
             "id": "3B",
-            "status": "not run"
+            "status": "fail",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "SOM randomization like SOM silencing, but neither abolishes gamma (band power 1.21, 1.27)"
           },
           {
             "id": "3C",
@@ -1307,7 +1315,9 @@
           },
           {
             "id": "4A bottom",
-            "status": "not run"
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "frequency 39.4 to 21.1 Hz over SOM/PV 0.5-4 passes; amplitude rises to ratio 2, ratio 4 enters a high-rate state"
           },
           {
             "id": "4B middle",

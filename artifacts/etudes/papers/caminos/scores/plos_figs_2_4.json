@@ -1,0 +1,571 @@
+{
+ "inputs": {
+  "p2a/silence_pv.json": "a42507eb9143e503cc9d694bb6ed0de7750f05284d08c5bb97d294dac9dd15fd",
+  "p2b/silence_som.json": "054164928fd7df0fe52e63abfa97046ca8aa6aaf88d2247e7dfe617e4b0677be",
+  "p3a/replace_pv.json": "3ed13fcef0a9688b519f1038643a37861de8f7a2559c0e44ec4000b257045784",
+  "p3b/replace_som.json": "726be8d68bacf35efab77af6fc23841c195e15542813510862f626da544813de",
+  "p4a/fig6a.json": "14dfff8d38f362d497c437eae6b1e53f889c58a06b2cab326d495ee864f49dc1"
+ },
+ "panels": {
+  "2A": [
+   {
+    "band_power_ratio": [
+     1.0,
+     0.0
+    ],
+    "f_pk_hz": [
+     34.13,
+     0.67
+    ],
+    "fraction": 0.0,
+    "max_e_rate_hz": [
+     8.0,
+     0.3
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     1.0,
+     0.0
+    ],
+    "rates_hz": {
+     "E": 1.114,
+     "PV": 11.404,
+     "SOM": 7.107
+    }
+   },
+   {
+    "band_power_ratio": [
+     0.938,
+     0.025
+    ],
+    "f_pk_hz": [
+     31.0,
+     0.17
+    ],
+    "fraction": 0.2,
+    "max_e_rate_hz": [
+     12.6,
+     1.0
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     0.978,
+     0.114
+    ],
+    "rates_hz": {
+     "E": 1.405,
+     "PV": 11.789,
+     "SOM": 9.815
+    }
+   },
+   {
+    "band_power_ratio": [
+     0.872,
+     0.044
+    ],
+    "f_pk_hz": [
+     27.07,
+     0.12
+    ],
+    "fraction": 0.4,
+    "max_e_rate_hz": [
+     25.9,
+     2.8
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     0.979,
+     0.117
+    ],
+    "rates_hz": {
+     "E": 1.985,
+     "PV": 12.507,
+     "SOM": 14.467
+    }
+   },
+   {
+    "band_power_ratio": [
+     0.437,
+     0.01
+    ],
+    "f_pk_hz": [
+     22.2,
+     1.37
+    ],
+    "fraction": 0.6,
+    "max_e_rate_hz": [
+     241.6,
+     12.8
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     0.679,
+     0.028
+    ],
+    "rates_hz": {
+     "E": 3.964,
+     "PV": 12.616,
+     "SOM": 17.891
+    }
+   },
+   {
+    "band_power_ratio": [
+     0.346,
+     0.009
+    ],
+    "f_pk_hz": [
+     9.07,
+     1.71
+    ],
+    "fraction": 0.8,
+    "max_e_rate_hz": [
+     308.2,
+     2.8
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     0.827,
+     0.145
+    ],
+    "rates_hz": {
+     "E": 11.581,
+     "PV": 9.675,
+     "SOM": 20.697
+    }
+   },
+   {
+    "band_power_ratio": [
+     0.149,
+     0.009
+    ],
+    "f_pk_hz": [
+     5.07,
+     0.06
+    ],
+    "fraction": 0.9,
+    "max_e_rate_hz": [
+     319.6,
+     0.4
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     1.272,
+     0.047
+    ],
+    "rates_hz": {
+     "E": 18.46,
+     "PV": 6.397,
+     "SOM": 26.935
+    }
+   }
+  ],
+  "2B": [
+   {
+    "band_power_ratio": [
+     1.0,
+     0.0
+    ],
+    "f_pk_hz": [
+     34.13,
+     0.67
+    ],
+    "fraction": 0.0,
+    "max_e_rate_hz": [
+     8.0,
+     0.3
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     1.0,
+     0.0
+    ],
+    "rates_hz": {
+     "E": 1.114,
+     "PV": 11.404,
+     "SOM": 7.107
+    }
+   },
+   {
+    "band_power_ratio": [
+     1.079,
+     0.005
+    ],
+    "f_pk_hz": [
+     34.97,
+     0.67
+    ],
+    "fraction": 0.2,
+    "max_e_rate_hz": [
+     8.6,
+     1.3
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     0.902,
+     0.122
+    ],
+    "rates_hz": {
+     "E": 1.136,
+     "PV": 11.716,
+     "SOM": 5.599
+    }
+   },
+   {
+    "band_power_ratio": [
+     1.178,
+     0.005
+    ],
+    "f_pk_hz": [
+     37.33,
+     0.51
+    ],
+    "fraction": 0.4,
+    "max_e_rate_hz": [
+     7.5,
+     0.4
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     0.977,
+     0.143
+    ],
+    "rates_hz": {
+     "E": 1.155,
+     "PV": 12.076,
+     "SOM": 4.045
+    }
+   },
+   {
+    "band_power_ratio": [
+     1.297,
+     0.008
+    ],
+    "f_pk_hz": [
+     39.3,
+     0.4
+    ],
+    "fraction": 0.6,
+    "max_e_rate_hz": [
+     6.4,
+     0.2
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     1.096,
+     0.261
+    ],
+    "rates_hz": {
+     "E": 1.188,
+     "PV": 12.566,
+     "SOM": 2.599
+    }
+   },
+   {
+    "band_power_ratio": [
+     1.227,
+     0.041
+    ],
+    "f_pk_hz": [
+     42.83,
+     0.31
+    ],
+    "fraction": 0.8,
+    "max_e_rate_hz": [
+     6.0,
+     0.6
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     0.952,
+     0.074
+    ],
+    "rates_hz": {
+     "E": 1.228,
+     "PV": 13.265,
+     "SOM": 1.234
+    }
+   },
+   {
+    "band_power_ratio": [
+     0.996,
+     0.056
+    ],
+    "f_pk_hz": [
+     43.03,
+     2.85
+    ],
+    "fraction": 0.9,
+    "max_e_rate_hz": [
+     4.8,
+     0.4
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     0.918,
+     0.149
+    ],
+    "rates_hz": {
+     "E": 1.255,
+     "PV": 13.726,
+     "SOM": 0.611
+    }
+   }
+  ],
+  "3A": [
+   {
+    "band_power_ratio": [
+     1.0,
+     0.0
+    ],
+    "f_pk_hz": [
+     34.13,
+     0.67
+    ],
+    "fraction": 0.0,
+    "max_e_rate_hz": [
+     8.0,
+     0.3
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     1.0,
+     0.0
+    ],
+    "rates_hz": {
+     "E": 1.114,
+     "PV": 11.404,
+     "SOM": 7.107
+    }
+   },
+   {
+    "band_power_ratio": [
+     0.488,
+     0.065
+    ],
+    "f_pk_hz": [
+     23.73,
+     0.42
+    ],
+    "fraction": 0.4,
+    "max_e_rate_hz": [
+     18.4,
+     1.9
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     1.082,
+     0.128
+    ],
+    "rates_hz": {
+     "E": 1.549,
+     "PV": 13.576,
+     "SOM": 12.038
+    }
+   },
+   {
+    "band_power_ratio": [
+     0.273,
+     0.013
+    ],
+    "f_pk_hz": [
+     10.37,
+     3.71
+    ],
+    "fraction": 0.9,
+    "max_e_rate_hz": [
+     312.8,
+     2.9
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     0.664,
+     0.104
+    ],
+    "rates_hz": {
+     "E": 7.124,
+     "PV": 12.453,
+     "SOM": 14.307
+    }
+   }
+  ],
+  "3B": [
+   {
+    "band_power_ratio": [
+     1.0,
+     0.0
+    ],
+    "f_pk_hz": [
+     34.13,
+     0.67
+    ],
+    "fraction": 0.0,
+    "max_e_rate_hz": [
+     8.0,
+     0.3
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     1.0,
+     0.0
+    ],
+    "rates_hz": {
+     "E": 1.114,
+     "PV": 11.404,
+     "SOM": 7.107
+    }
+   },
+   {
+    "band_power_ratio": [
+     1.205,
+     0.007
+    ],
+    "f_pk_hz": [
+     34.53,
+     0.57
+    ],
+    "fraction": 0.4,
+    "max_e_rate_hz": [
+     7.0,
+     0.4
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     0.893,
+     0.062
+    ],
+    "rates_hz": {
+     "E": 1.001,
+     "PV": 9.697,
+     "SOM": 6.393
+    }
+   },
+   {
+    "band_power_ratio": [
+     1.265,
+     0.01
+    ],
+    "f_pk_hz": [
+     35.83,
+     1.47
+    ],
+    "fraction": 0.9,
+    "max_e_rate_hz": [
+     3.6,
+     0.1
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     0.878,
+     0.108
+    ],
+    "rates_hz": {
+     "E": 0.852,
+     "PV": 7.668,
+     "SOM": 6.805
+    }
+   }
+  ],
+  "4A": [
+   {
+    "band_power_ratio": [
+     1.0,
+     0.0
+    ],
+    "f_pk_hz": [
+     39.43,
+     1.47
+    ],
+    "max_e_rate_hz": [
+     4.8,
+     0.8
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     1.0,
+     0.0
+    ],
+    "rates_hz": {
+     "E": 0.904,
+     "PV": 8.871,
+     "SOM": 4.794
+    },
+    "ratio": 0.5
+   },
+   {
+    "band_power_ratio": [
+     0.809,
+     0.013
+    ],
+    "f_pk_hz": [
+     34.13,
+     0.67
+    ],
+    "max_e_rate_hz": [
+     8.0,
+     0.3
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     1.093,
+     0.104
+    ],
+    "rates_hz": {
+     "E": 1.114,
+     "PV": 11.404,
+     "SOM": 7.107
+    },
+    "ratio": 1.0
+   },
+   {
+    "band_power_ratio": [
+     0.691,
+     0.041
+    ],
+    "f_pk_hz": [
+     26.6,
+     0.44
+    ],
+    "max_e_rate_hz": [
+     18.3,
+     0.4
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     1.321,
+     0.211
+    ],
+    "rates_hz": {
+     "E": 1.734,
+     "PV": 17.916,
+     "SOM": 12.981
+    },
+    "ratio": 2.0
+   },
+   {
+    "band_power_ratio": [
+     0.353,
+     0.005
+    ],
+    "f_pk_hz": [
+     21.07,
+     0.15
+    ],
+    "max_e_rate_hz": [
+     261.6,
+     19.2
+    ],
+    "n": 3,
+    "peak_mag_ratio": [
+     0.664,
+     0.046
+    ],
+    "rates_hz": {
+     "E": 3.899,
+     "PV": 30.159,
+     "SOM": 18.226
+    },
+    "ratio": 4.0
+   }
+  ]
+ }
+}
