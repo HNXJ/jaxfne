@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-31T22:12:30Z",
-    "dev_sha": "9eee4452c2e71fafb5f4efad648158c62b6c2b83",
-    "data_revision": "525a44805349cbd9958e4783d223435f0c79605743dffc9044f4520572b3d999"
+    "utc": "2026-11-01T00:00:09Z",
+    "dev_sha": "3fcf6755862304d243cb7cbbe530677b36d187c0",
+    "data_revision": "1acbc407d04f78926392e84115fe850bea09ba773658227430c0682cfe000681"
   },
   "papers": [
     {
@@ -2858,11 +2858,11 @@
       "page": "models/izhikevich2003.md",
       "release": "0.5.7",
       "tier": "T-jaxfne",
-      "stage": "P5",
+      "stage": "P6",
       "grammar": null,
       "lane": {
-        "branch": "izh2003",
-        "sha": "a8477940e79eb2ed6a359d03965e8efcb4a924f9"
+        "branch": "dev",
+        "sha": "b5048bebb2950eb6da18a6e1f4f64616737aab2a"
       },
       "stage_artifacts": [
         {
@@ -2870,8 +2870,8 @@
           "items": [
             {
               "label": "source",
-              "path": "artifacts/etudes/izhikevich2003/SOURCE_P1.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/SOURCE_P1.md",
+              "path": "artifacts/etudes/papers/izhikevich2003/SOURCE_P1.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/SOURCE_P1.md",
               "sha256": "bc252a994db2995b1c1eae417048882ce9e604993c1fc4081628a0b55000d075"
             }
           ]
@@ -2881,8 +2881,8 @@
           "items": [
             {
               "label": "port spec",
-              "path": "artifacts/etudes/izhikevich2003/PORT_SPEC.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PORT_SPEC.md",
+              "path": "artifacts/etudes/papers/izhikevich2003/PORT_SPEC.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/PORT_SPEC.md",
               "sha256": "026b4a244527505e9371634963c4188215fe0b26767abfea67d877e3d47c3ec4"
             }
           ]
@@ -2892,8 +2892,8 @@
           "items": [
             {
               "label": "prereg v7",
-              "path": "artifacts/etudes/izhikevich2003/PREREG_P3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PREREG_P3.md",
+              "path": "artifacts/etudes/papers/izhikevich2003/PREREG_P3.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/PREREG_P3.md",
               "sha256": "cc429c492120a4375a65928dfe835e2aaa3e8a87c677f378bea49747d9de00cd"
             }
           ]
@@ -2903,14 +2903,20 @@
           "items": [
             {
               "label": "runner and scorer",
-              "path": "artifacts/etudes/izhikevich2003/run_izh.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/run_izh.py",
-              "sha256": "1b1e8a333dc875f745a5680e167dc0ea22ba5c47f0f0f7b6bc26a47724691715"
+              "path": "artifacts/etudes/papers/izhikevich2003/run_izh.py",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/run_izh.py",
+              "sha256": "6ab9ec021a161fef20ebaf1c28adc937a1d7a4e5f58b7272cfa9bdf003f06e2e"
+            },
+            {
+              "label": "model (jaxfne core)",
+              "path": "artifacts/etudes/papers/izhikevich2003/core/run_izh_core.py",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/core/run_izh_core.py",
+              "sha256": "9be9538559ec249bcaf12ee360b73e8381394c723414607e369a5ef95de58b82"
             },
             {
               "label": "reference arm",
-              "path": "artifacts/etudes/izhikevich2003/net_reference.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/net_reference.py",
+              "path": "artifacts/etudes/papers/izhikevich2003/net_reference.py",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/net_reference.py",
               "sha256": "814c3799c8a1fc68729639e7e2fb24b53eb2e9131d0cc4c5a12be4713cee2621"
             }
           ]
@@ -2920,48 +2926,78 @@
           "items": [
             {
               "label": "result",
-              "path": "artifacts/etudes/izhikevich2003/RESULT_P3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/RESULT_P3.md",
+              "path": "artifacts/etudes/papers/izhikevich2003/RESULT_P3.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/RESULT_P3.md",
               "sha256": "3bc3c6dd79bdc7f8c305690fef75adb7b72ab7d0fa903a0e07b9babcc00af12f"
             },
             {
               "label": "scores",
-              "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+              "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
               "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
             },
             {
               "label": "S1 report",
-              "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json",
+              "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_s1_report.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_s1_report.json",
               "sha256": "8ea57e71b024cf2ee568a2ebb9784c08a9dee6d17a763109fdad51efea716564"
             },
             {
               "label": "v8.2 scores (post hoc)",
-              "path": "artifacts/etudes/izhikevich2003/scores/p3_v8_score.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v8_score.json",
+              "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v8_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v8_score.json",
               "sha256": "21c64b3a9492f255ce539ba912b14930a89ba2125865bf7bf2179e1b1c69524b"
+            }
+          ]
+        },
+        {
+          "stage": "P6",
+          "items": [
+            {
+              "label": "prereg P6 v2",
+              "path": "artifacts/etudes/papers/izhikevich2003/core/PREREG_P6_v2_signed.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/core/PREREG_P6_v2_signed.md",
+              "sha256": "fe73f8165f12f82ca3b81bf73bead7d5be60087271bb2e793d83f3cabb374bc8"
+            },
+            {
+              "label": "result P6",
+              "path": "artifacts/etudes/papers/izhikevich2003/RESULT_P6.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/RESULT_P6.md",
+              "sha256": "67cd316496e600e87f11ba11b6bce9c19b2f80ba71ec9fc4a52b18456b97bda3"
+            },
+            {
+              "label": "scores P6",
+              "path": "artifacts/etudes/papers/izhikevich2003/core/p6_v2_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/core/p6_v2_score.json",
+              "sha256": "18380afb6e4ab7073c0ce6366b07aa477220e80b65d41cc5afb792fa42ced603"
             }
           ]
         }
       ],
       "verdict": null,
       "verdict_note": null,
-      "summary": "Preregistration v7 was scored and did not pass. Six of eight single-cell patterns reproduce; FS adapts (ISI ratio 1.86) and the resonator spikes once. The network has the paper's rate, alpha and gamma peaks, but its firing is too regular (median ISI CV 0.40 against 0.6 to 1.5), and the float64 reference arm of net.m gives 0.39 too.",
+      "summary": "Preregistration v7 was scored and did not pass. Six of eight single-cell patterns reproduce; FS adapts (ISI ratio 1.86) and the resonator spikes once. The network has the paper's rate, alpha and gamma peaks, but its firing is too regular (median ISI CV 0.40 against 0.6 to 1.5), and the float64 reference arm of net.m gives 0.39 too. Library path, scored apart: P6 v2 PASS through the public API (Q1–Q5, seeds 2–6), matching the P5 network values within the declared margins; N2 stays a failed paper claim.",
       "preregs": [
         {
           "id": "v7",
           "signed": "2026-10-13",
-          "path": "artifacts/etudes/izhikevich2003/PREREG_P3.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PREREG_P3.md",
+          "path": "artifacts/etudes/papers/izhikevich2003/PREREG_P3.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/PREREG_P3.md",
           "sha256": "cc429c492120a4375a65928dfe835e2aaa3e8a87c677f378bea49747d9de00cd"
         },
         {
           "id": "v8.2",
           "signed": "2026-10-13",
-          "path": "artifacts/etudes/izhikevich2003/PREREG_P3_v8.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PREREG_P3_v8.md",
+          "path": "artifacts/etudes/papers/izhikevich2003/PREREG_P3_v8.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/PREREG_P3_v8.md",
           "sha256": "7ce8b7d1310ca4c670a66c339fe3b5554f792d5ce2247a2a88bc8bf48dffd429"
+        },
+        {
+          "id": "P6 v2 (library path)",
+          "signed": "2026-10-31",
+          "path": "artifacts/etudes/papers/izhikevich2003/core/PREREG_P6_v2_signed.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/core/PREREG_P6_v2_signed.md",
+          "sha256": "fe73f8165f12f82ca3b81bf73bead7d5be60087271bb2e793d83f3cabb374bc8"
         }
       ],
       "criteria": [
@@ -2983,8 +3019,8 @@
           "reference_text": "—",
           "prereg": "v7",
           "evidence": {
-            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
             "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
@@ -3006,8 +3042,8 @@
           "reference_text": "—",
           "prereg": "v7",
           "evidence": {
-            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
             "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
@@ -3029,8 +3065,8 @@
           "reference_text": "—",
           "prereg": "v7",
           "evidence": {
-            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
             "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
@@ -3052,8 +3088,8 @@
           "reference_text": "—",
           "prereg": "v7",
           "evidence": {
-            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
             "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
@@ -3075,8 +3111,8 @@
           "reference_text": "—",
           "prereg": "v7",
           "evidence": {
-            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
             "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
@@ -3098,8 +3134,8 @@
           "reference_text": "—",
           "prereg": "v7",
           "evidence": {
-            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
             "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
@@ -3121,8 +3157,8 @@
           "reference_text": "—",
           "prereg": "v7",
           "evidence": {
-            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
             "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
@@ -3144,8 +3180,8 @@
           "reference_text": "—",
           "prereg": "v7",
           "evidence": {
-            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
             "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
@@ -3167,8 +3203,8 @@
           "reference_text": "—",
           "prereg": "v7",
           "evidence": {
-            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
             "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
@@ -3190,8 +3226,8 @@
           "reference_text": "—",
           "prereg": "v7",
           "evidence": {
-            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
             "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
@@ -3213,8 +3249,8 @@
           "reference_text": "—",
           "prereg": "v7",
           "evidence": {
-            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
             "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         },
@@ -3236,8 +3272,8 @@
           "reference_text": "—",
           "prereg": "v7",
           "evidence": {
-            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
             "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
           }
         }
@@ -3251,7 +3287,15 @@
       "verdict_summary": {
         "kind": "paper",
         "paper": null,
-        "library": null,
+        "library": {
+          "stage": "P6",
+          "verdict": "pass",
+          "evidence": {
+            "path": "artifacts/etudes/papers/izhikevich2003/core/p6_v2_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/core/p6_v2_score.json",
+            "sha256": "18380afb6e4ab7073c0ce6366b07aa477220e80b65d41cc5afb792fa42ced603"
+          }
+        },
         "methods": null,
         "failed_criteria": [
           {
@@ -3272,8 +3316,8 @@
             "reference_text": "—",
             "prereg": "v7",
             "evidence": {
-              "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+              "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
               "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
             }
           },
@@ -3295,8 +3339,8 @@
             "reference_text": "—",
             "prereg": "v7",
             "evidence": {
-              "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+              "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
               "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
             }
           },
@@ -3318,8 +3362,8 @@
             "reference_text": "—",
             "prereg": "v7",
             "evidence": {
-              "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+              "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/b5048bebb2950eb6da18a6e1f4f64616737aab2a/artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
               "sha256": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
             }
           }
@@ -3493,7 +3537,7 @@
       "stage_artifacts": [],
       "verdict": null,
       "verdict_note": null,
-      "summary": "The AdEx core features the port needs are on dev (Vpeak detection threshold, external-drive schedules, capped Bernoulli sampling). The port is built in the lane clone (28 lane tests pass); its preregistration is drafted and unsigned. Unscored pilot (CALIBRATION step 6): seeds 1–8 ran at the declared baseline; E1 holds on 4 of 8 seeds under the authors' Vpeak, E2 stays off on every live seed, and the E4 rate order is off (hyperactive, about 5x); the held-out seeds 4–8 are spent, so a scored run needs a new protocol on fresh seeds.",
+      "summary": "The AdEx core features the port needs are on dev (Vpeak detection threshold, external-drive schedules, capped Bernoulli sampling). The port is built in the lane clone (28 lane tests pass); its preregistration is drafted and unsigned. Unscored pilot (CALIBRATION step 6): seeds 1–8 ran at the declared baseline; E1 holds on 4 of 8 seeds under the authors' Vpeak, E2 closes on live seeds 6 and 7, seed 6 closes E1 to E3 jointly, and the E4 rate order is off (hyperactive, about 5x); the held-out seeds 4–8 are spent, so a scored run needs a new protocol on fresh seeds.",
       "preregs": [],
       "criteria": [],
       "sensitivity": [],
