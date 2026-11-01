@@ -19,8 +19,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    and `F:/warehouse/potjans2014/P3v2_pilot`): Vogels seed 0, rho0 6 Hz, eta 0; Potjans 10% seed 0 and L5i→L5e
    lesion. Closes when: each known positive moves its estimand as the prereg says (rho0 6 breaks R-E; eta 0 fails
    O-DROP; the lesion moves R-L5E out of band). ⇒ a known positive that does not move: driver or estimand defect,
-   fix and rerun before any signature. ⇒ all move: → 8. Status 2026-10-31: relaunched from clone
-   `~/jaxfne_pilots` (c0b233d3) in `systemd-run --user --scope -p MemoryMax=30G`; Potjans waits on O-80.
+   fix and rerun before any signature. ⇒ all move: → 8. Status 2026-10-31: Vogels pilots done (c0b233d3,
+   `F:/warehouse/vogels2011/P3v2_pilot`): seed 0 R-E z 8.77 Hz (e 1.92), rho0 6 Hz z 9.99 (e 2.33), eta 0 z 161 Hz with
+   O-DROP 0.993 (fails as predicted); the all-cell rate still falls at 10 s (9.7, 9.2, 8.8 Hz in the last 3 s), so
+   R-E cannot close on the baseline at the coded 10 s. iSTDP units and increments match `isp_brian.py` (Muse read,
+   verified at `istdp_vogels2011.py:137`, `hdp_rule.py:244-247`). Potjans waits on O-80.
 3. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
    behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
    test first and a changelog fragment:
