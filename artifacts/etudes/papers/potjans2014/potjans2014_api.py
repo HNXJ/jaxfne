@@ -262,6 +262,23 @@ def _step_mv_per_pa():
     return TAU_SYN_MS * (1.0 - math.exp(-DT_MS / TAU_SYN_MS)) / C_M_PF
 
 
+def _validate_segment_s(segment_s):
+    """A segment length in seconds, or None for one call; refused by name."""
+    if segment_s is None:
+        return None
+    try:
+        s = float(segment_s)
+    except (TypeError, ValueError):
+        raise ValueError(
+            "segment_s must be a finite number of seconds > 0; got %r"
+            % (segment_s,))
+    if not (math.isfinite(s) and s > 0.0):
+        raise ValueError(
+            "segment_s must be a finite number of seconds > 0; got %r"
+            % (segment_s,))
+    return s
+
+
 def mean_in_degree(src, tgt):
     """Mean in-degree k of projection src -> tgt: K_full / N_post_full (row 8).
 
@@ -477,10 +494,18 @@ def p3v2_estimands(spikes, pop_ids, dt_ms=DT_MS, t_s=None):
 
 
 def run(seed, tag, out_dir, *, n=800, scale=None, T_s=1.0, signed=False,
-        lesion=None, pilot=False):
-    """Build, run and write the raster plus the ``manifest.json`` the scorer reads."""
+        lesion=None, pilot=False, segment_s=None):
+    """Build, run and write the raster plus the ``manifest.json`` the scorer reads.
+
+    ``segment_s`` chains ``simulate`` calls of that many seconds (the last one
+    shorter when it does not divide the run): the concatenated raster scores
+    exactly as one call, while only it grows. The manifest records
+    ``segment_s``, the segment count and each segment's Poisson receipt. The
+    default None is one call, unchanged.
+    """
     import numpy as np
 
+    seg_s = _validate_segment_s(segment_s)
     lane_kit.refuse_scored_dir(out_dir, signed)
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -498,12 +523,44 @@ def run(seed, tag, out_dir, *, n=800, scale=None, T_s=1.0, signed=False,
     )
     t_construct = time.perf_counter() - t0
     sim = build_sim(T_s=T_s, seed=seed)
-    signals = model.simulate(sim)
-    t_simulate = time.perf_counter() - t0 - t_construct
-    spikes = np.asarray(signals.spikes, dtype=bool)
-    assert spikes.shape == (sim.n_steps, sum(
-        1 for _ in model.neuron_table())), "raster must cover every neuron"
-    assert bool(np.isfinite(np.asarray(signals.V_m)).all()), "V must stay finite"
+    seg_receipts = None
+    if seg_s is None:
+        signals = model.simulate(sim)
+        t_simulate = time.perf_counter() - t0 - t_construct
+        spikes = np.asarray(signals.spikes, dtype=bool)
+        assert spikes.shape == (sim.n_steps, sum(
+            1 for _ in model.neuron_table())), "raster must cover every neuron"
+        assert bool(np.isfinite(np.asarray(signals.V_m)).all()), "V must stay finite"
+    else:
+        seg_steps = int(round(seg_s * 1000.0 / DT_MS))
+        if seg_steps <= 0:
+            raise ValueError(
+                "segment_s=%r holds no dt_ms step; pass at least %s s"
+                % (segment_s, DT_MS / 1000.0))
+        t_seg = time.perf_counter()
+        parts, seg_receipts, state, remaining = [], [], None, sim.n_steps
+        while remaining > 0:
+            k = min(seg_steps, remaining)
+            seg_sim = J.Simulation(
+                duration_ms=float(k) * DT_MS, dt_ms=DT_MS, seed=int(seed),
+                poisson_drive=build_drive(seed),
+                runtime=J.RuntimeConfig(recurrent_backend="edge_list"))
+            if state is None:
+                seg_signals, state = model.simulate(seg_sim, return_state=True)
+            else:
+                seg_signals, state = model.simulate(
+                    seg_sim, continuation=state, return_state=True)
+            assert bool(np.isfinite(np.asarray(seg_signals.V_m)).all()), \
+                "segment V must stay finite"
+            parts.append(np.asarray(seg_signals.spikes, dtype=bool))
+            seg_receipts.append(seg_signals.metadata["poisson_drive"])
+            remaining -= k
+            del seg_signals
+        t_simulate = time.perf_counter() - t_seg
+        spikes = np.concatenate(parts, axis=0)
+        del parts
+        assert spikes.shape == (sim.n_steps, sum(
+            1 for _ in model.neuron_table())), "raster must cover every neuron"
     pops = _pop_index(model)
     by_pop = score_by_population(spikes, pops)
     regime = score(spikes)
@@ -525,6 +582,10 @@ def run(seed, tag, out_dir, *, n=800, scale=None, T_s=1.0, signed=False,
              "poisson_drive": build_drive(seed),
              "wall_s": {"construct": t_construct, "simulate": t_simulate},
              "regime": regime, "pops": by_pop, "estimands_p3v2": estimands}
+    if seg_receipts is not None:
+        entry["segment_s"] = float(seg_s)
+        entry["n_segments"] = int(len(seg_receipts))
+        entry["segment_poisson_receipts"] = seg_receipts
     entries[fname] = entry
     manifest = {"git_sha": sha, "dtype": "float32", "backend": "cpu",
                 "runs": list(entries.values())}
@@ -539,7 +600,7 @@ def _pilot(args):
     lesion = tuple(args.lesion) if args.lesion else None
     tag = "pilot" + ("_lesion_%s_%s" % tuple(args.lesion) if args.lesion else "")
     result = run(args.seed, tag, args.out, scale=args.scale, T_s=args.T_s,
-                 lesion=lesion, pilot=True)
+                 lesion=lesion, pilot=True, segment_s=args.segment_s)
     try:
         import resource
 
@@ -547,8 +608,8 @@ def _pilot(args):
     except Exception:
         peak_kb = None
     est = result["estimands"]
-    print("status: unscored pilot (seed %d, scale %s, T_s %s, lesion %s)"
-          % (args.seed, args.scale, args.T_s, lesion))
+    print("status: unscored pilot (seed %d, scale %s, T_s %s, lesion %s, segment_s %s)"
+          % (args.seed, args.scale, args.T_s, lesion, args.segment_s))
     print("wall_s: construct %.1f simulate %.1f"
           % (result["wall_s"]["construct"], result["wall_s"]["simulate"]))
     if peak_kb is not None:
@@ -572,7 +633,7 @@ def _pilot(args):
 
 
 def main(argv=None):
-    """Command line: ``pilot --seed S --scale X --T-s T --out DIR [--lesion PRE POST]``."""
+    """Command line: ``pilot --seed S --scale X --T-s T --out DIR [--lesion PRE POST] [--segment-s S]``."""
     import argparse
 
     parser = argparse.ArgumentParser(prog="potjans2014_api.py")
@@ -583,6 +644,7 @@ def main(argv=None):
     pilot.add_argument("--T-s", type=float, required=True)
     pilot.add_argument("--out", required=True)
     pilot.add_argument("--lesion", nargs=2, default=None, metavar=("PRE", "POST"))
+    pilot.add_argument("--segment-s", type=float, default=None)
     args = parser.parse_args(argv)
     if args.command == "pilot":
         return _pilot(args)

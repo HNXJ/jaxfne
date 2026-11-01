@@ -522,3 +522,82 @@ def test_gap_delay_distribution():
         tensor, nt.RuntimeConfiguration(seed=0, duration_ms=20.0, dt_ms=DT,
                                         emitter="lif"))
     assert model is not None, "delay spread must construct"
+
+
+SEG_T_S = 0.02  # 200 steps: the segmented-run fixture window
+SEG_S = 0.005  # 50 steps: four even segments over the fixture window
+
+
+def test_segmented_raster_shape_and_chunk0_prefix(tmp_path):
+    """The chained raster covers the grid; chunk 0 equals the one-call prefix."""
+    seg = L.run(0, "seg", str(tmp_path / "seg"), scale=SCALE_SMALL,
+                T_s=SEG_T_S, pilot=True, segment_s=SEG_S)
+    whole = L.run(0, "whole", str(tmp_path / "whole"), scale=SCALE_SMALL,
+                  T_s=SEG_T_S, pilot=True)
+    n_steps = int(round(SEG_T_S * 1000.0 / DT))
+    assert seg["spikes"].shape == (n_steps, whole["spikes"].shape[1]), \
+        "segmented raster covers every step and neuron"
+    first_rows = int(round(SEG_S * 1000.0 / DT))
+    assert int(seg["spikes"][:first_rows].sum()) > 0, \
+        "fixture must spike in chunk 0"
+    assert np.array_equal(seg["spikes"][:first_rows],
+                          whole["spikes"][:first_rows]), \
+        "chunk 0 equals the unsegmented prefix bit-for-bit"
+
+
+def test_segmented_uneven_tail(tmp_path):
+    """A segment length missing the run end leaves one shorter last segment."""
+    import json
+
+    seg_s = 0.007  # 70 steps over 200: 70 + 70 + 60
+    out = tmp_path / "tail"
+    result = L.run(0, "seg", str(out), scale=SCALE_SMALL,
+                   T_s=SEG_T_S, pilot=True, segment_s=seg_s)
+    assert result["spikes"].shape[0] == int(round(SEG_T_S * 1000.0 / DT))
+    entry = json.loads((out / "manifest.json").read_text())["runs"][0]
+    assert entry["n_segments"] == 3, "70 + 70 + 60 steps over 200"
+    assert len(entry["segment_poisson_receipts"]) == 3
+
+
+def test_segmented_manifest_receipts(tmp_path):
+    """The manifest records segment_s, the count and one receipt per segment."""
+    import json
+
+    from jaxfne._signals import poisson_chunk_seed
+
+    out = tmp_path / "segman"
+    L.run(0, "seg", str(out), scale=SCALE_SMALL,
+          T_s=SEG_T_S, pilot=True, segment_s=SEG_S)
+    manifest = json.loads((out / "manifest.json").read_text())
+    assert len(manifest["runs"]) == 1, "one run recorded"
+    entry = manifest["runs"][0]
+    assert entry["segment_s"] == pytest.approx(SEG_S)
+    assert entry["n_segments"] == 4
+    receipts = entry["segment_poisson_receipts"]
+    assert len(receipts) == 4, "one receipt per segment"
+    for i, receipt in enumerate(receipts):
+        assert isinstance(receipt, list) and len(receipt) == 8, \
+            "segment %d receipts cover all eight populations" % i
+        for e in receipt:
+            assert e["chunk_index"] == i, "segment %d names its chunk" % i
+            assert e["chunk_seed"] == poisson_chunk_seed(int(e["seed"]), i), \
+                "segment %d chunk seed derives from its chunk" % i
+
+
+def test_segment_s_refused(tmp_path):
+    """A non-finite or non-positive segment_s is refused by name."""
+    for bad in (0, 0.0, -1.5, float("nan"), float("inf"), "abc"):
+        with pytest.raises(ValueError, match="segment_s"):
+            L.run(0, "bad", str(tmp_path), scale=SCALE_SMALL,
+                  T_s=SEG_T_S, pilot=True, segment_s=bad)
+
+
+def test_default_manifest_carries_no_segment_keys(tmp_path):
+    """The default one-call manifest records no segment keys."""
+    import json
+
+    out = tmp_path / "plain"
+    L.run(0, "plain", str(out), scale=SCALE_SMALL, T_s=SEG_T_S, pilot=True)
+    entry = json.loads((out / "manifest.json").read_text())["runs"][0]
+    for key in ("segment_s", "n_segments", "segment_poisson_receipts"):
+        assert key not in entry, "default call records no %s" % key
