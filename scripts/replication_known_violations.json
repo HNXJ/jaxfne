@@ -155,6 +155,13 @@
   },
   {
     "rule": "S2",
+    "path": "artifacts/etudes/papers/caminos/calibration/attribute_o83.py",
+    "message": "imports oracle artifacts/etudes/papers/caminos/caminos_jax.py",
+    "reason": "O-83 attribution of the PLoS figure runs, which ran on the transcription through cellrep_figures.py; it swaps parameter families in the transcription's own sets (2026-11-01)",
+    "todo": "T-63b"
+  },
+  {
+    "rule": "S2",
     "path": "artifacts/etudes/papers/pcl/port/pcl_binned_jax.py",
     "message": "imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref.py",
     "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",

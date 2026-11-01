@@ -19,9 +19,9 @@ import numpy as np
 _HERE = Path(__file__).resolve().parent
 _PAPER = _HERE.parent
 _repo_root = Path(__file__).resolve().parents[5]  # P-025: the checkout's jaxfne, never site-packages
-for p in (str(_repo_root), str(_PAPER)):
-    if p not in sys.path:
-        sys.path.insert(0, p)
+if str(_repo_root) not in sys.path:
+    sys.path.insert(0, str(_repo_root))
+sys.path.insert(0, str(_PAPER))
 
 import caminos_jax as cj  # noqa: E402
 import cellrep_figures as cf  # noqa: E402
