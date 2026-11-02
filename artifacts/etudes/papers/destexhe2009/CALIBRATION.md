@@ -449,6 +449,6 @@ every alive seed (48-49 Hz); the 6A control is dead on both seeds. Table: `prere
 evidence".
 
 Prereg: `prereg/P3_v3.md`, signed by Hamm 2026-11-02 as `prereg/P3_v3_signed.md` (E4 reported, the 4-of-5
-aggregation kept). Scored on seeds 9-13: FAIL, 0 of 5 seeds close E1-E3, the 6A control holds
+aggregation kept). Scored on seeds 9-13: FAIL, 0 of 5 seeds close E1-E3, the 6A control (C1) holds
 (`RESULT_P3.md`; receipts `F:/warehouse/destexhe2009/P3v3_signed_2d17488b/`). The pilots and step 6 predicted
 the FAIL.

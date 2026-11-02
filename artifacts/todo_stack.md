@@ -50,8 +50,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     under the hygiene caps (26 of 30 ghost hits on 2026-10-31). Closes when: `run_test_gate.py rc` prints
     "RC GATE PASS" and its attestation names the candidate SHA; every `jaxfne/` commit since v0.5.8 has a fragment or
     is recorded as changing no behavior.
-9. [H] Gate 1: every package 9A-9G closed or moved with its reason; Hamm rules each move. Closes when: the release
-   plan's checklist shows each package closed or moved with Hamm's dated ruling.
+9. [H] Gate 1: every package 9A-9G closed or moved with its reason; Hamm rules each move. Closes when: the checklist
+   in `etudes/meta/plans/release_plan_0.5.9-0.6.0.md` shows each package closed or moved with Hamm's dated ruling.
 10. T-71 [A] Gates 2-4 on the release SHA: broad gate, CI, `check_replications.py --check` 0 unlisted, dashboard
     fresh; second review with its receipt; release day: version 0.5.9 in `pyproject.toml`,
     `assemble_changelog.py --version 0.5.9 --date <day>`, `release_body.py --check`. Closes when: each command
