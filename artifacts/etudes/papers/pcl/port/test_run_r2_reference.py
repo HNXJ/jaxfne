@@ -425,6 +425,7 @@ def test_p_core_arm_equals_oracle_arm_on_chain(tmp_path):
     matches the oracle (see _make_lat_base). Seeded init weights move under learning,
     so the comparison is not vacuous.
     """
+    pytest.importorskip("numba", reason="the core arm loads run_tuning, which needs numba (not a jaxfne dependency)")
     base = _make_lat_base(tmp_path / "base")
     a = _make_npz_events(tmp_path / "a.npz", n=60, spacing=100)
     b = _make_npz_events(tmp_path / "b.npz", n=40, spacing=137, t0=900000)
