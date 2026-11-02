@@ -574,7 +574,8 @@ FIG5S1_T_S = 3.0  # smoke run length for the Figure 5 / S1 tests
 S1_SMOKE = {
     "sizes": CF_SMOKE["sizes"],
     "som_ext_rate_hz": CF_SMOKE["som_ext_rate_hz"],
-}  # S1 holds the drive fixed: no ext_sources key (s1_sweep forces "fixed")
+}  # S1 drives p*NE private sources at 4 Hz (Hamm 2026-11-02, O-73):
+# no ext_sources/ext keys (s1_sweep fixes both); som_ext_rate_hz stays so SOM fires
 
 
 def test_coupling_zero_matches_baseline():
@@ -649,10 +650,67 @@ def test_s1_higher_p_increases_e_counts():
     rows = cf.s1_sweep([0.01, 0.3], [1], T_s=FIG5S1_T_S, **S1_SMOKE)
     e_by_p = {r["p"]: r["counts"]["E"] for r in rows}
     assert e_by_p[0.3] > 0, "precondition: the p = 0.3 E count is nonzero"
-    assert e_by_p[0.01] > 0, "precondition: the p = 0.01 E count is nonzero"
+    # no nonzero precondition at p = 0.01: the ruled drive is 4 sources there,
+    # which leaves the smoke net silent
     assert "phase_delay_rad" in rows[0]
     assert e_by_p[0.3] != e_by_p[0.01], \
         "p must move the E counts: p=0.01 -> %r, p=0.3 -> %r" % (e_by_p[0.01], e_by_p[0.3])
+
+
+def test_s1_rows_carry_round_pNE_source_counts():
+    """s1_sweep rows carry n_ext_sources = round(p * NE) (Hamm 2026-11-02, O-73)."""
+    import cellrep_figures as cf
+
+    rows = cf.s1_sweep([0.01, 0.3], [1], T_s=FIG5S1_T_S, **S1_SMOKE)
+    by_p = {r["p"]: r for r in rows}
+    ne = S1_SMOKE["sizes"]["NE"]
+    assert by_p[0.01]["n_ext_sources"] == int(round(0.01 * ne)) == 4
+    assert by_p[0.3]["n_ext_sources"] == int(round(0.3 * ne)) == 120
+    assert by_p[0.01]["n_ext_sources"] != by_p[0.3]["n_ext_sources"]
+
+
+def test_s1_run_realizes_the_pNE_drive():
+    """The S1 run equals run_cell under the p*NE drive and differs from the fixed drive."""
+    import numpy as np
+
+    import cellrep_figures as cf
+
+    (row,) = cf.s1_sweep([0.3], [1], T_s=FIG5S1_T_S, **S1_SMOKE)
+    pne = cf.run_cell(1, T_s=FIG5S1_T_S, ext_sources="pNE", p=0.3, **S1_SMOKE)
+    fixed = cf.run_cell(1, T_s=FIG5S1_T_S, ext_sources="fixed", p=0.3, **S1_SMOKE)
+    assert row["counts"]["E"] > 0, "precondition: the smoke S1 run fires"
+    assert fixed["counts"] != pne["counts"], "precondition: the two drives differ"
+    np.testing.assert_array_equal(np.asarray(row["counts_kept"]), np.asarray(pne["counts_kept"]))
+
+
+def test_s1_refuses_explicit_drive_keywords():
+    """s1_sweep refuses explicit ext_sources/ext: the ruling fixes both."""
+    import cellrep_figures as cf
+
+    with pytest.raises(ValueError):
+        cf.s1_sweep([0.1], [1], T_s=FIG5S1_T_S, ext_sources="fixed", **S1_SMOKE)
+    with pytest.raises(ValueError):
+        cf.s1_sweep([0.1], [1], T_s=FIG5S1_T_S, ext="shared", **S1_SMOKE)
+
+
+def test_run_figA_s1_mode_writes_smoke_row(monkeypatch, tmp_path):
+    """run_figA.py mode s1 runs one smoke p and seed and writes its row."""
+    import json
+
+    import run_figA as rf
+
+    import cellrep_figures as cf
+
+    monkeypatch.setattr(cf, "_sizes_tuple", lambda sizes: (400, 80, 80))
+    monkeypatch.setenv("FIGA_T_S", "3.0")
+    monkeypatch.setattr(sys, "argv", ["run_figA.py", str(tmp_path), "0.3", "1", "s1"])
+    rf.main()
+    payload = json.loads((tmp_path / "s1.json").read_text(encoding="utf-8"))
+    assert payload["what"] == "s1" and len(payload["rows"]) == 1
+    row = payload["rows"][0]
+    assert row["p"] == 0.3 and row["seed"] == 1
+    assert row["n_ext_sources"] == int(round(0.3 * 400)) == 120
+    assert row["counts"]["E"] > 0, "precondition: the smoke S1 row fires"
 
 
 # --- Cell Reports Figure 2 / Figure 6A runners (packet FIG-2/6A) ---

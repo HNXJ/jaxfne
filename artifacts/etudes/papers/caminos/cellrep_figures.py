@@ -610,21 +610,25 @@ def _locking_run(seed, swap, **kw):
 def s1_sweep(probabilities=None, seeds=None, **kw):
     """Figure S1 connection-probability sweep (legend mmc2 lines 1808-1812).
 
-    For each p and seed this runs :func:`run_cell` with
-    ``ext_sources="fixed"`` and ``p=p`` (``run_cell`` forwards ``p`` through
-    ``**sim_kw`` to ``caminos_jax.simulate``, which takes ``p`` under that
-    name). The external source count is held fixed so only p changes; the
-    Methods do not say how the drive scales with p (inferred, decided here).
-    Rows carry ``p``, ``seed`` and the :func:`run_cell` outputs (colour-map
-    spectrum and max E rate per p) plus ``phase_delay`` (the full
-    :func:`jaxfne.analysis.ref42_phase_delay` dict on the kept PV/SOM
-    counts at the run's ``f_pk_hz``) and ``phase_delay_rad`` (its wrapped
-    SOM-minus-PV phase, None when a group is silent).
-    ``probabilities`` defaults to the Figure's grid; every p must be in
-    (0, 1).
+    For each p and seed this runs :func:`run_cell` with ``p=p`` (``run_cell``
+    forwards ``p`` through ``**sim_kw`` to ``caminos_jax.simulate``, which
+    takes ``p`` under that name). The drive is round(p * NE) private Poisson
+    sources at 4 Hz (Hamm 2026-11-02, O-73: p*NE Poisson sources at 4 Hz,
+    private): ``ext_sources="pNE"`` with ``ext`` at its private default, both
+    fixed by the ruling, so an explicit ``ext_sources`` or ``ext`` keyword is
+    refused. Rows carry ``p``, ``seed``, ``n_ext_sources`` (the count
+    :func:`caminos_jax.ext_source_count` gives for that p) and the
+    :func:`run_cell` outputs (colour-map spectrum and max E rate per p) plus
+    ``phase_delay`` (the full :func:`jaxfne.analysis.ref42_phase_delay` dict
+    on the kept PV/SOM counts at the run's ``f_pk_hz``) and
+    ``phase_delay_rad`` (its wrapped SOM-minus-PV phase, None when a group is
+    silent). ``probabilities`` defaults to the Figure's grid; every p must be
+    in (0, 1).
     """
-    from jaxfne.analysis import ref42_phase_delay
-
+    if "ext_sources" in kw or "ext" in kw:
+        raise ValueError("s1_sweep fixes ext_sources='pNE' and ext='private' "
+                         "(Hamm 2026-11-02, O-73); got ext_sources=%r, ext=%r"
+                         % (kw.get("ext_sources"), kw.get("ext")))
     if probabilities is None:
         probabilities = S1_PROBABILITIES
     if seeds is None:
@@ -638,18 +642,9 @@ def s1_sweep(probabilities=None, seeds=None, **kw):
         if not 0.0 < pp < 1.0:
             raise ValueError("p must be in (0, 1), got %r" % (p,))
         for seed in seeds:
-            res = run_cell(seed, **{**kw, "ext_sources": "fixed", "p": pp})
-            f_pk = float(res["f_pk_hz"])
-            dur = float(res["T_s"]) - DISCARD_S
-            delay = ref42_phase_delay(np.asarray(res["counts_kept"]), res["dt_s"],
-                                      f_pk, half_band_hz=5.0,
-                                      drop_s=0.0, keep_s=dur)
-            phi_pv, phi_som = delay["phase_PV_rad"], delay["phase_SOM_rad"]
-            if phi_pv is None or phi_som is None:
-                phase_rad = None
-            else:
-                phase_rad = float(np.angle(np.exp(1j * (phi_som - phi_pv))))
-            res.update({"p": pp, "seed": int(seed), "phase_delay": delay,
-                        "phase_delay_rad": phase_rad})
-            rows.append(res)
+            res = run_cell(seed, **{**kw, "ext_sources": "pNE", "p": pp})
+            res.update({"p": pp, "seed": int(seed),
+                        "n_ext_sources": cj.ext_source_count(
+                            pp, res["sizes"]["E"], "pNE", PARAM_SET)})
+            rows.append(_attach_phase_delay(res))
     return rows

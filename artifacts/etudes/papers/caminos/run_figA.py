@@ -2,9 +2,9 @@
 
 Usage: python run_figA.py <outdir> <values csv> <seeds csv> <what>
   what: silence_pv | silence_som | replace_pv | replace_som | s3
-        | fig2a | fig2b | fig6a | fig5a | fig5b | fig5c | fig1c
-  values: fractions (silence/replace), Hz (fig2a, fig2b), ratios (fig6a), nS (fig5a, fig5b);
-          ignored for s3, fig5c and fig1c.
+        | fig2a | fig2b | fig6a | fig5a | fig5b | fig5c | fig1c | s1
+  values: fractions (silence/replace), Hz (fig2a, fig2b), ratios (fig6a), nS (fig5a, fig5b),
+          probabilities (s1); ignored for s3, fig5c and fig1c.
 Env FIGA_T_S sets the run length in seconds (default 12; smoke runs use 3).
 Env FIGA_PARAM_SET picks the parameter set: cellrep (default, Cell Reports 2025) or default (PLoS CB 2026,
 whose Figs 2-4 network panels silence and randomize the reference model the same way).
@@ -104,7 +104,7 @@ def main():
             for f in values:
                 rows += keep_spectrum(cf.replace_sweep(pop, [f], [s], rate_hz=rate, T_s=t_s), fmax_hz=200.0)
                 print("run", what, "seed", s, "fraction", f, flush=True)
-    elif what in ("fig2a", "fig2b", "fig6a", "fig5a", "fig5b"):
+    elif what in ("fig2a", "fig2b", "fig6a", "fig5a", "fig5b", "s1"):
         # one value at a time, so each finished run is on disk (rows stream to the log)
         for v in values:
             if what == "fig2a":
@@ -115,9 +115,12 @@ def main():
                 # interneuron total of the active set: 1400 (Cell Reports), 1500 (PLoS CB Fig 4A)
                 total = sum(cf._sizes_tuple(None)[1:])
                 res = cf.fig6a_sweep(ratios=[v], seeds=seeds, T_s=t_s, total=total)
+            elif what == "fig5a":
+                res = cf.coupling_sweep("PV_SOM", values_nS=[v], seeds=seeds, T_s=t_s)
+            elif what == "fig5b":
+                res = cf.coupling_sweep("SOM_SOM", values_nS=[v], seeds=seeds, T_s=t_s)
             else:
-                kind = "PV_SOM" if what == "fig5a" else "SOM_SOM"
-                res = cf.coupling_sweep(kind, values_nS=[v], seeds=seeds, T_s=t_s)
+                res = cf.s1_sweep(probabilities=[v], seeds=seeds, T_s=t_s)
             rows += keep_spectrum(res)
             print("run", what, "value", v, "rows", len(res), flush=True)
     elif what in ("fig5c", "fig1c"):
