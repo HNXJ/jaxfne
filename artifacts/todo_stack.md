@@ -29,8 +29,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    baseline misses R-L23E, R-L5E, O-IE at L5 and CV at L6E. Potjans P3 v2 → step 7.
 3. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
    behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
-   test first and a changelog fragment (lanes a, d9fee4b9, and b, fb5ef158, landed):
-   c. Poisson replacement of a fraction (4A, 4B);
+   test first and a changelog fragment (lanes a d9fee4b9, b fb5ef158, c ed9058c2 landed):
    d. per-step E→E gain (6B; values wait on T-65).
    → port `cellrep_figures.py` to `caminos_api` and check equivalence at full size against the frozen result,
    within its between-seed range (T-R28 ruling). ⇒ outside: attribute (parameters, drive, delay, random streams)
