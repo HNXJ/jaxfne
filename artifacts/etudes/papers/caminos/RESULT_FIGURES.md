@@ -126,6 +126,22 @@ Criterion (T-R28 ruling: within the frozen result's between-seed range): for eac
 random streams) before any rescoring (todo T-30). With three oracle seeds the range is narrow (rates within about 1%),
 so cells outside are expected by chance alone; each is reported with its distance from the range.
 
+Result (2026-11-02): **not equivalent under the criterion**, 16 of 24 cells inside (`score_core_equivalence.py`;
+receipt `F:/warehouse/caminos/route_08780699/equivalence_silence_pv.json`, core sweep `silence_pv_core.json` beside
+it). The 8 cells outside lie 0.10-1.10% of the oracle mean from the range (0.06-1.18 range widths): fraction 0 band
+power (-1.10%), 0.7 f_pk (14.37 Hz against 14.4-14.7) and PV rate (5.378 Hz against 5.41-5.437), and at 0.9 every
+metric except f_pk, each core value above the range except band power. Null: with one distribution for both routes,
+the mean of 3 seeds lies inside the range of 3 seeds with P 0.63 per cell (Monte Carlo, 200 000 draws), 8.8 cells of
+24 outside expected; the criterion passes all 24 with P about 1.6e-5 if cells were independent, so it cannot separate
+equivalent routes from a small offset. The count matches the null; the same-sign run at 0.9 is the candidate offset.
+
+Attribution A1 (declared 2026-11-02, before its runs): random streams. Seeds 4, 5, 6 at fractions 0.7 and 0.9 on both
+routes at 08780699 (T 12 s, GPU float32), pooled with seeds 1-3 (n 6 per route). Per cell: core minus oracle mean,
+its 95% Welch interval and p, Holm over the 12 cells; the difference is also given in percent of the oracle mean. A
+cell whose Holm-corrected p < 0.05 is a systematic offset and goes to the next attribution (parameters, drive,
+delay); otherwise the cell is attributed to random streams. A1 rescores nothing: the criterion's verdict above stands
+until Hamm rules on a criterion that can pass.
+
 ## Replica score (Cell Reports main text)
 
 17 result panels: 1B, 1C, 2A top, 2A bottom, 2B top, 2B bottom, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B,
