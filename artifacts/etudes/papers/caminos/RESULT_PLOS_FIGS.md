@@ -12,7 +12,7 @@ oscillation frequency; amplitude and maximum E rate are mean-field lines, checke
   T 12 s, 2 s discard. Seeds 1, 2, 3. Silencing fractions 0, 0.2, 0.4, 0.6, 0.8, 0.9; randomization fractions
   0, 0.4, 0.9 at the paired-baseline group rate (PV 11.40 Hz, SOM 7.11 Hz); Fig 4A SOM/PV 0.5, 1, 2, 4 at 1500
   interneurons.
-- Scorer: `score_plos_figs.py`, summary `scores/plos_figs_2_4.json` (input sha256 per file). Receipts
+- Scorer: `score_plos_figs.py`, summary `scores/plos/plos_figs_2_4.json` (input sha256 per file). Receipts
   `F:\warehouse\caminos\figP_out\` (p2a, p2b, p3a, p3b, p4a and logs). p2b reran after a CUDA illegal-address fault
   at SOM 80 %, seed 3 (`p2b_silence_som.crash1.log`); the rerun completed all 18 runs.
 - Metrics as in `RESULT_FIGURES.md`: f_pk (25-45 Hz argmax), band power 25-45 Hz and peak |X| (5-60 Hz) as ratios
@@ -84,7 +84,7 @@ rates per panel, and the mean-field traces above the 2C-F panels.
 ### Scored (2026-11-02)
 
 Scorer `score_plos_rasters.py` (31c23fbc) on the run above, every input checked against the manifest sha256; summary
-`scores/plos_rasters_2_3.json` (sha256 82260303…); figures `F:/warehouse/caminos/plosr_7f7a660e/figs/fig2_CF.png`
+`scores/plos/plos_rasters_2_3.json` (sha256 82260303…); figures `F:/warehouse/caminos/plosr_7f7a660e/figs/fig2_CF.png`
 (a783d267…) and `fig3_CF.png` (593e1fe5…). Seed means, seeds 1-3; MF = mean field.
 
 | Panel | Criterion | Value | Holds | Verdict |
