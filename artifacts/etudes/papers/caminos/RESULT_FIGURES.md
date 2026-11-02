@@ -1,6 +1,6 @@
 # CAMINOS figure verdicts: Figures 2-6, S3 (paper scale)
 
-Status: partial. Figs 2A bottom, 2B bottom, 6B and S1 are not run. Verdicts below are descriptive. The paper gives
+Status: partial. Figs 2A bottom, 2B bottom and 6B are not run; S1 scored 2026-11-02 against criteria declared first. Verdicts below are descriptive. The paper gives
 no numbers, so the tolerances were chosen after the data were seen; they are not pre-registered.
 
 ## Setup
@@ -92,6 +92,26 @@ SOM-minus-PV phase at f_pk (ref. 42) / 2π f_pk; seed means unless stated.
 | S1-S | seizure-like above 25% | max E ≥ 50 Hz in every seed at p = 0.30, and below 50 Hz in every seed at p ≤ 0.20; onset at a different grid step is partial |
 | S1-G | gamma at 1-15% | seed-mean f_pk in 30-80 Hz at p = 0.01, 0.02, 0.04, 0.08, 0.12 |
 | S1-D | delay maintained at 1-15% | PV-to-SOM delay positive (SOM after PV) in every seed at p = 0.01-0.12 |
+
+Result (receipts `F:\warehouse\caminos\s1_95d2161b\`: `s1.json` sha256 7dc1b25f…afc7, `out.log`; 27 runs, 53 min).
+Seed means; seeds 1, 2, 3.
+
+| p | 0.01 | 0.02 | 0.04 | 0.08 | 0.12 | 0.16 | 0.20 | 0.25 | 0.30 |
+|---|---|---|---|---|---|---|---|---|---|
+| f_pk (Hz) | 12.2 | 41.2 | 41.7 | 46.1 | 49.5 | 52.0 | 53.7 | 52.2 | 100.0 |
+| max E (Hz), seed range | 5.4-7.1 | 5.3-5.4 | 21.7-22.2 | 28.4-28.8 | 37.2-38.0 | 51.6-53.6 | 83.0-96.7 | 130.6-163.7 | 303.7-398.6 |
+| mean E (Hz) | 1.56 | 2.86 | 2.60 | 3.03 | 3.68 | 4.55 | 5.73 | 7.02 | 196.1 |
+| delay (ms), seed range | 10.2-11.0 | 5.3-6.0 | 3.0 | 2.1 | 0.9 | 0.5 | 0.3 | 0.7-0.8 | -0.01-0.03 |
+
+| Id | Verdict | Evidence |
+|---|---|---|
+| S1-F | pass | 53.7 Hz at 0.20 against 41.7 Hz at 0.04; no step in 0.02-0.20 falls (smallest step +1.1%, 0.02 to 0.04) |
+| S1-S | partial | every seed at or above 50 Hz from p = 0.16 (51.6-53.6 Hz), two grid steps before the paper's 25%; the hyper-synchronous state (mean E 196 Hz, f_pk at the 100 Hz edge of the search band) appears only at 0.30 |
+| S1-G | fail | 12.2 Hz at p = 0.01 (11.1-13.3 Hz per seed); 41.2-49.5 Hz at 0.02-0.12 |
+| S1-D | pass | positive in every seed at 0.01-0.12; it shrinks from 10.7 ms to 0.9 ms, so "maintained" holds for the sign only |
+
+The 50 Hz max-E tolerance comes from Fig 3B; mean E stays at 4.6-7.0 Hz from 0.16 to 0.25, so the S1-S onset depends on
+that tolerance. At p = 0.01 the drive is 80 Poisson sources (round(p·NE)), the weakest of the grid.
 
 ## Replica score (Cell Reports main text)
 

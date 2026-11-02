@@ -56,15 +56,12 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 ## Beside the path (∥)
 
 11a. ∥ T-72 [A then H] NeuroAI 2027 short paper, deadline 2026-11-20 23:59 AoE (paper plan amendment 2026-11-02;
-    rules verified on the OpenReview form, non-archival, no dual-submission bar). Status 2026-11-02: draft built
-    (`artifacts/_temp/neuroai2027/`, gitignored; 3 pages main text, 2 figures, Table 1), three critic rounds, the
-    round-3 fixes unreviewed. Waits on [H], one at a time: where the draft lives (the public repo de-anonymizes), the
-    pdfLaTeX build (the style refuses XeTeX; drafts build with tectonic on a guard-disabled copy), the anonymized
-    code link. Then Hamm reads and submits. Closes when Hamm has submitted.
-
-13. ∥ T-59 [A] Cell Reports Fig S1 at paper scale on the GPU: `run_figA.py <out> <S1 grid> 1,2,3 s1` (runner and
-    drive landed 7afb7fc0: p·NE private Poisson sources at 4 Hz, Hamm 2026-11-02), after the PLoS rasters free the
-    GPU; then score S1 in `RESULT_FIGURES.md` and the dashboard.
+    rules verified on the OpenReview form, non-archival, no dual-submission bar). Status 2026-11-02: draft in the
+    private thesis repo, branch `_temp_neuroai2027`, `artifacts/notes/neuroai2027/` (Hamm: private repo, thesis);
+    3 pages main text, 2 figures, Table 1; three critic rounds, the round-3 fixes unreviewed. The submission build
+    (pdfLaTeX, TeX Live 2026 in WSL, the kit's unmodified style; Hamm's choice) passes: 4 pages, 0 overfull boxes, all
+    fonts embedded, no Type 3. Waits on [H]: the anonymous.4open.science mirror of the code repo (Hamm's choice;
+    the link replaces `[MISSING: anonymized code link]`), then Hamm reads and submits. Closes when Hamm has submitted.
 14. ∥ T-O68 [A] Local copies (O-68): rescue each cited file into the repo or `F:/warehouse` with a `state.md`
     pointer, delete one at a time (`cl-reader-cursor`, `jaxfne-wt-p022`, the four WSL copies, the non-git leftovers
     named in O-68), and the finished lane clones under `E:/repos/_wt/jaxfne/` after an alternates check.
