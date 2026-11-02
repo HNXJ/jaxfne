@@ -33,7 +33,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    Zenodo `PCL_Nat_training_natural_dataset.zip`); the C++ reads npz (`NetworkHandle.cpp:89-90`). R3 runs files 0-4
    chained from the R2 init: C++ arm `~/run_pcl_r3_cpp.sh` (WSL, out `F:/warehouse/pcl/r3_cpp_f0_4`); oracle and core
    arms through the `chain` subcommand (Muse packet PCL-R3-HARNESS, clone `pclr3` from d96dc49b). C++ arm done:
-   two chains bit-identical (null), weights moved from init (`F:/warehouse/pcl/r3_cpp_f0_4/*.json`).
+   two chains bit-identical (null), weights moved from init (`F:/warehouse/pcl/r3_cpp_f0_4/*.json`). Oracle arm
+   exact on files 0-4 (max relative weight difference 7.4e-15, `F:/warehouse/pcl/r3_oracle_f0_4/`). Core arm costs
+   about 0.17 s per camera-0 event, linear in events (500 events 98 s, 2000 events 348 s, learning on; 2026-11-02),
+   so file 0 (268 464 events) takes about 12.4 h and files 0-4 about 60 h: the core arm runs file 0 only (WSL
+   `~/pcl_r3/smoke_core_f0b`, launched 15:53Z, not complete), compared with C++ and the oracle on file 0.
    Closes when: R5 is scored in `prereg/` with exact and approximate reproduction apart (R3 closes when CALIBRATION.md
    has an R3 section with a receipt per arm).
 6. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
