@@ -14,7 +14,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 3. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
    behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
    test first and a changelog fragment (lanes a d9fee4b9, b fb5ef158, c ed9058c2 landed):
-   d. per-step E→E gain (6B; values wait on T-65).
+   d. per-step edge gain between two cell types (lane `adexd` done, under review; 6B excluded by the T-65 ruling).
    → port `cellrep_figures.py` to `caminos_api` and check equivalence at full size against the frozen result,
    within its between-seed range (T-R28 ruling). ⇒ outside: attribute (parameters, drive, delay, random streams)
    before any rescoring. ⇒ inside: rerun the Cell Reports sweeps on the GPU, the S2 entry for `cellrep_figures.py`
@@ -84,8 +84,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 20. [H] T-O73 S1 drive: fixed (`ext_sources="fixed"`) or p·NE Poisson sources at 4 Hz (`SOURCE_P1.md` line 18,
     `b8b38aea`); then private or shared sources (G3). Unblocks step 13.
-21. [H] T-65 CAMINOS Cell Reports 2A bottom, 2B bottom (t0), 6B (E→E gain): give the protocol values or exclude the
-    panels. Unblocks step 3d.
 22. [H] T-46 close test: section 7 closes at 0 gaps, or narrows to the 0.5.9 gaps.
 23. [H] T-62 Figure 1D (Onorato data): download permission (file name, source, size in `state.md`); which of panels
     B, C, D hold.
