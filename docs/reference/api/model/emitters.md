@@ -95,18 +95,24 @@ An unrecognized cell-type label raises `ValueError`. These values feed the `a`/`
 no `I_injected` field; the closest analogue is the per-cell `drive` value plus, at simulate time, an
 optional `drive_schedule` argument.
 
+**v equation.** The membrane equation is `v' = 0.04 v^2 + v_lin v + v_const - u + I`. `E`, `PV`,
+`Inl`, `SST` and `Ing` use the standard `v_lin = 5`, `v_const = 140` (Izhikevich 2003). `VIP` and
+`I` carry Izhikevich 2004's class-1 excitable `a`/`b`/`c`/`d` (`figure1.m`, panel G) and that
+panel's `v_lin = 4.1`, `v_const = 108`. `IzhikevichParams.v_lin` and `v_const` hold the per-cell
+values; both are `None` when every cell is standard.
+
 **Default drives and rheobase.** Under constant input `I` the model has a stable rest while
-`(5 - b)^2 > 0.16 (140 + I)`, so the rheobase is `(5 - b)^2 / 0.16 - 140`:
+`(v_lin - b)^2 > 0.16 (v_const + I)`, so the rheobase is `(v_lin - b)^2 / 0.16 - v_const`:
 
 | Label | rheobase | default `drive` | uncoupled cell at the default |
 |-------|----------|-----------------|-------------------------------|
 | `E` | 4.0 | 5.0 | fires |
 | `PV`, `Inl` | 4.0 | 3.0 | silent |
 | `SST`, `Ing` | 1.02 | 3.5 | fires |
-| `VIP`, `I` | 22.56 | 3.0 | silent |
+| `VIP`, `I` | 2.25 | 3.0 | fires |
 
-The defaults are kept as they are. A network built on them is driven by `E` and `SST` until
-recurrent or external input lifts `PV` and `VIP` above rheobase; for a model meant to match
+A network built on the defaults is driven by `E`, `SST` and `VIP` until recurrent or external
+input lifts `PV` above rheobase; for a model meant to match
 physiological rates, set the drive per cell type (`.drive(baseline_drive_by_cell_type=...)`, or
 `.cell_params(selector, {"drive": ...})`) and check each type's rate.
 
@@ -167,6 +173,8 @@ Frozen dataclass for a reduced Izhikevich population
 | `labels` | `tuple[str, ...]` | Per-neuron cell-type labels |
 | `layer_labels` | `tuple[str, ...] \| None` | Optional per-neuron layer labels (default `None`) |
 | `source_calibration_status` | `str` | Default `"uncalibrated_izhikevich_native_current"` |
+| `v_lin` | `jax.Array \| None` | Per-neuron linear coefficient of the v equation; `None` (default) is 5 for every cell |
+| `v_const` | `jax.Array \| None` | Per-neuron constant of the v equation; `None` (default) is 140 for every cell |
 
 ### Properties
 

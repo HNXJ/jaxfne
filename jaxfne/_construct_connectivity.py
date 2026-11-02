@@ -689,6 +689,18 @@ def _connect_merge_emitter(emitters: "list[IzhikevichParams]", jdtype: Any) -> "
     source_cal = (
         emitters[0].source_calibration_status if len(scs) == 1 else "mixed_uncalibrated_proxy"
     )
+    vcoef = {}
+    if any(em.v_lin is not None for em in emitters):
+        from .emitters import IZH_V_CONST_STANDARD, IZH_V_LIN_STANDARD
+
+        def _cat_v(attr: str, standard: float) -> jax.Array:
+            return jnp.concatenate([
+                getattr(em, attr).astype(jdtype) if getattr(em, attr) is not None
+                else jnp.full((em.n_neurons,), standard, dtype=jdtype)
+                for em in emitters], axis=0)
+
+        vcoef = {"v_lin": _cat_v("v_lin", IZH_V_LIN_STANDARD),
+                 "v_const": _cat_v("v_const", IZH_V_CONST_STANDARD)}
     return IzhikevichParams(
         a=_cat("a"),
         b=_cat("b"),
@@ -703,6 +715,7 @@ def _connect_merge_emitter(emitters: "list[IzhikevichParams]", jdtype: Any) -> "
         labels=labels,
         layer_labels=layer_labels,
         source_calibration_status=source_cal,
+        **vcoef,
     )
 
 

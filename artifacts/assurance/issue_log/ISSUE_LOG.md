@@ -120,3 +120,8 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Possible change (Hamm's call: it moves every VIP and I realization): keep the preset and record its
   provenance as "class-1 a,b,c,d in the standard equation", or give VIP its own source-faithful v equation
   coefficients, or take a VIP set from another source.
+- 2026-11-02: ruled (Hamm: class-1 equation) and fixed. `VIP` and `I` carry `v_lin` 4.1 and `v_const` 108;
+  `IzhikevichParams.v_lin`/`v_const` (None when all cells are standard) reach every Izhikevich integrator,
+  `connect()`, checkpoints and the sanity runtime's VIP cells. Tests: `tests/test_izh_class1_presets.py`
+  (fail on the pre-fix code). Not changed: `w3_stability_analysis` (analytic, standard cells by its
+  arguments) and `streaming.py` (RS only).

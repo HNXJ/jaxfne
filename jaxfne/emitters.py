@@ -121,14 +121,32 @@ IZHIKEVICH_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
     "Inl": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["Inl"]},
     "SST": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "sign": CELL_TYPE_SIGN["SST"]},
     "Ing": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "sign": CELL_TYPE_SIGN["Ing"]},
-    "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["VIP"]},
+    # VIP and I: Izhikevich 2004 class-1 excitable (figure1.m panel G), with that panel's
+    # v equation 0.04 v^2 + 4.1 v + 108 (rheobase 2.25; P-054, Hamm 2026-11-02).
+    "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["VIP"],
+            "v_lin": 4.1, "v_const": 108.0},
     # "I" (generic Inhibitory) is a widely-used two-population E/I shorthand
     # across examples/, scripts/evidence_figures/, and tests/ -- explicit alias
     # to VIP's parameters (2026-07-13: this matches the exact values every
     # real "I" caller was already getting via a since-removed silent VIP
     # fallback in _get_cell_type_params; made explicit, not changed).
-    "I": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["I"]},
+    "I": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["I"],
+          "v_lin": 4.1, "v_const": 108.0},
 }
+# The standard v equation 0.04 v^2 + 5 v + 140 (Izhikevich 2003); a preset without
+# v_lin/v_const uses it.
+IZH_V_LIN_STANDARD = 5.0
+IZH_V_CONST_STANDARD = 140.0
+
+
+def _v_coef_lists(labels) -> "tuple[list[float], list[float]] | tuple[None, None]":
+    """Per-cell (v_lin, v_const) from the presets; (None, None) when every cell is standard."""
+    rows = [_get_cell_type_params(name) for name in labels]
+    lin = [float(p.get("v_lin", IZH_V_LIN_STANDARD)) for p in rows]
+    const = [float(p.get("v_const", IZH_V_CONST_STANDARD)) for p in rows]
+    if all(x == IZH_V_LIN_STANDARD for x in lin) and all(x == IZH_V_CONST_STANDARD for x in const):
+        return None, None
+    return lin, const
 
 
 def _get_cell_type_params(name: str) -> dict[str, float]:
@@ -190,6 +208,8 @@ class IzhikevichParams:
     - labels: tuple of reduced-class labels (E-like, PV-like, SST-like,
       VIP-like: stored as "E", "PV", "SST", "VIP"; no literal identity claim)
     - layer_labels: optional tuple of layer names (L1, L2/3, L4, L5, L6, etc)
+    - v_lin, v_const: per-cell linear and constant coefficients of the v equation
+      0.04 v^2 + v_lin v + v_const; None means the standard 5 and 140 for every cell
     """
 
     a: jax.Array
@@ -205,6 +225,8 @@ class IzhikevichParams:
     labels: tuple[str, ...]
     layer_labels: tuple[str, ...] | None = None
     source_calibration_status: str = "uncalibrated_izhikevich_native_current"
+    v_lin: jax.Array | None = None
+    v_const: jax.Array | None = None
 
     @property
     def n_neurons(self) -> int:
@@ -224,6 +246,8 @@ def _izhikevich_params_flatten(params):
         params.v0,
         params.u0,
         params.source_scale,
+        params.v_lin,
+        params.v_const,
     )
     aux_data = {
         "labels": params.labels,
@@ -248,6 +272,8 @@ def _izhikevich_params_unflatten(aux_data, children):
         labels=aux_data["labels"],
         layer_labels=aux_data["layer_labels"],
         source_calibration_status=aux_data["source_calibration_status"],
+        v_lin=children[10],
+        v_const=children[11],
     )
 
 
@@ -266,13 +292,24 @@ def _segment_sum(data, segment_ids, num_segments):
     return jax.ops.segment_sum(data, segment_ids, num_segments=num_segments)
 
 
-def _izhikevich_dv_du(v, u, current_native, a, b, h_k=1.0):
+def _v_coefs(params: IzhikevichParams, dtype: Any) -> tuple[Any, Any]:
+    """The v-equation (v_lin, v_const) of ``params`` cast to ``dtype``; the standard floats when None."""
+    if params.v_lin is None and params.v_const is None:
+        return IZH_V_LIN_STANDARD, IZH_V_CONST_STANDARD
+    if params.v_lin is None or params.v_const is None:
+        raise ValueError("IzhikevichParams: v_lin and v_const must both be set or both be None")
+    return params.v_lin.astype(dtype), params.v_const.astype(dtype)
+
+
+def _izhikevich_dv_du(v, u, current_native, a, b, h_k=1.0, vq=(IZH_V_LIN_STANDARD, IZH_V_CONST_STANDARD)):
     """Izhikevich (2003) fast-subsystem derivatives -- shared by every scan-body
     closure in this module (F-028: was duplicated verbatim 11 times).
 
     ``h_k=1.0`` recovers the classical drive; Protocol D1 uses ``h_k = H_K``.
+    ``vq`` is (v_lin, v_const) from :func:`_v_coefs` (P-054: class-1 cells use 4.1 and 108).
     """
-    dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
+    v_lin, v_const = vq
+    dv = 0.04 * v * v + v_lin * v + v_const - u + current_native
     du = a * (h_k * b * v - u)
     return dv, du
 
@@ -295,9 +332,10 @@ def _spike_sigmoid_beta_jvp(primals, tangents):
     return spike_sigmoid_beta(x, beta), beta * s * (1.0 - s) * x_dot
 
 
-def _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, h_k):
+def _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, h_k,
+                                   vq=(IZH_V_LIN_STANDARD, IZH_V_CONST_STANDARD)):
     """Protocol D1: static recovery drive ``du = a * (H_K * b * v - u)``."""
-    return _izhikevich_dv_du(v, u, current_native, a, b, h_k)
+    return _izhikevich_dv_du(v, u, current_native, a, b, h_k, vq)
 
 
 @dataclass(frozen=True)
@@ -407,7 +445,16 @@ def izhikevich_eig_params(
         u0=jnp.asarray(b, dtype=jdtype) * jnp.asarray(-65.0, dtype=jdtype),
         source_scale=jnp.asarray(1.0, dtype=jdtype),
         labels=labels,
+        **_v_coef_fields(labels, jdtype),
     )
+
+
+def _v_coef_fields(labels, jdtype) -> dict:
+    """``v_lin``/``v_const`` keyword arrays for a labelled population (empty when all standard)."""
+    lin, const = _v_coef_lists(labels)
+    if lin is None:
+        return {}
+    return {"v_lin": jnp.asarray(lin, dtype=jdtype), "v_const": jnp.asarray(const, dtype=jdtype)}
 
 
 def izhikevich_params_from_labels(
@@ -485,6 +532,7 @@ def izhikevich_params_from_labels(
         labels=label_tuple,
         layer_labels=tuple(str(x) for x in layer_labels) if layer_labels is not None else None,
         source_calibration_status="uncalibrated_izhikevich_native_current",
+        **_v_coef_fields(label_tuple, jdtype),
     )
 
 
@@ -592,6 +640,7 @@ def simulate_eig_izhikevich(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -623,8 +672,9 @@ def simulate_eig_izhikevich(
             v_r = jnp.where(fired, c, v)
             u_r = jnp.where(fired, u + d, u)
             cur = sched_t + drive + jnp.matmul(weights, fired.astype(jdtype))
-            v1 = v_r + 0.5 * (0.04 * v_r * v_r + 5.0 * v_r + 140.0 - u_r + cur)
-            v2 = v1 + 0.5 * (0.04 * v1 * v1 + 5.0 * v1 + 140.0 - u_r + cur)
+            v_lin, v_const = vq
+            v1 = v_r + 0.5 * (0.04 * v_r * v_r + v_lin * v_r + v_const - u_r + cur)
+            v2 = v1 + 0.5 * (0.04 * v1 * v1 + v_lin * v1 + v_const - u_r + cur)
             u_next = u_r + a * (b * v2 - u_r)
             spikes = fired.astype(jdtype)
             source_proxy = _source_proxy_from_components(
@@ -673,7 +723,7 @@ def simulate_eig_izhikevich(
         v, u, prev_spikes = carry
         syn = weights @ prev_spikes
         current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
 
@@ -1296,6 +1346,7 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -1393,7 +1444,7 @@ def _simulate_edge_recurrent_izhikevich_delayed(
             current_native = drive + sched_t + syn + noise_coef * noise_t
         else:
             current_native = drive + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -1520,6 +1571,7 @@ def simulate_edge_recurrent_izhikevich(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -1586,7 +1638,7 @@ def simulate_edge_recurrent_izhikevich(
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
             current_native = drive + sched_t + syn + noise_coef * noise_t
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
 
@@ -1622,7 +1674,7 @@ def simulate_edge_recurrent_izhikevich(
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
             current_native = drive + sched_t + syn + noise_coef * noise_t
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
 
@@ -1704,6 +1756,7 @@ def simulate_edge_recurrent_izhikevich_static_h_k_recovery(
 
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -1753,7 +1806,7 @@ def simulate_edge_recurrent_izhikevich_static_h_k_recovery(
         edge_current = weight * syn_state
         syn = _segment_sum(edge_current, post, n_neurons)
         current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, h_k_arr)
+        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, h_k_arr, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -1844,6 +1897,7 @@ def simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery(
 
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -1898,7 +1952,7 @@ def simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery(
         edge_current = weight * syn_state
         syn = _segment_sum(edge_current, post, n_neurons)
         current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H)
+        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -1992,6 +2046,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
 
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -2082,7 +2137,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
         edge_current = weight * syn_state
         syn = _segment_sum(edge_current, post, n_neurons)
         current_native = drive + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, _coupling_h(H))
+        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, _coupling_h(H), vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -2114,7 +2169,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
             current_native = drive + sched_t + syn + noise_coef * noise_t
-            dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, _coupling_h(H))
+            dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, _coupling_h(H), vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -2255,6 +2310,7 @@ def simulate_edge_recurrent_izhikevich_activity_h_k_rbd(
 
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -2318,7 +2374,7 @@ def simulate_edge_recurrent_izhikevich_activity_h_k_rbd(
         edge_current = weight * syn_state
         syn = _segment_sum(edge_current, post, n_neurons)
         current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H_K)
+        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H_K, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -2611,6 +2667,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -2704,7 +2761,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
                 noise_coef * noise_t,
                 jdtype=jdtype,
             )
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -2748,7 +2805,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
                     noise_coef * noise_t,
                     jdtype=jdtype,
                 )
-                dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+                dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
                 v_next = v + dt * dv
                 u_next = u + dt * du
                 v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -2845,7 +2902,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
             noise_coef * noise_t,
             jdtype=jdtype,
         )
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -2969,6 +3026,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -3083,7 +3141,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             syn = _segment_sum(edge_current, post, n_neurons)
             g = jnp.clip(k_gain_arr * (r_star_arr - r), g_min_arr, g_max_arr)
             current_native = drive + sched_t + syn + noise_coef * noise_t + g
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -3137,7 +3195,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             current_native = drive + sched_t + syn + noise_coef * noise_t + g
 
             # Izhikevich dynamics
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
 
@@ -3661,6 +3719,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -4038,7 +4097,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
             dH, d_theta = population_restoring_derivatives(H_pop, e_vec, pop_layout, dtype=jdtype)
             H_next = H_pop + dt_s * dH
             theta_next = jnp.clip(theta_S + dt_s * d_theta, theta_lo, theta_hi)
-            dv, du = _izhikevich_dv_du(v, u, current_native, a_eff, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a_eff, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -4082,7 +4141,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
             current_total = current_native + I_H
 
             # (3) Integrate neuron (Izhikevich)
-            dv, du = _izhikevich_dv_du(v, u, current_total, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_total, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -4267,7 +4326,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
             w_next = w
 
         # (4) Integrate the neuron (Izhikevich) and detect spikes.
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -4619,6 +4678,7 @@ def simulate_receptor_exponential_izhikevich(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -4665,7 +4725,7 @@ def simulate_receptor_exponential_izhikevich(
         edge_drive = weight * syn_state
         syn = _segment_sum(edge_drive, post, n_neurons)
         current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
 
@@ -4734,6 +4794,7 @@ def simulate_dynamic_ei_coupling(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -4778,7 +4839,7 @@ def simulate_dynamic_ei_coupling(
         syn_currents = jnp.asarray([syn_current_ie, syn_current_ei], dtype=jdtype)
 
         current_native = drive + syn_currents + noise
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         spikes_bool = v_next >= 30.0
@@ -4909,6 +4970,8 @@ def simulate_multi_area_izhikevich(
         source_scale=params.source_scale,
         labels=params.labels,
         layer_labels=tuple(neurons_df.get("layer", ["unknown"] * n)),
+        v_lin=params.v_lin,
+        v_const=params.v_const,
     )
 
     # Create PRNG key
@@ -5021,8 +5084,8 @@ class IzhikevichEmitter(Emitter):
         syn = self.params.W.astype(jdtype) @ state.spikes.astype(jdtype)
         current_native = self.params.drive.astype(jdtype) + input_t + syn + noise
         dt = jnp.asarray(dt_ms, dtype=jdtype)
-        dv = 0.04 * state.v * state.v + 5.0 * state.v + 140.0 - state.u + current_native
-        du = self.params.a.astype(jdtype) * (self.params.b.astype(jdtype) * state.v - state.u)
+        dv, du = _izhikevich_dv_du(state.v, state.u, current_native, self.params.a.astype(jdtype),
+                                   self.params.b.astype(jdtype), vq=_v_coefs(self.params, jdtype))
         v_next = state.v + dt * dv
         u_next = state.u + dt * du
         spikes_bool = v_next >= 30.0

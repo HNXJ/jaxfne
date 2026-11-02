@@ -924,6 +924,12 @@ class Model:
                 f"emitter_{f}": _np.asarray(getattr(emitter, f))
                 for f in ("a", "b", "c", "d", "drive", "sign", "W", "v0", "u0", "source_scale")
             },
+            # v equation (P-054); an empty array stands for None (the standard 5 and 140).
+            **{
+                f"emitter_{f}": _np.asarray(getattr(emitter, f))
+                if getattr(emitter, f) is not None else _np.zeros((0,))
+                for f in ("v_lin", "v_const")
+            },
             # delay_steps is dynamics-consuming on the edge_list backend (perturbing
             # it moves V_m by ~92 mV), and omitting it silently restored every model
             # with zero delays. Every array field of EdgeList must be persisted.
@@ -1010,6 +1016,13 @@ class Model:
                 if meta["emitter_layer_labels"] is not None
                 else None,
                 source_calibration_status=meta["emitter_source_calibration_status"],
+                # A checkpoint written before P-054 has no v keys: it restores its own
+                # (standard-equation) realization.
+                **{
+                    f: jnp.array(z[f"emitter_{f}"])
+                    for f in ("v_lin", "v_const")
+                    if f"emitter_{f}" in z.files and z[f"emitter_{f}"].size
+                },
             )
             edge_list = EdgeList(
                 pre=jnp.array(z["edge_pre"]),

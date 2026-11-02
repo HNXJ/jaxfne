@@ -33,6 +33,7 @@ from .emitters import (
     _rbd_delay_state_from_init,
     _segment_sum,
     _source_proxy_from_components,
+    _v_coefs,
     _validate_delayed_init_state,
     _validate_edge_delays_nonnegative_eager,
     _validate_recording_budget,
@@ -151,6 +152,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -383,7 +385,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
                                   + noise_coef * noise_t)
             else:
                 current_native = drive + sched_t + syn + noise_coef * noise_t
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             if v_floor_arr is not None:
@@ -422,7 +424,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
                                   + noise_coef * noise_t)
             else:
                 current_native = drive + sched_t + syn + noise_coef * noise_t
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             if v_floor_arr is not None:
@@ -561,7 +563,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
                               + noise_coef * noise_t)
         else:
             current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         if v_floor_arr is not None:
@@ -602,7 +604,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
                               + noise_coef * noise_t)
         else:
             current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         if v_floor_arr is not None:
