@@ -76,6 +76,23 @@ Same setup; seeds 1, 2, 3; T 12 s. Modes `silence_som` (0, 0.5, 0.9), `silence_p
 These runs settle the earlier Fig 3B rows: the transition lies between 55% and 65%, and the seizure state carries
 the 150 Hz component.
 
+## Figure S1: connection probability (criteria declared 2026-11-02, before the sweep output was read)
+
+Run: `run_figA.py <out> 0.01,0.02,0.04,0.08,0.12,0.16,0.20,0.25,0.30 1,2,3 s1` at 95d2161b (frozen WSL clone),
+cellrep set, GPU float32, T 12 s, 2 s discard; drive round(p·NE) private Poisson sources at 4 Hz (Hamm 2026-11-02,
+O-73). Claims: legend (mmc2.pdf p. 20) and Discussion (p. 10): frequency rises with p; seizure-like, hyper-synchronous
+activity above 25%; in the realistic range 1-15% the frequency stays in the gamma range and the delay is maintained.
+Status stays descriptive: the paper gives no numbers; the seizure tolerance is the one above; the gamma range is
+fixed here as 30-80 Hz. Estimators: f_pk = magnitude argmax over 5-100 Hz, max E rate, PV-to-SOM delay = wrapped
+SOM-minus-PV phase at f_pk (ref. 42) / 2π f_pk; seed means unless stated.
+
+| Id | Claim | Criterion |
+|---|---|---|
+| S1-F | frequency rises with p | seed-mean f_pk at p = 0.20 above p = 0.04, and no step between consecutive p in 0.02-0.20 falls by more than 10% |
+| S1-S | seizure-like above 25% | max E ≥ 50 Hz in every seed at p = 0.30, and below 50 Hz in every seed at p ≤ 0.20; onset at a different grid step is partial |
+| S1-G | gamma at 1-15% | seed-mean f_pk in 30-80 Hz at p = 0.01, 0.02, 0.04, 0.08, 0.12 |
+| S1-D | delay maintained at 1-15% | PV-to-SOM delay positive (SOM after PV) in every seed at p = 0.01-0.12 |
+
 ## Replica score (Cell Reports main text)
 
 17 result panels: 1B, 1C, 2A top, 2A bottom, 2B top, 2B bottom, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B,
