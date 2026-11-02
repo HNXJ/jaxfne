@@ -11,22 +11,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## 0.5.9
 
-2. T-O70 [A] B8 pilots (running from clone `pilots` at 9eee4452; receipts under `F:/warehouse/vogels2011/P3v2_pilot`
-   and `F:/warehouse/potjans2014/P3v2_pilot`): Vogels seed 0, rho0 6 Hz, eta 0; Potjans 10% seed 0 and L5i→L5e
-   lesion. Closes when: each known positive moves its estimand as the prereg says (rho0 6 breaks R-E; eta 0 fails
-   O-DROP; the lesion moves R-L5E out of band). ⇒ a known positive that does not move: driver or estimand defect,
-   fix and rerun before any signature. ⇒ all move: → 8. Status 2026-10-31: Vogels pilots done (c0b233d3,
-   `F:/warehouse/vogels2011/P3v2_pilot`): seed 0 R-E z 8.77 Hz (e 1.92), rho0 6 Hz z 9.99 (e 2.33), eta 0 z 161 Hz with
-   O-DROP 0.993 (fails as predicted); the all-cell rate still falls at 10 s (9.7, 9.2, 8.8 Hz in the last 3 s), so
-   R-E cannot close on the baseline at the coded 10 s. iSTDP units and increments match `isp_brian.py` (Muse read,
-   verified at `istdp_vogels2011.py:137`, `hdp_rule.py:244-247`). Hamm 2026-11-01: extend T until the baseline
-   converges, then amend the prereg. Status 2026-11-01: 120 s pilot (CALIBRATION, B8 convergence pilot): r_inf
-   4.17 Hz, tau 32 s, R-E e 0.38. Hamm ruled T 150 s with |slope| < 0.01 Hz/s over 20 s. Running in the WSL GPU
-   queue (`~/gpu_queue_1101.sh`, clone `~/jaxfne_pilots` at bafa4797, out `~/q1101/`): baseline, rho0 6 Hz, eta 0
-   at T 150 s. Next: copy receipts to `F:/warehouse/vogels2011/`, check each known positive moves, draft
-   `prereg/P3_v3.md` (T 150 s, the new convergence rule), [H] sign. Potjans done 2026-11-02 (CALIBRATION 0b, `F:/warehouse/potjans2014/pilot_T10_acab8e66`):
-   10 s at scale 0.1 in 1 s segments, 12.8 GB; the L5i→L5e lesion puts R-L5E at e 40.9 (moves as predicted); the
-   baseline misses R-L23E, R-L5E, O-IE at L5 and CV at L6E. Potjans P3 v2 → step 7.
 3. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
    behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
    test first and a changelog fragment (lanes a d9fee4b9, b fb5ef158, c ed9058c2 landed):
@@ -53,8 +37,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
    S3 test, C6 `geometry="laminar"` with Brian2 and Jaxley baselines declared.
-7. [H] Signatures, one at a time as each draft is ready: Potjans P3 v2, Vogels P3 v2, Destexhe, PCL R4 (GSDR P3
-   fit signed 2026-11-01).
+7. [H] Signatures, one at a time as each draft is ready: Potjans P3 v2, Vogels P3 v3, Destexhe, PCL R4 (GSDR P3
+   fit signed 2026-11-01). B8 pilots done 2026-11-02, every known positive moves: Potjans (CALIBRATION 0b; lesion
+   R-L5E e 40.9; baseline predicts FAIL on R-L23E, R-L5E, O-IE L5, CV L6E); Vogels at T 150 s (CALIBRATION, B8 T 150 s
+   pilots; rho0 6 Hz R-E e 1.31, eta 0 O-DROP 0.99; baseline converged at 4.11 Hz, predicts R-E FAIL e 0.41).
+   Vogels P3 v3 (pinned 2026-11-02) carries one owner decision first: the CONV slope rule's noise.
    Each: sign ⇒ scored run from a fixed clone → result file, dashboard, checklist 9D/9E; defer ⇒ the package moves
    to 0.5.10 with its reason (Gate 1).
 8. T-70 [A] 9F: the rc gate end to end on the candidate (JUnit parity, figure lock, clean-checkout figure job;

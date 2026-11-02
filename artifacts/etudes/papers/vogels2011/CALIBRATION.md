@@ -46,6 +46,25 @@ unknown).
 - Ruling (Hamm 2026-11-01): T 150 s (about 5 tau), convergence redefined as |slope| < 0.01 Hz/s over 20 s; the
   baseline and both known positives (rho0 6 Hz, eta 0) rerun at T 150 s before the P3 v3 amendment.
 
+## B8 T 150 s pilots (P2, seed 0, n 10 000, unscored, 2026-11-02)
+
+- Runs at bafa4797, WSL CUDA float32, `--T-s 150 --plastic-segment-s 5`; walls 35:27 (base), 43:11 (rho0 6 Hz),
+  24:24 (eta 0); peak RSS 5.4-5.6 GB. Receipts `F:/warehouse/vogels2011/T150_bafa4797/` (`pilot_receipt.json`
+  sha256: base 522df0cd…, rho0 6 Hz 9918063c…, eta 0 0cdd5dcc…). Slope: least squares on the per-second E rate over
+  130-150 s (`e_rate_per_s_hz`), with its standard error.
+
+| Run | R-E z (y 3 Hz) | e | O-DROP | fit r_inf, tau (t ≥ 20 s) | slope 130-150 s (se) | \|slope\| < 0.01 |
+|---|---|---|---|---|---|---|
+| base | 4.241 Hz | 0.414 | 37.82 | 4.11 ± 0.04 Hz, 34.1 ± 2.3 s | −0.0019 (0.0079) Hz/s | yes |
+| rho0 6 Hz | 6.928 Hz | 1.309 | 23.15 | 7.24 ± 0.04 Hz, 22.3 ± 3.5 s | −0.0157 (0.0097) Hz/s | no |
+| eta 0 | 162.1 Hz | 53.0 | 0.99 | 161.6 Hz (flat) | +0.0066 (0.0103) Hz/s | yes |
+
+- Known positives move as declared: rho0 6 Hz puts R-E outside the 0.20 band; eta 0 fails O-DROP (0.99 < 2).
+- The baseline converges (slope rule met, r_inf 4.11 Hz) above y = 3 Hz: under the v2 band the pilot predicts an
+  R-E FAIL (e 0.41).
+- The slope's standard error over 20 one-second bins (0.008-0.010 Hz/s) equals the 0.01 Hz/s threshold, so the
+  rule's pass on a converged run is not assured (inferred from the se; owner decision in P3 v3).
+
 ## Provenance
 
 - Code SHA: (fill; one SHA per output directory, enforced by
