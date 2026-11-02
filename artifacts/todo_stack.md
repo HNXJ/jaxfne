@@ -65,9 +65,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 14. ∥ T-O68 [A] Local copies (O-68): rescue each cited file into the repo or `F:/warehouse` with a `state.md`
     pointer, delete one at a time (`cl-reader-cursor`, `jaxfne-wt-p022`, the four WSL copies, the non-git leftovers
     named in O-68), and the finished lane clones under `E:/repos/_wt/jaxfne/` after an alternates check.
-15. ∥ T-45 [A] The object specializer `PV[model=IZH]` parses (`Base[NAME]` only today); `Base[model=X]` raises
-    ValueError naming the supported keys (Hamm 2026-11-02, O-82 closed). Closes when: parse and refusal tests pass and
-    S1 regenerates.
 16. ∥ T-46 [A] C9, C2: 8 gaps in `programme/paper/reproducibility_audit.md` section 7 (left: data and code statement,
     PCL natural-image and DVS128/N-MNIST licences, S16 generators). Close test (Hamm 2026-11-02): section 7 closes
     when the gaps touching 0.5.9 items close; the paper-only gaps (licences, data and code statement) move to the
