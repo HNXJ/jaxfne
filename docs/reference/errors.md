@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2467 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2468 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -2816,6 +2816,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `TFNEError` | `rule metavariables are $L and $R; got ${...}` |
 | `TFNEError` | `interface selection on ${...} supports only .out / .in; got .{...}` |
 | `TFNEError` | `expected a rule endpoint; got {...}` |
+| `TFNEError` | `{...} := {...}[{...}={...}] uses key {...}; only Base[NAME] is supported (no key=value keys are supp` |
 | `TFNEError` | `boundary qualifier {...} is not a type; write [NAME] or [type=NAME]` |
 | `TFNEError` | `expected boundary name after ':'` |
 | `TFNEError` | `expected [NAME] or [type=NAME] after the right boundary` |

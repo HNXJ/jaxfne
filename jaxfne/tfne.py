@@ -794,6 +794,26 @@ class _Parser:
             return RuleEndpoint(form="ref", head=self._parse_order_member())
         raise TFNEError(f"expected a rule endpoint; got {tok}")
 
+    def _specializer_kv_span(self) -> Optional[tuple[str, str, str]]:
+        """``Base[key=value]`` lookahead at the current position.
+
+        Returns (base, key, value) when the upcoming tokens are exactly
+        NAME "[" NAME "=" (NAME | INT | FLOAT) "]"; None otherwise.
+        """
+        t = self.toks
+        p = self.pos
+        if (
+            p + 5 < len(t)
+            and t[p][0] == "NAME"
+            and t[p + 1] == ("SYM", "[")
+            and t[p + 2][0] == "NAME"
+            and t[p + 3] == ("SYM", "=")
+            and t[p + 4][0] in ("NAME", "INT", "FLOAT")
+            and t[p + 5] == ("SYM", "]")
+        ):
+            return t[p][1], t[p + 2][1], t[p + 4][1]
+        return None
+
     def _parse_objdef(self) -> ObjDef:
         name = self.expect("NAME")
         _check_object_name(name)
@@ -805,6 +825,13 @@ class _Parser:
             return ObjDef(name=name, kind="props", body=props)
         # special := Base[key]  vs  expr
         if self.peek()[0] == "NAME":
+            kv = self._specializer_kv_span()
+            if kv is not None:
+                base, key, value = kv
+                raise TFNEError(
+                    f"{name} := {base}[{key}={value}] uses key {key!r}; "
+                    "only Base[NAME] is supported (no key=value keys are supported)"
+                )
             save = self.pos
             try:
                 atom = self._parse_atom()

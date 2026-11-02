@@ -535,6 +535,46 @@ def test_specialization_inherits_base():
     assert explicit.nodes["V2"].special == "CTX[v2]"
 
 
+def _props_base(name="Base"):
+    return (
+        f"{name} := [C = {{E, PV}}; P = {{E: 0.8, PV: 0.2}}; "
+        "N = 10; model = izhikevich];\n"
+    )
+
+
+def test_specializer_key_value_is_refused():
+    base = _props_base()
+    # precondition: the props Base alone is a valid program
+    _replay_ok(base + "x : Base : y")
+    with pytest.raises(TFNEError) as excinfo:
+        parse(base + "PV := Base[model=IZH];\nx : Base : y")
+    msg = str(excinfo.value)
+    assert "Base[model=IZH]" in msg
+    assert "model" in msg
+    assert "Base[NAME]" in msg
+
+
+def test_specializer_key_value_refused_for_any_key():
+    base = _props_base()
+    # precondition: the props Base alone is a valid program
+    _replay_ok(base + "x : Base : y")
+    with pytest.raises(TFNEError) as excinfo:
+        parse(base + "PV := Base[gain=2];\nx : Base : y")
+    msg = str(excinfo.value)
+    assert "Base[gain=2]" in msg
+    assert "gain" in msg
+    assert "Base[NAME]" in msg
+
+
+def test_specializer_bare_name_still_specializes():
+    text = _props_base() + "PV := Base[IZH];\nx : PV : y\n"
+    # precondition: the bare-name form replays and realizes
+    _replay_ok(text)
+    _, explicit, r = _realize(text)
+    assert explicit.nodes["PV"].special == "Base[IZH]"
+    assert r.s["counts"]["PV"] == {"E": 8, "PV": 2}
+
+
 # --------------------------------------------------------------------------- #
 # Exclusions, reserved names, rule validation
 # --------------------------------------------------------------------------- #
