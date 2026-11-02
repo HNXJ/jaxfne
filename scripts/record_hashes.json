@@ -5,7 +5,7 @@
     "dated": 24,
     "frozen": 28,
     "legacy": 32,
-    "prereg": 117,
+    "prereg": 118,
     "receipts": 10
   },
   "paths": {
@@ -118,6 +118,7 @@
     "artifacts/etudes/papers/destexhe2009/prereg/P3_v1.md": "74cffeb82d31477c250d45db94419ebe781f001b9cc7fe488e60270dcf1595b8",
     "artifacts/etudes/papers/destexhe2009/prereg/P3_v2.md": "87dfe0faadecabe89acb659d5fa6b5942cc251a93b9e231652a14b302383830c",
     "artifacts/etudes/papers/destexhe2009/prereg/P3_v3.md": "6c589cc37f07456d9aa5b7c0667a0fa5437eec66ed1372fe35779fb8fe8a21b0",
+    "artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md": "b33e5c707abc59c6d46ed103e95650763454eca6115b02a705875ffc6d07c07e",
     "artifacts/etudes/papers/gsdr2026/PREREG_P3.md": "c59c021455d8fb663d29e13d98a9dfbf0ccd78a4c8702d1df1a19e83b88e5723",
     "artifacts/etudes/papers/gsdr2026/PREREG_P3_fit.md": "6da4824224fd58f4313354b3ee9aea81b2809861743aa4f907e6920a804b68e4",
     "artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md": "4dc8c272b9e24d4020104c1031d211c65c23d9dd36e472992568afccea4a5c38",
