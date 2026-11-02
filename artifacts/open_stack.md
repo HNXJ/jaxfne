@@ -15,7 +15,6 @@ Each line has its todo row, named in the line.
 ## Hamm's calls
 - O-72 Apply Hamm's 53 rulings of 2026-10-28 (T-R28) | orchestrator, Haiku workers | since 2026-10-28 | closes when T-R28 is empty
 - O-68 Local copies held after the 2026-10-25 cleanup: `cl-reader-cursor` (`reader_exp/` unreviewed), `jaxfne-wt-p022`, four WSL copies, non-git leftovers (`jaxfne_rc057`, `jaxfne_receipts`, `jaxfne_reader_exp`, `jaxfne_pclr1_audit`, `F:/warehouse` leftovers, keeper worktrees with broken gitfiles); ruled 2026-10-28: rescue cited files, list each deletion, delete (T-R28) | orchestrator | since 2026-10-25 | closes when each copy is rescued and deleted. Status 2026-10-30: `cl-reader-cursor` and `jaxfne-wt-p022` present under `E:/repos/`; `jaxfne_rc057`, `jaxfne_receipts`, `jaxfne_reader_exp` and `jaxfne_pclr1_audit` absent under `E:/repos/` (other locations not searched).
-- O-73 Cell Reports figure S1 drive: the S1 runner is unwritten; the design under review holds the drive fixed (`ext_sources="fixed"`) while p varies. `SOURCE_P1.md` line 18 and commit `b8b38aea` give p·NE Poisson sources at 4 Hz, so the open point is private vs shared sources (G3) | Hamm (decision) | since 2026-10-30 | closes when Hamm rules the S1 drive and the runner follows it; todo: none yet
 
 ## Selfcheck (jarness `harness/selfcheck.py`, 2026-10-30)
 

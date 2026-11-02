@@ -61,8 +61,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     `RESULT_PLOS_FIGS.md`): 2C-F, 3C-F: rerun 40 and 90 % saving rasters
     and population traces (the figP rows keep spectra only), mean-field traces beside them. Closes when the replica
     block scores them and O-83 holds an attribution.
-13. ∥ T-59 [A] Cell Reports Fig S1 runner with its test; `replication_audit` reads clean in the report gate.
-    Blocked-by: T-O73.
+13. ∥ T-59 [A] Cell Reports Fig S1 runner with its test; `replication_audit` reads clean in the report gate. Drive
+    (Hamm 2026-11-02, O-73 closed): p·NE Poisson sources at 4 Hz, `ext="private"` (the default, as every other panel).
 14. ∥ T-O68 [A] Local copies (O-68): rescue each cited file into the repo or `F:/warehouse` with a `state.md`
     pointer, delete one at a time (`cl-reader-cursor`, `jaxfne-wt-p022`, the four WSL copies, the non-git leftovers
     named in O-68), and the finished lane clones under `E:/repos/_wt/jaxfne/` after an alternates check.
@@ -83,8 +83,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Owner queue (asked one at a time, in this order)
 
-20. [H] T-O73 S1 drive: fixed (`ext_sources="fixed"`) or p·NE Poisson sources at 4 Hz (`SOURCE_P1.md` line 18,
-    `b8b38aea`); then private or shared sources (G3). Unblocks step 13.
 22. [H] T-46 close test: section 7 closes at 0 gaps, or narrows to the 0.5.9 gaps.
 23. [H] T-62 Figure 1D (Onorato data): download permission (file name, source, size in `state.md`); which of panels
     B, C, D hold.
