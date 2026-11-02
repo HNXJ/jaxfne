@@ -1,37 +1,33 @@
 # state
 
-Stamp: jaxfne@dev@dceb49b0 · 2026-11-01
+Stamp: jaxfne@dev@b5137f3a · 2026-11-02
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
 ## Works (with evidence)
 
 - 0.5.8 published 2026-10-26 (tag v0.5.8 on main 11957afa, Release, PyPI; `artifacts/release/v0_5_8_release_receipt.json`).
-  0.5.9 needs Hamm's go. Checklist score 52.7/100 at dceb49b0 (`etudes/meta/plans/release_plan_0.5.9-0.6.0.md`).
-- GSDR P3 fit signed (Hamm 2026-11-01) and scored FAIL, 0 of 5 seeds (`gsdr2026/RESULT_P3_fit.md`,
-  `run/p3_fit_score.json`); S14 (`supplement.py write_s14`), REPLICATIONS and dashboard updated (8f2e40ef).
-- CAMINOS PLoS CB Figs 2-4 network panels scored: 6 pass, 2 partial, 3 fail of 11 claims
-  (`caminos/RESULT_PLOS_FIGS.md`, b27cd476); receipts `F:/warehouse/caminos/figP_out/`.
-- AdEx registered-HDP kernel resumes from its returned state, split == whole bit-for-bit; Vogels pilot runs the
-  plastic leg in segments (f3d73cb1).
-- PCL R2: oracle equals the C++ reference on weights within rtol 1e-12 (pcl `CALIBRATION.md` R2, fe4231bf).
-- Destexhe P3 v3 pinned, unsigned (d1e495d0).
+  0.5.9 needs Hamm's go. Checklist score 63.3/100 at fd5a9c27 (`etudes/meta/plans/release_plan_0.5.9-0.6.0.md`).
+- Signed and scored 2026-11-02, each as its pilots predicted: Potjans P3 v2 off (`potjans2014/RESULT_P3.md`), Vogels
+  P3 v4 off on R-E (`vogels2011/RESULT_P3.md`, in S12), Destexhe P3 v3 FAIL 0 of 5 with the 6A control holding
+  (`destexhe2009/RESULT_P3.md`); receipts under `F:/warehouse/<lane>/`. GSDR P3 fit FAIL (2026-11-01); GSDR stays
+  open until precisely replicated (Hamm 2026-11-02).
+- AdEx per-step edge gain between two cell types (2cda7117); TFNE `Base[key=value]` refused by name (0971d0f5);
+  backend labels record `jax.default_backend()` (9d75412e); Destexhe manifests record status and prereg hash (b5137f3a).
+- Last pushed: 59718745, broad gate 8032 passed, 0 failed, 9 paper lanes PASS.
 
 ## Broken or in flight
 
-- Dev is ahead of origin/dev (57d0c099) by the Vogels reader, the O-83 driver and the Potjans segments; push waits
-  on the broad gate at the dev tip.
-- Vogels: 120 s pilot converges to 4.17 Hz (tau 32 s; vogels `CALIBRATION.md`); Hamm ruled T 150 s. WSL GPU queue
-  (`~/gpu_queue_1101.sh`, clone `~/jaxfne_pilots` at bafa4797, out `~/q1101/`): O-83 attribution, then Vogels
-  baseline, rho0 6 Hz and eta 0 at T 150 s (launched, not complete).
-- Potjans O-80: LIF continuation (78e94621) and the segmented pilot (08ef8613) landed; the 10 s scale-0.1 pilot is next.
-- Last broad gate: 57d0c099, 7945 passed, 0 failed (pushed).
-- O-83: the CAMINOS PLoS `default` set leaves gamma intact under SOM silencing; unattributed.
+- Broad gate on b5137f3a (launched, not complete); push after its summary line.
+- T-59 Muse lane (clone `E:/repos/_wt/jaxfne/t59`): Cell Reports Fig S1 runner with p·NE drive (launched, not complete).
+- PLoS rasters seeds 1-3 at paper scale on the WSL GPU from `~/jaxfne_plosr` at 7f7a660e, out `~/plosr_7f7a660e/out`
+  (seed 1 written; launched, not complete). Then receipts to `F:/warehouse/caminos/` and the 2C-F, 3C-F figures (T-63b).
+- The Vogels P3 v4 manifest says `cpu` from the label bug fixed at 9d75412e; the runs used the GPU (inferred).
 
 ## Open decisions for the owner
 
-Owner queue in `todo_stack.md` (O-82 T-45, T-O73 S1 drive, T-65, T-46, T-62, P-052, T-O74-79), Destexhe v3
-decisions, and the signatures as drafts are ready (Vogels and Potjans P3 v2, Destexhe, PCL R4).
+Owner queue in `todo_stack.md`: P-052 (waits on the T-R28 beta horizon scan); PCL R4 signature when drafted.
+T-62 ruled 2026-11-02: Fig 1D excluded for 0.5.9, moved to 0.5.10.
 
 ## Generated files and their checks
 
@@ -49,11 +45,10 @@ decisions, and the signatures as drafts are ready (Vogels and Potjans P3 v2, Des
 
 - Windows: Python 3.14 runs the broad gate through `suite_lock.py`, one suite at a time. WSL: `~/venv_jaxfne`
   (CUDA; each long job in its own `systemd-run` memory cap), `~/venv_jaxfne_gate` (CPU gate).
-- Tracked tree: `python scripts/check_tree_size.py --check`; budget 2751 files in `scripts/tree_size_allowlist.json`.
-- Large data outside git: `F:/warehouse/{caminos,gsdr,pcl,vogels2011,potjans2014}/` (receipts named in each
-  result file).
+- Tracked tree: `python scripts/check_tree_size.py --check`; budget 2774 files in `scripts/tree_size_allowlist.json`.
+- Large data outside git: `F:/warehouse/{caminos,gsdr,pcl,vogels2011,potjans2014,destexhe2009}/` (receipts named
+  in each result file).
 
 ## Next action
 
-Push dev after the broad gate passes; read the GPU queue (O-83 family, Vogels T 150 s with both known positives),
-then draft Vogels P3 v3; Potjans scale-0.1 10 s pilot; PCL oracle spike receipt then R3.
+Push b5137f3a after its gate; integrate T-59; PLoS receipts and figures; T-30 CAMINOS port equivalence; PCL R3.
