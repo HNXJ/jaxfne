@@ -14,7 +14,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 3. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
    behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
    test first and a changelog fragment (lanes a d9fee4b9, b fb5ef158, c ed9058c2 landed):
-   d. per-step edge gain between two cell types (lane `adexd` done, under review; 6B excluded by the T-65 ruling).
+   d. per-step edge gain between two cell types (lane `adexd`: kernel accepted; sent back 2026-11-02 for the no-edge
+   refusal, the schedule record and the equivalence tests; 6B excluded by the T-65 ruling).
    → port `cellrep_figures.py` to `caminos_api` and check equivalence at full size against the frozen result,
    within its between-seed range (T-R28 ruling). ⇒ outside: attribute (parameters, drive, delay, random streams)
    before any rescoring. ⇒ inside: rerun the Cell Reports sweeps on the GPU, the S2 entry for `cellrep_figures.py`
@@ -37,13 +38,13 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
    S3 test, C6 `geometry="laminar"` with Brian2 and Jaxley baselines declared.
-7. [H] Signatures, one at a time as each draft is ready: Potjans P3 v2 (signed 2026-11-02, `prereg/P3_v2_signed.md`;
-   next seeds 4-8 with `--signed`, T 10 s, scale 0.1, 1 s segments), Vogels P3 v4 (signed), Destexhe, PCL R4 (GSDR P3
-   fit signed 2026-11-01). B8 pilots done 2026-11-02, every known positive moves: Potjans (CALIBRATION 0b; lesion
-   R-L5E e 40.9; baseline predicts FAIL on R-L23E, R-L5E, O-IE L5, CV L6E); Vogels at T 150 s (CALIBRATION, B8 T 150 s
-   pilots; rho0 6 Hz R-E e 1.31, eta 0 O-DROP 0.99; baseline converged at 4.11 Hz, predicts R-E FAIL e 0.41).
-   Vogels P3 v4 signed 2026-11-02 (`prereg/P3_v4_signed.md`; CONV with the slope test): next a scored driver
-   (`vogels2011_api.py score`, seeds 4-8 only, signed) then seeds 4-8 on the GPU, ~40 min each.
+7. [H] Signatures, one at a time as each draft is ready: Potjans P3 v2 and Vogels P3 v4 (both signed 2026-11-02),
+   Destexhe, PCL R4 (GSDR P3 fit signed 2026-11-01). B8 pilots done 2026-11-02, every known positive moves: Potjans
+   (CALIBRATION 0b; lesion R-L5E e 40.9; baseline predicts FAIL on R-L23E, R-L5E, O-IE L5, CV L6E); Vogels at T 150 s
+   (CALIBRATION, B8 T 150 s pilots; rho0 6 Hz R-E e 1.31, eta 0 O-DROP 0.99; baseline converged at 4.11 Hz, predicts
+   R-E FAIL e 0.41). Scored drivers landed (aab5132f, 4cedf902: `score --seed S --signed`, `score_p3.py`; seeds 4 and 5
+   differ); seeds 4-8 of both run on the WSL GPU from the frozen clone `~/jaxfne_score` at b23c9b49 (launched
+   2026-11-02T04:28Z, out `~/score_b23c9b49/{potjans,vogels}`). Next: `score_p3.py` on each, RESULT_P3 files.
    Each: sign ⇒ scored run from a fixed clone → result file, dashboard, checklist 9D/9E; defer ⇒ the package moves
    to 0.5.10 with its reason (Gate 1).
 8. T-70 [A] 9F: the rc gate end to end on the candidate (JUnit parity, figure lock, clean-checkout figure job;
@@ -59,8 +60,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 12. ∥ T-63b [A] CAMINOS PLoS (O-83 closed 2026-11-02: the 2B/3B SOM fails follow the stated 2 ms delay,
     `RESULT_PLOS_FIGS.md`): 2C-F, 3C-F: rerun 40 and 90 % saving rasters
-    and population traces (the figP rows keep spectra only), mean-field traces beside them. Closes when the replica
-    block scores them and O-83 holds an attribution.
+    and population traces (the figP rows keep spectra only), mean-field traces beside them. Runner landed
+    (`run_plos_rasters.py`, 0a8a7630); next `run_plos_rasters.py <out> 1,2,3` on the GPU at paper scale once step 7's
+    scored runs free it, then the figures. Closes when the replica block scores them.
 13. ∥ T-59 [A] Cell Reports Fig S1 runner with its test; `replication_audit` reads clean in the report gate. Drive
     (Hamm 2026-11-02, O-73 closed): p·NE Poisson sources at 4 Hz, `ext="private"` (the default, as every other panel).
 14. ∥ T-O68 [A] Local copies (O-68): rescue each cited file into the repo or `F:/warehouse` with a `state.md`
