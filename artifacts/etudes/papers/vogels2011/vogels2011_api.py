@@ -166,15 +166,18 @@ def run(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False):
         np.savez_compressed(f, spikes=spikes)
     import os
 
+    import jax
+
     os.replace(tmp, out / fname)
+    backend = jax.default_backend()  # the backend the run used, never a fixed label
     entry = {"seed": int(seed), "tag": tag, "file": fname,
              "n": int(n), "steps": int(spikes.shape[0]), "dt_ms": DT_MS,
              "duration_ms": float(T_s) * 1000.0, "dtype": "float32",
-             "backend": "cpu",
+             "backend": backend,
              "wall_s": {"construct": t_construct, "simulate": t_simulate},
              "regime": regime}
     entries[fname] = entry
-    manifest = {"git_sha": sha, "dtype": "float32", "backend": "cpu",
+    manifest = {"git_sha": sha, "dtype": "float32", "backend": backend,
                 "runs": list(entries.values())}
     lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)
     return {"spikes": spikes, "steps": sim.n_steps, "regime": regime,
@@ -325,11 +328,14 @@ def run_plastic_segment(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False,
         np.savez_compressed(f, spikes=spikes)
     import os
 
+    import jax
+
     os.replace(tmp, out / fname)
+    backend = jax.default_backend()  # the backend the run used, never a fixed label
     entry = {"seed": int(seed), "tag": tag, "file": fname,
              "n": int(n), "steps": int(spikes.shape[0]), "dt_ms": DT_MS,
              "duration_ms": float(T_s) * 1000.0, "dtype": "float32",
-             "backend": "cpu",
+             "backend": backend,
              "wall_s": {"construct": t_construct, "simulate": t_simulate},
              "regime": regime,
              "plastic": {"rule": ISTDP_RULE_NAME,
@@ -345,7 +351,7 @@ def run_plastic_segment(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False,
                         "w_ie_final_mean_nS": float(w_final[mask].mean()) if int(mask.sum()) else 0.0,
                         "n_plastic": int(mask.sum())}}
     entries[fname] = entry
-    manifest = {"git_sha": sha, "dtype": "float32", "backend": "cpu",
+    manifest = {"git_sha": sha, "dtype": "float32", "backend": backend,
                 "runs": list(entries.values())}
     lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)
     return {"spikes": spikes, "steps": n_steps, "regime": regime,

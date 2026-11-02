@@ -186,3 +186,17 @@ def test_stand_in_runs_end_to_end():
     regime = L.score(spikes, DT)
     assert regime["label"] != "silent", "driven module must not read silent"
     assert np.isfinite(regime["spectral_peak_excess"]), "Welch peak must return"
+
+
+def test_manifest_records_the_realized_backend(tmp_path, monkeypatch):
+    """The manifest records jax.default_backend(); a fixed "cpu" label fails here."""
+    import json
+
+    import jax
+
+    monkeypatch.setattr(jax, "default_backend", lambda: "gpu")
+    out = tmp_path / "plain"
+    L.run(0, "plain", str(out), n=N_SMALL, T_s=0.2)
+    manifest = json.loads((out / "manifest.json").read_text())
+    assert manifest["backend"] == "gpu", "top-level backend is the realized one"
+    assert manifest["runs"][0]["backend"] == "gpu", "per-run backend is the realized one"

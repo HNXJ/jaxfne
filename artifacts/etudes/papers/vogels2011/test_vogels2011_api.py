@@ -419,3 +419,16 @@ def test_conv_shallow_slope_noisy_converged():
     assert abs(fit["b"]) >= 0.01, "slope magnitude must trip the first leg"
     assert fit["t"] < 2.101, "t must stay below the 0.975/18 threshold"
     assert fit["converged"] is True, "an insignificant slope is converged"
+
+
+def test_manifests_record_the_realized_backend(tmp_path, monkeypatch):
+    """Static and plastic manifests record jax.default_backend(); a fixed "cpu" label fails here."""
+    import jax
+
+    monkeypatch.setattr(jax, "default_backend", lambda: "gpu")
+    for name, fn in (("static", L.run), ("plastic", L.run_plastic_segment)):
+        out = tmp_path / name
+        fn(0, name, str(out), n=N_SMALL, T_s=0.1)
+        manifest = json.loads((out / "manifest.json").read_text())
+        assert manifest["backend"] == "gpu", (name, "top-level backend is the realized one")
+        assert manifest["runs"][0]["backend"] == "gpu", (name, "per-run backend is the realized one")
