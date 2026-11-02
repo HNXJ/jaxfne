@@ -55,6 +55,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Beside the path (∥)
 
+11a. ∥ T-72 [A then H] NeuroAI 2027 short paper, deadline 2026-11-20 (paper plan amendment 2026-11-02): verify the
+    AAAI-27 dual-submission rule and the deadline time zone on OpenReview; draft 4 pages in the AAAI-27 kit
+    (anonymized: no package name, anonymized code link) from F1 and the signed P3 results; critic pass; Hamm
+    reads and submits. Closes when Hamm has submitted.
+
 13. ∥ T-59 [A] Cell Reports Fig S1 at paper scale on the GPU: `run_figA.py <out> <S1 grid> 1,2,3 s1` (runner and
     drive landed 7afb7fc0: p·NE private Poisson sources at 4 Hz, Hamm 2026-11-02), after the PLoS rasters free the
     GPU; then score S1 in `RESULT_FIGURES.md` and the dashboard.

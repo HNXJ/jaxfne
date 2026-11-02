@@ -92,3 +92,9 @@ manuscript rewrite, refreeze (C2), review (C11), arXiv (C12). 0.6.0: acceptance.
 - 2026-10-26 (Hamm, H4): the publication ledger keeps CL-1 to CL-26; the E2 V1/V2 claims are CL-27 to
   CL-34. H5: LICENSE names Hamed Nejat; the data and code statement cites third-party inputs by DOI and
   licence and never redistributes them.
+- 2026-11-02 (Hamm): a jaxfne short paper, non-archival, goes to the NeuroAI 2027 workshop (AAAI 2027,
+  Montreal, 2027-02-22/23; 4 pages, references excluded; double-blind; AAAI-27 author kit; OpenReview;
+  deadline 2026-11-20, time zone not stated): the TFNE language and the pre-registered replication
+  programme with its failures reported. It reuses F1 and the 0.5.9 validation evidence and does not
+  replace the arXiv paper. jomission drops its engine row and submits its column paper separately.
+  Submission on OpenReview is Hamm's act.
