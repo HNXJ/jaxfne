@@ -38,13 +38,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
    S3 test, C6 `geometry="laminar"` with Brian2 and Jaxley baselines declared.
-7. [H] Signatures, one at a time as each draft is ready: Potjans P3 v2 and Vogels P3 v4 (both signed 2026-11-02),
-   Destexhe, PCL R4 (GSDR P3 fit signed 2026-11-01). B8 pilots done 2026-11-02, every known positive moves: Potjans
-   (CALIBRATION 0b; lesion R-L5E e 40.9; baseline predicts FAIL on R-L23E, R-L5E, O-IE L5, CV L6E); Vogels at T 150 s
-   (CALIBRATION, B8 T 150 s pilots; rho0 6 Hz R-E e 1.31, eta 0 O-DROP 0.99; baseline converged at 4.11 Hz, predicts
-   R-E FAIL e 0.41). Scored drivers landed (aab5132f, 4cedf902: `score --seed S --signed`, `score_p3.py`; seeds 4 and 5
-   differ); seeds 4-8 of both run on the WSL GPU from the frozen clone `~/jaxfne_score` at b23c9b49 (launched
-   2026-11-02T04:28Z, out `~/score_b23c9b49/{potjans,vogels}`). Next: `score_p3.py` on each, RESULT_P3 files.
+7. [H] Signatures, one at a time as each draft is ready: Destexhe P3 v3 (E4 reported, as in v1: Hamm 2026-11-02;
+   the 4-of-5 aggregation and sign-or-defer still asked), PCL R4. Potjans P3 v2 and Vogels P3 v4 signed and scored
+   off 2026-11-02 (`RESULT_P3.md` in each lane, 42e7f618); GSDR P3 fit signed and scored 2026-11-01. 9E: the Vogels
+   result needs its S figure (S12 or S13, as GSDR's in S14).
    Each: sign ⇒ scored run from a fixed clone → result file, dashboard, checklist 9D/9E; defer ⇒ the package moves
    to 0.5.10 with its reason (Gate 1).
 8. T-70 [A] 9F: the rc gate end to end on the candidate (JUnit parity, figure lock, clean-checkout figure job;

@@ -10,7 +10,7 @@ Each line has its todo row, named in the line.
 
 ## In flight
 - O-69 0.5.9 lanes: next T-45, T-46; PCL R2 on real files (T-3) | orchestrator, Haiku workers | since 2026-10-26 | closes when each lands on dev or is recorded in the todo stack. Status 2026-10-30: rows T-45, T-46 and T-3 are present in `todo_stack.md`, so the closure text is met on its face; over 3 days, owner decides keep or drop.
-- O-70 H3 signatures: P3 v2 drafted for Potjans and Vogels (`prereg/P3_v2.md` in each lane) and Destexhe (`PREREG_P3_v3.md`, pinned 2026-10-31, pilots predict FAIL); B8 pilots (T-O70) | orchestrator drafts, Hamm signs | since 2026-10-26 | closes when Hamm signs or defers each. Status 2026-10-31: Vogels and Potjans pilots lost twice to WSL OOM (Vogels `record_w_trace`, fixed c0b233d3; Potjans pilot at 86 GB); relaunched, each in its own `systemd-run` memory cap. Status 2026-11-02: Potjans 10 s pilot and lesion done at 12.8 GB (O-80 closed; CALIBRATION 0b), the lesion moves R-L5E out of band; Vogels T 150 s done, both known positives move, P3 v3 drafted and pinned (todo step 7).
+- O-70 H3 signatures: Destexhe (`prereg/P3_v3.md`, pilots predict FAIL; E4 ruled reported 2026-11-02) | orchestrator drafts, Hamm signs | since 2026-10-26 | closes when Hamm signs or defers it. Potjans and Vogels signed and scored off 2026-11-02 (todo step 7).
 
 ## Hamm's calls
 - O-72 Apply Hamm's 53 rulings of 2026-10-28 (T-R28) | orchestrator, Haiku workers | since 2026-10-28 | closes when T-R28 is empty
