@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-01T02:29:22Z",
-    "dev_sha": "8f2e40ef48ae46ec7243fa5cb678c4173dae01f8",
-    "data_revision": "fc2edfcce2f2018f5337c1b6e65f8b34d4430a97ee057adc23e26ad578532c15"
+    "utc": "2026-11-02T00:18:22Z",
+    "dev_sha": "2884966bf479d9be842af182f93c468a73d3dc73",
+    "data_revision": "2cf2e677a16ce8dfec730ba1899e61d1682158e7545970606101b5b5482cc2c8"
   },
   "papers": [
     {
@@ -3471,7 +3471,7 @@
       "id": "gsdr2026",
       "title": "GSDR, Fig. 6 (a 50-neuron E, SST-like and PV-like circuit fitted to recorded spectra)",
       "citation": "Nejat, Sherfey and Bastos, PLOS One 2026",
-      "class": "failed",
+      "class": "in progress",
       "question": "Does GSDR fit the 50-neuron Hodgkin–Huxley circuit to the recorded spectra when the circuit and the optimizer run in jaxfne?",
       "page": null,
       "release": "0.5.8",
@@ -3512,7 +3512,7 @@
           ]
         }
       ],
-      "verdict": "failed",
+      "verdict": null,
       "verdict_note": null,
       "summary": "Signed P3 fit (optimizer seeds 9–13, 30 generations with MCDP, CPU float32): 0 of 5 seeds pass G2 and G3 (PASS needs 4). The fitted conductances stay synchronous on held-out trials (mean kappa 0.595–0.597 against the 0.1 gate) and fast (69.4–69.5 Hz against 5–50 Hz) while the loss falls 2.1–5.8 %.",
       "preregs": [
@@ -3528,12 +3528,13 @@
       "sensitivity": [],
       "charts": [],
       "open": [
+        "In progress (Hamm 2026-11-02): the signed P3 fit FAIL stands as scored (RESULT_P3_fit.md); the paper continues under a new preregistration.",
         "The next prereg names --morphology explicitly (RESULT_P3_fit.md: the reference-morphology evaluation is insensitive to the fitted conductances at stim 0.6).",
         "The drive and J_E anchor for the g sweep are not yet recorded."
       ],
       "verdict_summary": {
         "kind": "paper",
-        "paper": "failed",
+        "paper": null,
         "library": null,
         "methods": null,
         "failed_criteria": [],
@@ -5942,8 +5943,7 @@
     "papers": 13,
     "by_paper": {
       "mixed": 1,
-      "in progress": 10,
-      "failed": 1,
+      "in progress": 11,
       "reproduced (conditional)": 1
     },
     "criteria": {
