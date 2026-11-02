@@ -19,6 +19,8 @@ import sys
 import time
 from pathlib import Path
 
+import jax
+
 _repo_root = Path(__file__).resolve().parents[4]
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
@@ -571,6 +573,7 @@ def run(seed, tag, out_dir, *, n=800, scale=None, T_s=1.0, signed=False,
     import os
 
     os.replace(tmp, out / fname)
+    backend = jax.default_backend()  # the backend the run used, never a fixed label
     entry = {"seed": int(seed), "tag": tag, "file": fname,
              "status": "unscored pilot" if pilot else ("signed" if signed else "unscored"),
              "n": int(spikes.shape[1]), "scale": scale,
@@ -578,7 +581,7 @@ def run(seed, tag, out_dir, *, n=800, scale=None, T_s=1.0, signed=False,
              "total_synapses": int(np.asarray(model.params["edge_list"].pre).shape[0]),
              "steps": int(spikes.shape[0]), "dt_ms": DT_MS,
              "duration_ms": float(T_s) * 1000.0, "dtype": "float32",
-             "backend": "cpu",
+             "backend": backend,
              "poisson_drive": build_drive(seed),
              "wall_s": {"construct": t_construct, "simulate": t_simulate},
              "regime": regime, "pops": by_pop, "estimands_p3v2": estimands}
@@ -587,7 +590,7 @@ def run(seed, tag, out_dir, *, n=800, scale=None, T_s=1.0, signed=False,
         entry["n_segments"] = int(len(seg_receipts))
         entry["segment_poisson_receipts"] = seg_receipts
     entries[fname] = entry
-    manifest = {"git_sha": sha, "dtype": "float32", "backend": "cpu",
+    manifest = {"git_sha": sha, "dtype": "float32", "backend": backend,
                 "runs": list(entries.values())}
     lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)
     return {"spikes": spikes, "steps": sim.n_steps, "regime": regime,

@@ -601,3 +601,15 @@ def test_default_manifest_carries_no_segment_keys(tmp_path):
     entry = json.loads((out / "manifest.json").read_text())["runs"][0]
     for key in ("segment_s", "n_segments", "segment_poisson_receipts"):
         assert key not in entry, "default call records no %s" % key
+
+
+def test_manifest_records_the_realized_backend(tmp_path, monkeypatch):
+    """The manifest records jax.default_backend(); a fixed "cpu" label fails here."""
+    import json
+
+    monkeypatch.setattr(L.jax, "default_backend", lambda: "gpu")
+    out = tmp_path / "plain"
+    L.run(0, "plain", str(out), scale=SCALE_SMALL, T_s=SEG_T_S, pilot=True)
+    manifest = json.loads((out / "manifest.json").read_text())
+    assert manifest["backend"] == "gpu", "top-level backend is the realized one"
+    assert manifest["runs"][0]["backend"] == "gpu", "per-run backend is the realized one"
