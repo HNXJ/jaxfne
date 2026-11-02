@@ -37,7 +37,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
    S3 test, C6 `geometry="laminar"` with Brian2 and Jaxley baselines declared.
-7. [H] Signatures, one at a time as each draft is ready: Potjans P3 v2, Vogels P3 v3, Destexhe, PCL R4 (GSDR P3
+7. [H] Signatures, one at a time as each draft is ready: Potjans P3 v2 (signed 2026-11-02, `prereg/P3_v2_signed.md`;
+   next seeds 4-8 with `--signed`, T 10 s, scale 0.1, 1 s segments), Vogels P3 v4 (signed), Destexhe, PCL R4 (GSDR P3
    fit signed 2026-11-01). B8 pilots done 2026-11-02, every known positive moves: Potjans (CALIBRATION 0b; lesion
    R-L5E e 40.9; baseline predicts FAIL on R-L23E, R-L5E, O-IE L5, CV L6E); Vogels at T 150 s (CALIBRATION, B8 T 150 s
    pilots; rho0 6 Hz R-E e 1.31, eta 0 O-DROP 0.99; baseline converged at 4.11 Hz, predicts R-E FAIL e 0.41).

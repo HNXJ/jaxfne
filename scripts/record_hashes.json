@@ -5,7 +5,7 @@
     "dated": 24,
     "frozen": 28,
     "legacy": 32,
-    "prereg": 116,
+    "prereg": 117,
     "receipts": 10
   },
   "paths": {
@@ -147,6 +147,7 @@
     "artifacts/etudes/papers/pcl/r2_r4_design_study_2026-10-27.md": "081adccc4e54c72ea9402ce75421bc08f479afc16ceda1f4ead773505d6c032e",
     "artifacts/etudes/papers/potjans2014/prereg/P3_template.md": "f9849155e44feb85981ac9436519c2aabeb7bf2c753491dac5bac44ccd143968",
     "artifacts/etudes/papers/potjans2014/prereg/P3_v2.md": "767ab789c9711a15169c424cc19810db0a50a0efe94771054b011144b3485122",
+    "artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md": "a18d698ad178553d3ed53b87f87818cb8689662960d4ad1bc50bca2187cfca52",
     "artifacts/etudes/papers/vogels2011/prereg/P3_template.md": "872c97fe2d0cd64887a1de735f4102660d1844b5bb952962bf3a19f39dcec126",
     "artifacts/etudes/papers/vogels2011/prereg/P3_v2.md": "f673df80ebb42cc582fb1d9c2bf12c9f8f38a689bc187ffa83e46660e4a92cdc",
     "artifacts/etudes/papers/vogels2011/prereg/P3_v3.md": "149517c9fdc514a89e1e25ab5b25940e2f06c20e97728ef34ca1ef5d7bc5d435",
