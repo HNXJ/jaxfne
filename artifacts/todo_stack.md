@@ -55,8 +55,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Beside the path (∥)
 
-11a. ∥ T-72 [A then H] NeuroAI 2027 short paper, deadline 2026-11-20 (paper plan amendment 2026-11-02): verify the
-    AAAI-27 dual-submission rule and the deadline time zone on OpenReview; draft 4 pages in the AAAI-27 kit
+11a. ∥ T-72 [A then H] NeuroAI 2027 short paper, deadline 2026-11-20 23:59 AoE (paper plan amendment 2026-11-02;
+    rules verified on the OpenReview form, non-archival, no dual-submission bar): draft 4 pages in the AAAI-27 kit
     (anonymized: no package name, anonymized code link) from F1 and the signed P3 results; critic pass; Hamm
     reads and submits. Closes when Hamm has submitted.
 

@@ -94,7 +94,9 @@ manuscript rewrite, refreeze (C2), review (C11), arXiv (C12). 0.6.0: acceptance.
   licence and never redistributes them.
 - 2026-11-02 (Hamm): a jaxfne short paper, non-archival, goes to the NeuroAI 2027 workshop (AAAI 2027,
   Montreal, 2027-02-22/23; 4 pages, references excluded; double-blind; AAAI-27 author kit; OpenReview;
-  deadline 2026-11-20, time zone not stated): the TFNE language and the pre-registered replication
+  deadline 2026-11-20 23:59 AoE, UTC-12, decisions 2026-12-05; per the OpenReview submission form read
+  2026-11-02: short papers are non-archival, the bar on concurrent submissions binds archival submissions only,
+  every author needs an OpenReview profile and is asked to join the reviewer pool): the TFNE language and the pre-registered replication
   programme with its failures reported. It reuses F1 and the 0.5.9 validation evidence and does not
   replace the arXiv paper. jomission drops its engine row and submits its column paper separately.
   Submission on OpenReview is Hamm's act.
