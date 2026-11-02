@@ -96,18 +96,18 @@ Scorer `score_plos_rasters.py` (31c23fbc) on the run above, every input checked 
 | 2E | network E ≥ 10 × baseline | 18.2 × (seeds 18.2, 13.9, 22.5) | yes | partial |
 | 2E | MF E fixed point ≥ 100 Hz, CV < 0.05 | mean 13.0 Hz, CV 1.22: a 10 Hz limit cycle | no | |
 | 2F | band power < 1 | 0.996 (seeds 1.054, 0.942, 0.993) | yes | pass |
-| 2F | MF E amplitude below MF baseline | 0 vs 1.19 Hz (MF at a fixed point) | yes | |
+| 2F | MF E amplitude below MF baseline | 0 vs 1.19 Hz (MF flat over the last 0.5 s) | yes | |
 | 3C | f_pk and band power move as 2C | f_pk 0.70, band 0.49; 2C 0.79, 0.87 | yes | pass |
 | 3D | f_pk and band power move as 2D | f_pk 1.01, band 1.21; 2D 1.09, 1.18 | yes | pass |
 | 3E | moves as 2E | f_pk 0.30, band 0.27; 2E 0.15, 0.15 | yes | partial |
 | 3E | network E ≥ 10 × baseline | 8.1 × (seeds 11.3, 6.9, 6.2) | no | |
-| 3F | f_pk and band power move as 2F | band 1.27 against 2F 0.996 | no | fail |
+| 3F | f_pk and band power move as 2F | f_pk 1.05 with 2F 1.26 (same direction); band 1.27 against 2F 0.996 | no | fail |
 
-Panels: 3 pass (2F, 3C, 3D), 4 partial (2D, 2E, 3E), 2 fail (2C, 3F). The 2F network pass sits within 0.4 % of its
+Panels: 3 pass (2F, 3C, 3D), 3 partial (2D, 2E, 3E), 2 fail (2C, 3F). The 2F network pass sits within 0.4 % of its
 threshold, with seed 1 above 1, and the 3F fail is the same near-unity band power seen from the other side: SOM
 silencing at 90 % leaves gamma band power unchanged on the network (the O-83 finding above). The MF baseline itself
 is off the network (E 1.55 vs 1.11 Hz, PV 8.74 vs 11.47 Hz; f 34 vs 32 Hz), so 2C fails on a gap present before
-any silencing. Under PV silencing at 90 % the MF and the network both burst at about 5-10 Hz (figure 2E), where the
+any silencing. Under PV silencing at 90 % the MF cycles at 10 Hz and the network E trace peaks at 10, 10 and 14 Hz on seeds 1-3 (figure 2E), where the
 paper describes an MF fixed point at the inverse refractory rate; the MF start state is assumed
 (`caminos_meanfield.DEFAULT_START`), and whether a second, high-rate fixed point exists was not tested.
 
