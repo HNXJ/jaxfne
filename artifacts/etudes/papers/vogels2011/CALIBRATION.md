@@ -1,6 +1,6 @@
 # vogels2011 calibration record (RESIDUAL_PROTOCOL.md, Records)
 
-Status: P2 (smoke pilot, unscored). Every number below is reopened from its JSON or
+Status: P3 (signed P3 v4 scored off on R-E 2026-11-02, `RESULT_P3.md`; the records below are pilots). Every number below is reopened from its JSON or
 receipt before commit (checklist R2); verdicts use the status tags
 (checklist R3).
 

@@ -1,6 +1,6 @@
 # potjans2014 calibration record (RESIDUAL_PROTOCOL.md, Records)
 
-Status: P2 (PORT_SPEC written, smoke pilot run, unscored). Every number
+Status: P3 (signed P3 v2 scored off 2026-11-02, `RESULT_P3.md`; the records below are pilots). Every number
 below is reopened from its JSON or receipt before commit (checklist R2);
 verdicts use the status tags (checklist R3).
 
