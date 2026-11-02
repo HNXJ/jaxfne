@@ -42,7 +42,7 @@ import jax
 import numpy as np
 
 import caminos_analysis as cca
-import caminos_jax as cj
+import caminos_api as ca
 import jaxfne as jtfne
 
 assert "site-packages" not in jtfne.__file__, "cellrep_figures must run the checkout's jaxfne"
@@ -50,6 +50,7 @@ assert "site-packages" not in jtfne.__file__, "cellrep_figures must run the chec
 from jaxfne.analysis import ref42_lfp
 
 PARAM_SET = "cellrep"  # Cell Reports 2025 notebook set throughout
+ROUTE = "oracle"  # run_cell route unless overridden: "oracle" (caminos_jax) or "core"
 DT_S = 1e-4  # s, Euler step (cellrep set)
 DISCARD_S = cca.DISCARD_S  # 2 s, Methods lines 1788-1790
 F_PK_LO_HZ, F_PK_HI_HZ = 5.0, 100.0  # f_pk search band for the colour maps
@@ -57,13 +58,26 @@ S3_ONSET_S = 6.04  # s, Figure S3 legend line 1855 ("~ 6.04 s")
 S3_WINDOW_S = (5.9, 6.2)  # s, Figure S3 axis range (lines 1849-1850)
 
 
+def _oracle():
+    """The Cell Reports oracle, imported lazily so the core route never loads it."""
+    import caminos_jax as cj
+
+    return cj
+
+
 def run_cell(seed, *, T_s=12.0, silence=None, replace=None, replace_rate_hz=None,
              silence_onset_s=None, sizes=None, raster_window=None,
-             ext_sources="pNE", dt_s=DT_S, **sim_kw):
+             ext_sources="pNE", dt_s=DT_S, route=None, **sim_kw):
     """One cellrep simulation plus the Figure 3/4 estimators (mmc2 lines 439-445, 500-509).
 
-    Runs :func:`caminos_jax.simulate` with ``param_set="cellrep"``,
-    ``record="raster"`` and ``ext_sources="pNE"`` at dt = 1e-4 s, under the
+    ``route`` selects the execution path: ``"oracle"`` runs
+    :func:`caminos_jax.simulate` with ``param_set="cellrep"``,
+    ``record="raster"`` and ``ext_sources="pNE"`` at dt = 1e-4 s; ``"core"``
+    runs :func:`caminos_api.run_core_raster` (same manipulations through the
+    jaxfne core; no oracle code is reached, and its draws differ, so spikes
+    differ). None takes the module ``ROUTE`` (``"oracle"``). Any other route
+    is refused; a keyword the core path does not realize is refused with
+    ``ValueError`` naming it.
     optional ``silence`` / ``replace`` / ``replace_rate_hz`` /
     ``silence_onset_s`` manipulations (dicts such as ``{"PV": 0.4}``,
     caminos_jax.py lines 544-549; fraction 0 is passed as ``None`` by the
@@ -87,18 +101,35 @@ def run_cell(seed, *, T_s=12.0, silence=None, replace=None, replace_rate_hz=None
     ``max_e_rate_hz`` (peak smoothed E rate, Figures 3C/4 lines 442-443,
     503-504) and, when asked, ``raster_window``.
     """
-    NE, NPV, NSOM = _sizes_tuple(sizes)
-    key = jax.random.PRNGKey(seed)
-    raster, _ = cj.simulate(
-        key, T_s, dt=dt_s, record="raster", param_set=PARAM_SET,
-        ext_sources=ext_sources, NE=NE, NPV=NPV, NSOM=NSOM,
-        silence=silence, replace=replace, replace_rate_hz=replace_rate_hz,
-        silence_onset_s=silence_onset_s, **sim_kw)
-    r = np.asarray(raster)
+    if route is None:
+        route = ROUTE
+    if route not in ("oracle", "core"):
+        raise ValueError("route must be 'oracle' or 'core', got %r" % (route,))
+    if route == "core":
+        # The core route resolves its defaults from caminos_api, never from
+        # the oracle module (which stays unimported when sizes are defaulted).
+        _sz = ca._cellrep_sizes(sizes)
+        NE, NPV, NSOM = _sz["E"], _sz["PV"], _sz["SOM"]
+        n_tot = NE + NPV + NSOM
+        r = np.asarray(ca.run_core_raster(
+            seed, T_s=T_s, sizes=sizes, dt_ms=float(dt_s) * 1000.0,
+            ext_sources=ext_sources, silence=silence, replace=replace,
+            replace_rate_hz=replace_rate_hz, silence_onset_s=silence_onset_s,
+            **sim_kw))
+    else:
+        NE, NPV, NSOM = _sizes_tuple(sizes)
+        n_tot = NE + NPV + NSOM
+        cj = _oracle()
+        key = jax.random.PRNGKey(seed)
+        raster, _ = cj.simulate(
+            key, T_s, dt=dt_s, record="raster", param_set=PARAM_SET,
+            ext_sources=ext_sources, NE=NE, NPV=NPV, NSOM=NSOM,
+            silence=silence, replace=replace, replace_rate_hz=replace_rate_hz,
+            silence_onset_s=silence_onset_s, **sim_kw)
+        r = np.asarray(raster)
     counts = np.stack([r[:, :NE].sum(axis=1), r[:, NE:NE + NPV].sum(axis=1),
                        r[:, NE + NPV:].sum(axis=1)], axis=1).astype(np.int64)
     keep = counts[cca.kept_slice(counts.shape[0], dt_s)]
-    n_tot = NE + NPV + NSOM
     out = {
         "seed": int(seed), "T_s": float(T_s), "dt_s": float(dt_s),
         "sizes": {"E": NE, "PV": NPV, "SOM": NSOM},
@@ -124,7 +155,7 @@ def run_cell(seed, *, T_s=12.0, silence=None, replace=None, replace_rate_hz=None
 def _sizes_tuple(sizes):
     """NE/NPV/NSOM from a ``{"NE": ..}`` dict, or the defaults of the active ``PARAM_SET``."""
     if sizes is None:
-        P = cj.PARAM_SETS[PARAM_SET]
+        P = _oracle().PARAM_SETS[PARAM_SET]
         return P["NE"], P["NPV"], P["NSOM"]
     missing = {"NE", "NPV", "NSOM"} - set(sizes)
     if missing:
@@ -644,7 +675,7 @@ def s1_sweep(probabilities=None, seeds=None, **kw):
         for seed in seeds:
             res = run_cell(seed, **{**kw, "ext_sources": "pNE", "p": pp})
             res.update({"p": pp, "seed": int(seed),
-                        "n_ext_sources": cj.ext_source_count(
+                        "n_ext_sources": _oracle().ext_source_count(
                             pp, res["sizes"]["E"], "pNE", PARAM_SET)})
             rows.append(_attach_phase_delay(res))
     return rows

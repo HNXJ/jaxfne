@@ -8,6 +8,8 @@ Usage: python run_figA.py <outdir> <values csv> <seeds csv> <what>
 Env FIGA_T_S sets the run length in seconds (default 12; smoke runs use 3).
 Env FIGA_PARAM_SET picks the parameter set: cellrep (default, Cell Reports 2025) or default (PLoS CB 2026,
 whose Figs 2-4 network panels silence and randomize the reference model the same way).
+Env FIGA_ROUTE picks the simulator: oracle (default, the caminos_jax transcription) or core (jaxfne construct and
+Model.simulate through caminos_api.run_core_raster; cellrep set only).
 
 Writes <outdir>/<what>.json: one row per (value, seed) with scalars and short series.
 Rows that carry a spectrum keep its magnitude up to 60 Hz (psd_freqs_hz, psd_mag).
@@ -79,6 +81,9 @@ def main():
     cf.PARAM_SET = os.environ.get("FIGA_PARAM_SET", "cellrep")
     if cf.PARAM_SET not in ("cellrep", "default"):
         raise SystemExit("FIGA_PARAM_SET must be cellrep or default")
+    cf.ROUTE = os.environ.get("FIGA_ROUTE", cf.ROUTE)
+    if cf.ROUTE not in ("oracle", "core") or (cf.ROUTE == "core" and cf.PARAM_SET != "cellrep"):
+        raise SystemExit("FIGA_ROUTE must be oracle or core; core builds the cellrep set only")
     os.makedirs(outdir, exist_ok=True)
     t0 = time.time()
     rows = []
@@ -145,6 +150,7 @@ def main():
     payload = {
         "what": what,
         "param_set": cf.PARAM_SET,
+        "route": cf.ROUTE,
         "values": values,
         "seeds": seeds,
         "T_s": t_s,
