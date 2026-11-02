@@ -216,6 +216,23 @@ def test_fig6b_cont_cli_forwards_strong_adaptation(monkeypatch):
     assert [k["strong_adaptation"] for k in seen] == [False, True], seen
 
 
+def test_manifest_records_status_and_signed_prereg_hash(tmp_path):
+    """A signed run records its status and the signed prereg's sha256; unscored runs carry no prereg."""
+    import hashlib
+    import json
+
+    spikes = np.zeros((10, 2), bool)
+    D.write_run(tmp_path / "pilot", seed=0, tag="t", spikes=spikes, dt_ms=0.1)
+    D.write_run(tmp_path / "scored", seed=9, tag="t", spikes=spikes, dt_ms=0.1, signed=True)
+    pilot = json.loads((tmp_path / "pilot" / "manifest.json").read_text())["runs"][0]
+    signed = json.loads((tmp_path / "scored" / "manifest.json").read_text())["runs"][0]
+    assert pilot["status"] == "unscored" and "prereg_sha256" not in pilot
+    assert signed["status"] == "signed"
+    prereg = D._repo_root / signed["prereg"]
+    assert prereg.name == "P3_v3_signed.md" and prereg.is_file()
+    assert signed["prereg_sha256"] == hashlib.sha256(prereg.read_bytes()).hexdigest()
+
+
 def test_run_continuous_forwards_probability(tmp_path):
     """The Fig. 9 N-trend needs rescaled p through the continuous runner."""
     import json

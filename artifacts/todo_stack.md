@@ -39,7 +39,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
    S3 test, C6 `geometry="laminar"` with Brian2 and Jaxley baselines declared.
 7. [H] Signatures, one at a time as each draft is ready: PCL R4. Destexhe P3 v3 signed and scored FAIL 2026-11-02
-   (`RESULT_P3.md`, 5bd0fd4f); its manifest carries no signed flag or prereg hash (fold into T-30 conformance). Potjans P3 v2 and Vogels P3 v4 signed and scored
+   (`RESULT_P3.md`, 5bd0fd4f); later Destexhe runs record status and the signed prereg hash. Potjans P3 v2 and Vogels P3 v4 signed and scored
    off 2026-11-02 (`RESULT_P3.md` in each lane, 42e7f618); GSDR P3 fit signed and scored 2026-11-01; the Vogels
    result is in S12 (fd5a9c27).
    Each: sign ⇒ scored run from a fixed clone → result file, dashboard, checklist 9D/9E; defer ⇒ the package moves
