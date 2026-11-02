@@ -168,7 +168,7 @@
           {"id": "6A bottom", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md"}
         ],
         "excluded": [
-          {"id": "1A", "reason": "circuit hypotheses schematic"}, {"id": "1D", "reason": "mouse V1 recordings"},
+          {"id": "1A", "reason": "circuit hypotheses schematic"}, {"id": "1D", "reason": "mouse V1 recordings; raw data on request from the lead contact (Hamm 2026-11-02: excluded for 0.5.9, back at 0.5.10)"},
           {"id": "6A top", "reason": "literature SOM/PV densities"}, {"id": "6B top", "reason": "stimulation protocol"},
           {"id": "2A bottom", "reason": "transient drive values unstated (Hamm 2026-11-02)"},
           {"id": "2B bottom", "reason": "transient top-down onset unstated (Hamm 2026-11-02)"},

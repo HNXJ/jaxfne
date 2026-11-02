@@ -81,15 +81,14 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Owner queue (asked one at a time, in this order)
 
-23. [H] T-62 Figure 1D (Onorato data): download permission (file name, source, size in `state.md`); which of panels
-    B, C, D hold.
 24. [H] P-052 surrogate fitness for training (`artifacts/runs/perf/profiles/precision_058.md`).
 25. [A] Retired names in dated records kept as history (Hamm 2026-11-02, O-74 to O-79 closed): jarness selfcheck needs
     a history allowlist for them (asked in jchat, jynx keeper).
 
 ## After 0.5.9
 
-26. 0.5.10: T-47 kernel-LFP commits 6eb3c6b8, 44cd0111, ff45364b, then the iSTDP out-degree and kernel LFP checks,
+26. 0.5.10: T-62 Cell Reports Fig 1D, excluded for 0.5.9 (Hamm 2026-11-02): the raw Onorato data is on request
+    from the lead contact; Hamm decides at 0.5.10 whether to request it. T-47 kernel-LFP commits 6eb3c6b8, 44cd0111, ff45364b, then the iSTDP out-degree and kernel LFP checks,
     then `coherence_radius_um` with its two limit tests; T-32 GSDR on `simulate_hh_batch`, seed and candidate
     batching for AdEx, LIF and `Model.tune` (`_model_tune.py:451`), core homes for lane analysis, Mejias G6, the
     LIF edge kernel on GPU; F2, F4, S16 per the release plan.

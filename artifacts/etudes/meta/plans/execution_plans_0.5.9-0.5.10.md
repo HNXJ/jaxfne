@@ -25,7 +25,7 @@ item. Rows that wait on Hamm join no lane.
 | Row | Open item | Decision | Source |
 |---|---|---|---|
 | T-O73 | O-73 | rule private vs shared sources for the S1 drive (G3) | `open_stack.md`, `SOURCE_P1.md` line 18 |
-| T-62 | Fig 1D | raw Onorato data: the paper's data statement names Martin Vinck, lead contact, on request | Onorato et al. 2025, data and code availability |
+| T-62 | Fig 1D | ruled 2026-11-02: excluded for 0.5.9, moved to 0.5.10 (raw Onorato data on request from Martin Vinck, lead contact) | Onorato et al. 2025, data and code availability |
 | T-46 close test | | close section 7 at 0 gaps or narrow to the 0.5.9 gaps | todo section 2 |
 | Signatures | O-70 | Izhikevich P6, Potjans P3 v2, Vogels P3 v2, then Destexhe and GSDR after pilots, PCL R4 prereg | todo section 4 |
 | P-052 | | surrogate fitness for training | `state.md` |
