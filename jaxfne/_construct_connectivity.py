@@ -463,17 +463,34 @@ def _compile_mechanism_aware_connection_rules(
         return None, counts, sharing
 
     edges = result.to_edge_list(dtype=dtype_name, dt_ms=dt_ms)
-    edge_rule_id = _np.asarray(result.edge_rule_id)
     pre_np = _np.asarray(edges.pre)
     raw_weight = _np.asarray(edges.weight, dtype=_np.float64)
     out_weight = raw_weight.copy()
     sign_np = _np.asarray(sign, dtype=_np.float64)
-    for ri, rule in enumerate(rules):
-        mask = edge_rule_id == ri
-        if not _np.any(mask):
-            continue
-        sgn = rule.get("sign")
-        out_weight[mask] = _apply_edge_sign_policy(sgn, raw_weight[mask], pre_np[mask], sign_np)
+    # Edges concatenate in rule order (compile appends one block per rule),
+    # so each rule owns one slice: no full-array mask scan per rule.
+    # The total guards the slice walk; a mismatch falls back to the
+    # rule-id masks (the old path) rather than misaligning.
+    lo = 0
+    use_slices = sum(counts) == int(_np.asarray(edges.pre).shape[0])
+    if use_slices:
+        for ri, rule in enumerate(rules):
+            cnt = int(counts[ri]) if ri < len(counts) else 0
+            if cnt <= 0:
+                continue
+            hi = lo + cnt
+            sgn = rule.get("sign")
+            out_weight[lo:hi] = _apply_edge_sign_policy(
+                sgn, raw_weight[lo:hi], pre_np[lo:hi], sign_np)
+            lo = hi
+    else:
+        edge_rule_id = _np.asarray(result.edge_rule_id)
+        for ri, rule in enumerate(rules):
+            mask = edge_rule_id == ri
+            if not _np.any(mask):
+                continue
+            sgn = rule.get("sign")
+            out_weight[mask] = _apply_edge_sign_policy(sgn, raw_weight[mask], pre_np[mask], sign_np)
     edges = replace(edges, weight=jnp.asarray(out_weight, dtype=jdtype))
     return edges, counts, sharing
 

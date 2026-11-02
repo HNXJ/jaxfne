@@ -1,0 +1,1 @@
+- Connection compilation, delay snapping, the multinomial sampler, the sign pass and velocity delays run as NumPy array operations; edges, delays, tables and the random draw sequence are byte-identical (Potjans fingerprint, 4 cases).

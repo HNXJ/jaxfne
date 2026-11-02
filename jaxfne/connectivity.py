@@ -322,12 +322,13 @@ class ConnectionCompileResult:
                 # positive draw inside one timestep floors to 1 step instead
                 # of raising (the constant path keeps the refusal). Exact-zero
                 # draws stay 0 steps. Non-spread edges keep the exact path.
-                import math as _math
-
                 rule_of = _np.asarray(self.edge_rule_id,
                                       dtype=_np.int64).reshape(-1)
                 steps = _np.zeros(ms.shape, dtype=_np.int32)
-                plain = _np.array([int(r) not in spread_rules for r in rule_of])
+                plain = ~_np.isin(
+                    rule_of,
+                    _np.fromiter(spread_rules, dtype=_np.int64, count=len(spread_rules)),
+                )
                 if bool(_np.any(plain)):
                     uniq, inverse = _np.unique(ms[plain], return_inverse=True)
                     psteps = _np.asarray(
@@ -336,12 +337,15 @@ class ConnectionCompileResult:
                     ).reshape(-1)
                     steps[plain] = psteps[inverse.reshape(-1)]
                 dt = float(dt_ms)
-                for idx in _np.where(~plain)[0]:
-                    v = float(ms[idx])
-                    if v == 0.0:
-                        steps[idx] = 0
-                    else:
-                        steps[idx] = max(1, int(_math.floor(v / dt + 0.5)))
+                spread = ~plain
+                if bool(_np.any(spread)):
+                    # Same snap as the per-edge loop: exact-zero draws stay 0,
+                    # other draws floor half-up with a floor of 1 step.
+                    sms = ms[spread]
+                    snapped = _np.floor(sms / dt + 0.5).astype(_np.int64)
+                    snapped = _np.maximum(snapped, _np.int64(1))
+                    snapped[sms == 0.0] = _np.int64(0)
+                    steps[spread] = snapped.astype(_np.int32)
                 delay_steps = jnp.asarray(steps, dtype=jnp.int32)
         return EdgeList(
             pre=jnp.asarray(self.edge_pre, dtype=jnp.int32),
@@ -775,7 +779,11 @@ def _candidate_pairs_multinomial(
             jax.random.choice(key, n_pre * n_post, shape=(k,), replace=True)
         )
         pre_pick, post_pick = np.divmod(flat, n_post)
-        return sorted(zip(pre_arr[pre_pick].tolist(), post_arr[post_pick].tolist()))
+        sel_pre = pre_arr[pre_pick]
+        sel_post = post_arr[post_pick]
+        # Tuple order (pre, post): lexsort with the last key primary.
+        order = np.lexsort((sel_post, sel_pre))
+        return list(zip(sel_pre[order].tolist(), sel_post[order].tolist()))
     # Overlapping pools without self: the valid pair space drops the
     # pre==post pairs. Draw K indices over the reduced space and map them
     # per post cell, so exactly K kept pairs always come back (no rejection
@@ -794,12 +802,26 @@ def _candidate_pairs_multinomial(
     flat = np.asarray(jax.random.choice(key, total_valid, shape=(k,), replace=True))
     post_pick = np.searchsorted(offsets, flat, side="right") - 1
     within = flat - offsets[post_pick]
+    # Each shared post cell's own id sits at one position of pre_arr; pairs at
+    # or past it shift by one so the self pair stays excluded. One vectorized
+    # bump over all K draws replaces the per-post-cell loop.
+    need = valid_per_post != n_pre
     pre_idx = np.asarray(within, dtype=np.int64).copy()
-    for j in np.flatnonzero(valid_per_post != n_pre):
-        skip = int(np.flatnonzero(pre_arr == post_arr[j])[0])
-        sel = post_pick == j
-        pre_idx[sel] += (within[sel] >= skip).astype(np.int64)
-    return sorted(zip(pre_arr[pre_idx].tolist(), post_arr[post_pick].tolist()))
+    if bool(np.any(need)):
+        # First occurrence, as the old ``flatnonzero(...)[0]``.
+        pre_pos: dict[int, int] = {}
+        for i, a in enumerate(pre_arr.tolist()):
+            pre_pos.setdefault(int(a), i)
+        skip_of_post = np.zeros(post_arr.shape[0], dtype=np.int64)
+        need_idx = np.flatnonzero(need)
+        skip_of_post[need_idx] = np.asarray(
+            [pre_pos[int(post_arr[int(j)])] for j in need_idx], dtype=np.int64
+        )
+        pre_idx += ((within >= skip_of_post[post_pick]) & need[post_pick]).astype(np.int64)
+    sel_pre = pre_arr[pre_idx]
+    sel_post = post_arr[post_pick]
+    order = np.lexsort((sel_post, sel_pre))
+    return list(zip(sel_pre[order].tolist(), sel_post[order].tolist()))
 
 
 def _spatial_bucket_key(pos: np.ndarray, cell_size: float) -> tuple[int, int, int]:
@@ -1159,12 +1181,15 @@ def compile_connection_rules(
         )
 
     base_key = jax.random.PRNGKey(int(seed))
-    all_pre: list[int] = []
-    all_post: list[int] = []
-    all_weight: list[float] = []
-    all_mech: list[int] = []
-    all_rule: list[int] = []
-    all_delay_ms: list[float] = []
+    # Per-rule numpy blocks concatenated once below: the old per-edge
+    # ``list.append`` loop ran six appends per edge (54 M appends at 9 M
+    # edges). Blocks hold the same values in the same rule order.
+    pre_blocks: list[np.ndarray] = []
+    post_blocks: list[np.ndarray] = []
+    weight_blocks: list[np.ndarray] = []
+    mech_blocks: list[np.ndarray] = []
+    rule_blocks: list[np.ndarray] = []
+    delay_blocks: list[np.ndarray] = []
     connection_table: list[dict[str, Any]] = []
     skipped: list[str] = []
 
@@ -1375,12 +1400,17 @@ def compile_connection_rules(
                 label=f"connection {rname!r}",
             )
             if not rule_self:
-                kept = [(a, b, g) for (a, b), g in zip(pairs_all, groups_all) if a != b]
+                # Vectorized self-pair drop over the footprint's pair grid.
+                _parr = np.asarray(pairs_all, dtype=np.int64).reshape(-1, 2)
+                _garr = np.asarray(groups_all, dtype=np.int64).reshape(-1)
+                _keep = _parr[:, 0] != _parr[:, 1]
+                pairs = [(int(a), int(b)) for a, b in _parr[_keep].tolist()]
+                if sharing_mode is not None:
+                    sharing_groups = [int(g) for g in _garr[_keep].tolist()]
             else:
-                kept = [(a, b, g) for (a, b), g in zip(pairs_all, groups_all)]
-            pairs = [(a, b) for a, b, _ in kept]
-            if sharing_mode is not None:
-                sharing_groups = [g for _, _, g in kept]
+                pairs = [(int(a), int(b)) for a, b in pairs_all]
+                if sharing_mode is not None:
+                    sharing_groups = [int(g) for g in groups_all]
         elif max_in_degree is not None:
             neuron_xyz = {
                 int(row["neuron_id"]): np.asarray([row["x"], row["y"], row["z"]], dtype=float)
@@ -1528,25 +1558,35 @@ def compile_connection_rules(
                 "delay_ms; the spread draws around one scalar mean -- declare both"
             )
         if delay_std is None:
-            for (a, b), w in zip(pairs, weights):
-                all_pre.append(int(a))
-                all_post.append(int(b))
-                all_weight.append(float(w))
-                all_mech.append(int(mech_idx))
-                all_rule.append(int(rule_id))
-                all_delay_ms.append(0.0 if rule_delay_ms is None else float(rule_delay_ms))
+            n_pairs = len(pairs)
+            if n_pairs:
+                parr = np.asarray(pairs, dtype=np.int64).reshape(-1, 2)
+                pre_blocks.append(parr[:, 0])
+                post_blocks.append(parr[:, 1])
+                weight_blocks.append(np.asarray(weights, dtype=np.float64).reshape(-1))
+                mech_blocks.append(np.full((n_pairs,), int(mech_idx), dtype=np.int64))
+                rule_blocks.append(np.full((n_pairs,), int(rule_id), dtype=np.int64))
+                delay_blocks.append(
+                    np.full(
+                        (n_pairs,),
+                        0.0 if rule_delay_ms is None else float(rule_delay_ms),
+                        dtype=np.float64,
+                    )
+                )
         else:
             dnoise = np.asarray(
                 jax.random.normal(jax.random.fold_in(rkey, _DELAY_SPREAD_FOLD),
                                   (len(pairs),)), dtype=np.float64)
             draws = np.abs(float(rule_delay_ms) + float(delay_std) * dnoise)
-            for (a, b), w, dd in zip(pairs, weights, draws):
-                all_pre.append(int(a))
-                all_post.append(int(b))
-                all_weight.append(float(w))
-                all_mech.append(int(mech_idx))
-                all_rule.append(int(rule_id))
-                all_delay_ms.append(float(dd))
+            n_pairs = len(pairs)
+            if n_pairs:
+                parr = np.asarray(pairs, dtype=np.int64).reshape(-1, 2)
+                pre_blocks.append(parr[:, 0])
+                post_blocks.append(parr[:, 1])
+                weight_blocks.append(np.asarray(weights, dtype=np.float64).reshape(-1))
+                mech_blocks.append(np.full((n_pairs,), int(mech_idx), dtype=np.int64))
+                rule_blocks.append(np.full((n_pairs,), int(rule_id), dtype=np.int64))
+                delay_blocks.append(np.asarray(draws, dtype=np.float64).reshape(-1))
         row = {
             "name": rname,
             "n_pre": len(pre_ids),
@@ -1606,13 +1646,18 @@ def compile_connection_rules(
             row["realized_k"] = len(pairs)
         connection_table.append(row)
 
-    # Lists go through NumPy first: jnp.asarray walks a Python list element by element.
-    edge_pre = jnp.asarray(np.asarray(all_pre, dtype=np.int32), dtype=jnp.int32)
-    edge_post = jnp.asarray(np.asarray(all_post, dtype=np.int32), dtype=jnp.int32)
-    edge_weight = jnp.asarray(np.asarray(all_weight, dtype=np.float64), dtype=jdtype)
-    edge_mechanism = jnp.asarray(np.asarray(all_mech, dtype=np.int32), dtype=jnp.int32)
-    edge_rule_id = jnp.asarray(np.asarray(all_rule, dtype=np.int32), dtype=jnp.int32)
-    edge_delay_ms = jnp.asarray(np.asarray(all_delay_ms, dtype=np.float64), dtype=jdtype)
+    # Blocks go through NumPy first: jnp.asarray walks a Python list element by element.
+    def _cat(blocks: list[np.ndarray], dtype: Any) -> np.ndarray:
+        if not blocks:
+            return np.zeros((0,), dtype=dtype)
+        return np.concatenate(blocks).astype(dtype, copy=False)
+
+    edge_pre = jnp.asarray(_cat(pre_blocks, np.int32), dtype=jnp.int32)
+    edge_post = jnp.asarray(_cat(post_blocks, np.int32), dtype=jnp.int32)
+    edge_weight = jnp.asarray(_cat(weight_blocks, np.float64), dtype=jdtype)
+    edge_mechanism = jnp.asarray(_cat(mech_blocks, np.int32), dtype=jnp.int32)
+    edge_rule_id = jnp.asarray(_cat(rule_blocks, np.int32), dtype=jnp.int32)
+    edge_delay_ms = jnp.asarray(_cat(delay_blocks, np.float64), dtype=jdtype)
     if edge_weight.shape[0] and not bool(jnp.all(jnp.isfinite(edge_weight))):
         raise ValueError("compiled edge weights contain non-finite values")
 

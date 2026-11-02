@@ -3378,21 +3378,21 @@ def _velocity_edge_delays(
 
     pos_index = {int(r["neuron_id"]): i for i, r in enumerate(rows)}
     n = len(rows)
-    areas = np.array([str(r["area"]) for r in rows], dtype=object)
-    layers = np.array([str(r["layer"]) for r in rows], dtype=object)
-    ctypes = np.array([str(r["cell_type"]) for r in rows], dtype=object)
-    xyz = np.asarray(positions, dtype=np.float64).reshape(n, 3)
     pre_ids = np.asarray(edge_pre, dtype=np.int64).reshape(-1)
     post_ids = np.asarray(edge_post, dtype=np.int64).reshape(-1)
-    missing = [int(i) for i in list(pre_ids) + list(post_ids) if int(i) not in pos_index]
-    if missing:
+    # Vectorized endpoint check: the old per-edge Python loop materialized
+    # 2 * n_edges ints. ``np.isin`` against the table ids reports the same set.
+    known_ids = np.fromiter(pos_index.keys(), dtype=np.int64, count=len(pos_index))
+    known_rows = np.fromiter(pos_index.values(), dtype=np.int64, count=len(pos_index))
+    flat = np.concatenate([pre_ids, post_ids]) if pre_ids.size else post_ids
+    outside = flat[np.logical_not(np.isin(flat, known_ids))]
+    if outside.size:
         raise ValueError(
             "geometry-delay matcher sees edge endpoints outside the neuron table: "
-            f"{sorted(set(missing))[:8]}"
+            f"{sorted(set(outside.tolist()))[:8]}"
         )
-    pre_idx = np.array([pos_index[int(i)] for i in pre_ids], dtype=np.int64)
-    post_idx = np.array([pos_index[int(i)] for i in post_ids], dtype=np.int64)
-
+    # Fast path: no velocity connection selects edges, so no row positions or
+    # per-edge maps are needed below; the callers return the model unchanged.
     def _iter_conns():
         for area in tensor.areas:
             for ic in area.inter_connections:
@@ -3405,10 +3405,36 @@ def _velocity_edge_delays(
                 ac.target_area,
             )
 
+    conns = list(_iter_conns())
+    if not any(conn.conduction_velocity_m_per_s is not None for _, conn, _, _ in conns):
+        return []
+    areas = np.array([str(r["area"]) for r in rows], dtype=object)
+    layers = np.array([str(r["layer"]) for r in rows], dtype=object)
+    ctypes = np.array([str(r["cell_type"]) for r in rows], dtype=object)
+    xyz = np.asarray(positions, dtype=np.float64).reshape(n, 3)
+    # Dense id -> row lookup: neuron ids are table positions in the
+    # constructed models; a sparse fallback below covers foreign tables.
+    max_id = int(flat.max()) if flat.size else -1
+    lut: np.ndarray | None = None
+    max_known = int(known_ids.max()) if n else -1
+    if (
+        0 <= max_id <= 16 * max(n, 1)
+        and 0 <= max_known <= 16 * max(n, 1)
+        and bool(np.all(flat >= 0))
+        and bool(np.all(known_ids >= 0))
+    ):
+        lut = np.full((max(max_id, max_known) + 1,), -1, dtype=np.int64)
+        lut[known_ids] = known_rows
+        pre_idx = lut[pre_ids]
+        post_idx = lut[post_ids]
+    else:
+        pre_idx = np.array([pos_index[int(i)] for i in pre_ids], dtype=np.int64)
+        post_idx = np.array([pos_index[int(i)] for i in post_ids], dtype=np.int64)
+
     out: "list[tuple[str, Any, dict[int, float], float]]" = []
     claimed = np.zeros(pre_ids.shape[0], dtype=bool)
     claimed_label = np.array([""] * pre_ids.shape[0], dtype=object)
-    for label, conn, source_area, target_area in _iter_conns():
+    for label, conn, source_area, target_area in conns:
         velocity = conn.conduction_velocity_m_per_s
         if velocity is None:
             continue
