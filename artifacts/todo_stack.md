@@ -24,15 +24,12 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    4.17 Hz, tau 32 s, R-E e 0.38. Hamm ruled T 150 s with |slope| < 0.01 Hz/s over 20 s. Running in the WSL GPU
    queue (`~/gpu_queue_1101.sh`, clone `~/jaxfne_pilots` at bafa4797, out `~/q1101/`): baseline, rho0 6 Hz, eta 0
    at T 150 s. Next: copy receipts to `F:/warehouse/vogels2011/`, check each known positive moves, draft
-   `prereg/P3_v3.md` (T 150 s, the new convergence rule), [H] sign. Potjans (O-80): LIF continuation (78e94621) and
-   the segmented pilot (08ef8613, `--segment-s`) landed; next the 10 s pilot at scale 0.1 in 1 s segments under a
-   30 GB cap, then the L5i→L5e lesion known positive.
+   `prereg/P3_v3.md` (T 150 s, the new convergence rule), [H] sign. Potjans done 2026-11-02 (CALIBRATION 0b, `F:/warehouse/potjans2014/pilot_T10_acab8e66`):
+   10 s at scale 0.1 in 1 s segments, 12.8 GB; the L5i→L5e lesion puts R-L5E at e 40.9 (moves as predicted); the
+   baseline misses R-L23E, R-L5E, O-IE at L5 and CV at L6E. Potjans P3 v2 → step 7.
 3. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
    behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
-   test first and a changelog fragment:
-   a. per-type AdEx `cell_params` and an adex `poisson_drive` list with per-target mechanisms (packet
-      `pk_muse_adex_core1`; blocks all 17 Cell Reports panels);
-   b. silencing a fraction from t = 0 and from an onset; rate schedules into `ext_lambda` (3A-3C, S3, 2A, 2B);
+   test first and a changelog fragment (lanes a, d9fee4b9, and b, fb5ef158, landed):
    c. Poisson replacement of a fraction (4A, 4B);
    d. per-step E→E gain (6B; values wait on T-65).
    → port `cellrep_figures.py` to `caminos_api` and check equivalence at full size against the frozen result,
