@@ -51,8 +51,8 @@
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/caminos",
-    "message": "holds 28 files (at most 7)",
-    "reason": "audit 2026-10-17; 28 files after the FIG-A runner, the mean-field port with its result and the PLoS Figs 2-4 scorer with its result (2026-10-31)",
+    "message": "holds 30 files (at most 7)",
+    "reason": "audit 2026-10-17; 28 files after the FIG-A runner, the mean-field port with its result and the PLoS Figs 2-4 scorer with its result (2026-10-31); 30 with the PLoS raster runner and its test (2026-11-02)",
     "todo": "T-30"
   },
   {
