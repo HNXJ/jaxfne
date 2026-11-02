@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4]))  # P-025: repo root before the covered sibling imports
 
 import cellrep_figures as cf
 
