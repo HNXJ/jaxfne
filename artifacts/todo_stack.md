@@ -71,6 +71,12 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     pointer, delete one at a time (`cl-reader-cursor`, `jaxfne-wt-p022`, the four WSL copies, the non-git leftovers
     named in O-68), and the finished lane clones under `E:/repos/_wt/jaxfne/` after an alternates check. Closes when:
     every O-68 path is gone or rescued, and no surviving clone's `objects/info/alternates` names a deleted one.
+    Status 2026-11-02 (Haiku inventory, no alternates under `E:/repos`): `p6run`, `pilots`, `potmem` (HEAD on dev,
+    clean) and the empty `d28` deleted. Left: 14 clones with dirty files to read; 11 one-commit clones whose commit is
+    on no jaxfne ref; `clogsweep` (2cd1dd27) and `pclr2study` (c7137b4b) are the sole holders of one commit each;
+    `cl-reader-cursor` (`reader_exp/`, an R1 audit note) and `jaxfne-wt-p022` (a receipt) hold untracked files; the
+    non-git leftovers are under `C:/workspace` (`jaxfne_rc057`, `jaxfne_receipts`, `jaxfne_reader_exp`,
+    `jaxfne_pclr1_audit`); which four WSL copies O-68 means is not recorded.
 16. ∥ T-46 [A] C9, C2: 8 gaps in `programme/paper/reproducibility_audit.md` section 7 (left: data and code statement,
     PCL natural-image and DVS128/N-MNIST licences, S16 generators). Close test (Hamm 2026-11-02): section 7 closes
     when the gaps touching 0.5.9 items close; the paper-only gaps (licences, data and code statement) move to the
