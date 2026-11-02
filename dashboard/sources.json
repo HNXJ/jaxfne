@@ -504,7 +504,7 @@
       "criteria": [],
       "sensitivity": [],
       "charts": [],
-      "open": ["In progress (Hamm 2026-11-02): the signed P3 fit FAIL stands as scored (RESULT_P3_fit.md); the paper continues under a new preregistration.", "The next prereg names --morphology explicitly (RESULT_P3_fit.md: the reference-morphology evaluation is insensitive to the fitted conductances at stim 0.6).", "The drive and J_E anchor for the g sweep are not yet recorded."]
+      "open": ["In progress (Hamm 2026-11-02): open until precisely replicated. The signed P3 fit FAIL stands as scored (RESULT_P3_fit.md); the paper continues under a new preregistration.", "The next prereg names --morphology explicitly (RESULT_P3_fit.md: the reference-morphology evaluation is insensitive to the fitted conductances at stim 0.6).", "The drive and J_E anchor for the g sweep are not yet recorded."]
     },
     {
       "id": "destexhe2009",

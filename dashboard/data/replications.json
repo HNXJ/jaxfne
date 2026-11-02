@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-02T02:34:56Z",
-    "dev_sha": "78e3c99384daa97fc5f48355a92972bda2026d8a",
-    "data_revision": "8b5ce0e26f581e924334810951d2484ffce5371655163e8643d1c804e738b9fc"
+    "utc": "2026-11-02T04:20:11Z",
+    "dev_sha": "26b56b7d63adb01ece7f7c8e570f794294bf5489",
+    "data_revision": "73783abfe8b30873275ae71da6a5035cedba23a9d79da5f60c4aec066c4e4ab0"
   },
   "papers": [
     {
@@ -3512,7 +3512,7 @@
       "sensitivity": [],
       "charts": [],
       "open": [
-        "In progress (Hamm 2026-11-02): the signed P3 fit FAIL stands as scored (RESULT_P3_fit.md); the paper continues under a new preregistration.",
+        "In progress (Hamm 2026-11-02): open until precisely replicated. The signed P3 fit FAIL stands as scored (RESULT_P3_fit.md); the paper continues under a new preregistration.",
         "The next prereg names --morphology explicitly (RESULT_P3_fit.md: the reference-morphology evaluation is insensitive to the fitted conductances at stim 0.6).",
         "The drive and J_E anchor for the g sweep are not yet recorded."
       ],
