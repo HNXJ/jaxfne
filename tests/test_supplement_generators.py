@@ -199,6 +199,59 @@ def test_s14_a_four_pass_synthetic_score_passes(tmp_path: Path) -> None:
     assert "**Verdict: PASS**" in (tmp_path / "s14" / "S14_gsdr_fit.md").read_text(encoding="utf-8")
 
 
+# --- S12: the scored Vogels P3 v4 (segment B) -----------------------------------
+
+
+def _s12_score() -> dict:
+    return json.loads(
+        (REPO / "artifacts" / "etudes" / "papers" / "vogels2011" / "run" / "p3_v4_score.json")
+        .read_text(encoding="utf-8")
+    )
+
+
+def test_s12_lists_five_seeds_and_recomputes_the_json_verdict(tmp_path: Path) -> None:
+    score = _s12_score()
+    assert score["seeds"] == [4, 5, 6, 7, 8], "the signed run scored seeds 4-8"
+    assert score["verdict"].startswith("off"), "fixture: the signed result is off"
+
+    counts = supplement.write_s12(tmp_path)
+
+    assert counts["rows"] == 5 and counts["verdict"] == "off"
+    payload = json.loads((tmp_path / "S12_vogels_p3.json").read_text(encoding="utf-8"))
+    assert payload["failed"] == ["R-E"], payload["failed"]
+    assert payload["R-E"]["z_hz"] == score["R-E"]["z_hz"]
+    assert payload["O-DROP"]["ratio"] == score["O-DROP"]["ratio"]
+    for row in payload["rows"]:
+        s = str(row["seed"])
+        assert row["b_hz_s"] == score["CONV"]["per_seed"][s]["b_hz_s"], s
+        assert row["re_hz"] == score["R-E"]["per_seed_z_hz"][s], s
+        assert row["converged"] is True, s
+    md = (tmp_path / "S12_vogels_p3.md").read_text(encoding="utf-8")
+    assert md.splitlines()[0].startswith("# S12.")
+    assert "**Verdict: off (R-E)**" in md
+    table = [line for line in md.splitlines() if line.startswith("| ")]
+    assert len(table) == 5 + 1, "header plus one row per seed"
+
+
+def test_s12_an_in_band_synthetic_score_closes_and_a_mismatch_is_refused(tmp_path: Path) -> None:
+    score = _s12_score()
+    closing = dict(score, verdict="closes")
+    closing["R-E"] = dict(score["R-E"], z_hz=3.3)
+    closing["O-DROP"] = dict(score["O-DROP"], ratio=score["O-DROP"]["before_hz"] / 3.3)
+    path = tmp_path / "closing.json"
+    path.write_text(json.dumps(closing), encoding="utf-8")
+    (tmp_path / "a").mkdir()
+    assert supplement.write_s12(tmp_path / "a", score_path=path)["verdict"] == "closes"
+
+    unconverged = json.loads(json.dumps(closing))
+    unconverged["CONV"]["per_seed"]["6"].update(b_hz_s=-0.05, se_hz_s=0.005)
+    bad = tmp_path / "unconverged.json"
+    bad.write_text(json.dumps(unconverged), encoding="utf-8")
+    (tmp_path / "b").mkdir()
+    with pytest.raises(ValueError, match="disagrees"):
+        supplement.write_s12(tmp_path / "b", score_path=bad)
+
+
 def test_s2_perturbed_transform_fails_and_main_returns_1(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
 ) -> None:

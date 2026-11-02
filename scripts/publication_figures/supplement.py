@@ -1,5 +1,5 @@
 """Supplement items S1 (notation table), S2 (calibration transforms), S5
-(HDP reduction identity) and S14 (the scored GSDR P3 fit).
+(HDP reduction identity), S12 (the scored Vogels P3 v4) and S14 (the scored GSDR P3 fit).
 
 S1 parses docs/theory/doctrine/definition_map.md. A row is mapped when its symbol and
 test are both named, otherwise open. S2 applies every public calibration transform
@@ -368,6 +368,92 @@ def plot_s5(rows: list[dict[str, object]], path: Path) -> None:
     plt.close(fig)
 
 
+# --- S12: the scored Vogels P3 v4 (segment B) -----------------------------------
+#
+# One row per scored seed of the signed P3 v4 (prereg/P3_v4_signed.md): the CONV slope
+# over 130-150 s with its t, and the 149-150 s E rate. The lane rows are recomputed from
+# the per-seed values with the prereg's rules (CONV: not converged only when |b| >= 0.01
+# Hz/s and |b|/se > 2.101; R-E: |z - 3 Hz| / 3 Hz <= 0.20; O-DROP: ratio >= 2) and must
+# agree with the verdict the score JSON records.
+
+VOGELS_P3_SCORE = (
+    REPO / "artifacts" / "etudes" / "papers" / "vogels2011" / "run" / "p3_v4_score.json"
+)
+S12_CONV_SLOPE_HZ_S = 0.01
+S12_CONV_T_CRIT = 2.101
+S12_TARGET_HZ = 3.0
+S12_RE_BAND = 0.20
+S12_DROP_RATIO = 2.0
+
+
+def write_s12(out_dir: Path, score_path: Path = VOGELS_P3_SCORE) -> dict[str, object]:
+    payload = json.loads(score_path.read_text(encoding="utf-8"))
+    rows = []
+    for seed in payload["seeds"]:
+        conv = payload["CONV"]["per_seed"][str(seed)]
+        b, se = float(conv["b_hz_s"]), float(conv["se_hz_s"])
+        t = abs(b) / se if se > 0 else float("inf")
+        rows.append({
+            "seed": seed,
+            "b_hz_s": conv["b_hz_s"],
+            "se_hz_s": conv["se_hz_s"],
+            "t": t,
+            "converged": not (abs(b) >= S12_CONV_SLOPE_HZ_S and t > S12_CONV_T_CRIT),
+            "re_hz": payload["R-E"]["per_seed_z_hz"][str(seed)],
+        })
+    z = float(payload["R-E"]["z_hz"])
+    e = abs(z - S12_TARGET_HZ) / S12_TARGET_HZ
+    ratio = float(payload["O-DROP"]["ratio"])
+    holds = {
+        "CONV": all(r["converged"] for r in rows),
+        "R-E": e <= S12_RE_BAND,
+        "O-DROP": ratio >= S12_DROP_RATIO,
+    }
+    failed = [k for k, ok in holds.items() if not ok]
+    verdict = "closes" if not failed else "off (" + ", ".join(failed) + ")"
+    if payload.get("verdict") != verdict:
+        raise ValueError(
+            f"{score_path}: recorded verdict {payload.get('verdict')!r} disagrees with "
+            f"the recomputed {verdict!r}"
+        )
+    out = {
+        "source": score_path.relative_to(REPO).as_posix()
+        if score_path.is_relative_to(REPO)
+        else score_path.name,
+        "prereg": payload.get("prereg"),
+        "prereg_sha256": payload.get("prereg_sha256"),
+        "R-E": {"z_hz": payload["R-E"]["z_hz"], "e": e, "pass": holds["R-E"]},
+        "O-DROP": {"before_hz": payload["O-DROP"]["before_hz"], "ratio": payload["O-DROP"]["ratio"],
+                   "pass": holds["O-DROP"]},
+        "CONV": {"pass": holds["CONV"]},
+        "failed": failed,
+        "verdict": verdict,
+        "rows": rows,
+    }
+    (out_dir / "S12_vogels_p3.json").write_text(
+        json.dumps(out, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+    )
+    lines = [
+        "# S12. Scored Vogels P3 v4, segment B",
+        "",
+        f"Source: `{out['source']}` (prereg `{out['prereg']}`). The lane closes when every seed "
+        f"converges (not converged only when |b| >= {S12_CONV_SLOPE_HZ_S} Hz/s and |b|/se > "
+        f"{S12_CONV_T_CRIT}), R-E holds (|z - {S12_TARGET_HZ:g} Hz| / {S12_TARGET_HZ:g} Hz <= "
+        f"{S12_RE_BAND}) and O-DROP holds (ratio >= {S12_DROP_RATIO:g}). R-E z {z:.3f} Hz, "
+        f"e {e:.3f}; O-DROP ratio {ratio:.1f}. **Verdict: {verdict}**.",
+        "",
+        "| seed | b Hz/s (se) | t | converged | E rate 149-150 s, Hz |",
+        "|---|---|---|---|---|",
+    ]
+    lines += [
+        f"| {r['seed']} | {r['b_hz_s']:+.4f} ({r['se_hz_s']:.4f}) | {r['t']:.2f} "
+        f"| {'yes' if r['converged'] else 'no'} | {r['re_hz']:.3f} |"
+        for r in rows
+    ]
+    (out_dir / "S12_vogels_p3.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return {"rows": len(rows), "verdict": "closes" if not failed else "off"}
+
+
 # --- S14: the scored GSDR P3 fit ------------------------------------------------
 #
 # Each row scores one optimizer seed of the signed P3 fit
@@ -454,10 +540,12 @@ def main(argv: list[str] | None = None) -> int:
     counts = write_s1(args.out)
     s2 = write_s2(args.out)
     rules = write_s5(args.out)
+    s12 = write_s12(args.out)
     s14 = write_s14(args.out)
     print(f"S1 rows={counts['rows']} mapped={counts['mapped']} open={counts['open']}")
     print(f"S2 rows={s2['rows']} checked={s2['checked']} failed={s2['failed']}")
     print(f"S5 rules={len(rules)} out={args.out}")
+    print(f"S12 rows={s12['rows']} verdict={s12['verdict']} out={args.out}")
     print(f"S14 rows={s14['rows']} passing={s14['passing']} verdict={s14['verdict']} out={args.out}")
     return 1 if s2["failed"] else 0
 

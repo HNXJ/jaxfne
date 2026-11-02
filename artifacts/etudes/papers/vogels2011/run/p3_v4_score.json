@@ -1,0 +1,134 @@
+{
+  "AI": {
+    "per_seed": {
+      "4": {
+        "active_fraction": 0.9517,
+        "cv_isi": 0.6748362276856956,
+        "kappa": 0.023565997498972077,
+        "label": "irregular",
+        "rate_hz": 4.722,
+        "spectral_peak_excess": 4.246310459167685
+      },
+      "5": {
+        "active_fraction": 0.9563,
+        "cv_isi": 0.6650439983966644,
+        "kappa": 0.023443971444447237,
+        "label": "oscillatory",
+        "rate_hz": 4.707,
+        "spectral_peak_excess": 5.041583160854384
+      },
+      "6": {
+        "active_fraction": 0.9465,
+        "cv_isi": 0.6537748312667699,
+        "kappa": 0.02238731057761928,
+        "label": "oscillatory",
+        "rate_hz": 4.5778,
+        "spectral_peak_excess": 5.934968616860848
+      },
+      "7": {
+        "active_fraction": 0.9517,
+        "cv_isi": 0.6527894208157358,
+        "kappa": 0.022762950549926324,
+        "label": "irregular",
+        "rate_hz": 4.6733,
+        "spectral_peak_excess": 3.0164475391128542
+      },
+      "8": {
+        "active_fraction": 0.9532,
+        "cv_isi": 0.6555756862234291,
+        "kappa": 0.022571269106079175,
+        "label": "irregular",
+        "rate_hz": 4.6075,
+        "spectral_peak_excess": 2.8740028027207685
+      }
+    }
+  },
+  "CONV": {
+    "criterion": "every scored seed converged: not converged only when |b| >= 0.01 Hz/s and |b|/se > 2.101 (P3 v4 signed)",
+    "pass": true,
+    "per_seed": {
+      "4": {
+        "b_hz_s": -0.002783364661654126,
+        "converged": true,
+        "se_hz_s": 0.008724402345595345,
+        "t": 0.3190321298122332,
+        "t_crit": 2.1009220402410382
+      },
+      "5": {
+        "b_hz_s": -0.0016271616541353312,
+        "converged": true,
+        "se_hz_s": 0.004398038865622167,
+        "t": 0.3699743689975658,
+        "t_crit": 2.1009220402410382
+      },
+      "6": {
+        "b_hz_s": -0.014158364661654124,
+        "converged": true,
+        "se_hz_s": 0.007467720983595471,
+        "t": 1.8959418399209285,
+        "t_crit": 2.1009220402410382
+      },
+      "7": {
+        "b_hz_s": -0.003277443609022563,
+        "converged": true,
+        "se_hz_s": 0.004415727152441215,
+        "t": 0.7422205892433011,
+        "t_crit": 2.1009220402410382
+      },
+      "8": {
+        "b_hz_s": 0.0011312969924812107,
+        "converged": true,
+        "se_hz_s": 0.005447937983948622,
+        "t": 0.20765599678527463,
+        "t_crit": 2.1009220402410382
+      }
+    }
+  },
+  "O-DROP": {
+    "before_hz": 160.50175,
+    "criterion": "ratio >= 2.0 (P3 v2)",
+    "pass": true,
+    "ratio": 38.900556235533635,
+    "z_hz": 4.12595
+  },
+  "R-E": {
+    "criterion": "e <= 0.20 (P3 v2)",
+    "e": 0.3753166666666665,
+    "pass": false,
+    "per_seed_z_hz": {
+      "4": 4.19025,
+      "5": 4.179625,
+      "6": 4.040875,
+      "7": 4.138875,
+      "8": 4.080125
+    },
+    "z_hz": 4.12595
+  },
+  "W-IE": {
+    "mean_nS": 1.8417607371813212,
+    "per_seed_nS": {
+      "4": 1.789648374432957,
+      "5": 1.865989740946018,
+      "6": 1.8224417498344285,
+      "7": 1.828566046457159,
+      "8": 1.9021577742360432
+    }
+  },
+  "inputs": {
+    "seed4/score_receipt.json": "f2f1dd3ee16dea7000e4723a8a83611565635e18966c9108a290b56caa5658d0",
+    "seed5/score_receipt.json": "3b57104b66c03fb98b98ab76056ddc24bb78fce8522a9f436c886e2e0ba5645f",
+    "seed6/score_receipt.json": "95bd8aeaa98b3a143d9f1f417d0e7f2a07fcb8b0f7d67d466c95e2f928716018",
+    "seed7/score_receipt.json": "2e38fee6bf07f3834f3c0b3fbcc85d8ea15e5bf530383004ababb83acbf724d6",
+    "seed8/score_receipt.json": "e86b8a03b5bdb05b11c976016d4a53517388bd2b702505cf8e0b844a2aefaa9a"
+  },
+  "prereg": "artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md",
+  "prereg_sha256": "bb7719433f8e9da9d887e39a5091ca1d8eb614855ce1c66e803eb38ad6f32536",
+  "seeds": [
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "verdict": "off (R-E)"
+}
