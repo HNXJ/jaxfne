@@ -29,6 +29,13 @@ C++ facts (the authors' source in WSL ``~/pcl_cpp``):
 
 ``save_network`` mirrors that order: reset the neurons, then write. ``networkState.json``
 is not written: its schema is unknown here and neither the loader nor ``compare`` reads it.
+
+``chain`` replays training files in order, one learning pass each, across the same file
+boundary: after every file it writes ``<out>/<k>_<stem>/`` in the C++ save layout (weights as
+learned, neurons reset) and a receipt ``<out>/<k>_<stem>.json``. The next file starts from the
+saved folder, which the loader hands over as learned weights with reset neuron state. Event
+files are ``.h5`` (the C++ layout) or ``.npz`` (the training layout ``arr_0..arr_4`` = t, x, y,
+p, c, as ``run_tuning._run_one`` reads them); the suffix selects the loader.
 """
 
 from __future__ import annotations
@@ -38,6 +45,7 @@ import hashlib
 import json
 import shutil
 import sys
+import time
 from pathlib import Path
 
 
@@ -122,7 +130,8 @@ def _reset_neurons(net: "ref.PCLEventRef") -> None:
 
     Potential, adaptation, timers and counters go to 0, the threshold to ``VTHRESH``, the
     rate average to 0 and the learning decay to 1.0; the STDP and inhibition buffers
-    empty. The spike list survives so the written ``spike_train`` names every spike.
+    empty. The in-memory spike list survives for the run's counts; ``save_network`` writes
+    ``spike_train`` empty.
     """
     for cells, cfg in ((net.s_cells, net.scfg), (net.c_cells, net.ccfg)):
         for cell in cells:
@@ -214,6 +223,54 @@ def init_network(configs_dir, net_dir, *, seed: int) -> Path:
     return save_network(ref.PCLEventRef(root, seed=int(seed), learning=True), root)
 
 
+# Training event files (``F:/warehouse/pcl/data/training_natural/events5_re2/``) hold one npz
+# per file with exactly these keys and dtypes (read from ``0.npz``; ``run_tuning._run_one``
+# reads the same keys): arr_0 int64 event timestamps (microseconds), arr_1/arr_2 pixel x/y,
+# arr_3 polarity, arr_4 camera.
+NPZ_EVENT_KEYS = ("arr_0", "arr_1", "arr_2", "arr_3", "arr_4")
+NPZ_EVENT_DTYPES = (np.int64, np.int16, np.int16, np.int8, np.int8)
+
+
+def load_training_npz(path, *, camera0_only: bool = True, rebase: bool = True) -> dict:
+    """Read a training npz event file into the arrays the oracle consumes.
+
+    rebase: subtract the file's first timestamp, as the C++ does (NetworkHandle.cpp:512).
+    camera0_only: keep only c == 0, as the C++ does for one-camera networks
+    (NetworkHandle.cpp:511). Polarity is coerced to 0/1, as the oracle reads it. A key set,
+    dtype or dimensionality that differs from the mapped layout, or a file with no events,
+    is refused.
+    """
+    p = Path(path)
+    with np.load(p, allow_pickle=False) as z:
+        if set(z.files) != set(NPZ_EVENT_KEYS):
+            raise ValueError(f"{p}: need exactly keys {list(NPZ_EVENT_KEYS)}, got {sorted(z.files)}")
+        cols = []
+        for key, dt in zip(NPZ_EVENT_KEYS, NPZ_EVENT_DTYPES):
+            a = z[key]
+            if a.dtype != np.dtype(dt) or a.ndim != 1:
+                raise ValueError(f"{p}: {key} needs 1-D {np.dtype(dt)}, "
+                                 f"got {a.dtype} {a.shape}")
+            cols.append(a.astype(np.int64))
+        t, x, y, pr, c = cols
+    if t.shape[0] == 0:
+        raise ValueError(f"{p}: refusing an event file with no events")
+    if rebase:
+        t = t - int(t[0])
+    keep = (c == 0) if camera0_only else np.ones(t.shape[0], dtype=bool)
+    return {"t": t[keep], "x": x[keep], "y": y[keep],
+            "p": (pr[keep] != 0).astype(np.int64), "c": c[keep]}
+
+
+def load_events(path, *, camera0_only: bool = True, rebase: bool = True) -> dict:
+    """Read an event file by suffix: ``.npz`` training files, else the C++ HDF5 layout."""
+    suffix = Path(path).suffix.lower()
+    if suffix == ".npz":
+        return load_training_npz(path, camera0_only=camera0_only, rebase=rebase)
+    if suffix in (".h5", ".hdf5", ".he5"):
+        return ref.load_cpp_events(path, camera0_only=camera0_only, rebase=rebase)
+    raise ValueError(f"{path}: unknown event suffix {suffix!r}; need .npz or .h5")
+
+
 def run_oracle(net_dir, events_path, nb_pass: int, *, seed: int) -> dict:
     """Run the oracle on a C++-layout folder the way ``neuvisys-exe <net> <events> <nbPass>`` feeds it.
 
@@ -226,27 +283,150 @@ def run_oracle(net_dir, events_path, nb_pass: int, *, seed: int) -> dict:
     oracle feeds one stream. The seed seeds the constructor's init weights, which loading
     overwrites. The result saves back into ``net_dir`` in the C++ layout.
     """
-    import h5py
-
     nb_pass = int(nb_pass)
     if nb_pass < 1:
         raise ValueError(f"run_oracle: nb_pass must be >= 1, got {nb_pass}")
     net = ref.PCLEventRef(Path(net_dir), seed=int(seed), learning=True)
-    ev = ref.load_cpp_events(events_path)  # camera 0, rebased, as the C++ feeds
-    with h5py.File(events_path, "r") as f:
-        span = int(f["events"]["t"][-1]) - int(f["events"]["t"][0])
+    ev = load_events(events_path)  # camera 0, rebased, as the C++ feeds
     n = int(ev["t"].shape[0])
+    raw_t = load_events(events_path, camera0_only=False, rebase=False)["t"]
+    span = int(raw_t[-1]) - int(raw_t[0])  # the raw file, every camera
     for k in range(nb_pass):
         net.run(ev["t"] + k * span, ev["x"], ev["y"], ev["p"])
-    last_spike_t = -1
-    for cells in (net.s_cells, net.c_cells):
-        for cell in cells:
-            for t in cell.spikes:
-                if int(t) > last_spike_t:
-                    last_spike_t = int(t)
+    last_spike_t = _live_spikes(net)[2]
     save_network(net, net_dir)
     return {"n_events": n * nb_pass, "n_spikes": int(net.n_spikes()),
             "last_spike_t": last_spike_t, "net_dir": str(Path(net_dir))}
+
+
+def _live_spikes(net: "ref.PCLEventRef") -> tuple[int, int, int]:
+    """(simple spikes, complex spikes, latest spike time or -1) of a live oracle net."""
+    n_s = sum(len(cell.spikes) for cell in net.s_cells)
+    n_c = sum(len(cell.spikes) for cell in net.c_cells)
+    last = -1
+    for cells in (net.s_cells, net.c_cells):
+        for cell in cells:
+            for t in cell.spikes:
+                if int(t) > last:
+                    last = int(t)
+    return n_s, n_c, last
+
+
+def _save_core_weights(prev_dir, got: dict, new_dir) -> Path:
+    """Write the core arm's learned weights into a C++-layout folder, neurons reset.
+
+    The scan returns the shared matrices (``w_s``, ``wi_s``, ``w_c``, ``wi_c``) and the
+    lateral and top-down weights in the scan layout (``lat_w[n, j]`` is the weight from
+    source ``n`` onto target ``lat_idx[n, j]``; ``td_w[c, j]`` from source ``c`` onto
+    ``td_idx[c, j]``); the maps scatter back into the oracle's ``LAT``/``TD`` rows. The
+    folder stays loadable by ``PCLEventRef``.
+    """
+    import run_tuning as rt
+
+    net = ref.PCLEventRef(Path(prev_dir), seed=0, learning=True)
+    net.w_s[:] = np.asarray(got["w_s"], dtype=np.float64)
+    wi_s = np.asarray(got["wi_s"], dtype=np.float64)
+    net.wi_s[:] = wi_s[:net.ND, :net.ND]
+    net.w_c[:] = np.asarray(got["w_c"], dtype=np.float64)
+    wi_c = np.asarray(got["wi_c"], dtype=np.float64)
+    net.wi_c[:] = wi_c[:net.CD, :net.CD]
+    if net.lat_on or net.td_on:
+        tables = rt._core_tables(net)[0]
+        if net.lat_on:
+            lat_idx = np.asarray(tables["lat_idx"])
+            lat_n = np.asarray(tables["lat_n"])
+            latw = np.asarray(got["lat_w"], dtype=np.float64)
+            for n in range(int(net.NS)):
+                m = lat_idx[n, :int(lat_n[n])]
+                net.LAT[m, n] = latw[n, :int(lat_n[n])]
+        if net.td_on:
+            td_idx = np.asarray(tables["td_idx"])
+            td_n = np.asarray(tables["td_n"])
+            tdw = np.asarray(got["td_w"], dtype=np.float64)
+            for c in range(int(net.NC)):
+                s = td_idx[c, :int(td_n[c])]
+                net.TD[s, c] = tdw[c, :int(td_n[c])]
+    return save_network(net, new_dir)
+
+
+def chain(net_dir, event_paths, *, arm: str, out_dir, seed: int = 0) -> list[dict]:
+    """Replay event files in order, one learning pass each, across the C++ file boundary.
+
+    Each file feeds once (``nbPass`` 1) starting from the previous file's saved folder (the
+    first from ``net_dir``); after each file ``<out>/<k>_<stem>/`` holds the C++ save layout
+    (weights as learned, neurons reset) and ``<out>/<k>_<stem>.json`` its receipt: the file's
+    sha256, the fed event count (camera 0), spikes per layer during the file, the last spike
+    time on the file's raw clock, wall seconds, the git sha and the arm. ``arm`` is
+    ``oracle`` (the event oracle) or ``core`` (the jaxfne event scan through
+    ``run_tuning.run_core_events``, carried across files through the PCL boundary map). An
+    ``out`` folder that exists and is not empty is refused.
+    """
+    if arm not in ("oracle", "core"):
+        raise ValueError(f"chain: unknown arm {arm!r}; need 'oracle' or 'core'")
+    paths = [Path(p) for p in event_paths]
+    if not paths:
+        raise ValueError("chain: need at least one event file")
+    for p in paths:
+        if not p.is_file():
+            raise ValueError(f"chain: event file is missing: {p}")
+    out = Path(out_dir)
+    if out.exists() and any(out.iterdir()):
+        raise ValueError(f"chain: refusing a non-empty out dir: {out}")
+    out.mkdir(parents=True, exist_ok=True)
+    prev = Path(net_dir)
+    if not prev.is_dir():
+        raise ValueError(f"chain: net folder is missing: {prev}")
+    state = None
+    boundary = None
+    if arm == "core":
+        import run_tuning as rt  # lazy: the oracle arm needs no numba or jax
+        from jaxfne.pcl_topology import pcl_event_scan_boundary
+
+        boundary = pcl_event_scan_boundary()
+    results = []
+    for k, ep in enumerate(paths):
+        t_start = time.perf_counter()
+        raw = load_events(ep, rebase=False)
+        first = int(raw["t"][0])
+        keep = raw["c"] == 0
+        t_raw = raw["t"][keep]
+        x, y, p = raw["x"][keep], raw["y"][keep], raw["p"][keep]
+        name = f"{k}_{ep.stem}"
+        new_dir = out / name
+        shutil.copytree(prev / "configs", new_dir / "configs")
+        if arm == "oracle":
+            net = ref.PCLEventRef(prev, seed=int(seed), learning=True)
+            net.run(t_raw - first, x, y, p)
+            n_s, n_c, last = _live_spikes(net)
+            save_network(net, new_dir)
+        else:
+            base = ref.PCLEventRef(prev, seed=int(seed), learning=True)
+            got = rt.run_core_events(base, t_raw, x, y, p, learning=True,
+                                     state=state,
+                                     boundary=(boundary if state is not None else None),
+                                     t0=first, return_state=True)
+            state = got["state"]
+            n_s = int(np.asarray(got["simple_counts"]).sum())
+            n_c = int(np.asarray(got["complex_counts"]).sum())
+            st = np.asarray(got["simple_times_us"])
+            ct = np.asarray(got["complex_times_us"])
+            last = -1
+            cand = [int(v.max()) for v in (st, ct) if v.shape[0]]
+            if cand:
+                last = max(cand)
+            _save_core_weights(prev, got, new_dir)
+        rec = {"tool": "run_r2_reference", "subcommand": "chain", "arm": arm,
+               "code_sha": _code_sha(), "k": k,
+               "events": {"path": str(ep), "sha256": _sha256_file(ep)},
+               "n_events": int(keep.sum()),
+               "spikes_simple": n_s, "spikes_complex": n_c,
+               "last_spike_t": (last + first) if (arm == "oracle" and last >= 0) else last,
+               "wall_s": time.perf_counter() - t_start,
+               "net_dir": str(new_dir)}
+        _write_receipt(out / f"{name}.json", rec)
+        results.append(rec)
+        prev = new_dir
+    return results
 
 
 def _layer_sizes(net_dir: Path) -> tuple[tuple[int, int, int], tuple[int, int, int]]:
@@ -360,6 +540,13 @@ def _build_parser() -> argparse.ArgumentParser:
     o.add_argument("--nb-pass", required=True, type=int, help="passes over the file (C++ nbPass)")
     o.add_argument("--seed", default=0, type=int)
     o.add_argument("--out", required=True, help="receipt json")
+    ch = sub.add_parser("chain", help="replay event files in order, one learning pass each, "
+                                      "across the C++ file boundary")
+    ch.add_argument("--net", required=True, help="starting network folder (C++ layout)")
+    ch.add_argument("--events", nargs="+", required=True, help="event files in replay order")
+    ch.add_argument("--arm", choices=("oracle", "core"), required=True)
+    ch.add_argument("--out", required=True, help="per-file folders and receipts")
+    ch.add_argument("--seed", default=0, type=int)
     c = sub.add_parser("compare", help="compare two network folders after a run")
     c.add_argument("--a", required=True)
     c.add_argument("--b", required=True)
@@ -389,6 +576,15 @@ def main(argv=None) -> int:
         })
         print(f"fed {res['n_events']} events in {args.nb_pass} pass(es); "
               f"spikes {res['n_spikes']}; saved {res['net_dir']} out={args.out}", flush=True)
+        return 0
+    if args.cmd == "chain":
+        res = chain(args.net, args.events, arm=args.arm, out_dir=args.out, seed=args.seed)
+        for rec in res:
+            print(f"file {rec['k']} {rec['events']['path']}: n_events {rec['n_events']} "
+                  f"spikes {rec['spikes_simple']}+{rec['spikes_complex']} "
+                  f"last_t {rec['last_spike_t']} wall_s {rec['wall_s']:.2f} "
+                  f"-> {rec['net_dir']}", flush=True)
+        print(f"chained {len(res)} file(s) arm={args.arm} out={args.out}", flush=True)
         return 0
     cmp = compare(args.a, args.b)
     da, na = _dir_digest(args.a)
