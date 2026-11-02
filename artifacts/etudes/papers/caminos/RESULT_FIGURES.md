@@ -142,6 +142,15 @@ cell whose Holm-corrected p < 0.05 is a systematic offset and goes to the next a
 delay); otherwise the cell is attributed to random streams. A1 rescores nothing: the criterion's verdict above stands
 until Hamm rules on a criterion that can pass.
 
+A1 result (2026-11-02): no systematic offset; all 12 cells are attributed to random streams. Holm-adjusted p is 1 in
+every cell (smallest raw p 0.12, 0.7 PV rate); the core minus oracle mean lies within -1.04% to +1.49% of the oracle
+mean, and every 95% interval holds 0. The same-sign run at 0.9 in seeds 1-3 does not persist with seeds 4-6 (0.9:
+E +0.70%, 95% interval -0.105 to +0.299 Hz; PV +0.81%; SOM +0.58%). Resolution at n 6 per route, as the largest
+95% bound in percent of the oracle mean: population rates 0.73-3.06% at 0.7 and 2.13-2.47% at 0.9, f_pk 1.79% and
+1.16%, band power 7.06% and 5.50%, max E rate 9.73% and 2.58%. Receipt
+`F:/warehouse/caminos/route_08780699/equivalence_silence_pv_a1.json` (runs `a1_oracle_silence_pv.json`,
+`a1_core_silence_pv.json` beside it, oracle 26.5 min and core 90 min on the GPU).
+
 ## Replica score (Cell Reports main text)
 
 17 result panels: 1B, 1C, 2A top, 2A bottom, 2B top, 2B bottom, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B,

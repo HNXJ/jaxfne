@@ -16,8 +16,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    test first and a changelog fragment (lanes a d9fee4b9, b fb5ef158, c ed9058c2, d 2cda7117 landed; d carries the
    no-edge refusal, the schedule record and the equivalence tests).
    → full-size equivalence scored 2026-11-02: 16 of 24 cells inside, outside by ≤1.1% of the oracle mean; the null
-   expects 8.8 outside (`RESULT_FIGURES.md`, "Core-route equivalence"). Attribution A1 (random streams, seeds 4-6 at
-   0.7 and 0.9, both routes; WSL `~/route_08780699/a1_*`) running; score it as declared there. Then Hamm rules on a
+   expects 8.8 outside (`RESULT_FIGURES.md`, "Core-route equivalence"). Attribution A1 (seeds 4-6 at 0.7 and 0.9):
+   no systematic offset, Holm p 1 in all 12 cells, differences within -1.04% to +1.49%. Waits on Hamm: a
    criterion that can pass (the range criterion passes 24 of 24 with P about 1.6e-5 for one distribution).
    ⇒ equivalent: rerun the Cell Reports sweeps on the GPU, the S2 entry for `cellrep_figures.py` closes. Checklist: 9D CAMINOS half. Closes when: `check_replications.py --check` lists no S2 entry for
    `cellrep_figures.py` and `RESULT_FIGURES.md` cites the core-route reruns.

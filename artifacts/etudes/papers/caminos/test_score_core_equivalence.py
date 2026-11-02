@@ -43,6 +43,32 @@ def test_core_below_range_reports_positive_distance():
     assert not f["inside"] and f["distance"] == pytest.approx(1.0, rel=1e-12)
 
 
+def _six(value, bases):
+    return [_row(value, s, b) for s, b in enumerate(bases, start=1)]
+
+
+def test_welch_marks_a_large_offset_systematic_after_holm():
+    oracle = _six(0.9, (10.0, 10.1, 9.9, 10.05, 9.95, 10.0))
+    core = _six(0.9, (12.0, 12.1, 11.9, 12.05, 11.95, 12.0))
+    cells = {c["metric"]: c for c in sce.welch_cells(oracle, core, [0.9])}
+    f = cells["f_pk_hz"]
+    assert f["diff"] == pytest.approx(2.0, rel=1e-12)
+    assert f["ci95"][0] > 0 and f["systematic"] and f["p_holm"] >= f["p"]
+
+
+def test_welch_same_draws_are_not_systematic():
+    draws = (10.0, 10.1, 9.9, 10.05, 9.95, 10.0)
+    cells = sce.welch_cells(_six(0.9, draws), _six(0.9, draws), [0.9])
+    assert all(c["diff"] == 0.0 and c["p"] == pytest.approx(1.0) and not c["systematic"] for c in cells)
+
+
+def test_welch_holm_never_lowers_p():
+    oracle = _six(0.7, (10.0, 10.3, 9.8, 10.1, 9.9, 10.2))
+    core = _six(0.7, (10.2, 10.4, 9.9, 10.3, 10.0, 10.1))
+    cells = sce.welch_cells(oracle, core, [0.7])
+    assert all(c["p_holm"] >= c["p"] for c in cells)
+
+
 def test_null_inside_probability_bounds_and_seed():
     p = sce.null_inside_probability(3, 3, draws=50_000)
     assert 0.5 < p < 0.95
