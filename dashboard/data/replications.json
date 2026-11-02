@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-02T12:47:12Z",
-    "dev_sha": "42e7f618a657d34f931fd1ec009069d72c98610b",
-    "data_revision": "ff428e8e4dc967a59cbaec708e39fad8928f9745bb27afecfe1347a8cd8eac45"
+    "utc": "2026-11-02T13:01:18Z",
+    "dev_sha": "5bd0fd4f3c516cc1445037b722256e6bf3c9bf8b",
+    "data_revision": "c18bcd7bd6d2cfccdf3f5189561451cb90d67fe6679d4eca3e486ddda7bac5dc"
   },
   "papers": [
     {
@@ -3548,17 +3548,43 @@
       "page": null,
       "release": "0.5.8",
       "tier": "T-port",
-      "stage": "P2",
+      "stage": "P3",
       "grammar": null,
       "lane": {
         "branch": "dev",
-        "sha": "6f85f5c3056edf91b89ea2a61efce758000d0a69"
+        "sha": "5bd0fd4f3c516cc1445037b722256e6bf3c9bf8b"
       },
-      "stage_artifacts": [],
+      "stage_artifacts": [
+        {
+          "stage": "P3",
+          "items": [
+            {
+              "label": "prereg v3 (signed)",
+              "path": "artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/5bd0fd4f3c516cc1445037b722256e6bf3c9bf8b/artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md",
+              "sha256": "b33e5c707abc59c6d46ed103e95650763454eca6115b02a705875ffc6d07c07e"
+            },
+            {
+              "label": "result",
+              "path": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/5bd0fd4f3c516cc1445037b722256e6bf3c9bf8b/artifacts/etudes/papers/destexhe2009/RESULT_P3.md",
+              "sha256": "32a41237eddd63d1c18f5ddd246d68dd00ed34771908f45923b04d95e38e49e5"
+            }
+          ]
+        }
+      ],
       "verdict": null,
       "verdict_note": null,
-      "summary": "The AdEx core features the port needs are on dev (Vpeak detection threshold, external-drive schedules, capped Bernoulli sampling). The port is built in the lane clone (28 lane tests pass); its preregistration is drafted and unsigned. Unscored pilot (CALIBRATION step 6): seeds 1–8 ran at the declared baseline; E1 holds on 4 of 8 seeds under the authors' Vpeak, E2 closes on live seeds 6 and 7, seed 6 closes E1 to E3 jointly, and the E4 rate order is off (hyperactive, about 5x); the held-out seeds 4–8 are spent, so a scored run needs a new protocol on fresh seeds.",
-      "preregs": [],
+      "summary": "Signed P3 v3 (seeds 9-13, N = 2000, 10 s free run after the code-value kick, CPU float32): FAIL, 0 of 5 seeds close E1-E3 (PASS needs 4). Three seeds fall silent before 10 s; the two that stay alive fire at 46 Hz, close the pairwise correlation and miss CV_ISI 2.47 by e 0.054-0.055 over 0.05. The Fig. 6A control dies on both control seeds.",
+      "preregs": [
+        {
+          "id": "P3 v3",
+          "signed": "2026-11-02",
+          "path": "artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/5bd0fd4f3c516cc1445037b722256e6bf3c9bf8b/artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md",
+          "sha256": "b33e5c707abc59c6d46ed103e95650763454eca6115b02a705875ffc6d07c07e"
+        }
+      ],
       "criteria": [],
       "sensitivity": [],
       "charts": [],
@@ -3575,14 +3601,14 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": 0,
+        "score": 4,
         "panels": 23,
         "excluded": 1,
         "counts": {
-          "pass": 0,
+          "pass": 1,
           "partial": 0,
-          "fail": 0,
-          "not run": 23
+          "fail": 1,
+          "not run": 21
         },
         "same_as": null,
         "scope": "Figure claims recorded in SOURCE_P1.md (sections 2 and 5); panel letters of Figs. 2-5, 8, 9, 11 and 13 are not recorded, so each counts once.",
@@ -3629,13 +3655,15 @@
           },
           {
             "id": "6A",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md",
+            "note": "signed P3 v3 control C1: the strong-adaptation network dies by 10 s on seeds 9 and 10"
           },
           {
             "id": "6B",
-            "status": "not run",
-            "evidence": "artifacts/etudes/papers/destexhe2009/CALIBRATION.md",
-            "note": "unscored pilots die within about 2 s; no self-sustained AI state"
+            "status": "fail",
+            "evidence": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md",
+            "note": "signed P3 v3: 0 of 5 seeds close E1-E3; 3 die, 2 alive at 46 Hz miss CV_ISI by e 0.004-0.005"
           },
           {
             "id": "7A",

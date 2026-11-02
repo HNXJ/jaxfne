@@ -516,8 +516,9 @@
           {"id": "1A", "status": "not run"}, {"id": "1B", "status": "not run"}, {"id": "1C", "status": "not run"},
           {"id": "1D", "status": "not run"}, {"id": "1E", "status": "not run"}, {"id": "1F", "status": "not run"},
           {"id": "2", "status": "not run"}, {"id": "3", "status": "not run"}, {"id": "4", "status": "not run"},
-          {"id": "5", "status": "not run"}, {"id": "6A", "status": "not run"},
-          {"id": "6B", "status": "not run", "evidence": "artifacts/etudes/papers/destexhe2009/CALIBRATION.md", "note": "unscored pilots die within about 2 s; no self-sustained AI state"},
+          {"id": "5", "status": "not run"},
+          {"id": "6A", "status": "pass", "evidence": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md", "note": "signed P3 v3 control C1: the strong-adaptation network dies by 10 s on seeds 9 and 10"},
+          {"id": "6B", "status": "fail", "evidence": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md", "note": "signed P3 v3: 0 of 5 seeds close E1-E3; 3 die, 2 alive at 46 Hz miss CV_ISI by e 0.004-0.005"},
           {"id": "7A", "status": "not run"}, {"id": "7B", "status": "not run"}, {"id": "8", "status": "not run"},
           {"id": "9", "status": "not run"}, {"id": "10A", "status": "not run"}, {"id": "10B", "status": "not run"},
           {"id": "10C", "status": "not run"}, {"id": "10D", "status": "not run"}, {"id": "11", "status": "not run"},
@@ -529,10 +530,16 @@
       "question": "Does the jaxfne AdEx core, at the paper's parameters, sustain the asynchronous irregular state of Fig. 6B with its rates, CV_ISI and pairwise correlation?",
       "release": "0.5.8",
       "tier": "T-port",
-      "stage": "P2",
-      "lane": {"branch": "dev", "sha": "6f85f5c3056edf91b89ea2a61efce758000d0a69"},
-      "summary": "The AdEx core features the port needs are on dev (Vpeak detection threshold, external-drive schedules, capped Bernoulli sampling). The port is built in the lane clone (28 lane tests pass); its preregistration is drafted and unsigned. Unscored pilot (CALIBRATION step 6): seeds 1–8 ran at the declared baseline; E1 holds on 4 of 8 seeds under the authors' Vpeak, E2 closes on live seeds 6 and 7, seed 6 closes E1 to E3 jointly, and the E4 rate order is off (hyperactive, about 5x); the held-out seeds 4–8 are spent, so a scored run needs a new protocol on fresh seeds.",
-      "preregs": [],
+      "stage": "P3",
+      "lane": {"branch": "dev", "sha": "5bd0fd4f3c516cc1445037b722256e6bf3c9bf8b"},
+      "stage_artifacts": {
+        "P3": [{"label": "prereg v3 (signed)", "path": "artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md"},
+               {"label": "result", "path": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md"}]
+      },
+      "summary": "Signed P3 v3 (seeds 9-13, N = 2000, 10 s free run after the code-value kick, CPU float32): FAIL, 0 of 5 seeds close E1-E3 (PASS needs 4). Three seeds fall silent before 10 s; the two that stay alive fire at 46 Hz, close the pairwise correlation and miss CV_ISI 2.47 by e 0.054-0.055 over 0.05. The Fig. 6A control dies on both control seeds.",
+      "preregs": [
+        {"id": "P3 v3", "signed": "2026-11-02", "path": "artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md"}
+      ],
       "files": {},
       "criteria": [],
       "sensitivity": [],
