@@ -1,0 +1,1 @@
+- `jaxfne.vis.evidence_manifest.evidence_checklist_path` returns `artifacts/programme/paper/publication/evidence_checklist.json`; the publication drafts moved there from `docs/theory/publication/`.

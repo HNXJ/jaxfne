@@ -1,0 +1,1 @@
+- `population_rates` raises ValueError for a negative `discard_s` or `discard_ms`; before, it kept the tail of the run.
