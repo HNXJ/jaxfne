@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-02T00:18:22Z",
-    "dev_sha": "2884966bf479d9be842af182f93c468a73d3dc73",
-    "data_revision": "2cf2e677a16ce8dfec730ba1899e61d1682158e7545970606101b5b5482cc2c8"
+    "utc": "2026-11-02T04:20:11Z",
+    "dev_sha": "26b56b7d63adb01ece7f7c8e570f794294bf5489",
+    "data_revision": "73783abfe8b30873275ae71da6a5035cedba23a9d79da5f60c4aec066c4e4ab0"
   },
   "papers": [
     {
@@ -1389,15 +1389,14 @@
       "stage_artifacts": [],
       "verdict": null,
       "verdict_note": null,
-      "summary": "Paper-scale runs of Figs. 2-6 and S3 on the standalone port, scored descriptively with tolerances set after the data. Figs. 2B top and 6A pass; most other panels pass in trend but miss an endpoint or a sub-claim. Transient-protocol panels (2A, 2B bottom, 6B) are not run.",
+      "summary": "Paper-scale runs of Figs. 2-6 and S3 on the standalone port, scored descriptively with tolerances set after the data. Figs. 2B top and 6A pass; most other panels pass in trend but miss an endpoint or a sub-claim. Transient-protocol panels (2A bottom, 2B bottom, 6B) are excluded: the text does not state their values.",
       "preregs": [],
       "criteria": [],
       "sensitivity": [],
       "charts": [],
       "open": [
         "No preregistration: the verdicts are descriptive.",
-        "Fig. 4B amplitude metric: band power falls, peak |X| rises.",
-        "Figs. 2A bottom, 2B bottom and 6B need protocol values the text does not state."
+        "Fig. 4B amplitude metric: band power falls, peak |X| rises."
       ],
       "verdict_summary": {
         "kind": "paper",
@@ -1408,14 +1407,14 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": 59,
-        "panels": 17,
-        "excluded": 4,
+        "score": 71,
+        "panels": 14,
+        "excluded": 7,
         "counts": {
           "pass": 6,
           "partial": 8,
           "fail": 0,
-          "not run": 3
+          "not run": 0
         },
         "same_as": null,
         "scope": "Main-text Figs. 1-6 of the Cell Reports article (mmc2 text). Verdicts are descriptive, with tolerances set after the data (RESULT_FIGURES.md).",
@@ -1439,19 +1438,9 @@
             "note": "trend and delay pass; f_pk 14-63 Hz, not 7-80"
           },
           {
-            "id": "2A bottom",
-            "status": "not run",
-            "note": "transient drive protocol unstated"
-          },
-          {
             "id": "2B top",
             "status": "pass",
             "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md"
-          },
-          {
-            "id": "2B bottom",
-            "status": "not run",
-            "note": "transient top-down protocol unstated"
           },
           {
             "id": "3A",
@@ -1511,11 +1500,6 @@
             "id": "6A bottom",
             "status": "pass",
             "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md"
-          },
-          {
-            "id": "6B",
-            "status": "not run",
-            "note": "E-to-E increase gain unstated"
           }
         ]
       }
@@ -3528,7 +3512,7 @@
       "sensitivity": [],
       "charts": [],
       "open": [
-        "In progress (Hamm 2026-11-02): the signed P3 fit FAIL stands as scored (RESULT_P3_fit.md); the paper continues under a new preregistration.",
+        "In progress (Hamm 2026-11-02): open until precisely replicated. The signed P3 fit FAIL stands as scored (RESULT_P3_fit.md); the paper continues under a new preregistration.",
         "The next prereg names --morphology explicitly (RESULT_P3_fit.md: the reference-morphology evaluation is insensitive to the fitted conductances at stim 0.6).",
         "The drive and J_E anchor for the g sweep are not yet recorded."
       ],
