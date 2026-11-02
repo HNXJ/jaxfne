@@ -38,10 +38,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
    S3 test, C6 `geometry="laminar"` with Brian2 and Jaxley baselines declared.
-7. [H] Signatures, one at a time as each draft is ready: Destexhe P3 v3 (E4 reported, as in v1: Hamm 2026-11-02;
-   the 4-of-5 aggregation and sign-or-defer still asked), PCL R4. Potjans P3 v2 and Vogels P3 v4 signed and scored
-   off 2026-11-02 (`RESULT_P3.md` in each lane, 42e7f618); GSDR P3 fit signed and scored 2026-11-01. 9E: the Vogels
-   result needs its S figure (S12 or S13, as GSDR's in S14).
+7. [H] Signatures, one at a time as each draft is ready: PCL R4. Destexhe P3 v3 signed 2026-11-02 (E4 reported,
+   4 of 5 kept; `prereg/P3_v3_signed.md`, 2d17488b); seeds 9-13 and the 6A control on 9-10 run on the WSL CPU (out
+   `F:/warehouse/destexhe2009/P3v3_signed_2d17488b/scored`) → RESULT_P3.md, dashboard. Potjans P3 v2 and Vogels P3 v4 signed and scored
+   off 2026-11-02 (`RESULT_P3.md` in each lane, 42e7f618); GSDR P3 fit signed and scored 2026-11-01; the Vogels
+   result is in S12 (fd5a9c27).
    Each: sign ⇒ scored run from a fixed clone → result file, dashboard, checklist 9D/9E; defer ⇒ the package moves
    to 0.5.10 with its reason (Gate 1).
 8. T-70 [A] 9F: the rc gate end to end on the candidate (JUnit parity, figure lock, clean-checkout figure job;
