@@ -112,6 +112,20 @@ Result (receipts `F:\warehouse\caminos\s1_95d2161b\`: `s1.json` sha256 7dc1b25fâ
 The 50 Hz max-E tolerance comes from Fig 3B; mean E stays at 4.6-7.0 Hz from 0.16 to 0.25, so the S1-S onset depends on
 that tolerance. At p = 0.01 the drive is 80 Poisson sources (round(pÂ·NE)), the weakest of the grid.
 
+## Core-route equivalence (T-30; declared 2026-11-02, before the core output was read)
+
+Question: does `run_cell(route="core")` (jaxfne construct and `Model.simulate`, fc0e13df) reproduce the oracle
+sweeps that the verdicts above rest on? Reference: the frozen oracle PV-silencing sweep `figC_out/c3b/silence_pv.json`
+(fractions 0, 0.4, 0.7, 0.9; seeds 1, 2, 3). Core run: `run_figA.py ... silence_pv` with `FIGA_ROUTE=core` at
+08780699, same fractions, seeds 1, 2, 3, T 12 s, GPU float32. The two routes draw connectivity, drive and replacement
+from different random streams (`run_core_raster` docstring), so equivalence is statistical.
+
+Criterion (T-R28 ruling: within the frozen result's between-seed range): for each fraction and each metric (f_pk,
+25-45 Hz band power, max E rate, mean E, PV and SOM rates), the core seed mean lies inside the oracle's per-seed
+[min, max]. Equivalence holds when every cell is inside. A cell outside goes to attribution (parameters, drive, delay,
+random streams) before any rescoring (todo T-30). With three oracle seeds the range is narrow (rates within about 1%),
+so cells outside are expected by chance alone; each is reported with its distance from the range.
+
 ## Replica score (Cell Reports main text)
 
 17 result panels: 1B, 1C, 2A top, 2A bottom, 2B top, 2B bottom, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B,
