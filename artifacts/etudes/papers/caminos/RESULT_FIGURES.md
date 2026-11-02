@@ -1,7 +1,7 @@
 # CAMINOS figure verdicts: Figures 2-6, S3 (paper scale)
 
-Status: partial. Figs 2A bottom, 2B bottom and 6B are not run; S1 scored 2026-11-02 against criteria declared first. Verdicts below are descriptive. The paper gives
-no numbers, so the tolerances were chosen after the data were seen; they are not pre-registered.
+Status: partial. Figs 2A bottom, 2B bottom and 6B are not run; S1 scored 2026-11-02 against criteria declared first. Verdicts are descriptive. The paper gives
+no numbers, so the tolerances were chosen after seeing the data; they are not pre-registered.
 
 ## Setup
 
@@ -93,8 +93,7 @@ SOM-minus-PV phase at f_pk (ref. 42) / 2π f_pk; seed means unless stated.
 | S1-G | gamma at 1-15% | seed-mean f_pk in 30-80 Hz at p = 0.01, 0.02, 0.04, 0.08, 0.12 |
 | S1-D | delay maintained at 1-15% | PV-to-SOM delay positive (SOM after PV) in every seed at p = 0.01-0.12 |
 
-Result (receipts `F:\warehouse\caminos\s1_95d2161b\`: `s1.json` sha256 7dc1b25f…afc7, `out.log`; 27 runs, 53 min).
-Seed means; seeds 1, 2, 3.
+Result (receipts `F:\warehouse\caminos\s1_95d2161b\`: `s1.json` sha256 7dc1b25f…afc7, `out.log`; 27 runs, 53 min; seed means over seeds 1, 2, 3).
 
 | p | 0.01 | 0.02 | 0.04 | 0.08 | 0.12 | 0.16 | 0.20 | 0.25 | 0.30 |
 |---|---|---|---|---|---|---|---|---|---|

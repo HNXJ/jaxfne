@@ -13,27 +13,36 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 3. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
    behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
-   test first and a changelog fragment (lanes a d9fee4b9, b fb5ef158, c ed9058c2 landed):
-   d. per-step edge gain between two cell types (lane `adexd`: kernel accepted; sent back 2026-11-02 for the no-edge
-   refusal, the schedule record and the equivalence tests; 6B excluded by the T-65 ruling).
-   → port `cellrep_figures.py` to `caminos_api` and check equivalence at full size against the frozen result,
+   test first and a changelog fragment (lanes a d9fee4b9, b fb5ef158, c ed9058c2, d 2cda7117 landed; d carries the
+   no-edge refusal, the schedule record and the equivalence tests).
+   → port `cellrep_figures.py` to `caminos_api` (Muse packet CELLREP-CORE, clone `crcore` from d96dc49b, 2026-11-02:
+   a `route` keyword, default oracle until the check) and check equivalence at full size against the frozen result,
    within its between-seed range (T-R28 ruling). ⇒ outside: attribute (parameters, drive, delay, random streams)
    before any rescoring. ⇒ inside: rerun the Cell Reports sweeps on the GPU, the S2 entry for `cellrep_figures.py`
-   closes. Checklist: 9D CAMINOS half.
-4. T-3 [A] (P) PCL R2: replay the trained network's training files through the chained scan and compare with the
-   port and the C++ reference (WSL `~/pcl_cpp`, test binary 7 of 7, `data/events/shapes.h5`). → R3, attribute each
-   residual (implementation, parameters, stochastic, model). → R4 prereg declaring T4 up front (driven column (4,4),
+   closes. Checklist: 9D CAMINOS half. Closes when: `check_replications.py --check` lists no S2 entry for
+   `cellrep_figures.py` and `RESULT_FIGURES.md` cites the core-route reruns.
+4. T-3 [A] (P) PCL R3: replay the training files through the chained core scan, the oracle and the C++ reference
+   (WSL `~/pcl_cpp`) and attribute each residual (implementation, parameters, stochastic, model). → R4 prereg declaring T4 up front (driven column (4,4),
    (0,0) reported beside it) → [H] sign (step 7) → R5 score, exact and approximate apart. The signed v5 T2 FAIL
    stays. Then T-22, T-25: PCL B3 on the intra-step operator; trained weights load as A' (`with_trained_weights`).
    Status 2026-10-31: R2 on `shapes.h5` from one seeded init (`run_r2_reference.py`, 922270fd); C++ null exact
    on weights (O-81); oracle vs C++ exact within rtol 1e-12 on both layers (CALIBRATION R2, receipts
    `F:/warehouse/pcl/r2_922270fd`); oracle receipt 2026-11-01 (111 195 spikes, weights exact again;
-   `F:/warehouse/pcl/orc_receipt_bafa4797`). Next: R3 on the training files, then R4 prereg.
+   `F:/warehouse/pcl/orc_receipt_bafa4797`). Status 2026-11-02: the
+   training set is `F:/warehouse/pcl/data/training_natural/events5_re2/` (1999 npz, 3.8 GB, extracted from the
+   Zenodo `PCL_Nat_training_natural_dataset.zip`); the C++ reads npz (`NetworkHandle.cpp:89-90`). R3 runs files 0-4
+   chained from the R2 init: C++ arm `~/run_pcl_r3_cpp.sh` (WSL, out `F:/warehouse/pcl/r3_cpp_f0_4`); oracle and core
+   arms through the `chain` subcommand (Muse packet PCL-R3-HARNESS, clone `pclr3` from d96dc49b). C++ arm done:
+   two chains bit-identical (null), weights moved from init (`F:/warehouse/pcl/r3_cpp_f0_4/*.json`).
+   Closes when: R5 is scored in `prereg/` with exact and approximate reproduction apart (R3 closes when CALIBRATION.md
+   has an R3 section with a receipt per arm).
 5. T-69 [A] Destexhe pilots on the WSL GPU after step 12: `run_destexhe.py fig6b_cont --seed S --tag fig6b_cont
    --out <unscored dir> --kick-fraction 0.25 --kick-rate-hz 286` for seeds 0-3 (50-85 s each) → prereg draft (E1-E4,
    scoring seeds 9-13) → [H] sign (step 7). Status 2026-10-31: pilots done (E1-E3 jointly on seed 0 of 0-3; E4 off,
    48-49 Hz); `PREREG_P3_v3.md` (v2 misstated v1's E4 as gated) pinned with three owner decisions (E4 reported or gated, 4-of-5
    aggregation, sign or defer; outside the 0.5.9 checklist, S16). CALIBRATION step 6 erratum dc9b458c.
+   Closes when: the Destexhe pilot receipts and `PREREG_P3_v3.md` are cited in its CALIBRATION.md (v3 was signed and
+   scored FAIL 2026-11-02, step 7, so only the record remains).
 6. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
@@ -46,18 +55,21 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    to 0.5.10 with its reason (Gate 1).
 8. T-70 [A] 9F: the rc gate end to end on the candidate (JUnit parity, figure lock, clean-checkout figure job;
     Release CI JUnit reused for the same tree). 9G: a fragment for every change since v0.5.8; the assembled section
-    under the hygiene caps (26 of 30 ghost hits on 2026-10-31).
+    under the hygiene caps (26 of 30 ghost hits on 2026-10-31). Closes when: `run_test_gate.py rc` prints
+    "RC GATE PASS" and its attestation names the candidate SHA; every `jaxfne/` commit since v0.5.8 has a fragment or
+    is recorded as changing no behavior.
 9. [H] Gate 1: every package 9A-9G closed or moved with its reason; Hamm rules each move.
 10. T-71 [A] Gates 2-4 on the release SHA: broad gate, CI, `check_replications.py --check` 0 unlisted, dashboard
     fresh; second review with its receipt; release day: version 0.5.9 in `pyproject.toml`,
-    `assemble_changelog.py --version 0.5.9 --date <day>`, `release_body.py --check`.
+    `assemble_changelog.py --version 0.5.9 --date <day>`, `release_body.py --check`. Closes when: each command
+    exits 0 on the release SHA and the second review's receipt is committed.
 11. [H] Gate 5: Hamm's go → tag, main, Release, PyPI.
 
 ## Beside the path (∥)
 
 11a. ∥ T-72 [A then H] NeuroAI 2027 short paper, deadline 2026-11-20 23:59 AoE (paper plan amendment 2026-11-02;
     rules verified on the OpenReview form, non-archival, no dual-submission bar). Status 2026-11-02: draft in the
-    private thesis repo, branch `_temp_neuroai2027`, `artifacts/notes/neuroai2027/` (Hamm: private repo, thesis);
+    private thesis repo, branch `_temp_neuroai2027`, `artifacts/notes/neuroai2027/`;
     3 pages main text, 2 figures, Table 1; three critic rounds, the round-3 fixes unreviewed. The submission build
     (pdfLaTeX, TeX Live 2026 in WSL, the kit's unmodified style; Hamm's choice) passes: 4 pages, 0 overfull boxes, all
     fonts embedded, no Type 3. Waits on [H]: the anonymous.4open.science mirror of the code repo (Hamm's choice;
