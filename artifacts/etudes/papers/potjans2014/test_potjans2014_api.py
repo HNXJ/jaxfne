@@ -613,3 +613,44 @@ def test_manifest_records_the_realized_backend(tmp_path, monkeypatch):
     manifest = json.loads((out / "manifest.json").read_text())
     assert manifest["backend"] == "gpu", "top-level backend is the realized one"
     assert manifest["runs"][0]["backend"] == "gpu", "per-run backend is the realized one"
+
+
+def test_score_refuses_out_of_band_seeds(tmp_path):
+    """score takes the held-out scored seeds 4-8 only (prereg Seeds)."""
+    for seed in (0, 1, 2, 3, 9):
+        with pytest.raises(SystemExit, match="4-8"):
+            L.main(["score", "--seed", str(seed),
+                    "--out", str(tmp_path / "scored" / ("seed%d" % seed)),
+                    "--signed"])
+
+
+def test_score_refuses_without_signed(tmp_path):
+    """score without --signed is refused (prereg scored/unscored split)."""
+    with pytest.raises(SystemExit, match="--signed"):
+        L.main(["score", "--seed", "4",
+                "--out", str(tmp_path / "scored" / "seed4")])
+
+
+def test_score_refuses_outside_scored_path(tmp_path):
+    """Signed runs land under a scored/ path (prereg split, lane_kit rule)."""
+    with pytest.raises(SystemExit, match="scored"):
+        L.main(["score", "--seed", "4",
+                "--out", str(tmp_path / "plain"), "--signed"])
+
+
+def test_signed_run_manifest_records_prereg(tmp_path):
+    """A signed run writes status signed and the prereg sha256 (P4 manifest)."""
+    import hashlib
+    import json
+
+    out = tmp_path / "scored"
+    L.run(4, "scored", str(out), scale=SCALE_SMALL, T_s=SEG_T_S,
+          signed=True, segment_s=SEG_S)
+    manifest = json.loads((out / "manifest.json").read_text())
+    entry = manifest["runs"][0]
+    assert entry["status"] == "signed", "signed run records its status"
+    assert entry["seed"] == 4
+    assert entry["prereg"] == L.PREREG_P3V2_SIGNED
+    want = hashlib.sha256(
+        (L._repo_root / L.PREREG_P3V2_SIGNED).read_bytes()).hexdigest()
+    assert entry["prereg_sha256"] == want, "prereg sha256 computed at run time"

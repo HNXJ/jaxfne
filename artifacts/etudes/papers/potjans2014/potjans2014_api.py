@@ -3,10 +3,13 @@
 Builds the network only from the jaxfne public API and runs it through
 ``NeuronalTensor + RuntimeConfiguration(emitter="lif") -> construct ->
 Model -> simulate -> Signals`` (checklist E1). Estimators come from
-``jaxfne.analysis`` (checklist E3). No scored run: outputs land in the
-caller's directory, never under a ``scored`` path
-(``lane_kit.refuse_scored_dir``). Every run writes a manifest with code SHA,
-backend, dtype, seeds and the activity-regime block (checklist P4).
+``jaxfne.analysis`` (checklist E3). Pilot runs are unscored: outputs land in
+the caller's directory, never under a ``scored`` path
+(``lane_kit.refuse_scored_dir``). The ``score`` subcommand runs one signed
+scored seed (4-8) at the frozen protocol under a ``scored`` path. Every run
+writes a manifest with code SHA, backend, dtype, seeds and the
+activity-regime block (checklist P4); signed runs also record the prereg path
+and its sha256.
 
 Port decisions live in ``PORT_SPEC.md``; declared deviations are there too
 (unfiltered drive kick, sub-step delay floor, spread proportional to the mean).
@@ -14,6 +17,7 @@ Port decisions live in ``PORT_SPEC.md``; declared deviations are there too
 
 from __future__ import annotations
 
+import hashlib
 import math
 import sys
 import time
@@ -161,6 +165,22 @@ P3V2_REFERENCE_HZ = {
     "L6E": 1.09,
 }
 P3V2_CLOSE_E = 0.20
+
+#: Signed protocol record: the frozen prereg (repo-relative) and the scored
+#: protocol parameters (prereg Seeds and Scored/unscored split sections).
+PREREG_P3V2_SIGNED = (
+    "artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md"
+)
+SCORED_SEEDS = (4, 5, 6, 7, 8)
+SCORE_SCALE = 0.1
+SCORE_T_S = 10.0
+SCORE_SEGMENT_S = 1.0
+
+
+def _prereg_sha256():
+    """sha256 of the signed prereg file, computed at run time from the file."""
+    return hashlib.sha256(
+        (_repo_root / PREREG_P3V2_SIGNED).read_bytes()).hexdigest()
 
 
 def _resolve_lesion_pop(name, *, role):
@@ -590,6 +610,9 @@ def run(seed, tag, out_dir, *, n=800, scale=None, T_s=1.0, signed=False,
         entry["n_segments"] = int(len(seg_receipts))
         entry["segment_poisson_receipts"] = seg_receipts
     entries[fname] = entry
+    if signed and not pilot:
+        entry["prereg"] = PREREG_P3V2_SIGNED
+        entry["prereg_sha256"] = _prereg_sha256()
     manifest = {"git_sha": sha, "dtype": "float32", "backend": backend,
                 "runs": list(entries.values())}
     lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)
@@ -635,8 +658,45 @@ def _pilot(args):
     return 0
 
 
+def _score(args):
+    """Run one signed scored seed at the frozen protocol (prereg line 61)."""
+    if not args.signed:
+        raise SystemExit("error: score needs --signed; unscored runs use pilot")
+    if int(args.seed) not in SCORED_SEEDS:
+        raise SystemExit(
+            "error: score seed must be one of 4-8 (held-out scored seeds); "
+            "got %r" % (args.seed,))
+    parts = Path(args.out).resolve().parts
+    if not any(lane_kit._is_scored_part(part) for part in parts):
+        raise SystemExit(
+            "error: refusing scored run outside a scored/ path: %s" % args.out)
+    tag = "scored"
+    result = run(int(args.seed), tag, args.out, scale=SCORE_SCALE,
+                 T_s=SCORE_T_S, signed=True, lesion=None, pilot=False,
+                 segment_s=SCORE_SEGMENT_S)
+    est = result["estimands"]
+    print("status: signed (seed %d, scale %s, T_s %s, lesion None, segment_s %s)"
+          % (int(args.seed), SCORE_SCALE, SCORE_T_S, SCORE_SEGMENT_S))
+    print("wall_s: construct %.1f simulate %.1f"
+          % (result["wall_s"]["construct"], result["wall_s"]["simulate"]))
+    for key in sorted(est["R"]):
+        row = est["R"][key]
+        print("%s: z=%.4f y=%.2f e=%.3f %s"
+              % (key, row["z_hz"], row["y_hz"], row["e"],
+                 "PASS" if row["pass"] else "FAIL"))
+    for layer, row in sorted(est["O-IE"].items()):
+        print("O-IE %s: e=%.4f i=%.4f %s"
+              % (layer, row["e_hz"], row["i_hz"], "PASS" if row["pass"] else "FAIL"))
+    print("O-ORD: %s" % ("PASS" if est["O-ORD"]["pass"] else "FAIL"))
+    print("CV: %s" % ("PASS" if est["CV"]["pass"] else "FAIL"))
+    print("SYN_fano_3ms (reported, never scored): %s"
+          % ", ".join("%s=%.3f" % (k, v) for k, v in sorted(est["SYN_fano_3ms"].items())))
+    print("receipt: %s/manifest.json" % args.out)
+    return 0
+
+
 def main(argv=None):
-    """Command line: ``pilot --seed S --scale X --T-s T --out DIR [--lesion PRE POST] [--segment-s S]``."""
+    """Command line: ``pilot ...`` (unscored, seed 0) or ``score ...`` (signed, seeds 4-8)."""
     import argparse
 
     parser = argparse.ArgumentParser(prog="potjans2014_api.py")
@@ -648,9 +708,15 @@ def main(argv=None):
     pilot.add_argument("--out", required=True)
     pilot.add_argument("--lesion", nargs=2, default=None, metavar=("PRE", "POST"))
     pilot.add_argument("--segment-s", type=float, default=None)
+    score = sub.add_parser("score", help="run one signed scored seed (4-8)")
+    score.add_argument("--seed", type=int, required=True)
+    score.add_argument("--out", required=True)
+    score.add_argument("--signed", action="store_true")
     args = parser.parse_args(argv)
     if args.command == "pilot":
         return _pilot(args)
+    if args.command == "score":
+        return _score(args)
     return 1
 
 
