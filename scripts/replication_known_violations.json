@@ -70,6 +70,20 @@
     "todo": "T-30"
   },
   {
+    "rule": "R6",
+    "path": "artifacts/etudes/papers/potjans2014",
+    "message": "holds 8 files (at most 7)",
+    "reason": "open lane: the signed P3 v2 scored driver adds score_p3.py and its test (2026-11-02); split by kind when the lane closes",
+    "todo": "T-49"
+  },
+  {
+    "rule": "R6",
+    "path": "artifacts/etudes/papers/vogels2011",
+    "message": "holds 9 files (at most 7)",
+    "reason": "open lane: the signed P3 v4 scored driver adds score_p3.py and its test (2026-11-02); split by kind when the lane closes",
+    "todo": "T-49"
+  },
+  {
     "rule": "S1",
     "path": "artifacts/etudes/papers/caminos/test_caminos_analysis.py",
     "message": "line 415: spec_from_file_location loads a path that cannot be resolved",
