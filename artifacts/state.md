@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@d96dc49b · 2026-11-02
+Stamp: jaxfne@dev@5934aac1 · 2026-11-02
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
@@ -9,30 +9,30 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - 0.5.8 published 2026-10-26 (tag v0.5.8 on main 11957afa, Release, PyPI; `artifacts/release/v0_5_8_release_receipt.json`).
   0.5.9 needs Hamm's go. Checklist score 63.3/100 at fd5a9c27 (`etudes/meta/plans/release_plan_0.5.9-0.6.0.md`).
 - Signed and scored 2026-11-02, each as its pilots predicted: Potjans P3 v2 off, Vogels P3 v4 off on R-E (in S12),
-  Destexhe P3 v3 FAIL 0 of 5 (`RESULT_P3.md` in each lane; receipts under `F:/warehouse/<lane>/`). GSDR P3 fit FAIL
+  Destexhe P3 v3 FAIL 0 of 5 (`RESULT_P3.md` in each lane; Destexhe CALIBRATION step 7). GSDR P3 fit FAIL
   (2026-11-01); GSDR stays open until precisely replicated (Hamm 2026-11-02).
-- CAMINOS Cell Reports Fig S1 scored against criteria declared first (d96dc49b): F pass, S partial, G fail, D pass
-  (`caminos/RESULT_FIGURES.md`); supplementary, outside the dashboard's main-text scope.
-- T-30 core lanes a-d landed (d 2cda7117: per-step edge gain, no-edge refusal, equivalence tests).
-- PCL R3 C++ arm: training files 0-4 chained from the R2 init; two chains bit-identical, weights moved from init
-  (`F:/warehouse/pcl/r3_cpp_f0_4/`).
-- Last pushed: d96dc49b (report gate fail_count 0; CI success on d095f023); last broad gate 8038 passed on dbcdb2cb.
-- Local branches follow the naming rule since 2026-11-02 (30 renamed to `_temp_*`; none on the remote).
+- CAMINOS Cell Reports Fig S1 scored (`caminos/RESULT_FIGURES.md`); core route landed (fc0e13df: `run_cell(route=)`,
+  `FIGA_ROUTE`); equivalence criterion declared before the core output was read (f54c022c).
+- PCL R3: `run_r2_reference.py chain` (6b10132a). Oracle arm equals the C++ chain on training files 0-4, exact at
+  rtol 1e-12, max relative weight difference 7.4e-15 (`F:/warehouse/pcl/r3_oracle_f0_4/`).
+- Release CI on d96dc49b failed 4 tests; all fixed: tree degree (079610f4), a test that could not fail (afe8852f),
+  two slow regressions from the P-048 default u0 (bisected to b1d9dfe1; Hamm 2026-11-02 split: the atlas test runs
+  the pre-ruling u0, the HDP etude re-baselined as `metrics_v059.json`, 5934aac1).
+- Last pushed: 5934aac1 (broad gate 8038 passed, 0 failed; report fail_count 0; replication audit 0 unlisted, 0 stale).
 
 ## Broken or in flight
 
-- Muse CELLREP-CORE (clone `E:/repos/_wt/jaxfne/crcore`): `cellrep_figures.run_cell(route=...)` on the core
-  (launched, not complete); then the full-size equivalence check against the frozen sweeps.
-- Muse PCL-R3-HARNESS (clone `E:/repos/_wt/jaxfne/pclr3`): `chain` subcommand, oracle and core arms (launched, not
-  complete).
-- Release CI run 41465568642 on d96dc49b (dispatched for the 9F rc gate; launched, not complete).
-- 9G: 11 commits since v0.5.8 change behavior without a same-commit fragment; coverage elsewhere being checked.
+- Release CI run 41488687157 on dev 5934aac1 (dispatched for the 9F rc gate; launched, not complete).
+- CAMINOS core-route equivalence sweep, WSL `~/route_08780699/c3b` (12 runs at about 13 min; launched, not complete).
+- PCL R3 core arm on file 0, WSL `~/pcl_r3/smoke_core_f0b` (CPU; launched, not complete).
+- P-053 (PCL scan vs oracle gap on sparse weights, reported, not reproduced); P-054 (VIP and I presets: class-1
+  a,b,c,d in the standard equation, rheobase 22.56 vs the source's 2.25; Hamm's ruling).
 
 ## Open decisions for the owner
 
-Owner queue in `todo_stack.md`: P-052 (waits on the T-R28 beta horizon scan); PCL R4 signature when drafted;
-NeuroAI code link (anonymous.4open.science mirror, Hamm's act). Deleting the 22 merged `_temp_*` branches is Hamm's
-call. T-62 ruled 2026-11-02: Fig 1D excluded for 0.5.9, moved to 0.5.10.
+Owner queue in `todo_stack.md`: P-052 (waits on the T-R28 beta horizon scan); P-054 preset; PCL R4 signature when
+drafted; NeuroAI code link (anonymous.4open.science mirror, Hamm's act). Deleting the 22 merged `_temp_*` branches
+and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 
 ## Generated files and their checks
 
@@ -49,15 +49,16 @@ call. T-62 ruled 2026-11-02: Fig 1D excluded for 0.5.9, moved to 0.5.10.
 ## Environment
 
 - Windows: Python 3.14 runs the broad gate through `suite_lock.py`, one suite at a time. WSL: `~/venv_jaxfne`
-  (CUDA; each long job in its own `systemd-run` memory cap), `~/venv_jaxfne_gate` (CPU gate); TeX Live 2026 at
-  `~/texlive/cur` (pdfLaTeX for the NeuroAI draft).
-- Tracked tree: `python scripts/check_tree_size.py --check`; budget 2778 files in `scripts/tree_size_allowlist.json`.
+  (CUDA, numba 0.68 added 2026-11-02 for the PCL core arm; each long job in its own `systemd-run` memory cap),
+  `~/venv_jaxfne_gate` (CPU gate); TeX Live 2026 at `~/texlive/cur` (pdfLaTeX for the NeuroAI draft).
+- Tracked tree: `python scripts/check_tree_size.py --check`; budget 2782 files in `scripts/tree_size_allowlist.json`.
 - Large data outside git: `F:/warehouse/{caminos,gsdr,pcl,vogels2011,potjans2014,destexhe2009}/` (receipts named
   in each result file); PCL training set `F:/warehouse/pcl/data/training_natural/events5_re2/` (from Zenodo
   `PCL_datasets_and_networks.zip`).
 - NeuroAI 2027 draft: private thesis repo, branch `_temp_neuroai2027`, `artifacts/notes/neuroai2027/`.
+- jchat: review session with jomission (`omission-claude-dev`) open in `main` (#130-137, MIN-07 VIP answered).
 
 ## Next action
 
-Integrate CELLREP-CORE, then the full-size equivalence run; integrate PCL-R3-HARNESS, run the oracle and core arms on
-files 0-4; rc gate after Release CI; close the 9G fragment gaps; update the checklist score.
+Score the CAMINOS equivalence sweep (`equiv_core.py`) into `RESULT_FIGURES.md`; PCL R3 core chain on files 0-4,
+then the CALIBRATION R3 section; rc gate after Release CI; update the checklist score.
