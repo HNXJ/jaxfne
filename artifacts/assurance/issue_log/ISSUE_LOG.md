@@ -105,3 +105,18 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   updates within an event step.
 - Possible change: reproduce on a minimal fixture, then attribute in PCL R3 (`CALIBRATION.md` R3
   section), where the training files run both arms against the C++ chain.
+
+### P-054
+
+- Date: 2026-11-02. Type: SCIENCE. Area: Izhikevich presets `VIP` and `I` (`jaxfne/emitters.py:124,130`).
+  Severity: medium; every realization with a VIP or I population. Found while answering jomission MIN-07.
+- Observation: the presets carry Izhikevich 2004's class-1 excitable a 0.02, b -0.1, c -55, d 6
+  (`izhikevich.org/publications/figure1.m`, panel G), but that panel integrates V' = 0.04V^2 + 4.1V + 108 - u
+  + I, while jaxfne integrates 0.04V^2 + 5V + 140 - u + I. Rheobase (5 - b)^2/0.16 - 140 = 22.56 in jaxfne
+  against (4.1 - b)^2/0.16 - 108 = 2.25 in the source, so a VIP cell at its preset drive 3.0 is silent
+  (documented in `docs/reference/api/model/emitters.md`, "Default drives and rheobase").
+- Minimal reproduction: one cell, Euler dt 0.1 ms, 1000 ms, u0 = b*v0, v0 in {-70, -65, -60}: 0 spikes at
+  I = 4 and 22.5; 4 spikes in [200, 1000) ms at I = 23.
+- Possible change (Hamm's call: it moves every VIP and I realization): keep the preset and record its
+  provenance as "class-1 a,b,c,d in the standard equation", or give VIP its own source-faithful v equation
+  coefficients, or take a VIP set from another source.
