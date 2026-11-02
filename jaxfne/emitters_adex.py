@@ -778,6 +778,9 @@ def simulate_adex(
     ext_t_stop_steps=None,
     spike_out_mask=None,
     spike_out_onset_step=0,
+    spike_replace_mask=None,
+    spike_replace_lam=None,
+    spike_replace_key=None,
 ) -> dict[str, Any]:
     """Simulate conductance-based AdEx cells on a sparse edge list.
 
@@ -837,6 +840,21 @@ def simulate_adex(
     ``None`` (the default) takes the historical path bit-identically; an onset
     without a mask, a wrong shape or dtype, or an onset outside
     ``[0, n_steps)`` is refused.
+
+    ``spike_replace_mask`` (bool ``[N]``) with ``spike_replace_lam`` (float
+    ``[N]``, the mean Poisson count per step of each cell, every entry
+    finite and >= 0 with 0 outside the mask) and ``spike_replace_key`` (a
+    JAX PRNG key) replaces the emitted spike of masked cells by an
+    independent per-step draw: ``where(mask, poisson(fold_in(key, t),
+    lam_vec) > 0, spk)``. The draw folds the passed key
+    per step and never touches the drive ``rkey`` stream, so the default
+    draws are unchanged; the replacement acts wherever ``spike_out_mask``
+    acts (round 0, fixed-point rounds, final spikes), before silencing, so a
+    masked-and-silenced cell stays silent, after the CAMINOS step-loop
+    replacement (``artifacts/etudes/papers/caminos/caminos_jax.py`` lines
+    833-839). All three are given or all None (``None`` takes the historical
+    path bit-identically); an all-False mask leaves the run unchanged
+    whatever ``lam_vec`` is.
 
     ``ext_target_groups`` (int ``[M]``, one group per target, given with the six
     drive arguments or refused) selects the grouped path: ``ext_lambda`` must
@@ -946,6 +964,58 @@ def simulate_adex(
             )
         mask_j = jnp.asarray(mask_arr)
         onset_j = int(spike_out_onset_step)
+    _rep_given = (
+        spike_replace_mask is not None,
+        spike_replace_lam is not None,
+        spike_replace_key is not None,
+    )
+    if not any(_rep_given):
+        rep_j = None
+        rep_lam_j = None
+        rep_base = None
+    elif not all(_rep_given):
+        raise ValueError(
+            "spike_replace_mask, spike_replace_lam and spike_replace_key must be "
+            "all given or all None; got "
+            f"mask={_rep_given[0]}, lam={_rep_given[1]}, key={_rep_given[2]}"
+        )
+    else:
+        rep_arr = np.asarray(spike_replace_mask)
+        if rep_arr.dtype != np.bool_:
+            raise ValueError(
+                "spike_replace_mask must be a bool array of shape "
+                f"({N},); got dtype {rep_arr.dtype}"
+            )
+        if rep_arr.shape != (N,):
+            raise ValueError(
+                "spike_replace_mask must be a bool array of shape "
+                f"({N},); got shape {rep_arr.shape}"
+            )
+        lam_arr = np.asarray(spike_replace_lam, dtype=np.float64)
+        if lam_arr.shape != (N,):
+            raise ValueError(
+                "spike_replace_lam must be a float array of shape "
+                f"({N},); got shape {lam_arr.shape}"
+            )
+        if lam_arr.dtype == np.bool_ or not np.all(np.isfinite(lam_arr)):
+            raise ValueError(
+                "spike_replace_lam must hold finite entries; "
+                f"got {spike_replace_lam!r}"
+            )
+        if bool(np.any(lam_arr < 0.0)):
+            raise ValueError(
+                "spike_replace_lam must hold entries >= 0; "
+                f"got {spike_replace_lam!r}"
+            )
+        try:
+            jax.random.split(spike_replace_key)
+        except Exception:
+            raise ValueError(
+                f"spike_replace_key must be a JAX PRNG key; got {spike_replace_key!r}"
+            )
+        rep_j = jnp.asarray(rep_arr)
+        rep_lam_j = jnp.asarray(lam_arr)
+        rep_base = spike_replace_key
     dtype = jnp.asarray(params.C_pF).dtype
     if N * max(len(np.reshape(receptor_tau_ms, -1)), 1) >= 2**31:
         raise ValueError(f"N * n_receptors must be < 2**31 (int32 segment ids); N = {N}")
@@ -1221,6 +1291,9 @@ def simulate_adex(
         V, w, ref, g, ring, ering, t, rkey = carry
         if ext is not None:
             rkey, ks = jax.random.split(rkey)
+        if rep_j is not None:
+            rep_po = jax.random.poisson(
+                jax.random.fold_in(rep_base, t), rep_lam_j, shape=(N,)) > 0
         I_t = I_const if I_t is None else I_t
         if E:
             arrived = ring[(t - lag_j) % L, pre_j]
@@ -1245,6 +1318,8 @@ def simulate_adex(
             # stopping there changes nothing.
             I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
             (V1, w1, ref1), spk0 = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
+            if rep_j is not None:
+                spk0 = jnp.where(rep_j, rep_po, spk0)
             if mask_j is not None:
                 # Silencing acts before the fixed point: a masked cell never
                 # enters spk_acc, so its spike reaches no delay-0 target.
@@ -1267,6 +1342,8 @@ def simulate_adex(
                 (Vn, wn, refn), spkn = adex_step(
                     (V_pre, w_pre, ref_pre), I_2, params, dt_ms, step_order
                 )
+                if rep_j is not None:
+                    spkn = jnp.where(rep_j, rep_po, spkn)
                 if mask_j is not None:
                     spkn = spkn & ~(mask_j & (t >= onset_j))
                 take = ~spk_acc
@@ -1282,6 +1359,8 @@ def simulate_adex(
             # Cells that newly spiked in the final round and own delay-0
             # out-edges: their same-step outputs were never delivered.
             n_unres = jnp.sum(_prev & has_out0_j).astype(jnp.int32)
+        if rep_j is not None:
+            spk = jnp.where(rep_j, rep_po, spk)
         if mask_j is not None:
             spk = spk & ~(mask_j & (t >= onset_j))
         ring = ring.at[t % L].set(spk)
@@ -1327,6 +1406,9 @@ def simulate_adex(
         """
         V, w, ref, g, ring, ering, t, rkey = carry
         rkey, ks = jax.random.split(rkey)
+        if rep_j is not None:
+            rep_po = jax.random.poisson(
+                jax.random.fold_in(rep_base, t), rep_lam_j, shape=(N,)) > 0
         I_t = I_const if I_t is None else I_t
         if E:
             arrived = ring[(t - lag_j) % L, pre_j]
@@ -1370,6 +1452,8 @@ def simulate_adex(
             # quiescence or R rounds.
             I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
             (V1, w1, ref1), spk0 = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
+            if rep_j is not None:
+                spk0 = jnp.where(rep_j, rep_po, spk0)
             if mask_j is not None:
                 # Silencing acts before the fixed point: a masked cell never
                 # enters spk_acc, so its spike reaches no delay-0 target.
@@ -1392,6 +1476,8 @@ def simulate_adex(
                 (Vn, wn, refn), spkn = adex_step(
                     (V_pre, w_pre, ref_pre), I_2, params, dt_ms, step_order
                 )
+                if rep_j is not None:
+                    spkn = jnp.where(rep_j, rep_po, spkn)
                 if mask_j is not None:
                     spkn = spkn & ~(mask_j & (t >= onset_j))
                 take = ~spk_acc
@@ -1406,6 +1492,8 @@ def simulate_adex(
             spk = spk_acc
             # As in body: final-round newly spiked cells with delay-0 out-edges.
             n_unres = jnp.sum(_prev & has_out0_j).astype(jnp.int32)
+        if rep_j is not None:
+            spk = jnp.where(rep_j, rep_po, spk)
         if mask_j is not None:
             spk = spk & ~(mask_j & (t >= onset_j))
         ring = ring.at[t % L].set(spk)
@@ -1430,6 +1518,9 @@ def simulate_adex(
         """
         V, w, ref, g, ring, ering, t, rkey = carry
         split_all = jax.vmap(jax.random.split)(rkey)
+        if rep_j is not None:
+            rep_po = jax.random.poisson(
+                jax.random.fold_in(rep_base, t), rep_lam_j, shape=(N,)) > 0
         rkey, kss = split_all[:, 0], split_all[:, 1]
         I_t = I_const if I_t is None else I_t
         if E:
@@ -1449,6 +1540,8 @@ def simulate_adex(
         else:
             I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
             (V1, w1, ref1), spk0 = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
+            if rep_j is not None:
+                spk0 = jnp.where(rep_j, rep_po, spk0)
             if mask_j is not None:
                 # Silencing acts before the fixed point: a masked cell never
                 # enters spk_acc, so its spike reaches no delay-0 target.
@@ -1471,6 +1564,8 @@ def simulate_adex(
                 (Vn, wn, refn), spkn = adex_step(
                     (V_pre, w_pre, ref_pre), I_2, params, dt_ms, step_order
                 )
+                if rep_j is not None:
+                    spkn = jnp.where(rep_j, rep_po, spkn)
                 if mask_j is not None:
                     spkn = spkn & ~(mask_j & (t >= onset_j))
                 take = ~spk_acc
@@ -1484,6 +1579,8 @@ def simulate_adex(
             )
             spk = spk_acc
             n_unres = jnp.sum(_prev & has_out0_j).astype(jnp.int32)
+        if rep_j is not None:
+            spk = jnp.where(rep_j, rep_po, spk)
         if mask_j is not None:
             spk = spk & ~(mask_j & (t >= onset_j))
         ring = ring.at[t % L].set(spk)
@@ -1591,6 +1688,9 @@ def simulate_adex_hdp_registered(
     return_state: bool = False,
     spike_out_mask=None,
     spike_out_onset_step=0,
+    spike_replace_mask=None,
+    spike_replace_lam=None,
+    spike_replace_key=None,
 ) -> dict[str, Any]:
     """AdEx conductance network with a registered HDP rule (lane 7, gap G3).
 
@@ -1621,7 +1721,10 @@ def simulate_adex_hdp_registered(
     ``spike_out_mask``/``spike_out_onset_step`` are refused here (fail closed):
     the rule observes the emitted spikes, so masking would need a rule-gated
     form of the same :func:`simulate_adex` rule; silence on the HDP path is
-    not realized.
+    not realized. ``spike_replace_mask``/``spike_replace_lam``/
+    ``spike_replace_key`` are refused for the same reason: replacement would
+    need its own rule-gated form; pass the replacement to
+    :func:`simulate_adex` only.
 
     ``plasticity_mask`` is ``None`` (every edge plastic) or a per-edge
     finite mask; ``hdp_key`` seeds the per-step rule-noise stream, else
@@ -1668,10 +1771,12 @@ def simulate_adex_hdp_registered(
         raise ValueError(f"dt_ms must be > 0, got {dt_ms!r}")
 
     N = int(jnp.shape(params.C_pF)[0])
-    if spike_out_mask is not None or spike_out_onset_step != 0:
+    if (spike_out_mask is not None or spike_out_onset_step != 0
+            or spike_replace_mask is not None or spike_replace_lam is not None
+            or spike_replace_key is not None):
         raise ValueError(
-            "spike_out_mask is not realized for the HDP kernel "
-            "simulate_adex_hdp_registered: silence there would need its own "
+            "spike_out_mask/spike_replace_mask is not realized for the HDP kernel "
+            "simulate_adex_hdp_registered: silence/replacement there would need its own "
             "rule-gated masking; pass the mask to simulate_adex only"
         )
     dtype = jnp.asarray(params.C_pF).dtype

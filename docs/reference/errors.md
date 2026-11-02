@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2417 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2439 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -171,6 +171,8 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `connections declare intra_step_rounds={...} but realize no delay-0 edge at dt_ms={...}; a declared R` |
 | `ValueError` | `Simulation(silence=...) names unknown cell type(s) {...}; the model declares {...}` |
 | `ValueError` | `Simulation(silence=...) onset_ms={...} at dt_ms={...}: {...}` |
+| `ValueError` | `Simulation(replace=...) names unknown cell type(s) {...}; the model declares {...}` |
+| `ValueError` | `Simulation(replace=...) rate_hz lacks a rate for replaced type {...}` |
 
 **`jaxfne/_construct_connectivity.py`**
 
@@ -496,6 +498,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `SpikeTrainInput n_neurons={...} does not match the model's {...} neurons` |
 | `ValueError` | `ablation='shuffled_timing' shuffles a time-varying drive; this run has none (pass a paradigm or pois` |
 | `ValueError` | `Simulation(silence=...) is not realized for emitter family '{...}': silence masks emitted AdEx spike` |
+| `ValueError` | `Simulation(replace=...) is not realized for emitter family '{...}': replace swaps emitted AdEx spike` |
 | `ValueError` | `simulate(continuation=..., return_state=...) is not realized for emitter family 'adex': the route ha` |
 | `ValueError` | `simulate(paradigm=...) is not realized for emitter family 'adex': the route has no input current, so` |
 | `ValueError` | `intra-step fixed point reached its cap intra_step_rounds={...} with {...} undelivered same-step spik` |
@@ -672,6 +675,18 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `Simulation.silence requires the key 'seed'` |
 | `ValueError` | `Simulation.silence seed must be an int; got {...}` |
 | `ValueError` | `Simulation.silence onset_ms must be a finite number >= 0 in ms; got {...}` |
+| `ValueError` | `Simulation.replace must be None or a mapping {'fractions': {cell_type: fraction}, 'rate_hz': float, ` |
+| `ValueError` | `Simulation.replace has unknown key(s) {...}; the only keys are {...}` |
+| `ValueError` | `Simulation.replace requires the key 'fractions'` |
+| `ValueError` | `Simulation.replace['fractions'] must be a non-empty mapping from cell type to fraction; got {...}` |
+| `ValueError` | `Simulation.replace fractions[{...}] must be a finite number in [0, 1]; got {...}` |
+| `ValueError` | `Simulation.replace requires the key 'rate_hz'` |
+| `ValueError` | `Simulation.replace rate_hz must be a non-empty mapping from cell type to rate in Hz; got {...}` |
+| `ValueError` | `Simulation.replace rate_hz[{...}] names a type absent from fractions {...}` |
+| `ValueError` | `Simulation.replace rate_hz[{...}] must be a finite number >= 0 in Hz; got {...}` |
+| `ValueError` | `Simulation.replace rate_hz lacks a rate for replaced type(s) {...}` |
+| `ValueError` | `Simulation.replace requires the key 'seed'` |
+| `ValueError` | `Simulation.replace seed must be an int; got {...}` |
 | `ValueError` | `Simulation.duration_ms must be positive and finite; got {...}` |
 | `ValueError` | `Simulation.dt_ms must be positive and finite; got {...}` |
 | `ValueError` | `Simulation produces n_steps={...} <= 0 for duration_ms={...}, dt_ms={...}` |
@@ -1159,6 +1174,13 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `spike_out_mask must be a bool array of shape ({...},); got dtype {...}` |
 | `ValueError` | `spike_out_mask must be a bool array of shape ({...},); got shape {...}` |
 | `ValueError` | `spike_out_onset_step must be an int in [0, n_steps) ([0, {...})); got {...}` |
+| `ValueError` | `spike_replace_mask, spike_replace_lam and spike_replace_key must be all given or all None; got mask=` |
+| `ValueError` | `spike_replace_mask must be a bool array of shape ({...},); got dtype {...}` |
+| `ValueError` | `spike_replace_mask must be a bool array of shape ({...},); got shape {...}` |
+| `ValueError` | `spike_replace_lam must be a float array of shape ({...},); got shape {...}` |
+| `ValueError` | `spike_replace_lam must hold finite entries; got {...}` |
+| `ValueError` | `spike_replace_lam must hold entries >= 0; got {...}` |
+| `ValueError` | `spike_replace_key must be a JAX PRNG key; got {...}` |
 | `ValueError` | `N * n_receptors must be < 2**31 (int32 segment ids); N = {...}` |
 | `ValueError` | `receptor_reversal_mV and receptor_tau_ms must have the same length; got {...} and {...}` |
 | `ValueError` | `receptor_tau_ms must be > 0 for every receptor; got {...}` |
@@ -1180,7 +1202,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `decay must be 'exp' or 'euler', got {...}` |
 | `ValueError` | `n_steps must be a positive integer, got {...}` |
 | `ValueError` | `dt_ms must be > 0, got {...}` |
-| `ValueError` | `spike_out_mask is not realized for the HDP kernel simulate_adex_hdp_registered: silence there would ` |
+| `ValueError` | `spike_out_mask/spike_replace_mask is not realized for the HDP kernel simulate_adex_hdp_registered: s` |
 | `ValueError` | `N * n_receptors must be < 2**31 (int32 segment ids); N = {...}` |
 | `ValueError` | `receptor_reversal_mV and receptor_tau_ms must have the same length; got {...} and {...}` |
 | `ValueError` | `receptor_tau_ms must be > 0 for every receptor; got {...}` |

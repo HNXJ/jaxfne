@@ -40,6 +40,7 @@ ADEX_CONSUMED = (
     ("Simulation", "runtime"),
     ("Simulation", "poisson_drive"),
     ("Simulation", "silence"),
+    ("Simulation", "replace"),
     # RuntimeConfig seed and n_steps are owned by Simulation (resolved_runtime replaces them, and
     # Simulation.__post_init__ refuses a conflicting value).
     ("RuntimeConfig", "seed"),
@@ -1431,6 +1432,10 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
 # these, one per opt-in, never through the network or drive streams, so the
 # default draws are untouched.
 _SILENCE_TAG = 911
+# The CAMINOS replacement tag (caminos_jax.py line 427): the replaced subset
+# and its per-step Poisson draws fold the replace seed through this, never
+# through the network or drive streams, so the default draws are untouched.
+_REPLACE_TAG = 417
 
 
 def adex_silence_kwargs(
@@ -1494,3 +1499,73 @@ def adex_silence_kwargs(
         "n_silenced_per_type": {t: int(n_silenced[t]) for t in sorted(fractions)},
     }
     return mask, onset_step, record
+
+
+def adex_replace_kwargs(
+    model: Model, sim: Any
+) -> tuple[Any | None, Any | None, Any | None, dict[str, Any] | None]:
+    """Mask, per-cell Poisson means, draw key and metadata for ``Simulation(replace=...)``.
+
+    Returns ``(mask, lam_vec, rep_key, record)``; ``(None, None, None, None)``
+    when ``sim.replace`` is None (the kernel's historical path). The mask selects a
+    ``round(fraction * N_type)`` subset per named type: per-type cell positions
+    in neuron-index order, the subset drawn as the first entries of a
+    permutation seeded from ``fold_in(fold_in(PRNGKey(seed), 417), j + 1)``
+    over the sorted unique labels -- the CAMINOS ``manip_mask`` replace rule
+    (``artifacts/etudes/papers/caminos/caminos_jax.py`` lines 432-467),
+    generalized from PV/SOM to any declared cell type. ``lam_vec`` is a float
+    ``[N]`` array holding ``rate_hz[type] * dt_ms / 1000`` on replaced cells
+    and 0 elsewhere, after the CAMINOS per-type ``lam_rep``
+    (``caminos_jax.py`` lines 708-720). The draw key is the distinct branch
+    ``fold_in(fold_in(PRNGKey(seed), 417), 0)`` -- never a permutation key,
+    since types are indexed ``j + 1`` -- folded per step in the kernel, so the
+    drive key stream is untouched. Unknown type names are refused here, where
+    the model is known.
+    """
+    replace = sim.replace
+    if replace is None:
+        return None, None, None, None
+    labels = tuple(model.params["emitter"].labels)
+    known = sorted(set(labels))
+    fractions = dict(replace["fractions"])
+    unknown = sorted(t for t in fractions if t not in known)
+    if unknown:
+        raise ValueError(
+            f"Simulation(replace=...) names unknown cell type(s) {unknown}; "
+            f"the model declares {known}"
+        )
+    rates = dict(replace["rate_hz"])
+    seed = int(replace["seed"])
+    dt_ms = float(sim.dt_ms)
+    n = len(labels)
+    mask = np.zeros((n,), dtype=bool)
+    lam_vec = np.zeros((n,), dtype=np.float64)
+    n_replaced: dict[str, int] = {}
+    key0 = jax.random.fold_in(jax.random.PRNGKey(seed), _REPLACE_TAG)
+    for j, cell_type in enumerate(known):
+        frac = float(fractions.get(cell_type, 0.0))
+        positions = np.asarray(
+            [i for i, lab in enumerate(labels) if lab == cell_type], dtype=np.int64
+        )
+        n_sel = int(round(frac * int(positions.size)))
+        n_replaced[cell_type] = n_sel
+        if n_sel > 0:
+            order = np.asarray(
+                jax.random.permutation(jax.random.fold_in(key0, j + 1), int(positions.size))
+            )
+            chosen = positions[np.asarray(order[:n_sel])]
+            mask[chosen] = True
+            if cell_type not in rates:
+                raise ValueError(
+                    f"Simulation(replace=...) rate_hz lacks a rate for replaced "
+                    f"type {cell_type!r}"
+                )
+            lam_vec[chosen] = float(rates[cell_type]) * dt_ms / 1000.0
+    rep_key = jax.random.fold_in(key0, 0)
+    record = {
+        "fractions": {t: float(fractions[t]) for t in sorted(fractions)},
+        "rate_hz": {t: float(rates[t]) for t in sorted(rates)},
+        "seed": int(seed),
+        "n_replaced_per_type": {t: int(n_replaced[t]) for t in sorted(fractions)},
+    }
+    return mask, lam_vec, rep_key, record

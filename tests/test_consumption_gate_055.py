@@ -52,6 +52,10 @@ SIM_CASES = {
         {}, {"silence": {"fractions": {"E": 0.5}, "seed": 1}},
         "refuse",
     ),
+    "replace": (
+        {}, {"replace": {"fractions": {"E": 0.5}, "rate_hz": {"E": 4.0}, "seed": 1}},
+        "refuse",
+    ),
     "runtime": ({}, _rt(recurrent_backend="edge_list"), "output"),
 }
 # A "policy" case names its consumer; a field with no consumer is not policy.

@@ -124,6 +124,8 @@ def _validate_poisson_drive_container(poisson: Any) -> None:
 
 _SILENCE_KEYS = ("fractions", "onset_ms", "seed")
 
+_REPLACE_KEYS = ("fractions", "rate_hz", "seed")
+
 
 def _validate_silence(value: Any) -> None:
     """Refuse a malformed ``Simulation.silence`` declaration.
@@ -182,6 +184,86 @@ def _validate_silence(value: Any) -> None:
         )
 
 
+def _validate_replace(value: Any) -> None:
+    """Refuse a malformed ``Simulation.replace`` declaration.
+
+    The accepted form is ``{"fractions": {cell_type: fraction}, "rate_hz":
+    {cell_type: float}, "seed": int}``: every fraction in [0, 1] (bools
+    refused, never coerced); ``rate_hz`` a non-empty mapping from cell type
+    to a finite number >= 0, with a rate for every replaced type (fraction
+    > 0) and no rate for a type absent from ``fractions``; ``seed`` an int.
+    Whether the named types exist in the model is checked at simulate time,
+    where the model is known.
+    """
+    if not isinstance(value, Mapping):
+        raise ValueError(
+            "Simulation.replace must be None or a mapping "
+            f"{{'fractions': {{cell_type: fraction}}, 'rate_hz': float, 'seed': int}}; "
+            f"got {value!r}"
+        )
+    unknown = sorted(str(k) for k in value if k not in _REPLACE_KEYS)
+    if unknown:
+        raise ValueError(
+            f"Simulation.replace has unknown key(s) {unknown}; "
+            f"the only keys are {list(_REPLACE_KEYS)}"
+        )
+    if "fractions" not in value:
+        raise ValueError("Simulation.replace requires the key 'fractions'")
+    fractions = value["fractions"]
+    if not isinstance(fractions, Mapping) or not fractions:
+        raise ValueError(
+            "Simulation.replace['fractions'] must be a non-empty mapping "
+            f"from cell type to fraction; got {fractions!r}"
+        )
+    for cell_type, fraction in fractions.items():
+        if (
+            isinstance(fraction, bool)
+            or not isinstance(fraction, numbers.Real)
+            or not math.isfinite(float(fraction))
+            or not 0.0 <= float(fraction) <= 1.0
+        ):
+            raise ValueError(
+                f"Simulation.replace fractions[{cell_type!r}] must be a "
+                f"finite number in [0, 1]; got {fraction!r}"
+            )
+    if "rate_hz" not in value:
+        raise ValueError("Simulation.replace requires the key 'rate_hz'")
+    rate_hz = value["rate_hz"]
+    if not isinstance(rate_hz, Mapping) or not rate_hz:
+        raise ValueError(
+            "Simulation.replace rate_hz must be a non-empty mapping "
+            f"from cell type to rate in Hz; got {rate_hz!r}"
+        )
+    for cell_type, rate in rate_hz.items():
+        if cell_type not in fractions:
+            raise ValueError(
+                f"Simulation.replace rate_hz[{cell_type!r}] names a type absent "
+                f"from fractions {sorted(fractions)}"
+            )
+        if (
+            isinstance(rate, bool)
+            or not isinstance(rate, numbers.Real)
+            or not math.isfinite(float(rate))
+            or float(rate) < 0.0
+        ):
+            raise ValueError(
+                f"Simulation.replace rate_hz[{cell_type!r}] must be a "
+                f"finite number >= 0 in Hz; got {rate!r}"
+            )
+    missing = sorted(
+        t for t, frac in fractions.items() if float(frac) > 0.0 and t not in rate_hz
+    )
+    if missing:
+        raise ValueError(
+            f"Simulation.replace rate_hz lacks a rate for replaced type(s) {missing}"
+        )
+    if "seed" not in value:
+        raise ValueError("Simulation.replace requires the key 'seed'")
+    seed = value["seed"]
+    if isinstance(seed, bool) or not isinstance(seed, numbers.Integral):
+        raise ValueError(f"Simulation.replace seed must be an int; got {seed!r}")
+
+
 @dataclass(frozen=True)
 class Simulation:
     """Immutable specification of one simulation run.
@@ -223,6 +305,15 @@ class Simulation:
     (``artifacts/etudes/papers/caminos/caminos_jax.py`` lines 432-467) and the
     step-loop mask (lines 812, 840-846). It is realized on the AdEx route only;
     every other emitter family refuses a non-None value.
+
+    ``replace`` (None = undeclared) is ``{"fractions": {cell_type: fraction},
+    "rate_hz": {cell_type: float}, "seed": int}``. It replaces the emitted spikes of a
+    ``round(fraction * N_type)`` per-type subset by an independent per-step
+    Poisson draw at that type's ``rate_hz``, after CAMINOS ``manip_mask``
+    (``artifacts/etudes/papers/caminos/caminos_jax.py`` lines 432-467) and the
+    step-loop replacement (lines 833-839), which the emitted spike still
+    enters the delay ring through. It is realized on the AdEx route only;
+    every other emitter family refuses a non-None value.
     """
 
     duration_ms: float = 1000.0
@@ -241,6 +332,7 @@ class Simulation:
     ablation: Optional[str] = None
     gaussian_drive: Optional[dict] = None
     silence: Optional[dict] = None
+    replace: Optional[dict] = None
 
     def __post_init__(self) -> None:
         if not (math.isfinite(self.duration_ms) and self.duration_ms > 0):
@@ -266,6 +358,8 @@ class Simulation:
             _validate_gaussian_drive(self.gaussian_drive)
         if self.silence is not None:
             _validate_silence(self.silence)
+        if self.replace is not None:
+            _validate_replace(self.replace)
         if self.poisson_drive is not None:
             _validate_poisson_drive_container(self.poisson_drive)
         if self.plasticity != 0:

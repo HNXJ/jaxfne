@@ -1512,6 +1512,7 @@ def simulate(
     object.__setattr__(self, "_last_homeostasis_diag", None)
     _refuse_gaussian_drive_family(self, sim)
     _refuse_silence_family(self, sim)
+    _refuse_replace_family(self, sim)
     if type(self.params["emitter"]) is not IzhikevichParams:
         _refuse_surrogate(runtime_cfg, f"emitter family {type(self.params['emitter']).__name__}")
     if continuation is not None or return_state:
@@ -1932,6 +1933,37 @@ def _refuse_silence_family(model: "Model", sim: Simulation) -> None:
     )
 
 
+def _refuse_replace_family(model: "Model", sim: Simulation) -> None:
+    """Refuse ``Simulation(replace=...)`` outside the adex route, naming the family.
+
+    The single central check: every non-AdEx emitter family refuses a non-None
+    replace before its own input handling, so a misrouted declaration fails
+    loudly at the public entry point instead of running unreplaced.
+    """
+    if sim.replace is None:
+        return
+    emitter = model.params["emitter"]
+    if isinstance(emitter, AdExParams):
+        return
+    if isinstance(emitter, IzhikevichParams):
+        family = "izhikevich"
+    elif isinstance(emitter, HHParams):
+        family = "hh"
+    elif isinstance(emitter, LIFNetworkParams):
+        family = "lif"
+    elif isinstance(emitter, RateNetworkParams):
+        family = "rate"
+    elif isinstance(emitter, HomeostaticEIParams):
+        family = "homeostatic_ei"
+    else:
+        family = type(emitter).__name__
+    raise ValueError(
+        "Simulation(replace=...) is not realized for emitter family "
+        f"'{family}': replace swaps emitted AdEx spikes for Poisson draws; "
+        f"the '{family}' route has no output-replacement path"
+    )
+
+
 def _schedule_summary(entry) -> dict:
     """``{n_steps, min, max, mean}`` of a declared ``rate_schedule_hz`` in Hz."""
     arr = _np_host.asarray(entry["rate_schedule_hz"], dtype=_np_host.float64)
@@ -1976,11 +2008,15 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
     without it the cells start at rest and run with no drive. ``Simulation(silence=...)``
     masks the emitted spikes of a per-type subset from an onset step
     (``_construct_adex.adex_silence_kwargs``; each cell's own state keeps evolving).
+    ``Simulation(replace=...)`` swaps the emitted spikes of a per-type subset for
+    independent per-step Poisson draws at each type's ``rate_hz``
+    (``_construct_adex.adex_replace_kwargs``; silence still wins on overlap).
     No field is built (``field`` is None).
     """
     from ._construct_adex import (
         adex_external_drive_kwargs,
         adex_kernel_args,
+        adex_replace_kwargs,
         adex_silence_kwargs,
     )
 
@@ -1988,9 +2024,12 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
     kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.compute_dtype)
     drive_kwargs = adex_external_drive_kwargs(self, sim)
     silence_mask, silence_onset, silence_record = adex_silence_kwargs(self, sim)
+    replace_mask, replace_lam, replace_key, replace_record = adex_replace_kwargs(self, sim)
     out = simulate_adex(
         **kwargs, **drive_kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True,
         spike_out_mask=silence_mask, spike_out_onset_step=int(silence_onset),
+        spike_replace_mask=replace_mask, spike_replace_lam=replace_lam,
+        spike_replace_key=replace_key,
     )
     time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
     static = self.static["adex"]
@@ -2153,6 +2192,8 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
             metadata["poisson_drive"]["same_step"] = True
     if silence_record is not None:
         metadata["silence"] = silence_record
+    if replace_record is not None:
+        metadata["replace"] = replace_record
     return Signals(
         time_ms=time_ms,
         V_m=out["V_mV"].astype(runtime_cfg.jnp_dtype),
