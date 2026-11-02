@@ -23,6 +23,7 @@ from .emitters import (
     EdgeList,
     IzhikevichParams,
     izhikevich_params_from_labels,
+    refresh_v_coefs,
 )
 from ._config import Configuration, _counts_from_fractions, edge_seed_from_metadata
 from ._construct_connectivity import _empty_edge_list, _interarea_W
@@ -331,7 +332,9 @@ def _apply_cell_params(
                 f"cell_params(selector={dict(selector)!r}) is not realized: it matches no neuron "
                 "of the built population"
             )
-    return replace(params, **{key: jnp.asarray(value, dtype=jdtype) for key, value in arrays.items()})
+    # P-054: a cell whose a, b, c or d leave its preset's class-1 set integrates the standard equation.
+    return refresh_v_coefs(
+        replace(params, **{key: jnp.asarray(value, dtype=jdtype) for key, value in arrays.items()}))
 
 
 def _selector_hits(

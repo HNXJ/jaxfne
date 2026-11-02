@@ -91,6 +91,30 @@ def test_construct_realizes_class1_on_vip_cells_only():
 
 
 @pytest.mark.x64
+def test_cell_params_off_the_class1_set_restore_the_standard_equation():
+    # Izhikevich 2003 and the E1 library path label their inhibitory cells "I" with their own a, b, c, d.
+    cfg = _cfg_vip().cell_params({"cell_type": "VIP"}, {"a": 0.1, "b": 0.2, "c": -65.0, "d": 2.0})
+    em = jtfne.construct(cfg).params["emitter"]
+    assert np.any(np.asarray(em.labels) == "VIP"), "fixture must hold VIP cells"
+    assert em.v_lin is None and em.v_const is None
+
+
+@pytest.mark.x64
+def test_cell_params_drive_only_keeps_the_class1_equation():
+    cfg = _cfg_vip().cell_params({"cell_type": "VIP"}, {"drive": 4.0})
+    em = jtfne.construct(cfg).params["emitter"]
+    vip = np.asarray(em.labels) == "VIP"
+    assert vip.any() and np.all(np.asarray(em.v_lin)[vip] == 4.1)
+
+
+@pytest.mark.x64
+def test_with_emitter_parameters_b_override_restores_the_standard_equation():
+    model = jtfne.construct(_cfg_vip())
+    assert model.params["emitter"].v_lin is not None, "fixture must start with class-1 cells"
+    assert model.with_emitter_parameters(b=0.2).params["emitter"].v_lin is None
+
+
+@pytest.mark.x64
 def test_checkpoint_round_trip_keeps_the_v_equation(tmp_path):
     cfg = _cfg_vip()
     model = jtfne.construct(cfg)

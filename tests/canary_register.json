@@ -15,30 +15,30 @@
     },
     "field_lfp_csd": {
       "exact": {
-        "raster_sha256": "a17ad91e474121731fd4db2c35202a410e000ece3a60578e166de11d359f3c92",
+        "raster_sha256": "12977230418cb5cafe4a50bef8c4f2446fe77b882266908b3cfb9f009738d2ef",
         "spikes/E": 10,
         "spikes/PV": 1,
         "spikes/SST": 10,
-        "spikes/VIP": 0,
-        "spikes/total": 21
+        "spikes/VIP": 2,
+        "spikes/total": 23
       },
       "floats": {
-        "csd_rms": 201.60815850263984,
-        "lfp_rms": 13.697460413972678
+        "csd_rms": 201.6824646409778,
+        "lfp_rms": 13.70306742268865
       }
     },
     "hdp_plastic_w": {
       "exact": {
-        "raster_sha256": "573bece579430318132436b89e3dc1a19d9992e3b7146f4beea565bfbe876009",
+        "raster_sha256": "be538daa8bb7f35dc86692cdb2f9e6df234a7a41bc2a1f6b0befd884c7dbb13a",
         "spikes/E": 10,
         "spikes/PV": 1,
         "spikes/SST": 10,
-        "spikes/VIP": 0,
-        "spikes/total": 21
+        "spikes/VIP": 2,
+        "spikes/total": 23
       },
       "floats": {
         "final_weight_sum": 1.7267623618245125,
-        "mean_V_m_mV": -69.96080188918579
+        "mean_V_m_mV": -66.27758990942058
       }
     },
     "izhikevich_route": {

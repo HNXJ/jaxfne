@@ -449,6 +449,30 @@ def izhikevich_eig_params(
     )
 
 
+def refresh_v_coefs(params: "IzhikevichParams") -> "IzhikevichParams":
+    """Re-derive ``v_lin``/``v_const`` from the labels and the realized a, b, c, d.
+
+    A preset's own v equation (the class-1 4.1 and 108 of ``VIP``/``I``) belongs to its a, b, c, d
+    (figure1.m panel G); a cell whose a, b, c or d were set to other values (``cell_params``,
+    ``with_emitter_parameters``) integrates the standard 5 and 140. Needs concrete arrays.
+    """
+    lin, const = _v_coef_lists(params.labels)
+    if lin is None:
+        return dataclass_replace(params, v_lin=None, v_const=None)
+    realized = {k: np.asarray(getattr(params, k)) for k in ("a", "b", "c", "d")}
+    lin, const = np.asarray(lin), np.asarray(const)
+    for i, name in enumerate(params.labels):
+        p = _get_cell_type_params(name)
+        if "v_lin" not in p:
+            continue
+        if any(realized[k][i] != np.asarray(p[k], dtype=realized[k].dtype) for k in realized):
+            lin[i], const[i] = IZH_V_LIN_STANDARD, IZH_V_CONST_STANDARD
+    if np.all(lin == IZH_V_LIN_STANDARD) and np.all(const == IZH_V_CONST_STANDARD):
+        return dataclass_replace(params, v_lin=None, v_const=None)
+    dt = params.a.dtype
+    return dataclass_replace(params, v_lin=jnp.asarray(lin, dtype=dt), v_const=jnp.asarray(const, dtype=dt))
+
+
 def _v_coef_fields(labels, jdtype) -> dict:
     """``v_lin``/``v_const`` keyword arrays for a labelled population (empty when all standard)."""
     lin, const = _v_coef_lists(labels)

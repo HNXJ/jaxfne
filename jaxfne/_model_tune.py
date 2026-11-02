@@ -928,6 +928,10 @@ def with_emitter_parameters(
         updates["drive"] = emitter.drive * float(drive_scale)
 
     new_emitter = replace(emitter, **updates)
+    if {"a", "b", "c", "d"} & set(updates):
+        from .emitters import refresh_v_coefs
+
+        new_emitter = refresh_v_coefs(new_emitter)  # P-054: the v equation follows a, b, c, d
     new_params = dict(self.params)
     new_params["emitter"] = new_emitter
     return replace(self, params=new_params)

@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2468 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2469 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -1010,6 +1010,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `update_order='net_m' requires a concrete noise_scale=0.0 (zero cannot be verified under trace)` |
 | `ValueError` | `update_order='net_m' realizes the paper's noise-free thal drive; got nonzero noise_scale={...}` |
 | `ValueError` | `unknown Izhikevich cell type {...}; expected one of {...}` |
+| `ValueError` | `IzhikevichParams: v_lin and v_const must both be set or both be None` |
 | `ValueError` | `dtype='float64' requested but JAX x64 is not enabled -- call jax.config.update("jax_enable_x64", Tru` |
 | `ValueError` | `cell_type_fractions[{...}] must be finite and non-negative; got {...}` |
 | `ValueError` | `cell_type_fractions must have positive mass; got {...}` |
