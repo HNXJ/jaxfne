@@ -52,3 +52,33 @@ headline amplitude claim fails), 3A pass, 3B fail, 4A bottom partial. Panels 2C-
 traces at 40 and 90 %) stay not run: the network runs exist in the receipts, the raster figures and the mean-field
 comparison are not built. Both fails on SOM amplitude contrast with the Cell Reports parameter
 set, where SOM silencing and replacement lower band power (`RESULT_FIGURES.md` Fig 3A, 4A).
+
+## O-83 attribution: the SOM amplitude fails follow the 2 ms synaptic delay (2026-11-02)
+
+Method (`calibration/attribute_o83.py`): the PLoS `default` set with one parameter family swapped to its `cellrep`
+value, T 12 s, SOM silenced at 0 and 90 %; band power 25-45 Hz at 90 % over the same seed's 0 %. WSL CUDA float32.
+
+Step 1, seven families, seed 1 (bafa4797; `F:/warehouse/caminos/o83_bafa4797/o83.json`, sha256 a8a8008e…):
+
+| Family swapped | band ratio at 90 % | baseline E / PV / SOM Hz | readout |
+|---|---|---|---|
+| delay (`tau_d_s` 2 ms → 0) | 0.374 | 0.97 / 9.76 / 4.76 | valid |
+| sizes (NPV 800, NSOM 600) | 0.679 | 1.08 / 10.81 / 6.42 | valid |
+| adaptation | 0.854 | 0.76 / 8.77 / 11.31 | valid |
+| connectivity | 0.905 | 0.31 / 5.56 / 0.04 | invalid: SOM silent at baseline |
+| weights | 0.939 | 0.30 / 4.53 / 1.12 | valid |
+| leak_threshold | 1.320 | 1.45 / 13.45 / 10.38 | valid |
+| syn_tau | 0.238 | 196.07 / 184.44 / 193.82 | invalid: high-rate state, f_pk 100 Hz |
+
+Step 2, seeds 1-3 (8ed3f29b; `F:/warehouse/caminos/o83_seeds_8ed3f29b/o83_seeds.json`, sha256 9ae770d2…):
+
+| Set | band ratio at 90 %, seeds 1/2/3 | SOM at 90 % Hz | E at 90 % Hz |
+|---|---|---|---|
+| default | 1.054 / 0.942 / 0.993 | 0.58-0.65 | 1.22-1.31 |
+| cellrep | 0.453 / 0.430 / 0.445 | 0.54-0.55 | 2.68-2.72 |
+| default with delay 0 | 0.374 / 0.392 / 0.512 | 0.54-0.59 | 1.21-1.30 |
+
+The delay swap alone moves the default set to the cellrep reduction on every seed, with SOM silenced and E inside
+1-3 Hz. The 2 ms delay is the paper's stated value (PLoS CB Table 2; CALIBRATION §4, F1), so the port follows the
+paper here: under the stated delay, SOM silencing leaves gamma intact; without it, gamma falls by half or more. The 2B
+and 3B fails stand as scored.

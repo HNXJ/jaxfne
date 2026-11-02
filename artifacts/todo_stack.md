@@ -55,9 +55,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Beside the path (∥)
 
-12. ∥ T-63b [A] CAMINOS PLoS (O-83 first): attribute the 2B/3B SOM miss (`calibration/attribute_o83.py`, seven
-    parameter families, running first in the GPU queue; a T 3 s smoke gave band ratio 0.34 with the delay family
-    swapped), then 2C-F, 3C-F: rerun 40 and 90 % saving rasters
+12. ∥ T-63b [A] CAMINOS PLoS (O-83 closed 2026-11-02: the 2B/3B SOM fails follow the stated 2 ms delay,
+    `RESULT_PLOS_FIGS.md`): 2C-F, 3C-F: rerun 40 and 90 % saving rasters
     and population traces (the figP rows keep spectra only), mean-field traces beside them. Closes when the replica
     block scores them and O-83 holds an attribution.
 13. ∥ T-59 [A] Cell Reports Fig S1 runner with its test; `replication_audit` reads clean in the report gate.

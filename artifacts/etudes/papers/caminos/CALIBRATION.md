@@ -98,6 +98,9 @@ The ruling says the dispatcher read the method from the bioRxiv full text. My ow
 - Port: a 2 ms synaptic delay on all synapses (PLoS CB Table 2, τd = 2 ms; stated in the text as "A synaptic delay of 2 ms was included for all synapses").
 - Preprint (dispatcher reading): its model has no synaptic delay, and its spiking lag is about 7 ms (80°).
 - Recorded as an open fidelity item, per the ruling. Not changed. A change would move a stated parameter.
+- 2026-11-02 (O-83, `RESULT_PLOS_FIGS.md`): the same delay decides the PLoS 2B/3B SOM fails. With the delay at 0 and
+  every other default parameter kept, SOM silencing at 90 % lowers band power to 0.37-0.51 (seeds 1-3); at 2 ms it
+  stays at 0.94-1.05.
 
 ## 5. Resolved and open by the rulings
 
