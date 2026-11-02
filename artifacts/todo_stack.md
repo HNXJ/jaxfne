@@ -41,7 +41,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    fit signed 2026-11-01). B8 pilots done 2026-11-02, every known positive moves: Potjans (CALIBRATION 0b; lesion
    R-L5E e 40.9; baseline predicts FAIL on R-L23E, R-L5E, O-IE L5, CV L6E); Vogels at T 150 s (CALIBRATION, B8 T 150 s
    pilots; rho0 6 Hz R-E e 1.31, eta 0 O-DROP 0.99; baseline converged at 4.11 Hz, predicts R-E FAIL e 0.41).
-   Vogels P3 v3 (pinned 2026-11-02) carries one owner decision first: the CONV slope rule's noise.
+   Vogels P3 v4 signed 2026-11-02 (`prereg/P3_v4_signed.md`; CONV with the slope test): next a scored driver
+   (`vogels2011_api.py score`, seeds 4-8 only, signed) then seeds 4-8 on the GPU, ~40 min each.
    Each: sign ⇒ scored run from a fixed clone → result file, dashboard, checklist 9D/9E; defer ⇒ the package moves
    to 0.5.10 with its reason (Gate 1).
 8. T-70 [A] 9F: the rc gate end to end on the candidate (JUnit parity, figure lock, clean-checkout figure job;

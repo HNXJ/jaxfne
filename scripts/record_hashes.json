@@ -5,7 +5,7 @@
     "dated": 24,
     "frozen": 28,
     "legacy": 32,
-    "prereg": 115,
+    "prereg": 116,
     "receipts": 10
   },
   "paths": {
@@ -151,6 +151,7 @@
     "artifacts/etudes/papers/vogels2011/prereg/P3_v2.md": "f673df80ebb42cc582fb1d9c2bf12c9f8f38a689bc187ffa83e46660e4a92cdc",
     "artifacts/etudes/papers/vogels2011/prereg/P3_v3.md": "149517c9fdc514a89e1e25ab5b25940e2f06c20e97728ef34ca1ef5d7bc5d435",
     "artifacts/etudes/papers/vogels2011/prereg/P3_v4.md": "998d779c0defe6abe131d30f54584bb1742e8de8f0de5a45e380ae5100e48851",
+    "artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md": "bb7719433f8e9da9d887e39a5091ca1d8eb614855ce1c66e803eb38ad6f32536",
     "artifacts/figures/publication/fig01_tfne_grammar.png": "707c3fec9f4b6747551e994897f70910c41ff88d5ed5a7b6910b441bc2e65678",
     "artifacts/figures/publication/fig02_emitter_source.png": "e65ad1f30de3b59beda0a402658d5d01e2eef9b77a1c10b40940cf42ee31ba09",
     "artifacts/figures/publication/fig03_local_observation.png": "ffa0a54232170cf745ffd549dae36e0a20e4732257f30e373c83da6b173c6392",
