@@ -613,7 +613,10 @@
           {"id": "2A", "status": "not run"}, {"id": "2B", "status": "not run"}, {"id": "2C", "status": "not run"}, {"id": "2D", "status": "not run"},
           {"id": "3B", "status": "not run"}, {"id": "3C", "status": "not run"}, {"id": "3D", "status": "not run"}, {"id": "3E", "status": "not run"},
           {"id": "4", "status": "not run"}, {"id": "5A", "status": "not run"}, {"id": "5B", "status": "not run"},
-          {"id": "6A", "status": "not run"}, {"id": "6B", "status": "not run"}, {"id": "6C", "status": "not run"}, {"id": "6D", "status": "not run"},
+          {"id": "6A", "status": "not run"},
+          {"id": "6B", "status": "partial", "evidence": "artifacts/etudes/papers/potjans2014/RESULT_P3.md", "note": "signed P3 v2, seeds 4-8: R-L4E and R-L6E in band, R-L23E (e 0.75) and R-L5E (e 0.30) out; I above E fails at L5"},
+          {"id": "6C", "status": "fail", "evidence": "artifacts/etudes/papers/potjans2014/RESULT_P3.md", "note": "CV above 0.8 holds in six populations; L6E and L6PV 0.797"},
+          {"id": "6D", "status": "not run", "note": "synchrony reported, never scored (P3 v2 secondary): L5E lowest Fano, L6E highest"},
           {"id": "7A", "status": "not run"}, {"id": "7B", "status": "not run"}, {"id": "7C", "status": "not run"},
           {"id": "8A", "status": "not run"}, {"id": "8B", "status": "not run"}, {"id": "8C", "status": "not run"},
           {"id": "9A", "status": "not run"}, {"id": "9B", "status": "not run"}, {"id": "9C", "status": "not run"},
@@ -630,10 +633,16 @@
       "page": "models/potjans2014.md",
       "release": "0.5.9",
       "tier": "T-jaxfne",
-      "stage": "P2",
-      "lane": {"branch": "dev", "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"},
-      "summary": "P1 source record written from the open-access PMC record. Fig. 6 claims (reference rates 0.86/4.45/7.59/1.09 Hz, CV above 0.8, L5e-highest/L6-lowest synchrony) and the Table 5 connectivity map are recorded with paper pointers. PORT_SPEC written and a smoke pilot run, unscored (CALIBRATION.md). Next per B8: signature, then fresh seeds.",
-      "preregs": [],
+      "stage": "P3",
+      "lane": {"branch": "dev", "sha": "42e7f618a657d34f931fd1ec009069d72c98610b"},
+      "stage_artifacts": {
+        "P3": [{"label": "prereg v2 (signed)", "path": "artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md"},
+               {"label": "result", "path": "artifacts/etudes/papers/potjans2014/RESULT_P3.md"}]
+      },
+      "summary": "Signed P3 v2 (seeds 4-8, 10% scale with in-degree held, 10 s, GPU float32): off. L4e 4.47 Hz and L6e 1.14 Hz match the reference rates and the E-rate order holds; L2/3e 1.51 Hz against 0.86 and L5e 9.90 Hz against 7.59 do not, L5 inhibition falls below L5e, and L6 CV sits at 0.797 under the 0.8 bound. The B8 pilot predicted these four rows off.",
+      "preregs": [
+        {"id": "P3 v2", "signed": "2026-11-02", "path": "artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md"}
+      ],
       "files": {},
       "criteria": [],
       "sensitivity": [],
@@ -671,15 +680,21 @@
       "page": "models/vogels2011.md",
       "release": "0.5.8",
       "tier": "T-jaxfne",
-      "stage": "P2",
-      "lane": {"branch": "dev", "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"},
-      "summary": "P1 source record written from the authors' ModelDB code (the MATLAB script was in the Science SOM) plus the open-access 2013 review. Coded target rho0 = 3 Hz; paper-stated realized rates/CVs stay unknown (full text paywalled). The lane runs on the jaxfne core only; next per rule B8 is the pilot, then signature, then fresh seeds.",
-      "preregs": [],
+      "stage": "P3",
+      "lane": {"branch": "dev", "sha": "42e7f618a657d34f931fd1ec009069d72c98610b"},
+      "stage_artifacts": {
+        "P3": [{"label": "prereg v4 (signed)", "path": "artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md"},
+               {"label": "result", "path": "artifacts/etudes/papers/vogels2011/RESULT_P3.md"}]
+      },
+      "summary": "Signed P3 v4 (seeds 4-8, n 10 000, 150 s of inhibitory plasticity, GPU float32): off on R-E. Every seed converges and the E rate drops 38.9-fold from the static network, but it settles at 4.13 Hz against the 3 Hz target (e 0.375 over 0.20). The B8 pilot predicted R-E off (4.11 Hz).",
+      "preregs": [
+        {"id": "P3 v4", "signed": "2026-11-02", "path": "artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md"}
+      ],
       "files": {},
       "criteria": [],
       "sensitivity": [],
       "charts": [],
-      "open": ["Accepted manuscript readable (local copy F:/warehouse/vogels/Vogels2011_Science_AM.pdf); it states the Fig. 4B AI state at 3-15 Hz.","Conductance synapses vs the current-based core LIF is a P2 fidelity question.", "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."]
+      "open": ["Fig. 4 panels stay unmapped to the P3 rows (R-E, O-DROP); the mapping waits on the accepted manuscript's legends.", "Accepted manuscript readable (local copy F:/warehouse/vogels/Vogels2011_Science_AM.pdf); it states the Fig. 4B AI state at 3-15 Hz.","Conductance synapses vs the current-based core LIF is a P2 fidelity question.", "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."]
     },
     {
       "id": "mejias2016",
