@@ -24,16 +24,20 @@ import math
 import sys
 from pathlib import Path
 
-_repo_root = Path(__file__).resolve().parents[4]
-if str(_repo_root) not in sys.path:
-    sys.path.insert(0, str(_repo_root))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 
 import jaxfne as J
+from jaxfne import neuronal_tensor as nt
+from jaxfne.istdp_vogels2011 import ETA_DEFAULT as ISTDP_ETA_DEFAULT
+from jaxfne.istdp_vogels2011 import RHO0_HZ_DEFAULT as ISTDP_RHO0_HZ_DEFAULT
+from jaxfne.istdp_vogels2011 import TAU_STDP_MS_DEFAULT as ISTDP_TAU_MS_DEFAULT
+from scripts import lane_kit
+
 assert "site-packages" not in J.__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
-from jaxfne import neuronal_tensor as nt
-from scripts import lane_kit
+
+_repo_root = Path(__file__).resolve().parents[4]
 
 # Paper constants (SOURCE_P1.md section 2, isp_brian.py parameter block).
 NE_FRAC = 0.8
@@ -54,9 +58,6 @@ DELAY_MS = 0.1
 # alpha = 2*rho0*tau with rho0 = 3 Hz, cap gmax = 100. All four ride the
 # rule defaults in `jaxfne.istdp_vogels2011`.
 ISTDP_RULE = "istdp_vogels2011"
-from jaxfne.istdp_vogels2011 import ETA_DEFAULT as ISTDP_ETA_DEFAULT
-from jaxfne.istdp_vogels2011 import RHO0_HZ_DEFAULT as ISTDP_RHO0_HZ_DEFAULT
-from jaxfne.istdp_vogels2011 import TAU_STDP_MS_DEFAULT as ISTDP_TAU_MS_DEFAULT
 
 #: Conductance-LIF cells: AdEx at the LIF limit (Delta_mV = 0.0) with
 #: adaptation zeroed, leak and threshold at the paper values
@@ -120,12 +121,12 @@ def build_spec(n=20, seed=0):
     )
 
 
-def build_sim(T_s=1.0, dt_ms=DT_MS, seed=0):
-    """The ``Simulation`` for a run (duration, dt; drive is per-triple)."""
+def build_sim(T_s=1.0, dt_ms=DT_MS):
+    """The ``Simulation`` for a run (duration, dt; the static adex route owns
+    no RNG, so the lane seed rides construct-time wiring, never this sim)."""
     return J.Simulation(
         duration_ms=float(T_s) * 1000.0,
         dt_ms=float(dt_ms),
-        seed=int(seed),
     )
 
 
@@ -150,7 +151,7 @@ def run(seed, tag, out_dir, *, n=200, T_s=1.0, signed=False):
                                 dt_ms=DT_MS, emitter="adex"),
     )
     t_construct = time.perf_counter() - t0
-    sim = build_sim(T_s=T_s, seed=seed)
+    sim = build_sim(T_s=T_s)
     signals = model.simulate(sim)
     t_simulate = time.perf_counter() - t0 - t_construct
     spikes = np.asarray(signals.spikes, dtype=bool)
@@ -391,7 +392,7 @@ def _e_rate_hz(spikes, e_cols, start_step, end_step):
 
 
 def pilot(seed, n, T_s, out_dir, *, rho0_hz=ISTDP_RHO0_HZ_DEFAULT,
-          eta=ISTDP_ETA_DEFAULT, plastic_segment_s=None):
+          eta=ISTDP_ETA_DEFAULT, plastic_segment_s=None, signed=False):
     """B8 pilot: 1 s static then ``T_s`` plastic, with the prereg estimands.
 
     Unscored always (``signed=False``): R-E is the E mean rate over the last
@@ -408,11 +409,13 @@ def pilot(seed, n, T_s, out_dir, *, rho0_hz=ISTDP_RHO0_HZ_DEFAULT,
     import numpy as np
 
     t0 = time.perf_counter()
-    a = run(int(seed), "segA", out_dir, n=int(n), T_s=STATIC_S)
+    a = run(int(seed), "segA", out_dir, n=int(n), T_s=STATIC_S,
+            signed=signed)
     b = run_plastic_segment(int(seed), "segB", out_dir, n=int(n),
                             T_s=float(T_s), rho0_hz=float(rho0_hz),
                             eta=float(eta),
-                            plastic_segment_s=plastic_segment_s)
+                            plastic_segment_s=plastic_segment_s,
+                            signed=signed)
     assert bool((np.asarray(a["e_cols"]) == np.asarray(b["e_cols"])).all()), \
         "static and plastic legs must share E columns"
     e_cols = a["e_cols"]
@@ -455,6 +458,130 @@ def pilot(seed, n, T_s, out_dir, *, rho0_hz=ISTDP_RHO0_HZ_DEFAULT,
     return receipt
 
 
+#: P3 v4 (signed) scored protocol: seeds, scale and the prereg record.
+SCORED_SEEDS = (4, 5, 6, 7, 8)
+SCORED_N = 10000
+SCORED_T_S = 150.0
+SCORED_SEGMENT_S = 5.0
+PREREG_SIGNED_REL = ("artifacts/etudes/papers/vogels2011/prereg/"
+                     "P3_v4_signed.md")
+CONV_SLOPE_HZ_S = 0.01
+CONV_T_CRIT = 2.101  # t(0.975, 18): P3 v4 signed, 20 bins, n - 2 dof
+CONV_WINDOW_BINS = 20
+
+
+def prereg_signed_path():
+    """Filesystem path of the signed P3 v4 prereg (read at run time)."""
+    return Path(__file__).resolve().parent / "prereg" / "P3_v4_signed.md"
+
+
+def prereg_sha256():
+    """sha256 of the signed prereg's bytes, computed at run time."""
+    import hashlib
+
+    return hashlib.sha256(prereg_signed_path().read_bytes()).hexdigest()
+
+
+def _t_crit_975(df):
+    """Two-sided 0.975 t quantile at ``df`` (scipy; the v4 pin on failure)."""
+    try:
+        from scipy.stats import t as _t
+
+        return float(_t.ppf(0.975, int(df)))
+    except Exception:
+        return CONV_T_CRIT
+
+
+def conv_fit(rates, window=CONV_WINDOW_BINS):
+    """Least-squares slope of the per-second E rate over its last bins.
+
+    P3 v4 signed CONV (Change from v3): slope b over the last ``window``
+    one-second bins (20 at T 150 s: 130-150 s) with its standard error from
+    the residual sd on n - 2 degrees of freedom. The seed is "not converged"
+    only when |b| >= 0.01 Hz/s and |b| / se > t(0.975, n - 2). Short series
+    fit their last bins; the scorer refuses them, the small receipt notes it.
+    """
+    import numpy as np
+
+    y = np.asarray(list(rates), dtype=float)
+    if y.size < 3:
+        raise ValueError(
+            "conv_fit needs at least 3 one-second bins, got %d" % y.size)
+    w = min(int(window), y.size)
+    seg = y[y.size - w:]
+    n = int(w)
+    x = np.arange(n, dtype=float)
+    xbar = float(x.mean())
+    sxx = float(((x - xbar) ** 2).sum())
+    b = float(((x - xbar) * (seg - float(seg.mean()))).sum() / sxx)
+    resid = seg - (float(seg.mean()) + b * (x - xbar))
+    sse = float((resid ** 2).sum())
+    se = math.sqrt(sse / (n - 2)) / math.sqrt(sxx)
+    if se > 0.0:
+        t = abs(b) / se
+    else:
+        t = float("inf") if b != 0.0 else 0.0
+    crit = _t_crit_975(n - 2)
+    converged = not (abs(b) >= CONV_SLOPE_HZ_S and t > crit)
+    return {"b": b, "se": float(se), "t": float(t),
+            "t_crit": float(crit), "converged": bool(converged),
+            "n_bins": n, "window_s": [int(y.size - w), int(y.size)]}
+
+
+def scored_run(seed, out_dir, *, n=SCORED_N, T_s=SCORED_T_S,
+               plastic_segment_s=SCORED_SEGMENT_S,
+               rho0_hz=ISTDP_RHO0_HZ_DEFAULT, eta=ISTDP_ETA_DEFAULT,
+               signed=False):
+    """One signed scored seed under P3 v4 signed (``score --seed S --signed``).
+
+    Refuses seeds outside 4-8 and unsigned calls before any compute. Runs the
+    pilot protocol with ``signed=True`` at the signed parameters (n 10000,
+    1 s static then T 150 s plastic, 5 s plastic segments, default rho0/eta;
+    small n/T_s only in tests) and writes ``score_receipt.json``: the pilot
+    fields plus ``status: "signed"``, the prereg path and its run-time
+    sha256, the CONV fit (clamped with a note when T_s < 150 s) and the AI
+    regime of the saved plastic window.
+    """
+    import numpy as np
+
+    if not signed:
+        raise SystemExit(
+            "error: scored run needs --signed (P3 v4 signed only)")
+    if int(seed) not in SCORED_SEEDS:
+        raise SystemExit(
+            "error: scored seeds are 4-8, got %r" % (seed,))
+    receipt = pilot(int(seed), int(n), float(T_s), out_dir,
+                    rho0_hz=float(rho0_hz), eta=float(eta),
+                    plastic_segment_s=plastic_segment_s, signed=True)
+    rates = list(receipt["e_rate_per_s_hz"])
+    fit = conv_fit(rates)
+    if len(rates) < SCORED_T_S:
+        window_note = (
+            "CONV window clamped to the last %d one-second bins "
+            "(T_s %.1f s < 150 s; the signed window is 130-150 s)"
+            % (fit["n_bins"], float(T_s)))
+    else:
+        window_note = None
+    spikes = np.load(
+        str(Path(out_dir) / receipt["plastic_file"]))["spikes"]
+    scored = dict(receipt)
+    scored.update({
+        "verdict": "signed scored seed",
+        "status": "signed",
+        "prereg": PREREG_SIGNED_REL,
+        "prereg_sha256": prereg_sha256(),
+        "CONV": {"b_hz_s": fit["b"], "se_hz_s": fit["se"], "t": fit["t"],
+                 "t_crit": fit["t_crit"], "converged": fit["converged"],
+                 "window_s": fit["window_s"], "window_note": window_note,
+                 "criterion": ("not converged only when |b| >= 0.01 Hz/s "
+                               "and |b|/se > 2.101")},
+        "AI": score(spikes, DT_MS),
+    })
+    sha = lane_kit.git_sha(_repo_root)
+    lane_kit.write_manifest(out_dir, "score_receipt.json", scored, sha=sha)
+    return scored
+
+
 def main(argv=None):
     """Command-line entry: ``pilot --seed S --n N --T-s T --out DIR``."""
     import argparse
@@ -469,7 +596,20 @@ def main(argv=None):
     pp.add_argument("--rho0-hz", type=float, default=ISTDP_RHO0_HZ_DEFAULT)
     pp.add_argument("--eta", type=float, default=ISTDP_ETA_DEFAULT)
     pp.add_argument("--plastic-segment-s", type=float, default=None)
+    ps = sub.add_parser("score", help="run one signed scored seed (P3 v4)")
+    ps.add_argument("--seed", type=int, required=True)
+    ps.add_argument("--out", required=True)
+    ps.add_argument("--signed", action="store_true")
     args = p.parse_args(argv)
+    if args.cmd == "score":
+        receipt = scored_run(args.seed, args.out, signed=args.signed)
+        print("R-E z=%.3f Hz e=%.3f | O-DROP ratio=%.3f | "
+              "CONV b=%+.4f (se %.4f) converged=%s | %s"
+              % (receipt["R-E"]["z_hz"], receipt["R-E"]["e"],
+                 receipt["O-DROP"]["ratio"], receipt["CONV"]["b_hz_s"],
+                 receipt["CONV"]["se_hz_s"], receipt["CONV"]["converged"],
+                 receipt["status"]))
+        return 0
     if args.cmd == "pilot":
         receipt = pilot(args.seed, args.n, getattr(args, "T_s"), args.out,
                         rho0_hz=args.rho0_hz, eta=args.eta,

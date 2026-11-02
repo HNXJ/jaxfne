@@ -5,25 +5,26 @@ baseline implementation and carries ``xfail(strict=True)`` so a core change
 that closes the gap turns it green loudly.
 """
 
+import hashlib
+import json
+import math
 import os
 import sys
 from pathlib import Path
 
-import pytest
-
-_repo_root = Path(__file__).resolve().parents[4]
-if str(_repo_root) not in sys.path:
-    sys.path.insert(0, str(_repo_root))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 
 os.environ.setdefault("JAX_PLATFORMS", "cpu")
 
 import numpy as np
+import pytest
 
 import jaxfne as jtfne
+from artifacts.etudes.papers.vogels2011 import vogels2011_api as L
+
 assert "site-packages" not in jtfne.__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
-from artifacts.etudes.papers.vogels2011 import vogels2011_api as L
 
 N_SMALL = 20
 DT = 0.1
@@ -335,3 +336,86 @@ def test_segmented_pilot_matches_unsegmented_estimands(tmp_path):
     s = np.load(tmp_path / "s" / "spikes_seed0_segB.npz")["spikes"]
     assert (u[-s.shape[0]:] == s).all(), \
         "the segmented raster must equal the unsegmented tail"
+
+
+def test_scored_run_refuses_out_of_range_seeds(tmp_path):
+    """scored_run refuses seeds outside 4-8 (P3 v4 signed, seeds 4-8 only)."""
+    for bad in (0, 1, 2, 3, 9):
+        with pytest.raises(SystemExit):
+            L.scored_run(bad, tmp_path / ("s%d" % bad), n=20, T_s=0.2,
+                         signed=True)
+
+
+def test_scored_run_refuses_unsigned(tmp_path):
+    """scored_run refuses without signed=True (P3 v4 signed only)."""
+    with pytest.raises(SystemExit):
+        L.scored_run(4, tmp_path / "nosign", n=20, T_s=0.2, signed=False)
+
+
+def test_signed_small_run_receipt(tmp_path):
+    """A signed small run writes status signed and the live prereg sha (P3 v4)."""
+    out = tmp_path / "signed4"
+    receipt = L.scored_run(4, out, n=20, T_s=3.0, signed=True)
+    assert receipt["status"] == "signed", "scored receipt must read signed"
+    disk = json.loads((out / "score_receipt.json").read_text())
+    assert disk["status"] == "signed", "receipt must land on disk signed"
+    live = hashlib.sha256(
+        (Path(L.__file__).parent / "prereg" / "P3_v4_signed.md"
+         ).read_bytes()).hexdigest()
+    assert disk["prereg_sha256"] == live, \
+        "receipt sha must equal the prereg file's bytes"
+    assert "P3_v4_signed.md" in disk["prereg"], "receipt must name the prereg"
+    pilot_keys = {"seed", "n", "T_s", "static_s", "dt_ms", "eta",
+                  "rho0_hz", "plastic_segment_s", "static_file",
+                  "plastic_file", "e_rate_per_s_hz", "R-E", "O-DROP",
+                  "W-IE", "wall_s"}
+    assert pilot_keys <= set(disk), "score receipt keeps the pilot fields"
+    assert disk["CONV"]["window_note"] is not None, \
+        "a T < 150 s receipt clamps the CONV window with a note"
+    assert disk["AI"]["label"], "the receipt must carry the AI regime"
+
+
+def _ols_b_se(t, y):
+    """Independent OLS slope and residual-se reimplementation for the tests."""
+    t = np.asarray(t, dtype=float)
+    y = np.asarray(y, dtype=float)
+    n = len(t)
+    sxx = ((t - t.mean()) ** 2).sum()
+    b = ((t - t.mean()) * (y - y.mean())).sum() / sxx
+    resid = y - (y.mean() + b * (t - t.mean()))
+    se = math.sqrt((resid ** 2).sum() / (n - 2)) / math.sqrt(sxx)
+    return b, se
+
+
+def test_conv_flat_noisy_converged():
+    """Flat noisy rates converge and match an independent OLS fit (P3 v4)."""
+    rates = [5.0 + 0.1 * math.sin(i) for i in range(20)]
+    fit = L.conv_fit(rates)
+    b, se = _ols_b_se(np.arange(20), rates)
+    assert fit["b"] == pytest.approx(b, rel=1e-12), "slope must match OLS"
+    assert fit["se"] == pytest.approx(se, rel=1e-9), "se must match OLS"
+    assert fit["converged"] is True, "a flat noisy series is converged"
+
+
+def test_conv_steep_slope_not_converged():
+    """A 0.05 Hz/s slope with small noise is not converged (P3 v4)."""
+    rates = [3.0 + 0.05 * i + 1e-6 * math.sin(i) for i in range(20)]
+    fit = L.conv_fit(rates)
+    assert abs(fit["b"] - 0.05) < 1e-4, "slope must read 0.05 Hz/s"
+    assert fit["t"] > 2.101, "t must clear the 0.975/18 threshold"
+    assert fit["converged"] is False, "a steep significant slope is not converged"
+
+
+def test_conv_shallow_slope_noisy_converged():
+    """A 0.015 Hz/s slope with se above 0.0072 converges (P3 v4, t < 2.101)."""
+    noise = [0.2 if (i < 5 or i >= 15) else -0.2 for i in range(20)]
+    rates = [3.0 + 0.015 * i + n for i, n in enumerate(noise)]
+    fit = L.conv_fit(rates)
+    b, se = _ols_b_se(np.arange(20), rates)
+    assert fit["b"] == pytest.approx(b, rel=1e-12), "slope must match OLS"
+    assert fit["b"] == pytest.approx(0.015, rel=1e-12), \
+        "symmetric noise must leave the slope untouched"
+    assert fit["se"] > 0.0072, "se must clear the boundary case"
+    assert abs(fit["b"]) >= 0.01, "slope magnitude must trip the first leg"
+    assert fit["t"] < 2.101, "t must stay below the 0.975/18 threshold"
+    assert fit["converged"] is True, "an insignificant slope is converged"
