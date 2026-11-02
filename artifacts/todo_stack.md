@@ -70,7 +70,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     ValueError naming the supported keys (Hamm 2026-11-02, O-82 closed). Closes when: parse and refusal tests pass and
     S1 regenerates.
 16. ∥ T-46 [A] C9, C2: 8 gaps in `programme/paper/reproducibility_audit.md` section 7 (left: data and code statement,
-    PCL natural-image and DVS128/N-MNIST licences, S16 generators). → [H] close test (step 22).
+    PCL natural-image and DVS128/N-MNIST licences, S16 generators). Close test (Hamm 2026-11-02): section 7 closes
+    when the gaps touching 0.5.9 items close; the paper-only gaps (licences, data and code statement) move to the
+    paper lane with a dated note.
 17. ∥ T-30 [A] Conformance for the rest (`scripts/replication_known_violations.json`; the S1 entries are Hamm's
     exceptions): GSDR (HH in `construct()` dispatch, estimators), Destexhe (estimators, LEDGER, RESULT), pcl_h and
     Q-learning (phase records; pcl_h `sys.path` imports), PCL (closes at R4). Closes when: `check_replications.py
@@ -83,7 +85,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Owner queue (asked one at a time, in this order)
 
-22. [H] T-46 close test: section 7 closes at 0 gaps, or narrows to the 0.5.9 gaps.
 23. [H] T-62 Figure 1D (Onorato data): download permission (file name, source, size in `state.md`); which of panels
     B, C, D hold.
 24. [H] P-052 surrogate fitness for training (`artifacts/runs/perf/profiles/precision_058.md`).
