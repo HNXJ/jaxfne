@@ -53,6 +53,33 @@ traces at 40 and 90 %) stay not run: the network runs exist in the receipts, the
 comparison are not built. Both fails on SOM amplitude contrast with the Cell Reports parameter
 set, where SOM silencing and replacement lower band power (`RESULT_FIGURES.md` Fig 3A, 4A).
 
+## Panels 2C-F and 3C-F: criteria declared before scoring (2026-11-02)
+
+Declared before any scorer read the raster run `F:/warehouse/caminos/plosr_7f7a660e/` (`run_plos_rasters.py` at
+7f7a660e, seeds 1-3, T 12 s, manifest sha256 800ede5f…). Status stays descriptive: the claims come from the Fig 2-3
+captions and Results text (no numbers given); the tolerances are those above, set after the Cell Reports data, and
+the network scalars of the same conditions were already seen in the seed-means table (figP runs). Panel layout:
+C, E PV and D, F SOM, at 40 % (C, D) and 90 % (E, F); Fig 2 silenced, Fig 3 randomized; top row mean field, bottom
+row network. The run has no mean field for randomization, so the Fig 3 top rows are not built.
+
+Estimands, per seed, then the seed mean (seeds 1-3): over the last 0.5 s, the 1 ms-binned population rates (network
+`rate_hz`; mean field `nu_hz`) give the mean rate per population, the frequency f (argmax of |FFT| of the
+mean-subtracted E trace in 5-100 Hz, 2 Hz resolution) and the E amplitude (peak-to-peak); over the 10 s kept window,
+the stored `f_pk_hz` and `band_power_25_45` as ratios to the seed's baseline.
+
+| Panel | Claim | Criterion |
+|---|---|---|
+| 2C | PV silenced 40 %: mean field and network agree in mean rate and frequency | each population's network mean within 20 % of the mean field's; f within 10 % |
+| 2D | SOM silenced 40 %: amplitude falls; network amplitude stays above zero | band power below 1 and above 0.10; mean-field E amplitude below the mean-field baseline |
+| 2E | PV silenced 90 %: seizure-like, E at the inverse refractory period; mean-field fixed point at that rate | network mean E at least 10 times the seed baseline; mean-field E mean at least 100 Hz with CV over time below 0.05 |
+| 2F | SOM silenced 90 %: amplitude reduced | band power below 1; mean-field E amplitude below the mean-field baseline |
+| 3C, 3E | PV randomized 40 %, 90 %: like PV silencing at the same fraction | f_pk and band power change from baseline in the same direction as 2C, 2E; 3E also meets the 2E network criterion |
+| 3D, 3F | SOM randomized 40 %, 90 %: like SOM silencing at the same fraction | f_pk and band power change from baseline in the same direction as 2D, 2F |
+
+A panel passes when every criterion in its row holds on the seed mean; partial when its claims split; fail otherwise.
+Figures: one raster (seed 1, last 0.5 s, every 40th E cell and every 5th PV and SOM cell) with the three population
+rates per panel, and the mean-field traces above the 2C-F panels.
+
 ## O-83 attribution: the SOM amplitude fails follow the 2 ms synaptic delay (2026-11-02)
 
 Method (`calibration/attribute_o83.py`): the PLoS `default` set with one parameter family swapped to its `cellrep`
