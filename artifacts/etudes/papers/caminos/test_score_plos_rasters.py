@@ -44,7 +44,6 @@ MF_CONDITIONS = [
     "som_silenced_0.4",
     "som_silenced_0.9",
 ]
-POP_INDEX = {"E": 0, "PV": 1, "SOM": 2}
 
 
 def _trace(mean, rhythm_hz=0.0, depth=0.8):

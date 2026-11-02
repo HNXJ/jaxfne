@@ -1,6 +1,6 @@
 """R1-R4 estimators and scorer for the L2 CAMINOS etude.
 
-Spec: ``artifacts/etudes/caminos/PREREG_P3.md`` ("Runs" for the signal and
+Spec: ``artifacts/etudes/papers/caminos/PREREG_P3.md`` ("Runs" for the signal and
 kept window, "Estimands and criteria" for the estimators and pass bands).
 
 Input is per-step population spike counts ``[steps, 3]`` in [E | PV | SOM]

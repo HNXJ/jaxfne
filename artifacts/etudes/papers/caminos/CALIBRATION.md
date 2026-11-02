@@ -50,7 +50,7 @@ Method (ruling 2026-10-13, paraphrased):
 5. Group phase: circular mean over all spikes of the group, weighted by per-step counts (a circular mean over a group's spikes equals the mean over its per-step counts, so no per-cell raster is needed).
 6. Delay = wrap(φ_SOM − φ_PV) / (2π f_pk), in ms. Positive when SOM fires after PV.
 
-Estimator: `artifacts/etudes/caminos/caminos_api.py` (`ref42_lfp`, `ref42_phase_delay`), reading the per-step group counts from the core raster (`spikes_to_counts`). The route-c run returns the raster, not a `Signals` object, so the estimator reads the raster reduction, not a `Signals` instance.
+Estimator: `artifacts/etudes/papers/caminos/caminos_api.py` (`ref42_lfp`, `ref42_phase_delay`), reading the per-step group counts from the core raster (`spikes_to_counts`). The route-c run returns the raster, not a `Signals` object, so the estimator reads the raster reduction, not a `Signals` instance.
 
 Runs (all at p = 0.07, T = 12 s, dt = 0.1 ms, float32, WSL2 CUDA, one GPU job at a time under `flock /tmp/jaxfne_gpu.lock`):
 
