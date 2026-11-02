@@ -220,15 +220,15 @@ def test_population_continuation_supported():
 @pytest.mark.slow
 def test_population_restoring_etude_regression_metrics():
     """Scientific regression against committed Etude metrics (MVC #2, alpha_U=1.2)."""
-    # v0.5.6 re-baseline for all three arms (human-authorized; see
-    # artifacts/etudes/bundles/hdp_controllability_reachability/metrics_v056.json
-    # provenance): D1 scales the Izhikevich noise by sqrt(0.5 / dt_ms), which
-    # moves the off, scalar and vector arms. Null-HDP params still route to the
-    # baseline kernel, so scalar == off bit-exactly. The frozen bundle and
-    # metrics_v0423.json stay the historical record.
-    v056_path = ETUDE_METRICS.parent / "metrics_v056.json"
-    assert v056_path.exists(), "v0.5.6 post-D1 baseline missing"
-    expected = json.loads(v056_path.read_text(encoding="utf-8"))["mvc2_recovery"]
+    # v0.5.9 re-baseline for all three arms (Hamm 2026-11-02; see
+    # artifacts/etudes/bundles/hdp_controllability_reachability/metrics_v059.json
+    # provenance): the P-048 default u0 = b * v0 moves the off, scalar and vector
+    # arms. Null-HDP params still route to the baseline kernel, so scalar == off
+    # bit-exactly. metrics_v056.json (post-D1), metrics_v0423.json and the frozen
+    # bundle stay the historical record.
+    v059_path = ETUDE_METRICS.parent / "metrics_v059.json"
+    assert v059_path.exists(), "v0.5.9 post-P-048 baseline missing"
+    expected = json.loads(v059_path.read_text(encoding="utf-8"))["mvc2_recovery"]
 
     model, mei_mask, e_mask = _mcc3_model()
     dt_ms = 0.1
