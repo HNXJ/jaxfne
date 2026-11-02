@@ -65,7 +65,9 @@ row network. The run has no mean field for randomization, so the Fig 3 top rows 
 Estimands, per seed, then the seed mean (seeds 1-3): over the last 0.5 s, the 1 ms-binned population rates (network
 `rate_hz`; mean field `nu_hz`) give the mean rate per population, the frequency f (argmax of |FFT| of the
 mean-subtracted E trace in 5-100 Hz, 2 Hz resolution) and the E amplitude (peak-to-peak); over the 10 s kept window,
-the stored `f_pk_hz` and `band_power_25_45` as ratios to the seed's baseline.
+the stored `f_pk_hz` and `band_power_25_45` as ratios to the seed's baseline. A silenced population's network mean
+is per unsilenced cell, `rate_hz` × N / (N − round(f N)) (silencing masks round(f N) cells, `caminos_jax.manip_mask`),
+since the mean field's rate is per active cell (amended before scoring, same day).
 
 | Panel | Claim | Criterion |
 |---|---|---|
