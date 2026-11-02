@@ -1511,6 +1511,7 @@ def simulate(
     object.__setattr__(self, "_last_hdp_diag", None)
     object.__setattr__(self, "_last_homeostasis_diag", None)
     _refuse_gaussian_drive_family(self, sim)
+    _refuse_silence_family(self, sim)
     if type(self.params["emitter"]) is not IzhikevichParams:
         _refuse_surrogate(runtime_cfg, f"emitter family {type(self.params['emitter']).__name__}")
     if continuation is not None or return_state:
@@ -1900,6 +1901,48 @@ def _simulate_homeostatic_ei(
     )
 
 
+def _refuse_silence_family(model: "Model", sim: Simulation) -> None:
+    """Refuse ``Simulation(silence=...)`` outside the adex route, naming the family.
+
+    The single central check: every non-AdEx emitter family refuses a non-None
+    silence before its own input handling, so a misrouted declaration fails
+    loudly at the public entry point instead of running unsilenced.
+    """
+    if sim.silence is None:
+        return
+    emitter = model.params["emitter"]
+    if isinstance(emitter, AdExParams):
+        return
+    if isinstance(emitter, IzhikevichParams):
+        family = "izhikevich"
+    elif isinstance(emitter, HHParams):
+        family = "hh"
+    elif isinstance(emitter, LIFNetworkParams):
+        family = "lif"
+    elif isinstance(emitter, RateNetworkParams):
+        family = "rate"
+    elif isinstance(emitter, HomeostaticEIParams):
+        family = "homeostatic_ei"
+    else:
+        family = type(emitter).__name__
+    raise ValueError(
+        "Simulation(silence=...) is not realized for emitter family "
+        f"'{family}': silence masks emitted AdEx spikes from an onset step; "
+        f"the '{family}' route has no output-silencing path"
+    )
+
+
+def _schedule_summary(entry) -> dict:
+    """``{n_steps, min, max, mean}`` of a declared ``rate_schedule_hz`` in Hz."""
+    arr = _np_host.asarray(entry["rate_schedule_hz"], dtype=_np_host.float64)
+    return {
+        "n_steps": int(arr.shape[0]),
+        "min": float(arr.min()),
+        "max": float(arr.max()),
+        "mean": float(arr.mean()),
+    }
+
+
 def _refuse_adex_inputs(
     model: "Model", sim: Simulation, paradigm: Any, continuation: Any, return_state: bool
 ) -> None:
@@ -1929,16 +1972,25 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
     Runs the conductance kernel on the compiled edges (``_construct_adex.adex_kernel_args``
     supplies its arguments). ``Simulation(poisson_drive=...)`` adds the CAMINOS external
     drive (``_construct_adex.adex_external_drive_kwargs`` supplies the kernel's ``ext_*``
-    arguments); without it the cells start at rest and run with no drive. No field is
-    built (``field`` is None).
+    arguments, including a per-step ``rate_schedule_hz`` in place of ``rate_hz``);
+    without it the cells start at rest and run with no drive. ``Simulation(silence=...)``
+    masks the emitted spikes of a per-type subset from an onset step
+    (``_construct_adex.adex_silence_kwargs``; each cell's own state keeps evolving).
+    No field is built (``field`` is None).
     """
-    from ._construct_adex import adex_external_drive_kwargs, adex_kernel_args
+    from ._construct_adex import (
+        adex_external_drive_kwargs,
+        adex_kernel_args,
+        adex_silence_kwargs,
+    )
 
     dtype = runtime_cfg.jnp_compute_dtype
     kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.compute_dtype)
     drive_kwargs = adex_external_drive_kwargs(self, sim)
+    silence_mask, silence_onset, silence_record = adex_silence_kwargs(self, sim)
     out = simulate_adex(
-        **kwargs, **drive_kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True
+        **kwargs, **drive_kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True,
+        spike_out_mask=silence_mask, spike_out_onset_step=int(silence_onset),
     )
     time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
     static = self.static["adex"]
@@ -1998,31 +2050,51 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
             if solo_drive is not None:
                 metadata["poisson_drive"] = {
                     "n_sources": int(solo_drive["n_sources"]),
-                    "rate_hz": float(solo_drive["rate_hz"]),
                     "weight_nS": float(solo_drive["weight_nS"]),
                     "mechanism": str(solo_drive["mechanism"]),
                     "target_cell_types": list(solo_drive["target_cell_types"]),
                     "delay_ms": float(solo_drive["delay_ms"]),
                     "seed": int(solo_drive["seed"]),
-                    "ext_lambda": float(drive_kwargs["ext_lambda"]),
                     "status": "stochastic_drive_applied",
                 }
+                if "rate_schedule_hz" in solo_drive:
+                    metadata["poisson_drive"]["rate_schedule_hz"] = _schedule_summary(
+                        solo_drive
+                    )
+                    metadata["poisson_drive"]["ext_lambda_mean"] = float(
+                        _np_host.asarray(drive_kwargs["ext_lambda"]).mean()
+                    )
+                else:
+                    metadata["poisson_drive"]["rate_hz"] = float(solo_drive["rate_hz"])
+                    metadata["poisson_drive"]["ext_lambda"] = float(
+                        drive_kwargs["ext_lambda"]
+                    )
             else:
                 recorded_entries = []
                 for entry in sim.poisson_drive:
                     recorded = {
                         "n_sources": int(entry["n_sources"]),
-                        "rate_hz": float(entry["rate_hz"]),
                         "weight_nS": float(entry["weight_nS"]),
                         "mechanism": str(entry["mechanism"]),
                         "target_cell_types": list(entry["target_cell_types"]),
                         "delay_ms": float(entry["delay_ms"]),
                         "seed": int(entry["seed"]),
-                        "ext_lambda": float(
+                    }
+                    if "rate_schedule_hz" in entry:
+                        summary = _schedule_summary(entry)
+                        recorded["rate_schedule_hz"] = summary
+                        recorded["ext_lambda_mean"] = float(
+                            int(entry["n_sources"])
+                            * summary["mean"]
+                            * float(sim.dt_ms)
+                            / 1000.0
+                        )
+                    else:
+                        recorded["rate_hz"] = float(entry["rate_hz"])
+                        recorded["ext_lambda"] = float(
                             int(entry["n_sources"]) * float(entry["rate_hz"])
                             * float(sim.dt_ms) / 1000.0
-                        ),
-                    }
+                        )
                     for bound in ("t_start_ms", "t_stop_ms"):
                         if bound in entry:
                             recorded[bound] = float(entry[bound])
@@ -2031,7 +2103,7 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
                     "entries": recorded_entries,
                     "status": "stochastic_drive_applied",
                 }
-        elif isinstance(sim.poisson_drive["rate_hz"], (list, tuple)):
+        elif isinstance(sim.poisson_drive.get("rate_hz"), (list, tuple)):
             rates = [float(r) for r in sim.poisson_drive["rate_hz"]]
             per_group = [float(v) for v in _np_host.asarray(drive_kwargs["ext_lambda"])[0]]
             sizes = _np_host.asarray(drive_kwargs["ext_target_groups"])
@@ -2047,6 +2119,20 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
                 "ext_lambda_per_group": per_group,
                 "ext_target_group_sizes": [int(_np_host.sum(sizes == g)) for g in range(len(rates))],
                 "key_derivation": "per-group keys fold_in(fold_in(key, g), t)",
+                "status": "stochastic_drive_applied",
+            }
+        elif "rate_schedule_hz" in sim.poisson_drive:
+            metadata["poisson_drive"] = {
+                "n_sources": int(sim.poisson_drive["n_sources"]),
+                "rate_schedule_hz": _schedule_summary(sim.poisson_drive),
+                "weight_nS": float(sim.poisson_drive["weight_nS"]),
+                "mechanism": str(sim.poisson_drive["mechanism"]),
+                "target_cell_types": list(sim.poisson_drive["target_cell_types"]),
+                "delay_ms": float(sim.poisson_drive["delay_ms"]),
+                "seed": int(sim.poisson_drive["seed"]),
+                "ext_lambda_mean": float(
+                    _np_host.asarray(drive_kwargs["ext_lambda"]).mean()
+                ),
                 "status": "stochastic_drive_applied",
             }
         else:
@@ -2065,6 +2151,8 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
             "same_step", False
         ) is True:
             metadata["poisson_drive"]["same_step"] = True
+    if silence_record is not None:
+        metadata["silence"] = silence_record
     return Signals(
         time_ms=time_ms,
         V_m=out["V_mV"].astype(runtime_cfg.jnp_dtype),

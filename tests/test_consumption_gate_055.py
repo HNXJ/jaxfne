@@ -48,6 +48,10 @@ SIM_CASES = {
         {}, {"gaussian_drive": {"std_by_cell_type": {"E": 3.0, "PV": 0.0, "SST": 0.0}}},
         "output",
     ),
+    "silence": (
+        {}, {"silence": {"fractions": {"E": 0.5}, "seed": 1}},
+        "refuse",
+    ),
     "runtime": ({}, _rt(recurrent_backend="edge_list"), "output"),
 }
 # A "policy" case names its consumer; a field with no consumer is not policy.

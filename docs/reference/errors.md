@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2401 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2417 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -169,6 +169,8 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `connections(name={...}) declares intra_step_rounds={...} but delay_ms={...} at dt_ms={...} realizes ` |
 | `ValueError` | `connections declare distinct intra_step_rounds={...}; the adex route's intra-step fixed point realiz` |
 | `ValueError` | `connections declare intra_step_rounds={...} but realize no delay-0 edge at dt_ms={...}; a declared R` |
+| `ValueError` | `Simulation(silence=...) names unknown cell type(s) {...}; the model declares {...}` |
+| `ValueError` | `Simulation(silence=...) onset_ms={...} at dt_ms={...}: {...}` |
 
 **`jaxfne/_construct_connectivity.py`**
 
@@ -493,6 +495,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `SpikeTrainInput cannot be combined with ablation={...}; the clamp rides the registered-rule kernel, ` |
 | `ValueError` | `SpikeTrainInput n_neurons={...} does not match the model's {...} neurons` |
 | `ValueError` | `ablation='shuffled_timing' shuffles a time-varying drive; this run has none (pass a paradigm or pois` |
+| `ValueError` | `Simulation(silence=...) is not realized for emitter family '{...}': silence masks emitted AdEx spike` |
 | `ValueError` | `simulate(continuation=..., return_state=...) is not realized for emitter family 'adex': the route ha` |
 | `ValueError` | `simulate(paradigm=...) is not realized for emitter family 'adex': the route has no input current, so` |
 | `ValueError` | `intra-step fixed point reached its cap intra_step_rounds={...} with {...} undelivered same-step spik` |
@@ -661,6 +664,14 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `Simulation.gaussian_drive['std_by_cell_type'] must be a non-empty mapping from cell type to std; got` |
 | `ValueError` | `Simulation.gaussian_drive std_by_cell_type[{...}] must be a finite number >= 0; got {...}` |
 | `ValueError` | `Simulation.poisson_drive must be None, a mapping, or a non-empty list of mappings (one per populatio` |
+| `ValueError` | `Simulation.silence must be None or a mapping {'fractions': {cell_type: fraction}, 'seed': int}; got ` |
+| `ValueError` | `Simulation.silence has unknown key(s) {...}; the only keys are {...}` |
+| `ValueError` | `Simulation.silence requires the key 'fractions'` |
+| `ValueError` | `Simulation.silence['fractions'] must be a non-empty mapping from cell type to fraction; got {...}` |
+| `ValueError` | `Simulation.silence fractions[{...}] must be a finite number in [0, 1]; got {...}` |
+| `ValueError` | `Simulation.silence requires the key 'seed'` |
+| `ValueError` | `Simulation.silence seed must be an int; got {...}` |
+| `ValueError` | `Simulation.silence onset_ms must be a finite number >= 0 in ms; got {...}` |
 | `ValueError` | `Simulation.duration_ms must be positive and finite; got {...}` |
 | `ValueError` | `Simulation.dt_ms must be positive and finite; got {...}` |
 | `ValueError` | `Simulation produces n_steps={...} <= 0 for duration_ms={...}, dt_ms={...}` |
@@ -1144,6 +1155,10 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `decay must be 'exp' or 'euler', got {...}` |
 | `ValueError` | `n_steps must be a positive integer, got {...}` |
 | `ValueError` | `dt_ms must be > 0, got {...}` |
+| `ValueError` | `spike_out_onset_step without spike_out_mask is not realized: got onset {...} with no mask -- pass bo` |
+| `ValueError` | `spike_out_mask must be a bool array of shape ({...},); got dtype {...}` |
+| `ValueError` | `spike_out_mask must be a bool array of shape ({...},); got shape {...}` |
+| `ValueError` | `spike_out_onset_step must be an int in [0, n_steps) ([0, {...})); got {...}` |
 | `ValueError` | `N * n_receptors must be < 2**31 (int32 segment ids); N = {...}` |
 | `ValueError` | `receptor_reversal_mV and receptor_tau_ms must have the same length; got {...} and {...}` |
 | `ValueError` | `receptor_tau_ms must be > 0 for every receptor; got {...}` |
@@ -1165,6 +1180,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `decay must be 'exp' or 'euler', got {...}` |
 | `ValueError` | `n_steps must be a positive integer, got {...}` |
 | `ValueError` | `dt_ms must be > 0, got {...}` |
+| `ValueError` | `spike_out_mask is not realized for the HDP kernel simulate_adex_hdp_registered: silence there would ` |
 | `ValueError` | `N * n_receptors must be < 2**31 (int32 segment ids); N = {...}` |
 | `ValueError` | `receptor_reversal_mV and receptor_tau_ms must have the same length; got {...} and {...}` |
 | `ValueError` | `receptor_tau_ms must be > 0 for every receptor; got {...}` |

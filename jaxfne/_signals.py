@@ -122,6 +122,66 @@ def _validate_poisson_drive_container(poisson: Any) -> None:
     )
 
 
+_SILENCE_KEYS = ("fractions", "onset_ms", "seed")
+
+
+def _validate_silence(value: Any) -> None:
+    """Refuse a malformed ``Simulation.silence`` declaration.
+
+    The accepted form is ``{"fractions": {cell_type: fraction}, "seed": int}``
+    with an optional ``"onset_ms"`` (finite, >= 0, default 0): every fraction
+    in [0, 1] (bools refused, never coerced) and ``seed`` an int. Whether the
+    named types exist in the model is checked at simulate time, where the
+    model is known.
+    """
+    if not isinstance(value, Mapping):
+        raise ValueError(
+            "Simulation.silence must be None or a mapping "
+            f"{{'fractions': {{cell_type: fraction}}, 'seed': int}}; got {value!r}"
+        )
+    unknown = sorted(str(k) for k in value if k not in _SILENCE_KEYS)
+    if unknown:
+        raise ValueError(
+            f"Simulation.silence has unknown key(s) {unknown}; "
+            f"the only keys are {list(_SILENCE_KEYS)}"
+        )
+    if "fractions" not in value:
+        raise ValueError("Simulation.silence requires the key 'fractions'")
+    fractions = value["fractions"]
+    if not isinstance(fractions, Mapping) or not fractions:
+        raise ValueError(
+            "Simulation.silence['fractions'] must be a non-empty mapping "
+            f"from cell type to fraction; got {fractions!r}"
+        )
+    for cell_type, fraction in fractions.items():
+        if (
+            isinstance(fraction, bool)
+            or not isinstance(fraction, numbers.Real)
+            or not math.isfinite(float(fraction))
+            or not 0.0 <= float(fraction) <= 1.0
+        ):
+            raise ValueError(
+                f"Simulation.silence fractions[{cell_type!r}] must be a "
+                f"finite number in [0, 1]; got {fraction!r}"
+            )
+    if "seed" not in value:
+        raise ValueError("Simulation.silence requires the key 'seed'")
+    seed = value["seed"]
+    if isinstance(seed, bool) or not isinstance(seed, numbers.Integral):
+        raise ValueError(f"Simulation.silence seed must be an int; got {seed!r}")
+    onset_ms = value.get("onset_ms", 0.0)
+    if (
+        isinstance(onset_ms, bool)
+        or not isinstance(onset_ms, numbers.Real)
+        or not math.isfinite(float(onset_ms))
+        or float(onset_ms) < 0.0
+    ):
+        raise ValueError(
+            f"Simulation.silence onset_ms must be a finite number >= 0 in ms; "
+            f"got {onset_ms!r}"
+        )
+
+
 @dataclass(frozen=True)
 class Simulation:
     """Immutable specification of one simulation run.
@@ -155,6 +215,14 @@ class Simulation:
     consume it), together with ``hdp_params['noise_scale']``, and, on ``net_m``, unless
     every std is zero. The mapping must cover every model cell type and name no
     other; that is checked at simulate time.
+
+    ``silence`` (None = undeclared) is ``{"fractions": {cell_type: fraction},
+    "onset_ms": float, "seed": int}``. It masks the emitted spikes of a
+    ``round(fraction * N_type)`` per-type subset from an onset step while each
+    cell's own state keeps evolving, after CAMINOS ``manip_mask``
+    (``artifacts/etudes/papers/caminos/caminos_jax.py`` lines 432-467) and the
+    step-loop mask (lines 812, 840-846). It is realized on the AdEx route only;
+    every other emitter family refuses a non-None value.
     """
 
     duration_ms: float = 1000.0
@@ -172,6 +240,7 @@ class Simulation:
     runtime: RuntimeConfig | None = None
     ablation: Optional[str] = None
     gaussian_drive: Optional[dict] = None
+    silence: Optional[dict] = None
 
     def __post_init__(self) -> None:
         if not (math.isfinite(self.duration_ms) and self.duration_ms > 0):
@@ -195,6 +264,8 @@ class Simulation:
             )
         if self.gaussian_drive is not None:
             _validate_gaussian_drive(self.gaussian_drive)
+        if self.silence is not None:
+            _validate_silence(self.silence)
         if self.poisson_drive is not None:
             _validate_poisson_drive_container(self.poisson_drive)
         if self.plasticity != 0:

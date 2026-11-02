@@ -39,6 +39,7 @@ ADEX_CONSUMED = (
     ("Simulation", "dt_ms"),
     ("Simulation", "runtime"),
     ("Simulation", "poisson_drive"),
+    ("Simulation", "silence"),
     # RuntimeConfig seed and n_steps are owned by Simulation (resolved_runtime replaces them, and
     # Simulation.__post_init__ refuses a conflicting value).
     ("RuntimeConfig", "seed"),
@@ -367,13 +368,23 @@ def _checked_drive_list_entries(drive: Any) -> list[dict[str, Any]] | None:
             k
             for k in entry
             if k not in _DRIVE_KEYS and k not in _DRIVE_WINDOW_KEYS
+            and k not in _DRIVE_SCHEDULE_KEYS
         ]
         if unknown or "same_step" in entry:
             raise _drive_error(f"{dict(entry)!r} carries keys the list form cannot realize")
-        missing = [k for k in _DRIVE_KEYS if k not in entry]
+        has_schedule = "rate_schedule_hz" in entry
+        if has_schedule and "rate_hz" in entry:
+            raise _drive_error(
+                f"{dict(entry)!r} declares rate_schedule_hz in place of rate_hz: "
+                "pass one or the other, never both"
+            )
+        missing = [
+            k for k in _DRIVE_KEYS
+            if k not in entry and (k != "rate_hz" or not has_schedule)
+        ]
         if missing:
             raise _drive_error(f"{dict(entry)!r} is missing keys {missing}")
-        if isinstance(entry["rate_hz"], (list, tuple)):
+        if isinstance(entry.get("rate_hz"), (list, tuple)):
             raise _drive_error(
                 f"rate_hz={entry['rate_hz']!r} in a list entry is not realized: "
                 "the list form takes one scalar rate per entry"
@@ -400,14 +411,16 @@ def _adex_list_drive_kwargs(
     """Keyword arguments for a multi-entry adex drive list (the ``extm_*`` path).
 
     Each entry repeats the mapping schema with a scalar rate (0 allowed: that
-    target draws no counts) and no same-step flag
+    target draws no counts) or a per-step schedule, and no same-step flag
     (checked in ``_checked_drive_list_entries``); every remaining field
     is validated entry by entry through the mapping path's own checks, so a
-    bad weight, mechanism, delay or seed names ``poisson_drive`` and the key.
+    bad weight, mechanism, delay, seed or schedule names ``poisson_drive`` and the key.
     Entry targets (cells whose type the entry lists, in index order) must be
     pairwise disjoint, and a declared window must match on every entry: the
     kernel carries one shared window. ``extm_lambda`` holds the per-target
-    mean count (``n_sources * rate_hz * dt_ms / 1000``); the key holds one row
+    mean count (``n_sources * rate_hz * dt_ms / 1000``) as a vector, or -- when
+    any entry declares a schedule -- the full ``[n_steps, M]`` per-step matrix
+    (scalar entries contribute constant columns); the key holds one row
     per entry (``jax.random.PRNGKey`` of that entry's seed, in entry order),
     and ``extm_entry_sizes`` holds one target count per entry, so each entry
     draws its own segment under its own stream.
@@ -423,6 +436,9 @@ def _adex_list_drive_kwargs(
     delay: list[int] = []
     seeds: list[int] = []
     windows: list[tuple[int, int] | None] = []
+    sched_mats: list[Any] = []
+    sched_flags: list[bool] = []
+    scalar_vals: list[float] = []
     for entry in entries:
         zeroed = _entry_zero_rate(entry)
         probe_entry = dict(entry) if not zeroed else {**entry, "rate_hz": 1.0}
@@ -430,7 +446,19 @@ def _adex_list_drive_kwargs(
         kw = adex_external_drive_kwargs(model, probe)
         targets = np.asarray(kw["ext_targets"], dtype=np.int64)
         per_targets.append(targets)
-        lam.extend([0.0 if zeroed else float(kw["ext_lambda"])] * int(targets.size))
+        if "rate_schedule_hz" in entry:
+            arr = np.asarray(kw["ext_lambda"], dtype=np.float64)
+            if arr.ndim == 1:
+                arr = np.tile(arr[:, None], (1, int(targets.size)))
+            sched_mats.append(np.asarray(arr, dtype=np.float64))
+            sched_flags.append(True)
+            scalar_vals.append(0.0)
+            lam.extend([0.0] * int(targets.size))
+        else:
+            sched_mats.append(None)
+            sched_flags.append(False)
+            scalar_vals.append(0.0 if zeroed else float(kw["ext_lambda"]))
+            lam.extend([0.0 if zeroed else float(kw["ext_lambda"])] * int(targets.size))
         weight.extend([float(kw["ext_weight_nS"])] * int(targets.size))
         receptor.extend([int(kw["ext_receptor"])] * int(targets.size))
         delay.extend([int(kw["ext_delay_steps"])] * int(targets.size))
@@ -468,9 +496,26 @@ def _adex_list_drive_kwargs(
             "t_start_ms/t_stop_ms pair on every entry, or on none"
         )
     key = jnp.stack([jax.random.PRNGKey(int(seed)) for seed in seeds])
+    n_steps = int(sim.n_steps)
+    if any(sched_flags):
+        cols: list[Any] = []
+        for is_sched, mat, val, t in zip(sched_flags, sched_mats, scalar_vals, per_targets):
+            if is_sched:
+                assert mat is not None
+                cols.append(np.asarray(mat, dtype=np.float64))
+            else:
+                cols.append(
+                    np.tile(
+                        np.asarray([float(val)], dtype=np.float64)[None, :],
+                        (n_steps, int(t.size)),
+                    )
+                )
+        extm_lambda: Any = np.concatenate(cols, axis=1)
+    else:
+        extm_lambda = np.asarray(lam, dtype=np.float64)
     out: dict[str, Any] = {
         "extm_targets": np.concatenate(per_targets),
-        "extm_lambda": np.asarray(lam, dtype=np.float64),
+        "extm_lambda": extm_lambda,
         "extm_weight_nS": np.asarray(weight, dtype=np.float64),
         "extm_receptor": np.asarray(receptor, dtype=np.int64),
         "extm_delay_steps": np.asarray(delay, dtype=np.int64),
@@ -1062,6 +1107,11 @@ _DRIVE_WINDOW_KEYS = ("t_start_ms", "t_stop_ms")
 # count drawn for step t acts at step t (external drive has no same-step feedback, so no
 # fixed point is needed). Any other value, or ``True`` with a delay of >= 1 step, is refused.
 _DRIVE_OPT_KEYS = ("same_step",)
+# Optional per-step rate schedule key: ``rate_schedule_hz`` takes the place of
+# ``rate_hz`` in a mapping entry or a list entry (never beside it). It rides
+# the kernel's existing per-step schedule path as
+# ``n_sources * rate_schedule_hz * dt_ms / 1000``.
+_DRIVE_SCHEDULE_KEYS = ("rate_schedule_hz",)
 
 
 def _drive_error(detail: str) -> ValueError:
@@ -1075,6 +1125,45 @@ def _drive_error(detail: str) -> ValueError:
         "with t_start_ms < t_stop_ms) and 'same_step' (same_step=True admits a delay "
         "rounding to 0 steps, so the count drawn for step t acts at step t)"
     )
+
+
+def _checked_rate_schedule(drive: Mapping[str, Any], sim: Any, n_targets: int) -> Any:
+    """Validate ``rate_schedule_hz``: finite values >= 0, length n_steps.
+
+    Accepts a 1-D ``[n_steps]`` array (one rate per step, shared by every
+    target) or a 2-D ``[n_steps, M]`` matrix (one schedule per target cell,
+    in the entry's target order); bools are refused, never coerced. Returns
+    the schedule as a float64 ``np`` array in its declared form.
+    """
+    raw = np.asarray(drive["rate_schedule_hz"])
+    if raw.dtype == np.bool_:
+        raise _drive_error("rate_schedule_hz must hold finite values >= 0 in Hz, not bools")
+    try:
+        sched = np.asarray(drive["rate_schedule_hz"], dtype=np.float64)
+    except (TypeError, ValueError) as exc:
+        raise _drive_error(
+            "rate_schedule_hz must be a 1-D [n_steps] or 2-D [n_steps, M] "
+            f"array of finite values >= 0 in Hz; got {drive['rate_schedule_hz']!r}"
+        ) from exc
+    if sched.ndim == 1:
+        if sched.shape[0] != int(sim.n_steps):
+            raise _drive_error(
+                f"rate_schedule_hz length {sched.shape[0]} != n_steps {int(sim.n_steps)}"
+            )
+    elif sched.ndim == 2:
+        if sched.shape != (int(sim.n_steps), int(n_targets)):
+            raise _drive_error(
+                "rate_schedule_hz with per-target rates must have shape "
+                f"({int(sim.n_steps)}, {int(n_targets)}); got {sched.shape}"
+            )
+    else:
+        raise _drive_error(
+            "rate_schedule_hz must be a 1-D [n_steps] or 2-D [n_steps, M] array; "
+            f"got shape {sched.shape}"
+        )
+    if not np.all(np.isfinite(sched)) or np.any(sched < 0.0):
+        raise _drive_error("rate_schedule_hz must hold finite values >= 0 in Hz")
+    return sched
 
 
 def _checked_grouped_rates(drive: Mapping[str, Any]) -> list[float]:
@@ -1152,8 +1241,16 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     ``t_start_ms``/``t_stop_ms`` window rides as the kernel's
     ``ext_t_start_steps``/``ext_t_stop_steps`` (realized by the same rule at
     the run's ``dt_ms``, refused unless ``0 <= t_start < t_stop <= n_steps``);
-    undeclared, neither key is passed and the drive runs every step. A list of
-    mapping entries (each with scalar ``rate_hz`` and no ``same_step`` flag)
+    undeclared, neither key is passed and the drive runs every step. A
+    ``rate_schedule_hz`` entry takes the place of ``rate_hz`` (never beside
+    it, never beside a grouped ``rate_hz`` list): a 1-D ``[n_steps]`` array
+    (one rate per step, shared by every target) or a 2-D ``[n_steps, M]``
+    matrix rides the kernel's native per-step schedule path as
+    ``n_sources * rate_schedule_hz * dt_ms / 1000`` under the same
+    one-split-per-step key stream, so a constant schedule reproduces the
+    scalar-rate run. A list of
+    mapping entries (each with scalar ``rate_hz`` or a schedule, and no
+    ``same_step`` flag)
     over pairwise disjoint targets returns the multi-target ``extm_*`` path
     (see ``_adex_list_drive_kwargs``); a list of one delegates to the mapping
     path. Every refusal names ``poisson_drive`` and the offending key.
@@ -1178,10 +1275,17 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
         k
         for k in drive
         if k not in _DRIVE_KEYS and k not in _DRIVE_WINDOW_KEYS and k not in _DRIVE_OPT_KEYS
+        and k not in _DRIVE_SCHEDULE_KEYS
     ]
     if unknown:
         raise _drive_error(f"{dict(drive)!r} has unknown keys {unknown}")
-    missing = [k for k in _DRIVE_KEYS if k not in drive]
+    has_schedule = "rate_schedule_hz" in drive
+    if has_schedule and "rate_hz" in drive:
+        raise _drive_error(
+            f"{dict(drive)!r} declares rate_schedule_hz in place of rate_hz: "
+            "pass one or the other, never both"
+        )
+    missing = [k for k in _DRIVE_KEYS if k not in drive and (k != "rate_hz" or not has_schedule)]
     if missing:
         raise _drive_error(f"{dict(drive)!r} is missing keys {missing}")
     st = model.static["adex"]
@@ -1192,9 +1296,12 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
         raise _drive_error(f"n_sources={n_sources!r} must be an int >= 1")
     if int(n_sources) < 1:
         raise _drive_error(f"n_sources={n_sources!r} must be an int >= 1")
-    rate_hz = drive["rate_hz"]
+    rate_hz = drive.get("rate_hz")
     grouped_rates: list[float] | None = None
-    if isinstance(rate_hz, (list, tuple)):
+    schedule_hz: Any = None
+    if has_schedule:
+        grouped_rates = None
+    elif isinstance(rate_hz, (list, tuple)):
         grouped_rates = _checked_grouped_rates(drive)
     elif not (_finite_real(rate_hz) and float(rate_hz) > 0):
         raise _drive_error(f"rate_hz={rate_hz!r} must be > 0")
@@ -1261,6 +1368,16 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     )
     if grouped_rates is not None:
         out = _grouped_drive_specs(drive, grouped_rates, targets, dt, sim)
+    elif has_schedule:
+        schedule_hz = _checked_rate_schedule(drive, sim, int(targets.size))
+        lam_sched = np.asarray(
+            float(int(n_sources)) * np.asarray(schedule_hz, dtype=np.float64) * dt / 1000.0,
+            dtype=np.float64,
+        )
+        out = {
+            "ext_targets": targets,
+            "ext_lambda": lam_sched if lam_sched.ndim == 2 else lam_sched.reshape(-1),
+        }
     else:
         out = {
             "ext_targets": targets,
@@ -1308,3 +1425,72 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
         out["ext_t_start_steps"] = t0
         out["ext_t_stop_steps"] = t1
     return out
+
+
+# The CAMINOS silencing tags: the subset draw folds the silence seed through
+# these, one per opt-in, never through the network or drive streams, so the
+# default draws are untouched.
+_SILENCE_TAG = 911
+
+
+def adex_silence_kwargs(
+    model: Model, sim: Any
+) -> tuple[Any | None, int, dict[str, Any] | None]:
+    """Mask, onset step and metadata record for ``Simulation(silence=...)``.
+
+    Returns ``(mask, onset_step, record)``; ``(None, 0, None)`` when
+    ``sim.silence`` is None (the kernel's historical path). The mask selects a
+    ``round(fraction * N_type)`` subset per named type: per-type cell positions
+    in neuron-index order, the subset drawn as the first entries of a
+    permutation seeded from ``fold_in(fold_in(PRNGKey(seed), 911), j + 1)``
+    over the sorted unique labels -- the CAMINOS ``manip_mask`` rule
+    (``artifacts/etudes/papers/caminos/caminos_jax.py`` lines 432-467),
+    generalized from PV/SOM to any declared cell type. The onset step realizes
+    ``onset_ms`` by the route's time-grid rule (``delay_steps_from_ms``), so a
+    positive sub-step onset is refused rather than silently rounded to 0.
+    Unknown type names are refused here, where the model is known.
+    """
+    silence = sim.silence
+    if silence is None:
+        return None, 0, None
+    labels = tuple(model.params["emitter"].labels)
+    known = sorted(set(labels))
+    fractions = dict(silence["fractions"])
+    unknown = sorted(t for t in fractions if t not in known)
+    if unknown:
+        raise ValueError(
+            f"Simulation(silence=...) names unknown cell type(s) {unknown}; "
+            f"the model declares {known}"
+        )
+    seed = int(silence["seed"])
+    onset_ms = float(silence.get("onset_ms", 0.0))
+    try:
+        onset_step = int(delay_steps_from_ms(onset_ms, float(sim.dt_ms)))
+    except ValueError as exc:
+        raise ValueError(
+            f"Simulation(silence=...) onset_ms={onset_ms!r} at dt_ms={sim.dt_ms}: {exc}"
+        ) from exc
+    n = len(labels)
+    mask = np.zeros((n,), dtype=bool)
+    n_silenced: dict[str, int] = {}
+    key0 = jax.random.fold_in(jax.random.PRNGKey(seed), _SILENCE_TAG)
+    for j, cell_type in enumerate(known):
+        frac = float(fractions.get(cell_type, 0.0))
+        positions = np.asarray(
+            [i for i, lab in enumerate(labels) if lab == cell_type], dtype=np.int64
+        )
+        n_sel = int(round(frac * int(positions.size)))
+        n_silenced[cell_type] = n_sel
+        if n_sel > 0:
+            order = np.asarray(
+                jax.random.permutation(jax.random.fold_in(key0, j + 1), int(positions.size))
+            )
+            mask[positions[np.asarray(order[:n_sel])]] = True
+    record = {
+        "fractions": {t: float(fractions[t]) for t in sorted(fractions)},
+        "onset_ms": float(onset_ms),
+        "onset_step": int(onset_step),
+        "seed": int(seed),
+        "n_silenced_per_type": {t: int(n_silenced[t]) for t in sorted(fractions)},
+    }
+    return mask, onset_step, record
