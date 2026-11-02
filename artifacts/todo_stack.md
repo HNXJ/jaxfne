@@ -60,8 +60,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     and population traces (the figP rows keep spectra only), mean-field traces beside them. Runner landed
     (`run_plos_rasters.py`, 0a8a7630); next `run_plos_rasters.py <out> 1,2,3` on the GPU at paper scale once step 7's
     scored runs free it, then the figures. Closes when the replica block scores them.
-13. ∥ T-59 [A] Cell Reports Fig S1 runner with its test; `replication_audit` reads clean in the report gate. Drive
-    (Hamm 2026-11-02, O-73 closed): p·NE Poisson sources at 4 Hz, `ext="private"` (the default, as every other panel).
+13. ∥ T-59 [A] Cell Reports Fig S1 at paper scale on the GPU: `run_figA.py <out> <S1 grid> 1,2,3 s1` (runner and
+    drive landed 7afb7fc0: p·NE private Poisson sources at 4 Hz, Hamm 2026-11-02), after the PLoS rasters free the
+    GPU; then score S1 in `RESULT_FIGURES.md` and the dashboard.
 14. ∥ T-O68 [A] Local copies (O-68): rescue each cited file into the repo or `F:/warehouse` with a `state.md`
     pointer, delete one at a time (`cl-reader-cursor`, `jaxfne-wt-p022`, the four WSL copies, the non-git leftovers
     named in O-68), and the finished lane clones under `E:/repos/_wt/jaxfne/` after an alternates check.
