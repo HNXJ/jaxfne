@@ -55,11 +55,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Beside the path (∥)
 
-12. ∥ T-63b [A] CAMINOS PLoS (O-83 closed 2026-11-02: the 2B/3B SOM fails follow the stated 2 ms delay,
-    `RESULT_PLOS_FIGS.md`): 2C-F, 3C-F: rerun 40 and 90 % saving rasters
-    and population traces (the figP rows keep spectra only), mean-field traces beside them. Runner landed
-    (`run_plos_rasters.py`, 0a8a7630); next `run_plos_rasters.py <out> 1,2,3` on the GPU at paper scale once step 7's
-    scored runs free it, then the figures. Closes when the replica block scores them.
 13. ∥ T-59 [A] Cell Reports Fig S1 at paper scale on the GPU: `run_figA.py <out> <S1 grid> 1,2,3 s1` (runner and
     drive landed 7afb7fc0: p·NE private Poisson sources at 4 Hz, Hamm 2026-11-02), after the PLoS rasters free the
     GPU; then score S1 in `RESULT_FIGURES.md` and the dashboard.

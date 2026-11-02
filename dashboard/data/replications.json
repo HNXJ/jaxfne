@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-02T13:09:13Z",
-    "dev_sha": "28926e2e2bdc66d7192f102e86e653eb801aa571",
-    "data_revision": "c18bcd7bd6d2cfccdf3f5189561451cb90d67fe6679d4eca3e486ddda7bac5dc"
+    "utc": "2026-11-02T13:54:58Z",
+    "dev_sha": "31c23fbcd3026ff9b633eabd0c47f30a61b97f40",
+    "data_revision": "e9a521e4191d15b145818b80279efc9b50f6f3660861941ea56e6de9da17efca"
   },
   "papers": [
     {
@@ -1221,14 +1221,14 @@
         "pending_criteria": []
       },
       "replica": {
-        "score": 32,
+        "score": 48,
         "panels": 28,
         "excluded": 3,
         "counts": {
-          "pass": 7,
-          "partial": 4,
-          "fail": 2,
-          "not run": 15
+          "pass": 10,
+          "partial": 7,
+          "fail": 4,
+          "not run": 7
         },
         "same_as": null,
         "scope": "Main-text Figs. 1-6 of the PLoS CB article (PMC13286281), read 2026-10-31. The Cell Reports 2025 figures scored in RESULT_FIGURES.md belong to another paper and do not count here.",
@@ -1271,19 +1271,27 @@
           },
           {
             "id": "2C",
-            "status": "not run"
+            "status": "fail",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "PV 40 %: network and mean field differ by 28-55 % in rate and 33 % in frequency; the gap exists at baseline"
           },
           {
             "id": "2D",
-            "status": "not run"
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "SOM 40 %: mean-field amplitude falls; network band power rises to 1.18"
           },
           {
             "id": "2E",
-            "status": "not run"
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "PV 90 %: network E at 18x baseline; the mean field cycles at 10 Hz instead of a high-rate fixed point"
           },
           {
             "id": "2F",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "SOM 90 %: band power 0.996, within 0.4 % of the threshold; mean field flat"
           },
           {
             "id": "3A",
@@ -1299,19 +1307,27 @@
           },
           {
             "id": "3C",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "PV randomized 40 %: frequency and band power fall as under silencing"
           },
           {
             "id": "3D",
-            "status": "not run"
+            "status": "pass",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "SOM randomized 40 %: frequency and band power rise as under silencing"
           },
           {
             "id": "3E",
-            "status": "not run"
+            "status": "partial",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "PV randomized 90 %: moves as silencing; network E at 8.1x baseline, under the 10x bar"
           },
           {
             "id": "3F",
-            "status": "not run"
+            "status": "fail",
+            "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md",
+            "note": "SOM randomized 90 %: band power 1.27 against 0.996 under silencing"
           },
           {
             "id": "4A bottom",

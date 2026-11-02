@@ -48,9 +48,8 @@ Seed sd: f_pk at most 1.71 Hz except 3A 90 % (3.7) and 2B 90 % (2.9); full value
 | 4A | higher SOM/PV raises the amplitude | peak \|X\| 1.09, 1.32 at 1, 2; 0.66 at 4 with max E 261.6 Hz | partial: rises to ratio 2; ratio 4 enters a high-rate state |
 
 Score: 6 pass, 2 partial, 3 fail of 11 claims. Replica panels (`dashboard/sources.json`): 2A partial, 2B fail (its
-headline amplitude claim fails), 3A pass, 3B fail, 4A bottom partial. Panels 2C-F and 3C-F (rasters and mean-field
-traces at 40 and 90 %) stay not run: the network runs exist in the receipts, the raster figures and the mean-field
-comparison are not built. Both fails on SOM amplitude contrast with the Cell Reports parameter
+headline amplitude claim fails), 3A pass, 3B fail, 4A bottom partial. Panels 2C-F and 3C-F are scored in their own
+section below. Both fails on SOM amplitude contrast with the Cell Reports parameter
 set, where SOM silencing and replacement lower band power (`RESULT_FIGURES.md` Fig 3A, 4A).
 
 ## Panels 2C-F and 3C-F: criteria declared before scoring (2026-11-02)
@@ -81,6 +80,36 @@ since the mean field's rate is per active cell (amended before scoring, same day
 A panel passes when every criterion in its row holds on the seed mean; partial when its claims split; fail otherwise.
 Figures: one raster (seed 1, last 0.5 s, every 40th E cell and every 5th PV and SOM cell) with the three population
 rates per panel, and the mean-field traces above the 2C-F panels.
+
+### Scored (2026-11-02)
+
+Scorer `score_plos_rasters.py` (31c23fbc) on the run above, every input checked against the manifest sha256; summary
+`scores/plos_rasters_2_3.json` (sha256 82260303…); figures `F:/warehouse/caminos/plosr_7f7a660e/figs/fig2_CF.png`
+(a783d267…) and `fig3_CF.png` (593e1fe5…). Seed means, seeds 1-3; MF = mean field.
+
+| Panel | Criterion | Value | Holds | Verdict |
+|---|---|---|---|---|
+| 2C | rates within 20 % of MF | E 2.04 vs 3.01, PV 21.09 vs 13.64, SOM 13.96 vs 19.38 Hz (e 0.32, 0.55, 0.28) | no | fail |
+| 2C | f within 10 % of MF | 26.7 vs 20.0 Hz (e 0.33) | no | |
+| 2D | 0.10 < band power < 1 | 1.18 | no | partial |
+| 2D | MF E amplitude below MF baseline | 0.46 vs 1.19 Hz | yes | |
+| 2E | network E ≥ 10 × baseline | 18.2 × (seeds 18.2, 13.9, 22.5) | yes | partial |
+| 2E | MF E fixed point ≥ 100 Hz, CV < 0.05 | mean 13.0 Hz, CV 1.22: a 10 Hz limit cycle | no | |
+| 2F | band power < 1 | 0.996 (seeds 1.054, 0.942, 0.993) | yes | pass |
+| 2F | MF E amplitude below MF baseline | 0 vs 1.19 Hz (MF at a fixed point) | yes | |
+| 3C | f_pk and band power move as 2C | f_pk 0.70, band 0.49; 2C 0.79, 0.87 | yes | pass |
+| 3D | f_pk and band power move as 2D | f_pk 1.01, band 1.21; 2D 1.09, 1.18 | yes | pass |
+| 3E | moves as 2E | f_pk 0.30, band 0.27; 2E 0.15, 0.15 | yes | partial |
+| 3E | network E ≥ 10 × baseline | 8.1 × (seeds 11.3, 6.9, 6.2) | no | |
+| 3F | f_pk and band power move as 2F | band 1.27 against 2F 0.996 | no | fail |
+
+Panels: 3 pass (2F, 3C, 3D), 4 partial (2D, 2E, 3E), 2 fail (2C, 3F). The 2F network pass sits within 0.4 % of its
+threshold, with seed 1 above 1, and the 3F fail is the same near-unity band power seen from the other side: SOM
+silencing at 90 % leaves gamma band power unchanged on the network (the O-83 finding above). The MF baseline itself
+is off the network (E 1.55 vs 1.11 Hz, PV 8.74 vs 11.47 Hz; f 34 vs 32 Hz), so 2C fails on a gap present before
+any silencing. Under PV silencing at 90 % the MF and the network both burst at about 5-10 Hz (figure 2E), where the
+paper describes an MF fixed point at the inverse refractory rate; the MF start state is assumed
+(`caminos_meanfield.DEFAULT_START`), and whether a second, high-rate fixed point exists was not tested.
 
 ## O-83 attribution: the SOM amplitude fails follow the 2 ms synaptic delay (2026-11-02)
 
