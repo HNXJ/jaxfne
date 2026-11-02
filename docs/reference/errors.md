@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2439 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2467 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -173,6 +173,9 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `Simulation(silence=...) onset_ms={...} at dt_ms={...}: {...}` |
 | `ValueError` | `Simulation(replace=...) names unknown cell type(s) {...}; the model declares {...}` |
 | `ValueError` | `Simulation(replace=...) rate_hz lacks a rate for replaced type {...}` |
+| `ValueError` | `Simulation(edge_gain=...) names unknown cell type(s) {...}; the model declares {...}` |
+| `ValueError` | `Simulation(edge_gain=...) names cell-type pair '{...}' -> '{...}' with no edges in the model; gain n` |
+| `ValueError` | `Simulation(edge_gain=...) schedule length {...} != n_steps {...}` |
 
 **`jaxfne/_construct_connectivity.py`**
 
@@ -499,6 +502,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `ablation='shuffled_timing' shuffles a time-varying drive; this run has none (pass a paradigm or pois` |
 | `ValueError` | `Simulation(silence=...) is not realized for emitter family '{...}': silence masks emitted AdEx spike` |
 | `ValueError` | `Simulation(replace=...) is not realized for emitter family '{...}': replace swaps emitted AdEx spike` |
+| `ValueError` | `Simulation(edge_gain=...) is not realized for emitter family '{...}': edge_gain scales masked AdEx E` |
 | `ValueError` | `simulate(continuation=..., return_state=...) is not realized for emitter family 'adex': the route ha` |
 | `ValueError` | `simulate(paradigm=...) is not realized for emitter family 'adex': the route has no input current, so` |
 | `ValueError` | `intra-step fixed point reached its cap intra_step_rounds={...} with {...} undelivered same-step spik` |
@@ -667,6 +671,17 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `Simulation.gaussian_drive['std_by_cell_type'] must be a non-empty mapping from cell type to std; got` |
 | `ValueError` | `Simulation.gaussian_drive std_by_cell_type[{...}] must be a finite number >= 0; got {...}` |
 | `ValueError` | `Simulation.poisson_drive must be None, a mapping, or a non-empty list of mappings (one per populatio` |
+| `ValueError` | `Simulation.edge_gain must be None or a mapping {'pre': cell_type, 'post': cell_type, 'schedule': [n_` |
+| `ValueError` | `Simulation.edge_gain has unknown key(s) {...}; the only keys are {...}` |
+| `ValueError` | `Simulation.edge_gain requires the key {...}` |
+| `ValueError` | `Simulation.edge_gain {...} must be a non-empty cell-type name string; got {...}` |
+| `ValueError` | `Simulation.edge_gain schedule must be a 1-d array of n_steps finite entries >= 0, not bools; got {..` |
+| `ValueError` | `Simulation.edge_gain schedule must be a 1-d array of n_steps finite entries >= 0 in Hz; got {...}` |
+| `ValueError` | `Simulation.edge_gain schedule must hold finite entries >= 0, not bools` |
+| `ValueError` | `Simulation.edge_gain schedule must be a 1-d array of n_steps finite entries >= 0 in Hz; got {...}` |
+| `ValueError` | `Simulation.edge_gain schedule length {...} != n_steps {...}` |
+| `ValueError` | `Simulation.edge_gain schedule must hold finite entries` |
+| `ValueError` | `Simulation.edge_gain schedule must hold entries >= 0; got min {...}` |
 | `ValueError` | `Simulation.silence must be None or a mapping {'fractions': {cell_type: fraction}, 'seed': int}; got ` |
 | `ValueError` | `Simulation.silence has unknown key(s) {...}; the only keys are {...}` |
 | `ValueError` | `Simulation.silence requires the key 'fractions'` |
@@ -1192,6 +1207,18 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `ext_delay_steps=0 requests a same-step drive, which step_order='brian2' does not realize (it reads e` |
 | `ValueError` | `intra_step_rounds={...} needs the delay-0 edge arrays (edge0_pre, edge0_post, edge0_weight_nS, edge0` |
 | `ValueError` | `delay-0 edge arrays (edge0_pre, edge0_post, edge0_weight_nS, edge0_receptor) need intra_step_rounds;` |
+| `ValueError` | `edge_gain_mask and edge_gain_schedule must be both given or both None; got mask={...}, schedule={...` |
+| `ValueError` | `edge_gain_mask must be a bool array of shape ({...},); got dtype {...}` |
+| `ValueError` | `edge_gain_mask must be a bool array of shape ({...},); got shape {...}` |
+| `ValueError` | `edge_gain_schedule must be a float array of shape ({...},), not bools` |
+| `ValueError` | `edge_gain_schedule must be a float array of shape ({...},); got {...}` |
+| `ValueError` | `edge_gain_schedule must be a float array of shape ({...},); got shape {...}` |
+| `ValueError` | `edge_gain_schedule must hold finite entries` |
+| `ValueError` | `edge_gain_schedule must hold entries >= 0; got min {...}` |
+| `ValueError` | `edge_gain_mask and edge_gain_schedule need edge0_gain_mask when delay-0 edges exist; pass all three ` |
+| `ValueError` | `edge0_gain_mask must be a bool array of shape ({...},); got dtype {...}` |
+| `ValueError` | `edge0_gain_mask must be a bool array of shape ({...},); got shape {...}` |
+| `ValueError` | `edge0_gain_mask is not realized with no delay-0 edges; pass edge_gain_mask and edge_gain_schedule on` |
 | `ValueError` | `ext_lambda schedule with one shared rate must have shape ({...},); got {...}` |
 | `ValueError` | `ext_lambda schedule with per-target rates must have shape ({...}, {...}); got {...}` |
 | `ValueError` | `extm_lambda schedule with per-target rates must have shape ({...}, {...}); got {...}` |
@@ -1203,6 +1230,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `n_steps must be a positive integer, got {...}` |
 | `ValueError` | `dt_ms must be > 0, got {...}` |
 | `ValueError` | `spike_out_mask/spike_replace_mask is not realized for the HDP kernel simulate_adex_hdp_registered: s` |
+| `ValueError` | `edge_gain_mask/edge_gain_schedule is not realized for the HDP kernel simulate_adex_hdp_registered: g` |
 | `ValueError` | `N * n_receptors must be < 2**31 (int32 segment ids); N = {...}` |
 | `ValueError` | `receptor_reversal_mV and receptor_tau_ms must have the same length; got {...} and {...}` |
 | `ValueError` | `receptor_tau_ms must be > 0 for every receptor; got {...}` |

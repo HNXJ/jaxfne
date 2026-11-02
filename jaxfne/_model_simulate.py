@@ -1513,6 +1513,7 @@ def simulate(
     _refuse_gaussian_drive_family(self, sim)
     _refuse_silence_family(self, sim)
     _refuse_replace_family(self, sim)
+    _refuse_edge_gain_family(self, sim)
     if type(self.params["emitter"]) is not IzhikevichParams:
         _refuse_surrogate(runtime_cfg, f"emitter family {type(self.params['emitter']).__name__}")
     if continuation is not None or return_state:
@@ -1964,6 +1965,37 @@ def _refuse_replace_family(model: "Model", sim: Simulation) -> None:
     )
 
 
+def _refuse_edge_gain_family(model: "Model", sim: Simulation) -> None:
+    """Refuse ``Simulation(edge_gain=...)`` outside the adex route, naming the family.
+
+    The single central check: every non-AdEx emitter family refuses a non-None
+    edge_gain before its own input handling, so a misrouted declaration fails
+    loudly at the public entry point instead of running at full weight.
+    """
+    if sim.edge_gain is None:
+        return
+    emitter = model.params["emitter"]
+    if isinstance(emitter, AdExParams):
+        return
+    if isinstance(emitter, IzhikevichParams):
+        family = "izhikevich"
+    elif isinstance(emitter, HHParams):
+        family = "hh"
+    elif isinstance(emitter, LIFNetworkParams):
+        family = "lif"
+    elif isinstance(emitter, RateNetworkParams):
+        family = "rate"
+    elif isinstance(emitter, HomeostaticEIParams):
+        family = "homeostatic_ei"
+    else:
+        family = type(emitter).__name__
+    raise ValueError(
+        "Simulation(edge_gain=...) is not realized for emitter family "
+        f"'{family}': edge_gain scales masked AdEx E->E arrivals per step; "
+        f"the '{family}' route has no per-edge gain path"
+    )
+
+
 def _schedule_summary(entry) -> dict:
     """``{n_steps, min, max, mean}`` of a declared ``rate_schedule_hz`` in Hz."""
     arr = _np_host.asarray(entry["rate_schedule_hz"], dtype=_np_host.float64)
@@ -2011,9 +2043,12 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
     ``Simulation(replace=...)`` swaps the emitted spikes of a per-type subset for
     independent per-step Poisson draws at each type's ``rate_hz``
     (``_construct_adex.adex_replace_kwargs``; silence still wins on overlap).
+    ``Simulation(edge_gain=...)`` scales the ``|w|`` of masked E->E arrivals
+    per step (``_construct_adex.adex_edge_gain_kwargs``).
     No field is built (``field`` is None).
     """
     from ._construct_adex import (
+        adex_edge_gain_kwargs,
         adex_external_drive_kwargs,
         adex_kernel_args,
         adex_replace_kwargs,
@@ -2025,11 +2060,19 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
     drive_kwargs = adex_external_drive_kwargs(self, sim)
     silence_mask, silence_onset, silence_record = adex_silence_kwargs(self, sim)
     replace_mask, replace_lam, replace_key, replace_record = adex_replace_kwargs(self, sim)
+    gain_mask, gain_sched, gain0_mask, gain_record = adex_edge_gain_kwargs(self, sim)
+    gain_call: dict[str, Any] = {}
+    if gain_mask is not None:
+        gain_call["edge_gain_mask"] = gain_mask
+        gain_call["edge_gain_schedule"] = gain_sched
+        if "edge0_pre" in kwargs:
+            gain_call["edge0_gain_mask"] = gain0_mask
     out = simulate_adex(
         **kwargs, **drive_kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True,
         spike_out_mask=silence_mask, spike_out_onset_step=int(silence_onset),
         spike_replace_mask=replace_mask, spike_replace_lam=replace_lam,
         spike_replace_key=replace_key,
+        **gain_call,
     )
     time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
     static = self.static["adex"]
@@ -2194,6 +2237,8 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
         metadata["silence"] = silence_record
     if replace_record is not None:
         metadata["replace"] = replace_record
+    if gain_record is not None:
+        metadata["edge_gain"] = gain_record
     return Signals(
         time_ms=time_ms,
         V_m=out["V_mV"].astype(runtime_cfg.jnp_dtype),

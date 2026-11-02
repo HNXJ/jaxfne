@@ -1,0 +1,1 @@
+- `Simulation(edge_gain=...)` on the adex route scales the `|w|` of masked E->E arrivals per step by a per-step schedule; every other emitter family refuses it by name.

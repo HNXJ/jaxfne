@@ -126,6 +126,82 @@ _SILENCE_KEYS = ("fractions", "onset_ms", "seed")
 
 _REPLACE_KEYS = ("fractions", "rate_hz", "seed")
 
+_EDGE_GAIN_KEYS = ("pre", "post", "schedule")
+
+
+def _validate_edge_gain(value: Any, n_steps: int) -> None:
+    """Refuse a malformed ``Simulation.edge_gain`` declaration.
+
+    The accepted form is ``{"pre": cell_type, "post": cell_type, "schedule":
+    [n_steps]}``: ``pre``/``post`` are non-empty cell-type name strings (whether
+    the model declares them is checked at simulate time, where the model is
+    known) and ``schedule`` is a 1-d array of ``n_steps`` finite entries >= 0
+    (bools refused, never coerced).
+    """
+    if not isinstance(value, Mapping):
+        raise ValueError(
+            "Simulation.edge_gain must be None or a mapping "
+            "{'pre': cell_type, 'post': cell_type, 'schedule': [n_steps]}; "
+            f"got {value!r}"
+        )
+    unknown = sorted(str(k) for k in value if k not in _EDGE_GAIN_KEYS)
+    if unknown:
+        raise ValueError(
+            f"Simulation.edge_gain has unknown key(s) {unknown}; "
+            f"the only keys are {list(_EDGE_GAIN_KEYS)}"
+        )
+    for key in ("pre", "post", "schedule"):
+        if key not in value:
+            raise ValueError(f"Simulation.edge_gain requires the key {key!r}")
+    for key in ("pre", "post"):
+        name = value[key]
+        if isinstance(name, bool) or not isinstance(name, str) or not name:
+            raise ValueError(
+                f"Simulation.edge_gain {key} must be a non-empty cell-type name "
+                f"string; got {name!r}"
+            )
+    import numpy as _np_gain
+
+    raw = value["schedule"]
+    if isinstance(raw, bool):
+        raise ValueError(
+            "Simulation.edge_gain schedule must be a 1-d array of n_steps "
+            f"finite entries >= 0, not bools; got {raw!r}"
+        )
+    try:
+        raw_arr = _np_gain.asarray(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "Simulation.edge_gain schedule must be a 1-d array of n_steps "
+            f"finite entries >= 0 in Hz; got {raw!r}"
+        ) from exc
+    if raw_arr.dtype == _np_gain.bool_:
+        raise ValueError(
+            "Simulation.edge_gain schedule must hold finite entries >= 0, "
+            "not bools"
+        )
+    try:
+        sched = _np_gain.asarray(raw, dtype=_np_gain.float64)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "Simulation.edge_gain schedule must be a 1-d array of n_steps "
+            f"finite entries >= 0 in Hz; got {raw!r}"
+        ) from exc
+    if sched.ndim != 1 or sched.shape[0] != int(n_steps):
+        raise ValueError(
+            f"Simulation.edge_gain schedule length {sched.shape} != n_steps "
+            f"{int(n_steps)}"
+        )
+    if not _np_gain.all(_np_gain.isfinite(sched)):
+        raise ValueError(
+            "Simulation.edge_gain schedule must hold finite entries"
+        )
+    if _np_gain.any(sched < 0.0):
+        raise ValueError(
+            "Simulation.edge_gain schedule must hold entries >= 0; "
+            f"got min {float(sched.min())}"
+        )
+
 
 def _validate_silence(value: Any) -> None:
     """Refuse a malformed ``Simulation.silence`` declaration.
@@ -314,6 +390,12 @@ class Simulation:
     step-loop replacement (lines 833-839), which the emitted spike still
     enters the delay ring through. It is realized on the AdEx route only;
     every other emitter family refuses a non-None value.
+
+    ``edge_gain`` (None = undeclared) is ``{"pre": cell_type, "post": cell_type,
+    "schedule": [n_steps]}``. It scales the conductance weight ``|w|`` of every
+    edge from a ``pre``-type cell to a ``post``-type cell by the per-step factor
+    ``schedule[t]`` (finite, >= 0). It is realized on the AdEx route only;
+    every other emitter family refuses a non-None value.
     """
 
     duration_ms: float = 1000.0
@@ -333,6 +415,7 @@ class Simulation:
     gaussian_drive: Optional[dict] = None
     silence: Optional[dict] = None
     replace: Optional[dict] = None
+    edge_gain: Optional[dict] = None
 
     def __post_init__(self) -> None:
         if not (math.isfinite(self.duration_ms) and self.duration_ms > 0):
@@ -360,6 +443,8 @@ class Simulation:
             _validate_silence(self.silence)
         if self.replace is not None:
             _validate_replace(self.replace)
+        if self.edge_gain is not None:
+            _validate_edge_gain(self.edge_gain, n)
         if self.poisson_drive is not None:
             _validate_poisson_drive_container(self.poisson_drive)
         if self.plasticity != 0:

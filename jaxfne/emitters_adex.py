@@ -781,6 +781,9 @@ def simulate_adex(
     spike_replace_mask=None,
     spike_replace_lam=None,
     spike_replace_key=None,
+    edge_gain_mask=None,
+    edge_gain_schedule=None,
+    edge0_gain_mask=None,
 ) -> dict[str, Any]:
     """Simulate conductance-based AdEx cells on a sparse edge list.
 
@@ -855,6 +858,17 @@ def simulate_adex(
     833-839). All three are given or all None (``None`` takes the historical
     path bit-identically); an all-False mask leaves the run unchanged
     whatever ``lam_vec`` is.
+
+    ``edge_gain_mask`` (bool ``[E]``) with ``edge_gain_schedule`` (float
+    ``[n_steps]``, every entry finite and >= 0) scales the conductance
+    weight of masked edges by the per-step factor ``schedule[t]``: each
+    masked edge adds ``|w| * schedule[t]`` where it arrives, each unmasked
+    edge adds ``|w|``. ``edge0_gain_mask`` (bool ``[E0]``) does the same
+    for the delay-0 edges; it is required with the pair when delay-0 edges
+    exist and refused when none exist. All given or all None (``None``
+    takes the historical path bit-identically); an all-ones schedule is
+    bit-exact and an all-False mask leaves the run unchanged whatever the
+    schedule is.
 
     ``ext_target_groups`` (int ``[M]``, one group per target, given with the six
     drive arguments or refused) selects the grouped path: ``ext_lambda`` must
@@ -1175,6 +1189,86 @@ def simulate_adex(
         n_rounds = validate_rounds(intra_step_rounds, label="intra_step_rounds")
         has_zero = True
 
+    _gain_given = (
+        edge_gain_mask is not None
+        or edge_gain_schedule is not None
+        or edge0_gain_mask is not None
+    )
+    if not _gain_given:
+        gain_mask_j = None
+        gain_sched_j = None
+        gain0_j = None
+    else:
+        if edge_gain_mask is None or edge_gain_schedule is None:
+            raise ValueError(
+                "edge_gain_mask and edge_gain_schedule must be both given or both None; "
+                f"got mask={edge_gain_mask is not None}, schedule={edge_gain_schedule is not None}"
+            )
+        mask_arr = np.asarray(edge_gain_mask)
+        if mask_arr.dtype != np.bool_:
+            raise ValueError(
+                "edge_gain_mask must be a bool array of shape "
+                f"({E},); got dtype {mask_arr.dtype}"
+            )
+        if mask_arr.shape != (E,):
+            raise ValueError(
+                "edge_gain_mask must be a bool array of shape "
+                f"({E},); got shape {mask_arr.shape}"
+            )
+        sched_raw = np.asarray(edge_gain_schedule)
+        if sched_raw.dtype == np.bool_:
+            raise ValueError(
+                "edge_gain_schedule must be a float array of shape "
+                f"({n_steps},), not bools"
+            )
+        try:
+            sched_arr = np.asarray(edge_gain_schedule, dtype=np.float64)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "edge_gain_schedule must be a float array of shape "
+                f"({n_steps},); got {edge_gain_schedule!r}"
+            ) from exc
+        if sched_arr.shape != (n_steps,):
+            raise ValueError(
+                "edge_gain_schedule must be a float array of shape "
+                f"({n_steps},); got shape {sched_arr.shape}"
+            )
+        if not np.all(np.isfinite(sched_arr)):
+            raise ValueError("edge_gain_schedule must hold finite entries")
+        if bool(np.any(sched_arr < 0.0)):
+            raise ValueError(
+                "edge_gain_schedule must hold entries >= 0; "
+                f"got min {float(sched_arr.min())}"
+            )
+        if has_zero:
+            if edge0_gain_mask is None:
+                raise ValueError(
+                    "edge_gain_mask and edge_gain_schedule need edge0_gain_mask when "
+                    "delay-0 edges exist; pass all three or all None"
+                )
+            mask0_arr = np.asarray(edge0_gain_mask)
+            E0 = int(zero["pre"].shape[0]) if zero is not None else 0
+            if mask0_arr.dtype != np.bool_:
+                raise ValueError(
+                    "edge0_gain_mask must be a bool array of shape "
+                    f"({E0},); got dtype {mask0_arr.dtype}"
+                )
+            if mask0_arr.shape != (E0,):
+                raise ValueError(
+                    "edge0_gain_mask must be a bool array of shape "
+                    f"({E0},); got shape {mask0_arr.shape}"
+                )
+            gain0_j = jnp.asarray(mask0_arr)
+        else:
+            if edge0_gain_mask is not None:
+                raise ValueError(
+                    "edge0_gain_mask is not realized with no delay-0 edges; "
+                    "pass edge_gain_mask and edge_gain_schedule only, or all None"
+                )
+            gain0_j = None
+        gain_mask_j = jnp.asarray(mask_arr)
+        gain_sched_j = jnp.asarray(sched_arr, dtype)
+
     pre_j = jnp.asarray(edges["pre"], jnp.int32)
     seg_j = jnp.asarray(edges["post"] * R + edges["receptor"], jnp.int32)
     absw_j = jnp.asarray(np.abs(edges["weight"]), dtype)
@@ -1297,9 +1391,17 @@ def simulate_adex(
         I_t = I_const if I_t is None else I_t
         if E:
             arrived = ring[(t - lag_j) % L, pre_j]
-            added = jax.ops.segment_sum(
-                jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
-            ).reshape(N, R)
+            if gain_mask_j is None:
+                added = jax.ops.segment_sum(
+                    jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
+                ).reshape(N, R)
+            else:
+                g_t = gain_sched_j[t]
+                w_eff = absw_j * jnp.where(
+                    gain_mask_j, g_t, jnp.asarray(1.0, dtype))
+                added = jax.ops.segment_sum(
+                    jnp.where(arrived, w_eff, 0.0), seg_j, num_segments=N * R
+                ).reshape(N, R)
         else:
             added = jnp.zeros((N, R), dtype)
         g = g * decay_j[None, :] + added
@@ -1332,11 +1434,21 @@ def simulate_adex(
 
             def _fp_round(fp_carry):
                 spk_acc, Vc, wc, refc, gc, prev_new, done = fp_carry
-                add0 = jax.ops.segment_sum(
-                    jnp.where(prev_new[pre0_j], absw0_j, 0.0),
-                    seg0_j,
-                    num_segments=N * R,
-                ).reshape(N, R)
+                if gain0_j is None:
+                    add0 = jax.ops.segment_sum(
+                        jnp.where(prev_new[pre0_j], absw0_j, 0.0),
+                        seg0_j,
+                        num_segments=N * R,
+                    ).reshape(N, R)
+                else:
+                    g_t0 = gain_sched_j[t]
+                    w0_eff = absw0_j * jnp.where(
+                        gain0_j, g_t0, jnp.asarray(1.0, dtype))
+                    add0 = jax.ops.segment_sum(
+                        jnp.where(prev_new[pre0_j], w0_eff, 0.0),
+                        seg0_j,
+                        num_segments=N * R,
+                    ).reshape(N, R)
                 gc = gc + add0
                 I_2 = jnp.sum(gc * (rev_j[None, :] - V_pre[:, None]), axis=1) + I_t
                 (Vn, wn, refn), spkn = adex_step(
@@ -1412,9 +1524,17 @@ def simulate_adex(
         I_t = I_const if I_t is None else I_t
         if E:
             arrived = ring[(t - lag_j) % L, pre_j]
-            added = jax.ops.segment_sum(
-                jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
-            ).reshape(N, R)
+            if gain_mask_j is None:
+                added = jax.ops.segment_sum(
+                    jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
+                ).reshape(N, R)
+            else:
+                g_t = gain_sched_j[t]
+                w_eff = absw_j * jnp.where(
+                    gain_mask_j, g_t, jnp.asarray(1.0, dtype))
+                added = jax.ops.segment_sum(
+                    jnp.where(arrived, w_eff, 0.0), seg_j, num_segments=N * R
+                ).reshape(N, R)
         else:
             added = jnp.zeros((N, R), dtype)
         g = g * decay_j[None, :] + added
@@ -1466,11 +1586,21 @@ def simulate_adex(
 
             def _fp_round(fp_carry):
                 spk_acc, Vc, wc, refc, gc, prev_new, done = fp_carry
-                add0 = jax.ops.segment_sum(
-                    jnp.where(prev_new[pre0_j], absw0_j, 0.0),
-                    seg0_j,
-                    num_segments=N * R,
-                ).reshape(N, R)
+                if gain0_j is None:
+                    add0 = jax.ops.segment_sum(
+                        jnp.where(prev_new[pre0_j], absw0_j, 0.0),
+                        seg0_j,
+                        num_segments=N * R,
+                    ).reshape(N, R)
+                else:
+                    g_t0 = gain_sched_j[t]
+                    w0_eff = absw0_j * jnp.where(
+                        gain0_j, g_t0, jnp.asarray(1.0, dtype))
+                    add0 = jax.ops.segment_sum(
+                        jnp.where(prev_new[pre0_j], w0_eff, 0.0),
+                        seg0_j,
+                        num_segments=N * R,
+                    ).reshape(N, R)
                 gc = gc + add0
                 I_2 = jnp.sum(gc * (rev_j[None, :] - V_pre[:, None]), axis=1) + I_t
                 (Vn, wn, refn), spkn = adex_step(
@@ -1525,9 +1655,17 @@ def simulate_adex(
         I_t = I_const if I_t is None else I_t
         if E:
             arrived = ring[(t - lag_j) % L, pre_j]
-            added = jax.ops.segment_sum(
-                jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
-            ).reshape(N, R)
+            if gain_mask_j is None:
+                added = jax.ops.segment_sum(
+                    jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
+                ).reshape(N, R)
+            else:
+                g_t = gain_sched_j[t]
+                w_eff = absw_j * jnp.where(
+                    gain_mask_j, g_t, jnp.asarray(1.0, dtype))
+                added = jax.ops.segment_sum(
+                    jnp.where(arrived, w_eff, 0.0), seg_j, num_segments=N * R
+                ).reshape(N, R)
         else:
             added = jnp.zeros((N, R), dtype)
         g = g * decay_j[None, :] + added
@@ -1554,11 +1692,21 @@ def simulate_adex(
 
             def _fp_round(fp_carry):
                 spk_acc, Vc, wc, refc, gc, prev_new, done = fp_carry
-                add0 = jax.ops.segment_sum(
-                    jnp.where(prev_new[pre0_j], absw0_j, 0.0),
-                    seg0_j,
-                    num_segments=N * R,
-                ).reshape(N, R)
+                if gain0_j is None:
+                    add0 = jax.ops.segment_sum(
+                        jnp.where(prev_new[pre0_j], absw0_j, 0.0),
+                        seg0_j,
+                        num_segments=N * R,
+                    ).reshape(N, R)
+                else:
+                    g_t0 = gain_sched_j[t]
+                    w0_eff = absw0_j * jnp.where(
+                        gain0_j, g_t0, jnp.asarray(1.0, dtype))
+                    add0 = jax.ops.segment_sum(
+                        jnp.where(prev_new[pre0_j], w0_eff, 0.0),
+                        seg0_j,
+                        num_segments=N * R,
+                    ).reshape(N, R)
                 gc = gc + add0
                 I_2 = jnp.sum(gc * (rev_j[None, :] - V_pre[:, None]), axis=1) + I_t
                 (Vn, wn, refn), spkn = adex_step(
@@ -1691,6 +1839,9 @@ def simulate_adex_hdp_registered(
     spike_replace_mask=None,
     spike_replace_lam=None,
     spike_replace_key=None,
+    edge_gain_mask=None,
+    edge_gain_schedule=None,
+    edge0_gain_mask=None,
 ) -> dict[str, Any]:
     """AdEx conductance network with a registered HDP rule (lane 7, gap G3).
 
@@ -1778,6 +1929,13 @@ def simulate_adex_hdp_registered(
             "spike_out_mask/spike_replace_mask is not realized for the HDP kernel "
             "simulate_adex_hdp_registered: silence/replacement there would need its own "
             "rule-gated masking; pass the mask to simulate_adex only"
+        )
+    if (edge_gain_mask is not None or edge_gain_schedule is not None
+            or edge0_gain_mask is not None):
+        raise ValueError(
+            "edge_gain_mask/edge_gain_schedule is not realized for the HDP kernel "
+            "simulate_adex_hdp_registered: gain there would need its own "
+            "rule-gated scaling; pass the gain to simulate_adex only"
         )
     dtype = jnp.asarray(params.C_pF).dtype
     if N * max(len(np.reshape(receptor_tau_ms, -1)), 1) >= 2**31:

@@ -41,6 +41,7 @@ ADEX_CONSUMED = (
     ("Simulation", "poisson_drive"),
     ("Simulation", "silence"),
     ("Simulation", "replace"),
+    ("Simulation", "edge_gain"),
     # RuntimeConfig seed and n_steps are owned by Simulation (resolved_runtime replaces them, and
     # Simulation.__post_init__ refuses a conflicting value).
     ("RuntimeConfig", "seed"),
@@ -994,30 +995,17 @@ def _rule_delay_steps_allow_zero(name: str, delay_ms: float, dt_ms: float) -> in
         raise
 
 
-def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> dict[str, Any]:
-    """Keyword arguments for :func:`jaxfne.emitters_adex.simulate_adex` on ``model``.
+def _adex_edge_step_split(
+    st: Mapping[str, Any], dt: float
+) -> tuple["np.ndarray", int | None, "np.ndarray"]:
+    """Per-edge delay-0 split shared by ``adex_kernel_args`` and ``adex_edge_gain_kwargs``.
 
-    Returns ``params``, the five ``edge_*`` arrays (delays in steps at ``dt_ms``), the
-    receptor reversal/tau tuples, ``decay`` and ``step_order``. The caller adds ``n_steps``,
-    ``dt_ms``, ``record_v`` and optionally ``V0_mV``. ``I_ext_pA`` is included exactly
-    when the model was built with a declared per-triple drive (``static["adex"]``
-    ``["triple_drive_pA"]``); models built without one take the historical path
-    (no key: the kernel runs undriven). ``dtype`` casts the cell
-    parameters (and so the kernel's dtype); None keeps them as built.
-
-    A rule declaring ``intra_step_rounds`` admits a delay realizing to 0 steps
-    on that rule only: its edges ride the kernel's ``edge0_*`` set with
-    ``intra_step_rounds`` (recorded in the manifest); without it a delay
-    rounding to 0 steps is refused as before. A declared R with a delay
-    realizing to >= 1 step, distinct R values across rules, or a declared R
-    realizing no delay-0 edge is refused rather than silently unconsumed.
-    Without any delay-0 edge the returned dict is unchanged.
+    Returns ``(zero, fixed, steps)``: ``zero`` is the bool mask over the static
+    edges realizing to 0 steps, ``fixed`` is the declared ``intra_step_rounds``
+    (None when no rule declares one), and ``steps`` holds the per-edge delays
+    in static order. All delay validation lives here, so both callers split
+    the same edges.
     """
-    emitter = model.params["emitter"]
-    if dtype is not None:
-        emitter = _cast_params(emitter, jnp.dtype(dtype))
-    st = model.static["adex"]
-    dt = float(dt_ms)
     declared_rounds = dict(st.get("intra_step_rounds") or {})
     if not declared_rounds:
         for name, delay_ms in st["rules"]:
@@ -1025,21 +1013,7 @@ def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> di
         steps = np.asarray(
             [delay_steps_from_ms(float(ms), dt) for ms in st["delay_ms"]], dtype=np.int64
         )
-        out: dict[str, Any] = {
-            "params": emitter,
-            "edge_pre": st["pre"],
-            "edge_post": st["post"],
-            "edge_weight_nS": st["weight_nS"],
-            "edge_receptor": st["receptor"],
-            "edge_delay_steps": steps,
-            "receptor_reversal_mV": st["receptor_reversal_mV"],
-            "receptor_tau_ms": st["receptor_tau_ms"],
-            "decay": st["decay"],
-            "step_order": st["step_order"],
-        }
-        if st.get("triple_drive_pA", None) is not None:
-            out["I_ext_pA"] = st["triple_drive_pA"]
-        return out
+        return np.zeros((len(steps),), dtype=bool), None, steps
     rule_names = [name for name, _ in st["rules"]]
     rule_steps: dict[str, int] = {}
     fixed_values: list[int] = []
@@ -1067,13 +1041,56 @@ def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> di
     edge_rule = np.asarray(st["rule_id"], dtype=np.int64)
     steps = np.asarray([rule_steps[rule_names[int(r)]] for r in edge_rule], dtype=np.int64)
     zero = steps == 0
-    n_zero = int(zero.sum())
-    if fixed_values and not n_zero:
+    if fixed_values and not int(zero.sum()):
         raise ValueError(
             f"connections declare intra_step_rounds={fixed_values[0]} but realize no "
             f"delay-0 edge at dt_ms={dt}; a declared R with nothing to resolve is refused "
             "rather than silently unconsumed"
         )
+    return zero, int(fixed_values[0]), steps
+
+
+def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> dict[str, Any]:
+    """Keyword arguments for :func:`jaxfne.emitters_adex.simulate_adex` on ``model``.
+
+    Returns ``params``, the five ``edge_*`` arrays (delays in steps at ``dt_ms``), the
+    receptor reversal/tau tuples, ``decay`` and ``step_order``. The caller adds ``n_steps``,
+    ``dt_ms``, ``record_v`` and optionally ``V0_mV``. ``I_ext_pA`` is included exactly
+    when the model was built with a declared per-triple drive (``static["adex"]``
+    ``["triple_drive_pA"]``); models built without one take the historical path
+    (no key: the kernel runs undriven). ``dtype`` casts the cell
+    parameters (and so the kernel's dtype); None keeps them as built.
+
+    A rule declaring ``intra_step_rounds`` admits a delay realizing to 0 steps
+    on that rule only: its edges ride the kernel's ``edge0_*`` set with
+    ``intra_step_rounds`` (recorded in the manifest); without it a delay
+    rounding to 0 steps is refused as before. A declared R with a delay
+    realizing to >= 1 step, distinct R values across rules, or a declared R
+    realizing no delay-0 edge is refused rather than silently unconsumed.
+    Without any delay-0 edge the returned dict is unchanged.
+    """
+    emitter = model.params["emitter"]
+    if dtype is not None:
+        emitter = _cast_params(emitter, jnp.dtype(dtype))
+    st = model.static["adex"]
+    dt = float(dt_ms)
+    zero, fixed, steps = _adex_edge_step_split(st, dt)
+    if fixed is None:
+        out: dict[str, Any] = {
+            "params": emitter,
+            "edge_pre": st["pre"],
+            "edge_post": st["post"],
+            "edge_weight_nS": st["weight_nS"],
+            "edge_receptor": st["receptor"],
+            "edge_delay_steps": steps,
+            "receptor_reversal_mV": st["receptor_reversal_mV"],
+            "receptor_tau_ms": st["receptor_tau_ms"],
+            "decay": st["decay"],
+            "step_order": st["step_order"],
+        }
+        if st.get("triple_drive_pA", None) is not None:
+            out["I_ext_pA"] = st["triple_drive_pA"]
+        return out
     out = {
         "params": emitter,
         "edge_pre": np.asarray(st["pre"])[~zero],
@@ -1089,7 +1106,7 @@ def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> di
         "edge0_post": np.asarray(st["post"])[zero],
         "edge0_weight_nS": np.asarray(st["weight_nS"])[zero],
         "edge0_receptor": np.asarray(st["receptor"])[zero],
-        "intra_step_rounds": int(fixed_values[0]),
+        "intra_step_rounds": int(fixed),
     }
     if st.get("triple_drive_pA", None) is not None:
         out["I_ext_pA"] = st["triple_drive_pA"]
@@ -1569,3 +1586,63 @@ def adex_replace_kwargs(
         "n_replaced_per_type": {t: int(n_replaced[t]) for t in sorted(fractions)},
     }
     return mask, lam_vec, rep_key, record
+
+
+def adex_edge_gain_kwargs(
+    model: Model, sim: Any
+) -> tuple[Any | None, Any | None, Any | None, dict[str, Any] | None]:
+    """Masks, schedule and metadata record for ``Simulation(edge_gain=...)``.
+
+    Returns ``(mask, schedule, mask0, record)``; ``(None, None, None, None)``
+    when ``sim.edge_gain`` is None (the kernel's historical path). The masks
+    select every edge from a ``pre``-type cell to a ``post``-type cell, split
+    into the delayed set (``mask``) and the delay-0 set (``mask0``) with the
+    same zero-split :func:`adex_kernel_args` uses
+    (:func:`_adex_edge_step_split`). Unknown type names are refused here,
+    where the model is known.
+    """
+    gain = sim.edge_gain
+    if gain is None:
+        return None, None, None, None
+    labels = tuple(model.params["emitter"].labels)
+    known = sorted(set(labels))
+    pre = gain["pre"]
+    post = gain["post"]
+    unknown = sorted(t for t in (pre, post) if t not in known)
+    if unknown:
+        raise ValueError(
+            f"Simulation(edge_gain=...) names unknown cell type(s) {unknown}; "
+            f"the model declares {known}"
+        )
+    st = model.static["adex"]
+    lab = np.asarray(labels)
+    pre_arr = np.asarray(st["pre"], dtype=np.int64)
+    post_arr = np.asarray(st["post"], dtype=np.int64)
+    full = (lab[pre_arr] == pre) & (lab[post_arr] == post)
+    if not full.any():
+        raise ValueError(
+            f"Simulation(edge_gain=...) names cell-type pair '{pre}' -> '{post}' "
+            "with no edges in the model; gain needs at least one edge"
+        )
+    sched = np.asarray(gain["schedule"], dtype=np.float64)
+    if sched.shape != (int(sim.n_steps),):
+        raise ValueError(
+            f"Simulation(edge_gain=...) schedule length {sched.shape} != n_steps "
+            f"{int(sim.n_steps)}"
+        )
+    zero, _, _ = _adex_edge_step_split(st, float(sim.dt_ms))
+    mask = np.asarray(full[~zero], dtype=bool)
+    mask0 = np.asarray(full[zero], dtype=bool)
+    record = {
+        "pre": str(pre),
+        "post": str(post),
+        "n_edges": int(full.sum()),
+        "n_delay0_edges": int(mask0.sum()),
+        "schedule": {
+            "n_steps": int(sim.n_steps),
+            "min": float(sched.min()),
+            "max": float(sched.max()),
+            "mean": float(sched.mean()),
+        },
+    }
+    return mask, sched, mask0, record
