@@ -91,3 +91,15 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   finite difference (corr -0.2 to -0.4) and whose norm grows with T; record in
   `artifacts/runs/perf/profiles/precision_058.md`. The slope and whether a surrogate that disagrees with
   the finite difference is fit for training stay open (Hamm).
+
+### P-053
+
+- Date: 2026-11-02. Type: SCIENCE. Area: PCL event scan (`run_tuning.run_core_events`) against the event
+  oracle (`pcl/port/pcl_event_ref.py`). Severity: medium for PCL R3 to R5 exactness; none for spikes.
+- Reported by the PCL-R3-HARNESS worker, not reproduced by the dispatcher (inferred): on a synthetic
+  lateral and top-down network with hand-zeroed sparse weights, 60 events, learning on, the two give
+  identical spikes and `w_s` differs by about 0.4%; with dense seeded init weights they agree within rtol
+  1e-12 (`test_p_core_arm_equals_oracle_arm_on_chain` uses the dense init). Suspected cause: the order of
+  STDP updates within an event step.
+- Next: reproduce on a minimal fixture, then attribute in PCL R3 (`CALIBRATION.md` R3 section), where the
+  training files run both arms against the C++ chain.
