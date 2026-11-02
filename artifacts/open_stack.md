@@ -15,13 +15,3 @@ Each line has its todo row, named in the line.
 ## Hamm's calls
 - O-72 Apply Hamm's 53 rulings of 2026-10-28 (T-R28) | orchestrator, Haiku workers | since 2026-10-28 | closes when T-R28 is empty
 - O-68 Local copies held after the 2026-10-25 cleanup: `cl-reader-cursor` (`reader_exp/` unreviewed), `jaxfne-wt-p022`, four WSL copies, non-git leftovers (`jaxfne_rc057`, `jaxfne_receipts`, `jaxfne_reader_exp`, `jaxfne_pclr1_audit`, `F:/warehouse` leftovers, keeper worktrees with broken gitfiles); ruled 2026-10-28: rescue cited files, list each deletion, delete (T-R28) | orchestrator | since 2026-10-25 | closes when each copy is rescued and deleted. Status 2026-10-30: `cl-reader-cursor` and `jaxfne-wt-p022` present under `E:/repos/`; `jaxfne_rc057`, `jaxfne_receipts`, `jaxfne_reader_exp` and `jaxfne_pclr1_audit` absent under `E:/repos/` (other locations not searched).
-
-## Selfcheck (jarness `harness/selfcheck.py`, 2026-10-30)
-
-Selfcheck names the six ids below. Their successors appear only in the global `~/.claude/rules/worker-tier.md` (one `worker` with effort per call; `checker`; `reviewer`), not in the repo; the records stay unedited.
-- O-74 Retired name `opencode-delegate` in `artifacts/runs/benchmark/pilot_055.md` and `results_055.json` (benchmark records) | orchestrator | since 2026-10-30 | closes when Hamm rules the records history or selfcheck stops naming the id; todo: none yet
-- O-75 Retired name `worker-med` in `artifacts/control/harness/haiku55_evaluation_2026-10-09.md` | orchestrator | since 2026-10-30 | closes when Hamm rules the record history or selfcheck stops naming the id; todo: none yet
-- O-76 Retired name `worker-xhigh` in `artifacts/control/harness/haiku55_evaluation_2026-10-09.md` | orchestrator | since 2026-10-30 | closes when Hamm rules the record history or selfcheck stops naming the id; todo: none yet
-- O-77 Retired name `worker-max` in `artifacts/control/harness/haiku55_evaluation_2026-10-09.md` | orchestrator | since 2026-10-30 | closes when Hamm rules the record history or selfcheck stops naming the id; todo: none yet
-- O-78 Retired name `second-reviewer` in `artifacts/control/harness/haiku55_evaluation_2026-10-09.md`, `artifacts/etudes/theory/theory_f1/README.md` and `theory_f4/README.md` (`etudes/` is outside this run's paths) | orchestrator | since 2026-10-30 | closes when Hamm rules the records history or selfcheck stops naming the id; todo: none yet
-- O-79 Retired name `match-checker` in `artifacts/control/harness/haiku55_evaluation_2026-10-09.md` | orchestrator | since 2026-10-30 | closes when Hamm rules the record history or selfcheck stops naming the id; todo: none yet

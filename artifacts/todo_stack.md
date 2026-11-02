@@ -88,7 +88,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 23. [H] T-62 Figure 1D (Onorato data): download permission (file name, source, size in `state.md`); which of panels
     B, C, D hold.
 24. [H] P-052 surrogate fitness for training (`artifacts/runs/perf/profiles/precision_058.md`).
-25. [H] T-O74 to T-O79 retired selfcheck names in dated records: keep as history or edit.
+25. [A] Retired names in dated records kept as history (Hamm 2026-11-02, O-74 to O-79 closed): jarness selfcheck needs
+    a history allowlist for them (asked in jchat, jynx keeper).
 
 ## After 0.5.9
 
