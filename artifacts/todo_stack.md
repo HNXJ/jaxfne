@@ -36,34 +36,27 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    two chains bit-identical (null), weights moved from init (`F:/warehouse/pcl/r3_cpp_f0_4/*.json`).
    Closes when: R5 is scored in `prereg/` with exact and approximate reproduction apart (R3 closes when CALIBRATION.md
    has an R3 section with a receipt per arm).
-5. T-69 [A] Destexhe pilots on the WSL GPU after step 12: `run_destexhe.py fig6b_cont --seed S --tag fig6b_cont
-   --out <unscored dir> --kick-fraction 0.25 --kick-rate-hz 286` for seeds 0-3 (50-85 s each) → prereg draft (E1-E4,
-   scoring seeds 9-13) → [H] sign (step 7). Status 2026-10-31: pilots done (E1-E3 jointly on seed 0 of 0-3; E4 off,
-   48-49 Hz); `PREREG_P3_v3.md` (v2 misstated v1's E4 as gated) pinned with three owner decisions (E4 reported or gated, 4-of-5
-   aggregation, sign or defer; outside the 0.5.9 checklist, S16). CALIBRATION step 6 erratum dc9b458c.
-   Closes when: the Destexhe pilot receipts and `PREREG_P3_v3.md` are cited in its CALIBRATION.md (v3 was signed and
-   scored FAIL 2026-11-02, step 7, so only the record remains).
 6. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
-   S3 test, C6 `geometry="laminar"` with Brian2 and Jaxley baselines declared.
-7. [H] Signatures, one at a time as each draft is ready: PCL R4. Destexhe P3 v3 signed and scored FAIL 2026-11-02
-   (`RESULT_P3.md`, 5bd0fd4f); later Destexhe runs record status and the signed prereg hash. Potjans P3 v2 and Vogels P3 v4 signed and scored
-   off 2026-11-02 (`RESULT_P3.md` in each lane, 42e7f618); GSDR P3 fit signed and scored 2026-11-01; the Vogels
-   result is in S12 (fd5a9c27).
+   S3 test, C6 `geometry="laminar"` with Brian2 and Jaxley baselines declared. Closes when: each listed piece has a
+   commit with its test or receipt, cited here before the row is deleted.
+7. [H] Signatures, one at a time as each draft is ready: PCL R4 (the other P3 drafts are signed and scored; later
+   Destexhe runs record status and the signed prereg hash).
    Each: sign ⇒ scored run from a fixed clone → result file, dashboard, checklist 9D/9E; defer ⇒ the package moves
-   to 0.5.10 with its reason (Gate 1).
+   to 0.5.10 with its reason (Gate 1). Closes when: Hamm has signed or deferred PCL R4.
 8. T-70 [A] 9F: the rc gate end to end on the candidate (JUnit parity, figure lock, clean-checkout figure job;
     Release CI JUnit reused for the same tree). 9G: a fragment for every change since v0.5.8; the assembled section
     under the hygiene caps (26 of 30 ghost hits on 2026-10-31). Closes when: `run_test_gate.py rc` prints
     "RC GATE PASS" and its attestation names the candidate SHA; every `jaxfne/` commit since v0.5.8 has a fragment or
     is recorded as changing no behavior.
-9. [H] Gate 1: every package 9A-9G closed or moved with its reason; Hamm rules each move.
+9. [H] Gate 1: every package 9A-9G closed or moved with its reason; Hamm rules each move. Closes when: the release
+   plan's checklist shows each package closed or moved with Hamm's dated ruling.
 10. T-71 [A] Gates 2-4 on the release SHA: broad gate, CI, `check_replications.py --check` 0 unlisted, dashboard
     fresh; second review with its receipt; release day: version 0.5.9 in `pyproject.toml`,
     `assemble_changelog.py --version 0.5.9 --date <day>`, `release_body.py --check`. Closes when: each command
     exits 0 on the release SHA and the second review's receipt is committed.
-11. [H] Gate 5: Hamm's go → tag, main, Release, PyPI.
+11. [H] Gate 5: Hamm's go → tag, main, Release, PyPI. Closes when: 0.5.9 is on PyPI from the tagged release SHA.
 
 ## Beside the path (∥)
 
@@ -76,7 +69,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     the link replaces `[MISSING: anonymized code link]`), then Hamm reads and submits. Closes when Hamm has submitted.
 14. ∥ T-O68 [A] Local copies (O-68): rescue each cited file into the repo or `F:/warehouse` with a `state.md`
     pointer, delete one at a time (`cl-reader-cursor`, `jaxfne-wt-p022`, the four WSL copies, the non-git leftovers
-    named in O-68), and the finished lane clones under `E:/repos/_wt/jaxfne/` after an alternates check.
+    named in O-68), and the finished lane clones under `E:/repos/_wt/jaxfne/` after an alternates check. Closes when:
+    every O-68 path is gone or rescued, and no surviving clone's `objects/info/alternates` names a deleted one.
 16. ∥ T-46 [A] C9, C2: 8 gaps in `programme/paper/reproducibility_audit.md` section 7 (left: data and code statement,
     PCL natural-image and DVS128/N-MNIST licences, S16 generators). Close test (Hamm 2026-11-02): section 7 closes
     when the gaps touching 0.5.9 items close; the paper-only gaps (licences, data and code statement) move to the
@@ -86,10 +80,12 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     Q-learning (phase records; pcl_h `sys.path` imports), PCL (closes at R4). Closes when: `check_replications.py
     --check` lists no violation without Hamm's exception.
 18. ∥ T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; then the lane
-    dashboard (skill `jaxfne-dashboard`).
+    dashboard (skill `jaxfne-dashboard`). Standing: never closes; each score's commit cites the regenerated
+    dashboard.
 19. ∥ T-10b [A] jnwb cross-learning: a proxy-claim wording gate, or drop it. T-42 [A] CI plan steps observed at the
     first rc. T-49 [A] split closed lane folders by kind as each lane closes (`caminos/`, `izhikevich2003/`,
-    `brunel2000/`).
+    `brunel2000/`). Closes when: T-10b has its gate or a dated drop note; T-42 lists the CI steps seen at the rc;
+    each closed lane folder passes `tests/test_artifacts_tree_degree.py` with no R6 entry.
 
 ## Owner queue (asked one at a time, in this order)
 

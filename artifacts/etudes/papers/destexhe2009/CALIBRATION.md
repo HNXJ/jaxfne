@@ -439,3 +439,16 @@ E4 in-band. The miss moved: from death to a
 hyperactive attractor. Open moves: rate-order reduction without
 losing sustain (ge/gi absorption still untouched, needs a reason),
 and the X_bg trajectory of step 4 is unchanged.
+
+## Step 7: code-value kick pilots, P3 v3, scored FAIL (2026-11-02)
+
+Pilots (unscored, code 29583485): `run_destexhe.py fig6b_cont --kick-fraction 0.25 --kick-rate-hz 286` on
+seeds 0-3, the 6A control on seeds 0-1; receipts `F:/warehouse/destexhe2009/P3_pilot_29583485/`
+(`manifest.json`, `score_seed*_6{a,b}.json`). E1-E3 close jointly on seed 0 only; seed 1 dies; E4 is off on
+every alive seed (48-49 Hz); the 6A control is dead on both seeds. Table: `prereg/P3_v3.md`, section "Pilot
+evidence".
+
+Prereg: `prereg/P3_v3.md`, signed by Hamm 2026-11-02 as `prereg/P3_v3_signed.md` (E4 reported, the 4-of-5
+aggregation kept). Scored on seeds 9-13: FAIL, 0 of 5 seeds close E1-E3, the 6A control holds
+(`RESULT_P3.md`; receipts `F:/warehouse/destexhe2009/P3v3_signed_2d17488b/`). The pilots and step 6 predicted
+the FAIL.
