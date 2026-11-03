@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-02T13:54:58Z",
-    "dev_sha": "31c23fbcd3026ff9b633eabd0c47f30a61b97f40",
-    "data_revision": "e9a521e4191d15b145818b80279efc9b50f6f3660861941ea56e6de9da17efca"
+    "utc": "2026-11-03T03:49:10Z",
+    "dev_sha": "b829cef079059325be1810328dfad9be33f2a7f0",
+    "data_revision": "95d6add614af03f6e3b9aed11f1ef04cb2ab7e0845d87189391182245d76e086"
   },
   "papers": [
     {
@@ -1412,7 +1412,8 @@
       "charts": [],
       "open": [
         "No preregistration: the verdicts are descriptive.",
-        "Fig. 4B amplitude metric: band power falls, peak |X| rises."
+        "Fig. 4B amplitude metric: band power falls, peak |X| rises.",
+        "Core route against the port (equivalence test E1, ±5%, Hamm 2026-11-02): at n 6 per route, 18 of 24 cells are equivalent, and the 6 others are unresolved (intervals span 0, centres within 2.5%); the confirmatory n 12 runs are in progress (RESULT_FIGURES.md)."
       ],
       "verdict_summary": {
         "kind": "paper",
@@ -1524,7 +1525,7 @@
       "id": "pcl-fig3",
       "title": "Predictive coding light, Fig. 3 (simple and complex cell tuning)",
       "citation": "N'dri, Barbier, Teulière and Triesch, Nat Commun 2025",
-      "class": "in progress",
+      "class": "pending",
       "question": "Do the trained network's simple and complex cells show the paper's orientation, spatial-frequency and phase tuning?",
       "page": "models/pcl_fig3.md",
       "release": "0.5.6",
@@ -1619,7 +1620,7 @@
       ],
       "verdict": null,
       "verdict_note": null,
-      "summary": "Preregistrations v4 and v5 were scored and did not pass; a new protocol follows (Hamm 2026-10-13). Orientation tuning and the simple/complex phase split reproduce. v5 scores the sf curve against the digitized Fig. 3: simple cells fail (10/16 points, error 1.5 times a flat line), complex cells miss the shape guard by 0.02. Under v5, T4 (frequency doubling, C3) passes on the v4 numbers. The PCL-R1 fidelity audit (closed 2026-10-24, receipt `artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md`) attributes six findings to implementation and selection fidelity; PCL is not reproduced and the signed v5 T2 failure stands.",
+      "summary": "Preregistrations v4 and v5 were scored and did not pass; a new protocol follows (Hamm 2026-10-13). Orientation tuning and the simple/complex phase split reproduce. v5 scores the sf curve against the digitized Fig. 3: simple cells fail (10/16 points, error 1.5 times a flat line), complex cells miss the shape guard by 0.02. Under v5, T4 (frequency doubling, C3) passes on the v4 numbers. The PCL-R1 fidelity audit (closed 2026-10-24, receipt `artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md`) attributes six findings to implementation and selection fidelity; PCL is not reproduced and the signed v5 T2 failure stands. R3 (2026-11-02): the oracle arm matches the authors' C++ on files 0-4 (max relative weight difference 7.4e-15); the jaxfne core arm matches the C++ after file 0 too (max relative weight difference 5.3e-15, spikes equal to the oracle's; CALIBRATION.md R3). Next: the R4 preregistration.",
       "preregs": [
         {
           "id": "v4",
@@ -2863,7 +2864,7 @@
       "id": "izhikevich2003",
       "title": "Izhikevich 2003, Figs. 2 and 3 (single-cell patterns and the 1000-cell network)",
       "citation": "Izhikevich, IEEE Trans Neural Netw 2003",
-      "class": "in progress",
+      "class": "pending",
       "question": "Does jaxfne's existing Izhikevich kernel reproduce the paper's single-cell firing patterns (Fig. 2) and the 1000-cell network rhythm (Fig. 3)?",
       "page": "models/izhikevich2003.md",
       "release": "0.5.7",
@@ -2986,7 +2987,7 @@
       ],
       "verdict": null,
       "verdict_note": null,
-      "summary": "Preregistration v7 was scored and did not pass. Six of eight single-cell patterns reproduce; FS adapts (ISI ratio 1.86) and the resonator spikes once. The network has the paper's rate, alpha and gamma peaks, but its firing is too regular (median ISI CV 0.40 against 0.6 to 1.5), and the float64 reference arm of net.m gives 0.39 too. Library path, scored apart: P6 v2 PASS through the public API (Q1–Q5, seeds 2–6), matching the P5 network values within the declared margins; N2 stays a failed paper claim.",
+      "summary": "Preregistration v7 was scored and did not pass. Six of eight single-cell patterns reproduce; FS adapts (ISI ratio 1.86) and the resonator spikes once. The network has the paper's rate, alpha and gamma peaks, but its firing is too regular (median ISI CV 0.40 against 0.6 to 1.5), and the float64 reference arm of net.m gives 0.39 too. Library path, scored apart: P6 v2 PASS through the public API (Q1–Q5, seeds 2–6), matching the P5 network values within the declared margins; N2 stays a failed criterion.",
       "preregs": [
         {
           "id": "v7",
@@ -3291,7 +3292,7 @@
       "sensitivity": [],
       "charts": [],
       "open": [
-        "Amendment v8.2 (post hoc, signed 2026-10-13; scores/p3_v8_score.json): Fig. 2 passes 8 of 8 with the C8 pulse at I = 2 and C4 as the least-adapting type (FS 1.86 against RS 2.53 and LTS 4.39). N2 stays a failed paper claim.",
+        "Amendment v8.2 (post hoc, signed 2026-10-13; scores/p3_v8_score.json): Fig. 2 passes 8 of 8 with the C8 pulse at I = 2 and C4 as the least-adapting type (FS 1.86 against RS 2.53 and LTS 4.39). N2 stays a failed criterion.",
         "S1 (rescored on each arm's own step) moves N3 across its band edge. The net.m update-order arm (PREREG_P3b.md) stopped at its equivalence gate (v5): the JAX arm drifts from the NumPy reference faster than a one-ulp input change (RESULT_P3.md)."
       ],
       "verdict_summary": {
@@ -3471,7 +3472,7 @@
       "id": "gsdr2026",
       "title": "GSDR, Fig. 6 (a 50-neuron E, SST-like and PV-like circuit fitted to recorded spectra)",
       "citation": "Nejat, Sherfey and Bastos, PLOS One 2026",
-      "class": "in progress",
+      "class": "pending",
       "question": "Does GSDR fit the 50-neuron Hodgkin–Huxley circuit to the recorded spectra when the circuit and the optimizer run in jaxfne?",
       "page": null,
       "release": "0.5.8",
@@ -3480,7 +3481,7 @@
       "grammar": null,
       "lane": {
         "branch": "dev",
-        "sha": "899dccbaddf03c98bb35cf1897d3f4ee04318573"
+        "sha": "1537f01d8c413f20a8b71dff57089b1f4573c6d5"
       },
       "stage_artifacts": [
         {
@@ -3489,7 +3490,7 @@
             {
               "label": "source record (draft)",
               "path": "artifacts/etudes/papers/gsdr2026/SOURCE_P1.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/899dccbaddf03c98bb35cf1897d3f4ee04318573/artifacts/etudes/papers/gsdr2026/SOURCE_P1.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/SOURCE_P1.md",
               "sha256": "e3b0289324080f4a2ac43010a12a9fe89ebdbe478ccac394b5054d6f668b972f"
             }
           ]
@@ -3500,13 +3501,13 @@
             {
               "label": "fit prereg (signed)",
               "path": "artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/899dccbaddf03c98bb35cf1897d3f4ee04318573/artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md",
               "sha256": "4dc8c272b9e24d4020104c1031d211c65c23d9dd36e472992568afccea4a5c38"
             },
             {
               "label": "result",
               "path": "artifacts/etudes/papers/gsdr2026/RESULT_P3_fit.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/899dccbaddf03c98bb35cf1897d3f4ee04318573/artifacts/etudes/papers/gsdr2026/RESULT_P3_fit.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/RESULT_P3_fit.md",
               "sha256": "e330de5a7fd00f9063e5c7647748117fbee7dd2c59b9d1670a84f410c4f96879"
             }
           ]
@@ -3520,15 +3521,246 @@
           "id": "P3 fit",
           "signed": "2026-11-01",
           "path": "artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/899dccbaddf03c98bb35cf1897d3f4ee04318573/artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md",
           "sha256": "4dc8c272b9e24d4020104c1031d211c65c23d9dd36e472992568afccea4a5c38"
         }
       ],
-      "criteria": [],
+      "criteria": [
+        {
+          "id": "G2",
+          "group": "seed 9",
+          "claim": "fitted network desynchronizes under the stimulus",
+          "estimand": "mean kappa_500_1000 over held-out trials 14-18",
+          "criterion": "z < 0.1",
+          "value": 0.5963260627651786,
+          "value_text": "0.596",
+          "value_label": "mean kappa",
+          "paper_value": "0.0156",
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "kappa above 0.1 (synchronous)",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 fit",
+          "evidence": {
+            "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+          }
+        },
+        {
+          "id": "G3",
+          "group": "seed 9",
+          "claim": "fitted network fires in the 5-50 Hz band",
+          "estimand": "mean rate over held-out trials 14-18",
+          "criterion": "5 ≤ z ≤ 50 Hz",
+          "value": 69.38666666666667,
+          "value_text": "69.4",
+          "value_label": "mean rate",
+          "paper_value": null,
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "rate above 50 Hz",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 fit",
+          "evidence": {
+            "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+          }
+        },
+        {
+          "id": "G2",
+          "group": "seed 10",
+          "claim": "fitted network desynchronizes under the stimulus",
+          "estimand": "mean kappa_500_1000 over held-out trials 14-18",
+          "criterion": "z < 0.1",
+          "value": 0.5964674119636857,
+          "value_text": "0.596",
+          "value_label": "mean kappa",
+          "paper_value": "0.0156",
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "kappa above 0.1 (synchronous)",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 fit",
+          "evidence": {
+            "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+          }
+        },
+        {
+          "id": "G3",
+          "group": "seed 10",
+          "claim": "fitted network fires in the 5-50 Hz band",
+          "estimand": "mean rate over held-out trials 14-18",
+          "criterion": "5 ≤ z ≤ 50 Hz",
+          "value": 69.51199999999999,
+          "value_text": "69.5",
+          "value_label": "mean rate",
+          "paper_value": null,
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "rate above 50 Hz",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 fit",
+          "evidence": {
+            "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+          }
+        },
+        {
+          "id": "G2",
+          "group": "seed 11",
+          "claim": "fitted network desynchronizes under the stimulus",
+          "estimand": "mean kappa_500_1000 over held-out trials 14-18",
+          "criterion": "z < 0.1",
+          "value": 0.5960673607368066,
+          "value_text": "0.596",
+          "value_label": "mean kappa",
+          "paper_value": "0.0156",
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "kappa above 0.1 (synchronous)",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 fit",
+          "evidence": {
+            "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+          }
+        },
+        {
+          "id": "G3",
+          "group": "seed 11",
+          "claim": "fitted network fires in the 5-50 Hz band",
+          "estimand": "mean rate over held-out trials 14-18",
+          "criterion": "5 ≤ z ≤ 50 Hz",
+          "value": 69.37066666666666,
+          "value_text": "69.4",
+          "value_label": "mean rate",
+          "paper_value": null,
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "rate above 50 Hz",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 fit",
+          "evidence": {
+            "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+          }
+        },
+        {
+          "id": "G2",
+          "group": "seed 12",
+          "claim": "fitted network desynchronizes under the stimulus",
+          "estimand": "mean kappa_500_1000 over held-out trials 14-18",
+          "criterion": "z < 0.1",
+          "value": 0.5953878235630337,
+          "value_text": "0.595",
+          "value_label": "mean kappa",
+          "paper_value": "0.0156",
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "kappa above 0.1 (synchronous)",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 fit",
+          "evidence": {
+            "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+          }
+        },
+        {
+          "id": "G3",
+          "group": "seed 12",
+          "claim": "fitted network fires in the 5-50 Hz band",
+          "estimand": "mean rate over held-out trials 14-18",
+          "criterion": "5 ≤ z ≤ 50 Hz",
+          "value": 69.50133333333333,
+          "value_text": "69.5",
+          "value_label": "mean rate",
+          "paper_value": null,
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "rate above 50 Hz",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 fit",
+          "evidence": {
+            "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+          }
+        },
+        {
+          "id": "G2",
+          "group": "seed 13",
+          "claim": "fitted network desynchronizes under the stimulus",
+          "estimand": "mean kappa_500_1000 over held-out trials 14-18",
+          "criterion": "z < 0.1",
+          "value": 0.5950873223459967,
+          "value_text": "0.595",
+          "value_label": "mean kappa",
+          "paper_value": "0.0156",
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "kappa above 0.1 (synchronous)",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 fit",
+          "evidence": {
+            "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+          }
+        },
+        {
+          "id": "G3",
+          "group": "seed 13",
+          "claim": "fitted network fires in the 5-50 Hz band",
+          "estimand": "mean rate over held-out trials 14-18",
+          "criterion": "5 ≤ z ≤ 50 Hz",
+          "value": 69.496,
+          "value_text": "69.5",
+          "value_label": "mean rate",
+          "paper_value": null,
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "rate above 50 Hz",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 fit",
+          "evidence": {
+            "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+            "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+          }
+        }
+      ],
       "sensitivity": [],
       "charts": [],
       "open": [
-        "In progress (Hamm 2026-11-02): open until precisely replicated. The signed P3 fit FAIL stands as scored (RESULT_P3_fit.md); the paper continues under a new preregistration.",
+        "Pending (Hamm 2026-11-02): open until precisely replicated. The signed P3 fit stands as scored, without a pass (RESULT_P3_fit.md); the paper continues under a new preregistration.",
         "The next prereg names --morphology explicitly (RESULT_P3_fit.md: the reference-morphology evaluation is insensitive to the fitted conductances at stim 0.6).",
         "The drive and J_E anchor for the g sweep are not yet recorded."
       ],
@@ -3537,7 +3769,238 @@
         "paper": null,
         "library": null,
         "methods": null,
-        "failed_criteria": [],
+        "failed_criteria": [
+          {
+            "id": "G2",
+            "group": "seed 9",
+            "claim": "fitted network desynchronizes under the stimulus",
+            "estimand": "mean kappa_500_1000 over held-out trials 14-18",
+            "criterion": "z < 0.1",
+            "value": 0.5963260627651786,
+            "value_text": "0.596",
+            "value_label": "mean kappa",
+            "paper_value": "0.0156",
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "kappa above 0.1 (synchronous)",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 fit",
+            "evidence": {
+              "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+            }
+          },
+          {
+            "id": "G3",
+            "group": "seed 9",
+            "claim": "fitted network fires in the 5-50 Hz band",
+            "estimand": "mean rate over held-out trials 14-18",
+            "criterion": "5 ≤ z ≤ 50 Hz",
+            "value": 69.38666666666667,
+            "value_text": "69.4",
+            "value_label": "mean rate",
+            "paper_value": null,
+            "unit": "Hz",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "rate above 50 Hz",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 fit",
+            "evidence": {
+              "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+            }
+          },
+          {
+            "id": "G2",
+            "group": "seed 10",
+            "claim": "fitted network desynchronizes under the stimulus",
+            "estimand": "mean kappa_500_1000 over held-out trials 14-18",
+            "criterion": "z < 0.1",
+            "value": 0.5964674119636857,
+            "value_text": "0.596",
+            "value_label": "mean kappa",
+            "paper_value": "0.0156",
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "kappa above 0.1 (synchronous)",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 fit",
+            "evidence": {
+              "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+            }
+          },
+          {
+            "id": "G3",
+            "group": "seed 10",
+            "claim": "fitted network fires in the 5-50 Hz band",
+            "estimand": "mean rate over held-out trials 14-18",
+            "criterion": "5 ≤ z ≤ 50 Hz",
+            "value": 69.51199999999999,
+            "value_text": "69.5",
+            "value_label": "mean rate",
+            "paper_value": null,
+            "unit": "Hz",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "rate above 50 Hz",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 fit",
+            "evidence": {
+              "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+            }
+          },
+          {
+            "id": "G2",
+            "group": "seed 11",
+            "claim": "fitted network desynchronizes under the stimulus",
+            "estimand": "mean kappa_500_1000 over held-out trials 14-18",
+            "criterion": "z < 0.1",
+            "value": 0.5960673607368066,
+            "value_text": "0.596",
+            "value_label": "mean kappa",
+            "paper_value": "0.0156",
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "kappa above 0.1 (synchronous)",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 fit",
+            "evidence": {
+              "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+            }
+          },
+          {
+            "id": "G3",
+            "group": "seed 11",
+            "claim": "fitted network fires in the 5-50 Hz band",
+            "estimand": "mean rate over held-out trials 14-18",
+            "criterion": "5 ≤ z ≤ 50 Hz",
+            "value": 69.37066666666666,
+            "value_text": "69.4",
+            "value_label": "mean rate",
+            "paper_value": null,
+            "unit": "Hz",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "rate above 50 Hz",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 fit",
+            "evidence": {
+              "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+            }
+          },
+          {
+            "id": "G2",
+            "group": "seed 12",
+            "claim": "fitted network desynchronizes under the stimulus",
+            "estimand": "mean kappa_500_1000 over held-out trials 14-18",
+            "criterion": "z < 0.1",
+            "value": 0.5953878235630337,
+            "value_text": "0.595",
+            "value_label": "mean kappa",
+            "paper_value": "0.0156",
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "kappa above 0.1 (synchronous)",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 fit",
+            "evidence": {
+              "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+            }
+          },
+          {
+            "id": "G3",
+            "group": "seed 12",
+            "claim": "fitted network fires in the 5-50 Hz band",
+            "estimand": "mean rate over held-out trials 14-18",
+            "criterion": "5 ≤ z ≤ 50 Hz",
+            "value": 69.50133333333333,
+            "value_text": "69.5",
+            "value_label": "mean rate",
+            "paper_value": null,
+            "unit": "Hz",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "rate above 50 Hz",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 fit",
+            "evidence": {
+              "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+            }
+          },
+          {
+            "id": "G2",
+            "group": "seed 13",
+            "claim": "fitted network desynchronizes under the stimulus",
+            "estimand": "mean kappa_500_1000 over held-out trials 14-18",
+            "criterion": "z < 0.1",
+            "value": 0.5950873223459967,
+            "value_text": "0.595",
+            "value_label": "mean kappa",
+            "paper_value": "0.0156",
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "kappa above 0.1 (synchronous)",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 fit",
+            "evidence": {
+              "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+            }
+          },
+          {
+            "id": "G3",
+            "group": "seed 13",
+            "claim": "fitted network fires in the 5-50 Hz band",
+            "estimand": "mean rate over held-out trials 14-18",
+            "criterion": "5 ≤ z ≤ 50 Hz",
+            "value": 69.496,
+            "value_text": "69.5",
+            "value_label": "mean rate",
+            "paper_value": null,
+            "unit": "Hz",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "rate above 50 Hz",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 fit",
+            "evidence": {
+              "path": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json",
+              "sha256": "e77216f94ef897234ea3fb09137bc2faaae2fd6ec7edb6d259c936ae361eff9f"
+            }
+          }
+        ],
         "pending_criteria": []
       },
       "replica": {
@@ -3559,16 +4022,16 @@
       "id": "destexhe2009",
       "title": "Destexhe 2009, Fig. 6B (self-sustained asynchronous irregular state in an AdEx cortical network)",
       "citation": "Destexhe, J Comput Neurosci 2009",
-      "class": "in progress",
+      "class": "pending",
       "question": "Does the jaxfne AdEx core, at the paper's parameters, sustain the asynchronous irregular state of Fig. 6B with its rates, CV_ISI and pairwise correlation?",
       "page": null,
-      "release": "0.5.8",
+      "release": "0.5.9",
       "tier": "T-port",
       "stage": "P3",
       "grammar": null,
       "lane": {
         "branch": "dev",
-        "sha": "5bd0fd4f3c516cc1445037b722256e6bf3c9bf8b"
+        "sha": "1537f01d8c413f20a8b71dff57089b1f4573c6d5"
       },
       "stage_artifacts": [
         {
@@ -3577,13 +4040,13 @@
             {
               "label": "prereg v3 (signed)",
               "path": "artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/5bd0fd4f3c516cc1445037b722256e6bf3c9bf8b/artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md",
               "sha256": "b33e5c707abc59c6d46ed103e95650763454eca6115b02a705875ffc6d07c07e"
             },
             {
               "label": "result",
               "path": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/5bd0fd4f3c516cc1445037b722256e6bf3c9bf8b/artifacts/etudes/papers/destexhe2009/RESULT_P3.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/RESULT_P3.md",
               "sha256": "32a41237eddd63d1c18f5ddd246d68dd00ed34771908f45923b04d95e38e49e5"
             }
           ]
@@ -3597,11 +4060,380 @@
           "id": "P3 v3",
           "signed": "2026-11-02",
           "path": "artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/5bd0fd4f3c516cc1445037b722256e6bf3c9bf8b/artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md",
           "sha256": "b33e5c707abc59c6d46ed103e95650763454eca6115b02a705875ffc6d07c07e"
         }
       ],
-      "criteria": [],
+      "criteria": [
+        {
+          "id": "E1",
+          "group": "seed 9",
+          "claim": "self-sustained: the network stays alive",
+          "estimand": "spikes in the last 1 s of a 10 s free run",
+          "criterion": "spikes in the last 1 s",
+          "value": false,
+          "value_text": "false",
+          "value_label": "alive",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "silent before 10 s",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E2",
+          "group": "seed 9",
+          "claim": "CV_ISI matches the paper",
+          "estimand": "cv_isi over the free run; e = |z-2.47|/2.47",
+          "criterion": "e ≤ 0.05",
+          "value": 2.3615458529680766,
+          "value_text": "2.36",
+          "value_label": "CV_ISI",
+          "paper_value": "2.47",
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E3",
+          "group": "seed 9",
+          "claim": "pairwise correlation matches the paper",
+          "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|",
+          "criterion": "|z-0.005| ≤ 0.01",
+          "value": 0.11358466531760537,
+          "value_text": "0.114",
+          "value_label": "pairwise CC",
+          "paper_value": "0.005",
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "|z-y| 0.109 over 0.01; silent before 10 s",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E1",
+          "group": "seed 10",
+          "claim": "self-sustained: the network stays alive",
+          "estimand": "spikes in the last 1 s of a 10 s free run",
+          "criterion": "spikes in the last 1 s",
+          "value": true,
+          "value_text": "true",
+          "value_label": "alive",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E2",
+          "group": "seed 10",
+          "claim": "CV_ISI matches the paper",
+          "estimand": "cv_isi over the free run; e = |z-2.47|/2.47",
+          "criterion": "e ≤ 0.05",
+          "value": 2.606245297422119,
+          "value_text": "2.61",
+          "value_label": "CV_ISI",
+          "paper_value": "2.47",
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "e 0.055 over 0.05 at 46 Hz",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E3",
+          "group": "seed 10",
+          "claim": "pairwise correlation matches the paper",
+          "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|",
+          "criterion": "|z-0.005| ≤ 0.01",
+          "value": 0.00685507229637175,
+          "value_text": "0.00686",
+          "value_label": "pairwise CC",
+          "paper_value": "0.005",
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E1",
+          "group": "seed 11",
+          "claim": "self-sustained: the network stays alive",
+          "estimand": "spikes in the last 1 s of a 10 s free run",
+          "criterion": "spikes in the last 1 s",
+          "value": true,
+          "value_text": "true",
+          "value_label": "alive",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E2",
+          "group": "seed 11",
+          "claim": "CV_ISI matches the paper",
+          "estimand": "cv_isi over the free run; e = |z-2.47|/2.47",
+          "criterion": "e ≤ 0.05",
+          "value": 2.604416337218955,
+          "value_text": "2.6",
+          "value_label": "CV_ISI",
+          "paper_value": "2.47",
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "e 0.054 over 0.05 at 46 Hz",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E3",
+          "group": "seed 11",
+          "claim": "pairwise correlation matches the paper",
+          "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|",
+          "criterion": "|z-0.005| ≤ 0.01",
+          "value": 0.008497981284539703,
+          "value_text": "0.0085",
+          "value_label": "pairwise CC",
+          "paper_value": "0.005",
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E1",
+          "group": "seed 12",
+          "claim": "self-sustained: the network stays alive",
+          "estimand": "spikes in the last 1 s of a 10 s free run",
+          "criterion": "spikes in the last 1 s",
+          "value": false,
+          "value_text": "false",
+          "value_label": "alive",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "silent before 10 s",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E2",
+          "group": "seed 12",
+          "claim": "CV_ISI matches the paper",
+          "estimand": "cv_isi over the free run; e = |z-2.47|/2.47",
+          "criterion": "e ≤ 0.05",
+          "value": 2.3227781605735016,
+          "value_text": "2.32",
+          "value_label": "CV_ISI",
+          "paper_value": "2.47",
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "e 0.060 over 0.05; silent before 10 s",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E3",
+          "group": "seed 12",
+          "claim": "pairwise correlation matches the paper",
+          "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|",
+          "criterion": "|z-0.005| ≤ 0.01",
+          "value": 0.07960471972990263,
+          "value_text": "0.0796",
+          "value_label": "pairwise CC",
+          "paper_value": "0.005",
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "|z-y| 0.075 over 0.01; silent before 10 s",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E1",
+          "group": "seed 13",
+          "claim": "self-sustained: the network stays alive",
+          "estimand": "spikes in the last 1 s of a 10 s free run",
+          "criterion": "spikes in the last 1 s",
+          "value": false,
+          "value_text": "false",
+          "value_label": "alive",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "silent before 10 s",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E2",
+          "group": "seed 13",
+          "claim": "CV_ISI matches the paper",
+          "estimand": "cv_isi over the free run; e = |z-2.47|/2.47",
+          "criterion": "e ≤ 0.05",
+          "value": 2.322294325031263,
+          "value_text": "2.32",
+          "value_label": "CV_ISI",
+          "paper_value": "2.47",
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "e 0.060 over 0.05; silent before 10 s",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "E3",
+          "group": "seed 13",
+          "claim": "pairwise correlation matches the paper",
+          "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|",
+          "criterion": "|z-0.005| ≤ 0.01",
+          "value": 0.12868838075014694,
+          "value_text": "0.129",
+          "value_label": "pairwise CC",
+          "paper_value": "0.005",
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "|z-y| 0.124 over 0.01; silent before 10 s",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        },
+        {
+          "id": "C1",
+          "group": "control",
+          "claim": "Fig. 6A control: strong adaptation silences the network",
+          "estimand": "control run rates, seeds 9-10",
+          "criterion": "dead by 10 s on both seeds",
+          "value": true,
+          "value_text": "true",
+          "value_label": "control dead",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v3",
+          "evidence": {
+            "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+            "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+          }
+        }
+      ],
       "sensitivity": [],
       "charts": [],
       "open": [
@@ -3613,7 +4445,238 @@
         "paper": null,
         "library": null,
         "methods": null,
-        "failed_criteria": [],
+        "failed_criteria": [
+          {
+            "id": "E1",
+            "group": "seed 9",
+            "claim": "self-sustained: the network stays alive",
+            "estimand": "spikes in the last 1 s of a 10 s free run",
+            "criterion": "spikes in the last 1 s",
+            "value": false,
+            "value_text": "false",
+            "value_label": "alive",
+            "paper_value": null,
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "silent before 10 s",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v3",
+            "evidence": {
+              "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+            }
+          },
+          {
+            "id": "E3",
+            "group": "seed 9",
+            "claim": "pairwise correlation matches the paper",
+            "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|",
+            "criterion": "|z-0.005| ≤ 0.01",
+            "value": 0.11358466531760537,
+            "value_text": "0.114",
+            "value_label": "pairwise CC",
+            "paper_value": "0.005",
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "|z-y| 0.109 over 0.01; silent before 10 s",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v3",
+            "evidence": {
+              "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+            }
+          },
+          {
+            "id": "E2",
+            "group": "seed 10",
+            "claim": "CV_ISI matches the paper",
+            "estimand": "cv_isi over the free run; e = |z-2.47|/2.47",
+            "criterion": "e ≤ 0.05",
+            "value": 2.606245297422119,
+            "value_text": "2.61",
+            "value_label": "CV_ISI",
+            "paper_value": "2.47",
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "e 0.055 over 0.05 at 46 Hz",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v3",
+            "evidence": {
+              "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+            }
+          },
+          {
+            "id": "E2",
+            "group": "seed 11",
+            "claim": "CV_ISI matches the paper",
+            "estimand": "cv_isi over the free run; e = |z-2.47|/2.47",
+            "criterion": "e ≤ 0.05",
+            "value": 2.604416337218955,
+            "value_text": "2.6",
+            "value_label": "CV_ISI",
+            "paper_value": "2.47",
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "e 0.054 over 0.05 at 46 Hz",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v3",
+            "evidence": {
+              "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+            }
+          },
+          {
+            "id": "E1",
+            "group": "seed 12",
+            "claim": "self-sustained: the network stays alive",
+            "estimand": "spikes in the last 1 s of a 10 s free run",
+            "criterion": "spikes in the last 1 s",
+            "value": false,
+            "value_text": "false",
+            "value_label": "alive",
+            "paper_value": null,
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "silent before 10 s",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v3",
+            "evidence": {
+              "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+            }
+          },
+          {
+            "id": "E2",
+            "group": "seed 12",
+            "claim": "CV_ISI matches the paper",
+            "estimand": "cv_isi over the free run; e = |z-2.47|/2.47",
+            "criterion": "e ≤ 0.05",
+            "value": 2.3227781605735016,
+            "value_text": "2.32",
+            "value_label": "CV_ISI",
+            "paper_value": "2.47",
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "e 0.060 over 0.05; silent before 10 s",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v3",
+            "evidence": {
+              "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+            }
+          },
+          {
+            "id": "E3",
+            "group": "seed 12",
+            "claim": "pairwise correlation matches the paper",
+            "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|",
+            "criterion": "|z-0.005| ≤ 0.01",
+            "value": 0.07960471972990263,
+            "value_text": "0.0796",
+            "value_label": "pairwise CC",
+            "paper_value": "0.005",
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "|z-y| 0.075 over 0.01; silent before 10 s",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v3",
+            "evidence": {
+              "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+            }
+          },
+          {
+            "id": "E1",
+            "group": "seed 13",
+            "claim": "self-sustained: the network stays alive",
+            "estimand": "spikes in the last 1 s of a 10 s free run",
+            "criterion": "spikes in the last 1 s",
+            "value": false,
+            "value_text": "false",
+            "value_label": "alive",
+            "paper_value": null,
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "silent before 10 s",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v3",
+            "evidence": {
+              "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+            }
+          },
+          {
+            "id": "E2",
+            "group": "seed 13",
+            "claim": "CV_ISI matches the paper",
+            "estimand": "cv_isi over the free run; e = |z-2.47|/2.47",
+            "criterion": "e ≤ 0.05",
+            "value": 2.322294325031263,
+            "value_text": "2.32",
+            "value_label": "CV_ISI",
+            "paper_value": "2.47",
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "e 0.060 over 0.05; silent before 10 s",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v3",
+            "evidence": {
+              "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+            }
+          },
+          {
+            "id": "E3",
+            "group": "seed 13",
+            "claim": "pairwise correlation matches the paper",
+            "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|",
+            "criterion": "|z-0.005| ≤ 0.01",
+            "value": 0.12868838075014694,
+            "value_text": "0.129",
+            "value_label": "pairwise CC",
+            "paper_value": "0.005",
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "|z-y| 0.124 over 0.01; silent before 10 s",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v3",
+            "evidence": {
+              "path": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json",
+              "sha256": "9a17e59e4a31d25d236927be00b4bae6de4d93ba04ae8c7ce86f80db904051d6"
+            }
+          }
+        ],
         "pending_criteria": []
       },
       "replica": {
@@ -3679,7 +4742,7 @@
             "id": "6B",
             "status": "fail",
             "evidence": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md",
-            "note": "signed P3 v3: 0 of 5 seeds close E1-E3; 3 die, 2 alive at 46 Hz miss CV_ISI by e 0.004-0.005"
+            "note": "signed P3 v3: 0 of 5 seeds close E1-E3; 3 die, 2 alive at 46 Hz miss CV_ISI by e 0.054-0.055 (band 0.05)"
           },
           {
             "id": "7A",
@@ -4078,7 +5141,7 @@
       "id": "potjans2014",
       "title": "Potjans and Diesmann 2014 cortical microcircuit, Fig. 6 and Table 5",
       "citation": "Potjans and Diesmann, Cereb Cortex 24(3):785-806",
-      "class": "in progress",
+      "class": "pending",
       "question": "Does the jaxfne core reproduce the microcircuit's spontaneous AI state: layer-specific rates, CV above 0.8 and L6-lowest synchrony?",
       "page": "models/potjans2014.md",
       "release": "0.5.9",
@@ -4087,7 +5150,7 @@
       "grammar": null,
       "lane": {
         "branch": "dev",
-        "sha": "42e7f618a657d34f931fd1ec009069d72c98610b"
+        "sha": "1537f01d8c413f20a8b71dff57089b1f4573c6d5"
       },
       "stage_artifacts": [
         {
@@ -4096,13 +5159,13 @@
             {
               "label": "prereg v2 (signed)",
               "path": "artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/42e7f618a657d34f931fd1ec009069d72c98610b/artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md",
               "sha256": "a18d698ad178553d3ed53b87f87818cb8689662960d4ad1bc50bca2187cfca52"
             },
             {
               "label": "result",
               "path": "artifacts/etudes/papers/potjans2014/RESULT_P3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/42e7f618a657d34f931fd1ec009069d72c98610b/artifacts/etudes/papers/potjans2014/RESULT_P3.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/RESULT_P3.md",
               "sha256": "e76a6db1755b531b726480e1b8ac454ef77e6e475b10ef34e398c6be981317c4"
             }
           ]
@@ -4116,11 +5179,173 @@
           "id": "P3 v2",
           "signed": "2026-11-02",
           "path": "artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/42e7f618a657d34f931fd1ec009069d72c98610b/artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md",
           "sha256": "a18d698ad178553d3ed53b87f87818cb8689662960d4ad1bc50bca2187cfca52"
         }
       ],
-      "criteria": [],
+      "criteria": [
+        {
+          "id": "R-L23E",
+          "group": "",
+          "claim": "L2/3e rate matches the reference",
+          "estimand": "L2/3e mean rate, seeds 4-8; e = |z-y|/y",
+          "criterion": "e ≤ 0.20",
+          "value": 1.5083579354575996,
+          "value_text": "1.51",
+          "value_label": "mean rate",
+          "paper_value": "0.86 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "e 0.754 over 0.20",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v2",
+          "evidence": {
+            "path": "artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "sha256": "bf82fc66af567d392ba4c8ac241c630a0c048a05ff004687e5547561f584d54c"
+          }
+        },
+        {
+          "id": "R-L4E",
+          "group": "",
+          "claim": "L4e rate matches the reference",
+          "estimand": "L4e mean rate, seeds 4-8; e = |z-y|/y",
+          "criterion": "e ≤ 0.20",
+          "value": 4.467182097579716,
+          "value_text": "4.47",
+          "value_label": "mean rate",
+          "paper_value": "4.45 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v2",
+          "evidence": {
+            "path": "artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "sha256": "bf82fc66af567d392ba4c8ac241c630a0c048a05ff004687e5547561f584d54c"
+          }
+        },
+        {
+          "id": "R-L5E",
+          "group": "",
+          "claim": "L5e rate matches the reference",
+          "estimand": "L5e mean rate, seeds 4-8; e = |z-y|/y",
+          "criterion": "e ≤ 0.20",
+          "value": 9.900162778079219,
+          "value_text": "9.9",
+          "value_label": "mean rate",
+          "paper_value": "7.59 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "e 0.304 over 0.20",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v2",
+          "evidence": {
+            "path": "artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "sha256": "bf82fc66af567d392ba4c8ac241c630a0c048a05ff004687e5547561f584d54c"
+          }
+        },
+        {
+          "id": "R-L6E",
+          "group": "",
+          "claim": "L6e rate matches the reference",
+          "estimand": "L6e mean rate, seeds 4-8; e = |z-y|/y",
+          "criterion": "e ≤ 0.20",
+          "value": 1.138187134502924,
+          "value_text": "1.14",
+          "value_label": "mean rate",
+          "paper_value": "1.09 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v2",
+          "evidence": {
+            "path": "artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "sha256": "bf82fc66af567d392ba4c8ac241c630a0c048a05ff004687e5547561f584d54c"
+          }
+        },
+        {
+          "id": "O-ORD",
+          "group": "",
+          "claim": "E-rate order: L5e highest; L2/3e and L6e below L4e",
+          "estimand": "E-rate order of seed-mean rates",
+          "criterion": "holds",
+          "value": true,
+          "value_text": "true",
+          "value_label": "order holds",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v2",
+          "evidence": {
+            "path": "artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "sha256": "bf82fc66af567d392ba4c8ac241c630a0c048a05ff004687e5547561f584d54c"
+          }
+        },
+        {
+          "id": "O-IE",
+          "group": "",
+          "claim": "inhibitory rate above excitatory in every layer",
+          "estimand": "I and E seed-mean rates per layer",
+          "criterion": "all 4 layers hold",
+          "value": 9.662370880472208,
+          "value_text": "9.66",
+          "value_label": "L5 I rate",
+          "paper_value": null,
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "L5 I 9.66 Hz under E 9.90 Hz",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v2",
+          "evidence": {
+            "path": "artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "sha256": "bf82fc66af567d392ba4c8ac241c630a0c048a05ff004687e5547561f584d54c"
+          }
+        },
+        {
+          "id": "CV",
+          "group": "",
+          "claim": "single-unit CV of ISIs above 0.8 in every population",
+          "estimand": "mean CV of ISIs per population, seeds 4-8",
+          "criterion": "all 8 populations above 0.8",
+          "value": 0.7971824805315944,
+          "value_text": "0.797",
+          "value_label": "L6E CV",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "L6E and L6PV 0.797, under 0.8",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v2",
+          "evidence": {
+            "path": "artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+            "sha256": "bf82fc66af567d392ba4c8ac241c630a0c048a05ff004687e5547561f584d54c"
+          }
+        }
+      ],
       "sensitivity": [],
       "charts": [],
       "open": [
@@ -4133,7 +5358,100 @@
         "paper": null,
         "library": null,
         "methods": null,
-        "failed_criteria": [],
+        "failed_criteria": [
+          {
+            "id": "R-L23E",
+            "group": "",
+            "claim": "L2/3e rate matches the reference",
+            "estimand": "L2/3e mean rate, seeds 4-8; e = |z-y|/y",
+            "criterion": "e ≤ 0.20",
+            "value": 1.5083579354575996,
+            "value_text": "1.51",
+            "value_label": "mean rate",
+            "paper_value": "0.86 Hz",
+            "unit": "Hz",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "e 0.754 over 0.20",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v2",
+            "evidence": {
+              "path": "artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+              "sha256": "bf82fc66af567d392ba4c8ac241c630a0c048a05ff004687e5547561f584d54c"
+            }
+          },
+          {
+            "id": "R-L5E",
+            "group": "",
+            "claim": "L5e rate matches the reference",
+            "estimand": "L5e mean rate, seeds 4-8; e = |z-y|/y",
+            "criterion": "e ≤ 0.20",
+            "value": 9.900162778079219,
+            "value_text": "9.9",
+            "value_label": "mean rate",
+            "paper_value": "7.59 Hz",
+            "unit": "Hz",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "e 0.304 over 0.20",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v2",
+            "evidence": {
+              "path": "artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+              "sha256": "bf82fc66af567d392ba4c8ac241c630a0c048a05ff004687e5547561f584d54c"
+            }
+          },
+          {
+            "id": "O-IE",
+            "group": "",
+            "claim": "inhibitory rate above excitatory in every layer",
+            "estimand": "I and E seed-mean rates per layer",
+            "criterion": "all 4 layers hold",
+            "value": 9.662370880472208,
+            "value_text": "9.66",
+            "value_label": "L5 I rate",
+            "paper_value": null,
+            "unit": "Hz",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "L5 I 9.66 Hz under E 9.90 Hz",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v2",
+            "evidence": {
+              "path": "artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+              "sha256": "bf82fc66af567d392ba4c8ac241c630a0c048a05ff004687e5547561f584d54c"
+            }
+          },
+          {
+            "id": "CV",
+            "group": "",
+            "claim": "single-unit CV of ISIs above 0.8 in every population",
+            "estimand": "mean CV of ISIs per population, seeds 4-8",
+            "criterion": "all 8 populations above 0.8",
+            "value": 0.7971824805315944,
+            "value_text": "0.797",
+            "value_label": "L6E CV",
+            "paper_value": null,
+            "unit": "",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "L6E and L6PV 0.797, under 0.8",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v2",
+            "evidence": {
+              "path": "artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/potjans2014/run/p3_v2_score.json",
+              "sha256": "bf82fc66af567d392ba4c8ac241c630a0c048a05ff004687e5547561f584d54c"
+            }
+          }
+        ],
         "pending_criteria": []
       },
       "replica": {
@@ -4281,16 +5599,16 @@
       "id": "vogels2011",
       "title": "Vogels et al. 2011, Fig. 4 (inhibitory STDP balancing a recurrent network) and Figs. 1-2 (single-cell detailed balance)",
       "citation": "Vogels et al., Science 334(6062):1569-1573",
-      "class": "in progress",
+      "class": "pending",
       "question": "Does the jaxfne core, at the authors' parameters, reproduce the inhibitory-plasticity balance: the Fig. 4 network driven to its target rate and the Figs. 1-2 single-cell detailed balance?",
       "page": "models/vogels2011.md",
-      "release": "0.5.8",
+      "release": "0.5.9",
       "tier": "T-jaxfne",
       "stage": "P3",
       "grammar": null,
       "lane": {
         "branch": "dev",
-        "sha": "42e7f618a657d34f931fd1ec009069d72c98610b"
+        "sha": "1537f01d8c413f20a8b71dff57089b1f4573c6d5"
       },
       "stage_artifacts": [
         {
@@ -4299,13 +5617,13 @@
             {
               "label": "prereg v4 (signed)",
               "path": "artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/42e7f618a657d34f931fd1ec009069d72c98610b/artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md",
               "sha256": "bb7719433f8e9da9d887e39a5091ca1d8eb614855ce1c66e803eb38ad6f32536"
             },
             {
               "label": "result",
               "path": "artifacts/etudes/papers/vogels2011/RESULT_P3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/42e7f618a657d34f931fd1ec009069d72c98610b/artifacts/etudes/papers/vogels2011/RESULT_P3.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/vogels2011/RESULT_P3.md",
               "sha256": "3d8da7e04c01708fe2cb869684ba2426642e61c62d49b1ea3066e7a2ab486dff"
             }
           ]
@@ -4319,11 +5637,81 @@
           "id": "P3 v4",
           "signed": "2026-11-02",
           "path": "artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/42e7f618a657d34f931fd1ec009069d72c98610b/artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md",
           "sha256": "bb7719433f8e9da9d887e39a5091ca1d8eb614855ce1c66e803eb38ad6f32536"
         }
       ],
-      "criteria": [],
+      "criteria": [
+        {
+          "id": "CONV",
+          "group": "",
+          "claim": "every scored seed converges",
+          "estimand": "slope b of the per-second E rate over 130-150 s, with se",
+          "criterion": "not converged only when |b| ≥ 0.01 Hz/s and |b|/se > 2.101",
+          "value": 1.8959418399209285,
+          "value_text": "1.9",
+          "value_label": "|b|/se, seed 6 (largest)",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/vogels2011/run/p3_v4_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/vogels2011/run/p3_v4_score.json",
+            "sha256": "a427a6122a0fe610491be32e5b86bd03cef88a26ea1f0af446814411539b8286"
+          }
+        },
+        {
+          "id": "R-E",
+          "group": "",
+          "claim": "E rate settles at the 3 Hz target",
+          "estimand": "E mean rate, 149-150 s; e = |z-3|/3",
+          "criterion": "e ≤ 0.20",
+          "value": 4.12595,
+          "value_text": "4.13",
+          "value_label": "mean rate",
+          "paper_value": "3 Hz",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "settles at 4.13 Hz, e 0.375 over 0.20",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/vogels2011/run/p3_v4_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/vogels2011/run/p3_v4_score.json",
+            "sha256": "a427a6122a0fe610491be32e5b86bd03cef88a26ea1f0af446814411539b8286"
+          }
+        },
+        {
+          "id": "O-DROP",
+          "group": "",
+          "claim": "E rate drops from the static network",
+          "estimand": "E rate at 0.8-1.0 s over R-E's z",
+          "criterion": "ratio ≥ 2",
+          "value": 38.900556235533635,
+          "value_text": "38.9",
+          "value_label": "ratio",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v4",
+          "evidence": {
+            "path": "artifacts/etudes/papers/vogels2011/run/p3_v4_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/vogels2011/run/p3_v4_score.json",
+            "sha256": "a427a6122a0fe610491be32e5b86bd03cef88a26ea1f0af446814411539b8286"
+          }
+        }
+      ],
       "sensitivity": [],
       "charts": [],
       "open": [
@@ -4337,7 +5725,31 @@
         "paper": null,
         "library": null,
         "methods": null,
-        "failed_criteria": [],
+        "failed_criteria": [
+          {
+            "id": "R-E",
+            "group": "",
+            "claim": "E rate settles at the 3 Hz target",
+            "estimand": "E mean rate, 149-150 s; e = |z-3|/3",
+            "criterion": "e ≤ 0.20",
+            "value": 4.12595,
+            "value_text": "4.13",
+            "value_label": "mean rate",
+            "paper_value": "3 Hz",
+            "unit": "Hz",
+            "extra": [],
+            "verdict": "fail",
+            "reason": "settles at 4.13 Hz, e 0.375 over 0.20",
+            "reference": null,
+            "reference_text": "—",
+            "prereg": "P3 v4",
+            "evidence": {
+              "path": "artifacts/etudes/papers/vogels2011/run/p3_v4_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/1537f01d8c413f20a8b71dff57089b1f4573c6d5/artifacts/etudes/papers/vogels2011/run/p3_v4_score.json",
+              "sha256": "a427a6122a0fe610491be32e5b86bd03cef88a26ea1f0af446814411539b8286"
+            }
+          }
+        ],
         "pending_criteria": []
       },
       "replica": {
@@ -6029,12 +7441,13 @@
     "papers": 13,
     "by_paper": {
       "mixed": 1,
-      "in progress": 11,
+      "in progress": 5,
+      "pending": 6,
       "reproduced (conditional)": 1
     },
     "criteria": {
-      "pass": 27,
-      "fail": 12,
+      "pass": 38,
+      "fail": 37,
       "pending": 0
     },
     "core_methods": {
@@ -6095,33 +7508,33 @@
     {
       "reference": "Tahvili, F., Vinck, M., & di Volo, M. (2025). PV and SOM cells play distinct causal roles in controlling network oscillations and stability. *Cell Reports* 44(8), 116131.",
       "doi": "10.1016/j.celrep.2025.116131",
-      "result": "The network the PLOS paper takes as its reference model; its STAR Methods are not yet compared with the port",
-      "status": "not started",
-      "status_note": "reference model of the plos paper",
-      "where": "`artifacts/etudes/papers/caminos/PORT_SPEC.md`"
+      "result": "Figs. 1-6: drive, silencing, spike-time randomization, PV-SOM connectivity and the SOM/PV ratio, scored descriptively on the port (replica 71/100 over 14 panels); the core route is being tested for equivalence with the port",
+      "status": "in progress",
+      "status_note": null,
+      "where": "[Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/caminos-cellrep), `artifacts/etudes/papers/caminos/RESULT_FIGURES.md`"
     },
     {
       "reference": "N'dri, A. W., Barbier, T., Teulière, C., & Triesch, J. (2025). Predictive Coding Light. *Nature Communications* 16, 8880.",
       "doi": "10.1038/s41467-025-64234-z",
-      "result": "Fig. 2: learned inhibitory weights and spike suppression ordered by predictability. Fig. 3 is in progress; preregistrations v4 and v5 did not pass",
-      "status": "in progress",
-      "status_note": null,
+      "result": "Fig. 2: learned inhibitory weights and spike suppression ordered by predictability. Fig. 3 is pending; preregistrations v4 and v5 did not pass",
+      "status": "pending",
+      "status_note": "Fig. 3; Fig. 2 in progress",
       "where": "Dashboard: [Fig. 2](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig2), [Fig. 3](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig3); `artifacts/etudes/papers/pcl/`"
     },
     {
       "reference": "Nejat, H., Sherfey, J., & Bastos, A. M. (2026). A genetic algorithm for self-supervised models of oscillatory neurodynamics. *PLOS One* 21(8), e0354021.",
       "doi": "10.1371/journal.pone.0354021",
-      "result": "Fig. 6: a 50-neuron E, SST-like and PV-like circuit fitted by GSDR to recorded spectra. In progress; no score yet",
-      "status": "in progress",
-      "status_note": "pilot",
-      "where": "`artifacts/etudes/papers/gsdr2026/`"
+      "result": "Fig. 6: a 50-neuron E, SST-like and PV-like circuit fitted by GSDR to recorded spectra. Signed P3 fit scored without a pass: 0 of 5 seeds reach G2 and G3",
+      "status": "pending",
+      "status_note": null,
+      "where": "[Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/gsdr2026), `artifacts/etudes/papers/gsdr2026/`"
     },
     {
       "reference": "Destexhe, A. (2009). Self-sustained asynchronous irregular states and Up-Down states in thalamic, cortical and thalamocortical networks of nonlinear integrate-and-fire neurons. *Journal of Computational Neuroscience* 27(3), 493-506.",
       "doi": "10.1007/s10827-009-0164-4",
-      "result": "Fig. 6B cortical self-sustained AI state: survival at 10 s, CV_ISI 2.47, pairwise CC 0.005 and the RS/FS rate order, with Fig. 1 single-cell patterns; the port sustains on a subset of seeds with higher rates (`artifacts/etudes/papers/destexhe2009/CALIBRATION.md` step 6)",
-      "status": "in progress",
-      "status_note": "pilot",
+      "result": "Fig. 6B cortical self-sustained AI state: survival at 10 s, CV_ISI 2.47, pairwise CC 0.005 and the RS/FS rate order, with Fig. 1 single-cell patterns; signed P3 v3 scored without a pass: 0 of 5 seeds close E1-E3, the Fig. 6A control holds",
+      "status": "pending",
+      "status_note": null,
       "where": "[Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/destexhe2009), `artifacts/etudes/papers/destexhe2009/`"
     },
     {
@@ -6135,23 +7548,23 @@
     {
       "reference": "Potjans, T. C., & Diesmann, M. (2014). The cell-type specific cortical microcircuit: relating structure and activity in a full-scale spiking network model. *Cerebral Cortex* 24(3), 785-806.",
       "doi": "10.1093/cercor/bhs358",
-      "result": "Fig. 6 and Table 5: layer- and type-specific spontaneous rates, irregularity and synchrony of the microcircuit. At P1; no score yet",
-      "status": "in progress",
-      "status_note": "pilot",
+      "result": "Fig. 6 and Table 5: layer- and type-specific spontaneous rates, irregularity and synchrony of the microcircuit. Signed P3 v2 scored without a pass: L4E, L6E and the E-rate order hold; L2/3E, L5E, L5 I above E and L6 CV do not",
+      "status": "pending",
+      "status_note": null,
       "where": "[Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/potjans2014), `artifacts/etudes/papers/potjans2014/`"
     },
     {
       "reference": "Vogels, T. P., Sprekeler, H., Zenke, F., Clopath, C., & Gerstner, W. (2011). Inhibitory plasticity balances excitation and inhibition in sensory pathways and memory networks. *Science* 334(6062), 1569-1573.",
       "doi": "10.1126/science.1211095",
-      "result": "Fig. 4: inhibitory STDP on I-to-E synapses drives a recurrent network to its target rate; Figs. 1-2: single-cell detailed balance. At P1; no score yet",
-      "status": "in progress",
-      "status_note": "pilot",
+      "result": "Fig. 4: inhibitory STDP on I-to-E synapses drives a recurrent network to its target rate; Figs. 1-2: single-cell detailed balance. Signed P3 v4 scored without a pass: convergence and the rate drop hold, the E rate settles at 4.13 Hz against 3 Hz",
+      "status": "pending",
+      "status_note": null,
       "where": "[Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/vogels2011), `artifacts/etudes/papers/vogels2011/`"
     },
     {
       "reference": "Mejias, J. F., Murray, J. D., Kennedy, H., & Wang, X.-J. (2016). Feedforward and feedback frequency-dependent interactions in a large-scale laminar network of the primate cortex. *Science Advances* 2(11), e1601335.",
       "doi": "10.1126/sciadv.1601335",
-      "result": "Figs. 2-3: laminar gamma and alpha rhythms and their coupling; Figs. 6-7: the 30-area functional hierarchy from frequency-dependent Granger causality. At P1; no score yet",
+      "result": "Figs. 2-3: laminar gamma and alpha rhythms and their coupling; Figs. 6-7: the 30-area functional hierarchy from frequency-dependent Granger causality. At P2; no score yet",
       "status": "in progress",
       "status_note": "pilot",
       "where": "[Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/mejias2016), `artifacts/etudes/papers/mejias2016/`"
