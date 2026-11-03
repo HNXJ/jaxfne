@@ -39,10 +39,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    about 0.17 s per camera-0 event, linear in events (500 events 98 s, 2000 events 348 s, learning on; 2026-11-02),
    so the core arm ran file 0 only: exact against C++ (max relative weight difference 5.3e-15; same spikes as the
    oracle; 11:53:46 wall). R3 done 2026-11-03 (CALIBRATION.md R3, a receipt per arm); P-053 does not appear on file 0.
-   R4 prereg drafted 2026-11-03 (`pcl/prereg/P3_fig3_r4.md`, unsigned); Hamm 2026-11-03 took its three
-   recommendations (no-local; the oracle stands for the core given R5-exact; the 16 pilot tasks). R5 timing pilot
-   (CALIBRATION R5 pilot): core 1026 s per file and equal to the oracle on a non-scored file, so the full set on the
-   core is about 900 CPU h, against the draft's 6000; choice 2 goes back to Hamm before the signature. Closes when: R5 is scored in `prereg/` with exact and approximate reproduction apart.
+   R4 prereg drafted 2026-11-03 (`pcl/prereg/P3_fig3_r4.md`, unsigned). R5 timing pilot (CALIBRATION R5 pilot):
+   core 1026 s per file, equal to the oracle on a non-scored file. Hamm 2026-11-03: no-local, the 16 pilot tasks,
+   and the core on all 3168 tasks (about 900 CPU h), in the R4b draft (`P3_fig3_r4b.md`, unsigned). 12-worker scaling smoke on the pilot file
+   (`F:/warehouse/pcl/r5_scaling/`). Next: [H] sign R4, then R5 from a frozen clone. Closes when: R5 is scored in `prereg/` with exact and approximate reproduction apart.
 6. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle

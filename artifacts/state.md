@@ -23,15 +23,15 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 ## Broken or in flight
 
 - CAMINOS E1 at n 12 (2026-11-03): not equivalent, 20 of 24 cells (`caminos/RESULT_FIGURES.md`); next step is Hamm's.
-- PCL R3 done 2026-11-03: core arm equals the C++ after file 0 (`pcl/CALIBRATION.md` R3); R4 prereg drafted (`pcl/prereg/P3_fig3_r4.md`, unsigned).
+- PCL R3 done 2026-11-03: core arm equals the C++ after file 0 (`pcl/CALIBRATION.md` R3); R4b prereg drafted (`pcl/prereg/P3_fig3_r4b.md`, unsigned; Hamm's three choices, the core on all 3168 tasks).
 - Papers are never "failed" through 0.6 (Hamm 2026-11-03): pending until a failure is proven; criteria may fail.
 - P-053 (PCL scan vs oracle gap on sparse weights, reported, not reproduced); P-054 (VIP and I presets: class-1
   a,b,c,d in the standard equation, rheobase 22.56 vs the source's 2.25; Hamm's ruling).
 
 ## Open decisions for the owner
 
-Owner queue in `todo_stack.md`: P-052 (waits on the T-R28 beta horizon scan); P-054 preset; PCL R4 signature when
-drafted; NeuroAI code link (anonymous.4open.science mirror, Hamm's act). Deleting the 22 merged `_temp_*` branches
+Owner queue in `todo_stack.md`: P-052 (waits on the T-R28 beta horizon scan); P-054 preset; PCL R4 signature;
+CAMINOS core route after E1; NeuroAI code link (anonymous.4open.science mirror, Hamm's act). Deleting the 22 merged `_temp_*` branches
 and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 
 ## Generated files and their checks
@@ -51,14 +51,14 @@ and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 - Windows: Python 3.14 runs the broad gate through `suite_lock.py`, one suite at a time. WSL: `~/venv_jaxfne`
   (CUDA, numba 0.68 added 2026-11-02 for the PCL core arm; each long job in its own `systemd-run` memory cap),
   `~/venv_jaxfne_gate` (CPU gate); TeX Live 2026 at `~/texlive/cur` (pdfLaTeX for the NeuroAI draft).
-- Tracked tree: `python scripts/check_tree_size.py --check`; budget 2782 files in `scripts/tree_size_allowlist.json`.
+- Tracked tree: `python scripts/check_tree_size.py --check`; budget 2790 files in `scripts/tree_size_allowlist.json`.
 - Large data outside git: `F:/warehouse/{caminos,gsdr,pcl,vogels2011,potjans2014,destexhe2009}/` (receipts named
   in each result file); PCL training set `F:/warehouse/pcl/data/training_natural/events5_re2/` (from Zenodo
   `PCL_datasets_and_networks.zip`).
 - NeuroAI 2027 draft: private thesis repo, branch `_temp_neuroai2027`, `artifacts/notes/neuroai2027/`.
-- jchat: review session with jomission (`omission-claude-dev`) open in `main` (#130-137, MIN-07 VIP answered).
+- jchat: review session with the jomission keeper open in `main` (#130-137, MIN-07 VIP answered).
 
 ## Next action
 
-PCL R4 signature (Hamm), then the R5 pilot; panel inventories for Brunel, PCL Fig. 3 and GSDR; Vogels Fig. 4 panel
-mapping; update the checklist score.
+PCL R4 signature (Hamm), then R5 (exact, then the core on all 3168 tasks); CAMINOS core route (Hamm); Brunel panel
+inventory needs the paper's legends; Vogels Fig. 4 panel mapping; update the checklist score.
