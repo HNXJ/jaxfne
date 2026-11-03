@@ -1229,7 +1229,7 @@ def test_r4_reproduced_below_p6_out_of_scope(tmp_path):
 
 
 @pytest.mark.parametrize("verdict", [
-    "reproduced (conditional)", "mixed", "in progress", "not started", "failed",
+    "reproduced (conditional)", "mixed", "pending", "in progress", "not started",
 ])
 def test_r4_non_replication_verdicts_pass(tmp_path, verdict):
     papers = [_r4_paper("r4nv", verdict)]

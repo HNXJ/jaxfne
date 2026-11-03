@@ -198,7 +198,7 @@
       "id": "pcl-fig3",
       "title": "Predictive coding light, Fig. 3 (simple and complex cell tuning)",
       "citation": "N'dri, Barbier, Teulière and Triesch, Nat Commun 2025",
-      "class": "in progress",
+      "class": "pending",
       "question": "Do the trained network's simple and complex cells show the paper's orientation, spatial-frequency and phase tuning?",
       "page": "models/pcl_fig3.md",
       "release": "0.5.6",
@@ -408,7 +408,7 @@
         ],
         "excluded": [{"id": "2 top", "reason": "model equations and parameter maps"}]
       },
-      "class": "in progress",
+      "class": "pending",
       "question": "Does jaxfne's existing Izhikevich kernel reproduce the paper's single-cell firing patterns (Fig. 2) and the 1000-cell network rhythm (Fig. 3)?",
       "page": "models/izhikevich2003.md",
       "release": "0.5.7",
@@ -431,7 +431,7 @@
                {"label": "scores P6", "path": "artifacts/etudes/papers/izhikevich2003/core/p6_v2_score.json"}]
       },
       "verdict": null,
-      "summary": "Preregistration v7 was scored and did not pass. Six of eight single-cell patterns reproduce; FS adapts (ISI ratio 1.86) and the resonator spikes once. The network has the paper's rate, alpha and gamma peaks, but its firing is too regular (median ISI CV 0.40 against 0.6 to 1.5), and the float64 reference arm of net.m gives 0.39 too. Library path, scored apart: P6 v2 PASS through the public API (Q1–Q5, seeds 2–6), matching the P5 network values within the declared margins; N2 stays a failed paper claim.",
+      "summary": "Preregistration v7 was scored and did not pass. Six of eight single-cell patterns reproduce; FS adapts (ISI ratio 1.86) and the resonator spikes once. The network has the paper's rate, alpha and gamma peaks, but its firing is too regular (median ISI CV 0.40 against 0.6 to 1.5), and the float64 reference arm of net.m gives 0.39 too. Library path, scored apart: P6 v2 PASS through the public API (Q1–Q5, seeds 2–6), matching the P5 network values within the declared margins; N2 stays a failed criterion.",
       "preregs": [{"id": "v7", "signed": "2026-10-13", "path": "artifacts/etudes/papers/izhikevich2003/PREREG_P3.md"},
                   {"id": "v8.2", "signed": "2026-10-13", "path": "artifacts/etudes/papers/izhikevich2003/PREREG_P3_v8.md"},
                   {"id": "P6 v2 (library path)", "signed": "2026-10-31", "path": "artifacts/etudes/papers/izhikevich2003/core/PREREG_P6_v2_signed.md"}],
@@ -481,13 +481,13 @@
       ],
       "sensitivity": [],
       "charts": [],
-      "open": ["Amendment v8.2 (post hoc, signed 2026-10-13; scores/p3_v8_score.json): Fig. 2 passes 8 of 8 with the C8 pulse at I = 2 and C4 as the least-adapting type (FS 1.86 against RS 2.53 and LTS 4.39). N2 stays a failed paper claim.", "S1 (rescored on each arm's own step) moves N3 across its band edge. The net.m update-order arm (PREREG_P3b.md) stopped at its equivalence gate (v5): the JAX arm drifts from the NumPy reference faster than a one-ulp input change (RESULT_P3.md)."]
+      "open": ["Amendment v8.2 (post hoc, signed 2026-10-13; scores/p3_v8_score.json): Fig. 2 passes 8 of 8 with the C8 pulse at I = 2 and C4 as the least-adapting type (FS 1.86 against RS 2.53 and LTS 4.39). N2 stays a failed criterion.", "S1 (rescored on each arm's own step) moves N3 across its band edge. The net.m update-order arm (PREREG_P3b.md) stopped at its equivalence gate (v5): the JAX arm drifts from the NumPy reference faster than a one-ulp input change (RESULT_P3.md)."]
     },
     {
       "id": "gsdr2026",
       "title": "GSDR, Fig. 6 (a 50-neuron E, SST-like and PV-like circuit fitted to recorded spectra)",
       "citation": "Nejat, Sherfey and Bastos, PLOS One 2026",
-      "class": "in progress",
+      "class": "pending",
       "question": "Does GSDR fit the 50-neuron Hodgkin–Huxley circuit to the recorded spectra when the circuit and the optimizer run in jaxfne?",
       "release": "0.5.8",
       "tier": "T-jaxfne",
@@ -508,7 +508,7 @@
       "criteria": [],
       "sensitivity": [],
       "charts": [],
-      "open": ["In progress (Hamm 2026-11-02): open until precisely replicated. The signed P3 fit FAIL stands as scored (RESULT_P3_fit.md); the paper continues under a new preregistration.", "The next prereg names --morphology explicitly (RESULT_P3_fit.md: the reference-morphology evaluation is insensitive to the fitted conductances at stim 0.6).", "The drive and J_E anchor for the g sweep are not yet recorded."]
+      "open": ["Pending (Hamm 2026-11-02): open until precisely replicated. The signed P3 fit stands as scored, without a pass (RESULT_P3_fit.md); the paper continues under a new preregistration.", "The next prereg names --morphology explicitly (RESULT_P3_fit.md: the reference-morphology evaluation is insensitive to the fitted conductances at stim 0.6).", "The drive and J_E anchor for the g sweep are not yet recorded."]
     },
     {
       "id": "destexhe2009",
@@ -522,7 +522,7 @@
           {"id": "2", "status": "not run"}, {"id": "3", "status": "not run"}, {"id": "4", "status": "not run"},
           {"id": "5", "status": "not run"},
           {"id": "6A", "status": "pass", "evidence": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md", "note": "signed P3 v3 control C1: the strong-adaptation network dies by 10 s on seeds 9 and 10"},
-          {"id": "6B", "status": "fail", "evidence": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md", "note": "signed P3 v3: 0 of 5 seeds close E1-E3; 3 die, 2 alive at 46 Hz miss CV_ISI by e 0.004-0.005"},
+          {"id": "6B", "status": "fail", "evidence": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md", "note": "signed P3 v3: 0 of 5 seeds close E1-E3; 3 die, 2 alive at 46 Hz miss CV_ISI by e 0.054-0.055 (band 0.05)"},
           {"id": "7A", "status": "not run"}, {"id": "7B", "status": "not run"}, {"id": "8", "status": "not run"},
           {"id": "9", "status": "not run"}, {"id": "10A", "status": "not run"}, {"id": "10B", "status": "not run"},
           {"id": "10C", "status": "not run"}, {"id": "10D", "status": "not run"}, {"id": "11", "status": "not run"},
@@ -530,9 +530,9 @@
         ],
         "excluded": [{"id": "12A", "reason": "in vivo recording, no model output"}]
       },
-      "class": "in progress",
+      "class": "pending",
       "question": "Does the jaxfne AdEx core, at the paper's parameters, sustain the asynchronous irregular state of Fig. 6B with its rates, CV_ISI and pairwise correlation?",
-      "release": "0.5.8",
+      "release": "0.5.9",
       "tier": "T-port",
       "stage": "P3",
       "lane": {"branch": "dev", "sha": "5bd0fd4f3c516cc1445037b722256e6bf3c9bf8b"},
@@ -639,7 +639,7 @@
           {"id": "11", "reason": "activity-flow diagram"}, {"id": "12", "reason": "pathway diagrams"}
         ]
       },
-      "class": "in progress",
+      "class": "pending",
       "question": "Does the jaxfne core reproduce the microcircuit's spontaneous AI state: layer-specific rates, CV above 0.8 and L6-lowest synchrony?",
       "page": "models/potjans2014.md",
       "release": "0.5.9",
@@ -686,10 +686,10 @@
           {"id": "3B", "reason": "rat A1 recordings"}
         ]
       },
-      "class": "in progress",
+      "class": "pending",
       "question": "Does the jaxfne core, at the authors' parameters, reproduce the inhibitory-plasticity balance: the Fig. 4 network driven to its target rate and the Figs. 1-2 single-cell detailed balance?",
       "page": "models/vogels2011.md",
-      "release": "0.5.8",
+      "release": "0.5.9",
       "tier": "T-jaxfne",
       "stage": "P3",
       "lane": {"branch": "dev", "sha": "42e7f618a657d34f931fd1ec009069d72c98610b"},

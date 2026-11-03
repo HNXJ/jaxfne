@@ -30,15 +30,18 @@ from pathlib import Path
 
 SCHEMA = "jaxfne-replications/2"
 SOURCES_SCHEMA = "jaxfne-dashboard-sources/2"
-# Status classes (Hamm 2026-10-16). reproduced, reproduced (conditional) and failed need a signed
-# preregistration; a conditional reproduction states its condition in verdict_note. mixed (Hamm
+# Status classes (Hamm 2026-10-16). reproduced, reproduced (conditional), mixed and pending need a
+# signed preregistration; a conditional reproduction states its condition in verdict_note. mixed (Hamm
 # 2026-10-19): a signed preregistration scored with some primary criteria reproduced and others
-# missed; verdict_note names which. An in-progress
-# paper has a stage and no verdict; a preregistration scored without a pass keeps it in progress.
-# A not-started paper has no verdict and no criteria.
-CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "in progress", "not started", "failed",
+# missed; verdict_note names which. pending (Hamm 2026-11-03): a signed preregistration scored without
+# a pass; the paper stays open, with a stage and no verdict, until a failure is proven. No paper class
+# is "failed" through 0.6: criteria and panels fail, papers stay pending. An in-progress paper has a
+# stage and no verdict. A not-started paper has no verdict and no criteria.
+CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "pending", "in progress", "not started",
            "core method")
-SCORED_CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "failed")
+SCORED_CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "pending")
+RETIRED_CLASSES = {"failed": "retired (Hamm 2026-11-03): a paper scored without a pass stays 'pending' "
+                             "until a failure is proven"}
 TOL = 1e-9
 FLOOR_REASON = "E-rate floor not met"
 NO_VALUE = "—"
@@ -485,13 +488,16 @@ def model_page(spec):
 
 def check_class(spec):
     cls = spec.get("class")
+    if cls in RETIRED_CLASSES:
+        raise BuildError(f"paper {spec['id']}: class {cls!r} is {RETIRED_CLASSES[cls]}")
     if cls not in CLASSES:
         raise BuildError(f"paper {spec['id']}: class {cls!r} is not one of {list(CLASSES)}")
-    if cls == "in progress":
+    if cls in ("in progress", "pending"):
+        label = "an in-progress" if cls == "in progress" else "a pending"
         if spec.get("verdict") is not None:
-            raise BuildError(f"paper {spec['id']}: an in-progress paper carries no verdict")
+            raise BuildError(f"paper {spec['id']}: {label} paper carries no verdict")
         if not spec.get("stage"):
-            raise BuildError(f"paper {spec['id']}: an in-progress paper needs a non-empty stage")
+            raise BuildError(f"paper {spec['id']}: {label} paper needs a non-empty stage")
     if cls == "not started" and (spec.get("verdict") is not None or spec.get("criteria")):
         raise BuildError(f"paper {spec['id']}: a not-started paper carries no verdict and no criteria")
     if cls == "core method":

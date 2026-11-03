@@ -25,7 +25,7 @@
           "id": {"type": "string"},
           "class": {
             "type": "string",
-            "enum": ["reproduced", "reproduced (conditional)", "mixed", "in progress", "not started", "failed", "core method"]
+            "enum": ["reproduced", "reproduced (conditional)", "mixed", "pending", "in progress", "not started", "core method"]
           },
           "lane": {
             "type": "object",

@@ -22,7 +22,7 @@ SHA, so this gate does not re-check their working-tree existence.
   recorded verdict is exactly ``reproduced`` holds its P6 stage result file
   (the P6 entry of its ``stage_artifacts``, resolved on disk the way R1
   resolves record files). A paper below P6, or with verdict ``reproduced
-  (conditional)``, ``mixed``, ``in progress``, ``not started`` or ``failed``,
+  (conditional)``, ``mixed``, ``pending``, ``in progress`` or ``not started``,
   is not a finding.
 - R6: at most 7 files and 7 folders per paper folder (direct children, no ``__pycache__``).
 - S1: no ``.py`` under a paper folder runs outside code: ``subprocess.*``,
