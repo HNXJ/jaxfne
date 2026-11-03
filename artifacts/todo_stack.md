@@ -42,7 +42,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    R4 prereg drafted 2026-11-03 (`pcl/prereg/P3_fig3_r4.md`, unsigned). R5 timing pilot (CALIBRATION R5 pilot):
    core 1026 s per file, equal to the oracle on a non-scored file. Hamm 2026-11-03: no-local, the 16 pilot tasks,
    and the core on all 3168 tasks (about 900 CPU h), in the R4b draft (`P3_fig3_r4b.md`, unsigned). 12-worker scaling on the pilot file (CALIBRATION):
-   24.7 files per hour, outputs equal, so about 128 h wall for the core set. Next: [H] sign R4, then R5 from a frozen clone. Closes when: R5 is scored in `prereg/` with exact and approximate reproduction apart.
+   24.7 files per hour, outputs equal, so about 128 h wall for the core set. Hamm signed R4b 2026-11-03 (`P3_fig3_r4b_signed.md`). R5 from a frozen clone at the signing commit. Closes when: R5 is scored in `prereg/` with exact and approximate reproduction apart.
 6. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
