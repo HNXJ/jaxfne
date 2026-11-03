@@ -30,7 +30,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Open decisions for the owner
 
-Owner queue in `todo_stack.md`: P-052 (waits on the T-R28 beta horizon scan); P-054 preset; CAMINOS 9D (S1 exception for `cellrep_figures.py`, or move to 0.5.10); NeuroAI code link (anonymous.4open.science mirror, Hamm's act). Deleting the 22 merged `_temp_*` branches
+Owner queue in `todo_stack.md`: P-052 (waits on the T-R28 beta horizon scan); P-054 preset; CAMINOS 9D: the `attribute_o83.py` S2 entry; NeuroAI code link (anonymous.4open.science mirror, Hamm's act). Deleting the 22 merged `_temp_*` branches
 and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 
 ## Generated files and their checks
@@ -59,5 +59,5 @@ and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 
 ## Next action
 
-PCL R5: exact arm and negative control, then the core on all 3168 tasks (about 128 h) and the oracle check; CAMINOS 9D exception or move (Hamm); Brunel panel
+PCL R5: exact arm and negative control, then the core on all 3168 tasks (about 128 h) and the oracle check; CAMINOS 9D `attribute_o83.py` S2 entry (Hamm); Brunel panel
 inventory needs the paper's legends; Vogels Fig. 4 panel mapping; update the checklist score.
