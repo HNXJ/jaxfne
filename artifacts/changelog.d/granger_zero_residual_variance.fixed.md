@@ -1,1 +1,0 @@
-- `granger_spectral` raises `ValueError` when a series has zero variance (a constant series) or zero residual variance under the VAR fit, instead of returning zero spectra for it.

@@ -1,1 +1,0 @@
-- `simulate_adex_hdp_registered` resumes a run from its returned full state (`state=` / `return_state=True`), chaining segments bit-for-bit; the Vogels 2011 plastic leg runs in `--plastic-segment-s` segments and records the per-second E rate course plus the last-1 s raster.

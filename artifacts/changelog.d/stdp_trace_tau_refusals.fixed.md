@@ -1,1 +1,0 @@
-- `run_stdp_stream` refuses a step above `tau_plus` or `tau_minus`, where the trace decay factor goes negative; it already refused above the synaptic tau. `compile_step_fn(record_dH_components=True)` with a registered HDP rule refuses at compile, naming the rule; it compiled and failed at the first step on an absent `dH_income_trace`.

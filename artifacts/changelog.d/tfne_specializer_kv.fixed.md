@@ -1,1 +1,0 @@
-- The TFNE specializer `Base[key=value]` is refused at parse time with a `TFNEError` naming the form and its key; only `Base[NAME]` is supported, and every key is refused alike.

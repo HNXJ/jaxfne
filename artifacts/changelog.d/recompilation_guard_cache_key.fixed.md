@@ -1,1 +1,0 @@
-- The recompilation guard counts compiles per compile-cache key, so a reused Model that runs at one shape with a different dtype, backend or homeostasis parameter reports one compile for each key; one key traced twice still reports "compiled 2 times". `traced_signatures` keeps counting traces per shape; the per-key counts are in `traced_cache_keys`.

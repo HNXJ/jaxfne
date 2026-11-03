@@ -1,1 +1,0 @@
-- Optimizer code refuses unconsumed parameters: `sdr_transform` `alpha_min`/`alpha_max`, and `checkpoint_n_steps` on `gsdr_transform`/`agsdr_transform`, at non-default values; unknown `hyperparams` keys in the four `step_*_transform` kernels (`eta` is the parameter read); and `learning_rate` of 0 or less in the Optax tune paths, where a 0 arrived as 0.01.

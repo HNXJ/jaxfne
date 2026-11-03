@@ -1,1 +1,0 @@
-- Protocol E gate `G3` reports `support_only_on_O_H` as true exactly when every cell whose H deviates from 1 is an owner; the flag was always true and now follows the non-owner check.

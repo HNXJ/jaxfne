@@ -1,1 +1,0 @@
-- `Simulation(silence=...)` on the adex route masks the emitted spikes of a `round(fraction * N_type)` per-type subset from an onset step while each cell's state keeps evolving; every other emitter family refuses it by name.

@@ -1,1 +1,0 @@
-- `istdp_vogels2011` accepts `eta = 0`, the neutral setting: every weight update is zero, and the rule then reproduces the HDP-free kernel exactly.

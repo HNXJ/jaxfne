@@ -1,1 +1,0 @@
-- `fano_factor`, `fleiss_kappa_binary`, `pairwise_cc_binned_disjoint`, `mean_pairwise_spike_correlation` and `burst_index` refuse a bin width off the `dt_ms` step grid, as `wang_buzsaki_kappa` already did. The ValueError names the bin argument and the nearest valid width. They used to round the bin.

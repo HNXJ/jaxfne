@@ -59,6 +59,8 @@ and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 
 ## Next action
 
-9F rc gate on the candidate; checklist 78.0/100 (9D and 9E closed, F7 built; PCL R5-exact FAIL in S13;
-R5-approximate running for 0.5.10); Brunel panel
+0.5.9 candidate on dev (version 0.5.9, changelog v0.5.9 from 83 fragments, canonical atlas at 0.5.9;
+`release_body.py --tag v0.5.9 --check` PASS). The atlas trace data moved against the 0.5.8 build (deterministic
+rebuild; moves at the P-048 commit b1d9dfe1 and at commits before and after it). Next: broad gate on the candidate,
+9F rc gate, Gate 4 second review, then Hamm's Gate 5 go. Checklist 82.0/100; R5-approximate running for 0.5.10; Brunel panel
 inventory needs the paper's legends; Vogels Fig. 4 panel mapping; update the checklist score.

@@ -1,2 +1,0 @@
-- `visualize_network_3d(show_edges=True)` raises `ValueError` for an edgeless input (a Model, rows, a table), where it drew nothing; `jaxfne.vis.plotly.plot_network_3d(model, show_edges=True)` draws a model's edges.
-- `visualize_network_3d` raises `ValueError` for a `coordinate_unit` or `display_unit` outside `m`, `mm`, `um`, `nm`, where it scaled by 1.0.

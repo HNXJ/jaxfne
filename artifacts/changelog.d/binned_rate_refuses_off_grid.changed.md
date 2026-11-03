@@ -1,1 +1,0 @@
-- `jaxfne.vis.core.binned_population_rate_hz` accepts a `bin_ms` on the positive-multiple-of-`dt_ms` grid (the `jaxfne.analysis.metrics` rule) instead of rounding; off-grid widths are refused. The check accepts the float32 time grid's dt at 1e-6 relative tolerance, so default plots at `dt_ms=0.1` keep working.

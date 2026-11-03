@@ -1,1 +1,0 @@
-- `make_ei_cloud_network` and `coop_omission_oddball_paradigm` default to `seed=0` (was `seed=42`); a call that relied on the default draws a different network or omission pattern.

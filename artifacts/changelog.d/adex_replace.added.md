@@ -1,1 +1,0 @@
-- `Simulation(replace=...)` on the adex route swaps the emitted spikes of a `round(fraction * N_type)` per-type subset for independent per-step Poisson draws at each type's `rate_hz` while each cell's state keeps evolving; every other emitter family refuses it by name.

@@ -1,1 +1,0 @@
-- The standalone figure-site panels follow the light or dark scheme of the docs page that frames them, instead of a fixed dark template; a panel opened on its own follows the OS scheme. Trace data is unchanged.

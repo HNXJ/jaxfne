@@ -1,1 +1,0 @@
-- JDNA completion refuses what it would otherwise drop: a misspelled geometry key (`zrange`, `distribtion`) defaulted its axis unannounced, and a declared geometry for a leaf lacking realized neurons was ignored. Both now raise `ValueError` naming the key or leaf; valid geometry is unchanged.

@@ -1,1 +1,0 @@
-- Localized connectivity sampling accepts an opt-in `spatial_radius` (mm, finite, `> 0`): with `max_in_degree`, candidate pairs are limited to that Euclidean distance of the post neuron, so a rigid rotation of the population keeps the realized edge set under one seed. Absent the option, the sampler follows the previous path.

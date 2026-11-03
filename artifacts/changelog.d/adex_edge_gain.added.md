@@ -1,1 +1,0 @@
-- `Simulation(edge_gain={"pre", "post", "schedule"})` on the adex route scales the `|w|` of every edge from one cell type to another by a per-step schedule at its arrival step (delay-0 edges included); every other emitter family refuses it by name.

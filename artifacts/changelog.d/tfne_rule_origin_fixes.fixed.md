@@ -1,1 +1,0 @@
-- A TFNE rule's `allow_self = false` is read as false (it read as true); `true` and `false` are the accepted values. A relation's origin reports the compiling value from its per-statement `[delay=...]`.

@@ -1,1 +1,0 @@
-- A `poisson_drive` entry on the adex route takes `rate_schedule_hz`, a per-step rate array in place of `rate_hz` realized through the kernel's schedule path; a constant schedule reproduces the scalar-rate run bit for bit.

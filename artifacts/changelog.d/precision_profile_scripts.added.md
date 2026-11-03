@@ -1,1 +1,0 @@
-- `scripts/perf/precision_profile.py` measures the Izhikevich E/PV circuit per dtype, size, steps and mode in its own process; `scripts/perf/recurrent_grad_check.py` checks the autodiff Jacobian across neurons against finite differences.
