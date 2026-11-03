@@ -22,7 +22,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Broken or in flight
 
-- CAMINOS E1 at n 12 (2026-11-03): not equivalent, 20 of 24 cells (`caminos/RESULT_FIGURES.md`); next step is Hamm's.
+- CAMINOS E1 at n 12 (2026-11-03): not equivalent, 20 of 24 cells (`caminos/RESULT_FIGURES.md`); Hamm kept the oracle (2026-11-03).
 - PCL R3 done 2026-11-03: core arm equals the C++ after file 0 (`pcl/CALIBRATION.md` R3); R4b signed by Hamm 2026-11-03 (`pcl/prereg/P3_fig3_r4b_signed.md`); R5 runs from a frozen clone.
 - Papers are never "failed" through 0.6 (Hamm 2026-11-03): pending until a failure is proven; criteria may fail.
 - P-053 (PCL scan vs oracle gap on sparse weights, reported, not reproduced); P-054 (VIP and I presets: class-1
@@ -30,7 +30,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Open decisions for the owner
 
-Owner queue in `todo_stack.md`: P-052 (waits on the T-R28 beta horizon scan); P-054 preset; CAMINOS core route after E1; NeuroAI code link (anonymous.4open.science mirror, Hamm's act). Deleting the 22 merged `_temp_*` branches
+Owner queue in `todo_stack.md`: P-052 (waits on the T-R28 beta horizon scan); P-054 preset; CAMINOS 9D (S1 exception for `cellrep_figures.py`, or move to 0.5.10); NeuroAI code link (anonymous.4open.science mirror, Hamm's act). Deleting the 22 merged `_temp_*` branches
 and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 
 ## Generated files and their checks
@@ -59,5 +59,5 @@ and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 
 ## Next action
 
-PCL R5: exact arm and negative control, then the core on all 3168 tasks (about 128 h) and the oracle check; CAMINOS core route (Hamm); Brunel panel
+PCL R5: exact arm and negative control, then the core on all 3168 tasks (about 128 h) and the oracle check; CAMINOS 9D exception or move (Hamm); Brunel panel
 inventory needs the paper's legends; Vogels Fig. 4 panel mapping; update the checklist score.

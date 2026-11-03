@@ -189,6 +189,9 @@ and 3.9% (core) of the oracle mean, so the ±5% margin is about 1.3 SD; between 
 moves +5.0% on the oracle and −2.7% on the core. No implementation, parameter or batch difference is found; the
 cell's result is consistent with seed variance against a narrow margin (inferred).
 
+Decision (Hamm 2026-11-03): keep the oracle. The Cell Reports figures stay on the oracle route; E1 stands as not
+equivalent and the core route is not used for them.
+
 ## Replica score (Cell Reports main text)
 
 14 result panels: 1B, 1C, 2A top, 2B top, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B, 5C, 6A bottom.

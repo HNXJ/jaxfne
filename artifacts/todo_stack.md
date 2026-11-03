@@ -19,9 +19,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    rates equivalent in all 12; outside 0.4 f_pk, 0.7 band power and max E (unresolved) and 0.9 band power (−2.78%,
    interval −5.41 to −0.15%; two-sided p 0.083) (`RESULT_FIGURES.md`). Attribution of the 0.9 band-power
    cell (2026-11-03): both routes deterministic and unchanged across batches; seed SD 3.6-3.9%, so the margin is
-   about 1.3 SD; no implementation difference found. Waits on Hamm: accept the core route or keep the oracle.
-   ⇒ equivalent: rerun the Cell Reports sweeps on the GPU, the S2 entry for `cellrep_figures.py` closes. Checklist: 9D CAMINOS half. Closes when: `check_replications.py --check` lists no S2 entry for
-   `cellrep_figures.py` and `RESULT_FIGURES.md` cites the core-route reruns.
+   about 1.3 SD; no implementation difference found. Hamm 2026-11-03: keep the oracle; the Cell Reports figures stay on the
+   oracle route and the core route is not used for them. The S2 entry for `cellrep_figures.py` stays, so the 9D
+   CAMINOS half cannot close as written. Waits on Hamm: an S1 exception for that entry, or 9D CAMINOS moved to
+   0.5.10. Checklist: 9D CAMINOS half. Closes when: `check_replications.py --check` lists no S2 entry for
+   `cellrep_figures.py` without Hamm's exception.
 4. T-3 [A] (P) PCL R3: replay the training files through the chained core scan, the oracle and the C++ reference
    (WSL `~/pcl_cpp`) and attribute each residual (implementation, parameters, stochastic, model). → R4 prereg declaring T4 up front (driven column (4,4),
    (0,0) reported beside it) → [H] sign (step 7) → R5 score, exact and approximate apart. The signed v5 T2 FAIL
