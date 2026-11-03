@@ -70,12 +70,16 @@ def is_num(v):
 
 
 def dotted(obj, key):
-    """Return (present, value) at a dotted path such as 'r1.pass' or 'rates_Hz.E'."""
+    """Return (present, value) at a dotted path such as 'r1.pass', 'rates_Hz.E' or 'rows.0.G2'
+    (a non-negative integer part indexes a list)."""
     cur = obj
     for part in key.split("."):
-        if not isinstance(cur, dict) or part not in cur:
+        if isinstance(cur, list) and part.isdigit() and int(part) < len(cur):
+            cur = cur[int(part)]
+        elif isinstance(cur, dict) and part in cur:
+            cur = cur[part]
+        else:
             return False, None
-        cur = cur[part]
     return True, cur
 
 

@@ -243,6 +243,23 @@ def test_pass_fail_verdict_form(tmp_path):
     assert proc.returncode == 1 and "is not pass, fail or incomplete" in proc.stderr, proc.stderr
 
 
+def test_dotted_key_indexes_a_list_row(tmp_path):
+    root = tmp_path / "repo"
+    rows = [{"seed": 9, "rate": 69.4, "G2": False}, {"seed": 10, "rate": 12.5, "G2": True}]
+    sha = make_repo(root, {"scores/main.json": {"rows": rows}})
+    crits = [criterion(id=f"G2 seed {r['seed']}", value={"file": "main", "key": f"rows.{i}.rate"},
+                       verdict={"file": "main", "key": f"rows.{i}.G2"}) for i, r in enumerate(rows)]
+    write_sources(root, [paper(sha, files={"main": "scores/main.json"}, criteria=crits)])
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    got = [(c["value"], c["verdict"]) for c in load_out(root)["papers"][0]["criteria"]]
+    assert got == [(69.4, "fail"), (12.5, "pass")]
+    past = [criterion(id="x", value={"file": "main", "key": "rows.2.rate"}, verdict={"file": "main", "key": "rows.2.G2"})]
+    write_sources(root, [paper(sha, files={"main": "scores/main.json"}, criteria=past)])
+    proc = run(root)
+    assert proc.returncode == 1 and "rows.2" in proc.stderr, proc.stderr
+
+
 @pytest.mark.parametrize("energies, want_verdict, want_reason", [
     ([0.5, 0.3, 0.2], "pass", "source reason"),
     ([0.5, 0.05, 0.2], "fail", "E-rate floor not met"),
