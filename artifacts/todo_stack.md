@@ -15,10 +15,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
    test first and a changelog fragment (lanes a d9fee4b9, b fb5ef158, c ed9058c2, d 2cda7117 landed; d carries the
    no-edge refusal, the schedule record and the equivalence tests).
-   → full-size equivalence scored 2026-11-02: 16 of 24 cells inside, outside by ≤1.1% of the oracle mean; the null
-   expects 8.8 outside (`RESULT_FIGURES.md`, "Core-route equivalence"). Attribution A1 (seeds 4-6 at 0.7 and 0.9):
-   no systematic offset, Holm p 1 in all 12 cells, differences within -1.04% to +1.49%. Waits on Hamm: a
-   criterion that can pass (the range criterion passes 24 of 24 with P about 1.6e-5 for one distribution).
+   → E1 (Welch TOST ±5%, Hamm 2026-11-02) at the confirmatory n 12 (2026-11-03): not equivalent, 20 of 24 cells;
+   rates equivalent in all 12; outside 0.4 f_pk, 0.7 band power and max E (unresolved) and 0.9 band power (−2.78%,
+   interval −5.41 to −0.15%) (`RESULT_FIGURES.md`). Waits on Hamm: what the core route does next.
    ⇒ equivalent: rerun the Cell Reports sweeps on the GPU, the S2 entry for `cellrep_figures.py` closes. Checklist: 9D CAMINOS half. Closes when: `check_replications.py --check` lists no S2 entry for
    `cellrep_figures.py` and `RESULT_FIGURES.md` cites the core-route reruns.
 4. T-3 [A] (P) PCL R3: replay the training files through the chained core scan, the oracle and the C++ reference

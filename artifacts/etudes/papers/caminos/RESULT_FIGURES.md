@@ -172,6 +172,13 @@ E1 result at n 6 (2026-11-03): **not equivalent**, 18 of 24 cells. Every cell ou
 intervals within ±2.5%). Receipt `F:/warehouse/caminos/route_08780699/equivalence_silence_pv_e1_n6.json` (runs
 `e1_oracle_silence_pv.json`, `e1_core_silence_pv.json` beside it; oracle 24 min, core 89 min).
 
+E1 result at n 12 (2026-11-03, confirmatory): **not equivalent**, 20 of 24 cells. Outside: 0.4 f_pk (−2.00%, −5.82
+to +1.83%), 0.7 band power (+1.91%, −1.83 to +5.66%) and max E rate (+2.30%, −1.70 to +6.30%), each spanning 0 and
+unresolved; 0.9 band power (−2.78%, −5.41 to −0.15%), an offset whose interval excludes 0 and crosses the −5% margin.
+Population rates are equivalent in all 12 cells (90% intervals within ±2.5%). The cells at 0 that were outside at
+n 6 are equivalent at n 12. Receipt `F:/warehouse/caminos/route_08780699/equivalence_silence_pv_e1_n12.json`
+(sha256 6c1e9689…; runs `n12_oracle_silence_pv.json` 79591ce4…, `n12_core_silence_pv.json` ae2d16df…).
+
 ## Replica score (Cell Reports main text)
 
 14 result panels: 1B, 1C, 2A top, 2B top, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B, 5C, 6A bottom.
