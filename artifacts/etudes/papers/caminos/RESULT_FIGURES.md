@@ -160,6 +160,11 @@ a cell is equivalent when its 90% interval lies inside the margin. The routes ar
 receipts before this declaration; 10 are equivalent, and at 0.7 band power (90% interval −5.74 to +5.74%) and max E
 rate (−5.21 to +8.19%) are not resolved at n 6. The 12 cells at 0 and 0.4 are blind.
 
+E1 amendment (Hamm 2026-11-02: n 12; declared before the runs for seeds 7-12 and before the n 6 cells at 0 and
+0.4 were read). The confirmatory sample is n 12 per route: seeds 7-12 at fractions 0, 0.4, 0.7, 0.9 on both routes at
+08780699 (T 12 s, GPU float32), pooled with seeds 1-6. Same test, margin and α. The n was chosen after the 0.7
+intervals at n 6 were seen (sample-size re-estimation), so the n 6 result is reported beside the n 12 verdict.
+
 ## Replica score (Cell Reports main text)
 
 17 result panels: 1B, 1C, 2A top, 2A bottom, 2B top, 2B bottom, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B,
