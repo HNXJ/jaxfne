@@ -165,6 +165,13 @@ E1 amendment (Hamm 2026-11-02: n 12; declared before the runs for seeds 7-12 and
 08780699 (T 12 s, GPU float32), pooled with seeds 1-6. Same test, margin and α. The n was chosen after the 0.7
 intervals at n 6 were seen (sample-size re-estimation), so the n 6 result is reported beside the n 12 verdict.
 
+E1 result at n 6 (2026-11-03): **not equivalent**, 18 of 24 cells. Every cell outside has its 90% interval spanning
+0 with a centre within 2.5% of the oracle mean, so each is unresolved at n 6, with no offset: fraction 0 f_pk (−1.03%,
+−5.16 to +3.10%) and band power (−0.76%, −5.08 to +3.56%); 0.4 f_pk (−1.42%, −7.83 to +4.98%) and max E rate (−2.43%,
+−7.31 to +2.45%); 0.7 band power and max E rate as above. Population rates are equivalent in all 12 cells (90%
+intervals within ±2.5%). Receipt `F:/warehouse/caminos/route_08780699/equivalence_silence_pv_e1_n6.json` (runs
+`e1_oracle_silence_pv.json`, `e1_core_silence_pv.json` beside it; oracle 24 min, core 89 min).
+
 ## Replica score (Cell Reports main text)
 
 17 result panels: 1B, 1C, 2A top, 2A bottom, 2B top, 2B bottom, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B,
