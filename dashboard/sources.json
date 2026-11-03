@@ -198,6 +198,23 @@
       "id": "pcl-fig3",
       "title": "Predictive coding light, Fig. 3 (simple and complex cell tuning)",
       "citation": "N'dri, Barbier, Teulière and Triesch, Nat Commun 2025",
+      "replica": {
+        "scope": "Fig. 3 only, from the publisher's full-size image (read 2026-11-03); panels c and d split into their four PCL rows. The Gabor-filter and energy-model columns are the paper's reference models and are not scored. Figs. 1, 2 and 4-6 are not inventoried (the publisher page did not load).",
+        "panels": [
+          {"id": "3b", "status": "not run", "note": "receptive fields and Gabor fits of the trained network"},
+          {"id": "3c orientation", "status": "pass", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T1 simple R_ori 3.57 (signed v4/v5)"},
+          {"id": "3c frequency", "status": "fail", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T2 simple 10/16 points, SSE 1.50 x flat (signed v5)"},
+          {"id": "3c phase", "status": "pass", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T3 simple median X 0.53"},
+          {"id": "3c time", "status": "pass", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T4 frequency doubling, complex above simple (shared with 3d time)"},
+          {"id": "3d orientation", "status": "pass", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T1 complex R_ori 5.30"},
+          {"id": "3d frequency", "status": "fail", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T2 complex 12/15 points, guard 0.52 x flat over 0.5"},
+          {"id": "3d phase", "status": "pass", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T3 complex median X -0.12"},
+          {"id": "3d time", "status": "pass", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T4 median L complex -0.19 above simple -1.02, null 99th 0.42"}
+        ],
+        "excluded": [
+          {"id": "3a", "reason": "stimulus examples (natural images, gratings)"}
+        ]
+      },
       "class": "pending",
       "question": "Do the trained network's simple and complex cells show the paper's orientation, spatial-frequency and phase tuning?",
       "page": "models/pcl_fig3.md",
@@ -487,6 +504,23 @@
       "id": "gsdr2026",
       "title": "GSDR, Fig. 6 (a 50-neuron E, SST-like and PV-like circuit fitted to recorded spectra)",
       "citation": "Nejat, Sherfey and Bastos, PLOS One 2026",
+      "replica": {
+        "scope": "Main-text Figs. 1-6, panel letters from the PLOS legends (read 2026-11-03).",
+        "panels": [
+          {"id": "2A", "status": "not run"}, {"id": "2B", "status": "not run"}, {"id": "2C", "status": "not run"},
+          {"id": "3A", "status": "not run"}, {"id": "3C", "status": "not run"}, {"id": "3D", "status": "not run"},
+          {"id": "4A", "status": "not run"}, {"id": "4B", "status": "not run"}, {"id": "4C", "status": "not run"},
+          {"id": "4E", "status": "not run"}, {"id": "4F", "status": "not run"},
+          {"id": "6A", "status": "not run"}, {"id": "6B", "status": "not run"}, {"id": "6C", "status": "not run"}, {"id": "6D", "status": "not run"},
+          {"id": "6E", "status": "fail", "evidence": "artifacts/etudes/papers/gsdr2026/RESULT_P3_fit.md", "note": "signed P3 fit, seeds 9-13: post-fit kappa 0.595-0.597 against G2 < 0.1"},
+          {"id": "6F", "status": "fail", "evidence": "artifacts/etudes/papers/gsdr2026/RESULT_P3_fit.md", "note": "post-fit rate 69.4-69.5 Hz against G3 5-50 Hz"},
+          {"id": "6G", "status": "fail", "evidence": "artifacts/etudes/papers/gsdr2026/RESULT_P3_fit.md", "note": "post-fit PSTH of the panel-F network; G2 and G3 fail on 5 of 5 seeds"}
+        ],
+        "excluded": [
+          {"id": "1", "reason": "optimization flowchart"}, {"id": "3B", "reason": "network schematic"}, {"id": "4D", "reason": "network schematic"},
+          {"id": "5A", "reason": "recorded MT/MST data"}, {"id": "5B", "reason": "recorded MT/MST data"}, {"id": "5C", "reason": "recorded MT/MST data"}
+        ]
+      },
       "class": "pending",
       "question": "Does GSDR fit the 50-neuron Hodgkin–Huxley circuit to the recorded spectra when the circuit and the optimizer run in jaxfne?",
       "release": "0.5.8",
@@ -694,7 +728,7 @@
       ],
       "sensitivity": [],
       "charts": [],
-      "open": ["Sensitivity set S1 (N = 6250, fixed in-degrees) needs a lane option and has not run; S2 (5 s window) and S3 (dt 0.05 ms) ran unscored on seeds 4-5: labels hold except point C seed 4 at dt 0.05 (RESULT_P3).", "Library path P6 and the P7 insight page."]
+      "open": ["Sensitivity set S1 (N = 6250, fixed in-degrees) needs a lane option and has not run; S2 (5 s window) and S3 (dt 0.05 ms) ran unscored on seeds 4-5: labels hold except point C seed 4 at dt 0.05 (RESULT_P3).", "Library path P6 and the P7 insight page.", "No replica score: the panel inventory needs the figure legends, and the Springer page refused access (2026-11-03)."]
     },
     {
       "id": "potjans2014",
