@@ -381,3 +381,9 @@ One `test7` file outside the R4 exact subset (ori 0, sf index 4, phase 1, trial 
 spikes, and counts and spike times are equal for every cell. Wall: numba 21.1 s, core 1025.7 s (49×; the R4 draft's
 estimate of about 2 h per file, taken from the learning-on R3 ratio, was 7× too high). Receipts `core_0_4_1_1.npz`
 b22b7898…, `numba_0_4_1_1.npz` 935af4b2…, `pilot.log`.
+
+Scaling (2026-11-03, unscored, same file): 12 concurrent core processes from a frozen clone at 7c067e22, BLAS and
+numba threads 1 (`F:/warehouse/pcl/r5_scaling/r5_scaling.py` cf601442…). Per-file wall 1485-1516 s (1.46× the
+single run), batch 1747.8 s, 24.7 files per hour; every output equals the pilot's core npz in all spike fields
+(`cmp_keys.py` 6b046571…: only `wall_s` differs; the script's own "equal 0/12" line compared `wall_s` too).
+The 3168-file core set at 12 workers is about 128 h wall (log `scaling_12.log` 94b87605…).
