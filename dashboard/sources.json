@@ -192,7 +192,7 @@
       "criteria": [],
       "sensitivity": [],
       "charts": [],
-      "open": ["No preregistration: the verdicts are descriptive.", "Fig. 4B amplitude metric: band power falls, peak |X| rises."]
+      "open": ["No preregistration: the verdicts are descriptive.", "Fig. 4B amplitude metric: band power falls, peak |X| rises.", "Core route against the port (equivalence test E1, ±5%, Hamm 2026-11-02): at n 6 per route, 18 of 24 cells are equivalent, and the 6 others are unresolved (intervals span 0, centres within 2.5%); the confirmatory n 12 runs are in progress (RESULT_FIGURES.md)."]
     },
     {
       "id": "pcl-fig3",
@@ -218,7 +218,7 @@
                {"label": "scores v5", "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json"}]
       },
       "verdict": null,
-      "summary": "Preregistrations v4 and v5 were scored and did not pass; a new protocol follows (Hamm 2026-10-13). Orientation tuning and the simple/complex phase split reproduce. v5 scores the sf curve against the digitized Fig. 3: simple cells fail (10/16 points, error 1.5 times a flat line), complex cells miss the shape guard by 0.02. Under v5, T4 (frequency doubling, C3) passes on the v4 numbers. The PCL-R1 fidelity audit (closed 2026-10-24, receipt `artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md`) attributes six findings to implementation and selection fidelity; PCL is not reproduced and the signed v5 T2 failure stands.",
+      "summary": "Preregistrations v4 and v5 were scored and did not pass; a new protocol follows (Hamm 2026-10-13). Orientation tuning and the simple/complex phase split reproduce. v5 scores the sf curve against the digitized Fig. 3: simple cells fail (10/16 points, error 1.5 times a flat line), complex cells miss the shape guard by 0.02. Under v5, T4 (frequency doubling, C3) passes on the v4 numbers. The PCL-R1 fidelity audit (closed 2026-10-24, receipt `artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md`) attributes six findings to implementation and selection fidelity; PCL is not reproduced and the signed v5 T2 failure stands. R3 (2026-11-02): the oracle arm matches the authors' C++ on files 0-4 (max relative weight difference 7.4e-15); the jaxfne core arm runs on file 0 (0.17 s per event).",
       "preregs": [{"id": "v4", "signed": "2026-10-11", "path": "artifacts/etudes/pcl/prereg/P3_fig3.md"},
                   {"id": "v5", "signed": "2026-10-13", "path": "artifacts/etudes/pcl/prereg/P3_fig3_v5.md"}],
       "files": {
@@ -492,7 +492,7 @@
       "release": "0.5.8",
       "tier": "T-jaxfne",
       "stage": "P3",
-      "lane": {"branch": "dev", "sha": "899dccbaddf03c98bb35cf1897d3f4ee04318573"},
+      "lane": {"branch": "dev", "sha": "1537f01d8c413f20a8b71dff57089b1f4573c6d5"},
       "stage_artifacts": {
         "P1": [{"label": "source record (draft)", "path": "artifacts/etudes/papers/gsdr2026/SOURCE_P1.md"}],
         "P3": [{"label": "fit prereg (signed)", "path": "artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md"},
@@ -505,7 +505,38 @@
       "files": {
         "main": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json"
       },
-      "criteria": [],
+      "criteria": [
+        {"id": "G2", "group": "seed 9", "claim": "fitted network desynchronizes under the stimulus", "estimand": "mean kappa_500_1000 over held-out trials 14-18", "criterion": "z < 0.1",
+         "value": {"file": "main", "key": "rows.0.kappa_mean"}, "unit": "", "value_label": "mean kappa", "paper_value": "0.0156",
+         "verdict": {"file": "main", "key": "rows.0.G2"}, "prereg": "P3 fit", "reason": "kappa above 0.1 (synchronous)"},
+        {"id": "G3", "group": "seed 9", "claim": "fitted network fires in the 5-50 Hz band", "estimand": "mean rate over held-out trials 14-18", "criterion": "5 ≤ z ≤ 50 Hz",
+         "value": {"file": "main", "key": "rows.0.rate_mean_hz"}, "unit": "Hz", "value_label": "mean rate",
+         "verdict": {"file": "main", "key": "rows.0.G3"}, "prereg": "P3 fit", "reason": "rate above 50 Hz"},
+        {"id": "G2", "group": "seed 10", "claim": "fitted network desynchronizes under the stimulus", "estimand": "mean kappa_500_1000 over held-out trials 14-18", "criterion": "z < 0.1",
+         "value": {"file": "main", "key": "rows.1.kappa_mean"}, "unit": "", "value_label": "mean kappa", "paper_value": "0.0156",
+         "verdict": {"file": "main", "key": "rows.1.G2"}, "prereg": "P3 fit", "reason": "kappa above 0.1 (synchronous)"},
+        {"id": "G3", "group": "seed 10", "claim": "fitted network fires in the 5-50 Hz band", "estimand": "mean rate over held-out trials 14-18", "criterion": "5 ≤ z ≤ 50 Hz",
+         "value": {"file": "main", "key": "rows.1.rate_mean_hz"}, "unit": "Hz", "value_label": "mean rate",
+         "verdict": {"file": "main", "key": "rows.1.G3"}, "prereg": "P3 fit", "reason": "rate above 50 Hz"},
+        {"id": "G2", "group": "seed 11", "claim": "fitted network desynchronizes under the stimulus", "estimand": "mean kappa_500_1000 over held-out trials 14-18", "criterion": "z < 0.1",
+         "value": {"file": "main", "key": "rows.2.kappa_mean"}, "unit": "", "value_label": "mean kappa", "paper_value": "0.0156",
+         "verdict": {"file": "main", "key": "rows.2.G2"}, "prereg": "P3 fit", "reason": "kappa above 0.1 (synchronous)"},
+        {"id": "G3", "group": "seed 11", "claim": "fitted network fires in the 5-50 Hz band", "estimand": "mean rate over held-out trials 14-18", "criterion": "5 ≤ z ≤ 50 Hz",
+         "value": {"file": "main", "key": "rows.2.rate_mean_hz"}, "unit": "Hz", "value_label": "mean rate",
+         "verdict": {"file": "main", "key": "rows.2.G3"}, "prereg": "P3 fit", "reason": "rate above 50 Hz"},
+        {"id": "G2", "group": "seed 12", "claim": "fitted network desynchronizes under the stimulus", "estimand": "mean kappa_500_1000 over held-out trials 14-18", "criterion": "z < 0.1",
+         "value": {"file": "main", "key": "rows.3.kappa_mean"}, "unit": "", "value_label": "mean kappa", "paper_value": "0.0156",
+         "verdict": {"file": "main", "key": "rows.3.G2"}, "prereg": "P3 fit", "reason": "kappa above 0.1 (synchronous)"},
+        {"id": "G3", "group": "seed 12", "claim": "fitted network fires in the 5-50 Hz band", "estimand": "mean rate over held-out trials 14-18", "criterion": "5 ≤ z ≤ 50 Hz",
+         "value": {"file": "main", "key": "rows.3.rate_mean_hz"}, "unit": "Hz", "value_label": "mean rate",
+         "verdict": {"file": "main", "key": "rows.3.G3"}, "prereg": "P3 fit", "reason": "rate above 50 Hz"},
+        {"id": "G2", "group": "seed 13", "claim": "fitted network desynchronizes under the stimulus", "estimand": "mean kappa_500_1000 over held-out trials 14-18", "criterion": "z < 0.1",
+         "value": {"file": "main", "key": "rows.4.kappa_mean"}, "unit": "", "value_label": "mean kappa", "paper_value": "0.0156",
+         "verdict": {"file": "main", "key": "rows.4.G2"}, "prereg": "P3 fit", "reason": "kappa above 0.1 (synchronous)"},
+        {"id": "G3", "group": "seed 13", "claim": "fitted network fires in the 5-50 Hz band", "estimand": "mean rate over held-out trials 14-18", "criterion": "5 ≤ z ≤ 50 Hz",
+         "value": {"file": "main", "key": "rows.4.rate_mean_hz"}, "unit": "Hz", "value_label": "mean rate",
+         "verdict": {"file": "main", "key": "rows.4.G3"}, "prereg": "P3 fit", "reason": "rate above 50 Hz"}
+      ],
       "sensitivity": [],
       "charts": [],
       "open": ["Pending (Hamm 2026-11-02): open until precisely replicated. The signed P3 fit stands as scored, without a pass (RESULT_P3_fit.md); the paper continues under a new preregistration.", "The next prereg names --morphology explicitly (RESULT_P3_fit.md: the reference-morphology evaluation is insensitive to the fitted conductances at stim 0.6).", "The drive and J_E anchor for the g sweep are not yet recorded."]
@@ -535,7 +566,7 @@
       "release": "0.5.9",
       "tier": "T-port",
       "stage": "P3",
-      "lane": {"branch": "dev", "sha": "5bd0fd4f3c516cc1445037b722256e6bf3c9bf8b"},
+      "lane": {"branch": "dev", "sha": "1537f01d8c413f20a8b71dff57089b1f4573c6d5"},
       "stage_artifacts": {
         "P3": [{"label": "prereg v3 (signed)", "path": "artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md"},
                {"label": "result", "path": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md"}]
@@ -544,8 +575,59 @@
       "preregs": [
         {"id": "P3 v3", "signed": "2026-11-02", "path": "artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md"}
       ],
-      "files": {},
-      "criteria": [],
+      "files": {
+        "main": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json"
+      },
+      "criteria": [
+        {"id": "E1", "group": "seed 9", "claim": "self-sustained: the network stays alive", "estimand": "spikes in the last 1 s of a 10 s free run", "criterion": "spikes in the last 1 s",
+         "value": {"file": "main", "key": "rows.0.alive"}, "unit": "", "value_label": "alive",
+         "verdict": {"file": "main", "key": "rows.0.E1"}, "prereg": "P3 v3", "reason": "silent before 10 s"},
+        {"id": "E2", "group": "seed 9", "claim": "CV_ISI matches the paper", "estimand": "cv_isi over the free run; e = |z-2.47|/2.47", "criterion": "e ≤ 0.05",
+         "value": {"file": "main", "key": "rows.0.cv_isi"}, "unit": "", "value_label": "CV_ISI", "paper_value": "2.47",
+         "verdict": {"file": "main", "key": "rows.0.E2"}, "prereg": "P3 v3"},
+        {"id": "E3", "group": "seed 9", "claim": "pairwise correlation matches the paper", "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|", "criterion": "|z-0.005| ≤ 0.01",
+         "value": {"file": "main", "key": "rows.0.cc"}, "unit": "", "value_label": "pairwise CC", "paper_value": "0.005",
+         "verdict": {"file": "main", "key": "rows.0.E3"}, "prereg": "P3 v3", "reason": "|z-y| 0.109 over 0.01; silent before 10 s"},
+        {"id": "E1", "group": "seed 10", "claim": "self-sustained: the network stays alive", "estimand": "spikes in the last 1 s of a 10 s free run", "criterion": "spikes in the last 1 s",
+         "value": {"file": "main", "key": "rows.1.alive"}, "unit": "", "value_label": "alive",
+         "verdict": {"file": "main", "key": "rows.1.E1"}, "prereg": "P3 v3"},
+        {"id": "E2", "group": "seed 10", "claim": "CV_ISI matches the paper", "estimand": "cv_isi over the free run; e = |z-2.47|/2.47", "criterion": "e ≤ 0.05",
+         "value": {"file": "main", "key": "rows.1.cv_isi"}, "unit": "", "value_label": "CV_ISI", "paper_value": "2.47",
+         "verdict": {"file": "main", "key": "rows.1.E2"}, "prereg": "P3 v3", "reason": "e 0.055 over 0.05 at 46 Hz"},
+        {"id": "E3", "group": "seed 10", "claim": "pairwise correlation matches the paper", "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|", "criterion": "|z-0.005| ≤ 0.01",
+         "value": {"file": "main", "key": "rows.1.cc"}, "unit": "", "value_label": "pairwise CC", "paper_value": "0.005",
+         "verdict": {"file": "main", "key": "rows.1.E3"}, "prereg": "P3 v3"},
+        {"id": "E1", "group": "seed 11", "claim": "self-sustained: the network stays alive", "estimand": "spikes in the last 1 s of a 10 s free run", "criterion": "spikes in the last 1 s",
+         "value": {"file": "main", "key": "rows.2.alive"}, "unit": "", "value_label": "alive",
+         "verdict": {"file": "main", "key": "rows.2.E1"}, "prereg": "P3 v3"},
+        {"id": "E2", "group": "seed 11", "claim": "CV_ISI matches the paper", "estimand": "cv_isi over the free run; e = |z-2.47|/2.47", "criterion": "e ≤ 0.05",
+         "value": {"file": "main", "key": "rows.2.cv_isi"}, "unit": "", "value_label": "CV_ISI", "paper_value": "2.47",
+         "verdict": {"file": "main", "key": "rows.2.E2"}, "prereg": "P3 v3", "reason": "e 0.054 over 0.05 at 46 Hz"},
+        {"id": "E3", "group": "seed 11", "claim": "pairwise correlation matches the paper", "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|", "criterion": "|z-0.005| ≤ 0.01",
+         "value": {"file": "main", "key": "rows.2.cc"}, "unit": "", "value_label": "pairwise CC", "paper_value": "0.005",
+         "verdict": {"file": "main", "key": "rows.2.E3"}, "prereg": "P3 v3"},
+        {"id": "E1", "group": "seed 12", "claim": "self-sustained: the network stays alive", "estimand": "spikes in the last 1 s of a 10 s free run", "criterion": "spikes in the last 1 s",
+         "value": {"file": "main", "key": "rows.3.alive"}, "unit": "", "value_label": "alive",
+         "verdict": {"file": "main", "key": "rows.3.E1"}, "prereg": "P3 v3", "reason": "silent before 10 s"},
+        {"id": "E2", "group": "seed 12", "claim": "CV_ISI matches the paper", "estimand": "cv_isi over the free run; e = |z-2.47|/2.47", "criterion": "e ≤ 0.05",
+         "value": {"file": "main", "key": "rows.3.cv_isi"}, "unit": "", "value_label": "CV_ISI", "paper_value": "2.47",
+         "verdict": {"file": "main", "key": "rows.3.E2"}, "prereg": "P3 v3", "reason": "e 0.060 over 0.05; silent before 10 s"},
+        {"id": "E3", "group": "seed 12", "claim": "pairwise correlation matches the paper", "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|", "criterion": "|z-0.005| ≤ 0.01",
+         "value": {"file": "main", "key": "rows.3.cc"}, "unit": "", "value_label": "pairwise CC", "paper_value": "0.005",
+         "verdict": {"file": "main", "key": "rows.3.E3"}, "prereg": "P3 v3", "reason": "|z-y| 0.075 over 0.01; silent before 10 s"},
+        {"id": "E1", "group": "seed 13", "claim": "self-sustained: the network stays alive", "estimand": "spikes in the last 1 s of a 10 s free run", "criterion": "spikes in the last 1 s",
+         "value": {"file": "main", "key": "rows.4.alive"}, "unit": "", "value_label": "alive",
+         "verdict": {"file": "main", "key": "rows.4.E1"}, "prereg": "P3 v3", "reason": "silent before 10 s"},
+        {"id": "E2", "group": "seed 13", "claim": "CV_ISI matches the paper", "estimand": "cv_isi over the free run; e = |z-2.47|/2.47", "criterion": "e ≤ 0.05",
+         "value": {"file": "main", "key": "rows.4.cv_isi"}, "unit": "", "value_label": "CV_ISI", "paper_value": "2.47",
+         "verdict": {"file": "main", "key": "rows.4.E2"}, "prereg": "P3 v3", "reason": "e 0.060 over 0.05; silent before 10 s"},
+        {"id": "E3", "group": "seed 13", "claim": "pairwise correlation matches the paper", "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|", "criterion": "|z-0.005| ≤ 0.01",
+         "value": {"file": "main", "key": "rows.4.cc"}, "unit": "", "value_label": "pairwise CC", "paper_value": "0.005",
+         "verdict": {"file": "main", "key": "rows.4.E3"}, "prereg": "P3 v3", "reason": "|z-y| 0.124 over 0.01; silent before 10 s"},
+        {"id": "C1", "group": "control", "claim": "Fig. 6A control: strong adaptation silences the network", "estimand": "control run rates, seeds 9-10", "criterion": "dead by 10 s on both seeds",
+         "value": {"file": "main", "key": "C1"}, "unit": "", "value_label": "control dead",
+         "verdict": {"file": "main", "key": "C1"}, "prereg": "P3 v3"}
+      ],
       "sensitivity": [],
       "charts": [],
       "open": ["Rebase the lane onto the artifacts reorganization and integrate on dev (T-21).", "Report the authors' Vpeak beside the VT + 5Δ sensitivity (Hamm 2026-10-14)."]
@@ -645,7 +727,7 @@
       "release": "0.5.9",
       "tier": "T-jaxfne",
       "stage": "P3",
-      "lane": {"branch": "dev", "sha": "42e7f618a657d34f931fd1ec009069d72c98610b"},
+      "lane": {"branch": "dev", "sha": "1537f01d8c413f20a8b71dff57089b1f4573c6d5"},
       "stage_artifacts": {
         "P3": [{"label": "prereg v2 (signed)", "path": "artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md"},
                {"label": "result", "path": "artifacts/etudes/papers/potjans2014/RESULT_P3.md"}]
@@ -654,8 +736,32 @@
       "preregs": [
         {"id": "P3 v2", "signed": "2026-11-02", "path": "artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md"}
       ],
-      "files": {},
-      "criteria": [],
+      "files": {
+        "main": "artifacts/etudes/papers/potjans2014/run/p3_v2_score.json"
+      },
+      "criteria": [
+        {"id": "R-L23E", "claim": "L2/3e rate matches the reference", "estimand": "L2/3e mean rate, seeds 4-8; e = |z-y|/y", "criterion": "e ≤ 0.20",
+         "value": {"file": "main", "key": "rows.R-L23E.z_hz"}, "unit": "Hz", "value_label": "mean rate", "paper_value": "0.86 Hz",
+         "verdict": {"file": "main", "key": "rows.R-L23E.pass"}, "prereg": "P3 v2", "reason": "e 0.754 over 0.20"},
+        {"id": "R-L4E", "claim": "L4e rate matches the reference", "estimand": "L4e mean rate, seeds 4-8; e = |z-y|/y", "criterion": "e ≤ 0.20",
+         "value": {"file": "main", "key": "rows.R-L4E.z_hz"}, "unit": "Hz", "value_label": "mean rate", "paper_value": "4.45 Hz",
+         "verdict": {"file": "main", "key": "rows.R-L4E.pass"}, "prereg": "P3 v2"},
+        {"id": "R-L5E", "claim": "L5e rate matches the reference", "estimand": "L5e mean rate, seeds 4-8; e = |z-y|/y", "criterion": "e ≤ 0.20",
+         "value": {"file": "main", "key": "rows.R-L5E.z_hz"}, "unit": "Hz", "value_label": "mean rate", "paper_value": "7.59 Hz",
+         "verdict": {"file": "main", "key": "rows.R-L5E.pass"}, "prereg": "P3 v2", "reason": "e 0.304 over 0.20"},
+        {"id": "R-L6E", "claim": "L6e rate matches the reference", "estimand": "L6e mean rate, seeds 4-8; e = |z-y|/y", "criterion": "e ≤ 0.20",
+         "value": {"file": "main", "key": "rows.R-L6E.z_hz"}, "unit": "Hz", "value_label": "mean rate", "paper_value": "1.09 Hz",
+         "verdict": {"file": "main", "key": "rows.R-L6E.pass"}, "prereg": "P3 v2"},
+        {"id": "O-ORD", "claim": "E-rate order: L5e highest; L2/3e and L6e below L4e", "estimand": "E-rate order of seed-mean rates", "criterion": "holds",
+         "value": {"file": "main", "key": "rows.O-ORD.pass"}, "unit": "", "value_label": "order holds",
+         "verdict": {"file": "main", "key": "rows.O-ORD.pass"}, "prereg": "P3 v2"},
+        {"id": "O-IE", "claim": "inhibitory rate above excitatory in every layer", "estimand": "I and E seed-mean rates per layer", "criterion": "all 4 layers hold",
+         "value": {"file": "main", "key": "rows.O-IE.layers.L5.i_hz"}, "unit": "Hz", "value_label": "L5 I rate",
+         "verdict": {"file": "main", "key": "rows.O-IE.pass"}, "prereg": "P3 v2", "reason": "L5 I 9.66 Hz under E 9.90 Hz"},
+        {"id": "CV", "claim": "single-unit CV of ISIs above 0.8 in every population", "estimand": "mean CV of ISIs per population, seeds 4-8", "criterion": "all 8 populations above 0.8",
+         "value": {"file": "main", "key": "rows.CV.cv_isi.L6E"}, "unit": "", "value_label": "L6E CV",
+         "verdict": {"file": "main", "key": "rows.CV.pass"}, "prereg": "P3 v2", "reason": "L6E and L6PV 0.797, under 0.8"}
+      ],
       "sensitivity": [],
       "charts": [],
       "open": ["Supplementary Tables 1-3 not yet machine-read; publisher supplement links unverified.", "Leak reversal unstated in the paper; NEST default or authors' code must settle it.", "Thalamic transient protocol and Fig. 10/11 propagation claims deferred past P1."]
@@ -692,7 +798,7 @@
       "release": "0.5.9",
       "tier": "T-jaxfne",
       "stage": "P3",
-      "lane": {"branch": "dev", "sha": "42e7f618a657d34f931fd1ec009069d72c98610b"},
+      "lane": {"branch": "dev", "sha": "1537f01d8c413f20a8b71dff57089b1f4573c6d5"},
       "stage_artifacts": {
         "P3": [{"label": "prereg v4 (signed)", "path": "artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md"},
                {"label": "result", "path": "artifacts/etudes/papers/vogels2011/RESULT_P3.md"}]
@@ -701,8 +807,20 @@
       "preregs": [
         {"id": "P3 v4", "signed": "2026-11-02", "path": "artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md"}
       ],
-      "files": {},
-      "criteria": [],
+      "files": {
+        "main": "artifacts/etudes/papers/vogels2011/run/p3_v4_score.json"
+      },
+      "criteria": [
+        {"id": "CONV", "claim": "every scored seed converges", "estimand": "slope b of the per-second E rate over 130-150 s, with se", "criterion": "not converged only when |b| ≥ 0.01 Hz/s and |b|/se > 2.101",
+         "value": {"file": "main", "key": "CONV.per_seed.6.t"}, "unit": "", "value_label": "|b|/se, seed 6 (largest)",
+         "verdict": {"file": "main", "key": "CONV.pass"}, "prereg": "P3 v4"},
+        {"id": "R-E", "claim": "E rate settles at the 3 Hz target", "estimand": "E mean rate, 149-150 s; e = |z-3|/3", "criterion": "e ≤ 0.20",
+         "value": {"file": "main", "key": "R-E.z_hz"}, "unit": "Hz", "value_label": "mean rate", "paper_value": "3 Hz",
+         "verdict": {"file": "main", "key": "R-E.pass"}, "prereg": "P3 v4", "reason": "settles at 4.13 Hz, e 0.375 over 0.20"},
+        {"id": "O-DROP", "claim": "E rate drops from the static network", "estimand": "E rate at 0.8-1.0 s over R-E's z", "criterion": "ratio ≥ 2",
+         "value": {"file": "main", "key": "O-DROP.ratio"}, "unit": "", "value_label": "ratio",
+         "verdict": {"file": "main", "key": "O-DROP.pass"}, "prereg": "P3 v4"}
+      ],
       "sensitivity": [],
       "charts": [],
       "open": ["Fig. 4 panels stay unmapped to the P3 rows (R-E, O-DROP); the mapping waits on the accepted manuscript's legends.", "Accepted manuscript readable (local copy F:/warehouse/vogels/Vogels2011_Science_AM.pdf); it states the Fig. 4B AI state at 3-15 Hz.","Conductance synapses vs the current-based core LIF is a P2 fidelity question.", "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."]
