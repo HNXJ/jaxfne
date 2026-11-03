@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-03T06:33:09Z",
-    "dev_sha": "3e64b4390c603ffe3ebcbdc08f3d4706dba20abb",
-    "data_revision": "b9dddc5d9db292d0c4573e1944bb08318b5c1e01e71bb86fd8a716125fa19735"
+    "utc": "2026-11-03T07:07:51Z",
+    "dev_sha": "8479df9452219029e1c4d072bca0e7b9c5d18967",
+    "data_revision": "246eb1750a167a08f129ef4c2bf6a3acc2d8bc224cb57df00c2ac9592074250e"
   },
   "papers": [
     {
@@ -1413,7 +1413,7 @@
       "open": [
         "No preregistration: the verdicts are descriptive.",
         "Fig. 4B amplitude metric: band power falls, peak |X| rises.",
-        "Core route against the port (equivalence test E1, ±5%, Hamm 2026-11-02): confirmatory n 12 per route: not equivalent, 20 of 24 cells. Population rates are equivalent in all 12 cells; outside are 0.4 f_pk, 0.7 band power and max E rate (unresolved, intervals span 0) and 0.9 band power (−2.78%, 90% interval −5.41 to −0.15%). n 6 gave 18 of 24 (RESULT_FIGURES.md)."
+        "Core route against the port (equivalence test E1, ±5%, Hamm 2026-11-02): confirmatory n 12 per route: not equivalent, 20 of 24 cells. Population rates are equivalent in all 12 cells; outside are 0.4 f_pk, 0.7 band power and max E rate (unresolved, intervals span 0) and 0.9 band power (−2.78%, 90% interval −5.41 to −0.15%; two-sided p 0.083). n 6 gave 18 of 24 (RESULT_FIGURES.md)."
       ],
       "verdict_summary": {
         "kind": "paper",
