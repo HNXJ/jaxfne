@@ -107,6 +107,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     then `coherence_radius_um` with its two limit tests; T-32 GSDR on `simulate_hh_batch`, seed and candidate
     batching for AdEx, LIF and `Model.tune` (`_model_tune.py:451`), core homes for lane analysis, Mejias G6, the
     LIF edge kernel on GPU; F2, F4, S16 per the release plan.
+30. 0.5.10: [A] `_validate_in_degree` (`jaxfne/connectivity.py:193`) refuses a float `in_degree` under default
+    sampling as "must be a positive integer" without naming `sampling="multinomial"` (0.5.9 second review,
+    should-fix); `assemble_changelog.py --dry-run` raises UnicodeEncodeError (cp1252) when stdout is redirected.
+    Closes when: a failing test for each, then the message names the multinomial form and the dry run prints UTF-8.
 27. 0.5.10: T-48 Jansen-Rit 1995 neural-mass emitter, then P1.
 28. After the 0.5.10 release and 7 replicated papers: T-54 [A then H] awesome-jax PR with Hamm's go.
 29. 0.5.11 and 0.6.0: the release plan's later sections.

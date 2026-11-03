@@ -42,7 +42,7 @@ runs wait for signatures. At most 3 lanes.
 
 Weights sum to 100: packages 70, exit gate (`release_plan_0.5.7-0.5.10.md` §6) 30. A row earns its
 weight only when its "Done when" check holds; partial credit is the share of its named checks that hold.
-Score on 2026-11-03 after the 0.5.9 candidate: 82.0/100 (Gate 3 0 to 4; 78.0 after R5-exact, S13 and F7: 9D 6 to 12, 9E 9.3 to 14, Gate 1 0 to 4; 69.0 before F7; 63.3 at ba788393, 63.3 at fd5a9c27, 58.7 at 702c1d61, 52.7 at dceb49b0, 48 at ff12072c, 40 at 8da66a42, 28 at 4ce58b4c).
+Score on 2026-11-03 after the 0.5.9 candidate and its second review: 88.0/100 (Gate 3 0 to 4, Gate 4 0 to 6; 78.0 after R5-exact, S13 and F7: 9D 6 to 12, 9E 9.3 to 14, Gate 1 0 to 4; 69.0 before F7; 63.3 at ba788393, 63.3 at fd5a9c27, 58.7 at 702c1d61, 52.7 at dceb49b0, 48 at ff12072c, 40 at 8da66a42, 28 at 4ce58b4c).
 
 | Id | Weight | Evidence 2026-10-31 | Score |
 |---|---|---|---|
@@ -56,7 +56,7 @@ Score on 2026-11-03 after the 0.5.9 candidate: 82.0/100 (Gate 3 0 to 4; 78.0 aft
 | Gate 1 packages closed or moved | 6 | 9D and 9E closed (2026-11-03; PCL R5-approximate moved to 0.5.10); 9F open: 2 of 3 | 4 |
 | Gate 2 broad, CI, replications, dashboard | 8 | broad gate exit 0 and CI (Fast) success on 4ce58b4c; `check_replications.py --check` 0 unlisted; dashboard `--check` fresh; repeat on the release SHA | 6 |
 | Gate 3 `release_body.py --check` | 4 | 0.5.9 candidate (2026-11-03): version 0.5.9 in `pyproject.toml` and the version files; `assemble_changelog.py --version 0.5.9 --date 2026-11-03` assembled 83 fragments; `release_body.py --tag v0.5.9 --check` PASS | 4 |
-| Gate 4 second review, receipt | 6 | not started | 0 |
+| Gate 4 second review, receipt | 6 | opencode Muse review of the 0.5.9 candidate 190432a4 (2026-11-03): NON-BLOCKING, 0 blocking, 1 should-fix (an `in_degree` refusal message, moved to 0.5.10, todo 30), 2 notes; every Changed and Fixed bullet and the first 10 Added read against `jaxfne/`, none wrong. Receipt `F:/warehouse/jaxfne/rc_190432a4/second_review_muse.md` (sha256 4d07f396…) with its packet (b6586f4d…) | 6 |
 | Gate 5 tag, main, PyPI | 6 | Hamm's word | 0 |
 
 ## Later releases
