@@ -1,0 +1,101 @@
+{
+  "git_sha": "b23c9b491f7b4877759fcd6611e9fd34e5140307",
+  "inputs": [
+    "/home/nejath/score_b23c9b49/potjans/scored/seed4/manifest.json",
+    "/home/nejath/score_b23c9b49/potjans/scored/seed5/manifest.json",
+    "/home/nejath/score_b23c9b49/potjans/scored/seed6/manifest.json",
+    "/home/nejath/score_b23c9b49/potjans/scored/seed7/manifest.json",
+    "/home/nejath/score_b23c9b49/potjans/scored/seed8/manifest.json"
+  ],
+  "inputs_sha256": "f825c6d91c0e1af33b1dc43bf0501cee8c1d57c95b66462736fae547882d10c0",
+  "rows": {
+    "CV": {
+      "cv_isi": {
+        "L23E": 0.8249532713983886,
+        "L23PV": 0.8817166832605856,
+        "L4E": 0.8488334395885169,
+        "L4PV": 0.8556605173164933,
+        "L5E": 0.824639094325917,
+        "L5PV": 0.8143376340317022,
+        "L6E": 0.7971824805315944,
+        "L6PV": 0.7968416702292487
+      },
+      "pass": false
+    },
+    "O-IE": {
+      "layers": {
+        "L23": {
+          "e_hz": 1.5083579354575996,
+          "i_hz": 3.9190033402545814,
+          "pass": true
+        },
+        "L4": {
+          "e_hz": 4.467182097579716,
+          "i_hz": 6.292700729927008,
+          "pass": true
+        },
+        "L5": {
+          "e_hz": 9.900162778079219,
+          "i_hz": 9.662370880472208,
+          "pass": false
+        },
+        "L6": {
+          "e_hz": 1.138187134502924,
+          "i_hz": 8.470365744870652,
+          "pass": true
+        }
+      },
+      "pass": false
+    },
+    "O-ORD": {
+      "L23E_below_L4E": true,
+      "L5E_highest": true,
+      "L6E_below_L4E": true,
+      "pass": true
+    },
+    "R-L23E": {
+      "e": 0.7539045761134879,
+      "pass": false,
+      "y_hz": 0.86,
+      "z_hz": 1.5083579354575996
+    },
+    "R-L4E": {
+      "e": 0.0038611455235316615,
+      "pass": true,
+      "y_hz": 4.45,
+      "z_hz": 4.467182097579716
+    },
+    "R-L5E": {
+      "e": 0.30436927247420537,
+      "pass": false,
+      "y_hz": 7.59,
+      "z_hz": 9.900162778079219
+    },
+    "R-L6E": {
+      "e": 0.044208380277911824,
+      "pass": true,
+      "y_hz": 1.09,
+      "z_hz": 1.138187134502924
+    }
+  },
+  "secondary": {
+    "SYN_fano_3ms": {
+      "L23E": 0.9953915377148508,
+      "L23PV": 0.9896512198123808,
+      "L4E": 0.9865476942514213,
+      "L4PV": 0.9816512950094756,
+      "L5E": 0.9697728345336181,
+      "L5PV": 0.9708597599494629,
+      "L6E": 0.9963137808307909,
+      "L6PV": 0.9740827542640556
+    }
+  },
+  "seeds": [
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "verdict": "off"
+}

@@ -1,0 +1,95 @@
+{
+  "prereg": "artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md",
+  "rows": [
+    {
+      "seed": 9,
+      "alive": false,
+      "cv_isi": 2.3615458529680766,
+      "e2": 0.04390856155138606,
+      "cc": 0.11358466531760537,
+      "e3": 0.10858466531760537,
+      "rate_hz_all": 9.41645,
+      "E1": false,
+      "E2": true,
+      "E3": false,
+      "pass": false
+    },
+    {
+      "seed": 10,
+      "alive": true,
+      "cv_isi": 2.606245297422119,
+      "e2": 0.0551600394421533,
+      "cc": 0.00685507229637175,
+      "e3": 0.0018550722963717502,
+      "rate_hz_all": 46.16895,
+      "E1": true,
+      "E2": false,
+      "E3": true,
+      "pass": false
+    },
+    {
+      "seed": 11,
+      "alive": true,
+      "cv_isi": 2.604416337218955,
+      "e2": 0.05441956972427321,
+      "cc": 0.008497981284539703,
+      "e3": 0.0034979812845397024,
+      "rate_hz_all": 46.00655,
+      "E1": true,
+      "E2": false,
+      "E3": true,
+      "pass": false
+    },
+    {
+      "seed": 12,
+      "alive": false,
+      "cv_isi": 2.3227781605735016,
+      "e2": 0.0596039835734812,
+      "cc": 0.07960471972990263,
+      "e3": 0.07460471972990262,
+      "rate_hz_all": 16.76385,
+      "E1": false,
+      "E2": false,
+      "E3": false,
+      "pass": false
+    },
+    {
+      "seed": 13,
+      "alive": false,
+      "cv_isi": 2.322294325031263,
+      "e2": 0.05979986840839558,
+      "cc": 0.12868838075014694,
+      "e3": 0.12368838075014693,
+      "rate_hz_all": 4.8253,
+      "E1": false,
+      "E2": false,
+      "E3": false,
+      "pass": false
+    }
+  ],
+  "controls": [
+    {
+      "seed": 9,
+      "alive": false,
+      "rate_hz_all": 0.3954
+    },
+    {
+      "seed": 10,
+      "alive": false,
+      "rate_hz_all": 0.4984
+    }
+  ],
+  "C1": true,
+  "seeds_passing": 0,
+  "pass_needs": 4,
+  "verdict": "FAIL",
+  "inputs": {
+    "score_seed9_6b.json": "25a7ba5d8218f477b34d51350d4e172dd7f466662326741fc1796f3ae18da4f1",
+    "score_seed10_6b.json": "7dd381ddc7eb36ed50f5e2c61d09b473653ce5758602744eecc7f9c962f7031a",
+    "score_seed11_6b.json": "9ff1de3b9f198358e886ac7e9b4c47815d728a207d704da3a989d3d80ddfadf1",
+    "score_seed12_6b.json": "c74a314dc3cc08663ca99509f4ba6463b762929c46c8ffa5f5b5e43c7099d4fc",
+    "score_seed13_6b.json": "a956c659e068ca3ad89b5241e7108d2eff626136f6588249cd747ee13c39acf1",
+    "score_seed9_6a.json": "d442eacadb9afced8fde42354b715871503ae5be07728c9850dbd5b35f238cd8",
+    "score_seed10_6a.json": "62b0668a7012265be23d25d5e34724ccd0e1d09a3f54e3cd5cf5efbcfcec9d14"
+  }
+}
