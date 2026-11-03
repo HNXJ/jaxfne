@@ -23,7 +23,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 ## Broken or in flight
 
 - CAMINOS E1 at n 12 (2026-11-03): not equivalent, 20 of 24 cells (`caminos/RESULT_FIGURES.md`); next step is Hamm's.
-- PCL R3 done 2026-11-03: core arm equals the C++ after file 0 (`pcl/CALIBRATION.md` R3); R4 prereg next.
+- PCL R3 done 2026-11-03: core arm equals the C++ after file 0 (`pcl/CALIBRATION.md` R3); R4 prereg drafted (`pcl/prereg/P3_fig3_r4.md`, unsigned).
 - Papers are never "failed" through 0.6 (Hamm 2026-11-03): pending until a failure is proven; criteria may fail.
 - P-053 (PCL scan vs oracle gap on sparse weights, reported, not reproduced); P-054 (VIP and I presets: class-1
   a,b,c,d in the standard equation, rheobase 22.56 vs the source's 2.25; Hamm's ruling).
@@ -60,5 +60,5 @@ and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 
 ## Next action
 
-Draft the PCL R4 prereg (Hamm signs); panel inventories for Brunel, PCL Fig. 3 and GSDR; Vogels Fig. 4 panel
+PCL R4 signature (Hamm), then the R5 pilot; panel inventories for Brunel, PCL Fig. 3 and GSDR; Vogels Fig. 4 panel
 mapping; update the checklist score.
