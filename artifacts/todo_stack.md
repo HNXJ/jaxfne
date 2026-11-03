@@ -36,9 +36,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    (`supplement.py write_s13`). Hamm 2026-11-03: 0.5.9 ships with R5-exact; R5-approximate (the 3168-file core
    run, driver `F:/warehouse/pcl/r5/run_r5.sh`, resumable) moves to 0.5.10. Closes for 0.5.9 with this entry;
    0.5.10: R5-approximate scored in `prereg/`, P-055 attributed.
-5a. T-F7 [A] F7 main figure (9E): the passes only (Vogels P3 checks that hold; PCL T1, T3 under v4 and T4 under
-   v5; GSDR none), every number read from the score JSONs, as `scripts/publication_figures/` generators.
-   Closes when: F7 renders from one command with a test that reads each plotted value from its JSON.
 6. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle

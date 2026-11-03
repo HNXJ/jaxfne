@@ -50,7 +50,7 @@ and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 - Windows: Python 3.14 runs the broad gate through `suite_lock.py`, one suite at a time. WSL: `~/venv_jaxfne`
   (CUDA, numba 0.68 added 2026-11-02 for the PCL core arm; each long job in its own `systemd-run` memory cap),
   `~/venv_jaxfne_gate` (CPU gate); TeX Live 2026 at `~/texlive/cur` (pdfLaTeX for the NeuroAI draft).
-- Tracked tree: `python scripts/check_tree_size.py --check`; budget 2794 files in `scripts/tree_size_allowlist.json`.
+- Tracked tree: `python scripts/check_tree_size.py --check`; budget 2796 files in `scripts/tree_size_allowlist.json`.
 - Large data outside git: `F:/warehouse/{caminos,gsdr,pcl,vogels2011,potjans2014,destexhe2009}/` (receipts named
   in each result file); PCL training set `F:/warehouse/pcl/data/training_natural/events5_re2/` (from Zenodo
   `PCL_datasets_and_networks.zip`).
@@ -59,6 +59,6 @@ and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 
 ## Next action
 
-T-F7 (F7 main figure, 9E); 9F rc gate on the candidate; checklist 69.0/100 (9D closed; PCL R5-exact FAIL in S13;
+9F rc gate on the candidate; checklist 78.0/100 (9D and 9E closed, F7 built; PCL R5-exact FAIL in S13;
 R5-approximate running for 0.5.10); Brunel panel
 inventory needs the paper's legends; Vogels Fig. 4 panel mapping; update the checklist score.
