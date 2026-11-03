@@ -171,8 +171,8 @@
     "rule": "S2",
     "path": "artifacts/etudes/papers/caminos/calibration/attribute_o83.py",
     "message": "imports oracle artifacts/etudes/papers/caminos/caminos_jax.py",
-    "reason": "O-83 attribution of the PLoS figure runs, which ran on the transcription through cellrep_figures.py; it swaps parameter families in the transcription's own sets (2026-11-01)",
-    "todo": "T-63b"
+    "reason": "O-83 attribution of the PLoS figure runs, which ran on the transcription through cellrep_figures.py; it swaps parameter families in the transcription's own sets (2026-11-01). Hamm exception 2026-11-03 (permanent).",
+    "todo": "T-30"
   },
   {
     "rule": "S2",

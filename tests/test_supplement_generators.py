@@ -199,6 +199,51 @@ def test_s14_a_four_pass_synthetic_score_passes(tmp_path: Path) -> None:
     assert "**Verdict: PASS**" in (tmp_path / "s14" / "S14_gsdr_fit.md").read_text(encoding="utf-8")
 
 
+# --- S13: PCL Fig. 3, the signed failures and R5-exact --------------------------
+
+
+def _s13_r5() -> dict:
+    return json.loads(
+        (REPO / "artifacts" / "etudes" / "papers" / "pcl" / "prereg" / "scores" / "fig3_r5_exact.json")
+        .read_text(encoding="utf-8")
+    )
+
+
+def test_s13_lists_the_signed_failures_and_recomputes_r5_exact(tmp_path: Path) -> None:
+    r5 = _s13_r5()
+    assert len(r5["rows"]) == 16 and r5["verdict"] == "FAIL", "fixture: R5-exact scored FAIL on 16 files"
+
+    counts = supplement.write_s13(tmp_path)
+
+    assert counts == {"files": 16, "core_equal": 4, "verdict": "FAIL"}
+    payload = json.loads((tmp_path / "S13_pcl_fig3.json").read_text(encoding="utf-8"))
+    assert payload["v4"]["all_pass"] is False and payload["v4"]["t2_simple_pass"] is False
+    assert payload["v5_t2"]["simple"]["t2_pass"] is False and payload["v5_t2"]["complex"]["t2_pass"] is False
+    assert payload["r5_exact"]["ctl_differs"] == 16
+    md = (tmp_path / "S13_pcl_fig3.md").read_text(encoding="utf-8")
+    assert md.splitlines()[0].startswith("# S13.")
+    assert "**R5-exact verdict: FAIL**" in md
+    table = [line for line in md.splitlines() if line.startswith("| ") and ".npz" in line]
+    assert len(table) == 16, "one row per R5-exact file"
+
+
+def test_s13_r5_verdict_is_recomputed_void_and_mismatch_refused(tmp_path: Path) -> None:
+    r5 = _s13_r5()
+    void = dict(r5, rows=[dict(row, core_equal=True, ctl_differs=False) for row in r5["rows"]],
+                core_equal=16, ctl_differs=0, verdict="VOID")
+    path = tmp_path / "void.json"
+    path.write_text(json.dumps(void), encoding="utf-8")
+    (tmp_path / "a").mkdir()
+    assert supplement.write_s13(tmp_path / "a", r5_path=path)["verdict"] == "VOID"
+
+    mismatch = dict(r5, verdict="PASS")
+    bad = tmp_path / "mismatch.json"
+    bad.write_text(json.dumps(mismatch), encoding="utf-8")
+    (tmp_path / "b").mkdir()
+    with pytest.raises(ValueError, match="disagrees"):
+        supplement.write_s13(tmp_path / "b", r5_path=bad)
+
+
 # --- S12: the scored Vogels P3 v4 (segment B) -----------------------------------
 
 

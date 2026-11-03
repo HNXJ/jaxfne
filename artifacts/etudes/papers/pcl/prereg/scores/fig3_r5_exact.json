@@ -1,0 +1,170 @@
+{
+  "prereg": "artifacts/etudes/papers/pcl/prereg/P3_fig3_r4b_signed.md",
+  "code_sha": "07a90e70bf73d0b817d2a307ff5c3b093ba3337a",
+  "files": 16,
+  "core_equal": 4,
+  "ctl_differs": 16,
+  "verdict": "FAIL",
+  "rows": [
+    {
+      "file": "0/0/0/0.npz",
+      "n_events": 829748,
+      "simple_numba": 2262,
+      "simple_core": 2262,
+      "complex_numba": 37661,
+      "complex_core": 37661,
+      "core_equal": true,
+      "ctl_differs": true
+    },
+    {
+      "file": "0/9/0/0.npz",
+      "n_events": 857907,
+      "simple_numba": 1980,
+      "simple_core": 1992,
+      "complex_numba": 36057,
+      "complex_core": 36139,
+      "core_equal": false,
+      "ctl_differs": true
+    },
+    {
+      "file": "113/0/0/0.npz",
+      "n_events": 835669,
+      "simple_numba": 2216,
+      "simple_core": 2216,
+      "complex_numba": 36735,
+      "complex_core": 36735,
+      "core_equal": false,
+      "ctl_differs": true
+    },
+    {
+      "file": "113/9/0/0.npz",
+      "n_events": 837162,
+      "simple_numba": 1814,
+      "simple_core": 1814,
+      "complex_numba": 33927,
+      "complex_core": 33927,
+      "core_equal": true,
+      "ctl_differs": true
+    },
+    {
+      "file": "135/0/0/0.npz",
+      "n_events": 842071,
+      "simple_numba": 2336,
+      "simple_core": 2336,
+      "complex_numba": 37549,
+      "complex_core": 37549,
+      "core_equal": false,
+      "ctl_differs": true
+    },
+    {
+      "file": "135/9/0/0.npz",
+      "n_events": 835876,
+      "simple_numba": 1859,
+      "simple_core": 1862,
+      "complex_numba": 35497,
+      "complex_core": 35540,
+      "core_equal": false,
+      "ctl_differs": true
+    },
+    {
+      "file": "158/0/0/0.npz",
+      "n_events": 839247,
+      "simple_numba": 2242,
+      "simple_core": 2242,
+      "complex_numba": 38197,
+      "complex_core": 38196,
+      "core_equal": false,
+      "ctl_differs": true
+    },
+    {
+      "file": "158/9/0/0.npz",
+      "n_events": 837069,
+      "simple_numba": 1846,
+      "simple_core": 1846,
+      "complex_numba": 35538,
+      "complex_core": 35537,
+      "core_equal": false,
+      "ctl_differs": true
+    },
+    {
+      "file": "23/0/0/0.npz",
+      "n_events": 842604,
+      "simple_numba": 2251,
+      "simple_core": 2256,
+      "complex_numba": 37445,
+      "complex_core": 37598,
+      "core_equal": false,
+      "ctl_differs": true
+    },
+    {
+      "file": "23/9/0/0.npz",
+      "n_events": 837382,
+      "simple_numba": 1825,
+      "simple_core": 1825,
+      "complex_numba": 35716,
+      "complex_core": 35714,
+      "core_equal": false,
+      "ctl_differs": true
+    },
+    {
+      "file": "45/0/0/0.npz",
+      "n_events": 832572,
+      "simple_numba": 2293,
+      "simple_core": 2293,
+      "complex_numba": 37620,
+      "complex_core": 37620,
+      "core_equal": false,
+      "ctl_differs": true
+    },
+    {
+      "file": "45/9/0/0.npz",
+      "n_events": 836650,
+      "simple_numba": 1866,
+      "simple_core": 1866,
+      "complex_numba": 35553,
+      "complex_core": 35553,
+      "core_equal": false,
+      "ctl_differs": true
+    },
+    {
+      "file": "68/0/0/0.npz",
+      "n_events": 836578,
+      "simple_numba": 2200,
+      "simple_core": 2200,
+      "complex_numba": 36623,
+      "complex_core": 36623,
+      "core_equal": false,
+      "ctl_differs": true
+    },
+    {
+      "file": "68/9/0/0.npz",
+      "n_events": 836986,
+      "simple_numba": 1821,
+      "simple_core": 1821,
+      "complex_numba": 34589,
+      "complex_core": 34589,
+      "core_equal": true,
+      "ctl_differs": true
+    },
+    {
+      "file": "90/0/0/0.npz",
+      "n_events": 853180,
+      "simple_numba": 2307,
+      "simple_core": 2307,
+      "complex_numba": 37586,
+      "complex_core": 37586,
+      "core_equal": false,
+      "ctl_differs": true
+    },
+    {
+      "file": "90/9/0/0.npz",
+      "n_events": 848221,
+      "simple_numba": 1914,
+      "simple_core": 1914,
+      "complex_numba": 34013,
+      "complex_core": 34013,
+      "core_equal": true,
+      "ctl_differs": true
+    }
+  ]
+}

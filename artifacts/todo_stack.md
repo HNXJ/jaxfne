@@ -11,21 +11,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## 0.5.9
 
-3. T-30 [A] CAMINOS on the core route (9D, option A ruled 2026-10-31; the first port lane was rejected for replacing
-   behavior tests with refusals). Core additions in `jaxfne/`, one lane at a time (shared files), each with a failing
-   test first and a changelog fragment (lanes a d9fee4b9, b fb5ef158, c ed9058c2, d 2cda7117 landed; d carries the
-   no-edge refusal, the schedule record and the equivalence tests).
-   → E1 (Welch TOST ±5%, Hamm 2026-11-02) at the confirmatory n 12 (2026-11-03): not equivalent, 20 of 24 cells;
-   rates equivalent in all 12; outside 0.4 f_pk, 0.7 band power and max E (unresolved) and 0.9 band power (−2.78%,
-   interval −5.41 to −0.15%; two-sided p 0.083) (`RESULT_FIGURES.md`). Attribution of the 0.9 band-power
-   cell (2026-11-03): both routes deterministic and unchanged across batches; seed SD 3.6-3.9%, so the margin is
-   about 1.3 SD; no implementation difference found. Hamm 2026-11-03: keep the oracle; the Cell Reports figures stay on the
-   oracle route and the core route is not used for them. Hamm 2026-11-03 granted a permanent exception for the
-   `cellrep_figures.py` S2 entry (`scripts/replication_known_violations.json`). The other CAMINOS S2 entry,
-   `calibration/attribute_o83.py` (its todo T-63b is no longer in this stack), is open: it attributes the
-   oracle-route PLoS figure runs, so it imports the oracle for the same reason; waits on Hamm (extend the
-   exception). Checklist: 9D CAMINOS half. Closes when: `check_replications.py --check` lists no CAMINOS S2 entry
-   without Hamm's exception.
 4. T-3 [A] (P) PCL R3: replay the training files through the chained core scan, the oracle and the C++ reference
    (WSL `~/pcl_cpp`) and attribute each residual (implementation, parameters, stochastic, model). → R4 prereg declaring T4 up front (driven column (4,4),
    (0,0) reported beside it) → [H] sign (step 7) → R5 score, exact and approximate apart. The signed v5 T2 FAIL
@@ -46,7 +31,14 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    R4 prereg drafted 2026-11-03 (`pcl/prereg/P3_fig3_r4.md`, unsigned). R5 timing pilot (CALIBRATION R5 pilot):
    core 1026 s per file, equal to the oracle on a non-scored file. Hamm 2026-11-03: no-local, the 16 pilot tasks,
    and the core on all 3168 tasks (about 900 CPU h), in the R4b draft (`P3_fig3_r4b.md`, unsigned). 12-worker scaling on the pilot file (CALIBRATION):
-   24.7 files per hour, outputs equal, so about 128 h wall for the core set. Hamm signed R4b 2026-11-03 (`P3_fig3_r4b_signed.md`). R5 from a frozen clone at the signing commit. Closes when: R5 is scored in `prereg/` with exact and approximate reproduction apart.
+   24.7 files per hour, outputs equal, so about 128 h wall for the core set. Hamm signed R4b 2026-11-03 (`P3_fig3_r4b_signed.md`). R5-exact scored 2026-11-03: FAIL, 4 of 16 files equal,
+   control differs on 16 (`P3_fig3_r5_exact_result.md`; P-055 opened for attribution); shown in S13
+   (`supplement.py write_s13`). Hamm 2026-11-03: 0.5.9 ships with R5-exact; R5-approximate (the 3168-file core
+   run, driver `F:/warehouse/pcl/r5/run_r5.sh`, resumable) moves to 0.5.10. Closes for 0.5.9 with this entry;
+   0.5.10: R5-approximate scored in `prereg/`, P-055 attributed.
+5a. T-F7 [A] F7 main figure (9E): the passes only (Vogels P3 checks that hold; PCL T1, T3 under v4 and T4 under
+   v5; GSDR none), every number read from the score JSONs, as `scripts/publication_figures/` generators.
+   Closes when: F7 renders from one command with a test that reads each plotted value from its JSON.
 6. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
@@ -106,12 +98,13 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Owner queue (asked one at a time, in this order)
 
-24. [H] P-052 surrogate fitness for training (`artifacts/runs/perf/profiles/precision_058.md`).
 25. [A] Retired names in dated records kept as history (Hamm 2026-11-02, O-74 to O-79 closed): jarness selfcheck needs
     a history allowlist for them (asked in jchat, jynx keeper).
 
 ## After 0.5.9
 
+24. 0.5.10: [H] P-052 surrogate fitness for training, deferred by Hamm 2026-11-03
+    (`artifacts/runs/perf/profiles/precision_058.md`). Closes when: Hamm rules on the sign and T-growth record.
 26. 0.5.10: T-62 Cell Reports Fig 1D, excluded for 0.5.9 (Hamm 2026-11-02): the raw Onorato data is on request
     from the lead contact; Hamm decides at 0.5.10 whether to request it. T-47 kernel-LFP commits 6eb3c6b8, 44cd0111, ff45364b, then the iSTDP out-degree and kernel LFP checks,
     then `coherence_radius_um` with its two limit tests; T-32 GSDR on `simulate_hh_batch`, seed and candidate
@@ -121,8 +114,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 28. After the 0.5.10 release and 7 replicated papers: T-54 [A then H] awesome-jax PR with Hamm's go.
 29. 0.5.11 and 0.6.0: the release plan's later sections.
 
-External and gated: T-11 CAMINOS NWB excerpt for jnwb `tests/` (waits on jnwb's path); T-O10 the jynx keeper
-rules each harness proposal (jchat conference #29); T-RG komposer `run_guard.py stop` cwd fallback. Deferred, each
+External and gated: T-11 CAMINOS NWB excerpt for jnwb `tests/` (waits on jnwb's path); T-RG komposer `run_guard.py stop` cwd fallback. Deferred, each
 with its trigger: AT-10-R6 RSS growth before any run over 100 s; A8 gh-pages policy; architecture split on a
 measured bottleneck; C5-C7 with a signed-zero/NaN contract; the UNTESTED-exact refusal tail and O-67 skips; S27
 population family; agent transport (MCP); 0.5.4 items 1b and 0; 2026-09-20 owner calls (`compile_step_fn

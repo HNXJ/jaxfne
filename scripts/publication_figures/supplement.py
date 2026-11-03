@@ -454,6 +454,80 @@ def write_s12(out_dir: Path, score_path: Path = VOGELS_P3_SCORE) -> dict[str, ob
     return {"rows": len(rows), "verdict": "closes" if not failed else "off"}
 
 
+# --- S13: PCL Fig. 3, the signed failures and R5-exact -----------------------------
+#
+# v4 (P3_fig3_result.md) and v5 T2 (P3_fig3_v5_result.md) are reported from their score
+# JSONs; R5-exact (signed R4b) is recomputed from its rows: VOID when the negative control
+# differs on no file, PASS when every file is equal, FAIL otherwise.
+
+PCL_SCORES = REPO / "artifacts" / "etudes" / "papers" / "pcl" / "prereg" / "scores"
+PCL_V4_SCORE = PCL_SCORES / "fig3_v4_full.json"
+PCL_V5_T2_SCORE = PCL_SCORES / "fig3_v5_t2_even.json"
+PCL_R5_EXACT_SCORE = PCL_SCORES / "fig3_r5_exact.json"
+S13_V4_KEYS = ("t1_simple_pass", "t1_complex_pass", "t2_simple_pass", "t2_complex_pass",
+               "t3_simple_pass", "t3_complex_pass", "t4_pass", "all_pass")
+S13_T2_KEYS = ("frac", "sse", "sse_flat", "pass_frac", "guard", "t2_pass")
+
+
+def _yn(flag: object) -> str:
+    return "pass" if flag else "fail"
+
+
+def write_s13(out_dir: Path, v4_path: Path = PCL_V4_SCORE, v5_path: Path = PCL_V5_T2_SCORE,
+              r5_path: Path = PCL_R5_EXACT_SCORE) -> dict[str, object]:
+    v4 = json.loads(v4_path.read_text(encoding="utf-8"))
+    v5 = json.loads(v5_path.read_text(encoding="utf-8"))
+    r5 = json.loads(r5_path.read_text(encoding="utf-8"))
+    rows = r5["rows"]
+    equal = sum(bool(row["core_equal"]) for row in rows)
+    ctl = sum(bool(row["ctl_differs"]) for row in rows)
+    verdict = "VOID" if ctl == 0 else ("PASS" if equal == len(rows) else "FAIL")
+    if r5.get("verdict") != verdict:
+        raise ValueError(
+            f"{r5_path}: recorded verdict {r5.get('verdict')!r} disagrees with the recomputed "
+            f"{verdict!r} ({equal} of {len(rows)} files equal, control differs on {ctl})"
+        )
+    out = {
+        "v4": {key: v4[key] for key in S13_V4_KEYS},
+        "v5_t2": {kind: {key: v5[kind][key] for key in S13_T2_KEYS} for kind in ("simple", "complex")},
+        "r5_exact": {"prereg": r5.get("prereg"), "code_sha": r5.get("code_sha"), "files": len(rows),
+                     "core_equal": equal, "ctl_differs": ctl, "verdict": verdict, "rows": rows},
+    }
+    (out_dir / "S13_pcl_fig3.json").write_text(
+        json.dumps(out, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+    )
+    t2 = out["v5_t2"]
+    lines = [
+        "# S13. PCL Fig. 3: signed failures and R5-exact",
+        "",
+        f"Signed v4: T1 simple {_yn(v4['t1_simple_pass'])}, complex {_yn(v4['t1_complex_pass'])}; "
+        f"T2 simple {_yn(v4['t2_simple_pass'])}, complex {_yn(v4['t2_complex_pass'])}; "
+        f"T3 simple {_yn(v4['t3_simple_pass'])}, complex {_yn(v4['t3_complex_pass'])}; "
+        f"T4 {_yn(v4['t4_pass'])}. **v4 verdict: {'PASS' if v4['all_pass'] else 'FAIL'}**.",
+        "",
+        "Signed v5 T2 (even phases): " + "; ".join(
+            f"{kind} {t2[kind]['frac']:.3f} of points in tolerance, SSE {t2[kind]['sse']:.3f} "
+            f"against flat {t2[kind]['sse_flat']:.3f}, {_yn(t2[kind]['t2_pass'])}"
+            for kind in ("simple", "complex")
+        ) + f". **v5 T2 verdict: {'PASS' if t2['simple']['t2_pass'] and t2['complex']['t2_pass'] else 'FAIL'}**.",
+        "",
+        f"R5-exact (`{r5.get('prereg')}`, code {r5.get('code_sha')}): core and numba arms equal in every "
+        f"spike count and time on {equal} of {len(rows)} files; the negative control differs on {ctl}. "
+        f"**R5-exact verdict: {verdict}**.",
+        "",
+        "| file (ori/sf/phase/trial) | events | simple numba / core | complex numba / core | equal | control differs |",
+        "|---|---|---|---|---|---|",
+    ]
+    lines += [
+        f"| {r['file']} | {r['n_events']} | {r['simple_numba']} / {r['simple_core']} "
+        f"| {r['complex_numba']} / {r['complex_core']} | {'yes' if r['core_equal'] else 'no'} "
+        f"| {'yes' if r['ctl_differs'] else 'no'} |"
+        for r in rows
+    ]
+    (out_dir / "S13_pcl_fig3.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return {"files": len(rows), "core_equal": equal, "verdict": verdict}
+
+
 # --- S14: the scored GSDR P3 fit ------------------------------------------------
 #
 # Each row scores one optimizer seed of the signed P3 fit
@@ -541,11 +615,13 @@ def main(argv: list[str] | None = None) -> int:
     s2 = write_s2(args.out)
     rules = write_s5(args.out)
     s12 = write_s12(args.out)
+    s13 = write_s13(args.out)
     s14 = write_s14(args.out)
     print(f"S1 rows={counts['rows']} mapped={counts['mapped']} open={counts['open']}")
     print(f"S2 rows={s2['rows']} checked={s2['checked']} failed={s2['failed']}")
     print(f"S5 rules={len(rules)} out={args.out}")
     print(f"S12 rows={s12['rows']} verdict={s12['verdict']} out={args.out}")
+    print(f"S13 files={s13['files']} core_equal={s13['core_equal']} verdict={s13['verdict']} out={args.out}")
     print(f"S14 rows={s14['rows']} passing={s14['passing']} verdict={s14['verdict']} out={args.out}")
     return 1 if s2["failed"] else 0
 

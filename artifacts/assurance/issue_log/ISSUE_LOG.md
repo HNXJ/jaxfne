@@ -7,7 +7,8 @@ A new issue takes the next free P-ID; a solved issue gets a resolution line, the
 closed batch beside them (`artifacts/archive/0.5.x/issues_closed_<date>.md`, pinned write-once like
 `issues_closed.md`; P-035 and P-036: `issues_closed_2026-10-20.md`; P-038, P-039, P-041 to P-044:
 `issues_closed_2026-10-25.md`; from 0.5.8 the batches sit in `artifacts/archive/0.5.x/issues_closed/`,
-P-037: `issues_closed_2026-10-26.md`; P-045, P-046, P-049, P-050: `issues_closed_2026-10-27.md`).
+P-037: `issues_closed_2026-10-26.md`; P-045, P-046, P-049, P-050: `issues_closed_2026-10-27.md`; P-048, P-051, P-054:
+`issues_closed_2026-11-03.md`).
 
 Entry fields: date, type (`BUG` `FRICTION` `DOC` `PERF` `SCIENCE` `IDEA`),
 area, observation, severity, minimal reproduction, expected, actual, evidence,
@@ -38,38 +39,13 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   pinned by `test_connections_no_match_marked_compiled_no_edges`. A refusal would reverse it and break
   that test (9C-E1 core packet, 2026-10-27); left as is. An `"all"` value is not a wildcard.
 
-### P-048
-
-- Date: 2026-10-26. Type: SCIENCE. Area: Izhikevich initial state. Severity: low.
-- `u0` keeps the preset value (E -13, I +6.5) when `cell_params` overrides `b` and when `random_v0`
-  draws `v0`, so `u0 != b * v0` (the paper's `u = b.*v`); `cell_params` takes no `v0` or `u0`.
-  The E1 library path needs a declared per-cell initial state; whether the default should follow
-  `b` is Hamm's call (it moves existing realizations).
-- 2026-10-27: `cell_params` takes `v0` and `u0` (a declared `v0` needs `runtime(random_v0=False)`);
-  the default question stays open.
-- 2026-10-28: ruled and fixed (Hamm: the default is `u0 = b * v0`). `_apply_default_u0`
-  (`jaxfne/_construct_population.py`) runs in `construct()` after the canonical block, on the realized
-  `b` and `v0`; a declared `u0` still wins. Tests: `tests/test_izh_default_u0.py`. The default route
-  moves (`random_v0` is on by default); the three izhi pins in `tests/test_inputs_xsource_t24.py` were
-  re-recorded.
-
-### P-051
-
-- Date: 2026-10-27. Type: FRICTION. Area: Izhikevich `edge_list` route. Severity: low.
-- The edge route filters every edge with its mechanism tau (`g <- g exp(-dt/tau) + spikes`), and
-  `weight_range` compiles only with a mechanism, so instantaneous coupling (Izhikevich 2003,
-  the dense route's `W @ prev_spikes`) has no named form on it. At tau 5 ms the Fig. 3 network
-  saturates (2000 Hz); the E1 pilot declares tau 1e-3 ms, where the decay is exactly 0 in float32
-  at dt 0.5 ms (`izhikevich2003/core/run_izh_core.py`). Possible change: a named instantaneous
-  receptor on the edge route, equal to the tau -> 0 limit.
-- 2026-10-28: ruled and fixed (Hamm: a named instantaneous receptor). `instantaneous` on the
-  `edge_list` route: the current at step t is the weighted sum of presynaptic spikes at t-1, with no
-  carry-over. It compiles with `weight_range` and must declare `tau_ms=0.0`
-  (`emitters.INSTANTANEOUS_MECHANISM`). Tests: `tests/test_izh_instantaneous_receptor.py`; dense and
-  edge rasters are identical and V agrees at rtol 1e-10.
-
 ### P-052
 
+- Status 2026-11-03: the implementation part is closed (sigmoid_beta, 2026-10-27, below); open is only
+  whether the surrogate gradient is fit for training (Hamm, deferred to 0.5.10). Proposed closing check
+  (external audit 2026-11-03): surrogate-based optimization improves a prespecified forward-model loss on
+  held-out tasks across seeds and horizons; agreement with finite differences is neither necessary nor
+  sufficient.
 - Date: 2026-10-27. Type: SCIENCE. Area: gradient path of the Izhikevich dense route
   (`jaxfne/optim/handles.py`, `SurrogateConfig` in `_runtime_config.py`). Severity: high for any
   training or credit-assignment claim; none for forward simulation.
@@ -91,6 +67,8 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   finite difference (corr -0.2 to -0.4) and whose norm grows with T; record in
   `artifacts/runs/perf/profiles/precision_058.md`. The slope and whether a surrogate that disagrees with
   the finite difference is fit for training stay open (Hamm).
+- 2026-11-03: deferred to 0.5.10 (Hamm); the 0.5.9 changelog entry states the surrogate is not validated for
+  training.
 
 ### P-053
 
@@ -108,22 +86,16 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Possible change: reproduce on a minimal fixture, then attribute in PCL R3 (`CALIBRATION.md` R3
   section), where the training files run both arms against the C++ chain.
 
-### P-054
+### P-055
 
-- Date: 2026-11-02. Type: SCIENCE. Area: Izhikevich presets `VIP` and `I` (`jaxfne/emitters.py:124,130`).
-  Severity: medium; every realization with a VIP or I population. Found while answering jomission MIN-07.
-- Observation: the presets carry Izhikevich 2004's class-1 excitable a 0.02, b -0.1, c -55, d 6
-  (`izhikevich.org/publications/figure1.m`, panel G), but that panel integrates V' = 0.04V^2 + 4.1V + 108 - u
-  + I, while jaxfne integrates 0.04V^2 + 5V + 140 - u + I. Rheobase (5 - b)^2/0.16 - 140 = 22.56 in jaxfne
-  against (4.1 - b)^2/0.16 - 108 = 2.25 in the source, so a VIP cell at its preset drive 3.0 is silent
-  (documented in `docs/reference/api/model/emitters.md`, "Default drives and rheobase").
-- Minimal reproduction: one cell, Euler dt 0.1 ms, 1000 ms, u0 = b*v0, v0 in {-70, -65, -60}: 0 spikes at
-  I = 4 and 22.5; 4 spikes in [200, 1000) ms at I = 23.
-- Possible change (Hamm's call: it moves every VIP and I realization): keep the preset and record its
-  provenance as "class-1 a,b,c,d in the standard equation", or give VIP its own source-faithful v equation
-  coefficients, or take a VIP set from another source.
-- 2026-11-02: ruled (Hamm: class-1 equation) and fixed. `VIP` and `I` carry `v_lin` 4.1 and `v_const` 108;
-  `IzhikevichParams.v_lin`/`v_const` (None when all cells are standard) reach every Izhikevich integrator,
-  `connect()`, checkpoints and the sanity runtime's VIP cells. Tests: `tests/test_izh_class1_presets.py`
-  (fail on the pre-fix code). Not changed: `w3_stability_analysis` (analytic, standard cells by its
-  arguments) and `streaming.py` (RS only).
+- Date: 2026-11-03. Type: SCIENCE. Area: PCL event scan (`run_tuning.py --engine core`) against the numba
+  oracle on `test7`, learning off, `--inhibition no-local`. Severity: high for any event-exact claim of the core
+  on `test7`; R5-exact scored FAIL under signed R4b (`pcl/prereg/P3_fig3_r5_exact_result.md`).
+- Observation: 4 of 16 files equal; 6 equal in counts with complex spike times or order differing; 3 off by 1-2
+  complex spikes; 3 diverge in about 300 simple and 600 complex cells. The simple layer is exact on 13 of 16;
+  the first divergence is in the complex layer in every file that diverges. Receipts `F:/warehouse/pcl/r5/`
+  (`diff_exact.py`, `diff_exact.log`).
+- Expected: event-exact equality, as on the non-scored pilot file and in R3 (learning on, training file 0).
+- Possible change: replay one diverging file event by event in both arms to the first differing complex
+  update and attribute it (inferred candidates: floating-point order at a near-threshold complex update; tie
+  order of same-time spikes). P-053 may share the cause.
