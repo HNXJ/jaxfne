@@ -36,10 +36,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    two chains bit-identical (null), weights moved from init (`F:/warehouse/pcl/r3_cpp_f0_4/*.json`). Oracle arm
    exact on files 0-4 (max relative weight difference 7.4e-15, `F:/warehouse/pcl/r3_oracle_f0_4/`). Core arm costs
    about 0.17 s per camera-0 event, linear in events (500 events 98 s, 2000 events 348 s, learning on; 2026-11-02),
-   so file 0 (268 464 events) takes about 12.4 h and files 0-4 about 60 h: the core arm runs file 0 only (WSL
-   `~/pcl_r3/smoke_core_f0b`, launched 15:53Z, not complete), compared with C++ and the oracle on file 0.
-   Closes when: R5 is scored in `prereg/` with exact and approximate reproduction apart (R3 closes when CALIBRATION.md
-   has an R3 section with a receipt per arm).
+   so the core arm ran file 0 only: exact against C++ (max relative weight difference 5.3e-15; same spikes as the
+   oracle; 11:53:46 wall). R3 done 2026-11-03 (CALIBRATION.md R3, a receipt per arm); P-053 does not appear on file 0.
+   Next: the R4 prereg. Closes when: R5 is scored in `prereg/` with exact and approximate reproduction apart.
 6. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle

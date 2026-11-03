@@ -96,7 +96,9 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 
 - Date: 2026-11-02. Type: SCIENCE. Area: PCL event scan (`run_tuning.run_core_events`) against the event
   oracle (`artifacts/etudes/papers/pcl/port/pcl_event_ref.py`). Severity: medium for PCL R3 to R5
-  exactness; none for spikes. Status: reported by the PCL-R3-HARNESS worker; not reproduced.
+  exactness; none for spikes. Status: reported by the PCL-R3-HARNESS worker; not reproduced. R3 (2026-11-03):
+  the core arm is exact against C++ on training file 0 (max relative weight difference 5.3e-15, `CALIBRATION.md`
+  R3), so the reported gap needs the sparse fixture to show; it stays open until that fixture runs.
 - Minimal reproduction: [MISSING: the worker's fixture; it was not kept]. A synthetic lateral and top-down
   network with hand-zeroed sparse weights, 60 events, learning on.
 - Expected: spikes exact and weights within rtol 1e-12, as with dense seeded init weights

@@ -350,3 +350,25 @@ learning pass. Oracle receipt (2026-11-01, `oracle --out` at bafa4797 from the s
 2.1e-13, layer 1 3.7e-13). Receipts `F:/warehouse/pcl/orc_receipt_bafa4797/` (`oracle_receipt.json` c21ca867…,
 `orc_vs_cppA.json` 52b5f73c…). R3 attribution has no residual to attribute on this file, so R3 moves to the trained
 network's training files.
+
+## R3 — three arms on the training files (2026-11-02 to 11-03, unscored)
+
+Files 0-4 of `data/training_natural/events5_re2/` (Zenodo `PCL_Nat_training_natural_dataset.zip`), chained from the
+R2 `init` (seed 0), learning on, harness `port/run_r2_reference.py chain` at 7fbd3514. Each arm saves after each
+file; the comparison reads the weights (the C++ save resets counts, R2). Exact means rtol 1e-12 on every cell.
+
+| comparison | files | layer 0 max rel \|Δw\| | layer 1 max rel \|Δw\| | exact |
+|---|---|---|---|---|
+| C++ chain vs C++ chain (null) | after file 4 | 0 | 0 | yes |
+| C++ after file 0 vs after file 1 (learning moves weights) | 0, 1 | 0.65 | 0.997 | no |
+| oracle vs C++ | after each of 0-4 | 2.7e-15 to 3.9e-15 | 3.7e-15 to 7.4e-15 | yes, every file |
+| jaxfne core vs C++ | after file 0 | 2.8e-15 | 5.3e-15 | yes |
+
+Core and oracle give the same spike counts on file 0: 268 464 events, 5486 simple and 3063 complex spikes. Wall
+on file 0: oracle 140 s, core 11:53:46 (0.16 s per event, CPU, 4.1 GB). The core arm ran file 0 only (files 0-4 would
+take about 60 h). Residual to attribute: none on file 0 for either arm, so R3 finds no implementation, parameter or
+stochastic difference there. P-053 (core `w_s` about 0.4% off the oracle on a hand-zeroed sparse fixture) does not
+appear on this training file. Receipts: `F:/warehouse/pcl/r3_cpp_f0_4/` (`null_cpp4.json` ed088e34…,
+`cpp0_vs_cpp1.json` 144a75f4…, `init_vs_cpp4.json` 4db7e761…), `F:/warehouse/pcl/r3_oracle_f0_4/`
+(`cmp_oracle_vs_cpp_0.json` to `_4.json`: 59e0e6af…, 52b0ee49…, 40028737…, c9a5b7d5…, 69f82b75…),
+`F:/warehouse/pcl/r3_smoke_core_f0b/` (`0_0.json` 004aa304…, `cmp_core_vs_cpp_0.json` 94e1fb69…).
