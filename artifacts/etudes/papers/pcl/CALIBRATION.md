@@ -372,3 +372,12 @@ appear on this training file. Receipts: `F:/warehouse/pcl/r3_cpp_f0_4/` (`null_c
 `cpp0_vs_cpp1.json` 144a75f4…, `init_vs_cpp4.json` 4db7e761…), `F:/warehouse/pcl/r3_oracle_f0_4/`
 (`cmp_oracle_vs_cpp_0.json` to `_4.json`: 59e0e6af…, 52b0ee49…, 40028737…, c9a5b7d5…, 69f82b75…),
 `F:/warehouse/pcl/r3_smoke_core_f0b/` (`0_0.json` 004aa304…, `cmp_core_vs_cpp_0.json` 94e1fb69…).
+
+## R5 timing pilot (2026-11-03, unscored)
+
+One `test7` file outside the R4 exact subset (ori 0, sf index 4, phase 1, trial 1), learning off,
+`--inhibition no-local`, through `run_tuning.py`'s worker path at 8479df94 on Windows CPU
+(`F:/warehouse/pcl/r5_pilot/r5_pilot.py` 0bd77920…). 807 302 events; both arms give 1997 simple and 36 558 complex
+spikes, and counts and spike times are equal for every cell. Wall: numba 21.1 s, core 1025.7 s (49×; the R4 draft's
+estimate of about 2 h per file, taken from the learning-on R3 ratio, was 7× too high). Receipts `core_0_4_1_1.npz`
+b22b7898…, `numba_0_4_1_1.npz` 935af4b2…, `pilot.log`.

@@ -17,7 +17,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    no-edge refusal, the schedule record and the equivalence tests).
    → E1 (Welch TOST ±5%, Hamm 2026-11-02) at the confirmatory n 12 (2026-11-03): not equivalent, 20 of 24 cells;
    rates equivalent in all 12; outside 0.4 f_pk, 0.7 band power and max E (unresolved) and 0.9 band power (−2.78%,
-   interval −5.41 to −0.15%) (`RESULT_FIGURES.md`). Waits on Hamm: what the core route does next.
+   interval −5.41 to −0.15%; two-sided p 0.083) (`RESULT_FIGURES.md`). Attribution of the 0.9 band-power
+   cell (2026-11-03): both routes deterministic and unchanged across batches; seed SD 3.6-3.9%, so the margin is
+   about 1.3 SD; no implementation difference found. Waits on Hamm: accept the core route or keep the oracle.
    ⇒ equivalent: rerun the Cell Reports sweeps on the GPU, the S2 entry for `cellrep_figures.py` closes. Checklist: 9D CAMINOS half. Closes when: `check_replications.py --check` lists no S2 entry for
    `cellrep_figures.py` and `RESULT_FIGURES.md` cites the core-route reruns.
 4. T-3 [A] (P) PCL R3: replay the training files through the chained core scan, the oracle and the C++ reference
@@ -37,7 +39,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    about 0.17 s per camera-0 event, linear in events (500 events 98 s, 2000 events 348 s, learning on; 2026-11-02),
    so the core arm ran file 0 only: exact against C++ (max relative weight difference 5.3e-15; same spikes as the
    oracle; 11:53:46 wall). R3 done 2026-11-03 (CALIBRATION.md R3, a receipt per arm); P-053 does not appear on file 0.
-   R4 prereg drafted 2026-11-03 (`pcl/prereg/P3_fig3_r4.md`, unsigned; three choices for Hamm). Closes when: R5 is scored in `prereg/` with exact and approximate reproduction apart.
+   R4 prereg drafted 2026-11-03 (`pcl/prereg/P3_fig3_r4.md`, unsigned); Hamm 2026-11-03 took its three
+   recommendations (no-local; the oracle stands for the core given R5-exact; the 16 pilot tasks). R5 timing pilot
+   (CALIBRATION R5 pilot): core 1026 s per file and equal to the oracle on a non-scored file, so the full set on the
+   core is about 900 CPU h, against the draft's 6000; choice 2 goes back to Hamm before the signature. Closes when: R5 is scored in `prereg/` with exact and approximate reproduction apart.
 6. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
    finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
    on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle

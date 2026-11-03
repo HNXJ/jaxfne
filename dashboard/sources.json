@@ -192,7 +192,7 @@
       "criteria": [],
       "sensitivity": [],
       "charts": [],
-      "open": ["No preregistration: the verdicts are descriptive.", "Fig. 4B amplitude metric: band power falls, peak |X| rises.", "Core route against the port (equivalence test E1, ±5%, Hamm 2026-11-02): confirmatory n 12 per route: not equivalent, 20 of 24 cells. Population rates are equivalent in all 12 cells; outside are 0.4 f_pk, 0.7 band power and max E rate (unresolved, intervals span 0) and 0.9 band power (−2.78%, 90% interval −5.41 to −0.15%). n 6 gave 18 of 24 (RESULT_FIGURES.md)."]
+      "open": ["No preregistration: the verdicts are descriptive.", "Fig. 4B amplitude metric: band power falls, peak |X| rises.", "Core route against the port (equivalence test E1, ±5%, Hamm 2026-11-02): confirmatory n 12 per route: not equivalent, 20 of 24 cells. Population rates are equivalent in all 12 cells; outside are 0.4 f_pk, 0.7 band power and max E rate (unresolved, intervals span 0) and 0.9 band power (−2.78%, 90% interval −5.41 to −0.15%; two-sided p 0.083). n 6 gave 18 of 24 (RESULT_FIGURES.md)."]
     },
     {
       "id": "pcl-fig3",

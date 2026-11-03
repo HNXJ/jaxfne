@@ -174,10 +174,20 @@ intervals within ±2.5%). Receipt `F:/warehouse/caminos/route_08780699/equivalen
 
 E1 result at n 12 (2026-11-03, confirmatory): **not equivalent**, 20 of 24 cells. Outside: 0.4 f_pk (−2.00%, −5.82
 to +1.83%), 0.7 band power (+1.91%, −1.83 to +5.66%) and max E rate (+2.30%, −1.70 to +6.30%), each spanning 0 and
-unresolved; 0.9 band power (−2.78%, −5.41 to −0.15%), an offset whose interval excludes 0 and crosses the −5% margin.
+unresolved; 0.9 band power (−2.78%, −5.41 to −0.15%), whose 90% interval excludes 0 and crosses the −5% margin,
+while the two-sided attribution test at α 0.05 finds no difference (p 0.083, Holm 1).
 Population rates are equivalent in all 12 cells (90% intervals within ±2.5%). The cells at 0 that were outside at
 n 6 are equivalent at n 12. Receipt `F:/warehouse/caminos/route_08780699/equivalence_silence_pv_e1_n12.json`
 (sha256 6c1e9689…; runs `n12_oracle_silence_pv.json` 79591ce4…, `n12_core_silence_pv.json` ae2d16df…).
+
+Attribution of the 0.9 band-power cell (unscored, Hamm 2026-11-03). Both routes are deterministic and unchanged
+across batches: seeds 1-3 at 0.9 rerun at 08780699 equal the pooled rows in every field (counts, PSD, rates; oracle
+against the frozen c3b sweep, core against `silence_pv_core.json`; receipts `repro_oracle_s123_09_silence_pv.json`
+8dab518a…, `repro_core_s123_09_silence_pv.json` 50d42d18…). The same seed does not give the same realization on
+the two routes (band power differs by up to 13% within a seed), so seeds are not paired. Seed SD is 3.6% (oracle)
+and 3.9% (core) of the oracle mean, so the ±5% margin is about 1.3 SD; between seeds 1-6 and 7-12 the batch mean
+moves +5.0% on the oracle and −2.7% on the core. No implementation, parameter or batch difference is found; the
+cell's result is consistent with seed variance against a narrow margin (inferred).
 
 ## Replica score (Cell Reports main text)
 
