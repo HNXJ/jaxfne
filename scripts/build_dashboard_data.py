@@ -53,7 +53,8 @@ REFERENCES = ROOT / "docs" / "reference" / "references.md"
 SCHEMA_FILE = ROOT / "dashboard" / "replications.schema.json"
 STUDY_HEADING = "## Research studies (study list)"
 STUDY_COLUMNS = ["Reference", "Result compared", "Where"]
-STUDY_STATUSES = ("reproduced", "reproduced (conditional)", "mixed", "in progress", "queued", "not started")
+STUDY_STATUSES = ("reproduced", "reproduced (conditional)", "mixed", "pending", "in progress", "queued",
+                  "not started")
 MIN_STUDIES = 40
 
 

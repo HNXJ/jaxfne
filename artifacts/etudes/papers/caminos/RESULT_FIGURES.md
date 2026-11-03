@@ -174,10 +174,10 @@ intervals within ±2.5%). Receipt `F:/warehouse/caminos/route_08780699/equivalen
 
 ## Replica score (Cell Reports main text)
 
-17 result panels: 1B, 1C, 2A top, 2A bottom, 2B top, 2B bottom, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B,
-5C, 6A bottom, 6B. Excluded: 1A and 6B top (schematics), 1D (mouse data), 6A top (literature densities).
-Credit pass 1, partial 0.5: 1B, 2B top, 3B, 3C bottom, 5C and 6A bottom pass; 1C, 2A top, 3A, 3C top, 4A, 4B,
-5A and 5B partial; 2A bottom, 2B bottom and 6B not run. Score 10/17 = 59/100.
+14 result panels: 1B, 1C, 2A top, 2B top, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B, 5C, 6A bottom.
+Excluded: 1A and 6B top (schematics), 1D (mouse data), 6A top (literature densities), and 2A bottom, 2B bottom
+and 6B (transient values unstated; Hamm 2026-11-02). Credit pass 1, partial 0.5: 1B, 2B top, 3B, 3C bottom, 5C
+and 6A bottom pass; 1C, 2A top, 3A, 3C top, 4A, 4B, 5A and 5B partial. Score 10/14 = 71/100.
 1B and 1C rest on the cellrep baseline (f_pk 33.7 Hz, delay 6.8 ms against the text's 6-7 ms, mmc2 804).
 The table rows labelled Fig 3A/3B and Fig 4A/4B above score the spectra of
 panels 3C top/bottom and 4A/4B.
