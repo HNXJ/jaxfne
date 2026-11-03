@@ -69,6 +69,29 @@ def test_welch_holm_never_lowers_p():
     assert all(c["p_holm"] >= c["p"] for c in cells)
 
 
+def test_tost_small_offset_low_spread_is_equivalent():
+    oracle = _six(0.4, (10.0, 10.1, 9.9, 10.05, 9.95, 10.0))
+    core = _six(0.4, (10.1, 10.2, 10.0, 10.15, 10.05, 10.1))
+    cells = sce.tost_cells(oracle, core, [0.4], 5.0)
+    assert len(cells) == len(sce.METRICS)
+    assert all(c["equivalent"] and -c["margin"] < c["ci"][0] < c["ci"][1] < c["margin"] for c in cells)
+
+
+def test_tost_offset_beyond_margin_is_not_equivalent():
+    oracle = _six(0.4, (10.0, 10.1, 9.9, 10.05, 9.95, 10.0))
+    core = _six(0.4, (11.0, 11.1, 10.9, 11.05, 10.95, 11.0))
+    f = {c["metric"]: c for c in sce.tost_cells(oracle, core, [0.4], 5.0)}["f_pk_hz"]
+    assert f["diff_pct_of_oracle_mean"] == pytest.approx(10.0, rel=1e-9)
+    assert not f["equivalent"] and f["p_tost"] > 0.5
+
+
+def test_tost_zero_offset_wide_spread_is_not_equivalent():
+    draws = (8.0, 12.0, 9.0, 11.0, 7.5, 12.5)
+    f = {c["metric"]: c for c in sce.tost_cells(_six(0.4, draws), _six(0.4, draws), [0.4], 5.0)}["f_pk_hz"]
+    assert f["diff"] == 0.0 and f["ci"][1] > f["margin"], "fixture must spread wider than the margin"
+    assert not f["equivalent"]
+
+
 def test_null_inside_probability_bounds_and_seed():
     p = sce.null_inside_probability(3, 3, draws=50_000)
     assert 0.5 < p < 0.95

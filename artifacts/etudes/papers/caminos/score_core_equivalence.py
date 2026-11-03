@@ -10,8 +10,12 @@ Attribution A1 (random streams; declared in RESULT_FIGURES.md before its runs): 
 ``--pool-core`` add seeds to each route; per value in ``--values`` and metric, the core minus oracle mean
 with its 95% Welch interval and p, Holm over the cells. Holm p < 0.05 marks a systematic offset.
 
+Equivalence test (Hamm 2026-11-02, declared in RESULT_FIGURES.md before its runs): ``--tost-margin-pct 5``
+runs a Welch TOST per value and metric over the pooled seeds; a cell is equivalent when its 90% interval lies
+inside +-5% of the oracle mean, and the routes are equivalent when every cell is.
+
 Usage: python score_core_equivalence.py <oracle json> <core json> --out <json>
-       [--pool-oracle <json> --pool-core <json> --values 0.7,0.9]
+       [--pool-oracle <json>... --pool-core <json>... --values 0,0.4,0.7,0.9 [--tost-margin-pct 5]]
 Exit codes: 0 scored (whatever the verdict), 2 usage error.
 """
 
@@ -102,6 +106,43 @@ def welch_cells(oracle_rows, core_rows, values):
     return cells
 
 
+def tost_cells(oracle_rows, core_rows, values, margin_pct, alpha=0.05):
+    """Per (value, metric): Welch TOST with margin margin_pct of the oracle mean.
+
+    Equivalent when the (1 - 2 alpha) Welch interval of core minus oracle lies inside (-margin, +margin),
+    i.e. both one-sided p < alpha. Every cell must pass (intersection-union), so no multiplicity correction.
+    """
+    from scipy import stats
+
+    orc, core = by_value(oracle_rows), by_value(core_rows)
+    cells = []
+    for v in values:
+        for m in METRICS:
+            o, c = np.asarray(orc[v][m]), np.asarray(core[v][m])
+            diff = float(c.mean() - o.mean())
+            ref = float(o.mean())
+            margin = margin_pct / 100.0 * abs(ref)
+            vo, vc = o.var(ddof=1) / o.size, c.var(ddof=1) / c.size
+            se = float(np.sqrt(vo + vc))
+            if se == 0.0:
+                p_lo = p_hi = 0.0 if abs(diff) < margin else 1.0
+                lo = hi = diff
+            else:
+                df = (vo + vc) ** 2 / (vo ** 2 / (o.size - 1) + vc ** 2 / (c.size - 1))
+                p_lo = float(stats.t.sf((diff + margin) / se, df))
+                p_hi = float(stats.t.cdf((diff - margin) / se, df))
+                q = float(stats.t.ppf(1.0 - alpha, df)) * se
+                lo, hi = diff - q, diff + q
+            p = max(p_lo, p_hi)
+            cells.append({"value": v, "metric": m, "n_oracle": int(o.size), "n_core": int(c.size),
+                          "diff": diff, "margin": margin, "ci": [float(lo), float(hi)],
+                          "ci_level": 1.0 - 2.0 * alpha, "p_tost": p, "equivalent": p < alpha,
+                          "diff_pct_of_oracle_mean": 100.0 * diff / abs(ref) if ref else None,
+                          "ci_pct_of_oracle_mean": ([100.0 * lo / abs(ref), 100.0 * hi / abs(ref)]
+                                                    if ref else None)})
+    return cells
+
+
 def _sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
@@ -111,10 +152,14 @@ def main(argv=None):
     ap.add_argument("oracle")
     ap.add_argument("core")
     ap.add_argument("--out", required=True)
-    ap.add_argument("--pool-oracle")
-    ap.add_argument("--pool-core")
+    ap.add_argument("--pool-oracle", action="append", help="repeatable")
+    ap.add_argument("--pool-core", action="append", help="repeatable")
     ap.add_argument("--values", help="comma-separated values for the attribution")
+    ap.add_argument("--tost-margin-pct", type=float,
+                    help="also run the TOST equivalence test over --values at this margin (percent of oracle mean)")
     a = ap.parse_args(argv)
+    if a.tost_margin_pct is not None and not a.values:
+        ap.error("--tost-margin-pct needs --pool-oracle, --pool-core and --values")
     if bool(a.pool_oracle) != bool(a.pool_core) or bool(a.pool_oracle) != bool(a.values):
         ap.error("--pool-oracle, --pool-core and --values go together")
     od = json.loads(Path(a.oracle).read_text(encoding="utf-8"))
@@ -134,13 +179,26 @@ def main(argv=None):
            "null_expected_outside": None if p_in is None else len(cells) * (1.0 - p_in),
            "null": f"one normal, {NULL_DRAWS} draws, seed {NULL_SEED}", "cells": cells}
     if a.pool_oracle:
-        po = json.loads(Path(a.pool_oracle).read_text(encoding="utf-8"))
-        pc = json.loads(Path(a.pool_core).read_text(encoding="utf-8"))
+        po = [r for p in a.pool_oracle for r in json.loads(Path(p).read_text(encoding="utf-8"))["rows"]]
+        pc = [r for p in a.pool_core for r in json.loads(Path(p).read_text(encoding="utf-8"))["rows"]]
+        pools = {"pool_oracle": [{"path": p, "sha256": _sha256(p)} for p in a.pool_oracle],
+                 "pool_core": [{"path": p, "sha256": _sha256(p)} for p in a.pool_core]}
         values = [round(float(x), 4) for x in a.values.split(",")]
-        att = welch_cells(od["rows"] + po["rows"], cd["rows"] + pc["rows"], values)
+        if a.tost_margin_pct is not None:
+            tc = tost_cells(od["rows"] + po, cd["rows"] + pc, values, a.tost_margin_pct)
+            n_eq = sum(c["equivalent"] for c in tc)
+            rec["tost"] = {**pools, "margin_pct": a.tost_margin_pct, "alpha": 0.05,
+                           "test": "Welch TOST, 90% interval inside +-margin, every cell (intersection-union)",
+                           "equivalent_cells": n_eq, "cells_total": len(tc), "equivalent": n_eq == len(tc),
+                           "cells": tc}
+            for c in tc:
+                print(f"TOST {c['value']:<5} {c['metric']:<17} diff {c['diff_pct_of_oracle_mean']:+.2f}% "
+                      f"90% CI [{c['ci_pct_of_oracle_mean'][0]:+.2f}, {c['ci_pct_of_oracle_mean'][1]:+.2f}]% "
+                      f"p {c['p_tost']:.3g} n {c['n_oracle']}/{c['n_core']} {'EQ' if c['equivalent'] else 'NOT'}")
+            print(f"TOST equivalent {n_eq} of {len(tc)} at +-{a.tost_margin_pct}%")
+        att = welch_cells(od["rows"] + po, cd["rows"] + pc, values)
         rec["attribution_a1"] = {
-            "pool_oracle": {"path": a.pool_oracle, "sha256": _sha256(a.pool_oracle)},
-            "pool_core": {"path": a.pool_core, "sha256": _sha256(a.pool_core)},
+            **pools,
             "test": "Welch two-sided, 95% interval, Holm over cells; systematic when p_holm < 0.05",
             "cells": att, "systematic": sum(c["systematic"] for c in att)}
         for c in att:

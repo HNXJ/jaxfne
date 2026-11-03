@@ -151,6 +151,15 @@ E +0.70%, 95% interval -0.105 to +0.299 Hz; PV +0.81%; SOM +0.58%). Resolution a
 `F:/warehouse/caminos/route_08780699/equivalence_silence_pv_a1.json` (runs `a1_oracle_silence_pv.json`,
 `a1_core_silence_pv.json` beside it, oracle 26.5 min and core 90 min on the GPU).
 
+Equivalence test E1 (Hamm 2026-11-02: equivalence, ±5%; declared before the runs at fractions 0 and 0.4). Per
+fraction (0, 0.4, 0.7, 0.9) and metric, Welch TOST of core minus oracle with margin ±5% of the oracle mean, α 0.05:
+a cell is equivalent when its 90% interval lies inside the margin. The routes are equivalent when all 24 cells are
+(intersection-union; no multiplicity correction). n 6 per route: seeds 1-3 from the frozen sweeps above and seeds
+4-6 from A1 (0.7, 0.9) and from new runs at 0 and 0.4 on both routes at 08780699 (T 12 s, GPU float32).
+`score_core_equivalence.py --tost-margin-pct 5`. Not blind: the 12 cells at 0.7 and 0.9 were computed from the A1
+receipts before this declaration; 10 are equivalent, and at 0.7 band power (90% interval −5.74 to +5.74%) and max E
+rate (−5.21 to +8.19%) are not resolved at n 6. The 12 cells at 0 and 0.4 are blind.
+
 ## Replica score (Cell Reports main text)
 
 17 result panels: 1B, 1C, 2A top, 2A bottom, 2B top, 2B bottom, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B,
