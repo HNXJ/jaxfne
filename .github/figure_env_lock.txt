@@ -3,6 +3,7 @@
 # checks that its own freeze equals it. Regenerate from a passing run's figure-env-freeze artifact.
 # ruff set to 0.17.2 by hand on 2026-10-28 to match the dev pin (Hamm ruling; ruff has no dependencies).
 # PyYAML==6.0.3 added by hand on 2026-11-04: the dev extra installs it (PR #121 freeze; no dependencies).
+# Markdown==3.11.2 added by hand on 2026-11-04: the viz extra installs it for the manuscript builder (no dependencies).
 absl-py==2.5.1
 asttokens==3.0.2
 attrs==26.1.0
@@ -37,6 +38,7 @@ jupyterlab_widgets==3.0.17
 kaleido==1.5.0
 kiwisolver==1.5.1
 logistro==2.0.1
+Markdown==3.11.2
 matplotlib==3.10.9
 matplotlib-inline==0.2.2
 ml_dtypes==0.6.0
