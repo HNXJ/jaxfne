@@ -95,6 +95,13 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## After 0.5.9
 
+31. 0.5.10: [A] AGSDR log-scale sweep (Hamm 2026-11-03: "dx and dy could be logarithmic in change; free
+    parameters would sweep logscale; 0.1 1.0 1.0 10.0 ... are equally swept"; freeze or restrict a parameter by
+    leaving it out or narrowing its bounds). Bounds `(lo, hi, "log")` run the AGSDR loop in ln(theta)
+    (Muse lane, clone `E:/cl-logscale` from 2fc292b1). Then use it in the GSDR reproduction and the fast sweeps
+    of further models: a new GSDR fit pilot needs a new prereg (the signed P3 fit stays as scored). Closes when:
+    `tests/test_agsdr_log_scale.py` passes with linear bounds bit-identical to before, and the GSDR lane names
+    which parameters sweep on a log scale.
 24. 0.5.10: [H] P-052 surrogate fitness for training, deferred by Hamm 2026-11-03
     (`artifacts/runs/perf/profiles/precision_058.md`). Closes when: Hamm rules on the sign and T-growth record.
 26. 0.5.10: T-62 Cell Reports Fig 1D, excluded for 0.5.9 (Hamm 2026-11-02): the raw Onorato data is on request
