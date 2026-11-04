@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2469 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2481 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -453,6 +453,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 | Class | Message |
 |---|---|
+| `ValueError` | `EdgeParameterSpec.bounds must be a (lower, upper) pair; got {...}` |
 | `ValueError` | `EdgeParameterSpec.bounds must be finite positive (lower, upper), got {...}` |
 | `ValueError` | `EdgeParameterSpec requires a pre/post selector, receptor_indices, or explicit edge_indices` |
 | `ValueError` | `ParadigmEvent {...} sets both 'target_layer' and 'target_indices' in metadata; pass only one.` |
@@ -567,7 +568,9 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `Either 'objective' (legacy) or 'objectives' (public) must be provided` |
 | `ValueError` | `generations must be >= 1, got {...}` |
 | `ValueError` | `population_size must be >= 1, got {...}` |
+| `ValueError` | `tune() bounds for parameter {...} must be a (lo, hi) pair; got {...}` |
 | `ValueError` | `EdgeParameterSpec currently uses the black-box AGSDR path; inner gradient refinement is not wired to` |
+| `ValueError` | `Matrix inner-gradient refinement of parameter(s) {...} is linear-only; log-scale (lo, hi, "log") bou` |
 | `ValueError` | `Unsupported tunable parameter: {...}. Supported parameters: {...}` |
 | `ValueError` | `Unknown mask type for parameter {...}: {...}. Supported: E_to_E, E_to_I, I_to_E, excitatory_to_all, ` |
 | `ValueError` | `Edge parameter {...} requires a model with an EdgeList` |
@@ -937,7 +940,6 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `connection {...} declares weight_range={...} with weight_std={...}; the range and the Gaussian sprea` |
 | `ValueError` | `connection {...} weight_range lo must be >= 0; got {...}` |
 | `ValueError` | `connection {...} weight_range must satisfy lo < hi; got {...}` |
-| `ValueError` | `connection {...} in_degree must be a positive integer; got {...}` |
 | `ValueError` | `connection {...} in_degree must be a positive integer; got {...}` |
 | `ValueError` | `{...} in_degree with sampling='multinomial' must be a finite positive number (the mean in-degree); g` |
 | `ValueError` | `{...} in_degree with sampling='multinomial' must be a finite positive number (the mean in-degree); g` |
@@ -2198,8 +2200,13 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 |---|---|
 | `ValueError` | `parameter_bounds must be non-empty dict` |
 | `ValueError` | `n_generations and n_population must be >= 1` |
+| `ValueError` | `parameter {...} needs a (lo, hi) or (lo, hi, scale) bound; got {...}` |
+| `ValueError` | `parameter {...} needs a (lo, hi) or (lo, hi, scale) bound; got {...}` |
+| `ValueError` | `parameter {...} has unknown bound scale {...}; expected "linear" or "log"` |
+| `ValueError` | `log-scale bounds for parameter {...} need finite 0 < lo < hi; got {...}` |
 | `ValueError` | `non-finite bounds for parameter {...}: {...}` |
 | `ValueError` | `degenerate bounds for parameter {...}: {...}` |
+| `ValueError` | `log-scale initial value for parameter {...} must be > 0; got {...}` |
 | `ValueError` | `sdr_transform: {...}={...} is not consumed by this transform; only the default {...} is accepted` |
 | `ValueError` | `SDR transform requires explicit PRNG key (key=jax.random.PRNGKey(...))` |
 | `ValueError` | `gsdr_transform: checkpoint_n_steps={...} is not consumed by this transform; only the default 50 is a` |
@@ -2232,6 +2239,10 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 |---|---|
 | `ValueError` | `tune_handles() requires a non-empty dict {handle path: (lo, hi)}; got {...}` |
 | `ValueError` | `Parameter path {...} needs a scalar (lo, hi) bound pair; got {...}` |
+| `ValueError` | `Parameter path {...} needs a scalar (lo, hi) bound pair; got {...}` |
+| `ValueError` | `Parameter path {...} has unknown bound scale {...}; expected "linear" or "log"` |
+| `ValueError` | `Parameter path {...} needs a scalar (lo, hi) bound pair; got {...}` |
+| `ValueError` | `Parameter path {...} has log-scale bounds needing finite 0 < lo < hi; got {...}` |
 | `ValueError` | `Parameter path {...} has non-finite bounds {...}` |
 | `ValueError` | `Parameter path {...} has degenerate bounds {...}` |
 | `ValueError` | `Parameter path(s) {...} address dense emitter.W, but the simulation runs recurrent_backend='edge_lis` |
@@ -2240,6 +2251,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `Model.tune() cannot gradient-fit parameter path {...}: it crosses the spiking dynamics and Model.tun` |
 | `ValueError` | `Either 'objective' (legacy) or 'objectives' (public) must be provided` |
 | `ValueError` | `Gradient tuning of parameter path(s) {...} is not supported: edge-list/adex edge writes are concrete` |
+| `ValueError` | `Gradient tuning of parameter path(s) {...} is linear-only: log-scale (lo, hi, "log") bounds need the` |
 | `ValueError` | `Gradient tuning of parameter path(s) {...} crosses the spiking dynamics and needs an explicit surrog` |
 | `ValueError` | `Unknown handles surrogate {...} for parameter path(s) {...}; expected one of {...}` |
 
