@@ -1,16 +1,15 @@
 # state
 
-Stamp: jaxfne@dev@d78903ca · 2026-11-03
+Stamp: jaxfne@dev@eb6b27f9 · 2026-11-04
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
 ## Works (with evidence)
 
-- 0.5.8 published 2026-10-26 (tag v0.5.8 on main 11957afa, Release, PyPI; `artifacts/release/v0_5_8_release_receipt.json`).
-  0.5.9 candidate bb3680d5 (pushed; Release CI and CI Fast success; second review NON-BLOCKING, receipts in
-  `F:/warehouse/jaxfne/rc_190432a4/`); rc gate queued; publication needs Hamm's go. Checklist 88.0/100
-  (`etudes/meta/plans/release_plan_0.5.9-0.6.0.md`). Post-candidate commits on dev (0.5.10): 9e7c2044, 6a1da1bc,
-  576b03d0, 7a4bdc57, d78903ca, unpushed until a broad gate.
+- 0.5.9 published 2026-11-04: tag v0.5.9 on main e0160dfc, Release, PyPI (hashes equal to the Release CI dist);
+  `artifacts/release/v0_5_9_release_receipt.json`. Checklist 100/100 (`etudes/meta/plans/release_plan_0.5.9-0.6.0.md`).
+  Main needed two extras fixes after the candidate (PyYAML in dev, Markdown in viz; PRs #121, #122), both picked
+  onto dev. Post-candidate dev commits (0.5.10) unpushed until a broad gate passes.
 - Signed and scored 2026-11-02, each as its pilots predicted: Potjans P3 v2 off, Vogels P3 v4 off on R-E (in S12),
   Destexhe P3 v3 FAIL 0 of 5 (`RESULT_P3.md` in each lane; Destexhe CALIBRATION step 7). GSDR P3 fit FAIL
   (2026-11-01); GSDR stays open until precisely replicated (Hamm 2026-11-02).
@@ -62,8 +61,6 @@ and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 
 ## Next action
 
-0.5.9 candidate on dev (version 0.5.9, changelog v0.5.9 from 83 fragments, canonical atlas at 0.5.9;
-`release_body.py --tag v0.5.9 --check` PASS). The atlas trace data moved against the 0.5.8 build (deterministic
-rebuild; moves at the P-048 commit b1d9dfe1 and at commits before and after it). Next: broad gate on the candidate,
-9F rc gate, Gate 4 second review, then Hamm's Gate 5 go. Checklist 82.0/100; R5-approximate running for 0.5.10; Brunel panel
-inventory needs the paper's legends; Vogels Fig. 4 panel mapping; update the checklist score.
+Broad gate on dev, then push dev. CAMINOS figure suites (Hamm 2026-11-04: dashboard Notebooks panel, each paper
+replication as its figures): `caminos/suite/` PLoS and Cell Reports notebooks in Cursor GLM lanes; Cell Reports
+raster + LFP GPU run `~/cellr_497e9bb0` (WSL). R5-approximate running for 0.5.10.

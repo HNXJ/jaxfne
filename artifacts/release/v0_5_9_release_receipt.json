@@ -1,0 +1,58 @@
+{
+  "schema": "jaxfne.release_receipt.v1",
+  "programme": "v0.5.9",
+  "version": "0.5.9",
+  "status": "published",
+  "seal_verdict": "PUBLISHED: the rc gate passed every family on the candidate bb3680d5 (Release CI JUnit reused); main CI on the first merge (afabe10c, PR #120) and the second (c8ede3ae, PR #121) failed on test-gate imports missing from the extras (PyYAML, then Markdown), each fixed by one commit with a failing-first test; main CI green on e0160dfc (PR #122); tag v0.5.9, GitHub Release and PyPI upload done 2026-11-04 (Hamm 2026-11-04: publish 0.5.9; fix, then tag the new SHA; admin merge of #121 and #122).",
+  "receipt_timestamp_utc": "2026-11-04T23:50:48Z",
+  "published_predecessor": "v0.5.8",
+  "supersedes": "artifacts/release/v0_5_8_release_receipt.json",
+  "write_once": false,
+  "tested_sha": "bb3680d5697c8e92cf44b8a22656a1222b991116",
+  "tested_tree_sha": "d162c31dd9197e47e45b8376571971e7b53a038c",
+  "tagged_sha": "e0160dfc643551f1f1501fac40bd88b7c7fcc8c3",
+  "tagged_tree_sha": "7a4d76081da4d8396db149a9a8e33c0ffea6436d",
+  "tree_identity": "The tagged tree 7a4d7608 differs from the rc-tested tree d162c31d by 4 files (pyproject.toml extras dev +pyyaml and viz +markdown, .github/figure_env_lock.txt +PyYAML 6.0.3 and Markdown 3.11.2, two changelog lines, tests/test_dev_extra_covers_broad_gate.py); both CI workflows ran the full suites on the tagged commit and on each PR head with the same tree.",
+  "branch": "main",
+  "scope": "0.5.9 checklist (artifacts/etudes/meta/plans/release_plan_0.5.9-0.6.0.md), scored 94.0 before Gate 5; Gate 5 is this publication.",
+  "receipt_commit_note": "The receipt commit is a new SHA and cannot contain its own hash; the SHAs and trees above carry all gates and CI evidence in this file.",
+  "gates": {
+    "rc_gate": {
+      "command": "python scripts/run_test_gate.py rc in a clean shared clone at bb3680d5 with origin git@github.com:HNXJ/jaxfne.git, under suite_lock",
+      "verdict": "PASS on bb3680d5, every required family (Release CI 41720575544 JUnit reused)",
+      "attestation": "F:/warehouse/jaxfne/rc_bb3680d5/rc_gate_attestation.json (schema jaxfne.rc_gate_attestation.v2, working_tree_clean true, 2026-11-04T02:26:15Z)"
+    },
+    "main_ci_environment_check": "fresh Python 3.14 venv with .[dev,viz,jaxley,jnwb]: run_test_gate.py report exit 0 (after the PyYAML fix); tests/test_build_manuscript_backend.py 9 passed with Markdown 3.11.2 (after the Markdown fix)",
+    "fix_tests": "tests/test_dev_extra_covers_broad_gate.py: the PyYAML test fails on bb3680d5 and passes on 54a545a4; the Markdown test fails on c8ede3ae's pyproject and passes on e26e9ec0",
+    "release_body": "python scripts/release_body.py --tag v0.5.9 (body carries the two extras lines)"
+  },
+  "ci": {
+    "candidate": {
+      "commit": "bb3680d5697c8e92cf44b8a22656a1222b991116",
+      "Release CI": {"run_id": 41720575544, "conclusion": "success"}
+    },
+    "main_merge_1": {
+      "commit": "afabe10cfa89443cc0823c5233f20173a430fa3d",
+      "pull_request": "https://github.com/HNXJ/jaxfne/pull/120",
+      "CI (Fast)": {"conclusion": "failure", "cause": "scripts/check_docs_orphans.py imports yaml; main installs .[dev,viz,jaxley,jnwb] and only the io extra carried PyYAML"}
+    },
+    "main_merge_2": {
+      "commit": "c8ede3aee518d2839b57fb9c926a9e98d097de41",
+      "pull_request": "https://github.com/HNXJ/jaxfne/pull/121 (admin merge; PR checks run 41837311852 success, publication job after the figure-lock fix 78a14575)",
+      "CI (Fast)": {"run_id": 41879176215, "conclusion": "failure", "cause": "4 tests in tests/test_build_manuscript_backend.py: No module named 'markdown' (scripts/build_manuscript.py:173)"},
+      "Release CI": {"run_id": 41879176122, "conclusion": "success"}
+    },
+    "main_merge_3": {
+      "commit": "e0160dfc643551f1f1501fac40bd88b7c7fcc8c3",
+      "pull_request": "https://github.com/HNXJ/jaxfne/pull/122 (admin merge; merge commit tree equals PR head e26e9ec0)",
+      "CI (Fast)": {"run_id": 41922217570, "conclusion": "success"},
+      "Release CI (push to main)": {"workflow": "release_ci.yml", "run_id": 41922217824, "conclusion": "success", "jobs": "tree-check, release-test 3.11, release-test 3.14, publication, release-build: success", "artifact": "release-dist (the bytes publish.yml uploads)"}
+    }
+  },
+  "distribution": {
+    "tag": "v0.5.9 (annotated e621eff7, message 'jaxfne 0.5.9') on main e0160dfc",
+    "github_release": "https://github.com/HNXJ/jaxfne/releases/tag/v0.5.9 (published 2026-11-04T23:42:39Z; body from scripts/release_body.py --tag v0.5.9)",
+    "pypi": "jaxfne 0.5.9 uploaded by publish.yml run 41935856859 (release event); PyPI sha256 equal to the release-dist artifact of Release CI 41922217824: wheel 6e962c1e78ae3c185d4800c636d6e9fa7088098cbaf25862ca9c53708dd59fee, sdist 2aef7eac4df09849daa59ab6b378571be497d6f3ce4ae8295cc0b96f18d0a434; uv pip install jaxfne==0.5.9 into a fresh Python 3.14 venv imports 0.5.9"
+  },
+  "blockers_to_seal": []
+}
