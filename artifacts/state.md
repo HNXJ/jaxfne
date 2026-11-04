@@ -1,13 +1,16 @@
 # state
 
-Stamp: jaxfne@dev@5934aac1 · 2026-11-02
+Stamp: jaxfne@dev@d78903ca · 2026-11-03
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
 ## Works (with evidence)
 
 - 0.5.8 published 2026-10-26 (tag v0.5.8 on main 11957afa, Release, PyPI; `artifacts/release/v0_5_8_release_receipt.json`).
-  0.5.9 needs Hamm's go. Checklist score 63.3/100 at fd5a9c27 (`etudes/meta/plans/release_plan_0.5.9-0.6.0.md`).
+  0.5.9 candidate bb3680d5 (pushed; Release CI and CI Fast success; second review NON-BLOCKING, receipts in
+  `F:/warehouse/jaxfne/rc_190432a4/`); rc gate queued; publication needs Hamm's go. Checklist 88.0/100
+  (`etudes/meta/plans/release_plan_0.5.9-0.6.0.md`). Post-candidate commits on dev (0.5.10): 9e7c2044, 6a1da1bc,
+  576b03d0, 7a4bdc57, d78903ca, unpushed until a broad gate.
 - Signed and scored 2026-11-02, each as its pilots predicted: Potjans P3 v2 off, Vogels P3 v4 off on R-E (in S12),
   Destexhe P3 v3 FAIL 0 of 5 (`RESULT_P3.md` in each lane; Destexhe CALIBRATION step 7). GSDR P3 fit FAIL
   (2026-11-01); GSDR stays open until precisely replicated (Hamm 2026-11-02).
