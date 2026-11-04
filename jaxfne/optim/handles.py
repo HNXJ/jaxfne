@@ -58,34 +58,64 @@ _HANDLE_OPTAX_SURROGATES = frozenset({"soft_rate"})
 
 def _normalize_handle_bounds(
     parameters: Any,
-) -> dict[str, tuple[float, float]]:
-    """Validate ``parameters`` into ``{handle path: (lo, hi)}``; refuse by name."""
+) -> dict[str, tuple]:
+    """Validate ``parameters`` into ``{handle path: (lo, hi[, scale])}``; refuse by name."""
     if not isinstance(parameters, dict) or not parameters:
         raise ValueError(
             "tune_handles() requires a non-empty dict {handle path: (lo, hi)}; "
             f"got {parameters!r}"
         )
-    normalized: dict[str, tuple[float, float]] = {}
+    normalized: dict[str, tuple] = {}
     for path, bounds in parameters.items():
         parse_handle(path)  # ValueError names the path when unknown
         try:
-            lo, hi = float(bounds[0]), float(bounds[1])
-        except (TypeError, IndexError, ValueError) as exc:
+            items = list(bounds)
+        except TypeError as exc:
             raise ValueError(
                 f"Parameter path {path!r} needs a scalar (lo, hi) bound pair; "
                 f"got {bounds!r}"
             ) from exc
-        if not (math.isfinite(lo) and math.isfinite(hi)):
+        if len(items) == 2:
+            lo_raw, hi_raw = items
+            scale = "linear"
+        elif len(items) == 3:
+            lo_raw, hi_raw, scale = items
+        else:
             raise ValueError(
-                f"Parameter path {path!r} has non-finite bounds {(lo, hi)!r}"
+                f"Parameter path {path!r} needs a scalar (lo, hi) bound pair; "
+                f"got {bounds!r}"
             )
-        if hi < lo:
-            lo, hi = hi, lo
-        if hi == lo:
+        if scale not in ("linear", "log"):
             raise ValueError(
-                f"Parameter path {path!r} has degenerate bounds {(lo, hi)!r}"
+                f"Parameter path {path!r} has unknown bound scale {scale!r}; "
+                'expected "linear" or "log"'
             )
-        normalized[str(path)] = (lo, hi)
+        try:
+            lo, hi = float(lo_raw), float(hi_raw)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"Parameter path {path!r} needs a scalar (lo, hi) bound pair; "
+                f"got {bounds!r}"
+            ) from exc
+        if scale == "log":
+            if not (math.isfinite(lo) and math.isfinite(hi) and 0.0 < lo < hi):
+                raise ValueError(
+                    f"Parameter path {path!r} has log-scale bounds needing "
+                    f"finite 0 < lo < hi; got {bounds!r}"
+                )
+            normalized[str(path)] = (lo, hi, scale)
+        else:
+            if not (math.isfinite(lo) and math.isfinite(hi)):
+                raise ValueError(
+                    f"Parameter path {path!r} has non-finite bounds {(lo, hi)!r}"
+                )
+            if hi < lo:
+                lo, hi = hi, lo
+            if hi == lo:
+                raise ValueError(
+                    f"Parameter path {path!r} has degenerate bounds {(lo, hi)!r}"
+                )
+            normalized[str(path)] = (lo, hi)
     return normalized
 
 
@@ -136,7 +166,7 @@ def _base_handles_report(
     model: Any,
     objective: Any,
     spec: Any,
-    bounds: dict[str, tuple[float, float]],
+    bounds: dict[str, tuple],
     seed: int,
     simulation: Any,
 ) -> dict[str, Any]:
@@ -236,11 +266,19 @@ def _evaluate_handle_candidate(
     return score, {**candidate_report, "rejection_reasons": reasons}, candidate_model
 
 
+def _handle_initial_midpoint(bounds: tuple) -> float:
+    """Arithmetic midpoint for linear bounds, geometric mean for log bounds."""
+    lo, hi = float(bounds[0]), float(bounds[1])
+    if len(bounds) > 2 and bounds[2] == "log":
+        return math.sqrt(lo * hi)
+    return 0.5 * (lo + hi)
+
+
 def _tune_handles_blackbox(
     model: Any,
     objective: Any,
     spec: Any,
-    bounds: dict[str, tuple[float, float]],
+    bounds: dict[str, tuple],
     generations: int,
     population_size: int,
     seed: int,
@@ -296,7 +334,7 @@ def _tune_handles_blackbox(
             seed=int(seed),
             rejections_map=rejections,
             initial_parameters={
-                name: 0.5 * (lo + hi) for name, (lo, hi) in bounds.items()
+                name: _handle_initial_midpoint(b) for name, b in bounds.items()
             },
         )
     except ValueError as exc:  # the loop's refusals (bounds, grid sizes); any other error is a bug
@@ -355,7 +393,7 @@ def _tune_handles_soft_rate_optax(
     simulation: Any,
     objective: Any,
     spec: Any,
-    bounds: dict[str, tuple[float, float]],
+    bounds: dict[str, tuple],
     n_steps: int,
     seed: int,
     base_report: dict[str, Any],
@@ -523,7 +561,7 @@ def _tune_single_handle_optax(
     objective: Any,
     spec: Any,
     parameter: str,
-    bounds: tuple[float, float],
+    bounds: tuple,
     n_steps: int,
     seed: int,
     base_report: dict[str, Any],
@@ -621,7 +659,10 @@ def tune_handles(
 
     ``parameters`` maps one handle path (``edges.weight[...]``,
     ``cells.<family>.<field>[...]``, ``drive.<name>.rate``) to a scalar
-    ``(lo, hi)`` bound pair; unknown paths are refused by name. Each path
+    ``(lo, hi)`` bound pair, or ``(lo, hi, "log")`` for a log-scale knob that
+    the AGSDR engine optimizes in ``u = ln(theta)`` while reporting theta units;
+    unknown paths are refused by name. Gradient optimizers are linear-only: a
+    log-scale bound with an optax optimizer is refused naming the path. Each path
     is one scalar knob (uniform broadcast / sign-preserving magnitude).
 
     Black-box optimizers run the canonical AGSDR engine
@@ -692,6 +733,13 @@ def tune_handles(
                 f"Gradient tuning of parameter path(s) {concrete!r} is not "
                 "supported: edge-list/adex edge writes are concrete-only "
                 "(host-side numpy); use the black-box tune_handles path instead"
+            )
+        log_paths = sorted(name for name, b in bounds.items() if len(b) > 2)
+        if log_paths:
+            raise ValueError(
+                f"Gradient tuning of parameter path(s) {log_paths!r} is "
+                "linear-only: log-scale (lo, hi, \"log\") bounds need the "
+                "black-box tune_handles path, not an optax optimizer"
             )
         needs_surrogate = [p for p in paths if not is_differentiable_handle(p)]
         if needs_surrogate and surrogate is None:

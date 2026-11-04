@@ -614,7 +614,7 @@ def propose_blackbox_candidates(
 
 def _run_agsdr_optimization_loop(
     evaluate_fn: Callable[[dict[str, float]], float],
-    parameter_bounds: dict[str, tuple[float, float]],
+    parameter_bounds: dict[str, tuple],
     n_generations: int,
     n_population: int,
     alpha: float = 0.65,
@@ -631,14 +631,21 @@ def _run_agsdr_optimization_loop(
     a scalar loss/score. The function manages PRNG, parameter center tracking, and
     best-result history internally.
 
+    Each bound is ``(lo, hi)`` for a linear-scale parameter or ``(lo, hi, "log")``
+    for a log-scale one, which the loop optimizes in ``u = ln(theta)`` (center at
+    ``ln(sqrt(lo*hi))``, proposals scaled by ``ln(hi/lo)``) while reporting theta units.
+
     Parameters
     ----------
     evaluate_fn : Callable[[dict[str, float]], float]
         User-supplied scoring function. Takes a dict mapping parameter names to
         float values and returns a scalar loss (lower is better).
-    parameter_bounds : dict[str, tuple[float, float]]
-        Bounds for each parameter: {"param_name": (lower, upper), ...}.
-        All parameters are scalar floats.
+    parameter_bounds : dict[str, tuple]
+        Bounds for each parameter: {"param_name": (lower, upper), ...} for a
+        linear-scale parameter, or {"param_name": (lower, upper, "log"), ...}
+        for a log-scale one (optimized in ``u = ln(theta)``, reported in theta
+        units; ``"log"`` requires finite ``0 < lo < hi``). All parameters are
+        scalar floats.
     n_generations : int
         Number of optimization generations to run.
     n_population : int
@@ -685,8 +692,10 @@ def _run_agsdr_optimization_loop(
       - Genetic component: population-based generational competition with an
         elitist anchor; exploration/exploitation balance is set by the constant
         ``exploration`` scale (no per-generation variance decay in this loop).
-      - Bounds: all proposals and the center are clipped to ``[lo, hi]``;
-        degenerate (``hi == lo``) and non-finite bounds are rejected.
+      - Bounds: all proposals and the center are clipped to ``[lo, hi]``
+        (linear) or ``[ln lo, ln hi]`` in ``u`` with candidates reported as
+        ``exp(u)`` (log); degenerate (``hi == lo``), non-finite, non-positive
+        log, and unknown-scale bounds are rejected.
       - Termination: fixed ``n_generations``; returns best parameters, best
         score, per-generation records, all scores, and all candidates.
 
@@ -733,19 +742,74 @@ def _run_agsdr_optimization_loop(
     param_names = sorted(parameter_bounds.keys())
     bounds_list = [parameter_bounds[name] for name in param_names]
 
-    # Validate and normalize bounds
-    normalized_bounds: list[tuple[float, float]] = []
-    for name, (lo_raw, hi_raw) in zip(param_names, bounds_list):
+    # Validate and normalize bounds. A bound is (lo, hi) for a linear-scale
+    # parameter or (lo, hi, "log") for a log-scale one (optimized in
+    # u = ln(theta)); any other third element is refused by name.
+    normalized_bounds: list[tuple[float, float, str]] = []
+    for name, raw in zip(param_names, bounds_list):
+        try:
+            items = list(raw)
+        except TypeError as exc:
+            raise ValueError(
+                f"parameter {name!r} needs a (lo, hi) or (lo, hi, scale) "
+                f"bound; got {raw!r}"
+            ) from exc
+        if len(items) == 2:
+            lo_raw, hi_raw = items
+            scale = "linear"
+        elif len(items) == 3:
+            lo_raw, hi_raw, scale = items
+        else:
+            raise ValueError(
+                f"parameter {name!r} needs a (lo, hi) or (lo, hi, scale) "
+                f"bound; got {raw!r}"
+            )
+        if scale not in ("linear", "log"):
+            raise ValueError(
+                f"parameter {name!r} has unknown bound scale {scale!r}; "
+                'expected "linear" or "log"'
+            )
         lo = float(lo_raw)
         hi = float(hi_raw)
-        if not (math.isfinite(lo) and math.isfinite(hi)):
-            raise ValueError(f"non-finite bounds for parameter {name!r}: {(lo_raw, hi_raw)!r}")
-        if hi < lo:
-            lo, hi = hi, lo
-        if hi == lo:
-            raise ValueError(f"degenerate bounds for parameter {name!r}: {(lo, hi)!r}")
-        normalized_bounds.append((lo, hi))
+        if scale == "log":
+            if not (math.isfinite(lo) and math.isfinite(hi) and 0.0 < lo < hi):
+                raise ValueError(
+                    f"log-scale bounds for parameter {name!r} need finite "
+                    f"0 < lo < hi; got {(lo_raw, hi_raw, scale)!r}"
+                )
+        else:
+            if not (math.isfinite(lo) and math.isfinite(hi)):
+                raise ValueError(f"non-finite bounds for parameter {name!r}: {(lo_raw, hi_raw)!r}")
+            if hi < lo:
+                lo, hi = hi, lo
+            if hi == lo:
+                raise ValueError(f"degenerate bounds for parameter {name!r}: {(lo, hi)!r}")
+        normalized_bounds.append((lo, hi, scale))
     bounds_list = normalized_bounds
+
+    # Working space is theta for linear parameters and u = ln(theta) for log
+    # ones; proposals, clipping, and the delta rule all run in working space,
+    # while evaluated candidates and reports stay in theta units.
+    is_log = [scale == "log" for (_, _, scale) in bounds_list]
+
+    def _to_theta(values: Any) -> dict[str, float]:
+        """Map one working-space vector to a theta-unit candidate dict."""
+        return {
+            name: (
+                math.exp(float(values[idx])) if is_log[idx] else float(values[idx])
+            )
+            for idx, name in enumerate(param_names)
+        }
+
+    def _to_working(candidate: dict[str, float]) -> Any:
+        """Map one theta-unit candidate dict back to a working-space vector."""
+        return jnp.asarray(
+            [
+                math.log(float(candidate[name])) if is_log[idx] else float(candidate[name])
+                for idx, name in enumerate(param_names)
+            ],
+            dtype=_wdtype,
+        )
 
     # v0.3.17: derive working dtype from bounds values so float64 inputs are
     # preserved end-to-end without silent downcasting to float32.
@@ -753,25 +817,37 @@ def _run_agsdr_optimization_loop(
     _inferred = jnp.result_type(*_raw_bounds)
     _wdtype = _inferred if jnp.issubdtype(_inferred, jnp.floating) else jnp.float32
 
-    lows = jnp.asarray([b[0] for b in bounds_list], dtype=_wdtype)
-    highs = jnp.asarray([b[1] for b in bounds_list], dtype=_wdtype)
+    lows = jnp.asarray(
+        [math.log(b[0]) if log else b[0] for b, log in zip(bounds_list, is_log)],
+        dtype=_wdtype,
+    )
+    highs = jnp.asarray(
+        [math.log(b[1]) if log else b[1] for b, log in zip(bounds_list, is_log)],
+        dtype=_wdtype,
+    )
 
     # Initialize at the declared theta_0 when provided; midpoint remains the
-    # backward-compatible default for scalar callers without an initial state.
+    # backward-compatible default for scalar callers without an initial state
+    # (the geometric mean in theta units for log-scale parameters).
     center_arr = 0.5 * (lows + highs)
     if initial_parameters:
-        center_arr = jnp.asarray(
-            [
-                float(initial_parameters.get(name, center_arr[i]))
-                for i, name in enumerate(param_names)
-            ],
-            dtype=_wdtype,
-        )
+        mapped: list[float] = []
+        for i, name in enumerate(param_names):
+            if name in initial_parameters:
+                value = float(initial_parameters[name])
+                if is_log[i]:
+                    if not value > 0.0:
+                        raise ValueError(
+                            f"log-scale initial value for parameter {name!r} "
+                            f"must be > 0; got {value!r}"
+                        )
+                    value = math.log(value)
+                mapped.append(value)
+            else:
+                mapped.append(float(center_arr[i]))
+        center_arr = jnp.asarray(mapped, dtype=_wdtype)
         center_arr = jnp.clip(center_arr, lows, highs)
-    theta_center = {
-        name: float(center_arr[i])
-        for i, name in enumerate(param_names)
-    }
+    theta_center = _to_theta(center_arr)
 
     # Track best result
     best_score = float("inf")
@@ -808,10 +884,7 @@ def _run_agsdr_optimization_loop(
         # Evaluate population for this generation
         for row in range(int(n_population)):
             values = candidate_matrix[row]
-            candidate = {
-                name: float(values[idx])
-                for idx, name in enumerate(param_names)
-            }
+            candidate = _to_theta(values)
 
             score = float(evaluate_fn(candidate))
             all_scores.append(score)
@@ -842,15 +915,9 @@ def _run_agsdr_optimization_loop(
 
         # Delta-rule update: move center toward best candidate of this generation
         if gen_best_params:
-            gen_best_arr = jnp.asarray(
-                [gen_best_params[name] for name in param_names],
-                dtype=_wdtype,
-            )
+            gen_best_arr = _to_working(gen_best_params)
             center_arr = jnp.clip(center_arr + float(alpha) * (gen_best_arr - center_arr), lows, highs)
-            theta_center = {
-                name: float(center_arr[i])
-                for i, name in enumerate(param_names)
-            }
+            theta_center = _to_theta(center_arr)
 
         # Record generation-local and best-so-far state.  The best_so_far field is
         # monotone non-increasing even when exploratory candidates worsen.

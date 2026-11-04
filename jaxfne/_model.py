@@ -169,6 +169,9 @@ class EdgeParameterSpec:
     and explicit-edge constraints.  The parameter value is a positive edge
     magnitude; each selected edge keeps the sign already carried by its
     executable weight.
+    ``bounds`` is a ``(lower, upper)`` pair of finite positives with
+    ``0 < lower <= upper``; any other length (including a three-element
+    log-scale bound) is refused.
     """
 
     pre: Optional[SelectorSpec | Mapping[str, Any]] = None
@@ -192,6 +195,11 @@ class EdgeParameterSpec:
             value = getattr(self, name)
             if value is not None:
                 object.__setattr__(self, name, tuple(int(x) for x in value))
+        if isinstance(self.bounds, (tuple, list)) and len(self.bounds) != 2:
+            raise ValueError(
+                "EdgeParameterSpec.bounds must be a (lower, upper) pair; "
+                f"got {self.bounds!r}"
+            )
         lo, hi = (float(self.bounds[0]), float(self.bounds[1]))
         if not (math.isfinite(lo) and math.isfinite(hi) and 0.0 < lo <= hi):
             raise ValueError(

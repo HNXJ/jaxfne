@@ -1,0 +1,1 @@
+- Added per-parameter log-scale AGSDR bounds: a bound may be `(lo, hi, "log")` to sweep in `ln(theta)`, with linear `(lo, hi)` unchanged.

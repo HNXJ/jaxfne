@@ -180,6 +180,12 @@ def tune(
     Public API: tune(objectives=objectives, optimizer=optimizer, simulation=simulation)
     Returns TuneResult with best_parameters, best_score, history, and summary.
 
+    Each ``parameters`` entry is ``(lo, hi)`` for a linear-scale parameter or
+    ``(lo, hi, "log")`` for a log-scale one, which the AGSDR engine optimizes in
+    ``u = ln(theta)`` while reporting theta units. The single-parameter
+    ``bounds=`` takes a ``(lo, hi)`` pair only; a three-element bound there is
+    refused.
+
     Legacy API: tune(objective=objective, parameter=..., bounds=...) for backward compatibility.
     Also returns TuneResult (not tuple).
 
@@ -277,6 +283,11 @@ def tune(
         parameter = "source_scale"
     if bounds is None:
         bounds = (0.25, 4.0)
+    if isinstance(bounds, (tuple, list)) and len(bounds) != 2:
+        raise ValueError(
+            f"tune() bounds for parameter {parameter!r} must be a (lo, hi) pair; "
+            f"got {bounds!r}"
+        )
 
     n_steps = max(0, int(steps))
     base_report: dict[str, Any] = {
@@ -650,6 +661,15 @@ def _tune_multiparameter(
         )
 
     if has_matrix and inner_optimizer is not None:
+        log_scales = sorted(
+            name for name, spec_bounds in scalar_bounds.items() if len(spec_bounds) > 2
+        )
+        if log_scales:
+            raise ValueError(
+                f"Matrix inner-gradient refinement of parameter(s) {log_scales!r} "
+                "is linear-only; log-scale (lo, hi, \"log\") bounds need the "
+                "black-box AGSDR path (no inner_optimizer)"
+            )
         return _tune_matrix_agsdr_optax(
             model=self,
             objective=objective,
@@ -1283,13 +1303,18 @@ def _initial_parameter_values(
     """Recover theta_0 from current executable parameters where defined."""
     initial: dict[str, float] = {}
     for name, bounds in scalar_bounds.items():
-        value = 0.5 * (float(bounds[0]) + float(bounds[1]))
+        lo, hi = float(bounds[0]), float(bounds[1])
+        scale = bounds[2] if len(bounds) > 2 else "linear"
+        if scale == "log":
+            value = math.sqrt(lo * hi)
+        else:
+            value = 0.5 * (lo + hi)
         spec = param_specs.get(name)
         if isinstance(spec, EdgeParameterSpec):
             mask = _edge_parameter_mask(model, name, spec)
             weights = _resolved_edge_weights_host(model)
             value = float(np.mean(np.abs(weights[mask])))
-        initial[name] = float(np.clip(value, *bounds))
+        initial[name] = float(np.clip(value, lo, hi))
     return initial
 
 
