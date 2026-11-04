@@ -162,7 +162,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"assemble_changelog: {exc}", file=sys.stderr)
         return 1
     if args.dry_run:
-        sys.stdout.write(render_section(args.version, args.date, fragments))
+        sys.stdout.buffer.write(
+            render_section(args.version, args.date, fragments).encode("utf-8")
+        )
+        sys.stdout.buffer.flush()
         return 0
     args.changelog.write_bytes(updated)
     if args.changelog.read_bytes() != updated:

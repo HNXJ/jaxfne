@@ -190,10 +190,21 @@ def _validate_in_degree(rule_name: str, in_degree: Any) -> "int | None":
     if in_degree is None:
         return None
     if isinstance(in_degree, bool) or not isinstance(in_degree, numbers.Integral):
-        raise ValueError(
+        message = (
             f"connection {rule_name!r} in_degree must be a positive integer; "
             f"got {in_degree!r}"
         )
+        if (
+            not isinstance(in_degree, bool)
+            and isinstance(in_degree, numbers.Real)
+            and math.isfinite(float(in_degree))
+            and float(in_degree) > 0.0
+            and not float(in_degree).is_integer()
+        ):
+            message += (
+                '; a non-integer mean in-degree needs sampling="multinomial"'
+            )
+        raise ValueError(message)
     degree = int(in_degree)
     if degree < 1:
         raise ValueError(

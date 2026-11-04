@@ -1,0 +1,1 @@
+- Fixed the `in_degree` refusal to name `sampling="multinomial"` for a non-integer mean in-degree, and the changelog dry run to write UTF-8.
