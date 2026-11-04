@@ -60,7 +60,7 @@ Citation = "https://github.com/HNXJ/jaxfne/blob/main/CITATION.cff"
 opt = ["optax>=0.2"]
 jaxley = ["jaxley>=0.13.0"]  # tested floor; bridge installs a JAX clip-compat shim for jaxley<=0.13
 jax-fem = ["jax-fem>=0.0.12"]  # GPLv3 (or paid commercial from the author) -- optional, NOT a core dependency; see docs/guides/interop/jax_fem_interop.md
-viz = ["matplotlib>=3.10.9,<3.12", "scipy==1.17.1; python_version < '3.15'", "scipy>=1.18.1; python_version >= '3.15'", "plotly", "kaleido", "pandas", "ipywidgets", "Pillow", "reportlab"]
+viz = ["matplotlib>=3.10.9,<3.12", "scipy==1.17.1; python_version < '3.15'", "scipy>=1.18.1; python_version >= '3.15'", "plotly", "kaleido", "pandas", "ipywidgets", "Pillow", "reportlab", "markdown"]
 io = ["pyyaml", "zarr", "h5py"]
 # jnwb needs Python >= 3.12; on 3.11 the extra installs only pynwb, so
 # pynwb_compat.write_nwb works and jaxfne.jnwb_view returns numpy views.
