@@ -535,8 +535,9 @@ suite2_v1_v4_config validate_neuronal_tensor
 
 
 def test_every_exported_name_is_documented_or_exempt():
-    # errors.md indexes refusal messages; a name inside a message is not its documentation.
-    pages = [p for p in REFERENCE.rglob("*.md") if p.name != "errors.md"]
+    # errors.md indexes refusal messages, and changelog.md records history;
+    # a name inside a message or a changelog entry is not its documentation.
+    pages = [p for p in REFERENCE.rglob("*.md") if p.name not in ("errors.md", "changelog.md")]
     text = "\n".join(p.read_text(encoding="utf-8") for p in pages)
     assert text, "docs/reference holds no pages"
     missing = sorted(n for n in jtfne.__all__ if n not in text and n not in EXEMPT)

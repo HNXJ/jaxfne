@@ -257,6 +257,19 @@ for r in readouts:
 (`"computational_scaffold"`), `physical_amplitude_calibrated` (always
 `False`), `metadata`.
 
+### Population activity regimes (`activity_regimes`)
+
+```python
+reports = jtfne.activity_regimes(spikes, dt_ms, {"E": e_idx, "PV": pv_idx})
+```
+
+`jaxfne/analysis/metrics.py`. Applies the `activity_regime` classifier to each
+named neuron subset in `populations` over one shared step window, returning one
+report dict per population. Each report carries scalar descriptors (`rate_hz`,
+`active_fraction`, kappa synchrony, `cv_isi`, `rate_ratio`, spectral peak) with
+a `label` in `silent`, `saturated`, `runaway`, `asynchronous`, `oscillatory`,
+`irregular`.
+
 ---
 
 ## `ProbeReport` dataclass: removed

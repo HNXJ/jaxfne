@@ -198,6 +198,42 @@ Unsupported synaptic kernels and ablation modes are rejected explicitly.
 of homeostatic/plastic variables. It does not restore membrane, previous-spike,
 or synaptic state. No exact recurrent continuation contract is provided.
 
+### `compile_step_fn(model, *, dt_ms, kernel="hdp", ...) -> (step_fn, state)`
+
+```python
+step_fn, state = jtfne.compile_step_fn(model, dt_ms=0.5)
+```
+
+`jaxfne/_pipeline.py`. Builds a JIT-compiled single-step function over the
+edge-list carry for one model and timestep, returning the step function with
+its initial `ContinuationState`. `kernel="hdp"` runs the adaptive HDP kernel;
+`kernel="baseline"` runs the recurrent Izhikevich kernel while carrying the H
+and weight slots unchanged. HDP hyperparameters arrive as keyword arguments
+captured at compile time; per-step drive and PRNG keys enter through
+`scan_network`.
+
+### `scan_network(step_fn, init, drive_schedule, keys, noise_rows=None) -> (final_state, outputs)`
+
+```python
+final_state, outputs = jtfne.scan_network(step_fn, state, drive_schedule, keys)
+```
+
+`jaxfne/_pipeline.py`. Advances a compiled step function over a full drive
+schedule with `jax.lax.scan`, threading one per-step PRNG key through each
+step. The carry accepts a `DynamicState` or a `ContinuationState`; the return
+pairs the final state with the stacked per-step outputs.
+
+### `run_continuation(step_fn, state, drive_schedule, noise_rows=None) -> (state, outputs)`
+
+```python
+state, outputs = jtfne.run_continuation(step_fn, state, drive_schedule)
+```
+
+`jaxfne/_pipeline.py`. Runs one continuation segment from a
+`ContinuationState`, deriving the segment PRNG sequence from the carried key
+and advancing the step index past the segment. An optional `noise_rows` array
+carries precomputed per-step unit noise for ensemble member streams.
+
 ---
 
 ## Device Selection

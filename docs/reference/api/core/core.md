@@ -517,3 +517,64 @@ ran with `record_fields=False`) rather than fabricating a placeholder.
 
 See [Objective](#objective) above; documented there since it's the constructor
 entry point for that class.
+
+### `DEFAULT_LAYERS`
+
+```python
+jtfne.DEFAULT_LAYERS  # ("L1", "L2/3", "L4", "L5", "L6")
+```
+
+`jaxfne/builders.py`. Tuple of the five default cortical layer labels in
+superficial-to-deep order, with `L2` and `L3` merged as `L2/3`. Column builders
+use it as the default layer sequence.
+
+### `default_cortical_column_config(column_name="single_column", n=100, layers=None, seed=None, duration_ms=1000.0, dt_ms=0.1, *, synaptic_kernel="exponential") -> Configuration`
+
+```python
+cfg = jtfne.default_cortical_column_config("V1", n=200)
+```
+
+`jaxfne/builders.py`. Builds a single-column `Configuration` with one
+`uniform_3d` layer, four cell types (`E`, `PV`, `SST`, `VIP`) at fixed
+fractions, uniform-random local connectivity, a laminar proxy field, and the
+standard probe suite. The `synaptic_kernel` argument selects the edge-list
+recurrent kernel (`"exponential"`, or `"receptor_exponential"` on the edge-list
+backend). A `layers` argument raises `ValueError`, since the column carries one
+`uniform_3d` layer.
+
+### `default_complete_configuration(column_name="V1", nucleus_name="thalamus", n_column=100, n_nucleus=60, layers=None, seed=None, duration_ms=1000.0, dt_ms=0.1) -> Configuration`
+
+```python
+cfg = jtfne.default_complete_configuration("V1", "thalamus")
+model = jtfne.construct(cfg)
+```
+
+`jaxfne/builders.py`. Builds a two-area `Configuration` joining a laminar
+cortical column (default layer sequence above) with a flat nucleus column (one
+`core` layer), wired by declarative inter-area connectivity in both directions.
+
+### `ensemble_edge_ownership(model) -> dict`
+
+```python
+ownership = jtfne.ensemble_edge_ownership(model)
+member_ranges = ownership["member_ranges"]
+```
+
+`jaxfne/_construct_connectivity.py`. Resolves edge-index ownership of a
+`connect()` ensemble model: `member_ranges` holds one `(lo, hi)` edge interval
+per member in member order, and `cross_ranges` holds one interval per
+cross-model rule in rule order. Expects a `connect()` ensemble model with
+recorded member edge counts. A `plasticity_mask` assembled from these intervals
+scopes HDP weight updates to chosen edge ranges.
+
+### `migrate_schema(meta) -> dict`
+
+```python
+new_meta = jtfne.migrate_schema(meta)
+```
+
+`jaxfne/_construct_extras.py`. Rewrites a legacy truth/metadata mapping to the
+canonical truth-gate schema: the retired pre-v0.4.x amplitude key maps to
+`physical_amplitude_calibrated`, retired solver and claim values map to
+`linear_solver` and `proxy_readout`, and the retired truth-mode key is dropped.
+Returns a new dict; the input mapping stays unchanged.

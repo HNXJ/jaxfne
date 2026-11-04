@@ -93,6 +93,7 @@ Lead-field transforms: `eeg_proxy_transform(...)`, `meg_proxy_transform(...)`, `
 
 - `general_sequential_oddball_paradigm(...)`: the backbone for omission/global/local/explicit-event-list paradigms.
 - `general_delayed_match_to_sample_paradigm(...)`.
+- `coop_omission_oddball_paradigm(duration_ms=10000.0, dt_ms=0.5, freq_hz=6.0, omission_prob=0.1, ...)`: builds one continuous omission-oddball `Paradigm`: periodic drive pulses at `freq_hz`, each omitted independently with probability `omission_prob`, with baseline and continuous analysis windows.
 
 ### Objective operators
 
