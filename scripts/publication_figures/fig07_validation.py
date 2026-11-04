@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -38,6 +39,8 @@ T3_COMPLEX_FRACTION = 0.5
 CONV_T_CRIT = 2.101  # vogels2011/prereg/P3_v4_signed.md: CONV |b|/se
 CONV_SLOPE_HZ_S = 0.01  # vogels2011/prereg/P3_v4_signed.md: CONV slope floor, Hz/s
 O_DROP_RATIO = 2.0  # vogels2011/prereg/P3_v4_signed.md: O-DROP ratio (the score JSON cites P3 v2)
+# vogels2011/prereg/P3_v3.md line 33: score on held-out seeds 4-8.
+VOGELS_SCORED_SEEDS = (4, 5, 6, 7, 8)
 
 
 def _row(panel: str, test: str, row_id: str, value: float, threshold: float, op: str,
@@ -106,12 +109,32 @@ def pcl_rows(pcl: dict) -> list[dict]:
 
 def vogels_rows(vog: dict) -> list[dict]:
     rows = []
-    for seed in vog["seeds"]:
-        conv = vog["CONV"]["per_seed"][str(seed)]
+    seeds = vog["seeds"]
+    if not seeds:
+        raise ValueError("vogels seeds list is empty: F7 plots one CONV row per scored seed")
+    per_seed = vog["CONV"]["per_seed"]
+    if {str(s) for s in seeds} != set(per_seed):
+        raise ValueError(
+            f"vogels seeds {list(seeds)} differ from the CONV per_seed keys "
+            f"{sorted(per_seed)}: an empty or truncated seed list would pass with fewer rows"
+        )
+    if list(seeds) != list(VOGELS_SCORED_SEEDS):
+        raise ValueError(
+            f"vogels seeds {list(seeds)} differ from the prereg-scored seeds "
+            f"{list(VOGELS_SCORED_SEEDS)} (vogels2011/prereg/P3_v3.md line 33)"
+        )
+    for seed in seeds:
+        conv = per_seed[str(seed)]
         b, se = float(conv["b_hz_s"]), float(conv["se_hz_s"])
+        if not math.isfinite(b) or not math.isfinite(se):
+            raise ValueError(f"seed {seed}: non-finite CONV slope b_hz_s={b} se_hz_s={se}")
         if se <= 0:
             raise ValueError(f"seed {seed}: se_hz_s must be positive, got {se}")
         t = abs(b) / se
+        if not math.isfinite(t):
+            raise ValueError(
+                f"seed {seed}: non-finite CONV t={t} from b_hz_s={b} se_hz_s={se}"
+            )
         converged = not (abs(b) >= CONV_SLOPE_HZ_S and t > CONV_T_CRIT)
         rows.append(_row(
             "d", "CONV", f"CONV seed {seed}", t, CONV_T_CRIT, "<=",

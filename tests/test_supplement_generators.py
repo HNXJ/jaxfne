@@ -244,6 +244,26 @@ def test_s13_r5_verdict_is_recomputed_void_and_mismatch_refused(tmp_path: Path) 
         supplement.write_s13(tmp_path / "b", r5_path=bad)
 
 
+def test_s13_fifteen_of_sixteen_equal_with_differing_control_is_fail(
+    tmp_path: Path,
+) -> None:
+    r5 = _s13_r5()
+    assert len(r5["rows"]) == 16, "fixture: R5-exact scored 16 files"
+    assert all(row["ctl_differs"] for row in r5["rows"]), "fixture: the control differs everywhere"
+    rows = [dict(row, core_equal=True) for row in r5["rows"][:15]]
+    rows.append(dict(r5["rows"][15], core_equal=False))
+    synth = dict(r5, rows=rows, verdict="FAIL")
+    path = tmp_path / "fifteen.json"
+    path.write_text(json.dumps(synth), encoding="utf-8")
+    (tmp_path / "out").mkdir()
+
+    counts = supplement.write_s13(tmp_path / "out", r5_path=path)
+
+    assert counts == {"files": 16, "core_equal": 15, "verdict": "FAIL"}
+    payload = json.loads((tmp_path / "out" / "S13_pcl_fig3.json").read_text(encoding="utf-8"))
+    assert payload["r5_exact"]["verdict"] == "FAIL"
+
+
 # --- S12: the scored Vogels P3 v4 (segment B) -----------------------------------
 
 

@@ -98,3 +98,106 @@ def test_a_synthetic_vogels_seed_with_t3_and_small_b_raises(
 
     with pytest.raises(ValueError, match="CONV seed 4 does not pass"):
         fig07.write_fig07(tmp_path / "out", vogels_path=synthetic)
+
+
+def test_a_synthetic_vogels_nan_b_is_refused(fig07: ModuleType, tmp_path: Path) -> None:
+    vog = _read(VOGELS_SCORE)
+    vog["CONV"]["per_seed"]["4"]["b_hz_s"] = float("nan")
+    synthetic = tmp_path / "vogels_nan_b.json"
+    synthetic.write_text(json.dumps(vog), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="seed 4"):
+        fig07.write_fig07(tmp_path / "out", vogels_path=synthetic)
+
+
+def test_a_synthetic_vogels_nan_se_is_refused(fig07: ModuleType, tmp_path: Path) -> None:
+    vog = _read(VOGELS_SCORE)
+    vog["CONV"]["per_seed"]["4"]["se_hz_s"] = float("nan")
+    synthetic = tmp_path / "vogels_nan_se.json"
+    synthetic.write_text(json.dumps(vog), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="seed 4"):
+        fig07.write_fig07(tmp_path / "out", vogels_path=synthetic)
+
+
+def test_empty_vogels_seeds_refused(fig07: ModuleType, tmp_path: Path) -> None:
+    vog = _read(VOGELS_SCORE)
+    vog["seeds"] = []
+    synthetic = tmp_path / "vogels_empty_seeds.json"
+    synthetic.write_text(json.dumps(vog), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="empty"):
+        fig07.write_fig07(tmp_path / "out", vogels_path=synthetic)
+
+
+def test_vogels_seeds_missing_a_per_seed_key_refused(
+    fig07: ModuleType, tmp_path: Path
+) -> None:
+    vog = _read(VOGELS_SCORE)
+    assert vog["seeds"] == [4, 5, 6, 7, 8], "fixture: seeds 4-8"
+    del vog["CONV"]["per_seed"]["8"]
+    synthetic = tmp_path / "vogels_missing_key.json"
+    synthetic.write_text(json.dumps(vog), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="per_seed"):
+        fig07.write_fig07(tmp_path / "out", vogels_path=synthetic)
+
+
+def test_vogels_seeds_differing_from_the_prereg_scored_seeds_refused(
+    fig07: ModuleType, tmp_path: Path
+) -> None:
+    vog = _read(VOGELS_SCORE)
+    vog["CONV"]["per_seed"]["9"] = dict(vog["CONV"]["per_seed"]["8"])
+    vog["seeds"] = [4, 5, 6, 7, 9]
+    synthetic = tmp_path / "vogels_rescored_seeds.json"
+    synthetic.write_text(json.dumps(vog), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="9"):
+        fig07.write_fig07(tmp_path / "out", vogels_path=synthetic)
+
+
+def test_t1_value_exactly_at_null99_fails(fig07: ModuleType, tmp_path: Path) -> None:
+    pcl = _read(PCL_SCORE)
+    pcl["t1_r_ori_simple"] = 3.0
+    pcl["t1_r_ori_simple_null99"] = 3.0
+    pcl["t1_r_ori_simple_npref99"] = 1.0
+    synthetic = tmp_path / "pcl_t1_at_null99.json"
+    synthetic.write_text(json.dumps(pcl), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="t1_r_ori_simple does not pass"):
+        fig07.write_fig07(tmp_path / "out", pcl_path=synthetic)
+
+
+def test_t3_complex_exactly_at_limit_passes(fig07: ModuleType, tmp_path: Path) -> None:
+    pcl = _read(PCL_SCORE)
+    pcl["median_X_complex"] = 0.5 * pcl["median_X_simple"]
+    synthetic = tmp_path / "pcl_t3_at_limit.json"
+    synthetic.write_text(json.dumps(pcl), encoding="utf-8")
+
+    counts = fig07.write_fig07(tmp_path / "out", pcl_path=synthetic)
+
+    assert counts == {"criteria": 11, "passing": 11}
+
+
+def test_o_drop_ratio_exactly_two_passes(fig07: ModuleType, tmp_path: Path) -> None:
+    vog = _read(VOGELS_SCORE)
+    assert vog["O-DROP"]["pass"], "fixture: O-DROP passes"
+    vog["O-DROP"]["ratio"] = 2.0
+    synthetic = tmp_path / "vogels_drop_at_two.json"
+    synthetic.write_text(json.dumps(vog), encoding="utf-8")
+
+    counts = fig07.write_fig07(tmp_path / "out", vogels_path=synthetic)
+
+    assert counts == {"criteria": 11, "passing": 11}
+
+
+def test_conv_slope_exactly_at_floor_with_high_t_is_not_converged(
+    fig07: ModuleType, tmp_path: Path
+) -> None:
+    vog = _read(VOGELS_SCORE)
+    vog["CONV"]["per_seed"]["4"].update(b_hz_s=0.01, se_hz_s=0.01 / 3.0, converged=False)
+    synthetic = tmp_path / "vogels_conv_at_floor.json"
+    synthetic.write_text(json.dumps(vog), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="CONV seed 4 does not pass"):
+        fig07.write_fig07(tmp_path / "out", vogels_path=synthetic)
