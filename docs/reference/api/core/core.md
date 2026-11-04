@@ -573,8 +573,8 @@ scopes HDP weight updates to chosen edge ranges.
 new_meta = jtfne.migrate_schema(meta)
 ```
 
-`jaxfne/_construct_extras.py`. Rewrites a legacy truth/metadata mapping to the
-canonical truth-gate schema: the retired pre-v0.4.x amplitude key maps to
+`jaxfne/_construct_extras.py`. Rewrites a legacy metadata mapping to the
+canonical metadata schema: the retired pre-v0.4.x amplitude key maps to
 `physical_amplitude_calibrated`, retired solver and claim values map to
-`linear_solver` and `proxy_readout`, and the retired truth-mode key is dropped.
+`linear_solver` and `proxy_readout`, and the retired `truth_mode` key is dropped.
 Returns a new dict; the input mapping stays unchanged.
