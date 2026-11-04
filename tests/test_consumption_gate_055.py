@@ -44,6 +44,22 @@ SIM_CASES = {
     "record_fields": ({}, {"record_fields": False}, "output"),
     "poisson_drive": ({}, {"poisson_drive": _POIS}, "output"),
     "ablation": ({}, {"ablation": "disconnected_null"}, "output"),
+    "gaussian_drive": (
+        {}, {"gaussian_drive": {"std_by_cell_type": {"E": 3.0, "PV": 0.0, "SST": 0.0}}},
+        "output",
+    ),
+    "silence": (
+        {}, {"silence": {"fractions": {"E": 0.5}, "seed": 1}},
+        "refuse",
+    ),
+    "replace": (
+        {}, {"replace": {"fractions": {"E": 0.5}, "rate_hz": {"E": 4.0}, "seed": 1}},
+        "refuse",
+    ),
+    "edge_gain": (
+        {}, {"edge_gain": {"pre": "E", "post": "E", "schedule": [1.0] * 200}},
+        "refuse",
+    ),
     "runtime": ({}, _rt(recurrent_backend="edge_list"), "output"),
 }
 # A "policy" case names its consumer; a field with no consumer is not policy.
@@ -76,6 +92,9 @@ RT_CASES = {
     "device_type": ({}, {"device_type": "cpu"}, "policy"),
     "dtype_primary": ({}, {"dtype_primary": "bfloat16"}, "output"),
     "x64_enabled": ({}, {"x64_enabled": True}, "refuse"),
+    # consumer: emitters.spike_sigmoid_beta in the dense kernel; it changes the gradient only
+    # (tests/test_surrogate_gradient.py), so the forward run stays bit-identical
+    "surrogate": ({}, {"surrogate": jtfne.SurrogateConfig(method="sigmoid_beta", beta=0.5)}, "policy"),
 }
 
 
@@ -170,7 +189,8 @@ def test_unconsumed_values_are_refused(model, sim_kwargs, match):
 @pytest.mark.parametrize(
     "sim_kwargs",
     [{"poisson_drive": _POIS}, {"ablation": "E_silence"},
-     {"record_sources": False}],
+     {"record_sources": False},
+     {"gaussian_drive": {"std_by_cell_type": {"E": 1.0}}}],
 )
 def test_simulate_batch_refuses_fields_it_does_not_consume(model, sim_kwargs):
     with pytest.raises(ValueError, match="simulate_batch does not consume"):

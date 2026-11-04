@@ -8,7 +8,10 @@ check body or its call site fails the test.
 
 from __future__ import annotations
 
+import ast
+import fnmatch
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -16,6 +19,16 @@ import pytest
 from scripts import check_replications as cr
 from scripts import run_test_gate as rtg
 from scripts.run_test_gate import AUDIT_STEPS, CHECK_FAMILIES, GATE_CHECK_FAMILIES
+
+ROOT = Path(__file__).resolve().parents[1]
+PAPERS_DIR = ROOT / "artifacts" / "etudes" / "papers"
+# Signed or historical records: their citations stay as written. Any path naming a prereg is a
+# pinned record (the prereg class of scripts/check_record_integrity.py).
+SIGNED_RECORD_GLOBS = ("PREREG_P3*.md", "RESULT*.md", "LEDGER.md")
+LINE_CITE = re.compile(r"jaxfne/[A-Za-z0-9_/]+\.py:[0-9]")
+SYMBOL_CITE = re.compile(
+    r"`([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?)` in `(jaxfne/[A-Za-z0-9_/]+\.py)`"
+)
 
 
 def _write(root: Path, rel: str, text: str = "x") -> Path:
@@ -1043,6 +1056,94 @@ def test_s1_posix_root_path_is_outside_on_every_os(tmp_path):
     assert messages == ["line 2: sys.path.insert adds a path outside the repository (/tmp/elsewhere)"]
 
 
+#: The PCL port shape: a module-level walk to the nearest pyproject.toml.
+_REPO_WALK = '''def _repo_root(start: Path) -> Path:
+    for cand in (start, *start.parents):
+        if (cand / "pyproject.toml").is_file():
+            return cand
+    raise RuntimeError(f"no pyproject.toml above {start}")
+'''
+
+
+def test_s1_repo_root_walk_is_inside_on_every_os(tmp_path):
+    _registry(tmp_path, [])
+    _write(tmp_path, "pyproject.toml", "[project]\nname = 'fixture'\n")
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/walk/port/run.py",
+        "import sys\nfrom pathlib import Path\n\n" + _REPO_WALK
+        + "\n_ROOT = str(_repo_root(Path(__file__).resolve().parent))\n"
+        + "sys.path.insert(0, _ROOT)\n",
+    )
+    assert "_repo_root(Path(__file__)" in run.read_text(encoding="utf-8"), (
+        "fixture must build the repo root with the walk"
+    )
+    parsed = {rel: tree for rel, _, tree in cr.parse_paper_files(tmp_path)}
+    assert parsed.get("artifacts/etudes/papers/walk/port/run.py") is not None, (
+        "fixture must parse, so S1 examines it"
+    )
+    assert [f for f in cr.collect_findings(tmp_path) if f[0] == "S1"] == [], (
+        "a sys.path entry built by the repo-root walk stays inside the repository"
+    )
+
+
+def test_s1_repo_root_name_without_walk_fails(tmp_path):
+    _registry(tmp_path, [])
+    _write(tmp_path, "pyproject.toml", "[project]\nname = 'fixture'\n")
+    run = _write(
+        tmp_path,
+        "artifacts/etudes/papers/fake/run.py",
+        "import sys\nfrom pathlib import Path\n\n"
+        "def _repo_root(start: Path) -> Path:\n"
+        '    return Path("C:/elsewhere")\n\n'
+        "sys.path.insert(0, str(_repo_root(Path(__file__).resolve().parent)))\n",
+    )
+    assert 'Path("C:/elsewhere")' in run.read_text(encoding="utf-8"), (
+        "fixture must return a fixed outside path from a function named like the walk"
+    )
+    assert any(
+        rule == "S1"
+        and path == "artifacts/etudes/papers/fake/run.py"
+        and "sys.path.insert adds a path that cannot be resolved" in msg
+        for rule, path, msg in cr.collect_findings(tmp_path)
+    ), "a function named _repo_root without the walk shape must stay unresolvable"
+
+
+def test_s1_repo_root_walk_joined_outside_fails(tmp_path):
+    _registry(tmp_path, [])
+    _write(tmp_path, "pyproject.toml", "[project]\nname = 'fixture'\n")
+    walk_rel = "artifacts/etudes/papers/esc/port/walk_up.py"
+    ctrl_rel = "artifacts/etudes/papers/esc/port/parents_up.py"
+    _write(
+        tmp_path,
+        walk_rel,
+        "import sys\nfrom pathlib import Path\n\n" + _REPO_WALK
+        + "\n_ROOT = str(_repo_root(Path(__file__).resolve().parent) / \"..\")\n"
+        + "sys.path.insert(0, _ROOT)\n",
+    )
+    _write(
+        tmp_path,
+        ctrl_rel,
+        "import sys\nfrom pathlib import Path\n\n"
+        '_ROOT = str(Path(__file__).resolve().parents[5] / "..")\n'
+        "sys.path.insert(0, _ROOT)\n",
+    )
+    assert "parents[5]" in (tmp_path / ctrl_rel).read_text(encoding="utf-8"), (
+        "control must hold a parents[k] chain joined with .."
+    )
+    flagged = {
+        path: msg
+        for rule, path, msg in cr.collect_findings(tmp_path)
+        if rule == "S1"
+    }
+    assert set(flagged) == {walk_rel, ctrl_rel}, (
+        "a .. join escaping the repository is flagged for the walk and for parents[k]"
+    )
+    assert all("outside the repository" in flagged[p] for p in (walk_rel, ctrl_rel)), (
+        "the walk escape is named outside the repository, as the parents[k] escape is"
+    )
+
+
 def _r4_paper(pid: str, verdict, stage: str = "P6", p6: list[dict] | None = None) -> dict:
     entry: dict = {
         "id": pid,
@@ -1128,7 +1229,7 @@ def test_r4_reproduced_below_p6_out_of_scope(tmp_path):
 
 
 @pytest.mark.parametrize("verdict", [
-    "reproduced (conditional)", "mixed", "in progress", "not started", "failed",
+    "reproduced (conditional)", "mixed", "pending", "in progress", "not started",
 ])
 def test_r4_non_replication_verdicts_pass(tmp_path, verdict):
     papers = [_r4_paper("r4nv", verdict)]
@@ -1139,3 +1240,55 @@ def test_r4_non_replication_verdicts_pass(tmp_path, verdict):
     assert [f for f in cr.collect_findings(tmp_path) if f[0] == "R4"] == [], (
         f"verdict {verdict!r} is a stage-level claim, not a full-replication claim"
     )
+
+
+def _paper_records() -> list[Path]:
+    """Every paper markdown record except the signed or historical ones."""
+    return [
+        md for md in sorted(PAPERS_DIR.rglob("*.md"))
+        if not any(fnmatch.fnmatch(md.name, g) for g in SIGNED_RECORD_GLOBS)
+        and "prereg" not in md.relative_to(PAPERS_DIR).as_posix().lower()
+    ]
+
+
+def _defined_names(source: Path) -> set[str]:
+    """Module-level defs, classes and assignments, plus Class.method, read with ast."""
+    names: set[str] = set()
+    for node in ast.parse(source.read_text(encoding="utf-8")).body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names.add(node.name)
+            if isinstance(node, ast.ClassDef):
+                names.update(
+                    f"{node.name}.{sub.name}" for sub in node.body
+                    if isinstance(sub, (ast.FunctionDef, ast.AsyncFunctionDef))
+                )
+        elif isinstance(node, ast.Assign):
+            names.update(t.id for t in node.targets if isinstance(t, ast.Name))
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            names.add(node.target.id)
+    return names
+
+
+def test_paper_records_cite_no_core_line_numbers():
+    records = _paper_records()
+    assert records, "fixture must scan at least one paper record"
+    hits = []
+    for md in records:
+        rel = md.relative_to(ROOT).as_posix()
+        for n, line in enumerate(md.read_text(encoding="utf-8").splitlines(), 1):
+            hits += [f"{rel}:{n} {m.group(0)}" for m in LINE_CITE.finditer(line)]
+    assert not hits, "core code cited by line number (cite a symbol): " + "; ".join(hits)
+
+
+def test_backticked_core_symbols_resolve_at_head():
+    examined = []
+    unresolved = []
+    for md in _paper_records():
+        rel = md.relative_to(ROOT).as_posix()
+        for name, path in SYMBOL_CITE.findall(md.read_text(encoding="utf-8")):
+            examined.append(f"{rel}: `{name}` in {path}")
+            source = ROOT / path
+            if not source.is_file() or name not in _defined_names(source):
+                unresolved.append(f"{rel}: `{name}` is not defined in {path}")
+    assert examined, "no `name` in `jaxfne/<path>.py` citation was examined"
+    assert not unresolved, "; ".join(unresolved)

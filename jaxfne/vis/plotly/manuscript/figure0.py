@@ -1,4 +1,4 @@
-"""Figure 0 — Background: network geometry + connectivity (Plotly)."""
+"""Figure 0. Background: network geometry + connectivity (Plotly)."""
 from __future__ import annotations
 
 from .._common import require_plotly

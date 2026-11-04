@@ -62,7 +62,7 @@ def test_phase5_vis_functions_implemented_not_stubs():
 
     Previously verified NotImplementedError from placeholder stubs.
     After Phase 5 implementation: bandpower, laminar_profile, connectivity,
-    and geometry3d all return figures or graceful fallbacks — not NotImplementedError.
+    and geometry3d all return figures or graceful fallbacks, not NotImplementedError.
     """
     for func_name in [
         "bandpower", "laminar_profile", "connectivity", "geometry3d",

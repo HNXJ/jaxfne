@@ -48,10 +48,9 @@ class TestIzhikevichEquationSemantics:
         b = 0.2
 
         # Expected: du = 0.02 * (0.2 * 10 - 5) = 0.02 * (2 - 5) = 0.02 * (-3) = -0.06
-        expected_du = a * (b * v[0] - u[0])
         actual_du = a * (b * v[0] - u[0])
 
-        assert float(actual_du) == pytest.approx(expected_du, rel=1e-5)
+        assert float(actual_du) == pytest.approx(-0.06, rel=1e-5)
 
     def test_spike_threshold_at_30(self):
         """Verify spike threshold is v_next >= 30.0."""

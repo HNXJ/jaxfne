@@ -251,7 +251,7 @@ Branch `{manifest['repository']['branch']}` @ `{manifest['repository']['sha'][:1
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--force-etude", action="store_true", help="Re-run hdp_mvc_etude.py before packaging")
+    parser.add_argument("--force-etude", action="store_true", help="Re-run the etude simulation before packaging")
     args = parser.parse_args()
 
     missing = [k for k, p in FROZEN_RECEIPTS.items() if k != "etude_diagnostic" and not p.exists()]

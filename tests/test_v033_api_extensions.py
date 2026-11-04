@@ -1,8 +1,8 @@
 """
 Tests for v0.3.3 API extensions:
-1. simulate_dynamic_ei_coupling() — dynamic E/I coupling with correct carry state
-2. with_emitter_parameters() — per-neuron parameter overrides with explicit None checks
-3. Model.with_recurrent_coupling() — frozen dataclass immutability with replace()
+1. simulate_dynamic_ei_coupling(): dynamic E/I coupling with correct carry state
+2. with_emitter_parameters(): per-neuron parameter overrides with explicit None checks
+3. Model.with_recurrent_coupling(): frozen dataclass immutability with replace()
 
 16 tests total.
 """
@@ -41,7 +41,7 @@ def two_neuron_params():
 
 
 # ============================================================================
-# Group 1: simulate_dynamic_ei_coupling — carry state correctness (5 tests)
+# Group 1: simulate_dynamic_ei_coupling; carry state correctness (5 tests)
 # ============================================================================
 
 def test_dynamic_coupling_returns_four_arrays(two_neuron_params):
@@ -164,7 +164,7 @@ def test_drive_per_neuron_overrides_drive_scale(two_neuron_model):
 
 
 # ============================================================================
-# Group 3: Model.with_recurrent_coupling — frozen dataclass safety (5 tests)
+# Group 3: Model.with_recurrent_coupling; frozen dataclass safety (5 tests)
 # ============================================================================
 
 def test_with_recurrent_coupling_returns_new_model(two_neuron_model):

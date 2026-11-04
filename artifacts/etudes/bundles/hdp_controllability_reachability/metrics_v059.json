@@ -1,0 +1,35 @@
+{
+  "mvc2_recovery": {
+    "off": {
+      "R_EI": 0.48666021667883674,
+      "terminal_error_weighted": 0.6669489278769205
+    },
+    "scalar": {
+      "R_EI": 0.48666021667883674,
+      "terminal_error_weighted": 0.6669489278769205
+    },
+    "vector": {
+      "R_EI": 0.8733398211664182,
+      "terminal_error_weighted": 0.1276713670934026
+    }
+  },
+  "provenance": {
+    "authorized_by": "Hamm 2026-11-02: re-baseline under the P-048 default; the frozen AT-10-N20 atlas keeps its result instead",
+    "baseline_for": "v0.5.9",
+    "reason": "P-048: default Izhikevich u0 = b * v0 (ruled by Hamm 2026-10-28), commit b1d9dfe1, found as the first failing commit by bisect from f6614b25; with the pre-ruling default the v056 values reproduce",
+    "change": "off, scalar and vector arms of mvc2_recovery re-computed at 3b8e675e. Scalar equals off bit-exactly, as in v0.5.6. metrics_v056.json stays the record for v0.5.6.",
+    "computed_at_commit": "3b8e675e",
+    "method": "Test body of test_population_restoring_etude_regression_metrics (tests/test_hdp_population_restoring.py) replicated line for line with the test module's helpers. WSL venv ~/venv_jaxfne_gate, JAX_PLATFORMS=cpu, jax 0.11.2, jax_enable_x64 False. Two independent runs gave byte-identical output; the off arm equals the value Release CI run 41465568642 obtained.",
+    "dt_ms": 0.1,
+    "duration_ms": 15000.0,
+    "perturb_ms": 3000.0,
+    "burn_ms": 20.0,
+    "final_window_ms": [13000.0, 15000.0],
+    "seed": 17,
+    "r0_hz_computed": {
+      "r_E_hz": 10.886778685715575,
+      "r_I_hz": 7.300335679253275
+    },
+    "previous": "metrics_v056.json"
+  }
+}

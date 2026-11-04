@@ -1,7 +1,7 @@
 # Tensor-field workflows
 
-Turn simulated neural activity into **depth-resolved readouts** — LFP-proxy,
-CSD-proxy, EEG/MEG proxies, and bundled manifests — in a few defined stages.
+Turn simulated neural activity into **depth-resolved readouts**: LFP-proxy,
+CSD-proxy, EEG/MEG proxies, and bundled manifests, in a few defined stages.
 
 ```
 Emitter/Network → Source tensors → Field operators → Probe readouts → Output bundles
@@ -98,7 +98,7 @@ Source tensor from emitter: $T$ time steps, $N$ neurons, optional $L$ layers/dep
 $$\phi_{\mathrm{proxy}}(t,c) = \sum_{n=1}^{N} W_{cn} S_n(t)$$
 
 Potential at contact $c$ via kernel $W$. **Package default:** `density_preserving`
-(raw Gaussian — no row sum constraint). **Opt-in:** `row_normalize` enforces:
+(raw Gaussian; no row sum constraint). **Opt-in:** `row_normalize` enforces:
 
 $$\sum_{n=1}^{N} W_{cn} = 1 \quad \forall c$$
 

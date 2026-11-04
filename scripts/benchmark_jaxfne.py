@@ -35,13 +35,6 @@ class BenchmarkCase:
     dt_ms: float = 0.1
 
 
-@dataclass(frozen=True)
-class TimingBlock:
-    """Wall-clock timing for one phase."""
-    phase: str
-    elapsed_ms: float
-
-
 @dataclass
 class BenchmarkResult:
     """Complete benchmark report with metadata."""

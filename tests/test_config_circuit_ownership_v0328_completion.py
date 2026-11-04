@@ -3,7 +3,7 @@
 These tests lock the prerequisite for the v0.3.30 connectivity compiler: the
 ``Configuration`` object owns circuit/training declarations under
 ``metadata["circuit"]`` / ``metadata["training"]`` as strict-JSON-safe specs
-with explicit not-yet-compiled/applied/optimized status — declaration only, no
+with explicit not-yet-compiled/applied/optimized status; declaration only, no
 compilation, no numerical change.
 """
 

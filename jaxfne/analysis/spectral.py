@@ -1,7 +1,7 @@
 """JAX-native spectral analysis and objectives for JAXFNE.
 
 Docs: ``docs/reference/api/index.md`` spectral-analysis section
-(https://jaxfne.readthedocs.io/en/latest/reference/api/) — update when this module changes.
+(https://jaxfne.readthedocs.io/en/latest/reference/api/): update when this module changes.
 
 Provides JIT-compilable, batchable functions for calculating PSDs, bandpower
 profiles, and similarity objectives.
@@ -32,12 +32,14 @@ def spectrolaminar_psd_jax(
     """Compute spectrolaminar PSD averaged across trials in a JAX-native way.
 
     Projects each contact's timeseries onto a bank of complex exponentials and
-    averages the magnitude spectrum across trials — a JIT-compilable, batchable
+    averages the magnitude spectrum across trials; a JIT-compilable, batchable
     DFT at the requested target frequencies.
 
     Window/normalization convention: ``window`` selects the taper applied to
-    each timeseries before projection — ``"rectangular"`` (default, no taper;
-    the historical behavior, bit-identical) or ``"hann"``. The projection uses
+    each timeseries before projection: ``"rectangular"`` (default, no taper;
+    the historical behavior, bit-identical) or ``"hann"`` (the periodic Hann,
+    w[k] = 0.5 - 0.5 cos(2 pi k / N), matching scipy's ``hann`` with
+    ``fftbins=True``). The projection uses
     an unnormalized rectangular DFT basis and divides by ``n_steps``; band
     profiles derived downstream are additionally peak-normalized per contact
     (see :func:`bandpower_jax`), so absolute amplitude scale is not preserved
@@ -54,7 +56,8 @@ def spectrolaminar_psd_jax(
         Target frequencies of shape ``(n_freqs,)``. Default: 96 points linearly
         spaced over 1–150 Hz, the canonical spectrolaminar band.
     window : str, default "rectangular"
-        Taper convention (static under JIT): ``"rectangular"`` or ``"hann"``.
+        Taper convention (static under JIT): ``"rectangular"`` or ``"hann"``
+        (the periodic Hann).
 
     Returns
     -------
@@ -65,7 +68,9 @@ def spectrolaminar_psd_jax(
         taper = jnp.ones_like(signal)
     elif window == "hann":
         n_steps = jnp.shape(signal)[1]
-        taper = jnp.hanning(n_steps).astype(signal.dtype)[None, :, None]
+        # periodic Hann: w[k] = 0.5 - 0.5 cos(2 pi k / N), as scipy's
+        # ``hann`` with ``fftbins=True`` (the ``welch_*`` convention)
+        taper = jnp.hanning(n_steps + 1)[:-1].astype(signal.dtype)[None, :, None]
     else:
         raise ValueError(
             f"unsupported spectral window {window!r}; "
@@ -75,9 +80,18 @@ def spectrolaminar_psd_jax(
     if freqs is None:
         freqs = jnp.linspace(1.0, 150.0, 96, dtype=jnp.float32)
     n_trials, n_steps, n_contacts = tapered.shape
-    sample_idx = jnp.arange(n_steps, dtype=freqs.dtype)
+    # Phase of sample n in cycles is (f * n mod fs) / fs. Formed as (f / fs) * n in float32 it
+    # loses ~log2(n) bits. f * 2**k and its remainder mod fs are exact, so sum the remainders
+    # over the set bits k of n; only that short sum and the final division round.
+    n_bits = max(1, (n_steps - 1).bit_length())
+    pow2 = (2.0 ** jnp.arange(n_bits)).astype(freqs.dtype)
+    fs_t = jnp.asarray(fs, dtype=freqs.dtype)
+    rem_k = jax.lax.rem(freqs[:, None] * pow2[None, :], fs_t)
+    bits = ((jnp.arange(n_steps)[:, None] >> jnp.arange(n_bits)[None, :]) & 1).astype(freqs.dtype)
+    rem_n = jnp.einsum("fk,sk->fs", rem_k, bits, precision=jax.lax.Precision.HIGHEST)
+    cycles = jax.lax.rem(rem_n, fs_t) / fs_t
     # basis: (n_freqs, n_steps)
-    basis = jnp.exp(-1j * 2.0 * jnp.pi * (freqs[:, None] / fs) * sample_idx[None, :])
+    basis = jnp.exp(-1j * 2.0 * jnp.pi * cycles)
     # DFT projection: (n_freqs, n_steps) @ (n_trials, n_steps, n_contacts) -> (n_trials, n_freqs, n_contacts)
     spec = jnp.einsum("fs,tsc->tfc", basis, tapered)
     # Average magnitude across trials, normalized by timesteps
@@ -203,21 +217,22 @@ spectrolaminar_similarity_candidates_seeds_jax = jax.vmap(
 
 
 def welch_numpy(x, fs, nperseg, noverlap):
-    """Welch power density with Hann windows (fallback, no scipy needed).
+    """Welch power density with periodic Hann windows (fallback, no scipy needed).
 
-    Same convention as ``scipy.signal.welch`` with ``detrend=False`` and
-    ``scaling="density"``: segments demeaned here, scale
-    ``1 / (fs * sum(win**2))``, one-sided doubling off DC/Nyquist.
+    Same convention as the scipy branch of :func:`welch_spectrum`,
+    ``scipy.signal.welch(window="hann", detrend=False, scaling="density")``:
+    the window is the periodic Hann ``np.hanning(nperseg + 1)[:-1]``, segments
+    are not detrended, scale ``1 / (fs * sum(win**2))``, one-sided doubling off
+    DC/Nyquist.
     """
     x = _np.asarray(x, dtype=float)
     step = nperseg - noverlap
-    win = _np.hanning(nperseg)
+    win = _np.hanning(nperseg + 1)[:-1]
     scale = 1.0 / (fs * float(_np.sum(win**2)))
     acc = None
     n = 0
     for start in range(0, len(x) - nperseg + 1, step):
         seg = x[start:start + nperseg]
-        seg = seg - seg.mean()
         spec = _np.fft.rfft(win * seg)
         pxx = (spec.real**2 + spec.imag**2) * scale
         if nperseg % 2 == 0:
@@ -385,3 +400,44 @@ def ref42_phase_delay(counts, dt_s, f_peak_hz, half_band_hz=5.0, *, drop_s=2.0,
     return {"delay_ms": delay_ms, "phase_PV_rad": pv_phi, "phase_SOM_rad": som_phi,
             "n_spikes_PV": n_pv, "n_spikes_SOM": n_som,
             "f_peak_Hz": f_peak, "half_band_Hz": half}
+
+
+def pairwise_phase_consistency(phase_groups):
+    """Pairwise phase consistency (PPC) per neuron (paper ref. 36).
+
+    For one neuron with ``n >= 2`` spike phases ``phi_1..phi_n`` (radians):
+
+        PPC = (|sum_k exp(i phi_k)|**2 - n) / (n * (n - 1))
+
+    which equals the mean of ``cos(phi_i - phi_j)`` over the ``n(n-1)/2``
+    unordered pairs ``i < j`` (Vinck et al. 2012, J Comput Neurosci; cited as
+    ref. 36 in the paper, whose Methods say only "the pairwise
+    phase-consistency measure, PPC").
+
+    A neuron with fewer than 2 spikes has no PPC and gets NaN.
+
+    Parameters
+    ----------
+    phase_groups : sequence of array-like
+        One 1-D array of spike phases (radians) per neuron; ragged lengths and
+        empty groups are allowed.
+
+    Returns
+    -------
+    per_neuron : ndarray of float
+        Per-neuron PPC; NaN where a neuron has fewer than 2 spikes.
+    mean : float
+        Population mean over the neurons that have a value (``np.nanmean``);
+        NaN when no neuron has a value.
+    """
+    groups = list(phase_groups)
+    per = _np.full(len(groups), _np.nan)
+    for i, ph in enumerate(groups):
+        ph = _np.asarray(ph, dtype=float).ravel()
+        n = ph.size
+        if n < 2:
+            continue
+        s = _np.abs(_np.sum(_np.exp(1j * ph)))
+        per[i] = (s * s - n) / (n * (n - 1.0))
+    mean = float(_np.nanmean(per)) if _np.any(~_np.isnan(per)) else _np.nan
+    return per, mean

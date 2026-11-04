@@ -15,14 +15,33 @@ from __future__ import annotations
 from collections.abc import Mapping as _Mapping
 from collections.abc import Sequence as _Sequence
 from dataclasses import dataclass, field
+import enum
 from typing import Any, Callable, Mapping
 
+import jax
 import jax.numpy as jnp
 
-from ._hdp_adaptive import normalize_hdp_params_boundary, resolve_h_state_locality
+from ._hdp_adaptive import (
+    bind_theta_to_plant as bind_theta_to_plant,
+    normalize_hdp_params_boundary,
+    resolve_h_state_locality,
+)
 from .emitters import _segment_sum
 
 RuleStepFn = Callable[["HDPRuleContext"], "HDPRuleUpdate"]
+
+
+class QuantityKind(str, enum.Enum):
+    """Quantity kinds of the relative-quantity grammar (D28).
+
+    Vocabulary only: the doctrine names what each numerical quantity
+    is (base, relative, effective, time). No mapping or use lives here.
+    """
+
+    B = "B"  # base/model quantity: physical baseline the relative state modulates around
+    R = "R"  # relative quantity: dimensionless internal dynamic state or modulation
+    E = "E"  # effective quantity: mapped output C_p(p0, r_p) actually used in dynamics
+    T = "T"  # physical time quantity: dimensional clock, delays and time constants
 
 
 @dataclass(frozen=True)
@@ -98,11 +117,20 @@ class HDPRuleContext:
 
 @dataclass(frozen=True)
 class HDPRuleUpdate:
-    """Infinitesimal updates returned by a registered rule."""
+    """Updates returned by a registered rule.
+
+    ``dH``, ``d_aux`` and ``d_theta`` are rates: the kernel adds ``dt * d``.
+    ``jH``, ``j_aux`` and ``j_theta`` are per-event jumps: the kernel adds the
+    value once, with no ``dt`` factor, after the rate term and before the clip
+    where the coordinate has one. ``None`` means no jump.
+    """
 
     dH: jnp.ndarray
     d_aux: jnp.ndarray | None = None
     d_theta: Mapping[str, jnp.ndarray] | None = None
+    jH: jnp.ndarray | None = None
+    j_aux: jnp.ndarray | None = None
+    j_theta: Mapping[str, jnp.ndarray] | None = None
 
 
 _REGISTRY: dict[str, tuple[HDPRuleDescriptor, RuleStepFn]] = {}
@@ -130,6 +158,115 @@ def expected_aux_shape(
         f"{descriptor.aux_layout!r}; expected one of {_AUX_LAYOUTS}"
     )
 
+
+def apply_registered_rule_update(
+    *,
+    descriptor: HDPRuleDescriptor,
+    rule_step: Callable[[HDPRuleContext], Any],
+    H: jax.Array,
+    aux: jax.Array,
+    bias: jax.Array,
+    v: jax.Array,
+    u: jax.Array,
+    spikes: jax.Array,
+    prev_spikes: jax.Array,
+    syn_state: jax.Array,
+    w: jax.Array,
+    pre: jax.Array,
+    post: jax.Array,
+    exc_mask: jax.Array | None,
+    dt: jax.Array,
+    n_neurons: int,
+    rule_params: Mapping[str, Any],
+    key: jax.Array,
+    pre_sp: jax.Array | None,
+    rule_name: str,
+    plasticity_mask: jax.Array | None = None,
+) -> tuple[jax.Array, jax.Array, jax.Array, jax.Array]:
+    """Integrate one registered-rule update; shared by every family kernel.
+
+    ``w`` is the family's plastic coordinate: per-edge signed efficacy when
+    ``exc_mask`` is given (Izhikevich sign-preserving magnitude update), or
+    per-edge magnitude (``|w|``, AdEx conductance) when ``exc_mask`` is
+    ``None``. ``plasticity_mask`` (per-edge bool, or ``None`` for all-plastic)
+    gates the weight update. Undeclared ``d_theta`` and ``j_theta`` keys fail
+    closed naming the rule. Rate terms integrate as ``x + dt * dx``; jump
+    terms add once, ``x + dt * dx + jx``. Returns
+    ``(H_next, w_next, aux_next, bias_next)``.
+    """
+    ctx = HDPRuleContext(
+        H=H,
+        aux=aux,
+        v=v,
+        u=u,
+        spikes=spikes,
+        prev_spikes=prev_spikes,
+        syn_state=syn_state,
+        w=w,
+        pre=pre,
+        post=post,
+        exc_mask=exc_mask if exc_mask is not None else jnp.ones_like(w, dtype=bool),
+        dt=dt,
+        n_neurons=n_neurons,
+        rule_params=rule_params,
+        key=key,
+        pre_sp=pre_sp,
+    )
+    upd = rule_step(ctx)
+    undeclared = [
+        k for k in (*(upd.d_theta or {}), *(upd.j_theta or {}))
+        if k not in descriptor.theta_targets
+    ]
+    if undeclared:
+        raise ValueError(
+            f"hdp_rule {rule_name!r} returned undeclared theta_targets "
+            f"{undeclared!r}; declared: {list(descriptor.theta_targets)}"
+        )
+    h_min_arr = jnp.asarray(descriptor.h_bounds[0], dtype=H.dtype)
+    h_max_arr = jnp.asarray(descriptor.h_bounds[1], dtype=H.dtype)
+    w_floor_arr = jnp.asarray(descriptor.w_bounds[0], dtype=w.dtype)
+    w_ceiling_arr = jnp.asarray(descriptor.w_bounds[1], dtype=w.dtype)
+    H_drift = H + dt * upd.dH
+    if upd.jH is not None:
+        H_drift = H_drift + upd.jH
+    H_next = jnp.clip(H_drift, h_min_arr, h_max_arr)
+    aux_next = aux
+    if upd.d_aux is not None:
+        aux_next = aux_next + dt * upd.d_aux
+    if upd.j_aux is not None:
+        aux_next = aux_next + upd.j_aux
+    dw = (upd.d_theta or {}).get("edge_weight")
+    jw = (upd.j_theta or {}).get("edge_weight")
+    if dw is not None or jw is not None:
+        # Magnitude: rate term scaled by dt, then the event jump, then the clip.
+        mag = w if exc_mask is None else jnp.abs(w)
+        if dw is not None:
+            mag = mag + dt * dw
+        if jw is not None:
+            mag = mag + jw
+        mag = jnp.clip(mag, w_floor_arr, w_ceiling_arr)
+        w_next = mag if exc_mask is None else jnp.where(exc_mask, mag, -mag)
+        if plasticity_mask is not None:
+            w_next = jnp.where(plasticity_mask, w_next, w)
+    else:
+        w_next = w
+    if "drive_bias" in descriptor.theta_targets:
+        db = (upd.d_theta or {}).get("drive_bias")
+        jb = (upd.j_theta or {}).get("drive_bias")
+        if db is None and jb is None:
+            b_next = bias
+        else:
+            b_drift = bias if db is None else bias + dt * db
+            if jb is not None:
+                b_drift = b_drift + jb
+            b_next = jnp.clip(
+                b_drift,
+                jnp.asarray(descriptor.b_bounds[0], dtype=bias.dtype),
+                jnp.asarray(descriptor.b_bounds[1], dtype=bias.dtype),
+            )
+    else:
+        b_next = bias
+    return H_next, w_next, aux_next, b_next
 
 def register_hdp_rule(descriptor: HDPRuleDescriptor, step_fn: RuleStepFn) -> None:
     """Register a JIT-safe HDP rule by name."""
@@ -269,7 +406,7 @@ def hdp_is_engaged(
 ) -> bool:
     """Single routing predicate for HDP execution (bulk + continuation).
 
-    Identity parameters alone route to the baseline kernel — except when the
+    Identity parameters alone route to the baseline kernel; except when the
     model carries explicitly seeded HDP state (``with_hdp_initial_state``):
     seeded non-uniform ``H`` drives real weight dynamics (``dw ~ ΔH``) even
     with null H-gains, so dropping it would silently discard user state the
@@ -319,7 +456,9 @@ def _synthetic_presyn_gain_step(ctx: HDPRuleContext) -> HDPRuleUpdate:
     """Qualification rule: event-coupled H and multiplicative edge-weight drive.
 
     With ``gamma=0`` and controlled presynaptic spikes, ``H`` and ``|w|`` evolve
-    predictably from the discrete update equations exercised in tests.
+    predictably from the discrete update equations exercised in tests. The
+    spike terms are per-event jumps (``jH``, ``j_theta``); only the decay of
+    ``H`` is a rate.
     """
     k_h = jnp.asarray(ctx.rule_params.get("k_h", 0.0), dtype=ctx.H.dtype)
     k_w = jnp.asarray(ctx.rule_params.get("k_w", 0.0), dtype=ctx.H.dtype)
@@ -329,10 +468,10 @@ def _synthetic_presyn_gain_step(ctx: HDPRuleContext) -> HDPRuleUpdate:
     # preserving the qualified HDP-01 discrete equations bit-exactly.
     pre_sp = ctx.pre_sp if ctx.pre_sp is not None else ctx.spikes[ctx.pre]
     dH = -gamma * (ctx.H - 1.0)
-    dH = dH + _segment_sum(k_h * pre_sp, ctx.post, ctx.n_neurons)
+    jH = _segment_sum(k_h * pre_sp, ctx.post, ctx.n_neurons)
     H_post = ctx.H[ctx.post]
-    dw = k_w * H_post * pre_sp * jnp.abs(ctx.w)
-    return HDPRuleUpdate(dH=dH, d_theta={"edge_weight": dw})
+    jw = k_w * H_post * pre_sp * jnp.abs(ctx.w)
+    return HDPRuleUpdate(dH=dH, jH=jH, j_theta={"edge_weight": jw})
 
 
 register_hdp_rule(
@@ -354,7 +493,7 @@ def _eligibility_trace_gain_step(ctx: HDPRuleContext) -> HDPRuleUpdate:
     ``tau_e``; the weight drive is eligibility gated by postsynaptic ``H``.
     ``H`` keeps the event-coupled drive so the delayed chain
     ``event_{t-d} -> H_t -> P -> Theta_t -> I_t`` holds as for the
-    qualification rule. Not an STDP mechanism claim — an expressivity probe
+    qualification rule. Not an STDP mechanism claim; an expressivity probe
     for the aux-carrying primitive (non-empty ``aux`` continuation).
     """
     k_h = jnp.asarray(ctx.rule_params.get("k_h", 0.0), dtype=ctx.H.dtype)
@@ -364,12 +503,12 @@ def _eligibility_trace_gain_step(ctx: HDPRuleContext) -> HDPRuleUpdate:
     pre_sp = ctx.pre_sp if ctx.pre_sp is not None else ctx.spikes[ctx.pre]
     post_sp = ctx.spikes[ctx.post]
     dH = -gamma * (ctx.H - 1.0)
-    dH = dH + _segment_sum(k_h * pre_sp, ctx.post, ctx.n_neurons)
+    jH = _segment_sum(k_h * pre_sp, ctx.post, ctx.n_neurons)
     dE = -ctx.aux / jnp.maximum(tau_e, jnp.asarray(1e-6, dtype=ctx.H.dtype))
-    dE = dE + pre_sp * post_sp
+    jE = pre_sp * post_sp
     H_post = ctx.H[ctx.post]
     dw = k_w * H_post * ctx.aux * jnp.abs(ctx.w)
-    return HDPRuleUpdate(dH=dH, d_aux=dE, d_theta={"edge_weight": dw})
+    return HDPRuleUpdate(dH=dH, jH=jH, d_aux=dE, j_aux=jE, d_theta={"edge_weight": dw})
 
 
 register_hdp_rule(
@@ -598,6 +737,9 @@ def superpose_hdp_rules(
         n_ctx = int(ctx.H.shape[0])
         dH_parts: list[jnp.ndarray] = []
         dw_accum: dict[str, jnp.ndarray] = {}
+        jH_parts: list[jnp.ndarray] = []
+        jH_used = False
+        jw_accum: dict[str, jnp.ndarray] = {}
         for (desc, step_fn), comp_name, width, off in zip(resolved, names, widths, offsets):
             part = ctx.H[..., off : off + width]
             if desc.h_shape:
@@ -627,6 +769,11 @@ def superpose_hdp_rules(
                 )
             got = jnp.reshape(upd.dH, (n_ctx, width))
             dH_parts.append(got)
+            if upd.jH is None:
+                jH_parts.append(jnp.zeros_like(got))
+            else:
+                jH_used = True
+                jH_parts.append(jnp.reshape(upd.jH, (n_ctx, width)))
             for target, drive in (upd.d_theta or {}).items():
                 if target in dw_accum and dw_accum[target].shape != drive.shape:
                     raise ValueError(
@@ -634,9 +781,18 @@ def superpose_hdp_rules(
                         f"{target!r} shape {dw_accum[target].shape} vs {drive.shape}"
                     )
                 dw_accum[target] = drive if target not in dw_accum else dw_accum[target] + drive
+            for target, jump in (upd.j_theta or {}).items():
+                if target in jw_accum and jw_accum[target].shape != jump.shape:
+                    raise ValueError(
+                        f"hdp_rule {name!r}: components disagree on j_theta "
+                        f"{target!r} shape {jw_accum[target].shape} vs {jump.shape}"
+                    )
+                jw_accum[target] = jump if target not in jw_accum else jw_accum[target] + jump
         return HDPRuleUpdate(
             dH=jnp.concatenate(dH_parts, axis=-1),
             d_theta=dict(dw_accum) or None,
+            jH=jnp.concatenate(jH_parts, axis=-1) if jH_used else None,
+            j_theta=dict(jw_accum) or None,
         )
 
     descriptor = HDPRuleDescriptor(

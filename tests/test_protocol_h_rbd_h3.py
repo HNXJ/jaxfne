@@ -1,4 +1,4 @@
-"""Protocol H3 — localized RBS perturbation + nested linear decodability."""
+"""Protocol H3: localized RBS perturbation + nested linear decodability."""
 
 from __future__ import annotations
 

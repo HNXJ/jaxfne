@@ -1,12 +1,12 @@
 # Configuration Grammar
 
-Define a cortical circuit **declaratively** — layers, cell types, connectivity,
-stimulus, probes, and runtime — without editing package source. Chain fluent
+Define a cortical circuit **declaratively**: layers, cell types, connectivity,
+stimulus, probes, and runtime, without editing package source. Chain fluent
 methods on `Configuration`, then `construct()` compiles your specification into
 a runnable model.
 
-`Configuration` is the primary builder for the fluent API path. Everything else —
-emitters, source tensors, field proxies, probes, objectives, and manifests — is
+`Configuration` is the primary builder for the fluent API path. Everything else:
+emitters, source tensors, field proxies, probes, objectives, and manifests, is
 *compiled from it*.
 
 ```text
@@ -17,7 +17,7 @@ emitters, source tensors, field proxies, probes, objectives, and manifests — i
    Emitter → Source → Field → Probe → Objective → Optimizer → Manifest
 ```
 
-How biophysical the output is — amplitude calibration, morphology, channel detail —
+How biophysical the output is: amplitude calibration, morphology, channel detail,
 follows how much detail you put into the `Configuration` (and any
 [Jaxley](../interop/jaxley_interop.md) models you bridge in); there is no fixed ceiling in the
 backend. Each method below adds specificity to the same chain.
@@ -49,13 +49,13 @@ specifies** and **how it raises biophysical specificity**.
 
 ## Runtime
 
-`.runtime(...)` / `.set_runtime(...)` — execution substrate: `seed`, `dtype`,
+`.runtime(...)` / `.set_runtime(...)`: execution substrate: `seed`, `dtype`,
 `backend`, `jit`, `vmap`, `duration_ms`, `dt_ms`.
 
 Specificity dial: a stable, explicit runtime is the precondition for everything
 else. Enable x64 (`jtfne.enable_x64()`) **before** building arrays, keep `dt_ms`
 small enough for the dynamics you specify, and fix `seed` for reproducibility.
-The runtime does not change the biology — it determines whether the biology you
+The runtime does not change the biology; it determines whether the biology you
 specified is computed faithfully.
 
 ## Geometry
@@ -72,7 +72,7 @@ Specificity dial: geometry is where laminar structure enters. `.column()` names
 the layers and total count; `.geometry(layer_thickness=...)` turns thicknesses
 into cumulative depth bands; `.layer_fractions(...)` makes per-layer neuron counts
 proportional to thickness (or an explicit fraction). Real depth bands are what
-let LFP/CSD and spectrolaminar readouts express depth structure — `.uniform3d()`
+let LFP/CSD and spectrolaminar readouts express depth structure: `.uniform3d()`
 placement collapses layer identity and should be used only for non-laminar models.
 Under `.uniform3d()` every column is one `uniform_3d` layer: `construct()` refuses
 column layers, `.layer_fractions(...)` and per-layer cell-type tables there.
@@ -91,7 +91,7 @@ composition, the more laminar structure the readouts can resolve.
 
 !!! tip "Canonical prior"
     `jtfne.build_laminar_column(n=1000, ei_profile="canonical")` applies the
-    verified per-layer E:I gradient and laminar placement for you — a good
+    verified per-layer E:I gradient and laminar placement for you; a good
     starting point you then refine with the methods above.
 
 ## Connectivity
@@ -111,7 +111,7 @@ oscillations and the band-localized structure spectrolaminar readouts depend on.
 **Mechanism resolution now drives simulated tau when fully declared.**
 `construct()` compiles `.connections()` rules through one of two compilers: a
 sign-only fallback (receptor inferred from weight sign, tau hardcoded
-exc=2 ms/inh=5 ms — the only path that ever ran before this switch) or a
+exc=2 ms/inh=5 ms: the only path that ever ran before this switch) or a
 mechanism-aware path that resolves each rule's `mechanism=` against a
 declared `.mechanisms(name=, kind=, tau_ms=, sign=)` entry for real
 per-edge tau. The mechanism-aware path is selected **only when every**
@@ -150,20 +150,20 @@ Specificity dial: the neuron model and its input. The built-in Izhikevich emitte
 is tunable and float32-stable; `.drive(...)` sets the baseline input per cell
 type; time-varying input is `stimulus_schedule(...)` passed as `paradigm`, and
 noise is `Simulation(poisson_drive=...)`. For real channel biophysics and morphology, bridge a **Jaxley** model
-in as the emitter (see [Jaxley Interoperability](../interop/jaxley_interop.md)) — a Jaxley
+in as the emitter (see [Jaxley Interoperability](../interop/jaxley_interop.md)); a Jaxley
 HH network exports real transmembrane ionic current, the physical generator of
 the extracellular field.
 
 ## Sources
 
-The source tensor is *emergent* — `construct()`/`simulate()` build it from the
+The source tensor is *emergent*; `construct()`/`simulate()` build it from the
 emitter output according to the emitter family and field settings (built-in
 spike/current proxy, or reconstructed HH ionic current via the Jaxley bridge).
 
 Specificity dial: a voltage/spike proxy source is coarse; a real transmembrane
 **current** source (Jaxley HH) is the physically meaningful generator. The
 emitter thus sets the source's fidelity. See
-`JaxleyBridge.simulate_laminar_field` in the Bridges API (`docs/reference/api/model/bridges.md` — repository-internal reference, excluded from the built site).
+`JaxleyBridge.simulate_laminar_field` in the Bridges API (`docs/reference/api/model/bridges.md`: repository-internal reference, excluded from the built site).
 
 ## Fields
 
@@ -185,7 +185,7 @@ calibration is the path from proxy to physical amplitude.
 at `linspace(0, 1, n_contacts)` with projection width 0.10; other positions,
 widths, references and filters raise an error.
 
-Specificity dial: what you measure and at what resolution — `spikes`, `V_m`,
+Specificity dial: what you measure and at what resolution: `spikes`, `V_m`,
 `LFP`, `CSD`, `EEG`, `MEG`, spectrolaminar, with contact geometry (`n_contacts`).
 More contacts and modalities expose more of the model's structure; probes read
 the model without changing it.
@@ -221,15 +221,15 @@ surrogate status governs whether gradient-based tuning is admissible.
 Specificity dial: the receipt. The manifest binds configuration, runtime
 report, artifact hashes, and status fields into a strict JSON-safe record.
 `.validate()` checks the specification before you run. The manifest is what makes
-a result reproducible and auditable — the closing operator of the chain.
+a result reproducible and auditable, the closing operator of the chain.
 
 ---
 
 ## NeuronalTensor: a second on-ramp into the same chain
 
 `Configuration` is not the only way onto the `construct()` compiler.
-`NeuronalTensor` — a declarative `Areas x Layers x NeuronTypes` data model
-(see [`docs/reference/api/model/neuronal_tensor.md`](../../reference/api/model/neuronal_tensor.md)) — is a second,
+`NeuronalTensor`: a declarative `Areas x Layers x NeuronTypes` data model
+(see [`docs/reference/api/model/neuronal_tensor.md`](../../reference/api/model/neuronal_tensor.md)), is a second,
 explicit circuit-definition surface that converges on the same `Model` and the
 same downstream Emitter→Source→Field→Probe→Objective→Optimizer→Manifest chain:
 
@@ -240,9 +240,9 @@ model  = jtfne.construct(tensor, jtfne.RuntimeConfiguration(...))  # same compil
 
 Pick `Configuration` for the fluent-builder style above; pick `NeuronalTensor`
 when you want an explicit, JSON-round-trippable Areas/Layers/NeuronTypes object
-(e.g. for HDP homeostatic plasticity — see [HDP](../state/hdp.md) § "Tensor-first").
+(e.g. for HDP homeostatic plasticity: see [HDP](../state/hdp.md) § "Tensor-first").
 `RuntimeConfiguration` (the tensor path's runtime object) is distinct from the
-`RuntimeConfig` used by `.runtime(...)` above — see HDP guide for the override
+`RuntimeConfig` used by `.runtime(...)` above; see HDP guide for the override
 pattern that lets a tensor-built `Model` still use `RuntimeConfig`'s
 `enable_hdp` field.
 
@@ -250,9 +250,9 @@ pattern that lets a tensor-built `Model` still use `RuntimeConfig`'s
 
 `configured` is the declarative specification (e.g. a connection probability
 `p_EI` or `duration_ms` in `Configuration`/`NeuronalTensor`). `realized` is the
-concrete `Model` after `construct` — inspectable `EdgeList`,
+concrete `Model` after `construct`: inspectable `EdgeList`,
 `positions` (N×3), `neuron_table()`. `executed` is the runtime-realized quantity
-after `simulate` — the actual `Signals` time axis (`dt_ms`, `n_steps`,
+after `simulate`: the actual `Signals` time axis (`dt_ms`, `n_steps`,
 `duration_ms`), `dtype`, and `H`/`W` sizes, which may differ from realized via
 dtype downgrade, dt rounding, or HDP enable. `effective` is reserved for causal
 evidence `ΔX` under intervention (ablation/shuffle/lesion comparison);
@@ -265,17 +265,17 @@ Reading `Configuration` as a compiler reframes the whole package: the object
 grammar (the fluent `cfg` chain) and the TFNE operator grammar
 (Emitter→Source→Field→Probe→Objective→Optimizer→Manifest) are two views of the
 same system. You specify a model declaratively; jaxfne compiles and computes it.
-The fidelity of the result reflects the specification you wrote — which is
+The fidelity of the result reflects the specification you wrote, which is
 why `Configuration` is the primary surface for specifying models.
 
 ## See also
 
-- [Objective Grammar](objective_grammar.md) — the user-facing run sequence (construct/simulate/probe/tune/validate/export) this builder feeds into.
-- [NeuronalTensor API reference](../../reference/api/model/neuronal_tensor.md) · [HDP](../state/hdp.md) — the second, tensor-first on-ramp into `construct()`.
-- [Tensor-Field Workflows](../readout/tensor_field_workflows.md) — the operator chain in depth.
-- TFNE Operator Doctrine (`docs/theory/operator_doctrine.md` — repository-internal reference, excluded from the built site) — the per-stage rule table for this same operator chain.
-- [Jaxley Interoperability](../interop/jaxley_interop.md) — real channels/morphology as emitters.
-- Bridges API (`docs/reference/api/model/bridges.md` — repository-internal reference, excluded from the built site) · [Fields API](../../reference/api/readout/fields.md) · [Objectives API](../../reference/api/readout/objectives.md)
+- [Objective Grammar](objective_grammar.md): the user-facing run sequence (construct/simulate/probe/tune/validate/export) this builder feeds into.
+- [NeuronalTensor API reference](../../reference/api/model/neuronal_tensor.md) · [HDP](../state/hdp.md): the second, tensor-first on-ramp into `construct()`.
+- [Tensor-Field Workflows](../readout/tensor_field_workflows.md): the operator chain in depth.
+- TFNE Operator Doctrine (`docs/theory/operator_doctrine.md`: repository-internal reference, excluded from the built site): the per-stage rule table for this same operator chain.
+- [Jaxley Interoperability](../interop/jaxley_interop.md): real channels/morphology as emitters.
+- Bridges API (`docs/reference/api/model/bridges.md`: repository-internal reference, excluded from the built site) · [Fields API](../../reference/api/readout/fields.md) · [Objectives API](../../reference/api/readout/objectives.md)
 
 ## Interactive atlas (dark)
 

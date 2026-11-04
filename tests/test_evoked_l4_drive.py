@@ -53,13 +53,11 @@ class TestEvokedL4DriveAPI:
             pre_stimulus_buffer_ms=pre_buffer,
         )
 
-        # Check baseline condition
-        baseline = paradigm.conditions[0]
+        baseline =paradigm.conditions[0]
         assert baseline.events[0].onset_ms == l4_onset - pre_buffer
         assert baseline.events[0].duration_ms == pre_buffer
 
-        # Check evoked condition
-        evoked = paradigm.conditions[1]
+        evoked =paradigm.conditions[1]
         # First event should be trial start
         assert evoked.events[0].onset_ms == l4_onset - pre_buffer
         assert evoked.events[0].duration_ms == pre_buffer

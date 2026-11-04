@@ -8,7 +8,7 @@ using jaxfne v0.2.30 stable toolbox.
 Writes atlas-compatible manifest to outputs/v030_01_single_neuron_izhikevich/
 for v0.3 collector validation.
 
-Status status: computational_scaffold, proxy_readout
+Status: computational_scaffold, proxy_readout
 Physical amplitude status allowed: False
 Model status: computational_scaffold
 """
@@ -63,16 +63,8 @@ def write_json(path: Path, obj: Any) -> None:
         json.dump(obj, f, allow_nan=False, indent=2, sort_keys=True)
 
 
-def main(update_canonical: bool = False):
-    """Main tutorial execution.
-
-    Parameters
-    ----------
-    update_canonical : bool, default False
-        When True, write the canonical docs manifest to docs/archive/tutorials_v030/manifests/.
-        Tests should call main() with update_canonical=False (the default) to prevent
-        tracked tutorial artifact drift.
-    """
+def main():
+    """Main tutorial execution."""
 
     print("=" * 80)
     print("v0.3.1 Single Izhikevich Neuron Tutorial")
@@ -156,7 +148,7 @@ def main(update_canonical: bool = False):
     print(f"  Firing rate gate (2-25 Hz): {'PASS' if firing_rate_gate_pass else 'FAIL'}")
     print()
 
-    # Source finite status — None-safe
+    # Source finite status; None-safe
     sources_finite: bool | None
     if signals.sources is not None:
         sources_finite = bool(jnp.all(jnp.isfinite(signals.sources)))
@@ -205,22 +197,22 @@ def main(update_canonical: bool = False):
 
         # === Gate 1: Required embedded blocks ===
 
-        # basis block — immutable status checks (collector checks these)
+        # basis block: immutable status checks (collector checks these)
         "basis": {
             "run_status": "tutorial_scaffold",
-            "model_status": "computational_scaffold",
+            "claim_level": "computational_scaffold",
             "field_solver_status": "linear_solver",
-            "field_model_status": "proxy_readout",
+            "field_claim_level": "proxy_readout",
             "amplitude_status": False,
             "metabolism_status": False,
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
             "source_projection_mode": "proxy_no_field_solve",
         },
 
-        # probe_report block — all 8 operators (collector checks keys)
+        # probe_report block: all 8 operators (collector checks keys)
         "probe_report": probe_report,
 
-        # validation_report block — embedded (collector checks presence)
+        # validation_report block: embedded (collector checks presence)
         "validation_report": {
             "firing_rate_gate_2_25_hz": firing_rate_gate_pass,
             "voltage_finite": bool(np.all(np.isfinite(V_m))),
@@ -243,7 +235,7 @@ def main(update_canonical: bool = False):
             ]) else "FAIL",
         },
 
-        # conservation_proxy_diagnostics block — from model + firing rate
+        # conservation_proxy_diagnostics block: from model + firing rate
         "conservation_proxy_diagnostics": diag,
 
         # === Additional fields ===
@@ -396,7 +388,7 @@ def main(update_canonical: bool = False):
     with open(manifest_path) as f:
         loaded = json.load(f)
     assert loaded["basis"]["amplitude_status"] is False
-    assert loaded["basis"]["model_status"] == "computational_scaffold"
+    assert loaded["basis"]["claim_level"] == "computational_scaffold"
     assert set(loaded["probe_report"].keys()) == {
         "spikes", "V_m", "source", "lfp_proxy", "csd_proxy", "eeg_proxy", "meg_proxy", "emm_proxy"
     }
@@ -405,10 +397,8 @@ def main(update_canonical: bool = False):
     # Also write probe_report.json as a separate file for reference
     write_json(OUT / "probe_report.json", probe_report)
 
-    # Write separate validation_report for reference
     write_json(OUT / "validation_report.json", atlas_manifest["validation_report"])
 
-    # Metrics file
     write_json(OUT / "metrics.json", {
         "duration_ms": duration_ms,
         "dt_ms": dt_ms,
@@ -431,19 +421,6 @@ def main(update_canonical: bool = False):
     hashes["figures/v0301_single_neuron_voltage.png"] = voltage_hash
     hashes["figures/v0301_single_neuron_raster.png"] = raster_hash
     write_json(OUT / "asset_hashes.json", hashes)
-
-    # Only update canonical docs manifests when explicitly requested
-    if update_canonical:
-        canonical_manifest_path = Path("docs/archive/tutorials_v030/manifests/v0301_single_izhikevich_neuron_manifest.json")
-        canonical_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        write_json(canonical_manifest_path, atlas_manifest)
-
-        canonical_report_path = Path("docs/archive/tutorials_v030/reports/v0301_single_izhikevich_neuron_validation_report.json")
-        canonical_report_path.parent.mkdir(parents=True, exist_ok=True)
-        write_json(canonical_report_path, atlas_manifest["validation_report"])
-
-        print(f"Canonical manifest: {canonical_manifest_path}")
-        print(f"Canonical report: {canonical_report_path}")
 
     # ============================================================================
     # Summary

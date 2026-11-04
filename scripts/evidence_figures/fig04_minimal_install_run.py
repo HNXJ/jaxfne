@@ -2,9 +2,9 @@
 """Generate Figure 4: minimal install, 10 s smoke run, multimodal proxy readout receipt.
 
 Outputs:
-  figures/evidence/fig04_minimal_install_run.png
-  outputs/evidence/fig04_minimal_install_run_manifest.json
-  outputs/evidence/fig04_smoke_stdout.log
+  artifacts/_temp/figures/evidence/fig04_minimal_install_run.png
+  artifacts/_temp/outputs/evidence/fig04_minimal_install_run_manifest.json
+  artifacts/_temp/outputs/evidence/fig04_smoke_stdout.log
 """
 
 from __future__ import annotations
@@ -301,7 +301,7 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"wrote: {smoke_receipt_path}")

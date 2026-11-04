@@ -212,19 +212,22 @@ def run(seed, tag, out_dir, *, n=20, T_s=1.0, signed=False):
         np.savez_compressed(f, spikes=spikes)
     import os
 
+    import jax
+
     os.replace(tmp, out / fname)
+    backend = jax.default_backend()  # the backend the run used, never a fixed label
     entry = {"seed": int(seed), "tag": tag, "file": fname,
              "engine": "lif-stand-in-S1",
              "n": int(spikes.shape[1]), "steps": int(spikes.shape[0]),
              "dt_ms": DT_MS, "duration_ms": float(T_s) * 1000.0,
-             "dtype": "float32", "backend": "cpu",
+             "dtype": "float32", "backend": backend,
              "poisson_drive": {"rate_hz": POISSON_RATE_HZ,
                                "amplitude": POISSON_AMPLITUDE_MV,
                                "seed": int(seed)},
              "wall_s": {"construct": t_construct, "simulate": t_simulate},
              "regime": regime, "layer_rates_hz": layer_rates}
     entries[fname] = entry
-    manifest = {"git_sha": sha, "dtype": "float32", "backend": "cpu",
+    manifest = {"git_sha": sha, "dtype": "float32", "backend": backend,
                 "engine": "lif-stand-in-S1 (PORT_SPEC.md; gap G1)",
                 "runs": list(entries.values())}
     lane_kit.write_manifest(out, "manifest.json", manifest, sha=sha)

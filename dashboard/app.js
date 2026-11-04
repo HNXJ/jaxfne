@@ -593,16 +593,16 @@ var CLASSES = [
     def: "A signed preregistration passes under a stated condition, shown beside the class." },
   { id: "mixed", label: "Mixed", chip: "chip-partial", symbol: "◑",
     def: "A signed preregistration scored with some primary criteria reproduced and others missed, named beside the class." },
+  { id: "pending", label: "Pending", chip: "chip-incomplete", symbol: "◔",
+    def: "A signed preregistration scored without a pass. The paper stays open until a failure is proven; failed criteria and panels are shown (B2)." },
   { id: "in progress", label: "In progress", chip: "chip-incomplete", symbol: "…",
-    def: "On the replication pipeline (P0–P7); the stage track shows how far it is. A preregistration scored without a pass keeps the paper here, with its criteria shown." },
+    def: "On the replication pipeline (P0–P7) with no signed preregistration scored yet; the stage track shows how far it is." },
   { id: "not started", label: "Not started", chip: "chip-incomplete", symbol: "○",
     def: "Planned for a release; no work on the pipeline yet." },
-  { id: "failed", label: "Failed", chip: "chip-fail", symbol: "✗",
-    def: "Closed without reproducing the paper's result, with the reason stated (B2)." },
   { id: "core method", label: "Core method checks", chip: "chip-accent", symbol: "◈",
     def: "Analytic checks of a core method against closed-form references, scored by a script; not a paper replication." }
 ];
-var SCORED_CLASSES = ["reproduced", "reproduced (conditional)", "mixed", "failed"];
+var SCORED_CLASSES = ["reproduced", "reproduced (conditional)", "mixed", "pending"];
 var TABS = ["overview", "models", "validation", "figures", "roadmap", "method"];
 
 function classInfo(id) {
@@ -700,9 +700,30 @@ function paperCard(paper) {
     chips.appendChild(meth);
   }
   card.appendChild(chips);
+  if (paper.replica) card.appendChild(el("p", replicaText(paper.replica))).className = "small";
   if (paper.question) card.appendChild(el("p", paper.question));
   if ((paper.criteria || []).length) card.appendChild(el("p", passCount(paper))).className = "pass-count";
   return card;
+}
+
+/* Replica score: share of the paper's result panels reproduced (pass 1, partial 0.5); 100 is a full replica. */
+function replicaText(r) {
+  if (r.score === null || r.score === undefined) return "Replica score: not scored (no panel inventory)";
+  var c = r.counts || {};
+  return "Replica score " + r.score + "/100 over " + r.panels + " result panels (" +
+    (c.pass || 0) + " pass, " + (c.partial || 0) + " partial, " + (c.fail || 0) + " fail, " +
+    (c["not run"] || 0) + " not run)" + (r.same_as ? "; inventory of " + r.same_as : "");
+}
+
+function replicaPanels(r) {
+  var box = el("details");
+  box.appendChild(el("summary", "Result panels"));
+  var list = el("ul");
+  (r.items || []).forEach(function (it) {
+    list.appendChild(el("li", it.id + ": " + it.status + (it.note ? " (" + it.note + ")" : "")));
+  });
+  box.appendChild(list);
+  return box;
 }
 
 function renderOverview(view, data) {
@@ -779,6 +800,10 @@ function renderModel(view, data, paper) {
     if (paper.verdict_note) chips.appendChild(el("span", " " + paper.verdict_note));
   }
   card.appendChild(chips);
+  if (paper.replica) {
+    card.appendChild(el("p", replicaText(paper.replica))).className = "small";
+    if ((paper.replica.items || []).length) card.appendChild(replicaPanels(paper.replica));
+  }
   var summary = paper.verdict_summary || null;
   if (summary && summary.library) {
     var libLine = el("p");

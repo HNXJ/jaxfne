@@ -71,7 +71,7 @@ def _spy_spectrogram(monkeypatch, calls):
 
 
 def test_proxy_spectrolaminar_differs_from_jnwb_by_float32_interp_grid():
-    # fields/proxy.py:911 downcasts to float32 (so welch_psd takes its scipy
+    # jaxfne/fields/proxy.py:911 downcasts to float32 (so welch_psd takes its scipy
     # path, never the jnwb float64 path) and :926-927 interpolates each
     # channel's Welch PSD onto a fixed 128-point linspace grid.
     from jaxfne.fields.proxy import spectrolaminar_psd
@@ -99,7 +99,7 @@ def test_proxy_spectrolaminar_differs_from_jnwb_by_float32_interp_grid():
 
 
 def test_proxy_spectrolaminar_fallback_differs_from_jnwb_by_periodogram(monkeypatch):
-    # fields/proxy.py:929-931 except-branch periodogram: |rfft(x - mean)|**2 / T
+    # jaxfne/fields/proxy.py:929-931 except-branch periodogram: |rfft(x - mean)|**2 / T
     # on the raw grid, interpolated onto the linspace grid. No window, no
     # segment averaging, no density scaling: not a Welch PSD.
     from jaxfne.fields import proxy as _proxy
@@ -134,7 +134,7 @@ def test_proxy_spectrolaminar_fallback_differs_from_jnwb_by_periodogram(monkeypa
 
 
 def test_proxy_coherence_differs_from_jnwb_by_coherence_ratio():
-    # fields/proxy.py:1121-1126 Welch autospectra plus scipy csd, interpolated
+    # jaxfne/fields/proxy.py:1121-1126 Welch autospectra plus scipy csd, interpolated
     # onto the linspace grid, then :1140-1146 form |Pxy|^2/(Pxx*Pyy) with
     # valid-gating. The output is a coherence ratio, not a PSD.
     from jaxfne.fields.proxy import cross_area_coherence
@@ -206,7 +206,7 @@ def test_tutorial_hann_psd_differs_from_jnwb_by_single_symmetric_taper():
 
 
 def test_estimator_differs_from_jnwb_by_peak_frequency():
-    # protocol_c/estimator.py:73-79: summed |rfft|^2 site power, argmax in band.
+    # jaxfne/protocol_c/estimator.py:73-79: summed |rfft|^2 site power, argmax in band.
     # The public estimate_traveling_wave returns a scalar peak frequency, not a
     # PSD, so there is no spectrum to equate with jnwb.compute_psd.
     from jaxfne.protocol_c.estimator import estimate_traveling_wave
@@ -250,7 +250,7 @@ def _jax_dft_psd_numpy(signal_f32, fs=1000.0):
 
 
 def test_jax_dft_psd_differs_from_jnwb_by_dft_projection():
-    # analysis/spectral.py:23-82 spectrolaminar_psd_jax: unnormalized DFT
+    # jaxfne/analysis/spectral.py:23-82 spectrolaminar_psd_jax: unnormalized DFT
     # projection onto a 96-point grid, trial-averaged magnitude (not squared
     # power, no Welch segmentation). Output is (96, n_contacts) float32.
     from jaxfne.analysis.spectral import spectrolaminar_psd_jax
@@ -277,7 +277,7 @@ def test_jax_dft_psd_differs_from_jnwb_by_dft_projection():
 
 
 def test_bandpower_differs_from_jnwb_by_normalized_profile():
-    # analysis/spectral.py:86-114 bandpower_jax: in-band mean normalized by the
+    # jaxfne/analysis/spectral.py:86-114 bandpower_jax: in-band mean normalized by the
     # peak channel value. Output is an (n_contacts,) profile in [0, 1] with
     # max 1, not a PSD.
     from jaxfne.analysis.spectral import bandpower_jax
@@ -311,7 +311,7 @@ def test_bandpower_differs_from_jnwb_by_normalized_profile():
 
 
 def test_spectra_spectrogram_differs_from_jnwb_by_time_frequency_tiling(monkeypatch, agg):
-    # vis/spectra.py:125 segmented-STFT spectrogram of the first column with
+    # jaxfne/vis/spectra.py:125 segmented-STFT spectrogram of the first column with
     # nperseg=min(128, T). Output is a (freqs, segments) tiling, not an
     # averaged Welch PSD.
     import matplotlib.pyplot as plt
@@ -345,7 +345,7 @@ def test_spectra_spectrogram_differs_from_jnwb_by_time_frequency_tiling(monkeypa
 
 
 def test_spectra_plot_profiles_differs_from_jnwb_by_time_frequency_tiling(monkeypatch, agg):
-    # vis/spectra.py:35 segmented-STFT spectrogram of the first row with
+    # jaxfne/vis/spectra.py:35 segmented-STFT spectrogram of the first row with
     # adaptive nperseg=min(256, max(8, T // 4)). Output is a (freqs,
     # segments) tiling, not an averaged Welch PSD.
     import matplotlib.pyplot as plt

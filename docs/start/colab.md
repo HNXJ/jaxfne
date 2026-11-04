@@ -1,7 +1,7 @@
 # Google Colab Quick Start
 
 Run jaxfne examples in Google Colab without local setup. Installs the
-published PyPI release `jaxfne==0.5.7` (tag `v0.5.7`; previous release `0.5.6`).
+published PyPI release `jaxfne==0.5.8` (tag `v0.5.8`; previous release `0.5.7`).
 
 ---
 
@@ -20,7 +20,7 @@ Open a new Colab notebook: https://colab.research.google.com/
 **Expected output:**
 ```
 Installing collected packages: jaxfne
-Successfully installed jaxfne-0.5.7
+Successfully installed jaxfne-0.5.8
 ```
 
 ---
@@ -82,7 +82,7 @@ print(f"Spike rate: {signals.spikes.sum() / len(signals.time_ms):.2f} spikes/ms"
 **Expected output:**
 ```
 === Computation Contract ===
-Version: 0.5.7
+Version: 0.5.8
 Claim level: computational_scaffold
 Physical amplitude calibrated: False
 Field solver status: linear_solver
@@ -104,7 +104,8 @@ Timesteps: 1000
 Spike rate: 0.00 spikes/ms
 ```
 
-![Single neuron (1n)](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.png)
+![Single neuron (1n)](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.png#only-light)
+![Single neuron (1n)](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.dark.png#only-dark)
 *Single neuron (1n): spike raster.*
 
 Interactive dark-theme panels for this run: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/single_neuron/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/single_neuron/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/single_neuron/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/single_neuron/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/single_neuron/oscillatory.html)
@@ -150,7 +151,8 @@ Inhibitory firing rate: 0.00 Hz
 ✓ Status checks immutable: physical_amplitude_calibrated = False
 ```
 
-![Two-neuron E/I (2n)](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.png)
+![Two-neuron E/I (2n)](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.png#only-light)
+![Two-neuron E/I (2n)](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.dark.png#only-dark)
 *Two-neuron E/I (2n): spike raster.*
 
 Interactive dark-theme panels for this circuit (500 ms, dt 0.5 ms): [Circuit schematic](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/two_neuron_ei/oscillatory.html)
@@ -288,5 +290,5 @@ Indicates a simulation issue (e.g., numerical instability). Check:
 
 ## See Also
 
-- [Computation Basis](../theory/computation_basis.md) — Detailed computation contract
-- Conservation Proxy Diagnostics (`docs/theory/notes/conservation_proxy_diagnostics.md` — repository-internal reference, excluded from the built site) — Diagnostics reference
+- [Computation Basis](../theory/computation_basis.md): Detailed computation contract
+- Conservation Proxy Diagnostics (`docs/theory/notes/conservation_proxy_diagnostics.md`: repository-internal reference, excluded from the built site): Diagnostics reference

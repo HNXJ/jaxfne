@@ -143,6 +143,10 @@ def _generated(path, data):
 
 def test_build_attributes_a_crashed_generator_and_skips_the_gallery(monkeypatch, capsys):
     calls = []
+    # build() also runs the registry copies, which write into the tree; this case needs none.
+    reg = bda.load_registry()
+    reg.pop("copies", None)
+    monkeypatch.setattr(bda, "load_registry", lambda: reg)
     monkeypatch.setattr(bda, "_run", _fake_run(calls, 1, stderr="Traceback\nMemoryError: out of memory"))
     monkeypatch.setattr(bda, "_repo_guard", lambda: None)
     assert bda.build(["two_neuron_ei"]) == 1
@@ -187,6 +191,10 @@ def test_build_fails_when_a_registry_html_file_is_not_written(tmp_path, monkeypa
 
 def test_build_reads_a_failed_line_for_its_own_slug_only(monkeypatch, capsys):
     calls = []
+    # build() also runs the registry copies, which write into the tree; this case needs none.
+    reg = bda.load_registry()
+    reg.pop("copies", None)
+    monkeypatch.setattr(bda, "load_registry", lambda: reg)
     monkeypatch.setattr(bda, "_run", _fake_run(calls, 1, stdout="[hdp_1000] FAILED: ValueError('x')\n"))
     monkeypatch.setattr(bda, "_repo_guard", lambda: None)
     assert bda.build(["hdp_10", "hdp_1000"]) == 1
@@ -214,7 +222,7 @@ def test_links_on_tree_resolve():
 
 
 def test_raw_iframe_resolves_from_the_page_url():
-    # docs/guides/p.md is served at /guides/p/: a raw src needs two levels up to reach _static.
+    # A page served at /guides/p/: a raw src needs two levels up to reach _static.
     frame = '<iframe src="{}_static/atlas/two_neuron_ei/index.html"></iframe>'
     shallow = _link_problems("docs/guides/p.md", frame.format("../"))
     assert len(shallow) == 1 and "raw HTML" in shallow[0], shallow
@@ -244,11 +252,10 @@ def test_atlas_link_must_name_a_built_file():
 
 
 def test_other_html_link_must_name_a_file_on_disk():
-    # Non-registry HTML paths are checked on disk; the tracked jaxley interop
-    # page is such a file (the visuals/ HTML is an untracked build product
-    # since 2026-10-22).
-    target = "../../_static/jaxley_interop/vm_dark.html"
-    assert (REPO / "docs/_static/jaxley_interop/vm_dark.html").is_file(), "fixture needs a tracked page"
+    # Non-registry HTML paths are checked on disk; the tracked explorer page is
+    # such a file (the visuals/ HTML is an untracked build product since 2026-10-22).
+    target = "../../assets/interactive/izhikevich_single_emitter_explorer.html"
+    assert (REPO / "docs/assets/interactive/izhikevich_single_emitter_explorer.html").is_file(), "fixture needs a tracked page"
     assert _link_problems("docs/etudes/p.md", f'<iframe src="{target}"></iframe>') == []
     missing = _link_problems("docs/etudes/p.md", '<iframe src="../../_static/etudes/none.html"></iframe>')
     assert len(missing) == 1 and "names no file" in missing[0], missing
@@ -472,12 +479,15 @@ def test_site_writes_html_png_and_manifest_for_cheapest_slug(tmp_path):
         assert html.is_file() and html.stat().st_size > 0, f"{name} html missing"
         assert isinstance(fig["docs_pages"], list)
         if status in ("OMITTED", "ERROR"):
-            assert fig["status"] == "omitted" and "png" not in fig, name
+            assert fig["status"] == "omitted" and "png" not in fig and "png_dark" not in fig, name
         else:
             assert fig["status"] == "available", name
             png = site / fig["png"]
             assert png.is_file(), f"{name} png missing"
             assert png.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n" and png.stat().st_size > 0, name
+            dark = site / fig["png_dark"]
+            assert dark.is_file(), f"{name} dark png missing"
+            assert dark.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n" and dark.stat().st_size > 0, name
 
 
 @pytest.mark.slow
@@ -550,6 +560,7 @@ def test_site_builds_a_docs_visual_slug(tmp_path, monkeypatch):
     [entry] = manifest["figures"]
     assert entry["status"] == "available" and entry["title"] == "visual"
     assert (site / entry["html"]).is_file() and (site / entry["png"]).is_file()
+    assert (site / entry["png_dark"]).is_file()
 
 
 def test_site_completeness_fails_when_png_missing(tmp_path):
@@ -558,9 +569,10 @@ def test_site_completeness_fails_when_png_missing(tmp_path):
     (site / "s" / "raster.html").write_bytes(b"<html></html>")
     (site / "s" / "hdp.html").write_bytes(b"<html></html>")
     (site / "s" / "raster.png").write_bytes(b"\x89PNG" + b"\x00" * 16)
+    (site / "s" / "raster.dark.png").write_bytes(b"\x89PNG" + b"\x00" * 16)
     manifest = {"schema": bda.SITE_SCHEMA, "build_sha": "0" * 40, "figures": [
         {"slug": "s", "panel": "raster", "html": "s/raster.html",
-         "png": "s/raster.png", "title": "t", "status": "available",
+         "png": "s/raster.png", "png_dark": "s/raster.dark.png", "title": "t", "status": "available",
          "docs_pages": []},
         {"slug": "s", "panel": "hdp", "html": "s/hdp.html",
          "title": "t", "status": "omitted", "docs_pages": []}]}
@@ -654,7 +666,7 @@ def test_site_fails_when_docs_cite_an_omitted_figure():
     omitted = [{"slug": "e", "panel": "raster", "html": "e/raster.html", "status": "omitted"}]
     problems = bda.check_cited_figures(omitted, ["e"], {page: text})
     assert len(problems) == 2 and all("e/raster." in p for p in problems), problems
-    available = [dict(omitted[0], status="available", png="e/raster.png")]
+    available = [dict(omitted[0], status="available", png="e/raster.png", png_dark="e/raster.dark.png")]
     assert bda.check_cited_figures(available, ["e"], {page: text}) == []
 
 
@@ -718,3 +730,156 @@ def test_figures_tab_cards_and_style_use_the_dashboard_tokens():
     assert "var(--surface)" in css.split(".fig-card")[1].split("}")[0], (
         "fig cards sit on the dashboard surface token"
     )
+
+
+# --- Light and dark twins of the docs stills (each still is <stem>.png and <stem>.dark.png) ---
+
+FIG_STILL = "https://hnxj.github.io/jaxfne/figures/readme/raster"
+
+
+def _record_stills(monkeypatch):
+    """Replace the PNG writer; return {file name: (paper colour, width, height)} of each still written."""
+    import jaxfne.vis.exporters as exporters
+
+    painted = {}
+
+    def record(fig, path):
+        name = pathlib.Path(path).name
+        painted[name] = (fig.layout.paper_bgcolor, fig.layout.width, fig.layout.height)
+        pathlib.Path(path).write_bytes(b"\x89PNG\r\n\x1a\n")
+
+    monkeypatch.setattr(exporters, "_write_image", record)
+    return painted
+
+
+def test_site_writes_a_light_and_a_dark_still_for_a_visual_slug(tmp_path, monkeypatch):
+    import sys
+    import types
+
+    import plotly.graph_objects as go
+
+    from jaxfne.vis.figure_theme import DARK, LIGHT
+
+    slug = bda.VISUAL_SLUGS[0]
+    fake = types.ModuleType("generate_docs_visuals")
+    fake.FIGURES = {slug: lambda: go.Figure(go.Scatter(x=[0, 1], y=[0, 1]),
+                                            layout={"title": {"text": "visual"}})}
+    monkeypatch.setitem(sys.modules, "generate_docs_visuals", fake)
+    painted = _record_stills(monkeypatch)
+    site = tmp_path / "figsite"
+    assert bda.main(["--site", str(site), "--only", slug]) == 0
+    size = (bda.FIG_PNG_WIDTH, bda.FIG_PNG_HEIGHT)
+    assert painted == {f"{slug}.png": (LIGHT["paper_bgcolor"], *size),
+                       f"{slug}.dark.png": (DARK["paper_bgcolor"], *size)}
+    manifest = json.loads((site / "manifest.json").read_text(encoding="utf-8"))
+    [entry] = manifest["figures"]
+    assert entry["png"] == f"{slug}/{slug}.png" and entry["png_dark"] == f"{slug}/{slug}.dark.png"
+    assert (site / entry["png"]).is_file() and (site / entry["png_dark"]).is_file()
+
+
+def test_site_writes_a_light_and_a_dark_still_for_an_etude_panel(tmp_path, monkeypatch):
+    import plotly.graph_objects as go
+
+    import scripts.rerun_etude_figures as rerun
+    from jaxfne.vis.figure_theme import DARK, LIGHT
+
+    def fake(out_dir, figures=None, **kw):
+        figures["fixture_panel.html"] = go.Figure(go.Scatter(x=[0, 1], y=[0, 1]))
+        return [{"file": "fixture_panel.html", "panel": "fixture_panel", "status": "AVAILABLE"}]
+
+    monkeypatch.setitem(rerun.MODES, "hdp_mcc3", ("hdp_controllability_reachability", fake))
+    painted = _record_stills(monkeypatch)
+    [entry] = bda._build_site_etude_slug("hdp_controllability_reachability", tmp_path,
+                                         bda.load_registry(), {})
+    slug = "hdp_controllability_reachability"
+    assert entry["status"] == "available"
+    assert entry["png"] == f"{slug}/fixture_panel.png"
+    assert entry["png_dark"] == f"{slug}/fixture_panel.dark.png"
+    size = (bda.FIG_PNG_WIDTH, bda.FIG_PNG_HEIGHT)
+    assert painted == {"fixture_panel.png": (LIGHT["paper_bgcolor"], *size),
+                       "fixture_panel.dark.png": (DARK["paper_bgcolor"], *size)}
+    assert (tmp_path / entry["png_dark"]).is_file()
+
+
+def test_site_completeness_fails_when_a_dark_still_is_missing(tmp_path):
+    site = tmp_path / "site"
+    (site / "s").mkdir(parents=True)
+    (site / "s" / "raster.html").write_bytes(b"<html></html>")
+    (site / "s" / "raster.png").write_bytes(b"\x89PNG" + b"\x00" * 16)
+    (site / "s" / "raster.dark.png").write_bytes(b"\x89PNG" + b"\x00" * 16)
+    manifest = {"schema": bda.SITE_SCHEMA, "build_sha": "0" * 40, "figures": [
+        {"slug": "s", "panel": "raster", "html": "s/raster.html", "png": "s/raster.png",
+         "png_dark": "s/raster.dark.png", "title": "t", "status": "available", "docs_pages": []}]}
+    (site / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    assert bda.check_site_figures(site) == []
+    (site / "s" / "raster.dark.png").unlink()
+    problems = bda.check_site_figures(site)
+    assert len(problems) == 1 and "png_dark missing" in problems[0], problems
+
+
+@pytest.mark.parametrize("text", [
+    f"![r]({FIG_STILL}.png)\n",                       # no scheme fragment
+    f"![r]({FIG_STILL}.png#only-light)\n",            # light twin without its dark twin
+    f"![r]({FIG_STILL}.dark.png#only-dark)\n",        # dark twin without its light twin
+    f"![r]({FIG_STILL}.dark.png#only-light)\n![r]({FIG_STILL}.png#only-dark)\n",  # fragments swapped
+    '<img src="assets/visuals/column_network.png" alt="c">\n',  # docs/assets/visuals, no fragment
+])
+def test_docs_figures_check_fails_on_an_unpaired_still(monkeypatch, capsys, text):
+    page = REPO / "docs" / "index.md"
+    monkeypatch.setattr(bda, "docs_pages", lambda: {page: text})
+    assert bda.docs_figures_check() == 1
+    assert "#only-" in capsys.readouterr().out
+
+
+def test_docs_figures_check_passes_on_a_still_pair(monkeypatch, capsys):
+    page = REPO / "docs" / "index.md"
+    text = (f"![r]({FIG_STILL}.png#only-light)\n"
+            f"![r]({FIG_STILL}.dark.png#only-dark)\n"
+            '<img src="assets/visuals/column_network.png#only-light" alt="c">'
+            '<img src="assets/visuals/column_network.dark.png#only-dark" alt="c">\n')
+    monkeypatch.setattr(bda, "docs_pages", lambda: {page: text})
+    assert bda.docs_figures_check() == 0
+    assert "0 problems" in capsys.readouterr().out
+
+
+def test_docs_figures_check_fails_when_a_visuals_twin_is_missing_on_disk(tmp_path, monkeypatch, capsys):
+    visuals = tmp_path / "docs" / "assets" / "visuals"
+    visuals.mkdir(parents=True)
+    (visuals / "demo.png").write_bytes(b"\x89PNG")
+    # load_registry checks the copies sources under ROOT; this case needs none of them.
+    monkeypatch.setattr(bda, "load_registry", lambda: {"atlases": [], "etudes": []})
+    monkeypatch.setattr(bda, "ROOT", tmp_path)
+    monkeypatch.setattr(bda, "docs_pages", lambda: {})
+    assert bda.docs_figures_check() == 1
+    assert "demo.dark.png" in capsys.readouterr().out
+
+
+def _load_docs_visuals():
+    spec = importlib.util.spec_from_file_location(
+        "generate_docs_visuals", REPO / "scripts" / "generate_docs_visuals.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_docs_visuals_write_a_light_and_a_dark_still(tmp_path, monkeypatch):
+    import plotly.graph_objects as go
+
+    from jaxfne.vis.figure_theme import DARK, LIGHT
+
+    gv = _load_docs_visuals()
+    monkeypatch.setattr(gv, "FIGURES", {"demo": lambda: go.Figure(go.Scatter(x=[0, 1], y=[0, 1]))})
+    monkeypatch.setattr(gv, "STILL_ONLY", {"demo"})
+    monkeypatch.setattr(gv, "PNG_DIR", tmp_path / "png")
+    monkeypatch.setattr(gv, "HTML_DIR", tmp_path / "html")
+    painted = {}
+
+    def record(fig, path):
+        name = pathlib.Path(path).name
+        painted[name] = (fig.layout.paper_bgcolor, fig.layout.width, fig.layout.height, fig.layout.margin.t)
+        pathlib.Path(path).write_bytes(b"\x89PNG\r\n\x1a\n")
+
+    monkeypatch.setattr(gv, "_write_image", record)
+    assert gv.main() == 0
+    assert painted == {"demo.png": (LIGHT["paper_bgcolor"], 1000, 760, 50),
+                       "demo.dark.png": (DARK["paper_bgcolor"], 1000, 760, 50)}

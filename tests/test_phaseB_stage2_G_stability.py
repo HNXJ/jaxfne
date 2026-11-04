@@ -1,4 +1,4 @@
-"""Phase B — Stage 2: G-adaptation stability sweep.
+"""Phase B, Stage 2: G-adaptation stability sweep.
 
 Verifies the stability of the three-timescale system (fast x, intermediate
 G, slow H) under each conductance_rule with homeostasis_rule="cubic_penalty"
@@ -28,7 +28,7 @@ in simulate_homeostatic_ei's docstring under "Conductance-rule stability".
 
 Test assertions reflect the measured outcomes:
   - For BCM: assert G finite, bounded, and H interior (no convergence
-    assertion required — BCM is documented as the stabilizing rule).
+    assertion required; BCM is documented as the stabilizing rule).
   - For hebbian/linear/hebbian_pairwise: assert G is NOT finite (diverges),
     documenting the instability under this configuration.
 """
@@ -89,7 +89,7 @@ def test_bcm_converges_and_bounded() -> None:
     assert bool(jnp.all(jnp.isfinite(H_hist[-500:]))), "BCM H should be finite"
     assert bool(jnp.all(H_hist[-1] > H_MIN)), f"BCM H not interior (min): {H_hist[-1].tolist()}"
     assert bool(jnp.all(H_hist[-1] < H_MAX)), f"BCM H not interior (max): {H_hist[-1].tolist()}"
-    # Note: we do NOT assert late-window |ΔG| < tol for BCM —
+    # Note: we do NOT assert late-window |ΔG| < tol for BCM:
     # convergence is observed but the test documents the qualitative
     # stability (finite + bounded) per the roadmap's bcm exception.
 

@@ -1,13 +1,13 @@
 """Example 02: standard visual omission task paradigm scaffold.
 
 Demonstrates the standard_visual_omission() paradigm object introduced in
-jaxfne v0.0.5-P1.  No simulation is run here — this example shows the
+jaxfne v0.0.5-P1.  No simulation is run here; this example shows the
 task-flow grammar (conditions, event codes, analysis windows) and verifies
 that the full paradigm serializes to strict JSON.
 
-Scientific status status:
+Scientific status:
   run_status: tutorial_scaffold
-  model_status: computational_scaffold
+  claim_level: computational_scaffold
   mechanism_status: outside_run
   empirical_validation_status: not_empirically_validated
 
@@ -81,7 +81,7 @@ def main():
 
     print("\n=== Scientific status status ===")
     print("  run_status: tutorial_scaffold")
-    print("  model_status: computational_scaffold")
+    print("  claim_level: computational_scaffold")
     print("  mechanism_status: outside_run")
     print("  mechanism_claim_status: not_claimed")
     print("  empirical_validation_status: not_empirically_validated")

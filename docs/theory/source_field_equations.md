@@ -413,8 +413,8 @@ Before releasing a model, verify:
 
 ## See Also
 
-- [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Formal equations, term glossaries, bridge terms, statement boundaries
-- [Probe Operators](../guides/readout/probe_operators.md) — Readout modalities (SPK, Vm, source, LFP, CSD, EEG, MEG, EMM)
-- [Output Bundles](../guides/readout/output_bundles.md) — Manifest and report schema
-- [Scope and Limitations](../reference/project/limitations_and_future_plans.md) — statement boundaries and scope
-- [Computation Basis](computation_basis.md) — Per-stage source/field/probe semantics and rule boundaries
+- [Mathematical Glossary Flow](mathematical_glossary_flow.md): Formal equations, term glossaries, bridge terms, statement boundaries
+- [Probe Operators](../guides/readout/probe_operators.md): Readout modalities (SPK, Vm, source, LFP, CSD, EEG, MEG, EMM)
+- [Output Bundles](../guides/readout/output_bundles.md): Manifest and report schema
+- [Scope and Limitations](../reference/project/limitations_and_future_plans.md): statement boundaries and scope
+- [Computation Basis](computation_basis.md): Per-stage source/field/probe semantics and rule boundaries

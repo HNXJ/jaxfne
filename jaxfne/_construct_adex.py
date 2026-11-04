@@ -39,6 +39,9 @@ ADEX_CONSUMED = (
     ("Simulation", "dt_ms"),
     ("Simulation", "runtime"),
     ("Simulation", "poisson_drive"),
+    ("Simulation", "silence"),
+    ("Simulation", "replace"),
+    ("Simulation", "edge_gain"),
     # RuntimeConfig seed and n_steps are owned by Simulation (resolved_runtime replaces them, and
     # Simulation.__post_init__ refuses a conflicting value).
     ("RuntimeConfig", "seed"),
@@ -60,6 +63,10 @@ ADEX_CONSUMED = (
     ("Configuration", "metadata", "circuit", "mechanisms", "*", "params", "tau_ms"),
     ("Configuration", "metadata", "circuit", "mechanisms", "*", "params", "reversal_mV"),
     ("Configuration", "metadata", "circuit", "mechanisms", "*", "status"),
+    # cell_params(): per-type AdEx overrides (selector {"cell_type": ...}, scalar AdEx
+    # fields); the explicit pre-gate in refuse_adex_configuration refuses every other
+    # selector and key, so the allowlist admits the subtree whole.
+    ("Configuration", "metadata", "circuit", "cell_params", "**"),
     # connections(): the rule fields the compiler reads for this route; status is the builder's.
     ("Configuration", "metadata", "circuit", "connections", "*", "name"),
     ("Configuration", "metadata", "circuit", "connections", "*", "source", "**"),
@@ -96,6 +103,7 @@ ADEX_UNSET_IS_DEFAULT = (
     ("Configuration", "metadata", "circuit", "connections", "*", "control_key"),
     ("Configuration", "metadata", "circuit", "connections", "*", "max_in_degree"),
     ("Configuration", "metadata", "circuit", "connections", "*", "spatial_sigma"),
+    ("Configuration", "metadata", "circuit", "connections", "*", "spatial_radius"),
 )
 
 # The flags _append_circuit writes: True once a circuit is declared, False until it is compiled.
@@ -197,6 +205,7 @@ def refuse_adex_configuration(cfg: Configuration) -> None:
     for key, written in _BUILDER_FLAGS:
         if key in cfg.metadata and not (circuit and cfg.metadata[key] is written):
             _refuse(("Configuration", "metadata", key), cfg.metadata[key])
+    _refuse_adex_cell_params(cfg)
     defaults = Configuration()
     metadata_default = {**_runtime_defaults(), **defaults.metadata}
     found: list[tuple[tuple, Any]] = []
@@ -205,6 +214,319 @@ def refuse_adex_configuration(cfg: Configuration) -> None:
         _unconsumed(getattr(cfg, f.name), default, ("Configuration", f.name), found)
     if found:
         _refuse(*found[0])
+
+
+# Izhikevich-only cell_params keys: declared for the union in Configuration.cell_params,
+# refused below -- the AdEx kernel has no such fields.
+_IZHIKEVICH_CELL_PARAMS_KEYS = frozenset({"a", "b", "c", "d", "drive", "v0", "u0"})
+
+
+def _refuse_adex_cell_params(cfg: Configuration) -> None:
+    """Refuse the cell_params entries the adex route does not realize, naming each key.
+
+    Realized: one entry per cell type with selector exactly ``{"cell_type": <type>}``
+    (a declared AdEx type present in ``network(cell_types=...)``) and params holding
+    scalar finite AdEx fields (``_ADEX_PARAM_FIELDS``) inside the kernel's physical
+    range (``C_pF``, ``gL_nS``, ``tauw_ms`` above 0; ``Tref_ms``, ``Delta_mV`` at or
+    above 0; an ``EL_mV`` above ``VT_mV`` is a valid tonically firing regime),
+    ``Vpeak_mV`` above the entry's
+    ``EL_mV``. Anything else -- another selector, an unknown or Izhikevich-only key,
+    a non-scalar value, an unphysical value, an undeclared type, a repeated
+    (type, field) pair -- raises ``ValueError`` naming the entry and the key.
+    """
+    from .emitters_adex import ADEX_CELL_TYPE_DEFAULTS
+
+    entries = (cfg.metadata.get("circuit") or {}).get("cell_params") or []
+    if not entries:
+        return
+    net = cfg.networks[0] if cfg.networks else {}
+    declared_types = set((net.get("cell_types") or {}))
+    seen: set[tuple[str, str]] = set()
+    for pos, entry in enumerate(entries):
+        where = f"cell_params entry {pos}"
+        selector = dict(entry.get("selector") or {})
+        if set(selector) != {"cell_type"}:
+            raise ValueError(
+                f"{where} selector {selector!r} is not realized for emitter family 'adex': "
+                "the adex route realizes per-type overrides with selector {'cell_type': <type>}"
+            )
+        ctype = selector["cell_type"]
+        if ctype not in ADEX_CELL_TYPE_DEFAULTS:
+            raise ValueError(
+                f"{where} names unknown AdEx cell type {ctype!r}; "
+                f"expected one of {sorted(ADEX_CELL_TYPE_DEFAULTS)}"
+            )
+        if ctype not in declared_types:
+            raise ValueError(
+                f"{where} names cell type {ctype!r}, which network(cell_types=...) "
+                "does not declare"
+            )
+        params = dict(entry.get("params") or {})
+        bad = sorted(set(params) - set(_ADEX_PARAM_FIELDS))
+        if bad:
+            izh = sorted(set(bad) & _IZHIKEVICH_CELL_PARAMS_KEYS)
+            hint = (
+                f"; Izhikevich-only keys {izh} run on the Izhikevich route" if izh else ""
+            )
+            raise ValueError(
+                f"{where} names parameter keys {bad} the adex route does not realize "
+                f"(expected a subset of {list(_ADEX_PARAM_FIELDS)}{hint})"
+            )
+        for field, value in params.items():
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, numbers.Real)
+                or not math.isfinite(value)
+            ):
+                raise ValueError(
+                    f"{where} {field}={value!r} is not realized for emitter family 'adex': "
+                    "it takes one finite real scalar per cell type"
+                )
+            _refuse_unphysical_cell_param(where, field, float(value))
+            if (str(ctype), str(field)) in seen:
+                raise ValueError(
+                    f"{where} repeats {field!r} for cell type {ctype!r}: "
+                    "one cell_params entry per (cell type, field)"
+                )
+            seen.add((str(ctype), str(field)))
+        vpeak = params.get("Vpeak_mV")
+        if vpeak is not None:
+            el = params.get("EL_mV", ADEX_CELL_TYPE_DEFAULTS[ctype]["EL_mV"])
+            if not float(vpeak) > float(el):
+                raise ValueError(
+                    f"{where} Vpeak_mV={vpeak!r} must be above EL_mV={el!r}"
+                )
+
+
+def _refuse_unphysical_cell_param(where: str, field: str, value: float) -> None:
+    """Refuse a ``cell_params`` value the kernel cannot integrate, naming the entry.
+
+    ``C_pF``, ``gL_nS`` and ``tauw_ms`` take values above 0; ``Tref_ms`` and
+    ``Delta_mV`` take values at or above 0 (``Delta_mV`` 0 runs the
+    conductance-LIF limit). An ``EL_mV`` above ``VT_mV`` is a valid
+    tonically firing regime and is realized.
+    """
+    positive = {"C_pF", "gL_nS", "tauw_ms"}
+    nonnegative = {"Tref_ms", "Delta_mV"}
+    if field in positive and not value > 0:
+        raise ValueError(
+            f"{where} {field}={value!r} is not realized for emitter family 'adex': "
+            f"it takes {field} above 0 for the kernel to integrate it"
+        )
+    if field in nonnegative and not value >= 0:
+        raise ValueError(
+            f"{where} {field}={value!r} is not realized for emitter family 'adex': "
+            f"it takes {field} at or above 0 for the kernel to integrate it"
+        )
+
+
+def _adex_cell_param_overrides(cfg: Configuration) -> dict[str, dict[str, float]]:
+    """Per-type AdEx overrides from the cell_params entries, for make_adex_params.
+
+    ``refuse_adex_configuration`` validates the entries first, so this only reshapes
+    them into the ``{cell type: {field: value}}`` mapping the kernel builder takes.
+    """
+    out: dict[str, dict[str, float]] = {}
+    entries = (cfg.metadata.get("circuit") or {}).get("cell_params") or []
+    for entry in entries:
+        ctype = str(entry["selector"]["cell_type"])
+        fields = out.setdefault(ctype, {})
+        for field, value in dict(entry.get("params") or {}).items():
+            fields[str(field)] = float(value)
+    return out
+
+
+
+
+
+def _checked_drive_list_entries(drive: Any) -> list[dict[str, Any]] | None:
+    """Validate a list-form adex drive; None for the mapping path.
+
+    A list entry carries exactly the mapping keys in ``_DRIVE_KEYS`` plus the
+    optional window, with scalar ``rate_hz`` and no ``same_step`` flag: the
+    multi-target kernel path realizes one delay per target, so a same-step
+    entry and a grouped-rate entry are refused. Entries naming
+    ``target_cell_types`` are adex entries; any other entry falls back to the
+    lif-list refusal (``refuse_poisson_drive_list``), which names the route.
+    Targets across entries must be pairwise disjoint; the shared window, when
+    declared, must match on every entry.
+    """
+    if drive is None or isinstance(drive, Mapping):
+        return None
+    if not isinstance(drive, (list, tuple)):
+        return None
+    from .inputs import refuse_poisson_drive_list
+
+    entries = [dict(e) if isinstance(e, Mapping) else e for e in drive]
+    for entry in entries:
+        if not isinstance(entry, Mapping) or "target_cell_types" not in entry:
+            refuse_poisson_drive_list(drive, "the adex route (emitter family 'adex')")
+    out: list[dict[str, Any]] = []
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            refuse_poisson_drive_list(drive, "the adex route (emitter family 'adex')")
+        assert isinstance(entry, Mapping)
+        unknown = [
+            k
+            for k in entry
+            if k not in _DRIVE_KEYS and k not in _DRIVE_WINDOW_KEYS
+            and k not in _DRIVE_SCHEDULE_KEYS
+        ]
+        if unknown or "same_step" in entry:
+            raise _drive_error(f"{dict(entry)!r} carries keys the list form cannot realize")
+        has_schedule = "rate_schedule_hz" in entry
+        if has_schedule and "rate_hz" in entry:
+            raise _drive_error(
+                f"{dict(entry)!r} declares rate_schedule_hz in place of rate_hz: "
+                "pass one or the other, never both"
+            )
+        missing = [
+            k for k in _DRIVE_KEYS
+            if k not in entry and (k != "rate_hz" or not has_schedule)
+        ]
+        if missing:
+            raise _drive_error(f"{dict(entry)!r} is missing keys {missing}")
+        if isinstance(entry.get("rate_hz"), (list, tuple)):
+            raise _drive_error(
+                f"rate_hz={entry['rate_hz']!r} in a list entry is not realized: "
+                "the list form takes one scalar rate per entry"
+            )
+        out.append(dict(entry))
+    return out
+
+
+def _entry_zero_rate(entry: Mapping[str, Any]) -> bool:
+    """Whether a list entry declares ``rate_hz`` 0: that target draws no counts.
+
+    A zero rate silences the entry while keeping it declared (targets stay
+    disjoint, the entry keeps its own seed stream); the mapping path still
+    refuses 0, so the probe below validates the entry at a nonzero rate and
+    the caller overrides its lambda to 0.
+    """
+    rate = entry.get("rate_hz")
+    return _finite_real(rate) and float(rate) == 0.0
+
+
+def _adex_list_drive_kwargs(
+    model: Model, sim: Any, entries: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Keyword arguments for a multi-entry adex drive list (the ``extm_*`` path).
+
+    Each entry repeats the mapping schema with a scalar rate (0 allowed: that
+    target draws no counts) or a per-step schedule, and no same-step flag
+    (checked in ``_checked_drive_list_entries``); every remaining field
+    is validated entry by entry through the mapping path's own checks, so a
+    bad weight, mechanism, delay, seed or schedule names ``poisson_drive`` and the key.
+    Entry targets (cells whose type the entry lists, in index order) must be
+    pairwise disjoint, and a declared window must match on every entry: the
+    kernel carries one shared window. ``extm_lambda`` holds the per-target
+    mean count (``n_sources * rate_hz * dt_ms / 1000``) as a vector, or -- when
+    any entry declares a schedule -- the full ``[n_steps, M]`` per-step matrix
+    (scalar entries contribute constant columns); the key holds one row
+    per entry (``jax.random.PRNGKey`` of that entry's seed, in entry order),
+    and ``extm_entry_sizes`` holds one target count per entry, so each entry
+    draws its own segment under its own stream.
+    """
+    import dataclasses as _dc
+
+    if len(entries) == 1 and not _entry_zero_rate(entries[0]):
+        return adex_external_drive_kwargs(model, _dc.replace(sim, poisson_drive=entries[0]))
+    per_targets: list[Any] = []
+    lam: list[float] = []
+    weight: list[float] = []
+    receptor: list[int] = []
+    delay: list[int] = []
+    seeds: list[int] = []
+    windows: list[tuple[int, int] | None] = []
+    sched_mats: list[Any] = []
+    sched_flags: list[bool] = []
+    scalar_vals: list[float] = []
+    for entry in entries:
+        zeroed = _entry_zero_rate(entry)
+        probe_entry = dict(entry) if not zeroed else {**entry, "rate_hz": 1.0}
+        probe = _dc.replace(sim, poisson_drive=probe_entry)
+        kw = adex_external_drive_kwargs(model, probe)
+        targets = np.asarray(kw["ext_targets"], dtype=np.int64)
+        per_targets.append(targets)
+        if "rate_schedule_hz" in entry:
+            arr = np.asarray(kw["ext_lambda"], dtype=np.float64)
+            if arr.ndim == 1:
+                arr = np.tile(arr[:, None], (1, int(targets.size)))
+            sched_mats.append(np.asarray(arr, dtype=np.float64))
+            sched_flags.append(True)
+            scalar_vals.append(0.0)
+            lam.extend([0.0] * int(targets.size))
+        else:
+            sched_mats.append(None)
+            sched_flags.append(False)
+            scalar_vals.append(0.0 if zeroed else float(kw["ext_lambda"]))
+            lam.extend([0.0 if zeroed else float(kw["ext_lambda"])] * int(targets.size))
+        weight.extend([float(kw["ext_weight_nS"])] * int(targets.size))
+        receptor.extend([int(kw["ext_receptor"])] * int(targets.size))
+        delay.extend([int(kw["ext_delay_steps"])] * int(targets.size))
+        seeds.append(int(entry["seed"]))
+        w0 = entry.get("t_start_ms")
+        w1 = entry.get("t_stop_ms")
+        if (w0 is None) != (w1 is None):
+            raise _drive_error(
+                f"{dict(entry)!r} declares one window bound without the other"
+            )
+        windows.append(
+            (int(kw["ext_t_start_steps"]), int(kw["ext_t_stop_steps"]))
+            if w0 is not None
+            else None
+        )
+    flat = np.concatenate(per_targets) if per_targets else np.zeros((0,), np.int64)
+    if np.unique(flat).size != flat.size:
+        pairs = []
+        for i in range(len(per_targets)):
+            for j in range(i + 1, len(per_targets)):
+                if set(np.asarray(per_targets[i]).tolist()) & set(
+                    np.asarray(per_targets[j]).tolist()
+                ):
+                    pairs.append(f"entries {i} and {j}")
+        raise _drive_error(
+            f"drive list targets overlap ({', '.join(pairs)}): "
+            "entries must name pairwise disjoint cell types"
+        )
+    declared_windows = [w for w in windows if w is not None]
+    if declared_windows and (
+        len(declared_windows) != len(windows) or len(set(declared_windows)) != 1
+    ):
+        raise _drive_error(
+            "drive list windows differ across entries: declare one shared "
+            "t_start_ms/t_stop_ms pair on every entry, or on none"
+        )
+    key = jnp.stack([jax.random.PRNGKey(int(seed)) for seed in seeds])
+    n_steps = int(sim.n_steps)
+    if any(sched_flags):
+        cols: list[Any] = []
+        for is_sched, mat, val, t in zip(sched_flags, sched_mats, scalar_vals, per_targets):
+            if is_sched:
+                assert mat is not None
+                cols.append(np.asarray(mat, dtype=np.float64))
+            else:
+                cols.append(
+                    np.tile(
+                        np.asarray([float(val)], dtype=np.float64)[None, :],
+                        (n_steps, int(t.size)),
+                    )
+                )
+        extm_lambda: Any = np.concatenate(cols, axis=1)
+    else:
+        extm_lambda = np.asarray(lam, dtype=np.float64)
+    out: dict[str, Any] = {
+        "extm_targets": np.concatenate(per_targets),
+        "extm_lambda": extm_lambda,
+        "extm_weight_nS": np.asarray(weight, dtype=np.float64),
+        "extm_receptor": np.asarray(receptor, dtype=np.int64),
+        "extm_delay_steps": np.asarray(delay, dtype=np.int64),
+        "extm_entry_sizes": np.asarray([int(t.size) for t in per_targets], dtype=np.int64),
+        "key": key,
+    }
+    if declared_windows:
+        out["ext_t_start_steps"], out["ext_t_stop_steps"] = declared_windows[0]
+    return out
 
 
 def refuse_adex_simulation(sim: Any, cfg: Configuration) -> None:
@@ -365,6 +687,7 @@ def _apply_triple_param_overrides(
     params: AdExParams,
     rows: "Sequence[dict]",
     param_overrides: "Mapping[tuple[str, str, str], Mapping[str, float]]",
+    dtype=None,
 ) -> AdExParams:
     """Apply per-(area, layer, type) param overrides onto per-neuron columns.
 
@@ -372,13 +695,16 @@ def _apply_triple_param_overrides(
     ``{field: value}`` mapping (the shape
     :func:`jaxfne.neuronal_tensor._resolve_tensor_emitter_family` returns):
     each entry overrides the named AdEx fields on every harvested neuron of
-    exactly that triple, matching drive semantics — two triples sharing a
+    exactly that triple, matching drive semantics; two triples sharing a
     cell type may carry different values. Unknown fields, non-finite
-    values (bools refused, never coerced) and entries matching no harvested
+    values (bools refused, never coerced), values outside the kernel's
+    physical range (``C_pF``, ``gL_nS``, ``tauw_ms`` above 0; ``Tref_ms``,
+    ``Delta_mV`` at or above 0) and entries matching no harvested
     neuron are refused. A ``Vpeak_mV`` override must lie above that neuron's
-    (post-override) ``EL_mV`` — absence is omitting the key (NaN), never an
+    (post-override) ``EL_mV`` (an ``EL_mV`` above ``VT_mV`` is a valid
+    tonically firing regime): absence is omitting the key (NaN), never an
     explicit value at or below rest. Returns the params with the overridden columns
-    replaced (same dtype handling as the caller: float64 here, cast later).
+    replaced at ``dtype`` (the caller's compute dtype; the single cast path).
     """
     if not isinstance(param_overrides, Mapping):
         raise ValueError(
@@ -418,6 +744,16 @@ def _apply_triple_param_overrides(
                     f"param_overrides[{key!r}][{field!r}]={value!r} is not "
                     "realized: it takes a finite real number"
                 )
+            if field in ("C_pF", "gL_nS", "tauw_ms") and not float(value) > 0:
+                raise ValueError(
+                    f"param_overrides[{key!r}][{field!r}]={value!r} is not "
+                    f"realized: it takes {field} above 0"
+                )
+            if field in ("Tref_ms", "Delta_mV") and not float(value) >= 0:
+                raise ValueError(
+                    f"param_overrides[{key!r}][{field!r}]={value!r} is not "
+                    f"realized: it takes {field} at or above 0"
+                )
         matched = [
             i
             for i, row in enumerate(rows)
@@ -456,8 +792,9 @@ def _apply_triple_param_overrides(
             )
     if not columns:
         return params
+    target = jnp.dtype(dtype) if dtype is not None else jnp.asarray(params.C_pF).dtype
     return params._replace(
-        **{field: jnp.asarray(column, dtype=jnp.float64) for field, column in columns.items()}
+        **{field: jnp.asarray(column, dtype=target) for field, column in columns.items()}
     )
 
 
@@ -512,7 +849,10 @@ def construct_adex_model(
     network_name = cfg.networks[0].get("name") if cfg.networks else None
 
     if neuron_rows is None:
-        params = _cast_params(make_adex_params(labels), jnp.dtype(dtype_name))
+        params = _cast_params(
+            make_adex_params(labels, _adex_cell_param_overrides(cfg)),
+            jnp.dtype(dtype_name),
+        )
         rows = [
             {"neuron_id": i, "area": "adex", "layer": "adex", "cell_type": labels[i]} for i in range(n)
         ]
@@ -542,8 +882,10 @@ def construct_adex_model(
             )
         params = _cast_params(
             _apply_triple_param_overrides(
-                make_adex_params(labels), rows,
+                make_adex_params(labels, _adex_cell_param_overrides(cfg)),
+                rows,
                 {} if param_overrides is None else param_overrides,
+                jnp.dtype(dtype_name),
             ),
             jnp.dtype(dtype_name),
         )
@@ -653,30 +995,17 @@ def _rule_delay_steps_allow_zero(name: str, delay_ms: float, dt_ms: float) -> in
         raise
 
 
-def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> dict[str, Any]:
-    """Keyword arguments for :func:`jaxfne.emitters_adex.simulate_adex` on ``model``.
+def _adex_edge_step_split(
+    st: Mapping[str, Any], dt: float
+) -> tuple["np.ndarray", int | None, "np.ndarray"]:
+    """Per-edge delay-0 split shared by ``adex_kernel_args`` and ``adex_edge_gain_kwargs``.
 
-    Returns ``params``, the five ``edge_*`` arrays (delays in steps at ``dt_ms``), the
-    receptor reversal/tau tuples, ``decay`` and ``step_order``. The caller adds ``n_steps``,
-    ``dt_ms``, ``record_v`` and optionally ``V0_mV``. ``I_ext_pA`` is included exactly
-    when the model was built with a declared per-triple drive (``static["adex"]``
-    ``["triple_drive_pA"]``); models built without one take the historical path
-    (no key: the kernel runs undriven). ``dtype`` casts the cell
-    parameters (and so the kernel's dtype); None keeps them as built.
-
-    A rule declaring ``intra_step_rounds`` admits a delay realizing to 0 steps
-    on that rule only: its edges ride the kernel's ``edge0_*`` set with
-    ``intra_step_rounds`` (recorded in the manifest); without it a delay
-    rounding to 0 steps is refused as before. A declared R with a delay
-    realizing to >= 1 step, distinct R values across rules, or a declared R
-    realizing no delay-0 edge is refused rather than silently unconsumed.
-    Without any delay-0 edge the returned dict is unchanged.
+    Returns ``(zero, fixed, steps)``: ``zero`` is the bool mask over the static
+    edges realizing to 0 steps, ``fixed`` is the declared ``intra_step_rounds``
+    (None when no rule declares one), and ``steps`` holds the per-edge delays
+    in static order. All delay validation lives here, so both callers split
+    the same edges.
     """
-    emitter = model.params["emitter"]
-    if dtype is not None:
-        emitter = _cast_params(emitter, jnp.dtype(dtype))
-    st = model.static["adex"]
-    dt = float(dt_ms)
     declared_rounds = dict(st.get("intra_step_rounds") or {})
     if not declared_rounds:
         for name, delay_ms in st["rules"]:
@@ -684,21 +1013,7 @@ def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> di
         steps = np.asarray(
             [delay_steps_from_ms(float(ms), dt) for ms in st["delay_ms"]], dtype=np.int64
         )
-        out: dict[str, Any] = {
-            "params": emitter,
-            "edge_pre": st["pre"],
-            "edge_post": st["post"],
-            "edge_weight_nS": st["weight_nS"],
-            "edge_receptor": st["receptor"],
-            "edge_delay_steps": steps,
-            "receptor_reversal_mV": st["receptor_reversal_mV"],
-            "receptor_tau_ms": st["receptor_tau_ms"],
-            "decay": st["decay"],
-            "step_order": st["step_order"],
-        }
-        if st.get("triple_drive_pA", None) is not None:
-            out["I_ext_pA"] = st["triple_drive_pA"]
-        return out
+        return np.zeros((len(steps),), dtype=bool), None, steps
     rule_names = [name for name, _ in st["rules"]]
     rule_steps: dict[str, int] = {}
     fixed_values: list[int] = []
@@ -726,13 +1041,56 @@ def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> di
     edge_rule = np.asarray(st["rule_id"], dtype=np.int64)
     steps = np.asarray([rule_steps[rule_names[int(r)]] for r in edge_rule], dtype=np.int64)
     zero = steps == 0
-    n_zero = int(zero.sum())
-    if fixed_values and not n_zero:
+    if fixed_values and not int(zero.sum()):
         raise ValueError(
             f"connections declare intra_step_rounds={fixed_values[0]} but realize no "
             f"delay-0 edge at dt_ms={dt}; a declared R with nothing to resolve is refused "
             "rather than silently unconsumed"
         )
+    return zero, int(fixed_values[0]), steps
+
+
+def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> dict[str, Any]:
+    """Keyword arguments for :func:`jaxfne.emitters_adex.simulate_adex` on ``model``.
+
+    Returns ``params``, the five ``edge_*`` arrays (delays in steps at ``dt_ms``), the
+    receptor reversal/tau tuples, ``decay`` and ``step_order``. The caller adds ``n_steps``,
+    ``dt_ms``, ``record_v`` and optionally ``V0_mV``. ``I_ext_pA`` is included exactly
+    when the model was built with a declared per-triple drive (``static["adex"]``
+    ``["triple_drive_pA"]``); models built without one take the historical path
+    (no key: the kernel runs undriven). ``dtype`` casts the cell
+    parameters (and so the kernel's dtype); None keeps them as built.
+
+    A rule declaring ``intra_step_rounds`` admits a delay realizing to 0 steps
+    on that rule only: its edges ride the kernel's ``edge0_*`` set with
+    ``intra_step_rounds`` (recorded in the manifest); without it a delay
+    rounding to 0 steps is refused as before. A declared R with a delay
+    realizing to >= 1 step, distinct R values across rules, or a declared R
+    realizing no delay-0 edge is refused rather than silently unconsumed.
+    Without any delay-0 edge the returned dict is unchanged.
+    """
+    emitter = model.params["emitter"]
+    if dtype is not None:
+        emitter = _cast_params(emitter, jnp.dtype(dtype))
+    st = model.static["adex"]
+    dt = float(dt_ms)
+    zero, fixed, steps = _adex_edge_step_split(st, dt)
+    if fixed is None:
+        out: dict[str, Any] = {
+            "params": emitter,
+            "edge_pre": st["pre"],
+            "edge_post": st["post"],
+            "edge_weight_nS": st["weight_nS"],
+            "edge_receptor": st["receptor"],
+            "edge_delay_steps": steps,
+            "receptor_reversal_mV": st["receptor_reversal_mV"],
+            "receptor_tau_ms": st["receptor_tau_ms"],
+            "decay": st["decay"],
+            "step_order": st["step_order"],
+        }
+        if st.get("triple_drive_pA", None) is not None:
+            out["I_ext_pA"] = st["triple_drive_pA"]
+        return out
     out = {
         "params": emitter,
         "edge_pre": np.asarray(st["pre"])[~zero],
@@ -748,7 +1106,7 @@ def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> di
         "edge0_post": np.asarray(st["post"])[zero],
         "edge0_weight_nS": np.asarray(st["weight_nS"])[zero],
         "edge0_receptor": np.asarray(st["receptor"])[zero],
-        "intra_step_rounds": int(fixed_values[0]),
+        "intra_step_rounds": int(fixed),
     }
     if st.get("triple_drive_pA", None) is not None:
         out["I_ext_pA"] = st["triple_drive_pA"]
@@ -767,6 +1125,11 @@ _DRIVE_WINDOW_KEYS = ("t_start_ms", "t_stop_ms")
 # count drawn for step t acts at step t (external drive has no same-step feedback, so no
 # fixed point is needed). Any other value, or ``True`` with a delay of >= 1 step, is refused.
 _DRIVE_OPT_KEYS = ("same_step",)
+# Optional per-step rate schedule key: ``rate_schedule_hz`` takes the place of
+# ``rate_hz`` in a mapping entry or a list entry (never beside it). It rides
+# the kernel's existing per-step schedule path as
+# ``n_sources * rate_schedule_hz * dt_ms / 1000``.
+_DRIVE_SCHEDULE_KEYS = ("rate_schedule_hz",)
 
 
 def _drive_error(detail: str) -> ValueError:
@@ -780,6 +1143,45 @@ def _drive_error(detail: str) -> ValueError:
         "with t_start_ms < t_stop_ms) and 'same_step' (same_step=True admits a delay "
         "rounding to 0 steps, so the count drawn for step t acts at step t)"
     )
+
+
+def _checked_rate_schedule(drive: Mapping[str, Any], sim: Any, n_targets: int) -> Any:
+    """Validate ``rate_schedule_hz``: finite values >= 0, length n_steps.
+
+    Accepts a 1-D ``[n_steps]`` array (one rate per step, shared by every
+    target) or a 2-D ``[n_steps, M]`` matrix (one schedule per target cell,
+    in the entry's target order); bools are refused, never coerced. Returns
+    the schedule as a float64 ``np`` array in its declared form.
+    """
+    raw = np.asarray(drive["rate_schedule_hz"])
+    if raw.dtype == np.bool_:
+        raise _drive_error("rate_schedule_hz must hold finite values >= 0 in Hz, not bools")
+    try:
+        sched = np.asarray(drive["rate_schedule_hz"], dtype=np.float64)
+    except (TypeError, ValueError) as exc:
+        raise _drive_error(
+            "rate_schedule_hz must be a 1-D [n_steps] or 2-D [n_steps, M] "
+            f"array of finite values >= 0 in Hz; got {drive['rate_schedule_hz']!r}"
+        ) from exc
+    if sched.ndim == 1:
+        if sched.shape[0] != int(sim.n_steps):
+            raise _drive_error(
+                f"rate_schedule_hz length {sched.shape[0]} != n_steps {int(sim.n_steps)}"
+            )
+    elif sched.ndim == 2:
+        if sched.shape != (int(sim.n_steps), int(n_targets)):
+            raise _drive_error(
+                "rate_schedule_hz with per-target rates must have shape "
+                f"({int(sim.n_steps)}, {int(n_targets)}); got {sched.shape}"
+            )
+    else:
+        raise _drive_error(
+            "rate_schedule_hz must be a 1-D [n_steps] or 2-D [n_steps, M] array; "
+            f"got shape {sched.shape}"
+        )
+    if not np.all(np.isfinite(sched)) or np.any(sched < 0.0):
+        raise _drive_error("rate_schedule_hz must hold finite values >= 0 in Hz")
+    return sched
 
 
 def _checked_grouped_rates(drive: Mapping[str, Any]) -> list[float]:
@@ -857,22 +1259,51 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     ``t_start_ms``/``t_stop_ms`` window rides as the kernel's
     ``ext_t_start_steps``/``ext_t_stop_steps`` (realized by the same rule at
     the run's ``dt_ms``, refused unless ``0 <= t_start < t_stop <= n_steps``);
-    undeclared, neither key is passed and the drive runs every step. Every
-    refusal names ``poisson_drive`` and the offending key.
+    undeclared, neither key is passed and the drive runs every step. A
+    ``rate_schedule_hz`` entry takes the place of ``rate_hz`` (never beside
+    it, never beside a grouped ``rate_hz`` list): a 1-D ``[n_steps]`` array
+    (one rate per step, shared by every target) or a 2-D ``[n_steps, M]``
+    matrix rides the kernel's native per-step schedule path as
+    ``n_sources * rate_schedule_hz * dt_ms / 1000`` under the same
+    one-split-per-step key stream, so a constant schedule reproduces the
+    scalar-rate run. A list of
+    mapping entries (each with scalar ``rate_hz`` or a schedule, and no
+    ``same_step`` flag)
+    over pairwise disjoint targets returns the multi-target ``extm_*`` path
+    (see ``_adex_list_drive_kwargs``); a list of one delegates to the mapping
+    path. Every refusal names ``poisson_drive`` and the offending key.
     """
     drive = sim.poisson_drive
     if drive is None:
         return {}
+    listed = _checked_drive_list_entries(drive)
+    if listed is not None:
+        if not listed:
+            raise _drive_error(
+                "[] is empty: the adex route takes a non-empty list of one "
+                "mapping per entry over pairwise disjoint cell-type targets"
+            )
+        return _adex_list_drive_kwargs(model, sim, listed)
+    from .inputs import refuse_poisson_drive_list
+
+    refuse_poisson_drive_list(drive, "the adex route (emitter family 'adex')")
     if not isinstance(drive, Mapping):
         raise _drive_error(repr(drive))
     unknown = [
         k
         for k in drive
         if k not in _DRIVE_KEYS and k not in _DRIVE_WINDOW_KEYS and k not in _DRIVE_OPT_KEYS
+        and k not in _DRIVE_SCHEDULE_KEYS
     ]
     if unknown:
         raise _drive_error(f"{dict(drive)!r} has unknown keys {unknown}")
-    missing = [k for k in _DRIVE_KEYS if k not in drive]
+    has_schedule = "rate_schedule_hz" in drive
+    if has_schedule and "rate_hz" in drive:
+        raise _drive_error(
+            f"{dict(drive)!r} declares rate_schedule_hz in place of rate_hz: "
+            "pass one or the other, never both"
+        )
+    missing = [k for k in _DRIVE_KEYS if k not in drive and (k != "rate_hz" or not has_schedule)]
     if missing:
         raise _drive_error(f"{dict(drive)!r} is missing keys {missing}")
     st = model.static["adex"]
@@ -883,9 +1314,12 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
         raise _drive_error(f"n_sources={n_sources!r} must be an int >= 1")
     if int(n_sources) < 1:
         raise _drive_error(f"n_sources={n_sources!r} must be an int >= 1")
-    rate_hz = drive["rate_hz"]
+    rate_hz = drive.get("rate_hz")
     grouped_rates: list[float] | None = None
-    if isinstance(rate_hz, (list, tuple)):
+    schedule_hz: Any = None
+    if has_schedule:
+        grouped_rates = None
+    elif isinstance(rate_hz, (list, tuple)):
         grouped_rates = _checked_grouped_rates(drive)
     elif not (_finite_real(rate_hz) and float(rate_hz) > 0):
         raise _drive_error(f"rate_hz={rate_hz!r} must be > 0")
@@ -952,6 +1386,16 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     )
     if grouped_rates is not None:
         out = _grouped_drive_specs(drive, grouped_rates, targets, dt, sim)
+    elif has_schedule:
+        schedule_hz = _checked_rate_schedule(drive, sim, int(targets.size))
+        lam_sched = np.asarray(
+            float(int(n_sources)) * np.asarray(schedule_hz, dtype=np.float64) * dt / 1000.0,
+            dtype=np.float64,
+        )
+        out = {
+            "ext_targets": targets,
+            "ext_lambda": lam_sched if lam_sched.ndim == 2 else lam_sched.reshape(-1),
+        }
     else:
         out = {
             "ext_targets": targets,
@@ -999,3 +1443,206 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
         out["ext_t_start_steps"] = t0
         out["ext_t_stop_steps"] = t1
     return out
+
+
+# The CAMINOS silencing tags: the subset draw folds the silence seed through
+# these, one per opt-in, never through the network or drive streams, so the
+# default draws are untouched.
+_SILENCE_TAG = 911
+# The CAMINOS replacement tag (caminos_jax.py line 427): the replaced subset
+# and its per-step Poisson draws fold the replace seed through this, never
+# through the network or drive streams, so the default draws are untouched.
+_REPLACE_TAG = 417
+
+
+def adex_silence_kwargs(
+    model: Model, sim: Any
+) -> tuple[Any | None, int, dict[str, Any] | None]:
+    """Mask, onset step and metadata record for ``Simulation(silence=...)``.
+
+    Returns ``(mask, onset_step, record)``; ``(None, 0, None)`` when
+    ``sim.silence`` is None (the kernel's historical path). The mask selects a
+    ``round(fraction * N_type)`` subset per named type: per-type cell positions
+    in neuron-index order, the subset drawn as the first entries of a
+    permutation seeded from ``fold_in(fold_in(PRNGKey(seed), 911), j + 1)``
+    over the sorted unique labels -- the CAMINOS ``manip_mask`` rule
+    (``artifacts/etudes/papers/caminos/caminos_jax.py`` lines 432-467),
+    generalized from PV/SOM to any declared cell type. The onset step realizes
+    ``onset_ms`` by the route's time-grid rule (``delay_steps_from_ms``), so a
+    positive sub-step onset is refused rather than silently rounded to 0.
+    Unknown type names are refused here, where the model is known.
+    """
+    silence = sim.silence
+    if silence is None:
+        return None, 0, None
+    labels = tuple(model.params["emitter"].labels)
+    known = sorted(set(labels))
+    fractions = dict(silence["fractions"])
+    unknown = sorted(t for t in fractions if t not in known)
+    if unknown:
+        raise ValueError(
+            f"Simulation(silence=...) names unknown cell type(s) {unknown}; "
+            f"the model declares {known}"
+        )
+    seed = int(silence["seed"])
+    onset_ms = float(silence.get("onset_ms", 0.0))
+    try:
+        onset_step = int(delay_steps_from_ms(onset_ms, float(sim.dt_ms)))
+    except ValueError as exc:
+        raise ValueError(
+            f"Simulation(silence=...) onset_ms={onset_ms!r} at dt_ms={sim.dt_ms}: {exc}"
+        ) from exc
+    n = len(labels)
+    mask = np.zeros((n,), dtype=bool)
+    n_silenced: dict[str, int] = {}
+    key0 = jax.random.fold_in(jax.random.PRNGKey(seed), _SILENCE_TAG)
+    for j, cell_type in enumerate(known):
+        frac = float(fractions.get(cell_type, 0.0))
+        positions = np.asarray(
+            [i for i, lab in enumerate(labels) if lab == cell_type], dtype=np.int64
+        )
+        n_sel = int(round(frac * int(positions.size)))
+        n_silenced[cell_type] = n_sel
+        if n_sel > 0:
+            order = np.asarray(
+                jax.random.permutation(jax.random.fold_in(key0, j + 1), int(positions.size))
+            )
+            mask[positions[np.asarray(order[:n_sel])]] = True
+    record = {
+        "fractions": {t: float(fractions[t]) for t in sorted(fractions)},
+        "onset_ms": float(onset_ms),
+        "onset_step": int(onset_step),
+        "seed": int(seed),
+        "n_silenced_per_type": {t: int(n_silenced[t]) for t in sorted(fractions)},
+    }
+    return mask, onset_step, record
+
+
+def adex_replace_kwargs(
+    model: Model, sim: Any
+) -> tuple[Any | None, Any | None, Any | None, dict[str, Any] | None]:
+    """Mask, per-cell Poisson means, draw key and metadata for ``Simulation(replace=...)``.
+
+    Returns ``(mask, lam_vec, rep_key, record)``; ``(None, None, None, None)``
+    when ``sim.replace`` is None (the kernel's historical path). The mask selects a
+    ``round(fraction * N_type)`` subset per named type: per-type cell positions
+    in neuron-index order, the subset drawn as the first entries of a
+    permutation seeded from ``fold_in(fold_in(PRNGKey(seed), 417), j + 1)``
+    over the sorted unique labels -- the CAMINOS ``manip_mask`` replace rule
+    (``artifacts/etudes/papers/caminos/caminos_jax.py`` lines 432-467),
+    generalized from PV/SOM to any declared cell type. ``lam_vec`` is a float
+    ``[N]`` array holding ``rate_hz[type] * dt_ms / 1000`` on replaced cells
+    and 0 elsewhere, after the CAMINOS per-type ``lam_rep``
+    (``caminos_jax.py`` lines 708-720). The draw key is the distinct branch
+    ``fold_in(fold_in(PRNGKey(seed), 417), 0)`` -- never a permutation key,
+    since types are indexed ``j + 1`` -- folded per step in the kernel, so the
+    drive key stream is untouched. Unknown type names are refused here, where
+    the model is known.
+    """
+    replace = sim.replace
+    if replace is None:
+        return None, None, None, None
+    labels = tuple(model.params["emitter"].labels)
+    known = sorted(set(labels))
+    fractions = dict(replace["fractions"])
+    unknown = sorted(t for t in fractions if t not in known)
+    if unknown:
+        raise ValueError(
+            f"Simulation(replace=...) names unknown cell type(s) {unknown}; "
+            f"the model declares {known}"
+        )
+    rates = dict(replace["rate_hz"])
+    seed = int(replace["seed"])
+    dt_ms = float(sim.dt_ms)
+    n = len(labels)
+    mask = np.zeros((n,), dtype=bool)
+    lam_vec = np.zeros((n,), dtype=np.float64)
+    n_replaced: dict[str, int] = {}
+    key0 = jax.random.fold_in(jax.random.PRNGKey(seed), _REPLACE_TAG)
+    for j, cell_type in enumerate(known):
+        frac = float(fractions.get(cell_type, 0.0))
+        positions = np.asarray(
+            [i for i, lab in enumerate(labels) if lab == cell_type], dtype=np.int64
+        )
+        n_sel = int(round(frac * int(positions.size)))
+        n_replaced[cell_type] = n_sel
+        if n_sel > 0:
+            order = np.asarray(
+                jax.random.permutation(jax.random.fold_in(key0, j + 1), int(positions.size))
+            )
+            chosen = positions[np.asarray(order[:n_sel])]
+            mask[chosen] = True
+            if cell_type not in rates:
+                raise ValueError(
+                    f"Simulation(replace=...) rate_hz lacks a rate for replaced "
+                    f"type {cell_type!r}"
+                )
+            lam_vec[chosen] = float(rates[cell_type]) * dt_ms / 1000.0
+    rep_key = jax.random.fold_in(key0, 0)
+    record = {
+        "fractions": {t: float(fractions[t]) for t in sorted(fractions)},
+        "rate_hz": {t: float(rates[t]) for t in sorted(rates)},
+        "seed": int(seed),
+        "n_replaced_per_type": {t: int(n_replaced[t]) for t in sorted(fractions)},
+    }
+    return mask, lam_vec, rep_key, record
+
+
+def adex_edge_gain_kwargs(
+    model: Model, sim: Any
+) -> tuple[Any | None, Any | None, Any | None, dict[str, Any] | None]:
+    """Masks, schedule and metadata record for ``Simulation(edge_gain=...)``.
+
+    Returns ``(mask, schedule, mask0, record)``; ``(None, None, None, None)``
+    when ``sim.edge_gain`` is None (the kernel's historical path). The masks
+    select every edge from a ``pre``-type cell to a ``post``-type cell, split
+    into the delayed set (``mask``) and the delay-0 set (``mask0``) with the
+    same zero-split :func:`adex_kernel_args` uses
+    (:func:`_adex_edge_step_split`). Unknown type names are refused here,
+    where the model is known.
+    """
+    gain = sim.edge_gain
+    if gain is None:
+        return None, None, None, None
+    labels = tuple(model.params["emitter"].labels)
+    known = sorted(set(labels))
+    pre = gain["pre"]
+    post = gain["post"]
+    unknown = sorted(t for t in (pre, post) if t not in known)
+    if unknown:
+        raise ValueError(
+            f"Simulation(edge_gain=...) names unknown cell type(s) {unknown}; "
+            f"the model declares {known}"
+        )
+    st = model.static["adex"]
+    lab = np.asarray(labels)
+    pre_arr = np.asarray(st["pre"], dtype=np.int64)
+    post_arr = np.asarray(st["post"], dtype=np.int64)
+    full = (lab[pre_arr] == pre) & (lab[post_arr] == post)
+    if not full.any():
+        raise ValueError(
+            f"Simulation(edge_gain=...) names cell-type pair '{pre}' -> '{post}' "
+            "with no edges in the model; gain needs at least one edge"
+        )
+    sched = np.asarray(gain["schedule"], dtype=np.float64)
+    if sched.shape != (int(sim.n_steps),):
+        raise ValueError(
+            f"Simulation(edge_gain=...) schedule length {sched.shape} != n_steps "
+            f"{int(sim.n_steps)}"
+        )
+    zero, _, _ = _adex_edge_step_split(st, float(sim.dt_ms))
+    mask = np.asarray(full[~zero], dtype=bool)
+    mask0 = np.asarray(full[zero], dtype=bool)
+    record = {
+        "pre": str(pre),
+        "post": str(post),
+        "n_edges": int(full.sum()),
+        "n_delay0_edges": int(mask0.sum()),
+        "schedule": {
+            "n_steps": int(sim.n_steps),
+            "min": float(sched.min()),
+            "max": float(sched.max()),
+            "mean": float(sched.mean()),
+        },
+    }
+    return mask, sched, mask0, record

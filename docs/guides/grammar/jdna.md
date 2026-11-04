@@ -172,7 +172,7 @@ domains:
 | Loaders | `load_pseudogenome`, `load_canonical_pseudogenome`, `list_canonical_pseudogenomes`. |
 | Provenance | `NeuronalTensor.provenance`: genome identity hash, schema version, development seed, development parameters, phenotype hash. |
 | Value origins | `provenance["value_origins"]`: per-layer counts and geometry-field origins in `{TFNE-declared, JDNA-derived, JDNA-default, JDNA-sampled}` — which stage chose each completed value. On the genome path, "declared" means stated in the PseudoGenome. See the [TFNE–JDNA boundary doctrine](../../theory/doctrine/tfne_jdna_boundary.md). |
-| Constraint declarations | `jaxfne.jdna.declared_constraints` (machine-readable, used by tests/audits). |
+| Constraint declarations | `jaxfne.jdna.declared_constraints` (machine-readable, used by tests/test_jdna_compact_grammar.py and tests/test_jdna_pseudogenome.py). |
 
 Root exports: `jtfne.PseudoGenome`, `jtfne.develop`, `jtfne.load_pseudogenome`,
 `jtfne.load_canonical_pseudogenome`, `jtfne.list_canonical_pseudogenomes`.

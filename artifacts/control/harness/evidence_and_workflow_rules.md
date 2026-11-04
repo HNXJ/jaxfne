@@ -131,3 +131,36 @@ specify → implement → test → freeze evidence → commit → push dev → v
 2. Push to `origin/dev`.
 3. Verify `dev == origin/dev` and a clean working tree before declaring the step complete or beginning the next step.
 4. Do not bundle unfinished work from the next step into that commit.
+
+## Programme rules (moved from `todo_stack.md`, 2026-10-27)
+
+0.5.x goals (Hamm): a faster jaxfne that runs the full Atlas, from one neuron to twenty areas, and a
+manuscript built on it; old results change only under an authorized correctness repair; new abilities
+are switched on explicitly; every claim has evidence. Analysis and visualization move to jnwb wherever
+jnwb has the operation (2026-09-29), additively, existing outputs bit-identical.
+
+Replication bindings (adopted 2026-10-11; B8 2026-10-18):
+
+- B1 no paper counts as replicated without a recorded library-path attempt (index row).
+- B2 negative verdicts go in the claim ledger with their reason, one row per criterion.
+- B3 one emitter per release, authorized by Hamm, gated by a P4 test perturbing every accepted parameter.
+- B4 narrowing, one class per commit with its gate; generated assets regenerate at the docs build
+  (`artifacts/etudes/meta/plans/narrowing_plan.md`).
+- B5 GPU: one job at a time, claimed in jchat. B6 each accepted binding becomes a todo row the same
+  session. B7 calibrate on synthetic nulls and known positives before a signature.
+- B8 pilot-then-sign: a lane runs its full pipeline on unscored pilot seeds and a known positive before
+  the prereg is signed, and the prereg declares its sensitivity set; after signature at most one
+  amendment, any further change is a new protocol version scored on fresh seeds.
+
+Decisions in force: `artifacts/archive/0.5.x/decisions_and_caveats_2026-10-12.md`; manuscript sections 1-7
+freeze on 0.5.5 evidence and 0.5.6-0.5.10 fill section 8, citing a replication only at a signed-prereg
+verdict; JAX runs above about 1000 neurons run on WSL2 CUDA. The signed PCL T2 failure, the CAMINOS mixed
+verdict and the Brunel conditional verdict are never promoted by integration success.
+
+Frozen, never moved: `artifacts/publication/frozen_manifest.json`,
+`artifacts/release/current_release_authorities.json`, hash-pinned skills and `artifacts/AGENTS.md`;
+`artifacts/legacy/AGENTS.md` (Hamm 2026-10-11).
+
+Tracks: P performance (optimize profiled components only); T testing (cheapest gate per defect class);
+S skills; I integration (one implementation, many entrances); A architecture (factor only with measured
+benefit); V validation (configured, realized, executed, observed); U inspection (provenance queries).

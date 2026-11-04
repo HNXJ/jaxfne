@@ -355,7 +355,6 @@ def test_objective_factory_returns_callable(target_profiles):
 
     assert callable(objective_fn)
 
-    # Create mock readout and test
     readout = {
         "area": "V1",
         "alpha_beta": alpha_beta + 0.01,

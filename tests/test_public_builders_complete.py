@@ -524,7 +524,7 @@ AxisSpec CANONICAL_LAYERS_6L CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L CANONICAL_Z_
 CANONICAL_Z_BANDS_5L ConnectionCompileResult FLAT_CELL_TYPE_FRACTIONS GSGDState
 NEURONAL_TENSOR_SCHEMA_VERSION NodeIdentity build_tutorial_laminar_column checkpoint_state
 configs_dir coop_omission_oddball_for_model coop_omission_oddball_for_neuronal_tensor
-coop_omission_oddball_paradigm default_basis_spec ensemble_member_seed evoked_l4_drive_paradigm
+default_basis_spec ensemble_member_seed evoked_l4_drive_paradigm
 export_tutorial_artifacts get_signal optax_sgd paradigm_target_indices_from_model
 plot_spectrolaminar_suite provenance_receipt require_optax save_figure save_figures
 select_neurons sha256_text spectrolaminar_motif_score step_gsgd_transform
@@ -535,7 +535,9 @@ suite2_v1_v4_config validate_neuronal_tensor
 
 
 def test_every_exported_name_is_documented_or_exempt():
-    text = "\n".join(p.read_text(encoding="utf-8") for p in REFERENCE.rglob("*.md"))
+    # errors.md indexes refusal messages; a name inside a message is not its documentation.
+    pages = [p for p in REFERENCE.rglob("*.md") if p.name != "errors.md"]
+    text = "\n".join(p.read_text(encoding="utf-8") for p in pages)
     assert text, "docs/reference holds no pages"
     missing = sorted(n for n in jtfne.__all__ if n not in text and n not in EXEMPT)
     assert not missing, f"undocumented and not exempt: {missing}"

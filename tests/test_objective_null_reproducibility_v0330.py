@@ -7,7 +7,7 @@ distributions could not be reproduced across runs. The fix threads an explicit
 parameter to ``spectrolaminar_objective``.
 
 These are host-side statistical transforms (not JAX-traced kernels), so a NumPy
-``Generator`` is the correct reproducibility primitive — no JAX PRNG needed.
+``Generator`` is the correct reproducibility primitive; no JAX PRNG needed.
 
 Contracts verified here:
 - same seed -> identical stochastic null output

@@ -5,9 +5,9 @@ Runs isolated subprocess import receipts to verify root ``import jaxfne as jtfne
 does not eagerly load optional visualization/export backends.
 
 Outputs:
-  figures/evidence/ed04_optional_dependency_laziness.png
-  outputs/evidence/ed04_optional_dependency_laziness_manifest.json
-  outputs/evidence/ed04_optional_dependency_laziness_receipt.json
+  artifacts/_temp/figures/evidence/ed04_optional_dependency_laziness.png
+  artifacts/_temp/outputs/evidence/ed04_optional_dependency_laziness_manifest.json
+  artifacts/_temp/outputs/evidence/ed04_optional_dependency_laziness_receipt.json
 """
 
 from __future__ import annotations
@@ -405,7 +405,7 @@ def main() -> int:
     sha = sha256_file(FIGURE_PATH)
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {RECEIPT_JSON_PATH.relative_to(root)}")
-    print(f"wrote: outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
+    print(f"wrote: artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
     print(f"sha256: {sha}")
     print(f"figure_id: {manifest['figure_id']}")
     print(f"fixtures_passed: {sum(1 for r in rows if r['fixture_pass'])}/{len(rows)}")

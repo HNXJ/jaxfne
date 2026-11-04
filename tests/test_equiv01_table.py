@@ -35,6 +35,9 @@ from jaxfne.fields.proxy import project_laminar_sources
 EPS_V = 1e-4
 EPS_H = 1e-6
 EPS_AUX = 1e-6
+# eager and jit reassociate the rate term dt * dw: measured 2.98e-08 on the eligibility
+# regime once the fixture spikes (P-048 default u0, 2026-10-28); spikes, H and aux stay exact.
+EPS_W = 1e-6
 
 REGIMES = {
     "legacy": {"K_HDP": 0.05, "K_ctrl": 0.3, "K_w_ctrl": 0.002, "alpha": 0.05,
@@ -94,7 +97,7 @@ def test_equiv_table_hdp_regimes(regime):
     dh = np.abs(np.asarray(da["H_trace"]) - np.asarray(db["H_trace"]))
     assert float(dh.max()) <= EPS_H, regime
     dw = np.abs(np.asarray(da["w_trace"]) - np.asarray(db["w_trace"]))
-    assert bool(np.all(dw == 0.0)), regime
+    assert float(dw.max()) <= EPS_W, regime
     if da.get("aux_final") is not None and int(np.asarray(da["aux_final"]).size):
         shorter = min(np.asarray(da["aux_trace"]).shape[0], np.asarray(db["aux_trace"]).shape[0])
         daux = np.abs(np.asarray(da["aux_trace"])[:shorter] - np.asarray(db["aux_trace"])[:shorter])

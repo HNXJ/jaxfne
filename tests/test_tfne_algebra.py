@@ -365,6 +365,25 @@ def test_typed_boundaries_preserved():
                                  "y": "y", "y_type": "choice"}
 
 
+def test_typed_boundaries_accept_the_algebra_key_form():
+    # 7_tfne_algebra.md writes x[type=current]; it is the same boundary as x[current].
+    keyed = "Cell := [C = {cell}; N = 1]; x[type=current] : Cell : y[type=voltage]"
+    bare = "Cell := [C = {cell}; N = 1]; x[current] : Cell : y[voltage]"
+    assert _replay_ok(keyed) == _replay_ok(bare)
+    want = {"x": "x", "x_type": "current", "y": "y", "y_type": "voltage"}
+    assert _realize(keyed)[2].s["boundaries"] == want
+    assert _realize(bare)[2].s["boundaries"] == want
+
+
+@pytest.mark.parametrize("text", [
+    "Cell := [C = {cell}; N = 1]; x[model=hh] : Cell : y",
+    "Cell := [C = {cell}; N = 1]; x : Cell : y[model=hh]",
+])
+def test_boundary_key_other_than_type_is_refused(text):
+    with pytest.raises(TFNEError, match=r"\[type=NAME\]"):
+        parse(text)
+
+
 # --------------------------------------------------------------------------- #
 # 14. Shared biological type, different dynamical models
 # --------------------------------------------------------------------------- #
@@ -514,6 +533,46 @@ def test_specialization_inherits_base():
     assert r.s["counts"]["V1"] == r.s["counts"]["V2"] == {"E": 8, "PV": 2}
     assert explicit.nodes["V1"].special == "CTX[v1]"
     assert explicit.nodes["V2"].special == "CTX[v2]"
+
+
+def _props_base(name="Base"):
+    return (
+        f"{name} := [C = {{E, PV}}; P = {{E: 0.8, PV: 0.2}}; "
+        "N = 10; model = izhikevich];\n"
+    )
+
+
+def test_specializer_key_value_is_refused():
+    base = _props_base()
+    # precondition: the props Base alone is a valid program
+    _replay_ok(base + "x : Base : y")
+    with pytest.raises(TFNEError) as excinfo:
+        parse(base + "PV := Base[model=IZH];\nx : Base : y")
+    msg = str(excinfo.value)
+    assert "Base[model=IZH]" in msg
+    assert "model" in msg
+    assert "Base[NAME]" in msg
+
+
+def test_specializer_key_value_refused_for_any_key():
+    base = _props_base()
+    # precondition: the props Base alone is a valid program
+    _replay_ok(base + "x : Base : y")
+    with pytest.raises(TFNEError) as excinfo:
+        parse(base + "PV := Base[gain=2];\nx : Base : y")
+    msg = str(excinfo.value)
+    assert "Base[gain=2]" in msg
+    assert "gain" in msg
+    assert "Base[NAME]" in msg
+
+
+def test_specializer_bare_name_still_specializes():
+    text = _props_base() + "PV := Base[IZH];\nx : PV : y\n"
+    # precondition: the bare-name form replays and realizes
+    _replay_ok(text)
+    _, explicit, r = _realize(text)
+    assert explicit.nodes["PV"].special == "Base[IZH]"
+    assert r.s["counts"]["PV"] == {"E": 8, "PV": 2}
 
 
 # --------------------------------------------------------------------------- #
@@ -1076,7 +1135,7 @@ def test_declared_frontier_names_replica_members():
 
 def test_declared_frontier_applies_under_replicate_join():
     """`SEG^{3O}` chain tail is the only member an out-declaration can name
-    beyond the derived tail — declaring it changes nothing, pinning that
+    beyond the derived tail; declaring it changes nothing, pinning that
     derived and declared tails agree."""
     body = "SEG := [C = {E}; N = 1];\nQ := [C = {E}; N = 1];\nV := SEG^{3O};\nW := V O[k] Q;\nx : W : y\n"
     _, _, derived = _realize(_FRONTIER_RULES + body)
@@ -1100,7 +1159,7 @@ def test_declared_frontier_applies_under_replicate_join():
 ])
 def test_malformed_frontier_declarations_fail_closed(decl, body):
     """Unknown, nonlocal, duplicated, empty, or rescoped declarations are
-    refused as E_FRONTIER_UNRESOLVED — never partially applied."""
+    refused as E_FRONTIER_UNRESOLVED; never partially applied."""
     with pytest.raises(TFNEError, match="E_FRONTIER_UNRESOLVED"):
         _frontier_realize(body, decl + "\n")
 
@@ -1159,7 +1218,7 @@ V2 := L1 O L2 O L3 O L5;
 
 def test_rule_body_addresses_scopes_per_side():
     """`{L2,L3}>L3` binds left-members to right-member; `L5<{L2,L5}`
-    binds right-members back to left — left/right-relative addressing."""
+    binds right-members back to left; left/right-relative addressing."""
     src = ("O[cmc1] := [{L2,L3}>L3; L5<{L2,L5}];\n" + _LAMINAR
            + "V := V1 O[cmc1] V2;\nx : V : y\n")
     _, _, r = _realize(src)
@@ -1217,7 +1276,7 @@ def test_bare_dollar_denotes_whole_operand():
 
 def test_dollar_out_respects_declared_frontiers():
     """Rule expansion operates on resolved interfaces: with
-    `out[V1] := [L3]`, `$L.out` binds L3 only — no bypass."""
+    `out[V1] := [L3]`, `$L.out` binds L3 only; no bypass."""
     src = ("O[k] := [$L.out > $R.in];\nout[V1] := [L3];\n" + _LAMINAR
            + "V := V1 O[k] V2;\nx : V : y\n")
     _, _, r = _realize(src)
@@ -1366,7 +1425,7 @@ def test_prefix_applies_body_rules_per_pair():
 
 def test_atomic_group_drops_invalid_projection_keeps_valid():
     """A statement with an invalid resolved projection contributes
-    nothing — no nodes, no relations — while siblings realize fully."""
+    nothing: no nodes, no relations, while siblings realize fully."""
     _, _, r = _realize(
         _PREFIX_BASE
         + "A := [C = {E}; N = 1];\nB := [C = {E}; N = 2];\n"
@@ -1446,7 +1505,7 @@ def test_brace_statements_replay_digest_and_serialize():
 
 def test_canonical_mechanisms_resolve_to_canonical_kinetics():
     """The canonical vocabulary is exactly the canonical table, with its
-    taus, reversals, and signs — no copies, no drift."""
+    taus, reversals, and signs; no copies, no drift."""
     from jaxfne.emitters import standard_receptor_specs
     from jaxfne.tfne import (MECHANISM_CANONICAL, resolve_mechanism)
     table = standard_receptor_specs()
@@ -1593,7 +1652,7 @@ def test_semantic_failures_raise_typed_classes(spec, cls, code):
 
 
 def test_redundant_bare_projection_is_refused():
-    """A bare projection identical to rule output is invalid — even when
+    """A bare projection identical to rule output is invalid, even when
     the rule came from a body statement. Sharing one group scope makes
     the identities coincide exactly."""
     base = ("O[k] := [direction = >];\n"

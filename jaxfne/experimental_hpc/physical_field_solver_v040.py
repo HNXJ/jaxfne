@@ -1,6 +1,6 @@
 """Pre-0.4.0 placeholder contract for a *physical* field solver.
 
-This module declares — but does NOT implement — the interface a future v0.4.0
+This module declares, but does NOT implement, the interface a future v0.4.0
 physical (PDE / volume-conductor) field solver would expose. It exists only to
 fix the API boundary and to **fail loudly** so the proxy → physical transition
 can never happen silently.
@@ -31,7 +31,7 @@ def _tbi_v040() -> None:
 
 @dataclass(frozen=True)
 class PhysicalFieldSolverSpec:
-    """Declarative spec for a future physical (PDE) field solve — NOT implemented.
+    """Declarative spec for a future physical (PDE) field solve: NOT implemented.
 
     Records the inputs a calibrated volume-conductor solve would require:
     ``conductivity`` (S/m, tissue conductivity model), ``boundary`` (boundary
@@ -40,7 +40,7 @@ class PhysicalFieldSolverSpec:
     physical claim; :meth:`validate` and the solver entry points fail loudly.
 
     ``field_solver_status`` is fixed to ``"physical_solver_not_implemented_v040"``
-    to make explicit that no PDE solve exists yet — it must never be read as a
+    to make explicit that no PDE solve exists yet; it must never be read as a
     completed physical solve.
     """
 
@@ -52,12 +52,12 @@ class PhysicalFieldSolverSpec:
     physical_amplitude_calibrated: bool = False
 
     def validate(self) -> dict[str, Any]:
-        """Fail loudly — physical-solver validation is not implemented as of v0.5.x."""
+        """Fail loudly: physical-solver validation is not implemented as of v0.5.x."""
         _tbi_v040()
 
 
 def solve_physical_field(spec: PhysicalFieldSolverSpec, sources: jax.Array) -> Any:
-    """Placeholder for a future physical field solve — fails loudly.
+    """Placeholder for a future physical field solve: fails loudly.
 
     Until a validated v0.4.0 solver exists this raises
     ``NotImplementedError(">TBI-not-ready: v0.4 physical field solver")``. Use the

@@ -1,4 +1,4 @@
-"""0.5.3 ENGINE item 2: H/W recording budgets — declared stride/subset.
+"""0.5.3 ENGINE item 2: H/W recording budgets, declared stride/subset.
 
 Status of the 0.5.1 opt-in selective/downsampled recording API: it does
 not exist in jaxfne/ (no record_stride/record_subset/selective symbols;

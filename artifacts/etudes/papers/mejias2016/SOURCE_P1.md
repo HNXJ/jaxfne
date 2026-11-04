@@ -60,7 +60,7 @@ Supporting microstimulation (observed, Fig. 4 insets): FF stim gives a highly si
 
 ## 5. Gaps (each item observed or inferred; jaxfne paths checked in this tree)
 
-Have (observed): spiking emitter families LIF/AdEx/HH/Izhikevich (`jaxfne/emitters_lif.py:73`, `jaxfne/emitters.py:173`); constant and Poisson drive (`jaxfne/inputs.py:61-123`); per-edge delays (`jaxfne/emitters.py:592,912`); compiled connection rules (`jaxfne/connectivity.py:686`); spectral-peak and regime estimators (`jaxfne/analysis/metrics.py:591,621`).
+Have (observed): spiking emitter families LIF/AdEx/HH/Izhikevich (`LIFParams` in `jaxfne/emitters_lif.py`, `IzhikevichEmitter` in `jaxfne/emitters.py`); constant and Poisson drive (`XSource` in `jaxfne/inputs.py`); per-edge delays (`edge_delay_steps_from_ms` in `jaxfne/emitters.py`, `resolve_edge_delay_steps` in `jaxfne/emitters.py`); compiled connection rules (`compile_connection_rules` in `jaxfne/connectivity.py`); spectral-peak and regime estimators (`_spectral_peak_excess` in `jaxfne/analysis/metrics.py`, `activity_regime` in `jaxfne/analysis/metrics.py`).
 
 - G1 (observed): no Wilson-Cowan (rate) emitter in `jaxfne/` (grep for wilson/w-c rate models: no match); the paper's unit is a rate E-I pair, so P2 needs rate dynamics: Hamm authorized a rate-population (Wilson-Cowan-type) core emitter for this lane under B3, behind the P4 perturbation gate (todo T-32f, 2026-10-18).
 - G2 (inferred): the two-module laminar motif (gamma supra vs alpha infra) is not a core construct; wiring it is a P2 build on the public API.

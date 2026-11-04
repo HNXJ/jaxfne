@@ -58,7 +58,7 @@ def runtime(
     ``dtype_primary`` and ``x64_enabled`` are accepted as v0.0.3-compatibility
     aliases (``x64_enabled=True`` raises unless x64 is already enabled).
     Values no kernel reads are refused (see :class:`RuntimeConfig`). This
-    configures execution only — it makes no numerical or scientific claim about
+    configures execution only; it makes no numerical or scientific claim about
     the simulation.
     """
     return RuntimeConfig(

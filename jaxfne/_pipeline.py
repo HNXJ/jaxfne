@@ -102,6 +102,37 @@ class ContinuationState(NamedTuple):
     chunk_index: int = 0
 
 
+class LIFContinuationState(NamedTuple):
+    """Runtime continuation state for the lif edge-list route.
+
+    The lif kernel carry is not the Izhikevich ``(v, u, ...)`` carry, so it
+    rides its own state: membrane ``V``, adaptation ``A``, last-spike times
+    ``t_last``, shared edge weights ``w``, the finite-delay spike ring
+    ``ring`` ``(L, N)`` with ``L = max delay steps``, previous-step spikes
+    ``prev_spikes``, and the synaptic-filter state ``g``. ``H``, ``aux``
+    and ``bias`` ride only under a registered HDP rule (None otherwise).
+    ``prng_key`` is the base rule-noise key (per-step draws fold in the
+    global step index); ``step_index`` is the global step offset of the
+    next segment and ``chunk_index`` counts completed segments (0 fresh,
+    +1 per segment), driving each segment's Poisson seed.
+    """
+
+    V: jax.Array
+    A: jax.Array
+    t_last: jax.Array
+    w: jax.Array
+    ring: jax.Array
+    prev_spikes: jax.Array
+    g: jax.Array
+    prng_key: jax.Array
+    H: jax.Array | None = None
+    aux: jax.Array | None = None
+    bias: jax.Array | None = None
+    step_index: int = 0
+    chunk_index: int = 0
+    dt_ms: float = 0.5
+
+
 def continuation_noise_schedule(
     key: jax.Array,
     n_steps: int,
@@ -523,6 +554,11 @@ def compile_step_fn(
     _rule_name = hdp_kwargs.get("hdp_rule")
     if _is_registered(_rule_name):
         check_hdp_rule_params(str(_rule_name), hdp_kwargs.get("hdp_rule_params"))
+        if record_dH_components and kernel == "hdp":
+            raise ValueError(
+                f"record_dH_components=True records the legacy kernel's five dH terms; the registered "
+                f"hdp_rule={_rule_name!r} has no such decomposition"
+            )
     elif "hdp_rule_params" in hdp_kwargs:
         _rp = hdp_kwargs["hdp_rule_params"]
         raise ValueError(
@@ -575,7 +611,7 @@ def compile_step_fn(
         # by the Model-level runner post-stack (kernels apply it only to
         # multi-step traces, where it is exact).
         rwt = bool(kernel_kw.pop("record_weight_trace", record_weight_trace))
-        # NOTE (0.5.3 item 3): read-only lookup — the baseline and legacy
+        # NOTE (0.5.3 item 3): read-only lookup; the baseline and legacy
         # HDP kernels receive noise_scale via **kernel_kw below; only the
         # registered call (explicit args, no **kernel_kw) needs it forwarded.
         ns = kernel_kw.get("noise_scale", None)
@@ -753,7 +789,7 @@ def _ensemble_segment_schedule(
 
     Member ``m``'s rows are the matching slice of
     ``continuation_noise_schedule(PRNGKey(ensemble_member_seed(base_seed,
-    m, n)))`` — the exact rows the continuous ensemble path draws — so
+    m, n)))``, the exact rows the continuous ensemble path draws, so
     chunked continuation reproduces continuous runs on ensembles.
     Generation cost is O(start+length) random draws per segment.
     """
@@ -922,7 +958,7 @@ def run_continuation_strided(
     ``step_index``, ``delay_state``, ``chunk_index``).
 
     ``stride=1`` reproduces :func:`run_continuation` frames exactly but with
-    per-segment launch overhead — prefer :func:`run_continuation` then.
+    per-segment launch overhead; prefer :func:`run_continuation` then.
 
     ``noise_rows`` (0.5.4 item 1) is sliced per segment like the schedule.
 
@@ -970,7 +1006,7 @@ def memory_report(
 ) -> dict[str, Any]:
     """Component memory preflight for one simulation run (23-REC-01, W17.2).
 
-    Pure shape/dtype arithmetic — executes nothing. Estimates persistent
+    Pure shape/dtype arithmetic; executes nothing. Estimates persistent
     (``model.params``), dynamic carry, delay ring, recording stacks, and
     transient draws for ``simulation`` (defaults like :class:`Simulation`
     when omitted) with decimation ``stride`` from ``recorder``

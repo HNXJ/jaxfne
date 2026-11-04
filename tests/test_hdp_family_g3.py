@@ -81,7 +81,8 @@ def _run_hdp(I_pA, rule, rule_params=None, *, delay=20, **kw):
 
 def test_adex_hdp_float64_freeze():
     """synthetic_presyn_gain (k_h=0.5, k_w=0.1): one forced pre spike at
-    step 50, arrival at step 70 drives H[1] 1.0 -> 1.05 and |w| 3.0 -> 3.03."""
+    step 50, arrival at step 70 drives H[1] 1.0 -> 1.5 and |w| 3.0 -> 3.3
+    (per-event jumps, so the step size does not scale them)."""
     out = _run_hdp(
         _two_cell_drive(pre_pulse=T_PULSE),
         "synthetic_presyn_gain",
@@ -96,11 +97,11 @@ def test_adex_hdp_float64_freeze():
     w = np.asarray(out["w_trace_nS"])
     assert H.shape == (N_STEPS, 2) and H.dtype == np.float64
     assert w.shape == (N_STEPS, 1) and w.dtype == np.float64
-    assert_freeze_allclose(H[69:72, 1], [1.0, 1.05, 1.05])
+    assert_freeze_allclose(H[69:72, 1], [1.0, 1.5, 1.5])
     assert_freeze_allclose(H[69:72, 0], [1.0, 1.0, 1.0])
-    assert_freeze_allclose(w[69:72, 0], [W0_NS, 3.03, 3.03])
-    assert_freeze_allclose(out["H_final"], [1.0, 1.05])
-    assert_freeze_allclose(out["w_final_nS"], [3.03])
+    assert_freeze_allclose(w[69:72, 0], [W0_NS, 3.3, 3.3])
+    assert_freeze_allclose(out["H_final"], [1.0, 1.5])
+    assert_freeze_allclose(out["w_final_nS"], [3.3])
     assert np.asarray(out["aux_final"]).shape == (0,)
     assert out["hdp_rule"] == "synthetic_presyn_gain"
     assert out["hdp_rule_registered"] is True

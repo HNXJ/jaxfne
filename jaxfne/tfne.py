@@ -143,7 +143,7 @@ class TFNEError(ValueError):
 
 # S25 failure taxonomy: semantic failure classes, each a TFNEError so
 # existing handlers keep working. Parser/lexer structural errors stay
-# plain TFNEError — the vocabulary is semantic, not parser-specific.
+# plain TFNEError; the vocabulary is semantic, not parser-specific.
 class TFNEAddressUnknown(TFNEError):
     """A path or member reference resolving to nothing (S7/S25)."""
 
@@ -200,8 +200,8 @@ class TFNEProjectionRedundant(TFNEError):
 # Single capital letters that cannot name structural objects: O/X are the
 # composition operators (a definition under either name could never be
 # referenced), and H is the H-state tensor exclusively (no structural H).
-# Every other capital — including A, B, C, D used across the algebra and its
-# corpus, and JaxFNE runtime/pipeline letters such as E or Q — is a legal
+# Every other capital, including A, B, C, D used across the algebra and its
+# corpus, and JaxFNE runtime/pipeline letters such as E or Q, is a legal
 # object name; runtime meanings (X activity, W weights, Q source quantity,
 # ...) are preserved by keeping them out of the specification grammar rather
 # than by forbidding names. Single-letter names shadowing runtime vocabulary
@@ -585,7 +585,7 @@ class _Parser:
     def _parse_frontierdef(self) -> tuple[str, str, tuple[str, ...]]:
         """Parse ``in[A] := [m1, ...]`` / ``out[A] := [m1, ...]`` (S9).
 
-        Frontiers are interface metadata, so — like ``order[A]`` — they take
+        Frontiers are interface metadata, so, like ``order[A]``, they take
         a named property rather than a new operator. Members name immediate
         members of ``A`` (subset allowed: an interface need not expose every
         member); validation against the resolved model happens at resolve().
@@ -794,6 +794,26 @@ class _Parser:
             return RuleEndpoint(form="ref", head=self._parse_order_member())
         raise TFNEError(f"expected a rule endpoint; got {tok}")
 
+    def _specializer_kv_span(self) -> Optional[tuple[str, str, str]]:
+        """``Base[key=value]`` lookahead at the current position.
+
+        Returns (base, key, value) when the upcoming tokens are exactly
+        NAME "[" NAME "=" (NAME | INT | FLOAT) "]"; None otherwise.
+        """
+        t = self.toks
+        p = self.pos
+        if (
+            p + 5 < len(t)
+            and t[p][0] == "NAME"
+            and t[p + 1] == ("SYM", "[")
+            and t[p + 2][0] == "NAME"
+            and t[p + 3] == ("SYM", "=")
+            and t[p + 4][0] in ("NAME", "INT", "FLOAT")
+            and t[p + 5] == ("SYM", "]")
+        ):
+            return t[p][1], t[p + 2][1], t[p + 4][1]
+        return None
+
     def _parse_objdef(self) -> ObjDef:
         name = self.expect("NAME")
         _check_object_name(name)
@@ -805,6 +825,13 @@ class _Parser:
             return ObjDef(name=name, kind="props", body=props)
         # special := Base[key]  vs  expr
         if self.peek()[0] == "NAME":
+            kv = self._specializer_kv_span()
+            if kv is not None:
+                base, key, value = kv
+                raise TFNEError(
+                    f"{name} := {base}[{key}={value}] uses key {key!r}; "
+                    "only Base[NAME] is supported (no key=value keys are supported)"
+                )
             save = self.pos
             try:
                 atom = self._parse_atom()
@@ -817,29 +844,47 @@ class _Parser:
         body = self._parse_expr()
         return ObjDef(name=name, kind="expr", body=body)
 
+    def _boundary_type_span(self, q: int) -> Optional[tuple[Optional[str], str, int]]:
+        """Boundary type at token q: ``[NAME]`` or the algebra's ``[type=NAME]``.
+
+        Returns (key, type, index after "]"), key None for the bare form, or None.
+        """
+        t = self.toks
+        if q + 2 < len(t) and t[q] == ("SYM", "[") and t[q + 1][0] == "NAME":
+            if t[q + 2] == ("SYM", "]"):
+                return None, t[q + 1][1], q + 3
+            if (
+                q + 4 < len(t)
+                and t[q + 2] == ("SYM", "=")
+                and t[q + 3][0] == "NAME"
+                and t[q + 4] == ("SYM", "]")
+            ):
+                return t[q + 1][1], t[q + 3][1], q + 5
+        return None
+
+    def _boundary_type(self, span: tuple[Optional[str], str, int]) -> str:
+        key, btype, end = span
+        if key is not None and key != "type":
+            raise TFNEError(
+                f"boundary qualifier {key!r} is not a type; write [NAME] or [type=NAME]"
+            )
+        self.pos = end
+        return btype
+
     def _parse_system(self) -> System:
         x = x_type = None
-        # left boundary: lowercase NAME [ "[" type "]" ] ":" (not ":=...")
+        # left boundary: lowercase NAME [ "[" [ "type" "=" ] type "]" ] ":" (not ":=...")
         if self.peek()[0] == "NAME":
             t = self.toks
-            p = self.pos
-            q = p + 1
-            btype: Optional[str] = None
-            if (
-                q + 2 < len(t)
-                and t[q] == ("SYM", "[")
-                and t[q + 1][0] == "NAME"
-                and t[q + 2] == ("SYM", "]")
-            ):
-                btype = t[q + 1][1]
-                q += 3
+            q = self.pos + 1
+            span = self._boundary_type_span(q)
+            if span is not None:
+                q = span[2]
             if q < len(t) and t[q] == ("SYM", ":"):
                 x = self.expect("NAME")
                 _check_lower_name(x, "boundary")
-                if btype is not None:
-                    self.expect("SYM", "[")
-                    x_type = self.expect("NAME")
-                    self.expect("SYM", "]")
+                if span is not None:
+                    x_type = self._boundary_type(span)
                 self.expect("SYM", ":")
         body = self._parse_expr()
         y = y_type = None
@@ -850,9 +895,10 @@ class _Parser:
             y = self.expect("NAME")
             _check_lower_name(y, "boundary")
             if self.at_sym("["):
-                self.next()
-                y_type = self.expect("NAME")
-                self.expect("SYM", "]")
+                span = self._boundary_type_span(self.pos)
+                if span is None:
+                    raise TFNEError("expected [NAME] or [type=NAME] after the right boundary")
+                y_type = self._boundary_type(span)
         return System(x=x, x_type=x_type, body=body, y=y, y_type=y_type)
 
     # -- expressions ---------------------------------------------------- #
@@ -1349,8 +1395,8 @@ def _validate_geometry_body(where: str, geometry: Mapping[str, Any]) -> None:
     and non-finite bounds are refused alongside, mirroring JDNA's
     `_axis_range` refusal rather than inventing a second policy. An
     undeclared axis defaults to the full extent downstream; `distribution`
-    and unknown keys pass through untouched (distribution support is a
-    downstream concern, not a language one).
+    and unknown keys pass through this check untouched, and JDNA completion
+    refuses unknown keys (`realize_geometry`).
     """
     for axis in ("x", "y", "z"):
         lo_key, hi_key, range_key = f"{axis}0", f"{axis}1", f"{axis}_range"
@@ -1555,8 +1601,8 @@ def _validate_frontier_members(
 ) -> tuple[str, ...]:
     """Validate one declared side into full member paths (`tfne/2` S9).
 
-    A declared frontier names a subset of the scope's immediate members —
-    an interface need not expose everything — but anything it cannot honour
+    A declared frontier names a subset of the scope's immediate members:
+    an interface need not expose everything; but anything it cannot honour
     exactly is refused with `E_FRONTIER_UNRESOLVED` rather than partially
     applied: unknown members, descendants rather than members, duplicates.
     """
@@ -1592,7 +1638,7 @@ def _verify_frontier_declarations(
 ) -> None:
     """End-of-resolve check: every declared frontier resolved and applied.
 
-    Bare scope names resolve only when unambiguous against the final model —
+    Bare scope names resolve only when unambiguous against the final model;
     applying to one of several same-named scopes would complete an interface
     the author did not single out. Leaf scopes cannot declare: a leaf object
     exposes only itself.
@@ -1905,7 +1951,7 @@ class _Resolver:
             right = self._endpoint_members(node.right, scope, "projection")
             if not left or not right:
                 # Atomicly dropped: an invalid resolved projection
-                # contributes nothing (S14) — no relation, no members.
+                # contributes nothing (S14); no relation, no members.
                 return _Expansion(members=(), fin=(), fout=())
             group = None
             if node.direction == "<>":
@@ -2086,7 +2132,7 @@ class _Resolver:
         if not members:
             # S14/S25 atomicity: inside a brace-group statement, a resolved
             # projection with no members contributes nothing instead of
-            # aborting the composite. Outside, it stays a hard error —
+            # aborting the composite. Outside, it stays a hard error;
             # an empty endpoint is never silently valid at top level.
             if self._brace_atomic:
                 return []
@@ -2488,8 +2534,8 @@ def _validate_tfne_delay_ms(rule: Any, delay: Any) -> "float | None":
     Declared in ms; ``None`` passes through (undeclared = current
     behaviour). Negative, non-finite or non-numeric delays fail closed
     (``E_DELAY_OUT_OF_RANGE``): relative timing must not acquire a
-    direction or an infinite horizon silently. The dt-dependent refusal —
-    a positive delay rounding to 0 steps — lands in
+    direction or an infinite horizon silently. The dt-dependent refusal,
+    a positive delay rounding to 0 steps, lands in
     :func:`to_configuration`, where ``dt`` is known.
     """
     if delay is None:
@@ -2505,6 +2551,19 @@ def _validate_tfne_delay_ms(rule: Any, delay: Any) -> "float | None":
             f"E_DELAY_OUT_OF_RANGE: rule {rule!r} delay must be finite and >= 0 ms; got {delay!r}"
         )
     return ms
+
+
+def _rule_bool(rule: Any, key: str, value: Any) -> bool:
+    """Read a rule's boolean property: the bare word `true` or `false` (any case,
+    as `associative` is read), or a Python bool. Anything else is refused;
+    `bool()` would read the string "false" as true."""
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str) and value.lower() in ("true", "false"):
+        return value.lower() == "true"
+    raise TFNEError(f"rule {rule!r} {key} must be true or false; got {value!r}")
 
 
 def _rule_connection_params(
@@ -2526,7 +2585,7 @@ def _rule_connection_params(
     weight = float(weight)
     if not np.isfinite(weight):
         raise TFNEError("rule weight must be finite")
-    allow_self = bool(params.get("allow_self", False))
+    allow_self = _rule_bool(rule, "allow_self", params.get("allow_self", False))
     return {
         "direction": direction,
         "mechanism": str(mechanism),
@@ -2769,6 +2828,7 @@ def realize(
                 if rel.rule
                 else _rule_connection_params(None),
                 **({"mechanism": rel.mechanism} if rel.mechanism is not None else {}),
+                **({"delay": rel.delay} if rel.delay is not None else {}),
             ),
         }
         for rel in explicit.relations
@@ -2938,7 +2998,7 @@ def to_neuronal_tensor(explicit: ExplicitModel):
         """Kinetics for one relation's connections (TFNE2-07/PARAM-03).
 
         The declared mechanism resolves to canonical or custom kinetics;
-        unresolvable names fail closed here — where invention would occur —
+        unresolvable names fail closed here, where invention would occur,
         rather than inheriting the 0.1 placeholder. `realize()` is
         unaffected: identity transfers without kinetics.
         """
@@ -3083,7 +3143,7 @@ def to_neuronal_tensor(explicit: ExplicitModel):
     )
     # P-023: mint this exact object into the neuronal_tensor carve-out
     # registry. The bridge recognizes genuine TFNE derivation only through
-    # that channel — the provenance dict above is inspectable metadata, not
+    # that channel; the provenance dict above is inspectable metadata, not
     # authority, since any caller can construct an equal dict.
     from .neuronal_tensor import _register_tfne_minted
 
@@ -3168,7 +3228,7 @@ def to_configuration(
     # not converge under dt-refinement.
     #
     # P-023: every realized mechanism is present in the bridge table by
-    # construction — the specs below and the tensor above both iterate the
+    # construction; the specs below and the tensor above both iterate the
     # same `explicit.relations` with the same mechanism-name function
     # (`_relation_mechanism` here, `params["mechanism"]` in `realize`), and
     # exclusions can only remove specs (the tensor ignores exclusions, so it
@@ -3250,7 +3310,7 @@ def to_configuration(
 def compose_delay_metadata(blocks: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     """Merge per-area ``tfne_delay`` records for the 0.5.4 composition operator.
 
-    0.5.4 HOOK — declared and importable only. Nothing in 0.5.2 calls this;
+    0.5.4 HOOK: declared and importable only. Nothing in 0.5.2 calls this;
     the composition operator (0.5.4 item 1) will use it to join each area's
     ``{"declared_ms": ..., "realized_steps": ..., "dt_ms": ...}`` record
     into one composed record. Pure merge: rule keys must be disjoint across
@@ -3318,7 +3378,7 @@ def _check_projection_redundancy(resolver: Any) -> None:
     """Reject explicit projections identical to rule output (S13/S25).
 
     Projection identity is `(src, dst, mechanism)` over realized leaves
-    with direction normalized — leaf-level, because a coarser explicit
+    with direction normalized; leaf-level, because a coarser explicit
     scope over an already-generated leaf route would double-count edges
     while looking structurally distinct. Any overlap between an explicit
     (bare) projection and canonically generated rule output is refused:
@@ -3418,7 +3478,7 @@ def resolve_mechanism(
     needs a sufficient executable definition (a finite positive `tau_ms`
     in the rule params); anything else fails closed. Absent mechanism
     means direct coupling (`tfne_direct`), matching the realization path's
-    long-standing default — silence is not read as a receptor claim.
+    long-standing default; silence is not read as a receptor claim.
     """
     params = dict(rule_params) if rule_params is not None else {}
     if name is None:

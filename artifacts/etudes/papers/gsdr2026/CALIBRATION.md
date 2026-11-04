@@ -44,21 +44,21 @@ problem, not wiring (wiring asserts passed throughout).
 ## Fidelity fixes (not fits; each with a fail-first test)
 
 Kernel (`jaxfne/emitters_hh.py`), read from jaxley 0.14.0 source as data:
-gates by exact exponential Euler (`solver_gate`, `emitters_hh.py:99`),
-voltage by backward Euler linearized at frozen currents (`:173`);
-`EL_mV = -54.3` (`:42`), rest `HH_V_REST_MV = -70.0` (`:69`);
-`hh_gate_inf` fixed-point gate init (`:106`, used at `:475`);
-`_save_exp` clips exp() arguments at 20.0 (`:71`, `:77`);
-non-finite guards keep old state (`:209`, `:229`, `:444`, `:451`).
+gates by exact exponential Euler (`_exp_euler_gate` in `jaxfne/emitters_hh.py`),
+voltage by backward Euler linearized at frozen currents (`hh_step` in `jaxfne/emitters_hh.py`);
+`EL_mV = -54.3` (`HH_CELL_TYPE_DEFAULTS` in `jaxfne/emitters_hh.py`), rest `HH_V_REST_MV = -70.0` (`HH_V_REST_MV` in `jaxfne/emitters_hh.py`);
+`hh_gate_inf` fixed-point gate init (`hh_gate_inf` in `jaxfne/emitters_hh.py`, used in `simulate_hh` in `jaxfne/emitters_hh.py`);
+`_save_exp` clips exp() arguments at 20.0 (`_save_exp` in `jaxfne/emitters_hh.py`);
+non-finite guards keep old state (`graded_syn_step` in `jaxfne/emitters_hh.py`, `ou_step` in `jaxfne/emitters_hh.py`, `simulate_hh` in `jaxfne/emitters_hh.py`).
 Fail-first: 6 kernel tests in `tests/test_emitters_hh.py` (all failed
 pre-fix, e.g. `EL must be the reference -54.3 mV, got -54.364`).
 
 Runner (`artifacts/etudes/gsdr2026/run_gsdr.py`): whole-cell area
-`AREA_CELL_UM2 = 80π` µm² (`:68`, S1/S2 one compartment per cell);
-`NA_TO_UACM2 = US_TO_MSCM2 = 1e5/80π ≈ 397.89` (`:70`–`:71`); stimulus
-0.6 nA → ≈238.7 uA/cm² (`:178`); OU σ ×1000 mA→uA/cm² (`:72`–`:73`,
-`:164`); rule weights and init conductances converted (`:111`–`:118`,
-`:138`). Fail-first: 5 conversion tests in
+`AREA_CELL_UM2 = 80π` µm² (`AREA_CELL_UM2` in `run_gsdr.py`, S1/S2 one compartment per cell);
+`NA_TO_UACM2 = US_TO_MSCM2 = 1e5/80π ≈ 397.89` (`NA_TO_UACM2` and `US_TO_MSCM2` in `run_gsdr.py`); stimulus
+0.6 nA → ≈238.7 uA/cm² (`stimulus_matrix` in `run_gsdr.py`); OU σ ×1000 mA→uA/cm² (`MA_TO_UA` in `run_gsdr.py`,
+`ou_hyperparams` in `run_gsdr.py`); rule weights and init conductances converted (`build_spec` in `run_gsdr.py`,
+`init_conductances` in `run_gsdr.py`). Fail-first: 5 conversion tests in
 `tests/test_gsdr2026_fidelity.py` (all failed pre-fix, e.g. stimulus
 0.6 vs 238.7). Post-fix CPU: 33 passed (`33 passed in 92.96s`); model
 tests 11 passed; 300 ms smoke finite, 2.667 Hz both amps (stim window
@@ -73,7 +73,7 @@ float32, dt 0.1 ms, 15001 steps. Outputs:
 (in-rerun log: 6.9/2.8/5.2 s).
 
 Estimand: paper Fig. 6 baseline activity in the 5–50 Hz in-bounds band
-(`run_gsdr.py:56`; no point y — no MT/MST data in the lane, so the
+(`RATE_LO` and `RATE_HI` in `run_gsdr.py`; no point y — no MT/MST data in the lane, so the
 verdict is band membership, protocol e undefined).
 
 | trial | amp (nA) | seeds (g, ou) | z0 pre-fix (Hz) | z post-fix (Hz) | penalty | kappa | band |
@@ -107,7 +107,7 @@ trial 5 (`5:6`), baseline `:200`, stim `600:1200`, mean over the MT/MST
 units (info groups `(122, 40, 95)`, slice `(162, 257)`), rFFT power
 `/(N*fs)` at `fs=1000`, interp onto `linspace(15, 60, 40)`,
 `uniform_filter1d` size 5, min-subtracted, max-normalized. Warehouse
-files stay out of the repo (hashes in `data_labels.py:31-34`,
+files stay out of the repo (hashes in `DATA_SHA256` in `data_labels.py`,
 `794b5ee6…` / `759349b2…`, verified in
 `tests/test_gsdr2026_labels.py`). Vectors + scalars:
 `/home/nejath/gsdr_src/y_labels.json` (outside the repo, like the data).
@@ -184,11 +184,11 @@ XLA deterministic-ops twin (seed 1): two attempts queued behind foreign lock hol
 
 Like-for-like z (4e): model onsets through the label recipe
 (`main_fig6.py:109-126`, read as text): `run_gsdr.spike_trace_psd`
-(`run_gsdr.py:329`) + stim-window rates `window_rates_hz` on
-`[500, 1000]` ms (`run_gsdr.py:309`, functional match of the y
+(`spike_trace_psd` in `run_gsdr.py`) + stim-window rates `window_rates_hz` on
+`[500, 1000]` ms (`window_rates_hz` in `run_gsdr.py`, functional match of the y
 `[600, 1200)` window) + kappa both windows. Kept the paper's
 asymmetric PSD recipe (labels smoothed+minsub `:109-126`, model
-max-only `:407-421`) as fidelity; added the spike-trace model PSD
+max-only `spike_trace_psd` in `run_gsdr.py`) as fidelity; added the spike-trace model PSD
 diagnostic instead of replacing the loss path. Rescorer
 `rescore_4e.py`; outputs `scratch/gsdr2026/heldout_4e.json` (seeds 4–8
 × tags main/gstar) and `heldout_4e_x.json` (× xgstar). Tests
@@ -201,9 +201,9 @@ Held-out at reference (a = 1.0), all off: spike-PSD peak 23–25 Hz
 (y 0.0156, e ~59–63). Kappa windows agree (k500 ≈ k600), so windowing
 is not the driver.
 
-X: scalar `noise_gain` on `ou_sigma` (`emitters_hh.py:293,396-400`;
+X: scalar `noise_gain` on `ou_sigma` (`simulate_hh` in `jaxfne/emitters_hh.py`;
 1.0 = reference; packet's "noise level" option), threaded through
-`run_trial` (`run_gsdr.py:388-396,432,440`); tests in
+`run_trial` (`run_trial` in `run_gsdr.py`); tests in
 `tests/test_emitters_hh.py` (4 pass; baseline-fail shown). D (declared
 before fitting): OU sigma clip upper in source-attested [0.05, 0.1]
 (run code clips `[0, 0.05]`, packaged builder `[0, 0.1]`, PORT_SPEC
@@ -266,7 +266,7 @@ gradient-free; one generation = 6 evals + 1 delta-rule center update
 (`center + alpha * (best - center)`, elitist anchor, NaN→inf never
 selected). Shared unit: 1 lane generation ↔ 1 authors' epoch in update
 count. `jaxfne.optim.gsdr` contributes only the spec knobs
-(`core.py:162-178`: alpha, exploration, deselect_factor); the loop is
+(`gsdr` in `jaxfne/optim/core.py`: alpha, exploration, deselect_factor); the loop is
 hand-rolled NumPy mirroring `_run_agsdr_optimization_loop`'s
 proposal/anchor/update shape.
 
@@ -365,15 +365,15 @@ is what desynchronizes the 50 cells. Audit (authors read as text only):
 
 | Row | Authors | Port | Match |
 |---|---|---|---|
-| Per-cell tau | `U(10, 50)` per cell (`main_fig6.py:68`) | `U(10, 50)` per cell (`run_gsdr.py:162`) | yes |
-| Per-cell sigma | `clip(U(−0.1, 0.1), 0, 0.05)` per cell (`main_fig6.py:69`) | same form ×1000 mA→uA/cm² (`run_gsdr.py:163-164`) | yes |
-| Mean | `initial_mean=0.0` (`main_fig6.py:71`) | `0.0` hardcoded (`emitters_hh.py:460`) | yes |
-| Update | `n += (mean−n)/tau·dt + sigma·√(2/tau)·xi·√dt`, `I=−n` (PORT_SPEC §3, ex `gsdr/models.py`) | identical (`emitters_hh.py:460,462`; `ou_step:227-228`) | yes |
-| Per-cell independence | per-cell channel objects, per-cell draws (`main_fig6.py:68-71`) | `xi = normal(uk, shape=(N,))` per step (`emitters_hh.py:459`), key split per step (`:446`) — independent draws per cell and step | yes |
+| Per-cell tau | `U(10, 50)` per cell (`main_fig6.py:68`) | `U(10, 50)` per cell (`ou_hyperparams` in `run_gsdr.py`) | yes |
+| Per-cell sigma | `clip(U(−0.1, 0.1), 0, 0.05)` per cell (`main_fig6.py:69`) | same form ×1000 mA→uA/cm² (`ou_hyperparams` in `run_gsdr.py`) | yes |
+| Mean | `initial_mean=0.0` (`main_fig6.py:71`) | `0.0` hardcoded (`ou_step` in `jaxfne/emitters_hh.py`) | yes |
+| Update | `n += (mean−n)/tau·dt + sigma·√(2/tau)·xi·√dt`, `I=−n` (PORT_SPEC §3, ex `gsdr/models.py`) | identical (`ou_step` in `jaxfne/emitters_hh.py`) | yes |
+| Per-cell independence | per-cell channel objects, per-cell draws (`main_fig6.py:68-71`) | `xi = normal(uk, shape=(N,))` per step (`simulate_hh` in `jaxfne/emitters_hh.py`), key split per step (`simulate_hh` in `jaxfne/emitters_hh.py`) — independent draws per cell and step | yes |
 
 No difference found → no fix, no fail-first test (nothing to fail).
 Minor (inferred, untouched): `ou_hyperparams` and the noise stream
-both derive from the same `ou_seed` key (`run_gsdr.py:426-427`),
+both derive from the same `ou_seed` key (`run_trial` in `run_gsdr.py`),
 so the sigma uniforms share a key with the first-step normals —
 a one-step transient, not a desync breaker.
 
@@ -403,9 +403,9 @@ slice (162, 257)), convolved traces at threshold 20.0, 600 samples =
 600 ms, 5 ms bins, pairwise Fleiss, no clamp — a NumPy port of the
 paper's `compute_kappa` (`~/gsdr_src/analysis.py:109-143`: bin-max,
 pairwise P_i, pooled-chance P_e, same guards; the port's
-`kappa_of_onsets`, `run_gsdr.py:276-306`, is line-for-line the same
+`kappa_of_onsets` in `run_gsdr.py`, is line-for-line the same
 math). The fit compares them as `|k_model − ky| × 100`
-(`fit_gsdr.py:108-115`, `KAPPA_WEIGHT = 100`), model side: all 50
+(`candidate_loss` in `fit_gsdr.py`, `KAPPA_WEIGHT = 100`), model side: all 50
 cells, [500, 1000) ms, −20 mV onsets, 5 ms bins. Data context
 (`y_labels.json`): stim rates 2.14 Hz mean, 52/95 units silent —
 sparse near-chance synchrony, baseline −0.00025, full-trial 0.00955.
@@ -501,8 +501,8 @@ normal call in one process (drive, OU tau, sigma and key, edge
 weights), V differing from the first recorded sample by about
 4e-6 mV, and the gap above 1 mV from recorded sample 1509. The only
 reductions in the scan body that feed the dynamics are the two
-`jax.ops.segment_sum` calls (`jaxfne/emitters_hh.py:536-537`; the
-`jnp.sum` held-step counters at :533 and :542 never re-enter V).
+`jax.ops.segment_sum` calls (`simulate_hh` in `jaxfne/emitters_hh.py`; the
+`jnp.sum` held-step counters in `simulate_hh` in `jaxfne/emitters_hh.py` never re-enter V).
 Inferred cause: varying GPU atomic-add order in those sums; CPU runs
 are bit-identical.
 
@@ -754,7 +754,7 @@ The Step-4 fit (`fit/fit_gsdr.py`) and the 350/500-generation fits
 (`fit/fit_gsdr_500.py`, single and reference morphologies) wrote
 `"mcdp": True` in their manifests while the lane ran no MCDP step:
 `jaxfne/` held no MCDP implementation and the oracle
-`run/run_gsdr.py:264` `mcdp_factors` has no caller. The same blocks
+`mcdp_factors` in `run/run_gsdr.py` has no caller. The same blocks
 recorded `deselect_factor`, `inner_SDR_lr`, `inner_SDR_momentum` and
 `a_init`, which the generational loop likewise never consumed (only the
 spec knobs `alpha` and `exploration` drove the loop). Affected outputs:

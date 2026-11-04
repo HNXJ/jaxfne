@@ -8,31 +8,77 @@ Validates that all 4 core tutorials generate:
 """
 
 import json
+import os
 import pathlib
+import subprocess
+import sys
+
 import pytest
 
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
 
-@pytest.mark.skip(reason="v0.2.19 legacy output artifact contract tests require large tutorials to be run locally. Fast CI excludes large examples. For manual validation, run: python scripts/run_all_tutorials.py && python scripts/validate_tutorial_outputs.py. Validation is now delegated to test_tutorial_figure_manifest_v028.py which validates the canonical docs/_static/tutorial_figures/figure_manifest.json artifact.")
+# Output directory -> the example that writes it (the mapping run_all_tutorials.py uses).
+TUTORIAL_SCRIPTS = {
+    "v023_single_neuron_multimodal": "examples/03_single_neuron_multimodal_probe.py",
+    "v029_two_neuron_ei_multimodal": "examples/04_two_neuron_ei_multimodal.py",
+    "v020_spectrolaminar_public_path": "examples/02_spectrolaminar_oddball_scaffold.py",
+    "v0210_network_100_ei_multimodal": "examples/05_network_100_ei_multimodal.py",
+}
+
+
+@pytest.fixture(scope="module")
+def tutorial_outputs(tmp_path_factory):
+    """Run the four tutorial examples in smoke mode into a temp out root.
+
+    The examples write to JAXFNE_TUTORIAL_OUT_ROOT (examples/_tutorial_runtime.py).
+    Smoke mode shortens simulated durations; the contract checks do not depend on
+    duration. The cwd is a temp dir so nothing is written into the repo tree.
+    """
+    root = tmp_path_factory.mktemp("tutorial_contract")
+    env = dict(
+        os.environ,
+        PYTHONPATH=str(REPO_ROOT),
+        PYTHONIOENCODING="utf-8",
+        PYTHONDONTWRITEBYTECODE="1",
+        JAXFNE_TUTORIAL_OUT_ROOT=str(root),
+        JAXFNE_TUTORIAL_SMOKE="1",
+        JAXFNE_TUTORIAL_WRITE_FIGURES="1",
+    )
+    for script in TUTORIAL_SCRIPTS.values():
+        proc = subprocess.run(
+            [sys.executable, str(REPO_ROOT / script)],
+            cwd=root,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+        assert proc.returncode == 0, (
+            f"{script} exited {proc.returncode}: {proc.stderr[-500:]}"
+        )
+    return root
+
+
 class TestTutorialFigureContract:
     """Test suite for tutorial output contract with figures."""
 
     TUTORIAL_OUTPUTS = [
-        ("v023_single_neuron_multimodal", "outputs/v023_single_neuron_multimodal"),
-        ("v029_two_neuron_ei_multimodal", "outputs/v029_two_neuron_ei_multimodal"),
-        ("v020_spectrolaminar_public_path", "outputs/v020_spectrolaminar_public_path"),
-        ("v0210_network_100_ei_multimodal", "outputs/v0210_network_100_ei_multimodal"),
+        ("v023_single_neuron_multimodal", "v023_single_neuron_multimodal"),
+        ("v029_two_neuron_ei_multimodal", "v029_two_neuron_ei_multimodal"),
+        ("v020_spectrolaminar_public_path", "v020_spectrolaminar_public_path"),
+        ("v0210_network_100_ei_multimodal", "v0210_network_100_ei_multimodal"),
     ]
 
     @pytest.mark.parametrize("name,path", TUTORIAL_OUTPUTS)
-    def test_tutorial_outputs_exist(self, name, path):
+    def test_tutorial_outputs_exist(self, tutorial_outputs, name, path):
         """Test that all tutorial output directories exist."""
-        outdir = pathlib.Path(path)
+        outdir = tutorial_outputs / path
         assert outdir.exists(), f"Output directory {outdir} does not exist for {name}"
 
     @pytest.mark.parametrize("name,path", TUTORIAL_OUTPUTS)
-    def test_json_contract_files(self, name, path):
+    def test_json_contract_files(self, tutorial_outputs, name, path):
         """Test that required JSON contract files exist."""
-        outdir = pathlib.Path(path)
+        outdir = tutorial_outputs / path
         required_files = [
             "manifest.json",
             "probe_report.json",
@@ -46,25 +92,25 @@ class TestTutorialFigureContract:
             assert fpath.stat().st_size > 0, f"{fname} is empty in {name}"
 
     @pytest.mark.parametrize("name,path", TUTORIAL_OUTPUTS)
-    def test_figures_directory_exists(self, name, path):
+    def test_figures_directory_exists(self, tutorial_outputs, name, path):
         """Test that figures/ directory exists."""
-        outdir = pathlib.Path(path)
+        outdir = tutorial_outputs / path
         figures_dir = outdir / "figures"
         assert figures_dir.exists(), f"figures/ directory missing in {name}"
         assert figures_dir.is_dir(), f"figures/ is not a directory in {name}"
 
     @pytest.mark.parametrize("name,path", TUTORIAL_OUTPUTS)
-    def test_at_least_one_figure(self, name, path):
+    def test_at_least_one_figure(self, tutorial_outputs, name, path):
         """Test that at least one PNG figure exists per tutorial."""
-        outdir = pathlib.Path(path)
+        outdir = tutorial_outputs / path
         figures_dir = outdir / "figures"
         png_files = list(figures_dir.glob("*.png"))
         assert len(png_files) > 0, f"No PNG figures found in {name}"
 
     @pytest.mark.parametrize("name,path", TUTORIAL_OUTPUTS)
-    def test_figure_files_nonzero(self, name, path):
+    def test_figure_files_nonzero(self, tutorial_outputs, name, path):
         """Test that all figure files are nonzero bytes."""
-        outdir = pathlib.Path(path)
+        outdir = tutorial_outputs / path
         figures_dir = outdir / "figures"
         for png_file in figures_dir.glob("*.png"):
             size = png_file.stat().st_size
@@ -72,7 +118,7 @@ class TestTutorialFigureContract:
 
     @pytest.mark.skip(reason="legacy output artifact contract superseded by v0.2.28 canonical tutorial figure manifest (docs/_static/tutorial_figures/figure_manifest.json); validation moved to test_tutorial_figure_manifest_v028.py")
     @pytest.mark.parametrize("name,path", TUTORIAL_OUTPUTS)
-    def test_figure_hash_in_assets(self, name, path):
+    def test_figure_hash_in_assets(self, tutorial_outputs, name, path):
         """DEPRECATED: Test that figure hashes are in asset_hashes.json.
 
         Legacy test for v0.2.19 output artifact contract. Superseded by canonical
@@ -86,7 +132,7 @@ class TestTutorialFigureContract:
         Runtime outputs/ directories contain ephemeral artifacts and are no longer
         part of the release contract.
         """
-        outdir = pathlib.Path(path)
+        outdir = tutorial_outputs / path
         hashes_file = outdir / "asset_hashes.json"
         with open(hashes_file) as f:
             asset_hashes = json.load(f)
@@ -97,9 +143,9 @@ class TestTutorialFigureContract:
             assert rel_path in asset_hashes, f"Figure {rel_path} not in asset_hashes in {name}"
 
     @pytest.mark.parametrize("name,path", TUTORIAL_OUTPUTS)
-    def test_claim_gates_frozen(self, name, path):
+    def test_claim_gates_frozen(self, tutorial_outputs, name, path):
         """Test that claim gates are frozen as expected."""
-        outdir = pathlib.Path(path)
+        outdir = tutorial_outputs / path
         manifest_file = outdir / "manifest.json"
         with open(manifest_file) as f:
             manifest = json.load(f)
@@ -109,9 +155,9 @@ class TestTutorialFigureContract:
         assert manifest.get("field_claim_level") == "proxy_readout", f"field_claim_level not frozen in {name}"
 
     @pytest.mark.parametrize("name,path", TUTORIAL_OUTPUTS)
-    def test_metrics_nonzero(self, name, path):
+    def test_metrics_nonzero(self, tutorial_outputs, name, path):
         """Test that metrics contain nonzero values."""
-        outdir = pathlib.Path(path)
+        outdir = tutorial_outputs / path
         metrics_file = outdir / "metrics.json"
         with open(metrics_file) as f:
             metrics = json.load(f)

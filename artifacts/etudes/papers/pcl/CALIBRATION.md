@@ -94,7 +94,7 @@ drive is part of x; same-step interactions are declared intra-step fixed point.
 - `test_lif_tensor_route + test_emitters_lif + test_pcl_topology +
   test_readme_atlas_pin + test_jdna_area_rules_055`: 108 passed.
 
-### Gap 3 — complex pooling + cover-table feed (feed + pooling CLOSED; Stage C OPEN)
+### Gap 3 — complex pooling + cover-table feed (feed + pooling CLOSED; Stage C CLOSED in Step 9)
 
 - `dvs_feed_arrays` (`jaxfne/pcl_topology.py`) bins DVS events to
   `(feed_current, feed_arrivals)` per simple cell: exact oracle `cover_x`/
@@ -121,7 +121,7 @@ drive is part of x; same-step interactions are declared intra-step fixed point.
   covering cell's own `w_c` weight; characterization, green on baseline too —
   the new mapping is the S1 assembly in `test_pcl_stage_c`). Pooling
   positions are simple-grid indices against complex origins
-  (`pcl_event_ref.py:423-428`), not pixels.
+  (`c_cover` in `pcl_event_ref.py`), not pixels.
 - `tests/test_emitters_lif.py + tests/test_pcl_topology.py`: 70 passed.
   `test_lif_tensor_route + test_readme_atlas_pin + test_jdna_area_rules_055`:
   43 passed. Ruff on touched files: only the 2 pre-existing HEAD errors
@@ -130,7 +130,7 @@ drive is part of x; same-step interactions are declared intra-step fixed point.
 - θ* = θ₀.
 - X (remaining): the per-event depth-sequential cascade — one event's
   candidates visited in ascending index with immediate spike-then-inhibit
-  (`port/pcl_event_ref.py:663-697`) — has no clock-step expression; the cap
+  (`_add_event` in `port/pcl_event_ref.py`) — has no clock-step expression; the cap
   resolves once per step, not once per event.
   |a| unquantified — no partial mapping exists to score. This is the protocol's step-6
   outcome: the paper's model needs something the core grammar does not yet state.
@@ -171,7 +171,7 @@ Oracle v5 verdict (FAIL on T2) stands unchanged.
   complex max 2 (16/18261 bins ≥2).
 - Declared setting, reasoned from the above (not from best r):
   `resolution="event_order"`, dt=0.5 ms, rounds=4. Each position resolves
-  `n_rounds` winners per step (`jaxfne/emitters_lif.py:163`); rounds=4 is the
+  `n_rounds` winners per step (`lif_step` in `jaxfne/emitters_lif.py`); rounds=4 is the
   smallest probed value covering the oracle-observed max of 3 with one spare
   pass (rounds=2 caps below the observed max; rounds=8 admits far more than
   observed). dt=0.1 + rounds=4 is near-identical (combined r 0.8480 vs
@@ -218,7 +218,7 @@ Oracle v5 verdict (FAIL on T2) stands unchanged.
   ascending with exact inter-event decay (`exp` from integer event times),
   and each spike runs local inhibition, then lateral (when flagged), then
   the forward pass — complex spikes run complex-local inhibition, then
-  top-down — exactly as `pcl_event_ref.py:663-720`. No rounds parameter:
+  top-down — exactly as `_add_event` in `pcl_event_ref.py`. No rounds parameter:
   the stream order is the order. Builders: `event_scan_tables`
   (cover/forward/lateral/top-down transcription of `:393-477`) and
   `event_scan_events` (stable time-sorted `(M,4)` rows). Scan-only
@@ -325,3 +325,65 @@ Oracle v5 verdict (FAIL on T2) stands unchanged.
   each of `pcl_topology.py` / `_construct_lif.py` / `_model_simulate.py`
   at HEAD bytes fails the slice test; restores sha256-verified. Gate
   now: 71 passed, 0 xfailed + stub 10 passed.
+
+## R2 — event oracle vs the authors' C++ on `shapes.h5` (2026-10-31, unscored)
+
+Harness `port/run_r2_reference.py` at 922270fd (frozen clone in WSL); C++ `neuvisys-exe` built from the authors'
+source (`~/pcl_cpp`, sha256 4e0f7d99…), events `data/events/shapes.h5` (sha256 8f4842b1…), one pass, learning on.
+Both arms start from one folder written by `init` (oracle seeded init, seed 0), because the C++ init is unseeded.
+The C++ save resets every neuron before it writes (`NetworkHandle.cpp:200`, `Neuron.cpp:616, 626`), so saved
+folders carry no spike counts or trains; the comparison reads the weights.
+
+| comparison | layer 0 max \|Δw\| (rel) | layer 1 max \|Δw\| (rel) | exact (rtol 1e-12) |
+|---|---|---|---|
+| C++ A vs C++ B (null) | 0 (0) | 0 (0) | yes |
+| init vs C++ A (learning moved weights) | 34.29 (1.00) | 558.4 (1.00) | no |
+| oracle vs C++ A | 2.1e-13 (6.3e-15) | 3.7e-13 (1.8e-14) | yes |
+| oracle vs C++ B | 2.1e-13 (6.3e-15) | 3.7e-13 (1.8e-14) | yes |
+
+Layer 0 holds 5184 cells, layer 1 1152. The time-seeded `winnerTakeAll` left the two C++ runs bit-identical on
+this file. Wall: C++ 2:10 and 3:21, oracle 22:41 (3.5 GB). Receipts in `F:/warehouse/pcl/r2_922270fd/`
+(`null_cppA_cppB.json` 32adb148…, `init_vs_cppA.json` 0c89b952…, `r2_orc_cppA.json` c807ce5c…,
+`r2_orc_cppB.json` ef893192…). Verdict: R2 reproduces the reference weights to float64 rounding after a full
+learning pass. Oracle receipt (2026-11-01, `oracle --out` at bafa4797 from the same `init`, 14:47 wall, 3.5 GB):
+24 420 667 events, 111 195 spikes, last spike t 42 358 874; weights against C++ A exact again (layer 0 max |Δw|
+2.1e-13, layer 1 3.7e-13). Receipts `F:/warehouse/pcl/orc_receipt_bafa4797/` (`oracle_receipt.json` c21ca867…,
+`orc_vs_cppA.json` 52b5f73c…). R3 attribution has no residual to attribute on this file, so R3 moves to the trained
+network's training files.
+
+## R3 — three arms on the training files (2026-11-02 to 11-03, unscored)
+
+Files 0-4 of `data/training_natural/events5_re2/` (Zenodo `PCL_Nat_training_natural_dataset.zip`), chained from the
+R2 `init` (seed 0), learning on, harness `port/run_r2_reference.py chain` at 7fbd3514. Each arm saves after each
+file; the comparison reads the weights (the C++ save resets counts, R2). Exact means rtol 1e-12 on every cell.
+
+| comparison | files | layer 0 max rel \|Δw\| | layer 1 max rel \|Δw\| | exact |
+|---|---|---|---|---|
+| C++ chain vs C++ chain (null) | after file 4 | 0 | 0 | yes |
+| C++ after file 0 vs after file 1 (learning moves weights) | 0, 1 | 0.65 | 0.997 | no |
+| oracle vs C++ | after each of 0-4 | 2.7e-15 to 3.9e-15 | 3.7e-15 to 7.4e-15 | yes, every file |
+| jaxfne core vs C++ | after file 0 | 2.8e-15 | 5.3e-15 | yes |
+
+Core and oracle give the same spike counts on file 0: 268 464 events, 5486 simple and 3063 complex spikes. Wall
+on file 0: oracle 140 s, core 11:53:46 (0.16 s per event, CPU, 4.1 GB). The core arm ran file 0 only (files 0-4 would
+take about 60 h). Residual to attribute: none on file 0 for either arm, so R3 finds no implementation, parameter or
+stochastic difference there. P-053 (core `w_s` about 0.4% off the oracle on a hand-zeroed sparse fixture) does not
+appear on this training file. Receipts: `F:/warehouse/pcl/r3_cpp_f0_4/` (`null_cpp4.json` ed088e34…,
+`cpp0_vs_cpp1.json` 144a75f4…, `init_vs_cpp4.json` 4db7e761…), `F:/warehouse/pcl/r3_oracle_f0_4/`
+(`cmp_oracle_vs_cpp_0.json` to `_4.json`: 59e0e6af…, 52b0ee49…, 40028737…, c9a5b7d5…, 69f82b75…),
+`F:/warehouse/pcl/r3_smoke_core_f0b/` (`0_0.json` 004aa304…, `cmp_core_vs_cpp_0.json` 94e1fb69…).
+
+## R5 timing pilot (2026-11-03, unscored)
+
+One `test7` file outside the R4 exact subset (ori 0, sf index 4, phase 1, trial 1), learning off,
+`--inhibition no-local`, through `run_tuning.py`'s worker path at 8479df94 on Windows CPU
+(`F:/warehouse/pcl/r5_pilot/r5_pilot.py` 0bd77920…). 807 302 events; both arms give 1997 simple and 36 558 complex
+spikes, and counts and spike times are equal for every cell. Wall: numba 21.1 s, core 1025.7 s (49×; the R4 draft's
+estimate of about 2 h per file, taken from the learning-on R3 ratio, was 7× too high). Receipts `core_0_4_1_1.npz`
+b22b7898…, `numba_0_4_1_1.npz` 935af4b2…, `pilot.log`.
+
+Scaling (2026-11-03, unscored, same file): 12 concurrent core processes from a frozen clone at 7c067e22, BLAS and
+numba threads 1 (`F:/warehouse/pcl/r5_scaling/r5_scaling.py` cf601442…). Per-file wall 1485-1516 s (1.46× the
+single run), batch 1747.8 s, 24.7 files per hour; every output equals the pilot's core npz in all spike fields
+(`cmp_keys.py` 6b046571…: only `wall_s` differs; the script's own "equal 0/12" line compared `wall_s` too).
+The 3168-file core set at 12 workers is about 128 h wall (log `scaling_12.log` 94b87605…).

@@ -1,4 +1,4 @@
-"""Canonical field-visualization contract — 0.5.2 ENGINE item 8.
+"""Canonical field-visualization contract: 0.5.2 ENGINE item 8.
 
 Field visualization consumes canonical Q/Phi only; the declared-STOP
 ``plot_depth_profile`` backend divergence is KEPT (see
@@ -11,7 +11,7 @@ Field visualization consumes canonical Q/Phi only; the declared-STOP
 - The Q-side display route draws ``signals.sources`` numbers.
 - Divergence record: the matplotlib depth renderer is invariant to field
   data (it draws declared neuron geometry, not Phi) while the Plotly depth
-  renderer requires declared Phi — different quantities under one name,
+  renderer requires declared Phi; different quantities under one name,
   which is why the STOP is kept rather than resolved.
 """
 
@@ -130,7 +130,7 @@ def test_mpl_depth_renderer_invariant_to_field_data():
         [p.get_width() for p in F.laminar_profile(without_field).axes[0].patches],
         dtype=float,
     )
-    # Neuron-count histogram: declared geometry in, geometry out — Phi irrelevant.
+    # Neuron-count histogram: declared geometry in, geometry out; Phi irrelevant.
     np.testing.assert_allclose(widths_with, widths_without, rtol=1e-12)
 
 

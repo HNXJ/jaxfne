@@ -5,10 +5,10 @@ Receipt-driven atlas survey of tutorial notebooks. Does not execute the full
 notebook stack unless ``--run-smoke`` is passed (controlled small subset).
 
 Outputs:
-  figures/evidence/ed03_notebook_execution_receipts.png
-  outputs/evidence/ed03_notebook_execution_receipts_manifest.json
-  outputs/evidence/ed03_notebook_execution_receipts.json
-  outputs/evidence/notebook_execution_receipt.json
+  artifacts/_temp/figures/evidence/ed03_notebook_execution_receipts.png
+  artifacts/_temp/outputs/evidence/ed03_notebook_execution_receipts_manifest.json
+  artifacts/_temp/outputs/evidence/ed03_notebook_execution_receipts.json
+  artifacts/_temp/outputs/evidence/notebook_execution_receipt.json
 """
 
 from __future__ import annotations
@@ -137,7 +137,7 @@ def _structural_scan(nb_path: Path) -> dict[str, Any]:
 
 def _load_prior_ed03_receipt(root: Path) -> dict[str, dict]:
     """Index prior ED3 notebook rows by path."""
-    path = root / "outputs/evidence/ed03_notebook_execution_receipts.json"
+    path = root / "artifacts/_temp/outputs/evidence/ed03_notebook_execution_receipts.json"
     data = _read_json_if_exists(path)
     if not data:
         return {}
@@ -146,7 +146,7 @@ def _load_prior_ed03_receipt(root: Path) -> dict[str, dict]:
 
 
 def _load_aggregate_receipt(root: Path) -> dict[str, dict]:
-    path = root / "outputs/evidence/notebook_execution_receipt.json"
+    path = root / "artifacts/_temp/outputs/evidence/notebook_execution_receipt.json"
     data = _read_json_if_exists(path)
     if not data:
         return {}
@@ -340,7 +340,7 @@ def _build_notebook_row(
             row["last_verified_sha"] = exec_result["verified_repo_sha"]
             row["last_verified_at_utc"] = exec_result["executed_at_utc"]
             row["source"] = "smoke_executed"
-            smoke_receipt_rel = f"outputs/evidence/smoke_receipts/{nb_path.stem}.json"
+            smoke_receipt_rel = f"artifacts/_temp/outputs/evidence/smoke_receipts/{nb_path.stem}.json"
             row["artifact_receipt_path"] = smoke_receipt_rel
         except Exception as exc:
             row["mode"] = "smoke"
@@ -485,7 +485,7 @@ def draw_figure(rows: list[dict], summary: dict, receipt: dict) -> None:
 
 def _write_smoke_receipts(rows: list[dict]) -> None:
     root = repo_root()
-    smoke_dir = root / "outputs" / "evidence" / "smoke_receipts"
+    smoke_dir = root / "artifacts" / "_temp" / "outputs" / "evidence" / "smoke_receipts"
     smoke_dir.mkdir(parents=True, exist_ok=True)
     for row in rows:
         if row.get("source") != "smoke_executed":
@@ -607,7 +607,7 @@ def main() -> int:
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {RECEIPT_JSON_PATH.relative_to(root)}")
     print(f"wrote: {AGGREGATE_RECEIPT_PATH.relative_to(root)}")
-    print(f"wrote: outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
+    print(f"wrote: artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
     print(f"sha256: {sha}")
     print(f"figure_id: {manifest['figure_id']}")
     print(f"notebooks: {summary['notebook_total']}")

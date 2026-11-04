@@ -2,7 +2,7 @@
   {
     "rule": "R1",
     "path": "artifacts/etudes/papers/izhikevich2003",
-    "message": "stage P5 paper 'izhikevich2003' lacks the P5 record LEDGER.md",
+    "message": "stage P6 paper 'izhikevich2003' lacks the P5 record LEDGER.md",
     "reason": "audit 2026-10-17",
     "todo": "T-30"
   },
@@ -51,142 +51,128 @@
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/caminos",
-    "message": "holds 20 files (at most 7)",
-    "reason": "audit 2026-10-17",
+    "message": "holds 35 files (at most 7)",
+    "reason": "audit 2026-10-17; 28 files after the FIG-A runner, the mean-field port with its result and the PLoS Figs 2-4 scorer with its result (2026-10-31); 30 with the PLoS raster runner and its test, 32 with the raster scorer and its test, 33 with the core-route test test_cellrep_core.py, 35 with the core-route equivalence scorer and its test (2026-11-02)",
     "todo": "T-30"
   },
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/izhikevich2003",
-    "message": "holds 13 files (at most 7)",
+    "message": "holds 14 files (at most 7)",
     "reason": "audit 2026-10-17",
     "todo": "T-30"
   },
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/pcl",
-    "message": "holds 23 files (at most 7)",
-    "reason": "audit 2026-10-17; recount 2026-10-24 after the PCL-R1 receipt landed",
+    "message": "holds 24 files (at most 7)",
+    "reason": "audit 2026-10-17; recounts 2026-10-24 (PCL-R1 receipt) and 2026-10-27 (R2/R4 design study)",
     "todo": "T-30"
+  },
+  {
+    "rule": "R6",
+    "path": "artifacts/etudes/papers/potjans2014",
+    "message": "holds 9 files (at most 7)",
+    "reason": "open lane: the signed P3 v2 scored driver adds score_p3.py, its test and RESULT_P3.md (2026-11-02); split by kind when the lane closes",
+    "todo": "T-49"
+  },
+  {
+    "rule": "R6",
+    "path": "artifacts/etudes/papers/vogels2011",
+    "message": "holds 10 files (at most 7)",
+    "reason": "open lane: the signed P3 v4 scored driver adds score_p3.py, its test and RESULT_P3.md (2026-11-02); split by kind when the lane closes",
+    "todo": "T-49"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/caminos/test_caminos_analysis.py",
-    "message": "line 412: spec_from_file_location loads a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
+    "message": "line 415: spec_from_file_location loads a path that cannot be resolved",
+    "reason": "loads a mutant copy written to pytest's tmp_path at run time, so the path is not static. Hamm exception 2026-10-28 (permanent).",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/port/test_fig3_analysis.py",
     "message": "line 529: spec_from_file_location loads a path that cannot be resolved",
-    "reason": "mutant harness loads a temporary copy of fig3_analysis.py, as the CAMINOS harness does (2026-10-20)",
+    "reason": "mutant harness loads a temporary copy of fig3_analysis.py, as the CAMINOS harness does (2026-10-20). Hamm exception 2026-10-28 (permanent).",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/izhikevich2003/gate_p3b.py",
     "message": "line 28: spec_from_file_location loads a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
+    "reason": "_load passes its path parameter to spec_from_file_location, so no static path reaches the call. Hamm exception 2026-10-28 (permanent).",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/build_cache.py",
-    "message": "line 7: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "audit 2026-10-17",
+    "message": "line 11: sys.path.insert adds a path that cannot be resolved",
+    "reason": "path from PCL_DIAG_DIR at run time; Hamm exception 2026-10-28",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/diag_common.py",
-    "message": "line 25: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
+    "message": "line 36: sys.path.insert adds a path that cannot be resolved",
+    "reason": "path from PCL_DIAG_DIR at run time; Hamm exception 2026-10-28",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q2_sf_curve.py",
-    "message": "line 10: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "audit 2026-10-17",
+    "message": "line 14: sys.path.insert adds a path that cannot be resolved",
+    "reason": "path from PCL_DIAG_DIR at run time; Hamm exception 2026-10-28",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q3_rsf_dist.py",
-    "message": "line 11: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "audit 2026-10-17",
+    "message": "line 15: sys.path.insert adds a path that cannot be resolved",
+    "reason": "path from PCL_DIAG_DIR at run time; Hamm exception 2026-10-28",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q4_sf_edges.py",
-    "message": "line 10: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "audit 2026-10-17",
+    "message": "line 14: sys.path.insert adds a path that cannot be resolved",
+    "reason": "path from PCL_DIAG_DIR at run time; Hamm exception 2026-10-28",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q5_t4_split.py",
-    "message": "line 11: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)",
-    "reason": "audit 2026-10-17",
+    "message": "line 15: sys.path.insert adds a path that cannot be resolved",
+    "reason": "path from PCL_DIAG_DIR at run time; Hamm exception 2026-10-28",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q7_t2_sweep.py",
     "message": "line 11: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
+    "reason": "adds a directory given on the command line (sys.argv[1]), a run-time path. Hamm exception 2026-10-28 (permanent).",
     "todo": "T-30"
   },
   {
     "rule": "S1",
     "path": "artifacts/etudes/papers/pcl/diag/q8_v6_numbers.py",
     "message": "line 12: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
-  },
-  {
-    "rule": "S1",
-    "path": "artifacts/etudes/papers/pcl/port/pcl_binned_jax.py",
-    "message": "line 55: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
-  },
-  {
-    "rule": "S1",
-    "path": "artifacts/etudes/papers/pcl/port/pcl_event_ref.py",
-    "message": "line 54: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
-  },
-  {
-    "rule": "S1",
-    "path": "artifacts/etudes/papers/pcl/port/test_pcl_binned_jax.py",
-    "message": "line 29: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
-  },
-  {
-    "rule": "S1",
-    "path": "artifacts/etudes/papers/pcl/port/test_pcl_event_ref.py",
-    "message": "line 24: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
-    "todo": "T-30"
-  },
-  {
-    "rule": "S1",
-    "path": "artifacts/etudes/papers/pcl/port/validate_umap_order.py",
-    "message": "line 46: sys.path.insert adds a path that cannot be resolved",
-    "reason": "audit 2026-10-17",
+    "reason": "adds a directory given on the command line (sys.argv[1]), a run-time path. Hamm exception 2026-10-28 (permanent).",
     "todo": "T-30"
   },
   {
     "rule": "S2",
-    "path": "artifacts/etudes/papers/caminos/run_caminos.py",
+    "path": "artifacts/etudes/papers/caminos/cellrep_figures.py",
     "message": "imports oracle artifacts/etudes/papers/caminos/caminos_jax.py",
-    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
-    "todo": "B4 S2 follow-up"
+    "reason": "added with the FIG-A runners (Figs 3, 4, S3); same import as run_caminos.py, the port the runners drive. The Cell Reports figures stay on the oracle route after E1 (not equivalent at n 12). Hamm exception 2026-11-03 (permanent).",
+    "todo": "T-30"
+  },
+  {
+    "rule": "S2",
+    "path": "artifacts/etudes/papers/caminos/calibration/attribute_o83.py",
+    "message": "imports oracle artifacts/etudes/papers/caminos/caminos_jax.py",
+    "reason": "O-83 attribution of the PLoS figure runs, which ran on the transcription through cellrep_figures.py; it swaps parameter families in the transcription's own sets (2026-11-01). Hamm exception 2026-11-03 (permanent).",
+    "todo": "T-30"
   },
   {
     "rule": "S2",
@@ -208,12 +194,5 @@
     "message": "imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref_numba.py",
     "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
     "todo": "B4 S2 follow-up"
-  },
-  {
-    "rule": "E1",
-    "path": "artifacts/etudes/papers/izhikevich2003",
-    "message": "no scored P4 module calls construct( or .simulate(",
-    "reason": "found by E1 when the rule landed (B4); the scored path does not route through construct/simulate",
-    "todo": "B4 E1 follow-up"
   }
 ]

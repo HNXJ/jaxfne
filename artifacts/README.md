@@ -48,7 +48,7 @@ Tree degree (Hamm 2026-10-15): at most 7 direct folders and 7 direct files per f
 entries exempt. `tests/test_artifacts_tree_degree.py` enforces it and holds every exception with
 its reason. A folder that a frozen record, the package (`jaxfne/`), the harness or an external
 tool addresses by path stays where it is; so do the record class roots `archive/` and `legacy/`
-and generated series kept whole. At the root, the 10 control files and 16 such folders are
+and generated series kept whole. At the root, the 9 control files and 16 such folders are
 exempt and the rest (`assurance/`, `changelog.d/`, `control/`, `programme/`, `protocols/`,
 `runs/`, `tutorials/`) fit the limit. `.lab/` stays at the root: the Labyrinth tool reads
 `<project>/artifacts/.lab`.

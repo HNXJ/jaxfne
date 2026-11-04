@@ -29,7 +29,7 @@ Three metadata fields are required on every field solver output surface.
 
 `field_claim_level` describes how the output may be interpreted (`proxy_readout`
 on every current path). `field_solver_status` describes the implementation
-category of the solver that produced it — the laminar proxy projection is a
+category of the solver that produced it; the laminar proxy projection is a
 `linear_solver` operator, while the experimental 1D Poisson solve is an
 `experimental_pde_solver`. These are independent dimensions: a solver with an
 experimental numerical status still produces proxy-readout outputs, and its
@@ -68,7 +68,7 @@ output object and no new public API is proposed.
 ## Use guidance
 
 - Use `project_laminar_sources` (or its alias `project_sources_to_laminar_field`)
-  for the standard laminar proxy projection workflow — the default evidence
+  for the standard laminar proxy projection workflow; the default evidence
   path for field readouts.
 - Use `experimental_poisson_1d` only for the explicit one-dimensional,
   mean-zero-Neumann / mean-zero-gauge experimental PDE workflow. The float32
@@ -83,13 +83,13 @@ output object and no new public API is proposed.
 
 ## Tests
 
-- `tests/test_phaseE_field_schema.py` — per-solver trio assertions
+- `tests/test_phaseE_field_schema.py`: per-solver trio assertions
   (`field_claim_level`, `field_solver_status`,
   `physical_amplitude_calibrated = False`) plus finiteness, on each solver's
   actual output surface.
-- `tests/test_field_admissibility_v020.py` — conductivity-tensor validation,
+- `tests/test_field_admissibility_v020.py`: conductivity-tensor validation,
   field-array finiteness, `build_field_admissibility_report`, manifest
   integration.
-- `tests/test_field_proxy_admissibility_v024.py` — proxy kernel
+- `tests/test_field_proxy_admissibility_v024.py`: proxy kernel
   normalization, conservation status, boundary/gauge declared-metadata-only,
   JSON-safe diagnostics.

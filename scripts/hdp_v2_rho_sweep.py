@@ -22,7 +22,7 @@ configures and calls package APIs.
 
 Historical (F-017): rho_passive sweep found no working window (see
 artifacts/protocols/hdp/hdp_v2_rho_sweep/summary.txt). Production HDP presets use
-K_ctrl / K_w_ctrl — re-run this sweep only if the restoring-force
+K_ctrl / K_w_ctrl; re-run this sweep only if the restoring-force
 formula changes materially.
 """
 from __future__ import annotations
@@ -140,7 +140,7 @@ def _run_one(preset_key: str, rho: float, seed: int, overrides: dict) -> dict:
     )
     elapsed = time.perf_counter() - t0
 
-    # H_trace: (n_steps, n_neurons) — from diagnostics
+    # H_trace: (n_steps, n_neurons); from diagnostics
     H_trace = np.array(diagnostics["H_trace"])   # (T, N)
     spikes  = np.array(sig)                       # (T, N) bool
 

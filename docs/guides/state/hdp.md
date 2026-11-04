@@ -73,7 +73,7 @@ tau_i * dH_i/dt = alpha*I_syn_i + beta - gamma*H_i*r_i - delta*W_i
 ```
 
 `tau_i = tau_0_ms * size_i**3` (cube law; size depends on
-cell type via `size_scale_by_cell_type`, or an explicit `size_scale_override` —
+cell type via `size_scale_by_cell_type`, or an explicit `size_scale_override`:
 default E `relative_size=5.0` integrates `H` exactly $5^3/1^3 = 125$ times slower
 than `relative_size=1.0`). The terms are synaptic income (`alpha`), a constant
 bias (`beta`), an H-taxed activity drain (`gamma`), a weight-budget drain
@@ -112,12 +112,12 @@ the former restores `H` toward 1, while the latter restores edge magnitude
 entry (`_model_simulate.py`). It is **not** a literal disconnection on the HDP
 path: the HDP weight dynamics still run and re-clip each edge to the adaptive
 floor `|w| ≈ w_floor` (kernel default `1e-3`; the shipped `DEFAULT_HDP` preset
-ships `0.01` — see `jaxfne/hdp_network.py`), so a floor-strength recurrent
+ships `0.01`: see `jaxfne/hdp_network.py`), so a floor-strength recurrent
 current contribution remains.
 
 **Guaranteed property (default/standard HDP gain regimes, including the
 shipped `K_HDP=0.01`, `K_ctrl=5.0` acceptance runtime):** weights stay at the
-floor scale — they never grow beyond ≈ a few × `w_floor`. This is the causal
+floor scale. They never grow beyond ≈ a few × `w_floor`. This is the causal
 property the null is designed to test.
 
 **Boundary:** the guarantee holds for the gain regimes exercised by the
@@ -159,8 +159,8 @@ shipped kernels declare:
 | Coordinate | Meaning | Admissible domain | Reference | Update rule `R_k` | Gain mapping `Gamma_k` |
 |---|---|---|---|---|---|
 | Node `H_i` (default `d_H=1`, shape `(N,)` or `(N, d_H)`) | relative hidden biophysical state (availability for the difference/product weight families) | `[H_min, H_max] = [0.1, 10.0]` via explicit clamp; per-coordinate arrays allowed | `H* = 1` (multiplicative availability; init `1.0`) | `τ_i·dH/dt = α·I_syn + β − γ·H·r − δ·W_i + ρ/H_i² + K_ctrl·(1−H_i) − dC/dH_i + H@coupling.T`; spike drain `H ← H − C_spike`; `τ_i = τ_0_ms·size_i³` | `h = H@readout` → `basis(H_post−H_pre)` (signed_linear), `(H_post−H_pre)·\|·\|` (signed_quadratic), `H_pre·H_post` (hebbian_product) → `dm = ±K_HDP·basis·m`; `H_boost` scales drive |
-| Population `H_pop ∈ R²` (`h_state_locality="population"`, `h_state_dim` must be exactly 2) | signed deviation controller state (E/I rate-error channels) | **unbounded** — no `[H_min, H_max]` clamp on this branch; equilibrium `H* = −e/λ` (Hz-scale magnitude) | `H* = 0` deviation convention (init `0`) | `dH = (−e_vec − λ·H)/τ_H` with `τ_H` in seconds; `e_vec` = E/I rate error in Hz | `dθ = (B@H)/τ_θ` → `θ_0` edge channel and `θ_1` intrinsic channel (below) |
-| `θ_0` edge channel | relative edge-magnitude gain | `[0.1, 5.0]` (`theta_m_EI_bounds`) via clip | `1.0` | `dθ = (B@H)/τ_θ` | `w_eff = sign(w_baseline)·θ_0` — **magnitude-replacing** (base magnitude not recovered at θ=1; documented limitation) |
+| Population `H_pop ∈ R²` (`h_state_locality="population"`, `h_state_dim` must be exactly 2) | signed deviation controller state (E/I rate-error channels) | **unbounded**: no `[H_min, H_max]` clamp on this branch; equilibrium `H* = −e/λ` (Hz-scale magnitude) | `H* = 0` deviation convention (init `0`) | `dH = (−e_vec − λ·H)/τ_H` with `τ_H` in seconds; `e_vec` = E/I rate error in Hz | `dθ = (B@H)/τ_θ` → `θ_0` edge channel and `θ_1` intrinsic channel (below) |
+| `θ_0` edge channel | relative edge-magnitude gain | `[0.1, 5.0]` (`theta_m_EI_bounds`) via clip | `1.0` | `dθ = (B@H)/τ_θ` | `w_eff = sign(w_baseline)·θ_0`: **magnitude-replacing** (base magnitude not recovered at θ=1; documented limitation) |
 | `θ_1` intrinsic channel | relative intrinsic-gain modulator | `[0.25, 4.0]` (`theta_eta_a_bounds`) via clip | `1.0` | `dθ = (B@H)/τ_θ` | `a_eff = a_base·θ_1` (multiplicative; θ=1 ⇒ `a_eff = a_base`) |
 
 The current scalar HDP weight rule uses one supported adaptation-specific
@@ -226,7 +226,7 @@ diag = model.last_hdp_diagnostics()   # {"H_trace": ..., "w_trace": ..., ...}
 |-----|---------|
 | `K_HDP` | Gain on the selected difference/product weight term (`0` = `N_W^HDP`; does not disable RBS dynamics or `K_w_ctrl`) |
 | `tau_0_ms` | Base time constant multiplying `size_i**3` (cube law) |
-| `size_scale_by_cell_type`, `size_scale_override` | Per-cell-type (or per-neuron) `size_i` for the cube-law `tau_i`; must be forwarded explicitly — see note below |
+| `size_scale_by_cell_type`, `size_scale_override` | Per-cell-type (or per-neuron) `size_i` for the cube-law `tau_i`; must be forwarded explicitly; see note below |
 | `alpha`, `beta`, `gamma`, `delta`, `C_spike` | RBS income/spending terms; `C_spike` is the discrete spike drain |
 | `rho_passive` | Passive RBS income term, stronger at low positive H |
 | `K_ctrl` | RBS restoring control gain pulling `H_i` back toward 1.0 |
@@ -271,7 +271,7 @@ requires ratio \(100\) at canonical `H_min=0.1`, `H_max=10.0`. See
 ## Tensor-first: enabling HDP on a NeuronalTensor-built Model
 
 The recipe above builds the `Model` via `Configuration`. HDP works identically
-on a `Model` built from a `NeuronalTensor` — pass an explicit
+on a `Model` built from a `NeuronalTensor`. Pass an explicit
 `runtime=RuntimeConfig(enable_hdp=True, ...)` override to `simulate()`:
 
 ```python
@@ -302,7 +302,7 @@ is visible in `manifest()["hdp"]` from the first call.
 ## Tuned presets
 
 `jaxfne.hdp_network.DEFAULT_HDP` and `DEFAULT_HDP_DESYNC` are frozen,
-verified starting points — see `jaxfne/hdp_network.py` docstrings.
+verified starting points: see `jaxfne/hdp_network.py` docstrings.
 
 ## Registering a custom rule (ADVANCED)
 
@@ -323,7 +323,7 @@ Registration and run-time checks reject bad input:
 ## Stability
 
 The built-in kernel hard-bounds its state so trajectories remain numerically
-finite under extreme drive — verified in
+finite under extreme drive; verified in
 `tests/test_homeostatic_stability_v042.py`. Bounded is not synonymous with
 locally stable, asymptotically stable, or empirically stable over a specified
 horizon.
@@ -343,6 +343,6 @@ Regenerate: `python scripts/generate_doc_page_atlases.py --slug hdp_1000`.
 ## See also
 
 - [Doctrine: RBS/RBD/HDP](../../theory/doctrine/rbs_rbd_hdp.md)
-- [Homeostasis](homeostasis.md) — kernel-specific homeostatic excitability controller (distinct from generic RBS)
+- [Homeostasis](homeostasis.md): kernel-specific homeostatic excitability controller (distinct from generic RBS)
 - [Configuration Grammar](../grammar/configuration_grammar.md)
 - [HDP controllability / reachability étude](../../etudes/hdp_controllability_reachability.md)

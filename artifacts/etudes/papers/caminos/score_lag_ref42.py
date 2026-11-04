@@ -33,7 +33,6 @@ BAND_CLOSE_E = 0.05  # protocol: close when e <= 0.05
 P6_DIR = Path("F:/warehouse/caminos/p6_scored_v2")
 CAL_DIR = Path("F:/warehouse/caminos/calib")
 HELDOUT_DIR = CAL_DIR / "heldout_p007"
-IDENTITY_DIR = CAL_DIR / "identity_p007"
 
 
 def seed_path(root, seed):

@@ -7,6 +7,40 @@
       "id": "caminos",
       "title": "CAMINOS reference model, Fig. 1",
       "citation": "Tahvili, Vinck and di Volo, PLoS Comput Biol 2026",
+      "replica": {
+        "scope": "Main-text Figs. 1-6 of the PLoS CB article (PMC13286281), read 2026-10-31. The Cell Reports 2025 figures scored in RESULT_FIGURES.md belong to another paper and do not count here.",
+        "panels": [
+          {"id": "1B", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/LEDGER.md", "note": "R2: SOM after PV, lag 7.04 ms; off against the paper's 8.5 ms (finding: needs X)"},
+          {"id": "1C", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/scores/score.json", "note": "R1 about 35 Hz and R3 PV > SOM > E pass"},
+          {"id": "1D", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md", "note": "33.5 Hz, PV > SOM > E, PV leads SOM by 7.8 ms; Table 3 term order taken from the authors' Zenodo code"},
+          {"id": "1E", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/scores/score_v7.json", "note": "R4 fails under v6; R4v7 passes under the p·NE drive assumption"},
+          {"id": "2A", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md", "note": "frequency 34.1 to 5.1 Hz and max E rate pass; amplitude does not rise until 90 %; seizure-like from 60 %, not 70 %"},
+          {"id": "2B", "status": "fail", "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md", "note": "SOM silencing leaves gamma intact (band power 1.00-1.30 of baseline, SOM rate 0.61 Hz at 90 %); frequency rises 26 %"},
+          {"id": "2C", "status": "fail", "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md", "note": "PV 40 %: network and mean field differ by 28-55 % in rate and 33 % in frequency; the gap exists at baseline"},
+          {"id": "2D", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md", "note": "SOM 40 %: mean-field amplitude falls; network band power rises to 1.18"},
+          {"id": "2E", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md", "note": "PV 90 %: network E at 18x baseline; the mean field cycles at 10 Hz instead of a high-rate fixed point"},
+          {"id": "2F", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md", "note": "SOM 90 %: band power 0.996, within 0.4 % of the threshold; mean field flat"},
+          {"id": "3A", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md", "note": "PV randomization like PV silencing: f_pk 23.7, 10.4 Hz; max E 312.8 Hz at 90 %"},
+          {"id": "3B", "status": "fail", "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md", "note": "SOM randomization like SOM silencing, but neither abolishes gamma (band power 1.21, 1.27)"},
+          {"id": "3C", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md", "note": "PV randomized 40 %: frequency and band power fall as under silencing"},
+          {"id": "3D", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md", "note": "SOM randomized 40 %: frequency and band power rise as under silencing"},
+          {"id": "3E", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md", "note": "PV randomized 90 %: moves as silencing; network E at 8.1x baseline, under the 10x bar"},
+          {"id": "3F", "status": "fail", "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md", "note": "SOM randomized 90 %: band power 1.27 against 0.996 under silencing"},
+          {"id": "4A bottom", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_PLOS_FIGS.md", "note": "frequency 39.4 to 21.1 Hz over SOM/PV 0.5-4 passes; amplitude rises to ratio 2, ratio 4 enters a high-rate state"},
+          {"id": "4B middle", "status": "not run"}, {"id": "4B bottom", "status": "not run"},
+          {"id": "5A left", "status": "not run"}, {"id": "5A right", "status": "not run"}, {"id": "5B top", "status": "not run"},
+          {"id": "5B bottom left", "status": "not run"}, {"id": "5B bottom right", "status": "not run"},
+          {"id": "6A", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md", "note": "37.3 Hz, PV leads SOM by 4.06 ms"},
+          {"id": "6B", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md"},
+          {"id": "6C left", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md"},
+          {"id": "6C right", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_MEANFIELD.md"}
+        ],
+        "excluded": [
+          {"id": "1A", "reason": "circuit schematic"},
+          {"id": "4A top", "reason": "SOM/PV density ratios from the literature, a model input"},
+          {"id": "4B top", "reason": "stimulation protocol"}
+        ]
+      },
       "class": "mixed",
       "question": "Does the E–PV–SOM AdEx network give about 35 Hz gamma, SOM after PV, PV > SOM > E and an onset above a critical p?",
       "page": "models/caminos.md",
@@ -21,7 +55,8 @@
         "P4": [{"label": "model (jaxfne core)", "path": "artifacts/etudes/caminos/caminos_api.py"},
                {"label": "tests", "path": "artifacts/etudes/caminos/test_caminos_api.py"},
                {"label": "oracle transcription", "path": "artifacts/etudes/caminos/caminos_jax.py"}],
-        "P5": [{"label": "result", "path": "artifacts/etudes/caminos/RESULT_P3.md"},
+        "P5": [{"label": "reference arm runner (P5 scored sweeps)", "path": "artifacts/etudes/caminos/run_caminos.py"},
+               {"label": "result", "path": "artifacts/etudes/caminos/RESULT_P3.md"},
                {"label": "ledger", "path": "artifacts/etudes/caminos/LEDGER.md"},
                {"label": "scores v7", "path": "artifacts/etudes/caminos/scores/score_v7.json"},
                {"label": "calibration and final verdict", "path": "artifacts/etudes/caminos/CALIBRATION.md"},
@@ -115,10 +150,72 @@
       ]
     },
     {
+      "id": "caminos-cellrep",
+      "title": "CAMINOS figure claims, Figs. 1-6 (drive, silencing, randomization, connectivity, SOM/PV ratio)",
+      "citation": "Tahvili, Vinck and di Volo, Cell Reports 44:116131 (2025)",
+      "replica": {
+        "scope": "Main-text Figs. 1-6 of the Cell Reports article (mmc2 text). Verdicts are descriptive, with tolerances set after the data (RESULT_FIGURES.md).",
+        "panels": [
+          {"id": "1B", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "cellrep baseline oscillates at 33.7 Hz"},
+          {"id": "1C", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "SOM lags PV by 6.8 ms (text: 6-7 ms); PPC: PV highest in 3/3 seeds, PV > SOM > E in 1/3"},
+          {"id": "2A top", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "trend and delay pass; f_pk 14-63 Hz, not 7-80"},
+          {"id": "2B top", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md"},
+          {"id": "3A", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "amplitude falls at 50 and 90%; frequency +11% and +14%"},
+          {"id": "3B", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "minor at 40%; 14.5 Hz synchrony at 70%; seizure-like at 90% with a 153 Hz component"},
+          {"id": "3C top", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "gradual reduction passes; not abolished at 100%"},
+          {"id": "3C bottom", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "transition between 55 and 65%; seizure-like at 90 and 100%"},
+          {"id": "4A", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "passes to 75%; frequency falls at 100%"},
+          {"id": "4B", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "frequency trend passes; amplitude metric open"},
+          {"id": "5A", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "gamma reduced 60%, not abolished"},
+          {"id": "5B", "status": "partial", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "reduction 28%, past the minor tolerance"},
+          {"id": "5C", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md", "note": "lead reverses; PPC 0.30-0.75 against -0.04 to 0.08 in the control"},
+          {"id": "6A bottom", "status": "pass", "evidence": "artifacts/etudes/papers/caminos/RESULT_FIGURES.md"}
+        ],
+        "excluded": [
+          {"id": "1A", "reason": "circuit hypotheses schematic"}, {"id": "1D", "reason": "mouse V1 recordings; raw data on request from the lead contact (Hamm 2026-11-02: excluded for 0.5.9, back at 0.5.10)"},
+          {"id": "6A top", "reason": "literature SOM/PV densities"}, {"id": "6B top", "reason": "stimulation protocol"},
+          {"id": "2A bottom", "reason": "transient drive values unstated (Hamm 2026-11-02)"},
+          {"id": "2B bottom", "reason": "transient top-down onset unstated (Hamm 2026-11-02)"},
+          {"id": "6B", "reason": "E-to-E gain transient values unstated (Hamm 2026-11-02)"}
+        ]
+      },
+      "class": "in progress",
+      "question": "Does the E–PV–SOM network reproduce the paper's figure claims on drive, silencing, spike-time randomization, PV–SOM connectivity and the SOM/PV ratio?",
+      "page": "models/caminos_cellrep.md",
+      "release": "0.5.9",
+      "tier": "T-port",
+      "stage": "P2",
+      "lane": {"branch": "dev", "sha": "4ce58b4cdcdcb0e29c996a3dcd2702182a6254f9"},
+      "summary": "Paper-scale runs of Figs. 2-6 and S3 on the standalone port, scored descriptively with tolerances set after the data. Figs. 2B top and 6A pass; most other panels pass in trend but miss an endpoint or a sub-claim. Transient-protocol panels (2A bottom, 2B bottom, 6B) are excluded: the text does not state their values.",
+      "preregs": [],
+      "files": {},
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": ["No preregistration: the verdicts are descriptive.", "Fig. 4B amplitude metric: band power falls, peak |X| rises.", "Core route against the port (equivalence test E1, ±5%, Hamm 2026-11-02): confirmatory n 12 per route: not equivalent, 20 of 24 cells. Population rates are equivalent in all 12 cells; outside are 0.4 f_pk, 0.7 band power and max E rate (unresolved, intervals span 0) and 0.9 band power (−2.78%, 90% interval −5.41 to −0.15%; two-sided p 0.083). n 6 gave 18 of 24 (RESULT_FIGURES.md). Hamm 2026-11-03: the figures stay on the oracle route."]
+    },
+    {
       "id": "pcl-fig3",
       "title": "Predictive coding light, Fig. 3 (simple and complex cell tuning)",
       "citation": "N'dri, Barbier, Teulière and Triesch, Nat Commun 2025",
-      "class": "in progress",
+      "replica": {
+        "scope": "Fig. 3 only, from the publisher's full-size image (read 2026-11-03); panels c and d split into their four PCL rows. The Gabor-filter and energy-model columns are the paper's reference models and are not scored. Figs. 1, 2 and 4-6 are not inventoried (the publisher page did not load).",
+        "panels": [
+          {"id": "3b", "status": "not run", "note": "receptive fields and Gabor fits of the trained network"},
+          {"id": "3c orientation", "status": "pass", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T1 simple R_ori 3.57 (signed v4/v5)"},
+          {"id": "3c frequency", "status": "fail", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T2 simple 10/16 points, SSE 1.50 x flat (signed v5)"},
+          {"id": "3c phase", "status": "pass", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T3 simple median X 0.53"},
+          {"id": "3c time", "status": "pass", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T4 frequency doubling, complex above simple (shared with 3d time)"},
+          {"id": "3d orientation", "status": "pass", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T1 complex R_ori 5.30"},
+          {"id": "3d frequency", "status": "fail", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T2 complex 12/15 points, guard 0.52 x flat over 0.5"},
+          {"id": "3d phase", "status": "pass", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T3 complex median X -0.12"},
+          {"id": "3d time", "status": "pass", "evidence": "artifacts/etudes/papers/pcl/prereg/P3_fig3_v5_result.md", "note": "T4 median L complex -0.19 above simple -1.02, null 99th 0.42"}
+        ],
+        "excluded": [
+          {"id": "3a", "reason": "stimulus examples (natural images, gratings)"}
+        ]
+      },
+      "class": "pending",
       "question": "Do the trained network's simple and complex cells show the paper's orientation, spatial-frequency and phase tuning?",
       "page": "models/pcl_fig3.md",
       "release": "0.5.6",
@@ -138,7 +235,7 @@
                {"label": "scores v5", "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json"}]
       },
       "verdict": null,
-      "summary": "Preregistrations v4 and v5 were scored and did not pass; a new protocol follows (Hamm 2026-10-13). Orientation tuning and the simple/complex phase split reproduce. v5 scores the sf curve against the digitized Fig. 3: simple cells fail (10/16 points, error 1.5 times a flat line), complex cells miss the shape guard by 0.02. Under v5, T4 (frequency doubling, C3) passes on the v4 numbers. The PCL-R1 fidelity audit (closed 2026-10-24, receipt `artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md`) attributes six findings to implementation and selection fidelity; PCL is not reproduced and the signed v5 T2 failure stands.",
+      "summary": "Preregistrations v4 and v5 were scored and did not pass; a new protocol follows (Hamm 2026-10-13). Orientation tuning and the simple/complex phase split reproduce. v5 scores the sf curve against the digitized Fig. 3: simple cells fail (10/16 points, error 1.5 times a flat line), complex cells miss the shape guard by 0.02. Under v5, T4 (frequency doubling, C3) passes on the v4 numbers. The PCL-R1 fidelity audit (closed 2026-10-24, receipt `artifacts/etudes/papers/pcl/r1_fidelity_audit_2026-10-24.md`) attributes six findings to implementation and selection fidelity; PCL is not reproduced and the signed v5 T2 failure stands. R3 (2026-11-02): the oracle arm matches the authors' C++ on files 0-4 (max relative weight difference 7.4e-15); the jaxfne core arm matches the C++ after file 0 too (max relative weight difference 5.3e-15, spikes equal to the oracle's; CALIBRATION.md R3). R5-exact under signed R4b (2026-11-03): FAIL, the core equals the oracle on 4 of 16 test7 files; the negative control differs on all 16 (prereg/P3_fig3_r5_exact_result.md, P-055). R5-approximate (the core on all 3168 files) runs for 0.5.10.",
       "preregs": [{"id": "v4", "signed": "2026-10-11", "path": "artifacts/etudes/pcl/prereg/P3_fig3.md"},
                   {"id": "v5", "signed": "2026-10-13", "path": "artifacts/etudes/pcl/prereg/P3_fig3_v5.md"}],
       "files": {
@@ -310,32 +407,57 @@
       "id": "izhikevich2003",
       "title": "Izhikevich 2003, Figs. 2 and 3 (single-cell patterns and the 1000-cell network)",
       "citation": "Izhikevich, IEEE Trans Neural Netw 2003",
-      "class": "in progress",
+      "replica": {
+        "scope": "Figs. 1-3 of the article (izhikevich.org spikes.pdf, read 2026-10-31); one panel per labelled trace. Post hoc passes (v8.2) count as partial.",
+        "panels": [
+          {"id": "1 RS", "status": "not run", "note": "model against rat motor cortex recordings not compared"},
+          {"id": "1 IB", "status": "not run"}, {"id": "1 FS", "status": "not run"},
+          {"id": "2 RS", "status": "pass", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "C1"},
+          {"id": "2 IB", "status": "pass", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "C2"},
+          {"id": "2 CH", "status": "pass", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "C3"},
+          {"id": "2 FS", "status": "partial", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v8_score.json", "note": "C4 fails under v7; passes under the post hoc v8.2 rule"},
+          {"id": "2 LTS", "status": "pass", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "C5"},
+          {"id": "2 TC tonic", "status": "pass", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "C6"},
+          {"id": "2 TC rebound", "status": "pass", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "C7"},
+          {"id": "2 RZ", "status": "partial", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v8_score.json", "note": "C8 fails under v7; passes under the post hoc v8.2 rule"},
+          {"id": "3 raster", "status": "partial", "evidence": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json", "note": "N1, N3, N4 pass; N2 (ISI CV) fails"},
+          {"id": "3 v1(t)", "status": "not run"}
+        ],
+        "excluded": [{"id": "2 top", "reason": "model equations and parameter maps"}]
+      },
+      "class": "pending",
       "question": "Does jaxfne's existing Izhikevich kernel reproduce the paper's single-cell firing patterns (Fig. 2) and the 1000-cell network rhythm (Fig. 3)?",
       "page": "models/izhikevich2003.md",
       "release": "0.5.7",
       "tier": "T-jaxfne",
-      "stage": "P5",
-      "lane": {"branch": "izh2003", "sha": "a8477940e79eb2ed6a359d03965e8efcb4a924f9"},
+      "stage": "P6",
+      "lane": {"branch": "dev", "sha": "b5048bebb2950eb6da18a6e1f4f64616737aab2a"},
       "stage_artifacts": {
-        "P1": [{"label": "source", "path": "artifacts/etudes/izhikevich2003/SOURCE_P1.md"}],
-        "P2": [{"label": "port spec", "path": "artifacts/etudes/izhikevich2003/PORT_SPEC.md"}],
-        "P3": [{"label": "prereg v7", "path": "artifacts/etudes/izhikevich2003/PREREG_P3.md"}],
-        "P4": [{"label": "runner and scorer", "path": "artifacts/etudes/izhikevich2003/run_izh.py"},
-               {"label": "reference arm", "path": "artifacts/etudes/izhikevich2003/net_reference.py"}],
-        "P5": [{"label": "result", "path": "artifacts/etudes/izhikevich2003/RESULT_P3.md"},
-               {"label": "scores", "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"},
-               {"label": "S1 report", "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json"},
-               {"label": "v8.2 scores (post hoc)", "path": "artifacts/etudes/izhikevich2003/scores/p3_v8_score.json"}]
+        "P1": [{"label": "source", "path": "artifacts/etudes/papers/izhikevich2003/SOURCE_P1.md"}],
+        "P2": [{"label": "port spec", "path": "artifacts/etudes/papers/izhikevich2003/PORT_SPEC.md"}],
+        "P3": [{"label": "prereg v7", "path": "artifacts/etudes/papers/izhikevich2003/PREREG_P3.md"}],
+        "P4": [{"label": "runner and scorer", "path": "artifacts/etudes/papers/izhikevich2003/run_izh.py"},
+               {"label": "model (jaxfne core)", "path": "artifacts/etudes/papers/izhikevich2003/core/run_izh_core.py"},
+               {"label": "reference arm", "path": "artifacts/etudes/papers/izhikevich2003/net_reference.py"}],
+        "P5": [{"label": "result", "path": "artifacts/etudes/papers/izhikevich2003/RESULT_P3.md"},
+               {"label": "scores", "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json"},
+               {"label": "S1 report", "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_s1_report.json"},
+               {"label": "v8.2 scores (post hoc)", "path": "artifacts/etudes/papers/izhikevich2003/scores/p3_v8_score.json"}],
+        "P6": [{"label": "prereg P6 v2", "path": "artifacts/etudes/papers/izhikevich2003/core/PREREG_P6_v2_signed.md"},
+               {"label": "result P6", "path": "artifacts/etudes/papers/izhikevich2003/RESULT_P6.md"},
+               {"label": "scores P6", "path": "artifacts/etudes/papers/izhikevich2003/core/p6_v2_score.json"}]
       },
       "verdict": null,
-      "summary": "Preregistration v7 was scored and did not pass. Six of eight single-cell patterns reproduce; FS adapts (ISI ratio 1.86) and the resonator spikes once. The network has the paper's rate, alpha and gamma peaks, but its firing is too regular (median ISI CV 0.40 against 0.6 to 1.5), and the float64 reference arm of net.m gives 0.39 too.",
-      "preregs": [{"id": "v7", "signed": "2026-10-13", "path": "artifacts/etudes/izhikevich2003/PREREG_P3.md"},
-                  {"id": "v8.2", "signed": "2026-10-13", "path": "artifacts/etudes/izhikevich2003/PREREG_P3_v8.md"}],
+      "summary": "Preregistration v7 was scored and did not pass. Six of eight single-cell patterns reproduce; FS adapts (ISI ratio 1.86) and the resonator spikes once. The network has the paper's rate, alpha and gamma peaks, but its firing is too regular (median ISI CV 0.40 against 0.6 to 1.5), and the float64 reference arm of net.m gives 0.39 too. Library path, scored apart: P6 v2 PASS through the public API (Q1–Q5, seeds 2–6), matching the P5 network values within the declared margins; N2 stays a failed criterion.",
+      "preregs": [{"id": "v7", "signed": "2026-10-13", "path": "artifacts/etudes/papers/izhikevich2003/PREREG_P3.md"},
+                  {"id": "v8.2", "signed": "2026-10-13", "path": "artifacts/etudes/papers/izhikevich2003/PREREG_P3_v8.md"},
+                  {"id": "P6 v2 (library path)", "signed": "2026-10-31", "path": "artifacts/etudes/papers/izhikevich2003/core/PREREG_P6_v2_signed.md"}],
       "files": {
-        "main": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
-        "S1": "artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json"
+        "main": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_score.json",
+        "S1": "artifacts/etudes/papers/izhikevich2003/scores/p3_v7_s1_report.json",
+        "p6": "artifacts/etudes/papers/izhikevich2003/core/p6_v2_score.json"
       },
+      "library_path": {"stage": "P6", "file": "p6", "key": "overall"},
       "criteria": [
         {"id": "C1", "group": "Fig. 2", "claim": "RS: tonic spiking with adaptation", "estimand": "ISI ratio last/first", "criterion": "as PREREG_P3.md C1",
          "value": {"file": "main", "key": "fig2.criteria.C1.numbers.isi_ratio"}, "unit": "", "value_label": "ISI ratio",
@@ -376,41 +498,170 @@
       ],
       "sensitivity": [],
       "charts": [],
-      "open": ["Amendment v8.2 (post hoc, signed 2026-10-13; scores/p3_v8_score.json): Fig. 2 passes 8 of 8 with the C8 pulse at I = 2 and C4 as the least-adapting type (FS 1.86 against RS 2.53 and LTS 4.39). N2 stays a failed paper claim.", "S1 (rescored on each arm's own step) moves N3 across its band edge. The net.m update-order arm (PREREG_P3b.md) stopped at its equivalence gate (v5): the JAX arm drifts from the NumPy reference faster than a one-ulp input change (RESULT_P3.md)."]
+      "open": ["Amendment v8.2 (post hoc, signed 2026-10-13; scores/p3_v8_score.json): Fig. 2 passes 8 of 8 with the C8 pulse at I = 2 and C4 as the least-adapting type (FS 1.86 against RS 2.53 and LTS 4.39). N2 stays a failed criterion.", "S1 (rescored on each arm's own step) moves N3 across its band edge. The net.m update-order arm (PREREG_P3b.md) stopped at its equivalence gate (v5): the JAX arm drifts from the NumPy reference faster than a one-ulp input change (RESULT_P3.md)."]
     },
     {
       "id": "gsdr2026",
       "title": "GSDR, Fig. 6 (a 50-neuron E, SST-like and PV-like circuit fitted to recorded spectra)",
       "citation": "Nejat, Sherfey and Bastos, PLOS One 2026",
-      "class": "in progress",
+      "replica": {
+        "scope": "Main-text Figs. 1-6, panel letters from the PLOS legends (read 2026-11-03).",
+        "panels": [
+          {"id": "2A", "status": "not run"}, {"id": "2B", "status": "not run"}, {"id": "2C", "status": "not run"},
+          {"id": "3A", "status": "not run"}, {"id": "3C", "status": "not run"}, {"id": "3D", "status": "not run"},
+          {"id": "4A", "status": "not run"}, {"id": "4B", "status": "not run"}, {"id": "4C", "status": "not run"},
+          {"id": "4E", "status": "not run"}, {"id": "4F", "status": "not run"},
+          {"id": "6A", "status": "not run"}, {"id": "6B", "status": "not run"}, {"id": "6C", "status": "not run"}, {"id": "6D", "status": "not run"},
+          {"id": "6E", "status": "fail", "evidence": "artifacts/etudes/papers/gsdr2026/RESULT_P3_fit.md", "note": "signed P3 fit, seeds 9-13: post-fit kappa 0.595-0.597 against G2 < 0.1"},
+          {"id": "6F", "status": "fail", "evidence": "artifacts/etudes/papers/gsdr2026/RESULT_P3_fit.md", "note": "post-fit rate 69.4-69.5 Hz against G3 5-50 Hz"},
+          {"id": "6G", "status": "fail", "evidence": "artifacts/etudes/papers/gsdr2026/RESULT_P3_fit.md", "note": "post-fit PSTH of the panel-F network; G2 and G3 fail on 5 of 5 seeds"}
+        ],
+        "excluded": [
+          {"id": "1", "reason": "optimization flowchart"}, {"id": "3B", "reason": "network schematic"}, {"id": "4D", "reason": "network schematic"},
+          {"id": "5A", "reason": "recorded MT/MST data"}, {"id": "5B", "reason": "recorded MT/MST data"}, {"id": "5C", "reason": "recorded MT/MST data"}
+        ]
+      },
+      "class": "pending",
       "question": "Does GSDR fit the 50-neuron Hodgkin–Huxley circuit to the recorded spectra when the circuit and the optimizer run in jaxfne?",
       "release": "0.5.8",
       "tier": "T-jaxfne",
-      "stage": "P1",
-      "lane": {"branch": "dev", "sha": "7ac1bb47b5805b046a4790d9d6456ed23c706eb7"},
-      "stage_artifacts": {"P1": [{"label": "source record (draft)", "path": "artifacts/etudes/papers/gsdr2026/SOURCE_P1.md"}]},
-      "summary": "Source record drafted. Pilot fits in the lane (unscored, run without MCDP; P-039) stay saturated: κ 0.60 on the 500-generation reference refit against 0.0156 in the data. The ruled next step is MCDP on as an outer-loop HDP step (`mcdp_hdp_step`) in the B8 pilot, then the prereg.",
-      "preregs": [],
-      "files": {},
-      "criteria": [],
+      "stage": "P3",
+      "lane": {"branch": "dev", "sha": "1537f01d8c413f20a8b71dff57089b1f4573c6d5"},
+      "stage_artifacts": {
+        "P1": [{"label": "source record (draft)", "path": "artifacts/etudes/papers/gsdr2026/SOURCE_P1.md"}],
+        "P3": [{"label": "fit prereg (signed)", "path": "artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md"},
+               {"label": "result", "path": "artifacts/etudes/papers/gsdr2026/RESULT_P3_fit.md"}]
+      },
+      "summary": "Signed P3 fit (optimizer seeds 9–13, 30 generations with MCDP, CPU float32): 0 of 5 seeds pass G2 and G3 (PASS needs 4). The fitted conductances stay synchronous on held-out trials (mean kappa 0.595–0.597 against the 0.1 gate) and fast (69.4–69.5 Hz against 5–50 Hz) while the loss falls 2.1–5.8 %.",
+      "preregs": [
+        {"id": "P3 fit", "signed": "2026-11-01", "path": "artifacts/etudes/papers/gsdr2026/PREREG_P3_fit_signed.md"}
+      ],
+      "files": {
+        "main": "artifacts/etudes/papers/gsdr2026/run/p3_fit_score.json"
+      },
+      "criteria": [
+        {"id": "G2", "group": "seed 9", "claim": "fitted network desynchronizes under the stimulus", "estimand": "mean kappa_500_1000 over held-out trials 14-18", "criterion": "z < 0.1",
+         "value": {"file": "main", "key": "rows.0.kappa_mean"}, "unit": "", "value_label": "mean kappa", "paper_value": "0.0156",
+         "verdict": {"file": "main", "key": "rows.0.G2"}, "prereg": "P3 fit", "reason": "kappa above 0.1 (synchronous)"},
+        {"id": "G3", "group": "seed 9", "claim": "fitted network fires in the 5-50 Hz band", "estimand": "mean rate over held-out trials 14-18", "criterion": "5 ≤ z ≤ 50 Hz",
+         "value": {"file": "main", "key": "rows.0.rate_mean_hz"}, "unit": "Hz", "value_label": "mean rate",
+         "verdict": {"file": "main", "key": "rows.0.G3"}, "prereg": "P3 fit", "reason": "rate above 50 Hz"},
+        {"id": "G2", "group": "seed 10", "claim": "fitted network desynchronizes under the stimulus", "estimand": "mean kappa_500_1000 over held-out trials 14-18", "criterion": "z < 0.1",
+         "value": {"file": "main", "key": "rows.1.kappa_mean"}, "unit": "", "value_label": "mean kappa", "paper_value": "0.0156",
+         "verdict": {"file": "main", "key": "rows.1.G2"}, "prereg": "P3 fit", "reason": "kappa above 0.1 (synchronous)"},
+        {"id": "G3", "group": "seed 10", "claim": "fitted network fires in the 5-50 Hz band", "estimand": "mean rate over held-out trials 14-18", "criterion": "5 ≤ z ≤ 50 Hz",
+         "value": {"file": "main", "key": "rows.1.rate_mean_hz"}, "unit": "Hz", "value_label": "mean rate",
+         "verdict": {"file": "main", "key": "rows.1.G3"}, "prereg": "P3 fit", "reason": "rate above 50 Hz"},
+        {"id": "G2", "group": "seed 11", "claim": "fitted network desynchronizes under the stimulus", "estimand": "mean kappa_500_1000 over held-out trials 14-18", "criterion": "z < 0.1",
+         "value": {"file": "main", "key": "rows.2.kappa_mean"}, "unit": "", "value_label": "mean kappa", "paper_value": "0.0156",
+         "verdict": {"file": "main", "key": "rows.2.G2"}, "prereg": "P3 fit", "reason": "kappa above 0.1 (synchronous)"},
+        {"id": "G3", "group": "seed 11", "claim": "fitted network fires in the 5-50 Hz band", "estimand": "mean rate over held-out trials 14-18", "criterion": "5 ≤ z ≤ 50 Hz",
+         "value": {"file": "main", "key": "rows.2.rate_mean_hz"}, "unit": "Hz", "value_label": "mean rate",
+         "verdict": {"file": "main", "key": "rows.2.G3"}, "prereg": "P3 fit", "reason": "rate above 50 Hz"},
+        {"id": "G2", "group": "seed 12", "claim": "fitted network desynchronizes under the stimulus", "estimand": "mean kappa_500_1000 over held-out trials 14-18", "criterion": "z < 0.1",
+         "value": {"file": "main", "key": "rows.3.kappa_mean"}, "unit": "", "value_label": "mean kappa", "paper_value": "0.0156",
+         "verdict": {"file": "main", "key": "rows.3.G2"}, "prereg": "P3 fit", "reason": "kappa above 0.1 (synchronous)"},
+        {"id": "G3", "group": "seed 12", "claim": "fitted network fires in the 5-50 Hz band", "estimand": "mean rate over held-out trials 14-18", "criterion": "5 ≤ z ≤ 50 Hz",
+         "value": {"file": "main", "key": "rows.3.rate_mean_hz"}, "unit": "Hz", "value_label": "mean rate",
+         "verdict": {"file": "main", "key": "rows.3.G3"}, "prereg": "P3 fit", "reason": "rate above 50 Hz"},
+        {"id": "G2", "group": "seed 13", "claim": "fitted network desynchronizes under the stimulus", "estimand": "mean kappa_500_1000 over held-out trials 14-18", "criterion": "z < 0.1",
+         "value": {"file": "main", "key": "rows.4.kappa_mean"}, "unit": "", "value_label": "mean kappa", "paper_value": "0.0156",
+         "verdict": {"file": "main", "key": "rows.4.G2"}, "prereg": "P3 fit", "reason": "kappa above 0.1 (synchronous)"},
+        {"id": "G3", "group": "seed 13", "claim": "fitted network fires in the 5-50 Hz band", "estimand": "mean rate over held-out trials 14-18", "criterion": "5 ≤ z ≤ 50 Hz",
+         "value": {"file": "main", "key": "rows.4.rate_mean_hz"}, "unit": "Hz", "value_label": "mean rate",
+         "verdict": {"file": "main", "key": "rows.4.G3"}, "prereg": "P3 fit", "reason": "rate above 50 Hz"}
+      ],
       "sensitivity": [],
       "charts": [],
-      "open": ["Port spec, calibration record and the pilot fit are in the lane clone and wait for integration on dev.", "The drive and J_E anchor for the g sweep are not yet recorded."]
+      "open": ["Pending (Hamm 2026-11-02): open until precisely replicated. The signed P3 fit stands as scored, without a pass (RESULT_P3_fit.md); the paper continues under a new preregistration.", "The next prereg names --morphology explicitly (RESULT_P3_fit.md: the reference-morphology evaluation is insensitive to the fitted conductances at stim 0.6).", "The drive and J_E anchor for the g sweep are not yet recorded."]
     },
     {
       "id": "destexhe2009",
       "title": "Destexhe 2009, Fig. 6B (self-sustained asynchronous irregular state in an AdEx cortical network)",
       "citation": "Destexhe, J Comput Neurosci 2009",
-      "class": "in progress",
+      "replica": {
+        "scope": "Figure claims recorded in SOURCE_P1.md (sections 2 and 5); panel letters of Figs. 2-5, 8, 9, 11 and 13 are not recorded, so each counts once.",
+        "panels": [
+          {"id": "1A", "status": "not run"}, {"id": "1B", "status": "not run"}, {"id": "1C", "status": "not run"},
+          {"id": "1D", "status": "not run"}, {"id": "1E", "status": "not run"}, {"id": "1F", "status": "not run"},
+          {"id": "2", "status": "not run"}, {"id": "3", "status": "not run"}, {"id": "4", "status": "not run"},
+          {"id": "5", "status": "not run"},
+          {"id": "6A", "status": "pass", "evidence": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md", "note": "signed P3 v3 control C1: the strong-adaptation network dies by 10 s on seeds 9 and 10"},
+          {"id": "6B", "status": "fail", "evidence": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md", "note": "signed P3 v3: 0 of 5 seeds close E1-E3; 3 die, 2 alive at 46 Hz miss CV_ISI by e 0.054-0.055 (band 0.05)"},
+          {"id": "7A", "status": "not run"}, {"id": "7B", "status": "not run"}, {"id": "8", "status": "not run"},
+          {"id": "9", "status": "not run"}, {"id": "10A", "status": "not run"}, {"id": "10B", "status": "not run"},
+          {"id": "10C", "status": "not run"}, {"id": "10D", "status": "not run"}, {"id": "11", "status": "not run"},
+          {"id": "12B", "status": "not run"}, {"id": "13", "status": "not run"}
+        ],
+        "excluded": [{"id": "12A", "reason": "in vivo recording, no model output"}]
+      },
+      "class": "pending",
       "question": "Does the jaxfne AdEx core, at the paper's parameters, sustain the asynchronous irregular state of Fig. 6B with its rates, CV_ISI and pairwise correlation?",
-      "release": "0.5.8",
+      "release": "0.5.9",
       "tier": "T-port",
       "stage": "P3",
-      "lane": {"branch": "dev", "sha": "6f85f5c3056edf91b89ea2a61efce758000d0a69"},
-      "summary": "The AdEx core features the port needs are on dev (Vpeak detection threshold, external-drive schedules, capped Bernoulli sampling). The port is built in the lane clone (28 lane tests pass); its preregistration is drafted and unsigned. Unscored pilot (CALIBRATION step 6): seeds 1–8 ran at the declared baseline; E1 holds on 4 of 8 seeds under the authors' Vpeak, E2 stays off on every live seed, and the E4 rate order is off (hyperactive, about 5x); the held-out seeds 4–8 are spent, so a scored run needs a new protocol on fresh seeds.",
-      "preregs": [],
-      "files": {},
-      "criteria": [],
+      "lane": {"branch": "dev", "sha": "1537f01d8c413f20a8b71dff57089b1f4573c6d5"},
+      "stage_artifacts": {
+        "P3": [{"label": "prereg v3 (signed)", "path": "artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md"},
+               {"label": "result", "path": "artifacts/etudes/papers/destexhe2009/RESULT_P3.md"}]
+      },
+      "summary": "Signed P3 v3 (seeds 9-13, N = 2000, 10 s free run after the code-value kick, CPU float32): FAIL, 0 of 5 seeds close E1-E3 (PASS needs 4). Three seeds fall silent before 10 s; the two that stay alive fire at 46 Hz, close the pairwise correlation and miss CV_ISI 2.47 by e 0.054-0.055 over 0.05. The Fig. 6A control dies on both control seeds.",
+      "preregs": [
+        {"id": "P3 v3", "signed": "2026-11-02", "path": "artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md"}
+      ],
+      "files": {
+        "main": "artifacts/etudes/papers/destexhe2009/run/p3_v3_verdict.json"
+      },
+      "criteria": [
+        {"id": "E1", "group": "seed 9", "claim": "self-sustained: the network stays alive", "estimand": "spikes in the last 1 s of a 10 s free run", "criterion": "spikes in the last 1 s",
+         "value": {"file": "main", "key": "rows.0.alive"}, "unit": "", "value_label": "alive",
+         "verdict": {"file": "main", "key": "rows.0.E1"}, "prereg": "P3 v3", "reason": "silent before 10 s"},
+        {"id": "E2", "group": "seed 9", "claim": "CV_ISI matches the paper", "estimand": "cv_isi over the free run; e = |z-2.47|/2.47", "criterion": "e ≤ 0.05",
+         "value": {"file": "main", "key": "rows.0.cv_isi"}, "unit": "", "value_label": "CV_ISI", "paper_value": "2.47",
+         "verdict": {"file": "main", "key": "rows.0.E2"}, "prereg": "P3 v3"},
+        {"id": "E3", "group": "seed 9", "claim": "pairwise correlation matches the paper", "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|", "criterion": "|z-0.005| ≤ 0.01",
+         "value": {"file": "main", "key": "rows.0.cc"}, "unit": "", "value_label": "pairwise CC", "paper_value": "0.005",
+         "verdict": {"file": "main", "key": "rows.0.E3"}, "prereg": "P3 v3", "reason": "|z-y| 0.109 over 0.01; silent before 10 s"},
+        {"id": "E1", "group": "seed 10", "claim": "self-sustained: the network stays alive", "estimand": "spikes in the last 1 s of a 10 s free run", "criterion": "spikes in the last 1 s",
+         "value": {"file": "main", "key": "rows.1.alive"}, "unit": "", "value_label": "alive",
+         "verdict": {"file": "main", "key": "rows.1.E1"}, "prereg": "P3 v3"},
+        {"id": "E2", "group": "seed 10", "claim": "CV_ISI matches the paper", "estimand": "cv_isi over the free run; e = |z-2.47|/2.47", "criterion": "e ≤ 0.05",
+         "value": {"file": "main", "key": "rows.1.cv_isi"}, "unit": "", "value_label": "CV_ISI", "paper_value": "2.47",
+         "verdict": {"file": "main", "key": "rows.1.E2"}, "prereg": "P3 v3", "reason": "e 0.055 over 0.05 at 46 Hz"},
+        {"id": "E3", "group": "seed 10", "claim": "pairwise correlation matches the paper", "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|", "criterion": "|z-0.005| ≤ 0.01",
+         "value": {"file": "main", "key": "rows.1.cc"}, "unit": "", "value_label": "pairwise CC", "paper_value": "0.005",
+         "verdict": {"file": "main", "key": "rows.1.E3"}, "prereg": "P3 v3"},
+        {"id": "E1", "group": "seed 11", "claim": "self-sustained: the network stays alive", "estimand": "spikes in the last 1 s of a 10 s free run", "criterion": "spikes in the last 1 s",
+         "value": {"file": "main", "key": "rows.2.alive"}, "unit": "", "value_label": "alive",
+         "verdict": {"file": "main", "key": "rows.2.E1"}, "prereg": "P3 v3"},
+        {"id": "E2", "group": "seed 11", "claim": "CV_ISI matches the paper", "estimand": "cv_isi over the free run; e = |z-2.47|/2.47", "criterion": "e ≤ 0.05",
+         "value": {"file": "main", "key": "rows.2.cv_isi"}, "unit": "", "value_label": "CV_ISI", "paper_value": "2.47",
+         "verdict": {"file": "main", "key": "rows.2.E2"}, "prereg": "P3 v3", "reason": "e 0.054 over 0.05 at 46 Hz"},
+        {"id": "E3", "group": "seed 11", "claim": "pairwise correlation matches the paper", "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|", "criterion": "|z-0.005| ≤ 0.01",
+         "value": {"file": "main", "key": "rows.2.cc"}, "unit": "", "value_label": "pairwise CC", "paper_value": "0.005",
+         "verdict": {"file": "main", "key": "rows.2.E3"}, "prereg": "P3 v3"},
+        {"id": "E1", "group": "seed 12", "claim": "self-sustained: the network stays alive", "estimand": "spikes in the last 1 s of a 10 s free run", "criterion": "spikes in the last 1 s",
+         "value": {"file": "main", "key": "rows.3.alive"}, "unit": "", "value_label": "alive",
+         "verdict": {"file": "main", "key": "rows.3.E1"}, "prereg": "P3 v3", "reason": "silent before 10 s"},
+        {"id": "E2", "group": "seed 12", "claim": "CV_ISI matches the paper", "estimand": "cv_isi over the free run; e = |z-2.47|/2.47", "criterion": "e ≤ 0.05",
+         "value": {"file": "main", "key": "rows.3.cv_isi"}, "unit": "", "value_label": "CV_ISI", "paper_value": "2.47",
+         "verdict": {"file": "main", "key": "rows.3.E2"}, "prereg": "P3 v3", "reason": "e 0.060 over 0.05; silent before 10 s"},
+        {"id": "E3", "group": "seed 12", "claim": "pairwise correlation matches the paper", "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|", "criterion": "|z-0.005| ≤ 0.01",
+         "value": {"file": "main", "key": "rows.3.cc"}, "unit": "", "value_label": "pairwise CC", "paper_value": "0.005",
+         "verdict": {"file": "main", "key": "rows.3.E3"}, "prereg": "P3 v3", "reason": "|z-y| 0.075 over 0.01; silent before 10 s"},
+        {"id": "E1", "group": "seed 13", "claim": "self-sustained: the network stays alive", "estimand": "spikes in the last 1 s of a 10 s free run", "criterion": "spikes in the last 1 s",
+         "value": {"file": "main", "key": "rows.4.alive"}, "unit": "", "value_label": "alive",
+         "verdict": {"file": "main", "key": "rows.4.E1"}, "prereg": "P3 v3", "reason": "silent before 10 s"},
+        {"id": "E2", "group": "seed 13", "claim": "CV_ISI matches the paper", "estimand": "cv_isi over the free run; e = |z-2.47|/2.47", "criterion": "e ≤ 0.05",
+         "value": {"file": "main", "key": "rows.4.cv_isi"}, "unit": "", "value_label": "CV_ISI", "paper_value": "2.47",
+         "verdict": {"file": "main", "key": "rows.4.E2"}, "prereg": "P3 v3", "reason": "e 0.060 over 0.05; silent before 10 s"},
+        {"id": "E3", "group": "seed 13", "claim": "pairwise correlation matches the paper", "estimand": "pairwise_cc, 5 ms bins, 500 disjoint pairs; |z-0.005|", "criterion": "|z-0.005| ≤ 0.01",
+         "value": {"file": "main", "key": "rows.4.cc"}, "unit": "", "value_label": "pairwise CC", "paper_value": "0.005",
+         "verdict": {"file": "main", "key": "rows.4.E3"}, "prereg": "P3 v3", "reason": "|z-y| 0.124 over 0.01; silent before 10 s"},
+        {"id": "C1", "group": "control", "claim": "Fig. 6A control: strong adaptation silences the network", "estimand": "control run rates, seeds 9-10", "criterion": "dead by 10 s on both seeds",
+         "value": {"file": "main", "key": "C1"}, "unit": "", "value_label": "control dead",
+         "verdict": {"file": "main", "key": "C1"}, "prereg": "P3 v3"}
+      ],
       "sensitivity": [],
       "charts": [],
       "open": ["Rebase the lane onto the artifacts reorganization and integrate on dev (T-21).", "Report the authors' Vpeak beside the VT + 5Δ sensitivity (Hamm 2026-10-14)."]
@@ -477,23 +728,74 @@
       ],
       "sensitivity": [],
       "charts": [],
-      "open": ["Sensitivity set S1 (N = 6250, fixed in-degrees) needs a lane option and has not run; S2 (5 s window) and S3 (dt 0.05 ms) ran unscored on seeds 4-5: labels hold except point C seed 4 at dt 0.05 (RESULT_P3).", "Library path P6 and the P7 insight page."]
+      "open": ["Sensitivity set S1 (N = 6250, fixed in-degrees) needs a lane option and has not run; S2 (5 s window) and S3 (dt 0.05 ms) ran unscored on seeds 4-5: labels hold except point C seed 4 at dt 0.05 (RESULT_P3).", "Library path P6 and the P7 insight page.", "No replica score: the panel inventory needs the figure legends, and the Springer page refused access (2026-11-03)."]
     },
     {
       "id": "potjans2014",
       "title": "Potjans and Diesmann 2014 cortical microcircuit, Fig. 6 and Table 5",
       "citation": "Potjans and Diesmann, Cereb Cortex 24(3):785-806",
-      "class": "in progress",
+      "replica": {
+        "scope": "Main-text Figs. 1-12 (publisher page, read 2026-10-31). Panel lists of Figs. 7-10 come from a summary of the page, not the legends, and Fig. 7's letters are unverified.",
+        "panels": [
+          {"id": "2A", "status": "not run"}, {"id": "2B", "status": "not run"}, {"id": "2C", "status": "not run"}, {"id": "2D", "status": "not run"},
+          {"id": "3B", "status": "not run"}, {"id": "3C", "status": "not run"}, {"id": "3D", "status": "not run"}, {"id": "3E", "status": "not run"},
+          {"id": "4", "status": "not run"}, {"id": "5A", "status": "not run"}, {"id": "5B", "status": "not run"},
+          {"id": "6A", "status": "not run"},
+          {"id": "6B", "status": "partial", "evidence": "artifacts/etudes/papers/potjans2014/RESULT_P3.md", "note": "signed P3 v2, seeds 4-8: R-L4E and R-L6E in band, R-L23E (e 0.75) and R-L5E (e 0.30) out; I above E fails at L5"},
+          {"id": "6C", "status": "fail", "evidence": "artifacts/etudes/papers/potjans2014/RESULT_P3.md", "note": "CV above 0.8 holds in six populations; L6E and L6PV 0.797"},
+          {"id": "6D", "status": "not run", "note": "synchrony reported, never scored (P3 v2 secondary): L5E lowest Fano, L6E highest"},
+          {"id": "7A", "status": "not run"}, {"id": "7B", "status": "not run"}, {"id": "7C", "status": "not run"},
+          {"id": "8A", "status": "not run"}, {"id": "8B", "status": "not run"}, {"id": "8C", "status": "not run"},
+          {"id": "9A", "status": "not run"}, {"id": "9B", "status": "not run"}, {"id": "9C", "status": "not run"},
+          {"id": "10A", "status": "not run"}, {"id": "10B", "status": "not run"}, {"id": "10C", "status": "not run"},
+          {"id": "10D", "status": "not run"}, {"id": "10E", "status": "not run"}, {"id": "10F", "status": "not run"}
+        ],
+        "excluded": [
+          {"id": "1", "reason": "model definition schematic"}, {"id": "3A", "reason": "sampling geometry schematic"},
+          {"id": "11", "reason": "activity-flow diagram"}, {"id": "12", "reason": "pathway diagrams"}
+        ]
+      },
+      "class": "pending",
       "question": "Does the jaxfne core reproduce the microcircuit's spontaneous AI state: layer-specific rates, CV above 0.8 and L6-lowest synchrony?",
       "page": "models/potjans2014.md",
       "release": "0.5.9",
       "tier": "T-jaxfne",
-      "stage": "P2",
-      "lane": {"branch": "dev", "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"},
-      "summary": "P1 source record written from the open-access PMC record. Fig. 6 claims (reference rates 0.86/4.45/7.59/1.09 Hz, CV above 0.8, L5e-highest/L6-lowest synchrony) and the Table 5 connectivity map are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
-      "preregs": [],
-      "files": {},
-      "criteria": [],
+      "stage": "P3",
+      "lane": {"branch": "dev", "sha": "1537f01d8c413f20a8b71dff57089b1f4573c6d5"},
+      "stage_artifacts": {
+        "P3": [{"label": "prereg v2 (signed)", "path": "artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md"},
+               {"label": "result", "path": "artifacts/etudes/papers/potjans2014/RESULT_P3.md"}]
+      },
+      "summary": "Signed P3 v2 (seeds 4-8, 10% scale with in-degree held, 10 s, GPU float32): off. L4e 4.47 Hz and L6e 1.14 Hz match the reference rates and the E-rate order holds; L2/3e 1.51 Hz against 0.86 and L5e 9.90 Hz against 7.59 do not, L5 inhibition falls below L5e, and L6 CV sits at 0.797 under the 0.8 bound. The B8 pilot predicted these four rows off.",
+      "preregs": [
+        {"id": "P3 v2", "signed": "2026-11-02", "path": "artifacts/etudes/papers/potjans2014/prereg/P3_v2_signed.md"}
+      ],
+      "files": {
+        "main": "artifacts/etudes/papers/potjans2014/run/p3_v2_score.json"
+      },
+      "criteria": [
+        {"id": "R-L23E", "claim": "L2/3e rate matches the reference", "estimand": "L2/3e mean rate, seeds 4-8; e = |z-y|/y", "criterion": "e ≤ 0.20",
+         "value": {"file": "main", "key": "rows.R-L23E.z_hz"}, "unit": "Hz", "value_label": "mean rate", "paper_value": "0.86 Hz",
+         "verdict": {"file": "main", "key": "rows.R-L23E.pass"}, "prereg": "P3 v2", "reason": "e 0.754 over 0.20"},
+        {"id": "R-L4E", "claim": "L4e rate matches the reference", "estimand": "L4e mean rate, seeds 4-8; e = |z-y|/y", "criterion": "e ≤ 0.20",
+         "value": {"file": "main", "key": "rows.R-L4E.z_hz"}, "unit": "Hz", "value_label": "mean rate", "paper_value": "4.45 Hz",
+         "verdict": {"file": "main", "key": "rows.R-L4E.pass"}, "prereg": "P3 v2"},
+        {"id": "R-L5E", "claim": "L5e rate matches the reference", "estimand": "L5e mean rate, seeds 4-8; e = |z-y|/y", "criterion": "e ≤ 0.20",
+         "value": {"file": "main", "key": "rows.R-L5E.z_hz"}, "unit": "Hz", "value_label": "mean rate", "paper_value": "7.59 Hz",
+         "verdict": {"file": "main", "key": "rows.R-L5E.pass"}, "prereg": "P3 v2", "reason": "e 0.304 over 0.20"},
+        {"id": "R-L6E", "claim": "L6e rate matches the reference", "estimand": "L6e mean rate, seeds 4-8; e = |z-y|/y", "criterion": "e ≤ 0.20",
+         "value": {"file": "main", "key": "rows.R-L6E.z_hz"}, "unit": "Hz", "value_label": "mean rate", "paper_value": "1.09 Hz",
+         "verdict": {"file": "main", "key": "rows.R-L6E.pass"}, "prereg": "P3 v2"},
+        {"id": "O-ORD", "claim": "E-rate order: L5e highest; L2/3e and L6e below L4e", "estimand": "E-rate order of seed-mean rates", "criterion": "holds",
+         "value": {"file": "main", "key": "rows.O-ORD.pass"}, "unit": "", "value_label": "order holds",
+         "verdict": {"file": "main", "key": "rows.O-ORD.pass"}, "prereg": "P3 v2"},
+        {"id": "O-IE", "claim": "inhibitory rate above excitatory in every layer", "estimand": "I and E seed-mean rates per layer", "criterion": "all 4 layers hold",
+         "value": {"file": "main", "key": "rows.O-IE.layers.L5.i_hz"}, "unit": "Hz", "value_label": "L5 I rate",
+         "verdict": {"file": "main", "key": "rows.O-IE.pass"}, "prereg": "P3 v2", "reason": "L5 I 9.66 Hz under E 9.90 Hz"},
+        {"id": "CV", "claim": "single-unit CV of ISIs above 0.8 in every population", "estimand": "mean CV of ISIs per population, seeds 4-8", "criterion": "all 8 populations above 0.8",
+         "value": {"file": "main", "key": "rows.CV.cv_isi.L6E"}, "unit": "", "value_label": "L6E CV",
+         "verdict": {"file": "main", "key": "rows.CV.pass"}, "prereg": "P3 v2", "reason": "L6E and L6PV 0.797, under 0.8"}
+      ],
       "sensitivity": [],
       "charts": [],
       "open": ["Supplementary Tables 1-3 not yet machine-read; publisher supplement links unverified.", "Leak reversal unstated in the paper; NEST default or authors' code must settle it.", "Thalamic transient protocol and Fig. 10/11 propagation claims deferred past P1."]
@@ -502,25 +804,85 @@
       "id": "vogels2011",
       "title": "Vogels et al. 2011, Fig. 4 (inhibitory STDP balancing a recurrent network) and Figs. 1-2 (single-cell detailed balance)",
       "citation": "Vogels et al., Science 334(6062):1569-1573",
-      "class": "in progress",
+      "replica": {
+        "scope": "Main-text Figs. 1-4 of the accepted manuscript (Imperial Spiral, Science_334_6062_2011.pdf), read 2026-10-31.",
+        "panels": [
+          {"id": "1D", "status": "not run"}, {"id": "1E", "status": "not run"}, {"id": "1F", "status": "not run"},
+          {"id": "1G", "status": "not run"},
+          {"id": "2B", "status": "not run"}, {"id": "2C", "status": "not run"}, {"id": "2D", "status": "not run"},
+          {"id": "2E", "status": "not run"}, {"id": "2F", "status": "not run"}, {"id": "2G", "status": "not run"},
+          {"id": "2H", "status": "not run"},
+          {"id": "3C", "status": "not run"}, {"id": "3D", "status": "not run"}, {"id": "3E", "status": "not run"},
+          {"id": "3F", "status": "not run"},
+          {"id": "4A", "status": "not run"}, {"id": "4B", "status": "not run"}, {"id": "4C", "status": "not run"},
+          {"id": "4D", "status": "not run"}, {"id": "4E", "status": "not run"}
+        ],
+        "excluded": [
+          {"id": "1A", "reason": "feedforward inhibition schematic"},
+          {"id": "1B", "reason": "input schematic"},
+          {"id": "1C", "reason": "learning rule, a model input"},
+          {"id": "2A", "reason": "stimulus protocol"},
+          {"id": "3A", "reason": "rat A1 recordings"},
+          {"id": "3B", "reason": "rat A1 recordings"}
+        ]
+      },
+      "class": "pending",
       "question": "Does the jaxfne core, at the authors' parameters, reproduce the inhibitory-plasticity balance: the Fig. 4 network driven to its target rate and the Figs. 1-2 single-cell detailed balance?",
       "page": "models/vogels2011.md",
-      "release": "0.5.8",
+      "release": "0.5.9",
       "tier": "T-jaxfne",
-      "stage": "P2",
-      "lane": {"branch": "dev", "sha": "9e6b89c6fceae5b9b5324d71c6aa2a4644cc5673"},
-      "summary": "P1 source record written from the authors' ModelDB code (the MATLAB script was in the Science SOM) plus the open-access 2013 review. Coded target rho0 = 3 Hz; paper-stated realized rates/CVs stay unknown (full text paywalled). The lane runs on the jaxfne core only; next per rule B8 is the pilot, then signature, then fresh seeds.",
-      "preregs": [],
-      "files": {},
-      "criteria": [],
+      "stage": "P3",
+      "lane": {"branch": "dev", "sha": "1537f01d8c413f20a8b71dff57089b1f4573c6d5"},
+      "stage_artifacts": {
+        "P3": [{"label": "prereg v4 (signed)", "path": "artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md"},
+               {"label": "result", "path": "artifacts/etudes/papers/vogels2011/RESULT_P3.md"}]
+      },
+      "summary": "Signed P3 v4 (seeds 4-8, n 10 000, 150 s of inhibitory plasticity, GPU float32): off on R-E. Every seed converges and the E rate drops 38.9-fold from the static network, but it settles at 4.13 Hz against the 3 Hz target (e 0.375 over 0.20). The B8 pilot predicted R-E off (4.11 Hz).",
+      "preregs": [
+        {"id": "P3 v4", "signed": "2026-11-02", "path": "artifacts/etudes/papers/vogels2011/prereg/P3_v4_signed.md"}
+      ],
+      "files": {
+        "main": "artifacts/etudes/papers/vogels2011/run/p3_v4_score.json"
+      },
+      "criteria": [
+        {"id": "CONV", "claim": "every scored seed converges", "estimand": "slope b of the per-second E rate over 130-150 s, with se", "criterion": "not converged only when |b| ≥ 0.01 Hz/s and |b|/se > 2.101",
+         "value": {"file": "main", "key": "CONV.per_seed.6.t"}, "unit": "", "value_label": "|b|/se, seed 6 (largest)",
+         "verdict": {"file": "main", "key": "CONV.pass"}, "prereg": "P3 v4"},
+        {"id": "R-E", "claim": "E rate settles at the 3 Hz target", "estimand": "E mean rate, 149-150 s; e = |z-3|/3", "criterion": "e ≤ 0.20",
+         "value": {"file": "main", "key": "R-E.z_hz"}, "unit": "Hz", "value_label": "mean rate", "paper_value": "3 Hz",
+         "verdict": {"file": "main", "key": "R-E.pass"}, "prereg": "P3 v4", "reason": "settles at 4.13 Hz, e 0.375 over 0.20"},
+        {"id": "O-DROP", "claim": "E rate drops from the static network", "estimand": "E rate at 0.8-1.0 s over R-E's z", "criterion": "ratio ≥ 2",
+         "value": {"file": "main", "key": "O-DROP.ratio"}, "unit": "", "value_label": "ratio",
+         "verdict": {"file": "main", "key": "O-DROP.pass"}, "prereg": "P3 v4"}
+      ],
       "sensitivity": [],
       "charts": [],
-      "open": ["Paper full text and SOM PDF unreachable; paper-stated Fig. 4 rates/CVs unknown until a legal copy is readable.", "Conductance synapses vs the current-based core LIF is a P2 fidelity question.", "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."]
+      "open": ["Fig. 4 panels stay unmapped to the P3 rows (R-E, O-DROP); the mapping waits on the accepted manuscript's legends.", "Accepted manuscript readable (local copy F:/warehouse/vogels/Vogels2011_Science_AM.pdf); it states the Fig. 4B AI state at 3-15 Hz.","Conductance synapses vs the current-based core LIF is a P2 fidelity question.", "No plastic-I-to-E rule in the core (core STDP kernel updates excitatory-presynaptic weights only)."]
     },
     {
       "id": "mejias2016",
       "title": "Mejias et al. 2016 laminar multi-area model, Figs. 2-3 and 6-7",
       "citation": "Mejias, Murray, Kennedy and Wang, Sci Adv 2(11):e1601335",
+      "replica": {
+        "scope": "Main-text Figs. 1-7 (PMC5262462, read 2026-10-31). 2A and 3A pair a scheme with simulated traces and count as results.",
+        "panels": [
+          {"id": "2A", "status": "not run"}, {"id": "2B", "status": "not run"}, {"id": "2C", "status": "not run"},
+          {"id": "3A", "status": "not run"}, {"id": "3B", "status": "not run"}, {"id": "3C", "status": "not run"},
+          {"id": "4B", "status": "not run"}, {"id": "4C", "status": "not run"}, {"id": "4E", "status": "not run"}, {"id": "4F", "status": "not run"},
+          {"id": "5B", "status": "not run"}, {"id": "5C", "status": "not run"}, {"id": "5D", "status": "not run"},
+          {"id": "6C", "status": "not run"}, {"id": "6D", "status": "not run"}, {"id": "6E", "status": "not run"},
+          {"id": "6F", "status": "not run"}, {"id": "6G", "status": "not run"}, {"id": "6H", "status": "not run"},
+          {"id": "7B", "status": "not run"}, {"id": "7C", "status": "not run"}, {"id": "7E", "status": "not run"},
+          {"id": "7F", "status": "not run"}, {"id": "7G", "status": "not run"}, {"id": "7H", "status": "not run"},
+          {"id": "7I", "status": "not run"}
+        ],
+        "excluded": [
+          {"id": "1", "reason": "model schematic"}, {"id": "4A", "reason": "feedforward scheme"}, {"id": "4D", "reason": "feedback scheme"},
+          {"id": "5A", "reason": "protocol"}, {"id": "6A", "reason": "tract-tracing method"},
+          {"id": "6B", "reason": "anatomical network, a model input"}, {"id": "7A", "reason": "two-area scheme"},
+          {"id": "7D", "reason": "input protocol"}
+        ]
+      },
       "class": "in progress",
       "question": "Does the jaxfne core reproduce the laminar circuit's gamma/alpha rhythms, their interlaminar coupling, and the 30-area functional hierarchy from frequency-dependent Granger causality?",
       "page": "models/mejias2016.md",
@@ -528,7 +890,7 @@
       "tier": "T-jaxfne",
       "stage": "P2",
       "lane": {"branch": "dev", "sha": "f8c05f04aefc1b14b27d1972ae57ffa07f888697"},
-      "summary": "P1 source record written from the open-access PMC record. Fig. 2-3 claims (gamma ~40 Hz, alpha ~10 Hz, PAC, alpha-suppression link) and Fig. 6-7 claims (SLN-DAI correlation, functional hierarchy, laminar-input jumps) are recorded with paper pointers. No port, no run. Next per B8: small pilot, then signature, then fresh seeds.",
+      "summary": "P1 source record written from the open-access PMC record. Fig. 2-3 claims (gamma ~40 Hz, alpha ~10 Hz, PAC, alpha-suppression link) and Fig. 6-7 claims (SLN-DAI correlation, functional hierarchy, laminar-input jumps) are recorded with paper pointers. A seed-0 smoke pilot runs the route end to end, unscored (CALIBRATION.md). Next per B8: signature, then fresh seeds.",
       "preregs": [],
       "files": {},
       "criteria": [],

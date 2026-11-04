@@ -1,7 +1,7 @@
 # Objective Grammar
 
-This guide shows a **complete script** — from circuit definition to
-simulated signals, objectives, tuning, and export — using the real top-level
+This guide shows a **complete script**: from circuit definition to
+simulated signals, objectives, tuning, and export, using the real top-level
 calls in order.
 
 ```text
@@ -10,9 +10,9 @@ Configuration → construct() → Paradigm → simulate() → probe() → Object
 
 Related views (unchanged):
 
-- [Configuration Grammar](configuration_grammar.md) — builder methods on `Configuration`
+- [Configuration Grammar](configuration_grammar.md): builder methods on `Configuration`
   (`.runtime()`, `.column()`, `.connectivity()`, …).
-- TFNE Operator Doctrine (`docs/theory/operator_doctrine.md` — repository-internal reference, excluded from the built site) — internal tensor-operator rules.
+- TFNE Operator Doctrine (`docs/theory/operator_doctrine.md`: repository-internal reference, excluded from the built site): internal tensor-operator rules.
 
 Every call below ran against the installed package. None is illustrative pseudocode.
 
@@ -42,7 +42,7 @@ model = jtfne.construct(cfg)
 ```
 
 `construct()` is the slow step (tens of seconds at 10k neurons:
-`artifacts/runs/perf/scaling/w11_atlas_10k.jsonl`, ~20 s build) — build once,
+`artifacts/runs/perf/scaling/w11_atlas_10k.jsonl`, ~20 s build); build once,
 reuse the `Model` across seeds/trials/sweeps.
 
 ### 3. Paradigm (optional)
@@ -56,7 +56,7 @@ paradigm = jtfne.omission_oddball_paradigm(
 
 Other paradigm constructors: `jtfne.paradigm(...)`,
 `jtfne.general_sequential_oddball_paradigm(...)` (the backbone for
-omission/global/local/DMS/explicit-event-list designs — see the
+omission/global/local/DMS/explicit-event-list designs; see the
 `jaxfne-paradigm-design` skill). A paradigm is optional; `simulate()` runs a
 plain drive-only trial without one.
 
@@ -94,7 +94,7 @@ objective = jtfne.rate_targets(groups, {"E": 10.0})
 # rate_targets(groups: dict, targets_hz: dict[str, float], weights: dict | None = None) -> Objective
 ```
 
-`jtfne.rate_targets(...)` always takes both `groups` *and* `targets_hz` —
+`jtfne.rate_targets(...)` always takes both `groups` *and* `targets_hz`.
 `targets_hz` is required. `jtfne.rate_synchrony_targets(...)` adds
 a synchrony (`kappa`) term to the same kind of objective.
 
@@ -109,12 +109,12 @@ result = model.tune(objective=objective, optimizer=jtfne.agsdr(), steps=2, seed=
 ```
 
 Tuning is a method on `Model` (`model.tune(...)`), rather than a free-standing
-`jtfne.optimize(...)` function — there is no top-level `optimize()`.
+`jtfne.optimize(...)` function; there is no top-level `optimize()`.
 `jtfne.agsdr(alpha=0.7, exploration=0.05, deselect_factor=2.0)` returns the
-canonical AGSDR (Adaptive Genetic Stochastic Delta Rule) optimizer spec — a
+canonical AGSDR (Adaptive Genetic Stochastic Delta Rule) optimizer spec, a
 state spec, rather than a stateful optimizer object or an `.optimize()` method;
 `model.tune()` is the entry point that runs it. (The legacy
-`jtfne.AGSDR` class is a COMPATIBILITY adapter retained for old notebooks —
+`jtfne.AGSDR` class is a COMPATIBILITY adapter retained for old notebooks;
 prefer `jtfne.agsdr(...)`.)
 
 ### 8. Validate
@@ -138,7 +138,7 @@ man = jtfne.manifest(cfg, signals=signals)
 jtfne.save_json(man, "run_manifest.json")
 ```
 
-`jtfne.manifest(...)` returns a plain JSON-safe `dict` — there is no
+`jtfne.manifest(...)` returns a plain JSON-safe `dict`; there is no
 `Manifest` object with `.save()`/`.validate()` methods. Persist it with
 `jtfne.save_json(obj, path)` (`allow_nan=False`), or use
 `jtfne.export_tutorial_artifacts(output_dir, manifest=..., metrics=..., validation=...)`
@@ -158,7 +158,7 @@ actually type, in order, to run something." This page is that answer.
 
 ## See also
 
-- [Configuration Grammar](configuration_grammar.md) — the builder-method reference this chain's step 1 draws from.
-- TFNE Operator Doctrine (`docs/theory/operator_doctrine.md` — repository-internal reference, excluded from the built site) — the tensor rule each stage satisfies internally.
-- Tensor Operator Registry (`docs/reference/api/readout/tensor_operators.md` — repository-internal reference, excluded from the built site) — per-operator inventory.
-- Operator Inventory (generated) (`docs/_generated/operator_inventory.md` — repository-internal reference, excluded from the built site) — the full live export surface, regenerated from code.
+- [Configuration Grammar](configuration_grammar.md): the builder-method reference this chain's step 1 draws from.
+- TFNE Operator Doctrine (`docs/theory/operator_doctrine.md`: repository-internal reference, excluded from the built site): the tensor rule each stage satisfies internally.
+- Tensor Operator Registry (`docs/reference/api/readout/tensor_operators.md`: repository-internal reference, excluded from the built site): per-operator inventory.
+- Operator Inventory (generated) (`docs/_generated/operator_inventory.md`: repository-internal reference, excluded from the built site): the full live export surface, regenerated from code.

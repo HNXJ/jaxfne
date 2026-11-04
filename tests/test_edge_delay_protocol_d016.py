@@ -1,4 +1,4 @@
-"""Protocol D0/D1 — finite edge-delay dynamics (jaxfne 0.4.16).
+"""Protocol D0/D1: finite edge-delay dynamics (jaxfne 0.4.16).
 
 D0: tau_ij=0 embeds the legacy instantaneous recurrent kernel.
 D1: known grid-aligned delays recover at the presynaptic synaptic-input level.

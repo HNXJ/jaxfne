@@ -147,7 +147,6 @@ class SanityDeltaConfig:
         n_steps = int(self.duration_ms / self.dt_ms)
         n_neurons = len(self.areas) * self.neurons_per_area
 
-        # Compile weight matrix W
         W = sanity_runtime._build_weight_matrix(n_neurons)
 
         model_state = {
@@ -286,6 +285,7 @@ class SanityDeltaModel:
             return episode
         elif mode == "full":
             a_jnp, b_jnp, c_jnp, d_jnp, base_drive_jnp = sanity_runtime._build_area_index(n_neurons)
+            v_lin_jnp, v_const_jnp = sanity_runtime._build_v_coefs(n_neurons)
             schedule = paradigm.to_schedule()
             stim_drive = sanity_runtime._build_stimulus_drive(n_steps, n_neurons, dt_ms, schedule["segments"])
 
@@ -333,7 +333,7 @@ class SanityDeltaModel:
                     noise[seg_start:seg_end],
                     base_drive_jnp,
                     a_jnp, b_jnp, c_jnp, d_jnp,
-                    dt_ms
+                    dt_ms, v_lin_jnp, v_const_jnp
                 )
 
                 spikes_out[seg_start:seg_end] = spk_seg
@@ -735,7 +735,7 @@ class TaskEpisode:
         )
         manifest.save(artifact_dir / "manifest.json")
 
-        # Save task schedule
+        # Write the task schedule to task_schedule.json
         task_schedule_path = artifact_dir / "task_schedule.json"
         task_schedule_path.write_text(json.dumps(self.task_schedule, indent=2))
 

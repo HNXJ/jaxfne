@@ -16,7 +16,7 @@ On single-device environments (CPU, single GPU), all functions return `None`
 so downstream code can gate sharding with a simple `if ctx is not None` check.
 
 **Stub status:** per `jaxfne/sharding_utils.py`'s own module docstring, these
-functions are stubs — they set up the mesh/`PartitionSpec` topology but do not
+functions are stubs; they set up the mesh/`PartitionSpec` topology but do not
 yet drive any real multi-device dispatch in the canonical AGSDR optimization
 loop (`jaxfne.optim.core._run_agsdr_optimization_loop`). Do not assume calling these already parallelizes an
 AGSDR sweep across devices; the canonical AGSDR engine remains
@@ -51,7 +51,7 @@ def make_candidate_sharding(mesh: jax.sharding.Mesh) -> jax.sharding.NamedShardi
 ```
 
 Return a `NamedSharding` that slices the first (batch/population) axis across
-`mesh`. Shape convention: `(B, n_params)` — partition on axis 0, replicate
+`mesh`. Shape convention: `(B, n_params)`: partition on axis 0, replicate
 axis 1.
 
 **Returns:** `PartitionSpec("population_sweep", None)`

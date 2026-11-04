@@ -8,7 +8,7 @@ file sequences the work. Method, gates and the HDP off/on design stay in
 
 ## Decisions (human, 2026-10-10)
 
-- Preregistrations (P3): Claude drafts, second-reviewer checks, Hamm signs in
+- Preregistrations (P3): Claude drafts, the reviewer agent checks, Hamm signs in
   batches. Builds and pilots go ahead meanwhile; scored runs wait for a signature.
 - PCL Zenodo files (CC-BY 4.0) are downloaded to `F:\warehouse\pcl\zenodo`:
   code (10.5281/zenodo.16836801), input videos and datasets with trained

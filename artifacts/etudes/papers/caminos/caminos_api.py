@@ -436,3 +436,337 @@ def main(argv=None):
 
 if __name__ == "__main__":
     main()
+
+
+# --- Cell Reports 2025 cellrep set on the core route (no oracle) ---
+
+# Cell Reports 2025 notebook cell 1 (caminos_jax.py CELLREP_PARAMS, SI units
+# converted): AdEx cells (E b 130 pA, EL -60 mV; PV EL -60 mV; SOM Delta 1.5
+# ms, b 25 pA; all else the core AdEx defaults), per-target excitatory decays
+# (5/1/2 ms), GABA decay 5 ms, weights in nS, zero synaptic delay, p 0.017
+# (E -> PV at twice p), 8000/800/600 cells, round(p*NE) = 136 private Poisson
+# sources at 4 Hz to E and PV (none to SOM).
+CELLREP_NE = 8000
+CELLREP_NPV = 800
+CELLREP_NSOM = 600
+CELLREP_P = 0.017
+CELLREP_E_PV_MULT = 2.0
+CELLREP_EXT_FIXED = 136
+CELLREP_EXT_RATE_HZ = 4.0
+CELLREP_Q_EXT_NS = 1.25
+CELLREP_Q_E_E_NS = 1.25
+CELLREP_Q_E_PV_NS = 3.75
+CELLREP_Q_E_SOM_NS = 2.5
+CELLREP_Q_PV_E_NS = 6.0
+CELLREP_Q_PV_PV_NS = 6.0
+CELLREP_Q_SOM_E_NS = 5.0
+CELLREP_Q_SOM_PV_NS = 5.0
+CELLREP_TAU_E_E_MS = 5.0
+CELLREP_TAU_E_PV_MS = 1.0
+CELLREP_TAU_E_SOM_MS = 2.0
+CELLREP_TAU_I_MS = 5.0
+CELLREP_REV_E_MV = 0.0
+CELLREP_REV_I_MV = -80.0
+
+# (name, pre, post, weight nS, receptor, probability multiplier on p).
+CELLREP_RULES = (
+    ("cellrep_e_e", "E", "E", CELLREP_Q_E_E_NS, "ampa_e", 1.0),
+    ("cellrep_e_pv", "E", "PV", CELLREP_Q_E_PV_NS, "ampa_pv", CELLREP_E_PV_MULT),
+    ("cellrep_e_som", "E", "SOM", CELLREP_Q_E_SOM_NS, "ampa_som", 1.0),
+    ("cellrep_pv_e", "PV", "E", CELLREP_Q_PV_E_NS, "gaba", 1.0),
+    ("cellrep_pv_pv", "PV", "PV", CELLREP_Q_PV_PV_NS, "gaba", 1.0),
+    ("cellrep_som_e", "SOM", "E", CELLREP_Q_SOM_E_NS, "gaba", 1.0),
+    ("cellrep_som_pv", "SOM", "PV", CELLREP_Q_SOM_PV_NS, "gaba", 1.0),
+)
+
+
+def _cellrep_sizes(sizes):
+    """Cell counts from a ``{"NE", "NPV", "NSOM"}`` dict, or the cellrep defaults."""
+    if sizes is None:
+        return {"E": CELLREP_NE, "PV": CELLREP_NPV, "SOM": CELLREP_NSOM}
+    missing = {"NE", "NPV", "NSOM"} - set(sizes)
+    if missing:
+        raise ValueError("sizes must have the keys NE, NPV, NSOM; missing %s"
+                         % sorted(missing))
+    out = {"E": int(sizes["NE"]), "PV": int(sizes["NPV"]), "SOM": int(sizes["NSOM"])}
+    if any(v <= 0 for v in out.values()):
+        raise ValueError("sizes must hold positive cell counts, got %r" % (sizes,))
+    return out
+
+
+def _cellrep_cell_overrides(swap):
+    """Per-type AdEx overrides against the core defaults (only differing fields).
+
+    The core defaults already carry the PLoS CB Table 1 values, so the cellrep
+    set overrides E (EL -60 mV, b 130 pA), PV (EL -60 mV) and SOM (Delta
+    1.5 ms, b 25 pA). With ``swap`` the PV and SOM neuronal values are
+    exchanged (the oracle ``swap``: connectivity, decays, weights and drive
+    untouched, the 4 Hz drive stays on the PV indices).
+    """
+    ov = {"E": {"EL_mV": -60.0, "b_pA": 130.0}}
+    if not swap:
+        ov["PV"] = {"EL_mV": -60.0}
+        ov["SOM"] = {"Delta_mV": 1.5, "b_pA": 25.0}
+        return ov
+    ov["PV"] = {"EL_mV": -55.0, "Delta_mV": 1.5, "a_nS": 4.0, "b_pA": 25.0}
+    ov["SOM"] = {"EL_mV": -60.0, "Delta_mV": 0.5, "a_nS": 0.0, "b_pA": 0.0}
+    return ov
+
+
+def _cellrep_coupling_nS(coupling):
+    """Coupling weights in nS: the oracle takes S per connection (a dict with
+    keys ``"PV_SOM"`` and/or ``"SOM_SOM"``); unknown keys and negative values
+    are refused."""
+    if coupling is None:
+        return {}
+    if not isinstance(coupling, dict):
+        raise ValueError("coupling must be a dict with keys 'PV_SOM' and/or "
+                         "'SOM_SOM', got %r" % (coupling,))
+    unknown = sorted(set(coupling) - {"PV_SOM", "SOM_SOM"})
+    if unknown:
+        raise ValueError("coupling keys must be 'PV_SOM' and/or 'SOM_SOM', got %r"
+                         % (unknown,))
+    out = {}
+    for key in ("PV_SOM", "SOM_SOM"):
+        if key in coupling:
+            try:
+                val = float(coupling[key])
+            except (TypeError, ValueError):
+                raise ValueError("coupling weights must be numbers (S per connection), "
+                                 "got %r" % (coupling,)) from None
+            import math
+
+            if not math.isfinite(val) or val < 0.0:
+                raise ValueError("coupling weights must be finite and >= 0, got %r"
+                                 % (coupling,))
+            out[key] = val * 1e9
+    return out
+
+
+def _cellrep_check_p(p):
+    """The connection probability: in (0, 0.5] so E -> PV at twice p stays a probability."""
+    if isinstance(p, bool) or not isinstance(p, (int, float)):
+        raise ValueError("cellrep p must be in (0, 0.5], got %r" % (p,))
+    if not 0.0 < float(p) <= 0.5:
+        raise ValueError("cellrep p must be in (0, 0.5] (E -> PV connects at "
+                         "twice p), got %r" % (p,))
+    return float(p)
+
+
+def build_cellrep_spec(p=CELLREP_P, seed=0, sizes=None, swap=False, coupling=None):
+    """The cellrep network built only from the public API.
+
+    Seven Bernoulli rules (PV -> SOM and SOM -> SOM absent, as in the
+    reference model) plus one rule per declared ``coupling`` entry
+    (``{"PV_SOM": S, "SOM_SOM": S}``, weights in S per connection). The
+    oracle's zero synaptic delay maps to one step (``delay_ms`` = the run's
+    ``dt_ms``): the one-step ring without the intra-step fixed point.
+    """
+    import jaxfne as jtfne
+
+    pp = _cellrep_check_p(p)
+    coup = _cellrep_coupling_nS(coupling)
+    sz = _cellrep_sizes(sizes)
+    n = sz["E"] + sz["PV"] + sz["SOM"]
+    cfg = (
+        jtfne.Configuration()
+        .network(name="cellrep", n=n,
+                 cell_types={"E": sz["E"] / n, "PV": sz["PV"] / n, "SOM": sz["SOM"] / n})
+        .emitter(family="adex", adex_decay="euler", adex_step_order="default")
+        .mechanisms(name="ampa_e", kind="receptor",
+                    params={"tau_ms": CELLREP_TAU_E_E_MS, "reversal_mV": CELLREP_REV_E_MV})
+        .mechanisms(name="ampa_pv", kind="receptor",
+                    params={"tau_ms": CELLREP_TAU_E_PV_MS, "reversal_mV": CELLREP_REV_E_MV})
+        .mechanisms(name="ampa_som", kind="receptor",
+                    params={"tau_ms": CELLREP_TAU_E_SOM_MS, "reversal_mV": CELLREP_REV_E_MV})
+        .mechanisms(name="gaba", kind="receptor",
+                    params={"tau_ms": CELLREP_TAU_I_MS, "reversal_mV": CELLREP_REV_I_MV})
+    )
+    for ctype, fields in _cellrep_cell_overrides(swap).items():
+        cfg = cfg.cell_params({"cell_type": ctype}, fields)
+    for name, pre, post, weight, mechanism, mult in CELLREP_RULES:
+        cfg = cfg.connections(
+            name=name,
+            source={"cell_type": pre},
+            target={"cell_type": post},
+            probability=pp * mult,
+            weight=weight,
+            mechanism=mechanism,
+            delay_ms=DT_MS,
+            sampling="bernoulli",
+        )
+    for cname, pair, key in (("cellrep_pv_som", ("PV", "SOM"), "PV_SOM"),
+                             ("cellrep_som_som", ("SOM", "SOM"), "SOM_SOM")):
+        if key in coup:
+            cfg = cfg.connections(
+                name=cname,
+                source={"cell_type": pair[0]},
+                target={"cell_type": pair[1]},
+                probability=pp,
+                weight=coup[key],
+                mechanism="gaba",
+                delay_ms=DT_MS,
+                sampling="bernoulli",
+            )
+    return cfg.connectivity(edge_seed=int(seed))
+
+
+def cellrep_ext_source_count(p, NE, ext_sources="pNE"):
+    """External source count for the cellrep drive: the set's fixed 136 by
+    default, ``round(p * NE)`` under ``ext_sources="pNE"``, or a positive int
+    as given."""
+    if ext_sources == "fixed":
+        return CELLREP_EXT_FIXED
+    if ext_sources == "pNE":
+        return int(round(float(p) * int(NE)))
+    if isinstance(ext_sources, bool) or not isinstance(ext_sources, int) \
+            or int(ext_sources) <= 0:
+        raise ValueError("ext_sources must be 'fixed', 'pNE' or a positive int, got %r"
+                         % (ext_sources,))
+    return int(ext_sources)
+
+
+def cellrep_drive_entries(p, NE, seed, ext_sources="pNE", som_ext_rate_hz=0.0,
+                          ext_rate_schedule=None, som_ext_rate_schedule=None):
+    """The cellrep ``Simulation(poisson_drive=...)`` list: one entry per driven
+    group (E on ``ampa_e``, PV on ``ampa_pv``) under its own seed stream
+    (``seed``, ``seed + 1``), plus SOM on ``ampa_som`` (``seed + 2``) only
+    when the SOM drive is on. ``ext_rate_schedule`` replaces the constant 4 Hz
+    E/PV rate with a per-step Hz array; ``som_ext_rate_schedule`` is the
+    per-step counterpart of ``som_ext_rate_hz`` (refused together with a
+    nonzero constant rate, as in the oracle). A zero synaptic delay is one
+    step here, so no ``same_step`` entry is needed.
+    """
+    import math
+
+    n = cellrep_ext_source_count(p, NE, ext_sources)
+    try:
+        som_rate = float(som_ext_rate_hz)
+    except (TypeError, ValueError):
+        raise ValueError("som_ext_rate_hz must be a number (Hz), got %r"
+                         % (som_ext_rate_hz,)) from None
+    if not math.isfinite(som_rate) or som_rate < 0.0:
+        raise ValueError("som_ext_rate_hz must be finite and >= 0, got %r"
+                         % (som_ext_rate_hz,))
+    if som_ext_rate_schedule is not None and som_rate != 0.0:
+        raise ValueError("pass only one SOM drive: som_ext_rate_hz=%r with "
+                         "som_ext_rate_schedule set" % (som_ext_rate_hz,))
+    entries = [
+        {"n_sources": n, "rate_hz": CELLREP_EXT_RATE_HZ, "weight_nS": CELLREP_Q_EXT_NS,
+         "mechanism": "ampa_e", "target_cell_types": ["E"],
+         "delay_ms": DT_MS, "seed": int(seed)},
+        {"n_sources": n, "rate_hz": CELLREP_EXT_RATE_HZ, "weight_nS": CELLREP_Q_EXT_NS,
+         "mechanism": "ampa_pv", "target_cell_types": ["PV"],
+         "delay_ms": DT_MS, "seed": int(seed) + 1},
+    ]
+    if ext_rate_schedule is not None:
+        for entry in entries:
+            del entry["rate_hz"]
+            entry["rate_schedule_hz"] = ext_rate_schedule
+    if som_rate != 0.0 or som_ext_rate_schedule is not None:
+        som_entry = {"n_sources": n, "rate_hz": som_rate, "weight_nS": CELLREP_Q_EXT_NS,
+                     "mechanism": "ampa_som", "target_cell_types": ["SOM"],
+                     "delay_ms": DT_MS, "seed": int(seed) + 2}
+        if som_ext_rate_schedule is not None:
+            del som_entry["rate_hz"]
+            som_entry["rate_schedule_hz"] = som_ext_rate_schedule
+        entries.append(som_entry)
+    return entries
+
+
+def build_cellrep_sim(seed, T_s, drive_entries, silence=None, replace=None,
+                      replace_rate_hz=None, silence_onset_s=None,
+                      ee_gain_schedule=None, dt_ms=DT_MS):
+    """The ``Simulation`` for a cellrep core run: dt 0.1 ms, the drive list,
+    and the optional ``silence`` / ``replace`` / ``ee_gain_schedule`` (E -> E)
+    manipulations. ``silence_onset_s`` without ``silence`` is refused, as in
+    the oracle; ``replace`` needs ``replace_rate_hz`` (a dict with a rate per
+    replaced type)."""
+    import jaxfne as jtfne
+
+    silence_spec = None
+    if silence is not None:
+        if silence_onset_s is None:
+            onset_ms = 0.0
+        else:
+            try:
+                onset_ms = float(silence_onset_s) * 1000.0
+            except (TypeError, ValueError):
+                raise ValueError("silence_onset_s must be seconds as a number, got %r"
+                                 % (silence_onset_s,)) from None
+        silence_spec = {"fractions": dict(silence), "seed": int(seed),
+                        "onset_ms": onset_ms}
+    elif silence_onset_s is not None:
+        raise ValueError("silence_onset_s requires silence to be set, got %r"
+                         % (silence_onset_s,))
+    replace_spec = None
+    if replace is not None:
+        if not isinstance(replace_rate_hz, dict) or not replace_rate_hz:
+            raise ValueError("replace_rate_hz (dict of mean rate in Hz per type) "
+                             "is required when replace is set, got %r"
+                             % (replace_rate_hz,))
+        replace_spec = {"fractions": dict(replace), "rate_hz": dict(replace_rate_hz),
+                        "seed": int(seed)}
+    edge_gain = None
+    if ee_gain_schedule is not None:
+        edge_gain = {"pre": "E", "post": "E", "schedule": ee_gain_schedule}
+    return jtfne.Simulation(duration_ms=float(T_s) * 1000.0, dt_ms=float(dt_ms),
+                            poisson_drive=list(drive_entries),
+                            silence=silence_spec, replace=replace_spec,
+                            edge_gain=edge_gain)
+
+
+def run_core_raster(seed, T_s=12.0, sizes=None, p=CELLREP_P, silence=None,
+                    replace=None, replace_rate_hz=None, silence_onset_s=None,
+                    coupling=None, swap=False, ext_sources="pNE",
+                    som_ext_rate_hz=0.0, ext_rate_schedule=None,
+                    som_ext_rate_schedule=None, ee_gain_schedule=None,
+                    dt_ms=DT_MS, **unknown):
+    """Run the cellrep network through the jaxfne core; return the boolean
+    spike raster ``[steps, N]`` in E | PV | SOM order.
+
+    The network (``build_cellrep_spec``), drive (``cellrep_drive_entries``)
+    and manipulations (``Simulation`` silence / replace / edge_gain) run on
+    the public API only; no oracle code is reached. ``sizes`` is
+    ``{"NE", "NPV", "NSOM"}`` or None for the cellrep defaults; ``p`` the
+    connection probability (E -> PV connects at twice p); any other keyword
+    is refused with ``ValueError`` naming it.
+
+    Core-vs-oracle differences (all spike-changing; the core path is not tuned
+    to match the oracle): connectivity draws (the oracle splits ``PRNGKey``
+    per block; the core compiles from ``edge_seed`` through its own stream),
+    external-drive draws (the oracle draws Poisson counts inside its scan;
+    the core draws one stream per drive entry under ``seed``, ``seed + 1``,
+    ``seed + 2``), and replacement-spike draws (distinct streams). The
+    silenced/replaced subsets coincide for the same seed (both use the
+    fold-in-911/417 ``manip_mask`` rule over E | PV | SOM order). The oracle's
+    zero synaptic delay is one step on both paths (the oracle's one-step
+    floor; the core's ``delay_ms`` = dt).
+    """
+    if unknown:
+        raise ValueError("run_core_raster got unknown keyword(s) %s; realized: "
+                         "T_s, sizes, p, silence, replace, replace_rate_hz, "
+                         "silence_onset_s, coupling, swap, ext_sources, "
+                         "som_ext_rate_hz, ext_rate_schedule, "
+                         "som_ext_rate_schedule, ee_gain_schedule, dt_ms"
+                         % sorted(unknown))
+    import numpy as np
+
+    import jaxfne as jtfne
+
+    sz = _cellrep_sizes(sizes)
+    model = jtfne.construct(build_cellrep_spec(p=p, seed=seed, sizes=sizes,
+                                               swap=swap, coupling=coupling))
+    entries = cellrep_drive_entries(p, sz["E"], seed, ext_sources,
+                                    som_ext_rate_hz, ext_rate_schedule,
+                                    som_ext_rate_schedule)
+    sim = build_cellrep_sim(seed, T_s, entries, silence, replace,
+                            replace_rate_hz, silence_onset_s,
+                            ee_gain_schedule, dt_ms)
+    signals = model.simulate(sim)
+    import jax
+
+    jax.block_until_ready(signals.spikes)
+    raster = np.asarray(signals.spikes, dtype=bool)
+    assert raster.shape[1] == sz["E"] + sz["PV"] + sz["SOM"]
+    return raster

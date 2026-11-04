@@ -1,6 +1,6 @@
 """23-LAW-01: structured-law exercise of the registrable primitive.
 
-Rule under test: ``eligibility_trace_gain`` — event-driven per-edge
+Rule under test: ``eligibility_trace_gain``: event-driven per-edge
 eligibility with H-gated weight drive (aux-carrying structured law, not
 an STDP mechanism claim). Exercises the primitive paths the
 qualification rule never touches: non-empty ``aux`` cold start,

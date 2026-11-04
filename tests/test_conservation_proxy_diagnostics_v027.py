@@ -173,7 +173,7 @@ class TestMissingArrays:
         assert d["field_energy_like_proxy"] is None
 
     def test_1d_phi_gradient_none(self):
-        """phi_e with only 1 spatial point — gradient undefined, returns None."""
+        """phi_e with only 1 spatial point; gradient undefined, returns None."""
         phi_1d = jnp.ones((_T, 1))
         d = compute_conservation_proxy_diagnostics(phi_e=phi_1d)
         assert d["phi_gradient_proxy_norm2"] is None
@@ -364,7 +364,7 @@ class TestManifestJsonSafe:
         assert len(serialized) > 100
 
 
-# ─── Test 14: Language audit — no positive solver/metabolism claims ───────────
+# ─── Test 14: Language audit; no positive solver/metabolism claims ───────────
 
 class TestLanguageAudit:
     def test_no_positive_solver_claim_in_output(self, rng_arrays):

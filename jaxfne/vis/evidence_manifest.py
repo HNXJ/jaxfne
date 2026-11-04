@@ -55,8 +55,8 @@ def utc_now_iso() -> str:
 
 
 def evidence_checklist_path() -> Path:
-    """Return the evidence checklist path (docs/theory/publication/, since 72eafbbd)."""
-    return repo_root() / "docs" / "theory" / "publication" / "evidence_checklist.json"
+    """Return the evidence checklist path (artifacts/programme/paper/publication/)."""
+    return repo_root() / "artifacts" / "programme" / "paper" / "publication" / "evidence_checklist.json"
 
 
 def truth_gates() -> dict:
@@ -79,10 +79,11 @@ def write_json_strict(path: Path, obj: dict) -> None:
 
 
 def ensure_evidence_dirs() -> dict[str, Path]:
-    """Create and return standard evidence output directories."""
+    """Create and return standard evidence output directories (under artifacts/_temp/)."""
     root = repo_root()
-    figures = root / "figures" / "evidence"
-    outputs = root / "outputs" / "evidence"
+    temp = root / "artifacts" / "_temp"
+    figures = temp / "figures" / "evidence"
+    outputs = temp / "outputs" / "evidence"
     figures.mkdir(parents=True, exist_ok=True)
     outputs.mkdir(parents=True, exist_ok=True)
     return {
@@ -93,7 +94,7 @@ def ensure_evidence_dirs() -> dict[str, Path]:
 
 
 def manifest_path_for(output_path: Path) -> Path:
-    """Standard manifest path: outputs/evidence/<stem>_manifest.json."""
+    """Standard manifest path: artifacts/_temp/outputs/evidence/<stem>_manifest.json."""
     dirs = ensure_evidence_dirs()
     return dirs["outputs"] / f"{output_path.stem}_manifest.json"
 

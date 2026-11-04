@@ -62,6 +62,31 @@ def test_dynamic_shape_regression_warning():
     assert ("simulate", (1, 16, 4, 20)) in compilation_registry.traced_signatures
 
 
+def test_compile_count_follows_the_cache_key():
+    """Two cache keys at one shape are two expected compiles; one key traced twice still alerts."""
+    compilation_registry.reset()
+    compilation_registry.set_mode("exception")
+    sig = (1, 16, 4, 10)
+    compilation_registry.track_trace("simulate", sig, ("simulate", "float32"))
+    compilation_registry.track_trace("simulate", sig, ("simulate", "float64"))
+    assert compilation_registry.traced_signatures[("simulate", sig)] == 2
+    with pytest.raises(ValueError, match="compiled 2 times"):
+        compilation_registry.track_trace("simulate", sig, ("simulate", "float32"))
+
+
+def test_reused_model_with_new_homeostasis_params_does_not_alert():
+    """A reused Model whose second run differs only in a cache-key parameter compiles once per key."""
+    model = _base_model()
+    for r_star in (0.01, 0.5):
+        runtime_cfg = RuntimeConfig(
+            jit=True, recompilation_guard="exception", enable_homeostasis=True,
+            homeostasis_params={"k_gain": 1.0, "r_star": r_star})
+        model.simulate(jtfne.simulation(duration_ms=10.0, dt_ms=1.0, seed=42, runtime=runtime_cfg))
+    assert len([k for k in model._compiled_cache if k[0] == "simulate_homeostatic"]) == 2, (
+        "fixture must build two cache entries at one shape")
+    assert compilation_registry.traced_signatures[("simulate_homeostatic", (1, 16, 4, 10))] == 2
+
+
 def test_dynamic_shape_regression_exception():
     """Verify that shape mutations raise ValueError under exception mode."""
     compilation_registry.reset()

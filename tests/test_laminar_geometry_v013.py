@@ -27,7 +27,7 @@ def _cfg(n=5):
     )
 
 
-# Test A — population construction and JSON-safe to_dict
+# Test A: population construction and JSON-safe to_dict
 def test_laminar_population_construction_and_json_safe():
     pop = jtfne.LaminarPopulation(
         name="E_L23", cell_type="excitatory", layer="L2/3",
@@ -44,7 +44,7 @@ def test_laminar_population_construction_and_json_safe():
     json.dumps(d, allow_nan=False)
 
 
-# Test B — invalid population validation
+# Test B: invalid population validation
 def test_laminar_population_validate_bad_depth_and_zero_units():
     bad_depth = LaminarPopulation(
         name="bad", cell_type="excitatory", layer="L4",
@@ -67,7 +67,7 @@ def test_laminar_population_validate_bad_depth_and_zero_units():
         jtfne.laminar_source_geometry([bad_depth])
 
 
-# Test C — source geometry construction and n_units_total
+# Test C: source geometry construction and n_units_total
 def test_laminar_source_geometry_construction_and_n_units_total():
     geom = _two_pop_geometry()
     assert isinstance(geom, LaminarSourceGeometry)
@@ -82,7 +82,7 @@ def test_laminar_source_geometry_construction_and_n_units_total():
     json.dumps(d, allow_nan=False)
 
 
-# Test D — positions_array shape, dtype, and deterministic depths
+# Test D: positions_array shape, dtype, and deterministic depths
 def test_positions_array_shape_dtype_deterministic():
     geom = _two_pop_geometry()
     arr = geom.positions_array(dtype="float32")
@@ -107,7 +107,7 @@ def test_positions_array_shape_dtype_deterministic():
     assert jnp.array_equal(arr, arr2)
 
 
-# Test E — construct with geometry succeeds and simulate runs
+# Test E: construct with geometry succeeds and simulate runs
 def test_construct_with_geometry_and_simulate():
     geom = _two_pop_geometry()
     cfg = _cfg(n=5)
@@ -121,7 +121,7 @@ def test_construct_with_geometry_and_simulate():
     assert signals.V_m.shape == (100, 5)
 
 
-# Test F — construct without geometry is backward compatible
+# Test F: construct without geometry is backward compatible
 def test_construct_without_geometry_backward_compatible():
     cfg = _cfg(n=5)
     model = jtfne.construct(cfg)
@@ -132,7 +132,7 @@ def test_construct_without_geometry_backward_compatible():
     assert signals.V_m.shape == (100, 5)
 
 
-# Test G — manifest includes geometry only when provided
+# Test G: manifest includes geometry only when provided
 def test_manifest_includes_geometry_only_when_provided():
     cfg = _cfg(n=5)
     sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0)
@@ -156,7 +156,7 @@ def test_manifest_includes_geometry_only_when_provided():
     json.dumps(manifest_without, allow_nan=False)
 
 
-# Test H — truth gates unchanged with geometry
+# Test H: truth gates unchanged with geometry
 def test_truth_gates_unchanged_with_geometry():
     geom = _two_pop_geometry()
     cfg = _cfg(n=5)
@@ -178,7 +178,7 @@ def test_truth_gates_unchanged_with_geometry():
     assert geom_dict["claim_level"] == "computational_scaffold"
 
 
-# Test I — geometry_n_units_total_mismatch raises ValueError
+# Test I: geometry_n_units_total_mismatch raises ValueError
 def test_geometry_n_units_total_mismatch_raises():
     # geometry has 5 units, cfg has n=8 -> mismatch
     geom = _two_pop_geometry()  # n_units_total = 5

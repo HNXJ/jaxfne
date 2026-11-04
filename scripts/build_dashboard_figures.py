@@ -5,7 +5,7 @@ The PNGs are the static copies of the page's Plotly charts and carry the same va
 chart is written twice, as dashboard/figures/<paper id>-<chart id>.png and
 dashboard/figures/<paper id>-<chart id>.dark.png; the page shows the one matching the colour
 scheme. dashboard/figures/manifest.json records the SHA-256 of the chart data each PNG pair
-was drawn from. This script does not import jaxfne, so the repo-root guard (P-025) is not needed.
+was drawn from, receipt digests excluded. This script does not import jaxfne, so the repo-root guard (P-025) is not needed.
 
   python scripts/build_dashboard_figures.py           render every chart (needs matplotlib)
   python scripts/build_dashboard_figures.py --check   exit 1 if a PNG is missing or drawn from other data
@@ -28,8 +28,17 @@ DASHES = ["-", "--", ":", "-."]
 GOLD = "#cfb87c"
 
 
+def drawn(node):
+    """The chart without receipt digests ("sha256" keys): a digest is never drawn."""
+    if isinstance(node, dict):
+        return {k: drawn(v) for k, v in node.items() if k != "sha256"}
+    if isinstance(node, list):
+        return [drawn(v) for v in node]
+    return node
+
+
 def chart_hash(chart):
-    return hashlib.sha256(json.dumps(chart, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+    return hashlib.sha256(json.dumps(drawn(chart), sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
 def charts(doc):

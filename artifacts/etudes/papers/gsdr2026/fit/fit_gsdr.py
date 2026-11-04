@@ -27,7 +27,7 @@ an elitist anchor, Gaussian proposals at the spec's ``exploration`` scale,
 and the delta-rule center update with the spec's ``alpha``. NaN losses are
 never selected (the paper reverts to the best state on NaN).
 
-Outputs land in the caller's directory (``scratch/gsdr2026/``), never under
+Outputs land in the caller's directory (``artifacts/_temp/gsdr2026/``), never under
 a ``scored`` path. GPU: run under ``flock /tmp/jaxfne_gpu.lock``.
 """
 

@@ -7,6 +7,7 @@ Every fixture builds the tree the case is named after and asserts its preconditi
 
 from __future__ import annotations
 
+import os
 import pathlib
 import subprocess
 import sys
@@ -153,6 +154,18 @@ class TestTheCommand:
         assert checked.returncode == 1, (checked.stdout, checked.stderr)
         assert "must be dated before release" in checked.stderr, checked.stderr
         assert checked.stdout == "", checked.stdout
+
+    def test_a_non_ascii_body_is_written_as_utf8_under_a_cp1252_stdout(self, tmp_path):
+        # Windows redirects stdout in the locale encoding; the 0.5.8 body's arrow raised there.
+        root = _tree(tmp_path, "7.1.0", CHANGELOG.replace("wobbles.", "wobbles (A → B)."))
+        body = build_body(root, "v7.1.0")[0]
+        assert "→" in body, "fixture must carry a character cp1252 cannot encode"
+        env = {k: v for k, v in os.environ.items() if k not in ("PYTHONIOENCODING", "PYTHONUTF8")}
+        env["PYTHONIOENCODING"] = "cp1252"
+        result = subprocess.run([sys.executable, str(SCRIPT), "--tag", "v7.1.0", "--root", str(root)],
+                                capture_output=True, env=env, timeout=120)
+        assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+        assert result.stdout == body.encode("utf-8")
 
     def test_a_passing_body_is_written_with_lf_endings(self, tmp_path):
         root = _tree(tmp_path, "7.1.0", CHANGELOG)

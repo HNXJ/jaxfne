@@ -5,9 +5,9 @@ Local receipt for objective null controls, JSON/gate failure modes, and
 overinterpretation guards. Not empirical validation.
 
 Outputs:
-  figures/evidence/ed09_failure_modes_and_nulls.png
-  outputs/evidence/ed09_failure_modes_and_nulls_manifest.json
-  outputs/evidence/ed09_failure_modes_and_nulls_receipt.json
+  artifacts/_temp/figures/evidence/ed09_failure_modes_and_nulls.png
+  artifacts/_temp/outputs/evidence/ed09_failure_modes_and_nulls_manifest.json
+  artifacts/_temp/outputs/evidence/ed09_failure_modes_and_nulls_receipt.json
 """
 
 from __future__ import annotations
@@ -405,7 +405,7 @@ def main() -> int:
     )
 
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
-    print(f"wrote: outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
+    print(f"wrote: artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
     print(f"wrote: {RECEIPT_PATH.relative_to(root)}")
     print(f"sha256: {sha256_file(FIGURE_PATH)}")
     print(f"figure_id: {manifest['figure_id']}")

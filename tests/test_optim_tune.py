@@ -142,7 +142,7 @@ def test_optax_guarded_import_no_top_level_dependency():
     assert proc.returncode == 0, proc.stderr[-2000:]
     # Fresh `import jaxfne` must not pull in optax (measured: False).
     assert proc.stdout.strip() == "False"
-    # Only check the guard function is available — don't actually import optax
+    # Only check the guard function is available; don't actually import optax
     assert hasattr(jtfne, "require_optax")
     assert callable(jtfne.require_optax)
 
@@ -277,7 +277,7 @@ def test_no_gradient_claim_for_spiking_reset_without_surrogate():
     model = _model()
     obj = jtfne.objective().loss("rate_loss", target=20.0, metric="spike_rate_hz_mean")
 
-    # Explicitly non-differentiable — no surrogate declared
+    # Explicitly non-differentiable; no surrogate declared
     spec = jtfne.optax_adam(differentiability_status="non_differentiable", surrogate_status="none")
     same_model, report = model.tune(obj, optimizer=spec, steps=10)
 
@@ -299,7 +299,6 @@ def test_scalar_tune_report_includes_candidate_diagnostics():
     obj = jtfne.objective().loss("rate_loss", target=20.0, metric="spike_rate_hz_mean")
     _, report = model.tune(obj, optimizer="AGSDR", steps=5, seed=42)
 
-    # Check new report fields
     assert "candidate_values" in report
     assert "candidate_scores" in report
     assert "score_variance" in report
@@ -840,3 +839,182 @@ def test_tune_history_carries_complete_per_candidate_outputs():
     best_value, best_score = min(finite, key=lambda pair: pair[1])
     assert result.best_score == best_score
     assert result.summary["best_parameter_value"] == best_value
+
+
+# --------------------------------------------------------------------------- #
+# Refusals: parameters a kernel does not consume, unknown hyperparameter keys
+# --------------------------------------------------------------------------- #
+
+
+def test_unconsumed_transform_parameters_are_refused():
+    """sdr_transform never reads alpha_min/alpha_max; gsdr_transform and
+    agsdr_transform never read checkpoint_n_steps. Non-default values are
+    refused; the defaults stay accepted."""
+    from jaxfne.optim.core import agsdr_transform, gsdr_transform, sdr_transform
+
+    with pytest.raises(ValueError, match="alpha_min.*not consumed"):
+        sdr_transform(alpha_min=0.2)
+    with pytest.raises(ValueError, match="alpha_max.*not consumed"):
+        sdr_transform(alpha_max=0.5)
+    with pytest.raises(ValueError, match="checkpoint_n_steps.*not consumed"):
+        gsdr_transform(checkpoint_n_steps=3)
+    with pytest.raises(ValueError, match="checkpoint_n_steps.*not consumed"):
+        agsdr_transform(checkpoint_n_steps=3)
+    assert sdr_transform() is not None
+    assert gsdr_transform() is not None
+    assert agsdr_transform() is not None
+
+
+@pytest.mark.parametrize(
+    "kernel_name",
+    ["step_sdr_transform", "step_gsdr_transform", "step_agsdr_transform", "step_gsgd_transform"],
+)
+def test_step_kernels_refuse_unknown_hyperparameters(kernel_name):
+    """Each step kernel reads only eta; a misspelled key must not fall back to 0.01."""
+    import jax.numpy as jnp
+
+    import jaxfne.optim as optim
+
+    kernel = getattr(optim, kernel_name)
+    u_t = jnp.array([1.0, 2.0], dtype=jnp.float32)
+    grad_l = jnp.array([0.5, -1.0], dtype=jnp.float32)
+    with pytest.raises(ValueError, match="etaa"):
+        kernel(u_t, grad_l, None, {"eta": 0.1, "etaa": 0.2})
+    u_next, _ = kernel(u_t, grad_l, None, {"eta": 0.1})
+    assert jnp.allclose(u_next, u_t - 0.1 * grad_l)
+
+
+# ---------------------------------------------------------------------------
+# T-55 (lane C3): matrix tune placeholder W refusal, transform step
+# ---------------------------------------------------------------------------
+
+
+def test_matrix_tune_refuses_placeholder_w_on_edge_backend():
+    """A placeholder (0, 0) emitter.W reported the refined matrix as []; it is refused by name."""
+    from dataclasses import replace
+
+    import jax.numpy as jnp
+    import optax
+
+    from jaxfne._model import Model
+
+    cfg = (
+        jtfne.configuration()
+        .runtime(seed=0, recurrent_backend="edge_list")
+        .network(name="V1", kind="cortical_column", n=10, cell_types={"E": 0.5, "PV": 0.5})
+        .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 8.0})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        .probe(name="probe", modes=["spikes", "V_m"])
+    )
+    base = jtfne.construct(cfg)
+    emitter = base.params["emitter"]
+    new_emitter = replace(emitter, W=jnp.zeros((0, 0), dtype=emitter.W.dtype))
+    model = Model(cfg=base.cfg, params={**base.params, "emitter": new_emitter}, static=dict(base.static))
+    sim = jtfne.simulation(duration_ms=40.0, dt_ms=0.1, seed=0)
+    obj = jtfne.rate_targets(
+        groups={"E": list(range(5)), "I": list(range(5, 10))},
+        targets_hz={"E": 10.0, "I": 5.0},
+    )
+    opt = jtfne.agsdr(
+        parameters={"gAMPA_w": jtfne.matrix_parameter(mask="all", bounds=(0.5, 2.5))},
+        inner_optimizer=optax.adam(learning_rate=1e-2),
+        inner_steps=2,
+        generations=1,
+        population_size=2,
+        seed=0,
+    )
+    with pytest.raises(ValueError, match="edge_list"):
+        model.tune(objectives=obj, optimizer=opt, simulation=sim)
+
+
+@pytest.mark.parametrize("make", ["sdr_transform", "gsdr_transform", "agsdr_transform"])
+def test_transform_step_advances_when_no_loss_is_passed(make):
+    """The noise key is fold_in(key, state.step); a step held at 0 repeats the noise."""
+    import jax
+    import jax.numpy as jnp
+    import numpy as np
+
+    try:
+        optax = jtfne.require_optax()
+    except ImportError:
+        return
+
+    transform = getattr(jtfne, make)(inner_optimizer=optax.sgd(0.0), stochastic_scale=1.0)
+    params = jnp.zeros((4,), dtype=jnp.float32)
+    grad = jnp.ones((4,), dtype=jnp.float32)
+    key = jax.random.PRNGKey(0)
+    state = transform.init(params)
+    first, state = transform.update(grad, state, params=params, key=key)
+    second, state = transform.update(grad, state, params=params, key=key)
+    assert int(state[0].step) == 2, "step must advance on every update, loss or not"
+    assert np.any(np.asarray(first) != 0.0), "fixture must draw noise"
+    assert not np.array_equal(np.asarray(first), np.asarray(second)), \
+        "same key at the same step repeated the noise"
+
+
+# T-55 item 1: matrix bounds scale the masked entries of the base matrix (MatrixParameterSpec.bounds).
+
+
+@pytest.mark.parametrize("name", ["gAMPA_w", "all_w"])
+def test_matrix_inner_loop_keeps_masked_scale_in_bounds_and_others_fixed(name):
+    """The inner loop keeps each masked entry within bounds times its base value and leaves the rest."""
+    optax = pytest.importorskip("optax")
+    import numpy as np
+    from jaxfne._model_tune import _mask_for_parameter
+
+    cfg = (
+        jtfne.configuration()
+        .network(name="V1", kind="cortical_column", n=12, cell_types={"E": 0.8, "PV": 0.2})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        .probe(name="laminar_probe", modes=["spikes", "V_m"])
+    )
+    model = jtfne.construct(cfg)
+    sim = jtfne.simulation(duration_ms=20.0, dt_ms=0.1, seed=0)
+    obj = jtfne.rate_targets(groups={"E": list(range(9)), "I": list(range(9, 12))},
+                             targets_hz={"E": 10.0, "I": 5.0})
+    lo, hi = 0.5, 2.5
+    # E_to_E: symmetric in (post, pre), so the mask orientation question in T-50 does not enter.
+    spec = jtfne.matrix_parameter(mask="E_to_E", bounds=(lo, hi))
+    opt = jtfne.agsdr(parameters={name: spec}, inner_optimizer=optax.adam(learning_rate=1.0),
+                      inner_steps=3, generations=1, population_size=2, seed=0)
+    res = model.tune(objectives=obj, optimizer=opt, simulation=sim)
+
+    W0 = np.asarray(model.params["emitter"].W, dtype=float)
+    W = np.asarray(res.best_parameters[name], dtype=float)
+    mask = np.asarray(_mask_for_parameter(model, name, "E_to_E"), dtype=bool)
+    assert W.shape == W0.shape
+    assert (~mask & (W0 < 0)).any(), "fixture must hold negative weights outside the mask"
+    assert (mask & (W0 != 0)).any(), "fixture must hold masked nonzero weights"
+    assert not np.allclose(W[mask], W0[mask]), "fixture must move the masked entries"
+    np.testing.assert_array_equal(W[~mask], W0[~mask])
+    scaled = mask & (W0 != 0)
+    ratio = W[scaled] / W0[scaled]
+    assert ratio.min() >= lo - 1e-6 and ratio.max() <= hi + 1e-6, (ratio.min(), ratio.max())
+    np.testing.assert_array_equal(W[mask & (W0 == 0)], 0.0)
+
+
+def test_matrix_inner_loop_refuses_disjoint_declared_scales():
+    """Two matrix parameters whose scale bounds share no value cannot both hold on one entry."""
+    optax = pytest.importorskip("optax")
+    cfg = (
+        jtfne.configuration()
+        .network(name="V1", kind="cortical_column", n=12, cell_types={"E": 0.8, "PV": 0.2})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        .probe(name="laminar_probe", modes=["spikes"])
+    )
+    model = jtfne.construct(cfg)
+    sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0)
+    obj = jtfne.rate_targets(groups={"E": list(range(9))}, targets_hz={"E": 10.0})
+    opt = jtfne.agsdr(
+        parameters={
+            "a_w": jtfne.matrix_parameter(mask="all", bounds=(0.5, 1.0)),
+            "b_w": jtfne.matrix_parameter(mask="all", bounds=(2.0, 3.0)),
+        },
+        inner_optimizer=optax.adam(learning_rate=1.0), inner_steps=1, generations=1,
+        population_size=2, seed=0,
+    )
+    with pytest.raises(ValueError, match="no common value"):
+        model.tune(objectives=obj, optimizer=opt, simulation=sim)

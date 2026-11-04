@@ -408,8 +408,11 @@ def _run_mutant(monkeypatch, tmp_path, old: bytes, new: bytes, check):
     assert raw.count(old) == 1, "mutant anchor not unique"
     _MUTANT_SEQ += 1
     name = "caminos_analysis_mutant_%d" % _MUTANT_SEQ
-    (tmp_path / (name + ".py")).write_bytes(raw.replace(old, new))
-    spec = importlib.util.spec_from_file_location(name, tmp_path / (name + ".py"))
+    # Mirror the repo depth: the module's repo-root guard reads parents[4].
+    mirror = tmp_path / "repo" / "artifacts" / "etudes" / "papers" / "caminos"
+    mirror.mkdir(parents=True, exist_ok=True)
+    (mirror / (name + ".py")).write_bytes(raw.replace(old, new))
+    spec = importlib.util.spec_from_file_location(name, mirror / (name + ".py"))
     assert spec is not None and spec.loader is not None, "cannot load mutant copy"
     mutant = importlib.util.module_from_spec(spec)
     monkeypatch.setitem(sys.modules, name, mutant)
@@ -686,3 +689,495 @@ def test_score_p6_q4_needs_the_e_floor_at_p002():
     res = score_p6.score(main, c1)
     assert res["criteria"]["Q4"]["r4"].get("e_floor_ok") is False
     assert res["verdict"] == "fail"
+
+
+def test_ppc_by_type_splits_types():
+    """PV neurons with identical phases give PPC 1.0; uniform SOM phases give -1/7."""
+    phases = [np.full(6, 0.3), np.full(6, 0.3),
+              np.array([2.0 * np.pi * k / 8 for k in range(8)]),
+              np.array([2.0 * np.pi * k / 8 for k in range(8)])]
+    types = ["PV", "PV", "SOM", "SOM"]
+    res = ca.ppc_by_type(phases, types)
+    np.testing.assert_allclose(res["by_type"]["PV"], 1.0, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(res["by_type"]["SOM"], -1.0 / 7.0, rtol=1e-12, atol=0)
+
+
+def test_ppc_by_type_nan_for_few_spikes():
+    """A 1-spike neuron has NaN PPC and does not pull its type mean off 1.0."""
+    phases = [np.array([0.3]), np.full(5, 0.3)]
+    assert any(np.asarray(p).size >= 2 for p in phases)  # precondition
+    res = ca.ppc_by_type(phases, ["E", "E"])
+    assert np.isnan(res["per_neuron"][0]), res["per_neuron"]
+    np.testing.assert_allclose(res["per_neuron"][1], 1.0, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(res["by_type"]["E"], 1.0, rtol=1e-12, atol=0)
+
+
+def test_ppc_by_type_all_nan_type():
+    """A type whose only neuron is empty maps to NaN."""
+    res = ca.ppc_by_type([np.array([])], ["SOM"])
+    assert np.isnan(res["by_type"]["SOM"]), res["by_type"]
+
+
+def test_ppc_by_type_length_mismatch_raises():
+    """Three phase arrays with two type labels raise ValueError."""
+    with pytest.raises(ValueError):
+        ca.ppc_by_type([np.full(3, 0.3)] * 3, ["E", "PV"])
+
+
+def _cos35_peaks(lfp, dt):
+    """Steps where the sampled 35 Hz cosine peaks (interior maxima plus t = 0)."""
+    interior = lfp[1:-1]
+    steps = np.flatnonzero((interior > lfp[:-2]) & (interior >= lfp[2:])) + 1
+    if lfp.size > 1 and lfp[0] > lfp[1]:
+        steps = np.concatenate(([0], steps))
+    return steps, np.arange(lfp.size) * dt
+
+
+def test_lfp_phase_recovers_a_known_phase():
+    """A clean 35 Hz cosine has phase 0 at its own peaks (edges dropped)."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    lfp = np.cos(2.0 * np.pi * 35.0 * t)
+    peak_steps, t_steps = _cos35_peaks(lfp, DT)
+    assert peak_steps.size == 70, peak_steps.size  # precondition: 70 peaks in 2 s
+    phase = ca.lfp_phase(lfp, DT)
+    assert phase.shape == (steps,), phase.shape
+    keep = (t_steps[peak_steps] >= 0.2) & (t_steps[peak_steps] <= 1.8)
+    wrapped = np.angle(np.exp(1j * phase[peak_steps[keep]]))
+    assert np.max(np.abs(wrapped)) <= 0.05, np.max(np.abs(wrapped))
+
+
+def test_locking_by_type_phase_locked_vs_random():
+    """E spikes locked to LFP peaks give PPC > 0.8; Poisson PV and SOM give |PPC| < 0.05."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    lfp = np.cos(2.0 * np.pi * 35.0 * t)
+    peak_steps, _ = _cos35_peaks(lfp, DT)
+    raster = np.zeros((steps, 60), dtype=bool)
+    rng = np.random.default_rng(56)
+    for j in range(20):  # E: one spike per LFP peak, jittered by at most 1 ms (10 steps)
+        sp = peak_steps + rng.integers(-10, 11, size=peak_steps.size)
+        raster[sp[(sp >= 0) & (sp < steps)], j] = True
+    pv = np.random.default_rng(57).random((steps, 20)) < 20.0 * DT  # Poisson 20 Hz
+    som = np.random.default_rng(58).random((steps, 20)) < 10.0 * DT  # Poisson 10 Hz
+    raster[:, 20:40], raster[:, 40:60] = pv, som
+    assert int(pv.sum()) >= 100 and int(som.sum()) >= 100  # precondition: enough spikes
+    res = ca.locking_by_type(raster, {"E": 20, "PV": 20, "SOM": 20}, lfp, DT)
+    assert res["ppc"]["by_type"]["E"] > 0.8, res["ppc"]["by_type"]
+    assert abs(res["ppc"]["by_type"]["PV"]) < 0.05, res["ppc"]["by_type"]
+    assert abs(res["ppc"]["by_type"]["SOM"]) < 0.05, res["ppc"]["by_type"]
+
+
+def test_locking_by_type_rejects_shape_mismatch():
+    """A raster with one column too few raises ValueError."""
+    lfp = np.zeros(100)
+    with pytest.raises(ValueError):
+        ca.locking_by_type(np.zeros((100, 59), dtype=bool),
+                           {"E": 20, "PV": 20, "SOM": 20}, lfp, DT)
+
+
+def test_lfp_phase_rejects_bad_band():
+    """lo_hz = 50 with hi_hz = 45 violates 0 < lo < hi and raises ValueError."""
+    with pytest.raises(ValueError):
+        ca.lfp_phase(np.zeros(1000), DT, lo_hz=50.0)
+
+
+def test_lfp_phase_rejects_nonpositive_dt():
+    """dt_s = 0 raises ValueError before the band check divides by it."""
+    with pytest.raises(ValueError):
+        ca.lfp_phase(np.zeros(1000), 0.0)
+
+
+def test_phase_aligned_mean_recovers_a_locked_profile():
+    """A target locked to the reference phase averages back to its cycle profile (Figure S2).
+
+    2 s at 35 Hz gives 70 maximal runs of one floor(2 pi f t / 2 pi) index (printed count
+    below). The drop rule removes the first AND last runs: the first run starts at phase 0
+    but its samples stop at 0.9975*2*pi (the 0.0035-cycle step does not divide the cycle,
+    285.714 steps per cycle), so it is partial like the last, and 68 complete cycles are
+    kept -- not the 69/70 of a derivation that counts the first run as complete.
+    """
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    phase = 2.0 * np.pi * F_GAMMA * t
+    target = 2.0 + np.cos(phase)
+    grid, mean, n_cycles = ca.phase_aligned_mean(target, phase)
+    print("n_cycles =", n_cycles)  # observed 68; derivation above
+    assert n_cycles == 68, n_cycles
+    assert grid.shape == (36,) and np.allclose(grid, 2.0 * np.pi * np.arange(36) / 36.0)
+    i0 = int(np.argmin(np.abs(grid)))  # bin at phase 0
+    ipi = int(np.argmin(np.abs(grid - np.pi)))  # bin nearest pi
+    assert abs(mean[i0] - 3.0) <= 0.01, (i0, mean[i0])
+    assert abs(mean[ipi] - 1.0) <= 0.01, (ipi, mean[ipi])
+
+
+def test_phase_aligned_mean_wraps_the_reference():
+    """The same target with the phase wrapped to (-pi, pi] gives the same mean to 1e-10."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    phase = 2.0 * np.pi * F_GAMMA * t
+    target = 2.0 + np.cos(phase)
+    _, mean_u, n_u = ca.phase_aligned_mean(target, phase)
+    _, mean_w, n_w = ca.phase_aligned_mean(target, np.angle(np.exp(1j * phase)))
+    assert n_u == n_w == 68, (n_u, n_w)
+    np.testing.assert_allclose(mean_w, mean_u, rtol=0, atol=1e-10)
+
+
+def test_phase_aligned_mean_unlocked_is_flat():
+    """A target independent of the phase averages to a flat profile.
+
+    Derivation of the bound: np.interp at a bin centre mixes only the two bracketing
+    samples, so one cycle's value at a bin has variance sigma**2 * (f**2 + (1 - f)**2)
+    with mean 2 sigma**2 / 3 over the fractional offsets f; the mean over n_cycles cycles
+    has std sigma * sqrt(2 / (3 * n_cycles)) (about 0.099 at 68 cycles). The packet's
+    sigma / sqrt(n_cycles * samples_per_bin) (samples_per_bin = steps / (n_cycles *
+    n_bins), about 0.042 here) assumes the whole bin width's ~8 samples average into the
+    bin, which point interpolation does not do; with that bound seed 61 realises a range
+    of 0.357 against 0.255 and the test cannot pass. The range of the 36 near-independent
+    bin means is about 4.3 std, so the 6-sigma bound below keeps a margin (observed 0.357,
+    bound 0.594).
+    """
+    steps = 20000
+    t = np.arange(steps) * DT
+    phase = 2.0 * np.pi * F_GAMMA * t
+    target = np.random.default_rng(61).standard_normal(steps)
+    _, mean, n_cycles = ca.phase_aligned_mean(target, phase)
+    assert n_cycles > 40, n_cycles  # precondition: enough cycles for a mean
+    sigma = float(target.std())
+    bound = 6.0 * sigma * np.sqrt(2.0 / (3.0 * n_cycles))
+    print("max-min =", float(mean.max() - mean.min()), "bound =", bound)  # observed 0.357
+    assert mean.max() - mean.min() < bound, (float(mean.max() - mean.min()), bound)
+
+
+def test_phase_aligned_mean_two_columns():
+    """A [steps, 2] target averages per column: column 1 mirrors column 0 around 2.0."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    phase = 2.0 * np.pi * F_GAMMA * t
+    target = np.stack([2.0 + np.cos(phase), 2.0 - np.cos(phase)], axis=1)
+    grid, mean, n_cycles = ca.phase_aligned_mean(target, phase)
+    assert mean.shape == (36, 2) and n_cycles == 68, (mean.shape, n_cycles)
+    _, ref, _ = ca.phase_aligned_mean(target[:, 0], phase)
+    np.testing.assert_allclose(mean[:, 0], ref, rtol=0, atol=1e-12)
+    np.testing.assert_allclose(mean[:, 1], 4.0 - ref, rtol=0, atol=0.01)
+
+
+def test_phase_aligned_mean_rejects_bad_input():
+    """Mismatched lengths, n_bins < 2, a 3-D target and no complete cycle raise ValueError."""
+    phase = 2.0 * np.pi * F_GAMMA * np.arange(2000) * DT
+    with pytest.raises(ValueError):  # one target step more than phase steps
+        ca.phase_aligned_mean(np.ones(len(phase) + 1), phase)
+    with pytest.raises(ValueError):  # n_bins below 2
+        ca.phase_aligned_mean(np.ones(20000), 2.0 * np.pi * F_GAMMA * np.arange(20000) * DT,
+                              n_bins=1)
+    with pytest.raises(ValueError):  # a 3-D target
+        ca.phase_aligned_mean(np.ones((100, 3, 2)), np.arange(100.0))
+    with pytest.raises(ValueError):  # constant phase 0: one run, no complete cycle
+        ca.phase_aligned_mean(np.ones(100), np.zeros(100))
+
+
+def test_phase_backsteps_monotone_is_zero():
+    """A strictly increasing phase has zero negative steps and zero backward 2 pi crossings."""
+    t = np.arange(int(round(2.0 / DT))) * DT
+    phase = 2.0 * np.pi * F_GAMMA * t
+    assert ca.phase_backsteps(phase) == {"negative_steps": 0, "cross_back": 0}
+
+
+def test_phase_backsteps_counts_a_step_inside_a_bin():
+    """One backward step that stays inside one 2 pi bin: negative_steps 1, cross_back 0."""
+    phase = (np.arange(1000) * 0.001).copy()
+    assert phase.max() < 2.0 * np.pi  # precondition: the ramp stays inside one 2 pi bin
+    phase[500] = phase[499] - 0.005
+    res = ca.phase_backsteps(phase)
+    assert res["negative_steps"] == 1, res
+    assert res["cross_back"] == 0, res
+
+
+def test_phase_backsteps_counts_a_crossing_back():
+    """One step back across a 2 pi boundary: cross_back 1 and negative_steps 1."""
+    up = np.linspace(2.0 * np.pi - 0.05, 2.0 * np.pi + 0.05, 100)
+    phase = np.concatenate([up, [2.0 * np.pi - 0.01], [2.0 * np.pi + 0.05]])
+    assert int(np.sum(np.diff(phase) < 0.0)) == 1  # precondition: exactly one negative step
+    res = ca.phase_backsteps(phase)
+    assert res["cross_back"] == 1, res
+    assert res["negative_steps"] == 1, res
+
+
+def test_phase_backsteps_rejects_bad_input():
+    """A 2-D phase and a single-sample phase raise ValueError."""
+    with pytest.raises(ValueError):
+        ca.phase_backsteps(np.zeros((10, 2)))
+    with pytest.raises(ValueError):
+        ca.phase_backsteps(np.array([0.3]))
+
+
+def test_s2_profiles_reports_backsteps():
+    """s2_profiles reports the backsteps of its reference phase; the profiles are unchanged."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    lfp = np.cos(2.0 * np.pi * F_GAMMA * t)
+    currents = np.random.default_rng(71).standard_normal((steps, 4))
+    counts = np.random.default_rng(72).poisson(5.0, size=(steps, 3))
+    res = ca.s2_profiles(counts, currents, S2_SIZES, DT, lfp, discard_s=0.0)
+    phase = ca.lfp_phase(lfp, DT)
+    assert res["backsteps"] == ca.phase_backsteps(phase)
+    targets = np.stack([
+        currents[:, 0] + currents[:, 2] + currents[:, 3],  # I_total: the external drive is excluded
+        currents[:, 0],
+        currents[:, 2],
+        currents[:, 3],
+        counts[:, 0] / (S2_SIZES["E"] * DT),
+        counts[:, 1] / (S2_SIZES["PV"] * DT),
+        counts[:, 2] / (S2_SIZES["SOM"] * DT),
+    ], axis=1)
+    _, _, n_cycles = ca.phase_aligned_mean(targets, phase)
+    assert res["n_cycles"] == n_cycles, (res["n_cycles"], n_cycles)
+
+
+S2_SIZES = {"E": 20, "PV": 5, "SOM": 5}
+
+
+def test_s2_itotal_is_the_three_source_sum():
+    """I_total is the E-recurrent + PV + SOM sum; the external drive is excluded.
+
+    The paper's I_total is IExc + ISOM + IPV, so the external-drive column
+    (column 1 of the record="currents_by_source" output) never enters. The
+    profiles are linear in their targets, so the cycle mean of the sum equals
+    the sum of the cycle means to floating-point error (2 s at 35 Hz gives 68
+    complete cycles, as in the phase_aligned_mean tests).
+    """
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    lfp = np.cos(2.0 * np.pi * F_GAMMA * t)
+    currents = np.random.default_rng(71).standard_normal((steps, 4))
+    counts = np.random.default_rng(72).poisson(5.0, size=(steps, 3))
+    res = ca.s2_profiles(counts, currents, S2_SIZES, DT, lfp, discard_s=0.0)
+    assert res["n_cycles"] >= 60, res["n_cycles"]  # precondition: enough cycles
+    np.testing.assert_allclose(res["I_total"],
+                               res["I_exc"] + res["I_pv"] + res["I_som"], rtol=0, atol=1e-12)
+    np.testing.assert_allclose(res["I_exc"],
+                               res["I_total"] - res["I_pv"] - res["I_som"], rtol=0, atol=1e-12)
+
+
+def test_s2_constant_rate_is_flat():
+    """Constant counts give the exact rate 4/(20 dt), 2/(5 dt), 1/(5 dt) at every bin."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    counts = np.zeros((steps, 3))
+    counts[:, 0], counts[:, 1], counts[:, 2] = 4.0, 2.0, 1.0
+    res = ca.s2_profiles(counts, np.zeros((steps, 4)), S2_SIZES, DT,
+                         np.cos(2.0 * np.pi * F_GAMMA * t), discard_s=0.0)
+    np.testing.assert_allclose(res["rate_E"], 4.0 / (S2_SIZES["E"] * DT), rtol=1e-9)
+    np.testing.assert_allclose(res["rate_PV"], 2.0 / (S2_SIZES["PV"] * DT), rtol=1e-9)
+    np.testing.assert_allclose(res["rate_SOM"], 1.0 / (S2_SIZES["SOM"] * DT), rtol=1e-9)
+
+
+def test_s2_rate_locked_to_lfp_peaks_at_phase_zero():
+    """A cosine rate locked to the LFP peaks at phase 0 and troughs at phase pi.
+
+    Float counts (5 + 4 cos) are allowed: the function divides and does not
+    require integers. The 0.01 * max-rate bound absorbs the small band-pass
+    phase offset at the bin centre (the lfp_phase peaks sit within 0.05 rad
+    of phase 0, as pinned in the lfp_phase test).
+    """
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    phase = 2.0 * np.pi * F_GAMMA * t
+    counts = np.zeros((steps, 3))
+    counts[:, 0] = 5.0 + 4.0 * np.cos(phase)
+    res = ca.s2_profiles(counts, np.zeros((steps, 4)), S2_SIZES, DT, np.cos(phase),
+                         discard_s=0.0)
+    assert res["n_cycles"] >= 60, res["n_cycles"]  # precondition: enough cycles
+    i0 = int(np.argmin(np.abs(res["grid"])))  # bin at phase 0
+    ipi = int(np.argmin(np.abs(res["grid"] - np.pi)))  # bin nearest pi
+    top = float(np.max(res["rate_E"]))
+    assert abs(res["rate_E"][i0] - 9.0 / (S2_SIZES["E"] * DT)) <= 0.01 * top, \
+        (i0, res["rate_E"][i0], top)
+    assert abs(res["rate_E"][ipi] - 1.0 / (S2_SIZES["E"] * DT)) <= 0.01 * top, \
+        (ipi, res["rate_E"][ipi], top)
+
+
+def test_s2_discards_the_leading_window():
+    """With discard_s = 2.0 the first 2 s (counts 100) are gone; rate_E is flat at 4/(20 dt)."""
+    steps = int(round(4.0 / DT))
+    cut = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    counts = np.zeros((steps, 3))
+    counts[:, 0] = np.concatenate([np.full(cut, 100.0), np.full(steps - cut, 4.0)])
+    kw = dict(currents=np.zeros((steps, 4)), sizes=S2_SIZES, dt_s=DT,
+              lfp=np.cos(2.0 * np.pi * F_GAMMA * t))
+    res = ca.s2_profiles(counts, **kw, discard_s=2.0)
+    np.testing.assert_allclose(res["rate_E"], 4.0 / (S2_SIZES["E"] * DT), rtol=1e-9)
+    res0 = ca.s2_profiles(counts, **kw, discard_s=0.0)
+    assert not np.allclose(res0["rate_E"], res["rate_E"], rtol=1e-9)  # precondition: exercised
+
+
+def test_s2_rejects_mismatch():
+    """A step-count mismatch, a missing size key and a non-positive size raise ValueError."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    counts = np.zeros((steps, 3))
+    currents = np.zeros((steps, 4))
+    lfp = np.cos(2.0 * np.pi * F_GAMMA * t)
+    with pytest.raises(ValueError):  # one current row fewer than count rows
+        ca.s2_profiles(counts, currents[:-1], S2_SIZES, DT, lfp, discard_s=0.0)
+    with pytest.raises(ValueError):  # sizes missing "SOM"
+        ca.s2_profiles(counts, currents, {"E": 20, "PV": 5}, DT, lfp, discard_s=0.0)
+    with pytest.raises(ValueError):  # a size that is not positive
+        ca.s2_profiles(counts, currents, {"E": 20, "PV": 0, "SOM": 5}, DT, lfp, discard_s=0.0)
+
+
+def test_s2_rejects_nan_size():
+    """A NaN size passes `<= 0.0`; the check must be `not > 0.0` and raise ValueError."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    counts = np.zeros((steps, 3))
+    currents = np.zeros((steps, 4))
+    lfp = np.cos(2.0 * np.pi * F_GAMMA * t)
+    with pytest.raises(ValueError):
+        ca.s2_profiles(counts, currents, {"E": float("nan"), "PV": 5, "SOM": 5},
+                       DT, lfp, discard_s=0.0)
+
+
+def test_s2_rejects_negative_discard():
+    """A negative discard_s must raise ValueError, not keep the tail."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    counts = np.zeros((steps, 3))
+    currents = np.zeros((steps, 4))
+    lfp = np.cos(2.0 * np.pi * F_GAMMA * t)
+    with pytest.raises(ValueError):
+        ca.s2_profiles(counts, currents, S2_SIZES, DT, lfp, discard_s=-2.0)
+
+
+def test_s2_column0_feeds_only_i_exc_and_total():
+    """Only column 0 nonzero: I_exc == I_total (nonzero); I_pv and I_som are zero.
+
+    Column 0 of the record="currents_by_source" output is the E-recurrent
+    current, which enters I_total as its E part; columns 2 and 3 must not.
+    """
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    currents = np.zeros((steps, 4))
+    currents[:, 0] = 1.0
+    res = ca.s2_profiles(np.zeros((steps, 3)), currents, S2_SIZES, DT,
+                         np.cos(2.0 * np.pi * F_GAMMA * t), discard_s=0.0)
+    assert np.max(np.abs(res["I_exc"])) > 0  # precondition: the output is nonzero
+    np.testing.assert_array_equal(res["I_exc"], res["I_total"])
+    np.testing.assert_array_equal(res["I_pv"], np.zeros_like(res["I_pv"]))
+    np.testing.assert_array_equal(res["I_som"], np.zeros_like(res["I_som"]))
+
+
+def test_s2_external_column_is_excluded():
+    """Only the external-drive column (1) nonzero: every current profile is exactly zero."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    currents = np.zeros((steps, 4))
+    currents[:, 1] = 1.0
+    res = ca.s2_profiles(np.zeros((steps, 3)), currents, S2_SIZES, DT,
+                         np.cos(2.0 * np.pi * F_GAMMA * t), discard_s=0.0)
+    np.testing.assert_array_equal(res["I_total"], np.zeros_like(res["I_total"]))
+    np.testing.assert_array_equal(res["I_exc"], np.zeros_like(res["I_exc"]))
+    np.testing.assert_array_equal(res["I_pv"], np.zeros_like(res["I_pv"]))
+    np.testing.assert_array_equal(res["I_som"], np.zeros_like(res["I_som"]))
+
+
+def test_s2_column2_feeds_only_i_pv():
+    """Only column 2 nonzero: I_pv nonzero; I_exc, I_som and I_total - I_pv are zero."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    currents = np.zeros((steps, 4))
+    currents[:, 2] = 1.0
+    res = ca.s2_profiles(np.zeros((steps, 3)), currents, S2_SIZES, DT,
+                         np.cos(2.0 * np.pi * F_GAMMA * t), discard_s=0.0)
+    assert np.max(np.abs(res["I_pv"])) > 0  # precondition: the output is nonzero
+    np.testing.assert_array_equal(res["I_exc"], np.zeros_like(res["I_exc"]))
+    np.testing.assert_array_equal(res["I_som"], np.zeros_like(res["I_som"]))
+    np.testing.assert_array_equal(res["I_total"] - res["I_pv"],
+                                  np.zeros_like(res["I_total"]))
+
+
+def test_s2_column3_feeds_only_i_som():
+    """Only column 3 nonzero: I_som nonzero; I_exc and I_pv are zero; I_total == I_som."""
+    steps = int(round(2.0 / DT))
+    t = np.arange(steps) * DT
+    currents = np.zeros((steps, 4))
+    currents[:, 3] = 1.0
+    res = ca.s2_profiles(np.zeros((steps, 3)), currents, S2_SIZES, DT,
+                         np.cos(2.0 * np.pi * F_GAMMA * t), discard_s=0.0)
+    assert np.max(np.abs(res["I_som"])) > 0  # precondition: the output is nonzero
+    np.testing.assert_array_equal(res["I_exc"], np.zeros_like(res["I_exc"]))
+    np.testing.assert_array_equal(res["I_pv"], np.zeros_like(res["I_pv"]))
+    np.testing.assert_array_equal(res["I_total"], res["I_som"])
+
+
+# Figure 3/4/5/S1 colour-map estimators (mmc2.txt lines 1711-1753).
+
+def _tone_40hz():
+    """10 s of a unit 40 Hz sine at dt 1e-4 (no discard)."""
+    steps = int(round(10.0 / DT))
+    t = np.arange(steps) * DT
+    return np.sin(2.0 * np.pi * 40.0 * t)
+
+
+def test_colour_map_peaks_at_the_tone():
+    """The colour-map spectrum of a 40 Hz sine peaks within 0.2 Hz of 40 Hz."""
+    freqs, mag = ca.colour_map_spectrum(_tone_40hz(), DT, discard_s=0.0)
+    assert float(np.max(mag)) > 0.0  # precondition: a nonzero peak
+    assert abs(float(freqs[int(np.argmax(mag))]) - 40.0) <= 0.2, freqs[int(np.argmax(mag))]
+
+
+def test_colour_map_is_scale_invariant():
+    """Scaling the LFP by 7 leaves the normalised magnitude unchanged (rtol 1e-9).
+
+    np.allclose's default atol 1e-8 absorbs the ~1e-14 numerical zero bins of
+    an exactly-on-bin sine, whose last bits differ under the rescaling.
+    """
+    lfp = _tone_40hz()
+    _, mag = ca.colour_map_spectrum(lfp, DT, discard_s=0.0)
+    _, mag7 = ca.colour_map_spectrum(7.0 * lfp, DT, discard_s=0.0)
+    assert np.allclose(mag7, mag, rtol=1e-9)
+
+
+def test_band_power_captures_the_tone_band():
+    """A 40 Hz tone's 25-45 Hz band power equals the full-band integral (rtol 1e-3)."""
+    freqs, mag = ca.colour_map_spectrum(_tone_40hz(), DT, discard_s=0.0)
+    full = ca.band_power(mag, freqs, lo_hz=0.0, hi_hz=float(freqs[-1]))
+    assert full > 0.0  # precondition: a positive full-band integral
+    band = ca.band_power(mag, freqs, lo_hz=25.0, hi_hz=45.0)
+    np.testing.assert_allclose(band, full, rtol=1e-3, atol=0.0)
+
+
+def test_band_power_rejects_empty_band():
+    """An inverted band and a band with no bin in it both raise ValueError.
+
+    The no-bin case needs a bin width above 1 Hz (the 10 s tone's 0.1 Hz bins
+    cover 60-61), so the tone is 4001 samples (0.4001 s, bins about 2.5 Hz
+    apart: 59.99 and 62.48 straddle the band).
+    """
+    freqs, mag = ca.colour_map_spectrum(_tone_40hz(), DT, discard_s=0.0)
+    with pytest.raises(ValueError):  # lo above hi
+        ca.band_power(mag, freqs, lo_hz=45.0, hi_hz=25.0)
+    short = np.sin(2.0 * np.pi * 40.0 * np.arange(4001) * DT)
+    sfreqs, smag = ca.colour_map_spectrum(short, DT, discard_s=0.0)
+    assert not np.any((sfreqs >= 60.0) & (sfreqs <= 61.0))  # precondition
+    with pytest.raises(ValueError):  # no bin of the 40 Hz tone in 60-61 Hz
+        ca.band_power(smag, sfreqs, lo_hz=60.0, hi_hz=61.0)
+
+
+def test_max_rate_over_time_single_spike_bin():
+    """One bin with 3 spikes of 10 E cells gives peak_kernel * 3 / (n_e * dt) Hz per cell."""
+    steps = 1000
+    e_counts = np.zeros(steps)
+    e_counts[500] = 3.0  # well inside the 30-step kernel radius (sigma 10 steps)
+    kernel = ca._gaussian_kernel(1.0 / (DT * 1000.0))  # sigma_ms / dt_ms, as the module does
+    peak_kernel = float(np.max(kernel))
+    expected = peak_kernel * 3.0 / (10 * DT)
+    res = ca.max_rate_over_time(e_counts, DT, 10, sigma_ms=1.0)
+    np.testing.assert_allclose(res, expected, rtol=1e-9, atol=0.0)
+
+
+def test_max_rate_over_time_rejects_nonpositive_n():
+    """n_e = 0 raises ValueError (division by the population size)."""
+    with pytest.raises(ValueError):
+        ca.max_rate_over_time(np.zeros(100), DT, 0)

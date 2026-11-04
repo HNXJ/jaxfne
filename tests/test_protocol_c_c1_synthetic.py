@@ -1,4 +1,4 @@
-"""0.4.17-C1 — synthetic-field estimator validation tests."""
+"""0.4.17-C1: synthetic-field estimator validation tests."""
 
 from __future__ import annotations
 

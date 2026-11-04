@@ -1,0 +1,266 @@
+{
+ "packet": "9C-E1 pilot 2 (unscored)",
+ "code_sha": "3d7a5c9b4dd39725274f4448d9a4fc5749ba0de8",
+ "t_s": 10.2,
+ "dt_ms": 0.5,
+ "discard_ms": 200.0,
+ "theta": 4.0,
+ "alpha_band": [
+  8.0,
+  13.0
+ ],
+ "synaptic": {
+  "tau_ms_declared": 0.001,
+  "dt_ms": 0.5,
+  "decay_float32": 0.0
+ },
+ "runs": [
+  {
+   "path": "kernel",
+   "seed": 0,
+   "construct_s": 2.1714576999947894,
+   "simulate_s": 1.0382726000098046,
+   "E_hz": 8.3595,
+   "I_hz": 9.123,
+   "n_spikes": 87228,
+   "gamma_f_pk_hz": 41.5,
+   "gamma_pe": 5.506976612584469,
+   "gamma_local_max": true,
+   "gamma_edge_ok": true,
+   "gamma_band_call": true
+  },
+  {
+   "path": "library",
+   "seed": 0,
+   "construct_s": 4.312963199990918,
+   "simulate_s": 43.572846299997764,
+   "E_hz": 8.381125,
+   "I_hz": 9.253,
+   "n_spikes": 87457,
+   "gamma_f_pk_hz": 39.5,
+   "gamma_pe": 6.4571614245740125,
+   "gamma_local_max": true,
+   "gamma_edge_ok": true,
+   "gamma_band_call": true
+  },
+  {
+   "path": "kernel",
+   "seed": 1,
+   "construct_s": 0.007378100010100752,
+   "simulate_s": 2.7746200999827124,
+   "E_hz": 8.4945,
+   "I_hz": 8.99,
+   "n_spikes": 88106,
+   "gamma_f_pk_hz": 39.5,
+   "gamma_pe": 4.9515560912899454,
+   "gamma_local_max": true,
+   "gamma_edge_ok": true,
+   "gamma_band_call": true
+  },
+  {
+   "path": "library",
+   "seed": 1,
+   "construct_s": 2.5631905000045663,
+   "simulate_s": 43.36057349998737,
+   "E_hz": 8.542875,
+   "I_hz": 9.001,
+   "n_spikes": 88539,
+   "gamma_f_pk_hz": 35.0,
+   "gamma_pe": 6.2975436457161855,
+   "gamma_local_max": true,
+   "gamma_edge_ok": true,
+   "gamma_band_call": true
+  }
+ ],
+ "realization": {
+  "seed0": {
+   "seed": 0,
+   "n_E_cells": 800,
+   "n_I_cells": 200,
+   "labels_E_first_then_I": true,
+   "cell_params_max_abs_diff": {
+    "a": {
+     "realized_vs_kernel": 7.450580596923828e-09,
+     "intended_vs_kernel": 9.536743172944284e-09
+    },
+    "b": {
+     "realized_vs_kernel": 0.0,
+     "intended_vs_kernel": 5.960464483090178e-09
+    },
+    "c": {
+     "realized_vs_kernel": 3.814697265625e-06,
+     "intended_vs_kernel": 3.7858998069850713e-06
+    },
+    "d": {
+     "realized_vs_kernel": 4.76837158203125e-07,
+     "intended_vs_kernel": 4.1094847347267205e-07
+    },
+    "v0": {
+     "realized_vs_kernel": 0.0,
+     "intended_vs_kernel": 0.0
+    },
+    "u0": {
+     "realized_vs_kernel": 1.9073486328125e-06,
+     "intended_vs_kernel": 1.341104507446289e-06
+    },
+    "drive": {
+     "realized_vs_kernel": 0.0,
+     "intended_vs_kernel": 0.0
+    },
+    "sign": {
+     "realized_vs_kernel": 0.0
+    }
+   },
+   "noise_std_E_I": [
+    7.0710678118654755,
+    2.8284271247461903
+   ],
+   "noise_coef_max_abs_diff_vs_kernel": 0.0,
+   "n_edges": 1000000,
+   "self_edges": 1000,
+   "tau_ms_unique": [
+    0.0010000000474974513
+   ],
+   "decay_float32_max": 0.0,
+   "receptor_index_unique": [
+    0
+   ],
+   "weight_blocks_by_pre_type": {
+    "E": {
+     "n_edges": 800000,
+     "abs_min": 9.5367431640625e-07,
+     "abs_max": 0.9999996423721313,
+     "abs_mean": 0.5004308641007542,
+     "n_positive": 800000,
+     "n_negative": 0
+    },
+    "I": {
+     "n_edges": 200000,
+     "abs_min": 6.67572021484375e-06,
+     "abs_max": 1.9999852180480957,
+     "abs_mean": 1.0007378814721108,
+     "n_positive": 0,
+     "n_negative": 200000
+    }
+   },
+   "connectivity_compilation": {
+    "connectivity_mode": "explicit",
+    "default_edge_count": 0,
+    "declared_rule_edge_count": 1000000,
+    "total_compiled_edge_count": 1000000
+   },
+   "rule_compiled_n_edges": {
+    "e_all": 800000,
+    "i_all": 200000
+   },
+   "emitter_W_has_coupling": false
+  },
+  "seed1": {
+   "seed": 1,
+   "n_E_cells": 800,
+   "n_I_cells": 200,
+   "labels_E_first_then_I": true,
+   "cell_params_max_abs_diff": {
+    "a": {
+     "realized_vs_kernel": 7.450580596923828e-09,
+     "intended_vs_kernel": 9.536743172944284e-09
+    },
+    "b": {
+     "realized_vs_kernel": 0.0,
+     "intended_vs_kernel": 5.960464483090178e-09
+    },
+    "c": {
+     "realized_vs_kernel": 3.814697265625e-06,
+     "intended_vs_kernel": 3.7996984332266948e-06
+    },
+    "d": {
+     "realized_vs_kernel": 4.76837158203125e-07,
+     "intended_vs_kernel": 4.1024622987606563e-07
+    },
+    "v0": {
+     "realized_vs_kernel": 0.0,
+     "intended_vs_kernel": 0.0
+    },
+    "u0": {
+     "realized_vs_kernel": 1.9073486328125e-06,
+     "intended_vs_kernel": 1.3113021850585938e-06
+    },
+    "drive": {
+     "realized_vs_kernel": 0.0,
+     "intended_vs_kernel": 0.0
+    },
+    "sign": {
+     "realized_vs_kernel": 0.0
+    }
+   },
+   "noise_std_E_I": [
+    7.0710678118654755,
+    2.8284271247461903
+   ],
+   "noise_coef_max_abs_diff_vs_kernel": 0.0,
+   "n_edges": 1000000,
+   "self_edges": 1000,
+   "tau_ms_unique": [
+    0.0010000000474974513
+   ],
+   "decay_float32_max": 0.0,
+   "receptor_index_unique": [
+    0
+   ],
+   "weight_blocks_by_pre_type": {
+    "E": {
+     "n_edges": 800000,
+     "abs_min": 3.5762786865234375e-07,
+     "abs_max": 0.9999980926513672,
+     "abs_mean": 0.49981355119258164,
+     "n_positive": 800000,
+     "n_negative": 0
+    },
+    "I": {
+     "n_edges": 200000,
+     "abs_min": 2.86102294921875e-06,
+     "abs_max": 1.9999983310699463,
+     "abs_mean": 1.000573429555893,
+     "n_positive": 0,
+     "n_negative": 200000
+    }
+   },
+   "connectivity_compilation": {
+    "connectivity_mode": "explicit",
+    "default_edge_count": 0,
+    "declared_rule_edge_count": 1000000,
+    "total_compiled_edge_count": 1000000
+   },
+   "rule_compiled_n_edges": {
+    "e_all": 800000,
+    "i_all": 200000
+   },
+   "emitter_W_has_coupling": false
+  }
+ },
+ "stop": null,
+ "rate_rel_diff_seed0": {
+  "E": 0.002586877205574523,
+  "I": 0.014249698564068923
+ },
+ "rate_rel_diff_seed1": {
+  "E": 0.005694861380893526,
+  "I": 0.0012235817575082571
+ },
+ "seed_change_library": {
+  "topology_identical": true,
+  "weights_fraction_differ": 0.999999,
+  "cell_params_max_abs_diff": {
+   "a": 0.07090862095355988,
+   "b": 0.04431788623332977,
+   "c": 14.948219299316406,
+   "d": 5.979288339614868,
+   "u0": 2.8806629180908203
+  },
+  "noise_std_unchanged": true,
+  "delta_E_hz": 0.16174999999999962,
+  "delta_I_hz": -0.25200000000000067,
+  "delta_gamma_f_pk_hz": -4.5,
+  "delta_n_spikes": 1082
+ }
+}

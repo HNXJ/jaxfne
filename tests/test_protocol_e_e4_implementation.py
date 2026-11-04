@@ -1,4 +1,4 @@
-"""0.4.17-E E4 — observation-chain composition implementation tests."""
+"""0.4.17-E E4: observation-chain composition implementation tests."""
 
 from __future__ import annotations
 

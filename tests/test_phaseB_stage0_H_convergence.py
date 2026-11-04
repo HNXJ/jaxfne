@@ -1,4 +1,4 @@
-"""Phase B — Stage 0: H(t) interior convergence gate.
+"""Phase B, Stage 0: H(t) interior convergence gate.
 
 Verifies that ``simulate_homeostatic_ei`` with ``freeze_H=False`` and
 ``homeostasis_rule='cubic_penalty'`` produces an H(t) trajectory that:
@@ -44,7 +44,7 @@ import jax.numpy as jnp
 from jaxfne.emitters_homeostatic_ei import HomeostaticEIParams, simulate_homeostatic_ei
 
 # ---------------------------------------------------------------------------
-# Canonical parameters — kept intentionally close to
+# Canonical parameters, kept intentionally close to
 # test_homeostatic_ei_g_adaptation_convergence.py's _canonical_params() so
 # that any divergence between the two test files is immediately visible.
 # ---------------------------------------------------------------------------

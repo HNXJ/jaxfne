@@ -2,10 +2,10 @@
 
 Every jaxfne output is one of two kinds:
 
-- **Relative** — a value computed by the simulator, meaningful for comparison
+- **Relative**: a value computed by the simulator, meaningful for comparison
   within and across runs. This is the default for every signal, readout, and
   amplitude jaxfne produces.
-- **Absolute** — a value tied to real-world physical units through an explicit
+- **Absolute**: a value tied to real-world physical units through an explicit
   calibration step you supply. jaxfne never produces Absolute values on its own.
 
 ## What jaxfne is
@@ -28,13 +28,13 @@ $$
 
 **Principal capabilities (what the package is for):**
 
-1. **Flexible biophysical state** — $H$/RBS/RBD coordinates for ionic, energetic,
+1. **Flexible biophysical state**: $H$/RBS/RBD coordinates for ionic, energetic,
    synaptic, modulatory, or other declared biophysical dependencies without a new
    simulator architecture per question.
-2. **Source to field to observation** — neural dynamics → sources → fields →
+2. **Source to field to observation**: neural dynamics → sources → fields →
    probes (spikes, population signals, LFP-like proxies; calibrated EEG/MEG-style
    modalities only with an explicit forward model and calibration receipt).
-3. **Models that can develop** — JDNA generative construction is supported;
+3. **Models that can develop**: JDNA generative construction is supported;
    runtime evolution and structural development are **planned** and not claimed
    as shipped unless documented with tests and receipts.
 
@@ -64,7 +64,7 @@ The canonical V1 column (`canonical-v1-column-1000n`) is a **qualitative laminar
 |------|-------|---------|
 | `qualitative_laminar_scaffold` | `true` | Scaffold: E fraction rises with depth, inhibition peaks superficial, 6 laminar bands, typed E/PV/SST/VIP populations, E->I and I->E motifs declared. Useful for structural and dynamical method development. |
 | `quantitative_cell_fraction` | `false` | Per-layer fractions (`L1 E 0.50`, `L2 E 0.648`/`VIP 0.052`, `L3 E 0.80`, `L4 E 0.75`, `L5 E 0.88`, `L6 E 0.90`, etc. in `jaxfne/jdna/genomes/canonical-v1-column-1000n.json` and `jaxfne/configs/canonical-v1-column-1000n.json`; builder constant `CANONICAL_LAYER_CELL_TYPE_FRACTIONS` is the `~66E:34I` variant) are illustrative scaffold values, uncalibrated against stereological counts. Do not treat as empirical V1 composition. |
-| `quantitative_connectivity` | `false` | Within-area and cross-layer connection rules (48 typed rules such as E->PV/SST/VIP within-layer and E->E cross-layer) are **qualitative motif scaffolds** (probabilities, weights, delays are `relative` value-tags) — unfitted to paired-recording or connectomic measurements. |
+| `quantitative_connectivity` | `false` | Within-area and cross-layer connection rules (48 typed rules such as E->PV/SST/VIP within-layer and E->E cross-layer) are **qualitative motif scaffolds** (probabilities, weights, delays are `relative` value-tags); unfitted to paired-recording or connectomic measurements. |
 | `dynamical_regime` | `synchronous_regular` | Reference run (seed 0, 1000 ms, dt 0.5 ms): E 11.00 Hz, PV 0.84 Hz (subthreshold), SST 47.88 Hz (suprathreshold), CV_ISI 0.036, r_sc 0.609. Reference benchmark; an opt-in balanced preset is planned for asynchronous-irregular dynamics. |
 
 These flags are **informational provenance**; they set no solver or kernel behavior. No dynamics, solver, or numerical kernel changes. All value-tags remain `"relative"` unless you supply an explicitly validated calibration.
@@ -73,7 +73,7 @@ These flags are **informational provenance**; they set no solver or kernel behav
 
 ## Plausible ranges
 
-*Izhikevich path — nominal mV ranges for the shipped preset; see body for calibration caveat.*
+*Izhikevich path: nominal mV ranges for the shipped preset; see body for calibration caveat.*
 
 Quick checks on a finished run. The mV values below are the model's nominal
 internal units (the Izhikevich preset's declared numerical scale); outputs remain relative/proxy
@@ -92,6 +92,6 @@ calibrated.
 
 ## Going further
 
-- [Limitations and future plans](limitations_and_future_plans.md) — reserved regimes
-- [Calibration](../../guides/state/calibration.md) — how to add an Absolute calibration step
-- [Computation basis](../../theory/computation_basis.md) — regime reference
+- [Limitations and future plans](limitations_and_future_plans.md): reserved regimes
+- [Calibration](../../guides/state/calibration.md): how to add an Absolute calibration step
+- [Computation basis](../../theory/computation_basis.md): regime reference

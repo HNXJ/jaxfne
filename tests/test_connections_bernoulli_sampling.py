@@ -527,15 +527,6 @@ def test_multinomial_recurrent_excludes_self_and_stays_exact():
         "allow_self=False drops self pairs"
 
 
-def test_multinomial_with_in_degree_is_refused():
-    neurons = _rows(4, "PRE") + _rows(4, "POST", start=4)
-    rule = {"name": "m", "source": {"area": "PRE"}, "target": {"area": "POST"},
-            "weight": 0.1, "mechanism": "ampa",
-            "sampling": "multinomial", "in_degree": 2}
-    with pytest.raises(ValueError, match="with in_degree"):
-        jtfne.compile_connection_rules(neurons, [rule], MECHS, seed=0)
-
-
 def test_multinomial_recurrent_single_neuron_is_refused_not_empty():
     # 1 pre x 1 post, same id: every pair is a refused self pair, so a K>0
     # multinomial rule has an empty valid pair space -- refused, never a
@@ -639,13 +630,6 @@ def test_b2b_net_m_simulate_refuses_dt_and_edge_list():
                                         hdp_params={"noise_scale": 0.0})))
 
 
-def test_connections_refuses_multinomial_with_in_degree():
-    with pytest.raises(ValueError, match="with in_degree"):
-        jtfne.configuration().connections(
-            name="x", source={}, target={}, sampling="multinomial",
-            in_degree=2, probability=None)
-
-
 def test_sign_only_multinomial_is_refused_while_full_path_compiles():
     from jaxfne._construct_connectivity import _compile_connection_rules
 
@@ -672,12 +656,6 @@ def test_construct_sign_only_multinomial_is_refused():
 @pytest.mark.parametrize("cls", ["inter", "area"])
 def test_tensor_multinomial_round_trips(cls):
     assert _tensor_conn(cls, sampling="multinomial").sampling == "multinomial"
-
-
-@pytest.mark.parametrize("cls", ["inter", "area"])
-def test_tensor_multinomial_with_in_degree_refused(cls):
-    with pytest.raises(ValueError, match="with sampling"):
-        _tensor_conn(cls, sampling="multinomial", in_degree=2)
 
 
 def test_tensor_sampling_forwards_to_the_adex_rule():

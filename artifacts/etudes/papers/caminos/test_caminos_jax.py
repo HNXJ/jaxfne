@@ -660,3 +660,573 @@ def test_p6_gate4_converter_known_answer(tmp_path):
     with pytest.raises(SystemExit):  # another code SHA into the same directory
         api.write_run(tmp_path, p=0.07, seed=3, T_s=12.0, counts=full, sizes=sizes,
                       wall_s=0.0, start_time="t", sha="b" * 40)
+
+
+# --- Cell Reports 2025 parameter set (CELLREP_PARAMS, notebook cell 1) ---
+
+_PARAMS_A508B24C = {
+    "E_VT_V": -50e-3,
+    "E_Delta_V": 2e-3,
+    "E_Tref_s": 5e-3,
+    "E_tauw_s": 500e-3,
+    "E_a_S": 4e-9,
+    "E_b_A": 50e-12,
+    "E_C_F": 200e-12,
+    "E_gL_S": 10e-9,
+    "E_EL_V": -65e-3,
+    "E_Vreset_V": -65e-3,
+    "PV_VT_V": -50e-3,
+    "PV_Delta_V": 0.5e-3,
+    "PV_Tref_s": 5e-3,
+    "PV_tauw_s": 500e-3,
+    "PV_a_S": 0.0,
+    "PV_b_A": 0.0,
+    "PV_C_F": 200e-12,
+    "PV_gL_S": 10e-9,
+    "PV_EL_V": -65e-3,
+    "PV_Vreset_V": -65e-3,
+    "SOM_VT_V": -50e-3,
+    "SOM_Delta_V": 2e-3,
+    "SOM_Tref_s": 5e-3,
+    "SOM_tauw_s": 500e-3,
+    "SOM_a_S": 4e-9,
+    "SOM_b_A": 80e-12,
+    "SOM_C_F": 200e-12,
+    "SOM_gL_S": 10e-9,
+    "SOM_EL_V": -55e-3,
+    "SOM_Vreset_V": -65e-3,
+    "tau_d_s": 2e-3,
+    "tauE_s": 2e-3,
+    "tauI_s": 8e-3,
+    "ErevE_V": 0.0,
+    "ErevI_V": -80e-3,
+    "Q_PV_E_S": 5e-9,
+    "Q_SOM_E_S": 5e-9,
+    "Q_PV_PV_S": 5e-9,
+    "Q_SOM_PV_S": 5e-9,
+    "Q_E_E_S": 2e-9,
+    "Q_E_PV_S": 3e-9,
+    "Q_E_SOM_S": 3e-9,
+    "Q_PV_SOM_S": 0.0,
+    "Q_SOM_SOM_S": 0.0,
+    "Q_ext_S": 2.5e-9,
+    "NE": 8000,
+    "NPV": 750,
+    "NSOM": 750,
+    "p": 0.07,
+    "ext_sources": 560,
+    "ext_rate_Hz": 4.0,
+    "dt_s": 1e-4,
+}
+
+
+def test_cellrep_params_match_notebook():
+    """CELLREP_PARAMS pins every oracle value from the authors' notebook
+    cell 1 (each message names the notebook cell; exact line numbers were
+    unreadable from this sandbox, so all cite cell 1)."""
+    P = cj.CELLREP_PARAMS
+    dt = float(cj.CELLREP_PARAMS["dt_s"])
+    assert P["NE"] == 8000, "nb cell 1: NE"
+    assert P["NPV"] == 800, "nb cell 1: NPV"
+    assert P["NSOM"] == 600, "nb cell 1: NSOM nominal 600"
+    assert P["p"] == 0.017, "nb cell 1: p"
+    assert P["p_E_PV_mult"] == 2.0, "nb cell 1: E->PV at 2p"
+    assert P["Q_PV_E_S"] == 6e-9, "nb cell 1: Q PV -> E"
+    assert P["Q_SOM_E_S"] == 5e-9, "nb cell 1: Q SOM -> E"
+    assert P["Q_PV_PV_S"] == 6e-9, "nb cell 1: Q PV -> PV"
+    assert P["Q_SOM_PV_S"] == 5e-9, "nb cell 1: Q SOM -> PV"
+    assert P["Q_E_E_S"] == 1.25e-9, "nb cell 1: Q E -> E"
+    assert P["Q_E_PV_S"] == 3.75e-9, "nb cell 1: Q E -> PV"
+    assert P["Q_E_SOM_S"] == 2.5e-9, "nb cell 1: Q E -> SOM"
+    assert P["Q_PV_SOM_S"] == 0.0, "nb cell 1: Q PV -> SOM absent"
+    assert P["Q_SOM_SOM_S"] == 0.0, "nb cell 1: Q SOM -> SOM absent"
+    assert P["Q_ext_S"] == 1.25e-9, "nb cell 1: Q Ext -> E, PV"
+    assert P["tauE_E_s"] == 5e-3, "nb cell 1: excitatory decay onto E"
+    assert P["tauE_PV_s"] == 1e-3, "nb cell 1: excitatory decay onto PV"
+    assert P["tauE_SOM_s"] == 2e-3, "nb cell 1: excitatory decay onto SOM"
+    assert P["tauI_s"] == 5e-3, "nb cell 1: GABA decay"
+    assert "tauE_s" not in P, "nb cell 1: no single excitatory decay"
+    want_adex = {
+        "E": {"EL_V": -60e-3, "Delta_V": 2e-3, "a_S": 4e-9, "b_A": 130e-12},
+        "PV": {"EL_V": -60e-3, "Delta_V": 0.5e-3, "a_S": 0.0, "b_A": 0.0},
+        "SOM": {"EL_V": -55e-3, "Delta_V": 1.5e-3, "a_S": 4e-9, "b_A": 25e-12},
+    }
+    for kind, fields in want_adex.items():
+        for field, value in fields.items():
+            assert P[kind + "_" + field] == value, ("nb cell 1: Table 1", kind, field)
+    for kind in ("E", "PV", "SOM"):
+        assert P[kind + "_VT_V"] == -50e-3, ("nb cell 1: Table 1 VT", kind)
+        assert P[kind + "_Tref_s"] == 5e-3, ("nb cell 1: Table 1 Tref", kind)
+        assert P[kind + "_tauw_s"] == 500e-3, ("nb cell 1: Table 1 tau_w", kind)
+        assert P[kind + "_C_F"] == 200e-12, ("nb cell 1: Table 1 C", kind)
+        assert P[kind + "_gL_S"] == 10e-9, ("nb cell 1: Table 1 gL", kind)
+        assert P[kind + "_Vreset_V"] == -65e-3, ("nb cell 1: Table 1 Vreset", kind)
+    assert P["ErevI_V"] == -80e-3, "nb cell 1: E_rev inhibitory"
+    assert P["ErevE_V"] == 0.0, "nb cell 1: E_rev excitatory"
+    assert P["tau_d_s"] == 0.0, "nb cell 1: no synaptic delay"
+    assert cj.delay_steps(dt, "default", "cellrep") == 1, "nb cell 1: zero delay -> 1-step ring"
+    assert P["ext_sources"] == 136 == int(0.017 * 8000), "nb cell 1: N_ext = int(p * NE)"
+    assert P["ext_rate_Hz"] == 4.0, "nb cell 1: 4 Hz to E and PV"
+    assert cj.ext_source_count(0.017, 8000, "fixed", "cellrep") == 136, "nb cell 1: source count"
+    assert cj.external_lam(0.017, 8000, dt, "fixed", "cellrep") == 136 * 4.0 * dt, (
+        "nb cell 1: drive lam")
+    assert cj.cell_params("E", "cellrep")["EL_V"] == -60e-3, "nb cell 1: EL (E)"
+    assert cj.cell_params("SOM", "cellrep")["Delta_V"] == 1.5e-3, "nb cell 1: Delta (SOM)"
+    net = cj.build_network(jax.random.key(11), p=0.3, NE=20, NPV=6, NSOM=6,
+                           indegree="fixed", param_set="cellrep")
+    assert ("PV", "SOM") not in net["blocks"], "nb cell 1: PV->SOM absent"
+    assert ("SOM", "SOM") not in net["blocks"], "nb cell 1: SOM->SOM absent"
+    assert (net["NE"], net["NPV"], net["NSOM"]) == (20, 6, 6), "cellrep sizes pass through"
+    ee = np.asarray(net["blocks"][("E", "E")])
+    epv = np.asarray(net["blocks"][("E", "PV")])
+    assert bool((ee.sum(axis=0) == 6).all()), "nb cell 1: E->E at p (round(0.3*20)=6)"
+    assert bool((epv.sum(axis=0) == 12).all()), "nb cell 1: E->PV at 2p (round(0.6*20)=12)"
+
+
+def test_cellrep_default_unchanged():
+    """The default set equals its a508b24c values, pinned literally."""
+    assert cj.PARAMS == _PARAMS_A508B24C, "default PARAMS must equal a508b24c"
+    assert cj._params_for("default") is cj.PARAMS, "default selection is PARAMS"
+    assert cj._params_for("cellrep") is cj.CELLREP_PARAMS, "cellrep selection is CELLREP_PARAMS"
+    assert "tauE_s" in cj.PARAMS, "default keeps its single excitatory decay"
+    dt = float(cj.PARAMS["dt_s"])
+    assert cj.delay_steps(dt) == 20, "default delay ring still 20 steps"
+    assert cj.ext_source_count(0.07, 8000, "fixed") == 560, "default source count still 560"
+    net = cj.build_network(jax.random.key(0), NE=40, NPV=8, NSOM=8)
+    assert (net["NE"], net["NPV"], net["NSOM"], net["p"]) == (40, 8, 8, 0.07), "default sizes/p"
+    assert ("PV", "SOM") not in net["blocks"] and ("SOM", "SOM") not in net["blocks"], (
+        "default absent blocks")
+
+
+# --- Opt-in manipulations: silencing, spike replacement, PV/SOM swap (MANIP) ---
+
+MANIP_KW = dict(p=0.07, NE=200, NPV=40, NSOM=40)
+MANIP_SEED = 3
+# Baseline per-step counts [steps, 3] recorded from the UNEDITED file at
+# 878160ae: cj.simulate(jax.random.key(11), 0.05, p=0.07, NE=200, NPV=40,
+# NSOM=40) on the unedited file (x64 on, as this test module; sums [441, 135, 53]).
+_MANIP_PIN = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 1, 0], [1, 0, 0], [1, 2, 0], [2, 0, 0], [0, 1, 0], [2, 1, 0], [0, 0, 0], [1, 1, 0], [1, 2, 0], [2, 1, 0], [4, 0, 0], [4, 0, 0], [1, 0, 0], [1, 2, 0], [4, 1, 0], [2, 0, 0], [1, 0, 0], [3, 1, 0], [4, 2, 0], [2, 0, 0], [5, 1, 0], [0, 1, 0], [3, 2, 0], [3, 1, 0], [5, 1, 0], [7, 0, 0], [3, 1, 0], [4, 0, 0], [2, 0, 0], [3, 0, 0], [1, 0, 0], [2, 0, 0], [1, 0, 0], [4, 1, 0], [4, 0, 0], [5, 2, 0], [2, 1, 0], [3, 0, 0], [6, 2, 0], [4, 0, 0], [4, 0, 0], [1, 0, 0], [1, 0, 0], [6, 1, 0], [6, 0, 0], [2, 0, 0], [2, 2, 0], [3, 1, 0], [2, 0, 0], [1, 0, 0], [2, 0, 0], [2, 0, 0], [1, 0, 0], [4, 0, 0], [1, 0, 0], [1, 0, 0], [5, 1, 0], [1, 1, 0], [2, 0, 0], [5, 0, 0], [1, 0, 0], [3, 0, 0], [2, 1, 0], [2, 1, 0], [2, 0, 0], [2, 0, 0], [1, 0, 0], [0, 0, 0], [3, 0, 1], [1, 0, 0], [0, 1, 0], [1, 0, 1], [1, 0, 1], [0, 1, 3], [2, 0, 0], [2, 1, 1], [2, 0, 1], [1, 0, 1], [2, 0, 1], [1, 0, 2], [1, 0, 0], [0, 0, 0], [1, 0, 3], [0, 1, 3], [0, 1, 1], [0, 0, 0], [0, 0, 0], [0, 1, 2], [0, 0, 2], [1, 0, 1], [0, 1, 2], [0, 1, 2], [1, 0, 1], [0, 2, 1], [1, 1, 1], [0, 0, 0], [1, 1, 0], [0, 0, 1], [0, 0, 1], [2, 0, 1], [1, 0, 1], [1, 0, 1], [0, 0, 1], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 1], [0, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0], [0, 1, 0], [1, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 0], [3, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [3, 0, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [2, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [2, 0, 0], [2, 2, 0], [0, 0, 0], [2, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 2, 0], [2, 0, 0], [2, 0, 0], [0, 1, 0], [1, 1, 0], [2, 0, 0], [1, 0, 0], [0, 0, 0], [3, 1, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0], [1, 0, 0], [3, 0, 0], [0, 0, 0], [1, 1, 0], [2, 1, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 1, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0], [3, 0, 0], [0, 1, 0], [0, 0, 0], [1, 0, 0], [2, 0, 0], [0, 0, 0], [2, 0, 0], [2, 0, 0], [2, 1, 0], [2, 0, 0], [2, 0, 0], [0, 0, 0], [2, 0, 0], [1, 1, 0], [2, 1, 0], [2, 0, 0], [2, 1, 0], [0, 0, 0], [0, 2, 0], [1, 1, 0], [2, 1, 0], [2, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 0], [3, 0, 0], [3, 1, 0], [1, 0, 0], [3, 0, 0], [1, 0, 0], [1, 0, 0], [2, 0, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [3, 0, 0], [0, 0, 0], [1, 1, 0], [3, 0, 0], [0, 0, 0], [1, 2, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 0, 0], [4, 0, 0], [1, 0, 0], [1, 0, 0], [1, 1, 0], [0, 2, 0], [0, 0, 0], [1, 0, 0], [3, 0, 0], [0, 0, 0], [1, 2, 0], [0, 0, 0], [0, 0, 0], [5, 0, 0], [4, 0, 0], [1, 0, 0], [0, 0, 0], [2, 0, 0], [1, 0, 0], [2, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [2, 0, 0], [2, 1, 0], [2, 0, 0], [2, 0, 0], [0, 0, 0], [4, 0, 0], [1, 0, 0], [1, 0, 0], [1, 1, 0], [0, 0, 0], [0, 0, 0], [2, 0, 1], [0, 1, 0], [1, 0, 0], [1, 0, 0], [2, 2, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [1, 2, 0], [1, 1, 0], [1, 0, 0], [0, 0, 0], [3, 0, 0], [2, 0, 0], [0, 0, 0], [4, 1, 0], [0, 1, 0], [1, 0, 1], [1, 1, 0], [2, 0, 0], [0, 0, 0], [4, 2, 0], [2, 0, 0], [1, 0, 0], [2, 0, 0], [1, 1, 0], [1, 0, 0], [1, 1, 0], [0, 0, 0], [1, 0, 0], [1, 0, 0], [2, 1, 0], [0, 1, 0], [0, 0, 0], [1, 1, 0], [1, 0, 0], [2, 0, 0], [0, 1, 0], [1, 2, 1], [2, 0, 0], [0, 2, 0], [1, 0, 0], [2, 0, 0], [1, 0, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 1], [3, 0, 0], [0, 0, 1], [0, 0, 1], [2, 1, 1], [0, 1, 0], [2, 1, 0], [0, 1, 0], [3, 0, 0], [0, 0, 0], [0, 1, 0], [1, 0, 1], [0, 1, 0], [2, 0, 0], [0, 0, 0], [1, 0, 0], [2, 0, 0], [1, 0, 1], [1, 0, 0], [1, 1, 1], [0, 0, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 2, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 2, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 2], [2, 1, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [1, 0, 0], [2, 1, 0]]
+
+
+def test_default_unchanged():
+    """MANIP: the default path (silence/replace/swap all off) still gives
+    the per-step counts pinned from the unedited file at 878160ae."""
+    counts, _ = cj.simulate(jax.random.key(11), 0.05, **MANIP_KW)
+    assert np.asarray(counts).tolist() == _MANIP_PIN
+
+
+def test_silence_pv_all_no_pv_spikes():
+    """MANIP silencing: all PV cells silenced -> zero PV spikes, E active."""
+    counts, _ = cj.simulate(jax.random.key(MANIP_SEED), 0.2, silence={"PV": 1.0},
+                            **MANIP_KW)
+    c = np.asarray(counts)
+    assert int(c[:, 0].sum()) > 0, "fixture precondition: E must spike"
+    assert int(c[:, 1].sum()) == 0, int(c[:, 1].sum())
+
+
+def test_silence_fraction_counts():
+    """MANIP silencing: round(0.5*40)=20 SOM cells silenced (via the exposed
+    mask helper); fully silenced cells emit no spikes; half-silencing cuts
+    the SOM output but does not remove it."""
+    sizes = {"E": 200, "PV": 40, "SOM": 40}
+    mask = cj.manip_mask(jax.random.key(MANIP_SEED), {"SOM": 0.5}, sizes, "silence")
+    m = np.asarray(mask)
+    assert int(m.sum()) == 20, int(m.sum())
+    assert int(m[:240].sum()) == 0, "only SOM cells may be masked"
+    c0, _ = cj.simulate(jax.random.key(MANIP_SEED), 0.2, **MANIP_KW)
+    c1, _ = cj.simulate(jax.random.key(MANIP_SEED), 0.2, silence={"SOM": 0.5}, **MANIP_KW)
+    c2, _ = cj.simulate(jax.random.key(MANIP_SEED), 0.2, silence={"SOM": 1.0}, **MANIP_KW)
+    s0 = int(np.asarray(c0)[:, 2].sum())
+    s1 = int(np.asarray(c1)[:, 2].sum())
+    s2 = int(np.asarray(c2)[:, 2].sum())
+    assert s0 > 0, "fixture precondition: SOM spikes without silencing"
+    assert s2 == 0, "fully silenced cells emit no spikes"
+    assert 0 < s1 < s0, (s0, s1, s2)
+
+
+def test_replace_rate_matches_target():
+    """MANIP replacement: all PV spikes replaced by Poisson trains at
+    20 Hz per cell; population rate within 15% of the target."""
+    counts, _ = cj.simulate(jax.random.key(5), 2.0, replace={"PV": 1.0},
+                            replace_rate_hz={"PV": 20.0}, **MANIP_KW)
+    c = np.asarray(counts)
+    rate = float(c[:, 1].sum()) / (2.0 * 40)  # spikes/s per PV cell
+    assert rate > 0, rate
+    assert abs(rate - 20.0) <= 0.15 * 20.0, rate
+
+
+def test_replace_requires_rate():
+    """MANIP validation: replace without replace_rate_hz, a fraction outside
+    [0, 1] and an unknown type key are all refused with ValueError."""
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(5), 0.05, replace={"PV": 0.5}, **MANIP_KW)
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(5), 0.05, replace={"PV": 1.5},
+                    replace_rate_hz={"PV": 20.0}, **MANIP_KW)
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(5), 0.05, silence={"E": 0.5}, **MANIP_KW)
+
+
+def test_swap_exchanges_pv_som_params():
+    """MANIP swap: the per-neuron arrays built through the swap path give PV
+    cells the SOM values and SOM cells the PV values for the seven Table 1
+    numbers (VT, EL, Delta, Tref, tau_w, a, b); Vreset, C, gL keep their own
+    type; the kwarg runs end to end."""
+    sizes = {"E": 4, "PV": 3, "SOM": 5}
+    par = cj._concat_params(sizes, jnp.float32, "default", swap=True)
+    par0 = cj._concat_params(sizes, jnp.float32, "default")
+    lo, hi = 4, 7  # PV block is rows 4:7, SOM block rows 7:12
+    for name in ("VT_V", "EL_V", "Delta_V", "Tref_s", "tauw_s", "a_S", "b_A"):
+        pv = np.asarray(par[name])[lo:hi]
+        som = np.asarray(par[name])[hi:]
+        assert np.all(pv == cj.PARAMS["SOM_" + name]), (name, pv)
+        assert np.all(som == cj.PARAMS["PV_" + name]), (name, som)
+    for name in ("Vreset_V", "C_F", "gL_S"):
+        pv = np.asarray(par[name])[lo:hi]
+        som = np.asarray(par[name])[hi:]
+        assert np.all(pv == cj.PARAMS["PV_" + name]), (name, pv)
+        assert np.all(som == cj.PARAMS["SOM_" + name]), (name, som)
+        assert np.array_equal(np.asarray(par0[name]), np.asarray(par[name])), name
+    for name in ("EL_V", "Delta_V", "a_S", "b_A"):  # types differ on these four
+        assert not np.array_equal(np.asarray(par0[name]), np.asarray(par[name])), name
+    c, _ = cj.simulate(jax.random.key(1), 0.02, NE=40, NPV=8, NSOM=8, swap=True)
+    assert np.asarray(c).shape == (200, 3)
+
+
+# --- LANE-A opt-in Cell Reports mechanisms (record, onset, coupling, SOM drive, schedule) ---
+
+LANEA_KW = dict(p=0.07, NE=40, NPV=8, NSOM=8)
+LANEA_SEED = 7
+LANEA_T = 0.2
+LANEA_STEPS = 2000
+LANEA_NTOT = 56
+
+
+def test_record_raster_matches_counts():
+    """A1: record='raster' returns the boolean spike raster of shape
+    (steps, NE+NPV+NSOM); its per-type sums equal the counts run for the
+    same key and parameters; other record values are refused."""
+    c, f0 = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, **LANEA_KW)
+    r, f1 = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, record="raster",
+                        **LANEA_KW)
+    c, r = np.asarray(c), np.asarray(r)
+    assert r.dtype == bool and r.shape == (LANEA_STEPS, LANEA_NTOT), (r.dtype, r.shape)
+    assert [int(r[:, :40].sum()), int(r[:, 40:48].sum()), int(r[:, 48:].sum())] == (
+        c.sum(axis=0).tolist())
+    np.testing.assert_array_equal(np.asarray(f1["V"]), np.asarray(f0["V"]))
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, record="spikes", **LANEA_KW)
+
+
+def test_silence_onset_delays_mask():
+    """A2: with silence={'PV': 1.0} and onset 0.1 s, PV spikes before step
+    round(0.1/dt) = 1000 are kept (identical to the no-silence run) and PV
+    spikes after it are 0; an onset without silence is refused."""
+    onset_step = int(round(0.1 / float(cj.PARAMS["dt_s"])))
+    assert onset_step == 1000, onset_step
+    c0, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, **LANEA_KW)
+    assert int(np.asarray(c0)[:onset_step, 1].sum()) > 0, (
+        "precondition: PV spikes before the onset without silence")
+    c1, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                        silence={"PV": 1.0}, silence_onset_s=0.1, **LANEA_KW)
+    c1 = np.asarray(c1)
+    assert c1[:onset_step].tolist() == np.asarray(c0)[:onset_step].tolist()
+    assert int(c1[:onset_step, 1].sum()) > 0
+    assert int(c1[onset_step:, 1].sum()) == 0
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, silence_onset_s=0.1,
+                    **LANEA_KW)
+
+
+def test_coupling_changes_som_spikes():
+    """A3: PV->SOM at 2 nS changes the SOM count; zero weights reproduce the
+    default run bit-for-bit (connectivity and RNG untouched); unknown keys
+    are refused."""
+    kw = dict(p=0.07, NE=200, NPV=40, NSOM=40)
+    c0, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, **kw)
+    assert int(np.asarray(c0)[:, 2].sum()) > 0, "precondition: default SOM spikes"
+    c1, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                        coupling={"PV_SOM": 2e-9}, **kw)
+    assert int(np.asarray(c1)[:, 2].sum()) != int(np.asarray(c0)[:, 2].sum())
+    c2, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                        coupling={"PV_SOM": 0.0}, **kw)
+    np.testing.assert_array_equal(np.asarray(c2), np.asarray(c0))
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, coupling={"E_E": 1e-9},
+                    **kw)
+
+
+def test_som_ext_drive_raises_som_spikes():
+    """A4: a 4 Hz SOM drive gives more SOM spikes than 0 Hz with the same
+    key; 0 Hz reproduces the default run bit-for-bit."""
+    c0, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, **LANEA_KW)
+    s0 = int(np.asarray(c0)[:, 2].sum())
+    assert s0 >= 0, "precondition: 0 Hz SOM count is defined"
+    c0b, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, som_ext_rate_hz=0.0,
+                         **LANEA_KW)
+    np.testing.assert_array_equal(np.asarray(c0b), np.asarray(c0))
+    c4, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, som_ext_rate_hz=4.0,
+                        **LANEA_KW)
+    assert int(np.asarray(c4)[:, 2].sum()) > s0, (
+        s0, int(np.asarray(c4)[:, 2].sum()))
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, som_ext_rate_hz=-1.0,
+                    **LANEA_KW)
+
+
+def test_ext_rate_schedule_zero_silences_feedforward():
+    """A5: an all-zero schedule with no other drive leaves E and PV silent
+    (the constant 4 Hz run drives E); a wrong-length schedule is refused."""
+    c0, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, **LANEA_KW)
+    assert int(np.asarray(c0)[:, 0].sum()) > 0, "precondition: E spikes at 4 Hz"
+    cz, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                        ext_rate_schedule=jnp.zeros((LANEA_STEPS,)), **LANEA_KW)
+    cz = np.asarray(cz)
+    assert int(cz[:, 0].sum()) == 0, int(cz[:, 0].sum())
+    assert int(cz[:, 1].sum()) == 0, int(cz[:, 1].sum())
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                    ext_rate_schedule=jnp.zeros((LANEA_STEPS + 1,)), **LANEA_KW)
+
+
+# --- LANE-C: record="currents" (mean synaptic current into the E cells) ---
+
+def test_record_currents_zero_without_drive():
+    """A6: with the feedforward drive zeroed (all-zero ext_rate_schedule,
+    SOM drive 0 Hz) and no silencing nothing spikes, so both current
+    columns are exactly 0.0 every step; with the default constant drive
+    column 0 is positive."""
+    cur, _ = cj.simulate(jax.random.key(1), LANEA_T,
+                         ext_rate_schedule=np.zeros(LANEA_STEPS),
+                         som_ext_rate_hz=0.0, record="currents", **LANEA_KW)
+    cur = np.asarray(cur)
+    assert cur.shape == (LANEA_STEPS, 2), cur.shape
+    assert np.all(cur == 0.0), np.max(np.abs(cur), axis=0)
+    cdef, _ = cj.simulate(jax.random.key(1), LANEA_T, record="currents",
+                          **LANEA_KW)
+    assert float(np.asarray(cdef)[:, 0].sum()) > 0, (
+        "precondition: the default drive must give a positive gE current")
+
+
+def test_record_currents_signs():
+    """A6: with the default drive the excitatory column is >= 0 everywhere
+    and the inhibitory column is <= 0 everywhere (ErevE = 0 mV > V and
+    ErevI = -80 mV < V on every reachable trajectory), and column 0 is
+    positive overall."""
+    cur, _ = cj.simulate(jax.random.key(2), LANEA_T, record="currents",
+                         **LANEA_KW)
+    cur = np.asarray(cur)
+    assert cur.shape == (LANEA_STEPS, 2), cur.shape
+    assert float(cur[:, 0].sum()) > 0, float(cur[:, 0].sum())
+    if np.any(cur[:, 1] > 0.0):
+        i = int(np.flatnonzero(cur[:, 1] > 0.0)[0])
+        raise AssertionError("column 1 positive at step %d: %r" % (i, cur[i, 1]))
+    assert np.all(cur[:, 0] >= 0.0), float(cur[:, 0].min())
+    assert np.all(cur[:, 1] <= 0.0), float(cur[:, 1].max())
+
+
+def test_record_currents_rejects_unknown():
+    """A6: record='bogus' is refused with a ValueError whose message names
+    all four accepted values."""
+    with pytest.raises(ValueError) as ei:
+        cj.simulate(jax.random.key(LANEA_SEED), 0.02, record="bogus",
+                    **LANEA_KW)
+    msg = str(ei.value)
+    for name in ("counts", "raster", "currents", "currents_by_source"):
+        assert name in msg, (name, msg)
+
+
+def test_record_by_source_sums_to_currents():
+    """LANE-E: record='currents_by_source' returns a float32 [steps, 4]
+    array whose column pairs sum to the record='currents' columns to
+    float32 rounding: col 0 + col 1 = the gE-total current on the E cells,
+    col 2 + col 3 = the gI-total current."""
+    cur, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T, record="currents",
+                         **LANEA_KW)
+    src, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         record="currents_by_source", **LANEA_KW)
+    cur, src = np.asarray(cur), np.asarray(src)
+    assert src.shape == (LANEA_STEPS, 4), src.shape
+    assert float(cur[:, 0].sum()) > 0, "precondition: gE current positive"
+    assert float(cur[:, 1].sum()) < 0, "precondition: gI current negative"
+    scale = max(float(np.abs(cur).max()), np.finfo(np.float32).tiny)
+    e_tot = src[:, 0] + src[:, 1]
+    i_tot = src[:, 2] + src[:, 3]
+    rel_e = float(np.max(np.abs(e_tot - cur[:, 0]))) / scale
+    rel_i = float(np.max(np.abs(i_tot - cur[:, 1]))) / scale
+    assert np.allclose(e_tot, cur[:, 0], rtol=1e-4, atol=1e-5 * scale), (
+        "gE split: max relative error to the largest term %.3e (gI %.3e)"
+        % (rel_e, rel_i))
+    assert np.allclose(i_tot, cur[:, 1], rtol=1e-4, atol=1e-5 * scale), (
+        "gI split: max relative error to the largest term %.3e (gE %.3e)"
+        % (rel_i, rel_e))
+
+
+def test_record_by_source_silenced_pv_zero_pv_column():
+    """LANE-E: with all PV cells silenced (zero PV spikes, checked through
+    the counts record under the same silence) the PV column of
+    record='currents_by_source' is exactly 0.0 everywhere, while the
+    E-recurrent column stays positive."""
+    cnt, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         silence={"PV": 1.0}, **LANEA_KW)
+    assert int(np.asarray(cnt)[:, 1].sum()) == 0, (
+        "precondition: silenced PV must not spike")
+    src, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         silence={"PV": 1.0}, record="currents_by_source",
+                         **LANEA_KW)
+    src = np.asarray(src)
+    assert src.shape == (LANEA_STEPS, 4), src.shape
+    assert np.all(src[:, 2] == 0.0), float(np.abs(src[:, 2]).max())
+    assert float(src[:, 0].sum()) > 0, (
+        "precondition: E recurrent still drives E under PV silencing")
+
+
+def test_record_by_source_silenced_som_zero_som_column():
+    """LANE-E: with all SOM cells silenced (zero SOM spikes, checked through
+    the counts record under the same silence) the SOM column of
+    record='currents_by_source' is exactly 0.0 everywhere."""
+    cnt, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         silence={"SOM": 1.0}, **LANEA_KW)
+    assert int(np.asarray(cnt)[:, 2].sum()) == 0, (
+        "precondition: silenced SOM must not spike")
+    src, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         silence={"SOM": 1.0}, record="currents_by_source",
+                         **LANEA_KW)
+    src = np.asarray(src)
+    assert src.shape == (LANEA_STEPS, 4), src.shape
+    assert np.all(src[:, 3] == 0.0), float(np.abs(src[:, 3]).max())
+
+
+def test_record_by_source_zero_drive():
+    """LANE-E: with the feedforward drive zeroed (all-zero ext_rate_schedule,
+    SOM drive 0 Hz) and no silencing nothing spikes, so all four columns of
+    record='currents_by_source' are exactly 0.0 every step; under the
+    default constant drive the external-drive column is positive."""
+    src, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         ext_rate_schedule=np.zeros(LANEA_STEPS),
+                         som_ext_rate_hz=0.0, record="currents_by_source",
+                         **LANEA_KW)
+    src = np.asarray(src)
+    assert src.shape == (LANEA_STEPS, 4), src.shape
+    assert np.all(src == 0.0), np.max(np.abs(src), axis=0)
+    d, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                       record="currents_by_source", **LANEA_KW)
+    assert float(np.asarray(d)[:, 1].sum()) > 0, (
+        "precondition: the default drive must reach E through column 1")
+
+
+def test_record_by_source_no_recurrence_is_external_only():
+    """LANE-E: with p=0 (no recurrent connections) only the external-drive
+    column of record='currents_by_source' is nonzero, and it equals the
+    record='currents' gE total; a swap of columns 0 and 1 would fail here."""
+    kw = dict(LANEA_KW, p=0.0)
+    src, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         record="currents_by_source", **kw)
+    cur, _ = cj.simulate(jax.random.key(LANEA_SEED), LANEA_T,
+                         record="currents", **kw)
+    src, cur = np.asarray(src), np.asarray(cur)
+    assert src.shape == (LANEA_STEPS, 4), src.shape
+    assert float(src[:, 1].sum()) > 0, "precondition: external drive reaches E"
+    assert np.all(src[:, [0, 2, 3]] == 0.0), np.max(np.abs(src[:, [0, 2, 3]]), axis=0)
+    scale = max(float(np.abs(cur[:, 0]).max()), np.finfo(np.float32).tiny)
+    assert np.allclose(src[:, 1], cur[:, 0], rtol=1e-4, atol=1e-5 * scale)
+
+
+# --- CORE-SCHED: time-varying SOM drive (Figure 2B) and E-to-E gain (Figure 6B) ---
+
+SCHED_KW = dict(p=0.07, NE=40, NPV=8, NSOM=8)
+SCHED_SEED = 7
+SCHED_T = 1.0
+SCHED_STEPS = 10000
+
+
+def test_som_schedule_constant_matches_som_rate():
+    """CORE-SCHED: a constant 4 Hz SOM schedule reproduces som_ext_rate_hz=4.0 exactly."""
+    assert SCHED_STEPS == int(round(SCHED_T / float(cj.PARAMS["dt_s"])))
+    c_rate, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                            som_ext_rate_hz=4.0, **SCHED_KW)
+    c_sched, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                             som_ext_rate_schedule=np.full(SCHED_STEPS, 4.0),
+                             **SCHED_KW)
+    assert int(np.asarray(c_rate)[:, 2].sum()) > 0, (
+        "precondition: SOM must spike at 4 Hz SOM drive")
+    np.testing.assert_array_equal(np.asarray(c_sched), np.asarray(c_rate))
+
+
+def test_som_schedule_zero_matches_default():
+    """CORE-SCHED: an all-zero SOM schedule reproduces the default run exactly."""
+    c0, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T, **SCHED_KW)
+    cz, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                        som_ext_rate_schedule=np.zeros(SCHED_STEPS), **SCHED_KW)
+    np.testing.assert_array_equal(np.asarray(cz), np.asarray(c0))
+
+
+def test_som_schedule_refuses_both():
+    """CORE-SCHED: a nonzero som_ext_rate_hz plus a schedule is refused."""
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(SCHED_SEED), SCHED_T, som_ext_rate_hz=4.0,
+                    som_ext_rate_schedule=np.zeros(SCHED_STEPS), **SCHED_KW)
+
+
+def test_som_schedule_on_off_moves_som():
+    """CORE-SCHED: 4 Hz for the first half and 0 Hz after gives fewer SOM
+    spikes in the second half than the first."""
+    half = SCHED_STEPS // 2
+    sched = np.zeros(SCHED_STEPS)
+    sched[:half] = 4.0
+    c, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                       som_ext_rate_schedule=sched, **SCHED_KW)
+    c = np.asarray(c)
+    first = int(c[:half, 2].sum())
+    second = int(c[half:, 2].sum())
+    assert first > 0, "precondition: first-half SOM must spike at 4 Hz"
+    assert second < first, (first, second)
+
+
+def test_ee_gain_ones_matches_default():
+    """CORE-SCHED: an all-ones E-to-E gain reproduces the default run exactly."""
+    c0, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T, **SCHED_KW)
+    c1, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                        ee_gain_schedule=np.ones(SCHED_STEPS), **SCHED_KW)
+    np.testing.assert_array_equal(np.asarray(c1), np.asarray(c0))
+
+
+def test_ee_gain_zero_silences_e_to_e():
+    """CORE-SCHED: a zero E-to-E gain changes the E counts and lowers the
+    mean E rate relative to the default."""
+    c0, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T, **SCHED_KW)
+    c0 = np.asarray(c0)
+    assert int(c0[:, 0].sum()) > 0, "precondition: E must spike by default"
+    c1, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                        ee_gain_schedule=np.zeros(SCHED_STEPS), **SCHED_KW)
+    c1 = np.asarray(c1)
+    assert not np.array_equal(c1[:, 0], c0[:, 0]), "E counts must change"
+    assert float(c1[:, 0].sum()) < float(c0[:, 0].sum()), (
+        c1[:, 0].sum(), c0[:, 0].sum())
+
+
+def test_ee_gain_refuses_negative_and_wrong_length():
+    """CORE-SCHED: a negative gain and a wrong-length gain are refused."""
+    bad = np.ones(SCHED_STEPS)
+    bad[0] = -1.0
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                    ee_gain_schedule=bad, **SCHED_KW)
+    with pytest.raises(ValueError):
+        cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                    ee_gain_schedule=np.zeros(SCHED_STEPS + 1), **SCHED_KW)
+
+
+def test_ee_gain_transient_raises_e_rate_during_window():
+    """CORE-SCHED: a 1.6x E-to-E gain for 0.3 s mid-run raises the E count
+    inside the window relative to the same window of the default run."""
+    lo, hi = 3500, 6500  # 0.35-0.65 s of the 1.0 s run
+    gain = np.ones(SCHED_STEPS)
+    gain[lo:hi] = 1.6
+    c0, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T, **SCHED_KW)
+    w0 = int(np.asarray(c0)[lo:hi, 0].sum())
+    assert w0 > 0, "precondition: default window E must spike"
+    c1, _ = cj.simulate(jax.random.key(SCHED_SEED), SCHED_T,
+                        ee_gain_schedule=gain, **SCHED_KW)
+    w1 = int(np.asarray(c1)[lo:hi, 0].sum())
+    assert w1 > w0, (w0, w1)

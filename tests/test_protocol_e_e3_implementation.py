@@ -1,4 +1,4 @@
-"""0.4.17-E E3 — sparse owned H_K RBS composition implementation tests."""
+"""0.4.17-E E3: sparse owned H_K RBS composition implementation tests."""
 
 from __future__ import annotations
 

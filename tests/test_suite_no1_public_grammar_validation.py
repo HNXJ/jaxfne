@@ -18,7 +18,6 @@ def test_suite_no1_part4_uses_public_api():
 
     assert notebook_path.exists(), f"Notebook not found: {notebook_path}"
 
-    # Read notebook
     with open(notebook_path, "r") as f:
         notebook = json.load(f)
 

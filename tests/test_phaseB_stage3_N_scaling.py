@@ -1,4 +1,4 @@
-"""Phase B — Stage 3: N-scaling stability with bound_mode="stable".
+"""Phase B, Stage 3: N-scaling stability with bound_mode="stable".
 
 Verifies the three-timescale system (fast x, intermediate G, slow H) remains
 stable at larger N when bound_mode="stable" (smooth tanh soft-bound applied

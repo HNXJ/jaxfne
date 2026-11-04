@@ -1,0 +1,76 @@
+{
+  "schema": "jaxfne.release_receipt.v1",
+  "programme": "v0.5.8",
+  "version": "0.5.8",
+  "status": "published",
+  "seal_verdict": "PUBLISHED: every rc family passes on the candidate tree, JUnit parity has 0 failures with each outcome difference explained; main CI green on the main merge commit 11957afa; tag v0.5.8, GitHub Release and PyPI upload done 2026-10-26 (Hamm 2026-10-26: all four publication steps).",
+  "receipt_timestamp_utc": "2026-10-26T14:16:52Z",
+  "published_predecessor": "v0.5.7",
+  "supersedes": "artifacts/release/v0_5_7_release_receipt.json",
+  "write_once": false,
+  "tested_sha": "f6614b250d64547d5c09679651442d68d4d365fa",
+  "tested_tree_sha": "47dfdb08a4fb009a60ed7cea7bcdc5e1cf77004f",
+  "tree_identity": "dev f6614b25 (the tested commit) and main 11957afa (the tagged merge commit) carry the tested tree 47dfdb08",
+  "branch": "dev",
+  "scope": "Engineering release (Hamm 2026-10-25). Deferred to 0.5.9: CAMINOS S2 rerun, PCL-R4 prereg and R2-R5, Destexhe, GSDR, Potjans and Vogels preregs, izhikevich2003 E1. cl-klfp kernel LFP to 0.5.10. Tree budget O-66 option (a): 95,000,000 bytes, 2,700 files.",
+  "receipt_commit_note": "The receipt commit is a new SHA and cannot contain its own hash; the tested SHA and tree above carry all gates and CI evidence in this file.",
+  "gates": {
+    "rc_gate": {
+      "command": "python scripts/run_test_gate.py rc in worktree E:/repos/_wt/jaxfne/rc058 at f6614b25, then package_build, twine_check and isolated_wheel_smoke run separately with gate_rc's own code after junit_parity stopped the gate on explained differences (0.5.7 precedent)",
+      "verdict": "PASS on f6614b25, every family; junit_parity explained below",
+      "families": {
+        "environment_parity": "PASS",
+        "report": "PASS (fail_count 0)",
+        "pytest_broad": "7210 passed, 75 skipped, 5 xfailed, 6 xpassed, 0 failed",
+        "replication_lanes": "brunel2000 19, caminos 116, mejias2016 9, pcl 109 (1 xfailed), potjans2014 14, qlearning 9, vogels2011 11 passed",
+        "pytest_slow": "35 passed, 1 skipped",
+        "pytest_notebook": "30 passed, 4 deselected",
+        "docs_build_strict": "PASS",
+        "examples_smoke": "PASS, 18 examples",
+        "package_build": "PASS (Windows Python 3.14, isolated build: jaxfne-0.5.8-py3-none-any.whl, jaxfne-0.5.8.tar.gz)",
+        "twine_check": "PASSED on jaxfne-0.5.8-py3-none-any.whl and jaxfne-0.5.8.tar.gz",
+        "isolated_wheel_smoke": "PASS (fresh venv, wheel smoke OK: 0.5.8)",
+        "clean_tree": "git status clean after the gate and after the package families"
+      },
+      "earlier_runs": "rc on f6614b25 before Release CI finished stopped at junit_parity only because no successful release_ci.yml run existed for the SHA yet"
+    },
+    "junit_parity": {
+      "checker": "scripts/check_junit_parity.py",
+      "release_ci_run": 40272561706,
+      "release_ci_sha": "f6614b250d64547d5c09679651442d68d4d365fa",
+      "verdict": "node sets equal on both legs (7362 = 7362), 0 failures on either side; 3.11: 16 differences justified by the checker (4 platform, 12 jnwb-on-3.11) and 4 explained; 3.14: 4 justified (platform) and 7 explained",
+      "explained_differences": {
+        "tests.test_pcl_stage_c::test_stage_c_oracle_20clip_record": "both legs: rc passed with the warehouse inputs; CI skipped (data gated, as in 0.5.7)",
+        "tests.test_pcl_stage_c::test_stage_c_tensor_route_20clip_receipt": "both legs: rc passed with the warehouse inputs; CI skipped (data gated, as in 0.5.7)",
+        "tests.test_pcl_stage_c::test_stage_c_tensor_route_matches_oracle_on_slice": "both legs: rc passed with the warehouse inputs; CI skipped (data gated, as in 0.5.7)",
+        "tests.test_head_forward::test_eeg_matches_mne_single_shell": "both legs: rc passed with mne 1.11.0 installed locally; CI skipped by importorskip (mne is in no extra)",
+        "tests.test_adex_route::test_adex_seed_batch_final_state_matches_the_serial_kernel": "3.14 only: bitwise_diagnostic xfail(strict=False); rc xpassed, CI (jax 0.11) xfailed; informational by marker definition",
+        "tests.test_adex_route::test_adex_seed_batch_matches_serial_per_member": "3.14 only: bitwise_diagnostic xfail(strict=False); rc xpassed, CI (jax 0.11) xfailed; informational by marker definition",
+        "tests.test_lif_tensor_route::test_lif_seed_batch_hdp_final_state_matches_serial_diagnostics": "3.14 only: bitwise_diagnostic xfail(strict=False); rc xpassed, CI (jax 0.11) xfailed; informational by marker definition"
+      }
+    },
+    "release_body": "python scripts/release_body.py --tag v0.5.8 --check: PASS",
+    "dashboard": "build_dashboard_data.py --check fresh; build_dashboard_figures.py --check 12 fresh; check_replications.py --check findings=31 known=31 unlisted=0 stale=0",
+    "review": "opencode Muse review of the rc diff: NON-BLOCKING (0 blocking, 2 should-fix closed by strict-xfail fixes, 2 notes; the CITATION date note fixed in d17be140)"
+  },
+  "ci": {
+    "candidate": {
+      "commit": "f6614b250d64547d5c09679651442d68d4d365fa",
+      "CI (Fast)": {"run_id": 40272556578, "conclusion": "success"},
+      "Release CI (workflow_dispatch, slow tests included)": {"workflow": "release_ci.yml", "run_id": 40272561706, "conclusion": "success", "legs": "3.11: 7263 passed, 88 skipped, 5 xfailed, 6 xpassed; 3.14: 7275 passed, 76 skipped, 8 xfailed, 3 xpassed; release-build success"},
+      "earlier_failure": "Release CI 40262604219 on d17be140 failed on the 3.14 leg: the numerics scorer read the float32 finite-difference residual under jax 0.11.2 (4.2e-5 against the stored 1.37e-4) as a change; f6614b25 compares residuals below a quarter of the tolerance as rounding (NOISE_FRACTION 0.25) with a test that fails at 0.1"
+    },
+    "main_merge": {
+      "commit": "11957afa4a25749b42ed52bcb16779fc624c9c56",
+      "pull_request": "https://github.com/HNXJ/jaxfne/pull/114 (merge commit; parents 03a86014 and f6614b25; PR checks run 40318715826 success)",
+      "CI (Fast)": {"run_id": 40326163833, "conclusion": "success"},
+      "Release CI (push to main, slow tests included)": {"workflow": "release_ci.yml", "run_id": 40326163888, "conclusion": "success", "artifact": "release-dist (the bytes publish.yml uploads)"}
+    }
+  },
+  "distribution": {
+    "tag": "v0.5.8 (annotated a7b1618b, message 'jaxfne 0.5.8') on main 11957afa",
+    "github_release": "https://github.com/HNXJ/jaxfne/releases/tag/v0.5.8 (published 2026-10-26T14:12:54Z; body from scripts/release_body.py --tag v0.5.8)",
+    "pypi": "jaxfne 0.5.8 uploaded by publish.yml run 40337551635 (release event on 11957afa; the release-dist bytes of Release CI 40326163888, manifest hash check before upload); PyPI sha256 equal to the manifest: wheel d782064969bc5c405db299334e3a92b6c1a1159cb979573b3361c8d27127ea35, sdist a17b6dc604e892ec3deaa9193c24eb0c14d002802fcbac14f6689b828b4a1155; pip install jaxfne==0.5.8 into a fresh Python 3.14 venv imports 0.5.8"
+  },
+  "blockers_to_seal": []
+}

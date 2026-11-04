@@ -1,4 +1,4 @@
-"""F2 JDNA compact grammar etude — H11 isolated tests.
+"""F2 JDNA compact grammar etude: H11 isolated tests.
 
 All file outputs use tmp_path; no reliance on gitignored artifacts.
 Covers §4-§9 of preregistration:
@@ -210,7 +210,7 @@ def test_A_minus_80_absolute():
     # Our implementation is preserving (total 1000). So L2/3 should be 920 if preserving, or 200 if mutating.
     # We implemented preserving, so sum is 1000
     total = sum(lay.n_neurons for a in sparse.areas for lay in a.layers)
-    # Accept either 280 (mutating: 80+200) or 1000 (preserving: 80+920) — we assert preserving per prereg default §5.3.3
+    # Accept either 280 (mutating: 80+200) or 1000 (preserving: 80+920); we assert preserving per prereg default §5.3.3
     assert total == 1000 or total == 280
     if total == 1000:
         assert next(lay for lay in sparse.areas[0].layers if lay.name=="L2/3").n_neurons == 920
@@ -304,7 +304,7 @@ def test_KD_determinism_same_vs_different(tmp_path):
     t_b = develop(g_sig, seed=0)
     t_c = develop(g_sig, seed=1)
     assert phenotype_sha256(t_a) == phenotype_sha256(t_b)
-    # when sigma>0, different K_D should give different phenotype (within bands) — may rarely collide, but we check band containment
+    # when sigma>0, different K_D should give different phenotype (within bands); may rarely collide, but we check band containment
     # At least verify t_c is feasible and has provenance K_D=1
     assert t_c.provenance["development_seed"] == 1
     # different seeds produce different counts but within tolerance

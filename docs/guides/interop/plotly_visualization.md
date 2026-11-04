@@ -1,6 +1,6 @@
 # Plotly visualization
 
-**Explore simulations interactively** — pan, zoom, and hover on rasters, traces,
+**Explore simulations interactively**: pan, zoom, and hover on rasters, traces,
 and 3D circuit layouts in the browser. Plotly is optional; install it when you
 want HTML exports from `jaxfne.vis`.
 
@@ -356,8 +356,8 @@ fig.write_html("outputs/myrun/figures/trace.html")
 
 ## See also
 
-- [Probe operators](../readout/probe_operators.md) — Operator descriptions with equations
-- [Tensor-field workflows](../readout/tensor_field_workflows.md) — Full pipeline overview
+- [Probe operators](../readout/probe_operators.md): Operator descriptions with equations
+- [Tensor-field workflows](../readout/tensor_field_workflows.md): Full pipeline overview
 
 ---
 

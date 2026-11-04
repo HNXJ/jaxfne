@@ -1,14 +1,16 @@
-"""Tensor-first workflow: build a NeuronalTensor (not a Configuration), save
+"""Tensor-first workflow: build a NeuronalTensor, save
 it to JSON, reload it, construct + simulate it.
 
 This is the canonical entry point for the Areas/Layers/NeuronTypes/Connections
 data model (see docs/reference/api/model/neuronal_tensor.md). `Configuration` is only touched
-internally by the bridge (`construct_neuronal_tensor`) -- the user-facing code
+internally by the bridge (`construct_neuronal_tensor`); the user-facing code
 below never builds one directly.
 """
 
 import sys
 from pathlib import Path
+
+import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -55,7 +57,7 @@ feedforward = AreaConnection(
 
 tensor = NeuronalTensor(areas=[v1, mt], area_connections=[feedforward], name="v1_mt_tensor_first")
 
-# -- Configs are data, not code: save/reload the declared circuit as JSON ---
+# -- Configs are data: save/reload the declared circuit as JSON ---
 path = save_neuronal_tensor(tensor, "/tmp/v1_mt_tensor_first.json")
 tensor = load_neuronal_tensor(path)
 print(f"Saved + reloaded NeuronalTensor JSON at: {path}")
@@ -66,5 +68,5 @@ signals = jtfne.simulate(model, duration_ms=200.0, dt_ms=0.5, seed=0)
 
 print(f"n_neurons: {model.params['emitter'].n_neurons}")
 print(f"recurrent_backend: {model.cfg.metadata.get('recurrent_backend')}")
-print(f"spikes finite: {bool(signals.spikes.sum() >= 0)}")
+print(f"spikes finite: {bool(np.isfinite(np.asarray(signals.spikes)).all())}")
 print(f"mean rate (Hz): {float(signals.spikes.mean()) * 1000.0 / 0.5:.2f}")

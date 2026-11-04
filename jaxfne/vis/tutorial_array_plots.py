@@ -1,6 +1,6 @@
 """Raw-array tutorial plot helpers, cloned from ``jaxfne.tutorial_utils``.
 
-These operate directly on numpy arrays (no Signals/Model object required) —
+These operate directly on numpy arrays (no Signals/Model object required):
 distinct from the Signals/Model-driven canonical functions in
 :mod:`jaxfne.vis.canonical`. ``jaxfne.tutorial_utils`` now forwards to these;
 this module is the source of truth going forward.
@@ -59,7 +59,7 @@ def plot_voltage_samples_array(t, V_m, title="Voltage trajectory", figsize=(10, 
     ``stacked=True`` offsets each neuron's trace using relative accumulative
     coordination (:func:`jaxfne.vis.layout.cumulative_stack_offsets`): each
     trace's vertical offset is the previous trace's offset plus the previous
-    trace's own measured extent plus ``gap_frac`` — never a fixed step — so
+    trace's own measured extent plus ``gap_frac``, never a fixed step, so
     traces never overlap regardless of per-neuron amplitude. Default
     ``stacked=False`` overlays traces unchanged (back-compatible).
     """

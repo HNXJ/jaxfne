@@ -79,11 +79,11 @@ Figs. 1-2, single cell (mechanism observed in the 2013 review; tuning routine ob
 
 ## 5. Gaps (each item observed or inferred; jaxfne paths checked in this tree)
 
-Have (observed): current-based LIF emitter family (`jaxfne/emitters_lif.py`); shared STDP weight kernel with pre/post traces (`stdp_weight_update`, `update_stdp_weights_jax`, `run_stdp_stream` in `jaxfne/plasticity.py`, on the public surface per `jaxfne/public_surface.py`); HDP rule families (`simulate_edge_recurrent_izhikevich_hdp` in `jaxfne/emitters.py`, `jaxfne/hdp_rule.py`); per-edge delays and external Poisson drive (per the brunel2000 record).
+Have (observed): current-based LIF emitter family (`jaxfne/emitters_lif.py`); shared STDP weight kernel with pre/post traces (`stdp_weight_update` and `update_stdp_weights_jax` in `jaxfne/plasticity.py`, `run_stdp_stream` in `jaxfne/streaming.py`, on the public surface per `jaxfne/public_surface.py`); HDP rule families (`simulate_edge_recurrent_izhikevich_hdp` in `jaxfne/emitters.py`, `jaxfne/hdp_rule.py`); per-edge delays and external Poisson drive (per the brunel2000 record).
 
 - G-source (observed): the paywalled full text and SOM PDF are unreachable from here (science.org article and SOM URLs return 403; the author's copy host fails transport; OSB project page is 404; PubMed page blocked; web search unavailable). Until a legal copy is readable, the paper's stated Fig. 4 rates/CVs and Figs. 1-2 numbers stay unknown; the P2 pilot reproduces the authors' code behavior first.
 - G1 (inferred): conductance synapses with reversal potentials (`er = -80*mV`, `EAMPA`/`EGABA`) against the current-based core LIF; P2 checks what zeroing the difference costs.
-- G2 (observed): the core STDP kernel updates only excitatory-presynaptic weights (`update_mask = exc_mask[None, :]` in `stdp_weight_update`, `jaxfne/plasticity.py:93`) with asymmetric LTP/LTD; the Vogels rule needs plastic I-to-E weights with pairing potentiation plus a per-presynaptic-spike depression term. No matching rule observed in the core.
+- G2 (observed): the core STDP kernel updates only excitatory-presynaptic weights (`update_mask = exc_mask[None, :]` in `stdp_weight_update` in `jaxfne/plasticity.py`) with asymmetric LTP/LTD; the Vogels rule needs plastic I-to-E weights with pairing potentiation plus a per-presynaptic-spike depression term. No matching rule observed in the core.
 - G3 (observed): I-to-E weights start near zero (`1e-10`) and grow under plasticity with cap `gmax = 100`; the port declares init, growth and cap handling at P2.
 - G4 (inferred): a 10,000-cell sparse network through the public API is a P2 scale question, not a claim.
 - G5 (observed): no licence statement observed on the authors' code; reuse terms unknown.

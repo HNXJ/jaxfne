@@ -1,5 +1,5 @@
 """The high-level ``simulate`` must inherit the runtime declared on the model's
-Configuration via ``.runtime(...)`` — previously ``dtype``/``recurrent_backend``
+Configuration via ``.runtime(...)``: previously ``dtype``/``recurrent_backend``
 set on the config were silently ignored (Simulation built a default RuntimeConfig).
 
 x64 is toggled with save/restore so these tests don't pollute global JAX state.

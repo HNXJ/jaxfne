@@ -77,7 +77,7 @@ def _default_metadata() -> dict[str, Any]:
         "physical_amplitude_calibrated": False,
         "manifest_schema_version": "0.0.4",
         "operator_status": _default_operator_status(),
-        # Suite No. 2 truth gates — always present so validation passes regardless
+        # Suite No. 2 truth gates; always present so validation passes regardless
         # of which subset of chainable methods the caller uses.
         "connectivity_status": "declared_metadata_proxy",
         "geometry_mode": "declared_metadata_not_solved_3d_pde_grid",
@@ -767,7 +767,7 @@ class Configuration:
         """Declare a column's neuron population: total ``N`` + per-layer budget.
 
         ``neurons`` maps each layer to its share of the total (any positive
-        scale — counts like ``{"L2": 250}`` or fractions like ``{"L2": 0.25}``;
+        scale: counts like ``{"L2": 250}`` or fractions like ``{"L2": 0.25}``;
         they are normalized).  Keys must be names in ``layers`` and every layer needs
         a share; anything else is refused.  Allocation uses the same largest-remainder rule as
         cell-type allocation, so per-layer integer counts sum exactly to ``N``.
@@ -991,16 +991,29 @@ class Configuration:
     def cell_params(
         self, selector: Mapping[str, Any], params: Mapping[str, Any]
     ) -> "Configuration":
-        """Override Izhikevich ``a``/``b``/``c``/``d``/``drive`` for neurons matching a
-        ``cell_type`` and/or ``layer`` selector; applied at ``construct()``. A value is a
-        scalar for every matched neuron or a list with one value per matched neuron, in
-        neuron-index order (a length mismatch is refused)."""
+        """Override per-neuron parameters for neurons matching a ``cell_type``
+        and/or ``layer`` selector; applied at ``construct()``. A value
+        is a scalar for every matched neuron or a list with one value per matched neuron, in
+        neuron-index order (a length mismatch is refused). ``v0`` (initial membrane potential)
+        and ``u0`` (initial recovery variable) declare the initial state; a declared ``v0``
+        needs ``runtime(random_v0=False)``, since the default random initial potential would
+        overwrite it. An undeclared ``u0`` is ``b * v0`` per neuron, from the realized ``b`` and
+        ``v0`` (P-048); a declared ``u0`` wins. The Izhikevich keys (``a``, ``b``, ``c``,
+        ``d``, ``drive``, ``v0``, ``u0``) run on the Izhikevich route; the AdEx keys (the
+        ``jaxfne.emitters_adex`` table: ``C_pF``, ``gL_nS``, ``EL_mV``, ``VT_mV``,
+        ``Delta_mV``, ``Vreset_mV``, ``tauw_ms``, ``a_nS``, ``b_pA``, ``Tref_ms``,
+        ``Vpeak_mV``) run on the ``adex`` route, one scalar per cell type. Each route
+        refuses the other's keys at ``construct()``."""
+        from .emitters_adex import _PARAM_FIELDS as _ADEX_PARAM_FIELDS
+
+        allowed = {"a", "b", "c", "d", "drive", "v0", "u0"} | set(_ADEX_PARAM_FIELDS)
         bad_sel = sorted(set(selector) - {"cell_type", "layer"})
-        bad_par = sorted(set(params) - {"a", "b", "c", "d", "drive"})
+        bad_par = sorted(set(params) - allowed)
         if bad_sel or bad_par:
             raise ValueError(
                 f"cell_params: unsupported selector keys {bad_sel} / parameter keys {bad_par}; "
-                "selectors: cell_type, layer; parameters: a, b, c, d, drive"
+                "selectors: cell_type, layer; parameters: a, b, c, d, drive, v0, u0, "
+                f"{', '.join(_ADEX_PARAM_FIELDS)}"
             )
         entry = {
             "selector": _circuit_json_safe(dict(selector), "cell_params.selector"),
@@ -1039,9 +1052,11 @@ class Configuration:
         max_in_degree: Optional[int] = None,
         in_degree: Optional[int] = None,
         spatial_sigma: Optional[float] = None,
+        spatial_radius: Optional[float] = None,
         delay_ms: Optional[float] = None,
         weight_std: Optional[float] = None,
         delay_std_ms: Optional[float] = None,
+        weight_range: Optional[Sequence[float]] = None,
         intra_step_rounds: Optional[int] = None,
         sampling: str = "density",
         footprint: Optional[Mapping[str, Any]] = None,
@@ -1072,8 +1087,10 @@ class Configuration:
         ``max_in_degree``, ``footprint`` and the Bernoulli samplings, and on
         the sign-only fallback path (which honours ``"density"``/``"bernoulli"``
         only). ``"multinomial"`` draws exactly ``round(p*n_post)`` synapses
-        per rule with replacement (multapses allowed); it is refused with
-        ``in_degree``, ``max_in_degree`` and on the sign-only fallback path.
+        per rule with replacement (multapses allowed); with ``in_degree=k`` (a
+        finite number > 0, the mean in-degree, non-integer allowed) it draws
+        ``round(k*n_post)`` instead. It is refused with ``max_in_degree``, with
+        ``in_degree`` together with ``probability``, and on the sign-only fallback path.
         ``weight`` is the native edge magnitude
         (default ``1/sqrt(n)``),
         and ``sign`` is ``"excitatory"``/``"inhibitory"``/``"signed"`` (``"signed"`` or
@@ -1104,7 +1121,11 @@ class Configuration:
         requires) and folds sub-zero draws at zero (positive delays). Both
         spreads are refused on the sign-only fallback path (fail-closed: that
         compiler has no spread consumer), and a non-scalar ``weight`` with
-        ``weight_std`` is refused by the compiler. ``intra_step_rounds`` (None = undeclared = current behaviour)
+        ``weight_std`` is refused by the compiler. ``weight_range`` (None = undeclared = the
+        rule's existing weights) is a ``(lo, hi)`` pair of finite reals with ``0 <= lo < hi``:
+        the compiler draws each edge's magnitude U[lo, hi) from the rule's own stream. It
+        replaces a scalar ``weight`` and excludes ``weight_std`` (both refused), and is
+        refused on the sign-only fallback path like the spreads. ``intra_step_rounds`` (None = undeclared = current behaviour)
         declares the intra-step fixed point for this connection on the adex
         route: a positive int R admitting a ``delay_ms`` that rounds to 0 steps
         on that connection only (delay 0 means "resolved inside the step"; R
@@ -1174,6 +1195,11 @@ class Configuration:
                 raise ValueError(
                     f"connection {name!r} {_key} must be finite and >= 0; got {_val!r}"
                 )
+        from .connectivity import _validate_weight_range
+
+        _range = _validate_weight_range(
+            name, weight_range, weight=weight, weight_std=weight_std
+        )
         if delay_std_ms is not None and delay_ms is None:
             raise ValueError(
                 f"connection {name!r} declares delay_std_ms={delay_std_ms!r} without "
@@ -1192,14 +1218,19 @@ class Configuration:
                 f"connection {name!r} sampling={sampling!r} is not implemented with "
                 "max_in_degree (localized sampling); omit one of them"
             )
-        in_degree = _validate_config_in_degree(name, in_degree)
+        if sampling == "multinomial":
+            from .connectivity import _validate_multinomial_in_degree
+
+            in_degree = _validate_multinomial_in_degree(f"connection {name!r}", in_degree)
+        else:
+            in_degree = _validate_config_in_degree(name, in_degree)
         if sampling == "fixed_indegree" and in_degree is None:
             raise ValueError(
                 f"connection {name!r} declares sampling='fixed_indegree' "
                 "without in_degree; the fixed-indegree sampler draws exactly "
                 "in_degree presynaptic partners per post cell -- declare both"
             )
-        if sampling in ("bernoulli", "capped_bernoulli", "multinomial") and in_degree is not None:
+        if sampling in ("bernoulli", "capped_bernoulli") and in_degree is not None:
             raise ValueError(
                 f"connection {name!r} sampling={sampling!r} is not implemented "
                 f"with in_degree={in_degree!r} (exact fixed in-degree); "
@@ -1279,9 +1310,15 @@ class Configuration:
             "delay_ms": float(delay_ms) if delay_ms is not None else None,
             "status": "declared_not_compiled",
         }
+        if spatial_radius is not None:
+            # Stored only when declared so existing config hashes stay unchanged.
+            entry["spatial_radius"] = float(spatial_radius)
         if weight_std is not None:
             # Stored only when declared so existing config hashes stay unchanged.
             entry["weight_std"] = float(weight_std)
+        if _range is not None:
+            # Stored only when declared so existing config hashes stay unchanged.
+            entry["weight_range"] = [_range[0], _range[1]]
         if delay_std_ms is not None:
             # Stored only when declared so existing config hashes stay unchanged.
             entry["delay_std_ms"] = float(delay_std_ms)
@@ -1760,8 +1797,8 @@ class Configuration:
         # Accumulate specs: each call adds one source->target projection. The
         # construct path (``_apply_connectivity``) already iterates a list of
         # specs, so multiple calls (e.g. one per adjacent area pair, or both
-        # directions of a pair) all materialize. Using a list here — rather than
-        # overwriting the single key — is what lets a full multi-area hierarchy wire.
+        # directions of a pair) all materialize. Using a list here, rather than
+        # overwriting the single key; is what lets a full multi-area hierarchy wire.
         existing = self.metadata.get("inter_column_connectivity")
         if isinstance(existing, list):
             specs = [*existing, inter_conn_spec]

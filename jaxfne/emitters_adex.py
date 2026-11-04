@@ -22,6 +22,13 @@ import numpy as np
 
 _STEP_ORDERS = ("default", "brian2")
 _DECAYS = ("exp", "euler")
+# State keys `simulate_adex_hdp_registered` writes under `return_state=True`
+# and reads back under `state=...`.
+_HDP_STATE_KEYS = (
+    "V_mV", "w_pA", "ref_steps", "g_nS", "delay_ring", "ext_ring", "step",
+    "ext_key", "hdp_key", "H", "W_nS", "aux", "bias", "prev_spikes",
+    "n_neurons", "n_edges", "n_receptors", "ring_length", "n_ext_targets",
+)
 # Same clip as the reference: the spike threshold binds at an argument of 5.
 _EXP_ARG_MAX = 20.0
 
@@ -80,6 +87,11 @@ def make_adex_params(
     reference ``VT + 5 * Delta``). An explicit value must be finite and above
     that type's ``EL`` (bools refused, never coerced); absent, every entry is
     NaN and the kernel runs the reference threshold bit-identically.
+
+    Every override must also keep the kernel integrable: ``C_pF``, ``gL_nS``
+    and ``tauw_ms`` above 0, ``Tref_ms`` and ``Delta_mV`` at or above 0
+    (``Delta_mV`` 0 runs the conductance-LIF limit). An ``EL_mV`` above
+    ``VT_mV`` is a valid tonically firing regime and is realized.
     """
     labels = tuple(str(lab) for lab in labels)
     for lab in labels:
@@ -104,6 +116,7 @@ def make_adex_params(
                 )
         if "Vpeak_mV" in fields:
             _check_vpeak_override(ctype, fields["Vpeak_mV"], overrides.get(ctype, {}))
+        _check_physical_adex_override(ctype, fields)
     columns = {}
     for field in _PARAM_FIELDS:
         if field == "Vpeak_mV":
@@ -123,7 +136,7 @@ def _check_vpeak_override(ctype: str, value: Any, type_fields: Mapping[str, floa
     """Refuse a non-finite ``Vpeak_mV`` override or one at or below ``EL``.
 
     ``EL`` is the type's override when one is declared, else its reference
-    value; NaN (or any other non-finite value, or a bool) is refused — absence
+    value; NaN (or any other non-finite value, or a bool) is refused, absence
     is declared by omitting the key, never by an explicit NaN.
     """
     if isinstance(value, bool):
@@ -155,6 +168,56 @@ def _check_vpeak_override(ctype: str, value: Any, type_fields: Mapping[str, floa
             f"overrides for cell type {ctype!r}: Vpeak_mV={vpeak} must be above "
             f"EL_mV={el_raw!r}"
         )
+
+
+def _check_physical_adex_override(ctype: str, type_fields: Mapping[str, float]) -> None:
+    """Refuse an override the kernel cannot integrate.
+
+    ``C_pF``, ``gL_nS`` and ``tauw_ms`` take values above 0; ``Tref_ms`` and
+    ``Delta_mV`` take values at or above 0 (``Delta_mV`` 0 runs the
+    conductance-LIF limit). An ``EL_mV`` above ``VT_mV`` is a valid
+    tonically firing regime and is realized. Non-real values are refused
+    here as ``ValueError`` (never coerced); finiteness rides the same refusal.
+    """
+    defaults = ADEX_CELL_TYPE_DEFAULTS[ctype]
+
+    def _resolved(field: str) -> Any:
+        raw = type_fields.get(field, defaults[field])
+        if isinstance(raw, bool):
+            raise ValueError(
+                f"overrides for cell type {ctype!r}: {field}={raw!r} must be "
+                "a finite real number"
+            )
+        try:
+            value = float(raw)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"overrides for cell type {ctype!r}: {field}={raw!r} must be "
+                "a finite real number"
+            )
+        if not math.isfinite(value):
+            raise ValueError(
+                f"overrides for cell type {ctype!r}: {field}={raw!r} must be "
+                "a finite real number"
+            )
+        return value
+
+    positive = {"C_pF": "above 0", "gL_nS": "above 0", "tauw_ms": "above 0"}
+    for field, bound in positive.items():
+        value = _resolved(field)
+        if not value > 0:
+            raise ValueError(
+                f"overrides for cell type {ctype!r}: {field}={value} must be "
+                f"{bound} for the kernel to integrate it"
+            )
+    nonnegative = {"Tref_ms": "at or above 0", "Delta_mV": "at or above 0"}
+    for field, bound in nonnegative.items():
+        value = _resolved(field)
+        if not value >= 0:
+            raise ValueError(
+                f"overrides for cell type {ctype!r}: {field}={value} must be "
+                f"{bound} for the kernel to integrate it"
+            )
 
 
 def adex_step(state, I_pA, params: AdExParams, dt_ms: float, step_order: str = "default"):
@@ -224,6 +287,20 @@ _EDGE0_ARGS = (
 
 _EXT_ARGS = (
     "ext_targets", "ext_lambda", "ext_weight_nS", "ext_receptor", "ext_delay_steps", "key",
+)
+
+# Multi-target external drive (one adex drive list entry per target subset):
+# per-target mean counts, weights, receptors and delays, plus one int entry
+# size per entry (entries hold contiguous target blocks summing to ``M``).
+# ``extm_lambda`` is a scalar (shared by every target), a 1-d ``[M]``
+# per-target vector, or a 2-d ``[n_steps, M]`` per-target schedule;
+# ``extm_weight_nS`` is a scalar or ``[M]``; ``extm_receptor``/``extm_delay_steps``
+# are ``[M]`` integer arrays. ``key`` holds one JAX PRNG key per entry with
+# shape ``(n_entries, 2)`` (each entry's mapping-path seed through
+# ``jax.random.PRNGKey``); entry ``e`` owns ``extm_entry_sizes[e]`` targets.
+_EXTM_ARGS = (
+    "extm_targets", "extm_lambda", "extm_weight_nS", "extm_receptor",
+    "extm_delay_steps", "extm_entry_sizes", "key",
 )
 
 
@@ -411,6 +488,170 @@ def _check_external_drive(N, R, given, allow_zero_delay: bool = False):
     }
 
 
+def _checked_lambda_multi(value, M):
+    """Validate ``extm_lambda``: scalar, ``[M]`` or ``[n_steps, M]`` (shape-checked later)."""
+    try:
+        arr = np.asarray(value, dtype=np.float64)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "extm_lambda must be a finite float >= 0, a 1-d [M] array, or a "
+            f"2-d [n_steps, M] array; got {value!r}"
+        ) from exc
+    if arr.ndim == 0:
+        return ("scalar", _nonneg_float("extm_lambda", value))
+    if np.asarray(value).dtype == np.bool_ or arr.ndim not in (1, 2):
+        raise ValueError(
+            "extm_lambda must be a finite float >= 0, a 1-d [M] array, or a "
+            f"2-d [n_steps, M] array; got {value!r}"
+        )
+    if arr.ndim == 1 and arr.shape[0] != M:
+        raise ValueError(
+            f"extm_lambda with per-target rates must have shape ({M},); got {arr.shape}"
+        )
+    if arr.ndim == 1 and (arr.shape[0] == 0 or not bool(np.all(np.isfinite(arr)))
+                           or bool(np.any(arr < 0.0))):
+        raise ValueError("extm_lambda vector must hold finite values >= 0")
+    if arr.ndim == 2 and (arr.shape[1] != M or arr.shape[0] == 0):
+        raise ValueError(
+            f"extm_lambda schedule must have shape (n_steps, {M}); got {arr.shape}"
+        )
+    if not bool(np.all(np.isfinite(arr))) or bool(np.any(arr < 0.0)):
+        raise ValueError("extm_lambda schedule must hold finite values >= 0")
+    if arr.ndim == 1:
+        return ("vector", arr)
+    return ("schedule", arr)
+
+
+def _checked_drive_key_stack(key):
+    """One JAX PRNG key per drive entry, stacked with shape ``(n_entries, 2)``.
+
+    A single key is refused (it names no entry count): stack one
+    ``jax.random.PRNGKey(seed)`` per entry, in entry order.
+    """
+    try:
+        arr = jnp.asarray(key)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "extm key must hold one JAX PRNG key per entry with shape "
+            f"(n_entries, 2); got {key!r}"
+        ) from exc
+    if arr.shape == (2,):
+        raise ValueError(
+            "extm key holds one JAX PRNG key per entry with shape (n_entries, 2); "
+            "got a single key of shape (2,): stack one key per entry"
+        )
+    if arr.ndim != 2 or arr.shape[0] < 1 or arr.shape[1] != 2:
+        raise ValueError(
+            "extm key must hold one JAX PRNG key per entry with shape "
+            f"(n_entries, 2); got shape {tuple(arr.shape)}"
+        )
+    try:
+        jax.vmap(jax.random.split)(arr)
+    except Exception as exc:
+        raise ValueError(f"extm key must hold valid JAX PRNG keys; got {key!r}") from exc
+    return arr
+
+
+def _check_external_drive_multi(N, R, given):
+    """Validate the seven multi-target drive arguments; a dict, or None when all are absent."""
+    missing = [k for k in _EXTM_ARGS if given[k] is None]
+    if missing and len(missing) < len(_EXTM_ARGS):
+        raise ValueError(
+            "multi-target drive arguments (extm_targets, extm_lambda, extm_weight_nS, "
+            f"extm_receptor, extm_delay_steps, extm_entry_sizes, key) must be all given or all None; missing {missing}"
+        )
+    if missing:
+        return None
+    targets = np.asarray(given["extm_targets"])
+    if targets.ndim != 1:
+        raise ValueError(f"extm_targets must be one-dimensional, got shape {targets.shape}")
+    t64 = targets.astype(np.float64)
+    if not np.all(np.isfinite(t64)) or np.any(t64 != np.round(t64)):
+        raise ValueError("extm_targets must hold integers")
+    t64 = t64.astype(np.int64)
+    if t64.size == 0:
+        raise ValueError("extm_targets must hold at least one cell index")
+    if t64.min() < 0 or t64.max() >= N:
+        raise ValueError(
+            f"extm_targets must index cells in [0, {N}); got min {t64.min()}, max {t64.max()}"
+        )
+    if np.unique(t64).size != t64.size:
+        raise ValueError(f"extm_targets must hold unique cell indices; got {t64.tolist()}")
+    M = int(t64.size)
+    lam = _checked_lambda_multi(given["extm_lambda"], M)
+    try:
+        w_arr = np.asarray(given["extm_weight_nS"], dtype=np.float64)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            f"extm_weight_nS must be a finite float >= 0 or a 1-d [{M}] array; "
+            f"got {given['extm_weight_nS']!r}"
+        ) from exc
+    if w_arr.ndim == 0:
+        if w_arr.dtype == np.bool_ or not math.isfinite(float(w_arr)) or float(w_arr) < 0.0:
+            raise ValueError(
+                f"extm_weight_nS must be a finite float >= 0 or a 1-d [{M}] array; "
+                f"got {given['extm_weight_nS']!r}"
+            )
+        weight: Any = float(w_arr)
+    elif w_arr.ndim == 1 and w_arr.shape == (M,) and bool(np.all(np.isfinite(w_arr))) \
+            and bool(np.all(w_arr >= 0.0)):
+        weight = w_arr
+    else:
+        raise ValueError(
+            f"extm_weight_nS must be a finite float >= 0 or a 1-d [{M}] array; "
+            f"got {given['extm_weight_nS']!r}"
+        )
+    rec = np.asarray(given["extm_receptor"])
+    if rec.ndim != 1 or rec.shape != (M,):
+        raise ValueError(f"extm_receptor must have shape ({M},); got {rec.shape}")
+    recf = rec.astype(np.float64)
+    if not np.all(np.isfinite(recf)) or np.any(recf != np.round(recf)) \
+            or recf.min() < 0 or recf.max() >= R:
+        raise ValueError(f"extm_receptor must index receptors in [0, {R}); got {rec.tolist()}")
+    delay = np.asarray(given["extm_delay_steps"])
+    if delay.ndim != 1 or delay.shape != (M,):
+        raise ValueError(f"extm_delay_steps must have shape ({M},); got {delay.shape}")
+    delayf = delay.astype(np.float64)
+    if not np.all(np.isfinite(delayf)) or np.any(delayf != np.round(delayf)) \
+            or delayf.min() < 1:
+        raise ValueError(f"extm_delay_steps must hold integers >= 1; got {delay.tolist()}")
+    keys = _checked_drive_key_stack(given["key"])
+    n_entries = int(keys.shape[0])
+    try:
+        sizes_arr = np.asarray(given["extm_entry_sizes"])
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "extm_entry_sizes must hold one int entry size per key row "
+            f"(shape ({n_entries},)); got {given['extm_entry_sizes']!r}"
+        ) from exc
+    if sizes_arr.ndim != 1 or sizes_arr.shape[0] != n_entries:
+        raise ValueError(
+            "extm_entry_sizes must hold one int entry size per key row "
+            f"(shape ({n_entries},)); got shape {sizes_arr.shape}"
+        )
+    sizesf = sizes_arr.astype(np.float64)
+    if not np.all(np.isfinite(sizesf)) or np.any(sizesf != np.round(sizesf)) \
+            or sizesf.min() < 1:
+        raise ValueError(
+            f"extm_entry_sizes must hold integers >= 1; got {sizes_arr.tolist()}"
+        )
+    sizes = sizes_arr.astype(np.int64)
+    if int(sizes.sum()) != M:
+        raise ValueError(
+            f"extm_entry_sizes sums to {int(sizes.sum())} but extm_targets holds "
+            f"{M} cells; entries hold contiguous target blocks covering every target"
+        )
+    return {
+        "targets": t64,
+        "lambda": lam,
+        "weight": weight,
+        "receptor": rec.astype(np.int64),
+        "delay": delay.astype(np.int64),
+        "keys": keys,
+        "entry_sizes": tuple(int(s) for s in sizes),
+    }
+
+
 def _check_edges(N, R, given):
     """Validate the five edge arrays; return numpy arrays, or None when all are absent."""
     missing = [k for k in _EDGE_ARGS if given[k] is None]
@@ -526,9 +767,23 @@ def simulate_adex(
     ext_receptor=None,
     ext_delay_steps=None,
     key=None,
+    extm_targets=None,
+    extm_lambda=None,
+    extm_weight_nS=None,
+    extm_receptor=None,
+    extm_delay_steps=None,
+    extm_entry_sizes=None,
     ext_target_groups=None,
     ext_t_start_steps=None,
     ext_t_stop_steps=None,
+    spike_out_mask=None,
+    spike_out_onset_step=0,
+    spike_replace_mask=None,
+    spike_replace_lam=None,
+    spike_replace_key=None,
+    edge_gain_mask=None,
+    edge_gain_schedule=None,
+    edge0_gain_mask=None,
 ) -> dict[str, Any]:
     """Simulate conductance-based AdEx cells on a sparse edge list.
 
@@ -566,7 +821,7 @@ def simulate_adex(
 
     The external drive is opt-in through six keyword arguments that are all given or all
     None: ``ext_targets`` (int ``[M]`` cell indices, unique, in range), ``ext_lambda``
-    (mean count per step per target, >= 0 — either a scalar float, or a per-step
+    (mean count per step per target, >= 0, either a scalar float, or a per-step
     schedule array ``[n_steps]`` (shared by every target) or ``[n_steps, M]`` (per
     target); finite values >= 0, bools refused), ``ext_weight_nS`` (conductance per count, >= 0),
     ``ext_receptor`` (a valid receptor index), ``ext_delay_steps`` (int >= 0; 0 is the
@@ -577,6 +832,44 @@ def simulate_adex(
     per step (``poisson(ks, lam[t])`` under the same one-split-per-step key
     stream) and validated against ``(n_steps, M)`` here, where both are known.
 
+    ``spike_out_mask`` (bool ``[N]``) with ``spike_out_onset_step`` (int in
+    ``[0, n_steps)``) silences the emitted spike of masked cells on steps
+    ``t >= spike_out_onset_step``: the mask acts before the same-step fixed
+    point, so from the onset on a masked cell never enters a step's spike
+    accumulator and its spike reaches neither delay-0 targets, the delay
+    ring, nor the recorded spikes, while ``V``, ``w`` and the refractory
+    counters keep evolving, after the CAMINOS step-loop mask
+    (``artifacts/etudes/papers/caminos/caminos_jax.py`` lines 812, 840-846).
+    ``None`` (the default) takes the historical path bit-identically; an onset
+    without a mask, a wrong shape or dtype, or an onset outside
+    ``[0, n_steps)`` is refused.
+
+    ``spike_replace_mask`` (bool ``[N]``) with ``spike_replace_lam`` (float
+    ``[N]``, the mean Poisson count per step of each cell, every entry
+    finite and >= 0 with 0 outside the mask) and ``spike_replace_key`` (a
+    JAX PRNG key) replaces the emitted spike of masked cells by an
+    independent per-step draw: ``where(mask, poisson(fold_in(key, t),
+    lam_vec) > 0, spk)``. The draw folds the passed key
+    per step and never touches the drive ``rkey`` stream, so the default
+    draws are unchanged; the replacement acts wherever ``spike_out_mask``
+    acts (round 0, fixed-point rounds, final spikes), before silencing, so a
+    masked-and-silenced cell stays silent, after the CAMINOS step-loop
+    replacement (``artifacts/etudes/papers/caminos/caminos_jax.py`` lines
+    833-839). All three are given or all None (``None`` takes the historical
+    path bit-identically); an all-False mask leaves the run unchanged
+    whatever ``lam_vec`` is.
+
+    ``edge_gain_mask`` (bool ``[E]``) with ``edge_gain_schedule`` (float
+    ``[n_steps]``, every entry finite and >= 0) scales the conductance
+    weight of masked edges by the per-step factor ``schedule[t]``: each
+    masked edge adds ``|w| * schedule[t]`` where it arrives, each unmasked
+    edge adds ``|w|``. ``edge0_gain_mask`` (bool ``[E0]``) does the same
+    for the delay-0 edges; it is required with the pair when delay-0 edges
+    exist and refused when none exist. All given or all None (``None``
+    takes the historical path bit-identically); an all-ones schedule is
+    bit-exact and an all-False mask leaves the run unchanged whatever the
+    schedule is.
+
     ``ext_target_groups`` (int ``[M]``, one group per target, given with the six
     drive arguments or refused) selects the grouped path: ``ext_lambda`` must
     then be a 2-d ``[n_steps, G]`` per-group schedule, each group non-empty,
@@ -584,6 +877,21 @@ def simulate_adex(
     ``poisson(fold_in(fold_in(key, g), t), lam[t, g])`` over its member cells,
     so groups own independent streams while the scalar path above is
     byte-identical.
+
+    The multi-target drive (``extm_targets``, ``extm_lambda``, ``extm_weight_nS``,
+    ``extm_receptor``, ``extm_delay_steps``, ``extm_entry_sizes``, ``key``: all
+    given or all None, never beside ``ext_*``) carries one Poisson stream per
+    entry: ``extm_lambda`` is a scalar, a 1-d ``[M]`` vector, or a 2-d
+    ``[n_steps, M]`` schedule; weights are a scalar or ``[M]``; receptors and
+    delays (integers >= 1) are ``[M]``. ``extm_entry_sizes`` holds one int size
+    per entry (entries hold contiguous target blocks covering every target);
+    ``key`` holds one JAX PRNG key per entry with shape ``(n_entries, 2)``.
+    Each step splits every entry key once and draws that entry's segment under
+    its own stream, so one entry's seed leaves every other entry's counts
+    unchanged; target ``m`` reads its count ``delay[m]`` steps later from its
+    own ring column and adds ``weight[m] * count`` at ``[target[m],
+    receptor[m]]``. The shared window above applies unchanged;
+    ``ext_target_groups`` is refused with this path.
 
     ``ext_t_start_steps``/``ext_t_stop_steps`` (both given or both None) restrict
     the drive to steps ``[t_start, t_stop)``: they must be int step indices with
@@ -619,7 +927,7 @@ def simulate_adex(
     step's update, only if ``record_v``: 4.6 GB in float32 at 9500 cells and 120000 steps),
     and the final ``V``, ``w``, ``ref`` and ``g``. With delay-0 edges, also
     ``fixed_point_unresolved`` (int32 ``[n_steps]``: per step, the number of
-    cells that newly spiked in the final round and own delay-0 out-edges —
+    cells that newly spiked in the final round and own delay-0 out-edges;
     nonzero only where the cap stopped the loop) and ``fixed_point_rounds``
     (int32 ``[n_steps]``: rounds run after round 0); absent otherwise. A nonzero
     unresolved count anywhere refuses with ``ValueError`` naming the cap, the
@@ -639,6 +947,89 @@ def simulate_adex(
         raise ValueError(f"dt_ms must be > 0, got {dt_ms!r}")
 
     N = int(jnp.shape(params.C_pF)[0])
+    if spike_out_mask is None:
+        if spike_out_onset_step != 0:
+            raise ValueError(
+                "spike_out_onset_step without spike_out_mask is not realized: "
+                f"got onset {spike_out_onset_step!r} with no mask -- pass both or neither"
+            )
+        mask_j = None
+        onset_j = 0
+    else:
+        mask_arr = np.asarray(spike_out_mask)
+        if mask_arr.dtype != np.bool_:
+            raise ValueError(
+                "spike_out_mask must be a bool array of shape "
+                f"({N},); got dtype {mask_arr.dtype}"
+            )
+        if mask_arr.shape != (N,):
+            raise ValueError(
+                "spike_out_mask must be a bool array of shape "
+                f"({N},); got shape {mask_arr.shape}"
+            )
+        if (
+            isinstance(spike_out_onset_step, bool)
+            or not isinstance(spike_out_onset_step, (int, np.integer))
+            or not 0 <= int(spike_out_onset_step) < int(n_steps)
+        ):
+            raise ValueError(
+                "spike_out_onset_step must be an int in [0, n_steps) "
+                f"([0, {int(n_steps)})); got {spike_out_onset_step!r}"
+            )
+        mask_j = jnp.asarray(mask_arr)
+        onset_j = int(spike_out_onset_step)
+    _rep_given = (
+        spike_replace_mask is not None,
+        spike_replace_lam is not None,
+        spike_replace_key is not None,
+    )
+    if not any(_rep_given):
+        rep_j = None
+        rep_lam_j = None
+        rep_base = None
+    elif not all(_rep_given):
+        raise ValueError(
+            "spike_replace_mask, spike_replace_lam and spike_replace_key must be "
+            "all given or all None; got "
+            f"mask={_rep_given[0]}, lam={_rep_given[1]}, key={_rep_given[2]}"
+        )
+    else:
+        rep_arr = np.asarray(spike_replace_mask)
+        if rep_arr.dtype != np.bool_:
+            raise ValueError(
+                "spike_replace_mask must be a bool array of shape "
+                f"({N},); got dtype {rep_arr.dtype}"
+            )
+        if rep_arr.shape != (N,):
+            raise ValueError(
+                "spike_replace_mask must be a bool array of shape "
+                f"({N},); got shape {rep_arr.shape}"
+            )
+        lam_arr = np.asarray(spike_replace_lam, dtype=np.float64)
+        if lam_arr.shape != (N,):
+            raise ValueError(
+                "spike_replace_lam must be a float array of shape "
+                f"({N},); got shape {lam_arr.shape}"
+            )
+        if lam_arr.dtype == np.bool_ or not np.all(np.isfinite(lam_arr)):
+            raise ValueError(
+                "spike_replace_lam must hold finite entries; "
+                f"got {spike_replace_lam!r}"
+            )
+        if bool(np.any(lam_arr < 0.0)):
+            raise ValueError(
+                "spike_replace_lam must hold entries >= 0; "
+                f"got {spike_replace_lam!r}"
+            )
+        try:
+            jax.random.split(spike_replace_key)
+        except Exception:
+            raise ValueError(
+                f"spike_replace_key must be a JAX PRNG key; got {spike_replace_key!r}"
+            )
+        rep_j = jnp.asarray(rep_arr)
+        rep_lam_j = jnp.asarray(lam_arr)
+        rep_base = spike_replace_key
     dtype = jnp.asarray(params.C_pF).dtype
     if N * max(len(np.reshape(receptor_tau_ms, -1)), 1) >= 2**31:
         raise ValueError(f"N * n_receptors must be < 2**31 (int32 segment ids); N = {N}")
@@ -678,21 +1069,52 @@ def simulate_adex(
         }
     E = int(edges["pre"].shape[0])
     delay_eff = edges["delay"] + (1 if step_order == "brian2" else 0)
-    ext = _check_external_drive(
-        N,
-        R,
-        {
-            "ext_targets": ext_targets,
-            "ext_lambda": ext_lambda,
-            "ext_weight_nS": ext_weight_nS,
-            "ext_receptor": ext_receptor,
-            "ext_delay_steps": ext_delay_steps,
-            "key": key,
-        },
-        allow_zero_delay=True,
-    )
+    ext_given = any(v is not None for v in (
+        ext_targets, ext_lambda, ext_weight_nS, ext_receptor, ext_delay_steps,
+    ))
+    extm_given = any(v is not None for v in (
+        extm_targets, extm_lambda, extm_weight_nS, extm_receptor, extm_delay_steps,
+        extm_entry_sizes,
+    ))
+    if ext_given and extm_given:
+        raise ValueError(
+            "ext_* and extm_* drive arguments cannot combine: pass one drive path or neither"
+        )
+    if ext_given:
+        ext = _check_external_drive(
+            N,
+            R,
+            {
+                "ext_targets": ext_targets,
+                "ext_lambda": ext_lambda,
+                "ext_weight_nS": ext_weight_nS,
+                "ext_receptor": ext_receptor,
+                "ext_delay_steps": ext_delay_steps,
+                "key": key,
+            },
+            allow_zero_delay=True,
+        )
+        extm = None
+    elif extm_given or key is not None:
+        ext = None
+        extm = _check_external_drive_multi(
+            N,
+            R,
+            {
+                "extm_targets": extm_targets,
+                "extm_lambda": extm_lambda,
+                "extm_weight_nS": extm_weight_nS,
+                "extm_receptor": extm_receptor,
+                "extm_delay_steps": extm_delay_steps,
+                "extm_entry_sizes": extm_entry_sizes,
+                "key": key,
+            },
+        )
+    else:
+        ext = extm = None
     L_edge = int(delay_eff.max()) if E else 0
-    if ext is None:
+    use_multi = extm is not None
+    if ext is None and extm is None:
         if ext_target_groups is not None:
             raise ValueError(
                 "ext_target_groups needs the external drive; got "
@@ -711,16 +1133,32 @@ def simulate_adex(
         window = None
         grouped = None
     else:
-        d_ext = int(ext["delay"]) + (1 if step_order == "brian2" else 0)
-        L = max(L_edge, d_ext, 1)
-        M = int(ext["targets"].shape[0])
-        window = _check_drive_window(n_steps, ext_t_start_steps, ext_t_stop_steps)
-        grouped = _check_target_groups(ext_target_groups, M, n_steps, ext["lambda"])
-        if int(ext["delay"]) == 0 and step_order == "brian2":
-            raise ValueError(
-                "ext_delay_steps=0 requests a same-step drive, which step_order='brian2' "
-                "does not realize (it reads every arrival one step later): use a delay >= 1"
-            )
+        if use_multi:
+            assert extm is not None
+            if ext_target_groups is not None:
+                raise ValueError(
+                    "ext_target_groups needs the single-drive path; the multi-target "
+                    "path carries one stream per target already"
+                )
+            d_j = np.asarray(extm["delay"], dtype=np.int64)
+            d_ext_j = d_j + (1 if step_order == "brian2" else 0)
+            L = int(max(L_edge, int(d_ext_j.max()), 1))
+            M = int(extm["targets"].shape[0])
+            window = _check_drive_window(n_steps, ext_t_start_steps, ext_t_stop_steps)
+            grouped = None
+            d_ext = 0
+        else:
+            assert ext is not None
+            d_ext = int(ext["delay"]) + (1 if step_order == "brian2" else 0)
+            L = max(L_edge, d_ext, 1)
+            M = int(ext["targets"].shape[0])
+            window = _check_drive_window(n_steps, ext_t_start_steps, ext_t_stop_steps)
+            grouped = _check_target_groups(ext_target_groups, M, n_steps, ext["lambda"])
+            if int(ext["delay"]) == 0 and step_order == "brian2":
+                raise ValueError(
+                    "ext_delay_steps=0 requests a same-step drive, which step_order='brian2' "
+                    "does not realize (it reads every arrival one step later): use a delay >= 1"
+                )
 
     zero = _check_zero_delay_edges(
         N,
@@ -750,6 +1188,86 @@ def simulate_adex(
 
         n_rounds = validate_rounds(intra_step_rounds, label="intra_step_rounds")
         has_zero = True
+
+    _gain_given = (
+        edge_gain_mask is not None
+        or edge_gain_schedule is not None
+        or edge0_gain_mask is not None
+    )
+    if not _gain_given:
+        gain_mask_j = None
+        gain_sched_j = None
+        gain0_j = None
+    else:
+        if edge_gain_mask is None or edge_gain_schedule is None:
+            raise ValueError(
+                "edge_gain_mask and edge_gain_schedule must be both given or both None; "
+                f"got mask={edge_gain_mask is not None}, schedule={edge_gain_schedule is not None}"
+            )
+        mask_arr = np.asarray(edge_gain_mask)
+        if mask_arr.dtype != np.bool_:
+            raise ValueError(
+                "edge_gain_mask must be a bool array of shape "
+                f"({E},); got dtype {mask_arr.dtype}"
+            )
+        if mask_arr.shape != (E,):
+            raise ValueError(
+                "edge_gain_mask must be a bool array of shape "
+                f"({E},); got shape {mask_arr.shape}"
+            )
+        sched_raw = np.asarray(edge_gain_schedule)
+        if sched_raw.dtype == np.bool_:
+            raise ValueError(
+                "edge_gain_schedule must be a float array of shape "
+                f"({n_steps},), not bools"
+            )
+        try:
+            sched_arr = np.asarray(edge_gain_schedule, dtype=np.float64)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "edge_gain_schedule must be a float array of shape "
+                f"({n_steps},); got {edge_gain_schedule!r}"
+            ) from exc
+        if sched_arr.shape != (n_steps,):
+            raise ValueError(
+                "edge_gain_schedule must be a float array of shape "
+                f"({n_steps},); got shape {sched_arr.shape}"
+            )
+        if not np.all(np.isfinite(sched_arr)):
+            raise ValueError("edge_gain_schedule must hold finite entries")
+        if bool(np.any(sched_arr < 0.0)):
+            raise ValueError(
+                "edge_gain_schedule must hold entries >= 0; "
+                f"got min {float(sched_arr.min())}"
+            )
+        if has_zero:
+            if edge0_gain_mask is None:
+                raise ValueError(
+                    "edge_gain_mask and edge_gain_schedule need edge0_gain_mask when "
+                    "delay-0 edges exist; pass all three or all None"
+                )
+            mask0_arr = np.asarray(edge0_gain_mask)
+            E0 = int(zero["pre"].shape[0]) if zero is not None else 0
+            if mask0_arr.dtype != np.bool_:
+                raise ValueError(
+                    "edge0_gain_mask must be a bool array of shape "
+                    f"({E0},); got dtype {mask0_arr.dtype}"
+                )
+            if mask0_arr.shape != (E0,):
+                raise ValueError(
+                    "edge0_gain_mask must be a bool array of shape "
+                    f"({E0},); got shape {mask0_arr.shape}"
+                )
+            gain0_j = jnp.asarray(mask0_arr)
+        else:
+            if edge0_gain_mask is not None:
+                raise ValueError(
+                    "edge0_gain_mask is not realized with no delay-0 edges; "
+                    "pass edge_gain_mask and edge_gain_schedule only, or all None"
+                )
+            gain0_j = None
+        gain_mask_j = jnp.asarray(mask_arr)
+        gain_sched_j = jnp.asarray(sched_arr, dtype)
 
     pre_j = jnp.asarray(edges["pre"], jnp.int32)
     seg_j = jnp.asarray(edges["post"] * R + edges["receptor"], jnp.int32)
@@ -804,6 +1322,43 @@ def simulate_adex(
                 grp_sizes = [int(s) for s in grouped["sizes"]]
                 grp_unorder_j = jnp.asarray(grouped["unorder"])
                 grp_base = ext["key"]
+    if extm is not None:
+        assert ext is None
+        mt_j = jnp.asarray(extm["targets"], jnp.int32)
+        md_j = jnp.asarray(extm["delay"], jnp.int32) + (
+            jnp.int32(1) if step_order == "brian2" else jnp.int32(0)
+        )
+        mr_j = jnp.asarray(extm["receptor"], jnp.int32)
+        mw_raw = extm["weight"]
+        mw_j = (
+            jnp.asarray(float(mw_raw), dtype)
+            if isinstance(mw_raw, float)
+            else jnp.asarray(np.asarray(mw_raw, dtype=np.float64), dtype)
+        )
+        mlam_kind, mlam_val = extm["lambda"]
+        if mlam_kind == "scalar":
+            mlam_f: Any = float(mlam_val)
+            mlam_v = None
+            mlam_2d = None
+        elif mlam_kind == "vector":
+            mlam_f = None
+            mlam_v = jnp.asarray(np.asarray(mlam_val, dtype=np.float64), dtype)
+            mlam_2d = None
+        else:
+            mlam_f = None
+            mlam_v = None
+            sched_m = np.asarray(mlam_val, dtype=np.float64)
+            if sched_m.shape != (n_steps, M):
+                raise ValueError(
+                    "extm_lambda schedule with per-target rates must have shape "
+                    f"({n_steps}, {M}); got {sched_m.shape}"
+                )
+            mlam_2d = jnp.asarray(sched_m, dtype)
+        mkey0 = extm["keys"]
+        mentry_sizes = tuple(int(s) for s in extm["entry_sizes"])
+        mentry_offs = (0,)
+        for _size in mentry_sizes:
+            mentry_offs = mentry_offs + (mentry_offs[-1] + _size,)
 
     # A constant current is closed over, so no [n_steps, N] array is built for it.
     I_const = jnp.zeros((N,), dtype)
@@ -830,12 +1385,23 @@ def simulate_adex(
         V, w, ref, g, ring, ering, t, rkey = carry
         if ext is not None:
             rkey, ks = jax.random.split(rkey)
+        if rep_j is not None:
+            rep_po = jax.random.poisson(
+                jax.random.fold_in(rep_base, t), rep_lam_j, shape=(N,)) > 0
         I_t = I_const if I_t is None else I_t
         if E:
             arrived = ring[(t - lag_j) % L, pre_j]
-            added = jax.ops.segment_sum(
-                jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
-            ).reshape(N, R)
+            if gain_mask_j is None:
+                added = jax.ops.segment_sum(
+                    jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
+                ).reshape(N, R)
+            else:
+                g_t = gain_sched_j[t]
+                w_eff = absw_j * jnp.where(
+                    gain_mask_j, g_t, jnp.asarray(1.0, dtype))
+                added = jax.ops.segment_sum(
+                    jnp.where(arrived, w_eff, 0.0), seg_j, num_segments=N * R
+                ).reshape(N, R)
         else:
             added = jnp.zeros((N, R), dtype)
         g = g * decay_j[None, :] + added
@@ -854,6 +1420,12 @@ def simulate_adex(
             # stopping there changes nothing.
             I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
             (V1, w1, ref1), spk0 = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
+            if rep_j is not None:
+                spk0 = jnp.where(rep_j, rep_po, spk0)
+            if mask_j is not None:
+                # Silencing acts before the fixed point: a masked cell never
+                # enters spk_acc, so its spike reaches no delay-0 target.
+                spk0 = spk0 & ~(mask_j & (t >= onset_j))
             V_pre, w_pre, ref_pre = V, w, ref
 
             def _fp_cond(fp_carry):
@@ -862,16 +1434,30 @@ def simulate_adex(
 
             def _fp_round(fp_carry):
                 spk_acc, Vc, wc, refc, gc, prev_new, done = fp_carry
-                add0 = jax.ops.segment_sum(
-                    jnp.where(prev_new[pre0_j], absw0_j, 0.0),
-                    seg0_j,
-                    num_segments=N * R,
-                ).reshape(N, R)
+                if gain0_j is None:
+                    add0 = jax.ops.segment_sum(
+                        jnp.where(prev_new[pre0_j], absw0_j, 0.0),
+                        seg0_j,
+                        num_segments=N * R,
+                    ).reshape(N, R)
+                else:
+                    g_t0 = gain_sched_j[t]
+                    w0_eff = absw0_j * jnp.where(
+                        gain0_j, g_t0, jnp.asarray(1.0, dtype))
+                    add0 = jax.ops.segment_sum(
+                        jnp.where(prev_new[pre0_j], w0_eff, 0.0),
+                        seg0_j,
+                        num_segments=N * R,
+                    ).reshape(N, R)
                 gc = gc + add0
                 I_2 = jnp.sum(gc * (rev_j[None, :] - V_pre[:, None]), axis=1) + I_t
                 (Vn, wn, refn), spkn = adex_step(
                     (V_pre, w_pre, ref_pre), I_2, params, dt_ms, step_order
                 )
+                if rep_j is not None:
+                    spkn = jnp.where(rep_j, rep_po, spkn)
+                if mask_j is not None:
+                    spkn = spkn & ~(mask_j & (t >= onset_j))
                 take = ~spk_acc
                 Vc = jnp.where(take, Vn, Vc)
                 wc = jnp.where(take, wn, wc)
@@ -885,6 +1471,10 @@ def simulate_adex(
             # Cells that newly spiked in the final round and own delay-0
             # out-edges: their same-step outputs were never delivered.
             n_unres = jnp.sum(_prev & has_out0_j).astype(jnp.int32)
+        if rep_j is not None:
+            spk = jnp.where(rep_j, rep_po, spk)
+        if mask_j is not None:
+            spk = spk & ~(mask_j & (t >= onset_j))
         ring = ring.at[t % L].set(spk)
         if ext is not None:
             if grouped is not None:
@@ -928,12 +1518,23 @@ def simulate_adex(
         """
         V, w, ref, g, ring, ering, t, rkey = carry
         rkey, ks = jax.random.split(rkey)
+        if rep_j is not None:
+            rep_po = jax.random.poisson(
+                jax.random.fold_in(rep_base, t), rep_lam_j, shape=(N,)) > 0
         I_t = I_const if I_t is None else I_t
         if E:
             arrived = ring[(t - lag_j) % L, pre_j]
-            added = jax.ops.segment_sum(
-                jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
-            ).reshape(N, R)
+            if gain_mask_j is None:
+                added = jax.ops.segment_sum(
+                    jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
+                ).reshape(N, R)
+            else:
+                g_t = gain_sched_j[t]
+                w_eff = absw_j * jnp.where(
+                    gain_mask_j, g_t, jnp.asarray(1.0, dtype))
+                added = jax.ops.segment_sum(
+                    jnp.where(arrived, w_eff, 0.0), seg_j, num_segments=N * R
+                ).reshape(N, R)
         else:
             added = jnp.zeros((N, R), dtype)
         g = g * decay_j[None, :] + added
@@ -971,6 +1572,12 @@ def simulate_adex(
             # quiescence or R rounds.
             I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
             (V1, w1, ref1), spk0 = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
+            if rep_j is not None:
+                spk0 = jnp.where(rep_j, rep_po, spk0)
+            if mask_j is not None:
+                # Silencing acts before the fixed point: a masked cell never
+                # enters spk_acc, so its spike reaches no delay-0 target.
+                spk0 = spk0 & ~(mask_j & (t >= onset_j))
             V_pre, w_pre, ref_pre = V, w, ref
 
             def _fp_cond(fp_carry):
@@ -979,16 +1586,30 @@ def simulate_adex(
 
             def _fp_round(fp_carry):
                 spk_acc, Vc, wc, refc, gc, prev_new, done = fp_carry
-                add0 = jax.ops.segment_sum(
-                    jnp.where(prev_new[pre0_j], absw0_j, 0.0),
-                    seg0_j,
-                    num_segments=N * R,
-                ).reshape(N, R)
+                if gain0_j is None:
+                    add0 = jax.ops.segment_sum(
+                        jnp.where(prev_new[pre0_j], absw0_j, 0.0),
+                        seg0_j,
+                        num_segments=N * R,
+                    ).reshape(N, R)
+                else:
+                    g_t0 = gain_sched_j[t]
+                    w0_eff = absw0_j * jnp.where(
+                        gain0_j, g_t0, jnp.asarray(1.0, dtype))
+                    add0 = jax.ops.segment_sum(
+                        jnp.where(prev_new[pre0_j], w0_eff, 0.0),
+                        seg0_j,
+                        num_segments=N * R,
+                    ).reshape(N, R)
                 gc = gc + add0
                 I_2 = jnp.sum(gc * (rev_j[None, :] - V_pre[:, None]), axis=1) + I_t
                 (Vn, wn, refn), spkn = adex_step(
                     (V_pre, w_pre, ref_pre), I_2, params, dt_ms, step_order
                 )
+                if rep_j is not None:
+                    spkn = jnp.where(rep_j, rep_po, spkn)
+                if mask_j is not None:
+                    spkn = spkn & ~(mask_j & (t >= onset_j))
                 take = ~spk_acc
                 Vc = jnp.where(take, Vn, Vc)
                 wc = jnp.where(take, wn, wc)
@@ -1001,7 +1622,133 @@ def simulate_adex(
             spk = spk_acc
             # As in body: final-round newly spiked cells with delay-0 out-edges.
             n_unres = jnp.sum(_prev & has_out0_j).astype(jnp.int32)
+        if rep_j is not None:
+            spk = jnp.where(rep_j, rep_po, spk)
+        if mask_j is not None:
+            spk = spk & ~(mask_j & (t >= onset_j))
         ring = ring.at[t % L].set(spk)
+        if has_zero:
+            out = (spk, V, n_unres, n_done) if record_v else (spk, n_unres, n_done)
+        else:
+            out = (spk, V) if record_v else spk
+        return (V, w, ref, g, ring, ering, t + 1, rkey), out
+
+    def bodyM(carry, I_t):
+        """Delayed multi-target drive: one Poisson stream per entry.
+
+        Each entry key splits once per step (the mapping path's one-split
+        key stream, one per entry), and entry ``e`` draws its own segment
+        under its own stream, so one entry's seed leaves every other
+        entry's counts unchanged and entry order changes nothing. Each
+        target ``m`` reads the count drawn ``md_j[m]`` steps earlier from
+        the ``(L, M)`` external ring and adds ``mw_j[m] * count`` at
+        ``[mt_j[m], mr_j[m]]``; per-target delays ride the same ring with
+        one column per target. The intra-step fixed-point branches below
+        match :func:`body` round for round.
+        """
+        V, w, ref, g, ring, ering, t, rkey = carry
+        split_all = jax.vmap(jax.random.split)(rkey)
+        if rep_j is not None:
+            rep_po = jax.random.poisson(
+                jax.random.fold_in(rep_base, t), rep_lam_j, shape=(N,)) > 0
+        rkey, kss = split_all[:, 0], split_all[:, 1]
+        I_t = I_const if I_t is None else I_t
+        if E:
+            arrived = ring[(t - lag_j) % L, pre_j]
+            if gain_mask_j is None:
+                added = jax.ops.segment_sum(
+                    jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
+                ).reshape(N, R)
+            else:
+                g_t = gain_sched_j[t]
+                w_eff = absw_j * jnp.where(
+                    gain_mask_j, g_t, jnp.asarray(1.0, dtype))
+                added = jax.ops.segment_sum(
+                    jnp.where(arrived, w_eff, 0.0), seg_j, num_segments=N * R
+                ).reshape(N, R)
+        else:
+            added = jnp.zeros((N, R), dtype)
+        g = g * decay_j[None, :] + added
+        rows_m = (t - md_j) % L
+        earr = ering[rows_m, jnp.arange(M)]
+        g = g.at[mt_j, mr_j].add(mw_j * earr.astype(dtype))
+        if not has_zero:
+            I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
+            (V, w, ref), spk = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
+        else:
+            I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
+            (V1, w1, ref1), spk0 = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
+            if rep_j is not None:
+                spk0 = jnp.where(rep_j, rep_po, spk0)
+            if mask_j is not None:
+                # Silencing acts before the fixed point: a masked cell never
+                # enters spk_acc, so its spike reaches no delay-0 target.
+                spk0 = spk0 & ~(mask_j & (t >= onset_j))
+            V_pre, w_pre, ref_pre = V, w, ref
+
+            def _fp_cond(fp_carry):
+                _, _, _, _, _, prev_new, done = fp_carry
+                return (done < n_rounds) & jnp.any(prev_new & has_out0_j)
+
+            def _fp_round(fp_carry):
+                spk_acc, Vc, wc, refc, gc, prev_new, done = fp_carry
+                if gain0_j is None:
+                    add0 = jax.ops.segment_sum(
+                        jnp.where(prev_new[pre0_j], absw0_j, 0.0),
+                        seg0_j,
+                        num_segments=N * R,
+                    ).reshape(N, R)
+                else:
+                    g_t0 = gain_sched_j[t]
+                    w0_eff = absw0_j * jnp.where(
+                        gain0_j, g_t0, jnp.asarray(1.0, dtype))
+                    add0 = jax.ops.segment_sum(
+                        jnp.where(prev_new[pre0_j], w0_eff, 0.0),
+                        seg0_j,
+                        num_segments=N * R,
+                    ).reshape(N, R)
+                gc = gc + add0
+                I_2 = jnp.sum(gc * (rev_j[None, :] - V_pre[:, None]), axis=1) + I_t
+                (Vn, wn, refn), spkn = adex_step(
+                    (V_pre, w_pre, ref_pre), I_2, params, dt_ms, step_order
+                )
+                if rep_j is not None:
+                    spkn = jnp.where(rep_j, rep_po, spkn)
+                if mask_j is not None:
+                    spkn = spkn & ~(mask_j & (t >= onset_j))
+                take = ~spk_acc
+                Vc = jnp.where(take, Vn, Vc)
+                wc = jnp.where(take, wn, wc)
+                refc = jnp.where(take, refn, refc)
+                return (spk_acc | spkn, Vc, wc, refc, gc, spkn & ~spk_acc, done + 1)
+
+            spk_acc, V, w, ref, g, _prev, n_done = jax.lax.while_loop(
+                _fp_cond, _fp_round, (spk0, V1, w1, ref1, g, spk0, jnp.int32(0))
+            )
+            spk = spk_acc
+            n_unres = jnp.sum(_prev & has_out0_j).astype(jnp.int32)
+        if rep_j is not None:
+            spk = jnp.where(rep_j, rep_po, spk)
+        if mask_j is not None:
+            spk = spk & ~(mask_j & (t >= onset_j))
+        ring = ring.at[t % L].set(spk)
+        segs = []
+        for _e, _size in enumerate(mentry_sizes):
+            _off = mentry_offs[_e]
+            if mlam_f is not None:
+                segs.append(
+                    jax.random.poisson(kss[_e], mlam_f, shape=(_size,)).astype(jnp.int32)
+                )
+            elif mlam_v is not None:
+                segs.append(jax.random.poisson(kss[_e], mlam_v[_off:_off + _size]))
+            else:
+                assert mlam_2d is not None
+                segs.append(jax.random.poisson(kss[_e], mlam_2d[t, _off:_off + _size]))
+        extc = jnp.concatenate(segs).astype(jnp.int32)
+        if window is not None:
+            t0, t1 = window
+            extc = jnp.where((t >= t0) & (t < t1), extc, jnp.zeros_like(extc))
+        ering = ering.at[t % L].set(extc)
         if has_zero:
             out = (spk, V, n_unres, n_done) if record_v else (spk, n_unres, n_done)
         else:
@@ -1010,6 +1757,9 @@ def simulate_adex(
 
     if ext is not None:
         rkey0 = ext["key"]
+        ering0 = jnp.zeros((L, M), jnp.int32)
+    elif extm is not None:
+        rkey0 = mkey0
         ering0 = jnp.zeros((L, M), jnp.int32)
     else:
         rkey0 = jnp.zeros((), jnp.int32)
@@ -1024,7 +1774,7 @@ def simulate_adex(
         jnp.int32(0),
         rkey0,
     )
-    scan_body = body0 if (ext is not None and d_ext == 0) else body
+    scan_body = body0 if (ext is not None and d_ext == 0) else (bodyM if use_multi else body)
     (V, w, ref, g, _, _, _, _), ys = jax.lax.scan(scan_body, carry0, I_all, length=n_steps)
     result = {
         "spikes": ys[0] if (record_v or has_zero) else ys,
@@ -1082,11 +1832,21 @@ def simulate_adex_hdp_registered(
     hdp_key=None,
     seed: int | None = None,
     record_w_trace: bool = True,
+    state: Mapping[str, Any] | None = None,
+    return_state: bool = False,
+    spike_out_mask=None,
+    spike_out_onset_step=0,
+    spike_replace_mask=None,
+    spike_replace_lam=None,
+    spike_replace_key=None,
+    edge_gain_mask=None,
+    edge_gain_schedule=None,
+    edge0_gain_mask=None,
 ) -> dict[str, Any]:
     """AdEx conductance network with a registered HDP rule (lane 7, gap G3).
 
-    Same conductance network as :func:`simulate_adex` — same validation,
-    delays, external drive, and per-step order — except each edge's
+    Same conductance network as :func:`simulate_adex`; same validation,
+    delays, external drive, and per-step order, except each edge's
     conductance weight is the plastic magnitude ``|w|`` (nS) carried under
     HDP: the HDP layer (``jaxfne._hdp_family_kernel``) supplies presynaptic
     arrivals, postsynaptic spikes, ``aux``, ``H`` and ``W`` to any rule in
@@ -1109,13 +1869,20 @@ def simulate_adex_hdp_registered(
     Identity rule params (e.g. ``synthetic_presyn_gain`` defaults) leave the
     ``simulate_adex`` outputs bit-identical provided baseline ``|w|`` lies
     within the rule's ``w_bounds`` (the declared clip still applies).
+    ``spike_out_mask``/``spike_out_onset_step`` are refused here (fail closed):
+    the rule observes the emitted spikes, so masking would need a rule-gated
+    form of the same :func:`simulate_adex` rule; silence on the HDP path is
+    not realized. ``spike_replace_mask``/``spike_replace_lam``/
+    ``spike_replace_key`` are refused for the same reason: replacement would
+    need its own rule-gated form; pass the replacement to
+    :func:`simulate_adex` only.
 
     ``plasticity_mask`` is ``None`` (every edge plastic) or a per-edge
     finite mask; ``hdp_key`` seeds the per-step rule-noise stream, else
     ``seed`` (an int seed) via a domain-separated fold of
     ``PRNGKey(seed)`` so an explicit ``seed=0`` never equals the
     all-None ``PRNGKey(0)`` below, else ``fold_in`` of the external key
-    when present, else a fixed base — never drawn from, so
+    when present, else a fixed base; never drawn from, so
     the external stream stays bit-identical. This kernel has no model
     route (the adex ``simulate()`` path runs ``simulate_adex`` and
     refuses HDP inputs), so callers pass ``seed`` explicitly; a non-int
@@ -1124,6 +1891,19 @@ def simulate_adex_hdp_registered(
     :func:`simulate_adex` dict plus ``H_final``, ``w_final_nS``,
     ``aux_final``, ``H_trace``, ``w_trace_nS`` (when recorded),
     ``hdp_rule`` and ``hdp_rule_registered``.
+
+    ``state`` resumes a run from a state ``return_state=True`` returned:
+    the full final carry (``V``, adaptation current, refractory counters,
+    per-receptor conductances, the delay ring, plastic weights ``W``, rule
+    ``aux`` traces, ``H``, the step counter, and the external-drive and HDP
+    keys as they stood after the last step). A resumed call with the same
+    network arguments continues the unsegmented run bit-for-bit: spikes,
+    final ``V``/``W``/``aux``, and the Poisson drive (the key chain
+    continues from the state, so ``key``/``seed`` only rebuild the same
+    streams). A state from a different network size is refused, as are a
+    per-step ``ext_lambda`` schedule, a drive window, and ``V0_mV`` with
+    ``state`` (the carry restores ``V``). Defaults are unchanged: a call
+    without these arguments is bit-identical to the baseline.
     """
     from ._hdp_family_kernel import (  # lazy: hdp_rule owns .emitters, so top-level would cycle
         apply_registered_rule_update,
@@ -1142,6 +1922,21 @@ def simulate_adex_hdp_registered(
         raise ValueError(f"dt_ms must be > 0, got {dt_ms!r}")
 
     N = int(jnp.shape(params.C_pF)[0])
+    if (spike_out_mask is not None or spike_out_onset_step != 0
+            or spike_replace_mask is not None or spike_replace_lam is not None
+            or spike_replace_key is not None):
+        raise ValueError(
+            "spike_out_mask/spike_replace_mask is not realized for the HDP kernel "
+            "simulate_adex_hdp_registered: silence/replacement there would need its own "
+            "rule-gated masking; pass the mask to simulate_adex only"
+        )
+    if (edge_gain_mask is not None or edge_gain_schedule is not None
+            or edge0_gain_mask is not None):
+        raise ValueError(
+            "edge_gain_mask/edge_gain_schedule is not realized for the HDP kernel "
+            "simulate_adex_hdp_registered: gain there would need its own "
+            "rule-gated scaling; pass the gain to simulate_adex only"
+        )
     dtype = jnp.asarray(params.C_pF).dtype
     if N * max(len(np.reshape(receptor_tau_ms, -1)), 1) >= 2**31:
         raise ValueError(f"N * n_receptors must be < 2**31 (int32 segment ids); N = {N}")
@@ -1307,6 +2102,81 @@ def simulate_adex_hdp_registered(
     else:
         rule_base = jax.random.PRNGKey(0)
 
+    if state is not None:
+        if not isinstance(state, Mapping):
+            raise ValueError(
+                f"state must be a mapping from return_state=True; got {type(state).__name__}"
+            )
+        missing = [k for k in _HDP_STATE_KEYS if k not in state]
+        if missing:
+            raise ValueError(
+                f"state is missing keys {missing}; pass back the full state mapping unmodified"
+            )
+        for name, want in (("n_neurons", N), ("n_edges", E),
+                           ("n_receptors", R), ("ring_length", L),
+                           ("n_ext_targets", M)):
+            if int(state[name]) != int(want):
+                raise ValueError(
+                    f"state {name}={state[name]} does not match this network "
+                    f"({name}={want}); a state resumes only the network that wrote it"
+                )
+        if V0_mV is not None:
+            raise ValueError(
+                "V0_mV does not combine with state; the state carry restores V"
+            )
+        if window is not None:
+            raise ValueError(
+                "ext_t_start_steps/ext_t_stop_steps do not combine with state; "
+                "a window is per call, while a state continues the step counter"
+            )
+        if ext is not None and (lam_1d is not None or lam_2d is not None):
+            raise ValueError(
+                "a per-step ext_lambda schedule does not combine with state; "
+                "it is indexed per call, while a state continues the step counter"
+            )
+        try:
+            jax.random.split(state["hdp_key"])
+        except Exception:
+            raise ValueError("state['hdp_key'] must be a JAX PRNG key") from None
+        rule_base = state["hdp_key"]
+        t0 = state["step"]
+        if isinstance(t0, bool) or not isinstance(t0, (int, np.integer)):
+            raise ValueError(
+                f"state['step'] must be an int step counter; got {t0!r}"
+            )
+        t0 = int(t0)
+        if t0 < 0:
+            raise ValueError(f"state['step'] must be >= 0; got {t0}")
+        carry_from_state = (
+            jnp.asarray(state["V_mV"], dtype),
+            jnp.asarray(state["w_pA"], dtype),
+            jnp.asarray(state["ref_steps"], np.int32),
+            jnp.asarray(state["g_nS"], dtype),
+            jnp.asarray(state["delay_ring"], bool),
+            jnp.asarray(state["ext_ring"], np.int32),
+            jnp.int32(t0),
+            state["ext_key"],
+            jnp.asarray(state["H"], dtype),
+            jnp.asarray(state["W_nS"], dtype),
+            jnp.asarray(state["aux"], dtype),
+            jnp.asarray(state["bias"], dtype),
+            jnp.asarray(state["prev_spikes"], dtype),
+        )
+        _fresh_shapes = (
+            V0.shape, (N,), (N,), (N, R), (L, N),
+            ((L, M) if ext is not None else (0,)),
+            (),
+            (tuple(jnp.shape(ext["key"])) if ext is not None else ()),
+            H0.shape, wmag0.shape, aux0.shape,
+            b0.shape, (N,),
+        )
+        for value, want_shape in zip(carry_from_state, _fresh_shapes):
+            if tuple(jnp.shape(value)) != tuple(want_shape):
+                raise ValueError(
+                    f"state carry shape {tuple(jnp.shape(value))} does not match "
+                    f"this network (expected {tuple(want_shape)})"
+                )
+
     def body_hdp(carry, I_t):
         V, w, ref, g, ring, ering, t, rkey, H, wmag, aux, bias, prev_spk = carry
         if ext is not None:
@@ -1392,15 +2262,18 @@ def simulate_adex_hdp_registered(
         b0,
         jnp.zeros((N,), dtype),
     )
-    (V, w, ref, g, _, _, _, _, Hf, wmagf, auxf, _, _), ys = jax.lax.scan(
+    if state is not None:
+        carry0 = carry_from_state
+    (Vf, wf, reff, gf, ringf, eringf, tf, rkeyf,
+     Hf, wmagf, auxf, biasf, prevf), ys = jax.lax.scan(
         body_hdp, carry0, I_all, length=n_steps
     )
     result = {
         "spikes": ys[0],
-        "V": V,
-        "w": w,
-        "ref": ref,
-        "g": g,
+        "V": Vf,
+        "w": wf,
+        "ref": reff,
+        "g": gf,
         "H_final": Hf,
         "w_final_nS": wmagf,
         "aux_final": auxf,
@@ -1408,6 +2281,28 @@ def simulate_adex_hdp_registered(
         "hdp_rule": hdp_rule,
         "hdp_rule_registered": True,
     }
+    if return_state:
+        result["state"] = {
+            "V_mV": Vf,
+            "w_pA": wf,
+            "ref_steps": reff,
+            "g_nS": gf,
+            "delay_ring": ringf,
+            "ext_ring": eringf,
+            "step": int(tf),
+            "ext_key": rkeyf,
+            "hdp_key": rule_base,
+            "H": Hf,
+            "W_nS": wmagf,
+            "aux": auxf,
+            "bias": biasf,
+            "prev_spikes": prevf,
+            "n_neurons": N,
+            "n_edges": E,
+            "n_receptors": R,
+            "ring_length": L,
+            "n_ext_targets": M,
+        }
     if record_v:
         result["V_mV"] = ys[1]
     if record_w_trace:

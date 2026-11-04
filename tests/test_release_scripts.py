@@ -1,4 +1,4 @@
-"""Tests for scripts/release/ — Phase 0 release-control gates.
+"""Tests for scripts/release/: Phase 0 release-control gates.
 
 These tests verify that release scripts correctly enforce their safety
 invariants without making any remote mutations.
@@ -133,7 +133,7 @@ class TestReconcileReleaseTarget:
 
     def test_false_on_sha_mismatch(self):
         """release_target_reconciled=false when intended SHA differs from origin/main."""
-        # Provide a nonsense SHA — it will never match origin/main
+        # Provide a nonsense SHA; it will never match origin/main
         fake_sha = "deadbeef" * 5
         code, stdout, _ = run_script(
             "reconcile_release_target.py",
@@ -195,7 +195,6 @@ class TestAssertReleaseFreeze:
     def test_reads_agents_md_freeze_true(self):
         """Exits 1 when artifacts/AGENTS.md RELEASE_STATE block declares freeze=true and SHA mismatches."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            # Create a fake git repo
             subprocess.run(["git", "init"], env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
         cwd=tmpdir, capture_output=True)
             subprocess.run(

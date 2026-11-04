@@ -246,6 +246,16 @@ def epsp_peak(weight_nS, dt_ms=DT_MS):
 _refuse_scored_dir = lane_kit.refuse_scored_dir
 _refuse_existing = lane_kit.refuse_existing
 
+#: Signed protocol record (repo-relative); its sha256 is read at run time.
+PREREG_P3V3_SIGNED = "artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md"
+
+
+def _prereg_sha256():
+    """sha256 of the signed prereg file, computed at run time from the file."""
+    import hashlib
+
+    return hashlib.sha256((_repo_root / PREREG_P3V3_SIGNED).read_bytes()).hexdigest()
+
 
 def run_filename(seed, tag):
     """Spike-raster file name for a run."""
@@ -271,10 +281,13 @@ def write_run(out_dir, *, seed, tag, spikes, dt_ms, meta_extra=None,
     entry = {"seed": int(seed), "tag": tag, "file": fname,
              "dtype": "float32", "dt_ms": float(dt_ms),
              "steps": int(spikes.shape[0]), "n": int(spikes.shape[1]),
-             "git_sha": sha,
+             "git_sha": sha, "status": "signed" if signed else "unscored",
              "start_time": datetime.now(timezone.utc).isoformat()}
     if meta_extra:
         entry.update(meta_extra)
+    if signed:
+        entry["prereg"] = PREREG_P3V3_SIGNED
+        entry["prereg_sha256"] = _prereg_sha256()
     entries[fname] = entry
     manifest = {"git_sha": sha,
                 "runs": list(entries.values())}

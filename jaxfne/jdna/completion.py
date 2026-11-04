@@ -108,7 +108,7 @@ def resolve(
 
     A declared value always wins (TFNE-declared). Otherwise the quantity's
     rule applies: canonical default, deterministic derivation, K_D sampling,
-    or refusal. Unknown quantity names are refused even when declared —
+    or refusal. Unknown quantity names are refused even when declared;
     accepting them would let a misspelled quantity pass as completed while
     downstream ignores it.
     """
@@ -162,6 +162,12 @@ def _axis_range(declared: Mapping[str, Any], axis: str) -> tuple[float, float]:
     )
 
 
+#: Keys a declared geometry body may carry; any other key is refused.
+_GEOMETRY_KEYS = frozenset(
+    {"distribution"} | {f"{ax}{suffix}" for ax in "xyz" for suffix in ("0", "1", "_range")}
+)
+
+
 def realize_geometry(
     declared: Optional[Mapping[str, Any]], n: int, seed: int
 ) -> tuple[Any, dict[str, str]]:
@@ -179,6 +185,12 @@ def realize_geometry(
     `n == 0` yields an empty `(0, 3)` array deterministically.
     """
     body: Mapping[str, Any] = declared or {}
+    unknown = sorted(str(k) for k in body if k not in _GEOMETRY_KEYS)
+    if unknown:
+        raise ValueError(
+            f"unknown geometry key(s) {unknown}; JDNA honours only "
+            f"{sorted(_GEOMETRY_KEYS)}, and any other key would default its axis silently"
+        )
     if n < 0:
         raise ValueError(f"realize_geometry needs n >= 0; got {n}")
     distribution, dist_origin = resolve("geometry_distribution", body.get("distribution"))
@@ -192,7 +204,10 @@ def realize_geometry(
     for axis in "xyz":
         lo, hi = _axis_range(body, axis)
         domain.append((lo, hi))
-        if (axis + "0" in body and axis + "1" in body) or (axis + "_range" in body):
+        # An explicit None bound is absent, so the axis is labelled default, as _axis_range treats it.
+        if (body.get(axis + "0") is not None and body.get(axis + "1") is not None) or (
+            body.get(axis + "_range") is not None
+        ):
             origins[axis] = ORIGIN_DECLARED
         else:
             origins[axis] = ORIGIN_DEFAULT
@@ -217,7 +232,7 @@ def complete_tfne(realization: Any, seed: int) -> dict[str, Any]:
     Reads each realized leaf's neuron count from `I["neuron_paths"]` and its
     declared `G` body from `s["geometry"]`; realizes positions per leaf with
     one split of the development key each, in sorted leaf order. The input
-    realization is never mutated — the TFNE bridge is untouched; this is the
+    realization is never mutated; the TFNE bridge is untouched; this is the
     JDNA-side path that owns coordinates.
 
     Returns `{"positions", "origins", "seed", "domain"}` with positions and
@@ -235,6 +250,12 @@ def complete_tfne(realization: Any, seed: int) -> dict[str, Any]:
     positions: dict[str, Any] = {}
     origins: dict[str, Any] = {}
     geometry: Mapping[str, Any] = realization.s.get("geometry", {})
+    absent = sorted(str(k) for k in geometry if k not in counts)
+    if absent:
+        raise ValueError(
+            f"declared geometry for leaf {absent} has no realized neurons "
+            f"(realized leaves: {leaves}); refusing rather than dropping it silently"
+        )
     for leaf, subseed in zip(leaves, subseeds):
         pos, org = realize_geometry(geometry.get(leaf), counts[leaf], subseed)
         positions[leaf] = pos

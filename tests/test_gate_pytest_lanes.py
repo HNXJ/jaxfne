@@ -65,6 +65,15 @@ def test_lane_command_is_one_process_per_lane_dir():
     assert "no:cacheprovider" in argv
 
 
+def test_slow_lanes_run_under_xdist_and_short_ones_serial():
+    # Profiled 2026-10-27: pcl 542 s serial, 121 s with xdist; caminos 247 s, 65 s.
+    for lane in ("pcl", "caminos"):
+        argv = rtg._lane_argv(lane)
+        assert argv[-1] == f"{rtg.PAPER_LANES_DIR}/{lane}"
+        assert all(a in argv for a in rtg.PYTEST_XDIST_ARGS), lane
+    assert "-n" not in rtg._lane_argv("vogels2011")
+
+
 def _control_lanes(monkeypatch, lanes, returncodes, known):
     monkeypatch.setattr(rtg, "discover_pytest_lanes", lambda: list(lanes))
     monkeypatch.setattr(rtg, "LANE_PYTEST_KNOWN_FAILING", dict(known))
@@ -113,13 +122,28 @@ def test_unlisted_failing_lane_fails_the_family(monkeypatch):
         rtg.reset_observations()
 
 
-def test_no_tests_collected_is_accepted(monkeypatch):
+def test_no_tests_collected_fails_the_family(monkeypatch):
     _control_lanes(monkeypatch, ["vogels2011"], {"vogels2011": 5}, {})
     try:
-        rtg.gate_pytest_lanes()
-        assert rtg.observed_pass_families() == {"pytest_lanes"}
+        with pytest.raises(RuntimeError, match="no tests collected"):
+            rtg.gate_pytest_lanes()
+        assert rtg._OBSERVATIONS["pytest_lanes"]["status"] == "FAIL"
     finally:
         rtg.reset_observations()
+
+
+def test_release_examples_restore_figures_after_a_failing_example(monkeypatch):
+    calls = []
+
+    def _fail(cmd, family):
+        raise RuntimeError("example failed")
+
+    monkeypatch.setattr(rtg, "_run", _fail)
+    monkeypatch.setattr(rtg.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
+    assert rtg.RELEASE_EXAMPLES, "fixture: at least one release example"
+    with pytest.raises(RuntimeError, match="example failed"):
+        rtg.run_release_examples()
+    assert calls and calls[-1][:3] == ["git", "checkout", "--"]
 
 
 def test_all_lanes_passing_records_one_passing_family(monkeypatch):

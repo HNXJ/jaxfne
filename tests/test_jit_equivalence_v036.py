@@ -99,7 +99,6 @@ def test_jit_equivalence_pure_kernel():
         
     v_jit, s_jit, src_jit = compiled_kernel(key)
     
-    # Assert equivalence
     np.testing.assert_allclose(v_eager, v_jit, rtol=1e-5, atol=1e-5)
     np.testing.assert_array_equal(s_eager, s_jit)
     np.testing.assert_allclose(src_eager, src_jit, rtol=1e-5, atol=1e-5)

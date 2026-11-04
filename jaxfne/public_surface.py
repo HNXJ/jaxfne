@@ -15,7 +15,7 @@ Tier = Literal["CANONICAL", "ADVANCED", "COMPATIBILITY", "EXPERIMENTAL_INTERNAL"
 
 PUBLIC_SURFACE_VERSION: Final[str] = "0.4.13-pass1"
 
-# Internal dispatch identifiers — not public vocabulary.
+# Internal dispatch identifiers: not public vocabulary.
 INTERNAL_HDP_RULE_IDS: Final[frozenset[str]] = frozenset({"population_vector_restoring"})
 
 # --- hdp_params semantic groups (compatibility transport, not conceptual API) ---
@@ -303,7 +303,7 @@ _CANONICAL: Final[frozenset[str]] = frozenset(
         "omission_oddball_paradigm",
         "paradigm_target_indices_from_model",
         "standard_visual_omission",
-        # Suite 2 (tutorial grammar presets — canonical tutorial surface)
+        # Suite 2 (tutorial grammar presets; canonical tutorial surface)
         "suite2_celltype_presets",
         "suite2_four_celltype_config",
         "suite2_net1_config",
@@ -414,6 +414,7 @@ _ADVANCED: Final[frozenset[str]] = frozenset(
         "HDPRuleContext",
         "HDPRuleDescriptor",
         "HDPRuleUpdate",
+        "QuantityKind",
         "register_hdp_rule",
         # Named registered rules: the module is the symbol (as with tfne
         # above), so rule math stays namespaced instead of hoisted to root.
@@ -509,6 +510,7 @@ ADVANCED_NAMESPACE: Final[dict[str, str]] = {
     "HDPRuleDescriptor": "jaxfne.hdp_rule",
     "HDPRuleUpdate": "jaxfne.hdp_rule",
     "HDPRuleContext": "jaxfne.hdp_rule",
+    "QuantityKind": "jaxfne.hdp_rule",
     "W0Provenance": "jaxfne.neuronal_tensor",
     "with_trained_weights": "jaxfne.neuronal_tensor",
     "spectrolaminar_psd_jax": "jaxfne.analysis.spectral",

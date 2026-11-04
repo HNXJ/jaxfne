@@ -59,9 +59,10 @@ def simulate_stdp_euler_step(
     trace_pre_next = trace_pre * (1.0 - dt_ms / tau_plus) + spiked.astype(jnp.float32)
     trace_post_next = trace_post * (1.0 - dt_ms / tau_minus) + spiked.astype(jnp.float32)
     
-    # Shared STDP weight kernel (see plasticity.stdp_weight_update).
+    # Shared STDP weight kernel (see plasticity.stdp_weight_update). Presynaptic columns flagged in
+    # inh_mask are frozen even where exc_mask also flags them; complementary masks change nothing.
     W_next = stdp_weight_update(
-        W, trace_pre, trace_post, spiked, exc_mask,
+        W, trace_pre, trace_post, spiked, exc_mask & ~inh_mask,
         A_plus, A_minus, plasticity_scale, w_min, w_max,
     )
     
@@ -87,7 +88,10 @@ def run_stdp_stream(
     downsample_factor: int = 10
 ) -> Tuple[Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, STDPState], Dict[str, Any]]:
     """Runs simulation in a chunked, streaming fashion to avoid memory explosion.
-    
+
+    STDP updates the outgoing weights (columns of ``W``) of presynaptic neurons in ``exc_mask`` that
+    are not in ``inh_mask``; the outgoing weights of every ``inh_mask`` neuron stay fixed.
+
     Returns:
         tuple: (v_final, u_final, s_final, final_stdp_state)
         dict: traj_dict containing downsampled trajectories and chunk statistics.
@@ -98,6 +102,13 @@ def run_stdp_stream(
             f"dt_ms={dt_ms} exceeds SYN_TAU_MS={SYN_TAU_MS} (minor batch): "
             "the synaptic decay factor (1 - dt/tau) would go negative."
         )
+    for name in ("tau_plus", "tau_minus"):
+        tau = float(getattr(plasticity_config, name))
+        if dt_ms > tau:
+            raise ValueError(
+                f"dt_ms={dt_ms} exceeds {name}={tau}: the STDP trace decay factor "
+                "(1 - dt/tau) would go negative."
+            )
     total_steps = stim_drive.shape[0]
     chunk_steps = int(chunk_size_ms / dt_ms)
     n_chunks = int(np.ceil(total_steps / chunk_steps))

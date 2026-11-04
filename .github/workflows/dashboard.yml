@@ -88,8 +88,9 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install package with the viz extra
-        run: pip install -e ".[viz]"
+      # jaxley: the jaxley_vm still runs a Jaxley HH model (run 40474995518 failed without it).
+      - name: Install package with the viz and jaxley extras
+        run: pip install -e ".[viz,jaxley]"
 
       # One failing slug must not hold back the others: publish what built, then fail the job.
       - name: Build standalone figure site

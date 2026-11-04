@@ -107,7 +107,7 @@ def test_mkdocs_nav_registers_jdna_pages():
 
 def test_visual_review_script_executes(tmp_path):
     """H11: the visual review must self-generate its output in an isolated
-    temporary directory — never depend on a gitignored pre-existing PNG."""
+    temporary directory; never depend on a gitignored pre-existing PNG."""
     import subprocess
     import sys
 

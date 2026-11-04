@@ -17,7 +17,7 @@ SCRIPT = Path(os.environ.get("DASH_GEN_BUILD_SCRIPT", REPO / "scripts" / "build_
 REFERENCES = REPO / "docs" / "reference" / "references.md"
 DATA = REPO / "dashboard" / "data" / "replications.json"
 HEADING = "## Research studies (study list)"
-ALLOWED = {"reproduced", "reproduced (conditional)", "mixed", "in progress", "queued", "not started"}
+ALLOWED = {"reproduced", "reproduced (conditional)", "mixed", "pending", "in progress", "queued", "not started"}
 
 
 def load_generator():

@@ -1,4 +1,4 @@
-"""0.4.17-B B1 — canonical X/H/Q dataset tests."""
+"""0.4.17-B B1: canonical X/H/Q dataset tests."""
 
 from __future__ import annotations
 

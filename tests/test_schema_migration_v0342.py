@@ -68,7 +68,7 @@ def test_fresh_manifest_uses_new_schema_and_no_retired_terms():
 
 
 def _tracked(patterns):
-    """Tracked (committed) files matching git pathspecs — excludes generated/ignored output."""
+    """Tracked (committed) files matching git pathspecs; excludes generated/ignored output."""
     out = subprocess.check_output(
         ["git", "ls-files", *patterns], cwd=REPO, text=True
     ).splitlines()

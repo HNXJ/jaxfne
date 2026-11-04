@@ -1,6 +1,6 @@
 # Traveling Waves
 
-*Detector specification — protocol C, 0.4.17-C. The scientific content is traveling-wave inference; protocol identifier retained in provenance.*
+*Detector specification: protocol C, 0.4.17-C. The scientific content is traveling-wave inference; protocol identifier retained in provenance.*
 
 **Status:** C0 frozen (specification only)  
 **Spec:** `artifacts/protocol_c/c0_wave_protocol_spec.json`  
@@ -10,9 +10,9 @@
 
 | Symbol | Domain | 0.4.17-C |
 |--------|--------|----------|
-| \(C_D\) | Delay dynamics | **Protocol D** — out of scope for C implementation |
-| \(C_W\) | Wave inference | **In scope** — estimator \(\widehat{\mathcal W}\) |
-| \(C_F\) | Field feedback | **Closed** — no ephaptic upstream coupling |
+| \(C_D\) | Delay dynamics | **Protocol D**: out of scope for C implementation |
+| \(C_W\) | Wave inference | **In scope**: estimator \(\widehat{\mathcal W}\) |
+| \(C_F\) | Field feedback | **Closed**: no ephaptic upstream coupling |
 
 ## Causal hierarchy (frozen)
 
@@ -41,8 +41,8 @@ A traveling wave requires **more than phase differences**. Preregistered element
 \texttt{classification} \in \{\texttt{TRAVELING\_WAVE},\texttt{NO\_WAVE},\texttt{UNRESOLVED}\}
 \]
 
-- **NO_WAVE** — valid negative outcome under frozen gates.
-- **UNRESOLVED** — poor identifiability; must not be collapsed into NO_WAVE (W3b lesson).
+- **NO_WAVE**: valid negative outcome under frozen gates.
+- **UNRESOLVED**: poor identifiability; must not be collapsed into NO_WAVE (W3b lesson).
 
 Per condition report:
 

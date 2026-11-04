@@ -1,4 +1,4 @@
-"""Protocol W2 — frozen-omega parameter expression (no ``H -> omega`` during run).
+"""Protocol W2: frozen-omega parameter expression (no ``H -> omega`` during run).
 
 Causal graph: ``omega* -> W* -> X`` with ``dot omega = 0``.
 

@@ -1,4 +1,4 @@
-"""Tests for v0.0.16 RunReceipt — complete run receipt with truth gate enforcement.
+"""Tests for v0.0.16 RunReceipt: complete run receipt with truth gate enforcement.
 
 A. Model.run_receipt(signals) returns RunReceipt
 B. RunReceipt.to_dict() is JSON-safe (no NaN/Inf, round-trips json.dumps)

@@ -1,9 +1,9 @@
 # H-to-X Gain
 
-*H-to-X gain interface — protocol H1b, specification. Typed gain map from hidden state to emitter; protocol identifier in provenance.*
+*H-to-X gain interface: protocol H1b, specification. Typed gain map from hidden state to emitter; protocol identifier in provenance.*
 
 **Status:** CLOSED (H1c-C implemented); see `protocol_h_rbd_memory.md`  
-**Architecture:** `docs/theory/doctrine/tfne_containment_architecture.md` — H1b is the
+**Architecture:** `docs/theory/doctrine/tfne_containment_architecture.md`: H1b is the
 **first emitter-local** typed gain map; RBS may eventually couple to \(S,F,P\)
 with strict typing.
 
@@ -17,7 +17,7 @@ RBS is not intrinsically emitter-centered. The containment formulation allows
 
 with declared maps such as \(H_{\mathrm{ion}}\rightarrow\gamma(H)\) or
 \(H_{\mathrm{ATP}}\rightarrow\theta(H)\). **H1b addresses only**
-\(H\rightarrow x\) on the emitter — the smallest coupling needed before neural
+\(H\rightarrow x\) on the emitter: the smallest coupling needed before neural
 memory tests. Field/source couplings are out of scope until explicitly specified.
 
 ## 1. Scientific issue (why H1b exists)
@@ -56,8 +56,8 @@ Generic RBD separates two directions:
 
 | Checkpoint | Direction | H1 status |
 |------------|-----------|-----------|
-| **H1a** | \(x/I \rightarrow H\) | **Implemented** — \(\kappa_H I^{\mathrm{rel}}\) in `simulate_edge_recurrent_izhikevich_rbd` |
-| **H1b** | \(H \rightarrow x\) | **This document** — gain interface to be selected, then implemented as H1c |
+| **H1a** | \(x/I \rightarrow H\) | **Implemented**: \(\kappa_H I^{\mathrm{rel}}\) in `simulate_edge_recurrent_izhikevich_rbd` |
+| **H1b** | \(H \rightarrow x\) | **This document**: gain interface to be selected, then implemented as H1c |
 | **H2** | Full-state continuation incl. \(\mathcal B_t\) | Blocked until H1b frozen |
 | **H3** | Localized RBS perturbation + \(M(\Delta)\) | Blocked until H1c implements minimal \(H \rightarrow x\) |
 
@@ -120,18 +120,18 @@ Per-neuron quantities that can host \(g(H)\) without changing graph topology:
 | **E. Parameter `b`** | \(b_i^{\mathrm{eff}}=g_b(H_i)\,b_i\) | Yes (via \(du/dt\)) | Indirect | Alters subthreshold integration; spike threshold unchanged |
 | **F. Parameter `a` / `d`** | \(a_i^{\mathrm{eff}}, d_i^{\mathrm{eff}}\) | Yes (reset kinetics) | Indirect | High risk of disguised cell-type change |
 | **G. Spike threshold** | \(V_{\mathrm{th},i}^{\mathrm{eff}}(H_i)\) | Yes | Via spikes | Not currently a public per-neuron field (hardcoded 30 mV) |
-| **H. `source_scale`** | \(Q \propto source\_scale\) | **No** | Yes only | Readout gain outside the plant — **unsuitable** for \(H\rightarrow x\) on dynamics |
+| **H. `source_scale`** | \(Q \propto source\_scale\) | **No** | Yes only | Readout gain outside the plant: **unsuitable** for \(H\rightarrow x\) on dynamics |
 
 **Precedent (HDP; separate from Protocol H):** `H_boost_gain` applies
-`boost = 1 + H_boost_gain * max(0, 1-H)` to `(drive + sched)` only — a
+`boost = 1 + H_boost_gain * max(0, 1-H)` to `(drive + sched)` only; a
 **one-sided** extrinsic boost. A generic bidirectional gain with \(g(1)=1\) in
 the multiplicative sense does not apply. Useful ancestry; the H1b template is separate.
 
 **Recommended shortlist for H1c decision** (pending review):
 
-1. **B** — extrinsic drive gain (closest to calibrated external input)
-2. **C** — recurrent synaptic gain (closest to network memory hypothesis)
-3. **A** — total deterministic current (simplest single-knob null)
+1. **B**: extrinsic drive gain (closest to calibrated external input)
+2. **C**: recurrent synaptic gain (closest to network memory hypothesis)
+3. **A**: total deterministic current (simplest single-knob null)
 
 Implementation must expose \(\kappa_{H\rightarrow x}\) with explicit null
 (\(g\equiv 1\)) recoverable **independently** of \(\kappa_H\).
@@ -224,7 +224,7 @@ receipt: `tests/test_protocol_h_rbd_h1c.py`.
 
 ## 9. References
 
-- `docs/theory/memory/protocol_h_rbd_memory.md` — parent protocol
-- `jaxfne/emitters.py` — `simulate_edge_recurrent_izhikevich_rbd`, HDP `H_boost_gain`
-- `tests/test_protocol_h_rbd_h1.py` — H1a unit tests
-- `tests/test_protocol_h_rbd_h1_phase_portrait.py` — isolated F1/F2 trajectories
+- `docs/theory/memory/protocol_h_rbd_memory.md`: parent protocol
+- `jaxfne/emitters.py`: `simulate_edge_recurrent_izhikevich_rbd`, HDP `H_boost_gain`
+- `tests/test_protocol_h_rbd_h1.py`: H1a unit tests
+- `tests/test_protocol_h_rbd_h1_phase_portrait.py`: isolated F1/F2 trajectories

@@ -37,6 +37,19 @@ def test_every_chart_has_a_light_and_a_dark_name():
     assert light == dark
 
 
+def test_chart_hash_ignores_receipt_digests_and_follows_drawn_values():
+    mod = load_script()
+    chart = first_chart()
+    base = mod.chart_hash(chart)
+    with_digest = json.loads(json.dumps(chart))
+    assert "test_receipt" not in with_digest, "fixture key must be new"
+    with_digest["test_receipt"] = [{"path": "x.json", "sha256": "0" * 64}]
+    without_digest = json.loads(json.dumps(with_digest))
+    del without_digest["test_receipt"][0]["sha256"]
+    assert mod.chart_hash(with_digest) == mod.chart_hash(without_digest)
+    assert mod.chart_hash(without_digest) != base, "fixture must change a drawn value"
+
+
 def test_a_dark_draw_does_not_restyle_the_next_light_draw(tmp_path):
     mod = load_script()
     chart = first_chart()

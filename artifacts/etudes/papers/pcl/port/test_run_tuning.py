@@ -14,6 +14,7 @@ import copy
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 
@@ -246,8 +247,6 @@ def test_core_matches_numba_all_modes():
         nb.run_numba(nbn, t, x, y, p)
         sc = np.array([len(c.spikes) for c in nbn.s_cells], dtype=np.int32)
         cc = np.array([len(c.spikes) for c in nbn.c_cells], dtype=np.int32)
-        assert sc.max() <= 1 and cc.max() <= 1, (
-            f"{mode}: fixture must stay single-spike (scan returns first-spike times only)")
         es_t, es_o = rt._gather(nbn.s_cells)
         ec_t, ec_o = rt._gather(nbn.c_cells)
         got = rt.run_core_events(net, t, x, y, p)
@@ -271,7 +270,8 @@ def test_core_lif_params_follow_network_config():
     assert complex_["delta_sra_mV"] == 0.0
 
 
-def test_core_multispike_refused():
+def test_core_multispike_matches_numba():
+    """A file in which cells spike twice replays exactly: counts, per-spike times and cells."""
     net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
     n = 2000
     t = (np.arange(n, dtype=np.int64) + 1) * 20
@@ -282,12 +282,18 @@ def test_core_multispike_refused():
     nb.run_numba(nbn, t, x, y, p)
     s_max = max(len(c.spikes) for c in nbn.s_cells)
     assert s_max == 2, f"fixture must multi-spike, got max {s_max}"
-    try:
-        rt.run_core_events(net, t, x, y, p)
-    except NotImplementedError as exc:
-        assert "twice" in str(exc)
-    else:
-        raise AssertionError("a multi-spike file must be refused, never approximated")
+    sc = np.array([len(c.spikes) for c in nbn.s_cells], dtype=np.int32)
+    cc = np.array([len(c.spikes) for c in nbn.c_cells], dtype=np.int32)
+    es_t, es_o = rt._gather(nbn.s_cells)
+    ec_t, ec_o = rt._gather(nbn.c_cells)
+    got = rt.run_core_events(net, t, x, y, p)
+    assert np.array_equal(got["simple_counts"], sc)
+    assert np.array_equal(got["complex_counts"], cc)
+    assert np.array_equal(got["simple_times_us"], es_t)
+    assert np.array_equal(got["simple_times_cell"], es_o)
+    assert np.array_equal(got["complex_times_us"], ec_t)
+    assert np.array_equal(got["complex_times_cell"], ec_o)
+    assert int(got["n_events"]) == n
 
 
 def test_core_unsorted_and_empty_refused():
@@ -308,19 +314,421 @@ def test_core_unsorted_and_empty_refused():
         raise AssertionError("an empty slice must be refused")
 
 
-def test_core_past_interval_refused():
+def test_core_interval_update_matches_numba():
+    """The periodic rate and threshold update replays exactly across three intervals.
+
+    Four 100-event bursts (20 us apart) start 120 ms apart, so the feed spans more than
+    three 100 ms measurement intervals and each burst after the first starts past the
+    interval since the last update. The default config carries ETA_TA 0, which never
+    moves a threshold, so this network's simple eta is set to 2 mV. Counts, per-spike
+    times and cells, and the final thresholds and rates must equal the numba run exactly.
+    """
     net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
-    dt = int(net.measurement_interval)
-    t = np.array([dt + 1], dtype=np.int64)
-    x = np.array([170], dtype=np.int64)
-    y = np.array([130], dtype=np.int64)
-    p = np.array([0], dtype=np.int64)
-    try:
-        rt.run_core_events(net, t, x, y, p)
-    except NotImplementedError as exc:
-        assert "measurement interval" in str(exc)
-    else:
-        raise AssertionError("events past the measurement interval must be refused")
+    net.scfg.ETA_SR = 2.0
+    mi = int(net.measurement_interval)
+    t = np.concatenate([k * 120000 + 1000 + np.arange(100, dtype=np.int64) * 20
+                        for k in range(4)])
+    x = np.full(t.shape[0], 170, dtype=np.int64)
+    y = np.full(t.shape[0], 130, dtype=np.int64)
+    p = np.zeros(t.shape[0], dtype=np.int64)
+    assert int(t[-1]) - int(t[0]) >= 3 * mi, "fixture must span three measurement intervals"
+    nbn = copy.deepcopy(net)
+    thr0 = np.array([c.thr for c in nbn.s_cells + nbn.c_cells])
+    nb.run_numba(nbn, t, x, y, p)
+    assert sum(len(c.spikes) for c in nbn.s_cells) > 0, "fixture must spike"
+    thr_nb = np.array([c.thr for c in nbn.s_cells + nbn.c_cells])
+    rate_nb = np.array([c.rate for c in nbn.s_cells + nbn.c_cells])
+    assert bool(np.any(thr_nb != thr0)), "fixture must move a threshold"
+    sc = np.array([len(c.spikes) for c in nbn.s_cells], dtype=np.int32)
+    cc = np.array([len(c.spikes) for c in nbn.c_cells], dtype=np.int32)
+    es_t, es_o = rt._gather(nbn.s_cells)
+    ec_t, ec_o = rt._gather(nbn.c_cells)
+    got = rt.run_core_events(net, t, x, y, p)
+    assert np.array_equal(got["simple_counts"], sc)
+    assert np.array_equal(got["complex_counts"], cc)
+    assert np.array_equal(got["simple_times_us"], es_t)
+    assert np.array_equal(got["simple_times_cell"], es_o)
+    assert np.array_equal(got["complex_times_us"], ec_t)
+    assert np.array_equal(got["complex_times_cell"], ec_o)
+    assert np.array_equal(got["final_threshold_mV"], thr_nb)
+    assert np.array_equal(got["final_rate_hz"], rate_nb)
+    assert int(got["n_events"]) == t.shape[0]
+
+
+def _check_simple_stdp_against_oracle(cap, monkeypatch, *, min_buffered):
+    """Simple excitatory buffer STDP replays the pure-Python oracle exactly.
+
+    Lateral and top-down are off and the complex population does not learn. The
+    2000-event multi-spike fixture of test_core_multispike_matches_numba runs through
+    the oracle (learning on) and through run_core_events(learning=True). Spike counts,
+    times and cells must be equal; the final w_s and wi_s agree at rtol 1e-12. With
+    ``cap`` below the oracle's default the deques drop entries, so the test checks that
+    some cell received more than ``min_buffered`` events between two of its spikes.
+    """
+    monkeypatch.setattr(ref, "CAP", cap)
+    net = ref.PCLEventRef(seed=0, learning=True, layer_inhibitions=[["local"], ["local"]])
+    net.ccfg.STDP_LEARNING = "off"
+    w_init = net.w_s.copy()
+    wi_init = net.wi_s.copy()
+    n = 2000
+    t = (np.arange(n, dtype=np.int64) + 1) * 20
+    x = np.full(n, 170, dtype=np.int64)
+    y = np.full(n, 130, dtype=np.int64)
+    p = np.zeros(n, dtype=np.int64)
+    oracle = copy.deepcopy(net)
+    oracle.run(t, x, y, p)
+    s_max = max(len(c.spikes) for c in oracle.s_cells)
+    assert s_max >= 2, f"fixture must multi-spike, got max {s_max}"
+    assert not np.array_equal(oracle.w_s, w_init), "fixture must move w_s"
+    assert not np.array_equal(oracle.wi_s, wi_init), "fixture must move wi_s"
+    buffered = 0
+    for cell in oracle.s_cells:
+        for s0, s1 in zip(cell.spikes[:-1], cell.spikes[1:]):
+            buffered = max(buffered, int(np.sum((t > s0) & (t <= s1))))
+    assert buffered > min_buffered, f"fixture must buffer more than {min_buffered} events, got {buffered}"
+    sc = np.array([len(c.spikes) for c in oracle.s_cells], dtype=np.int32)
+    cc = np.array([len(c.spikes) for c in oracle.c_cells], dtype=np.int32)
+    es_t, es_o = rt._gather(oracle.s_cells)
+    ec_t, ec_o = rt._gather(oracle.c_cells)
+    got = rt.run_core_events(net, t, x, y, p, learning=True)
+    assert np.array_equal(got["simple_counts"], sc)
+    assert np.array_equal(got["complex_counts"], cc)
+    assert np.array_equal(got["simple_times_us"], es_t)
+    assert np.array_equal(got["simple_times_cell"], es_o)
+    assert np.array_equal(got["complex_times_us"], ec_t)
+    assert np.array_equal(got["complex_times_cell"], ec_o)
+    np.testing.assert_allclose(got["w_s"], oracle.w_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["wi_s"], oracle.wi_s, rtol=1e-12, atol=0)
+
+
+def test_core_simple_stdp_matches_oracle(monkeypatch):
+    _check_simple_stdp_against_oracle(1000, monkeypatch, min_buffered=0)
+
+
+def test_core_simple_stdp_matches_oracle_cap3(monkeypatch):
+    _check_simple_stdp_against_oracle(3, monkeypatch, min_buffered=3)
+
+
+def test_core_inhibitory_simple_mode_matches_oracle(monkeypatch):
+    """Simple mode "inhibitory" with lateral and top-down off changes no matrix.
+
+    The oracle's simple update sits in its excitatory/all gate (pcl_event_ref.py:548-574),
+    and its inhibitory gate (:575) does nothing with lateral and top-down off. So the
+    oracle's w_s and wi_s stay at their initial values, and the replay with learning=True
+    must match the oracle's spikes exactly and its final matrices exactly. Same
+    2000-event multi-spike fixture as the excitatory test.
+    """
+    monkeypatch.setattr(ref, "CAP", 1000)
+    net = ref.PCLEventRef(seed=0, learning=True, layer_inhibitions=[["local"], ["local"]])
+    net.ccfg.STDP_LEARNING = "off"
+    net.scfg.STDP_LEARNING = "inhibitory"
+    w_init = net.w_s.copy()
+    wi_init = net.wi_s.copy()
+    n = 2000
+    t = (np.arange(n, dtype=np.int64) + 1) * 20
+    x = np.full(n, 170, dtype=np.int64)
+    y = np.full(n, 130, dtype=np.int64)
+    p = np.zeros(n, dtype=np.int64)
+    oracle = copy.deepcopy(net)
+    oracle.run(t, x, y, p)
+    s_max = max(len(c.spikes) for c in oracle.s_cells)
+    assert s_max >= 2, f"fixture must multi-spike, got max {s_max}"
+    assert np.array_equal(oracle.w_s, w_init), "inhibitory mode must not move w_s"
+    assert np.array_equal(oracle.wi_s, wi_init), "inhibitory mode must not move wi_s"
+    sc = np.array([len(c.spikes) for c in oracle.s_cells], dtype=np.int32)
+    cc = np.array([len(c.spikes) for c in oracle.c_cells], dtype=np.int32)
+    es_t, es_o = rt._gather(oracle.s_cells)
+    ec_t, ec_o = rt._gather(oracle.c_cells)
+    got = rt.run_core_events(net, t, x, y, p, learning=True)
+    assert np.array_equal(got["simple_counts"], sc)
+    assert np.array_equal(got["complex_counts"], cc)
+    assert np.array_equal(got["simple_times_us"], es_t)
+    assert np.array_equal(got["simple_times_cell"], es_o)
+    assert np.array_equal(got["complex_times_us"], ec_t)
+    assert np.array_equal(got["complex_times_cell"], ec_o)
+    assert np.array_equal(got["w_s"], oracle.w_s)
+    assert np.array_equal(got["wi_s"], oracle.wi_s)
+
+
+def _spikes_between(spike_lists, s0, s1):
+    """Spikes of the listed cells strictly between two times (a buffer's possible entries)."""
+    total = 0
+    for sp in spike_lists:
+        arr = np.asarray(sp, dtype=np.int64)
+        total += int(np.sum((arr > s0) & (arr < s1)))
+    return total
+
+
+def _check_inhibitory_simple_against_oracle(cap, monkeypatch, *, min_buffered):
+    """Simple "all" with lateral and top-down on replays the oracle's inhibitory update exactly.
+
+    The complex population learns excitatory only. The 2000-event multi-spike fixture runs
+    through the oracle (learning on) and through run_core_events(learning=True). Spikes must
+    be equal; w_s, wi_s, w_c, wi_c, lat_w and td_w agree at rtol 1e-12. lat_w and td_w are in
+    the scan's layout: lat_w[n, j] = LAT[lat_idx[n, j], n] and td_w[c, j] = TD[td_idx[c, j], c].
+    Preconditions: LAT and TD move; some simple cell gets lateral and top-down entries in one
+    interval between two of its spikes; with ``cap`` below the default, some cell receives more
+    than ``min_buffered`` entries of one kind between two of its spikes (so the cap drops some).
+    """
+    monkeypatch.setattr(ref, "CAP", cap)
+    net = ref.PCLEventRef(seed=0, learning=True,
+                          layer_inhibitions=[["local", "lateral"], ["local", "topdown"]])
+    net.ccfg.STDP_LEARNING = "excitatory"
+    net.scfg.STDP_LEARNING = "all"
+    assert net.lat_on and net.td_on, "fixture must carry lateral and top-down"
+    w_init = net.w_s.copy()
+    lat_init = net.LAT.copy()
+    td_init = net.TD.copy()
+    n = 2000
+    t = (np.arange(n, dtype=np.int64) + 1) * 20
+    x = np.full(n, 170, dtype=np.int64)
+    y = np.full(n, 130, dtype=np.int64)
+    p = np.zeros(n, dtype=np.int64)
+    oracle = copy.deepcopy(net)
+    oracle.run(t, x, y, p)
+    s_max = max(len(c.spikes) for c in oracle.s_cells)
+    assert s_max >= 2, f"fixture must multi-spike, got max {s_max}"
+    assert not np.array_equal(oracle.w_s, w_init), "fixture must move w_s"
+    assert not np.array_equal(oracle.LAT, lat_init), "fixture must move LAT"
+    assert not np.array_equal(oracle.TD, td_init), "fixture must move TD"
+    lat_max = 0
+    td_max = 0
+    both = False
+    for m, cell in enumerate(oracle.s_cells):
+        lat_src = [oracle.s_cells[int(q)].spikes for q in np.flatnonzero(oracle.lat_mask[:, m])]
+        td_src = [oracle.c_cells[int(c)].spikes for c in np.flatnonzero(oracle.td_mask[m, :])]
+        for s0, s1 in zip(cell.spikes[:-1], cell.spikes[1:]):
+            n_lat = _spikes_between(lat_src, s0, s1)
+            n_td = _spikes_between(td_src, s0, s1)
+            lat_max = max(lat_max, n_lat)
+            td_max = max(td_max, n_td)
+            both = both or (n_lat > 0 and n_td > 0)
+    assert both, "fixture must give a simple cell lateral and top-down entries before a spike"
+    assert max(lat_max, td_max) > min_buffered, (
+        f"fixture must buffer more than {min_buffered} entries of one kind, "
+        f"got lateral {lat_max}, top-down {td_max}")
+    sc = np.array([len(c.spikes) for c in oracle.s_cells], dtype=np.int32)
+    cc = np.array([len(c.spikes) for c in oracle.c_cells], dtype=np.int32)
+    es_t, es_o = rt._gather(oracle.s_cells)
+    ec_t, ec_o = rt._gather(oracle.c_cells)
+    got = rt.run_core_events(net, t, x, y, p, learning=True)
+    assert np.array_equal(got["simple_counts"], sc)
+    assert np.array_equal(got["complex_counts"], cc)
+    assert np.array_equal(got["simple_times_us"], es_t)
+    assert np.array_equal(got["simple_times_cell"], es_o)
+    assert np.array_equal(got["complex_times_us"], ec_t)
+    assert np.array_equal(got["complex_times_cell"], ec_o)
+    np.testing.assert_allclose(got["w_s"], oracle.w_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["wi_s"], oracle.wi_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["w_c"], oracle.w_c, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["wi_c"], oracle.wi_c, rtol=1e-12, atol=0)
+    tables = rt._core_tables(net)[0]
+    lat_idx, lat_n = tables["lat_idx"], tables["lat_n"]
+    td_idx, td_n = tables["td_idx"], tables["td_n"]
+    lat_ok = np.arange(lat_idx.shape[1])[None, :] < lat_n[:, None]
+    td_ok = np.arange(td_idx.shape[1])[None, :] < td_n[:, None]
+    lat_want = np.where(lat_ok, oracle.LAT[lat_idx, np.arange(lat_idx.shape[0])[:, None]], 0.0)
+    td_want = np.where(td_ok, oracle.TD[td_idx, np.arange(td_idx.shape[0])[:, None]], 0.0)
+    np.testing.assert_allclose(np.asarray(got["lat_w"])[lat_ok], lat_want[lat_ok],
+                               rtol=1e-12, atol=0)
+    np.testing.assert_allclose(np.asarray(got["td_w"])[td_ok], td_want[td_ok],
+                               rtol=1e-12, atol=0)
+
+
+def test_core_inhibitory_lateral_topdown_matches_oracle(monkeypatch):
+    _check_inhibitory_simple_against_oracle(1000, monkeypatch, min_buffered=0)
+
+
+def test_core_inhibitory_lateral_topdown_matches_oracle_cap3(monkeypatch):
+    _check_inhibitory_simple_against_oracle(3, monkeypatch, min_buffered=3)
+
+
+def _complex_buffered_forwards(oracle):
+    """Largest number of buffered complex events at a complex spike, counted from the spike logs.
+
+    A complex cell's ``ev`` deque gains one entry per simple spike whose covering complex
+    positions include the cell's position (oracle :708-720), and it clears at each complex
+    spike. The entries between two spikes s0 < s1 are the simple spikes in (s0, s1] whose
+    cover holds the cell's position (the entry of the spike at s1 is appended before its excite).
+    """
+    fwd = []  # (time, complex positions covering that simple position)
+    for n, cell in enumerate(oracle.s_cells):
+        pos = n // oracle.ND
+        cover = set(oracle.c_cover[(pos // oracle.NY, pos % oracle.NY)])
+        fwd.extend((ts, cover) for ts in cell.spikes)
+    best = 0
+    for c, cell in enumerate(oracle.c_cells):
+        cp = c // oracle.CD
+        where = (cp // oracle.CY, cp % oracle.CY)
+        for s0, s1 in zip(cell.spikes[:-1], cell.spikes[1:]):
+            best = max(best, sum(1 for ts, cov in fwd if s0 < ts <= s1 and where in cov))
+    return best
+
+
+def _check_complex_stdp_against_oracle(cap, monkeypatch, *, min_buffered):
+    """Complex excitatory buffer STDP replays the pure-Python oracle exactly.
+
+    The complex population learns in mode "excitatory" (ComplexNeuron::weightUpdate,
+    pcl_event_ref.py:608-646); the simple population learns as in the simple test, and lateral
+    and top-down are off. The 2000-event multi-spike fixture runs through the oracle and through
+    run_core_events(learning=True). Spike counts, times and cells must be equal; the final w_s,
+    wi_s, w_c and wi_c agree at rtol 1e-12. With ``cap`` below the oracle's default the complex
+    deques drop entries, so the test checks that some complex cell had more than ``min_buffered``
+    buffered events at one of its spikes.
+    """
+    monkeypatch.setattr(ref, "CAP", cap)
+    net = ref.PCLEventRef(seed=0, learning=True, layer_inhibitions=[["local"], ["local"]])
+    net.ccfg.STDP_LEARNING = "excitatory"
+    wc_init = net.w_c.copy()
+    wic_init = net.wi_c.copy()
+    n = 2000
+    t = (np.arange(n, dtype=np.int64) + 1) * 20
+    x = np.full(n, 170, dtype=np.int64)
+    y = np.full(n, 130, dtype=np.int64)
+    p = np.zeros(n, dtype=np.int64)
+    oracle = copy.deepcopy(net)
+    oracle.run(t, x, y, p)
+    c_max = max(len(c.spikes) for c in oracle.c_cells)
+    assert c_max >= 2, f"fixture must complex-spike twice, got max {c_max}"
+    assert not np.array_equal(oracle.w_c, wc_init), "fixture must move w_c"
+    buffered = _complex_buffered_forwards(oracle)
+    assert buffered > min_buffered, f"fixture must buffer more than {min_buffered} events, got {buffered}"
+    sc = np.array([len(c.spikes) for c in oracle.s_cells], dtype=np.int32)
+    cc = np.array([len(c.spikes) for c in oracle.c_cells], dtype=np.int32)
+    es_t, es_o = rt._gather(oracle.s_cells)
+    ec_t, ec_o = rt._gather(oracle.c_cells)
+    got = rt.run_core_events(net, t, x, y, p, learning=True)
+    assert np.array_equal(got["simple_counts"], sc)
+    assert np.array_equal(got["complex_counts"], cc)
+    assert np.array_equal(got["simple_times_us"], es_t)
+    assert np.array_equal(got["simple_times_cell"], es_o)
+    assert np.array_equal(got["complex_times_us"], ec_t)
+    assert np.array_equal(got["complex_times_cell"], ec_o)
+    np.testing.assert_allclose(got["w_s"], oracle.w_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["wi_s"], oracle.wi_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["w_c"], oracle.w_c, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["wi_c"], oracle.wi_c, rtol=1e-12, atol=0)
+
+
+def test_core_complex_stdp_matches_oracle(monkeypatch):
+    _check_complex_stdp_against_oracle(1000, monkeypatch, min_buffered=0)
+
+
+def test_core_complex_stdp_matches_oracle_cap3(monkeypatch):
+    _check_complex_stdp_against_oracle(3, monkeypatch, min_buffered=3)
+
+
+def test_core_complex_stdp_interval_matches_oracle(monkeypatch):
+    """Complex excitatory STDP with the periodic update: thresholds and rates agree.
+
+    The four-burst feed of test_core_interval_update_matches_numba (ETA_SR 2 mV, measurement
+    interval 100 ms) runs with complex excitatory learning. Step 1 of the complex update resets
+    each complex cell's counter at its spike (pcl_event_ref.py:140), so the periodic rate and
+    threshold see only the spikes since that reset. Spike counts, times and cells must be equal,
+    the final w_c and wi_c agree at rtol 1e-12, and the final thresholds and rates agree at
+    rtol 1e-12. The fixture must move a threshold and a rate, and a complex cell must spike twice.
+    """
+    monkeypatch.setattr(ref, "CAP", 1000)
+    net = ref.PCLEventRef(seed=0, learning=True, layer_inhibitions=[["local"], ["local"]])
+    net.scfg.ETA_SR = 2.0
+    net.ccfg.STDP_LEARNING = "excitatory"
+    t = np.concatenate([k * 120000 + 1000 + np.arange(100, dtype=np.int64) * 20
+                        for k in range(4)])
+    x = np.full(t.shape[0], 170, dtype=np.int64)
+    y = np.full(t.shape[0], 130, dtype=np.int64)
+    p = np.zeros(t.shape[0], dtype=np.int64)
+    wc_init = net.w_c.copy()
+    oracle = copy.deepcopy(net)
+    thr0 = np.array([c.thr for c in oracle.s_cells + oracle.c_cells])
+    oracle.run(t, x, y, p)
+    thr_or = np.array([c.thr for c in oracle.s_cells + oracle.c_cells])
+    rate_or = np.array([c.rate for c in oracle.s_cells + oracle.c_cells])
+    assert bool(np.any(thr_or != thr0)), "fixture must move a threshold"
+    assert bool(np.any(rate_or != 0.0)), "fixture must move a rate"
+    assert max(len(c.spikes) for c in oracle.c_cells) >= 2, "fixture must complex-spike twice"
+    assert not np.array_equal(oracle.w_c, wc_init), "fixture must move w_c"
+    sc = np.array([len(c.spikes) for c in oracle.s_cells], dtype=np.int32)
+    cc = np.array([len(c.spikes) for c in oracle.c_cells], dtype=np.int32)
+    es_t, es_o = rt._gather(oracle.s_cells)
+    ec_t, ec_o = rt._gather(oracle.c_cells)
+    got = rt.run_core_events(net, t, x, y, p, learning=True)
+    assert np.array_equal(got["simple_counts"], sc)
+    assert np.array_equal(got["complex_counts"], cc)
+    assert np.array_equal(got["simple_times_us"], es_t)
+    assert np.array_equal(got["simple_times_cell"], es_o)
+    assert np.array_equal(got["complex_times_us"], ec_t)
+    assert np.array_equal(got["complex_times_cell"], ec_o)
+    np.testing.assert_allclose(got["final_threshold_mV"], thr_or, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["final_rate_hz"], rate_or, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["w_s"], oracle.w_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["wi_s"], oracle.wi_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["w_c"], oracle.w_c, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["wi_c"], oracle.wi_c, rtol=1e-12, atol=0)
+
+
+def _check_complex_same_pass_against_oracle(cap, monkeypatch, *, min_pass_max):
+    """Several complex cells of one position spiking in one simple-spike pass replay exactly.
+
+    With the complex local inhibition zeroed and the complex row scaled by 20, the cells of a
+    position cross threshold on the same forward. The second cell's loc window then reads the
+    first cell's push from that pass, and at CAP 3 one pass pushes more than CAP entries to the
+    group. A recorder on the oracle counts complex spikes per (simple-spike pass, position);
+    the fixture must hold a pass with at least ``min_pass_max`` spikes at one position.
+    Spikes must be equal and the final w_c, wi_c, w_s and wi_s agree at rtol 1e-12.
+    """
+    monkeypatch.setattr(ref, "CAP", cap)
+    net = ref.PCLEventRef(seed=0, learning=True, layer_inhibitions=[["local"], ["local"]])
+    net.ccfg.STDP_LEARNING = "excitatory"
+    net.wi_c[:] = 0.0
+    net.w_c *= 20.0
+    n = 300
+    t = (np.arange(n, dtype=np.int64) + 1) * 20
+    x = np.full(n, 170, dtype=np.int64)
+    y = np.full(n, 130, dtype=np.int64)
+    p = np.zeros(n, dtype=np.int64)
+    oracle = copy.deepcopy(net)
+    per_pass = {}
+    orig_s, orig_c = oracle._on_simple_spike, oracle._on_complex_spike
+    state = {"pass": 0}
+
+    def on_simple(n_, i, j, k, t_):
+        state["pass"] += 1
+        return orig_s(n_, i, j, k, t_)
+
+    def on_complex(c, cx, cy, cz, t_):
+        key = (state["pass"], cx, cy)
+        per_pass[key] = per_pass.get(key, 0) + 1
+        return orig_c(c, cx, cy, cz, t_)
+
+    oracle._on_simple_spike = on_simple
+    oracle._on_complex_spike = on_complex
+    oracle.run(t, x, y, p)
+    most = max(per_pass.values(), default=0)
+    assert most >= min_pass_max, f"fixture must spike {min_pass_max} cells of one position in one pass, got {most}"
+    assert sum(1 for v in per_pass.values() if v >= 2) > 0, "fixture must hold a multi-spike pass"
+    sc = np.array([len(c.spikes) for c in oracle.s_cells], dtype=np.int32)
+    cc = np.array([len(c.spikes) for c in oracle.c_cells], dtype=np.int32)
+    es_t, es_o = rt._gather(oracle.s_cells)
+    ec_t, ec_o = rt._gather(oracle.c_cells)
+    got = rt.run_core_events(net, t, x, y, p, learning=True)
+    assert np.array_equal(got["simple_counts"], sc)
+    assert np.array_equal(got["complex_counts"], cc)
+    assert np.array_equal(got["simple_times_us"], es_t)
+    assert np.array_equal(got["simple_times_cell"], es_o)
+    assert np.array_equal(got["complex_times_us"], ec_t)
+    assert np.array_equal(got["complex_times_cell"], ec_o)
+    np.testing.assert_allclose(got["w_s"], oracle.w_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["wi_s"], oracle.wi_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["w_c"], oracle.w_c, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(got["wi_c"], oracle.wi_c, rtol=1e-12, atol=0)
+
+
+def test_core_complex_same_pass_matches_oracle(monkeypatch):
+    _check_complex_same_pass_against_oracle(1000, monkeypatch, min_pass_max=2)
+
+
+def test_core_complex_same_pass_matches_oracle_cap3(monkeypatch):
+    _check_complex_same_pass_against_oracle(3, monkeypatch, min_pass_max=4)
 
 
 def test_build_s1_scan_tensor_lif_partial_refused():
@@ -364,3 +772,267 @@ def test_core_smoke_z_from_tree_core():
     spk = np.asarray(out["spikes"])
     assert spk[0, 0] and not spk[0, 1]
     assert spk[1, 1], spk  # 12 mV arrival crosses threshold 10
+
+
+# ----- PCL-L4: the file-boundary chain (design study section 4) -------------------------------
+# Each file starts at its own local time 0 (the rebased clock). The continuous oracle runs the
+# same files at offsets on one clock, with the file-boundary reset applied between them; the
+# chained runs start each file at 0. Equal spikes and weights mean the reset map is the one the
+# continuous run applies.
+
+
+def _file(n, *, spacing=20):
+    """One file's camera-0 events at one pixel: n events ``spacing`` us apart, the first at 0."""
+    t = np.arange(n, dtype=np.int64) * spacing
+    x = np.full(n, 170, dtype=np.int64)
+    y = np.full(n, 130, dtype=np.int64)
+    p = np.zeros(n, dtype=np.int64)
+    return t, x, y, p
+
+
+def _chain_files():
+    return [_file(1000, spacing=20), _file(1000, spacing=25), _file(1000, spacing=20)]
+
+
+def _offsets(files, gap=1000):
+    """Continuous clock: each file starts after the one before it, plus a gap."""
+    offs, o = [], 0
+    for t, *_ in files:
+        offs.append(o)
+        o += int(t[-1]) + gap
+    return offs
+
+
+def _file_reset(net, origin):
+    """The file-boundary reset (pcl_event_scan_boundary) applied to an oracle network.
+
+    Potentials, adaptation, times, thresholds, rates and counters go to their reset values,
+    and the STDP and inhibition buffers empty. The weights stay. ``origin`` is the new file's
+    clock origin (the measurement cursor).
+    """
+    for cells, cfg in ((net.s_cells, net.scfg), (net.c_cells, net.ccfg)):
+        for cell in cells:
+            cell.V = 0.0
+            cell.A = 0.0
+            cell.tlast = 0
+            cell.t_spk = 0
+            cell.t_last_spk = 0
+            cell.thr = float(cfg.VTHRESH)
+            cell.count = 0
+            cell.rate = 0.0
+            cell.decay = 1.0
+            cell.ev.clear()
+            cell.loc.clear()
+            cell.lat.clear()
+            cell.td.clear()
+            cell.vspikes.clear()
+    net._last_update = int(origin)
+
+
+def _new_spikes(cells, before, shift):
+    """Per-cell counts and (time, cell)-sorted spikes appended since ``before``, on the file's clock."""
+    per = [[s - shift for s in cell.spikes[n0:]] for cell, n0 in zip(cells, before)]
+    counts = np.array([len(sp) for sp in per], dtype=np.int32)
+    t_sorted, c_sorted = rt._gather([SimpleNamespace(spikes=sp) for sp in per])
+    return counts, t_sorted, c_sorted
+
+
+def _oracle_chain(oracle, files, offs):
+    """The continuous oracle over the files at their offsets; per file, its new spikes and the V at its end."""
+    per, v_end = [], []
+    for k, (t, x, y, p) in enumerate(files):
+        if k:
+            _file_reset(oracle, offs[k])
+        before_s = [len(c.spikes) for c in oracle.s_cells]
+        before_c = [len(c.spikes) for c in oracle.c_cells]
+        oracle.run(t + offs[k], x, y, p)
+        s = _new_spikes(oracle.s_cells, before_s, offs[k])
+        c = _new_spikes(oracle.c_cells, before_c, offs[k])
+        per.append((s, c))
+        v_end.append(np.array([cell.V for cell in oracle.s_cells + oracle.c_cells]))
+    return per, v_end
+
+
+def _core_chain(net, files, learning, boundary):
+    """The core replay file by file, the state carried through ``boundary`` between files."""
+    state, out = None, []
+    for t, x, y, p in files:
+        got = rt.run_core_events(net, t, x, y, p, learning=learning, state=state,
+                                 boundary=(boundary if state is not None else None),
+                                 return_state=True)
+        out.append(got)
+        state = got["state"]
+    return out, state
+
+
+def _assert_file_matches(got, want, k):
+    (sc, st, sx), (cc, ct, cx) = want
+    assert np.array_equal(got["simple_counts"], sc), f"file {k} simple counts"
+    assert np.array_equal(got["complex_counts"], cc), f"file {k} complex counts"
+    assert np.array_equal(got["simple_times_us"], st), f"file {k} simple times"
+    assert np.array_equal(got["simple_times_cell"], sx), f"file {k} simple cells"
+    assert np.array_equal(got["complex_times_us"], ct), f"file {k} complex times"
+    assert np.array_equal(got["complex_times_cell"], cx), f"file {k} complex cells"
+
+
+def test_numba_continuous_with_reset_equals_chained_files():
+    """Oracle against oracle: the numba run over the files with the reset at each boundary equals
+    the numba run chained file by file (each from 0). Spike counts and times exact; W bitwise
+    (learning off, so no weight moves). Preconditions: some spike, and no spike at a file's own
+    local time 0 (the numba port reads time 0 as never spiked, so a chained run must avoid it).
+    """
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    files = _chain_files()
+    offs = _offsets(files)
+    cont = copy.deepcopy(net)
+    chained = copy.deepcopy(net)
+    total = 0
+    for k, (t, x, y, p) in enumerate(files):
+        if k:
+            _file_reset(cont, offs[k])
+        before_s = [len(c.spikes) for c in cont.s_cells]
+        before_c = [len(c.spikes) for c in cont.c_cells]
+        nb.run_numba(cont, t + offs[k], x, y, p)
+        want = (_new_spikes(cont.s_cells, before_s, offs[k]),
+                _new_spikes(cont.c_cells, before_c, offs[k]))
+        if k:
+            _file_reset(chained, 0)
+        cb_s = [len(c.spikes) for c in chained.s_cells]
+        cb_c = [len(c.spikes) for c in chained.c_cells]
+        nb.run_numba(chained, t, x, y, p)
+        got_s = _new_spikes(chained.s_cells, cb_s, 0)
+        got_c = _new_spikes(chained.c_cells, cb_c, 0)
+        assert 0 not in got_s[1].tolist() + got_c[1].tolist(), f"file {k}: a spike at local time 0"
+        total += int(want[0][0].sum()) + int(want[1][0].sum())
+        assert np.array_equal(got_s[0], want[0][0]), f"file {k} simple counts"
+        assert np.array_equal(got_s[1], want[0][1]), f"file {k} simple times"
+        assert np.array_equal(got_s[2], want[0][2]), f"file {k} simple cells"
+        assert np.array_equal(got_c[0], want[1][0]), f"file {k} complex counts"
+        assert np.array_equal(got_c[1], want[1][1]), f"file {k} complex times"
+        assert np.array_equal(got_c[2], want[1][2]), f"file {k} complex cells"
+    assert total > 0, "fixture must spike"
+    assert np.array_equal(cont.w_s, chained.w_s) and np.array_equal(cont.w_c, chained.w_c)
+
+
+def _check_core_chain_against_oracle(*, learning):
+    from jaxfne.pcl_topology import pcl_event_scan_boundary
+
+    if learning:
+        net = ref.PCLEventRef(seed=0, learning=True, layer_inhibitions=copy.deepcopy(INH))
+        net.scfg.STDP_LEARNING = "all"
+        net.ccfg.STDP_LEARNING = "excitatory"
+    else:
+        net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    files = _chain_files()
+    offs = _offsets(files)
+    oracle = copy.deepcopy(net)
+    per, _ = _oracle_chain(oracle, files, offs)
+    assert max(len(c.spikes) for c in oracle.s_cells) >= 2, "fixture must multi-spike"
+    if learning:
+        assert not np.array_equal(oracle.w_s, net.w_s), "fixture must move w_s"
+        assert not np.array_equal(oracle.LAT, net.LAT), "fixture must move LAT"
+        assert not np.array_equal(oracle.TD, net.TD), "fixture must move TD"
+    chain, state = _core_chain(net, files, learning, pcl_event_scan_boundary())
+    for k in range(len(files)):
+        _assert_file_matches(chain[k], per[k], k)
+    nd, cd = int(net.ND), int(net.CD)
+    np.testing.assert_allclose(state["WS"], oracle.w_s, rtol=1e-12, atol=0)
+    np.testing.assert_allclose(state["WC"], oracle.w_c, rtol=1e-12, atol=0)
+    if learning:
+        # WIS/WIC hold the learned matrices only under learning; without it the blocks carry them.
+        np.testing.assert_allclose(state["WIS"][:nd, :nd], oracle.wi_s, rtol=1e-12, atol=0)
+        np.testing.assert_allclose(state["WIC"][:cd, :cd], oracle.wi_c, rtol=1e-12, atol=0)
+    tables = rt._core_tables(net)[0]
+    lat_idx, lat_n = tables["lat_idx"], tables["lat_n"]
+    td_idx, td_n = tables["td_idx"], tables["td_n"]
+    lat_ok = np.arange(lat_idx.shape[1])[None, :] < lat_n[:, None]
+    td_ok = np.arange(td_idx.shape[1])[None, :] < td_n[:, None]
+    lat_want = np.where(lat_ok, oracle.LAT[lat_idx, np.arange(lat_idx.shape[0])[:, None]], 0.0)
+    td_want = np.where(td_ok, oracle.TD[td_idx, np.arange(td_idx.shape[0])[:, None]], 0.0)
+    np.testing.assert_allclose(np.asarray(state["LATW"])[lat_ok], lat_want[lat_ok],
+                               rtol=1e-12, atol=0)
+    np.testing.assert_allclose(np.asarray(state["TDW"])[td_ok], td_want[td_ok],
+                               rtol=1e-12, atol=0)
+
+
+def test_core_chain_matches_oracle_continuous_learning_off():
+    _check_core_chain_against_oracle(learning=False)
+
+
+def test_core_chain_matches_oracle_continuous_learning_on():
+    """Simple "all" with lateral and top-down, complex "excitatory": the learned state carries."""
+    _check_core_chain_against_oracle(learning=True)
+
+
+def test_core_chain_without_reset_differs_from_oracle():
+    """Negative control: carrying the whole state across a boundary (no reset) differs.
+
+    Preconditions: the potentials are nonzero at the first boundary, and the chained replay
+    of the second file differs from the continuous oracle on that file.
+    """
+    from jaxfne.emitters_lif import EVENT_SCAN_STATE_FIELDS
+    from jaxfne.pcl_topology import EventScanBoundary
+
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    files = _chain_files()
+    offs = _offsets(files)
+    oracle = copy.deepcopy(net)
+    per, v_end = _oracle_chain(oracle, files, offs)
+    assert bool(np.any(v_end[0] != 0.0)), "fixture must leave a nonzero potential at the boundary"
+    carry_all = EventScanBoundary(carry=tuple(EVENT_SCAN_STATE_FIELDS), reset=())
+    chain, _ = _core_chain(net, files, False, carry_all)
+    same = (np.array_equal(chain[1]["simple_counts"], per[1][0][0])
+            and np.array_equal(chain[1]["simple_times_us"], per[1][0][1])
+            and np.array_equal(chain[1]["complex_counts"], per[1][1][0])
+            and np.array_equal(chain[1]["complex_times_us"], per[1][1][1]))
+    assert not same, "the chain without the reset must differ from the continuous oracle"
+
+
+def test_core_two_chunks_through_state_equal_one_run():
+    """Within one file, two chunks through the state (no boundary) equal the single run bitwise."""
+    from jaxfne.emitters_lif import EVENT_SCAN_STATE_FIELDS
+
+    t, x, y, p = _file(2000)
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    whole = rt.run_core_events(net, t, x, y, p, return_state=True)
+    assert int(whole["simple_counts"].max()) >= 2, "fixture must multi-spike"
+    m = 1000
+    first = rt.run_core_events(net, t[:m], x[:m], y[:m], p[:m], t0=0, return_state=True)
+    second = rt.run_core_events(net, t[m:], x[m:], y[m:], p[m:], t0=0,
+                                state=first["state"], return_state=True)
+    # Counts are the cumulative spike counts the state carries (since its last reset), so the
+    # second chunk reports the file's totals; the spike log below is per run and is concatenated.
+    assert np.all(first["simple_counts"] <= second["simple_counts"])
+    assert np.array_equal(second["simple_counts"], whole["simple_counts"])
+    assert np.array_equal(second["complex_counts"], whole["complex_counts"])
+    for kind in ("simple", "complex"):
+        times = np.concatenate([first[f"{kind}_times_us"], second[f"{kind}_times_us"]])
+        cells = np.concatenate([first[f"{kind}_times_cell"], second[f"{kind}_times_cell"]])
+        order = np.lexsort((cells, times))
+        assert np.array_equal(times[order], whole[f"{kind}_times_us"]), kind
+        assert np.array_equal(cells[order], whole[f"{kind}_times_cell"]), kind
+    for field in EVENT_SCAN_STATE_FIELDS:
+        assert np.array_equal(np.asarray(second["state"][field]),
+                              np.asarray(whole["state"][field])), field
+
+
+def test_core_learning_chunk_without_boundary_is_refused():
+    """A learning pass must start a file: its buffers index only the covering events of one call."""
+    t, x, y, p = _file(1000)
+    net = ref.PCLEventRef(seed=0, learning=True, layer_inhibitions=copy.deepcopy(INH))
+    net.scfg.STDP_LEARNING = "all"
+    net.ccfg.STDP_LEARNING = "excitatory"
+    first = rt.run_core_events(net, t[:500], x[:500], y[:500], p[:500], learning=True,
+                               t0=0, return_state=True)
+    with pytest.raises(ValueError, match="event_scan_boundary"):
+        rt.run_core_events(net, t[500:], x[500:], y[500:], p[500:], learning=True,
+                           t0=0, state=first["state"])
+
+
+def test_core_boundary_without_state_is_refused():
+    from jaxfne.pcl_topology import pcl_event_scan_boundary
+
+    t, x, y, p = _file(10)
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    with pytest.raises(ValueError, match="needs a state"):
+        rt.run_core_events(net, t, x, y, p, boundary=pcl_event_scan_boundary())

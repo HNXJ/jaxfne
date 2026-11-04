@@ -3,7 +3,7 @@
 The ``rate`` route reuses the current-based (Izhikevich) bridge population
 and edge sampling bit-exactly, then swaps the emitter object for
 :class:`jaxfne.emitters_rate.RateNetworkParams`: same neurons, same signed
-edge list, same posed positions and velocity delays — only the executed
+edge list, same posed positions and velocity delays; only the executed
 point-neuron equations change (Wilson-Cowan-type rate dynamics,
 :func:`jaxfne.emitters_rate.simulate_rate_edge`). ``simulate()``
 dispatches on the emitter type (see ``jaxfne._model_simulate._simulate_rate``).
@@ -12,7 +12,7 @@ Per-type rate rows come from ``NeuronType.emitter_params`` (validated by
 :func:`jaxfne.emitters_rate.check_rate_params`); undeclared triples run the
 module defaults. The constant drive channel is inherited from the bridge
 (declared triple drives plus the Izhikevich defaults), matching drive
-semantics — the lane declares its input mapping in its PORT_SPEC.
+semantics: the lane declares its input mapping in its PORT_SPEC.
 ``weight_sharing`` and ``local_inhibition`` are lif-only declarations and
 are refused here by name; a bound trained W0 is refused by the caller
 (izhikevich-only, as for lif/adex).

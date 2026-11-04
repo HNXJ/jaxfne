@@ -198,7 +198,7 @@ def _compile_connection_rules(
     A rule's ``delay_ms`` (None = undeclared) is realized to ``delay_steps``
     via :func:`jaxfne.connectivity.delay_steps_from_ms` at ``dt_ms``
     (0.5.2 decision 0b); a declared delay with no known ``dt_ms`` raises
-    rather than zeroing. Rules without a delay produce zero steps —
+    rather than zeroing. Rules without a delay produce zero steps;
     exactly the pre-0.5.2 EdgeList.
 
     Returns ``(edge_list_or_None, per_rule_edge_counts)``.
@@ -237,11 +237,16 @@ def _compile_connection_rules(
                 f"connection rule {rule.get('name')!r} sampling must be 'density' "
                 f"or 'bernoulli'; got {sampling!r}"
             )
-        if rule.get("weight_std") is not None or rule.get("delay_std_ms") is not None:
+        if (
+            rule.get("weight_std") is not None
+            or rule.get("delay_std_ms") is not None
+            or rule.get("weight_range") is not None
+        ):
             raise ValueError(
                 f"connection rule {rule.get('name')!r} declares a per-edge spread "
                 f"(weight_std={rule.get('weight_std')!r}, "
-                f"delay_std_ms={rule.get('delay_std_ms')!r}) but no resolvable "
+                f"delay_std_ms={rule.get('delay_std_ms')!r}, "
+                f"weight_range={rule.get('weight_range')!r}) but no resolvable "
                 "mechanism; the sign-only fallback has no spread consumer — "
                 "declare a resolvable mechanism= so the mechanism-aware "
                 "compiler draws the spread"
@@ -405,7 +410,7 @@ def _compile_mechanism_aware_connection_rules(
     no rule produced edges), per-rule edge counts, and per-rule
     weight-sharing group lists (the compiler table's
     ``sharing_group_of_edge`` for footprint rules declaring
-    ``weight_sharing``, else None) — the groups align with each rule's
+    ``weight_sharing``, else None); the groups align with each rule's
     edges in order, for consumers (the lif route) that execute one shared
     weight per group.
 
@@ -458,17 +463,34 @@ def _compile_mechanism_aware_connection_rules(
         return None, counts, sharing
 
     edges = result.to_edge_list(dtype=dtype_name, dt_ms=dt_ms)
-    edge_rule_id = _np.asarray(result.edge_rule_id)
     pre_np = _np.asarray(edges.pre)
     raw_weight = _np.asarray(edges.weight, dtype=_np.float64)
     out_weight = raw_weight.copy()
     sign_np = _np.asarray(sign, dtype=_np.float64)
-    for ri, rule in enumerate(rules):
-        mask = edge_rule_id == ri
-        if not _np.any(mask):
-            continue
-        sgn = rule.get("sign")
-        out_weight[mask] = _apply_edge_sign_policy(sgn, raw_weight[mask], pre_np[mask], sign_np)
+    # Edges concatenate in rule order (compile appends one block per rule),
+    # so each rule owns one slice: no full-array mask scan per rule.
+    # The total guards the slice walk; a mismatch falls back to the
+    # rule-id masks (the old path) rather than misaligning.
+    lo = 0
+    use_slices = sum(counts) == int(_np.asarray(edges.pre).shape[0])
+    if use_slices:
+        for ri, rule in enumerate(rules):
+            cnt = int(counts[ri]) if ri < len(counts) else 0
+            if cnt <= 0:
+                continue
+            hi = lo + cnt
+            sgn = rule.get("sign")
+            out_weight[lo:hi] = _apply_edge_sign_policy(
+                sgn, raw_weight[lo:hi], pre_np[lo:hi], sign_np)
+            lo = hi
+    else:
+        edge_rule_id = _np.asarray(result.edge_rule_id)
+        for ri, rule in enumerate(rules):
+            mask = edge_rule_id == ri
+            if not _np.any(mask):
+                continue
+            sgn = rule.get("sign")
+            out_weight[mask] = _apply_edge_sign_policy(sgn, raw_weight[mask], pre_np[mask], sign_np)
     edges = replace(edges, weight=jnp.asarray(out_weight, dtype=jdtype))
     return edges, counts, sharing
 
@@ -667,6 +689,18 @@ def _connect_merge_emitter(emitters: "list[IzhikevichParams]", jdtype: Any) -> "
     source_cal = (
         emitters[0].source_calibration_status if len(scs) == 1 else "mixed_uncalibrated_proxy"
     )
+    vcoef = {}
+    if any(em.v_lin is not None for em in emitters):
+        from .emitters import IZH_V_CONST_STANDARD, IZH_V_LIN_STANDARD
+
+        def _cat_v(attr: str, standard: float) -> jax.Array:
+            return jnp.concatenate([
+                getattr(em, attr).astype(jdtype) if getattr(em, attr) is not None
+                else jnp.full((em.n_neurons,), standard, dtype=jdtype)
+                for em in emitters], axis=0)
+
+        vcoef = {"v_lin": _cat_v("v_lin", IZH_V_LIN_STANDARD),
+                 "v_const": _cat_v("v_const", IZH_V_CONST_STANDARD)}
     return IzhikevichParams(
         a=_cat("a"),
         b=_cat("b"),
@@ -681,6 +715,7 @@ def _connect_merge_emitter(emitters: "list[IzhikevichParams]", jdtype: Any) -> "
         labels=labels,
         layer_labels=layer_labels,
         source_calibration_status=source_cal,
+        **vcoef,
     )
 
 
@@ -927,7 +962,7 @@ def ensemble_member_seed(ensemble_seed: int, member: int, n_members: int) -> int
     alone with ``seed=ensemble_member_seed(S, m, n)`` therefore reproduces that
     member's slice of the ensemble trajectory exactly (plain edge_list path,
     no paradigm, no poisson_drive, cross-model edges zero). The derivation is
-    a sha256 domain tag — deterministic, version-stable, no JAX dependency.
+    a sha256 domain tag: deterministic, version-stable, no JAX dependency.
     """
     n = int(n_members)
     m = int(member)
@@ -997,7 +1032,7 @@ def connect(
 
     This is the model-to-model composition operator of the jaxfne grammar
     (``construct`` builds one model; ``connect`` joins several). The result is a
-    normal ``Model`` — ``simulate`` / ``tune`` / ``manifest`` / ``vis.*`` all
+    normal ``Model``: ``simulate`` / ``tune`` / ``manifest`` / ``vis.*`` all
     work on it unchanged. The merge is purely structural and stays on the sparse
     edge_list backend: each member's neurons, per-neuron emitter parameters,
     positions, and recurrence are concatenated with index offsets, and optional

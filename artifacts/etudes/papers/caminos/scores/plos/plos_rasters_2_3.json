@@ -1,0 +1,1169 @@
+{
+ "figures": {
+  "fig2_CF.png": "E:\\pytest_temp\\psr_out\\fig2_CF.png",
+  "fig3_CF.png": "E:\\pytest_temp\\psr_out\\fig3_CF.png"
+ },
+ "inputs": {
+  "meanfield_baseline.npz": "a1144aa0b112bcf95aee0befa480f4e51b02aa707cf86bb3ab568b69f05b2663",
+  "meanfield_pv_silenced_0.4.npz": "208eb0ee6d0bf3bfd48b86d339f53d8d0168f0567f6c8a97ca6936475dcfc789",
+  "meanfield_pv_silenced_0.9.npz": "36a1842c09a0eb0ebfb27cf98affc5f3a0d5111cf30031428af3944a46bfe615",
+  "meanfield_som_silenced_0.4.npz": "4d297e6238a3fcaed6875fc46873726b83a1df3eeb864b37b3e6cccb413e981e",
+  "meanfield_som_silenced_0.9.npz": "91a3f4b95aea91e1b1b17be7d3fe78f95502273fd9c26920e71c8b64d80b56d6",
+  "seed1/baseline.npz": "deb1a4e0139f69601b99fd4a50f57f7e7b8f4542fcbadfa7e6704c4376cb8f50",
+  "seed1/pv_randomized_0.4.npz": "143746d47f6015176bc918134926dd98b2cc4d19993affaab33856f28dea115b",
+  "seed1/pv_randomized_0.9.npz": "2819dd12249c81f7893e9a235f241771fde5673d560ffa6e71960f5ef57aec1d",
+  "seed1/pv_silenced_0.4.npz": "06543ec3ef4263580208392d7211854726cc0677e5665267f9ecd145713a7cf4",
+  "seed1/pv_silenced_0.9.npz": "43cb487b2f0d180df3f80c8ba4c06cdf1980d06ebf85bcb08006008ae51e8e57",
+  "seed1/som_randomized_0.4.npz": "694e5e9e1fc8af9ea1363e8f9439e331a0d2856b4987367a929e9c6b86b49734",
+  "seed1/som_randomized_0.9.npz": "aae2129979961e312c6f48071b465504205be382da16d4d0fbbd369ec0569b94",
+  "seed1/som_silenced_0.4.npz": "84e85b0e079c2f0ca2a3e6999a6790c206c1c8246fcea21da5c09adc6e5d57b4",
+  "seed1/som_silenced_0.9.npz": "b25ea880e73486e58e6d951e1a2deffc7188b821212c50b94ff16c08483de1c0",
+  "seed2/baseline.npz": "d3190fe9da4dc3f9d5d8dcc616835a882485bc3564819cd4f5dcac1f24019eb7",
+  "seed2/pv_randomized_0.4.npz": "245e87979530d4a00bd402458948d77ab36a2b2c31e4177ed855110447322083",
+  "seed2/pv_randomized_0.9.npz": "54772ffed5060f5caaa2488c17f015b86034c49398118c85bb92ae30bdc46a25",
+  "seed2/pv_silenced_0.4.npz": "14e974a0b9681ab97583d64e641febe7a63d2fada32d6ed10ec036dce3a00b7c",
+  "seed2/pv_silenced_0.9.npz": "1f66504d364fe213b3bb74efe072372c1b71de164bcf2bc35fbb5b41dee282cf",
+  "seed2/som_randomized_0.4.npz": "2778e690c821f46c03b18fa4e1a7973fa9b81771bcd99cd5e4d433b5cb99efe3",
+  "seed2/som_randomized_0.9.npz": "3fc160c3f532e314a73d2a0f729431336f6efb5e9ad1eb15dd17d362563db7cc",
+  "seed2/som_silenced_0.4.npz": "04d651bfd2924823bf84b95cdf80e261d1b81598d6deeef4e80317483ce05a04",
+  "seed2/som_silenced_0.9.npz": "35dd53cc7d6504461432d668d1d37227ea0bddd1e0cd93c78197eb352aedef23",
+  "seed3/baseline.npz": "6054617dfb5d7498fb9c03ef5f76b461f36156fd3e6a6b8bec6c78f2061837d4",
+  "seed3/pv_randomized_0.4.npz": "a81708e920372df45fc5eb51f96254c877e40f78159a8065bef48bc2a95b4ff6",
+  "seed3/pv_randomized_0.9.npz": "2df3e80f9f85c00f0b90bd47923daa093269bb08c5a01d846119b8d0b24a2283",
+  "seed3/pv_silenced_0.4.npz": "eddbd7c2d2fb9d6429cdd8b4aa4023c1d79e95ec9dffb56b4e75b3dcfc5e6b5d",
+  "seed3/pv_silenced_0.9.npz": "a63497162ab8c3c4f8201ad19d5d0a2fb1d0075c4fe7c4a29df80d64809b5c7f",
+  "seed3/som_randomized_0.4.npz": "5a8119e03b5a80c468c150883fd7dac24345751662968bc1e39166788fa899ca",
+  "seed3/som_randomized_0.9.npz": "b2c084a8611475581927a4e3357ad64408ba2a114e27db8a5c6fc59d361dd842",
+  "seed3/som_silenced_0.4.npz": "fa0e92fdc1029db7ee580ec36996ac5c0fe05c193003bb39144776ecfaf81c11",
+  "seed3/som_silenced_0.9.npz": "1e9793ab107bb8d0d4ea264982d03ff5cee6f1b5f67ba9511899745a125b84c5"
+ },
+ "manifest_sha256": "800ede5f19fc61d1cc9b6a8f825337afbc4155f76f09753b1431d282c9712eb5",
+ "meanfield": {
+  "baseline": {
+   "e_amplitude": 1.1865497374573422,
+   "e_cv": 0.26039428979509727,
+   "f_hz": 34.0,
+   "mean_rate_hz": {
+    "E": 1.55244329346602,
+    "PV": 8.744432468719966,
+    "SOM": 7.9866221966658255
+   }
+  },
+  "pv_silenced_0.4": {
+   "e_amplitude": 5.666137148950078,
+   "e_cv": 0.5845495293838787,
+   "f_hz": 20.0,
+   "mean_rate_hz": {
+    "E": 3.014466262830737,
+    "PV": 13.644318207021746,
+    "SOM": 19.384348152944174
+   }
+  },
+  "pv_silenced_0.9": {
+   "e_amplitude": 52.48502545323862,
+   "e_cv": 1.2167384955599514,
+   "f_hz": 10.0,
+   "mean_rate_hz": {
+    "E": 13.034475528390933,
+    "PV": 28.05431059782254,
+    "SOM": 71.47762021364989
+   }
+  },
+  "som_silenced_0.4": {
+   "e_amplitude": 0.46074092427672575,
+   "e_cv": 0.09558195732150597,
+   "f_hz": 38.0,
+   "mean_rate_hz": {
+    "E": 1.6938366313085766,
+    "PV": 11.011909532120681,
+    "SOM": 7.633737943595617
+   }
+  },
+  "som_silenced_0.9": {
+   "e_amplitude": 4.440892098500626e-16,
+   "e_cv": 8.588205455433894e-17,
+   "f_hz": 64.0,
+   "mean_rate_hz": {
+    "E": 2.1693225439684385,
+    "PV": 14.949878655938832,
+    "SOM": 9.211870601076019
+   }
+  }
+ },
+ "panels": {
+  "2C": {
+   "condition": "pv_silenced_0.4",
+   "criteria": [
+    {
+     "name": "network mean rate within 20% of mean field, per population",
+     "pass": false,
+     "threshold": 0.2,
+     "values": {
+      "E": {
+       "meanfield_hz": 3.014466262830737,
+       "network_hz": 2.0369166666666665,
+       "pass": false,
+       "rel_err": 0.32428612926193495
+      },
+      "PV": {
+       "meanfield_hz": 13.644318207021746,
+       "network_hz": 21.09333333333333,
+       "pass": false,
+       "rel_err": 0.5459426417128057
+      },
+      "SOM": {
+       "meanfield_hz": 19.384348152944174,
+       "network_hz": 13.957333333333333,
+       "pass": false,
+       "rel_err": 0.27996890980244615
+      }
+     }
+    },
+    {
+     "name": "network f within 10% of mean-field f",
+     "pass": false,
+     "threshold": 0.1,
+     "values": {
+      "meanfield_f_hz": 20.0,
+      "network_f_hz": 26.666666666666668,
+      "rel_err": 0.33333333333333337
+     }
+    }
+   ],
+   "verdict": "fail"
+  },
+  "2D": {
+   "condition": "som_silenced_0.4",
+   "criteria": [
+    {
+     "name": "band power ratio below 1 and above 0.10",
+     "pass": false,
+     "threshold": {
+      "lower": 0.1,
+      "upper": 1.0
+     },
+     "values": {
+      "band_ratio": 1.17784581363267
+     }
+    },
+    {
+     "name": "mean-field E amplitude below mean-field baseline",
+     "pass": true,
+     "threshold": "below baseline",
+     "values": {
+      "meanfield_baseline_e_amplitude": 1.1865497374573422,
+      "meanfield_e_amplitude": 0.46074092427672575
+     }
+    }
+   ],
+   "verdict": "partial"
+  },
+  "2E": {
+   "condition": "pv_silenced_0.9",
+   "criteria": [
+    {
+     "name": "network E at 10x baseline",
+     "pass": true,
+     "threshold": {
+      "network_e_ratio_min": 10
+     },
+     "values": {
+      "network_e_ratio": 18.180687920099572
+     }
+    },
+    {
+     "name": "mean-field E fixed point at 100+ Hz",
+     "pass": false,
+     "threshold": {
+      "mf_e_cv_max": 0.05,
+      "mf_e_mean_min_hz": 100
+     },
+     "values": {
+      "mf_e_cv": 1.2167384955599514,
+      "mf_e_mean_hz": 13.034475528390933
+     }
+    }
+   ],
+   "verdict": "partial"
+  },
+  "2F": {
+   "condition": "som_silenced_0.9",
+   "criteria": [
+    {
+     "name": "band power ratio below 1",
+     "pass": true,
+     "threshold": {
+      "upper": 1.0
+     },
+     "values": {
+      "band_ratio": 0.9960871529882548
+     }
+    },
+    {
+     "name": "mean-field E amplitude below mean-field baseline",
+     "pass": true,
+     "threshold": "below baseline",
+     "values": {
+      "meanfield_baseline_e_amplitude": 1.1865497374573422,
+      "meanfield_e_amplitude": 4.440892098500626e-16
+     }
+    }
+   ],
+   "verdict": "pass"
+  },
+  "3C": {
+   "condition": "pv_randomized_0.4",
+   "criteria": [
+    {
+     "name": "f_pk and band power move the same way as pv_silenced_0.4",
+     "pass": true,
+     "threshold": "equal directions",
+     "values": {
+      "band_power": {
+       "direction": -1,
+       "ratio": 0.488426932650693,
+       "reference_direction": -1,
+       "reference_ratio": 0.8717504756190771
+      },
+      "f_pk": {
+       "direction": -1,
+       "ratio": 0.6953505965610557,
+       "reference_direction": -1,
+       "reference_ratio": 0.793138972221494
+      }
+     }
+    }
+   ],
+   "verdict": "pass"
+  },
+  "3D": {
+   "condition": "som_randomized_0.4",
+   "criteria": [
+    {
+     "name": "f_pk and band power move the same way as som_silenced_0.4",
+     "pass": true,
+     "threshold": "equal directions",
+     "values": {
+      "band_power": {
+       "direction": 1,
+       "ratio": 1.2051918478614156,
+       "reference_direction": 1,
+       "reference_ratio": 1.17784581363267
+      },
+      "f_pk": {
+       "direction": 1,
+       "ratio": 1.011792741048515,
+       "reference_direction": 1,
+       "reference_ratio": 1.0939310748446227
+      }
+     }
+    }
+   ],
+   "verdict": "pass"
+  },
+  "3E": {
+   "condition": "pv_randomized_0.9",
+   "criteria": [
+    {
+     "name": "f_pk and band power move the same way as pv_silenced_0.9",
+     "pass": true,
+     "threshold": "equal directions",
+     "values": {
+      "band_power": {
+       "direction": -1,
+       "ratio": 0.273171028040707,
+       "reference_direction": -1,
+       "reference_ratio": 0.1488758704335813
+      },
+      "f_pk": {
+       "direction": -1,
+       "ratio": 0.3032892801537011,
+       "reference_direction": -1,
+       "reference_ratio": 0.14848042297706868
+      }
+     }
+    },
+    {
+     "name": "network E at 10x baseline (2E network bar)",
+     "pass": false,
+     "threshold": {
+      "network_e_ratio_min": 10
+     },
+     "values": {
+      "network_e_ratio": 8.126510165088199
+     }
+    }
+   ],
+   "verdict": "partial"
+  },
+  "3F": {
+   "condition": "som_randomized_0.9",
+   "criteria": [
+    {
+     "name": "f_pk and band power move the same way as som_silenced_0.9",
+     "pass": false,
+     "threshold": "equal directions",
+     "values": {
+      "band_power": {
+       "direction": 1,
+       "ratio": 1.265149171887604,
+       "reference_direction": -1,
+       "reference_ratio": 0.9960871529882548
+      },
+      "f_pk": {
+       "direction": 1,
+       "ratio": 1.0495894390967857,
+       "reference_direction": 1,
+       "reference_ratio": 1.2607344607044555
+      }
+     }
+    }
+   ],
+   "verdict": "fail"
+  }
+ },
+ "per_seed": {
+  "1": {
+   "baseline": {
+    "band_power_25_45": 27354366.851231173,
+    "band_ratio": 1.0,
+    "e_amplitude": 6.625,
+    "e_rate_ratio": 1.0,
+    "f_hz": 30.0,
+    "f_pk_hz": 33.4,
+    "f_pk_ratio": 1.0,
+    "max_e_rate_hz": 7.759809013951351,
+    "mean_rate_hz": {
+     "E": 1.14375,
+     "PV": 11.570666666666668,
+     "SOM": 6.573333333333334
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.14375,
+     "PV": 11.570666666666668,
+     "SOM": 6.573333333333334
+    }
+   },
+   "pv_randomized_0.4": {
+    "band_power_25_45": 11533021.144142808,
+    "band_ratio": 0.4216153569507213,
+    "e_amplitude": 16.625,
+    "e_rate_ratio": 1.4974863387978141,
+    "f_hz": 24.0,
+    "f_pk_hz": 23.400000000000002,
+    "f_pk_ratio": 0.7005988023952097,
+    "max_e_rate_hz": 20.209707195587455,
+    "mean_rate_hz": {
+     "E": 1.71275,
+     "PV": 14.08,
+     "SOM": 14.594666666666669
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.71275,
+     "PV": 14.08,
+     "SOM": 14.594666666666669
+    }
+   },
+   "pv_randomized_0.9": {
+    "band_power_25_45": 7874087.043345547,
+    "band_ratio": 0.2878548454866229,
+    "e_amplitude": 505.625,
+    "e_rate_ratio": 11.3127868852459,
+    "f_hz": 8.0,
+    "f_pk_hz": 10.100000000000001,
+    "f_pk_ratio": 0.3023952095808384,
+    "max_e_rate_hz": 312.2902003423196,
+    "mean_rate_hz": {
+     "E": 12.939,
+     "PV": 13.048,
+     "SOM": 20.077333333333332
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 12.939,
+     "PV": 13.048,
+     "SOM": 20.077333333333332
+    }
+   },
+   "pv_silenced_0.4": {
+    "band_power_25_45": 25166855.970080957,
+    "band_ratio": 0.9200306520327389,
+    "e_amplitude": 31.5,
+    "e_rate_ratio": 1.8509289617486337,
+    "f_hz": 26.0,
+    "f_pk_hz": 27.0,
+    "f_pk_ratio": 0.8083832335329342,
+    "max_e_rate_hz": 28.594548171752454,
+    "mean_rate_hz": {
+     "E": 2.117,
+     "PV": 21.448888888888884,
+     "SOM": 15.149333333333333
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 2.117,
+     "PV": 12.869333333333332,
+     "SOM": 15.149333333333333
+    }
+   },
+   "pv_silenced_0.9": {
+    "band_power_25_45": 3937505.863457815,
+    "band_ratio": 0.14394432468030582,
+    "e_amplitude": 560.625,
+    "e_rate_ratio": 18.168743169398905,
+    "f_hz": 10.0,
+    "f_pk_hz": 5.1000000000000005,
+    "f_pk_ratio": 0.15269461077844312,
+    "max_e_rate_hz": 319.7621908050386,
+    "mean_rate_hz": {
+     "E": 20.7805,
+     "PV": 65.76,
+     "SOM": 30.008
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 20.7805,
+     "PV": 6.576,
+     "SOM": 30.008
+    }
+   },
+   "som_randomized_0.4": {
+    "band_power_25_45": 32770596.746290013,
+    "band_ratio": 1.19800238567083,
+    "e_amplitude": 7.875,
+    "e_rate_ratio": 0.8887431693989071,
+    "f_hz": 34.0,
+    "f_pk_hz": 33.9,
+    "f_pk_ratio": 1.0149700598802396,
+    "max_e_rate_hz": 7.290024581414761,
+    "mean_rate_hz": {
+     "E": 1.0165,
+     "PV": 9.602666666666668,
+     "SOM": 6.717333333333334
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.0165,
+     "PV": 9.602666666666668,
+     "SOM": 6.717333333333334
+    }
+   },
+   "som_randomized_0.9": {
+    "band_power_25_45": 34504419.97201554,
+    "band_ratio": 1.261386167688343,
+    "e_amplitude": 2.875,
+    "e_rate_ratio": 0.7567213114754099,
+    "f_hz": 40.0,
+    "f_pk_hz": 34.7,
+    "f_pk_ratio": 1.0389221556886228,
+    "max_e_rate_hz": 3.6598404795956156,
+    "mean_rate_hz": {
+     "E": 0.8655,
+     "PV": 7.714666666666666,
+     "SOM": 6.706666666666667
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 0.8655,
+     "PV": 7.714666666666666,
+     "SOM": 6.706666666666667
+    }
+   },
+   "som_silenced_0.4": {
+    "band_power_25_45": 32354284.652405262,
+    "band_ratio": 1.1827831668839761,
+    "e_amplitude": 7.375,
+    "e_rate_ratio": 1.0389071038251365,
+    "f_hz": 36.0,
+    "f_pk_hz": 37.2,
+    "f_pk_ratio": 1.1137724550898205,
+    "max_e_rate_hz": 7.808145151749925,
+    "mean_rate_hz": {
+     "E": 1.18825,
+     "PV": 12.154666666666667,
+     "SOM": 7.386666666666668
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.18825,
+     "PV": 12.154666666666667,
+     "SOM": 4.432
+    }
+   },
+   "som_silenced_0.9": {
+    "band_power_25_45": 28818480.563326497,
+    "band_ratio": 1.053523948116146,
+    "e_amplitude": 5.0,
+    "e_rate_ratio": 1.1844808743169397,
+    "f_hz": 48.0,
+    "f_pk_hz": 43.0,
+    "f_pk_ratio": 1.2874251497005988,
+    "max_e_rate_hz": 5.216921568620205,
+    "mean_rate_hz": {
+     "E": 1.35475,
+     "PV": 14.034666666666666,
+     "SOM": 6.48
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.35475,
+     "PV": 14.034666666666666,
+     "SOM": 0.648
+    }
+   }
+  },
+  "2": {
+   "baseline": {
+    "band_power_25_45": 28273799.78284303,
+    "band_ratio": 1.0,
+    "e_amplitude": 7.75,
+    "e_rate_ratio": 1.0,
+    "f_hz": 34.0,
+    "f_pk_hz": 34.7,
+    "f_pk_ratio": 1.0,
+    "max_e_rate_hz": 8.067029624073397,
+    "mean_rate_hz": {
+     "E": 1.075,
+     "PV": 11.248,
+     "SOM": 6.845333333333333
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.075,
+     "PV": 11.248,
+     "SOM": 6.845333333333333
+    }
+   },
+   "pv_randomized_0.4": {
+    "band_power_25_45": 15560420.49082744,
+    "band_ratio": 0.5503476932828016,
+    "e_amplitude": 19.25,
+    "e_rate_ratio": 1.4679069767441861,
+    "f_hz": 24.0,
+    "f_pk_hz": 24.200000000000003,
+    "f_pk_ratio": 0.6974063400576369,
+    "max_e_rate_hz": 16.385181673499762,
+    "mean_rate_hz": {
+     "E": 1.578,
+     "PV": 14.064,
+     "SOM": 12.469333333333331
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.578,
+     "PV": 14.064,
+     "SOM": 12.469333333333331
+    }
+   },
+   "pv_randomized_0.9": {
+    "band_power_25_45": 7562580.390015194,
+    "band_ratio": 0.2674766196301737,
+    "e_amplitude": 357.625,
+    "e_rate_ratio": 6.910697674418605,
+    "f_hz": 10.0,
+    "f_pk_hz": 14.200000000000001,
+    "f_pk_ratio": 0.4092219020172911,
+    "max_e_rate_hz": 315.8873967143164,
+    "mean_rate_hz": {
+     "E": 7.429,
+     "PV": 12.528,
+     "SOM": 12.784
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 7.429,
+     "PV": 12.528,
+     "SOM": 12.784
+    }
+   },
+   "pv_silenced_0.4": {
+    "band_power_25_45": 23593479.47078733,
+    "band_ratio": 0.8344644035112752,
+    "e_amplitude": 22.25,
+    "e_rate_ratio": 1.8388372093023257,
+    "f_hz": 28.0,
+    "f_pk_hz": 27.200000000000003,
+    "f_pk_ratio": 0.7838616714697406,
+    "max_e_rate_hz": 22.935765226003337,
+    "mean_rate_hz": {
+     "E": 1.97675,
+     "PV": 20.604444444444443,
+     "SOM": 13.096
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.97675,
+     "PV": 12.362666666666666,
+     "SOM": 13.096
+    }
+   },
+   "pv_silenced_0.9": {
+    "band_power_25_45": 4495337.82388744,
+    "band_ratio": 0.1589930557057732,
+    "e_amplitude": 489.5,
+    "e_rate_ratio": 13.92139534883721,
+    "f_hz": 10.0,
+    "f_pk_hz": 5.1000000000000005,
+    "f_pk_ratio": 0.14697406340057637,
+    "max_e_rate_hz": 319.8394127650553,
+    "mean_rate_hz": {
+     "E": 14.9655,
+     "PV": 62.88000000000001,
+     "SOM": 21.717333333333336
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 14.9655,
+     "PV": 6.288000000000001,
+     "SOM": 21.717333333333336
+    }
+   },
+   "som_randomized_0.4": {
+    "band_power_25_45": 34099611.5466204,
+    "band_ratio": 1.2060498344234778,
+    "e_amplitude": 5.625,
+    "e_rate_ratio": 0.9039534883720931,
+    "f_hz": 34.0,
+    "f_pk_hz": 34.7,
+    "f_pk_ratio": 1.0,
+    "max_e_rate_hz": 7.152048361508189,
+    "mean_rate_hz": {
+     "E": 0.97175,
+     "PV": 9.586666666666668,
+     "SOM": 6.1306666666666665
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 0.97175,
+     "PV": 9.586666666666668,
+     "SOM": 6.1306666666666665
+    }
+   },
+   "som_randomized_0.9": {
+    "band_power_25_45": 35543846.6170436,
+    "band_ratio": 1.2571301660915115,
+    "e_amplitude": 3.125,
+    "e_rate_ratio": 0.792093023255814,
+    "f_hz": 38.0,
+    "f_pk_hz": 37.5,
+    "f_pk_ratio": 1.0806916426512967,
+    "max_e_rate_hz": 3.5708856129202564,
+    "mean_rate_hz": {
+     "E": 0.8515,
+     "PV": 7.594666666666666,
+     "SOM": 6.896
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 0.8515,
+     "PV": 7.594666666666666,
+     "SOM": 6.896
+    }
+   },
+   "som_silenced_0.4": {
+    "band_power_25_45": 33152071.285623576,
+    "band_ratio": 1.1725368199622308,
+    "e_amplitude": 6.25,
+    "e_rate_ratio": 1.0567441860465117,
+    "f_hz": 38.0,
+    "f_pk_hz": 37.9,
+    "f_pk_ratio": 1.0922190201729105,
+    "max_e_rate_hz": 7.069026732357281,
+    "mean_rate_hz": {
+     "E": 1.136,
+     "PV": 12.021333333333335,
+     "SOM": 5.866666666666666
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.136,
+     "PV": 12.021333333333335,
+     "SOM": 3.52
+    }
+   },
+   "som_silenced_0.9": {
+    "band_power_25_45": 26633699.732461758,
+    "band_ratio": 0.9419922308646852,
+    "e_amplitude": 3.5,
+    "e_rate_ratio": 1.1372093023255814,
+    "f_hz": 42.0,
+    "f_pk_hz": 45.900000000000006,
+    "f_pk_ratio": 1.3227665706051874,
+    "max_e_rate_hz": 4.644895600087846,
+    "mean_rate_hz": {
+     "E": 1.2225,
+     "PV": 13.682666666666666,
+     "SOM": 5.333333333333332
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.2225,
+     "PV": 13.682666666666666,
+     "SOM": 0.5333333333333332
+    }
+   }
+  },
+  "3": {
+   "baseline": {
+    "band_power_25_45": 27994754.0580504,
+    "band_ratio": 1.0,
+    "e_amplitude": 7.875,
+    "e_rate_ratio": 1.0,
+    "f_hz": 32.0,
+    "f_pk_hz": 34.300000000000004,
+    "f_pk_ratio": 1.0,
+    "max_e_rate_hz": 8.274619277746792,
+    "mean_rate_hz": {
+     "E": 1.11025,
+     "PV": 11.578666666666669,
+     "SOM": 6.293333333333334
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.11025,
+     "PV": 11.578666666666669,
+     "SOM": 6.293333333333334
+    }
+   },
+   "pv_randomized_0.4": {
+    "band_power_25_45": 13810309.019852329,
+    "band_ratio": 0.49331774771855597,
+    "e_amplitude": 15.0,
+    "e_rate_ratio": 1.3983337086241838,
+    "f_hz": 24.0,
+    "f_pk_hz": 23.6,
+    "f_pk_ratio": 0.6880466472303206,
+    "max_e_rate_hz": 18.6704402599981,
+    "mean_rate_hz": {
+     "E": 1.5525,
+     "PV": 13.629333333333333,
+     "SOM": 11.392
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.5525,
+     "PV": 13.629333333333333,
+     "SOM": 11.392
+    }
+   },
+   "pv_randomized_0.9": {
+    "band_power_25_45": 7395699.4507116275,
+    "band_ratio": 0.2641816190053243,
+    "e_amplitude": 490.5,
+    "e_rate_ratio": 6.15604593560009,
+    "f_hz": 10.0,
+    "f_pk_hz": 6.800000000000001,
+    "f_pk_ratio": 0.19825072886297376,
+    "max_e_rate_hz": 310.07406648653154,
+    "mean_rate_hz": {
+     "E": 6.83475,
+     "PV": 12.496,
+     "SOM": 14.493333333333334
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 6.83475,
+     "PV": 12.496,
+     "SOM": 14.493333333333334
+    }
+   },
+   "pv_silenced_0.4": {
+    "band_power_25_45": 24096662.918813433,
+    "band_ratio": 0.8607563713132175,
+    "e_amplitude": 15.875,
+    "e_rate_ratio": 1.8167079486602116,
+    "f_hz": 26.0,
+    "f_pk_hz": 27.0,
+    "f_pk_ratio": 0.7871720116618075,
+    "max_e_rate_hz": 26.251238735654358,
+    "mean_rate_hz": {
+     "E": 2.017,
+     "PV": 21.226666666666667,
+     "SOM": 13.626666666666669
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 2.017,
+     "PV": 12.736,
+     "SOM": 13.626666666666669
+    }
+   },
+   "pv_silenced_0.9": {
+    "band_power_25_45": 4022572.675000513,
+    "band_ratio": 0.14369023091466485,
+    "e_amplitude": 519.0,
+    "e_rate_ratio": 22.4519252420626,
+    "f_hz": 14.0,
+    "f_pk_hz": 5.0,
+    "f_pk_ratio": 0.14577259475218657,
+    "max_e_rate_hz": 319.0744848431356,
+    "mean_rate_hz": {
+     "E": 24.92725,
+     "PV": 72.29333333333334,
+     "SOM": 34.10133333333333
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 24.92725,
+     "PV": 7.229333333333334,
+     "SOM": 34.10133333333333
+    }
+   },
+   "som_randomized_0.4": {
+    "band_power_25_45": 33916297.47669268,
+    "band_ratio": 1.211523323489939,
+    "e_amplitude": 6.125,
+    "e_rate_ratio": 0.8928169331231705,
+    "f_hz": 32.0,
+    "f_pk_hz": 35.0,
+    "f_pk_ratio": 1.020408163265306,
+    "max_e_rate_hz": 6.452564406945259,
+    "mean_rate_hz": {
+     "E": 0.99125,
+     "PV": 9.698666666666666,
+     "SOM": 6.077333333333334
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 0.99125,
+     "PV": 9.698666666666666,
+     "SOM": 6.077333333333334
+    }
+   },
+   "som_randomized_0.9": {
+    "band_power_25_45": 35747374.38586902,
+    "band_ratio": 1.2769311818829574,
+    "e_amplitude": 3.125,
+    "e_rate_ratio": 0.7716730466111237,
+    "f_hz": 36.0,
+    "f_pk_hz": 35.300000000000004,
+    "f_pk_ratio": 1.0291545189504374,
+    "max_e_rate_hz": 3.7033407000698784,
+    "mean_rate_hz": {
+     "E": 0.85675,
+     "PV": 7.733333333333334,
+     "SOM": 6.816
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 0.85675,
+     "PV": 7.733333333333334,
+     "SOM": 6.816
+    }
+   },
+   "som_silenced_0.4": {
+    "band_power_25_45": 32983907.853082515,
+    "band_ratio": 1.1782174540518027,
+    "e_amplitude": 7.125,
+    "e_rate_ratio": 1.029047511821662,
+    "f_hz": 38.0,
+    "f_pk_hz": 36.9,
+    "f_pk_ratio": 1.075801749271137,
+    "max_e_rate_hz": 7.732964955891781,
+    "mean_rate_hz": {
+     "E": 1.1425,
+     "PV": 11.962666666666665,
+     "SOM": 6.604444444444445
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.1425,
+     "PV": 11.962666666666665,
+     "SOM": 3.962666666666667
+    }
+   },
+   "som_silenced_0.9": {
+    "band_power_25_45": 27791659.955440596,
+    "band_ratio": 0.9927452799839331,
+    "e_amplitude": 4.5,
+    "e_rate_ratio": 1.1011033551002025,
+    "f_hz": 40.0,
+    "f_pk_hz": 40.2,
+    "f_pk_ratio": 1.1720116618075802,
+    "max_e_rate_hz": 4.524124531917869,
+    "mean_rate_hz": {
+     "E": 1.2225,
+     "PV": 13.637333333333332,
+     "SOM": 5.626666666666668
+    },
+    "n_cells": {
+     "E": 8000,
+     "PV": 750,
+     "SOM": 750
+    },
+    "raw_mean_rate_hz": {
+     "E": 1.2225,
+     "PV": 13.637333333333332,
+     "SOM": 0.5626666666666668
+    }
+   }
+  }
+ },
+ "run_dir": "F:/warehouse/caminos/plosr_7f7a660e",
+ "seed_means": {
+  "baseline": {
+   "band_ratio": 1.0,
+   "e_amplitude": 7.416666666666667,
+   "e_rate_ratio": 1.0,
+   "f_hz": 32.0,
+   "f_pk_ratio": 1.0,
+   "mean_rate_hz": {
+    "E": 1.1096666666666666,
+    "PV": 11.46577777777778,
+    "SOM": 6.570666666666667
+   },
+   "n_cells": {
+    "E": 8000,
+    "PV": 750,
+    "SOM": 750
+   }
+  },
+  "pv_randomized_0.4": {
+   "band_ratio": 0.488426932650693,
+   "e_amplitude": 16.958333333333332,
+   "e_rate_ratio": 1.4545756747220615,
+   "f_hz": 24.0,
+   "f_pk_ratio": 0.6953505965610557,
+   "mean_rate_hz": {
+    "E": 1.6144166666666668,
+    "PV": 13.924444444444445,
+    "SOM": 12.818666666666667
+   },
+   "n_cells": {
+    "E": 8000,
+    "PV": 750,
+    "SOM": 750
+   }
+  },
+  "pv_randomized_0.9": {
+   "band_ratio": 0.273171028040707,
+   "e_amplitude": 451.25,
+   "e_rate_ratio": 8.126510165088199,
+   "f_hz": 9.333333333333334,
+   "f_pk_ratio": 0.3032892801537011,
+   "mean_rate_hz": {
+    "E": 9.067583333333333,
+    "PV": 12.690666666666667,
+    "SOM": 15.784888888888888
+   },
+   "n_cells": {
+    "E": 8000,
+    "PV": 750,
+    "SOM": 750
+   }
+  },
+  "pv_silenced_0.4": {
+   "band_ratio": 0.8717504756190771,
+   "e_amplitude": 23.208333333333332,
+   "e_rate_ratio": 1.8354913732370572,
+   "f_hz": 26.666666666666668,
+   "f_pk_ratio": 0.793138972221494,
+   "mean_rate_hz": {
+    "E": 2.0369166666666665,
+    "PV": 21.09333333333333,
+    "SOM": 13.957333333333333
+   },
+   "n_cells": {
+    "E": 8000,
+    "PV": 750,
+    "SOM": 750
+   }
+  },
+  "pv_silenced_0.9": {
+   "band_ratio": 0.1488758704335813,
+   "e_amplitude": 523.0416666666666,
+   "e_rate_ratio": 18.180687920099572,
+   "f_hz": 11.333333333333334,
+   "f_pk_ratio": 0.14848042297706868,
+   "mean_rate_hz": {
+    "E": 20.224416666666666,
+    "PV": 66.97777777777777,
+    "SOM": 28.608888888888888
+   },
+   "n_cells": {
+    "E": 8000,
+    "PV": 750,
+    "SOM": 750
+   }
+  },
+  "som_randomized_0.4": {
+   "band_ratio": 1.2051918478614156,
+   "e_amplitude": 6.541666666666667,
+   "e_rate_ratio": 0.8951711969647236,
+   "f_hz": 33.333333333333336,
+   "f_pk_ratio": 1.011792741048515,
+   "mean_rate_hz": {
+    "E": 0.9931666666666666,
+    "PV": 9.629333333333333,
+    "SOM": 6.3084444444444445
+   },
+   "n_cells": {
+    "E": 8000,
+    "PV": 750,
+    "SOM": 750
+   }
+  },
+  "som_randomized_0.9": {
+   "band_ratio": 1.265149171887604,
+   "e_amplitude": 3.0416666666666665,
+   "e_rate_ratio": 0.7734957937807825,
+   "f_hz": 38.0,
+   "f_pk_ratio": 1.0495894390967857,
+   "mean_rate_hz": {
+    "E": 0.8579166666666667,
+    "PV": 7.680888888888888,
+    "SOM": 6.806222222222222
+   },
+   "n_cells": {
+    "E": 8000,
+    "PV": 750,
+    "SOM": 750
+   }
+  },
+  "som_silenced_0.4": {
+   "band_ratio": 1.17784581363267,
+   "e_amplitude": 6.916666666666667,
+   "e_rate_ratio": 1.0415662672311035,
+   "f_hz": 37.333333333333336,
+   "f_pk_ratio": 1.0939310748446227,
+   "mean_rate_hz": {
+    "E": 1.1555833333333334,
+    "PV": 12.046222222222221,
+    "SOM": 6.619259259259259
+   },
+   "n_cells": {
+    "E": 8000,
+    "PV": 750,
+    "SOM": 750
+   }
+  },
+  "som_silenced_0.9": {
+   "band_ratio": 0.9960871529882548,
+   "e_amplitude": 4.333333333333333,
+   "e_rate_ratio": 1.1409311772475745,
+   "f_hz": 43.333333333333336,
+   "f_pk_ratio": 1.2607344607044555,
+   "mean_rate_hz": {
+    "E": 1.2665833333333332,
+    "PV": 13.784888888888888,
+    "SOM": 5.8133333333333335
+   },
+   "n_cells": {
+    "E": 8000,
+    "PV": 750,
+    "SOM": 750
+   }
+  }
+ },
+ "seeds": [
+  1,
+  2,
+  3
+ ]
+}

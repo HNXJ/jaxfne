@@ -183,15 +183,6 @@ def discover_records_by_class(repo_root: Path = ROOT) -> dict[str, list[Path]]:
     return by_class
 
 
-def discover_records(repo_root: Path = ROOT) -> list[Path]:
-    """Return the sorted union of all record paths under ``artifacts/``."""
-    seen: dict[str, Path] = {}
-    for paths in discover_records_by_class(repo_root).values():
-        for path in paths:
-            seen[path.relative_to(repo_root).as_posix()] = path
-    return [seen[rel] for rel in sorted(seen)]
-
-
 def _load_pinned(hashes_path: Path) -> dict[str, dict]:
     """Pinned ``{"paths": {rel: sha}, "counts": {class: n}}`` (fail-closed)."""
     try:

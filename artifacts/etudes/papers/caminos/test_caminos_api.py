@@ -426,3 +426,460 @@ def test_run_writes_the_model_simulate_counts(tmp_path):
             == np.asarray(ref["spikes"])).all(), "the route carries no second mechanism"
     entry = json.loads((tmp_path / "manifest.json").read_text())["runs"][0]
     assert entry["seed"] == 1 and entry["steps"] == 20 and entry["p"] == 0.02
+
+
+# --- Cell Reports figure runners (packet FIG-A): Figures 3, 4, S3 ---
+
+# Small smoke net. The documented keywords stand in for the full-size
+# Figure protocol (param_set="cellrep", ext_sources="pNE", NE=8000): at
+# 400 E cells round(p*NE) = 7 pNE sources leave every population silent
+# (probed on the baseline), so the tests use simulate's documented
+# positive-int ``ext_sources`` mode plus the documented ``som_ext_rate_hz``
+# opt-in (SOM has no external drive otherwise) so every population fires.
+CF_SMOKE = {
+    "sizes": {"NE": 400, "NPV": 80, "NSOM": 80},
+    "ext_sources": 100,
+    "som_ext_rate_hz": 4.0,
+}
+
+
+def test_silence_fraction_zero_matches_baseline():
+    """Fraction 0 passes silence=None and reproduces the baseline counts."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=3.0, **CF_SMOKE)
+    assert sum(base["counts"].values()) > 0, "precondition: the baseline must fire"
+    row = cf.silence_sweep("SOM", [0.0], [1], T_s=3.0, **CF_SMOKE)[0]
+    assert row["pop"] == "SOM" and row["fraction"] == 0.0 and row["seed"] == 1
+    assert row["counts"] == base["counts"]
+
+
+def test_silence_full_som_removes_som_spikes():
+    """SOM at fraction 1.0 fires nothing over the kept window."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=3.0, **CF_SMOKE)
+    assert base["counts"]["SOM"] > 0, "precondition: baseline SOM must fire"
+    row = cf.silence_sweep("SOM", [1.0], [1], T_s=3.0, **CF_SMOKE)[0]
+    assert row["fraction"] == 1.0
+    assert row["counts"]["SOM"] == 0
+
+
+def test_replace_fraction_zero_matches_baseline():
+    """Fraction 0 passes replace=None and reproduces the baseline counts."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=3.0, **CF_SMOKE)
+    assert sum(base["counts"].values()) > 0, "precondition: the baseline must fire"
+    row = cf.replace_sweep("PV", [0.0], [1], rate_hz=4.0, T_s=3.0, **CF_SMOKE)[0]
+    assert row["pop"] == "PV" and row["fraction"] == 0.0 and row["seed"] == 1
+    assert row["counts"] == base["counts"]
+
+
+def test_s3_onset_refused_past_end():
+    """s3_paired refuses an onset at or past the end of the run."""
+    import cellrep_figures as cf
+
+    with pytest.raises(ValueError):
+        cf.s3_paired(1, onset_s=12.0, T_s=12.0)
+
+
+def test_s3_paired_returns_window_series():
+    """s3_paired returns control and silenced E rates over 5.9-6.2 s."""
+    import numpy as np
+
+    import cellrep_figures as cf
+
+    out = cf.s3_paired(1, T_s=6.3, **CF_SMOKE)
+    t = np.asarray(out["t_window_s"])
+    control = np.asarray(out["e_rate_control_hz"])
+    silenced = np.asarray(out["e_rate_silenced_hz"])
+    assert t[0] == pytest.approx(5.9, abs=1e-9)
+    assert t[-1] == pytest.approx(6.2, abs=1e-3)
+    assert control.shape == silenced.shape == t.shape
+    assert control.max() > 0, "precondition: the control E rate must be nonzero"
+
+
+def test_replace_rows_carry_rate_hz():
+    """replace_sweep rows carry rate_hz and replace_rate_hz (Figure 4, mmc2 lines 500-504)."""
+    import cellrep_figures as cf
+
+    row = cf.replace_sweep("PV", [0.5], [1], rate_hz=4.0, T_s=3.0, **CF_SMOKE)[0]
+    assert row["rate_hz"] == 4.0
+    assert row["replace_rate_hz"] == {"PV": 4.0}
+
+
+def test_silence_half_fraction_changes_som_counts():
+    """silence_sweep at 0.5 changes the SOM counts (Figure 3, mmc2 lines 439-445)."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=3.0, **CF_SMOKE)
+    assert base["counts"]["SOM"] > 0, "precondition: the baseline SOM must fire"
+    row = cf.silence_sweep("SOM", [0.5], [1], T_s=3.0, **CF_SMOKE)[0]
+    assert row["counts"]["SOM"] != base["counts"]["SOM"]
+
+
+def test_replace_full_pv_changes_e_counts():
+    """replace_sweep at 1.0 changes the E counts (Figure 4, mmc2 lines 500-504)."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=3.0, **CF_SMOKE)
+    assert base["counts"]["E"] > 0, "precondition: the baseline E must fire"
+    row = cf.replace_sweep("PV", [1.0], [1], rate_hz=4.0, T_s=3.0, **CF_SMOKE)[0]
+    assert row["counts"]["E"] != base["counts"]["E"]
+
+
+def test_s3_window_uses_padded_smoothing():
+    """s3_paired smooths with full kernel support (padded 0.05 s each side)."""
+    import numpy as np
+
+    import caminos_analysis as cca
+    import cellrep_figures as cf
+
+    out = cf.s3_paired(1, T_s=6.3, **CF_SMOKE)
+    dt = out["dt_s"]
+    n_e = out["control"]["sizes"]["E"]
+    t0, t1 = cf.S3_WINDOW_S
+    p0, p1 = t0 - 0.05, t1 + 0.05
+    ref_run = cf.run_cell(1, T_s=6.3, raster_window=(p0, p1), **CF_SMOKE)
+    counts_pad = np.asarray(ref_run["raster_window"])[:, :n_e].sum(axis=1)
+    kernel = cca._gaussian_kernel(1.0 / (dt * 1000.0))
+    smooth_pad = np.convolve(counts_pad.astype(float), kernel, mode="same") / (n_e * dt)
+    i0p, i0, i1 = int(round(p0 / dt)), int(round(t0 / dt)), int(round(t1 / dt))
+    ref = smooth_pad[(i0 - i0p):(i0 - i0p) + (i1 - i0)]
+    assert np.allclose(np.asarray(out["e_rate_control_hz"]), ref, rtol=1e-12, atol=1e-12)
+
+
+def test_s3_silenced_differs_after_onset():
+    """s3_paired silencing changes the post-onset E rate; pre-onset is identical."""
+    import numpy as np
+
+    import cellrep_figures as cf
+
+    out = cf.s3_paired(1, T_s=6.3, **CF_SMOKE)
+    t = np.asarray(out["t_window_s"])
+    control = np.asarray(out["e_rate_control_hz"])
+    silenced = np.asarray(out["e_rate_silenced_hz"])
+    post = (t >= 6.04) & (t < 6.2)
+    pre = (t >= 5.9) & (t < 6.0)
+    assert control[post].mean() > 0, "precondition: the control post-onset E rate is nonzero"
+    assert float(np.max(np.abs(control[post] - silenced[post]))) > 0
+    assert silenced[post].mean() > control[post].mean()
+    assert float(np.max(np.abs(control[pre] - silenced[pre]))) == pytest.approx(0.0, abs=1e-12)
+
+
+# --- Cell Reports Figure 5 / S1 runners (packet FIG-5S1) ---
+
+FIG5S1_T_S = 3.0  # smoke run length for the Figure 5 / S1 tests
+S1_SMOKE = {
+    "sizes": CF_SMOKE["sizes"],
+    "som_ext_rate_hz": CF_SMOKE["som_ext_rate_hz"],
+}  # S1 drives p*NE private sources at 4 Hz (Hamm 2026-11-02, O-73):
+# no ext_sources/ext keys (s1_sweep fixes both); som_ext_rate_hz stays so SOM fires
+
+
+def test_coupling_zero_matches_baseline():
+    """Value 0 nS passes coupling=None and reproduces the baseline counts."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=FIG5S1_T_S, **CF_SMOKE)
+    assert sum(base["counts"].values()) > 0, "precondition: the baseline must fire"
+    row = cf.coupling_sweep("PV_SOM", [0.0], [1], T_s=FIG5S1_T_S, **CF_SMOKE)[0]
+    assert row["kind"] == "PV_SOM" and row["value_nS"] == 0.0 and row["seed"] == 1
+    assert row["counts"] == base["counts"]
+
+
+def test_coupling_pv_som_changes_som_activity():
+    """PV->SOM at 10 nS changes the SOM counts (Figure 5A, mmc2 lines 473-478)."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=FIG5S1_T_S, **CF_SMOKE)
+    assert base["counts"]["SOM"] > 0, "precondition: baseline SOM must fire"
+    row = cf.coupling_sweep("PV_SOM", [10.0], [1], T_s=FIG5S1_T_S, **CF_SMOKE)[0]
+    assert row["value_nS"] == 10.0
+    assert row["counts"]["SOM"] != base["counts"]["SOM"]
+
+
+def test_s1_rejects_p_out_of_range():
+    """s1_sweep refuses p outside (0, 1) (Figure S1, legend mmc2 lines 1808-1812)."""
+    import cellrep_figures as cf
+
+    with pytest.raises(ValueError):
+        cf.s1_sweep([0.0], [1], T_s=FIG5S1_T_S, **S1_SMOKE)
+    with pytest.raises(ValueError):
+        cf.s1_sweep([1.0], [1], T_s=FIG5S1_T_S, **S1_SMOKE)
+
+
+def test_fig5c_swap_moves_pv_and_som_counts():
+    """Swapping PV/SOM parameters moves the PV and SOM counts (Figure 5C)."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=FIG5S1_T_S, **CF_SMOKE)
+    assert sum(base["counts"].values()) > 0, "precondition: baseline total must fire"
+    got = cf.fig5c_swap(1, T_s=FIG5S1_T_S, **CF_SMOKE)
+    assert sum(got["counts"].values()) > 0, "precondition: swapped total must fire"
+    assert got["counts"] != base["counts"], \
+        "swap must move counts: base=%r swapped=%r" % (base["counts"], got["counts"])
+    assert "locking_by_type" in got and "ppc_by_type" in got
+
+
+def test_fig1c_control_keeps_the_baseline_and_adds_locking():
+    """The Figure 1C control run is the unswapped baseline plus its spike-LFP locking."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=FIG5S1_T_S, **CF_SMOKE)
+    assert base["counts"]["E"] > 0, "precondition: the baseline E fires"
+    got = cf.fig1c_control(1, T_s=FIG5S1_T_S, **CF_SMOKE)
+    assert got["counts"] == base["counts"]
+    assert "E" in got["ppc_by_type"]["by_type"]
+
+
+def test_default_sizes_follow_the_active_parameter_set(monkeypatch):
+    """Switching PARAM_SET to the PLoS CB set also switches the default population sizes."""
+    import cellrep_figures as cf
+
+    assert cf._sizes_tuple(None) == (8000, 800, 600)
+    monkeypatch.setattr(cf, "PARAM_SET", "default")
+    assert cf._sizes_tuple(None) == (8000, 750, 750)
+
+
+def test_s1_higher_p_increases_e_counts():
+    """E counts rise from p = 0.01 to p = 0.3 on the smoke net (Figure S1)."""
+    import cellrep_figures as cf
+
+    rows = cf.s1_sweep([0.01, 0.3], [1], T_s=FIG5S1_T_S, **S1_SMOKE)
+    e_by_p = {r["p"]: r["counts"]["E"] for r in rows}
+    assert e_by_p[0.3] > 0, "precondition: the p = 0.3 E count is nonzero"
+    # no nonzero precondition at p = 0.01: the ruled drive is 4 sources there,
+    # which leaves the smoke net silent
+    assert "phase_delay_rad" in rows[0]
+    assert e_by_p[0.3] != e_by_p[0.01], \
+        "p must move the E counts: p=0.01 -> %r, p=0.3 -> %r" % (e_by_p[0.01], e_by_p[0.3])
+
+
+def test_s1_rows_carry_round_pNE_source_counts():
+    """s1_sweep rows carry n_ext_sources = round(p * NE) (Hamm 2026-11-02, O-73)."""
+    import cellrep_figures as cf
+
+    rows = cf.s1_sweep([0.01, 0.3], [1], T_s=FIG5S1_T_S, **S1_SMOKE)
+    by_p = {r["p"]: r for r in rows}
+    ne = S1_SMOKE["sizes"]["NE"]
+    assert by_p[0.01]["n_ext_sources"] == int(round(0.01 * ne)) == 4
+    assert by_p[0.3]["n_ext_sources"] == int(round(0.3 * ne)) == 120
+    assert by_p[0.01]["n_ext_sources"] != by_p[0.3]["n_ext_sources"]
+
+
+def test_s1_run_realizes_the_pNE_drive():
+    """The S1 run equals run_cell under the p*NE drive and differs from the fixed drive."""
+    import numpy as np
+
+    import cellrep_figures as cf
+
+    (row,) = cf.s1_sweep([0.3], [1], T_s=FIG5S1_T_S, **S1_SMOKE)
+    pne = cf.run_cell(1, T_s=FIG5S1_T_S, ext_sources="pNE", p=0.3, **S1_SMOKE)
+    fixed = cf.run_cell(1, T_s=FIG5S1_T_S, ext_sources="fixed", p=0.3, **S1_SMOKE)
+    assert row["counts"]["E"] > 0, "precondition: the smoke S1 run fires"
+    assert fixed["counts"] != pne["counts"], "precondition: the two drives differ"
+    np.testing.assert_array_equal(np.asarray(row["counts_kept"]), np.asarray(pne["counts_kept"]))
+
+
+def test_s1_refuses_explicit_drive_keywords():
+    """s1_sweep refuses explicit ext_sources/ext: the ruling fixes both."""
+    import cellrep_figures as cf
+
+    with pytest.raises(ValueError):
+        cf.s1_sweep([0.1], [1], T_s=FIG5S1_T_S, ext_sources="fixed", **S1_SMOKE)
+    with pytest.raises(ValueError):
+        cf.s1_sweep([0.1], [1], T_s=FIG5S1_T_S, ext="shared", **S1_SMOKE)
+
+
+def test_run_figA_s1_mode_writes_smoke_row(monkeypatch, tmp_path):
+    """run_figA.py mode s1 runs one smoke p and seed and writes its row."""
+    import json
+
+    import run_figA as rf
+
+    import cellrep_figures as cf
+
+    monkeypatch.setattr(cf, "_sizes_tuple", lambda sizes: (400, 80, 80))
+    monkeypatch.setenv("FIGA_T_S", "3.0")
+    monkeypatch.setattr(sys, "argv", ["run_figA.py", str(tmp_path), "0.3", "1", "s1"])
+    rf.main()
+    payload = json.loads((tmp_path / "s1.json").read_text(encoding="utf-8"))
+    assert payload["what"] == "s1" and len(payload["rows"]) == 1
+    row = payload["rows"][0]
+    assert row["p"] == 0.3 and row["seed"] == 1
+    assert row["n_ext_sources"] == int(round(0.3 * 400)) == 120
+    assert row["counts"]["E"] > 0, "precondition: the smoke S1 row fires"
+
+
+# --- Cell Reports Figure 2 / Figure 6A runners (packet FIG-2/6A) ---
+
+FIG26_T_S = 3.0  # smoke run length for the Figure 2 / 6A tests
+
+
+def test_fig2a_zero_rate_is_silent_drive():
+    """Zero feedforward rate gives a smaller E count than the 4 Hz drive (Figure 2A)."""
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=FIG26_T_S, **CF_SMOKE)
+    assert base["counts"]["E"] > 0, "precondition: the rate-4 E count is nonzero"
+    row = cf.fig2a_sweep(rates_hz=[0.0], seeds=[1], T_s=FIG26_T_S, **CF_SMOKE)[0]
+    assert row["rate_hz"] == 0.0 and row["seed"] == 1
+    assert row["counts"]["E"] < base["counts"]["E"]
+
+
+def test_fig2b_zero_drive_matches_baseline():
+    """Zero SOM drive reproduces the no-SOM-drive counts exactly (Figure 2B top).
+
+    CF_SMOKE carries ``som_ext_rate_hz=4.0``, so the zero-drive row matches the
+    ``run_cell`` baseline without that key (default 0.0), not the CF_SMOKE baseline.
+    """
+    import cellrep_figures as cf
+
+    base = cf.run_cell(1, T_s=FIG26_T_S, sizes=CF_SMOKE["sizes"], ext_sources=100)
+    assert sum(base["counts"].values()) > 0, "precondition: the baseline must fire"
+    row = cf.fig2b_sweep(tdrates_hz=[0.0], seeds=[1], T_s=FIG26_T_S,
+                         sizes=CF_SMOKE["sizes"], ext_sources=100)[0]
+    assert row["tdrate_hz"] == 0.0 and row["seed"] == 1
+    assert row["counts"] == base["counts"]
+
+
+def test_fig2b_top_down_raises_som_counts():
+    """10 Hz top-down SOM drive gives more SOM counts than 0 Hz (Figure 2B top).
+
+    Observed on the smoke net: SOM is silent without the drive (0 Hz count 0),
+    so the reported precondition is the 10 Hz count firing, not a nonzero 0 Hz count.
+    """
+    import cellrep_figures as cf
+
+    kw = {"T_s": FIG26_T_S, "sizes": CF_SMOKE["sizes"], "ext_sources": 100}
+    lo = cf.fig2b_sweep(tdrates_hz=[0.0], seeds=[1], **kw)[0]
+    hi = cf.fig2b_sweep(tdrates_hz=[10.0], seeds=[1], **kw)[0]
+    assert hi["counts"]["SOM"] > 0, "precondition: the 10 Hz SOM count is nonzero"
+    assert hi["counts"]["SOM"] > lo["counts"]["SOM"], \
+        "top-down drive must raise SOM counts: 0 Hz -> %r, 10 Hz -> %r" \
+        % (lo["counts"]["SOM"], hi["counts"]["SOM"])
+
+
+def test_fig6a_ratio_splits_total():
+    """Ratio 1.0 splits total 100 into NPV = NSOM = 50 (Figure 6A)."""
+    import cellrep_figures as cf
+
+    row = cf.fig6a_sweep(ratios=[1.0], seeds=[1], total=100, T_s=FIG26_T_S,
+                         ext_sources=100, som_ext_rate_hz=4.0, NE=400)[0]
+    assert row["ratio"] == 1.0 and row["seed"] == 1
+    assert row["NPV"] == 50 and row["NSOM"] == 50
+    assert row["NPV"] + row["NSOM"] == 100
+    assert row["sizes"] == {"E": 400, "PV": 50, "SOM": 50}
+
+
+def test_fig6a_rejects_bad_ratio():
+    """fig6a_sweep refuses non-positive ratios and a non-positive total (Figure 6A)."""
+    import cellrep_figures as cf
+
+    with pytest.raises(ValueError):
+        cf.fig6a_sweep(ratios=[0.0], seeds=[1])
+    with pytest.raises(ValueError):
+        cf.fig6a_sweep(ratios=[-1.0], seeds=[1])
+    with pytest.raises(ValueError):
+        cf.fig6a_sweep(ratios=[1.0], seeds=[1], total=0)
+
+
+def test_fig2_refuses_missing_seeds():
+    """Each Figure 2/6A sweep raises ValueError when seeds is None."""
+    import cellrep_figures as cf
+
+    with pytest.raises(ValueError):
+        cf.fig2a_sweep(rates_hz=[4.0], seeds=None, T_s=FIG26_T_S, **CF_SMOKE)
+    with pytest.raises(ValueError):
+        cf.fig2b_sweep(tdrates_hz=[4.0], seeds=None, T_s=FIG26_T_S, **CF_SMOKE)
+    with pytest.raises(ValueError):
+        cf.fig6a_sweep(ratios=[1.0], seeds=None)
+
+
+# --- Cell Reports Figure 2 bottom / Figure 6B runners (packet FIG-2B6B) ---
+
+FIG2B6B_T_S = 3.0  # smoke run length for the Figure 2 bottom / 6B tests
+FIG2B6B_SMOKE = {
+    "sizes": CF_SMOKE["sizes"],
+    "ext_sources": 100,
+}  # no constant SOM drive: the Gaussian schedule drives SOM (simulate
+# refuses a nonzero som_ext_rate_hz together with som_ext_rate_schedule)
+
+
+def test_fig2b_bottom_gaussian_schedule_shape():
+    """The Figure 2 bottom schedule peaks at 4 Hz at t0 and is ~0 at +-0.5 s."""
+    import numpy as np
+
+    import cellrep_figures as cf
+
+    sched = cf._gaussian_drive_schedule(1.5, T_s=FIG2B6B_T_S, dt_s=1e-4)
+    assert len(sched) == 30000, "schedule must cover every step"
+    peak = int(np.argmax(np.asarray(sched)))
+    assert abs(peak * 1e-4 - 1.5) <= 1e-4, \
+        "precondition: the peak sample is within one step of t0_s"
+    assert sched[peak] == pytest.approx(4.0, rel=1e-12)
+    assert sched[int(round(1.0 / 1e-4))] < 0.1
+    assert sched[int(round(2.0 / 1e-4))] < 0.1
+
+
+def test_fig2b_bottom_refuses_bad_t0():
+    """fig2b_bottom_run refuses a non-finite or out-of-range t0 and a None seed."""
+    import cellrep_figures as cf
+
+    with pytest.raises(ValueError):
+        cf.fig2b_bottom_run(1, t0_s=float("nan"), T_s=FIG2B6B_T_S, **FIG2B6B_SMOKE)
+    with pytest.raises(ValueError):
+        cf.fig2b_bottom_run(1, t0_s=-1.0, T_s=FIG2B6B_T_S, **FIG2B6B_SMOKE)
+    with pytest.raises(ValueError):
+        cf.fig2b_bottom_run(None, t0_s=1.5, T_s=FIG2B6B_T_S, **FIG2B6B_SMOKE)
+
+
+def test_fig2b_bottom_runs_on_small_net():
+    """fig2b_bottom_run returns the run_cell outputs plus phase_delay."""
+    import cellrep_figures as cf
+
+    res = cf.fig2b_bottom_run(1, t0_s=2.5, T_s=FIG2B6B_T_S, **FIG2B6B_SMOKE)
+    assert res["counts"]["E"] > 0, "precondition: the summed E count is nonzero"
+    for key in ("seed", "T_s", "dt_s", "sizes", "counts_kept", "counts",
+                "rates_Hz", "lfp", "spectrum", "f_pk_hz", "band_power_25_45",
+                "max_e_rate_hz", "phase_delay"):
+        assert key in res, "fig2b_bottom_run must carry the run_cell keys: %s" % key
+
+
+def test_fig6b_gain_one_matches_default():
+    """gain 1.0 reproduces the run_cell baseline E counts exactly (Figure 6B)."""
+    import cellrep_figures as cf
+
+    kw = {"T_s": FIG2B6B_T_S, **CF_SMOKE}
+    base = cf.run_cell(1, **kw)
+    assert base["counts"]["E"] > 0, "precondition: the default E count is nonzero"
+    got = cf.fig6b_run(1, gain=1.0, t_start_s=2.3, **kw)
+    assert got["counts"]["E"] == base["counts"]["E"]
+
+
+def test_fig6b_gain_zero_lowers_window_rate():
+    """gain 0.0 gives a lower E window rate than gain 1.0 at the same seed."""
+    import cellrep_figures as cf
+
+    kw = {"T_s": FIG2B6B_T_S, **CF_SMOKE}
+    full = cf.fig6b_run(1, gain=1.0, t_start_s=2.3, **kw)
+    assert full["e_rate_hz_window"] > 0, \
+        "precondition: the gain-1.0 window rate is nonzero"
+    zero = cf.fig6b_run(1, gain=0.0, t_start_s=2.3, **kw)
+    assert zero["e_rate_hz_window"] < full["e_rate_hz_window"]
+
+
+def test_fig6b_refuses_bad_inputs():
+    """fig6b_run refuses a negative gain, a non-positive window and a window
+    outside [discard, T_s] (Figure 6B)."""
+    import cellrep_figures as cf
+
+    kw = {"T_s": FIG2B6B_T_S, **CF_SMOKE}
+    with pytest.raises(ValueError):
+        cf.fig6b_run(1, gain=-0.5, t_start_s=2.3, **kw)
+    with pytest.raises(ValueError):
+        cf.fig6b_run(1, gain=1.0, t_start_s=2.3, dur_s=0.0, **kw)
+    with pytest.raises(ValueError):
+        cf.fig6b_run(1, gain=1.0, t_start_s=1.0, **kw)

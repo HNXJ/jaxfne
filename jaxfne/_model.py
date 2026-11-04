@@ -85,7 +85,9 @@ class MatrixParameterSpec:
     Used in multi-parameter optimization to specify that a named parameter
     maps to a matrix (e.g., the synaptic weight matrix W) rather than a scalar.
     The mask field selects which matrix entries are subject to scaling:
-    E_to_E, E_to_I, excitatory_to_all, or all.
+    E_to_E, E_to_I, I_to_E, excitatory_to_all, or all. The matrix is
+    ``[post, pre]``, so ``E_to_I`` selects entries from an E source to an I
+    target and ``excitatory_to_all`` every entry with an excitatory source.
 
     The name is always the dict key in the parameters argument to
     :func:; do **not** add a name field here.
@@ -93,8 +95,8 @@ class MatrixParameterSpec:
     Attributes
     ----------
     mask : str
-        Which matrix entries to scale: "E_to_E", "E_to_I",
-        "excitatory_to_all", or "all".
+        Which matrix entries to scale: "E_to_E", "E_to_I", "I_to_E",
+        "excitatory_to_all", or "all" (source to target).
     bounds : tuple[float, float]
         (lower, upper) multiplicative scaling bounds.
     init : str
@@ -129,8 +131,9 @@ def matrix_parameter(
     Parameters
     ----------
     mask : str
-        Which matrix entries to scale: "E_to_E", "E_to_I",
-        "excitatory_to_all", or "all".
+        Which matrix entries to scale: "E_to_E", "E_to_I", "I_to_E",
+        "excitatory_to_all", or "all" (source to target; the matrix is
+        ``[post, pre]``).
     bounds : tuple[float, float]
         (lower, upper) multiplicative scaling bounds.
     init : str
@@ -301,7 +304,7 @@ class TuneResult:
         yield self.summary
 
 
-_JAXFNE_VERSION = "0.5.8"
+_JAXFNE_VERSION = "0.5.9"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 
@@ -552,7 +555,7 @@ class Model:
     Holds the source ``cfg``, the dynamic ``params`` pytree (arrays that may be
     tuned/traced), and ``static`` metadata (JIT-static, non-array). Construct via
     :func:`construct`; run via :func:`simulate` / :meth:`simulate`. Also exported
-    as the alias ``Net``. The model is a computational scaffold — its field and
+    as the alias ``Net``. The model is a computational scaffold; its field and
     probe outputs are proxy readouts, not calibrated physical signals.
     """
 
@@ -567,8 +570,8 @@ class Model:
         One frozen :class:`XSource` per realized ``(area, layer, cell_type)``
         group (one entry per distinct drive value within a group, in
         first-appearance order): the per-neuron drive channel ``simulate``
-        reads — ``params["emitter"].drive``, or ``static["adex"]``'s
-        ``triple_drive_pA`` on the AdEx route — grouped by the population's
+        reads: ``params["emitter"].drive``, or ``static["adex"]``'s
+        ``triple_drive_pA`` on the AdEx route, grouped by the population's
         own final area/layer/cell-type labels. Each entry carries
         ``n_neurons``, the count of neurons with exactly that target and
         value, so the per-neuron drive reconstructs as each value repeated
@@ -585,7 +588,7 @@ class Model:
         ``signals.metadata``), additive ``paradigm``/``StimulusSchedule``
         inputs and per-step ``drive_schedule`` arrays (time-varying, not
         constant sources), and routes without a constant drive channel at
-        all — the HH route (``HHParams`` carries no ``drive``) and the AdEx
+        all; the HH route (``HHParams`` carries no ``drive``) and the AdEx
         route without a declared triple drive (``triple_drive_pA`` None)
         both report ``()``.
         """
@@ -921,6 +924,12 @@ class Model:
                 f"emitter_{f}": _np.asarray(getattr(emitter, f))
                 for f in ("a", "b", "c", "d", "drive", "sign", "W", "v0", "u0", "source_scale")
             },
+            # v equation (P-054); an empty array stands for None (the standard 5 and 140).
+            **{
+                f"emitter_{f}": _np.asarray(getattr(emitter, f))
+                if getattr(emitter, f) is not None else _np.zeros((0,))
+                for f in ("v_lin", "v_const")
+            },
             # delay_steps is dynamics-consuming on the edge_list backend (perturbing
             # it moves V_m by ~92 mV), and omitting it silently restored every model
             # with zero delays. Every array field of EdgeList must be persisted.
@@ -1007,6 +1016,13 @@ class Model:
                 if meta["emitter_layer_labels"] is not None
                 else None,
                 source_calibration_status=meta["emitter_source_calibration_status"],
+                # A checkpoint written before P-054 has no v keys: it restores its own
+                # (standard-equation) realization.
+                **{
+                    f: jnp.array(z[f"emitter_{f}"])
+                    for f in ("v_lin", "v_const")
+                    if f"emitter_{f}" in z.files and z[f"emitter_{f}"].size
+                },
             )
             edge_list = EdgeList(
                 pre=jnp.array(z["edge_pre"]),
@@ -1150,7 +1166,7 @@ def with_emitter_parameters(
 
     Supports both scalar (uniform) and per-neuron (array) overrides.
     Per-neuron arrays take priority over scalars.
-    Explicit None checks used — zero-valued JAX arrays handled correctly.
+    Explicit None checks used; zero-valued JAX arrays handled correctly.
     """
     return model.with_emitter_parameters(
         a=a,

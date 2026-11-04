@@ -3,7 +3,8 @@
 Outputs (both from the same Plotly figure, so still and page cannot drift):
 
 * ``docs/_static/visuals/<name>.html`` — interactive page (Plotly.js via CDN)
-* ``docs/assets/visuals/<name>.png``  — still shown inline next to the tutorial
+* ``docs/assets/visuals/<name>.png``  — light still shown inline next to the tutorial
+* ``docs/assets/visuals/<name>.dark.png`` — its dark twin (``#only-dark`` on the page)
 
 Figures:
 
@@ -16,6 +17,12 @@ Figures:
 * ``hdp_h_dynamics``, ``hdp_weights`` — stills of the H and W panels of the
   small full-recording HDP run (``generate_doc_page_atlases.spec_hdp_10``);
   their interactive pages are that atlas's own panels.
+* ``jaxley_vm`` — the dark V_m panel of the Jaxley HH run
+  (``generate_doc_page_atlases.jaxley_single_figure``); still only.
+* ``v037_source_column_3d`` — the 3-D source column
+  (``build_v037_source_column_3d.build_column_figure``); still only.
+* ``v1_v4_pfc_network3d`` — the V1-V4-PFC hierarchy at 300 neurons/area, the code
+  quoted on the showcases page; still only.
 
 Usage:
     python scripts/generate_docs_visuals.py
@@ -36,6 +43,7 @@ for p in (ROOT, ROOT / "artifacts" / "atlas", ROOT / "scripts"):
 
 import jaxfne as jtfne  # noqa: E402
 from jaxfne.vis.exporters import _write_image  # noqa: E402  (retries Kaleido teardown, P-011)
+from jaxfne.vis.figure_theme import apply_scheme  # noqa: E402
 from jaxfne.vis.plotly.network import plot_area_graph, plot_network_3d  # noqa: E402
 
 assert "site-packages" not in sys.modules["jaxfne"].__file__, (
@@ -45,8 +53,6 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
 HTML_DIR = ROOT / "docs" / "_static" / "visuals"
 PNG_DIR = ROOT / "docs" / "assets" / "visuals"
 MAX_EDGES = 800
-THEME = dict(template="plotly_dark", paper_bgcolor="#0d1117", plot_bgcolor="#161b22",
-             font=dict(color="#c9d1d9"))
 
 
 def column_network():
@@ -83,10 +89,37 @@ def hdp_weights():
     return _hdp_fig(_hdp_10_model())
 
 
-# Stills only: their interactive pages are docs/_static/atlas/hdp_10/{h_dynamics,hdp}.html.
+def jaxley_vm():
+    import generate_doc_page_atlases as dpa
+
+    return dpa.jaxley_single_figure()
+
+
+def v037_source_column_3d():
+    import build_v037_source_column_3d as v037
+
+    return v037.build_column_figure()
+
+
+def v1_v4_pfc_network3d():
+    cfg = jtfne.build_multi_area_columns(["V1", "V4", "PFC"], n_per_area=300, ei_profile="canonical")
+    cfg = cfg.set_emitter("izhikevich", "cortical_eig").probes(["spikes", "V_m"], n_contacts=16)
+    model = jtfne.construct(cfg)
+    return jtfne.vis.visualize_network_3d(
+        model,
+        title="V1-V4-PFC multi-area canonical columns (300 neurons/area)",
+        show_layers=True, show_column_shells=True,
+    )
+
+
+# Stills only: the hdp pages are docs/_static/atlas/hdp_10/{h_dynamics,hdp}.html; the jaxley,
+# v037 and v1_v4_pfc pages are figure-site pages (build_docs_assets.py --site).
 FIGURES = {"column_network": column_network, "area_graph_n20": area_graph_n20,
-           "hdp_h_dynamics": hdp_h_dynamics, "hdp_weights": hdp_weights}
-STILL_ONLY = {"hdp_h_dynamics", "hdp_weights"}
+           "hdp_h_dynamics": hdp_h_dynamics, "hdp_weights": hdp_weights,
+           "jaxley_vm": jaxley_vm, "v037_source_column_3d": v037_source_column_3d,
+           "v1_v4_pfc_network3d": v1_v4_pfc_network3d}
+STILL_ONLY = {"hdp_h_dynamics", "hdp_weights", "jaxley_vm", "v037_source_column_3d",
+              "v1_v4_pfc_network3d"}
 
 
 def main() -> int:
@@ -94,12 +127,15 @@ def main() -> int:
     PNG_DIR.mkdir(parents=True, exist_ok=True)
     for name, make in FIGURES.items():
         fig = make()
-        fig.update_layout(**THEME, margin=dict(l=0, r=0, t=50, b=0))
-        if name not in STILL_ONLY:  # responsive page: no fixed size
-            fig.write_html(str(HTML_DIR / f"{name}.html"), include_plotlyjs="cdn", full_html=True)
-        fig.update_layout(width=1000, height=760)
-        _write_image(fig, str(PNG_DIR / f"{name}.png"))
-        print(f"wrote {name}: {'png' if name in STILL_ONLY else 'html + png'}")
+        fig.update_layout(margin=dict(l=0, r=0, t=50, b=0))
+        if name not in STILL_ONLY:  # responsive page: no fixed size; dark, as it always was
+            apply_scheme(fig, "dark").write_html(str(HTML_DIR / f"{name}.html"),
+                                                 include_plotlyjs="cdn", full_html=True)
+        for scheme, suffix in (("light", ".png"), ("dark", ".dark.png")):
+            still = apply_scheme(fig, scheme)
+            still.update_layout(width=1000, height=760)
+            _write_image(still, str(PNG_DIR / f"{name}{suffix}"))
+        print(f"wrote {name}: {'png' if name in STILL_ONLY else 'html + png'}, light and dark")
     return 0
 
 

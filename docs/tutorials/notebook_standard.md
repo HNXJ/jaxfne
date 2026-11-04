@@ -59,10 +59,10 @@ print(f"Simulation complete. Manifest keys: {list(manifest.keys())[:5]}")
 Notebooks **must** use the canonical vocabulary in repository file
 `artifacts/control/vocabulary/JAXFNE_VOCABULARY.md` (private to the checkout; summarized here):
 
-- **proxy** — readout without calibrated physical units
-- **calibrated** — only with an explicit calibration receipt
-- **source → field → probe** — standard pipeline terminology
-- **relative** — default output status within the model
+- **proxy**: readout without calibrated physical units
+- **calibrated**: only with an explicit calibration receipt
+- **source → field → probe**: standard pipeline terminology
+- **relative**: default output status within the model
 
 **Avoid:** generic meta-words (`doctrine`, `truth`, `framework` as filler),
 undeclared placeholders, and equating proxies with physical measurements.
@@ -112,16 +112,16 @@ Before pushing a notebook:
 
 The tutorial stack is:
 
-1. **01_single_neuron_multimodal** — Single Izhikevich neuron with spikes, voltage, LFP-proxy
-2. **02_two_neuron_ei** — Excitatory-inhibitory pair, recurrent coupling
-3. **03_network_100_ei** — Balanced network (100 neurons), population dynamics
-4. **04_v1_column** — Laminar V1 column (six layers), depth-specific readouts
-5. **05_v1_pfc_dual_column** — Two-column cross-area model, trial-chained HDP carryover
+1. **01_single_neuron_multimodal**: Single Izhikevich neuron with spikes, voltage, LFP-proxy
+2. **02_two_neuron_ei**: Excitatory-inhibitory pair, recurrent coupling
+3. **03_network_100_ei**: Balanced network (100 neurons), population dynamics
+4. **04_v1_column**: Laminar V1 column (six layers), depth-specific readouts
+5. **05_v1_pfc_dual_column**: Two-column cross-area model, trial-chained HDP carryover
 
 Each notebook teaches a progressively more complex workflow using the same source-to-field/readout model.
 
 ## Next Steps
 
-- **[Tutorials Overview](index.md)** — All tutorial notebooks
-- **[Calibration](../guides/state/calibration.md)** — Preparing outputs for validation
-- **[Guides](../guides/index.md)** — Detailed documentation
+- **[Tutorials Overview](index.md)**: All tutorial notebooks
+- **[Calibration](../guides/state/calibration.md)**: Preparing outputs for validation
+- **[Guides](../guides/index.md)**: Detailed documentation

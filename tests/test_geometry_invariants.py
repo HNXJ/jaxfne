@@ -4,20 +4,21 @@ Small model: 20 to 30 neurons, 100 ms, one seed. The rigid motion goes through t
 public augment API (``GeometryTransform`` with ``PoseEdit``). The connection rule is
 distance-only (localized sampling: ``max_in_degree`` with ``spatial_sigma``).
 
-One case is an open finding and is marked xfail(strict=True): an arbitrary rigid
-translation changes the realized edge set of the distance-only rule (inferred cause:
-the sampler's absolute spatial buckets).
+The distance-only rule keeps its realized edge set under a rigid translation and under a
+quarter turn about the centroid of a square grid: the sampler anchors its spatial buckets
+to the population, so absolute coordinates do not enter the draw.
 """
 import json
 from collections import Counter
 
+import jax
 import numpy as np
-import pytest
 from numpy.testing import assert_allclose
 
 import jaxfne as jtfne
 from jaxfne import neuronal_tensor as nt
 from jaxfne.augment import AugmentationSpec, GeometryTransform, PoseEdit, augment
+from jaxfne.connectivity import _candidate_pairs_localized
 from jaxfne.emitters import CELL_TYPE_SIGN
 
 DUR_MS = 100.0
@@ -159,10 +160,8 @@ def test_rigid_motion_keeps_pairwise_distances_and_maps_positions():
     assert_allclose(d1, d0, rtol=1e-5, atol=1e-6)
 
 
-# (b2) rigid motion, distance-only rule: edge set and spikes kept under the same seed.
-# The translation is one spatial bucket (3 * spatial_sigma = 3 mm). Inferred mechanism (not
-# traced in code): the bucket neighbourhood maps onto itself, so the sampler sees the same
-# candidates in the same order as the base model.
+# (b2) rigid motion by one spatial bucket (3 * spatial_sigma = 3 mm), distance-only rule: edge
+# set and spikes kept under the same seed. (b3) and (b4) cover arbitrary translations and turns.
 def test_bucket_aligned_rigid_motion_keeps_localized_edges_and_spikes():
     base = _build(_probe_tensor(translation=(1.0, 2.0, 3.0)))
     moved = _build(_rigid_move(_probe_tensor(translation=(1.0, 2.0, 3.0)), 0.0, (3.0, 0.0, 0.0)))
@@ -174,16 +173,8 @@ def test_bucket_aligned_rigid_motion_keeps_localized_edges_and_spikes():
     assert np.array_equal(_spikes(moved), s0)
 
 
-# (b3) open finding: an arbitrary rigid translation changes the localized edge set.
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "localized sampling (connectivity._candidate_pairs_localized) anchors its grid "
-        "buckets to absolute coordinates; a rigid translation of (2, -2, -3) mm changes the "
-        "realized edge set (observed: 27 of 50 edges differ; the spike comparison is not "
-        "reached; inferred: the cloud crosses a bucket boundary and the candidate order changes)"
-    ),
-)
+# (b3) arbitrary rigid translation, distance-only rule: edge set and spikes kept under the same
+# seed. The sampler anchors its buckets to the population's own minimum corner.
 def test_arbitrary_rigid_translation_keeps_localized_edges_and_spikes():
     base = _build(_probe_tensor(translation=(1.0, 2.0, 3.0)))
     moved = _build(_rigid_move(_probe_tensor(translation=(1.0, 2.0, 3.0)), 0.0, (2.0, -2.0, -3.0)))
@@ -193,6 +184,36 @@ def test_arbitrary_rigid_translation_keeps_localized_edges_and_spikes():
     assert s0.sum() > 0, "fixture must spike"
     assert _edge_set(moved) == e0
     assert np.array_equal(_spikes(moved), s0)
+
+
+# (b4) quarter turn about the centroid, distance-only rule on a square grid: edge set kept.
+# The grid straddles absolute bucket boundaries (x = 3 mm, y = 3 mm), so the turn moves neurons
+# across absolute buckets; anchored at the population's minimum corner, the grid sits in one bucket.
+def test_quarter_turn_about_centroid_keeps_localized_edges_on_a_square_grid():
+    spatial_sigma = 1.0
+    cell_size = 3.0 * spatial_sigma
+    side = 2.25 + 0.5 * np.arange(4)
+    xx, yy = np.meshgrid(side, side)
+    grid = np.stack([xx.ravel(), yy.ravel()], axis=1)
+    centre = grid.mean(axis=0)
+    theta = np.deg2rad(90.0)
+    rot = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
+    turned = (grid - centre) @ rot.T + centre
+    assert np.any(np.floor(grid / cell_size) != np.floor(turned / cell_size)), (
+        "fixture must move neurons across an absolute bucket boundary"
+    )
+
+    ids = list(range(grid.shape[0]))
+    base = {i: np.append(grid[i], 0.0) for i in ids}
+    moved = {i: np.append(turned[i], 0.0) for i in ids}
+    kwargs = dict(
+        max_in_degree=4, spatial_sigma=spatial_sigma, allow_self=False,
+        key=jax.random.PRNGKey(SEED),
+    )
+    e0 = set(_candidate_pairs_localized(ids, ids, base, **kwargs))
+    e1 = set(_candidate_pairs_localized(ids, ids, moved, **kwargs))
+    assert len(e0) == 4 * len(ids), "fixture must wire the full in-degree"
+    assert e1 == e0
 
 
 # (c) identity kept through flattening: area, layer, cell type, sign and position per neuron.

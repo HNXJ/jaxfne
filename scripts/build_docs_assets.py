@@ -16,11 +16,13 @@ Modes:
     --check                 compare the tracked manifests with the registry; generate nothing
     --site OUT [--only a,b] build the standalone figure site: every atlas panel, every
                             etude panel and the docs visuals as OUT/<slug>/<panel>.html
-                            (standalone page of the panel's Figure) plus .png stills
-                            and a manifest.json. Never writes under docs/;
-                            --build/--check are unchanged
-    --docs-figures-check    fail on any docs figure iframe outside the allowlist
-                            or any docs link to a docs/_static figure page
+                            (standalone page of the panel's Figure) plus <panel>.png and
+                            <panel>.dark.png stills and a manifest.json. Never writes under
+                            docs/; --build/--check are unchanged
+    --docs-figures-check    fail on any docs figure iframe outside the allowlist, any docs
+                            link to a docs/_static figure page, any still shown without its
+                            #only-light/#only-dark pair, or a docs/assets/visuals still
+                            whose twin is missing on disk
 
 Slugs are registry slugs: the atlas/<slug> directories, ``three_area`` for
 atlas_three_area, and ``readme`` for the top-level atlas/ (the canonical README atlas,
@@ -71,7 +73,8 @@ ETUDE_KEYS = ("slug", "dir", "generator", "html")
 FIG_PNG_WIDTH = 1000
 FIG_PNG_HEIGHT = 760
 FIG_PNG_SCALE = 1
-VISUAL_SLUGS = ("column_network", "area_graph_n20")
+VISUAL_SLUGS = ("column_network", "area_graph_n20", "jaxley_vm", "v037_source_column_3d",
+                "v1_v4_pfc_network3d")
 SITE_SCHEMA = "figsite.v1"
 
 # Public figure site: every docs still and "Interactive version" link points
@@ -579,10 +582,23 @@ def _site_figure_source(slug: str):
     return ("atlas", title, model, signals, kw, "", {})
 
 
-def _build_site_slug(slug: str, out: Path, registry: dict, pages: dict[Path, str]) -> list[dict]:
-    """Write OUT/<slug>/<panel>.html + .png; return the slug's manifest entries."""
-    from jaxfne.vis.atlas_suite import render_atlas
+def _write_stills(fig, slug_dir: Path, stem: str) -> None:
+    """Write <stem>.png (light) and <stem>.dark.png (dark), each from apply_scheme: one palette per scheme."""
     from jaxfne.vis.exporters import _write_image
+    from jaxfne.vis.figure_theme import apply_scheme
+
+    for scheme, name in (("light", f"{stem}.png"), ("dark", f"{stem}.dark.png")):
+        still = apply_scheme(fig, scheme)
+        still.update_layout(width=FIG_PNG_WIDTH, height=FIG_PNG_HEIGHT)
+        # Kaleido's own default scale is 1 == FIG_PNG_SCALE; _write_image only
+        # retries its teardown failure (P-011).
+        _write_image(still, str(slug_dir / name))
+
+
+def _build_site_slug(slug: str, out: Path, registry: dict, pages: dict[Path, str]) -> list[dict]:
+    """Write OUT/<slug>/<panel>.html + .png + .dark.png; return the slug's manifest entries."""
+    from jaxfne.vis.atlas_suite import render_atlas
+    from jaxfne.vis.figure_theme import themed_html
 
     kind, title, model, signals, kw, doc_dir, visual_figs = _site_figure_source(slug)
     by_slug = {e["slug"]: e for e in registry["atlases"]}
@@ -615,16 +631,13 @@ def _build_site_slug(slug: str, out: Path, registry: dict, pages: dict[Path, str
             entries.append({"slug": slug, "panel": stem, "html": html_rel,
                             "title": label, "status": "omitted", "docs_pages": docs})
             continue
-        fig.write_html(str(slug_dir / name), include_plotlyjs="cdn", full_html=True)
-        fig.update_layout(width=FIG_PNG_WIDTH, height=FIG_PNG_HEIGHT)
-        # Kaleido's own default scale is 1 == FIG_PNG_SCALE; _write_image only
-        # retries its teardown failure (P-011).
-        _write_image(fig, str(slug_dir / f"{stem}.png"))
+        (slug_dir / name).write_text(themed_html(fig), encoding="utf-8")
+        _write_stills(fig, slug_dir, stem)
         if kind == "visual":
             label = title
         entries.append({"slug": slug, "panel": stem, "html": html_rel,
-                        "png": f"{slug}/{stem}.png", "title": label,
-                        "status": "available", "docs_pages": docs})
+                        "png": f"{slug}/{stem}.png", "png_dark": f"{slug}/{stem}.dark.png",
+                        "title": label, "status": "available", "docs_pages": docs})
     if kind != "visual":
         tmpdir.cleanup()
     return entries
@@ -632,13 +645,13 @@ def _build_site_slug(slug: str, out: Path, registry: dict, pages: dict[Path, str
 
 def _build_site_etude_slug(slug: str, out: Path, registry: dict,
                           pages: dict[Path, str]) -> list[dict]:
-    """Write OUT/<slug>/<panel>.html + .png from the etude's own figure builders.
+    """Write OUT/<slug>/<panel>.html + .png + .dark.png from the etude's own figure builders.
 
     experiment_a replays its frozen bundle (no resimulation); the other etudes
     rerun their deterministic figure modes with the figures handed back instead
     of only written to disk.
     """
-    from jaxfne.vis.exporters import _write_image
+    from jaxfne.vis.figure_theme import themed_html
 
     slug_dir = out / slug
     slug_dir.mkdir(parents=True, exist_ok=True)
@@ -677,21 +690,18 @@ def _build_site_etude_slug(slug: str, out: Path, registry: dict,
                 entries.append({"slug": slug, "panel": stem, "html": f"{slug}/{name}",
                                 "title": label, "status": "omitted", "docs_pages": docs})
                 continue
-            fig.write_html(str(slug_dir / name), include_plotlyjs="cdn", full_html=True)
-            fig.update_layout(width=FIG_PNG_WIDTH, height=FIG_PNG_HEIGHT)
-            # Kaleido's own default scale is 1 == FIG_PNG_SCALE; _write_image only
-            # retries its teardown failure (P-011).
-            _write_image(fig, str(slug_dir / f"{stem}.png"))
+            (slug_dir / name).write_text(themed_html(fig), encoding="utf-8")
+            _write_stills(fig, slug_dir, stem)
             entries.append({"slug": slug, "panel": stem, "html": f"{slug}/{name}",
-                            "png": f"{slug}/{stem}.png", "title": label,
-                            "status": "available", "docs_pages": docs, **note})
+                            "png": f"{slug}/{stem}.png", "png_dark": f"{slug}/{stem}.dark.png",
+                            "title": label, "status": "available", "docs_pages": docs, **note})
         return entries
     finally:
         tmpdir.cleanup()
 
 
 def check_site_figures(site: Path) -> list[str]:
-    """Every non-omitted figure needs its html and a non-empty png."""
+    """Every non-omitted figure needs its html and a non-empty light and dark png."""
     manifest = read_json(Path(site) / "manifest.json")
     problems = []
     for fig in manifest.get("figures", []):
@@ -701,38 +711,95 @@ def check_site_figures(site: Path) -> list[str]:
             problems.append(f"{label}: html missing at {fig.get('html')}")
         if fig.get("status") == "omitted":
             continue
-        png = Path(site) / str(fig.get("png", ""))
-        if not png.is_file():
-            problems.append(f"{label}: png missing at {fig.get('png')}")
-        elif png.stat().st_size == 0:
-            problems.append(f"{label}: png empty at {fig.get('png')}")
+        for key in ("png", "png_dark"):
+            png = Path(site) / str(fig.get(key, ""))
+            if not png.is_file():
+                problems.append(f"{label}: {key} missing at {fig.get(key)}")
+            elif png.stat().st_size == 0:
+                problems.append(f"{label}: {key} empty at {fig.get(key)}")
     return problems
 
 
 # Docs figures are Still / Interactive tab pairs whose iframe frames the
-# figure site; no relative iframe may remain (the four unmapped pages below
-# are left as-is), and no relative link may point at a figure page (atlas,
-# etude or visual dirs).
+# figure site; no relative iframe may remain (the one page below is the
+# explorer, a JavaScript app a still cannot show), and no relative link may
+# point at a figure page (atlas, etude or visual dirs).
 ALLOWLISTED_FIGURE_IFRAMES = {
-    "docs/assets/interactive/v037_source_column_3d.html",
     "docs/assets/interactive/izhikevich_single_emitter_explorer.html",
-    "docs/_static/jaxley_interop/vm_dark.html",
-    "docs/assets/showcases/v1_v4_pfc_network3d.html",
 }
 _IFRAME_SRC_RE = re.compile(r"<iframe\b[^>]*\bsrc\s*=\s*[\"']([^\"'#?]+?\.html)",
                             re.IGNORECASE | re.DOTALL)
 
 
+# A docs still is shown in both schemes: <stem>.png with #only-light and <stem>.dark.png with
+# #only-dark, Material's scheme fragments. Markdown images and raw <img> tags are both read.
+STILL_REF = re.compile(r"!\[[^\]]*\]\(\s*<?([^)\s>]+)|<img\b[^>]*?\bsrc\s*=\s*[\"']([^\"']+)",
+                       re.IGNORECASE)
+SCHEME_FRAGMENTS = ("only-light", "only-dark")
+VISUALS_DIR = "docs/assets/visuals"
+
+
+def still_problems(page: Path, text: str) -> tuple[list[str], int]:
+    """Figure-site or visuals PNGs a page shows without their light and dark pair.
+
+    Returns the problems and the number of still references examined.
+    """
+    problems: list[str] = []
+    seen: dict[str, tuple[int, set[str]]] = {}
+    examined = 0
+    for m in STILL_REF.finditer(text):
+        url = (m.group(1) or m.group(2) or "").strip()
+        base, _, frag = url.partition("#")
+        if not base.lower().endswith(".png"):
+            continue
+        if not (base.startswith(FIGURES_URL) or "assets/visuals/" in base):
+            continue
+        examined += 1
+        line = text.count("\n", 0, m.start()) + 1
+        dark = base.endswith(".dark.png")
+        want = "only-dark" if dark else "only-light"
+        if frag not in SCHEME_FRAGMENTS:
+            problems.append(f"{rel(page)}:{line}: still {base} shows without its #only-light/#only-dark pair")
+            continue
+        if frag != want:
+            problems.append(f"{rel(page)}:{line}: still {base} carries #{frag}; its file takes #{want}")
+            continue
+        stem = base[:-len(".dark.png")] if dark else base[:-len(".png")]
+        seen.setdefault(stem, (line, set()))[1].add(frag)
+    for stem, (line, frags) in sorted(seen.items()):
+        if frags != set(SCHEME_FRAGMENTS):
+            twin = "#only-dark" if "only-light" in frags else "#only-light"
+            problems.append(f"{rel(page)}:{line}: still {stem} has no {twin} twin on this page")
+    return problems, examined
+
+
+def visuals_twin_problems(visuals: Path) -> list[str]:
+    """Every still on disk in docs/assets/visuals has its twin: <stem>.png and <stem>.dark.png."""
+    names = {p.name for p in visuals.glob("*.png")} if visuals.is_dir() else set()
+    problems = []
+    for name in sorted(names):
+        if name.endswith(".dark.png"):
+            twin = name[:-len(".dark.png")] + ".png"
+        else:
+            twin = name[:-len(".png")] + ".dark.png"
+        if twin not in names:
+            problems.append(f"{rel(visuals / name)}: twin {twin} missing on disk")
+    return problems
+
+
 def docs_figures_check() -> int:
-    """Fail on a non-allowlisted docs iframe or a relative figure-page link."""
+    """Fail on a non-allowlisted docs iframe, a relative figure-page link, or an unpaired still."""
     registry = load_registry()
     figure_dirs = ({e["dir"] for e in registry["atlases"]}
                    | {e["dir"] for e in registry["etudes"]} | {"docs/_static/visuals"})
     pages = docs_pages()
-    iframe_hits = link_hits = 0
+    iframe_hits = link_hits = still_hits = 0
     problems: list[str] = []
     for page in sorted(pages):
         text = pages[page]
+        still_found, examined = still_problems(page, text)
+        problems += still_found
+        still_hits += examined
         for m in _IFRAME_SRC_RE.finditer(text):
             src = m.group(1).strip()
             if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:|^/", src) or not src.endswith(".html"):
@@ -749,10 +816,11 @@ def docs_figures_check() -> int:
             link_hits += 1
             line = text.count("\n", 0, off) + 1
             problems.append(f"{rel(page)}:{line}: figure link {link} must be a figure-site URL")
+    problems += visuals_twin_problems(ROOT / VISUALS_DIR)
     for p in problems:
         print(f"  - {p}")
     print(f"docs-figures-check: {iframe_hits} iframes, {link_hits} figure links, "
-          f"{len(problems)} problems in {len(pages)} pages")
+          f"{still_hits} stills, {len(problems)} problems in {len(pages)} pages")
     return 1 if problems else 0
 
 
@@ -765,6 +833,7 @@ def check_cited_figures(entries: list[dict], slugs: list[str],
     """
     held = {e["html"] for e in entries if e["status"] == "available"}
     held |= {e["png"] for e in entries if e["status"] == "available"}
+    held |= {e["png_dark"] for e in entries if e["status"] == "available"}
     url = re.compile(re.escape(FIGURES_URL) + r"(?P<slug>[^/)\s\"']+)/(?P<file>[^)\s\"'#?]+)")
     problems = []
     for page, text in pages.items():

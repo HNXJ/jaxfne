@@ -55,7 +55,7 @@ def solve(self, dydt_fn, y_init, t_start, t_end) -> tuple[jax.Array, jax.Array]
 ```
 
 Integrates `dydt_fn` from `t_start` to `t_end` using forward Euler stepping
-compiled via `lax.scan` — no Python loop overhead at runtime. Returns
+compiled via `lax.scan`; no Python loop overhead at runtime. Returns
 `(y_final, trajectory)`.
 
 ---

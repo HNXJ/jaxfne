@@ -343,7 +343,7 @@ def _case_plot_stdp_adaptation_suite():
         assert len(pngs) == 4, f"expected 4 PNGs, found {pngs}"
 
 
-# --- plotly/connectivity.py, csd.py, dashboard.py, lfp.py, metrics.py, raster.py, spectra.py ---
+# --- jaxfne/vis/plotly/connectivity.py, csd.py, dashboard.py, lfp.py, metrics.py, raster.py, spectra.py ---
 
 def _case_plot_connectivity():
     from jaxfne.vis.plotly.connectivity import plot_connectivity
@@ -857,7 +857,7 @@ def _case_plot_spectrolaminar_power_array():
 
 
 # ---------------------------------------------------------------------------
-# Parametrize table: (id, case_fn) — grouped roughly by source module/order
+# Parametrize table: (id, case_fn); grouped roughly by source module/order
 # above so failures map back to file location easily.
 # ---------------------------------------------------------------------------
 
@@ -877,7 +877,7 @@ CASES = [
     ("hdp_diagnostics.voltage_trace_with_spikes_by_celltype", _case_voltage_trace_with_spikes_by_celltype),
     # plasticity_viz.py
     ("plasticity_viz.plot_stdp_adaptation_suite", _case_plot_stdp_adaptation_suite),
-    # plotly/connectivity.py, csd.py, dashboard.py, lfp.py, metrics.py, raster.py, spectra.py
+    # jaxfne/vis/plotly/connectivity.py, csd.py, dashboard.py, lfp.py, metrics.py, raster.py, spectra.py
     ("plotly.connectivity.plot_connectivity", _case_plot_connectivity),
     ("plotly.csd.plot_csd", _case_plot_csd),
     ("plotly.dashboard.create_dashboard", _case_create_dashboard),
@@ -965,7 +965,7 @@ def test_no_undocumented_skips_placeholder():
     Every one of the 18 target files' public functions turned out to be
     cheaply smoke-testable with small synthetic/duck-typed fixtures (no
     live file dialog, no real PDF-viewer backend, no GPU-only path was
-    required) — see CASES above for the full enumerated list. This test
+    required); see CASES above for the full enumerated list. This test
     exists so a future contributor who adds a genuinely-unskippable
     function has an obvious place to add a `pytest.mark.skip(reason=...)`
     entry rather than silently omitting coverage.

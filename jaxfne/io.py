@@ -153,7 +153,7 @@ def manifest(
     so downstream readers cannot mistake them for empirical validation results.
 
     ``model`` (a :class:`Model`) supplies the constant ``x_sources`` rows from
-    its derived :attr:`Model.x_sources` property — ``(area, layer,
+    its derived :attr:`Model.x_sources` property: ``(area, layer,
     cell_type)`` triples with per-entry ``n_neurons`` counts, the single
     manifest vocabulary (shared with :meth:`Model.manifest`). Without a
     model no constant rows are emitted (a bare configuration cannot name
@@ -218,7 +218,7 @@ def manifest(
             _regime_block = {"refused": str(exc)}
         if _regime_block is not None:
             data["activity_regimes"] = _regime_block
-    # v0.0.5 optional extension blocks — always include claim labels to prevent
+    # v0.0.5 optional extension blocks; always include claim labels to prevent
     # downstream misreading of computational reports as empirical validation.
     _v005_present = any(x is not None for x in (paradigm, objective, evaluation, tuning))
     if _v005_present:

@@ -434,6 +434,24 @@ def test_optax_surrogate_soft_rate_loop_runs():
     assert "drive.E.rate" in result.best_parameters
 
 
+def test_zero_learning_rate_refused_on_handle_soft_rate_path():
+    """learning_rate=0.0 was silently replaced by 0.01 on the handle path."""
+    model = _izh_model()
+    with pytest.raises(ValueError, match="learning_rate"):
+        jtfne.tune_handles(
+            model,
+            objectives=_rate_objective(12, 10.0),
+            optimizer=jtfne.optax_adam(
+                learning_rate=0.0, differentiability_status="declared_surrogate"
+            ),
+            parameters={"drive.E.rate": (1.0, 10.0)},
+            steps=2,
+            seed=0,
+            simulation=_izh_sim(),
+            surrogate="soft_rate",
+        )
+
+
 def test_concrete_edge_gradient_refused_up_front():
     model = _adex_model()
     with pytest.raises(ValueError, match=re.escape("edges.weight[all]")):
@@ -472,7 +490,9 @@ def test_narrow_drive_gain_blackbox_unchanged():
         parameter="drive_gain", bounds=(0.5, 1.5), steps=4, seed=0,
     )
     assert set(result.best_parameters) == {"best_value"}
+    # tune candidate seeds via SeedSequence (Hamm 2026-10-28); was 1.2579544029403025
     np.testing.assert_allclose(result.best_parameters["best_value"], 0.84114316166169, rtol=1e-12)
+    # P-048 (u0 = b * v0), 2026-10-28; was 0.07111111111111111 (unchanged)
     np.testing.assert_allclose(result.best_score, 0.07111111111111111, rtol=1e-12)
 
 
@@ -496,3 +516,96 @@ def test_narrow_source_scale_optax_unchanged():
     assert len(history) == 5
     np.testing.assert_allclose(history[-1]["source_scale"], 1.2485201358795166, rtol=1e-6)
     np.testing.assert_allclose(history[-1]["loss"], 278.07080078125, rtol=1e-6)
+
+
+# ---------------------------------------------------------------------------
+# T-55 (lane C3): the AGSDR loop catches refusals only; seeds on gradient paths
+# ---------------------------------------------------------------------------
+
+
+def _edge_handle_call(**overrides):
+    kwargs = dict(
+        objectives=_rate_objective(12, 10.0),
+        optimizer=jtfne.agsdr(),
+        parameters={"edges.weight[all]": (0.5, 2.0)},
+        generations=1,
+        population_size=2,
+        seed=0,
+        simulation=_izh_sim(),
+    )
+    kwargs.update(overrides)
+    return jtfne.tune_handles(_izh_model(), **kwargs)
+
+
+def test_handles_loop_programming_error_propagates(monkeypatch):
+    """A TypeError inside the AGSDR loop is a bug, not a REVISE report."""
+    import jaxfne.optim.handles as handles_mod
+
+    def _programming_error(**kwargs):
+        raise TypeError("injected programming error")
+
+    monkeypatch.setattr(handles_mod, "_run_agsdr_optimization_loop", _programming_error)
+    with pytest.raises(TypeError, match="injected programming error"):
+        _edge_handle_call()
+
+
+def test_handles_loop_refusal_still_reports_revise(monkeypatch):
+    """A ValueError refusal from the AGSDR loop keeps its REVISE report."""
+    import jaxfne.optim.handles as handles_mod
+
+    def _refused(**kwargs):
+        raise ValueError("injected refusal")
+
+    monkeypatch.setattr(handles_mod, "_run_agsdr_optimization_loop", _refused)
+    result = _edge_handle_call()
+    assert result.summary["tuning_status"] == "handles_agsdr_error"
+    assert result.summary["acceptance_decision"] == "REVISE"
+    assert "injected refusal" in result.summary["error"]
+
+
+def _soft_rate_handle_call(**overrides):
+    kwargs = dict(
+        objectives=_rate_objective(12, 10.0),
+        optimizer=jtfne.optax_adam(learning_rate=0.05, differentiability_status="declared_surrogate"),
+        parameters={"drive.E.rate": (1.0, 10.0)},
+        steps=2,
+        seed=0,
+        simulation=_izh_sim(),
+        surrogate="soft_rate",
+    )
+    kwargs.update(overrides)
+    return jtfne.tune_handles(_izh_model(), **kwargs)
+
+
+def test_nondefault_seed_is_refused_on_the_handles_soft_rate_loop():
+    """seed=7 against a seed-0 simulation: the loop reads no seed of its own, so it is refused."""
+    with pytest.raises(ValueError, match="seed"):
+        _soft_rate_handle_call(seed=7)
+
+
+def test_handles_soft_rate_summary_records_the_simulation_seed_that_applied():
+    result = _soft_rate_handle_call()
+    assert result.summary["tuning_status"] == "handles_differentiable_soft_rate_loop_v0.1"
+    assert result.summary["seed"] == 0
+    assert result.summary["optimizer_seed"] is None
+
+
+def test_handles_seed_without_simulation_builds_the_default_simulation_from_it():
+    """tune_handles(seed=7) with no simulation: the default simulation takes seed 7; the summary records 7."""
+    result = _soft_rate_handle_call(seed=7, simulation=None)
+    assert result.summary["tuning_status"] == "handles_differentiable_soft_rate_loop_v0.1"
+    assert result.summary["seed"] == 7
+    assert result.summary["simulation_seed"] == 7
+
+
+def test_handles_seed_that_differs_from_the_simulation_seed_is_refused():
+    """simulation.seed=3 with seed=7: seed 7 would apply to nothing, so it is refused."""
+    with pytest.raises(ValueError, match="seed"):
+        _soft_rate_handle_call(seed=7, simulation=jtfne.simulation(duration_ms=200.0, dt_ms=0.5, seed=3))
+
+
+def test_handles_zero_seed_runs_on_a_seeded_simulation_and_records_its_seed():
+    """simulation.seed=3 with seed=0: the loop runs, and the summary records the seed that applied (3)."""
+    result = _soft_rate_handle_call(seed=0, simulation=jtfne.simulation(duration_ms=200.0, dt_ms=0.5, seed=3))
+    assert result.summary["tuning_status"] == "handles_differentiable_soft_rate_loop_v0.1"
+    assert result.summary["seed"] == 3

@@ -121,7 +121,7 @@ _DEFAULT_CELL_COLORS: dict[str, str] = {
     "E":   "#d4a017",   # gold (filled circle)
     "PV":  "#1fd6d6",   # cyan (diamond)
     "SST": "#e840c8",   # magenta (square)
-    "VIP": "#ffffff",   # white (open circle) — needs the dark scene background
+    "VIP": "#7e57c2",   # violet (circle); reads on a light and a dark scene
 }
 
 _FALLBACK_COLORS = [
@@ -357,9 +357,13 @@ def visualize_network_3d(
     title : str
         Figure title. Default: "Network 3D visualization".
     coordinate_unit : str
-        Unit of stored coordinates (``"m"``, ``"mm"``, ``"um"``, ``"nm"``).
+        Unit of stored coordinates (``"m"``, ``"mm"``, ``"um"``, ``"nm"``, or
+        ``"relative"``).
     display_unit : str
-        Unit for display axes (``"m"``, ``"mm"``, ``"um"``, ``"nm"``).
+        Unit for display axes (``"m"``, ``"mm"``, ``"um"``, ``"nm"``, or
+        ``"relative"``). ``"relative"`` shows the stored values unscaled and labels
+        the axes relative; it must pair with ``coordinate_unit="relative"``, since
+        relative positions have no metre scale.
     show_layers : bool
         Draw translucent horizontal planes at inferred layer z-boundaries.
     layer_plane_opacity : float
@@ -372,12 +376,12 @@ def visualize_network_3d(
         Draw wireframe shells per area/column. Shape set by ``column_shape``.
     column_shape : str
         ``"cylinder"`` (default) draws a vertical cylinder wireframe per area
-        (circular x-y cross-section, depth on z — the "cylindric rule").
+        (circular x-y cross-section, depth on z: the "cylindric rule").
         ``"box"`` draws the legacy axis-aligned bounding box.
     column_segments : int
         Number of segments used to approximate each cylinder's circular rings.
     show_edges : bool
-        Draw edges if data provides them (networkx graph only).
+        Draw a networkx graph's edges; any other input raises ``ValueError``.
     max_edges : int
         Maximum number of edges to render (capped for performance).
     seed : int
@@ -385,7 +389,7 @@ def visualize_network_3d(
     depth_multiplier : float
         Display-only multiplier applied to the plotted depth (z) values
         (default ``1.0`` = no change). Does not rescale or mutate the
-        underlying neuron positions/data — only the rendered depth axis
+        underlying neuron positions/data; only the rendered depth axis
         (e.g. ``2.0`` displays a 0..1000 µm range as 0..2000).
     point_size : float
         Marker size (pixels) for the single-point neuron soma body.
@@ -411,6 +415,20 @@ def visualize_network_3d(
     - Geometry is proxy/declared only. Not calibrated anatomical coordinates.
     """
     go = _require_plotly()
+    if show_edges and not hasattr(data, "edges"):
+        raise ValueError(
+            "visualize_network_3d: show_edges=True draws a networkx graph's edges, and "
+            f"{type(data).__name__} has none; jaxfne.vis.plotly.plot_network_3d(model, "
+            "show_edges=True) draws a model's edges")
+    for name, unit in (("coordinate_unit", coordinate_unit), ("display_unit", display_unit)):
+        if unit not in _UNIT_SCALE and unit != "relative":
+            raise ValueError(
+                f"visualize_network_3d: {name}={unit!r} is not one of "
+                f"{sorted(_UNIT_SCALE) + ['relative']}")
+    if (coordinate_unit == "relative") != (display_unit == "relative"):
+        raise ValueError(
+            "visualize_network_3d: coordinate_unit and display_unit must both be 'relative' "
+            "or both physical units; relative positions have no metre scale")
 
     # ── Normalize input ────────────────────────────────────────────────────────
     rows = _coerce_to_rows(data, seed=seed)
@@ -418,8 +436,9 @@ def visualize_network_3d(
         raise ValueError("visualize_network_3d: no node data found in input.")
 
     # ── Coordinate scaling ─────────────────────────────────────────────────────
-    from_scale = _UNIT_SCALE.get(coordinate_unit, 1.0)
-    to_scale   = _UNIT_SCALE.get(display_unit, 1.0)
+    # "relative" (on both units, see above) keeps the stored values: scale 1.
+    from_scale = 1.0 if coordinate_unit == "relative" else _UNIT_SCALE[coordinate_unit]
+    to_scale   = 1.0 if display_unit == "relative" else _UNIT_SCALE[display_unit]
     scale      = to_scale / from_scale  # convert stored unit → display unit
 
     x_disp = np.array([r["x_m"] for r in rows]) * scale

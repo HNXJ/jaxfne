@@ -1,4 +1,4 @@
-"""Protocol H4 — factorial matrix machinery and receipt structure."""
+"""Protocol H4: factorial matrix machinery and receipt structure."""
 
 from __future__ import annotations
 

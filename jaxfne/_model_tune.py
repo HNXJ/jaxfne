@@ -185,8 +185,15 @@ def tune(
 
     This is a computational scaffold: no biological calibration, no field-solver upgrade,
     and no optimizer-selected mechanism claim are made.
+
+    In the ``parameter=`` scan, candidate simulation seeds come from SeedSequence
+    over (seed, 0, candidate index), the optimizer's ``_candidate_sim_seed``
+    scheme, so scans with adjacent seeds share no simulation seed. The
+    multi-parameter path seeds each candidate from SeedSequence over the
+    optimizer seed and (generation, row) through the same scheme.
     """
     from .optim import _resolve_optimizer, propose_blackbox_candidates, require_optax
+    from .optim.core import _candidate_sim_seed
 
     # Normalize objectives vs objective
     if objectives is not None:
@@ -468,7 +475,9 @@ def tune(
     warnings: list[str] = []
     for idx, candidate_value in enumerate(candidates):
         candidate_model = _model_with_scalar_parameter(self, parameter, float(candidate_value))
-        candidate_signals = candidate_model.simulate(sim.with_seed(int(seed) + idx))
+        candidate_signals = candidate_model.simulate(
+            sim.with_seed(_candidate_sim_seed(int(seed), 0, idx))
+        )
         candidate_report = candidate_model.evaluate(candidate_signals, objective, strict=strict)
         score = candidate_report.get("total_loss")
         gates_pass = bool(candidate_report.get("all_gates_pass", False))
@@ -569,10 +578,10 @@ def _tune_multiparameter(
         _run_agsdr_optimization_loop,
         _tune_matrix_agsdr_optax,
     )
+    from .optim.core import _candidate_sim_seed
 
     cfg_meta = self.cfg.metadata
 
-    # Build base report
     base_report: dict[str, Any] = {
         "same_model_unchanged": True,
         "seed": int(seed),
@@ -662,9 +671,15 @@ def _tune_multiparameter(
     rejections_map = []
     candidate_evaluations: list[dict[str, Any]] = []
 
+    # Call counter mapping evaluate_fn calls to (generation, row) in the order
+    # _run_agsdr_optimization_loop calls them (row-major over the population).
+    _candidate_calls = [0]
+
     # Define scoring function for AGSDR loop
     def evaluate_fn(candidate_params: dict[str, float]) -> float:
         """Evaluate a candidate parameter dict and return loss."""
+        gen, row = divmod(_candidate_calls[0], int(population_size))
+        _candidate_calls[0] += 1
         reasons = []
         candidate_model = None
         candidate_report: dict[str, Any]
@@ -675,7 +690,9 @@ def _tune_multiparameter(
                 candidate_params,
                 param_specs if param_specs else None,
             )
-            candidate_signals = candidate_model.simulate(simulation)
+            candidate_signals = candidate_model.simulate(
+                simulation.with_seed(_candidate_sim_seed(int(seed), gen, row))
+            )
             state_diagnostics = candidate_model.last_hdp_diagnostics()
             if state_diagnostics is None:
                 candidate_report = candidate_model.evaluate(
@@ -875,7 +892,7 @@ def with_emitter_parameters(
             Overrides both scalar drive_scale and emitter.drive.
 
     Returns:
-        New Model — original is not mutated.
+        New Model; original is not mutated.
     """
     emitter = self._require_izhikevich_emitter("with_emitter_parameters")
     updates: dict[str, Any] = {}
@@ -911,6 +928,10 @@ def with_emitter_parameters(
         updates["drive"] = emitter.drive * float(drive_scale)
 
     new_emitter = replace(emitter, **updates)
+    if {"a", "b", "c", "d"} & set(updates):
+        from .emitters import refresh_v_coefs
+
+        new_emitter = refresh_v_coefs(new_emitter)  # P-054: the v equation follows a, b, c, d
     new_params = dict(self.params)
     new_params["emitter"] = new_emitter
     return replace(self, params=new_params)
@@ -939,7 +960,7 @@ def with_hdp_initial_state(
             native ``weight`` when not provided.
 
     Returns:
-        New Model — original is not mutated.
+        New Model; original is not mutated.
     """
     # Local import: _runtime_config_from_metadata stays in core.py (used by
     # both Model and the module-level simulate() function); deferring the
@@ -947,7 +968,7 @@ def with_hdp_initial_state(
     # `from ._model import Model`.
     from .core import _runtime_config_from_metadata
 
-    jdtype = _runtime_config_from_metadata(self.cfg.metadata).jnp_dtype
+    jdtype = _runtime_config_from_metadata(self.cfg.metadata).jnp_compute_dtype
     new_params = dict(self.params)
     if H0 is not None:
         new_params["hdp_initial_H"] = jnp.asarray(H0, dtype=jdtype)
@@ -1096,7 +1117,10 @@ def _mask_for_parameter(
     parameter_name : str
         Name of the parameter (used only for error messages).
     mask_type : str
-        One of: "E_to_E", "E_to_I", "excitatory_to_all", "all".
+        One of: "E_to_E", "E_to_I", "I_to_E", "excitatory_to_all", "all". The
+        matrix is ``[post, pre]``: ``E_to_I`` selects rows of I targets and
+        columns of E sources; ``excitatory_to_all`` selects every column whose
+        source is excitatory.
     target : str
         Name of the emitter dataclass field the mask applies to (default
         "W"; e.g. "G" for the homeostatic_ei emitter's conductance matrix).
@@ -1119,18 +1143,18 @@ def _mask_for_parameter(
     if mask_type == "all":
         return jnp.ones((n, n), dtype=bool)
 
+    # W[post, pre]: rows are targets, columns are sources.
     if mask_type == "excitatory_to_all":
-        # Scale entries in rows corresponding to excitatory neurons (positive out-degree).
-        # We identify E neurons by their sign label or by majority positive outgoing weights.
-        row_mask = _np_mask.zeros(n, dtype=bool)
-        for i in range(n):
-            # E neurons: positive outgoing (sign > 0) or labeled E
-            label = emitter.labels[i] if i < len(emitter.labels) else ""
-            if label.startswith("E") or _np_mask.sum(W[i, :] > 0) > _np_mask.sum(W[i, :] < 0):
-                row_mask[i] = True
-        return jnp.asarray(_np_mask.outer(row_mask, _np_mask.ones(n, dtype=bool)), dtype=bool)
+        # Every entry whose source column is excitatory: labeled E, or with mostly positive
+        # outgoing weights W[:, j].
+        col_mask = _np_mask.zeros(n, dtype=bool)
+        for j in range(n):
+            label = emitter.labels[j] if j < len(emitter.labels) else ""
+            if label.startswith("E") or _np_mask.sum(W[:, j] > 0) > _np_mask.sum(W[:, j] < 0):
+                col_mask[j] = True
+        return jnp.asarray(_np_mask.outer(_np_mask.ones(n, dtype=bool), col_mask), dtype=bool)
 
-    # E_to_E and E_to_I: identify E vs I neurons by labels
+    # E_to_E, E_to_I and I_to_E: identify E vs I neurons by labels
     e_mask = _np_mask.zeros(n, dtype=bool)
     i_mask = _np_mask.zeros(n, dtype=bool)
     for idx in range(n):
@@ -1140,14 +1164,17 @@ def _mask_for_parameter(
         else:
             i_mask[idx] = True
 
+    # outer(target rows, source columns)
     if mask_type == "E_to_E":
         return jnp.asarray(_np_mask.outer(e_mask, e_mask), dtype=bool)
     if mask_type == "E_to_I":
+        return jnp.asarray(_np_mask.outer(i_mask, e_mask), dtype=bool)
+    if mask_type == "I_to_E":
         return jnp.asarray(_np_mask.outer(e_mask, i_mask), dtype=bool)
 
     raise ValueError(
         f"Unknown mask type for parameter {parameter_name!r}: {mask_type!r}. "
-        "Supported: E_to_E, E_to_I, excitatory_to_all, all"
+        "Supported: E_to_E, E_to_I, I_to_E, excitatory_to_all, all"
     )
 
 

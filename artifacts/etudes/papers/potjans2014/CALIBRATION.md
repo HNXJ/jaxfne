@@ -1,6 +1,6 @@
 # potjans2014 calibration record (RESIDUAL_PROTOCOL.md, Records)
 
-Status: P2 (PORT_SPEC written, smoke pilot run, unscored). Every number
+Status: P3 (signed P3 v2 scored off 2026-11-02, `RESULT_P3.md`; the records below are pilots). Every number
 below is reopened from its JSON or receipt before commit (checklist R2);
 verdicts use the status tags (checklist R3).
 
@@ -26,6 +26,21 @@ Route runs end to end; no comparison claim beyond "runs".
 - Verdict: in progress (smoke pilot, seed 0, unscored; rates above the
   paper C1 band, expected from the uniform 2000-train stand-in drive;
   scored comparison needs P3 with fresh seeds).
+
+## 0b. B8 pilot, scale 0.1, T 10 s, seed 0, unscored (O-80)
+
+- Runs at acab8e66 (LIF continuation, 1 s segments), dt 0.1 ms, float32, GPU (`jax_devices`
+  cuda:0; the manifest's `"backend": "cpu"` is the fixed label corrected in 999f8a02). Window: first
+  0.5 s dropped, 9.5 s kept. Receipts `F:/warehouse/potjans2014/pilot_T10_acab8e66/`
+  (base manifest sha256 4a42d2d0…, lesion d739092e…).
+- Memory: base 32:58 wall, 12.8 GB peak RSS; lesion 38:21, 12.8 GB; under the 30 GB cap (the
+  unchunked pilot reached 86 GB).
+- Base, P3 v2 estimands: R-L4E 4.484 Hz (e 0.008), R-L6E 1.096 Hz (e 0.005) inside; R-L23E 1.541 Hz
+  (e 0.791), R-L5E 9.786 Hz (e 0.289) outside; O-ORD holds; O-IE fails at L5 (E 9.786, I 9.704 Hz);
+  CV fails on L6E 0.793 (all others 0.80–0.89).
+- Known positive (L5i → L5e removed): R-L5E 318.1 Hz (e 40.9), outside its band; O-ORD fails. The
+  R-L5E band can fail.
+- Verdict: in progress (pilot, unscored).
 
 ## Provenance
 

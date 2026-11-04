@@ -158,7 +158,7 @@ class TestAgentContextHygiene:
         """No current public-facing grammar may terminate in Evidence or revive the legacy chain."""
         surfaces = [
             # README and docs/index.md are minimum-word entry pages; grammars live
-            # in context.md and deeper docs.
+            # in artifacts/context.md and deeper docs.
             "artifacts/context.md",
             "docs/reference/api/index.md",
             "docs/reference/project/for_ai_agents.md",
@@ -401,7 +401,7 @@ class TestFreshCloneTaskState:
         assert status == "absent"
 
     def test_current_task_example_is_tracked(self):
-        assert Path("scratch/CURRENT_TASK.example.md").is_file()
+        assert Path("artifacts/control/harness/CURRENT_TASK.example.md").is_file()
 
 
 class TestRepoStateSnapshotDetachedHead:

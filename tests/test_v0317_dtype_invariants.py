@@ -22,7 +22,7 @@ def _sum_evaluate(candidate: dict[str, float]) -> float:
 
 
 def _sphere_evaluate(candidate: dict[str, float]) -> float:
-    """Sphere function — optimum at 0.0 for each param."""
+    """Sphere function: optimum at 0.0 for each param."""
     return sum(v * v for v in candidate.values())
 
 

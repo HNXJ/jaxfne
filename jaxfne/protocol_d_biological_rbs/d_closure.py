@@ -1,4 +1,4 @@
-"""Protocol D closure at D3 — milestone interpretation receipt."""
+"""Protocol D closure at D3: milestone interpretation receipt."""
 
 from __future__ import annotations
 

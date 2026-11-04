@@ -15,4 +15,6 @@ One row per scored criterion, pass or fail (B2). Source: Brunel 2000, Fig. 8 poi
 | BRU-Q3 | C is asynchronous irregular | P3 v4 | reproduced | spectral excess 2.95–3.27, CV 0.40–0.41 | reading (ii), the paper's wording; the classifier label `asynchronous` (declined reading (i)) fails at C | same |
 
 Overall: close under signed v4 (`RESULT_P3.md`), seeds 4–8, float32; float64 at C agrees to
-0.012% in rate. Sensitivity S1–S3 has not run.
+0.012% in rate. Sensitivity S1–S3 ran (`RESULT_P3.md`, unscored): S2 holds every label, S3 moves C
+seed 4 to oscillatory, and S1 (N=6250, in-degrees held) moves D to irregular on all five seeds, so
+BRU-Q2D holds at N=12500 only; no verdict changes.

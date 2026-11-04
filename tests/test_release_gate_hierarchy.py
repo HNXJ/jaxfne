@@ -375,10 +375,53 @@ def test_notebook_selector_is_the_gap_the_other_two_leave():
         assert _selects(NOTEBOOK_MARKER_EXPR, slow=slow, notebook=notebook)
 
 
+def _release_ci_steps(text: str) -> list[dict]:
+    """Release CI steps in file order, each with its job id, the job's `if:` and its own `if:`/`run:`."""
+    rows: list[dict] = []
+    job, job_if, step = None, None, None
+    for line in text.splitlines():
+        if re.fullmatch(r"  [A-Za-z0-9_-]+:", line):
+            job, job_if, step = line.strip().rstrip(":"), None, None
+        elif line.startswith("    if: "):
+            job_if = line[len("    if: "):].strip()
+        elif line.startswith("      - "):
+            step = {"job": job, "job_if": job_if, "if": None, "run": None}
+            rows.append(step)
+        elif step is not None and line.startswith("        if: "):
+            step["if"] = line[len("        if: "):].strip()
+        elif step is not None and line.startswith("        run: "):
+            step["run"] = line[len("        run: "):].strip()
+    return rows
+
+
+# Triggers the unfiltered sweep must run on: pushes to main, the nightly schedule (its ref is
+# main) and manual dispatch. Pull requests get the filtered fast sweep by design.
+RC_SWEEP_TRIGGERS = (
+    {"event_name": "push", "ref": "refs/heads/main"},
+    {"event_name": "schedule", "ref": "refs/heads/main"},
+    {"event_name": "workflow_dispatch", "ref": "refs/heads/main"},
+)
+
+
+def _gh_if_holds(expr: str, trigger: dict) -> bool:
+    """Evaluate a workflow `if:` for one trigger, over the operators these workflows use.
+
+    `needs.<job>.outputs.<name>` is read as not skipped; the nightly tree-equality skip is
+    checked by `test_nightly_tree_skip_fails_open`. An unsupported token raises, so the check
+    fails closed.
+    """
+    py = re.sub(r"needs\.[\w-]+\.outputs\.[\w-]+", "'false'", expr)
+    py = re.sub(r"github\.event_name", "EVENT", py)
+    py = re.sub(r"github\.ref\b", "REF", py)
+    py = py.replace("||", " or ").replace("&&", " and ")
+    return bool(eval(py, {"__builtins__": {}}, {"EVENT": trigger["event_name"], "REF": trigger["ref"]}))
+
+
 def test_release_ci_pytest_sweep_is_unfiltered():
     """If release CI ever gains a -m filter, the exhaustiveness argument changes.
 
-    The proof that RC covers release rests on release CI selecting *everything*.
+    The proof that RC covers release rests on release CI selecting *everything*. A job or
+    step `if:` on the unfiltered sweep may not skip it on a trigger that must run it.
     """
     text = (ROOT / ".github" / "workflows" / "release_ci.yml").read_text(encoding="utf-8")
     # Inspect only the arguments after the `pytest` token: `python -m pytest`
@@ -393,6 +436,74 @@ def test_release_ci_pytest_sweep_is_unfiltered():
         assert "--ignore" not in args, (
             f"release CI sweep gained an --ignore: {args.strip()!r}"
         )
+    sweep_steps = [
+        s for s in _release_ci_steps(text)
+        if s["run"] and "python -m pytest" in s["run"] and " -m " not in s["run"].split("pytest", 1)[1]
+    ]
+    assert sweep_steps, "release_ci.yml has an unfiltered sweep line but no step runs it"
+    for s in sweep_steps:
+        for label, expr in (("step", s["if"]), (f"job {s['job']}", s["job_if"])):
+            if expr is None:
+                continue
+            for trig in RC_SWEEP_TRIGGERS:
+                assert _gh_if_holds(expr, trig), (
+                    f"release CI {label} `if: {expr}` skips the unfiltered sweep on "
+                    f"{trig['event_name']} (ref {trig['ref']})"
+                )
+
+
+TREE_SKIP_GATE = "needs.tree-check.outputs.skip != 'true'"
+TREES_EQUAL = 'if [ -n "$tree_now" ] && [ -n "$tree_prev" ] && [ "$tree_now" = "$tree_prev" ]; then'
+
+
+def _tree_skip_problems(text: str) -> list[str]:
+    """Ways the nightly tree-equality skip could skip a run it must not."""
+    problems: list[str] = []
+    lines = [ln.strip() for ln in text.splitlines()]
+    if "skip: ${{ steps.decide.outputs.skip || 'false' }}" not in lines:
+        problems.append("tree-check output does not default to 'false' when the decide step is skipped")
+    decide_if = next(
+        (lines[i + 1][len("if: "):] for i, ln in enumerate(lines[:-1])
+         if ln == "id: decide" and lines[i + 1].startswith("if: ")),
+        None,
+    )
+    if decide_if is None:
+        problems.append("the decide step has no `if:` and runs on every trigger")
+    else:
+        for trig in RC_SWEEP_TRIGGERS:
+            if trig["event_name"] != "schedule" and _gh_if_holds(decide_if, trig):
+                problems.append(f"the decide step runs on {trig['event_name']}")
+    sets_true = [i for i, ln in enumerate(lines) if ln == "skip=true"]
+    if len(sets_true) != 1 or lines[sets_true[0] - 1] != TREES_EQUAL:
+        problems.append("skip=true is set outside the branch where both trees are read and equal")
+    if "skip=false" not in lines or (sets_true and lines.index("skip=false") > sets_true[0]):
+        problems.append("skip does not start false")
+    for s in _release_ci_steps(text):
+        if s["job"] != "tree-check" and s["job_if"] != TREE_SKIP_GATE:
+            problems.append(f"job {s['job']} is gated by {s['job_if']!r}")
+    return sorted(set(problems))
+
+
+def test_nightly_tree_skip_fails_open():
+    """Only a nightly run whose tree equals the last successful run's tree skips; any doubt runs."""
+    text = (ROOT / ".github" / "workflows" / "release_ci.yml").read_text(encoding="utf-8")
+    assert _tree_skip_problems(text) == []
+
+
+@pytest.mark.parametrize(
+    "old, new",
+    [
+        ("        if: github.event_name == 'schedule'\n", ""),
+        ("steps.decide.outputs.skip || 'false'", "steps.decide.outputs.skip"),
+        (TREES_EQUAL, 'if [ "$tree_now" = "$tree_prev" ]; then'),
+        ("          skip=false\n", "          skip=true\n"),
+        ("    if: needs.tree-check.outputs.skip != 'true'\n    strategy:", "    strategy:"),
+    ],
+)
+def test_nightly_tree_skip_check_catches_planted_defects(old, new):
+    text = (ROOT / ".github" / "workflows" / "release_ci.yml").read_text(encoding="utf-8")
+    assert text.count(old) == 1, f"planted-defect anchor must match once: {old!r}"
+    assert _tree_skip_problems(text.replace(old, new)), f"planted defect passed: {old!r} -> {new!r}"
 
 
 def test_pytest_notebook_is_a_required_family():
@@ -704,4 +815,4 @@ def test_publication_gate_runs_frozen_checks(monkeypatch):
     eq = dict(ran)["publication_equivalence"]
     assert eq[1].endswith("equivalence_gate.py")
     report = Path(eq[eq.index("--report") + 1])
-    assert "scratch" in report.parts, "a gate run must not rewrite the tracked report"
+    assert "_temp" in report.parts, "a gate run must not rewrite the tracked report"

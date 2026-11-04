@@ -24,19 +24,17 @@ cfg = cfg.probe(name="laminar_probe", modes=["spikes", "V_m", "source", "phi_e",
 # Optional: override with update_metadata()
 cfg = cfg.update_metadata(
     run_status="tutorial_scaffold",
-    model_status="computational_scaffold",
+    claim_level="computational_scaffold",
 )
 
 model = jtfne.construct(cfg)
 sim = jtfne.simulation(duration_ms=100.0, dt_ms=0.1, plasticity=0.0, seed=0)
 
-# Run simulation
 signals = model.simulate(sim)
 
 # Use canonical probe() method (record() is alias)
 readout = model.probe(signals, modes=["spikes", "V_m", "CSD", "LFP"])
 
-# Evaluate and manifest
 report = model.evaluate(signals, objective="smoke")
 manifest = model.manifest(signals)
 

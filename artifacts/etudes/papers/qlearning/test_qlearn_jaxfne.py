@@ -89,12 +89,15 @@ def test_5_alpha_zero_leaves_weights_unchanged():
 def test_6_unit_norm_caps_alpha_phi_squared_at_alpha():
     # The max-normalised features of the earlier design put alpha * ||phi||^2 above 2
     # (divergence). The unit-norm features must keep every state at alpha or below.
+    # Precondition over the seeds: with the default u0 = b * v0 (P-048, 2026-10-28) the spike
+    # counts moved and only seed 2 of five exceeds 2 (2.0016); the others reach 1.91 to 1.95.
+    old_max = max(
+        (ALPHA * (np.stack([max_normalised_for_seed_state(seed, s) for s in range(5)])
+                  .astype(np.float64) ** 2).sum(axis=1)).max()
+        for seed in range(5)
+    )
+    assert old_max > 2, "precondition: some seed's old features exceed 2"
     for seed in range(5):
-        old = np.stack(
-            [max_normalised_for_seed_state(seed, s) for s in range(5)]
-        ).astype(np.float64)
-        old_sq = ALPHA * (old ** 2).sum(axis=1)
-        assert old_sq.max() > 2, f"precondition: seed {seed} old features stay under 2"
         phi = features_for_seed(seed).astype(np.float64)
         new_sq = ALPHA * (phi ** 2).sum(axis=1)
         assert np.all(new_sq <= ALPHA * (1 + 1e-6)), (seed, new_sq.tolist())

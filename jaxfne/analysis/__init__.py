@@ -72,6 +72,7 @@ from .spectral import (
     oscillation_call,
     ref42_lfp,
     ref42_phase_delay,
+    pairwise_phase_consistency,
 )
 
 __all__ = [
@@ -105,4 +106,5 @@ __all__ = [
     "oscillation_call",
     "ref42_lfp",
     "ref42_phase_delay",
+    "pairwise_phase_consistency",
 ]

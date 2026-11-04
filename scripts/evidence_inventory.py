@@ -7,6 +7,7 @@ SHA256 hashes for files that exist.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import subprocess
@@ -17,7 +18,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# The v0.3.42-era evidence scheme (8 main + 10 extended, figures/evidence)
+# The v0.3.42-era evidence scheme (8 main + 10 extended, legacy root evidence figure dir)
 # was superseded by the publication figure set committed under
 # artifacts/figures/publication/ (fig01..fig07 manuscript figures). Extended-data
 # figures are assigned during final Supplement assembly; none committed yet.
@@ -40,19 +41,19 @@ INSPECT_DIRS = [
     "docs/evidence_artifacts",
     "artifacts/tutorials",
     "examples",
-    "outputs/evidence",
-    "outputs/publication",
-    "figures/evidence",
+    "artifacts/_temp/outputs/evidence",
+    "artifacts/_temp/outputs/publication",
+    "artifacts/_temp/figures/evidence",
     "artifacts/figures/publication",
 ]
 
 FIGURE_DIR_CANDIDATES = [
-    "figures/evidence",
+    "artifacts/_temp/figures/evidence",
     "artifacts/figures/publication",
 ]
 
 # Publication-figure receipts under artifacts/publication/ are the live
-# manifests for the committed figures (legacy outputs/evidence manifests no
+# manifests for the committed figures (legacy root evidence manifests no
 # longer exist in-tree).
 MANIFEST_PATHS = [
     "artifacts/publication/fig01_generation_receipt.json",
@@ -65,7 +66,7 @@ MANIFEST_PATHS = [
     "artifacts/publication/figures_1_7_cross_figure_audit.json",
     "artifacts/publication/publication_evidence_index.json",
     "artifacts/publication/publication_claim_ledger.json",
-    "docs/theory/publication/evidence_checklist.json",
+    "artifacts/programme/paper/publication/evidence_checklist.json",
 ]
 
 
@@ -94,7 +95,7 @@ def git_head_sha() -> str | None:
 def inventory_asset(filename: str, figure_dirs: list[Path]) -> dict:
     """Inventory one PNG from canonical or compatibility figure directories.
 
-    The v0.3.42 evidence scripts write to ``figures/evidence``. Some release
+    The evidence scripts write to ``artifacts/_temp/figures/evidence``. Some release
     bundles still contain the previously tracked ``artifacts/figures/publication`` assets.
     Treat the latter as a compatibility source so inventory reports do not false
     fail before the evidence figures are regenerated.
@@ -220,14 +221,26 @@ def print_summary(inventory: dict) -> None:
         print(f"missing main figures ({len(missing_main)}): {', '.join(missing_main[:4])}...")
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Write the evidence inventory JSON.")
+    parser.add_argument(
+        "--out-dir",
+        type=Path,
+        default=REPO_ROOT / "artifacts" / "_temp" / "outputs" / "evidence",
+        help="directory for inventory.json (default: artifacts/_temp/outputs/evidence under the repo root)",
+    )
+    args = parser.parse_args(argv)
     inventory = build_inventory()
-    out_dir = REPO_ROOT / "outputs" / "evidence"
+    out_dir = args.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / "inventory.json"
     out_path.write_text(json.dumps(inventory, indent=2, sort_keys=False) + "\n", encoding="utf-8")
     print_summary(inventory)
-    print(f"wrote: {out_path.relative_to(REPO_ROOT)}")
+    try:
+        shown = out_path.relative_to(REPO_ROOT)
+    except ValueError:
+        shown = out_path
+    print(f"wrote: {shown}")
     return 0
 
 

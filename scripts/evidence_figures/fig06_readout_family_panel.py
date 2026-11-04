@@ -2,8 +2,8 @@
 """Generate Figure 6: eight proxy readout family panel with operator receipts.
 
 Outputs:
-  figures/evidence/fig06_readout_family_panel.png
-  outputs/evidence/fig06_readout_family_panel_manifest.json
+  artifacts/_temp/figures/evidence/fig06_readout_family_panel.png
+  artifacts/_temp/outputs/evidence/fig06_readout_family_panel_manifest.json
 """
 
 from __future__ import annotations
@@ -231,7 +231,7 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"sha256: {sha}")

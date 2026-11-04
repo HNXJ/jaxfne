@@ -42,7 +42,7 @@ yields exact zero proxy outputs (with correct shapes) under the solver's dtype.
 
 All field output in jaxfne sits under the same claim boundary:
 
-- `field_claim_level = "proxy_readout"` — the arrays are structural proxy
+- `field_claim_level = "proxy_readout"`: the arrays are structural proxy
   readouts; no measurement is made.
 - `field_solver_status` distinguishes the implementation (`linear_solver`,
   `experimental_pde_solver`); the claim level is unchanged.
@@ -87,4 +87,4 @@ superposition and zero-source checks are stable across the supported dtypes.
 The acceptance checklist guards that a solver is computationally sound
 (finite, additive, JAX-executable) and honestly labeled (`proxy_readout`,
 uncalibrated). Passing it is a precondition for a solver to be part of the
-public field surface — and nothing more.
+public field surface, and nothing more.

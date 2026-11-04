@@ -250,7 +250,7 @@ def gen_spectrolaminar_figures(out_dir: Path) -> None:
     figs_small = jtfne.vis.spectrolaminar_suite_3panel(
         jtfne.construct(cfg_small), n_trials=5, duration_ms=2000.0, dt_ms=0.5, seed=0, signal="lfp"
     )
-    # Extract crossing subplot (panel 3) from each — last axes in 3-panel figure
+    # Extract crossing subplot (panel 3) from each; last axes in 3-panel figure
     fig_cross, axes = plt.subplots(1, 2, figsize=(10, 4))
     for ax, figs, label in [
         (axes[0], figs_big, "300 neurons"),

@@ -33,6 +33,7 @@ from .emitters import (
     _rbd_delay_state_from_init,
     _segment_sum,
     _source_proxy_from_components,
+    _v_coefs,
     _validate_delayed_init_state,
     _validate_edge_delays_nonnegative_eager,
     _validate_recording_budget,
@@ -151,6 +152,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -194,7 +196,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
         )
         rule_bases = None
     else:
-        # 0.5.3 item 3 (P-010): chain-consistent draws — the same per-step
+        # 0.5.3 item 3 (P-010): chain-consistent draws: the same per-step
         # membrane keys as the continuation path, so chunked == continuous.
         from ._pipeline import _advance_prng_key  # lazy: _pipeline owns the chain
 
@@ -238,21 +240,33 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
             pre_sp=pre_sp,
         )
         upd = rule_step(ctx)
-        undeclared = [k for k in (upd.d_theta or {}) if k not in descriptor.theta_targets]
+        undeclared = [
+            k for k in (*(upd.d_theta or {}), *(upd.j_theta or {}))
+            if k not in descriptor.theta_targets
+        ]
         if undeclared:
             raise ValueError(
                 f"hdp_rule {hdp_rule!r} returned undeclared theta_targets "
                 f"{undeclared!r}; declared: {list(descriptor.theta_targets)}"
             )
-        H_next = jnp.clip(H + dt * upd.dH, h_min_arr, h_max_arr)
+        H_drift = H + dt * upd.dH
+        if upd.jH is not None:
+            H_drift = H_drift + upd.jH
+        H_next = jnp.clip(H_drift, h_min_arr, h_max_arr)
+        aux_next = aux
         if upd.d_aux is not None:
-            aux_next = aux + dt * upd.d_aux
-        else:
-            aux_next = aux
-        if upd.d_theta and "edge_weight" in upd.d_theta:
+            aux_next = aux_next + dt * upd.d_aux
+        if upd.j_aux is not None:
+            aux_next = aux_next + upd.j_aux
+        dw = (upd.d_theta or {}).get("edge_weight")
+        jw = (upd.j_theta or {}).get("edge_weight")
+        if dw is not None or jw is not None:
             wmag = jnp.abs(w)
-            dw = upd.d_theta["edge_weight"]
-            wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
+            if dw is not None:
+                wmag = wmag + dt * dw
+            if jw is not None:
+                wmag = wmag + jw
+            wmag_next = jnp.clip(wmag, w_floor_arr, w_ceiling_arr)
             w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
             if plastic_edge is not None:
                 w_next = jnp.where(plastic_edge, w_next, w)
@@ -260,11 +274,15 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
             w_next = w
         if use_b:
             db = (upd.d_theta or {}).get("drive_bias")
-            if db is None:
+            jb = (upd.j_theta or {}).get("drive_bias")
+            if db is None and jb is None:
                 b_next = bias
             else:
+                b_drift = bias if db is None else bias + dt * db
+                if jb is not None:
+                    b_drift = b_drift + jb
                 b_next = jnp.clip(
-                    bias + dt * db,
+                    b_drift,
                     jnp.asarray(b_min, dtype=jdtype),
                     jnp.asarray(b_max, dtype=jdtype),
                 )
@@ -367,7 +385,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
                                   + noise_coef * noise_t)
             else:
                 current_native = drive + sched_t + syn + noise_coef * noise_t
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             if v_floor_arr is not None:
@@ -406,7 +424,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
                                   + noise_coef * noise_t)
             else:
                 current_native = drive + sched_t + syn + noise_coef * noise_t
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             if v_floor_arr is not None:
@@ -545,7 +563,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
                               + noise_coef * noise_t)
         else:
             current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         if v_floor_arr is not None:
@@ -586,7 +604,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
                               + noise_coef * noise_t)
         else:
             current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         if v_floor_arr is not None:

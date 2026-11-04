@@ -2,7 +2,7 @@
 
 Generic, package-native, manuscript-agnostic. Every function takes a
 :class:`jaxfne.Signals` (and usually a :class:`jaxfne.Model`) and returns a
-:class:`plotly.graph_objects.Figure` — no manuscript-specific preprocessing.
+:class:`plotly.graph_objects.Figure`; no manuscript-specific preprocessing.
 
 Proxy readouts only: LFP/CSD/source here are ``*_proxy`` fields produced by
 the linear laminar-source kernel (``field_solver_status="linear_solver"``,

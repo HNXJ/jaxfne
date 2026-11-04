@@ -22,7 +22,6 @@ class TestEEGProxyTransform:
         source = jnp.ones((T, K))  # [T, K]
         leadfield = jnp.ones((C, K))  # [C, K]
 
-        # Compute EEG proxy
         y_eeg = eeg_proxy_transform(source, leadfield)
 
         # Expected shape

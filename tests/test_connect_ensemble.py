@@ -1,4 +1,4 @@
-"""``jtfne.connect`` — fuse constructed Models into one ensemble Model.
+"""``jtfne.connect``: fuse constructed Models into one ensemble Model.
 
 ``construct`` builds one model; ``connect`` joins several. The merge is purely
 structural and stays on the sparse edge_list backend: members' neurons, emitter

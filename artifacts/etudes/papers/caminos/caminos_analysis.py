@@ -1,6 +1,6 @@
 """R1-R4 estimators and scorer for the L2 CAMINOS etude.
 
-Spec: ``artifacts/etudes/caminos/PREREG_P3.md`` ("Runs" for the signal and
+Spec: ``artifacts/etudes/papers/caminos/PREREG_P3.md`` ("Runs" for the signal and
 kept window, "Estimands and criteria" for the estimators and pass bands).
 
 Input is per-step population spike counts ``[steps, 3]`` in [E | PV | SOM]
@@ -47,6 +47,7 @@ from jaxfne.analysis import (  # noqa: E402
     aperiodic_spectral_peak,
     fit_aperiodic,
     oscillation_call,
+    pairwise_phase_consistency,
     population_rates,
     rate_welch_psd,
     welch_numpy,
@@ -55,6 +56,7 @@ from jaxfne.analysis import (  # noqa: E402
 )
 
 import numpy as np
+from scipy import signal as sp_signal
 
 DISCARD_S = 2.0  # prereg Runs: first 2 s discarded (4 x tau_w)
 WIN_S = 1.0  # prereg: Welch 1 s Hann windows
@@ -140,6 +142,69 @@ def spectral_peak(e_rate, dt, pe_threshold=PE_THRESHOLD):
     }
 
 
+def colour_map_spectrum(lfp, dt_s, discard_s=DISCARD_S):
+    """Magnitude spectrum of the LFP for the colour maps (Figures 3, 4, 5, S1).
+
+    Methods "Frequency analysis and color maps" (mmc2.txt lines 1721-1738):
+    the first ``round(discard_s / dt_s)`` steps are discarded, the kept
+    window is zero-meaned and normalised by its L2 norm (the paper's
+    x-hat = (x - x-bar) / (∫ |x - x-bar|^2 dt)^(1/2)), then the magnitude of
+    the one-sided FFT (``np.fft.rfft``) is returned with its frequencies.
+    Raises ValueError when ``dt_s`` is not positive or when fewer than 2
+    samples remain after the discard.
+    """
+    x = np.asarray(lfp, dtype=float)
+    if not dt_s > 0:
+        raise ValueError("dt_s must be positive, got %r" % (dt_s,))
+    cut = int(round(discard_s / dt_s))
+    if x.size - cut < 2:
+        raise ValueError("fewer than 2 samples remain: %d steps, discard %d" % (x.size, cut))
+    x = x[cut:]
+    x = x - x.mean()
+    x = x / np.sqrt(np.sum(x ** 2) * float(dt_s))
+    return np.fft.rfftfreq(x.size, d=float(dt_s)), np.abs(np.fft.rfft(x))
+
+
+def band_power(magnitude, freqs, lo_hz=25.0, hi_hz=45.0):
+    """Absolute gamma-band power of a colour-map magnitude spectrum (25-45 Hz).
+
+    Methods "Frequency analysis and color maps" (mmc2.txt lines 1741-1753):
+    the integral of ``magnitude**2`` over the bins with
+    ``lo_hz <= freqs <= hi_hz``, times the bin width ``freqs[1] - freqs[0]``.
+    The paper divides by a full-band integral, but its denominator is garbled
+    in the source text, so the absolute integral is returned, not a ratio.
+    Raises ValueError when ``lo_hz >= hi_hz`` or when no bin falls in the band.
+    """
+    f = np.asarray(freqs, dtype=float)
+    m = np.asarray(magnitude, dtype=float)
+    lo, hi = float(lo_hz), float(hi_hz)
+    if not lo < hi:
+        raise ValueError("band must satisfy lo_hz < hi_hz, got lo=%r, hi=%r" % (lo_hz, hi_hz))
+    in_band = (f >= lo) & (f <= hi)
+    if not np.any(in_band):
+        raise ValueError("no bin in [%g, %g] Hz over freqs %g..%g" % (lo, hi, f[0], f[-1]))
+    df = f[1] - f[0]
+    return float(np.sum(m[in_band] ** 2) * df)
+
+
+def max_rate_over_time(e_counts, dt_s, n_e, sigma_ms=1.0):
+    """Peak smoothed E rate in Hz per cell over time (Figures 3, 4, 5, S1).
+
+    ``e_counts`` is the per-step E spike count; it is convolved with the
+    module's Gaussian kernel of sigma ``sigma_ms`` (:func:`_gaussian_kernel`,
+    "same" mode, as in :func:`pv_som_lag`), divided by ``n_e * dt_s`` to give
+    Hz per cell (the paper's Equation 5, mmc2.txt lines 1711-1720), and the
+    maximum over time is returned as a float. Raises ValueError when ``n_e``
+    is not positive.
+    """
+    if not float(n_e) > 0.0:
+        raise ValueError("n_e must be positive, got %r" % (n_e,))
+    counts = np.asarray(e_counts, dtype=float)
+    kernel = _gaussian_kernel(float(sigma_ms) / (dt_s * 1000.0))
+    rate = np.convolve(counts, kernel, mode="same") / (float(n_e) * float(dt_s))
+    return float(np.max(rate))
+
+
 def _gaussian_kernel(sigma_steps):
     radius = int(3 * sigma_steps)
     g = np.arange(-radius, radius + 1, dtype=float)
@@ -174,7 +239,9 @@ def analyze_run(counts, dt, sizes, pe_threshold=PE_THRESHOLD):
     arr = _as_float_counts(counts)
     keep = arr[kept_slice(arr.shape[0], dt)]
     spikes = {p: int(keep[:, i].sum()) for i, p in enumerate(POPS)}
-    rates = population_rates(arr, dt, sizes, pops=POPS, discard_s=DISCARD_S)
+    rates = population_rates(
+        arr, sizes=sizes, pops=POPS, dt_ms=dt * 1000.0, discard_ms=DISCARD_S * 1000.0
+    )
     out = {
         "rates_Hz": rates,
         "spikes_kept": spikes,
@@ -209,6 +276,229 @@ def analyze_run(counts, dt, sizes, pe_threshold=PE_THRESHOLD):
 def _mean(xs):
     xs = [x for x in xs if x is not None]
     return float(np.mean(xs)) if xs else None
+
+
+def ppc_by_type(phase_groups, types):
+    """Pairwise phase consistency (PPC) per neuron, summarised by cell type.
+
+    Per-neuron values come from :func:`jaxfne.analysis.pairwise_phase_consistency`
+    (PPC; Vinck et al. 2012, paper ref. 36): the mean of ``cos(phi_i - phi_j)``
+    over unordered spike-phase pairs. A neuron with fewer than 2 spikes has no
+    PPC and gets NaN; a type whose neurons all lack a value maps to NaN.
+    """
+    groups = list(phase_groups)
+    labels = list(types)
+    if len(groups) != len(labels):
+        raise ValueError("phase_groups and types differ in length: %d vs %d"
+                         % (len(groups), len(labels)))
+    per, _ = pairwise_phase_consistency(groups)
+    by_type = {}
+    for lab in labels:
+        if lab not in by_type:
+            vals = [v for v, t in zip(per, labels) if t == lab and not np.isnan(v)]
+            by_type[lab] = float(np.mean(vals)) if vals else float("nan")
+    return {"per_neuron": per, "by_type": by_type}
+
+
+def lfp_phase(lfp, dt_s, lo_hz=25.0, hi_hz=45.0, order=4):
+    """Phase of the LFP proxy in a gamma band, one value per step (Figure 1C).
+
+    Zero-phase Butterworth band-pass of order ``order`` between ``lo_hz`` and
+    ``hi_hz`` (scipy.signal.butter with ``btype="bandpass"``, applied on
+    second-order sections with scipy.signal.sosfiltfilt), then the analytic
+    signal (scipy.signal.hilbert); the returned phase angle is in radians,
+    in (-pi, pi], one per step. The filter family, order and band
+    (25-45 Hz) are assumptions: the Methods name neither the filter family
+    nor the order. ``lfp`` is typically the E-rate proxy from
+    :func:`jaxfne.analysis.ref42_lfp`. Raises ValueError unless
+    0 < lo_hz < hi_hz < 0.5 / dt_s.
+    """
+    x = np.asarray(lfp, dtype=float)
+    if not dt_s > 0:
+        raise ValueError("dt_s must be positive, got %r" % (dt_s,))
+    fs = 1.0 / float(dt_s)
+    lo, hi = float(lo_hz), float(hi_hz)
+    if not (0.0 < lo < hi < fs / 2.0):
+        raise ValueError("band must satisfy 0 < lo_hz < hi_hz < Nyquist = %g Hz "
+                         "(got lo=%r, hi=%r)" % (fs / 2.0, lo_hz, hi_hz))
+    sos = sp_signal.butter(int(order), [lo, hi], btype="bandpass", output="sos", fs=fs)
+    return np.angle(sp_signal.hilbert(sp_signal.sosfiltfilt(sos, x)))
+
+
+def locking_by_type(raster, sizes, lfp, dt_s, lo_hz=25.0, hi_hz=45.0):
+    """Spike-to-LFP phase locking per cell type (Figure 1C).
+
+    ``raster`` is the boolean ``[steps, NE+NPV+NSOM]`` spike train in
+    [E | PV | SOM] order (the ``record="raster"`` output); ``sizes`` gives the
+    three population counts in that order. ``lfp`` is the LFP proxy over the
+    same steps, typically :func:`jaxfne.analysis.ref42_lfp` of the counts.
+
+    Each neuron's spike steps take their LFP phase from
+    :func:`lfp_phase`; the per-neuron phases and the type labels go to
+    :func:`ppc_by_type` (PPC, paper ref. 36). Returns a dict ``{"ppc": ..,
+    "mean_phase": ..}`` with the :func:`ppc_by_type` result and, per type,
+    the circular mean of all that type's spike phases (NaN when the type has
+    no spikes). Raises ValueError when the raster's column count differs from
+    the sum of ``sizes`` or when ``lfp`` is not one value per raster step.
+    """
+    r = np.asarray(raster)
+    if r.ndim != 2:
+        raise ValueError("raster must be [steps, neurons], got shape %r" % (r.shape,))
+    if r.shape[1] != sum(int(sizes[p]) for p in POPS):
+        raise ValueError("raster has %d columns; sizes sum to %d"
+                         % (r.shape[1], sum(int(sizes[p]) for p in POPS)))
+    lfp_arr = np.asarray(lfp, dtype=float)
+    if lfp_arr.ndim != 1 or lfp_arr.shape[0] != r.shape[0]:
+        raise ValueError("lfp must have one value per raster step (%d), got shape %r"
+                         % (r.shape[0], lfp_arr.shape))
+    phase = lfp_phase(lfp_arr, dt_s, lo_hz=lo_hz, hi_hz=hi_hz)
+    groups, types, all_phases = [], [], {p: [] for p in POPS}
+    col = 0
+    for pop in POPS:
+        n = int(sizes[pop])
+        for j in range(col, col + n):
+            idx = np.flatnonzero(r[:, j])
+            ph = phase[idx]
+            groups.append(ph)
+            types.append(pop)
+            all_phases[pop].append(ph)
+        col += n
+    mean_phase = {}
+    for pop in POPS:
+        ph = np.concatenate(all_phases[pop]) if all_phases[pop] else np.array([])
+        mean_phase[pop] = float(np.angle(np.sum(np.exp(1j * ph)))) if ph.size else float("nan")
+    return {"ppc": ppc_by_type(groups, types), "mean_phase": mean_phase}
+
+
+def phase_aligned_mean(target, phase, n_bins=36):
+    """Phase-aligned cycle average of a signal against a reference phase (Figure S2).
+
+    Methods "Mean averaging over cycles" (mmc2.txt lines 1780-1787, Cell Reports
+    2025): the instantaneous phase of a reference signal is unwrapped, cycle
+    boundaries sit at the 2 pi crossings, and within each cycle the target is
+    resampled onto a uniform phase grid by linear interpolation; the returned
+    profile is the mean across cycles. The reference phase is supplied by the
+    caller, so the function is generic in the reference (for Figure S2 it is
+    :func:`lfp_phase` of the LFP proxy, an assumed 25-45 Hz band).
+
+    ``target`` is ``[steps]`` or ``[steps, k]``; ``phase`` is ``[steps]`` in
+    radians, wrapped or not (unwrapped here with ``np.unwrap``). A cycle is a
+    maximal run of steps with the same ``floor(phase / 2 pi)`` index; the first
+    and last runs are the partial cycles at the edges and are dropped, so only
+    complete cycles enter the mean. Returns ``(grid, mean, n_cycles)``:
+    ``grid`` the bin phases ``[n_bins]`` on ``[0, 2 pi)``, ``mean`` the
+    ``[n_bins]`` (1-D target) or ``[n_bins, k]`` (2-D target) cycle mean and
+    ``n_cycles`` the number of complete cycles averaged. Raises ValueError for
+    a length mismatch, ``n_bins < 2``, more than 2 target dimensions, or fewer
+    than one complete cycle.
+    """
+    x = np.asarray(target, dtype=float)
+    ph = np.unwrap(np.asarray(phase, dtype=float))
+    if x.ndim not in (1, 2):
+        raise ValueError("target must be [steps] or [steps, k], got shape %r" % (x.shape,))
+    if x.shape[0] != ph.shape[0]:
+        raise ValueError("target has %d steps but phase has %d" % (x.shape[0], ph.shape[0]))
+    n_bins = int(n_bins)
+    if n_bins < 2:
+        raise ValueError("n_bins must be >= 2, got %d" % n_bins)
+    index = np.floor(ph / (2.0 * np.pi)).astype(int)
+    bounds = np.concatenate(([0], np.flatnonzero(np.diff(index)) + 1, [ph.size]))
+    if bounds.size < 4:  # fewer than 3 runs leaves no cycle after dropping the edges
+        raise ValueError("fewer than one complete cycle: %d runs over %d steps"
+                         % (bounds.size - 1, ph.size))
+    grid = np.linspace(0.0, 2.0 * np.pi, n_bins, endpoint=False)
+    profiles = []
+    for a, b, k in zip(bounds[1:-2], bounds[2:-1], index[bounds[1:-2]]):  # runs 1..R-2, edges dropped
+        local = ph[a:b] - 2.0 * np.pi * k  # within-cycle phase in [0, 2 pi)
+        seg = x[a:b]
+        if seg.ndim == 1:
+            profiles.append(np.interp(grid, local, seg))
+        else:
+            profiles.append(np.stack([np.interp(grid, local, seg[:, j])
+                                      for j in range(seg.shape[1])], axis=1))
+    return grid, np.mean(profiles, axis=0), len(profiles)
+
+
+def phase_backsteps(phase):
+    """Count the back-steps of a reference phase.
+
+    ``phase`` is ``[steps]`` in radians, wrapped or not (unwrapped here with
+    ``np.unwrap``). Returns ``{"negative_steps": .., "cross_back": ..}``:
+    ``negative_steps`` the number of consecutive-step differences of the
+    unwrapped phase that are strictly negative, ``cross_back`` the number of
+    steps where ``floor(unwrapped / 2 pi)`` decreases. Raises ValueError when
+    ``phase`` is not 1-D or has fewer than 2 samples.
+    """
+    arr = np.asarray(phase, dtype=float)
+    if arr.ndim != 1:
+        raise ValueError("phase must be [steps], got shape %r" % (arr.shape,))
+    if arr.size < 2:
+        raise ValueError("phase must have at least 2 samples, got %d" % arr.size)
+    ph = np.unwrap(arr)
+    return {"negative_steps": int(np.sum(np.diff(ph) < 0.0)),
+            "cross_back": int(np.sum(np.diff(np.floor(ph / (2.0 * np.pi))) < 0.0))}
+
+
+def s2_profiles(counts, currents, sizes, dt_s, lfp, discard_s=DISCARD_S,
+                lo_hz=25.0, hi_hz=45.0, n_bins=36):
+    """Phase-aligned cycle profiles of the currents and population rates (Figure S2).
+
+    Methods "Mean averaging over cycles" (mmc2.txt lines 1780-1787) with the
+    Figure S2 legend (mmc2.txt lines 1836-1842): each target is cycle-averaged
+    against :func:`lfp_phase` of the LFP proxy. ``counts`` is ``[steps, 3]``
+    per-step spike counts [E | PV | SOM], ``currents`` is ``[steps, 4]`` mean
+    currents [E recurrent | external drive | PV | SOM], ``sizes`` gives the
+    three population counts. The external-drive column is excluded because
+    the paper's I_total is IExc + ISOM + IPV. ``lfp`` is one value per step,
+    supplied by the caller (an open ruling: summed E activity vs
+    N-normalised).
+
+    The first ``round(discard_s / dt_s)`` steps are discarded from all three
+    arrays. ``backsteps`` counts the back-steps of the reference phase
+    (:func:`phase_backsteps` of it); the averaging neither refuses nor drops
+    them (open ruling). Returns ``{"grid": .., "n_cycles": .., "backsteps": ..,
+    "I_total": .., "I_exc": ..,
+    "I_pv": .., "I_som": .., "rate_E": .., "rate_PV": .., "rate_SOM": ..}``
+    with ``grid`` the ``[n_bins]`` bin phases on ``[0, 2 pi)`` and each
+    profile ``[n_bins]``. Raises ValueError when the step counts of
+    ``counts``, ``currents`` and ``lfp`` differ, when a key is missing from
+    ``sizes``, or when a size is not positive.
+    """
+    counts_arr = _as_float_counts(counts)
+    cur = np.asarray(currents, dtype=float)
+    if cur.ndim != 2 or cur.shape[1] != 4:
+        raise ValueError("currents must be [steps, 4], got shape %r" % (cur.shape,))
+    lfp_arr = np.asarray(lfp, dtype=float)
+    if lfp_arr.ndim != 1:
+        raise ValueError("lfp must be [steps], got shape %r" % (lfp_arr.shape,))
+    n_steps = counts_arr.shape[0]
+    if cur.shape[0] != n_steps or lfp_arr.shape[0] != n_steps:
+        raise ValueError("step counts differ: counts %d, currents %d, lfp %d"
+                         % (n_steps, cur.shape[0], lfp_arr.shape[0]))
+    if any(p not in sizes for p in POPS):
+        raise ValueError("sizes must have the keys %s, got %s" % (POPS, sorted(sizes)))
+    if any(not float(sizes[p]) > 0.0 for p in POPS):
+        raise ValueError("population sizes must be positive, got %s"
+                         % {p: sizes[p] for p in POPS})
+    if not discard_s >= 0.0:
+        raise ValueError("discard_s must be >= 0, got %r" % (discard_s,))
+    cut = int(round(discard_s / dt_s))
+    counts_arr, cur, lfp_arr = counts_arr[cut:], cur[cut:], lfp_arr[cut:]
+    phase = lfp_phase(lfp_arr, dt_s, lo_hz=lo_hz, hi_hz=hi_hz)
+    targets = np.stack([
+        cur[:, 0] + cur[:, 2] + cur[:, 3],  # I_total: the external drive is excluded
+        cur[:, 0],
+        cur[:, 2],
+        cur[:, 3],
+        counts_arr[:, 0] / (sizes["E"] * dt_s),
+        counts_arr[:, 1] / (sizes["PV"] * dt_s),
+        counts_arr[:, 2] / (sizes["SOM"] * dt_s),
+    ], axis=1)
+    grid, mean, n_cycles = phase_aligned_mean(targets, phase, n_bins=n_bins)
+    return {"grid": grid, "n_cycles": n_cycles, "backsteps": phase_backsteps(phase),
+            "I_total": mean[:, 0], "I_exc": mean[:, 1], "I_pv": mean[:, 2],
+            "I_som": mean[:, 3], "rate_E": mean[:, 4], "rate_PV": mean[:, 5],
+            "rate_SOM": mean[:, 6]}
 
 
 def _same(a, b):

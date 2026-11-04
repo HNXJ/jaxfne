@@ -10,8 +10,10 @@ from the scorer JSONs, never re-scored. This script does not import jaxfne, so t
   python scripts/build_dashboard_data.py --out PATH  write or check PATH instead
 
 --check regenerates in memory and compares with the committed file, ignoring "generated". On a
-difference it names the first differing path. Any input error exits 1 and names the paper, file
-and key.
+difference it names the first differing path. --check also validates the built document against
+dashboard/replications.schema.json (every git SHA is 40-hex). Each receipt a paper names carries the
+sha256 of the bytes git holds at that paper's lane SHA, the bytes its receipt URL links to; a changed
+lane blob makes the check fail. Any input error exits 1 and names the paper, file and key.
 
 The study list ("studies") is the table under "## Research studies (study list)" in
 docs/reference/references.md; parse_studies refuses a row it cannot read.
@@ -28,15 +30,18 @@ from pathlib import Path
 
 SCHEMA = "jaxfne-replications/2"
 SOURCES_SCHEMA = "jaxfne-dashboard-sources/2"
-# Status classes (Hamm 2026-10-16). reproduced, reproduced (conditional) and failed need a signed
-# preregistration; a conditional reproduction states its condition in verdict_note. mixed (Hamm
+# Status classes (Hamm 2026-10-16). reproduced, reproduced (conditional), mixed and pending need a
+# signed preregistration; a conditional reproduction states its condition in verdict_note. mixed (Hamm
 # 2026-10-19): a signed preregistration scored with some primary criteria reproduced and others
-# missed; verdict_note names which. An in-progress
-# paper has a stage and no verdict; a preregistration scored without a pass keeps it in progress.
-# A not-started paper has no verdict and no criteria.
-CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "in progress", "not started", "failed",
+# missed; verdict_note names which. pending (Hamm 2026-11-03): a signed preregistration scored without
+# a pass; the paper stays open, with a stage and no verdict, until a failure is proven. No paper class
+# is "failed" through 0.6: criteria and panels fail, papers stay pending. An in-progress paper has a
+# stage and no verdict. A not-started paper has no verdict and no criteria.
+CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "pending", "in progress", "not started",
            "core method")
-SCORED_CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "failed")
+SCORED_CLASSES = ("reproduced", "reproduced (conditional)", "mixed", "pending")
+RETIRED_CLASSES = {"failed": "retired (Hamm 2026-11-03): a paper scored without a pass stays 'pending' "
+                             "until a failure is proven"}
 TOL = 1e-9
 FLOOR_REASON = "E-rate floor not met"
 NO_VALUE = "—"
@@ -45,9 +50,11 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "dashboard" / "sources.json"
 DEFAULT_OUT = ROOT / "dashboard" / "data" / "replications.json"
 REFERENCES = ROOT / "docs" / "reference" / "references.md"
+SCHEMA_FILE = ROOT / "dashboard" / "replications.schema.json"
 STUDY_HEADING = "## Research studies (study list)"
 STUDY_COLUMNS = ["Reference", "Result compared", "Where"]
-STUDY_STATUSES = ("reproduced", "reproduced (conditional)", "mixed", "in progress", "queued", "not started")
+STUDY_STATUSES = ("reproduced", "reproduced (conditional)", "mixed", "pending", "in progress", "queued",
+                  "not started")
 MIN_STUDIES = 40
 
 
@@ -64,12 +71,16 @@ def is_num(v):
 
 
 def dotted(obj, key):
-    """Return (present, value) at a dotted path such as 'r1.pass' or 'rates_Hz.E'."""
+    """Return (present, value) at a dotted path such as 'r1.pass', 'rates_Hz.E' or 'rows.0.G2'
+    (a non-negative integer part indexes a list)."""
     cur = obj
     for part in key.split("."):
-        if not isinstance(cur, dict) or part not in cur:
+        if isinstance(cur, list) and part.isdigit() and int(part) < len(cur):
+            cur = cur[int(part)]
+        elif isinstance(cur, dict) and part in cur:
+            cur = cur[part]
+        else:
             return False, None
-        cur = cur[part]
     return True, cur
 
 
@@ -111,6 +122,17 @@ class Files:
         self._commits = set()
         self._present = {}
         self._json = {}
+        self._digests = {}
+
+    def digest(self, sha, path):
+        """sha256 of the file's bytes at a pinned commit (git show, no text conversion), cached per (sha, path)."""
+        if (sha, path) not in self._digests:
+            shown = git(["show", f"{sha}:{path}"])
+            if shown.returncode != 0:
+                err = shown.stderr.decode("utf-8", "replace").strip()
+                raise BuildError(f"git show {sha}:{path} failed: {err}")
+            self._digests[(sha, path)] = hashlib.sha256(shown.stdout).hexdigest()
+        return self._digests[(sha, path)]
 
     def exists(self, sha, path):
         if sha not in self._commits:
@@ -471,13 +493,16 @@ def model_page(spec):
 
 def check_class(spec):
     cls = spec.get("class")
+    if cls in RETIRED_CLASSES:
+        raise BuildError(f"paper {spec['id']}: class {cls!r} is {RETIRED_CLASSES[cls]}")
     if cls not in CLASSES:
         raise BuildError(f"paper {spec['id']}: class {cls!r} is not one of {list(CLASSES)}")
-    if cls == "in progress":
+    if cls in ("in progress", "pending"):
+        label = "an in-progress" if cls == "in progress" else "a pending"
         if spec.get("verdict") is not None:
-            raise BuildError(f"paper {spec['id']}: an in-progress paper carries no verdict")
+            raise BuildError(f"paper {spec['id']}: {label} paper carries no verdict")
         if not spec.get("stage"):
-            raise BuildError(f"paper {spec['id']}: an in-progress paper needs a non-empty stage")
+            raise BuildError(f"paper {spec['id']}: {label} paper needs a non-empty stage")
     if cls == "not started" and (spec.get("verdict") is not None or spec.get("criteria")):
         raise BuildError(f"paper {spec['id']}: a not-started paper carries no verdict and no criteria")
     if cls == "core method":
@@ -562,7 +587,7 @@ def check_dev_lane(spec):
         raise BuildError(f"paper {spec['id']}: dev lane sha {lane['sha']} is not in HEAD's history")
 
 
-def build_paper(spec, files, repo_url):
+def build_paper(spec, files, repo_url, specs_by_id=None):
     check_dev_lane(spec)
     p = Paper(spec, files, repo_url)
     cls = check_class(spec)
@@ -593,6 +618,7 @@ def build_paper(spec, files, repo_url):
         "charts": [build_chart(p, ch) for ch in spec.get("charts", [])],
         "open": list(spec.get("open", [])),
         "verdict_summary": build_verdict_summary(spec, criteria, library),
+        "replica": build_replica(spec, specs_by_id or {spec["id"]: spec}),
     }
 
 
@@ -629,6 +655,64 @@ def build_library_path(p, spec):
     else:
         raise BuildError(f"paper {p.id}: library file {name} key {key} is not pass, fail or incomplete")
     return {"stage": block["stage"], "verdict": verdict, "evidence": p.evidence(name)}
+
+
+# Credit per result panel for the replica score; 100 means every result panel of the paper passes.
+REPLICA_CREDIT = {"pass": 1.0, "partial": 0.5, "fail": 0.0, "not run": 0.0}
+
+
+def replica_panels(pid, block):
+    """Validated (panels, excluded) of a replica block that lists panels."""
+    panels = block.get("panels")
+    if not isinstance(panels, list) or not panels:
+        raise BuildError(f"paper {pid}: replica needs at least one panel")
+    excluded = block.get("excluded", [])
+    seen = set()
+    for item in panels:
+        pan = item.get("id")
+        if pan in seen:
+            raise BuildError(f"paper {pid}: replica panel id {pan!r} repeats")
+        seen.add(pan)
+        if item.get("status") not in REPLICA_CREDIT:
+            raise BuildError(f"paper {pid}: replica panel {pan} status {item.get('status')!r} is not one of "
+                             f"{list(REPLICA_CREDIT)}")
+        ev = item.get("evidence")
+        if ev is not None and not (ROOT / ev).exists():
+            raise BuildError(f"paper {pid}: replica panel {pan} evidence {ev!r} does not exist")
+    for item in excluded:
+        if item.get("id") in seen:
+            raise BuildError(f"paper {pid}: replica id {item.get('id')!r} is both scored and excluded")
+        if not item.get("reason"):
+            raise BuildError(f"paper {pid}: replica excluded id {item.get('id')!r} needs a reason")
+    return panels, excluded
+
+
+def build_replica(spec, specs_by_id):
+    """Replica score 0-100 over the paper's result panels: pass 1, partial 0.5, fail and not run 0.
+
+    No block leaves the paper unscored (score None). `same_as` takes the panels of another paper
+    entry, for two dashboard rows of one paper. Excluded panels (schematics) carry a reason and stay
+    outside the denominator."""
+    pid = spec["id"]
+    block = spec.get("replica")
+    counts = {s: 0 for s in REPLICA_CREDIT}
+    if block is None:
+        return {"score": None, "panels": 0, "excluded": 0, "counts": counts, "same_as": None,
+                "scope": None, "items": []}
+    same_as = block.get("same_as")
+    source = block
+    if same_as is not None:
+        target = specs_by_id.get(same_as, {}).get("replica")
+        if not isinstance(target, dict) or "panels" not in target:
+            raise BuildError(f"paper {pid}: replica same_as {same_as!r} names no paper with panels")
+        source = target
+    panels, excluded = replica_panels(pid, source)
+    for item in panels:
+        counts[item["status"]] += 1
+    credit = sum(REPLICA_CREDIT[item["status"]] for item in panels)
+    score = int(100.0 * credit / len(panels) + 0.5)
+    return {"score": score, "panels": len(panels), "excluded": len(excluded), "counts": counts,
+            "same_as": same_as, "scope": source.get("scope"), "items": list(panels)}
 
 
 def build_verdict_summary(spec, criteria, library):
@@ -782,6 +866,83 @@ def stale_warning(generated, now=None):
     return None
 
 
+def add_receipt_hashes(papers, files):
+    """Give each receipt a paper names a sha256 sibling: the digest of the bytes git holds at that
+    paper's lane SHA, which is what the receipt URL links to. An object whose url is null names no
+    file (an allow_missing receipt absent at the lane SHA) and gets none. A present receipt that the
+    lane SHA does not hold is an error."""
+    for paper in papers:
+        _hash_named(paper, paper["lane"]["sha"], paper["id"], files)
+
+
+def _hash_named(node, sha, pid, files):
+    if isinstance(node, dict):
+        path = node.get("path")
+        if isinstance(path, str) and node.get("url", "") is not None:
+            if not files.exists(sha, path):
+                raise BuildError(f"paper {pid}: receipt {path} is missing at lane sha {sha}")
+            node["sha256"] = files.digest(sha, path)
+        children = list(node.values())
+    elif isinstance(node, list):
+        children = node
+    else:
+        return
+    for child in children:
+        _hash_named(child, sha, pid, files)
+
+
+SCHEMA_TYPES = {
+    "object": lambda v: isinstance(v, dict),
+    "array": lambda v: isinstance(v, list),
+    "string": lambda v: isinstance(v, str),
+    "boolean": lambda v: isinstance(v, bool),
+    "integer": lambda v: isinstance(v, int) and not isinstance(v, bool),
+    "number": is_num,
+    "null": lambda v: v is None,
+}
+SCHEMA_KEYWORDS = {"$schema", "title", "description", "type", "required", "properties", "items", "pattern", "enum"}
+
+
+def load_schema():
+    try:
+        return json.loads(SCHEMA_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise BuildError(f"cannot read {SCHEMA_FILE}: {exc}")
+
+
+def schema_errors(value, schema, where="$"):
+    """Problems of `value` against `schema`, as 'where: problem' strings; [] when it conforms.
+    A pattern must match the whole string. A keyword this checker does not read is an error, so a
+    misspelt keyword cannot pass unread."""
+    unknown = sorted(set(schema) - SCHEMA_KEYWORDS)
+    if unknown:
+        raise BuildError(f"schema at {where} uses keyword(s) {unknown} that this checker does not read")
+    types = schema.get("type")
+    if types is not None:
+        names = [types] if isinstance(types, str) else types
+        for name in names:
+            if name not in SCHEMA_TYPES:
+                raise BuildError(f"schema at {where} names unknown type {name!r}")
+        if not any(SCHEMA_TYPES[name](value) for name in names):
+            return [f"{where}: {json.dumps(value)[:60]} is not {types}"]
+    errors = []
+    if "enum" in schema and value not in schema["enum"]:
+        errors.append(f"{where}: {json.dumps(value)[:60]} is not one of {schema['enum']}")
+    if "pattern" in schema and isinstance(value, str) and not re.fullmatch(schema["pattern"], value):
+        errors.append(f"{where}: {value[:60]!r} does not match {schema['pattern']}")
+    if isinstance(value, dict):
+        for key in schema.get("required", []):
+            if key not in value:
+                errors.append(f"{where}: missing required key {key!r}")
+        for key, sub in schema.get("properties", {}).items():
+            if key in value:
+                errors.extend(schema_errors(value[key], sub, f"{where}.{key}"))
+    if isinstance(value, list) and "items" in schema:
+        for i, item in enumerate(value):
+            errors.extend(schema_errors(item, schema["items"], f"{where}[{i}]"))
+    return errors
+
+
 def build_document():
     try:
         sources = json.loads(SOURCES.read_text(encoding="utf-8"))
@@ -790,7 +951,8 @@ def build_document():
     if sources.get("schema") != SOURCES_SCHEMA:
         raise BuildError(f"sources schema is {sources.get('schema')!r}, expected {SOURCES_SCHEMA!r}")
     files = Files()
-    papers = [build_paper(s, files, sources["repo_url"]) for s in sources["papers"]]
+    specs_by_id = {s["id"]: s for s in sources["papers"]}
+    papers = [build_paper(s, files, sources["repo_url"], specs_by_id) for s in sources["papers"]]
     try:
         studies = parse_studies(REFERENCES.read_text(encoding="utf-8"))
     except OSError as exc:
@@ -807,6 +969,7 @@ def build_document():
         "roadmap": list(sources.get("roadmap", [])),
         "studies": studies,
     }
+    add_receipt_hashes(papers, files)
     doc["generated"]["data_revision"] = content_revision(doc)
     return doc
 
@@ -840,6 +1003,12 @@ def first_diff(a, b, path=""):
 
 
 def check(doc, out):
+    problems = schema_errors(doc, load_schema())
+    if problems:
+        for line in problems[:10]:
+            print("invalid: " + line.encode("ascii", "backslashreplace").decode("ascii"), file=sys.stderr)
+        print(f"invalid: {len(problems)} schema problem(s) in the built document", file=sys.stderr)
+        return 1
     if not out.is_file():
         raise BuildError(f"{out} does not exist; run without --check to write it")
     try:

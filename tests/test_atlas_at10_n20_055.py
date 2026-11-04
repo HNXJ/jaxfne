@@ -51,7 +51,14 @@ def test_propagation_reads_a_known_hierarchy_wave():
 
 
 @pytest.mark.slow
-def test_primary_assay_reproduces_committed_verdicts():
+def test_primary_assay_reproduces_committed_verdicts(monkeypatch):
+    """The committed 0.5.5 result predates P-048 (default u0 = b * v0, ruled 2026-10-28); it is
+    reproduced with the pre-ruling default, the preset u0 (Hamm 2026-11-02: the frozen atlas keeps
+    its result). The ruled default is tested in tests/test_izh_default_u0.py."""
+    import jaxfne._construct_core as core
+
+    assert hasattr(core, "_apply_default_u0"), "the P-048 hook moved: update this test"
+    monkeypatch.setattr(core, "_apply_default_u0", lambda params, *args, **kwargs: params)
     got = A.run_assay()
     want = _results()["assay"]
     assert got["declared_tests"] == want["declared_tests"]

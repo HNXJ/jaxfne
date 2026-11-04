@@ -9,19 +9,21 @@ Checks
   3. forbidden-overclaim: per-claim forbidden language from the claim ledger may appear
      only inside the listed allowed paragraphs (see traceability_map.md).
 
-Writes artifacts/publication/results_reconstruction/results_audit_receipt.json.
+Writes artifacts/publication/results_reconstruction/results_audit_receipt.json
+only with --write; by default it audits and reports without writing the receipt.
 Fails (exit 1) on any violation.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import pathlib
 import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DRAFT = ROOT / "docs/theory/publication/results_reconstruction/drafts/results_draft.md"
-TRACE = ROOT / "docs/theory/publication/results_reconstruction/traceability/traceability_map.md"
+DRAFT = ROOT / "artifacts/programme/paper/publication/results_reconstruction/drafts/results_draft.md"
+TRACE = ROOT / "artifacts/programme/paper/publication/results_reconstruction/traceability/traceability_map.md"
 OUT = ROOT / "artifacts/publication/results_reconstruction/results_audit_receipt.json"
 
 
@@ -429,7 +431,8 @@ def _figure_hashes_match() -> bool:
     ok = True
     for i in range(1, 8):
         rec = load(ROOT / f"artifacts/publication/fig{i:02}_generation_receipt.json")
-        png = ROOT / rec["figure_path"]
+        # The receipts predate the move of figures/ under artifacts/.
+        png = ROOT / "artifacts" / rec["figure_path"]
         declared = rec["figure_sha256"]
         actual = hashlib.sha256(png.read_bytes()).hexdigest()
         if actual != declared:
@@ -457,7 +460,7 @@ check("q_markers_all_in_table", not unused and not missing,
 # ------------------------------------------------- 3. forbidden-overclaim scan
 
 FORBIDDEN = [
-    # (pattern, allowed paragraph ids — empty means never allowed, allow_if)
+    # (pattern, allowed paragraph ids; empty means never allowed, allow_if)
     (r"empirical\s+(result|quantity|claim)", [], r"no\s+empirical"),
     (r"physical\s+(amplitude\s+)?calibrat\w+", [], r"no\s+physical|was\s+not\s+performed|not\s+performed"),
     (r"\bcortex\b|\bcortical\b|\bin\s+vivo\b", [], None),
@@ -520,6 +523,11 @@ for name, ok in sanity_checks:
 
 # ---------------------------------------------------------------- write receipt
 
+parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+parser.add_argument("--write", action="store_true",
+                    help="write the audit receipt (default: report only, write nothing)")
+args = parser.parse_args()
+
 ok = not failures
 receipt = {
     "schema": "jaxfne.publication.results_audit_receipt.v1",
@@ -533,9 +541,10 @@ receipt = {
     "checks": checks,
     "failures": failures,
 }
-OUT.parent.mkdir(parents=True, exist_ok=True)
-OUT.write_text(json.dumps(receipt, indent=2, sort_keys=True))
-print(f"{len(checks)} checks, {len(failures)} failures → {receipt['status']}")
+if args.write:
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_text(json.dumps(receipt, indent=2, sort_keys=True))
+print(f"{len(checks)} checks, {len(failures)} failures -> {receipt['status']}")
 for f in failures:
     print("  FAIL:", f)
 sys.exit(1 if failures else 0)

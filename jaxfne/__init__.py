@@ -358,7 +358,7 @@ from ._param_handles import (
 )
 from .optim.handles import tune_handles
 
-# v0.3.18: sharding stubs — imported lazily so single-device users have no overhead.
+# v0.3.18: sharding stubs; imported lazily so single-device users have no overhead.
 from .sharding_utils import (
     get_sharding_context,
     make_candidate_sharding,
@@ -404,6 +404,7 @@ from .hdp_rule import (
     HDPRuleContext,
     HDPRuleDescriptor,
     HDPRuleUpdate,
+    QuantityKind,
     register_hdp_rule,
 )
 # T-25 frozen trained-W0 provenance (ADVANCED tier: root attrs, not __all__).

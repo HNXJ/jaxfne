@@ -18,11 +18,11 @@ def test_suite_no4_matrix_parameter_specs_are_created():
         bounds=(0.0, 3.0),
     )
     gGABA_spec = jtfne.matrix_parameter(
-        mask="E_to_I",
+        mask="I_to_E",
         bounds=(0.0, 5.0),
     )
     assert gAMPA_spec.mask == "excitatory_to_all"
-    assert gGABA_spec.mask == "E_to_I"
+    assert gGABA_spec.mask == "I_to_E"
     assert gAMPA_spec.bounds == (0.0, 3.0)
     assert gGABA_spec.bounds == (0.0, 5.0)
 
@@ -69,7 +69,7 @@ def test_suite_no4_tune_with_both_matrix_parameters():
         bounds=(0.3, 3.0),
     )
     gGABA_spec = jtfne.matrix_parameter(
-        mask="E_to_I",
+        mask="I_to_E",
         bounds=(0.1, 5.0),
     )
 
@@ -117,7 +117,7 @@ def test_suite_no4_best_parameters_are_2d_matrices():
     optimizer = jtfne.agsdr(
         parameters={
             "gAMPA_w": jtfne.matrix_parameter(mask="excitatory_to_all", bounds=(0.3, 3.0)),
-            "gGABA_w": jtfne.matrix_parameter(mask="E_to_I", bounds=(0.1, 5.0)),
+            "gGABA_w": jtfne.matrix_parameter(mask="I_to_E", bounds=(0.1, 5.0)),
         },
         generations=2,
         population_size=3,
@@ -158,7 +158,7 @@ def test_suite_no4_summary_is_json_safe():
     optimizer = jtfne.agsdr(
         parameters={
             "gAMPA_w": jtfne.matrix_parameter(mask="excitatory_to_all", bounds=(0.3, 3.0)),
-            "gGABA_w": jtfne.matrix_parameter(mask="E_to_I", bounds=(0.1, 5.0)),
+            "gGABA_w": jtfne.matrix_parameter(mask="I_to_E", bounds=(0.1, 5.0)),
         },
         generations=2,
         population_size=3,

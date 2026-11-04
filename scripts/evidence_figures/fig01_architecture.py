@@ -2,8 +2,8 @@
 """Generate Figure 1: TFNE source-to-field/readout architecture diagram.
 
 Outputs:
-  figures/evidence/fig01_tfne_architecture.png
-  outputs/evidence/fig01_tfne_architecture_manifest.json
+  artifacts/_temp/figures/evidence/fig01_tfne_architecture.png
+  artifacts/_temp/outputs/evidence/fig01_tfne_architecture_manifest.json
 """
 
 from __future__ import annotations
@@ -205,7 +205,7 @@ def main() -> int:
     )
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"artifacts/_temp/outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"sha256: {sha}")

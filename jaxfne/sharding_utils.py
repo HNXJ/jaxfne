@@ -80,7 +80,7 @@ def make_candidate_sharding(mesh: Mesh) -> NamedSharding:
     """Return a :class:`jax.sharding.NamedSharding` that slices the first
     (batch/population) axis across ``mesh``.
 
-    Shape convention: ``(B, n_params)`` — partition on axis 0, replicate axis 1.
+    Shape convention: ``(B, n_params)``: partition on axis 0, replicate axis 1.
 
     Parameters
     ----------

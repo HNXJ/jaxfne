@@ -245,3 +245,44 @@ def test_ou_stationary_variance_dt_rescaling(dt):
     var = float(vals.var())
     assert abs(var - sigma ** 2) / sigma ** 2 < 0.05, \
         "OU variance must stay within 5%% of sigma^2 at dt=%r, got %r" % (dt, var)
+
+
+# --- Finding 7 (T-38d): held_steps unit; dt must be a number ----------------
+
+def test_held_steps_docstring_states_element_count():
+    """Fail-first on the base docstring: held_steps counts held element updates."""
+    doc = " ".join(simulate_hh.__doc__.split())
+    assert "one per edge per held step" in doc
+
+
+def test_held_steps_counts_one_per_edge_per_held_step():
+    """PIN: passes on the base implementation; pins the unit the docstring states.
+
+    Two identical edges (same pre, post, receptor) hold on the same steps, so
+    the synapse count doubles with the second edge: one count per held
+    (step, edge) pair.
+    """
+    tau_r = (1e-320, 0.5)
+    one = simulate_hh(**_two_cell_kwargs(receptor_tau_r=tau_r,
+                                         I_ext=_driven_two_cell_i_ext()))
+    two = simulate_hh(**_two_cell_kwargs(receptor_tau_r=tau_r,
+                                         I_ext=_driven_two_cell_i_ext(),
+                                         edge_pre=[0, 0], edge_post=[1, 1],
+                                         edge_weight=[4.0, 4.0], edge_receptor=[0, 0]))
+    n_one = int(one["held_steps"]["s"])
+    assert n_one > 0, "fixture must hold synapse updates"
+    assert int(two["held_steps"]["s"]) == 2 * n_one
+
+
+@pytest.mark.parametrize("bad", ["0.1", b"0.1"])
+def test_simulate_hh_refuses_string_dt(bad):
+    """Fail-first: a string dt is refused with TypeError, not coerced by float()."""
+    with pytest.raises(TypeError, match="dt_ms"):
+        simulate_hh(**_two_cell_kwargs(dt_ms=bad))
+
+
+def test_simulate_hh_batch_refuses_string_dt():
+    """Fail-first: the batch entry checks dt_ms before its batch mapping."""
+    params = make_hh_params(["E", "Ig"])
+    with pytest.raises(TypeError, match="dt_ms"):
+        emitters_hh.simulate_hh_batch(params, n_steps=500, dt_ms="0.1", batch=None)

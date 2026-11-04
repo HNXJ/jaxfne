@@ -4,8 +4,8 @@
 proxies. This page shows real composed pipelines, with shapes and dtypes at each
 handoff. Single-operator definitions are outside its scope.
 
-For single-operator contracts see Operator Doctrine (`docs/theory/operator_doctrine.md` — repository-internal reference, excluded from the built site) and
-the Tensor Operator Registry (`docs/reference/api/readout/tensor_operators.md` — repository-internal reference, excluded from the built site). The chains here were
+For single-operator contracts see Operator Doctrine (`docs/theory/operator_doctrine.md`: repository-internal reference, excluded from the built site) and
+the Tensor Operator Registry (`docs/reference/api/readout/tensor_operators.md`: repository-internal reference, excluded from the built site). The chains here were
 verified in
 [`tests/test_tensor_pipeline_custom_cfg.py`](https://github.com/HNXJ/jaxfne/blob/main/tests/test_tensor_pipeline_custom_cfg.py)
 on a non-canonical 3-layer configuration, as well as the default column.
@@ -59,7 +59,7 @@ syn = jtfne.synaptic_current_tensor(jnp.asarray(source_native), tau_syn_ms, dt_m
 
 Domain: a raw per-neuron source (spike/current proxy). Codomain: the same
 shape, filtered by the receptor time constant resolved from each neuron's
-declared synaptic mechanism — the optional pre-filter stage (the depth-dependent stage is excluded).
+declared synaptic mechanism: the optional pre-filter stage (the depth-dependent stage is excluded).
 
 ### Stage 2 — Cable-filter Tensor
 
@@ -75,10 +75,10 @@ cab = jtfne.cable_filter_sources(jnp.asarray(source_native), tau_cable_s, dt_ms=
 # cab.shape == (200, 40)
 ```
 
-Domain: the per-neuron source (raw, or already synaptic-filtered — both
+Domain: the per-neuron source (raw, or already synaptic-filtered: both
 compose, since `cable_filter_sources` only cares about shape). Codomain: the
 same per-neuron shape, now passed through a 2nd-order low-pass whose time
-constant is a function of cell type **and** depth — this is the operator that
+constant is a function of cell type **and** depth; this is the operator that
 encodes "deep large pyramidal cells filter slower than superficial
 interneurons."
 
@@ -101,7 +101,7 @@ csd_standalone = jtfne.csd_tensor(fo.phi_e_proxy, dz)
 `csd_tensor` is the named operator that `project_laminar_sources` calls
 internally to derive `csd_proxy` from `phi_e_proxy` (the finite-difference
 second spatial derivative). Calling it standalone on `fo.phi_e_proxy`
-reproduces `fo.csd_proxy` exactly — this is a tested composability check:
+reproduces `fo.csd_proxy` exactly; this is a tested composability check:
 `jnp.allclose(csd_standalone, fo.csd_proxy)` is `True` for
 this run.
 
@@ -119,7 +119,7 @@ meg = jtfne.meg_proxy_transform(fo.lfp_proxy, meg_leadfield)
 ```
 
 `eeg_proxy_transform` / `meg_proxy_transform` take the same `lfp_proxy`
-codomain as input and apply a declared leadfield (a linear spatial mixing matrix you supply, rather than a learned one) — they compose directly off the field
+codomain as input and apply a declared leadfield (a linear spatial mixing matrix you supply, rather than a learned one). They compose directly off the field
 stage, rather than the raw source.
 
 All five tensors in this chain (`syn`, `cab`, `fo.lfp_proxy`, `eeg`, `meg`)
@@ -127,7 +127,7 @@ were finite end to end in this run.
 
 ## Chain 2: source → field, without the cable filter
 
-The cable-filter stage is optional. Dropping it is also a valid composition —
+The cable-filter stage is optional. Dropping it is also a valid composition:
 `project_laminar_sources` only requires a `(n_steps, n_neurons)` source and
 `(n_neurons, 3)` positions, regardless of which upstream operator produced
 the source:
@@ -136,7 +136,7 @@ the source:
 source  → project_laminar_sources → FieldOutput → eeg_proxy_transform → EEG-proxy
 ```
 
-This is the chain you get any time you skip Stage 2 — every
+This is the chain you get any time you skip Stage 2; every
 downstream call in Chain 1 (`csd_tensor`, `eeg_proxy_transform`,
 `meg_proxy_transform`) is shape-compatible with `fo` regardless of whether
 `fo` was built from `cab` or from `source_native` directly.
@@ -150,17 +150,17 @@ Regenerate: `python scripts/generate_doc_page_atlases.py --slug operator_chain_4
 ## Why composition is the missing piece
 
 [Configuration Grammar](../grammar/configuration_grammar.md) documents the ~30
-builder methods that *specify* a model. Operator Doctrine (`docs/theory/operator_doctrine.md` — repository-internal reference, excluded from the built site)
+builder methods that *specify* a model. Operator Doctrine (`docs/theory/operator_doctrine.md`: repository-internal reference, excluded from the built site)
 documents the 7-stage *rule* each tensor operator satisfies on its own.
 Neither one shows that the codomain of one operator is the domain of the
-next with no conversion step — that the chain typechecks when executed, and
+next with no conversion step, that the chain typechecks when executed, and
 `tests/test_tensor_pipeline_custom_cfg.py` is what makes that
 claim checkable; this page is what makes it readable.
 
 ## See also
 
-- TFNE Operator Doctrine (`docs/theory/operator_doctrine.md` — repository-internal reference, excluded from the built site) — the per-operator domain/codomain contract table.
-- Tensor Operator Registry (`docs/reference/api/readout/tensor_operators.md` — repository-internal reference, excluded from the built site) — the full operator inventory.
-- Operator Inventory (generated) (`docs/_generated/operator_inventory.md` — repository-internal reference, excluded from the built site) — the live export surface.
-- [Objective Grammar](../grammar/objective_grammar.md) — the user-facing run sequence this composition feeds into via `probe()`.
-- `tests/test_tensor_pipeline_custom_cfg.py` — the executable check this page documents.
+- TFNE Operator Doctrine (`docs/theory/operator_doctrine.md`: repository-internal reference, excluded from the built site): the per-operator domain/codomain contract table.
+- Tensor Operator Registry (`docs/reference/api/readout/tensor_operators.md`: repository-internal reference, excluded from the built site): the full operator inventory.
+- Operator Inventory (generated) (`docs/_generated/operator_inventory.md`: repository-internal reference, excluded from the built site): the live export surface.
+- [Objective Grammar](../grammar/objective_grammar.md): the user-facing run sequence this composition feeds into via `probe()`.
+- `tests/test_tensor_pipeline_custom_cfg.py`: the executable check this page documents.

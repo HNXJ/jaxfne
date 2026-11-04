@@ -38,7 +38,7 @@ def test_repository_map_points_from_gone_pages_to_live_ones():
 # Frozen files cite docs paths from before the 2026-10-16 move and cannot be edited. A page the
 # docs build excludes has no redirect page, so its move is recorded here instead.
 FROZEN_CITATION_MOVES = {
-    "docs/publication/evidence_consolidation.md": "docs/theory/publication/evidence_consolidation.md",
+    "docs/publication/evidence_consolidation.md": "artifacts/programme/paper/publication/evidence_consolidation.md",
 }
 
 

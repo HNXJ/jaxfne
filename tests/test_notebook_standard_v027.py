@@ -134,7 +134,6 @@ class TestTemplateNotebook:
             len(code_cells) >= 2
         ), "Notebook must contain at least two code cells"
 
-        # Check the second code cell
         second_code_cell = code_cells[1]
         source = "".join(second_code_cell["source"])
         assert (

@@ -63,7 +63,6 @@ def test_manifest_propagation():
     
     signals = model.simulate(sim)
     
-    # Check manifest
     manifest_data = model.manifest(signals=signals)
     
     assert "backend_metadata" in manifest_data
@@ -73,7 +72,6 @@ def test_manifest_propagation():
     assert b_meta["edge_list_physical_amplitude_calibrated"] is False
     assert b_meta["edge_count"] > 0
     
-    # Check truth gates
     assert manifest_data.get("v005_claim_labels", {}).get("physical_amplitude_calibrated", False) is False
 
 

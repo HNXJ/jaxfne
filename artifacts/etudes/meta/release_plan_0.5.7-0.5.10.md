@@ -55,6 +55,9 @@ Hamm's exceptions; Potjans and Vogels preregs ready for signature (B8).
 
 ## 4. 0.5.9 and 0.5.10 (fixed at the 0.5.8 seal)
 
+Replaced 2026-10-26 by `plans/release_plan_0.5.9-0.6.0.md`, which follows the arXiv plan; the items below
+are re-homed there. 0.5.7 published 2026-10-21, 0.5.8 published 2026-10-26.
+
 - 0.5.9: AT-10-R6 RSS flat over chunks with the XLA cache cleared; the LIF edge kernel within the
   GPU budget at 25000 steps × 12500 cells (chunked rasters); Potjans 2014 and Mejias 2016 scored
   (Mejias G6 constants and the φ(0) normalization first); Lee, Pennartz and Mejias 2025.

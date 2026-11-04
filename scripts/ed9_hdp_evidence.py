@@ -1,11 +1,11 @@
-"""ED9 — HDP (Homeostasis-Dependent Plasticity) ablation evidence bundle.
+"""ED9: HDP (Homeostasis-Dependent Plasticity) ablation evidence bundle.
 
 Null + ablation + repeated-seed evidence that the HDP controller (per-neuron
 master state H_i driving excitatory/inhibitory weight ODEs) STABILIZES firing
 rates and reduces runaway/imbalance in the jaxfne proxy scaffold, mirroring
 scripts/ed9_homeostasis_evidence.py for the older activity-trace controller.
 
-This is COMPUTATIONAL-METHOD evidence only — NOT a biological-mechanism
+This is COMPUTATIONAL-METHOD evidence only: NOT a biological-mechanism
 validation. Truth gates stay conservative (claim_status=
 computational_control_proxy_not_biological_mechanism, biological_learning_claim
 =False, mechanism_claim_status=not_claimed). Objective success here does not

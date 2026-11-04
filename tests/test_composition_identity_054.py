@@ -1,4 +1,4 @@
-"""0.5.4 item 1 — ensemble member RNG domains and solo-equivalence.
+"""0.5.4 item 1: ensemble member RNG domains and solo-equivalence.
 
 ``connect(A, B)`` + ``simulate(seed=S)`` must reproduce each member run
 alone: member ``m``'s slice of the ensemble trajectory is bit-identical to

@@ -1,4 +1,4 @@
-"""0.4.17-C3/C4 — prospective execution and interpretation receipt tests."""
+"""0.4.17-C3/C4: prospective execution and interpretation receipt tests."""
 
 from __future__ import annotations
 

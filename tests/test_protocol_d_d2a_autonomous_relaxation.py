@@ -1,4 +1,4 @@
-"""0.4.17-D D2a — autonomous H_K F1 relaxation tests."""
+"""0.4.17-D D2a: autonomous H_K F1 relaxation tests."""
 
 from __future__ import annotations
 

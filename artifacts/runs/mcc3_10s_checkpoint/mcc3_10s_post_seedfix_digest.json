@@ -1,0 +1,38 @@
+{
+  "schema": "jaxfne.mcc3_10s_post_seedfix_digest.v1",
+  "note": "Re-recorded retune=True condition-B fields after 9ade2f8f (Hamm 2026-10-29: multi-parameter Model.tune seeds each candidate from the optimizer seed and (gen, row)), an intended optimizer change. The AGSDR tune is re-run under the new candidate seeding (it reaches the same uniform optimum on this clone); condition B is recorded under the tuned theta (retune=True CLI path: agsdr/firing/abc_table). The frozen-theta section is carried forward unchanged from the post-P-048 digest for the retune=False figure-site path. Frozen files stay byte-identical. Computed on this clone by the code path of scripts/rerun_etude_figures.py::mode_hdp_mcc3.",
+  "regenerated_after_commit": "9ade2f8f9c0625fa30c8bcb75c9911259304a45f",
+  "supersedes_fields_of": "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_post_p048_digest.json",
+  "agsdr": {
+    "theta_hat": {
+      "m_EE": 0.15811388194561005,
+      "m_EI": 0.15811388194561005,
+      "m_IE": 0.15811388194561005,
+      "m_II": 0.15811388194561005
+    }
+  },
+  "firing": {
+    "B": {
+      "population_rate_hz": 5.360721111297607,
+      "E_rate_hz": 10.721442222595215,
+      "I_rate_hz": 0.0
+    }
+  },
+  "abc_table": {
+    "total_spikes": {
+      "B": 544
+    }
+  },
+  "firing_frozen_theta": {
+    "B": {
+      "E_rate_hz": 10.721442222595215,
+      "I_rate_hz": 10.220440864562988,
+      "population_rate_hz": 10.470942497253418
+    }
+  },
+  "abc_table_frozen_theta": {
+    "total_spikes": {
+      "B": 1054
+    }
+  }
+}

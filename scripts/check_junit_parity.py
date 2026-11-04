@@ -8,13 +8,13 @@ now fails the gate.
 
 Failing conditions (any one of them):
   * an RC node absent from CI, or a CI node absent from RC
-  * an outcome difference not classified INTENTIONAL_PLATFORM_DIFFERENCE
+  * an outcome difference outside compare_pytest_junit.PASSING_DIFFERENCES
   * a difference classified ENVIRONMENT_DEFECT or UNKNOWN
   * any failure or error on either side
 
-Justified platform differences (POSIX-only shell gates and executable-bit
-checks, skipped on Windows and passing on Linux) are preserved, not suppressed:
-they are reported by node ID and counted, and only that classification passes.
+Justified differences (platform, version, and the data_gated, optional_oracle
+and bitwise_diagnostic marker classes) are reported by node ID and class and
+counted.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from compare_pytest_junit import compare, load, load_many  # noqa: E402
+from compare_pytest_junit import PASSING_DIFFERENCES, compare, load, load_many  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 ATTESTATIONS = ROOT / "artifacts" / "attestations"
@@ -115,16 +115,17 @@ def main(argv: list[str] | None = None) -> int:
             ci_python = match.group(1)
         report = compare(rc, load(path), ci_python=ci_python)
         justified = [d for d in report["outcome_differences"]
-                     if d["classification"] == "INTENTIONAL_PLATFORM_DIFFERENCE"]
-        versioned = [d for d in report["outcome_differences"]
-                     if d["classification"] == "INTENTIONAL_VERSION_DIFFERENCE"]
+                     if d["classification"] in PASSING_DIFFERENCES]
+        by_class = {cls: [d["node_id"] for d in justified if d["classification"] == cls]
+                    for cls in sorted(PASSING_DIFFERENCES)}
         reports[path.name] = {
             "rc_count": report["rc_count"],
             "ci_count": report["ci_count"],
             "rc_only": report["rc_only"],
             "ci_only": report["ci_only"],
-            "justified_platform_differences": [d["node_id"] for d in justified],
-            "justified_version_differences": [d["node_id"] for d in versioned],
+            "justified_platform_differences": by_class["INTENTIONAL_PLATFORM_DIFFERENCE"],
+            "justified_version_differences": by_class["INTENTIONAL_VERSION_DIFFERENCE"],
+            "justified_by_class": by_class,
             "unjustified_differences": report["unjustified_differences"],
             "failures_or_errors": report["failures_or_errors"],
             "pass": report["pass"],
@@ -133,15 +134,13 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"{status}  {path.name}: rc={report['rc_count']} ci={report['ci_count']} "
             f"rc_only={len(report['rc_only'])} ci_only={len(report['ci_only'])} "
-            f"justified={len(justified) + len(versioned)} "
+            f"justified={len(justified)} "
             f"unjustified={len(report['unjustified_differences'])} "
             f"failures={len(report['failures_or_errors'])}",
             flush=True,
         )
         for diff in justified:
-            print(f"    justified platform difference: {diff['node_id']}", flush=True)
-        for diff in versioned:
-            print(f"    justified version difference: {diff['node_id']}", flush=True)
+            print(f"    justified [{diff['classification']}] {diff['node_id']}", flush=True)
         for diff in report["unjustified_differences"]:
             print(
                 f"    UNJUSTIFIED [{diff['classification']}/{diff['kind']}] {diff['node_id']}",

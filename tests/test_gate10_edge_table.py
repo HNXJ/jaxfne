@@ -53,8 +53,7 @@ def test_gate10_edge_table_asymmetric_deterministic_fixture():
     edges = model_with_el.edge_table()
     assert len(edges) == 3
 
-    # Check Edge 0
-    e0 = edges[0]
+    e0 =edges[0]
     assert e0["edge_id"] == 0
     assert e0["pre"] == 0
     assert e0["post"] == 1
@@ -64,8 +63,7 @@ def test_gate10_edge_table_asymmetric_deterministic_fixture():
     assert pytest.approx(e0["tau_ms"], abs=1e-6) == 2.0
     assert e0["delay_steps"] == 4
 
-    # Check Edge 1
-    e1 = edges[1]
+    e1 =edges[1]
     assert e1["edge_id"] == 1
     assert e1["pre"] == 1
     assert e1["post"] == 2
@@ -75,8 +73,7 @@ def test_gate10_edge_table_asymmetric_deterministic_fixture():
     assert pytest.approx(e1["tau_ms"], abs=1e-6) == 5.0
     assert e1["delay_steps"] == 0
 
-    # Check Edge 2
-    e2 = edges[2]
+    e2 =edges[2]
     assert e2["edge_id"] == 2
     assert e2["pre"] == 2
     assert e2["post"] == 0

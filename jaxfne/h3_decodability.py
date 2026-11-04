@@ -1,4 +1,4 @@
-"""Protocol H3 — localized RBS perturbation and nested linear decodability.
+"""Protocol H3: localized RBS perturbation and nested linear decodability.
 
 Scientific question: does a localized RBS perturbation remain decodable after the
 perturbation offset is applied (no ongoing forcing)? See

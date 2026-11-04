@@ -13,28 +13,17 @@ permissions:
   contents: read
 
 jobs:
-  fast-test:
+  static:
+    name: static
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # Coverage is deliberately the two ends of the supported range rather
-        # than every minor version: 3.11 as the oldest line the pinned extras
-        # resolve on, 3.14 as the newest and the interpreter the local
-        # release-candidate gate runs, so the gate no longer certifies on a
-        # version CI never exercises. 3.10 does not resolve at all (the dev/viz
-        # extras pin scipy==1.17.1, which ships no cp310 wheels).
-        # Wheel availability for both lines was checked against the index:
-        # scipy 1.17.1, matplotlib 3.10.9 and jaxlib 0.10.2 all publish cp311
-        # and cp314 manylinux wheels.
-        python-version: ["3.11", "3.14"]
 
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.11"
 
       - name: Install package and dev deps (dev — no viz/reportlab)
         if: github.ref != 'refs/heads/main'
@@ -83,6 +72,35 @@ jobs:
       - name: Audit notebook grammar
         run: PYTHONPATH=. python scripts/audit_notebook_grammar.py --check
 
+      - name: Tracked tree-size gate (blobs, budget + caps)
+        # Fails when the tracked tree grows back: over-cap files must be
+        # allow-listed, listed files may not grow >10%, total must fit budget.
+        run: PYTHONPATH=. python scripts/check_tree_size.py --check
+
+  docs:
+    name: docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install package and dev deps (dev — no viz/reportlab)
+        if: github.ref != 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,jaxley,jnwb]"
+
+      - name: Install package and dev+viz deps (main — with reportlab)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,viz,jaxley,jnwb]"
+
       - name: Install docs deps
         run: pip install -r docs/requirements.txt pyyaml
 
@@ -102,10 +120,70 @@ jobs:
         # the API; runs inside broad/release/rc gates too via run_test_gate.
         run: PYTHONPATH=. python scripts/audit_doc_code_integrity.py --check
 
-      - name: Tracked tree-size gate (blobs, budget + caps)
-        # Fails when the tracked tree grows back: over-cap files must be
-        # allow-listed, listed files may not grow >10%, total must fit budget.
-        run: PYTHONPATH=. python scripts/check_tree_size.py --check
+  canary:
+    name: canary
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install package and dev deps (dev — no viz/reportlab)
+        if: github.ref != 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,jaxley,jnwb]"
+
+      - name: Install package and dev+viz deps (main — with reportlab)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,viz,jaxley,jnwb]"
+
+      - name: Canary chains (seeded data paths vs the frozen register)
+        # A red canary means one data path changed its output; the unit tests localise it.
+        run: PYTHONPATH=. python -m pytest -m canary tests/test_canary_chains.py -q
+
+  # The job ids fast-test and fast-build are the required status checks of the dev and main
+  # rulesets ("fast-test (3.11)", "fast-test (3.14)", "fast-build"); keep them.
+  fast-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Coverage is deliberately the two ends of the supported range rather
+        # than every minor version: 3.11 as the oldest line the pinned extras
+        # resolve on, 3.14 as the newest and the interpreter the local
+        # release-candidate gate runs, so the gate no longer certifies on a
+        # version CI never exercises. 3.10 does not resolve at all (the dev/viz
+        # extras pin scipy==1.17.1, which ships no cp310 wheels).
+        # Wheel availability for both lines was checked against the index:
+        # scipy 1.17.1, matplotlib 3.10.9 and jaxlib 0.10.2 all publish cp311
+        # and cp314 manylinux wheels.
+        python-version: ["3.11", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package and dev deps (dev — no viz/reportlab)
+        if: github.ref != 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,jaxley,jnwb]"
+
+      - name: Install package and dev+viz deps (main — with reportlab)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,viz,jaxley,jnwb]"
 
       - name: Run fast tests (curated dev gate ~90s, viz boundary — reportlab skips)
         if: github.ref != 'refs/heads/main'
@@ -137,15 +215,123 @@ jobs:
           path: coverage.xml
           if-no-files-found: ignore
 
+  examples:
+    name: examples (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Same two-version range as the fast-test job (see the note there).
+        python-version: ["3.11", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package and dev deps (dev — no viz/reportlab)
+        if: github.ref != 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,jaxley,jnwb]"
+
+      - name: Install package and dev+viz deps (main — with reportlab)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,viz,jaxley,jnwb]"
+
       - name: Run examples
         # The list is owned by scripts/run_test_gate.py (RELEASE_EXAMPLES);
         # this step calls the `examples` gate instead of repeating it.
         run: PYTHONPATH=. python scripts/run_test_gate.py examples
 
+  # Paper-lane tests (artifacts/etudes/papers/*/test_*.py). Not required checks. They run on dev
+  # pushes and on pull requests to dev, and only when a change touches a lane folder or the
+  # package. The lanes come from scripts/run_test_gate.py, the same list the broad gate runs.
+  paper-lanes:
+    name: paper-lanes (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/dev'
+    strategy:
+      matrix:
+        # Same two-version range as the fast-test job (see the note there).
+        python-version: ["3.11", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The change detection diffs against the base commit, which must be in the clone.
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package and dev deps (dev — no viz/reportlab)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,jaxley,jnwb]"
+
+      - name: Detect paper-lane changes (runs the lanes when no base commit is present)
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          LANE_PATHS_RE: '^(artifacts/etudes/papers/|jaxfne/)'
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then base="$PR_BASE_SHA"; else base="$PUSH_BEFORE_SHA"; fi
+          run=true
+          if [ -n "$base" ] && [ "$base" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$base^{commit}" 2>/dev/null; then
+            changed=$(git diff --name-only "$base" "$GITHUB_SHA")
+            echo "range=$base..$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            run=false
+            if printf '%s\n' "$changed" | grep -E "$LANE_PATHS_RE" >/dev/null; then run=true; fi
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "base=$base run=$run"
+
+      - name: Paper lanes (one pytest process per lane, xdist for the heavy lanes)
+        if: steps.changes.outputs.run == 'true'
+        run: PYTHONPATH=. python scripts/run_test_gate.py paper-lanes
+
+      - name: Paper lanes not run (no lane or package change)
+        if: steps.changes.outputs.run != 'true'
+        run: echo "no change under artifacts/etudes/papers/ or jaxfne/; paper lanes skipped"
+
+      # F3: each commit with a "Fidelity-fix: <pytest node id>" trailer names a test that
+      # fails on its parent commit and passes on the commit itself.
+      - name: Fidelity fixes carry a test that fails on the parent (F3)
+        if: matrix.python-version == '3.14' && steps.changes.outputs.range != ''
+        env:
+          F3_RANGE: ${{ steps.changes.outputs.range }}
+        run: python scripts/check_fidelity_fix.py --range "$F3_RANGE"
+
   fast-build:
     runs-on: ubuntu-latest
-    needs: fast-test
+    needs: [static, docs, fast-test, canary, examples, paper-lanes]
+    # A required check whose job is skipped can read as passed, so this job always
+    # runs and fails first when any job it needs did not succeed. paper-lanes is
+    # skipped by its own if: outside pull requests and dev; there a skip is expected.
+    if: always()
     steps:
+      - name: Needed jobs passed (static, docs, fast-test, canary, examples, paper-lanes)
+        if: >-
+          contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') ||
+          needs.static.result == 'skipped' || needs.docs.result == 'skipped' ||
+          needs.fast-test.result == 'skipped' || needs.canary.result == 'skipped' ||
+          needs.examples.result == 'skipped' ||
+          (needs.paper-lanes.result == 'skipped' && (github.event_name == 'pull_request' || github.ref == 'refs/heads/dev'))
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS"
+          exit 1
+
       - uses: actions/checkout@v7
 
       - name: Set up Python

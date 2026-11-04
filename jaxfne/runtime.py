@@ -1,6 +1,6 @@
 """Runtime configuration and execution-report helpers for jaxfne.
 
-Docs: ``docs/reference/api/core/runtime.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/core/runtime/) —
+Docs: ``docs/reference/api/core/runtime.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/core/runtime/):
 update that page when this module's public API changes.
 
 This module provides a stable import surface for runtime-related public

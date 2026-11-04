@@ -1,10 +1,10 @@
-"""Relative accumulative coordination — the one anti-overlap layout rule.
+"""Relative accumulative coordination: the one anti-overlap layout rule.
 
 Fixed/absolute offsets between stacked plot elements (traces, panels,
 annotations) overlap whenever one element's extent exceeds the assumed
 spacing. The fix used everywhere in :mod:`jaxfne.vis`: each element's
 position is the *previous* element's position plus the *previous* element's
-own measured extent plus a gap — never an absolute/global coordinate. This
+own measured extent plus a gap; never an absolute/global coordinate. This
 guarantees zero overlap regardless of per-element amplitude variance.
 """
 from __future__ import annotations
@@ -19,7 +19,7 @@ def cumulative_stack_offsets(series_list: Sequence[np.ndarray], *, gap_frac: flo
 
     ``offset[i]`` is defined relative to ``offset[i-1]`` plus series ``i-1``'s
     own measured (max - min) extent plus ``gap_frac`` of that extent as
-    breathing room — not a fixed/global step size. A trace with an unusually
+    breathing room; not a fixed/global step size. A trace with an unusually
     large range simply pushes every later trace further, instead of
     colliding with it.
 

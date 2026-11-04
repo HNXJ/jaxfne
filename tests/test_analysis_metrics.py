@@ -339,17 +339,19 @@ class TestFleissKappaBinary:
         assert result > 0.5  # High agreement on activity blocks
 
     def test_no_agreement(self):
-        """Half unanimous and half independent bins give κ near 0.0."""
+        """Half unanimous and half independent bins give textbook kappa near 0.5."""
         # Dense independent spikes saturate wide bins (every bin active),
-        # which makes kappa undefined (NaN); this mixture keeps bins
-        # defined with observed agreement near expected agreement.
+        # which makes kappa undefined (NaN); this mixture keeps bins defined.
+        # Unanimous bins agree fully (P_i = 1); independent bins agree at
+        # chance (P_i about 0.5), so the pooled Fleiss kappa is about 0.5.
+        # Pinned 2026-10-28 (W1A): was -0.000114 under the pre-ruling formula.
         rng = np.random.default_rng(1)
         n, t = 30, 4000
         spikes = np.zeros((n, t))
         spikes[:, : t // 2] = (rng.random(t // 2) > 0.5)[None, :]
         spikes[:, t // 2 :] = rng.random((n, t // 2)) > 0.5
         result = fleiss_kappa_binary(spikes, bin_ms=0.1, dt_ms=0.1)
-        assert -0.2 < result < 0.2
+        assert result == pytest.approx(0.4998127654965631, abs=0.02)
 
     def test_dense_saturation_is_nan(self):
         """Independent dense spikes saturate every bin -> NaN (undefined)."""
@@ -1241,8 +1243,8 @@ class TestCaminosRasterIdentity:
         counts = _caminos_fixture_counts()
         out = ca.analyze_run(counts, _CAMINOS_DT, _CAMINOS_SIZES)
         want = population_rates(
-            counts, _CAMINOS_DT, _CAMINOS_SIZES,
-            pops=ca.POPS, discard_s=ca.DISCARD_S,
+            counts, sizes=_CAMINOS_SIZES,
+            pops=ca.POPS, dt_ms=_CAMINOS_DT * 1000.0, discard_ms=ca.DISCARD_S * 1000.0,
         )
         assert out["rates_Hz"] == want
         kept = counts[int(round(ca.DISCARD_S / _CAMINOS_DT)):]
@@ -1308,3 +1310,15 @@ class TestCaminosRasterIdentity:
         out = capi.ref42_phase_delay(counts, _CAMINOS_DT, 35.0)
         assert out["delay_ms"] is None
         assert out["n_spikes_PV"] == 0
+
+
+def test_population_rates_rejects_negative_discard():
+    """A negative discard_s or discard_ms must raise ValueError, not keep the tail."""
+    from jaxfne.analysis import population_rates
+
+    counts = np.ones((1000, 3))
+    sizes = {"E": 10, "PV": 10, "SOM": 10}
+    with pytest.raises(ValueError, match="discard"):
+        population_rates(counts, dt_ms=0.1, sizes=sizes, discard_ms=-100.0)
+    with pytest.raises(ValueError, match="discard"):
+        population_rates(counts, dt_ms=0.1, sizes=sizes, discard_s=-1.0)

@@ -167,6 +167,45 @@ def test_runtime_report_backend_and_x64_fields_present():
     assert report["vmap"] is True
     assert "x64_enabled" in report
 
+
+def test_runtime_report_jit_is_the_effective_decision_under_auto():
+    model = jtfne.construct(_cfg(n=8))
+    signals = model.simulate(jtfne.simulation(duration_ms=4.0, dt_ms=0.1, seed=6))
+    n_steps, n_units = signals.V_m.shape
+    assert n_steps * n_units <= 50000, "fixture must stay under the auto threshold"
+    assert signals.metadata["runtime"]["jit_policy"] == "auto"
+    assert signals.metadata["runtime"]["jit"] is False
+
+
+def test_runtime_report_jit_is_true_above_the_auto_threshold():
+    model = jtfne.construct(_cfg(n=8))
+    signals = model.simulate(jtfne.simulation(duration_ms=700.0, dt_ms=0.1, seed=6))
+    n_steps, n_units = signals.V_m.shape
+    assert n_steps * n_units > 50000, "fixture must exceed the auto threshold"
+    assert signals.metadata["runtime"]["jit_policy"] == "auto"
+    assert signals.metadata["runtime"]["jit"] is True
+
+
+def test_runtime_report_jit_is_none_under_auto_without_a_call_shape():
+    rt = jtfne.runtime(jit="auto")
+    assert rt.jit == "auto", "precondition: the jit policy is auto"
+    report = rt.runtime_report()
+    assert report["jit_policy"] == "auto"
+    assert report["jit"] is None
+
+
+def test_runtime_report_string_false_policy_reports_false():
+    report = jtfne.runtime(jit="false").runtime_report()
+    assert report["jit_policy"] is False
+    assert report["jit"] is False
+
+
+@pytest.mark.parametrize("requested, policy", [("TRUE", True), ("1", True), ("0", False), ("Auto", "auto")])
+def test_runtime_report_jit_policy_is_normalized(requested, policy):
+    report = jtfne.runtime(jit=requested).runtime_report()
+    assert report["jit_policy"] == policy
+
+
 def test_surrogate_config_rejects_unknown_method_p031():
     """P-031: a typoed surrogate method refuses at construction."""
     with pytest.raises(ValueError, match="P-031"):

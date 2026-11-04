@@ -145,33 +145,33 @@ AD_DRIVE = {
 
 
 def test_pin_izhi_default():
-    # baseline V=880d49c4... spikes=fbcef97b...
+    # P-048 (u0 = b * v0): V=2663eab9... spikes=54506def...; was V=880d49c4... spikes=fbcef97b...
     signals = jtfne.simulate(_izhi_model())
     v_hash, s_hash, n = _hashes(signals)
-    assert n == 8, "fixture must spike"
-    assert v_hash == "880d49c4291e85a5439f61b2d8153abd03c371a806dfc723aa5aa527f0251809"
-    assert s_hash == "fbcef97b1ebed40f92f30a77ab67edb945f29a161e2a91d5a33b38701bdb8835"
+    assert n == 7, "fixture must spike"
+    assert v_hash == "2663eab98406d161709465d553f030c5fdc5d728ca66c256d18f38ab3aee5a5d"
+    assert s_hash == "54506def9ef60fdbd5b8c0a9f1e18ea4389a4d31306367e98333089f27f4863e"
     repeat = jtfne.simulate(_izhi_model())
     assert np.array_equal(np.asarray(repeat.V_m), np.asarray(signals.V_m))
     assert np.array_equal(np.asarray(repeat.spikes), np.asarray(signals.spikes))
 
 
 def test_pin_izhi_pertype_drive():
-    # baseline V=94b94796... spikes=77609ebb...
+    # P-048 (u0 = b * v0): V=dc4aa66b... spikes=5b05c9a6...; was V=94b94796... spikes=77609ebb...
     model = jtfne.construct(
         _izhi_cfg().drive(baseline_drive_by_cell_type={"E": 9.0}))
     signals = jtfne.simulate(model)
     v_hash, s_hash, n = _hashes(signals)
-    assert n == 9, "fixture must spike"
-    assert v_hash == "94b94796b7de3a5d6323e0543f553e6a7a05f496bec6a1d4e455b65cbb5ecb73"
-    assert s_hash == "77609ebb81652ea7dd04eae09ec8c72d6572973697b6cf04a0d26918814f73e2"
+    assert n == 8, "fixture must spike"
+    assert v_hash == "dc4aa66bc0d4bba4a2868764e41fdd7d6cccb8a07c60c30d874d425f47775609"
+    assert s_hash == "5b05c9a6aa2b6fc0f2f0b48aaafd5c71070f68ed8e5bfecef1f868245c9458f0"
     repeat = jtfne.simulate(model)
     assert np.array_equal(np.asarray(repeat.V_m), np.asarray(signals.V_m))
     assert np.array_equal(np.asarray(repeat.spikes), np.asarray(signals.spikes))
 
 
 def test_pin_izhi_poisson_drive():
-    # baseline V=d276e1ce... spikes=b71a9523...
+    # P-048 (u0 = b * v0): V=f9a990d6... spikes=ba09e074...; was V=d276e1ce... spikes=b71a9523...
     model = _izhi_model()
     kw = dict(
         duration_ms=12.0, dt_ms=DT, seed=17,
@@ -181,9 +181,9 @@ def test_pin_izhi_poisson_drive():
     )
     signals = jtfne.simulate(model, **kw)
     v_hash, s_hash, n = _hashes(signals)
-    assert n == 7, "fixture must spike"
-    assert v_hash == "d276e1cebec2653c4f13da3c8c64b98711b548331fbcb0bf262a7de22bdcfa43"
-    assert s_hash == "b71a95234d6203e73011b12444e5a05a83bc5a999edfb4b774750aa6727c8f5a"
+    assert n == 6, "fixture must spike"
+    assert v_hash == "f9a990d61b173bddb11e2ea7e6ad434398a59c30920a87b89255b0a217aac86f"
+    assert s_hash == "ba09e074e7e937fc98bcc407e239136682abc4c8eb9d0e782e7f808e594d59d2"
     repeat = jtfne.simulate(model, **kw)
     assert np.array_equal(np.asarray(repeat.V_m), np.asarray(signals.V_m))
     assert np.array_equal(np.asarray(repeat.spikes), np.asarray(signals.spikes))

@@ -709,7 +709,7 @@ def omission_oddball_paradigm(
     if deviant_onset_ms is None:
         deviant_onset_ms = standard_onset_ms
 
-    # P-027: explicit onsets are declared but not implemented — every
+    # P-027: explicit onsets are declared but not implemented; every
     # stimulus event starts after pre_stimulus_buffer_ms. Refuse anything
     # but the signature defaults rather than silently mistime the stimulus.
     if standard_onset_ms != 500.0 or deviant_onset_ms != 500.0:
@@ -813,7 +813,7 @@ def coop_omission_oddball_paradigm(
     standard_amplitude: float = 5.0,
     pre_stimulus_buffer_ms: float = 200.0,
     target_indices: Optional[Sequence[int]] = None,
-    seed: int = 42,
+    seed: int = 0,
     name: str = "coop_omission_oddball"
 ) -> Paradigm:
     """Create a Continuous Omission Oddball Paradigm (COOP) stimulus sequence.

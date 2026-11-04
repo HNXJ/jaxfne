@@ -76,12 +76,12 @@ Every realized value carries its origin:
 value origin in {TFNE-declared, JDNA-derived, JDNA-default, JDNA-sampled}
 ```
 
-- `TFNE-declared` — stated in the specification (`G[V1] := Ω`, `N[V1]`, a rule).
-- `JDNA-derived` — fixed by another declared constraint (integer allocation
+- `TFNE-declared`: stated in the specification (`G[V1] := Ω`, `N[V1]`, a rule).
+- `JDNA-derived`: fixed by another declared constraint (integer allocation
   from `N`/`P`, replica indexing).
-- `JDNA-default` — a canonical default applied where the specification is
+- `JDNA-default`: a canonical default applied where the specification is
   deliberately optional (`G[V1] = ∅` with a permitted default domain).
-- `JDNA-sampled` — drawn under `K_D` (positions, thinned edges).
+- `JDNA-sampled`: drawn under `K_D` (positions, thinned edges).
 
 This is what makes the boundary inspectable: given a realized model, every
 value answers which stage chose it. It extends the standing invariant that
@@ -94,10 +94,10 @@ TFNE→JDNA→Model chain is auditable end to end.
 TFNE declares geometry (`G[A]` is first-class structural specification) or
 omits it. Realization of coordinates is JDNA's:
 
-- `G[V1] := Ω` — JDNA obeys the declared domain.
-- `G[V1] = ∅` with a permitted default — JDNA supplies its defined default,
+- `G[V1] := Ω`: JDNA obeys the declared domain.
+- `G[V1] = ∅` with a permitted default; JDNA supplies its defined default,
   e.g. `rᵢ ~ U(Ω_default)`, recorded as `JDNA-default`/`JDNA-sampled`.
-- `G[V1] = ∅` with no permitted default — JDNA rejects rather than invents.
+- `G[V1] = ∅` with no permitted default; JDNA rejects rather than invents.
 
 Geometry is therefore never patched independently inside the TFNE-to-model
 bridge: declared geometry, defaults, distributions, RNG, and resulting

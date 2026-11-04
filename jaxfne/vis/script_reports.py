@@ -1,7 +1,7 @@
 """Rendering helpers for ``scripts/*.py`` (figure/data-build CLIs).
 
 These plain functions take pre-extracted NumPy/JAX-host arrays and return a
-matplotlib ``Figure`` or a Plotly ``Figure`` object — they never write files
+matplotlib ``Figure`` or a Plotly ``Figure`` object; they never write files
 or call ``plt.show``. Scripts stay free of direct ``matplotlib``/``plotly``
 imports, per the package-wide vis-isolation rule (all rendering lives under
 ``jaxfne.vis``).

@@ -1,9 +1,9 @@
 # Integrated TFNE Composition
 
-*Protocol E, 0.4.17-E — integrated TFNE composition. Composition experiment identifier retained in provenance.*
+*Protocol E, 0.4.17-E: integrated TFNE composition. Composition experiment identifier retained in provenance.*
 
-**Status:** **0.4.17-E hard scientific feature freeze** — E1–E5 closed; TFNE integration architecture complete through causal perturbation evidence
-**Milestone boundary:** `9589933` — 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)
+**Status:** **0.4.17-E hard scientific feature freeze**: E1–E5 closed; TFNE integration architecture complete through causal perturbation evidence
+**Milestone boundary:** `9589933`; 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)
 
 **Specs:**  
 - E0: `artifacts/protocol_e_integration/e0_composition_spec.json`  
@@ -211,7 +211,7 @@ E4\equiv E3
 
 **Workflow:** simulate once (E3 path) \(\rightarrow\) freeze \(X,H,Q,\mathcal B,\mathcal G\) \(\rightarrow\) apply multiple \(F/P\). No re-simulation per probe.
 
-**Experiment A inheritance:** reuse canonical relative \(Q\) (`signals.sources_canonical_relative_source`) and validated `project_laminar_sources` / `lfp_proxy_probe` / `csd_proxy_probe` semantics — **no integrated-model source variant**.
+**Experiment A inheritance:** reuse canonical relative \(Q\) (`signals.sources_canonical_relative_source`) and validated `project_laminar_sources` / `lfp_proxy_probe` / `csd_proxy_probe` semantics: **no integrated-model source variant**.
 
 **Primary evidence:** native `V_m`, spikes, first-class `Q`; `lfp_ref` relative proxy; shallow/deep LFP contacts; CSD-from-LFP finite-difference relative proxy.
 
@@ -229,7 +229,7 @@ E4\equiv E3
 
 **Question:** Does a localized RBS perturbation produce a measurable hierarchical response beyond its matched mechanism-null?
 
-**Adds:** prospective causal evidence only — **zero new TFNE architecture**.
+**Adds:** prospective causal evidence only; **zero new TFNE architecture**.
 
 **Owner:** \(\mathcal O_H =\) A2:L5:E (flat indices 70–76); perturbation \(H_K(t_0^+)=1.2\) on owners.
 
@@ -249,7 +249,7 @@ E4\equiv E3
 
 **Primary prediction:** \(D-N_1 \neq 0\) at owner population (required for non-`NO_EFFECT`). Downstream propagation is secondary.
 
-**Classification:** `NO_EFFECT` | `LOCAL_EXPRESSION` | `HIERARCHICAL_PROPAGATION` | `UNRESOLVED` — **HIERARCHICAL_PROPAGATION not required to close E5**.
+**Classification:** `NO_EFFECT` | `LOCAL_EXPRESSION` | `HIERARCHICAL_PROPAGATION` | `UNRESOLVED`: **HIERARCHICAL_PROPAGATION not required to close E5**.
 
 **A1 interpretation:** any A1 effect is structural propagation via frozen **FB** pathway A2\(\rightarrow\)A1; no FF/FB functional or spectral claim is made.
 

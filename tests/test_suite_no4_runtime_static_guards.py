@@ -26,7 +26,7 @@ def test_suite_no4_uses_gampa_w_not_gampa_scalar():
 
 def test_suite_no4_uses_ggaba_w_not_scalar():
     """Verify Suite No. 4 uses gGABA_w matrix parameter."""
-    spec = jtfne.matrix_parameter(mask="E_to_I", bounds=(0.0, 5.0))
+    spec = jtfne.matrix_parameter(mask="I_to_E", bounds=(0.0, 5.0))
     optimizer = jtfne.agsdr(
         parameters={"gGABA_w": spec},
         generations=1,
@@ -54,7 +54,7 @@ def test_suite_no4_accepts_both_gampa_w_and_ggaba_w():
     optimizer = jtfne.agsdr(
         parameters={
             "gAMPA_w": jtfne.matrix_parameter(mask="excitatory_to_all", bounds=(0.0, 3.0)),
-            "gGABA_w": jtfne.matrix_parameter(mask="E_to_I", bounds=(0.0, 5.0)),
+            "gGABA_w": jtfne.matrix_parameter(mask="I_to_E", bounds=(0.0, 5.0)),
         },
         inner_optimizer=optax.adam(learning_rate=1e-2),
         inner_steps=5,

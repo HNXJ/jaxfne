@@ -1,4 +1,4 @@
-"""0.4.17-D D0 — frozen biological RBS specification tests."""
+"""0.4.17-D D0: frozen biological RBS specification tests."""
 
 from __future__ import annotations
 

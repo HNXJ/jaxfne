@@ -25,8 +25,8 @@ class RuntimeConfig:
     """JAX runtime, dtype policy, and emitter control.
 
     Ownership (2026-08-22 W4 scoping): this class is the single canonical owner
-    of execution-policy semantics — backend, dtype, jit/vmap, recurrent/synaptic
-    kernel selection — for the Configuration construction path. The tensor
+    of execution-policy semantics: backend, dtype, jit/vmap, recurrent/synaptic
+    kernel selection, for the Configuration construction path. The tensor
     workflow uses :class:`jaxfne.neuronal_tensor.RuntimeConfiguration`, which
     ``construct(tensor, runtime=...)`` bridges into these same resolved
     semantics; the two types are path-scoped views, not competing policies.
@@ -34,6 +34,11 @@ class RuntimeConfig:
     ``dtype='float64'`` raises (via ``actual_dtype``) unless JAX x64 is enabled
     before array construction.  The manifest always reports both requested
     and actual dtype policy.
+
+    ``dtype='bfloat16'`` is a storage dtype only. Every route integrates its
+    dynamics at ``compute_dtype`` (float32), and its recorded arrays are cast
+    once at the end to ``jnp_dtype`` (bfloat16). The time axis is always
+    float32, because time is not a state variable.
 
     jit selects XLA compilation: True/False force it on/off,
     auto (default) enables it iff n_steps * n_units * batch > 50000.
@@ -67,7 +72,7 @@ class RuntimeConfig:
     """
 
     backend: str = "auto"  # "auto" | "cpu" | "gpu" | "tpu"
-    dtype: str = "float32"  # "float32" | "float64"
+    dtype: str = "float32"  # "float32" | "float64" | "bfloat16" (storage only: dynamics float32)
     # 0.5.1 opt051_1: default auto (jit iff n_steps*n_units*batch > 50000).
     jit: bool | str = "auto"
     vmap: bool | str = False
@@ -99,6 +104,9 @@ class RuntimeConfig:
         "h_state_dim": 1, "h_state_readout": None, "h_state_coupling": None,
     })  # All income/spending/control gains default to 0.0 -- the documented
     # null control (H_i pinned at 1.0, weight term identically zero).
+    # P-052: spike-threshold surrogate gradient; realized on the dense Izhikevich
+    # default-order route only (sigmoid_beta), refused on every other route.
+    surrogate: Optional["SurrogateConfig"] = None
     # v0.0.3 compatibility names; if provided by old caller, they are folded in.
     device_type: Optional[str] = None
     dtype_primary: Optional[str] = None
@@ -149,20 +157,40 @@ class RuntimeConfig:
                 f"precision={self.precision!r} is not consumed by any kernel; "
                 "only 'default' is accepted"
             )
+        if self.surrogate is not None:
+            if not isinstance(self.surrogate, SurrogateConfig):
+                raise TypeError(
+                    f"surrogate must be a SurrogateConfig or None; got {type(self.surrogate).__name__}"
+                )
+            if self.surrogate.method != "sigmoid_beta":
+                raise ValueError(
+                    f"surrogate method {self.surrogate.method!r} is not realized by any kernel; "
+                    "the kernels realize 'sigmoid_beta' (pass surrogate=None for the hard spike)"
+                )
+            if not float(self.surrogate.beta) > 0.0:
+                raise ValueError(
+                    f"surrogate beta must be > 0 (1/mV); got {self.surrogate.beta!r}: 0 gives a zero "
+                    "gradient and a negative beta flips its sign"
+                )
         if self.x64_enabled and not bool(jax.config.read("jax_enable_x64")):
             raise ValueError(
                 "x64_enabled=True does not enable x64; call jaxfne.enable_x64() "
                 "before building arrays and request dtype='float64'"
             )
 
-    def resolve_jit(self, n_steps: int, n_units: int, batch: int = 1) -> bool:
-        """Resolve the effective JIT compilation status based on policy and parameters."""
-        if isinstance(self.jit, bool):
-            return self.jit
+    def _jit_policy(self) -> bool | str:
+        """The requested jit policy: True, False or "auto" (validated in ``__post_init__``)."""
         jit_str = str(self.jit).lower()
         if jit_str == "auto":
-            return (n_steps * n_units * batch) > 50000
+            return "auto"
         return jit_str in {"true", "1"}
+
+    def resolve_jit(self, n_steps: int, n_units: int, batch: int = 1) -> bool:
+        """Resolve the effective JIT compilation status based on policy and parameters."""
+        policy = self._jit_policy()
+        if policy == "auto":
+            return (n_steps * n_units * batch) > 50000
+        return policy
 
     def resolve_vmap(self, batch: int) -> bool:
         """Resolve the effective vmap vectorization status based on policy and batch size."""
@@ -207,11 +235,28 @@ class RuntimeConfig:
             return jnp.bfloat16
         return jnp.float32
 
-    def runtime_report(self) -> dict[str, Any]:
+    @property
+    def compute_dtype(self) -> str:
+        """Dtype the dynamics integrate in: float64 when requested, else float32.
+
+        bfloat16 is storage only, so it integrates in float32. ``actual_dtype``
+        still reports the requested and stored dtype.
+        """
+        return "float64" if self.actual_dtype == "float64" else "float32"
+
+    @property
+    def jnp_compute_dtype(self) -> jnp.dtype:
+        """The jax dtype of :attr:`compute_dtype`."""
+        return jnp.float64 if self.compute_dtype == "float64" else jnp.float32
+
+    def runtime_report(self, effective_jit: Optional[bool] = None) -> dict[str, Any]:
         """Compile a summary of JAX system runtime, backend, and device topology.
 
         Detects requested vs actual execution backends (CPU, GPU, or TPU) and
         validates system properties.
+
+        ``effective_jit`` is the jit decision the kernel used. When it is None,
+        ``jit`` reports the policy if the policy is a bool and None under "auto".
 
         Returns
         -------
@@ -220,6 +265,11 @@ class RuntimeConfig:
         """
         from .io import json_safe
 
+        policy = self._jit_policy()
+        if effective_jit is not None:
+            jit_report: Optional[bool] = bool(effective_jit)
+        else:
+            jit_report = policy if isinstance(policy, bool) else None
         devices = [str(device) for device in jax.devices()]
         default_backend = jax.default_backend()
         requested_backend = self.selected_backend  # alias for selected (user-requested)
@@ -232,7 +282,7 @@ class RuntimeConfig:
         #   otherwise enforced = False with a clean warning (no false claim).
         # v0.3.40: simulate() pins execution to the requested backend device via
         # ``_device_scope`` (jax.default_device) when that device is available, so
-        # a non-"auto" backend is genuinely enforced — not merely reported. The
+        # a non-"auto" backend is genuinely enforced; not merely reported. The
         # report mirrors that: enforced iff the requested backend resolves to an
         # available device. Unavailable devices are an honest downgrade.
         backend_warning: Optional[str] = None
@@ -272,7 +322,8 @@ class RuntimeConfig:
             "requested_dtype": self.requested_dtype,
             "actual_dtype": self.actual_dtype,
             "dtype": self.dtype,
-            "jit": bool(self.jit),
+            "jit": jit_report,
+            "jit_policy": policy,
             "vmap": bool(self.vmap),
             "precision": self.precision,
             "x64_enabled": bool(jax.config.read("jax_enable_x64")),
@@ -284,6 +335,7 @@ class RuntimeConfig:
             "homeostasis_params": dict(self.homeostasis_params) if self.enable_homeostasis else None,
             "enable_hdp": bool(self.enable_hdp),
             "hdp_params": json_safe(dict(self.hdp_params)) if self.enable_hdp else None,
+            "surrogate": self.surrogate.to_dict() if self.surrogate is not None else None,
             # Compatibility keys from v0.0.3.
             "device_type": self.selected_backend,
             "dtype_primary": self.actual_dtype,
@@ -295,7 +347,7 @@ def _resolve_backend_device(backend: Optional[str]):
 
     ``None``/``"auto"`` returns ``None`` (let JAX keep its default device).
     ``"cpu"``/``"gpu"``/``"tpu"`` return that backend's first device when it
-    exists, else ``None`` — an honest fallback that never crashes and never
+    exists, else ``None``; an honest fallback that never crashes and never
     falsely claims placement on an absent device.
     """
     if not backend or backend == "auto":
@@ -352,12 +404,13 @@ def _jaxlib_version() -> str:
 
 @dataclass(frozen=True)
 class SurrogateConfig:
-    """Declared surrogate-gradient metadata for discontinuous emitter paths.
+    """Surrogate gradient for the spike threshold of discontinuous emitter paths.
 
-    The current implementation records the declaration only; it does not alter
-    the Izhikevich reset dynamics.  Optax paths may reference this object to
-    distinguish explicit surrogate intent from accidental differentiation
-    through hard spike resets.
+    ``RuntimeConfig(surrogate=SurrogateConfig(method="sigmoid_beta", beta=...))``
+    realizes ``sigmoid_beta`` on the dense Izhikevich default-order route
+    (:func:`jaxfne.emitters.spike_sigmoid_beta`, ``beta`` in 1/mV): forward
+    outputs are unchanged and the reset stays detached. ``straight_through``
+    remains a declaration only and ``RuntimeConfig`` refuses it.
     """
 
     method: str = "none"  # "none" | "straight_through" | "sigmoid_beta"

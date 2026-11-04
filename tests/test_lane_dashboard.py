@@ -136,6 +136,12 @@ def test_parsing_edge_cases(repo):
     D, root = repo
     labels = [a for a, _ in D.stack_items()]
     assert "todo Order" not in labels and "todo 7" in labels
+    (root / "artifacts" / "todo_stack.md").write_text(
+        "# todo\n\n1. T-67 [A] Record demo2001.\n2. T-O70 [A] B8 pilots.\n13. ∥ T-63 [A] beside.\n"
+        "   continued demo2001.\n21. [H] T-O73 owner.\n", encoding="utf-8")
+    numbered = [a for a, _ in D.stack_items()]
+    assert numbered[:4] == ["T-67", "T-O70", "T-63", "T-O73"], numbered
+    assert dict(D.stack_items())["T-63"].endswith("continued demo2001."), "a step keeps its continuation lines"
     lane = root / "artifacts" / "etudes" / "papers" / "fence"
     lane.mkdir()
     (lane / "README.md").write_text("# Fence\n\n```python\nx = 1\n```\n\n* a list\n\nSee e.g. Fig. 3 vs. Eq. 2 here. "

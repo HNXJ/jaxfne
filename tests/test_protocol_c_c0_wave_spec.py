@@ -1,4 +1,4 @@
-"""0.4.17-C C0 — frozen wave protocol specification tests."""
+"""0.4.17-C C0: frozen wave protocol specification tests."""
 
 from __future__ import annotations
 

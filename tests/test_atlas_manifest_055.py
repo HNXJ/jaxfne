@@ -11,7 +11,7 @@ import artifacts.atlas.at07_at04_053 as A053
 import artifacts.atlas.at_manifest as M
 
 # Cost keys written by the AT-02 runner: top-level "wall_s"
-# (at01_at06_052.py:569), per-arm "wall_s" (:539) and "mem_peak_b" (via
+# (artifacts/atlas/at01_at06_052.py:569), per-arm "wall_s" (:539) and "mem_peak_b" (via
 # _retained, :497-502). Wall time and peak bytes vary run to run; everything
 # else must reproduce exactly at fixed seeds.
 _COST_KEYS = ("wall_s", "mem_peak_b")

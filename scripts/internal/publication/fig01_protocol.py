@@ -1,4 +1,4 @@
-"""Figure 1 grammar generation protocol — load, validate, audit."""
+"""Figure 1 grammar generation protocol: load, validate, audit."""
 
 from __future__ import annotations
 

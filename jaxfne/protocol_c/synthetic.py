@@ -50,7 +50,7 @@ def synchronous_oscillation(
     amplitude: float = 1.0,
     phi0: float = 0.0,
 ) -> np.ndarray:
-    """Phi_i(t) = A cos(omega t + phi0) — zero spatial gradient."""
+    """Phi_i(t) = A cos(omega t + phi0); zero spatial gradient."""
     t = np.asarray(time_s, dtype=np.float64)
     omega = 2.0 * np.pi * float(frequency_hz)
     val = float(amplitude) * np.cos(omega * t + float(phi0))

@@ -195,7 +195,6 @@ def test_plotly_guide_has_code_examples():
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Check for code blocks
     code_blocks = content.count("```python")
     assert code_blocks >= 3, f"Expected at least 3 code blocks, found {code_blocks}"
 
@@ -237,7 +236,6 @@ def test_visual_outputs_skill_has_code_examples():
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Check for plot functions
     functions = ["plot_spike_raster", "plot_voltage_traces", "plot_lfp_heatmap", "plot_csd_heatmap"]
     for func in functions:
         assert func in content, f"Missing code example {func}"
@@ -351,7 +349,6 @@ def test_operator_terminology_uses_proxy():
             with open(doc, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            # Check for canonical names
             required_terms = ["lfp_proxy", "csd_proxy", "eeg_proxy", "meg_proxy"]
             for term in required_terms:
                 assert term in content, f"Required term '{term}' not found in {doc}"

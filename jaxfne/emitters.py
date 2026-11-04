@@ -1,6 +1,6 @@
 """Emitter kernels for :mod:`jaxfne`.
 
-Docs: ``docs/reference/api/model/emitters.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/model/emitters/) —
+Docs: ``docs/reference/api/model/emitters.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/model/emitters/):
 update that page when this module's public API changes.
 
 The current implementation is a small E/I/G-like Izhikevich scaffold.  It is a
@@ -113,7 +113,7 @@ def _noise_coef(
 # Canonical Izhikevich cell-type parameter defaults.
 # Single source of truth for E/PV-like/SST-like/VIP-like reduced-model parameters.
 # Labels "E", "PV", "SST", "VIP" denote reduced emitter classes (E-like, PV-like,
-# SST-like, VIP-like) — phenomenological Izhikevich presets that do not warrant
+# SST-like, VIP-like): phenomenological Izhikevich presets that do not warrant
 # literal transcriptomic/morphological identity.
 IZHIKEVICH_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
     "E": {"a": 0.02, "b": 0.20, "c": -65.0, "d": 8.0, "drive": 5.0, "sign": CELL_TYPE_SIGN["E"]},
@@ -121,14 +121,32 @@ IZHIKEVICH_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
     "Inl": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["Inl"]},
     "SST": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "sign": CELL_TYPE_SIGN["SST"]},
     "Ing": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "sign": CELL_TYPE_SIGN["Ing"]},
-    "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["VIP"]},
+    # VIP and I: Izhikevich 2004 class-1 excitable (figure1.m panel G), with that panel's
+    # v equation 0.04 v^2 + 4.1 v + 108 (rheobase 2.25; P-054, Hamm 2026-11-02).
+    "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["VIP"],
+            "v_lin": 4.1, "v_const": 108.0},
     # "I" (generic Inhibitory) is a widely-used two-population E/I shorthand
     # across examples/, scripts/evidence_figures/, and tests/ -- explicit alias
     # to VIP's parameters (2026-07-13: this matches the exact values every
     # real "I" caller was already getting via a since-removed silent VIP
     # fallback in _get_cell_type_params; made explicit, not changed).
-    "I": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["I"]},
+    "I": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": CELL_TYPE_SIGN["I"],
+          "v_lin": 4.1, "v_const": 108.0},
 }
+# The standard v equation 0.04 v^2 + 5 v + 140 (Izhikevich 2003); a preset without
+# v_lin/v_const uses it.
+IZH_V_LIN_STANDARD = 5.0
+IZH_V_CONST_STANDARD = 140.0
+
+
+def _v_coef_lists(labels) -> "tuple[list[float], list[float]] | tuple[None, None]":
+    """Per-cell (v_lin, v_const) from the presets; (None, None) when every cell is standard."""
+    rows = [_get_cell_type_params(name) for name in labels]
+    lin = [float(p.get("v_lin", IZH_V_LIN_STANDARD)) for p in rows]
+    const = [float(p.get("v_const", IZH_V_CONST_STANDARD)) for p in rows]
+    if all(x == IZH_V_LIN_STANDARD for x in lin) and all(x == IZH_V_CONST_STANDARD for x in const):
+        return None, None
+    return lin, const
 
 
 def _get_cell_type_params(name: str) -> dict[str, float]:
@@ -188,8 +206,10 @@ class IzhikevichParams:
 
     Fields:
     - labels: tuple of reduced-class labels (E-like, PV-like, SST-like,
-      VIP-like — stored as "E", "PV", "SST", "VIP"; no literal identity claim)
+      VIP-like: stored as "E", "PV", "SST", "VIP"; no literal identity claim)
     - layer_labels: optional tuple of layer names (L1, L2/3, L4, L5, L6, etc)
+    - v_lin, v_const: per-cell linear and constant coefficients of the v equation
+      0.04 v^2 + v_lin v + v_const; None means the standard 5 and 140 for every cell
     """
 
     a: jax.Array
@@ -205,6 +225,8 @@ class IzhikevichParams:
     labels: tuple[str, ...]
     layer_labels: tuple[str, ...] | None = None
     source_calibration_status: str = "uncalibrated_izhikevich_native_current"
+    v_lin: jax.Array | None = None
+    v_const: jax.Array | None = None
 
     @property
     def n_neurons(self) -> int:
@@ -224,6 +246,8 @@ def _izhikevich_params_flatten(params):
         params.v0,
         params.u0,
         params.source_scale,
+        params.v_lin,
+        params.v_const,
     )
     aux_data = {
         "labels": params.labels,
@@ -248,6 +272,8 @@ def _izhikevich_params_unflatten(aux_data, children):
         labels=aux_data["labels"],
         layer_labels=aux_data["layer_labels"],
         source_calibration_status=aux_data["source_calibration_status"],
+        v_lin=children[10],
+        v_const=children[11],
     )
 
 
@@ -266,20 +292,50 @@ def _segment_sum(data, segment_ids, num_segments):
     return jax.ops.segment_sum(data, segment_ids, num_segments=num_segments)
 
 
-def _izhikevich_dv_du(v, u, current_native, a, b, h_k=1.0):
+def _v_coefs(params: IzhikevichParams, dtype: Any) -> tuple[Any, Any]:
+    """The v-equation (v_lin, v_const) of ``params`` cast to ``dtype``; the standard floats when None."""
+    if params.v_lin is None and params.v_const is None:
+        return IZH_V_LIN_STANDARD, IZH_V_CONST_STANDARD
+    if params.v_lin is None or params.v_const is None:
+        raise ValueError("IzhikevichParams: v_lin and v_const must both be set or both be None")
+    return params.v_lin.astype(dtype), params.v_const.astype(dtype)
+
+
+def _izhikevich_dv_du(v, u, current_native, a, b, h_k=1.0, vq=(IZH_V_LIN_STANDARD, IZH_V_CONST_STANDARD)):
     """Izhikevich (2003) fast-subsystem derivatives -- shared by every scan-body
     closure in this module (F-028: was duplicated verbatim 11 times).
 
     ``h_k=1.0`` recovers the classical drive; Protocol D1 uses ``h_k = H_K``.
+    ``vq`` is (v_lin, v_const) from :func:`_v_coefs` (P-054: class-1 cells use 4.1 and 108).
     """
-    dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
+    v_lin, v_const = vq
+    dv = 0.04 * v * v + v_lin * v + v_const - u + current_native
     du = a * (h_k * b * v - u)
     return dv, du
 
 
-def _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, h_k):
-    """Protocol D1 — static recovery drive ``du = a * (H_K * b * v - u)``."""
-    return _izhikevich_dv_du(v, u, current_native, a, b, h_k)
+@jax.custom_jvp
+def spike_sigmoid_beta(x, beta):
+    """Heaviside spike ``x >= 0`` whose derivative is the sigmoid slope ``beta s (1 - s)``, ``s = sigmoid(beta x)``.
+
+    ``x`` is the distance to threshold in mV and ``beta`` is in 1/mV. The forward value is the hard spike
+    exactly; only the tangent is replaced (P-052).
+    """
+    return (x >= 0.0).astype(x.dtype)
+
+
+@spike_sigmoid_beta.defjvp
+def _spike_sigmoid_beta_jvp(primals, tangents):
+    x, beta = primals
+    x_dot, _ = tangents
+    s = jax.nn.sigmoid(beta * x)
+    return spike_sigmoid_beta(x, beta), beta * s * (1.0 - s) * x_dot
+
+
+def _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, h_k,
+                                   vq=(IZH_V_LIN_STANDARD, IZH_V_CONST_STANDARD)):
+    """Protocol D1: static recovery drive ``du = a * (H_K * b * v - u)``."""
+    return _izhikevich_dv_du(v, u, current_native, a, b, h_k, vq)
 
 
 @dataclass(frozen=True)
@@ -349,7 +405,7 @@ def izhikevich_eig_params(
     dtype: str = "float32",
 ) -> IzhikevichParams:
     """Create E/PV-like/SST-like/VIP-like Izhikevich parameters (reduced
-    emitter classes — does not warrant literal PV/SST/VIP identity).
+    emitter classes; does not warrant literal PV/SST/VIP identity).
 
     Labels (stored without suffix; described with "-like" when claiming dynamics):
     - ``E``: E-like regular-spiking excitatory emitter.
@@ -389,7 +445,40 @@ def izhikevich_eig_params(
         u0=jnp.asarray(b, dtype=jdtype) * jnp.asarray(-65.0, dtype=jdtype),
         source_scale=jnp.asarray(1.0, dtype=jdtype),
         labels=labels,
+        **_v_coef_fields(labels, jdtype),
     )
+
+
+def refresh_v_coefs(params: "IzhikevichParams") -> "IzhikevichParams":
+    """Re-derive ``v_lin``/``v_const`` from the labels and the realized a, b, c, d.
+
+    A preset's own v equation (the class-1 4.1 and 108 of ``VIP``/``I``) belongs to its a, b, c, d
+    (figure1.m panel G); a cell whose a, b, c or d were set to other values (``cell_params``,
+    ``with_emitter_parameters``) integrates the standard 5 and 140. Needs concrete arrays.
+    """
+    lin, const = _v_coef_lists(params.labels)
+    if lin is None:
+        return dataclass_replace(params, v_lin=None, v_const=None)
+    realized = {k: np.asarray(getattr(params, k)) for k in ("a", "b", "c", "d")}
+    lin, const = np.asarray(lin), np.asarray(const)
+    for i, name in enumerate(params.labels):
+        p = _get_cell_type_params(name)
+        if "v_lin" not in p:
+            continue
+        if any(realized[k][i] != np.asarray(p[k], dtype=realized[k].dtype) for k in realized):
+            lin[i], const[i] = IZH_V_LIN_STANDARD, IZH_V_CONST_STANDARD
+    if np.all(lin == IZH_V_LIN_STANDARD) and np.all(const == IZH_V_CONST_STANDARD):
+        return dataclass_replace(params, v_lin=None, v_const=None)
+    dt = params.a.dtype
+    return dataclass_replace(params, v_lin=jnp.asarray(lin, dtype=dt), v_const=jnp.asarray(const, dtype=dt))
+
+
+def _v_coef_fields(labels, jdtype) -> dict:
+    """``v_lin``/``v_const`` keyword arrays for a labelled population (empty when all standard)."""
+    lin, const = _v_coef_lists(labels)
+    if lin is None:
+        return {}
+    return {"v_lin": jnp.asarray(lin, dtype=jdtype), "v_const": jnp.asarray(const, dtype=jdtype)}
 
 
 def izhikevich_params_from_labels(
@@ -467,6 +556,7 @@ def izhikevich_params_from_labels(
         labels=label_tuple,
         layer_labels=tuple(str(x) for x in layer_labels) if layer_labels is not None else None,
         source_calibration_status="uncalibrated_izhikevich_native_current",
+        **_v_coef_fields(label_tuple, jdtype),
     )
 
 
@@ -516,14 +606,15 @@ def simulate_eig_izhikevich(
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
     update_order: str = "default",
+    surrogate_beta: float | None = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array]:
     """Simulate a reduced EIG Izhikevich scaffold using ``jax.lax.scan``.
 
     Cell model: Izhikevich (2003), Eqs. 1-3, doi:10.1109/TNN.2003.820440, one
     forward-Euler step of ``dt_ms`` for ``v`` and ``u`` with the spike test after it.
 
-    Synaptic semantics: the dense backend couples ``weights @ prev_spikes``
-    — an instantaneous one-step spike-jump current with no synaptic time
+    Synaptic semantics: the dense backend couples ``weights @ prev_spikes``:
+    an instantaneous one-step spike-jump current with no synaptic time
     constant. This is a distinct supported synaptic model, NOT a
     trajectory-equivalent representation of the edge-list backend, whose
     synapses are receptor-filtered exponentials with per-edge ``tau_ms``
@@ -552,6 +643,12 @@ def simulate_eig_izhikevich(
     that step's fired cells, matching ``kernel_net_m.simulate_net_m`` row for
     row. ``silence_mask`` applies with the same pin-to-c pattern as the
     default path (an all-ones mask is an exact no-op).
+
+    ``surrogate_beta`` (1/mV, default order only) emits the spikes through
+    :func:`spike_sigmoid_beta` on ``v_next - 30``: every output is unchanged,
+    and the gradient reaches presynaptic neurons through ``W @ spikes``. The
+    reset stays detached (it reads the hard spike). ``None`` keeps the hard
+    spike, whose gradient is zero.
     """
 
     if update_order not in IZHIKEVICH_UPDATE_ORDERS:
@@ -559,10 +656,15 @@ def simulate_eig_izhikevich(
             f"update_order must be one of {list(IZHIKEVICH_UPDATE_ORDERS)}; "
             f"got {update_order!r}"
         )
+    if surrogate_beta is not None and update_order != "default":
+        raise ValueError(
+            f"surrogate_beta is realized in update_order='default' only; got {update_order!r}"
+        )
 
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -594,8 +696,9 @@ def simulate_eig_izhikevich(
             v_r = jnp.where(fired, c, v)
             u_r = jnp.where(fired, u + d, u)
             cur = sched_t + drive + jnp.matmul(weights, fired.astype(jdtype))
-            v1 = v_r + 0.5 * (0.04 * v_r * v_r + 5.0 * v_r + 140.0 - u_r + cur)
-            v2 = v1 + 0.5 * (0.04 * v1 * v1 + 5.0 * v1 + 140.0 - u_r + cur)
+            v_lin, v_const = vq
+            v1 = v_r + 0.5 * (0.04 * v_r * v_r + v_lin * v_r + v_const - u_r + cur)
+            v2 = v1 + 0.5 * (0.04 * v1 * v1 + v_lin * v1 + v_const - u_r + cur)
             u_next = u_r + a * (b * v2 - u_r)
             spikes = fired.astype(jdtype)
             source_proxy = _source_proxy_from_components(
@@ -644,14 +747,21 @@ def simulate_eig_izhikevich(
         v, u, prev_spikes = carry
         syn = weights @ prev_spikes
         current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
 
         # Apply silence_mask
         v_next = jnp.where(s_mask > 0.5, v_next, c)
         spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
-        spikes = spikes_bool.astype(jdtype)
+        if surrogate_beta is None:
+            spikes = spikes_bool.astype(jdtype)
+        else:
+            spikes = jnp.where(
+                s_mask > 0.5,
+                spike_sigmoid_beta(v_next - 30.0, jnp.asarray(surrogate_beta, dtype=jdtype)),
+                jnp.zeros_like(v_next),
+            )
 
         v_reset = jnp.where(spikes_bool, c, v_next)
         u_reset = jnp.where(spikes_bool, u_next + d, u_next)
@@ -950,6 +1060,13 @@ def sign_only_tau_inh_ms() -> float:
 def resolve_receptor_index(edges: EdgeList) -> jax.Array:
     """Return per-edge receptor indices as int32 regardless of storage width."""
     return edges.receptor_index.astype(jnp.int32)
+
+
+# Name of the mechanism whose ``tau_ms`` is the tau -> 0 limit (P-051, ruled 2026-10-28).
+# Its edge current at step t is the weighted sum of presynaptic spikes at t-1, with no
+# carry-over: the dense backend's ``weights @ prev_spikes``. It is the only mechanism
+# that may declare ``tau_ms = 0``.
+INSTANTANEOUS_MECHANISM = "instantaneous"
 
 
 def resolve_edge_tau_ms(edges: EdgeList, jdtype: Any) -> jax.Array:
@@ -1253,6 +1370,7 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -1350,7 +1468,7 @@ def _simulate_edge_recurrent_izhikevich_delayed(
             current_native = drive + sched_t + syn + noise_coef * noise_t
         else:
             current_native = drive + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -1422,7 +1540,12 @@ def simulate_edge_recurrent_izhikevich(
     Synaptic semantics: each edge carries a receptor-filtered exponential
     synaptic state (``tau_ms`` per edge); this is a distinct supported
     synaptic model and is NOT trajectory-equivalent to the dense backend's
-    instantaneous ``weights @ prev_spikes`` coupling.
+    instantaneous ``weights @ prev_spikes`` coupling. The mechanism named
+    ``instantaneous`` (``tau_ms`` 0, the tau -> 0 limit) is the exception: its
+    current at step t is the weighted sum of presynaptic spikes at t-1, as on the
+    dense backend. Its zero tau is floored at 1e-6 ms like every edge tau, so the
+    decay underflows to exactly 0 at ``dt_ms`` of 1e-3 ms or more in float32 and
+    float64.
 
     The implementation uses ``jax.lax.scan`` over time and
     ``jax.ops.segment_sum`` over edges. It is JIT/vmap compatible and preserves
@@ -1472,6 +1595,7 @@ def simulate_edge_recurrent_izhikevich(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -1538,7 +1662,7 @@ def simulate_edge_recurrent_izhikevich(
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
             current_native = drive + sched_t + syn + noise_coef * noise_t
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
 
@@ -1574,7 +1698,7 @@ def simulate_edge_recurrent_izhikevich(
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
             current_native = drive + sched_t + syn + noise_coef * noise_t
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
 
@@ -1622,7 +1746,7 @@ def simulate_edge_recurrent_izhikevich_static_h_k_recovery(
     noise_scale: "jax.Array | float | None" = None,
     init_state: "dict | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
-    """Protocol D1 — static ``H_K`` on Izhikevich recovery drive (``dot W=0``).
+    """Protocol D1: static ``H_K`` on Izhikevich recovery drive (``dot W=0``).
 
     Typed map (frozen D1):
 
@@ -1631,7 +1755,7 @@ def simulate_edge_recurrent_izhikevich_static_h_k_recovery(
     ``H_K`` is constant per neuron for the full run (``dH_K/dt = 0``). When
     ``H_K \\equiv 1``, this reduces to the classical
     :func:`simulate_edge_recurrent_izhikevich` zero-delay kernel (bit-exact target
-    with ``noise_scale`` matched). Nonzero edge delays are rejected — use the
+    with ``noise_scale`` matched). Nonzero edge delays are rejected; use the
     classical delay kernel without RBS for delay studies.
     ``noise_scale`` is defined at the reference step 0.5 ms (``DT_REF_MS``); the
     realized coefficient is scaled by ``sqrt(0.5 / dt_ms)``.
@@ -1656,6 +1780,7 @@ def simulate_edge_recurrent_izhikevich_static_h_k_recovery(
 
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -1705,7 +1830,7 @@ def simulate_edge_recurrent_izhikevich_static_h_k_recovery(
         edge_current = weight * syn_state
         syn = _segment_sum(edge_current, post, n_neurons)
         current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, h_k_arr)
+        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, h_k_arr, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -1742,7 +1867,7 @@ def _advance_h_k_f1_autonomous(
     dt: jax.Array,
     tau_k_ms: jax.Array,
 ) -> jax.Array:
-    """Protocol D2a — ``tau_K * dH_K/dt = 1 - H_K`` with ``kappa_K = 0`` (Euler)."""
+    """Protocol D2a: ``tau_K * dH_K/dt = 1 - H_K`` with ``kappa_K = 0`` (Euler)."""
     return H + dt * (1.0 - H) / tau_k_ms
 
 
@@ -1761,7 +1886,7 @@ def simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery(
     noise_scale: "jax.Array | float | None" = None,
     init_state: "dict | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
-    """Protocol D2a — autonomous F1 ``H_K`` relaxation on D1 recovery map.
+    """Protocol D2a: autonomous F1 ``H_K`` relaxation on D1 recovery map.
 
     Dynamics (frozen D2a):
 
@@ -1796,6 +1921,7 @@ def simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery(
 
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -1850,7 +1976,7 @@ def simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery(
         edge_current = weight * syn_state
         syn = _segment_sum(edge_current, post, n_neurons)
         current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H)
+        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -1908,7 +2034,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
     init_state: "dict | None" = None,
     step_indices: "jax.Array | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
-    """Protocol E3 — owned D1/D2a ``H_K`` on delayed edge-recurrent Izhikevich.
+    """Protocol E3: owned D1/D2a ``H_K`` on delayed edge-recurrent Izhikevich.
 
     Coupling (frozen D1): ``du = a * (H_K * b * v - u)`` on all neurons; non-owners
     keep ``H_K \\equiv 1`` so ``b_eff = b``.
@@ -1944,6 +2070,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
 
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -2034,7 +2161,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
         edge_current = weight * syn_state
         syn = _segment_sum(edge_current, post, n_neurons)
         current_native = drive + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, _coupling_h(H))
+        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, _coupling_h(H), vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -2066,7 +2193,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
             current_native = drive + sched_t + syn + noise_coef * noise_t
-            dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, _coupling_h(H))
+            dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, _coupling_h(H), vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -2126,7 +2253,7 @@ def _advance_h_a_trace(
     dt: jax.Array,
     tau_a_ms: jax.Array,
 ) -> jax.Array:
-    """Protocol D2b — ``tau_A * dH_A/dt = -H_A + S`` with ``S in {0, 1}`` (Euler)."""
+    """Protocol D2b: ``tau_A * dH_A/dt = -H_A + S`` with ``S in {0, 1}`` (Euler)."""
     return H_A + dt * (-H_A + S) / tau_a_ms
 
 
@@ -2137,7 +2264,7 @@ def _advance_h_k_activity_coupled(
     tau_k_ms: jax.Array,
     kappa_ak: jax.Array,
 ) -> jax.Array:
-    """Protocol D2b — uses **old** ``H_A^n`` in the ``H_K`` update (causal one-step lag)."""
+    """Protocol D2b: uses **old** ``H_A^n`` in the ``H_K`` update (causal one-step lag)."""
     return H_K + dt * ((1.0 - H_K) + kappa_ak * H_A_old) / tau_k_ms
 
 
@@ -2159,11 +2286,11 @@ def simulate_edge_recurrent_izhikevich_activity_h_k_rbd(
     noise_scale: "jax.Array | float | None" = None,
     init_state: "dict | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
-    """Protocol D2b — two-coordinate RBS ``[H_A, H_K]`` with node-local spike drive.
+    """Protocol D2b: two-coordinate RBS ``[H_A, H_K]`` with node-local spike drive.
 
     Frozen discrete updates (causal ordering):
 
-    ``S^n`` — binary per-neuron spike indicator in ``{0, 1}`` (timestep-independent
+    ``S^n``: binary per-neuron spike indicator in ``{0, 1}`` (timestep-independent
     unit event; not scaled by ``dt``).
 
     ``H_A^{n+1} = H_A^n + dt/tau_A * (-H_A^n + S^n)``
@@ -2207,6 +2334,7 @@ def simulate_edge_recurrent_izhikevich_activity_h_k_rbd(
 
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -2270,7 +2398,7 @@ def simulate_edge_recurrent_izhikevich_activity_h_k_rbd(
         edge_current = weight * syn_state
         syn = _segment_sum(edge_current, post, n_neurons)
         current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H_K)
+        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H_K, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -2363,20 +2491,27 @@ def _rbd_advance_h(
     return H_next
 
 
-def _rbd_recurrent_gain_affine(
+def rbd_recurrent_gain(
     family: str,
     H: jax.Array,
     beta_h: jax.Array,
     *,
     jdtype: jnp.dtype,
 ) -> jax.Array:
-    """Postsynaptic recurrent gain ``G_H(H;beta_H)=1+beta_H(H-1)`` (Protocol H1c-C)."""
+    """Typed coupling map ``G_H(H;beta_H)=1+beta_H(H-1)`` on the recurrent current (Protocol H1c-C).
+
+    Neutral cases return 1 exactly: RBD family ``"f0"``, or ``beta_h == 0``, so the
+    composed drive reduces to the H-free model. A non-positive gain returns NaN.
+    """
     one = jnp.ones_like(H, dtype=jdtype)
     if family == "f0":
         return one
     g = 1.0 + beta_h * (H - 1.0)
     g = jnp.where(beta_h == 0.0, one, g)
     return jnp.where(g > 0, g, jnp.nan)
+
+
+_rbd_recurrent_gain_affine = rbd_recurrent_gain
 
 
 def _rbd_compose_native_current(
@@ -2390,7 +2525,7 @@ def _rbd_compose_native_current(
     jdtype: jnp.dtype,
 ) -> jax.Array:
     """``I_drive = I_ext + G_H(H) * I_rec + noise``; ``F_H`` uses pre-gain ``I_rec``."""
-    g_h = _rbd_recurrent_gain_affine(family, H, beta_h, jdtype=jdtype)
+    g_h = rbd_recurrent_gain(family, H, beta_h, jdtype=jdtype)
     return I_ext + g_h * I_rec + noise
 
 
@@ -2516,7 +2651,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
     i_ref: float = 1.0,
     beta_h: float = 0.0,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
-    """Protocol H1 — RBD with fixed weights (``d_H=1``, ``dot W=0``).
+    """Protocol H1: RBD with fixed weights (``d_H=1``, ``dot W=0``).
 
     Couples the standard edge-recurrent Izhikevich kernel (including Protocol D
     finite delays when ``delay_steps > 0``) to scalar per-neuron RBS ``H_i``.
@@ -2531,9 +2666,9 @@ def simulate_edge_recurrent_izhikevich_rbd(
 
     ``F_H`` families:
 
-    * **F0** — RBS disabled: ``H_i \\equiv 1``
-    * **F1** — ``tau_H * dH_i/dt = (1 - H_i) + kappa_H * I_i^rel``
-    * **F2** — ``tau_H * dH_i/dt = (1/H_i - 1) + kappa_H * I_i^rel`` (requires ``H>0``)
+    * **F0**: RBS disabled: ``H_i \\equiv 1``
+    * **F1**: ``tau_H * dH_i/dt = (1 - H_i) + kappa_H * I_i^rel``
+    * **F2**: ``tau_H * dH_i/dt = (1/H_i - 1) + kappa_H * I_i^rel`` (requires ``H>0``)
 
     ``I_i^rel = I_i^rec / i_ref`` uses pre-gain recurrent input. Nonpositive
     ``G_H`` propagates non-finite activity (no clip).
@@ -2556,6 +2691,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -2649,7 +2785,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
                 noise_coef * noise_t,
                 jdtype=jdtype,
             )
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -2693,7 +2829,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
                     noise_coef * noise_t,
                     jdtype=jdtype,
                 )
-                dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+                dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
                 v_next = v + dt * dv
                 u_next = u + dt * du
                 v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -2790,7 +2926,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
             noise_coef * noise_t,
             jdtype=jdtype,
         )
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -2864,7 +3000,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     # Hard state bounds (numerical-stability safety net; set far outside normal
     # Izhikevich dynamics so they never alter physiological behaviour, only catch
     # overflow/underflow). With these, every step stays finite in float32 for any
-    # finite — or even +/-inf — input current. v upper is already caught by the
+    # finite, or even +/-inf, input current. v upper is already caught by the
     # spike reset; these guarantee the lower/recovery/synaptic state too.
     v_floor: float = -150.0,
     v_ceiling: float = 100.0,
@@ -2890,7 +3026,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
         r_star: target activity trace (default 0.05, ~expected spikes/step)
         tau_r_ms: slow leak timescale in ms (default 300, >> dt for stability)
         alpha: per-spike jump in r_i (default 1.0)
-        k_gain: homeostatic restoring gain (0 = disabled, default 1.0 — a gentle
+        k_gain: homeostatic restoring gain (0 = disabled, default 1.0; a gentle
             nudge that keeps rates in-band and synchrony low). This is a one-sided
             damper, not a bidirectional rate-setpoint controller: it can suppress
             firing below baseline but cannot reliably drive it above baseline
@@ -2914,6 +3050,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -3028,7 +3165,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             syn = _segment_sum(edge_current, post, n_neurons)
             g = jnp.clip(k_gain_arr * (r_star_arr - r), g_min_arr, g_max_arr)
             current_native = drive + sched_t + syn + noise_coef * noise_t + g
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -3082,7 +3219,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             current_native = drive + sched_t + syn + noise_coef * noise_t + g
 
             # Izhikevich dynamics
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
 
@@ -3606,6 +3743,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -3983,7 +4121,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
             dH, d_theta = population_restoring_derivatives(H_pop, e_vec, pop_layout, dtype=jdtype)
             H_next = H_pop + dt_s * dH
             theta_next = jnp.clip(theta_S + dt_s * d_theta, theta_lo, theta_hi)
-            dv, du = _izhikevich_dv_du(v, u, current_native, a_eff, b)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a_eff, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -4027,7 +4165,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
             current_total = current_native + I_H
 
             # (3) Integrate neuron (Izhikevich)
-            dv, du = _izhikevich_dv_du(v, u, current_total, a, b)
+            dv, du = _izhikevich_dv_du(v, u, current_total, a, b, vq=vq)
             v_next = v + dt * dv
             u_next = u + dt * du
             v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -4212,7 +4350,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
             w_next = w
 
         # (4) Integrate the neuron (Izhikevich) and detect spikes.
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -4522,6 +4660,7 @@ def simulate_receptor_exponential_izhikevich(
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
+    noise_scale: "jax.Array | float | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """v0.0.11 receptor-indexed exponential recurrent kernel.
 
@@ -4541,7 +4680,11 @@ def simulate_receptor_exponential_izhikevich(
 
     When ``drive_schedule`` is None the existing scan path is preserved exactly.
     When provided, it must have shape ``(n_steps, n_neurons)`` and is added as
-    native uncalibrated current at each timestep.
+    native uncalibrated current at each timestep. ``noise_scale`` sets the
+    stochastic-current coefficient: ``None`` keeps the historical 0.5 scalar; a
+    scalar or ``(n_neurons,)`` array gives per-neuron control of internal noise.
+    It is defined at the reference step 0.5 ms (``DT_REF_MS``); the realized
+    coefficient is scaled by ``sqrt(0.5 / dt_ms)``.
 
     Delay contract: this kernel has no finite-delay path; ``edges.delay_steps``
     must be all zero (negative values are rejected outright). Nonzero delays
@@ -4559,12 +4702,13 @@ def simulate_receptor_exponential_izhikevich(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
-    noise_coef = _noise_coef(0.5, dt_ms, jdtype)
+    noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = _resolved_edge_weight(edges, jdtype, params)
@@ -4605,7 +4749,7 @@ def simulate_receptor_exponential_izhikevich(
         edge_drive = weight * syn_state
         syn = _segment_sum(edge_drive, post, n_neurons)
         current_native = drive + sched_t + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
 
@@ -4674,6 +4818,7 @@ def simulate_dynamic_ei_coupling(
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
+    vq = _v_coefs(params, jdtype)
     c = params.c.astype(jdtype)
     d = params.d.astype(jdtype)
     drive = params.drive.astype(jdtype)
@@ -4718,7 +4863,7 @@ def simulate_dynamic_ei_coupling(
         syn_currents = jnp.asarray([syn_current_ie, syn_current_ei], dtype=jdtype)
 
         current_native = drive + syn_currents + noise
-        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b, vq=vq)
         v_next = v + dt * dv
         u_next = u + dt * du
         spikes_bool = v_next >= 30.0
@@ -4775,11 +4920,13 @@ def simulate_multi_area_izhikevich(
     positions_m : jax.Array
         Neuron positions [N, 3].
     W : jax.Array
-        Connectivity matrix [N, N].
+        Connectivity matrix [N, N]. The kernel receives ``0.1 * W`` (a fixed
+        gain for emitter compatibility, not a parameter).
     source_tensor : jax.Array, optional
         Driving source tensor [T, N]. If provided, used as drive_schedule.
     control_params : Mapping[str, float], optional
-        Control parameters including noise_scale (default 1.0).
+        ``drive_scale`` multiplies the drive (default 1.0); ``noise_scale`` is the
+        stochastic-current coefficient (undeclared: the kernel's 0.5).
     cfg : Any, optional
         Configuration object (used for metadata only).
     n_steps : int, optional
@@ -4802,7 +4949,7 @@ def simulate_multi_area_izhikevich(
     import jax.numpy as jnp
 
     if control_params is None:
-        control_params = {"noise_scale": 1.0}
+        control_params = {}
 
     n = len(neurons_df.get("area", [""]))
     if n == 0:
@@ -4847,6 +4994,8 @@ def simulate_multi_area_izhikevich(
         source_scale=params.source_scale,
         labels=params.labels,
         layer_labels=tuple(neurons_df.get("layer", ["unknown"] * n)),
+        v_lin=params.v_lin,
+        v_const=params.v_const,
     )
 
     # Create PRNG key
@@ -4860,6 +5009,7 @@ def simulate_multi_area_izhikevich(
         key=key,
         dtype=dtype,
         drive_schedule=source_tensor,
+        noise_scale=control_params.get("noise_scale", None),
     )
 
     return spikes, voltages
@@ -4958,8 +5108,8 @@ class IzhikevichEmitter(Emitter):
         syn = self.params.W.astype(jdtype) @ state.spikes.astype(jdtype)
         current_native = self.params.drive.astype(jdtype) + input_t + syn + noise
         dt = jnp.asarray(dt_ms, dtype=jdtype)
-        dv = 0.04 * state.v * state.v + 5.0 * state.v + 140.0 - state.u + current_native
-        du = self.params.a.astype(jdtype) * (self.params.b.astype(jdtype) * state.v - state.u)
+        dv, du = _izhikevich_dv_du(state.v, state.u, current_native, self.params.a.astype(jdtype),
+                                   self.params.b.astype(jdtype), vq=_v_coefs(self.params, jdtype))
         v_next = state.v + dt * dv
         u_next = state.u + dt * du
         spikes_bool = v_next >= 30.0
@@ -4985,7 +5135,7 @@ class IzhikevichEmitter(Emitter):
 
 
 class GLIFEmitter(Emitter):
-    """Generalized Leaky Integrate-and-Fire emitter — NOT implemented.
+    """Generalized Leaky Integrate-and-Fire emitter: NOT implemented.
 
     Intentional placeholder (exported for API-surface stability) for a future
     multi-compartment or highly parameterized GLIF implementation. It cannot be
@@ -5000,7 +5150,7 @@ class GLIFEmitter(Emitter):
 
 
 class LIFEmitter(Emitter):
-    """Leaky Integrate-and-Fire emitter — NOT implemented.
+    """Leaky Integrate-and-Fire emitter: NOT implemented.
 
     Intentional placeholder (exported for API-surface stability) for a future
     standard single-compartment LIF implementation. It cannot be constructed;

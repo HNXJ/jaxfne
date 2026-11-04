@@ -55,6 +55,7 @@ from ._signals import (
     resolve_poisson_drive_target,
     poisson_chunk_seed,
 )
+from .inputs import check_current_route_poisson_drive, refuse_poisson_drive_list
 from ._model import _SOURCE_PROXY_METADATA, stimulus_schedule
 
 
@@ -82,6 +83,15 @@ def _refuse_dense_receptor_kernel(runtime_cfg: RuntimeConfig) -> None:
         raise ValueError(
             "synaptic_kernel='receptor_exponential' runs only on "
             "recurrent_backend='edge_list'; the dense backend would ignore it"
+        )
+
+
+def _refuse_surrogate(runtime_cfg: RuntimeConfig, route: str) -> None:
+    """P-052: the surrogate is realized on the dense Izhikevich default-order route only."""
+    if getattr(runtime_cfg, "surrogate", None) is not None:
+        raise ValueError(
+            f"RuntimeConfig(surrogate=...) is realized on the dense Izhikevich default-order "
+            f"route only; this run takes {route}. Drop the surrogate or use that route"
         )
 
 
@@ -184,6 +194,32 @@ def _hdp_kernel_kwargs(hp: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _storage(arr, runtime_cfg: RuntimeConfig):
+    """Cast a recorded float array to the storage dtype (bfloat16 is storage only).
+
+    The dynamics integrate at ``compute_dtype``; only a bfloat16 run changes here, and
+    only its float arrays. Integer and bool arrays, and every other dtype, pass through.
+    """
+    if runtime_cfg.actual_dtype != "bfloat16":
+        return arr
+    if not jnp.issubdtype(jnp.asarray(arr).dtype, jnp.floating):
+        return arr
+    return jnp.asarray(arr).astype(runtime_cfg.jnp_dtype)
+
+
+def _store_field(field, runtime_cfg: RuntimeConfig):
+    """Cast the proxy readouts of a FieldOutput to the storage dtype; kernel and geometry stay."""
+    if field is None or runtime_cfg.actual_dtype != "bfloat16":
+        return field
+    return replace(
+        field,
+        source_proxy=_storage(field.source_proxy, runtime_cfg),
+        phi_e_proxy=_storage(field.phi_e_proxy, runtime_cfg),
+        csd_proxy=_storage(field.csd_proxy, runtime_cfg),
+        lfp_proxy=_storage(field.lfp_proxy, runtime_cfg),
+    )
+
+
 def _chain_noise_schedule(key, n_steps, n_neurons, jnp_dtype, base_seed=None, member_counts=None):
     """Chain-consistent unit-noise schedule, ensemble-aware (0.5.4 item 1).
 
@@ -219,6 +255,89 @@ def _ensemble_member_counts(model) -> "list[int] | None":
     from ._pipeline import _ensemble_counts_of_model
 
     return _ensemble_counts_of_model(model)
+
+
+def _refuse_gaussian_drive_family(self: "Model", sim: Simulation) -> None:
+    """Refuse ``gaussian_drive`` on every emitter family but Izhikevich, naming it."""
+    if getattr(sim, "gaussian_drive", None) is None:
+        return
+    emitter = self.params["emitter"]
+    if isinstance(emitter, IzhikevichParams):
+        return
+    route = {
+        AdExParams: "adex",
+        HHParams: "hh",
+        LIFNetworkParams: "lif",
+        RateNetworkParams: "rate",
+        HomeostaticEIParams: "homeostatic_ei",
+    }.get(type(emitter), type(emitter).__name__)
+    raise ValueError(
+        "Simulation.gaussian_drive is realized only on the Izhikevich construct routes; "
+        f"emitter route {route!r} takes no noise_scale -- drop gaussian_drive or use the "
+        "izhikevich family"
+    )
+
+
+def _gaussian_noise_for_route(
+    self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig
+) -> "Optional[_np_host.ndarray]":
+    """Per-cell ``noise_scale`` that realizes ``sim.gaussian_drive``, or None.
+
+    Raises every refusal the declaration needs on the Izhikevich routes: no
+    other ``noise_scale`` may be declared on the run, and the mapping must name
+    exactly the model's cell types.
+    """
+    decl = getattr(sim, "gaussian_drive", None)
+    if decl is None:
+        return None
+    if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+        raise ValueError(
+            "Simulation.gaussian_drive is refused together with "
+            "hdp_params['noise_scale']: both set the stochastic-current coefficient; "
+            "declare one"
+        )
+    if getattr(runtime_cfg, "enable_homeostasis", False) and "noise_scale" in dict(
+        runtime_cfg.homeostasis_params or {}
+    ):
+        raise ValueError(
+            "Simulation.gaussian_drive is refused together with "
+            "homeostasis_params['noise_scale']: both set the stochastic-current "
+            "coefficient; declare one"
+        )
+    emitter = self.params["emitter"]
+    labels = tuple(str(lbl) for lbl in emitter.labels)
+    model_types = sorted(set(labels))
+    stds = decl["std_by_cell_type"]
+    missing = [t for t in model_types if t not in stds]
+    unknown = sorted(str(k) for k in stds if k not in model_types)
+    if missing:
+        raise ValueError(
+            f"Simulation.gaussian_drive std_by_cell_type misses model cell type(s) "
+            f"{missing}; the model's cell types are {model_types}"
+        )
+    if unknown:
+        raise ValueError(
+            f"Simulation.gaussian_drive std_by_cell_type names unknown cell type(s) "
+            f"{unknown}; the model's cell types are {model_types}"
+        )
+    return _np_host.asarray([float(stds[lbl]) for lbl in labels], dtype=_np_host.float64)
+
+
+def _gaussian_cache_suffix(gauss) -> tuple:
+    """Compile-cache key part for a per-cell gaussian ``noise_scale`` (empty if undeclared)."""
+    if gauss is None:
+        return ()
+    return (("gaussian_drive", tuple(float(x) for x in gauss)),)
+
+
+def _noise_scale_cache_suffix(hdp_params) -> tuple:
+    """Compile-cache key part for ``hdp_params['noise_scale']`` on the plain routes (empty if undeclared)."""
+    if not hdp_params or "noise_scale" not in hdp_params:
+        return ()
+    # Local import: see _simulate_arrays' matching comment below.
+    from .core import _homeostasis_params_cache_fingerprint
+
+    return _homeostasis_params_cache_fingerprint({"noise_scale": hdp_params["noise_scale"]})
 
 
 def _simulate_arrays(
@@ -273,8 +392,10 @@ def _simulate_arrays(
 
     # Build silence_mask if E_silence or I_silence is requested
     n_neurons = emitter.v0.shape[0]
-    jdtype = _dtype_from_policy(runtime_cfg.actual_dtype)
+    jdtype = _dtype_from_policy(runtime_cfg.compute_dtype)
     ablation_mode = getattr(sim, "ablation", None)
+    # Per-cell gaussian noise_scale (None when gaussian_drive is undeclared).
+    gauss = _gaussian_noise_for_route(self, sim, runtime_cfg)
 
     # Sparse-direct models carry a placeholder dense W (edges live only in
     # params["edge_list"]); force the edge_list backend so the dense kernel is
@@ -286,6 +407,13 @@ def _simulate_arrays(
             "in params['edge_list']",
         )
         runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
+
+    if runtime_cfg.recurrent_backend == "edge_list":
+        _refuse_surrogate(runtime_cfg, "the edge_list backend")
+    if runtime_cfg.enable_homeostasis or runtime_cfg.enable_hdp:
+        _refuse_surrogate(runtime_cfg, "the homeostasis or HDP kernel")
+    if forced_spikes is not None:
+        _refuse_surrogate(runtime_cfg, "the SpikeTrainInput clamp")
 
     if "edge_list" in self.params:
         from .emitters import _edge_delay_steps_numpy
@@ -382,15 +510,15 @@ def _simulate_arrays(
                 sim.n_steps,
                 sim.dt_ms,
                 k,
-                dtype=runtime_cfg.actual_dtype,
+                dtype=runtime_cfg.compute_dtype,
                 drive_schedule=s,
                 silence_mask=silence_mask,
-                noise_scale=hp.get("noise_scale", None),
+                noise_scale=gauss if gauss is not None else hp.get("noise_scale", None),
                 noise_schedule=_chain_noise_schedule(
                     k,
                     sim.n_steps,
                     emitter.n_neurons,
-                    runtime_cfg.jnp_dtype,
+                    runtime_cfg.jnp_compute_dtype,
                     _member_base_seed,
                     _member_counts,
                 ),
@@ -436,7 +564,7 @@ def _simulate_arrays(
                 runtime_cfg.selected_backend,
                 _plastic_active,
                 _homeostasis_params_cache_fingerprint(hp),
-            )
+            ) + _gaussian_cache_suffix(gauss)
             with _device_scope(runtime_cfg.selected_backend):
                 if cache_key not in self._compiled_cache:
                     import time
@@ -454,6 +582,7 @@ def _simulate_arrays(
                         Z=Z,
                         C=C,
                         T=T,
+                        cache_key=cache_key,
                     )
                     self._compiled_cache[cache_key] = jax.jit(target_fn)
                     t0 = time.perf_counter()
@@ -516,7 +645,7 @@ def _simulate_arrays(
         _hdp_w0 = self.params.get("hdp_initial_w")
         init_state = None
         if _hdp_H0 is not None or _hdp_w0 is not None:
-            _idt = runtime_cfg.actual_dtype
+            _idt = runtime_cfg.compute_dtype
             init_state = {
                 "v": emitter.v0.astype(_idt),
                 "u": emitter.u0.astype(_idt),
@@ -546,19 +675,19 @@ def _simulate_arrays(
                     sim.n_steps,
                     sim.dt_ms,
                     k,
-                    dtype=runtime_cfg.actual_dtype,
+                    dtype=runtime_cfg.compute_dtype,
                     drive_schedule=s,
                     silence_mask=silence_mask,
                     init_state=init_state,
                     hdp_rule=str(hp["hdp_rule"]),
                     hdp_rule_params=hp.get("hdp_rule_params", {}),
                     record_weight_trace=bool(hp.get("record_weight_trace", True)),
-                    noise_scale=hp.get("noise_scale", None),
+                    noise_scale=gauss if gauss is not None else hp.get("noise_scale", None),
                     noise_schedule=_chain_noise_schedule(
                         k,
                         sim.n_steps,
                         emitter.n_neurons,
-                        runtime_cfg.jnp_dtype,
+                        runtime_cfg.jnp_compute_dtype,
                         _member_base_seed,
                         _member_counts,
                     ),
@@ -570,13 +699,15 @@ def _simulate_arrays(
                 )
             else:
                 kernel_kwargs = _hdp_kernel_kwargs(hp)
+                if gauss is not None:
+                    kernel_kwargs["noise_scale"] = gauss
                 V, S, src, diag = simulate_edge_recurrent_izhikevich_hdp(
                     emitter,
                     edges,
                     sim.n_steps,
                     sim.dt_ms,
                     k,
-                    dtype=runtime_cfg.actual_dtype,
+                    dtype=runtime_cfg.compute_dtype,
                     drive_schedule=s,
                     silence_mask=silence_mask,
                     init_state=init_state,
@@ -584,7 +715,7 @@ def _simulate_arrays(
                         k,
                         sim.n_steps,
                         emitter.n_neurons,
-                        runtime_cfg.jnp_dtype,
+                        runtime_cfg.jnp_compute_dtype,
                         _member_base_seed,
                         _member_counts,
                     ),
@@ -649,7 +780,7 @@ def _simulate_arrays(
                 runtime_cfg.selected_backend,
                 _homeostasis_params_cache_fingerprint(hp),
                 _forced_key,
-            )
+            ) + _gaussian_cache_suffix(gauss)
             with _device_scope(runtime_cfg.selected_backend):
                 if cache_key not in self._compiled_cache:
                     import time
@@ -662,6 +793,7 @@ def _simulate_arrays(
                         Z=Z,
                         C=C,
                         T=T,
+                        cache_key=cache_key,
                     )
                     self._compiled_cache[cache_key] = jax.jit(target_fn)
                     t0 = time.perf_counter()
@@ -771,7 +903,7 @@ def _simulate_arrays(
                 runtime_cfg.synaptic_kernel,
                 ablation_mode,
                 runtime_cfg.selected_backend,
-            )
+            ) + _gaussian_cache_suffix(gauss) + _noise_scale_cache_suffix(runtime_cfg.hdp_params)
             with _device_scope(runtime_cfg.selected_backend):
                 if cache_key not in self._compiled_cache:
                     import time
@@ -787,19 +919,22 @@ def _simulate_arrays(
                                 k,
                                 sim.n_steps,
                                 emitter.n_neurons,
-                                runtime_cfg.jnp_dtype,
+                                runtime_cfg.jnp_compute_dtype,
                                 _member_base_seed,
                                 _member_counts,
                             )
-                            if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
-                                extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
+                        # P-045: both edge kernels take noise_scale (receptor_exponential too).
+                        if gauss is not None:
+                            extra_kw["noise_scale"] = gauss
+                        elif runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+                            extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
                         return kernel_fn(
                             emitter,
                             edges,
                             sim.n_steps,
                             sim.dt_ms,
                             k,
-                            dtype=runtime_cfg.actual_dtype,
+                            dtype=runtime_cfg.compute_dtype,
                             drive_schedule=s,
                             silence_mask=silence_mask,
                             **extra_kw,
@@ -813,6 +948,7 @@ def _simulate_arrays(
                         Z=Z,
                         C=C,
                         T=T,
+                        cache_key=cache_key,
                     )
                     self._compiled_cache[cache_key] = jax.jit(target_fn)
                     t0 = time.perf_counter()
@@ -831,19 +967,22 @@ def _simulate_arrays(
                     key,
                     sim.n_steps,
                     emitter.n_neurons,
-                    runtime_cfg.jnp_dtype,
+                    runtime_cfg.jnp_compute_dtype,
                     _member_base_seed,
                     _member_counts,
                 )
-                if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
-                    extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
+            # P-045: both edge kernels take noise_scale (receptor_exponential too).
+            if gauss is not None:
+                extra_kw["noise_scale"] = gauss
+            elif runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+                extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
             return kernel_fn(
                 emitter,
                 edges,
                 sim.n_steps,
                 sim.dt_ms,
                 key,
-                dtype=runtime_cfg.actual_dtype,
+                dtype=runtime_cfg.compute_dtype,
                 drive_schedule=sched,
                 silence_mask=silence_mask,
                 **extra_kw,
@@ -854,6 +993,22 @@ def _simulate_arrays(
         if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
             _require_net_m_zero_noise(runtime_cfg.hdp_params["noise_scale"])
             dense_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
+    elif runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+        # P-045: default order realizes the declared coefficient (gauss below wins).
+        dense_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
+    if gauss is not None:
+        # The dense kernel takes the per-cell coefficient in default order; net_m
+        # realizes no noise, so it admits only an all-zero declaration.
+        if update_order == "net_m":
+            _require_net_m_zero_noise(gauss)
+        dense_kw["noise_scale"] = gauss
+    surrogate_beta = (
+        float(runtime_cfg.surrogate.beta)
+        if runtime_cfg.surrogate is not None and runtime_cfg.surrogate.method == "sigmoid_beta"
+        else None
+    )
+    if surrogate_beta is not None:
+        dense_kw["surrogate_beta"] = surrogate_beta
     effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
     if effective_jit:
         if not hasattr(self, "_compiled_cache"):
@@ -876,7 +1031,8 @@ def _simulate_arrays(
             ablation_mode,
             runtime_cfg.selected_backend,
             update_order,
-        )
+            surrogate_beta,
+        ) + _gaussian_cache_suffix(gauss) + _noise_scale_cache_suffix(runtime_cfg.hdp_params)
         with _device_scope(runtime_cfg.selected_backend):
             if cache_key not in self._compiled_cache:
                 import time
@@ -887,14 +1043,15 @@ def _simulate_arrays(
                         sim.n_steps,
                         sim.dt_ms,
                         k,
-                        dtype=runtime_cfg.actual_dtype,
+                        dtype=runtime_cfg.compute_dtype,
                         drive_schedule=s,
                         silence_mask=silence_mask,
                         **dense_kw,
                     )
 
                 target_fn = make_recompilation_guard(
-                    target_fn, name="simulate", recompilation_guard=guard_mode, B=B, Z=Z, C=C, T=T
+                    target_fn, name="simulate", recompilation_guard=guard_mode, B=B, Z=Z, C=C, T=T,
+                    cache_key=cache_key,
                 )
                 self._compiled_cache[cache_key] = jax.jit(target_fn)
                 t0 = time.perf_counter()
@@ -912,7 +1069,7 @@ def _simulate_arrays(
             sim.n_steps,
             sim.dt_ms,
             key,
-            dtype=runtime_cfg.actual_dtype,
+            dtype=runtime_cfg.compute_dtype,
             drive_schedule=sched,
             silence_mask=silence_mask,
             **dense_kw,
@@ -1039,6 +1196,8 @@ def _simulate_continuation_arrays(
             "synaptic_kernel='exponential'; requested "
             f"{runtime_cfg.synaptic_kernel!r}"
         )
+    # Per-cell gaussian noise_scale; every continuation kernel takes it (below).
+    gauss = _gaussian_noise_for_route(self, sim, runtime_cfg)
     # Poisson background is generated per segment in simulate() (each
     # continuation chunk from its own chunk seed), so no refusal here: HDP
     # state (H, w), delays in flight and the PRNG chain all ride the
@@ -1046,9 +1205,9 @@ def _simulate_continuation_arrays(
     emitter: IzhikevichParams = self.params["emitter"]
     n_neurons = emitter.n_neurons
     if drive_schedule is None:
-        schedule = jnp.zeros((sim.n_steps, n_neurons), dtype=runtime_cfg.jnp_dtype)
+        schedule = jnp.zeros((sim.n_steps, n_neurons), dtype=runtime_cfg.jnp_compute_dtype)
     else:
-        schedule = jnp.asarray(drive_schedule, dtype=runtime_cfg.jnp_dtype)
+        schedule = jnp.asarray(drive_schedule, dtype=runtime_cfg.jnp_compute_dtype)
         if schedule.shape != (sim.n_steps, n_neurons):
             raise ValueError(
                 f"drive schedule shape must be ({sim.n_steps}, {n_neurons}), got {schedule.shape}"
@@ -1113,6 +1272,8 @@ def _simulate_continuation_arrays(
             }
         else:
             hdp_kwargs = _hdp_kernel_kwargs(hp)
+        if gauss is not None:
+            hdp_kwargs["noise_scale"] = gauss
         if _forced_rows is None:
             step_fn, _ = compile_step_fn(
                 self,
@@ -1121,6 +1282,8 @@ def _simulate_continuation_arrays(
                 **hdp_kwargs,
             )
     else:
+        if gauss is not None:
+            baseline_kw["noise_scale"] = gauss
         step_fn, _ = compile_step_fn(
             self,
             dt_ms=sim.dt_ms,
@@ -1137,7 +1300,7 @@ def _simulate_continuation_arrays(
     if _cont_counts is not None:
         _cont_start = 0 if continuation is None else int(state.step_index)
         _cont_noise_rows = _ensemble_segment_schedule(
-            _cont_counts, sim.seed, _cont_start, sim.n_steps, runtime_cfg.jnp_dtype
+            _cont_counts, sim.seed, _cont_start, sim.n_steps, runtime_cfg.jnp_compute_dtype
         )
 
     if _forced_rows is None:
@@ -1326,7 +1489,7 @@ def simulate(
     ``poisson_drive`` composes with continuation: chunk 0 draws the declared
     Poisson seed (bit-identical to a plain single call with the same
     Simulation), and each later chunk derives its own seed deterministically
-    from ``(poisson_seed, chunk_index)`` — same process, independent
+    from ``(poisson_seed, chunk_index)``; same process, independent
     realization per chunk. HDP state (H, w), delays in flight and the PRNG
     chain continue across chunks as before. Explicit ``paradigm`` schedules
     carry no cursor: pass each segment only its own time window.
@@ -1347,6 +1510,14 @@ def simulate(
     # HDP-on candidate on the same immutable model instance.
     object.__setattr__(self, "_last_hdp_diag", None)
     object.__setattr__(self, "_last_homeostasis_diag", None)
+    _refuse_gaussian_drive_family(self, sim)
+    _refuse_silence_family(self, sim)
+    _refuse_replace_family(self, sim)
+    _refuse_edge_gain_family(self, sim)
+    if type(self.params["emitter"]) is not IzhikevichParams:
+        _refuse_surrogate(runtime_cfg, f"emitter family {type(self.params['emitter']).__name__}")
+    if continuation is not None or return_state:
+        _refuse_surrogate(runtime_cfg, "the continuation path")
 
     if isinstance(self.params["emitter"], AdExParams):
         _refuse_adex_inputs(self, sim, paradigm, continuation, return_state)
@@ -1358,6 +1529,7 @@ def simulate(
                 "simulate(continuation=..., return_state=...) is not realized for emitter family "
                 "'hh': the route has no full-state continuation"
             )
+        refuse_poisson_drive_list(sim.poisson_drive, "simulate (emitter family 'hh')")
         if (
             paradigm is not None
             or sim.poisson_drive is not None
@@ -1375,7 +1547,8 @@ def simulate(
         # so an absent gpu/tpu fails here; the adex branch above already
         # refuses every non-default backend by name, so it needs no check.
         _require_backend_available(runtime_cfg.selected_backend)
-        return _simulate_lif(self, sim, runtime_cfg, paradigm)
+        return _simulate_lif(self, sim, runtime_cfg, paradigm,
+                               continuation=continuation, return_state=return_state)
 
     if isinstance(self.params["emitter"], RateNetworkParams):
         _refuse_rate_inputs(self, sim, paradigm, continuation, return_state)
@@ -1403,6 +1576,7 @@ def simulate(
     if isinstance(self.params["emitter"], HomeostaticEIParams):
         if continuation is not None or return_state:
             raise ValueError("full-state continuation is not available for homeostatic_ei")
+        refuse_poisson_drive_list(sim.poisson_drive, "simulate (emitter family 'homeostatic_ei')")
         if (
             paradigm is not None
             or sim.poisson_drive is not None
@@ -1414,6 +1588,7 @@ def simulate(
             )
         return self._simulate_homeostatic_ei(sim, key, runtime_cfg)
 
+    refuse_poisson_drive_list(sim.poisson_drive, "simulate (emitter family 'izhikevich')")
     schedule = None
     forced_spikes = None
     spike_train_input = paradigm if isinstance(paradigm, SpikeTrainInput) else None
@@ -1443,7 +1618,7 @@ def simulate(
         schedule = self._resolve_stimulus_schedule(paradigm, sim, runtime_cfg)
     drive_array: Optional[Any] = None
     if schedule is not None:
-        drive_array = schedule.to_array(sim.n_steps, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+        drive_array = schedule.to_array(sim.n_steps, sim.dt_ms, dtype=runtime_cfg.compute_dtype)
     if sim.poisson_drive is not None:
         _emitter: IzhikevichParams = self.params["emitter"]
         _pd = sim.poisson_drive
@@ -1498,21 +1673,21 @@ def simulate(
             forced_spikes=forced_spikes,
         )
         continuation_out = None
-    time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
-        sim.dt_ms, dtype=runtime_cfg.jnp_dtype
+    time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_compute_dtype) * jnp.asarray(
+        sim.dt_ms, dtype=runtime_cfg.jnp_compute_dtype
     )
-    positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_dtype)
+    positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_compute_dtype)
     field_output = None
     poisson_final_step = None
     if sim.record_fields:
-        # The proxy admits only float32/float64 (refuses bfloat16 by name,
-        # like the sibling poisson solver); bfloat16 dynamics project in
-        # float32 — the same exact upcast _pipeline applies before np.savez.
+        # The proxy admits only float32/float64 (it refuses bfloat16 by name,
+        # like the sibling poisson solver). bfloat16 is storage only, so the
+        # projection runs at the compute dtype.
         field_output = project_laminar_sources(
             sources=sources,
             positions=positions,
             n_contacts=self.static.get("n_contacts", 16),
-            dtype="float32" if runtime_cfg.actual_dtype == "bfloat16" else runtime_cfg.actual_dtype,
+            dtype=runtime_cfg.compute_dtype,
         )
         poisson_final_step = _maybe_poisson_final_step(self, sources)
 
@@ -1522,6 +1697,13 @@ def simulate(
     elif hasattr(paradigm, "to_dict"):
         paradigm_meta = paradigm.to_dict()
 
+    # Continuation segments always compile (compile_step_fn and the forced twin wrap
+    # jax.jit); the single call takes the _simulate_arrays decision, same arguments.
+    segment_jit = (
+        True
+        if (continuation is not None or return_state)
+        else runtime_cfg.resolve_jit(sim.n_steps, self.params["emitter"].n_neurons)
+    )
     metadata: dict[str, Any] = {
         "config_hash": config_hash(self.cfg),
         "source_calibration_status": self.cfg.metadata.get("source_calibration_status"),
@@ -1534,7 +1716,7 @@ def simulate(
         "record_sources": bool(sim.record_sources),
         "record_fields": bool(sim.record_fields),
         "plasticity_gain": sim.plasticity,
-        "runtime": runtime_cfg.runtime_report(),
+        "runtime": runtime_cfg.runtime_report(effective_jit=segment_jit),
         "recurrent_backend": runtime_cfg.recurrent_backend,
         "synaptic_kernel": runtime_cfg.synaptic_kernel,
         "source_model": _SOURCE_PROXY_METADATA,
@@ -1568,6 +1750,14 @@ def simulate(
     }
     if poisson_final_step is not None:
         metadata["poisson_field_final_step"] = poisson_final_step
+    if sim.gaussian_drive is not None:
+        # Recorded only when declared so default receipts stay unchanged.
+        metadata["gaussian_drive"] = {
+            "std_by_cell_type": {
+                str(k): float(v)
+                for k, v in sorted(sim.gaussian_drive["std_by_cell_type"].items())
+            }
+        }
     if schedule is not None:
         metadata["stimulus_injection_status"] = "native_drive_schedule_v0.0.12"
         metadata["stimulus_schedule"] = schedule.to_dict()
@@ -1600,7 +1790,7 @@ def simulate(
         V_m=voltages.astype(runtime_cfg.jnp_dtype),
         spikes=spikes,
         sources=sources.astype(runtime_cfg.jnp_dtype) if sim.record_sources else None,
-        field=field_output,
+        field=_store_field(field_output, runtime_cfg),
         metadata=metadata,
     )
     if return_state:
@@ -1632,11 +1822,11 @@ def _simulate_homeostatic_ei(
         activation_rule=emitter.activation_rule_name,
         conductance_rule=emitter.conductance_rule_name,
         homeostasis_rule=emitter.homeostasis_rule_name,
-        dtype=runtime_cfg.actual_dtype,
+        dtype=runtime_cfg.compute_dtype,
         bound_mode=emitter.bound_mode,
     )
-    time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
-        sim.dt_ms, dtype=runtime_cfg.jnp_dtype
+    time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_compute_dtype) * jnp.asarray(
+        sim.dt_ms, dtype=runtime_cfg.jnp_compute_dtype
     )
     source_mode = "homeostatic_ei_activity_proxy"
     source_mode_class = "specialized"
@@ -1653,14 +1843,14 @@ def _simulate_homeostatic_ei(
     }
     field_output = None
     if sim.record_fields:
-        positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_dtype)
-        # bfloat16 dynamics project in float32; the proxy refuses bfloat16
-        # by name (see _resolve_proxy_dtype), like the sibling poisson solver.
+        positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_compute_dtype)
+        # bfloat16 is storage only: the projection runs at the compute dtype. The
+        # proxy refuses bfloat16 by name (see _resolve_proxy_dtype).
         field_output = project_laminar_sources(
             sources=sources,
             positions=positions,
             n_contacts=self.static.get("n_contacts", 16),
-            dtype="float32" if runtime_cfg.actual_dtype == "bfloat16" else runtime_cfg.actual_dtype,
+            dtype=runtime_cfg.compute_dtype,
         )
         field_output = replace(
             field_output,
@@ -1688,7 +1878,8 @@ def _simulate_homeostatic_ei(
         "duration_ms": float(sim.duration_ms),
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
-        "runtime": runtime_cfg.runtime_report(),
+        # simulate_homeostatic_ei is jax.jit-decorated: the kernel always compiles.
+        "runtime": runtime_cfg.runtime_report(effective_jit=True),
         "hdp": {
             "enabled": True,
             "rules": {
@@ -1697,8 +1888,8 @@ def _simulate_homeostatic_ei(
                 "homeostasis_rule": emitter.homeostasis_rule_name,
                 "bound_mode": emitter.bound_mode,
             },
-            "H_trace": H_history,
-            "G_trace": G_history,
+            "H_trace": _storage(H_history, runtime_cfg),
+            "G_trace": _storage(G_history, runtime_cfg),
             "error": bool(diag["error"]),
         },
     }
@@ -1707,9 +1898,113 @@ def _simulate_homeostatic_ei(
         V_m=voltages.astype(runtime_cfg.jnp_dtype),
         spikes=spikes,
         sources=sources.astype(runtime_cfg.jnp_dtype) if sim.record_sources else None,
-        field=field_output,
+        field=_store_field(field_output, runtime_cfg),
         metadata=metadata,
     )
+
+
+def _refuse_silence_family(model: "Model", sim: Simulation) -> None:
+    """Refuse ``Simulation(silence=...)`` outside the adex route, naming the family.
+
+    The single central check: every non-AdEx emitter family refuses a non-None
+    silence before its own input handling, so a misrouted declaration fails
+    loudly at the public entry point instead of running unsilenced.
+    """
+    if sim.silence is None:
+        return
+    emitter = model.params["emitter"]
+    if isinstance(emitter, AdExParams):
+        return
+    if isinstance(emitter, IzhikevichParams):
+        family = "izhikevich"
+    elif isinstance(emitter, HHParams):
+        family = "hh"
+    elif isinstance(emitter, LIFNetworkParams):
+        family = "lif"
+    elif isinstance(emitter, RateNetworkParams):
+        family = "rate"
+    elif isinstance(emitter, HomeostaticEIParams):
+        family = "homeostatic_ei"
+    else:
+        family = type(emitter).__name__
+    raise ValueError(
+        "Simulation(silence=...) is not realized for emitter family "
+        f"'{family}': silence masks emitted AdEx spikes from an onset step; "
+        f"the '{family}' route has no output-silencing path"
+    )
+
+
+def _refuse_replace_family(model: "Model", sim: Simulation) -> None:
+    """Refuse ``Simulation(replace=...)`` outside the adex route, naming the family.
+
+    The single central check: every non-AdEx emitter family refuses a non-None
+    replace before its own input handling, so a misrouted declaration fails
+    loudly at the public entry point instead of running unreplaced.
+    """
+    if sim.replace is None:
+        return
+    emitter = model.params["emitter"]
+    if isinstance(emitter, AdExParams):
+        return
+    if isinstance(emitter, IzhikevichParams):
+        family = "izhikevich"
+    elif isinstance(emitter, HHParams):
+        family = "hh"
+    elif isinstance(emitter, LIFNetworkParams):
+        family = "lif"
+    elif isinstance(emitter, RateNetworkParams):
+        family = "rate"
+    elif isinstance(emitter, HomeostaticEIParams):
+        family = "homeostatic_ei"
+    else:
+        family = type(emitter).__name__
+    raise ValueError(
+        "Simulation(replace=...) is not realized for emitter family "
+        f"'{family}': replace swaps emitted AdEx spikes for Poisson draws; "
+        f"the '{family}' route has no output-replacement path"
+    )
+
+
+def _refuse_edge_gain_family(model: "Model", sim: Simulation) -> None:
+    """Refuse ``Simulation(edge_gain=...)`` outside the adex route, naming the family.
+
+    The single central check: every non-AdEx emitter family refuses a non-None
+    edge_gain before its own input handling, so a misrouted declaration fails
+    loudly at the public entry point instead of running at full weight.
+    """
+    if sim.edge_gain is None:
+        return
+    emitter = model.params["emitter"]
+    if isinstance(emitter, AdExParams):
+        return
+    if isinstance(emitter, IzhikevichParams):
+        family = "izhikevich"
+    elif isinstance(emitter, HHParams):
+        family = "hh"
+    elif isinstance(emitter, LIFNetworkParams):
+        family = "lif"
+    elif isinstance(emitter, RateNetworkParams):
+        family = "rate"
+    elif isinstance(emitter, HomeostaticEIParams):
+        family = "homeostatic_ei"
+    else:
+        family = type(emitter).__name__
+    raise ValueError(
+        "Simulation(edge_gain=...) is not realized for emitter family "
+        f"'{family}': edge_gain scales masked AdEx E->E arrivals per step; "
+        f"the '{family}' route has no per-edge gain path"
+    )
+
+
+def _schedule_summary(entry) -> dict:
+    """``{n_steps, min, max, mean}`` of a declared ``rate_schedule_hz`` in Hz."""
+    arr = _np_host.asarray(entry["rate_schedule_hz"], dtype=_np_host.float64)
+    return {
+        "n_steps": int(arr.shape[0]),
+        "min": float(arr.min()),
+        "max": float(arr.max()),
+        "mean": float(arr.mean()),
+    }
 
 
 def _refuse_adex_inputs(
@@ -1741,16 +2036,43 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
     Runs the conductance kernel on the compiled edges (``_construct_adex.adex_kernel_args``
     supplies its arguments). ``Simulation(poisson_drive=...)`` adds the CAMINOS external
     drive (``_construct_adex.adex_external_drive_kwargs`` supplies the kernel's ``ext_*``
-    arguments); without it the cells start at rest and run with no drive. No field is
-    built (``field`` is None).
+    arguments, including a per-step ``rate_schedule_hz`` in place of ``rate_hz``);
+    without it the cells start at rest and run with no drive. ``Simulation(silence=...)``
+    masks the emitted spikes of a per-type subset from an onset step
+    (``_construct_adex.adex_silence_kwargs``; each cell's own state keeps evolving).
+    ``Simulation(replace=...)`` swaps the emitted spikes of a per-type subset for
+    independent per-step Poisson draws at each type's ``rate_hz``
+    (``_construct_adex.adex_replace_kwargs``; silence still wins on overlap).
+    ``Simulation(edge_gain=...)`` scales the ``|w|`` of masked E->E arrivals
+    per step (``_construct_adex.adex_edge_gain_kwargs``).
+    No field is built (``field`` is None).
     """
-    from ._construct_adex import adex_external_drive_kwargs, adex_kernel_args
+    from ._construct_adex import (
+        adex_edge_gain_kwargs,
+        adex_external_drive_kwargs,
+        adex_kernel_args,
+        adex_replace_kwargs,
+        adex_silence_kwargs,
+    )
 
-    dtype = runtime_cfg.jnp_dtype
-    kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+    dtype = runtime_cfg.jnp_compute_dtype
+    kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.compute_dtype)
     drive_kwargs = adex_external_drive_kwargs(self, sim)
+    silence_mask, silence_onset, silence_record = adex_silence_kwargs(self, sim)
+    replace_mask, replace_lam, replace_key, replace_record = adex_replace_kwargs(self, sim)
+    gain_mask, gain_sched, gain0_mask, gain_record = adex_edge_gain_kwargs(self, sim)
+    gain_call: dict[str, Any] = {}
+    if gain_mask is not None:
+        gain_call["edge_gain_mask"] = gain_mask
+        gain_call["edge_gain_schedule"] = gain_sched
+        if "edge0_pre" in kwargs:
+            gain_call["edge0_gain_mask"] = gain0_mask
     out = simulate_adex(
-        **kwargs, **drive_kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True
+        **kwargs, **drive_kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True,
+        spike_out_mask=silence_mask, spike_out_onset_step=int(silence_onset),
+        spike_replace_mask=replace_mask, spike_replace_lam=replace_lam,
+        spike_replace_key=replace_key,
+        **gain_call,
     )
     time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
     static = self.static["adex"]
@@ -1764,7 +2086,7 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
         "duration_ms": float(sim.duration_ms),
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
-        "runtime": runtime_cfg.runtime_report(),
+        "runtime": runtime_cfg.runtime_report(effective_jit=False),
         "physical_amplitude_calibrated": False,
         "network": static["network"],
         "receptors": list(static["receptor_names"]),
@@ -1798,7 +2120,72 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
             ),
         }
     if sim.poisson_drive is not None:
-        if isinstance(sim.poisson_drive["rate_hz"], (list, tuple)):
+        if isinstance(sim.poisson_drive, (list, tuple)):
+            from ._construct_adex import _entry_zero_rate
+
+            solo_drive = (
+                sim.poisson_drive[0]
+                if len(sim.poisson_drive) == 1
+                and not _entry_zero_rate(sim.poisson_drive[0])
+                else None
+            )
+            if solo_drive is not None:
+                metadata["poisson_drive"] = {
+                    "n_sources": int(solo_drive["n_sources"]),
+                    "weight_nS": float(solo_drive["weight_nS"]),
+                    "mechanism": str(solo_drive["mechanism"]),
+                    "target_cell_types": list(solo_drive["target_cell_types"]),
+                    "delay_ms": float(solo_drive["delay_ms"]),
+                    "seed": int(solo_drive["seed"]),
+                    "status": "stochastic_drive_applied",
+                }
+                if "rate_schedule_hz" in solo_drive:
+                    metadata["poisson_drive"]["rate_schedule_hz"] = _schedule_summary(
+                        solo_drive
+                    )
+                    metadata["poisson_drive"]["ext_lambda_mean"] = float(
+                        _np_host.asarray(drive_kwargs["ext_lambda"]).mean()
+                    )
+                else:
+                    metadata["poisson_drive"]["rate_hz"] = float(solo_drive["rate_hz"])
+                    metadata["poisson_drive"]["ext_lambda"] = float(
+                        drive_kwargs["ext_lambda"]
+                    )
+            else:
+                recorded_entries = []
+                for entry in sim.poisson_drive:
+                    recorded = {
+                        "n_sources": int(entry["n_sources"]),
+                        "weight_nS": float(entry["weight_nS"]),
+                        "mechanism": str(entry["mechanism"]),
+                        "target_cell_types": list(entry["target_cell_types"]),
+                        "delay_ms": float(entry["delay_ms"]),
+                        "seed": int(entry["seed"]),
+                    }
+                    if "rate_schedule_hz" in entry:
+                        summary = _schedule_summary(entry)
+                        recorded["rate_schedule_hz"] = summary
+                        recorded["ext_lambda_mean"] = float(
+                            int(entry["n_sources"])
+                            * summary["mean"]
+                            * float(sim.dt_ms)
+                            / 1000.0
+                        )
+                    else:
+                        recorded["rate_hz"] = float(entry["rate_hz"])
+                        recorded["ext_lambda"] = float(
+                            int(entry["n_sources"]) * float(entry["rate_hz"])
+                            * float(sim.dt_ms) / 1000.0
+                        )
+                    for bound in ("t_start_ms", "t_stop_ms"):
+                        if bound in entry:
+                            recorded[bound] = float(entry[bound])
+                    recorded_entries.append(recorded)
+                metadata["poisson_drive"] = {
+                    "entries": recorded_entries,
+                    "status": "stochastic_drive_applied",
+                }
+        elif isinstance(sim.poisson_drive.get("rate_hz"), (list, tuple)):
             rates = [float(r) for r in sim.poisson_drive["rate_hz"]]
             per_group = [float(v) for v in _np_host.asarray(drive_kwargs["ext_lambda"])[0]]
             sizes = _np_host.asarray(drive_kwargs["ext_target_groups"])
@@ -1816,6 +2203,20 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
                 "key_derivation": "per-group keys fold_in(fold_in(key, g), t)",
                 "status": "stochastic_drive_applied",
             }
+        elif "rate_schedule_hz" in sim.poisson_drive:
+            metadata["poisson_drive"] = {
+                "n_sources": int(sim.poisson_drive["n_sources"]),
+                "rate_schedule_hz": _schedule_summary(sim.poisson_drive),
+                "weight_nS": float(sim.poisson_drive["weight_nS"]),
+                "mechanism": str(sim.poisson_drive["mechanism"]),
+                "target_cell_types": list(sim.poisson_drive["target_cell_types"]),
+                "delay_ms": float(sim.poisson_drive["delay_ms"]),
+                "seed": int(sim.poisson_drive["seed"]),
+                "ext_lambda_mean": float(
+                    _np_host.asarray(drive_kwargs["ext_lambda"]).mean()
+                ),
+                "status": "stochastic_drive_applied",
+            }
         else:
             metadata["poisson_drive"] = {
                 "n_sources": int(sim.poisson_drive["n_sources"]),
@@ -1828,11 +2229,19 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
                 "ext_lambda": float(drive_kwargs["ext_lambda"]),
                 "status": "stochastic_drive_applied",
             }
-        if sim.poisson_drive.get("same_step", False) is True:
+        if not isinstance(sim.poisson_drive, (list, tuple)) and sim.poisson_drive.get(
+            "same_step", False
+        ) is True:
             metadata["poisson_drive"]["same_step"] = True
+    if silence_record is not None:
+        metadata["silence"] = silence_record
+    if replace_record is not None:
+        metadata["replace"] = replace_record
+    if gain_record is not None:
+        metadata["edge_gain"] = gain_record
     return Signals(
         time_ms=time_ms,
-        V_m=out["V_mV"].astype(dtype),
+        V_m=out["V_mV"].astype(runtime_cfg.jnp_dtype),
         spikes=out["spikes"],
         sources=None,
         field=None,
@@ -1875,7 +2284,7 @@ def _simulate_hh(
             "run key derives from the declared connectivity edge seed "
             f"(edge_seed={int(static['edge_seed'])}); leave seed at 0 here"
         )
-    dtype = runtime_cfg.jnp_dtype
+    dtype = runtime_cfg.jnp_compute_dtype
     kwargs = hh_kernel_args(self, sim.dt_ms)
     out = simulate_hh(
         **kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True
@@ -1889,7 +2298,7 @@ def _simulate_hh(
         "duration_ms": float(sim.duration_ms),
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
-        "runtime": runtime_cfg.runtime_report(),
+        "runtime": runtime_cfg.runtime_report(effective_jit=False),
         "physical_amplitude_calibrated": False,
         "network": static["network"],
         "receptors": list(static["receptor_names"]),
@@ -1898,7 +2307,7 @@ def _simulate_hh(
     }
     return Signals(
         time_ms=time_ms,
-        V_m=out["V_mV"].astype(dtype),
+        V_m=out["V_mV"].astype(runtime_cfg.jnp_dtype),
         spikes=out["spikes"],
         sources=None,
         field=None,
@@ -1953,12 +2362,13 @@ def _simulate_rate(
     from ._construct_rate import rate_edge_arrays
     from .emitters_rate import simulate_rate_edge
 
-    dtype = runtime_cfg.jnp_dtype
+    dtype = runtime_cfg.jnp_compute_dtype
     emitter: RateNetworkParams = self.params["emitter"]
     edges = rate_edge_arrays(self)
     n_neurons = emitter.n_neurons
 
     drive = _np_host.asarray(emitter.drive, dtype=_np_host.float64).ravel()
+    refuse_poisson_drive_list(sim.poisson_drive, "simulate (emitter family 'rate')")
     if sim.poisson_drive is not None:
         _pd = sim.poisson_drive
         from .inputs import check_current_route_poisson_drive
@@ -1999,7 +2409,7 @@ def _simulate_rate(
         "duration_ms": float(sim.duration_ms),
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
-        "runtime": runtime_cfg.runtime_report(),
+        "runtime": runtime_cfg.runtime_report(effective_jit=False),
         "physical_amplitude_calibrated": False,
         # The route emits no spikes: the rate traces ride V_m and the spikes
         # array is all-False. No sources and no field are recorded either.
@@ -2019,7 +2429,7 @@ def _simulate_rate(
     n_steps, n_units = out["rates"].shape
     return Signals(
         time_ms=time_ms,
-        V_m=jnp.asarray(out["rates"], dtype=dtype),
+        V_m=jnp.asarray(out["rates"], dtype=runtime_cfg.jnp_dtype),
         spikes=jnp.zeros((n_steps, n_units), dtype=bool),
         sources=None,
         field=None,
@@ -2032,18 +2442,22 @@ def _refuse_lif_inputs(
 ) -> None:
     """Refuse the simulate() inputs the lif route does not consume, naming each.
 
-    Continuation and the Simulation/RuntimeConfig fields named in
+    Continuation rides ``LIFContinuationState`` (returned by
+    ``simulate(..., return_state=True)``); any other continuation value is
+    refused by name. The Simulation/RuntimeConfig fields named in
     ``_construct_lif.refuse_lif_simulation`` have no lif consumer. A
     paradigm resolves to a StimulusSchedule and rides the route as input
     current (see ``_simulate_lif``); an unresolvable paradigm type fails
     closed in ``_resolve_stimulus_schedule``, naming itself.
     """
     from ._construct_lif import refuse_lif_simulation
+    from ._pipeline import LIFContinuationState
 
-    if continuation is not None or return_state:
+    if continuation is not None and not isinstance(continuation, LIFContinuationState):
         raise ValueError(
-            "simulate(continuation=..., return_state=...) is not realized for emitter family "
-            "'lif': the route has no full-state continuation"
+            "simulate(continuation=...) on emitter family 'lif' takes a "
+            f"jaxfne._pipeline.LIFContinuationState returned by simulate(..., "
+            f"return_state=True); got {type(continuation).__name__}"
         )
     declared = model.static.get("lif", {}).get("local_inhibition")
     if declared:
@@ -2072,15 +2486,226 @@ def _refuse_lif_inputs(
                 "(rounds, order, resolution) specs on one tensor; the lif route's "
                 "grouped cap realizes one spec — declare one"
             )
+        if continuation is not None or return_state:
+            resolutions = {
+                str(spec[2])
+                for spec in specs
+            } if declared else {"whole_step"}
+            if "event_scan" in resolutions:
+                raise ValueError(
+                    "simulate(continuation=..., return_state=...) is not realized "
+                    "with local_inhibition resolution 'event_scan': the replay "
+                    "carries its own event_scan_state — continue through serial "
+                    "simulate_lif_edge event_scan_state"
+                )
+            if "event_order" in resolutions:
+                raise ValueError(
+                    "simulate(continuation=..., return_state=...) is not realized "
+                    "with local_inhibition resolution 'event_order': the cascade "
+                    "needs the per-step visit order of the whole run — run the "
+                    "whole grid in one simulate call"
+                )
     refuse_lif_simulation(sim, sim.resolved_runtime)
 
 
 #: ``hdp_params`` keys the lif route consumes when HDP runs (a registered
 #: rule only): the rule name, its params, and the per-edge plasticity gate.
-#: Every other key — including the legacy current-based gain vocabulary the
-#: default ``RuntimeConfig`` carries — is refused by name: those gains drive
+#: Every other key, including the legacy current-based gain vocabulary the
+#: default ``RuntimeConfig`` carries, is refused by name: those gains drive
 #: the Izhikevich HDP kernel, which the LIF equations cannot run.
 _LIF_HDP_CONSUMED_KEYS = frozenset({"hdp_rule", "hdp_rule_params", "plasticity_mask"})
+
+
+def _poisson_entries(poisson: Any) -> list:
+    """A declared ``poisson_drive`` as its entries: a mapping is one entry, a list is its entries."""
+    return [poisson] if isinstance(poisson, Mapping) else list(poisson)
+
+
+def _lif_poisson_plan(
+    model: "Model", poisson: Any, *, seed_is_member: bool = False
+) -> list[tuple[Any, Any, Any]]:
+    """Validate each Poisson entry once and resolve its target: ``(entry, target, indices)``.
+
+    ``seed_is_member`` marks the seed batch, whose members carry the seed, so an entry
+    pinning ``seed`` is refused. A list of two or more entries needs an
+    ``(area, layer, cell_type)`` triple on every entry (``"all"`` names every neuron, so
+    it cannot share a list) and pairwise disjoint neurons: entries sharing a seed would
+    draw the same realization on shared neurons.
+    """
+    plan: list[tuple[Any, Any, Any]] = []
+    for entry in _poisson_entries(poisson):
+        check_current_route_poisson_drive(entry)
+        if seed_is_member and "seed" in entry:
+            raise ValueError(
+                "simulate_lif_seed_batch refuses a template pinning poisson_drive['seed'] "
+                f"({entry['seed']!r}): per-member keying needs the seed to ride the seeds argument"
+            )
+        target = entry.get("target", "all")
+        if isinstance(target, (tuple, list)):
+            plan.append((entry, tuple(target), resolve_poisson_drive_target(model, target)))
+        else:
+            plan.append((entry, str(target), None))
+    if len(plan) > 1:
+        for position, (_entry, target, indices) in enumerate(plan):
+            if indices is None:
+                raise ValueError(
+                    f"Simulation(poisson_drive=[...]) entry {position} has target {target!r}: "
+                    f"a list of {len(plan)} entries needs an (area, layer, cell_type) triple "
+                    "on every entry, since 'all' names every neuron and cannot share a list"
+                )
+        for i in range(len(plan)):
+            for j in range(i + 1, len(plan)):
+                shared = set(plan[i][2]) & set(plan[j][2])
+                if shared:
+                    raise ValueError(
+                        f"Simulation(poisson_drive=[...]) entries {i} and {j} target "
+                        f"overlapping neurons: {plan[i][1]!r} and {plan[j][1]!r} share "
+                        f"{len(shared)} neuron(s); list entries must target disjoint "
+                        "populations, because entries sharing a seed would draw the same "
+                        "realization on shared neurons"
+                    )
+    return plan
+
+
+def _lif_poisson_drive(
+    plan: list[tuple[Any, Any, Any]],
+    *,
+    n_steps: int,
+    n_neurons: int,
+    dt_ms: float,
+    default_seed: int,
+    chunk_index: int = 0,
+) -> Any:
+    """Sum over entries of the array ``_make_poisson_drive`` builds for each entry alone.
+
+    An entry draws from its own ``seed`` or ``default_seed`` (``sim.seed + 7919`` on the
+    serial route, the member's ``seed + 7919`` on the seed batch). Disjoint entries own
+    disjoint columns, so the sum is each population's own draw; a single entry returns
+    its array unchanged. Continued segments derive each entry's seed from
+    ``poisson_chunk_seed(seed, chunk_index)`` (chunk 0 is the declared seed,
+    bit-identical to a plain call).
+    """
+    total = None
+    for entry, target, indices in plan:
+        arr = _make_poisson_drive(
+            n_steps=n_steps,
+            n_neurons=n_neurons,
+            rate_hz=float(entry.get("rate_hz", 2.0)),
+            amplitude=float(entry.get("amplitude", 0.5)),
+            dt_ms=dt_ms,
+            seed=poisson_chunk_seed(int(entry.get("seed", default_seed)), int(chunk_index)),
+            target=target,
+            counts=int(entry.get("counts", 1)),
+            target_indices=indices,
+        )
+        total = arr if total is None else total + arr
+    return total
+
+
+def _lif_poisson_receipt(
+    entry: Mapping[str, Any], default_seed: int,
+    *, chunk_index: int | None = None, chunk_seed: int | None = None,
+) -> dict[str, Any]:
+    """Run receipt for one declared entry; ``counts`` and ``target`` ride only when declared."""
+    receipt: dict[str, Any] = {
+        "rate_hz": float(entry.get("rate_hz", 2.0)),
+        "amplitude": float(entry.get("amplitude", 0.5)),
+        "seed": int(entry.get("seed", default_seed)),
+        "status": "stochastic_drive_applied",
+    }
+    if chunk_index is not None:
+        # Recorded only on continuation calls so plain-call receipts stay unchanged.
+        receipt["chunk_index"] = int(chunk_index)
+        receipt["chunk_seed"] = int(chunk_seed)
+    if "counts" in entry:
+        # Recorded only when declared so default receipts stay unchanged.
+        receipt["counts"] = int(entry["counts"])
+    if "target" in entry:
+        # Recorded only when declared: an undeclared target reads as every neuron.
+        target = entry["target"]
+        receipt["target"] = list(target) if isinstance(target, (tuple, list)) else str(target)
+    return receipt
+
+
+def _validate_lif_continuation(
+    state: "Any", *, n_neurons: int, n_edges: int, delay_L: int,
+    dt_ms: float, hdp_rule_name: Any,
+) -> None:
+    """Check a carried lif state against the current model and grid, naming each gap."""
+    from ._pipeline import LIFContinuationState
+
+    if not isinstance(state, LIFContinuationState):
+        raise ValueError(
+            "simulate(continuation=...) on emitter family 'lif' takes a "
+            "jaxfne._pipeline.LIFContinuationState returned by simulate(..., "
+            f"return_state=True); got {type(state).__name__}"
+        )
+    if float(dt_ms) != float(state.dt_ms):
+        raise ValueError(
+            f"continuation dt_ms={float(state.dt_ms)} disagrees with the "
+            f"Simulation grid ({float(dt_ms)} ms); continued segments share one grid"
+        )
+    for _k, _shape in (("V", (n_neurons,)), ("A", (n_neurons,)),
+                       ("t_last", (n_neurons,)), ("w", (n_edges,)),
+                       ("ring", (delay_L, n_neurons)),
+                       ("prev_spikes", (n_neurons,)), ("g", (n_neurons,))):
+        _arr = getattr(state, _k, None)
+        if _arr is None:
+            raise ValueError(
+                f"continuation is missing {_k!r}; pass the "
+                "LIFContinuationState simulate(..., return_state=True) returned"
+            )
+        if tuple(jnp.asarray(_arr).shape) != tuple(_shape):
+            raise ValueError(
+                f"continuation {_k!r} has shape {tuple(jnp.asarray(_arr).shape)} "
+                f"but the model needs {_shape}; the state continues its own model"
+            )
+    if hdp_rule_name is None:
+        for _k in ("H", "aux", "bias"):
+            if getattr(state, _k, None) is not None:
+                raise ValueError(
+                    f"continuation {_k!r} is set but no HDP rule runs; "
+                    "the rule-free carry holds no rule state"
+                )
+    else:
+        if state.H is None:
+            raise ValueError(
+                "continuation 'H' is None but an HDP rule runs; pass the "
+                "LIFContinuationState simulate(..., return_state=True) returned"
+            )
+        if tuple(jnp.asarray(state.H).shape) != (n_neurons,):
+            raise ValueError(
+                f"continuation 'H' has shape {tuple(jnp.asarray(state.H).shape)} "
+                f"but the model needs ({n_neurons},)"
+            )
+        # The rule carry rides the same fresh shapes the kernel builds
+        # (aux from the rule's expected_aux_shape, bias per drive_bias),
+        # so a state from another rule or a dropped field fails here by name.
+        from .hdp_rule import expected_aux_shape, get_hdp_rule
+
+        descriptor, _ = get_hdp_rule(str(hdp_rule_name))
+        _aux_shape = tuple(expected_aux_shape(
+            descriptor, n_neurons=n_neurons, n_edges=n_edges))
+        _ax = state.aux
+        if _ax is None or tuple(jnp.asarray(_ax).shape) != _aux_shape:
+            raise ValueError(
+                "continuation 'aux' must have shape "
+                f"{_aux_shape}; got "
+                f"{None if _ax is None else tuple(jnp.asarray(_ax).shape)}"
+            )
+        if "drive_bias" in descriptor.theta_targets:
+            _bb = state.bias
+            if _bb is None or tuple(jnp.asarray(_bb).shape) != (n_neurons,):
+                raise ValueError(
+                    "continuation 'bias' must have shape "
+                    f"({n_neurons},); got "
+                    f"{None if _bb is None else tuple(jnp.asarray(_bb).shape)}"
+                )
+        elif state.bias is not None:
+            raise ValueError(
+                "continuation 'bias' is set but the rule declares no "
+                "drive_bias target"
+            )
 
 
 def _simulate_lif(
@@ -2088,7 +2713,9 @@ def _simulate_lif(
     sim: Simulation,
     runtime_cfg: RuntimeConfig,
     paradigm: Any = None,
-) -> Signals:
+    continuation: Any = None,
+    return_state: bool = False,
+) -> "Signals | tuple[Signals, Any]":
     """The lif emitter family's ``simulate()`` path (``jaxfne/emitters_lif``).
 
     Runs the PCL LIF edge kernel on the compiled edges
@@ -2106,11 +2733,22 @@ def _simulate_lif(
     is ensured registered here. The seeded ``hdp_initial_H`` carry rides
     the rule; ``hdp_initial_w`` is refused under a rule (edge weights come
     from the edge list) and the seeded H stays inert without one.
+
+    ``return_state=True`` returns ``(Signals, LIFContinuationState)`` and
+    ``continuation=`` starts the next segment from that state (global times
+    and the rule-noise stream continue, so split runs reproduce the whole
+    run bit-exactly; ``time_ms`` stays segment-local, starting at 0 each
+    call, as on the current-based continuation route). Continued Poisson
+    segments derive each entry's seed from ``poisson_chunk_seed(seed,
+    chunk_index)``; plain calls keep the baseline receipt exactly (chunk
+    fields ride every ``return_state=True`` or ``continuation=`` call). A
+    continued segment takes its rule-noise key from the state, so
+    ``sim.seed`` sets only the Poisson base seed there.
     """
     from ._construct_lif import lif_edge_arrays
     from .emitters_lif import simulate_lif_edge
 
-    dtype = runtime_cfg.jnp_dtype
+    dtype = runtime_cfg.jnp_compute_dtype
     emitter: LIFNetworkParams = self.params["emitter"]
     edges = lif_edge_arrays(self)
     n_neurons = emitter.n_neurons
@@ -2155,33 +2793,23 @@ def _simulate_lif(
                 "built for this population"
             )
         paradigm_arr = schedule.to_array(
-            sim.n_steps, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+            sim.n_steps, sim.dt_ms, dtype=runtime_cfg.compute_dtype)
         drive_2d_base = jnp.broadcast_to(drive, (sim.n_steps, n_neurons))
         drive_2d_sched = drive_2d_base + jnp.asarray(paradigm_arr, dtype=dtype)
     else:
         drive_2d_sched = jnp.broadcast_to(drive, (sim.n_steps, n_neurons))
     if sim.poisson_drive is not None:
-        _pd = sim.poisson_drive
-        from .inputs import check_current_route_poisson_drive
+        from ._pipeline import LIFContinuationState as _LCS
 
-        check_current_route_poisson_drive(_pd)
-        _pd_target = _pd.get("target", "all")
-        if isinstance(_pd_target, (tuple, list)):
-            _pd_target_arg = tuple(_pd_target)
-            _pd_target_idx: object = resolve_poisson_drive_target(self, _pd_target)
-        else:
-            _pd_target_arg = str(_pd_target)
-            _pd_target_idx = None
-        _poisson_arr = _make_poisson_drive(
+        _chunk_index = int(continuation.chunk_index) if isinstance(
+            continuation, _LCS) else 0
+        _poisson_arr = _lif_poisson_drive(
+            _lif_poisson_plan(self, sim.poisson_drive),
             n_steps=sim.n_steps,
             n_neurons=n_neurons,
-            rate_hz=float(_pd.get("rate_hz", 2.0)),
-            amplitude=float(_pd.get("amplitude", 0.5)),
             dt_ms=sim.dt_ms,
-            seed=poisson_chunk_seed(int(_pd.get("seed", sim.seed + 7919)), 0),
-            target=_pd_target_arg,
-            counts=int(_pd.get("counts", 1)),
-            target_indices=_pd_target_idx,
+            default_seed=sim.seed + 7919,
+            chunk_index=_chunk_index,
         )
         drive_2d = drive_2d_sched + jnp.asarray(
             _poisson_arr, dtype=dtype
@@ -2254,11 +2882,47 @@ def _simulate_lif(
             )
     n_steps = sim.n_steps
     dt_ms = sim.dt_ms
+    is_cont = continuation is not None or return_state
+    _lif_init_state: dict[str, Any] | None = None
+    _lif_base_key = hdp_kwargs.get("key")
+    _chunk_index = 0
+    if continuation is not None:
+        from ._pipeline import LIFContinuationState as _LCS2
+
+        _delay_vals = jnp.asarray(edges["delay_steps"])
+        _delay_L = int(_delay_vals.max()) if int(edges["pre"].shape[0]) else 1
+        _validate_lif_continuation(
+            continuation, n_neurons=n_neurons,
+            n_edges=int(edges["pre"].shape[0]), delay_L=_delay_L,
+            dt_ms=sim.dt_ms, hdp_rule_name=hdp_rule_name,
+        )
+        assert isinstance(continuation, _LCS2)
+        _chunk_index = int(continuation.chunk_index)
+        _lif_init_state = {
+            "V": continuation.V, "A": continuation.A,
+            "t_last": continuation.t_last, "w": continuation.w,
+            "H": continuation.H, "aux": continuation.aux,
+            "bias": continuation.bias, "ring": continuation.ring,
+            "prev_spikes": continuation.prev_spikes, "g": continuation.g,
+            "step_index": int(continuation.step_index),
+        }
+        # The rule-noise stream folds the global step into one base key, so a
+        # continued segment reuses the first segment's key, not sim.seed.
+        _lif_base_key = continuation.prng_key
+        if "key" in hdp_kwargs:
+            hdp_kwargs = {**hdp_kwargs, "key": _lif_base_key}
 
     def _run_lif_kernel(drive_in, key_in):
         kw = dict(hdp_kwargs)
         if "key" in kw:
             kw["key"] = key_in
+        if _lif_init_state is not None:
+            kw["init_state"] = _lif_init_state
+            # The state carries the rule carry; the construct-seeded H0 would
+            # double-declare it (the kernel refuses H0 with init_state by name).
+            kw.pop("H0", None)
+        if return_state:
+            kw["return_state"] = True
         return simulate_lif_edge(
             lif_params,
             n_steps=n_steps,
@@ -2281,8 +2945,16 @@ def _simulate_lif(
     # The route honours the shared execution policy: requested backends run
     # inside _device_scope and an effective jit compiles the kernel (same
     # resolve_jit/_device_scope pattern as the izhikevich edge route).
+    # Continued segments run the kernel eager (the jit-vs-eager bit-identity
+    # is already pinned): the carry, not the cache key, is the contract.
     effective_jit = runtime_cfg.resolve_jit(sim.n_steps, n_neurons)
-    if effective_jit:
+    if is_cont:
+        # Continued segments run the kernel eager (see above); the receipt
+        # reports that eager decision, not the policy's.
+        effective_jit = False
+        with _device_scope(runtime_cfg.selected_backend):
+            out = _run_lif_kernel(drive_2d, _lif_base_key)
+    elif effective_jit:
         if not hasattr(self, "_compiled_cache"):
             object.__setattr__(self, "_compiled_cache", {})
         from .validation import make_recompilation_guard
@@ -2308,6 +2980,7 @@ def _simulate_lif(
                     Z=n_edges,
                     C=int(n_neurons),
                     T=int(sim.n_steps),
+                    cache_key=cache_key,
                 )
                 self._compiled_cache[cache_key] = jax.jit(target_fn)
             out = self._compiled_cache[cache_key](drive_2d, hdp_kwargs.get("key"))
@@ -2329,22 +3002,25 @@ def _simulate_lif(
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
         "paradigm": paradigm_meta,
-        "runtime": runtime_cfg.runtime_report(),
+        "runtime": runtime_cfg.runtime_report(effective_jit=effective_jit),
         "physical_amplitude_calibrated": False,
         # The route records no sources and no field; the record flags change nothing here.
         "not_recorded": ["sources", "field"],
     }
     if sim.poisson_drive is not None:
-        _poisson_receipt = {
-            "rate_hz": float(sim.poisson_drive.get("rate_hz", 2.0)),
-            "amplitude": float(sim.poisson_drive.get("amplitude", 0.5)),
-            "seed": int(sim.poisson_drive.get("seed", sim.seed + 7919)),
-            "status": "stochastic_drive_applied",
-        }
-        if "counts" in sim.poisson_drive:
-            # Recorded only when declared so default receipts stay unchanged.
-            _poisson_receipt["counts"] = int(sim.poisson_drive["counts"])
-        metadata["poisson_drive"] = _poisson_receipt
+        _poisson_receipts = []
+        for entry in _poisson_entries(sim.poisson_drive):
+            if is_cont:
+                _poisson_receipts.append(_lif_poisson_receipt(
+                    entry, sim.seed + 7919, chunk_index=_chunk_index,
+                    chunk_seed=int(poisson_chunk_seed(
+                        int(entry.get("seed", sim.seed + 7919)), _chunk_index)),
+                ))
+            else:
+                _poisson_receipts.append(_lif_poisson_receipt(entry, sim.seed + 7919))
+        metadata["poisson_drive"] = (
+            _poisson_receipts[0] if isinstance(sim.poisson_drive, Mapping) else _poisson_receipts
+        )
     if hdp_rule_name is not None:
         metadata["hdp_rule"] = str(hdp_rule_name)
         metadata["hdp_rule_registered"] = True
@@ -2363,13 +3039,26 @@ def _simulate_lif(
         metadata["n_sharing_groups"] = int(_np_sh.asarray(edge_group).max() + 1)
     if inhibition_spec is not None:
         metadata["local_inhibition"] = dict(inhibition_spec)
-    return Signals(
+    signals = Signals(
         time_ms=time_ms,
-        V_m=out["V_mV"].astype(dtype),
+        V_m=out["V_mV"].astype(runtime_cfg.jnp_dtype),
         spikes=out["spikes"],
         sources=None,
         field=None,
         metadata=metadata,
+    )
+    if not return_state:
+        return signals
+    from ._pipeline import LIFContinuationState
+
+    _ls = out["lif_state"]
+    _key_out = _lif_base_key if _lif_base_key is not None else jax.random.PRNGKey(sim.seed)
+    return signals, LIFContinuationState(
+        V=_ls["V"], A=_ls["A"], t_last=_ls["t_last"], w=_ls["w"],
+        ring=_ls["ring"], prev_spikes=_ls["prev_spikes"], g=_ls["g"],
+        prng_key=_key_out, H=_ls["H"], aux=_ls["aux"], bias=_ls["bias"],
+        step_index=int(_ls["step_index"]), chunk_index=_chunk_index + 1,
+        dt_ms=float(sim.dt_ms),
     )
 
 
@@ -2386,16 +3075,23 @@ def _simulate_lif_scan(
 
     The scan replays the timestamped stream carried by the paradigm
     :class:`jaxfne.pcl_topology.EventScanDrive` event by event through
-    ``simulate_lif_edge`` — each event excites its covered cells with
+    ``simulate_lif_edge``: each event excites its covered cells with
     exact inter-event decay, and each spike inhibits, lateralizes and
     forwards immediately. The replay resolves every event (no rounds
     cap), so every other simulate input that would change nothing is
     refused by name: non-scan paradigms (including schedules),
     ``poisson_drive``, HDP, and compiled edges (the scan tensor's replay
-    connection compiles none — anything else has no scan expression).
+    connection compiles none; anything else has no scan expression).
 
     The scan returns finals only: ``V_m`` is all-NaN with per-cell
-    counts and first-spike times in the metadata receipt.
+    counts, first-spike times and the spike log (every spike's time and
+    cell, in emission order) in the metadata receipt, plus the periodic
+    update's thresholds, rates, interval counts and last-update time
+    (``scan_threshold_mV``, ``scan_rate_hz``, ``scan_interval_count``,
+    ``scan_last_update_us``); without an ``h_update`` the thresholds stay
+    at the params' values. ``scan_weights_final`` holds the final float64
+    weights (``w_s``, ``w_c``, ``lat_w``, ``td_w``, ``blocks_w``; plus
+    ``wi_s`` and ``wi_c`` under a declared ``w_update``).
     """
     from .emitters_lif import simulate_lif_edge
     from .pcl_topology import EventScanDrive
@@ -2410,6 +3106,8 @@ def _simulate_lif_scan(
             "paradigm=EventScanDrive(events, tables, blocks, groups, "
             "dt_ms=..., n_steps=...) from jaxfne.pcl_topology"
         )
+    refuse_poisson_drive_list(
+        sim.poisson_drive, "simulate (lif local_inhibition resolution 'event_scan')")
     if sim.poisson_drive is not None:
         raise ValueError(
             "Simulation(poisson_drive=...) is not realized with "
@@ -2452,7 +3150,7 @@ def _simulate_lif_scan(
             f"model has {int(n_neurons)} neurons; build the drive for "
             "this population"
         )
-    dtype = runtime_cfg.jnp_dtype
+    dtype = runtime_cfg.jnp_compute_dtype
     with _device_scope(runtime_cfg.selected_backend):
         out = simulate_lif_edge(
             emitter.to_lif_params(),
@@ -2463,6 +3161,11 @@ def _simulate_lif_scan(
             local_inhibition_blocks=drive.blocks,
             event_scan_events=_np.asarray(drive.events),
             event_scan_tables=drive.tables,
+            event_scan_h_update=drive.h_update,
+            event_scan_w_update=drive.w_update,
+            event_scan_state=drive.state,
+            event_scan_boundary=drive.boundary,
+            event_scan_return_state=drive.return_state,
         )
     time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
     metadata: dict = {
@@ -2474,7 +3177,8 @@ def _simulate_lif_scan(
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
         "paradigm": drive.to_dict(),
-        "runtime": runtime_cfg.runtime_report(),
+        # The event-scan replay compiles _JIT_EVENT_SCAN unconditionally.
+        "runtime": runtime_cfg.runtime_report(effective_jit=True),
         "physical_amplitude_calibrated": False,
         # The replay returns finals only; the record flags change nothing here.
         "not_recorded": ["sources", "field"],
@@ -2482,11 +3186,24 @@ def _simulate_lif_scan(
         "scan_resolution": "event_scan",
         "scan_counts": _np.asarray(out["counts"], dtype=_np.int64),
         "scan_first_spike_us": _np.asarray(out["first_spike_us"]),
+        "scan_spike_times_us": _np.asarray(out["spike_times_us"], dtype=_np.int64),
+        "scan_spike_cells": _np.asarray(out["spike_cells"], dtype=_np.int64),
+        "scan_threshold_mV": _np.asarray(out["threshold_mV"]),
+        "scan_rate_hz": _np.asarray(out["rate_hz"]),
+        "scan_interval_count": _np.asarray(out["interval_count"], dtype=_np.int64),
+        "scan_last_update_us": int(out["last_update_us"]),
+        "scan_weights_final": {
+            key: _np.asarray(val, dtype=_np.float64)
+            for key, val in out["weights_final"].items()},
     }
+    if drive.return_state:
+        # The persisted scan state, for a later pass (EventScanDrive(state=...)); absent otherwise.
+        metadata["scan_state"] = {
+            key: _np.asarray(val) for key, val in out["event_scan_state"].items()}
     return Signals(
         time_ms=time_ms,
         V_m=jnp.full(
-            (int(sim.n_steps), int(n_neurons)), jnp.nan, dtype=dtype),
+            (int(sim.n_steps), int(n_neurons)), jnp.nan, dtype=runtime_cfg.jnp_dtype),
         spikes=out["spikes"],
         sources=None,
         field=None,
@@ -2502,7 +3219,7 @@ def last_homeostasis_diagnostics(self) -> "Optional[dict[str, Any]]":
     ``(n_steps, n_neurons)``, or ``None`` if homeostasis was not enabled on
     the last run. When ``homeostasis_params["eta"] != 0`` (homeostatic
     synaptic plasticity active), the dict also carries ``w_final``
-    ``(n_edges,)`` and ``w_trace`` ``(n_steps, n_edges)`` — the plastic
+    ``(n_edges,)`` and ``w_trace`` ``(n_steps, n_edges)``: the plastic
     edge-weight trajectory. These are computational-control diagnostics
     (proxy), not a biological-mechanism claim.
     """
@@ -2576,6 +3293,10 @@ def simulate_batch(
     This is a trial-replicate utility for notebook statistics.  It uses
     ``jax.vmap`` over PRNG keys and returns proxy arrays without changing the
     field-solver or calibration status.
+
+    Member ``i`` is keyed ``jax.random.split(PRNGKey(base_seed), n_seeds)[i]``,
+    with ``base_seed`` the ``seed`` argument or ``sim.seed``. With noise on, member
+    ``i`` therefore differs from ``simulate`` at ``seed=i`` and at ``seed=base_seed``.
     """
     # Local import: see _simulate_arrays' matching comment above.
     from .core import _resolve_homeostasis_k_gain, _homeostasis_params_cache_fingerprint
@@ -2596,7 +3317,8 @@ def simulate_batch(
         runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
     # The batch kernel draws no Poisson drive, applies no ablation, always
     # returns sources and never builds a field.
-    for _name in ("poisson_drive", "ablation"):
+    refuse_poisson_drive_list(sim.poisson_drive, "simulate_batch")
+    for _name in ("poisson_drive", "ablation", "gaussian_drive"):
         if getattr(sim, _name) is not None:
             raise ValueError(
                 f"simulate_batch does not consume Simulation.{_name}; use simulate() "
@@ -2621,6 +3343,26 @@ def simulate_batch(
             "exponential synaptic kernel."
         )
     _refuse_dense_receptor_kernel(runtime_cfg)
+    # P-052: the dense default-order kernel in ``one`` realizes the surrogate;
+    # the HDP, homeostasis and edge_list routes refuse it by name.
+    if hdp_on:
+        _refuse_surrogate(runtime_cfg, "the HDP kernel")
+    if homeo_on:
+        _refuse_surrogate(runtime_cfg, "the homeostasis kernel")
+    if runtime_cfg.recurrent_backend == "edge_list":
+        _refuse_surrogate(runtime_cfg, "the edge_list backend")
+    _batch_surrogate_beta = (
+        float(runtime_cfg.surrogate.beta)
+        if runtime_cfg.surrogate is not None and runtime_cfg.surrogate.method == "sigmoid_beta"
+        else None
+    )
+    _decls = getattr(self.cfg, "emitters", None) or []
+    _order = (_decls[0].get("izhikevich_update_order", "default") if _decls else "default") or "default"
+    if _order != "default":
+        raise ValueError(
+            f"simulate_batch runs the default Izhikevich update order; "
+            f"izhikevich_update_order={_order!r} is realized by simulate() per seed"
+        )
     if not hdp_on and not homeo_on:
         # HDP/homeostasis paths always use the sparse-edge kernel; only the
         # plain backend dispatch below can hand the dense kernel rule edges.
@@ -2658,10 +3400,11 @@ def simulate_batch(
                     sim.n_steps,
                     sim.dt_ms,
                     k,
-                    dtype=runtime_cfg.actual_dtype,
+                    dtype=runtime_cfg.compute_dtype,
                     hdp_rule=str(kernel_kwargs["hdp_rule"]),
                     hdp_rule_params=kernel_kwargs.get("hdp_rule_params", {}),
                     record_weight_trace=False,
+                    noise_scale=_hdp.get("noise_scale", None),
                 )[:3]
             return simulate_edge_recurrent_izhikevich_hdp(
                 emitter,
@@ -2669,23 +3412,23 @@ def simulate_batch(
                 sim.n_steps,
                 sim.dt_ms,
                 k,
-                dtype=runtime_cfg.actual_dtype,
+                dtype=runtime_cfg.compute_dtype,
                 noise_schedule=continuation_noise_schedule(
-                    k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                    k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_compute_dtype
                 ),
                 **kernel_kwargs,
             )[:3]
         if homeo_on:
             # Homeostasis engages the sparse-edge homeostatic kernel; per-step
             # g_bias/r_trace diagnostics are dropped here (batch is a seed-replicate
-            # statistics utility — use simulate() for full diagnostics passthrough).
+            # statistics utility: use simulate() for full diagnostics passthrough).
             return simulate_edge_recurrent_izhikevich_homeostatic(
                 emitter,
                 self.params["edge_list"],
                 sim.n_steps,
                 sim.dt_ms,
                 k,
-                dtype=runtime_cfg.actual_dtype,
+                dtype=runtime_cfg.compute_dtype,
                 r_star=_hp.get("r_star", 0.05),
                 tau_r_ms=_hp.get("tau_r_ms", 300.0),
                 alpha=_hp.get("alpha", 1.0),
@@ -2701,6 +3444,7 @@ def simulate_batch(
                 v_ceiling=_hp.get("v_ceiling", 100.0),
                 u_abs_max=_hp.get("u_abs_max", 2000.0),
                 syn_abs_max=_hp.get("syn_abs_max", 1.0e4),
+                noise_scale=_hp.get("noise_scale", None),
             )[:3]
         if runtime_cfg.recurrent_backend == "edge_list":
             return edge_kernel_fn(
@@ -2709,10 +3453,13 @@ def simulate_batch(
                 sim.n_steps,
                 sim.dt_ms,
                 k,
-                dtype=runtime_cfg.actual_dtype,
+                dtype=runtime_cfg.compute_dtype,
+                noise_scale=_hdp.get("noise_scale", None),
             )[:3]
         return simulate_eig_izhikevich(
-            emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype
+            emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.compute_dtype,
+            noise_scale=_hdp.get("noise_scale", None),
+            surrogate_beta=_batch_surrogate_beta,
         )
 
     # v0.0.21: honor runtime.vmap flag behaviorally.
@@ -2740,7 +3487,8 @@ def simulate_batch(
             runtime_cfg.selected_backend,
             _homeostasis_params_cache_fingerprint(_hp) if homeo_on else (),
             _homeostasis_params_cache_fingerprint(_hdp) if hdp_on else (),
-        )
+            _batch_surrogate_beta,
+        ) + _noise_scale_cache_suffix(_hdp)
         with _device_scope(runtime_cfg.selected_backend):
             effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons, batch=B)
             if effective_jit:
@@ -2758,6 +3506,7 @@ def simulate_batch(
                         Z=Z,
                         C=C,
                         T=T,
+                        cache_key=cache_key,
                     )
                     self._compiled_cache[cache_key] = jax.jit(run_mapped)
                     t0 = time.perf_counter()
@@ -2789,6 +3538,13 @@ def simulate_batch(
         )
     else:
         batch_status = "vmap_seed_batch_v0.0.8"
+    # Only the vmap branch consults resolve_jit (at the compile decision above);
+    # the python loop runs the kernels without a jit wrapper.
+    batch_jit = (
+        runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons, batch=int(n_seeds))
+        if effective_vmap
+        else False
+    )
     return {
         "V_m": voltages.astype(runtime_cfg.jnp_dtype),
         "spikes": spikes,
@@ -2799,7 +3555,7 @@ def simulate_batch(
                 "batch_execution_mode": batch_execution_mode,
                 "n_seeds": int(n_seeds),
                 "seed": base_seed,
-                "runtime": runtime_cfg.runtime_report(),
+                "runtime": runtime_cfg.runtime_report(effective_jit=batch_jit),
                 "field_claim_level": "proxy_readout",
                 "physical_amplitude_calibrated": False,
                 "recurrent_backend": runtime_cfg.recurrent_backend,
@@ -2849,13 +3605,16 @@ def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict
             f"{type(self.params['emitter']).__name__}"
         )
     seed_list = _checked_batch_seeds(seeds)
+    _refuse_gaussian_drive_family(self, sim)
     if int(sim.seed) != 0:
         raise ValueError(
             f"simulate_adex_seed_batch does not consume Simulation.seed (got {int(sim.seed)}); "
             "per-member seeds ride poisson_drive['seed'], so leave Simulation.seed at 0"
         )
     runtime_cfg = sim.resolved_runtime
-    kernel_kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+    _refuse_surrogate(runtime_cfg, "simulate_adex_seed_batch")
+    kernel_kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.compute_dtype)
+    refuse_poisson_drive_list(sim.poisson_drive, "simulate_adex_seed_batch (emitter family 'adex')")
     has_drive = sim.poisson_drive is not None
     drive_template: dict[str, Any] = {}
     drive_fp = ""
@@ -2896,8 +3655,8 @@ def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict
         batched = self._compiled_cache[cache_key](keys)
     return {
         "spikes": batched["spikes"],
-        "V_m": batched["V_mV"],
-        "final": {k: batched[k] for k in ("V", "w", "ref", "g")},
+        "V_m": _storage(batched["V_mV"], runtime_cfg),
+        "final": {k: _storage(batched[k], runtime_cfg) for k in ("V", "w", "ref", "g")},
         "metadata": json_safe(
             {
                 "emitter_family": "adex",
@@ -2905,7 +3664,8 @@ def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict
                 "key_derivation": "per-member PRNGKey(seed_i), serial-identical",
                 "n_steps": int(sim.n_steps),
                 "continuation": "not_realized_use_serial_simulate",
-                "runtime": runtime_cfg.runtime_report(),
+                # The batch is one jax.jit-compiled lax.map (cache miss builds it).
+                "runtime": runtime_cfg.runtime_report(effective_jit=True),
                 "physical_amplitude_calibrated": False,
             }
         ),
@@ -2930,7 +3690,6 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
     """
     from ._construct_lif import lif_edge_arrays
     from .emitters_lif import simulate_lif_edge
-    from .inputs import check_current_route_poisson_drive
 
     if not isinstance(self.params["emitter"], LIFNetworkParams):
         raise ValueError(
@@ -2938,13 +3697,15 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
             f"{type(self.params['emitter']).__name__}"
         )
     seed_list = _checked_batch_seeds(seeds)
+    _refuse_gaussian_drive_family(self, sim)
     if int(sim.seed) != 0:
         raise ValueError(
             f"simulate_lif_seed_batch does not consume Simulation.seed (got {int(sim.seed)}); "
             "per-member seeds are the seeds argument, so leave Simulation.seed at 0"
         )
     runtime_cfg = sim.resolved_runtime
-    dtype = runtime_cfg.jnp_dtype
+    _refuse_surrogate(runtime_cfg, "simulate_lif_seed_batch")
+    dtype = runtime_cfg.jnp_compute_dtype
     emitter: LIFNetworkParams = self.params["emitter"]
     edges = lif_edge_arrays(self)
     n_neurons = emitter.n_neurons
@@ -2967,25 +3728,11 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
     drive = jnp.asarray(emitter.drive, dtype=dtype)
     drive_2d = jnp.broadcast_to(drive, (sim.n_steps, n_neurons))
     if sim.poisson_drive is not None:
-        _pd = sim.poisson_drive
-        check_current_route_poisson_drive(_pd)
-        if "seed" in _pd:
-            raise ValueError(
-                "simulate_lif_seed_batch refuses a template pinning poisson_drive['seed'] "
-                f"({_pd['seed']!r}): per-member keying needs the seed to ride the seeds argument"
-            )
-        _tgt = _pd.get("target", "all")
-        if isinstance(_tgt, (tuple, list)):
-            _targ: Any = tuple(_tgt)
-            _tidx: Any = resolve_poisson_drive_target(self, _tgt)
-        else:
-            _targ, _tidx = str(_tgt), None
+        plan = _lif_poisson_plan(self, sim.poisson_drive, seed_is_member=True)
         drive_batch = jnp.stack([
-            drive_2d + jnp.asarray(_make_poisson_drive(
-                sim.n_steps, n_neurons, float(_pd.get("rate_hz", 2.0)),
-                float(_pd.get("amplitude", 0.5)), sim.dt_ms,
-                poisson_chunk_seed(s + 7919, 0), _targ,
-                int(_pd.get("counts", 1)), target_indices=_tidx), dtype=dtype)
+            drive_2d + jnp.asarray(_lif_poisson_drive(
+                plan, n_steps=sim.n_steps, n_neurons=n_neurons, dt_ms=sim.dt_ms,
+                default_seed=s + 7919), dtype=dtype)
             for s in seed_list
         ])
     else:
@@ -3062,8 +3809,8 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
         batched = self._compiled_cache[cache_key]((drive_batch, keys))
     out: dict[str, Any] = {
         "spikes": batched["spikes"],
-        "V_m": batched["V_mV"],
-        "w_final": batched["w_final"],
+        "V_m": _storage(batched["V_mV"], runtime_cfg),
+        "w_final": _storage(batched["w_final"], runtime_cfg),
         "metadata": json_safe(
             {
                 "emitter_family": "lif",
@@ -3071,13 +3818,14 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
                 "key_derivation": "poisson_chunk_seed(seed_i + 7919, 0) + PRNGKey(seed_i), serial-identical",
                 "n_steps": int(sim.n_steps),
                 "continuation": "not_realized_use_serial_simulate",
-                "runtime": runtime_cfg.runtime_report(),
+                # The batch is one jax.jit-compiled lax.map (cache miss builds it).
+                "runtime": runtime_cfg.runtime_report(effective_jit=True),
                 "physical_amplitude_calibrated": False,
             }
         ),
     }
     if "H_final" in batched:
-        out["H_final"] = batched["H_final"]
+        out["H_final"] = _storage(batched["H_final"], runtime_cfg)
     return out
 
 

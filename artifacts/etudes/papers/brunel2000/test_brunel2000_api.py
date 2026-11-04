@@ -30,11 +30,11 @@ DT = 0.5
 D_STEPS = int(round(1.5 / DT))
 
 
-def _lif_model(n=N_SMALL, seed=0, point="D"):
+def _lif_model(n=N_SMALL, seed=0, point="D", in_degree=None):
     from jaxfne import neuronal_tensor as nt
 
     return jtfne.construct(
-        L.build_spec(point=point, n=n, seed=seed),
+        L.build_spec(point=point, n=n, seed=seed, in_degree=in_degree),
         nt.RuntimeConfiguration(seed=seed, duration_ms=20.0, dt_ms=DT,
                                 emitter="lif"),
     )
@@ -306,3 +306,99 @@ def test_score_refuses_bad_burn_in(bad):
     spikes[:100:5] = True
     with pytest.raises(ValueError, match="burn_in_ms"):
         L.score(spikes, DT, burn_in_ms=bad)
+
+
+S1_N = 6250
+S1_IN_DEGREE = (1000, 250)
+
+
+def _realized_abs_weights(model):
+    """Realized |weight| per presynaptic type, read from ``params['edge_list']``."""
+    pre, _, weight, _, lab = _edges(model)
+    return {src: np.abs(weight[lab[pre] == src]) for src in ("E", "PV")}
+
+
+def test_default_build_unchanged_at_n1250():
+    """The default path at N=1250 keeps CE=100, CI=25, Cext=100, w=J*sqrt(n) (PORT_SPEC 7, 8, 11)."""
+    spec = L.build_spec(n=1250)
+    rules = {(a.source_neuron_type, a.target_neuron_type): a for a in spec.area_connections}
+    for (src, _tgt), ac in rules.items():
+        assert int(ac.in_degree) == (100 if src == "E" else 25), "default CE=100, CI=25"
+    assert float(rules[("E", "E")].plastic.w_mech) == pytest.approx(L.J_MV * math.sqrt(1250))
+    assert float(rules[("PV", "E")].plastic.w_mech) == pytest.approx(
+        L.FIG8_POINTS["D"][0] * L.J_MV * math.sqrt(1250))
+    sim = L.build_sim(point="D", n=1250)
+    assert int(sim.poisson_drive["counts"]) == 100, "default Cext=100 at n=1250"
+    assert L.external_rate_hz(point="D", n=1250) == pytest.approx(900.0)
+    model = _lif_model(n=1250)
+    pre, post, weight, _, lab = _edges(model)
+    fan_e = np.bincount(post[lab[pre] == "E"], minlength=1250)
+    assert set(fan_e.tolist()) == {100}, "default build keeps exact CE=100 per cell"
+    assert np.allclose(np.abs(weight[lab[pre] == "E"]), L.J_MV, rtol=1e-6), \
+        "default realized E weight is J"
+
+
+# S1 halves N at a fixed in-degree (epsilon 0.1 -> 0.2). These two tests build the same change at
+# small N: n=500 with (80, 20) against the n=1000 default, whose in-degree is also (80, 20).
+# Builds at N=6250 and 12500 take minutes; the S1 run manifest records the realized network.
+SMALL_N, SMALL_REF_N, SMALL_IN_DEGREE = 500, 1000, (80, 20)
+
+
+def test_in_degree_override_fixed_fanin():
+    """Override: every cell takes exactly CE from E and CI from I, off the 0.1 N default."""
+    ce, ci = SMALL_IN_DEGREE
+    ne, ni = L._realized_counts(SMALL_N)
+    assert (ce, ci) != (round(L.CONNECTIVITY_P * ne), round(L.CONNECTIVITY_P * ni)), \
+        "fixture override must differ from the default in-degree"
+    pre, post, _, _, lab = _edges(_lif_model(n=SMALL_N, in_degree=SMALL_IN_DEGREE))
+    assert len(lab) == SMALL_N, "fixture must build SMALL_N cells"
+    fan_e = np.bincount(post[lab[pre] == "E"], minlength=SMALL_N)
+    fan_i = np.bincount(post[lab[pre] == "PV"], minlength=SMALL_N)
+    assert fan_e.sum() > 0 and fan_i.sum() > 0, "fixture must wire edges"
+    assert set(fan_e.tolist()) == {ce}, "every cell takes exactly CE from E"
+    assert set(fan_i.tolist()) == {ci}, "every cell takes exactly CI from I"
+
+
+def test_in_degree_override_holds_psp():
+    """Override: the realized per-edge weight (PSP) at half N equals the default build's at N."""
+    ref = _realized_abs_weights(_lif_model(n=SMALL_REF_N, point="D"))
+    got = _realized_abs_weights(_lif_model(n=SMALL_N, point="D", in_degree=SMALL_IN_DEGREE))
+    g, _ = L.FIG8_POINTS["D"]
+    assert np.allclose(ref["E"], L.J_MV, rtol=1e-6), "fixture: default E edges realize J"
+    assert np.allclose(ref["PV"], g * L.J_MV, rtol=1e-6), "fixture: default I edges realize gJ"
+    for src in ("E", "PV"):
+        assert got[src].size > 0, "fixture must wire edges"
+        u_got, u_ref = np.unique(got[src]), np.unique(ref[src])
+        assert u_got.size == u_ref.size and np.allclose(u_got, u_ref, rtol=1e-6, atol=0), \
+            "realized PSP at half N must equal the default build's"
+
+
+def test_in_degree_override_holds_external_drive():
+    """S1 override: Cext and nu_ext at N=6250 equal the N=12500 values (PORT_SPEC 11)."""
+    for point in ("A", "B", "C", "D"):
+        ref = L.build_sim(point=point, n=L.N_REF)
+        got = L.build_sim(point=point, n=S1_N, in_degree=S1_IN_DEGREE)
+        assert int(ref.poisson_drive["counts"]) == 1000, "fixture: N=12500 Cext is 1000"
+        assert int(got.poisson_drive["counts"]) == int(ref.poisson_drive["counts"]), \
+            "Cext must equal the N=12500 value"
+        assert float(got.poisson_drive["rate_hz"]) == float(ref.poisson_drive["rate_hz"]), \
+            "nu_ext must equal the N=12500 value"
+        assert L.external_rate_hz(point=point, n=S1_N, in_degree=S1_IN_DEGREE) == \
+            pytest.approx(L.external_rate_hz(point=point, n=L.N_REF)), \
+            "external rate must equal the N=12500 value"
+
+
+def test_in_degree_override_refuses_oversize():
+    """A fan-in larger than the source pool is refused, never silently clipped."""
+    with pytest.raises(ValueError, match="in_degree"):
+        L.build_spec(n=50, in_degree=(41, 2))
+
+
+def test_run_manifest_records_in_degree(tmp_path):
+    """The manifest entry records the S1 override; the default entry has no such key."""
+    import json
+
+    L.run(0, "s1key", tmp_path, point="D", n=50, T_s=0.02, in_degree=(10, 2))
+    entry = json.loads((tmp_path / "manifest.json").read_text())["runs"][0]
+    assert entry["in_degree"] == {"ce": 10, "ci": 2, "cext_held_at_n": 12500}
+    assert entry["poisson_drive"]["counts"] == 1000, "override holds Cext at N=12500"

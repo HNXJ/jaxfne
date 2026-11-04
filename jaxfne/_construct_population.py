@@ -23,6 +23,7 @@ from .emitters import (
     EdgeList,
     IzhikevichParams,
     izhikevich_params_from_labels,
+    refresh_v_coefs,
 )
 from ._config import Configuration, _counts_from_fractions, edge_seed_from_metadata
 from ._construct_connectivity import _empty_edge_list, _interarea_W
@@ -283,30 +284,33 @@ def _apply_cell_params(
     declared: set[str],
 ) -> IzhikevichParams:
     """Apply ``cell_params()`` declarations in order: each sets ``a``/``b``/``c``/``d``/
-    ``drive`` of the neurons its ``cell_type``/``layer`` selector matches.
+    ``drive``/``v0``/``u0`` of the neurons its ``cell_type``/``layer`` selector matches.
     ``layer_labels=None`` (an unlayered population) refuses a ``layer`` selector.
     A ``cell_type`` selector matching no neuron is refused unless the type is in
     the declared composition (declared but rounded away: accepted, applies to
-    no neuron)."""
+    no neuron). A declared ``v0`` is refused while ``random_v0`` is on (the default),
+    because the random initial potential would overwrite it."""
     import numpy as np
 
     decls = (metadata.get("circuit") or {}).get("cell_params") or []
     if not decls:
         return params
-    arrays = {key: np.array(getattr(params, key)) for key in ("a", "b", "c", "d", "drive")}
+    arrays = {key: np.array(getattr(params, key)) for key in ("a", "b", "c", "d", "drive", "v0", "u0")}
     for decl in decls:
         selector = decl.get("selector", {})
         overrides = decl.get("params", {})
+        if "v0" in overrides and metadata.get("random_v0", True):
+            raise ValueError(
+                f"cell_params(selector={dict(selector)!r}) declares v0, but random_v0 is on "
+                "(the default): the random initial potential would overwrite it. Pass "
+                "runtime(random_v0=False) to realize a declared v0."
+            )
         if "layer" in selector and layer_labels is None:
             raise ValueError(
                 f"cell_params(selector={dict(selector)!r}) is not realized on this construction "
                 "route: it builds one unlayered population"
             )
-        hits = [
-            i for i in range(len(labels))
-            if not ("cell_type" in selector and labels[i] != selector["cell_type"])
-            and not ("layer" in selector and layer_labels[i] != selector["layer"])
-        ]
+        hits = _selector_hits(selector, labels, layer_labels)
         matched = len(hits)
         for key in arrays:
             if key not in overrides:
@@ -328,7 +332,41 @@ def _apply_cell_params(
                 f"cell_params(selector={dict(selector)!r}) is not realized: it matches no neuron "
                 "of the built population"
             )
-    return replace(params, **{key: jnp.asarray(value, dtype=jdtype) for key, value in arrays.items()})
+    # P-054: a cell whose a, b, c or d leave its preset's class-1 set integrates the standard equation.
+    return refresh_v_coefs(
+        replace(params, **{key: jnp.asarray(value, dtype=jdtype) for key, value in arrays.items()}))
+
+
+def _selector_hits(
+    selector: Mapping[str, Any], labels: Sequence[str], layer_labels: Sequence[str] | None
+) -> list[int]:
+    """Indices of the built neurons a ``cell_params()`` selector matches."""
+    return [
+        i for i in range(len(labels))
+        if not ("cell_type" in selector and labels[i] != selector["cell_type"])
+        and not ("layer" in selector and layer_labels[i] != selector["layer"])
+    ]
+
+
+def _apply_default_u0(
+    params: IzhikevichParams,
+    labels: Sequence[str],
+    layer_labels: Sequence[str] | None,
+    metadata: Mapping[str, Any],
+) -> IzhikevichParams:
+    """Default initial recovery state ``u0 = b * v0`` per cell (P-048, ruled 2026-10-28).
+
+    Call once the realized ``b`` (after ``cell_params()``) and ``v0`` (after the random v0
+    draw) are final. A cell whose ``u0`` a ``cell_params()`` declaration sets keeps it.
+    """
+    import numpy as np
+
+    declared = np.zeros(len(labels), dtype=bool)
+    for decl in (metadata.get("circuit") or {}).get("cell_params") or []:
+        if "u0" in decl.get("params", {}):
+            declared[np.asarray(_selector_hits(decl.get("selector", {}), labels, layer_labels), dtype=np.intp)] = True
+    u0 = jnp.where(jnp.asarray(declared), params.u0, params.b * params.v0)
+    return replace(params, u0=u0.astype(params.u0.dtype))
 
 
 def _refuse_dropped_layer_tables(metadata: Mapping[str, Any], columns: Sequence[Mapping[str, Any]], uniform_3d: bool) -> None:
@@ -746,7 +784,7 @@ def _apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], la
             ("TP", "DP")
         }
         # Vectorized population-pair mask (bit-identical to the prior O(N^2) Python
-        # double loop, which was ~N^2 Python-level iterations — ~1e8 at N=1e4).
+        # double loop, which was ~N^2 Python-level iterations, ~1e8 at N=1e4).
         # tcm_mask[i, j] = 1 iff (pop[j] (pre), pop[i] (post)) in allowed_pairs.
         uniq = list(dict.fromkeys(pop))
         code = {p: c for c, p in enumerate(uniq)}

@@ -1,4 +1,4 @@
-"""Atlas suite — generic visualization atlas for ANY jaxfne model (N>=1).
+"""Atlas suite: generic visualization atlas for ANY jaxfne model (N>=1).
 
 Portable by construction: only the jaxfne public surface is used
 (Model.neuron_table / edge_table / summary, Signals.time_ms/V_m/spikes/
@@ -9,13 +9,13 @@ suite (see docs/ATLAS_SUITE_HANDOUT.md + docs/jaxfne_atlas_suite_dropin/).
 Seven fixed panels (always emitted, even for a single neuron; a panel whose
 data contract cannot be met is emitted as an explicit omission card, never
 skipped and never substituted):
-  1. schema.html         — network_hspice_plotly(model)                OBSERVED
-  2. network_3d.html      — plot_network_3d(model)                    OBSERVED
-  3. raster.html          — plot_raster(signals, model)               OBSERVED
-  4. lfp.html             — plot_lfp (+plot_csd) from recorded field  DERIVED
-  5. h_dynamics.html      — recorded H (HDP H_trace / homeostasis)    DERIVED
-  6. hdp.html             — mutable weight diagnostics (w_trace)      DERIVED
-  7. oscillatory.html     — plot_psd (+spectrogram when feasible)     DERIVED
+  1. schema.html         : network_hspice_plotly(model)                OBSERVED
+  2. network_3d.html      : plot_network_3d(model)                    OBSERVED
+  3. raster.html          : plot_raster(signals, model)               OBSERVED
+  4. lfp.html             : plot_lfp (+plot_csd) from recorded field  DERIVED
+  5. h_dynamics.html      : recorded H (HDP H_trace / homeostasis)    DERIVED
+  6. hdp.html             : mutable weight diagnostics (w_trace)      DERIVED
+  7. oscillatory.html     : plot_psd (+spectrogram when feasible)     DERIVED
 
 N=1 degradation rules: no panel is skipped. Empty edge lists render no
 arrows on the schema; short runs render PSD-only oscillatory response;

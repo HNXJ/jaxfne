@@ -18,8 +18,8 @@ copies never run. Read them as text only.
 | `benchmark_054_scaling.py` | `artifacts/assurance/issue_log/ISSUE_LOG.md`, `artifacts/programme/receipts/engine_053_054/composition_054.md` |
 | `generate_readme_geometry_figure.py` | `artifacts/release/v0_4_17_release_receipt.json` |
 | `test_harness_adversarial.py` | `artifacts/assurance/issue_log/ISSUE_LOG.md` |
-| `fig08_e2_ping.py` | `artifacts/e2/audit/claim_ledger_delta.json` |
-| `fig09_e2_ssa.py` | `artifacts/e2/audit/claim_ledger_delta.json` |
+| `fig08_e2_ping.py` | `artifacts/publication/final/e2_fig08_ping_receipt.json` |
+| `fig09_e2_ssa.py` | `artifacts/publication/final/e2_fig09_ssa_receipt.json` |
 
 Removed outright in the same triage (no tracked receipt, no live reference
 in the searched scope): `scripts/emit_atlas_results_055.py`. Its only

@@ -1,4 +1,4 @@
-"""The "neuronal tensor" standard model — canonical network representation.
+"""The "neuronal tensor" standard model: canonical network representation.
 
 Every jaxfne circuit reduces to one shape, regardless of how many areas,
 layers, or cell types it has:
@@ -17,15 +17,15 @@ layers, or cell types it has:
 
 Static parameters (never plastic/trainable): gMech (conductances), reversal
 potentials, dT. Plastic parameters: wMech (per-connection gain matrix), H
-(homeostatic H-factor — passive ionic charge income per neuron).
+(homeostatic H-factor: passive ionic charge income per neuron).
 
 Every numeric field carries a ``value_tag`` of ``"calibrated"``,
-``"calibrated_proxy"``, or ``"relative"`` (default ``"relative"`` — opt in to
+``"calibrated_proxy"``, or ``"relative"`` (default ``"relative"``; opt in to
 a stronger tag only with evidence backing it).
 
 Configs are saved/loaded as JSON via :func:`save_neuronal_tensor` /
 :func:`load_neuronal_tensor` (built on :mod:`jaxfne.io`'s ``save_json``/
-``load_json``) — this module never hardcodes a config as a Python literal;
+``load_json``). This module never hardcodes a config as a Python literal;
 build a :class:`NeuronalTensor` once, then keep variants as JSON files.
 
 This is additive: the existing :class:`jaxfne.core.Configuration` /
@@ -35,7 +35,7 @@ existing ``construct``/``simulate`` pipeline.
 
 Multi-area placement: each :class:`Area` carries a :class:`Pose3D` (plane +
 rotation + translation) controlling where its layer stack sits in global 3D
-space — e.g. orthogonal to xy/xz/yz, tilted 45 degrees, offset anywhere.
+space, e.g. orthogonal to xy/xz/yz, tilted 45 degrees, offset anywhere.
 :func:`merge_neuronal_tensors` is the "unifier": it takes several existing
 NeuronalTensor configs and concatenates their areas/area_connections into one
 NeuronalTensor (renaming on name collision). :func:`construct_neuronal_tensor`
@@ -70,7 +70,7 @@ ValueTag = Literal["calibrated", "calibrated_proxy", "relative"]
 ConnectivityMode = Literal["unspecified", "explicit"]
 Plane = Literal["xy", "xz", "yz"]
 
-# Single source of truth for NeuronType relative sizes — same table as HDP
+# Single source of truth for NeuronType relative sizes; same table as HDP
 # tau_i = tau_0_ms * size_i**3 scaling (emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE).
 DEFAULT_RELATIVE_SIZE = DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
 DEFAULT_OTHER_RELATIVE_SIZE = 1.0
@@ -105,8 +105,8 @@ _MM_PER_LENGTH_UNIT = {"um": 1e-3, "mm": 1.0, "m": 1e3}
 #: P-023 TFNE carve-out registry: ids of NeuronalTensor objects minted by
 #: :func:`jaxfne.tfne.to_neuronal_tensor`, held weakly alongside the
 #: :func:`_tensor_identity_digest` taken at mint time. The carve-out in
-#: :func:`_wire_connection` consults this — never ``provenance``, which is a
-#: free constructor kwarg any caller can set — so a hand-built tensor carrying
+#: :func:`_wire_connection` consults this; never ``provenance``, which is a
+#: free constructor kwarg any caller can set, so a hand-built tensor carrying
 #: ``provenance={"tfne_digest": ...}`` is still refused. A saved-and-reloaded
 #: tensor loses the status: :func:`save_neuronal_tensor` already strips
 #: provenance, and loading constructs a new (unregistered) object, as do
@@ -181,7 +181,7 @@ class NeuronType:
     emitter_params: Optional[dict] = None
     # Per-triple baseline drive (None = undeclared = the emitter default for
     # this type). A declared value overrides the drive of every neuron built
-    # from this NeuronType — i.e. one (area, layer, type) triple — and is
+    # from this NeuronType, i.e. one (area, layer, type) triple, and is
     # applied at construction after ``drive(baseline_drive_by_cell_type=)``
     # and before ``cell_params()``. Must be a finite real number; NaN, inf,
     # bools and strings are refused, never coerced. On the conductance
@@ -356,6 +356,35 @@ def _check_connection_spatial_sigma(
     return sigma
 
 
+def _check_connection_spatial_radius(
+    spatial_radius: "float | None", *, label: str
+) -> "float | None":
+    """Validate the opt-in Euclidean cutoff shared by both connection types.
+
+    None = undeclared = the grid buckets alone; a declared value must be a
+    finite real number > 0 in mm (bools and strings refused, never coerced).
+    """
+    if spatial_radius is None:
+        return None
+    if isinstance(spatial_radius, bool) or isinstance(spatial_radius, str):
+        raise ValueError(
+            f"{label} spatial_radius must be a finite number > 0 in mm; "
+            f"got {spatial_radius!r}"
+        )
+    try:
+        radius = float(spatial_radius)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"{label} spatial_radius must be a finite number > 0 in mm; "
+            f"got {spatial_radius!r}"
+        )
+    if not (math.isfinite(radius) and radius > 0.0):
+        raise ValueError(
+            f"{label} spatial_radius must be finite and > 0 in mm; got {spatial_radius!r}"
+        )
+    return radius
+
+
 def _check_connection_allow_self(allow_self: "bool | None", *, label: str) -> "bool | None":
     """Validate the per-rule self-edge opt-in shared by both connection types.
 
@@ -445,19 +474,28 @@ def _check_connection_max_in_degree(max_in_degree: "int | None", *, label: str) 
     return degree
 
 
-def _check_connection_in_degree(in_degree: "int | None", *, label: str) -> "int | None":
+def _check_connection_in_degree(
+    in_degree: "int | None", *, label: str, sampling: "str | None" = None,
+) -> "int | None":
     """Validate the exact-fixed-in-degree fan-in count shared by both connection types.
 
     None = undeclared = the ``probability`` density path; a declared value
     must be a positive integer (bools, non-integral numbers and values < 1
-    are refused, never coerced). When set, the rule compiles through the
-    exact fixed-indegree sampler with this per-post-neuron count instead of
-    the density path, so it is mutually exclusive with a declared
-    ``probability``, ``max_in_degree``, ``footprint`` and any sampling
-    other than ``"fixed_indegree"``.
+    are refused, never coerced). With ``sampling="multinomial"`` the value is
+    the mean in-degree instead: a finite number > 0, non-integer allowed, and
+    the rule draws ``round(in_degree * n_post)`` synapses with replacement.
+    When set, the rule compiles through the exact sampler with this
+    per-post-neuron count instead of the density path, so it is mutually
+    exclusive with a declared ``probability``, ``max_in_degree``,
+    ``footprint`` and any sampling other than ``"fixed_indegree"`` or
+    ``"multinomial"``.
     """
     if in_degree is None:
         return None
+    if sampling == "multinomial":
+        from .connectivity import _validate_multinomial_in_degree
+
+        return _validate_multinomial_in_degree(label, in_degree)
     if isinstance(in_degree, bool) or not isinstance(in_degree, numbers.Integral):
         raise ValueError(
             f"{label} in_degree must be a positive integer; "
@@ -521,6 +559,13 @@ class InterConnection:
     # declared metadata. Must be finite and > 0 when set. No consumer exists
     # on the conductance (adex) route, so a declared value there is refused.
     spatial_sigma: "float | None" = None
+    # Opt-in Euclidean cutoff in mm (None = undeclared = the grid buckets
+    # alone). Forwarded into the compiled connection rule, where the
+    # localized (``max_in_degree``) sampler keeps only pairs within this
+    # distance of the post neuron; needs ``max_in_degree`` (refused without
+    # it). Must be finite and > 0 when set. No consumer exists on the
+    # conductance (adex) route, so a declared value there is refused.
+    spatial_radius: "float | None" = None
     # Localized-sampling fan-in cap (None = undeclared = the ``probability``
     # density path). When set, the rule compiles through the localized
     # distance-weighted (``spatial_sigma``) sampler with this per-post-neuron
@@ -535,8 +580,9 @@ class InterConnection:
     # with this per-post-neuron count instead of the density path;
     # mutually exclusive with a declared ``probability``, ``max_in_degree``,
     # ``footprint`` and any other sampling (refused jointly). Must be a
-    # positive integer when set. No consumer exists on the conductance
-    # (adex) route, so a declared value there is refused.
+    # positive integer when set; under ``sampling="multinomial"`` it is the
+    # mean in-degree (a finite number > 0). No consumer exists on the
+    # conductance (adex) route, so a declared value there is refused.
     in_degree: "int | None" = None
     # Per-rule self-edge opt-in (None = undeclared = self-edges dropped, the
     # historical behaviour). ``True`` keeps ``i == i`` pairs on every
@@ -596,12 +642,17 @@ class InterConnection:
             _check_connection_spatial_sigma(self.spatial_sigma, label="InterConnection"),
         )
         object.__setattr__(
+            self, "spatial_radius",
+            _check_connection_spatial_radius(self.spatial_radius, label="InterConnection"),
+        )
+        object.__setattr__(
             self, "max_in_degree",
             _check_connection_max_in_degree(self.max_in_degree, label="InterConnection"),
         )
         object.__setattr__(
             self, "in_degree",
-            _check_connection_in_degree(self.in_degree, label="InterConnection"),
+            _check_connection_in_degree(
+                self.in_degree, label="InterConnection", sampling=self.sampling),
         )
         object.__setattr__(
             self, "allow_self",
@@ -651,12 +702,15 @@ class InterConnection:
                 "in_degree; the fixed-indegree sampler draws exactly in_degree "
                 "presynaptic partners per post cell — declare both"
             )
-        if self.in_degree is not None and self.sampling not in (None, "fixed_indegree"):
+        if self.in_degree is not None and self.sampling not in (
+            None, "fixed_indegree", "multinomial",
+        ):
             raise ValueError(
                 "InterConnection declares in_degree="
                 f"{self.in_degree!r} with sampling={self.sampling!r}; the "
                 "fixed-indegree sampler runs under sampling='fixed_indegree' "
-                "or the default — declare one or neither"
+                "or the default, and the mean in-degree under sampling="
+                "'multinomial' — declare one or neither"
             )
         if self.footprint is not None and self.sampling is not None:
             raise ValueError(
@@ -681,7 +735,7 @@ class Pose3D:
     ``plane`` selects which two global axes hold the layer's local (x, y)
     spread and which global axis holds its local depth (z): "xy" (default,
     depth along global z) / "xz" (depth along global y) / "yz" (depth along
-    global x) — i.e. "orthogonal to xy/xz/yz". ``rotation_deg`` then twists
+    global x), i.e. "orthogonal to xy/xz/yz". ``rotation_deg`` then twists
     the in-plane (x, y) spread by that many degrees around the depth axis
     (e.g. 45.0 for a 45-degree tilt). ``translation`` shifts the whole area.
     """
@@ -797,6 +851,10 @@ class AreaConnection:
     # Same forwarding semantics as InterConnection.spatial_sigma; no consumer
     # on the conductance (adex) route.
     spatial_sigma: "float | None" = None
+    # Opt-in Euclidean cutoff in mm (None = undeclared = the grid buckets
+    # alone). Same forwarding semantics as InterConnection.spatial_radius;
+    # needs ``max_in_degree``; no consumer on the conductance (adex) route.
+    spatial_radius: "float | None" = None
     # Localized-sampling fan-in cap (None = undeclared = the ``probability``
     # density path). Same forwarding semantics as
     # InterConnection.max_in_degree; mutually exclusive with a declared
@@ -896,6 +954,10 @@ class AreaConnection:
             _check_connection_spatial_sigma(self.spatial_sigma, label="AreaConnection"),
         )
         object.__setattr__(
+            self, "spatial_radius",
+            _check_connection_spatial_radius(self.spatial_radius, label="AreaConnection"),
+        )
+        object.__setattr__(
             self, "max_in_degree",
             _check_connection_max_in_degree(self.max_in_degree, label="AreaConnection"),
         )
@@ -908,7 +970,8 @@ class AreaConnection:
             )
         object.__setattr__(
             self, "in_degree",
-            _check_connection_in_degree(self.in_degree, label="AreaConnection"),
+            _check_connection_in_degree(
+                self.in_degree, label="AreaConnection", sampling=self.sampling),
         )
         if self.in_degree is not None and self.probability is not None:
             raise ValueError(
@@ -972,12 +1035,15 @@ class AreaConnection:
                 "in_degree; the fixed-indegree sampler draws exactly in_degree "
                 "presynaptic partners per post cell — declare both"
             )
-        if self.in_degree is not None and self.sampling not in (None, "fixed_indegree"):
+        if self.in_degree is not None and self.sampling not in (
+            None, "fixed_indegree", "multinomial",
+        ):
             raise ValueError(
                 "AreaConnection declares in_degree="
                 f"{self.in_degree!r} with sampling={self.sampling!r}; the "
                 "fixed-indegree sampler runs under sampling='fixed_indegree' "
-                "or the default — declare one or neither"
+                "or the default, and the mean in-degree under sampling="
+                "'multinomial' — declare one or neither"
             )
         if self.footprint is not None and self.sampling is not None:
             raise ValueError(
@@ -1146,11 +1212,11 @@ class NeuronalTensor:
     provided connectivity, including an empty sequence, is authoritative.
 
     Deliberately unvalidated against arbitrary Python objects beyond a basic
-    type check on ``areas``/``area_connections`` — this is a build-time spec,
+    type check on ``areas``/``area_connections``; this is a build-time spec,
     not a runtime pytree, so keep validation cheap and loud rather than
     exhaustive. The check below exists specifically to fail fast on the
     documented landmine of passing a ``jaxfne.core.Configuration`` (or any
-    other non-``Area`` object) positionally into ``areas`` — previously a
+    other non-``Area`` object) positionally into ``areas``; previously a
     silent type confusion with no runtime error until something much later
     and more confusing broke.
     """
@@ -1296,6 +1362,7 @@ _CONNECTION_DEFAULTS_056 = {
     "conduction_velocity_m_per_s": None,
     "length_unit": "mm",
     "spatial_sigma": None,
+    "spatial_radius": None,
     "max_in_degree": None,
     "in_degree": None,
     "allow_self": None,
@@ -1392,7 +1459,7 @@ def save_neuronal_tensor(tensor: NeuronalTensor, path: str | Path) -> str:
     """Save a NeuronalTensor as a JSON config file. Configs are data, never code.
 
     T-25: in-memory ``provenance`` is stripped as before, but a bound trained
-    W0 (``trained_w0`` plus ``w0_provenance``) persists deliberately — it is
+    W0 (``trained_w0`` plus ``w0_provenance``) persists deliberately; it is
     plain per-edge data, and :func:`load` reconstructs it exactly.
     """
     path = Path(path)
@@ -1492,6 +1559,7 @@ def _load_neuronal_tensor_impl(
                 conduction_velocity_m_per_s=ac.get("conduction_velocity_m_per_s"),
                 length_unit=ac.get("length_unit", "mm"),
                 spatial_sigma=ac.get("spatial_sigma"),
+                spatial_radius=ac.get("spatial_radius"),
                 max_in_degree=ac.get("max_in_degree"),
                 in_degree=ac.get("in_degree"),
                 allow_self=ac.get("allow_self"),
@@ -1528,6 +1596,7 @@ def _load_neuronal_tensor_impl(
                         conduction_velocity_m_per_s=ic.get("conduction_velocity_m_per_s"),
                         length_unit=ic.get("length_unit", "mm"),
                         spatial_sigma=ic.get("spatial_sigma"),
+                        spatial_radius=ic.get("spatial_radius"),
                         max_in_degree=ic.get("max_in_degree"),
                         in_degree=ic.get("in_degree"),
                         allow_self=ic.get("allow_self"),
@@ -1584,7 +1653,7 @@ def merge_neuronal_tensors(
         The configs to merge, in order.
     poses : Sequence[Pose3D], optional
         If given, one pose per area in flattened encounter order (area 0 of
-        tensor 0, area 1 of tensor 0, ..., area 0 of tensor 1, ...) — overrides
+        tensor 0, area 1 of tensor 0, ..., area 0 of tensor 1, ...), overrides
         that area's existing ``pose``. Must have exactly as many entries as
         the total area count across all tensors. If omitted, every area keeps
         its own declared ``pose`` (default: stacked at the same origin).
@@ -1594,7 +1663,7 @@ def merge_neuronal_tensors(
     NeuronalTensor
         One merged NeuronalTensor; ``area_connections`` from every input are
         preserved (with area names rewritten where collisions were resolved).
-        Cross-tensor ``AreaConnection``s are NOT inferred — only declare those
+        Cross-tensor ``AreaConnection``s are NOT inferred; only declare those
         explicitly on the result if you want areas from different inputs wired
         together.
     """
@@ -1603,7 +1672,7 @@ def merge_neuronal_tensors(
         raise ValueError(
             f"poses must have one entry per area; got {len(poses)} for {total_areas} areas"
         )
-    # T-25: a bound trained W0 is indexed by one tensor's compiled edges —
+    # T-25: a bound trained W0 is indexed by one tensor's compiled edges;
     # merging would silently rebind or drop it, so it is refused.
     for tensor in tensors:
         if tensor.trained_w0 is not None:
@@ -1858,7 +1927,7 @@ def _construct_neuronal_tensor_impl(
     the constructed positions afterward, overwriting
     ``model.params["positions"]`` (and the matching ``x``/``y``/``z`` entries
     in ``model.static["neuron_metadata"]``) so field/LFP/EEG/MEG proxy
-    readouts — which read positions from there — see the real layout.
+    readouts, which read positions from there, see the real layout.
 
     Each connection's ``PlasticParams.H`` is aggregated (mean, across every
     connection whose target layer/cell_type touches a given neuron;
@@ -1867,16 +1936,16 @@ def _construct_neuronal_tensor_impl(
     :meth:`Model.with_hdp_initial_state`. This is stored but inert unless
     the caller separately enables HDP (``cfg.hdp(...)`` before
     :func:`jaxfne.construct`, or via a post-hoc ``RuntimeConfig`` override at
-    :func:`jaxfne.simulate` time) — matching ``RuntimeConfig.enable_hdp``'s
+    :func:`jaxfne.simulate` time), matching ``RuntimeConfig.enable_hdp``'s
     default of ``False``.
 
     Positions already carry each ``Layer.geometry``: the bridge wrote it
     into the ``Configuration`` (``tfne_geometry`` domains), so
-    :func:`jaxfne.construct` sampled it — and the bridge also wrote each
+    :func:`jaxfne.construct` sampled it, and the bridge also wrote each
     ``Area``'s ``Pose3D`` (``tensor_pose`` metadata, only when some pose is
     non-default), so localized (``max_in_degree``) edge sampling reads the
     posed layout. This then applies the same placement (plane + rotation +
-    translation) onto those constructed positions — no re-sampling, one
+    translation) onto those constructed positions; no re-sampling, one
     source of truth for geometry. A default pose is the identity,
     bit-exact.
 
@@ -1960,7 +2029,7 @@ def _construct_neuronal_tensor_impl(
         )
     # T-25: the Configuration bridge carries declared structure only (a bound
     # trained W0 is refused there), so bridge a declared copy and stamp the
-    # full identity — including the trained vector — into the receipt metadata
+    # full identity, including the trained vector, into the receipt metadata
     # afterwards; _apply_trained_w0 then realizes the trained vector exactly.
     bridge_tensor = tensor
     if tensor.trained_w0 is not None:
@@ -2014,7 +2083,7 @@ def _construct_neuronal_tensor_impl(
 def _as_1d_edge_vector(value: Any, *, name: str) -> "object":
     """Coerce one candidate edge vector to a 1-D numpy array (T-25).
 
-    Shape only — dtype and value checks belong to the caller so each refusal
+    Shape only; dtype and value checks belong to the caller so each refusal
     names the invariant it guards. Empty and non-1-D inputs are refused.
     """
     import numpy as _np
@@ -2040,8 +2109,8 @@ def _as_1d_edge_vector(value: Any, *, name: str) -> "object":
 def _native_edge_signs(edge_list: Any, emitter: Any) -> "object":
     """Executed per-edge weights of a compiled edge list, as float64 numpy.
 
-    Resolves through :func:`jaxfne.emitters._resolved_edge_weight` — the same
-    function the kernels consume — so compact ``weight_storage`` modes (whose
+    Resolves through :func:`jaxfne.emitters._resolved_edge_weight`; the same
+    function the kernels consume, so compact ``weight_storage`` modes (whose
     ``weight`` field is a size-0 placeholder) resolve exactly, never by guess.
     """
     import numpy as _np
@@ -2064,7 +2133,7 @@ def with_trained_weights(
 ) -> NeuronalTensor:
     """Bind one run's final per-edge weights to a copy of ``tensor`` (T-25).
 
-    Returns A' — a new :class:`NeuronalTensor` carrying the trained vector as
+    Returns A': a new :class:`NeuronalTensor` carrying the trained vector as
     :class:`TrainedW0` plus :class:`W0Provenance` (``origin="trained"``,
     ``parent_digest`` = identity digest of ``tensor``). Constructing A' on the
     izhikevich route realizes the trained weights exactly
@@ -2082,20 +2151,20 @@ def with_trained_weights(
       is refused as ambiguous.
     - a ``(pre, post, w)`` triple, a ``{"pre", "post", "w"}`` dict, a
       :class:`jaxfne._pipeline.ContinuationState` (``dynamic.w``), or a bare
-      weight vector — each with ``pre``/``post`` made explicit (kwargs for a
+      weight vector; each with ``pre``/``post`` made explicit (kwargs for a
       state or bare vector; inside the triple/dict otherwise). Reference
       edges are a deterministic reconstruction of ``tensor`` at ``seed`` (the
       construct seed the circuit was built with, not the simulate seed);
       compiled ``(pre, post)`` are seed-deterministic, so a wrong seed is
       refused, never rebound.
     - anything else is refused: a bare :class:`Signals` (HDP summaries only,
-      never per-edge weights — pass the trained Model, or re-run with
+      never per-edge weights; pass the trained Model, or re-run with
       ``return_state=True`` and pass the state with explicit ``pre``/``post``),
-      a checkpoint leaf list (unlabeled — rebind through the trained Model),
+      a checkpoint leaf list (unlabeled; rebind through the trained Model),
       a model with no HDP diagnostics (re-run with ``enable_hdp=True``).
 
     Every form checks shape (1-D, same length, non-empty), dtype (integer
-    ``pre``/``post``, float32/float64 ``w`` — never coerced), finiteness,
+    ``pre``/``post``, float32/float64 ``w``; never coerced), finiteness,
     edge identity (same edges, same order) and native-sign agreement (HDP
     updates are sign-preserving magnitude updates, so a flipped sign means
     foreign weights). Optional ``run_manifest_sha``/``n_steps``/``code_sha``
@@ -2339,9 +2408,9 @@ def _apply_trained_w0(model: Model, tensor: NeuronalTensor) -> Model:
 
     No-op when ``tensor`` carries no trained weights. Otherwise verifies the
     stored ``(pre, post)`` against the compiled edges exactly (same edges,
-    same order — stale or foreign weights are refused) and native-sign
+    same order; stale or foreign weights are refused) and native-sign
     agreement, then swaps in a ``per_edge`` :class:`EdgeList` carrying the
-    trained vector — the same replace idiom as
+    trained vector; the same replace idiom as
     :func:`jaxfne.emitters.edge_list_per_edge_zeros`, so compact
     ``weight_storage`` modes (whose ``weight`` is a size-0 placeholder)
     execute the trained vector exactly rather than being refused.
@@ -2419,7 +2488,7 @@ def _adex_harvest_tensor(tensor: NeuronalTensor) -> "tuple[NeuronalTensor, dict[
     vocabulary does not apply to adex receptors), so they are stripped, and
     cell types the Izhikevich sampler does not name (e.g. ``"SOM"``) are
     aliased to unused Izhikevich names 1:1, preserving every count and
-    fraction — and so every RNG draw. Returns the copy plus the
+    fraction, and so every RNG draw. Returns the copy plus the
     ``{alias: original}`` map to restore the harvested rows. Cell types
     outside the AdEx vocabulary are refused here (mirroring
     :func:`jaxfne.emitters_adex.make_adex_params`), before the harvest.
@@ -2549,8 +2618,8 @@ def _pose_positions_and_rows(
     about the area's own column origin (that offset removed first), so its
     translation is absolute; a default pose keeps construct's layout.
     Returns ``(positions, updated_rows)`` with the matching ``x``/``y``/``z``
-    entries refreshed, so field/LFP/EEG/MEG proxy readouts — which read
-    positions from there — see the real layout. Shared by the current-based
+    entries refreshed, so field/LFP/EEG/MEG proxy readouts, which read
+    positions from there, see the real layout. Shared by the current-based
     and adex tensor paths.
     """
     from ._construct_population import AREA_X_SPACING_MM
@@ -2804,7 +2873,7 @@ def _checked_tau_ms(conn: "InterConnection | AreaConnection", label: str) -> flo
 
     ``None`` is refused, never defaulted, and so is any other
     non-finite-non-positive value: 0, negative, NaN, inf, bools and strings
-    (even numeric ones — no silent coercion), matching the genome-side
+    (even numeric ones; no silent coercion), matching the genome-side
     checks; only a real number with ``float(tau)`` finite and ``> 0`` wires.
     """
     if conn.static.dT_ms is None:
@@ -2886,13 +2955,13 @@ def _wire_connection(
     Uses the generic, selector-based :meth:`Configuration.connections` +
     :meth:`Configuration.mechanisms` hooks (source/target by area/layer/
     cell_type) rather than the same-area-masked dense ``W`` in
-    ``_apply_connectivity`` — selectors carry no same-area restriction,
+    ``_apply_connectivity``; selectors carry no same-area restriction,
     so this is what actually couples two different areas (or two specific
     layer x cell-type populations within one area) into the simulated
     dynamics.     ``mechanism`` -> ``tau_ms`` comes from ``static.dT_ms``
-    (P-023: required — ``None`` is refused, never defaulted, and so is any
+    (P-023: required; ``None`` is refused, never defaulted, and so is any
     other non-finite-non-positive value: 0, negative, NaN, inf, bools and
-    strings (even numeric ones — no silent coercion), matching the genome-side
+    strings (even numeric ones; no silent coercion), matching the genome-side
     checks; only a real number with ``float(tau)`` finite and ``> 0`` wires);
     mechanisms are deduplicated by (name, dT_ms) so repeated connections
     sharing both don't raise on ``Configuration``'s duplicate-name guard.
@@ -2906,15 +2975,18 @@ def _wire_connection(
     with ``probability=None``; mutually exclusive with ``max_in_degree``
     and ``footprint``); a declared ``spatial_sigma``
     without ``max_in_degree`` has no consumer on the density path, so it
-    is refused here (``spatial_sigma needs max_in_degree``). A declared
+    is refused here (``spatial_sigma needs max_in_degree``); a declared
+    ``spatial_radius`` behaves the same (``spatial_radius needs
+    max_in_degree``) and, with ``max_in_degree``, is forwarded into the
+    rule. A declared
     ``footprint`` compiles deterministic pairs from the posed positions
     instead of sampling (``probability=None`` on the rule; ``probability``,
     ``max_in_degree`` and non-default ``sampling`` alongside it are refused
     at declaration); a declared ``weight_sharing`` rides the rule for the
     HDP rule to consume. Sampling reads
-    the posed neuron positions — each area's ``Pose3D`` is applied to a
+    the posed neuron positions; each area's ``Pose3D`` is applied to a
     wiring copy before edge compilation, and the same pose maps the stored
-    positions afterwards — so moving an area changes the realized edges
+    positions afterwards, so moving an area changes the realized edges
     while a rigid motion of the whole tensor preserves them.
     Sign follows the P-023 mechanism vocabulary
     (:func:`_check_connection_mechanism_sign`), except for TFNE-derived
@@ -2935,7 +3007,7 @@ def _wire_connection(
         if reversal_mV is not None:
             # Declared metadata only: jaxfne's compiled edges are
             # current-based (Izhikevich-style), with no conductance/
-            # reversal-potential term anywhere in the dynamics — this value
+            # reversal-potential term anywhere in the dynamics; this value
             # is surfaced into cfg.metadata["circuit"]["mechanisms"] for
             # inspection/provenance, never consumed by simulate().
             mech_params["reversal_mV"] = float(reversal_mV)
@@ -2954,6 +3026,15 @@ def _wire_connection(
         wire_kw["delay_ms"] = float(conn_delay)
     conn_sigma = getattr(conn, "spatial_sigma", None)
     conn_degree = getattr(conn, "max_in_degree", None)
+    conn_radius = getattr(conn, "spatial_radius", None)
+    if conn_radius is not None and conn_degree is None:
+        # Checked before spatial_sigma so a connection declaring both
+        # without the cap names the radius.
+        raise ValueError(
+            f"{label} declares spatial_radius={conn_radius!r} without "
+            "max_in_degree; spatial_radius needs max_in_degree (localized "
+            "sampling) — declare both or neither"
+        )
     if conn_sigma is not None and conn_degree is None:
         raise ValueError(
             f"{label} declares spatial_sigma={conn_sigma!r} without "
@@ -2964,6 +3045,10 @@ def _wire_connection(
         # Validated at declaration (finite, > 0); read by the localized
         # (``max_in_degree``) sampler.
         wire_kw["spatial_sigma"] = float(conn_sigma)
+    if conn_radius is not None:
+        # Validated at declaration (finite, > 0); the localized
+        # (``max_in_degree``) sampler keeps only pairs within this distance.
+        wire_kw["spatial_radius"] = float(conn_radius)
     if conn_degree is not None:
         # Localized sampling replaces the density path (Configuration
         # refuses the combination), so the rule carries probability=None.
@@ -2973,7 +3058,13 @@ def _wire_connection(
     if conn_in_degree is not None:
         # Exact fixed in-degree replaces the density path (Configuration
         # refuses the combination), so the rule carries probability=None.
-        wire_kw["in_degree"] = int(conn_in_degree)
+        # Under sampling="multinomial" the declared value is the mean in-degree
+        # k (a float, non-integer allowed); otherwise the fixed count is an int.
+        wire_kw["in_degree"] = (
+            float(conn_in_degree)
+            if getattr(conn, "sampling", None) == "multinomial"
+            else int(conn_in_degree)
+        )
         wire_probability = None
     if conn_degree is not None and conn_in_degree is not None:
         # Unreachable through the declaring constructors (both refuse the
@@ -3090,7 +3181,7 @@ def _wire_adex_connection(
     Same selectors as :func:`_wire_connection`, but the rule is written for
     the conductance route (:func:`jaxfne._construct_adex.construct_adex_model`):
     the mechanism is declared with ``kind="receptor"`` (tau from the shared
-    P-023 check, reversal mandatory — refused when missing, since the kernel
+    P-023 check, reversal mandatory; refused when missing, since the kernel
     has no default), no ``sign`` is set (conductance semantics: polarity
     rides on the weight, positive from E sources, negative otherwise), and
     the weight is in nS (a declaration realizing to 0 nS is refused: a
@@ -3111,6 +3202,13 @@ def _wire_adex_connection(
             "the conductance (adex) route has no localized-sampling consumer "
             "(rule max_in_degree/spatial_sigma are refused there: only None "
             "is admitted) — leave spatial_sigma undeclared there"
+        )
+    if getattr(conn, "spatial_radius", None) is not None:
+        raise ValueError(
+            f"{label} declares spatial_radius={getattr(conn, 'spatial_radius')!r}; "
+            "the conductance (adex) route has no localized-sampling consumer "
+            "(rule max_in_degree/spatial_sigma/spatial_radius are refused there: only None "
+            "is admitted) — leave spatial_radius undeclared there"
         )
     if getattr(conn, "max_in_degree", None) is not None:
         raise ValueError(
@@ -3280,21 +3378,21 @@ def _velocity_edge_delays(
 
     pos_index = {int(r["neuron_id"]): i for i, r in enumerate(rows)}
     n = len(rows)
-    areas = np.array([str(r["area"]) for r in rows], dtype=object)
-    layers = np.array([str(r["layer"]) for r in rows], dtype=object)
-    ctypes = np.array([str(r["cell_type"]) for r in rows], dtype=object)
-    xyz = np.asarray(positions, dtype=np.float64).reshape(n, 3)
     pre_ids = np.asarray(edge_pre, dtype=np.int64).reshape(-1)
     post_ids = np.asarray(edge_post, dtype=np.int64).reshape(-1)
-    missing = [int(i) for i in list(pre_ids) + list(post_ids) if int(i) not in pos_index]
-    if missing:
+    # Vectorized endpoint check: the old per-edge Python loop materialized
+    # 2 * n_edges ints. ``np.isin`` against the table ids reports the same set.
+    known_ids = np.fromiter(pos_index.keys(), dtype=np.int64, count=len(pos_index))
+    known_rows = np.fromiter(pos_index.values(), dtype=np.int64, count=len(pos_index))
+    flat = np.concatenate([pre_ids, post_ids]) if pre_ids.size else post_ids
+    outside = flat[np.logical_not(np.isin(flat, known_ids))]
+    if outside.size:
         raise ValueError(
             "geometry-delay matcher sees edge endpoints outside the neuron table: "
-            f"{sorted(set(missing))[:8]}"
+            f"{sorted(set(outside.tolist()))[:8]}"
         )
-    pre_idx = np.array([pos_index[int(i)] for i in pre_ids], dtype=np.int64)
-    post_idx = np.array([pos_index[int(i)] for i in post_ids], dtype=np.int64)
-
+    # Fast path: no velocity connection selects edges, so no row positions or
+    # per-edge maps are needed below; the callers return the model unchanged.
     def _iter_conns():
         for area in tensor.areas:
             for ic in area.inter_connections:
@@ -3307,10 +3405,36 @@ def _velocity_edge_delays(
                 ac.target_area,
             )
 
+    conns = list(_iter_conns())
+    if not any(conn.conduction_velocity_m_per_s is not None for _, conn, _, _ in conns):
+        return []
+    areas = np.array([str(r["area"]) for r in rows], dtype=object)
+    layers = np.array([str(r["layer"]) for r in rows], dtype=object)
+    ctypes = np.array([str(r["cell_type"]) for r in rows], dtype=object)
+    xyz = np.asarray(positions, dtype=np.float64).reshape(n, 3)
+    # Dense id -> row lookup: neuron ids are table positions in the
+    # constructed models; a sparse fallback below covers foreign tables.
+    max_id = int(flat.max()) if flat.size else -1
+    lut: np.ndarray | None = None
+    max_known = int(known_ids.max()) if n else -1
+    if (
+        0 <= max_id <= 16 * max(n, 1)
+        and 0 <= max_known <= 16 * max(n, 1)
+        and bool(np.all(flat >= 0))
+        and bool(np.all(known_ids >= 0))
+    ):
+        lut = np.full((max(max_id, max_known) + 1,), -1, dtype=np.int64)
+        lut[known_ids] = known_rows
+        pre_idx = lut[pre_ids]
+        post_idx = lut[post_ids]
+    else:
+        pre_idx = np.array([pos_index[int(i)] for i in pre_ids], dtype=np.int64)
+        post_idx = np.array([pos_index[int(i)] for i in post_ids], dtype=np.int64)
+
     out: "list[tuple[str, Any, dict[int, float], float]]" = []
     claimed = np.zeros(pre_ids.shape[0], dtype=bool)
     claimed_label = np.array([""] * pre_ids.shape[0], dtype=object)
-    for label, conn, source_area, target_area in _iter_conns():
+    for label, conn, source_area, target_area in conns:
         velocity = conn.conduction_velocity_m_per_s
         if velocity is None:
             continue
@@ -3348,13 +3472,13 @@ def _velocity_edge_delays(
 def _tensor_identity_digest(tensor: NeuronalTensor) -> str:
     """Deterministic structural digest of a NeuronalTensor.
 
-    Includes areas, layers, neuron types, geometry, pose, connections, and —
-    when bound — the trained W0 vector and its provenance: they are the
+    Includes areas, layers, neuron types, geometry, pose, connections, and
+    when bound, the trained W0 vector and its provenance: they are the
     circuit's initial condition, so a trained tensor digests distinctly from
     its parent. Untrained tensors omit those fields in ``to_dict`` and digest
     byte-identically to earlier releases. The digest covers the persisted
     content of the tensor (the same surface as ``save_neuronal_tensor``,
-    which intentionally strips in-memory ``provenance``). Runtime knobs (seed/duration/dt/emitter) are excluded —
+    which intentionally strips in-memory ``provenance``). Runtime knobs (seed/duration/dt/emitter) are excluded;
     they belong to ``RuntimeConfiguration``, not the tensor. Provenance
     (genome rules hash, schema version, development seed, phenotype hash) is
     deliberately excluded so receipt identity is stable across the documented
@@ -3413,7 +3537,7 @@ def _refuse_mixed_pose_specification(tensor: NeuronalTensor) -> None:
 def _tensor_pose_spec(tensor: NeuronalTensor) -> "dict[str, object] | None":
     """Plain-data pose record for the construction wiring, or None when idle.
 
-    Returns None when every area's pose is the default ``Pose3D()`` — then
+    Returns None when every area's pose is the default ``Pose3D()``; then
     no metadata is written and the historical path runs byte-identically.
     Otherwise returns ``{"order", "origin_x", "poses"}`` with each area's
     column origin (``k * AREA_X_SPACING_MM``) and pose fields, so
@@ -3495,7 +3619,7 @@ def neuronal_tensor_to_configuration(
     """Bridge a :class:`NeuronalTensor` into the existing construct/simulate pipeline.
 
     Per-area/per-layer cell-type fractions ARE preserved, via
-    :meth:`Configuration.area_layer_cell_types` — each layer's declared
+    :meth:`Configuration.area_layer_cell_types`: each layer's declared
     ``NeuronType`` list is split into even fractions (the tensor stores
     membership, not population fractions, so an even split is the most
     neutral reading) and recorded per area/layer, not flattened globally.
@@ -3504,7 +3628,7 @@ def neuronal_tensor_to_configuration(
     via :meth:`Configuration.population` (records
     ``metadata["area_layer_count_frac"][area]``, resolved by
     ``core._area_layer_count_frac`` ahead of jaxfne's hardcoded default
-    layer-thickness split). Each ``Layer.n_neurons`` is honored exactly —
+    layer-thickness split). Each ``Layer.n_neurons`` is honored exactly;
     previously this function called the plain :meth:`Configuration.column`
     (total count only), so per-layer sizes were silently dropped in favor
     of that default split regardless of what a tensor declared.
@@ -3516,7 +3640,7 @@ def neuronal_tensor_to_configuration(
     area) and ``AreaConnection`` (between areas) is compiled into a REAL edge
     rule via :meth:`Configuration.connections` + :meth:`Configuration.mechanisms`
     (selector-based: ``area``/``layer``/``cell_type``), which carries no
-    same-area restriction — this is what actually couples two areas (jaxfne's
+    same-area restriction; this is what actually couples two areas (jaxfne's
     own default recurrent ``W`` in ``_apply_connectivity`` is
     same-area-masked and would leave bridged areas dynamically isolated).
     ``mechanism`` resolves to a real per-edge ``tau_ms`` (from
@@ -3529,10 +3653,10 @@ def neuronal_tensor_to_configuration(
     on weight polarity. Genuine TFNE derivation is recognized only through
     the module-private minted registry (populated by
     ``jaxfne.tfne.to_neuronal_tensor`` for the exact objects it constructs);
-    a caller-supplied ``provenance`` dict — including one carrying
-    ``tfne_digest`` — never qualifies, and save/load, copies and merges lose
+    a caller-supplied ``provenance`` dict, including one carrying
+    ``tfne_digest``; never qualifies, and save/load, copies and merges lose
     the status.
-    ``probability=1.0`` (full bipartite between the selected populations) —
+    ``probability=1.0`` (full bipartite between the selected populations):
     the tensor model declares connection membership, not a separate density
     parameter, so full density between the declared layer x cell-type pair
     is the most neutral reading, mirroring the even-split reading used for
@@ -3554,13 +3678,13 @@ def neuronal_tensor_to_configuration(
     - ``StaticParams.reversal_potentials_mV`` is surfaced into each declared
       mechanism's ``params["reversal_mV"]`` (visible in
       ``cfg.metadata["circuit"]["mechanisms"]``) but still has no numeric
-      consumer in jaxfne's dynamics — the compiled edges are native
+      consumer in jaxfne's dynamics; the compiled edges are native
       current-based (Izhikevich-style), not a conductance/reversal-potential
       scheme. Declared, inspectable metadata only; does not affect
       ``simulate()`` output.
     - ``PlasticParams.H`` (homeostatic charge-balance factor) seeds the HDP
       controller's initial per-neuron state, but ONLY when the caller
-      separately enables HDP via ``Configuration.hdp(...)`` — see
+      separately enables HDP via ``Configuration.hdp(...)``; see
       :func:`construct_neuronal_tensor`, which aggregates per-neuron ``H``
       from every connection touching that neuron and applies it via
       ``Model.with_hdp_initial_state``. Stored but inert when HDP is
@@ -3573,7 +3697,7 @@ def neuronal_tensor_to_configuration(
     """
     if not tensor.areas:
         raise ValueError("NeuronalTensor must declare at least one area to bridge")
-    # T-25: a bound trained W0 is per-edge data this bridge cannot carry —
+    # T-25: a bound trained W0 is per-edge data this bridge cannot carry;
     # bridging it would silently run declared W0. Refuse with the route that
     # verifies and realizes the trained vector exactly.
     if tensor.trained_w0 is not None:
@@ -3665,7 +3789,7 @@ def neuronal_tensor_to_configuration(
     # Tensor identity: a deterministic structural digest (areas, layers,
     # neuron types, geometry, connections, provenance) written into config
     # metadata so run receipts/config hashes are distinct for tensors with
-    # scientifically different structure/geometry — the Configuration bridge
+    # scientifically different structure/geometry; the Configuration bridge
     # alone can collapse distinct tensors to equal metadata.
     cfg = cfg.update_metadata(tensor_identity=_tensor_identity_digest(tensor))
     cfg = cfg.update_metadata(connectivity_mode=connectivity_mode)
@@ -3854,7 +3978,7 @@ def neuronal_tensor_to_adex_configuration(
     or velocity-median over the rule's selected pairs, computed from
     ``positions``). The returned config carries only fields the adex route
     consumes (no probes, fields, geometry domains, or tensor-identity
-    metadata — each is refused there); declared per-triple drives ride
+    metadata; each is refused there); declared per-triple drives ride
     along as ``tensor_triple_drive`` metadata for
     :func:`jaxfne._construct_adex.construct_adex_model`, so
     :func:`jaxfne.construct` routes it to ``construct_adex_model`` unchanged.
@@ -3864,7 +3988,7 @@ def neuronal_tensor_to_adex_configuration(
 
     if not tensor.areas:
         raise ValueError("NeuronalTensor must declare at least one area to bridge")
-    # T-25: same as neuronal_tensor_to_configuration — this bridge cannot carry
+    # T-25: same as neuronal_tensor_to_configuration; this bridge cannot carry
     # a bound trained W0 and would silently run declared W0.
     if tensor.trained_w0 is not None:
         raise ValueError(
@@ -3921,7 +4045,7 @@ def neuronal_tensor_to_adex_configuration(
         # Standalone harvest, identical to the construct path
         # (:func:`_construct_adex_tensor_impl`): the harvest strips the
         # tensor's connections and aliases non-Izhikevich cell types, so the
-        # population sampler draws the same counts — then labels are restored.
+        # population sampler draws the same counts; then labels are restored.
         harvest_tensor, restore = _adex_harvest_tensor(tensor)
         harvest_cfg = neuronal_tensor_to_configuration(
             harvest_tensor,

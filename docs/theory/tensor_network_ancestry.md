@@ -213,7 +213,7 @@ This path is **deferred and not promised:**
 
 ## See Also
 
-- **[Computation Basis](computation_basis.md)** — Collapsible tensor-field scaffold and dimension rules
-- **[Mathematical Glossary Flow](mathematical_glossary_flow.md)** — Seven core TFNE equations with statement boundaries
-- **[Source/Field Equations](source_field_equations.md)** — Source bookkeeping and field proxy details
-- **[TFNE Operator Doctrine](operator_doctrine.md)** — Per-stage rule table built on this basis-transform cascade
+- **[Computation Basis](computation_basis.md)**: Collapsible tensor-field scaffold and dimension rules
+- **[Mathematical Glossary Flow](mathematical_glossary_flow.md)**: Seven core TFNE equations with statement boundaries
+- **[Source/Field Equations](source_field_equations.md)**: Source bookkeeping and field proxy details
+- **[TFNE Operator Doctrine](operator_doctrine.md)**: Per-stage rule table built on this basis-transform cascade

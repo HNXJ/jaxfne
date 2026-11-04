@@ -1,20 +1,31 @@
 """Shared setup for the unscored PCL Fig. 3 FAIL diagnostic.
 
-Reads only. Writes only under C:/workspace/pcl_diag/. The scorer is imported
+Reads only. Writes only under PCL_DIAG_DIR. The scorer is imported
 from fig3_analysis and its loaders and statistics are reused unchanged.
 """
 import json
+import os
 import pickle
 import sys
 from pathlib import Path
 
 import numpy as np
 
-DIAG = Path("C:/workspace/pcl_diag")
-SCORER = Path("E:/repos/jaxfne-wt-pcl/artifacts/etudes/pcl/port")
+
+def _env_dir(name):
+    """The folder named by env var ``name``; refuses with a message when unset."""
+    value = os.environ.get(name, "")
+    if not value:
+        sys.exit(f"{name} is unset: set it to the folder the PCL diagnostic needs")
+    return Path(value)
+
+
+DIAG = _env_dir("PCL_DIAG_DIR")
+CLONE = _env_dir("PCL_DIAG_CLONE")
+SCORER = CLONE / "artifacts/etudes/pcl/port"
 RUN = "F:/warehouse/pcl/runs/fig3_cSTDP3"
 INPUT = "F:/warehouse/pcl/data/PCL_datasets_and_networks/grating/counterphase_gratingComplex/test7"
-SCORED_JSON = Path("E:/repos/jaxfne-wt-pcl/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json")
+SCORED_JSON = CLONE / "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
 CACHE = DIAG / "_temp_grid_cache.pkl"
 
 EVEN = [0, 2, 4, 6, 8]

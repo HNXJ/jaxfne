@@ -1,6 +1,6 @@
 """Source-to-field and localized laminar projection computing proxy engines.
 
-Docs: ``docs/reference/api/readout/fields.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/readout/fields/) —
+Docs: ``docs/reference/api/readout/fields.md`` (https://jaxfne.readthedocs.io/en/latest/reference/api/readout/fields/):
 update that page when this module's public API changes.
 
 This module implements structural simulation proxy calculations under linear_solver.
@@ -184,7 +184,7 @@ def _resolve_proxy_dtype(dtype: str, *, name: str):
     Same contract as :func:`project_laminar_sources`: ``"float32"`` computes
     in float32; ``"float64"`` computes in float64 but requires the caller to
     have enabled x64 first, else it is refused by name rather than silently
-    downgraded. Anything else — including ``"bfloat16"`` — is refused by
+    downgraded. Anything else, including ``"bfloat16"``, is refused by
     name, matching the sibling ``experimental_poisson_1d`` solver
     (``jaxfne/fields/solvers.py``), which admits only ``"float32"`` and
     ``"float64"``. The bfloat16-dynamics runtime path upcasts to
@@ -208,7 +208,7 @@ def _infer_proxy_dtype(*arrays: jax.Array):
 
     float64 input with x64 enabled computes in float64; anything else
     computes in float32. A float64 input with x64 off still reads
-    float32 — that is JAX's own canonicalization (``jnp.asarray`` of a
+    float32, that is JAX's own canonicalization (``jnp.asarray`` of a
     float64 array with x64 disabled), not a second truncation, so it is
     kept, not refused.
     """
@@ -246,7 +246,7 @@ def project_laminar_sources(
         ``'row_normalize'`` erases source density and flattens depth
         structure (each contact's weights always sum to 1 regardless of how
         attenuated the raw Gaussian is, so e.g. a contact outside the
-        modeled population reads as loud as one in the densest layer) — it
+        modeled population reads as loud as one in the densest layer); it
         is kept only for explicit opt-in / backward compatibility, matching
         the stance already documented for ``JaxleyBridge.simulate_laminar_field``
         (``docs/reference/api/model/bridges.md``).
@@ -1251,7 +1251,7 @@ def cross_area_coherence(
     raise: a single segment gives coherence 1 at every bin.
 
     Bins where either auto-spectrum vanishes are observationally silent:
-    ``valid`` is False there and coherence/phase read exactly 0.0 — a
+    ``valid`` is False there and coherence/phase read exactly 0.0; a
     declared refusal, never a silent NaN. Inputs must be finite 1D series
     of equal length; violations fail closed. ``nperseg`` is returned.
     """
@@ -1482,7 +1482,7 @@ def cable_filter_sources(
     by depth/cell-type-dependent membrane time constants (deep pyramidal
     apical dendrites => long tau => relatively preserved low-frequency power;
     fast-spiking interneurons => short tau => high-frequency power passes
-    everywhere) — it is not a calibrated cable-equation solve:
+    everywhere); it is not a calibrated cable-equation solve:
     ``field_solver_status`` stays ``"linear_solver"`` and
     ``physical_amplitude_calibrated`` stays ``False``.
 
@@ -1491,11 +1491,11 @@ def cable_filter_sources(
     deep:superficial power ratio 1.30 (clearly deep-dominant, unchanged
     direction from the unfiltered baseline) and gamma deep:superficial power
     ratio 0.66 (flips to superficial-dominant, a genuine absolute
-    band-selective effect — absent from the unfiltered baseline, which has no
+    band-selective effect, absent from the unfiltered baseline, which has no
     frequency-dependent operator and shows the same flat ~1.7x deep gain in
     every band). Theta is left effectively unaffected (2.13 vs the unfiltered
     baseline). ``order=1`` produces the same qualitative direction but a much
-    weaker gamma flip (0.93, barely below parity) — ``order=2`` is the
+    weaker gamma flip (0.93, barely below parity); ``order=2`` is the
     validated default for a clean split. Those figures were measured with the
     FFT formulation of this operator; the time-domain cascade matches its
     magnitude response to within ~1% in the validated bands (checked
@@ -1513,7 +1513,7 @@ def cable_filter_sources(
     dt_ms:
         Simulation timestep in milliseconds.
     order:
-        Number of cascaded single-pole sections (default 2; validated —
+        Number of cascaded single-pole sections (default 2; validated;
         see above).
     dtype:
         Requested dtype policy (same contract as

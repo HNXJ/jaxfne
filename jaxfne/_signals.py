@@ -18,7 +18,7 @@ import numbers
 import warnings
 from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
-from typing import Any, Callable, Mapping, Optional, Sequence
+from typing import Any, Callable, Mapping, Optional, Sequence, Union
 
 import jax
 import jax.numpy as jnp
@@ -66,6 +66,280 @@ def _n_steps_from_grid(duration_ms: float, dt_ms: float, *, owner: str) -> int:
     return int(nearest)
 
 
+def _validate_gaussian_drive(value: Any) -> None:
+    """Refuse a malformed ``Simulation.gaussian_drive`` declaration.
+
+    The only accepted form is ``{"std_by_cell_type": {cell_type: std}}`` with
+    every std a finite real >= 0 (bools and strings refused, never coerced).
+    Whether the mapping covers the model's cell types is checked at simulate
+    time, where the model is known.
+    """
+    if not isinstance(value, Mapping):
+        raise ValueError(
+            "Simulation.gaussian_drive must be a mapping "
+            f"{{'std_by_cell_type': {{cell_type: std}}}}; got {value!r}"
+        )
+    extra = sorted(str(k) for k in value if k != "std_by_cell_type")
+    if extra:
+        raise ValueError(
+            f"Simulation.gaussian_drive key(s) {extra} are not recognised; the only "
+            "key is 'std_by_cell_type'"
+        )
+    if "std_by_cell_type" not in value:
+        raise ValueError("Simulation.gaussian_drive requires the key 'std_by_cell_type'")
+    stds = value["std_by_cell_type"]
+    if not isinstance(stds, Mapping) or not stds:
+        raise ValueError(
+            "Simulation.gaussian_drive['std_by_cell_type'] must be a non-empty mapping "
+            f"from cell type to std; got {stds!r}"
+        )
+    for cell_type, std in stds.items():
+        if (
+            isinstance(std, bool)
+            or not isinstance(std, numbers.Real)
+            or not math.isfinite(float(std))
+            or float(std) < 0.0
+        ):
+            raise ValueError(
+                f"Simulation.gaussian_drive std_by_cell_type[{cell_type!r}] must be a "
+                f"finite number >= 0; got {std!r}"
+            )
+
+
+def _validate_poisson_drive_container(poisson: Any) -> None:
+    """Refuse a ``poisson_drive`` whose container is neither a mapping nor a non-empty list.
+
+    Each entry is validated where it is realized (``check_current_route_poisson_drive``).
+    """
+    if isinstance(poisson, Mapping):
+        return
+    if isinstance(poisson, (list, tuple)) and poisson and all(
+            isinstance(entry, Mapping) for entry in poisson):
+        return
+    raise ValueError(
+        "Simulation.poisson_drive must be None, a mapping, or a non-empty list of mappings "
+        f"(one per population); got {poisson!r}"
+    )
+
+
+_SILENCE_KEYS = ("fractions", "onset_ms", "seed")
+
+_REPLACE_KEYS = ("fractions", "rate_hz", "seed")
+
+_EDGE_GAIN_KEYS = ("pre", "post", "schedule")
+
+
+def _validate_edge_gain(value: Any, n_steps: int) -> None:
+    """Refuse a malformed ``Simulation.edge_gain`` declaration.
+
+    The accepted form is ``{"pre": cell_type, "post": cell_type, "schedule":
+    [n_steps]}``: ``pre``/``post`` are non-empty cell-type name strings (whether
+    the model declares them is checked at simulate time, where the model is
+    known) and ``schedule`` is a 1-d array of ``n_steps`` finite entries >= 0
+    (bools refused, never coerced).
+    """
+    if not isinstance(value, Mapping):
+        raise ValueError(
+            "Simulation.edge_gain must be None or a mapping "
+            "{'pre': cell_type, 'post': cell_type, 'schedule': [n_steps]}; "
+            f"got {value!r}"
+        )
+    unknown = sorted(str(k) for k in value if k not in _EDGE_GAIN_KEYS)
+    if unknown:
+        raise ValueError(
+            f"Simulation.edge_gain has unknown key(s) {unknown}; "
+            f"the only keys are {list(_EDGE_GAIN_KEYS)}"
+        )
+    for key in ("pre", "post", "schedule"):
+        if key not in value:
+            raise ValueError(f"Simulation.edge_gain requires the key {key!r}")
+    for key in ("pre", "post"):
+        name = value[key]
+        if isinstance(name, bool) or not isinstance(name, str) or not name:
+            raise ValueError(
+                f"Simulation.edge_gain {key} must be a non-empty cell-type name "
+                f"string; got {name!r}"
+            )
+    import numpy as _np_gain
+
+    raw = value["schedule"]
+    if isinstance(raw, bool):
+        raise ValueError(
+            "Simulation.edge_gain schedule must be a 1-d array of n_steps "
+            f"finite entries >= 0, not bools; got {raw!r}"
+        )
+    try:
+        raw_arr = _np_gain.asarray(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "Simulation.edge_gain schedule must be a 1-d array of n_steps "
+            f"finite entries >= 0 in Hz; got {raw!r}"
+        ) from exc
+    if raw_arr.dtype == _np_gain.bool_:
+        raise ValueError(
+            "Simulation.edge_gain schedule must hold finite entries >= 0, "
+            "not bools"
+        )
+    try:
+        sched = _np_gain.asarray(raw, dtype=_np_gain.float64)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "Simulation.edge_gain schedule must be a 1-d array of n_steps "
+            f"finite entries >= 0 in Hz; got {raw!r}"
+        ) from exc
+    if sched.ndim != 1 or sched.shape[0] != int(n_steps):
+        raise ValueError(
+            f"Simulation.edge_gain schedule length {sched.shape} != n_steps "
+            f"{int(n_steps)}"
+        )
+    if not _np_gain.all(_np_gain.isfinite(sched)):
+        raise ValueError(
+            "Simulation.edge_gain schedule must hold finite entries"
+        )
+    if _np_gain.any(sched < 0.0):
+        raise ValueError(
+            "Simulation.edge_gain schedule must hold entries >= 0; "
+            f"got min {float(sched.min())}"
+        )
+
+
+def _validate_silence(value: Any) -> None:
+    """Refuse a malformed ``Simulation.silence`` declaration.
+
+    The accepted form is ``{"fractions": {cell_type: fraction}, "seed": int}``
+    with an optional ``"onset_ms"`` (finite, >= 0, default 0): every fraction
+    in [0, 1] (bools refused, never coerced) and ``seed`` an int. Whether the
+    named types exist in the model is checked at simulate time, where the
+    model is known.
+    """
+    if not isinstance(value, Mapping):
+        raise ValueError(
+            "Simulation.silence must be None or a mapping "
+            f"{{'fractions': {{cell_type: fraction}}, 'seed': int}}; got {value!r}"
+        )
+    unknown = sorted(str(k) for k in value if k not in _SILENCE_KEYS)
+    if unknown:
+        raise ValueError(
+            f"Simulation.silence has unknown key(s) {unknown}; "
+            f"the only keys are {list(_SILENCE_KEYS)}"
+        )
+    if "fractions" not in value:
+        raise ValueError("Simulation.silence requires the key 'fractions'")
+    fractions = value["fractions"]
+    if not isinstance(fractions, Mapping) or not fractions:
+        raise ValueError(
+            "Simulation.silence['fractions'] must be a non-empty mapping "
+            f"from cell type to fraction; got {fractions!r}"
+        )
+    for cell_type, fraction in fractions.items():
+        if (
+            isinstance(fraction, bool)
+            or not isinstance(fraction, numbers.Real)
+            or not math.isfinite(float(fraction))
+            or not 0.0 <= float(fraction) <= 1.0
+        ):
+            raise ValueError(
+                f"Simulation.silence fractions[{cell_type!r}] must be a "
+                f"finite number in [0, 1]; got {fraction!r}"
+            )
+    if "seed" not in value:
+        raise ValueError("Simulation.silence requires the key 'seed'")
+    seed = value["seed"]
+    if isinstance(seed, bool) or not isinstance(seed, numbers.Integral):
+        raise ValueError(f"Simulation.silence seed must be an int; got {seed!r}")
+    onset_ms = value.get("onset_ms", 0.0)
+    if (
+        isinstance(onset_ms, bool)
+        or not isinstance(onset_ms, numbers.Real)
+        or not math.isfinite(float(onset_ms))
+        or float(onset_ms) < 0.0
+    ):
+        raise ValueError(
+            f"Simulation.silence onset_ms must be a finite number >= 0 in ms; "
+            f"got {onset_ms!r}"
+        )
+
+
+def _validate_replace(value: Any) -> None:
+    """Refuse a malformed ``Simulation.replace`` declaration.
+
+    The accepted form is ``{"fractions": {cell_type: fraction}, "rate_hz":
+    {cell_type: float}, "seed": int}``: every fraction in [0, 1] (bools
+    refused, never coerced); ``rate_hz`` a non-empty mapping from cell type
+    to a finite number >= 0, with a rate for every replaced type (fraction
+    > 0) and no rate for a type absent from ``fractions``; ``seed`` an int.
+    Whether the named types exist in the model is checked at simulate time,
+    where the model is known.
+    """
+    if not isinstance(value, Mapping):
+        raise ValueError(
+            "Simulation.replace must be None or a mapping "
+            f"{{'fractions': {{cell_type: fraction}}, 'rate_hz': float, 'seed': int}}; "
+            f"got {value!r}"
+        )
+    unknown = sorted(str(k) for k in value if k not in _REPLACE_KEYS)
+    if unknown:
+        raise ValueError(
+            f"Simulation.replace has unknown key(s) {unknown}; "
+            f"the only keys are {list(_REPLACE_KEYS)}"
+        )
+    if "fractions" not in value:
+        raise ValueError("Simulation.replace requires the key 'fractions'")
+    fractions = value["fractions"]
+    if not isinstance(fractions, Mapping) or not fractions:
+        raise ValueError(
+            "Simulation.replace['fractions'] must be a non-empty mapping "
+            f"from cell type to fraction; got {fractions!r}"
+        )
+    for cell_type, fraction in fractions.items():
+        if (
+            isinstance(fraction, bool)
+            or not isinstance(fraction, numbers.Real)
+            or not math.isfinite(float(fraction))
+            or not 0.0 <= float(fraction) <= 1.0
+        ):
+            raise ValueError(
+                f"Simulation.replace fractions[{cell_type!r}] must be a "
+                f"finite number in [0, 1]; got {fraction!r}"
+            )
+    if "rate_hz" not in value:
+        raise ValueError("Simulation.replace requires the key 'rate_hz'")
+    rate_hz = value["rate_hz"]
+    if not isinstance(rate_hz, Mapping) or not rate_hz:
+        raise ValueError(
+            "Simulation.replace rate_hz must be a non-empty mapping "
+            f"from cell type to rate in Hz; got {rate_hz!r}"
+        )
+    for cell_type, rate in rate_hz.items():
+        if cell_type not in fractions:
+            raise ValueError(
+                f"Simulation.replace rate_hz[{cell_type!r}] names a type absent "
+                f"from fractions {sorted(fractions)}"
+            )
+        if (
+            isinstance(rate, bool)
+            or not isinstance(rate, numbers.Real)
+            or not math.isfinite(float(rate))
+            or float(rate) < 0.0
+        ):
+            raise ValueError(
+                f"Simulation.replace rate_hz[{cell_type!r}] must be a "
+                f"finite number >= 0 in Hz; got {rate!r}"
+            )
+    missing = sorted(
+        t for t, frac in fractions.items() if float(frac) > 0.0 and t not in rate_hz
+    )
+    if missing:
+        raise ValueError(
+            f"Simulation.replace rate_hz lacks a rate for replaced type(s) {missing}"
+        )
+    if "seed" not in value:
+        raise ValueError("Simulation.replace requires the key 'seed'")
+    seed = value["seed"]
+    if isinstance(seed, bool) or not isinstance(seed, numbers.Integral):
+        raise ValueError(f"Simulation.replace seed must be an int; got {seed!r}")
+
+
 @dataclass(frozen=True)
 class Simulation:
     """Immutable specification of one simulation run.
@@ -78,12 +352,50 @@ class Simulation:
     homeostasis params, i.e. ``jaxfne.hdp_network.enable_plasticity`` or
     ``jaxfne.plasticity.STDPPlasticityConfig``),
     ``record_sources``/``record_fields`` (recording toggles), ``poisson_drive``
-    (optional drive spec), ``runtime`` (:class:`RuntimeConfig` override), and
+    (optional drive spec: one mapping, or a non-empty list of mappings with
+    pairwise disjoint ``(area, layer, cell_type)`` targets, realized on the lif
+    route only; the list sums one drive per population), ``runtime``
+    (:class:`RuntimeConfig` override), and
     ``ablation`` (None or one of ``E_silence``, ``I_silence``,
     ``disconnected_null``, ``shuffled_timing``). ``n_steps`` is
     ``duration_ms / dt_ms``, which must be an integer within 1e-9 relative
     tolerance (off-grid durations raise) and must be > 0. Seed and n_steps belong to
     the Simulation: a ``runtime`` carrying different non-zero values is refused.
+
+    ``gaussian_drive`` (None = undeclared) is ``{"std_by_cell_type": {cell_type:
+    std}}``. It sets each cell's stochastic-current coefficient: the ``noise_scale``
+    that the Izhikevich kernels take, defined at the 0.5 ms reference step and
+    scaled by ``sqrt(0.5/dt_ms)`` exactly as the existing current is, so the
+    existing seed stream drives it and no new noise key is added. It is realized
+    on the Izhikevich routes (edge undelayed and delayed, ``receptor_exponential``,
+    dense in default and ``net_m`` order, homeostatic, HDP, and continuation). It is
+    refused on the other emitter families, in ``simulate_batch`` (which does not
+    consume it), together with ``hdp_params['noise_scale']``, and, on ``net_m``, unless
+    every std is zero. The mapping must cover every model cell type and name no
+    other; that is checked at simulate time.
+
+    ``silence`` (None = undeclared) is ``{"fractions": {cell_type: fraction},
+    "onset_ms": float, "seed": int}``. It masks the emitted spikes of a
+    ``round(fraction * N_type)`` per-type subset from an onset step while each
+    cell's own state keeps evolving, after CAMINOS ``manip_mask``
+    (``artifacts/etudes/papers/caminos/caminos_jax.py`` lines 432-467) and the
+    step-loop mask (lines 812, 840-846). It is realized on the AdEx route only;
+    every other emitter family refuses a non-None value.
+
+    ``replace`` (None = undeclared) is ``{"fractions": {cell_type: fraction},
+    "rate_hz": {cell_type: float}, "seed": int}``. It replaces the emitted spikes of a
+    ``round(fraction * N_type)`` per-type subset by an independent per-step
+    Poisson draw at that type's ``rate_hz``, after CAMINOS ``manip_mask``
+    (``artifacts/etudes/papers/caminos/caminos_jax.py`` lines 432-467) and the
+    step-loop replacement (lines 833-839), which the emitted spike still
+    enters the delay ring through. It is realized on the AdEx route only;
+    every other emitter family refuses a non-None value.
+
+    ``edge_gain`` (None = undeclared) is ``{"pre": cell_type, "post": cell_type,
+    "schedule": [n_steps]}``. It scales the conductance weight ``|w|`` of every
+    edge from a ``pre``-type cell to a ``post``-type cell by the per-step factor
+    ``schedule[t]`` (finite, >= 0). It is realized on the AdEx route only;
+    every other emitter family refuses a non-None value.
     """
 
     duration_ms: float = 1000.0
@@ -97,9 +409,13 @@ class Simulation:
     seed: int = 0
     record_sources: bool = True
     record_fields: bool = True
-    poisson_drive: Optional[dict] = None
+    poisson_drive: Optional[Union[dict, list]] = None
     runtime: RuntimeConfig | None = None
     ablation: Optional[str] = None
+    gaussian_drive: Optional[dict] = None
+    silence: Optional[dict] = None
+    replace: Optional[dict] = None
+    edge_gain: Optional[dict] = None
 
     def __post_init__(self) -> None:
         if not (math.isfinite(self.duration_ms) and self.duration_ms > 0):
@@ -121,6 +437,16 @@ class Simulation:
                 f"Simulation.ablation must be None or one of {sorted(_ABLATION_MODES)}; "
                 f"got {self.ablation!r}"
             )
+        if self.gaussian_drive is not None:
+            _validate_gaussian_drive(self.gaussian_drive)
+        if self.silence is not None:
+            _validate_silence(self.silence)
+        if self.replace is not None:
+            _validate_replace(self.replace)
+        if self.edge_gain is not None:
+            _validate_edge_gain(self.edge_gain, n)
+        if self.poisson_drive is not None:
+            _validate_poisson_drive_container(self.poisson_drive)
         if self.plasticity != 0:
             raise ValueError(
                 f"Simulation.plasticity={self.plasticity!r} is refused: the gain "
@@ -182,7 +508,7 @@ class Probe:
 
 # v0.3.29 signal-access key aliases. Maps user-facing keys to the real
 # underlying attribute. Only real, present readouts are listed: the core proxy
-# field carries lfp/csd/phi_e/source proxies — there is NO eeg/meg/emm readout.
+# field carries lfp/csd/phi_e/source proxies; there is NO eeg/meg/emm readout.
 _SIGNALS_GET_KEY_ALIASES: dict[str, str] = {
     "vm": "V_m", "v_m": "V_m", "voltage": "V_m", "V_m": "V_m",
     "spk": "spikes", "spike": "spikes", "spikes": "spikes", "raster": "spikes",
@@ -348,7 +674,7 @@ class Objective:
     """Declarative objective specification: losses, regularizers, and diagnostic gates.
 
     All specs are stored as plain dicts (no callables) so the objective is always
-    JSON-serializable.  Gate pass/fail is a computational diagnostic only — it does
+    JSON-serializable.  Gate pass/fail is a computational diagnostic only; it does
     not imply empirical validation or biological calibration.
     """
 
@@ -618,9 +944,9 @@ class ReadoutResult:
     JSON-safe via to_dict().
 
     Status values:
-        "computed"   — value was computed successfully.
-        "no_field"   — metric requires field output but signals has no field.
-        "unknown_metric" — metric not in _KNOWN_READOUT_METRICS.
+        "computed": value was computed successfully.
+        "no_field": metric requires field output but signals has no field.
+        "unknown_metric": metric not in _KNOWN_READOUT_METRICS.
     """
 
     spec_name: str
@@ -810,7 +1136,7 @@ def _make_poisson_drive(
     ``counts=1`` (default) is one Bernoulli trial per step per cell, exactly
     the historical drive bit for bit; ``counts=C`` sums C independent trains
     (Brunel 2000: Cext external trains per cell), drawn as a single
-    ``binomial(C, p)`` per step per cell — the exact sum distribution of C
+    ``binomial(C, p)`` per step per cell: the exact sum distribution of C
     Bernoulli trials. Output is finite and bounded.
     ``target`` is ``"all"`` (every neuron) or an ``(area, layer, cell_type)``
     triple of strings naming one population. A triple draws the same
@@ -1184,7 +1510,7 @@ class SpikeTrainInput:
 class LaminarPopulation:
     """Metadata descriptor for one named laminar cell population.
 
-    Depth values are normalized proxy coordinates in [0, 1] — not physical
+    Depth values are normalized proxy coordinates in [0, 1]; not physical
     microns.  Overlapping depth ranges are allowed; co-located cell types
     (e.g. E and PV in the same layer) are anatomically expected.
     No physical-amplitude or calibration claim is made.
@@ -1334,7 +1660,7 @@ _KNOWN_METRICS = frozenset({
     "kappa_synchrony",
 })
 
-#: Config-metadata gate metrics — string-valued flags compared against
+#: Config-metadata gate metrics: string-valued flags compared against
 #: ``cfg.metadata`` rather than computed readout metrics.  These let an
 #: Objective declare truth/scope gates (e.g. claim_level) that
 #: are evaluated against the configuration, not the signals.
@@ -1356,8 +1682,8 @@ def _finite_or_none(value: float) -> Optional[float]:
 def _compute_kappa_synchrony_metric(spikes: Any) -> Optional[float]:
     """Vectorized mean pairwise spike-train correlation (kappa synchrony).
 
-    Matches :func:`jaxfne.tutorial_utils.kappa_synchrony` semantics — mean
-    Pearson correlation over neuron pairs with non-zero temporal variance —
+    Matches :func:`jaxfne.tutorial_utils.kappa_synchrony` semantics: mean
+    Pearson correlation over neuron pairs with non-zero temporal variance;
     but computed as a single correlation matrix multiply for speed in the
     per-candidate tuning loop.  Proxy diagnostic; not a biological invariant.
     Expects ``spikes`` shaped ``[n_timesteps, n_neurons]``. Returns NaN where
@@ -1546,7 +1872,7 @@ def _evaluate_gate_spec(
 
     Numeric gates are checked against computed readout ``metrics``.  Gates
     whose metric is a configuration flag (see ``_KNOWN_CONFIG_GATE_METRICS``)
-    are checked against ``cfg_meta`` via exact string comparison — this lets
+    are checked against ``cfg_meta`` via exact string comparison; this lets
     an Objective assert truth/scope gates (claim_level, …) that
     describe the configuration rather than the signals.
     """
@@ -1625,7 +1951,7 @@ _FIELD_REGIME_VALUES: frozenset[str] = frozenset(
     }
 )
 
-#: Regimes that are declared future — never claim implemented=True for these
+#: Regimes that are declared future; never claim implemented=True for these
 _FUTURE_FIELD_REGIMES: frozenset[str] = frozenset({"future_admittive", "future_maxwell"})
 
 #: Allowed values for BasisSpec.source_mode
@@ -1671,7 +1997,7 @@ class AxisSpec:
     (``active``), collapsed to a scalar or removed (``collapsed``), or
     indexed by an explicit label set (``indexed``).
 
-    These are documentation/contract objects — they do not affect JAX
+    These are documentation/contract objects; they do not affect JAX
     execution. They appear in manifest output to make axis semantics
     explicit and auditable.
 
@@ -1777,7 +2103,7 @@ class BasisSpec:
     @property
     def claim_allowed(self) -> bool:
         """Physical amplitude claims are always False in proxy/scaffold regimes."""
-        # Claims require solved field with calibrated conductivity — not as of v0.5.x
+        # Claims require solved field with calibrated conductivity; not as of v0.5.x
         return False
 
     @property

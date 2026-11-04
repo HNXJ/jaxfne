@@ -1,9 +1,9 @@
-"""JDNA — JAX Developmental Neural Architecture (pseudo-genomic generation).
+"""JDNA: JAX Developmental Neural Architecture (pseudo-genomic generation).
 
 JDNA is the theory/framework governing pseudo-genomic generation. The primary
 object is a :class:`PseudoGenome`: a finite, model-defined generative
 specification whose coordinates and rules determine the development of a
-neuronal phenotype. The genome analogy is computational — its components need
+neuronal phenotype. The genome analogy is computational; its components need
 not correspond to literal genes, DNA sequences, chromosomes, or molecular
 genomic mechanisms.
 

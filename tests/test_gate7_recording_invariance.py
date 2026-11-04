@@ -133,12 +133,10 @@ def test_gate7_model_simulate_recording_invariance():
     cfg = jtfne.suite2_net1_config(seed=42, n=5, duration_ms=25.0, dt_ms=0.5)
     model = jtfne.construct(cfg)
 
-    # Run with fields recorded
-    sim_fields = jtfne.simulation(duration_ms=25.0, dt_ms=0.5, seed=17, record_fields=True, record_sources=True)
+    sim_fields =jtfne.simulation(duration_ms=25.0, dt_ms=0.5, seed=17, record_fields=True, record_sources=True)
     res_fields = model.simulate(sim_fields)
 
-    # Run without fields recorded
-    sim_nofields = jtfne.simulation(duration_ms=25.0, dt_ms=0.5, seed=17, record_fields=False, record_sources=True)
+    sim_nofields =jtfne.simulation(duration_ms=25.0, dt_ms=0.5, seed=17, record_fields=False, record_sources=True)
     res_nofields = model.simulate(sim_nofields)
 
     np.testing.assert_array_equal(np.asarray(res_fields.V_m), np.asarray(res_nofields.V_m))

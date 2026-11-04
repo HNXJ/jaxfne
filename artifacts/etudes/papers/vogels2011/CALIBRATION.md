@@ -1,6 +1,6 @@
 # vogels2011 calibration record (RESIDUAL_PROTOCOL.md, Records)
 
-Status: P2 (smoke pilot, unscored). Every number below is reopened from its JSON or
+Status: P3 (signed P3 v4 scored off on R-E 2026-11-02, `RESULT_P3.md`; the records below are pilots). Every number below is reopened from its JSON or
 receipt before commit (checklist R2); verdicts use the status tags
 (checklist R3).
 
@@ -32,6 +32,38 @@ unknown).
   each I cell's outgoing edges, so its potentiation was scaled by the out-degree; the traces are
   per synapse since `changelog.d/istdp_vogels2011_traces.fixed.md`. w_ie_final_mean 2.42 nS is
   superseded; rerun segment B before P3.
+
+## B8 convergence pilot (P2, seed 0, n 10 000, unscored, 2026-11-01)
+
+- Run: `vogels2011_api.py pilot --seed 0 --n 10000 --T-s 120 --plastic-segment-s 5` at dceb49b0, WSL CUDA float32,
+  32 min wall, 5.4 GB peak RSS. Receipts `F:/warehouse/vogels2011/conv_dceb49b0/s0_T120/` (`pilot_receipt.json`
+  sha256 9eb55150…242784). Read with `read_convergence.py`.
+- E rate course (observed): 76.5 Hz at 1 s, 8.2 at 10 s, 6.3 at 20 s, 4.8 at 60 s, 4.15 at 120 s. The 10 s-window
+  slope first falls below 0.1 Hz/s at 24 s, while the rate falls a further 2.2 Hz from 20 s to 120 s.
+- Fit r(t) = r_inf + A exp(-t/tau), t ≥ 20 s (derived): r_inf 4.17 ± 0.06 Hz, tau 31.7 ± 2.7 s, residual sd
+  0.17 Hz. Last 1 s, E cells: median 4.0 Hz, 10/90 % 1/7 Hz; the top 10 % carry 21 % of spikes (unimodal).
+- R-E at 120 s: z 4.15 Hz, e 0.38 (band 0.20); O-DROP ratio 38.7. The network converges above rho0 = 3 Hz.
+- Ruling (Hamm 2026-11-01): T 150 s (about 5 tau), convergence redefined as |slope| < 0.01 Hz/s over 20 s; the
+  baseline and both known positives (rho0 6 Hz, eta 0) rerun at T 150 s before the P3 v3 amendment.
+
+## B8 T 150 s pilots (P2, seed 0, n 10 000, unscored, 2026-11-02)
+
+- Runs at bafa4797, WSL CUDA float32, `--T-s 150 --plastic-segment-s 5`; walls 35:27 (base), 43:11 (rho0 6 Hz),
+  24:24 (eta 0); peak RSS 5.4-5.6 GB. Receipts `F:/warehouse/vogels2011/T150_bafa4797/` (`pilot_receipt.json`
+  sha256: base 522df0cd…, rho0 6 Hz 9918063c…, eta 0 0cdd5dcc…). Slope: least squares on the per-second E rate over
+  130-150 s (`e_rate_per_s_hz`), with its standard error.
+
+| Run | R-E z (y 3 Hz) | e | O-DROP | fit r_inf, tau (t ≥ 20 s) | slope 130-150 s (se) | \|slope\| < 0.01 |
+|---|---|---|---|---|---|---|
+| base | 4.241 Hz | 0.414 | 37.82 | 4.11 ± 0.04 Hz, 34.1 ± 2.3 s | −0.0019 (0.0079) Hz/s | yes |
+| rho0 6 Hz | 6.928 Hz | 1.309 | 23.15 | 7.24 ± 0.04 Hz, 22.3 ± 3.5 s | −0.0157 (0.0097) Hz/s | no |
+| eta 0 | 162.1 Hz | 53.0 | 0.99 | 161.6 Hz (flat) | +0.0066 (0.0103) Hz/s | yes |
+
+- Known positives move as declared: rho0 6 Hz puts R-E outside the 0.20 band; eta 0 fails O-DROP (0.99 < 2).
+- The baseline converges (slope rule met, r_inf 4.11 Hz) above y = 3 Hz: under the v2 band the pilot predicts an
+  R-E FAIL (e 0.41).
+- The slope's standard error over 20 one-second bins (0.008-0.010 Hz/s) equals the 0.01 Hz/s threshold, so the
+  rule's pass on a converged run is not assured (inferred from the se; owner decision in P3 v3).
 
 ## Provenance
 

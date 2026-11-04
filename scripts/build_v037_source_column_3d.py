@@ -9,8 +9,10 @@ Demonstrates source bookkeeping, field handoff, and probe readout via:
 - Equation annotations
 - Interactive camera control
 
-Output:
-  docs/assets/interactive/v037_source_column_3d.html
+Outputs (docs/assets/interactive/):
+  v037_readout_panels.html, v037_source_column_manifest.json
+The 3-D figure is built in memory by build_column_figure() and writes no file;
+scripts/generate_docs_visuals.py renders its still and the figure site builds its page.
 
 Usage:
   python scripts/build_v037_source_column_3d.py
@@ -317,6 +319,14 @@ def create_readout_panels(signals: Any) -> go.Figure:
     )
 
 
+def build_column_figure() -> go.Figure:
+    """Simulate the column and return its 3-D figure. Writes nothing."""
+    cfg = build_column_config(n_per_layer=12)
+    _model, signals = simulate_column(cfg)
+    neuron_metadata = extract_neuron_metadata(signals, n_per_layer=12)
+    return create_3d_column_plot(signals, neuron_metadata, n_per_layer=12)
+
+
 # ============================================================================
 # Manifest & Output
 # ============================================================================
@@ -370,7 +380,7 @@ def create_manifest(
             "field_handoff": "Y(t) = P·S(t)",
             "probe_readout": "R_k(t) = Q_k·Y(t)",
         },
-        "html_output": "docs/assets/interactive/v037_source_column_3d.html",
+        "html_output": "https://hnxj.github.io/jaxfne/figures/v037_source_column_3d/v037_source_column_3d.html",
     }
 
     return manifest
@@ -391,25 +401,17 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Configure and simulate
-    print("[1/5] Configuring laminar column...")
+    print("[1/4] Configuring laminar column...")
     cfg = build_column_config(n_per_layer=12)
 
-    print("[2/5] Simulating column dynamics...")
+    print("[2/4] Simulating column dynamics...")
     model, signals = simulate_column(cfg)
 
-    print("[3/5] Extracting neuron metadata...")
+    print("[3/4] Extracting neuron metadata...")
     neuron_metadata = extract_neuron_metadata(signals, n_per_layer=12)
 
-    print("[4/5] Creating 3D visualization...")
-    fig_3d = create_3d_column_plot(signals, neuron_metadata, n_per_layer=12)
-
-    # Save 3D column as primary output
-    html_path = output_dir / "v037_source_column_3d.html"
-    fig_3d.write_html(str(html_path), include_plotlyjs="cdn")
-    print(f"  ✓ Saved: {html_path}")
-
     # Also create and embed readout panels
-    print("[5/5] Creating readout panels...")
+    print("[4/4] Creating readout panels...")
     fig_readouts = create_readout_panels(signals)
     readout_path = output_dir / "v037_readout_panels.html"
     fig_readouts.write_html(str(readout_path), include_plotlyjs="cdn")
@@ -429,9 +431,9 @@ def main():
     print(f"  All finite: {manifest['all_outputs_finite']}")
     print(f"  Duration: {manifest['duration_ms']} ms")
     print()
-    print(f"✓ Build complete. Open {html_path} in a browser.")
+    print(f"✓ Build complete. Open {readout_path} in a browser.")
 
-    return html_path
+    return readout_path
 
 
 if __name__ == "__main__":

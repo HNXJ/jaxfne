@@ -60,6 +60,7 @@ from ._construct_population import (
     _DENSE_CONNECTIVITY_WARN_N,
     _apply_baseline_drive,
     _apply_cell_params,
+    _apply_default_u0,
     _declared_cell_types,
     _neuron_population_from_config,
 )
@@ -76,7 +77,7 @@ def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
     a ``RuntimeConfig`` so that ``.runtime(dtype=..., recurrent_backend=..., jit=...)``
     set on a Configuration is actually honored by the high-level ``simulate`` path.
     Only non-None known keys are applied, so a config without explicit runtime
-    knobs yields the default RuntimeConfig (float32, dense, eager) — unchanged
+    knobs yields the default RuntimeConfig (float32, dense, eager); unchanged
     behavior. ``dtype="float64"`` raises unless JAX x64 is enabled before array
     construction (see ``RuntimeConfig.actual_dtype``).
     """
@@ -119,7 +120,7 @@ def simulate(
     When no explicit ``runtime``/``Simulation`` is given, the runtime declared on
     the model's :class:`Configuration` via ``.runtime(...)`` (``dtype``,
     ``recurrent_backend``, ``jit``, ``backend``, ``synaptic_kernel``) is
-    inherited — so ``cfg.runtime(dtype="float64")`` / ``recurrent_backend="edge_list"``
+    inherited, so ``cfg.runtime(dtype="float64")`` / ``recurrent_backend="edge_list"``
     actually take effect. A ``dtype=`` keyword overrides the inherited dtype.
     """
     if sim is None:
@@ -211,13 +212,13 @@ def _canonical_biophysics_depth_gating(emitter, positions):
 def _apply_canonical_dynamics_init(emitter, positions, cfg):
     """DYNAMICS-INIT half of canonical biophysics: random ``v0`` + deep-E grading.
 
-    * **Random ``v0``** ~ Uniform(-70, 0) mV per neuron — ALWAYS applied (keyed off
+    * **Random ``v0``** ~ Uniform(-70, 0) mV per neuron; ALWAYS applied (keyed off
       ``cfg.metadata["seed"]``). Identical initial potentials cause a synchronized
       t=0 onset volley (raster banding); randomizing removes that onset-response
       synchrony bias. Disable with ``cfg.runtime(random_v0=False)``.
     * **Deep-E "larger" grading** (laminar columns only, gated on
       ``cfg.metadata["canonical_biophysics"]``): excitatory neurons get a depth
-      gradient — ``source_scale`` 1.0->1.8 (bigger dipole), ``a`` 0.020->0.015
+      gradient: ``source_scale`` 1.0->1.8 (bigger dipole), ``a`` 0.020->0.015
       (slower recovery), ``d`` 8->10 (wider/stronger).
 
     Touches only the emitter (v0/a/d/source_scale) -- never edge_list. Returns
@@ -683,6 +684,15 @@ def _construct_build_network(
                 stacklevel=2,
             )
         network = make_eig_network(n=n, cell_type_fractions=cell_types)
+        if cfg.metadata.get("connectivity_mode") == "explicit":
+            # Explicit topology is authoritative, as in _apply_connectivity: the default
+            # all-to-all W is dropped (never converted to edges) and construct() appends
+            # only the declared rules onto an empty prebuilt graph (P-046).
+            network = replace(
+                network,
+                params=replace(network.params, W=jnp.zeros((0, 0), dtype=network.params.W.dtype)),
+            )
+            _prebuilt_edges = _empty_edge_list(network.params.v0.dtype)
         # drive() and cell_params() reach the emitter as on the population route (P-018).
         params = _apply_baseline_drive(network.params, cfg.metadata, _declared_cell_types(cfg))
         params = _apply_cell_params(
@@ -802,15 +812,26 @@ def _reject_duplicate_explicit_edges(edge_list: "EdgeList", *, exempt_ranges=Non
     if exempt_ranges:
         for bid, (lo, hi) in enumerate(exempt_ranges):
             block[lo:hi] = bid
-    uniq, inverse = _np.unique(identities, axis=0, return_inverse=True)
+    _uniq, inverse = _np.unique(identities, axis=0, return_inverse=True)
     inverse = _np.asarray(inverse).reshape(-1)
-    for u in range(uniq.shape[0]):
-        occ = _np.flatnonzero(inverse == u)
-        if occ.size < 2:
-            continue
-        bids = block[occ]
-        if exempt_ranges and int(bids[0]) >= 0 and bool(_np.all(bids == bids[0])):
-            continue
+    # One stable sort groups the edges by identity; a per-identity rescan of the full
+    # edge array was quadratic (P-050). A repeated identity is declared
+    # only when every occurrence lies in ONE exempt block (block >= 0, min == max).
+    order = _np.argsort(inverse, kind="stable")
+    sorted_ids = inverse[order]
+    starts = _np.flatnonzero(_np.r_[True, sorted_ids[1:] != sorted_ids[:-1]])
+    sizes = _np.diff(_np.r_[starts, n])
+    repeated = sizes > 1
+    if not bool(repeated.any()):
+        return
+    sorted_block = block[order]
+    bmin = _np.minimum.reduceat(sorted_block, starts)
+    bmax = _np.maximum.reduceat(sorted_block, starts)
+    if exempt_ranges:
+        declared = (bmin == bmax) & (bmin >= 0)
+    else:
+        declared = _np.zeros(starts.shape, dtype=bool)
+    if bool(_np.any(repeated & ~declared)):
         raise ValueError(
             "explicit NeuronalTensor connectivity produced duplicate "
             "executable synaptic identities; identity is "
@@ -873,7 +894,7 @@ def _construct_compile_connections(
             # Tensor-posed wiring: the tensor bridge records each area's
             # Pose3D as metadata["tensor_pose"]; the localized sampler reads
             # a posed copy, while the stored positions are posed by the same
-            # rule after construction — one geometry. Absent (plain configs
+            # rule after construction; one geometry. Absent (plain configs
             # and all-default poses) the historical array passes through
             # untouched.
             _pose_spec = (cfg.metadata or {}).get("tensor_pose")
@@ -902,6 +923,17 @@ def _construct_compile_connections(
             # The sign-only fallback compiler cannot honour max_in_degree. Refusing is
             # the only honest option: silently dropping the cap previously doubled the
             # network (a 10x sparsity request yielding a 2x denser result).
+            # A declared spatial_radius is refused before the cap so the
+            # radius -- which only parametrizes localized sampling -- names
+            # itself on this path.
+            _radius = [r.get("name") for r in _conn_rules if r.get("spatial_radius") is not None]
+            if _radius:
+                raise ValueError(
+                    f"connection rule(s) {_radius} declare spatial_radius, which only "
+                    "parametrizes max_in_degree sampling on the mechanism-aware compiler; "
+                    "spatial_radius needs max_in_degree. Declare mechanisms and the "
+                    "localized keys, or neither."
+                )
             _capped = [r.get("name") for r in _conn_rules if r.get("max_in_degree") is not None]
             if _capped:
                 raise ValueError(
@@ -1001,7 +1033,7 @@ def _construct_compile_connections(
         cfg = _record_connectivity_compilation(
             cfg,
             mode=connectivity_mode,
-            default_edge_count=(0 if connectivity_mode == "explicit" else default_edge_count),
+            default_edge_count=default_edge_count,
             declared_edge_count=declared_edge_count,
             total_edge_count=int(edge_list.n_edges),
         )
@@ -1540,6 +1572,10 @@ def _construct_from_configuration(
             emitter_params, emitter_params.labels, (geometry_meta or {}).get("layer_labels"),
             cfg.metadata, emitter_params.a.dtype, _declared_cell_types(cfg),
         )
+    # P-048: u0 = b * v0 per cell, once b (cell_params) and v0 (random draw) are realized.
+    emitter_params = _apply_default_u0(
+        emitter_params, emitter_params.labels, (geometry_meta or {}).get("layer_labels"), cfg.metadata
+    )
     network = replace(network, params=emitter_params)
 
     cfg, edge_list = _construct_compile_connections(

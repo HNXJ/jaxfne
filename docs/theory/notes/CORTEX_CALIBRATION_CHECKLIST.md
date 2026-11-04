@@ -1,7 +1,7 @@
 # Cortex Calibration Checklist — 100-Neuron V1 Column
 
 **Status:** Technical report · proxy / computational-scaffold · 2026-06-17
-Scope: proxy / computational scaffold — see [Scope & status](../../reference/project/scope_and_status.md).
+Scope: proxy / computational scaffold; see [Scope & status](../../reference/project/scope_and_status.md).
 
 ## Purpose
 
@@ -28,7 +28,7 @@ Data artifacts: `cortex_calibration/{fi_curves.json, network_rate.json}`,
 > absent from working tree and full git history 2026-07-03). This report
 > documents a historical result that is not currently reproducible. **This
 > note applies to every report in the STDP/calibration group** (Homeostatic,
-> Closed-Loop, Global Scale, Low-Rate Regime) — each links back here instead
+> Closed-Loop, Global Scale, Low-Rate Regime), each links back here instead
 > of repeating it.
 
 ---
@@ -45,7 +45,7 @@ noise. Intrinsic baseline drive (built into each type) is added on top:
 | **SST** | 3.5 | 0 | 0 | 0 | 0 | 28.9 | 97.8 | 172.8 | 376 | 668 |
 | **VIP** | 3.0 | 0 | 0 | 0 | 0 | 0 | 0 | 5.0 | 104 | 272 |
 
-- **Negative drive (≤ −10 nA) silences every type** — a cliff, rather than graded suppression.
+- **Negative drive (≤ −10 nA) silences every type**: a cliff, rather than graded suppression.
 - **E** is the only type with a usable graded curve (10 → 54 Hz over drive 0 → 20).
 - **PV is fast-spiking**: 0 → 185 Hz between drive 0 and 10; no low-rate DC regime.
 - **SST is tonically active** (28.9 Hz at injected 0).
@@ -68,7 +68,7 @@ noise. Intrinsic baseline drive (built into each type) is added on top:
 | 10  | −8.0e−5 | 5.8e−4 | ~145 |
 | 100 | −8.0e−4 | 5.8e−3 | ~1450 (pure clipping) |
 
-Criterion — a change is "visible but gradual" if the hottest synapse reaches
+Criterion: a change is "visible but gradual" if the hottest synapse reaches
 ~10% of w_max (≈ 0.15) over a useful window, in gradual steps:
 
 - At **scale 1.0**, hot synapse hits 0.15 in **~250 ms** → over a 25 s closed loop that is **massive saturation**. (The post-hoc bulk mean looked flat only because post-hoc does not accumulate.)
@@ -81,15 +81,15 @@ learning); negative values are anti-Hebbian contrast only.
 
 > **Closed-loop + homeostasis (resolved):** post-hoc bands are an upper bound on
 > the *driving signal*. With feedback ([STDP_CLOSED_LOOP_REPORT](../../../artifacts/legacy/reports/STDP_CLOSED_LOOP_REPORT.md)),
-> unregulated scales **≥ 0.5 run away**. The fix — and the **canonical STDP
-> model** — is closed-loop STDP + the simplest homeostatic regulator (synaptic
+> unregulated scales **≥ 0.5 run away**. The fix, and the **canonical STDP
+> model**, is closed-loop STDP + the simplest homeostatic regulator (synaptic
 > scaling): it keeps `global_stdp = 1.0` stable *and* learning. See
 > [STDP_HOMEOSTATIC_REPORT](../../../artifacts/legacy/reports/STDP_HOMEOSTATIC_REPORT.md). Use that going forward.
 
 > **Coupling to Q3 (now verified):** scale and rate trade off. Re-running the
 > sweep at the stable 9.63 Hz regime (2 nA baseline) gives a per-step STDP
 > signal **~10× smaller** than at 43 Hz, so the reasonable band shifts up to
-> **`global_stdp ≈ 0.05 – 1.0`** at ~10 Hz (vs 0.01–0.1 at 43 Hz) — exactly the
+> **`global_stdp ≈ 0.05 – 1.0`** at ~10 Hz (vs 0.01–0.1 at 43 Hz); exactly the
 > predicted ~10× scaling. See
 > [STDP_LOWRATE_REGIME_REPORT](../../../artifacts/legacy/reports/STDP_LOWRATE_REGIME_REPORT.md).
 
@@ -109,7 +109,7 @@ Full sweeps + invariant checks: [STDP_GLOBAL_SCALE_REPORT](../../../artifacts/le
 | **SST** | **+11 nA** |
 | **VIP** | +50 nA |
 
-Isolated PV/SST exceed 100 Hz at tiny drives — **directly driving interneurons
+Isolated PV/SST exceed 100 Hz at tiny drives; **directly driving interneurons
 hard is the failure mode.**
 
 ### (b) In-network, per-neuron rate is self-limited by recurrent inhibition
@@ -130,7 +130,7 @@ Baseline E-drive sweep (100-neuron cortex, 2 s, noise on):
 | 50 | 53.74 | 60.7 | 36.8 | 38.6 | 41.9 | 26.7 | 79.4 | ❌ |
 
 1. **Per-neuron < 100 Hz holds in-network at every drive** (max 79 Hz even at 50 nA): recurrent inhibition tames interneurons that hit 1000 Hz in isolation. The hard per-neuron bound is **structurally respected**.
-2. **Mean < 10 Hz requires baseline E-drive ≤ ~2 nA.** Using 10 nA gives ~18 Hz mean — about 2× over budget.
+2. **Mean < 10 Hz requires baseline E-drive ≤ ~2 nA.** Using 10 nA gives ~18 Hz mean; about 2× over budget.
 
 > **Action:** cap baseline E-drive at ~2–3 nA. Do not inject DC directly into PV/SST.
 
@@ -147,7 +147,7 @@ Single-neuron drive needed to reach each target rate:
 | 10 Hz | 0 | (none) | ≈ −2 | +22 |
 | 20 Hz | +4 | +1* | −1 | +25 |
 
-\* PV/SST collapse to a single threshold — between drive 0 and first firing they
+\* PV/SST collapse to a single threshold; between drive 0 and first firing they
 jump past all four targets (185 Hz at +10). **They have no graded DC sweetpoints**;
 their rate is set by network inhibition.
 
@@ -169,13 +169,13 @@ their rate is set by network inhibition.
 | per-neuron cap | structurally safe (< 80 Hz in-net) | recurrent inhibition self-limits (Q3) |
 
 **Bottom line:** the earlier 43 Hz cortex ran at ~5× the stable drive. Cap
-baseline E-drive at ~2 nA, keep DC off interneurons, run STDP at ~0.01–0.1 — the regime where rate and STDP scaling both hold.
+baseline E-drive at ~2 nA, keep DC off interneurons, run STDP at ~0.01–0.1; the regime where rate and STDP scaling both hold.
 
 ## Related reports
-- [NEURON_IO_CHARACTERIZATION](NEURON_IO_CHARACTERIZATION.md) — prior F-I mapping
-- [BASELINE_DRIVE_REFERENCE](BASELINE_DRIVE_REFERENCE.md) — baseline drive reference
-- [STDP_GLOBAL_SCALE_REPORT](../../../artifacts/legacy/reports/STDP_GLOBAL_SCALE_REPORT.md) — `global_stdp` sweep (~43 Hz)
-- [STDP_LOWRATE_REGIME_REPORT](../../../artifacts/legacy/reports/STDP_LOWRATE_REGIME_REPORT.md) — `global_stdp` sweep (~10 Hz, rate-compliant)
-- [STDP_HOMEOSTATIC_REPORT](../../../artifacts/legacy/reports/STDP_HOMEOSTATIC_REPORT.md) — **canonical STDP model** (homeostatic, stable at 1.0)
-- [STDP_CLOSED_LOOP_REPORT](../../../artifacts/legacy/reports/STDP_CLOSED_LOOP_REPORT.md) — closed-loop online STDP (runaway verdict)
-- [STDP_REAL_TEST_REPORT](../../../artifacts/legacy/reports/STDP_REAL_TEST_REPORT.md) — post-hoc STDP weight test
+- [NEURON_IO_CHARACTERIZATION](NEURON_IO_CHARACTERIZATION.md): prior F-I mapping
+- [BASELINE_DRIVE_REFERENCE](BASELINE_DRIVE_REFERENCE.md): baseline drive reference
+- [STDP_GLOBAL_SCALE_REPORT](../../../artifacts/legacy/reports/STDP_GLOBAL_SCALE_REPORT.md): `global_stdp` sweep (~43 Hz)
+- [STDP_LOWRATE_REGIME_REPORT](../../../artifacts/legacy/reports/STDP_LOWRATE_REGIME_REPORT.md): `global_stdp` sweep (~10 Hz, rate-compliant)
+- [STDP_HOMEOSTATIC_REPORT](../../../artifacts/legacy/reports/STDP_HOMEOSTATIC_REPORT.md): **canonical STDP model** (homeostatic, stable at 1.0)
+- [STDP_CLOSED_LOOP_REPORT](../../../artifacts/legacy/reports/STDP_CLOSED_LOOP_REPORT.md): closed-loop online STDP (runaway verdict)
+- [STDP_REAL_TEST_REPORT](../../../artifacts/legacy/reports/STDP_REAL_TEST_REPORT.md): post-hoc STDP weight test

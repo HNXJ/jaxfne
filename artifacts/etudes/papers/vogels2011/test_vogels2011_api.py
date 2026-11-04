@@ -5,23 +5,26 @@ baseline implementation and carries ``xfail(strict=True)`` so a core change
 that closes the gap turns it green loudly.
 """
 
+import hashlib
+import json
+import math
 import os
 import sys
 from pathlib import Path
 
-_repo_root = Path(__file__).resolve().parents[4]
-if str(_repo_root) not in sys.path:
-    sys.path.insert(0, str(_repo_root))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 
 os.environ.setdefault("JAX_PLATFORMS", "cpu")
 
 import numpy as np
+import pytest
 
 import jaxfne as jtfne
+from artifacts.etudes.papers.vogels2011 import vogels2011_api as L
+
 assert "site-packages" not in jtfne.__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
-from artifacts.etudes.papers.vogels2011 import vogels2011_api as L
 
 N_SMALL = 20
 DT = 0.1
@@ -211,3 +214,221 @@ def test_per_channel_rates_gap():
     })
     assert [e.value for e in entries] == [50.0, 100.0], \
         "one source per channel rate"
+
+
+def test_plastic_rho0_changes_realized_weights(tmp_path):
+    """rho0_hz=6 Hz (doubled alpha) moves the realized weights (P3 v2 B8)."""
+    base = L.run_plastic_segment(0, "base", tmp_path / "base", n=200, T_s=0.3)
+    doubled = L.run_plastic_segment(0, "dbl", tmp_path / "dbl", n=200,
+                                    T_s=0.3, rho0_hz=6.0)
+    assert doubled["rho0_hz"] == 6.0, "lesion run must record rho0 6 Hz"
+    assert int(np.asarray(doubled["spikes"], dtype=bool).sum()) > 0, \
+        "lesion fixture must spike"
+    assert base["w_ie_final_mean_nS"] != doubled["w_ie_final_mean_nS"], \
+        "doubled rho0 must change the realized I-to-E weights"
+
+
+def test_plastic_eta_zero_freezes_weights(tmp_path):
+    """eta=0 holds I-to-E at init while the default rule moves them (B8)."""
+    frozen = L.run_plastic_segment(0, "eta0", tmp_path / "eta0", n=200,
+                                   T_s=0.3, eta=0.0)
+    assert frozen["eta"] == 0.0, "lesion run must record eta 0"
+    assert frozen["w_ie_final_mean_nS"] == pytest.approx(1e-10), \
+        "eta=0 must hold I-to-E at the 1e-10 nS paper init"
+    moved = L.run_plastic_segment(0, "dflt", tmp_path / "dflt", n=200,
+                                  T_s=0.3)
+    assert moved["w_ie_final_mean_nS"] != pytest.approx(1e-10), \
+        "default eta must move I-to-E off init in 0.3 s"
+
+
+def test_plastic_defaults_unchanged(tmp_path):
+    """Explicit prereg defaults are bit-identical to the unparameterized call."""
+    a = L.run_plastic_segment(0, "imp", tmp_path / "imp", n=100, T_s=0.2)
+    b = L.run_plastic_segment(0, "exp", tmp_path / "exp", n=100, T_s=0.2,
+                              rho0_hz=3.0, eta=1e-2)
+    assert (np.asarray(a["spikes"]) == np.asarray(b["spikes"])).all(), \
+        "explicit defaults must reproduce the default raster bit-exactly"
+    assert a["w_ie_final_mean_nS"] == b["w_ie_final_mean_nS"], \
+        "explicit defaults must reproduce the default weights exactly"
+
+
+def test_plastic_segment_skips_the_weight_trace(tmp_path, monkeypatch):
+    """The plastic leg reads w_final only; the per-step |w| trace (n_steps x n_edges) is off, so the
+    n = 10000, 9 s pilot fits in memory (the traced run reached 80 GB and was OOM-killed, 2026-10-31)."""
+    import jaxfne.emitters_adex as E
+
+    real = E.simulate_adex_hdp_registered
+    seen = {}
+
+    def spy(*a, **k):
+        seen.update(k)
+        return real(*a, **k)
+
+    monkeypatch.setattr(E, "simulate_adex_hdp_registered", spy)
+    out = L.run_plastic_segment(0, "notrace", tmp_path / "nt", n=100, T_s=0.1)
+    assert seen.get("record_w_trace") is False, seen.keys()
+    assert np.asarray(out["spikes"]).shape[0] == 1000, "fixture must run the full segment"
+
+
+def test_plastic_refuses_unrealizable(tmp_path):
+    """Values the API cannot realize are refused, never stored unused."""
+    with pytest.raises(ValueError):
+        L.run_plastic_segment(0, "neg", tmp_path / "neg", n=20, T_s=0.1,
+                              eta=-1.0)
+    with pytest.raises(ValueError):
+        L.run_plastic_segment(0, "negrho", tmp_path / "negrho", n=20,
+                              T_s=0.1, rho0_hz=-1.0)
+
+
+def test_pilot_receipt_unscored(tmp_path):
+    """The pilot writes the prereg estimands, marked unscored (B8)."""
+    out = tmp_path / "pilot"
+    receipt = L.pilot(0, 20, 0.2, out)
+    assert receipt["verdict"] == "unscored pilot", "pilots are never scored"
+    assert (out / "pilot_receipt.json").exists(), "receipt must land on disk"
+    assert set(receipt) >= {"R-E", "O-DROP", "W-IE"}, "prereg estimands"
+    assert receipt["R-E"]["window_clamped"] is True, \
+        "a 0.2 s leg cannot hold the 1 s R-E window"
+    assert receipt["R-E"]["e"] >= 0.0, "relative error must be finite-sided"
+    assert receipt["O-DROP"]["ratio"] >= 0.0, "drop ratio must be finite-sided"
+
+
+def test_plastic_manifest_records_w_trace_off(tmp_path):
+    """The plastic manifest entry records that the per-step |w| trace is off."""
+    import json
+
+    out = tmp_path / "traceflag"
+    L.run_plastic_segment(0, "flag", out, n=20, T_s=0.1)
+    manifest = json.loads((out / "manifest.json").read_text())
+    entries = [e for e in manifest["runs"]
+               if e["file"] == "spikes_seed0_flag.npz"]
+    assert len(entries) == 1, "fixture must write exactly one run entry"
+    assert entries[0]["plastic"]["record_w_trace"] is False, \
+        "the entry must record record_w_trace false"
+
+
+def test_segmented_plastic_matches_unsegmented(tmp_path):
+    """Two 1 s segments chained by state reproduce the 2 s leg exactly."""
+    seg = L.run_plastic_segment(0, "sg", tmp_path / "sg", n=40, T_s=2.0,
+                                plastic_segment_s=1.0)
+    one = L.run_plastic_segment(0, "one", tmp_path / "one", n=40, T_s=2.0)
+    assert int(np.asarray(one["spikes"]).sum()) > 0, "fixture must spike"
+    assert (np.asarray(seg["spikes"])
+            == np.asarray(one["spikes"])[-seg["spikes"].shape[0]:]).all(), \
+        "the segmented leg must reproduce the run tail bit-exactly"
+    assert seg["e_rate_per_s_hz"] == one["e_rate_per_s_hz"], \
+        "the per-second E rate course must not depend on segmentation"
+    assert seg["w_ie_final_mean_nS"] == one["w_ie_final_mean_nS"], \
+        "the final I-to-E mean must not depend on segmentation"
+
+
+def test_segmented_pilot_matches_unsegmented_estimands(tmp_path):
+    """A short pilot with segments equals the unsegmented pilot's estimands."""
+    a = L.pilot(0, 40, 2.0, tmp_path / "u")
+    b = L.pilot(0, 40, 2.0, tmp_path / "s", plastic_segment_s=1.0)
+    assert b["R-E"]["z_hz"] == a["R-E"]["z_hz"], "R-E z must match"
+    assert b["R-E"]["e"] == a["R-E"]["e"], "R-E e must match"
+    assert b["O-DROP"]["ratio"] == a["O-DROP"]["ratio"], "O-DROP must match"
+    assert b["W-IE"]["w_ie_final_mean_nS"] == a["W-IE"]["w_ie_final_mean_nS"], \
+        "W-IE must match"
+    assert b["e_rate_per_s_hz"] == a["e_rate_per_s_hz"], "rate course must match"
+    u = np.load(tmp_path / "u" / "spikes_seed0_segB.npz")["spikes"]
+    s = np.load(tmp_path / "s" / "spikes_seed0_segB.npz")["spikes"]
+    assert (u[-s.shape[0]:] == s).all(), \
+        "the segmented raster must equal the unsegmented tail"
+
+
+def test_scored_run_refuses_out_of_range_seeds(tmp_path):
+    """scored_run refuses seeds outside 4-8 (P3 v4 signed, seeds 4-8 only)."""
+    for bad in (0, 1, 2, 3, 9):
+        with pytest.raises(SystemExit):
+            L.scored_run(bad, tmp_path / ("s%d" % bad), n=20, T_s=0.2,
+                         signed=True)
+
+
+def test_scored_run_refuses_unsigned(tmp_path):
+    """scored_run refuses without signed=True (P3 v4 signed only)."""
+    with pytest.raises(SystemExit):
+        L.scored_run(4, tmp_path / "nosign", n=20, T_s=0.2, signed=False)
+
+
+def test_signed_small_run_receipt(tmp_path):
+    """A signed small run writes status signed and the live prereg sha (P3 v4)."""
+    out = tmp_path / "signed4"
+    receipt = L.scored_run(4, out, n=20, T_s=3.0, signed=True)
+    assert receipt["status"] == "signed", "scored receipt must read signed"
+    disk = json.loads((out / "score_receipt.json").read_text())
+    assert disk["status"] == "signed", "receipt must land on disk signed"
+    live = hashlib.sha256(
+        (Path(L.__file__).parent / "prereg" / "P3_v4_signed.md"
+         ).read_bytes()).hexdigest()
+    assert disk["prereg_sha256"] == live, \
+        "receipt sha must equal the prereg file's bytes"
+    assert "P3_v4_signed.md" in disk["prereg"], "receipt must name the prereg"
+    pilot_keys = {"seed", "n", "T_s", "static_s", "dt_ms", "eta",
+                  "rho0_hz", "plastic_segment_s", "static_file",
+                  "plastic_file", "e_rate_per_s_hz", "R-E", "O-DROP",
+                  "W-IE", "wall_s"}
+    assert pilot_keys <= set(disk), "score receipt keeps the pilot fields"
+    assert disk["CONV"]["window_note"] is not None, \
+        "a T < 150 s receipt clamps the CONV window with a note"
+    assert disk["AI"]["label"], "the receipt must carry the AI regime"
+
+
+def _ols_b_se(t, y):
+    """Independent OLS slope and residual-se reimplementation for the tests."""
+    t = np.asarray(t, dtype=float)
+    y = np.asarray(y, dtype=float)
+    n = len(t)
+    sxx = ((t - t.mean()) ** 2).sum()
+    b = ((t - t.mean()) * (y - y.mean())).sum() / sxx
+    resid = y - (y.mean() + b * (t - t.mean()))
+    se = math.sqrt((resid ** 2).sum() / (n - 2)) / math.sqrt(sxx)
+    return b, se
+
+
+def test_conv_flat_noisy_converged():
+    """Flat noisy rates converge and match an independent OLS fit (P3 v4)."""
+    rates = [5.0 + 0.1 * math.sin(i) for i in range(20)]
+    fit = L.conv_fit(rates)
+    b, se = _ols_b_se(np.arange(20), rates)
+    assert fit["b"] == pytest.approx(b, rel=1e-12), "slope must match OLS"
+    assert fit["se"] == pytest.approx(se, rel=1e-9), "se must match OLS"
+    assert fit["converged"] is True, "a flat noisy series is converged"
+
+
+def test_conv_steep_slope_not_converged():
+    """A 0.05 Hz/s slope with small noise is not converged (P3 v4)."""
+    rates = [3.0 + 0.05 * i + 1e-6 * math.sin(i) for i in range(20)]
+    fit = L.conv_fit(rates)
+    assert abs(fit["b"] - 0.05) < 1e-4, "slope must read 0.05 Hz/s"
+    assert fit["t"] > 2.101, "t must clear the 0.975/18 threshold"
+    assert fit["converged"] is False, "a steep significant slope is not converged"
+
+
+def test_conv_shallow_slope_noisy_converged():
+    """A 0.015 Hz/s slope with se above 0.0072 converges (P3 v4, t < 2.101)."""
+    noise = [0.2 if (i < 5 or i >= 15) else -0.2 for i in range(20)]
+    rates = [3.0 + 0.015 * i + n for i, n in enumerate(noise)]
+    fit = L.conv_fit(rates)
+    b, se = _ols_b_se(np.arange(20), rates)
+    assert fit["b"] == pytest.approx(b, rel=1e-12), "slope must match OLS"
+    assert fit["b"] == pytest.approx(0.015, rel=1e-12), \
+        "symmetric noise must leave the slope untouched"
+    assert fit["se"] > 0.0072, "se must clear the boundary case"
+    assert abs(fit["b"]) >= 0.01, "slope magnitude must trip the first leg"
+    assert fit["t"] < 2.101, "t must stay below the 0.975/18 threshold"
+    assert fit["converged"] is True, "an insignificant slope is converged"
+
+
+def test_manifests_record_the_realized_backend(tmp_path, monkeypatch):
+    """Static and plastic manifests record jax.default_backend(); a fixed "cpu" label fails here."""
+    import jax
+
+    monkeypatch.setattr(jax, "default_backend", lambda: "gpu")
+    for name, fn in (("static", L.run), ("plastic", L.run_plastic_segment)):
+        out = tmp_path / name
+        fn(0, name, str(out), n=N_SMALL, T_s=0.1)
+        manifest = json.loads((out / "manifest.json").read_text())
+        assert manifest["backend"] == "gpu", (name, "top-level backend is the realized one")
+        assert manifest["runs"][0]["backend"] == "gpu", (name, "per-run backend is the realized one")

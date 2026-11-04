@@ -36,7 +36,7 @@ Further figures exist and are outside the lane: Figs. 2-3 (PV/SOM silencing and 
 ## 4. Data and code availability with licence
 
 - Paper licence: the PLoS CB article is open access under CC-BY (observed PORT_SPEC.md:8-9 and the article licence statement).
-- Mean-field code: Zenodo 10.5281/zenodo.20391404 (observed PORT_SPEC.md:11). Its licence is **unknown** (not recorded in the lane records read).
+- Mean-field code: Zenodo 10.5281/zenodo.20391404 (observed PORT_SPEC.md:11). Licence CC-BY 4.0 (Zenodo API, latest version 10.5281/zenodo.20391405, read 2026-10-26).
 - Spiking-network code location: **unknown** (the lane records read name only the mean-field archive).
 - Experimental data: the model is compared against visual-cortex recordings during stimulation (article Results, citing its refs. 19, 33, 45); reuse details are **unknown** here.
 - Cell Reports paper: Europe PMC lists it as not open access with no PMCID (observed CALIBRATION.md:89-94); its licence is **unknown**.

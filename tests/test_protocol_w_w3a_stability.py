@@ -1,4 +1,4 @@
-"""Protocol W3a — activity-enabled stability analysis receipts."""
+"""Protocol W3a: activity-enabled stability analysis receipts."""
 
 from __future__ import annotations
 

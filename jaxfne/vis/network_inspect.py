@@ -1,9 +1,9 @@
 """jaxfne model-inspection renderers: a circuit schematic and a hierarchical raster.
 
-Portable by construction. Only the jaxfne public surface is used —
+Portable by construction. Only the jaxfne public surface is used;
 ``model.neuron_table()`` (neuron_id, area, layer, cell_type), ``model.params["edge_list"]``
 (pre, post, weight, receptor_index), ``jaxfne.emitters`` weight/receptor resolution for
-compact edge storage, and a spike array or ``signals.spikes`` — so this file carries no
+compact edge storage, and a spike array or ``signals.spikes``, so this file carries no
 jomission import and no TFNE dependency.
 
 Two renderers, answering the two questions a user has before any analysis:

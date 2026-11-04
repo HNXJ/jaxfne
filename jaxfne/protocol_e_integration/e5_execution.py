@@ -1,4 +1,4 @@
-"""E5 prospective causal perturbation — execution, raw receipt, interpretation."""
+"""E5 prospective causal perturbation: execution, raw receipt, interpretation."""
 
 from __future__ import annotations
 

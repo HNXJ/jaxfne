@@ -39,6 +39,7 @@ from __future__ import annotations
 import math
 import numbers
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -251,7 +252,7 @@ def footprint_pairs(
     (the oracle's ``s_ox[i] <= x < s_ox[i] + SX`` cover test, oracle:418-421,
     with the post anchor at its posed position). Iteration is in post order,
     then pre order. The second return is the post slot per pair: co-located
-    post cells (exactly equal ``(x, y)``) numbered 0, 1, ... in post order —
+    post cells (exactly equal ``(x, y)``) numbered 0, 1, ... in post order:
     the receiving-depth index, i.e. the weight-sharing group under
     ``"patch"`` sharing. Missing/ragged coordinates and a bad declaration
     are refused by name.
@@ -311,7 +312,7 @@ def accumulate_shared_update(
 ) -> np.ndarray:
     """Scatter-mean edge updates onto the shared table (one row per group).
 
-    The shared weight moves by the mean update of its edges — the
+    The shared weight moves by the mean update of its edges; the
     patch-sharing equivalent of applying the group's STDP once.
     """
     table = np.asarray(shared, dtype=float)
@@ -812,7 +813,7 @@ def inhibition_visit_order(
     :func:`local_inhibition_blocks` dict (``members`` ``(G, D)`` and
     ``member_mask`` scope the positions). Returns int32 ``(n_steps, G, D)``:
     step ``b`` visits each position's member depths in ``(rank, local
-    index)`` order — event order first, ascending index on ties (the
+    index)`` order: event order first, ascending index on ties (the
     oracle visits same-time candidates in ascending index, oracle:666).
     Padded slots hold ``-1``. Anything misshapen, non-finite or
     N-disagreeing is refused by name.
@@ -852,7 +853,7 @@ def inhibition_visit_order(
             )
         loc = np.flatnonzero(mask[g])
         # One C argsort per position (not one lexsort per step): the key
-        # ``rank * depth + local`` sorts by (rank, local index) exactly —
+        # ``rank * depth + local`` sorts by (rank, local index) exactly;
         # whole-microsecond ranks times depth stay integral in float64.
         seq = loc[np.argsort(
             r64[:, mem] * float(depth) + loc[None, :].astype(np.float64),
@@ -997,14 +998,14 @@ def event_scan_tables(
     oracle:454); ``c_weights`` is ``(cd, csx, csy, nd)`` (shared complex
     matrix per depth, oracle:456); ``c_cover`` maps every simple ``(i, j)``
     to its covering complex ``(cx, cy)`` cells (recomputed from the geometry
-    and required exact — a missing position or an off-grid cell is refused).
+    and required exact; a missing position or an off-grid cell is refused).
     ``lateral_weights`` is None (an all-zero map, as the S1 local-only run
     leaves it) or ``(NS, NS)`` with rows read as targets (``LAT[m, n]`` is
     the weight from source ``n`` onto target ``m``, oracle:702); anything
     else is refused. ``topdown_weights`` is None or ``(NC, NS)`` with rows
     read as sources (row ``c`` holds source ``c``'s weights onto its simple
     targets); anything else is refused. All-zero maps store no weight
-    matrix (``lat_w``/``td_w`` None) but the calls still execute — a
+    matrix (``lat_w``/``td_w`` None) but the calls still execute; a
     zero-weight inhibition still subtracts ``R + A`` and stamps the time
     (oracle:256-269). ``inhib_range`` is the lateral ``(Rx, Ry)`` window;
     nonzero while lateral is off changes nothing and is refused by name.
@@ -1015,7 +1016,10 @@ def event_scan_tables(
     positions, ``fwd_idx``/``fwd_w``/``fwd_n`` forward targets,
     ``lat_idx``/``lat_w``/``lat_n`` + ``lat_on``,
     ``td_idx``/``td_w``/``td_n`` + ``td_on``, ``activation``) plus the
-    geometry and the shared ``w_s`` the kernel feeds from.
+    geometry and the shared ``w_s`` and ``w_c`` the kernel feeds from.
+    ``fwd_key`` (int ``(ns, fmax, 3)``) holds ``(cz, ex, ey)`` for every used
+    forward slot, so the forward weight is ``w_c[cz, ex, ey, n % nd]`` and
+    ``fwd_w`` is that value expanded per slot.
     """
     name = str(label)
     nx_i, ny_i, nd_i = _scan_whole(nx, name="nx", label=name), _scan_whole(ny, name="ny", label=name), _scan_whole(nd, name="nd", label=name)
@@ -1108,6 +1112,7 @@ def event_scan_tables(
     # Forward targets per simple cell (ascending complex index, oracle:708-720).
     fwd_idx_lists: list[list[int]] = [[] for _ in range(ns)]
     fwd_w_lists: list[list[float]] = [[] for _ in range(ns)]
+    fwd_key_lists: list[list[tuple[int, int, int]]] = [[] for _ in range(ns)]
     for i in range(nx_i):
         for j in range(ny_i):
             for k in range(nd_i):
@@ -1118,15 +1123,18 @@ def event_scan_tables(
                     for cz in range(cd_i):
                         fwd_idx_lists[n].append(base + cz)
                         fwd_w_lists[n].append(float(w_c[cz, ex, ey, k]))
+                        fwd_key_lists[n].append((cz, ex, ey))
     fmax = max(1, max([len(v) for v in fwd_idx_lists] + [0]))
     fwd_idx = np.zeros((ns, fmax), dtype=np.int64)
     fwd_w = np.zeros((ns, fmax), dtype=np.float64)
+    fwd_key = np.zeros((ns, fmax, 3), dtype=np.int64)
     fwd_n = np.zeros((ns,), dtype=np.int64)
     for n in range(ns):
         fwd_n[n] = len(fwd_idx_lists[n])
         if fwd_idx_lists[n]:
             fwd_idx[n, :len(fwd_idx_lists[n])] = np.asarray(fwd_idx_lists[n], dtype=np.int64)
             fwd_w[n, :len(fwd_w_lists[n])] = np.asarray(fwd_w_lists[n], dtype=np.float64)
+            fwd_key[n, :len(fwd_key_lists[n])] = np.asarray(fwd_key_lists[n], dtype=np.int64)
     # Lateral window (oracle:443-446): neighbor positions, own excluded.
     if not isinstance(inhib_range, Sequence) or len(list(inhib_range)) != 2:
         raise ValueError(f"{name} inhib_range must be a pair of whole pixels; got {inhib_range!r}")
@@ -1237,9 +1245,9 @@ def event_scan_tables(
         "nx": nx_i, "ny": ny_i, "nd": nd_i, "cx": cx_i, "cy": cy_i, "cd": cd_i,
         "ns": ns, "nc": nc, "vw": vw_i, "vh": vh_i,
         "s_ox": np.asarray(ox, dtype=np.int64), "s_oy": np.asarray(oy, dtype=np.int64),
-        "w_s": w_s,
+        "w_s": w_s, "w_c": w_c,
         "pix_pos": pix_pos, "pix_n": pix_n,
-        "fwd_idx": fwd_idx, "fwd_w": fwd_w, "fwd_n": fwd_n,
+        "fwd_idx": fwd_idx, "fwd_w": fwd_w, "fwd_key": fwd_key, "fwd_n": fwd_n,
         "lat_idx": lat_idx, "lat_w": lat_w, "lat_n": lat_n,
         "lat_on": bool(lateral_on),
         "td_idx": td_idx, "td_w": td_w, "td_n": td_n,
@@ -1257,7 +1265,7 @@ def event_scan_events(
     """The event-scan visit list: the raw stream in timestamp order.
 
     Returns int64 ``(M, 4)`` rows ``[t_us, x, y, p]`` stably sorted by time
-    (file order within equal timestamps — the oracle visits same-time
+    (file order within equal timestamps; the oracle visits same-time
     candidates in ascending index, oracle:666, and the scan kernel visits
     each event's cells ascending). ``dt_ms`` must resolve to a whole number
     of microseconds; an event outside the ``[t0_us, t0_us + n_steps *
@@ -1393,6 +1401,354 @@ def scan_inhibition_triplets(
     )
 
 
+#: Keys of an event-scan H update (``EventScanDrive(h_update=...)`` and
+#: ``simulate_lif_edge(event_scan_h_update=...)``): the oracle's periodic rate
+#: and threshold adaptation (``pcl_event_ref.py:746-762``). The first six are
+#: required; ``rate0_hz`` defaults to zeros and ``threshold0_mV`` to the
+#: params' ``v_thresh_mV``.
+EVENT_SCAN_H_UPDATE_KEYS = (
+    "measurement_interval_us", "rate_alpha", "target_rate_hz",
+    "threshold_eta_mV", "threshold_min_mV", "last_update_us",
+    "rate0_hz", "threshold0_mV",
+)
+_EVENT_SCAN_H_UPDATE_REQUIRED = EVENT_SCAN_H_UPDATE_KEYS[:6]
+
+
+def check_event_scan_h_update(h_update: Any, n_cells: int, *, label: str) -> dict[str, Any]:
+    """Validate an event-scan H update over ``n_cells`` (fail-closed).
+
+    Returns a fresh dict holding every key; ``threshold0_mV`` is ``None`` when
+    undeclared (the params' ``v_thresh_mV`` rides at run time). Every refusal
+    names ``label`` and the offending key.
+    """
+    if not isinstance(h_update, Mapping):
+        raise ValueError(
+            f"{label}: h_update must be a mapping with keys "
+            f"{list(EVENT_SCAN_H_UPDATE_KEYS)}; got {type(h_update).__name__}")
+    unknown = sorted((k for k in h_update if k not in EVENT_SCAN_H_UPDATE_KEYS), key=repr)
+    if unknown:
+        raise ValueError(
+            f"{label}: h_update holds unknown key(s) {unknown}; allowed keys are "
+            f"{list(EVENT_SCAN_H_UPDATE_KEYS)}")
+    missing = [k for k in _EVENT_SCAN_H_UPDATE_REQUIRED if k not in h_update]
+    if missing:
+        raise ValueError(f"{label}: h_update is missing {missing}")
+
+    def _real(key: str) -> float:
+        value = h_update[key]
+        if (isinstance(value, bool) or not isinstance(value, numbers.Real)
+                or not math.isfinite(float(value))):
+            raise ValueError(
+                f"{label}: h_update[{key!r}] must be a finite real number; got {value!r}")
+        return float(value)
+
+    def _vec(key: str) -> np.ndarray:
+        arr = np.asarray(h_update[key])
+        if (arr.shape != (n_cells,) or arr.dtype.kind not in "iuf"
+                or not bool(np.all(np.isfinite(arr)))):
+            raise ValueError(
+                f"{label}: h_update[{key!r}] must be finite reals of shape "
+                f"({n_cells},); got shape {arr.shape} dtype {arr.dtype}")
+        return arr.astype(np.float64)
+
+    interval = _real("measurement_interval_us")
+    if interval <= 0.0:
+        raise ValueError(
+            f"{label}: h_update['measurement_interval_us'] must be > 0; got {interval!r}")
+    alpha = _real("rate_alpha")
+    if not 0.0 < alpha <= 1.0:
+        raise ValueError(
+            f"{label}: h_update['rate_alpha'] must lie in (0, 1]; got {alpha!r}")
+    last = h_update["last_update_us"]
+    if isinstance(last, bool) or not isinstance(last, numbers.Integral):
+        raise ValueError(
+            f"{label}: h_update['last_update_us'] must be an integer microsecond "
+            f"time; got {last!r}")
+    rate0 = h_update.get("rate0_hz")
+    th0 = h_update.get("threshold0_mV")
+    return {
+        "measurement_interval_us": interval,
+        "rate_alpha": alpha,
+        "target_rate_hz": _vec("target_rate_hz"),
+        "threshold_eta_mV": _vec("threshold_eta_mV"),
+        "threshold_min_mV": _vec("threshold_min_mV"),
+        "last_update_us": int(last),
+        "rate0_hz": np.zeros((n_cells,), dtype=np.float64) if rate0 is None else _vec("rate0_hz"),
+        "threshold0_mV": None if th0 is None else _vec("threshold0_mV"),
+    }
+
+
+#: Keys of an event-scan plasticity declaration (``simulate_lif_edge(event_scan_w_update=...)``):
+#: the oracle's simple-cell excitatory update over the event buffers
+#: (``pcl_event_ref.py:543-574``, buffers from :663-694). ``wi_s``/``wi_c`` are the
+#: shared local-inhibition matrices, ``decay`` the per-cell learning decay (ns + nc).
+EVENT_SCAN_W_UPDATE_KEYS = (
+    "rule", "buffer_capacity", "wi_s", "wi_c", "decay", "simple", "complex",
+)
+EVENT_SCAN_W_UPDATE_RULE = "pcl_buffer_stdp"
+#: Keys of each population mapping (``simple``, ``complex``).
+EVENT_SCAN_W_UPDATE_POP_KEYS = (
+    "mode", "eLTP", "eLTD", "iLTP", "iLTD", "tau_ltp_us", "tau_ltd_us",
+    "norm_factor", "eta_inh",
+)
+EVENT_SCAN_W_UPDATE_MODES = ("off", "excitatory", "inhibitory", "all")
+#: PCL-L3d constants of the simple mapping: the oracle's products (pcl_event_ref.py:178-181)
+#: and the normalisation targets (:259, :284-286). The top-down keys are consumed when the
+#: simple mode is "inhibitory"/"all" and top-down is on; the lateral keys likewise.
+EVENT_SCAN_W_UPDATE_TD_KEYS = ("ptiLTP", "ptiLTD", "topdown_norm_factor")
+EVENT_SCAN_W_UPDATE_LAT_KEYS = ("pliLTP", "pliLTD", "lateral_norm_factor")
+EVENT_SCAN_W_UPDATE_INH_KEYS = EVENT_SCAN_W_UPDATE_TD_KEYS + EVENT_SCAN_W_UPDATE_LAT_KEYS
+
+
+def _w_update_population(value: Any, *, name: str, label: str,
+                         extra_keys: tuple[str, ...] = ()) -> dict[str, Any]:
+    """One population mapping of an event-scan plasticity declaration (fail-closed).
+
+    ``extra_keys`` are the optional keys this population may carry; each one present is
+    checked as a finite real like the required keys.
+    """
+    if not isinstance(value, Mapping):
+        raise ValueError(
+            f"{label}: w_update[{name!r}] must be a mapping with keys "
+            f"{list(EVENT_SCAN_W_UPDATE_POP_KEYS)}; got {type(value).__name__}")
+    allowed = EVENT_SCAN_W_UPDATE_POP_KEYS + tuple(extra_keys)
+    unknown = sorted((k for k in value if k not in allowed), key=repr)
+    if unknown:
+        raise ValueError(
+            f"{label}: w_update[{name!r}] holds unknown key(s) {unknown}; allowed keys "
+            f"are {list(allowed)}")
+    missing = [k for k in EVENT_SCAN_W_UPDATE_POP_KEYS if k not in value]
+    if missing:
+        raise ValueError(f"{label}: w_update[{name!r}] is missing {missing}")
+    mode = value["mode"]
+    if mode not in EVENT_SCAN_W_UPDATE_MODES:
+        raise ValueError(
+            f"{label}: w_update[{name!r}]['mode'] must be one of "
+            f"{list(EVENT_SCAN_W_UPDATE_MODES)}; got {mode!r}")
+    out: dict[str, Any] = {"mode": str(mode)}
+    present_extra = tuple(k for k in extra_keys if k in value)
+    for key in EVENT_SCAN_W_UPDATE_POP_KEYS[1:] + present_extra:
+        raw = value[key]
+        if (isinstance(raw, bool) or not isinstance(raw, numbers.Real)
+                or not math.isfinite(float(raw))):
+            raise ValueError(
+                f"{label}: w_update[{name!r}][{key!r}] must be a finite real number; "
+                f"got {raw!r}")
+        out[key] = float(raw)
+    for key in ("tau_ltp_us", "tau_ltd_us"):
+        if out[key] <= 0.0:
+            raise ValueError(
+                f"{label}: w_update[{name!r}][{key!r}] must be > 0; got {out[key]!r}")
+    return out
+
+
+def check_event_scan_w_update(
+    w_update: Any, n_cells: int, *, nd: int, cd: int,
+    lateral_on: bool, topdown_on: bool, label: str,
+) -> dict[str, Any]:
+    """Validate an event-scan plasticity declaration over ``n_cells`` (fail-closed).
+
+    ``nd``/``cd`` are the simple and complex depths (``wi_s`` is ``(nd, nd)``,
+    ``wi_c`` is ``(cd, cd)``). Both populations' ``excitatory``/``all`` modes
+    run the buffer update (simple: ``pcl_event_ref.py:543-574``, complex:
+    :608-646); a complex ``"inhibitory"`` mode is a no-op there, as in the
+    oracle. A simple ``mode`` of ``"inhibitory"`` or ``"all"`` runs the lateral and
+    top-down update (PCL-L3d, pcl_event_ref.py:575-602) where the tables carry that
+    pathway; it then needs the pathway's keys (``EVENT_SCAN_W_UPDATE_TD_KEYS`` and
+    ``EVENT_SCAN_W_UPDATE_LAT_KEYS``), and those keys are refused where no mode in use
+    consumes them. Every refusal names ``label`` and the offending key.
+    """
+    if not isinstance(w_update, Mapping):
+        raise ValueError(
+            f"{label}: w_update must be a mapping with keys "
+            f"{list(EVENT_SCAN_W_UPDATE_KEYS)}; got {type(w_update).__name__}")
+    unknown = sorted((k for k in w_update if k not in EVENT_SCAN_W_UPDATE_KEYS), key=repr)
+    if unknown:
+        raise ValueError(
+            f"{label}: w_update holds unknown key(s) {unknown}; allowed keys are "
+            f"{list(EVENT_SCAN_W_UPDATE_KEYS)}")
+    missing = [k for k in EVENT_SCAN_W_UPDATE_KEYS if k not in w_update]
+    if missing:
+        raise ValueError(f"{label}: w_update is missing {missing}")
+    if w_update["rule"] != EVENT_SCAN_W_UPDATE_RULE:
+        raise ValueError(
+            f"{label}: w_update['rule'] must be {EVENT_SCAN_W_UPDATE_RULE!r}; "
+            f"got {w_update['rule']!r}")
+    cap = w_update["buffer_capacity"]
+    if isinstance(cap, bool) or not isinstance(cap, numbers.Integral) or int(cap) < 1:
+        raise ValueError(
+            f"{label}: w_update['buffer_capacity'] must be an integer >= 1; got {cap!r}")
+
+    def _matrix(key: str, side: int) -> np.ndarray:
+        arr = np.asarray(w_update[key])
+        if (arr.shape != (side, side) or arr.dtype.kind not in "iuf"
+                or not bool(np.all(np.isfinite(arr)))):
+            raise ValueError(
+                f"{label}: w_update[{key!r}] must be finite reals of shape "
+                f"({side}, {side}); got shape {arr.shape} dtype {arr.dtype}")
+        return arr.astype(np.float64)
+
+    wi_s = _matrix("wi_s", nd)
+    wi_c = _matrix("wi_c", cd)
+    dec = np.asarray(w_update["decay"])
+    if (dec.shape != (n_cells,) or dec.dtype.kind not in "iuf"
+            or not bool(np.all(np.isfinite(dec)))):
+        raise ValueError(
+            f"{label}: w_update['decay'] must be finite reals of shape ({n_cells},); "
+            f"got shape {dec.shape} dtype {dec.dtype}")
+    cpop = _w_update_population(w_update["complex"], name="complex", label=label)
+    spop = _w_update_population(
+        w_update["simple"], name="simple", label=label,
+        extra_keys=EVENT_SCAN_W_UPDATE_INH_KEYS)
+    # The PCL-L3d keys are consumed only when the simple mode is "inhibitory"/"all" and the
+    # pathway is on. A consumed key that is missing is named; a present key that nothing in
+    # use consumes is refused by name (a stored-but-unconsumed parameter is a defect).
+    used: set[str] = set()
+    if spop["mode"] in ("inhibitory", "all"):
+        if topdown_on:
+            used |= set(EVENT_SCAN_W_UPDATE_TD_KEYS)
+        if lateral_on:
+            used |= set(EVENT_SCAN_W_UPDATE_LAT_KEYS)
+    for key in EVENT_SCAN_W_UPDATE_INH_KEYS:
+        if key in used and key not in spop:
+            raise ValueError(
+                f"{label}: w_update['simple'] is missing {key!r}; simple mode "
+                f"{spop['mode']!r} with lateral_on={bool(lateral_on)}, "
+                f"topdown_on={bool(topdown_on)} consumes it")
+        if key not in used and key in spop:
+            raise ValueError(
+                f"{label}: w_update['simple'][{key!r}] is set but simple mode "
+                f"{spop['mode']!r} with lateral_on={bool(lateral_on)}, "
+                f"topdown_on={bool(topdown_on)} consumes no such key")
+    return {
+        "rule": EVENT_SCAN_W_UPDATE_RULE,
+        "buffer_capacity": int(cap),
+        "wi_s": wi_s,
+        "wi_c": wi_c,
+        "decay": dec.astype(np.float64),
+        "simple": spop,
+        "complex": cpop,
+    }
+
+
+#: The value that resets a per-cell threshold to the params' ``v_thresh_mV`` in a boundary map.
+EVENT_SCAN_RESET_THRESHOLD = "v_thresh_mV"
+
+
+@dataclass(frozen=True)
+class EventScanBoundary:
+    """The declared file-boundary map of an event-scan state (fail-closed).
+
+    ``carry`` names the state fields that pass to the next file unchanged. ``reset`` pairs
+    each other field with its value at the boundary: a number fills every cell (``0`` for
+    potentials, times, counters and cleared buffers); ``EVENT_SCAN_RESET_THRESHOLD`` resets
+    the threshold ``TH`` to the params' ``v_thresh_mV``. Every state field is declared
+    exactly once; an unknown, duplicate or missing name is refused by name. Pairs, not a
+    dict, keep the map hashable.
+    """
+
+    carry: tuple[str, ...]
+    reset: tuple[tuple[str, Any], ...]
+
+
+def check_event_scan_boundary(boundary: Any, *, label: str) -> tuple[tuple[str, ...], dict[str, Any]]:
+    """Validate an :class:`EventScanBoundary` against the state fields (fail-closed).
+
+    Returns ``(carry, reset)``. Every refusal names ``label`` and the offending key.
+    """
+    from .emitters_lif import EVENT_SCAN_STATE_FIELDS
+
+    if not isinstance(boundary, EventScanBoundary):
+        raise ValueError(
+            f"{label}: boundary must be an EventScanBoundary; got {type(boundary).__name__}")
+    allowed = tuple(EVENT_SCAN_STATE_FIELDS)
+    carry = tuple(boundary.carry)
+    reset_pairs = tuple(boundary.reset)
+    for pair in reset_pairs:
+        if not (isinstance(pair, tuple) and len(pair) == 2):
+            raise ValueError(
+                f"{label}: boundary reset entries must be (name, value) pairs; got {pair!r}")
+    names = list(carry) + [name for name, _ in reset_pairs]
+    unknown = sorted({k for k in names if k not in allowed}, key=repr)
+    if unknown:
+        raise ValueError(
+            f"{label}: boundary names unknown state field(s) {unknown}; allowed fields are "
+            f"{list(allowed)}")
+    dup = sorted({k for k in names if names.count(k) > 1}, key=repr)
+    if dup:
+        raise ValueError(f"{label}: boundary declares state field(s) {dup} more than once")
+    missing = [f for f in allowed if f not in names]
+    if missing:
+        raise ValueError(
+            f"{label}: boundary leaves state field(s) {missing} undeclared; every field must "
+            "carry or reset")
+    reset = dict(reset_pairs)
+    for name, value in reset_pairs:
+        if value == EVENT_SCAN_RESET_THRESHOLD:
+            if name != "TH":
+                raise ValueError(
+                    f"{label}: reset value {value!r} is only defined for 'TH', not {name!r}")
+            continue
+        if isinstance(value, (bool, np.bool_)):
+            continue  # a flag field (the complex "vspikes" flag) resets to False
+        if not isinstance(value, numbers.Real) or not math.isfinite(float(value)):
+            raise ValueError(
+                f"{label}: boundary reset of {name!r} must be a finite real number, a bool or "
+                f"{EVENT_SCAN_RESET_THRESHOLD!r}; got {value!r}")
+    return carry, reset
+
+
+def apply_event_scan_boundary(state: Mapping[str, Any], boundary: Any, *,
+                              v_thresh_pad: np.ndarray, label: str = "boundary") -> dict[str, Any]:
+    """The state a file starts from after the boundary map.
+
+    ``state`` holds every event-scan state field (validated by the caller). Carried fields
+    pass through; reset fields take their declared value with the field's shape and dtype.
+    ``v_thresh_pad`` is the per-cell threshold with the dummy cell appended, as ``TH`` holds it.
+    """
+    from .emitters_lif import EVENT_SCAN_STATE_FIELDS
+
+    _, reset = check_event_scan_boundary(boundary, label=label)
+    out: dict[str, Any] = {}
+    for field in EVENT_SCAN_STATE_FIELDS:
+        if field not in reset:
+            out[field] = state[field]
+            continue
+        ref = np.asarray(state[field])
+        value = reset[field]
+        if value == EVENT_SCAN_RESET_THRESHOLD:
+            th = np.asarray(v_thresh_pad, dtype=ref.dtype)
+            if th.shape != ref.shape:
+                raise ValueError(
+                    f"{label}: threshold reset needs shape {ref.shape}; got {th.shape}")
+            out[field] = th.copy()
+        else:
+            out[field] = np.full(ref.shape, value, dtype=ref.dtype)
+    return out
+
+
+def pcl_event_scan_boundary() -> EventScanBoundary:
+    """The PCL file boundary: the next file gets W and the reset neuron state.
+
+    W (the six weight families, the local-inhibition matrices and the blocks) carries.
+    Potentials, adaptation, the last-update and spike times, the threshold, the rate and the
+    spike-rate counter reset as ``Neuron::resetNeuron`` sets them (``neurons/Neuron.cpp:611-628``,
+    design study section 1); the measurement cursor ``LUP`` resets to the file origin (the
+    rebased clock's 0). The STDP and inhibition buffers clear to their empty state. The per-run
+    outputs (spike log, bins, first spike) are not state and are not declared.
+    """
+    carry = ("WS", "WC", "LATW", "TDW", "BLK", "WIS", "WIC")
+    reset = (
+        ("V", 0.0), ("A", 0.0), ("TL", 0.0), ("TS", 0.0), ("CNT", 0), ("CSNAP", 0),
+        ("TH", EVENT_SCAN_RESET_THRESHOLD), ("RATE", 0.0), ("LUP", 0),
+        ("TLS", 0.0), ("EVCLR", 0), ("LOCLR", 0), ("GLT", 0.0), ("GLS", 0), ("GCNT", 0),
+        ("CEV", 0.0), ("CEVCNT", 0), ("CEVCLR", 0), ("CLOCLR", 0), ("CKT", 0.0), ("CKH", False),
+        ("TDT", 0.0), ("TDK", 0), ("TDCNT", 0), ("TDCLR", 0),
+        ("LTT", 0.0), ("LTK", 0), ("LTCNT", 0), ("LTCLR", 0),
+    )
+    return EventScanBoundary(carry=carry, reset=reset)
+
+
 class EventScanDrive:
     """The event-scan replay as a declared x-source paradigm object.
 
@@ -1408,7 +1764,12 @@ class EventScanDrive:
     replays exactly this stream through ``simulate_lif_edge``; every
     other simulate input that would change nothing (schedules, poisson,
     HDP, compiled edges) is refused by name there. Anything misshapen
-    here is refused naming ``EventScanDrive``.
+    here is refused naming ``EventScanDrive``. ``h_update`` (None, or the
+    mapping :func:`check_event_scan_h_update` validates) declares the
+    oracle's periodic rate and threshold update; None keeps the thresholds
+    fixed at the params' ``v_thresh_mV``. ``w_update`` (None, or the mapping
+    :func:`check_event_scan_w_update` validates) declares the oracle's buffer
+    plasticity; None keeps the weights frozen.
     """
 
     def __init__(
@@ -1420,6 +1781,11 @@ class EventScanDrive:
         *,
         dt_ms: float,
         n_steps: int,
+        h_update: "Mapping[str, Any] | None" = None,
+        w_update: "Mapping[str, Any] | None" = None,
+        state: "Mapping[str, Any] | None" = None,
+        boundary: "EventScanBoundary | None" = None,
+        return_state: bool = False,
     ) -> None:
         name = type(self).__name__
         ev = np.asarray(events)
@@ -1474,6 +1840,29 @@ class EventScanDrive:
         self.groups = grp.astype(np.int64)
         self.dt_ms = float(dt_ms)
         self.n_steps = n_i
+        self.h_update = (
+            None if h_update is None
+            else check_event_scan_h_update(h_update, ns + nc, label=name))
+        self.w_update = (
+            None if w_update is None
+            else check_event_scan_w_update(
+                w_update, ns + nc, nd=int(tables["nd"]), cd=int(tables["cd"]),
+                lateral_on=bool(tables["lat_on"]), topdown_on=bool(tables["td_on"]),
+                label=name))
+        if state is not None and not isinstance(state, Mapping):
+            raise ValueError(
+                f"{name} state must be the event-scan state mapping; got {type(state).__name__}")
+        if boundary is not None and state is None:
+            raise ValueError(
+                f"{name} boundary needs a state: the map resets the state it is given")
+        if boundary is not None:
+            check_event_scan_boundary(boundary, label=name)
+        if not isinstance(return_state, (bool, np.bool_)):
+            raise ValueError(f"{name} return_state must be a bool; got {return_state!r}")
+        # The state rides the drive to simulate_lif_edge (event_scan_state); None is a fresh pass.
+        self.state = None if state is None else dict(state)
+        self.boundary = boundary
+        self.return_state = bool(return_state)
 
     def to_dict(self) -> dict[str, Any]:
         """Small receipt (shapes and grid only; the arrays ride the run)."""
@@ -1485,6 +1874,8 @@ class EventScanDrive:
             "dt_ms": float(self.dt_ms),
             "ns": int(tables["ns"]),
             "nc": int(tables["nc"]),
+            "h_update": self.h_update is not None,
+            "w_update": self.w_update is not None,
         }
 
 
@@ -1495,14 +1886,14 @@ def build_s1_scan_tensor(ns: int, nc: int, *, name: str = "s1-scan",
 
     One area with a simple layer (``ns`` ``"simple"`` cells) followed by a
     complex layer (``nc`` ``"complex"`` cells), so the constructed
-    population order is ``["simple"] * ns + ["complex"] * nc`` — the
+    population order is ``["simple"] * ns + ["complex"] * nc``: the
     order the event-scan kernel indexes. Positions stay the default
     ``uniform_random`` geometry (the scan replays the declared
     :class:`EventScanDrive` groups, not construct geometry). A single
     declaration connection carries ``local_inhibition``
     ``{"resolution": "event_scan"}`` (rounds-free: the replay resolves
     every event, no cap); construct strips it from the bridge (it
-    compiles no edges — the scan has no edge expression) and records
+    compiles no edges; the scan has no edge expression) and records
     the spec, so ``simulate(paradigm=EventScanDrive(...))`` replays the
     stream exactly. ``ns``/``nc`` must be positive whole numbers.
     ``lif_simple``/``lif_complex`` are optional per-type LIF parameter

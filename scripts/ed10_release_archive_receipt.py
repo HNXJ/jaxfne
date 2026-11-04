@@ -1,4 +1,4 @@
-"""ED10 — release-archive receipt (evidence-chain closure).
+"""ED10: release-archive receipt (evidence-chain closure).
 
 ED9 produces the homeostasis null/ablation/seed evidence bundle. ED10 *closes the
 chain*: it binds the release identity (git branch + commit SHA + dirty state,
@@ -42,7 +42,7 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 EVIDENCE_ARTIFACTS = {
     "ed9_evidence": "outputs/ed9_homeostasis_evidence/ed9_evidence.json",
     "ed9_receipt": "outputs/ed9_homeostasis_evidence/ed9_receipt.json",
-    "evidence_inventory": "outputs/evidence/inventory.json",
+    "evidence_inventory": "artifacts/_temp/outputs/evidence/inventory.json",
 }
 
 TRUTH_GATES = {
@@ -74,7 +74,7 @@ def _provenance() -> dict:
 
 
 def run(out_dir="outputs/ed10_release_archive"):
-    # Hash only artifacts that actually exist — never fabricate the upstream evidence.
+    # Hash only artifacts that actually exist; never fabricate the upstream evidence.
     present = {name: str(REPO_ROOT / rel) for name, rel in EVIDENCE_ARTIFACTS.items()
               if (REPO_ROOT / rel).is_file()}
     missing = [rel for rel in EVIDENCE_ARTIFACTS.values()

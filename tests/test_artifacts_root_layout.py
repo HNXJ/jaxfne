@@ -197,8 +197,8 @@ def test_p3_folders_live_at_new_layout():
     for sub in ("bundles", "theory", "jdna", "meta"):
         entries = list((REPO / "artifacts" / "etudes" / sub).iterdir())
         assert len(entries) <= 7, f"etudes/{sub} holds {len(entries)} entries"
-    # experiment_a/ stays as written (frozen cited path); tutorials/etudes/ keeps
-    # the lane notebook series and tutorials/versioned/ the versioned series.
+    # experiment_a/ stays as written (frozen cited path); artifacts/tutorials/etudes/ keeps
+    # the lane notebook series and artifacts/tutorials/versioned/ the versioned series.
     for sub in ("intro", "status", "suite", "templates"):
         entries = list((REPO / "artifacts" / "tutorials" / sub).iterdir())
         assert len(entries) <= 7, f"tutorials/{sub} holds {len(entries)} entries"
@@ -208,8 +208,8 @@ def test_p3_folders_live_at_new_layout():
 # under runs/; audit/ split by kind inside it. A folder a frozen record cites by path
 # stays: atlas/ (the frozen 0.5.5 agent benchmark artifacts/runs/benchmark/agent_tasks_055.json
 # cites artifacts/atlas/... and its spec_digests are frozen), e2/ (preregistered records
-# cite their own paths and hashes), audit/v0417_a_capability_audit.json (cited by the
-# frozen publication/publication_evidence_index.json). protocol_c/,
+# cite their own paths and hashes), artifacts/audit/v0417_a_capability_audit.json (cited by the
+# frozen artifacts/publication/publication_evidence_index.json). protocol_c/,
 # protocol_d_biological_rbs/, protocol_e_integration/, protocol_h_rbd/ and
 # protocol_w/ stay (jaxfne/ runtime defaults + FROZEN supplement rows), as do
 # programme/, etudes/, tutorials/ and changelog.d/ (artifacts/README.md).

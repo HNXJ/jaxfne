@@ -105,7 +105,7 @@ Sections 1–4 describe structural analogy, rather than a capability or superior
 - jaxfne's spiking simulation (`simulate_edge_recurrent_izhikevich*`) is implemented in
   JAX and differentiable through `jax.lax.scan`, in the same family as Jaxley.
 - HDP (`simulate_edge_recurrent_izhikevich_hdp`) adds a per-neuron resource-state
-  homeostatic controller (`H_i`) driving synaptic weight plasticity — a mechanism not
+  homeostatic controller (`H_i`) driving synaptic weight plasticity, a mechanism not
   present in this specific form in Jaxley, Brian2, or NEST.
 - The source-to-field readout (`jaxfne.fields.project_laminar_sources`) is a static,
   non-learned linear projection (`field_solver_status = "linear_solver"`) rather than a
@@ -113,9 +113,9 @@ Sections 1–4 describe structural analogy, rather than a capability or superior
   `docs/theory/source_field_equations.md`, the physically-grounded source modes
   (`total_membrane_current`, `decomposed_cap_ion_syn`) remain reserved and unimplemented.
 
-**Not yet true — the actual, unbuilt differentiation opportunity:** no tool surveyed
+**Not yet true; the actual, unbuilt differentiation opportunity:** no tool surveyed
 here (jaxfne included, as of this writing) offers a single differentiable pipeline from
-spiking dynamics, through homeostatic plasticity, through to a field/LFP-CSD readout —
+spiking dynamics, through homeostatic plasticity, through to a field/LFP-CSD readout:
 i.e., computing `dL/d(any network or plasticity parameter)` for a loss `L` against a
 recorded extracellular signal. Brian2/NEST are not differentiable at all; Jaxley is
 differentiable through multicompartment biophysics but has no field-projection layer or
@@ -139,6 +139,6 @@ default rather than maximally-tuned backend), and reproduction instructions.
 
 ## References
 
-- Arkhipov et al. (2018), Gouwens et al. (2018), Billeh et al. (2020), Rimehaug et al. (2023) —
+- Arkhipov et al. (2018), Gouwens et al. (2018), Billeh et al. (2020), Rimehaug et al. (2023):
   point-neuron, multicompartment, and extracellular-readout formulations whose mathematical
   structure the TFNE operator chain mirrors.

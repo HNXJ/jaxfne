@@ -16,8 +16,8 @@ Seeds 0-4 fix the network realization (`edge_seed`) and the simulation noise.
 
 Why these settings:
 
-- Dense backend: the rule is ignored there. `jaxfne/_runtime_config.py:76` (default
-  `recurrent_backend="dense"`); edge dispatch at `jaxfne/_model_simulate.py:650`.
+- Dense backend: the rule is ignored there. `RuntimeConfig` in `jaxfne/_runtime_config.py` (default
+  `recurrent_backend="dense"`); edge dispatch at `_simulate_arrays` in `jaxfne/_model_simulate.py`.
   Measured: edge counts 3250 (seed 0) vs 3219 (seed 1), spike counts identical on the
   dense backend. Not fixed here (integration hub).
 - Recurrent weight, probe at drive 10 on the edge_list backend (seeds 0 and 1; cells

@@ -14,7 +14,7 @@ def plot_lfp(signals, *, contacts=None, offset_scale: float = 1.5, gap_frac: flo
     Stacking uses relative accumulative coordination
     (:func:`jaxfne.vis.layout.cumulative_stack_offsets`): each trace's offset
     is the previous trace's offset plus the previous trace's own measured
-    extent plus ``gap_frac`` of it — not a fixed global step — so traces with
+    extent plus ``gap_frac`` of it (not a fixed global step), so traces with
     unusually large amplitude never overlap their neighbor. ``offset_scale``
     additionally widens every gap uniformly if more separation is wanted.
 

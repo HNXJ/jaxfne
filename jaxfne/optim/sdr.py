@@ -43,6 +43,11 @@ def step_sdr_transform(u_t: jnp.ndarray, grad_l: jnp.ndarray, state: Any, hyperp
     with any caller using the lower-level
     ``step(u_t, grad_l, state, hyperparams)`` signature.
     """
+    unknown = sorted(str(k) for k in set(hyperparams) - {"eta"})
+    if unknown:
+        raise ValueError(
+            f"step_sdr_transform: unknown hyperparameter(s) {unknown}; this kernel reads only ['eta']"
+        )
     target_dtype = u_t.dtype
     eta = jnp.array(hyperparams.get("eta", 0.01), dtype=target_dtype)
     u_next = u_t - eta * grad_l

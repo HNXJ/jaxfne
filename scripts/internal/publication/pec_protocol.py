@@ -1,4 +1,4 @@
-"""Publication Evidence Consolidation (PEC) — frozen index authority."""
+"""Publication Evidence Consolidation (PEC): frozen index authority."""
 
 from __future__ import annotations
 

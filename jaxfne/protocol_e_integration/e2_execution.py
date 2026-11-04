@@ -1,4 +1,4 @@
-"""E2 typed provenance-class delays — attachment, gates, receipt."""
+"""E2 typed provenance-class delays: attachment, gates, receipt."""
 
 from __future__ import annotations
 

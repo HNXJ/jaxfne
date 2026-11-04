@@ -326,21 +326,15 @@ def test_lif_refuses_a_non_schedule_paradigm():
             paradigm="no-drive")
 
 
-def test_lif_refuses_continuation_and_ablation():
-    """No continuation, no ablation mask on lif (paradigm now drives)."""
+def test_lif_refuses_a_non_state_continuation_and_ablation():
+    """A non-state continuation is refused by name (paradigm now drives)."""
     model = _lif_model()
-    with pytest.raises(ValueError, match="continuation"):
+    with pytest.raises(ValueError, match="LIFContinuationState"):
         model.simulate(
             jtfne.Simulation(
                 duration_ms=DUR_MS, dt_ms=DT_MS,
                 runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")),
             continuation="no-state")
-    with pytest.raises(ValueError, match="return_state"):
-        model.simulate(
-            jtfne.Simulation(
-                duration_ms=DUR_MS, dt_ms=DT_MS,
-                runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")),
-            return_state=True)
     with pytest.raises(ValueError, match="ablation"):
         _lif_sim(model, ablation="E_silence")
     with pytest.raises(ValueError, match="simulate_condition"):

@@ -1,4 +1,4 @@
-"""0.4.17-B B2 — independent probe operators and lfp_proxy_probe fix."""
+"""0.4.17-B B2: independent probe operators and lfp_proxy_probe fix."""
 
 from __future__ import annotations
 

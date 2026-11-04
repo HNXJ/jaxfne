@@ -14,6 +14,18 @@ import jax
 import jax.numpy as jnp
 from typing import Any, Dict, List, Tuple
 
+def _build_v_coefs(n_neurons: int) -> Tuple[jnp.ndarray, jnp.ndarray]:
+    """Per-cell v-equation (v_lin, v_const) for the 5-area setup: the VIP cells (offset 92-99 of
+    each area) carry the class-1 4.1 and 108 of their a,b,c,d (P-054), the rest the standard 5 and 140."""
+    lin = np.full(n_neurons, 5.0)
+    const = np.full(n_neurons, 140.0)
+    for area_idx in range(5):
+        offset = area_idx * 100
+        lin[offset+92:offset+100] = 4.1
+        const[offset+92:offset+100] = 108.0
+    return jnp.array(lin), jnp.array(const)
+
+
 def _build_area_index(n_neurons: int) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """Constructs and returns the cell parameter arrays for the 5-area setup."""
     a_arr = np.zeros(n_neurons)
@@ -110,7 +122,9 @@ def _scan_task_runtime(
     b_jnp: jnp.ndarray,
     c_jnp: jnp.ndarray,
     d_jnp: jnp.ndarray,
-    dt_ms: float
+    dt_ms: float,
+    v_lin: "jnp.ndarray | float" = 5.0,
+    v_const: "jnp.ndarray | float" = 140.0,
 ) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """Runs a single segment forward-Euler step scan over time."""
     def step_fn(carry, inputs):
@@ -118,7 +132,7 @@ def _scan_task_runtime(
         v_c, u_c, s_c, W_c = carry
         stim_step, noise_step = inputs
         I_drive = base_drive + stim_step + s_c + noise_step
-        dv = 0.04 * v_c * v_c + 5.0 * v_c + 140.0 - u_c + I_drive
+        dv = 0.04 * v_c * v_c + v_lin * v_c + v_const - u_c + I_drive
         v_next = v_c + dt_ms * dv
         du = a_jnp * (b_jnp * v_c - u_c)
         u_next = u_c + dt_ms * du

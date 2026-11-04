@@ -1,6 +1,6 @@
 # HDP Parameter Memory
 
-*Protocol W — HDP parameter memory, W0 frozen and implementation closed. Protocol identifier in provenance.*
+*Protocol W: HDP parameter memory, W0 frozen and implementation closed. Protocol identifier in provenance.*
 
 **Status:** **W0 FROZEN** · **W1a IMPLEMENTED** · **W1b IMPLEMENTED** · **W2 FROZEN** · **W3 SPEC OPEN** · W3 implementation **not** authorized  
 **Prerequisite:** Protocol H **closed** at H4 (`docs/theory/memory/protocol_h_rbd_memory.md`)  
@@ -121,9 +121,9 @@ Immediately \(W_{ij}>0\) without discontinuous projection. Relative interpretati
 }
 \]
 
-- \(\omega=0\) — baseline coupling  
-- \(\omega>0\) — potentiation  
-- \(\omega<0\) — depression  
+- \(\omega=0\): baseline coupling  
+- \(\omega>0\): potentiation  
+- \(\omega<0\): depression  
 
 This is the preferred W0 admissibility architecture (replaces any earlier implicit “clip \(W\)” boundedness sketch).
 
@@ -187,7 +187,7 @@ W = W_0 e^\omega.
 }
 \]
 
-If \(\tau_W \gg \tau_H\), a transient \(H\) perturbation can decay while \(\omega\neq 0\) — the parameter-memory phenomenon W tests.
+If \(\tau_W \gg \tau_H\), a transient \(H\) perturbation can decay while \(\omega\neq 0\): the parameter-memory phenomenon W tests.
 
 ### 5.7 W1a analytic ground truth (prescribed \(\Delta H\))
 
@@ -231,7 +231,7 @@ Afterward:
 }
 \]
 
-This is the W1 analytic receipt — analogous to F1 transparency in Protocol H.
+This is the W1 analytic receipt, analogous to F1 transparency in Protocol H.
 
 **W1a implementation:** `jaxfne/w1a_omega_plasticity.py`, `tests/test_protocol_w_w1a.py`.
 
@@ -365,7 +365,7 @@ H_{\mathrm{perturbed}}\approx H_{\mathrm{control}}
 X_{\mathrm{perturbed}}\neq X_{\mathrm{control}}
 \]
 
-under identical probe input — fast RBS memory faded, slower parameter trace changes future response.
+under identical probe input; fast RBS memory faded, slower parameter trace changes future response.
 
 **Specification artifact:** `artifacts/protocol_w/w3_closed_loop_spec.json`
 
@@ -423,11 +423,11 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 | \(\max\Re((\lambda_{\mathrm{step}}-1)/\Delta t)<0\) | **Pass** |
 | \(b_{HW}\neq 0\) (loop active at rest) | **Fail** (exactly zero) |
 
-**W3 kernel implementation:** remains **not authorized** — rest equilibrium certifies marginal discrete stability, rather than active closed-loop coupling; transient/post-perturbation analysis requires a separately versioned protocol if an activity-enabled operating point is needed.
+**W3 kernel implementation:** remains **not authorized**; rest equilibrium certifies marginal discrete stability, rather than active closed-loop coupling; transient/post-perturbation analysis requires a separately versioned protocol if an activity-enabled operating point is needed.
 
 ### 5.12 W3a — activity-enabled stability (**frozen analysis; W3 kernel not authorized**)
 
-**Preserves:** silent-rest W3 result at `953d03b` — at \(\mathrm{syn}^\*=0\),
+**Preserves:** silent-rest W3 result at `953d03b`, at \(\mathrm{syn}^\*=0\),
 \(\partial I^{\mathrm{rec}}/\partial\omega=0\Rightarrow b_{HW}=0\): **synaptic HDP feedback is linearly dormant at rest.**
 
 **Question:** is the HDP closed loop locally stable around an **active** recurrent operating state?
@@ -495,7 +495,7 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 | \(N_D\) | 243 |
 | \(N_U\) | 0 |
 
-**Branch:** `N_S_eq_0_and_N_X_gt_0` — no robust active domain demonstrated; active regimes stability-unresolved. **Next:** W3c orbit characterization, with the law unchanged.
+**Branch:** `N_S_eq_0_and_N_X_gt_0`; no robust active domain demonstrated; active regimes stability-unresolved. **Next:** W3c orbit characterization, with the law unchanged.
 
 **Not concluded:** \(\mathcal D_{\mathrm{useful}}=\emptyset\) scientifically (requires \(N_X=0\)).
 
@@ -536,27 +536,27 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 
 | Phase | Status |
 |-------|--------|
-| **W1a** | **IMPLEMENTED** — prescribed \(\Delta H\to\omega\), analytic + Euler receipts |
-| **W1b** | **IMPLEMENTED** — RBD shadow \(\omega\) on \(A\rightleftarrows B\); no \(W\to X\) |
-| **W2** | **FROZEN** — prospective receipt; frozen \(\omega\to W\to X\) |
-| **W3** | **STABILITY FROZEN (silent rest)** — kernel **not** authorized |
-| **W3a** | **STABILITY FROZEN (activity-enabled)** — kernel **not** authorized |
-| **W3b** | **INTERPRETATION FROZEN** — unresolved (\(N_S=0, N_X>0\)); W3c parallel |
+| **W1a** | **IMPLEMENTED**: prescribed \(\Delta H\to\omega\), analytic + Euler receipts |
+| **W1b** | **IMPLEMENTED**: RBD shadow \(\omega\) on \(A\rightleftarrows B\); no \(W\to X\) |
+| **W2** | **FROZEN**: prospective receipt; frozen \(\omega\to W\to X\) |
+| **W3** | **STABILITY FROZEN (silent rest)**: kernel **not** authorized |
+| **W3a** | **STABILITY FROZEN (activity-enabled)**: kernel **not** authorized |
+| **W3b** | **INTERPRETATION FROZEN**: unresolved (\(N_S=0, N_X>0\)); W3c parallel |
 | **W4** | not authorized |
 
-\(\text{W2}_{\mathrm{competition}}\): competition/conservation — **only if necessary** after W1.
+\(\text{W2}_{\mathrm{competition}}\): competition/conservation: **only if necessary** after W1.
 
 ## 7. Implementation authorization gates
 
 | Phase | Authorized |
 |-------|------------|
 | W0 | frozen |
-| W1a | **yes** — scalar integrator only |
-| W1b | **yes** — shadow plasticity, no feedback |
-| W2 | **frozen** — receipt locked; do not mutate configuration |
-| W3 | **silent-rest stability frozen** — kernel blocked |
-| W3a | **activity stability frozen** — margin audit addendum |
-| W3b | **interpretation frozen** — unresolved; 0.4.16 science closed |
+| W1a | **yes**: scalar integrator only |
+| W1b | **yes**: shadow plasticity, no feedback |
+| W2 | **frozen**: receipt locked; do not mutate configuration |
+| W3 | **silent-rest stability frozen**: kernel blocked |
+| W3a | **activity stability frozen**: margin audit addendum |
+| W3b | **interpretation frozen**: unresolved; 0.4.16 science closed |
 | W4+ | **no** |
 
 W3 implementation remains blocked until stability analysis receipt passes.
@@ -618,14 +618,14 @@ W3a activity-enabled stability (frozen):
 
 ## 10. Stop rules
 
-- Implementation before W0 sign-off — **blocked** (W0 now frozen; W1 still blocked)
+- Implementation before W0 sign-off: **blocked** (W0 now frozen; W1 still blocked)
 - Using long heterogeneous rings in W1
 - Encoding E/I sign in \(\mathrm{sign}(W)\) under log-parameterization
 - Enabling \(C_{ij}\) in W1 without separate W2\(_{\mathrm{competition}}\) protocol ID
 
 ## 11. References
 
-- `docs/theory/memory/protocol_h_rbd_memory.md` — Protocol H (closed)
+- `docs/theory/memory/protocol_h_rbd_memory.md`: Protocol H (closed)
 - `artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json`
 - `docs/theory/doctrine/rbs_rbd_hdp.md`
-- `docs/theory/doctrine/tfne_containment_architecture.md` — typed coupling maps
+- `docs/theory/doctrine/tfne_containment_architecture.md`: typed coupling maps

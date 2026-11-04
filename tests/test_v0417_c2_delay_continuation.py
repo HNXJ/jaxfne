@@ -1,4 +1,4 @@
-"""0.4.17-C2 — canonical Model.simulate delay_state continuation.
+"""0.4.17-C2: canonical Model.simulate delay_state continuation.
 
 Pre-registered tolerance: bit-exact (float32, max abs diff == 0) with
 noise_scale=0 and deterministic drive schedules. No wave-specific behavior.

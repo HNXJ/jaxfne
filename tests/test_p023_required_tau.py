@@ -166,7 +166,7 @@ def test_forged_tfne_provenance_does_not_qualify_for_carve_out():
 def test_genuine_tfne_tensor_passes_with_custom_mechanism_and_polarity_sign():
     """A tensor minted by to_neuronal_tensor skips the declaration vocabulary.
 
-    The program declares a custom mechanism (FOO, tau_ms 3.5 — unknown to the
+    The program declares a custom mechanism (FOO, tau_ms 3.5; unknown to the
     {AMPA, NMDA, GABA_A, GABA_B} vocabulary) on a PV -> E projection (a
     polarity-signed pair the declaration vocabulary would refuse as a
     non-E source with an excitatory-named mechanism). Both ride
@@ -251,7 +251,7 @@ def test_unmutated_tfne_tensor_keeps_carve_out_and_lowers():
 def test_reverted_tfne_tensor_regains_carve_out():
     """Mutate-then-revert restores the mark: identity is by content (P-023-mint).
 
-    This documents intended behavior — the carve-out tracks the minted
+    This documents intended behavior: the carve-out tracks the minted
     content digest, not an edit counter, so restoring the exact bytes
     restores the status."""
     tensor = _minted_amma_tensor()

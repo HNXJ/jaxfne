@@ -13,7 +13,6 @@ Test suite for v0.3.3 Two-Neuron E/I Multimodal Tutorial.
 import json
 import os
 import pathlib
-import subprocess
 import sys
 
 import pytest
@@ -78,7 +77,7 @@ def v033_produced(tmp_path_factory):
 
 
 # ============================================================================
-# Group 0: Existing tests (7 tests — preserved)
+# Group 0: Existing tests (7 tests, preserved)
 # ============================================================================
 
 def test_v033_tutorial_import(tmp_path, monkeypatch):
@@ -469,19 +468,18 @@ def test_v033_all_json_files_parseable(v033_produced):
         assert isinstance(data, dict), f"{jf.name} did not parse as dict"
 
 
-def test_v033_syntax_check():
+def test_v033_syntax_check(tmp_path):
     """Tutorial script must pass py_compile (no syntax errors)."""
+    import py_compile
+
     script_path = str(
         pathlib.Path(__file__).parent.parent / "examples" / "v033_two_neuron_ei_multimodal.py"
     )
-    result = subprocess.run(
-        [sys.executable, "-m", "py_compile", script_path],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    assert result.returncode == 0, \
-        f"py_compile failed:\n{result.stderr}"
+    # cfile under tmp_path: py_compile writes a .pyc even with PYTHONDONTWRITEBYTECODE set.
+    try:
+        py_compile.compile(script_path, cfile=str(tmp_path / "v033.pyc"), doraise=True)
+    except py_compile.PyCompileError as exc:
+        pytest.fail(f"py_compile failed:\n{exc.msg}")
 
 
 # ============================================================================
@@ -520,6 +518,29 @@ def test_v033_manifest_has_8_figure_entries(v033_produced):
     }
     missing = required_keys - set(figures.keys())
     assert not missing, f"Missing figure keys in manifest: {missing}"
+
+
+def test_v033_without_matplotlib_writes_its_manifest(tmp_path, monkeypatch):
+    """Without matplotlib the tutorial still writes and returns its manifest (it raised NameError)."""
+    monkeypatch.setenv("JAXFNE_TUTORIAL_STATIC_DIR", str(tmp_path / "static_figs"))
+    examples_path = str(pathlib.Path(__file__).parent.parent / "examples")
+    sys.path.insert(0, examples_path)
+    try:
+        import v033_two_neuron_ei_multimodal as tutorial
+    finally:
+        sys.path.remove(examples_path)
+
+    def _no_mpl():
+        raise ImportError("matplotlib hidden by the test")
+
+    monkeypatch.setattr(tutorial.jtfne.vis, "require_matplotlib", _no_mpl)
+    monkeypatch.setattr(tutorial, "OUT", tmp_path / "out")
+    with pytest.raises(ImportError):  # fixture: the figure branch is off
+        tutorial.jtfne.vis.require_matplotlib()
+    result = tutorial.main()
+    manifest_path = pathlib.Path(result["manifest_path"])
+    assert manifest_path.is_file()
+    assert json.loads(manifest_path.read_text(encoding="utf-8"))["figures"] == {}
 
 
 if __name__ == "__main__":

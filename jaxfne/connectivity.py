@@ -93,10 +93,12 @@ def _validate_rule_delay_ms(rule_name: str, delay: Any) -> "float | None":
 
 #: ``jax.random.fold_in`` tags for the per-rule spread streams. Pair selection
 #: consumes ``rkey`` and scalar/random weight modes consume ``fold_in(rkey, 1)``,
-#: so weight and delay spreads fold 2 and 3: declaring a spread perturbs no
-#: pre-existing stream and omitting one leaves every stream byte-identical.
+#: so weight spread, delay spread and the per-edge weight range fold 2, 3 and 4:
+#: declaring one perturbs no pre-existing stream and omitting one leaves every
+#: stream byte-identical.
 _WEIGHT_SPREAD_FOLD = 2
 _DELAY_SPREAD_FOLD = 3
+_WEIGHT_RANGE_FOLD = 4
 
 
 def _validate_spread_std(rule_name: str, value: Any, key: str) -> "float | None":
@@ -127,6 +129,55 @@ def _validate_spread_std(rule_name: str, value: Any, key: str) -> "float | None"
     return std
 
 
+def _validate_weight_range(
+    rule_name: str, value: Any, *, weight: Any, weight_std: Any
+) -> "tuple[float, float] | None":
+    """Validate one connection rule's per-edge weight range (``weight_range``).
+
+    None = undeclared = the rule's existing weights. A declared value must be a
+    2-sequence ``(lo, hi)`` of finite reals with ``0 <= lo < hi``; each edge's
+    magnitude is then drawn U[lo, hi). The range replaces a scalar ``weight``
+    and excludes ``weight_std``, so either conflict is refused, never resolved.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, (list, tuple)) or len(value) != 2:
+        raise ValueError(
+            f"connection {rule_name!r} weight_range must be a 2-sequence (lo, hi) "
+            f"of finite reals; got {value!r}"
+        )
+    bounds: list[float] = []
+    for end in value:
+        if (
+            isinstance(end, bool)
+            or not isinstance(end, numbers.Real)
+            or not math.isfinite(float(end))
+        ):
+            raise ValueError(
+                f"connection {rule_name!r} weight_range must be a 2-sequence (lo, hi) "
+                f"of finite reals; got {value!r}"
+            )
+        bounds.append(float(end))
+    lo, hi = bounds
+    if weight is not None:
+        raise ValueError(
+            f"connection {rule_name!r} declares weight_range={value!r} with "
+            f"weight={weight!r}; the range draws each edge's magnitude -- declare "
+            "weight_range or a scalar weight, not both"
+        )
+    if weight_std is not None:
+        raise ValueError(
+            f"connection {rule_name!r} declares weight_range={value!r} with "
+            f"weight_std={weight_std!r}; the range and the Gaussian spread both set "
+            "each edge's weight -- declare one"
+        )
+    if lo < 0.0:
+        raise ValueError(f"connection {rule_name!r} weight_range lo must be >= 0; got {value!r}")
+    if lo >= hi:
+        raise ValueError(f"connection {rule_name!r} weight_range must satisfy lo < hi; got {value!r}")
+    return (lo, hi)
+
+
 def _validate_in_degree(rule_name: str, in_degree: Any) -> "int | None":
     """Validate one connection rule's exact fixed ``in_degree`` (or pass None through).
 
@@ -152,6 +203,30 @@ def _validate_in_degree(rule_name: str, in_degree: Any) -> "int | None":
     return degree
 
 
+def _validate_multinomial_in_degree(label: str, in_degree: Any) -> "float | None":
+    """Validate a ``sampling="multinomial"`` mean in-degree ``k`` (or pass None through).
+
+    The declared ``k`` is the mean in-degree: any finite real number > 0,
+    non-integer allowed, returned as a float. bools, non-numbers, non-finite
+    values and values <= 0 are refused, never coerced. ``label`` names the
+    declaring surface in the message.
+    """
+    if in_degree is None:
+        return None
+    if isinstance(in_degree, bool) or not isinstance(in_degree, numbers.Real):
+        raise ValueError(
+            f"{label} in_degree with sampling='multinomial' must be a finite "
+            f"positive number (the mean in-degree); got {in_degree!r}"
+        )
+    value = float(in_degree)
+    if not math.isfinite(value) or value <= 0.0:
+        raise ValueError(
+            f"{label} in_degree with sampling='multinomial' must be a finite "
+            f"positive number (the mean in-degree); got {in_degree!r}"
+        )
+    return value
+
+
 @dataclass(frozen=True)
 class ConnectionCompileResult:
     """Compiled sparse connectivity.
@@ -170,7 +245,7 @@ class ConnectionCompileResult:
     diagnostics: dict[str, Any] = field(default_factory=dict)
     # Configured per-edge delay in ms (0.0 where the rule declared none).
     # Realized steps are derived at construction, where dt is known, via
-    # :func:`delay_steps_from_ms` — never here.
+    # :func:`delay_steps_from_ms`; never here.
     edge_delay_ms: jax.Array | None = None
 
     @property
@@ -189,7 +264,7 @@ class ConnectionCompileResult:
         when given, each edge's ``delay_steps`` is
         :func:`delay_steps_from_ms` of its configured ms at that timestep
         (a positive delay rounding to 0 steps raises); when omitted, delays
-        stay zero — exactly the pre-0.5.2 EdgeList.
+        stay zero; exactly the pre-0.5.2 EdgeList.
         """
         from .emitters import EdgeList
 
@@ -247,12 +322,13 @@ class ConnectionCompileResult:
                 # positive draw inside one timestep floors to 1 step instead
                 # of raising (the constant path keeps the refusal). Exact-zero
                 # draws stay 0 steps. Non-spread edges keep the exact path.
-                import math as _math
-
                 rule_of = _np.asarray(self.edge_rule_id,
                                       dtype=_np.int64).reshape(-1)
                 steps = _np.zeros(ms.shape, dtype=_np.int32)
-                plain = _np.array([int(r) not in spread_rules for r in rule_of])
+                plain = ~_np.isin(
+                    rule_of,
+                    _np.fromiter(spread_rules, dtype=_np.int64, count=len(spread_rules)),
+                )
                 if bool(_np.any(plain)):
                     uniq, inverse = _np.unique(ms[plain], return_inverse=True)
                     psteps = _np.asarray(
@@ -261,12 +337,15 @@ class ConnectionCompileResult:
                     ).reshape(-1)
                     steps[plain] = psteps[inverse.reshape(-1)]
                 dt = float(dt_ms)
-                for idx in _np.where(~plain)[0]:
-                    v = float(ms[idx])
-                    if v == 0.0:
-                        steps[idx] = 0
-                    else:
-                        steps[idx] = max(1, int(_math.floor(v / dt + 0.5)))
+                spread = ~plain
+                if bool(_np.any(spread)):
+                    # Same snap as the per-edge loop: exact-zero draws stay 0,
+                    # other draws floor half-up with a floor of 1 step.
+                    sms = ms[spread]
+                    snapped = _np.floor(sms / dt + 0.5).astype(_np.int64)
+                    snapped = _np.maximum(snapped, _np.int64(1))
+                    snapped[sms == 0.0] = _np.int64(0)
+                    steps[spread] = snapped.astype(_np.int32)
                 delay_steps = jnp.asarray(steps, dtype=jnp.int32)
         return EdgeList(
             pre=jnp.asarray(self.edge_pre, dtype=jnp.int32),
@@ -672,9 +751,11 @@ def _candidate_pairs_multinomial(
     Each of the K synapses draws its presynaptic and postsynaptic neuron
     independently and uniformly, giving binomial in/out-degree; a (pre, post)
     pair may repeat. ``probability=None`` -> ``p = 1.0``; ``p <= 0`` -> no
-    edges; the count rounds half-up (the delay grid's convention). With
-    ``allow_self=False`` and overlapping pools, self pairs are excluded by
-    drawing over the reduced valid pair space arithmetically, so exactly K
+    edges; the count rounds half-up (the delay grid's convention). A rule
+    declared with ``in_degree=k`` passes its mean in-degree ``k`` as
+    ``probability``, so ``K = round_half_up(k * n_post)`` for any finite
+    ``k > 0``. With ``allow_self=False`` and overlapping pools, self pairs are
+    excluded by drawing over the reduced valid pair space arithmetically, so exactly K
     kept pairs always come back; a rule whose valid pair space is empty while
     ``K > 0`` is refused. Sampling is deterministic given ``key`` and never
     materializes a dense n_pre x n_post pair grid.
@@ -698,7 +779,11 @@ def _candidate_pairs_multinomial(
             jax.random.choice(key, n_pre * n_post, shape=(k,), replace=True)
         )
         pre_pick, post_pick = np.divmod(flat, n_post)
-        return sorted(zip(pre_arr[pre_pick].tolist(), post_arr[post_pick].tolist()))
+        sel_pre = pre_arr[pre_pick]
+        sel_post = post_arr[post_pick]
+        # Tuple order (pre, post): lexsort with the last key primary.
+        order = np.lexsort((sel_post, sel_pre))
+        return list(zip(sel_pre[order].tolist(), sel_post[order].tolist()))
     # Overlapping pools without self: the valid pair space drops the
     # pre==post pairs. Draw K indices over the reduced space and map them
     # per post cell, so exactly K kept pairs always come back (no rejection
@@ -717,12 +802,26 @@ def _candidate_pairs_multinomial(
     flat = np.asarray(jax.random.choice(key, total_valid, shape=(k,), replace=True))
     post_pick = np.searchsorted(offsets, flat, side="right") - 1
     within = flat - offsets[post_pick]
+    # Each shared post cell's own id sits at one position of pre_arr; pairs at
+    # or past it shift by one so the self pair stays excluded. One vectorized
+    # bump over all K draws replaces the per-post-cell loop.
+    need = valid_per_post != n_pre
     pre_idx = np.asarray(within, dtype=np.int64).copy()
-    for j in np.flatnonzero(valid_per_post != n_pre):
-        skip = int(np.flatnonzero(pre_arr == post_arr[j])[0])
-        sel = post_pick == j
-        pre_idx[sel] += (within[sel] >= skip).astype(np.int64)
-    return sorted(zip(pre_arr[pre_idx].tolist(), post_arr[post_pick].tolist()))
+    if bool(np.any(need)):
+        # First occurrence, as the old ``flatnonzero(...)[0]``.
+        pre_pos: dict[int, int] = {}
+        for i, a in enumerate(pre_arr.tolist()):
+            pre_pos.setdefault(int(a), i)
+        skip_of_post = np.zeros(post_arr.shape[0], dtype=np.int64)
+        need_idx = np.flatnonzero(need)
+        skip_of_post[need_idx] = np.asarray(
+            [pre_pos[int(post_arr[int(j)])] for j in need_idx], dtype=np.int64
+        )
+        pre_idx += ((within >= skip_of_post[post_pick]) & need[post_pick]).astype(np.int64)
+    sel_pre = pre_arr[pre_idx]
+    sel_post = post_arr[post_pick]
+    order = np.lexsort((sel_post, sel_pre))
+    return list(zip(sel_pre[order].tolist(), sel_post[order].tolist()))
 
 
 def _spatial_bucket_key(pos: np.ndarray, cell_size: float) -> tuple[int, int, int]:
@@ -741,6 +840,7 @@ def _candidate_pairs_localized(
     spatial_sigma: float,
     allow_self: bool,
     key: jax.Array,
+    spatial_radius: float | None = None,
 ) -> list[tuple[int, int]]:
     """Distance-limited edge sampling with a constant per-post in-degree cap.
 
@@ -752,9 +852,10 @@ def _candidate_pairs_localized(
 
     Candidate pre-neurons are restricted to a spatial neighborhood via grid
     bucketing (cell size = 3*spatial_sigma, covering ~3 std of the Gaussian
-    falloff) rather than computing a full n_pre x n_post distance matrix --
-    that full computation would reintroduce the same O(N^2) cost one step
-    earlier even though the resulting edge count is sparse.
+    falloff; the grid is anchored at the pre population's minimum corner) rather
+    than computing a full n_pre x n_post distance matrix -- that full computation
+    would reintroduce the same O(N^2) cost one step earlier even though the
+    resulting edge count is sparse.
 
     PERFORMANCE NOTE (found 2026-07-01): the grid-bucket neighborhood's raw
     candidate count scales with local NEURON DENSITY, not with N or
@@ -770,6 +871,12 @@ def _candidate_pairs_localized(
     already-local neighborhood, not a bias away from "nearest" -- the Gaussian
     weighting still governs which of the (now-capped) candidates are chosen.
 
+    When ``spatial_radius`` is set, bucketing is skipped: candidates are
+    exactly the pre-neurons within that Euclidean distance of the post
+    neuron, so the candidate set is a function of distances only and a rigid
+    rotation of the population keeps it. When it is None, the sampler
+    follows the grid buckets alone.
+
     Uses ``numpy``'s RNG throughout, not ``jax.random`` -- this function is
     host-side/non-traced Python (per this module's own design doctrine), and
     numpy avoids per-call JAX dispatch overhead accumulating across N
@@ -783,25 +890,42 @@ def _candidate_pairs_localized(
     """
     if not pre_ids or not post_ids or max_in_degree <= 0:
         return []
-    cell_size = 3.0 * max(float(spatial_sigma), 1e-9)
+    radius = None if spatial_radius is None else float(spatial_radius)
+    if radius is None:
+        cell_size = 3.0 * max(float(spatial_sigma), 1e-9)
+        # Anchor the grid at the pre population's minimum corner: a rigid translation of the
+        # population then leaves every bucket key, and so every candidate set, unchanged.
+        origin = np.min(np.stack([positions[nid] for nid in pre_ids]), axis=0)
 
-    pre_buckets: dict[tuple[int, int, int], list[int]] = {}
-    for nid in pre_ids:
-        pre_buckets.setdefault(_spatial_bucket_key(positions[nid], cell_size), []).append(nid)
+        pre_buckets: dict[tuple[int, int, int], list[int]] = {}
+        for nid in pre_ids:
+            bucket = _spatial_bucket_key(positions[nid] - origin, cell_size)
+            pre_buckets.setdefault(bucket, []).append(nid)
 
-    neighbor_offsets = [(dx, dy, dz) for dx in (-1, 0, 1) for dy in (-1, 0, 1) for dz in (-1, 0, 1)]
+        neighbor_offsets = [(dx, dy, dz) for dx in (-1, 0, 1) for dy in (-1, 0, 1) for dz in (-1, 0, 1)]
     pairs: list[tuple[int, int]] = []
     rng = np.random.default_rng(_stable_fold(int(jax.random.randint(key, (), 0, 2**31 - 1))))
     for post_id in post_ids:
         post_pos = positions[post_id]
-        bx, by, bz = _spatial_bucket_key(post_pos, cell_size)
-        candidates: list[int] = []
-        for dx, dy, dz in neighbor_offsets:
-            candidates.extend(pre_buckets.get((bx + dx, by + dy, bz + dz), ()))
+        if radius is not None:
+            # Exact ball over every pre id: bucket walls are axis-aligned,
+            # so gathering through them would leak orientation into the
+            # candidate set under rotation.
+            all_pos = np.stack([positions[c] for c in pre_ids])
+            within = np.sum((all_pos - post_pos) ** 2, axis=1) <= radius * radius
+            candidates = [c for c, keep in zip(pre_ids, within) if keep]
+        else:
+            bx, by, bz = _spatial_bucket_key(post_pos - origin, cell_size)
+            candidates = []
+            for dx, dy, dz in neighbor_offsets:
+                candidates.extend(pre_buckets.get((bx + dx, by + dy, bz + dz), ()))
         if not allow_self and post_id in candidates:
             candidates = [c for c in candidates if c != post_id]
         if not candidates:
             continue
+        # The pool cap and the draw both index this list: sorting by neuron id makes the
+        # selection a function of ids and distances only.
+        candidates.sort()
         if len(candidates) > _LOCALIZED_CANDIDATE_POOL_CAP:
             keep = rng.choice(len(candidates), size=_LOCALIZED_CANDIDATE_POOL_CAP, replace=False)
             candidates = [candidates[i] for i in keep]
@@ -825,7 +949,7 @@ def _stable_fold(seed: Any) -> int:
     """Deterministic 31-bit fold value from a weight-spec ``seed``.
 
     Uses the integer directly when possible, otherwise a content hash
-    (``hashlib.sha256``) — never the builtin ``hash()``, which is randomized
+    (``hashlib.sha256``); never the builtin ``hash()``, which is randomized
     per-process for strings (PEP 456 / ``PYTHONHASHSEED``) and would break the
     determinism contract for string seeds.
     """
@@ -975,6 +1099,11 @@ def compile_connection_rules(
     distance-weighted sampling (``spatial_sigma``, default 0.1, same units as
     neuron ``x``/``y``/``z``) rather than a flat O(n_pre*n_post) density
     target.
+    A rule may also set ``spatial_radius`` (None = undeclared = the grid
+    buckets alone): with ``max_in_degree`` set, only pairs within that
+    Euclidean distance (same units as ``x``/``y``/``z``) stay candidates, so a
+    rotation of the population keeps the realized edge set under one seed. It
+    needs ``max_in_degree`` and must be finite and > 0.
     Requires every selected neuron row to carry ``x``/``y``/``z``.
 
     A rule may set ``sampling`` to ``"density"`` (default: the realized unique
@@ -990,14 +1119,17 @@ def compile_connection_rules(
     refuses ``probability``, ``max_in_degree``, ``footprint`` and the
     Bernoulli samplings) or ``"multinomial"`` (exactly ``round(p*n_post)``
     synapses per rule drawn with replacement via
-    :func:`_candidate_pairs_multinomial`; it refuses ``in_degree``).
+    :func:`_candidate_pairs_multinomial`; with ``in_degree=k`` in place of
+    ``probability`` it draws ``round(k*n_post)`` instead, ``k`` being a finite
+    mean in-degree > 0, non-integer allowed; it refuses ``in_degree`` together
+    with ``probability``).
     Any other ``sampling`` value raises ``ValueError``.
 
     A rule may set ``delay_ms`` (configured axonal delay in ms, None =
     undeclared): validated here (finite, >= 0), fanned out per edge onto
     ``edge_delay_ms``, and recorded on the connection-table row. Realization
     to integer steps happens at construction via :func:`delay_steps_from_ms`
-    (0.5.2 decision 0b), where ``dt`` is known — never here.
+    (0.5.2 decision 0b), where ``dt`` is known; never here.
 
     A rule may set ``intra_step_rounds`` (None = undeclared): the declared
     intra-step fixed point for zero-delay edges, realized on the adex route
@@ -1018,6 +1150,8 @@ def compile_connection_rules(
         else jnp.float32
     )
 
+    from .emitters import INSTANTANEOUS_MECHANISM
+
     mechanism_table: list[dict[str, Any]] = []
     mech_index: dict[str, int] = {}
     for i, m in enumerate(mechanisms):
@@ -1026,7 +1160,13 @@ def compile_connection_rules(
             raise ValueError("mechanism declaration missing 'name'")
         params = dict(m.get("params", {}))
         tau = params.get("tau_ms", m.get("tau_ms"))
-        if tau is not None and (not math.isfinite(float(tau)) or float(tau) <= 0.0):
+        if name == INSTANTANEOUS_MECHANISM:
+            # P-051: the tau -> 0 limit is the one zero tau, and it must be declared exactly.
+            if tau is None or float(tau) != 0.0:
+                raise ValueError(
+                    f"mechanism {name!r} is the tau -> 0 limit: declare tau_ms=0.0; got {tau!r}"
+                )
+        elif tau is not None and (not math.isfinite(float(tau)) or float(tau) <= 0.0):
             raise ValueError(f"mechanism {name!r} tau_ms must be finite and positive; got {tau!r}")
         mech_index[name] = i
         mechanism_table.append(
@@ -1041,12 +1181,15 @@ def compile_connection_rules(
         )
 
     base_key = jax.random.PRNGKey(int(seed))
-    all_pre: list[int] = []
-    all_post: list[int] = []
-    all_weight: list[float] = []
-    all_mech: list[int] = []
-    all_rule: list[int] = []
-    all_delay_ms: list[float] = []
+    # Per-rule numpy blocks concatenated once below: the old per-edge
+    # ``list.append`` loop ran six appends per edge (54 M appends at 9 M
+    # edges). Blocks hold the same values in the same rule order.
+    pre_blocks: list[np.ndarray] = []
+    post_blocks: list[np.ndarray] = []
+    weight_blocks: list[np.ndarray] = []
+    mech_blocks: list[np.ndarray] = []
+    rule_blocks: list[np.ndarray] = []
+    delay_blocks: list[np.ndarray] = []
     connection_table: list[dict[str, Any]] = []
     skipped: list[str] = []
 
@@ -1083,14 +1226,18 @@ def compile_connection_rules(
                 f"connection {rname!r} sampling must be 'density', 'bernoulli', "
                 f"'capped_bernoulli', 'fixed_indegree' or 'multinomial'; got {sampling!r}"
             )
-        in_degree = _validate_in_degree(rname, rule.get("in_degree"))
+        if sampling == "multinomial":
+            in_degree = _validate_multinomial_in_degree(
+                f"connection {rname!r}", rule.get("in_degree"))
+        else:
+            in_degree = _validate_in_degree(rname, rule.get("in_degree"))
         if sampling == "fixed_indegree" and in_degree is None:
             raise ValueError(
                 f"connection {rname!r} declares sampling='fixed_indegree' "
                 "without in_degree; the fixed-indegree sampler draws exactly "
                 "in_degree presynaptic partners per post cell -- declare both"
             )
-        if sampling in ("bernoulli", "capped_bernoulli", "multinomial") and in_degree is not None:
+        if sampling in ("bernoulli", "capped_bernoulli") and in_degree is not None:
             raise ValueError(
                 f"connection {rname!r} sampling={sampling!r} is not implemented "
                 f"with in_degree={in_degree!r} (exact fixed in-degree); "
@@ -1115,6 +1262,17 @@ def compile_connection_rules(
                 f"connection {rname!r} sampling={sampling!r} is not implemented with "
                 "max_in_degree (localized sampling); omit one of them"
             )
+        # A declared spatial_radius has no consumer on the density path: it
+        # only parametrizes localized (max_in_degree) sampling, so carrying
+        # it without the cap is refused rather than silently ignored. It is
+        # checked before spatial_sigma so a rule declaring both without the
+        # cap names the radius.
+        if rule.get("max_in_degree") is None and rule.get("spatial_radius") is not None:
+            raise ValueError(
+                f"connection {rname!r} declares spatial_radius={rule.get('spatial_radius')!r} "
+                "without max_in_degree; spatial_radius needs max_in_degree "
+                "(localized sampling) -- declare both or neither"
+            )
         # A declared spatial_sigma has no consumer on the density path: it
         # only parametrizes localized (max_in_degree) sampling, so carrying
         # it without the cap is refused rather than silently ignored.
@@ -1124,6 +1282,25 @@ def compile_connection_rules(
                 "without max_in_degree; spatial_sigma needs max_in_degree "
                 "(localized sampling) -- declare both or neither"
             )
+        _radius = rule.get("spatial_radius")
+        if _radius is not None:
+            if isinstance(_radius, bool) or isinstance(_radius, str):
+                raise ValueError(
+                    f"connection {rname!r} spatial_radius must be a finite number "
+                    f"> 0 in mm; got {_radius!r}"
+                )
+            try:
+                _radius_f = float(_radius)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"connection {rname!r} spatial_radius must be a finite number "
+                    f"> 0 in mm; got {_radius!r}"
+                )
+            if not (math.isfinite(_radius_f) and _radius_f > 0.0):
+                raise ValueError(
+                    f"connection {rname!r} spatial_radius must be finite and "
+                    f"> 0 in mm; got {_radius!r}"
+                )
         # A declared footprint selects pairs deterministically from posed
         # positions (jaxfne.pcl_topology.footprint_pairs), so the stochastic
         # pair selectors must not also apply: probability, max_in_degree and
@@ -1223,12 +1400,17 @@ def compile_connection_rules(
                 label=f"connection {rname!r}",
             )
             if not rule_self:
-                kept = [(a, b, g) for (a, b), g in zip(pairs_all, groups_all) if a != b]
+                # Vectorized self-pair drop over the footprint's pair grid.
+                _parr = np.asarray(pairs_all, dtype=np.int64).reshape(-1, 2)
+                _garr = np.asarray(groups_all, dtype=np.int64).reshape(-1)
+                _keep = _parr[:, 0] != _parr[:, 1]
+                pairs = [(int(a), int(b)) for a, b in _parr[_keep].tolist()]
+                if sharing_mode is not None:
+                    sharing_groups = [int(g) for g in _garr[_keep].tolist()]
             else:
-                kept = [(a, b, g) for (a, b), g in zip(pairs_all, groups_all)]
-            pairs = [(a, b) for a, b, _ in kept]
-            if sharing_mode is not None:
-                sharing_groups = [g for _, _, g in kept]
+                pairs = [(int(a), int(b)) for a, b in pairs_all]
+                if sharing_mode is not None:
+                    sharing_groups = [int(g) for g in groups_all]
         elif max_in_degree is not None:
             neuron_xyz = {
                 int(row["neuron_id"]): np.asarray([row["x"], row["y"], row["z"]], dtype=float)
@@ -1247,6 +1429,23 @@ def compile_connection_rules(
                     if rule.get("spatial_sigma") is None
                     else rule["spatial_sigma"]
                 ),
+                # Stored only when declared, so .get() covers rules written
+                # before the key existed.
+                spatial_radius=(
+                    None
+                    if rule.get("spatial_radius") is None
+                    else float(rule["spatial_radius"])
+                ),
+                allow_self=rule_self,
+                key=rkey,
+            )
+        elif in_degree is not None and sampling == "multinomial":
+            # The declared mean in-degree k drives the probability form's
+            # with-replacement draw: K = round_half_up(k * n_post).
+            pairs = _candidate_pairs_multinomial(
+                pre_ids,
+                post_ids,
+                probability=in_degree,
                 allow_self=rule_self,
                 key=rkey,
             )
@@ -1316,6 +1515,20 @@ def compile_connection_rules(
             rule_name=rname,
             artifacts=artifacts,
         )
+        weight_range = _validate_weight_range(
+            rname,
+            rule.get("weight_range"),
+            weight=rule.get("weight"),
+            weight_std=rule.get("weight_std"),
+        )
+        if weight_range is not None:
+            # Per-edge magnitudes U[lo, hi) from the rule's own stream (fold 4).
+            lo, hi = weight_range
+            u = np.asarray(
+                jax.random.uniform(jax.random.fold_in(rkey, _WEIGHT_RANGE_FOLD), (len(pairs),)),
+                dtype=np.float64,
+            )
+            weights = lo + (hi - lo) * u
         # Per-rule Gaussian spreads (G-WDIST/G-DDIST): one Normal draw per
         # edge from the rule's own stream, absolute-value folded at zero so
         # the paper's fixed sign (SOURCE_P1.md section 2: Gaussian w +- delta_w
@@ -1345,25 +1558,35 @@ def compile_connection_rules(
                 "delay_ms; the spread draws around one scalar mean -- declare both"
             )
         if delay_std is None:
-            for (a, b), w in zip(pairs, weights):
-                all_pre.append(int(a))
-                all_post.append(int(b))
-                all_weight.append(float(w))
-                all_mech.append(int(mech_idx))
-                all_rule.append(int(rule_id))
-                all_delay_ms.append(0.0 if rule_delay_ms is None else float(rule_delay_ms))
+            n_pairs = len(pairs)
+            if n_pairs:
+                parr = np.asarray(pairs, dtype=np.int64).reshape(-1, 2)
+                pre_blocks.append(parr[:, 0])
+                post_blocks.append(parr[:, 1])
+                weight_blocks.append(np.asarray(weights, dtype=np.float64).reshape(-1))
+                mech_blocks.append(np.full((n_pairs,), int(mech_idx), dtype=np.int64))
+                rule_blocks.append(np.full((n_pairs,), int(rule_id), dtype=np.int64))
+                delay_blocks.append(
+                    np.full(
+                        (n_pairs,),
+                        0.0 if rule_delay_ms is None else float(rule_delay_ms),
+                        dtype=np.float64,
+                    )
+                )
         else:
             dnoise = np.asarray(
                 jax.random.normal(jax.random.fold_in(rkey, _DELAY_SPREAD_FOLD),
                                   (len(pairs),)), dtype=np.float64)
             draws = np.abs(float(rule_delay_ms) + float(delay_std) * dnoise)
-            for (a, b), w, dd in zip(pairs, weights, draws):
-                all_pre.append(int(a))
-                all_post.append(int(b))
-                all_weight.append(float(w))
-                all_mech.append(int(mech_idx))
-                all_rule.append(int(rule_id))
-                all_delay_ms.append(float(dd))
+            n_pairs = len(pairs)
+            if n_pairs:
+                parr = np.asarray(pairs, dtype=np.int64).reshape(-1, 2)
+                pre_blocks.append(parr[:, 0])
+                post_blocks.append(parr[:, 1])
+                weight_blocks.append(np.asarray(weights, dtype=np.float64).reshape(-1))
+                mech_blocks.append(np.full((n_pairs,), int(mech_idx), dtype=np.int64))
+                rule_blocks.append(np.full((n_pairs,), int(rule_id), dtype=np.int64))
+                delay_blocks.append(np.asarray(draws, dtype=np.float64).reshape(-1))
         row = {
             "name": rname,
             "n_pre": len(pre_ids),
@@ -1378,6 +1601,9 @@ def compile_connection_rules(
             "delay_ms": rule_delay_ms,
             "status": "compiled",
         }
+        if weight_range is not None:
+            # Echoed only when declared so undeclared rows stay byte-identical.
+            row["weight_range"] = [weight_range[0], weight_range[1]]
         if weight_std is not None:
             # Echoed only when declared so undeclared rows stay byte-identical.
             row["weight_std"] = weight_std
@@ -1414,15 +1640,24 @@ def compile_connection_rules(
         if sampling in ("bernoulli", "capped_bernoulli", "fixed_indegree", "multinomial"):
             # Recorded only when non-default, as in connections(), so density rows are unchanged.
             row["sampling"] = sampling
+        if sampling == "multinomial" and in_degree is not None:
+            # The declared mean in-degree is row["in_degree"]; the realized
+            # with-replacement count K is recorded beside it.
+            row["realized_k"] = len(pairs)
         connection_table.append(row)
 
-    # Lists go through NumPy first: jnp.asarray walks a Python list element by element.
-    edge_pre = jnp.asarray(np.asarray(all_pre, dtype=np.int32), dtype=jnp.int32)
-    edge_post = jnp.asarray(np.asarray(all_post, dtype=np.int32), dtype=jnp.int32)
-    edge_weight = jnp.asarray(np.asarray(all_weight, dtype=np.float64), dtype=jdtype)
-    edge_mechanism = jnp.asarray(np.asarray(all_mech, dtype=np.int32), dtype=jnp.int32)
-    edge_rule_id = jnp.asarray(np.asarray(all_rule, dtype=np.int32), dtype=jnp.int32)
-    edge_delay_ms = jnp.asarray(np.asarray(all_delay_ms, dtype=np.float64), dtype=jdtype)
+    # Blocks go through NumPy first: jnp.asarray walks a Python list element by element.
+    def _cat(blocks: list[np.ndarray], dtype: Any) -> np.ndarray:
+        if not blocks:
+            return np.zeros((0,), dtype=dtype)
+        return np.concatenate(blocks).astype(dtype, copy=False)
+
+    edge_pre = jnp.asarray(_cat(pre_blocks, np.int32), dtype=jnp.int32)
+    edge_post = jnp.asarray(_cat(post_blocks, np.int32), dtype=jnp.int32)
+    edge_weight = jnp.asarray(_cat(weight_blocks, np.float64), dtype=jdtype)
+    edge_mechanism = jnp.asarray(_cat(mech_blocks, np.int32), dtype=jnp.int32)
+    edge_rule_id = jnp.asarray(_cat(rule_blocks, np.int32), dtype=jnp.int32)
+    edge_delay_ms = jnp.asarray(_cat(delay_blocks, np.float64), dtype=jdtype)
     if edge_weight.shape[0] and not bool(jnp.all(jnp.isfinite(edge_weight))):
         raise ValueError("compiled edge weights contain non-finite values")
 

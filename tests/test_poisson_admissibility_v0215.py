@@ -358,7 +358,6 @@ class TestPoissonIntegration:
         src_integral = 0.5
         flux_integral = -0.5
 
-        # Build report
         report = build_poisson_admissibility_report(
             conductivity=sigma,
             integrated_source=src_integral,

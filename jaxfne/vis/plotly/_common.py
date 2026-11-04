@@ -39,7 +39,7 @@ def neuron_table_arrays(model) -> dict[str, np.ndarray]:
 def field_proxy(signals, key: str) -> np.ndarray:
     """Fetch a laminar field proxy array by short name ('lfp', 'csd', 'phi_e', 'source').
 
-    Route note (P8): DECLARED field access — raises when ``signals.field``
+    Route note (P8): DECLARED field access: raises when ``signals.field``
     is None (probes were not requested before ``compute_fields``). Unlike
     constructed probes (which synthesize missing contacts) or
     visualization-only proxies (which never enter ``Signals.field``), this
@@ -76,7 +76,7 @@ def population_rate_hz(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Binned population mean firing rate (Hz). spikes: (n_steps, N).
 
-    Thin alias of :func:`jaxfne.vis.core.binned_population_rate_hz` — the
+    Thin alias of :func:`jaxfne.vis.core.binned_population_rate_hz`; the
     P5 canonical numeric contract shared with the matplotlib renderer.
     """
     from ..core import binned_population_rate_hz as _contract

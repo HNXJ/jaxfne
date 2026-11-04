@@ -141,7 +141,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.check:
         print(f"PASS: {args.tag} matches pyproject and docs/reference/changelog.md carries its section")
         return 0
-    sys.stdout.write(body)
+    # UTF-8 bytes whatever the console or redirect encoding (cp1252 cannot encode the changelog's arrows).
+    sys.stdout.buffer.write(body.encode("utf-8"))
     return 0
 
 

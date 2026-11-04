@@ -1,4 +1,4 @@
-"""Phase B — Stage 1: Rule survey under freeze_G=True.
+"""Phase B, Stage 1: Rule survey under freeze_G=True.
 
 Verifies the expected qualitative behavior of each homeostasis_rule when G
 is frozen, using the deterministic isolation configuration (noise_scale=0,

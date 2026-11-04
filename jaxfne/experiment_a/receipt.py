@@ -1,4 +1,4 @@
-"""B3 — Experiment A immutable receipt bundle."""
+"""B3: Experiment A immutable receipt bundle."""
 
 from __future__ import annotations
 

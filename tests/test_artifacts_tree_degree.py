@@ -56,6 +56,8 @@ CYCLIC_EXEMPT = {"changelog.d"}
 EXEMPT_FOLDERS = {
     "": "root: see ROOT_EXEMPT; the remaining entries must fit the limit",
     "figures/publication/final": "publication/polish/ and publication/final/ receipts cite each render",
+    "etudes/bundles/heterogeneous_emitters": "frozen bundle (metrics.json, provenance.json) plus "
+               "metrics_post_p048.json, the post-P-048 digest that rerun_etude_figures.py checks",
     "release": "current_release_authorities.json (frozen in place) cites receipts here; "
                "past receipts keep the paths they were written with",
     "atlas": "the four scripts the frozen 0.5.5 benchmark cites and the sibling modules they import",
@@ -75,6 +77,10 @@ EXEMPT_FOLDERS = {
                                 "split when the lane closes",
     "etudes/papers/caminos": "open replication lane (CAMINOS lag); split when the lane closes",
     "etudes/papers/izhikevich2003": "open replication lane; split when the lane closes",
+    "etudes/papers/potjans2014": "open replication lane (signed P3 v2 scored driver and scorer); "
+                                 "split when the lane closes",
+    "etudes/papers/vogels2011": "open replication lane (signed P3 v4 scored driver and scorer); "
+                                "split when the lane closes",
     "etudes/bundles/hdp_balance": "preregistered stage record: README declares each confirmatory "
                                   "output path; docs/_static/atlas_registry.json copies the figures",
     "etudes/bundles/multiscale_observation": "one generated bundle: "

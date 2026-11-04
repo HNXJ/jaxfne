@@ -1,4 +1,4 @@
-"""0.4.17-D D3 — adaptation/recovery phenotype specification tests."""
+"""0.4.17-D D3: adaptation/recovery phenotype specification tests."""
 
 from __future__ import annotations
 

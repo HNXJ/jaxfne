@@ -170,7 +170,7 @@ class StaticParams:
 **Never plastic/trainable/gradientable.** Holds conductances, reversal
 potentials, and the synaptic time constant for a connection.
 `dT_ms` is **required** (P-023): `None` is refused at wiring time rather
-than defaulted — see [Time constants are required](#time-constants-are-required)
+than defaulted; see [Time constants are required](#time-constants-are-required)
 for the declaration vocabulary.
 
 > **Note:** `reversal_potentials_mV` is stored as metadata only. jaxfne's
@@ -448,30 +448,30 @@ tensor = load_canonical_neuronal_tensor("canonical-v1-column-1000n")
 
 `canonical-v1-column-1000n` is the **qualitative laminar-scaffold** 1000-neuron V1 column
 (6 layers L1-L6, full E/PV/SST/VIP composition, the same depth-graded E:I
-gradient documented in the cortical-column-default skill — E peaks deep,
-I peaks superficial; `qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false` — scaffold values rather than quantitatively calibrated values; see provenance below). `canonical-v1-v4-pfc-multiarea` tiles that same column
+gradient documented in the cortical-column-default skill; E peaks deep,
+I peaks superficial; `qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false`: scaffold values rather than quantitatively calibrated values; see provenance below). `canonical-v1-v4-pfc-multiarea` tiles that same column
 composition across 3 areas (V1, V4, PFC; 3000 neurons total) with L4-to-L4
 feedforward and L6-to-L1 feedback `AreaConnection`s, matching the
 `jtfne.build_multi_area_columns(["V1","V4","PFC"], ei_profile="canonical")`
 hierarchy already used elsewhere in the docs. The remaining four are smaller
 synthetic demos for specific features (homeostatic H-override, multi-area
-feedforward, a minimal 4-layer column) — use `canonical-v1-column-1000n` or
+feedforward, a minimal 4-layer column). Use `canonical-v1-column-1000n` or
 `canonical-v1-v4-pfc-multiarea` when you want a realistic reference composition
 rather than a feature-isolation demo.
 
-**Provenance and calibration of `canonical-v1-column-1000n`.** Realized fractions (`jaxfne/configs/canonical-v1-column-1000n.json`, `value_tag="relative"`): `L1 {E:0.50, SST:0.15, VIP:0.35}`, `L2 {E:0.648, PV:0.20, SST:0.10, VIP:0.052}`, `L3 {E:0.80, PV:0.08, SST:0.08, VIP:0.04}`, `L4 {E:0.75, PV:0.18, SST:0.04, VIP:0.03}`, `L5 {E:0.88, PV:0.06, SST:0.04, VIP:0.02}`, `L6 {E:0.90, PV:0.0533, SST:0.0267, VIP:0.02}` (overall ~75.8E:25.2I). Generative provenance is `jaxfne/jdna/genomes/canonical-v1-column-1000n.json` (`pseudogenome_v1`, `fraction_tolerance` bands per layer, `fraction_jitter_sigma=0.01`, same base fractions, 48 typed connection rules with `value_tag="relative"`). Builder-scaffold provenance is `jaxfne.builders.CANONICAL_LAYER_CELL_TYPE_FRACTIONS` (`L1 E:0.50/PV:0.05/SST:0.10/VIP:0.35` ... `L6 E:0.95`, ~66E:34I) — a related scaffold variant with different realized fractions. **All are scaffold, without quantitative calibration**: `qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false` (see [Scope & status](../../project/scope_and_status.md) and [Calibration — Biological status](../../../guides/state/calibration.md#biological-calibration-status)). Reduced Izhikevich labels `E`/`PV`/`SST`/`VIP` are functional heterogeneity tags (distinct `IZHIKEVICH_CELL_TYPE_DEFAULTS` rows); literal cell-type identity is not warranted. File provenance and realized counts are reproducible via `load_canonical_neuronal_tensor` / `develop` + `construct(...).neuron_table()` — query live state rather than copying numbers.
+**Provenance and calibration of `canonical-v1-column-1000n`.** Realized fractions (`jaxfne/configs/canonical-v1-column-1000n.json`, `value_tag="relative"`): `L1 {E:0.50, SST:0.15, VIP:0.35}`, `L2 {E:0.648, PV:0.20, SST:0.10, VIP:0.052}`, `L3 {E:0.80, PV:0.08, SST:0.08, VIP:0.04}`, `L4 {E:0.75, PV:0.18, SST:0.04, VIP:0.03}`, `L5 {E:0.88, PV:0.06, SST:0.04, VIP:0.02}`, `L6 {E:0.90, PV:0.0533, SST:0.0267, VIP:0.02}` (overall ~75.8E:25.2I). Generative provenance is `jaxfne/jdna/genomes/canonical-v1-column-1000n.json` (`pseudogenome_v1`, `fraction_tolerance` bands per layer, `fraction_jitter_sigma=0.01`, same base fractions, 48 typed connection rules with `value_tag="relative"`). Builder-scaffold provenance is `jaxfne.builders.CANONICAL_LAYER_CELL_TYPE_FRACTIONS` (`L1 E:0.50/PV:0.05/SST:0.10/VIP:0.35` ... `L6 E:0.95`, ~66E:34I); a related scaffold variant with different realized fractions. **All are scaffold, without quantitative calibration**: `qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false` (see [Scope & status](../../project/scope_and_status.md) and [Calibration: Biological status](../../../guides/state/calibration.md#biological-calibration-status)). Reduced Izhikevich labels `E`/`PV`/`SST`/`VIP` are functional heterogeneity tags (distinct `IZHIKEVICH_CELL_TYPE_DEFAULTS` rows); literal cell-type identity is not warranted. File provenance and realized counts are reproducible via `load_canonical_neuronal_tensor` / `develop` + `construct(...).neuron_table()`; query live state rather than copying numbers.
 
 **On species-scaled variants:** `jaxfne/configs/default_macaque_V1.json` *is*
 shipped, but read its `_provenance` block before treating it as a calibrated
 macaque config: its `fraction_basis` field states the per-layer E/PV/SST/VIP
-fractions are "inherited unchanged" from `canonical-v1-column-1000n.json` —
-confirmed byte-identical on inspection — and qualitatively cross-checked
+fractions are "inherited unchanged" from `canonical-v1-column-1000n.json`:
+confirmed byte-identical on inspection; and qualitatively cross-checked
 against the LAP Manuscript's V1 figures (Mulvey et al., read 2026-06-30). Its
 cell-type mapping (E=NG, PV=PV, SST≈CB, VIP≈CR) is flagged in the same block
 as an explicit, user-authorized approximation. So: jaxfne does ship one named
 species-scoped config, and its composition numbers are the same generic
 column template with a manuscript-informed synaptic-kinetics layer added on
-top (per-source-cell-type GABA_A decay constants, NMDA co-release) — a
+top (per-source-cell-type GABA_A decay constants, NMDA co-release): a
 Relative-value, documented, provenance-tagged approximation. Treat
 `default_macaque_V1.json` this way; if you need a different species/area
 scaling, build it explicitly via `NeuronalTensor(...)` with its own
@@ -537,7 +537,7 @@ Returns a `Configuration` for `jaxfne.construct`.
 **What is wired:**
 
 - Per-area/per-layer cell-type fractions (`Configuration.area_layer_cell_types`),
-  split evenly across declared `NeuronType` entries — unless every `NeuronType`
+  split evenly across declared `NeuronType` entries, unless every `NeuronType`
   in the layer declares a `fraction`, in which case those (normalized)
   fractions are used instead.
 - Omitted tensor connectivity retains the configured default topology.
@@ -567,8 +567,8 @@ Returns a `Configuration` for `jaxfne.construct`.
 
 | Gap | Workaround |
 |-----|------------|
-| `StaticParams.reversal_potentials_mV` — stored as metadata only; no effect on dynamics. | Inspect via `cfg.metadata["circuit"]["mechanisms"]`. |
-| `PlasticParams.H` — stored but inert unless HDP is separately enabled. | See `construct` / `construct_neuronal_tensor` for automatic HDP seeding. |
+| `StaticParams.reversal_potentials_mV`: stored as metadata only; no effect on dynamics. | Inspect via `cfg.metadata["circuit"]["mechanisms"]`. |
+| `PlasticParams.H`: stored but inert unless HDP is separately enabled. | See `construct` / `construct_neuronal_tensor` for automatic HDP seeding. |
 
 ---
 
@@ -590,7 +590,7 @@ The mechanism name also sets the sign: `{AMPA, NMDA}` require an E
 source, `{GABA_A, GABA_B}` a non-E source, and a clash is refused. Two
 names are exempt: any other name is refused as unknown, except
 `monotonic_cable_synapse` (the `AreaConnection` default), whose sign
-follows the source cell type — and tensors minted by
+follows the source cell type; and tensors minted by
 `jaxfne.tfne.to_neuronal_tensor`, which keep TFNE's own fail-closed
 kinetics plus weight-polarity sign (recognized only through a
 module-private registry: a caller-supplied `provenance` dict never
@@ -634,8 +634,8 @@ Both entry points reach the same internal implementation (`_construct_neuronal_t
    moving one area rewires the localized edge set while a rigid motion of
    the whole tensor preserves it.
 4. Overwrites `model.params["positions"]` and
-   `model.static["neuron_metadata"]` so field/LFP/EEG/MEG proxy readouts
-   — which read positions from there — see the real layout.
+   `model.static["neuron_metadata"]` so field/LFP/EEG/MEG proxy readouts,
+   which read positions from there; see the real layout.
 5. Aggregates `PlasticParams.H` from every connection touching each neuron
    (mean across all connections whose target layer/cell_type matches) and
    applies via `Model.with_hdp_initial_state`. Untouched neurons default

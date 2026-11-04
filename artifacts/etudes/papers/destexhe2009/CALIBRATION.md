@@ -172,9 +172,9 @@ others ≤ 2 s). E1 FAILs everywhere, so E2/E3 again score a transient.
 Kick rate × kick fraction cannot sustain; no θ* from kick-D.
 
 Fidelity addition for this step: `subset_drive_kwargs`
-(`jaxfne/adex_destexhe.py:146`) keeps the core drive validation and
+(`subset_drive_kwargs` in `jaxfne/adex_destexhe.py`) keeps the core drive validation and
 rate/weight/receptor/delay/key, then keeps a seeded fraction of RS
- targets; `run_continuous` (`artifacts/etudes/papers/destexhe2009/destexhe_api.py:409`)
+ targets; `run_continuous` in `artifacts/etudes/papers/destexhe2009/destexhe_api.py`
 exposes it as `kick_fraction` plus `kick_rate_hz`, reached through
 `run_destexhe.py fig6b_cont`. No paper value moved.
 
@@ -229,7 +229,7 @@ kick fraction 0.02–1.0 (F5 shape; 0.02–0.10 of RS ≈ paper 2–10% of the
 net, larger fractions over-kick controls); delay no range (kernel
 minimum); ge/gi paper-states-exactly (6/67 nS, deviation needs a
 reason — not moved here); b not in D (Fig. 6A vs 6B control contrast).
-`agsdr` interface read (`jaxfne/optim/core.py:252`) but no fit launched;
+`agsdr` interface read (`agsdr` in `jaxfne/optim/core.py`) but no fit launched;
 manual a scan used so far.
 
 Smallest |a|: a = 2 Hz is the first technically alive point (37 spikes
@@ -269,13 +269,13 @@ live code):
 | 2 | a / b RSweak | a = 0.001 µS → 1 nS (73, 153), b = 0.005 nA = 5 pA (75, final assignment) | 1 nS / 5 pA | yes |
 | 3 | a / b FS | a = 0.001 µS → 1 nS (78, 161), b = 0 (79) | 1 nS / 0 | yes — G1 resolved, port assumption correct |
 | 4 | Vreset / refractory | VBOT = −60 (88), REFRACTORY = 2.5 ms (89; PyNN gets +DT → 2.6, 152) | −60, 25 steps = 2.5 ms | yes (≈; 0.1 ms negligible) |
-| 5 | Spike detection | `v_thresh` = VTR = −50, `v_spike` = VTR+1e-6 (152–153): detection ≈ VT | `VT + 5Δ` = −37.5 (`jaxfne/emitters_adex.py:127,142`) | NO (F6, real; core-owned, no in-lane fix) |
+| 5 | Spike detection | `v_thresh` = VTR = −50, `v_spike` = VTR+1e-6 (152–153): detection ≈ VT | `VT + 5Δ` = −37.5 (`adex_step` in `jaxfne/emitters_adex.py`) | NO (F6, real; core-owned, no in-lane fix) |
 | 6 | dt / method | DT = 0.1 (58), fixed-step (`use_cvode=False`, setup 272) | dt = 0.1 explicit Euler | yes (≈; NEURON backward-Euler detail unstated, no fix) |
 | 7 | ge / gi / τE / τI / reversals | 0.006/0.067 µS = 6/67 nS (99–100), 5/10 ms (95–96), 0/−80 mV (97–98) | identical | yes |
 | 8 | Connection rule | capped Bernoulli: per cell up to C_E = int(N_E·p) exc + C_I = int(N_I·p) inh inputs, ordered scan, `i != j` (194–224); p inverse-N rescaled (108) | pure Bernoulli p, autapses excluded | PARTIAL (F7; cap trims ≈7% exc / ≈14% inh at N = 2000, normal-approx, inferred; core-owned, no in-lane fix) |
 | 9 | N / fractions | 80/20 E/I (104–106; file N = 500, Fig. 6 N = 2000 per paper) | 1600 + 400 | yes |
 | 10 | Delay | `delay=DT` edges + kick (209, 224, 264) | 1 step = 0.1 ms | yes (F1 stands) |
-| 11 | Kick | N_STIM = N/5 = 20% net, first cells, all excitatory (118, 258); 20 synapses/cell (120) × exponential ISI 70 ms (121, 242–264) ≡ Poisson ≈ 285.7 Hz aggregate; weight AMPA (264); 50 ms (119) | code-value probe kf 0.25 of RS @286 Hz = same distribution (`_construct_adex.py:512`: λ = n·rate·dt/1000) | code value reproduced; paper TEXT says 2–10% — text-vs-code discrepancy documented, both probed |
+| 11 | Kick | N_STIM = N/5 = 20% net, first cells, all excitatory (118, 258); 20 synapses/cell (120) × exponential ISI 70 ms (121, 242–264) ≡ Poisson ≈ 285.7 Hz aggregate; weight AMPA (264); 50 ms (119) | code-value probe kf 0.25 of RS @286 Hz = same distribution (`adex_external_drive_kwargs` in `jaxfne/_construct_adex.py`: λ = n·rate·dt/1000) | code value reproduced; paper TEXT says 2–10% — text-vs-code discrepancy documented, both probed |
 | 12 | Initial conditions | `initialize(v=-60, w=0)` uniform (174) | V0 = EL, w = 0 | yes |
 | 13 | Reset order (V reset, w += b, ref) | PyNN EIF semantics at detection; no finer order readable | `adex_step` resets V, `w += b`, ref set | no finding |
 
@@ -383,20 +383,25 @@ report `scratch/destexhe2009/report_s2core.json`; scorer
 
 | seed | bins s0–s9 | alive | CV (e) | CC (abserr) | rate RS/FS Hz |
 |---|---|---|---|---|---|
-| 1 | 96469/93256/72283/0… | false | 2.426 (0.044) | 0.1109 (0.1059) | 12.85/14.12 |
-| 2 | ~88–107k all s | true | 2.613 (0.143) | 0.0051 (0.0001) | 49.18/49.40 |
-| 3 | ~92–101k all s | true | 2.664 (0.194) | 0.0038 (0.0012) | 47.31/50.19 |
-| 4 | ~85–94k s0–s7, 0 s8–s9 | false | 2.356 (0.114) | 0.0379 (0.0329) | 34.86/39.49 |
-| 5 | 87328/77073/41119/0… | false | 2.402 (0.068) | 0.1051 (0.1001) | 9.86/11.93 |
-| 6 | ~91–100k all s | true | 2.551 (0.081) | 0.0105 (0.0055) | 46.59/50.48 |
-| 7 | ~86–101k s0–s8, 10926 s9 | true | 2.567 (0.097) | 0.0159 (0.0109) | 40.87/44.31 |
-| 8 | ~73–93k s0–s6, 0 s7–s9 | false | 2.449 (0.021) | 0.0518 (0.0468) | 28.56/34.26 |
+| 1 | 96469/93256/72283/0… | false | 2.426 (0.018) | 0.1109 (0.1059) | 12.85/14.12 |
+| 2 | ~88–107k all s | true | 2.613 (0.058) | 0.0051 (0.0001) | 49.18/49.40 |
+| 3 | ~92–101k all s | true | 2.664 (0.079) | 0.0038 (0.0012) | 47.31/50.19 |
+| 4 | ~85–94k s0–s7, 0 s8–s9 | false | 2.356 (0.046) | 0.0379 (0.0329) | 34.86/39.49 |
+| 5 | 87328/77073/41119/0… | false | 2.402 (0.028) | 0.1051 (0.1001) | 9.86/11.93 |
+| 6 | ~91–100k all s | true | 2.551 (0.033) | 0.0105 (0.0055) | 46.59/50.48 |
+| 7 | ~86–101k s0–s8, 10926 s9 | true | 2.567 (0.039) | 0.0159 (0.0109) | 40.87/44.31 |
+| 8 | ~73–93k s0–s6, 0 s7–s9 | false | 2.449 (0.009) | 0.0518 (0.0468) | 28.56/34.26 |
 
-RS < FS holds on all 8 seeds. E2 closes only on dead seeds (1, 8);
-on alive seeds e = 0.081–0.194 (off). E3 closes on alive seeds 2, 3,
-6; seed 7 misses by 0.0009. Mean rates on sustained seeds are
-40–50 Hz — far above the E4 1–10 Hz order: a hyperactive attractor,
-not the paper's AI state.
+Erratum 2026-10-31: the CV column first held |z − y| (0.044 … 0.021);
+it now holds e = |z − y|/|y| as PREREG_P3.md and the step 1–5 tables
+define it. CVs, CCs and rates are unchanged.
+
+RS < FS holds on all 8 seeds. E2 closes on seeds 1, 4, 5, 6, 7, 8;
+of the alive seeds, 6 (e 0.033) and 7 (e 0.039) close and 2 (0.058)
+and 3 (0.079) are off. E3 closes on alive seeds 2, 3, 6; seed 7
+misses by 0.0009. Seed 6 closes E1, E2 and E3 jointly. Mean rates on
+sustained seeds are 40–50 Hz — far above the E4 1–10 Hz order: a
+hyperactive attractor, not the paper's AI state.
 
 Sensitivity at the core default (same protocol, `Vpeak_mV = NaN` on
 every cell via post-construction `_replace`; rasters
@@ -427,9 +432,23 @@ re-scores them per PREREG_P3.md.
 
 Verdict (unscored pilot): supersedes steps 1–5 OFF. E1 PASSES on 4/8 seeds under the
 authors' Vpeak (2, 3, 6 sustained; 7 alive but collapsing in s9);
-E3 closes on 2, 3, 6; E2 stays off on every alive seed; E4 rate
-order badly off (hyperactive ~5x). No θ* — no seed closes
-E1+E2+E3 jointly with E4 in-band. The miss moved: from death to a
+E3 closes on 2, 3, 6; E2 closes on alive seeds 6 and 7; seed 6
+closes E1+E2+E3 jointly; E4 rate order badly off (hyperactive ~5x)
+on every sustained seed. No θ* — no seed closes E1+E2+E3 jointly with
+E4 in-band. The miss moved: from death to a
 hyperactive attractor. Open moves: rate-order reduction without
 losing sustain (ge/gi absorption still untouched, needs a reason),
 and the X_bg trajectory of step 4 is unchanged.
+
+## Step 7: code-value kick pilots, P3 v3, scored FAIL (2026-11-02)
+
+Pilots (unscored, code 29583485): `run_destexhe.py fig6b_cont --kick-fraction 0.25 --kick-rate-hz 286` on
+seeds 0-3, the 6A control on seeds 0-1; receipts `F:/warehouse/destexhe2009/P3_pilot_29583485/`
+(`manifest.json`, `score_seed*_6{a,b}.json`). E1-E3 close jointly on seed 0 only; seed 1 dies; E4 is off on
+every alive seed (48-49 Hz); the 6A control is dead on both seeds. Table: `prereg/P3_v3.md`, section "Pilot
+evidence".
+
+Prereg: `prereg/P3_v3.md`, signed by Hamm 2026-11-02 as `prereg/P3_v3_signed.md` (E4 reported, the 4-of-5
+aggregation kept). Scored on seeds 9-13: FAIL, 0 of 5 seeds close E1-E3, the 6A control (C1) holds
+(`RESULT_P3.md`; receipts `F:/warehouse/destexhe2009/P3v3_signed_2d17488b/`). The pilots and step 6 predicted
+the FAIL.

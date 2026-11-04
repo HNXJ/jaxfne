@@ -1,4 +1,4 @@
-"""D3 adaptation/recovery phenotype — schedule, metrics, execution, classification."""
+"""D3 adaptation/recovery phenotype: schedule, metrics, execution, classification."""
 
 from __future__ import annotations
 

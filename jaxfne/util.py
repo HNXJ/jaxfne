@@ -319,7 +319,7 @@ def canonical_compact_summary(
 
     Returns a JSON-safe dict with:
 
-    - ``taxonomy``: universal six-class split — Fixed parameters (constant),
+    - ``taxonomy``: universal six-class split; Fixed parameters (constant),
       Dynamic state (v,u), History state (delay/continuation buffers),
       Mutable parameters (coordinates permitted to change: EdgeList.weight),
       Trainable/free parameters (optimizer-exposed subset), Recorded outputs
@@ -420,7 +420,7 @@ def canonical_compact_summary(
     X_with_prev = X_per_step + n_neurons_realized  # 3N
     X_canonical_4N = 4 * n_neurons_realized  # generic 4·N (illustrative for text bundle)
 
-    # H: Relative Biophysical State (RBS) — exists independently of HDP.
+    # H: Relative Biophysical State (RBS); exists independently of HDP.
     # HDP (dot W = F_W(H)) is only one possible dynamics map involving H;
     # RBD (e.g. Protocol H1, dot W=0) demonstrates H without plasticity.
     # Do NOT infer H solely from hdp_params. Detect actual H from
@@ -1129,7 +1129,7 @@ def canonical_compact_summary(
 def format_canonical_text_bundle(summary: dict[str, Any]) -> str:
     """Format the canonical compact summary as a human-readable text bundle.
 
-    Example (like jaxfne summary) — compact, one-screen, no kernels touched.
+    Example (like jaxfne summary); compact, one-screen, no kernels touched.
     """
     Theta = summary.get("Theta", {})
     N_static = summary.get("N_static", "?")

@@ -309,7 +309,7 @@ def component_record(label, res, theta, draws):
 def render_md(meta, gate, null, fp_table, theta, detect, power, fwhm):
     """calibration_v6.md: the tables the prereg cites, with the gate line."""
     lines = ["# CAMINOS calibration gate v6", "",
-             "Spec: `artifacts/etudes/caminos/PREREG_P3.md`, \"Calibration gate (v6)\". "
+             "Spec: `artifacts/etudes/papers/caminos/PREREG_P3.md`, \"Calibration gate (v6)\". "
              "Synthetic only; no network data.", "", meta, "", "Gate: `%s`" % gate, "",
              "## 1. Null floors: FP rate by theta (hits/draws)", "",
              "| Null floor | Floor PSD at 35 Hz | FP theta 4 | FP theta 5 | FP theta 6 | FP theta 8 |",

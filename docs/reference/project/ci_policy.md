@@ -53,7 +53,7 @@ This matters because release CI on `main` runs `pytest tests` with no marker
 filter. Matching check-family *names* does not prove matching test *sets*: the
 gate previously ran only `not slow` and `slow and not notebook`, so the 30 node
 ids carrying the `notebook` marker were executed by release CI and never by the
-RC gate — every family name lined up while the invariant was broken underneath.
+RC gate: every family name lined up while the invariant was broken underneath.
 `tests/test_release_gate_hierarchy.py` now checks exhaustiveness mechanically,
 and fails if release CI ever gains a marker filter or an `--ignore`, since the
 coverage argument depends on release CI selecting everything.
@@ -76,6 +76,8 @@ GitHub Actions should converge on the same gate names over time:
 
 `.github/workflows/notebook_execution.yml` handles `notebook`-marked tests separately
 (long-running notebook execution).
+
+On a nightly run, `release_ci.yml` skips its jobs when main's tree equals the tree of the last successful run; the `tree-check` job then cancels its own run. A cancelled run concludes `cancelled`, so the `--status success` lookups that select release evidence (`scripts/check_junit_parity.py`, `scripts/fetch_release_artifacts.sh`) never pick a skipped run that has no artifacts.
 
 ## Truth gates on outputs
 
@@ -130,6 +132,8 @@ all of the following hold:
 - every family in `RELEASE_CI_GATE_FAMILIES` has a record naming a command that
   actually ran, with both timestamps and a zero exit;
 - `observed_pass_families >= RELEASE_CI_GATE_FAMILIES`.
+
+A family reused from Release CI counts as run: its record names the Release CI run and tree, and its `reused_from` field shows that no local run produced it. The broad stamp is a local, gitignored developer-loop receipt and is not attestation evidence.
 
 `observed_pass_families` and `pre_release_subsumes_ci` are **re-derived** from
 the ledger during verification and cross-checked against the stored values, so
@@ -210,7 +214,7 @@ or the manifest names a different commit, or a hash differs, publishing fails
 rather than falling back to a build.
 
 The manifest is generated. Do not commit it. Committing it would change the tree,
-and therefore the commit SHA it claims to certify — the same self-reference the
+and therefore the commit SHA it claims to certify; the same self-reference the
 release-candidate attestation avoids. Retained artifacts live in the gitignored
 `artifacts/release_candidate/` locally and as CI artifacts remotely.
 
@@ -246,6 +250,16 @@ comparison and cannot compare against itself.
 workflows exposed `test (3.12)`, `test (3.13)` and `build`, a required context
 could be satisfied by whichever run reported last, making enforcement weaker
 than it looked. A regression test rejects reintroduced collisions.
+
+`ci.yml` runs one job per failure class: `static` (compile, lint, audits, tree size), `docs` (strict
+build, orphans, doc-code integrity), `fast-test` (the dev gate on 3.11 and 3.14), `canary` (3.11) and `examples` (both
+interpreters). `fast-build` needs all five, always runs, and fails first when any of them did not pass,
+so the required `fast-build` check covers `static`, `docs`, `canary` and `examples`. A sixth job,
+`paper-lanes` (both interpreters), runs the paper-lane tests through `run_test_gate.py paper-lanes`, the
+broad gate's lane list, on dev pushes and pull requests that change `artifacts/etudes/papers/` or
+`jaxfne/`; `fast-build` does not need it.
+
+The `canary` job runs `tests/test_canary_chains.py`: six seeded data-path chains whose spike counts, raster hashes and summaries are frozen in `tests/canary_register.json`, so a red canary means one data path changed its output and the unit tests then localise it.
 
 `enforce_admins` is deliberately **off**. Turning it on would also enforce the
 existing `required_pull_request_reviews` against repository admins, which is a

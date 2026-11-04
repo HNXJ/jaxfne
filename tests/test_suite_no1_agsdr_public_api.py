@@ -99,7 +99,6 @@ class TestGroupRateEvaluation:
 
     def test_evaluate_group_rate_targets_basic(self):
         """Model.evaluate() with group_rate_targets objective computes group-wise loss."""
-        # Create simple model
         cfg = (
             jtfne.configuration()
             .network(name="test", kind="cortical_column", n=10)
@@ -111,7 +110,6 @@ class TestGroupRateEvaluation:
         sim = jtfne.Simulation(duration_ms=10.0, dt_ms=0.1, seed=42)
         signals = model.simulate(sim)
 
-        # Create group-rate objective
         obj = jtfne.rate_targets(
             groups={"all": np.arange(0, 10)},
             targets_hz={"all": 5.0},

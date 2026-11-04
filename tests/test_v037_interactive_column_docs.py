@@ -2,7 +2,7 @@
 Test suite for v0.3.7 interactive 3D source/field/probe column visualization.
 
 Validates:
-- HTML file existence and Plotly structure
+- Readout panels HTML (the 3-D figure is built in memory and writes no file)
 - Equation annotations presence
 - Metadata manifest completeness
 - Documentation integration (iframe, links)
@@ -10,39 +10,43 @@ Validates:
 """
 
 import json
-import re
+import sys
 import pytest
 from pathlib import Path
 
 
+@pytest.fixture(scope="module")
+def column_figure():
+    """The 3-D column figure as the figure site builds it (simulates the 48-cell column, about 6 s)."""
+    scripts = str(Path(__file__).resolve().parents[1] / "scripts")
+    if scripts not in sys.path:
+        sys.path.insert(0, scripts)
+    import build_v037_source_column_3d as v037
+
+    return v037.build_column_figure()
+
+
+class TestColumnFigure:
+    """The 3-D column figure: one scatter3d of 48 neurons, layer hover text, equation annotations."""
+
+    def test_neurons_are_one_scatter3d_of_48_points(self, column_figure):
+        assert [t.type for t in column_figure.data] == ["scatter3d"]
+        assert len(column_figure.data[0].x) == 48, "4 layers x 12 neurons"
+
+    def test_hover_text_names_every_layer(self, column_figure):
+        hover = " ".join(str(t.hovertext or t.text or "") for t in column_figure.data)
+        for layer in ("L2/3", "L4", "L5", "L6"):
+            assert layer in hover, f"hover text lacks {layer}"
+        assert "Cell type" in hover
+
+    def test_annotations_state_source_field_and_probe(self, column_figure):
+        text = " ".join(a.text for a in column_figure.layout.annotations or [])
+        assert "S(t)" in text and "Y(t)" in text, "source bookkeeping and field handoff"
+        assert "Probe" in text, "probe readout"
+
+
 class TestInteractiveHTMLGeneration:
-    """Validate HTML file generation."""
-
-    def test_html_file_exists(self):
-        """Assert primary 3D column HTML exists."""
-        html_path = Path("docs/assets/interactive/v037_source_column_3d.html")
-        assert html_path.exists(), f"Expected {html_path}"
-
-    def test_html_valid_structure(self):
-        """Assert HTML contains valid Plotly structure."""
-        html_path = Path("docs/assets/interactive/v037_source_column_3d.html")
-        content = html_path.read_text(encoding='utf-8')
-
-        # Check for Plotly indicators
-        assert "plotly" in content.lower(), "Missing plotly library reference"
-        assert "scatter3d" in content or "scatter" in content, "Missing 3D scatter data"
-        assert "Neuronfigure" in content or "Layer" in content or "Cell type" in content, \
-            "Missing neuron metadata in hover text"
-
-    def test_html_contains_equations(self):
-        """Assert equation annotations are present."""
-        html_path = Path("docs/assets/interactive/v037_source_column_3d.html")
-        content = html_path.read_text(encoding='utf-8')
-
-        # Check for equation-like content (source bookkeeping, field handoff, probe readout)
-        assert ("S(t)" in content or "Source" in content), "Missing source bookkeeping reference"
-        assert ("Y(t)" in content or "Field" in content), "Missing field handoff reference"
-        assert ("R" in content and "Q" in content) or "Probe" in content, "Missing probe readout reference"
+    """Validate readout panels HTML generation (the 3-D figure is built in memory)."""
 
     def test_readout_panels_html_exists(self):
         """Assert readout panels HTML exists."""
@@ -258,45 +262,6 @@ class TestPublicWording:
                     pass
 
 
-class TestInteractiveExperienceValidation:
-    """Validate the interactive experience works."""
-
-    def test_html_can_be_loaded(self):
-        """Assert the HTML loads a pinned plotly.js from the CDN and draws a figure with data."""
-        html_path = Path("docs/assets/interactive/v037_source_column_3d.html")
-        content = html_path.read_text(encoding="utf-8")
-
-        # plotly.js comes from the CDN with a version and SRI hash (not embedded)
-        assert re.search(
-            r'<script charset="utf-8" src="https://cdn\.plot\.ly/plotly-\d+\.\d+\.\d+\.min\.js" '
-            r'integrity="sha256-[A-Za-z0-9+/=]+" crossorigin="anonymous"></script>',
-            content,
-        ), "Missing pinned plotly.js CDN tag"
-        assert "Plotly.newPlot(" in content, "Missing Plotly.newPlot call"
-        assert '"type":"scatter3d"' in content, "Missing scatter3d trace data"
-
-    def test_html_contains_neuron_count(self):
-        """Assert HTML references the expected neuron count."""
-        html_path = Path("docs/assets/interactive/v037_source_column_3d.html")
-        content = html_path.read_text(encoding='utf-8')
-
-        # Should mention 48 neurons (4 layers * 12 per layer)
-        # or at least contain numeric neuron references
-        assert "48" in content or "Neuron" in content, \
-            "Missing neuron references in HTML"
-
-    def test_html_contains_layer_references(self):
-        """Assert HTML references the layer names."""
-        html_path = Path("docs/assets/interactive/v037_source_column_3d.html")
-        content = html_path.read_text(encoding='utf-8')
-
-        layers = ["L2/3", "L4", "L5", "L6"]
-        # At least some layer references should be present
-        layer_mentions = sum(1 for layer in layers if layer in content)
-        assert layer_mentions >= 2, \
-            f"Missing layer references (only {layer_mentions}/4 found)"
-
-
 # ============================================================================
 # Integration Tests
 # ============================================================================
@@ -318,7 +283,6 @@ class TestEndToEndIntegration:
     def test_all_artifacts_exist(self):
         """Assert all expected output artifacts exist."""
         artifacts = [
-            Path("docs/assets/interactive/v037_source_column_3d.html"),
             Path("docs/assets/interactive/v037_readout_panels.html"),
             Path("docs/assets/interactive/v037_source_column_manifest.json"),
             Path("docs/archive/tutorials/basics/07_v037_source_bookkeeping.md"),

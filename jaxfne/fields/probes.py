@@ -432,7 +432,7 @@ def create_probe(
     extra_fields: dict | None = None,
     **report_kwargs,
 ) -> ProbeReadout:
-    """Generic probe factory — creates a ProbeReadout with a standardized report.
+    """Generic probe factory: creates a ProbeReadout with a standardized report.
 
     Replaces repetitive per-kind probe wrappers with a single entry point.
     """
@@ -545,7 +545,7 @@ def lfp_proxy_probe(
 ) -> ProbeReadout:
     """LFP-proxy probe operator: sample extracellular potential-like state.
 
-    Route note (P8): this CONSTRUCTS a probe readout from ``phi_e`` —
+    Route note (P8): this CONSTRUCTS a probe readout from ``phi_e``;
     distinct from declared field access (which raises when probes were not
     requested) and from visualization-only proxies (which never enter
     ``Signals.field``). The three routes are not interchangeable.

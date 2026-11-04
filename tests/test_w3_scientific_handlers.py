@@ -71,7 +71,7 @@ def test_validate_field_arrays_conversion_error_fails_not_vacuous_pass():
 
 
 def test_synchrony_degenerate_inputs_still_return_zero_without_exception():
-    """Degenerate statistics remain explicit 0.0 — not confused with implementation failure."""
+    """Degenerate statistics remain explicit 0.0, not confused with implementation failure."""
     from jaxfne.objectives import compute_synchrony_metric
 
     # Single neuron: defined degenerate path

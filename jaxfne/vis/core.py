@@ -12,6 +12,8 @@ from typing import Any
 import jax
 import numpy as np
 
+from jaxfne.analysis.metrics import _validate_bin_steps
+
 
 @dataclass(frozen=True)
 class FigureResult:
@@ -117,11 +119,10 @@ def binned_population_rate_hz(
     (:func:`jaxfne.vis.plotly.raster.plot_population_rates`) renderers (P5):
     ``rate = mean over units and steps in bin * (1000 / dt_ms)``. ``spikes``
     is ``(n_steps, n_units)``. Returns ``    (centers_ms, rate_hz)`` with centers
-    relative to the first sample. ``bin_ms <= dt_ms`` collapses to the
-    per-step instantaneous rate. Short inputs (``T < bin_steps``) yield one
+    relative to the first sample. ``bin_ms`` must be a positive multiple of
+    ``dt_ms``. Short inputs (``T < bin_steps``) yield one
     bin over the available steps (overall mean, as in the tutorials).
-    Input dtype is preserved (no float32→float64 upcast): float32 simulation
-    data stays float32 through the reduction.
+    Input dtype is preserved through the reduction (no float32→float64 upcast).
     """
     arr = np.asarray(spikes)
     if arr.ndim != 2:
@@ -131,7 +132,8 @@ def binned_population_rate_hz(
     if not np.isfinite(bin_ms) or bin_ms <= 0:
         raise ValueError(f"bin_ms must be positive, got {bin_ms!r}")
     n_steps = arr.shape[0]
-    bin_steps = max(1, int(round(bin_ms / dt_ms)))
+    # The time grid is float32, so dt read back from it carries ~1e-8 relative error.
+    bin_steps = _validate_bin_steps(bin_ms, dt_ms, name="bin_ms", rel_tol=1e-6)
     n_bins = n_steps // bin_steps
     if n_bins == 0:
         return np.array([0.0]), np.array([float(arr.mean()) * (1000.0 / dt_ms)])
@@ -223,7 +225,7 @@ def geometry3d_from_config(cfg: Any, *, areas=None, cell_types=None, figsize=(9,
     """Internal: synthesise 3D geometry scatter from Configuration metadata.
 
     SYNTHETIC PROVENANCE (P4): the plotted coordinates are uniform random
-    draws (``rng(42)``), NOT declared geometry — they stand in for column
+    draws (``rng(42)``), NOT declared geometry; they stand in for column
     layout only. Axes are relative/synthetic units; no calibrated-mm mapping
     is implied. Do not use for field/geometry claims.
     """

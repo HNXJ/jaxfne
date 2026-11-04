@@ -1,4 +1,4 @@
-"""Protocol W1a — single-edge ω integrator analytic and Euler receipts."""
+"""Protocol W1a: single-edge ω integrator analytic and Euler receipts."""
 
 from __future__ import annotations
 

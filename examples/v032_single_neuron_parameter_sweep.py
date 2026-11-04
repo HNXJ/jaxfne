@@ -15,7 +15,7 @@ Per-condition gate semantics:
   - low_or_silent_out_of_target_regime: Hz < 2, finite
   - nonfinite_failure:                 any nonfinite output
 
-Status status: computational_scaffold, proxy_readout
+Status: computational_scaffold, proxy_readout
 Physical amplitude status allowed: False
 Model status: computational_scaffold
 """
@@ -147,16 +147,8 @@ def run_sweep_point(base_model, a_val, d_val, sim_spec):
     }
 
 
-def main(update_canonical: bool = False):
-    """Main tutorial execution.
-
-    Parameters
-    ----------
-    update_canonical : bool, default False
-        When True, write the canonical docs manifest to docs/archive/tutorials_v030/manifests/.
-        Tests should call main() with update_canonical=False (the default) to prevent
-        tracked tutorial artifact drift.
-    """
+def main():
+    """Main tutorial execution."""
     print("=" * 80)
     print("v0.3.2 Single Neuron Parameter Sweep Tutorial")
     print("=" * 80)
@@ -372,9 +364,9 @@ def main(update_canonical: bool = False):
 
         "basis": {
             "run_status": "tutorial_scaffold",
-            "model_status": "computational_scaffold",
+            "claim_level": "computational_scaffold",
             "field_solver_status": "linear_solver",
-            "field_model_status": "proxy_readout",
+            "field_claim_level": "proxy_readout",
             "amplitude_status": False,
             "metabolism_status": False,
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
@@ -512,7 +504,7 @@ def main(update_canonical: bool = False):
     with open(manifest_path) as f:
         loaded = json.load(f)
     assert loaded["basis"]["amplitude_status"] is False
-    assert loaded["basis"]["model_status"] == "computational_scaffold"
+    assert loaded["basis"]["claim_level"] == "computational_scaffold"
     assert set(loaded["probe_report"].keys()) == {
         "spikes", "V_m", "source", "lfp_proxy", "csd_proxy",
         "eeg_proxy", "meg_proxy", "emm_proxy",
@@ -550,23 +542,6 @@ def main(update_canonical: bool = False):
     hashes["figures/v0302_sweep_heatmap.png"] = heatmap_hash
     hashes["figures/v0302_regime_lines.png"] = regime_hash
     write_json(OUT / "asset_hashes.json", hashes)
-
-    # Only update canonical docs manifests when explicitly requested
-    if update_canonical:
-        canonical_path = Path(
-            "docs/archive/tutorials_v030/manifests/v0302_single_neuron_parameter_sweep_manifest.json"
-        )
-        canonical_path.parent.mkdir(parents=True, exist_ok=True)
-        write_json(canonical_path, atlas_manifest)
-
-        canonical_report = Path(
-            "docs/archive/tutorials_v030/reports/v0302_single_neuron_parameter_sweep_validation_report.json"
-        )
-        canonical_report.parent.mkdir(parents=True, exist_ok=True)
-        write_json(canonical_report, atlas_manifest["validation_report"])
-
-        print(f"Canonical manifest: {canonical_path}")
-        print(f"Canonical report:   {canonical_report}")
 
     # =========================================================================
     # Summary

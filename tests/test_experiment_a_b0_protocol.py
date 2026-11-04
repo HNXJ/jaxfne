@@ -1,4 +1,4 @@
-"""0.4.17-B B0 — frozen Experiment A protocol specification tests."""
+"""0.4.17-B B0: frozen Experiment A protocol specification tests."""
 
 from __future__ import annotations
 

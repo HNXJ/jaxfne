@@ -64,7 +64,7 @@ def test_wiring_counts_structure_and_no_autapses():
 def test_conductance_jump_scales_with_weight():
     # Subthreshold probe (2/4 nS): the jump scales with weight. At the S2
     # quantum (6 nS) the resting post cell already spikes under the authors'
-    # detection (Vpeak = VT = -50 mV, F6), so 6/12 nS no longer scales —
+    # detection (Vpeak = VT = -50 mV, F6), so 6/12 nS no longer scales;
     # see test_s2_quantum_spikes_resting_post below.
     low = D.epsp_peak(weight_nS=2.0)
     high = D.epsp_peak(weight_nS=4.0)
@@ -80,7 +80,7 @@ def test_s2_quantum_spikes_resting_post():
     ge-sized EPSP from rest crosses threshold; under the old core
     default (VT + 5*Delta = -37.5 mV) it stayed subthreshold. The
     port therefore over-spikes relative to the old default at the
-    same conductance drive — the wrong direction to explain S2 death
+    same conductance drive, the wrong direction to explain S2 death
     by under-drive (CALIBRATION.md step 5).
     """
     import jax.numpy as jnp
@@ -203,6 +203,34 @@ def test_run_continuous_writes_free_window_only(tmp_path):
     )
     assert nokick["spikes"].shape == (500, 20)
     assert nokick["spikes"].dtype == bool
+
+
+def test_fig6b_cont_cli_forwards_strong_adaptation(monkeypatch):
+    """The Fig. 6A control runs through the continuous CLI; the default stays the 6B network."""
+    from artifacts.etudes.papers.destexhe2009 import run_destexhe as R
+
+    seen = []
+    monkeypatch.setattr(R.D, "run_continuous", lambda *a, **k: seen.append(k) or {"steps": 1, "wall_s": 0.0})
+    for extra in ([], ["--strong-adaptation"]):
+        R.main(["fig6b_cont", "--seed", "0", "--out", "unused"] + extra)
+    assert [k["strong_adaptation"] for k in seen] == [False, True], seen
+
+
+def test_manifest_records_status_and_signed_prereg_hash(tmp_path):
+    """A signed run records its status and the signed prereg's sha256; unscored runs carry no prereg."""
+    import hashlib
+    import json
+
+    spikes = np.zeros((10, 2), bool)
+    D.write_run(tmp_path / "pilot", seed=0, tag="t", spikes=spikes, dt_ms=0.1)
+    D.write_run(tmp_path / "scored", seed=9, tag="t", spikes=spikes, dt_ms=0.1, signed=True)
+    pilot = json.loads((tmp_path / "pilot" / "manifest.json").read_text())["runs"][0]
+    signed = json.loads((tmp_path / "scored" / "manifest.json").read_text())["runs"][0]
+    assert pilot["status"] == "unscored" and "prereg_sha256" not in pilot
+    assert signed["status"] == "signed"
+    prereg = D._repo_root / signed["prereg"]
+    assert prereg.name == "P3_v3_signed.md" and prereg.is_file()
+    assert signed["prereg_sha256"] == hashlib.sha256(prereg.read_bytes()).hexdigest()
 
 
 def test_run_continuous_forwards_probability(tmp_path):

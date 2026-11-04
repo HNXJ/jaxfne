@@ -39,7 +39,6 @@ def main():
         "time_ms": np.arange(t_steps) * dt_ms
     }
     
-    # Ensure outputs directory exists
     os.makedirs("outputs", exist_ok=True)
     
     # 3. Render and save visualizations
@@ -75,7 +74,6 @@ def main():
     fig_summary = jtfne.vis.summary(signals, dt_ms=dt_ms)
     fig_summary.savefig("outputs/summary_smoke.png")
     
-    # Clean up plots
     jtfne.vis.close_all()
     
     # 4. Generate JSON-safe manifest

@@ -26,7 +26,7 @@ def _cfg(n: int = 6):
     )
 
 
-# Test A — runtime synaptic kernel validation
+# Test A: runtime synaptic kernel validation
 def test_runtime_synaptic_kernel_validation():
     assert jtfne.runtime().synaptic_kernel == "exponential"
     assert jtfne.runtime(synaptic_kernel="exponential").synaptic_kernel == "exponential"
@@ -38,7 +38,7 @@ def test_runtime_synaptic_kernel_validation():
         jtfne.RuntimeConfig(synaptic_kernel="not_a_kernel")
 
 
-# Test B — receptor tau lookup
+# Test B: receptor tau lookup
 def test_receptor_tau_lookup():
     specs = jtfne.standard_receptor_specs()
     assert {"AMPA", "GABA_A", "NMDA", "GABA_B"} <= set(specs)
@@ -60,7 +60,7 @@ def test_receptor_tau_lookup():
     assert float(table[3]) == pytest.approx(specs["GABA_B"].tau_ms)
 
 
-# Test C — receptor exponential impulse decay
+# Test C: receptor exponential impulse decay
 def test_receptor_exponential_impulse_decay():
     # Build a tiny isolated edge: one pre, one post, one impulse, NMDA tau.
     edges = jtfne.EdgeList(
@@ -103,7 +103,7 @@ def test_receptor_exponential_impulse_decay():
     assert jnp.all(jnp.isfinite(final_state["syn_state"]))
 
 
-# Test D — segment_sum no-double-count manual equivalence
+# Test D: segment_sum no-double-count manual equivalence
 def test_segment_sum_no_double_count_manual_equivalence():
     n_neurons = 4
     # Multiple edges deliberately converge on the same post-neuron (1, 2).
@@ -121,7 +121,7 @@ def test_segment_sum_no_double_count_manual_equivalence():
     assert int(jnp.sum(post == 1)) >= 2
 
 
-# Test E — deterministic fixed seed
+# Test E: deterministic fixed seed
 def test_receptor_exponential_deterministic_fixed_seed():
     model = jtfne.construct(_cfg(n=5))
     rt = jtfne.runtime(recurrent_backend="edge_list", synaptic_kernel="receptor_exponential", seed=7)
@@ -134,7 +134,7 @@ def test_receptor_exponential_deterministic_fixed_seed():
     assert s1.metadata["synaptic_kernel"] == s2.metadata["synaptic_kernel"] == "receptor_exponential"
 
 
-# Test F — finite state
+# Test F: finite state
 def test_receptor_exponential_finite_state():
     model = jtfne.construct(_cfg(n=6))
     rt = jtfne.runtime(recurrent_backend="edge_list", synaptic_kernel="receptor_exponential")
@@ -147,7 +147,7 @@ def test_receptor_exponential_finite_state():
     json.dumps(manifest, allow_nan=False)
 
 
-# Test G — default backward compatibility
+# Test G: default backward compatibility
 def test_default_exponential_backward_compatibility():
     # Default runtime() must still be "exponential" and produce v0.0.9 metadata.
     assert jtfne.runtime().synaptic_kernel == "exponential"
@@ -167,7 +167,7 @@ def test_default_exponential_backward_compatibility():
     assert signals_dense.metadata["synaptic_kernel"] == "exponential"
 
 
-# Test H — manifest JSON safety
+# Test H: manifest JSON safety
 def test_receptor_exponential_manifest_json_safe():
     model = jtfne.construct(_cfg(n=5))
     rt = jtfne.runtime(recurrent_backend="edge_list", synaptic_kernel="receptor_exponential")
@@ -184,7 +184,7 @@ def test_receptor_exponential_manifest_json_safe():
     json.dumps(manifest, allow_nan=False)
 
 
-# Test I — truth gates unchanged
+# Test I: truth gates unchanged
 def test_receptor_exponential_truth_gates_unchanged():
     model = jtfne.construct(_cfg(n=5))
     rt = jtfne.runtime(recurrent_backend="edge_list", synaptic_kernel="receptor_exponential")
@@ -203,7 +203,7 @@ def test_receptor_exponential_truth_gates_unchanged():
     assert signals.metadata["field_claim_level"] == "proxy_readout"
 
 
-# Test J — no new source mode
+# Test J: no new source mode
 def test_receptor_exponential_no_new_source_mode():
     model = jtfne.construct(_cfg(n=5))
     rt_exp = jtfne.runtime(recurrent_backend="edge_list", synaptic_kernel="exponential")

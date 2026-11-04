@@ -184,6 +184,75 @@ def test_networkx_like_graph_supported_if_networkx_available():
     assert isinstance(fig, go.Figure)
 
 
+def test_show_edges_on_an_input_without_edges_is_refused():
+    """Rows carry no edges, so show_edges=True would change nothing: it is refused."""
+    _require_plotly_or_skip()
+    import jaxfne.vis as vis
+
+    assert not hasattr(_minimal_rows(), "edges"), "fixture: an input without edges"
+    with pytest.raises(ValueError, match="show_edges"):
+        vis.visualize_network_3d(_minimal_rows(), show_edges=True)
+    vis.visualize_network_3d(_minimal_rows())
+
+
+@pytest.mark.parametrize("kwarg", ["coordinate_unit", "display_unit"])
+def test_an_unknown_unit_is_refused(kwarg):
+    """An unknown unit used to scale by 1.0 silently; it is refused by name, and a known one scales."""
+    _require_plotly_or_skip()
+    import jaxfne.vis as vis
+
+    with pytest.raises(ValueError, match=kwarg):
+        vis.visualize_network_3d(_minimal_rows(), **{kwarg: "furlong"})
+
+    def xs(unit):
+        fig = vis.visualize_network_3d(_minimal_rows(), coordinate_unit=unit, display_unit="um")
+        return np.concatenate([np.asarray(t.x, float) for t in fig.data if t.x is not None])
+
+    x_m, x_mm = xs("m"), xs("mm")
+    assert np.abs(x_m).max() > 0, "fixture must place a cell off the origin"
+    np.testing.assert_allclose(x_mm * 1e3, x_m, rtol=1e-12)
+
+
+def test_relative_units_label_axes_relative_without_scaling():
+    """Fail-first: relative rows get 'relative' axis labels and their stored values, unscaled."""
+    _require_plotly_or_skip()
+    import jaxfne.vis as vis
+
+    rows = _minimal_rows()
+    fig = vis.visualize_network_3d(rows, coordinate_unit="relative", display_unit="relative")
+    scene = fig.layout.scene
+    labels = [scene.xaxis.title.text, scene.yaxis.title.text, scene.zaxis.title.text]
+    assert labels == ["X (relative)", "Y (relative)", "Depth (relative)"]
+    assert not any("um" in s for s in labels)
+    for key, axis in (("x_m", "x"), ("y_m", "y"), ("z_m", "z")):
+        stored = np.sort([r[key] for r in rows])
+        assert np.abs(stored).max() > 0, "fixture must place a cell off the origin"
+        shown = np.concatenate([np.asarray(getattr(t, axis), float) for t in fig.data
+                                if getattr(t, axis) is not None])
+        np.testing.assert_allclose(np.sort(shown), stored, rtol=1e-12)
+
+
+def test_physical_units_keep_their_labels_and_scale():
+    """PIN: passes on the base implementation; the default m -> um output keeps its labels."""
+    _require_plotly_or_skip()
+    import jaxfne.vis as vis
+
+    fig = vis.visualize_network_3d(_minimal_rows())
+    assert fig.layout.scene.xaxis.title.text == "X (um)"
+    assert fig.layout.scene.zaxis.title.text == "Depth (um)"
+
+
+@pytest.mark.parametrize("coordinate_unit, display_unit", [("relative", "um"), ("m", "relative")])
+def test_relative_must_pair_with_relative(coordinate_unit, display_unit):
+    """Fail-first: a relative unit on one side only is refused; relative positions have no metre scale."""
+    _require_plotly_or_skip()
+    import jaxfne.vis as vis
+
+    with pytest.raises(ValueError, match="must both be 'relative'"):
+        vis.visualize_network_3d(_minimal_rows(), coordinate_unit=coordinate_unit,
+                                 display_unit=display_unit)
+
+
 def test_core_import_does_not_require_plotly():
     """import jaxfne (and jaxfne.vis) must succeed without Plotly present."""
     # This test runs in the current interpreter, which may have Plotly.

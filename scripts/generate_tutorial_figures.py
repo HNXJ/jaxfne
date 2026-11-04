@@ -59,7 +59,7 @@ def build_config():
     )
     cfg = cfg.update_metadata(
         run_status="tutorial_scaffold",
-        model_status="computational_scaffold",
+        claim_level="computational_scaffold",
     )
     return cfg
 
@@ -304,7 +304,7 @@ def gen_status_summary(manifest, output_dir):
     """Status checks and status status (text-based figure)."""
     gates = [
         ("run_status", manifest.get("run_status", "N/A")),
-        ("model_status", manifest.get("model_status", "N/A")),
+        ("claim_level", manifest.get("claim_level", "N/A")),
         ("field_solver_status", manifest.get("field_solver_status", "N/A")),
         ("amplitude_status", manifest.get("amplitude_status", "N/A")),
         ("source_calibration_status", manifest.get("source_calibration_status", "N/A")),
@@ -413,7 +413,7 @@ def main():
         "min_required": 10,
         "jaxfne_version": jtfne.__version__,
         "run_status": manifest.get("run_status", "tutorial_scaffold"),
-        "model_status": manifest.get("model_status", "computational_scaffold"),
+        "claim_level": manifest.get("claim_level", "computational_scaffold"),
         "field_solver_status": manifest.get("field_solver_status", "linear_solver"),
         "amplitude_status": manifest.get("amplitude_status", False),
         "metabolism_status": manifest.get("metabolism_status", False),

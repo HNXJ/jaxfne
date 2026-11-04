@@ -2,7 +2,7 @@
 
 Purpose: ensure that visualize_network_3d is always reachable through every
 documented import path and that the installed jaxfne[viz] extra correctly
-wires Plotly.  These tests exist as a sentinel — if this public API ever
+wires Plotly.  These tests exist as a sentinel; if this public API ever
 disappears from the package, CI fails loudly rather than silently.
 
 Truth posture: proxy/computational-scaffold diagnostics only.

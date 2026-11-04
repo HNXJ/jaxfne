@@ -144,7 +144,11 @@ def _require_finite_dt(value: Any, name: str) -> None:
     Under ``jit`` the ``float()`` conversion fails loudly instead of
     validating; jitted use validates ``dt`` once at the entry point
     (:func:`simulate_hh` refuses a non-finite or non-positive ``dt_ms``).
+    A ``str`` or ``bytes`` value is refused with ``TypeError``, since
+    ``float()`` would parse ``"0.1"`` silently.
     """
+    if isinstance(value, (str, bytes)):
+        raise TypeError(f"{name} must be a real number; got {value!r}")
     try:
         dt = float(value)
     except (TypeError, ValueError):
@@ -239,7 +243,7 @@ def hh_step(state, I_inj, params: HHParams, dt_ms: float):
 
     Gates advance by exact exponential Euler at frozen voltage; then voltage
     advances by backward Euler with the ionic current linearized at the new
-    gates (``(v + dt*c/Cm) / (1 + dt*G/Cm)``) — the reference operator split
+    gates (``(v + dt*c/Cm) / (1 + dt*G/Cm)``): the reference operator split
     (channels stepped before voltage). ``state`` is ``(v, m, h, n)``:
     membrane voltage (mV, absolute) and gating variables. ``I_inj`` is
     depolarizing-positive injected current (inward). Returns ``(v, m, h, n)``.
@@ -659,14 +663,22 @@ def simulate_hh(
     exact exponential Euler and voltage by backward Euler at frozen gates
     (the :func:`hh_step` split); upward crossings of -20 mV are spikes.
     Held (non-finite) updates are counted in the scan carry and reported as
-    ``held_steps`` (``{"s": n, "ou": n}``); the GSDR fit maps a NaN loss to
-    inf and reverts the generation (PORT_SPEC.md section 10).
+    ``held_steps`` (``{"s": n, "ou": n}``): ``s`` is one per edge per held
+    step, ``ou`` one per OU element per held step, so each count is a count
+    of held element updates summed over the run, not of steps. The GSDR fit
+    maps a NaN loss to inf and reverts the generation (PORT_SPEC.md section 10).
 
     Returns a dict: ``spikes`` (bool ``[n_steps, N]``), ``V_mV``
     (``[n_steps, N]``, after each step's update, only if ``record_v``), the
     final ``v``, ``m``, ``h``, ``n``, ``ou`` and ``s``, and ``held_steps``.
     Implemented with ``jax.lax.scan``; no dense ``N x N`` matrix. dtype
     follows ``params``.
+
+    Gradients: ``edge_weight`` is read as a JAX array and carries a gradient
+    through the full scan (``tests/test_hh_full_kernel_grad.py``). The
+    receptor arrays and ``receptor_s0`` are read as host numbers for
+    validation, as is ``noise_gain`` here (:func:`simulate_hh_batch` takes it
+    as a traced value), so none of them carries a gradient.
 
     Raises ``ValueError`` naming the argument for every refused input
     (``dt_ms`` must be finite and > 0; ``ou_tau`` is required when noise is
@@ -844,7 +856,7 @@ def simulate_hh(
             # old gating; held steps are counted in the scan carry and
             # reported as held_steps (the GSDR fit maps a NaN loss to inf
             # and reverts the generation: PORT_SPEC.md section 10).
-            n_held_s = n_held_s + jnp.sum((~jnp.isfinite(new_s)).astype(jnp.int32))
+            n_held_s = n_held_s + jnp.sum((~jnp.isfinite(new_s)).astype(jnp.int32)).astype(jnp.int32)
             s = jnp.where(jnp.isfinite(new_s), new_s, s)
             gs = w_j * s
             g_syn = jax.ops.segment_sum(gs, post_j, num_segments=N)
@@ -853,7 +865,7 @@ def simulate_hh(
             xi = jax.random.normal(uk, shape=(N,), dtype=dtype)
             new_ou = ou + (0.0 - ou) / tau_j * dt_ms + sig_j * jnp.sqrt(2.0 / tau_j) * xi * jnp.sqrt(dt_ms)
             # As above: hold the old noise, count the held update.
-            n_held_ou = n_held_ou + jnp.sum((~jnp.isfinite(new_ou)).astype(jnp.int32))
+            n_held_ou = n_held_ou + jnp.sum((~jnp.isfinite(new_ou)).astype(jnp.int32)).astype(jnp.int32)
             ou = jnp.where(jnp.isfinite(new_ou), new_ou, ou)
         i_noise = -ou
         am, bm, ah, bh, an, bn = _hh_rate_coeffs(v)

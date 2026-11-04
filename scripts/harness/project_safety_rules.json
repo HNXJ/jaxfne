@@ -1,7 +1,7 @@
 {
   "schema": "jaxfne.project_safety_rules.v1",
   "instructions": [
-    "scratch/CURRENT_TASK.md"
+    "artifacts/_temp/CURRENT_TASK.md"
   ],
   "permission": {
     "bash": {

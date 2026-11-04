@@ -9,7 +9,7 @@ from ._common import require_plotly, field_proxy, contact_depths_mm, time_ms
 def plot_csd(signals, *, title: str = "CSD proxy (depth x time)"):
     """Depth x time heatmap of the CSD proxy.
 
-    Proxy readout only (linear-solver, ``*_proxy`` field) — not a physical
+    Proxy readout only (linear-solver, ``*_proxy`` field); not a physical
     current source density.
     """
     require_plotly()

@@ -1,4 +1,4 @@
-"""Adversarial (H5) probe/electrode semantics — 0.5.2 ENGINE item 5.
+"""Adversarial (H5) probe/electrode semantics: 0.5.2 ENGINE item 5.
 
 No invented contacts or positions on scientific paths (extends Rc P4):
 
@@ -133,7 +133,7 @@ def test_opt_in_matches_declared_linspace_synthesis_numerically():
     declared = lfp_proxy_probe(
         phi, contact_depths=contacts, field_contact_depths=jnp.linspace(0.0, 1.0, 4)
     )
-    # The opt-in fallback IS linspace(0, 1) — and says so in the report.
+    # The opt-in fallback IS linspace(0, 1), and says so in the report.
     np.testing.assert_array_equal(np.asarray(opt_in.data), np.asarray(declared.data))
     assert opt_in.report["synthesized_field_contacts"] is True
     assert "synthesized_field_contacts" not in declared.report
