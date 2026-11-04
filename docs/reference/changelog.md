@@ -49,6 +49,7 @@ the rules those releases were held to and are historical context for readers.
 
 ### Changed
 
+- The `dev` extra installs PyYAML, which the documentation orphan check in the test gate imports.
 - `bfloat16` is reserved for storage. Every route integrates its dynamics in float32 and casts its recorded arrays (voltages, sources, field readouts, seed-batch outputs) to bfloat16 once at the end; the time axis is float32. Before, the homeostatic EI and AdEx seed-batch routes integrated in bfloat16, the edge-list Izhikevich route drew its noise in bfloat16, and the LIF route rounded its drive to bfloat16. `RuntimeConfig` gains `compute_dtype` and `jnp_compute_dtype`; `actual_dtype` still reports `bfloat16`.
 - `jaxfne.vis.core.binned_population_rate_hz` accepts a `bin_ms` on the positive-multiple-of-`dt_ms` grid (the `jaxfne.analysis.metrics` rule) instead of rounding; off-grid widths are refused. The check accepts the float32 time grid's dt at 1e-6 relative tolerance, so default plots at `dt_ms=0.1` keep working.
 - Connection compilation, delay snapping, the multinomial sampler, the sign pass and velocity delays run as NumPy array operations; edges, delays, tables and the random draw sequence are byte-identical (Potjans fingerprint, 4 cases).
