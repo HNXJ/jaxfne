@@ -36,11 +36,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    (`supplement.py write_s13`). Hamm 2026-11-03: 0.5.9 ships with R5-exact; R5-approximate (the 3168-file core
    run, driver `F:/warehouse/pcl/r5/run_r5.sh`, resumable) moves to 0.5.10. Closes for 0.5.9 with this entry;
    0.5.10: R5-approximate scored in `prereg/`, P-055 attributed.
-6. T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against the central
-   finite difference (each output change with a changelog fragment); the jitter reader reruns the frozen readout
-   on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an arbitrary-angle
-   S3 test, C6 `geometry="laminar"` with Brian2 and Jaxley baselines declared. Closes when: each listed piece has a
-   commit with its test or receipt, cited here before the row is deleted.
 7. [H] Signatures, one at a time as each draft is ready: PCL R4 (the other P3 drafts are signed and scored; later
    Destexhe runs record status and the signed prereg hash).
    Each: sign ⇒ scored run from a fixed clone → result file, dashboard, checklist 9D/9E; defer ⇒ the package moves
@@ -107,6 +102,15 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     then `coherence_radius_um` with its two limit tests; T-32 GSDR on `simulate_hh_batch`, seed and candidate
     batching for AdEx, LIF and `Model.tune` (`_model_tune.py:451`), core homes for lane analysis, Mejias G6, the
     LIF edge kernel on GPU; F2, F4, S16 per the release plan.
+6. 0.5.10: T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against
+   the central finite difference (each output change with a changelog fragment); the jitter reader reruns the
+   frozen readout on larger sets first, `w_max` only if it stays weak; paper: C4 Euclidean radius cutoff with an
+   arbitrary-angle S3 test, C6 `geometry="laminar"` with Brian2 and Jaxley baselines declared. Status 2026-11-03
+   (Muse sweep at bb3680d5): dashboard P1/P2 open (ruling text not in the repo,
+   `execution_plans_0.5.9-0.5.10.md:72`); P-052 scan recorded (`precision_058.md:32-37`), beta ruling deferred;
+   jitter reader open (no code or receipt found); C4 radius test landed (`tests/test_geometry_radius_rotation.py`),
+   the S3 panel not built; C6 inventory only, baselines none run. Closes when: each listed piece has a commit with
+   its test or receipt, cited here before the row is deleted.
 27. 0.5.10: T-48 Jansen-Rit 1995 neural-mass emitter, then P1.
 28. After the 0.5.10 release and 7 replicated papers: T-54 [A then H] awesome-jax PR with Hamm's go.
 29. 0.5.11 and 0.6.0: the release plan's later sections.
