@@ -1034,7 +1034,8 @@ function renderValidation(view, data) {
 
 function renderRoadmap(view, data) {
   view.appendChild(el("h2", "Roadmap"));
-  view.appendChild(el("p", "Planned models by release. None has a scored run yet.")).className = "small";
+  view.appendChild(el("p", "Planned models by release; none has a scored run yet. Released results are under " +
+    "Models and Validation; unscheduled rows wait for a named target figure or a release slot.")).className = "small";
   var table = el("table");
   table.className = "criteria";
   var hr = el("tr");
