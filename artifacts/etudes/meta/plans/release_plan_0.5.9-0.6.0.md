@@ -59,6 +59,22 @@ Score on 2026-11-04 after publication: 100/100 (Gate 5 0 to 6: v0.5.9 tagged on 
 | Gate 4 second review, receipt | 6 | opencode Muse review of the 0.5.9 candidate 190432a4 (2026-11-03): NON-BLOCKING, 0 blocking, 1 should-fix (an `in_degree` refusal message, moved to 0.5.10, todo 30), 2 notes; every Changed and Fixed bullet and the first 10 Added read against `jaxfne/`, none wrong. Receipt `F:/warehouse/jaxfne/rc_190432a4/second_review_muse.md` (sha256 4d07f396…) with its packet (b6586f4d…) | 6 |
 | Gate 5 tag, main, PyPI | 6 | Hamm's go 2026-11-04. Main CI failed on two missing test-gate imports (PyYAML, Markdown), each fixed with a failing-first test (PRs #121, #122); main CI green on e0160dfc (CI (Fast) 41922217570, Release CI 41922217824); tag v0.5.9 (e621eff7) on e0160dfc; GitHub Release; PyPI by publish run 41935856859, sha256 equal to the release-dist bytes (wheel 6e962c1e…, sdist 2aef7eac…); fresh-venv install imports 0.5.9. Receipt `artifacts/release/v0_5_9_release_receipt.json` | 6 |
 
+## 0.5.10 packages and checklist (draft 2026-11-05, for Hamm's review)
+
+Written from the 0.5.10 scope below, the arXiv plan rows F2, F4, S3, S4, S6, S7, S16, C4, C6, C7, and the todo rows
+moved to 0.5.10. Weights sum to 100 as in 0.5.9: packages 70, exit gate 30 (Gates 1-5 with the 0.5.9 weights).
+Not yet scored.
+
+| Id | Weight | Package | Done when | State 2026-11-05 |
+|---|---|---|---|---|
+| 10A Geometry (F2, S3, S4, C4) | 14 | Atlas AT-10-N20, NeuronalTensor schema and flattening, geometry property tests, the C4 turn-invariance wording | S3 tests fail on a broken invariant (round trip, permutation, rigid transform); F2 renders from AT-10-N20 | C4 radius test landed (`tests/test_geometry_radius_rotation.py`); S3 panel not built |
+| 10B Compute (F4, S6, C6) | 14 | benchmark prereg; CPU and GPU receipts; Brian2, NEST and Jaxley baselines; the `build_config` repair; the LIF GPU kernel | receipts hash-pinned; baselines run where the model class applies | C6 inventory only; no baseline run |
+| 10C Augmentation (S7, C7) | 8 | ensemble study with provenance | two seeds change output; the same seed reproduces | not started |
+| 10D Extras (S16) | 14 | Mejias 2016 G6; Destexhe 2009; kernel LFP (T-47: `6eb3c6b8`, `44cd0111`, `ff45364b` from `kernel-lfp`, then the iSTDP out-degree check and `coherence_radius_um`); Jansen-Rit neural-mass emitter and its P1 (T-48) | each on dev with its tests; S16 regenerates | kernel-lfp commits unpicked; Jansen-Rit not started |
+| 10E PCL Fig 3 | 10 | R5-approximate under signed R4b, scored in `prereg/`; P-055 attributed | result file and score JSON pinned | R5 running: 715 of 2562 files (2026-11-05) |
+| 10F Carried | 10 | AGSDR log-scale bounds (T-31); T-32 open rows (GSDR on `simulate_hh_batch`, seed and candidate batching, core homes for lane analysis); T-R28 pieces (jitter reader, S3 panel); the `in_degree` refusal message (Gate 4 should-fix) | each with its test or receipt cited in the todo row | open |
+| Owner | 0 | P-052 surrogate fitness; T-62 Fig 1D raw-data request; the unmerged `_temp_balanced-preset` (P-BALANCED, public API, 2026-10-01); a named figure for Lee 2025 and Mazzoni 2015 | Hamm rules on each | open |
+
 ## Later releases
 
 - 0.5.10: F2 with AT-10-N20 and the C4 turn-invariance wording; F4 with the benchmark prereg, Brian2,
