@@ -23,19 +23,16 @@ Guarantees:
 from __future__ import annotations
 
 import hashlib
-import sys
 from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
 import jaxfne as jtfne
 from jaxfne.neuronal_tensor import BackgroundNoise
+
+ROOT = Path(__file__).resolve().parents[1]
 
 CANONICAL_JSON_SHA = "1a33aca34f543d25efc17657946ebea427cbce99d2c88c6870b3488e2b03981b"
 CANONICAL_CONFIG_HASH = "91f037cf383e0bdb"
