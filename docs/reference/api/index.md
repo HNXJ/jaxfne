@@ -6,7 +6,7 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-The root public contract is **208 symbols** (195 CANONICAL + 13 COMPATIBILITY) in
+The root public contract is **209 symbols** (196 CANONICAL + 13 COMPATIBILITY) in
 `jaxfne.__all__`. Tier membership is authoritative in
 [`jaxfne/public_surface.py`](https://github.com/HNXJ/jaxfne/blob/main/jaxfne/public_surface.py)
 and [`artifacts/assurance/api_contracts/public_surface_contract_v0413.json`](https://github.com/HNXJ/jaxfne/blob/main/artifacts/assurance/api_contracts/public_surface_contract_v0413.json).

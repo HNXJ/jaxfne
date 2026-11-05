@@ -9,6 +9,7 @@
     "AugmentationRecord",
     "AugmentationSpec",
     "AxisSpec",
+    "BackgroundNoise",
     "BasisSpec",
     "CANONICAL_LAYERS_6L",
     "CANONICAL_LAYER_CELL_TYPE_FRACTIONS",

@@ -1,13 +1,13 @@
 """P-BALANCED background noise on the simulate route: precedence and refusals.
 
 A caller's ``Simulation.background_noise`` or ``poisson_drive`` replaces the
-preset's ``Configuration.background_noise``; the two caller declarations
+preset's ``Configuration.metadata["background_noise"]``; the two caller declarations
 together, continuation, and SpikeTrainInput are refused.
 """
 
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import asdict, replace
 
 import numpy as np
 import pytest
@@ -37,7 +37,8 @@ def plain():
 
 @pytest.fixture(scope="module")
 def preset():
-    return jtfne.construct(replace(_cfg(), background_noise=_NOISE))
+    cfg = _cfg()
+    return jtfne.construct(replace(cfg, metadata={**cfg.metadata, "background_noise": asdict(_NOISE)}))
 
 
 def test_preset_noise_is_realized_and_recorded(plain, preset):

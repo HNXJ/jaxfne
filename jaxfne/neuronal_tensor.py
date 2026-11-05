@@ -201,6 +201,22 @@ class BackgroundNoise:
         object.__setattr__(self, "target", str(self.target).strip())
 
 
+def preset_background_noise(cfg: Any) -> Optional[BackgroundNoise]:
+    """The preset's background noise, declared as ``cfg.metadata["background_noise"]``
+    (a mapping of :class:`BackgroundNoise` fields) by ``tensor_to_configuration``; None if absent."""
+    raw = (getattr(cfg, "metadata", None) or {}).get("background_noise")
+    if raw is None:
+        return None
+    if isinstance(raw, BackgroundNoise):
+        return raw
+    if not isinstance(raw, Mapping):
+        raise TypeError(
+            "Configuration metadata['background_noise'] must be a mapping of BackgroundNoise "
+            f"fields; got {type(raw).__name__}"
+        )
+    return BackgroundNoise(**raw)
+
+
 @dataclass
 class Geometry3D:
     """Always 3D. Collapse an axis to a 2D/1D layer by fixing it at 0.0."""
@@ -4047,7 +4063,9 @@ def neuronal_tensor_to_configuration(
     if tensor.baseline_drive is not None:
         cfg = cfg.drive(baseline_drive_by_cell_type=tensor.baseline_drive)
     if tensor.background_noise is not None:
-        cfg = replace(cfg, background_noise=tensor.background_noise)
+        cfg = replace(
+            cfg, metadata={**cfg.metadata, "background_noise": asdict(tensor.background_noise)}
+        )
     return cfg
 
 

@@ -284,7 +284,7 @@ def _refuse_background_noise_family(self: "Model", sim: Simulation) -> None:
         "Simulation.background_noise"
         if getattr(sim, "background_noise", None) is not None
         else "the preset's background_noise"
-        if getattr(self.cfg, "background_noise", None) is not None
+        if (getattr(self.cfg, "metadata", None) or {}).get("background_noise") is not None
         else None
     )
     if declared is None or isinstance(self.params["emitter"], IzhikevichParams):
@@ -1663,7 +1663,7 @@ def simulate(
 
     # P-BALANCED background noise: Poisson event current. A caller's
     # Simulation.background_noise or poisson_drive replaces the preset's
-    # cfg.background_noise; the two caller declarations together are refused.
+    # cfg.metadata["background_noise"]; the two caller declarations together are refused.
     effective_noise = sim.background_noise
     if effective_noise is not None and sim.poisson_drive is not None:
         raise ValueError(
@@ -1671,7 +1671,9 @@ def simulate(
             "pass one declared noise drive"
         )
     if effective_noise is None and sim.poisson_drive is None:
-        effective_noise = getattr(self.cfg, "background_noise", None)
+        from .neuronal_tensor import preset_background_noise
+
+        effective_noise = preset_background_noise(self.cfg)
     if effective_noise is not None:
         if spike_train_input is not None:
             raise ValueError(

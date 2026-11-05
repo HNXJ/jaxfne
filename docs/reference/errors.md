@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2481 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2494 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -471,6 +471,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `{...} edge(s) compiled from connections() rules are not carried by the dense backend (it runs on emi` |
 | `ValueError` | `ensemble model_sizes sum to {...} but the emitter carries {...} neurons` |
 | `ValueError` | `Simulation.gaussian_drive is realized only on the Izhikevich construct routes; emitter route {...} t` |
+| `ValueError` | `{...} is realized only on the Izhikevich construct routes; emitter {...} takes no event-current driv` |
 | `ValueError` | `Simulation.gaussian_drive is refused together with hdp_params['noise_scale']: both set the stochasti` |
 | `ValueError` | `Simulation.gaussian_drive is refused together with homeostasis_params['noise_scale']: both set the s` |
 | `ValueError` | `Simulation.gaussian_drive std_by_cell_type misses model cell type(s) {...}; the model's cell types a` |
@@ -500,6 +501,9 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `SpikeTrainInput cannot be combined with sim.poisson_drive; pass one declared input` |
 | `ValueError` | `SpikeTrainInput cannot be combined with ablation={...}; the clamp rides the registered-rule kernel, ` |
 | `ValueError` | `SpikeTrainInput n_neurons={...} does not match the model's {...} neurons` |
+| `ValueError` | `Simulation.background_noise cannot be combined with sim.poisson_drive; pass one declared noise drive` |
+| `ValueError` | `SpikeTrainInput cannot be combined with background_noise; pass one declared input` |
+| `ValueError` | `full-state continuation does not support background_noise: its draws are not chunk-seeded; use poiss` |
 | `ValueError` | `ablation='shuffled_timing' shuffles a time-varying drive; this run has none (pass a paradigm or pois` |
 | `ValueError` | `Simulation(silence=...) is not realized for emitter family '{...}': silence masks emitted AdEx spike` |
 | `ValueError` | `Simulation(replace=...) is not realized for emitter family '{...}': replace swaps emitted AdEx spike` |
@@ -1998,6 +2002,12 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 | Class | Message |
 |---|---|
+| `ValueError` | `BackgroundNoise rate_hz must be a positive finite number; got {...}` |
+| `ValueError` | `BackgroundNoise rate_hz must be > 0 and finite; got {...}` |
+| `ValueError` | `BackgroundNoise amplitude must be a non-negative finite number; got {...}` |
+| `ValueError` | `BackgroundNoise amplitude must be >= 0 and finite; got {...}` |
+| `ValueError` | `BackgroundNoise seed must be an explicit integer; got {...}` |
+| `ValueError` | `BackgroundNoise target must be a non-empty string; got {...}` |
 | `ValueError` | `NeuronType {...} declares emitter_params={...} with emitter=None; emitter_params are validated again` |
 | `ValueError` | `{...} length_unit must be one of {...}; got {...}` |
 | `ValueError` | `{...} length_unit must be 'mm' (tensor positions are mm); got {...} — relabelling the geometry unit ` |
@@ -2067,6 +2077,9 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `NeuronalTensor with declared connectivity cannot be marked as unspecified` |
 | `ValueError` | `NeuronalTensor.connectivity_mode must be 'unspecified' or 'explicit'` |
 | `ValueError` | `NeuronalTensor with declared connectivity cannot be marked as unspecified` |
+| `ValueError` | `NeuronalTensor.baseline_drive cell type must be non-empty str; got {...}` |
+| `ValueError` | `NeuronalTensor.baseline_drive names unknown cell type {...}; declared cell types: {...}` |
+| `ValueError` | `NeuronalTensor.baseline_drive value for {...} must be finite number; got {...}` |
 | `ValueError` | `NeuronalTensor trained_w0 and w0_provenance.origin disagree: trained weights require origin='trained` |
 | `ValueError` | `{...} does not look like a NeuronalTensor JSON config (no top-level 'areas' key).` |
 | `ValueError` | `NeuronalTensor JSON at {...} declares schema_version={...}, expected {...}; strict=True refuses forw` |

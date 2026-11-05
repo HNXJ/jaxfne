@@ -360,11 +360,35 @@ class NeuronalTensor:
     name: str = "untitled"
     connectivity_mode: Literal["unspecified", "explicit"] | None = None
     provenance: dict | None = None
+    w0_provenance: W0Provenance = W0Provenance()
+    trained_w0: TrainedW0 | None = None
+    baseline_drive: dict[str, float] | None = None
+    background_noise: BackgroundNoise | None = None
 ```
 
 The top-level container for areas and between-area connections.
 `connectivity_mode` is inferred: `"unspecified"` when connectivity fields are
 omitted, `"explicit"` when a connection list is given, including an empty list.
+`baseline_drive` maps declared cell types to a baseline drive (reaches
+`drive(baseline_drive_by_cell_type=)`); `background_noise` is the preset's Poisson
+event current. Both are omitted from `to_dict` when None.
+
+### `BackgroundNoise`
+
+```python
+@dataclass(frozen=True)
+class BackgroundNoise:
+    rate_hz: float      # > 0, finite
+    amplitude: float    # >= 0, finite; current per event
+    seed: int           # required
+    target: str = "all"
+```
+
+Poisson event current added to the drive on the Izhikevich route and recorded as
+`realized_noise` in the signals metadata and the manifest. A caller's
+`Simulation(background_noise=)` or `poisson_drive` replaces the preset's noise; both
+together, continuation, `SpikeTrainInput` and other emitter families refuse it.
+The preset `canonical-v1-column-1000n-balanced` declares one.
 
 **Method:**
 

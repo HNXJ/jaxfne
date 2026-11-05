@@ -109,8 +109,10 @@ def manifest(
         _drive_spec = (self.cfg.metadata or {}).get("drive")
         if isinstance(_drive_spec, dict) and "baseline_drive_by_cell_type" in _drive_spec:
             res["realized_drive"] = dict(_drive_spec["baseline_drive_by_cell_type"])
-        if getattr(self.cfg, "background_noise", None) is not None:
-            bn = self.cfg.background_noise
+        from .neuronal_tensor import preset_background_noise
+
+        bn = preset_background_noise(self.cfg)
+        if bn is not None:
             res["realized_noise"] = {
                 "rate_hz": float(bn.rate_hz),
                 "amplitude": float(bn.amplitude),
