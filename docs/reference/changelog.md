@@ -13,6 +13,13 @@ the rules those releases were held to and are historical context for readers.
   (CAMINOS Cell Reports and PLoS Comput Biol 2026 first), exported by `scripts/export_dashboard_notebook.py`
   with the code shown. Each CAMINOS notebook opens with its network built and run live in jaxfne
   (`Configuration`, `construct`, `Model.simulate`); PLoS Fig 1E reads the P6 jaxfne runs.
+- `BackgroundNoise` (Poisson event current: `rate_hz`, `amplitude`, required `seed`, `target`) and the
+  `NeuronalTensor` fields `baseline_drive` and `background_noise`, realized on the Izhikevich route and
+  recorded as `realized_drive` and `realized_noise` in the metadata and manifest. A caller's
+  `Simulation(background_noise=)` or `poisson_drive` replaces the preset's noise; both together,
+  continuation, `SpikeTrainInput` and every other emitter family refuse it. New preset
+  `canonical-v1-column-1000n-balanced` meets the P-BALANCED bounds on seeds 0-4 (E rate 8.9-9.1 Hz,
+  CV_ISI 0.74-0.76, |r_sc| <= 0.08, inhibition x2 shift 0.24-0.26).
 
 ## v0.5.9 (2026-11-03)
 

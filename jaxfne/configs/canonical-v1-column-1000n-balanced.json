@@ -1395,15 +1395,15 @@
     }
   ],
   "background_noise": {
-    "amplitude": 60.0,
+    "amplitude": 80.0,
     "rate_hz": 10.0,
     "seed": 42,
     "target": "all"
   },
   "baseline_drive": {
-    "E": 2.5,
-    "PV": 4.0,
-    "SST": 1.0,
+    "E": 2.0,
+    "PV": 8.0,
+    "SST": 6.0,
     "VIP": 2.5
   },
   "connectivity_mode": "explicit",

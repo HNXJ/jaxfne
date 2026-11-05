@@ -6,12 +6,17 @@ Guarantees:
    - Mean CV_ISI in [0.70, 1.30] (for active E cells with >= 5 spikes)
    - Pairwise spike correlation |r_sc| < 0.10 (20 ms bins)
    - Inhibition x2 responsiveness: E rate shifts >= 20%
+   Retuned at the 0.5.10 port (Hamm 2026-11-05) under unchanged bounds: noise
+   amplitude 60 -> 80, drive E/PV/SST 2.5/4/1 -> 2/8/6. Seeds 0-4 (noise seeds
+   42-46): E rate 8.91-9.14 Hz, CV 0.742-0.755, |r_sc| <= 0.078, shift 0.236-0.257.
 2. Stored-is-not-consumed: each field perturbed (0, None, boundary) changes output or is refused.
    - BackgroundNoise requires explicit seed.
 3. Caller override: caller Simulation argument overrides preset noise in dynamics and manifest.
 4. Canonical bit-identity:
    - canonical-v1-column-1000n.json SHA256 and config_hash pinned
-   - Probe numbers (E rate 11.00 Hz, CV 0.036) pinned
+   - Probe numbers (E rate 11.00 Hz, CV 0.0585) pinned; the CV moved from 0.036
+     with the P-048 Izhikevich default u0 = b * v0 (b1d9dfe1, Hamm 2026-11-02)
+     and later dev changes, re-pinned at the 0.5.10 port
    - Absent fields produce bit-identical output with no extraneous manifest fields
 """
 
@@ -40,25 +45,25 @@ def test_balanced_preset_acceptance_bounds_at_1k():
     """Verify that canonical-v1-column-1000n-balanced satisfies all 4 acceptance bounds at 1k."""
     tensor = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n-balanced")
     assert tensor.name == "canonical-v1-column-1000n-balanced"
-    assert tensor.baseline_drive == {"E": 2.5, "PV": 4.0, "SST": 1.0, "VIP": 2.5}
-    assert tensor.background_noise == BackgroundNoise(rate_hz=10.0, amplitude=60.0, seed=42, target="all")
+    assert tensor.baseline_drive == {"E": 2.0, "PV": 8.0, "SST": 6.0, "VIP": 2.5}
+    assert tensor.background_noise == BackgroundNoise(rate_hz=10.0, amplitude=80.0, seed=42, target="all")
 
     model = jtfne.construct_neuronal_tensor(tensor, duration_ms=1000.0, dt_ms=0.5, seed=0)
     signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
 
     # Verify realized values in metadata and manifest
-    assert signals.metadata.get("realized_drive") == {"E": 2.5, "PV": 4.0, "SST": 1.0, "VIP": 2.5}
+    assert signals.metadata.get("realized_drive") == {"E": 2.0, "PV": 8.0, "SST": 6.0, "VIP": 2.5}
     assert signals.metadata.get("realized_noise") == {
         "rate_hz": 10.0,
-        "amplitude": 60.0,
+        "amplitude": 80.0,
         "seed": 42,
         "target": "all",
     }
     manifest = model.manifest(signals=signals)
-    assert manifest.get("realized_drive") == {"E": 2.5, "PV": 4.0, "SST": 1.0, "VIP": 2.5}
+    assert manifest.get("realized_drive") == {"E": 2.0, "PV": 8.0, "SST": 6.0, "VIP": 2.5}
     assert manifest.get("realized_noise") == {
         "rate_hz": 10.0,
-        "amplitude": 60.0,
+        "amplitude": 80.0,
         "seed": 42,
         "target": "all",
     }
@@ -201,7 +206,7 @@ def test_fields_perturbed_change_output():
     # 1. Perturb rate_hz
     t_rate = replace(
         base_tensor,
-        background_noise=BackgroundNoise(rate_hz=20.0, amplitude=60.0, seed=42, target="all"),
+        background_noise=BackgroundNoise(rate_hz=20.0, amplitude=80.0, seed=42, target="all"),
     )
     m_rate = jtfne.construct_neuronal_tensor(t_rate, duration_ms=200.0, dt_ms=0.5, seed=0)
     sig_rate = jtfne.simulate(m_rate, duration_ms=200.0, dt_ms=0.5, seed=0)
@@ -219,7 +224,7 @@ def test_fields_perturbed_change_output():
     # 3. Perturb seed
     t_seed = replace(
         base_tensor,
-        background_noise=BackgroundNoise(rate_hz=10.0, amplitude=60.0, seed=43, target="all"),
+        background_noise=BackgroundNoise(rate_hz=10.0, amplitude=80.0, seed=43, target="all"),
     )
     m_seed = jtfne.construct_neuronal_tensor(t_seed, duration_ms=200.0, dt_ms=0.5, seed=0)
     sig_seed = jtfne.simulate(m_seed, duration_ms=200.0, dt_ms=0.5, seed=0)
@@ -228,7 +233,7 @@ def test_fields_perturbed_change_output():
     # 4. Perturb baseline_drive
     t_drive = replace(
         base_tensor,
-        baseline_drive={"E": 3.0, "PV": 4.0, "SST": 1.0, "VIP": 2.5},
+        baseline_drive={"E": 2.5, "PV": 8.0, "SST": 6.0, "VIP": 2.5},
     )
     m_drive = jtfne.construct_neuronal_tensor(t_drive, duration_ms=200.0, dt_ms=0.5, seed=0)
     sig_drive = jtfne.simulate(m_drive, duration_ms=200.0, dt_ms=0.5, seed=0)
@@ -283,7 +288,7 @@ def test_canonical_bit_identical_pins():
     model = jtfne.construct_neuronal_tensor(tensor, duration_ms=1000.0, dt_ms=0.5, seed=0)
     assert model.summary()["config_hash"] == CANONICAL_CONFIG_HASH
 
-    # 3. Probe observables pinned: E rate 11.00 Hz, CV 0.036
+    # 3. Probe observables pinned: E rate 11.00 Hz, CV 0.0585
     signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
     spikes = np.asarray(signals.spikes)
     if spikes.shape[0] != 2000 and spikes.shape[1] == 2000:
@@ -306,7 +311,7 @@ def test_canonical_bit_identical_pins():
             if np.mean(isis) > 0:
                 cv_list.append(float(np.std(isis) / np.mean(isis)))
     mean_cv = float(np.mean(cv_list))
-    assert abs(mean_cv - 0.036) < 0.005, f"Canonical CV {mean_cv:.3f} != 0.036"
+    assert abs(mean_cv - 0.0585) < 0.005, f"Canonical CV {mean_cv:.4f} != 0.0585"
 
     # Absent fields produce clean metadata with no extraneous keys
     assert "realized_drive" not in signals.metadata
