@@ -9,6 +9,9 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+- The dashboard has a Notebooks tab: each paper replication as one notebook that remakes the paper's figures
+  (CAMINOS Cell Reports and PLoS Comput Biol 2026 first), exported by `scripts/export_dashboard_notebook.py`.
+
 ## v0.5.9 (2026-11-03)
 
 ### Added

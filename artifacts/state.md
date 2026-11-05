@@ -39,6 +39,7 @@ and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 
 | File | Generator | Check |
 |---|---|---|
+| `dashboard/notebooks/*.html`, `index.json` | `scripts/export_dashboard_notebook.py` on an executed suite notebook (data on F:, so local only) | `tests/test_export_dashboard_notebook.py` |
 | `dashboard/data/replications.json` | `scripts/build_dashboard_data.py` | `--check` (CI `Dashboard` workflow) |
 | `dashboard/figures/*.png`, `manifest.json` | `scripts/build_dashboard_figures.py` | `--check` (CI `Dashboard` workflow) |
 | `docs/start/replications.md` | `scripts/generate_replications_page.py` | `--check` (CI `Dashboard` workflow) |
@@ -52,7 +53,7 @@ and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 - Windows: Python 3.14 runs the broad gate through `suite_lock.py`, one suite at a time. WSL: `~/venv_jaxfne`
   (CUDA, numba 0.68 added 2026-11-02 for the PCL core arm; each long job in its own `systemd-run` memory cap),
   `~/venv_jaxfne_gate` (CPU gate); TeX Live 2026 at `~/texlive/cur` (pdfLaTeX for the NeuroAI draft).
-- Tracked tree: `python scripts/check_tree_size.py --check`; budget 2796 files in `scripts/tree_size_allowlist.json`.
+- Tracked tree: `python scripts/check_tree_size.py --check`; budget 2796 files and 96 MB in `scripts/tree_size_allowlist.json`.
 - Large data outside git: `F:/warehouse/{caminos,gsdr,pcl,vogels2011,potjans2014,destexhe2009}/` (receipts named
   in each result file); PCL training set `F:/warehouse/pcl/data/training_natural/events5_re2/` (from Zenodo
   `PCL_datasets_and_networks.zip`).
@@ -61,6 +62,8 @@ and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 
 ## Next action
 
-Broad gate on dev, then push dev. CAMINOS figure suites (Hamm 2026-11-04: dashboard Notebooks panel, each paper
-replication as its figures): `caminos/suite/` PLoS and Cell Reports notebooks in Cursor GLM lanes; Cell Reports
-raster + LFP GPU run `~/cellr_497e9bb0` (WSL). R5-approximate running for 0.5.10.
+Broad gate on dev, then push dev (ef5d9a55 pushed 2026-11-04; the CAMINOS suites and the Notebooks tab after it
+are unpushed). CAMINOS figure suites (Hamm 2026-11-04): `caminos/suite/` PLoS (18 figures) and Cell Reports
+(15 figures; rasters and LFP from `F:/warehouse/caminos/cellrep_rasters/seed1`, run 497e9bb0) exported to the
+dashboard Notebooks tab. Seeds 2-3 of the raster run still running in WSL (`~/cellr_497e9bb0`). Not run yet:
+Cell Reports 1A, 1D, 2A/2B bottom, 6A top, 6B; PLoS Fig 5, Fig 3 and 4A mean-field rows. R5-approximate running for 0.5.10.

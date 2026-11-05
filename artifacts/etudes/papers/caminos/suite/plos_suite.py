@@ -36,12 +36,21 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
+def _repo_root(start: Path) -> Path:
+    """Nearest ancestor that holds pyproject.toml (P-025: the checkout's modules, never site-packages)."""
+    for cand in (start, *start.parents):
+        if (cand / "pyproject.toml").is_file():
+            return cand
+    raise RuntimeError(f"no pyproject.toml above {start}")
+
+
 _HERE = Path(__file__).resolve().parent          # .../caminos/suite
 _CAMINOS = _HERE.parent                          # .../caminos: run/score scripts live here
-_REPO_ROOT = _HERE.parents[4]                    # P-025: the checkout's modules, never site-packages
-for _p in (_REPO_ROOT, _CAMINOS):
-    if str(_p) not in sys.path:
-        sys.path.insert(0, str(_p))
+_REPO_ROOT = _repo_root(_HERE)
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+if str(_CAMINOS) not in sys.path:
+    sys.path.insert(0, str(_CAMINOS))
 
 POP_NAMES = ("E", "PV", "SOM")
 COLORS = {"E": "#d62728", "PV": "#1f77b4", "SOM": "#2ca02c"}

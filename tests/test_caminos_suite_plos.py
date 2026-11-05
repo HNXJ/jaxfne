@@ -182,7 +182,7 @@ def test_fig_2c_raster_with_meanfield(run_dir):
     assert all(points[name] > 0 for name in ps.POP_NAMES)
     # one time axis in ms shared by all three rows (the MF row was in s before)
     assert fig.axes[0].get_xlim() == fig.axes[2].get_xlim()
-    assert all(l.get_xdata().max() > 1000.0 for l in fig.axes[0].get_lines())
+    assert all(line.get_xdata().max() > 1000.0 for line in fig.axes[0].get_lines())
     # markers visible at print size (>= 2 px stroke)
     sizes = [s for c in raster_ax.collections for s in np.atleast_1d(c.get_sizes())]
     assert sizes and min(sizes) >= 4

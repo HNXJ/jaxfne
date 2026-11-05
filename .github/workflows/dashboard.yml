@@ -56,7 +56,7 @@ jobs:
           git worktree add ../pages origin/gh-pages
           rm -rf ../pages/dashboard
           mkdir -p ../pages/dashboard
-          cp -r dashboard/index.html dashboard/app.js dashboard/style.css dashboard/data dashboard/models dashboard/figures ../pages/dashboard/
+          cp -r dashboard/index.html dashboard/app.js dashboard/style.css dashboard/data dashboard/models dashboard/figures dashboard/notebooks ../pages/dashboard/
           cd ../pages
           # The site root opens the dashboard (Hamm 2026-10-15); the docs live on Read the Docs.
           # The old v0.4.20 docs pages stay so existing deep links do not 404 (Hamm 2026-10-12).

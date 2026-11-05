@@ -40,14 +40,21 @@ from pathlib import Path
 
 import numpy as np
 
+def _repo_root(start: Path) -> Path:
+    """Nearest ancestor that holds pyproject.toml (P-025: the checkout's jaxfne, never site-packages)."""
+    for cand in (start, *start.parents):
+        if (cand / "pyproject.toml").is_file():
+            return cand
+    raise RuntimeError(f"no pyproject.toml above {start}")
+
+
 _HERE = Path(__file__).resolve().parent
 _CAMINOS = _HERE.parent
-_repo_root = _CAMINOS
-while _repo_root.parent != _repo_root and not (_repo_root / "pyproject.toml").exists():
-    _repo_root = _repo_root.parent  # P-025: the checkout's jaxfne, never site-packages
-for _p in (str(_repo_root), str(_CAMINOS)):
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
+_REPO_ROOT = _repo_root(_HERE)
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+if str(_CAMINOS) not in sys.path:
+    sys.path.insert(0, str(_CAMINOS))
 
 import cellrep_figures as cf  # noqa: E402
 import jax  # noqa: E402

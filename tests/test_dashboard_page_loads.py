@@ -138,7 +138,7 @@ def test_page_renders_from_committed_data_without_errors(browser, tmp_path):
 
         # Check 1: every tab, clicked in turn, renders with no page error and no console error.
         tabs = page.eval_on_selector_all("#tabs a", "els => els.map(e => e.dataset.tab)")
-        assert tabs == ["overview", "models", "validation", "figures", "roadmap", "method"], tabs
+        assert tabs == ["overview", "models", "validation", "figures", "notebooks", "roadmap", "method"], tabs
         for tab in tabs:
             page.click(f'#tabs a[data-tab="{tab}"]')
             page.wait_for_function(HEADING_IS, arg=tab.capitalize(), timeout=15000)
