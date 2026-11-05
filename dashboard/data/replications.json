@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-03T18:05:10Z",
-    "dev_sha": "eb2caaf3c0489f3e8908ba47f29908eb274a4904",
-    "data_revision": "9132624d3bb78457ab32cca5d9884375ef9c975e98f3433b212352f67e6ceba0"
+    "utc": "2026-11-05T17:19:17Z",
+    "dev_sha": "e4b5235026b208ce33d24eacd81f2d3180504094",
+    "data_revision": "5a77077e78c317a541957d6935a2eaf77c960aa0cac562f8c4d2f5e334887719"
   },
   "papers": [
     {
@@ -7595,29 +7595,19 @@
   },
   "roadmap": [
     {
-      "release": "0.5.8",
+      "release": "0.5.10",
       "model": "Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns",
       "needs": "a neural-mass emitter in the core"
     },
     {
-      "release": "0.5.9",
-      "model": "Lee, Pennartz and Mejias, PLoS Comput Biol 2025: interneuron silencing, deviant enhancement",
-      "needs": "event input"
-    },
-    {
       "release": "0.5.10",
-      "model": "Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply)",
-      "needs": "the 0.5.9 laminar networks"
-    },
-    {
-      "release": "0.5.10",
-      "model": "Mazzoni et al. 2015: LFP proxies",
-      "needs": "the 0.5.9 laminar networks"
+      "model": "CAMINOS Cell Reports Fig. 1D: mouse V1 recordings",
+      "needs": "the raw Onorato data (on request from the lead contact)"
     },
     {
       "release": "after 0.5.10",
       "model": "PCL Fig. 4: suppression effects",
-      "needs": "the PCL full-network mapping (0.5.8)"
+      "needs": "PCL Fig. 3 scored (R5-approximate, 0.5.10)"
     },
     {
       "release": "after 0.5.10",
@@ -7628,6 +7618,21 @@
       "release": "after 0.5.10",
       "model": "Calcium-regulated synaptic homeostasis (bioRxiv 2025)",
       "needs": "methods read; calcium state as an HDP coordinate"
+    },
+    {
+      "release": "unscheduled",
+      "model": "Lee, Pennartz and Mejias, PLoS Comput Biol 2025: interneuron silencing, deviant enhancement",
+      "needs": "event input; a named target figure"
+    },
+    {
+      "release": "unscheduled",
+      "model": "Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply)",
+      "needs": "the laminar networks"
+    },
+    {
+      "release": "unscheduled",
+      "model": "Mazzoni et al. 2015: LFP proxies",
+      "needs": "the laminar networks; a named target figure"
     }
   ],
   "studies": [

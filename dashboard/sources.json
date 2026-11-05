@@ -1885,12 +1885,13 @@
     }
   ],
   "roadmap": [
-    {"release": "0.5.8", "model": "Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns", "needs": "a neural-mass emitter in the core"},
-    {"release": "0.5.9", "model": "Lee, Pennartz and Mejias, PLoS Comput Biol 2025: interneuron silencing, deviant enhancement", "needs": "event input"},
-    {"release": "0.5.10", "model": "Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply)", "needs": "the 0.5.9 laminar networks"},
-    {"release": "0.5.10", "model": "Mazzoni et al. 2015: LFP proxies", "needs": "the 0.5.9 laminar networks"},
-    {"release": "after 0.5.10", "model": "PCL Fig. 4: suppression effects", "needs": "the PCL full-network mapping (0.5.8)"},
+    {"release": "0.5.10", "model": "Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns", "needs": "a neural-mass emitter in the core"},
+    {"release": "0.5.10", "model": "CAMINOS Cell Reports Fig. 1D: mouse V1 recordings", "needs": "the raw Onorato data (on request from the lead contact)"},
+    {"release": "after 0.5.10", "model": "PCL Fig. 4: suppression effects", "needs": "PCL Fig. 3 scored (R5-approximate, 0.5.10)"},
     {"release": "after 0.5.10", "model": "PCL Figs. 5–6", "needs": "the PCL suppression data and N-MNIST/DVS sets"},
-    {"release": "after 0.5.10", "model": "Calcium-regulated synaptic homeostasis (bioRxiv 2025)", "needs": "methods read; calcium state as an HDP coordinate"}
+    {"release": "after 0.5.10", "model": "Calcium-regulated synaptic homeostasis (bioRxiv 2025)", "needs": "methods read; calcium state as an HDP coordinate"},
+    {"release": "unscheduled", "model": "Lee, Pennartz and Mejias, PLoS Comput Biol 2025: interneuron silencing, deviant enhancement", "needs": "event input; a named target figure"},
+    {"release": "unscheduled", "model": "Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply)", "needs": "the laminar networks"},
+    {"release": "unscheduled", "model": "Mazzoni et al. 2015: LFP proxies", "needs": "the laminar networks; a named target figure"}
   ]
 }
