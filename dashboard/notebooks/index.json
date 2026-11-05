@@ -1,0 +1,22 @@
+{
+ "notebooks": [
+  {
+   "slug": "caminos-cellrep",
+   "title": "Caminos Cell Reports: figure replication",
+   "paper": "Cell Reports, Figs 1B, 1C, 2A/2B top, 3A-C, 4A/4B, 5A-C, 6A, S1",
+   "html": "caminos-cellrep.html",
+   "panels": 15,
+   "build_sha": "9e4cc5037f06c893f9af20840b5ebd8a75262e0f",
+   "data": "F:/warehouse/caminos (figB_out, figC_out, cellrep_rasters/seed1 from run 497e9bb0)"
+  },
+  {
+   "slug": "caminos-plos-2026",
+   "title": "Caminos PLoS Comput Biol 2026: figure replication",
+   "paper": "PLoS Computational Biology 2026, Figs 1D, 1E, 2A-F, 3A-F, 4A, 6A-C",
+   "html": "caminos-plos-2026.html",
+   "panels": 18,
+   "build_sha": "9e4cc5037f06c893f9af20840b5ebd8a75262e0f",
+   "data": "F:/warehouse/caminos (figP_out, plosr_7f7a660e, scored/v7_20261012)"
+  }
+ ]
+}

@@ -603,7 +603,7 @@ var CLASSES = [
     def: "Analytic checks of a core method against closed-form references, scored by a script; not a paper replication." }
 ];
 var SCORED_CLASSES = ["reproduced", "reproduced (conditional)", "mixed", "pending"];
-var TABS = ["overview", "models", "validation", "figures", "roadmap", "method"];
+var TABS = ["overview", "models", "validation", "figures", "notebooks", "roadmap", "method"];
 
 function classInfo(id) {
   var hit = null;
@@ -1252,6 +1252,77 @@ function renderFigures(view) {
   });
 }
 
+/* ---- Notebooks tab: one executed notebook per paper replication, remaking the paper's figures ---- */
+
+var NB_INDEX_URL = "notebooks/index.json";
+
+function nbCard(nb) {
+  var card = el("article");
+  card.className = "card nb-card";
+  card.appendChild(el("h3", nb.title));
+  if (nb.paper) card.appendChild(el("p", nb.paper));
+  var meta = el("p", (nb.panels != null ? nb.panels + " panels · " : "") +
+    "build " + String(nb.build_sha || "unknown").slice(0, 12));
+  meta.className = "sub";
+  card.appendChild(meta);
+  if (nb.data) {
+    var data = el("p", "Data: " + nb.data);
+    data.className = "sub";
+    card.appendChild(data);
+  }
+  var open = el("p");
+  open.appendChild(link("notebooks/" + nb.html, "Open the full notebook"));
+  card.appendChild(open);
+  var box = document.createElement("details");
+  box.appendChild(el("summary", "Show inline"));
+  box.addEventListener("toggle", function () {
+    if (!box.open || box.querySelector("iframe")) return;
+    var frame = document.createElement("iframe");
+    frame.src = "notebooks/" + nb.html;
+    frame.title = nb.title;
+    frame.loading = "lazy";
+    frame.className = "nb-frame";
+    box.appendChild(frame);
+  });
+  card.appendChild(box);
+  return card;
+}
+
+function renderNbTab(view, index) {
+  view.appendChild(el("h2", "Notebooks"));
+  var lead = el("p", "Each paper replication as one notebook that remakes the paper's figures from the replication runs. " +
+    "Scores and receipts are under Models and Validation.");
+  lead.className = "small";
+  view.appendChild(lead);
+  var list = index.notebooks || [];
+  if (!list.length) view.appendChild(el("p", "No notebooks published yet."));
+  list.forEach(function (nb) { view.appendChild(nbCard(nb)); });
+}
+
+function renderNotebooks(view) {
+  if (window.__nbindex) {
+    renderNbTab(view, window.__nbindex);
+    return;
+  }
+  view.appendChild(el("p", "Loading the notebook index…"));
+  fetch(NB_INDEX_URL).then(function (r) {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function (index) {
+    window.__nbindex = index;
+    if (route().tab !== "notebooks") return;
+    var fresh = document.getElementById("view");
+    clear(fresh);
+    renderNbTab(fresh, index);
+  }).catch(function (err) {
+    if (route().tab !== "notebooks") return;
+    var fresh = document.getElementById("view");
+    clear(fresh);
+    fresh.appendChild(el("h2", "Notebooks"));
+    fresh.appendChild(el("p", "Could not load " + NB_INDEX_URL + ": " + (err && err.message ? err.message : err)));
+  });
+}
+
 function route() {
   var h = location.hash ? decodeURIComponent(location.hash.slice(1)) : "overview";
   if (h.indexOf("model/") === 0) return { tab: "models", id: h.slice(6) };
@@ -1280,6 +1351,7 @@ function render(data) {
   } else if (r.tab === "models") renderModels(view, data);
   else if (r.tab === "validation") renderValidation(view, data);
   else if (r.tab === "figures") renderFigures(view);
+  else if (r.tab === "notebooks") renderNotebooks(view);
   else if (r.tab === "roadmap") renderRoadmap(view, data);
   else if (r.tab === "method") renderMethod(view);
   else renderOverview(view, data);

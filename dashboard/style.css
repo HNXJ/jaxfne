@@ -182,6 +182,10 @@ tr.group-row th { background: var(--bg); }
 .fig-card img { max-width: 100%; height: auto; display: block; border-radius: 4px; }
 .fig-card h4 { margin: 8px 0 4px; font-size: 15px; }
 .fig-card p { margin: 4px 0; }
+
+/* Notebooks tab: one card per paper notebook; the inline frame loads on first open. */
+.nb-card { cursor: default; margin: 12px 0; }
+.nb-frame { width: 100%; height: 80vh; border: 1px solid var(--border); border-radius: 4px; background: #fff; margin-top: 8px; }
 details summary { min-height: 32px; cursor: pointer; padding: 6px 0; }
 
 /* Sensitivity. */
