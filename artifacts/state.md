@@ -62,8 +62,8 @@ and the remote `kernel-lfp` branch (plain name) is Hamm's call.
 
 ## Next action
 
-Broad gate on dev, then push dev (ef5d9a55 pushed 2026-11-04; the CAMINOS suites and the Notebooks tab after it
-are unpushed). CAMINOS figure suites (Hamm 2026-11-04): `caminos/suite/` PLoS (18 figures) and Cell Reports
-(15 figures; rasters and LFP from `F:/warehouse/caminos/cellrep_rasters/seed1`, run 497e9bb0) exported to the
-dashboard Notebooks tab. Seeds 2-3 of the raster run still running in WSL (`~/cellr_497e9bb0`). Not run yet:
+CAMINOS figure suites (Hamm 2026-11-04) are on the dashboard Notebooks tab (a35aaa9d, live). Hamm 2026-11-05: show
+jaxfne usage; each notebook opens with its network built and run live in jaxfne, code shown. The figures stay on
+the oracle runs except PLoS Fig 1E (P6 jaxfne runs); Cell Reports core route not equivalent (E1, 20 of 24).
+Raster run 497e9bb0 complete: 3 seeds × 9 conditions in `F:/warehouse/caminos/cellrep_rasters/` (panels read seed 1). Not run yet:
 Cell Reports 1A, 1D, 2A/2B bottom, 6A top, 6B; PLoS Fig 5, Fig 3 and 4A mean-field rows. R5-approximate running for 0.5.10.

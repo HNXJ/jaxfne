@@ -1,6 +1,6 @@
 """Export one executed replication notebook to the dashboard's Notebooks tab.
 
-Writes ``dashboard/notebooks/<slug>.html`` (outputs only, code cells hidden) and
+Writes ``dashboard/notebooks/<slug>.html`` (code and outputs; ``--hide-code`` keeps outputs only) and
 upserts the notebook's row in ``dashboard/notebooks/index.json``. Embedded PNG
 figures are re-encoded as WebP (quality 82) to keep the page small. Rows are
 sorted by slug and carry no timestamp, so the same inputs give the same bytes.
@@ -39,6 +39,10 @@ body {{ margin: 0 auto; max-width: 1100px; padding: 16px; background: #fff; colo
   font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }}
 img {{ max-width: 100%; height: auto; }}
 pre {{ white-space: pre-wrap; font-size: 13px; color: #5b6573; }}
+.highlight pre {{ color: #1b1f24; background: #f6f7f9; border: 1px solid #dde1e6; border-radius: 6px; padding: 10px;
+  overflow-x: auto; white-space: pre; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }}
+.highlight .k, .highlight .kn, .highlight .ow {{ color: #8250df; }} .highlight .s1, .highlight .s2 {{ color: #0a3069; }}
+.highlight .c1 {{ color: #6e7781; font-style: italic; }} .highlight .mf, .highlight .mi {{ color: #0550ae; }}
 table {{ border-collapse: collapse; }} td, th {{ border: 1px solid #dde1e6; padding: 2px 6px; }}
 </style></head>
 <body>
@@ -54,7 +58,7 @@ def _webp(match: re.Match) -> str:
     return 'src="data:image/webp;base64,' + base64.b64encode(buf.getvalue()).decode("ascii") + '"'
 
 
-def export(nb_path: pathlib.Path) -> tuple[str, int]:
+def export(nb_path: pathlib.Path, show_code: bool = True) -> tuple[str, int]:
     """Return (html, figure count); refuse a notebook with an error output or no figure."""
     nb = nbformat.read(nb_path, as_version=4)
     errors = [o for c in nb.cells if c.cell_type == "code" for o in c.get("outputs", []) if o.output_type == "error"]
@@ -62,7 +66,7 @@ def export(nb_path: pathlib.Path) -> tuple[str, int]:
         raise SystemExit(f"error output in {nb_path}: {errors[0].get('ename')}: {errors[0].get('evalue', '')[:200]}")
     nb.metadata.pop("widgets", None)
     exporter = HTMLExporter(template_name="basic")
-    exporter.exclude_input = True
+    exporter.exclude_input = not show_code
     exporter.exclude_input_prompt = True
     exporter.exclude_output_prompt = True
     body, _ = exporter.from_notebook_node(nb)
@@ -81,11 +85,12 @@ def main(argv=None) -> int:
     ap.add_argument("--title", required=True)
     ap.add_argument("--paper", required=True)
     ap.add_argument("--data", required=True, help="where the runs the notebook reads live")
+    ap.add_argument("--hide-code", action="store_true", help="outputs only")
     args = ap.parse_args(argv)
     if not re.fullmatch(r"[a-z0-9-]+", args.slug):
         ap.error("slug must be lowercase kebab-case")
     try:
-        html, n = export(args.notebook)
+        html, n = export(args.notebook, show_code=not args.hide_code)
     except SystemExit as exc:
         print(exc, file=sys.stderr)
         return 1

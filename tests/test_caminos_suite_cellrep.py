@@ -324,3 +324,23 @@ def test_notebook_panels_display_once():
             if re.match(r"cs\.fig\w+\(", line) and not line.rstrip().endswith(";"):
                 bare.append(line.strip())
     assert not bare, f"these calls display the figure twice: {bare}"
+
+
+def test_trace_from_spikes_keeps_the_window_and_rates_per_type():
+    # 30 ms run, 4 E + 2 PV + 2 SOM; E neuron 0 spikes every ms, PV neuron 4 once in the kept window.
+    steps = 300
+    spikes = np.zeros((steps, 8), dtype=bool)
+    spikes[::10, 0] = True
+    spikes[250, 4] = True
+    tr = cs.trace_from_spikes(spikes, (4, 2, 2), window_s=0.005)
+    assert tr["raster"].shape == (50, 8)
+    assert tr["t0_s"] == pytest.approx(0.025, rel=1e-12)
+    assert tr["type_slices"].tolist() == [[0, 4], [4, 6], [6, 8]]
+    assert tr["rate_hz"].shape == (5, 3)
+    np.testing.assert_allclose(tr["rate_hz"][:, 0], 250.0, rtol=1e-12)  # 1 spike/ms over 4 cells
+    np.testing.assert_allclose(tr["rate_hz"][:, 1], [500.0, 0, 0, 0, 0], rtol=1e-12)
+    assert tr["rate_hz"][:, 2].sum() == 0
+    with pytest.raises(ValueError):
+        cs.trace_from_spikes(spikes, (4, 2, 3))
+    with pytest.raises(ValueError):
+        cs.trace_from_spikes(spikes, (4, 2, 2), window_s=1.0)

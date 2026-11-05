@@ -31,13 +31,19 @@ def _notebook(tmp_path, error=False, figure=True):
     return path
 
 
-def test_export_hides_code_and_reencodes_figures(tmp_path):
+def test_export_shows_code_and_reencodes_figures(tmp_path):
     html, n = exp.export(_notebook(tmp_path))
     assert n == 1, "fixture: one figure"
     assert "data:image/webp;base64," in html
     assert "data:image/png" not in html
-    assert "secret_code_line" not in html
+    assert "secret_code_line" in html
     assert "<title>Suite title</title>" in html
+
+
+def test_export_hide_code_keeps_outputs_only(tmp_path):
+    html, n = exp.export(_notebook(tmp_path), show_code=False)
+    assert n == 1, "fixture: one figure"
+    assert "secret_code_line" not in html
 
 
 @pytest.mark.parametrize("kw", [{"error": True}, {"figure": False}])

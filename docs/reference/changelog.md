@@ -10,7 +10,9 @@ the rules those releases were held to and are historical context for readers.
 ## [Unreleased]
 
 - The dashboard has a Notebooks tab: each paper replication as one notebook that remakes the paper's figures
-  (CAMINOS Cell Reports and PLoS Comput Biol 2026 first), exported by `scripts/export_dashboard_notebook.py`.
+  (CAMINOS Cell Reports and PLoS Comput Biol 2026 first), exported by `scripts/export_dashboard_notebook.py`
+  with the code shown. Each CAMINOS notebook opens with its network built and run live in jaxfne
+  (`Configuration`, `construct`, `Model.simulate`); PLoS Fig 1E reads the P6 jaxfne runs.
 
 ## v0.5.9 (2026-11-03)
 

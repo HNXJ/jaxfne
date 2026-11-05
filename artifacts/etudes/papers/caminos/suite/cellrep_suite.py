@@ -604,6 +604,32 @@ def _raster_figure(trace, title, source=""):
     return fig
 
 
+def trace_from_spikes(spikes, sizes, window_s=0.5):
+    """The shared trace dict from a jaxfne ``Signals.spikes`` array ``[steps, N]`` (E | PV | SOM order,
+    step ``TRACE_DT_S``): the last ``window_s`` of the raster, the type slices and the 1 ms
+    population rates (Hz), with no LFP. ``sizes`` is ``(n_E, n_PV, n_SOM)``."""
+    raster = np.asarray(spikes, dtype=bool)
+    n_e, n_pv, n_som = (int(s) for s in sizes)
+    if raster.ndim != 2 or raster.shape[1] != n_e + n_pv + n_som:
+        raise ValueError(f"spikes must be [steps, {n_e + n_pv + n_som}], got {raster.shape}")
+    keep = int(round(window_s / TRACE_DT_S))
+    if keep > raster.shape[0]:
+        raise ValueError(f"window_s {window_s} is longer than the run ({raster.shape[0] * TRACE_DT_S} s)")
+    raster = raster[-keep:]
+    slices = np.array([[0, n_e], [n_e, n_e + n_pv], [n_e + n_pv, n_e + n_pv + n_som]])
+    per_ms = int(round(1e-3 / TRACE_DT_S))
+    n_bins = keep // per_ms
+    rate = np.stack([raster[:n_bins * per_ms, a:b].reshape(n_bins, per_ms, b - a).sum(axis=(1, 2))
+                     / ((b - a) * 1e-3) for a, b in slices], axis=1)
+    t0_s = (np.asarray(spikes).shape[0] - keep) * TRACE_DT_S
+    return {"raster": raster, "type_slices": slices, "rate_hz": rate, "t0_s": t0_s}
+
+
+def core_run_figure(spikes, sizes, title, window_s=0.5, source=""):
+    """Raster + 1 ms population rates of a jaxfne core run (the last ``window_s``)."""
+    return _raster_figure(trace_from_spikes(spikes, sizes, window_s), title, source=source)
+
+
 def fig1b_raster(trace, source=""):
     """Fig 1B: baseline example raster + rate + LFP."""
     return _raster_figure(trace, "Fig 1B", source=source)
