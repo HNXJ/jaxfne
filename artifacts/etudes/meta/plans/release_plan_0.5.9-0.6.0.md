@@ -63,17 +63,20 @@ Score on 2026-11-04 after publication: 100/100 (Gate 5 0 to 6: v0.5.9 tagged on 
 
 Written from the 0.5.10 scope below, the arXiv plan rows F2, F4, S3, S4, S6, S7, S16, C4, C6, C7, and the todo rows
 moved to 0.5.10. Weights sum to 100 as in 0.5.9: packages 70, exit gate 30 (Gates 1-5 with the 0.5.9 weights).
-Not yet scored.
+Scoring: a package's weight splits equally over its listed items; an item scores when its done-when check is cited.
 
-| Id | Weight | Package | Done when | State 2026-11-05 |
-|---|---|---|---|---|
-| 10A Geometry (F2, S3, S4, C4) | 14 | Atlas AT-10-N20, NeuronalTensor schema and flattening, geometry property tests, the C4 turn-invariance wording | S3 tests fail on a broken invariant (round trip, permutation, rigid transform); F2 renders from AT-10-N20 | C4 radius test landed (`tests/test_geometry_radius_rotation.py`); S3 panel not built |
-| 10B Compute (F4, S6, C6) | 14 | benchmark prereg; CPU and GPU receipts; Brian2, NEST and Jaxley baselines; the `build_config` repair; the LIF GPU kernel | receipts hash-pinned; baselines run where the model class applies | C6 inventory only; no baseline run |
-| 10C Augmentation (S7, C7) | 8 | ensemble study with provenance | two seeds change output; the same seed reproduces | not started |
-| 10D Extras (S16) | 14 | Mejias 2016 G6; Destexhe 2009; kernel LFP (T-47: `6eb3c6b8`, `44cd0111`, `ff45364b` from `kernel-lfp`, then the iSTDP out-degree check and `coherence_radius_um`); Jansen-Rit neural-mass emitter and its P1 (T-48) | each on dev with its tests; S16 regenerates | kernel-lfp commits unpicked; Jansen-Rit not started |
-| 10E PCL Fig 3 | 10 | R5-approximate under signed R4b, scored in `prereg/`; P-055 attributed | result file and score JSON pinned | R5 running: 715 of 2562 files (2026-11-05) |
-| 10F Carried | 10 | AGSDR log-scale bounds (T-31); T-32 open rows (GSDR on `simulate_hh_batch`, seed and candidate batching, core homes for lane analysis); T-R28 pieces (jitter reader, S3 panel); the `in_degree` refusal message (Gate 4 should-fix) | each with its test or receipt cited in the todo row | open |
-| Owner | 0 | P-052 surrogate fitness; T-62 Fig 1D raw-data request; the unmerged `_temp_balanced-preset` (P-BALANCED, public API, 2026-10-01); a named figure for Lee 2025 and Mazzoni 2015 | Hamm rules on each | open |
+Score 2026-11-05: 8.5/100 (packages 8.5 of 70, gates 0 of 30).
+
+| Id | Weight | Package | Done when | State 2026-11-05 | Score |
+|---|---|---|---|---|---|
+| 10A Geometry (F2, S3, S4, C4) | 14 | Atlas AT-10-N20, NeuronalTensor schema and flattening, geometry property tests, the C4 turn-invariance wording | S3 tests fail on a broken invariant (round trip, permutation, rigid transform); F2 renders from AT-10-N20 | C4 radius test landed (de86aa67, `tests/test_geometry_radius_rotation.py`); atlas, schema item and S3 panel open | 3.5 |
+| 10B Compute (F4, S6, C6) | 14 | benchmark prereg; CPU and GPU receipts; Brian2, NEST and Jaxley baselines; the `build_config` repair; the LIF GPU kernel | receipts hash-pinned; baselines run where the model class applies | C6 inventory only; no baseline run | 0 |
+| 10C Augmentation (S7, C7) | 8 | ensemble study with provenance | two seeds change output; the same seed reproduces | not started | 0 |
+| 10D Extras (S16) | 14 | Mejias 2016 G6; Destexhe 2009; kernel LFP (T-47: `6eb3c6b8`, `44cd0111`, `ff45364b` from `_temp_kernel-lfp`, then the iSTDP out-degree check and `coherence_radius_um`); Jansen-Rit neural-mass emitter and its P1 (T-48) | each on dev with its tests; S16 regenerates | kernel-lfp commits unpicked; Jansen-Rit not started | 0 |
+| 10E PCL Fig 3 | 10 | R5-approximate under signed R4b, scored in `prereg/`; P-055 attributed | result file and score JSON pinned | R5 approx_core running: 920 of 2562 files (`F:/warehouse/pcl/r5/approx_core.log`, 2026-11-05) | 0 |
+| 10F Carried | 10 | AGSDR log-scale bounds (T-31); T-32 open rows (GSDR on `simulate_hh_batch`, seed and candidate batching, core homes for lane analysis); T-R28 pieces (jitter reader, S3 panel); the `in_degree` refusal message (Gate 4 should-fix); P-BALANCED (`BackgroundNoise`, `baseline_drive`, the balanced-1000n preset) | each with its test or receipt cited in the todo row | `in_degree` message done (9e7c2044); P-BALANCED ported (e179a2d0..9dd1c111, `tests/test_balanced_preset_acceptance.py` 6 passed; Hamm 2026-11-05: retune under the unchanged bounds; seeds 0-4 CV 0.742-0.755, shift 0.236-0.257); T-31 log-scale bounds landed (733b3960), the GSDR lane's log-scale parameters not named (half); T-32 and T-R28 open | 5 |
+| Gates 1-5 | 30 | as in 0.5.9 | as in 0.5.9 | not started | 0 |
+| Owner | 0 | P-052 surrogate fitness; T-62 Fig 1D raw-data request; a named figure for Lee 2025 and Mazzoni 2015; approval of these packages and weights | Hamm rules on each | open | - |
 
 ## Later releases
 

@@ -5,6 +5,8 @@ Anything open right now. Read first at session start, before `todo_stack.md`. On
 it closes; at most 30 lines; a line older than 3 days moves to todo or the issue log, or is dropped.
 Each line has its todo row, named in the line.
 
-## Hamm's calls
-- O-72 Apply Hamm's 53 rulings of 2026-10-28 (T-R28) | orchestrator, Haiku workers | since 2026-10-28 | closes when T-R28 is empty
-- O-68 Local copies held after the 2026-10-25 cleanup: `cl-reader-cursor` (`reader_exp/` unreviewed), `jaxfne-wt-p022`, four WSL copies, non-git leftovers (`jaxfne_rc057`, `jaxfne_receipts`, `jaxfne_reader_exp`, `jaxfne_pclr1_audit`, `F:/warehouse` leftovers, keeper worktrees with broken gitfiles); ruled 2026-10-28: rescue cited files, list each deletion, delete (T-R28) | orchestrator | since 2026-10-25 | closes when each copy is rescued and deleted. Status 2026-10-30: `cl-reader-cursor` and `jaxfne-wt-p022` present under `E:/repos/`; `jaxfne_rc057`, `jaxfne_receipts`, `jaxfne_reader_exp` and `jaxfne_pclr1_audit` absent under `E:/repos/` (other locations not searched).
+## Hamm's calls (0.5.10 review, asked one at a time in this order)
+- O-84 Approve the 0.5.10 packages 10A-10F, their weights (70 + gates 30) and the scoring rule (release plan, 0.5.10 section; 8.5/100 on 2026-11-05) | Hamm | since 2026-11-05 | closes when Hamm approves or amends the table
+- O-85 P-052 surrogate fitness: the sign and T-growth record (todo 24) | Hamm | since 2026-11-05 | closes when Hamm rules
+- O-86 T-62 Cell Reports Fig 1D: request the raw Onorato data from the lead contact or drop the panel (todo 26) | Hamm | since 2026-11-05 | closes when Hamm decides
+- O-87 A named target figure for Lee, Pennartz and Mejias 2025 and for Mazzoni 2015 (dashboard roadmap "unscheduled"; todo 32) | Hamm | since 2026-11-05 | closes when each has a figure or is dropped

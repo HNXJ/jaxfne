@@ -1,7 +1,7 @@
 # todo stack
 
-One ordered path, end to end: the 0.5.9 release first (checklist and score in
-`etudes/meta/plans/release_plan_0.5.9-0.6.0.md`), then 0.5.10, 0.5.11 and 0.6.0. Each step names its closing check
+One ordered path, end to end: the 0.5.10 release first (checklist and score in
+`etudes/meta/plans/release_plan_0.5.9-0.6.0.md`), then 0.5.11 and 0.6.0. Each step names its closing check
 and where the path goes next; `→` is the next step, `⇒` a branch on the outcome. `[A]` agent, `[H]` Hamm: an `[H]`
 node is a decision the path waits on, asked one at a time. Steps marked `∥` run beside the path in their own lane
 (at most 3 lanes, one writer per file set, clones at `E:/repos/_wt/jaxfne/<lane>`, launched from a fixed commit).
@@ -9,49 +9,14 @@ Done steps are deleted; history is in git (the sectioned form before this rewrit
 Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-B8:
 `control/harness/evidence_and_workflow_rules.md`; paper goal G-0: `programme/design/plans/arxiv_paper_plan.md`.
 
-## 0.5.9
+## 0.5.10 (checklist and score in the release plan's 0.5.10 section; 8.5/100 on 2026-11-05)
 
-4. T-3 [A] (P) PCL R3: replay the training files through the chained core scan, the oracle and the C++ reference
-   (WSL `~/pcl_cpp`) and attribute each residual (implementation, parameters, stochastic, model). → R4 prereg declaring T4 up front (driven column (4,4),
-   (0,0) reported beside it) → [H] sign (step 7) → R5 score, exact and approximate apart. The signed v5 T2 FAIL
-   stays. Then T-22, T-25: PCL B3 on the intra-step operator; trained weights load as A' (`with_trained_weights`).
-   Status 2026-10-31: R2 on `shapes.h5` from one seeded init (`run_r2_reference.py`, 922270fd); C++ null exact
-   on weights (O-81); oracle vs C++ exact within rtol 1e-12 on both layers (CALIBRATION R2, receipts
-   `F:/warehouse/pcl/r2_922270fd`); oracle receipt 2026-11-01 (111 195 spikes, weights exact again;
-   `F:/warehouse/pcl/orc_receipt_bafa4797`). Status 2026-11-02: the
-   training set is `F:/warehouse/pcl/data/training_natural/events5_re2/` (1999 npz, 3.8 GB, extracted from the
-   Zenodo `PCL_Nat_training_natural_dataset.zip`); the C++ reads npz (`NetworkHandle.cpp:89-90`). R3 runs files 0-4
-   chained from the R2 init: C++ arm `~/run_pcl_r3_cpp.sh` (WSL, out `F:/warehouse/pcl/r3_cpp_f0_4`); oracle and core
-   arms through the `chain` subcommand (Muse packet PCL-R3-HARNESS, clone `pclr3` from d96dc49b). C++ arm done:
-   two chains bit-identical (null), weights moved from init (`F:/warehouse/pcl/r3_cpp_f0_4/*.json`). Oracle arm
-   exact on files 0-4 (max relative weight difference 7.4e-15, `F:/warehouse/pcl/r3_oracle_f0_4/`). Core arm costs
-   about 0.17 s per camera-0 event, linear in events (500 events 98 s, 2000 events 348 s, learning on; 2026-11-02),
-   so the core arm ran file 0 only: exact against C++ (max relative weight difference 5.3e-15; same spikes as the
-   oracle; 11:53:46 wall). R3 done 2026-11-03 (CALIBRATION.md R3, a receipt per arm); P-053 does not appear on file 0.
-   R4 prereg drafted 2026-11-03 (`pcl/prereg/P3_fig3_r4.md`, unsigned). R5 timing pilot (CALIBRATION R5 pilot):
-   core 1026 s per file, equal to the oracle on a non-scored file. Hamm 2026-11-03: no-local, the 16 pilot tasks,
-   and the core on all 3168 tasks (about 900 CPU h), in the R4b draft (`P3_fig3_r4b.md`, unsigned). 12-worker scaling on the pilot file (CALIBRATION):
-   24.7 files per hour, outputs equal, so about 128 h wall for the core set. Hamm signed R4b 2026-11-03 (`P3_fig3_r4b_signed.md`). R5-exact scored 2026-11-03: FAIL, 4 of 16 files equal,
-   control differs on 16 (`P3_fig3_r5_exact_result.md`; P-055 opened for attribution); shown in S13
-   (`supplement.py write_s13`). Hamm 2026-11-03: 0.5.9 ships with R5-exact; R5-approximate (the 3168-file core
-   run, driver `F:/warehouse/pcl/r5/run_r5.sh`, resumable) moves to 0.5.10. Closes for 0.5.9 with this entry;
-   0.5.10: R5-approximate scored in `prereg/`, P-055 attributed.
-7. [H] Signatures, one at a time as each draft is ready: PCL R4 (the other P3 drafts are signed and scored; later
-   Destexhe runs record status and the signed prereg hash).
-   Each: sign ⇒ scored run from a fixed clone → result file, dashboard, checklist 9D/9E; defer ⇒ the package moves
-   to 0.5.10 with its reason (Gate 1). Closes when: Hamm has signed or deferred PCL R4.
-8. T-70 [A] 9F: the rc gate end to end on the candidate (JUnit parity, figure lock, clean-checkout figure job;
-    Release CI JUnit reused for the same tree). 9G: a fragment for every change since v0.5.8; the assembled section
-    under the hygiene caps (26 of 30 ghost hits on 2026-10-31). Closes when: `run_test_gate.py rc` prints
-    "RC GATE PASS" and its attestation names the candidate SHA; every `jaxfne/` commit since v0.5.8 has a fragment or
-    is recorded as changing no behavior.
-9. [H] Gate 1: every package 9A-9G closed or moved with its reason; Hamm rules each move. Closes when: the checklist
-   in `etudes/meta/plans/release_plan_0.5.9-0.6.0.md` shows each package closed or moved with Hamm's dated ruling.
-10. T-71 [A] Gates 2-4 on the release SHA: broad gate, CI, `check_replications.py --check` 0 unlisted, dashboard
-    fresh; second review with its receipt; release day: version 0.5.9 in `pyproject.toml`,
-    `assemble_changelog.py --version 0.5.9 --date <day>`, `release_body.py --check`. Closes when: each command
-    exits 0 on the release SHA and the second review's receipt is committed.
-11. [H] Gate 5: Hamm's go → tag, main, Release, PyPI. Closes when: 0.5.9 is on PyPI from the tagged release SHA.
+4. T-3 [A] 10E PCL Fig 3: R5-approximate (the core on all 3168 tasks under signed R4b, driver
+   `F:/warehouse/pcl/r5/run_r5.sh`, resumable) scored in `pcl/prereg/`; P-055 (R5-exact FAIL, 4 of 16 files)
+   attributed. History: R3 exact on files 0-4 (CALIBRATION R3), R4b signed 2026-11-03, R5-exact scored
+   (`P3_fig3_r5_exact_result.md`, S13). Status 2026-11-05: approx_core 920 of 2562 files, about 2280 s per file.
+   Then T-22, T-25: PCL B3 on the intra-step operator; trained weights load as A' (`with_trained_weights`).
+   Closes when: the R5-approximate result file and score JSON are pinned and P-055 names its cause.
 
 ## Beside the path (∥)
 
@@ -92,13 +57,15 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 25. [A] Retired names in dated records kept as history (Hamm 2026-11-02, O-74 to O-79 closed): jarness selfcheck needs
     a history allowlist for them (asked in jchat, jynx keeper).
+32. 0.5.10: [H] a named target figure for Lee, Pennartz and Mejias 2025 and for Mazzoni 2015 (both "unscheduled" on
+    the dashboard roadmap, O-87). Closes when: each has a named figure (then a package row) or a dated drop note.
 
-## After 0.5.9
+## 0.5.10 rows, then later
 
 31. 0.5.10: [A] AGSDR log-scale sweep (Hamm 2026-11-03: "dx and dy could be logarithmic in change; free
     parameters would sweep logscale; 0.1 1.0 1.0 10.0 ... are equally swept"; freeze or restrict a parameter by
-    leaving it out or narrowing its bounds). Bounds `(lo, hi, "log")` run the AGSDR loop in ln(theta)
-    (Muse lane, clone `E:/cl-logscale` from 2fc292b1). Then use it in the GSDR reproduction and the fast sweeps
+    leaving it out or narrowing its bounds). Bounds `(lo, hi, "log")` run the AGSDR loop in ln(theta):
+    landed 733b3960 with `tests/test_agsdr_log_scale.py`. Left: use it in the GSDR reproduction and the fast sweeps
     of further models: a new GSDR fit pilot needs a new prereg (the signed P3 fit stays as scored). Closes when:
     `tests/test_agsdr_log_scale.py` passes with linear bounds bit-identical to before, and the GSDR lane names
     which parameters sweep on a log scale.
