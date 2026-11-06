@@ -31,7 +31,8 @@ unknown).
 - 2026-10-20: segment B ran with per-neuron traces, whose presynaptic trace summed arrivals over
   each I cell's outgoing edges, so its potentiation was scaled by the out-degree; the traces are
   per synapse since `changelog.d/istdp_vogels2011_traces.fixed.md`. w_ie_final_mean 2.42 nS is
-  superseded; rerun segment B before P3.
+  superseded; rerun segment B before P3. Rerun on the per-synapse rule (85199ade): the B8 pilot below
+  (dceb49b0, plastic segment 5 s), before P3 v4.
 
 ## B8 convergence pilot (P2, seed 0, n 10 000, unscored, 2026-11-01)
 

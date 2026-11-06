@@ -99,3 +99,14 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Possible change: replay one diverging file event by event in both arms to the first differing complex
   update and attribute it (inferred candidates: floating-point order at a near-threshold complex update; tie
   order of same-time spikes). P-053 may share the cause.
+
+### P-056
+
+- Date: 2026-10-20, recorded 2026-11-06 (was O-56 on the `_temp_kernel-lfp` lane). Type: SCIENCE. Area: hybrid
+  kernel LFP (`jaxfne.fields.kernel_lfp`) of a column on the AdEx route (Billeh 2020 wiring, Hagen 2016 cells,
+  iSTDP settle). Severity: medium for any laminar-spectrum claim from that column.
+- Observation: in the lane pilot, deep layers carry under 0.5% of the L2/3 LFP power; no deep alpha-beta peak.
+- Expected: deep-layer alpha-beta power, as in laminar recordings.
+- Possible change: settle the column longer, then attribute the deficit (inferred candidates: deep-layer rates,
+  kernel amplitude of deep pyramids, coherence radius). Closes when a settled column shows deep alpha-beta power
+  or the cause is named.
