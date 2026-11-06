@@ -59,24 +59,58 @@ Score on 2026-11-04 after publication: 100/100 (Gate 5 0 to 6: v0.5.9 tagged on 
 | Gate 4 second review, receipt | 6 | opencode Muse review of the 0.5.9 candidate 190432a4 (2026-11-03): NON-BLOCKING, 0 blocking, 1 should-fix (an `in_degree` refusal message, moved to 0.5.10, todo 30), 2 notes; every Changed and Fixed bullet and the first 10 Added read against `jaxfne/`, none wrong. Receipt `F:/warehouse/jaxfne/rc_190432a4/second_review_muse.md` (sha256 4d07f396…) with its packet (b6586f4d…) | 6 |
 | Gate 5 tag, main, PyPI | 6 | Hamm's go 2026-11-04. Main CI failed on two missing test-gate imports (PyYAML, Markdown), each fixed with a failing-first test (PRs #121, #122); main CI green on e0160dfc (CI (Fast) 41922217570, Release CI 41922217824); tag v0.5.9 (e621eff7) on e0160dfc; GitHub Release; PyPI by publish run 41935856859, sha256 equal to the release-dist bytes (wheel 6e962c1e…, sdist 2aef7eac…); fresh-venv install imports 0.5.9. Receipt `artifacts/release/v0_5_9_release_receipt.json` | 6 |
 
-## 0.5.10 packages and checklist (draft 2026-11-05, for Hamm's review)
+## 0.5.10 packages and checklist (approved by Hamm 2026-11-05 on a review pass, revised the same day)
 
-Written from the 0.5.10 scope below, the arXiv plan rows F2, F4, S3, S4, S6, S7, S16, C4, C6, C7, and the todo rows
-moved to 0.5.10. Weights sum to 100 as in 0.5.9: packages 70, exit gate 30 (Gates 1-5 with the 0.5.9 weights).
-Scoring: a package's weight splits equally over its listed items; an item scores when its done-when check is cited.
+Written from the 0.5.10 scope below, the arXiv plan rows F2, F4, S3, S4, S6, S7, S16, C4, C6, C7 (each done-when is
+its C row's check), and the todo rows moved to 0.5.10. Weights sum to 100: packages 70, exit gate 30 (Gates 1-5
+with the 0.5.9 weights). Each item carries its own weight and scores in full when its check is cited; no partial
+credit.
 
-Score 2026-11-05: 8.5/100 (packages 8.5 of 70, gates 0 of 30).
+Score 2026-11-05: 7/100 (packages 7 of 70, gates 0 of 30). The 8.5 of the draft counted items implicitly and gave
+T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 
-| Id | Weight | Package | Done when | State 2026-11-05 | Score |
+| Item | Weight | What | Done when (cited check) | State 2026-11-05 | Score |
 |---|---|---|---|---|---|
-| 10A Geometry (F2, S3, S4, C4) | 14 | Atlas AT-10-N20, NeuronalTensor schema and flattening, geometry property tests, the C4 turn-invariance wording | S3 tests fail on a broken invariant (round trip, permutation, rigid transform); F2 renders from AT-10-N20 | C4 radius test landed (de86aa67, `tests/test_geometry_radius_rotation.py`); atlas, schema item and S3 panel open | 3.5 |
-| 10B Compute (F4, S6, C6) | 14 | benchmark prereg; CPU and GPU receipts; Brian2, NEST and Jaxley baselines; the `build_config` repair; the LIF GPU kernel | receipts hash-pinned; baselines run where the model class applies | C6 inventory only; no baseline run | 0 |
-| 10C Augmentation (S7, C7) | 8 | ensemble study with provenance | two seeds change output; the same seed reproduces | not started | 0 |
-| 10D Extras (S16) | 14 | Mejias 2016 G6; Destexhe 2009; kernel LFP (T-47: `6eb3c6b8`, `44cd0111`, `ff45364b` from `_temp_kernel-lfp`, then the iSTDP out-degree check and `coherence_radius_um`); Jansen-Rit neural-mass emitter and its P1 (T-48) | each on dev with its tests; S16 regenerates | kernel-lfp commits unpicked; Jansen-Rit not started | 0 |
-| 10E PCL Fig 3 | 10 | R5-approximate under signed R4b, scored in `prereg/`; P-055 attributed | result file and score JSON pinned | R5 approx_core running: 920 of 2562 files (`F:/warehouse/pcl/r5/approx_core.log`, 2026-11-05) | 0 |
-| 10F Carried | 10 | AGSDR log-scale bounds (T-31); T-32 open rows (GSDR on `simulate_hh_batch`, seed and candidate batching, core homes for lane analysis); T-R28 pieces (jitter reader, S3 panel); the `in_degree` refusal message (Gate 4 should-fix); P-BALANCED (`BackgroundNoise`, `baseline_drive`, the balanced-1000n preset) | each with its test or receipt cited in the todo row | `in_degree` message done (9e7c2044); P-BALANCED ported (e179a2d0..9dd1c111, `tests/test_balanced_preset_acceptance.py` 6 passed; Hamm 2026-11-05: retune under the unchanged bounds; seeds 0-4 CV 0.742-0.755, shift 0.236-0.257); T-31 log-scale bounds landed (733b3960), the GSDR lane's log-scale parameters not named (half); T-32 and T-R28 open | 5 |
-| Gates 1-5 | 30 | as in 0.5.9 | as in 0.5.9 | not started | 0 |
-| Owner | 0 | P-052 surrogate fitness; T-62 Fig 1D raw-data request; a named figure for Lee 2025 and Mazzoni 2015; approval of these packages and weights | Hamm rules on each | open | - |
+| **10A Geometry** (F2, S3, S4, C4) | **14** | | | | **3** |
+| A1 | 4 | Atlas AT-10-N20, F2 rendered from it | F2 renders from the AT-10-N20 receipt | open | 0 |
+| A2 | 3 | S4 NeuronalTensor schema and flattening | S4 written from the schema; identity, topology, signs and positions kept through flattening, each by a test | open | 0 |
+| A3 | 4 | S3 geometry property tests: round trip, permutation, rigid transform | each test fails on a planted broken invariant | the radius sampler's tests cover rotation, translation, permutation and save-load (`tests/test_geometry_radius_rotation.py`); no mutation evidence, no general geometry suite | 0 |
+| A4 | 3 | C4 Euclidean radius cutoff with its rotation test (T-R28) | `tests/test_geometry_radius_rotation.py` | done (de86aa67) | 3 |
+| **10B Compute** (F4, S6, C6) | **14** | | | | **0** |
+| B1 | 3 | benchmark prereg | signed before any scored run | open | 0 |
+| B2 | 3 | CPU and GPU receipts: neuron-steps/s against N, compile against run, vmap, float32/64 | receipts hash-pinned | open | 0 |
+| B3 | 4 | Brian2, NEST and Jaxley baselines where the model class applies | each baseline's receipt pinned, or its class mismatch recorded | C6 inventory only | 0 |
+| B4 | 2 | `build_config` repair | its failing-first test | open | 0 |
+| B5 | 2 | LIF edge kernel on GPU (T-32) | GPU receipt equal to CPU within the declared tolerance | open | 0 |
+| **10C Augmentation** (F4, S7, C7) | **6** | | | | **0** |
+| C1 | 4 | ensemble study with provenance; S7 panel | S7 renders from pinned receipts | not started | 0 |
+| C2 | 2 | determinism | two seeds change output; the same seed reproduces (C7 check) | not started | 0 |
+| **10D Extras** (S16) | **12** | | | | **0** |
+| D1 | 4 | kernel LFP: `6eb3c6b8`, `44cd0111`, `ff45364b` from `_temp_kernel-lfp`, then the iSTDP out-degree check and `coherence_radius_um` with its two limit tests (T-47) | each on dev with its tests | unpicked | 0 |
+| D2 | 4 | Jansen-Rit 1995 neural-mass emitter and its P1 (T-48) | emitter tests on dev; P1 scored | not started | 0 |
+| D3 | 2 | Mejias 2016 G6 (T-32) | G6 scored | open | 0 |
+| D4 | 2 | S16 regenerated, Destexhe 2009 panel from its scored P3 receipts | S16 renders from pinned receipts | open | 0 |
+| **10E PCL Fig 3** | **10** | | | | **0** |
+| E1 | 7 | R5-approximate under signed R4b, scored in `pcl/prereg/` | result file and score JSON pinned | approx_core 920 of 2562 files | 0 |
+| E2 | 3 | P-055 attributed (R5-exact, 4 of 16 files equal) | the cause named with its receipt in the issue log | open | 0 |
+| **10F Carried** | **8** | | | | **4** |
+| F1 | 1 | the `in_degree` refusal message (0.5.9 Gate 4 should-fix) | its test | done (9e7c2044) | 1 |
+| F2 | 2 | P-BALANCED: `BackgroundNoise`, `baseline_drive`, the balanced-1000n preset | `tests/test_balanced_preset_acceptance.py` | done (e179a2d0..9dd1c111; Hamm 2026-11-05: retune under the unchanged bounds; seeds 0-4 CV 0.742-0.755, shift 0.236-0.257) | 2 |
+| F3 | 1 | AGSDR log-scale bounds (T-31) | `tests/test_agsdr_log_scale.py`, linear bounds bit-identical | done (733b3960) | 1 |
+| F4 | 1 | the GSDR lane names its log-scale parameters (T-31) | named in the GSDR lane with a new prereg for any new fit | open | 0 |
+| F5 | 1.5 | T-32: GSDR on `simulate_hh_batch`; seed and candidate batching for AdEx, LIF and `Model.tune`; core homes for lane analysis | each with its test | open | 0 |
+| F6 | 1.5 | T-R28: dashboard P1 then P2; the jitter reader on larger sets | each with its commit and receipt | open | 0 |
+| **10G Replication coverage** | **6** | | | | **0** |
+| G1 | 3 | CAMINOS panels not yet run, added to the Notebooks tab: Cell Reports 1A, 2A/2B bottom, 6A top, 6B; PLoS Fig 5, Fig 3 and 4A mean-field rows | each panel in its exported notebook from pinned runs | open | 0 |
+| G2 | 2 | T-30 conformance | `check_replications.py --check` lists no violation without Hamm's exception (2026-11-05: 28 known, 0 unlisted) | open | 0 |
+| G3 | 1 | T-46 reproducibility audit section 7, the gaps touching 0.5.10 | section 7 cites each closed gap | open | 0 |
+| **Gates** | **30** | | | | **0** |
+| Gate 1 | 6 | every package closed or moved with Hamm's dated ruling | the checklist | not started | 0 |
+| Gate 2 | 8 | broad gate, CI, replications audit, dashboard fresh on the release SHA | each command exits 0 | not started | 0 |
+| Gate 3 | 4 | version, changelog, `release_body.py --check` | PASS on the release SHA | not started | 0 |
+| Gate 4 | 6 | second review with its receipt | receipt committed | not started | 0 |
+| Gate 5 | 6 | Hamm's go: tag, main, Release, PyPI | 0.5.10 on PyPI from the tagged SHA | not started | 0 |
+| Owner | 0 | P-052 surrogate fitness (O-85); T-62 Fig 1D raw data (O-86); a named figure for Lee 2025 and Mazzoni 2015 (O-87); each yes adds an item | Hamm rules on each | open | - |
 
 ## Later releases
 

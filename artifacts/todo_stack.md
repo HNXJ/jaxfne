@@ -9,7 +9,7 @@ Done steps are deleted; history is in git (the sectioned form before this rewrit
 Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-B8:
 `control/harness/evidence_and_workflow_rules.md`; paper goal G-0: `programme/design/plans/arxiv_paper_plan.md`.
 
-## 0.5.10 (checklist and score in the release plan's 0.5.10 section; 8.5/100 on 2026-11-05)
+## 0.5.10 (checklist and score in the release plan's 0.5.10 section, approved by Hamm 2026-11-05; 7/100 on 2026-11-05)
 
 4. T-3 [A] 10E PCL Fig 3: R5-approximate (the core on all 3168 tasks under signed R4b, driver
    `F:/warehouse/pcl/r5/run_r5.sh`, resumable) scored in `pcl/prereg/`; P-055 (R5-exact FAIL, 4 of 16 files)
