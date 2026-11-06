@@ -1,7 +1,7 @@
 """Jansen-Rit 1995 neural-mass column emitter (function-level only).
 
-One cortical column of Jansen and Rit (1995, Biol Cybern 73:357-366,
-doi:10.1007/BF00199471): three populations (pyramidal, excitatory and
+One cortical column of Jansen and Rit (1995, Biol Cybern 73:357-366;
+doi:10.1007/BF00199471 ). It has three populations (pyramidal, excitatory and
 inhibitory interneurons), each synapse a second-order linear kernel
 
     h_e(t) = A a t e^{-a t},    h_i(t) = B b t e^{-b t},

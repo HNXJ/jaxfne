@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2518 raise sites in 119 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2534 raise sites in 120 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -1386,6 +1386,27 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `unknown {...} rule {...}; expected one of {...} or a callable` |
 | `ValueError` | `n must be at least 2 (need both an E and an I neuron), got {...}` |
 | `ValueError` | `unknown bound_mode {...}; expected 'minimal' or 'stable'` |
+
+**`jaxfne/emitters_jansen_rit.py`**
+
+| Class | Message |
+|---|---|
+| `ValueError` | `jansen_rit param {...}={...} is not realized: it takes a finite real number > 0 (bools refused, neve` |
+| `ValueError` | `jansen_rit param {...}={...} is not realized: it takes a finite value > 0` |
+| `ValueError` | `jansen_rit param {...}={...} is not realized: it takes a value > 0` |
+| `ValueError` | `jansen_rit param {...}={...} is not realized: it takes a finite real number >= 0 (bools refused, nev` |
+| `ValueError` | `jansen_rit param {...}={...} is not realized: it takes a finite value >= 0` |
+| `ValueError` | `jansen_rit param {...}={...} is not realized: it takes a value >= 0` |
+| `ValueError` | `jansen_rit param {...}={...} is not realized: it takes a finite real number (bools refused, never co` |
+| `ValueError` | `jansen_rit param {...}={...} is not realized: it takes a finite value` |
+| `ValueError` | `jansen_rit param n_steps={...} is not realized: it takes an integer >= 1 (bools refused, never coerc` |
+| `ValueError` | `jansen_rit param n_steps={...} is not realized: it takes an integer >= 1` |
+| `ValueError` | `jansen_rit param drive has shape {...}; it takes shape ({...},) matching n_steps` |
+| `ValueError` | `jansen_rit param drive is not realized: it takes finite samples` |
+| `ValueError` | `jansen_rit param n_steps={...} is not realized: it takes an integer >= 1 (bools refused, never coerc` |
+| `ValueError` | `jansen_rit param n_steps={...} is not realized: it takes an integer >= 1` |
+| `ValueError` | `jansen_rit param drive has shape {...}; it takes shape ({...},) matching n_steps` |
+| `ValueError` | `jansen_rit param drive is not realized: it takes finite samples` |
 
 **`jaxfne/emitters_lif.py`**
 
