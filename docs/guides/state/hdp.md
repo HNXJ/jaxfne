@@ -313,7 +313,15 @@ descriptor declares coordinates (`h_coords`, `h_shape`), plastic targets
 (subset of `edge_weight`, `drive_bias`), auxiliary layout (`none`,
 `scalar`, `per_neuron`, `per_edge`, widened for multiple coordinates),
 bounds, and defaults; the step function maps per-step context
-(`H`, `aux`, spikes, delayed arrivals, rule key) to infinitesimal updates.
+(`H`, `aux`, spikes, delayed arrivals, rule key) to an `HDPRuleUpdate`. Its rates
+`dH`, `d_aux`, `d_theta` are added as `dt * d`; since 0.5.9 its per-event jumps
+`jH`, `j_aux`, `j_theta` are added once, with no `dt` factor, after the rate term
+and before the clip (0.5.8 has only the rates, where a jump `j` is written as the
+rate `j / dt`). On the Izhikevich route the input current
+`drive + schedule + drive_bias + syn + noise` enters $\dot v$ directly, so
+`drive_bias` is in mV/ms (the Izhikevich equation's current unit) and
+`edge_weight` is that current per unit of the edge's synaptic trace.
+The AdEx route accepts `edge_weight` rules only.
 Select it with `hdp_params={"hdp_rule": name, "hdp_rule_params": {...}}`.
 Registration and run-time checks reject bad input:
 
