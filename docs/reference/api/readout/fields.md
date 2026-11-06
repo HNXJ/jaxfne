@@ -670,6 +670,14 @@ lfp = kernel_lfp(counts.astype(np.float32), h[None].astype(np.float32))   # [T, 
 
 The passive and geometric values in the example are illustrative.
 
+Sources sum in phase within a coherence radius $R_c$ and with independent random phase between
+patches. `coherence_patches(positions_um, coherence_radius_um)` assigns each source (one column of the
+spike counts, at a lateral position) to a square patch of side $2R_c$, and
+`coherence_limited_lfp_power(spike_counts, kernels, positions_um, coherence_radius_um)` returns the
+expected power spectrum $\sum_q |\hat\phi_q(f)|^2$, with $\phi_q$ the `kernel_lfp` of patch $q$. $R_c$ at
+the sheet's half span gives $|\hat\phi(f)|^2$ of the whole sheet; $R_c$ below half the source spacing
+gives the sum of per-source powers.
+
 A compartment's `area_factor` multiplies its membrane area while its diameter alone sets the axial
 resistance, so one compartment can stand for every branch at its depth. `profile_cell(soma_z_um,
 soma_diam_um, soma_length_um, branches)` builds such a cell from depth profiles: per bin, the membrane

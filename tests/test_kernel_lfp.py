@@ -5,6 +5,8 @@ import pytest
 
 from jaxfne.fields.kernel_lfp import (
     cable_cell,
+    coherence_limited_lfp_power,
+    coherence_patches,
     kernel_lfp,
     line_source_matrix,
     passive_membrane_currents,
@@ -202,3 +204,41 @@ def test_kernel_lfp_is_the_summed_causal_convolution():
             ref[:, ni] += np.convolve(spikes[:, ci], kernels[ci, ni])[:t]
     assert np.abs(ref).max() > 0
     np.testing.assert_allclose(got, ref, rtol=1e-5, atol=1e-5 * np.abs(ref).max())
+
+
+def _sheet(side=4, spacing_um=50.0, t=256, n=3, k=20, seed=5):
+    rng = np.random.default_rng(seed)
+    g = np.arange(side) * spacing_um - (side - 1) * spacing_um / 2
+    pos = np.stack(np.meshgrid(g, g), axis=-1).reshape(-1, 2)
+    c = pos.shape[0]
+    spikes = rng.poisson(0.5, size=(t, c)).astype(np.float64)
+    kernels = rng.normal(size=(c, n, k))
+    return spikes, kernels, pos
+
+
+def test_coherence_radius_at_sheet_radius_is_the_coherent_sheet():
+    spikes, kernels, pos = _sheet()
+    sheet_radius = float(np.abs(pos).max() * np.sqrt(2))
+    assert np.unique(coherence_patches(pos, sheet_radius)).size == 1
+    got = np.asarray(coherence_limited_lfp_power(spikes, kernels, pos, sheet_radius))
+    ref = np.abs(np.fft.rfft(np.asarray(kernel_lfp(spikes, kernels)), axis=0)) ** 2
+    incoherent = np.asarray(coherence_limited_lfp_power(spikes, kernels, pos, 1.0))
+    assert np.abs(ref - incoherent).max() > 1e-2 * ref.max(), "fixture must separate the two limits"
+    np.testing.assert_allclose(got, ref, rtol=1e-5, atol=1e-6 * ref.max())
+
+
+def test_coherence_radius_of_one_cell_sums_per_cell_powers():
+    spikes, kernels, pos = _sheet()
+    radius = 0.4 * 50.0                       # below half the spacing: one cell per patch
+    assert np.unique(coherence_patches(pos, radius)).size == pos.shape[0]
+    got = np.asarray(coherence_limited_lfp_power(spikes, kernels, pos, radius))
+    ref = sum(np.abs(np.fft.rfft(np.asarray(kernel_lfp(spikes[:, [i]], kernels[[i]])), axis=0)) ** 2
+              for i in range(pos.shape[0]))
+    np.testing.assert_allclose(got, ref, rtol=1e-5, atol=1e-6 * ref.max())
+
+
+def test_coherence_patches_refuse_a_nonpositive_radius_and_bad_shapes():
+    with pytest.raises(ValueError):
+        coherence_patches(np.zeros((3, 2)), 0.0)
+    with pytest.raises(ValueError):
+        coherence_patches(np.zeros(3), 10.0)

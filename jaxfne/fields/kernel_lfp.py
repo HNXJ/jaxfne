@@ -46,6 +46,8 @@ __all__ = [
     "line_source_matrix",
     "synapse_kernel",
     "kernel_lfp",
+    "coherence_patches",
+    "coherence_limited_lfp_power",
 ]
 
 
@@ -294,3 +296,40 @@ def kernel_lfp(spike_counts: jax.Array, kernels: jax.Array) -> jax.Array:
     s = jnp.fft.rfft(spike_counts, n=n, axis=0)                 # [F, C]
     h = jnp.fft.rfft(kernels, n=n, axis=-1)                     # [C, P, F]
     return jnp.fft.irfft(jnp.einsum("fc,cpf->fp", s, h), n=n, axis=0)[:t]
+
+
+def coherence_patches(positions_um: np.ndarray, coherence_radius_um: float) -> np.ndarray:
+    """Patch index ``[n_sources]`` of each source at lateral position ``positions_um`` ``[n_sources, 2]``:
+    square patches of side ``2 * coherence_radius_um`` on a grid anchored at the smallest coordinates,
+    the last row and column closed, so a radius of at least half the sheet's span gives one patch."""
+    r = _positive("coherence_radius_um", coherence_radius_um)
+    xy = np.asarray(positions_um, dtype=float)
+    if xy.ndim != 2 or xy.shape[1] != 2:
+        raise ValueError(f"positions_um must be [n_sources, 2], got shape {xy.shape}")
+    lo = xy.min(axis=0)
+    n_bins = np.maximum(1, np.ceil((xy.max(axis=0) - lo) / (2.0 * r))).astype(int)
+    ij = np.minimum(np.floor((xy - lo) / (2.0 * r)).astype(int), n_bins - 1)
+    _, idx = np.unique(ij[:, 0] * n_bins[1] + ij[:, 1], return_inverse=True)
+    return idx.reshape(-1)
+
+
+def coherence_limited_lfp_power(spike_counts: jax.Array, kernels: jax.Array, positions_um: np.ndarray,
+                                coherence_radius_um: float) -> jax.Array:
+    """LFP power spectrum ``[T // 2 + 1, n_contacts]`` when sources sum in phase within a coherence
+    radius R_c and with independent random phase between patches: ``sum_q |rfft(phi_q)|^2``, where
+    ``phi_q`` is ``kernel_lfp`` of the sources in patch q (``coherence_patches``). Spike counts
+    ``[T, n_sources]`` and kernels ``[n_sources, n_contacts, K]`` as in ``kernel_lfp``, one source per
+    column at lateral position ``positions_um`` ``[n_sources, 2]``. The patch sum is the expected power
+    under uniform random phases between patches. R_c at the sheet's half span gives
+    ``|rfft(kernel_lfp)|^2`` (coherent); R_c below half the source spacing gives the sum of per-source
+    powers (incoherent)."""
+    patch = coherence_patches(positions_um, coherence_radius_um)
+    if patch.shape[0] != spike_counts.shape[1] or patch.shape[0] != kernels.shape[0]:
+        raise ValueError("positions_um, spike_counts columns and kernels must count the same sources")
+    t, k = spike_counts.shape[0], kernels.shape[-1]
+    n = t + k - 1
+    s = jnp.fft.rfft(spike_counts, n=n, axis=0)                 # [F, C]
+    h = jnp.fft.rfft(kernels, n=n, axis=-1)                     # [C, P, F]
+    onehot = jnp.asarray(np.eye(int(patch.max()) + 1)[patch], dtype=s.real.dtype)   # [C, Q]
+    phi = jnp.fft.irfft(jnp.einsum("fc,cpf,cq->fqp", s, h, onehot), n=n, axis=0)[:t]   # [T, Q, P]
+    return jnp.sum(jnp.abs(jnp.fft.rfft(phi, axis=0)) ** 2, axis=1)

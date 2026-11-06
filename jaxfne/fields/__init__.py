@@ -95,6 +95,8 @@ from .head import (
 from .kernel_lfp import (
     CableCell,
     cable_cell,
+    coherence_limited_lfp_power,
+    coherence_patches,
     kernel_lfp,
     line_source_matrix,
     passive_membrane_currents,
@@ -172,6 +174,8 @@ __all__ = [
     "tile_column_dipoles",
     "CableCell",
     "cable_cell",
+    "coherence_limited_lfp_power",
+    "coherence_patches",
     "kernel_lfp",
     "line_source_matrix",
     "passive_membrane_currents",
