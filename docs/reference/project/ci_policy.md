@@ -218,7 +218,7 @@ and therefore the commit SHA it claims to certify; the same self-reference the
 release-candidate attestation avoids. Retained artifacts live in the gitignored
 `artifacts/release_candidate/` locally and as CI artifacts remotely.
 
-`build-system.requires` pins the backend exactly (`hatchling==1.29.0`) rather
+`build-system.requires` pins the backend exactly (`hatchling==1.33.0`) rather
 than ranging it. A wheel embeds `Generator: hatchling <version>` in its `WHEEL`
 metadata, so a different resolution inside a range changes the artifact SHA256
 while every gate still passes.
