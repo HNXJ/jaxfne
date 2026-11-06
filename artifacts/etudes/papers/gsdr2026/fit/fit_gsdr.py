@@ -84,20 +84,20 @@ def load_y_labels(path=Y_LABELS_DEFAULT):
 
 
 def candidate_loss(g_us, rg, y, *, fit_seeds=FIT_SEEDS_DEFAULT,
-                   morphology="single"):
+                   morphology="single", t_max_ms=None):
     """Fig. 6 batch loss of one conductance vector (reference-uS)."""
     import numpy as np
 
-    grid = np.asarray(y["grid"], dtype=np.float64)
     base_psd = np.asarray(y["baseline_psd"], dtype=np.float64)
     stim_psd = np.asarray(y["stim_psd"], dtype=np.float64)
     trials = [(0.0, BASE_OU_SEED, base_psd, float(y["kappa_baseline"]))]
     trials += [(STIM_AMP, s, stim_psd, float(y["kappa_stim"])) for s in fit_seeds]
     psd_terms, pens, kappas, comp = [], [], [], []
+    t_kw = {} if t_max_ms is None else {"t_max_ms": float(t_max_ms)}
     for amp, ou, lab, ky in trials:
         result, blobs = rg.run_trial(amp, g_seed=ou, ou_seed=ou,
                                      g_override=np.asarray(g_us, dtype=np.float32),
-                                     morphology=morphology)
+                                     morphology=morphology, **t_kw)
         v = blobs["v"]
         z_psd = np.asarray(result["psd"], dtype=np.float64)
         psd_terms.append(rg.psd_loss(z_psd, lab))
@@ -120,6 +120,160 @@ def candidate_loss(g_us, rg, y, *, fit_seeds=FIT_SEEDS_DEFAULT,
                   "mean_penalty": float(np.mean(pens)),
                   "mean_kappa_term": float(np.mean(kappas)),
                   "trials": comp}
+
+
+def batch_trial_vs(g_us_list, rg, amp, ou_seed, *, morphology="single",
+                   t_max_ms=None):
+    """Stacked V traces of candidates for one (amp, ou_seed) trial.
+
+    Same construction as ``rg.run_trial`` (spec seeds, conversions,
+    stimulus, OU draws) with only the conductance vector differing per
+    candidate, run as one ``simulate_hh_batch`` call. Returns ``(B,
+    n_steps, N)`` float32 in input order (``N`` cells at the record
+    compartment on the reference morphology). Topology, morphology and
+    ``n_steps`` are shared, so a candidate that changed any of them is
+    refused by the batch kernel rather than run here.
+    """
+    import numpy as np
+
+    import jax
+
+    import jaxfne as jtfne
+    from jaxfne._construct_hh import construct_hh_model, hh_kernel_args
+    from jaxfne.emitters_hh import simulate_hh_batch
+
+    if morphology not in ("single", "reference"):
+        raise ValueError(
+            "morphology must be 'single' or 'reference'; got %r" % (morphology,))
+    gs = [np.asarray(g, dtype=np.float32) for g in g_us_list]
+    if not gs:
+        raise ValueError("g_us_list must hold at least one candidate")
+    t = rg.T_MAX_MS if t_max_ms is None else float(t_max_ms)
+    n_steps = int(round(t / rg.DT_MS)) + 1
+    ou_key = jax.random.fold_in(jax.random.PRNGKey(int(ou_seed)), 0)
+    ou_tau, ou_sigma = rg.ou_hyperparams(ou_key)
+    if morphology == "reference":
+        from jaxfne.emitters_hh import reference_4comp_morphology
+
+        cfg, _ = rg.build_spec(weight_unit="uS")
+        model = construct_hh_model(
+            cfg, morphology=reference_4comp_morphology(),
+            edge_pre_comp=0, edge_post_comp=3, stim_comp=2, record_comp=0,
+            weight_unit="uS", gate_init=0.2)
+        kwargs = hh_kernel_args(model, rg.DT_MS)
+        stacked = np.stack(gs, axis=0)
+        n_e = int(np.asarray(kwargs["edge_pre"]).shape[0])
+        if stacked.shape != (len(gs), n_e):
+            raise ValueError(
+                "each candidate must hold %d reference-uS values, got %s"
+                % (n_e, (stacked.shape,)))
+        out = simulate_hh_batch(
+            kwargs["params"], n_steps=n_steps, dt_ms=rg.DT_MS,
+            batch={"edge_weight_uS": stacked},
+            edge_pre=kwargs["edge_pre"], edge_post=kwargs["edge_post"],
+            edge_receptor=kwargs["edge_receptor"],
+            receptor_e_rev=kwargs["receptor_e_rev"],
+            receptor_tau_r=kwargs["receptor_tau_r"],
+            receptor_tau_d=kwargs["receptor_tau_d"],
+            receptor_slope=kwargs["receptor_slope"],
+            receptor_vth=kwargs["receptor_vth"],
+            receptor_s0=kwargs["receptor_s0"],
+            morphology=kwargs["morphology"],
+            edge_pre_comp=kwargs["edge_pre_comp"],
+            edge_post_comp=kwargs["edge_post_comp"],
+            stim_comp=kwargs["stim_comp"], record_comp=kwargs["record_comp"],
+            gate_init=kwargs.get("gate_init"),
+            ou_tau=np.asarray(ou_tau), ou_sigma=np.asarray(ou_sigma),
+            ou_key=ou_key,
+            I_ext_nA=rg.stimulus_matrix(amp, n_steps=n_steps, unit="nA"),
+            record_v=True)
+        jax.block_until_ready(out["V_mV"])
+        return np.ascontiguousarray(
+            np.asarray(out["V_mV"], dtype=np.float32)[:, :, :, 0])
+    cfg, _ = rg.build_spec()
+    model = jtfne.construct(cfg)
+    kwargs = hh_kernel_args(model, rg.DT_MS)
+    stacked = np.stack(
+        [(g * np.float32(rg.US_TO_MSCM2)).astype(np.float32) for g in gs],
+        axis=0)
+    n_e = int(np.asarray(kwargs["edge_pre"]).shape[0])
+    if stacked.shape != (len(gs), n_e):
+        raise ValueError(
+            "each candidate must hold %d reference-uS values, got %s"
+            % (n_e, (stacked.shape,)))
+    out = simulate_hh_batch(
+        kwargs["params"], n_steps=n_steps, dt_ms=rg.DT_MS,
+        batch={"edge_weight": stacked},
+        edge_pre=kwargs["edge_pre"], edge_post=kwargs["edge_post"],
+        edge_receptor=kwargs["edge_receptor"],
+        receptor_e_rev=kwargs["receptor_e_rev"],
+        receptor_tau_r=kwargs["receptor_tau_r"],
+        receptor_tau_d=kwargs["receptor_tau_d"],
+        receptor_slope=kwargs["receptor_slope"],
+        receptor_vth=kwargs["receptor_vth"],
+        receptor_s0=kwargs["receptor_s0"],
+        ou_tau=np.asarray(ou_tau), ou_sigma=np.asarray(ou_sigma),
+        ou_key=ou_key,
+        I_ext=rg.stimulus_matrix(amp, n_steps=n_steps), record_v=True)
+    jax.block_until_ready(out["V_mV"])
+    return np.ascontiguousarray(np.asarray(out["V_mV"], dtype=np.float32))
+
+
+def candidate_losses_batch(g_us_list, rg, y, *, fit_seeds=FIT_SEEDS_DEFAULT,
+                           morphology="single", t_max_ms=None):
+    """Fig. 6 batch losses of a candidate list through ``simulate_hh_batch``.
+
+    One batched call per trial (same trial list and loss code as
+    ``candidate_loss``); returns ``(losses, comps)`` in input order.
+    """
+    import time
+
+    import numpy as np
+
+    gs = list(g_us_list)
+    base_psd = np.asarray(y["baseline_psd"], dtype=np.float64)
+    stim_psd = np.asarray(y["stim_psd"], dtype=np.float64)
+    trials = [(0.0, BASE_OU_SEED, base_psd, float(y["kappa_baseline"]))]
+    trials += [(STIM_AMP, s, stim_psd, float(y["kappa_stim"])) for s in fit_seeds]
+    b = len(gs)
+    psd_terms = [[] for _ in range(b)]
+    pens = [[] for _ in range(b)]
+    kappas = [[] for _ in range(b)]
+    comp = [[] for _ in range(b)]
+    for amp, ou, lab, ky in trials:
+        t0 = time.time()
+        vb = np.asarray(batch_trial_vs(gs, rg, amp, ou, morphology=morphology,
+                                       t_max_ms=t_max_ms))
+        wall = time.time() - t0
+        for i in range(b):
+            v = np.ascontiguousarray(vb[i])
+            z_psd = np.asarray(rg.psd_mean_voltage(v), dtype=np.float64)
+            psd_terms[i].append(rg.psd_loss(z_psd, lab))
+            rates = rg.firing_rates_hz(
+                v, t_max_ms=(rg.T_MAX_MS if t_max_ms is None
+                             else float(t_max_ms)))
+            pens[i].append(rg.rate_penalty(rates))
+            spikes = rg.detect_spikes(v)
+            n_steps = v.shape[0]
+            i0 = int(0.0 / rg.DT_MS) if amp == 0.0 else int(500.0 / rg.DT_MS)
+            i1 = int(200.0 / rg.DT_MS) if amp == 0.0 else int(1000.0 / rg.DT_MS)
+            i0 = max(0, min(i0, n_steps - 2))
+            i1 = max(i0 + 2, min(i1, n_steps - 1))
+            k = rg.kappa_of_onsets(spikes[i0:i1, :])
+            kappas[i].append(abs(float(k) - ky))
+            comp[i].append({"amp": amp, "ou": ou,
+                            "mean_rate": float(np.mean(rates)),
+                            "active_frac": float((np.asarray(rates) > 0).mean()),
+                            "kappa": float(k), "wall_s": float(wall)})
+    losses = [float(np.mean(psd_terms[i]) * rg.PSD_WEIGHT
+                    + np.mean(pens[i]) * rg.RATE_WEIGHT
+                    + np.mean(kappas[i]) * KAPPA_WEIGHT)
+              for i in range(b)]
+    comps = [{"mean_psd_term": float(np.mean(psd_terms[i])),
+              "mean_penalty": float(np.mean(pens[i])),
+              "mean_kappa_term": float(np.mean(kappas[i])),
+              "trials": comp[i]} for i in range(b)]
+    return losses, comps
 
 
 def run_fit(out_dir, *, generations=2, population=3, seed=0,

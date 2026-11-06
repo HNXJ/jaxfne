@@ -26,6 +26,14 @@ batch traces (same 4 trials as ``candidate_loss``) through the core
 stay bit-identical; the manifest declares the ES estimator as a deviation
 from the authors' reverse-mode gradient. Without ``--mcdp`` every number,
 key and trajectory is bit-identical to before.
+
+``--batch`` evaluates each generation's candidates as one
+``simulate_hh_batch`` call per trial (``fit_gsdr.candidate_losses_batch``)
+instead of a serial ``candidate_loss`` loop. It is an opt-in fast path for
+pilots and sweeps (Hamm 2026-11-06): losses agree with the serial path within
+relative 1e-2 with the same ranking, spike counts within 2 per trial
+(``test_fit_gsdr_batch.py``); float32 vmap rounding leaves the serial trajectory
+after about 200 steps. The flag defaults off; signed and scored fits stay serial.
 """
 
 from __future__ import annotations
@@ -143,7 +151,7 @@ def _unpack_state(arr):
 def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                 y_labels_path=Y_LABELS_DEFAULT,
                 fit_seeds=FIT_SEEDS_DEFAULT, resume=False, morphology="single",
-                mcdp=False, es_sigma=None):
+                mcdp=False, es_sigma=None, batch=False):
     """Generational GSDR fit with checkpoints; returns (best_g_us, manifest)."""
     import numpy as np
 
@@ -152,8 +160,8 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
     sys.path.insert(0, str(_HERE))
     sys.path.insert(0, str(_RUN_DIR))
     import run_gsdr as rg
-    from fit_gsdr import (_refuse_scored_dir, candidate_loss, git_sha,
-                          load_y_labels)
+    from fit_gsdr import (_refuse_scored_dir, candidate_loss,
+                          candidate_losses_batch, git_sha, load_y_labels)
 
     _refuse_scored_dir(out_dir)
     y = load_y_labels(y_labels_path)
@@ -333,13 +341,35 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                     cands.append(cand)
             es_clipped_total += es_clipped
             losses = []
-            for i, cand in enumerate(cands):
-                loss, comp, wall = evaluate(cand, "g%dc%d" % (gen, i))
-                total_wall += wall
-                losses.append(loss)
-                if loss < best["loss"]:
-                    best = {"loss": loss, "g": cand.copy(),
-                            "components": comp}
+            if batch:
+                t0 = time.time()
+                bloss, bcomp = candidate_losses_batch(
+                    cands, rg, y, fit_seeds=tuple(fit_seeds),
+                    morphology=morphology)
+                bwall = time.time() - t0
+                total_wall += bwall
+                for i, (loss, comp) in enumerate(zip(bloss, bcomp)):
+                    finite = bool(np.isfinite(loss))
+                    print("g%dc%d loss %.4f (psd %.4f pen %.4f kap %.4f) "
+                          "active %s wall %.1fs (batch)" % (
+                              gen, i, loss, comp["mean_psd_term"],
+                              comp["mean_penalty"], comp["mean_kappa_term"],
+                              ",".join("%.2f" % t["active_frac"]
+                                        for t in comp["trials"]),
+                              bwall / len(cands)), flush=True)
+                    loss = loss if finite else float("inf")
+                    losses.append(loss)
+                    if loss < best["loss"]:
+                        best = {"loss": loss, "g": cands[i].copy(),
+                                "components": comp}
+            else:
+                for i, cand in enumerate(cands):
+                    loss, comp, wall = evaluate(cand, "g%dc%d" % (gen, i))
+                    total_wall += wall
+                    losses.append(loss)
+                    if loss < best["loss"]:
+                        best = {"loss": loss, "g": cand.copy(),
+                                "components": comp}
             keep_dirs, keep_lp, keep_lm = [], [], []
             for j, e in enumerate(dirs):
                 lp, lm = losses[1 + 2 * j], losses[1 + 2 * j + 1]
@@ -387,11 +417,31 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                 center + exploration * span * rng.standard_normal(n_params),
                 0.0, 10.0))
         gen_best_loss, gen_best_g, gen_best_comp = best["loss"], None, None
-        for i, cand in enumerate(cands):
-            loss, comp, wall = evaluate(cand, "g%dc%d" % (gen, i))
-            total_wall += wall
-            if loss < gen_best_loss:
-                gen_best_loss, gen_best_g, gen_best_comp = loss, cand, comp
+        if batch:
+            t0 = time.time()
+            bloss, bcomp = candidate_losses_batch(
+                cands, rg, y, fit_seeds=tuple(fit_seeds),
+                morphology=morphology)
+            bwall = time.time() - t0
+            total_wall += bwall
+            for i, (loss, comp) in enumerate(zip(bloss, bcomp)):
+                finite = bool(np.isfinite(loss))
+                print("g%dc%d loss %.4f (psd %.4f pen %.4f kap %.4f) "
+                      "active %s wall %.1fs (batch)" % (
+                          gen, i, loss, comp["mean_psd_term"],
+                          comp["mean_penalty"], comp["mean_kappa_term"],
+                          ",".join("%.2f" % t["active_frac"]
+                                    for t in comp["trials"]),
+                          bwall / len(cands)), flush=True)
+                loss = loss if finite else float("inf")
+                if loss < gen_best_loss:
+                    gen_best_loss, gen_best_g, gen_best_comp = loss, cands[i], comp
+        else:
+            for i, cand in enumerate(cands):
+                loss, comp, wall = evaluate(cand, "g%dc%d" % (gen, i))
+                total_wall += wall
+                if loss < gen_best_loss:
+                    gen_best_loss, gen_best_g, gen_best_comp = loss, cand, comp
         if gen_best_g is not None:
             center = np.clip(center + alpha * (gen_best_g - center), 0.0, 10.0)
             if gen_best_loss < best["loss"]:
@@ -442,6 +492,7 @@ def run_fit_500(out_dir, *, generations=500, population=6, seed=0,
                    "lane_generations": int(generations),
                    "population": int(population)},
         "morphology": morphology,
+        "batch": bool(batch),
         "y_labels": str(y_labels_path),
         "fit_seeds": [int(s) for s in fit_seeds],
         "loss_weights": {"psd": rg.PSD_WEIGHT, "rate": rg.RATE_WEIGHT,
@@ -489,6 +540,10 @@ def build_parser():
                          "antithetic-ES gradient instead of the delta rule")
     ap.add_argument("--es-sigma", type=float, default=None,
                     help="ES sampling scale s (default exploration * span)")
+    ap.add_argument("--batch", action="store_true",
+                    help="evaluate each generation as one simulate_hh_batch "
+                         "call per trial; pilots and sweeps only, losses within "
+                         "rel 1e-2 of serial (default: serial candidate_loss)")
     return ap
 
 
@@ -499,7 +554,7 @@ def main(argv=None):
                 y_labels_path=args.y_labels,
                 fit_seeds=tuple(args.fit_seeds) if args.fit_seeds else FIT_SEEDS_DEFAULT,
                 resume=args.resume, morphology=args.morphology,
-                mcdp=args.mcdp, es_sigma=args.es_sigma)
+                mcdp=args.mcdp, es_sigma=args.es_sigma, batch=args.batch)
 
 
 if __name__ == "__main__":
