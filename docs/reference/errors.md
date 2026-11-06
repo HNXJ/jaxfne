@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2494 raise sites in 116 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2518 raise sites in 119 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -891,6 +891,13 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `augmentation axis 'H_0' expects a H0 record; got {...} ({...})` |
 | `ValueError` | `augmentation axis {...} has no packet-1 implementation` |
 
+**`jaxfne/billeh2020.py`**
+
+| Class | Message |
+|---|---|
+| `ValueError` | `unknown Billeh 2020 population pair {...}; populations are {...}` |
+| `ValueError` | `r_um must be finite and non-negative` |
+
 **`jaxfne/bridges.py`**
 
 | Class | Message |
@@ -1620,6 +1627,15 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 |---|---|
 | `ValueError` | `execution_form must be 'fused' or 'materialized', got {...}` |
 
+**`jaxfne/fields/hagen2016_cells.py`**
+
+| Class | Message |
+|---|---|
+| `ValueError` | `unknown Hagen 2016 population {...}; one of {...}` |
+| `ValueError` | `target_bounds_um must be six finite, strictly increasing depths` |
+| `ValueError` | `merge must be >= 1` |
+| `ValueError` | `{...} {...} profile has an empty bin; raise merge` |
+
 **`jaxfne/fields/head.py`**
 
 | Class | Message |
@@ -1653,6 +1669,29 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `modality must be 'meg' or 'eeg', got {...}` |
 | `ValueError` | `W must be [n_sensors, n_dipoles]` |
 | `ValueError` | `dipoles must be [T, {...}], got {...}` |
+
+**`jaxfne/fields/kernel_lfp.py`**
+
+| Class | Message |
+|---|---|
+| `ValueError` | `z0, z1, diam and parent must have one entry per compartment` |
+| `ValueError` | `area_factor must be finite and positive, one per compartment` |
+| `ValueError` | `parent[0] must be -1 and every other parent must precede its child` |
+| `ValueError` | `every compartment needs finite depths and a nonzero length` |
+| `ValueError` | `every compartment diameter must be finite and positive` |
+| `ValueError` | `section {...}: n must be >= 1, only section 0 has parent -1, parents precede` |
+| `ValueError` | `a branch needs n + 1 edges and n areas and diameters` |
+| `ValueError` | `branch edges must be strictly monotone` |
+| `ValueError` | `a branch must start on the soma's surface` |
+| `ValueError` | `branch areas and diameters must be positive` |
+| `ValueError` | `no compartment midpoint in depth range [{...}, {...}] um` |
+| `ValueError` | `{...} must be finite and positive; got {...}` |
+| `ValueError` | `n_steps must be >= 1` |
+| `ValueError` | `syn_weights must be non-negative, one per compartment, summing to 1` |
+| `ValueError` | `contact_depths_um must be a non-empty finite array` |
+| `ValueError` | `radii_um must be a non-empty finite array of non-negative distances` |
+| `ValueError` | `positions_um must be [n_sources, 2], got shape {...}` |
+| `ValueError` | `positions_um, spike_counts columns and kernels must count the same sources` |
 
 **`jaxfne/fields/probes.py`**
 

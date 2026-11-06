@@ -14,12 +14,22 @@ The aperiodic model and its bounded fit are imported from CAMINOS, not copied.
 from __future__ import annotations
 
 import importlib.util
+import sys
 from pathlib import Path
 
 import numpy as np
 from scipy.signal import welch
 
-from jaxfne.analysis import isi_ratio
+# P-025 repo-root guard: pull jaxfne from this checkout, never site-packages.
+_ROOT = str(Path(__file__).resolve().parents[4])
+if sys.path[:1] != [_ROOT]:
+    sys.path.insert(0, _ROOT)
+
+import jaxfne as jtfne  # noqa: E402
+
+assert "site-packages" not in jtfne.__file__, "izh_analysis must run the checkout's jaxfne"
+
+from jaxfne.analysis import isi_ratio  # noqa: E402, F401  (re-exported for the lane's callers)
 
 _CAMINOS = Path(__file__).resolve().parents[1] / "caminos" / "caminos_analysis.py"
 _spec = importlib.util.spec_from_file_location("caminos_analysis", _CAMINOS)
