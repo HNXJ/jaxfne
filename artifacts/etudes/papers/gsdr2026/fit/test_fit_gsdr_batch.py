@@ -26,7 +26,7 @@ if str(_HERE) not in sys.path:
 if str(_RUN_DIR) not in sys.path:
     sys.path.insert(0, str(_RUN_DIR))
 
-from fit_gsdr import batch_trial_vs, candidate_losses_batch  # noqa: E402
+from fit_gsdr import batch_trial_vs, candidate_loss, candidate_losses_batch  # noqa: E402
 
 import run_gsdr as rg  # noqa: E402
 
@@ -67,7 +67,7 @@ def test_batch_matches_serial_losses_and_spikes():
     t0 = time.time()
     serial_losses, serial_comps = [], []
     for g in cands:
-        loss, comp = __import__("fit_gsdr").candidate_loss(
+        loss, comp = candidate_loss(
             g, rg, y, fit_seeds=FIT_SEEDS, morphology="single",
             t_max_ms=T_MAX_MS)
         serial_losses.append(loss)
