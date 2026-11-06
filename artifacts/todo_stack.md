@@ -9,12 +9,13 @@ Done steps are deleted; history is in git (the sectioned form before this rewrit
 Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-B8:
 `control/harness/evidence_and_workflow_rules.md`; paper goal G-0: `programme/design/plans/arxiv_paper_plan.md`.
 
-## 0.5.10 (checklist and score in the release plan's 0.5.10 section, approved by Hamm 2026-11-05; 7/100 on 2026-11-05)
+## 0.5.10 (checklist and score in the release plan's 0.5.10 section, approved by Hamm 2026-11-05; 14/100 on 2026-11-06)
 
 4. T-3 [A] 10E PCL Fig 3: R5-approximate (the core on all 3168 tasks under signed R4b, driver
    `F:/warehouse/pcl/r5/run_r5.sh`, resumable) scored in `pcl/prereg/`; P-055 (R5-exact FAIL, 4 of 16 files)
    attributed. History: R3 exact on files 0-4 (CALIBRATION R3), R4b signed 2026-11-03, R5-exact scored
-   (`P3_fig3_r5_exact_result.md`, S13). Status 2026-11-05: approx_core 920 of 2562 files, about 2280 s per file.
+   (`P3_fig3_r5_exact_result.md`, S13). Status 2026-11-06: resumed detached 16:54Z (`F:/warehouse/pcl/r5/resume_approx_core.sh`,
+   PATH now exports Git), 1085 tasks pending; the driver's logged `rc=$?` is wrong (`$(stamp)` resets it): fix before the next resume.
    Then T-22, T-25: PCL B3 on the intra-step operator; trained weights load as A' (`with_trained_weights`).
    Closes when: the R5-approximate result file and score JSON are pinned and P-055 names its cause.
 
@@ -52,6 +53,23 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     first rc. T-49 [A] split closed lane folders by kind as each lane closes (`caminos/`, `izhikevich2003/`,
     `brunel2000/`). Closes when: T-10b has its gate or a dated drop note; T-42 lists the CI steps seen at the rc;
     each closed lane folder passes `tests/test_artifacts_tree_degree.py` with no R6 entry.
+20. ∥ T-B1 [A] Scored CPU vs RTX A4000 benchmark & memory profile (F4, `artifacts/runs/benchmark/PREREG_B1_0510.md`):
+    profile whether a GPU upgrade is justified ($0 spend now; purchase gate based on measured bottlenecks).
+    Metrics recorded per cell across N (1e2 to 1e5): compilation time (CPU/JAX compilation overhead),
+    steady-state simulation time (GPU throughput), peak GPU memory (capacity requirement; distinguish reserved
+    from live/peak), peak host RSS (construction and recording overhead), host-device transfer time (PCIe sensitivity),
+    numerical agreement (CPU/GPU validity). Controls: negative control with recording disabled and another with
+    reduced recording. Purchase gate: peak VRAM approaches 16 GB despite chunking -> 32-48 GB GPUs; VRAM fits
+    but GPU execution dominates -> benchmark faster GPU; CPU construction/compilation dominates -> platform/CPU
+    changes; no material bottleneck -> retain A4000. Closes when: benchmark receipt records all 6 metrics across
+    N for CPU and A4000 with recording controls, evaluated against the purchase gate. Status 2026-11-06: prereg
+    signed and pinned; jaxfne harness `artifacts/runs/benchmark/b1/b1_harness.py` (CPU smoke M1, M2 at N=100). Left:
+    M3 smoke; Brian2, NEST, Jaxley baseline scripts; review the M1 external-drive scaling rule; then the scored runs.
+21. ∥ T-C2A3 [A] Findings from the C2 and A3 lanes (2026-11-06): HH ignores `Simulation(seed)` (C2 skips it);
+    `homeostatic_ei` with `bound_mode="stable"` drove V to about 1e6 in the C2 worker's run (unverified); spec-level
+    neuron permutation needs order-independent construction (`_construct_population.py:504,527-537`,
+    `_construct_core.py:1563-1564`, `connectivity.py:918-919`). Closes when: HH honours the seed with C2's test
+    unskipped, the V blow-up is reproduced and fixed or refuted, and A3 has its permutation test killed by a mutant.
 
 ## Owner queue (asked one at a time, in this order)
 
@@ -72,8 +90,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 24. 0.5.10: [H] P-052 surrogate fitness for training, deferred by Hamm 2026-11-03
     (`artifacts/runs/perf/profiles/precision_058.md`). Closes when: Hamm rules on the sign and T-growth record.
 26. 0.5.10: T-62 Cell Reports Fig 1D, excluded for 0.5.9 (Hamm 2026-11-02): the raw Onorato data is on request
-    from the lead contact; Hamm decides at 0.5.10 whether to request it. T-47 kernel-LFP commits 6eb3c6b8, 44cd0111, ff45364b, then the iSTDP out-degree and kernel LFP checks,
-    then `coherence_radius_um` with its two limit tests; T-32 GSDR on `simulate_hh_batch`, seed and candidate
+    from the lead contact; Hamm decides at 0.5.10 whether to request it. T-32 seed and candidate
     batching for AdEx, LIF and `Model.tune` (`_model_tune.py:451`), core homes for lane analysis, Mejias G6, the
     LIF edge kernel on GPU; F2, F4, S16 per the release plan.
 6. 0.5.10: T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against
@@ -85,7 +102,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    jitter reader open (no code or receipt found); C4 radius test landed (`tests/test_geometry_radius_rotation.py`),
    the S3 panel not built; C6 inventory only, baselines none run. Closes when: each listed piece has a commit with
    its test or receipt, cited here before the row is deleted.
-27. 0.5.10: T-48 Jansen-Rit 1995 neural-mass emitter, then P1.
+27. 0.5.10: T-48 Jansen-Rit 1995: the emitter is on dev (cf706780, 19 tests, every parameter required); left the
+    paper's constants from the 1995 text and P1. Closes when: P1 is scored.
 28. After the 0.5.10 release and 7 replicated papers: T-54 [A then H] awesome-jax PR with Hamm's go.
 29. 0.5.11 and 0.6.0: the release plan's later sections.
 

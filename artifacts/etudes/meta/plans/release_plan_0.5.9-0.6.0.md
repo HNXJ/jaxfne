@@ -66,7 +66,7 @@ its C row's check), and the todo rows moved to 0.5.10. Weights sum to 100: packa
 with the 0.5.9 weights). Each item carries its own weight and scores in full when its check is cited; no partial
 credit.
 
-Score 2026-11-05: 7/100 (packages 7 of 70, gates 0 of 30). The 8.5 of the draft counted items implicitly and gave
+Score 2026-11-06: 14/100 (packages 14 of 70, gates 0 of 30; D1 landed, B1 signed). Score 2026-11-05: 7/100. The 8.5 of the draft counted items implicitly and gave
 T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 
 | Item | Weight | What | Done when (cited check) | State 2026-11-05 | Score |
@@ -74,20 +74,20 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | **10A Geometry** (F2, S3, S4, C4) | **14** | | | | **3** |
 | A1 | 4 | Atlas AT-10-N20, F2 rendered from it | F2 renders from the AT-10-N20 receipt | open | 0 |
 | A2 | 3 | S4 NeuronalTensor schema and flattening | S4 written from the schema; identity, topology, signs and positions kept through flattening, each by a test | open | 0 |
-| A3 | 4 | S3 geometry property tests: round trip, permutation, rigid transform | each test fails on a planted broken invariant | the radius sampler's tests cover rotation, translation, permutation and save-load (`tests/test_geometry_radius_rotation.py`); no mutation evidence, no general geometry suite | 0 |
+| A3 | 4 | S3 geometry property tests: round trip, permutation, rigid transform | each test fails on a planted broken invariant | the radius sampler's tests cover rotation, translation, permutation and save-load (`tests/test_geometry_radius_rotation.py`); 2026-11-06: 5 tests each killed by a planted break (`artifacts/etudes/core_checks/geometry_mutation_receipt_0510.md`, bf26a4c6); the neuron-relabelling permutation test could not fail and was dropped: spec-level permutation needs order-independent construction | 0 |
 | A4 | 3 | C4 Euclidean radius cutoff with its rotation test (T-R28) | `tests/test_geometry_radius_rotation.py` | done (de86aa67) | 3 |
-| **10B Compute** (F4, S6, C6) | **14** | | | | **0** |
-| B1 | 3 | benchmark prereg | signed before any scored run | open | 0 |
-| B2 | 3 | CPU and GPU receipts: neuron-steps/s against N, compile against run, vmap, float32/64 | receipts hash-pinned | open | 0 |
+| **10B Compute** (F4, S6, C6) | **14** | | | | **3** |
+| B1 | 3 | benchmark prereg | signed before any scored run | done: `artifacts/runs/benchmark/PREREG_B1_0510.md` signed by Hamm 2026-11-06, hash pinned (3c008063) | 3 |
+| B2 | 3 | CPU and GPU receipts: neuron-steps/s against N, compile against run, vmap, float32/64 | receipts hash-pinned | harness `benchmark/b1/b1_harness.py` (aba98c8c, 05942346), CPU smoke M1/M2 at N=100; M3 not smoked, no scored run | 0 |
 | B3 | 4 | Brian2, NEST and Jaxley baselines where the model class applies | each baseline's receipt pinned, or its class mismatch recorded | C6 inventory only | 0 |
 | B4 | 2 | `build_config` repair | its failing-first test | open | 0 |
 | B5 | 2 | LIF edge kernel on GPU (T-32) | GPU receipt equal to CPU within the declared tolerance | open | 0 |
 | **10C Augmentation** (F4, S7, C7) | **6** | | | | **0** |
 | C1 | 4 | ensemble study with provenance; S7 panel | S7 renders from pinned receipts | not started | 0 |
-| C2 | 2 | determinism | two seeds change output; the same seed reproduces (C7 check) | not started | 0 |
-| **10D Extras** (S16) | **12** | | | | **0** |
-| D1 | 4 | kernel LFP: `6eb3c6b8`, `44cd0111`, `ff45364b` from `_temp_kernel-lfp`, then the iSTDP out-degree check and `coherence_radius_um` with its two limit tests (T-47) | each on dev with its tests | unpicked | 0 |
-| D2 | 4 | Jansen-Rit 1995 neural-mass emitter and its P1 (T-48) | emitter tests on dev; P1 scored | not started | 0 |
+| C2 | 2 | determinism | two seeds change output; the same seed reproduces (C7 check) | `tests/test_simulate_seed_determinism.py` (44b847f5) holds for Izhikevich, homeostatic_ei, LIF, rate, AdEx; HH ignores `Simulation(seed)` (skipped), so not done | 0 |
+| **10D Extras** (S16) | **12** | | | | **4** |
+| D1 | 4 | kernel LFP: `6eb3c6b8`, `44cd0111`, `ff45364b` from `_temp_kernel-lfp`, then the iSTDP out-degree check and `coherence_radius_um` with its two limit tests (T-47) | each on dev with its tests | done 2026-11-06: kernel LFP 616c8756, bc83f4eb; iSTDP check already on dev (85199ade); coherence radius f2f63b1c (`coherence_limited_lfp_power`, `tests/test_kernel_lfp.py`); dev f96c91e6, broad gate 8206 passed | 4 |
+| D2 | 4 | Jansen-Rit 1995 neural-mass emitter and its P1 (T-48) | emitter tests on dev; P1 scored | emitter `jaxfne/emitters_jansen_rit.py` with 19 tests on dev (cf706780); paper constants and P1 open | 0 |
 | D3 | 2 | Mejias 2016 G6 (T-32) | G6 scored | open | 0 |
 | D4 | 2 | S16 regenerated, Destexhe 2009 panel from its scored P3 receipts | S16 renders from pinned receipts | open | 0 |
 | **10E PCL Fig 3** | **10** | | | | **0** |
@@ -98,7 +98,7 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | F2 | 2 | P-BALANCED: `BackgroundNoise`, `baseline_drive`, the balanced-1000n preset | `tests/test_balanced_preset_acceptance.py` | done (e179a2d0..9dd1c111; Hamm 2026-11-05: retune under the unchanged bounds; seeds 0-4 CV 0.742-0.755, shift 0.236-0.257) | 2 |
 | F3 | 1 | AGSDR log-scale bounds (T-31) | `tests/test_agsdr_log_scale.py`, linear bounds bit-identical | done (733b3960) | 1 |
 | F4 | 1 | the GSDR lane names its log-scale parameters (T-31) | named in the GSDR lane with a new prereg for any new fit | open | 0 |
-| F5 | 1.5 | T-32: GSDR on `simulate_hh_batch`; seed and candidate batching for AdEx, LIF and `Model.tune`; core homes for lane analysis | each with its test | open | 0 |
+| F5 | 1.5 | T-32: GSDR on `simulate_hh_batch`; seed and candidate batching for AdEx, LIF and `Model.tune`; core homes for lane analysis | each with its test | GSDR `--batch` opt-in within rel 1e-2 (117396a6, Hamm 2026-11-06); `jaxfne.analysis.isi_ratio` (51c86dab); AdEx, LIF and `Model.tune` batching open | 0 |
 | F6 | 1.5 | T-R28: dashboard P1 then P2; the jitter reader on larger sets | each with its commit and receipt | open | 0 |
 | **10G Replication coverage** | **6** | | | | **0** |
 | G1 | 3 | CAMINOS panels not yet run, added to the Notebooks tab: Cell Reports 1A, 2A/2B bottom, 6A top, 6B; PLoS Fig 5, Fig 3 and 4A mean-field rows | each panel in its exported notebook from pinned runs | open | 0 |
