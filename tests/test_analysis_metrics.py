@@ -1322,3 +1322,38 @@ def test_population_rates_rejects_negative_discard():
         population_rates(counts, dt_ms=0.1, sizes=sizes, discard_ms=-100.0)
     with pytest.raises(ValueError, match="discard"):
         population_rates(counts, dt_ms=0.1, sizes=sizes, discard_s=-1.0)
+
+
+# --- Izhikevich 2003 lane estimator core home ----------------------------------
+
+
+class TestIsiRatio:
+    """isi_ratio pinned against the lane formula it moved from."""
+
+    def test_known_sequence(self):
+        from jaxfne.analysis import isi_ratio
+
+        assert isi_ratio([0, 2, 6]) == pytest.approx(2.0)
+
+    def test_none_below_two_isis(self):
+        from jaxfne.analysis import isi_ratio
+
+        assert isi_ratio([0, 5]) is None
+        assert isi_ratio([7]) is None
+        assert isi_ratio([]) is None
+
+    def test_matches_lane_formula_on_random_sequence(self):
+        from jaxfne.analysis import isi_ratio
+
+        rng = np.random.default_rng(3)
+        rows = sorted(rng.choice(np.arange(1000), size=20, replace=False).tolist())
+        assert len(rows) >= 3, "fixture must hold at least 3 spikes"
+        isi = np.diff(np.asarray(rows, dtype=np.int64))
+        assert isi.size >= 2, "fixture must hold at least 2 ISIs"
+        assert isi_ratio(rows) == pytest.approx(float(isi[-1] / isi[0]))
+
+    def test_lane_imports_core_callable(self):
+        import jaxfne.analysis as analysis
+        from artifacts.etudes.papers.izhikevich2003 import izh_analysis as lane
+
+        assert analysis.isi_ratio is lane.isi_ratio

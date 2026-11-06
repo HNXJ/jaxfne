@@ -19,6 +19,8 @@ from pathlib import Path
 import numpy as np
 from scipy.signal import welch
 
+from jaxfne.analysis import isi_ratio
+
 _CAMINOS = Path(__file__).resolve().parents[1] / "caminos" / "caminos_analysis.py"
 _spec = importlib.util.spec_from_file_location("caminos_analysis", _CAMINOS)
 _caminos = importlib.util.module_from_spec(_spec)
@@ -77,14 +79,6 @@ def rate_hz(window):
 
 def _isis(window):
     return np.diff(np.asarray(window, dtype=np.int64))
-
-
-def isi_ratio(window):
-    """Last ISI / first ISI, in rows. None with fewer than 2 ISIs (3 spikes)."""
-    isi = _isis(window)
-    if isi.size < 2:
-        return None
-    return float(isi[-1] / isi[0])
 
 
 def isi_cv(window):

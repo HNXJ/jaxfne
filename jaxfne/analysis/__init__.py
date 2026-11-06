@@ -24,6 +24,9 @@ wang_buzsaki_kappa
 cv_isi
     Mean ISI coefficient of variation over spiking cells (Destexhe Eq. 3).
 
+isi_ratio
+    Last over first interspike interval of one spike-step sequence.
+
 pairwise_cc_binned_disjoint
     Mean Pearson correlation over disjoint pairs in binned counts (Eq. 4).
 
@@ -45,6 +48,7 @@ from .metrics import (
     cv_isi,
     fano_factor,
     fleiss_kappa_binary,
+    isi_ratio,
     mean_pairwise_spike_correlation,
     mean_rate_hz,
     pairwise_cc_binned_disjoint,
@@ -82,6 +86,7 @@ __all__ = [
     "fleiss_kappa_binary",
     "wang_buzsaki_kappa",
     "cv_isi",
+    "isi_ratio",
     "pairwise_cc_binned_disjoint",
     "mean_rate_hz",
     "population_rates",

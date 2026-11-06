@@ -959,6 +959,42 @@ def cv_isi(
     return float(np.mean(cvs))
 
 
+def isi_ratio(spike_steps) -> Union[float, None]:
+    r"""Last over first interspike interval of one spike-step sequence.
+
+    For the spike step indices ``spike_steps``, the interspike intervals are
+    ``ISI = diff(spike_steps)`` in steps; the metric is ``ISI[-1] / ISI[0]``.
+
+    Parameters
+    ----------
+    spike_steps : 1-D array-like
+        Spike step indices (integer kernel rows) in ascending order.
+
+    Returns
+    -------
+    float or None
+        Last ISI over first ISI as a Python float. None with fewer than
+        2 ISIs (fewer than 3 spikes).
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from jaxfne.analysis import isi_ratio
+    >>> isi_ratio([0, 2, 6])
+    2.0
+
+    Notes
+    -----
+    Moved from the Izhikevich 2003 lane
+    (``artifacts/etudes/papers/izhikevich2003/izh_analysis.py``), which
+    imports it in place of its copy.
+    """
+    isi = np.diff(np.asarray(spike_steps, dtype=np.int64))
+    if isi.size < 2:
+        return None
+    return float(isi[-1] / isi[0])
+
+
 def pairwise_cc_binned_disjoint(
     spikes: Union[np.ndarray, "jax.Array"],
     dt_ms: float,
