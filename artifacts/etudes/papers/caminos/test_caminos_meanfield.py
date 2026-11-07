@@ -138,3 +138,35 @@ def test_silencing_all_pv_changes_the_trajectory():
     _, nu_pv0, _ = mf.simulate_meanfield(0.5, pv_silence=1.0)
     assert np.all(np.isfinite(nu_ctl)) and np.all(np.isfinite(nu_pv0))  # precondition
     assert np.max(np.abs(nu_pv0 - nu_ctl)) > 1e-6, "silencing all PV must change the trajectory"
+
+
+@pytest.mark.parametrize("coupling", ["PVSOM", "SOMSOM"])
+def test_fig5a_zero_coupling_equals_reference_run(coupling):
+    """At 0 nS the sweep point equals the reference run (no added coupling)."""
+    out = mf.fig5a_sweep(coupling, [0.0], T_s=1.0)
+    assert out["coupling"] == coupling and out["g_values_ns"] == [0.0]
+    r = out["results"][0]
+    t, nu, _ = mf.simulate_meanfield(1.0)
+    e = nu[t >= 0.5, 0]
+    assert r["min_E_hz"] == e.min() and r["max_E_hz"] == e.max()
+    assert r["fixed_E_hz"] == pytest.approx(mf.fixed_point(mf.PARAMS)[0][0])
+
+
+@pytest.mark.parametrize("coupling", ["PVSOM", "SOMSOM"])
+def test_fig5a_nonzero_coupling_changes_e_trajectory(coupling):
+    """A nonzero added coupling is consumed: the E-rate trace differs from the reference."""
+    p = mf.params_with_coupling(coupling, 3.0)
+    assert p["Q"][mf.FIG5A_COUPLINGS[coupling]] == pytest.approx(3e-9)
+    _, nu_mod, _ = mf.simulate_meanfield(0.5, params=p)
+    _, nu_ref, _ = mf.simulate_meanfield(0.5)
+    assert np.all(np.isfinite(nu_mod))  # precondition
+    assert np.max(np.abs(nu_mod[:, 0] - nu_ref[:, 0])) > 1e-6
+
+
+def test_fig5a_unknown_coupling_is_refused():
+    with pytest.raises(ValueError):
+        mf.fig5a_sweep("SOMXX", [0.0])
+    with pytest.raises(ValueError):
+        mf.params_with_coupling("SOMXX", 1.0)
+    with pytest.raises(ValueError):
+        mf.params_with_coupling("PVSOM", -1.0)

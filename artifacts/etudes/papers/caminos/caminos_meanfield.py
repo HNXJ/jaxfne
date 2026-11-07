@@ -233,13 +233,14 @@ def _rhs(nu, w, nu_del, params):
     return dnu, dw
 
 
-def simulate_meanfield(T_s, dt_s=1e-4, params=PARAMS, nu0=None, pv_silence=0.0, som_silence=0.0):
+def simulate_meanfield(T_s, dt_s=1e-4, params=PARAMS, nu0=None, w0=None,
+                      pv_silence=0.0, som_silence=0.0):
     """Euler integration of Eq. 1 with the tau_d delay in a ring buffer.
 
     Silencing a fraction f scales that population's N by (1 - f) in every input term; the silenced
     rate still obeys Eq. 1 but sends no input. Rates start at nu0 (default DEFAULT_START), nu(t < 0)
-    equals nu0 and w starts at 0. Returns (t, nu, w): t in s; nu and w have shape (n + 1, 3), columns
-    E, PV, SOM. The PV column of w is 0 (a = b = 0).
+    equals nu0 and w starts at w0 (default zeros, columns E, PV, SOM). Returns (t, nu, w): t in s;
+    nu and w have shape (n + 1, 3), columns E, PV, SOM. The PV column of w is 0 (a = b = 0).
     """
     if not (0.0 <= pv_silence <= 1.0 and 0.0 <= som_silence <= 1.0):
         raise ValueError("silenced fractions must lie in [0, 1]")
@@ -247,7 +248,7 @@ def simulate_meanfield(T_s, dt_s=1e-4, params=PARAMS, nu0=None, pv_silence=0.0, 
     p["N"] = {"E": params["N"]["E"], "PV": params["N"]["PV"] * (1.0 - pv_silence),
               "SOM": params["N"]["SOM"] * (1.0 - som_silence)}
     nu = np.array(DEFAULT_START[:3] if nu0 is None else nu0, dtype=float)
-    w = np.zeros(3)
+    w = np.zeros(3) if w0 is None else np.asarray(w0, dtype=float)
     n = int(round(T_s / dt_s))
     line = DelayLine(int(round(TAU_D / dt_s)), nu)
     t = np.arange(n + 1) * dt_s
@@ -291,6 +292,82 @@ def fixed_point(params=PARAMS, x0=None):
     z = sol.x
     x = np.array([z[0], z[1], z[2], z[3] * W_SCALE, z[4] * W_SCALE])
     return x, resid(z)
+
+
+# ---------------------------------------------------------------------------
+# Fig. 5A sweeps: the added PV->SOM and SOM->SOM couplings (Results, Fig. 5 paragraph).
+# Each is a sparse random projection like the other connections: connection probability p,
+# conductance-based, delay tau_d. In the mean field it enters exactly like the existing
+# connections: the quantal conductance Q[(pre, post)] in S with in-degree K = p N_pre inside
+# moments (f_X = nu_X p N_X, muG_X = Q_X tau_X f_X), inhibitory tau_I and reversal E_I, and
+# the global TAU_D delay. The reference model has both at 0 nS; the sweep holds one at 0.
+# ---------------------------------------------------------------------------
+FIG5A_COUPLINGS = {"PVSOM": ("PV", "SOM"), "SOMSOM": ("SOM", "SOM")}
+FIG5A_OSC_PTP_HZ = 0.5  # E-rate peak-to-peak above this in the late window counts as oscillation
+
+
+def params_with_coupling(coupling, g_ns, params=PARAMS):
+    """Copy of params with the Fig. 5A coupling set to g_ns nS (S = nS * 1e-9).
+
+    coupling is "PVSOM" or "SOMSOM". Unknown names and negative conductances are refused.
+    """
+    if coupling not in FIG5A_COUPLINGS:
+        raise ValueError("unknown Fig. 5A coupling %r" % (coupling,))
+    if not float(g_ns) >= 0.0:
+        raise ValueError("conductance must be >= 0 nS")
+    p = dict(params)
+    p["Q"] = dict(params["Q"])
+    p["Q"][FIG5A_COUPLINGS[coupling]] = float(g_ns) * 1e-9
+    return p
+
+
+def _spectrum_peak(e, dt_s):
+    """Peak frequency (Hz) of the mean-removed trace e sampled at dt_s."""
+    amp = np.abs(np.fft.rfft(e - e.mean()))
+    freq = np.fft.rfftfreq(e.size, dt_s)
+    return float(freq[1 + int(np.argmax(amp[1:]))])
+
+
+def fig5a_point(coupling, g_ns, T_s=4.0, dt_s=1e-4, T_stab_s=2.0, params=PARAMS):
+    """One Fig. 5A sweep point: fixed point, stability and limit cycle at g_ns nS.
+
+    Fixed point from fixed_point (scipy root, Methods "Fixed point computation and stability").
+    The main run starts at DEFAULT_START; frequency is the spectral peak of the E rate over the
+    late half, amplitude is half its peak-to-peak there, min/max are the limit-cycle bounds
+    (max/min of nu_E(t)). Stability perturbs the fixed point (+5% on the rates, w at its fixed
+    point) and simulates T_stab_s: stable when the E rate settles back (peak-to-peak below
+    FIG5A_OSC_PTP_HZ and mean within max(0.5 Hz, 20%) of the fixed point). Non-oscillating
+    points report frequency 0.0.
+    """
+    p = params_with_coupling(coupling, g_ns, params)
+    x, res = fixed_point(p)
+    t, nu, _ = simulate_meanfield(T_s, dt_s, p)
+    e = nu[t >= T_s / 2.0, 0]
+    ptp = float(e.max() - e.min())
+    oscillating = ptp > FIG5A_OSC_PTP_HZ
+    nu_fp = x[:3] * 1.05
+    w_fp = np.array([x[3], 0.0, x[4]])
+    ts, nus, _ = simulate_meanfield(T_stab_s, dt_s, p, nu0=nu_fp, w0=w_fp)
+    es = nus[ts >= T_stab_s / 2.0, 0]
+    stable = (float(es.max() - es.min()) < FIG5A_OSC_PTP_HZ
+              and abs(float(es.mean()) - float(x[0])) <= max(0.5, 0.2 * abs(float(x[0]))))
+    return {"g_ns": float(g_ns), "freq_hz": _spectrum_peak(e, dt_s) if oscillating else 0.0,
+            "amplitude_hz": ptp / 2.0, "fixed_E_hz": float(x[0]), "stable": bool(stable),
+            "min_E_hz": float(e.min()), "max_E_hz": float(e.max()),
+            "fixed_nu_hz": [float(v) for v in x[:3]],
+            "fixed_point_residual_max": float(np.max(np.abs(res)))}
+
+
+def fig5a_sweep(coupling, g_values_ns, T_s=4.0, dt_s=1e-4, T_stab_s=2.0, params=PARAMS):
+    """Sweep one Fig. 5A coupling over g_values_ns (nS, the other held at 0).
+
+    Returns {"coupling":, "g_values_ns": [...], "results": [fig5a_point ...]}.
+    """
+    if coupling not in FIG5A_COUPLINGS:
+        raise ValueError("unknown Fig. 5A coupling %r" % (coupling,))
+    g_list = [float(g) for g in g_values_ns]
+    return {"coupling": coupling, "g_values_ns": g_list,
+            "results": [fig5a_point(coupling, g, T_s, dt_s, T_stab_s, params) for g in g_list]}
 
 
 def main_meanfield():
