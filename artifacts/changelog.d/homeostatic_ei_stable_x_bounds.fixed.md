@@ -1,4 +1,1 @@
-`construct()` on the homeostatic_ei route now passes the `x` soft-bound range to `bound_mode="stable"`: canonical
--10/10 (the `make_minimal_ei_params` values), settable by `set_emitter(x_min=, x_max=)`. Before, the route dropped
-it and "stable" clamped `x` at the dataclass default of ±1e6. `x_min`/`x_max` under `bound_mode="minimal"` are
-refused (x is unbounded there). "minimal" output is unchanged.
+- Fixed `construct()` on the homeostatic_ei route dropping the `x` soft-bound range, so `bound_mode="stable"` clamped `x` at the dataclass default of ±1e6; the canonical range is now from -10 to 10 (the `make_minimal_ei_params` values), settable by `set_emitter(x_min=, x_max=)`, and refused under `bound_mode="minimal"`, where `x` is unbounded. "minimal" output is unchanged.
