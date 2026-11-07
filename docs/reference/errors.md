@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2534 raise sites in 120 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2536 raise sites in 120 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -266,6 +266,8 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `unknown bound_mode {...} for homeostatic_ei; expected 'minimal' or 'stable'` |
 | `ValueError` | `unknown {...}_rule {...} for homeostatic_ei; expected one of {...}` |
 | `ValueError` | `homeostatic_ei requires at least 2 neurons; got n={...}` |
+| `ValueError` | `homeostatic_ei x_min/x_max are read only under bound_mode='stable'; bound_mode='minimal' leaves x un` |
+| `ValueError` | `homeostatic_ei needs x_min < x_max; got x_min={...}, x_max={...}` |
 | `ValueError` | `connections(name={...}) declares intra_step_rounds={...}: the intra-step fixed point is realized on ` |
 | `ValueError` | `construct(geometry={...}) is not realized on the homeostatic_ei route: positions come from the canon` |
 | `ValueError` | `construct(geometry={...}) is not realized on the adex route: its cells sit at zero positions and no ` |
