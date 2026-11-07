@@ -78,6 +78,9 @@ CLASSES = (
 
 # Class matches that are live code operating on records, never records.
 # Each entry cites the line proving it generates or reads records:
+# Gitignored scratch (`.gitignore` `artifacts/_temp/`): never a record, never a move target.
+SCRATCH_PREFIX = "artifacts/_temp/"
+
 NON_RECORD_PATHS = frozenset(
     [
         # Writes its receipt: e2a_blinded_executor.py:159 (out_path.write_text).
@@ -167,7 +170,7 @@ def discover_records_by_class(repo_root: Path = ROOT) -> dict[str, list[Path]]:
             by_class["receipts"].append(path)
     for path in sorted(p for p in base.rglob("*") if p.is_file()):
         rel = path.relative_to(repo_root).as_posix()
-        if rel in NON_RECORD_PATHS:
+        if rel in NON_RECORD_PATHS or rel.startswith(SCRATCH_PREFIX):
             continue
         for name in _classes_of_rel(rel, frozen):
             if name != "receipts" and name != "frozen":
@@ -247,7 +250,7 @@ def _is_valid_move_target(
     frozen-manifest move counts ``frozen`` among the record's classes when the
     manifest now points at the new path.
     """
-    if new in NON_RECORD_PATHS or new in pinned_rels:
+    if new in NON_RECORD_PATHS or new in pinned_rels or new.startswith(SCRATCH_PREFIX):
         return False
     new_classes = _classes_of_rel(new, frozen_keys)
     if new in frozen_keys and "frozen" not in old_classes:

@@ -614,3 +614,32 @@ def test_add_duplicate_bytes_outside_class_is_refused(tmp_path):
 
     assert add_paths([dup], repo_root=repo, hashes_path=hashes_path) == 1
     assert hashes_path.read_bytes() == before, "refused --add must write nothing"
+
+
+def test_scratch_temp_files_are_not_records(tmp_path):
+    """Gitignored ``artifacts/_temp/`` scratch is outside the record classes.
+
+    A local draft named like a prereg or a dated note there is not a record:
+    CI never sees it, so it must not fail the local check.
+    """
+    _build_tree(tmp_path)
+    pinned = _pin_all(tmp_path)
+    scratch = tmp_path / "artifacts" / "_temp" / "PREREG_draft_2026-11-07.md"
+    scratch.parent.mkdir(parents=True, exist_ok=True)
+    scratch.write_bytes(b"draft\n")
+    found = {p.relative_to(tmp_path).as_posix() for ps in discover_records_by_class(tmp_path).values() for p in ps}
+    assert "artifacts/_temp/PREREG_draft_2026-11-07.md" not in found
+    assert check_tree(tmp_path, pinned) == []
+
+
+def test_record_moved_into_scratch_temp_fails(tmp_path):
+    """A pinned record moved into the gitignored ``_temp/`` leaves git: never a valid move."""
+    _build_tree(tmp_path)
+    pinned = _pin_all(tmp_path)
+    src = tmp_path / CLASS_FILES["prereg"]
+    dst = tmp_path / "artifacts" / "_temp" / "prereg_fixture" / "note.md"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    src.rename(dst)
+    violations = check_tree(tmp_path, pinned)
+    assert violations, "a move into _temp must fail"
+    assert any(CLASS_FILES["prereg"] in v for v in violations)
