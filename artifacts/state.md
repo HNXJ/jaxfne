@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@1e7ee1e5 · 2026-11-07
+Stamp: jaxfne@dev@960a0fab · 2026-11-07
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
@@ -25,8 +25,10 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   accepted); keep `E:/cl-jnwb16e` until jnwb-orchestrator confirms its pick.
 - Landed 2026-11-06 (f96c91e6..05942346): coherence LFP, `isi_ratio`, Jansen-Rit emitter, A3 receipt, GSDR
   `--batch`, B1 harness and signed prereg, ruff/hatchling bumps (#118, #119 closed); issue #123 closed.
-- Last pushed: 1e7ee1e5. Broad gate 8233 passed; 1 failed and 3 errors were the 120 s / 60 s subprocess timeouts,
-  each passing alone (21 tests); all 8 paper lanes PASS; report fail_count 0.
+- Landed 2026-11-07 (1e7ee1e5..960a0fab): B1 M3 harness fix; Jansen-Rit P1 source record; record integrity skips
+  gitignored `_temp/` and refuses moves into it. Local, gate pending: c3719c79 PLoS Fig 5A producer.
+- Last pushed: 960a0fab. Broad gate 8237 passed; 2 failed were the 120 s / 60 s subprocess timeouts, each passing
+  alone (7 tests); all 8 paper lanes PASS.
 
 ## Broken or in flight
 
@@ -40,8 +42,8 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Open decisions for the owner
 
-`open_stack.md` O-85 to O-89 (P-052, T-62 data request, Lee/Mazzoni figure, G1 Cell Reports panels, the stale-clone
-delete script); NeuroAI code link
+`open_stack.md` O-85 to O-91 (P-052, T-62 data request, Lee/Mazzoni figure, G1 Cell Reports panels, stale-clone
+delete script, B1 M3 class, A3 scope); NeuroAI code link
 (anonymous.4open.science mirror, Hamm's act). `kernel-lfp` copied to origin `_temp_kernel-lfp` (ff45364b, 2026-11-05);
 deleting the plain-named `origin/kernel-lfp` is Hamm's call.
 

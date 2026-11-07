@@ -32,8 +32,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 21. ∥ T-C2A3 [A] Left from the A3 lane (the C2 rail question closed 2026-11-07: model regime; the canonical
     hebbian×linear pair is the measured divergent cell B-05, `emitters_homeostatic_ei.py:301`; the rail fraction
     follows the bound, 0.68 at ±10, 0.985 at ±100 and ±1e6, unchanged with drive halved; n 16, seed 0, 2000 ms):
-    spec-level neuron permutation needs order-independent construction (`_construct_population.py:504,527-537`,
-    `_construct_core.py:1563-1564`, `connectivity.py:918-919`). Closes when: A3 has its permutation test killed by
+    spec-level neuron permutation needs order-independent construction. Muse inventory 2026-11-07 (960a0fab): RNG
+    streams keyed by position at `_construct_population.py:449,504,527-537,602,699,749`, `_construct_core.py:234`,
+    `connectivity.py:537,626,918-919,941,953,729-736,1214,1383`; the fix re-keys them on stable ids, which changes
+    every seeded realization (O-91). Closes when: O-91 is ruled and, if kept, A3 has its permutation test killed by
     a mutant.
 20. ∥ T-B1 [A] Scored CPU vs RTX A4000 benchmark & memory profile (F4, `artifacts/runs/benchmark/PREREG_B1_0510.md`):
     profile whether a GPU upgrade is justified ($0 spend now; purchase gate based on measured bottlenecks).
@@ -50,10 +52,16 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     `b1_jaxley.py`, on dev 1e7ee1e5; Brian2 2.10.1 and NEST 3.10.0 in WSL `~/venv_b1_baselines`, Jaxley on Windows)
     type their model constants with source citations: read them from the lane files before scored runs; then the
     scored runs.
-33. ∥ T-G1 [A] 10G G1 CAMINOS panels (O-88 on the Cell Reports panels). PLoS rows first: Fig 5 has its PV→SOM and
-    SOM→SOM couplings (`SOURCE_P1.md:34`) and no producer; Fig 3 mean-field silencing exists (`plosr_7f7a660e`),
-    the randomized row is not built; Fig 4A mean-field has nothing. The mean-field randomization follows the
-    paper's stated treatment, read before any build. Cell Reports 2B bottom (`cellrep_figures.py:405`, no run mode)
+33. ∥ T-G1 [A] 10G G1 CAMINOS panels (O-88 on the Cell Reports panels). PLoS text read 2026-11-07 (PMC13286281,
+    copy `F:/warehouse/caminos/plos_text/`). Fig 5 is mean-field only: 5A sweeps PV→SOM and SOM→SOM on the full mean
+    field (frequency, amplitude, bifurcation diagram); 5B is the reduced Eq. 2 (no synaptic delay, no adaptation)
+    beside a spiking raster. 5A producer landed (c3719c79, `fig5a_sweep`; sweep `F:/warehouse/caminos/plos_text/
+    fig5a_sweep_960a0fab.json`): PV→SOM ends at 0.6-0.7 nS (figure about 0.7), SOM→SOM at 0.9-1.0 nS (figure about
+    1.7, open: cause unknown); left the panel in `plos_suite.ipynb`. Fig 4A mean-field lines: no producer. Fig 3
+    mean-field rows: the paper defines randomization only for the network (a fraction replaced by Poisson units at
+    the reference mean rate, Results ¶ "silencing and randomizing"); the mean-field treatment is unstated, so the
+    build declares one before the run (inferred: the fraction enters as a constant input at the baseline rate).
+    Cell Reports 2B bottom (`cellrep_figures.py:405`, no run mode)
     and 6B (`:439`, gain unstated) wait on O-88. Closes when: each kept panel is in its exported notebook
     (`suite/plos_suite.ipynb`, `suite/cellrep_suite.ipynb`) from pinned runs.
 27. ∥ T-48 [A then H] 10D D2 Jansen-Rit 1995: the emitter is on dev (cf706780, every parameter required); the
