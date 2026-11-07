@@ -303,7 +303,10 @@ def fixed_point(params=PARAMS, x0=None):
 # the global TAU_D delay. The reference model has both at 0 nS; the sweep holds one at 0.
 # ---------------------------------------------------------------------------
 FIG5A_COUPLINGS = {"PVSOM": ("PV", "SOM"), "SOMSOM": ("SOM", "SOM")}
-FIG5A_OSC_PTP_HZ = 0.5  # E-rate peak-to-peak above this in the late window counts as oscillation
+# Oscillation = a sustained cycle after the perturbation: E-rate peak-to-peak in the last quarter of the
+# stability run above the floor and at least SUSTAIN of the previous quarter's (a decaying focus shrinks).
+FIG5A_PTP_FLOOR_HZ = 1e-3
+FIG5A_SUSTAIN = 0.9
 
 
 def params_with_coupling(coupling, g_ns, params=PARAMS):
@@ -328,29 +331,31 @@ def _spectrum_peak(e, dt_s):
     return float(freq[1 + int(np.argmax(amp[1:]))])
 
 
-def fig5a_point(coupling, g_ns, T_s=4.0, dt_s=1e-4, T_stab_s=2.0, params=PARAMS):
+def fig5a_point(coupling, g_ns, T_s=4.0, dt_s=1e-4, T_stab_s=8.0, params=PARAMS):
     """One Fig. 5A sweep point: fixed point, stability and limit cycle at g_ns nS.
 
     Fixed point from fixed_point (scipy root, Methods "Fixed point computation and stability").
     The main run starts at DEFAULT_START; frequency is the spectral peak of the E rate over the
     late half, amplitude is half its peak-to-peak there, min/max are the limit-cycle bounds
     (max/min of nu_E(t)). Stability perturbs the fixed point (+5% on the rates, w at its fixed
-    point) and simulates T_stab_s: stable when the E rate settles back (peak-to-peak below
-    FIG5A_OSC_PTP_HZ and mean within max(0.5 Hz, 20%) of the fixed point). Non-oscillating
-    points report frequency 0.0.
+    point) and simulates T_stab_s: oscillating when the cycle is sustained (FIG5A_PTP_FLOOR_HZ,
+    FIG5A_SUSTAIN on the last two quarters); stable when not oscillating and the mean of the last
+    quarter is within max(0.5 Hz, 20%) of the fixed point. Non-oscillating points report frequency 0.0.
     """
     p = params_with_coupling(coupling, g_ns, params)
     x, res = fixed_point(p)
     t, nu, _ = simulate_meanfield(T_s, dt_s, p)
     e = nu[t >= T_s / 2.0, 0]
     ptp = float(e.max() - e.min())
-    oscillating = ptp > FIG5A_OSC_PTP_HZ
     nu_fp = x[:3] * 1.05
     w_fp = np.array([x[3], 0.0, x[4]])
     ts, nus, _ = simulate_meanfield(T_stab_s, dt_s, p, nu0=nu_fp, w0=w_fp)
-    es = nus[ts >= T_stab_s / 2.0, 0]
-    stable = (float(es.max() - es.min()) < FIG5A_OSC_PTP_HZ
-              and abs(float(es.mean()) - float(x[0])) <= max(0.5, 0.2 * abs(float(x[0]))))
+    q3 = nus[(ts >= T_stab_s / 2.0) & (ts < 0.75 * T_stab_s), 0]
+    q4 = nus[ts >= 0.75 * T_stab_s, 0]
+    ptp3, ptp4 = float(np.ptp(q3)), float(np.ptp(q4))
+    oscillating = ptp4 > FIG5A_PTP_FLOOR_HZ and ptp4 >= FIG5A_SUSTAIN * ptp3
+    stable = (not oscillating
+              and abs(float(q4.mean()) - float(x[0])) <= max(0.5, 0.2 * abs(float(x[0]))))
     return {"g_ns": float(g_ns), "freq_hz": _spectrum_peak(e, dt_s) if oscillating else 0.0,
             "amplitude_hz": ptp / 2.0, "fixed_E_hz": float(x[0]), "stable": bool(stable),
             "min_E_hz": float(e.min()), "max_E_hz": float(e.max()),
@@ -358,7 +363,7 @@ def fig5a_point(coupling, g_ns, T_s=4.0, dt_s=1e-4, T_stab_s=2.0, params=PARAMS)
             "fixed_point_residual_max": float(np.max(np.abs(res)))}
 
 
-def fig5a_sweep(coupling, g_values_ns, T_s=4.0, dt_s=1e-4, T_stab_s=2.0, params=PARAMS):
+def fig5a_sweep(coupling, g_values_ns, T_s=4.0, dt_s=1e-4, T_stab_s=8.0, params=PARAMS):
     """Sweep one Fig. 5A coupling over g_values_ns (nS, the other held at 0).
 
     Returns {"coupling":, "g_values_ns": [...], "results": [fig5a_point ...]}.

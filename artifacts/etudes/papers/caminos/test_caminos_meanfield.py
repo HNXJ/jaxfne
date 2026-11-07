@@ -163,6 +163,16 @@ def test_fig5a_nonzero_coupling_changes_e_trajectory(coupling):
     assert np.max(np.abs(nu_mod[:, 0] - nu_ref[:, 0])) > 1e-6
 
 
+def test_fig5a_small_sustained_cycle_counts_as_oscillation():
+    """SOM->SOM at 1.1 nS keeps a constant small cycle (E peak-to-peak about 0.36 Hz over 16 s, under the old
+    0.5 Hz threshold); at 1.6 nS the perturbation decays. The point must report the first unstable, the second stable."""
+    lo = mf.fig5a_point("SOMSOM", 1.1)
+    assert 0.0 < 2.0 * lo["amplitude_hz"] < 0.5, "fixture: cycle must sit under the old 0.5 Hz threshold"
+    assert lo["stable"] is False and lo["freq_hz"] > 0.0
+    hi = mf.fig5a_point("SOMSOM", 1.6)
+    assert hi["stable"] is True and hi["freq_hz"] == 0.0
+
+
 def test_fig5a_unknown_coupling_is_refused():
     with pytest.raises(ValueError):
         mf.fig5a_sweep("SOMXX", [0.0])

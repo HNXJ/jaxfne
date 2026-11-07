@@ -25,10 +25,9 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   accepted); keep `E:/cl-jnwb16e` until jnwb-orchestrator confirms its pick.
 - Landed 2026-11-06 (f96c91e6..05942346): coherence LFP, `isi_ratio`, Jansen-Rit emitter, A3 receipt, GSDR
   `--batch`, B1 harness and signed prereg, ruff/hatchling bumps (#118, #119 closed); issue #123 closed.
-- Landed 2026-11-07 (1e7ee1e5..960a0fab): B1 M3 harness fix; Jansen-Rit P1 source record; record integrity skips
-  gitignored `_temp/` and refuses moves into it. Local, gate pending: c3719c79 PLoS Fig 5A producer.
-- Last pushed: 960a0fab. Broad gate 8237 passed; 2 failed were the 120 s / 60 s subprocess timeouts, each passing
-  alone (7 tests); all 8 paper lanes PASS.
+- Landed 2026-11-07 (1e7ee1e5..290c3cf0): B1 M3 harness fix; Jansen-Rit P1 source record; record integrity skips
+  gitignored `_temp/`; PLoS Fig 5A producer (c3719c79). Local: Jansen-Rit P3 v1 draft and driver (bd007662).
+- Last pushed: 290c3cf0. Broad 8238 passed, 1 failed (the 60 s import timeout, 6 passed alone); 8 paper lanes PASS.
 
 ## Broken or in flight
 
@@ -76,6 +75,5 @@ CAMINOS figure suites (Hamm 2026-11-04) are on the dashboard Notebooks tab (a35a
 jaxfne usage; each notebook opens with its network built and run live in jaxfne, code shown. The figures stay on
 the oracle runs except PLoS Fig 1E (P6 jaxfne runs); Cell Reports core route not equivalent (E1, 20 of 24).
 Raster run 497e9bb0 complete: 3 seeds × 9 conditions in `F:/warehouse/caminos/cellrep_rasters/` (panels read seed 1). Not run yet:
-Cell Reports 1A, 1D, 2A/2B bottom, 6A top, 6B; PLoS Fig 5, Fig 3 and 4A mean-field rows. Next, in worker lanes:
-B1 baseline scripts (Brian2, NEST, Jaxley) and M3 smoke (T-B1); T-C2A3 findings; 10G G1 (CAMINOS panels);
-D2 P1 once the Jansen-Rit 1995 constants are read from the paper.
+Cell Reports 1A, 1D, 2A/2B bottom, 6A top, 6B; PLoS Fig 5 panel, Fig 3 and 4A mean-field rows. Next: Fig 5A panel
+into `plos_suite.ipynb`; B1 scored runs (T-B1); Jansen-Rit P3 scoring once O-92 is signed.
