@@ -49,3 +49,17 @@ One remaining difference: the code weights inhibitory inputs in T_v by (Q_I U_I)
 Observed properties of the fitted polynomial (pinned by tests): the PV transfer rises with nu_PV at low rates
 (72.73 to 74.15 Hz as nu_PV goes 0.5 to 2 Hz at nu_E = nu_SOM = 0.5 Hz). With weak inhibition the E transfer
 rises with nu_PV (39.71 to 45.43 Hz over the same range); near the operating point it falls.
+
+## Nonlinear mean field, added couplings (Fig 5A)
+
+The paper adds PV->SOM and SOM->SOM (p 0.07, inhibitory, 2 ms delay) and sweeps each on 0-3 nS with the other at
+0; oscillation ends near 0.7 nS for PV->SOM and near 1.7 nS for SOM->SOM (figure readings). Port: `fig5a_sweep`,
+31 points per coupling, oscillation = a sustained cycle after a +5% perturbation of the fixed point (receipt
+`F:/warehouse/caminos/plos_text/fig5a_sweep_bd007662_sustain.json`). No tolerance was declared before the run.
+
+| Coupling | Paper, oscillation ends | Port, last oscillating / first stable | Frequency at 0 nS |
+|---|---|---|---|
+| PV->SOM | about 0.7 nS | 0.7 / 0.8 nS | 33.5 Hz (paper about 35) |
+| SOM->SOM | about 1.7 nS | 1.3 / 1.4 nS (Hopf near 1.33) | 33.5 Hz |
+
+PV->SOM matches; SOM->SOM ends about 0.35 nS early, cause open.

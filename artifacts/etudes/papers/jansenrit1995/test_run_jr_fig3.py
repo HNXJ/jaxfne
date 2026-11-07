@@ -32,6 +32,15 @@ def test_spectrum_metrics_white_noise_is_below_noise_threshold():
     assert m["osc_index"] < 0.4
 
 
+def test_run_c_standard_set_is_alpha_and_c_is_consumed():
+    jr.jaxfne.enable_x64()
+    alpha = jr.run_c(135.0, 0, 5.0, 1e-4, 2e-3, 1.0)
+    assert alpha["finite"] and 8.0 <= alpha["f_peak_hz"] <= 13.0 and alpha["osc_index"] >= 0.4
+    assert 5.0 <= alpha["eeg_mean_mv"] <= 10.0
+    spike = jr.run_c(270.0, 0, 5.0, 1e-4, 2e-3, 1.0)
+    assert spike["eeg_std_mv"] > 5.0 * alpha["eeg_std_mv"], "C must change the output"
+
+
 def test_main_refuses_run_shorter_than_discard_plus_segment(tmp_path):
     assert jr.main(["--seeds", "0", "--out", str(tmp_path), "--t-s", "4.5"]) == 2
     assert not any(tmp_path.iterdir())

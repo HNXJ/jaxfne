@@ -575,6 +575,43 @@ def fig_plos_6c():
     return fig
 
 
+def fig_plos_5a(json_path):
+    """Fig 5A: added PV->SOM and SOM->SOM couplings (0-3 nS) on the nonlinear mean field.
+
+    Reads a ``fig5a_sweep`` JSON ({coupling: sweep}). Top row: oscillation frequency at unstable points.
+    Bottom row: E-rate fixed point (solid stable, dashed unstable) and the limit-cycle min/max.
+    """
+    with open(json_path, encoding="utf-8") as f:
+        data = json.load(f)
+    fig = plt.figure(figsize=(9.0, 5.6))
+    grid = fig.add_gridspec(2, 2, hspace=0.45, wspace=0.3)
+    labels = {"PVSOM": "PV$\\to$SOM", "SOMSOM": "SOM$\\to$SOM"}
+    for col, name in enumerate(("PVSOM", "SOMSOM")):
+        rows = data[name]["results"]
+        g = np.array([r["g_ns"] for r in rows])
+        unstable = np.array([not r["stable"] for r in rows])
+        ax = fig.add_subplot(grid[0, col])
+        ax.plot(g[unstable], [r["freq_hz"] for r, u in zip(rows, unstable) if u], "o-", c="#333333",
+                ms=3, lw=1.0)
+        ax.set_xlim(g.min(), g.max())
+        ax.set_ylabel("frequency (Hz)")
+        ax.set_title("Fig 5A %s: oscillation frequency" % labels[name], fontsize=9)
+        ax = fig.add_subplot(grid[1, col])
+        fp = np.array([r["fixed_E_hz"] for r in rows])
+        ax.plot(np.where(~unstable, g, np.nan), np.where(~unstable, fp, np.nan), c=COLORS["E"], lw=1.4,
+                label="fixed point, stable")
+        ax.plot(np.where(unstable, g, np.nan), np.where(unstable, fp, np.nan), c=COLORS["E"], lw=1.2,
+                ls="--", label="fixed point, unstable")
+        lo = [r["min_E_hz"] if u else np.nan for r, u in zip(rows, unstable)]
+        hi = [r["max_E_hz"] if u else np.nan for r, u in zip(rows, unstable)]
+        ax.plot(g, lo, c="#7f7f7f", lw=1.0, label="limit cycle min/max")
+        ax.plot(g, hi, c="#7f7f7f", lw=1.0)
+        ax.set_xlabel("added %s conductance (nS)" % labels[name])
+        ax.set_ylabel("E rate (Hz)")
+        ax.legend(fontsize=7)
+    return fig
+
+
 def _new_ax(figsize):
     fig = plt.figure(figsize=figsize)
     return fig, fig.add_subplot(1, 1, 1)

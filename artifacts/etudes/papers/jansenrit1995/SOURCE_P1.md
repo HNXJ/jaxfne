@@ -41,6 +41,9 @@ outcome: noise, noisy alpha, well-defined alpha at C = 135, then spike-wave-like
 frequency falls to zero, then noise-like. Also stated (p. 361): the same sequence when A, B or v0 alone rises from
 low to high; sweep ranges A 2.6-9.75 mV, B 17.6-110 mV, C 108-675, v0 in {3.12, 5.52, 6.0} mV.
 
+Fig. 3's time scale bar reads 500 units = 1 second (observed, p. 361), so the plotted output is sampled every
+2 ms (inferred); whether the input was drawn at that interval is unknown.
+
 Unknown before a P3 prereg: the noise sample interval (white noise held per step), the integration step, run
 length beyond the 2 s shown, and any transient discarded. A P3 criterion must therefore score regime class and
 dominant frequency, not waveform.

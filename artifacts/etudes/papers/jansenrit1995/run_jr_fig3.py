@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -55,7 +56,21 @@ def spectrum_metrics(eeg: np.ndarray, dt_s: float) -> dict:
     return {"f_peak_hz": f_peak, "osc_index": float(pb[near].sum() / total) if total > 0 else 0.0}
 
 
+def _git_sha() -> str:
+    """HEAD of the repository holding this file, with ``+dirty`` when the tree has changes; ``unknown`` without git."""
+    here = Path(__file__).resolve().parent
+    try:
+        sha = subprocess.run(["git", "-C", str(here), "rev-parse", "HEAD"], capture_output=True, text=True,
+                             check=True).stdout.strip()
+        dirty = subprocess.run(["git", "-C", str(here), "status", "--porcelain"], capture_output=True, text=True,
+                               check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+    return sha + ("+dirty" if dirty else "")
+
+
 def run_c(c: float, seed: int, t_s: float, dt_s: float, hold_s: float, discard_s: float) -> dict:
+    """One C at one seed. Every C of a seed gets the same p(t) (common random numbers across C)."""
     n = int(round(t_s / dt_s))
     out = simulate_jansen_rit(
         STANDARD["A"], STANDARD["B"], STANDARD["a"], STANDARD["b"],
@@ -87,7 +102,7 @@ def main(argv: list[str] | None = None) -> int:
     a.out.mkdir(parents=True, exist_ok=True)
     for seed in a.seeds:
         rows = [run_c(c, seed, a.t_s, a.dt_s, a.hold_s, a.discard_s) for c in a.c]
-        rec = {"seed": seed, "t_s": a.t_s, "dt_s": a.dt_s, "hold_s": a.hold_s, "discard_s": a.discard_s,
+        rec = {"seed": seed, "git_sha": _git_sha(), "t_s": a.t_s, "dt_s": a.dt_s, "hold_s": a.hold_s, "discard_s": a.discard_s,
                "standard": STANDARD, "rows": rows}
         (a.out / f"fig3_seed{seed}.json").write_text(json.dumps(rec, indent=1), encoding="utf-8")
         for r in rows:

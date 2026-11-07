@@ -340,7 +340,10 @@ def fig5a_point(coupling, g_ns, T_s=4.0, dt_s=1e-4, T_stab_s=8.0, params=PARAMS)
     (max/min of nu_E(t)). Stability perturbs the fixed point (+5% on the rates, w at its fixed
     point) and simulates T_stab_s: oscillating when the cycle is sustained (FIG5A_PTP_FLOOR_HZ,
     FIG5A_SUSTAIN on the last two quarters); stable when not oscillating and the mean of the last
-    quarter is within max(0.5 Hz, 20%) of the fixed point. Non-oscillating points report frequency 0.0.
+    quarter is within max(0.5 Hz, 20%) of the fixed point. Non-oscillating points report frequency 0.0;
+    amplitude and min/max always come from the main run, so a stable point reports its residual transient.
+    Resolution: a focus decaying slower than 10% per quarter (within about 0.01 nS of the Hopf point here)
+    counts as oscillating.
     """
     p = params_with_coupling(coupling, g_ns, params)
     x, res = fixed_point(p)

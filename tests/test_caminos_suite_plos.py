@@ -234,6 +234,20 @@ def test_fig_1d_meanfield():
     plt.close(fig)
 
 
+def test_fig_5a_reads_sweep_json(tmp_path):
+    def row(g, stable):
+        return {"g_ns": g, "freq_hz": 0.0 if stable else 35.0, "fixed_E_hz": 1.4 + 0.1 * g, "stable": stable,
+                "min_E_hz": 1.0, "max_E_hz": 2.0}
+    sweep = {"results": [row(0.0, False), row(1.0, False), row(2.0, True)]}
+    path = tmp_path / "fig5a.json"
+    path.write_text(json.dumps({"PVSOM": sweep, "SOMSOM": sweep}), encoding="utf-8")
+    fig = ps.fig_plos_5a(path)
+    assert len(fig.axes) == 4
+    freq_line = fig.axes[0].lines[0]
+    assert list(freq_line.get_xdata()) == [0.0, 1.0], "frequency is drawn at unstable points only"
+    plt.close("all")
+
+
 def test_fig_6a_6b_6c():
     pytest.importorskip("scipy")
     assert len(ps.fig_plos_6a().axes) == 1
