@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-05T17:19:17Z",
-    "dev_sha": "e4b5235026b208ce33d24eacd81f2d3180504094",
-    "data_revision": "5a77077e78c317a541957d6935a2eaf77c960aa0cac562f8c4d2f5e334887719"
+    "utc": "2026-11-07T17:06:25Z",
+    "dev_sha": "2846ee9dac43f0ff82f32f91a4efc4968ddf77a6",
+    "data_revision": "d60e053e50f26af7f8a4461f5c6d3b81f122562ae7d618a65d5eaf484c5de05c"
   },
   "papers": [
     {
@@ -7597,7 +7597,7 @@
     {
       "release": "0.5.10",
       "model": "Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns",
-      "needs": "a neural-mass emitter in the core"
+      "needs": "a signed P3 on the Fig. 3 C sweep (emitter and source record in place)"
     },
     {
       "release": "0.5.10",
@@ -8104,9 +8104,9 @@
       "reference": "Jansen, B. H., & Rit, V. G. (1995). Electroencephalogram and visual evoked potential generation in a mathematical model of coupled cortical columns. *Biological Cybernetics* 73(4), 357-366.",
       "doi": "10.1007/BF00199471",
       "result": "Alpha-rhythm EEG and the visual evoked potential from the coupled-column neural mass",
-      "status": "queued",
-      "status_note": "P0",
-      "where": "Opens the EEG/MEG lane (Hamm 2026-10-20); core gap: a neural-mass emitter (sigmoid rate, second-order synaptic kernels)"
+      "status": "in progress",
+      "status_note": null,
+      "where": "Source record read (P1); the neural-mass emitter is in the core. Opens the EEG/MEG lane (Hamm 2026-10-20)"
     }
   ]
 }

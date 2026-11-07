@@ -1885,7 +1885,7 @@
     }
   ],
   "roadmap": [
-    {"release": "0.5.10", "model": "Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns", "needs": "a neural-mass emitter in the core"},
+    {"release": "0.5.10", "model": "Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns", "needs": "a signed P3 on the Fig. 3 C sweep (emitter and source record in place)"},
     {"release": "0.5.10", "model": "CAMINOS Cell Reports Fig. 1D: mouse V1 recordings", "needs": "the raw Onorato data (on request from the lead contact)"},
     {"release": "after 0.5.10", "model": "PCL Fig. 4: suppression effects", "needs": "PCL Fig. 3 scored (R5-approximate, 0.5.10)"},
     {"release": "after 0.5.10", "model": "PCL Figs. 5–6", "needs": "the PCL suppression data and N-MNIST/DVS sets"},

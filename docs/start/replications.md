@@ -37,7 +37,7 @@ fail or not run 0); 100 is a full replica. A dash means no panel inventory yet.
 
 | Release | Model | Needs |
 |---|---|---|
-| 0.5.10 | Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns | a neural-mass emitter in the core |
+| 0.5.10 | Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns | a signed P3 on the Fig. 3 C sweep (emitter and source record in place) |
 | 0.5.10 | CAMINOS Cell Reports Fig. 1D: mouse V1 recordings | the raw Onorato data (on request from the lead contact) |
 | after 0.5.10 | PCL Fig. 4: suppression effects | PCL Fig. 3 scored (R5-approximate, 0.5.10) |
 | after 0.5.10 | PCL Figs. 5–6 | the PCL suppression data and N-MNIST/DVS sets |

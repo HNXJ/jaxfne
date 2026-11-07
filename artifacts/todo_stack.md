@@ -29,11 +29,12 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     (pdfLaTeX, TeX Live 2026 in WSL, the kit's unmodified style; Hamm's choice) passes: 4 pages, 0 overfull boxes, all
     fonts embedded, no Type 3. Waits on [H]: the anonymous.4open.science mirror of the code repo (Hamm's choice;
     the link replaces `[MISSING: anonymized code link]`), then Hamm reads and submits. Closes when Hamm has submitted.
-21. ∥ T-C2A3 [A] Left from the C2 and A3 lanes: (a) the canonical homeostatic_ei run under `bound_mode="stable"`
-    sits at the x rail (±10) on 68.5% of steps after the x-bound fix (2e1af6f8): model regime or defect, unknown;
-    (b) spec-level neuron permutation needs order-independent construction (`_construct_population.py:504,527-537`,
-    `_construct_core.py:1563-1564`, `connectivity.py:918-919`). Closes when: (a) has a cause with a test, and A3 has
-    its permutation test killed by a mutant.
+21. ∥ T-C2A3 [A] Left from the A3 lane (the C2 rail question closed 2026-11-07: model regime; the canonical
+    hebbian×linear pair is the measured divergent cell B-05, `emitters_homeostatic_ei.py:301`; the rail fraction
+    follows the bound, 0.68 at ±10, 0.985 at ±100 and ±1e6, unchanged with drive halved; n 16, seed 0, 2000 ms):
+    spec-level neuron permutation needs order-independent construction (`_construct_population.py:504,527-537`,
+    `_construct_core.py:1563-1564`, `connectivity.py:918-919`). Closes when: A3 has its permutation test killed by
+    a mutant.
 20. ∥ T-B1 [A] Scored CPU vs RTX A4000 benchmark & memory profile (F4, `artifacts/runs/benchmark/PREREG_B1_0510.md`):
     profile whether a GPU upgrade is justified ($0 spend now; purchase gate based on measured bottlenecks).
     Metrics recorded per cell across N (1e2 to 1e5): compilation time (CPU/JAX compilation overhead),
@@ -44,8 +45,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     but GPU execution dominates -> benchmark faster GPU; CPU construction/compilation dominates -> platform/CPU
     changes; no material bottleneck -> retain A4000. Closes when: benchmark receipt records all 6 metrics across
     N for CPU and A4000 with recording controls, evaluated against the purchase gate. Status 2026-11-06: prereg
-    signed and pinned; jaxfne harness `artifacts/runs/benchmark/b1/b1_harness.py` (CPU smoke M1, M2 at N=100). Left:
-    M3 smoke; review the M1 external-drive scaling rule; the baseline scripts (`b1/b1_brian2.py`, `b1_nest.py`,
+    signed and pinned; jaxfne harness `artifacts/runs/benchmark/b1/b1_harness.py` (CPU smoke M1, M2 at N=100; M3 at
+    N=1, 10, 100 after the `jax.random.split` fix 2846ee9d, 2026-11-07). The M3 class waits on O-90. Left: review the M1 external-drive scaling rule; the baseline scripts (`b1/b1_brian2.py`, `b1_nest.py`,
     `b1_jaxley.py`, on dev 1e7ee1e5; Brian2 2.10.1 and NEST 3.10.0 in WSL `~/venv_b1_baselines`, Jaxley on Windows)
     type their model constants with source citations: read them from the lane files before scored runs; then the
     scored runs.
@@ -55,8 +56,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     paper's stated treatment, read before any build. Cell Reports 2B bottom (`cellrep_figures.py:405`, no run mode)
     and 6B (`:439`, gain unstated) wait on O-88. Closes when: each kept panel is in its exported notebook
     (`suite/plos_suite.ipynb`, `suite/cellrep_suite.ipynb`) from pinned runs.
-27. ∥ T-48 [A] 10D D2 Jansen-Rit 1995: the emitter is on dev (cf706780, 19 tests, every parameter required); left the
-    paper's constants from the 1995 text and P1. Closes when: P1 is scored.
+27. ∥ T-48 [A then H] 10D D2 Jansen-Rit 1995: the emitter is on dev (cf706780, every parameter required); the
+    paper's constants and the Fig. 3 C sweep read into `etudes/papers/jansenrit1995/SOURCE_P1.md` (2026-11-07).
+    Next: a P3 prereg scoring regime class and dominant frequency per C (the paper gives no step size or noise
+    interval), for Hamm's signature. Closes when: the P3 is scored.
 14. ∥ T-O68 [A then H] Local copies (O-68). Status 2026-11-07: every `E:/cl-*` and `E:/repos/_wt/jaxfne/*` clone
     audited (dirty files, `git cherry` against dev, alternates borrowers); dirty diffs, untracked files and the
     `clogsweep`/`pclr2study` bundles rescued to `F:/warehouse/jaxfne_clone_rescue/` (`HEADS.txt` lists each);
