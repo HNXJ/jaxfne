@@ -18,8 +18,14 @@ from pathlib import Path
 
 import numpy as np
 
-import jaxfne
-from jaxfne.emitters_jansen_rit import simulate_jansen_rit
+_REPO_ROOT = Path(__file__).resolve().parents[4]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+import jaxfne  # noqa: E402
+from jaxfne.emitters_jansen_rit import simulate_jansen_rit  # noqa: E402
+
+assert "site-packages" not in jaxfne.__file__, ("P-025: jaxfne resolved outside the repo", jaxfne.__file__)
 
 STANDARD = {"A": 3.25, "B": 22.0, "a": 100.0, "b": 50.0, "e0": 2.5, "v0": 6.0, "r": 0.56}
 FIG3_C = (68.0, 128.0, 135.0, 270.0, 675.0, 1350.0)

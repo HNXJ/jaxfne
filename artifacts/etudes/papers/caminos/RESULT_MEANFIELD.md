@@ -62,4 +62,9 @@ The paper adds PV->SOM and SOM->SOM (p 0.07, inhibitory, 2 ms delay) and sweeps 
 | PV->SOM | about 0.7 nS | 0.7 / 0.8 nS | 33.5 Hz (paper about 35) |
 | SOM->SOM | about 1.7 nS | 1.3 / 1.4 nS (Hopf near 1.33) | 33.5 Hz |
 
-PV->SOM matches; SOM->SOM ends about 0.35 nS early, cause open.
+PV->SOM matches; SOM->SOM ends about 0.35 nS early with the printed T_v form.
+
+Probe (one process, `moments` patched to the authors' code form of T_v, inhibitory inputs weighted by
+(Q_I U_I)^2; see "One remaining difference" above): frequency at 0 nS 35.00 Hz; PV->SOM last oscillating 0.6,
+first stable 0.8 (0.7 borderline); SOM->SOM 1.5 / 1.7 nS. The code form closes the SOM->SOM gap and the 4%
+frequency offset (inferred cause; one grid, no tolerance declared). Which form the port keeps: `open_stack.md` O-93.

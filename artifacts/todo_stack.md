@@ -57,8 +57,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     field (frequency, amplitude, bifurcation diagram); 5B is the reduced Eq. 2 (no synaptic delay, no adaptation)
     beside a spiking raster. 5A producer landed (c3719c79, `fig5a_sweep`); its 0.5 Hz peak-to-peak threshold cut
     small sustained cycles, now replaced by a sustained-cycle test (constant E peak-to-peak over 16 s at SOM→SOM 1.1
-    and 1.3 nS): PV→SOM ends at 0.7-0.8 nS (figure about 0.7), SOM→SOM near 1.33 nS (figure about 1.7; the
-    residual gap is open, cause unknown). Left: the panel in `plos_suite.ipynb`. Fig 4A mean-field lines: no producer. Fig 3
+    and 1.3 nS): PV→SOM ends at 0.7-0.8 nS (figure about 0.7), SOM→SOM near 1.33 nS (figure about 1.7). The
+    authors' code form of T_v gives 1.5-1.7 nS and 35.00 Hz (probe; O-93). Panel in `plos_suite.ipynb` (a6f4d867);
+    left: re-export the dashboard notebook. Fig 4A mean-field lines: no producer. Fig 3
     mean-field rows: the paper defines randomization only for the network (a fraction replaced by Poisson units at
     the reference mean rate, Results ¶ "silencing and randomizing"); the mean-field treatment is unstated, so the
     build declares one before the run (inferred: the fraction enters as a constant input at the baseline rate).
