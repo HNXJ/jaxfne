@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@05942346 · 2026-11-06
+Stamp: jaxfne@dev@1e7ee1e5 · 2026-11-07
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
@@ -20,13 +20,13 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - P-BALANCED ported for 0.5.10 (e179a2d0..9dd1c111; Hamm 2026-11-05): `BackgroundNoise`, `NeuronalTensor.baseline_drive`
   and `background_noise` (preset noise in `cfg.metadata["background_noise"]`), balanced-1000n preset retuned under
   the unchanged bounds (seeds 0-4: CV 0.742-0.755, shift 0.236-0.257); canonical CV pin 0.0585 (b1d9dfe1 moved it).
-- 0.5.10 checklist approved (Hamm 2026-11-05); scored 14/100 on 2026-11-06 (D1 kernel LFP done, B1 prereg signed).
-- Landed 2026-11-06 (f96c91e6..05942346): coherence-limited LFP power, `jaxfne.analysis.isi_ratio`, HDP guide
-  (jumps since 0.5.9), Jansen-Rit emitter, seed-determinism tests (C2), geometry mutation receipt (A3), ruff 0.17.3
-  and hatchling 1.33.0 (Dependabot #118, #119 closed as superseded), GSDR `--batch` opt-in within rel 1e-2, B1
-  harness and the signed B1 prereg (hash pinned). Issue #123 (HDP questions from jomission) answered and closed.
-- Last pushed: 05942346. Broad gate 8226 passed; 1 failed and 3 errors were 120 s / 60 s subprocess timeouts, each
-  passing alone (21 tests); all 8 paper lanes PASS; report fail_count 0.
+- Landed 2026-11-07 (f0489d18..1e7ee1e5): HH seed refusal test; homeostatic_ei stable x bounds from construct
+  (±10); B1 baseline scripts; tree budget 96.1 MB. jnwb 16-12 isi_cv on jnwb `_temp_jaxfne-16e` (5fa63dd3,
+  accepted); keep `E:/cl-jnwb16e` until jnwb-orchestrator confirms its pick.
+- Landed 2026-11-06 (f96c91e6..05942346): coherence LFP, `isi_ratio`, Jansen-Rit emitter, A3 receipt, GSDR
+  `--batch`, B1 harness and signed prereg, ruff/hatchling bumps (#118, #119 closed); issue #123 closed.
+- Last pushed: 1e7ee1e5. Broad gate 8233 passed; 1 failed and 3 errors were the 120 s / 60 s subprocess timeouts,
+  each passing alone (21 tests); all 8 paper lanes PASS; report fail_count 0.
 
 ## Broken or in flight
 

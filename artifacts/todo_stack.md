@@ -9,7 +9,7 @@ Done steps are deleted; history is in git (the sectioned form before this rewrit
 Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-B8:
 `control/harness/evidence_and_workflow_rules.md`; paper goal G-0: `programme/design/plans/arxiv_paper_plan.md`.
 
-## 0.5.10 (checklist and score in the release plan's 0.5.10 section, approved by Hamm 2026-11-05; 14/100 on 2026-11-06)
+## 0.5.10 (checklist and score in the release plan's 0.5.10 section, approved by Hamm 2026-11-05; 16/100 on 2026-11-07)
 
 4. T-3 [A] 10E PCL Fig 3: R5-approximate (the core on all 3168 tasks under signed R4b, driver
    `F:/warehouse/pcl/r5/run_r5.sh`, resumable) scored in `pcl/prereg/`; P-055 (R5-exact FAIL, 4 of 16 files)
@@ -64,12 +64,15 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     changes; no material bottleneck -> retain A4000. Closes when: benchmark receipt records all 6 metrics across
     N for CPU and A4000 with recording controls, evaluated against the purchase gate. Status 2026-11-06: prereg
     signed and pinned; jaxfne harness `artifacts/runs/benchmark/b1/b1_harness.py` (CPU smoke M1, M2 at N=100). Left:
-    M3 smoke; Brian2, NEST, Jaxley baseline scripts; review the M1 external-drive scaling rule; then the scored runs.
-21. ∥ T-C2A3 [A] Findings from the C2 and A3 lanes (2026-11-06): HH ignores `Simulation(seed)` (C2 skips it);
-    `homeostatic_ei` with `bound_mode="stable"` drove V to about 1e6 in the C2 worker's run (unverified); spec-level
-    neuron permutation needs order-independent construction (`_construct_population.py:504,527-537`,
-    `_construct_core.py:1563-1564`, `connectivity.py:918-919`). Closes when: HH honours the seed with C2's test
-    unskipped, the V blow-up is reproduced and fixed or refuted, and A3 has its permutation test killed by a mutant.
+    M3 smoke; review the M1 external-drive scaling rule; the baseline scripts (`b1/b1_brian2.py`, `b1_nest.py`,
+    `b1_jaxley.py`, on dev 1e7ee1e5; Brian2 2.10.1 and NEST 3.10.0 in WSL `~/venv_b1_baselines`, Jaxley on Windows)
+    type their model constants with source citations: read them from the lane files before scored runs; then the
+    scored runs.
+21. ∥ T-C2A3 [A] Left from the C2 and A3 lanes: (a) the canonical homeostatic_ei run under `bound_mode="stable"`
+    sits at the x rail (±10) on 68.5% of steps after the x-bound fix (2e1af6f8): model regime or defect, unknown;
+    (b) spec-level neuron permutation needs order-independent construction (`_construct_population.py:504,527-537`,
+    `_construct_core.py:1563-1564`, `connectivity.py:918-919`). Closes when: (a) has a cause with a test, and A3 has
+    its permutation test killed by a mutant.
 
 ## Owner queue (asked one at a time, in this order)
 
