@@ -301,7 +301,7 @@ def _run_M3(n: int, dtype: str, seed: int, n_steps: int, dt_ms: float, recording
     from jaxfne import emitters_hh as hh
 
     key = jax.random.PRNGKey(int(seed))
-    k_ou, _ = jax.split(key, 2)
+    k_ou, _ = jax.random.split(key, 2)
     params = hh.make_hh_params(["E"] * int(n))
     jdtype = jnp.float32 if dtype == "float32" else jnp.float64
     i_ext = jnp.full((int(n),), 10.0, dtype=jdtype)

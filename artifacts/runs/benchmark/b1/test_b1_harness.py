@@ -56,6 +56,29 @@ def test_tiny_cell_receipt_fields():
     assert env["seed_list"] == [1]
 
 
+def test_m3_tiny_cell_receipt_fields():
+    spec = {"model": "M3", "n": 1, "dtype": "float32", "device": "cpu",
+            "batch": 1, "recording": "full", "seeds": [1],
+            "duration_ms": 10.0, "dt_ms": 0.1}
+    rec = H.run_cell(spec)
+    assert rec["status"] == "MEASURED", rec.get("error")
+    for key in ("cell", "model", "n", "n_steps", "duration_ms", "dt_ms",
+                "dtype", "device_requested", "device_used", "backend",
+                "batch", "recording", "seeds", "warmup_seed", "build_seed",
+                "compile_s", "construct_s", "warmup_s", "run_s",
+                "run_s_median", "run_s_q1", "run_s_q3", "run_s_iqr",
+                "throughput_neuron_steps_s", "ensemble_s", "ensemble_mode",
+                "peak_gpu_mem", "peak_host_rss_mb", "transfer_s",
+                "numerical_agreement", "validity", "env", "scaling_rule",
+                "lane_refs", "prereg", "notes", "wall_s"):
+        assert key in rec, f"missing receipt field {key}"
+    assert rec["n_steps"] == 100
+    ag = rec["numerical_agreement"]
+    assert ag["total_spikes"] > 0, "I_ext=10 must drive HH spikes"
+    assert rec["validity"]["spikes_gt_zero"] is True
+    assert rec["validity"]["mean_E_rate_hz"] > 0
+
+
 def test_recording_off_rss_reported():
     full = H.run_cell(_spec("full"))
     off = H.run_cell(_spec("off"))
