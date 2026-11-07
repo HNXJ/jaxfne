@@ -66,8 +66,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     (`suite/plos_suite.ipynb`, `suite/cellrep_suite.ipynb`) from pinned runs.
 27. ∥ T-48 [A then H] 10D D2 Jansen-Rit 1995: the emitter is on dev (cf706780, every parameter required); the
     paper's constants and the Fig. 3 C sweep read into `etudes/papers/jansenrit1995/SOURCE_P1.md` (2026-11-07).
-    Next: a P3 prereg scoring regime class and dominant frequency per C (the paper gives no step size or noise
-    interval), for Hamm's signature. Closes when: the P3 is scored.
+    P3 drafted, unsigned (`jansenrit1995/prereg/P3_v1.md`, driver `run_jr_fig3.py`): regime class, alpha
+    sharpening, spike-wave slowing and EEG level per C; pilots seeds 0-2 close E1-E4. Blocked by: Hamm's
+    signature (thresholds, 2 ms hold, aggregation). Closes when: the P3 is scored on seeds 10-14.
 14. ∥ T-O68 [A then H] Local copies (O-68). Status 2026-11-07: every `E:/cl-*` and `E:/repos/_wt/jaxfne/*` clone
     audited (dirty files, `git cherry` against dev, alternates borrowers); dirty diffs, untracked files and the
     `clogsweep`/`pclr2study` bundles rescued to `F:/warehouse/jaxfne_clone_rescue/` (`HEADS.txt` lists each);
