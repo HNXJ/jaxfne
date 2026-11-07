@@ -165,8 +165,9 @@ def test_fig5a_nonzero_coupling_changes_e_trajectory(coupling):
 
 @pytest.mark.parametrize("coupling, g_cycle, g_decay", [("SOMSOM", 1.1, 1.6), ("PVSOM", 0.7, 1.0)])
 def test_fig5a_small_sustained_cycle_counts_as_oscillation(coupling, g_cycle, g_decay):
-    """SOM->SOM at 1.1 nS and PV->SOM at 0.7 nS keep a constant small cycle (E peak-to-peak 0.36 and 0.28 Hz over
-    16 s, under the old 0.5 Hz threshold); at g_decay the perturbation decays. First unstable, second stable."""
+    """SOM->SOM at 1.1 nS and PV->SOM at 0.7 nS keep a constant small cycle (a 16 s run from the +5% perturbed
+    fixed point held E peak-to-peak at 0.36 and 0.28 Hz in every 2 s window from 4 s on, under the old 0.5 Hz
+    threshold); at g_decay the perturbation decays. First unstable, second stable."""
     lo = mf.fig5a_point(coupling, g_cycle)
     assert 0.0 < 2.0 * lo["amplitude_hz"] < 0.5, "fixture: cycle must sit under the old 0.5 Hz threshold"
     assert lo["stable"] is False and lo["freq_hz"] > 0.0

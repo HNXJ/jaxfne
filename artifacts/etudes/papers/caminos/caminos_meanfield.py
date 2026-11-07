@@ -240,7 +240,8 @@ def simulate_meanfield(T_s, dt_s=1e-4, params=PARAMS, nu0=None, w0=None,
     Silencing a fraction f scales that population's N by (1 - f) in every input term; the silenced
     rate still obeys Eq. 1 but sends no input. Rates start at nu0 (default DEFAULT_START), nu(t < 0)
     equals nu0 and w starts at w0 (default zeros, columns E, PV, SOM). Returns (t, nu, w): t in s;
-    nu and w have shape (n + 1, 3), columns E, PV, SOM. The PV column of w is 0 (a = b = 0).
+    nu and w have shape (n + 1, 3), columns E, PV, SOM. The PV column of w stays at its start value
+    (0 by default; a = b = 0 for PV).
     """
     if not (0.0 <= pv_silence <= 1.0 and 0.0 <= som_silence <= 1.0):
         raise ValueError("silenced fractions must lie in [0, 1]")
@@ -342,8 +343,8 @@ def fig5a_point(coupling, g_ns, T_s=4.0, dt_s=1e-4, T_stab_s=8.0, params=PARAMS)
     FIG5A_SUSTAIN on the last two quarters); stable when not oscillating and the mean of the last
     quarter is within max(0.5 Hz, 20%) of the fixed point. Non-oscillating points report frequency 0.0;
     amplitude and min/max always come from the main run, so a stable point reports its residual transient.
-    Resolution: a focus decaying slower than 10% per quarter (within about 0.01 nS of the Hopf point here)
-    counts as oscillating.
+    Resolution: a focus decaying slower than 10% per quarter counts as oscillating; on SOM->SOM a 16 s probe
+    decayed about 12% per 2 s at 1.32 nS and to zero by 1.34 nS.
     """
     p = params_with_coupling(coupling, g_ns, params)
     x, res = fixed_point(p)

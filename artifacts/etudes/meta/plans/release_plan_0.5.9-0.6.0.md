@@ -69,7 +69,7 @@ credit.
 Score 2026-11-07: 16/100 (packages 16 of 70, gates 0 of 30; C2 done). Score 2026-11-06: 14/100 (D1 landed, B1 signed). Score 2026-11-05: 7/100. The 8.5 of the draft counted items implicitly and gave
 T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 
-| Item | Weight | What | Done when (cited check) | State 2026-11-05 | Score |
+| Item | Weight | What | Done when (cited check) | State (dated per row; checked 2026-11-07) | Score |
 |---|---|---|---|---|---|
 | **10A Geometry** (F2, S3, S4, C4) | **14** | | | | **3** |
 | A1 | 4 | Atlas AT-10-N20, F2 rendered from it | F2 renders from the AT-10-N20 receipt | open | 0 |
@@ -78,7 +78,7 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | A4 | 3 | C4 Euclidean radius cutoff with its rotation test (T-R28) | `tests/test_geometry_radius_rotation.py` | done (de86aa67) | 3 |
 | **10B Compute** (F4, S6, C6) | **14** | | | | **3** |
 | B1 | 3 | benchmark prereg | signed before any scored run | done: `artifacts/runs/benchmark/PREREG_B1_0510.md` signed by Hamm 2026-11-06, hash pinned (3c008063) | 3 |
-| B2 | 3 | CPU and GPU receipts: neuron-steps/s against N, compile against run, vmap, float32/64 | receipts hash-pinned | harness `benchmark/b1/b1_harness.py` (aba98c8c, 05942346), CPU smoke M1/M2 at N=100; M3 not smoked, no scored run. Baseline scripts `b1_brian2.py`, `b1_nest.py`, `b1_jaxley.py` (f0dab234) pass their smoke tests (B3 inputs) | 0 |
+| B2 | 3 | CPU and GPU receipts: neuron-steps/s against N, compile against run, vmap, float32/64 | receipts hash-pinned | harness `benchmark/b1/b1_harness.py` (aba98c8c, 05942346), CPU smoke M1/M2 at N=100; M3 smoked at N=1/10/100 after the `jax.random.split` fix (2846ee9d), no scored run, no receipts. Baseline scripts `b1_brian2.py`, `b1_nest.py`, `b1_jaxley.py` (f0dab234) pass their smoke tests (B3 inputs) | 0 |
 | B3 | 4 | Brian2, NEST and Jaxley baselines where the model class applies | each baseline's receipt pinned, or its class mismatch recorded | C6 inventory only | 0 |
 | B4 | 2 | `build_config` repair | its failing-first test | open | 0 |
 | B5 | 2 | LIF edge kernel on GPU (T-32) | GPU receipt equal to CPU within the declared tolerance | open | 0 |
@@ -87,11 +87,11 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | C2 | 2 | determinism | two seeds change output; the same seed reproduces (C7 check) | done 2026-11-07: `tests/test_simulate_seed_determinism.py` (44b847f5, e9e570e8) holds for Izhikevich, homeostatic_ei, LIF, rate, AdEx; HH has no noise and refuses a nonzero seed (tested, killed by a planted removal); dev 1e7ee1e5 | 2 |
 | **10D Extras** (S16) | **12** | | | | **4** |
 | D1 | 4 | kernel LFP: `6eb3c6b8`, `44cd0111`, `ff45364b` from `_temp_kernel-lfp`, then the iSTDP out-degree check and `coherence_radius_um` with its two limit tests (T-47) | each on dev with its tests | done 2026-11-06: kernel LFP 616c8756, bc83f4eb; iSTDP check already on dev (85199ade); coherence radius f2f63b1c (`coherence_limited_lfp_power`, `tests/test_kernel_lfp.py`); dev f96c91e6, broad gate 8206 passed | 4 |
-| D2 | 4 | Jansen-Rit 1995 neural-mass emitter and its P1 (T-48) | emitter tests on dev; P1 scored | emitter `jaxfne/emitters_jansen_rit.py` with 19 tests on dev (cf706780); paper constants and P1 open | 0 |
+| D2 | 4 | Jansen-Rit 1995 neural-mass emitter and its P1 (T-48) | emitter tests on dev; P1 scored | emitter `jaxfne/emitters_jansen_rit.py` with 19 tests on dev (cf706780); P1 source record with paper constants (6409608c); P3 v1 drafted and pinned, unsigned (bd007662, O-92); no scored result | 0 |
 | D3 | 2 | Mejias 2016 G6 (T-32) | G6 scored | open | 0 |
 | D4 | 2 | S16 regenerated, Destexhe 2009 panel from its scored P3 receipts | S16 renders from pinned receipts | open | 0 |
 | **10E PCL Fig 3** | **10** | | | | **0** |
-| E1 | 7 | R5-approximate under signed R4b, scored in `pcl/prereg/` | result file and score JSON pinned | approx_core 920 of 2562 files | 0 |
+| E1 | 7 | R5-approximate under signed R4b, scored in `pcl/prereg/` | result file and score JSON pinned | approx_core 2860 of 3168 tasks at 2026-11-07 22:18Z (1085 pending at the resume, 777 since; `F:/warehouse/pcl/r5/approx_core_resume2.log`) | 0 |
 | E2 | 3 | P-055 attributed (R5-exact, 4 of 16 files equal) | the cause named with its receipt in the issue log | open | 0 |
 | **10F Carried** | **8** | | | | **4** |
 | F1 | 1 | the `in_degree` refusal message (0.5.9 Gate 4 should-fix) | its test | done (9e7c2044) | 1 |
@@ -101,7 +101,7 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | F5 | 1.5 | T-32: GSDR on `simulate_hh_batch`; seed and candidate batching for AdEx, LIF and `Model.tune`; core homes for lane analysis | each with its test | GSDR `--batch` opt-in within rel 1e-2 (117396a6, Hamm 2026-11-06); `jaxfne.analysis.isi_ratio` (51c86dab); AdEx, LIF and `Model.tune` batching open | 0 |
 | F6 | 1.5 | T-R28: dashboard P1 then P2; the jitter reader on larger sets | each with its commit and receipt | open | 0 |
 | **10G Replication coverage** | **6** | | | | **0** |
-| G1 | 3 | CAMINOS panels not yet run, added to the Notebooks tab: Cell Reports 1A, 2A/2B bottom, 6A top, 6B; PLoS Fig 5, Fig 3 and 4A mean-field rows | each panel in its exported notebook from pinned runs | open (2026-11-07: the Cell Reports panels wait on O-88; todo 33) | 0 |
+| G1 | 3 | CAMINOS panels not yet run, added to the Notebooks tab: Cell Reports 1A, 2A/2B bottom, 6A top, 6B; PLoS Fig 5, Fig 3 and 4A mean-field rows | each panel in its exported notebook from pinned runs | open (2026-11-07: PLoS Fig 5A panel in `plos_suite.ipynb` from the pinned sweep (a6f4d867), dashboard export pending; Fig 3 and 4A mean-field rows open; the Cell Reports panels wait on O-88; todo 33) | 0 |
 | G2 | 2 | T-30 conformance | `check_replications.py --check` lists no violation without Hamm's exception (2026-11-05: 28 known, 0 unlisted) | open | 0 |
 | G3 | 1 | T-46 reproducibility audit section 7, the gaps touching 0.5.10 | section 7 cites each closed gap | open | 0 |
 | **Gates** | **30** | | | | **0** |

@@ -55,14 +55,16 @@ rises with nu_PV (39.71 to 45.43 Hz over the same range); near the operating poi
 The paper adds PV->SOM and SOM->SOM (p 0.07, inhibitory, 2 ms delay) and sweeps each on 0-3 nS with the other at
 0; oscillation ends near 0.7 nS for PV->SOM and near 1.7 nS for SOM->SOM (figure readings). Port: `fig5a_sweep`,
 31 points per coupling, oscillation = a sustained cycle after a +5% perturbation of the fixed point (receipt
-`F:/warehouse/caminos/plos_text/fig5a_sweep_bd007662_sustain.json`). No tolerance was declared before the run.
+`F:/warehouse/caminos/plos_text/fig5a_sweep_8516c721.json`, `_meta` holds the SHA, the `fig5a_point` defaults and
+the two thresholds; its dirty flag records docstring-only edits made during the run). No tolerance was declared
+before the run.
 
 | Coupling | Paper, oscillation ends | Port, last oscillating / first stable | Frequency at 0 nS |
 |---|---|---|---|
 | PV->SOM | about 0.7 nS | 0.7 / 0.8 nS | 33.5 Hz (paper about 35) |
 | SOM->SOM | about 1.7 nS | 1.3 / 1.4 nS (Hopf near 1.33) | 33.5 Hz |
 
-PV->SOM matches; SOM->SOM ends about 0.35 nS early with the printed T_v form.
+PV->SOM agrees with the figure reading; SOM->SOM ends about 0.35 nS early with the printed T_v form.
 
 Probe (one process, `moments` patched to the authors' code form of T_v, inhibitory inputs weighted by
 (Q_I U_I)^2; see "One remaining difference" above): frequency at 0 nS 35.00 Hz; PV->SOM last oscillating 0.6,

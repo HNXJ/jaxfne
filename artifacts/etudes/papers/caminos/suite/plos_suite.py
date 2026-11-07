@@ -5,6 +5,8 @@ root, nothing here hard-codes it):
 
 - ``fig_plos_1d``           mean-field AdEx rates, ``caminos_meanfield.simulate_meanfield`` (CPU, 4 s).
 - ``fig_plos_6a/6b/6c``     linear mean-field model, ``caminos_meanfield`` (CPU, closed form).
+- ``fig_plos_5a``           added PV->SOM and SOM->SOM couplings, a ``caminos_meanfield.fig5a_sweep`` JSON
+                            (``plos_text/fig5a_sweep_<sha>.json``).
 - ``fig_plos_1e``           mean rate vs connection probability p, counts
                             ``scored/v7_20261012`` (manifest runs or ``counts_seed*_p*.npy``);
                             example 1 s steady-state trace (first 2 s dropped), all populations.

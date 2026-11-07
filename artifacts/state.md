@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@960a0fab · 2026-11-07
+Stamp: jaxfne@dev@8516c721 · 2026-11-07 (pushed) · checklist 0.5.10: 16/100
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
@@ -19,30 +19,33 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   rtol 1e-12, max relative weight difference 7.4e-15 (`F:/warehouse/pcl/r3_oracle_f0_4/`).
 - P-BALANCED ported for 0.5.10 (e179a2d0..9dd1c111; Hamm 2026-11-05): `BackgroundNoise`, `NeuronalTensor.baseline_drive`
   and `background_noise` (preset noise in `cfg.metadata["background_noise"]`), balanced-1000n preset retuned under
-  the unchanged bounds (seeds 0-4: CV 0.742-0.755, shift 0.236-0.257); canonical CV pin 0.0585 (b1d9dfe1 moved it).
-- Landed 2026-11-07 (f0489d18..1e7ee1e5): HH seed refusal test; homeostatic_ei stable x bounds from construct
+  the unchanged bounds (seeds 0-4: CV 0.742-0.755, shift 0.236-0.257); canonical CV pin 0.0585 (1680659e re-pinned it).
+- Landed 2026-11-06 evening (f0489d18..1e7ee1e5): HH seed refusal test; homeostatic_ei stable x bounds from construct
   (±10); B1 baseline scripts; tree budget 96.1 MB. jnwb 16-12 isi_cv on jnwb `_temp_jaxfne-16e` (5fa63dd3,
   accepted); keep `E:/cl-jnwb16e` until jnwb-orchestrator confirms its pick.
 - Landed 2026-11-06 (f96c91e6..05942346): coherence LFP, `isi_ratio`, Jansen-Rit emitter, A3 receipt, GSDR
   `--batch`, B1 harness and signed prereg, ruff/hatchling bumps (#118, #119 closed); issue #123 closed.
 - Landed 2026-11-07 (1e7ee1e5..290c3cf0): B1 M3 harness fix; Jansen-Rit P1 source record; record integrity skips
-  gitignored `_temp/`; PLoS Fig 5A producer (c3719c79). Local: Jansen-Rit P3 v1 draft and driver (bd007662).
-- Last pushed: 290c3cf0. Broad 8238 passed, 1 failed (the 60 s import timeout, 6 passed alone); 8 paper lanes PASS.
+  gitignored `_temp/`; PLoS Fig 5A producer (c3719c79).
+- Gated 2026-11-07 (290c3cf0..8516c721): Fig 5A sustained-cycle test and panel; T_v code-form probe (O-93);
+  Jansen-Rit P3 v1 draft and driver (O-92). Broad 8238 passed, 2 failed (60 s import and kernel-start timeouts,
+  7 passed alone); 9 paper lanes PASS. Last pushed: see the stamp.
 
 ## Broken or in flight
 
 - CAMINOS E1 at n 12 (2026-11-03): not equivalent, 20 of 24 cells (`caminos/RESULT_FIGURES.md`); Hamm kept the oracle (2026-11-03).
 - PCL R3 done 2026-11-03: core arm equals the C++ after file 0 (`pcl/CALIBRATION.md` R3); R4b signed by Hamm 2026-11-03; R5-exact FAIL, 4 of 16 files (`pcl/prereg/P3_fig3_r5_exact_result.md`, P-055).
 - Papers are never "failed" through 0.6 (Hamm 2026-11-03): pending until a failure is proven; criteria may fail.
-- P-053 (PCL scan vs oracle gap on sparse weights, reported, not reproduced); P-056 (kernel-LFP deep-layer power
-  under 0.5% of L2/3). P-054 fixed in 0.5.9 (VIP/I class-1 v_lin 4.1, v_const 108).
-- R5-approximate resumed detached 2026-11-06 16:54Z: 620 of 1085 done at 2026-11-07 16:25Z; finish about 2026-11-08 midday (inferred).
+- P-053 (PCL scan vs oracle gap on sparse weights, unreproduced); P-056 (kernel-LFP deep-layer power < 0.5% of L2/3).
+- R5-approximate resumed detached 2026-11-06 16:54Z: 2860 of 3168 tasks (777 of 1085 since the resume) at
+  2026-11-07 22:18Z; finish about 2026-11-08 10Z (inferred). Its driver logs `rc=$?` after `$(stamp)`, so the
+  logged rc is always 0: judge the run by its output files.
 - Tooling: Cursor write fails at launch (read works); Muse code workers may exit early (resume with `--session`).
 
 ## Open decisions for the owner
 
-`open_stack.md` O-85 to O-91 (P-052, T-62 data request, Lee/Mazzoni figure, G1 Cell Reports panels, stale-clone
-delete script, B1 M3 class, A3 scope); NeuroAI code link
+`open_stack.md` O-85 to O-93 (P-052, T-62 data request, Lee/Mazzoni figure, G1 Cell Reports panels, stale-clone
+delete script, B1 M3 class, A3 scope, Jansen-Rit P3 signature, CAMINOS T_v form); NeuroAI code link
 (anonymous.4open.science mirror, Hamm's act). `kernel-lfp` copied to origin `_temp_kernel-lfp` (ff45364b, 2026-11-05);
 deleting the plain-named `origin/kernel-lfp` is Hamm's call.
 
@@ -71,9 +74,7 @@ deleting the plain-named `origin/kernel-lfp` is Hamm's call.
 
 ## Next action
 
-CAMINOS figure suites (Hamm 2026-11-04) are on the dashboard Notebooks tab (a35aaa9d, live). Hamm 2026-11-05: show
-jaxfne usage; each notebook opens with its network built and run live in jaxfne, code shown. The figures stay on
-the oracle runs except PLoS Fig 1E (P6 jaxfne runs); Cell Reports core route not equivalent (E1, 20 of 24).
-Raster run 497e9bb0 complete: 3 seeds × 9 conditions in `F:/warehouse/caminos/cellrep_rasters/` (panels read seed 1). Not run yet:
-Cell Reports 1A, 1D, 2A/2B bottom, 6A top, 6B; PLoS Fig 5 panel, Fig 3 and 4A mean-field rows. Next: Fig 5A panel
-into `plos_suite.ipynb`; B1 scored runs (T-B1); Jansen-Rit P3 scoring once O-92 is signed.
+CAMINOS suites on the dashboard Notebooks tab (a35aaa9d; each opens with its network run live in jaxfne, Hamm
+2026-11-05); figures on the oracle runs except PLoS Fig 1E (P6). Rasters: `F:/warehouse/caminos/cellrep_rasters/`
+(497e9bb0). Not run: Cell Reports 1A, 1D, 2A/2B bottom, 6A top, 6B; PLoS Fig 3 and 4A mean-field rows. Next:
+re-export the PLoS notebook (Fig 5A cell in, a6f4d867); B1 scored runs (T-B1); E1 at R5 end; Jansen-Rit P3 on O-92.

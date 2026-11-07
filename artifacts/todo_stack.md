@@ -15,8 +15,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    `F:/warehouse/pcl/r5/run_r5.sh`, resumable) scored in `pcl/prereg/`; P-055 (R5-exact FAIL, 4 of 16 files)
    attributed. History: R3 exact on files 0-4 (CALIBRATION R3), R4b signed 2026-11-03, R5-exact scored
    (`P3_fig3_r5_exact_result.md`, S13). Status 2026-11-06: resumed detached 16:54Z (`F:/warehouse/pcl/r5/resume_approx_core.sh`,
-   PATH now exports Git), 1085 tasks pending; 620 done at 2026-11-07 16:25Z, finish about 2026-11-08 midday (inferred
-   from the rate); the driver's logged `rc=$?` is wrong (`$(stamp)` resets it): fix before the next resume.
+   PATH now exports Git), 1085 tasks pending; 777 done at 2026-11-07 22:18Z (2860 of 3168), finish about 2026-11-08 10Z
+   (inferred from the rate); the driver's logged `rc=$?` is wrong (`$(stamp)` resets it): fix before the next resume.
    Then T-22, T-25: PCL B3 on the intra-step operator; trained weights load as A' (`with_trained_weights`).
    Closes when: the R5-approximate result file and score JSON are pinned and P-055 names its cause.
 
@@ -56,14 +56,14 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     copy `F:/warehouse/caminos/plos_text/`). Fig 5 is mean-field only: 5A sweeps PV→SOM and SOM→SOM on the full mean
     field (frequency, amplitude, bifurcation diagram); 5B is the reduced Eq. 2 (no synaptic delay, no adaptation)
     beside a spiking raster. 5A producer landed (c3719c79, `fig5a_sweep`); its 0.5 Hz peak-to-peak threshold cut
-    small sustained cycles, now replaced by a sustained-cycle test (constant E peak-to-peak over 16 s at SOM→SOM 1.1
-    and 1.3 nS): PV→SOM ends at 0.7-0.8 nS (figure about 0.7), SOM→SOM near 1.33 nS (figure about 1.7). The
+    small sustained cycles, now replaced by a sustained-cycle test (a 16 s probe from the perturbed fixed point held
+    E peak-to-peak constant at SOM→SOM 1.1 and 1.3 nS): PV→SOM ends at 0.7-0.8 nS (figure about 0.7), SOM→SOM near 1.33 nS (figure about 1.7). The
     authors' code form of T_v gives 1.5-1.7 nS and 35.00 Hz (probe; O-93). Panel in `plos_suite.ipynb` (a6f4d867);
     left: re-export the dashboard notebook. Fig 4A mean-field lines: no producer. Fig 3
     mean-field rows: the paper defines randomization only for the network (a fraction replaced by Poisson units at
     the reference mean rate, Results ¶ "silencing and randomizing"); the mean-field treatment is unstated, so the
     build declares one before the run (inferred: the fraction enters as a constant input at the baseline rate).
-    Cell Reports 2B bottom (`cellrep_figures.py:405`, no run mode)
+    Cell Reports 2B bottom (producer `cellrep_figures.py:405`, never run)
     and 6B (`:439`, gain unstated) wait on O-88. Closes when: each kept panel is in its exported notebook
     (`suite/plos_suite.ipynb`, `suite/cellrep_suite.ipynb`) from pinned runs.
 27. ∥ T-48 [A then H] 10D D2 Jansen-Rit 1995: the emitter is on dev (cf706780, every parameter required); the
