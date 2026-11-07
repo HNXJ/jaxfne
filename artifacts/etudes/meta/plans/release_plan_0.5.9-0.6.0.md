@@ -101,7 +101,7 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | F5 | 1.5 | T-32: GSDR on `simulate_hh_batch`; seed and candidate batching for AdEx, LIF and `Model.tune`; core homes for lane analysis | each with its test | GSDR `--batch` opt-in within rel 1e-2 (117396a6, Hamm 2026-11-06); `jaxfne.analysis.isi_ratio` (51c86dab); AdEx, LIF and `Model.tune` batching open | 0 |
 | F6 | 1.5 | T-R28: dashboard P1 then P2; the jitter reader on larger sets | each with its commit and receipt | open | 0 |
 | **10G Replication coverage** | **6** | | | | **0** |
-| G1 | 3 | CAMINOS panels not yet run, added to the Notebooks tab: Cell Reports 1A, 2A/2B bottom, 6A top, 6B; PLoS Fig 5, Fig 3 and 4A mean-field rows | each panel in its exported notebook from pinned runs | open | 0 |
+| G1 | 3 | CAMINOS panels not yet run, added to the Notebooks tab: Cell Reports 1A, 2A/2B bottom, 6A top, 6B; PLoS Fig 5, Fig 3 and 4A mean-field rows | each panel in its exported notebook from pinned runs | open (2026-11-07: the Cell Reports panels wait on O-88; todo 33) | 0 |
 | G2 | 2 | T-30 conformance | `check_replications.py --check` lists no violation without Hamm's exception (2026-11-05: 28 known, 0 unlisted) | open | 0 |
 | G3 | 1 | T-46 reproducibility audit section 7, the gaps touching 0.5.10 | section 7 cites each closed gap | open | 0 |
 | **Gates** | **30** | | | | **0** |
@@ -110,7 +110,7 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | Gate 3 | 4 | version, changelog, `release_body.py --check` | PASS on the release SHA | not started | 0 |
 | Gate 4 | 6 | second review with its receipt | receipt committed | not started | 0 |
 | Gate 5 | 6 | Hamm's go: tag, main, Release, PyPI | 0.5.10 on PyPI from the tagged SHA | not started | 0 |
-| Owner | 0 | P-052 surrogate fitness (O-85); T-62 Fig 1D raw data (O-86); a named figure for Lee 2025 and Mazzoni 2015 (O-87); each yes adds an item | Hamm rules on each | open | - |
+| Owner | 0 | P-052 surrogate fitness (O-85); T-62 Fig 1D raw data (O-86); a named figure for Lee 2025 and Mazzoni 2015 (O-87); the excluded Cell Reports panels in G1 (O-88); each yes adds an item | Hamm rules on each | open | - |
 
 ## Later releases
 

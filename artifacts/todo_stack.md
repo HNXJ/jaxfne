@@ -15,7 +15,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    `F:/warehouse/pcl/r5/run_r5.sh`, resumable) scored in `pcl/prereg/`; P-055 (R5-exact FAIL, 4 of 16 files)
    attributed. History: R3 exact on files 0-4 (CALIBRATION R3), R4b signed 2026-11-03, R5-exact scored
    (`P3_fig3_r5_exact_result.md`, S13). Status 2026-11-06: resumed detached 16:54Z (`F:/warehouse/pcl/r5/resume_approx_core.sh`,
-   PATH now exports Git), 1085 tasks pending; the driver's logged `rc=$?` is wrong (`$(stamp)` resets it): fix before the next resume.
+   PATH now exports Git), 1085 tasks pending; 620 done at 2026-11-07 16:25Z, finish about 2026-11-08 midday (inferred
+   from the rate); the driver's logged `rc=$?` is wrong (`$(stamp)` resets it): fix before the next resume.
    Then T-22, T-25: PCL B3 on the intra-step operator; trained weights load as A' (`with_trained_weights`).
    Closes when: the R5-approximate result file and score JSON are pinned and P-055 names its cause.
 
@@ -28,31 +29,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     (pdfLaTeX, TeX Live 2026 in WSL, the kit's unmodified style; Hamm's choice) passes: 4 pages, 0 overfull boxes, all
     fonts embedded, no Type 3. Waits on [H]: the anonymous.4open.science mirror of the code repo (Hamm's choice;
     the link replaces `[MISSING: anonymized code link]`), then Hamm reads and submits. Closes when Hamm has submitted.
-14. ∥ T-O68 [A] Local copies (O-68): rescue each cited file into the repo or `F:/warehouse` with a `state.md`
-    pointer, delete one at a time (`cl-reader-cursor`, `jaxfne-wt-p022`, the four WSL copies, the non-git leftovers
-    named in O-68), and the finished lane clones under `E:/repos/_wt/jaxfne/` after an alternates check. Closes when:
-    every O-68 path is gone or rescued, and no surviving clone's `objects/info/alternates` names a deleted one.
-    Status 2026-11-02 (Haiku inventory, no alternates under `E:/repos`): `p6run`, `pilots`, `potmem` (HEAD on dev,
-    clean) and the empty `d28` deleted. Left: 14 clones with dirty files to read; 11 one-commit clones whose commit is
-    on no jaxfne ref; `clogsweep` (2cd1dd27) and `pclr2study` (c7137b4b) are the sole holders of one commit each;
-    `cl-reader-cursor` (`reader_exp/`, an R1 audit note) and `jaxfne-wt-p022` (a receipt) hold untracked files; the
-    non-git leftovers are under `C:/workspace` (`jaxfne_rc057`, `jaxfne_receipts`, `jaxfne_reader_exp`,
-    `jaxfne_pclr1_audit`); which four WSL copies O-68 means is not recorded.
-16. ∥ T-46 [A] C9, C2: 8 gaps in `programme/paper/reproducibility_audit.md` section 7 (left: data and code statement,
-    PCL natural-image and DVS128/N-MNIST licences, S16 generators). Close test (Hamm 2026-11-02): section 7 closes
-    when the gaps touching 0.5.9 items close; the paper-only gaps (licences, data and code statement) move to the
-    paper lane with a dated note.
-17. ∥ T-30 [A] Conformance for the rest (`scripts/replication_known_violations.json`; the S1 entries are Hamm's
-    exceptions): GSDR (HH in `construct()` dispatch, estimators), Destexhe (estimators, LEDGER, RESULT), pcl_h and
-    Q-learning (phase records; pcl_h `sys.path` imports), PCL (closes at R4). Closes when: `check_replications.py
-    --check` lists no violation without Hamm's exception.
-18. ∥ T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; then the lane
-    dashboard (skill `jaxfne-dashboard`). Standing: never closes; each score's commit cites the regenerated
-    dashboard.
-19. ∥ T-10b [A] jnwb cross-learning: a proxy-claim wording gate, or drop it. T-42 [A] CI plan steps observed at the
-    first rc. T-49 [A] split closed lane folders by kind as each lane closes (`caminos/`, `izhikevich2003/`,
-    `brunel2000/`). Closes when: T-10b has its gate or a dated drop note; T-42 lists the CI steps seen at the rc;
-    each closed lane folder passes `tests/test_artifacts_tree_degree.py` with no R6 entry.
+21. ∥ T-C2A3 [A] Left from the C2 and A3 lanes: (a) the canonical homeostatic_ei run under `bound_mode="stable"`
+    sits at the x rail (±10) on 68.5% of steps after the x-bound fix (2e1af6f8): model regime or defect, unknown;
+    (b) spec-level neuron permutation needs order-independent construction (`_construct_population.py:504,527-537`,
+    `_construct_core.py:1563-1564`, `connectivity.py:918-919`). Closes when: (a) has a cause with a test, and A3 has
+    its permutation test killed by a mutant.
 20. ∥ T-B1 [A] Scored CPU vs RTX A4000 benchmark & memory profile (F4, `artifacts/runs/benchmark/PREREG_B1_0510.md`):
     profile whether a GPU upgrade is justified ($0 spend now; purchase gate based on measured bottlenecks).
     Metrics recorded per cell across N (1e2 to 1e5): compilation time (CPU/JAX compilation overhead),
@@ -68,11 +49,37 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     `b1_jaxley.py`, on dev 1e7ee1e5; Brian2 2.10.1 and NEST 3.10.0 in WSL `~/venv_b1_baselines`, Jaxley on Windows)
     type their model constants with source citations: read them from the lane files before scored runs; then the
     scored runs.
-21. ∥ T-C2A3 [A] Left from the C2 and A3 lanes: (a) the canonical homeostatic_ei run under `bound_mode="stable"`
-    sits at the x rail (±10) on 68.5% of steps after the x-bound fix (2e1af6f8): model regime or defect, unknown;
-    (b) spec-level neuron permutation needs order-independent construction (`_construct_population.py:504,527-537`,
-    `_construct_core.py:1563-1564`, `connectivity.py:918-919`). Closes when: (a) has a cause with a test, and A3 has
-    its permutation test killed by a mutant.
+33. ∥ T-G1 [A] 10G G1 CAMINOS panels (O-88 on the Cell Reports panels). PLoS rows first: Fig 5 has its PV→SOM and
+    SOM→SOM couplings (`SOURCE_P1.md:34`) and no producer; Fig 3 mean-field silencing exists (`plosr_7f7a660e`),
+    the randomized row is not built; Fig 4A mean-field has nothing. The mean-field randomization follows the
+    paper's stated treatment, read before any build. Cell Reports 2B bottom (`cellrep_figures.py:405`, no run mode)
+    and 6B (`:439`, gain unstated) wait on O-88. Closes when: each kept panel is in its exported notebook
+    (`suite/plos_suite.ipynb`, `suite/cellrep_suite.ipynb`) from pinned runs.
+27. ∥ T-48 [A] 10D D2 Jansen-Rit 1995: the emitter is on dev (cf706780, 19 tests, every parameter required); left the
+    paper's constants from the 1995 text and P1. Closes when: P1 is scored.
+14. ∥ T-O68 [A then H] Local copies (O-68). Status 2026-11-07: every `E:/cl-*` and `E:/repos/_wt/jaxfne/*` clone
+    audited (dirty files, `git cherry` against dev, alternates borrowers); dirty diffs, untracked files and the
+    `clogsweep`/`pclr2study` bundles rescued to `F:/warehouse/jaxfne_clone_rescue/` (`HEADS.txt` lists each);
+    the delete script `artifacts/_temp/delete_stale_clones_2026-11-07.ps1` waits on Hamm (O-89). Keep `E:/cl-jnwb16e`
+    until jnwb-orchestrator confirms its pick. Left for agents: linked worktrees with dirty files
+    (`base053`, `bisw1`, `frozen-etude`, `w3`, `jaxfne-wt-p022`, `jaxfne-wt-suites`, one agent worktree) and the
+    `C:/workspace` leftovers. Closes when: every O-68 path is gone or rescued, and no surviving clone's
+    `objects/info/alternates` names a deleted one.
+16. ∥ T-46 [A] C9, C2: 8 gaps in `programme/paper/reproducibility_audit.md` section 7 (left: data and code statement,
+    PCL natural-image and DVS128/N-MNIST licences, S16 generators). Close test (Hamm 2026-11-02): section 7 closes
+    when the gaps touching 0.5.9 items close; the paper-only gaps (licences, data and code statement) move to the
+    paper lane with a dated note.
+17. ∥ T-30 [A] Conformance for the rest (`scripts/replication_known_violations.json`; the S1 entries are Hamm's
+    exceptions): GSDR (HH in `construct()` dispatch, estimators), Destexhe (estimators, LEDGER, RESULT), pcl_h and
+    Q-learning (phase records; pcl_h `sys.path` imports), PCL (closes at R4). Closes when: `check_replications.py
+    --check` lists no violation without Hamm's exception.
+18. ∥ T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; then the lane
+    dashboard (skill `jaxfne-dashboard`). Standing: never closes; each score's commit cites the regenerated
+    dashboard.
+19. ∥ T-10b [A] jnwb cross-learning: a proxy-claim wording gate, or drop it. T-42 [A] CI plan steps observed at the
+    first rc. T-49 [A] split closed lane folders by kind as each lane closes (`caminos/`, `izhikevich2003/`,
+    `brunel2000/`). Closes when: T-10b has its gate or a dated drop note; T-42 lists the CI steps seen at the rc;
+    each closed lane folder passes `tests/test_artifacts_tree_degree.py` with no R6 entry.
 
 ## Owner queue (asked one at a time, in this order)
 
@@ -105,8 +112,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    jitter reader open (no code or receipt found); C4 radius test landed (`tests/test_geometry_radius_rotation.py`),
    the S3 panel not built; C6 inventory only, baselines none run. Closes when: each listed piece has a commit with
    its test or receipt, cited here before the row is deleted.
-27. 0.5.10: T-48 Jansen-Rit 1995: the emitter is on dev (cf706780, 19 tests, every parameter required); left the
-    paper's constants from the 1995 text and P1. Closes when: P1 is scored.
 28. After the 0.5.10 release and 7 replicated papers: T-54 [A then H] awesome-jax PR with Hamm's go.
 29. 0.5.11 and 0.6.0: the release plan's later sections.
 

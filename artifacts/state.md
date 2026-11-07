@@ -35,13 +35,13 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - Papers are never "failed" through 0.6 (Hamm 2026-11-03): pending until a failure is proven; criteria may fail.
 - P-053 (PCL scan vs oracle gap on sparse weights, reported, not reproduced); P-056 (kernel-LFP deep-layer power
   under 0.5% of L2/3). P-054 fixed in 0.5.9 (VIP/I class-1 v_lin 4.1, v_const 108).
-- R5-approximate resumed detached 2026-11-06 16:54Z, 1085 tasks pending; finish about 2026-11-08 (inferred).
-- Tooling: Cursor write mode fails at launch (read works); Muse code workers may exit early on background jobs
-  (resume with `--session`); jchat hub down 2026-11-06.
+- R5-approximate resumed detached 2026-11-06 16:54Z: 620 of 1085 done at 2026-11-07 16:25Z; finish about 2026-11-08 midday (inferred).
+- Tooling: Cursor write fails at launch (read works); Muse code workers may exit early (resume with `--session`).
 
 ## Open decisions for the owner
 
-`open_stack.md` O-85 to O-87 (P-052, T-62 data request, Lee/Mazzoni figure); NeuroAI code link
+`open_stack.md` O-85 to O-89 (P-052, T-62 data request, Lee/Mazzoni figure, G1 Cell Reports panels, the stale-clone
+delete script); NeuroAI code link
 (anonymous.4open.science mirror, Hamm's act). `kernel-lfp` copied to origin `_temp_kernel-lfp` (ff45364b, 2026-11-05);
 deleting the plain-named `origin/kernel-lfp` is Hamm's call.
 
