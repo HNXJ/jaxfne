@@ -1,6 +1,6 @@
 {
   "schema": "figsite.v1",
-  "build_sha": "f96c91e65358ef7380fd843880fbcabb67a2a649",
+  "build_sha": "960a0fab7b4c2cf44792e099ece9dfdef9650bd0",
   "figures": [
     {
       "slug": "calibration_100",
@@ -1843,72 +1843,6 @@
       "status": "available",
       "docs_pages": [
         "docs/etudes/multiscale_observation.md"
-      ]
-    },
-    {
-      "slug": "heterogeneous_emitters",
-      "panel": "raster_izh",
-      "html": "heterogeneous_emitters/raster_izh.html",
-      "png": "heterogeneous_emitters/raster_izh.png",
-      "png_dark": "heterogeneous_emitters/raster_izh.dark.png",
-      "title": "Spike raster (Izhikevich)",
-      "status": "available",
-      "docs_pages": [
-        "docs/etudes/heterogeneous_emitters.md"
-      ]
-    },
-    {
-      "slug": "heterogeneous_emitters",
-      "panel": "traces_izh",
-      "html": "heterogeneous_emitters/traces_izh.html",
-      "png": "heterogeneous_emitters/traces_izh.png",
-      "png_dark": "heterogeneous_emitters/traces_izh.dark.png",
-      "title": "Membrane traces (Izhikevich)",
-      "status": "available",
-      "docs_pages": []
-    },
-    {
-      "slug": "heterogeneous_emitters",
-      "panel": "lfp_izh",
-      "html": "heterogeneous_emitters/lfp_izh.html",
-      "png": "heterogeneous_emitters/lfp_izh.png",
-      "png_dark": "heterogeneous_emitters/lfp_izh.dark.png",
-      "title": "LFP proxy (izh)",
-      "status": "available",
-      "docs_pages": []
-    },
-    {
-      "slug": "heterogeneous_emitters",
-      "panel": "lfp_hei",
-      "html": "heterogeneous_emitters/lfp_hei.html",
-      "png": "heterogeneous_emitters/lfp_hei.png",
-      "png_dark": "heterogeneous_emitters/lfp_hei.dark.png",
-      "title": "LFP proxy (hei)",
-      "status": "available",
-      "docs_pages": []
-    },
-    {
-      "slug": "heterogeneous_emitters",
-      "panel": "traces_hei",
-      "html": "heterogeneous_emitters/traces_hei.html",
-      "png": "heterogeneous_emitters/traces_hei.png",
-      "png_dark": "heterogeneous_emitters/traces_hei.dark.png",
-      "title": "State traces (HEI)",
-      "status": "available",
-      "docs_pages": [
-        "docs/etudes/heterogeneous_emitters.md"
-      ]
-    },
-    {
-      "slug": "heterogeneous_emitters",
-      "panel": "oscillatory",
-      "html": "heterogeneous_emitters/oscillatory.html",
-      "png": "heterogeneous_emitters/oscillatory.png",
-      "png_dark": "heterogeneous_emitters/oscillatory.dark.png",
-      "title": "Source spectra by family",
-      "status": "available",
-      "docs_pages": [
-        "docs/etudes/heterogeneous_emitters.md"
       ]
     },
     {
