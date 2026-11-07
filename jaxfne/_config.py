@@ -323,6 +323,7 @@ def _check_probe_kwargs(kwargs: Mapping[str, Any]) -> None:
 
 _EMITTER_KEYS = (
     "family", "preset", "homeostatic_ei_rules", "homeostatic_ei_bound_mode",
+    "homeostatic_ei_x_min", "homeostatic_ei_x_max",
     "adex_decay", "adex_step_order", "izhikevich_update_order",
 )
 _ADEX_DECAYS = ("exp", "euler")
@@ -1463,6 +1464,8 @@ class Configuration:
         conductance_rule: str = "hebbian",
         homeostasis_rule: str = "linear",
         bound_mode: str = "minimal",
+        x_min: float | None = None,
+        x_max: float | None = None,
     ) -> "Configuration":
         """Chainable config method to set/wrap emitter family and presets.
 
@@ -1481,9 +1484,16 @@ class Configuration:
         zero behavior change from before this kwarg existed) selects
         ``simulate_homeostatic_ei``'s bound_mode; see that function's
         docstring for what "stable" (smooth tanh soft-bound on x/G/H) buys
-        over the default hard-clip.
+        over the default hard-clip. ``x_min``/``x_max`` (default None, i.e.
+        the construct path's canonical -10.0/10.0) set the ``x`` soft-bound
+        range read under ``bound_mode="stable"`` (inert under "minimal").
         """
         if family == "homeostatic_ei":
+            extra: dict[str, Any] = {}
+            if x_min is not None:
+                extra["homeostatic_ei_x_min"] = float(x_min)
+            if x_max is not None:
+                extra["homeostatic_ei_x_max"] = float(x_max)
             return self.emitter(
                 family=family,
                 homeostatic_ei_rules={
@@ -1492,9 +1502,11 @@ class Configuration:
                     "homeostasis_rule": str(homeostasis_rule),
                 },
                 homeostatic_ei_bound_mode=str(bound_mode),
+                **extra,
             )
         rules = {"activation_rule": (activation_rule, "cubic"), "conductance_rule": (conductance_rule, "hebbian"),
-                 "homeostasis_rule": (homeostasis_rule, "linear"), "bound_mode": (bound_mode, "minimal")}
+                 "homeostasis_rule": (homeostasis_rule, "linear"), "bound_mode": (bound_mode, "minimal"),
+                 "x_min": (x_min, None), "x_max": (x_max, None)}
         changed = sorted(k for k, (v, default) in rules.items() if v != default)
         if changed:
             raise ValueError(f"set_emitter: {changed} apply only to family='homeostatic_ei'; got family={family!r}")

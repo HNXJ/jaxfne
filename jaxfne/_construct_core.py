@@ -1169,6 +1169,8 @@ _HOMEOSTATIC_EI_CANONICAL_DEFAULTS: dict[str, Any] = {
     "G_max": 5.0,
     "H_min": 0.1,
     "H_max": 10.0,
+    "x_min": -10.0,
+    "x_max": 10.0,
     "source_scale_value": 1.0,
     "activation_rule": "cubic",
     "conductance_rule": "hebbian",
@@ -1194,7 +1196,8 @@ def _refuse_homeostatic_ei_dropped_declarations(cfg: Configuration) -> None:
     """Refuse every declaration the homeostatic_ei route drops.
 
     The builder below reads only ``networks[0]["n"]``, the emitter's
-    ``homeostatic_ei_rules``/``homeostatic_ei_bound_mode``, ``metadata["dtype"]``,
+    ``homeostatic_ei_rules``/``homeostatic_ei_bound_mode``/``homeostatic_ei_x_min``/
+    ``homeostatic_ei_x_max``, ``metadata["dtype"]``,
     and the fields/probes consumed by ``_construct_build_static``. A value that
     equals what the route builds anyway (``p_connect=1.0``, ``random_v0=False``,
     disabled kernels) and label-only keys (network name/kind, connectivity
@@ -1330,12 +1333,12 @@ def _refuse_homeostatic_ei_dropped_declarations(cfg: Configuration) -> None:
             "per-neuron overrides are never applied here"
         )
     # Emitter preset selects no parameters on any route, and this route
-    # realizes no preset at all; the rules/bound_mode it does read stay.
+    # realizes no preset at all; the rules/bound_mode/x-bounds it does read stay.
     _emitter = cfg.emitters[0] if cfg.emitters else {}
     if _emitter.get("preset") is not None:
         raise ValueError(
             f"emitter(preset={_emitter['preset']!r}) is not realized on the homeostatic_ei route: "
-            "only homeostatic_ei_rules/homeostatic_ei_bound_mode are read"
+            "only homeostatic_ei_rules/homeostatic_ei_bound_mode/homeostatic_ei_x_min/homeostatic_ei_x_max are read"
         )
     # Runtime keys read on the Izhikevich route only: construct-time
     # biophysics (canonical_biophysics/random_v0), kernel selection
@@ -1470,6 +1473,20 @@ def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
         jnp.asarray(d["G0_i_value"], dtype=jdtype) / max(n_i, 1),
     )
     G0 = jnp.broadcast_to(col_value[None, :], (n, n))
+    # x soft-bound range: inert under bound_mode="minimal" (x stays unbounded
+    # there), active under "stable". An explicit declaration wins, else the
+    # canonical default (matching make_minimal_ei_params' x_min/x_max).
+    _x_min_raw = cfg.emitters[0].get("homeostatic_ei_x_min") if cfg.emitters else None
+    _x_max_raw = cfg.emitters[0].get("homeostatic_ei_x_max") if cfg.emitters else None
+    x_min = float(_x_min_raw) if _x_min_raw is not None else float(d["x_min"])
+    x_max = float(_x_max_raw) if _x_max_raw is not None else float(d["x_max"])
+    if bound_mode == "minimal" and (_x_min_raw is not None or _x_max_raw is not None):
+        raise ValueError(
+            "homeostatic_ei x_min/x_max are read only under bound_mode='stable'; "
+            "bound_mode='minimal' leaves x unbounded, so the declared bounds would be dropped"
+        )
+    if not x_min < x_max:
+        raise ValueError(f"homeostatic_ei needs x_min < x_max; got x_min={x_min}, x_max={x_max}")
 
     emitter_params = HomeostaticEIParams(
         x0=x0,
@@ -1484,6 +1501,8 @@ def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
         H_min=jnp.asarray(d["H_min"], dtype=jdtype),
         H_max=jnp.asarray(d["H_max"], dtype=jdtype),
         source_scale=source_scale,
+        x_min=jnp.asarray(x_min, dtype=jdtype),
+        x_max=jnp.asarray(x_max, dtype=jdtype),
         labels=labels,
         activation_rule_name=activation_rule,
         conductance_rule_name=conductance_rule,
