@@ -11,10 +11,9 @@ Covered:
 - rate: noise sigma keyed by Simulation.seed.
 - adex: Simulation.seed must stay 0 (refused otherwise, tests/test_adex_route.py). The
   drive seed is poisson_drive["seed"], which this test varies.
-
-Skipped:
-- hh: Simulation.seed must stay 0 (jaxfne/_model_simulate.py _simulate_hh); the run key
-  derives from the connectivity edge seed.
+- hh: Simulation.seed must stay 0 (refused otherwise,
+  jaxfne/_model_simulate.py _simulate_hh); seed 0 run twice gives bit-identical
+  V_m, and the V trace is non-constant (so the test cannot pass on an empty run).
 """
 
 import inspect
@@ -196,7 +195,6 @@ class Route(NamedTuple):
     seeded_input: Callable[[Any, Any], bool]
     active: Callable[[np.ndarray, np.ndarray], bool]
 
-
 ROUTES = {
     "izhikevich": Route(_izh_model, _izh_sim, _izh_input, _spiking),
     "homeostatic_ei": Route(_hei_model, _hei_sim, _hei_input, _spiking),
@@ -204,6 +202,44 @@ ROUTES = {
     "rate": Route(_rate_model, _rate_sim, _rate_input, _rate_varies),
     "adex": Route(_adex_model, _adex_sim, _adex_input, _spiking),
 }
+
+
+def _hh_model():
+    """Smallest hh-family builder used in tests/ (same shape as
+    tests/test_construct_golden_snapshot.py::_hh_test_config)."""
+    cfg = (
+        jtfne.configuration()
+        .network(n=10, cell_types={"E": 0.6, "Ig": 0.2, "Il": 0.2})
+        .emitter(family="hh")
+        .mechanisms(name="ampa", kind="receptor",
+                    params={"tau_ms": 2.0, "reversal_mV": 0.0, "tau_r_ms": 0.2,
+                            "slope_mV": 5.0, "v_th_mV": -20.0, "s0": 0.1})
+        .connections(name="e_all", source={"cell_type": "E"}, target={},
+                     probability=None, weight=2.5, mechanism="ampa",
+                     sign="excitatory")
+        .connectivity(edge_seed=0)
+    )
+    return jtfne.construct(cfg)
+
+
+def _hh_sim(seed):
+    return jtfne.Simulation(duration_ms=2.0, dt_ms=DT_MS, seed=seed)
+
+
+def test_hh_seed_nonzero_refused():
+    """seed != 0 must raise: the hh route has no noise, so there is no keyed
+    randomness for Simulation.seed to drive."""
+    model = _hh_model()
+    with pytest.raises(ValueError, match="does not consume Simulation.seed"):
+        model.simulate(_hh_sim(1))
+
+
+def test_hh_seed_zero_deterministic_and_non_constant():
+    model = _hh_model()
+    v_a = np.asarray(model.simulate(_hh_sim(0)).V_m, dtype=float)
+    v_b = np.asarray(model.simulate(_hh_sim(0)).V_m, dtype=float)
+    assert np.array_equal(v_a, v_b), "seed 0 run twice must give bit-identical V_m"
+    assert float(v_a.std()) > 0.0, "V trace must be non-constant (else this passes on an empty run)"
 
 
 @pytest.mark.parametrize("route", sorted(ROUTES))
