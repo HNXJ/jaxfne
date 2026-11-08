@@ -1,11 +1,13 @@
 # Jansen-Rit 1995 P3 v1 result (Fig. 3)
 
 Verdict: **PASS**, 5 of 5 scoring seeds (rule: at least 4 of 5). Prereg `prereg/P3_v1_signed.md` (signed
-2026-11-08 under Hamm's standing go, pinned). Frozen clone at 7ef8ff99, driver `run_jr_fig3.py --seeds 10 11 12 13
+2026-11-08 by the keeper agent on Hamm's standing go, pinned). Frozen clone at 7ef8ff99, driver `run_jr_fig3.py --seeds 10 11 12 13
 14` at its defaults; receipts `F:/warehouse/jansen_rit1995/p3_v1_scored_7ef8ff99/fig3_seed{10..14}.json` (each
 records `git_sha` 7ef8ff99). Score `score.json` there (sha256 ca0c9d75…), from `score_p3_v1.py`, which applies the
 prereg's fixed classes and criteria; `test_score_p3_v1.py` breaks each criterion once and requires a fail. The scorer
-was written after the driver had printed the scored rows; it adds no threshold or choice beyond the prereg.
+was written after the driver had printed the scored rows. Readings of the prereg text it fixes: the alpha band
+8-13 Hz is inclusive; a row that is oscillatory but neither alpha nor spike-wave is "other" and fails E1; duplicate
+or missing C rows are refused. No scored value sits on a boundary (closest: `osc` 0.26 against 0.4).
 
 | Seed | classes at C 68, 128, 135, 270, 675, 1350 | E1 | E2 | E3 | E4 |
 |---|---|---|---|---|---|

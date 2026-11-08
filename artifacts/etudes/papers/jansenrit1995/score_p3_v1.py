@@ -28,6 +28,9 @@ def classify(row: dict) -> str:
 
 
 def score_seed(rec: dict) -> dict:
+    cs = [float(r["C"]) for r in rec["rows"]]
+    if len(cs) != len(set(cs)):
+        raise KeyError("duplicate C rows: %r" % (sorted(cs),))
     rows = {float(r["C"]): r for r in rec["rows"]}
     missing = [c for c in C_ORDER if c not in rows or not rows[c]["finite"]]
     if missing:

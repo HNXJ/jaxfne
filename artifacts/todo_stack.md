@@ -48,7 +48,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     changes; no material bottleneck -> retain A4000. Closes when: benchmark receipt records all 6 metrics across
     N for CPU and A4000 with recording controls, evaluated against the purchase gate. Status 2026-11-06: prereg
     signed and pinned; jaxfne harness `artifacts/runs/benchmark/b1/b1_harness.py` (CPU smoke M1, M2 at N=100; M3 at
-    N=1, 10, 100 after the `jax.random.split` fix 2846ee9d, 2026-11-07). M3 class: N independent single-compartment classic HH (`PREREG_B1_0510_amendment1.md`, O-90, 2026-11-08). Left: review the M1 external-drive scaling rule; the baseline scripts (`b1/b1_brian2.py`, `b1_nest.py`,
+    N=1, 10, 100 after the `jax.random.split` fix 2846ee9d, 2026-11-07). M3 class: N independent single-compartment classic HH (`PREREG_B1_0510_amendment1.md`, O-90, 2026-11-08); the M3
+    drives differ (harness I_ext 10 + OU sigma 0.05, Jaxley OU mu 10 sigma 5; erratum 1): unify before scored runs. Left: review the M1 external-drive scaling rule; the baseline scripts (`b1/b1_brian2.py`, `b1_nest.py`,
     `b1_jaxley.py`, on dev 1e7ee1e5; Brian2 2.10.1 and NEST 3.10.0 in WSL `~/venv_b1_baselines`, Jaxley on Windows)
     type their model constants with source citations: read them from the lane files before scored runs; then the
     scored runs.

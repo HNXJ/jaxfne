@@ -28,7 +28,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - 2026-11-07 (b24f7a07..): match-check fixes; O-93 (Hamm): T_v code form = declared variant `tv_form="code"`
   (8a6ccfc4), printed default; code form gives SOM->SOM 1.6/1.7 nS, 35.0 Hz (`caminos/RESULT_MEANFIELD.md`).
 - 2026-11-08: Jansen-Rit P3 v1 signed and scored, PASS 5 of 5 (`jansenrit1995/RESULT_P3.md`); B1 M3 amended to the
-  built class; A3 scored, permutation to 0.5.11. Checklist 0.5.10: 24/100.
+  built class (drives still differ); A3 scored, permutation to 0.5.11. Checklist 0.5.10: 20/100 (D2 on O-94).
 
 ## Broken or in flight
 
@@ -44,7 +44,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Open decisions for the owner
 
-`open_stack.md` O-85, O-86, O-87, O-89 (P-052, T-62 data request, Lee/Mazzoni figure, stale-clone delete script);
+`open_stack.md` O-85, O-86, O-87, O-89, O-94 (P-052, T-62 data request, Lee/Mazzoni figure, stale-clone delete, D2);
 O-88, O-90, O-91, O-92 taken on Hamm's standing go 2026-11-08 (recommended options); NeuroAI code link
 (anonymous.4open.science mirror, Hamm's act). `origin/_temp_kernel-lfp` (ff45364b, 3 patches not in dev); plain `kernel-lfp`
 deleted 2026-11-07 (Hamm). Vmac leftovers backed up to 7 origin `_temp_` branches, then dropped (Hamm 2026-11-07).
@@ -77,4 +77,4 @@ deleted 2026-11-07 (Hamm). Vmac leftovers backed up to 7 origin `_temp_` branche
 CAMINOS suites on the dashboard Notebooks tab (a35aaa9d; each opens with its network run live in jaxfne, Hamm
 2026-11-05); figures on the oracle runs except PLoS Fig 1E (P6). Rasters: `F:/warehouse/caminos/cellrep_rasters/`
 (497e9bb0). Not run: Cell Reports 1A, 1D, 2A/2B bottom, 6A top, 6B; PLoS Fig 3 and 4A mean-field rows. Next:
-re-export the PLoS notebook (Fig 5A cell in, a6f4d867); B1 scored runs (T-B1); E1 at R5 end; Jansen-Rit P3 on O-92.
+re-export the PLoS notebook (Fig 5A cell in, a6f4d867); B1 drive unification then scored runs (T-B1); E1 at R5 end; D2 on O-94.

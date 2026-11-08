@@ -5,7 +5,7 @@
     "dated": 25,
     "frozen": 28,
     "legacy": 32,
-    "prereg": 127,
+    "prereg": 129,
     "receipts": 11
   },
   "paths": {
@@ -130,6 +130,7 @@
     "artifacts/etudes/papers/izhikevich2003/core/PREREG_P6_v2.md": "0aeceab85fc639486f5e5f18eb47fea92f2727a6bacf39ffda494da5967be355",
     "artifacts/etudes/papers/izhikevich2003/core/PREREG_P6_v2_signed.md": "fe73f8165f12f82ca3b81bf73bead7d5be60087271bb2e793d83f3cabb374bc8",
     "artifacts/etudes/papers/jansenrit1995/prereg/P3_v1.md": "9e802772b51e65acadb39f56ffedb2c5a74f01738364568a11064176ad296c56",
+    "artifacts/etudes/papers/jansenrit1995/prereg/P3_v1_erratum1.md": "a98b3671a64644c91c358b8f7fc41aadd06d410b72c6da56736ac231dd7f3a03",
     "artifacts/etudes/papers/jansenrit1995/prereg/P3_v1_signed.md": "06fed467d76516790203486489edfbaf574050e8b96247c256eddffd80cf3cb9",
     "artifacts/etudes/papers/mejias2016/PREREG_P3.md": "858e254a95a3947a7331a741b0a3d05e33125fdbf3f3ae41eca7a845d5c92ee0",
     "artifacts/etudes/papers/pcl/prereg/P3_fig3.md": "32edb53a16b36dfdc037b58f0075b919c1b95c5e52cae42c052aec467ba3c665",
@@ -239,6 +240,7 @@
     "artifacts/release/v0_5_9_release_receipt.json": "91e076b9578e21edfc4f9ccfc28c5f528fd4dcac6a3e5ac6b20d7a3cd07b2919",
     "artifacts/runs/benchmark/PREREG_B1_0510.md": "be70c478818d0b4029f67a44478cd6776f52f519598c9e0b67db28a9c9c177ba",
     "artifacts/runs/benchmark/PREREG_B1_0510_amendment1.md": "21e80916faa4f7e8ffd2ef5cc0420147c0cf424585551f43a13c579e8463b74d",
+    "artifacts/runs/benchmark/PREREG_B1_0510_amendment1_erratum1.md": "45391b39fcf0483d6d5c7a213c42c5478c3224b743e7ebb527b82cc0bcec410d",
     "artifacts/runs/benchmark/agent_tasks_055.json": "91dd839b4f8dd0828e3f44218199f6bbcd62fbe64e66f6dead9d266f02a4860c"
   }
 }
