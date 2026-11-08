@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@8516c721 · 2026-11-07 (pushed) · checklist 0.5.10: 16/100
+Stamp: jaxfne@dev@fdd29614 · 2026-11-07 (pushed; broad on f290fd70: 8222 passed, 18 R5-load timeouts passed alone, 9 lanes PASS) · checklist 0.5.10: 16/100
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
