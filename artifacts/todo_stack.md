@@ -37,7 +37,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     `connectivity.py:537,626,918-919,941,953,729-736,1214,1383`; the fix re-keys them on stable ids, which changes
     every seeded realization. O-91 ruled 2026-11-08 (option 1, Hamm's standing go): A3 scored on the 5 killed
     geometry tests; this re-keying moves to 0.5.11. Closes when: A3's permutation test is killed by a mutant (0.5.11).
-20. ∥ T-B1 [A] Scored CPU vs RTX A4000 benchmark & memory profile (F4, `artifacts/runs/benchmark/PREREG_B1_0510.md`):
+20. ∥ T-B1 [A] Scored CPU vs RTX A4000 benchmark & memory profile (F4, `artifacts/runs/benchmark/prereg/PREREG_B1_0510.md`):
     profile whether a GPU upgrade is justified ($0 spend now; purchase gate based on measured bottlenecks).
     Metrics recorded per cell across N (1e2 to 1e5): compilation time (CPU/JAX compilation overhead),
     steady-state simulation time (GPU throughput), peak GPU memory (capacity requirement; distinguish reserved

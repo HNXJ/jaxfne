@@ -35,7 +35,7 @@ ROOT = Path(__file__).resolve().parents[4]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-PREREG = ROOT / "artifacts" / "runs" / "benchmark" / "PREREG_B1_0510.md"
+PREREG = ROOT / "artifacts" / "runs" / "benchmark" / "prereg" / "PREREG_B1_0510.md"
 LANE_BRUNEL = "artifacts/etudes/papers/brunel2000/brunel2000_api.py"
 LANE_IZH = "artifacts/etudes/papers/izhikevich2003/run_izh.py"
 LANE_IZH_CORE = "artifacts/etudes/papers/izhikevich2003/core/run_izh_core.py"
@@ -397,7 +397,7 @@ def run_cell(spec: dict) -> dict:
                     "nvidia_smi_after": "not_requested"},
             "scaling_rule": scale_rule,
             "lane_refs": {"M1": LANE_BRUNEL, "M2": LANE_IZH, "M3": "n/a"},
-            "prereg": "artifacts/runs/benchmark/PREREG_B1_0510.md "
+            "prereg": "artifacts/runs/benchmark/prereg/PREREG_B1_0510.md "
                       "(signed, frozen)",
             "notes": notes, "simulator": "nest",
             "simulator_version": sim_version,

@@ -2,7 +2,7 @@
 """B1 Brian2 baselines (code only, no scored runs).
 
 Covers M1 (Brunel 2000 sparse LIF, SI regime) and M2 (Izhikevich 2003
-network) of the signed prereg ``artifacts/runs/benchmark/PREREG_B1_0510.md``
+network) of the signed prereg ``artifacts/runs/benchmark/prereg/PREREG_B1_0510.md``
 (frozen; this file never edits it). Same model equations, parameters,
 in-degree rule, external drive, dt (0.1 ms) and duration as ``_build_M1`` /
 ``_build_M2`` in ``artifacts/runs/benchmark/b1/b1_harness.py``; every
@@ -36,7 +36,7 @@ ROOT = Path(__file__).resolve().parents[4]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-PREREG = ROOT / "artifacts" / "runs" / "benchmark" / "PREREG_B1_0510.md"
+PREREG = ROOT / "artifacts" / "runs" / "benchmark" / "prereg" / "PREREG_B1_0510.md"
 LANE_BRUNEL = "artifacts/etudes/papers/brunel2000/brunel2000_api.py"
 LANE_IZH = "artifacts/etudes/papers/izhikevich2003/run_izh.py"
 LANE_IZH_CORE = "artifacts/etudes/papers/izhikevich2003/core/run_izh_core.py"
@@ -478,7 +478,7 @@ def run_cell(spec: dict) -> dict:
                     "nvidia_smi_before": "not_requested",
                     "nvidia_smi_after": "not_requested"},
             "scaling_rule": scale_rule, "lane_refs": lane_refs,
-            "prereg": "artifacts/runs/benchmark/PREREG_B1_0510.md (signed, frozen)",
+            "prereg": "artifacts/runs/benchmark/prereg/PREREG_B1_0510.md (signed, frozen)",
             "notes": notes,
             "simulator": "brian2", "simulator_version": sim_version,
             "codegen_target": target,

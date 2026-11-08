@@ -34,7 +34,7 @@ ROOT = Path(__file__).resolve().parents[4]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-PREREG = ROOT / "artifacts" / "runs" / "benchmark" / "PREREG_B1_0510.md"
+PREREG = ROOT / "artifacts" / "runs" / "benchmark" / "prereg" / "PREREG_B1_0510.md"
 LANE_HH = "jaxfne/emitters_hh.py"
 HARNESS = "artifacts/runs/benchmark/b1/b1_harness.py"
 
@@ -259,7 +259,7 @@ def run_cell(spec: dict) -> dict:
                     "nvidia_smi_after": "not_requested"},
             "scaling_rule": M3_SCALE_RULE,
             "lane_refs": {"M1": "n/a", "M2": "n/a", "M3": LANE_HH},
-            "prereg": "artifacts/runs/benchmark/PREREG_B1_0510.md "
+            "prereg": "artifacts/runs/benchmark/prereg/PREREG_B1_0510.md "
                       "(signed, frozen)",
             "notes": notes, "simulator": "jaxley",
             "simulator_version": sim_version,

@@ -2,7 +2,7 @@
 """B1 benchmark harness, jaxfne side (pre-scored; smoke only).
 
 Covers one benchmark cell of the signed prereg
-``artifacts/runs/benchmark/PREREG_B1_0510.md`` (frozen; this file never edits
+``artifacts/runs/benchmark/prereg/PREREG_B1_0510.md`` (frozen; this file never edits
 it). Pattern: ``scripts/benchmark_055_matrix.py`` (fresh process per cell,
 ``block_until_ready`` timing, RSS peak sampler).
 
@@ -35,7 +35,7 @@ ROOT = Path(__file__).resolve().parents[4]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-PREREG = ROOT / "artifacts" / "runs" / "benchmark" / "PREREG_B1_0510.md"
+PREREG = ROOT / "artifacts" / "runs" / "benchmark" / "prereg" / "PREREG_B1_0510.md"
 BRUNEL_API = ROOT / "artifacts" / "etudes" / "papers" / "brunel2000" / "brunel2000_api.py"
 IZH_RUN = ROOT / "artifacts" / "etudes" / "papers" / "izhikevich2003" / "run_izh.py"
 
@@ -492,7 +492,7 @@ def run_cell(spec: dict) -> dict:
             "lane_refs": {"M1": str(BRUNEL_API.relative_to(ROOT)),
                           "M2": str(IZH_RUN.relative_to(ROOT)),
                           "M3": "jaxfne/emitters_hh.py"}[model_id],
-            "prereg": "artifacts/runs/benchmark/PREREG_B1_0510.md (signed, frozen)",
+            "prereg": "artifacts/runs/benchmark/prereg/PREREG_B1_0510.md (signed, frozen)",
             "notes": notes,
         })
     except Exception as e:
