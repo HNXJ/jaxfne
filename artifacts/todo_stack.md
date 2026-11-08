@@ -69,8 +69,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 14. ∥ T-O68 [A then H] Local copies (O-68). Status 2026-11-07: every `E:/cl-*` and `E:/repos/_wt/jaxfne/*` clone
     audited (dirty files, `git cherry` against dev, alternates borrowers); dirty diffs, untracked files and the
     `clogsweep`/`pclr2study` bundles rescued to `F:/warehouse/jaxfne_clone_rescue/` (`HEADS.txt` lists each);
-    the `_wt` targets of `artifacts/_temp/delete_stale_clones_2026-11-07.ps1` deleted 2026-11-08 (Hamm); its 27
-    `E:/cl-*` targets wait on Hamm running it (top-level E:/ is tool-blocked, O-89). Keep `E:/cl-jnwb16e`
+    every target of `artifacts/_temp/delete_stale_clones_2026-11-07.ps1` deleted 2026-11-08 (`_wt` by the keeper,
+    the 27 `E:/cl-*` by Hamm; O-89 closed). Keep `E:/cl-jnwb16e`
     until jnwb-orchestrator confirms its pick. Left for agents: linked worktrees with dirty files
     (`base053`, `bisw1`, `frozen-etude`, `w3`, `jaxfne-wt-p022`, `jaxfne-wt-suites`, one agent worktree) and the
     `C:/workspace` leftovers. Closes when: every O-68 path is gone or rescued, and no surviving clone's
