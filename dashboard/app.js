@@ -1205,7 +1205,6 @@ function paintFigList(box, manifest, query) {
 }
 
 function renderFigTab(view, manifest) {
-  view.appendChild(el("h2", "Figures"));
   var head = el("p", "build " + String(manifest.build_sha || "unknown").slice(0, 12) +
     " · " + (manifest.figures || []).length + " figures");
   head.className = "small";
@@ -1228,28 +1227,92 @@ function renderFigTab(view, manifest) {
   });
 }
 
-function renderFigures(view) {
-  if (window.__figsite) {
-    renderFigTab(view, window.__figsite);
+/* ---- Figures tab: per-paper suites drawn from run receipts (scripts/dashboard_suites.py) ---- */
+
+var SUITE_MANIFEST_URL = "figures/manifest.json";
+
+function suiteCard(entry) {
+  var card = el("article");
+  card.className = "fig-card";
+  var img = el("img");
+  img.dataset.light = "figures/" + entry.png.light;
+  img.dataset.dark = "figures/" + entry.png.dark;
+  img.src = effectiveTheme() === "dark" ? img.dataset.dark : img.dataset.light;
+  img.alt = entry.title;
+  img.loading = "lazy";
+  figureImages.push(img);
+  card.appendChild(img);
+  card.appendChild(el("h4", entry.title));
+  var cap = el("p", entry.caption);
+  cap.className = "small";
+  card.appendChild(cap);
+  var src = el("details");
+  src.className = "small";
+  var names = Object.keys(entry.sources || {});
+  src.appendChild(el("summary", names.length + " receipt" + (names.length === 1 ? "" : "s")));
+  var list = el("ul");
+  names.forEach(function (name) { list.appendChild(el("li", name + " · sha256 " + entry.sources[name].slice(0, 12))); });
+  src.appendChild(list);
+  card.appendChild(src);
+  return card;
+}
+
+function paintSuites(box, data, suites) {
+  clear(box);
+  if (!suites.length) {
+    box.appendChild(el("p", "No run figures are recorded."));
     return;
   }
-  view.appendChild(el("p", "Loading the figure manifest…"));
-  fetch(FIG_MANIFEST_URL).then(function (r) {
+  var lead = el("p", "Each paper's scored runs, drawn from the run receipts by scripts/dashboard_suites.py; " +
+    "every number in a caption is read from the receipts listed under it.");
+  lead.className = "lede";
+  box.appendChild(lead);
+  (data.papers || []).forEach(function (paper) {
+    var mine = suites.filter(function (e) { return e.paper === paper.id; });
+    if (!mine.length) return;
+    var h = el("h3");
+    h.appendChild(link("#model/" + paper.id, paper.title));
+    box.appendChild(h);
+    var grid = el("div");
+    grid.className = "fig-grid";
+    mine.forEach(function (e) { grid.appendChild(suiteCard(e)); });
+    box.appendChild(grid);
+  });
+}
+
+function loadInto(box, url, cacheKey, paint) {
+  if (window[cacheKey]) {
+    paint(box, window[cacheKey]);
+    return;
+  }
+  box.appendChild(el("p", "Loading " + url + "…"));
+  fetch(url).then(function (r) {
     if (!r.ok) throw new Error("HTTP " + r.status);
     return r.json();
   }).then(function (manifest) {
-    window.__figsite = manifest;
-    if (route().tab !== "figures") return;
-    var fresh = document.getElementById("view");
-    clear(fresh);
-    renderFigTab(fresh, manifest);
+    window[cacheKey] = manifest;
+    if (!box.isConnected) return;
+    clear(box);
+    paint(box, manifest);
   }).catch(function (err) {
-    if (route().tab !== "figures") return;
-    var fresh = document.getElementById("view");
-    clear(fresh);
-    fresh.appendChild(el("p", "Could not load the figure manifest from " +
-      FIG_MANIFEST_URL + ": " + (err && err.message ? err.message : err)));
+    if (!box.isConnected) return;
+    clear(box);
+    box.appendChild(el("p", "Could not load the figure manifest from " + url + ": " +
+      (err && err.message ? err.message : err)));
   });
+}
+
+function renderFigures(view, data) {
+  view.appendChild(el("h2", "Figures"));
+  var suites = el("section");
+  view.appendChild(suites);
+  loadInto(suites, SUITE_MANIFEST_URL, "__suites", function (box, manifest) {
+    paintSuites(box, data, manifest.suites || []);
+  });
+  view.appendChild(el("h2", "Documentation figures"));
+  var site = el("section");
+  view.appendChild(site);
+  loadInto(site, FIG_MANIFEST_URL, "__figsite", renderFigTab);
 }
 
 function route() {
@@ -1279,7 +1342,7 @@ function render(data) {
     else view.appendChild(el("p", "No model with id " + r.id + "."));
   } else if (r.tab === "models") renderModels(view, data);
   else if (r.tab === "validation") renderValidation(view, data);
-  else if (r.tab === "figures") renderFigures(view);
+  else if (r.tab === "figures") renderFigures(view, data);
   else if (r.tab === "roadmap") renderRoadmap(view, data);
   else if (r.tab === "method") renderMethod(view);
   else renderOverview(view, data);

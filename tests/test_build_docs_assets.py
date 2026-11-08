@@ -700,8 +700,9 @@ def test_figures_tab_fetches_the_figsite_manifest_and_names_it_on_failure():
     js = _dash("app.js")
     assert '"../figures/manifest.json"' in js, "the tab reads the manifest relative to the dashboard page"
     assert "Could not load the figure manifest from" in js
-    assert "../figures/manifest.json" in js.split("Could not load the figure manifest from")[1][:300] or \
-        "FIG_MANIFEST_URL" in js.split("Could not load the figure manifest from")[1][:300], (
+    after = js.split("Could not load the figure manifest from")[1][:300]
+    assert "../figures/manifest.json" in after or "FIG_MANIFEST_URL" in after or (
+        '" + url' in after and "loadInto(site, FIG_MANIFEST_URL" in js), (
         "the failure line must name the manifest URL"
     )
 

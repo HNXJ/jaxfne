@@ -10,5 +10,600 @@
   "pcl-fig3-t1t2.dark.png": "eb5273c70b84c1834ebec4c3cc01449a6a7189153b943e6b2ca11998343d05e5",
   "pcl-fig3-t1t2.png": "eb5273c70b84c1834ebec4c3cc01449a6a7189153b943e6b2ca11998343d05e5",
   "pcl-fig3-t3t4.dark.png": "e8b0a6dc3a971d957a4941b4ec4852bd49e6dfd3cd8a50c542526ac2759014f2",
-  "pcl-fig3-t3t4.png": "e8b0a6dc3a971d957a4941b4ec4852bd49e6dfd3cd8a50c542526ac2759014f2"
+  "pcl-fig3-t3t4.png": "e8b0a6dc3a971d957a4941b4ec4852bd49e6dfd3cd8a50c542526ac2759014f2",
+  "suites": [
+    {
+      "caption": "Baseline, seed 1, last 0.5 s of T = 12 s (PLoS raster run 7f7a660e); 200 of 8000 E, 50 PV and 50 SOM cells; E rate peak 33.4 Hz.",
+      "id": "raster",
+      "paper": "caminos",
+      "png": {
+        "dark": "suite-caminos-raster.dark.png",
+        "light": "suite-caminos-raster.png"
+      },
+      "png_sha256": {
+        "suite-caminos-raster.dark.png": "4e11eabf7958a63284a3660b6f9fde170e9d59381588d7058ff1c045f2abd9d2",
+        "suite-caminos-raster.png": "ee64305ea2017c979d6f8c76fa911623e95bb625009cd23f4fd94cb7cb25d6d6"
+      },
+      "sources": {
+        "warehouse/caminos/plosr_7f7a660e/manifest.json": "800ede5f19fc61d1cc9b6a8f825337afbc4155f76f09753b1431d282c9712eb5",
+        "warehouse/caminos/plosr_7f7a660e/seed1/baseline.npz": "deb1a4e0139f69601b99fd4a50f57f7e7b8f4542fcbadfa7e6704c4376cb8f50"
+      },
+      "title": "Spike raster"
+    },
+    {
+      "caption": "Seed 1, p = 0.07, last 0.5 s of the scored run; mean rates over the scored 10 s: E 1.13, PV 11.42, SOM 7.29 Hz.",
+      "id": "rates",
+      "paper": "caminos",
+      "png": {
+        "dark": "suite-caminos-rates.dark.png",
+        "light": "suite-caminos-rates.png"
+      },
+      "png_sha256": {
+        "suite-caminos-rates.dark.png": "8ca00eae9844b070118744285922d860ba0b61ca428d267bfd560fbe72c67405",
+        "suite-caminos-rates.png": "070e5c2168f2720349ab685dbc003c0f470d4fcbc898e8b72a948d0a926c8cd5"
+      },
+      "sources": {
+        "warehouse/caminos/scored/caminos_scored/counts_seed1_p0.07_float32_dt1e-04.npy": "9a4b09b43e774bca9431e1504965345d29bb072a09e46c066c2522252cfe9b2e",
+        "warehouse/caminos/scored/caminos_scored/manifest.json": "b06c08b1c9a26dd9a5cbcd53107158d4c79f1186160c5328dcedef274795d9aa",
+        "warehouse/caminos/scored/caminos_scored/score.json": "705e9350c0509ff6ed300ed9873e96e92ba0004582ce6414ee8854204fe49c3b"
+      },
+      "title": "Population rates"
+    },
+    {
+      "caption": "Welch PSD of the E population rate (1 ms bins, 1.024 s segments) over the scored 10 s, p = 0.07, seeds 1-5; R1 mean peak 33.8 Hz.",
+      "id": "psd",
+      "paper": "caminos",
+      "png": {
+        "dark": "suite-caminos-psd.dark.png",
+        "light": "suite-caminos-psd.png"
+      },
+      "png_sha256": {
+        "suite-caminos-psd.dark.png": "c8baf0fc2aa77c9bd399b7af6af1d9f0b91c6eb3a4ee6c73316528d6801e1515",
+        "suite-caminos-psd.png": "075f6be64b787210732d3a5585588e5f65c25951fa326c1544aab579ddc67c2e"
+      },
+      "sources": {
+        "warehouse/caminos/scored/caminos_scored/counts_seed1_p0.07_float32_dt1e-04.npy": "9a4b09b43e774bca9431e1504965345d29bb072a09e46c066c2522252cfe9b2e",
+        "warehouse/caminos/scored/caminos_scored/counts_seed2_p0.07_float32_dt1e-04.npy": "6605baac57010f2f9e3cf215f7d410bbe0f58267567cbb48df7c604d21d78b7c",
+        "warehouse/caminos/scored/caminos_scored/counts_seed3_p0.07_float32_dt1e-04.npy": "46951f040835c6be21538b5ffff319f03928b85eb2a37c28e37b5ff726d33877",
+        "warehouse/caminos/scored/caminos_scored/counts_seed4_p0.07_float32_dt1e-04.npy": "bd37d35fbe2034313f83e28946a7f8b8b1d96891aa392c82dd08142633ac0133",
+        "warehouse/caminos/scored/caminos_scored/counts_seed5_p0.07_float32_dt1e-04.npy": "5e5b67fbe427d26f4658a199540dd1cbf6f712510595989c7c2c0608f7405cc6",
+        "warehouse/caminos/scored/caminos_scored/manifest.json": "b06c08b1c9a26dd9a5cbcd53107158d4c79f1186160c5328dcedef274795d9aa",
+        "warehouse/caminos/scored/caminos_scored/score.json": "705e9350c0509ff6ed300ed9873e96e92ba0004582ce6414ee8854204fe49c3b"
+      },
+      "title": "E rate spectra"
+    },
+    {
+      "caption": "PLoS Figs. 2-3 conditions, mean \u00b1 sd over seeds 1, 2, 3; T = 12 s, rate over the stored last 0.5 s.",
+      "id": "conditions",
+      "paper": "caminos",
+      "png": {
+        "dark": "suite-caminos-conditions.dark.png",
+        "light": "suite-caminos-conditions.png"
+      },
+      "png_sha256": {
+        "suite-caminos-conditions.dark.png": "0a99f4ae968590deac81758b28adb3002e3544d4804f80d87b32bb56e9d9702a",
+        "suite-caminos-conditions.png": "ff96d683c05f873997ba07675646d0e40cd01c2a447ec39c9aa2400bbafe8d30"
+      },
+      "sources": {
+        "warehouse/caminos/plosr_7f7a660e/manifest.json": "800ede5f19fc61d1cc9b6a8f825337afbc4155f76f09753b1431d282c9712eb5",
+        "warehouse/caminos/plosr_7f7a660e/seed1/baseline.npz": "deb1a4e0139f69601b99fd4a50f57f7e7b8f4542fcbadfa7e6704c4376cb8f50",
+        "warehouse/caminos/plosr_7f7a660e/seed1/pv_randomized_0.4.npz": "143746d47f6015176bc918134926dd98b2cc4d19993affaab33856f28dea115b",
+        "warehouse/caminos/plosr_7f7a660e/seed1/pv_randomized_0.9.npz": "2819dd12249c81f7893e9a235f241771fde5673d560ffa6e71960f5ef57aec1d",
+        "warehouse/caminos/plosr_7f7a660e/seed1/pv_silenced_0.4.npz": "06543ec3ef4263580208392d7211854726cc0677e5665267f9ecd145713a7cf4",
+        "warehouse/caminos/plosr_7f7a660e/seed1/pv_silenced_0.9.npz": "43cb487b2f0d180df3f80c8ba4c06cdf1980d06ebf85bcb08006008ae51e8e57",
+        "warehouse/caminos/plosr_7f7a660e/seed1/som_randomized_0.4.npz": "694e5e9e1fc8af9ea1363e8f9439e331a0d2856b4987367a929e9c6b86b49734",
+        "warehouse/caminos/plosr_7f7a660e/seed1/som_randomized_0.9.npz": "aae2129979961e312c6f48071b465504205be382da16d4d0fbbd369ec0569b94",
+        "warehouse/caminos/plosr_7f7a660e/seed1/som_silenced_0.4.npz": "84e85b0e079c2f0ca2a3e6999a6790c206c1c8246fcea21da5c09adc6e5d57b4",
+        "warehouse/caminos/plosr_7f7a660e/seed1/som_silenced_0.9.npz": "b25ea880e73486e58e6d951e1a2deffc7188b821212c50b94ff16c08483de1c0",
+        "warehouse/caminos/plosr_7f7a660e/seed2/baseline.npz": "d3190fe9da4dc3f9d5d8dcc616835a882485bc3564819cd4f5dcac1f24019eb7",
+        "warehouse/caminos/plosr_7f7a660e/seed2/pv_randomized_0.4.npz": "245e87979530d4a00bd402458948d77ab36a2b2c31e4177ed855110447322083",
+        "warehouse/caminos/plosr_7f7a660e/seed2/pv_randomized_0.9.npz": "54772ffed5060f5caaa2488c17f015b86034c49398118c85bb92ae30bdc46a25",
+        "warehouse/caminos/plosr_7f7a660e/seed2/pv_silenced_0.4.npz": "14e974a0b9681ab97583d64e641febe7a63d2fada32d6ed10ec036dce3a00b7c",
+        "warehouse/caminos/plosr_7f7a660e/seed2/pv_silenced_0.9.npz": "1f66504d364fe213b3bb74efe072372c1b71de164bcf2bc35fbb5b41dee282cf",
+        "warehouse/caminos/plosr_7f7a660e/seed2/som_randomized_0.4.npz": "2778e690c821f46c03b18fa4e1a7973fa9b81771bcd99cd5e4d433b5cb99efe3",
+        "warehouse/caminos/plosr_7f7a660e/seed2/som_randomized_0.9.npz": "3fc160c3f532e314a73d2a0f729431336f6efb5e9ad1eb15dd17d362563db7cc",
+        "warehouse/caminos/plosr_7f7a660e/seed2/som_silenced_0.4.npz": "04d651bfd2924823bf84b95cdf80e261d1b81598d6deeef4e80317483ce05a04",
+        "warehouse/caminos/plosr_7f7a660e/seed2/som_silenced_0.9.npz": "35dd53cc7d6504461432d668d1d37227ea0bddd1e0cd93c78197eb352aedef23",
+        "warehouse/caminos/plosr_7f7a660e/seed3/baseline.npz": "6054617dfb5d7498fb9c03ef5f76b461f36156fd3e6a6b8bec6c78f2061837d4",
+        "warehouse/caminos/plosr_7f7a660e/seed3/pv_randomized_0.4.npz": "a81708e920372df45fc5eb51f96254c877e40f78159a8065bef48bc2a95b4ff6",
+        "warehouse/caminos/plosr_7f7a660e/seed3/pv_randomized_0.9.npz": "2df3e80f9f85c00f0b90bd47923daa093269bb08c5a01d846119b8d0b24a2283",
+        "warehouse/caminos/plosr_7f7a660e/seed3/pv_silenced_0.4.npz": "eddbd7c2d2fb9d6429cdd8b4aa4023c1d79e95ec9dffb56b4e75b3dcfc5e6b5d",
+        "warehouse/caminos/plosr_7f7a660e/seed3/pv_silenced_0.9.npz": "a63497162ab8c3c4f8201ad19d5d0a2fb1d0075c4fe7c4a29df80d64809b5c7f",
+        "warehouse/caminos/plosr_7f7a660e/seed3/som_randomized_0.4.npz": "5a8119e03b5a80c468c150883fd7dac24345751662968bc1e39166788fa899ca",
+        "warehouse/caminos/plosr_7f7a660e/seed3/som_randomized_0.9.npz": "b2c084a8611475581927a4e3357ad64408ba2a114e27db8a5c6fc59d361dd842",
+        "warehouse/caminos/plosr_7f7a660e/seed3/som_silenced_0.4.npz": "fa0e92fdc1029db7ee580ec36996ac5c0fe05c193003bb39144776ecfaf81c11",
+        "warehouse/caminos/plosr_7f7a660e/seed3/som_silenced_0.9.npz": "1e9793ab107bb8d0d4ea264982d03ff5cee6f1b5f67ba9511899745a125b84c5"
+      },
+      "title": "Silencing and randomization"
+    },
+    {
+      "caption": "S1 sweep (cellrep parameters, T = 12 s): 9 values of p from 1 to 30 %, seeds 1-3, 27 runs.",
+      "id": "s1_sweep",
+      "paper": "caminos-cellrep",
+      "png": {
+        "dark": "suite-caminos-cellrep-s1_sweep.dark.png",
+        "light": "suite-caminos-cellrep-s1_sweep.png"
+      },
+      "png_sha256": {
+        "suite-caminos-cellrep-s1_sweep.dark.png": "30d3b0b310dbdd3175f19def407be61d78277785dacad6b0c902b090337eeaf6",
+        "suite-caminos-cellrep-s1_sweep.png": "de032bdd5985f2f666cc4818af600b58bef4b2fd50b915ef95124c6a2922d676"
+      },
+      "sources": {
+        "warehouse/caminos/s1_95d2161b/s1.json": "7dc1b25f198be39e0a5993ca6cbbaee917e01c2393844a5a1ca144349326afc7"
+      },
+      "title": "S1: connectivity sweep"
+    },
+    {
+      "caption": "E population spectra of the S1 sweep, mean over seeds 1-3, averaged into 1 Hz bins.",
+      "id": "s1_spectra",
+      "paper": "caminos-cellrep",
+      "png": {
+        "dark": "suite-caminos-cellrep-s1_spectra.dark.png",
+        "light": "suite-caminos-cellrep-s1_spectra.png"
+      },
+      "png_sha256": {
+        "suite-caminos-cellrep-s1_spectra.dark.png": "64c1d651375335e7a4d047cfa734fa919324addd9e3dea8c7ed8297d6c47c7e8",
+        "suite-caminos-cellrep-s1_spectra.png": "0da683b778fcbbefaa56a23b6bdfebd72b6c315ddf0a67f07e1de0cc6606167f"
+      },
+      "sources": {
+        "warehouse/caminos/s1_95d2161b/s1.json": "7dc1b25f198be39e0a5993ca6cbbaee917e01c2393844a5a1ca144349326afc7"
+      },
+      "title": "S1: E spectra across p"
+    },
+    {
+      "caption": "Seed 9, Fig. 6B continuation, 2000 cells over 10 s (the raster stores no RS/FS split); mean rate 9.42 Hz, CV ISI 2.36.",
+      "id": "raster",
+      "paper": "destexhe2009",
+      "png": {
+        "dark": "suite-destexhe2009-raster.dark.png",
+        "light": "suite-destexhe2009-raster.png"
+      },
+      "png_sha256": {
+        "suite-destexhe2009-raster.dark.png": "a81c9aadc3f8d3573965c2e6c676e0b593e8b34e98862249d780152e152c8d0c",
+        "suite-destexhe2009-raster.png": "9d803a520b0ac35b923775e7298d0aff33dc06fd5b238d9beae02296205df593"
+      },
+      "sources": {
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed9_6b.json": "25a7ba5d8218f477b34d51350d4e172dd7f466662326741fc1796f3ae18da4f1",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed9_fig6b_cont.npz": "73a0f626de15527ddfe829d728b3764df2d7e1cf8dbca7173ccd134cfadc6298"
+      },
+      "title": "Spike raster"
+    },
+    {
+      "caption": "Every scored run (P3 v3 signed); activity alive in the last second in 2 of 7 runs.",
+      "id": "rates",
+      "paper": "destexhe2009",
+      "png": {
+        "dark": "suite-destexhe2009-rates.dark.png",
+        "light": "suite-destexhe2009-rates.png"
+      },
+      "png_sha256": {
+        "suite-destexhe2009-rates.dark.png": "6852157b9411d102a9c8d886d2e92e0b53e17bb9dd1d63ec1b656fff2723d913",
+        "suite-destexhe2009-rates.png": "e9295eeacab25e446f1e4b6c0f17bcc5af453ad9fdc07b74ecabfc27ae2068a8"
+      },
+      "sources": {
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed10_6a.json": "62b0668a7012265be23d25d5e34724ccd0e1d09a3f54e3cd5cf5efbcfcec9d14",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed10_6b.json": "7dd381ddc7eb36ed50f5e2c61d09b473653ce5758602744eecc7f9c962f7031a",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed11_6b.json": "9ff1de3b9f198358e886ac7e9b4c47815d728a207d704da3a989d3d80ddfadf1",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed12_6b.json": "c74a314dc3cc08663ca99509f4ba6463b762929c46c8ffa5f5b5e43c7099d4fc",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed13_6b.json": "a956c659e068ca3ad89b5241e7108d2eff626136f6588249cd747ee13c39acf1",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed9_6a.json": "d442eacadb9afced8fde42354b715871503ae5be07728c9850dbd5b35f238cd8",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed9_6b.json": "25a7ba5d8218f477b34d51350d4e172dd7f466662326741fc1796f3ae18da4f1",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed10_fig6a_cont.npz": "f164f01429d643d97e367be484c9c3cce8ed005c3c5a69804d885f263a1d5df2",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed10_fig6b_cont.npz": "cfe0e168255b2bc694d04296848c072b23fdc2546cf08fdcbabaaa44925ee8bc",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed11_fig6b_cont.npz": "50f90ea7a9d155992d37132c5cf167aa609dec07b816e8fea4c590e27f129d82",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed12_fig6b_cont.npz": "e3635de6142c136069650f91d8aae7bb26a8d51b88c1644f67d2e94ccae5b5e4",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed13_fig6b_cont.npz": "137257f049025d9e1ce88c896a29c342f8f9ac4eee73f627a2b72f9075412a66",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed9_fig6a_cont.npz": "fc05c3a92f82ef827a24af1e6140a6b8003975cd50916d358a3d6e766aea1dc6",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed9_fig6b_cont.npz": "73a0f626de15527ddfe829d728b3764df2d7e1cf8dbca7173ccd134cfadc6298"
+      },
+      "title": "Rate histories"
+    },
+    {
+      "caption": "CV ISI against pairwise count correlation for each of the 7 scored runs, labelled by seed.",
+      "id": "stats",
+      "paper": "destexhe2009",
+      "png": {
+        "dark": "suite-destexhe2009-stats.dark.png",
+        "light": "suite-destexhe2009-stats.png"
+      },
+      "png_sha256": {
+        "suite-destexhe2009-stats.dark.png": "41db56277379a9d915cf32f5f0ea808aa4691c30436c7be0d566db064fb9dcdf",
+        "suite-destexhe2009-stats.png": "7b0da646a2cb4664c06be3906a4c5ad6ff5f04b3a2612fd742e391ef6c57aa54"
+      },
+      "sources": {
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed10_6a.json": "62b0668a7012265be23d25d5e34724ccd0e1d09a3f54e3cd5cf5efbcfcec9d14",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed10_6b.json": "7dd381ddc7eb36ed50f5e2c61d09b473653ce5758602744eecc7f9c962f7031a",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed11_6b.json": "9ff1de3b9f198358e886ac7e9b4c47815d728a207d704da3a989d3d80ddfadf1",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed12_6b.json": "c74a314dc3cc08663ca99509f4ba6463b762929c46c8ffa5f5b5e43c7099d4fc",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed13_6b.json": "a956c659e068ca3ad89b5241e7108d2eff626136f6588249cd747ee13c39acf1",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed9_6a.json": "d442eacadb9afced8fde42354b715871503ae5be07728c9850dbd5b35f238cd8",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/score_seed9_6b.json": "25a7ba5d8218f477b34d51350d4e172dd7f466662326741fc1796f3ae18da4f1",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed10_fig6a_cont.npz": "f164f01429d643d97e367be484c9c3cce8ed005c3c5a69804d885f263a1d5df2",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed10_fig6b_cont.npz": "cfe0e168255b2bc694d04296848c072b23fdc2546cf08fdcbabaaa44925ee8bc",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed11_fig6b_cont.npz": "50f90ea7a9d155992d37132c5cf167aa609dec07b816e8fea4c590e27f129d82",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed12_fig6b_cont.npz": "e3635de6142c136069650f91d8aae7bb26a8d51b88c1644f67d2e94ccae5b5e4",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed13_fig6b_cont.npz": "137257f049025d9e1ce88c896a29c342f8f9ac4eee73f627a2b72f9075412a66",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed9_fig6a_cont.npz": "fc05c3a92f82ef827a24af1e6140a6b8003975cd50916d358a3d6e766aea1dc6",
+        "warehouse/destexhe2009/P3v3_signed_2d17488b/scored/spikes_seed9_fig6b_cont.npz": "73a0f626de15527ddfe829d728b3764df2d7e1cf8dbca7173ccd134cfadc6298"
+      },
+      "title": "Irregularity and correlation"
+    },
+    {
+      "caption": "Fit history per seed (GSDR-MCDP center update (antithetic-ES gradient); population 6, 30 generations; loss weights psd 990, rate 9, kappa 100).",
+      "id": "fit",
+      "paper": "gsdr2026",
+      "png": {
+        "dark": "suite-gsdr2026-fit.dark.png",
+        "light": "suite-gsdr2026-fit.png"
+      },
+      "png_sha256": {
+        "suite-gsdr2026-fit.dark.png": "64375de4c33f5ab3cdc7486458f433c6a79e0e8905f8fbfca2cf2ee366c0f76a",
+        "suite-gsdr2026-fit.png": "d34494e52bcd824bd2e816c520f93319c44998a71a8756622ba694b322c4bf37"
+      },
+      "sources": {
+        "warehouse/gsdr/P3_fit_8516a005/seed10/manifest.json": "47d7627c5490ec1638d02375412deacee643658bccb448a02b6a473dcc2c6f85",
+        "warehouse/gsdr/P3_fit_8516a005/seed11/manifest.json": "b27744d87c765b03096467c61fa68ce0b44f85f65ec2e069572124cf39883892",
+        "warehouse/gsdr/P3_fit_8516a005/seed12/manifest.json": "03b543ddad85f1f9192af46028d7611bf622633f0b9dada44b79a1733c5f3cc8",
+        "warehouse/gsdr/P3_fit_8516a005/seed13/manifest.json": "f74748138947e17a372072f40ac8a32309e5b451b8ac3276302544b852172ab0",
+        "warehouse/gsdr/P3_fit_8516a005/seed9/manifest.json": "46f3e423842fdd6df4baa40b4ba0a29d0f01ca3f179de6aa9f69dbeba9b63030"
+      },
+      "title": "Fit history"
+    },
+    {
+      "caption": "Fitted conductances, all 2230 trainable edges per seed.",
+      "id": "gstar",
+      "paper": "gsdr2026",
+      "png": {
+        "dark": "suite-gsdr2026-gstar.dark.png",
+        "light": "suite-gsdr2026-gstar.png"
+      },
+      "png_sha256": {
+        "suite-gsdr2026-gstar.dark.png": "c5527b4ed36c7ffd735fde11e0d7975e5381764add23538509c65f29ea42cee3",
+        "suite-gsdr2026-gstar.png": "0fb4389fe6152695c50acc69b9af81693d5bbdc4f048695c907cafdcd0676b8f"
+      },
+      "sources": {
+        "warehouse/gsdr/P3_fit_8516a005/seed10/g_star_uS_float32.npy": "8361657ff44ded041b9001e74a85bbf74271b0de02ad833c4b98f65ea2fba962",
+        "warehouse/gsdr/P3_fit_8516a005/seed11/g_star_uS_float32.npy": "293c5a04ab470559cf4e7a5774113618561e79ae077b51a994151602ff1562df",
+        "warehouse/gsdr/P3_fit_8516a005/seed12/g_star_uS_float32.npy": "19694f5737dfc8f778f0a9bb700beee6c016adc3f664e3c4c187761cb7096202",
+        "warehouse/gsdr/P3_fit_8516a005/seed13/g_star_uS_float32.npy": "2711c2e77062c67f1a4d0b93948205174ff544cdc310fcdf2ba639a446f81b67",
+        "warehouse/gsdr/P3_fit_8516a005/seed9/g_star_uS_float32.npy": "c44f525e5917fe9035bb808cfded9859a6e5328e8861b1ebbfe939b6342db6e5"
+      },
+      "title": "Fitted conductances"
+    },
+    {
+      "caption": "Held-out evaluation trials at g*: 25 trials over 5 fitted seeds.",
+      "id": "eval",
+      "paper": "gsdr2026",
+      "png": {
+        "dark": "suite-gsdr2026-eval.dark.png",
+        "light": "suite-gsdr2026-eval.png"
+      },
+      "png_sha256": {
+        "suite-gsdr2026-eval.dark.png": "001601e924aa81aed175f36a45c53db37170a5279e279461e5d2254e6ae45eed",
+        "suite-gsdr2026-eval.png": "288652007d4963b2881439608eba42a3479d4a8658d7b4adbd9ab0a48c0e297e"
+      },
+      "sources": {
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed10_trial14.json": "52017869656a14a6a1068d9998ebfa4d451c7584f71c8764927a528c0a89f9f7",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed10_trial15.json": "56f7c03d3ae9011b2697b9e530e5aa94ec965069ebde961009720b7ac877790c",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed10_trial16.json": "04fc7ca3ddd7e445e9ab14d92aaeb8a5a2c38d8838b66b54812dee95f468fa5e",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed10_trial17.json": "7d46f670ec8f6c10d6e98216d1d38748069caf7b313e5c13da5e8c938bdc9f5d",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed10_trial18.json": "2cb3c5e3222bfe07caff2fc3f899ba017dfdcbe83bc8d47e9652a617603c146c",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed11_trial14.json": "76caa81016f2732226a1e0e27ee8331c3bff9af2e4e895e35bd3a40972839a8f",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed11_trial15.json": "9be2ebb33cc7f35d554a34916fc74121f80c5a3b098126854bbaa16b5b5ebd79",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed11_trial16.json": "98cc5a5e06c02b010f8d2aca4bc91857a3a8986943806d8bedc7bad8d3d9cd37",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed11_trial17.json": "b880b755cda3d83b6f78c34c8081a43d6a5c6ba168f7a83b73415cd4f34cc7d7",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed11_trial18.json": "3d0312e445cc91b36804865c713230e2117e0b882aef353c3e51036b25fe8ea6",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed12_trial14.json": "34020115704e05400e6313f36f682124591a334749c14c8ec06eb6a7d9c12c64",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed12_trial15.json": "1804d46b58e6dca84b7e35762c938a12166156dd2a55bee1ddb6e3034abba0c4",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed12_trial16.json": "1da71b7bd56dea52071c57e17910fee9c5adc53b157eb124539071245a5eda95",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed12_trial17.json": "76f245fd2a0cb769461d65246cc588993528f28b8d89c304f9fac2860484e091",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed12_trial18.json": "56310ddf4141664714be1aa3db67aa50e548ecdd4ae3a4c23d3f62084a80068f",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed13_trial14.json": "3b1e078bb94c3d4a0d3509aed22677619c782c8aee115f3637fbcdd50cd70a50",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed13_trial15.json": "cabed0ef5a2998939574fa6f91ade1a152b77e3aa0690dc52370604bbaa78c07",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed13_trial16.json": "ee679a09872e7f373467587a943eb2e92d890f58c50beb1738cd4aa743e83da5",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed13_trial17.json": "fec76e846180e9149e12b1504612cf03eb804d075c62013c3c5f131b3be74495",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed13_trial18.json": "7bae36f03c740c23f5259a55cda3d2b7f0eea45a08bec8664bf2e659c8c71f54",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed9_trial14.json": "6d0b0a40bfd3e623d739f1015272063547c33cf05bced908d179c8c634e83043",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed9_trial15.json": "b88d25982e646f7a6a0ef47c92490bdebe91f5bc41026a242ba025188c5884e9",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed9_trial16.json": "c703d94ef11078debfffbd53be0cca65c56252f6a1be804e702cb3275bbaa253",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed9_trial17.json": "ba80b777988003921ca145b25e0b31959ee50f9a9b04c40dab49cfa2c2553780",
+        "warehouse/gsdr/P3_fit_8516a005/eval_seed9_trial18.json": "0e8d7acb7b99332092b6b60ce158bb4eefdc9cc569caa71b820511534665e308"
+      },
+      "title": "Held-out trials"
+    },
+    {
+      "caption": "Membrane potential of the 8 Fig. 2 single-cell runs (dt 0.1 ms, jaxfne.emitters.simulate_eig_izhikevich).",
+      "id": "fig2",
+      "paper": "izhikevich2003",
+      "png": {
+        "dark": "suite-izhikevich2003-fig2.dark.png",
+        "light": "suite-izhikevich2003-fig2.png"
+      },
+      "png_sha256": {
+        "suite-izhikevich2003-fig2.dark.png": "441ff5f729b0cfb1b8aa9fbc28d0382aec2d8824c3dc778ea7204d4b9c30eff4",
+        "suite-izhikevich2003-fig2.png": "a894ebf8e9eab90f8503d4a3e27b881801595d38c6cbfc8810c16b42f0e784f2"
+      },
+      "sources": {
+        "warehouse/izh2003/scored_v7/fig2/C1.npz": "7513a5f5a758cf2a0a258b52ae80ed9192d8cf82ccd72b2565e06c93f0c246e7",
+        "warehouse/izh2003/scored_v7/fig2/C2.npz": "8174bdbc1d7b1189a12e9eaac745e827ace0d3de0f05facf61f2dca77db33eef",
+        "warehouse/izh2003/scored_v7/fig2/C3.npz": "c12e46d88f971f17e6b6251b2e64dd1c2d18528c77d0151801f48427e568bf1e",
+        "warehouse/izh2003/scored_v7/fig2/C4.npz": "35a99fa58cc82dbb90fb078992f91d1194876505fd5886faa43c9502ef72969a",
+        "warehouse/izh2003/scored_v7/fig2/C5.npz": "acb4a1775ea293fb611d0eae5e953bb10a81593acaf7da464f451ee6eeb6c15e",
+        "warehouse/izh2003/scored_v7/fig2/C6_I1.npz": "a12c2d4e9251d094b9cc4bb929b026aff35108c9f90c8fcd306231607ddd2800",
+        "warehouse/izh2003/scored_v7/fig2/C7.npz": "794248a4e8454da68b070a3d00ea2507ed529501279f313755833263599cbb65",
+        "warehouse/izh2003/scored_v7/fig2/C8.npz": "7e5fcfdb1dbc1d98a79a06db830c56d886083d6fb6d64946aa085a6c18faa868",
+        "warehouse/izh2003/scored_v7/fig2/manifest.json": "ecdbc0687090320a88e1053c492f7483794fab5ed2358ebdf97199066b031ada"
+      },
+      "title": "Single-cell voltage traces"
+    },
+    {
+      "caption": "Seed 1, 1000-cell network, 1-2 s of T = 10.2 s (dt 0.5 ms); 88106 spikes in the run.",
+      "id": "raster",
+      "paper": "izhikevich2003",
+      "png": {
+        "dark": "suite-izhikevich2003-raster.dark.png",
+        "light": "suite-izhikevich2003-raster.png"
+      },
+      "png_sha256": {
+        "suite-izhikevich2003-raster.dark.png": "9f682325193273e05fb55efe2eed99bdb92914721d5de891d5557bee1fe0dfb6",
+        "suite-izhikevich2003-raster.png": "e1571af0f09a5a35531cf61234cf41e4fb24705ad59c9a116048981dcc162087"
+      },
+      "sources": {
+        "warehouse/izh2003/scored_v7/fig3/1.npz": "03bcd21f44fa4f851f37726ff490defb8d29c39c5677352275ae870bc3e6ccc5",
+        "warehouse/izh2003/scored_v7/fig3/manifest.json": "a4e2177bd038e0477c950c3061699529f65f584c8c372336c24f388eacd7e4c2"
+      },
+      "title": "Network raster"
+    },
+    {
+      "caption": "Welch PSD of the population rate (1 ms bins, 1.024 s segments); shaded: the P3 v7 alpha (8-13 Hz) and gamma (30-50 Hz) bands.",
+      "id": "psd",
+      "paper": "izhikevich2003",
+      "png": {
+        "dark": "suite-izhikevich2003-psd.dark.png",
+        "light": "suite-izhikevich2003-psd.png"
+      },
+      "png_sha256": {
+        "suite-izhikevich2003-psd.dark.png": "b9034bcdbe813e93fcefa682c41726dc08d07f3ab2ed445d0c02ba2b87a29156",
+        "suite-izhikevich2003-psd.png": "8f8b7849b4e54ecd310d04d018087e4f6a474a235ac70d9a2f41151662bac4fc"
+      },
+      "sources": {
+        "warehouse/izh2003/scored_v7/fig3/1.npz": "03bcd21f44fa4f851f37726ff490defb8d29c39c5677352275ae870bc3e6ccc5",
+        "warehouse/izh2003/scored_v7/fig3/2.npz": "4563dc1f091675aa863d3a9c99216be9ae1865b64ed3620724c7c8179dc90b59",
+        "warehouse/izh2003/scored_v7/fig3/3.npz": "788ecdc321c1d9882bd59d497e8c96e0cfc5e6d261ec6f9563851b202cd763c1",
+        "warehouse/izh2003/scored_v7/fig3/4.npz": "43fe3d86669b89fe5e7531f5379d98d0f2c9481e184af1f00e66dcfb961f00c9",
+        "warehouse/izh2003/scored_v7/fig3/5.npz": "86c55d75b81912694097923bde5aa939c0c159158b64c49eb6353a9163f5aef1",
+        "warehouse/izh2003/scored_v7/fig3/manifest.json": "a4e2177bd038e0477c950c3061699529f65f584c8c372336c24f388eacd7e4c2",
+        "warehouse/izh2003/scored_v7/score.json": "7a0490414c8b6e7377b2035760727cc5b2a1358a8a9b10e7ea26025bbc669aab"
+      },
+      "title": "Population rate spectra"
+    },
+    {
+      "caption": "Fig. 8 points A-D, seed 4, last 200 ms of 2500 ms: 50 cells and the population rate of all 12500 cells (1 ms bins). Titles: the receipts' regime labels.",
+      "id": "rasters",
+      "paper": "brunel2000",
+      "png": {
+        "dark": "suite-brunel2000-rasters.dark.png",
+        "light": "suite-brunel2000-rasters.png"
+      },
+      "png_sha256": {
+        "suite-brunel2000-rasters.dark.png": "cf4e7f5c29c380a4d02ad3e6653d4804dc7d7c817d76bf1cb967b42d504b018d",
+        "suite-brunel2000-rasters.png": "f44860a5d1a67a395961f7b33f4800521da497b649ff1d939b22a75883013908"
+      },
+      "sources": {
+        "receipts/brunel2000_p3v4/scored/manifest.json": "4526d456736b5e25bc4a3ea293db16dd27e695910aeef91b9847d058ea916b35",
+        "receipts/brunel2000_p3v4/scored/spikes_seed4_fig8A_n12500_dt0.1.npz": "528c52a3ce75c6e719c918ecdafe7ac5286abf83f75a2bda2e068d3af4d3c7b8",
+        "receipts/brunel2000_p3v4/scored/spikes_seed4_fig8B_n12500_dt0.1.npz": "a5a533049f2c3e95ce1912f35a9d527f207fe344c6a51a48fe959d1b6a22fb46",
+        "receipts/brunel2000_p3v4/scored/spikes_seed4_fig8C_n12500_dt0.1.npz": "38ef242d19fbe9bf558932db0475c82109ca8e8313545196c5a13ee60231419b",
+        "receipts/brunel2000_p3v4/scored/spikes_seed4_fig8D_n12500_dt0.1.npz": "e59533c5f8165f940cd20462c72c8d7af07404101abdab97b71ed4779e850270"
+      },
+      "title": "States A-D"
+    },
+    {
+      "caption": "Welch PSD of the population rate after the 500 ms burn-in, 1 ms bins, mean over seeds 4-8.",
+      "id": "psd",
+      "paper": "brunel2000",
+      "png": {
+        "dark": "suite-brunel2000-psd.dark.png",
+        "light": "suite-brunel2000-psd.png"
+      },
+      "png_sha256": {
+        "suite-brunel2000-psd.dark.png": "8c6a6797051b345350f52427febdf702bc543bcb26c04b3d22e7a83423902ee2",
+        "suite-brunel2000-psd.png": "aae8c20fcb2c2b3bc3cb76307af02f94c34079bad5be7e4570cbc9e05cb6ab1d"
+      },
+      "sources": {
+        "receipts/brunel2000_p3v4/scored/manifest.json": "4526d456736b5e25bc4a3ea293db16dd27e695910aeef91b9847d058ea916b35",
+        "receipts/brunel2000_p3v4/scored/spikes_seed4_fig8A_n12500_dt0.1.npz": "528c52a3ce75c6e719c918ecdafe7ac5286abf83f75a2bda2e068d3af4d3c7b8",
+        "receipts/brunel2000_p3v4/scored/spikes_seed4_fig8B_n12500_dt0.1.npz": "a5a533049f2c3e95ce1912f35a9d527f207fe344c6a51a48fe959d1b6a22fb46",
+        "receipts/brunel2000_p3v4/scored/spikes_seed4_fig8C_n12500_dt0.1.npz": "38ef242d19fbe9bf558932db0475c82109ca8e8313545196c5a13ee60231419b",
+        "receipts/brunel2000_p3v4/scored/spikes_seed4_fig8D_n12500_dt0.1.npz": "e59533c5f8165f940cd20462c72c8d7af07404101abdab97b71ed4779e850270",
+        "receipts/brunel2000_p3v4/scored/spikes_seed5_fig8A_n12500_dt0.1.npz": "e069217110c378236be1ed63ae42fe21d331b72dcbd1b999244bc60176967250",
+        "receipts/brunel2000_p3v4/scored/spikes_seed5_fig8B_n12500_dt0.1.npz": "4c0be57140513bc8ca369fbc387c23162db9356b4b9787c79cce9389b9945bd5",
+        "receipts/brunel2000_p3v4/scored/spikes_seed5_fig8C_n12500_dt0.1.npz": "ee2ef7856f25887b9c614c3613e227d1ce56c137c2a385aba6be1f4240cf9843",
+        "receipts/brunel2000_p3v4/scored/spikes_seed5_fig8D_n12500_dt0.1.npz": "5a5113552bcd14fc03221bfd626197ddcfa4018327fc2b2ba4e36473f30b6d2e",
+        "receipts/brunel2000_p3v4/scored/spikes_seed6_fig8A_n12500_dt0.1.npz": "aff85b5099b655638fbb32ab7806682acda86fe816300b8c90e86f794827ac87",
+        "receipts/brunel2000_p3v4/scored/spikes_seed6_fig8B_n12500_dt0.1.npz": "9e1c8260581e8a625c63506e4fab8b67ae8f7bf691b467ce345407e8b898a6d8",
+        "receipts/brunel2000_p3v4/scored/spikes_seed6_fig8C_n12500_dt0.1.npz": "ef00b80de4bc197a614fa25ca013536f431175fb18fdb2a32edeefa4d9f166f7",
+        "receipts/brunel2000_p3v4/scored/spikes_seed6_fig8D_n12500_dt0.1.npz": "f20a7e069e559df220fcb6cc3e3d8d275215e2d2d121cef631e42ef363a25b91",
+        "receipts/brunel2000_p3v4/scored/spikes_seed7_fig8A_n12500_dt0.1.npz": "979fb05c6188cbe00e987fdb04745073fcd87f1cccf7aef8c47c15df4fccd400",
+        "receipts/brunel2000_p3v4/scored/spikes_seed7_fig8B_n12500_dt0.1.npz": "ba851f8166d8ca0aa75208f6afb1638b873acb759f9581e76187fad77dce5b0c",
+        "receipts/brunel2000_p3v4/scored/spikes_seed7_fig8C_n12500_dt0.1.npz": "557907e0b5791ea48af8291ef13985ba60f6ba2339c51305712d5ebfad55abc5",
+        "receipts/brunel2000_p3v4/scored/spikes_seed7_fig8D_n12500_dt0.1.npz": "58894dc68253fbb01aa6bb80ed3d5341e9a70f98ea17fd61a712f6a742b8b744",
+        "receipts/brunel2000_p3v4/scored/spikes_seed8_fig8A_n12500_dt0.1.npz": "3c2d67b93a40e9f4bf82fac7cff9868848b282e3bd2e1b62c9050c6bbd3119c1",
+        "receipts/brunel2000_p3v4/scored/spikes_seed8_fig8B_n12500_dt0.1.npz": "8f918ed41a964632023f2244e3483931d3ffd3d94b250973576f5f4c584e4bb5",
+        "receipts/brunel2000_p3v4/scored/spikes_seed8_fig8C_n12500_dt0.1.npz": "d66ccca1a212816832581247be0500b8fa5612a410d8b8fe79799bd596614f8e",
+        "receipts/brunel2000_p3v4/scored/spikes_seed8_fig8D_n12500_dt0.1.npz": "692ce2afe0568c66da7a35291da6de59abc5d13d9aaeb31b921ae82b1cc9976b"
+      },
+      "title": "Population rate spectra"
+    },
+    {
+      "caption": "Seed 4, scale 0.1 (7718 cells), last 200 ms of 10 s; every 10th cell, layer 2/3 on top.",
+      "id": "raster",
+      "paper": "potjans2014",
+      "png": {
+        "dark": "suite-potjans2014-raster.dark.png",
+        "light": "suite-potjans2014-raster.png"
+      },
+      "png_sha256": {
+        "suite-potjans2014-raster.dark.png": "d71c67e30f1b118bfe4c5d7602240f5e3322aca364ca388eca65087a397d7f8e",
+        "suite-potjans2014-raster.png": "c26a761455856b013b54b9519d6195b8f6b204ee9291134c2790ffa922c9a323"
+      },
+      "sources": {
+        "warehouse/potjans2014/scored_P3v2_b23c9b49/scored/seed4/manifest.json": "13d9d4f1ebc1a4f02b6d9086fcc0c28c88a5d6f9503824d9092fb9b1fbc1edf0",
+        "warehouse/potjans2014/scored_P3v2_b23c9b49/scored/seed4/spikes_seed4_scored.npz": "58210fe69825388f83f11ca64167a2dab7a2068050fb1348040655b4a2171489"
+      },
+      "title": "Spike raster"
+    },
+    {
+      "caption": "Firing rate per population, mean \u00b1 sd with each of seeds 4-8 (10 s scored runs).",
+      "id": "rates",
+      "paper": "potjans2014",
+      "png": {
+        "dark": "suite-potjans2014-rates.dark.png",
+        "light": "suite-potjans2014-rates.png"
+      },
+      "png_sha256": {
+        "suite-potjans2014-rates.dark.png": "725ef435636e2f7a52ad3d65b82bc8ed15dbadb262d22833428636b20c7abb50",
+        "suite-potjans2014-rates.png": "dafc97dd01187650f228c00c650e8d0d61b9167ab8b530b1a88b4411db130f75"
+      },
+      "sources": {
+        "warehouse/potjans2014/scored_P3v2_b23c9b49/scored/seed4/manifest.json": "13d9d4f1ebc1a4f02b6d9086fcc0c28c88a5d6f9503824d9092fb9b1fbc1edf0",
+        "warehouse/potjans2014/scored_P3v2_b23c9b49/scored/seed5/manifest.json": "50a5b0d074059fb683f757d9f3bbe770384c97d642c05f815ac0f7a3ac4c3722",
+        "warehouse/potjans2014/scored_P3v2_b23c9b49/scored/seed6/manifest.json": "64f4d4047729685bea01cfbaa448cd3dd62d7a743143697a4fedc0eeb46ddaec",
+        "warehouse/potjans2014/scored_P3v2_b23c9b49/scored/seed7/manifest.json": "c1aaac1dfa0e5eac81ce6c4cf9af54a69a039e4b66cde60c4b83638cf7bb7e50",
+        "warehouse/potjans2014/scored_P3v2_b23c9b49/scored/seed8/manifest.json": "612f343ab1b10a99fb9b2d0b7a9b70131beeb65078da288baf3e86b25a6fa7ac"
+      },
+      "title": "Population rates"
+    },
+    {
+      "caption": "CV ISI per population, mean \u00b1 sd with each of seeds 4-8 (10 s scored runs).",
+      "id": "cv",
+      "paper": "potjans2014",
+      "png": {
+        "dark": "suite-potjans2014-cv.dark.png",
+        "light": "suite-potjans2014-cv.png"
+      },
+      "png_sha256": {
+        "suite-potjans2014-cv.dark.png": "84441c0e8274fe2fb32c97644c160339fb320dfd0b6f5a6a3e60892cd0cfc687",
+        "suite-potjans2014-cv.png": "0d169a24d4a32e4de9ac39fba8cea001f49afc21e077de2210acc98e0fbcef3a"
+      },
+      "sources": {
+        "warehouse/potjans2014/scored_P3v2_b23c9b49/scored/seed4/manifest.json": "13d9d4f1ebc1a4f02b6d9086fcc0c28c88a5d6f9503824d9092fb9b1fbc1edf0",
+        "warehouse/potjans2014/scored_P3v2_b23c9b49/scored/seed5/manifest.json": "50a5b0d074059fb683f757d9f3bbe770384c97d642c05f815ac0f7a3ac4c3722",
+        "warehouse/potjans2014/scored_P3v2_b23c9b49/scored/seed6/manifest.json": "64f4d4047729685bea01cfbaa448cd3dd62d7a743143697a4fedc0eeb46ddaec",
+        "warehouse/potjans2014/scored_P3v2_b23c9b49/scored/seed7/manifest.json": "c1aaac1dfa0e5eac81ce6c4cf9af54a69a039e4b66cde60c4b83638cf7bb7e50",
+        "warehouse/potjans2014/scored_P3v2_b23c9b49/scored/seed8/manifest.json": "612f343ab1b10a99fb9b2d0b7a9b70131beeb65078da288baf3e86b25a6fa7ac"
+      },
+      "title": "Spike irregularity"
+    },
+    {
+      "caption": "E rate under inhibitory STDP (\u03b7 = 0.01, T = 150 s). R-E: e = 0.38 against e <= 0.20 (P3 v2); CONV holds.",
+      "id": "history",
+      "paper": "vogels2011",
+      "png": {
+        "dark": "suite-vogels2011-history.dark.png",
+        "light": "suite-vogels2011-history.png"
+      },
+      "png_sha256": {
+        "suite-vogels2011-history.dark.png": "1b2f7548409e5876106c9f664597fc4f82f3603ccd0fb70c4b1489a39bb051a7",
+        "suite-vogels2011-history.png": "3a9c07b810c96dbfefa848b9ec75d533a78849b69831dff6691155c3ceaa57aa"
+      },
+      "sources": {
+        "warehouse/vogels2011/scored_P3v4_b23c9b49/score_p3.json": "a427a6122a0fe610491be32e5b86bd03cef88a26ea1f0af446814411539b8286",
+        "warehouse/vogels2011/scored_P3v4_b23c9b49/scored/seed4/score_receipt.json": "f2f1dd3ee16dea7000e4723a8a83611565635e18966c9108a290b56caa5658d0",
+        "warehouse/vogels2011/scored_P3v4_b23c9b49/scored/seed5/score_receipt.json": "3b57104b66c03fb98b98ab76056ddc24bb78fce8522a9f436c886e2e0ba5645f",
+        "warehouse/vogels2011/scored_P3v4_b23c9b49/scored/seed6/score_receipt.json": "95bd8aeaa98b3a143d9f1f417d0e7f2a07fcb8b0f7d67d466c95e2f928716018",
+        "warehouse/vogels2011/scored_P3v4_b23c9b49/scored/seed7/score_receipt.json": "2e38fee6bf07f3834f3c0b3fbcc85d8ea15e5bf530383004ababb83acbf724d6",
+        "warehouse/vogels2011/scored_P3v4_b23c9b49/scored/seed8/score_receipt.json": "e86b8a03b5bdb05b11c976016d4a53517388bd2b702505cf8e0b844a2aefaa9a"
+      },
+      "title": "Rate history"
+    },
+    {
+      "caption": "Seed 4, 10000 cells, before plasticity and at the end of the 150 s run.",
+      "id": "raster",
+      "paper": "vogels2011",
+      "png": {
+        "dark": "suite-vogels2011-raster.dark.png",
+        "light": "suite-vogels2011-raster.png"
+      },
+      "png_sha256": {
+        "suite-vogels2011-raster.dark.png": "3307f66e88b54040554f455d258f360f8ab49543654c4a109f14640e12a07e4d",
+        "suite-vogels2011-raster.png": "9e08a05e1e5d1ad836a956606c9ebfc3a6b94761d425ed701c943a1fca161cb9"
+      },
+      "sources": {
+        "warehouse/vogels2011/scored_P3v4_b23c9b49/scored/seed4/score_receipt.json": "f2f1dd3ee16dea7000e4723a8a83611565635e18966c9108a290b56caa5658d0",
+        "warehouse/vogels2011/scored_P3v4_b23c9b49/scored/seed4/spikes_seed4_segA.npz": "121e7de0b1b777ed8088a674621cb64f06b887505099de6e0eb62d0af3ab615f",
+        "warehouse/vogels2011/scored_P3v4_b23c9b49/scored/seed4/spikes_seed4_segB.npz": "8ea8e89e93ba314766573c6d312e670c5732546fddfe9f3895e73e32b55de2c1"
+      },
+      "title": "Before and after plasticity"
+    },
+    {
+      "caption": "Learned inhibitory weight (mean 1.84 nS) and the end-of-run E rate slope per seed; CONV: every scored seed converged: not converged only when |b| >= 0.01 Hz/s and |b|/se > 2.101 (P3 v4 signed).",
+      "id": "weights",
+      "paper": "vogels2011",
+      "png": {
+        "dark": "suite-vogels2011-weights.dark.png",
+        "light": "suite-vogels2011-weights.png"
+      },
+      "png_sha256": {
+        "suite-vogels2011-weights.dark.png": "c623693b3b0559372390f30c30eb97f67932e8242457c878028c9bfdbad5b503",
+        "suite-vogels2011-weights.png": "c6d2d042c376461905e87023471174809460225c2a26c5bc360547d8bba163a4"
+      },
+      "sources": {
+        "warehouse/vogels2011/scored_P3v4_b23c9b49/score_p3.json": "a427a6122a0fe610491be32e5b86bd03cef88a26ea1f0af446814411539b8286"
+      },
+      "title": "Weights and convergence"
+    },
+    {
+      "caption": "Preferred orientation of each cell in the scored Fig. 3 network (v4 full run, seed 0).",
+      "id": "pref_ori",
+      "paper": "pcl-fig3",
+      "png": {
+        "dark": "suite-pcl-fig3-pref_ori.dark.png",
+        "light": "suite-pcl-fig3-pref_ori.png"
+      },
+      "png_sha256": {
+        "suite-pcl-fig3-pref_ori.dark.png": "e73207294db9779ab34019c6ebaeb5e34cdb32afcfdbe96214de90509b929132",
+        "suite-pcl-fig3-pref_ori.png": "edf904653f564e9e1cf63f968189842343dcdd37f04f3acc26f4105c00160c28"
+      },
+      "sources": {
+        "warehouse/pcl/scores/fig3_v4_full.json": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
+      },
+      "title": "Orientation preference"
+    },
+    {
+      "caption": "Preferred spatial frequency of each cell in the scored Fig. 3 network (v4 full run, seed 0).",
+      "id": "pref_sf",
+      "paper": "pcl-fig3",
+      "png": {
+        "dark": "suite-pcl-fig3-pref_sf.dark.png",
+        "light": "suite-pcl-fig3-pref_sf.png"
+      },
+      "png_sha256": {
+        "suite-pcl-fig3-pref_sf.dark.png": "23af043165371f80d5fb18b925531c4b91a338cb61f281183e952d4c5c5ecb64",
+        "suite-pcl-fig3-pref_sf.png": "3df551eecd32353c5978888d6e758bd08b74df086885d960e86683d74b0c7622"
+      },
+      "sources": {
+        "warehouse/pcl/scores/fig3_v4_full.json": "6afb88bb734e9cbba9df496e0f5d964b15d1592277a644cc13ca7c4f8f36a54f"
+      },
+      "title": "Spatial-frequency preference"
+    },
+    {
+      "caption": "Inhibitory weight per epoch for inputs 1-3, seeds [0, 1, 2]; mean suppression 0.69, 0.48, 0.31 (P0) and 0.39, 0.20, 0.08 (K0b).",
+      "id": "weights",
+      "paper": "pcl-fig2",
+      "png": {
+        "dark": "suite-pcl-fig2-weights.dark.png",
+        "light": "suite-pcl-fig2-weights.png"
+      },
+      "png_sha256": {
+        "suite-pcl-fig2-weights.dark.png": "c574e01ec1e98c83fa8ec46136faa03174740efc73c0cbaafe8c1a45e359ccfc",
+        "suite-pcl-fig2-weights.png": "b39b7cce93385b879e0d5c977f97fe024b64c019fb41e7c34befc0fc2bbf27bc"
+      },
+      "sources": {
+        "repo/artifacts/etudes/papers/pcl/fig2.json": "94cce1fff8c437f0af13de1a7d323dd491e81b2ac9d307745bb34902fe5a39dd",
+        "repo/artifacts/etudes/papers/pcl/fig2_hdp_avg_s012.json": "428fa3fa73a6ec3d33b877be25156c472a4e7b5c2c887250ea61941558840ff1"
+      },
+      "title": "Inhibitory weight trajectories"
+    }
+  ]
 }

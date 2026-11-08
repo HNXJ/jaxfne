@@ -12,6 +12,7 @@ on:
       - "dashboard/**"
       - "scripts/build_dashboard_data.py"
       - "scripts/build_dashboard_figures.py"
+      - "scripts/dashboard_suites.py"
       - "scripts/generate_replications_page.py"
       - "scripts/build_docs_assets.py"
       - "scripts/generate_doc_page_atlases.py"

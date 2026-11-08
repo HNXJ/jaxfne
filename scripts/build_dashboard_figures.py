@@ -7,10 +7,17 @@ dashboard/figures/<paper id>-<chart id>.dark.png; the page shows the one matchin
 scheme. dashboard/figures/manifest.json records the SHA-256 of the chart data each PNG pair
 was drawn from, receipt digests excluded. This script does not import jaxfne, so the repo-root guard (P-025) is not needed.
 
-  python scripts/build_dashboard_figures.py           render every chart (needs matplotlib)
-  python scripts/build_dashboard_figures.py --check   exit 1 if a PNG is missing or drawn from other data
+The Figures tab's per-paper suites (scripts/dashboard_suites.py) are drawn from run receipts, not from
+the chart data. Their manifest entries, under "suites", record each PNG's sha256 and each receipt's.
 
---check compares hashes only, so it runs without matplotlib and does not depend on its version.
+  python scripts/build_dashboard_figures.py           render every chart (needs matplotlib)
+  python scripts/build_dashboard_figures.py --suites  also render the suites from the receipts
+  python scripts/build_dashboard_figures.py --check   exit 1 if a PNG is missing or drawn from other data,
+                                                      or a receipt found on this machine has changed
+
+--check compares hashes only, so it runs without matplotlib and does not depend on its version. A receipt
+absent here (CI) is reported offline; its PNGs are still checked against their recorded sha256.
+Exit codes: 0 fresh or written, 1 stale.
 """
 
 import argparse
@@ -18,6 +25,9 @@ import hashlib
 import json
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import dashboard_suites  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "dashboard" / "data" / "replications.json"
@@ -111,33 +121,53 @@ def check(doc):
     except (OSError, ValueError) as exc:
         print(f"stale: cannot read {MANIFEST} ({exc}); run scripts/build_dashboard_figures.py", file=sys.stderr)
         return 1
+    suites = recorded.pop("suites", [])
     want = {name: chart_hash(chart) for name, chart, _ in charts(doc)}
     bad = sorted(n for n in set(want) | set(recorded) if want.get(n) != recorded.get(n) or not (FIGURES / n).is_file())
-    if bad:
-        print(f"stale: {', '.join(bad)}; run scripts/build_dashboard_figures.py", file=sys.stderr)
+    problems, verified, offline = dashboard_suites.check(suites, FIGURES)
+    known = set(want) | {n for e in suites for n in e["png_sha256"]}
+    bad += sorted(p.name for p in FIGURES.glob("*.png") if p.name not in known)
+    if bad or problems:
+        for line in problems:
+            print(f"stale suite: {line}", file=sys.stderr)
+        if bad:
+            print(f"stale: {', '.join(bad)}; run scripts/build_dashboard_figures.py", file=sys.stderr)
         return 1
-    print(f"fresh: {len(want)} figures match the chart data")
+    print(f"fresh: {len(want)} figures match the chart data; {len(suites)} suite panels match their PNGs "
+          f"({verified} receipts verified, {offline} offline)")
     return 0
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Render the dashboard charts to static PNGs.")
     parser.add_argument("--check", action="store_true", help="exit 1 if a PNG is missing or stale")
+    parser.add_argument("--suites", action="store_true",
+                        help="render only the per-paper suites, from the receipts; the chart PNGs stay as they are")
     args = parser.parse_args(argv)
     doc = json.loads(DATA.read_text(encoding="utf-8"))
     if args.check:
         return check(doc)
     FIGURES.mkdir(parents=True, exist_ok=True)
-    manifest = {}
-    for name, chart, dark in charts(doc):
-        draw(chart, FIGURES / name, dark=dark)
-        manifest[name] = chart_hash(chart)
+    try:
+        manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        manifest = {}
+    if args.suites:
+        manifest["suites"] = [dashboard_suites.build(panel, FIGURES) for panel in dashboard_suites.SUITES]
+    else:
+        manifest = {"suites": manifest.get("suites", [])}
+        for name, chart, dark in charts(doc):
+            draw(chart, FIGURES / name, dark=dark)
+            manifest[name] = chart_hash(chart)
+    suites = manifest.setdefault("suites", [])
+    keep = set(manifest) | {n for e in suites for n in e["png_sha256"]}
     for old in FIGURES.glob("*.png"):
-        if old.name not in manifest:
+        if old.name not in keep:
             old.unlink()
     with open(MANIFEST, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
-    print(f"wrote {len(manifest)} figures to {FIGURES}")
+    print(f"wrote {'suite' if args.suites else 'chart'} figures to {FIGURES}: "
+          f"{len(manifest) - 1} chart and {2 * len(suites)} suite PNGs recorded")
     return 0
 
 

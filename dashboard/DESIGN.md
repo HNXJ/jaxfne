@@ -43,7 +43,10 @@ without a pass keeps the paper in progress, with its criteria shown. A not-start
 no verdict and no criteria; the overview also lists every roadmap row as not started. The generator refuses an unknown class, a broken class rule
 and a named page that does not exist. Static PNGs of every chart come from
 `scripts/build_dashboard_figures.py` (`dashboard/figures/`, manifest of chart-data hashes;
-`--check` in the workflow).
+`--check` in the workflow). The Figures tab's per-paper suites (rasters, rates, spectra, weights) come
+from the run receipts through `scripts/dashboard_suites.py` (`build_dashboard_figures.py --suites`);
+the manifest's `suites` entries record each PNG's and each receipt's sha256, and `--check` verifies
+every receipt present on the machine.
 
 ```
 {
@@ -131,4 +134,5 @@ would delete `/dashboard/`.
 
 Updating: change `sources.json` (for a new score, its lane SHA and file), run
 `python scripts/build_dashboard_data.py`, then `python scripts/build_dashboard_figures.py`,
-commit the sources, the data file and `dashboard/figures/`, push to dev.
+commit the sources, the data file and `dashboard/figures/`, push to dev. A new scored run: add or
+repoint its panel in `scripts/dashboard_suites.py`, then `python scripts/build_dashboard_figures.py --suites`.
