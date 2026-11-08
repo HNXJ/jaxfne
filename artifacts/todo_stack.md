@@ -95,10 +95,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 25. [A] Retired names in dated records kept as history (Hamm 2026-11-02, O-74 to O-79 closed): jarness selfcheck needs
     a history allowlist for them (asked in jchat, jynx keeper).
-32. 0.5.10: [A then H] Lee, Pennartz and Mejias 2025 and Mazzoni 2015 (both "unscheduled" on the dashboard roadmap;
-    Hamm 2026-11-08, O-87): deep-read each (line-cited notes), propose one named target figure each with its
-    estimand and fit to the core; Hamm picks; picked ones get 0.5.11 package rows. Closes when: each has a picked
-    figure and a package row, or a dated drop note.
+32. 0.5.11: [A] Two lanes picked by Hamm 2026-11-08 (O-87; notes `etudes/papers/{lee2025,mazzoni2015}/NOTES.md`,
+    dashboard roadmap 0.5.11): Lee 2025 Fig 6 interneuron silencing (stage 0 the Fig 7 motif search; ReLU rate
+    transfer and Hebbian training) and Mazzoni 2015 Fig 5 RWS proxy (stage 0 Fig 7C; inspect the Dryad deposit
+    doi:10.5061/dryad.j5r51 for a ground-truth LFP first). Closes when: each has a signed P3 prereg; package rows
+    go into the release plan's 0.5.11 section when it is written.
 
 ## 0.5.10 rows, then later
 
