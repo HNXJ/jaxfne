@@ -23,11 +23,8 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - Landed 2026-11-06 evening (f0489d18..1e7ee1e5): HH seed refusal test; homeostatic_ei stable x bounds from construct
   (±10); B1 baseline scripts; tree budget 96.1 MB. jnwb 16-12 isi_cv on jnwb `_temp_jaxfne-16e` (5fa63dd3,
   accepted); keep `E:/cl-jnwb16e` until jnwb-orchestrator confirms its pick.
-- Landed 2026-11-07 (1e7ee1e5..290c3cf0): B1 M3 harness fix; Jansen-Rit P1 source record; record integrity skips
-  gitignored `_temp/`; PLoS Fig 5A producer (c3719c79).
-- Gated 2026-11-07 (290c3cf0..8516c721): Fig 5A sustained-cycle test and panel; T_v code-form probe;
-  Jansen-Rit P3 v1 draft and driver (O-92). Broad 8238 passed, 2 failed (60 s import and kernel-start timeouts,
-  7 passed alone); 9 paper lanes PASS. Last pushed: see the stamp.
+- Landed 2026-11-07 (1e7ee1e5..8516c721): B1 M3 harness fix; Jansen-Rit P1 record, P3 v1 draft and driver (O-92);
+  PLoS Fig 5A producer, sustained-cycle test and panel. Broad 8238 passed, 2 load timeouts (passed alone); 9 lanes PASS.
 - 2026-11-07 (b24f7a07..): match-check fixes; O-93 (Hamm): T_v code form = declared variant `tv_form="code"`
   (8a6ccfc4), printed default; code form gives SOM->SOM 1.6/1.7 nS, 35.0 Hz (`caminos/RESULT_MEANFIELD.md`).
 
@@ -39,7 +36,8 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - P-053 (PCL scan vs oracle gap on sparse weights, unreproduced); P-056 (kernel-LFP deep-layer power < 0.5% of L2/3).
 - R5-approximate resumed detached 2026-11-06 16:54Z: 2860 of 3168 tasks (777 of 1085 since the resume) at
   2026-11-07 22:18Z; finish about 2026-11-08 10Z (inferred). Its driver logs `rc=$?` after `$(stamp)`, so the
-  logged rc is always 0: judge the run by its output files.
+  logged rc is always 0: judge the run by its output files. Its 20 workers hold the CPU at 100%: broad gates
+  time out 17 example subprocesses (120 s) until it ends; re-run them alone.
 - Tooling: Cursor write fails at launch (read works); Muse code workers may exit early (resume with `--session`).
 
 ## Open decisions for the owner
