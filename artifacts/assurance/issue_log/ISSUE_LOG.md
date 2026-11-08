@@ -69,6 +69,9 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   the finite difference is fit for training stay open (Hamm).
 - 2026-11-03: deferred to 0.5.10 (Hamm); the 0.5.9 changelog entry states the surrogate is not validated for
   training.
+- 2026-11-08 (Hamm, O-85): the finite-difference disagreement and the growth with T stand as recorded
+  properties; fitness is decided by the held-out training-loss check above, preregistered and run in 0.5.11
+  (todo 24).
 
 ### P-053
 

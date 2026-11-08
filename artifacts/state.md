@@ -43,7 +43,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Open decisions for the owner
 
-`open_stack.md` O-85, O-86, O-87, O-89 (P-052, T-62 data request, Lee/Mazzoni figure, stale-clone delete);
+`open_stack.md` O-89 (27 `E:/cl-*` deletes, Hamm's run); O-85, O-86, O-87 ruled 2026-11-08 (todo 24, 26, 32);
 O-88, O-90, O-91, O-92 taken on Hamm's standing go 2026-11-08 (recommended options); NeuroAI code link
 (anonymous.4open.science mirror, Hamm's act). `origin/_temp_kernel-lfp` (ff45364b, 3 patches not in dev); plain `kernel-lfp`
 deleted 2026-11-07 (Hamm). Vmac leftovers backed up to 7 origin `_temp_` branches, then dropped (Hamm 2026-11-07).

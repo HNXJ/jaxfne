@@ -195,7 +195,7 @@ equivalent and the core route is not used for them.
 ## Replica score (Cell Reports main text)
 
 14 result panels: 1B, 1C, 2A top, 2B top, 3A, 3B, 3C top, 3C bottom, 4A, 4B, 5A, 5B, 5C, 6A bottom.
-Excluded: 1A and 6B top (schematics), 1D (mouse data), 6A top (literature densities), and 2A bottom, 2B bottom
+Excluded: 1A and 6B top (schematics), 1D (Onorato mouse data, not public; dropped 2026-11-08, Hamm O-86, reopens only if the data is published), 6A top (literature densities), and 2A bottom, 2B bottom
 and 6B (transient values unstated; Hamm 2026-11-02). Credit pass 1, partial 0.5: 1B, 2B top, 3B, 3C bottom, 5C
 and 6A bottom pass; 1C, 2A top, 3A, 3C top, 4A, 4B, 5A and 5B partial. Score 10/14 = 71/100.
 1B and 1C rest on the cellrep baseline (f_pk 33.7 Hz, delay 6.8 ms against the text's 6-7 ms, mmc2 804).

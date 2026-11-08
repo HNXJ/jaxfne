@@ -69,7 +69,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 14. ∥ T-O68 [A then H] Local copies (O-68). Status 2026-11-07: every `E:/cl-*` and `E:/repos/_wt/jaxfne/*` clone
     audited (dirty files, `git cherry` against dev, alternates borrowers); dirty diffs, untracked files and the
     `clogsweep`/`pclr2study` bundles rescued to `F:/warehouse/jaxfne_clone_rescue/` (`HEADS.txt` lists each);
-    the delete script `artifacts/_temp/delete_stale_clones_2026-11-07.ps1` waits on Hamm (O-89). Keep `E:/cl-jnwb16e`
+    the `_wt` targets of `artifacts/_temp/delete_stale_clones_2026-11-07.ps1` deleted 2026-11-08 (Hamm); its 27
+    `E:/cl-*` targets wait on Hamm running it (top-level E:/ is tool-blocked, O-89). Keep `E:/cl-jnwb16e`
     until jnwb-orchestrator confirms its pick. Left for agents: linked worktrees with dirty files
     (`base053`, `bisw1`, `frozen-etude`, `w3`, `jaxfne-wt-p022`, `jaxfne-wt-suites`, one agent worktree) and the
     `C:/workspace` leftovers. Closes when: every O-68 path is gone or rescued, and no surviving clone's
@@ -94,8 +95,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 25. [A] Retired names in dated records kept as history (Hamm 2026-11-02, O-74 to O-79 closed): jarness selfcheck needs
     a history allowlist for them (asked in jchat, jynx keeper).
-32. 0.5.10: [H] a named target figure for Lee, Pennartz and Mejias 2025 and for Mazzoni 2015 (both "unscheduled" on
-    the dashboard roadmap, O-87). Closes when: each has a named figure (then a package row) or a dated drop note.
+32. 0.5.10: [A then H] Lee, Pennartz and Mejias 2025 and Mazzoni 2015 (both "unscheduled" on the dashboard roadmap;
+    Hamm 2026-11-08, O-87): deep-read each (line-cited notes), propose one named target figure each with its
+    estimand and fit to the core; Hamm picks; picked ones get 0.5.11 package rows. Closes when: each has a picked
+    figure and a package row, or a dated drop note.
 
 ## 0.5.10 rows, then later
 
@@ -106,10 +109,12 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     of further models: a new GSDR fit pilot needs a new prereg (the signed P3 fit stays as scored). Closes when:
     `tests/test_agsdr_log_scale.py` passes with linear bounds bit-identical to before, and the GSDR lane names
     which parameters sweep on a log scale.
-24. 0.5.10: [H] P-052 surrogate fitness for training, deferred by Hamm 2026-11-03
-    (`artifacts/runs/perf/profiles/precision_058.md`). Closes when: Hamm rules on the sign and T-growth record.
-26. 0.5.10: T-62 Cell Reports Fig 1D, excluded for 0.5.9 (Hamm 2026-11-02): the raw Onorato data is on request
-    from the lead contact; Hamm decides at 0.5.10 whether to request it. T-32 seed and candidate
+24. 0.5.11: [A] P-052 surrogate fitness for training (Hamm 2026-11-08, O-85): the finite-difference disagreement
+    and the growth with T (`artifacts/runs/perf/profiles/precision_058.md`) are recorded properties; the surrogate
+    stays "not validated for training". Fitness check: a signed prereg in which sigmoid_beta optimization improves
+    a prespecified forward-model loss on held-out tasks across seeds and horizons. Closes when: that prereg is
+    scored.
+26. 0.5.10: T-32 seed and candidate
     batching for AdEx, LIF and `Model.tune` (`_model_tune.py:451`), core homes for lane analysis, Mejias G6, the
     LIF edge kernel on GPU; F2, F4, S16 per the release plan.
 6. 0.5.10: T-R28 [A] Hamm's rulings 2026-10-28 left: dashboard P1 then P2; P-052 beta by horizon scan against
