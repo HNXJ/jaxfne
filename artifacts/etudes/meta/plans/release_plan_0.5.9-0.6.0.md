@@ -66,15 +66,15 @@ its C row's check), and the todo rows moved to 0.5.10. Weights sum to 100: packa
 with the 0.5.9 weights). Each item carries its own weight and scores in full when its check is cited; no partial
 credit.
 
-Score 2026-11-07: 16/100 (packages 16 of 70, gates 0 of 30; C2 done). Score 2026-11-06: 14/100 (D1 landed, B1 signed). Score 2026-11-05: 7/100. The 8.5 of the draft counted items implicitly and gave
+Score 2026-11-08: 24/100 (packages 24 of 70; A3 4 on O-91 option 1, D2 4 on the Jansen-Rit P3 PASS). Score 2026-11-07: 16/100 (packages 16 of 70, gates 0 of 30; C2 done). Score 2026-11-06: 14/100 (D1 landed, B1 signed). Score 2026-11-05: 7/100. The 8.5 of the draft counted items implicitly and gave
 T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 
 | Item | Weight | What | Done when (cited check) | State (dated per row; checked 2026-11-07) | Score |
 |---|---|---|---|---|---|
-| **10A Geometry** (F2, S3, S4, C4) | **14** | | | | **3** |
+| **10A Geometry** (F2, S3, S4, C4) | **14** | | | | **7** |
 | A1 | 4 | Atlas AT-10-N20, F2 rendered from it | F2 renders from the AT-10-N20 receipt | open | 0 |
 | A2 | 3 | S4 NeuronalTensor schema and flattening | S4 written from the schema; identity, topology, signs and positions kept through flattening, each by a test | open | 0 |
-| A3 | 4 | S3 geometry property tests: round trip, permutation, rigid transform | each test fails on a planted broken invariant | the radius sampler's tests cover rotation, translation, permutation and save-load (`tests/test_geometry_radius_rotation.py`); 2026-11-06: 5 tests each killed by a planted break (`artifacts/etudes/core_checks/geometry_mutation_receipt_0510.md`, bf26a4c6); the neuron-relabelling permutation test could not fail and was dropped: spec-level permutation needs order-independent construction | 0 |
+| A3 | 4 | S3 geometry property tests: round trip, permutation, rigid transform | each test fails on a planted broken invariant | the radius sampler's tests cover rotation, translation, permutation and save-load (`tests/test_geometry_radius_rotation.py`); 2026-11-06: 5 tests each killed by a planted break (`artifacts/etudes/core_checks/geometry_mutation_receipt_0510.md`, bf26a4c6); the neuron-relabelling permutation test could not fail and was dropped: spec-level permutation needs order-independent construction, moved to 0.5.11 (O-91 option 1, Hamm's standing go 2026-11-07); scored on the 5 killed tests | 4 |
 | A4 | 3 | C4 Euclidean radius cutoff with its rotation test (T-R28) | `tests/test_geometry_radius_rotation.py` | done (de86aa67) | 3 |
 | **10B Compute** (F4, S6, C6) | **14** | | | | **3** |
 | B1 | 3 | benchmark prereg | signed before any scored run | done: `artifacts/runs/benchmark/PREREG_B1_0510.md` signed by Hamm 2026-11-06, hash pinned (3c008063) | 3 |
@@ -85,9 +85,9 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | **10C Augmentation** (F4, S7, C7) | **6** | | | | **2** |
 | C1 | 4 | ensemble study with provenance; S7 panel | S7 renders from pinned receipts | not started | 0 |
 | C2 | 2 | determinism | two seeds change output; the same seed reproduces (C7 check) | done 2026-11-07: `tests/test_simulate_seed_determinism.py` (44b847f5, e9e570e8) holds for Izhikevich, homeostatic_ei, LIF, rate, AdEx; HH has no noise and refuses a nonzero seed (tested, killed by a planted removal); dev 1e7ee1e5 | 2 |
-| **10D Extras** (S16) | **12** | | | | **4** |
+| **10D Extras** (S16) | **12** | | | | **8** |
 | D1 | 4 | kernel LFP: `6eb3c6b8`, `44cd0111`, `ff45364b` from `_temp_kernel-lfp`, then the iSTDP out-degree check and `coherence_radius_um` with its two limit tests (T-47) | each on dev with its tests | done 2026-11-06: kernel LFP 616c8756, bc83f4eb; iSTDP check already on dev (85199ade); coherence radius f2f63b1c (`coherence_limited_lfp_power`, `tests/test_kernel_lfp.py`); dev f96c91e6, broad gate 8206 passed | 4 |
-| D2 | 4 | Jansen-Rit 1995 neural-mass emitter and its P1 (T-48) | emitter tests on dev; P1 scored | emitter `jaxfne/emitters_jansen_rit.py` with 19 tests on dev (cf706780); P1 source record with paper constants (6409608c); P3 v1 drafted and pinned, unsigned (bd007662, O-92); no scored result | 0 |
+| D2 | 4 | Jansen-Rit 1995 neural-mass emitter and its P1 (T-48) | emitter tests on dev; P1 scored | emitter `jaxfne/emitters_jansen_rit.py` with 19 tests on dev (cf706780); P1 source record with paper constants (6409608c); scored 2026-11-08 at the P3 stage: P3 v1 signed (7ef8ff99, Hamm's standing go), PASS 5 of 5 seeds (`jansenrit1995/RESULT_P3.md`, score sha256 ca0c9d75) | 4 |
 | D3 | 2 | Mejias 2016 G6 (T-32) | G6 scored | open | 0 |
 | D4 | 2 | S16 regenerated, Destexhe 2009 panel from its scored P3 receipts | S16 renders from pinned receipts | open | 0 |
 | **10E PCL Fig 3** | **10** | | | | **0** |
@@ -101,7 +101,7 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | F5 | 1.5 | T-32: GSDR on `simulate_hh_batch`; seed and candidate batching for AdEx, LIF and `Model.tune`; core homes for lane analysis | each with its test | GSDR `--batch` opt-in within rel 1e-2 (117396a6, Hamm 2026-11-06); `jaxfne.analysis.isi_ratio` (51c86dab); AdEx, LIF and `Model.tune` batching open | 0 |
 | F6 | 1.5 | T-R28: dashboard P1 then P2; the jitter reader on larger sets | each with its commit and receipt | open | 0 |
 | **10G Replication coverage** | **6** | | | | **0** |
-| G1 | 3 | CAMINOS panels not yet run, added to the Notebooks tab: Cell Reports 1A, 2A/2B bottom, 6A top, 6B; PLoS Fig 5, Fig 3 and 4A mean-field rows | each panel in its exported notebook from pinned runs | open (2026-11-07: PLoS Fig 5A panel in `plos_suite.ipynb` from the pinned sweep (a6f4d867), dashboard export pending; Fig 3 and 4A mean-field rows open; the Cell Reports panels wait on O-88; todo 33) | 0 |
+| G1 | 3 | CAMINOS panels not yet run, added to the Notebooks tab: PLoS Fig 5, Fig 3 and 4A mean-field rows (Cell Reports 1A, 2A/2B bottom, 6A top, 6B stay excluded per `caminos/RESULT_FIGURES.md:198-199`; O-88, Hamm's standing go 2026-11-07) | each panel in its exported notebook from pinned runs | open (2026-11-07: PLoS Fig 5A panel in `plos_suite.ipynb` from the pinned sweep (a6f4d867), dashboard export pending; Fig 3 and 4A mean-field rows open; todo 33) | 0 |
 | G2 | 2 | T-30 conformance | `check_replications.py --check` lists no violation without Hamm's exception (2026-11-05: 28 known, 0 unlisted) | open | 0 |
 | G3 | 1 | T-46 reproducibility audit section 7, the gaps touching 0.5.10 | section 7 cites each closed gap | open | 0 |
 | **Gates** | **30** | | | | **0** |
@@ -110,7 +110,7 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | Gate 3 | 4 | version, changelog, `release_body.py --check` | PASS on the release SHA | not started | 0 |
 | Gate 4 | 6 | second review with its receipt | receipt committed | not started | 0 |
 | Gate 5 | 6 | Hamm's go: tag, main, Release, PyPI | 0.5.10 on PyPI from the tagged SHA | not started | 0 |
-| Owner | 0 | P-052 surrogate fitness (O-85); T-62 Fig 1D raw data (O-86); a named figure for Lee 2025 and Mazzoni 2015 (O-87); the excluded Cell Reports panels in G1 (O-88); each yes adds an item | Hamm rules on each | open | - |
+| Owner | 0 | P-052 surrogate fitness (O-85); T-62 Fig 1D raw data (O-86); a named figure for Lee 2025 and Mazzoni 2015 (O-87); each yes adds an item (O-88 ruled 2026-11-08: the Cell Reports panels stay out of G1) | Hamm rules on each | open | - |
 
 ## Later releases
 

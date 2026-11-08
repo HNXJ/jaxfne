@@ -27,6 +27,8 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   PLoS Fig 5A producer, sustained-cycle test and panel. Broad 8238 passed, 2 load timeouts (passed alone); 9 lanes PASS.
 - 2026-11-07 (b24f7a07..): match-check fixes; O-93 (Hamm): T_v code form = declared variant `tv_form="code"`
   (8a6ccfc4), printed default; code form gives SOM->SOM 1.6/1.7 nS, 35.0 Hz (`caminos/RESULT_MEANFIELD.md`).
+- 2026-11-08: Jansen-Rit P3 v1 signed and scored, PASS 5 of 5 (`jansenrit1995/RESULT_P3.md`); B1 M3 amended to the
+  built class; A3 scored, permutation to 0.5.11. Checklist 0.5.10: 24/100.
 
 ## Broken or in flight
 
@@ -42,8 +44,8 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Open decisions for the owner
 
-`open_stack.md` O-85 to O-92 (P-052, T-62 data request, Lee/Mazzoni figure, G1 Cell Reports panels, stale-clone
-delete script, B1 M3 class, A3 scope, Jansen-Rit P3 signature); NeuroAI code link
+`open_stack.md` O-85, O-86, O-87, O-89 (P-052, T-62 data request, Lee/Mazzoni figure, stale-clone delete script);
+O-88, O-90, O-91, O-92 taken on Hamm's standing go 2026-11-08 (recommended options); NeuroAI code link
 (anonymous.4open.science mirror, Hamm's act). `origin/_temp_kernel-lfp` (ff45364b, 3 patches not in dev); plain `kernel-lfp`
 deleted 2026-11-07 (Hamm). Vmac leftovers backed up to 7 origin `_temp_` branches, then dropped (Hamm 2026-11-07).
 

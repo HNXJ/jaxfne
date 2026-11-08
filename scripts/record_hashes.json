@@ -5,7 +5,7 @@
     "dated": 25,
     "frozen": 28,
     "legacy": 32,
-    "prereg": 126,
+    "prereg": 127,
     "receipts": 11
   },
   "paths": {
@@ -238,6 +238,7 @@
     "artifacts/release/v0_5_8_release_receipt.json": "558fc2a36301ffa554ed2f1e85e0aad378ece13eaa0f15e61cac768edaa41a1d",
     "artifacts/release/v0_5_9_release_receipt.json": "91e076b9578e21edfc4f9ccfc28c5f528fd4dcac6a3e5ac6b20d7a3cd07b2919",
     "artifacts/runs/benchmark/PREREG_B1_0510.md": "be70c478818d0b4029f67a44478cd6776f52f519598c9e0b67db28a9c9c177ba",
+    "artifacts/runs/benchmark/PREREG_B1_0510_amendment1.md": "21e80916faa4f7e8ffd2ef5cc0420147c0cf424585551f43a13c579e8463b74d",
     "artifacts/runs/benchmark/agent_tasks_055.json": "91dd839b4f8dd0828e3f44218199f6bbcd62fbe64e66f6dead9d266f02a4860c"
   }
 }

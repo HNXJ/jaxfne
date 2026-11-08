@@ -35,8 +35,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     spec-level neuron permutation needs order-independent construction. Muse inventory 2026-11-07 (960a0fab): RNG
     streams keyed by position at `_construct_population.py:449,504,527-537,602,699,749`, `_construct_core.py:234`,
     `connectivity.py:537,626,918-919,941,953,729-736,1214,1383`; the fix re-keys them on stable ids, which changes
-    every seeded realization (O-91). Closes when: O-91 is ruled and, if kept, A3 has its permutation test killed by
-    a mutant.
+    every seeded realization. O-91 ruled 2026-11-08 (option 1, Hamm's standing go): A3 scored on the 5 killed
+    geometry tests; this re-keying moves to 0.5.11. Closes when: A3's permutation test is killed by a mutant (0.5.11).
 20. ∥ T-B1 [A] Scored CPU vs RTX A4000 benchmark & memory profile (F4, `artifacts/runs/benchmark/PREREG_B1_0510.md`):
     profile whether a GPU upgrade is justified ($0 spend now; purchase gate based on measured bottlenecks).
     Metrics recorded per cell across N (1e2 to 1e5): compilation time (CPU/JAX compilation overhead),
@@ -48,11 +48,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     changes; no material bottleneck -> retain A4000. Closes when: benchmark receipt records all 6 metrics across
     N for CPU and A4000 with recording controls, evaluated against the purchase gate. Status 2026-11-06: prereg
     signed and pinned; jaxfne harness `artifacts/runs/benchmark/b1/b1_harness.py` (CPU smoke M1, M2 at N=100; M3 at
-    N=1, 10, 100 after the `jax.random.split` fix 2846ee9d, 2026-11-07). The M3 class waits on O-90. Left: review the M1 external-drive scaling rule; the baseline scripts (`b1/b1_brian2.py`, `b1_nest.py`,
+    N=1, 10, 100 after the `jax.random.split` fix 2846ee9d, 2026-11-07). M3 class: N independent single-compartment classic HH (`PREREG_B1_0510_amendment1.md`, O-90, 2026-11-08). Left: review the M1 external-drive scaling rule; the baseline scripts (`b1/b1_brian2.py`, `b1_nest.py`,
     `b1_jaxley.py`, on dev 1e7ee1e5; Brian2 2.10.1 and NEST 3.10.0 in WSL `~/venv_b1_baselines`, Jaxley on Windows)
     type their model constants with source citations: read them from the lane files before scored runs; then the
     scored runs.
-33. ∥ T-G1 [A] 10G G1 CAMINOS panels (O-88 on the Cell Reports panels). PLoS text read 2026-11-07 (PMC13286281,
+33. ∥ T-G1 [A] 10G G1 CAMINOS PLoS panels (Cell Reports panels stay excluded: O-88, 2026-11-08). PLoS text read 2026-11-07 (PMC13286281,
     copy `F:/warehouse/caminos/plos_text/`). Fig 5 is mean-field only: 5A sweeps PV→SOM and SOM→SOM on the full mean
     field (frequency, amplitude, bifurcation diagram); 5B is the reduced Eq. 2 (no synaptic delay, no adaptation)
     beside a spiking raster. 5A producer landed (c3719c79, `fig5a_sweep`); its 0.5 Hz peak-to-peak threshold cut
@@ -64,14 +64,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     mean-field rows: the paper defines randomization only for the network (a fraction replaced by Poisson units at
     the reference mean rate, Results ¶ "silencing and randomizing"); the mean-field treatment is unstated, so the
     build declares one before the run (inferred: the fraction enters as a constant input at the baseline rate).
-    Cell Reports 2B bottom (producer `cellrep_figures.py:405`, never run)
-    and 6B (`:439`, gain unstated) wait on O-88. Closes when: each kept panel is in its exported notebook
-    (`suite/plos_suite.ipynb`, `suite/cellrep_suite.ipynb`) from pinned runs.
-27. ∥ T-48 [A then H] 10D D2 Jansen-Rit 1995: the emitter is on dev (cf706780, every parameter required); the
-    paper's constants and the Fig. 3 C sweep read into `etudes/papers/jansenrit1995/SOURCE_P1.md` (2026-11-07).
-    P3 drafted, unsigned (`jansenrit1995/prereg/P3_v1.md`, driver `run_jr_fig3.py`): regime class, alpha
-    sharpening, spike-wave slowing and EEG level per C; pilots seeds 0-2 close E1-E4. Blocked by: Hamm's
-    signature (thresholds, 2 ms hold, aggregation). Closes when: the P3 is scored on seeds 10-14.
+    Closes when: Fig 5, Fig 3 and 4A mean-field panels are in `suite/plos_suite.ipynb`, exported, from pinned runs.
 14. ∥ T-O68 [A then H] Local copies (O-68). Status 2026-11-07: every `E:/cl-*` and `E:/repos/_wt/jaxfne/*` clone
     audited (dirty files, `git cherry` against dev, alternates borrowers); dirty diffs, untracked files and the
     `clogsweep`/`pclr2study` bundles rescued to `F:/warehouse/jaxfne_clone_rescue/` (`HEADS.txt` lists each);
