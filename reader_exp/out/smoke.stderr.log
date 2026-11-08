@@ -1,0 +1,109 @@
+An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.
+/home/nejath/venv_jaxfne_gate/lib/python3.12/site-packages/jax/_src/numpy/array_methods.py:125: UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+  return lax_numpy.astype(self, dtype, copy=copy, device=device)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 2 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 3 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 4 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 5 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 6 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 7 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 8 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 9 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 10 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 11 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 12 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 13 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 14 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 15 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 16 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 17 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 18 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 19 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 20 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 21 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 22 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 23 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 24 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 25 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 26 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 27 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 28 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 29 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 30 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 31 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 32 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 33 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 34 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 35 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 36 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 37 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 38 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 39 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 40 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 41 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 42 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 43 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 44 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 45 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 46 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 47 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 48 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 49 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 50 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 51 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 52 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 53 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 10000) (B, Z, C, T) compiled 54 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)

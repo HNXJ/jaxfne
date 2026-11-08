@@ -1,0 +1,35 @@
++ /home/nejath/venv_jaxfne_gate/bin/python -m compileall -q jaxfne tests scripts examples
++ /home/nejath/venv_jaxfne_gate/bin/python -m ruff check jaxfne/
+E402 Module level import not at top of file
+   --> jaxfne/analysis/spectral.py:201:1
+    |
+199 | # --- CAMINOS lane estimators (T-32d stage 2: generic core homes) ----------------
+200 |
+201 | import numpy as _np
+    | ^^^^^^^^^^^^^^^^^^^
+202 | from scipy.optimize import curve_fit as _curve_fit
+    |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+   --> jaxfne/analysis/spectral.py:202:1
+    |
+201 | import numpy as _np
+202 | from scipy.optimize import curve_fit as _curve_fit
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: Move module level imports to top of file
+
+Found 2 errors.
+Traceback (most recent call last):
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 985, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 980, in main
+    GATES[args.gate]()
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 734, in gate_broad
+    gate_report()
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 642, in gate_report
+    _run(cmd, family=family)
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 413, in _run
+    raise subprocess.CalledProcessError(proc.returncode, cmd)
+subprocess.CalledProcessError: Command '['/home/nejath/venv_jaxfne_gate/bin/python', '-m', 'ruff', 'check', 'jaxfne/']' returned non-zero exit status 1.

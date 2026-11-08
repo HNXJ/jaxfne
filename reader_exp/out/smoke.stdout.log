@@ -1,0 +1,37 @@
+sweep w_ar=0.5 w_ir=0.5 d_R=3.0: R=13.80 Hz I=80.60 Hz 2.0s/trial
+sweep w_ar=1.0 w_ir=1.0 d_R=3.0: R=21.80 Hz I=81.35 Hz 0.9s/trial
+sweep w_ar=1.0 w_ir=2.0 d_R=3.0: R=19.40 Hz I=80.70 Hz 0.8s/trial
+sweep w_ar=0.5 w_ir=1.0 d_R=3.0: R=11.80 Hz I=80.35 Hz 1.0s/trial
+sweep w_ar=1.0 w_ir=1.0 d_R=1.0: R=16.80 Hz I=81.00 Hz 1.0s/trial
+sweep w_ar=1.0 w_ir=1.0 d_R=6.0: R=26.40 Hz I=80.50 Hz 0.9s/trial
+chosen {'w_ar': 0.5, 'w_ir': 0.5, 'd_R': 3.0} w_max=2.0
+ffi_on_seed_0: R=13.67Hz I=80.25Hz A=19.28Hz d'_c=-0.028038489852052925 d'_l=-0.24294158513572522 acc=0.4166666666666667 leak=0.0030111153882439044 hash=8becbcd34d941dd8 0.4s/trial
+  elapsed 24s
+ffi_on_seed_1: R=13.70Hz I=78.55Hz A=19.11Hz d'_c=0.04405565534379843 d'_l=-0.12460331132944051 acc=0.4166666666666667 leak=0.0032071032909649915 hash=1cd06ab1690ba605 0.5s/trial
+  elapsed 31s
+ffi_off_seed_0: R=15.90Hz I=79.42Hz A=19.14Hz d'_c=0.009642301338970411 d'_l=-0.00991001188346645 acc=0.5 leak=0.004144074839004544 hash=a78fc9af1ceea6b2 0.4s/trial
+  elapsed 37s
+ffi_off_seed_1: R=15.93Hz I=79.77Hz A=19.09Hz d'_c=0.01750515607836816 d'_l=0.19126600374192806 acc=0.5833333333333334 leak=0.0039046525194437677 hash=6969d008d45aece2 0.4s/trial
+  elapsed 43s
+hdp train 1/20: w_pat=0.4912 w_car=0.5015 1.7s
+hdp train 2/20: w_pat=0.4732 w_car=0.5023 1.6s
+hdp train 3/20: w_pat=0.4610 w_car=0.5041 1.6s
+hdp train 4/20: w_pat=0.4461 w_car=0.5049 1.8s
+hdp train 5/20: w_pat=0.4324 w_car=0.5053 2.0s
+hdp train 6/20: w_pat=0.4168 w_car=0.5059 1.6s
+hdp train 7/20: w_pat=0.4026 w_car=0.5057 2.0s
+hdp train 8/20: w_pat=0.3894 w_car=0.5064 1.8s
+hdp train 9/20: w_pat=0.3758 w_car=0.5077 1.7s
+hdp train 10/20: w_pat=0.3664 w_car=0.5091 1.7s
+hdp train 11/20: w_pat=0.3533 w_car=0.5089 1.4s
+hdp train 12/20: w_pat=0.3446 w_car=0.5120 1.3s
+hdp train 13/20: w_pat=0.3324 w_car=0.5121 1.4s
+hdp train 14/20: w_pat=0.3185 w_car=0.5137 1.8s
+hdp train 15/20: w_pat=0.3045 w_car=0.5148 1.4s
+hdp train 16/20: w_pat=0.2934 w_car=0.5140 1.4s
+hdp train 17/20: w_pat=0.2794 w_car=0.5158 1.3s
+hdp train 18/20: w_pat=0.2718 w_car=0.5176 1.4s
+hdp train 19/20: w_pat=0.2600 w_car=0.5183 1.5s
+hdp train 20/20: w_pat=0.2484 w_car=0.5200 1.5s
+HDP: w_pat 0.4912->0.2484 w_car 0.5015->0.5200 acc 0.4166666666666667->0.6666666666666666
+wrote /mnt/e/repos/cl-reader-cursor/reader_exp/out/smoke.json /mnt/e/repos/cl-reader-cursor/reader_exp/out/smoke.png

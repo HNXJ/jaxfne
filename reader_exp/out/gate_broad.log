@@ -1,0 +1,1531 @@
++ /home/nejath/venv_jaxfne_gate/bin/python -m compileall -q jaxfne tests scripts examples
++ /home/nejath/venv_jaxfne_gate/bin/python -m ruff check jaxfne/
+All checks passed!
++ /home/nejath/venv_jaxfne_gate/bin/python -m ruff check scripts/ tests/ examples/ --select E711,E712,E721,E722,F601,F632,F811,F821,F823,F402,F401,F841,E741,E402
+All checks passed!
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/audit_public_docs_language.py --check
+{
+  "schema_version": "jaxfne.public_docs_language_audit.v0.1.0",
+  "doc_files_with_violations": 0,
+  "code_files_with_obfuscated_identifiers": 0,
+  "doc_violations": [],
+  "obfuscated_identifier_violations": [],
+  "pass": true
+}
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/audit_notebook_grammar.py --check
+{
+  "schema_version": "jaxfne.notebook_grammar_audit.v0.1.0",
+  "notebook_count": 40,
+  "pass_count": 40,
+  "fail_count": 0,
+  "results": [
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_11_omission_local.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_1_base.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_2_spectrolaminar_power.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_4_homeostatic_V1_column.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_5_enhanced_biophysical_column.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_6_multi_area_network.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_7_multitrial_spectrolaminar.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_tcm_v1_6pop.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_mechanism_01_relative_state_X_H_X.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": false,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_mechanism_02_rbd_memory_Xt_Ht1.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_mechanism_03_hdp_H_W.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/intro/jaxfne-sanity-checker-notebook-01.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/intro/jaxfne-sanity-delta-test-hierarchical-global-local-oddball.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/intro/jaxfne_colab_gpu_tpu_100k_column.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": false,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/intro/jaxfne_neuronal_tensor_first.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/intro/tutorial_madelane_2026_jaxfne_spectrolaminar.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/suite/jaxfne_suite_no_1_computational_biophysics.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/suite/jaxfne_suite_no_2_evoked_l4_drive.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/suite/jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/suite/jaxfne_suite_no_3_low_frequency_scaling.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/suite/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/templates/jaxfne_notebook_template.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne-v034-stdp-ltp-ltd-adaptation.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne-v035-coop-paradigm-stability.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v0313_omission_oddball.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v031_single_neuron.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v032_parameter_sweep.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v033_two_neuron_ei.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v035_small_recurrent_ei.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v036_100_neuron_ei_population.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v038_lfp_csd_readout.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v040_continuous_omission_oddball.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v040_homeostasis_plasticity_dc_noise_sweep.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    }
+  ]
+}
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/audit_vocabulary.py --check
+vocabulary check: pass
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/check_docs_orphans.py
+No orphan doc pages found.
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/audit_doc_code_integrity.py --check
+doc-code integrity: pass
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/build_docs_assets.py --docs-figures-check
+docs-figures-check: 4 iframes, 0 figure links, 0 problems in 154 pages
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/check_tree_size.py --check
+tree-size: files=2559 total=90177517 budget=90177536 over_cap=10 violations=0
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/check_record_integrity.py --check
+record-integrity: receipts=9 archive=15 legacy=32 dated=18 prereg=104 benchmark=1 frozen=28 records=207 pinned=207 violations=0 moves=0
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/check_replications.py --check
+E1 artifacts/etudes/papers/brunel2000: no scored P4 module listed
+E1 artifacts/etudes/papers/caminos: scored P4 modules call construct( but not .simulate(
+E1 artifacts/etudes/papers/izhikevich2003: no scored P4 module calls construct( or .simulate(
+E1 artifacts/etudes/papers/pcl: no scored P4 module calls construct( or .simulate(
+P4 artifacts/etudes/papers/caminos: manifest writer lacks backend, dtype, seeds, regime
+P4 artifacts/etudes/papers/izhikevich2003: manifest writer lacks regime
+P4 artifacts/etudes/papers/pcl: manifest writer lacks backend, dtype, seeds, regime
+R1 artifacts/etudes/papers/izhikevich2003: stage P5 paper 'izhikevich2003' lacks the P5 record LEDGER.md
+R1 artifacts/etudes/papers/pcl: stage P5 paper 'pcl-fig3' lacks the P5 record RESULT_P3*.md
+R1 artifacts/etudes/papers/qlearning: stage P3 paper 'qlearning' lacks the P1 record SOURCE_P1.md
+R1 artifacts/etudes/papers/qlearning: stage P3 paper 'qlearning' lacks the P2 record PORT_SPEC.md
+R1 artifacts/etudes/papers/qlearning: stage P3 paper 'qlearning' lacks the P3 record PREREG_P3*.md (or prereg/P3_*.md)
+R1 dashboard/sources.json: paper 'hh-at01' (stage P3) names no folder under artifacts/etudes/papers/
+R6 artifacts/etudes/papers/brunel2000: holds 13 files (at most 7)
+R6 artifacts/etudes/papers/caminos: holds 20 files (at most 7)
+R6 artifacts/etudes/papers/izhikevich2003: holds 13 files (at most 7)
+R6 artifacts/etudes/papers/pcl: holds 22 files (at most 7)
+S1 artifacts/etudes/papers/caminos/test_caminos_analysis.py: line 412: spec_from_file_location loads a path that cannot be resolved
+S1 artifacts/etudes/papers/izhikevich2003/gate_p3b.py: line 28: spec_from_file_location loads a path that cannot be resolved
+S1 artifacts/etudes/papers/pcl/diag/build_cache.py: line 7: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)
+S1 artifacts/etudes/papers/pcl/diag/diag_common.py: line 25: sys.path.insert adds a path that cannot be resolved
+S1 artifacts/etudes/papers/pcl/diag/q2_sf_curve.py: line 10: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)
+S1 artifacts/etudes/papers/pcl/diag/q3_rsf_dist.py: line 11: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)
+S1 artifacts/etudes/papers/pcl/diag/q4_sf_edges.py: line 10: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)
+S1 artifacts/etudes/papers/pcl/diag/q5_t4_split.py: line 11: sys.path.insert adds a path outside the repository (C:/workspace/pcl_diag)
+S1 artifacts/etudes/papers/pcl/diag/q7_t2_sweep.py: line 11: sys.path.insert adds a path that cannot be resolved
+S1 artifacts/etudes/papers/pcl/diag/q8_v6_numbers.py: line 12: sys.path.insert adds a path that cannot be resolved
+S1 artifacts/etudes/papers/pcl/port/pcl_binned_jax.py: line 55: sys.path.insert adds a path that cannot be resolved
+S1 artifacts/etudes/papers/pcl/port/pcl_event_ref.py: line 54: sys.path.insert adds a path that cannot be resolved
+S1 artifacts/etudes/papers/pcl/port/run_tuning.py: line 47: sys.path.insert adds a path that cannot be resolved
+S1 artifacts/etudes/papers/pcl/port/test_fig3_analysis.py: line 529: spec_from_file_location loads a path that cannot be resolved
+S1 artifacts/etudes/papers/pcl/port/test_pcl_binned_jax.py: line 29: sys.path.insert adds a path that cannot be resolved
+S1 artifacts/etudes/papers/pcl/port/test_pcl_event_ref.py: line 24: sys.path.insert adds a path that cannot be resolved
+S1 artifacts/etudes/papers/pcl/port/validate_umap_order.py: line 46: sys.path.insert adds a path that cannot be resolved
+S2 artifacts/etudes/papers/caminos/run_caminos.py: imports oracle artifacts/etudes/papers/caminos/caminos_jax.py
+S2 artifacts/etudes/papers/pcl/port/pcl_binned_jax.py: imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref.py
+S2 artifacts/etudes/papers/pcl/port/run_tuning.py: imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref.py
+S2 artifacts/etudes/papers/pcl/port/run_tuning.py: imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref_numba.py
+replication-audit: findings=38 known=38 unlisted=0 stale=0
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/gate_etude_no_resim.py --check
+etude no-resim: pass (4 scripts)
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/harness/check_harness_integrity.py
+INFO: manifest not present (expected for /home/nejath/.config/opencode/harness/HARNESS_MANIFEST.json)
+integrity PASS (project + global manifests, frozen paths)
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/harness/check_agent_refs.py
+references OK: all 20 scanned files resolve or are marked optional
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/check_atlas_inheritance.py
+inheritance VALID
+  S1: ['Phi', 'Q', 'X']
+  S2-4: ['B', 'Phi', 'Q', 'W', 'X', 'interaction', 'r']
+  S5-7: ['B', 'N', 'Phi', 'Q', 'W', 'X', 'collective_state', 'interaction', 'r', 'rho']
+  S8-9: ['B', 'N', 'Phi', 'Q', 'W', 'X', 'area_hierarchy', 'collective_state', 'interaction', 'long_delays', 'r', 'rho']
+  S10: ['B', 'D', 'G', 'N', 'Phi', 'Q', 'W', 'X', 'area_hierarchy', 'collective_state', 'interaction', 'long_delays', 'r', 'rho']
+  note: S10: descriptive phrase skipped 'large-scale composition'
+  note: source anchor 8_atlas.md:64 (S-section array block)
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/check_claim_ledger_055.py
+claim_ledger_055 VALID: every coverage id appears once; states, evidence paths, and wording classes agree
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/harness/check_memory_hygiene.py
+memory hygiene OK: 1 file(s) contain only durable, project-neutral content
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/report_hygiene_check.py
+Report hygiene check: CLEAN
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/release/validate_release_artifacts.py --version 0.5.7 --allow-missing-dist
+dist/ not found at dist. --allow-missing-dist set. Skipping.
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/release/assert_release_freeze.py
+Release freeze is not active (no declaration found in artifacts/AGENTS.md or .release_target.json). Pass.
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/audit_notebooks_and_assets.py --check
+=== STARTING JAXFNE COMPLETE RELEASE AUDIT ===
+Notebook jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb has structural warnings: ['Cell #7 (code) exceeds 10 logical lines: 13 lines']
+Notebook jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb has structural warnings: ['Back-to-back code cells at indices 3 and 4 without separating markdown cell', 'Back-to-back code cells at indices 4 and 5 without separating markdown cell', 'Back-to-back code cells at indices 5 and 6 without separating markdown cell', 'Back-to-back code cells at indices 6 and 7 without separating markdown cell', 'Back-to-back code cells at indices 7 and 8 without separating markdown cell']
+Notebook jaxfne_etude_tcm_v1_6pop.ipynb has structural warnings: ['Back-to-back code cells at indices 3 and 4 without separating markdown cell', 'Back-to-back code cells at indices 4 and 5 without separating markdown cell', 'Back-to-back code cells at indices 5 and 6 without separating markdown cell', 'Back-to-back code cells at indices 6 and 7 without separating markdown cell', 'Back-to-back code cells at indices 7 and 8 without separating markdown cell']
+Notebook jaxfne-sanity-checker-notebook-01.ipynb has structural warnings: ['Back-to-back code cells at indices 4 and 5 without separating markdown cell', 'Back-to-back code cells at indices 5 and 6 without separating markdown cell', 'Back-to-back code cells at indices 8 and 9 without separating markdown cell', 'Back-to-back code cells at indices 9 and 10 without separating markdown cell', 'Back-to-back code cells at indices 10 and 11 without separating markdown cell', 'Back-to-back code cells at indices 11 and 12 without separating markdown cell', 'Back-to-back code cells at indices 12 and 13 without separating markdown cell', 'Back-to-back code cells at indices 13 and 14 without separating markdown cell', 'Back-to-back code cells at indices 14 and 15 without separating markdown cell', 'Back-to-back code cells at indices 15 and 16 without separating markdown cell', 'Back-to-back code cells at indices 16 and 17 without separating markdown cell', 'Back-to-back code cells at indices 17 and 18 without separating markdown cell', 'Back-to-back code cells at indices 18 and 19 without separating markdown cell', 'Back-to-back code cells at indices 19 and 20 without separating markdown cell', 'Back-to-back code cells at indices 20 and 21 without separating markdown cell', 'Back-to-back code cells at indices 21 and 22 without separating markdown cell', 'Back-to-back code cells at indices 22 and 23 without separating markdown cell', 'Back-to-back code cells at indices 23 and 24 without separating markdown cell', 'Back-to-back code cells at indices 24 and 25 without separating markdown cell', 'Back-to-back code cells at indices 25 and 26 without separating markdown cell', 'Back-to-back code cells at indices 26 and 27 without separating markdown cell']
+Notebook jaxfne_neuronal_tensor_first.ipynb has structural warnings: ['Back-to-back code cells at indices 3 and 4 without separating markdown cell']
+Notebook tutorial_madelane_2026_jaxfne_spectrolaminar.ipynb has structural warnings: ['Cell #7 (code) exceeds 10 logical lines: 13 lines', 'Back-to-back code cells at indices 25 and 26 without separating markdown cell', 'Back-to-back code cells at indices 36 and 37 without separating markdown cell']
+Notebook jaxfne_suite_no_2_evoked_l4_drive.ipynb has structural warnings: ['Back-to-back code cells at indices 2 and 3 without separating markdown cell', 'Back-to-back code cells at indices 3 and 4 without separating markdown cell', 'Back-to-back code cells at indices 4 and 5 without separating markdown cell']
+Notebook jaxfne_suite_no_2_spectrolaminar_motif.ipynb has structural warnings: ['Back-to-back code cells at indices 7 and 8 without separating markdown cell']
+Notebook jaxfne_v040_continuous_omission_oddball.ipynb has structural warnings: ['Back-to-back code cells at indices 1 and 2 without separating markdown cell', 'Back-to-back code cells at indices 17 and 18 without separating markdown cell', 'Back-to-back code cells at indices 20 and 21 without separating markdown cell', 'Back-to-back code cells at indices 23 and 24 without separating markdown cell', 'Back-to-back code cells at indices 26 and 27 without separating markdown cell']
+Notebook jaxfne_v040_homeostasis_plasticity_dc_noise_sweep.ipynb has structural warnings: ['Back-to-back code cells at indices 1 and 2 without separating markdown cell', 'Back-to-back code cells at indices 26 and 27 without separating markdown cell']
+Notebook structure valid: False
+Jaxley bridge safety check: GREEN
+✓ Complete audit check passed.
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/sync_release_metadata.py
+Current versions:
+  ok pyproject.toml: 0.5.7
+  ok jaxfne.__version__ (import): 0.5.7
+  ok mkdocs.yml: 0.5.7
+  ok docs/_generated/version.md: 0.5.7
+
+OK: All versions consistent: 0.5.7
++ /home/nejath/venv_jaxfne_gate/bin/python -m pytest tests -q -m not slow --tb=short -rs -p xdist -n auto --junitxml=/mnt/e/repos/cl-reader-cursor/artifacts/attestations/rc-pytest-broad.xml
+bringing up nodes...
+bringing up nodes...
+
+........................................................................ [  1%]
+........................................................................ [  2%]
+........................................................................ [  3%]
+........................................................................ [  4%]
+........................................................................ [  5%]
+........................................................................ [  6%]
+........................................................................ [  7%]
+........................................................................ [  8%]
+........................................................................ [  9%]
+........................................................................ [ 10%]
+........................................................................ [ 11%]
+........................................................................ [ 12%]
+.........................................................ssssss......... [ 13%]
+........................................................................ [ 14%]
+........................................................................ [ 15%]
+........................................................................ [ 16%]
+........................................................................ [ 17%]
+........................................................................ [ 18%]
+............................s........................................... [ 19%]
+........................................................................ [ 20%]
+........................................................................ [ 21%]
+........................................................................ [ 22%]
+........................................................................ [ 23%]
+.................................s...................................... [ 24%]
+........................................................................ [ 25%]
+........................................................................ [ 26%]
+........................................................................ [ 27%]
+........................................................................ [ 28%]
+........................................................................ [ 29%]
+........................................................................ [ 30%]
+.....s.................................................................. [ 31%]
+.................................................................s...... [ 32%]
+..ss...s...s............................................................ [ 33%]
+........................................................................ [ 34%]
+............s.s......................................................... [ 35%]
+........................................................................ [ 36%]
+........................................................................ [ 37%]
+........................................................................ [ 38%]
+........................................................................ [ 39%]
+........................................................................ [ 40%]
+........................................................................ [ 41%]
+........................................................................ [ 42%]
+........................................................................ [ 43%]
+........................................................................ [ 44%]
+........................................................................ [ 45%]
+........................................................................ [ 46%]
+........................................................................ [ 47%]
+........................................................................ [ 48%]
+........................................................................ [ 49%]
+........................................................................ [ 50%]
+........................................................................ [ 51%]
+........................................................................ [ 52%]
+..................................s..................................... [ 53%]
+........................................................................ [ 54%]
+........................................................................ [ 55%]
+........................................................................ [ 56%]
+........................................................................ [ 57%]
+........................................................................ [ 58%]
+........................................................................ [ 59%]
+........................................................................ [ 60%]
+........................................................................ [ 61%]
+........................................................................ [ 62%]
+........................................................................ [ 63%]
+........................................................................ [ 64%]
+........................................................................ [ 65%]
+........................................................................ [ 66%]
+........................................................................ [ 67%]
+........................................................................ [ 68%]
+........................................................................ [ 69%]
+........................................................................ [ 70%]
+........................................................................ [ 71%]
+........................................................................ [ 72%]
+........................................................................ [ 73%]
+........................................................................ [ 74%]
+........................................................................ [ 75%]
+........................................................................ [ 76%]
+........................................................................ [ 77%]
+........................................................................ [ 78%]
+........................................................................ [ 79%]
+........................................................................ [ 80%]
+................................s....................................... [ 81%]
+........................................................................ [ 83%]
+........................................................................ [ 84%]
+........................................................................ [ 85%]
+........................................................................ [ 86%]
+........................................................................ [ 87%]
+.......................................................s..sssssssssssss. [ 88%]
+sss..................................................................... [ 89%]
+........................................................................ [ 90%]
+..............................................................s..ss..ss. [ 91%]
+..s.s..........s.ss....s.s.s.ss..s...................................... [ 92%]
+................................s....................................... [ 93%]
+.................................................s..ssssss.............. [ 94%]
+..........................................s.ssssssss.ssss..s............ [ 95%]
+........................................................................ [ 96%]
+........................................................................ [ 97%]
+........................................................................ [ 98%]
+........................................................................ [ 99%]
+.........................................................                [100%]
+=============================== warnings summary ===============================
+tests/test_augment.py: 13 warnings
+tests/test_checkpoint_persists_every_array_field.py: 6 warnings
+tests/test_consumption_gate_055.py: 34 warnings
+tests/test_delay_boundary_v0417.py: 8 warnings
+tests/test_config_json_roundtrip.py: 2 warnings
+tests/test_canonical_biophysics.py: 5 warnings
+tests/test_api_smoke.py: 8 warnings
+tests/test_connections_compiler.py: 9 warnings
+tests/test_atlas_at04_052.py: 4 warnings
+tests/test_connectivity_request_realization.py: 7 warnings
+tests/test_config_plasticity_homeostasis_baseline.py: 4 warnings
+tests/test_dense_refuses_connection_rules.py: 4 warnings
+tests/test_canonical_compact_summary.py: 2 warnings
+tests/test_closure_hp_reconciliation.py: 15 warnings
+tests/test_augment_suite.py: 4 warnings
+tests/test_configuration_geometry_population_interarea.py: 11 warnings
+tests/test_emitters_rate.py: 15 warnings
+tests/test_connectivity_scaling.py: 12 warnings
+tests/test_continuation_all_state_053.py: 18 warnings
+tests/test_atlas_at04r2_053.py: 1 warning
+tests/test_cell_params_compilation_v0401.py: 1 warning
+tests/test_artifact_json_safety_v0330.py: 1 warning
+tests/test_connect_ensemble.py: 22 warnings
+tests/test_backend_parity_v020.py: 24 warnings
+tests/test_epistemic_gate_052.py: 1 warning
+tests/test_epv_2neuron_pipeline_smoke.py: 3 warnings
+tests/test_atlas_at0506_052.py: 5 warnings
+tests/test_agent_bench_055.py: 2 warnings
+tests/test_atlas_at05_isolation_055.py: 1 warning
+tests/test_equiv01_table.py: 10 warnings
+tests/test_differentiable_scalar_soft_rate_tune.py: 9 warnings
+tests/test_fields_positions_g8.py: 4 warnings
+tests/test_fields_projection_finite_and_normalization.py: 2 warnings
+tests/test_atlas_at07_053.py: 2 warnings
+tests/test_backend_refusal.py: 4 warnings
+tests/test_agent_substitution_055.py: 1 warning
+tests/test_agent_surface.py: 3 warnings
+tests/test_conservation_proxy_diagnostics_v027.py: 4 warnings
+tests/test_backend_request_realization_w11.py: 14 warnings
+tests/test_atlas_at0203_052.py: 4 warnings
+tests/test_differentiable_source_scale_tune.py: 3 warnings
+tests/test_atlas_at0809_054.py: 2 warnings
+tests/test_connect_golden_snapshot.py: 11 warnings
+tests/test_construct_golden_snapshot.py: 6 warnings
+tests/test_benchmark_protocol_v1.py: 1 warning
+tests/test_column_viewer_smoke.py: 2 warnings
+tests/test_connection_rule_compile_v0330.py: 1 warning
+tests/test_connection_selector_plural_keys.py: 4 warnings
+tests/test_atlas_bundle_055.py: 6 warnings
+tests/test_compact_facade_v034.py: 3 warnings
+tests/test_compat_jom01_regressions.py: 4 warnings
+tests/test_edge_delay_protocol_d016.py: 1 warning
+tests/test_h01_representation_probes.py: 3 warnings
+tests/test_ei_20neuron_population_smoke.py: 4 warnings
+tests/test_hdp_gen01_expressivity.py: 7 warnings
+tests/test_fixed_indegree.py: 1 warning
+tests/test_gate10_edge_table.py: 1 warning
+tests/test_ei_hdp_hebbian_angle.py: 2 warnings
+tests/test_composition_aspects_054.py: 10 warnings
+tests/test_gate7_recording_invariance.py: 1 warning
+tests/test_ei_hdp_stability_rho_passive_sweep.py: 2 warnings
+tests/test_build_docs_assets.py: 1 warning
+tests/test_gate9_run_continuation.py: 1 warning
+tests/test_atlas_g20_055.py: 1 warning
+tests/test_h_boundary_isolated.py: 1 warning
+tests/test_gradient_checks_v0417.py: 2 warnings
+tests/test_granger_spectral.py: 1 warning
+tests/test_hdp01_registrable_qualification.py: 3 warnings
+tests/test_hdp_hygiene_053.py: 1 warning
+tests/test_emitter_equations_v020.py: 18 warnings
+tests/test_hdp_audit01_expressivity_probes.py: 7 warnings
+tests/test_head_forward.py: 1 warning
+tests/test_homeostatic_ei_matrix_parameter_target.py: 1 warning
+tests/test_atlas_manifest_055.py: 1 warning
+tests/test_composition_identity_054.py: 2 warnings
+tests/test_emitter_family_validation_v0330.py: 3 warnings
+tests/test_computation_basis_v026.py: 5 warnings
+tests/test_atlas_reduction_052.py: 4 warnings
+tests/test_config_circuit_ownership_v0328_completion.py: 1 warning
+tests/test_jit_equivalence_v036.py: 2 warnings
+tests/test_inputs_xsource_t24.py: 28 warnings
+tests/test_homeostatic_stability_v042.py: 10 warnings
+tests/test_hdp_delayed_registrable.py: 10 warnings
+tests/test_continuation_contract.py: 14 warnings
+tests/test_hdp_population_restoring.py: 3 warnings
+tests/test_interactive_tutorial_artifacts_v0221.py: 1 warning
+tests/test_atlas_suite.py: 15 warnings
+tests/test_ed9_evidence.py: 1 warning
+tests/test_jnwb_view.py: 1 warning
+tests/test_intervention_grammar_053.py: 8 warnings
+tests/test_etude1_agsdr_convergence.py: 5 warnings
+tests/test_law01_structured_rule.py: 1 warning
+tests/test_ed9_hdp_evidence.py: 1 warning
+tests/test_edge01_selectors_transforms.py: 7 warnings
+tests/test_laminar_geometry_consumed.py: 2 warnings
+tests/test_hyx_doctrine.py: 20 warnings
+tests/test_lif_hard_refractory.py: 2 warnings
+tests/test_lif_tensor_route.py: 26 warnings
+tests/test_evoked_l4_drive.py: 1 warning
+tests/test_laminar_geometry_v013.py: 4 warnings
+tests/test_edge_backend_v009.py: 8 warnings
+tests/test_experiment_a_b1_canonical.py: 4 warnings
+tests/test_hdp_dispatch.py: 9 warnings
+tests/test_experiment_a_b2_probes.py: 3 warnings
+tests/test_jdna_pseudogenome.py: 6 warnings
+tests/test_continuation_poisson_055.py: 5 warnings
+tests/test_jax01_profile.py: 3 warnings
+tests/test_experiment_a_b3_receipt.py: 1 warning
+tests/test_homeostasis_dispatch.py: 13 warnings
+tests/test_neuronal_tensor.py: 21 warnings
+tests/test_intra_step_fixed_point_t22.py: 1 warning
+tests/test_core_class_hygiene.py: 1 warning
+tests/test_manifest_activity_regimes.py: 9 warnings
+tests/test_neuronal_tensor_geometry.py: 19 warnings
+tests/test_neuronal_tensor_lane6b.py: 14 warnings
+tests/test_cross_area_observations_054.py: 1 warning
+tests/test_cross_area_plasticity_054.py: 4 warnings
+tests/test_manifest_readout_compat.py: 1 warning
+tests/test_experimental_poisson_1d_neuron_table_bridge.py: 5 warnings
+tests/test_manifest_v005.py: 5 warnings
+tests/test_minor_batch_refusals.py: 1 warning
+tests/test_jdna_scenarios.py: 8 warnings
+tests/test_is_valid_signal.py: 1 warning
+tests/test_objectives.py: 8 warnings
+tests/test_atlas_v4_records.py: 2 warnings
+tests/test_objectives_v020.py: 16 warnings
+tests/test_field01_audit.py: 1 warning
+tests/test_field_admissibility_v020.py: 13 warnings
+tests/test_neuronal_tensor_connectivity.py: 7 warnings
+tests/test_observation_provenance_v0415.py: 5 warnings
+tests/test_poisson_counts.py: 7 warnings
+tests/test_poisson_drive_target.py: 3 warnings
+tests/test_model_checkpoint_restore.py: 2 warnings
+tests/test_pcl_topology.py: 10 warnings
+tests/test_population_neuron_keys_p044.py: 2 warnings
+tests/test_operator_stage_coverage_v04.py: 1 warning
+tests/test_jdna_area_rules_055.py: 3 warnings
+tests/test_mcc.py: 2 warnings
+tests/test_optim_jax_native_audit.py: 1 warning
+tests/test_optim_tune.py: 24 warnings
+tests/test_optim_report_hardening.py: 4 warnings
+tests/test_paradigm_model_targets.py: 3 warnings
+tests/test_objective_report_v018.py: 10 warnings
+tests/test_probe_operators_eeg_meg_emm.py: 1 warning
+tests/test_perf_float32_hdp_acceptance.py: 1 warning
+tests/test_paradigm_semantics_p017.py: 5 warnings
+tests/test_protocol_e_e1_implementation.py: 7 warnings
+tests/test_param01_edge_weight_class_storage.py: 4 warnings
+tests/test_public_builders_complete.py: 7 warnings
+tests/test_protocol_e_e2_implementation.py: 6 warnings
+tests/test_p023_required_tau.py: 2 warnings
+tests/test_param_handles.py: 30 warnings
+tests/test_pynwb_compat.py: 1 warning
+tests/test_relative_grammar_invariants.py: 9 warnings
+tests/test_phaseD_source_schema.py: 6 warnings
+tests/test_protocol_e_e3_implementation.py: 6 warnings
+tests/test_pipeline_pure_functions.py: 13 warnings
+tests/test_protocol_e_e4_implementation.py: 7 warnings
+tests/test_review_findings_f1f2f3.py: 1 warning
+tests/test_protocol_e_e5_implementation.py: 5 warnings
+tests/test_plasticity_controls_053.py: 3 warnings
+tests/test_mcc_412_edge_optimization.py: 1 warning
+tests/test_run_receipt_v016.py: 10 warnings
+tests/test_runtime_backend_device_v0340.py: 1 warning
+tests/test_mechanism_aware_connection_compiler.py: 5 warnings
+tests/test_runtime_dtype_v020.py: 19 warnings
+tests/test_readme_atlas_pin.py: 1 warning
+tests/test_semantic_correctness_v020.py: 26 warnings
+tests/test_readout_spec_v017.py: 8 warnings
+tests/test_sign_source_t18.py: 2 warnings
+tests/test_signals_get_v0329.py: 20 warnings
+tests/test_rep01_edge_class_storage.py: 12 warnings
+tests/test_rec01_streaming_preflight.py: 12 warnings
+tests/test_source_bookkeeping_v020.py: 21 warnings
+tests/test_silent_fallbacks_audit.py: 18 warnings
+tests/test_sparse_connectivity_v0401.py: 4 warnings
+tests/test_pcl_stage_c.py: 1 warning
+tests/test_simulate_homeostasis_metadata_helper.py: 4 warnings
+tests/test_sphere20_ei_hdp_habituation.py: 8 warnings
+tests/test_scan_backends_v012.py: 14 warnings
+tests/test_spectrolaminar_readiness_v011.py: 3 warnings
+tests/test_suite_no1_public_grammar_validation.py: 1 warning
+tests/test_suite_no1_agsdr_public_api.py: 7 warnings
+tests/test_replay_domains_053.py: 10 warnings
+tests/test_simulate_runtime_propagation.py: 3 warnings
+tests/test_suite_no4_public_grammar.py: 3 warnings
+tests/test_synapse_metadata_v010.py: 3 warnings
+tests/test_suite_no4_runtime_static_guards.py: 1 warning
+tests/test_simulation_plasticity_refused.py: 1 warning
+tests/test_suite_no2_upgrade.py: 2 warnings
+tests/test_tfne_ctx01.py: 4 warnings
+tests/test_tcm_v1_6pop.py: 1 warning
+tests/test_state_ownership_053.py: 13 warnings
+tests/test_tfne_delay_transfer.py: 5 warnings
+tests/test_tensor_pipeline_custom_cfg.py: 1 warning
+tests/test_tfne_parameter_transfer.py: 19 warnings
+tests/test_synaptic_kernel_v011.py: 6 warnings
+tests/test_tfne_execution.py: 1 warning
+tests/test_tfne_per_statement_delay_054.py: 1 warning
+tests/test_tfne_global_assumptions.py: 1 warning
+tests/test_tfne_hierarchical_flat_054.py: 2 warnings
+tests/test_selectors_v0329.py: 3 warnings
+tests/test_tune_explicit_values_p036.py: 4 warnings
+tests/test_tune_mixed_args_warn.py: 3 warnings
+tests/test_stimulus_injection_v012.py: 8 warnings
+tests/test_score_numerics_checks.py: 2 warnings
+tests/test_tune_parameter_propagation.py: 12 warnings
+tests/test_util_config_tensor.py: 6 warnings
+tests/test_v006_v008.py: 7 warnings
+tests/test_v033_api_extensions.py: 11 warnings
+tests/test_v0320_recompilation_guards.py: 3 warnings
+tests/test_trial_runner_v014.py: 12 warnings
+tests/test_v0341_kernels.py: 1 warning
+tests/test_v0314_ablation_controls.py: 4 warnings
+tests/test_v0417_c2_delay_continuation.py: 9 warnings
+tests/test_vis_phase5.py: 3 warnings
+tests/test_vis_plotly_network_model_path.py: 1 warning
+tests/test_w0_provenance_t25.py: 22 warnings
+tests/test_two_neuron_ei_colab_v029.py: 1 warning
+tests/test_w166_decimation_classification.py: 4 warnings
+tests/test_recording_budgets_053.py: 24 warnings
+  /home/nejath/venv_jaxfne_gate/lib/python3.12/site-packages/jax/_src/numpy/array_methods.py:125: UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+    return lax_numpy.astype(self, dtype, copy=copy, device=device)
+
+tests/test_augment.py: 1 warning
+tests/test_augment_suite.py: 1 warning
+tests/test_agent_substitution_055.py: 1 warning
+tests/test_connection_selector_plural_keys.py: 4 warnings
+tests/test_inputs_xsource_t24.py: 7 warnings
+tests/test_hyx_doctrine.py: 18 warnings
+tests/test_lif_tensor_route.py: 24 warnings
+tests/test_neuronal_tensor.py: 4 warnings
+tests/test_neuronal_tensor_geometry.py: 18 warnings
+tests/test_neuronal_tensor_lane6b.py: 13 warnings
+tests/test_neuronal_tensor_connectivity.py: 1 warning
+tests/test_pcl_topology.py: 8 warnings
+tests/test_p023_required_tau.py: 1 warning
+tests/test_sign_source_t18.py: 2 warnings
+tests/test_rep01_edge_class_storage.py: 2 warnings
+tests/test_tfne_parameter_transfer.py: 3 warnings
+  /mnt/e/repos/cl-reader-cursor/jaxfne/emitters.py:873: UserWarning: Explicitly requested dtype float64 requested in asarray is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+    return jnp.take(jnp.asarray(table, dtype=jdtype), ri).astype(jdtype)
+
+tests/test_checkpoint_persists_every_array_field.py::test_v1_checkpoints_still_restore
+  /mnt/e/repos/cl-reader-cursor/tests/test_checkpoint_persists_every_array_field.py:122: UserWarning: checkpoint predates delay persistence (schema model_checkpoint_v1): it carries no edge delay_steps, so delays are being reconstructed as zero. This is a legacy compatibility assumption, NOT evidence that the original model had zero delays -- if it had finite delays they were lost when the checkpoint was written and cannot be recovered. Re-checkpoint from the originating configuration to obtain a faithful model_checkpoint_v2 file.
+    restored = Model.restore(str(tmp_path / "ck"), _config())
+
+tests/test_canonical_biophysics.py: 2 warnings
+tests/test_consumption_gate_055.py: 2 warnings
+tests/test_inputs_xsource_t24.py: 3 warnings
+tests/test_intervention_grammar_053.py: 7 warnings
+tests/test_manifest_activity_regimes.py: 6 warnings
+tests/test_mcc.py: 3 warnings
+tests/test_optim_report_hardening.py: 1 warning
+tests/test_protocol_c_c1_synthetic.py: 1 warning
+tests/test_optim_tune.py: 3 warnings
+tests/test_quickstart_snippets.py: 1 warning
+  /mnt/e/repos/cl-reader-cursor/jaxfne/io.py:40: UserWarning: json_safe: non-finite float (NaN/Inf) substituted with None; validate finiteness before serialization if this is unexpected
+    return {str(k): json_safe(v) for k, v in obj.items()}
+
+tests/test_consumption_gate_055.py: 1 warning
+tests/test_emitters_rate.py: 10 warnings
+tests/test_inputs_xsource_t24.py: 4 warnings
+tests/test_hyx_doctrine.py: 10 warnings
+tests/test_lif_tensor_route.py: 16 warnings
+tests/test_pcl_topology.py: 2 warnings
+tests/test_sign_source_t18.py: 1 warning
+  /mnt/e/repos/cl-reader-cursor/jaxfne/emitters.py:931: UserWarning: Explicitly requested dtype float64 requested in asarray is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+    mag = jnp.asarray(edges.weight_magnitude, dtype=jdtype).reshape(())
+
+tests/test_adex_route.py::test_triple_vpeak_override_is_applied
+tests/test_neuronal_tensor_geometry.py::test_adex_per_triple_overrides_reach_the_kernel_params
+tests/test_neuronal_tensor_geometry.py::test_per_triple_overrides_do_not_leak_across_layers
+  /mnt/e/repos/cl-reader-cursor/jaxfne/_construct_adex.py:460: UserWarning: Explicitly requested dtype float64 requested in asarray is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+    **{field: jnp.asarray(column, dtype=jnp.float64) for field, column in columns.items()}
+
+tests/test_connectivity_scaling.py::test_sparse_direct_not_bit_exact_to_dense_at_threshold
+tests/test_rep01_edge_class_storage.py::test_sparse_direct_vs_dense_not_bit_exact_at_threshold[5000]
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 5000, 20) (B, Z, C, T) compiled 2 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_ei_jaxley_hh_field_readout.py::test_izhikevich_cannot_generate_a_field_for_this_same_epv_shape
+tests/test_ei_jaxley_izhikevich_parity.py::test_jaxley_izhikevich_channel_has_native_matching_defaults
+tests/test_ei_jaxley_izhikevich_parity.py::test_jaxley_bridge_simulate_produces_finite_two_neuron_signals
+tests/test_ei_jaxley_izhikevich_parity.py::test_jaxley_bridge_carries_conservative_proxy_gates
+tests/test_ei_jaxley_izhikevich_parity.py::test_jaxley_bridge_signals_support_vis
+tests/test_jaxley_emitter_bridge_e2e.py::test_simulate_laminar_field_requires_hh
+  /home/nejath/venv_jaxfne_gate/lib/python3.12/site-packages/jaxley/channels/non_capacitive/izhikevich.py:28: UserWarning: The `Izhikevich` channel does not support surrogate gradients. Its gradient will be zero after every spike.
+    warn(
+
+tests/test_composition_identity_054.py::test_ensemble_slice_matches_solo_jit
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1318: UserWarning: Re-compilation guard alert: Function 'simulate' underwent shape mutation compile loop! Baseline signature: (1, 16, 20, 80) (B, Z, C, T), New signature: (1, 16, 12, 80) (B, Z, C, T).
+    warnings.warn(msg, UserWarning)
+
+tests/test_composition_identity_054.py::test_ensemble_slice_matches_solo_jit
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1318: UserWarning: Re-compilation guard alert: Function 'simulate' underwent shape mutation compile loop! Baseline signature: (1, 16, 20, 80) (B, Z, C, T), New signature: (1, 16, 8, 80) (B, Z, C, T).
+    warnings.warn(msg, UserWarning)
+
+tests/test_hh_batch.py::test_batch_multi_path_matches_serial
+  /mnt/e/repos/cl-reader-cursor/jaxfne/emitters_hh.py:579: UserWarning: Explicitly requested dtype float64 requested in asarray is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+    return jnp.asarray(value, dtype=dtype)
+
+tests/test_ed9_evidence.py::test_ed9_bundle_structure_and_stabilization
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_homeostatic_plastic' with signature (1, 8, 120, 800) (B, Z, C, T) compiled 2 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_ed9_hdp_evidence.py::test_ed9_hdp_bundle_structure_and_stabilization
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 8, 120, 800) (B, Z, C, T) compiled 2 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_etude1_agsdr_convergence.py::test_unsupported_tunable_parameter_is_reported_not_silently_ignored
+tests/test_optim_report_hardening.py::test_rejection_reasons_and_finite_gates
+tests/test_optim_tune.py::test_matrix_tune_candidate_failure_is_counted[exc0]
+tests/test_optim_tune.py::test_matrix_tune_candidate_failure_is_counted[exc1]
+tests/test_optim_tune.py::test_matrix_tune_candidate_failure_is_counted[exc2]
+tests/test_mcc_412_edge_optimization.py::test_candidate_exception_becomes_rejected_score
+  /mnt/e/repos/cl-reader-cursor/jaxfne/io.py:42: UserWarning: json_safe: non-finite float (NaN/Inf) substituted with None; validate finiteness before serialization if this is unexpected
+    return [json_safe(x) for x in obj]
+
+tests/test_multi_area_spectrolaminar_objective.py::test_spectrolaminar_objective_no_targets
+  /mnt/e/repos/cl-reader-cursor/tests/test_multi_area_spectrolaminar_objective.py:160: DeprecationWarning: LegacyMultiAreaSpectrolaminarObjective (and the spectrolaminar_objective alias in this module) is deprecated and scheduled for removal in jaxfne 0.4.24; use jaxfne.objectives.spectrolaminar_objective / spectrolaminar_objective_factory instead.
+    obj = spectrolaminar_objective(target_profiles=None)
+
+tests/test_multi_area_spectrolaminar_objective.py::test_spectrolaminar_objective_empty_readout
+  /mnt/e/repos/cl-reader-cursor/tests/test_multi_area_spectrolaminar_objective.py:181: DeprecationWarning: LegacyMultiAreaSpectrolaminarObjective (and the spectrolaminar_objective alias in this module) is deprecated and scheduled for removal in jaxfne 0.4.24; use jaxfne.objectives.spectrolaminar_objective / spectrolaminar_objective_factory instead.
+    obj = spectrolaminar_objective()
+
+tests/test_multi_area_spectrolaminar_objective.py::test_spectrolaminar_objective_reproducibility
+  /mnt/e/repos/cl-reader-cursor/tests/test_multi_area_spectrolaminar_objective.py:209: DeprecationWarning: LegacyMultiAreaSpectrolaminarObjective (and the spectrolaminar_objective alias in this module) is deprecated and scheduled for removal in jaxfne 0.4.24; use jaxfne.objectives.spectrolaminar_objective / spectrolaminar_objective_factory instead.
+    obj = spectrolaminar_objective(target_profiles={"V1": target})
+
+tests/test_multi_area_spectrolaminar_objective.py::test_spectrolaminar_objective_partial_targets
+  /mnt/e/repos/cl-reader-cursor/tests/test_multi_area_spectrolaminar_objective.py:224: DeprecationWarning: LegacyMultiAreaSpectrolaminarObjective (and the spectrolaminar_objective alias in this module) is deprecated and scheduled for removal in jaxfne 0.4.24; use jaxfne.objectives.spectrolaminar_objective / spectrolaminar_objective_factory instead.
+    obj = spectrolaminar_objective(target_profiles={"V1": target})
+
+tests/test_hdp_dispatch.py::test_cache_key_isolated_across_hdp_params_on_reused_model
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 8, 80, 400) (B, Z, C, T) compiled 2 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_intra_step_fixed_point_t22.py::test_rounds_on_a_non_adex_route_refused_at_construct
+  /mnt/e/repos/cl-reader-cursor/jaxfne/_config.py:1255: UserWarning: connection 'e_e' references mechanism 'ampa' not declared via .mechanisms() (declared_not_compiled phase)
+    warnings.warn(
+
+tests/test_homeostasis_dispatch.py::test_cache_key_isolated_across_r_star_on_reused_model
+tests/test_homeostasis_dispatch.py::test_cache_key_isolated_across_k_gain_array_on_reused_model
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_homeostatic' with signature (1, 8, 160, 800) (B, Z, C, T) compiled 2 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_homeostasis_dispatch.py::test_simulate_batch_cache_key_isolated_across_r_star_on_reused_model
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_batch' with signature (2, 8, 160, 800) (B, Z, C, T) compiled 2 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+tests/test_jdna_scenarios.py::TestJ5::test_agsdr_optimization_of_runtime_parameter
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 2 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+tests/test_jdna_scenarios.py::TestJ5::test_agsdr_optimization_of_runtime_parameter
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 3 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+tests/test_jdna_scenarios.py::TestJ5::test_agsdr_optimization_of_runtime_parameter
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 4 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+tests/test_jdna_scenarios.py::TestJ5::test_agsdr_optimization_of_runtime_parameter
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 5 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+tests/test_jdna_scenarios.py::TestJ5::test_agsdr_optimization_of_runtime_parameter
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 6 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+tests/test_jdna_scenarios.py::TestJ5::test_agsdr_optimization_of_runtime_parameter
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 7 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+tests/test_jdna_scenarios.py::TestJ5::test_agsdr_optimization_of_runtime_parameter
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 8 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+tests/test_jdna_scenarios.py::TestJ5::test_agsdr_optimization_of_runtime_parameter
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 9 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+tests/test_jdna_scenarios.py::TestJ5::test_agsdr_optimization_of_runtime_parameter
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 10 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+tests/test_jdna_scenarios.py::TestJ5::test_agsdr_optimization_of_runtime_parameter
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 11 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+tests/test_jdna_scenarios.py::TestJ5::test_agsdr_optimization_of_runtime_parameter
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 12 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 13 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 14 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 15 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_jdna_pseudogenome.py::TestPrngSeparation::test_optimizer_seed_changes_proposals_but_not_development
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 1000, 100) (B, Z, C, T) compiled 16 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_manifest_v005.py::test_manifest_with_tuning_report_json_safe
+  /mnt/e/repos/cl-reader-cursor/tests/test_manifest_v005.py:65: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    _, tune_report = model.tune(obj, optimizer="GSDR", steps=0)
+
+tests/test_manifest_v005.py::test_manifest_preserves_truth_gates_with_v005_metadata
+  /mnt/e/repos/cl-reader-cursor/tests/test_manifest_v005.py:82: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    _, tune_report = model.tune(obj, optimizer="AGSDR", steps=0)
+
+tests/test_manifest_v005.py::test_manifest_no_empirical_or_mechanism_claim
+  /mnt/e/repos/cl-reader-cursor/tests/test_manifest_v005.py:167: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    _, tune_report = model.tune(obj, optimizer="GSDR", steps=0)
+
+tests/test_optim_tune.py::test_model_tune_agsdr_metadata_only
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:191: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    same_model, report = model.tune(obj, optimizer=spec, steps=0)
+
+tests/test_optim_tune.py::test_model_tune_random_search_metadata_only
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:203: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    same_model, report = model.tune(obj, optimizer="random_search", steps=0)
+
+tests/test_optim_tune.py::test_model_tune_optax_unavailable_non_strict_status
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:225: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    same_model, report = model.tune(obj, optimizer=spec, steps=5, strict=False)
+
+tests/test_optim_tune.py::test_model_tune_preserves_model_unchanged
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:243: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    same_model, report = model.tune(obj, optimizer="GSDR", steps=0)
+
+tests/test_optim_tune.py::test_tuning_report_json_safe
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:255: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    _, report = model.tune(obj, optimizer="AGSDR", steps=5)
+
+tests/test_optim_tune.py::test_tuning_report_preserves_truth_gates
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:268: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    _, report = model.tune(jtfne.objective(), optimizer="GSDR")
+
+tests/test_optim_tune.py::test_no_gradient_claim_for_spiking_reset_without_surrogate
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:282: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    same_model, report = model.tune(obj, optimizer=spec, steps=10)
+
+tests/test_multi_area_spectrolaminar_objective.py::test_spectrolaminar_objective_single_area
+  /mnt/e/repos/cl-reader-cursor/tests/test_multi_area_spectrolaminar_objective.py:107: DeprecationWarning: LegacyMultiAreaSpectrolaminarObjective (and the spectrolaminar_objective alias in this module) is deprecated and scheduled for removal in jaxfne 0.4.24; use jaxfne.objectives.spectrolaminar_objective / spectrolaminar_objective_factory instead.
+    obj = spectrolaminar_objective(target_profiles={"V1": target})
+
+tests/test_multi_area_spectrolaminar_objective.py::test_spectrolaminar_objective_multi_area
+  /mnt/e/repos/cl-reader-cursor/tests/test_multi_area_spectrolaminar_objective.py:128: DeprecationWarning: LegacyMultiAreaSpectrolaminarObjective (and the spectrolaminar_objective alias in this module) is deprecated and scheduled for removal in jaxfne 0.4.24; use jaxfne.objectives.spectrolaminar_objective / spectrolaminar_objective_factory instead.
+    obj = spectrolaminar_objective(
+
+tests/test_multi_area_spectrolaminar_objective.py::test_spectrolaminar_objective_missing_areas
+  /mnt/e/repos/cl-reader-cursor/tests/test_multi_area_spectrolaminar_objective.py:147: DeprecationWarning: LegacyMultiAreaSpectrolaminarObjective (and the spectrolaminar_objective alias in this module) is deprecated and scheduled for removal in jaxfne 0.4.24; use jaxfne.objectives.spectrolaminar_objective / spectrolaminar_objective_factory instead.
+    obj = spectrolaminar_objective(
+
+tests/test_optim_tune.py::test_scalar_tune_report_includes_candidate_diagnostics
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:300: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    _, report = model.tune(obj, optimizer="AGSDR", steps=5, seed=42)
+
+tests/test_optim_tune.py::test_gsgd_path_requires_differentiable_or_surrogate
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:102: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    same_model, report = model.tune(obj, optimizer=spec, steps=10)
+
+tests/test_optim_tune.py::test_tune_parameter_propagation_source_scale
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:340: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    best_model, report = model.tune(
+
+tests/test_optim_tune.py::test_tune_parameter_propagation_drive_gain
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:361: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    best_model, report = model.tune(
+
+tests/test_optim_tune.py::test_tune_parameter_propagation_synaptic_gain
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:378: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    best_model, report = model.tune(
+
+tests/test_optim_tune.py::test_optax_path_requires_differentiable_or_surrogate
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:165: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    same_model, report = model.tune(obj, optimizer=spec, steps=10)
+
+tests/test_optim_tune.py::test_model_tune_gsdr_metadata_only
+  /mnt/e/repos/cl-reader-cursor/tests/test_optim_tune.py:176: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    same_model, report = model.tune(obj, optimizer="GSDR", steps=0)
+
+tests/test_public_api_compatibility.py::test_net_alias_points_to_model
+  /mnt/e/repos/cl-reader-cursor/tests/test_public_api_compatibility.py:4: DeprecationWarning: Use Model instead; Net is a compatibility alias removed after 0.4.14.
+    assert hasattr(jtfne, "Net")
+
+tests/test_public_api_compatibility.py::test_net_alias_points_to_model
+  /mnt/e/repos/cl-reader-cursor/tests/test_public_api_compatibility.py:5: DeprecationWarning: Use Model instead; Net is a compatibility alias removed after 0.4.14.
+    assert jtfne.Net is jtfne.Model
+
+tests/test_protocol_e_e1_implementation.py::test_e1_run_gates_and_write_receipt
+tests/test_protocol_e_e2_implementation.py::test_e2_run_gates_and_write_receipt
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 80, 2000) (B, Z, C, T) compiled 2 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_notebook_smoke_broad.py::test_fast_release_notebooks_execute_cleanly
+  /home/nejath/venv_jaxfne_gate/lib/python3.12/site-packages/nbformat/validator.py:434: MissingIDFieldWarning: Cell is missing an id field, this will become a hard error in future nbformat versions. You may want to use `normalize()` on your notebooks before validations (available since nbformat 5.1.4). Previous versions of nbformat are fixing this issue transparently, and will stop doing so in the future.
+    _validate(nbdict, ref, version, version_minor, relax_add_props)
+
+tests/test_rep01_edge_class_storage.py::test_p_connect_dense_masked_self_consistent
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 16, 4000, 20) (B, Z, C, T) compiled 2 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_spectrolaminar_objectives.py::test_high_synchrony_adds_rejection_reason
+  /home/nejath/venv_jaxfne_gate/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:3037: RuntimeWarning: invalid value encountered in divide
+    c /= stddev[:, None]
+
+tests/test_suite_no1_public_grammar_validation.py::test_save_png_creates_parent_dirs
+  /mnt/e/repos/cl-reader-cursor/tests/test_suite_no1_public_grammar_validation.py:208: DeprecationWarning: jaxfne.tutorial_utils.save_png is deprecated; use jaxfne.vis.export_figure instead (handles matplotlib + plotly, explicit formats=).
+    result = save_png(fig, "test_fig", target.parent, show=False)
+
+tests/test_simulate_runtime_propagation.py::test_dtype_kwarg_overrides_and_default_is_float32
+tests/test_simulate_runtime_propagation.py::test_recurrent_backend_propagates_and_is_finite
+  /mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate' with signature (1, 8, 200, 400) (B, Z, C, T) compiled 2 times! Invariant N_compile <= 1 violated.
+    warnings.warn(msg, UserWarning)
+
+tests/test_tune_parameter_propagation.py::test_tune_report_parameter_field
+  /mnt/e/repos/cl-reader-cursor/tests/test_tune_parameter_propagation.py:286: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    _, report = model.tune(obj, optimizer="AGSDR", steps=3, parameter="synaptic_gain")
+
+tests/test_tune_parameter_propagation.py::test_tune_report_bounds_field
+  /mnt/e/repos/cl-reader-cursor/tests/test_tune_parameter_propagation.py:298: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    _, report = model.tune(
+
+tests/test_v006_v008.py::test_manifest_accepts_dataset_and_tuning_loop_report
+  /mnt/e/repos/cl-reader-cursor/tests/test_v006_v008.py:107: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    tuned, report = model.tune(obj, optimizer="AGSDR", steps=2, seed=1, simulation=sim)
+
+tests/test_v006_v008.py::test_model_tune_runs_blackbox_loop_and_returns_json_safe_report
+  /mnt/e/repos/cl-reader-cursor/tests/test_v006_v008.py:55: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    tuned, report = model.tune(
+
+tests/test_v006_v008.py::test_model_tune_zero_steps_stays_metadata_only
+  /mnt/e/repos/cl-reader-cursor/tests/test_v006_v008.py:76: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    same, report = model.tune(obj, optimizer="GSDR", steps=0)
+
+tests/test_v006_v008.py::test_optax_path_remains_guarded_and_truth_safe
+  /mnt/e/repos/cl-reader-cursor/tests/test_v006_v008.py:86: DeprecationWarning: Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.
+    same, report = model.tune(obj, optimizer=jtfne.optax_adam(), steps=2, strict=False)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_agent_api_catalog.py:46: internal catalog not present (gitignored, hand-curated, no repo generator): /mnt/e/repos/cl-reader-cursor/internal_docs/JAXFNE_AGENT_API_CATALOG.md
+SKIPPED [1] tests/test_agent_api_catalog.py:50: internal catalog not present (gitignored, hand-curated, no repo generator): /mnt/e/repos/cl-reader-cursor/internal_docs/JAXFNE_AGENT_API_CATALOG.md
+SKIPPED [1] tests/test_agent_api_catalog.py:55: internal catalog not present (gitignored, hand-curated, no repo generator): /mnt/e/repos/cl-reader-cursor/internal_docs/JAXFNE_AGENT_API_CATALOG.md
+SKIPPED [1] tests/test_agent_api_catalog.py:60: internal catalog not present (gitignored, hand-curated, no repo generator): /mnt/e/repos/cl-reader-cursor/internal_docs/JAXFNE_AGENT_API_CATALOG.md
+SKIPPED [1] tests/test_agent_api_catalog.py:64: internal catalog not present (gitignored, hand-curated, no repo generator): /mnt/e/repos/cl-reader-cursor/internal_docs/JAXFNE_AGENT_API_CATALOG.md
+SKIPPED [1] tests/test_agent_api_catalog.py:70: internal catalog not present (gitignored, hand-curated, no repo generator): /mnt/e/repos/cl-reader-cursor/internal_docs/JAXFNE_AGENT_API_CATALOG.md
+SKIPPED [1] tests/test_docs_links_v0330.py:19: mkdocs not installed; skipping docs build test
+SKIPPED [1] tests/test_head_forward.py:132: could not import 'mne': No module named 'mne'
+SKIPPED [1] tests/test_lane_dashboard_page.py:42: node not installed
+SKIPPED [1] tests/test_interactive_tutorial_artifacts_v0221.py:49: Requires matplotlib and full tutorial execution
+SKIPPED [1] tests/test_interactive_tutorial_artifacts_v0221.py:91: Requires existing tutorial outputs
+SKIPPED [1] tests/test_interactive_tutorial_artifacts_v0221.py:97: Requires running full tutorial runner
+SKIPPED [1] tests/test_interactive_tutorial_artifacts_v0221.py:168: Requires running full tutorial runner with Plotly
+SKIPPED [1] tests/test_interactive_tutorial_artifacts_v0221.py:209: Requires running full tutorial runner with smoke mode
+SKIPPED [1] tests/test_etude3_v1_spectrolaminar_1k.py:77: Etude 3 artifacts not generated (run artifacts/tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb first); artifact-contract checks skipped on a fresh checkout.
+SKIPPED [1] tests/test_etude3_v1_spectrolaminar_1k.py:134: Etude 3 ui.html not generated (run the notebook first); relative-path check skipped on a fresh checkout.
+SKIPPED [1] tests/test_notebook_structure_v0330.py:62: Executed Etude notebook not found; generate with the nbclient full-kernel execution suite (tests/test_notebook_execution_suite.py, minutes, over the 10 s generation gate)
+SKIPPED [1] tests/test_signals_get_v0329.py:143: this config provides neuron_metadata
+SKIPPED [1] tests/test_task_registry.py:145: chain5 has a deterministic reset; the two-seeds-differ check does not apply
+SKIPPED [4] tests/test_tutorial_figure_contract_v0219.py:48: v0.2.19 legacy output artifact contract tests require large tutorials to be run locally. Fast CI excludes large examples. For manual validation, run: python scripts/run_all_tutorials.py && python scripts/validate_tutorial_outputs.py. Validation is now delegated to test_tutorial_figure_manifest_v028.py which validates the canonical docs/_static/tutorial_figures/figure_manifest.json artifact.
+SKIPPED [4] tests/test_tutorial_figure_contract_v0219.py:56: v0.2.19 legacy output artifact contract tests require large tutorials to be run locally. Fast CI excludes large examples. For manual validation, run: python scripts/run_all_tutorials.py && python scripts/validate_tutorial_outputs.py. Validation is now delegated to test_tutorial_figure_manifest_v028.py which validates the canonical docs/_static/tutorial_figures/figure_manifest.json artifact.
+SKIPPED [4] tests/test_tutorial_figure_contract_v0219.py:64: v0.2.19 legacy output artifact contract tests require large tutorials to be run locally. Fast CI excludes large examples. For manual validation, run: python scripts/run_all_tutorials.py && python scripts/validate_tutorial_outputs.py. Validation is now delegated to test_tutorial_figure_manifest_v028.py which validates the canonical docs/_static/tutorial_figures/figure_manifest.json artifact.
+SKIPPED [4] tests/test_tutorial_figure_contract_v0219.py:73: legacy output artifact contract superseded by v0.2.28 canonical tutorial figure manifest (docs/_static/tutorial_figures/figure_manifest.json); validation moved to test_tutorial_figure_manifest_v028.py
+SKIPPED [4] tests/test_tutorial_figure_contract_v0219.py:99: v0.2.19 legacy output artifact contract tests require large tutorials to be run locally. Fast CI excludes large examples. For manual validation, run: python scripts/run_all_tutorials.py && python scripts/validate_tutorial_outputs.py. Validation is now delegated to test_tutorial_figure_manifest_v028.py which validates the canonical docs/_static/tutorial_figures/figure_manifest.json artifact.
+SKIPPED [4] tests/test_tutorial_figure_contract_v0219.py:111: v0.2.19 legacy output artifact contract tests require large tutorials to be run locally. Fast CI excludes large examples. For manual validation, run: python scripts/run_all_tutorials.py && python scripts/validate_tutorial_outputs.py. Validation is now delegated to test_tutorial_figure_manifest_v028.py which validates the canonical docs/_static/tutorial_figures/figure_manifest.json artifact.
+SKIPPED [4] tests/test_tutorial_figure_contract_v0219.py:26: v0.2.19 legacy output artifact contract tests require large tutorials to be run locally. Fast CI excludes large examples. For manual validation, run: python scripts/run_all_tutorials.py && python scripts/validate_tutorial_outputs.py. Validation is now delegated to test_tutorial_figure_manifest_v028.py which validates the canonical docs/_static/tutorial_figures/figure_manifest.json artifact.
+SKIPPED [4] tests/test_tutorial_figure_contract_v0219.py:32: v0.2.19 legacy output artifact contract tests require large tutorials to be run locally. Fast CI excludes large examples. For manual validation, run: python scripts/run_all_tutorials.py && python scripts/validate_tutorial_outputs.py. Validation is now delegated to test_tutorial_figure_manifest_v028.py which validates the canonical docs/_static/tutorial_figures/figure_manifest.json artifact.
+SKIPPED [1] tests/test_v0331_jaxley_lazy.py:16: jaxley already imported by another test
+SKIPPED [1] tests/test_v036_100_neuron_ei_population_tutorial.py:279: Artifact tests gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS
+SKIPPED [1] tests/test_v036_100_neuron_ei_population_tutorial.py:283: Artifact tests gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS
+SKIPPED [1] tests/test_v036_100_neuron_ei_population_tutorial.py:288: Artifact tests gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS
+SKIPPED [1] tests/test_v036_100_neuron_ei_population_tutorial.py:295: Artifact tests gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS
+SKIPPED [1] tests/test_v036_100_neuron_ei_population_tutorial.py:312: Artifact tests gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS
+SKIPPED [1] tests/test_v036_100_neuron_ei_population_tutorial.py:323: Artifact tests gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS
+SKIPPED [1] tests/test_v036_100_neuron_ei_population_tutorial.py:336: Artifact tests gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS
+SKIPPED [1] tests/test_v036_100_neuron_ei_population_tutorial.py:348: Artifact tests gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS
+SKIPPED [1] tests/test_v036_100_neuron_ei_population_tutorial.py:374: Artifact tests gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS
+SKIPPED [1] tests/test_v038_lfp_csd_readout_tutorial.py:309: Artifact tests require JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1
+SKIPPED [1] tests/test_v038_lfp_csd_readout_tutorial.py:318: Artifact tests require JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1
+SKIPPED [1] tests/test_v036_100_neuron_ei_population_tutorial.py:384: Artifact tests gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS
+SKIPPED [1] tests/test_v038_lfp_csd_readout_tutorial.py:339: Artifact tests require JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1
+SKIPPED [1] tests/test_v036_100_neuron_ei_population_tutorial.py:400: Artifact tests gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS
+SKIPPED [1] tests/test_v038_lfp_csd_readout_tutorial.py:351: Artifact tests require JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1
+SKIPPED [1] tests/test_v038_lfp_csd_readout_tutorial.py:363: Artifact tests require JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1
+SKIPPED [1] tests/test_v038_lfp_csd_readout_tutorial.py:378: Artifact tests require JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1
+SKIPPED [1] tests/test_v038_lfp_csd_readout_tutorial.py:403: Artifact tests require JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1
+SKIPPED [1] tests/test_v038_lfp_csd_readout_tutorial.py:416: Artifact tests require JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1
+SKIPPED [1] tests/test_v038_lfp_csd_readout_tutorial.py:438: Artifact tests require JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1
+SKIPPED [1] tests/test_v038_lfp_csd_readout_tutorial.py:449: Artifact tests require JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1
+7040 passed, 73 skipped, 1661 warnings in 912.12s (0:15:12)
++ /home/nejath/venv_jaxfne_gate/bin/python -m pytest -q -p no:cacheprovider artifacts/etudes/papers/brunel2000
+..................                                                       [100%]
+18 passed in 101.12s (0:01:41)
+PASS lane brunel2000 (rc=0)
++ /home/nejath/venv_jaxfne_gate/bin/python -m pytest -q -p no:cacheprovider artifacts/etudes/papers/caminos
+........................................................................ [ 63%]
+..........................................                               [100%]
+114 passed in 701.36s (0:11:41)
+PASS lane caminos (rc=0)
++ /home/nejath/venv_jaxfne_gate/bin/python -m pytest -q -p no:cacheprovider artifacts/etudes/papers/mejias2016
+.........                                                                [100%]
+=============================== warnings summary ===============================
+artifacts/etudes/papers/mejias2016/test_mejias2016_api.py::test_wilson_rate_emitter
+artifacts/etudes/papers/mejias2016/test_mejias2016_api.py::test_interlaminar_motif_exact
+artifacts/etudes/papers/mejias2016/test_mejias2016_api.py::test_ff_fb_motif_exact
+artifacts/etudes/papers/mejias2016/test_mejias2016_api.py::test_uniform_delay_steps
+artifacts/etudes/papers/mejias2016/test_mejias2016_api.py::test_density_exact_totals
+  /home/nejath/venv_jaxfne_gate/lib/python3.12/site-packages/jax/_src/numpy/array_methods.py:125: UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+    return lax_numpy.astype(self, dtype, copy=copy, device=device)
+
+artifacts/etudes/papers/mejias2016/test_mejias2016_api.py::test_interlaminar_motif_exact
+artifacts/etudes/papers/mejias2016/test_mejias2016_api.py::test_ff_fb_motif_exact
+artifacts/etudes/papers/mejias2016/test_mejias2016_api.py::test_uniform_delay_steps
+artifacts/etudes/papers/mejias2016/test_mejias2016_api.py::test_density_exact_totals
+  /mnt/e/repos/cl-reader-cursor/jaxfne/emitters.py:873: UserWarning: Explicitly requested dtype float64 requested in asarray is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+    return jnp.take(jnp.asarray(table, dtype=jdtype), ri).astype(jdtype)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+9 passed, 9 warnings in 9.46s
+PASS lane mejias2016 (rc=0)
++ /home/nejath/venv_jaxfne_gate/bin/python -m pytest -q -p no:cacheprovider artifacts/etudes/papers/pcl
+.....................................................s............ssssss [ 88%]
+...sss...                                                                [100%]
+71 passed, 12 skipped in 110.17s (0:01:50)
+PASS lane pcl (rc=0)
++ /home/nejath/venv_jaxfne_gate/bin/python -m pytest -q -p no:cacheprovider artifacts/etudes/papers/potjans2014
+.........xxxxx                                                           [100%]
+=============================== warnings summary ===============================
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_eight_population_counts
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_lif_params_exact
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_density_exact_totals
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_realized_weights
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_delay_steps
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_external_drive_uniform
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_zero_drive_silent
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_gap_per_population_drive
+  /home/nejath/venv_jaxfne_gate/lib/python3.12/site-packages/jax/_src/numpy/array_methods.py:125: UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+    return lax_numpy.astype(self, dtype, copy=copy, device=device)
+
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_eight_population_counts
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_lif_params_exact
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_density_exact_totals
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_realized_weights
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_delay_steps
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_external_drive_uniform
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_zero_drive_silent
+artifacts/etudes/papers/potjans2014/test_potjans2014_api.py::test_gap_per_population_drive
+  /mnt/e/repos/cl-reader-cursor/jaxfne/emitters.py:873: UserWarning: Explicitly requested dtype float64 requested in asarray is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+    return jnp.take(jnp.asarray(table, dtype=jdtype), ri).astype(jdtype)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+9 passed, 5 xfailed, 16 warnings in 20.21s
+PASS lane potjans2014 (rc=0)
++ /home/nejath/venv_jaxfne_gate/bin/python -m pytest -q -p no:cacheprovider artifacts/etudes/papers/qlearning
+.........                                                                [100%]
+=============================== warnings summary ===============================
+artifacts/etudes/papers/qlearning/test_qlearn_jaxfne.py::test_2_jaxfne_features_learn_right_policy_all_seeds
+  /home/nejath/venv_jaxfne_gate/lib/python3.12/site-packages/jax/_src/numpy/array_methods.py:125: UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+    return lax_numpy.astype(self, dtype, copy=copy, device=device)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+9 passed, 1 warning in 17.57s
+PASS lane qlearning (rc=0)
++ /home/nejath/venv_jaxfne_gate/bin/python -m pytest -q -p no:cacheprovider artifacts/etudes/papers/vogels2011
+..........x                                                              [100%]
+=============================== warnings summary ===============================
+artifacts/etudes/papers/vogels2011/test_vogels2011_api.py::test_realized_cell_params
+artifacts/etudes/papers/vogels2011/test_vogels2011_api.py::test_realized_weights
+artifacts/etudes/papers/vogels2011/test_vogels2011_api.py::test_delay_one_step
+artifacts/etudes/papers/vogels2011/test_vogels2011_api.py::test_drive_current
+artifacts/etudes/papers/vogels2011/test_vogels2011_api.py::test_receptor_tau_reversal
+artifacts/etudes/papers/vogels2011/test_vogels2011_api.py::test_density_exact_totals
+artifacts/etudes/papers/vogels2011/test_vogels2011_api.py::test_short_sim_spikes_finite
+artifacts/etudes/papers/vogels2011/test_vogels2011_api.py::test_istdp_ie
+  /mnt/e/repos/cl-reader-cursor/jaxfne/_construct_adex.py:460: UserWarning: Explicitly requested dtype float64 requested in asarray is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+    **{field: jnp.asarray(column, dtype=jnp.float64) for field, column in columns.items()}
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+10 passed, 1 xfailed, 8 warnings in 6.34s
+PASS lane vogels2011 (rc=0)

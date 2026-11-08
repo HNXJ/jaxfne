@@ -1,0 +1,36 @@
++ /home/nejath/venv_jaxfne_gate/bin/python -m compileall -q jaxfne tests scripts examples
++ /home/nejath/venv_jaxfne_gate/bin/python -m ruff check jaxfne/
+All checks passed!
++ /home/nejath/venv_jaxfne_gate/bin/python -m ruff check scripts/ tests/ examples/ --select E711,E712,E721,E722,F601,F632,F811,F821,F823,F402,F401,F841,E741,E402
+E402 Module level import not at top of file
+    --> tests/test_adex_route.py:1031:1
+     |
+1029 | # T-32c seed batching: one compiled call over N drive seeds, each member keyed
+1030 | # PRNGKey(seed_i), bit-equal to N serial runs with poisson_drive seed=seed_i.
+1031 | from jaxfne._model_simulate import simulate_adex_seed_batch
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+   --> tests/test_lif_tensor_route.py:669:1
+    |
+667 | # T-32c seed batching: one compiled call over N seeds, each member keyed
+668 | # PRNGKey(seed_i), bit-equal to N serial runs.
+669 | from jaxfne._model_simulate import simulate_lif_seed_batch
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: Move module level imports to top of file
+
+Found 2 errors.
+Traceback (most recent call last):
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 985, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 980, in main
+    GATES[args.gate]()
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 734, in gate_broad
+    gate_report()
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 642, in gate_report
+    _run(cmd, family=family)
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 413, in _run
+    raise subprocess.CalledProcessError(proc.returncode, cmd)
+subprocess.CalledProcessError: Command '['/home/nejath/venv_jaxfne_gate/bin/python', '-m', 'ruff', 'check', 'scripts/', 'tests/', 'examples/', '--select', 'E711,E712,E721,E722,F601,F632,F811,F821,F823,F402,F401,F841,E741,E402']' returned non-zero exit status 1.

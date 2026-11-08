@@ -1,0 +1,62 @@
+sweep w_ar=0.5 w_ir=0.5 d_R=3.0: R=12.60 Hz I=78.08 Hz 1.2s/trial
+sweep w_ar=1.0 w_ir=1.0 d_R=3.0: R=19.30 Hz I=78.88 Hz 0.7s/trial
+sweep w_ar=1.0 w_ir=2.0 d_R=3.0: R=18.20 Hz I=78.17 Hz 0.6s/trial
+sweep w_ar=0.5 w_ir=1.0 d_R=3.0: R=11.10 Hz I=79.28 Hz 0.6s/trial
+sweep w_ar=1.0 w_ir=1.0 d_R=1.0: R=15.10 Hz I=78.88 Hz 0.5s/trial
+sweep w_ar=1.0 w_ir=1.0 d_R=6.0: R=24.20 Hz I=79.12 Hz 0.6s/trial
+chosen {'w_ar': 0.5, 'w_ir': 0.5, 'd_R': 3.0} w_max=2.0
+ffi_on_seed_0: R=12.26Hz I=77.63Hz A=18.60Hz d'_c=0.00998229416626458 d'_l=-0.09428694271585861 acc=0.65 leak=0.0030635626158971884 hash=7650652d0e65461f 0.3s/trial
+  elapsed 28s
+hdp train 1/20: w_pat=0.4875 w_car=0.4968 1.1s
+hdp train 2/20: w_pat=0.4688 w_car=0.4945 1.1s
+hdp train 3/20: w_pat=0.4575 w_car=0.4914 1.1s
+hdp train 4/20: w_pat=0.4394 w_car=0.4888 1.1s
+hdp train 5/20: w_pat=0.4211 w_car=0.4857 1.1s
+hdp train 6/20: w_pat=0.4005 w_car=0.4838 1.1s
+hdp train 7/20: w_pat=0.3880 w_car=0.4797 1.2s
+hdp train 8/20: w_pat=0.3668 w_car=0.4785 1.1s
+hdp train 9/20: w_pat=0.3514 w_car=0.4752 1.1s
+hdp train 10/20: w_pat=0.3356 w_car=0.4713 1.1s
+hdp train 11/20: w_pat=0.3157 w_car=0.4687 1.2s
+hdp train 12/20: w_pat=0.2990 w_car=0.4680 1.1s
+hdp train 13/20: w_pat=0.2812 w_car=0.4641 1.2s
+hdp train 14/20: w_pat=0.2639 w_car=0.4625 1.1s
+hdp train 15/20: w_pat=0.2487 w_car=0.4606 1.2s
+hdp train 16/20: w_pat=0.2322 w_car=0.4576 1.2s
+hdp train 17/20: w_pat=0.2127 w_car=0.4551 1.2s
+hdp train 18/20: w_pat=0.1985 w_car=0.4540 1.2s
+hdp train 19/20: w_pat=0.1823 w_car=0.4515 1.2s
+hdp train 20/20: w_pat=0.1678 w_car=0.4491 1.2s
+HDP: w_pat 0.4875->0.1678 w_car 0.4968->0.4491 acc 0.575->0.575
+wrote /mnt/e/repos/cl-reader-cursor/reader_exp/out/train_seed0.json /mnt/e/repos/cl-reader-cursor/reader_exp/out/train_seed0.png
+sweep w_ar=0.5 w_ir=0.5 d_R=3.0: R=12.70 Hz I=76.97 Hz 1.1s/trial
+sweep w_ar=1.0 w_ir=1.0 d_R=3.0: R=20.40 Hz I=76.22 Hz 0.5s/trial
+sweep w_ar=1.0 w_ir=2.0 d_R=3.0: R=20.30 Hz I=77.20 Hz 0.6s/trial
+sweep w_ar=0.5 w_ir=1.0 d_R=3.0: R=11.70 Hz I=76.28 Hz 0.5s/trial
+sweep w_ar=1.0 w_ir=1.0 d_R=1.0: R=17.30 Hz I=78.68 Hz 0.5s/trial
+sweep w_ar=1.0 w_ir=1.0 d_R=6.0: R=26.20 Hz I=76.17 Hz 0.5s/trial
+chosen {'w_ar': 0.5, 'w_ir': 0.5, 'd_R': 3.0} w_max=2.0
+ffi_on_seed_1: R=12.79Hz I=76.21Hz A=18.59Hz d'_c=0.008539949663303004 d'_l=0.030714576982370533 acc=0.3 leak=0.0033638122855949117 hash=f3d7873a1027d47a 0.3s/trial
+  elapsed 27s
+hdp train 1/20: w_pat=0.4791 w_car=0.4958 1.2s
+hdp train 2/20: w_pat=0.4564 w_car=0.4929 1.1s
+hdp train 3/20: w_pat=0.4342 w_car=0.4897 1.1s
+hdp train 4/20: w_pat=0.4197 w_car=0.4870 1.1s
+hdp train 5/20: w_pat=0.4005 w_car=0.4859 1.1s
+hdp train 6/20: w_pat=0.3811 w_car=0.4833 1.1s
+hdp train 7/20: w_pat=0.3619 w_car=0.4796 1.2s
+hdp train 8/20: w_pat=0.3411 w_car=0.4765 1.1s
+hdp train 9/20: w_pat=0.3175 w_car=0.4748 1.1s
+hdp train 10/20: w_pat=0.2964 w_car=0.4728 1.1s
+hdp train 11/20: w_pat=0.2845 w_car=0.4715 1.1s
+hdp train 12/20: w_pat=0.2657 w_car=0.4697 1.1s
+hdp train 13/20: w_pat=0.2490 w_car=0.4662 1.0s
+hdp train 14/20: w_pat=0.2372 w_car=0.4643 1.1s
+hdp train 15/20: w_pat=0.2203 w_car=0.4622 1.1s
+hdp train 16/20: w_pat=0.2033 w_car=0.4609 1.1s
+hdp train 17/20: w_pat=0.1887 w_car=0.4599 1.1s
+hdp train 18/20: w_pat=0.1707 w_car=0.4586 1.1s
+hdp train 19/20: w_pat=0.1558 w_car=0.4572 1.1s
+hdp train 20/20: w_pat=0.1465 w_car=0.4563 1.1s
+HDP: w_pat 0.4791->0.1465 w_car 0.4958->0.4563 acc 0.325->0.425
+wrote /mnt/e/repos/cl-reader-cursor/reader_exp/out/train_seed1.json /mnt/e/repos/cl-reader-cursor/reader_exp/out/train_seed1.png

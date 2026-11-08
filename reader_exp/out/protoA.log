@@ -1,0 +1,28 @@
+A1 s0 train 10/60: w_pat=1.4886 w_car=0.7602
+A1 s0 train 20/60: w_pat=1.9967 w_car=1.1880
+A1 s0 train 30/60: w_pat=1.9974 w_car=1.7052
+A1 s0 train 40/60: w_pat=1.9981 w_car=1.9232
+A1 s0 train 50/60: w_pat=1.9985 w_car=1.9714
+A1 s0 train 60/60: w_pat=1.9986 w_car=1.9821
+A1 s0: w_pat 0.5000->1.9986 w_car 0.5000->1.9821 pass=True acc 0.25->0.4166666666666667 (96s) wrote /mnt/e/repos/cl-reader-cursor/reader_exp/out/protoA_A1_seed0.json
+A1 s1 train 10/60: w_pat=1.5187 w_car=0.7724
+A1 s1 train 20/60: w_pat=1.9965 w_car=1.2112
+A1 s1 train 30/60: w_pat=1.9945 w_car=1.7304
+A1 s1 train 40/60: w_pat=1.9975 w_car=1.9405
+A1 s1 train 50/60: w_pat=1.9964 w_car=1.9844
+A1 s1 train 60/60: w_pat=1.9916 w_car=1.9909
+A1 s1: w_pat 0.5000->1.9916 w_car 0.5000->1.9909 pass=True acc 0.25->0.6666666666666666 (100s) wrote /mnt/e/repos/cl-reader-cursor/reader_exp/out/protoA_A1_seed1.json
+A2 s0 train 10/60: w_pat=0.9662 w_car=0.5930
+A2 s0 train 20/60: w_pat=1.6489 w_car=0.6965
+A2 s0 train 30/60: w_pat=1.9974 w_car=0.8757
+A2 s0 train 40/60: w_pat=1.9993 w_car=1.0683
+A2 s0 train 50/60: w_pat=1.9993 w_car=1.2552
+A2 s0 train 60/60: w_pat=1.9992 w_car=1.4614
+A2 s0: w_pat 0.5000->1.9992 w_car 0.5000->1.4614 pass=True acc 0.25->0.3333333333333333 (167s) wrote /mnt/e/repos/cl-reader-cursor/reader_exp/out/protoA_A2_seed0.json
+A2 s1 train 10/60: w_pat=0.9783 w_car=0.5917
+A2 s1 train 20/60: w_pat=1.7569 w_car=0.7166
+A2 s1 train 30/60: w_pat=1.9946 w_car=0.9042
+A2 s1 train 40/60: w_pat=1.9984 w_car=1.1105
+A2 s1 train 50/60: w_pat=1.9991 w_car=1.3245
+A2 s1 train 60/60: w_pat=1.9968 w_car=1.5656
+A2 s1: w_pat 0.5000->1.9968 w_car 0.5000->1.5656 pass=True acc 0.25->0.5 (300s) wrote /mnt/e/repos/cl-reader-cursor/reader_exp/out/protoA_A2_seed1.json

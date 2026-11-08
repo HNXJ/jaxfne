@@ -1,0 +1,9 @@
+An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.
+/home/nejath/venv_jaxfne_gate/lib/python3.12/site-packages/jax/_src/numpy/array_methods.py:125: UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.
+  return lax_numpy.astype(self, dtype, copy=copy, device=device)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 20000) (B, Z, C, T) compiled 2 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 20000) (B, Z, C, T) compiled 3 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)
+/mnt/e/repos/cl-reader-cursor/jaxfne/validation.py:1330: UserWarning: Re-compilation guard alert: Function 'simulate_hdp' with signature (1, 4, 125, 20000) (B, Z, C, T) compiled 4 times! Invariant N_compile <= 1 violated.
+  warnings.warn(msg, UserWarning)

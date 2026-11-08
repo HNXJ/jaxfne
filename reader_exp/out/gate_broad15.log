@@ -1,0 +1,650 @@
++ /home/nejath/venv_jaxfne_gate/bin/python -m compileall -q jaxfne tests scripts examples
++ /home/nejath/venv_jaxfne_gate/bin/python -m ruff check jaxfne/
+All checks passed!
++ /home/nejath/venv_jaxfne_gate/bin/python -m ruff check scripts/ tests/ examples/ --select E711,E712,E721,E722,F601,F632,F811,F821,F823,F402,F401,F841,E741,E402
+All checks passed!
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/audit_public_docs_language.py --check
+{
+  "schema_version": "jaxfne.public_docs_language_audit.v0.1.0",
+  "doc_files_with_violations": 0,
+  "code_files_with_obfuscated_identifiers": 0,
+  "doc_violations": [],
+  "obfuscated_identifier_violations": [],
+  "pass": true
+}
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/audit_notebook_grammar.py --check
+{
+  "schema_version": "jaxfne.notebook_grammar_audit.v0.1.0",
+  "notebook_count": 40,
+  "pass_count": 40,
+  "fail_count": 0,
+  "results": [
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_11_omission_local.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_1_base.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_2_spectrolaminar_power.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_4_homeostatic_V1_column.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_5_enhanced_biophysical_column.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_6_multi_area_network.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_7_multitrial_spectrolaminar.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_etude_tcm_v1_6pop.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_mechanism_01_relative_state_X_H_X.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": false,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_mechanism_02_rbd_memory_Xt_Ht1.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/etudes/jaxfne_mechanism_03_hdp_H_W.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/intro/jaxfne-sanity-checker-notebook-01.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/intro/jaxfne-sanity-delta-test-hierarchical-global-local-oddball.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/intro/jaxfne_colab_gpu_tpu_100k_column.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": false,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/intro/jaxfne_neuronal_tensor_first.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/intro/tutorial_madelane_2026_jaxfne_spectrolaminar.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/suite/jaxfne_suite_no_1_computational_biophysics.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/suite/jaxfne_suite_no_2_evoked_l4_drive.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/suite/jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/suite/jaxfne_suite_no_3_low_frequency_scaling.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/suite/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/templates/jaxfne_notebook_template.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne-v034-stdp-ltp-ltd-adaptation.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne-v035-coop-paradigm-stability.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v0313_omission_oddball.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v031_single_neuron.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v032_parameter_sweep.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v033_two_neuron_ei.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v035_small_recurrent_ei.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v036_100_neuron_ei_population.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v038_lfp_csd_readout.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v040_continuous_omission_oddball.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    },
+    {
+      "path": "artifacts/tutorials/versioned/jaxfne_v040_homeostasis_plasticity_dc_noise_sweep.ipynb",
+      "has_jtfne_import": true,
+      "sections": {
+        "setup": true,
+        "config": true,
+        "run": true,
+        "objective": true,
+        "export": true
+      },
+      "local_engine_patterns": [],
+      "proxy_overclaims": [],
+      "problems": [],
+      "pass": true
+    }
+  ]
+}
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/audit_vocabulary.py --check
+vocabulary check: pass
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/check_docs_orphans.py
+No orphan doc pages found.
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/audit_doc_code_integrity.py --check
+doc-code integrity: pass
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/build_docs_assets.py --docs-figures-check
+docs-figures-check: 4 iframes, 0 figure links, 0 problems in 154 pages
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/check_tree_size.py --check
+tree-size: files=2558 total=90200943 budget=90205000 over_cap=10 violations=0
++ /home/nejath/venv_jaxfne_gate/bin/python scripts/check_record_integrity.py --check
+record-integrity: receipts=9 archive=15 legacy=32 dated=19 prereg=104 benchmark=1 frozen=28 records=208 pinned=207 violations=2 moves=0
+unpinned-hash: artifacts/release/budget_amendment_2026-10-23.md sha256=4e2c57042e39b32732280993f2534fc19e0c66b29b5b30e98f00aa73ff374631
+class-count-mismatch: class=dated pinned=18 live=19
+Traceback (most recent call last):
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 985, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 980, in main
+    GATES[args.gate]()
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 734, in gate_broad
+    gate_report()
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 642, in gate_report
+    _run(cmd, family=family)
+  File "/mnt/e/repos/cl-reader-cursor/scripts/run_test_gate.py", line 413, in _run
+    raise subprocess.CalledProcessError(proc.returncode, cmd)
+subprocess.CalledProcessError: Command '['/home/nejath/venv_jaxfne_gate/bin/python', 'scripts/check_record_integrity.py', '--check']' returned non-zero exit status 1.
