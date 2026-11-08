@@ -175,6 +175,30 @@ def test_fig5a_small_sustained_cycle_counts_as_oscillation(coupling, g_cycle, g_
     assert hi["stable"] is True and hi["freq_hz"] == 0.0
 
 
+def test_tv_form_code_matches_transcription_and_printed_stays_default():
+    """O-93 variant: the code form of T_v gives the transcription's 35.00 Hz (RESULT_MEANFIELD Fig 1D table);
+    the default stays the printed form at 33.50 Hz. Unknown forms are refused."""
+    assert mf.PARAMS["tv_form"] == "printed"
+    p = dict(mf.PARAMS, tv_form="code")
+    peaks = []
+    for params in (mf.PARAMS, p):
+        t, nu, _ = mf.simulate_meanfield(4.0, params=params)
+        e = nu[t >= 2.0, 0]
+        assert np.ptp(e) > 0.5, "fixture must oscillate"
+        peaks.append(mf._spectrum_peak(e, t[1] - t[0]))
+    assert peaks == [pytest.approx(33.5, abs=0.25), pytest.approx(35.0, abs=0.25)], peaks  # bin 0.5 Hz
+    with pytest.raises(ValueError):
+        mf.moments("E", 1.0, 1.0, 1.0, 0.0, dict(mf.PARAMS, tv_form="tau"))
+
+
+def test_tv_form_code_moves_som_som_transition():
+    """Code form: SOM->SOM still oscillates at 1.5 nS and is stable at 1.7 nS; printed is stable at 1.5."""
+    p = dict(mf.PARAMS, tv_form="code")
+    assert mf.fig5a_point("SOMSOM", 1.5, params=p)["stable"] is False
+    assert mf.fig5a_point("SOMSOM", 1.7, params=p)["stable"] is True
+    assert mf.fig5a_point("SOMSOM", 1.5)["stable"] is True
+
+
 def test_fig5a_unknown_coupling_is_refused():
     with pytest.raises(ValueError):
         mf.fig5a_sweep("SOMXX", [0.0])

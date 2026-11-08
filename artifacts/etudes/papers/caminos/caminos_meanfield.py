@@ -148,7 +148,11 @@ PARAMS = {
         "PV": (-0.06, 0.01, 0.004, 0.006, 0.5, 1.0),  # lines 269-274
         "SOM": (-0.05, 0.01, 0.004, 0.006, 0.5, 1.0),  # lines 276-281
     },
+    # T_v weight of the inhibitory inputs (see moments): "printed" (U_I tau_I)^2, line 204 (default), or
+    # "code" (Q_I U_I)^2, the authors' notebook. O-93 (Hamm 2026-11-07): code form is a declared variant.
+    "tv_form": "printed",
 }
+TV_FORMS = ("printed", "code")
 
 
 def moments(ctype, nu_E, nu_PV, nu_SOM, w, params=PARAMS):
@@ -158,7 +162,13 @@ def moments(ctype, nu_E, nu_PV, nu_SOM, w, params=PARAMS):
     fixed-point search). mu_V uses the true rates. sigma_V and T_vN weight each input by at least
     F_FLOOR, so sigma_V stays positive when an input vanishes: the transfer then takes its limit.
     Example: SOM with nu_E = 0 has no other input (Q_PV->SOM = Q_SOM->SOM = 0, no drive to SOM).
+    params["tv_form"] (default "printed") sets the T_v weight of the PV and SOM inputs: "printed"
+    f_I (U_I tau_I)^2 as line 204, "code" f_I (Q_I U_I)^2 as the authors' notebook. The code form adds
+    A^2/s terms to V^2 s terms (dimensional mismatch, derived); sigma_V is the printed form in both.
     """
+    tv_form = params.get("tv_form", "printed")
+    if tv_form not in TV_FORMS:
+        raise ValueError("tv_form must be one of %r, got %r" % (TV_FORMS, tv_form))
     N, p = params["N"], params["p"]
     nu = {"E": max(nu_E, 0.0), "PV": max(nu_PV, 0.0), "SOM": max(nu_SOM, 0.0)}
     f = {X: nu[X] * p * N[X] for X in TYPES}  # line 192: f_X = nu_X p N_X
@@ -176,6 +186,8 @@ def moments(ctype, nu_E, nu_PV, nu_SOM, w, params=PARAMS):
     U = {X: Q[X] / muG * (rev[X] - muV) for X in PRE}  # line 200
     g = {X: max(f[X], F_FLOOR) * (U[X] * tau[X]) ** 2 for X in PRE}  # f_X (U_X tau_X)^2, floored
     sigma = np.sqrt(sum(g[X] / (2.0 * (tau[X] + T_m)) for X in PRE))  # line 202
+    if tv_form == "code":
+        g = {X: max(f[X], F_FLOOR) * (Q[X] * U[X]) ** 2 if X in ("PV", "SOM") else g[X] for X in PRE}
     Tv = sum(g.values()) / sum(g[X] / (tau[X] + T_m) for X in PRE)  # line 204
     return muV, sigma, g_L * Tv / C_m  # line 204: T_vN = g_L T_v / C_m
 
