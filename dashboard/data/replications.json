@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-08T19:59:47Z",
-    "dev_sha": "59cee367663a20fd67fb6cecbe40a22fd9a7a93f",
-    "data_revision": "5c3078e50e16b53c99c96a8c45fae6ab736d6e74caa3b3629186e1691b929ad3"
+    "utc": "2026-11-08T20:01:51Z",
+    "dev_sha": "6805d3e551cfcf5f131738445f4c7be4a3a325aa",
+    "data_revision": "1d9b827ed71668281738afc258d64cba9f16d054c4a05147b714fdbfbe7bd11a"
   },
   "papers": [
     {
@@ -7607,7 +7607,7 @@
     {
       "release": "0.5.11",
       "model": "Mazzoni et al. 2015: Fig. 5 reference weighted-sum LFP proxy",
-      "needs": "a ground-truth LFP (Dryad deposit, or jaxfne kernel LFP declared as substitute); Fig. 7C first (mazzoni2015/NOTES.md)"
+      "needs": "a multicompartment reference LFP (Dryad deposit, or jaxfne kernel LFP declared as substitute); Fig. 7C first (mazzoni2015/NOTES.md)"
     },
     {
       "release": "after 0.5.10",

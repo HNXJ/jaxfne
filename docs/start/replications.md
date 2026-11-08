@@ -39,7 +39,7 @@ fail or not run 0); 100 is a full replica. A dash means no panel inventory yet.
 |---|---|---|
 | 0.5.10 | Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns | P3 v1 scored PASS 5 of 5 (jansenrit1995/RESULT_P3.md); a dashboard entry |
 | 0.5.11 | Lee, Pennartz and Mejias, PLoS Comput Biol 2025: Fig. 6 interneuron silencing | a ReLU rate transfer and Hebbian training; Fig. 7 motif search first (lee2025/NOTES.md) |
-| 0.5.11 | Mazzoni et al. 2015: Fig. 5 reference weighted-sum LFP proxy | a ground-truth LFP (Dryad deposit, or jaxfne kernel LFP declared as substitute); Fig. 7C first (mazzoni2015/NOTES.md) |
+| 0.5.11 | Mazzoni et al. 2015: Fig. 5 reference weighted-sum LFP proxy | a multicompartment reference LFP (Dryad deposit, or jaxfne kernel LFP declared as substitute); Fig. 7C first (mazzoni2015/NOTES.md) |
 | after 0.5.10 | PCL Fig. 4: suppression effects | PCL Fig. 3 scored (R5-approximate, 0.5.10) |
 | after 0.5.10 | PCL Figs. 5–6 | the PCL suppression data and N-MNIST/DVS sets |
 | after 0.5.10 | Calcium-regulated synaptic homeostasis (bioRxiv 2025) | methods read; calcium state as an HDP coordinate |
