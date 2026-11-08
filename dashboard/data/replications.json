@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-07T17:06:25Z",
-    "dev_sha": "2846ee9dac43f0ff82f32f91a4efc4968ddf77a6",
-    "data_revision": "d60e053e50f26af7f8a4461f5c6d3b81f122562ae7d618a65d5eaf484c5de05c"
+    "utc": "2026-11-08T20:01:51Z",
+    "dev_sha": "6805d3e551cfcf5f131738445f4c7be4a3a325aa",
+    "data_revision": "1d9b827ed71668281738afc258d64cba9f16d054c4a05147b714fdbfbe7bd11a"
   },
   "papers": [
     {
@@ -7597,12 +7597,17 @@
     {
       "release": "0.5.10",
       "model": "Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns",
-      "needs": "a signed P3 on the Fig. 3 C sweep (emitter and source record in place)"
+      "needs": "P3 v1 scored PASS 5 of 5 (jansenrit1995/RESULT_P3.md); a dashboard entry"
     },
     {
-      "release": "0.5.10",
-      "model": "CAMINOS Cell Reports Fig. 1D: mouse V1 recordings",
-      "needs": "the raw Onorato data (on request from the lead contact)"
+      "release": "0.5.11",
+      "model": "Lee, Pennartz and Mejias, PLoS Comput Biol 2025: Fig. 6 interneuron silencing",
+      "needs": "a ReLU rate transfer and Hebbian training; Fig. 7 motif search first (lee2025/NOTES.md)"
+    },
+    {
+      "release": "0.5.11",
+      "model": "Mazzoni et al. 2015: Fig. 5 reference weighted-sum LFP proxy",
+      "needs": "a multicompartment reference LFP (Dryad deposit, or jaxfne kernel LFP declared as substitute); Fig. 7C first (mazzoni2015/NOTES.md)"
     },
     {
       "release": "after 0.5.10",
@@ -7621,18 +7626,8 @@
     },
     {
       "release": "unscheduled",
-      "model": "Lee, Pennartz and Mejias, PLoS Comput Biol 2025: interneuron silencing, deviant enhancement",
-      "needs": "event input; a named target figure"
-    },
-    {
-      "release": "unscheduled",
       "model": "Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply)",
       "needs": "the laminar networks"
-    },
-    {
-      "release": "unscheduled",
-      "model": "Mazzoni et al. 2015: LFP proxies",
-      "needs": "the laminar networks; a named target figure"
     }
   ],
   "studies": [
