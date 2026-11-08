@@ -1,6 +1,6 @@
 # CAMINOS mean-field verdicts (PLoS CB 2026, Figs 1D and 6)
 
-Code: `caminos_meanfield.py` (tests `test_caminos_meanfield.py`, 22 pass). Reproduce with
+Code: `caminos_meanfield.py` (tests `test_caminos_meanfield.py`, 31 pass). Reproduce with
 `python caminos_meanfield.py`. Paper text: PMC13286281, Results (Eqs. 1, 10-14) and Methods (Eqs. 19-20,
 Tables 1-4). Tolerances, set after the data (no preregistration): frequency within 15%, and the sign and order of every
 lead.
@@ -44,7 +44,7 @@ The code confirms three readings the text leaves open:
 - E's D mu_V0 is 0.05.
 
 One remaining difference: the code weights inhibitory inputs in T_v by (Q_I U_I)^2 against the printed
-(U_I tau_I)^2. The port keeps the printed form; the code's form gives 35.00 Hz in the transcription above.
+(U_I tau_I)^2. The port defaults to the printed form; `tv_form="code"` gives 35.0 Hz, as the transcription above.
 
 Observed properties of the fitted polynomial (pinned by tests): the PV transfer rises with nu_PV at low rates
 (72.73 to 74.15 Hz as nu_PV goes 0.5 to 2 Hz at nu_E = nu_SOM = 0.5 Hz). With weak inhibition the E transfer
@@ -59,14 +59,17 @@ The paper adds PV->SOM and SOM->SOM (p 0.07, inhibitory, 2 ms delay) and sweeps 
 the two thresholds; its dirty flag records docstring-only edits made during the run). No tolerance was declared
 before the run.
 
-| Coupling | Paper, oscillation ends | Port, last oscillating / first stable | Frequency at 0 nS |
-|---|---|---|---|
-| PV->SOM | about 0.7 nS | 0.7 / 0.8 nS | 33.5 Hz (paper about 35) |
-| SOM->SOM | about 1.7 nS | 1.3 / 1.4 nS (Hopf near 1.33) | 33.5 Hz |
+Both T_v forms are reported (Hamm 2026-11-07): `tv_form="printed"` (default, line 204) and `tv_form="code"`
+(the authors' notebook, inhibitory inputs weighted by (Q_I U_I)^2; see "One remaining difference" above). Code-form
+receipt: `F:/warehouse/caminos/plos_text/fig5a_sweep_tvcode_8a6ccfc4.json` (clean tree at 8a6ccfc4, same grid and
+thresholds).
 
-PV->SOM agrees with the figure reading; SOM->SOM ends about 0.35 nS early with the printed T_v form.
+| Coupling | Paper, oscillation ends | Printed T_v: last oscillating / first stable | Code T_v | Frequency at 0 nS, printed / code |
+|---|---|---|---|---|
+| PV->SOM | about 0.7 nS | 0.7 / 0.8 nS | 0.7 / 0.8 nS | 33.5 / 35.0 Hz (paper about 35) |
+| SOM->SOM | about 1.7 nS | 1.3 / 1.4 nS (Hopf near 1.33) | 1.6 / 1.7 nS | 33.5 / 35.0 Hz |
 
-Probe (one process, `moments` patched to the authors' code form of T_v, inhibitory inputs weighted by
-(Q_I U_I)^2; see "One remaining difference" above): frequency at 0 nS 35.00 Hz; PV->SOM last oscillating 0.6,
-first stable 0.8 (0.7 borderline); SOM->SOM 1.5 / 1.7 nS. The code form closes the SOM->SOM gap and the 4%
-frequency offset (inferred cause; one grid, no tolerance declared). Which form the port keeps: `open_stack.md` O-93.
+PV->SOM agrees with the figure reading in both forms. SOM->SOM ends about 0.35 nS early with the printed form and
+within one grid step of the figure reading with the code form, which also removes the 4% frequency offset (one grid,
+no tolerance declared). The code form is dimensionally inconsistent (A^2/s terms beside V^2 s terms), so the
+printed form stays the default; `test_tv_form_*` pin both.

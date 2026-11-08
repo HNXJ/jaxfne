@@ -23,13 +23,13 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - Landed 2026-11-06 evening (f0489d18..1e7ee1e5): HH seed refusal test; homeostatic_ei stable x bounds from construct
   (±10); B1 baseline scripts; tree budget 96.1 MB. jnwb 16-12 isi_cv on jnwb `_temp_jaxfne-16e` (5fa63dd3,
   accepted); keep `E:/cl-jnwb16e` until jnwb-orchestrator confirms its pick.
-- Landed 2026-11-06 (f96c91e6..05942346): coherence LFP, `isi_ratio`, Jansen-Rit emitter, A3 receipt, GSDR
-  `--batch`, B1 harness and signed prereg, ruff/hatchling bumps (#118, #119 closed); issue #123 closed.
 - Landed 2026-11-07 (1e7ee1e5..290c3cf0): B1 M3 harness fix; Jansen-Rit P1 source record; record integrity skips
   gitignored `_temp/`; PLoS Fig 5A producer (c3719c79).
-- Gated 2026-11-07 (290c3cf0..8516c721): Fig 5A sustained-cycle test and panel; T_v code-form probe (O-93);
+- Gated 2026-11-07 (290c3cf0..8516c721): Fig 5A sustained-cycle test and panel; T_v code-form probe;
   Jansen-Rit P3 v1 draft and driver (O-92). Broad 8238 passed, 2 failed (60 s import and kernel-start timeouts,
   7 passed alone); 9 paper lanes PASS. Last pushed: see the stamp.
+- 2026-11-07 (b24f7a07..): match-check fixes; O-93 (Hamm): T_v code form = declared variant `tv_form="code"`
+  (8a6ccfc4), printed default; code form gives SOM->SOM 1.6/1.7 nS, 35.0 Hz (`caminos/RESULT_MEANFIELD.md`).
 
 ## Broken or in flight
 
@@ -44,8 +44,8 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Open decisions for the owner
 
-`open_stack.md` O-85 to O-93 (P-052, T-62 data request, Lee/Mazzoni figure, G1 Cell Reports panels, stale-clone
-delete script, B1 M3 class, A3 scope, Jansen-Rit P3 signature, CAMINOS T_v form); NeuroAI code link
+`open_stack.md` O-85 to O-92 (P-052, T-62 data request, Lee/Mazzoni figure, G1 Cell Reports panels, stale-clone
+delete script, B1 M3 class, A3 scope, Jansen-Rit P3 signature); NeuroAI code link
 (anonymous.4open.science mirror, Hamm's act). `kernel-lfp` copied to origin `_temp_kernel-lfp` (ff45364b, 2026-11-05);
 deleting the plain-named `origin/kernel-lfp` is Hamm's call.
 

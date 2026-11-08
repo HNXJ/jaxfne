@@ -58,7 +58,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     beside a spiking raster. 5A producer landed (c3719c79, `fig5a_sweep`); its 0.5 Hz peak-to-peak threshold cut
     small sustained cycles, now replaced by a sustained-cycle test (a 16 s probe from the perturbed fixed point held
     E peak-to-peak constant at SOM→SOM 1.1 and 1.3 nS): PV→SOM ends at 0.7-0.8 nS (figure about 0.7), SOM→SOM near 1.33 nS (figure about 1.7). The
-    authors' code form of T_v gives 1.5-1.7 nS and 35.00 Hz (probe; O-93). Panel in `plos_suite.ipynb` (a6f4d867);
+    authors' code form of T_v is the declared variant `tv_form="code"` (Hamm 2026-11-07, 8a6ccfc4); both reported in
+    `RESULT_MEANFIELD.md`. Panel in `plos_suite.ipynb` (a6f4d867);
     left: re-export the dashboard notebook. Fig 4A mean-field lines: no producer. Fig 3
     mean-field rows: the paper defines randomization only for the network (a fraction replaced by Poisson units at
     the reference mean rate, Results ¶ "silencing and randomizing"); the mean-field treatment is unstated, so the
