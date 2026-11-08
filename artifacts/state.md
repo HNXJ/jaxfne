@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@2bdc1701 · 2026-10-21 (written 2026-10-21T12:07:39Z)
+Stamp: jaxfne-cursor@dev@6dadb0bb · 2026-11-07 (written 2026-11-08T02:33:19Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
@@ -102,6 +102,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Broken or in flight
 
+- Sealed 2026-11-07: backups none (0 commits on no remote); WIP snapshots `_temp_wip-jaxfne-cursor-cl-reader-cursor-20261107` (817d7a37; 54 files; left out over 20 MB: `reader_exp/out/train60_seed0.json`, `train60_seed1.json`, `train_seed0.json`, `train_seed1.json`); misnamed renamed 0 (step 4 not run); to delete (Hamm): none from this seal.
 - PCL lane (lane 2b, rebuilt as a NeuronalTensor on the core): Stage C passed through the tensor
   route on 20 clips (CALIBRATION.md Step 9). Open in the record: the `no construct route (OPEN)`
   marker (CALIBRATION.md:24) is not marked closed.
