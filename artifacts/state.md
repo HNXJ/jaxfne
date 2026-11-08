@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@c4432376 · 2026-11-08 (pushed; broad on 3b74977b: 8240 passed, 0 failed, 9 lanes PASS; later commits md only) · checklist 0.5.10: 24/100
+Stamp: jaxfne@dev@0d131148 · 2026-11-08 (pushed; broad on 3b74977b: 8240 passed, 0 failed, 9 lanes PASS; later commits stacks, notes, dashboard data and docs page, docs gate 0 fail) · checklist 0.5.10: 24/100
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
