@@ -1,0 +1,365 @@
+{
+ "in": [
+  22,
+  23,
+  24,
+  25,
+  26,
+  27,
+  33,
+  34,
+  35,
+  36,
+  40,
+  41,
+  42,
+  43,
+  44,
+  45,
+  46,
+  52,
+  53,
+  54,
+  55,
+  56,
+  57,
+  58,
+  59,
+  60,
+  61,
+  67,
+  68,
+  132,
+  133,
+  134,
+  135,
+  136,
+  137,
+  138,
+  139,
+  140,
+  141,
+  142,
+  143,
+  144,
+  145,
+  146,
+  147,
+  148,
+  149,
+  150,
+  151,
+  152,
+  153,
+  154,
+  155,
+  156,
+  157,
+  158,
+  159,
+  160,
+  161,
+  162,
+  163,
+  164,
+  165,
+  166,
+  167,
+  168,
+  169,
+  170,
+  171,
+  172,
+  173,
+  174,
+  175,
+  176,
+  177,
+  178,
+  179,
+  180,
+  181,
+  182,
+  183,
+  184,
+  185,
+  186,
+  187,
+  188,
+  189,
+  190
+ ],
+ "out": [
+  {
+   "line": 74,
+   "reference": "Cannon, R. C., et al. (2014). LEMS: a language for expressing complex biological models in",
+   "reason": "simulator or model language: no mechanism to reproduce"
+  },
+  {
+   "line": 75,
+   "reference": "Gleeson, P., et al. (2010). NeuroML: a language for describing data driven models of neuro",
+   "reason": "simulator or model language: no mechanism to reproduce"
+  },
+  {
+   "line": 76,
+   "reference": "Vella, M., et al. (2014). libNeuroML and PyLEMS: using Python to combine procedural and de",
+   "reason": "simulator or model language: no mechanism to reproduce"
+  },
+  {
+   "line": 77,
+   "reference": "Dura-Bernal, S., et al. (2019). NetPyNE, a tool for data-driven multiscale modeling of bra",
+   "reason": "simulator or model language: no mechanism to reproduce"
+  },
+  {
+   "line": 78,
+   "reference": "Dai, K., et al. (2020). Brain Modeling ToolKit: an open source software suite for multisca",
+   "reason": "simulator or model language: no mechanism to reproduce"
+  },
+  {
+   "line": 79,
+   "reference": "Sanz Leon, P., et al. (2013). The Virtual Brain: a simulator of primate brain network dyna",
+   "reason": "simulator or model language: no mechanism to reproduce"
+  },
+  {
+   "line": 80,
+   "reference": "Stimberg, M., Brette, R., & Goodman, D. F. M. (2019). Brian 2, an intuitive and efficient ",
+   "reason": "simulator or model language: no mechanism to reproduce"
+  },
+  {
+   "line": 81,
+   "reference": "Yavuz, E., Turner, J., & Nowotny, T. (2016). GeNN: a code generation framework for acceler",
+   "reason": "simulator or model language: no mechanism to reproduce"
+  },
+  {
+   "line": 82,
+   "reference": "Vitay, J., Dinkelbach, H. Ü., & Hamker, F. H. (2015). ANNarchy: a code generation approach",
+   "reason": "simulator or model language: no mechanism to reproduce"
+  },
+  {
+   "line": 83,
+   "reference": "Bekolay, T., et al. (2014). Nengo: a Python tool for building large-scale functional brain",
+   "reason": "simulator or model language: no mechanism to reproduce"
+  },
+  {
+   "line": 84,
+   "reference": "Hines, M. L., & Carnevale, N. T. (1997). The NEURON simulation environment. *Neural Comput",
+   "reason": "simulator or model language: no mechanism to reproduce"
+  },
+  {
+   "line": 85,
+   "reference": "Gewaltig, M.-O., & Diesmann, M. (2007). NEST (NEural Simulation Tool). *Scholarpedia* 2(4)",
+   "reason": "simulator or model language: no mechanism to reproduce"
+  },
+  {
+   "line": 86,
+   "reference": "Akar, N. A., et al. (2019). Arbor: a morphologically-detailed neural network simulation li",
+   "reason": "simulator or model language: no mechanism to reproduce"
+  },
+  {
+   "line": 92,
+   "reference": "Wang, C., et al. (2023). BrainPy, a flexible, integrative, efficient, and extensible frame",
+   "reason": "differentiable-computation tool: no mechanism to reproduce"
+  },
+  {
+   "line": 93,
+   "reference": "Deistler, M., et al. (2025). Jaxley: differentiable simulation enables large-scale trainin",
+   "reason": "differentiable-computation tool: no mechanism to reproduce"
+  },
+  {
+   "line": 94,
+   "reference": "Pille, M., et al. (2025). Fast and easy whole-brain network model parameter estimation wit",
+   "reason": "differentiable-computation tool: no mechanism to reproduce"
+  },
+  {
+   "line": 95,
+   "reference": "Huh, D., & Sejnowski, T. J. (2018). Gradient descent for spiking neural networks. *Advance",
+   "reason": "differentiable-computation tool: no mechanism to reproduce"
+  },
+  {
+   "line": 96,
+   "reference": "Kidger, P., & Garcia, C. (2021). Equinox: neural networks in JAX via callable PyTrees and ",
+   "reason": "differentiable-computation tool: no mechanism to reproduce"
+  },
+  {
+   "line": 102,
+   "reference": "Nosek, B. A., et al. (2015). Promoting an open research culture. *Science* 348(6242), 1422",
+   "reason": "reproducibility or data standard: no mechanism to reproduce"
+  },
+  {
+   "line": 103,
+   "reference": "Grant, S., et al. (2026). TOP 2025: an update to the Transparency and Openness Promotion g",
+   "reason": "reproducibility or data standard: no mechanism to reproduce"
+  },
+  {
+   "line": 104,
+   "reference": "Heil, B. J., et al. (2021). Reproducibility standards for machine learning in the life sci",
+   "reason": "reproducibility or data standard: no mechanism to reproduce"
+  },
+  {
+   "line": 105,
+   "reference": "Miłkowski, M., Hensel, W. M., & Hohol, M. (2018). Replicability or reproducibility? On the",
+   "reason": "reproducibility or data standard: no mechanism to reproduce"
+  },
+  {
+   "line": 106,
+   "reference": "Wilkinson, M. D., et al. (2016). The FAIR Guiding Principles for scientific data managemen",
+   "reason": "reproducibility or data standard: no mechanism to reproduce"
+  },
+  {
+   "line": 107,
+   "reference": "Rübel, O., et al. (2022). The Neurodata Without Borders ecosystem for neurophysiological d",
+   "reason": "reproducibility or data standard: no mechanism to reproduce"
+  },
+  {
+   "line": 108,
+   "reference": "Dai, K., et al. (2020). The SONATA data format for efficient description of large-scale ne",
+   "reason": "reproducibility or data standard: no mechanism to reproduce"
+  },
+  {
+   "line": 109,
+   "reference": "Amir, A., et al. (2017). A low power, fully event-based gesture recognition system. *2017 ",
+   "reason": "reproducibility or data standard: no mechanism to reproduce"
+  },
+  {
+   "line": 110,
+   "reference": "Orchard, G., Jayawant, A., Cohen, G. K., & Thakor, N. (2015). Converting static image data",
+   "reason": "reproducibility or data standard: no mechanism to reproduce"
+  },
+  {
+   "line": 111,
+   "reference": "N'dri, A. W., Barbier, T., Teulière, C., & Triesch, J. (2026). Predictive Coding Light+: l",
+   "reason": "reproducibility or data standard: no mechanism to reproduce"
+  },
+  {
+   "line": 112,
+   "reference": "Crüwell, S., & Evans, N. J. (2021). Preregistration in diverse contexts: a preregistration",
+   "reason": "reproducibility or data standard: no mechanism to reproduce"
+  }
+ ],
+ "batches": [
+  [
+   22,
+   23,
+   24,
+   25,
+   26
+  ],
+  [
+   27,
+   33,
+   34,
+   35,
+   36
+  ],
+  [
+   40,
+   41,
+   42,
+   43,
+   44
+  ],
+  [
+   45,
+   46,
+   52,
+   53,
+   54
+  ],
+  [
+   55,
+   56,
+   57,
+   58,
+   59
+  ],
+  [
+   60,
+   61,
+   67,
+   68,
+   132
+  ],
+  [
+   133,
+   134,
+   135,
+   136,
+   137
+  ],
+  [
+   138,
+   139,
+   140,
+   141,
+   142
+  ],
+  [
+   143,
+   144,
+   145,
+   146,
+   147
+  ],
+  [
+   148,
+   149,
+   150,
+   151,
+   152
+  ],
+  [
+   153,
+   154,
+   155,
+   156,
+   157
+  ],
+  [
+   158,
+   159,
+   160,
+   161,
+   162
+  ],
+  [
+   163,
+   164,
+   165,
+   166,
+   167
+  ],
+  [
+   168,
+   169,
+   170,
+   171,
+   172
+  ],
+  [
+   173,
+   174,
+   175,
+   176,
+   177
+  ],
+  [
+   178,
+   179,
+   180,
+   181,
+   182
+  ],
+  [
+   183,
+   184,
+   185,
+   186,
+   187
+  ],
+  [
+   188,
+   189,
+   190
+  ]
+ ]
+}

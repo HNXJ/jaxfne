@@ -1,0 +1,60 @@
+{
+ "seed": 0,
+ "draws": 1000,
+ "rounds": {
+  "round1": {
+   "raters": [
+    "rA.json",
+    "rB.json",
+    "rC.json"
+   ],
+   "papers": 88,
+   "uncited_set_null": 46,
+   "H1": {
+    "alpha": 0.8437758513123523,
+    "shuffle_p95": 0.282664114495612,
+    "shuffle_mean": 0.21632392932416358,
+    "above_p95": true
+   },
+   "H2": {
+    "alpha": 0.8803205290846978,
+    "shuffle_p95": 0.1063243920286634,
+    "shuffle_mean": 0.04092051353047965,
+    "above_p95": true
+   },
+   "H3": {
+    "alpha": 0.8145779281980763,
+    "shuffle_p95": 0.28441954058458163,
+    "shuffle_mean": 0.22461783635636767,
+    "above_p95": true
+   }
+  },
+  "feedback": {
+   "raters": [
+    "rA.rev.json",
+    "rB.rev.json",
+    "rC.rev.json"
+   ],
+   "papers": 88,
+   "uncited_set_null": 16,
+   "H1": {
+    "alpha": 0.9391126947191519,
+    "shuffle_p95": 0.3003275650039362,
+    "shuffle_mean": 0.24133663173145933,
+    "above_p95": true
+   },
+   "H2": {
+    "alpha": 0.9706067497186311,
+    "shuffle_p95": 0.11414990878323383,
+    "shuffle_mean": 0.046503032264982216,
+    "above_p95": true
+   },
+   "H3": {
+    "alpha": 0.94058110954226,
+    "shuffle_p95": 0.42841450681372717,
+    "shuffle_mean": 0.37662137029245374,
+    "above_p95": true
+   }
+  }
+ }
+}
