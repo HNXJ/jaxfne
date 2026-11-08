@@ -45,7 +45,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 `open_stack.md` O-85 to O-92 (P-052, T-62 data request, Lee/Mazzoni figure, G1 Cell Reports panels, stale-clone
 delete script, B1 M3 class, A3 scope, Jansen-Rit P3 signature); NeuroAI code link
 (anonymous.4open.science mirror, Hamm's act). `origin/_temp_kernel-lfp` (ff45364b, 3 patches not in dev); plain `kernel-lfp`
-deleted 2026-11-07 (Hamm). Vmac leftovers: jarness-keeper drops them on Hamm's answer there.
+deleted 2026-11-07 (Hamm). Vmac leftovers backed up to 7 origin `_temp_` branches, then dropped (Hamm 2026-11-07).
 
 ## Generated files and their checks
 
