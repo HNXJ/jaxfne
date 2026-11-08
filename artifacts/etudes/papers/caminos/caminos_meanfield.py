@@ -155,6 +155,14 @@ PARAMS = {
 TV_FORMS = ("printed", "code")
 
 
+def _tv_form(params):
+    """params["tv_form"] (default "printed"); anything outside TV_FORMS is refused."""
+    tv_form = params.get("tv_form", "printed")
+    if tv_form not in TV_FORMS:
+        raise ValueError("tv_form must be one of %r, got %r" % (TV_FORMS, tv_form))
+    return tv_form
+
+
 def moments(ctype, nu_E, nu_PV, nu_SOM, w, params=PARAMS):
     """Input statistics of target ctype (lines 191-204): returns (mu_V [V], sigma_V [V], T_vN).
 
@@ -166,9 +174,7 @@ def moments(ctype, nu_E, nu_PV, nu_SOM, w, params=PARAMS):
     f_I (U_I tau_I)^2 as line 204, "code" f_I (Q_I U_I)^2 as the authors' notebook. The code form adds
     A^2/s terms to V^2 s terms (dimensional mismatch, derived); sigma_V is the printed form in both.
     """
-    tv_form = params.get("tv_form", "printed")
-    if tv_form not in TV_FORMS:
-        raise ValueError("tv_form must be one of %r, got %r" % (TV_FORMS, tv_form))
+    tv_form = _tv_form(params)
     N, p = params["N"], params["p"]
     nu = {"E": max(nu_E, 0.0), "PV": max(nu_PV, 0.0), "SOM": max(nu_SOM, 0.0)}
     f = {X: nu[X] * p * N[X] for X in TYPES}  # line 192: f_X = nu_X p N_X
@@ -257,6 +263,7 @@ def simulate_meanfield(T_s, dt_s=1e-4, params=PARAMS, nu0=None, w0=None,
     """
     if not (0.0 <= pv_silence <= 1.0 and 0.0 <= som_silence <= 1.0):
         raise ValueError("silenced fractions must lie in [0, 1]")
+    _tv_form(params)  # refuse before any step (a zero-length run never reaches moments)
     p = dict(params)
     p["N"] = {"E": params["N"]["E"], "PV": params["N"]["PV"] * (1.0 - pv_silence),
               "SOM": params["N"]["SOM"] * (1.0 - som_silence)}

@@ -1,6 +1,6 @@
 # CAMINOS mean-field verdicts (PLoS CB 2026, Figs 1D and 6)
 
-Code: `caminos_meanfield.py` (tests `test_caminos_meanfield.py`, 31 pass). Reproduce with
+Code: `caminos_meanfield.py` (tests `test_caminos_meanfield.py`, 32 pass). Reproduce with
 `python caminos_meanfield.py`. Paper text: PMC13286281, Results (Eqs. 1, 10-14) and Methods (Eqs. 19-20,
 Tables 1-4). Tolerances, set after the data (no preregistration): frequency within 15%, and the sign and order of every
 lead.
@@ -66,7 +66,7 @@ thresholds).
 
 | Coupling | Paper, oscillation ends | Printed T_v: last oscillating / first stable | Code T_v | Frequency at 0 nS, printed / code |
 |---|---|---|---|---|
-| PV->SOM | about 0.7 nS | 0.7 / 0.8 nS | 0.7 / 0.8 nS | 33.5 / 35.0 Hz (paper about 35) |
+| PV->SOM | about 0.7 nS | 0.7 / 0.8 nS | 0.7 / 0.8 nS (0.7 borderline: peak-to-peak 1.25 mHz against the 1 mHz floor) | 33.5 / 35.0 Hz (paper about 35) |
 | SOM->SOM | about 1.7 nS | 1.3 / 1.4 nS (Hopf near 1.33) | 1.6 / 1.7 nS | 33.5 / 35.0 Hz |
 
 PV->SOM agrees with the figure reading in both forms. SOM->SOM ends about 0.35 nS early with the printed form and

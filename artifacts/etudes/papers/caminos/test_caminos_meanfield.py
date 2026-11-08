@@ -177,8 +177,7 @@ def test_fig5a_small_sustained_cycle_counts_as_oscillation(coupling, g_cycle, g_
 
 def test_tv_form_code_matches_transcription_and_printed_stays_default():
     """O-93 variant: the code form of T_v gives the transcription's 35.00 Hz (RESULT_MEANFIELD Fig 1D table);
-    the default stays the printed form at 33.50 Hz. Unknown forms are refused."""
-    assert mf.PARAMS["tv_form"] == "printed"
+    the default stays the printed form at 33.50 Hz."""
     p = dict(mf.PARAMS, tv_form="code")
     peaks = []
     for params in (mf.PARAMS, p):
@@ -187,8 +186,15 @@ def test_tv_form_code_matches_transcription_and_printed_stays_default():
         assert np.ptp(e) > 0.5, "fixture must oscillate"
         peaks.append(mf._spectrum_peak(e, t[1] - t[0]))
     assert peaks == [pytest.approx(33.5, abs=0.25), pytest.approx(35.0, abs=0.25)], peaks  # bin 0.5 Hz
+
+
+def test_tv_form_default_printed_and_unknown_refused():
+    assert mf.PARAMS["tv_form"] == "printed"
+    bad = dict(mf.PARAMS, tv_form="tau")
     with pytest.raises(ValueError):
-        mf.moments("E", 1.0, 1.0, 1.0, 0.0, dict(mf.PARAMS, tv_form="tau"))
+        mf.moments("E", 1.0, 1.0, 1.0, 0.0, bad)
+    with pytest.raises(ValueError):
+        mf.simulate_meanfield(0.0, params=bad)
 
 
 def test_tv_form_code_moves_som_som_transition():
