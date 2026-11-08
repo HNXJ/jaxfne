@@ -66,7 +66,7 @@ its C row's check), and the todo rows moved to 0.5.10. Weights sum to 100: packa
 with the 0.5.9 weights). Each item carries its own weight and scores in full when its check is cited; no partial
 credit.
 
-Score 2026-11-08: 24/100 (packages 24 of 70; A3 4 on O-91 option 1, recommended and taken on Hamm's standing go; D2 4 on O-94 option 1, Hamm 2026-11-08). Score 2026-11-07: 16/100 (packages 16 of 70, gates 0 of 30; C2 done). Score 2026-11-06: 14/100 (D1 landed, B1 signed). Score 2026-11-05: 7/100. The 8.5 of the draft counted items implicitly and gave
+Score 2026-11-08: 24/100 (packages 24 of 70; A3 4 on O-91 option 1, recommended and taken on Hamm's standing go; D2 4 on O-94 option 1, Hamm 2026-11-08 in the session chat: "yes proceed with the recommendations"). Score 2026-11-07: 16/100 (packages 16 of 70, gates 0 of 30; C2 done). Score 2026-11-06: 14/100 (D1 landed, B1 signed). Score 2026-11-05: 7/100. The 8.5 of the draft counted items implicitly and gave
 T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 
 | Item | Weight | What | Done when (cited check) | State (dated per row; checked 2026-11-07) | Score |
@@ -85,7 +85,7 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | **10C Augmentation** (F4, S7, C7) | **6** | | | | **2** |
 | C1 | 4 | ensemble study with provenance; S7 panel | S7 renders from pinned receipts | not started | 0 |
 | C2 | 2 | determinism | two seeds change output; the same seed reproduces (C7 check) | done 2026-11-07: `tests/test_simulate_seed_determinism.py` (44b847f5, e9e570e8) holds for Izhikevich, homeostatic_ei, LIF, rate, AdEx; HH has no noise and refuses a nonzero seed (tested, killed by a planted removal); dev 1e7ee1e5 | 2 |
-| **10D Extras** (S16) | **12** | | | | **4** |
+| **10D Extras** (S16) | **12** | | | | **8** |
 | D1 | 4 | kernel LFP: `6eb3c6b8`, `44cd0111`, `ff45364b` from `_temp_kernel-lfp`, then the iSTDP out-degree check and `coherence_radius_um` with its two limit tests (T-47) | each on dev with its tests | done 2026-11-06: kernel LFP 616c8756, bc83f4eb; iSTDP check already on dev (85199ade); coherence radius f2f63b1c (`coherence_limited_lfp_power`, `tests/test_kernel_lfp.py`); dev f96c91e6, broad gate 8206 passed | 4 |
 | D2 | 4 | Jansen-Rit 1995 neural-mass emitter and its P1 (T-48) | emitter tests on dev; P3 scored (amended from "P1 scored", O-94, Hamm 2026-11-08) | emitter `jaxfne/emitters_jansen_rit.py` with 19 tests on dev (cf706780); P1 source record with paper constants (6409608c); P3 v1 signed (7ef8ff99, keeper on Hamm's standing go) and scored PASS 5 of 5 (`jansenrit1995/RESULT_P3.md`, score sha256 ca0c9d75); `SOURCE_P1.md` still lists unknowns (P1's own gap list stays open) | 4 |
 | D3 | 2 | Mejias 2016 G6 (T-32) | G6 scored | open | 0 |
