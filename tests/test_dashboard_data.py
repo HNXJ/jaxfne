@@ -1027,6 +1027,7 @@ AUDIT_MUTATIONS = {
     "author_mismatch": lambda row: row.update(first_author="Huxley"),
     "year_mismatch": lambda row: row.update(year="1953"),
     "line_not_table_row": lambda row: row.update(line=1),
+    "line_unhashable": lambda row: row.update(line=[]),
 }
 
 

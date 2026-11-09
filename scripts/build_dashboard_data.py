@@ -922,11 +922,11 @@ def audit_rows(lines, consensus):
         if missing:
             raise BuildError(f"audit entry {number} is missing {missing}")
         line = row["line"]
+        if not isinstance(line, int) or isinstance(line, bool) or not 1 <= line <= len(lines):
+            raise BuildError(f"audit entry {number}: line {line!r} is not a line of the references page")
         if line in seen:
             raise BuildError(f"audit entry {number}: duplicate line {line}")
         seen.add(line)
-        if not isinstance(line, int) or isinstance(line, bool) or not 1 <= line <= len(lines):
-            raise BuildError(f"audit entry {number}: line {line!r} is not a line of the references page")
         text = lines[line - 1]
         if not text.startswith("|"):
             raise BuildError(f"audit line {line} is not a table row of the references page")
