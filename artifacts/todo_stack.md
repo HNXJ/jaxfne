@@ -57,7 +57,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     `emitters_hh.py:311-313` says uA/cm2 callers scale sigma by 1000 (inferred: harness OU 1000x small); Jaxley
     `E_L` -54.378 vs lane -54.3 (`b1_jaxley.py:46`, `emitters_hh.py:45`), and `insert(HHChannel())` takes no
     params (`b1_jaxley.py:130`), so its receipt's HH values are not the ones run; Jaxley grid dt 0.025, 500 ms
-    (`:41-42`) vs prereg 0.1 ms, 1000 ms; M2 noise citations stale by 2 lines (`run_izh.py:245-246`).
+    (`:41-42`) vs prereg 0.1 ms, 1000 ms; M2 noise citations `run_izh.py:243-244` in `b1_brian2.py:167`, `b1_nest.py:150` point 2 lines early (noise at `:245-246`).
 33. ∥ T-G1 [A] 10G G1 CAMINOS PLoS panels (Cell Reports panels stay excluded: O-88, 2026-11-08). PLoS text read 2026-11-07 (PMC13286281,
     copy `F:/warehouse/caminos/plos_text/`). Fig 5 is mean-field only: 5A sweeps PV→SOM and SOM→SOM on the full mean
     field (frequency, amplitude, bifurcation diagram); 5B is the reduced Eq. 2 (no synaptic delay, no adaptation)

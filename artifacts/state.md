@@ -1,6 +1,8 @@
 # state
 
-Stamp: jaxfne@dev@619ea11a · 2026-11-08 (pushed; broad on 619ea11a: 8262 passed, 0 failed, all lanes PASS, replication audit 0 unlisted; outside review ACCEPT) · checklist 0.5.10: 24/100
+Stamp: jaxfne@dev@9020f50e · 2026-11-09 (broad on 9020f50e: 8263 passed, 0 failed, all lanes PASS, replication audit 0 unlisted; outside review ACCEPT) · checklist 0.5.10: 24/100
+OCMA round 3 (first work-mode swarm, HNXJ/ocma `cases/jaxfne/council/r3/`): audit_rows fix merged (0f350a1e);
+three read inventories recorded on todo T-B1, T-30, T-46.
 OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling, glossary and
 ratings in HNXJ/ocma `cases/jaxfne/`, config `configs/ocma-jaxfne.json`.
 
