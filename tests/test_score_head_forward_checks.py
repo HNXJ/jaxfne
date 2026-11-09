@@ -5,7 +5,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 SCORER = REPO / "scripts" / "score_head_forward_checks.py"
-SCORE = REPO / "artifacts" / "etudes" / "core_checks" / "head_forward" / "score.json"
+SCORE = REPO / "artifacts" / "etudes" / "core_checks" / "probes" / "head_forward" / "score.json"
 README = SCORE.parent / "README.md"
 
 CHECK_IDS = (

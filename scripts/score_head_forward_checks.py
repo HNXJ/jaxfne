@@ -15,7 +15,7 @@ tolerances, and records the worst-case absolute deviation beside its tolerance:
 - line_lfp_quadrature: line-source LFP against scipy quadrature of the line-source integral
 - line_lfp_far_field: far-field line-source LFP against the point-dipole field
 
-Writes artifacts/etudes/core_checks/head_forward/score.json (one
+Writes artifacts/etudes/core_checks/probes/head_forward/score.json (one
 {error, tolerance, pass, reference} row per check) and README.md beside it:
 
     python scripts/score_head_forward_checks.py         # write both files
@@ -49,7 +49,7 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT_DIR = ROOT / "artifacts" / "etudes" / "core_checks" / "head_forward"
+OUT_DIR = ROOT / "artifacts" / "etudes" / "core_checks" / "probes" / "head_forward"
 SCORE_PATH = OUT_DIR / "score.json"
 README_PATH = OUT_DIR / "README.md"
 RTOL = 1e-9

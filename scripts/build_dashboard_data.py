@@ -60,9 +60,9 @@ STUDY_COLUMNS = ["Reference", "Result compared", "Where"]
 STUDY_STATUSES = ("reproduced", "reproduced (conditional)", "mixed", "pending", "in progress", "queued",
                   "not started")
 MIN_STUDIES = 40
-CONSENSUS = ROOT / "artifacts" / "etudes" / "meta" / "ocma" / "council" / "consensus.json"
-AGREEMENT = ROOT / "artifacts" / "etudes" / "meta" / "ocma" / "council" / "agreement.json"
-AUDIT_RESULT = ROOT / "artifacts" / "etudes" / "meta" / "ocma" / "RESULT.md"
+CONSENSUS = ROOT / "artifacts" / "etudes" / "meta" / "literature" / "ocma" / "council" / "consensus.json"
+AGREEMENT = ROOT / "artifacts" / "etudes" / "meta" / "literature" / "ocma" / "council" / "agreement.json"
+AUDIT_RESULT = ROOT / "artifacts" / "etudes" / "meta" / "literature" / "ocma" / "RESULT.md"
 AUDIT_FIELDS = ("line", "first_author", "year", "section", "H1", "H2", "H3", "action")
 AUDIT_GROUPS = ("H1", "H2", "H3")
 

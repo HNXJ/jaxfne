@@ -22,9 +22,9 @@ REPO = Path(__file__).resolve().parents[1]
 SCRIPT = Path(os.environ.get("DASH_GEN_BUILD_SCRIPT", REPO / "scripts" / "build_dashboard_data.py"))
 REPO_URL = "https://github.com/hnxj/jaxfne"
 REL_OUT = Path("dashboard") / "data" / "replications.json"
-OCMA_INPUTS = ("artifacts/etudes/meta/ocma/council/consensus.json",
-               "artifacts/etudes/meta/ocma/council/agreement.json",
-               "artifacts/etudes/meta/ocma/RESULT.md")
+OCMA_INPUTS = ("artifacts/etudes/meta/literature/ocma/council/consensus.json",
+               "artifacts/etudes/meta/literature/ocma/council/agreement.json",
+               "artifacts/etudes/meta/literature/ocma/RESULT.md")
 NO_VALUE = "—"
 
 

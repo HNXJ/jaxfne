@@ -13,7 +13,7 @@ beside its tolerance:
 
 Geweke's time-domain identity is not scored: jaxfne/analysis/granger.py has no time-domain GC.
 
-Writes artifacts/etudes/core_checks/granger/score.json (one {error, tolerance, pass, reference}
+Writes artifacts/etudes/core_checks/probes/granger/score.json (one {error, tolerance, pass, reference}
 row per check) and README.md beside it:
 
     python scripts/score_granger_checks.py         # write both files
@@ -38,7 +38,7 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT_DIR = ROOT / "artifacts" / "etudes" / "core_checks" / "granger"
+OUT_DIR = ROOT / "artifacts" / "etudes" / "core_checks" / "probes" / "granger"
 SCORE_PATH = OUT_DIR / "score.json"
 README_PATH = OUT_DIR / "README.md"
 RTOL = 1e-9

@@ -9,7 +9,7 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 SCORER = REPO / "scripts" / "score_granger_checks.py"
-SCORE = REPO / "artifacts" / "etudes" / "core_checks" / "granger" / "score.json"
+SCORE = REPO / "artifacts" / "etudes" / "core_checks" / "probes" / "granger" / "score.json"
 README = SCORE.parent / "README.md"
 PINNED_TEST = REPO / "tests" / "test_granger_spectral.py"
 
