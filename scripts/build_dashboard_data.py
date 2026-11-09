@@ -914,7 +914,7 @@ def audit_rows(lines, consensus):
     that is not a table row, or a section the page does not place above it is an error."""
     headings = page_headings(lines)
     order = [text for _, text in headings]
-    out = []
+    out, seen = [], set()
     for number, row in enumerate(consensus, 1):
         if not isinstance(row, dict):
             raise BuildError(f"audit entry {number} is not an object")
@@ -922,6 +922,9 @@ def audit_rows(lines, consensus):
         if missing:
             raise BuildError(f"audit entry {number} is missing {missing}")
         line = row["line"]
+        if line in seen:
+            raise BuildError(f"audit entry {number}: duplicate line {line}")
+        seen.add(line)
         if not isinstance(line, int) or isinstance(line, bool) or not 1 <= line <= len(lines):
             raise BuildError(f"audit entry {number}: line {line!r} is not a line of the references page")
         text = lines[line - 1]

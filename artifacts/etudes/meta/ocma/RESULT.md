@@ -1,8 +1,9 @@
 # OCMA-J24.1 council result (2026-11-08)
 
 88 reference rows (`data/scope.json`), 3 Haiku raters per 5-row batch, then one feedback round (workflow
-wf_04d37f0e-2ae, 108 agent runs, 0 errors). Files: `council/full/`, `council/agreement.json`,
-`council/consensus.json` (`tools/agreement.py council/full --seed 0`).
+wf_04d37f0e-2ae, 108 agent runs, 0 errors). Ratings: HNXJ/ocma `cases/jaxfne/council/full/`
+(byte copies of jaxfne bd37c52a); here `council/agreement.json` and `council/consensus.json`
+(`tools/agreement.py <ocma>/cases/jaxfne/council/full --seed 0`).
 
 ## Agreement (Krippendorff alpha, interval; baseline: paper labels permuted per rater, 1000 draws)
 
@@ -24,10 +25,14 @@ shared factor means. Uncited non-zero scores set null: 46 in round 1, 16 after f
 | core-check from existing evidence | 1: Jansen and Rit 1995 (H2 0.60, H3 0.72) |
 | core-check (build) | 1: Geweke 1982 (H1 1.00, H3 0.74) |
 | roadmap | 2: Herreras 2016 (H1 0.60), Mendoza-Halliday 2024 (H1 0.60) |
-| study list | 68 |
+| study list | 68 (47 of the 59 study-list rows and 21 core rows) |
 
-The premise that many mechanism papers are already reproduced does not hold for the study list: the median
-study-list row has H1 0.17, a generic capability with no paper-specific use. Spot checks agree: no core code
+Both new entries landed after the audit, in the same push: Jansen-Rit 1995 as a paper lane (reproduced,
+conditional) and Geweke 1982 as a core check; `consensus.json` keeps the pre-entry actions.
+
+The premise that many mechanism papers are already reproduced does not hold for the 68 rows with action
+`study-list`: their median H1 is 0.14 (median over all 88 rows: 0.17), a generic capability with no
+paper-specific use. Spot checks agree: no core code
 for Montbrio-Pazo-Roxin, FitzHugh-Nagumo, Morris-Lecar or Tsodyks-Markram synapses (grep of `jaxfne/`); PING
 appears only in a docstring (`jaxfne/_construct_core.py:268`); Wilson-Cowan has an emitter
 (`jaxfne/emitters_rate.py`) and no reproduction (H1 0.50, H2 0.00).

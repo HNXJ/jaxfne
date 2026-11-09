@@ -1054,6 +1054,17 @@ def test_audit_refuses_a_mutated_consensus_row(case, tmp_path, monkeypatch):
         audit_from(module, tmp_path, monkeypatch, AUDIT_MUTATIONS[case])
 
 
+def test_audit_refuses_a_duplicated_line(tmp_path, monkeypatch):
+    module = load_module(SCRIPT)
+    rows = json.loads(module.CONSENSUS.read_text(encoding="utf-8"))
+    assert len(rows) >= 2, "fixture needs two rows to duplicate one"
+    copy = tmp_path / "consensus.json"
+    copy.write_text(json.dumps(rows + [rows[0]]), encoding="utf-8")
+    monkeypatch.setattr(module, "CONSENSUS", copy)
+    with pytest.raises(module.BuildError, match="duplicate"):
+        module.build_audit(module.REFERENCES.read_text(encoding="utf-8").splitlines())
+
+
 @pytest.mark.parametrize("cell, year, want", [
     ("Alpha, A. B. (2003). Title", "2003", "Alpha (2003)"),
     ("Alpha, A. B., & Beta, C. D. (2001). Title", "2001", "Alpha and Beta (2001)"),

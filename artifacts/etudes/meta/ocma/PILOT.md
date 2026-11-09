@@ -1,7 +1,7 @@
 # OCMA-J24 pilot (2026-11-08)
 
 Rows 24 (Brette 2005), 26 (Wang-Buzsaki 1996), 34 (Hagen 2016), 139 (Vogels 2011), 142 (Kopell 2000); 3 Haiku
-raters, then one feedback round (workflow wf_e8122ca0-e45). Files: `council/pilot/r{A,B,C}[.rev].json`.
+raters, then one feedback round (workflow wf_e8122ca0-e45). Files: HNXJ/ocma `cases/jaxfne/council/pilot/r{A,B,C}[.rev].json`.
 
 | Check | Result |
 |---|---|

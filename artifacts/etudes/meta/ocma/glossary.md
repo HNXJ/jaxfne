@@ -69,7 +69,7 @@ H1 is the mean of non-null factors 1-7, with factor 8 included only when negativ
 
 ## Versions
 
-- J24 (2026-11-08): pilot, 5 rows (`council/pilot/`).
+- J24 (2026-11-08): pilot, 5 rows (HNXJ/ocma `cases/jaxfne/council/pilot/`).
 - J24.1 (2026-11-08, after the pilot, before the full council): factor 14 scores existence, outcome moves to
   factor 12 (a rater scored Vogels 2011 -1 for its pending R-E criterion); factor 8 is a penalty only (0 pulled
   complete mechanisms down); factor 24 graded (raters split 0 to +1 on paper lanes); action rule adds `exists`

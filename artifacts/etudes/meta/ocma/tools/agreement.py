@@ -1,12 +1,13 @@
 """OCMA stages F-G input: Krippendorff alpha per hypothesis group vs a shuffled baseline, and the consensus table.
 
 Usage: python artifacts/etudes/meta/ocma/tools/agreement.py <council run dir> [--draws 1000] [--seed 0]
+The raw ratings live in the ocma repository (HNXJ/ocma, `cases/jaxfne/council/full`); pass that directory.
 Reads r?.json (round 1) and r?.rev.json (feedback round). A score that fails validate.py's citation rule is set
 to null before anything is computed (counted in the output). Alpha: interval metric over units (paper, factor),
 raters as coders, missing = null. Baseline: each rater's paper labels permuted independently (factor kept),
 `--draws` times; reported as the 95th percentile. Consensus: per factor the median of the valid feedback-round
 scores; groups and action as in glossary.md (J24.1) via summarize.py.
-Writes agreement.json and consensus.json in the run dir's parent (`council/`). Exit 0, 2 on missing input.
+Writes agreement.json and consensus.json to this folder's `council/` (the dashboard reads them there). Exit 0, 2 on missing input.
 """
 import argparse
 import json
@@ -100,7 +101,7 @@ def main():
             print(f"{name:8s} {g}: alpha {obs:.3f}  shuffle p95 {p95:.3f}  mean {res[g]['shuffle_mean']:.3f}")
         print(f"{name:8s} uncited scores set null: {sum(dropped)}")
         report["rounds"][name] = res
-    (d.parent / "agreement.json").write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8")
+    (HERE.parent / "council" / "agreement.json").write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8")
 
     inv = {r["line"]: r for r in json.loads((HERE.parent / "data" / "inventory.json").read_text(encoding="utf-8"))}
     raters = loaded["feedback"]
@@ -115,7 +116,7 @@ def main():
                      "section": inv[line]["section"], "on_dashboard": bool(inv[line]["dashboard"]),
                      **{g: (round(v, 3) if v is not None else None) for g, v in h.items()},
                      "action": action(h, bool(inv[line]["dashboard"])), "scores": med})
-    (d.parent / "consensus.json").write_text(json.dumps(cons, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    (HERE.parent / "council" / "consensus.json").write_text(json.dumps(cons, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     counts = {}
     for c in cons:
         counts[c["action"]] = counts.get(c["action"], 0) + 1
