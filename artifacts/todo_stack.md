@@ -22,10 +22,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Beside the path (∥)
 
-- ∥ `scripts/build_dashboard_data.py` `audit_rows`: the duplicate-line check runs before the int type check, so an
-  unhashable `line` raises TypeError instead of a refusal (review of af076b44, minor). Closes when: a test with
-  `line: []` expects the refusal, fails first, then passes.
-
 11a. ∥ T-72 [A then H] NeuroAI 2027 short paper, deadline 2026-11-20 23:59 AoE (paper plan amendment 2026-11-02;
     rules verified on the OpenReview form, non-archival, no dual-submission bar). Status 2026-11-02: draft in the
     private thesis repo, branch `_temp_neuroai2027`, `artifacts/notes/neuroai2027/`;
@@ -56,7 +52,12 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     drives differ (harness I_ext 10 + OU sigma 0.05, Jaxley OU mu 10 sigma 5; erratum 1): unify before scored runs. Left: review the M1 external-drive scaling rule; the baseline scripts (`b1/b1_brian2.py`, `b1_nest.py`,
     `b1_jaxley.py`, on dev 1e7ee1e5; Brian2 2.10.1 and NEST 3.10.0 in WSL `~/venv_b1_baselines`, Jaxley on Windows)
     type their model constants with source citations: read them from the lane files before scored runs; then the
-    scored runs.
+    scored runs. OCMA round 3 inventory 2026-11-09 (HNXJ/ocma `cases/jaxfne/council/r3/`; keeper-checked lines):
+    the harness passes `ou_sigma=HH_OU_SIGMA_CLIP` (0.05) unscaled with `I_ext` 10 (`b1_harness.py:307-312`) while
+    `emitters_hh.py:311-313` says uA/cm2 callers scale sigma by 1000 (inferred: harness OU 1000x small); Jaxley
+    `E_L` -54.378 vs lane -54.3 (`b1_jaxley.py:46`, `emitters_hh.py:45`), and `insert(HHChannel())` takes no
+    params (`b1_jaxley.py:130`), so its receipt's HH values are not the ones run; Jaxley grid dt 0.025, 500 ms
+    (`:41-42`) vs prereg 0.1 ms, 1000 ms; M2 noise citations stale by 2 lines (`run_izh.py:245-246`).
 33. ∥ T-G1 [A] 10G G1 CAMINOS PLoS panels (Cell Reports panels stay excluded: O-88, 2026-11-08). PLoS text read 2026-11-07 (PMC13286281,
     copy `F:/warehouse/caminos/plos_text/`). Fig 5 is mean-field only: 5A sweeps PV→SOM and SOM→SOM on the full mean
     field (frequency, amplitude, bifurcation diagram); 5B is the reduced Eq. 2 (no synaptic delay, no adaptation)
@@ -82,11 +83,17 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 16. ∥ T-46 [A] C9, C2: 8 gaps in `programme/paper/reproducibility_audit.md` section 7 (left: data and code statement,
     PCL natural-image and DVS128/N-MNIST licences, S16 generators). Close test (Hamm 2026-11-02): section 7 closes
     when the gaps touching 0.5.9 items close; the paper-only gaps (licences, data and code statement) move to the
-    paper lane with a dated note.
+    paper lane with a dated note. Status 2026-11-09 (OCMA round 3): rows 2, 3 and the PCL natural-image licence
+    (6) still touch 0.5.9 items and are open; row 8 is stale (`b1_nest.py`, `b1_jaxley.py` exist; the audit
+    searched `scripts/benchmarks` only); row 7 half stale (`jansenrit1995/run_jr_fig3.py` exists, kernel-LFP
+    generator absent); row 3's "only F1" contradicts section 5's count of 3.
 17. ∥ T-30 [A] Conformance for the rest (`scripts/replication_known_violations.json`; the S1 entries are Hamm's
     exceptions): GSDR (HH in `construct()` dispatch, estimators), Destexhe (estimators, LEDGER, RESULT), pcl_h and
     Q-learning (phase records; pcl_h `sys.path` imports), PCL (closes at R4). Closes when: `check_replications.py
-    --check` lists no violation without Hamm's exception.
+    --check` lists no violation without Hamm's exception. Status 2026-11-09 (OCMA round 3, checker rerun by the
+    keeper: findings=28 known=28 unlisted=0): 17 known non-S1 rows: R1 qlearning (3 records), izhikevich2003
+    (LEDGER), pcl (RESULT_P3), hh-at01 (no folder mapped); R6 brunel2000, caminos, izhikevich2003, pcl, potjans2014,
+    vogels2011; S2 caminos x2, pcl/port x3. Only the hh-at01 mapping is free of a stage, pin or scored-path change.
 18. ∥ T-8 [A] Standing: each new score updates `dashboard/sources.json`, regenerates, pushes dev; then the lane
     dashboard (skill `jaxfne-dashboard`). Standing: never closes; each score's commit cites the regenerated
     dashboard.
