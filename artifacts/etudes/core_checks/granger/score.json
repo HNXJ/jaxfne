@@ -1,0 +1,17 @@
+{
+  "checks": {
+    "spectral_gc_var1": {
+      "error": 0.003508509951688567,
+      "tolerance": 0.05,
+      "pass": true,
+      "reference": "ln(S_yy / (S_yy - |H_yx|^2)) of the VAR(1) with A1 = [[0.5, 0], [0.6, 0.5]], Sigma = I, H = (I - A1 z)^-1, at 5, 10, 40 Hz (n 200000, seed 11; relative)"
+    },
+    "reverse_direction_near_zero": {
+      "error": 7.919017217835303e-06,
+      "tolerance": 0.01,
+      "pass": true,
+      "reference": "y -> x spectrum of the x -> y fixture reads zero: max gc_yx at 5, 10, 40 Hz (absolute)"
+    }
+  },
+  "pass": true
+}

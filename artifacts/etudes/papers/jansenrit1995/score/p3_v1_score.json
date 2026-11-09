@@ -1,0 +1,110 @@
+{
+ "prereg": "artifacts/etudes/papers/jansenrit1995/prereg/P3_v1_signed.md",
+ "seeds": [
+  {
+   "seed": 10,
+   "git_sha": "7ef8ff99b5563ce6d0936b89da3a1fe4c365707a",
+   "classes": [
+    "noise",
+    "alpha",
+    "alpha",
+    "spike-wave",
+    "spike-wave",
+    "noise"
+   ],
+   "criteria": {
+    "E1": true,
+    "E2": true,
+    "E3": true,
+    "E4": true
+   },
+   "pass": true
+  },
+  {
+   "seed": 11,
+   "git_sha": "7ef8ff99b5563ce6d0936b89da3a1fe4c365707a",
+   "classes": [
+    "noise",
+    "alpha",
+    "alpha",
+    "spike-wave",
+    "spike-wave",
+    "noise"
+   ],
+   "criteria": {
+    "E1": true,
+    "E2": true,
+    "E3": true,
+    "E4": true
+   },
+   "pass": true
+  },
+  {
+   "seed": 12,
+   "git_sha": "7ef8ff99b5563ce6d0936b89da3a1fe4c365707a",
+   "classes": [
+    "noise",
+    "alpha",
+    "alpha",
+    "spike-wave",
+    "spike-wave",
+    "noise"
+   ],
+   "criteria": {
+    "E1": true,
+    "E2": true,
+    "E3": true,
+    "E4": true
+   },
+   "pass": true
+  },
+  {
+   "seed": 13,
+   "git_sha": "7ef8ff99b5563ce6d0936b89da3a1fe4c365707a",
+   "classes": [
+    "noise",
+    "alpha",
+    "alpha",
+    "spike-wave",
+    "spike-wave",
+    "noise"
+   ],
+   "criteria": {
+    "E1": true,
+    "E2": true,
+    "E3": true,
+    "E4": true
+   },
+   "pass": true
+  },
+  {
+   "seed": 14,
+   "git_sha": "7ef8ff99b5563ce6d0936b89da3a1fe4c365707a",
+   "classes": [
+    "noise",
+    "alpha",
+    "alpha",
+    "spike-wave",
+    "spike-wave",
+    "noise"
+   ],
+   "criteria": {
+    "E1": true,
+    "E2": true,
+    "E3": true,
+    "E4": true
+   },
+   "pass": true
+  }
+ ],
+ "n_pass": 5,
+ "n": 5,
+ "verdict": "PASS",
+ "receipt_sha256": {
+  "fig3_seed10.json": "9138fcb950ffa58acb12b9a5ff35aa1d04f11b9b4231dad84ce43f68974c60bf",
+  "fig3_seed11.json": "c1b85a997fdc11621ada947a6c045138c47a5152880272306e5b83e88edf3fd4",
+  "fig3_seed12.json": "2db10afb84c1b2e8c8180725cb2dcfbd0f67b39a4994e0f21c735116733285ef",
+  "fig3_seed13.json": "ca70f8a868849f4f43979b3543390f4d7268c4585f8ebc97557be8b3ae372517",
+  "fig3_seed14.json": "1c12b398e44246d63512d3f144ac51df8f3472fbaeb7cad33a9917500daa1076"
+ }
+}
