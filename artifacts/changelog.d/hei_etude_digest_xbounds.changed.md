@@ -1,0 +1,1 @@
+- Re-recorded the heterogeneous-emitters etude digest (`metrics_post_p048.json`) under the stable-mode `x` bounds of ±10: the HEI `P_Q` centroid moves from 35.467 to 35.702 Hz, `x` stays below 2.2 in magnitude, and rates, F–I and gates are unchanged.

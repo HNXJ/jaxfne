@@ -1,8 +1,8 @@
 {
-  "P_LFP_relative_difference": 0.9859114289283752,
-  "Q_mean_relative_difference": 0.8285843729972839,
+  "P_LFP_relative_difference": 0.9862027168273926,
+  "Q_mean_relative_difference": 0.8322594165802002,
   "Q_sha256": {
-    "hei": "5f91eeef42fcfd96423486b3ed203e9697a2404330c6ac7ecffb13cad19cd9e5",
+    "hei": "f906bf8beb96d52318b99218be71f311ead3614fb07d56abaa6943182560b1a5",
     "izh": "9bd18cfb4174e5fb1ae0abbc07e298e10fbd94188626c10b538a8b67a0df7c21"
   },
   "agsdr_fit": false,
@@ -83,7 +83,7 @@
     "hei": "homeostatic_ei_x_activity_not_mV",
     "izh": "izhikevich_V_m_mV_native"
   },
-  "package_head": "789a29f878a40dd5b2ccf0e95f3bc26a94174186",
+  "package_head": "1ceb6923c04545f99920f969a4e45a66efd3601d",
   "physical_claim": "proxy_readout",
   "protocol": "heterogeneous_emitters_v0415b",
   "rate_relative_difference": 0.9610894924307571,
@@ -98,10 +98,10 @@
   },
   "spectral_centroid_hz": {
     "hei": {
-      "P_CSD": 35.466666312908615,
-      "P_EEG": 36.425054388781405,
-      "P_LFP": 35.466813076104295,
-      "P_Q": 35.466815335308155
+      "P_CSD": 35.701969740936455,
+      "P_EEG": 36.647115555011894,
+      "P_LFP": 35.70212270309526,
+      "P_Q": 35.70212689793788
     },
     "izh": {
       "P_CSD": 38.21845962393114,

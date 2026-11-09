@@ -15,5 +15,5 @@ Each line has its todo row, named in the line.
   (1, recommended) regenerate the bundle and docs figures under the fixed bounds, recording the rail fraction in
   its README; (2) the etude declares `x_min/x_max=±1e6` explicitly, keeping the old figure as a declared variant;
   (3) the etude switches to `bound_mode="minimal"` (unaffected by 2e1af6f8 per its commit message; the figure
-  changes to the minimal regime). | Hamm |
+  changes to the minimal regime). Hamm 2026-11-09: option 1. | keeper |
   since 2026-11-09 | closes when Dashboard CI is green on dev. Todo: T-8.
