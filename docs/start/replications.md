@@ -45,4 +45,99 @@ fail or not run 0); 100 is a full replica. A dash means no panel inventory yet.
 | after 0.5.10 | Calcium-regulated synaptic homeostasis (bioRxiv 2025) | methods read; calcium state as an HDP coordinate |
 | unscheduled | Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply) | the laminar networks |
 
+## Reference audit (OCMA)
+
+H1 mechanism realized in the core, H2 reproduction evidence, H3 dashboard readiness; each is scored -1 to +1 by a three-model council. Action is the first rule of the OCMA glossary that the scores meet.
+
+| Reference | Section | H1 | H2 | H3 | Action |
+|---|---|---|---|---|---|
+| Hodgkin and Huxley (1952) | Neural dynamics | 0.44 | 0.40 | 0.78 | exists |
+| Izhikevich (2003) | Neural dynamics | 0.81 | 0.55 | 0.90 | exists |
+| Brette and Gerstner (2005) | Neural dynamics | 0.55 | 0.13 | 0.77 | study-list |
+| Tahvili et al. (2026) | Neural dynamics | 0.93 | 0.55 | 0.78 | exists |
+| Wang and Buzsáki (1996) | Neural dynamics | 0.00 | 0.10 | 0.47 | study-list |
+| Billeh et al. (2020) | Neural dynamics | 0.09 | 0.33 | 0.82 | study-list |
+| Frank (1952) | Sources and extracellular observation | 0.50 | 0.60 | 0.90 | exists |
+| Hagen et al. (2016) | Sources and extracellular observation | 0.43 | 0.35 | 0.53 | study-list |
+| Nicholson and Freeman (1975) | Sources and extracellular observation | 0.13 | 0.45 | 0.90 | exists |
+| Sarvas (1987) | Sources and extracellular observation | 0.50 | 0.65 | 0.90 | exists |
+| Lindén et al. (2014) | Sources and extracellular observation | 0.06 | 0.00 | 0.60 | study-list |
+| Hagen et al. (2018) | Sources and extracellular observation | 0.06 | 0.03 | 0.60 | study-list |
+| Herreras (2016) | Sources and extracellular observation | 0.60 | 0.00 | 0.33 | roadmap |
+| Pettersen et al. (2012) | Sources and extracellular observation | 0.04 | 0.00 | 0.60 | study-list |
+| Einevoll et al. (2013) | Sources and extracellular observation | 0.06 | 0.00 | 0.60 | study-list |
+| Einevoll (2020) | Sources and extracellular observation | -0.40 | 0.07 | 0.53 | study-list |
+| Vorwerk et al. (2014) | Sources and extracellular observation | -0.40 | 0.00 | 0.33 | study-list |
+| FitzHugh (1961) | Background: reduced and population models | 0.15 | 0.00 | 0.67 | study-list |
+| Nagumo et al. (1962) | Background: reduced and population models | 0.08 | 0.00 | 0.53 | study-list |
+| Morris and Lecar (1981) | Background: reduced and population models | -0.04 | 0.00 | 0.67 | study-list |
+| Wilson and Cowan (1972) | Background: reduced and population models | 0.50 | 0.00 | 0.60 | study-list |
+| Montbrió et al. (2015) | Background: reduced and population models | 0.17 | 0.00 | 0.43 | study-list |
+| Coombes (2005) | Background: reduced and population models | 0.10 | 0.00 | 0.40 | study-list |
+| Cook et al. (2022) | Background: reduced and population models | 0.10 | 0.00 | 0.40 | study-list |
+| Ermentrout and Kleinfeld (2001) | Background: reduced and population models | 0.17 | 0.03 | 0.43 | study-list |
+| Muller et al. (2018) | Background: reduced and population models | 0.20 | 0.00 | 0.33 | study-list |
+| Geweke (1982) | Background: reduced and population models | 1.00 | 0.46 | 0.74 | core-check (build) |
+| Clopath et al. (2010) | Background: circuits, rhythms and plasticity | 0.06 | 0.00 | 0.20 | study-list |
+| Arkhipov et al. (2018) | Background: circuits, rhythms and plasticity | 0.07 | 0.00 | 0.20 | study-list |
+| Tahvili et al. (2026) | Research studies (study list) | 1.00 | 0.80 | 0.82 | exists |
+| Tahvili et al. (2025) | Research studies (study list) | 0.71 | 0.63 | 0.55 | exists |
+| N'dri et al. (2025) | Research studies (study list) | 0.55 | 0.65 | 0.80 | exists |
+| Nejat et al. (2026) | Research studies (study list) | 0.50 | 0.28 | 0.55 | exists |
+| Destexhe (2009) | Research studies (study list) | 0.77 | 0.47 | 0.95 | exists |
+| Brunel (2000) | Research studies (study list) | 0.93 | 0.72 | 0.78 | exists |
+| Potjans and Diesmann (2014) | Research studies (study list) | 1.00 | 0.57 | 0.65 | exists |
+| Vogels et al. (2011) | Research studies (study list) | 0.80 | 0.50 | 0.72 | exists |
+| Mejias et al. (2016) | Research studies (study list) | 0.40 | 0.07 | 0.55 | exists |
+| Batuev and Sukhov (2026) | Research studies (study list) | 0.00 | 0.00 | 0.13 | study-list |
+| Kopell et al. (2000) | Research studies (study list) | 0.17 | 0.00 | 0.13 | study-list |
+| Börgers and Kopell (2003) | Research studies (study list) | 0.17 | 0.00 | 0.36 | study-list |
+| Prinz et al. (2004) | Research studies (study list) | 0.17 | 0.00 | 0.24 | study-list |
+| Bastos et al. (2012) | Research studies (study list) | 0.17 | 0.00 | 0.20 | study-list |
+| Bastos et al. (2015) | Research studies (study list) | 0.10 | 0.00 | 0.36 | study-list |
+| van Kerkoerle et al. (2014) | Research studies (study list) | 0.10 | 0.00 | 0.44 | study-list |
+| Mendoza-Halliday et al. (2024) | Research studies (study list) | 0.60 | 0.15 | 0.30 | roadmap |
+| Tiesinga and Sejnowski (2009) | Research studies (study list) | 0.23 | 0.00 | 0.28 | study-list |
+| Brunel and Wang (2003) | Research studies (study list) | 0.30 | 0.00 | 0.28 | study-list |
+| van Vreeswijk and Sompolinsky (1996) | Research studies (study list) | 0.10 | 0.03 | 0.17 | study-list |
+| Renart et al. (2010) | Research studies (study list) | 0.17 | 0.03 | 0.28 | study-list |
+| Litwin-Kumar and Doiron (2012) | Research studies (study list) | 0.13 | 0.00 | 0.20 | study-list |
+| Ostojic (2014) | Research studies (study list) | 0.17 | 0.00 | 0.40 | study-list |
+| Tsodyks et al. (1997) | Research studies (study list) | 0.17 | 0.00 | 0.40 | study-list |
+| Ozeki et al. (2009) | Research studies (study list) | 0.17 | 0.00 | 0.40 | study-list |
+| Litwin-Kumar et al. (2016) | Research studies (study list) | 0.17 | 0.00 | 0.40 | study-list |
+| Hertäg and Sprekeler (2020) | Research studies (study list) | 0.17 | 0.00 | 0.00 | study-list |
+| Mazzoni et al. (2015) | Research studies (study list) | 0.47 | 0.00 | 0.55 | study-list |
+| Mazzoni et al. (2008) | Research studies (study list) | 0.17 | 0.00 | 0.00 | study-list |
+| Lindén et al. (2011) | Research studies (study list) | 0.20 | 0.00 | 0.20 | study-list |
+| Hagen et al. (2016) | Research studies (study list) | 0.33 | 0.04 | 0.55 | study-list |
+| Lee et al. (2025) | Research studies (study list) | 0.10 | 0.00 | 0.47 | study-list |
+| Ness et al. (2025) | Research studies (study list) | 0.23 | 0.00 | 0.45 | study-list |
+| Páscoa dos Santos and Verschure (2025) | Research studies (study list) | 0.17 | 0.00 | 0.33 | study-list |
+| Vogels and Abbott (2005) | Research studies (study list) | 0.27 | 0.00 | 0.53 | study-list |
+| Zenke et al. (2015) | Research studies (study list) | 0.17 | 0.00 | 0.33 | study-list |
+| Song et al. (2000) | Research studies (study list) | 0.14 | 0.00 | 0.67 | study-list |
+| Billeh et al. (2020) | Research studies (study list) | 0.17 | 0.30 | 0.63 | study-list |
+| Schmidt et al. (2018) | Research studies (study list) | 0.06 | 0.00 | 0.33 | study-list |
+| Chaudhuri et al. (2015) | Research studies (study list) | 0.03 | 0.00 | 0.33 | study-list |
+| Joglekar et al. (2018) | Research studies (study list) | 0.06 | 0.00 | 0.33 | study-list |
+| Veit et al. (2017) | Research studies (study list) | 0.17 | 0.00 | 0.33 | study-list |
+| Wilmes and Clopath (2019) | Research studies (study list) | 0.17 | 0.00 | 0.53 | study-list |
+| Kumar et al. (2008) | Research studies (study list) | 0.17 | 0.00 | 0.33 | study-list |
+| El Boustani and Destexhe (2009) | Research studies (study list) | 0.17 | 0.00 | 0.53 | exists |
+| di Volo et al. (2019) | Research studies (study list) | 0.30 | 0.03 | 0.53 | study-list |
+| Spreizer et al. (2019) | Research studies (study list) | 0.14 | 0.00 | 0.20 | study-list |
+| Rosenbaum et al. (2017) | Research studies (study list) | 0.14 | 0.00 | 0.20 | study-list |
+| Huang et al. (2019) | Research studies (study list) | 0.14 | 0.00 | 0.20 | study-list |
+| Keane and Gong (2015) | Research studies (study list) | 0.14 | 0.00 | 0.20 | study-list |
+| Mejias and Longtin (2012) | Research studies (study list) | 0.14 | 0.00 | 0.20 | study-list |
+| Wang (2002) | Research studies (study list) | 0.06 | 0.00 | 0.33 | study-list |
+| Hansel and van Vreeswijk (2012) | Research studies (study list) | 0.11 | 0.00 | 0.33 | study-list |
+| Wacongne et al. (2012) | Research studies (study list) | 0.11 | 0.00 | 0.33 | study-list |
+| Spratling (2008) | Research studies (study list) | 0.11 | 0.00 | 0.33 | study-list |
+| Rao and Ballard (1999) | Research studies (study list) | 0.11 | 0.00 | 0.33 | study-list |
+| Markram et al. (2015) | Research studies (study list) | 0.17 | 0.00 | 0.25 | study-list |
+| van Vreeswijk and Farkhooi (2025) | Research studies (study list) | 0.07 | 0.00 | 0.15 | study-list |
+| Jansen and Rit (1995) | Research studies (study list) | 0.66 | 0.60 | 0.72 | core-check |
+
 Generated by `scripts/generate_replications_page.py` from `dashboard/sources.json`.

@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-08T20:01:51Z",
-    "dev_sha": "6805d3e551cfcf5f131738445f4c7be4a3a325aa",
-    "data_revision": "1d9b827ed71668281738afc258d64cba9f16d054c4a05147b714fdbfbe7bd11a"
+    "utc": "2026-11-09T00:12:21Z",
+    "dev_sha": "bd37c52acb2bf3a12f6f44fc9a1be313c209528f",
+    "data_revision": "559ddf38800bca1b9a7d6e0cfca3d2440ee901eb1efc07bebd0ce9bc5405aa0a"
   },
   "papers": [
     {
@@ -8103,5 +8103,816 @@
       "status_note": null,
       "where": "Source record read (P1); the neural-mass emitter is in the core. Opens the EEG/MEG lane (Hamm 2026-10-20)"
     }
-  ]
+  ],
+  "audit": {
+    "method": "OCMA-J24.1",
+    "agreement": {
+      "H1": {
+        "alpha": 0.8437758513123523,
+        "shuffle_p95": 0.282664114495612
+      },
+      "H2": {
+        "alpha": 0.8803205290846978,
+        "shuffle_p95": 0.1063243920286634
+      },
+      "H3": {
+        "alpha": 0.8145779281980763,
+        "shuffle_p95": 0.28441954058458163
+      }
+    },
+    "rows": [
+      {
+        "line": 22,
+        "reference": "Hodgkin and Huxley (1952)",
+        "section": "Neural dynamics",
+        "H1": 0.44,
+        "H2": 0.4,
+        "H3": 0.775,
+        "action": "exists"
+      },
+      {
+        "line": 23,
+        "reference": "Izhikevich (2003)",
+        "section": "Neural dynamics",
+        "H1": 0.814,
+        "H2": 0.55,
+        "H3": 0.9,
+        "action": "exists"
+      },
+      {
+        "line": 24,
+        "reference": "Brette and Gerstner (2005)",
+        "section": "Neural dynamics",
+        "H1": 0.55,
+        "H2": 0.125,
+        "H3": 0.767,
+        "action": "study-list"
+      },
+      {
+        "line": 25,
+        "reference": "Tahvili et al. (2026)",
+        "section": "Neural dynamics",
+        "H1": 0.933,
+        "H2": 0.55,
+        "H3": 0.775,
+        "action": "exists"
+      },
+      {
+        "line": 26,
+        "reference": "Wang and Buzsáki (1996)",
+        "section": "Neural dynamics",
+        "H1": 0.0,
+        "H2": 0.1,
+        "H3": 0.467,
+        "action": "study-list"
+      },
+      {
+        "line": 27,
+        "reference": "Billeh et al. (2020)",
+        "section": "Neural dynamics",
+        "H1": 0.086,
+        "H2": 0.325,
+        "H3": 0.825,
+        "action": "study-list"
+      },
+      {
+        "line": 33,
+        "reference": "Frank (1952)",
+        "section": "Sources and extracellular observation",
+        "H1": 0.5,
+        "H2": 0.6,
+        "H3": 0.9,
+        "action": "exists"
+      },
+      {
+        "line": 34,
+        "reference": "Hagen et al. (2016)",
+        "section": "Sources and extracellular observation",
+        "H1": 0.429,
+        "H2": 0.35,
+        "H3": 0.525,
+        "action": "study-list"
+      },
+      {
+        "line": 35,
+        "reference": "Nicholson and Freeman (1975)",
+        "section": "Sources and extracellular observation",
+        "H1": 0.133,
+        "H2": 0.45,
+        "H3": 0.9,
+        "action": "exists"
+      },
+      {
+        "line": 36,
+        "reference": "Sarvas (1987)",
+        "section": "Sources and extracellular observation",
+        "H1": 0.5,
+        "H2": 0.65,
+        "H3": 0.9,
+        "action": "exists"
+      },
+      {
+        "line": 40,
+        "reference": "Lindén et al. (2014)",
+        "section": "Sources and extracellular observation",
+        "H1": 0.057,
+        "H2": 0.0,
+        "H3": 0.6,
+        "action": "study-list"
+      },
+      {
+        "line": 41,
+        "reference": "Hagen et al. (2018)",
+        "section": "Sources and extracellular observation",
+        "H1": 0.057,
+        "H2": 0.029,
+        "H3": 0.6,
+        "action": "study-list"
+      },
+      {
+        "line": 42,
+        "reference": "Herreras (2016)",
+        "section": "Sources and extracellular observation",
+        "H1": 0.6,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "roadmap"
+      },
+      {
+        "line": 43,
+        "reference": "Pettersen et al. (2012)",
+        "section": "Sources and extracellular observation",
+        "H1": 0.04,
+        "H2": 0.0,
+        "H3": 0.6,
+        "action": "study-list"
+      },
+      {
+        "line": 44,
+        "reference": "Einevoll et al. (2013)",
+        "section": "Sources and extracellular observation",
+        "H1": 0.057,
+        "H2": 0.0,
+        "H3": 0.6,
+        "action": "study-list"
+      },
+      {
+        "line": 45,
+        "reference": "Einevoll (2020)",
+        "section": "Sources and extracellular observation",
+        "H1": -0.4,
+        "H2": 0.075,
+        "H3": 0.533,
+        "action": "study-list"
+      },
+      {
+        "line": 46,
+        "reference": "Vorwerk et al. (2014)",
+        "section": "Sources and extracellular observation",
+        "H1": -0.4,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 52,
+        "reference": "FitzHugh (1961)",
+        "section": "Background: reduced and population models",
+        "H1": 0.15,
+        "H2": 0.0,
+        "H3": 0.667,
+        "action": "study-list"
+      },
+      {
+        "line": 53,
+        "reference": "Nagumo et al. (1962)",
+        "section": "Background: reduced and population models",
+        "H1": 0.08,
+        "H2": 0.0,
+        "H3": 0.533,
+        "action": "study-list"
+      },
+      {
+        "line": 54,
+        "reference": "Morris and Lecar (1981)",
+        "section": "Background: reduced and population models",
+        "H1": -0.04,
+        "H2": 0.0,
+        "H3": 0.667,
+        "action": "study-list"
+      },
+      {
+        "line": 55,
+        "reference": "Wilson and Cowan (1972)",
+        "section": "Background: reduced and population models",
+        "H1": 0.5,
+        "H2": 0.0,
+        "H3": 0.6,
+        "action": "study-list"
+      },
+      {
+        "line": 56,
+        "reference": "Montbrió et al. (2015)",
+        "section": "Background: reduced and population models",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.433,
+        "action": "study-list"
+      },
+      {
+        "line": 57,
+        "reference": "Coombes (2005)",
+        "section": "Background: reduced and population models",
+        "H1": 0.1,
+        "H2": 0.0,
+        "H3": 0.4,
+        "action": "study-list"
+      },
+      {
+        "line": 58,
+        "reference": "Cook et al. (2022)",
+        "section": "Background: reduced and population models",
+        "H1": 0.1,
+        "H2": 0.0,
+        "H3": 0.4,
+        "action": "study-list"
+      },
+      {
+        "line": 59,
+        "reference": "Ermentrout and Kleinfeld (2001)",
+        "section": "Background: reduced and population models",
+        "H1": 0.167,
+        "H2": 0.025,
+        "H3": 0.433,
+        "action": "study-list"
+      },
+      {
+        "line": 60,
+        "reference": "Muller et al. (2018)",
+        "section": "Background: reduced and population models",
+        "H1": 0.2,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 61,
+        "reference": "Geweke (1982)",
+        "section": "Background: reduced and population models",
+        "H1": 1.0,
+        "H2": 0.457,
+        "H3": 0.738,
+        "action": "core-check (build)"
+      },
+      {
+        "line": 67,
+        "reference": "Clopath et al. (2010)",
+        "section": "Background: circuits, rhythms and plasticity",
+        "H1": 0.057,
+        "H2": 0.0,
+        "H3": 0.2,
+        "action": "study-list"
+      },
+      {
+        "line": 68,
+        "reference": "Arkhipov et al. (2018)",
+        "section": "Background: circuits, rhythms and plasticity",
+        "H1": 0.067,
+        "H2": 0.0,
+        "H3": 0.2,
+        "action": "study-list"
+      },
+      {
+        "line": 132,
+        "reference": "Tahvili et al. (2026)",
+        "section": "Research studies (study list)",
+        "H1": 1.0,
+        "H2": 0.8,
+        "H3": 0.825,
+        "action": "exists"
+      },
+      {
+        "line": 133,
+        "reference": "Tahvili et al. (2025)",
+        "section": "Research studies (study list)",
+        "H1": 0.714,
+        "H2": 0.625,
+        "H3": 0.55,
+        "action": "exists"
+      },
+      {
+        "line": 134,
+        "reference": "N'dri et al. (2025)",
+        "section": "Research studies (study list)",
+        "H1": 0.55,
+        "H2": 0.65,
+        "H3": 0.8,
+        "action": "exists"
+      },
+      {
+        "line": 135,
+        "reference": "Nejat et al. (2026)",
+        "section": "Research studies (study list)",
+        "H1": 0.5,
+        "H2": 0.275,
+        "H3": 0.55,
+        "action": "exists"
+      },
+      {
+        "line": 136,
+        "reference": "Destexhe (2009)",
+        "section": "Research studies (study list)",
+        "H1": 0.771,
+        "H2": 0.475,
+        "H3": 0.95,
+        "action": "exists"
+      },
+      {
+        "line": 137,
+        "reference": "Brunel (2000)",
+        "section": "Research studies (study list)",
+        "H1": 0.933,
+        "H2": 0.725,
+        "H3": 0.775,
+        "action": "exists"
+      },
+      {
+        "line": 138,
+        "reference": "Potjans and Diesmann (2014)",
+        "section": "Research studies (study list)",
+        "H1": 1.0,
+        "H2": 0.575,
+        "H3": 0.65,
+        "action": "exists"
+      },
+      {
+        "line": 139,
+        "reference": "Vogels et al. (2011)",
+        "section": "Research studies (study list)",
+        "H1": 0.8,
+        "H2": 0.5,
+        "H3": 0.725,
+        "action": "exists"
+      },
+      {
+        "line": 140,
+        "reference": "Mejias et al. (2016)",
+        "section": "Research studies (study list)",
+        "H1": 0.4,
+        "H2": 0.075,
+        "H3": 0.55,
+        "action": "exists"
+      },
+      {
+        "line": 141,
+        "reference": "Batuev and Sukhov (2026)",
+        "section": "Research studies (study list)",
+        "H1": 0.0,
+        "H2": 0.0,
+        "H3": 0.125,
+        "action": "study-list"
+      },
+      {
+        "line": 142,
+        "reference": "Kopell et al. (2000)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.125,
+        "action": "study-list"
+      },
+      {
+        "line": 143,
+        "reference": "Börgers and Kopell (2003)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.36,
+        "action": "study-list"
+      },
+      {
+        "line": 144,
+        "reference": "Prinz et al. (2004)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.24,
+        "action": "study-list"
+      },
+      {
+        "line": 145,
+        "reference": "Bastos et al. (2012)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.2,
+        "action": "study-list"
+      },
+      {
+        "line": 146,
+        "reference": "Bastos et al. (2015)",
+        "section": "Research studies (study list)",
+        "H1": 0.1,
+        "H2": 0.0,
+        "H3": 0.36,
+        "action": "study-list"
+      },
+      {
+        "line": 147,
+        "reference": "van Kerkoerle et al. (2014)",
+        "section": "Research studies (study list)",
+        "H1": 0.1,
+        "H2": 0.0,
+        "H3": 0.44,
+        "action": "study-list"
+      },
+      {
+        "line": 148,
+        "reference": "Mendoza-Halliday et al. (2024)",
+        "section": "Research studies (study list)",
+        "H1": 0.6,
+        "H2": 0.15,
+        "H3": 0.3,
+        "action": "roadmap"
+      },
+      {
+        "line": 149,
+        "reference": "Tiesinga and Sejnowski (2009)",
+        "section": "Research studies (study list)",
+        "H1": 0.233,
+        "H2": 0.0,
+        "H3": 0.275,
+        "action": "study-list"
+      },
+      {
+        "line": 150,
+        "reference": "Brunel and Wang (2003)",
+        "section": "Research studies (study list)",
+        "H1": 0.3,
+        "H2": 0.0,
+        "H3": 0.275,
+        "action": "study-list"
+      },
+      {
+        "line": 151,
+        "reference": "van Vreeswijk and Sompolinsky (1996)",
+        "section": "Research studies (study list)",
+        "H1": 0.1,
+        "H2": 0.025,
+        "H3": 0.175,
+        "action": "study-list"
+      },
+      {
+        "line": 152,
+        "reference": "Renart et al. (2010)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.025,
+        "H3": 0.275,
+        "action": "study-list"
+      },
+      {
+        "line": 153,
+        "reference": "Litwin-Kumar and Doiron (2012)",
+        "section": "Research studies (study list)",
+        "H1": 0.133,
+        "H2": 0.0,
+        "H3": 0.2,
+        "action": "study-list"
+      },
+      {
+        "line": 154,
+        "reference": "Ostojic (2014)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.4,
+        "action": "study-list"
+      },
+      {
+        "line": 155,
+        "reference": "Tsodyks et al. (1997)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.4,
+        "action": "study-list"
+      },
+      {
+        "line": 156,
+        "reference": "Ozeki et al. (2009)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.4,
+        "action": "study-list"
+      },
+      {
+        "line": 157,
+        "reference": "Litwin-Kumar et al. (2016)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.4,
+        "action": "study-list"
+      },
+      {
+        "line": 158,
+        "reference": "Hertäg and Sprekeler (2020)",
+        "section": "Research studies (study list)",
+        "H1": 0.171,
+        "H2": 0.0,
+        "H3": 0.0,
+        "action": "study-list"
+      },
+      {
+        "line": 159,
+        "reference": "Mazzoni et al. (2015)",
+        "section": "Research studies (study list)",
+        "H1": 0.467,
+        "H2": 0.0,
+        "H3": 0.55,
+        "action": "study-list"
+      },
+      {
+        "line": 160,
+        "reference": "Mazzoni et al. (2008)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.0,
+        "action": "study-list"
+      },
+      {
+        "line": 161,
+        "reference": "Lindén et al. (2011)",
+        "section": "Research studies (study list)",
+        "H1": 0.2,
+        "H2": 0.0,
+        "H3": 0.2,
+        "action": "study-list"
+      },
+      {
+        "line": 162,
+        "reference": "Hagen et al. (2016)",
+        "section": "Research studies (study list)",
+        "H1": 0.333,
+        "H2": 0.038,
+        "H3": 0.55,
+        "action": "study-list"
+      },
+      {
+        "line": 163,
+        "reference": "Lee et al. (2025)",
+        "section": "Research studies (study list)",
+        "H1": 0.1,
+        "H2": 0.0,
+        "H3": 0.475,
+        "action": "study-list"
+      },
+      {
+        "line": 164,
+        "reference": "Ness et al. (2025)",
+        "section": "Research studies (study list)",
+        "H1": 0.233,
+        "H2": 0.0,
+        "H3": 0.45,
+        "action": "study-list"
+      },
+      {
+        "line": 165,
+        "reference": "Páscoa dos Santos and Verschure (2025)",
+        "section": "Research studies (study list)",
+        "H1": 0.171,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 166,
+        "reference": "Vogels and Abbott (2005)",
+        "section": "Research studies (study list)",
+        "H1": 0.267,
+        "H2": 0.0,
+        "H3": 0.533,
+        "action": "study-list"
+      },
+      {
+        "line": 167,
+        "reference": "Zenke et al. (2015)",
+        "section": "Research studies (study list)",
+        "H1": 0.171,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 168,
+        "reference": "Song et al. (2000)",
+        "section": "Research studies (study list)",
+        "H1": 0.143,
+        "H2": 0.0,
+        "H3": 0.667,
+        "action": "study-list"
+      },
+      {
+        "line": 169,
+        "reference": "Billeh et al. (2020)",
+        "section": "Research studies (study list)",
+        "H1": 0.171,
+        "H2": 0.3,
+        "H3": 0.625,
+        "action": "study-list"
+      },
+      {
+        "line": 170,
+        "reference": "Schmidt et al. (2018)",
+        "section": "Research studies (study list)",
+        "H1": 0.057,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 171,
+        "reference": "Chaudhuri et al. (2015)",
+        "section": "Research studies (study list)",
+        "H1": 0.029,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 172,
+        "reference": "Joglekar et al. (2018)",
+        "section": "Research studies (study list)",
+        "H1": 0.057,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 173,
+        "reference": "Veit et al. (2017)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 174,
+        "reference": "Wilmes and Clopath (2019)",
+        "section": "Research studies (study list)",
+        "H1": 0.171,
+        "H2": 0.0,
+        "H3": 0.533,
+        "action": "study-list"
+      },
+      {
+        "line": 175,
+        "reference": "Kumar et al. (2008)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 176,
+        "reference": "El Boustani and Destexhe (2009)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.533,
+        "action": "exists"
+      },
+      {
+        "line": 177,
+        "reference": "di Volo et al. (2019)",
+        "section": "Research studies (study list)",
+        "H1": 0.3,
+        "H2": 0.025,
+        "H3": 0.533,
+        "action": "study-list"
+      },
+      {
+        "line": 178,
+        "reference": "Spreizer et al. (2019)",
+        "section": "Research studies (study list)",
+        "H1": 0.143,
+        "H2": 0.0,
+        "H3": 0.2,
+        "action": "study-list"
+      },
+      {
+        "line": 179,
+        "reference": "Rosenbaum et al. (2017)",
+        "section": "Research studies (study list)",
+        "H1": 0.143,
+        "H2": 0.0,
+        "H3": 0.2,
+        "action": "study-list"
+      },
+      {
+        "line": 180,
+        "reference": "Huang et al. (2019)",
+        "section": "Research studies (study list)",
+        "H1": 0.143,
+        "H2": 0.0,
+        "H3": 0.2,
+        "action": "study-list"
+      },
+      {
+        "line": 181,
+        "reference": "Keane and Gong (2015)",
+        "section": "Research studies (study list)",
+        "H1": 0.143,
+        "H2": 0.0,
+        "H3": 0.2,
+        "action": "study-list"
+      },
+      {
+        "line": 182,
+        "reference": "Mejias and Longtin (2012)",
+        "section": "Research studies (study list)",
+        "H1": 0.143,
+        "H2": 0.0,
+        "H3": 0.2,
+        "action": "study-list"
+      },
+      {
+        "line": 183,
+        "reference": "Wang (2002)",
+        "section": "Research studies (study list)",
+        "H1": 0.057,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 184,
+        "reference": "Hansel and van Vreeswijk (2012)",
+        "section": "Research studies (study list)",
+        "H1": 0.114,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 185,
+        "reference": "Wacongne et al. (2012)",
+        "section": "Research studies (study list)",
+        "H1": 0.114,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 186,
+        "reference": "Spratling (2008)",
+        "section": "Research studies (study list)",
+        "H1": 0.114,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 187,
+        "reference": "Rao and Ballard (1999)",
+        "section": "Research studies (study list)",
+        "H1": 0.114,
+        "H2": 0.0,
+        "H3": 0.333,
+        "action": "study-list"
+      },
+      {
+        "line": 188,
+        "reference": "Markram et al. (2015)",
+        "section": "Research studies (study list)",
+        "H1": 0.167,
+        "H2": 0.0,
+        "H3": 0.25,
+        "action": "study-list"
+      },
+      {
+        "line": 189,
+        "reference": "van Vreeswijk and Farkhooi (2025)",
+        "section": "Research studies (study list)",
+        "H1": 0.075,
+        "H2": 0.0,
+        "H3": 0.15,
+        "action": "study-list"
+      },
+      {
+        "line": 190,
+        "reference": "Jansen and Rit (1995)",
+        "section": "Research studies (study list)",
+        "H1": 0.657,
+        "H2": 0.6,
+        "H3": 0.725,
+        "action": "core-check"
+      }
+    ]
+  }
 }

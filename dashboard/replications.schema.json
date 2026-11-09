@@ -150,6 +150,38 @@
     "studies": {
       "type": "array",
       "items": {"type": "object", "required": ["reference", "status", "where"]}
+    },
+    "audit": {
+      "type": "object",
+      "required": ["method", "agreement", "rows"],
+      "properties": {
+        "method": {"type": "string"},
+        "agreement": {
+          "type": "object",
+          "required": ["H1", "H2", "H3"],
+          "properties": {
+            "H1": {"type": "object", "required": ["alpha", "shuffle_p95"], "properties": {"alpha": {"type": "number"}, "shuffle_p95": {"type": "number"}}},
+            "H2": {"type": "object", "required": ["alpha", "shuffle_p95"], "properties": {"alpha": {"type": "number"}, "shuffle_p95": {"type": "number"}}},
+            "H3": {"type": "object", "required": ["alpha", "shuffle_p95"], "properties": {"alpha": {"type": "number"}, "shuffle_p95": {"type": "number"}}}
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["line", "reference", "section", "H1", "H2", "H3", "action"],
+            "properties": {
+              "line": {"type": "integer"},
+              "reference": {"type": "string"},
+              "section": {"type": "string"},
+              "H1": {"type": ["number", "null"]},
+              "H2": {"type": ["number", "null"]},
+              "H3": {"type": ["number", "null"]},
+              "action": {"type": "string"}
+            }
+          }
+        }
+      }
     }
   }
 }

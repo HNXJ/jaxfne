@@ -17,6 +17,10 @@ lane blob makes the check fail. Any input error exits 1 and names the paper, fil
 
 The study list ("studies") is the table under "## Research studies (study list)" in
 docs/reference/references.md; parse_studies refuses a row it cannot read.
+
+The reference audit ("audit") copies the OCMA council's consensus.json and the round-1 agreement from
+agreement.json, and reads each audited row from its line of the same page; build_audit refuses a row it
+cannot read or whose author, year or section the page does not hold.
 """
 
 import argparse
@@ -56,6 +60,11 @@ STUDY_COLUMNS = ["Reference", "Result compared", "Where"]
 STUDY_STATUSES = ("reproduced", "reproduced (conditional)", "mixed", "pending", "in progress", "queued",
                   "not started")
 MIN_STUDIES = 40
+CONSENSUS = ROOT / "artifacts" / "etudes" / "meta" / "ocma" / "council" / "consensus.json"
+AGREEMENT = ROOT / "artifacts" / "etudes" / "meta" / "ocma" / "council" / "agreement.json"
+AUDIT_RESULT = ROOT / "artifacts" / "etudes" / "meta" / "ocma" / "RESULT.md"
+AUDIT_FIELDS = ("line", "first_author", "year", "section", "H1", "H2", "H3", "action")
+AUDIT_GROUPS = ("H1", "H2", "H3")
 
 
 class BuildError(Exception):
@@ -831,6 +840,136 @@ def parse_studies(markdown):
     return out
 
 
+# The audit reads a row's reference cell (its first cell) from the references page. HEADING finds the
+# section headings; AUTHOR_YEAR the "Authors (year)" opening; FIRST_AUTHOR "Surname, I. I." (hyphenated
+# initials such as "J.-M." included). Text after the first author means a further author.
+HEADING = re.compile(r"^(#{2,3}) (.+?)\s*$")
+AUTHOR_YEAR = re.compile(r"^(?P<authors>.+?)\s*\((?P<year>\d{4}[a-z]?)\)")
+FIRST_AUTHOR = re.compile(r"^(?P<surname>[^,]+),\s*(?:[A-Z]\.[\s-]*)+")
+# A further author, after the ", " or "& " that joins it to the list (matched on the text after the first author).
+AUTHOR_ENTRY = re.compile(r"(?:,\s*|&\s*)(?P<surname>[^,&]+?),\s*(?:[A-Z]\.[\s-]*)+")
+AUDIT_METHOD = re.compile(r"^# (OCMA-\S+) council result", re.MULTILINE)
+
+
+def load_council_json(path):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise BuildError(f"cannot read {path}: {exc}")
+
+
+def page_headings(lines):
+    """(line number, text) of each ## and ### heading of the references page, in page order."""
+    found = []
+    for number, line in enumerate(lines, 1):
+        m = HEADING.match(line)
+        if m:
+            found.append((number, m.group(2)))
+    return found
+
+
+def short_reference(cell, row, line):
+    """'Surname (year)' for one author, 'Surname1 and Surname2 (year)' for two, 'Surname1 et al. (year)' for
+    three or more or when the cell already says 'et al.'. The page's first author and year must equal the
+    consensus row's, or the two sources disagree and the build stops."""
+    m = AUTHOR_YEAR.match(cell)
+    if not m:
+        raise BuildError(f"audit line {line}: reference cell does not open with 'Authors (year)'")
+    authors, year = m.group("authors"), m.group("year")
+    first = FIRST_AUTHOR.match(authors)
+    if not first:
+        raise BuildError(f"audit line {line}: first author is not 'Surname, I.' in {authors[:40]!r}")
+    surname = first.group("surname")
+    if surname != row["first_author"] or year != row["year"]:
+        raise BuildError(f"audit line {line}: the page reads {surname} ({year}), consensus.json reads "
+                         f"{row['first_author']} ({row['year']})")
+    further = [e.group("surname").strip() for e in AUTHOR_ENTRY.finditer(authors[first.end():])]
+    if "et al." in authors or len(further) >= 2:
+        return f"{surname} et al. ({year})"
+    if further:
+        return f"{surname} and {further[0]} ({year})"
+    return f"{surname} ({year})"
+
+
+def audit_agreement(agreement):
+    """Round-1 alpha and shuffle_p95 per factor group, copied from agreement.json."""
+    round1 = None
+    if isinstance(agreement, dict) and isinstance(agreement.get("rounds"), dict):
+        round1 = agreement["rounds"].get("round1")
+    if not isinstance(round1, dict):
+        raise BuildError(f"{AGREEMENT} has no rounds.round1 object")
+    out = {}
+    for group in AUDIT_GROUPS:
+        block = round1.get(group)
+        if not isinstance(block, dict) or not is_num(block.get("alpha")) or not is_num(block.get("shuffle_p95")):
+            raise BuildError(f"{AGREEMENT} rounds.round1.{group} has no numeric alpha and shuffle_p95")
+        out[group] = {"alpha": block["alpha"], "shuffle_p95": block["shuffle_p95"]}
+    return out
+
+
+def audit_rows(lines, consensus):
+    """One dict per consensus entry, read from its line of the references page: the reference shortened by
+    short_reference, the section checked against the page heading above the line, the three factor scores
+    (a number or null) and the action. Sorted by section (page order), then line. A missing field, a line
+    that is not a table row, or a section the page does not place above it is an error."""
+    headings = page_headings(lines)
+    order = [text for _, text in headings]
+    out = []
+    for number, row in enumerate(consensus, 1):
+        if not isinstance(row, dict):
+            raise BuildError(f"audit entry {number} is not an object")
+        missing = [key for key in AUDIT_FIELDS if key not in row]
+        if missing:
+            raise BuildError(f"audit entry {number} is missing {missing}")
+        line = row["line"]
+        if not isinstance(line, int) or isinstance(line, bool) or not 1 <= line <= len(lines):
+            raise BuildError(f"audit entry {number}: line {line!r} is not a line of the references page")
+        text = lines[line - 1]
+        if not text.startswith("|"):
+            raise BuildError(f"audit line {line} is not a table row of the references page")
+        above = [t for n, t in headings if n < line]
+        heading = above[-1] if above else None
+        if heading != row["section"]:
+            raise BuildError(f"audit line {line}: the heading above it is {heading!r}, "
+                             f"consensus.json says {row['section']!r}")
+        for group in AUDIT_GROUPS:
+            if row[group] is not None and not is_num(row[group]):
+                raise BuildError(f"audit line {line}: {group} is not a number or null")
+        if not isinstance(row["action"], str) or not row["action"]:
+            raise BuildError(f"audit line {line}: action is empty")
+        out.append({
+            "line": line,
+            "reference": short_reference(split_row(text)[0], row, line),
+            "section": row["section"],
+            "H1": row["H1"],
+            "H2": row["H2"],
+            "H3": row["H3"],
+            "action": row["action"],
+        })
+    out.sort(key=lambda r: (order.index(r["section"]), r["line"]))
+    return out
+
+
+def build_audit(lines):
+    """The reference audit: the OCMA method label (RESULT.md), round-1 agreement, one row per audited reference."""
+    consensus = load_council_json(CONSENSUS)
+    if not isinstance(consensus, list) or not consensus:
+        raise BuildError(f"{CONSENSUS} holds no audit rows")
+    agreement = load_council_json(AGREEMENT)
+    try:
+        result = AUDIT_RESULT.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise BuildError(f"cannot read {AUDIT_RESULT}: {exc}")
+    method = AUDIT_METHOD.search(result)
+    if not method:
+        raise BuildError(f"{AUDIT_RESULT} has no '# OCMA-<id> council result' heading")
+    return {
+        "method": method.group(1),
+        "agreement": audit_agreement(agreement),
+        "rows": audit_rows(lines, consensus),
+    }
+
+
 def dev_sha():
     proc = git(["rev-parse", "HEAD"])
     sha = proc.stdout.decode("ascii", "replace").strip()
@@ -954,9 +1093,10 @@ def build_document():
     specs_by_id = {s["id"]: s for s in sources["papers"]}
     papers = [build_paper(s, files, sources["repo_url"], specs_by_id) for s in sources["papers"]]
     try:
-        studies = parse_studies(REFERENCES.read_text(encoding="utf-8"))
+        references = REFERENCES.read_text(encoding="utf-8")
     except OSError as exc:
         raise BuildError(f"cannot read {REFERENCES}: {exc}")
+    studies = parse_studies(references)
     doc = {
         "schema": SCHEMA,
         "sample": False,
@@ -968,6 +1108,7 @@ def build_document():
         "overview": build_overview(papers),
         "roadmap": list(sources.get("roadmap", [])),
         "studies": studies,
+        "audit": build_audit(references.splitlines()),
     }
     add_receipt_hashes(papers, files)
     doc["generated"]["data_revision"] = content_revision(doc)

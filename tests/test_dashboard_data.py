@@ -22,6 +22,9 @@ REPO = Path(__file__).resolve().parents[1]
 SCRIPT = Path(os.environ.get("DASH_GEN_BUILD_SCRIPT", REPO / "scripts" / "build_dashboard_data.py"))
 REPO_URL = "https://github.com/hnxj/jaxfne"
 REL_OUT = Path("dashboard") / "data" / "replications.json"
+OCMA_INPUTS = ("artifacts/etudes/meta/ocma/council/consensus.json",
+               "artifacts/etudes/meta/ocma/council/agreement.json",
+               "artifacts/etudes/meta/ocma/RESULT.md")
 NO_VALUE = "—"
 
 
@@ -48,7 +51,7 @@ def blob_bytes(root, rev, path):
 
 def make_repo(root, files):
     """Commit `files` ({path: JSON-able object}), then copy the generator and the references page (the
-    study-list source) in, uncommitted. Returns the SHA."""
+    study-list source) and the OCMA audit inputs in, uncommitted. Returns the SHA."""
     root.mkdir(parents=True)
     git(root, "init", "-q")
     git(root, "config", "user.name", "test")
@@ -65,6 +68,9 @@ def make_repo(root, files):
     shutil.copy(REPO / "docs" / "reference" / "references.md", root / "docs" / "reference" / "references.md")
     (root / "dashboard").mkdir(exist_ok=True)
     shutil.copy(REPO / "dashboard" / "replications.schema.json", root / "dashboard" / "replications.schema.json")
+    for rel in OCMA_INPUTS:
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(REPO / rel, root / rel)
     return git(root, "rev-parse", "HEAD")
 
 
@@ -1013,3 +1019,47 @@ def test_real_overview_excludes_core_method_rows():
     assert all(p["verdict_summary"]["paper"] is None and p["verdict_summary"]["kind"] == "core_method"
                for p in doc["papers"] if p["class"] == "core method")
     assert sum(doc["overview"]["by_paper"].values()) == doc["overview"]["papers"]
+
+
+AUDIT_MUTATIONS = {
+    "missing_field": lambda row: row.pop("H2"),
+    "section_mismatch": lambda row: row.update(section="Research studies (study list)"),
+    "author_mismatch": lambda row: row.update(first_author="Huxley"),
+    "year_mismatch": lambda row: row.update(year="1953"),
+    "line_not_table_row": lambda row: row.update(line=1),
+}
+
+
+def audit_from(module, tmp_path, monkeypatch, mutate=None):
+    """build_audit over the real references page and a copy of consensus.json, its first row mutated if asked."""
+    rows = json.loads(module.CONSENSUS.read_text(encoding="utf-8"))
+    if mutate is not None:
+        mutate(rows[0])
+    copy = tmp_path / "consensus.json"
+    copy.write_text(json.dumps(rows), encoding="utf-8")
+    monkeypatch.setattr(module, "CONSENSUS", copy)
+    return module.build_audit(module.REFERENCES.read_text(encoding="utf-8").splitlines()), len(rows)
+
+
+def test_audit_accepts_the_unmodified_consensus(tmp_path, monkeypatch):
+    module = load_module(SCRIPT)
+    audit, n = audit_from(module, tmp_path, monkeypatch)
+    assert n > 0 and len(audit["rows"]) == n, "the unmodified consensus must yield one audit row per entry"
+
+
+@pytest.mark.parametrize("case", sorted(AUDIT_MUTATIONS))
+def test_audit_refuses_a_mutated_consensus_row(case, tmp_path, monkeypatch):
+    module = load_module(SCRIPT)
+    with pytest.raises(module.BuildError):
+        audit_from(module, tmp_path, monkeypatch, AUDIT_MUTATIONS[case])
+
+
+@pytest.mark.parametrize("cell, year, want", [
+    ("Alpha, A. B. (2003). Title", "2003", "Alpha (2003)"),
+    ("Alpha, A. B., & Beta, C. D. (2001). Title", "2001", "Alpha and Beta (2001)"),
+    ("Alpha, A. B., Beta, C. D., & Gamma, E. F. (2010). Title", "2010", "Alpha et al. (2010)"),
+    ("Alpha, A. B., et al. (2020). Title", "2020", "Alpha et al. (2020)"),
+])
+def test_short_reference_forms_by_author_count(cell, year, want):
+    module = load_module(SCRIPT)
+    assert module.short_reference(cell, {"first_author": "Alpha", "year": year}, 1) == want

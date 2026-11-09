@@ -1100,6 +1100,68 @@ function renderRoadmap(view, data) {
   }
   select.addEventListener("change", fillStudies);
   fillStudies();
+  if (data.audit) renderAudit(view, data.audit);
+}
+
+/* Reference audit (OCMA-J24.1): each audited reference with its three factor scores, -1 to +1. */
+function scoreText(v) {
+  return v === null || v === undefined ? "–" : Number(v).toFixed(2);
+}
+
+function renderAudit(view, audit) {
+  var rows = audit.rows || [];
+  var agree = audit.agreement || {};
+  view.appendChild(el("h3", "Reference audit (OCMA)"));
+  var pairs = ["H1", "H2", "H3"].map(function (g) {
+    var a = agree[g] || {};
+    return g + " " + scoreText(a.alpha) + " (" + scoreText(a.shuffle_p95) + ")";
+  });
+  view.appendChild(el("p", "H1 mechanism realized in the core, H2 reproduction evidence, H3 dashboard readiness; " +
+    "each is scored -1 to +1 by a three-model council, and round-1 agreement (alpha, with the shuffled-baseline " +
+    "p95 in brackets) is " + pairs.join(", ") + ".")).className = "small";
+  var label = el("label", "Show ");
+  var select = el("select");
+  var actions = [];
+  rows.forEach(function (r) { if (actions.indexOf(r.action) < 0) actions.push(r.action); });
+  ["all"].concat(actions).forEach(function (v) {
+    var o = el("option", v);
+    o.value = v;
+    select.appendChild(o);
+  });
+  label.appendChild(select);
+  view.appendChild(label);
+  var table = el("table");
+  table.className = "criteria";
+  var head = el("thead");
+  var hr = el("tr");
+  var auditLabels = ["Reference", "Section", "H1", "H2", "H3", "Action"];
+  auditLabels.forEach(function (h) { hr.appendChild(el("th", h)); });
+  head.appendChild(hr);
+  table.appendChild(head);
+  var body = el("tbody");
+  table.appendChild(body);
+  view.appendChild(table);
+  function fillAudit() {
+    clear(body);
+    rows.forEach(function (r) {
+      if (select.value !== "all" && r.action !== select.value) return;
+      var row = el("tr");
+      row.appendChild(el("td", r.reference || ""));
+      row.appendChild(el("td", r.section || ""));
+      row.appendChild(el("td", scoreText(r.H1)));
+      row.appendChild(el("td", scoreText(r.H2)));
+      row.appendChild(el("td", scoreText(r.H3)));
+      row.appendChild(el("td", r.action || ""));
+      Array.prototype.forEach.call(row.children, function (td, i) {
+        var lab = el("span", auditLabels[i] + ": ");
+        lab.className = "cell-label";
+        td.insertBefore(lab, td.firstChild);
+      });
+      body.appendChild(row);
+    });
+  }
+  select.addEventListener("change", fillAudit);
+  fillAudit();
 }
 
 function renderMethod(view) {
