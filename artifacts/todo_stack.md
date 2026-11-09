@@ -22,6 +22,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Beside the path (∥)
 
+- ∥ `scripts/build_dashboard_data.py` `audit_rows`: the duplicate-line check runs before the int type check, so an
+  unhashable `line` raises TypeError instead of a refusal (review of af076b44, minor). Closes when: a test with
+  `line: []` expects the refusal, fails first, then passes.
+
 11a. ∥ T-72 [A then H] NeuroAI 2027 short paper, deadline 2026-11-20 23:59 AoE (paper plan amendment 2026-11-02;
     rules verified on the OpenReview form, non-archival, no dual-submission bar). Status 2026-11-02: draft in the
     private thesis repo, branch `_temp_neuroai2027`, `artifacts/notes/neuroai2027/`;

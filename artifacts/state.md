@@ -1,6 +1,8 @@
 # state
 
-Stamp: jaxfne@dev@0d131148 · 2026-11-08 (pushed; broad on 3b74977b: 8240 passed, 0 failed, 9 lanes PASS; later commits stacks, notes, dashboard data and docs page, docs gate 0 fail) · checklist 0.5.10: 24/100
+Stamp: jaxfne@dev@619ea11a · 2026-11-08 (pushed; broad on 619ea11a: 8262 passed, 0 failed, all lanes PASS, replication audit 0 unlisted; outside review ACCEPT) · checklist 0.5.10: 24/100
+OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling, glossary and
+ratings in HNXJ/ocma `cases/jaxfne/`, config `configs/ocma-jaxfne.json`.
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
