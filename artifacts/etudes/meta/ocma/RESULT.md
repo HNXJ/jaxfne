@@ -1,9 +1,13 @@
 # OCMA-J24.1 council result (2026-11-08)
 
+Glossary, prompt, plan, pilot, data, tools and ratings live in HNXJ/ocma `cases/jaxfne/` (config
+`configs/ocma-jaxfne.json`); `data/`, `tools/` and `glossary.md` below are relative to that folder. This folder
+keeps what the dashboard reads.
+
 88 reference rows (`data/scope.json`), 3 Haiku raters per 5-row batch, then one feedback round (workflow
-wf_04d37f0e-2ae, 108 agent runs, 0 errors). Ratings: HNXJ/ocma `cases/jaxfne/council/full/`
-(byte copies of jaxfne bd37c52a); here `council/agreement.json` and `council/consensus.json`
-(`tools/agreement.py <ocma>/cases/jaxfne/council/full --seed 0`).
+wf_04d37f0e-2ae, 108 agent runs, 0 errors). Ratings: `council/full/` there (byte copies of jaxfne bd37c52a);
+here `council/agreement.json` and `council/consensus.json`
+(`tools/agreement.py council/full --seed 0`, reproduced byte-identical from ocma ededb9f).
 
 ## Agreement (Krippendorff alpha, interval; baseline: paper labels permuted per rater, 1000 draws)
 
