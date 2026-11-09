@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-09T00:26:05Z",
-    "dev_sha": "6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd",
-    "data_revision": "6a04b1ac49ed948e5517173bdd0beaa57db81e2285b0d38bde9b911d8d9c07ef"
+    "utc": "2026-11-09T01:38:22Z",
+    "dev_sha": "c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3",
+    "data_revision": "1798a202b3b7835cc2576317c6c680eeca7c04c59bd2850b36284075be3cdca7"
   },
   "papers": [
     {
@@ -6339,7 +6339,7 @@
       ],
       "lane": {
         "branch": "dev",
-        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
+        "sha": "c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3"
       },
       "stage_artifacts": [],
       "verdict": null,
@@ -6365,8 +6365,8 @@
           "reference_text": "primary-current Biot-Savart field",
           "prereg": null,
           "evidence": {
-            "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "path": "artifacts/etudes/core_checks/probes/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3/artifacts/etudes/core_checks/probes/head_forward/score.json",
             "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
@@ -6388,8 +6388,8 @@
           "reference_text": "scalar-potential quadrature (-mu0 grad U)",
           "prereg": null,
           "evidence": {
-            "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "path": "artifacts/etudes/core_checks/probes/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3/artifacts/etudes/core_checks/probes/head_forward/score.json",
             "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
@@ -6411,8 +6411,8 @@
           "reference_text": "radial-to-tangential amplitude ratio",
           "prereg": null,
           "evidence": {
-            "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "path": "artifacts/etudes/core_checks/probes/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3/artifacts/etudes/core_checks/probes/head_forward/score.json",
             "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
@@ -6434,8 +6434,8 @@
           "reference_text": "Neumann-series potential (400 terms)",
           "prereg": null,
           "evidence": {
-            "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "path": "artifacts/etudes/core_checks/probes/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3/artifacts/etudes/core_checks/probes/head_forward/score.json",
             "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
@@ -6457,8 +6457,8 @@
           "reference_text": "MNE single-shell forward (homogeneous)",
           "prereg": null,
           "evidence": {
-            "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "path": "artifacts/etudes/core_checks/probes/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3/artifacts/etudes/core_checks/probes/head_forward/score.json",
             "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
@@ -6480,8 +6480,8 @@
           "reference_text": "conductivity reciprocity (0.33 against 0.66 S/m)",
           "prereg": null,
           "evidence": {
-            "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "path": "artifacts/etudes/core_checks/probes/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3/artifacts/etudes/core_checks/probes/head_forward/score.json",
             "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
@@ -6503,8 +6503,8 @@
           "reference_text": "average-reference null",
           "prereg": null,
           "evidence": {
-            "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "path": "artifacts/etudes/core_checks/probes/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3/artifacts/etudes/core_checks/probes/head_forward/score.json",
             "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
@@ -6526,8 +6526,8 @@
           "reference_text": "scipy quadrature of the line-source integral",
           "prereg": null,
           "evidence": {
-            "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "path": "artifacts/etudes/core_checks/probes/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3/artifacts/etudes/core_checks/probes/head_forward/score.json",
             "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         },
@@ -6549,8 +6549,8 @@
           "reference_text": "point-dipole far field",
           "prereg": null,
           "evidence": {
-            "path": "artifacts/etudes/core_checks/head_forward/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/head_forward/score.json",
+            "path": "artifacts/etudes/core_checks/probes/head_forward/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3/artifacts/etudes/core_checks/probes/head_forward/score.json",
             "sha256": "4d89a8d23d00f205d4519c9e74dee8e34cc038e6249b0a8c9f21f62c450fca00"
           }
         }
@@ -7005,7 +7005,7 @@
       ],
       "lane": {
         "branch": "dev",
-        "sha": "6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd"
+        "sha": "c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3"
       },
       "stage_artifacts": [],
       "verdict": null,
@@ -7031,8 +7031,8 @@
           "reference_text": "ln(S_yy / (S_yy - |H_yx|^2)) of the VAR(1) with A1 = [[0.5, 0], [0.6, 0.5]], Sigma = I, H = (I - A1 z)^-1, at 5, 10, 40 Hz (n 200000, seed 11; relative)",
           "prereg": null,
           "evidence": {
-            "path": "artifacts/etudes/core_checks/granger/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd/artifacts/etudes/core_checks/granger/score.json",
+            "path": "artifacts/etudes/core_checks/probes/granger/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3/artifacts/etudes/core_checks/probes/granger/score.json",
             "sha256": "9a811e676dcf2f9d0d26c4405a557aa3f3ecc69987a0c19e7604ec5d99837e92"
           }
         },
@@ -7054,8 +7054,8 @@
           "reference_text": "y -> x spectrum of the x -> y fixture reads zero: max gc_yx at 5, 10, 40 Hz (absolute)",
           "prereg": null,
           "evidence": {
-            "path": "artifacts/etudes/core_checks/granger/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd/artifacts/etudes/core_checks/granger/score.json",
+            "path": "artifacts/etudes/core_checks/probes/granger/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3/artifacts/etudes/core_checks/probes/granger/score.json",
             "sha256": "9a811e676dcf2f9d0d26c4405a557aa3f3ecc69987a0c19e7604ec5d99837e92"
           }
         }

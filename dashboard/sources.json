@@ -954,11 +954,11 @@
       "question": "Does the spherical-head MEG/EEG forward code agree with independent analytic references?",
       "release": "0.5.7",
       "tier": "T-jaxfne",
-      "lane": {"branch": "dev", "sha": "a13884f58b908a711bd747e34c99327d41bd036c"},
+      "lane": {"branch": "dev", "sha": "c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3"},
       "summary": "Nine analytic agreements of the spherical-head forward code, scored from the inputs of tests/test_head_forward.py: radial and full-vector MEG against the primary-current field and scalar-potential quadrature, radial-dipole silence, EEG against the Neumann series and the MNE single shell, conductivity reciprocity, the average-reference null, line-source LFP against scipy quadrature of the line-source integral and its point-dipole far field.",
       "preregs": [],
       "files": {
-        "main": "artifacts/etudes/core_checks/head_forward/score.json"
+        "main": "artifacts/etudes/core_checks/probes/head_forward/score.json"
       },
       "criteria": [
         {"id": "meg-radial", "entry": "meg_radial", "claim": "radial MEG leadfields equal the primary-current field", "estimand": "worst-case |deviation| over 40 sensors and 7 dipoles", "criterion": "error ≤ 1e-6·scale + 2e-4·scale",
@@ -1336,12 +1336,12 @@
       "tier": "T-jaxfne",
       "lane": {
         "branch": "dev",
-        "sha": "6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd"
+        "sha": "c2722a22ad5d491ea3ad7ab20d2600e33b7dd8a3"
       },
       "summary": "Two agreements of granger_spectral, scored from the inputs of tests/test_granger_spectral.py: the x -> y spectrum of a VAR(1) against the analytic Geweke ratio at 5, 10 and 40 Hz (worst relative error against 0.05), and the y -> x spectrum of the same fixture against 0.01. Geweke's time-domain identity is not scored: granger.py has no time-domain GC.",
       "preregs": [],
       "files": {
-        "main": "artifacts/etudes/core_checks/granger/score.json"
+        "main": "artifacts/etudes/core_checks/probes/granger/score.json"
       },
       "criteria": [
         {
