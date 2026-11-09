@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-09T00:12:21Z",
-    "dev_sha": "bd37c52acb2bf3a12f6f44fc9a1be313c209528f",
-    "data_revision": "559ddf38800bca1b9a7d6e0cfca3d2440ee901eb1efc07bebd0ce9bc5405aa0a"
+    "utc": "2026-11-09T00:26:05Z",
+    "dev_sha": "6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd",
+    "data_revision": "6a04b1ac49ed948e5517173bdd0beaa57db81e2285b0d38bde9b911d8d9c07ef"
   },
   "papers": [
     {
@@ -5730,6 +5730,191 @@
       }
     },
     {
+      "id": "jansenrit1995",
+      "title": "Jansen and Rit 1995, Fig. 3 (regime sequence of the single-column model across the C sweep)",
+      "citation": "Jansen and Rit, Biol Cybern 73(4):357-366 (1995)",
+      "class": "reproduced (conditional)",
+      "question": "Does the jaxfne Jansen-Rit emitter reproduce the Fig. 3 regime sequence of the single column across the C sweep, the alpha sharpening between C = 128 and C = 135, the spike-wave slowing between C = 270 and C = 675, and the EEG level at C = 135?",
+      "page": "models/jansenrit1995.md",
+      "release": "0.5.10",
+      "tier": "T-jaxfne",
+      "stage": "P3",
+      "grammar": null,
+      "lane": {
+        "branch": "dev",
+        "sha": "6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd"
+      },
+      "stage_artifacts": [
+        {
+          "stage": "P1",
+          "items": [
+            {
+              "label": "source record",
+              "path": "artifacts/etudes/papers/jansenrit1995/SOURCE_P1.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd/artifacts/etudes/papers/jansenrit1995/SOURCE_P1.md",
+              "sha256": "1850e59e3aa4b0537ba9313aba3b4646f43a0fe761e39039a60864e3b14a5a87"
+            }
+          ]
+        },
+        {
+          "stage": "P3",
+          "items": [
+            {
+              "label": "prereg v1 (signed)",
+              "path": "artifacts/etudes/papers/jansenrit1995/prereg/P3_v1_signed.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd/artifacts/etudes/papers/jansenrit1995/prereg/P3_v1_signed.md",
+              "sha256": "06fed467d76516790203486489edfbaf574050e8b96247c256eddffd80cf3cb9"
+            },
+            {
+              "label": "result",
+              "path": "artifacts/etudes/papers/jansenrit1995/RESULT_P3.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd/artifacts/etudes/papers/jansenrit1995/RESULT_P3.md",
+              "sha256": "ae0daccf2abcecb8cd3fb352d4477e1bf601c04a0d4ee1f89919ad70849e1302"
+            },
+            {
+              "label": "scores",
+              "path": "artifacts/etudes/papers/jansenrit1995/score/p3_v1_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd/artifacts/etudes/papers/jansenrit1995/score/p3_v1_score.json",
+              "sha256": "ca0c9d750aceaed68d6d251fb715c77cf82bacb45193ad7ba7d586e066e5640b"
+            }
+          ]
+        }
+      ],
+      "verdict": null,
+      "verdict_note": "Conditional: owner decision 2 of the signed prereg (ruled as drafted) replaces the paper's unstated noise hold and RKF45 with a 2 ms hold and RK4 at dt 0.1 ms. The pass holds under that declared hold and integrator only.",
+      "summary": "P3 v1 scored PASS on 5 of 5 seeds (10 to 14) against the signed prereg, rule at least 4 of 5. Under the declared 2 ms noise hold and RK4 at dt 0.1 ms, the standard set reproduces the regime class, dominant frequency and EEG level of Fig. 3. The paper's waveform, hold and integrator are not scored.",
+      "preregs": [
+        {
+          "id": "P3 v1",
+          "signed": "2026-11-08",
+          "path": "artifacts/etudes/papers/jansenrit1995/prereg/P3_v1_signed.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd/artifacts/etudes/papers/jansenrit1995/prereg/P3_v1_signed.md",
+          "sha256": "06fed467d76516790203486489edfbaf574050e8b96247c256eddffd80cf3cb9"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "E1",
+          "group": "Fig. 3, seed 10",
+          "claim": "class per C matches noise, alpha, alpha, spike-wave, spike-wave, noise at C = 68, 128, 135, 270, 675, 1350",
+          "estimand": "class per C, seed 10 (seed 10 only; see the prereg rule)",
+          "criterion": "pass in at least 4 of 5 seeds (prereg); RESULT_P3.md records 5 of 5",
+          "value": true,
+          "value_text": "true",
+          "value_label": "E1 pass, seed 10",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v1",
+          "evidence": {
+            "path": "artifacts/etudes/papers/jansenrit1995/score/p3_v1_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd/artifacts/etudes/papers/jansenrit1995/score/p3_v1_score.json",
+            "sha256": "ca0c9d750aceaed68d6d251fb715c77cf82bacb45193ad7ba7d586e066e5640b"
+          }
+        },
+        {
+          "id": "E2",
+          "group": "Fig. 3, seed 10",
+          "claim": "alpha sharpens: osc at C = 135 exceeds osc at C = 128",
+          "estimand": "osc(135) > osc(128), seed 10",
+          "criterion": "pass in at least 4 of 5 seeds (prereg); RESULT_P3.md records 5 of 5",
+          "value": true,
+          "value_text": "true",
+          "value_label": "E2 pass, seed 10",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v1",
+          "evidence": {
+            "path": "artifacts/etudes/papers/jansenrit1995/score/p3_v1_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd/artifacts/etudes/papers/jansenrit1995/score/p3_v1_score.json",
+            "sha256": "ca0c9d750aceaed68d6d251fb715c77cf82bacb45193ad7ba7d586e066e5640b"
+          }
+        },
+        {
+          "id": "E3",
+          "group": "Fig. 3, seed 10",
+          "claim": "spike-wave slows with C: peak frequency at C = 675 below that at C = 270",
+          "estimand": "f(675) < f(270), seed 10",
+          "criterion": "pass in at least 4 of 5 seeds (prereg); RESULT_P3.md records 5 of 5",
+          "value": true,
+          "value_text": "true",
+          "value_label": "E3 pass, seed 10",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v1",
+          "evidence": {
+            "path": "artifacts/etudes/papers/jansenrit1995/score/p3_v1_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd/artifacts/etudes/papers/jansenrit1995/score/p3_v1_score.json",
+            "sha256": "ca0c9d750aceaed68d6d251fb715c77cf82bacb45193ad7ba7d586e066e5640b"
+          }
+        },
+        {
+          "id": "E4",
+          "group": "Fig. 3, seed 10",
+          "claim": "EEG level: mean EEG at C = 135 between 5 and 10 mV",
+          "estimand": "mean EEG at C = 135, seed 10 (units mV, inferred in the prereg)",
+          "criterion": "5 to 10 mV; pass in at least 4 of 5 seeds (prereg); RESULT_P3.md records 5 of 5",
+          "value": true,
+          "value_text": "true",
+          "value_label": "E4 pass, seed 10",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": null,
+          "reference_text": "—",
+          "prereg": "P3 v1",
+          "evidence": {
+            "path": "artifacts/etudes/papers/jansenrit1995/score/p3_v1_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd/artifacts/etudes/papers/jansenrit1995/score/p3_v1_score.json",
+            "sha256": "ca0c9d750aceaed68d6d251fb715c77cf82bacb45193ad7ba7d586e066e5640b"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Fig. 3 waveform, noise hold and integrator are not scored; the paper gives no step size or run length (SOURCE_P1.md)."
+      ],
+      "verdict_summary": {
+        "kind": "paper",
+        "paper": null,
+        "library": null,
+        "methods": null,
+        "failed_criteria": [],
+        "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
+      }
+    },
+    {
       "id": "vogels2011",
       "title": "Vogels et al. 2011, Fig. 4 (inhibitory STDP balancing a recurrent network) and Figs. 1-2 (single-cell detailed balance)",
       "citation": "Vogels et al., Science 334(6062):1569-1573",
@@ -6806,6 +6991,105 @@
       }
     },
     {
+      "id": "granger-geweke",
+      "title": "Core checks of the spectral Granger causality in jaxfne.analysis",
+      "citation": "Geweke 1982, JASA 77:304-313 (spectral Granger causality from a fitted VAR)",
+      "class": "core method",
+      "question": "Does granger_spectral recover the analytic spectral Granger causality of a known VAR(1), and read the reverse direction near zero?",
+      "page": null,
+      "release": "0.5.10",
+      "tier": "T-jaxfne",
+      "stage": null,
+      "grammar": [
+        "Probe"
+      ],
+      "lane": {
+        "branch": "dev",
+        "sha": "6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Two agreements of granger_spectral, scored from the inputs of tests/test_granger_spectral.py: the x -> y spectrum of a VAR(1) against the analytic Geweke ratio at 5, 10 and 40 Hz (worst relative error against 0.05), and the y -> x spectrum of the same fixture against 0.01. Geweke's time-domain identity is not scored: granger.py has no time-domain GC.",
+      "preregs": [],
+      "criteria": [
+        {
+          "id": "spectral-gc-var1",
+          "group": "",
+          "claim": "x -> y spectral GC of a VAR(1) equals the analytic Geweke ratio",
+          "estimand": "worst relative error of gc_xy against ln(S_yy / (S_yy - |H_yx|^2)) at 5, 10, 40 Hz (n 200 000, seed 11)",
+          "criterion": "relative error ≤ 0.05",
+          "value": 0.003508509951688567,
+          "value_text": "0.00351",
+          "value_label": "max relative error",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "ln(S_yy / (S_yy - |H_yx|^2)) of the VAR(1) with A1 = [[0.5, 0], [0.6, 0.5]], Sigma = I, H = (I - A1 z)^-1, at 5, 10, 40 Hz (n 200000, seed 11; relative)",
+          "reference_text": "ln(S_yy / (S_yy - |H_yx|^2)) of the VAR(1) with A1 = [[0.5, 0], [0.6, 0.5]], Sigma = I, H = (I - A1 z)^-1, at 5, 10, 40 Hz (n 200000, seed 11; relative)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/granger/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd/artifacts/etudes/core_checks/granger/score.json",
+            "sha256": "9a811e676dcf2f9d0d26c4405a557aa3f3ecc69987a0c19e7604ec5d99837e92"
+          }
+        },
+        {
+          "id": "reverse-direction-near-zero",
+          "group": "",
+          "claim": "the y -> x spectrum of the x -> y fixture reads near zero",
+          "estimand": "max gc_yx at 5, 10, 40 Hz on the same fixture",
+          "criterion": "max gc_yx < 0.01",
+          "value": 7.919017217835303e-06,
+          "value_text": "7.92e-06",
+          "value_label": "max gc_yx",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "reference": "y -> x spectrum of the x -> y fixture reads zero: max gc_yx at 5, 10, 40 Hz (absolute)",
+          "reference_text": "y -> x spectrum of the x -> y fixture reads zero: max gc_yx at 5, 10, 40 Hz (absolute)",
+          "prereg": null,
+          "evidence": {
+            "path": "artifacts/etudes/core_checks/granger/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd/artifacts/etudes/core_checks/granger/score.json",
+            "sha256": "9a811e676dcf2f9d0d26c4405a557aa3f3ecc69987a0c19e7604ec5d99837e92"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No paper values: analytic agreements of a core method, not a replication.",
+        "Geweke's time-domain identity is not scored: jaxfne/analysis/granger.py has no time-domain GC function."
+      ],
+      "verdict_summary": {
+        "kind": "core_method",
+        "paper": null,
+        "library": null,
+        "methods": "pass",
+        "failed_criteria": [],
+        "pending_criteria": []
+      },
+      "replica": {
+        "score": null,
+        "panels": 0,
+        "excluded": 0,
+        "counts": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 0,
+          "not run": 0
+        },
+        "same_as": null,
+        "scope": null,
+        "items": []
+      }
+    },
+    {
       "id": "plasticity-hand-values",
       "title": "Hand-value plasticity checks of the jaxfne core",
       "citation": "Vogels et al., Science 334(6062):1569-1573; docs/guides/state/hdp.md (barrier equilibrium); protocol D2a F1 relaxation",
@@ -7572,33 +7856,28 @@
     }
   ],
   "overview": {
-    "papers": 13,
+    "papers": 14,
     "by_paper": {
       "mixed": 1,
       "in progress": 5,
       "pending": 6,
-      "reproduced (conditional)": 1
+      "reproduced (conditional)": 2
     },
     "criteria": {
-      "pass": 38,
+      "pass": 42,
       "fail": 37,
       "pending": 0
     },
     "core_methods": {
-      "rows": 7,
+      "rows": 8,
       "criteria": {
-        "pass": 46,
+        "pass": 48,
         "fail": 0,
         "pending": 0
       }
     }
   },
   "roadmap": [
-    {
-      "release": "0.5.10",
-      "model": "Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns",
-      "needs": "P3 v1 scored PASS 5 of 5 (jansenrit1995/RESULT_P3.md); a dashboard entry"
-    },
     {
       "release": "0.5.11",
       "model": "Lee, Pennartz and Mejias, PLoS Comput Biol 2025: Fig. 6 interneuron silencing",
@@ -8099,9 +8378,9 @@
       "reference": "Jansen, B. H., & Rit, V. G. (1995). Electroencephalogram and visual evoked potential generation in a mathematical model of coupled cortical columns. *Biological Cybernetics* 73(4), 357-366.",
       "doi": "10.1007/BF00199471",
       "result": "Alpha-rhythm EEG and the visual evoked potential from the coupled-column neural mass",
-      "status": "in progress",
+      "status": "reproduced (conditional)",
       "status_note": null,
-      "where": "Source record read (P1); the neural-mass emitter is in the core. Opens the EEG/MEG lane (Hamm 2026-10-20)"
+      "where": "[Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/jansenrit1995), `artifacts/etudes/papers/jansenrit1995/`. The neural-mass emitter is in the core. Opens the EEG/MEG lane (Hamm 2026-10-20)"
     }
   ],
   "audit": {

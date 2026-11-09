@@ -801,6 +801,54 @@
       "open": ["Supplementary Tables 1-3 not yet machine-read; publisher supplement links unverified.", "Leak reversal unstated in the paper; NEST default or authors' code must settle it.", "Thalamic transient protocol and Fig. 10/11 propagation claims deferred past P1."]
     },
     {
+      "id": "jansenrit1995",
+      "title": "Jansen and Rit 1995, Fig. 3 (regime sequence of the single-column model across the C sweep)",
+      "citation": "Jansen and Rit, Biol Cybern 73(4):357-366 (1995)",
+      "class": "reproduced (conditional)",
+      "question": "Does the jaxfne Jansen-Rit emitter reproduce the Fig. 3 regime sequence of the single column across the C sweep, the alpha sharpening between C = 128 and C = 135, the spike-wave slowing between C = 270 and C = 675, and the EEG level at C = 135?",
+      "page": "models/jansenrit1995.md",
+      "release": "0.5.10",
+      "tier": "T-jaxfne",
+      "stage": "P3",
+      "lane": {
+        "branch": "dev",
+        "sha": "6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd"
+      },
+      "stage_artifacts": {
+        "P1": [{"label": "source record", "path": "artifacts/etudes/papers/jansenrit1995/SOURCE_P1.md"}],
+        "P3": [{"label": "prereg v1 (signed)", "path": "artifacts/etudes/papers/jansenrit1995/prereg/P3_v1_signed.md"},
+               {"label": "result", "path": "artifacts/etudes/papers/jansenrit1995/RESULT_P3.md"},
+               {"label": "scores", "path": "artifacts/etudes/papers/jansenrit1995/score/p3_v1_score.json"}]
+      },
+      "verdict_note": "Conditional: owner decision 2 of the signed prereg (ruled as drafted) replaces the paper's unstated noise hold and RKF45 with a 2 ms hold and RK4 at dt 0.1 ms. The pass holds under that declared hold and integrator only.",
+      "summary": "P3 v1 scored PASS on 5 of 5 seeds (10 to 14) against the signed prereg, rule at least 4 of 5. Under the declared 2 ms noise hold and RK4 at dt 0.1 ms, the standard set reproduces the regime class, dominant frequency and EEG level of Fig. 3. The paper's waveform, hold and integrator are not scored.",
+      "preregs": [
+        {"id": "P3 v1", "signed": "2026-11-08", "path": "artifacts/etudes/papers/jansenrit1995/prereg/P3_v1_signed.md"}
+      ],
+      "files": {
+        "main": "artifacts/etudes/papers/jansenrit1995/score/p3_v1_score.json"
+      },
+      "criteria": [
+        {"id": "E1", "group": "Fig. 3, seed 10", "claim": "class per C matches noise, alpha, alpha, spike-wave, spike-wave, noise at C = 68, 128, 135, 270, 675, 1350", "estimand": "class per C, seed 10 (seed 10 only; see the prereg rule)", "criterion": "pass in at least 4 of 5 seeds (prereg); RESULT_P3.md records 5 of 5",
+         "value": {"file": "main", "key": "seeds.0.criteria.E1"}, "unit": "", "value_label": "E1 pass, seed 10",
+         "verdict": {"file": "main", "key": "seeds.0.criteria.E1"}, "prereg": "P3 v1"},
+        {"id": "E2", "group": "Fig. 3, seed 10", "claim": "alpha sharpens: osc at C = 135 exceeds osc at C = 128", "estimand": "osc(135) > osc(128), seed 10", "criterion": "pass in at least 4 of 5 seeds (prereg); RESULT_P3.md records 5 of 5",
+         "value": {"file": "main", "key": "seeds.0.criteria.E2"}, "unit": "", "value_label": "E2 pass, seed 10",
+         "verdict": {"file": "main", "key": "seeds.0.criteria.E2"}, "prereg": "P3 v1"},
+        {"id": "E3", "group": "Fig. 3, seed 10", "claim": "spike-wave slows with C: peak frequency at C = 675 below that at C = 270", "estimand": "f(675) < f(270), seed 10", "criterion": "pass in at least 4 of 5 seeds (prereg); RESULT_P3.md records 5 of 5",
+         "value": {"file": "main", "key": "seeds.0.criteria.E3"}, "unit": "", "value_label": "E3 pass, seed 10",
+         "verdict": {"file": "main", "key": "seeds.0.criteria.E3"}, "prereg": "P3 v1"},
+        {"id": "E4", "group": "Fig. 3, seed 10", "claim": "EEG level: mean EEG at C = 135 between 5 and 10 mV", "estimand": "mean EEG at C = 135, seed 10 (units mV, inferred in the prereg)", "criterion": "5 to 10 mV; pass in at least 4 of 5 seeds (prereg); RESULT_P3.md records 5 of 5",
+         "value": {"file": "main", "key": "seeds.0.criteria.E4"}, "unit": "", "value_label": "E4 pass, seed 10",
+         "verdict": {"file": "main", "key": "seeds.0.criteria.E4"}, "prereg": "P3 v1"}
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Fig. 3 waveform, noise hold and integrator are not scored; the paper gives no step size or run length (SOURCE_P1.md)."
+      ]
+    },
+    {
       "id": "vogels2011",
       "title": "Vogels et al. 2011, Fig. 4 (inhibitory STDP balancing a recurrent network) and Figs. 1-2 (single-cell detailed balance)",
       "citation": "Vogels et al., Science 334(6062):1569-1573",
@@ -1276,6 +1324,74 @@
       "open": [
         "No paper values: analytic and hand-formula agreements of a core method, not a replication.",
         "cable-filter-transfer is scored against the exact discrete-time response of the realised one-pole cascade, not the continuous RC transfer."
+      ]
+    },
+    {
+      "id": "granger-geweke",
+      "title": "Core checks of the spectral Granger causality in jaxfne.analysis",
+      "citation": "Geweke 1982, JASA 77:304-313 (spectral Granger causality from a fitted VAR)",
+      "class": "core method", "grammar": ["Probe"],
+      "question": "Does granger_spectral recover the analytic spectral Granger causality of a known VAR(1), and read the reverse direction near zero?",
+      "release": "0.5.10",
+      "tier": "T-jaxfne",
+      "lane": {
+        "branch": "dev",
+        "sha": "6b2a9fd3fd9e10cc3eb9186c1aaf2b54ff9bbbcd"
+      },
+      "summary": "Two agreements of granger_spectral, scored from the inputs of tests/test_granger_spectral.py: the x -> y spectrum of a VAR(1) against the analytic Geweke ratio at 5, 10 and 40 Hz (worst relative error against 0.05), and the y -> x spectrum of the same fixture against 0.01. Geweke's time-domain identity is not scored: granger.py has no time-domain GC.",
+      "preregs": [],
+      "files": {
+        "main": "artifacts/etudes/core_checks/granger/score.json"
+      },
+      "criteria": [
+        {
+          "id": "spectral-gc-var1",
+          "entry": "spectral_gc_var1",
+          "claim": "x -> y spectral GC of a VAR(1) equals the analytic Geweke ratio",
+          "estimand": "worst relative error of gc_xy against ln(S_yy / (S_yy - |H_yx|^2)) at 5, 10, 40 Hz (n 200 000, seed 11)",
+          "criterion": "relative error ≤ 0.05",
+          "value": {
+            "file": "main",
+            "key": "checks.spectral_gc_var1.error"
+          },
+          "unit": "",
+          "value_label": "max relative error",
+          "verdict": {
+            "file": "main",
+            "key": "checks.spectral_gc_var1.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.spectral_gc_var1.reference"
+          }
+        },
+        {
+          "id": "reverse-direction-near-zero",
+          "entry": "reverse_direction_near_zero",
+          "claim": "the y -> x spectrum of the x -> y fixture reads near zero",
+          "estimand": "max gc_yx at 5, 10, 40 Hz on the same fixture",
+          "criterion": "max gc_yx < 0.01",
+          "value": {
+            "file": "main",
+            "key": "checks.reverse_direction_near_zero.error"
+          },
+          "unit": "",
+          "value_label": "max gc_yx",
+          "verdict": {
+            "file": "main",
+            "key": "checks.reverse_direction_near_zero.pass"
+          },
+          "reference": {
+            "file": "main",
+            "key": "checks.reverse_direction_near_zero.reference"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No paper values: analytic agreements of a core method, not a replication.",
+        "Geweke's time-domain identity is not scored: jaxfne/analysis/granger.py has no time-domain GC function."
       ]
     },
     {
@@ -1885,7 +2001,6 @@
     }
   ],
   "roadmap": [
-    {"release": "0.5.10", "model": "Jansen and Rit 1995: EEG and visual evoked potentials from coupled columns", "needs": "P3 v1 scored PASS 5 of 5 (jansenrit1995/RESULT_P3.md); a dashboard entry"},
     {"release": "0.5.11", "model": "Lee, Pennartz and Mejias, PLoS Comput Biol 2025: Fig. 6 interneuron silencing", "needs": "a ReLU rate transfer and Hebbian training; Fig. 7 motif search first (lee2025/NOTES.md)"},
     {"release": "0.5.11", "model": "Mazzoni et al. 2015: Fig. 5 reference weighted-sum LFP proxy", "needs": "a multicompartment reference LFP (Dryad deposit, or jaxfne kernel LFP declared as substitute); Fig. 7C first (mazzoni2015/NOTES.md)"},
     {"release": "after 0.5.10", "model": "PCL Fig. 4: suppression effects", "needs": "PCL Fig. 3 scored (R5-approximate, 0.5.10)"},
