@@ -44,7 +44,7 @@ requested and actual dtype policy.
   spiked one delay earlier (capacity tiers, the all-edges sum when a step overflows them), so a step
   costs about (spiking sources) x (max out-degree) instead of the edge count. When the edge list is
   sorted by presynaptic cell within each target (`metadata["edge_delivery"]["order_exact"]`), the
-  run is bit-identical to `"all_edges"`; otherwise per-target sums may differ by rounding.
+  run is bit-identical to `"all_edges"` on CPU; otherwise per-target sums may differ by rounding.
 - `synaptic_kernel` (str): `"exponential"` | `"receptor_exponential"`
   (`"receptor_exponential"` requires `recurrent_backend="edge_list"`)
 - `recompilation_guard` (str): `"warning"` | `"exception"` | `"off"`

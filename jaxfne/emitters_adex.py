@@ -764,7 +764,9 @@ def _event_delivery(src, n_src, seg, absw, gain_mask, n_out, dtype):
     the all-edges sum adds them in edge index order. ``info["order_exact"]`` is
     True when the two orders agree for every target (along edge index, the
     sources reaching one target never decrease); the sums are then
-    bit-identical, otherwise they may differ by rounding.
+    bit-identical on CPU, where XLA scatter-adds in update order (unordered
+    GPU atomics make neither path deterministic); otherwise they may differ by
+    rounding.
     """
     src = np.asarray(src, dtype=np.int64)
     seg = np.asarray(seg, dtype=np.int64)
@@ -1018,7 +1020,7 @@ def simulate_adex(
     steps earlier, in capacity tiers with the all-edges sum as the overflow
     tier (:func:`_event_delivery`), and returns ``event_delivery`` (tiers,
     max out-degree, source count, ``order_exact``). With ``order_exact`` True
-    the two are bit-identical; otherwise they may differ in rounding of the
+    the two are bit-identical on CPU; otherwise they may differ in rounding of the
     per-target sum. Delay-0 fixed-point rounds read all ``edge0_*`` edges
     under both.
 
@@ -1376,7 +1378,9 @@ def simulate_adex(
     lag_j = jnp.asarray(delay_eff, jnp.int32)
     deliver = None
     event_info = None
-    if edge_delivery == "event" and E:
+    if edge_delivery == "event" and not E:
+        event_info = {"tiers": [], "max_out_degree": 0, "n_sources": 0, "order_exact": True}
+    elif edge_delivery == "event":
         # One source per distinct (pre, delay) pair, active at step t when its cell
         # spiked delay steps earlier. Pre-major keys keep a pre-sorted edge list
         # in its own per-target order (order_exact).

@@ -18,12 +18,15 @@ DT_MS = 0.1
 
 
 def _random_edges(seed, n_src, n_out, n_edges, sort_by_src):
+    """Edges sorted by (target, source) when ``sort_by_src``: order_exact holds and the CSR
+    permutation is far from the identity."""
     rng = np.random.default_rng(seed)
     src = rng.integers(0, n_src, n_edges)
     seg = rng.integers(0, n_out, n_edges)
     if sort_by_src:
-        order = np.argsort(src, kind="stable")
+        order = np.lexsort((src, seg))
         src, seg = src[order], seg[order]
+        assert (np.diff(src) < 0).any(), "fixture: CSR permutation is not the identity"
     w = rng.uniform(0.1, 5.0, n_edges)
     return src, seg, w
 
@@ -123,6 +126,16 @@ def test_kernel_event_unsorted_edges_reports_inexact_order():
     params, kw = _net(shuffle=True)
     got = simulate_adex(params, n_steps=200, **kw, edge_delivery="event")
     assert got["event_delivery"]["order_exact"] is False
+
+
+def test_kernel_event_without_edges_records_mode():
+    params, kw = _net(N=20)
+    for k in ("edge_pre", "edge_post", "edge_weight_nS", "edge_receptor", "edge_delay_steps"):
+        kw.pop(k)
+    ref = simulate_adex(params, n_steps=50, **kw)
+    got = simulate_adex(params, n_steps=50, **kw, edge_delivery="event")
+    assert got["event_delivery"]["n_sources"] == 0
+    assert np.array_equal(np.asarray(got["spikes"]), np.asarray(ref["spikes"]))
 
 
 def test_kernel_refuses_unknown_delivery():
