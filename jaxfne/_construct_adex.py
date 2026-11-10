@@ -46,6 +46,8 @@ ADEX_CONSUMED = (
     # Simulation.__post_init__ refuses a conflicting value).
     ("RuntimeConfig", "seed"),
     ("RuntimeConfig", "n_steps"),
+    # edge_delivery selects the kernel's delayed-edge sum (simulate_adex(edge_delivery=)).
+    ("RuntimeConfig", "edge_delivery"),
     # network(): name labels the run (signals.metadata["network"]); n and cell_types set the
     # population; connectivity(edge_seed=) is copied onto the first network.
     ("Configuration", "networks", "*", "name"),

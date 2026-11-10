@@ -80,6 +80,9 @@ class RuntimeConfig:
     seed: int = 0
     n_steps: int = 0
     recurrent_backend: str = "dense"  # "dense" | "edge_list"
+    # "all_edges" | "event": AdEx delayed-edge delivery (jaxfne.emitters_adex.simulate_adex);
+    # "event" sums only the spiking sources' out-edges and is refused on every other route.
+    edge_delivery: str = "all_edges"
     synaptic_kernel: str = "exponential"  # "exponential" | "receptor_exponential"
     recompilation_guard: str = "warning"  # "warning" | "exception" | "off"
     enable_homeostasis: bool = False  # Enable per-neuron homeostatic resource
@@ -117,6 +120,10 @@ class RuntimeConfig:
             raise ValueError(
                 f"synaptic_kernel must be one of {_ALLOWED_SYNAPTIC_KERNELS}; "
                 f"got {self.synaptic_kernel!r}"
+            )
+        if self.edge_delivery not in ("all_edges", "event"):
+            raise ValueError(
+                f"edge_delivery must be 'all_edges' or 'event'; got {self.edge_delivery!r}"
             )
         if self.recompilation_guard not in {"warning", "exception", "off"}:
             raise ValueError(
