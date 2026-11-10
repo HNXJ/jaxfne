@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2536 raise sites in 120 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2539 raise sites in 120 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -470,6 +470,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `recurrent_backend={...} cannot be realized: {...}. Drop the explicit recurrent_backend, or set recur` |
 | `ValueError` | `synaptic_kernel='receptor_exponential' runs only on recurrent_backend='edge_list'; the dense backend` |
 | `ValueError` | `RuntimeConfig(surrogate=...) is realized on the dense Izhikevich default-order route only; this run ` |
+| `ValueError` | `RuntimeConfig(edge_delivery={...}) is realized on the serial AdEx simulate route only; this run take` |
 | `ValueError` | `{...} edge(s) compiled from connections() rules are not carried by the dense backend (it runs on emi` |
 | `ValueError` | `ensemble model_sizes sum to {...} but the emitter carries {...} neurons` |
 | `ValueError` | `Simulation.gaussian_drive is realized only on the Izhikevich construct routes; emitter route {...} t` |
@@ -655,6 +656,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | Class | Message |
 |---|---|
 | `ValueError` | `synaptic_kernel must be one of {...}; got {...}` |
+| `ValueError` | `edge_delivery must be 'all_edges' or 'event'; got {...}` |
 | `ValueError` | `recompilation_guard must be one of {'warning', 'exception', 'off'}; got {...}` |
 | `ValueError` | `jit must be a boolean or 'auto'; got {...}` |
 | `ValueError` | `vmap must be a boolean or 'auto'; got {...}` |
@@ -1201,6 +1203,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `decay must be 'exp' or 'euler', got {...}` |
 | `ValueError` | `n_steps must be a positive integer, got {...}` |
 | `ValueError` | `dt_ms must be > 0, got {...}` |
+| `ValueError` | `edge_delivery must be one of {...}, got {...}` |
 | `ValueError` | `spike_out_onset_step without spike_out_mask is not realized: got onset {...} with no mask -- pass bo` |
 | `ValueError` | `spike_out_mask must be a bool array of shape ({...},); got dtype {...}` |
 | `ValueError` | `spike_out_mask must be a bool array of shape ({...},); got shape {...}` |
