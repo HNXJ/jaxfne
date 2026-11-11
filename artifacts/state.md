@@ -1,65 +1,40 @@
 # state
 
-Stamp: jaxfne@dev@9020f50e · 2026-11-09 (broad on 9020f50e: 8263 passed, 0 failed, all lanes PASS, replication audit 0 unlisted; outside review ACCEPT) · checklist 0.5.10: 24/100
-OCMA round 3 (first work-mode swarm, HNXJ/ocma `cases/jaxfne/council/r3/`): audit_rows fix merged (0f350a1e);
-three read inventories recorded on todo T-B1, T-30, T-46.
-OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling, glossary and
-ratings in HNXJ/ocma `cases/jaxfne/`, config `configs/ocma-jaxfne.json`.
+Stamp: jaxfne@dev@22adb682 · 2026-11-10. Last broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed, all lanes PASS, replication audit 0 unlisted; outside review ACCEPT). No gate run on 22adb682 yet. Checklist 0.5.10: 24/100.
+Working checkout `E:/repos/jaxfne` was absent on 2026-11-10; this fresh clone (`E:/repos/jaxfne-r4-clone`, dev) holds the stack commit.
+OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling and ratings in HNXJ/ocma `cases/jaxfne/`.
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
 ## Works (with evidence)
 
-- 0.5.9 published 2026-11-04: tag v0.5.9 on main e0160dfc, Release, PyPI (hashes equal to the Release CI dist);
-  `artifacts/release/v0_5_9_release_receipt.json`. Checklist 100/100 (`etudes/meta/plans/release_plan_0.5.9-0.6.0.md`).
-  Main needed two extras fixes after the candidate (PyYAML in dev, Markdown in viz; PRs #121, #122), both on dev.
-- Signed and scored 2026-11-02, each as its pilots predicted: Potjans P3 v2 off, Vogels P3 v4 off on R-E (in S12),
-  Destexhe P3 v3 FAIL 0 of 5 (`RESULT_P3.md` in each lane; Destexhe CALIBRATION step 7). GSDR P3 fit FAIL
-  (2026-11-01); GSDR stays open until precisely replicated (Hamm 2026-11-02).
-- CAMINOS Cell Reports Fig S1 scored (`caminos/RESULT_FIGURES.md`); core route landed (fc0e13df: `run_cell(route=)`,
-  `FIGA_ROUTE`); equivalence criterion declared before the core output was read (f54c022c).
-- PCL R3: `run_r2_reference.py chain` (6b10132a). Oracle arm equals the C++ chain on training files 0-4, exact at
-  rtol 1e-12, max relative weight difference 7.4e-15 (`F:/warehouse/pcl/r3_oracle_f0_4/`).
-- P-BALANCED ported for 0.5.10 (e179a2d0..9dd1c111; Hamm 2026-11-05): `BackgroundNoise`, `NeuronalTensor.baseline_drive`
-  and `background_noise` (preset noise in `cfg.metadata["background_noise"]`), balanced-1000n preset retuned under
-  the unchanged bounds (seeds 0-4: CV 0.742-0.755, shift 0.236-0.257); canonical CV pin 0.0585 (1680659e re-pinned it).
-- Landed 2026-11-06 evening (f0489d18..1e7ee1e5): HH seed refusal test; homeostatic_ei stable x bounds from construct
-  (±10); B1 baseline scripts; tree budget 96.1 MB. jnwb 16-12 isi_cv on jnwb `_temp_jaxfne-16e` (5fa63dd3,
-  accepted); keep `E:/cl-jnwb16e` until jnwb-orchestrator confirms its pick.
-- Landed 2026-11-07 (1e7ee1e5..8516c721): B1 M3 harness fix; Jansen-Rit P1 record, P3 v1 draft and driver (O-92);
-  PLoS Fig 5A producer, sustained-cycle test and panel. Broad 8238 passed, 2 load timeouts (passed alone); 9 lanes PASS.
-- 2026-11-07 (b24f7a07..): match-check fixes; O-93 (Hamm): T_v code form = declared variant `tv_form="code"`
-  (8a6ccfc4), printed default; code form gives SOM->SOM 1.6/1.7 nS, 35.0 Hz (`caminos/RESULT_MEANFIELD.md`).
-- 2026-11-08: Jansen-Rit P3 v1 signed and scored, PASS 5 of 5 (`jansenrit1995/RESULT_P3.md`); B1 M3 amended to the
-  built class (drives still differ); A3 scored, permutation to 0.5.11. Checklist 0.5.10: 24/100 (D2 on P3, O-94 option 1, Hamm).
+- 0.5.9 published 2026-11-04: tag v0.5.9 on main e0160dfc; `artifacts/release/v0_5_9_release_receipt.json`; checklist 100/100.
+- P3 scored 2026-11-02: Potjans v2 off, Vogels v4 off (S12), Destexhe v3 FAIL 0 of 5. GSDR P3 fit FAIL 2026-11-01; GSDR stays open until replicated.
+- CAMINOS Fig S1 scored (`caminos/RESULT_FIGURES.md`); core route fc0e13df; equivalence criterion declared at f54c022c.
+- PCL R3 chain (6b10132a): oracle arm equals the C++ chain on files 0-4, exact at rtol 1e-12.
+- P-BALANCED ported for 0.5.10 (e179a2d0..9dd1c111); canonical CV pin 0.0585 (1680659e).
+- 2026-11-06..08: HH seed refusal test; homeostatic_ei stable bounds; B1 scripts and M3 fix; Jansen-Rit P3 v1 PASS 5 of 5 (`jansenrit1995/RESULT_P3.md`); PLoS Fig 5A producer and sustained-cycle test; T_v code form declared as variant `tv_form="code"` (8a6ccfc4); A3 scored, permutation moved to 0.5.11.
 
 ## Broken or in flight
 
-- CAMINOS E1 at n 12 (2026-11-03): not equivalent, 20 of 24 cells (`caminos/RESULT_FIGURES.md`); Hamm kept the oracle (2026-11-03).
-- PCL R3 done 2026-11-03: core arm equals the C++ after file 0 (`pcl/CALIBRATION.md` R3); R4b signed by Hamm 2026-11-03; R5-exact FAIL, 4 of 16 files (`pcl/prereg/P3_fig3_r5_exact_result.md`, P-055).
-- Papers are never "failed" through 0.6 (Hamm 2026-11-03): pending until a failure is proven; criteria may fail.
+- CAMINOS E1 at n 12: not equivalent, 20 of 24 cells (`caminos/RESULT_FIGURES.md`); oracle kept (Hamm 2026-11-03).
+- PCL R5-exact FAIL, 4 of 16 files (P-055, `pcl/prereg/P3_fig3_r5_exact_result.md`). R5-approximate resumed 2026-11-06; 2860 of 3168 done at 2026-11-07 22:18Z (finish about 2026-11-08 10Z, inferred). Its driver logs `rc=$?` after `$(stamp)`, so the logged rc is always 0: judge the run by its output files. Its workers hold the CPU, so broad gates time out 17 example subprocesses until it ends.
 - P-053 (PCL scan vs oracle gap on sparse weights, unreproduced); P-056 (kernel-LFP deep-layer power < 0.5% of L2/3).
-- R5-approximate resumed detached 2026-11-06 16:54Z: 2860 of 3168 tasks (777 of 1085 since the resume) at
-  2026-11-07 22:18Z; finish about 2026-11-08 10Z (inferred). Its driver logs `rc=$?` after `$(stamp)`, so the
-  logged rc is always 0: judge the run by its output files. Its 20 workers hold the CPU at 100%: broad gates
-  time out 17 example subprocesses (120 s) until it ends; re-run them alone.
+- Papers are never "failed" through 0.6 (Hamm 2026-11-03).
 - Tooling: Cursor write fails at launch (read works); Muse code workers may exit early (resume with `--session`).
 
 ## Open decisions for the owner
 
-`open_stack.md` empty; O-85, O-86, O-87 ruled and O-89 done 2026-11-08 (todo 24, 26, 32, 14);
-O-88, O-90, O-91, O-92 taken on Hamm's standing go 2026-11-08 (recommended options); NeuroAI code link
-(anonymous.4open.science mirror, Hamm's act). `origin/_temp_kernel-lfp` (ff45364b, 3 patches not in dev); plain `kernel-lfp`
-deleted 2026-11-07 (Hamm). Vmac leftovers backed up to 7 origin `_temp_` branches, then dropped (Hamm 2026-11-07).
+`open_stack.md` has no items. Ruled 2026-11-08: O-85, O-86, O-87; O-89 done; O-88, O-90, O-91, O-92 on standing go. Waiting on Hamm: the NeuroAI code link (anonymous.4open.science mirror). `origin/_temp_kernel-lfp` (ff45364b, 3 patches not in dev) is kept.
 
 ## Generated files and their checks
 
 | File | Generator | Check |
 |---|---|---|
-| `dashboard/notebooks/*.html`, `index.json` | `scripts/export_dashboard_notebook.py` on an executed suite notebook (data on F:, so local only) | `tests/test_export_dashboard_notebook.py` |
-| `dashboard/data/replications.json` | `scripts/build_dashboard_data.py` | `--check` (CI `Dashboard` workflow) |
-| `dashboard/figures/*.png`, `manifest.json` | `scripts/build_dashboard_figures.py` | `--check` (CI `Dashboard` workflow) |
-| `docs/start/replications.md` | `scripts/generate_replications_page.py` | `--check` (CI `Dashboard` workflow) |
+| `dashboard/notebooks/*.html`, `index.json` | `scripts/export_dashboard_notebook.py` on an executed suite notebook (data on F:, local only) | `tests/test_export_dashboard_notebook.py` |
+| `dashboard/data/replications.json` | `scripts/build_dashboard_data.py` | `--check` (CI `Dashboard`) |
+| `dashboard/figures/*.png`, `manifest.json` | `scripts/build_dashboard_figures.py` | `--check` (CI `Dashboard`) |
+| `docs/start/replications.md` | `scripts/generate_replications_page.py` | `--check` (CI `Dashboard`) |
 | `docs/_static/atlas*/**.html`, two etude dirs' HTML (untracked) | `scripts/build_docs_assets.py --build` | `--check`, `tests/test_build_docs_assets.py` |
 | `docs/start/gallery.md` atlas index | `scripts/generate_gallery.py` | `--check`, `tests/test_generate_gallery.py` |
 | `docs/reference/errors.md` raise-site index | `scripts/generate_errors_index.py` | `--check`, `tests/test_generate_errors_index.py` |
@@ -67,17 +42,11 @@ deleted 2026-11-07 (Hamm). Vmac leftovers backed up to 7 origin `_temp_` branche
 
 ## Environment
 
-- Windows: Python 3.14 runs the broad gate through `suite_lock.py`, one suite at a time. WSL: `~/venv_jaxfne`
-  (CUDA, numba 0.68 added 2026-11-02 for the PCL core arm; each long job in its own `systemd-run` memory cap),
-  `~/venv_jaxfne_gate` (CPU gate); TeX Live 2026 at `~/texlive/cur` (pdfLaTeX for the NeuroAI draft).
-- Large data outside git: `F:/warehouse/{caminos,gsdr,pcl,vogels2011,potjans2014,destexhe2009}/` (receipts named
-  in each result file); PCL training set `F:/warehouse/pcl/data/training_natural/events5_re2/` (from Zenodo
-  `PCL_datasets_and_networks.zip`).
-- NeuroAI 2027 draft: private thesis repo, branch `_temp_neuroai2027`, `artifacts/notes/neuroai2027/`.
+- Windows: Python 3.14; the broad gate runs through `suite_lock.py`, one suite at a time.
+- WSL: `~/venv_jaxfne` (CUDA, numba 0.68), `~/venv_jaxfne_gate` (CPU gate), TeX Live 2026 at `~/texlive/cur`.
+- Large data outside git: `F:/warehouse/{caminos,gsdr,pcl,vogels2011,potjans2014,destexhe2009}/`.
+- NeuroAI 2027 draft: private thesis repo, branch `_temp_neuroai2027`.
 
 ## Next action
 
-CAMINOS suites on the dashboard Notebooks tab (a35aaa9d; each opens with its network run live in jaxfne, Hamm
-2026-11-05); figures on the oracle runs except PLoS Fig 1E (P6). Rasters: `F:/warehouse/caminos/cellrep_rasters/`
-(497e9bb0). Not run: Cell Reports 1A, 1D, 2A/2B bottom, 6A top, 6B; PLoS Fig 3 and 4A mean-field rows. Next:
-re-export the PLoS notebook (Fig 5A cell in, a6f4d867); B1 drive unification then scored runs (T-B1); E1 at R5 end.
+Re-export the PLoS notebook (Fig 5A cell in, a6f4d867); B1 drive unification, then scored runs (T-B1); E1 at R5 end. Run the broad gate on 22adb682 before any stamp that claims green.
