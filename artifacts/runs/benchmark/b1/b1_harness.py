@@ -57,7 +57,8 @@ M1_SCALE_RULE = ("CE=round(0.1*NE), CI=round(0.1*NI) at each N (lane paper defau
 M2_SCALE_RULE = ("4:1 E:I resample of the lane Fig.3 draw at each N (same a/b/c/d "
                  "formulas, W=2S rule via the lane all-to-all weight ranges, same "
                  "noise stds); lane scores N=1000 only")
-M3_SCALE_RULE = "N independent classic-HH single compartments, I_ext=10 uA/cm2 constant"
+M3_SCALE_RULE = ("N independent classic-HH single compartments, I_ext=10 uA/cm2 "
+                 "with OU noise (tau=20 ms, sigma=0.05 unscaled, realized std ~0.05 uA/cm2)")
 
 # Recording maps to the prereg memory controls (simulation-state vs trajectory).
 RECORD_FLAGS = {"full": (True, True), "reduced": (True, False), "off": (False, False)}
@@ -373,7 +374,8 @@ def run_cell(spec: dict) -> dict:
                     else np.zeros((n_steps, n)))
             sources_np = None
             pops = {"cell": list(range(n))}
-            notes.append("M3 OU noise (tau 20 ms, sigma 0.05) keyed per seed; "
+            notes.append("M3 OU noise (tau 20 ms, sigma 0.05 unscaled nominal; "
+                         "realized std ~0.05 uA/cm2, unscaled vs 1000x scaled 50 uA/cm2) keyed per seed; "
                          "warm-up doubles as the compile probe (eager kernel)")
         else:
             t0 = time.perf_counter()

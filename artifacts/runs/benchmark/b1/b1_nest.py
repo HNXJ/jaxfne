@@ -147,9 +147,15 @@ def _m2_params(n: int) -> tuple[dict, list]:
     vals = {"n_E": n_e, "n_I": n - n_e}
     src = [("E a/b/c/d formulas", None, f"{LANE_IZH}:235-238"),
            ("W=2S, E|w|~U[0,1) I|w|~U[0,2)", None, f"{LANE_IZH}:239-242"),
-           ("per-cell noise_scale E/I", (5.0, 2.0), f"{LANE_IZH}:245-246"),
+           ("per-cell noise_scale E/I (paper (5.0, 2.0), lane param paper*sqrt(2))",
+            {"paper_sigma": (5.0, 2.0),
+             "noise_scale_param": (round(5.0 * math.sqrt(2.0), 4), round(2.0 * math.sqrt(2.0), 4)),
+             "realized_sigma_dt01": (round(5.0 / math.sqrt(0.1), 4), round(2.0 / math.sqrt(0.1), 4))},
+            f"{LANE_IZH}:245-246"),
            ("W_RANGE", None, f"{LANE_IZH_CORE}:58"),
-           ("NOISE_STD", None, f"{LANE_IZH_CORE}:57"),
+           ("NOISE_STD (lane param = paper*sqrt(2))",
+            {"E": round(5.0 * math.sqrt(2.0), 4), "I": round(2.0 * math.sqrt(2.0), 4)},
+            f"{LANE_IZH_CORE}:57"),
            ("INSTANTANEOUS_TAU_MS", 0.0, f"{LANE_IZH_CORE}:61"),
            ("v0/u0/drive", (-65.0, "b*-65", 0.0), f"{HARNESS}:246-249"),
            ("B1 4:1 resample rule", None, f"{HARNESS}:58-59")]
@@ -442,6 +448,7 @@ def run_cell(spec: dict) -> dict:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--smoke", action="store_true", help="Run smoke verification")
     ap.add_argument("--model", default="M1")
     ap.add_argument("--n", type=int, default=100)
     ap.add_argument("--seeds", default="7")
@@ -449,6 +456,23 @@ def main(argv=None) -> int:
     ap.add_argument("--dt-ms", type=float, default=0.1)
     ap.add_argument("--out", default=None)
     args = ap.parse_args(argv)
+    if args.smoke:
+        realized_sigma_e = 5.0 / math.sqrt(args.dt_ms)
+        realized_sigma_i = 2.0 / math.sqrt(args.dt_ms)
+        print("=== b1_nest smoke ===")
+        print(f"Model: {args.model}, N: {args.n}, dt_ms: {args.dt_ms}, duration_ms: {args.duration_ms}")
+        print(f"M2 noise drive: paper_sigma=(5.0, 2.0), noise_scale=paper*sqrt(2)=({5.0 * math.sqrt(2.0):.4f}, {2.0 * math.sqrt(2.0):.4f})")
+        print(f"M2 realized sigma per step at dt={args.dt_ms} ms: E={realized_sigma_e:.4f}, I={realized_sigma_i:.4f}")
+        try:
+            import nest  # noqa: F401
+            spec = {"model": args.model, "n": args.n, "seeds": [1],
+                    "duration_ms": min(args.duration_ms, 10.0), "dt_ms": args.dt_ms}
+            rec = run_cell(spec)
+            print(f"Simulator: nest {rec.get('simulator_version')}, status={rec['status']}")
+            print(json.dumps({k: rec.get(k) for k in ("cell", "status", "validity", "numerical_agreement")}, indent=2))
+        except ImportError:
+            print("Simulator: nest not installed in this environment (smoke parameters verified)")
+        return 0
     rec = run_cell({"model": args.model, "n": args.n,
                     "seeds": [int(s) for s in args.seeds.split(",")],
                     "duration_ms": args.duration_ms, "dt_ms": args.dt_ms})

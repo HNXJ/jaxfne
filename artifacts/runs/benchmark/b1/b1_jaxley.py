@@ -3,15 +3,21 @@
 
 Mirrors b1_brian2.run_cell receipt fields; engine differences are explicit in
 ``mismatch``/``unavailable``. Lane sources: jaxfne/emitters_hh.py (:42-55 HH
-densities gNa=120/gK=36/gL=0.3 mS/cm2, E_Na=50/E_K=-77/E_L=-54.378 mV, comp
-area 62.83 um2; :300-317 OU update theta/dt formulation, sigma*sqrt(2*theta);
-:72 spike readout at -20 mV crossings).
+densities gNa=120/gK=36/gL=0.3 mS/cm2, E_Na=50/E_K=-77/E_L=-54.3 mV in lane
+vs Jaxley native HHChannel eLeak=-54.378 mV; comp area 62.83 um2; :300-317 OU
+update theta=1/tau formulation, sigma*sqrt(2*theta); :72 spike readout at
+-20 mV crossings).
 
 N independent classic-HH single compartments (harness M3_SCALE_RULE), each
 driven by its own OU current series (numpy PCG64 stream, seed-derived);
 stimulus mapped density->nA through the 62.83 um2 default-comp area and
 inserted via data_stimulate (whose return value feeds jx.integrate as
 data_stimuli). Jaxley solves in float32 (dtype requested vs used explicit).
+
+Grid default matches PREREG_B1_0510.md (dt=0.1 ms, duration=1000.0 ms, 10,000 steps);
+earlier pilot ran at dt=0.025 / 500 ms. Drive is unified with harness M3:
+constant mu=10.0 uA/cm2 + OU noise (tau=20 ms, sigma=0.05 unscaled nominal;
+realized std ~0.05 uA/cm2; unscaled vs 1000x scaled 50 uA/cm2 documented).
 """
 
 from __future__ import annotations
@@ -38,16 +44,17 @@ PREREG = ROOT / "artifacts" / "runs" / "benchmark" / "prereg" / "PREREG_B1_0510.
 LANE_HH = "jaxfne/emitters_hh.py"
 HARNESS = "artifacts/runs/benchmark/b1/b1_harness.py"
 
-GRID_DURATION_MS = 500.0
-GRID_DT_MS = 0.025
+GRID_DURATION_MS = 1000.0
+GRID_DT_MS = 0.1
 
 HH = {"C_m_uF_cm2": 1.0, "gNa_mS_cm2": 120.0, "gK_mS_cm2": 36.0,
       "gL_mS_cm2": 0.3, "E_Na_mV": 50.0, "E_K_mV": -77.0,
-      "E_L_mV": -54.378, "area_um2": 62.83}
-OU = {"mu": 10.0, "sigma": 5.0, "theta": 1.0}
+      "E_L_mV": -54.378, "E_L_mV_lane": -54.3, "area_um2": 62.83}
+OU = {"mu": 10.0, "sigma": 0.05, "theta": 0.05,
+      "tau_ms": 20.0, "sigma_unscaled": 0.05, "sigma_scaled_1000x": 50.0}
 M3_SCALE_RULE = ("N independent classic-HH single compartments; OU drive "
-                 "mu=10 sigma=5 theta=1 (lane SDE) replaces the harness "
-                 "constant I_ext=10 for lane fidelity (see mismatch)")
+                 "mu=10 uA/cm2, tau=20 ms (theta=0.05 ms^-1), sigma=0.05 uA/cm2 "
+                 "(matching harness unscaled HH_OU_SIGMA_CLIP; lane SDE)")
 
 
 def _git_sha() -> str:
@@ -123,7 +130,7 @@ def _run_single(seed: int, steps: int, dt_ms: float, duration_ms: float):
     from jaxley.channels import HH as HHChannel
 
     rng = np.random.default_rng(int(seed))
-    ou = ou_current(rng, steps, dt_ms)
+    ou = ou_current(rng, steps, dt_ms, mu=OU["mu"], sigma=OU["sigma"], theta=OU["theta"])
     area_cm2 = HH["area_um2"] * 1e-8
     stim_nA = ou * area_cm2 * 1e3
     cell = jx.Cell()
@@ -169,15 +176,17 @@ def run_cell(spec: dict) -> dict:
     notes: list = []
     mismatch = [
         {"item": "drive waveform",
-         "lane": "OU current (this baseline keeps OU for lane fidelity)",
-         "here": "OU mu=10 sigma=5 theta=1 per cell, numpy PCG64 stream",
-         "action": "harness M3_SCALE_RULE pins constant I_ext=10; scored "
-                   "comparison must use one convention"},
-        {"item": "channel kinetics vs lane",
-         "lane": "jaxfne hand HH (emitters_hh.py:42-55)",
-         "here": "Jaxley HH channel (Sterratt et al.; same densities, "
-                 "eLeak -54.3 vs lane -54.378)",
-         "action": "verify single-comp traces before scored use"},
+         "lane": "I_ext=10 uA/cm2 constant + OU noise (tau=20 ms, sigma=0.05)",
+         "here": f"OU mu={OU['mu']} uA/cm2, sigma={OU['sigma']}, tau={OU['tau_ms']} ms (theta={OU['theta']} ms^-1) per cell",
+         "action": "unified with harness: both use I_ext/mu=10, tau=20 ms, sigma=0.05 (realized std ~0.05 uA/cm2; unscaled vs 1000x scaled 50 uA/cm2 documented)"},
+        {"item": "channel kinetics and leak reversal E_L vs lane",
+         "lane": "jaxfne hand HH (emitters_hh.py:42-55, EL_mV=-54.3)",
+         "here": f"Jaxley built-in HHChannel() (Sterratt et al.; same densities, eLeak={HH['E_L_mV']} vs lane {HH['E_L_mV_lane']})",
+         "action": "declared class difference: Jaxley uses its native channel library model class per prereg ('Jaxley\\'s model class')"},
+        {"item": "grid time step and duration vs prereg",
+         "lane": "prereg grid dt=0.1 ms, duration=1000 ms (10,000 steps)",
+         "here": f"dt={dt_ms} ms, duration={duration_ms} ms (default matches prereg 0.1/1000; pilot was 0.025/500)",
+         "action": "matched: default grid settings match PREREG_B1_0510"},
         {"item": "stimulus unit mapping",
          "lane": "current density uA/cm2",
          "here": "density->nA via default-comp area 62.83 um2",
@@ -192,9 +201,9 @@ def run_cell(spec: dict) -> dict:
               {"name": "threshold_mV", "value": -20.0,
                "source": f"{LANE_HH}:72"}]
     equations = {"M3": ("N independent jx.Cell single-comp HH "
-                        "(gNa=120,gK=36,gL=0.3 mS/cm2); OU drive "
-                        "mu=10 sigma=5 theta=1; readout -20mV crossings; "
-                        "delta_t=dt_ms.")}
+                        f"(gNa={HH['gNa_mS_cm2']},gK={HH['gK_mS_cm2']},gL={HH['gL_mS_cm2']} mS/cm2); OU drive "
+                        f"mu={OU['mu']} sigma={OU['sigma']} tau={OU['tau_ms']}ms; readout -20mV crossings; "
+                        f"delta_t={dt_ms}ms.")}
 
     def run_once(seed: int):
         t0 = time.perf_counter()
@@ -308,12 +317,25 @@ def run_cell(spec: dict) -> dict:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--smoke", action="store_true", help="Run smoke verification")
     ap.add_argument("--n", type=int, default=1)
     ap.add_argument("--seeds", default="7")
-    ap.add_argument("--duration-ms", type=float, default=100.0)
-    ap.add_argument("--dt-ms", type=float, default=0.025)
+    ap.add_argument("--duration-ms", type=float, default=GRID_DURATION_MS)
+    ap.add_argument("--dt-ms", type=float, default=GRID_DT_MS)
     ap.add_argument("--out", default=None)
     args = ap.parse_args(argv)
+    if args.smoke:
+        print("=== b1_jaxley smoke ===")
+        print(f"Model: M3, N: {args.n}, dt_ms: {args.dt_ms}, duration_ms: {args.duration_ms}")
+        print(f"Drive: OU mu={OU['mu']} uA/cm2, tau={OU['tau_ms']} ms (theta={OU['theta']} ms^-1), "
+              f"sigma={OU['sigma']} uA/cm2 (unscaled nominal; 1000x scaled is {OU['sigma_scaled_1000x']} uA/cm2)")
+        print(f"Parameters: E_L={HH['E_L_mV']} mV (Jaxley default) vs lane {HH['E_L_mV_lane']} mV; native HHChannel kinetics")
+        spec = {"model": "M3", "n": args.n, "seeds": [1],
+                "duration_ms": min(args.duration_ms, 10.0), "dt_ms": args.dt_ms}
+        rec = run_cell(spec)
+        print(f"Simulator: jaxley {rec.get('simulator_version')}, status={rec['status']}")
+        print(json.dumps({k: rec.get(k) for k in ("cell", "status", "validity", "numerical_agreement")}, indent=2))
+        return 0
     rec = run_cell({"model": "M3", "n": args.n,
                     "seeds": [int(s) for s in args.seeds.split(",")],
                     "duration_ms": args.duration_ms, "dt_ms": args.dt_ms})

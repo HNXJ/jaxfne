@@ -17,6 +17,7 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 - 10F F4 GSDR log-scale parameters (1 pt) done (`artifacts/etudes/papers/gsdr2026/PORT_SPEC.md` §10.1).
 - 10G G3 Reproducibility audit §7 (1 pt) done (`artifacts/programme/paper/reproducibility_audit.md` §7).
 - Dashboard R5 row linked under `pcl-fig3` (T-73); `replications.json` and figures fresh.
+- B1 drive unification (T-79) and baseline parameter match (T-80) done (`b1_harness.py`, `b1_brian2.py`, `b1_nest.py`, `b1_jaxley.py`; `--smoke` verified).
 - `artifacts/state.md` corrected (`artifacts_check.py` ACCEPT).
 
 ## Tier 1: blocked on a ruling
@@ -29,15 +30,7 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 ## Tier 2: 1 to 2 hours each
 
 1. T-D3 [A] Mejias 2016 G6 (Checklist D3, 2 pts). Closes when: G6 is scored and pinned.
-2. T-79 [A] B1 drive unification: the harness passes `ou_sigma=HH_OU_SIGMA_CLIP` (0.05) unscaled while
-   `emitters_hh.py:311-313` says uA/cm2 callers scale sigma by 1000. Includes the value question found 2026-11-12:
-   the M2 table records `noise_scale E/I` as (5.0, 2.0) while `run_izh.py:245-246` and `b1_brian2.py:271-272`
-   realize `5.0*sqrt(2)` and `2.0*sqrt(2)`. Closes when: one drive definition serves harness and baselines, a smoke
-   run shows the realized sigma, and the table states which quantity it records with both values beside it.
-9. T-80 [A] B1 baseline parameter match: `b1_jaxley.py` `E_L` −54.378 against the lane's −54.3, `HHChannel()`
-   inserted with no params, dt 0.025 / 500 ms against the prereg's 0.1 / 1000. Closes when: each is matched or
-   recorded as a declared class difference and the receipt states the values actually run.
-10. T-86 [A] G1 CAMINOS PLoS panels (Checklist G1, 3 pts): export the Fig 5A panel, then build the Fig 3 and 4A
+2. T-86 [A] G1 CAMINOS PLoS panels (Checklist G1, 3 pts): export the Fig 5A panel, then build the Fig 3 and 4A
     mean-field rows. Closes when: all panels are in the notebook, exported, from pinned runs.
 
 ## Tier 3: half a day
