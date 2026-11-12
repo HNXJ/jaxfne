@@ -341,3 +341,83 @@ def test_s2_perturbed_transform_fails_and_main_returns_1(
     monkeypatch.setattr(supplement, "write_s5", lambda out: [])
     assert supplement.main(["--out", str(tmp_path)]) == 1
     assert f"S2 rows={counts['rows']}" in capsys.readouterr().out
+
+
+# --- S16: the scored Destexhe 2009 P3 replication ------------------------------
+
+
+def _s16_score() -> dict:
+    return json.loads(
+        (REPO / "artifacts" / "etudes" / "papers" / "destexhe2009" / "run" / "p3_v3_verdict.json")
+        .read_text(encoding="utf-8")
+    )
+
+
+def test_s16_lists_five_seeds_and_recomputes_the_json_verdict(tmp_path: Path) -> None:
+    score = _s16_score()
+    assert len(score["rows"]) == 5, "the scored Destexhe P3 ran 5 seeds"
+    assert score["verdict"] == "FAIL", "fixture: the signed result is FAIL"
+
+    counts = supplement.write_s16(tmp_path)
+
+    assert counts["seeds"] == 5 and counts["passing"] == 0 and counts["verdict"] == "FAIL"
+    payload = json.loads((tmp_path / "S16_destexhe2009.json").read_text(encoding="utf-8"))
+    assert payload["verdict"] == "FAIL"
+    assert payload["seeds_passing"] == 0
+    assert payload["pass_needs"] == 4
+    assert payload["C1"] is True
+    assert [row["seed"] for row in payload["rows"]] == [row["seed"] for row in score["rows"]]
+    for want, got in zip(score["rows"], payload["rows"]):
+        assert got["seed"] == want["seed"]
+        assert got["alive"] == want["alive"]
+        assert got["E1"] == want["E1"]
+        assert got["E2"] == want["E2"]
+        assert got["E3"] == want["E3"]
+        assert got["pass"] == want["pass"]
+
+    md_lines = (tmp_path / "S16_destexhe2009.md").read_text(encoding="utf-8").splitlines()
+    assert md_lines[0].startswith("# S16.")
+    assert "**Verdict: FAIL**" in "\n".join(md_lines)
+    table = [
+        line
+        for line in md_lines
+        if line.startswith("| ") and line.split("|")[1].strip().isdigit()
+    ]
+    assert len(table) == len(payload["rows"]), "one row per seed"
+    for row in score["rows"]:
+        assert any(line.startswith(f"| {row['seed']} |") for line in table), row["seed"]
+
+
+def test_s16_synthetic_passing_score_and_mismatch_refused(tmp_path: Path) -> None:
+    score = _s16_score()
+    rows = []
+    for i, r in enumerate(score["rows"]):
+        if i < 4:
+            rows.append(dict(r, alive=True, e2=0.03, e3=0.005, rate_hz_all=25.0))
+        else:
+            rows.append(dict(r, alive=False, e2=0.08, e3=0.02, rate_hz_all=5.0))
+    passing_data = dict(score, rows=rows, verdict="PASS", seeds_passing=4)
+    pass_path = tmp_path / "synthetic_pass.json"
+    pass_path.write_text(json.dumps(passing_data), encoding="utf-8")
+    (tmp_path / "out_pass").mkdir()
+
+    counts = supplement.write_s16(tmp_path / "out_pass", score_path=pass_path)
+    assert counts["seeds"] == 5
+    assert counts["passing"] == 4
+    assert counts["verdict"] == "PASS"
+
+    payload = json.loads(
+        (tmp_path / "out_pass" / "S16_destexhe2009.json").read_text(encoding="utf-8")
+    )
+    assert payload["verdict"] == "PASS"
+    assert "**Verdict: PASS**" in (tmp_path / "out_pass" / "S16_destexhe2009.md").read_text(
+        encoding="utf-8"
+    )
+
+    mismatch_data = dict(passing_data, verdict="FAIL")
+    mismatch_path = tmp_path / "mismatch.json"
+    mismatch_path.write_text(json.dumps(mismatch_data), encoding="utf-8")
+    (tmp_path / "out_mismatch").mkdir()
+    with pytest.raises(ValueError, match="disagrees"):
+        supplement.write_s16(tmp_path / "out_mismatch", score_path=mismatch_path)
+

@@ -8,11 +8,12 @@ Done items are deleted; history is in git.
 Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-B8:
 `control/harness/evidence_and_workflow_rules.md`; paper goal G-0: `programme/design/plans/arxiv_paper_plan.md`.
 
-Audit 2026-11-12: 0.5.10 checklist holds 38 of 100 (packages 38 of 70, gates 0 of 30).
+Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 of 30).
 - 10E PCL Fig 3 is fully scored: E1 R5-approximate scored FAIL under signed R4b
   (`pcl/prereg/P3_fig3_r5_approx_result.md`, `scores/fig3_r5_approx.json`); oracle arm compared (1246 equal,
   1922 differing; `scores/fig3_r5_approx_armcheck.json`); E2 P-055 attributed in `ISSUE_LOG.md`. 10E 10/10.
 - 10B B4 `build_config` repair (2 pts) done (`scripts/cortical_column_localized_workflow.py`, `tests/test_build_config_declared_layers.py`).
+- 10D D4 S16 Destexhe 2009 panel (2 pts) done (`scripts/publication_figures/supplement.py::write_s16`, `tests/test_supplement_generators.py`).
 - 10F F4 GSDR log-scale parameters (1 pt) done (`artifacts/etudes/papers/gsdr2026/PORT_SPEC.md` §10.1).
 - 10G G3 Reproducibility audit §7 (1 pt) done (`artifacts/programme/paper/reproducibility_audit.md` §7).
 - Dashboard R5 row linked under `pcl-fig3` (T-73); `replications.json` and figures fresh.
@@ -22,15 +23,13 @@ Audit 2026-11-12: 0.5.10 checklist holds 38 of 100 (packages 38 of 70, gates 0 o
 
 0. T-93 [A then H] Size-budget conflict (open row O-R5SIZE): the pinned 3168-row armcheck record (413 KB) puts the
    tracked tree 283 KB over budget and `check_record_integrity.py` refuses to edit a pinned record, so both gates
-   cannot pass at once. Closes when `python scripts/check_tree_size.py --check` and
+   cannot pass at once. Closes when: `python scripts/check_tree_size.py --check` and
    `python scripts/check_record_integrity.py --check` both exit 0 on one SHA. Blocked by: Hamm's route ruling.
 
 ## Tier 2: 1 to 2 hours each
 
-1. T-D4 [A] S16 Destexhe 2009 panel (Checklist D4, 2 pts): add `write_s16` to `scripts/publication_figures/supplement.py`
-   from the scored P3 receipts. Closes when: S16 renders from pinned receipts.
-2. T-D3 [A] Mejias 2016 G6 (Checklist D3, 2 pts). Closes when: G6 is scored and pinned.
-3. T-79 [A] B1 drive unification: the harness passes `ou_sigma=HH_OU_SIGMA_CLIP` (0.05) unscaled while
+1. T-D3 [A] Mejias 2016 G6 (Checklist D3, 2 pts). Closes when: G6 is scored and pinned.
+2. T-79 [A] B1 drive unification: the harness passes `ou_sigma=HH_OU_SIGMA_CLIP` (0.05) unscaled while
    `emitters_hh.py:311-313` says uA/cm2 callers scale sigma by 1000. Includes the value question found 2026-11-12:
    the M2 table records `noise_scale E/I` as (5.0, 2.0) while `run_izh.py:245-246` and `b1_brian2.py:271-272`
    realize `5.0*sqrt(2)` and `2.0*sqrt(2)`. Closes when: one drive definition serves harness and baselines, a smoke

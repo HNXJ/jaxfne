@@ -1,12 +1,14 @@
 """Supplement items S1 (notation table), S2 (calibration transforms), S5
-(HDP reduction identity), S12 (the scored Vogels P3 v4) and S14 (the scored GSDR P3 fit).
+(HDP reduction identity), S12 (the scored Vogels P3 v4), S13 (PCL Fig. 3), S14 (the scored GSDR P3 fit)
+and S16 (the scored Destexhe 2009 P3 replication).
 
 S1 parses docs/theory/doctrine/definition_map.md. A row is mapped when its symbol and
 test are both named, otherwise open. S2 applies every public calibration transform
 through the public API and records its numeric check. S5 runs the reduction checks of
 tests/test_hdp_reduction_identity.py for every core registered rule, through that
 module's own helpers, and writes the numbers its assertions use. S14 tabulates the
-scored GSDR P3 fit from its score JSON, through the scorer's own pass rule.
+scored GSDR P3 fit from its score JSON, through the scorer's own pass rule. S16 tabulates
+the scored Destexhe 2009 P3 replication from its score JSON.
 """
 
 from __future__ import annotations
@@ -606,6 +608,102 @@ def write_s14(out_dir: Path, score_path: Path = P3_FIT_SCORE) -> dict[str, objec
     return {"rows": len(rows), "passing": passing, "verdict": verdict}
 
 
+# --- S16: the scored Destexhe 2009 P3 replication ------------------------------
+#
+# Each row scores one simulation seed of the signed Destexhe P3 v3 replication
+# (artifacts/etudes/papers/destexhe2009/prereg/P3_v3_signed.md). A seed passes
+# when E1 (alive at 10 s), E2 (CV_ISI relative error e <= 0.05), and E3 (CC
+# absolute error e <= 0.01) all hold; C1 control holds (Fig. 6A control seeds
+# dead by 10 s). The replication passes when at least 4 of 5 seeds pass.
+
+DESTEXHE_P3_VERDICT = (
+    REPO / "artifacts" / "etudes" / "papers" / "destexhe2009" / "run" / "p3_v3_verdict.json"
+)
+S16_PASS_SEEDS = 4
+
+
+def _s16_row_scored(row: dict[str, object]) -> dict[str, object]:
+    alive = bool(row.get("alive", False))
+    e2_val = float(row["e2"])
+    e3_val = float(row["e3"])
+    e1 = alive
+    e2 = e2_val <= 0.05
+    e3 = e3_val <= 0.01
+    passed = e1 and e2 and e3
+    return {
+        "seed": row["seed"],
+        "alive": alive,
+        "cv_isi": row.get("cv_isi"),
+        "e2": e2_val,
+        "cc": row.get("cc"),
+        "e3": e3_val,
+        "rate_hz_all": row.get("rate_hz_all"),
+        "E1": e1,
+        "E2": e2,
+        "E3": e3,
+        "pass": passed,
+    }
+
+
+def write_s16(out_dir: Path, score_path: Path = DESTEXHE_P3_VERDICT) -> dict[str, object]:
+    payload = json.loads(score_path.read_text(encoding="utf-8"))
+    rows = [_s16_row_scored(row) for row in payload["rows"]]
+    passing = sum(row["pass"] for row in rows)
+    controls = payload.get("controls", [])
+    c1_holds = (
+        all(not bool(c.get("alive", False)) for c in controls)
+        if controls
+        else bool(payload.get("C1", True))
+    )
+    verdict = "PASS" if (passing >= S16_PASS_SEEDS and c1_holds) else "FAIL"
+    recorded = payload.get("verdict")
+    if recorded is not None and recorded != verdict:
+        raise ValueError(
+            f"{score_path}: recorded verdict {recorded!r} disagrees with "
+            f"recomputed verdict {verdict!r} ({passing} of {len(rows)} seeds passing, "
+            f"needs {S16_PASS_SEEDS}, C1={c1_holds})"
+        )
+    source_str = (
+        score_path.relative_to(REPO).as_posix()
+        if score_path.is_relative_to(REPO)
+        else score_path.name
+    )
+    out = {
+        "source": source_str,
+        "prereg": payload.get("prereg"),
+        "pass_needs": S16_PASS_SEEDS,
+        "seeds_passing": passing,
+        "C1": c1_holds,
+        "verdict": verdict,
+        "rows": rows,
+        "controls": controls,
+    }
+    (out_dir / "S16_destexhe2009.json").write_text(
+        json.dumps(out, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+    )
+    lines = [
+        "# S16. Destexhe 2009 P3 replication under signed v3",
+        "",
+        f"Source: `{out['source']}`. A seed passes when E1 (alive at 10 s), "
+        f"E2 (e2 <= 0.05), and E3 (e3 <= 0.01) all hold; C1 control holds "
+        f"(control seeds dead by 10 s). The replication passes when at least "
+        f"{S16_PASS_SEEDS} of {len(rows)} seeds pass. Seeds passing: {passing}. "
+        f"C1 control: {'holds' if c1_holds else 'failed'}. **Verdict: {verdict}**.",
+        "",
+        "| seed | alive | E2 e | E3 e | rate Hz | E1 | E2 | E3 | pass |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    for r in rows:
+        rate_str = f"{r['rate_hz_all']:.1f}" if r["rate_hz_all"] is not None else "n/a"
+        lines.append(
+            f"| {r['seed']} | {'yes' if r['alive'] else 'no'} | {r['e2']:.3f} | {r['e3']:.4f} "
+            f"| {rate_str} | {'yes' if r['E1'] else 'no'} | {'yes' if r['E2'] else 'no'} "
+            f"| {'yes' if r['E3'] else 'no'} | {'yes' if r['pass'] else 'no'} |"
+        )
+    (out_dir / "S16_destexhe2009.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return {"seeds": len(rows), "rows": len(rows), "passing": passing, "verdict": verdict}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
@@ -617,12 +715,14 @@ def main(argv: list[str] | None = None) -> int:
     s12 = write_s12(args.out)
     s13 = write_s13(args.out)
     s14 = write_s14(args.out)
+    s16 = write_s16(args.out)
     print(f"S1 rows={counts['rows']} mapped={counts['mapped']} open={counts['open']}")
     print(f"S2 rows={s2['rows']} checked={s2['checked']} failed={s2['failed']}")
     print(f"S5 rules={len(rules)} out={args.out}")
     print(f"S12 rows={s12['rows']} verdict={s12['verdict']} out={args.out}")
     print(f"S13 files={s13['files']} core_equal={s13['core_equal']} verdict={s13['verdict']} out={args.out}")
     print(f"S14 rows={s14['rows']} passing={s14['passing']} verdict={s14['verdict']} out={args.out}")
+    print(f"S16 seeds={s16['seeds']} passing={s16['passing']} verdict={s16['verdict']} out={args.out}")
     return 1 if s2["failed"] else 0
 
 
