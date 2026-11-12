@@ -66,7 +66,7 @@ its C row's check), and the todo rows moved to 0.5.10. Weights sum to 100: packa
 with the 0.5.9 weights). Each item carries its own weight and scores in full when its check is cited; no partial
 credit.
 
-Score 2026-11-12: 34/100 (packages 34 of 70, gates 0 of 30; 10E E1 scored 7, E2 scored 3). Score 2026-11-08: 24/100 (packages 24 of 70; A3 4 on O-91 option 1, recommended and taken on Hamm's standing go; D2 4 on O-94 option 1, Hamm 2026-11-08 in the session chat: "yes proceed with the recommendations"). Score 2026-11-07: 16/100 (packages 16 of 70, gates 0 of 30; C2 done). Score 2026-11-06: 14/100 (D1 landed, B1 signed). Score 2026-11-05: 7/100. The 8.5 of the draft counted items implicitly and gave
+Score 2026-11-12: 38/100 (packages 38 of 70, gates 0 of 30; 10B B4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1). Score 2026-11-08: 24/100 (packages 24 of 70; A3 4 on O-91 option 1, recommended and taken on Hamm's standing go; D2 4 on O-94 option 1, Hamm 2026-11-08 in the session chat: "yes proceed with the recommendations"). Score 2026-11-07: 16/100 (packages 16 of 70, gates 0 of 30; C2 done). Score 2026-11-06: 14/100 (D1 landed, B1 signed). Score 2026-11-05: 7/100. The 8.5 of the draft counted items implicitly and gave
 T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 
 | Item | Weight | What | Done when (cited check) | State (dated per row; checked 2026-11-07) | Score |
@@ -80,7 +80,7 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | B1 | 3 | benchmark prereg | signed before any scored run | done: `artifacts/runs/benchmark/prereg/PREREG_B1_0510.md` signed by Hamm 2026-11-06, hash pinned (3c008063) | 3 |
 | B2 | 3 | CPU and GPU receipts: neuron-steps/s against N, compile against run, vmap, float32/64 | receipts hash-pinned | harness `benchmark/b1/b1_harness.py` (aba98c8c, 05942346), CPU smoke M1/M2 at N=100; M3 smoked at N=1/10/100 after the `jax.random.split` fix (2846ee9d), no scored run, no receipts. Baseline scripts `b1_brian2.py`, `b1_nest.py`, `b1_jaxley.py` (f0dab234) pass their smoke tests (B3 inputs) | 0 |
 | B3 | 4 | Brian2, NEST and Jaxley baselines where the model class applies | each baseline's receipt pinned, or its class mismatch recorded | C6 inventory only | 0 |
-| B4 | 2 | `build_config` repair | its failing-first test | open | 0 |
+| B4 | 2 | `build_config` repair | its failing-first test | done 2026-11-12: `scripts/cortical_column_localized_workflow.py` builds with `geometry='laminar'`, `tests/test_build_config_declared_layers.py` (failing-first confirmed) | 2 |
 | B5 | 2 | LIF edge kernel on GPU (T-32) | GPU receipt equal to CPU within the declared tolerance | open | 0 |
 | **10C Augmentation** (F4, S7, C7) | **6** | | | | **2** |
 | C1 | 4 | ensemble study with provenance; S7 panel | S7 renders from pinned receipts | not started | 0 |
@@ -97,13 +97,13 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | F1 | 1 | the `in_degree` refusal message (0.5.9 Gate 4 should-fix) | its test | done (9e7c2044) | 1 |
 | F2 | 2 | P-BALANCED: `BackgroundNoise`, `baseline_drive`, the balanced-1000n preset | `tests/test_balanced_preset_acceptance.py` | done (e179a2d0..9dd1c111; Hamm 2026-11-05: retune under the unchanged bounds; seeds 0-4 CV 0.742-0.755, shift 0.236-0.257) | 2 |
 | F3 | 1 | AGSDR log-scale bounds (T-31) | `tests/test_agsdr_log_scale.py`, linear bounds bit-identical | done (733b3960) | 1 |
-| F4 | 1 | the GSDR lane names its log-scale parameters (T-31) | named in the GSDR lane with a new prereg for any new fit | open | 0 |
+| F4 | 1 | the GSDR lane names its log-scale parameters (T-31) | named in the GSDR lane with a new prereg for any new fit | done 2026-11-12: named in `artifacts/etudes/papers/gsdr2026/PORT_SPEC.md` §10.1 (`ou_sigma`/`noise_gain`, `gAMPA`, `gGABAa`), tested in `tests/test_agsdr_log_scale.py` (16 passed) | 1 |
 | F5 | 1.5 | T-32: GSDR on `simulate_hh_batch`; seed and candidate batching for AdEx, LIF and `Model.tune`; core homes for lane analysis | each with its test | GSDR `--batch` opt-in within rel 1e-2 (117396a6, Hamm 2026-11-06); `jaxfne.analysis.isi_ratio` (51c86dab); AdEx, LIF and `Model.tune` batching open | 0 |
 | F6 | 1.5 | T-R28: dashboard P1 then P2; the jitter reader on larger sets | each with its commit and receipt | open | 0 |
 | **10G Replication coverage** | **6** | | | | **0** |
 | G1 | 3 | CAMINOS panels not yet run, added to the Notebooks tab: PLoS Fig 5, Fig 3 and 4A mean-field rows (Cell Reports 1A, 2A/2B bottom, 6A top, 6B stay excluded per `caminos/RESULT_FIGURES.md:198-199`; O-88, Hamm's standing go 2026-11-07) | each panel in its exported notebook from pinned runs | open (2026-11-07: PLoS Fig 5A panel in `plos_suite.ipynb` from the pinned sweep (a6f4d867), dashboard export pending; Fig 3 and 4A mean-field rows open; todo 33) | 0 |
 | G2 | 2 | T-30 conformance | `check_replications.py --check` lists no violation without Hamm's exception (2026-11-05: 28 known, 0 unlisted) | open | 0 |
-| G3 | 1 | T-46 reproducibility audit section 7, the gaps touching 0.5.10 | section 7 cites each closed gap | open | 0 |
+| G3 | 1 | T-46 reproducibility audit section 7, the gaps touching 0.5.10 | section 7 cites each closed gap | done 2026-11-12: `artifacts/programme/paper/reproducibility_audit.md` §7 updated retiring Jansen-Rit, kernel-LFP, NEST/Jaxley rows | 1 |
 | **Gates** | **30** | | | | **0** |
 | Gate 1 | 6 | every package closed or moved with Hamm's dated ruling | the checklist | not started | 0 |
 | Gate 2 | 8 | broad gate, CI, replications audit, dashboard fresh on the release SHA | each command exits 0 | not started | 0 |

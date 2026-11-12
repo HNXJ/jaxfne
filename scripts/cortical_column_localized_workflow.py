@@ -66,23 +66,16 @@ def build_config(
 ) -> "jtfne.Configuration":
     """6-layer, 4-cell-type cylindrical column, N is a parameter.
 
-    geometry='uniform3d' is required for the cylindrical (radius_mm, height_mm)
-    footprint -- but that mode discards the per-neuron 'layer' label (confirmed
-    2026-07-01; the alternative geometry='laminar' mode preserves the label but
-    ignores radius_mm/height_mm entirely -- the two are mutually exclusive in
-    the current builder, a real API gap, not a flag you can just pick around).
-    The per-layer E:I cell-type COMPOSITION is still correctly banded by z
-    either way (layer_fractions/layer_cell_type_fractions apply regardless of
-    which geometry mode assigns positions) -- only the descriptive label is
-    lost, and is reconstructed from z-position + layer_fractions in
-    `layer_statistics_table` below.
+    geometry='laminar' preserves the laminar layer structure (per-neuron layer
+    labels and depth-banded E:I composition) and sets `column_radius_mm` and
+    `column_height_mm` in metadata for the cylindrical column geometry.
     """
     return (
         jtfne.build_laminar_column(
             "V1", n=n,
             layers=list(jtfne.CANONICAL_LAYERS_6L),
             ei_profile="canonical",
-            geometry="uniform3d", radius_mm=radius_mm, height_mm=height_mm,
+            geometry="laminar", radius_mm=radius_mm, height_mm=height_mm,
         )
         # Negligible auto-connectivity: MUST be far smaller than 1/n^2 at large
         # n or it silently adds thousands of stray edges on top of the capped
@@ -171,13 +164,13 @@ def load_column(path: str, cfg: "jtfne.Configuration") -> "jtfne.Model":
     return jtfne.Model(cfg=cfg, params=params, static=meta["static"])
 
 
-def layer_statistics_table(model: "jtfne.Model", height_mm: float) -> str:
+def layer_statistics_table(model: "jtfne.Model", height_mm: float = 2.0) -> str:
     """Area/layer/cell-type rows: neuron count + average synapse (in-degree) count."""
     layer_bands = sorted(model.cfg.metadata["layer_fractions"].items(), key=lambda kv: kv[1][0])
     layer_order = [name for name, _ in layer_bands]
 
     def z_to_layer(z: float) -> str:
-        frac = z / height_mm
+        frac = z / height_mm if height_mm else z
         for name, (z0, z1) in layer_bands:
             if z0 <= frac < z1 or (name == layer_order[-1] and frac >= z0):
                 return name
@@ -189,7 +182,10 @@ def layer_statistics_table(model: "jtfne.Model", height_mm: float) -> str:
 
     by_key = defaultdict(list)
     for i, r in enumerate(rows):
-        by_key[(r["area"], z_to_layer(r["z"]), r["cell_type"])].append(in_degree[i])
+        layer = r.get("layer")
+        if not layer or layer == "uniform_3d":
+            layer = z_to_layer(r["z"])
+        by_key[(r["area"], layer, r["cell_type"])].append(in_degree[i])
 
     lines = [f'{"area":<6}{"layer":<6}{"type":<6}{"n":>8}{"avg_synapses":>14}']
     for area, layer, ct in sorted(by_key, key=lambda k: (k[0], layer_order.index(k[1]), k[2])):

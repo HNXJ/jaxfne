@@ -103,7 +103,8 @@ local choice on the build seed instead of 1; the Fig. 6 run uses key 1.
 ## 6. Conductance init and clamps (observed `misc/main.py`)
 
 `gAMPA ∼ U(−4, 10)` clipped to `[0, 8]`; `gGABAa ∼ U(2, 10)` clipped to
-`[0, 10]`; optimizer clamp transforms bound both to `[0, 10]`.
+`[0, 10]`; optimizer clamp transforms bound both to `[0, 10]`. Log-scale
+parameter bounds in AGSDR sweeps are specified in §10.1.
 
 ## 7. Stimulus (observed `misc/main.py`, `gsdr/simulation.py`)
 
@@ -154,6 +155,21 @@ voltage vs post voltage shifted +10 steps, Gaussian-smoothed
 paper Methods Eqs 2.1–2.2: `Δ = (L·D·δ(λ)(1−α) + α)·R_pre,post`;
 `W → [0, max_g]`, `α → [0, 1]`, dynamic α random-walks ±0.1 under selection;
 NaN loss reverts to the best state.
+
+### 10.1 Log-scale parameter bounds in AGSDR
+
+In AGSDR sweeps, parameters with multi-decade dynamic ranges or scale-invariant
+sensitivities sweep on a log scale via 3-tuple `(lo, hi, "log")` bounds:
+- **Noise amplitude/gain:** `ou_sigma` / `noise_gain` in `fit_noise_gain.py`, spanning
+  `(0.01, 1.0, "log")` or `(0.05, 0.5, "log")`.
+- **Synaptic conductances:** `gAMPA` and `gGABAa` when tuned across sub-threshold to
+  saturating regimes, spanning `(0.1, 10.0, "log")`.
+
+The `jaxfne.optim.core._run_agsdr_optimization_loop` and `Model.tune` API natively accept
+3-tuple `(lo, hi, "log")` parameter bounds (sampling and updates occur in `u = ln(theta)` while
+recording theta units), verified by `tests/test_agsdr_log_scale.py` (16 of 16 tests passing).
+Linear-only bounds `(lo, hi)` continue to match the baseline loop bit for bit. Any future fit
+using log-scale sweeps will specify bounds in its signed prereg.
 
 ## 11. Paper/code deviations (declared)
 

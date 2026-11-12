@@ -8,27 +8,21 @@ Done items are deleted; history is in git.
 Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-B8:
 `control/harness/evidence_and_workflow_rules.md`; paper goal G-0: `programme/design/plans/arxiv_paper_plan.md`.
 
-Audit 2026-11-12: 0.5.10 checklist holds 34 of 100 (packages 34 of 70, gates 0 of 30).
+Audit 2026-11-12: 0.5.10 checklist holds 38 of 100 (packages 38 of 70, gates 0 of 30).
 - 10E PCL Fig 3 is fully scored: E1 R5-approximate scored FAIL under signed R4b
   (`pcl/prereg/P3_fig3_r5_approx_result.md`, `scores/fig3_r5_approx.json`); oracle arm compared (1246 equal,
   1922 differing; `scores/fig3_r5_approx_armcheck.json`); E2 P-055 attributed in `ISSUE_LOG.md`. 10E 10/10.
+- 10B B4 `build_config` repair (2 pts) done (`scripts/cortical_column_localized_workflow.py`, `tests/test_build_config_declared_layers.py`).
+- 10F F4 GSDR log-scale parameters (1 pt) done (`artifacts/etudes/papers/gsdr2026/PORT_SPEC.md` §10.1).
+- 10G G3 Reproducibility audit §7 (1 pt) done (`artifacts/programme/paper/reproducibility_audit.md` §7).
 - `artifacts/state.md` corrected (`artifacts_check.py` ACCEPT).
 
 ## Tier 1: under 15 minutes each
 
-1. T-B4 [A] `build_config` repair (Checklist B4, 2 pts): `scripts/cortical_column_localized_workflow.py:80` calls
-   `build_laminar_column` with incompatible `geometry="uniform3d"`; switch to `geometry="laminar"`.
-   Closes when: `pytest tests/test_cortical_column_build_config.py` passes and B4 scores 2.
-2. T-F4 [A] GSDR log-scale parameters (Checklist F4, 1 pt): name which parameters sweep on a log scale in
-   `artifacts/etudes/papers/gsdr2026/PORT_SPEC.md` / `NOTES.md`. Closes when: they are named and
-   `pytest tests/test_agsdr_log_scale.py` passes with linear bounds bit-identical.
-3. T-82 [A] Reproducibility audit section 7 (Checklist G3, 1 pt): in `artifacts/programme/paper/reproducibility_audit.md`
-   §7, retire rows 7 and 8 (Jansen-Rit, kernel-LFP, `b1_nest.py` and `b1_jaxley.py` are now implemented and committed).
-   Closes when: section 7 cites only open gaps.
-4. T-73 [A] Dashboard R5 row: update `dashboard/sources.json` to link `fig3_r5_approx.json` under `pcl-fig3`; run
+1. T-73 [A] Dashboard R5 row: update `dashboard/sources.json` to link `fig3_r5_approx.json` under `pcl-fig3`; run
    `python scripts/build_dashboard_data.py` and `python scripts/build_dashboard_figures.py`. Closes when: both
    `--check` commands exit 0 with the R5 row present.
-5. T-77 [A] `check_replications.py` `hh-at01`: map `hh-at01` folder or handle exception. Closes when:
+2. T-77 [A] `check_replications.py` `hh-at01`: map `hh-at01` folder or handle exception. Closes when:
    `python scripts/check_replications.py --check` reports 0 unlisted.
 
 ## Tier 2: 1 to 2 hours each
