@@ -15,22 +15,15 @@ Audit 2026-11-12: 0.5.10 checklist holds 38 of 100 (packages 38 of 70, gates 0 o
 - 10B B4 `build_config` repair (2 pts) done (`scripts/cortical_column_localized_workflow.py`, `tests/test_build_config_declared_layers.py`).
 - 10F F4 GSDR log-scale parameters (1 pt) done (`artifacts/etudes/papers/gsdr2026/PORT_SPEC.md` §10.1).
 - 10G G3 Reproducibility audit §7 (1 pt) done (`artifacts/programme/paper/reproducibility_audit.md` §7).
+- Dashboard R5 row linked under `pcl-fig3` (T-73); `replications.json` and figures fresh.
 - `artifacts/state.md` corrected (`artifacts_check.py` ACCEPT).
-
-## Tier 1: under 15 minutes each
-
-1. T-73 [A] Dashboard R5 row: update `dashboard/sources.json` to link `fig3_r5_approx.json` under `pcl-fig3`; run
-   `python scripts/build_dashboard_data.py` and `python scripts/build_dashboard_figures.py`. Closes when: both
-   `--check` commands exit 0 with the R5 row present.
-2. T-77 [A] `check_replications.py` `hh-at01`: map `hh-at01` folder or handle exception. Closes when:
-   `python scripts/check_replications.py --check` reports 0 unlisted.
 
 ## Tier 2: 1 to 2 hours each
 
-6. T-D4 [A] S16 Destexhe 2009 panel (Checklist D4, 2 pts): add `write_s16` to `scripts/publication_figures/supplement.py`
+1. T-D4 [A] S16 Destexhe 2009 panel (Checklist D4, 2 pts): add `write_s16` to `scripts/publication_figures/supplement.py`
    from the scored P3 receipts. Closes when: S16 renders from pinned receipts.
-7. T-D3 [A] Mejias 2016 G6 (Checklist D3, 2 pts). Closes when: G6 is scored and pinned.
-8. T-79 [A] B1 drive unification: the harness passes `ou_sigma=HH_OU_SIGMA_CLIP` (0.05) unscaled while
+2. T-D3 [A] Mejias 2016 G6 (Checklist D3, 2 pts). Closes when: G6 is scored and pinned.
+3. T-79 [A] B1 drive unification: the harness passes `ou_sigma=HH_OU_SIGMA_CLIP` (0.05) unscaled while
    `emitters_hh.py:311-313` says uA/cm2 callers scale sigma by 1000. Includes the value question found 2026-11-12:
    the M2 table records `noise_scale E/I` as (5.0, 2.0) while `run_izh.py:245-246` and `b1_brian2.py:271-272`
    realize `5.0*sqrt(2)` and `2.0*sqrt(2)`. Closes when: one drive definition serves harness and baselines, a smoke
@@ -49,7 +42,7 @@ Audit 2026-11-12: 0.5.10 checklist holds 38 of 100 (packages 38 of 70, gates 0 o
     weights. Closes when: it either reproduces the weight gap (P-053 confirmed) or passes (closed).
 16. T-85 [A] PCL inhibition isolation: score one run of the v4 tree (port 5d101eb3) under `no-local`. Observed
     2026-11-12: re-scoring the v4 directory reproduces v4 to three decimals, and complex R_ori falls from 5.30 to
-    1.19 under `no-local`; tree drift is the alternative explanation this run separates. Closes when that score
+    1.19 under `no-local`; tree drift is the alternative explanation this run separates. Closes when: that score
     JSON is pinned beside the others and the result file's attribution paragraph cites it.
 17. T-90 [A] P-056 kernel-LFP deep-layer power. Closes when: a settled column shows deep alpha-beta power or the
     cause is named.

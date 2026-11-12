@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 
 import jaxfne as jtfne
-from scripts.cortical_column_localized_workflow import build_config
+from scripts.cortical_column_localized_workflow import build_config, layer_statistics_table
 
 N = 400
 DECLARED_LAYERS = list(jtfne.CANONICAL_LAYERS_6L)
@@ -65,3 +65,11 @@ def test_declared_local_connection_still_compiles_under_its_cap(model):
     post = np.asarray(model.params["edge_list"].post)
     assert post.size > 0
     assert int(np.bincount(post, minlength=N).max()) <= 100
+
+
+def test_layer_statistics_table_keeps_every_declared_layer(model):
+    """The stats table used to divide a 0..1 laminar z by height_mm and print
+    only L1-L3; it must cover all six declared layers."""
+    table = layer_statistics_table(model, height_mm=2.0)
+    layers = {line.split()[1] for line in table.splitlines()[1:]}
+    assert layers == set(DECLARED_LAYERS)

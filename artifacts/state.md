@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@48679d3a · 2026-11-12. Last broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed, all lanes PASS, replication audit 0 unlisted; outside review ACCEPT). No gate run on 48679d3a yet. Checklist 0.5.10: 38/100 (10B B4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
+Stamp: jaxfne@dev@d30e7418 · 2026-11-12. Last broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed, all lanes PASS, replication audit 0 unlisted; outside review ACCEPT). No gate run on d30e7418 yet. Checklist 0.5.10: 38/100 (10B B4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
 Working checkout `E:/repos/jaxfne` clean on dev.
 OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling and ratings in HNXJ/ocma `cases/jaxfne/`.
 
@@ -26,9 +26,6 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   `ExecutionPolicy=AllSigned` so `cursor-agent.ps1` and its `.cmd` shim cannot run (`-ExecutionPolicy Bypass` does
   not override a policy), and the direct `node.exe index.js` launch then fails because `--sandbox` needs macOS or
   Linux. agy produced no run directory. OCMA round 4 is blocked on this (todo 28).
-- Dashboard cannot carry the R5 result yet: `dashboard/sources.json` reads files through `git show <lane.sha>:<path>`
-  and the PCL lane pins `8f75acd0`; the R5 artifacts are untracked, so the row waits on a commit and a lane-SHA
-  move (T-73).
 - P-055's cited evidence is incomplete: `F:/warehouse/pcl/r5/approx_diff.json` records differing spike times but no
   membrane potentials, so the `V = 2.9788` vs `3.1950` mV values in the issue row have no receipt on disk
   (observed 2026-11-12). The attribution stands on the spike-time differences; a replay script is missing.
