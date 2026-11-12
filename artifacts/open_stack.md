@@ -14,3 +14,5 @@ and it puts the tracked tree 283 KB over `check_tree_size.py`'s budget. Options:
 ratchet, not a correctness bound); (2) move the row list to a new declared record and leave the old bytes in
 place; (3) let the armcheck hold counts only and cite the untracked `F:/warehouse/pcl/r5/approx_diff.json`,
 which needs a dated ruling because it trims a pinned record. Fix item: T-93 in `todo_stack.md`.
+WIP: 9 commits sit on `origin/_temp_r5_size_budget` (pushed) because the report gate fails on this one row; `dev`
+is untouched.
