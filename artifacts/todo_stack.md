@@ -18,6 +18,13 @@ Audit 2026-11-12: 0.5.10 checklist holds 38 of 100 (packages 38 of 70, gates 0 o
 - Dashboard R5 row linked under `pcl-fig3` (T-73); `replications.json` and figures fresh.
 - `artifacts/state.md` corrected (`artifacts_check.py` ACCEPT).
 
+## Tier 1: blocked on a ruling
+
+0. T-93 [A then H] Size-budget conflict (open row O-R5SIZE): the pinned 3168-row armcheck record (413 KB) puts the
+   tracked tree 283 KB over budget and `check_record_integrity.py` refuses to edit a pinned record, so both gates
+   cannot pass at once. Closes when `python scripts/check_tree_size.py --check` and
+   `python scripts/check_record_integrity.py --check` both exit 0 on one SHA. Blocked by: Hamm's route ruling.
+
 ## Tier 2: 1 to 2 hours each
 
 1. T-D4 [A] S16 Destexhe 2009 panel (Checklist D4, 2 pts): add `write_s16` to `scripts/publication_figures/supplement.py`
