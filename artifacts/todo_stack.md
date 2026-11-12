@@ -12,6 +12,9 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 - 10E PCL Fig 3 is fully scored: E1 R5-approximate scored FAIL under signed R4b
   (`pcl/prereg/P3_fig3_r5_approx_result.md`, `scores/fig3_r5_approx.json`); oracle arm compared (1246 equal,
   1922 differing; `scores/fig3_r5_approx_armcheck.json`); E2 P-055 attributed in `ISSUE_LOG.md`. 10E 10/10.
+- PCL attribution closed 2026-11-12 (`pcl/prereg/P3_fig3_r5_attribution_addendum.md`): the complex-cell orientation
+  collapse is the `no-local` inhibition setting, not tree drift — a v4-era-tree `no-local` run reproduces the R5
+  oracle arm array-for-array over all 3168 files. T-85 closed.
 - 10B B4 `build_config` repair (2 pts) done (`scripts/cortical_column_localized_workflow.py`, `tests/test_build_config_declared_layers.py`).
 - 10D D4 S16 Destexhe 2009 panel (2 pts) done (`scripts/publication_figures/supplement.py::write_s16`, `tests/test_supplement_generators.py`).
 - 10F F4 GSDR log-scale parameters (1 pt) done (`artifacts/etudes/papers/gsdr2026/PORT_SPEC.md` §10.1).
@@ -43,10 +46,13 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
     1.5 pts). Closes when: the batching tests pass across seeds.
 15. T-83 [A] P-053 sparse-weight fixture: rebuild the minimal lateral and top-down fixture with hand-zeroed sparse
     weights. Closes when: it either reproduces the weight gap (P-053 confirmed) or passes (closed).
-16. T-85 [A] PCL inhibition isolation: score one run of the v4 tree (port 5d101eb3) under `no-local`. Observed
-    2026-11-12: re-scoring the v4 directory reproduces v4 to three decimals, and complex R_ori falls from 5.30 to
-    1.19 under `no-local`; tree drift is the alternative explanation this run separates. Closes when: that score
-    JSON is pinned beside the others and the result file's attribution paragraph cites it.
+16. T-85 [A] DONE 2026-11-12: a v4-era-tree run under `no-local` already existed
+    (`F:/warehouse/pcl/diag_runs/fig3_cSTDP3_nolocal`, `baseline_sha` 98261a3e, 3168/3168). Scored twice
+    independently; every statistic agrees to 1e-12 and its seven scientific arrays are array-identical to the R5
+    oracle arm in all 3168 files. The complex R_ori collapse (5.297 → 1.188) is the inhibition setting; tree drift
+    is excluded. Recorded in `pcl/prereg/P3_fig3_r5_attribution_addendum.md` with
+    `scores/fig3_v4tree_nolocal.json`, both pinned (the R5 result file is pinned and was left unchanged). Closes
+    when: `python scripts/check_record_integrity.py --check` exits 0 with both files listed as pinned.
 17. T-90 [A] P-056 kernel-LFP deep-layer power. Closes when: a settled column shows deep alpha-beta power or the
     cause is named.
 
