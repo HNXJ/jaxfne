@@ -29,7 +29,11 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 
 ## Tier 2: 1 to 2 hours each
 
-1. T-D3 [A] Mejias 2016 G6 (Checklist D3, 2 pts). Closes when: G6 is scored and pinned.
+2. T-D3 [A then H] Mejias 2016 G6 — re-tiered 2026-11-12 from "1 to 2 hours" to needs-a-signed-prereg. G6 is not a
+   dashboard metric: `SOURCE_P1.md:70` defines it as the paper's full numerics unknown (time constants, weights,
+   noise, delays, dt, seeds), and `PREREG_P3.md:1` is still "draft, UNSIGNED" with `(fill)` estimands at `:10` and
+   `:26`. Missing: digitized figure targets, a verdict scorer, a rate-route driver, a P4-passing manifest, receipts.
+   Closes when: a filled P3 is signed and G6 is scored under it; the inventory is in the lane's records.
 2. T-86 [A] G1 CAMINOS PLoS panels (Checklist G1, 3 pts): export the Fig 5A panel, then build the Fig 3 and 4A
     mean-field rows. Closes when: all panels are in the notebook, exported, from pinned runs.
 
