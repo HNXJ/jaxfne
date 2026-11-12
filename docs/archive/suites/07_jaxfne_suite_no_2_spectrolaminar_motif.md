@@ -295,7 +295,7 @@ Core figures come from reusable visualization functions:
 ## Configuration Reference
 
 All Suite No. 2 workflows go through the chainable `Configuration` API.
-Every field below stores in `cfg.metadata`; none are physical statuss.
+Every field below stores in `cfg.metadata`; none are physical status.
 
 ### Smoke config vs full config
 

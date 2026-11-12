@@ -39,6 +39,7 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   2026-10-18), body verdicts too; REPLICATIONS row agrees. Closes with the lane's next prereg.
 - 2026-10-26: the Destexhe prereg moves to 0.5.9 (scope freeze, Hamm 2026-10-25); the entry stays
   open into 0.5.9.
+- 2026-11-03: P3 v3 was signed and scored FAIL 0 of 5 seeds (RESULT_P3.md); lane closed by Hamm 2026-11-03. Destexhe status reads pending/closed. Closed.
 
 ### P-047
 

@@ -143,7 +143,7 @@
     "This tutorial is a computational scaffold, not a biological validation.",
     "The Izhikevich native current is not empirically calibrated membrane current.",
     "No field PDE is solved in linear_solver mode.",
-    "Output CSD/LFP are proxy readouts without physical amplitude statuss.",
+    "Output CSD/LFP are proxy readouts without physical amplitude status.",
     "Dynamic coupling is implemented via exponential synaptic traces in lax.scan carry state.",
     "Each neuron's dynamics reflect the Izhikevich E+PV preset with adjusted drives.",
     "No mechanism of E/I balance or cortical function is proven by this tutorial.",
