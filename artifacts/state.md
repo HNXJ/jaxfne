@@ -1,7 +1,7 @@
 # state
 
-Stamp: jaxfne@dev@22adb682 · 2026-11-10. Last broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed, all lanes PASS, replication audit 0 unlisted; outside review ACCEPT). No gate run on 22adb682 yet. Checklist 0.5.10: 24/100.
-Working checkout `E:/repos/jaxfne` was absent on 2026-11-10; this fresh clone (`E:/repos/jaxfne-r4-clone`, dev) holds the stack commit.
+Stamp: jaxfne@dev@342279db · 2026-11-12. Last broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed, all lanes PASS, replication audit 0 unlisted; outside review ACCEPT). No gate run on 342279db yet. Checklist 0.5.10: 34/100 (10E E1 scored 7, E2 scored 3).
+Working checkout `E:/repos/jaxfne` clean on dev.
 OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling and ratings in HNXJ/ocma `cases/jaxfne/`.
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
@@ -14,14 +14,24 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - PCL R3 chain (6b10132a): oracle arm equals the C++ chain on files 0-4, exact at rtol 1e-12.
 - P-BALANCED ported for 0.5.10 (e179a2d0..9dd1c111); canonical CV pin 0.0585 (1680659e).
 - 2026-11-06..08: HH seed refusal test; homeostatic_ei stable bounds; B1 scripts and M3 fix; Jansen-Rit P3 v1 PASS 5 of 5 (`jansenrit1995/RESULT_P3.md`); PLoS Fig 5A producer and sustained-cycle test; T_v code form declared as variant `tv_form="code"` (8a6ccfc4); A3 scored, permutation moved to 0.5.11.
+- PCL R5-approximate scored 2026-11-12 under signed R4b: all 3168 tasks completed on Windows CPU (`pcl/prereg/P3_fig3_r5_approx_result.md`, `scores/fig3_r5_approx.json`); oracle arm compared (1246 equal, 1922 differing; `approx_diff.json`). Verdict: FAIL. P-055 attributed (`ISSUE_LOG.md`).
 
 ## Broken or in flight
 
 - CAMINOS E1 at n 12: not equivalent, 20 of 24 cells (`caminos/RESULT_FIGURES.md`); oracle kept (Hamm 2026-11-03).
-- PCL R5-exact FAIL, 4 of 16 files (P-055, `pcl/prereg/P3_fig3_r5_exact_result.md`). R5-approximate resumed 2026-11-06; 2860 of 3168 done at 2026-11-07 22:18Z (finish about 2026-11-08 10Z, inferred). Its driver logs `rc=$?` after `$(stamp)`, so the logged rc is always 0: judge the run by its output files. Its workers hold the CPU, so broad gates time out 17 example subprocesses until it ends.
+- PCL R5-exact FAIL (4/16 files) and R5-approximate FAIL under signed R4b (`pcl/prereg/P3_fig3_r5_approx_result.md`). P-055 attributed: complex cell integration time constant (`tau_m = 50 ms`) and 64x fan-in accumulate sub-millivolt float differences, delaying near-threshold complex spikes by ~1 ms and delaying top-down feedback.
 - P-053 (PCL scan vs oracle gap on sparse weights, unreproduced); P-056 (kernel-LFP deep-layer power < 0.5% of L2/3).
 - Papers are never "failed" through 0.6 (Hamm 2026-11-03).
-- Tooling: Cursor write fails at launch (read works); Muse code workers may exit early (resume with `--session`).
+- Tooling: Cursor CLI blocked on this host, two causes observed 2026-11-12: Group Policy sets
+  `ExecutionPolicy=AllSigned` so `cursor-agent.ps1` and its `.cmd` shim cannot run (`-ExecutionPolicy Bypass` does
+  not override a policy), and the direct `node.exe index.js` launch then fails because `--sandbox` needs macOS or
+  Linux. agy produced no run directory. OCMA round 4 is blocked on this (todo 28).
+- Dashboard cannot carry the R5 result yet: `dashboard/sources.json` reads files through `git show <lane.sha>:<path>`
+  and the PCL lane pins `8f75acd0`; the R5 artifacts are untracked, so the row waits on a commit and a lane-SHA
+  move (T-73).
+- P-055's cited evidence is incomplete: `F:/warehouse/pcl/r5/approx_diff.json` records differing spike times but no
+  membrane potentials, so the `V = 2.9788` vs `3.1950` mV values in the issue row have no receipt on disk
+  (observed 2026-11-12). The attribution stands on the spike-time differences; a replay script is missing.
 
 ## Open decisions for the owner
 
@@ -49,4 +59,6 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-Re-export the PLoS notebook (Fig 5A cell in, a6f4d867); B1 drive unification, then scored runs (T-B1); E1 at R5 end. Run the broad gate on 22adb682 before any stamp that claims green.
+Tier 1 is closed except the two blocked items. T-73 waits on committing the R5 artifacts and moving the PCL lane
+SHA in `dashboard/sources.json`; T-77 waits on an `hh-at01` lane folder or a dated exception. Next executable:
+Tier 2 lane on B4 (`build_config`) and F4 (GSDR log-scale names), then T-79/T-80 for the B1 benchmark.

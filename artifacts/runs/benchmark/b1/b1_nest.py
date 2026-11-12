@@ -147,7 +147,7 @@ def _m2_params(n: int) -> tuple[dict, list]:
     vals = {"n_E": n_e, "n_I": n - n_e}
     src = [("E a/b/c/d formulas", None, f"{LANE_IZH}:235-238"),
            ("W=2S, E|w|~U[0,1) I|w|~U[0,2)", None, f"{LANE_IZH}:239-242"),
-           ("per-cell noise_scale E/I", (5.0, 2.0), f"{LANE_IZH}:243-244"),
+           ("per-cell noise_scale E/I", (5.0, 2.0), f"{LANE_IZH}:245-246"),
            ("W_RANGE", None, f"{LANE_IZH_CORE}:58"),
            ("NOISE_STD", None, f"{LANE_IZH_CORE}:57"),
            ("INSTANTANEOUS_TAU_MS", 0.0, f"{LANE_IZH_CORE}:61"),

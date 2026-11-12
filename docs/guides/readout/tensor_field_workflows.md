@@ -137,7 +137,7 @@ Laminar proxy operators map source tensors to contacts without solving a PDE:
 - **Source-balance:** Deferred to physical solver path (proxy mode omits PDE validation)
 - **Gauge:** Declared metadata only
 - **Boundary condition:** Declared metadata only
-- **Physical amplitude statuss:** False by default
+- **Physical amplitude status:** False by default
 
 ### Physical solver path
 

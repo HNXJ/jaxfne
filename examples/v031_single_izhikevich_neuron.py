@@ -291,7 +291,7 @@ def main():
             "This tutorial is a computational scaffold, not a biological validation.",
             "The Izhikevich native current is not empirically calibrated membrane current.",
             "No field PDE is solved in linear_solver mode.",
-            "Output CSD/LFP are proxy readouts without physical amplitude statuss.",
+            "Output CSD/LFP are proxy readouts without physical amplitude status.",
             "No biological mechanism is proven by this tutorial alone.",
         ],
     }

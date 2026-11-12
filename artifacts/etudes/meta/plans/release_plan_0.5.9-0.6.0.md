@@ -66,7 +66,7 @@ its C row's check), and the todo rows moved to 0.5.10. Weights sum to 100: packa
 with the 0.5.9 weights). Each item carries its own weight and scores in full when its check is cited; no partial
 credit.
 
-Score 2026-11-08: 24/100 (packages 24 of 70; A3 4 on O-91 option 1, recommended and taken on Hamm's standing go; D2 4 on O-94 option 1, Hamm 2026-11-08 in the session chat: "yes proceed with the recommendations"). Score 2026-11-07: 16/100 (packages 16 of 70, gates 0 of 30; C2 done). Score 2026-11-06: 14/100 (D1 landed, B1 signed). Score 2026-11-05: 7/100. The 8.5 of the draft counted items implicitly and gave
+Score 2026-11-12: 34/100 (packages 34 of 70, gates 0 of 30; 10E E1 scored 7, E2 scored 3). Score 2026-11-08: 24/100 (packages 24 of 70; A3 4 on O-91 option 1, recommended and taken on Hamm's standing go; D2 4 on O-94 option 1, Hamm 2026-11-08 in the session chat: "yes proceed with the recommendations"). Score 2026-11-07: 16/100 (packages 16 of 70, gates 0 of 30; C2 done). Score 2026-11-06: 14/100 (D1 landed, B1 signed). Score 2026-11-05: 7/100. The 8.5 of the draft counted items implicitly and gave
 T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 
 | Item | Weight | What | Done when (cited check) | State (dated per row; checked 2026-11-07) | Score |
@@ -90,9 +90,9 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 | D2 | 4 | Jansen-Rit 1995 neural-mass emitter and its P1 (T-48) | emitter tests on dev; P3 scored (amended from "P1 scored", O-94, Hamm 2026-11-08) | emitter `jaxfne/emitters_jansen_rit.py` with 19 tests on dev (cf706780); P1 source record with paper constants (6409608c); P3 v1 signed (7ef8ff99, keeper on Hamm's standing go) and scored PASS 5 of 5 (`jansenrit1995/RESULT_P3.md`, score sha256 ca0c9d75); `SOURCE_P1.md` still lists unknowns (P1's own gap list stays open) | 4 |
 | D3 | 2 | Mejias 2016 G6 (T-32) | G6 scored | open | 0 |
 | D4 | 2 | S16 regenerated, Destexhe 2009 panel from its scored P3 receipts | S16 renders from pinned receipts | open | 0 |
-| **10E PCL Fig 3** | **10** | | | | **0** |
-| E1 | 7 | R5-approximate under signed R4b, scored in `pcl/prereg/` | result file and score JSON pinned | approx_core 2860 of 3168 tasks at 2026-11-07 22:18Z (1085 pending at the resume, 777 since; `F:/warehouse/pcl/r5/approx_core_resume2.log`) | 0 |
-| E2 | 3 | P-055 attributed (R5-exact, 4 of 16 files equal) | the cause named with its receipt in the issue log | open | 0 |
+| **10E PCL Fig 3** | **10** | | | | **10** |
+| E1 | 7 | R5-approximate under signed R4b, scored in `pcl/prereg/` | result file and score JSON pinned | done 2026-11-12: all 3168 tasks scored FAIL (`pcl/prereg/P3_fig3_r5_approx_result.md`, `scores/fig3_r5_approx.json`); oracle check compared (1246 equal, 1922 differing; `approx_diff.json`) | 7 |
+| E2 | 3 | P-055 attributed (R5-exact, 4 of 16 files equal) | the cause named with its receipt in the issue log | done 2026-11-12: attributed in `ISSUE_LOG.md` P-055 (complex long tau_m and 64x fan-in accumulate sub-millivolt float differences, delaying near-threshold complex spikes and top-down feedback) | 3 |
 | **10F Carried** | **8** | | | | **4** |
 | F1 | 1 | the `in_degree` refusal message (0.5.9 Gate 4 should-fix) | its test | done (9e7c2044) | 1 |
 | F2 | 2 | P-BALANCED: `BackgroundNoise`, `baseline_drive`, the balanced-1000n preset | `tests/test_balanced_preset_acceptance.py` | done (e179a2d0..9dd1c111; Hamm 2026-11-05: retune under the unchanged bounds; seeds 0-4 CV 0.742-0.755, shift 0.236-0.257) | 2 |
