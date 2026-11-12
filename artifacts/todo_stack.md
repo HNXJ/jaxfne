@@ -16,46 +16,35 @@ Audit 2026-11-12: 0.5.10 checklist holds 34 of 100 (packages 34 of 70, gates 0 o
 
 ## Tier 1: under 15 minutes each
 
-1. T-76 [A] DONE 2026-11-12: `b1_brian2.py:167` and `b1_nest.py:150` now cite `run_izh.py:245-246`. Closes when:
-   `git diff 342279db -- artifacts/runs/benchmark/b1/` shows the two citation lines changed and
-   `python scripts/check_replications.py --check` exits 0 with 0 unlisted.
-2. T-OWN-typo [A] Fix the `statuss` typo in 8 lines (`examples/v031_*.py`, `v033_*.py`, `docs/`). Closes when:
-   `git grep -n "statuss"` returns 0 hits in live files and `ruff check` passes.
-3. T-73 [A] Dashboard R5 row. BLOCKED by a schema fact, not effort: `dashboard/sources.json` reads every file
-   through `git show <lane.sha>:<path>` and the PCL lane pins `8f75acd0`; the R5 artifacts are untracked, so no
-   honest R5 row exists until they are committed and the lane SHA moves (or a second `r5-approx` lane is declared).
-   `allow_missing` would render the FAIL as a pending dash. Closes when: the R5 artifacts are committed, the lane
-   SHA points at that commit, and both `--check` commands exit 0 with the R5 row present.
-4. T-77 [A] `check_replications.py` `hh-at01`: there is no `artifacts/etudes/papers/hh-at01/` folder, so the row
-   cannot be mapped by a JSON edit (R1 then wants `SOURCE_P1.md`, `PORT_SPEC.md` and a `PREREG_P3*.md`). Closes
-   when: `python scripts/check_replications.py --check` reports one fewer known violation, either from a real lane
-   folder to P3 or from a dated Hamm exception in `scripts/replication_known_violations.json`.
+1. T-B4 [A] `build_config` repair (Checklist B4, 2 pts): `scripts/cortical_column_localized_workflow.py:80` calls
+   `build_laminar_column` with incompatible `geometry="uniform3d"`; switch to `geometry="laminar"`.
+   Closes when: `pytest tests/test_cortical_column_build_config.py` passes and B4 scores 2.
+2. T-F4 [A] GSDR log-scale parameters (Checklist F4, 1 pt): name which parameters sweep on a log scale in
+   `artifacts/etudes/papers/gsdr2026/PORT_SPEC.md` / `NOTES.md`. Closes when: they are named and
+   `pytest tests/test_agsdr_log_scale.py` passes with linear bounds bit-identical.
+3. T-82 [A] Reproducibility audit section 7 (Checklist G3, 1 pt): in `artifacts/programme/paper/reproducibility_audit.md`
+   §7, retire rows 7 and 8 (Jansen-Rit, kernel-LFP, `b1_nest.py` and `b1_jaxley.py` are now implemented and committed).
+   Closes when: section 7 cites only open gaps.
+4. T-73 [A] Dashboard R5 row: update `dashboard/sources.json` to link `fig3_r5_approx.json` under `pcl-fig3`; run
+   `python scripts/build_dashboard_data.py` and `python scripts/build_dashboard_figures.py`. Closes when: both
+   `--check` commands exit 0 with the R5 row present.
+5. T-77 [A] `check_replications.py` `hh-at01`: map `hh-at01` folder or handle exception. Closes when:
+   `python scripts/check_replications.py --check` reports 0 unlisted.
 
 ## Tier 2: 1 to 2 hours each
 
-5. T-75 [A] DONE 2026-11-12: `ISSUE_LOG.md` P-040 closed as superseded — the prereg file it named no longer exists,
-   the lane's calibration already recorded the scoring as unscored under the 2026-10-18 ruling, and the repl page
-   reads "pending". Closes when: `python scripts/check_record_integrity.py --check` exits 0 with the new
-   `ISSUE_LOG.md` hash pinned.
-6. T-B4 [A] `build_config` repair (checklist B4, 2 pts): audit `scripts/cortical_column_localized_workflow.py`,
-   write the failing-first test, land the fix. Closes when: the test passes and B4 scores 2.
-7. T-F4 [A] GSDR log-scale parameters (checklist F4, 1 pt): name which parameters sweep on a log scale in
-   `etudes/papers/gsdr2026/`. Closes when: they are named and `tests/test_agsdr_log_scale.py` passes with linear
-   bounds bit-identical.
-8. T-82 [A] Reproducibility audit section 7 (checklist G3, 1 pt): retire rows 7 and 8, keep only open gaps with
-   valid paths. Closes when: section 7 cites only open gaps.
-9. T-79 [A] B1 drive unification: the harness passes `ou_sigma=HH_OU_SIGMA_CLIP` (0.05) unscaled while
+6. T-D4 [A] S16 Destexhe 2009 panel (Checklist D4, 2 pts): add `write_s16` to `scripts/publication_figures/supplement.py`
+   from the scored P3 receipts. Closes when: S16 renders from pinned receipts.
+7. T-D3 [A] Mejias 2016 G6 (Checklist D3, 2 pts). Closes when: G6 is scored and pinned.
+8. T-79 [A] B1 drive unification: the harness passes `ou_sigma=HH_OU_SIGMA_CLIP` (0.05) unscaled while
    `emitters_hh.py:311-313` says uA/cm2 callers scale sigma by 1000. Includes the value question found 2026-11-12:
    the M2 table records `noise_scale E/I` as (5.0, 2.0) while `run_izh.py:245-246` and `b1_brian2.py:271-272`
    realize `5.0*sqrt(2)` and `2.0*sqrt(2)`. Closes when: one drive definition serves harness and baselines, a smoke
    run shows the realized sigma, and the table states which quantity it records with both values beside it.
-10. T-80 [A] B1 baseline parameter match: `b1_jaxley.py` `E_L` −54.378 against the lane's −54.3, `HHChannel()`
-    inserted with no params, dt 0.025 / 500 ms against the prereg's 0.1 / 1000. Closes when: each is matched or
-    recorded as a declared class difference and the receipt states the values actually run.
-11. T-D3 [A] Mejias 2016 G6 (checklist D3, 2 pts). Closes when: G6 is scored and pinned.
-12. T-D4 [A] S16 Destexhe 2009 panel (checklist D4, 2 pts) from the scored P3 receipts. Closes when: S16 renders
-    from pinned receipts.
-13. T-86 [A] G1 CAMINOS PLoS panels (checklist G1, 3 pts): export the Fig 5A panel, then build the Fig 3 and 4A
+9. T-80 [A] B1 baseline parameter match: `b1_jaxley.py` `E_L` −54.378 against the lane's −54.3, `HHChannel()`
+   inserted with no params, dt 0.025 / 500 ms against the prereg's 0.1 / 1000. Closes when: each is matched or
+   recorded as a declared class difference and the receipt states the values actually run.
+10. T-86 [A] G1 CAMINOS PLoS panels (Checklist G1, 3 pts): export the Fig 5A panel, then build the Fig 3 and 4A
     mean-field rows. Closes when: all panels are in the notebook, exported, from pinned runs.
 
 ## Tier 3: half a day
