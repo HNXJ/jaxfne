@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@a5da71ad · 2026-11-12. Last broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed, all lanes PASS, replication audit 0 unlisted; outside review ACCEPT). No gate run on a5da71ad yet. Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
+Stamp: jaxfne@dev@d2507956 · 2026-11-13. Last broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed, all lanes PASS, replication audit 0 unlisted; outside review ACCEPT). No gate run on d2507956 yet. Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
 Working checkout `E:/repos/jaxfne` clean on dev.
 OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling and ratings in HNXJ/ocma `cases/jaxfne/`.
 
@@ -17,6 +17,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - PCL R5-approximate scored 2026-11-12 under signed R4b: all 3168 tasks completed on Windows CPU (`pcl/prereg/P3_fig3_r5_approx_result.md`, `scores/fig3_r5_approx.json`); oracle arm compared (1246 equal, 1922 differing; `approx_diff.json`). Verdict: FAIL. P-055 attributed (`ISSUE_LOG.md`).
 - 2026-11-12: 10B B4 `build_config` repaired; 10D D4 S16 Destexhe panel added; 10F F4 GSDR log-scale parameters named; 10G G3 reproducibility audit §7 updated (checklist 40/100).
 - B1 drive unification and baseline parameter match (T-79, T-80) landed (`b1_harness.py`, `b1_brian2.py`, `b1_nest.py`, `b1_jaxley.py`; `--smoke` verified).
+- PCL attribution closed 2026-11-12 (`pcl/prereg/P3_fig3_r5_attribution_addendum.md`): complex-cell collapse attributed to no-local inhibition, tree drift excluded (`fig3_v4tree_nolocal.json`, T-85).
 
 ## Broken or in flight
 
