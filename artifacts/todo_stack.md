@@ -1,5 +1,8 @@
 # todo stack
 
+Context audit 2026-11-13: priorities and midterm dependencies indexed in `artifacts/ref/context_audit_2026-11-13.md`. Existing task IDs, owner decisions, scientific acceptance and original closing checks remain authoritative. No item was completed or rescored by this documentation pass.
+
+
 Ordered smallest to largest by effort, end to end. `→` is the next step, `⇒` a branch on the outcome.
 `[A]` agent, `[H]` Hamm. Each item names the command that closes it. A `∥` item runs beside the path in its own
 lane (at most 3 lanes, one writer per file set, clones at `E:/repos/_wt/jaxfne/<lane>`).
