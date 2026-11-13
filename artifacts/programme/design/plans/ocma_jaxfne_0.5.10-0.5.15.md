@@ -52,3 +52,7 @@ Track per release: confirmed defects opened/closed (severity and reproducer), fa
 - Current release gates: `artifacts/etudes/meta/plans/release_plan_0.5.9-0.6.0.md`; paper: `artifacts/programme/design/plans/arxiv_paper_plan.md`.
 - OCMA case method, ontology, outputs: HNXJ/ocma `cases/jaxfne/`; JaxFNE dashboard-facing result: `artifacts/etudes/meta/literature/ocma/`.
 - This note holds **long-term scope and gates**, not duplicated mutable task status. On each release transition, derive small actionable todo rows from this note; delete completed rows and retain historical evidence in Git/receipts.
+
+## 2026-11-12 goal-matched assessment and immediate decision
+
+The dated, source-scoped and weighted scorecard is `artifacts/programme/design/plans/ocma_jaxfne_goal_match_2026-11-12.md`: JaxFNE 52/100 and OCMA 55/100 **provisional goal-match estimates**, not release or acceptance scores. They are based on distinct goal-specific rubrics, not comparable maturity percentages. The immediate priority is existing JaxFNE 0.5.10 closure and OCMA's incident hold; OCMA R4 remains paused until its local tools and CLI are verified. The earlier assertion that a second model-family arm had not run is stale: OCMA round-2 GLM arm ran on 25 rows; the full 88-row round-4 swap did not. Keep this dated correction rather than rewriting the earlier source snapshot.
