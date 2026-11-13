@@ -150,3 +150,7 @@ population family; agent transport (MCP); 0.5.4 items 1b and 0; 2026-09-20 owner
 when a caller needs one; the tracked `protocol_w/w3b_parameter_domain/w3b_scan_run.log` at the next W3b refreeze.
 Directions, open: augmentation runs; `pcl_stdp_h2`; structural HDP; primate primary-connection mode; theory F3-F5
 and Lean proofs; Python 3.15 in CI once its wheels exist.
+
+## Long-term quality and OCMA programme (planning; no new release authorization)
+
+The unified scope, evidence gates, thinning protocol and proposed milestones 0.5.12–0.5.15 live only in `artifacts/programme/design/plans/ocma_jaxfne_0.5.10-0.5.15.md`. Keep the ordered 0.5.10 → 0.5.11 → 0.6.0 execution path above until Hamm approves a changed release sequence. At the 0.5.11 planning boundary, translate the proposed next milestone into smallest actionable rows with explicit checks; do not duplicate the roadmap here or treat planning as a signed protocol.
