@@ -38,8 +38,8 @@ PREREG = ROOT / "artifacts" / "runs" / "benchmark" / "prereg" / "PREREG_B1_0510.
 LANE_HH = "jaxfne/emitters_hh.py"
 HARNESS = "artifacts/runs/benchmark/b1/b1_harness.py"
 
-GRID_DURATION_MS = 500.0
-GRID_DT_MS = 0.025
+GRID_DURATION_MS = 1000.0
+GRID_DT_MS = 0.1
 
 HH = {"C_m_uF_cm2": 1.0, "gNa_mS_cm2": 120.0, "gK_mS_cm2": 36.0,
       "gL_mS_cm2": 0.3, "E_Na_mV": 50.0, "E_K_mV": -77.0,
@@ -310,8 +310,8 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=1)
     ap.add_argument("--seeds", default="7")
-    ap.add_argument("--duration-ms", type=float, default=100.0)
-    ap.add_argument("--dt-ms", type=float, default=0.025)
+    ap.add_argument("--duration-ms", type=float, default=GRID_DURATION_MS)
+    ap.add_argument("--dt-ms", type=float, default=GRID_DT_MS)
     ap.add_argument("--out", default=None)
     args = ap.parse_args(argv)
     rec = run_cell({"model": "M3", "n": args.n,
