@@ -1,8 +1,8 @@
 # state
 
 Stamp: jaxfne@dev@24a95963 · 2026-11-13. Last broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed, all lanes PASS, replication audit 0 unlisted; outside review ACCEPT). No pytest gate has run on 24a95963. Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
-Working checkout `E:/repos/jaxfne` clean on `dev`, 15 commits ahead of `origin/dev` and identical to `origin/_temp_r5_size_budget`. `origin/dev` stays at 342279db: the report gate fails on `tree_size_audit` alone (O-R5SIZE).
-Audit 2026-11-13 on d2507956: `run_test_gate.py report` stops at `tree_size_audit` (96 704 629 against a 96 400 000 budget, 304 629 over); the 14 families after it were run one at a time and all pass, `record_integrity` 251 pinned with 0 violations and `replication_audit` 28 known, 0 unlisted.
+`origin/dev` is at 24a95963 and is RED on `tree_size_audit` (96,704,405 against a 96,400,000 budget; the 413 KB pinned armcheck record is the cause). O-R5SIZE holds the ruling; the three routes are in `open_stack.md`.
+Audit 2026-11-13 on d2507956: the 14 audit families after `tree_size_audit` pass one at a time — `record_integrity` 251 pinned with 0 violations, `replication_audit` 28 known and 0 unlisted.
 OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling and ratings in HNXJ/ocma `cases/jaxfne/`.
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
@@ -51,9 +51,10 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-O-R5SIZE blocks the merge to `dev`: the 3168-row armcheck record is pinned and puts the tree 304 629 bytes over
-budget, so `run_test_gate.py report` fails at `tree_size_audit` while all 14 later families pass. Three routes are
-ranked in `open_stack.md`; the smallest is raising `budget_bytes` by 400 KB.
+Urgent, for Hamm: `origin/dev` is red on `tree_size_audit` since 24a95963. The 413 KB pinned armcheck record puts
+the tracked tree 304,405 bytes over budget, and `check_record_integrity.py` refuses to edit a pinned record, so the
+two gates cannot both pass. Three routes are ranked in `open_stack.md` O-R5SIZE; the smallest is raising
+`budget_bytes` by 400 KB in `scripts/tree_size_allowlist.json`.
 
 Executable now, no ruling needed: T-86 (CAMINOS PLoS panels), T-F5 (candidate batching), T-83 (P-053 fixture),
 T-90 (kernel-LFP). T-D3 (Mejias G6) needs a filled signed P3 first. T-87 (F4 benchmark) follows T-79/T-80, which
