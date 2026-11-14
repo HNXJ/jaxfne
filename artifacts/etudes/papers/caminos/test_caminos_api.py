@@ -377,6 +377,35 @@ def test_delay_scorer_checks_the_declared_delay_and_reports_rounds(tmp_path):
         sds.check_manifest(tmp_path, 0.1)
 
 
+@pytest.mark.slow
+def test_event_delivery_raster_equals_all_edges_full_module():
+    """The full CAMINOS module (8000 E, 750 PV, 750 SOM, p 0.07), 1 s at float32:
+    ``edge_delivery="event"`` gives the all-edges spike raster bit-for-bit.
+
+    The compiled edge list is pre-sorted within each target (``order_exact``), so
+    every per-target conductance sum adds the same terms in the same order.
+    """
+    import dataclasses
+
+    import numpy as np
+
+    import caminos_api as ca
+    import jaxfne as jtfne
+
+    model = jtfne.construct(ca.build_spec(0.07, 1))
+    sim = ca.build_sim(0.07, 1, 1.0)
+    out = {}
+    for mode in ("all_edges", "event"):
+        run = dataclasses.replace(sim, runtime=jtfne.RuntimeConfig(
+            recurrent_backend="edge_list", edge_delivery=mode))
+        sig = model.simulate(run)
+        out[mode] = (np.asarray(sig.spikes, dtype=bool), sig.metadata.get("edge_delivery"))
+    ref, got = out["all_edges"][0], out["event"][0]
+    assert ref.shape == (10000, ca.N) and ref.sum() > 0, "fixture: 1 s of the full module, spiking"
+    assert out["event"][1]["order_exact"] is True
+    assert np.array_equal(got, ref)
+
+
 def test_run_refuses_without_model_simulate(tmp_path, monkeypatch):
     """``run()`` consumes ``Model.simulate``: with it disabled the run refuses."""
     import caminos_api as ca

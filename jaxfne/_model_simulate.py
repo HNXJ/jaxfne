@@ -95,6 +95,16 @@ def _refuse_surrogate(runtime_cfg: RuntimeConfig, route: str) -> None:
         )
 
 
+def _refuse_event_delivery(runtime_cfg: RuntimeConfig, route: str) -> None:
+    """``edge_delivery='event'`` is realized on the serial AdEx ``simulate`` route only."""
+    if runtime_cfg.edge_delivery != "all_edges":
+        raise ValueError(
+            f"RuntimeConfig(edge_delivery={runtime_cfg.edge_delivery!r}) is realized on the serial "
+            f"AdEx simulate route only; this run takes {route}. Drop edge_delivery or run "
+            "Model.simulate on emitter family 'adex'"
+        )
+
+
 def _refuse_dense_connection_rules(model: Any, runtime_cfg: RuntimeConfig) -> None:
     """Refuse a dense run when compiled ``connections()`` rules exist.
 
@@ -1540,6 +1550,7 @@ def simulate(
     if isinstance(self.params["emitter"], AdExParams):
         _refuse_adex_inputs(self, sim, paradigm, continuation, return_state)
         return _simulate_adex(self, sim, runtime_cfg)
+    _refuse_event_delivery(runtime_cfg, f"emitter family {type(self.params['emitter']).__name__}")
 
     if isinstance(self.params["emitter"], HHParams):
         if continuation is not None or return_state:
@@ -2136,6 +2147,7 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
         spike_out_mask=silence_mask, spike_out_onset_step=int(silence_onset),
         spike_replace_mask=replace_mask, spike_replace_lam=replace_lam,
         spike_replace_key=replace_key,
+        edge_delivery=runtime_cfg.edge_delivery,
         **gain_call,
     )
     time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
@@ -2158,6 +2170,8 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
         # The route records no sources and no field; the record flags change nothing here.
         "not_recorded": ["sources", "field"],
     }
+    if "event_delivery" in out:
+        metadata["edge_delivery"] = {"mode": "event", **out["event_delivery"]}
     if "edge0_pre" in kwargs:
         import numpy as _np_fp
 
@@ -3369,6 +3383,7 @@ def simulate_batch(
     base_seed = sim.seed if seed is None else int(seed)
     keys = jax.random.split(jax.random.PRNGKey(base_seed), int(n_seeds))
     emitter = self._require_izhikevich_emitter("simulate_batch")
+    _refuse_event_delivery(runtime_cfg, "simulate_batch (Izhikevich)")
     _require_backend_available(runtime_cfg.selected_backend)
 
     # Sparse-direct models (placeholder dense W) must use the edge_list backend.
@@ -3678,6 +3693,7 @@ def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict
         )
     runtime_cfg = sim.resolved_runtime
     _refuse_surrogate(runtime_cfg, "simulate_adex_seed_batch")
+    _refuse_event_delivery(runtime_cfg, "simulate_adex_seed_batch")
     kernel_kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.compute_dtype)
     refuse_poisson_drive_list(sim.poisson_drive, "simulate_adex_seed_batch (emitter family 'adex')")
     has_drive = sim.poisson_drive is not None
@@ -3771,6 +3787,7 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
         )
     runtime_cfg = sim.resolved_runtime
     _refuse_surrogate(runtime_cfg, "simulate_lif_seed_batch")
+    _refuse_event_delivery(runtime_cfg, "simulate_lif_seed_batch")
     dtype = runtime_cfg.jnp_compute_dtype
     emitter: LIFNetworkParams = self.params["emitter"]
     edges = lif_edge_arrays(self)
