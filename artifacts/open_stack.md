@@ -1,6 +1,6 @@
 # open stack
 
-Context audit 2026-11-13: O-R5SIZE remains owner-blocked; no gate or evidence was changed. Live dev was `24a95963` at inspection, while the historical state stamp names `d2507956`. See `artifacts/ref/context_audit_2026-11-13.md`. No issue closed.
+Context audit 2026-11-13: O-R5SIZE remains owner-blocked; no gate or evidence was changed. Live dev was `24a95963` at inspection, while the historical state stamp names `d2507956`. See `artifacts/audit/reviews/context_audit_2026-11-13.md`. No issue closed.
 
 
 Anything open right now. Read first at session start, before `todo_stack.md`. One line per item:

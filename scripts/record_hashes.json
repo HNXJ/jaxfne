@@ -2,7 +2,7 @@
   "counts": {
     "archive": 19,
     "benchmark": 1,
-    "dated": 25,
+    "dated": 26,
     "frozen": 28,
     "legacy": 32,
     "prereg": 135,
@@ -29,6 +29,7 @@
     "artifacts/archive/scripts/make_delta_test_01_report.py": "d5cabf0d27d3f93b2ea42bce2dcc1dcdac0da1536df7bdbb105adb732fb5c4e8",
     "artifacts/archive/scripts/repair_notebooks.py": "1203e1abf480d11f57fc2e0852a5a74391c71158fa39900c6595faef5572dc84",
     "artifacts/assurance/open_scan_2026-10-15.md": "d6f6ffce528070f0d692c45af042f592980d5b9ca307dcb904f254dbd2e5a37b",
+    "artifacts/audit/reviews/context_audit_2026-11-13.md": "47ba6056229772f0bbb457e23c126366d37d108bb2c3c6f3e79d4285b200dfd7",
     "artifacts/audit/reviews/deep_review_89_2026-10-04.md": "dd06c1a14bf9b1f76d9d0a529c2760586190d2b90acd35fa273a34b7c6a699af",
     "artifacts/audit/reviews/docs_style_pass_2026-09-28.md": "0c02eb642dc653c6a2309460312ede02af32cdec816bc0f29cce7365e1b0be3a",
     "artifacts/audit/reviews/evidence_audit_critic_surfaces_2026-09-07.md": "dd30c8028d8847d1078fbfa4d07c3d3c7c2b33f9a3d708b55d0e5871d13a1e57",
