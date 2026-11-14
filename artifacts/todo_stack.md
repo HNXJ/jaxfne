@@ -1,5 +1,12 @@
 # todo stack
 
+### T-AI-DOC — Explain AI-assisted and autonomous data-inspired modeling direction
+
+[A then H] Proposed documentation alignment, not a new scientific feature or release criterion. Writes: `README.md`, existing `docs/reference/project/scope_and_status.md` and canonical modeling/quickstart documentation only. Blocked by: owner ruling if product scope, scientific claims or public acceptance would change.
+
+JaxFNE is the biophysical neural simulation/modeling tool for researcher-directed and AI-assisted/autonomous model construction, simulation, falsifiable comparison with neural data, and iterative discovery. Keep the tested chain explicit: model assumptions and units → simulation → observable spikes/population/fields → data comparison, uncertainty and residual structure → constrained mechanistic revision. State that JaxFNE does not independently validate an empirical hypothesis, that OCMA governs multi-agent research strategy, and that Jomission is a downstream scientific project rather than a built-in package workflow. Do not claim a working autonomous research agent unless evidenced. Check: every public capability maps to current API/docs/tests, no duplicate definition or unsupported promise, original source-field identity and JDNA reduction semantics preserved, native docs/link gates and independent reviewer PASS.
+
+
 Ordered smallest to largest by effort, end to end. `→` is the next step, `⇒` a branch on the outcome.
 `[A]` agent, `[H]` Hamm. Each item names the command that closes it. A `∥` item runs beside the path in its own
 lane (at most 3 lanes, one writer per file set, clones at `E:/repos/_wt/jaxfne/<lane>`).
