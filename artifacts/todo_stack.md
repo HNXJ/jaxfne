@@ -28,6 +28,11 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 None. T-93 (O-R5SIZE) closed 2026-11-15 by Hamm's budget ruling; T-83 ran under criteria Amendment 1 (P-053 stays
 open, see Deferred).
 
+T-ATTR [A] attribute the 10 Mac broad-gate failures (float32 composition and Gaussian-drive tests, `izh2003_core_path`
+known answers, `equivalence_gate_v20260815`, `neuronal_tensor` example 08, `vis_smoke_all` export_figures). Closes when:
+each has a demonstrated cause class and a non-weakening remedy in a committed note; a matching-host broad gate
+(O-MAC10) is the dev-integration check.
+
 ## Tier 2: 1 to 2 hours each
 
 2. T-D3 [A then H] Mejias 2016 G6 — re-tiered 2026-11-12 from "1 to 2 hours" to needs-a-signed-prereg. G6 is not a
