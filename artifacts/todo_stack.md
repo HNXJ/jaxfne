@@ -125,6 +125,8 @@ unparseable or status-less receipt is not a record by design (`_is_final_receipt
 `tests/test_record_integrity.py::test_corrupt_receipt_unpinned_is_not_a_record_but_pinned_is_caught`. AUD-03: the
 state/open/todo statements were reconciled in this branch (`artifacts_check.py` ACCEPT).
 
+File-count budget (2026-11-15): the tree sits at `budget_files` 2796 of 2796, so any new tracked file needs a removal; the byte ruling (O-R5SIZE) raised `budget_bytes` only. Trigger: the next needed new file. Action then: find removable files with evidence (match-cleanup), or ask Hamm for a `budget_files` ruling; never raise it unasked.
+
 AT-10-R6 RSS growth before any run over 100 s; A8 gh-pages policy; architecture split on a measured bottleneck;
 C5-C7 zero/NaN contract; the UNTESTED-exact refusal tail and O-67 skips; S27 population family; agent transport
 (MCP); 0.5.4 items 1b and 0; the 2026-09-20 owner calls; Atlas ladder; the mechanism rule proposal; stored-only
