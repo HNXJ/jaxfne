@@ -57,6 +57,15 @@ At equal drive and unit weights the deep kernels are within a factor 1 to 6 of L
 
 Design caution (observed): synapses spread over the whole cell give kernels of about 1e-17 mV for L23E, L4E and L5E (an order 1e-12 below the apical or basal placements; consistent with near-complete cancellation of source and return currents, inferred) but 1e-5 to 1e-4 mV for L6E. The L6E exception is explained (observed): 7.5% of the L6E membrane area has its midpoint below the white-matter bound (z up to 1651 um against 1491.7), so a whole-cell weight range drops those compartments and the balance fails; L23E, L4E and L5E have 0% outside. A column must therefore place synapses by explicit depth ranges per class, never by the layer bounds alone. Synapse placement per connection class is therefore a design input.
 
+## 5b. Smoke protocol (declared 2026-11-15 before any smoke run; the receipt is kept whether or not it passes)
+
+- Configuration: N = 1000 split over the eight Hagen populations by a fixed table recorded in the receipt; dt 0.1 ms; 1.0 s simulated (10000 steps); seed 0; float32 unless the route requires x64 (then x64, stated); CPU.
+- Budget (declared now): compile at most 180 s; execute at most 120 s; peak RSS at most 4 GB; output at most 50 MB.
+- Timing: compile (first call minus second call) and execute (second call) reported separately, each with `block_until_ready`.
+- Finite and coverage checks: all outputs finite; spike counts integer-valued and non-negative; per-class count array shape `[T, C]` equals the kernel's class axis; every population present.
+- Input-engagement control (before any intervention is read): per-population external input actually reaches each population. Required: for every population, mean membrane input current or rate is non-zero and changes by the intended factor when its drive is scaled by 2 (a 2x drive on one population changes that population's rate by more than the seed spread; run this check with recurrent weights zeroed so that the other populations are expected unchanged, and again with recurrence on, reporting the downstream changes without a pass criterion). A deep population that does not respond to its own drive makes an intervention on it vacuous and stops the sequence.
+- A failed smoke is reported with its log; nothing is retuned and re-labelled as the smoke.
+
 ## 6. Owner rulings needed before any candidate result is read
 
 - The threshold for "deep alpha-beta present" (the issue gives none; proposal: `R_L5` or `R_L6 >= 0.05` and peak prominence above the shuffle null's 99th percentile). Without it only the baseline and controls are run.
