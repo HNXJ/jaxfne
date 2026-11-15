@@ -63,6 +63,7 @@ integrating SHA. Closes when: it reads 0 failed and CI is green on that SHA (O-M
     (only the diff at tag `archive/kernel-lfp`), so the deficit is unreproduced as measured; the chain
     kernel_lfp -> Welch -> 8-25 Hz power is validated on a known source (`tests/test_kernel_lfp_band_power.py`: tone
     power = analytic, x4 for x2 drive, shuffle 0.7%, zero 1e-14; a wrong-frequency expectation would miss by 14-18%).
+    Spec draft: `programme/design/plans/p056_diagnostic_spec_v1.md` (estimand, controls, sizing; unsigned, no run).
     Next: rebuild the column pilot from the AdEx route with its metric fixed first (bands, L2/3 normalization,
     layer map), record per-layer rates and N, then discriminate candidates (rates, deep kernel amplitude,
     coherence radius) by single-variable interventions; keep the observed deficit as the baseline row.
