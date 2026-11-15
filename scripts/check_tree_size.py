@@ -55,9 +55,27 @@ def tracked_sizes(repo_root: Path = ROOT) -> dict[str, int]:
         cwd=str(repo_root),
         check=True,
     )
+    lines = batch.stdout.splitlines()
+    if len(lines) != len(blobs):
+        raise RuntimeError(
+            f"git cat-file --batch-check: {len(lines)} response lines for"
+            f" {len(blobs)} requested blobs"
+        )
     sizes: dict[str, int] = {}
-    for path, line in zip(paths, batch.stdout.splitlines()):
-        sizes[path] = int(line.split()[2])
+    for path, blob, line in zip(paths, blobs, lines):
+        fields = line.split()
+        if len(fields) == 2 and fields[1] == "missing":
+            raise RuntimeError(f"git cat-file --batch-check: blob {blob} for {path} missing")
+        if len(fields) != 3 or not fields[2].isdigit():
+            raise RuntimeError(
+                f"git cat-file --batch-check: malformed response line {line!r} for {path}"
+            )
+        if fields[0] != blob:
+            raise RuntimeError(
+                f"git cat-file --batch-check: response {fields[0]} does not match"
+                f" requested blob {blob} for {path}"
+            )
+        sizes[path] = int(fields[2])
     return sizes
 
 
