@@ -104,9 +104,10 @@ P-053 follow-up, trigger: a new hypothesis or coverage requirement. T-83 (2026-1
 is NOT_REPRODUCED under criteria Amendment 1 only; V1's LAT half is never consumed and V1 adds information beyond V3
 in seed 0 through TD, so no general sparse-weight equivalence is shown. Source-only discriminators (event order,
 repeated addresses, ties, zero vs epsilon weights) are on `origin/_temp_r5_size_budget`
-(`artifacts/etudes/meta/p053_p056_source_audit_2026-11-13.md`, not integrated). AUD-02 (a new malformed final
-receipt vs `check_record_integrity.py::_is_final_receipt`) and AUD-03 (state/open/todo cross-file consistency, fixed in
-this commit's `state.md`): reproduce before classifying; AUD-02 has no row until an adversarial test shows a bypass.
+(`artifacts/etudes/meta/p053_p056_source_audit_2026-11-13.md`, not integrated). AUD-02 reproduced 2026-11-15: a pinned receipt that is corrupted, status-flipped or deleted is flagged; a new
+unparseable or status-less receipt is not a record by design (`_is_final_receipt`); no bypass, pinned by
+`tests/test_record_integrity.py::test_corrupt_receipt_unpinned_is_not_a_record_but_pinned_is_caught`. AUD-03: the
+state/open/todo statements were reconciled in this branch (`artifacts_check.py` ACCEPT).
 
 AT-10-R6 RSS growth before any run over 100 s; A8 gh-pages policy; architecture split on a measured bottleneck;
 C5-C7 zero/NaN contract; the UNTESTED-exact refusal tail and O-67 skips; S27 population family; agent transport

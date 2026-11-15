@@ -4,7 +4,7 @@ Verdict: **NOT_REPRODUCED** under criteria `P053_sparse_fixture_criteria.md`, Am
 
 Status of the run: Amendment 1 is a diagnostic validation linked to run 1, not a confirmation under the original criteria. N = 170 is exploratory and was chosen by probing (see Event count).
 
-Baseline: jaxfne worktree HEAD `4f5a8bbe55f40f56a2fde9968352b645147a1026` (criteria commit `3cc29785`). The test file is new and uncommitted. Mac, numba 0.68.1, venv `artifacts/_temp/venv`.
+Baseline: jaxfne worktree HEAD `4f5a8bbe55f40f56a2fde9968352b645147a1026` (criteria commit `3cc29785`). The run used the then-uncommitted test file (committed afterwards in this branch). Mac, numba 0.68.1, venv `artifacts/_temp/venv`.
 
 Test: `artifacts/etudes/papers/pcl/port/test_p053_sparse_fixture.py`. Core arm: `run_tuning.run_core_events(..., learning=True)`. Oracle: `pcl_event_ref.PCLEventRef.run` on a deep copy, learning on. Network: `PCLEventRef(seed=s, learning=True, layer_inhibitions=[["local","lateral"],["local","topdown"]])`, default STDP modes. Events: N = 170 at one pixel, 20 us spacing.
 

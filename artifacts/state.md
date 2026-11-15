@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@_temp_swarm_integ_20261115@b42a35b7 · 2026-11-15 (base origin/dev 24a95963). Last broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed, outside review ACCEPT). At b42a35b7: `run_test_gate.py report` rc 0, tree-size and record-integrity violations=0; no broad gate yet. Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
+Stamp: jaxfne@_temp_swarm_integ_20261115@86d98d59 · 2026-11-15 (base origin/dev 24a95963). Last broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed, outside review ACCEPT). At 86d98d59: `run_test_gate.py report` rc 0, tree-size and record-integrity violations=0; no broad gate yet. Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
 Working checkout `E:/repos/jaxfne` clean on dev.
 OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling and ratings in HNXJ/ocma `cases/jaxfne/`.
 

@@ -447,6 +447,25 @@ def test_nonfinal_receipt_is_not_a_record(tmp_path):
     assert discover_records_by_class(tmp_path)["receipts"] == []
 
 
+@pytest.mark.parametrize("bad", [b"{not json", b'{"v": 1}'])
+def test_corrupt_receipt_unpinned_is_not_a_record_but_pinned_is_caught(tmp_path, bad):
+    """AUD-02: a new unparseable or status-less receipt is no record; a pinned one still fails closed."""
+    rel = CLASS_FILES["receipts"]
+    path = tmp_path / rel
+    path.parent.mkdir(parents=True)
+    empty = {"paths": {}, "counts": {name: 0 for name in CLASSES}}
+    path.write_bytes(bad)
+    assert discover_records_by_class(tmp_path)["receipts"] == []
+    assert check_tree(tmp_path, empty) == []
+    good = json.dumps({"status": "published"}).encode("utf-8")
+    path.write_bytes(good)
+    pinned = {"paths": {rel: sha256_bytes(good)}, "counts": {**empty["counts"], "receipts": 1}}
+    assert check_tree(tmp_path, pinned) == []
+    path.write_bytes(bad)
+    violations = check_tree(tmp_path, pinned)
+    assert any(v.startswith(f"changed-record: {rel}") for v in violations), violations
+
+
 def test_allowlist_is_exactly_the_three_live_scripts():
     """Every allowlisted path exists, is a live script, and matches prereg."""
     assert NON_RECORD_PATHS == EXPECTED_ALLOWLIST, (
