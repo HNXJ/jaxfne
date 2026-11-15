@@ -66,7 +66,16 @@ Design caution (observed): synapses spread over the whole cell give kernels of a
 - Input-engagement control (before any intervention is read): per-population external input actually reaches each population. Required: for every population, mean membrane input current or rate is non-zero and changes by the intended factor when its drive is scaled by 2 (a 2x drive on one population changes that population's rate by more than the seed spread; run this check with recurrent weights zeroed so that the other populations are expected unchanged, and again with recurrence on, reporting the downstream changes without a pass criterion). A deep population that does not respond to its own drive makes an intervention on it vacuous and stops the sequence.
 - A failed smoke is reported with its log; nothing is retuned and re-labelled as the smoke.
 
+## 5c. What the AdEx route supports today (inventory 2026-11-15, read from source at `fdb62a93`; nothing run)
+
+- Labels are `E`, `PV`, `SOM` only (`make_adex_params` refuses others, `emitters_adex.py:97-101`), so the 17 Billeh populations need a declared map to three classes; the module has no per-population N, no synaptic weight table and no positions (`billeh2020.py`).
+- The HDP kernel (needed for iSTDP) takes one Poisson drive set (one weight, receptor, delay); per-population Poisson weights exist only in the plain kernel. Per-population current drive (`I_ext_pA`, `[N]` or `[T, N]`) is available in both.
+- The kernel returns the spike raster `[T, N]` bool and has no per-step per-population count output. At N = 1000 and 10000 steps the raster is 10 MB, so counts are formed after the run (`raster @ onehot`); a scan-body change is needed only at large N.
+- Each call re-traces the scan (no `jax.jit` in `emitters_adex.py`), so compile and execute timing in section 5b needs two calls with identical shapes; largest tested AdEx N is 100.
+- Consequence: the N = 1000 smoke below is a resource smoke on a generic E/PV/SOM network (current drive, fixed table of E 800, PV 100, SOM 100, receptor reversals 0 and -80 mV). It measures cost, stability and input engagement. It says nothing about P-056, and its receipt is labelled so. The P-056 baseline additionally needs the population map, per-class N, synaptic weights and drive amplitudes: scientific inputs for Hamm, not defaults for an agent to choose.
+
 ## 6. Owner rulings needed before any candidate result is read
 
 - The threshold for "deep alpha-beta present" (the issue gives none; proposal: `R_L5` or `R_L6 >= 0.05` and peak prominence above the shuffle null's 99th percentile). Without it only the baseline and controls are run.
-- Billeh-to-Hagen population map.
+- Billeh-to-Hagen population map, and the Billeh-to-{E, PV, SOM} class map the AdEx route requires.
+- Per-class N, synaptic weights (nS) and external drive amplitudes for the baseline column (none is in the repository).
