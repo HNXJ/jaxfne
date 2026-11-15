@@ -18,7 +18,7 @@ Column: Billeh 2020 wiring, Hagen 2016 cells, AdEx conductance route, Vogels 201
 |---|---|
 | positive: known 15 Hz deep drive, tone power = analytic | done, `tests/test_kernel_lfp_band_power.py` (5e-8) |
 | negative: zero modulation; time-shuffled drive | done (1e-14; 0.7%) |
-| column positive: inject a synthetic 15 Hz count into one deep class on the column geometry; R must equal the analytic ratio of kernel responses | to do before the baseline |
+| column positive: inject a synthetic 15 Hz count into one deep class on the column geometry; R must equal the analytic ratio of kernel responses | done 2026-11-15 for L5E and L6E, apical and basal placement, all five layer contacts (rtol 3%), plus the whole-cell cancellation case; `tests/test_kernel_lfp_band_power.py` |
 | null: spike-time shuffle per population in the real column run; alpha-beta peak prominence must vanish | to do with the baseline |
 | absent vs defective: report per-layer rate, spike count and `|H(f)|` at each contact next to `P_l`; deep rate 0 means absent activity, deep rate > 0 with `R` near 0 means kernel or geometry | to do with the baseline |
 
@@ -53,7 +53,7 @@ Hagen 2016 reduced cells of L23E, L4E, L5E, L6E (`merge=3`) on the source bounds
 | L6E apical-targeted | 0.16 |
 | L6E basal-targeted | 0.58 |
 
-At equal drive and unit weights the deep kernels are within a factor 1 to 6 of L2/3, so geometry and kernel amplitude alone cannot give `R < 0.005`. Power scales with drive squared, so the logged deficit needs the deep 8 to 25 Hz modulation or the deep synaptic current about 10 to 100 times smaller than L2/3 (inferred; rates not retained). That ranks rates and synaptic current above coherence radius for the intervention order.
+At equal drive and unit weights the deep kernels are within a factor 1 to 6 of L2/3, so geometry and kernel amplitude alone cannot give `R < 0.005`. Closing the gap to 0.005 needs a further power attenuation of 0.16/0.005 to 0.90/0.005 = 32 to 180; with power quadratic in drive amplitude that is an amplitude attenuation of 5.7 to 13.4 in the deep 8 to 25 Hz rate modulation or the deep synaptic current relative to L2/3 (inferred under the equal-drive assumption; rates not retained; a hypothesis, not a measured mechanism). That ranks rates and synaptic current above coherence radius for the intervention order.
 
 Design caution (observed): synapses spread over the whole cell give kernels of about 1e-17 mV for L23E, L4E and L5E (an order 1e-12 below the apical or basal placements; consistent with near-complete cancellation of source and return currents, inferred) but 1e-5 to 1e-4 mV for L6E. The L6E exception is explained (observed): 7.5% of the L6E membrane area has its midpoint below the white-matter bound (z up to 1651 um against 1491.7), so a whole-cell weight range drops those compartments and the balance fails; L23E, L4E and L5E have 0% outside. A column must therefore place synapses by explicit depth ranges per class, never by the layer bounds alone. Synapse placement per connection class is therefore a design input.
 

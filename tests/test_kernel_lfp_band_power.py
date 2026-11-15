@@ -84,3 +84,42 @@ def test_zero_modulation_and_shuffled_drive_are_negatives():
     assert pos > 0
     assert zero < 1e-6 * pos
     assert shuf < 0.1 * pos, "a time-shuffled drive must lose the 15 Hz peak"
+
+
+# Column positive control (P-056 spec v1, section 2): Hagen 2016 cells, explicit class-specific placement.
+from jaxfne.fields.hagen2016_cells import SOURCE_BOUNDS_UM, hagen2016_cell  # noqa: E402
+
+_TB = np.asarray(SOURCE_BOUNDS_UM)
+_LAYER_CONTACTS = 0.5 * (_TB[:-1] + _TB[1:])  # L1, L2/3, L4, L5, L6 midpoints
+
+
+def _column_kernel(pop, side):
+    cell = hagen2016_cell(pop, _TB, merge=3)
+    soma = float(cell.mid[0])
+    lo, hi = (_TB[0], soma - 20.0) if side == "apical" else (soma + 20.0, _TB[-1])
+    w = synapse_weights_in_depth_range(cell, lo, hi)
+    assert w.sum() > 0.99, "fixture: the placement range must hold the weight"
+    k = np.asarray(synapse_kernel(cell, w, _LAYER_CONTACTS, tau_syn_ms=2.0, dt_ms=DT_MS, n_steps=K, **PASSIVE, **GEOM))
+    assert np.abs(k).max(1).min() > 1e-7, "fixture: no contact may sit at the cancellation floor"
+    return k
+
+
+def test_column_deep_classes_recover_analytic_band_power_at_every_layer_contact():
+    amp = 0.5
+    for pop in ("L5E", "L6E"):
+        for side in ("apical", "basal"):
+            kern = _column_kernel(pop, side)
+            h = (kern * np.exp(-2j * np.pi * F0 * np.arange(K) / FS)).sum(1)
+            expected = (amp * np.abs(h)) ** 2 / 2
+            lfp = _lfp(_drive(amp), kern)
+            got = np.array([_band_power(lfp[:, c]) for c in range(len(_LAYER_CONTACTS))])
+            np.testing.assert_allclose(got, expected, rtol=0.03, err_msg=f"{pop} {side}")
+
+
+def test_whole_cell_placement_cancels_for_a_cell_inside_the_bounds():
+    cell = hagen2016_cell("L23E", _TB, merge=3)
+    assert cell.mid.min() >= _TB[0] and cell.mid.max() <= _TB[-1], "fixture: the cell must lie inside the bounds"
+    w = synapse_weights_in_depth_range(cell, _TB[0], _TB[-1])
+    k = np.asarray(synapse_kernel(cell, w, _LAYER_CONTACTS, tau_syn_ms=2.0, dt_ms=DT_MS, n_steps=K, **PASSIVE, **GEOM))
+    apical = _column_kernel("L23E", "apical")
+    assert np.abs(k).max() < 1e-9 * np.abs(apical).max(), "uniform source and return currents must cancel"
