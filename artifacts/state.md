@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@_temp_swarm_integ_20261115@86d98d59 · 2026-11-15 (base origin/dev 24a95963). Last broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed, outside review ACCEPT). At 86d98d59: `run_test_gate.py report` rc 0, tree-size and record-integrity violations=0; no broad gate yet. Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
+Stamp: jaxfne@_temp_swarm_integ_20261115@021c2e8b · 2026-11-15 (base origin/dev 24a95963). Last clean broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed). At 021c2e8b: `run_test_gate.py report` rc 0, tree-size and record-integrity violations=0. Mac broad gate: 10 failed (arm64 float32, browser; the same 10 fail at base 24a95963), so no `dev` push. Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
 Working checkout `E:/repos/jaxfne` clean on dev.
 OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling and ratings in HNXJ/ocma `cases/jaxfne/`.
 
@@ -13,7 +13,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - PCL R3 chain (6b10132a): oracle arm equals the C++ chain on files 0-4, exact at rtol 1e-12. P-BALANCED ported (canonical CV pin 0.0585, 1680659e). Jansen-Rit P3 v1 PASS 5 of 5 (`jansenrit1995/RESULT_P3.md`); `tv_form="code"` declared (8a6ccfc4). Older items: git.
 - PCL R5-approximate scored 2026-11-12 under signed R4b: all 3168 tasks completed on Windows CPU (`pcl/prereg/P3_fig3_r5_approx_result.md`, `scores/fig3_r5_approx.json`); oracle arm compared (1246 equal, 1922 differing; `approx_diff.json`). Verdict: FAIL. P-055 attributed (`ISSUE_LOG.md`).
 - 2026-11-12: 10B B4, 10D D4, 10F F4, 10G G3 landed (checklist 40/100); B1 drive unification and baseline match (T-79, T-80) landed.
-- PCL attribution closed 2026-11-12 (`pcl/prereg/P3_fig3_r5_attribution_addendum.md`): complex-cell collapse attributed to no-local inhibition, tree drift excluded (`fig3_v4tree_nolocal.json`, T-85).
+- PCL attribution closed 2026-11-12: complex-cell collapse is no-local inhibition, not tree drift (`pcl/prereg/P3_fig3_r5_attribution_addendum.md`, T-85).
 
 ## Broken or in flight
 
