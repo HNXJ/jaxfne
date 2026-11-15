@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@d2507956 · 2026-11-13. Last broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed, all lanes PASS, replication audit 0 unlisted; outside review ACCEPT). No gate run on d2507956 yet. Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
+Stamp: jaxfne@_temp_swarm_integ_20261115@b42a35b7 · 2026-11-15 (base origin/dev 24a95963). Last broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed, outside review ACCEPT). At b42a35b7: `run_test_gate.py report` rc 0, tree-size and record-integrity violations=0; no broad gate yet. Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
 Working checkout `E:/repos/jaxfne` clean on dev.
 OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling and ratings in HNXJ/ocma `cases/jaxfne/`.
 
@@ -9,14 +9,10 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 ## Works (with evidence)
 
 - 0.5.9 published 2026-11-04: tag v0.5.9 on main e0160dfc; `artifacts/release/v0_5_9_release_receipt.json`; checklist 100/100.
-- P3 scored 2026-11-02: Potjans v2 off, Vogels v4 off (S12), Destexhe v3 FAIL 0 of 5. GSDR P3 fit FAIL 2026-11-01; GSDR stays open until replicated.
-- CAMINOS Fig S1 scored (`caminos/RESULT_FIGURES.md`); core route fc0e13df; equivalence criterion declared at f54c022c.
-- PCL R3 chain (6b10132a): oracle arm equals the C++ chain on files 0-4, exact at rtol 1e-12.
-- P-BALANCED ported for 0.5.10 (e179a2d0..9dd1c111); canonical CV pin 0.0585 (1680659e).
-- 2026-11-06..08: HH seed refusal test; homeostatic_ei stable bounds; B1 scripts and M3 fix; Jansen-Rit P3 v1 PASS 5 of 5 (`jansenrit1995/RESULT_P3.md`); PLoS Fig 5A producer and sustained-cycle test; T_v code form declared as variant `tv_form="code"` (8a6ccfc4); A3 scored, permutation moved to 0.5.11.
+- P3 scored 2026-11-02: Potjans v2 off, Vogels v4 off, Destexhe v3 FAIL 0 of 5; GSDR P3 fit FAIL, open until replicated. CAMINOS Fig S1 scored (`caminos/RESULT_FIGURES.md`).
+- PCL R3 chain (6b10132a): oracle arm equals the C++ chain on files 0-4, exact at rtol 1e-12. P-BALANCED ported (canonical CV pin 0.0585, 1680659e). Jansen-Rit P3 v1 PASS 5 of 5 (`jansenrit1995/RESULT_P3.md`); `tv_form="code"` declared (8a6ccfc4). Older items: git.
 - PCL R5-approximate scored 2026-11-12 under signed R4b: all 3168 tasks completed on Windows CPU (`pcl/prereg/P3_fig3_r5_approx_result.md`, `scores/fig3_r5_approx.json`); oracle arm compared (1246 equal, 1922 differing; `approx_diff.json`). Verdict: FAIL. P-055 attributed (`ISSUE_LOG.md`).
-- 2026-11-12: 10B B4 `build_config` repaired; 10D D4 S16 Destexhe panel added; 10F F4 GSDR log-scale parameters named; 10G G3 reproducibility audit §7 updated (checklist 40/100).
-- B1 drive unification and baseline parameter match (T-79, T-80) landed (`b1_harness.py`, `b1_brian2.py`, `b1_nest.py`, `b1_jaxley.py`; `--smoke` verified).
+- 2026-11-12: 10B B4, 10D D4, 10F F4, 10G G3 landed (checklist 40/100); B1 drive unification and baseline match (T-79, T-80) landed.
 - PCL attribution closed 2026-11-12 (`pcl/prereg/P3_fig3_r5_attribution_addendum.md`): complex-cell collapse attributed to no-local inhibition, tree drift excluded (`fig3_v4tree_nolocal.json`, T-85).
 
 ## Broken or in flight
@@ -35,7 +31,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Open decisions for the owner
 
-`open_stack.md` has no items. Ruled 2026-11-08: O-85, O-86, O-87; O-89 done; O-88, O-90, O-91, O-92 on standing go. Waiting on Hamm: the NeuroAI code link (anonymous.4open.science mirror). `origin/_temp_kernel-lfp` (ff45364b, 3 patches not in dev) is kept.
+`open_stack.md` has no items. Ruled 2026-11-15: O-R5SIZE option 1 (tree-size `budget_bytes` +400 KB to 96800000, nothing else relaxed); T-83/P-053 read as NOT_REPRODUCED under criteria Amendment 1 only, P-053 stays open (`pcl/port/P053_sparse_fixture_result.md`). AUD-01 (`check_tree_size.py` fails closed on a short or mismatched `cat-file` response) landed. Ruled 2026-11-08: O-85, O-86, O-87; O-89 done; O-88, O-90, O-91, O-92 on standing go. Waiting on Hamm: the NeuroAI code link (anonymous.4open.science mirror). `origin/_temp_kernel-lfp` (ff45364b, 3 patches not in dev) is kept.
 
 ## Generated files and their checks
 
@@ -53,12 +49,13 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 ## Environment
 
 - Windows: Python 3.14; the broad gate runs through `suite_lock.py`, one suite at a time.
+- Mac (2026-11-15): arm64, CPU only (T-87, T-B5 not runnable), JAX 0.10.1; PCL port tests need numba (0.68.1 in a gitignored lane venv); `F:/warehouse` absent.
 - WSL: `~/venv_jaxfne` (CUDA, numba 0.68), `~/venv_jaxfne_gate` (CPU gate), TeX Live 2026 at `~/texlive/cur`.
 - Large data outside git: `F:/warehouse/{caminos,gsdr,pcl,vogels2011,potjans2014,destexhe2009}/`.
 - NeuroAI 2027 draft: private thesis repo, branch `_temp_neuroai2027`.
 
 ## Next action
 
-Tier 1 is closed except the two blocked items. T-73 waits on committing the R5 artifacts and moving the PCL lane
-SHA in `dashboard/sources.json`; T-77 waits on an `hh-at01` lane folder or a dated exception. Next executable:
-Tier 2 lane on B4 (`build_config`) and F4 (GSDR log-scale names), then T-79/T-80 for the B1 benchmark.
+Tier 1 has no blocked item. Per `todo_stack.md`: Tier 2 T-D3 needs a signed prereg and T-86 needs the pinned
+`F:/warehouse/caminos` runs (absent on the Mac); next executable Tier 3 T-F5 (candidate batching), then T-90
+(P-056). T-92 (0.5.10 exit gates) needs a broad gate and CI on one SHA.

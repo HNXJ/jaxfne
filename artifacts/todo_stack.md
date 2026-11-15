@@ -25,10 +25,8 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 
 ## Tier 1: blocked on a ruling
 
-0. T-93 [A then H] Size-budget conflict (open row O-R5SIZE): the pinned 3168-row armcheck record (413 KB) puts the
-   tracked tree 283 KB over budget and `check_record_integrity.py` refuses to edit a pinned record, so both gates
-   cannot pass at once. Closes when: `python scripts/check_tree_size.py --check` and
-   `python scripts/check_record_integrity.py --check` both exit 0 on one SHA. Blocked by: Hamm's route ruling.
+None. T-93 (O-R5SIZE) closed 2026-11-15 by Hamm's budget ruling; T-83 ran under criteria Amendment 1 (P-053 stays
+open, see Deferred).
 
 ## Tier 2: 1 to 2 hours each
 
@@ -44,8 +42,6 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 
 14. T-F5 [A] T-32 candidate batching for AdEx, LIF and `Model.tune` (`_model_tune.py:451`) (checklist F5,
     1.5 pts). Closes when: the batching tests pass across seeds.
-15. T-83 [A] P-053 sparse-weight fixture: rebuild the minimal lateral and top-down fixture with hand-zeroed sparse
-    weights. Closes when: it either reproduces the weight gap (P-053 confirmed) or passes (closed).
 16. T-85 [A] DONE 2026-11-12: a v4-era-tree run under `no-local` already existed
     (`F:/warehouse/pcl/diag_runs/fig3_cSTDP3_nolocal`, `baseline_sha` 98261a3e, 3168/3168). Scored twice
     independently; every statistic agrees to 1e-12 and its seven scientific arrays are array-identical to the R5
@@ -103,6 +99,14 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
     `jaxfne-wt-suites`).
 
 ## Deferred, each with its trigger
+
+P-053 follow-up, trigger: a new hypothesis or coverage requirement. T-83 (2026-11-15, `pcl/port/P053_sparse_fixture_result.md`)
+is NOT_REPRODUCED under criteria Amendment 1 only; V1's LAT half is never consumed and V1 adds information beyond V3
+in seed 0 through TD, so no general sparse-weight equivalence is shown. Source-only discriminators (event order,
+repeated addresses, ties, zero vs epsilon weights) are on `origin/_temp_r5_size_budget`
+(`artifacts/etudes/meta/p053_p056_source_audit_2026-11-13.md`, not integrated). AUD-02 (a new malformed final
+receipt vs `check_record_integrity.py::_is_final_receipt`) and AUD-03 (state/open/todo cross-file consistency, fixed in
+this commit's `state.md`): reproduce before classifying; AUD-02 has no row until an adversarial test shows a bypass.
 
 AT-10-R6 RSS growth before any run over 100 s; A8 gh-pages policy; architecture split on a measured bottleneck;
 C5-C7 zero/NaN contract; the UNTESTED-exact refusal tail and O-67 skips; S27 population family; agent transport
