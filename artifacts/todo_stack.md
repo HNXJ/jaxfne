@@ -30,7 +30,7 @@ open, see Deferred).
 
 T-FIG05 [H then A] re-freeze equivalence-gate fig05 and its C3 receipt under change control, or render panel C from
 frozen V_m; print stdout in `_run_gate` failures. Closes when: `tests/test_equivalence_gate_v20260815.py` passes on
-darwin (O-FIG05, `etudes/meta/mac_gate_attribution.md`).
+darwin (O-FIG05, `assurance/mac_gate_attribution.md`).
 T-NUM [H then A] rule the remedy for the bit-exact XLA assertions and the izh2003 known-answer receipts (record
 platform and jaxlib). Closes when: the five composition and Gaussian-drive tests and `izh2003_core_path` pass on
 the Mac and CI with the ruled assertions (O-NUM).
