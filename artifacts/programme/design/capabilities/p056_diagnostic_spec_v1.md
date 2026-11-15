@@ -71,6 +71,24 @@ Design caution (observed): synapses spread over the whole cell give kernels of a
 {"schema":"jaxfne.p056_resource_smoke.v1","label":"resource smoke only: generic E/PV/SOM network, arbitrary weights and drive; says nothing about P-056","config":{"n_e":800,"n_pv":100,"n_som":100,"dt_ms":0.1,"n_steps":10000,"seed":0,"p_connect":0.1,"w_e_nS":1.0,"w_i_nS":3.0,"delay_steps":20,"drive_pA":300.0,"receptor_reversal_mV":[0.0,-80.0],"receptor_tau_ms":[2.0,5.0],"precision":"float32"},"budget":{"compile_s":180.0,"execute_s":120.0,"peak_rss_gb":4.0,"output_mb":50.0},"n_edges":100151,"timing_s":{"first_call":6.366013667080551,"second_call":6.054645749740303,"compile_estimate":0.3113679173402488,"execute":6.054645749740303,"zero_recurrence_base":6.078275667037815,"zero_recurrence_E_x2":6.164872499648482},"peak_rss_gb":0.578094482421875,"rates_hz":{"recurrent":{"E":2.8475,"PV":24.81,"SOM":6.46},"zero_recurrence_base":{"E":8.0,"PV":47.0,"SOM":10.0},"zero_recurrence_E_drive_x2":{"E":22.0325,"PV":47.0,"SOM":10.0}},"checks":{"spikes_bool":true,"counts_shape":[10000,3],"counts_nonnegative_integer":true,"w_final_finite":true,"H_final_finite":true,"populations_present":true,"deterministic_repeat":true},"engagement":{"E_rate_ratio_x2_over_base_zero_recurrence":2.7540625,"PV_rate_ratio":1.0,"SOM_rate_ratio":1.0},"within_budget":{"compile":true,"execute":true,"rss":true},"env":{"python":"3.13.7","platform":"macOS-27.0.1-arm64-arm-64bit-Mach-O","jax":"0.10.1","jaxlib":"0.10.1","numpy":"2.4.6","x64":false,"git_sha":"a9d099217f104cb9ab0a2784d8a4b85eb99a5a92","git_dirty":false}}
 ```
 
+## 5b-review. Independent review of the N = 1000 smoke (2026-11-15; ACCEPT for resource and stability only)
+
+Corrections to the result above, found by the reviewer and confirmed by its probes:
+- Compile: `emitters_adex.py` has no `jax.jit`; the scan runs eagerly. First minus second call (0.31 s here, 0.05 s in the probe) is noise of about 0.3 s, not compile cost. A 10-step run takes about 0.12 s, so trace plus compile plus overhead is at most about 0.1 s; execution is 0.6 ms per step, linear in steps (n_steps 100, 1000, 10000: 0.175, 0.73, 6.1 s). Read "compile estimate 0.31 s" in the embedded receipt as "compile at most about 0.1 s; the field is noise". Compile is not separately measurable by call differencing here.
+- Memory: `ru_maxrss` is in bytes on darwin (1 GiB allocation probe read 1.027 GiB); 0.578 GB stands.
+- Determinism: spikes, `H_final`, `w_final_nS`, `V`, `w`, `g` are bit-identical across two runs (reviewer's check; the script compared spikes only).
+- Rerun from a clean clone at a9d09921: every rate, check and count identical; timings 6.45 s and 6.10 s; RSS 0.577 GB.
+- Scope limits: the engagement control above covers the E class only (E drive x2 with recurrence off). PV and SOM own-drive engagement and a recurrence-on drive-x2 run were not done, so the section 5b gate is not yet met for them. The smoke ran three classes (800, 100, 100), not the eight Hagen populations. The 50 MB output budget was declared but not measured. The script docstring cites the old spec path (`design/plans/`); the script lives in history, so the path stays.
+
+## 5d. N = 2000 resource smoke, preregistered 2026-11-15 (not run)
+
+- Configuration: as 5b except N = 2000 (E 1600, PV 200, SOM 200), p_connect 0.1 (about 400000 edges, 4x), 1.0 s at dt 0.1 ms, seed 0, float32, CPU. A new script version is committed first and the run is made from the clean tree; it carries `git_sha` and `git_dirty`.
+- Prediction, recorded before the run: execute per simulated second 12 s if cost follows N (2x), 24 s if it follows edges (4x); RSS under 2 GB.
+- Limits: execute at most 120 s; peak RSS at most 4 GB; output at most 50 MB, measured and reported. Compile is reported as not separately measurable; the receipt records a 10-step run as the trace-plus-compile floor and no first-minus-second difference.
+- Checks: all N = 1000 finite and coverage checks; spikes, `H_final`, `w_final_nS` bit-identical across two runs.
+- Engagement control (closes the 5b gate): with recurrence zeroed, each of E, PV, SOM in turn at 2x own drive must change its own rate by more than the seed spread, with the other classes unchanged; with recurrence on, E, PV, SOM x2 runs report downstream changes without a pass criterion.
+- Failure rule: a failed limit or check is reported with its log; nothing is retuned and relabelled.
+
 ## 5c. What the AdEx route supports today (inventory 2026-11-15, read from source at `fdb62a93`; nothing run)
 
 - Labels are `E`, `PV`, `SOM` only (`make_adex_params` refuses others, `emitters_adex.py:97-101`), so the 17 Billeh populations need a declared map to three classes; the module has no per-population N, no synaptic weight table and no positions (`billeh2020.py`).
