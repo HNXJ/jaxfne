@@ -28,10 +28,14 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 None. T-93 (O-R5SIZE) closed 2026-11-15 by Hamm's budget ruling; T-83 ran under criteria Amendment 1 (P-053 stays
 open, see Deferred).
 
-T-ATTR [A] attribute the 10 Mac broad-gate failures (float32 composition and Gaussian-drive tests, `izh2003_core_path`
-known answers, `equivalence_gate_v20260815`, `neuronal_tensor` example 08, `vis_smoke_all` export_figures). Closes when:
-each has a demonstrated cause class and a non-weakening remedy in a committed note; a matching-host broad gate
-(O-MAC10) is the dev-integration check.
+T-FIG05 [H then A] re-freeze equivalence-gate fig05 and its C3 receipt under change control, or render panel C from
+frozen V_m; print stdout in `_run_gate` failures. Closes when: `tests/test_equivalence_gate_v20260815.py` passes on
+darwin (O-FIG05, `etudes/meta/mac_gate_attribution.md`).
+T-NUM [H then A] rule the remedy for the bit-exact XLA assertions and the izh2003 known-answer receipts (record
+platform and jaxlib). Closes when: the five composition and Gaussian-drive tests and `izh2003_core_path` pass on
+the Mac and CI with the ruled assertions (O-NUM).
+T-MATCH [A] run `python scripts/run_test_gate.py broad` unsandboxed on a matching host (Linux, jax 0.10.2) at the
+integrating SHA. Closes when: it reads 0 failed and CI is green on that SHA (O-MAC10).
 
 ## Tier 2: 1 to 2 hours each
 

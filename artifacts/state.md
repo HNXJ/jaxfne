@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@_temp_swarm_integ_20261115@021c2e8b · 2026-11-15 (base origin/dev 24a95963). Last clean broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed). At 021c2e8b: `run_test_gate.py report` rc 0, tree-size and record-integrity violations=0. Mac broad gate: 10 failed (arm64 float32, browser; the same 10 fail at base 24a95963), so no `dev` push. Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
+Stamp: jaxfne@_temp_swarm_integ_20261115@021c2e8b · 2026-11-15 (base origin/dev 24a95963). Last clean broad gate: 9020f50e on 2026-11-09 (8263 passed, 0 failed). At 021c2e8b: `run_test_gate.py report` rc 0, tree-size and record-integrity violations=0. Mac gate 10 failed, same at base 24a95963: 2 sandbox, 7 float32 numerics, fig05 freeze stale (`etudes/meta/mac_gate_attribution.md`); no `dev` push. Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
 Working checkout `E:/repos/jaxfne` clean on dev.
 OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling and ratings in HNXJ/ocma `cases/jaxfne/`.
 
@@ -49,7 +49,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 ## Environment
 
 - Windows: Python 3.14; the broad gate runs through `suite_lock.py`, one suite at a time.
-- Mac (2026-11-15): arm64, CPU only (T-87, T-B5 not runnable), JAX 0.10.1; PCL port tests need numba (0.68.1 in a gitignored lane venv); `F:/warehouse` absent.
+- Mac (2026-11-15): arm64, CPU only, JAX 0.10.1; PCL port tests need numba (gitignored lane venv); no `F:/warehouse`. Run gates unsandboxed.
 - WSL: `~/venv_jaxfne` (CUDA, numba 0.68), `~/venv_jaxfne_gate` (CPU gate), TeX Live 2026 at `~/texlive/cur`.
 - Large data outside git: `F:/warehouse/{caminos,gsdr,pcl,vogels2011,potjans2014,destexhe2009}/`.
 - NeuroAI 2027 draft: private thesis repo, branch `_temp_neuroai2027`.
