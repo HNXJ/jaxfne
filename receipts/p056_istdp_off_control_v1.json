@@ -1,0 +1,343 @@
+{
+ "schema": "jaxfne.p056_istdp_off_control.v1",
+ "label": "resource-smoke network; says nothing about P-056",
+ "config": {
+  "n_e": 1600,
+  "n_pv": 200,
+  "n_som": 200,
+  "dt_ms": 0.1,
+  "n_steps": 10000,
+  "floor_steps": 10,
+  "seed": 4,
+  "p_connect": 0.1,
+  "w_e_nS": 1.0,
+  "w_i_nS": 3.0,
+  "delay_steps": 20,
+  "drive_pA": 300.0,
+  "receptor_reversal_mV": [
+   0.0,
+   -80.0
+  ],
+  "receptor_tau_ms": [
+   2.0,
+   5.0
+  ],
+  "precision": "float32"
+ },
+ "seeds": [
+  0,
+  1,
+  2,
+  3,
+  4
+ ],
+ "runs": {
+  "0/default_iSTDP/base": {
+   "rates_hz": {
+    "E": 7.915,
+    "PV": 47.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.058194508396370824,
+   "w_max_all": 0.09341999888420105
+  },
+  "0/default_iSTDP/PV_x2": {
+   "rates_hz": {
+    "E": 6.939375,
+    "PV": 85.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.07805313564940988,
+   "w_max_all": 0.1584850698709488
+  },
+  "0/default_iSTDP/SOM_x2": {
+   "rates_hz": {
+    "E": 7.676875,
+    "PV": 47.0,
+    "SOM": 20.0
+   },
+   "w_plastic_mean": 0.07598024709205665,
+   "w_max_all": 0.09325326234102249
+  },
+  "0/eta_0/base": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 47.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "0/eta_0/PV_x2": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 85.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "0/eta_0/SOM_x2": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 47.0,
+    "SOM": 20.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "1/default_iSTDP/base": {
+   "rates_hz": {
+    "E": 7.909375,
+    "PV": 47.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.058119717908880326,
+   "w_max_all": 0.09341999888420105
+  },
+  "1/default_iSTDP/PV_x2": {
+   "rates_hz": {
+    "E": 6.93,
+    "PV": 85.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.07783682845638043,
+   "w_max_all": 0.1624002903699875
+  },
+  "1/default_iSTDP/SOM_x2": {
+   "rates_hz": {
+    "E": 7.651875,
+    "PV": 47.0,
+    "SOM": 20.0
+   },
+   "w_plastic_mean": 0.07549714838037729,
+   "w_max_all": 0.09272818267345428
+  },
+  "1/eta_0/base": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 47.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "1/eta_0/PV_x2": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 85.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "1/eta_0/SOM_x2": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 47.0,
+    "SOM": 20.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "2/default_iSTDP/base": {
+   "rates_hz": {
+    "E": 7.90625,
+    "PV": 47.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.0581669375559113,
+   "w_max_all": 0.09341999888420105
+  },
+  "2/default_iSTDP/PV_x2": {
+   "rates_hz": {
+    "E": 6.928125,
+    "PV": 85.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.07793871563038207,
+   "w_max_all": 0.15919022262096405
+  },
+  "2/default_iSTDP/SOM_x2": {
+   "rates_hz": {
+    "E": 7.640625,
+    "PV": 47.0,
+    "SOM": 20.0
+   },
+   "w_plastic_mean": 0.07540741916774273,
+   "w_max_all": 0.09239505976438522
+  },
+  "2/eta_0/base": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 47.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "2/eta_0/PV_x2": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 85.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "2/eta_0/SOM_x2": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 47.0,
+    "SOM": 20.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "3/default_iSTDP/base": {
+   "rates_hz": {
+    "E": 7.903125,
+    "PV": 47.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.05832063737671054,
+   "w_max_all": 0.09341999888420105
+  },
+  "3/default_iSTDP/PV_x2": {
+   "rates_hz": {
+    "E": 6.92875,
+    "PV": 85.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.07820945902293953,
+   "w_max_all": 0.13319700956344604
+  },
+  "3/default_iSTDP/SOM_x2": {
+   "rates_hz": {
+    "E": 7.665625,
+    "PV": 47.0,
+    "SOM": 20.0
+   },
+   "w_plastic_mean": 0.075703593232527,
+   "w_max_all": 0.09272818267345428
+  },
+  "3/eta_0/base": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 47.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "3/eta_0/PV_x2": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 85.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "3/eta_0/SOM_x2": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 47.0,
+    "SOM": 20.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "4/default_iSTDP/base": {
+   "rates_hz": {
+    "E": 7.90875,
+    "PV": 47.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.05806463145159402,
+   "w_max_all": 0.09341999888420105
+  },
+  "4/default_iSTDP/PV_x2": {
+   "rates_hz": {
+    "E": 6.93125,
+    "PV": 85.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.07778685857200833,
+   "w_max_all": 0.1539020538330078
+  },
+  "4/default_iSTDP/SOM_x2": {
+   "rates_hz": {
+    "E": 7.668125,
+    "PV": 47.0,
+    "SOM": 20.0
+   },
+   "w_plastic_mean": 0.07579947556412531,
+   "w_max_all": 0.09325326234102249
+  },
+  "4/eta_0/base": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 47.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "4/eta_0/PV_x2": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 85.0,
+    "SOM": 10.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  },
+  "4/eta_0/SOM_x2": {
+   "rates_hz": {
+    "E": 8.0,
+    "PV": 47.0,
+    "SOM": 20.0
+   },
+   "w_plastic_mean": 0.0,
+   "w_max_all": 0.0
+  }
+ },
+ "criteria": {
+  "C1_eta0_weights_exactly_zero": true,
+  "C2_eta0_E_equals_base": true,
+  "C4_default_weights_grow": true
+ },
+ "C3_default_E_ratio": {
+  "PV_x2": {
+   "ratios": [
+    0.8767372078332281,
+    0.876175424733307,
+    0.8762845849802371,
+    0.8767101621194148,
+    0.8764027185079817
+   ],
+   "mean": 0.8764620196348337,
+   "sd": 0.0002522100092524249,
+   "larger_than_2sd": true
+  },
+  "SOM_x2": {
+   "ratios": [
+    0.9699147188881869,
+    0.9674436981430266,
+    0.9664031620553359,
+    0.9699485962831159,
+    0.9695748379958906
+   ],
+   "mean": 0.9686570026731112,
+   "sd": 0.001631287162325237,
+   "larger_than_2sd": true
+  }
+ },
+ "env": {
+  "jax": "0.10.1",
+  "numpy": "2.4.6",
+  "git_sha": "da7e895b8b702c76e5f0ab2950689bf17c393e8f",
+  "git_dirty": false
+ }
+}
