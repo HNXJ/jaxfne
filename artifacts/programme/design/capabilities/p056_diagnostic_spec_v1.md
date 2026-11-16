@@ -93,7 +93,7 @@ Corrections to the result above, found by the reviewer and confirmed by its prob
 
 Limits met: execute 20.7 s per simulated second (limit 120 s), peak RSS 0.995 GB (limit 4 GB, prediction under 2 GB), output 0.002 MB; 399489 edges. Cost prediction: 12 s if cost follows N, 24 s if it follows edges; observed 20.7 s, so cost follows edges (3.4x for 4x edges and 2x N, versus 6.05 s at N = 1000; inferred from two points). The 10-step floor run took 0.385 s; compile is not separately measurable. Spikes, `H_final`, `w_final_nS` bit-identical across two runs; counts `[10000, 3]` non-negative integers; all finite.
 
-Engagement, recurrence-off runs, one seed (a seed spread was not measured, so "more than the seed spread" is untested; the single-seed ratios below are far from 1):
+Engagement, "recurrence-off" runs (receipt keys `zero_recurrence_*`; label kept as historical evidence, meaning zero initial weights with iSTDP on; see 5e), one seed (a seed spread was not measured, so "more than the seed spread" is untested; the single-seed ratios below are far from 1):
 | class at 2x drive | own-rate ratio | other classes (ratio to base) |
 |---|---|---|
 | E | 2.70 (7.9 to 21.3 Hz) | PV 1.0, SOM 1.0 |
@@ -120,6 +120,16 @@ Route: `hdp_rule_params={"eta": 0.0}` on `simulate_adex_hdp_registered` (neutral
 | `eta` 0 | SOM x2 | 8.0, 47, 20 | 0 / 0 | 0 |
 
 Observed: with default iSTDP the I-to-E weights grow from zero (weight evolution) and E moves under PV x2 (-13%) and SOM x2 (-4%); with `eta` 0 the weights stay exactly 0 in all three runs and E is 8.0 Hz in all three. So the 5d cross-population effect on E comes from plasticity-grown I-to-E weights, and the "zero_recurrence" label in the 5d receipt means zero initial weights only. Limits: one seed; "E rate difference is caused by the grown weights" rests on the eta-0 contrast of one configuration (inferred, not a dose-response); weight evolution (`w_final_nS`) and its effect on E firing are separate quantities and only the second was shown to differ here by the rate contrast. Compile stays UNKNOWN; seed spread unmeasured. No kernel change is needed for a recurrence-off control; a full recurrence-off control for P-056 additionally needs the owner-held baseline inputs (section 6).
+
+### 5f. Seed-spread preregistration for the 5e contrast (declared 2026-11-15 before any multi-seed run; not run)
+
+- Script: `scripts/p056_istdp_off_control.py OUT.json` on branch `_temp_t90_smoke_20261115` (committed first; run from the clean tree; receipt carries `git_sha`, `git_dirty`; refuses to overwrite). Same configuration as 5d except `seed`.
+- Seeds 0, 1, 2, 3, 4; each seed sets both the network draw and the simulation seed. Rules: default iSTDP and `hdp_rule_params={"eta": 0.0}`. Drives: base, PV x2, SOM x2. 30 runs, about 10 min.
+- C1: with `eta` 0, `w_final_nS` is exactly 0 on every edge, every seed, every drive.
+- C2: with `eta` 0, E rate under PV x2 and SOM x2 equals the base E rate exactly, every seed.
+- C3 (default iSTDP): r = E rate at x2 over E rate at base, per seed, for PV x2 and for SOM x2. The effect is called larger than the seed spread if |mean(r) - 1| > 2 sd(r) (sample sd, n = 5). Reported separately for PV and SOM; the result is descriptive, not a threshold for P-056.
+- C4 (default iSTDP): mean plastic I-to-E weight above 0 for every seed.
+- Failure rule: a failed criterion is reported with its log; nothing is retuned. Compile stays UNKNOWN.
 
 ## 5c. What the AdEx route supports today (inventory 2026-11-15, read from source at `fdb62a93`; nothing run)
 
