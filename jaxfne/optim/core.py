@@ -1010,10 +1010,11 @@ def _leafwise_normal(key: Any, tree: Any) -> Any:
     """Standard-normal draws shaped like each array leaf of ``tree``, one split key per leaf.
 
     Non-array leaves pass through. Independent keys keep equal-shape leaves from drawing identical
-    noise (ISSUE_LOG P-059).
+    noise (ISSUE_LOG P-059). A single-leaf tree draws from ``key`` itself, so single-array callers
+    (the GSDR 2026 fit passes one parameter vector) replay their pre-fix draws bit for bit.
     """
     leaves, treedef = jax.tree_util.tree_flatten(tree)
-    keys = jax.random.split(key, max(len(leaves), 1))
+    keys = [key] if len(leaves) == 1 else jax.random.split(key, max(len(leaves), 1))
     drawn = [
         jax.random.normal(k, leaf.shape, dtype=leaf.dtype) if hasattr(leaf, "shape") else leaf
         for k, leaf in zip(keys, leaves)

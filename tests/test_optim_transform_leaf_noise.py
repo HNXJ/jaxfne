@@ -66,6 +66,20 @@ def test_fixed_seed_replays_and_steps_differ(name):
     assert not bool(jnp.array_equal(a[0]["w1"], a[1]["w1"])), "step counter must re-key the noise"
 
 
+def test_gsdr_mcdp_equal_leaves_get_independent_noise():
+    # Source HNXJ/GSDR gsdr/optimizers.py draws one split key per parameter leaf (P-060).
+    from jaxfne.optim.gsdr import gsdr_mcdp_transform
+
+    params = {"w1": jnp.ones((4,)), "w2": jnp.ones((4,))}
+    grads = jax.tree_util.tree_map(jnp.zeros_like, params)
+    # a=1 and fixed: the update is the stochastic term alone (a_init=0 would zero it).
+    tx = gsdr_mcdp_transform(inner_optimizer=optax.sgd(0.1), a_init=1.0, a_dynamic=False)
+    state = tx.init(params)
+    upd, _ = tx.update(grads, state, params, loss=1.0, key=jax.random.PRNGKey(5), mcdp=1.0)
+    assert bool(jnp.any(upd["w1"] != 0)), "fixture must produce a nonzero stochastic term"
+    assert not bool(jnp.array_equal(upd["w1"], upd["w2"]))
+
+
 def test_leafwise_noise_jit_matches_eager():
     # The transforms' update() is not jittable (state dataclasses are not pytrees); the noise draw is.
     tree = _params()
@@ -74,6 +88,15 @@ def test_leafwise_noise_jit_matches_eager():
     jitted = jax.jit(_leafwise_normal)(key, tree)
     for x, y in zip(jax.tree_util.tree_leaves(eager), jax.tree_util.tree_leaves(jitted)):
         np.testing.assert_allclose(np.asarray(x), np.asarray(y), rtol=1e-6, atol=1e-7)
+
+
+def test_single_leaf_draw_is_unchanged():
+    # Single-array callers (the GSDR 2026 fit) keep their pre-fix draws.
+    key = jax.random.PRNGKey(11)
+    x = jnp.zeros((5,))
+    np.testing.assert_array_equal(
+        np.asarray(_leafwise_normal(key, x)), np.asarray(jax.random.normal(key, (5,)))
+    )
 
 
 def test_leafwise_noise_passes_non_array_leaves():

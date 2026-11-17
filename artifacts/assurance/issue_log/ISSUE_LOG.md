@@ -146,12 +146,15 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 
 ### P-060
 
-- Date: 2026-11-17. Type: BUG candidate (open, needs a ruling). Area: `jaxfne/optim/gsdr.py:305-310`
-  `gsdr_mcdp_transform`. Found by the outside review of the P-059 fix.
+- Date: 2026-11-17. Type: BUG (port fidelity). Area: `jaxfne/optim/gsdr.py:305-310` `gsdr_mcdp_transform`. Found
+  by the outside review of the P-059 fix.
 - Observation: the same pattern as P-059: one `key_delta` for every leaf of the noise `tree_map`, so equal-shape
-  leaves draw identical noise.
-- Why not fixed with P-059: this transform drives the GSDR 2026 port
-  (`artifacts/etudes/papers/gsdr2026/fit/fit_gsdr_500.py:201-203`, the authors' settings), so a fix changes that
-  replication's fits; whether the source algorithm draws per-parameter noise is a fidelity question. Closes when the
-  noise semantics are ruled and the transform either uses `_leafwise_normal` with the port's results re-scored, or
-  the shared draw is declared as the port's intended behaviour.
+  leaves drew identical noise.
+- Source (Hamm 2026-11-17: check the source first): `HNXJ/GSDR` b4a96fae `gsdr/optimizers.py` splits one key per
+  parameter leaf in SDR (:69-71), GSDR (:194-196) and AGSDR (:303-305). The shared draw was a port deviation.
+- Effect on results: the signed P3 fit (`RESULT_P3_fit.md`, FAIL) passes one parameter vector
+  (`fit/fit_gsdr_500.py:206`), a single leaf, so the defect could not correlate anything there; its verdict stands.
+  `_leafwise_normal` draws a single-leaf tree from the key itself, so that fit replays its draws bit for bit
+  (`tests/test_optim_transform_leaf_noise.py::test_single_leaf_draw_is_unchanged`).
+- Fix: `gsdr_mcdp_transform` uses `_leafwise_normal`; `test_gsdr_mcdp_equal_leaves_get_independent_noise` failed on
+  the old code and passes; `scripts/score_port_parity_checks.py --check` still matches. Closed by the fix commit.
