@@ -142,4 +142,16 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   `tests/test_optim_transform_leaf_noise.py` failed on the old code for all three transforms and passes;
   `scripts/score_objective_optimizer_checks.py --check` still matches its `score.json` (stochastic term off there).
 - Left: the transforms' `update()` is not jittable (state dataclasses are not registered pytrees); recorded, not
-  changed. Closed by the fix commit.
+  changed. Closed by the fix commit for the three transforms named; the sibling is P-060.
+
+### P-060
+
+- Date: 2026-11-17. Type: BUG candidate (open, needs a ruling). Area: `jaxfne/optim/gsdr.py:305-310`
+  `gsdr_mcdp_transform`. Found by the outside review of the P-059 fix.
+- Observation: the same pattern as P-059: one `key_delta` for every leaf of the noise `tree_map`, so equal-shape
+  leaves draw identical noise.
+- Why not fixed with P-059: this transform drives the GSDR 2026 port
+  (`artifacts/etudes/papers/gsdr2026/fit/fit_gsdr_500.py:201-203`, the authors' settings), so a fix changes that
+  replication's fits; whether the source algorithm draws per-parameter noise is a fidelity question. Closes when the
+  noise semantics are ruled and the transform either uses `_leafwise_normal` with the port's results re-scored, or
+  the shared draw is declared as the port's intended behaviour.
