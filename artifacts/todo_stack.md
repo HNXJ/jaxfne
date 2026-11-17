@@ -26,9 +26,9 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 ## Tier 1: blocked on a ruling
 
 0. T-93 [A] Size budget (O-R5SIZE ruled 2026-11-17, Hamm: "Gzip hdp_balance bundles"; budget stays 96.4 MB):
-   the 20 bundle result JSONs are stored as `.json.gz` (-8.32 MB, `_temp_gzip-bundles`), so the pinned 3168-row
-   armcheck record (413 KB, `origin/_temp_r5_size_budget`) fits. Next: merge `_temp_gzip-bundles`, then
-   `_temp_r5_size_budget`, to dev. Closes when: `python scripts/check_tree_size.py --check` and
+   the 20 bundle result JSONs are stored as `.json.gz` (-8.32 MB), on dev since 32a81d86 (tree 88.4 MB), so the
+   pinned 3168-row armcheck record (413 KB, `origin/_temp_r5_size_budget`) fits. Next: merge
+   `_temp_r5_size_budget` to dev. Closes when: `python scripts/check_tree_size.py --check` and
    `python scripts/check_record_integrity.py --check` both exit 0 on one dev SHA holding the armcheck record.
 
 ## Tier 2: 1 to 2 hours each
@@ -56,6 +56,10 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
     when: `python scripts/check_record_integrity.py --check` exits 0 with both files listed as pinned.
 17. T-90 [A] P-056 kernel-LFP deep-layer power. Closes when: a settled column shows deep alpha-beta power or the
     cause is named.
+17. T-95 [A] P-058 `_code_sha` worktree portability (`run_r2_reference.py`): resolve HEAD through git. Closes when:
+    tests for a regular clone, a worktree and a loose ref pass, and the PCL lane passes in a worktree.
+17. T-96 [A] P-061 caminos manifest rename on Windows (`caminos_api.py:357`): retry `os.replace` on
+    `PermissionError`. Closes when: a test that injects one failed replace passes.
 
 ## Tier 4: a day or more
 
@@ -86,12 +90,11 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
     returns its test; T-RG komposer `run_guard.py stop` cwd fallback, closes when that test passes from a foreign
     cwd.
 27. T-94 [A] Ephaptic coupling (Hamm 2026-11-17 spec; placement ruled: membrane via `drive_bias`): rule
-    `ephaptic_field` and `ephaptic_kernel` landed on `_temp_eph-coupling` (`jaxfne/hdp_rules_ephaptic.py`,
-    `tests/test_hdp_rules_ephaptic.py`); outside review ACCEPT 2026-11-17, findings fixed (720f8be8); merged
-    with T-93's gzip on `_temp_int-1117` for the dev gate. Left: the exogenous-field contrast (imposed field through
-    the drive schedule vs the rule, same kernel); the poster's hypotheses (shared variability, decoding) as a signed
-    prereg; P-057 for the public-route zero-rule identity. Closes when: the branch is merged to dev on a 0-failed
-    broad gate and the contrast test passes.
+    `ephaptic_field` and `ephaptic_kernel` (`jaxfne/hdp_rules_ephaptic.py`, `tests/test_hdp_rules_ephaptic.py`),
+    outside review ACCEPT 2026-11-17, on dev since 32a81d86 (broad gate 0 failed in a regular clone). Left: the
+    exogenous-field contrast (imposed field through the drive schedule vs the rule, same kernel); the poster's
+    hypotheses (shared variability, decoding) as a signed prereg; P-057 for the public-route zero-rule identity.
+    Closes when: the contrast test passes.
 
 ## Owner queue (asked one at a time, in this order)
 

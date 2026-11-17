@@ -147,6 +147,19 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   Next: diff the two kernels' per-step `v` on this model and find the first step that differs. Closes when the
   zero-rule public run equals the rule-free run, or the difference is declared with its cause.
 
+### P-058
+
+- Date: 2026-11-17. Type: BUG (portability). Area: `artifacts/etudes/papers/pcl/port/run_r2_reference.py::_code_sha`.
+  Severity: low; it breaks the PCL lane of `run_test_gate.py broad` in any git worktree.
+- Observation: the broad gate on `_temp_int-1117` at 3c7e497e, run in a worktree, failed 5 PCL tests
+  (`test_run_r2_reference.py`: `e`, `l`, `n`, `p`, `a`) with `FileNotFoundError` on
+  `.git/worktrees/<name>/packed-refs`. The same file at the same SHA passes 16/16 in a regular clone.
+- Cause: `_code_sha` resolves `HEAD` by hand and reads branch refs and `packed-refs` from the per-worktree git dir;
+  in a worktree those live in the common dir (`commondir`).
+- Possible change: resolve with `git rev-parse HEAD` (or read `commondir`), with tests for a regular clone, a
+  worktree and a loose ref (Hamm 2026-11-17). Kept out of the `_temp_int-1117` integration by Hamm's ruling.
+  Closes when those three tests pass and the PCL lane passes in a worktree.
+
 ### P-059
 
 - Date: 2026-11-17. Type: BUG. Area: `jaxfne/optim/core.py` `sdr_transform`, `gsdr_transform`, `agsdr_transform`
@@ -179,3 +192,16 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   `artifacts/`, `jaxfne/` grepped 2026-11-17).
 - Fix: `gsdr_mcdp_transform` uses `_leafwise_normal`; `test_gsdr_mcdp_equal_leaves_get_independent_noise` failed on
   the old code and passes; `scripts/score_port_parity_checks.py --check` still matches. Closed by the fix commit.
+
+### P-061
+
+- Date: 2026-11-17. Type: BUG (test robustness, Windows). Area: `artifacts/etudes/papers/caminos/caminos_api.py:356-357`
+  (`mtmp.write_text(...)`, then `os.replace(mtmp, out / "manifest.json")`). Severity: low; a spurious gate failure.
+- Observation: the first broad gate on 32a81d86 (regular clone, Windows) failed
+  `test_caminos_jax.py::test_p6_gate4_converter_known_answer` with `PermissionError: [WinError 5] Access is denied`
+  on the rename `manifest.json.tmp` -> `manifest.json` in the pytest temp dir. The test passed 3 of 3 alone on the same
+  clone, the full caminos lane passed (288/288) on the second gate run of the same SHA, and no commit since
+  24a95963 touches `artifacts/etudes/papers/caminos/`.
+- Cause (inferred, not proven): another process (scanner or indexer) held one of the files during `os.replace`.
+- Possible change: retry `os.replace` on `PermissionError` a few times with a short back-off, with a test that
+  injects one failed replace. Closes when that test passes.
