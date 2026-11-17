@@ -1,5 +1,5 @@
 """Supplement items S1 (notation table), S2 (calibration transforms), S5
-(HDP reduction identity), S12 (the scored Vogels P3 v4), S13 (PCL Fig. 3), S14 (the scored GSDR P3 fit)
+(HDP reduction identity of the weight rules), S12 (the scored Vogels P3 v4), S13 (PCL Fig. 3), S14 (the scored GSDR P3 fit)
 and S16 (the scored Destexhe 2009 P3 replication).
 
 S1 parses docs/theory/doctrine/definition_map.md. A row is mapped when its symbol and
@@ -272,6 +272,10 @@ def identity_rows(mod: ModuleType) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for name in mod._core_rule_names():
         case = mod._case(name)
+        if not case.moves_weights:
+            # A rule with no edge_weight target (e.g. ephaptic_field) has no weight
+            # falsifier; the identity test checks it by fixed weights and changed spikes.
+            continue
         net = mod._net(case.family)
         base = net.run_base()
         mod._assert_cells_active(base, net)
