@@ -15,8 +15,10 @@ it sets scales with ``dt`` (rate equivalent ``alpha/dt`` in 1/ms). ``v_rest`` ha
 route's resting potential (0 mV for the PCL LIF, near -65 mV for Izhikevich).
 ``alpha = 0`` gives ``Phi = 0`` and leaves ``drive_bias`` at 0.
 
-Timing: the rule reads the voltages the kernel presents after step t and sets the
-field applied at step t + 1, a one-step lag consistent with explicit Euler.
+Timing: the field set during step t is applied at step t + 1. The voltages it reads
+differ by route: the LIF kernel presents the voltages after step t (one-step lag);
+the Izhikevich registrable kernel presents the voltages entering step t, i.e. after
+step t - 1 (two-step lag).
 
 The rule's own contribution to ``drive_bias`` is tracked in the per-neuron aux
 coordinate ``phi`` and changed by jumps ``Phi_new - phi``, so superposed rules that

@@ -335,8 +335,9 @@ its neighbours' membrane potentials:
 
 $$\Phi_i=\alpha\sum_j M_{ij}\,(v_j-v_{\mathrm{rest}}).$$
 
-\(\Phi\) enters the membrane through `drive_bias` (Izhikevich and LIF routes), set from
-the voltages after step \(t\) and applied at step \(t+1\). \(\alpha\) carries the route's
+\(\Phi\) enters the membrane through `drive_bias` (Izhikevich and LIF routes): set
+during step \(t\) and applied at step \(t+1\), from the voltages after step \(t\) on LIF
+and the voltages entering step \(t\) on Izhikevich. \(\alpha\) carries the route's
 input unit per mV: 1/ms on Izhikevich; per step on the PCL LIF, where the input is a
 per-step voltage increment, so the coupling scales with `dt_ms`. `v_rest` has no
 default. \(M\) is sparse: `ephaptic_kernel(positions, sigma=..., cutoff=...)` gives
