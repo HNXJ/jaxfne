@@ -129,3 +129,20 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Possible change: settle the column longer, then attribute the deficit (inferred candidates: deep-layer rates,
   kernel amplitude of deep pyramids, coherence radius). Closes when a settled column shows deep alpha-beta power
   or the cause is named.
+
+### P-057
+
+- Date: 2026-11-17. Type: BUG. Area: public `simulate()` on the Izhikevich route with `enable_hdp=True` and a
+  registered rule. Severity: medium for any claim that a zero-parameter rule run equals the rule-free run.
+- Observation: a registered rule with every gain at zero does not reproduce the rule-free run through `simulate()`.
+- Minimal reproduction: 100-cell `NeuronalTensor` (E 0.9, PV 0.1, one L4 layer), `construct(..., seed=0,
+  duration_ms=200, dt_ms=0.5)`, then `simulate(model, duration_ms=200.0, dt_ms=0.5, seed=0)` with and without
+  `runtime=RuntimeConfig(enable_hdp=True, hdp_params={"hdp_rule": "synthetic_presyn_gain"})` (defaults all 0).
+  Reproduced twice (author and independent review, 2026-11-17).
+- Expected: identical spikes (`N_system` null under matched PRNG and inputs).
+- Actual: 211 spikes rule-free, 214 with the zero rule; `ephaptic_field` at `alpha=0` also gives 214. At kernel
+  level with `noise_scale=0.0` the identity holds bit-exactly (`tests/test_hdp_reduction_identity.py`).
+- Cause: unexplained. Membrane noise is excluded: both kernels draw it as `split(key)` then `normal(noise_key)`
+  (`emitters.py:725`, `_hdp_registrable_kernel.py:189-195`) from the same `noise_kw` (`_pipeline.py:597-600`).
+  Next: diff the two kernels' per-step `v` on this model and find the first step that differs. Closes when the
+  zero-rule public run equals the rule-free run, or the difference is declared with its cause.

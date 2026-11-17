@@ -328,6 +328,31 @@ Registration and run-time checks reject bad input:
 - at registration: unknown layouts, targets, and inverted bounds;
 - at run time: undeclared update keys.
 
+## Ephaptic field rule
+
+`ephaptic_field` (module `jaxfne.hdp_rules_ephaptic`) feeds each neuron the field of
+its neighbours' membrane potentials:
+
+$$\Phi_i=\alpha\sum_j M_{ij}\,(v_j-v_{\mathrm{rest}}).$$
+
+\(\Phi\) enters the membrane through `drive_bias` (Izhikevich and LIF routes): set
+during step \(t\) and applied at step \(t+1\), from the voltages after step \(t\) on LIF
+and the voltages entering step \(t\) on Izhikevich. \(\alpha\) carries the route's
+input unit per mV: 1/ms on Izhikevich; per step on the PCL LIF, where the input is a
+per-step voltage increment, so the coupling scales with `dt_ms`. `v_rest` has no
+default. \(M\) is sparse: `ephaptic_kernel(positions, sigma=..., cutoff=...)` gives
+\(M_{ij}=e^{-d_{ij}^2/2\sigma^2}\) for \(0<d_{ij}\le\) cutoff, rows normalized to 1 by
+default (`normalize="none"` keeps the raw Gaussian). \(\alpha=0\) leaves `drive_bias`
+at 0. An imposed (exogenous) field is a drive schedule, not this rule.
+
+```python
+from jaxfne.hdp_rules_ephaptic import ephaptic_kernel, ephaptic_rule_params
+
+k = ephaptic_kernel(positions, sigma=15.0, cutoff=40.0)
+hdp_params = {"hdp_rule": "ephaptic_field",
+              "hdp_rule_params": ephaptic_rule_params(k, alpha=0.02, v_rest=0.0)}
+```
+
 ## Stability
 
 The built-in kernel hard-bounds its state so trajectories remain numerically

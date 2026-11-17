@@ -27,6 +27,7 @@ from jaxfne._hdp_registrable_kernel import (
 from jaxfne.emitters import EdgeList, IzhikevichParams, simulate_edge_recurrent_izhikevich
 from jaxfne.emitters_adex import make_adex_params, simulate_adex, simulate_adex_hdp_registered
 from jaxfne.hdp_rule import get_hdp_rule, list_registered_hdp_rules
+from jaxfne.hdp_rules_ephaptic import EPHAPTIC_RULE_NAME, ephaptic_kernel, ephaptic_rule_params
 from jaxfne.istdp_vogels2011 import ISTDP_RULE_NAME
 
 assert "site-packages" not in jaxfne.__file__, (
@@ -76,6 +77,8 @@ PCL_W_MAX = 5.0
 PCL_F = 1.0
 PCL_LAM = 1.5
 PCL_ETA = 0.1
+EPHAPTIC_SPACING = 10.0  # cell spacing on a line, kernel length unit
+EPHAPTIC_ALPHA = 0.05  # 1/ms on the Izhikevich route
 
 @dataclass(frozen=True)
 class Net:
@@ -100,6 +103,9 @@ class Case:
     zero: Callable[[Net], dict[str, Any]]  # zero weight-drive setting
     nonzero: Callable[[Net], dict[str, Any] | None]  # None = descriptor defaults
     h_moves_at_zero: bool  # expected: H changes at zero weight drive
+    # False for a rule that declares no edge_weight target (e.g. a drive_bias-only
+    # field rule): its nonzero setting must leave every weight fixed and change spikes.
+    moves_weights: bool = True
 
 
 def _izh_edges() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -291,6 +297,14 @@ def _pcl_params(net: Net, *, eta: float, norm: float) -> dict[str, Any]:
     )
 
 
+def _ephaptic_params(net: Net, *, alpha: float) -> dict[str, Any]:
+    """ephaptic_field on cells spaced EPHAPTIC_SPACING apart on a line."""
+    pos = np.zeros((net.n_neurons, 3))
+    pos[:, 0] = np.arange(net.n_neurons) * EPHAPTIC_SPACING
+    k = ephaptic_kernel(pos, sigma=EPHAPTIC_SPACING, cutoff=2.5 * EPHAPTIC_SPACING)
+    return ephaptic_rule_params(k, alpha=alpha, v_rest=RS_C_MV)
+
+
 # Every entry of the core registry. A rule added to the package without an entry
 # fails test_case_table_covers_live_registry.
 CASES: dict[str, Case] = {
@@ -335,6 +349,13 @@ CASES: dict[str, Case] = {
         zero=lambda net: {"eta": 0.0},
         nonzero=lambda net: None,
         h_moves_at_zero=False,
+    ),
+    EPHAPTIC_RULE_NAME: Case(
+        family="izhikevich",
+        zero=lambda net: _ephaptic_params(net, alpha=0.0),
+        nonzero=lambda net: _ephaptic_params(net, alpha=EPHAPTIC_ALPHA),
+        h_moves_at_zero=False,
+        moves_weights=False,
     ),
 }
 
@@ -397,6 +418,9 @@ def test_zero_drive_reduces_to_base_model(name: str) -> None:
 @pytest.mark.parametrize("name", _LIVE_RULES)
 def test_all_false_mask_freezes_weights(name: str) -> None:
     case = _case(name)
+    if not case.moves_weights:
+        assert "edge_weight" not in get_hdp_rule(name)[0].theta_targets
+        pytest.skip("rule declares no edge_weight target; weights are checked fixed below")
     net = _net(case.family)
     _assert_cells_active(net.run_base(), net)
     free = net.run_rule(name, case.nonzero(net), None)
@@ -413,8 +437,13 @@ def test_all_false_mask_freezes_weights(name: str) -> None:
 def test_nonzero_parameters_change_a_weight(name: str) -> None:
     case = _case(name)
     net = _net(case.family)
-    _assert_cells_active(net.run_base(), net)
+    base = net.run_base()
+    _assert_cells_active(base, net)
     out = net.run_rule(name, case.nonzero(net), None)
+    if not case.moves_weights:
+        np.testing.assert_array_equal(out["w"], net.w0, err_msg="non-weight rule moved a weight")
+        assert not np.array_equal(out["spikes"], base), "nonzero setting left spikes unchanged"
+        return
     change = float(np.max(np.abs(out["w"] - net.w0)))
     assert change > 0.0, f"no weight changed at nonzero parameters: max |dw| = {change!r}"
 
