@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2536 raise sites in 120 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2541 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -1872,6 +1872,16 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `hdp_rule {...}: component returned dH of size {...}, expected {...}` |
 | `ValueError` | `hdp_rule {...}: components disagree on d_theta {...} shape {...} vs {...}` |
 | `ValueError` | `hdp_rule {...}: components disagree on j_theta {...} shape {...} vs {...}` |
+
+**`jaxfne/hdp_rules_ephaptic.py`**
+
+| Class | Message |
+|---|---|
+| `ValueError` | `positions must be (N, D), got shape {...}` |
+| `ValueError` | `sigma and cutoff must be > 0, got sigma={...}, cutoff={...}` |
+| `ValueError` | `normalize must be 'row' or 'none', got {...}` |
+| `ValueError` | `kernel lacks {...}; build it with ephaptic_kernel` |
+| `ValueError` | `ephaptic_field needs src, dst, weight and v_rest; use ephaptic_rule_params` |
 
 **`jaxfne/inputs.py`**
 

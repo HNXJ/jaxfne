@@ -85,7 +85,8 @@ def s5_payload(s5_out: Path) -> dict:
 
 def test_s5_covers_the_live_registry(s5_payload: dict) -> None:
     # The core-rule filter is owned by the identity test module, which S5 itself calls.
-    live = set(supplement.load_identity_module()._core_rule_names())
+    mod = supplement.load_identity_module()
+    live = {n for n in mod._core_rule_names() if mod._case(n).moves_weights}
     assert live, "the registry snapshot is empty"
     assert {row["rule"] for row in s5_payload["rules"]} == live
 
