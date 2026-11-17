@@ -27,6 +27,12 @@ REPO = Path(__file__).resolve().parents[2]
 DEFINITION_MAP = REPO / "docs/theory/doctrine/definition_map.md"
 IDENTITY_TEST = REPO / "tests/test_hdp_reduction_identity.py"
 DEFAULT_OUT = REPO / "artifacts/_temp/supplement"
+# Hamm 2026-11-17: S5 covers weight-changing rules only; no separate row type.
+S5_SCOPE = (
+    "Scope: core registered rules that declare an edge_weight target. A rule without one "
+    "(no weight update) is outside S5; tests/test_hdp_reduction_identity.py verifies it "
+    "by fixed weights and changed spikes at nonzero parameters."
+)
 
 # The tree under test is this repo: a site-packages jaxfne (if installed) must
 # not shadow it when the generator runs as `python scripts/...` from elsewhere.
@@ -300,16 +306,21 @@ def write_s5(out_dir: Path) -> list[dict[str, object]]:
 
     mod = load_identity_module()
     rows = identity_rows(mod)
+    excluded = [n for n in mod._core_rule_names() if not mod._case(n).moves_weights]
     payload = {
         "source": IDENTITY_TEST.relative_to(REPO).as_posix(),
         "versions": {"jax": jax.__version__, "numpy": np.__version__},
+        "scope": S5_SCOPE,
+        "excluded_rules": excluded,
         "rules": rows,
     }
     (out_dir / "S5_reduction_identity.json").write_text(
         json.dumps(payload, indent=2, allow_nan=False) + "\n", encoding="utf-8"
     )
     lines = [
-        "# S5. HDP reduction identity per registered rule",
+        "# S5. HDP reduction identity per weight-changing registered rule",
+        "",
+        S5_SCOPE + " Excluded: " + (", ".join(f"`{n}`" for n in excluded) or "none") + ".",
         "",
         f"Source: `{payload['source']}`. Identity columns must be 0; the falsifier column "
         "must be above 0. Weights are in each kernel's stored unit (AdEx: nS).",

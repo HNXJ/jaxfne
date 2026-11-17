@@ -91,6 +91,21 @@ def test_s5_covers_the_live_registry(s5_payload: dict) -> None:
     assert {row["rule"] for row in s5_payload["rules"]} == live
 
 
+def test_s5_states_its_scope_and_excluded_rules(s5_out: Path, s5_payload: dict) -> None:
+    # Hamm 2026-11-17: S5 covers weight-changing rules; the excluded ones are named.
+    from jaxfne.hdp_rule import get_hdp_rule
+
+    mod = supplement.load_identity_module()
+    no_weight = {n for n in mod._core_rule_names()
+                 if "edge_weight" not in get_hdp_rule(n)[0].theta_targets}
+    assert no_weight, "fixture must hold a rule without an edge_weight target"
+    assert set(s5_payload["excluded_rules"]) == no_weight
+    assert s5_payload["scope"] == supplement.S5_SCOPE
+    md = (s5_out / "S5_reduction_identity.md").read_text(encoding="utf-8")
+    assert supplement.S5_SCOPE in md
+    assert all(f"`{n}`" in md for n in no_weight)
+
+
 def test_s5_identity_numbers_are_zero(s5_payload: dict) -> None:
     rows = s5_payload["rules"]
     assert rows, "no rules examined"
