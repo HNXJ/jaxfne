@@ -1006,6 +1006,21 @@ class _TransformAGSDRState:
     alpha_adaptive: float = 0.7  # Adaptive alpha, updated via variance ratio
 
 
+def _leafwise_normal(key: Any, tree: Any) -> Any:
+    """Standard-normal draws shaped like each array leaf of ``tree``, one split key per leaf.
+
+    Non-array leaves pass through. Independent keys keep equal-shape leaves from drawing identical
+    noise (ISSUE_LOG P-059).
+    """
+    leaves, treedef = jax.tree_util.tree_flatten(tree)
+    keys = jax.random.split(key, max(len(leaves), 1))
+    drawn = [
+        jax.random.normal(k, leaf.shape, dtype=leaf.dtype) if hasattr(leaf, "shape") else leaf
+        for k, leaf in zip(keys, leaves)
+    ]
+    return jax.tree_util.tree_unflatten(treedef, drawn)
+
+
 def sdr_transform(
     inner_optimizer: Optional[Any] = None,
     stochastic_scale: float = 0.1,
@@ -1085,10 +1100,8 @@ def sdr_transform(
         # Add stochastic delta term using the explicit PRNG key
         key_delta = jax.random.fold_in(key, sdr_state.step)
         stochastic_delta = jax.tree_util.tree_map(
-            lambda u: stochastic_scale * jax.random.normal(key_delta, u.shape, dtype=u.dtype)
-            if hasattr(u, "shape")
-            else u,
-            inner_updates,
+            lambda r: stochastic_scale * r if hasattr(r, "shape") else r,
+            _leafwise_normal(key_delta, inner_updates),
         )
         combined_updates = jax.tree_util.tree_map(
             lambda u, d: u + d if hasattr(u, "dtype") else u,
@@ -1217,10 +1230,8 @@ def gsdr_transform(
 
         key_delta = jax.random.fold_in(key, gsdr_state.step)
         stochastic_delta = jax.tree_util.tree_map(
-            lambda u: stochastic_scale * jax.random.normal(key_delta, u.shape, dtype=u.dtype)
-            if hasattr(u, "shape")
-            else u,
-            inner_updates,
+            lambda r: stochastic_scale * r if hasattr(r, "shape") else r,
+            _leafwise_normal(key_delta, inner_updates),
         )
         combined_updates = jax.tree_util.tree_map(
             lambda u, d: u + d if hasattr(u, "dtype") else u,
@@ -1372,12 +1383,7 @@ def agsdr_transform(
 
         # 2. Compute R_t (Stochastic Base Representation Vector)
         key_delta = jax.random.fold_in(key, agsdr_state.step)
-        base_representation = jax.tree_util.tree_map(
-            lambda u: jax.random.normal(key_delta, u.shape, dtype=u.dtype)
-            if hasattr(u, "shape")
-            else u,
-            inner_updates,
-        )
+        base_representation = _leafwise_normal(key_delta, inner_updates)
 
         # 3. Calculate True Mathematical Variances
         var_d = _calc_tree_variance(inner_updates)

@@ -1,0 +1,1 @@
+- Fixed `sdr_transform`, `gsdr_transform` and `agsdr_transform` drawing one noise sample for every parameter leaf: each leaf now draws from its own split key, so equal-shape leaves get independent noise. Stochastic outputs of these transforms change for a fixed seed.

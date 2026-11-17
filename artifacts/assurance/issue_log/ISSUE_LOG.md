@@ -129,3 +129,17 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Possible change: settle the column longer, then attribute the deficit (inferred candidates: deep-layer rates,
   kernel amplitude of deep pyramids, coherence radius). Closes when a settled column shows deep alpha-beta power
   or the cause is named.
+
+### P-059
+
+- Date: 2026-11-17. Type: BUG. Area: `jaxfne/optim/core.py` `sdr_transform`, `gsdr_transform`, `agsdr_transform`
+  (public Optax transforms; no `jaxfne/` caller, `Model.tune` does not reach them). Severity: medium for any use
+  of these transforms on a pytree with equal-shape leaves.
+- Observation: found by the 2026-11-17 architecture review (packet A, defect D1). One `key_delta` served every leaf
+  of the noise `tree_map`, so equal-shape leaves drew identical noise. Direct `update()` check with zero gradients:
+  two (4,) leaves starting at 0 and 1 got identical nonzero updates at steps 0 and 1 in all three transforms.
+- Fix (Hamm 2026-11-17, scoped, outputs change): `_leafwise_normal` draws each leaf from its own split key.
+  `tests/test_optim_transform_leaf_noise.py` failed on the old code for all three transforms and passes;
+  `scripts/score_objective_optimizer_checks.py --check` still matches its `score.json` (stochastic term off there).
+- Left: the transforms' `update()` is not jittable (state dataclasses are not registered pytrees); recorded, not
+  changed. Closed by the fix commit.
