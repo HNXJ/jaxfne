@@ -84,6 +84,12 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 27. T-11 CAMINOS NWB excerpt for jnwb `tests/`, closes when `git -C D:/repos/jnwb grep -n caminos -- tests/`
     returns its test; T-RG komposer `run_guard.py stop` cwd fallback, closes when that test passes from a foreign
     cwd.
+27. T-94 [A] Ephaptic coupling (Hamm 2026-11-17 spec; placement ruled: membrane via `drive_bias`): rule
+    `ephaptic_field` and `ephaptic_kernel` landed on `_temp_eph-coupling` (`jaxfne/hdp_rules_ephaptic.py`,
+    `tests/test_hdp_rules_ephaptic.py`). Left: outside review; the exogenous-field contrast (imposed field through
+    the drive schedule vs the rule, same kernel); the poster's hypotheses (shared variability, decoding) as a signed
+    prereg; P-057 for the public-route zero-rule identity. Closes when: the review receipt is committed and the
+    contrast test passes.
 
 ## Owner queue (asked one at a time, in this order)
 
