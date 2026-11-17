@@ -1,6 +1,7 @@
 """Figure for the balance étude: learning curves (10 s bins) and paired test in-band per seed."""
 from __future__ import annotations
 
+import gzip
 import json
 import sys
 from pathlib import Path
@@ -15,7 +16,8 @@ COLORS = {"full": "#1f77b4", "frozen": "#7f7f7f", "shuffled": "#d62728", "wired"
 
 
 def main(path: Path):
-    res = json.loads(path.read_text())
+    raw = path.read_bytes()
+    res = json.loads(gzip.decompress(raw) if path.suffix == ".gz" else raw)
     c = np.array(res["conditions"])
     band = np.array(res["train_band"])  # (agents, seconds)
     test = np.array(res["test_band"])
@@ -46,7 +48,7 @@ def main(path: Path):
     ax[1].set(xticks=x, xticklabels=["full", "frozen", "shuffled"], ylabel="test fraction in band", title="Test (learning off), paired by seed", ylim=(0, 1))
     ax[2].axhline(5.0, color="k", ls=":", lw=1)
     ax[2].set(xlabel="training time (s)", ylabel="E rate (Hz)", title="Inner loop: E activity (target 5 Hz)")
-    out = path.with_name(path.stem + "_figure.png")
+    out = path.with_name(path.name.split(".json")[0] + "_figure.png")
     fig.savefig(out, dpi=150)
     print(out)
 

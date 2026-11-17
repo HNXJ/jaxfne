@@ -25,10 +25,11 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 
 ## Tier 1: blocked on a ruling
 
-0. T-93 [A then H] Size-budget conflict (open row O-R5SIZE): the pinned 3168-row armcheck record (413 KB) puts the
-   tracked tree 283 KB over budget and `check_record_integrity.py` refuses to edit a pinned record, so both gates
-   cannot pass at once. Closes when: `python scripts/check_tree_size.py --check` and
-   `python scripts/check_record_integrity.py --check` both exit 0 on one SHA. Blocked by: Hamm's route ruling.
+0. T-93 [A] Size budget (O-R5SIZE ruled 2026-11-17, Hamm: "Gzip hdp_balance bundles"; budget stays 96.4 MB):
+   the 20 bundle result JSONs are stored as `.json.gz` (-8.32 MB, `_temp_gzip-bundles`), so the pinned 3168-row
+   armcheck record (413 KB, `origin/_temp_r5_size_budget`) fits. Next: merge `_temp_gzip-bundles`, then
+   `_temp_r5_size_budget`, to dev. Closes when: `python scripts/check_tree_size.py --check` and
+   `python scripts/check_record_integrity.py --check` both exit 0 on one dev SHA holding the armcheck record.
 
 ## Tier 2: 1 to 2 hours each
 

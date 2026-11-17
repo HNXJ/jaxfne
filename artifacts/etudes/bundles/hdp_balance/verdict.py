@@ -1,10 +1,13 @@
-"""Apply the README pass criteria P1-P4 to a result JSON."""
+"""Apply the README pass criteria P1-P4 to a result JSON (``.json`` or gzipped ``.json.gz``)."""
+import gzip
 import json
 import sys
+from pathlib import Path
 
 import numpy as np
 
-res = json.load(open(sys.argv[1]))
+_p = Path(sys.argv[1])
+res = json.loads(gzip.decompress(_p.read_bytes()) if _p.suffix == ".gz" else _p.read_bytes())
 c = np.array(res["conditions"])
 b = np.array(res["test_band"])
 r = np.array(res["test_rate_E"])

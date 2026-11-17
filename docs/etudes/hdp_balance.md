@@ -72,8 +72,8 @@ within 2.5–10 Hz; **P4** wired in-band ≥ 0.6.
 ## Reproduce
 
 ```bash
-python artifacts/etudes/bundles/hdp_balance/balance.py --eta 1.0 --seed0 3000 --n-seeds 16 --plastic-scope sensory_motor --out artifacts/etudes/bundles/hdp_balance/confirm_1c.json
-python artifacts/etudes/bundles/hdp_balance/verdict.py artifacts/etudes/bundles/hdp_balance/confirm_1c.json
+python artifacts/etudes/bundles/hdp_balance/balance.py --eta 1.0 --seed0 3000 --n-seeds 16 --plastic-scope sensory_motor --out artifacts/etudes/bundles/hdp_balance/confirm_1c.json.gz
+python artifacts/etudes/bundles/hdp_balance/verdict.py artifacts/etudes/bundles/hdp_balance/confirm_1c.json.gz
 ```
 
 Every stage's protocol, pilot table and command: `artifacts/etudes/bundles/hdp_balance/README.md`.

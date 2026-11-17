@@ -14,6 +14,7 @@ Task: unstable 1-D object, d theta = (a theta + b u) dt + sigma dW_t; the
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import time
 from pathlib import Path
@@ -211,7 +212,11 @@ def main():
         motor_map_index=[motor_map_index(w) for w in W_end],
     )
     a.out.parent.mkdir(parents=True, exist_ok=True)
-    a.out.write_text(json.dumps(res, indent=1))
+    text = json.dumps(res, indent=1)
+    if a.out.suffix == ".gz":  # results are stored gzipped (tree-size budget, O-R5SIZE)
+        a.out.write_bytes(gzip.compress(text.encode(), 9, mtime=0))
+    else:
+        a.out.write_text(text)
     print(summarize(res))
 
 
