@@ -87,8 +87,8 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
     cwd.
 27. T-94 [A] Ephaptic coupling (Hamm 2026-11-17 spec; placement ruled: membrane via `drive_bias`): rule
     `ephaptic_field` and `ephaptic_kernel` landed on `_temp_eph-coupling` (`jaxfne/hdp_rules_ephaptic.py`,
-    `tests/test_hdp_rules_ephaptic.py`); outside review ACCEPT 2026-11-17, findings fixed (720f8be8). Merge to dev
-    waits on O-R5SIZE (Hamm 2026-11-17: "Wait for O-R5SIZE"). Left: the exogenous-field contrast (imposed field through
+    `tests/test_hdp_rules_ephaptic.py`); outside review ACCEPT 2026-11-17, findings fixed (720f8be8); merged
+    with T-93's gzip on `_temp_int-1117` for the dev gate. Left: the exogenous-field contrast (imposed field through
     the drive schedule vs the rule, same kernel); the poster's hypotheses (shared variability, decoding) as a signed
     prereg; P-057 for the public-route zero-rule identity. Closes when: the branch is merged to dev on a 0-failed
     broad gate and the contrast test passes.
