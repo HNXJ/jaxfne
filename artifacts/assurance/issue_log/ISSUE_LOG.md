@@ -97,7 +97,8 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Actual (reported): identical spikes; `w_s` differs by about 0.4%. Suspected cause: the order of STDP
   updates within an event step.
 - Possible change: reproduce on a minimal fixture, then attribute in PCL R3 (`CALIBRATION.md` R3
-  section), where the training files run both arms against the C++ chain.
+  section), where the training files run both arms against the C++ chain. Discriminator plan (static, not run):
+  `p053_p056_source_audit_2026-11-13.md`.
 
 ### P-055
 
@@ -128,7 +129,7 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Expected: deep-layer alpha-beta power, as in laminar recordings.
 - Possible change: settle the column longer, then attribute the deficit (inferred candidates: deep-layer rates,
   kernel amplitude of deep pyramids, coherence radius). Closes when a settled column shows deep alpha-beta power
-  or the cause is named.
+  or the cause is named. Discriminator plan (static, not run): `p053_p056_source_audit_2026-11-13.md`.
 
 ### P-057
 
