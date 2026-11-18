@@ -13,9 +13,10 @@ the input enters dv/dt, so ``alpha`` is in 1/ms; on the PCL LIF route the input 
 voltage increment added once per step, so ``alpha`` is per step and the coupling
 it sets scales with ``dt`` (rate equivalent ``alpha/dt`` in 1/ms). ``v_rest`` has no default: it is the
 route's resting potential (0 mV for the PCL LIF, near -65 mV for Izhikevich).
-``alpha = 0`` gives ``Phi = 0`` and leaves ``drive_bias`` at 0. A noise-free LIF kernel
-run then equals the rule-free run (tested); through ``simulate()`` it does not yet
-(ISSUE_LOG P-057, open).
+``alpha = 0`` gives ``Phi = 0`` and leaves ``drive_bias`` at 0. The run then equals the
+rule-free run on the same backend: a noise-free LIF kernel run, and through ``simulate()``
+the rule-free run with ``recurrent_backend="edge_list"`` (tested; an engaged rule always
+runs the edge-list kernel, ISSUE_LOG P-057 and P-062).
 
 Timing: the field set during step t is applied at step t + 1. The voltages it reads
 differ by route: the LIF kernel presents the voltages after step t (one-step lag);

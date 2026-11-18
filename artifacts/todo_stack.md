@@ -85,7 +85,7 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
     `ephaptic_field` and `ephaptic_kernel` (`jaxfne/hdp_rules_ephaptic.py`, `tests/test_hdp_rules_ephaptic.py`),
     outside review ACCEPT 2026-11-17, on dev since 32a81d86 (broad gate 0 failed in a regular clone). Left: the
     exogenous-field contrast (imposed field through the drive schedule vs the rule, same kernel); the poster's
-    hypotheses (shared variability, decoding) as a signed prereg; P-057 for the public-route zero-rule identity.
+    hypotheses (shared variability, decoding) as a signed prereg. P-057 closed 2026-11-18 (backend mismatch; P-062).
     Closes when: the contrast test passes.
 
 ## Owner queue (asked one at a time, in this order)

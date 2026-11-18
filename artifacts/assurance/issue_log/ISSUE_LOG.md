@@ -145,10 +145,17 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Expected: identical spikes (`N_system` null under matched PRNG and inputs).
 - Actual: 211 spikes rule-free, 214 with the zero rule; `ephaptic_field` at `alpha=0` also gives 214. At kernel
   level with `noise_scale=0.0` the identity holds bit-exactly (`tests/test_hdp_reduction_identity.py`).
-- Cause: unexplained. Membrane noise is excluded: both kernels draw it as `split(key)` then `normal(noise_key)`
-  (`emitters.py:725`, `_hdp_registrable_kernel.py:189-195`) from the same `noise_kw` (`_pipeline.py:597-600`).
-  Next: diff the two kernels' per-step `v` on this model and find the first step that differs. Closes when the
-  zero-rule public run equals the rule-free run, or the difference is declared with its cause.
+- Cause (2026-11-18): the reproduction compared two backends. The rule-free run takes the default
+  `recurrent_backend="dense"` (`_runtime_config.py:82`) to `simulate_eig_izhikevich` (`_model_simulate.py:1084`);
+  an engaged rule always takes the edge-list registered kernel (`_model_simulate.py:885`, `:689`), with another
+  noise stream (`_chain_noise_schedule`, `:703`). The earlier text excluded membrane noise from kernels the public
+  route does not take. On the same backend the runs are bit-identical: rule-free with
+  `recurrent_backend="edge_list"` gives 214 spikes, equal to the zero rule in spikes and `V_m` (max |dV| 0.0); at
+  `noise_scale=0` 208 = 208. Evidence, with sha256 in `SHA256SUMS`: `F:/warehouse/jaxfne/P-057_2026-11-18/`
+  (`stepA_compare.json`, `stepC_compare.json`, scripts).
+- Closed 2026-11-18 (Hamm): no rule defect. `tests/test_hdp_zero_rule_public_identity.py` checks the
+  edge-list identity through `simulate()` for `synthetic_presyn_gain` and `ephaptic_field` at `alpha=0`; with a
+  dense rule-free reference it fails. The backend difference is P-062.
 
 ### P-058
 
@@ -226,3 +233,18 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
     dump during the gate; needs admin).
 - Possible change: retry `os.replace` on `PermissionError` a few times with a short back-off, with a test that
   injects one failed replace. That closes the spurious failure (T-96), not the diagnosis.
+
+### P-062
+
+- Date: 2026-11-18. Type: SCIENCE. Area: public `simulate()` on the Izhikevich route, `recurrent_backend`.
+  Severity: medium for any comparison of a rule run with a rule-free run, or of the two backends.
+- Observation (found closing P-057): (1) an engaged HDP rule runs the edge-list registered kernel whatever
+  `recurrent_backend` says (`_model_simulate.py:885`); `recurrent_backend="dense"` with a rule gives the same
+  spikes and `V_m` as `"edge_list"` (whether a warning is raised was not checked). (2) The dense and edge-list rule-free runs differ on the
+  P-057 model: 211 vs 214 spikes with default noise (`V_m` differs from step 0, different noise streams), and
+  206 vs 208 at `noise_scale=0` (`V_m` differs from step 1). Evidence: `F:/warehouse/jaxfne/P-057_2026-11-18/`
+  (`stepA_compare.json`, `stepC_compare.json`, `stepC2_zero_noise_onset.json`).
+- Unknown: whether the noise-free backend difference is intended (update order, synaptic integration) or a
+  defect; no document found that states the two backends are equivalent.
+- Possible change: warn or refuse when a rule overrides `recurrent_backend="dense"`; attribute the noise-free
+  difference to its first differing term. Closes when both are decided and documented.
