@@ -1011,7 +1011,8 @@ def _leafwise_normal(key: Any, tree: Any) -> Any:
 
     Non-array leaves pass through. Independent keys keep equal-shape leaves from drawing identical
     noise (ISSUE_LOG P-059). A single-leaf tree draws from ``key`` itself, so single-array callers
-    (the GSDR 2026 fit passes one parameter vector) replay their pre-fix draws bit for bit.
+    (the GSDR 2026 fit passes one parameter vector) replay their pre-fix draws bit for bit (tested in
+    float32).
     """
     leaves, treedef = jax.tree_util.tree_flatten(tree)
     keys = [key] if len(leaves) == 1 else jax.random.split(key, max(len(leaves), 1))

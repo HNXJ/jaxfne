@@ -155,7 +155,8 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Observation: found by the 2026-11-17 architecture review (packet A, defect D1). One `key_delta` served every leaf
   of the noise `tree_map`, so equal-shape leaves drew identical noise. Direct `update()` check with zero gradients:
   two (4,) leaves starting at 0 and 1 got identical nonzero updates at steps 0 and 1 in all three transforms.
-- Fix (Hamm 2026-11-17, scoped, outputs change): `_leafwise_normal` draws each leaf from its own split key.
+- Fix (Hamm 2026-11-17, scoped): `_leafwise_normal` draws each leaf from its own split key. Fixed-seed outputs
+  change for multi-leaf parameter trees; a single-leaf tree keeps its draws (see P-060).
   `tests/test_optim_transform_leaf_noise.py` failed on the old code for all three transforms and passes;
   `scripts/score_objective_optimizer_checks.py --check` still matches its `score.json` (stochastic term off there).
 - Left: the transforms' `update()` is not jittable (state dataclasses are not registered pytrees); recorded, not
@@ -171,7 +172,10 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   parameter leaf in SDR (:69-71), GSDR (:194-196) and AGSDR (:303-305). The shared draw was a port deviation.
 - Effect on results: the signed P3 fit (`RESULT_P3_fit.md`, FAIL) passes one parameter vector
   (`fit/fit_gsdr_500.py:206`), a single leaf, so the defect could not correlate anything there; its verdict stands.
-  `_leafwise_normal` draws a single-leaf tree from the key itself, so that fit replays its draws bit for bit
-  (`tests/test_optim_transform_leaf_noise.py::test_single_leaf_draw_is_unchanged`).
+  `_leafwise_normal` draws a single-leaf tree from the key itself, so that fit replays its draws bit for bit.
+  Tested: float32 only (`tests/test_optim_transform_leaf_noise.py::test_single_leaf_draw_is_unchanged`; outside
+  review probe, 6 steps, `a_dynamic` on and off, byte-identical to 24a95963). Other dtypes hold by construction
+  (same key, shape, dtype), untested. No caller passes a multi-leaf tree to this transform (`scripts/`,
+  `artifacts/`, `jaxfne/` grepped 2026-11-17).
 - Fix: `gsdr_mcdp_transform` uses `_leafwise_normal`; `test_gsdr_mcdp_equal_leaves_get_independent_noise` failed on
   the old code and passes; `scripts/score_port_parity_checks.py --check` still matches. Closed by the fix commit.
