@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@c387064d · 2026-11-17. Last broad gate: 32a81d86 (same code as c387064d) on 2026-11-17, regular clone, Windows: run 1 exit 1 (caminos P-061), run 2 exit 0 (8295 passed, 0 failed, all lanes PASS); outside review ACCEPT. CI (Fast) run 44216648348 on c387064d: success, 10 of 10 jobs. GitHub workflows: CI (Fast) re-enabled 2026-11-17 (Hamm); Dashboard, Macroscope, Nightly notebooks, Publish and CI (Release & Scheduled) disabled since 2026-11-14. Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
+Stamp: jaxfne@dev@c387064d · 2026-11-17. Last broad gate: 32a81d86 (same code as c387064d) on 2026-11-17, regular clone, Windows: run 1 exit 1 (caminos P-061), run 2 exit 0 (8295 passed, 0 failed, all lanes PASS); outside review ACCEPT. CI (Fast) run 44216648348 on c387064d: success, 10 of 10 jobs. GitHub workflows: CI (Fast) re-enabled 2026-11-17 (Hamm); Dashboard, Macroscope, Nightly notebooks, Publish and CI (Release & Scheduled) disabled (`disabled_manually`; each workflow's `updated_at` is 2026-11-14 08:50 CT). Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
 Working checkout `E:/repos/jaxfne` clean on dev.
 OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling and ratings in HNXJ/ocma `cases/jaxfne/`.
 

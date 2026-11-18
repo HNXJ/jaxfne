@@ -209,10 +209,15 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   - Stress, the test's pattern (write then replace, twice per dir), 4 processes: 0 errors in 4,000 replaces under
     `D:/pytest_temp`, and 0 in 12,000 (3 runs) under `D:/tmp/pytest-of-nejath`, the failing run's temp root. Not
     reproduced at idle; the failing run was under full-gate xdist load.
+  - Stress shaped like `write_run` (outside review finding): per seed a (120000, 3) int32 `.npy` (about 1.4 MB)
+    through tmp + `os.replace`, then a read of the existing `manifest.json`, then a larger manifest replace; 4 and
+    8 processes: 0 errors in 12,000 `write_run`s (24,000 replaces) under the failing run's temp root. Still
+    untested: the `import jax` / `jax.devices()` step between the two writes, and pytest-xdist load.
   - Windows Defender real-time protection is on; its exclusion list is unreadable without admin. The holding
     process is unidentified.
   - Evidence, with sha256 in `SHA256SUMS`: `F:/warehouse/jaxfne/P-061_2026-11-17/` (failing gate log, passing gate
-    log, `stress_replace.py`, `run_default_root.sh`).
+    log, `stress_replace.py`, `run_default_root.sh`, `stress_replace_full.py`, `run_full_default_root.sh`,
+    `stress_full_results_2026-11-17.txt`).
   - To prove the cause: reproduce under gate load, or capture the holding process (Process Monitor or a handle
     dump during the gate; needs admin).
 - Possible change: retry `os.replace` on `PermissionError` a few times with a short back-off, with a test that
