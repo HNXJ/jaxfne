@@ -181,7 +181,7 @@ def test_runtime_field_is_consumed_or_refused(model, field):
     [
         ({"ablation": "no_recurrence"}, "ablation must be"),
         ({"ablation": "shuffled_timing"}, "shuffles a time-varying drive"),
-        (_rt(synaptic_kernel="receptor_exponential"), "runs only on"),
+        (_rt(synaptic_kernel="receptor_exponential", recurrent_backend="dense"), "runs only on"),
     ],
 )
 def test_unconsumed_values_are_refused(model, sim_kwargs, match):

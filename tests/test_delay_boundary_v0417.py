@@ -25,7 +25,8 @@ from jaxfne.emitters import simulate_receptor_exponential_izhikevich
 
 
 def _sim(*, seed=1, duration_ms=10.0, dt_ms=1.0, backend="dense"):
-    runtime = None
+    # Explicit dense: the default "auto" would select edge_list for delayed edges (P-062).
+    runtime = jtfne.RuntimeConfig(recurrent_backend="dense")
     if backend == "edge_list":
         runtime = jtfne.RuntimeConfig(
             dtype="float32",

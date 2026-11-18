@@ -94,11 +94,12 @@ def _n_rule_edges(model) -> int:
 
 
 def _has_finite_delays(model) -> bool:
-    if "edge_list" not in model.params:
+    edges = model.params.get("edge_list")
+    if edges is None:
         return False
     from .emitters import _edge_delay_steps_numpy
 
-    host = _edge_delay_steps_numpy(model.params["edge_list"])
+    host = _edge_delay_steps_numpy(edges)
     return host is not None and bool(host.size) and int(host.sum()) != 0
 
 

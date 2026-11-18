@@ -65,18 +65,32 @@ def _build_plain_model():
     return jtfne.construct(cfg)
 
 
+_DENSE = jtfne.RuntimeConfig(recurrent_backend="dense")
+
+
 def test_dense_refuses_connection_rules():
     model = _build_model(edge_seed=0)
-    sim = jtfne.Simulation(duration_ms=100.0, dt_ms=0.5, seed=0)
+    sim = jtfne.Simulation(duration_ms=100.0, dt_ms=0.5, seed=0, runtime=_DENSE)
     with pytest.raises(ValueError, match="recurrent_backend='edge_list'"):
         model.simulate(sim)
 
 
 def test_dense_batch_refuses_connection_rules():
     model = _build_model(edge_seed=0)
-    sim = jtfne.Simulation(duration_ms=100.0, dt_ms=0.5, seed=0)
+    sim = jtfne.Simulation(duration_ms=100.0, dt_ms=0.5, seed=0, runtime=_DENSE)
     with pytest.raises(ValueError, match="recurrent_backend='edge_list'"):
         model.simulate_batch(sim, n_seeds=2, seed=1)
+
+
+def test_auto_runs_connection_rules_on_edge_list():
+    # P-062 step 2: the default "auto" selects the edge-list kernel the rule edges need.
+    model = _build_model(edge_seed=0)
+    assert _n_rule_edges(model) > 0, "fixture must compile rule edges"
+    edge = jtfne.RuntimeConfig(recurrent_backend="edge_list")
+    auto_sig = model.simulate(jtfne.Simulation(duration_ms=100.0, dt_ms=0.5, seed=0))
+    edge_sig = model.simulate(jtfne.Simulation(duration_ms=100.0, dt_ms=0.5, seed=0, runtime=edge))
+    assert auto_sig.metadata["recurrent_backend"] == "edge_list"
+    np.testing.assert_array_equal(np.asarray(auto_sig.V_m), np.asarray(edge_sig.V_m))
 
 
 def _n_rule_edges(model):

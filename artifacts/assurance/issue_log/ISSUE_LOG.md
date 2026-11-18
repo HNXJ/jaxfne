@@ -305,3 +305,7 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   model-level `"dense"` now runs. Open, minor: an explicit `RuntimeConfig("auto")` cannot be told from the
   default, so a model-level `"dense"` still refuses it under an edge-only controller; `update_metadata`
   writes `recurrent_backend` unchecked (only `Configuration.runtime` validates).
+- Broad gate on 5e1818f9 (rc 1, 5 failed): `_has_finite_delays` read `params["edge_list"] = None` (adex
+  tune_handles), fixed; four tests asserted that the old default refuses the receptor kernel, delays and
+  rule edges (simulate, batch); they now request `dense` explicitly, and a test pins `auto` running rule edges
+  on edge_list.
