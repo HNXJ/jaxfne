@@ -12,6 +12,7 @@ import jax
 import jax.numpy as jnp
 
 from .base import BaseSDRState
+from .core import _leafwise_normal
 
 
 @dataclass(frozen=True)
@@ -302,12 +303,8 @@ def gsdr_mcdp_transform(
         inner_updates, inner_state = inner_optimizer.update(grads, inner_state, params)
 
         key_delta, key_walk = jax.random.split(key)
-        noise = jax.tree_util.tree_map(
-            lambda u: jax.random.normal(key_delta, u.shape, dtype=u.dtype)
-            if hasattr(u, "shape")
-            else u,
-            inner_updates,
-        )
+        # One split key per leaf, as in the source (HNXJ/GSDR gsdr/optimizers.py:194-196; P-060).
+        noise = _leafwise_normal(key_delta, inner_updates)
         if params is not None:
             scaled = jax.tree_util.tree_map(
                 lambda n, p: n * p if hasattr(n, "dtype") else n, noise, params
