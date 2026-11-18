@@ -116,6 +116,12 @@ M1 is accepted when all tests in `tests/test_crazy_sailor_env.py` pass, the muta
 | JIT vs eager | jitted step matches eager within float32 tolerance |
 | config validation | bad shape, Δt ≤ 0, β < 0, σ < 0 raise |
 | no controller leakage | step signature takes no controller/observation argument; Info keys are environment-owned only |
+| non-identity B, D<N | force = B a and v integrates B a for N=3, D=2, a non-identity B, nonzero action |
+| noise differs between steps | successive velocity increments differ (key advances each step) |
+| Info.force realized | Info.force = B a + realized Δv^w/Δt |
+| damped position reference | damped p and v match an independent float64 numpy recurrence |
+
+Known limitations (documented, not tested in M1): the module is float32-only (`DTYPE` fixed at import; the test conftest resets x64 per test, so x64 is unsupported here). Typed PRNG keys replay identically but have no dedicated test. Long-run float32 drift: observed 0.45 absolute position error over 200000 steps (dt 0.01, |p| about 200, 0.2% relative). The cause is inferred as systematic round-off of nearly constant increments; not verified. Episodes in M1 are far shorter; verify before any long-horizon claim.
 
 Each positive test asserts its precondition (for example the fixture must produce a nonzero disturbance).
 

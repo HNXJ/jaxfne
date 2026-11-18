@@ -216,7 +216,7 @@ def test_noise_differs_between_steps():
 def test_info_force_includes_realized_disturbance():
     cfg = _cfg(n=2, dt=0.05, beta=0.0, dist=cs.WhiteNoise(0.6))
     B = np.asarray(cfg.actuator)
-    a = jnp.array([0.2, -0.3], DTYPE_F32)
+    a = jnp.array([0.2, -0.3], jnp.float32)
     s = cs.reset(cfg, jax.random.PRNGKey(8))
     s2, info = cs.step(cfg, s, a)
     dv_w = np.asarray(s2.v) - np.asarray(s.v) - cfg.dt * (B @ np.asarray(a))
@@ -245,5 +245,3 @@ def test_damped_position_matches_discrete_reference():
     assert np.allclose(np.asarray(s2.p), p, rtol=1e-4, atol=1e-5), "damped p must match the recurrence"
     assert np.allclose(np.asarray(s2.v), v, rtol=1e-4, atol=1e-5), "damped v must match the recurrence"
 
-
-DTYPE_F32 = jnp.float32
