@@ -147,13 +147,14 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   level with `noise_scale=0.0` the identity holds bit-exactly (`tests/test_hdp_reduction_identity.py`).
 - Cause (2026-11-18): the reproduction compared two backends. The rule-free run takes the default
   `recurrent_backend="dense"` (`_runtime_config.py:82`) to `simulate_eig_izhikevich` (`_model_simulate.py:1084`);
-  an engaged rule always takes the edge-list registered kernel (`_model_simulate.py:885`, `:689`), with another
+  an engaged rule always takes the edge-list registered kernel (`_model_simulate.py:641-643`, `:685-703`), with another
   noise stream (`_chain_noise_schedule`, `:703`). The earlier text excluded membrane noise from kernels the public
   route does not take. On the same backend the runs are bit-identical: rule-free with
   `recurrent_backend="edge_list"` gives 214 spikes, equal to the zero rule in spikes and `V_m` (max |dV| 0.0); at
   `noise_scale=0` 208 = 208. Evidence, with sha256 in `SHA256SUMS`: `F:/warehouse/jaxfne/P-057_2026-11-18/`
   (`stepA_compare.json`, `stepC_compare.json`, scripts).
-- Closed 2026-11-18 (Hamm): no rule defect. `tests/test_hdp_zero_rule_public_identity.py` checks the
+- Closed 2026-11-18 (Hamm): the zero-gain identity shows no rule defect (one model, one seed, the two rules
+  below). `tests/test_hdp_zero_rule_public_identity.py` checks the
   edge-list identity through `simulate()` for `synthetic_presyn_gain` and `ephaptic_field` at `alpha=0`; with a
   dense rule-free reference it fails. The backend difference is P-062.
 
@@ -239,12 +240,15 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Date: 2026-11-18. Type: SCIENCE. Area: public `simulate()` on the Izhikevich route, `recurrent_backend`.
   Severity: medium for any comparison of a rule run with a rule-free run, or of the two backends.
 - Observation (found closing P-057): (1) an engaged HDP rule runs the edge-list registered kernel whatever
-  `recurrent_backend` says (`_model_simulate.py:885`); `recurrent_backend="dense"` with a rule gives the same
-  spikes and `V_m` as `"edge_list"` (whether a warning is raised was not checked). (2) The dense and edge-list rule-free runs differ on the
-  P-057 model: 211 vs 214 spikes with default noise (`V_m` differs from step 0, different noise streams), and
-  206 vs 208 at `noise_scale=0` (`V_m` differs from step 1). Evidence: `F:/warehouse/jaxfne/P-057_2026-11-18/`
-  (`stepA_compare.json`, `stepC_compare.json`, `stepC2_zero_noise_onset.json`).
-- Unknown: whether the noise-free backend difference is intended (update order, synaptic integration) or a
-  defect; no document found that states the two backends are equivalent.
+  `recurrent_backend` says (the `use_hdp` branch, `_model_simulate.py:641-703`, never reads it);
+  `recurrent_backend="dense"` with a rule gives the same spikes and `V_m` as `"edge_list"`, with no warning or
+  refusal (independent review 2026-11-18). (2) The dense and edge-list rule-free runs differ on the P-057 model:
+  211 vs 214 spikes with default noise (`V_m` differs from step 0, different noise streams), and 206 vs 208 at
+  `noise_scale=0`, where `V_m` first differs at step 1 by 3.8e-6 mV and the gap then grows to about 100 mV.
+  Evidence: `F:/warehouse/jaxfne/P-057_2026-11-18/` (`stepA_compare.json`, `stepC_compare.json`,
+  `stepC2_zero_noise_onset.json`).
+- Unknown: the origin of the noise-free difference. Its size at onset points to floating-point operation order
+  amplified by the dynamics rather than a different model (inferred); not attributed. No document found that
+  states the two backends are equivalent.
 - Possible change: warn or refuse when a rule overrides `recurrent_backend="dense"`; attribute the noise-free
   difference to its first differing term. Closes when both are decided and documented.
