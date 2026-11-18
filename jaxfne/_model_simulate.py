@@ -59,16 +59,34 @@ from .inputs import check_current_route_poisson_drive, refuse_poisson_drive_list
 from ._model import _SOURCE_PROXY_METADATA, stimulus_schedule
 
 
-def _hdp_runs_edge_kernel(model, runtime_cfg: RuntimeConfig) -> bool:
-    """True when ``_simulate_arrays`` takes its HDP branch, which runs the edge-list kernel
-    whatever ``recurrent_backend`` says (same gate as that branch; ISSUE_LOG P-062)."""
-    if not getattr(runtime_cfg, "enable_hdp", False):
-        return False
-    from .hdp_rule import hdp_is_engaged
+def _edge_only_controller(model, runtime_cfg: RuntimeConfig, *, batch: bool = False) -> Optional[str]:
+    """Name the controller that runs the edge-list kernel whatever ``recurrent_backend``
+    says, or None (ISSUE_LOG P-062). Same gates as the dispatch: homeostasis always; HDP in
+    ``simulate`` when a rule is engaged (``_simulate_arrays``), in ``simulate_batch`` always."""
+    if getattr(runtime_cfg, "enable_homeostasis", False):
+        return "homeostasis"
+    if getattr(runtime_cfg, "enable_hdp", False):
+        if batch:
+            return "HDP"
+        from .hdp_rule import hdp_is_engaged
 
-    return bool(
-        hdp_is_engaged(dict(runtime_cfg.hdp_params or {}), model.params, enable_hdp=True)
-    )
+        if hdp_is_engaged(dict(runtime_cfg.hdp_params or {}), model.params, enable_hdp=True):
+            return "an engaged HDP rule"
+    return None
+
+
+def _executed_recurrent_backend(runtime_cfg: RuntimeConfig, controller: Optional[str]) -> str:
+    """The backend that runs: an edge-only controller or ``"edge_list"`` gives edge_list; any
+    other value runs the dense kernel (the dispatch tests ``== "edge_list"``)."""
+    if controller is not None or runtime_cfg.recurrent_backend == "edge_list":
+        return "edge_list"
+    return "dense"
+
+
+def _refuse_dense_under_edge_only_controller(model, controller: Optional[str]) -> None:
+    """An explicit model-level dense backend is refused, not replaced, under an edge-only controller."""
+    if controller is not None:
+        _refuse_contradicted_dense_backend(model, f"{controller} runs only on the edge-list kernel")
 
 
 def _refuse_contradicted_dense_backend(model, reason: str) -> None:
@@ -1724,6 +1742,9 @@ def simulate(
         shuffled = jax.vmap(lambda arr, k: jax.random.permutation(k, arr))(drive_array.T, keys)
         drive_array = shuffled.T
 
+    # P-062: metadata records the backend that ran; the runtime report keeps the request.
+    edge_controller = _edge_only_controller(self, runtime_cfg)
+    executed_backend = _executed_recurrent_backend(runtime_cfg, edge_controller)
     if continuation is not None or return_state:
         voltages, spikes, sources, continuation_out = _simulate_continuation_arrays(
             self,
@@ -1734,18 +1755,11 @@ def simulate(
             forced_spikes=forced_spikes,
         )
     else:
-        hdp_runs_edge_kernel = _hdp_runs_edge_kernel(self, runtime_cfg)
-        if hdp_runs_edge_kernel:
-            _refuse_contradicted_dense_backend(
-                self, "an engaged HDP rule runs only on the edge-list kernel"
-            )
+        _refuse_dense_under_edge_only_controller(self, edge_controller)
         voltages, spikes, sources = self._simulate_arrays(
             sim, key, runtime_cfg, drive_schedule=drive_array,
             forced_spikes=forced_spikes,
         )
-        if hdp_runs_edge_kernel:
-            # P-062: record the backend that ran, not the requested default.
-            runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
         continuation_out = None
     time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_compute_dtype) * jnp.asarray(
         sim.dt_ms, dtype=runtime_cfg.jnp_compute_dtype
@@ -1791,7 +1805,7 @@ def simulate(
         "record_fields": bool(sim.record_fields),
         "plasticity_gain": sim.plasticity,
         "runtime": runtime_cfg.runtime_report(effective_jit=segment_jit),
-        "recurrent_backend": runtime_cfg.recurrent_backend,
+        "recurrent_backend": executed_backend,
         "synaptic_kernel": runtime_cfg.synaptic_kernel,
         "source_model": _SOURCE_PROXY_METADATA,
         "neuron_metadata": self.static.get("neuron_metadata"),
@@ -3427,6 +3441,10 @@ def simulate_batch(
             "exponential synaptic kernel."
         )
     _refuse_dense_receptor_kernel(runtime_cfg)
+    # P-062: metadata records the backend that runs; the runtime report keeps the request.
+    batch_edge_controller = _edge_only_controller(self, runtime_cfg, batch=True)
+    _refuse_dense_under_edge_only_controller(self, batch_edge_controller)
+    batch_executed_backend = _executed_recurrent_backend(runtime_cfg, batch_edge_controller)
     # P-052: the dense default-order kernel in ``one`` realizes the surrogate;
     # the HDP, homeostasis and edge_list routes refuse it by name.
     if hdp_on:
@@ -3642,7 +3660,7 @@ def simulate_batch(
                 "runtime": runtime_cfg.runtime_report(effective_jit=batch_jit),
                 "field_claim_level": "proxy_readout",
                 "physical_amplitude_calibrated": False,
-                "recurrent_backend": runtime_cfg.recurrent_backend,
+                "recurrent_backend": batch_executed_backend,
                 "synaptic_kernel": runtime_cfg.synaptic_kernel,
                 "enable_homeostasis": homeo_on,
                 "homeostasis_params": _hp if homeo_on else None,

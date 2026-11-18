@@ -256,11 +256,17 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   earlier "floating-point order" reading was wrong. Evidence: `F:/warehouse/jaxfne/P-062_2026-11-18/`
   (`e3_float32.json`, `e3_float64.json`, `e4_float32.json`, scripts).
 - (1) also mislabels provenance (observed): an HDP run recorded `recurrent_backend: "dense"` in its metadata,
-  runtime report and manifest while the edge-list kernel ran (`probe_meta.json` in the same folder).
+  runtime report and manifest while the edge-list kernel ran (`probe_meta.json` in the same folder). Same defect
+  (independent review 2026-11-18, observed): `simulate_batch` with HDP (always the edge kernel there), and
+  homeostasis in both entry points. Not affected: the continuation path (refuses anything but `edge_list`) and
+  placeholder-W models in `simulate()` (`tests/test_connectivity_scaling.py:156` asserts `edge_list`).
 - Repair, Hamm 2026-11-18, two steps toward the invariant "an explicit backend is honoured or refused, never
-  replaced". Step 1 (provenance, no API change): an HDP run records `edge_list`, and an explicit model-level
-  `recurrent_backend="dense"` with an engaged rule is refused (`_hdp_runs_edge_kernel` in `_model_simulate.py`;
-  `tests/test_hdp_backend_provenance.py`, red before the fix). Step 2 (open): an `auto` default so that an
-  explicit `RuntimeConfig(recurrent_backend="dense")` with a rule can be refused, plus validation of backend
-  values (none today: any string but `"edge_list"` runs dense), after a compatibility audit of the default.
-  Closes when step 2 is done.
+  replaced". Step 1 (provenance, no API change): in `simulate()` and `simulate_batch()`, metadata
+  `recurrent_backend` (and the manifest's `used_recurrent_backend`) records the backend that ran, the runtime
+  report keeps the requested value, and an explicit model-level `recurrent_backend="dense"` under homeostasis or
+  an engaged rule is refused (`_edge_only_controller`, `_executed_recurrent_backend` in `_model_simulate.py`;
+  `tests/test_hdp_backend_provenance.py`, 6 of 7 red on 6b7acd62). Spikes, `V_m` and HDP state arrays
+  (`H`, `w`, `b`, aux, final and trace) bit-identical to 6b7acd62 on three rule cases. Step 2 (open, separate
+  change): `auto` selects a backend compatible with the engaged controllers; `dense` and `edge_list` run as named
+  or are refused; unknown values are rejected at the configuration boundary (none are today: any string but
+  `"edge_list"` runs dense). Default HDP numerics and rule-free behaviour stay. Closes when step 2 is done.
