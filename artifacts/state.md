@@ -17,6 +17,10 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - PCL R5-approximate scored 2026-11-12 under signed R4b: all 3168 tasks completed on Windows CPU (`pcl/prereg/P3_fig3_r5_approx_result.md`, `scores/fig3_r5_approx.json`); oracle arm compared (1246 equal, 1922 differing; `approx_diff.json`). Verdict: FAIL. P-055 attributed (`ISSUE_LOG.md`).
 - 2026-11-12: 10B B4 `build_config` repaired; 10D D4 S16 Destexhe panel added; 10F F4 GSDR log-scale parameters named; 10G G3 reproducibility audit §7 updated (checklist 40/100).
 - B1 drive unification and baseline parameter match (T-79, T-80) landed (`b1_harness.py`, `b1_brian2.py`, `b1_nest.py`, `b1_jaxley.py`; `--smoke` verified).
+- T-93 closed 2026-11-17 on dev c387064d (Hamm: budget stays 96.4 MB; bundles gzipped): the pinned 413,532-byte
+  armcheck record is in the tree, `check_tree_size.py --check` exit 0 (88,411,937 of 96,400,000 bytes) and
+  `check_record_integrity.py --check` exit 0 (251 of 251 pinned). `_temp_r5_size_budget`'s 96.8 MB budget raise
+  (357bb357) and state stamps were not taken; its P-053/P-056 audit doc was (Hamm 2026-11-17).
 - PCL attribution closed 2026-11-12 (`pcl/prereg/P3_fig3_r5_attribution_addendum.md`): complex-cell collapse attributed to no-local inhibition, tree drift excluded (`fig3_v4tree_nolocal.json`, T-85).
 
 ## Broken or in flight

@@ -23,14 +23,6 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 - B1 drive unification (T-79) and baseline parameter match (T-80) done (`b1_harness.py`, `b1_brian2.py`, `b1_nest.py`, `b1_jaxley.py`; `--smoke` verified).
 - `artifacts/state.md` corrected (`artifacts_check.py` ACCEPT).
 
-## Tier 1: blocked on a ruling
-
-0. T-93 [A] Size budget (O-R5SIZE ruled 2026-11-17, Hamm: "Gzip hdp_balance bundles"; budget stays 96.4 MB):
-   the 20 bundle result JSONs are stored as `.json.gz` (-8.32 MB), on dev since 32a81d86 (tree 88.4 MB), so the
-   pinned 3168-row armcheck record (413 KB, `origin/_temp_r5_size_budget`) fits. Next: merge
-   `_temp_r5_size_budget` to dev. Closes when: `python scripts/check_tree_size.py --check` and
-   `python scripts/check_record_integrity.py --check` both exit 0 on one dev SHA holding the armcheck record.
-
 ## Tier 2: 1 to 2 hours each
 
 2. T-D3 [A then H] Mejias 2016 G6 — re-tiered 2026-11-12 from "1 to 2 hours" to needs-a-signed-prereg. G6 is not a
