@@ -247,8 +247,20 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   `noise_scale=0`, where `V_m` first differs at step 1 by 3.8e-6 mV and the gap then grows to about 100 mV.
   Evidence: `F:/warehouse/jaxfne/P-057_2026-11-18/` (`stepA_compare.json`, `stepC_compare.json`,
   `stepC2_zero_noise_onset.json`).
-- Unknown: the origin of the noise-free difference. Its size at onset points to floating-point operation order
-  amplified by the dynamics rather than a different model (inferred); not attributed. No document found that
-  states the two backends are equivalent.
-- Possible change: warn or refuse when a rule overrides `recurrent_backend="dense"`; attribute the noise-free
-  difference to its first differing term. Closes when both are decided and documented.
+- (2) attributed 2026-11-18, not a defect: the backends are different, documented synaptic models. Dense couples
+  `weights @ prev_spikes` with no synaptic time constant (`emitters.py:748`); edge-list filters each edge through
+  an exponential receptor state (`emitters.py:1609`, `:1712`); both docstrings say "NOT trajectory-equivalent"
+  (`emitters.py:616-621`, `:1540-1544`). The step-1 gap (2^-18 mV, 2 cells) is float32 summation order of the
+  synaptic sum (`W @ prev` vs `segment_sum`); float64 removes it but the run stays 206 vs 208, and with exact sums
+  dense equals the edge-list `instantaneous` mechanism over 400 steps. The run gap is the receptor filter. The
+  earlier "floating-point order" reading was wrong. Evidence: `F:/warehouse/jaxfne/P-062_2026-11-18/`
+  (`e3_float32.json`, `e3_float64.json`, `e4_float32.json`, scripts).
+- (1) also mislabels provenance (observed): an HDP run recorded `recurrent_backend: "dense"` in its metadata,
+  runtime report and manifest while the edge-list kernel ran (`probe_meta.json` in the same folder).
+- Repair, Hamm 2026-11-18, two steps toward the invariant "an explicit backend is honoured or refused, never
+  replaced". Step 1 (provenance, no API change): an HDP run records `edge_list`, and an explicit model-level
+  `recurrent_backend="dense"` with an engaged rule is refused (`_hdp_runs_edge_kernel` in `_model_simulate.py`;
+  `tests/test_hdp_backend_provenance.py`, red before the fix). Step 2 (open): an `auto` default so that an
+  explicit `RuntimeConfig(recurrent_backend="dense")` with a rule can be refused, plus validation of backend
+  values (none today: any string but `"edge_list"` runs dense), after a compatibility audit of the default.
+  Closes when step 2 is done.

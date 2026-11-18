@@ -1,0 +1,1 @@
+- Fixed `simulate()` recording `recurrent_backend: "dense"` in the run metadata, runtime report and manifest when an engaged HDP rule ran the edge-list kernel; such a run now records `edge_list`. An explicit model-level `recurrent_backend="dense"` with an engaged rule is now refused instead of being replaced. Spikes and voltages are unchanged (ISSUE_LOG P-062).

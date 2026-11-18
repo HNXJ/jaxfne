@@ -59,6 +59,18 @@ from .inputs import check_current_route_poisson_drive, refuse_poisson_drive_list
 from ._model import _SOURCE_PROXY_METADATA, stimulus_schedule
 
 
+def _hdp_runs_edge_kernel(model, runtime_cfg: RuntimeConfig) -> bool:
+    """True when ``_simulate_arrays`` takes its HDP branch, which runs the edge-list kernel
+    whatever ``recurrent_backend`` says (same gate as that branch; ISSUE_LOG P-062)."""
+    if not getattr(runtime_cfg, "enable_hdp", False):
+        return False
+    from .hdp_rule import hdp_is_engaged
+
+    return bool(
+        hdp_is_engaged(dict(runtime_cfg.hdp_params or {}), model.params, enable_hdp=True)
+    )
+
+
 def _refuse_contradicted_dense_backend(model, reason: str) -> None:
     """Raise if the caller explicitly asked for a backend this model cannot run.
 
@@ -1722,10 +1734,18 @@ def simulate(
             forced_spikes=forced_spikes,
         )
     else:
+        hdp_runs_edge_kernel = _hdp_runs_edge_kernel(self, runtime_cfg)
+        if hdp_runs_edge_kernel:
+            _refuse_contradicted_dense_backend(
+                self, "an engaged HDP rule runs only on the edge-list kernel"
+            )
         voltages, spikes, sources = self._simulate_arrays(
             sim, key, runtime_cfg, drive_schedule=drive_array,
             forced_spikes=forced_spikes,
         )
+        if hdp_runs_edge_kernel:
+            # P-062: record the backend that ran, not the requested default.
+            runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
         continuation_out = None
     time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_compute_dtype) * jnp.asarray(
         sim.dt_ms, dtype=runtime_cfg.jnp_compute_dtype
