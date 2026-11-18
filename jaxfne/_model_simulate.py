@@ -75,10 +75,19 @@ def _edge_only_controller(model, runtime_cfg: RuntimeConfig, *, batch: bool = Fa
     return None
 
 
-def _executed_recurrent_backend(runtime_cfg: RuntimeConfig, controller: Optional[str]) -> str:
-    """The backend that runs: an edge-only controller or ``"edge_list"`` gives edge_list; any
-    other value runs the dense kernel (the dispatch tests ``== "edge_list"``)."""
-    if controller is not None or runtime_cfg.recurrent_backend == "edge_list":
+def _executed_recurrent_backend(model, runtime_cfg: RuntimeConfig, controller: Optional[str]) -> str:
+    """The backend that runs: an edge-only controller, a placeholder dense W (edges only in
+    ``params["edge_list"]``, as ``_simulate_arrays`` and ``simulate_batch`` test it) or
+    ``"edge_list"`` gives edge_list; any other value runs the dense kernel (the dispatch
+    tests ``== "edge_list"``)."""
+    emitter = model.params.get("emitter")
+    placeholder_w = (
+        emitter is not None
+        and hasattr(emitter, "W")
+        and emitter.W.shape[0] != emitter.v0.shape[0]
+        and "edge_list" in model.params
+    )
+    if controller is not None or placeholder_w or runtime_cfg.recurrent_backend == "edge_list":
         return "edge_list"
     return "dense"
 
@@ -1744,7 +1753,7 @@ def simulate(
 
     # P-062: metadata records the backend that ran; the runtime report keeps the request.
     edge_controller = _edge_only_controller(self, runtime_cfg)
-    executed_backend = _executed_recurrent_backend(runtime_cfg, edge_controller)
+    executed_backend = _executed_recurrent_backend(self, runtime_cfg, edge_controller)
     if continuation is not None or return_state:
         voltages, spikes, sources, continuation_out = _simulate_continuation_arrays(
             self,
@@ -3444,7 +3453,7 @@ def simulate_batch(
     # P-062: metadata records the backend that runs; the runtime report keeps the request.
     batch_edge_controller = _edge_only_controller(self, runtime_cfg, batch=True)
     _refuse_dense_under_edge_only_controller(self, batch_edge_controller)
-    batch_executed_backend = _executed_recurrent_backend(runtime_cfg, batch_edge_controller)
+    batch_executed_backend = _executed_recurrent_backend(self, runtime_cfg, batch_edge_controller)
     # P-052: the dense default-order kernel in ``one`` realizes the surrogate;
     # the HDP, homeostasis and edge_list routes refuse it by name.
     if hdp_on:
