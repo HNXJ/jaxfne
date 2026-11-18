@@ -141,6 +141,42 @@ Pre-existing failures at base (not M1): the 13 listed above (Jaxley multicompart
 
 Independent review: reviewer verdict ACCEPT on `b0c3f670` (four corrected findings confirmed by mutants). Minor findings from that review are fixed in `84fb53fd`.
 
+### Checkpoint status (`cbb8a29e`)
+
+- Checkpoint branch `_temp_crazy_sailor_m0m1_b` pushed to origin at `cbb8a29e695d76ca8c6a7f17ce5f25e20520fc87` (verified by `git ls-remote`).
+- Docs gate on `cbb8a29e` (clean clone, suite lock): `run_test_gate.py docs` → 293 passed, rc 0.
+- Targeted on `cbb8a29e`: 28 passed, rc 0. Tree size: 2800 files, 0 violations.
+- Status: M0–M1 implemented and targeted-tested. BLOCKED for `dev` integration by the repository zero-failure gate. No gate exception granted.
+
+### Baseline failure receipts (broad gate, commands and comparison)
+
+Commands (broad, clean clone at `84fb53fd`): `python3 ~/.claude/bin/suite_lock.py --label jaxfne-crazy-sailor -- python3 scripts/run_test_gate.py broad`, sandbox off. Result: 13 failed, 8291 passed, 69 skipped, 2 xfailed, 4 xpassed, rc 1.
+
+Failing at candidate and also failing at base `06f9bf26` (baseline):
+1. `test_gaussian_drive_realized_on_receptor_exponential_route`
+2. `test_continuation_matches_continuous_and_solo`
+3. `test_three_area_no_cross_middle_member_identity`
+4. `test_ensemble_slice_matches_solo_eager`
+5. `test_ensemble_slice_matches_solo_jit`
+6. `test_lif_zero_coupling_equals_no_rule`
+7. `test_lif_field_is_generated_by_activity`
+8. `test_multicomp_oracle_current_step_matches_jaxley`
+9. `test_equivalence_gate_reproducible_7_of_7`
+10. `test_score_seed_known_answer_matches_p5_seed1`
+11. `test_score_one_seed_known_answer_matches_p5_seed2`
+12. `test_recomputed_pass_is_error_within_tolerance`
+13. `test_recompute_matches_within_rtol_1e_9`
+
+Base comparison commands (clean clone at `06f9bf26`, cwd in clone): `python3 -m pytest -q -p no:cacheprovider` over the defining files for items 1–11 (`tests/test_izh2003_core_path.py tests/test_neuronal_tensor.py tests/test_composition_aspects_054.py tests/test_composition_identity_054.py tests/test_hh_multicompartment.py tests/test_vis_smoke_all.py tests/test_hdp_rules_ephaptic.py tests/test_construct_weight_range_gaussian_drive.py tests/test_equivalence_gate_v20260815.py tests/test_generate_errors_index.py`): 14 failed, 200 passed; and for items 12–13 (`tests/test_score_port_parity_checks.py tests/test_score_numerics_checks.py tests/test_score_granger_checks.py tests/test_score_field_invariant_checks.py`): 2 failed, 34 passed. All 13 fail at base.
+
+Base-only failures that pass at the candidate (recorded, not investigated): `test_example_08_neuronal_tensor_first_runs`, `test_vis_smoke[exporters.export_figures]`, `test_equivalence_gate_tracked_report_matches_fresh_run`. These passed on the candidate; their base failure is unexplained and nondeterminism is not ruled out.
+
+Net: no failure at the candidate that is absent at base. The earlier two regressions and the folder-limit regression are repaired (see `b0c3f670`).
+
+Repository gate policy is unchanged. These 13 failures remain under their own workstream.
+
+M2 handoff: `artifacts/programme/design/plans/crazy_sailor/m2_handoff.md`.
+
 Each positive test asserts its precondition (for example the fixture must produce a nonzero disturbance).
 
 ## 10. Gate receipts
