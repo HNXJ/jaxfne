@@ -275,3 +275,14 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   change): `auto` selects a backend compatible with the engaged controllers; `dense` and `edge_list` run as named
   or are refused; unknown values are rejected at the configuration boundary (none are today: any string but
   `"edge_list"` runs dense). Default HDP numerics and rule-free behaviour stay. Closes when step 2 is done.
+- Step 1 on dev 2026-11-18 at 06f9bf26 (broad gate rc 0, 8308 passed; CI (Fast) 44392030376 green).
+- Step 2 audit (2026-11-18, read-only at 06f9bf26): about 20 dispatch sites compare only `== "edge_list"`, so
+  `auto` is resolved once per entry point before dispatch; the requested value reaches `metadata["runtime"]`,
+  the manifest and `receipt_id` (`_model_readout.py:62-71`); the compile-cache key (`_model_simulate.py:3595`)
+  takes the resolved value; `jtfne.runtime()` (`_construct_presets.py:48`) and the column builder
+  (`builders.py:218`) write an explicit `"dense"` and move to `auto`; no `RuntimeConfig` round trip exists.
+  Rulings, Hamm 2026-11-18: default-run receipt IDs change (requested `"auto"` is hashed; changelog note);
+  `auto` on lif, rate and adex runs edge_list instead of refusing. `auto` resolves to edge_list under an
+  edge-only controller, a placeholder W, the receptor kernel, rule edges, finite delays and `return_state` or
+  continuation, otherwise dense; each of those that refuses the default today runs instead (no run that
+  succeeds today changes). Failing tests at 32f48569: 17 red, 8 green on 06f9bf26.
