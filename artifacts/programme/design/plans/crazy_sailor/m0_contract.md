@@ -123,6 +123,24 @@ M1 is accepted when all tests in `tests/test_crazy_sailor_env.py` pass, the muta
 
 Known limitations (documented, not tested in M1): the module is float32-only (`DTYPE` fixed at import; the test conftest resets x64 per test, so x64 is unsupported here). Typed PRNG keys replay identically but have no dedicated test. Long-run float32 drift: observed 0.45 absolute position error over 200000 steps (dt 0.01, |p| about 200, 0.2% relative). The cause is inferred as systematic round-off of nearly constant increments; not verified. Episodes in M1 are far shorter; verify before any long-horizon claim.
 
+### Gate receipts (M1)
+
+Gated code SHA: `84fb53fd6c94df18598e2b967f4a88d7e48488e7`.
+
+| Check | Command | Result |
+|---|---|---|
+| Targeted | `pytest tests/test_crazy_sailor_env.py tests/test_generate_errors_index.py tests/test_artifacts_tree_degree.py -q` | 28 passed, rc 0 |
+| Tree size | `python3 scripts/check_tree_size.py` | files 2800 of 2800, 0 violations, rc 0 |
+| Broad gate | `suite_lock.py -- python3 scripts/run_test_gate.py broad` (clean clone, sandbox off) | 13 failed, 8291 passed, 69 skipped, rc 1 |
+| Base comparison | same tests at `06f9bf26` | all 13 fail at base; none caused by M1 |
+| x64 | not run as a valid check; module is float32-only, conftest resets x64 per test | documented limitation |
+| Typed PRNG | ad hoc script: runs finite, replay bit-identical | observed; no dedicated test |
+| Long-run drift | ad hoc script, 200000 steps: abs p error 0.449, rel 0.22% | observed; cause inferred, not verified |
+
+Pre-existing failures at base (not M1): the 13 listed above (Jaxley multicompartment parity, ensemble/continuation, LIF coupling, equivalence gate, score known answers, recomputed-pass tolerance). They are unchanged by this branch and remain under the repository's existing gate policy.
+
+Independent review: reviewer verdict ACCEPT on `b0c3f670` (four corrected findings confirmed by mutants). Minor findings from that review are fixed in `84fb53fd`.
+
 Each positive test asserts its precondition (for example the fixture must produce a nonzero disturbance).
 
 ## 10. Gate receipts
