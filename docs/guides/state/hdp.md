@@ -344,7 +344,7 @@ default. \(M\) is sparse: `ephaptic_kernel(positions, sigma=..., cutoff=...)` gi
 \(M_{ij}=e^{-d_{ij}^2/2\sigma^2}\) for \(0<d_{ij}\le\) cutoff (coincident positions give no
 pair), rows normalized to 1 by default (a row whose weights all underflow stays 0;
 `normalize="none"` keeps the raw Gaussian). \(\alpha=0\) leaves `drive_bias` at 0 and
-reproduces the rule-free run at kernel level; through `simulate()` it does not yet
+reproduces the rule-free run on a noise-free LIF kernel run; through `simulate()` it does not yet
 (ISSUE_LOG P-057, open). An imposed (exogenous) field enters as a drive schedule.
 
 ```python

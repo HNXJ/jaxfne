@@ -13,8 +13,8 @@ the input enters dv/dt, so ``alpha`` is in 1/ms; on the PCL LIF route the input 
 voltage increment added once per step, so ``alpha`` is per step and the coupling
 it sets scales with ``dt`` (rate equivalent ``alpha/dt`` in 1/ms). ``v_rest`` has no default: it is the
 route's resting potential (0 mV for the PCL LIF, near -65 mV for Izhikevich).
-``alpha = 0`` gives ``Phi = 0`` and leaves ``drive_bias`` at 0; at kernel level the
-run then equals the rule-free run, but through ``simulate()`` it does not yet
+``alpha = 0`` gives ``Phi = 0`` and leaves ``drive_bias`` at 0. A noise-free LIF kernel
+run then equals the rule-free run (tested); through ``simulate()`` it does not yet
 (ISSUE_LOG P-057, open).
 
 Timing: the field set during step t is applied at step t + 1. The voltages it reads
@@ -50,7 +50,7 @@ def ephaptic_kernel(positions, *, sigma, cutoff, normalize="row"):
     """Sparse Gaussian kernel ``M_ij = exp(-d_ij^2 / (2 sigma^2))`` for ``0 < d_ij <= cutoff``.
 
     ``positions`` is ``(N, D)``; ``sigma`` and ``cutoff`` are in the unit of
-    ``positions``. Self pairs and coincident positions (``d_ij = 0``) are excluded.
+    ``positions``. Self pairs and coincident positions (``d_ij^2 = 0`` in float64) are excluded.
     ``normalize="row"`` scales each row to sum 1; a row without neighbours, or whose
     weights all underflow to 0, stays 0. ``"none"`` keeps the raw Gaussian.
     Returns ``{"src", "dst", "weight"}`` as numpy arrays; entry k adds
