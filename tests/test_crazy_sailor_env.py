@@ -1,4 +1,4 @@
-"""Crazy Sailor M1 environment tests (contract: artifacts/programme/design/plans/crazy_sailor_m0_contract.md)."""
+"""Crazy Sailor M1 environment tests (contract: artifacts/programme/design/plans/crazy_sailor/m0_contract.md)."""
 
 from __future__ import annotations
 

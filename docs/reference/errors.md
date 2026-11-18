@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2541 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2551 raise sites in 122 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -1005,6 +1005,21 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `allow_self_connections for rule {...} must be a bool; got {...}` |
 | `ValueError` | `rule {...} must exist exactly once to opt into allow_self_connections; found {...}` |
 | `ValueError` | `rule {...} must exist exactly once to declare local_inhibition; found {...}` |
+
+**`jaxfne/crazy_sailor.py`**
+
+| Class | Message |
+|---|---|
+| `ValueError` | `WhiteNoise.sigma must be >= 0, got {...}` |
+| `ValueError` | `n_dim must be >= 1, got {...}` |
+| `ValueError` | `n_act must be >= 1, got {...}` |
+| `ValueError` | `dt must be > 0, got {...}` |
+| `ValueError` | `damping must be >= 0, got {...}` |
+| `ValueError` | `actuator must have shape {...}, got {...}` |
+| `ValueError` | `target must have shape {...}, got {...}` |
+| `ValueError` | `p0 and v0 must have shape {...}` |
+| `ValueError` | `action must have shape {...}, got {...}` |
+| `ValueError` | `actions must have shape (T, {...}), got {...}` |
 
 **`jaxfne/emitter_registry.py`**
 

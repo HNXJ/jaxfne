@@ -1,6 +1,6 @@
 """Crazy Sailor M1: N-dimensional point-object active-fixation environment.
 
-Pure JAX. Specification: ``artifacts/programme/design/plans/crazy_sailor_m0_contract.md``.
+Pure JAX. Specification: ``artifacts/programme/design/plans/crazy_sailor/m0_contract.md``.
 Internal until M5: not exported from the package root.
 
 The environment owns dynamics, disturbances and the fixation error. It knows nothing
