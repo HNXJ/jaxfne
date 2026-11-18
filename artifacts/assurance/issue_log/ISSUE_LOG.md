@@ -203,5 +203,17 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   clone, the full caminos lane passed (288/288) on the second gate run of the same SHA, and no commit since
   24a95963 touches `artifacts/etudes/papers/caminos/`.
 - Cause (inferred, not proven): another process (scanner or indexer) held one of the files during `os.replace`.
+- Diagnosis 2026-11-17 (open; the rerun pass shows intermittency, not a fix):
+  - Positive control: with a second process holding `manifest.json` open, `os.replace(tmp, manifest.json)` raised
+    the same `PermissionError: [WinError 5] Access is denied` on the same file pair. A held handle suffices.
+  - Stress, the test's pattern (write then replace, twice per dir), 4 processes: 0 errors in 4,000 replaces under
+    `D:/pytest_temp`, and 0 in 12,000 (3 runs) under `D:/tmp/pytest-of-nejath`, the failing run's temp root. Not
+    reproduced at idle; the failing run was under full-gate xdist load.
+  - Windows Defender real-time protection is on; its exclusion list is unreadable without admin. The holding
+    process is unidentified.
+  - Evidence, with sha256 in `SHA256SUMS`: `F:/warehouse/jaxfne/P-061_2026-11-17/` (failing gate log, passing gate
+    log, `stress_replace.py`, `run_default_root.sh`).
+  - To prove the cause: reproduce under gate load, or capture the holding process (Process Monitor or a handle
+    dump during the gate; needs admin).
 - Possible change: retry `os.replace` on `PermissionError` a few times with a short back-off, with a test that
-  injects one failed replace. Closes when that test passes.
+  injects one failed replace. That closes the spurious failure (T-96), not the diagnosis.
