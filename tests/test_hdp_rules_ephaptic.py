@@ -45,6 +45,25 @@ def test_kernel_geometry_and_normalization():
     assert lone.sum() == 0.0  # no pair within cutoff: rows stay 0, no division by 0
 
 
+def test_kernel_underflowed_row_stays_zero():
+    # d / sigma = 40: the pair is inside the cutoff but exp(-800) underflows to 0 in float64.
+    pos = np.array([[0.0, 0.0], [40.0, 0.0]])
+    raw = ephaptic_kernel(pos, sigma=1.0, cutoff=50.0, normalize="none")
+    assert raw["weight"].size == 2 and np.all(raw["weight"] == 0.0), "fixture must underflow"
+    row = ephaptic_kernel(pos, sigma=1.0, cutoff=50.0)
+    assert np.all(np.isfinite(row["weight"]))
+    assert np.all(row["weight"] == 0.0)
+
+
+def test_kernel_coincident_positions_give_no_pair():
+    # Neurons 0 and 1 share a position (d = 0); both lie at d = 1 from neuron 2.
+    pos = np.array([[0.0, 0.0], [0.0, 0.0], [1.0, 0.0]])
+    M = _dense(ephaptic_kernel(pos, sigma=1.0, cutoff=2.0, normalize="none"), 3)
+    assert M[0, 1] == 0.0 and M[1, 0] == 0.0
+    np.testing.assert_allclose(M[2], [np.exp(-0.5), np.exp(-0.5), 0.0], rtol=1e-12)
+    np.testing.assert_allclose(M[:2, 2], [np.exp(-0.5), np.exp(-0.5)], rtol=1e-12)
+
+
 def test_field_matches_dense_product():
     rng = np.random.default_rng(1)
     pos = rng.uniform(0.0, 100.0, size=(N, 3))

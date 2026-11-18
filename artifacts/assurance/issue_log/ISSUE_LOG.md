@@ -98,7 +98,9 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   updates within an event step.
 - Possible change: reproduce on a minimal fixture, then attribute in PCL R3 (`CALIBRATION.md` R3
   section), where the training files run both arms against the C++ chain. Discriminator plan (static, not run):
-  `p053_p056_source_audit_2026-11-13.md`.
+  `p053_p056_source_audit_2026-11-13.md`. Correction (review 2026-11-17): that plan says the oracle
+  L1-normalizes the whole simple weight tensor; `pcl_event_ref.py:549,561` normalizes one depth slice `w_s[k]`
+  (init likewise, `:459-460`). The plan is a pinned dated record and stays as written.
 
 ### P-055
 
@@ -218,7 +220,8 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
     process is unidentified.
   - Evidence, with sha256 in `SHA256SUMS`: `F:/warehouse/jaxfne/P-061_2026-11-17/` (failing gate log, passing gate
     log, `stress_replace.py`, `run_default_root.sh`, `stress_replace_full.py`, `run_full_default_root.sh`,
-    `stress_full_results_2026-11-17.txt`).
+    `stress_full_results_2026-11-17.txt`). Gap (review 2026-11-17): the three solo reruns, the positive control
+    and the first stress runs have no archived output, so those numbers rest on the session record only.
   - To prove the cause: reproduce under gate load, or capture the holding process (Process Monitor or a handle
     dump during the gate; needs admin).
 - Possible change: retry `os.replace` on `PermissionError` a few times with a short back-off, with a test that

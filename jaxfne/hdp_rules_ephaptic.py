@@ -13,7 +13,9 @@ the input enters dv/dt, so ``alpha`` is in 1/ms; on the PCL LIF route the input 
 voltage increment added once per step, so ``alpha`` is per step and the coupling
 it sets scales with ``dt`` (rate equivalent ``alpha/dt`` in 1/ms). ``v_rest`` has no default: it is the
 route's resting potential (0 mV for the PCL LIF, near -65 mV for Izhikevich).
-``alpha = 0`` gives ``Phi = 0`` and leaves ``drive_bias`` at 0.
+``alpha = 0`` gives ``Phi = 0`` and leaves ``drive_bias`` at 0; at kernel level the
+run then equals the rule-free run, but through ``simulate()`` it does not yet
+(ISSUE_LOG P-057, open).
 
 Timing: the field set during step t is applied at step t + 1. The voltages it reads
 differ by route: the LIF kernel presents the voltages after step t (one-step lag);
@@ -48,8 +50,9 @@ def ephaptic_kernel(positions, *, sigma, cutoff, normalize="row"):
     """Sparse Gaussian kernel ``M_ij = exp(-d_ij^2 / (2 sigma^2))`` for ``0 < d_ij <= cutoff``.
 
     ``positions`` is ``(N, D)``; ``sigma`` and ``cutoff`` are in the unit of
-    ``positions``. Self pairs are excluded. ``normalize="row"`` scales each row
-    to sum 1 (rows without neighbours stay 0); ``"none"`` keeps the raw Gaussian.
+    ``positions``. Self pairs and coincident positions (``d_ij = 0``) are excluded.
+    ``normalize="row"`` scales each row to sum 1; a row without neighbours, or whose
+    weights all underflow to 0, stays 0. ``"none"`` keeps the raw Gaussian.
     Returns ``{"src", "dst", "weight"}`` as numpy arrays; entry k adds
     ``weight[k] * (v[src[k]] - v_rest)`` to neuron ``dst[k]``.
     """
@@ -64,10 +67,13 @@ def ephaptic_kernel(positions, *, sigma, cutoff, normalize="row"):
     src = np.concatenate([pairs[:, 0], pairs[:, 1]]).astype(np.int32)
     dst = np.concatenate([pairs[:, 1], pairs[:, 0]]).astype(np.int32)
     d2 = np.sum((pos[src] - pos[dst]) ** 2, axis=1)
+    keep = d2 > 0.0  # coincident positions (d = 0) give no pair
+    src, dst, d2 = src[keep], dst[keep], d2[keep]
     weight = np.exp(-d2 / (2.0 * float(sigma) ** 2))
     if normalize == "row":
-        row = np.bincount(dst, weights=weight, minlength=pos.shape[0])
-        weight = weight / row[dst]
+        row = np.bincount(dst, weights=weight, minlength=pos.shape[0])[dst]
+        # A row whose weights all underflow to 0 stays 0 instead of 0/0.
+        weight = np.divide(weight, row, out=np.zeros_like(weight), where=row > 0.0)
     return {"src": src, "dst": dst, "weight": weight}
 
 

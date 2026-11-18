@@ -341,9 +341,11 @@ and the voltages entering step \(t\) on Izhikevich. \(\alpha\) carries the route
 input unit per mV: 1/ms on Izhikevich; per step on the PCL LIF, where the input is a
 per-step voltage increment, so the coupling scales with `dt_ms`. `v_rest` has no
 default. \(M\) is sparse: `ephaptic_kernel(positions, sigma=..., cutoff=...)` gives
-\(M_{ij}=e^{-d_{ij}^2/2\sigma^2}\) for \(0<d_{ij}\le\) cutoff, rows normalized to 1 by
-default (`normalize="none"` keeps the raw Gaussian). \(\alpha=0\) leaves `drive_bias`
-at 0. An imposed (exogenous) field enters as a drive schedule.
+\(M_{ij}=e^{-d_{ij}^2/2\sigma^2}\) for \(0<d_{ij}\le\) cutoff (coincident positions give no
+pair), rows normalized to 1 by default (a row whose weights all underflow stays 0;
+`normalize="none"` keeps the raw Gaussian). \(\alpha=0\) leaves `drive_bias` at 0 and
+reproduces the rule-free run at kernel level; through `simulate()` it does not yet
+(ISSUE_LOG P-057, open). An imposed (exogenous) field enters as a drive schedule.
 
 ```python
 from jaxfne.hdp_rules_ephaptic import ephaptic_kernel, ephaptic_rule_params
