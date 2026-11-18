@@ -267,7 +267,8 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   report keeps the requested value, and an explicit model-level `recurrent_backend="dense"` is refused under
   homeostasis, under an engaged rule in `simulate()`, and under any `enable_hdp` in `simulate_batch()` (which
   always runs the HDP edge kernel) (`_edge_only_controller`, `_executed_recurrent_backend` in
-  `_model_simulate.py`; `tests/test_hdp_backend_provenance.py`, 8 of 9 red on 6b7acd62). Outputs bit-identical
+  `_model_simulate.py`; the P-062 tests in `tests/test_hdp_zero_rule_public_identity.py`, 8 of 9 red on
+  6b7acd62). Outputs bit-identical
   to 6b7acd62 (ad hoc, not in the repo tests): spikes, `V_m`, HDP and homeostasis state arrays for `simulate()`
   and `simulate_batch()` (independent review, 52 arrays; HDP zero gain, `ephaptic_field` alpha 0.5, legacy HDP,
   homeostasis, rule-free). Step 2 (open, separate
