@@ -370,6 +370,14 @@ class TestRateRefusals:
                 duration_ms=100.0, dt_ms=0.5, seed=0,
                 runtime=jtfne.RuntimeConfig(recurrent_backend="dense")))
 
+    def test_default_runtime_runs_edge_list(self):
+        # P-062 step 2: the default "auto" selects the edge-list kernel this route runs.
+        model = _model(_tensor())
+        auto = model.simulate(jtfne.Simulation(duration_ms=100.0, dt_ms=0.5, seed=0,
+                                               runtime=jtfne.RuntimeConfig()))
+        edge = model.simulate(_sim())
+        np.testing.assert_array_equal(np.asarray(auto.V_m), np.asarray(edge.V_m))
+
     def test_n_contacts_refused(self):
         with pytest.raises(ValueError, match="n_contacts"):
             jtfne.construct(

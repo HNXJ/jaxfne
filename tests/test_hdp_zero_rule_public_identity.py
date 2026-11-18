@@ -9,6 +9,11 @@ P-062 step 1: runs whose controller forces the edge-list kernel (an engaged HDP 
 homeostasis, a placeholder dense W) record ``edge_list`` as the executed backend, keep the
 requested value in the runtime report, and refuse an explicit model-level
 ``recurrent_backend="dense"`` instead of replacing it.
+
+P-062 step 2: ``recurrent_backend`` takes ``auto`` (the default; selects the backend the
+engaged model rules need), ``dense`` or ``edge_list`` (executed or refused, never replaced);
+any other value is rejected where the configuration is built. ``auto`` leaves the numbers of
+the old default unchanged.
 """
 
 from __future__ import annotations
@@ -98,7 +103,7 @@ def test_simulate_records_executed_and_requested_backend(controller):
     model = _small_model()
     sig = _run(model, **controller)
     assert sig.metadata["recurrent_backend"] == "edge_list"  # executed
-    assert sig.metadata["runtime"]["recurrent_backend"] == "dense"  # requested (the default)
+    assert sig.metadata["runtime"]["recurrent_backend"] == "auto"  # requested (the default)
     assert model.manifest(signals=sig)["backend_metadata"]["used_recurrent_backend"] == "edge_list"
 
 
@@ -106,7 +111,7 @@ def test_simulate_records_executed_and_requested_backend(controller):
 def test_simulate_batch_records_executed_and_requested_backend(controller):
     meta = _batch(_small_model(), **controller)["metadata"]
     assert meta["recurrent_backend"] == "edge_list"
-    assert meta["runtime"]["recurrent_backend"] == "dense"
+    assert meta["runtime"]["recurrent_backend"] == "auto"
 
 
 def test_rule_free_default_still_records_dense():
@@ -138,11 +143,94 @@ def test_enable_hdp_without_engaged_rule():
 
 def test_placeholder_w_model_records_edge_list_with_explicit_runtime():
     # Edges live only in params["edge_list"]; the dense kernel is never used for this model.
+    model = _placeholder_w_model()
+    for runtime in ({}, dict(enable_hdp=True, hdp_params={})):
+        assert _run(model, **runtime).metadata["recurrent_backend"] == "edge_list"
+        assert _batch(model, **runtime)["metadata"]["recurrent_backend"] == "edge_list"
+
+
+def _placeholder_w_model():
     from scripts.perf.w10_allocation_map import build_config
 
     cfg = build_config(n=200, p_connect=0.0, max_in_degree=20, duration_ms=PROV_DURATION_MS, dt_ms=DT_MS, seed=1)
     model = jtfne.construct(cfg)
     assert model.params["emitter"].W.shape == (0, 0), "fixture must carry a placeholder W"
-    for runtime in ({}, dict(enable_hdp=True, hdp_params={})):
-        assert _run(model, **runtime).metadata["recurrent_backend"] == "edge_list"
-        assert _batch(model, **runtime)["metadata"]["recurrent_backend"] == "edge_list"
+    return model
+
+
+# --- P-062 step 2: auto | dense | edge_list, validated -------------------------------------
+
+
+@pytest.mark.parametrize("value", ["edn_list", "Dense", ""])
+def test_unknown_backend_is_rejected_where_the_configuration_is_built(value):
+    with pytest.raises(ValueError, match="recurrent_backend"):
+        jtfne.RuntimeConfig(recurrent_backend=value)
+    with pytest.raises(ValueError, match="recurrent_backend"):
+        jtfne.Configuration().runtime(recurrent_backend=value)
+
+
+def test_default_backend_is_auto():
+    assert jtfne.RuntimeConfig().recurrent_backend == "auto"
+    assert jtfne.runtime().recurrent_backend == "auto"
+    jtfne.RuntimeConfig(recurrent_backend="auto")  # accepted explicitly too
+
+
+@pytest.mark.parametrize("controller", [RULE, HOMEOSTASIS], ids=["hdp", "homeostasis"])
+def test_explicit_runtime_dense_with_edge_only_controller_is_refused(controller):
+    model = _small_model()
+    with pytest.raises(ValueError, match="recurrent_backend='dense'"):
+        _run(model, recurrent_backend="dense", **controller)
+    with pytest.raises(ValueError, match="recurrent_backend='dense'"):
+        _batch(model, recurrent_backend="dense", **controller)
+
+
+def test_explicit_runtime_dense_on_placeholder_w_is_refused():
+    model = _placeholder_w_model()
+    with pytest.raises(ValueError, match="recurrent_backend='dense'"):
+        _run(model, recurrent_backend="dense")
+    with pytest.raises(ValueError, match="recurrent_backend='dense'"):
+        _batch(model, recurrent_backend="dense")
+
+
+def test_auto_selects_edge_list_for_the_receptor_kernel():
+    sig = _run(_small_model(), synaptic_kernel="receptor_exponential")
+    assert sig.metadata["recurrent_backend"] == "edge_list"
+    assert sig.metadata["runtime"]["recurrent_backend"] == "auto"
+
+
+def _assert_same_run(a, b):
+    assert (np.asarray(a.spikes) > 0.5).sum() > 0, "fixture must spike"
+    np.testing.assert_array_equal(np.asarray(a.spikes), np.asarray(b.spikes))
+    np.testing.assert_array_equal(np.asarray(a.V_m), np.asarray(b.V_m))
+
+
+def test_auto_rule_free_equals_explicit_dense():
+    model = _model(n=60, duration_ms=60.0)
+    run = lambda **rt: jtfne.simulate(model, duration_ms=60.0, dt_ms=DT_MS, seed=SEED, runtime=jtfne.RuntimeConfig(**rt))
+    auto, dense = run(), run(recurrent_backend="dense")
+    assert auto.metadata["recurrent_backend"] == dense.metadata["recurrent_backend"] == "dense"
+    _assert_same_run(auto, dense)
+
+
+@pytest.mark.parametrize("rule", ["synthetic_presyn_gain", EPHAPTIC_RULE_NAME])
+def test_auto_hdp_equals_explicit_edge_list_including_state(rule):
+    model = _model(n=N, duration_ms=60.0)
+    params = _zero_rule_params(rule)
+    if rule == "synthetic_presyn_gain":
+        params = {**params, "hdp_rule_params": {"gamma": 0.3, "k_h": 0.2, "k_w": 0.1}}
+    else:
+        params["hdp_rule_params"]["alpha"] = 0.5
+
+    def run(**rt):
+        return jtfne.simulate(model, duration_ms=60.0, dt_ms=DT_MS, seed=SEED, return_state=True,
+                              runtime=jtfne.RuntimeConfig(enable_hdp=True, hdp_params=params, **rt))
+
+    (auto, s_auto), (edge, s_edge) = run(), run(recurrent_backend="edge_list")
+    assert auto.metadata["recurrent_backend"] == "edge_list"
+    _assert_same_run(auto, edge)
+    import jax
+
+    leaves_auto, leaves_edge = jax.tree_util.tree_leaves(s_auto), jax.tree_util.tree_leaves(s_edge)
+    assert len(leaves_auto) == len(leaves_edge) > 0, "fixture must return state"
+    for x, y in zip(leaves_auto, leaves_edge):
+        np.testing.assert_array_equal(np.asarray(x), np.asarray(y))

@@ -275,10 +275,15 @@ def test_jit_default_accepted_and_other_values_refused_at_both_stages():
         model.simulate(_sim(runtime=RuntimeConfig(recurrent_backend="edge_list", jit=False)))
 
 
-def test_default_runtime_config_is_refused_for_its_dense_recurrence():
+def test_default_runtime_config_runs_edge_list_and_explicit_dense_is_refused():
+    # P-062 step 2: the default "auto" selects the edge-list kernel this route runs.
     model = jtfne.construct(_base())
+    auto = model.simulate(_sim(runtime=RuntimeConfig()))
+    edge = model.simulate(_sim(runtime=RuntimeConfig(recurrent_backend="edge_list")))
+    np.testing.assert_array_equal(np.asarray(auto.V_m), np.asarray(edge.V_m))
+    np.testing.assert_array_equal(np.asarray(auto.spikes), np.asarray(edge.spikes))
     with pytest.raises(ValueError, match="recurrent_backend"):
-        model.simulate(_sim(runtime=RuntimeConfig()))
+        model.simulate(_sim(runtime=RuntimeConfig(recurrent_backend="dense")))
 
 
 def _non_default(name, default):

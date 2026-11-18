@@ -363,6 +363,15 @@ def test_lif_refuses_homeostasis_kernel_and_backend():
         _lif_sim(model, runtime=jtfne.RuntimeConfig(recurrent_backend="dense"))
 
 
+def test_lif_default_runtime_runs_edge_list():
+    """P-062 step 2: the default "auto" selects the edge-list kernel this route runs."""
+    model = _lif_model()
+    auto = _lif_sim(model, runtime=jtfne.RuntimeConfig())
+    edge = _lif_sim(model)
+    np.testing.assert_array_equal(np.asarray(auto.V_m), np.asarray(edge.V_m))
+    np.testing.assert_array_equal(np.asarray(auto.spikes), np.asarray(edge.spikes))
+
+
 def test_lif_has_no_configuration_route():
     """The direct current-based bridge refuses lif, naming the tensor route."""
     with pytest.raises(ValueError, match="construct_neuronal_tensor"):
