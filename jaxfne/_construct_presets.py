@@ -45,7 +45,7 @@ def runtime(
     precision: str = "default",
     seed: int = 0,
     n_steps: int = 0,
-    recurrent_backend: str = "dense",
+    recurrent_backend: str = "auto",
     synaptic_kernel: str = "exponential",
     # v0.0.3 compatibility names.
     device_type: str | None = None,
@@ -316,7 +316,7 @@ def suite2_simulation(
     noise_rate_hz: float = 2.0,
     target: str = "all",
     jit: bool = False,
-    recurrent_backend: str = "dense",
+    recurrent_backend: str = "auto",
 ) -> Simulation:
     """Create a Suite No. 2 simulation with deterministic runtime metadata."""
     runtime_cfg = RuntimeConfig(dtype="float32", seed=seed, jit=jit, recurrent_backend=recurrent_backend)

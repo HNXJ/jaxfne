@@ -839,8 +839,8 @@ print(signals.V_m.shape)
     conflict.
   - `Simulation(poisson_drive=)`: the external drive described above.
 - Route defaults: `runtime(recurrent_backend=)` defaults to `"edge_list"`; every other default is the
-  `RuntimeConfig` default. A `RuntimeConfig` passed to `simulate` therefore sets
-  `recurrent_backend="edge_list"`.
+  `RuntimeConfig` default. A `RuntimeConfig` passed to `simulate` leaves `recurrent_backend` at
+  `"auto"` (which selects edge_list here) or sets `"edge_list"`; `"dense"` is refused.
 - Record flags: `Simulation(record_sources=, record_fields=)` are accepted at their defaults only and
   change nothing on this route.
 - Refused by name, for example: `network(p_connect=)`, `runtime(backend=)`, `runtime(device_type=)`,

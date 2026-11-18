@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2541 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2542 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -467,7 +467,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 | Class | Message |
 |---|---|
-| `ValueError` | `recurrent_backend={...} cannot be realized: {...}. Drop the explicit recurrent_backend, or set recur` |
+| `ValueError` | `recurrent_backend={...} cannot be realized: {...}. Drop the explicit recurrent_backend (auto then se` |
 | `ValueError` | `synaptic_kernel='receptor_exponential' runs only on recurrent_backend='edge_list'; the dense backend` |
 | `ValueError` | `RuntimeConfig(surrogate=...) is realized on the dense Izhikevich default-order route only; this run ` |
 | `ValueError` | `{...} edge(s) compiled from connections() rules are not carried by the dense backend (it runs on emi` |
@@ -654,6 +654,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 | Class | Message |
 |---|---|
+| `ValueError` | `recurrent_backend must be one of {...}; got {...}` |
 | `ValueError` | `synaptic_kernel must be one of {...}; got {...}` |
 | `ValueError` | `recompilation_guard must be one of {'warning', 'exception', 'off'}; got {...}` |
 | `ValueError` | `jit must be a boolean or 'auto'; got {...}` |

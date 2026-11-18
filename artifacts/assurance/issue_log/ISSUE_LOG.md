@@ -286,3 +286,14 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   edge-only controller, a placeholder W, the receptor kernel, rule edges, finite delays and `return_state` or
   continuation, otherwise dense; each of those that refuses the default today runs instead (no run that
   succeeds today changes). Failing tests at 32f48569: 17 red, 8 green on 06f9bf26.
+- Step 2 implementation (`_temp_p062-auto`, Hamm 2026-11-18 "Implement as planned"): `ALLOWED_RECURRENT_BACKENDS`
+  checked in `RuntimeConfig.__post_init__` and `Configuration.runtime`; `_resolve_recurrent_backend` in
+  `_model_simulate.py` resolves once per `simulate()` / `simulate_batch()` (and for the tune and optim-handle
+  checks via `resolved_recurrent_backend`); an `auto` RuntimeConfig defers to the model-level value. Finite
+  delays do not steer `auto` in `simulate_batch()`: it never refused a dense run with delayed edges, so moving
+  those runs would change results (open: whether that dense batch run drops the delays). The adex route keeps
+  its `edge_list` default and reads `auto` as it. Default-runtime outputs bit-identical to 06f9bf26 (59 arrays:
+  spikes, `V_m`, sources, 22 HDP and homeostasis diagnostics, 17 `simulate_batch` arrays; rule-free, HDP zero
+  gain, gain, `ephaptic_field` alpha 0.5, homeostasis); negative control: the cases differ from each other.
+  Seen on the way, not caused here and unverified: `simulate_batch` HDP zero gain and gain give equal `V_m`
+  on base and candidate (the batch kernel may not read `hdp_rule_params`).

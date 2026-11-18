@@ -124,10 +124,11 @@ class TestDefaultConfigs:
     def test_default_cortical_column_config_synaptic_kernel_choice(self):
         """synaptic_kernel is the one real behavioral choice in the native
         pipeline (preset= is metadata-only, never read back); defaults to
-        'exponential'/dense, 'receptor_exponential' requires+sets edge_list."""
+        'exponential'/auto (dense unless a rule needs edge_list, P-062),
+        'receptor_exponential' requires+sets edge_list."""
         cfg_default = jtfne.default_cortical_column_config(n=20, seed=0)
         assert cfg_default.metadata["synaptic_kernel"] == "exponential"
-        assert cfg_default.metadata["recurrent_backend"] == "dense"
+        assert cfg_default.metadata["recurrent_backend"] == "auto"
 
         cfg_re = jtfne.default_cortical_column_config(n=20, seed=0, synaptic_kernel="receptor_exponential")
         assert cfg_re.metadata["synaptic_kernel"] == "receptor_exponential"

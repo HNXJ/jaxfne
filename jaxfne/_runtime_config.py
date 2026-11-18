@@ -17,6 +17,13 @@ import jax
 import jax.numpy as jnp
 
 _ALLOWED_SYNAPTIC_KERNELS = ("exponential", "receptor_exponential")
+# auto: simulate selects the backend the engaged model rules need (ISSUE_LOG P-062).
+ALLOWED_RECURRENT_BACKENDS = ("auto", "dense", "edge_list")
+
+
+def check_recurrent_backend(value: object) -> None:
+    if value not in ALLOWED_RECURRENT_BACKENDS:
+        raise ValueError(f"recurrent_backend must be one of {ALLOWED_RECURRENT_BACKENDS}; got {value!r}")
 _ALLOWED_DTYPES = ("float32", "float64", "bfloat16")
 
 
@@ -79,7 +86,7 @@ class RuntimeConfig:
     precision: str = "default"  # "default" | "high"
     seed: int = 0
     n_steps: int = 0
-    recurrent_backend: str = "dense"  # "dense" | "edge_list"
+    recurrent_backend: str = "auto"  # "auto" | "dense" | "edge_list"
     synaptic_kernel: str = "exponential"  # "exponential" | "receptor_exponential"
     recompilation_guard: str = "warning"  # "warning" | "exception" | "off"
     enable_homeostasis: bool = False  # Enable per-neuron homeostatic resource
@@ -113,6 +120,7 @@ class RuntimeConfig:
     x64_enabled: Optional[bool] = None
 
     def __post_init__(self) -> None:
+        check_recurrent_backend(self.recurrent_backend)
         if self.synaptic_kernel not in _ALLOWED_SYNAPTIC_KERNELS:
             raise ValueError(
                 f"synaptic_kernel must be one of {_ALLOWED_SYNAPTIC_KERNELS}; "

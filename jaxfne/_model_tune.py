@@ -1247,7 +1247,9 @@ def _validate_parameter_specs(
     simulation: Simulation,
 ) -> None:
     """Reject parameter declarations that cannot affect the selected backend."""
-    backend = simulation.resolved_runtime.recurrent_backend
+    from ._model_simulate import resolved_recurrent_backend
+
+    backend = resolved_recurrent_backend(model, simulation.resolved_runtime)
     edge_specs = {
         name: spec for name, spec in param_specs.items() if isinstance(spec, EdgeParameterSpec)
     }

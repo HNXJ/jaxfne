@@ -697,7 +697,7 @@ def refuse_lif_simulation(sim: "Any", runtime_cfg: "Any") -> None:
             "edge kernel only"
         )
     requested = getattr(runtime_cfg, "recurrent_backend", None)
-    if requested is not None and requested != "edge_list":
+    if requested not in (None, "auto", "edge_list"):
         raise ValueError(
             f"RuntimeConfig(recurrent_backend={requested!r}) is not realized for "
             "emitter family 'lif': edges live only in params['edge_list'] "

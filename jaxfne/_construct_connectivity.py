@@ -851,7 +851,7 @@ def _connect_merge_cfg(
     # the bare try/except below is for configurations that cannot carry a runtime
     # override at all, not a licence to discard a request the caller made.
     _requested = cfg2.metadata.get("recurrent_backend")
-    if _requested is not None and _requested != "edge_list":
+    if _requested not in (None, "auto", "edge_list"):
         raise ValueError(
             f"recurrent_backend={_requested!r} cannot be realized by connect(): the "
             "merged ensemble runs on concatenated edges that no single model's dense "

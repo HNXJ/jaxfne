@@ -139,7 +139,9 @@ def _check_edge_backend(model: Any, paths: list[str], simulation: Any) -> None:
 
     if not any(parse_handle(path).kind == "edge" for path in paths):
         return
-    backend = simulation.resolved_runtime.recurrent_backend
+    from .._model_simulate import resolved_recurrent_backend
+
+    backend = resolved_recurrent_backend(model, simulation.resolved_runtime)
     if _edge_store(model)["kind"] == "dense" and backend == "edge_list":
         offenders = [p for p in paths if parse_handle(p).kind == "edge"]
         raise ValueError(

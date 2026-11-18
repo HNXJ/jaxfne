@@ -13,7 +13,7 @@ The runtime module provides configuration objects for controlling JAX execution 
 ```python
 jaxfne.RuntimeConfig(
     backend="auto", dtype="float32", jit=False, vmap=False,
-    precision="default", seed=0, n_steps=0, recurrent_backend="dense",
+    precision="default", seed=0, n_steps=0, recurrent_backend="auto",
     synaptic_kernel="exponential", recompilation_guard="warning",
     enable_homeostasis=False, homeostasis_params={...},
     enable_hdp=False, hdp_params={...},
@@ -38,9 +38,14 @@ requested and actual dtype policy.
   `Simulation.with_seed(s)` reseeds both.
 - `n_steps` (int): default `0`; nested in a `Simulation`, `0` or the
   Simulation's step count, otherwise it raises
-- `recurrent_backend` (str): `"dense"` | `"edge_list"`
+- `recurrent_backend` (str): `"auto"` (default) | `"dense"` | `"edge_list"`; any other value
+  raises. `"auto"` runs edge_list under homeostasis, an engaged HDP rule, edges held only in
+  `params["edge_list"]`, the receptor kernel, `connections()` rule edges, finite edge delays and
+  full-state continuation, and dense otherwise; an explicit value the run cannot honour raises.
+  Run metadata `recurrent_backend` records the backend that ran; the runtime report keeps the
+  requested value.
 - `synaptic_kernel` (str): `"exponential"` | `"receptor_exponential"`
-  (`"receptor_exponential"` requires `recurrent_backend="edge_list"`)
+  (`"receptor_exponential"` runs on edge_list; an explicit `"dense"` with it raises)
 - `recompilation_guard` (str): `"warning"` | `"exception"` | `"off"`
 - `enable_homeostasis` (bool): per-neuron activity-trace feedback, default `False`
 - `homeostasis_params` (dict): `{r_star, tau_r_ms, alpha, k_gain, g_min, g_max, r_max}`; `k_gain=0` disables

@@ -716,7 +716,7 @@ def _require_edge_list_backend(cfg: "Configuration", reason: str) -> "Configurat
     raises. Never silently reinterpreted.
     """
     requested = cfg.metadata.get("recurrent_backend")
-    if requested is not None and requested != "edge_list":
+    if requested not in (None, "auto", "edge_list"):
         raise ValueError(
             f"recurrent_backend={requested!r} cannot be realized: {reason}. The "
             "dense kernel runs on emitter.W, which does not carry these edges, so "
@@ -1356,7 +1356,7 @@ def _refuse_homeostatic_ei_dropped_declarations(cfg: Configuration) -> None:
             "runtime(random_v0=True) is not realized on the homeostatic_ei route: "
             "initial states are fixed by the canonical circuit"
         )
-    if meta.get("recurrent_backend") is not None:
+    if meta.get("recurrent_backend") not in (None, "auto"):
         raise ValueError(
             f"runtime(recurrent_backend={meta['recurrent_backend']!r}) is not realized on the "
             "homeostatic_ei route: it runs its own kernel, not the dense/edge_list choice"

@@ -634,6 +634,10 @@ class Configuration:
         unknown = sorted(set(kwargs) - set(_RUNTIME_KEYS))
         if unknown:
             raise ValueError(f"runtime({unknown[0]}=...) has no consumer; supported keys: {sorted(_RUNTIME_KEYS)}")
+        if kwargs.get("recurrent_backend") is not None:
+            from ._runtime_config import check_recurrent_backend
+
+            check_recurrent_backend(kwargs["recurrent_backend"])
         return self.update_metadata(**kwargs)
 
     def set_runtime(self, **kwargs: Any) -> "Configuration":

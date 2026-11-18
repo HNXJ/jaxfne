@@ -75,41 +75,91 @@ def _edge_only_controller(model, runtime_cfg: RuntimeConfig, *, batch: bool = Fa
     return None
 
 
-def _executed_recurrent_backend(model, runtime_cfg: RuntimeConfig, controller: Optional[str]) -> str:
-    """The backend that runs: an edge-only controller, a placeholder dense W (edges only in
-    ``params["edge_list"]``, as ``_simulate_arrays`` and ``simulate_batch`` test it) or
-    ``"edge_list"`` gives edge_list; any other value runs the dense kernel (the dispatch
-    tests ``== "edge_list"``)."""
+def _has_placeholder_w(model) -> bool:
+    """Edges live only in ``params["edge_list"]``; ``emitter.W`` is a placeholder."""
     emitter = model.params.get("emitter")
-    placeholder_w = (
+    return (
         emitter is not None
         and hasattr(emitter, "W")
+        and hasattr(emitter, "v0")
         and emitter.W.shape[0] != emitter.v0.shape[0]
         and "edge_list" in model.params
     )
-    if controller is not None or placeholder_w or runtime_cfg.recurrent_backend == "edge_list":
-        return "edge_list"
-    return "dense"
 
 
-def _refuse_dense_under_edge_only_controller(model, controller: Optional[str]) -> None:
-    """An explicit model-level dense backend is refused, not replaced, under an edge-only controller."""
-    if controller is not None:
-        _refuse_contradicted_dense_backend(model, f"{controller} runs only on the edge-list kernel")
+def _n_rule_edges(model) -> int:
+    metadata = getattr(getattr(model, "cfg", None), "metadata", None) or {}
+    rules = (metadata.get("circuit", {}) or {}).get("connections", []) or []
+    return sum(int(rule.get("compiled_n_edges", 0) or 0) for rule in rules if isinstance(rule, Mapping))
 
 
-def _refuse_contradicted_dense_backend(model, reason: str) -> None:
+def _has_finite_delays(model) -> bool:
+    if "edge_list" not in model.params:
+        return False
+    from .emitters import _edge_delay_steps_numpy
+
+    host = _edge_delay_steps_numpy(model.params["edge_list"])
+    return host is not None and bool(host.size) and int(host.sum()) != 0
+
+
+def _requested_recurrent_backend(model, runtime_cfg: RuntimeConfig) -> str:
+    """The caller's request: the RuntimeConfig value, or the model-level one when that is ``auto``."""
+    if runtime_cfg.recurrent_backend != "auto":
+        return runtime_cfg.recurrent_backend
+    return model.cfg.metadata.get("recurrent_backend") or "auto"
+
+
+def _resolve_recurrent_backend(
+    model, runtime_cfg: RuntimeConfig, controller: Optional[str], *, continuation: bool = False,
+    delays: bool = True,
+) -> RuntimeConfig:
+    """Return ``runtime_cfg`` with a concrete backend (ISSUE_LOG P-062 step 2).
+
+    ``auto`` selects edge_list when the run needs the edge-list kernel (an edge-only
+    controller, a placeholder W, the receptor kernel, rule edges, finite delays when
+    ``delays``, full-state continuation) and dense otherwise. An explicit ``dense`` under an
+    edge-only controller or a placeholder W is refused; the other edge-only conditions
+    keep their own refusals downstream. ``edge_list`` passes through.
+    """
+    requested = _requested_recurrent_backend(model, runtime_cfg)
+    if requested == "dense":
+        if controller is not None:
+            _refuse_contradicted_dense_backend(requested, f"{controller} runs only on the edge-list kernel")
+        if _has_placeholder_w(model):
+            _refuse_contradicted_dense_backend(
+                requested,
+                "this model carries a placeholder dense W and its edges live only in params['edge_list']",
+            )
+    elif requested == "auto":
+        needs_edge = (
+            controller is not None
+            or _has_placeholder_w(model)
+            or runtime_cfg.synaptic_kernel == "receptor_exponential"
+            or _n_rule_edges(model) > 0
+            or (delays and _has_finite_delays(model))
+            or continuation
+        )
+        requested = "edge_list" if needs_edge else "dense"
+    return replace(runtime_cfg, recurrent_backend=requested)
+
+
+def resolved_recurrent_backend(model, runtime_cfg: RuntimeConfig) -> str:
+    """The backend a plain ``simulate(model)`` call with ``runtime_cfg`` runs (or raises)."""
+    return _resolve_recurrent_backend(model, runtime_cfg, _edge_only_controller(model, runtime_cfg)).recurrent_backend
+
+
+def _refuse_contradicted_dense_backend(requested: Optional[str], reason: str) -> None:
     """Raise if the caller explicitly asked for a backend this model cannot run.
 
     Mirrors ``_construct_core._require_edge_list_backend`` on the simulate side.
-    An absent ``recurrent_backend`` in ``cfg.metadata`` is resolved silently, as
-    before; an explicit incompatible one is a contradiction, not a preference.
+    An absent or ``auto`` request is resolved; an explicit incompatible one is a
+    contradiction, not a preference.
     """
-    requested = model.cfg.metadata.get("recurrent_backend")
-    if requested is not None and requested != "edge_list":
+    if requested not in (None, "auto", "edge_list"):
         raise ValueError(
             f"recurrent_backend={requested!r} cannot be realized: {reason}. Drop the "
-            "explicit recurrent_backend, or set recurrent_backend='edge_list'."
+            "explicit recurrent_backend (auto then selects edge_list), or set "
+            "recurrent_backend='edge_list'."
         )
 
 
@@ -147,13 +197,7 @@ def _refuse_dense_connection_rules(model: Any, runtime_cfg: RuntimeConfig) -> No
     """
     if runtime_cfg.recurrent_backend == "edge_list":
         return
-    metadata = getattr(getattr(model, "cfg", None), "metadata", None) or {}
-    rules = (metadata.get("circuit", {}) or {}).get("connections", []) or []
-    n_rule_edges = sum(
-        int(rule.get("compiled_n_edges", 0) or 0)
-        for rule in rules
-        if isinstance(rule, Mapping)
-    )
+    n_rule_edges = _n_rule_edges(model)
     if n_rule_edges > 0:
         raise ValueError(
             f"{n_rule_edges} edge(s) compiled from connections() rules are not "
@@ -453,17 +497,8 @@ def _simulate_arrays(
     # Per-cell gaussian noise_scale (None when gaussian_drive is undeclared).
     gauss = _gaussian_noise_for_route(self, sim, runtime_cfg)
 
-    # Sparse-direct models carry a placeholder dense W (edges live only in
-    # params["edge_list"]); force the edge_list backend so the dense kernel is
-    # never handed the empty W.
-    if emitter.W.shape[0] != n_neurons and "edge_list" in self.params:
-        _refuse_contradicted_dense_backend(
-            self,
-            "this model carries a placeholder dense W and its edges live only "
-            "in params['edge_list']",
-        )
-        runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
-
+    # simulate() resolved the backend (_resolve_recurrent_backend): a placeholder dense W
+    # (edges only in params["edge_list"]) already runs edge_list or was refused.
     if runtime_cfg.recurrent_backend == "edge_list":
         _refuse_surrogate(runtime_cfg, "the edge_list backend")
     if runtime_cfg.enable_homeostasis or runtime_cfg.enable_hdp:
@@ -1752,8 +1787,12 @@ def simulate(
         drive_array = shuffled.T
 
     # P-062: metadata records the backend that ran; the runtime report keeps the request.
-    edge_controller = _edge_only_controller(self, runtime_cfg)
-    executed_backend = _executed_recurrent_backend(self, runtime_cfg, edge_controller)
+    requested_backend = runtime_cfg.recurrent_backend
+    runtime_cfg = _resolve_recurrent_backend(
+        self, runtime_cfg, _edge_only_controller(self, runtime_cfg),
+        continuation=continuation is not None or return_state,
+    )
+    executed_backend = runtime_cfg.recurrent_backend
     if continuation is not None or return_state:
         voltages, spikes, sources, continuation_out = _simulate_continuation_arrays(
             self,
@@ -1764,7 +1803,6 @@ def simulate(
             forced_spikes=forced_spikes,
         )
     else:
-        _refuse_dense_under_edge_only_controller(self, edge_controller)
         voltages, spikes, sources = self._simulate_arrays(
             sim, key, runtime_cfg, drive_schedule=drive_array,
             forced_spikes=forced_spikes,
@@ -1813,7 +1851,8 @@ def simulate(
         "record_sources": bool(sim.record_sources),
         "record_fields": bool(sim.record_fields),
         "plasticity_gain": sim.plasticity,
-        "runtime": runtime_cfg.runtime_report(effective_jit=segment_jit),
+        "runtime": {**runtime_cfg.runtime_report(effective_jit=segment_jit),
+                    "recurrent_backend": requested_backend},
         "recurrent_backend": executed_backend,
         "synaptic_kernel": runtime_cfg.synaptic_kernel,
         "source_model": _SOURCE_PROXY_METADATA,
@@ -3414,14 +3453,14 @@ def simulate_batch(
     emitter = self._require_izhikevich_emitter("simulate_batch")
     _require_backend_available(runtime_cfg.selected_backend)
 
-    # Sparse-direct models (placeholder dense W) must use the edge_list backend.
-    if emitter.W.shape[0] != int(emitter.v0.shape[0]) and "edge_list" in self.params:
-        _refuse_contradicted_dense_backend(
-            self,
-            "this model carries a placeholder dense W and its edges live only "
-            "in params['edge_list']",
-        )
-        runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
+    # P-062: metadata records the backend that runs; the runtime report keeps the request.
+    # Finite delays do not steer auto here: simulate_batch never refused a dense run with
+    # delayed edges, so moving those runs to edge_list would change results that run today.
+    requested_backend = runtime_cfg.recurrent_backend
+    runtime_cfg = _resolve_recurrent_backend(
+        self, runtime_cfg, _edge_only_controller(self, runtime_cfg, batch=True), delays=False,
+    )
+    batch_executed_backend = runtime_cfg.recurrent_backend
     # The batch kernel draws no Poisson drive, applies no ablation, always
     # returns sources and never builds a field.
     refuse_poisson_drive_list(sim.poisson_drive, "simulate_batch")
@@ -3450,10 +3489,6 @@ def simulate_batch(
             "exponential synaptic kernel."
         )
     _refuse_dense_receptor_kernel(runtime_cfg)
-    # P-062: metadata records the backend that runs; the runtime report keeps the request.
-    batch_edge_controller = _edge_only_controller(self, runtime_cfg, batch=True)
-    _refuse_dense_under_edge_only_controller(self, batch_edge_controller)
-    batch_executed_backend = _executed_recurrent_backend(self, runtime_cfg, batch_edge_controller)
     # P-052: the dense default-order kernel in ``one`` realizes the surrogate;
     # the HDP, homeostasis and edge_list routes refuse it by name.
     if hdp_on:
@@ -3666,7 +3701,8 @@ def simulate_batch(
                 "batch_execution_mode": batch_execution_mode,
                 "n_seeds": int(n_seeds),
                 "seed": base_seed,
-                "runtime": runtime_cfg.runtime_report(effective_jit=batch_jit),
+                "runtime": {**runtime_cfg.runtime_report(effective_jit=batch_jit),
+                            "recurrent_backend": requested_backend},
                 "field_claim_level": "proxy_readout",
                 "physical_amplitude_calibrated": False,
                 "recurrent_backend": batch_executed_backend,

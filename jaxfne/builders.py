@@ -215,7 +215,7 @@ def default_cortical_column_config(
         raise ValueError(
             f"synaptic_kernel must be 'exponential' or 'receptor_exponential'; got {synaptic_kernel!r}"
         )
-    recurrent_backend = "edge_list" if synaptic_kernel == "receptor_exponential" else "dense"
+    recurrent_backend = "edge_list" if synaptic_kernel == "receptor_exponential" else "auto"
 
     cfg = (
         Configuration()

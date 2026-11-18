@@ -111,9 +111,16 @@ ADEX_UNSET_IS_DEFAULT = (
 _BUILDER_FLAGS = (("circuit_declared", True), ("circuit_compiled", False))
 
 # Route defaults that differ from RuntimeConfig's. The adex route runs an edge-list kernel, so
-# RuntimeConfig's default "dense" would describe a run it does not make; a RuntimeConfig passed
-# to simulate() must set recurrent_backend="edge_list".
+# recurrent_backend is "edge_list" here; "auto" (RuntimeConfig's default) selects it (P-062), and
+# "dense" is refused as a run the route does not make.
 ADEX_DEFAULT_OVERRIDES = {"recurrent_backend": "edge_list"}
+
+
+def _auto_as_edge_list(values: Mapping[str, Any]) -> dict[str, Any]:
+    out = dict(values)
+    if out.get("recurrent_backend") == "auto":
+        out["recurrent_backend"] = "edge_list"
+    return out
 
 _ABSENT = object()  # the default of a field that the default configuration does not carry
 _MAX_SHOWN = 120
@@ -211,7 +218,8 @@ def refuse_adex_configuration(cfg: Configuration) -> None:
     found: list[tuple[tuple, Any]] = []
     for f in dataclasses.fields(Configuration):
         default = metadata_default if f.name == "metadata" else getattr(defaults, f.name)
-        _unconsumed(getattr(cfg, f.name), default, ("Configuration", f.name), found)
+        value = _auto_as_edge_list(cfg.metadata) if f.name == "metadata" else getattr(cfg, f.name)
+        _unconsumed(value, default, ("Configuration", f.name), found)
     if found:
         _refuse(*found[0])
 
@@ -541,10 +549,9 @@ def refuse_adex_simulation(sim: Any, cfg: Configuration) -> None:
         _unconsumed(getattr(sim, f.name), getattr(defaults, f.name), ("Simulation", f.name), found)
     if sim.runtime is not None:
         runtime_defaults = _runtime_defaults()
+        runtime_values = _auto_as_edge_list({f.name: getattr(sim.runtime, f.name) for f in dataclasses.fields(RuntimeConfig)})
         for f in dataclasses.fields(RuntimeConfig):
-            _unconsumed(
-                getattr(sim.runtime, f.name), runtime_defaults[f.name], ("RuntimeConfig", f.name), found
-            )
+            _unconsumed(runtime_values[f.name], runtime_defaults[f.name], ("RuntimeConfig", f.name), found)
     if found:
         _refuse(*found[0])
     for key, want in (("dt_ms", sim.dt_ms), ("duration_ms", sim.duration_ms)):
