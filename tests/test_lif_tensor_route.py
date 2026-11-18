@@ -368,6 +368,8 @@ def test_lif_default_runtime_runs_edge_list():
     model = _lif_model()
     auto = _lif_sim(model, runtime=jtfne.RuntimeConfig())
     edge = _lif_sim(model)
+    assert auto.metadata["recurrent_backend"] == "edge_list"
+    assert auto.metadata["runtime"]["recurrent_backend"] == "auto"
     np.testing.assert_array_equal(np.asarray(auto.V_m), np.asarray(edge.V_m))
     np.testing.assert_array_equal(np.asarray(auto.spikes), np.asarray(edge.spikes))
 

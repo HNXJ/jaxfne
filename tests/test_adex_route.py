@@ -282,6 +282,7 @@ def test_default_runtime_config_runs_edge_list_and_explicit_dense_is_refused():
     edge = model.simulate(_sim(runtime=RuntimeConfig(recurrent_backend="edge_list")))
     np.testing.assert_array_equal(np.asarray(auto.V_m), np.asarray(edge.V_m))
     np.testing.assert_array_equal(np.asarray(auto.spikes), np.asarray(edge.spikes))
+    assert auto.metadata["recurrent_backend"] == "edge_list"
     with pytest.raises(ValueError, match="recurrent_backend"):
         model.simulate(_sim(runtime=RuntimeConfig(recurrent_backend="dense")))
 

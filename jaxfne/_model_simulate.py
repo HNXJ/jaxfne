@@ -102,13 +102,6 @@ def _has_finite_delays(model) -> bool:
     return host is not None and bool(host.size) and int(host.sum()) != 0
 
 
-def _requested_recurrent_backend(model, runtime_cfg: RuntimeConfig) -> str:
-    """The caller's request: the RuntimeConfig value, or the model-level one when that is ``auto``."""
-    if runtime_cfg.recurrent_backend != "auto":
-        return runtime_cfg.recurrent_backend
-    return model.cfg.metadata.get("recurrent_backend") or "auto"
-
-
 def _resolve_recurrent_backend(
     model, runtime_cfg: RuntimeConfig, controller: Optional[str], *, continuation: bool = False,
     delays: bool = True,
@@ -117,20 +110,23 @@ def _resolve_recurrent_backend(
 
     ``auto`` selects edge_list when the run needs the edge-list kernel (an edge-only
     controller, a placeholder W, the receptor kernel, rule edges, finite delays when
-    ``delays``, full-state continuation) and dense otherwise. An explicit ``dense`` under an
-    edge-only controller or a placeholder W is refused; the other edge-only conditions
-    keep their own refusals downstream. ``edge_list`` passes through.
+    ``delays``, full-state continuation) and dense otherwise. A ``dense`` request under an
+    edge-only controller or a placeholder W is refused: the RuntimeConfig's own, or, when
+    that is ``auto``, the model-level ``cfg.metadata`` one (which never selects a backend
+    for an ``auto`` RuntimeConfig, as before step 2). The other edge-only conditions keep
+    their own refusals downstream. ``edge_list`` passes through.
     """
-    requested = _requested_recurrent_backend(model, runtime_cfg)
-    if requested == "dense":
+    requested = runtime_cfg.recurrent_backend
+    dense_request = requested if requested != "auto" else model.cfg.metadata.get("recurrent_backend")
+    if dense_request == "dense":
         if controller is not None:
-            _refuse_contradicted_dense_backend(requested, f"{controller} runs only on the edge-list kernel")
+            _refuse_contradicted_dense_backend(dense_request, f"{controller} runs only on the edge-list kernel")
         if _has_placeholder_w(model):
             _refuse_contradicted_dense_backend(
-                requested,
+                dense_request,
                 "this model carries a placeholder dense W and its edges live only in params['edge_list']",
             )
-    elif requested == "auto":
+    if requested == "auto":
         needs_edge = (
             controller is not None
             or _has_placeholder_w(model)
@@ -2233,6 +2229,7 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
         "runtime": runtime_cfg.runtime_report(effective_jit=False),
+        "recurrent_backend": "edge_list",  # the route's only kernel (P-062)
         "physical_amplitude_calibrated": False,
         "network": static["network"],
         "receptors": list(static["receptor_names"]),
@@ -2556,6 +2553,7 @@ def _simulate_rate(
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
         "runtime": runtime_cfg.runtime_report(effective_jit=False),
+        "recurrent_backend": "edge_list",  # the route's only kernel (P-062)
         "physical_amplitude_calibrated": False,
         # The route emits no spikes: the rate traces ride V_m and the spikes
         # array is all-False. No sources and no field are recorded either.
@@ -3149,6 +3147,7 @@ def _simulate_lif(
         "n_steps": int(sim.n_steps),
         "paradigm": paradigm_meta,
         "runtime": runtime_cfg.runtime_report(effective_jit=effective_jit),
+        "recurrent_backend": "edge_list",  # the route's only kernel (P-062)
         "physical_amplitude_calibrated": False,
         # The route records no sources and no field; the record flags change nothing here.
         "not_recorded": ["sources", "field"],
@@ -3325,6 +3324,7 @@ def _simulate_lif_scan(
         "paradigm": drive.to_dict(),
         # The event-scan replay compiles _JIT_EVENT_SCAN unconditionally.
         "runtime": runtime_cfg.runtime_report(effective_jit=True),
+        "recurrent_backend": "edge_list",  # the route's only kernel (P-062)
         "physical_amplitude_calibrated": False,
         # The replay returns finals only; the record flags change nothing here.
         "not_recorded": ["sources", "field"],
@@ -3814,6 +3814,7 @@ def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict
                 "continuation": "not_realized_use_serial_simulate",
                 # The batch is one jax.jit-compiled lax.map (cache miss builds it).
                 "runtime": runtime_cfg.runtime_report(effective_jit=True),
+                "recurrent_backend": "edge_list",  # the route's only kernel (P-062)
                 "physical_amplitude_calibrated": False,
             }
         ),
@@ -3969,6 +3970,7 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
                 "continuation": "not_realized_use_serial_simulate",
                 # The batch is one jax.jit-compiled lax.map (cache miss builds it).
                 "runtime": runtime_cfg.runtime_report(effective_jit=True),
+                "recurrent_backend": "edge_list",  # the route's only kernel (P-062)
                 "physical_amplitude_calibrated": False,
             }
         ),

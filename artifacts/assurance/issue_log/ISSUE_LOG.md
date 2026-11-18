@@ -284,12 +284,11 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   Rulings, Hamm 2026-11-18: default-run receipt IDs change (requested `"auto"` is hashed; changelog note);
   `auto` on lif, rate and adex runs edge_list instead of refusing. `auto` resolves to edge_list under an
   edge-only controller, a placeholder W, the receptor kernel, rule edges, finite delays and `return_state` or
-  continuation, otherwise dense; each of those that refuses the default today runs instead (no run that
-  succeeds today changes). Failing tests at 32f48569: 17 red, 8 green on 06f9bf26.
+  continuation, otherwise dense; each of those that refuses the default today runs instead. Failing tests at 32f48569: 17 red, 8 green on 06f9bf26.
 - Step 2 implementation (`_temp_p062-auto`, Hamm 2026-11-18 "Implement as planned"): `ALLOWED_RECURRENT_BACKENDS`
   checked in `RuntimeConfig.__post_init__` and `Configuration.runtime`; `_resolve_recurrent_backend` in
   `_model_simulate.py` resolves once per `simulate()` / `simulate_batch()` (and for the tune and optim-handle
-  checks via `resolved_recurrent_backend`); an `auto` RuntimeConfig defers to the model-level value. Finite
+  checks via `resolved_recurrent_backend`). Finite
   delays do not steer `auto` in `simulate_batch()`: it never refused a dense run with delayed edges, so moving
   those runs would change results (open: whether that dense batch run drops the delays). The adex route keeps
   its `edge_list` default and reads `auto` as it. Default-runtime outputs bit-identical to 06f9bf26 (59 arrays:
@@ -297,3 +296,12 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   gain, gain, `ephaptic_field` alpha 0.5, homeostasis); negative control: the cases differ from each other.
   Seen on the way, not caused here and unverified: `simulate_batch` HDP zero gain and gain give equal `V_m`
   on base and candidate (the batch kernel may not read `hdp_rule_params`).
+- Step 2 review (independent, fb3e4d6f, REVISE): (F1) an `auto` RuntimeConfig took a model-level `edge_list`
+  and changed a run that ran dense on 06f9bf26; fixed, the model-level value now only refuses (`dense` under an
+  edge-only controller or placeholder W), as before step 2. (F4) lif, rate and adex recorded no executed
+  backend (the manifest fell back to `"dense"`); they now record `edge_list`. Behaviour changes kept and
+  stated in the changelog: an explicit `RuntimeConfig(recurrent_backend="dense")` under homeostasis, HDP or a
+  placeholder W, which ran edge_list silently, is refused; an explicit `RuntimeConfig("edge_list")` over a
+  model-level `"dense"` now runs. Open, minor: an explicit `RuntimeConfig("auto")` cannot be told from the
+  default, so a model-level `"dense"` still refuses it under an edge-only controller; `update_metadata`
+  writes `recurrent_backend` unchecked (only `Configuration.runtime` validates).

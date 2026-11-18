@@ -377,6 +377,7 @@ class TestRateRefusals:
                                                runtime=jtfne.RuntimeConfig()))
         edge = model.simulate(_sim())
         np.testing.assert_array_equal(np.asarray(auto.V_m), np.asarray(edge.V_m))
+        assert auto.metadata["recurrent_backend"] == "edge_list"
 
     def test_n_contacts_refused(self):
         with pytest.raises(ValueError, match="n_contacts"):

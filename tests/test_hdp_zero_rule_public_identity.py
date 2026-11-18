@@ -80,9 +80,9 @@ def _small_model():
     return _model(n=40, duration_ms=PROV_DURATION_MS)
 
 
-def _explicit_dense(model):
+def _explicit_dense(model, backend="dense"):
     return Model(
-        cfg=replace(model.cfg, metadata={**model.cfg.metadata, "recurrent_backend": "dense"}),
+        cfg=replace(model.cfg, metadata={**model.cfg.metadata, "recurrent_backend": backend}),
         params=model.params,
         static=model.static,
     )
@@ -196,6 +196,23 @@ def test_auto_selects_edge_list_for_the_receptor_kernel():
     sig = _run(_small_model(), synaptic_kernel="receptor_exponential")
     assert sig.metadata["recurrent_backend"] == "edge_list"
     assert sig.metadata["runtime"]["recurrent_backend"] == "auto"
+
+
+def test_auto_runtime_does_not_take_a_model_level_edge_list():
+    # Before step 2 an explicit RuntimeConfig ran dense whatever cfg.metadata said; "auto" keeps that.
+    model = _explicit_dense(_small_model(), backend="edge_list")
+    auto, dense = _run(model), _run(model, recurrent_backend="dense")
+    assert auto.metadata["recurrent_backend"] == "dense"
+    _assert_same_run(auto, dense)
+
+
+def test_auto_rule_free_return_state_runs_edge_list():
+    model = _small_model()
+    sig, state = jtfne.simulate(model, duration_ms=PROV_DURATION_MS, dt_ms=DT_MS, seed=SEED,
+                                return_state=True, runtime=jtfne.RuntimeConfig())
+    edge = _run(model, recurrent_backend="edge_list")
+    assert sig.metadata["recurrent_backend"] == "edge_list"
+    _assert_same_run(sig, edge)
 
 
 def _assert_same_run(a, b):
