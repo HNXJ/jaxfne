@@ -36,6 +36,8 @@ Properties (by construction):
 
 Error e_k = ‖p_k − p*‖₂. Cost J_T = Σ_k Δt·e_k² / T (time-weighted mean squared error, as in the handoff §2).
 
+Note: `step` passes `t = t_step·Δt` (float32) to the disturbance interface for future time-dependent generators. No M1 generator reads it, and float32 time precision at very large step counts is untested.
+
 ## 3. Disturbance interface
 
 A disturbance is a stateless generator with one method:
@@ -73,6 +75,7 @@ Parameter ownership: only the environment reads these. A parameter that is set b
 
     reset(cfg, key, p0=None, v0=None) -> State
     step(cfg, state, action) -> (State', Info)
+    rollout(cfg, state, actions) -> (State', Info stacked over T)   # lax.scan over step; actions (T, D)
 
 - `State` is a NamedTuple: `p`, `v`, `key`, `t_step` (int32). Nothing else.
 - `Info`: `error` (scalar e_k computed at the new position), `sq_error` = e_k² and the realized `force` = Ba + Δv^w/Δt.
@@ -95,7 +98,7 @@ Parameter ownership: only the environment reads these. A parameter that is set b
 
 M0 is accepted when an independent reviewer can identify, from this file alone: every state variable (p, v, key, t_step), every action (a ∈ R^D), every stochastic source (Δv^w via key), the shape of each object, the update order, and the parameter owner of each config field.
 
-M1 is accepted when all tests in `tests/test_crazy_sailor_env.py` pass, each was observed to fail on a deliberately broken implementation (sanity check), and the scripted gate receipts are in §10.
+M1 is accepted when all tests in `tests/test_crazy_sailor_env.py` pass, the mutation checks in §10 each fail the test named for them, and the gate receipts are in §10.
 
 ## 9. M1 test list (mapped to the handoff)
 
@@ -118,7 +121,15 @@ Each positive test asserts its precondition (for example the fixture must produc
 
 ## 10. Gate receipts
 
-Recorded in `artifacts/programme/design/plans/crazy_sailor_m1_receipts.md` after the run: commands, exit codes, pass counts, SHA.
+Receipts are appended below by the M1 run (commands, exit codes, pass counts, SHA). Mutation checks (deliberately broken `crazy_sailor.py`, restored after each run):
+
+| Mutant | Failing tests |
+|---|---|
+| explicit Euler position `p + dt·v` | `test_constant_force_matches_analytic_undamped` |
+| noise `σ·dt·ε` instead of `σ·√dt·ε` | `test_white_noise_increment_scaling` |
+| action added to disturbance | `test_constant_force_matches_analytic_undamped`, `test_damped_recurrence_closed_form`, `test_disturbance_independent_of_action` |
+| force ignores B (first D rows set to a) | `test_nonidentity_actuator_with_fewer_actuators_than_dims` |
+| key not advanced; `Info.force` drops noise | `test_noise_differs_between_steps`, `test_info_force_includes_realized_disturbance` |
 
 ## 11. Open issues carried forward
 

@@ -187,3 +187,63 @@ def test_step_has_no_controller_or_observation_input():
     assert params == ["cfg", "state", "action"], "step must take no controller or observation"
     assert cs.Info._fields == ("error", "sq_error", "force"), "Info must carry environment-owned fields only"
     assert cs.State._fields == ("p", "v", "key", "t_step"), "State must carry environment-owned fields only"
+
+
+def test_nonidentity_actuator_with_fewer_actuators_than_dims():
+    B = np.array([[1.0, 0.0], [0.0, 0.0], [0.5, -2.0]], np.float32)  # N=3, D=2
+    cfg = _cfg(n=3, dt=0.02, n_act=2, actuator=B)
+    a = np.array([0.7, -0.4], np.float32)
+    assert np.linalg.norm(B @ a) > 0, "fixture must produce a nonzero force"
+    s = cs.reset(cfg, jax.random.PRNGKey(0))
+    s2, info = cs.step(cfg, s, a)
+    assert np.allclose(np.asarray(info.force), B @ a, rtol=1e-6, atol=1e-7), "force must be B a"
+    assert np.allclose(np.asarray(s2.v), cfg.dt * (B @ a), rtol=1e-6, atol=1e-7), "v must integrate B a"
+
+
+def test_noise_differs_between_steps():
+    cfg = _cfg(n=2, dt=0.05, dist=cs.WhiteNoise(0.6))
+    s = cs.reset(cfg, jax.random.PRNGKey(4))
+    incs = []
+    for _ in range(6):
+        s_next, _ = cs.step(cfg, s, jnp.zeros((2,)))
+        incs.append(np.asarray(s_next.v - s.v))
+        s = s_next
+    incs = np.stack(incs)
+    assert np.abs(incs).max() > 0, "fixture must have nonzero noise"
+    assert np.abs(incs[1:] - incs[:-1]).max() > 1e-4, "noise must differ from step to step"
+
+
+def test_info_force_includes_realized_disturbance():
+    cfg = _cfg(n=2, dt=0.05, beta=0.0, dist=cs.WhiteNoise(0.6))
+    B = np.asarray(cfg.actuator)
+    a = jnp.array([0.2, -0.3], DTYPE_F32)
+    s = cs.reset(cfg, jax.random.PRNGKey(8))
+    s2, info = cs.step(cfg, s, a)
+    dv_w = np.asarray(s2.v) - np.asarray(s.v) - cfg.dt * (B @ np.asarray(a))
+    assert np.abs(dv_w).max() > 0, "fixture must have a nonzero realized disturbance"
+    assert np.allclose(np.asarray(info.force), B @ np.asarray(a) + dv_w / cfg.dt, rtol=1e-5, atol=1e-6), (
+        "Info.force must equal B a + realized dv^w / dt"
+    )
+
+
+def test_damped_position_matches_discrete_reference():
+    cfg = _cfg(n=2, dt=0.02, beta=0.8)
+    p0 = np.array([0.5, -0.5], np.float32)
+    v0 = np.array([0.1, 0.2], np.float32)
+    a = np.array([0.4, 0.1], np.float32)
+    T = 100
+    assert cfg.damping > 0 and np.linalg.norm(a) > 0, "fixture must be damped and forced"
+    s = cs.reset(cfg, jax.random.PRNGKey(0), p0=p0, v0=v0)
+    s2, _ = cs.rollout(cfg, s, jnp.tile(a, (T, 1)))
+    # Reference: the contract's discrete recurrence, written independently in float64 numpy.
+    p, v = p0.astype(np.float64), v0.astype(np.float64)
+    dt, beta = cfg.dt, cfg.damping
+    for _ in range(T):
+        v_new = v + dt * (-beta * v + a)
+        p = p + 0.5 * dt * (v + v_new)
+        v = v_new
+    assert np.allclose(np.asarray(s2.p), p, rtol=1e-4, atol=1e-5), "damped p must match the recurrence"
+    assert np.allclose(np.asarray(s2.v), v, rtol=1e-4, atol=1e-5), "damped v must match the recurrence"
+
+
+DTYPE_F32 = jnp.float32
