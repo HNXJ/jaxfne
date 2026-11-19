@@ -102,3 +102,21 @@ The light and dark twins of the six `docs/assets/visuals/` stills (Hamm 2026-10-
 the twins is fine): +6 files and +850,688 bytes (six `.dark.png` 902,734 bytes; the six light stills
 replace the dark ones, 916,374 -> 864,328). Measured tree after the lane: 91,646,911 bytes, 2609 files,
 inside the consolidated budget.
+
+## Crazy Sailor contract, 2026-11-19 (Hamm: option B)
+
+`budget_files` 2797 -> 2798 on branch `_temp_crazy_sailor_m0m1_b` (base `06f9bf26`), +1 file:
+`artifacts/programme/design/plans/crazy_sailor/m0_contract.md`, the Crazy Sailor independent
+specification (M0 contract, M1 receipts, M2 handoff in §12). Authorized by Hamm in chat 2026-11-19:
+"Authorize Option B ... file budget 2797 -> 2798, restricted to the Crazy Sailor contract". No other file
+is authorized by this entry. The same branch consolidates its code into existing files
+(`jaxfne/paradigm.py`, `tests/test_paradigm.py`), so the branch adds no other file.
+
+Discrepancies recorded, not resolved here:
+- This file's ledger (2563 -> 2700 files; 95,000,000 bytes) does not match the enforced allowlist at
+  `06f9bf26` (2797 files; `budget_bytes` 96,400,000). The allowlist values were set by commits outside this
+  record (`af076b44`, which is on `origin/dev`). The enforced value is the allowlist.
+- `origin/dev` at `0f1f0d22` is already at 2798 tracked files with `budget_files` 2798 (P-062 step 2 added one
+  file, `fb3e4d6f`). Integrating this contract into `dev` would give 2799 files, one above this amendment. That
+  needs a separate ruling; this entry does not authorize it.
+- `e124fe94` raised `budget_bytes` to 96,800,000 on a branch that is not `origin/dev`; not applied here.
