@@ -240,7 +240,9 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   (back-off 0.05 s x attempt) and re-raises the last error; both renames in `write_run` use it. Tests
   `test_caminos_jax.py::test_p6_write_run_retries_a_held_replace` (red before),
   `::test_p6_write_run_reraises_a_persistent_permission_error`. Cause stays inferred. Sibling sites in
-  `run_caminos.py` are todo T-96. Closes when on dev.
+  `run_caminos.py` are todo T-96. Outside caminos, 21 bare `os.replace(` calls in 15 files (brunel2000,
+  destexhe2009, gsdr2026, mejias2016, pcl/port, potjans2014, vogels2011, `e2b_v2_executor.py`, `scripts/lane_kit.py`,
+  `scripts/new_lane.py`; independent review 2026-11-19) have no retry; none has failed so far. Closes when on dev.
 
 ### P-062
 

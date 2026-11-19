@@ -686,8 +686,10 @@ def test_p6_write_run_retries_a_held_replace(tmp_path, monkeypatch):
 
 def test_p6_write_run_reraises_a_persistent_permission_error(tmp_path, monkeypatch):
     api = _p6api()
+    calls = []
 
     def held(src, dst):
+        calls.append(dst)
         raise PermissionError(13, "Access is denied", str(dst))
 
     monkeypatch.setattr(api.os, "replace", held)
@@ -695,6 +697,7 @@ def test_p6_write_run_reraises_a_persistent_permission_error(tmp_path, monkeypat
     with pytest.raises(PermissionError):
         api.write_run(tmp_path, p=0.07, seed=1, T_s=0.001, counts=np.zeros((10, 3), dtype=np.int32),
                       sizes={"E": 1, "PV": 1, "SOM": 1}, wall_s=0.0, start_time="t", sha="a" * 40)
+    assert len(calls) == 5, "the counts rename is tried 5 times, then the error propagates"
 
 
 # --- Cell Reports 2025 parameter set (CELLREP_PARAMS, notebook cell 1) ---
