@@ -12,11 +12,11 @@
   {
    "slug": "caminos-plos-2026",
    "title": "Caminos PLoS Comput Biol 2026: figure replication",
-   "paper": "PLoS Computational Biology 2026, Figs 1D, 1E, 2A-F, 3A-F, 4A, 6A-C; opens with the network built and run in jaxfne",
+   "paper": "PLoS Computational Biology 2026, Figs 1D, 1E, 2A-F, 3A-F, 4A, 5A, 6A-C; opens with the network built and run in jaxfne",
    "html": "caminos-plos-2026.html",
-   "panels": 19,
-   "build_sha": "a35aaa9d26c890c2cbf29e724a6d3f946a6e27a3",
-   "data": "F:/warehouse/caminos (p6_scored_v2 jaxfne runs for 1E; figP_out, plosr_7f7a660e oracle runs)"
+   "panels": 21,
+   "build_sha": "1085bc3b7d340f588264ce3f9dbeddcbd766af12",
+   "data": "F:/warehouse/caminos (p6_scored_v2 jaxfne runs for 1E; figP_out, plosr_7f7a660e oracle runs; plosr_mf_e7a2ab7c 3C-F mean field; plos_text fig5a_sweep_8516c721, fig4a_sweep_b0ea3f66)"
   }
  ]
 }
