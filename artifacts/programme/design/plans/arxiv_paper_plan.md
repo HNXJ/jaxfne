@@ -156,9 +156,9 @@ check run at this baseline). Mandatory gates: broad gate and CI per promoted SHA
   maps spike counts through cable kernels whose currents sum to zero (`tests/test_kernel_lfp.py:32`): a
   separate factorization, spikes -> kernel, not an instance of S -> Q -> F. `jaxfne/fields/head.py` applies
   textbook sphere leadfields (Sarvas 1987, Frank 1952) to Q.
-- Factorization (X,H) -> S -> Q -> F -> Phi -> P -> Y holds on the Izhikevich route only: adex and hh refuse
-  `field()` and `probe()`: adex through its allowlist (`jaxfne/_construct_adex.py:35`, `refuse_adex_configuration`
-  :209); for hh only the comment at `_construct_core.py:530` asserts it (refusal site not located).
+- Factorization (methods-era notation; S1 form (h, x) -> 𝒮 -> Q -> ℱ -> Φ -> 𝒫 -> y^𝒫) holds on the Izhikevich
+  route only: adex and hh refuse `field()` and `probe()`: adex because its allowlist has no field or probe entry
+  (`jaxfne/_construct_adex.py:35-95`; `refuse_adex_configuration` :209 refuses any non-default unconsumed field); for hh only the comment at `_construct_core.py:530` asserts it (refusal site not located).
 - H (TASK-HINV): the barrier term of `methods.md` Eq. 7 makes (H_min, H_max) forward-invariant in continuous
   time; the clamp guards explicit-Euler overshoot. Boundedness and stability are separate claims; W3b gives
   S = 0 and X = 1944, so stability is unresolved. H is outside the core claim.
@@ -192,12 +192,12 @@ check run at this baseline). Mandatory gates: broad gate and CI per promoted SHA
 | lambda_eph C_eph(x, phi) | `ephaptic_field` rule, alpha (`hdp_rules_ephaptic.py`) | lateral voltage coupling; reads v, not Phi |
 | y_m = P_m(s, phi, h; G_m) | Y = P_eta(Phi) | probes |
 
-### S1 notation for the core paper (TASK-NOTATION; PROPOSED 2026-11-19)
+### S1 notation for the core paper (TASK-NOTATION; reviewed 2026-11-19: REVISE, then ACCEPT with minors folded)
 
 Inventory: 221 symbol-meaning rows over the doctrine, `methods.md` and code, 47 base letters or words with two or
 more meanings (scratch `D:/tmp/_temp_ms/notation_inventory.md`, every file:line resolved by
-`_temp_check_inv.py`). Rules: (1) the sealed `tfne/2` symbols win, as written there (`tfne_algebra.md:15-45,
-85-120`: 𝒜, x, y, h, s, 𝓘, O, X, N, P, G, C, L, k, D + K_D); (2) observation-chain operators are calligraphic
+`_temp_check_inv.py`). Rules: (1) the sealed `tfne/2` symbols win, as written there (`tfne_algebra.md:15-49,
+85-120,237`: 𝒜, x, y, h, s, 𝓘, O, X, N, P, G, C, L, k, D + K_D); (2) observation-chain operators are calligraphic
 and carry no parameter subscript (their parameters live in s); (3) a bare symbol names one object, and a
 decorated variant may name another only when the bare one is not used for it; (4) out-of-core symbols (H-state,
 ephaptic, EEG/MEG, relative grammar) keep their doctrine letters and stay out of the core text. `methods.md` is
@@ -209,25 +209,25 @@ REVISE, 4 material findings, folded here.
 | model, typed boundary | 𝒜; x : 𝒜 : y | containment's operator role "O" in (E,S,F,P,O,A) | `realize` (`jaxfne/tfne.py:2617`) |
 | upstream input, output | x, y; probe part of the output y^𝒫 | rbs input u_t; methods state x_t; readout Y | `Configuration.drive` (`_config.py:1828`); `Signals` (`_signals.py:545`) |
 | mutable carry, static state, initial carry | h, s, h_0 | methods spike vector s_t | scan carry (`emitters.py:2397`) |
-| composition rules, rule index; replication | O[k], X[k]; 𝒜^n | methods activity state X | `compile_connection_rules` (`connectivity.py:1074`) |
+| composition rules, rule index; replication | O[k], X[k]; 𝒜^n | activity state X (methods; algebra :237 runtime meaning, retired in core text) | `compile_connection_rules` (`connectivity.py:1074`) |
 | projection, exclusion | >, <, <>; ≯, ≮ | | `compile_connection_rules` |
 | cardinality, proportions, geometry | N, P, G | probe operator P; G(H) | `NeuronalTensor` (`neuronal_tensor.py:1270`), `Geometry3D` (:221) |
 | cell-type domain, subdivision | C, L, L[C] | C_p, C(H), L layer, L_HDP | `NeuronType` (:232), `Layer` (:294) |
-| completion | D + K_D | K neighbour count (methods) | JDNA (`tfne_jdna_boundary.md`) |
+| completion | D + K_D | K neighbour count (methods) | JDNA (`tfne_algebra.md:49`, `tfne_jdna_boundary.md`) |
 | block-provenance map | 𝓘 | input current I(t) | `tfne.py:2483-2513` |
 | execution normal form, step | (h_t, x_t; s) ↦ (h_{t+1}, y_t); Δt | ODE layer as definition (TASK-DMAP) | `simulate` (`_construct_core.py:104`) |
 | membrane potential, recovery | v, u | u as input | carry `v, u` (`emitters.py:2397`) |
 | external input current | I^ext_t | I(t); J (current density in `fundamental_laws.md:41`) | `current_native` (`emitters.py:304`) |
 | spike indicator per step | o_t ∈ {0,1}^N | s_t, r_i; n (exponent of 𝒜^n) | `prev_spikes` (`emitters.py:2397`) |
 | emitter, its parameters | E_θ, θ | angles θ (use ϑ), thresholds θ_A (use c_A) | `_izhikevich_dv_du` (`emitters.py:304`) |
-| weights; delays | W; τ_ij in ms, ⌈τ_ij/Δt⌉ steps | d_m (d stays the Izhikevich reset) | edge list (`make_edge_list_from_dense`) |
+| weights; delays | W; τ_ij in ms, ⌈τ_ij/Δt⌉ steps | d_m (d stays the Izhikevich reset) | `make_edge_list_from_dense` (`emitters.py:1214`) |
 | neuron positions, conduction velocity | 𝐫_i (unit per layer, TASK-UNITS-CSD), v_cond | x position, R ring radius | `Geometry3D` |
 | source, field, probe operators | 𝒮, ℱ, 𝒫 | S spike trains; F_H, F_W; P proportions; η plasticity rate, γ band | `_source_proxy_from_components` (`emitters.py:36`), `project_laminar_sources` (`fields/proxy.py:222`), `compute_readout` (`_model_readout.py:138`) |
 | relative source, field proxy, readout | Q_t = 𝒮(h_t, x_t), Φ = ℱ(Q), y^𝒫 = 𝒫(Φ) | Q = S_ψ(X); Φ as the ephaptic term | Izhikevich route only |
-| CSD proxy | -∂²Φ/∂z² (CSD = q under the Poisson equation, TASK-UNITS-CSD) | CSD ∝ ∇·q | `fields/probes.py` |
+| CSD proxy; physical source density | -∂²Φ/∂z²; q (CSD = q under the Poisson equation, TASK-UNITS-CSD; q is physical, Q_t relative) | CSD ∝ ∇·q | `csd_proxy_probe` (`fields/probes.py:612`) |
 | kernel LFP | Φ^ker = 𝒦 ⊛ o, kernels 𝒦 | K (neighbour count, K_D); presented as 𝒮 -> ℱ | `kernel_lfp` (`fields/kernel_lfp.py:286`) |
-| reduction map of extension e | ℛ_e | R_k (update map), R(H); k (rule index) | identity tests (TASK-N2-PLANT) |
-| "effective" | only p_eff | causal ΔX: write "intervention effect" | |
+| reduction map of extension e | ℛ_e | R_k (update map), R(H); k (rule index) | tests named in TASK-N2-PLANT (not yet a table) |
+| "effective" | only p_eff | causal ΔX: write "intervention effect" | none (prose rule) |
 
 Text fact for the new methods (checked 2026-11-19): the `VIP` and `I` presets are Izhikevich 2004 class-1
 cells and run 0.04v² + 4.1v + 108; every other preset runs 0.04v² + 5v + 140 (`jaxfne/emitters.py:124-134`;
