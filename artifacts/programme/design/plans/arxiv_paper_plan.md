@@ -120,11 +120,11 @@ review). A stage closes only on its exit check and a non-writing reviewer's ACCE
 
 | Stage | Status | Evidence at baseline | Closes when |
 |---|---|---|---|
-| 1 Scope, novelty, claims | started | gate below; TASK-FEAS-REVIEW verdict NARROWED; claim ledger CL-01..CL-34 (`artifacts/publication/publication_claim_ledger.json`) is the wave-estimator paper's | owner rules on the headline (open below); every primary claim has a distinguishing property, evidence requirement and limitation, reviewed |
+| 1 Scope, novelty, claims | started | gate below; TASK-FEAS-REVIEW verdict NARROWED; claim ledger CL-01..CL-34 (`artifacts/publication/publication_claim_ledger.json`) is the wave-estimator paper's | headline ruled (narrowed core, below); every primary claim has a distinguishing property, evidence requirement and limitation, reviewed |
 | 2 Mathematical theory | started | `docs/theory/doctrine/` (`tfne_algebra`, `rbs_rbd_hdp`, containment), `docs/theory/source_field_equations.md`; TASK-FEAS-REVIEW found 6 material inconsistencies (gaps below) | the gaps below resolved or scoped; independent math review finds no material inconsistency |
 | 3 Implementation, reproducibility | started | `CircuitSpec -> construct -> Model -> simulate -> Signals`; frozen manifest of the old figure set | each demonstrated feature has a public or documented path and a receipt |
 | 4 Numerical verification | started | delay-boundary, determinism (release plan C2), segmented-continuation (methods §4) tests | mandatory numerical gates pass or restrict claims |
-| 5 Heterogeneous emitters | started | five families registered; two families in one tensor are refused (`jaxfne/neuronal_tensor.py:2953-2959`) | three families validated, heterogeneous composition shown (owner decision below) |
+| 5 Heterogeneous emitters | started | five families registered; two families in one tensor are refused (`jaxfne/neuronal_tensor.py:2953-2959`) | three families validated, heterogeneous composition shown (expansion after the core, owner ruling below) |
 | 6 Geometry and fields | started | A3 geometry tests; kernel LFP; P-056 open | field kernels checked against analytic cases within stated domains |
 | 7 Ephaptic coupling (outside core) | started | `jaxfne/hdp_rules_ephaptic.py`, alpha = 0 identity test | an effect attributable to the operator, with zero, shuffled and perturbed controls, or experimental-only |
 | 8 H-state (outside core) | started | RBS/RBD/HDP kernels; reduction-identity tests | only validated components enter Results |
@@ -222,8 +222,9 @@ one emitter family per tensor). The critic ran `tests/test_hdp_rules_ephaptic.py
 `tests/test_hdp_zero_rule_public_identity.py tests/test_kernel_lfp.py` (53 passed). Full report: scratch
 `D:/tmp/_temp_ms/G4_review.md` (not tracked; its findings are folded into this plan and the TASK todo rows).
 
-Owner decision open: implement mixed-family circuits through one factorization (stage 5 work, restores the
-headline) or write the narrowed core paper.
+Owner ruling (Hamm 2026-11-19): (a), "start narrowed core, we will expand as we go". The narrowed core is the
+paper now; a dropped item re-enters the claim only when it earns validated evidence (mixed-family circuits first,
+stage 5). None blocks the core.
 
 ### G1 Novelty comparison (reviewed; rows about other tools are inferred until checked against their papers)
 
@@ -252,8 +253,8 @@ Candidate distinguishing properties, each with the test that would falsify it:
 | N4 | Dropped: `QuantityKind` is vocabulary only (`jaxfne/hdp_rule.py:34-45`), enforced by a prose lint; Brian2, BrainUnit and LEMS check dimensions | | falsifier fired; kept as a reporting convention |
 
 Feasibility reading after review: the paper is a methods paper on N1 (narrowed), with N2 as its verification
-discipline and the replication record as simulator validation. It becomes a framework paper only if mixed-family
-circuits run through one factorization (owner decision above).
+discipline and the replication record as simulator validation. It expands toward a framework paper as mixed-family
+circuits run through one factorization (owner ruling above).
 
 ### G2 Evidence matrix (2026-11-19, at 022da7a0; inventory `D:/tmp/_temp_ms/inventory.md`, not tracked)
 
@@ -266,7 +267,7 @@ include TASK-FEAS-REVIEW's corrections.
 | N2 reduction identities | TESTED, same backend | `tests/test_hdp_reduction_identity.py:398`, `tests/test_hdp_zero_rule_public_identity.py:56` (edge_list backend), zero-delay bit equivalence (`methods.md` §4), ephaptic alpha = 0 (`tests/test_hdp_rules_ephaptic.py:115`, `:171`) | extension table with planted breaks (TASK-N2-PLANT) |
 | H-state (dropped from core) | IMPLEMENTED, emitter-local; SPECIFIED for S, F, P | 8 registered HDP rules: 5 in `jaxfne/hdp_rule.py:477-618`, plus PCL, Vogels iSTDP, ephaptic, of which 3 return dH = 0 | none for the core |
 | Relative quantities (dropped from core) | SPECIFIED | `docs/theory/doctrine/relative_quantity_grammar.md` (duplicate row :41-42; m classed B at :19, R at :40); `QuantityKind` vocabulary only | none for the core |
-| Emitter families | TESTED per family; heterogeneous REFUSED | registry `izhikevich`, `lif`, `glif` (registered, not routed), `adex`, `rate` (`jaxfne/emitter_registry.py:106-110`, `jaxfne/neuronal_tensor.py:93`); two families in one tensor raise (`neuronal_tensor.py:2953-2959`); adex and hh refuse `field()`/`probe()` (`_construct_core.py:528-551`); HH and Jansen-Rit outside the registry | owner decision; stale comments `neuronal_tensor.py:89-91`, `_construct_core.py:535-538` |
+| Emitter families | TESTED per family; heterogeneous REFUSED | registry `izhikevich`, `lif`, `glif` (registered, not routed), `adex`, `rate` (`jaxfne/emitter_registry.py:106-110`, `jaxfne/neuronal_tensor.py:93`); two families in one tensor raise (`neuronal_tensor.py:2953-2959`); adex and hh refuse `field()`/`probe()` (`_construct_core.py:528-551`); HH and Jansen-Rit outside the registry | expansion after the core; stale comments `neuronal_tensor.py:89-91`, `_construct_core.py:535-538` |
 | Geometry | TESTED; units conflict | `Geometry3D`, `NeuronalTensor` (mm); `tests/test_geometry_invariants.py:112,136,192`; A3 mutation receipt (release plan) | one length unit per layer and a calibration map (TASK-UNITS-CSD) |
 | LFP, CSD proxies | TESTED | `jaxfne/fields/probes.py:536,612`; `jaxfne/fields/proxy.py:1376` | proxy status kept in text |
 | Kernel LFP | TESTED | `jaxfne/fields/kernel_lfp.py:286`; current balance `tests/test_kernel_lfp.py:32`; P-056 open (deep-layer power) | P-056 |

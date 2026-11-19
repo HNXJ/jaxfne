@@ -30,10 +30,6 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
    noise, delays, dt, seeds), and `PREREG_P3.md:1` is still "draft, UNSIGNED" with `(fill)` estimands at `:10` and
    `:26`. Missing: digitized figure targets, a verdict scorer, a rate-route driver, a P4-passing manifest, receipts.
    Closes when: a filled P3 is signed and G6 is scored under it; the inventory is in the lane's records.
-3. [H] G-0 headline (TASK-FEAS-REVIEW, NARROWED): two emitter families in one tensor are refused
-   (`jaxfne/neuronal_tensor.py:2953-2959`). Options: (a) narrowed core paper (N1 composition calculus, N2
-   contracts, replication record); (b) implement mixed-family circuits through one factorization first
-   (stage 5). Recommended (a), with (b) a later paper.
 4. TASK-NOTATION (T-101) [A] Notation table S1 over doctrine, methods and code, then a rename pass (plan, Stage 2 gaps).
    Closes when: no symbol binds two objects across `docs/theory/doctrine/`, `methods.md` and code names.
 5. TASK-UNITS-CSD (T-102) [A] Geometry units per layer with the calibration map; one CSD definition in
@@ -67,6 +63,11 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
     tests for a regular clone, a worktree and a loose ref pass, and the PCL lane passes in a worktree.
 
 ## Tier 4: a day or more
+
+- TASK-MIXFAM [A] Expansion after the core (Hamm 2026-11-19, "start narrowed core, we will expand as we go"):
+  mixed-family circuits through one factorization; two families in one tensor are refused today
+  (`jaxfne/neuronal_tensor.py:2953-2959`). Starts after the core's stage 2 gaps close. Closes when: a two-family
+  circuit runs through `field()`/`probe()` with a test, and the plan's headline is re-reviewed.
 
 18. T-87 [A] F4 scored benchmark across N on CPU and the A4000 with recording controls (checklist B1-B3, 10 pts),
     after T-79 and T-80. Closes when: the receipt records all 6 metrics and is evaluated against the purchase gate.
