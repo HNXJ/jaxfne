@@ -105,6 +105,32 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 33. ∥ [A] T-O68 remaining dirty worktrees (`base053`, `bisw1`, `frozen-etude`, `w3`, `jaxfne-wt-p022`,
     `jaxfne-wt-suites`).
 
+## Crazy Sailor M2 (branch `_temp_crazy_sailor_m0m1_b`, not on dev; contract §12)
+
+Scope and decisions: `programme/design/plans/crazy_sailor/m0_contract.md` §12.9. Ordered by effort.
+
+- CS-1 [A] Test hardening: a rollout test with nonzero y-channel counts (the y decode path is covered only by the unit test). Closes when: it passes on HEAD and fails under a y-sign mutant.
+- CS-2 [A] Test hardening: the chunked-vs-continuous test asserts that spikes occur in its fixture. Closes when: the assertion holds on HEAD and the test still fails under the dropped-continuation mutant.
+- CS-3 [A] Generic `controller.init/step` adapter (§12.3.1). Closes when: a test drives the M2 controller through the generic interface and reproduces the rollout trajectory on the fixture.
+- CS-4 [A] 60 s closed-loop episode (3000 control intervals) with spikes, motor commands, positions and distance recorded. Closes when: one reproducible run records SHA, config and seed, with 3000 intervals.
+- CS-5 [A] Dashboard page "The Crazy Sailor" from the CS-4 run. Closes when: it renders from that run's data with provenance. Publishing needs Hamm's authorization.
+- CS-6 [A] GIFs of the CS-4 trajectory. Starts after CS-4 and its data pipeline pass. Closes when: the GIFs render from that run.
+- CS-7 [A] Spike-level feedback validation. Measured by the exploration lanes (EX-1, EX-2; contract §13.1 L2–L3). Closes when: a declared regime shows a reproducible nonzero change in motor counts with distance, or the null is recorded.
+- CS-8 [A] Goal-directed navigation. Measured by EX-4 and EX-5 (§13.1 L3). Closes when: the decoded force points toward `p*` over the declared episode set, against the F0 and F5 controls.
+- CS-9 [H] Empirical calibration of `b_i`, `g_i`, `d0`, the E/I weights, and fixed vs learned weights (§12.6). Hamm supplies the values with sources; the agent does not choose them. Closes when: the values are recorded in the contract and the M2 tests are re-frozen.
+- CS-10 [A] Repository broad gate: the 13 baseline failures (contract §10), in their own workstream, without weakening the gate. Blocks integration. Closes when: `python scripts/run_test_gate.py broad` exits 0 on one SHA.
+- CS-11 [H] File-budget ruling for integration: allowlist 2798 vs ledger 2700 files / 95M bytes; integration adds one file (2799). Closes when: Hamm issues a scoped ruling. No budget change before that.
+
+## Crazy Sailor exploration (contract §13; exploratory, not confirmatory)
+
+Goal and checklist: `programme/design/plans/crazy_sailor/m0_contract.md` §13.1, §13.5. Lanes run in parallel, at most three.
+
+- EX-1 [A] Lane A: H-state to motor gain (F2, F4) on S1. Closes when: a JSON per strategy and seed exists under `artifacts/_temp/crazy_sailor_explore/`, with a headline table verified by the lead.
+- EX-2 [A] Lane B: H-gated plasticity (F3, F5 control) on S1. Closes when: as EX-1, plus the Theta change is recorded to prove L2.
+- EX-3 [A] Lane C: harness (X2), controls F0 and F5, F1 and F6 on S1, metrics and CI. Closes when: the harness reproduces F0 and F1 on a second run with the same seeds.
+- EX-4 [A] Scale the best one or two strategies to S2 (20/50/100 neurons). Starts after EX-1 to EX-3. Closes when: the scaling table exists with n ≥ 20 seeds per cell.
+- EX-5 [A] Independent review of the harness and results table; the goal update proposal (X8) to Hamm. Closes when: the reviewer's verdict is recorded in §13.5 and the proposal is written.
+
 ## Deferred, each with its trigger
 
 AT-10-R6 RSS growth before any run over 100 s; A8 gh-pages policy; architecture split on a measured bottleneck;

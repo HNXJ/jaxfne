@@ -179,7 +179,7 @@ M2 handoff: §12 of this file.
 
 ## 12. M2 handoff (controller integration)
 
-Status: IMPLEMENTED on the isolated branch (adapter in `jaxfne/paradigm.py`, 14 tests in `tests/test_paradigm.py`, §12.9 receipts). NOT integrated into `dev` (§11 gate). The fixture values in §12.9 are engineering fixtures, not the scientific parameters of §12.6.
+Status: IMPLEMENTED on the isolated branch (adapter in `jaxfne/paradigm.py`, 21 M2 test cases from 15 functions in `tests/test_paradigm.py`, §12.9 receipts). NOT integrated into `dev` (§11 gate). The fixture values in §12.9 are engineering fixtures, not the scientific parameters of §12.6. M2 scope decisions of 2026-11-18 are in §12.9 "Decisions".
 
 ### 12.9 M2 receipts
 
@@ -189,12 +189,27 @@ Status: IMPLEMENTED on the isolated branch (adapter in `jaxfne/paradigm.py`, 14 
   - encoder saturation removed (`b + g e`): fails 3 tests (closed form, feedback, d0 perturbation).
   - decoder without opposing cancellation (`n+x + n-x`): fails `test_m2_decoder_opposing_counts_cancel`.
   - distance feedback removed (drive held at `e = 0`): fails 6 tests (no-privileged, causal loop, feedback, g/d0/b perturbations).
-- Result: 33 Crazy Sailor tests pass (M1 19 + M2 14). The M2 distance feedback changes the drive and the membrane trajectory after interval 0. Spike counts stayed equal at this fixture within 30 intervals (sub-threshold feedback). This is recorded, not hidden: spike-level feedback needs a more sensitive regime, which is a scientific choice (§12.6).
+- Result: 40 Crazy Sailor tests pass (M1 19 + M2 21 test cases, observed 2026-11-18, targeted run `-k "sailor or m2"`). The M2 distance feedback changes the drive and the membrane trajectory after interval 0 (observed). Motor spike counts were equal in every interval of the feedback probe (f0 = 0 and 5, 10 intervals; counts [7, 2, 7, 7], 53 spikes per interval; observed). The cause is not established (sub-threshold drive is a hypothesis, not verified). Spike-level feedback is therefore not demonstrated by M2 and is deferred (§12.9 Decisions).
 - Timing (§12.3.4): the counts of interval k are decoded and applied during interval k+1. `actions[0]` is zero. An earlier revision applied them in the same interval; the independent review (REVISE) caught the deviation and it is fixed.
 - Review round 1 (REVISE, no blocker) and fixes: timing corrected; continuation covered by `test_m2_chunked_rollout_equals_one_continuous_simulate`; counts checked against the motor-column spike sums; input refusals tested; reference state uses the same seed family as the rollout.
 - Continuation mutant (`continuation=cont` dropped): fails the chunked-equals-continuous test and the d0 perturbation test.
 - Totals: 40 Crazy Sailor tests pass (M1 19, M2 21 including parametrized cases).
-- Not yet done: the generic `controller.init/step` adapter of §12.3.1 (the rollout is specific to the four-channel LIF example); 60 s episodes (3000 intervals; each interval is one eager simulate call); dashboard page; GIFs; re-review of the revised diff.
+- Review round 2 (of the revised diff): ACCEPT, with minor notes: (i) the y-channel counts cancel in the rollout fixture, so the y decode path is covered only by the unit test; (ii) the chunked-vs-continuous test does not assert that spikes occur; (iii) the §12.3.1 generic adapter is not implemented.
+- Not yet done (tracked in `artifacts/todo_stack.md`, section "Crazy Sailor M2", items CS-1 to CS-6): the two test-hardening items (i) and (ii); the generic `controller.init/step` adapter (iii); the 60 s episode (3000 intervals; each interval is one eager simulate call); the dashboard page; GIFs.
+
+#### Decisions (Hamm, 2026-11-18)
+
+M2 acceptance scope. These define what M2 claims. They do not change the §12.8 criteria.
+1. Membrane feedback is sufficient for M2. Verified: distance → tonic drive → membrane trajectory. Spike-count feedback is not an M2 claim.
+2. Direction-only control. Verified: spikes → decoded force → boat motion. The fixture force is a fixed-direction push set by the motor gains; M2 makes no goal-directed navigation claim.
+3. Fixture values are kept. `b_i`, `g_i`, `d0`, `f0`, the motor gains and the E/I weights are engineering fixtures. M2 makes no scientific parameter claim.
+4. M2 stays on `_temp_crazy_sailor_m0m1_b`. No integration into `dev` or `main`; no file-budget change.
+
+Deferred requirements. Not part of M2 acceptance; tracked only in `todo_stack.md`.
+- Spike-level feedback: a declared regime with a reproducible nonzero change in motor counts. Next milestone (todo CS-7). The regime is Hamm's scientific choice.
+- Goal-directed navigation: a later milestone (todo CS-8).
+- Empirical calibration of `b_i`, `g_i`, `d0`, the E/I weights and fixed vs learned weights (§12.6): Hamm supplies the values (todo CS-9).
+- Integration into `dev`: blocked by the 13 baseline failures (§10; todo CS-10) and the file budget (allowlist 2798; the ledger reads 2700 files / 95M bytes; this integration adds one file, to 2799, which needs a scoped ruling; todo CS-11). Neither is resolved; the integration path stays closed.
 
 ### 12.1 Starting point
 
@@ -205,7 +220,7 @@ Status: IMPLEMENTED on the isolated branch (adapter in `jaxfne/paradigm.py`, 14 
 
 ### 12.2 Dependency on M1 integration
 
-M2 must start from the M1 branch, not `dev`, because `dev` lacks the Crazy Sailor section of `jaxfne/paradigm.py`. Decision for Hamm: (a) branch M2 from the checkpoint, or (b) wait for M1 integration. Recommended: (a), with M2 kept on its own `_temp_crazy_sailor_m2_*` branch and merged only after M1 integration.
+M2 must start from the M1 branch, not `dev`, because `dev` lacks the Crazy Sailor section of `jaxfne/paradigm.py`. Decision for Hamm: (a) branch M2 from the checkpoint, or (b) wait for M1 integration. Recommended: (a), with M2 kept on its own `_temp_crazy_sailor_m2_*` branch and merged only after M1 integration. Applied: (a), on `_temp_crazy_sailor_m0m1_b` (§12.9 Decisions, item 4).
 
 ### 12.3 Scope (M2 only)
 
@@ -231,6 +246,8 @@ Learning, reward-modulated eligibility, training, evaluation baselines (M3); dis
 
 - Values of `b_i`, `g_i`, `d0`, and the E/I weight structure.
 - Whether the spiking example is a fixed hand-set network (M2) or any learned weights (M3).
+
+Status (2026-11-18): both questions remain open for the scientific parameters. For M2 scope they are settled by §12.9 Decisions (fixture values kept, deferred to todo CS-9). No value in this section is chosen by the agent.
 
 ### 12.7 Known limitations carried from M1
 
@@ -262,3 +279,63 @@ Receipts are appended below by the M1 run (commands, exit codes, pass counts, SH
 - M3: learning and evaluation. Not started.
 - M4: correlated, wave, nonlinear and mixed disturbances. Not started.
 - M5: public paradigm workflow, dashboard entry, docs. Not started. No root export is added in M1, so the public surface is unchanged.
+
+## 13. Exploration programme (small-model strategy comparison)
+
+Set 2026-11-18 by Hamm: explore options; no stop for decisions; run parallel lanes. Exploratory, not confirmatory: no claim is made from a run in this section until §13.4 is met. "HTTP / HState / REST" in the request is read as H-state (RBS/RBD/HDP, `artifacts/AGENTS.md`); this is an assumption, flagged for Hamm to correct.
+
+### 13.1 Goal
+
+A small spiking circuit (10 neurons, E/I, §12.3.4) that, from its own spike-decoded action and its own distance input only, learns over a fixed budget to drive the point boat to `p*` from held-out starts. The learning is carried by H-state dynamics (RBD for H, HDP for the plastic weights Theta). Forbidden: an external policy, a privileged state or observation, an oracle controller, or a reward channel that is not a declared H coordinate.
+
+Falsifiable acceptance levels:
+
+- L1 (done, fixture): spike-decoded force moves the boat (§12.9).
+- L2: distance changes H; H changes Theta; the weight change is nonzero and reproducible.
+- L3: post-training mean final distance over held-out starts is lower than the untrained circuit and lower than the shuffled-feedback control, same seeds, CI excluding 0 over at least 20 seeds.
+- L4: the learned behavior holds under white-noise disturbance (M4 level).
+- Null: if no strategy beats the controls at L3, the null is reported as the result.
+
+### 13.2 Scenarios
+
+- S1: the 10-neuron fixture (§12.9), calm disturbance.
+- S2: scaled circuits, 20/50/100 neurons, same 4:1 E/I ratio.
+- S3: direction-agnostic sensing (scalar distance only). Any direction information must come from H.
+- S4: white-noise disturbance (M4 level).
+
+### 13.3 Feedback strategies (where distance enters the circuit)
+
+| id | Placement | Rule | Role |
+|---|---|---|---|
+| F0 | none | fixed weights, no feedback | control |
+| F1 | input (tonic drive) | `I = b + g e/(e+d0)`, no H | current M2 |
+| F2 | H-state | `dH/dt = −H/τ + κe`; H scales motor gains | RBD only |
+| F3 | synapse | three-factor: eligibility × H-derived reward (`−Δe`) on E→motor weights | HDP, existing eligibility rule (`jaxfne/hdp_rule.py`) |
+| F4 | intrinsic gain | H scales motor neuron gain | RBD only |
+| F5 | synapse | F3 with the distance signal shuffled across time | control |
+| F6 | inhibition | H gates PV inhibition | alternative placement |
+
+### 13.4 Protocol
+
+- Primary metric: mean distance over the final 20% of a 60 s episode (3000 intervals). Secondary: time to reach radius r, declared before the run.
+- At least 20 seeds per strategy at S1. Report effect size, CI and n. Controls F0 and F5 run with the same seeds.
+- Freeze the protocol (strategies, metric, seeds, episode length) before the first confirmatory run. Exploratory tuning is allowed, but it is labelled and cannot be reported as confirmatory.
+
+### 13.5 Checklist
+
+- [ ] X1 Confirm which HDP rule names are registered and usable for F3 (`list_registered_hdp_rules`).
+- [ ] X2 Harness: one script, strategy × seed, writes JSON to `artifacts/_temp/crazy_sailor_explore/` (gitignored).
+- [ ] X3 Controls F0 and F5 at S1.
+- [ ] X4 F1, F2, F3, F4, F6 at S1.
+- [ ] X5 Scale the best one or two strategies to S2.
+- [ ] X6 Results table: effect size, CI, n, test, per level L1–L4.
+- [ ] X7 Independent review of the harness and of each claim.
+- [ ] X8 Goal-stack proposal for Hamm (goal_stack is owner-owned; no edit without Hamm).
+
+### 13.6 Lanes (parallel, at most three; each writer in its own clone)
+
+- Lane A: F2, F4 (H-state to gain).
+- Lane B: F3, F5 (H-gated plasticity).
+- Lane C: X2 harness, F0, F1, F6, metrics, CI.
+
+Lane outputs are data until the lead agent re-reads them and re-runs the headline numbers.
