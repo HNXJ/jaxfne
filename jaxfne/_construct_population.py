@@ -524,6 +524,9 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
                         y_lo, y_hi = blo, bhi
                     else:
                         z_lo, z_hi = blo, bhi
+            # P-066: z is declared as a fraction of the column; realize it in mm like x and y.
+            height_mm = float(metadata.get("column_height_mm", 1.60))
+            z_lo, z_hi = z_lo * height_mm, z_hi * height_mm
             x = jax.random.uniform(x_key, (n_layer,), minval=x_lo, maxval=x_hi, dtype=jdtype) + jnp.asarray(area_idx * AREA_X_SPACING_MM, dtype=jdtype)
             y = jax.random.uniform(y_key, (n_layer,), minval=y_lo, maxval=y_hi, dtype=jdtype)
             z = jax.random.uniform(z_key, (n_layer,), minval=z_lo, maxval=z_hi, dtype=jdtype)

@@ -20,6 +20,23 @@ def _z_span(height_mm):
     return min(zs), max(zs)
 
 
+def test_field_proxy_divides_mm_depth_by_column_height():
+    import numpy as np
+
+    from jaxfne.fields import project_laminar_sources
+
+    rng = np.random.default_rng(0)
+    sources = rng.random((20, 12))
+    z_mm = rng.uniform(0.0, 8.0, size=12)
+    pos_mm = np.column_stack([rng.uniform(-0.2, 0.2, 12), rng.uniform(-0.2, 0.2, 12), z_mm])
+    pos_frac = pos_mm.copy()
+    pos_frac[:, 2] = z_mm / 8.0
+
+    via_height = project_laminar_sources(sources, pos_mm, column_height_mm=8.0)
+    via_fraction = project_laminar_sources(sources, pos_frac)
+    np.testing.assert_allclose(np.asarray(via_height.phi_e_proxy), np.asarray(via_fraction.phi_e_proxy), rtol=1e-6)
+
+
 def test_realized_z_spans_column_height_in_mm():
     lo, hi = _z_span(8.0)
     assert hi > 1.0, "fixture must reach past the unit interval; otherwise z is still a fraction"
