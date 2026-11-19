@@ -30,8 +30,9 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
    noise, delays, dt, seeds), and `PREREG_P3.md:1` is still "draft, UNSIGNED" with `(fill)` estimands at `:10` and
    `:26`. Missing: digitized figure targets, a verdict scorer, a rate-route driver, a P4-passing manifest, receipts.
    Closes when: a filled P3 is signed and G6 is scored under it; the inventory is in the lane's records.
-5. TASK-UNITS-CSD (T-102) [A] Geometry units per layer with the calibration map; one CSD definition in
-   `docs/theory/source_field_equations.md` and `methods.md`. Closes when: both documents agree, reviewed.
+5. TASK-UNITS-CSD (T-102) [A then H] CSD definition corrected and the unit map written (plan, Stage 2 gaps,
+   2026-11-19). Left: P-066 (z stays a depth fraction while x, y are mm; distance rules mix them), which needs a
+   ruling. Closes when: P-066 is repaired with a before/after table of affected rules, reviewed.
 
 ## Tier 3: half a day
 

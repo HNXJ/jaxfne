@@ -43,7 +43,9 @@ source_calibration_status = "uncalibrated_izhikevich_native_current"
 - $q$ lacks validation against empirical synaptic or ionic current (calibration status: uncalibrated)
 - $q$ is spatial proxy: neuron position (in laminar_source_geometry) → spatial contact coupling
 - Field computation is deferred (field_solver_status = "linear_solver")
-- CSD is derived from source via differentiation: $\mathrm{CSD} \propto \nabla \cdot q$ (proxy)
+- The CSD proxy is the negative second depth derivative of the potential proxy, $-\partial^2 \phi_e/\partial z^2$
+  (three-point stencil, no conductivity; `jaxfne.fields.proxy.csd_tensor`). Under the declared field equation
+  with uniform $\sigma_e$ the true CSD equals $q$, so the proxy estimates $q/\sigma_e$ along depth
 
 **Code example:**
 ```python
@@ -82,7 +84,7 @@ Result: I_syn is counted twice (once in total membrane, once in q_syn_extra)
 ```
 
 **Why it's forbidden:**
-- Current conservation: ∇·q must balance all currents exactly once
+- Current conservation: q must count each transmembrane current exactly once (the volume integral of q is zero)
 - Gauge invariance breaks: mean-zero gauge cannot hold if synaptic current is duplicated
 - Probe readout corruption: CSD, LFP, and EMM metrics become nonphysical
 
@@ -259,7 +261,7 @@ $$z(t) \xrightarrow{\text{Emitter}} \text{state} \xrightarrow{\text{Model curren
 | $\frac{dz}{dt} = F_\theta(z, u, t)$ | `jaxfne.emitters.simulate_eig_izhikevich()` | `emitter_family`, `emitter_preset` | — |
 | $I(t) = I_\mathrm{Iz}(z, \theta)$ | `jaxfne.emitters.simulate_eig_izhikevich()` internal | — | — |
 | $q(x,t) = P_s[I(t), \chi(x)]$ | `jaxfne.fields.project_laminar_sources()` | `source_projection_mode`, `source_calibration_status` | `Signals.sources` |
-| $\mathrm{CSD} = \nabla \cdot q$ | `jaxfne.fields.project_laminar_sources()` | `field_solver_status` | `Signals.field.csd` |
+| $\mathrm{CSD}_\mathrm{proxy} = -\partial^2 \phi_e / \partial z^2$ | `jaxfne.fields.proxy.csd_tensor()` (called by `project_laminar_sources()`) | `field_solver_status` | `Signals.field.csd` |
 
 ### Manifest Fields (Complete List)
 
@@ -357,7 +359,7 @@ print(f"CSD sign convention: {manifest['csd_sign_convention']}")
 # → "positive_equals_extracellular_source"
 
 # Signals.sources [T, N] = Izhikevich model current + spike impulse
-# Signals.field.csd [T, N] = ∇·q (proxy)
+# Signals.field.csd [T, N] = -d²phi_e/dz² (proxy, no conductivity)
 ```
 
 ### Example 2: Jaxley Voltage Proxy → Source → LFP

@@ -166,12 +166,24 @@ check run at this baseline). Mandatory gates: broad gate and CI per promoted SHA
   ephaptic and PCL rules jump, and HDP weights read H_{t+1} (`jaxfne/hdp_rule.py:546-549,559,596-612`). The
   executed system is defined by the discrete map (h_t, x_t; s) -> (h_{t+1}, y_t); dH/dt = F_H and
   dW/dt = F_W are per-rule generators that need a stated consistency order and a dt-refinement test.
-- Geometry units (TASK-UNITS-CSD): TFNE coordinates are relative (`tfne_algebra.md:91-100`), `NeuronalTensor`
-  positions are mm and refuse other units (`neuronal_tensor.py:96-103,349-364`), the methods ring is in mm,
-  `kernel_lfp.py` uses µm and `head.py` metres. Declare one length unit per layer and the calibration map.
-- CSD (TASK-UNITS-CSD): `source_field_equations.md:46,262` gives CSD ∝ ∇·q (ill-typed for a scalar q); :162 and :205
-  give CSD = -∇·(σ∇φ) = q; `methods.md:143` uses -∂²Φ/∂z². Use CSD = q under the stated Poisson equation and
-  the proxy -∂²Φ/∂z².
+- Geometry units (TASK-UNITS-CSD, mapped 2026-11-19): one unit per layer, read from code.
+
+  | Layer | Unit | Evidence |
+  |---|---|---|
+  | TFNE declaration | fraction of the sampled (area, layer) block, [0,1] per axis | `tfne_algebra.md:91-100`; `tfne.py:3186-3192` |
+  | realized x, y | mm: lo + f·span on [-R, R], R = `column_radius_mm` (0.25), plus area offset | `_construct_population.py:505-529` |
+  | realized z | fraction of column height in [0,1] (`layer_fractions`); `column_height_mm` not applied | same; P-066 |
+  | delays | ms, round(τ/Δt) steps; distance-derived delays read `NeuronalTensor` mm | `tfne.py:3194-3196`; `neuronal_tensor.py:96-103,349-364` |
+  | field proxy, CSD proxy | relative depth: contacts `linspace(0, 1)`; dz in the same units | `fields/proxy.py:266,283-285,1376` |
+  | kernel LFP | µm | `fields/kernel_lfp.py:9,25` |
+  | EEG/MEG (outside core) | m | `fields/head.py:16` |
+
+  The calibration map from TFNE fractions to positions exists for x and y (mm) and stops at z, where depth
+  stays a fraction; distance rules then mix mm with depth fraction (ISSUE_LOG P-066, open, needs a ruling).
+- CSD (TASK-UNITS-CSD, resolved 2026-11-19): CSD = q under the declared equation ∇·(-σ_e∇φ_e) = q
+  (`source_field_equations.md:162,205`); the shipped proxy is -∂²φ_e/∂z² without σ_e (`csd_tensor`,
+  `fields/proxy.py:1376`), an estimate of q/σ_e along depth. The ∇·q statements are corrected in
+  `source_field_equations.md` (:46, :87, :264, :362) and `computation_basis.md:143`.
 - Notation (TASK-NOTATION): collisions are inside the sealed doctrine itself: x is upstream input
   (`tfne_algebra.md:20`) and neural state (`rbs_rbd_hdp.md:156`, `methods.md:13-14`); u is the recovery
   variable (`methods.md:11,14`) and input (`rbs_rbd_hdp.md:161`); s is static state (`tfne_algebra.md:23`)
@@ -220,7 +232,7 @@ REVISE, 4 material findings, folded here.
 | external input current | I^ext_t | I(t); J (current density in `fundamental_laws.md:41`) | `current_native` (`emitters.py:304`) |
 | spike indicator per step | o_t ∈ {0,1}^N | s_t, r_i; n (exponent of 𝒜^n) | `prev_spikes` (`emitters.py:2397`) |
 | emitter, its parameters | E_θ, θ | angles θ (use ϑ), thresholds θ_A (use c_A) | `_izhikevich_dv_du` (`emitters.py:304`) |
-| weights; delays | W; τ_ij in ms, ⌈τ_ij/Δt⌉ steps | d_m (d stays the Izhikevich reset) | `make_edge_list_from_dense` (`emitters.py:1214`) |
+| weights; delays | W; τ_ij in ms, round(τ_ij/Δt) steps (`tfne.py:3195`) | d_m (d stays the Izhikevich reset) | `make_edge_list_from_dense` (`emitters.py:1214`) |
 | neuron positions, conduction velocity | 𝐫_i (unit per layer, TASK-UNITS-CSD), v_cond | x position, R ring radius | `Geometry3D` |
 | source, field, probe operators | 𝒮, ℱ, 𝒫 | S spike trains; F_H, F_W; P proportions; η plasticity rate, γ band | `_source_proxy_from_components` (`emitters.py:36`), `project_laminar_sources` (`fields/proxy.py:222`), `compute_readout` (`_model_readout.py:138`) |
 | relative source, field proxy, readout | Q_t = 𝒮(h_t, x_t), Φ = ℱ(Q), y^𝒫 = 𝒫(Φ) | Q = S_ψ(X); Φ as the ephaptic term | Izhikevich route only |
