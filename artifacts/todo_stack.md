@@ -30,8 +30,6 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
    noise, delays, dt, seeds), and `PREREG_P3.md:1` is still "draft, UNSIGNED" with `(fill)` estimands at `:10` and
    `:26`. Missing: digitized figure targets, a verdict scorer, a rate-route driver, a P4-passing manifest, receipts.
    Closes when: a filled P3 is signed and G6 is scored under it; the inventory is in the lane's records.
-2. T-86 [A] G1 CAMINOS PLoS panels (Checklist G1, 3 pts): export the Fig 5A panel, then build the Fig 3 and 4A
-    mean-field rows. Closes when: all panels are in the notebook, exported, from pinned runs.
 
 ## Tier 3: half a day
 
@@ -39,13 +37,6 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
     1.5 pts). Closes when: the batching tests pass across seeds.
 15. T-83 [A] P-053 sparse-weight fixture: rebuild the minimal lateral and top-down fixture with hand-zeroed sparse
     weights. Closes when: it either reproduces the weight gap (P-053 confirmed) or passes (closed).
-16. T-85 [A] DONE 2026-11-12: a v4-era-tree run under `no-local` already existed
-    (`F:/warehouse/pcl/diag_runs/fig3_cSTDP3_nolocal`, `baseline_sha` 98261a3e, 3168/3168). Scored twice
-    independently; every statistic agrees to 1e-12 and its seven scientific arrays are array-identical to the R5
-    oracle arm in all 3168 files. The complex R_ori collapse (5.297 → 1.188) is the inhibition setting; tree drift
-    is excluded. Recorded in `pcl/prereg/P3_fig3_r5_attribution_addendum.md` with
-    `scores/fig3_v4tree_nolocal.json`, both pinned (the R5 result file is pinned and was left unchanged). Closes
-    when: `python scripts/check_record_integrity.py --check` exits 0 with both files listed as pinned.
 17. T-90 [A] P-056 kernel-LFP deep-layer power. Closes when: a settled column shows deep alpha-beta power or the
     cause is named.
 17. T-95 [A] P-058 `_code_sha` worktree portability (`run_r2_reference.py`): resolve HEAD through git. Closes when:

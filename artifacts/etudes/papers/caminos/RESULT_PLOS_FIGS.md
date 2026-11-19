@@ -59,7 +59,7 @@ Declared before any scorer read the raster run `F:/warehouse/caminos/plosr_7f7a6
 captions and Results text (no numbers given); the tolerances are those above, set after the Cell Reports data, and
 the network scalars of the same conditions were already seen in the seed-means table (figP runs). Panel layout:
 C, E PV and D, F SOM, at 40 % (C, D) and 90 % (E, F); Fig 2 silenced, Fig 3 randomized; top row mean field, bottom
-row network. The run has no mean field for randomization, so the Fig 3 top rows are not built.
+row network. The run has no mean field for randomization, so the Fig 3 top rows come from a separate run (end of file).
 
 Estimands, per seed, then the seed mean (seeds 1-3): over the last 0.5 s, the 1 ms-binned population rates (network
 `rate_hz`; mean field `nu_hz`) give the mean rate per population, the frequency f (argmax of |FFT| of the
@@ -140,3 +140,24 @@ The delay swap alone moves the default set to the cellrep reduction on every see
 1-3 Hz. The 2 ms delay is the paper's stated value (PLoS CB Table 2; CALIBRATION §4, F1), so the port follows the
 paper here: under the stated delay, SOM silencing leaves gamma intact; without it, gamma falls by half or more. The 2B
 and 3B fails stand as scored.
+
+## Fig 3C-F mean-field rows (randomization)
+
+The paper defines randomization as replacing the fraction with Poisson units at the reference model's mean rate of that
+type (Results, "silencing" and "randomizing" paragraph). In the mean field the replaced fraction enters every input at
+that constant rate (`simulate_meanfield(pv_random=, som_random=)`); its rate is the mean field's own reference mean over
+2-12 s, PV 8.78 Hz and SOM 7.99 Hz (the network runs use their paired-baseline rate). Known positive: randomizing all
+cells at 0 Hz equals silencing all (`test_randomizing_all_at_zero_hz_equals_silencing_all`). Run
+`F:/warehouse/caminos/plosr_mf_e7a2ab7c/` (`run_plos_rasters.write_meanfield_randomized` at e7a2ab7c, T 12 s,
+manifest sha256 7896ae1e...); values over the last 0.5 s. Descriptive: no tolerance was declared before the run.
+
+| Panel | Condition | Mean E / PV / SOM (Hz) | E peak-to-peak (Hz) | Spectral peak |
+|---|---|---|---|---|
+| 3C | PV randomized 40 % | 1.98 / 9.39 / 12.90 | 3.42 | 20.0 Hz |
+| 3E | PV randomized 90 % | 7.20 / 18.39 / 49.55 | 38.68 | 8.0 Hz |
+| 3D | SOM randomized 40 % | 1.32 / 8.33 / 6.11 | 0.000 | none (fixed point) |
+| 3F | SOM randomized 90 % | 1.19 / 7.38 / 5.64 | 0.000 | none (fixed point) |
+
+PV randomization lowers the frequency and raises the E rate and amplitude, as PV silencing does. SOM randomization
+ends the oscillation at 40 % and 90 %: the mean field carries the paper's claim that randomizing SOM abolishes
+rhythmic activity, which the network fails (3B, 3F above).

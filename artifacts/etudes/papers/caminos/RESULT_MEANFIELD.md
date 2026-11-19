@@ -73,3 +73,20 @@ PV->SOM agrees with the figure reading in both forms. SOM->SOM ends about 0.35 n
 within one grid step of the figure reading with the code form, which also removes the 4% frequency offset (one grid,
 no tolerance declared). The code form is dimensionally inconsistent (A^2/s terms beside V^2 s terms), so the
 printed form stays the default; `test_tv_form_*` pin both.
+
+## Nonlinear mean field, SOM/PV density ratio (Fig 4A bottom)
+
+The paper's claims (caption, no numbers): higher SOM/PV lowers the oscillation frequency and raises its amplitude.
+Port: `fig4a_sweep`, N_PV + N_SOM held at 1500 and split as the network sweep (N_PV = round(1500 / (1 + r))), ratios
+0.5-4 in steps of 0.25, the Fig 5A stability definition (`sweep_point_metrics`). Receipt
+`F:/warehouse/caminos/plos_text/fig4a_sweep_b0ea3f66.json` (clean tree at b0ea3f66, both T_v forms; sha256 7edb56f6...).
+
+| Ratio | 0.5 | 0.75 | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|---|---|
+| Frequency, printed / code (Hz) | stable / stable | 38.5 / 39.0 | 33.5 / 35.0 | 19.5 / 20.5 | 14.5 / 15.0 | 12.5 / 12.5 |
+| E amplitude, printed / code (Hz) | 0.001 / 0.001 | 0.31 / 0.30 | 0.60 / 0.51 | 2.50 / 2.37 | 5.74 / 6.49 | 9.54 / 10.15 |
+
+Both claims hold in both forms: the frequency falls and the amplitude rises monotonically from 0.75 to 4. At 0.5 the
+mean field sits at a stable fixed point, where the network still oscillates (39.4 Hz, `RESULT_PLOS_FIGS.md` 4A). Code
+form: the fixed-point solver did not converge at ratios 2.5, 2.75, 3 and 4 (residual 7.8-9.3), so `fixed_E_hz` is not
+valid there; frequency and amplitude come from the main run and do not use the fixed point.
