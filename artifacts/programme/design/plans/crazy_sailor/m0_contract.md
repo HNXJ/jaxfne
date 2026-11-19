@@ -307,17 +307,19 @@ Falsifiable acceptance levels:
 
 | id | Placement | Rule | Role |
 |---|---|---|---|
-| F0 | none | fixed weights, no feedback | control |
+| F0 | none | fixed weights, no distance drive; the fixture's per-neuron baseline drive (`emitter.drive`) is kept | control; F1 minus F0 isolates the distance term. The network is not silent (observed 2026-11-18: 990 spikes over 40 intervals). Zeroing the baseline would change the S1 fixture, which is not done. |
 | F1 | input (tonic drive) | `I = b + g e/(e+d0)`, no H | current M2 |
 | F2 | H-state | `dH/dt = −H/τ + κe`; H scales motor gains | RBD only |
 | F3 | synapse | three-factor: eligibility × H-derived reward (`−Δe`) on E→motor weights | HDP, existing eligibility rule (`jaxfne/hdp_rule.py`) |
 | F4 | intrinsic gain | H scales motor neuron gain | RBD only |
 | F5 | synapse | F3 with the distance signal shuffled across time | control |
-| F6 | inhibition | H gates PV inhibition | alternative placement |
+| F6 | inhibition | H scales the PV→E synaptic weights by (1 + H), H as F2 | alternative placement; the fixture gives PV neurons no tonic input, so the PV→E path is the only place H can act |
 
 ### 13.4 Protocol
 
-- Primary metric: mean distance over the final 20% of a 60 s episode (3000 intervals). Secondary: time to reach radius r, declared before the run.
+- Primary metric: mean distance over the final 20% of a 60 s episode (3000 intervals). Secondary: time to reach radius r1 = 1.0 (distance units), declared before the run; "none" if never reached.
+- Declared H constants for F2, F2b, F4, F6: H(0) = 0, tau = 2.0 s, kappa = 1.0, H clipped to [0, 4]. Chosen 2026-11-18 for exploration; not tuned.
+- Equivalence check: F6 with kappa = 0 must equal F1 bit-for-bit (observed in the Lane C run, seed 1, 40 intervals: all 7 arrays equal).
 - At least 20 seeds per strategy at S1. Report effect size, CI and n. Controls F0 and F5 run with the same seeds.
 - Freeze the protocol (strategies, metric, seeds, episode length) before the first confirmatory run. Exploratory tuning is allowed, but it is labelled and cannot be reported as confirmatory.
 
@@ -339,3 +341,72 @@ Falsifiable acceptance levels:
 - Lane C: X2 harness, F0, F1, F6, metrics, CI.
 
 Lane outputs are data until the lead agent re-reads them and re-runs the headline numbers.
+
+### 13.7 Protocol amendment A1 (proposed 2026-11-19; for review; no confirmatory run until the gates pass)
+
+Implementation findings (observed 2026-11-19, 40 intervals, seed 0, unless stated):
+
+- F0 reconciliation. The zero-encoder run (`b = g = 0`, baseline kept) is the §13.3 F0: counts (3,3,3,3), zero decoded force, boat stays at 5.0; K = 600 mean 5.000, 20 seeds identical (Lane C). Lane A's "F0" keeps the distance encoder: its counts (7,2,7,7) equal F1, so its F0 row is F1. Lane A's F2/F2b/F4 values stay valid as H-on-F1, but their "vs F0" differences are "vs F1". Lane A F0 = 527.86 and Lane C F1 = 526.32 at K = 600 differ; cause not found.
+- Decoder and plant sign: correct. Counts (+x) give force +x (`sailor_decode`); a constant −x force moves p from (5,0) to (3.59,0) in 40 steps, +x to (6.41,0).
+- Fixture defect (not repaired; needs Hamm): tonic gains `g = (24, 0, 24, 24, …)`, so the −x motor neuron has no distance drive. At e = 5 the motor tonic is (20, 0, 20, 20). Net force is +x at every distance (`e/(e+d0)` saturates), so the boat is pushed away from p*.
+- Structural consequence: with scalar distance input, a symmetric encoder gives zero net force, and an asymmetric one gives a fixed bias. H as a common gain (F2, F4) cannot change the sign. F6 changes only PV→E weights, which are shared across motor channels. Only F3 (channel-specific eligibility with a Δe reward) could in principle learn a corrective sign. Derived, not yet tested.
+
+Protocol (frozen on acceptance; the start distribution and sample size are fixed here, not chosen from outcomes):
+
+1. Start distribution: `p0 = R (cos θ, sin θ)`, `θ ~ Uniform[0, 2π)`, `R = 5.0` (|p0| of the M2 fixture, set before this amendment), `v0 = 0`. Target p* = 0. The distribution is rotationally symmetric about p*, so it adds no geometry beyond the fixture's distance.
+2. Splits: development `N_dev = 20`, `θ` from `numpy.random.default_rng(2025)`; held-out `N = 40`, `θ` from `default_rng(2026)`. Held-out starts are used once, after the gates pass. Disjointness is checked before use.
+3. Pairing: every strategy runs every start with the same episode seed (0 at S1, because no stochastic input exists there). A future stochastic element pairs by start.
+4. Episode: K = 600 control intervals (12 s), not 3000, because 3000 costs about 18 min per job (0.36 s per interval; 280 jobs for 40 starts × 7 strategies ≈ 84 h serial). The deviation is declared here, before any confirmatory run.
+5. Primary metric: `D_j(s)` = mean distance over the final 20% of the episode, per start `j`. Paired difference `Δ_j(s) = D_j(s) − D_j(F0)`. Estimand: mean of `Δ_j(s)` over the 40 held-out starts. The unit is the start, not the RNG seed.
+6. Statistic: percentile bootstrap, 10000 resamples over starts, `default_rng(0)`, 95% CI. For F3, also the paired difference against F5 (shuffled) and against F3 untrained (η = 0).
+7. Effective-variation gate (before any CI is read): at least 0.9 N distinct `D_j(s)` values (rounded to 1e-6) for each strategy; otherwise that strategy's result is reported as degenerate, with no CI.
+8. Stopping rule: none. N = 40 is fixed; no optional stopping.
+9. Controls, all on the held-out starts:
+   - F0 (zero-encoder): `D_j(F0) = R` for every start (boat stays). Gate: exact.
+   - Known-direction probe: a constant force along −p̂ for 40 steps. Gate: error decreases for all 40 starts. Verifies the plant and decoder sign; it is not a strategy.
+   - Prediction for F1 (fixture bias): `D_j(F1) > R` for every start with `p_x ≥ 0`, and for the starts with `p_x < 0` the +x push drives the boat through p*. Falsifier: if F1 reduces distance from some starts, the fixture-bias account is wrong.
+10. Falsification: a strategy `s` is supported only if the CI of `mean Δ(s)` against F0, and against its own untrained/shuffled control, lies entirely below 0. A CI that includes 0, or lies above 0, is a negative result. Negative results are reported unchanged; the frozen protocol is not retuned.
+11. Reporting: the original S1 result is reported as a degenerate-start experiment: F0 = 5.000, F1 = 526.320, F6 = 530.543 (K = 600, Lane C), n_eff = 1, no inferential CI.
+
+Gates: implementation gate open (fixture defect needs a decision: keep the fixture and accept that corrective control is impossible under S1/S3 for F1/F2/F4/F6, or change the fixture gains or sensing, which changes the scenario and needs Hamm). Protocol gate open until the fixture decision is made. Confirmatory runs, §13 conclusions and integration are held.
+
+### 13.7a Revisions after critic review (2026-11-19; §13.7 remains proposed)
+
+Critic verdict: REVISE (worker `critic`; its critique file was blocked by a write hook and is recorded here). Findings and resolution:
+
+1. Lane A vs Lane C "F0 vs F1" gap is a window convention, verified: Lane A's runner averages positions 481..600 (post-step), Lane C averages errors 480..599 (pre-step). The gap is exactly (621.169 − errors_C[480]) / 120 = 1.5438 (verified to 1e-12). Same trajectory, different window. Resolved; no controller difference. Pinned in item 5 below.
+2. Item 7 gate: the distinct-value gate must not apply to F0 (identically 5.0 by design, exempt). It applies to each paired contrast Δ_j, not to D_j alone. Before any CI, the L2 gate (weight change nonzero and not saturated at a bound) must pass; a saturated arm makes Δ identically 0.
+3. K = 600 changes the estimand (final 2.4 s of 12 s, not 12 s of 60 s). Proposed: confirmatory F0 and F1 use K = 3000; secondary strategies at K = 600 are labelled as such. Compute: about 18 min per job; 40 starts × 3 arms ≈ 120 jobs (≈ 36 h serial, several hours with 8 workers). Needs Hamm's approval of this cost (EX-12).
+4. Baseline per strategy: F2, F2b, F4, F6 are compared with F1 (H on F1), F3 with its own η = 0 run, F5 is the shuffle contrast with F3. F0 is a separate stationary reference. Lane A's F2 − F1 = 1104.46 (vs F0 zero-encoder) and 1106.00 (vs lane C F1) are the same effect under two baselines.
+5. Window convention (pinned): mean over the final 20% of the pre-step error trace, errors[K − K/5 : K]. For K = 600 this is errors[480:600].
+6. Item 9 falsifier (F1 fixture bias): a threshold, not a sign. Count of starts with D_j(F1) ≤ R must be 0 of 40; the CI of mean Δ_j(F1) against F0 must lie above 0. The p_x < 0 starts are predicted to cross p* (verified at K = 60 for 4 of 4 starts in envA).
+7. Minor: "net force +x at every distance" is true only where the +x tonic exceeds the baseline, e ≳ 0.14 (critic's inferred estimate, not checked). The decoder sweep check is open.
+8. Minor: the shuffle (F5) needs a seed per start and a pairing rule (seed = start index).
+9. Minor: R-03, R-04 and R-06 show CIs where n_eff = 1; these must read "no CI". Done in §13.8 below.
+
+Open checks: K = 3000 F1 at θ = 0 (launched detached, EX-16); F1 at θ = π and 3π/4 at K = 600 for the item 6 falsifier.
+
+### 13.8 Experiment registry
+
+Code SHA for every row: 584a56ad (paradigm.py unchanged; only this contract and todo are uncommitted). Outputs: `artifacts/_temp/crazy_sailor_explore/`. "Verified" means the lead re-derived the number from the JSON or re-ran it; "agent" means the worker reported it and the lead did not re-run it.
+
+| id | Config | Seeds / starts | K | Outcome (number) | Status | Notes |
+|---|---|---|---|---|---|---|
+| R-01 | F0 reconcile (zero-enc vs fixture-enc), library | seed 0, p0 (5,0) | 40 | zero-enc counts (3,3,3,3), zero force, final (5,0); fixture-enc counts (7,2,7,7), final (12.18, 0) | verified | Lane A's "F0" is the fixture encoder = F1 |
+| R-02 | Decoder and plant sign probe | p0 (5,0), force ±5 | 40 steps | −x force: p = 3.59; +x: 6.41; zero: 5.00 | verified | Sign correct |
+| R-03 | Lane A F0, F2, F2b, F4 (fixture-enc H-gain) | seeds 0–19 | 600 | "F0" (= F1, window 481..600) 527.86; F2 1632.32; F2b 1620.39; F4 1632.32 | verified (recomputed from JSON); no CI (n_eff = 1) | row "F0" is F1; window differs from Lane C by one step (R-06 note); H at clip 4.0 for 95%; F4 ≡ F2 |
+| R-04 | Lane B F3 (η 1e-3, 1e-2), F5 shuffled | seeds 0–19 | 600 | F3 526.585 / 527.308 (sd 0); F5 526.615 / 527.293 (sd 0.12, 0.04) | verified; paired CIs are not inferential (F3 has n_eff = 1; all 28 weights at the 0 bound) | paired F3−F5 −0.030 and +0.015 (bootstrap CIs from lane B, not re-run); L2 gate fails |
+| R-05 | Lane B L2 check | seeds 0–19 | 600 | F3 identical to F5 per seed: 1/20 (η 1e-3), 14/20 (η 1e-2) | verified | agent reported 20/20; not the same as the agent's claim |
+| R-06 | Lane C F0 (zero-enc), F1, F6 | seeds 0–19 | 600 | F0 5.000; F1 526.320 (window 480..599, pre-step); F6 530.543 | verified; no CI (n_eff = 1) | κ = 0 equality agent-reported; F6 rerun needed (d[600] not stored) |
+| R-07 | M2 targeted tests (`-k "sailor or m2"`) | — | — | 40 passed, 12 deselected | verified | rerun on the source worktree |
+| R-09 | Start-angle sweep (envA), F0 and F1 | 8 angles on R = 5 (θ = 2πj/8) | 60 | F0 final distance 5.000 at all 8 (max |d − 5| 1.3e-9); F1 final distance 9.75 to 20.46, all 8 beyond R; F1 end p_x > 0 for all 8 (starts with p_x < 0 cross p* to +x) | verified (16 rows re-read from JSON) | §13.7 item 9: the p_x ≥ 0 prediction holds (4/4 by sign, 2 of those are float residues at θ = π/2, 3π/2); the p_x < 0 starts were not in the prediction and cross the target instead |
+| R-10 | F1 at K = 3000, θ = 0 (single start) | p0 (5,0), seed 0 | 3000 | tail mean (pre-step, errors[2400:3000]) 4114.02; final 4613.19; linear runaway from about interval 1000 at ~1.67 units per interval (every-100 trace in JSON) | verified (JSON read) | K = 600 value 526.32 is a transient; the primary metric is K-dependent and measures runaway speed, not control; §13.4 metric needs revision (decision for Hamm) |
+| R-11 | F1 at K = 600, p0 = 5(cos θ, sin θ): θ = 0 (control), π, 3π/4 | R = 5, seed 0 | 600 | θ = 0 reproduces Lane C F1 `errors` exactly (max abs diff 0.0 over 600 values). Pinned mean `errors[480:600]`: θ = 0 526.32, π 507.09, 3π/4 511.31. Final: 619.57, 599.54, 602.65. Minimum (index k in `errors`): θ = 0 5.0 at k = 0–1, rising after; π 0.074 at k = 33; 3π/4 3.536 at k = 28 | verified (JSON re-read by script `analyze_falsifier.py`) | Tail criterion D_j ≤ R: 0 of 3. Transient criterion (min strictly below R): 2 of 3. The boat passes near p* from p_x < 0 and then runs away, as R-09 predicts for p_x < 0. The tail metric supports the §13.7 item 9 falsifier; the transient does not show sustained fixation. Development starts only (not held-out); 3 of 20 dev starts run, see R-12 when complete |
+| R-12 | F1 development starts, K = 600, θ ~ Uniform[0, 2π) from `default_rng(2025)` (all 20; script `falsifier/dev_probe.py`) | R = 5, seed 0 | 600 | pinned mean `errors[480:600]` 508.1 to 526.3 (median 520.9); final 600.6 to 619.6; tail mean ≤ R: 0 of 20; min strictly below R after k = 1: 8 of 20, all with p_x < 0 (θ = 103° to 243°; minimum 0.27 at θ = 177°); p_x ≥ 0 starts: 0 of 12 dip below R | verified (JSON re-read by `analyze_dev.py`, n = 20) | sign split is post hoc on the 20 development starts; confirm on the held-out set (not run). Development-start probes only |
+| R-08 | F3 mechanism (laneB2): per-interval reward, eligibility; F3 vs F3b (running-mean reward baseline, τ 2 s, exploratory) | seed 0 and seed 1 | 60 | reward r_k ≤ 0 in 60/60 intervals; eligibility ≥ 0 (min 0); 18/28 edges at 0 bound in both F3 and F3b; final distance 5.00 → 20.458 | verified (summaries identical for F3 and F3b, seeds 0 and 1) | seed 0 = seed 1: no noise, not replicates; F3b's baseline does not change the outcome; the sign-definite term is the reward (the boat moves away every interval) |
+
+Negative results so far: no H-state or plasticity strategy beats its control (R-03, R-04); L2 fails for F3 at η 1e-3 and holds only partly at η 1e-2. F3 is seed-invariant at S1 (n_eff = 1).
+
+### 13.9 Next (tournament cycle, 2026-11-19)
+
+Lanes: envA (EX-6, start-angle sweep), laneB2 (EX-7, F3 saturation), critic (EX-8, §13.7 review). Results enter this table only after the lead re-derives each number.
