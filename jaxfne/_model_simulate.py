@@ -105,13 +105,12 @@ def _has_finite_delays(model) -> bool:
 
 def _resolve_recurrent_backend(
     model, runtime_cfg: RuntimeConfig, controller: Optional[str], *, continuation: bool = False,
-    delays: bool = True,
 ) -> RuntimeConfig:
     """Return ``runtime_cfg`` with a concrete backend (ISSUE_LOG P-062 step 2).
 
     ``auto`` selects edge_list when the run needs the edge-list kernel (an edge-only
-    controller, a placeholder W, the receptor kernel, rule edges, finite delays when
-    ``delays``, full-state continuation) and dense otherwise. A ``dense`` request under an
+    controller, a placeholder W, the receptor kernel, rule edges, finite delays,
+    full-state continuation) and dense otherwise. A ``dense`` request under an
     edge-only controller or a placeholder W is refused: the RuntimeConfig's own, or, when
     that is ``auto``, the model-level ``cfg.metadata`` one (which never selects a backend
     for an ``auto`` RuntimeConfig, as before step 2). The other edge-only conditions keep
@@ -133,7 +132,7 @@ def _resolve_recurrent_backend(
             or _has_placeholder_w(model)
             or runtime_cfg.synaptic_kernel == "receptor_exponential"
             or _n_rule_edges(model) > 0
-            or (delays and _has_finite_delays(model))
+            or _has_finite_delays(model)
             or continuation
         )
         requested = "edge_list" if needs_edge else "dense"
@@ -3455,12 +3454,16 @@ def simulate_batch(
     _require_backend_available(runtime_cfg.selected_backend)
 
     # P-062: metadata records the backend that runs; the runtime report keeps the request.
-    # Finite delays do not steer auto here: simulate_batch never refused a dense run with
-    # delayed edges, so moving those runs to edge_list would change results that run today.
     requested_backend = runtime_cfg.recurrent_backend
     runtime_cfg = _resolve_recurrent_backend(
-        self, runtime_cfg, _edge_only_controller(self, runtime_cfg, batch=True), delays=False,
+        self, runtime_cfg, _edge_only_controller(self, runtime_cfg, batch=True),
     )
+    # P-063: the dense batch kernel has no delay path either; refuse instead of dropping delays.
+    if runtime_cfg.recurrent_backend != "edge_list" and _has_finite_delays(self):
+        raise ValueError(
+            "recurrent_backend='dense' has no finite-delay path; edge delay_steps must be all "
+            "zero (use recurrent_backend='edge_list' for delayed runs)"
+        )
     batch_executed_backend = runtime_cfg.recurrent_backend
     # The batch kernel draws no Poisson drive, applies no ablation, always
     # returns sources and never builds a field.
@@ -3549,7 +3552,9 @@ def simulate_batch(
                     k,
                     dtype=runtime_cfg.compute_dtype,
                     hdp_rule=str(kernel_kwargs["hdp_rule"]),
-                    hdp_rule_params=kernel_kwargs.get("hdp_rule_params", {}),
+                    # P-064: read from the runtime params, as simulate() does;
+                    # _hdp_kernel_kwargs never carries this key.
+                    hdp_rule_params=_hdp.get("hdp_rule_params", {}),
                     record_weight_trace=False,
                     noise_scale=_hdp.get("noise_scale", None),
                 )[:3]

@@ -328,6 +328,8 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Failing tests: `tests/test_delay_boundary_v0417.py::test_dense_batch_rejects_nonzero_delay_steps`,
   `::test_auto_batch_runs_delayed_edges_on_edge_list`. Repair changes the output of every default batch run
   with delayed edges (those outputs ignore the delays today).
+- Repair (Hamm 2026-11-18, "Fix both"): `simulate_batch` refuses dense with finite delays as `simulate()` does,
+  and `auto` selects edge_list for them (the resolver's `delays` switch is removed). Closes when on dev.
 
 ### P-064
 
@@ -343,3 +345,6 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Failing tests: `tests/test_hdp_zero_rule_public_identity.py::test_simulate_batch_applies_hdp_rule_params`,
   `::test_simulate_batch_runs_ephaptic_field`. Repair changes the output of every batch run of a registered
   rule with non-default parameters (those outputs ignore the parameters today).
+- Repair (Hamm 2026-11-18, "Fix both"): the registered batch kernel gets `hdp_params["hdp_rule_params"]`, as in
+  `simulate()`. Against 06f9bf26 on the P-062 probe, only the gain-rule batch arrays change (3 of 58) and the
+  `ephaptic_field` batch runs; every `simulate()` output and diagnostic is bit-identical. Closes when on dev.

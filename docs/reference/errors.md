@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2542 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2543 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -550,6 +550,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `EventScanDrive groups cover {...} cells but the lif model has {...} neurons; build the drive for thi` |
 | `ValueError` | `simulate_condition(condition=...) is not realized for emitter family 'adex': it drives a paradigm, a` |
 | `ValueError` | `simulate_condition(condition=...) is not realized for emitter family 'lif': pass an explicit Stimulu` |
+| `ValueError` | `recurrent_backend='dense' has no finite-delay path; edge delay_steps must be all zero (use recurrent` |
 | `ValueError` | `simulate_batch does not consume Simulation.{...}; use simulate() per seed or run_trials()` |
 | `ValueError` | `simulate_batch does not consume Simulation.record_sources=False; it always returns sources` |
 | `ValueError` | `enable_homeostasis is not supported with synaptic_kernel='receptor_exponential'.` |
