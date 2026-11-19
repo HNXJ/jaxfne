@@ -1,68 +1,43 @@
 # state
 
-Stamp: jaxfne@dev@98d5863c · 2026-11-18. Last broad gate: 98d5863c (ephaptic kernel fix) on 2026-11-18, regular clone, Windows: exit 0 (8297 passed, 0 failed, all lanes PASS); outside review ACCEPT on 65f148d2 (98d5863c adds only its wording fixes). CI (Fast) run 44249549774 on 98d5863c: success, 10 of 10 jobs. Earlier: broad gate on 32a81d86 run 1 exit 1 (caminos P-061), run 2 exit 0 (8295 passed); CI (Fast) run 44216648348 on c387064d and run 44222110956 on 9aefdf67: success, 10 of 10 jobs each. 32a81d86 itself has no CI run (every workflow was disabled when it was pushed); its code is covered by both runs. GitHub workflows: CI (Fast) re-enabled 2026-11-17 (Hamm); Dashboard, Macroscope, Nightly notebooks, Publish and CI (Release & Scheduled) disabled (`disabled_manually`; each workflow's `updated_at` is 2026-11-14 08:50 CT). Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
-Working checkout `E:/repos/jaxfne` clean on dev.
-OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling and ratings in HNXJ/ocma `cases/jaxfne/`.
+Stamp: jaxfne@_temp_crazy_sailor_m0m1_b@4b9e58e2 · 2026-11-19. Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
-Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
+Branch `_temp_crazy_sailor_m0m1_b`, worktree `/Users/hamednejat/workspace/dev/jaxfne-crazy-sailor` on the Mac that ran the work. No upstream. Not pushed. `dev` is an ancestor of this branch (checked 2026-11-19).
+Status: local only. The owner's ruling (2026-11-19) blocks the push until record integrity and the required gates pass (O-10, O-11).
 
-## Works (with evidence)
+## Works (observed)
 
-- 0.5.9 published 2026-11-04: tag v0.5.9 on main e0160dfc; `artifacts/release/v0_5_9_release_receipt.json`; checklist 100/100.
-- P3 scored 2026-11-02: Potjans v2 off, Vogels v4 off (S12), Destexhe v3 FAIL 0 of 5. GSDR P3 fit FAIL 2026-11-01; GSDR stays open until replicated.
-- CAMINOS Fig S1 scored (`caminos/RESULT_FIGURES.md`); core route fc0e13df; equivalence criterion declared at f54c022c.
-- PCL R3 chain (6b10132a): oracle arm equals the C++ chain on files 0-4, exact at rtol 1e-12.
-- P-BALANCED ported for 0.5.10 (e179a2d0..9dd1c111); canonical CV pin 0.0585 (1680659e).
-- 2026-11-06..08: HH seed refusal test; homeostatic_ei stable bounds; B1 scripts and M3 fix; Jansen-Rit P3 v1 PASS 5 of 5 (`jansenrit1995/RESULT_P3.md`); PLoS Fig 5A producer and sustained-cycle test; T_v code form declared as variant `tv_form="code"` (8a6ccfc4); A3 scored, permutation moved to 0.5.11.
-- PCL R5-approximate scored 2026-11-12 under signed R4b: all 3168 tasks completed on Windows CPU (`pcl/prereg/P3_fig3_r5_approx_result.md`, `scores/fig3_r5_approx.json`); oracle arm compared (1246 equal, 1922 differing; `approx_diff.json`). Verdict: FAIL. P-055 attributed (`ISSUE_LOG.md`).
-- 2026-11-12: 10B B4 `build_config` repaired; 10D D4 S16 Destexhe panel added; 10F F4 GSDR log-scale parameters named; 10G G3 reproducibility audit §7 updated (checklist 40/100).
-- B1 drive unification and baseline parameter match (T-79, T-80) landed (`b1_harness.py`, `b1_brian2.py`, `b1_nest.py`, `b1_jaxley.py`; `--smoke` verified).
-- T-93 closed 2026-11-17 on dev c387064d (Hamm: budget stays 96.4 MB; bundles gzipped): the pinned 413,532-byte
-  armcheck record is in the tree, `check_tree_size.py --check` exit 0 (88,411,937 of 96,400,000 bytes) and
-  `check_record_integrity.py --check` exit 0 (251 of 251 pinned). `_temp_r5_size_budget`'s 96.8 MB budget raise
-  (357bb357) and state stamps were not taken; its P-053/P-056 audit doc was (Hamm 2026-11-17).
-- PCL attribution closed 2026-11-12 (`pcl/prereg/P3_fig3_r5_attribution_addendum.md`): complex-cell collapse attributed to no-local inhibition, tree drift excluded (`fig3_v4tree_nolocal.json`, T-85).
+- Plasticity Boat dev-100 files moved out of this branch to jomission `_temp_plasticity_boat` (pushed at `280ebd0`). Commit `4b9e58e2` removes the 13 migrated files here; history is kept.
+- V0 regression under JaxFNE source 0.5.9: exact, max abs diff 0.0 (jomission `receipts/dev100_v2/regression/V0_source_0.5.9.log`).
+- V0 regression under pinned `jaxfne==0.5.8`: fails with `AttributeError: module 'jaxfne.paradigm' has no attribute 'SailorConfig'`. The pin lacks the Sailor API that the dev-100 code uses (jomission `V0_pinned_0.5.8.log`).
+- `python3 scripts/check_tree_size.py --check`: exit 0; files 2798, 88,520,409 of 96,400,000 bytes.
+- Owner decision (2026-11-19): the 100-neuron directional encoder is Option A (signed-position population). Recorded in jomission `manifests/todo.json`, `PB-DEV100-V2-VALIDATION`.
 
 ## Broken or in flight
 
-- CAMINOS E1 at n 12: not equivalent, 20 of 24 cells (`caminos/RESULT_FIGURES.md`); oracle kept (Hamm 2026-11-03).
-- PCL R5-exact FAIL (4/16 files) and R5-approximate FAIL under signed R4b (`pcl/prereg/P3_fig3_r5_approx_result.md`). P-055 attributed: complex cell integration time constant (`tau_m = 50 ms`) and 64x fan-in accumulate sub-millivolt float differences, delaying near-threshold complex spikes by ~1 ms and delaying top-down feedback.
-- P-053 (PCL scan vs oracle gap on sparse weights, unreproduced); P-056 (kernel-LFP deep-layer power < 0.5% of L2/3).
-- Papers are never "failed" through 0.6 (Hamm 2026-11-03).
-- Tooling: Cursor CLI blocked on this host, two causes observed 2026-11-12: Group Policy sets
-  `ExecutionPolicy=AllSigned` so `cursor-agent.ps1` and its `.cmd` shim cannot run (`-ExecutionPolicy Bypass` does
-  not override a policy), and the direct `node.exe index.js` launch then fails because `--sandbox` needs macOS or
-  Linux. agy produced no run directory. OCMA round 4 is blocked on this (todo 28).
-- P-055's cited evidence is incomplete: `F:/warehouse/pcl/r5/approx_diff.json` records differing spike times but no
-  membrane potentials, so the `V = 2.9788` vs `3.1950` mV values in the issue row have no receipt on disk
-  (observed 2026-11-12). The attribution stands on the spike-time differences; a replay script is missing.
-
-## Open decisions for the owner
-
-`open_stack.md` has no items. Ruled 2026-11-08: O-85, O-86, O-87; O-89 done; O-88, O-90, O-91, O-92 on standing go. Waiting on Hamm: the NeuroAI code link (anonymous.4open.science mirror). `origin/_temp_kernel-lfp` (ff45364b, 3 patches not in dev) is kept.
-
-## Generated files and their checks
-
-| File | Generator | Check |
+| Item | Evidence (observed 2026-11-19) | Row |
 |---|---|---|
-| `dashboard/notebooks/*.html`, `index.json` | `scripts/export_dashboard_notebook.py` on an executed suite notebook (data on F:, local only) | `tests/test_export_dashboard_notebook.py` |
-| `dashboard/data/replications.json` | `scripts/build_dashboard_data.py` | `--check` (CI `Dashboard`) |
-| `dashboard/figures/*.png`, `manifest.json` | `scripts/build_dashboard_figures.py` | `--check` (CI `Dashboard`) |
-| `docs/start/replications.md` | `scripts/generate_replications_page.py` | `--check` (CI `Dashboard`) |
-| `docs/_static/atlas*/**.html`, two etude dirs' HTML (untracked) | `scripts/build_docs_assets.py --build` | `--check`, `tests/test_build_docs_assets.py` |
-| `docs/start/gallery.md` atlas index | `scripts/generate_gallery.py` | `--check`, `tests/test_generate_gallery.py` |
-| `docs/reference/errors.md` raise-site index | `scripts/generate_errors_index.py` | `--check`, `tests/test_generate_errors_index.py` |
-| `artifacts/assurance/api_contracts/public_surface_contract_v0413.json` | `scripts/generate_public_surface_contract.py` | `tests/test_public_surface_contract_v0413.py` |
+| Record integrity FAIL | `python3 scripts/check_record_integrity.py --check`: violations 1. `artifacts/release/budget_amendment_2026-10-23.md` pinned `c52e830b…`, live `cdc17e41…` | O-10, EX-30 |
+| Broad gate: 13 baseline failures | contract §10; not re-run this session | CS-10 |
+| §13.7 critic verdict REVISE, 9 findings | no fix commit yet | O-2, EX-22 |
+| Plasticity Boat dev-100: R4 fails at all seven criteria-v2 `g_s` tested; R2 passes only at `g_s` ≤ 4.5 | jomission `dev100_gate_record.md` | O-8, EX-25 |
+| Plasticity Boat decoder: sum or mean over each motor group | jomission `O8_decision_packet.md` §8 | O-9, EX-25 |
+| Fixation Boat wording not frozen | contract §13 | O-1, EX-21 |
+| Eight-strategy list and primary metric not frozen | jomission `protocol_v0.md` §3–5 | O-6, EX-26 |
+
+## Not run or not examined
+
+- Broad gate on this tip: not run this session.
+- Plasticity Boat tier-0 suite (33 files) and the `release_artifacts` gate: not run and not examined (EX-31, jomission).
 
 ## Environment
 
-- Windows: Python 3.14; the broad gate runs through `suite_lock.py`, one suite at a time.
-- WSL: `~/venv_jaxfne` (CUDA, numba 0.68), `~/venv_jaxfne_gate` (CPU gate), TeX Live 2026 at `~/texlive/cur`.
-- Large data outside git: `F:/warehouse/{caminos,gsdr,pcl,vogels2011,potjans2014,destexhe2009}/`.
-- NeuroAI 2027 draft: private thesis repo, branch `_temp_neuroai2027`.
+- Scratch logs in the session scratchpad are not durable.
+- Gitignored evidence is not in git: jomission `artifacts/_temp/plasticity_boat/` (9.6 MB, traces and gate runs) exists only on the Mac that ran the work.
 
 ## Next action
 
-Tier 1 is closed except the two blocked items. T-73 waits on committing the R5 artifacts and moving the PCL lane
-SHA in `dashboard/sources.json`; T-77 waits on an `hh-at01` lane folder or a dated exception. Next executable:
-Tier 2 lane on B4 (`build_config`) and F4 (GSDR log-scale names), then T-79/T-80 for the B1 benchmark.
+1. Hamm: decide O-10 (repin to `cdc17e41…` on a SHA-specific go, or restore `c52e830b…`).
+2. Hamm: confirm whether "push all" covers this branch. Under the ruling it does not until O-10 and CS-10 close (O-11).
+3. Then CS-10 (broad gate to 0 failures, without weakening the gate), then EX-22 (critic findings).
+4. Plasticity Boat start steps: jomission `_temp_plasticity_boat/artifacts/programme/design/plans/plasticity_boat/HANDOFF.md`.
