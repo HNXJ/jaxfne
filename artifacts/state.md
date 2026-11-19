@@ -1,7 +1,7 @@
 # state
 
-Stamp: jaxfne@dev@98d5863c · 2026-11-18. Last broad gate: 98d5863c (ephaptic kernel fix) on 2026-11-18, regular clone, Windows: exit 0 (8297 passed, 0 failed, all lanes PASS); outside review ACCEPT on 65f148d2 (98d5863c adds only its wording fixes). CI (Fast) run 44249549774 on 98d5863c: success, 10 of 10 jobs. Earlier: broad gate on 32a81d86 run 1 exit 1 (caminos P-061), run 2 exit 0 (8295 passed); CI (Fast) run 44216648348 on c387064d and run 44222110956 on 9aefdf67: success, 10 of 10 jobs each. 32a81d86 itself has no CI run (every workflow was disabled when it was pushed); its code is covered by both runs. GitHub workflows: CI (Fast) re-enabled 2026-11-17 (Hamm); Dashboard, Macroscope, Nightly notebooks, Publish and CI (Release & Scheduled) disabled (`disabled_manually`; each workflow's `updated_at` is 2026-11-14 08:50 CT). Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
-Working checkout `E:/repos/jaxfne` clean on dev.
+Stamp: jaxfne@dev@0f1f0d22 · 2026-11-18. Last broad gate: 0f1f0d22 (P-062 step 2, `recurrent_backend="auto"`) on 2026-11-18, regular clone, Windows: exit 0 (8324 passed, 0 failed, 48 skipped, 6 xpassed, all lanes PASS); independent re-review ACCEPT on 5e1818f9 (0f1f0d22 adds a None-edge-list guard and four test updates). CI (Fast) run 44424229013 on 0f1f0d22: success, 10 of 10 jobs. Earlier on 2026-11-18: 06f9bf26 (P-062 step 1) CI 44392030376, 6b7acd62 (P-057) CI 44324199890, 98d5863c (ephaptic kernel) CI 44249549774, each 10 of 10. GitHub workflows: CI (Fast) re-enabled 2026-11-17 (Hamm); Dashboard, Macroscope, Nightly notebooks, Publish and CI (Release & Scheduled) disabled (`disabled_manually`; each workflow's `updated_at` is 2026-11-14 08:50 CT). Checklist 0.5.10: 40/100 (10B B4 scored 2, 10D D4 scored 2, 10E E1 scored 7, E2 scored 3, 10F F4 scored 1, 10G G3 scored 1).
+Checkout `E:/repos/jaxfne` (2026-11-18): clean, at f146932c, two state-only commits of 2026-11-13 ahead of its stale `origin/dev` (24a95963), never pushed; agents work in `D:/tmp` clones.
 OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling and ratings in HNXJ/ocma `cases/jaxfne/`.
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
@@ -28,6 +28,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - CAMINOS E1 at n 12: not equivalent, 20 of 24 cells (`caminos/RESULT_FIGURES.md`); oracle kept (Hamm 2026-11-03).
 - PCL R5-exact FAIL (4/16 files) and R5-approximate FAIL under signed R4b (`pcl/prereg/P3_fig3_r5_approx_result.md`). P-055 attributed: complex cell integration time constant (`tau_m = 50 ms`) and 64x fan-in accumulate sub-millivolt float differences, delaying near-threshold complex spikes by ~1 ms and delaying top-down feedback.
 - P-053 (PCL scan vs oracle gap on sparse weights, unreproduced); P-056 (kernel-LFP deep-layer power < 0.5% of L2/3).
+- `simulate_batch` silent drops (2026-11-18, failing tests on `_temp_batch-silent-drops`): P-063 dense batch ignores finite edge delays; P-064 batch ignores `hdp_rule_params` (registered rules run at zero gain, `ephaptic_field` refused).
 - Papers are never "failed" through 0.6 (Hamm 2026-11-03).
 - Tooling: Cursor CLI blocked on this host, two causes observed 2026-11-12: Group Policy sets
   `ExecutionPolicy=AllSigned` so `cursor-agent.ps1` and its `.cmd` shim cannot run (`-ExecutionPolicy Bypass` does

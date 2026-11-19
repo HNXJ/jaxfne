@@ -62,6 +62,22 @@ def test_dense_backend_rejects_nonzero_delay_steps():
         model.simulate(_sim(backend="dense"))
 
 
+def test_dense_batch_rejects_nonzero_delay_steps():
+    """P-063: simulate_batch ran dense with delayed edges and dropped the delays."""
+    model = _model_with_delays(delay_steps=2)
+    with pytest.raises(ValueError, match="no finite-delay path"):
+        model.simulate_batch(_sim(backend="dense"), n_seeds=2)
+
+
+def test_auto_batch_runs_delayed_edges_on_edge_list():
+    model = _model_with_delays(delay_steps=2)
+    auto = model.simulate_batch(jtfne.Simulation(duration_ms=10.0, dt_ms=1.0, seed=1), n_seeds=2)
+    edge = model.simulate_batch(_sim(backend="edge_list"), n_seeds=2)
+    assert auto["metadata"]["recurrent_backend"] == "edge_list"
+    no_delay = _model_with_delays(delay_steps=0).simulate_batch(_sim(backend="edge_list"), n_seeds=2)
+    assert not np.array_equal(np.asarray(edge["V_m"]), np.asarray(no_delay["V_m"])), "fixture delays must act"
+
+
 def test_model_simulate_rejects_negative_delay_steps():
     model = _model_with_delays(delay_steps=-1)
     with pytest.raises(ValueError, match="delay_steps must be >= 0"):

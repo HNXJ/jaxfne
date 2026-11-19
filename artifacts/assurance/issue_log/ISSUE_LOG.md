@@ -309,3 +309,37 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   tune_handles), fixed; four tests asserted that the old default refuses the receptor kernel, delays and
   rule edges (simulate, batch); they now request `dense` explicitly, and a test pins `auto` running rule edges
   on edge_list.
+- Closed 2026-11-18 (Hamm): step 2 on dev at 0f1f0d22 (broad gate rc 0, 8324 passed, 0 failed; independent
+  re-review ACCEPT on 5e1818f9; CI (Fast) 44424229013 green, 10 of 10 jobs). Evidence:
+  `F:/warehouse/jaxfne/P-062_2026-11-18/` (gate logs, `step2/` probes, `SHA256SUMS`). Follow-ups P-063, P-064.
+
+### P-063
+
+- Date: 2026-11-18. Type: BUG. Area: `simulate_batch()` on the Izhikevich route, finite edge delays.
+  Severity: high for any batch statistic of a model with nonzero `delay_steps` run on dense.
+- Observation: `simulate_batch` with `recurrent_backend="dense"` runs a model whose edges carry nonzero
+  `delay_steps` and drops the delays; `simulate()` refuses the same run ("no finite-delay path",
+  `_model_simulate.py`, `_simulate_arrays`). `auto` in `simulate_batch` keeps dense for delays (P-062 step 2
+  left it so that no succeeding run changed).
+- Minimal reproduction: `suite2_net1_config(seed=7, n=40, duration_ms=60, dt_ms=1)`, delay_steps 0 vs 5 on
+  every edge, `simulate_batch(n_seeds=2)`: dense `V_m` identical for 0 and 5; edge_list `V_m` differs
+  (positive control). Evidence: `F:/warehouse/jaxfne/P-063_P-064_2026-11-18/` (`probe_batch_delay.py`, log).
+- Expected: dense refuses nonzero delays as in `simulate()`; `auto` selects edge_list.
+- Failing tests: `tests/test_delay_boundary_v0417.py::test_dense_batch_rejects_nonzero_delay_steps`,
+  `::test_auto_batch_runs_delayed_edges_on_edge_list`. Repair changes the output of every default batch run
+  with delayed edges (those outputs ignore the delays today).
+
+### P-064
+
+- Date: 2026-11-18. Type: BUG. Area: `simulate_batch()` with `enable_hdp=True` and a registered rule.
+  Severity: high for any batch statistic of a registered HDP rule with non-default `hdp_rule_params`.
+- Observation: `simulate_batch` passes `kernel_kwargs.get("hdp_rule_params", {})` where `kernel_kwargs =
+  _hdp_kernel_kwargs(_hdp)` never carries that key, so the registered kernel always gets `{}`; `simulate()`
+  passes `hp.get("hdp_rule_params", {})`. A rule with gains runs at its zero-gain defaults, and
+  `ephaptic_field` is refused ("needs src, dst, weight and v_rest").
+- Minimal reproduction: 60-cell tensor, `synthetic_presyn_gain` with `{"gamma": 5.0, "k_h": 2.0, "k_w": 2.0}`
+  vs no params, fresh model each run: `simulate()` `V_m` differs, `simulate_batch()` `V_m` identical.
+  Evidence: `F:/warehouse/jaxfne/P-063_P-064_2026-11-18/` (`probe_batch_rule.py`, log).
+- Failing tests: `tests/test_hdp_zero_rule_public_identity.py::test_simulate_batch_applies_hdp_rule_params`,
+  `::test_simulate_batch_runs_ephaptic_field`. Repair changes the output of every batch run of a registered
+  rule with non-default parameters (those outputs ignore the parameters today).

@@ -149,6 +149,25 @@ def test_placeholder_w_model_records_edge_list_with_explicit_runtime():
         assert _batch(model, **runtime)["metadata"]["recurrent_backend"] == "edge_list"
 
 
+def test_simulate_batch_applies_hdp_rule_params():
+    """P-064: simulate_batch passed {} for hdp_rule_params, so a rule with gains ran at zero gain."""
+    gain = {"hdp_rule": "synthetic_presyn_gain", "hdp_rule_params": {"gamma": 5.0, "k_h": 2.0, "k_w": 2.0}}
+    zero = _batch(_small_model(), enable_hdp=True, hdp_params={"hdp_rule": "synthetic_presyn_gain"})
+    with_gain = _batch(_small_model(), enable_hdp=True, hdp_params=gain)
+    one = _run(_small_model(), enable_hdp=True, hdp_params=gain)
+    assert not np.array_equal(np.asarray(one.V_m), np.asarray(_run(_small_model(), **RULE).V_m)), (
+        "fixture: the gain must act in simulate()"
+    )
+    assert not np.array_equal(np.asarray(zero["V_m"]), np.asarray(with_gain["V_m"]))
+
+
+def test_simulate_batch_runs_ephaptic_field():
+    pos = np.random.default_rng(1).uniform(0.0, 100.0, size=(40, 2))
+    params = ephaptic_rule_params(ephaptic_kernel(pos, sigma=15.0, cutoff=40.0), alpha=0.5, v_rest=-65.0)
+    out = _batch(_small_model(), enable_hdp=True, hdp_params={"hdp_rule": EPHAPTIC_RULE_NAME, "hdp_rule_params": params})
+    assert out["metadata"]["recurrent_backend"] == "edge_list"
+
+
 def _placeholder_w_model():
     from scripts.perf.w10_allocation_map import build_config
 
