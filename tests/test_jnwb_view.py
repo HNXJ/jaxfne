@@ -1,11 +1,15 @@
 """Signals -> jnwb seam (todo 0d): units, sampling rate, spike times, proxies."""
 
+import math
+
 import jax.numpy as jnp
 import numpy as np
 import pytest
 
 import jaxfne as jtfne
-from jaxfne.core import Signals, Simulation, TrialBatch, TrialBatchResult, TrialResult, TrialSpec
+from jaxfne import neuronal_tensor as nt
+from jaxfne import pynwb_compat
+from jaxfne.core import RuntimeConfig, Signals, Simulation, TrialBatch, TrialBatchResult, TrialResult, TrialSpec
 from jaxfne.jnwb_view import to_jnwb, to_jnwb_trials
 
 
@@ -217,3 +221,172 @@ def test_the_jnwb_probe_falls_back_on_any_failure(monkeypatch):
         core._jnwb_compute_psd.cache_clear()
         assert core._jnwb_compute_psd() is None
     core._jnwb_compute_psd.cache_clear()
+
+
+def _delayed_two_site_rate_model(
+    direction: str,
+    *,
+    duration_ms: float = 1200.0,
+    dt_ms: float = 1.0,
+    delay_ms: float = 6.0,
+    weight: float = 0.6,
+):
+    rate_params = {
+        "tau_ms": 5.0,
+        "transfer": "threshold_linear",
+        "gain": 1.0,
+        "sigma": 0.20,
+        "r0": 1.0,
+    }
+    areas = [
+        nt.Area(
+            name=name,
+            layers=[
+                nt.Layer(
+                    name="L1",
+                    n_neurons=1,
+                    neuron_types=[
+                        nt.NeuronType.make(
+                            "E",
+                            fraction=1.0,
+                            emitter="rate",
+                            emitter_params=rate_params,
+                            drive=0.0,
+                        )
+                    ],
+                )
+            ],
+            inter_connections=(),
+        )
+        for name in ("SiteA", "SiteB")
+    ]
+    if direction == "uncoupled":
+        conns = ()
+    else:
+        src, dst = ("SiteA", "SiteB") if direction == "forward" else ("SiteB", "SiteA")
+        conns = (
+            nt.AreaConnection(
+                source_area=src,
+                source_layer="L1",
+                source_neuron_type="E",
+                target_area=dst,
+                target_layer="L1",
+                target_neuron_type="E",
+                mechanism="AMPA",
+                static=nt.StaticParams(dT_ms=2.0),
+                plastic=nt.PlasticParams(w_mech=weight * math.sqrt(2.0)),
+                delay_ms=delay_ms,
+            ),
+        )
+    tensor = nt.NeuronalTensor(
+        name=f"jnwb-rate-{direction}",
+        areas=areas,
+        area_connections=conns,
+    )
+    runtime = nt.RuntimeConfiguration(
+        seed=0,
+        duration_ms=duration_ms,
+        dt_ms=dt_ms,
+        dtype="float32",
+        emitter="rate",
+        device="cpu",
+        jit=False,
+    )
+    return jtfne.construct(tensor, runtime)
+
+
+def test_delayed_two_site_rate_edge_table_and_trials_seam():
+    fwd = _delayed_two_site_rate_model("forward")
+    fwd_edges = fwd.edge_table()
+    assert len(fwd_edges) == 1
+    assert int(fwd_edges[0]["pre"]) == 0 and int(fwd_edges[0]["post"]) == 1
+    assert int(fwd_edges[0]["delay_steps"]) == 6
+    assert float(fwd_edges[0]["weight"]) == pytest.approx(0.6, rel=1e-6, abs=1e-6)
+
+    rev = _delayed_two_site_rate_model("reverse")
+    rev_edges = rev.edge_table()
+    assert len(rev_edges) == 1
+    assert int(rev_edges[0]["pre"]) == 1 and int(rev_edges[0]["post"]) == 0
+    assert int(rev_edges[0]["delay_steps"]) == 6
+
+    unc = _delayed_two_site_rate_model("uncoupled")
+    assert len(unc.edge_table()) == 0
+
+    sim = Simulation(
+        duration_ms=1200.0,
+        dt_ms=1.0,
+        seed=0,
+        runtime=RuntimeConfig(
+            dtype="float32",
+            recurrent_backend="edge_list",
+            enable_hdp=False,
+            jit=False,
+        ),
+    )
+    batch_a = TrialBatch(batch_id="a", trials=(TrialSpec("t0", seed=0), TrialSpec("t1", seed=1)))
+    batch_b = TrialBatch(batch_id="b", trials=(TrialSpec("t0", seed=0), TrialSpec("t1", seed=1)))
+    trials_a = to_jnwb_trials(fwd.run_trials(batch_a, sim))
+    trials_b = to_jnwb_trials(fwd.run_trials(batch_b, sim))
+
+    assert trials_a.fs_hz == pytest.approx(1000.0, abs=1e-12)
+    assert trials_a.dt_ms == pytest.approx(1.0, abs=1e-12)
+    np.testing.assert_allclose(np.diff(trials_a.views[0].time_s), 0.001, rtol=1e-12)
+    assert trials_a.views[0].V_m.flags.writeable is False
+    assert int(trials_a.views[0].metadata["n_floored_to_one_step"]) == 0
+    assert np.array_equal(trials_a.stack("V_m"), trials_b.stack("V_m"))
+    assert not np.array_equal(trials_a.views[0].V_m, trials_a.views[1].V_m)
+    assert float(np.min(trials_a.stack("V_m"))) > 0.0
+
+    unc_trials = to_jnwb_trials(
+        unc.run_trials(
+            TrialBatch(
+                batch_id="unc",
+                trials=tuple(TrialSpec(f"u{i}", seed=200 + i) for i in range(8)),
+            ),
+            sim,
+        )
+    )
+    unc_rates = np.asarray(unc_trials.stack("V_m")[:, 200:, :], dtype=np.float64)
+    assert float(np.min(unc_rates)) > 0.0
+    theo_var = (0.20 ** 2) / (2.0 - 1.0 / 5.0)
+    assert float(np.var(unc_rates)) == pytest.approx(theo_var, rel=0.25)
+
+
+def test_delayed_two_site_rate_nwb_roundtrip(tmp_path):
+    pynwb = pytest.importorskip("pynwb")
+    jnwb = pytest.importorskip("jnwb")
+
+    model = _delayed_two_site_rate_model("forward", duration_ms=200.0)
+    sig = model.simulate(
+        Simulation(
+            duration_ms=200.0,
+            dt_ms=1.0,
+            seed=0,
+            runtime=RuntimeConfig(
+                dtype="float32",
+                recurrent_backend="edge_list",
+                enable_hdp=False,
+                jit=False,
+            ),
+        )
+    )
+    view = to_jnwb(sig)
+    nwb_path = pynwb_compat.write_nwb(
+        view,
+        tmp_path / "delayed_rate.nwb",
+        identifier="jaxfne-delayed-rate-smoke",
+    )
+    with pynwb.NWBHDF5IO(str(nwb_path), "r") as io:
+        nwb = io.read()
+        vm_series = nwb.acquisition["V_m"]
+        assert not isinstance(vm_series, pynwb.ecephys.ElectricalSeries)
+        assert vm_series.unit == (view.representation or "unspecified")
+        assert "volt" not in vm_series.unit.lower()
+        assert vm_series.rate == pytest.approx(1000.0, abs=1e-12)
+        assert vm_series.starting_time == pytest.approx(0.0, abs=1e-12)
+        np.testing.assert_array_equal(vm_series.data[:], view.V_m)
+
+    loaded = pynwb_compat.read_nwb(nwb_path)
+    assert loaded.identifier == "jaxfne-delayed-rate-smoke"
+    assert hasattr(jnwb, "read_nwb")
+
