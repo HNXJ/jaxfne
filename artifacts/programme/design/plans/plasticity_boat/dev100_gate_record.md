@@ -43,3 +43,31 @@ Correction (2026-11-19, after the v2 sweep): the R4 failure in R3 is in the moto
 
 1. Motor-group count definition: the runner sums spikes over each 5-neuron group (docstring: "the decoder is unchanged"). Frozen v1 says only "counts". Sum gives about 5× the force gain of the mean. P1 is reported under the sum. Confirm or change (a change needs a new criteria version).
 2. R2 and R4 failure: revise the input level or gain under a new labelled criteria version, or keep v1 and stop the dev-100 track.
+
+## v2 resting sweep (criteria v2, 2026-11-19; fixed boat, no decoder)
+
+Sensory gain g_s (non-motor E distance drive), directional gain g_d = 24 unchanged (criteria v2 C1). Files: `_temp/plasticity_boat/dev100_v2/resting/`.
+
+| g_s | R2 E (Hz) | R2 pass | R4 max (Hz) | R4 pass | pass R2 to R4 |
+|---|---|---|---|---|---|
+| 24 | 250.0 | FAIL | 325.0 | FAIL | no |
+| 18 | 250.0 | FAIL | 325.0 | FAIL | no |
+| 12 | 189.0 | FAIL | 326.5 | FAIL | no |
+| 9 | 152.2 | FAIL | 300.0 | FAIL | no |
+| 6 | 110.0 | FAIL | 286.0 | FAIL | no |
+| 4.5 | 86.0 | pass | 294.0 | FAIL | no |
+| 3 | 65.0 | pass | 318.5 | FAIL | no |
+
+R3 passes at every g_s (toward minus opposite ≥ 5 Hz), but R4 fails at every g_s on the toward-group motor neurons (directional drive g_d = 24). The C3 rule therefore yields no (g_s, κ) pair: the v2 track stops at C3 step 3 unless the owner decides otherwise.
+
+Diagnostic only (not used by the rule; files named `_gd`): at g_s = 3, the directional gain g_d sets the toward-group motor rate.
+
+| g_d (g_s = 3) | R3 diff (Hz) | R4 max (Hz) | R4 pass |
+|---|---|---|---|
+| 24 | 307.0 | 318.5 | FAIL |
+| 12 | 234.0 | 246.5 | FAIL |
+| 8 | 144.5 | 155.5 | FAIL |
+| 6 | 105.5 | 117.5 | FAIL |
+| 4 | 53.5 | 82.2 | pass |
+
+At g_s = 4.5, g_d = 4 still fails R4 (109.4 Hz, a non-motor E neuron in R2). g_s = 3 is needed for R2 and R4. A directional gain near 4 changes the controller's sensory input by 6× and was not authorized. Owner decision needed: authorize a directional-gain change (diagnostic suggests g_d ≈ 4 with g_s = 3) under criteria v2 before calibration and validation, or stop the dev-100 track.
