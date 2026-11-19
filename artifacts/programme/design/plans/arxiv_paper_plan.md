@@ -243,7 +243,7 @@ VERIFIED means an independent reviewer's verdict on the capability itself; none 
 | CAMINOS | P3 v6, v7; P6 v2 signed | P6 PASS; P3 PASS under v7 after v6 R4 failed; PV-SOM lag 6.47 vs 8.5 ms off | public API; JAX oracle | registry "mixed" |
 | Vogels 2011 | P3 v4 signed 2026-11-02 | off, R-E 4.13 Hz (`vogels2011/RESULT_P3.md:3`) | public API | registry null |
 | PCL (N'dri 2025) | Fig 3 v4, v5, R4b signed | FAIL at v4, v5, R5-exact, R5-approximate (`pcl/prereg/P3_fig3_r5_approx_result.md:10`) | core equals numba oracle on 16 pilot files | P-055 attributed |
-| GSDR | P3 fit signed 2026-11-01 | FAIL, 0 of 5 seeds (`gsdr2026/RESULT_P3_fit.md:10`) | UNKNOWN | no DOI (unpublished source) |
+| GSDR | P3 fit signed 2026-11-01 | FAIL, 0 of 5 seeds (`gsdr2026/RESULT_P3_fit.md:10`) | UNKNOWN | doi:10.1371/journal.pone.0354021 (PLoS One 2026; Hamm 2026-11-19, `gsdr2026/SOURCE_P1.md:3`); route not yet checked |
 | Destexhe 2009 | P3 v3 signed 2026-11-02 | FAIL, 0 of 5 (`destexhe2009/RESULT_P3.md:3`) | public API | registry null |
 | Jansen-Rit 1995 | P3 v1, signed by the keeper agent on Hamm's standing go (erratum) | PASS 5 of 5, conditional on a declared hold and RK4 | lane scripts | signature by agent; approximate integrator |
 | Mejias 2016 | P3 unsigned | none | public API | not scorable |
