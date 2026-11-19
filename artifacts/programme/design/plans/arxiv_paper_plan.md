@@ -150,6 +150,21 @@ check run at this baseline). Mandatory gates: broad gate and CI per promoted SHA
   transmembrane current balance; LFP, CSD and EEG/MEG readouts from it are proxies (`methods.md` §6),
   so stage 9 can claim internal consistency of operators, not physical forward models.
 - H boundedness is clamp-imposed (`methods.md` §5.3); a stability claim needs the unclamped analysis.
+- Notation: the directive's continuous form (x neural state, s source, h H-state, phi field, y_m probes)
+  reuses letters the sealed language already binds (`docs/theory/doctrine/tfne_algebra.md:19-27`: x upstream
+  input, h mutable carry, s static state; execution normal form (h_t, x_t; s) -> (h_{t+1}, y_t)). The paper
+  needs one notation table (S1). Proposed mapping, to check against code at stage 3:
+
+| Directive | Sealed language / code | Note |
+|---|---|---|
+| x (neural state), its ODE | part of h (kernel carry: v, u, synapses, spikes) | executed as a discrete map, explicit Euler; the ODE is the per-family generator |
+| u (input) | x (typed upstream boundary) | drives and stimuli |
+| h (H-state), dh/dt = H(...) | H inside h; RBD dH/dt = F_H, HDP dW/dt = F_W (`rbs_rbd_hdp.md`) | typed coupling maps Gamma_H required |
+| G (geometry), theta | s (static: topology, parameters, fractional geometry) | geometry is relative, no mm semantics (`tfne_algebra.md:91-100`) |
+| s = S(x, h; G) | Q = S_psi(x_t), relative source (`methods.md` Eq. 5) | no current balance (gap above) |
+| phi = K[s] | Phi = F_gamma(Q), post hoc on frozen traces (`methods.md` §1) | linear proxy |
+| lambda_eph C_eph(x, phi) | `ephaptic_field` HDP rule, alpha (`hdp_rules_ephaptic.py`) | reads v, not Phi (gap above) |
+| y_m = P_m(s, phi, h; G_m) | Y = P_eta(Phi) | probes |
 
 ### Stage 1 competing frameworks (PROPOSED; each row inferred until checked against the tool's paper and docs)
 

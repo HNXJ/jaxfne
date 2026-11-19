@@ -154,7 +154,7 @@ manifest sha256 7896ae1e...); values over the last 0.5 s. Descriptive: no tolera
 | Panel | Condition | Mean E / PV / SOM (Hz) | E peak-to-peak (Hz) | Spectral peak |
 |---|---|---|---|---|
 | 3C | PV randomized 40 % | 1.98 / 9.39 / 12.90 | 3.42 | 20.0 Hz |
-| 3E | PV randomized 90 % | 7.20 / 18.39 / 49.55 | 38.68 | 8.0 Hz |
+| 3E | PV randomized 90 % | 7.20 / 18.39 / 49.54 | 38.68 | 8.0 Hz |
 | 3D | SOM randomized 40 % | 1.32 / 8.33 / 6.11 | 0.000 | none (fixed point) |
 | 3F | SOM randomized 90 % | 1.19 / 7.38 / 5.64 | 0.000 | none (fixed point) |
 
