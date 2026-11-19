@@ -212,3 +212,34 @@ def test_fig5a_unknown_coupling_is_refused():
         mf.params_with_coupling("SOMXX", 1.0)
     with pytest.raises(ValueError):
         mf.params_with_coupling("PVSOM", -1.0)
+
+
+def test_fig4a_ratio_split_holds_the_interneuron_total():
+    """SOM/PV ratio r at fixed N_PV + N_SOM (1500): r = 1 is the reference split, r = 4 gives 300 / 1200."""
+    assert mf.params_with_ratio(1.0)["N"] == mf.PARAMS["N"]
+    p = mf.params_with_ratio(4.0)
+    assert (p["N"]["PV"], p["N"]["SOM"], p["N"]["E"]) == (300, 1200, mf.PARAMS["N"]["E"])
+    assert mf.PARAMS["N"] == {"E": 8000, "PV": 750, "SOM": 750}  # the copy left PARAMS alone
+    for bad in (0.0, -1.0, float("nan")):
+        with pytest.raises(ValueError):
+            mf.params_with_ratio(bad)
+
+
+def test_fig4a_reference_ratio_equals_fig5a_reference_point():
+    """At r = 1 the Fig. 4A point carries the Fig. 5A 0 nS metrics exactly; the sweep echoes its ratios."""
+    kw = dict(T_s=1.0, T_stab_s=1.0)
+    out = mf.fig4a_sweep([1.0], **kw)
+    assert out["ratios"] == [1.0]
+    r = out["results"][0]
+    ref = mf.fig5a_point("PVSOM", 0.0, **kw)
+    assert (r["ratio"], r["N_PV"], r["N_SOM"]) == (1.0, 750, 750)
+    assert {k: v for k, v in r.items() if k not in ("ratio", "N_PV", "N_SOM")} == \
+        {k: v for k, v in ref.items() if k != "g_ns"}
+
+
+def test_fig4a_ratio_changes_e_trajectory():
+    """A ratio other than 1 is consumed: the E-rate trace differs from the reference."""
+    _, nu_mod, _ = mf.simulate_meanfield(0.5, params=mf.params_with_ratio(4.0))
+    _, nu_ref, _ = mf.simulate_meanfield(0.5)
+    assert np.all(np.isfinite(nu_mod))  # precondition
+    assert np.max(np.abs(nu_mod[:, 0] - nu_ref[:, 0])) > 1e-6

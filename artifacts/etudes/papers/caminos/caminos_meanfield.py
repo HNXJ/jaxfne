@@ -352,7 +352,13 @@ def _spectrum_peak(e, dt_s):
 
 
 def fig5a_point(coupling, g_ns, T_s=4.0, dt_s=1e-4, T_stab_s=8.0, params=PARAMS):
-    """One Fig. 5A sweep point: fixed point, stability and limit cycle at g_ns nS.
+    """One Fig. 5A sweep point at g_ns nS: {"g_ns": g_ns} followed by sweep_point_metrics."""
+    p = params_with_coupling(coupling, g_ns, params)
+    return {"g_ns": float(g_ns), **sweep_point_metrics(p, T_s, dt_s, T_stab_s)}
+
+
+def sweep_point_metrics(p, T_s=4.0, dt_s=1e-4, T_stab_s=8.0):
+    """Fixed point, stability and limit cycle of the mean field with parameters p (Figs. 4A and 5A).
 
     Fixed point from fixed_point (scipy root, Methods "Fixed point computation and stability").
     The main run starts at DEFAULT_START; frequency is the spectral peak of the E rate over the
@@ -365,7 +371,6 @@ def fig5a_point(coupling, g_ns, T_s=4.0, dt_s=1e-4, T_stab_s=8.0, params=PARAMS)
     Resolution: a focus decaying slower than 10% per quarter counts as oscillating; on SOM->SOM a 16 s probe
     decayed about 12% per 2 s at 1.32 nS and to zero by 1.34 nS.
     """
-    p = params_with_coupling(coupling, g_ns, params)
     x, res = fixed_point(p)
     t, nu, _ = simulate_meanfield(T_s, dt_s, p)
     e = nu[t >= T_s / 2.0, 0]
@@ -379,7 +384,7 @@ def fig5a_point(coupling, g_ns, T_s=4.0, dt_s=1e-4, T_stab_s=8.0, params=PARAMS)
     oscillating = ptp4 > FIG5A_PTP_FLOOR_HZ and ptp4 >= FIG5A_SUSTAIN * ptp3
     stable = (not oscillating
               and abs(float(q4.mean()) - float(x[0])) <= max(0.5, 0.2 * abs(float(x[0]))))
-    return {"g_ns": float(g_ns), "freq_hz": _spectrum_peak(e, dt_s) if oscillating else 0.0,
+    return {"freq_hz": _spectrum_peak(e, dt_s) if oscillating else 0.0,
             "amplitude_hz": ptp / 2.0, "fixed_E_hz": float(x[0]), "stable": bool(stable),
             "min_E_hz": float(e.min()), "max_E_hz": float(e.max()),
             "fixed_nu_hz": [float(v) for v in x[:3]],
@@ -396,6 +401,35 @@ def fig5a_sweep(coupling, g_values_ns, T_s=4.0, dt_s=1e-4, T_stab_s=8.0, params=
     g_list = [float(g) for g in g_values_ns]
     return {"coupling": coupling, "g_values_ns": g_list,
             "results": [fig5a_point(coupling, g, T_s, dt_s, T_stab_s, params) for g in g_list]}
+
+
+# ---------------------------------------------------------------------------
+# Fig. 4A bottom: SOM/PV density ratio at a fixed interneuron total N_PV + N_SOM (1500 in the reference,
+# line 183). The split is the network sweep's (cellrep_figures.fig6a_sweep): N_PV = round(total / (1 + r)),
+# N_SOM = total - N_PV. The ratio enters the mean field only through N in f_X = nu_X p N_X (moments).
+# ---------------------------------------------------------------------------
+def params_with_ratio(ratio, params=PARAMS):
+    """Copy of params with SOM/PV = ratio at the same N_PV + N_SOM. Ratios that are not > 0 are refused."""
+    if not float(ratio) > 0.0:
+        raise ValueError("SOM/PV ratio must be > 0")
+    total = params["N"]["PV"] + params["N"]["SOM"]
+    n_pv = int(round(total / (1.0 + float(ratio))))
+    p = dict(params)
+    p["N"] = {"E": params["N"]["E"], "PV": n_pv, "SOM": total - n_pv}
+    return p
+
+
+def fig4a_point(ratio, T_s=4.0, dt_s=1e-4, T_stab_s=8.0, params=PARAMS):
+    """One Fig. 4A point: {"ratio", "N_PV", "N_SOM"} followed by sweep_point_metrics."""
+    p = params_with_ratio(ratio, params)
+    return {"ratio": float(ratio), "N_PV": p["N"]["PV"], "N_SOM": p["N"]["SOM"],
+            **sweep_point_metrics(p, T_s, dt_s, T_stab_s)}
+
+
+def fig4a_sweep(ratios, T_s=4.0, dt_s=1e-4, T_stab_s=8.0, params=PARAMS):
+    """Sweep the SOM/PV ratio. Returns {"ratios": [...], "results": [fig4a_point ...]}."""
+    r_list = [float(r) for r in ratios]
+    return {"ratios": r_list, "results": [fig4a_point(r, T_s, dt_s, T_stab_s, params) for r in r_list]}
 
 
 def main_meanfield():
