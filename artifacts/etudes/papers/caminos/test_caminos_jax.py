@@ -662,6 +662,41 @@ def test_p6_gate4_converter_known_answer(tmp_path):
                       wall_s=0.0, start_time="t", sha="b" * 40)
 
 
+def test_p6_write_run_retries_a_held_replace(tmp_path, monkeypatch):
+    """P-061: one PermissionError on the tmp -> final rename (a file held by another process) is retried."""
+    api = _p6api()
+    real_replace = api.os.replace
+    failures = []
+
+    def flaky(src, dst):
+        if Path(dst).name in {"manifest.json", api.run_filename(1, 0.07)} and Path(dst).name not in failures:
+            failures.append(Path(dst).name)
+            raise PermissionError(13, "Access is denied", str(dst))
+        return real_replace(src, dst)
+
+    monkeypatch.setattr(api.os, "replace", flaky)
+    counts = np.zeros((10, 3), dtype=np.int32)
+    sizes = {"E": 1, "PV": 1, "SOM": 1}
+    api.write_run(tmp_path, p=0.07, seed=1, T_s=0.001, counts=counts, sizes=sizes,
+                  wall_s=0.0, start_time="t", sha="a" * 40)
+    assert sorted(failures) == sorted(["manifest.json", api.run_filename(1, 0.07)]), "fixture: both renames must fail once"
+    assert (tmp_path / "manifest.json").exists() and (tmp_path / api.run_filename(1, 0.07)).exists()
+    assert not list(tmp_path.glob("*.tmp"))
+
+
+def test_p6_write_run_reraises_a_persistent_permission_error(tmp_path, monkeypatch):
+    api = _p6api()
+
+    def held(src, dst):
+        raise PermissionError(13, "Access is denied", str(dst))
+
+    monkeypatch.setattr(api.os, "replace", held)
+    monkeypatch.setattr(api.time, "sleep", lambda s: None)
+    with pytest.raises(PermissionError):
+        api.write_run(tmp_path, p=0.07, seed=1, T_s=0.001, counts=np.zeros((10, 3), dtype=np.int32),
+                      sizes={"E": 1, "PV": 1, "SOM": 1}, wall_s=0.0, start_time="t", sha="a" * 40)
+
+
 # --- Cell Reports 2025 parameter set (CELLREP_PARAMS, notebook cell 1) ---
 
 _PARAMS_A508B24C = {

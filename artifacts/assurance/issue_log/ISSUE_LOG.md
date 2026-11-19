@@ -234,6 +234,13 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
     dump during the gate; needs admin).
 - Possible change: retry `os.replace` on `PermissionError` a few times with a short back-off, with a test that
   injects one failed replace. That closes the spurious failure (T-96), not the diagnosis.
+- Recurrence 2026-11-19: 0 `WinError 5` in the six later broad-gate logs (06f9bf26, 5e1818f9, 0f1f0d22,
+  32d24add, 4dee0a6d, 97395d74; caminos lane PASS in every log that reached it).
+- Repair (Hamm 2026-11-19, "Retry on PermissionError"): `caminos_api._replace` retries `os.replace` up to 5 times
+  (back-off 0.05 s x attempt) and re-raises the last error; both renames in `write_run` use it. Tests
+  `test_caminos_jax.py::test_p6_write_run_retries_a_held_replace` (red before),
+  `::test_p6_write_run_reraises_a_persistent_permission_error`. Cause stays inferred. Sibling sites in
+  `run_caminos.py` are todo T-96. Closes when on dev.
 
 ### P-062
 

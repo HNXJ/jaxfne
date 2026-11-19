@@ -296,6 +296,18 @@ def _refuse_existing(out_dir, fname, sha):
     return prior
 
 
+def _replace(src, dst, *, attempts=5, wait_s=0.05):
+    """``os.replace`` that retries a PermissionError: on Windows another process
+    (a scanner or indexer) can hold either file for a moment (ISSUE_LOG P-061)."""
+    for i in range(attempts):
+        try:
+            return os.replace(src, dst)
+        except PermissionError:
+            if i == attempts - 1:
+                raise
+            time.sleep(wait_s * (i + 1))
+
+
 def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
               ext_sources="pNE", delay_ms=None, intra_step_rounds=None,
               max_rounds_used=None):
@@ -313,7 +325,7 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
     tmp = out / (fname + ".tmp")
     with open(tmp, "wb") as f:
         np.save(f, counts)
-    os.replace(tmp, out / fname)
+    _replace(tmp, out / fname)
     d = _delay(delay_ms)
     rounds = _zero_delay_rounds(d, intra_step_rounds)
     entry = {"seed": int(seed), "p": float(p), "file": fname,
@@ -354,7 +366,7 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
         pass
     mtmp = out / "manifest.json.tmp"
     mtmp.write_text(json.dumps(manifest, indent=2))
-    os.replace(mtmp, out / "manifest.json")
+    _replace(mtmp, out / "manifest.json")
     return out / fname
 
 
