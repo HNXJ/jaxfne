@@ -2,8 +2,8 @@
 
 Stamp: jaxfne@_temp_crazy_sailor_m0m1_b@4b9e58e2 · 2026-11-19. Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
-Branch `_temp_crazy_sailor_m0m1_b`, worktree `/Users/hamednejat/workspace/dev/jaxfne-crazy-sailor` on the Mac that ran the work. No upstream. Not pushed. `dev` is an ancestor of this branch (checked 2026-11-19).
-Status: local only. The owner's ruling (2026-11-19) blocks the push until record integrity and the required gates pass (O-10, O-11).
+Branch `_temp_crazy_sailor_m0m1_b`, worktree `/Users/hamednejat/workspace/dev/jaxfne-crazy-sailor` on the Mac that ran the work. Upstream `origin/_temp_crazy_sailor_m0m1_b`. `dev` is an ancestor of this branch (checked 2026-11-19).
+Status: push authorized 2026-11-19 on Hamm's explicit instruction ("push please"), given after the integrity FAIL and the 13 baseline failures were reported. Scope: this branch only; not dev, not main; no merge. The override does not waive the gates: the integrity gate stays FAIL (O-10) and the broad gate stays failing (CS-10). This overrides the earlier push block (2026-11-19 ruling) for this push only.
 
 ## Works (observed)
 
@@ -38,6 +38,6 @@ Status: local only. The owner's ruling (2026-11-19) blocks the push until record
 ## Next action
 
 1. Hamm: decide O-10 (repin to `cdc17e41…` on a SHA-specific go, or restore `c52e830b…`).
-2. Hamm: confirm whether "push all" covers this branch. Under the ruling it does not until O-10 and CS-10 close (O-11).
+2. Done: push of this branch (Hamm's override, above). Pending: CS-10 (broad gate) and the integrity repair; the branch is not mergeable until both pass.
 3. Then CS-10 (broad gate to 0 failures, without weakening the gate), then EX-22 (critic findings).
 4. Plasticity Boat start steps: jomission `_temp_plasticity_boat/artifacts/programme/design/plans/plasticity_boat/HANDOFF.md`.
