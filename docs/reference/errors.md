@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2551 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2559 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -2372,6 +2372,14 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `p0 and v0 must have shape {...}` |
 | `ValueError` | `action must have shape {...}, got {...}` |
 | `ValueError` | `actions must have shape (T, {...}), got {...}` |
+| `ValueError` | `SailorTonicEncoder.d0 must be finite and > 0, got {...}` |
+| `ValueError` | `encoder b and g must share shape (N,), got {...} and {...}` |
+| `ValueError` | `counts must have shape (4,) in (+x, -x, +y, -y) order, got {...}` |
+| `ValueError` | `control_ms ({...}) must be a whole number of dt_ms ({...}) steps` |
+| `ValueError` | `the four-channel decoder drives a 2-D boat: n_dim and n_act must be 2` |
+| `ValueError` | `motor_idx must hold four distinct neurons, got {...}` |
+| `ValueError` | `motor neuron {...} must be an excitatory (E) neuron of the model` |
+| `ValueError` | `encoder must have one value per neuron ({...}), got {...}` |
 
 **`jaxfne/pcl_topology.py`**
 

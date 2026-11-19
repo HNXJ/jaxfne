@@ -1,5 +1,6 @@
 """Tests for paradigm objects and task-flow schemas."""
 
+import functools
 import inspect
 import json
 import types
@@ -507,3 +508,180 @@ def test_sailor_damped_position_matches_discrete_reference():
         v = v_new
     assert np.allclose(np.asarray(s2.p), p, rtol=1e-4, atol=1e-5), "damped p must match the recurrence"
     assert np.allclose(np.asarray(s2.v), v, rtol=1e-4, atol=1e-5), "damped v must match the recurrence"
+
+
+# --- Crazy Sailor neural controller (M2). Contract: m0_contract.md §12 ----------
+# Fixture values below are engineering fixtures that make the loop spike and move. They are
+# NOT scientific parameters: b_i, g_i, d0 and the E/I weights are open decisions for Hamm (§12.6).
+
+_M2_N = 10
+_M2_MOTOR = (0, 1, 2, 3)  # E neurons: +x, -x, +y, -y
+_M2_CFG = dict(n_dim=2, dt=0.02, damping=0.5)
+_M2_P0 = (5.0, 0.0)
+_M2_F0 = 5.0
+
+
+def _m2_encoder(g_motor_x_pos=24.0, d0=1.0, b_scale=0.0):
+    # Unsaturated regime at e = 5 (about 7 vs 3 spikes per 20 ms): -x has zero gain, so +x
+    # outdrives -x and the decoded force is nonzero. Asymmetric gains are the fixture, not science.
+    g = np.zeros(_M2_N, np.float32)
+    g[:8] = 24.0  # E neurons
+    g[1] = 0.0    # -x
+    g[0] = g_motor_x_pos
+    b = np.full(_M2_N, b_scale, np.float32)
+    b[8:] = 0.0  # PV neurons get no tonic distance input
+    return _sp.SailorTonicEncoder(b=b, g=g, d0=d0)
+
+
+@functools.lru_cache(maxsize=1)
+def _m2_model():
+    from jaxfne import neuronal_tensor as nt
+
+    def conn(src, dst, mech):
+        return nt.InterConnection(
+            source_layer="L", source_neuron_type=src, target_layer="L",
+            target_neuron_type=dst, mechanism=mech,
+            static=nt.StaticParams(dT_ms=5.0))
+
+    tensor = nt.NeuronalTensor(
+        name="crazy-sailor-m2",
+        areas=[nt.Area(name="A", layers=[nt.Layer(
+            name="L", n_neurons=_M2_N,
+            neuron_types=[nt.NeuronType.make("E", fraction=0.8),
+                          nt.NeuronType.make("PV", fraction=0.2)])],
+            inter_connections=[
+                conn("E", "E", "AMPA"), conn("E", "PV", "AMPA"),
+                conn("PV", "E", "GABA_A"), conn("PV", "PV", "GABA_A")])],
+    )
+    return jtfne.construct(tensor, nt.RuntimeConfiguration(
+        seed=0, dt_ms=1.0, emitter="lif", duration_ms=20.0))
+
+
+def _m2_rollout(n_intervals=30, enc=None, f0=_M2_F0, seed=1, p0=_M2_P0, v0=None):
+    cfg = _sp.SailorConfig(**_M2_CFG)
+    return _sp.sailor_neural_rollout(
+        _m2_model(), cfg, enc or _m2_encoder(), motor_idx=_M2_MOTOR, f0=f0,
+        n_intervals=n_intervals, seed=seed, p0=p0, v0=v0)
+
+
+def test_m2_tonic_encoder_closed_form_and_boundary():
+    enc = _m2_encoder(d0=2.0)
+    e = 3.0
+    cur = np.asarray(_sp.sailor_tonic_current(enc, e))
+    assert np.allclose(cur, enc.b + enc.g * e / (e + enc.d0), rtol=1e-6), "closed form I = b + g e/(e+d0)"
+    at_zero = np.asarray(_sp.sailor_tonic_current(enc, 0.0))
+    assert np.array_equal(at_zero, enc.b), "e = 0 must give the baseline b exactly"
+    assert np.all(np.isfinite(at_zero)), "e = 0 must stay finite"
+    assert float(np.sum(np.asarray(_sp.sailor_tonic_current(enc, 1e6)))) > float(np.sum(cur)), "input must grow with e"
+    with pytest.raises(ValueError):
+        _sp.sailor_tonic_current(_m2_encoder(d0=0.0), 1.0)
+
+
+def test_m2_identical_distance_identical_input_regardless_of_direction():
+    a = _m2_rollout(n_intervals=2, p0=(3.0, 4.0))
+    b = _m2_rollout(n_intervals=2, p0=(5.0, 0.0))
+    assert not np.allclose(a["positions"][0], b["positions"][0]), "fixture: different directions"
+    assert np.isclose(a["errors"][0], b["errors"][0]), "fixture: identical distances"
+    assert np.array_equal(a["drive"][0], b["drive"][0]), "identical distance -> identical drive"
+
+
+def test_m2_decoder_opposing_counts_cancel():
+    assert np.array_equal(np.asarray(_sp.sailor_decode(np.array([5, 5, 2, 2]), 0.5)), np.zeros(2))
+    a = np.asarray(_sp.sailor_decode(np.array([3, 1, 0, 0]), 0.5))
+    assert np.allclose(a, [1.0, 0.0]), "n(+x) - n(-x) drives x; sign and scale fixed by f0"
+    b = np.asarray(_sp.sailor_decode(np.array([0, 0, 1, 4]), 0.5))
+    assert np.allclose(b, [0.0, -1.5]), "n(+y) - n(-y) drives y"
+
+
+def test_m2_ei_construction_8e_2i_motor_identity():
+    model = _m2_model()
+    md = model.static["neuron_metadata"]
+    kinds = [row["cell_type"] for row in md]
+    assert kinds.count("E") == 8 and kinds.count("PV") == 2, "8 excitatory, 2 inhibitory"
+    assert all(kinds[i] == "E" for i in _M2_MOTOR), "motor neurons must be excitatory"
+    with pytest.raises(ValueError):
+        _sp.sailor_neural_rollout(model, _sp.SailorConfig(**_M2_CFG), _m2_encoder(),
+                                  motor_idx=(0, 1, 2, 8), f0=_M2_F0, n_intervals=1, seed=1)
+
+
+def test_m2_timing_one_ms_neural_twenty_ms_control():
+    r = _m2_rollout(n_intervals=5)
+    assert r["spikes"].shape == (5 * 20, _M2_N), "20 neural steps of 1 ms per control interval"
+    assert r["actions"].shape == (5, 2) and r["counts"].shape == (5, 4)
+    assert r["positions"].shape == (6, 2), "one physics state per control boundary"
+    assert r["metadata"]["neural_dt_ms"] == 1.0 and r["metadata"]["control_ms"] == 20.0
+    assert r["metadata"]["physics_dt"] == 0.02
+
+
+def test_m2_deterministic_replay():
+    a = _m2_rollout(n_intervals=10)
+    b = _m2_rollout(n_intervals=10)
+    for key in ("positions", "drive", "spikes", "counts", "actions"):
+        assert np.array_equal(a[key], b[key]), f"{key} must replay bit-exactly"
+
+
+def test_m2_no_privileged_feedback():
+    """Drive at interval k depends only on the scalar distance at k; action only on counts at k."""
+    r = _m2_rollout(n_intervals=10)
+    enc = _m2_encoder()
+    for k in range(10):
+        e_k = float(np.linalg.norm(r["positions"][k]))
+        assert np.array_equal(r["drive"][k], np.asarray(_sp.sailor_tonic_current(enc, e_k)))
+        assert np.array_equal(r["actions"][k], np.asarray(_sp.sailor_decode(r["counts"][k], _M2_F0)))
+    assert np.any(r["drive"][1:] != r["drive"][0]), "feedback must change the drive over time"
+    # Velocity is never an input: same start point, different start velocity -> same first drive.
+    v = _m2_rollout(n_intervals=3, v0=(2.0, -1.0))
+    w = _m2_rollout(n_intervals=3, v0=(0.0, 0.0))
+    assert np.array_equal(v["drive"][0], w["drive"][0]), "drive must not depend on velocity"
+
+
+def test_m2_causal_loop_spikes_drive_boat_and_feedback():
+    r = _m2_rollout(n_intervals=30)
+    assert int(np.sum(r["spikes"][:, list(_M2_MOTOR)])) > 0, "fixture must spike on motor neurons"
+    assert np.any(r["actions"] != 0), "fixture must decode a nonzero force"
+    assert not np.allclose(r["positions"][-1], r["positions"][0]), "fixture must move the boat"
+    # Spikes -> force -> boat: the recorded boat trajectory is the physics applied to the decoded forces.
+    cfg = _sp.SailorConfig(**_M2_CFG)
+    s0 = _sp.sailor_reset(cfg, jax.random.PRNGKey(0), p0=np.asarray(_M2_P0, np.float32))
+    s_end, _ = _sp.sailor_rollout(cfg, s0, jnp.asarray(r["actions"], jnp.float32))
+    assert np.allclose(np.asarray(s_end.p), r["positions"][-1], rtol=1e-5, atol=1e-6)
+
+
+def test_m2_distance_feedback_alters_subsequent_membrane_activity():
+    """Counterfactual: same seed and start; only the decoder differs.
+
+    Interval 0 is identical (no feedback yet). Afterwards the boat-driven distance changes the tonic
+    drive and therefore the membrane trajectory. Spike counts stay equal at this fixture within the
+    horizon (sub-threshold feedback); that is recorded, not asserted as a success.
+    """
+    on = _m2_rollout(n_intervals=10, f0=_M2_F0)
+    off = _m2_rollout(n_intervals=10, f0=0.0)
+    assert np.array_equal(on["V_m"][:20], off["V_m"][:20]), "first interval has no feedback yet"
+    assert not np.array_equal(on["drive"][1:], off["drive"][1:]), "distance must reach the drive"
+    assert not np.array_equal(on["V_m"][20:], off["V_m"][20:]), "distance feedback must alter later V_m"
+
+
+def test_m2_negative_control_without_decoder_no_motion():
+    r = _m2_rollout(n_intervals=10, f0=0.0)
+    assert np.all(r["actions"] == 0), "decoder off: no force"
+    assert np.allclose(r["positions"], r["positions"][0]), "decoder off: boat stays put"
+    assert np.all(r["drive"] == r["drive"][0]), "decoder off: distance constant, drive constant"
+
+
+@pytest.mark.parametrize("change", ["g_motor", "d0", "b"])
+def test_m2_controller_parameters_change_realized_behavior(change):
+    base = _m2_rollout(n_intervals=20)
+    if change == "g_motor":
+        enc = _m2_encoder(g_motor_x_pos=0.0)
+    elif change == "d0":
+        enc = _m2_encoder(d0=3.0)
+    else:
+        enc = _m2_encoder(b_scale=5.0)
+    alt = _m2_rollout(n_intervals=20, enc=enc)
+    assert not np.allclose(base["positions"], alt["positions"]), f"{change} must change the trajectory"
+
+
+def test_m2_boundary_distance_zero_stays_finite():
+    r = _m2_rollout(n_intervals=3, p0=(0.0, 0.0))
+    assert np.all(np.isfinite(r["drive"])) and np.all(np.isfinite(r["positions"]))
+    assert np.array_equal(r["drive"][0], _m2_encoder().b), "e = 0 drive equals the baseline b"

@@ -179,7 +179,18 @@ M2 handoff: §12 of this file.
 
 ## 12. M2 handoff (controller integration)
 
-Status: SPECIFIED. Implementation NOT started. Blocked until M1 integration is resolved (§11 gate).
+Status: IMPLEMENTED on the isolated branch (adapter in `jaxfne/paradigm.py`, 14 tests in `tests/test_paradigm.py`, §12.9 receipts). NOT integrated into `dev` (§11 gate). The fixture values in §12.9 are engineering fixtures, not the scientific parameters of §12.6.
+
+### 12.9 M2 receipts
+
+- Surface: `sailor_tonic_current`, `sailor_decode`, `sailor_neural_rollout`, `SailorTonicEncoder`. Loop: distance -> tonic drive (20 neural steps of 1 ms, `Model.simulate` with `LIFContinuationState`) -> spikes -> `f0 * (n+x - n-x, n+y - n-y)` on four E motor neurons -> `sailor_step` (physics dt 0.02) -> distance. The controller reads only the scalar distance of the current boundary.
+- Fixture (not scientific): E neurons `g = 24`, `-x` motor `g = 0`, `b = 0`, `d0 = 1`, `f0 = 5`, `p0 = (5, 0)`, `p* = 0`, `damping = 0.5`, PV neurons no tonic input.
+- Mutants (restored after each run; the M2 tests were run against each):
+  - encoder saturation removed (`b + g e`): fails 3 tests (closed form, feedback, d0 perturbation).
+  - decoder without opposing cancellation (`n+x + n-x`): fails `test_m2_decoder_opposing_counts_cancel`.
+  - distance feedback removed (drive held at `e = 0`): fails 6 tests (no-privileged, causal loop, feedback, g/d0/b perturbations).
+- Result: 33 Crazy Sailor tests pass (M1 19 + M2 14). The M2 distance feedback changes the drive and the membrane trajectory after interval 0. Spike counts stayed equal at this fixture within 30 intervals (sub-threshold feedback). This is recorded, not hidden: spike-level feedback needs a more sensitive regime, which is a scientific choice (§12.6).
+- Not yet done: 60 s episodes (3000 intervals; each interval is one eager simulate call), dashboard page, GIFs, independent review of the M2 diff.
 
 ### 12.1 Starting point
 

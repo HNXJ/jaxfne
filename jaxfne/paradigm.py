@@ -12,6 +12,7 @@ from typing import Any, NamedTuple, Optional, Sequence, Mapping
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 from .io import json_safe
 
@@ -1076,6 +1077,119 @@ def sailor_rollout(cfg: SailorConfig, state: SailorState, actions) -> tuple[Sail
         return sailor_step(cfg, s, a)
 
     return jax.lax.scan(body, state, actions)
+
+
+# --- Crazy Sailor neural controller (M2). Contract: m0_contract.md §12 ----------------------
+
+class SailorTonicEncoder(NamedTuple):
+    """Tonic distance encoder ``I_i = b_i + g_i * e / (e + d0)``; ``e`` is the scalar distance."""
+
+    b: Any
+    g: Any
+    d0: float
+
+
+def sailor_tonic_current(enc: SailorTonicEncoder, e) -> jax.Array:
+    """Per-neuron tonic input for scalar distance ``e``. Refuses ``d0`` not finite and positive."""
+    import math
+
+    d0 = float(enc.d0)
+    if not (math.isfinite(d0) and d0 > 0.0):
+        raise ValueError(f"SailorTonicEncoder.d0 must be finite and > 0, got {enc.d0!r}")
+    b = jnp.asarray(enc.b, _SAILOR_DTYPE)
+    g = jnp.asarray(enc.g, _SAILOR_DTYPE)
+    if b.ndim != 1 or b.shape != g.shape:
+        raise ValueError(f"encoder b and g must share shape (N,), got {b.shape} and {g.shape}")
+    e = jnp.asarray(e, _SAILOR_DTYPE)
+    return b + g * (e / (e + d0))
+
+
+def sailor_decode(counts, f0: float) -> jax.Array:
+    """Four-channel decoder: counts (n_+x, n_-x, n_+y, n_-y) -> ``f0 * (n_+x - n_-x, n_+y - n_-y)``."""
+    c = jnp.asarray(counts, _SAILOR_DTYPE)
+    if c.shape != (4,):
+        raise ValueError(f"counts must have shape (4,) in (+x, -x, +y, -y) order, got {c.shape}")
+    return jnp.asarray(f0, _SAILOR_DTYPE) * jnp.stack([c[0] - c[1], c[2] - c[3]])
+
+
+def sailor_neural_rollout(
+    model, cfg: SailorConfig, enc: SailorTonicEncoder, *, motor_idx, f0: float, n_intervals: int,
+    seed: int, p0=None, v0=None, dt_ms: float = 1.0, control_ms: float = 20.0,
+) -> dict:
+    """Closed loop on a LIF model: distance -> tonic drive -> spikes -> decoded force -> boat -> distance.
+
+    Each control interval runs ``control_ms / dt_ms`` neural steps through ``Model.simulate`` with
+    full-state continuation, then applies the decoded force once to the boat. The controller reads
+    only the scalar distance of the current boundary. ``motor_idx`` lists four excitatory neurons in
+    (+x, -x, +y, -y) order. Returns host arrays: positions (K+1, 2), errors (K,), drive (K, N),
+    spikes (K*steps, N), V_m (K*steps, N), counts (K, 4), actions (K, 2), metadata.
+    """
+    from ._model import stimulus_schedule
+    from . import RuntimeConfig, Simulation
+
+    steps = int(round(control_ms / dt_ms))
+    if steps < 1 or abs(steps * dt_ms - control_ms) > 1e-9:
+        raise ValueError(f"control_ms ({control_ms}) must be a whole number of dt_ms ({dt_ms}) steps")
+    if cfg.n_dim != 2 or cfg.n_act != 2:
+        raise ValueError("the four-channel decoder drives a 2-D boat: n_dim and n_act must be 2")
+    md = model.static["neuron_metadata"]
+    n = len(md)
+    motor = [int(i) for i in motor_idx]
+    if len(motor) != 4 or len(set(motor)) != 4:
+        raise ValueError(f"motor_idx must hold four distinct neurons, got {motor_idx!r}")
+    for i in motor:
+        if not (0 <= i < n) or md[i].get("cell_type") != "E":
+            raise ValueError(f"motor neuron {i} must be an excitatory (E) neuron of the model")
+    if np.shape(enc.b) != (n,):
+        raise ValueError(f"encoder must have one value per neuron ({n}), got {np.shape(enc.b)}")
+
+    rt = RuntimeConfig(recurrent_backend="edge_list")
+    state = sailor_reset(
+        cfg, jax.random.PRNGKey(seed),
+        p0=None if p0 is None else np.asarray(p0, np.float32),
+        v0=None if v0 is None else np.asarray(v0, np.float32),
+    )
+    cont = None
+    positions, errors, drives, spikes, volts, counts, actions = (
+        [np.asarray(state.p)], [], [], [], [], [], [])
+    for _ in range(n_intervals):
+        e = float(jnp.linalg.norm(state.p - cfg.target))
+        cur = np.asarray(sailor_tonic_current(enc, e))
+        sched = stimulus_schedule(
+            [{"onset_ms": 0.0, "duration_ms": control_ms, "amplitude": float(c),
+              "target_indices": [i]} for i, c in enumerate(cur)],
+            n,
+        )
+        sim = Simulation(duration_ms=control_ms, dt_ms=dt_ms, seed=seed, runtime=rt)
+        if cont is None:
+            sig, cont = model.simulate(sim, paradigm=sched, return_state=True)
+        else:
+            sig, cont = model.simulate(sim, paradigm=sched, continuation=cont, return_state=True)
+        sp = np.asarray(sig.spikes)
+        c4 = sp[:, motor].sum(axis=0)
+        a = np.asarray(sailor_decode(c4, f0))
+        state, _ = sailor_step(cfg, state, jnp.asarray(a, _SAILOR_DTYPE))
+        errors.append(e)
+        drives.append(cur)
+        spikes.append(sp)
+        volts.append(np.asarray(sig.V_m))
+        counts.append(c4)
+        actions.append(a)
+        positions.append(np.asarray(state.p))
+    return {
+        "positions": np.stack(positions),
+        "errors": np.asarray(errors),
+        "drive": np.stack(drives),
+        "spikes": np.concatenate(spikes, axis=0),
+        "V_m": np.concatenate(volts, axis=0),
+        "counts": np.stack(counts),
+        "actions": np.stack(actions),
+        "metadata": {
+            "neural_dt_ms": float(dt_ms), "control_ms": float(control_ms),
+            "physics_dt": float(cfg.dt), "motor_idx": motor, "f0": float(f0),
+            "seed": int(seed), "n_intervals": int(n_intervals), "emitter": "lif",
+        },
+    }
 
 
 import sys
