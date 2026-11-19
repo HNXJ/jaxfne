@@ -30,20 +30,32 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
    noise, delays, dt, seeds), and `PREREG_P3.md:1` is still "draft, UNSIGNED" with `(fill)` estimands at `:10` and
    `:26`. Missing: digitized figure targets, a verdict scorer, a rate-route driver, a P4-passing manifest, receipts.
    Closes when: a filled P3 is signed and G6 is scored under it; the inventory is in the lane's records.
-3. T-97 [A] Feasibility and novelty gate (G-0; Hamm 2026-11-19: first deliverable, before any expensive
-   experiment): G1 novelty comparison, G2 evidence matrix, G3 replication inventory, G4 independent critic
-   verdict, in `programme/design/plans/arxiv_paper_plan.md`. Closes when: G4's verdict is recorded and every
-   primary claim has its distinguishing property, evidence class and limitation.
+3. [H] G-0 headline (TASK-FEAS-REVIEW, NARROWED): two emitter families in one tensor are refused
+   (`jaxfne/neuronal_tensor.py:2953-2959`). Options: (a) narrowed core paper (N1 composition calculus, N2
+   contracts, replication record); (b) implement mixed-family circuits through one factorization first
+   (stage 5). Recommended (a), with (b) a later paper.
+4. T-101 [A] Notation table S1 over doctrine, methods and code, then a rename pass (plan, Stage 2 gaps).
+   Closes when: no symbol binds two objects across `docs/theory/doctrine/`, `methods.md` and code names.
+5. T-102 [A] Geometry units per layer with the calibration map; one CSD definition in
+   `docs/theory/source_field_equations.md` and `methods.md`. Closes when: both documents agree, reviewed.
 
 ## Tier 3: half a day
 
-- T-98 [A] Stage 2/7 ephaptic operator: derive C_eph from the source-field chain or rename the operator as a
-  voltage-coupling proxy; state where the methods' upstream-feed prohibition no longer holds. Closes when: the
-  plan's Stage 2 gap row is resolved with a derivation or a scoped name, reviewed.
-- T-99 [A] Stage 2/9 source balance: state the source's current balance and what LFP, CSD, EEG/MEG readouts from
-  it can claim. Closes when: the observation-claim scope is written with its check.
-- T-100 [A] Stage 2/8 H boundedness without clamps: analysis or numerical check of the unclamped HDP law on the
-  tested presets. Closes when: the boundedness claim is restated with its evidence class.
+- T-98 [A] Ephaptic operator: rename it a distance-weighted lateral voltage coupling, take it out of HDP
+  semantics, fix alpha's units and lag per route. Closes when: a test pins the same alpha meaning on LIF and
+  Izhikevich.
+- T-99 [A] Source scope: write S's domain as (X, input) and the observation-claim scope of LFP, CSD, EEG/MEG
+  from Q; name kernel LFP a separate factorization. Closes when: the scope text is reviewed.
+- T-100 [A] H invariance: separate continuous-time invariance (barrier, `methods.md` Eq. 7) from discrete
+  clamping and from stability. Outside the core claim. Closes when: the text states each with its evidence.
+- T-103 [A] Discrete-map semantics: the discrete map defines the system; each claimed rule gets a stated
+  consistency order and a dt-refinement test. Closes when: the tests pass for the core rules.
+- T-104 [A] N2 extension table: each extension with its same-backend identity test and a planted break that
+  fails it. Closes when: every planted break turns its test red.
+- T-105 [A] Route at least two replication lanes through `jaxfne.tfne` and the provenance map, or present the
+  record as simulator validation only. Closes when: the plan states which, with the lanes' receipts.
+- T-106 [A] Receipt durability: copy or hash-anchor each scored lane's receipts in a tracked location (Brunel's
+  are on C:). Closes when: each scored G3 record names a tracked receipt path or sha256 that resolves.
 
 14. T-F5 [A] T-32 candidate batching for AdEx, LIF and `Model.tune` (`_model_tune.py:451`) (checklist F5,
     1.5 pts). Closes when: the batching tests pass across seeds.
