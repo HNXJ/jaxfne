@@ -28,7 +28,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - CAMINOS E1 at n 12: not equivalent, 20 of 24 cells (`caminos/RESULT_FIGURES.md`); oracle kept (Hamm 2026-11-03).
 - PCL R5-exact FAIL (4/16 files) and R5-approximate FAIL under signed R4b (`pcl/prereg/P3_fig3_r5_approx_result.md`). P-055 attributed: complex cell integration time constant (`tau_m = 50 ms`) and 64x fan-in accumulate sub-millivolt float differences, delaying near-threshold complex spikes by ~1 ms and delaying top-down feedback.
 - P-053 (PCL scan vs oracle gap on sparse weights, unreproduced); P-056 (kernel-LFP deep-layer power < 0.5% of L2/3).
-- `simulate_batch` silent drops (2026-11-18, failing tests on `_temp_batch-silent-drops`): P-063 dense batch ignores finite edge delays; P-064 batch ignores `hdp_rule_params` (registered rules run at zero gain, `ephaptic_field` refused).
+- `simulate_batch` silent drops P-063 (finite delays on dense) and P-064 (`hdp_rule_params`, `plasticity_mask`) repaired on `_temp_batch-silent-drops`; they close when it reaches dev. P-065 open: the homeostasis kernel drops finite edge delays in `simulate()` and `simulate_batch()` (repair needs Hamm's choice).
 - Papers are never "failed" through 0.6 (Hamm 2026-11-03).
 - Tooling: Cursor CLI blocked on this host, two causes observed 2026-11-12: Group Policy sets
   `ExecutionPolicy=AllSigned` so `cursor-agent.ps1` and its `.cmd` shim cannot run (`-ExecutionPolicy Bypass` does

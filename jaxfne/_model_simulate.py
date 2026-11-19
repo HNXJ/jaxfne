@@ -3555,6 +3555,7 @@ def simulate_batch(
                     # P-064: read from the runtime params, as simulate() does;
                     # _hdp_kernel_kwargs never carries this key.
                     hdp_rule_params=_hdp.get("hdp_rule_params", {}),
+                    plasticity_mask=kernel_kwargs.get("plasticity_mask"),
                     record_weight_trace=False,
                     noise_scale=_hdp.get("noise_scale", None),
                 )[:3]

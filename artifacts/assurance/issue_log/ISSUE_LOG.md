@@ -348,3 +348,19 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Repair (Hamm 2026-11-18, "Fix both"): the registered batch kernel gets `hdp_params["hdp_rule_params"]`, as in
   `simulate()`. Against 06f9bf26 on the P-062 probe, only the gain-rule batch arrays change (3 of 58) and the
   `ephaptic_field` batch runs; every `simulate()` output and diagnostic is bit-identical. Closes when on dev.
+- Sibling (independent review, 2026-11-18): the same call dropped `plasticity_mask`, which `simulate()` passes,
+  so masked edges learned in the batch. It now passes `kernel_kwargs.get("plasticity_mask")`; unmasked runs pass
+  `None`, the kernel default. Test `::test_simulate_batch_applies_plasticity_mask` (red before the repair);
+  `::test_simulate_batch_runs_ephaptic_field` now asserts alpha 0.5 vs 0 changes `V_m`.
+
+### P-065
+
+- Date: 2026-11-18. Type: BUG. Area: homeostasis kernel, `simulate()` and `simulate_batch()`, finite edge delays.
+  Severity: high for any homeostasis run of a model with nonzero `delay_steps`. Open; predates P-062.
+- Observation: with `enable_homeostasis=True` on edge_list, `V_m` for delay_steps 5 equals delay 0 in both
+  `simulate()` and `simulate_batch()`; without homeostasis it differs (positive control). The run neither
+  refuses nor records the drop.
+- Minimal reproduction: `suite2_net1_config(seed=7, n=40, duration_ms=60, dt_ms=1)`, delay_steps 0 vs 5 on every
+  edge, `RuntimeConfig(recurrent_backend="edge_list", enable_homeostasis=True)`. Evidence:
+  `F:/warehouse/jaxfne/P-063_P-064_2026-11-18/` (`probe_homeo_delay.py`, log).
+- Expected: the homeostasis kernel honours delays, or refuses finite delays. Repair needs Hamm's choice.

@@ -161,11 +161,32 @@ def test_simulate_batch_applies_hdp_rule_params():
     assert not np.array_equal(np.asarray(zero["V_m"]), np.asarray(with_gain["V_m"]))
 
 
+def test_simulate_batch_applies_plasticity_mask():
+    """P-064 sibling: the registered-rule batch call dropped plasticity_mask, so frozen edges learned."""
+    gain = {"hdp_rule": "synthetic_presyn_gain", "hdp_rule_params": {"gamma": 5.0, "k_h": 2.0, "k_w": 2.0}}
+    n_edges = int(_small_model().params["edge_list"].n_edges)
+    frozen = dict(gain, plasticity_mask=np.zeros((n_edges,), dtype=np.float32))
+    one_free = _run(_small_model(), enable_hdp=True, hdp_params=gain)
+    one_frozen = _run(_small_model(), enable_hdp=True, hdp_params=frozen)
+    assert not np.array_equal(np.asarray(one_free.V_m), np.asarray(one_frozen.V_m)), (
+        "fixture: the mask must act in simulate()"
+    )
+    free = _batch(_small_model(), enable_hdp=True, hdp_params=gain)
+    masked = _batch(_small_model(), enable_hdp=True, hdp_params=frozen)
+    assert not np.array_equal(np.asarray(free["V_m"]), np.asarray(masked["V_m"]))
+
+
 def test_simulate_batch_runs_ephaptic_field():
     pos = np.random.default_rng(1).uniform(0.0, 100.0, size=(40, 2))
-    params = ephaptic_rule_params(ephaptic_kernel(pos, sigma=15.0, cutoff=40.0), alpha=0.5, v_rest=-65.0)
-    out = _batch(_small_model(), enable_hdp=True, hdp_params={"hdp_rule": EPHAPTIC_RULE_NAME, "hdp_rule_params": params})
-    assert out["metadata"]["recurrent_backend"] == "edge_list"
+    kernel = ephaptic_kernel(pos, sigma=15.0, cutoff=40.0)
+
+    def run(alpha):
+        params = ephaptic_rule_params(kernel, alpha=alpha, v_rest=-65.0)
+        return _batch(_small_model(), enable_hdp=True, hdp_params={"hdp_rule": EPHAPTIC_RULE_NAME, "hdp_rule_params": params})
+
+    on = run(0.5)
+    assert on["metadata"]["recurrent_backend"] == "edge_list"
+    assert not np.array_equal(np.asarray(on["V_m"]), np.asarray(run(0.0)["V_m"])), "the field must act"
 
 
 def _placeholder_w_model():
