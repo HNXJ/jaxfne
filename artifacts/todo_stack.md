@@ -30,10 +30,10 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
    noise, delays, dt, seeds), and `PREREG_P3.md:1` is still "draft, UNSIGNED" with `(fill)` estimands at `:10` and
    `:26`. Missing: digitized figure targets, a verdict scorer, a rate-route driver, a P4-passing manifest, receipts.
    Closes when: a filled P3 is signed and G6 is scored under it; the inventory is in the lane's records.
-3. T-97 [A] Manuscript stage 1 (G-0, Hamm 2026-11-19 fifteen-stage directive): claim-implementation-evidence
-   matrix and competing-framework comparison in `programme/design/plans/arxiv_paper_plan.md`. Closes when: every
-   primary claim has a distinguishing property, evidence requirement and limitation, and a non-writing reviewer
-   ACCEPTs.
+3. T-97 [A] Feasibility and novelty gate (G-0; Hamm 2026-11-19: first deliverable, before any expensive
+   experiment): G1 novelty comparison, G2 evidence matrix, G3 replication inventory, G4 independent critic
+   verdict, in `programme/design/plans/arxiv_paper_plan.md`. Closes when: G4's verdict is recorded and every
+   primary claim has its distinguishing property, evidence class and limitation.
 
 ## Tier 3: half a day
 

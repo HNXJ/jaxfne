@@ -147,8 +147,10 @@ check run at this baseline). Mandatory gates: broad gate and CI per promoted SHA
   methods' upstream-feed prohibition (manuscript `methods.md` §1) does not hold once it is on. Either
   derive C_eph from the source-field chain or name the operator for what it is.
 - Source Q_t = s_scale (I_native + g_spk s) (`methods.md` Eq. 5) is a relative proxy without
-  transmembrane current balance; LFP, CSD and EEG/MEG readouts from it are proxies (`methods.md` §6),
-  so stage 9 can claim internal consistency of operators, not physical forward models.
+  transmembrane current balance; LFP, CSD and EEG/MEG readouts from it are proxies (`methods.md` §6). Two
+  paths differ: `jaxfne/fields/kernel_lfp.py` uses cable kernels whose membrane currents sum to zero
+  (`tests/test_kernel_lfp.py:32`), and `jaxfne/fields/head.py` holds spherical-head EEG/MEG leadfields
+  (`eeg_sphere_leadfield` :258, `meg_sphere_leadfield` :227). Stage 9 claims physics only on those paths.
 - H boundedness is clamp-imposed (`methods.md` §5.3); a stability claim needs the unclamped analysis.
 - Notation: the directive's continuous form (x neural state, s source, h H-state, phi field, y_m probes)
   reuses letters the sealed language already binds (`docs/theory/doctrine/tfne_algebra.md:19-27`: x upstream
@@ -166,17 +168,88 @@ check run at this baseline). Mandatory gates: broad gate and CI per promoted SHA
 | lambda_eph C_eph(x, phi) | `ephaptic_field` HDP rule, alpha (`hdp_rules_ephaptic.py`) | reads v, not Phi (gap above) |
 | y_m = P_m(s, phi, h; G_m) | Y = P_eta(Phi) | probes |
 
-### Stage 1 competing frameworks (PROPOSED; each row inferred until checked against the tool's paper and docs)
+## Feasibility and novelty gate (Hamm 2026-11-19)
 
-| Framework | What it already provides | What the TFNE claim must add to be new |
-|---|---|---|
-| Brian2, NEST, GeNN, Arbor | point- or multi-compartment networks from equations or model libraries; NEST and Arbor scale | one specification composing different emitter families with typed source-field-probe stages and tested reduction identities |
-| NEURON + NetPyNE + LFPy/LFPykit | declarative network specs; physically grounded LFP/EEG from multicompartment transmembrane currents | differentiable JAX execution and relative-unit contracts; it cannot claim better forward physics (our observation operators are proxies, gap above) |
-| Jaxley | differentiable multicompartment simulation in JAX | heterogeneous emitter resolutions in one circuit; geometry-to-observation chain |
-| BrainPy / brainstate, Norse, snnTorch | differentiable spiking networks, several neuron models, JAX or PyTorch | containment semantics (geometry, signs, ownership kept through flattening) and refusal of unconsumed parameters |
-| The Virtual Brain, neural-mass and neural-field models (Amari, Wilson-Cowan, Jansen-Rit) | population dynamics with EEG/MEG forward models on connectomes | mixing neuron-resolution emitters with population emitters under one grammar |
-| hnn-core | laminar cortical model with a calibrated dipole-to-EEG/MEG link | no claim of calibrated EEG/MEG; only relative proxies |
+The first deliverable is this gate, not a draft. Four outputs; no expensive experiment, GPU run or new
+replication starts before G4 returns a verdict. H-state, EEG/MEG and ephaptic coupling are secondary: they
+enter the paper only as validated, and an unvalidated one never blocks the core framework paper.
 
-Distinguishing property to test for the primary claim: a single CircuitSpec that runs two emitter families in
-one circuit, where disabling each extension (H, delays, ephaptic, observations) reproduces the constituent model
-bitwise, through the public path. A framework above that already passes this test removes the novelty claim.
+| Output | Content | Home | Status |
+|---|---|---|---|
+| G1 Novelty comparison | TFNE against established frameworks, by mathematical or computational property | below | PROPOSED |
+| G2 Evidence matrix | each capability: SPECIFIED, IMPLEMENTED, TESTED or VERIFIED, with its file | below | PROPOSED |
+| G3 Replication inventory | each published-model lane: frozen criteria, verdict, discrepancies, missing receipts | below | PROPOSED |
+| G4 Stage 1-2 review | independent critic: mathematical consistency, novelty, claim scope | verdict recorded below | running |
+
+Gate verdict options: PUBLISHABLE CORE (name the claims), NARROWED (name what drops), NOT DEFENSIBLE.
+
+### G1 Novelty comparison (PROPOSED; rows about other tools are inferred until checked against their papers)
+
+Several properties are not new and cannot carry the claim: several neuron models in one network (Brian2, NEST,
+NetPyNE, BrainPy do this), differentiable simulation in JAX (Jaxley, BrainPy), declarative network specification
+(NeuroML, NineML, PyNN, NetPyNE), forward models to LFP/EEG/MEG (LFPy, hnn-core, TVB; physically grounded where
+ours are proxies).
+
+| Framework | Already provides |
+|---|---|
+| Brian2, NEST, GeNN, Arbor | equation- or library-defined networks; mixed neuron models in one network; NEST and Arbor scale |
+| NEURON + NetPyNE + LFPy/LFPykit | declarative specs; LFP/EEG from multicompartment transmembrane currents |
+| NeuroML, NineML, PyNN | simulator-independent model description |
+| Jaxley | differentiable multicompartment simulation in JAX |
+| BrainPy / brainstate, Norse, snnTorch | differentiable spiking networks with several neuron models |
+| The Virtual Brain; neural mass and field models | population dynamics on connectomes with EEG/MEG forward models |
+| hnn-core | laminar model with a calibrated dipole-to-EEG/MEG link |
+
+Candidate distinguishing properties, each with the test that would falsify it:
+
+| ID | Property | Evidence needed | Falsified if |
+|---|---|---|---|
+| N1 | A sealed specification algebra (`x:A:y`; define, factor, compose, realize, flatten) whose flattening keeps a bidirectional index map (path <-> slice, rule <-> edge) and refuses what it cannot express (`tfne_algebra.md`) | formal statement; tests that the map is a bijection on realized objects | NeuroML/NineML/NetPyNE already give an invertible spec-to-array map with refusal semantics |
+| N2 | Reduction identities as contracts: disabling an extension (H, delays, observation, ephaptic alpha = 0) returns the base model bitwise through the public path | per-extension tests that fail on a planted break | a listed tool states and tests the same identities, or ours hold only on private paths |
+| N3 | Typed slow state H with typed coupling maps Gamma_H into emitter, source, field and probe (RBS/RBD/HDP), neutral H recovering the base | formal definition; reduction tests; one non-trivial validated use | it reduces to ordinary extra state variables with no added semantics |
+| N4 | Relative-quantity grammar: amplitudes stay relative until an explicit calibration at a semantic boundary | formal statement; refusal tests | it is a units convention only, with no checked consequence |
+
+Feasibility reading (inferred, for G4 to test): N1 and N2 are the likeliest defensible core: a methods paper on
+compositional semantics with verified contracts and a replication programme. N3 is defensible only with a
+validated use. N4 is supporting. If the critic finds N1 and N2 already present elsewhere, the paper narrows to a
+software and replication report.
+
+### G2 Evidence matrix (2026-11-19, at 022da7a0; inventory `D:/tmp/_temp_ms/inventory.md`, not tracked)
+
+VERIFIED means an independent reviewer's verdict on the capability itself; none holds one yet.
+
+| Capability | Highest class | Evidence | Missing for the paper |
+|---|---|---|---|
+| N1 specification algebra | TESTED, partial | sealed `tfne/2` (`docs/theory/doctrine/tfne_algebra.md`); compiler built against `tfne/1`, 7 clauses not conformant (:163-174); `tests/test_tfne_algebra.py`, `tests/test_tfne_parameter_transfer.py` | a bijection test of the index map; conformance or scoped claim |
+| N2 reduction identities | TESTED | `tests/test_hdp_reduction_identity.py:398`, `tests/test_hdp_zero_rule_public_identity.py:56`, zero-delay bit equivalence (`methods.md` §4), ephaptic alpha = 0 (`tests/test_hdp_rules_ephaptic.py:115`, `:171`) | one table of every extension with its identity test and a planted-break check |
+| N3 typed H-state | TESTED | 8 registered HDP rules (`jaxfne/hdp_rule.py:477-618`, PCL, Vogels iSTDP, ephaptic); reduction tests above | one validated non-trivial use (candidates: Vogels iSTDP, PCL STDP) |
+| N4 relative quantities | SPECIFIED, TESTED in part | `docs/theory/doctrine/relative_quantity_grammar.md`; probe semantic status (`methods.md` §6) | refusal tests named per boundary |
+| Emitter families | TESTED per family | registry `izhikevich`, `lif`, `glif` (registered, not routed), `adex`, `rate` (`jaxfne/emitter_registry.py:106-110`, `jaxfne/neuronal_tensor.py:93`); HH and Jansen-Rit outside the registry | a test of two families in one circuit (none found); stale comment `neuronal_tensor.py:89-91` |
+| Geometry | TESTED | `Geometry3D`, `NeuronalTensor`; `tests/test_geometry_invariants.py:112,136,192`; A3 mutation receipt (release plan) | relative coordinates only (`tfne_algebra.md:91-100`) |
+| LFP, CSD proxies | TESTED | `jaxfne/fields/probes.py:536,612`; `jaxfne/fields/proxy.py:1376` | proxy status kept in text |
+| Kernel LFP | TESTED | `jaxfne/fields/kernel_lfp.py:286`; current balance `tests/test_kernel_lfp.py:32`; P-056 open (deep-layer power) | P-056 |
+| EEG/MEG | TESTED (sphere leadfield) | `jaxfne/fields/head.py:227,258`; `tests/test_head_forward.py` | conductivity and source-physics statement; secondary |
+| Ephaptic | TESTED | `jaxfne/hdp_rules_ephaptic.py`; 4 tests (`tests/test_hdp_rules_ephaptic.py:79-171`) | physical derivation (T-98); controls; secondary |
+| Differentiability | TESTED | `jaxfne/optim/`, surrogate spike (`jaxfne/emitters.py:318`); `tests/test_gradient_checks_v0417.py` | gradient check against finite differences named in text |
+| Scaling | SPECIFIED | B1 prereg signed 2026-11-06; no scored run (release plan B2) | matched-workload receipts; secondary for the gate |
+
+### G3 Replication inventory (2026-11-19; registry `dashboard/data/replications.json` generated at dev d30e7418, 2026-11-12)
+
+| Lane | Frozen criteria | Latest verdict (file) | Path | Discrepancy or missing |
+|---|---|---|---|---|
+| Brunel 2000 | P3 v4 signed 2026-10-19 | close, Q1-Q3 pass (`brunel2000/RESULT_P3.md:3`) | public API | registry says "reproduced (conditional)"; Q3 reading chosen after a failed pilot |
+| Izhikevich 2003 | P3 v7, v8.2, P6 v2 signed | P6 PASS Q1-Q5 (`izhikevich2003/RESULT_P6.md:9`); P3 v7 FAIL, v8.2 passes post hoc | public API; NumPy oracle | post hoc pass counts as partial; registry verdict null |
+| Potjans 2014 | P3 v2 signed 2026-11-02 | off (`potjans2014/RESULT_P3.md:3`) | public API | no oracle; registry null |
+| CAMINOS | P3 v6, v7; P6 v2 signed | P6 PASS; P3 PASS under v7 after v6 R4 failed; PV-SOM lag 6.47 vs 8.5 ms off | public API; JAX oracle | registry "mixed" |
+| Vogels 2011 | P3 v4 signed 2026-11-02 | off, R-E 4.13 Hz (`vogels2011/RESULT_P3.md:3`) | public API | registry null |
+| PCL (N'dri 2025) | Fig 3 v4, v5, R4b signed | FAIL at v4, v5, R5-exact, R5-approximate (`pcl/prereg/P3_fig3_r5_approx_result.md:10`) | core equals numba oracle on 16 pilot files | P-055 attributed |
+| GSDR | P3 fit signed 2026-11-01 | FAIL, 0 of 5 seeds (`gsdr2026/RESULT_P3_fit.md:10`) | UNKNOWN | no DOI (unpublished source) |
+| Destexhe 2009 | P3 v3 signed 2026-11-02 | FAIL, 0 of 5 (`destexhe2009/RESULT_P3.md:3`) | public API | registry null |
+| Jansen-Rit 1995 | P3 v1, signed by the keeper agent on Hamm's standing go (erratum) | PASS 5 of 5, conditional on a declared hold and RK4 | lane scripts | signature by agent; approximate integrator |
+| Mejias 2016 | P3 unsigned | none | public API | not scorable |
+| lee2025, mazzoni2015, pcl_h, qlearning | none | none | | notes or task lanes; not replications |
+
+Nine lanes have signed criteria and a scored verdict: 4 positive (Izhikevich P6, CAMINOS P6, Jansen-Rit
+conditional, Brunel close), 5 negative or off (Potjans, Vogels, PCL, GSDR, Destexhe). None has an independent
+reviewer verdict yet. Registry fields lag the RESULT files, and `scripts/check_replications.py` reads
+`dashboard/sources.json`, not `replications.json`.
