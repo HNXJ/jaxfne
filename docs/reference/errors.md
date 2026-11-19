@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2543 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2544 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -467,6 +467,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 | Class | Message |
 |---|---|
+| `ValueError` | `enable_homeostasis has no finite-delay path; edge delay_steps must be all zero (the homeostasis kern` |
 | `ValueError` | `recurrent_backend={...} cannot be realized: {...}. Drop the explicit recurrent_backend (auto then se` |
 | `ValueError` | `synaptic_kernel='receptor_exponential' runs only on recurrent_backend='edge_list'; the dense backend` |
 | `ValueError` | `RuntimeConfig(surrogate=...) is realized on the dense Izhikevich default-order route only; this run ` |

@@ -103,6 +103,15 @@ def _has_finite_delays(model) -> bool:
     return host is not None and bool(host.size) and int(host.sum()) != 0
 
 
+def _refuse_homeostasis_delays(model) -> None:
+    """P-065: the homeostasis kernel has no delay path; refuse instead of dropping delays."""
+    if _has_finite_delays(model):
+        raise ValueError(
+            "enable_homeostasis has no finite-delay path; edge delay_steps must be all zero "
+            "(the homeostasis kernel would ignore the delays)"
+        )
+
+
 def _resolve_recurrent_backend(
     model, runtime_cfg: RuntimeConfig, controller: Optional[str], *, continuation: bool = False,
 ) -> RuntimeConfig:
@@ -577,6 +586,7 @@ def _simulate_arrays(
                 "synaptic_kernel='receptor_exponential'; use the default "
                 "exponential synaptic kernel."
             )
+        _refuse_homeostasis_delays(self)
         # Homeostasis is sparse-edge based; edge_list always exists from construct().
         edges: EdgeList = self.params["edge_list"]
         if ablation_mode == "disconnected_null":
@@ -3486,6 +3496,8 @@ def simulate_batch(
         raise ValueError(
             "enable_homeostasis is not supported with synaptic_kernel='receptor_exponential'."
         )
+    if homeo_on:
+        _refuse_homeostasis_delays(self)
     if hdp_on and runtime_cfg.synaptic_kernel == "receptor_exponential":
         raise ValueError(
             "enable_hdp is not supported with "

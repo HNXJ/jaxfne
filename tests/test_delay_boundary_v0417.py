@@ -78,6 +78,26 @@ def test_auto_batch_runs_delayed_edges_on_edge_list():
     assert not np.array_equal(np.asarray(edge["V_m"]), np.asarray(no_delay["V_m"])), "fixture delays must act"
 
 
+def _homeostasis_sim():
+    runtime = jtfne.RuntimeConfig(recurrent_backend="edge_list", enable_homeostasis=True)
+    return jtfne.Simulation(duration_ms=10.0, dt_ms=1.0, seed=1, runtime=runtime)
+
+
+def test_homeostasis_rejects_nonzero_delay_steps():
+    """P-065: the homeostasis kernel ignored edge delays in simulate() and simulate_batch()."""
+    model = _model_with_delays(delay_steps=2)
+    with pytest.raises(ValueError, match="enable_homeostasis has no finite-delay path"):
+        model.simulate(_homeostasis_sim())
+    with pytest.raises(ValueError, match="enable_homeostasis has no finite-delay path"):
+        model.simulate_batch(_homeostasis_sim(), n_seeds=2)
+
+
+def test_homeostasis_runs_zero_delay_steps():
+    model = _model_with_delays(delay_steps=0)
+    assert model.simulate(_homeostasis_sim()).metadata["recurrent_backend"] == "edge_list"
+    assert model.simulate_batch(_homeostasis_sim(), n_seeds=2)["metadata"]["recurrent_backend"] == "edge_list"
+
+
 def test_model_simulate_rejects_negative_delay_steps():
     model = _model_with_delays(delay_steps=-1)
     with pytest.raises(ValueError, match="delay_steps must be >= 0"):

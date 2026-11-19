@@ -329,7 +329,9 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   `::test_auto_batch_runs_delayed_edges_on_edge_list`. Repair changes the output of every default batch run
   with delayed edges (those outputs ignore the delays today).
 - Repair (Hamm 2026-11-18, "Fix both"): `simulate_batch` refuses dense with finite delays as `simulate()` does,
-  and `auto` selects edge_list for them (the resolver's `delays` switch is removed). Closes when on dev.
+  and `auto` selects edge_list for them (the resolver's `delays` switch is removed).
+- Closed 2026-11-19: on dev at 32d24add (broad gate rc 0, 8329 passed; CI (Fast) 44442354065 green 10/10; two
+  independent reviews ACCEPT).
 
 ### P-064
 
@@ -352,15 +354,22 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   so masked edges learned in the batch. It now passes `kernel_kwargs.get("plasticity_mask")`; unmasked runs pass
   `None`, the kernel default. Test `::test_simulate_batch_applies_plasticity_mask` (red before the repair);
   `::test_simulate_batch_runs_ephaptic_field` now asserts alpha 0.5 vs 0 changes `V_m`.
+- Closed 2026-11-19: on dev at 32d24add (gate and CI as P-063). Unmasked outputs vs 05240cd0: 62 of 62 probe
+  arrays bit-identical.
 
 ### P-065
 
 - Date: 2026-11-18. Type: BUG. Area: homeostasis kernel, `simulate()` and `simulate_batch()`, finite edge delays.
-  Severity: high for any homeostasis run of a model with nonzero `delay_steps`. Open; predates P-062.
+  Severity: high for any homeostasis run of a model with nonzero `delay_steps`. Predates P-062.
 - Observation: with `enable_homeostasis=True` on edge_list, `V_m` for delay_steps 5 equals delay 0 in both
   `simulate()` and `simulate_batch()`; without homeostasis it differs (positive control). The run neither
   refuses nor records the drop.
 - Minimal reproduction: `suite2_net1_config(seed=7, n=40, duration_ms=60, dt_ms=1)`, delay_steps 0 vs 5 on every
   edge, `RuntimeConfig(recurrent_backend="edge_list", enable_homeostasis=True)`. Evidence:
   `F:/warehouse/jaxfne/P-063_P-064_2026-11-18/` (`probe_homeo_delay.py`, log).
-- Expected: the homeostasis kernel honours delays, or refuses finite delays. Repair needs Hamm's choice.
+- Expected: the homeostasis kernel honours delays, or refuses finite delays.
+- Repair (Hamm 2026-11-19, "Refuse"): `simulate()` and `simulate_batch()` raise "enable_homeostasis has no
+  finite-delay path" when the homeostasis kernel would run on edges with nonzero `delay_steps`. Tests
+  `tests/test_delay_boundary_v0417.py::test_homeostasis_rejects_nonzero_delay_steps` (red before the repair),
+  `::test_homeostasis_runs_zero_delay_steps`. No successful run changes: the P-062 probe vs 32d24add gives 62 of
+  62 arrays bit-identical. Closes when on dev.
