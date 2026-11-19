@@ -312,6 +312,11 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Closed 2026-11-18 (Hamm): step 2 on dev at 0f1f0d22 (broad gate rc 0, 8324 passed, 0 failed; independent
   re-review ACCEPT on 5e1818f9; CI (Fast) 44424229013 green, 10 of 10 jobs). Evidence:
   `F:/warehouse/jaxfne/P-062_2026-11-18/` (gate logs, `step2/` probes, `SHA256SUMS`). Follow-ups P-063, P-064.
+- Follow-up 2026-11-19 (Hamm, "update_metadata check"): `Configuration.__post_init__` now validates
+  `metadata["recurrent_backend"]`, so `update_metadata()` and `Configuration(metadata=...)` reject unknown
+  values as `runtime()` did; `runtime()`'s own copy of the check is removed. Test
+  `test_hdp_zero_rule_public_identity.py::test_unknown_backend_is_rejected_where_the_configuration_is_built`
+  (red before). Still open, minor: explicit `RuntimeConfig("auto")` cannot be told from the default.
 
 ### P-063
 
@@ -372,4 +377,8 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   finite-delay path" when the homeostasis kernel would run on edges with nonzero `delay_steps`. Tests
   `tests/test_delay_boundary_v0417.py::test_homeostasis_rejects_nonzero_delay_steps` (red before the repair),
   `::test_homeostasis_runs_zero_delay_steps`. No successful run changes: the P-062 probe vs 32d24add gives 62 of
-  62 arrays bit-identical. Closes when on dev.
+  62 arrays bit-identical.
+- Closed 2026-11-19: on dev at 4dee0a6d (broad gate rc 0, 8331 passed, 0 failed; independent review ACCEPT;
+  CI (Fast) 44517404267 green 10/10). Evidence: `F:/warehouse/jaxfne/P-065_2026-11-19/`. Review notes, minor:
+  `ablation="disconnected_null"` with delays is refused although zero weights make delays inert; traced
+  `delay_steps` skip the check (inferred).

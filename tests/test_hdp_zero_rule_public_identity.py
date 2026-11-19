@@ -207,6 +207,16 @@ def test_unknown_backend_is_rejected_where_the_configuration_is_built(value):
         jtfne.RuntimeConfig(recurrent_backend=value)
     with pytest.raises(ValueError, match="recurrent_backend"):
         jtfne.Configuration().runtime(recurrent_backend=value)
+    with pytest.raises(ValueError, match="recurrent_backend"):
+        jtfne.Configuration().update_metadata(recurrent_backend=value)
+    with pytest.raises(ValueError, match="recurrent_backend"):
+        jtfne.Configuration(metadata={"recurrent_backend": value})
+
+
+@pytest.mark.parametrize("value", ["auto", "dense", "edge_list", None])
+def test_known_backend_passes_every_configuration_route(value):
+    assert jtfne.Configuration().update_metadata(recurrent_backend=value).metadata["recurrent_backend"] == value
+    assert jtfne.Configuration(metadata={"recurrent_backend": value}).metadata["recurrent_backend"] == value
 
 
 def test_default_backend_is_auto():

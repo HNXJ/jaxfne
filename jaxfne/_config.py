@@ -464,6 +464,10 @@ class Configuration:
         object.__setattr__(self, "emitters", [dict(v) for v in self.emitters])
         object.__setattr__(self, "fields", [dict(v) for v in self.fields])
         object.__setattr__(self, "metadata", dict(self.metadata))
+        if self.metadata.get("recurrent_backend") is not None:
+            from ._runtime_config import check_recurrent_backend
+
+            check_recurrent_backend(self.metadata["recurrent_backend"])
         probe_decls = self.probes
         if not isinstance(probe_decls, _ProbeDeclarations) or probe_decls._owner is not self:
             object.__setattr__(self, "probes", _ProbeDeclarations(probe_decls, owner=self))
@@ -601,7 +605,8 @@ class Configuration:
 
         Use for administrative tags. Keys are stored without the checks that
         ``runtime()`` and the declaration methods apply; a key nothing reads
-        stays a tag. Truth-gate fields
+        stays a tag. ``recurrent_backend`` is checked on every configuration
+        (``"auto"``, ``"dense"`` or ``"edge_list"``). Truth-gate fields
         (``claim_level``, ``field_claim_level``, ``field_solver_status``,
         ``physical_amplitude_calibrated``) are clamped after merge so callers
         cannot escalate claim surfaces via this API.
@@ -634,11 +639,7 @@ class Configuration:
         unknown = sorted(set(kwargs) - set(_RUNTIME_KEYS))
         if unknown:
             raise ValueError(f"runtime({unknown[0]}=...) has no consumer; supported keys: {sorted(_RUNTIME_KEYS)}")
-        if kwargs.get("recurrent_backend") is not None:
-            from ._runtime_config import check_recurrent_backend
-
-            check_recurrent_backend(kwargs["recurrent_backend"])
-        return self.update_metadata(**kwargs)
+        return self.update_metadata(**kwargs)  # __post_init__ validates recurrent_backend
 
     def set_runtime(self, **kwargs: Any) -> "Configuration":
         """Backward-compatible alias for :meth:`runtime`."""
