@@ -141,7 +141,7 @@ check run at this baseline). Mandatory gates: broad gate and CI per promoted SHA
 
 ### Stage 2 gaps (found 2026-11-19, corrected by TASK-FEAS-REVIEW; each has a todo row)
 
-- Ephaptic operator (T-98): the code computes Phi_i = alpha (mean over neighbours of v_j - v_rest), with row
+- Ephaptic operator (TASK-EPHAPTIC): the code computes Phi_i = alpha (mean over neighbours of v_j - v_rest), with row
   normalization (`jaxfne/hdp_rules_ephaptic.py:73-77,95-108`): a lateral mean-field voltage drive. It is
   not gap-junction algebra (that is sum_j g (v_j - v_i)), and as an HDP rule with dH = 0 and no W target it
   is neither RBD nor HDP. alpha is 1/ms on the Izhikevich route and per step on LIF; the lag is 2 steps and 1.
@@ -150,7 +150,7 @@ check run at this baseline). Mandatory gates: broad gate and CI per promoted SHA
   neuron, so C_eph cannot be derived from the source-field chain for point emitters (inferred, cable
   physics). Action: rename it a distance-weighted lateral voltage coupling, fix its units per route, and keep
   it out of the core claim.
-- Source (T-99): Q_t = s_scale (I_native + g_spk s) (`methods.md` Eq. 5) reads drive and noise as well as
+- Source (TASK-SOURCE-SCOPE): Q_t = s_scale (I_native + g_spk s) (`methods.md` Eq. 5) reads drive and noise as well as
   state, so S maps (X, input) -> Q, and it has no transmembrane current balance; LFP, CSD and EEG/MEG
   readouts from it are proxies (`methods.md` §6). The kernel-LFP path (`jaxfne/fields/kernel_lfp.py:286-296`)
   maps spike counts through cable kernels whose currents sum to zero (`tests/test_kernel_lfp.py:32`): a
@@ -158,20 +158,20 @@ check run at this baseline). Mandatory gates: broad gate and CI per promoted SHA
   textbook sphere leadfields (Sarvas 1987, Frank 1952) to Q.
 - Factorization (X,H) -> S -> Q -> F -> Phi -> P -> Y holds on the Izhikevich route only: adex and hh refuse
   `field()` and `probe()` (`jaxfne/_construct_core.py:528-531,549-551`).
-- H (T-100): the barrier term of `methods.md` Eq. 7 makes (H_min, H_max) forward-invariant in continuous
+- H (TASK-HINV): the barrier term of `methods.md` Eq. 7 makes (H_min, H_max) forward-invariant in continuous
   time; the clamp guards explicit-Euler overshoot. Boundedness and stability are separate claims; W3b gives
   S = 0 and X = 1944, so stability is unresolved. H is outside the core claim.
-- Discrete map (T-103): trace rules, PCL and spike/dt drives are finite differences divided by dt, the
+- Discrete map (TASK-DMAP): trace rules, PCL and spike/dt drives are finite differences divided by dt, the
   ephaptic and PCL rules jump, and HDP weights read H_{t+1} (`jaxfne/hdp_rule.py:546-549,559,596-612`). The
   executed system is defined by the discrete map (h_t, x_t; s) -> (h_{t+1}, y_t); dH/dt = F_H and
   dW/dt = F_W are per-rule generators that need a stated consistency order and a dt-refinement test.
-- Geometry units (T-102): TFNE coordinates are relative (`tfne_algebra.md:91-100`), `NeuronalTensor`
+- Geometry units (TASK-UNITS-CSD): TFNE coordinates are relative (`tfne_algebra.md:91-100`), `NeuronalTensor`
   positions are mm and refuse other units (`neuronal_tensor.py:96-103,349-364`), the methods ring is in mm,
   `kernel_lfp.py` uses µm and `head.py` metres. Declare one length unit per layer and the calibration map.
-- CSD (T-102): `source_field_equations.md:46,262` gives CSD ∝ ∇·q (ill-typed for a scalar q); :162 and :205
+- CSD (TASK-UNITS-CSD): `source_field_equations.md:46,262` gives CSD ∝ ∇·q (ill-typed for a scalar q); :162 and :205
   give CSD = -∇·(σ∇φ) = q; `methods.md:143` uses -∂²Φ/∂z². Use CSD = q under the stated Poisson equation and
   the proxy -∂²Φ/∂z².
-- Notation (T-101): collisions are inside the sealed doctrine itself: x is upstream input
+- Notation (TASK-NOTATION): collisions are inside the sealed doctrine itself: x is upstream input
   (`tfne_algebra.md:20`) and neural state (`rbs_rbd_hdp.md:156`, `methods.md:13-14`); u is the recovery
   variable (`methods.md:11,14`) and input (`rbs_rbd_hdp.md:161`); s is static state (`tfne_algebra.md:23`)
   and the spike vector (`methods.md` Eq. 5); P is proportions (`tfne_algebra.md:116`) and the probe operator;
@@ -220,8 +220,7 @@ Dropped from the core claim: N3, N4, H-state, EEG/MEG, ephaptic coupling, and th
 composing models of different resolution", which the code refuses (`jaxfne/neuronal_tensor.py:2953-2959`:
 one emitter family per tensor). The critic ran `tests/test_hdp_rules_ephaptic.py` (11 passed) and
 `tests/test_hdp_zero_rule_public_identity.py tests/test_kernel_lfp.py` (53 passed). Full report: scratch
-`D:/tmp/_temp_ms/G4_review.md` (not tracked; its findings are folded into this plan and todo rows T-101 to
-T-106).
+`D:/tmp/_temp_ms/G4_review.md` (not tracked; its findings are folded into this plan and the TASK todo rows).
 
 Owner decision open: implement mixed-family circuits through one factorization (stage 5 work, restores the
 headline) or write the narrowed core paper.
@@ -264,15 +263,15 @@ include TASK-FEAS-REVIEW's corrections.
 | Capability | Highest class | Evidence | Missing for the paper |
 |---|---|---|---|
 | N1 composition calculus | TESTED, partial | sealed `tfne/2` (`docs/theory/doctrine/tfne_algebra.md`); compiler built against `tfne/1`, 8 clauses not conformant (S6, S8, S9, S11-S14, S25; :163-174); block map `jaxfne/tfne.py:2483-2513`, round trip `tests/test_tfne_algebra.py:431-450` (`test_flatten_inspect_round_trip`) | formal semantics; feature comparison; conformance or scoped claim |
-| N2 reduction identities | TESTED, same backend | `tests/test_hdp_reduction_identity.py:398`, `tests/test_hdp_zero_rule_public_identity.py:56` (edge_list backend), zero-delay bit equivalence (`methods.md` §4), ephaptic alpha = 0 (`tests/test_hdp_rules_ephaptic.py:115`, `:171`) | extension table with planted breaks (T-104) |
+| N2 reduction identities | TESTED, same backend | `tests/test_hdp_reduction_identity.py:398`, `tests/test_hdp_zero_rule_public_identity.py:56` (edge_list backend), zero-delay bit equivalence (`methods.md` §4), ephaptic alpha = 0 (`tests/test_hdp_rules_ephaptic.py:115`, `:171`) | extension table with planted breaks (TASK-N2-PLANT) |
 | H-state (dropped from core) | IMPLEMENTED, emitter-local; SPECIFIED for S, F, P | 8 registered HDP rules: 5 in `jaxfne/hdp_rule.py:477-618`, plus PCL, Vogels iSTDP, ephaptic, of which 3 return dH = 0 | none for the core |
 | Relative quantities (dropped from core) | SPECIFIED | `docs/theory/doctrine/relative_quantity_grammar.md` (duplicate row :41-42; m classed B at :19, R at :40); `QuantityKind` vocabulary only | none for the core |
 | Emitter families | TESTED per family; heterogeneous REFUSED | registry `izhikevich`, `lif`, `glif` (registered, not routed), `adex`, `rate` (`jaxfne/emitter_registry.py:106-110`, `jaxfne/neuronal_tensor.py:93`); two families in one tensor raise (`neuronal_tensor.py:2953-2959`); adex and hh refuse `field()`/`probe()` (`_construct_core.py:528-551`); HH and Jansen-Rit outside the registry | owner decision; stale comments `neuronal_tensor.py:89-91`, `_construct_core.py:535-538` |
-| Geometry | TESTED; units conflict | `Geometry3D`, `NeuronalTensor` (mm); `tests/test_geometry_invariants.py:112,136,192`; A3 mutation receipt (release plan) | one length unit per layer and a calibration map (T-102) |
+| Geometry | TESTED; units conflict | `Geometry3D`, `NeuronalTensor` (mm); `tests/test_geometry_invariants.py:112,136,192`; A3 mutation receipt (release plan) | one length unit per layer and a calibration map (TASK-UNITS-CSD) |
 | LFP, CSD proxies | TESTED | `jaxfne/fields/probes.py:536,612`; `jaxfne/fields/proxy.py:1376` | proxy status kept in text |
 | Kernel LFP | TESTED | `jaxfne/fields/kernel_lfp.py:286`; current balance `tests/test_kernel_lfp.py:32`; P-056 open (deep-layer power) | P-056 |
 | EEG/MEG | TESTED (sphere leadfield) | `jaxfne/fields/head.py:227,258`; `tests/test_head_forward.py` | conductivity and source-physics statement; secondary |
-| Ephaptic (dropped from core) | TESTED as a lateral voltage coupling | `jaxfne/hdp_rules_ephaptic.py`; `tests/test_hdp_rules_ephaptic.py` (11 passed in review) | rename and per-route units (T-98); no derivation possible for point emitters |
+| Ephaptic (dropped from core) | TESTED as a lateral voltage coupling | `jaxfne/hdp_rules_ephaptic.py`; `tests/test_hdp_rules_ephaptic.py` (11 passed in review) | rename and per-route units (TASK-EPHAPTIC); no derivation possible for point emitters |
 | Differentiability | TESTED | `jaxfne/optim/`, surrogate spike (`jaxfne/emitters.py:318`); `tests/test_gradient_checks_v0417.py` | gradient check against finite differences named in text |
 | Scaling | SPECIFIED | B1 prereg signed 2026-11-06; no scored run (release plan B2) | matched-workload receipts; secondary for the gate |
 
@@ -304,6 +303,6 @@ Caveats added by TASK-FEAS-REVIEW (each must appear beside its record in the pap
 - Izhikevich: the paper's N2 claim stays failed (`izhikevich2003/RESULT_P6.md:10-11`).
 - GSDR: fits ran on the `single` morphology, evaluation on `reference`.
 - Vogels: manifests label the backend `cpu`; the GPU ran.
-- No lane imports `jaxfne.tfne`: the record validates the simulator kernels, not N1 (T-105).
+- No lane imports `jaxfne.tfne`: the record validates the simulator kernels, not N1 (TASK-REPL-TFNE).
 - Receipts live off-repo (Brunel on C:, which host policy may wipe; others on F:). A record counts as auditable
-  only once its receipts are copied or hash-anchored in a durable tracked location (T-106).
+  only once its receipts are copied or hash-anchored in a durable tracked location (TASK-RECEIPTS).

@@ -34,27 +34,27 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
    (`jaxfne/neuronal_tensor.py:2953-2959`). Options: (a) narrowed core paper (N1 composition calculus, N2
    contracts, replication record); (b) implement mixed-family circuits through one factorization first
    (stage 5). Recommended (a), with (b) a later paper.
-4. T-101 [A] Notation table S1 over doctrine, methods and code, then a rename pass (plan, Stage 2 gaps).
+4. TASK-NOTATION (T-101) [A] Notation table S1 over doctrine, methods and code, then a rename pass (plan, Stage 2 gaps).
    Closes when: no symbol binds two objects across `docs/theory/doctrine/`, `methods.md` and code names.
-5. T-102 [A] Geometry units per layer with the calibration map; one CSD definition in
+5. TASK-UNITS-CSD (T-102) [A] Geometry units per layer with the calibration map; one CSD definition in
    `docs/theory/source_field_equations.md` and `methods.md`. Closes when: both documents agree, reviewed.
 
 ## Tier 3: half a day
 
-- T-98 [A] Ephaptic operator: rename it a distance-weighted lateral voltage coupling, take it out of HDP
+- TASK-EPHAPTIC (T-98) [A] Ephaptic operator: rename it a distance-weighted lateral voltage coupling, take it out of HDP
   semantics, fix alpha's units and lag per route. Closes when: a test pins the same alpha meaning on LIF and
   Izhikevich.
-- T-99 [A] Source scope: write S's domain as (X, input) and the observation-claim scope of LFP, CSD, EEG/MEG
+- TASK-SOURCE-SCOPE (T-99) [A] Source scope: write S's domain as (X, input) and the observation-claim scope of LFP, CSD, EEG/MEG
   from Q; name kernel LFP a separate factorization. Closes when: the scope text is reviewed.
-- T-100 [A] H invariance: separate continuous-time invariance (barrier, `methods.md` Eq. 7) from discrete
+- TASK-HINV (T-100) [A] H invariance: separate continuous-time invariance (barrier, `methods.md` Eq. 7) from discrete
   clamping and from stability. Outside the core claim. Closes when: the text states each with its evidence.
-- T-103 [A] Discrete-map semantics: the discrete map defines the system; each claimed rule gets a stated
+- TASK-DMAP (T-103) [A] Discrete-map semantics: the discrete map defines the system; each claimed rule gets a stated
   consistency order and a dt-refinement test. Closes when: the tests pass for the core rules.
-- T-104 [A] N2 extension table: each extension with its same-backend identity test and a planted break that
+- TASK-N2-PLANT (T-104) [A] N2 extension table: each extension with its same-backend identity test and a planted break that
   fails it. Closes when: every planted break turns its test red.
-- T-105 [A] Route at least two replication lanes through `jaxfne.tfne` and the provenance map, or present the
+- TASK-REPL-TFNE (T-105) [A] Route at least two replication lanes through `jaxfne.tfne` and the provenance map, or present the
   record as simulator validation only. Closes when: the plan states which, with the lanes' receipts.
-- T-106 [A] Receipt durability: copy or hash-anchor each scored lane's receipts in a tracked location (Brunel's
+- TASK-RECEIPTS (T-106) [A] Receipt durability: copy or hash-anchor each scored lane's receipts in a tracked location (Brunel's
   are on C:). Closes when: each scored G3 record names a tracked receipt path or sha256 that resolves.
 
 14. T-F5 [A] T-32 candidate batching for AdEx, LIF and `Model.tune` (`_model_tune.py:451`) (checklist F5,
