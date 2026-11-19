@@ -42,6 +42,9 @@ requested and actual dtype policy.
   raises. `"auto"` runs edge_list under homeostasis, an engaged HDP rule, edges held only in
   `params["edge_list"]`, the receptor kernel, `connections()` rule edges, finite edge delays and
   full-state continuation, and dense otherwise; an explicit value the run cannot honour raises.
+  An explicit `"auto"` is the default: it defers to a model-level
+  `runtime(recurrent_backend="dense")`, which raises under homeostasis or an HDP rule; request
+  `"edge_list"` to override that model-level choice.
   Run metadata `recurrent_backend` records the backend that ran; the runtime report keeps the
   requested value.
 - `synaptic_kernel` (str): `"exponential"` | `"receptor_exponential"`

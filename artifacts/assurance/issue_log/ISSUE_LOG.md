@@ -329,7 +329,9 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   `metadata["recurrent_backend"]`, so `update_metadata()` and `Configuration(metadata=...)` reject unknown
   values as `runtime()` did; `runtime()`'s own copy of the check is removed. Test
   `test_hdp_zero_rule_public_identity.py::test_unknown_backend_is_rejected_where_the_configuration_is_built`
-  (red before). Still open, minor: explicit `RuntimeConfig("auto")` cannot be told from the default.
+  (red before). Explicit `RuntimeConfig("auto")` cannot be told from the default: closed as designed
+  (Hamm 2026-11-19); `docs/reference/api/core/runtime.md` says explicit `"auto"` defers to a model-level
+  `"dense"` and `"edge_list"` overrides it.
 
 ### P-063
 
