@@ -100,3 +100,68 @@ manuscript rewrite, refreeze (C2), review (C11), arXiv (C12). 0.6.0: acceptance.
   programme with its failures reported. It reuses F1 and the 0.5.9 validation evidence and does not
   replace the arXiv paper. jomission drops its engine row and submits its column paper separately.
   Submission on OpenReview is Hamm's act.
+- 2026-11-19 (Hamm, directive "Execute the 15-Stage TFNE Manuscript Programme", Option A: unified
+  mathematical and computational framework): the paper follows the fifteen stages below, scored as
+  workflow completion (done 1, started 0.5, else 0; score = 100 x credit / 15) beside the unchanged
+  C1-C12 weights. The eight main figures become: 1 TFNE theory and architecture; 2 heterogeneous emitter
+  composition; 3 geometry and source-field mapping; 4 ephaptic feedback and ablations; 5 H-state
+  multiphysics if validated, else a verified numerical or compositional result; 6 multiscale observation
+  operators; 7 published-model replications, failures included; 8 scaling and validity boundaries.
+  Read by the main session as superseding, for the main figures only, the F1-F8 table and "main figures
+  carry no negative results" (Fig 7 shows failures). C1-C12 keep their weights and checks; a check naming
+  an old figure reads the new one carrying that content (F2 -> 3, F3 -> 5, F4 -> 8, F5-F7 -> 7, F8 -> 7).
+  H1's frozen mappings (F1 = fig01, F3 = fig06, S15 = fig05) are audited at stage 12 before any change.
+
+## Fifteen-stage programme (2026-11-19)
+
+Baseline: jaxfne `_temp_tfne-manuscript` at 022da7a0 (dev c892ba30 plus T-86); main e0160dfc. Status
+words: PROPOSED (written), IMPLEMENTED (in code), TESTED (a test that can fail), VERIFIED (independent
+review). A stage closes only on its exit check and a non-writing reviewer's ACCEPT.
+
+| Stage | Status | Evidence at baseline | Closes when |
+|---|---|---|---|
+| 1 Scope, novelty, claims | started | framing above; claim ledger CL-01..CL-34 (`artifacts/publication/publication_claim_ledger.json`) is the wave-estimator paper's | every primary claim has a distinguishing property, evidence requirement and limitation (matrix below), reviewed |
+| 2 Mathematical theory | started | `docs/theory/doctrine/` (`tfne_algebra`, `rbs_rbd_hdp`, containment), `docs/theory/source_field_equations.md` | the gaps below resolved or scoped; independent math review finds no material inconsistency |
+| 3 Implementation, reproducibility | started | `CircuitSpec -> construct -> Model -> simulate -> Signals`; frozen manifest of the old figure set | each demonstrated feature has a public or documented path and a receipt |
+| 4 Numerical verification | started | delay-boundary, determinism (release plan C2), segmented-continuation (methods §4) tests | mandatory numerical gates pass or restrict claims |
+| 5 Heterogeneous emitters | started | families registered (inventory pending) | three families validated, heterogeneous composition shown |
+| 6 Geometry and fields | started | A3 geometry tests; kernel LFP; P-056 open | field kernels checked against analytic cases within stated domains |
+| 7 Ephaptic coupling | started | `jaxfne/hdp_rules_ephaptic.py`, alpha = 0 identity test | an effect attributable to the operator, with zero, shuffled and perturbed controls, or experimental-only |
+| 8 H-state | started | RBS/RBD/HDP kernels; reduction-identity tests | only validated components enter Results |
+| 9 Multiscale observables | started | linear proxy operators (methods §6); no physical solve | one circuit, several independently checked observables |
+| 10 Replications | started | lanes and verdicts in `dashboard/data/replications.json` | at least 7 auditable records, negatives kept, reviewer verdict each |
+| 11 Scaling | started | B1 prereg signed, no scored run (release plan B2) | matched-accuracy benchmark receipts |
+| 12 Figures | started | frozen fig01-fig07 of the old paper | every figure: generator, provenance, frozen inputs, independent check |
+| 13 Manuscript | started | `artifacts/programme/paper/publication/manuscript/` (wave-estimator paper, CL-01..CL-21) | complete draft, no unsupported primary claim |
+| 14 Review and lock | not started | | reviews ACCEPT; owner-approved methodological lock |
+| 15 Publication verification | not started | | C1-C12 = 100; gates pass; owner authorizes submission |
+
+Workflow 2026-11-19: 13 started, 0 done = 6.5 / 15 = 43/100. C1-C12: 0/100 scored (no item's registered
+check run at this baseline). Mandatory gates: broad gate and CI per promoted SHA (`artifacts/state.md`).
+
+### Stage 2 gaps found 2026-11-19 (PROPOSED; each has a todo row)
+
+- Ephaptic operator: the code computes Phi_i = alpha sum_j M_ij (v_j - v_rest) from neighbour voltages
+  (`jaxfne/hdp_rules_ephaptic.py:1-30`), not phi = K[s] from the source; written that way it is a
+  distance-weighted voltage coupling with the algebra of a gap-junction proxy (no -v_i self term). The
+  methods' upstream-feed prohibition (manuscript `methods.md` §1) does not hold once it is on. Either
+  derive C_eph from the source-field chain or name the operator for what it is.
+- Source Q_t = s_scale (I_native + g_spk s) (`methods.md` Eq. 5) is a relative proxy without
+  transmembrane current balance; LFP, CSD and EEG/MEG readouts from it are proxies (`methods.md` §6),
+  so stage 9 can claim internal consistency of operators, not physical forward models.
+- H boundedness is clamp-imposed (`methods.md` §5.3); a stability claim needs the unclamped analysis.
+
+### Stage 1 competing frameworks (PROPOSED; each row inferred until checked against the tool's paper and docs)
+
+| Framework | What it already provides | What the TFNE claim must add to be new |
+|---|---|---|
+| Brian2, NEST, GeNN, Arbor | point- or multi-compartment networks from equations or model libraries; NEST and Arbor scale | one specification composing different emitter families with typed source-field-probe stages and tested reduction identities |
+| NEURON + NetPyNE + LFPy/LFPykit | declarative network specs; physically grounded LFP/EEG from multicompartment transmembrane currents | differentiable JAX execution and relative-unit contracts; it cannot claim better forward physics (our observation operators are proxies, gap above) |
+| Jaxley | differentiable multicompartment simulation in JAX | heterogeneous emitter resolutions in one circuit; geometry-to-observation chain |
+| BrainPy / brainstate, Norse, snnTorch | differentiable spiking networks, several neuron models, JAX or PyTorch | containment semantics (geometry, signs, ownership kept through flattening) and refusal of unconsumed parameters |
+| The Virtual Brain, neural-mass and neural-field models (Amari, Wilson-Cowan, Jansen-Rit) | population dynamics with EEG/MEG forward models on connectomes | mixing neuron-resolution emitters with population emitters under one grammar |
+| hnn-core | laminar cortical model with a calibrated dipole-to-EEG/MEG link | no claim of calibrated EEG/MEG; only relative proxies |
+
+Distinguishing property to test for the primary claim: a single CircuitSpec that runs two emitter families in
+one circuit, where disabling each extension (H, delays, ephaptic, observations) reproduces the constituent model
+bitwise, through the public path. A framework above that already passes this test removes the novelty claim.

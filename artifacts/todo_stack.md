@@ -30,8 +30,20 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
    noise, delays, dt, seeds), and `PREREG_P3.md:1` is still "draft, UNSIGNED" with `(fill)` estimands at `:10` and
    `:26`. Missing: digitized figure targets, a verdict scorer, a rate-route driver, a P4-passing manifest, receipts.
    Closes when: a filled P3 is signed and G6 is scored under it; the inventory is in the lane's records.
+3. T-97 [A] Manuscript stage 1 (G-0, Hamm 2026-11-19 fifteen-stage directive): claim-implementation-evidence
+   matrix and competing-framework comparison in `programme/design/plans/arxiv_paper_plan.md`. Closes when: every
+   primary claim has a distinguishing property, evidence requirement and limitation, and a non-writing reviewer
+   ACCEPTs.
 
 ## Tier 3: half a day
+
+- T-98 [A] Stage 2/7 ephaptic operator: derive C_eph from the source-field chain or rename the operator as a
+  voltage-coupling proxy; state where the methods' upstream-feed prohibition no longer holds. Closes when: the
+  plan's Stage 2 gap row is resolved with a derivation or a scoped name, reviewed.
+- T-99 [A] Stage 2/9 source balance: state the source's current balance and what LFP, CSD, EEG/MEG readouts from
+  it can claim. Closes when: the observation-claim scope is written with its check.
+- T-100 [A] Stage 2/8 H boundedness without clamps: analysis or numerical check of the unclamped HDP law on the
+  tested presets. Closes when: the boundedness claim is restated with its evidence class.
 
 14. T-F5 [A] T-32 candidate batching for AdEx, LIF and `Model.tune` (`_model_tune.py:451`) (checklist F5,
     1.5 pts). Closes when: the batching tests pass across seeds.
