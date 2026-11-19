@@ -624,10 +624,13 @@ def test_m2_no_privileged_feedback():
     """Drive at interval k depends only on the scalar distance at k; action only on counts at k."""
     r = _m2_rollout(n_intervals=10)
     enc = _m2_encoder()
+    assert np.array_equal(r["actions"][0], np.zeros(2)), "no force before the first spikes"
     for k in range(10):
         e_k = float(np.linalg.norm(r["positions"][k]))
         assert np.array_equal(r["drive"][k], np.asarray(_sp.sailor_tonic_current(enc, e_k)))
-        assert np.array_equal(r["actions"][k], np.asarray(_sp.sailor_decode(r["counts"][k], _M2_F0)))
+        if k + 1 < 10:
+            assert np.array_equal(
+                r["actions"][k + 1], np.asarray(_sp.sailor_decode(r["counts"][k], _M2_F0)))
     assert np.any(r["drive"][1:] != r["drive"][0]), "feedback must change the drive over time"
     # Velocity is never an input: same start point, different start velocity -> same first drive.
     v = _m2_rollout(n_intervals=3, v0=(2.0, -1.0))
@@ -640,25 +643,72 @@ def test_m2_causal_loop_spikes_drive_boat_and_feedback():
     assert int(np.sum(r["spikes"][:, list(_M2_MOTOR)])) > 0, "fixture must spike on motor neurons"
     assert np.any(r["actions"] != 0), "fixture must decode a nonzero force"
     assert not np.allclose(r["positions"][-1], r["positions"][0]), "fixture must move the boat"
-    # Spikes -> force -> boat: the recorded boat trajectory is the physics applied to the decoded forces.
+    # Spikes -> counts: the counts are exactly the motor-column spike sums of each interval.
+    for k in range(r["counts"].shape[0]):
+        block = r["spikes"][20 * k: 20 * (k + 1)]
+        assert np.array_equal(r["counts"][k], block[:, list(_M2_MOTOR)].sum(axis=0)), f"interval {k}"
+    # Counts -> force: the decoded force of interval k acts during interval k+1 (contract §12.3.4).
+    # Force -> boat: the recorded trajectory is the physics applied to the recorded actions.
     cfg = _sp.SailorConfig(**_M2_CFG)
-    s0 = _sp.sailor_reset(cfg, jax.random.PRNGKey(0), p0=np.asarray(_M2_P0, np.float32))
-    s_end, _ = _sp.sailor_rollout(cfg, s0, jnp.asarray(r["actions"], jnp.float32))
-    assert np.allclose(np.asarray(s_end.p), r["positions"][-1], rtol=1e-5, atol=1e-6)
+    s0 = _sp.sailor_reset(cfg, jax.random.PRNGKey(1), p0=np.asarray(_M2_P0, np.float32))
+    s, traj = s0, [np.asarray(s0.p)]
+    for a in r["actions"]:
+        s, _ = _sp.sailor_step(cfg, s, jnp.asarray(a, jnp.float32))
+        traj.append(np.asarray(s.p))
+    assert np.allclose(np.stack(traj), r["positions"], rtol=1e-6, atol=1e-6), "whole trajectory"
 
 
 def test_m2_distance_feedback_alters_subsequent_membrane_activity():
     """Counterfactual: same seed and start; only the decoder differs.
 
-    Interval 0 is identical (no feedback yet). Afterwards the boat-driven distance changes the tonic
-    drive and therefore the membrane trajectory. Spike counts stay equal at this fixture within the
-    horizon (sub-threshold feedback); that is recorded, not asserted as a success.
+    Intervals 0 and 1 are identical: the first force acts during interval 1 and moves the boat only
+    at the end of it, so the drive first differs in interval 2. Spike counts were also equal over
+    this 10-interval horizon (sub-threshold feedback, §12.9); that is not asserted here as a success.
     """
     on = _m2_rollout(n_intervals=10, f0=_M2_F0)
     off = _m2_rollout(n_intervals=10, f0=0.0)
-    assert np.array_equal(on["V_m"][:20], off["V_m"][:20]), "first interval has no feedback yet"
-    assert not np.array_equal(on["drive"][1:], off["drive"][1:]), "distance must reach the drive"
-    assert not np.array_equal(on["V_m"][20:], off["V_m"][20:]), "distance feedback must alter later V_m"
+    assert np.array_equal(on["V_m"][:40], off["V_m"][:40]), "intervals 0-1 have no feedback yet"
+    assert not np.array_equal(on["drive"][2:], off["drive"][2:]), "distance must reach the drive"
+    assert not np.array_equal(on["V_m"][40:], off["V_m"][40:]), "distance feedback must alter later V_m"
+
+
+def test_m2_chunked_rollout_equals_one_continuous_simulate():
+    """Full-state continuation: three 20 ms chunks with a constant drive equal one 60 ms simulate."""
+    r = _m2_rollout(n_intervals=3, f0=0.0)
+    assert np.all(r["drive"] == r["drive"][0]), "fixture: constant drive"
+    sched = jtfne.stimulus_schedule(
+        [{"onset_ms": 0.0, "duration_ms": 60.0, "amplitude": float(c), "target_indices": [i]}
+         for i, c in enumerate(r["drive"][0])], _M2_N)
+    whole = _m2_model().simulate(
+        jtfne.Simulation(duration_ms=60.0, dt_ms=1.0, seed=1,
+                         runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")),
+        paradigm=sched)
+    assert np.array_equal(np.asarray(whole.V_m), r["V_m"]), "chunked V_m must equal the whole run"
+    assert np.array_equal(np.asarray(whole.spikes), r["spikes"]), "chunked spikes must equal the whole run"
+
+
+@pytest.mark.parametrize("override", [
+    {"motor_idx": (0, 1, 2)},
+    {"motor_idx": (0, 0, 2, 3)},
+    {"motor_idx": (0, 1, 2, 8)},
+    {"control_ms": 20.5},
+    {"enc": "shape"},
+])
+def test_m2_rollout_refuses_bad_inputs(override):
+    kw = dict(motor_idx=_M2_MOTOR, f0=_M2_F0, n_intervals=1, seed=1)
+    enc = _m2_encoder()
+    if override.get("enc") == "shape":
+        enc = _sp.SailorTonicEncoder(b=np.zeros(3, np.float32), g=np.zeros(3, np.float32), d0=1.0)
+    kw.update({k: v for k, v in override.items() if k != "enc"})
+    with pytest.raises(ValueError):
+        _sp.sailor_neural_rollout(_m2_model(), _sp.SailorConfig(**_M2_CFG), enc, **kw)
+
+
+def test_m2_decoder_and_encoder_refuse_bad_shapes():
+    with pytest.raises(ValueError):
+        _sp.sailor_decode(np.array([1, 2, 3]), 1.0)
+    with pytest.raises(ValueError):
+        _sp.sailor_tonic_current(_sp.SailorTonicEncoder(b=np.zeros(3), g=np.zeros(4), d0=1.0), 1.0)
 
 
 def test_m2_negative_control_without_decoder_no_motion():

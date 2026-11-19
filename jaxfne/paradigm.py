@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from typing import Any, NamedTuple, Optional, Sequence, Mapping
 
+import math
+
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -1091,8 +1093,6 @@ class SailorTonicEncoder(NamedTuple):
 
 def sailor_tonic_current(enc: SailorTonicEncoder, e) -> jax.Array:
     """Per-neuron tonic input for scalar distance ``e``. Refuses ``d0`` not finite and positive."""
-    import math
-
     d0 = float(enc.d0)
     if not (math.isfinite(d0) and d0 > 0.0):
         raise ValueError(f"SailorTonicEncoder.d0 must be finite and > 0, got {enc.d0!r}")
@@ -1119,7 +1119,8 @@ def sailor_neural_rollout(
     """Closed loop on a LIF model: distance -> tonic drive -> spikes -> decoded force -> boat -> distance.
 
     Each control interval runs ``control_ms / dt_ms`` neural steps through ``Model.simulate`` with
-    full-state continuation, then applies the decoded force once to the boat. The controller reads
+    full-state continuation. The boat moves through each interval under the force decoded from the
+    previous interval's spikes (so ``actions[0]`` is zero). The controller reads
     only the scalar distance of the current boundary. ``motor_idx`` lists four excitatory neurons in
     (+x, -x, +y, -y) order. Returns host arrays: positions (K+1, 2), errors (K,), drive (K, N),
     spikes (K*steps, N), V_m (K*steps, N), counts (K, 4), actions (K, 2), metadata.
@@ -1150,6 +1151,8 @@ def sailor_neural_rollout(
         v0=None if v0 is None else np.asarray(v0, np.float32),
     )
     cont = None
+    # Contract §12.3.4: counts of interval k are decoded and applied during interval k+1.
+    pending = jnp.zeros((2,), _SAILOR_DTYPE)
     positions, errors, drives, spikes, volts, counts, actions = (
         [np.asarray(state.p)], [], [], [], [], [], [])
     for _ in range(n_intervals):
@@ -1167,14 +1170,15 @@ def sailor_neural_rollout(
             sig, cont = model.simulate(sim, paradigm=sched, continuation=cont, return_state=True)
         sp = np.asarray(sig.spikes)
         c4 = sp[:, motor].sum(axis=0)
-        a = np.asarray(sailor_decode(c4, f0))
-        state, _ = sailor_step(cfg, state, jnp.asarray(a, _SAILOR_DTYPE))
+        # The boat moves through interval k under the force decoded from interval k-1.
+        state, _ = sailor_step(cfg, state, pending)
+        actions.append(np.asarray(pending))
+        pending = sailor_decode(c4, f0)
         errors.append(e)
         drives.append(cur)
         spikes.append(sp)
         volts.append(np.asarray(sig.V_m))
         counts.append(c4)
-        actions.append(a)
         positions.append(np.asarray(state.p))
     return {
         "positions": np.stack(positions),

@@ -190,7 +190,11 @@ Status: IMPLEMENTED on the isolated branch (adapter in `jaxfne/paradigm.py`, 14 
   - decoder without opposing cancellation (`n+x + n-x`): fails `test_m2_decoder_opposing_counts_cancel`.
   - distance feedback removed (drive held at `e = 0`): fails 6 tests (no-privileged, causal loop, feedback, g/d0/b perturbations).
 - Result: 33 Crazy Sailor tests pass (M1 19 + M2 14). The M2 distance feedback changes the drive and the membrane trajectory after interval 0. Spike counts stayed equal at this fixture within 30 intervals (sub-threshold feedback). This is recorded, not hidden: spike-level feedback needs a more sensitive regime, which is a scientific choice (§12.6).
-- Not yet done: 60 s episodes (3000 intervals; each interval is one eager simulate call), dashboard page, GIFs, independent review of the M2 diff.
+- Timing (§12.3.4): the counts of interval k are decoded and applied during interval k+1. `actions[0]` is zero. An earlier revision applied them in the same interval; the independent review (REVISE) caught the deviation and it is fixed.
+- Review round 1 (REVISE, no blocker) and fixes: timing corrected; continuation covered by `test_m2_chunked_rollout_equals_one_continuous_simulate`; counts checked against the motor-column spike sums; input refusals tested; reference state uses the same seed family as the rollout.
+- Continuation mutant (`continuation=cont` dropped): fails the chunked-equals-continuous test and the d0 perturbation test.
+- Totals: 40 Crazy Sailor tests pass (M1 19, M2 21 including parametrized cases).
+- Not yet done: the generic `controller.init/step` adapter of §12.3.1 (the rollout is specific to the four-channel LIF example); 60 s episodes (3000 intervals; each interval is one eager simulate call); dashboard page; GIFs; re-review of the revised diff.
 
 ### 12.1 Starting point
 
@@ -254,7 +258,7 @@ Receipts are appended below by the M1 run (commands, exit codes, pass counts, SH
 
 ## 11. Open issues carried forward
 
-- M2: observation encoder, decoder and E/I 10-neuron example. Not started.
+- M2: observation encoder, decoder and E/I 10-neuron example. Implemented on the isolated branch (§12.9); not integrated into `dev`.
 - M3: learning and evaluation. Not started.
 - M4: correlated, wave, nonlinear and mixed disturbances. Not started.
 - M5: public paradigm workflow, dashboard entry, docs. Not started. No root export is added in M1, so the public surface is unchanged.
