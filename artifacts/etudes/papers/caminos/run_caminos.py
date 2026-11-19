@@ -143,11 +143,24 @@ def _reusable(old, seed, args, sizes):
             and str(old.get("ext_sources", "fixed")) == str(getattr(args, "ext_sources", "fixed")))
 
 
+def _replace(src, dst, *, attempts=5, wait_s=0.05):
+    """``os.replace`` that retries a PermissionError: on Windows another process
+    can hold either file for a moment (ISSUE_LOG P-061). Same helper as
+    ``caminos_api._replace``; this script does not import ``caminos_api``."""
+    for i in range(attempts):
+        try:
+            return os.replace(src, dst)
+        except PermissionError:
+            if i == attempts - 1:
+                raise
+            time.sleep(wait_s * (i + 1))
+
+
 def _write_manifest(out, manifest):
     """Atomic manifest write (temp file + replace)."""
     mtmp = out / "manifest.json.tmp"
     mtmp.write_text(json.dumps(manifest, indent=2))
-    os.replace(mtmp, out / "manifest.json")
+    _replace(mtmp, out / "manifest.json")
 
 
 def main(argv=None):
@@ -234,7 +247,7 @@ def main(argv=None):
         tmp = out / (fname + ".tmp")
         with open(tmp, "wb") as f:
             np.save(f, counts)
-        os.replace(tmp, fpath)
+        _replace(tmp, fpath)
         entries[fname] = {"seed": seed, "p": args.p, "file": fname,
                           "dtype": args.dtype, "dt": args.dt, "T": args.T,
                           "pilot": bool(args.pilot), "sizes": sizes,

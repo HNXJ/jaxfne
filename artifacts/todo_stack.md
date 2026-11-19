@@ -50,9 +50,6 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
     cause is named.
 17. T-95 [A] P-058 `_code_sha` worktree portability (`run_r2_reference.py`): resolve HEAD through git. Closes when:
     tests for a regular clone, a worktree and a loose ref pass, and the PCL lane passes in a worktree.
-17. T-96 [A] P-061 sibling: `run_caminos.py:150` and `:237` rename without the retry `caminos_api._replace` has
-    (that script imports neither jaxfne nor `caminos_api`; a shared module costs a file over budget). Closes when:
-    both sites retry a `PermissionError` and a test injecting one failed replace into `run_caminos.main` passes.
 
 ## Tier 4: a day or more
 

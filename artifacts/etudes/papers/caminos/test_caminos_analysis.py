@@ -335,6 +335,27 @@ def test_pilot_writes_counts_and_manifest(tmp_path):
     assert saved["runs"][0]["wall_s"] >= 0.0
 
 
+def test_pilot_retries_a_held_replace(tmp_path, monkeypatch):
+    """T-96 (P-061 sibling): one PermissionError on each tmp -> final rename is retried."""
+    import run_caminos
+    real_replace = run_caminos.os.replace
+    failed = []
+
+    def flaky(src, dst):
+        name = Path(dst).name
+        if (name == "manifest.json" or name.endswith(".npy")) and name not in failed:
+            failed.append(name)
+            raise PermissionError(13, "Access is denied", str(dst))
+        return real_replace(src, dst)
+
+    monkeypatch.setattr(run_caminos.os, "replace", flaky)
+    out = tmp_path / "pilot"
+    run_caminos.main(["--seeds", "0", "--p", "0.07", "--T", "0.05", "--out", str(out), "--pilot"])
+    assert "manifest.json" in failed and any(n.endswith(".npy") for n in failed), "fixture: both renames must fail once"
+    assert (out / "manifest.json").exists() and len(list(out.glob("*.npy"))) == 1
+    assert not list(out.glob("*.tmp"))
+
+
 def test_run_filename_carries_dtype_and_dt():
     import run_caminos
     f32 = run_caminos.run_filename(1, 0.07, "float32", 1e-4)

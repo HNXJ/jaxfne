@@ -242,7 +242,11 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   `::test_p6_write_run_reraises_a_persistent_permission_error`. Cause stays inferred. Sibling sites in
   `run_caminos.py` are todo T-96. Outside caminos, 21 bare `os.replace(` calls in 15 files (brunel2000,
   destexhe2009, gsdr2026, mejias2016, pcl/port, potjans2014, vogels2011, `e2b_v2_executor.py`, `scripts/lane_kit.py`,
-  `scripts/new_lane.py`; independent review 2026-11-19) have no retry; none has failed so far. Closes when on dev.
+  `scripts/new_lane.py`; independent review 2026-11-19) have no retry; none has failed so far.
+- Closed 2026-11-19: on dev at 314f99f2 (broad gate on 19ab3afe rc 0, 8335 passed, caminos lane PASS;
+  independent review ACCEPT; CI (Fast) 44546980997 green 10/10). Evidence: `F:/warehouse/jaxfne/P-061_2026-11-17/`.
+  T-96 (Hamm 2026-11-19): `run_caminos.py` gets its own `_replace` for both renames (the script imports neither
+  jaxfne nor `caminos_api`); test `test_caminos_analysis.py::test_pilot_retries_a_held_replace` (red before).
 
 ### P-062
 
