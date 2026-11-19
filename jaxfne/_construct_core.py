@@ -1635,8 +1635,9 @@ def _construct_from_configuration(
         "edge_list_role": ("authoritative" if _placeholder_w else "execution_layout_derived"),
     }
 
-    return Model(
-        cfg=cfg,
-        params={"emitter": network.params, "positions": positions, "edge_list": edge_list},
-        static=static,
-    )
+    model_params = {"emitter": network.params, "positions": positions, "edge_list": edge_list}
+    if geometry_meta is not None and geometry is None:
+        # P-066: population z is in mm (fraction * column_height_mm); the model carries the
+        # height so project_model_sources can read depth in the same unit.
+        model_params["column_height_mm"] = float(cfg.metadata.get("column_height_mm", 1.60))
+    return Model(cfg=cfg, params=model_params, static=static)
