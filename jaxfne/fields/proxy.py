@@ -475,6 +475,7 @@ def project_model_sources(
         width=width,
         mode=mode,
         dtype=dtype,
+        column_height_mm=model.params.get("column_height_mm"),
     )
     if isinstance(sources, jax.core.Tracer) or isinstance(use_positions, jax.core.Tracer):
         return out

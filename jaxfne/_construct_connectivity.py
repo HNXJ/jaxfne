@@ -1123,12 +1123,19 @@ def connect(
 
     # T-24: no stored input-source record; Model.x_sources derives the
     # constant entries at access from the merged drive + namespaced rows.
-    return Model(
-        cfg=cfg2,
-        params={
-            "emitter": merged_emitter,
-            "positions": merged_positions,
-            "edge_list": merged_edges,
-        },
-        static=merged_static,
-    )
+    merged_params = {
+        "emitter": merged_emitter,
+        "positions": merged_positions,
+        "edge_list": merged_edges,
+    }
+    # P-066: members carry mm z plus their height, or neither. Mixing them would put
+    # relative and mm depth in one position array, so refuse it.
+    has_height = ["column_height_mm" in m.params for m in models]
+    if any(has_height):
+        if not all(has_height):
+            raise ValueError("connect: refusing to merge laminar (mm z) and non-laminar member models")
+        heights = {float(m.params["column_height_mm"]) for m in models}
+        if len(heights) > 1:
+            raise ValueError(f"connect: member models declare different column_height_mm {sorted(heights)}")
+        merged_params["column_height_mm"] = heights.pop()
+    return Model(cfg=cfg2, params=merged_params, static=merged_static)
