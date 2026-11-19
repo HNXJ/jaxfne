@@ -209,6 +209,16 @@ def test_fig_3c_raster_without_meanfield(run_dir):
     plt.close(fig)
 
 
+def test_fig_3c_raster_reads_meanfield_from_mf_dir(run_dir, tmp_path_factory):
+    mf_dir = tmp_path_factory.mktemp("mf")
+    np.savez(mf_dir / "meanfield_pv_randomized_0.4.npz",
+             t_s=np.linspace(11.5, 12.0, 500), nu_hz=np.tile([1.0, 8.0, 4.0], (500, 1)))
+    fig = ps.fig_plos_3c(run_dir, mf_dir=mf_dir)
+    assert len(fig.axes) == 3  # MF trace, raster, rate
+    assert fig.axes[0].get_ylabel() == "MF rate (Hz)"
+    plt.close(fig)
+
+
 def test_fig_2f_t0_fallback(run_dir):
     fig = ps.fig_plos_2f(run_dir)
     assert len(fig.axes) == 2  # no mean-field file for som_silenced_0.9
@@ -245,6 +255,21 @@ def test_fig_5a_reads_sweep_json(tmp_path):
     assert len(fig.axes) == 4
     freq_line = fig.axes[0].lines[0]
     assert list(freq_line.get_xdata()) == [0.0, 1.0], "frequency is drawn at unstable points only"
+    plt.close("all")
+
+
+def test_fig_4a_meanfield_reads_sweep_json(tmp_path):
+    def row(r, stable):
+        return {"ratio": r, "freq_hz": 0.0 if stable else 30.0 + r, "amplitude_hz": 0.0 if stable else r,
+                "stable": stable}
+    sweep = {"ratios": [1.0, 2.0, 3.0], "results": [row(1.0, False), row(2.0, False), row(3.0, True)]}
+    path = tmp_path / "fig4a.json"
+    path.write_text(json.dumps({"printed": sweep, "code": sweep}), encoding="utf-8")
+    fig = ps.fig_plos_4a_meanfield(path)
+    assert len(fig.axes) == 2
+    freq_line = fig.axes[0].lines[0]
+    assert list(freq_line.get_xdata()) == [1.0, 2.0], "frequency is drawn at unstable points only"
+    assert len(fig.axes[1].lines) == 2, "amplitude line per T_v form"
     plt.close("all")
 
 

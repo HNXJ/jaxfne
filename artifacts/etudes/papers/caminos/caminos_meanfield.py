@@ -177,6 +177,9 @@ def moments(ctype, nu_E, nu_PV, nu_SOM, w, params=PARAMS):
     tv_form = _tv_form(params)
     N, p = params["N"], params["p"]
     nu = {"E": max(nu_E, 0.0), "PV": max(nu_PV, 0.0), "SOM": max(nu_SOM, 0.0)}
+    # Randomized fraction (simulate_meanfield): those cells fire as Poisson units at a constant rate.
+    for X, (frac, rate) in params.get("poisson", {}).items():
+        nu[X] = (1.0 - frac) * nu[X] + frac * rate
     f = {X: nu[X] * p * N[X] for X in TYPES}  # line 192: f_X = nu_X p N_X
     f["ext"] = params["nu_ext"] * p * N["E"]  # line 192: f_ext = nu_ext p N_E
     # Each input's tau: E and drive are excitatory (tau_E), PV and SOM inhibitory (tau_I).
@@ -252,21 +255,32 @@ def _rhs(nu, w, nu_del, params):
 
 
 def simulate_meanfield(T_s, dt_s=1e-4, params=PARAMS, nu0=None, w0=None,
-                      pv_silence=0.0, som_silence=0.0):
+                      pv_silence=0.0, som_silence=0.0, pv_random=0.0, som_random=0.0,
+                      random_rates_hz=None):
     """Euler integration of Eq. 1 with the tau_d delay in a ring buffer.
 
     Silencing a fraction f scales that population's N by (1 - f) in every input term; the silenced
-    rate still obeys Eq. 1 but sends no input. Rates start at nu0 (default DEFAULT_START), nu(t < 0)
+    rate still obeys Eq. 1 but sends no input. Randomizing a fraction f (Fig. 3; the paper replaces
+    those cells by Poisson units at the reference model's mean rate of the type) feeds every input
+    term (1 - f) nu_X + f r_X, r_X = random_rates_hz[X] (Hz, required when f > 0, e.g. from
+    reference_mean_rates); the returned rate is that of the non-replaced cells. Rates start at nu0 (default DEFAULT_START), nu(t < 0)
     equals nu0 and w starts at w0 (default zeros, columns E, PV, SOM). Returns (t, nu, w): t in s;
     nu and w have shape (n + 1, 3), columns E, PV, SOM. The PV column of w stays at its start value
     (0 by default; a = b = 0 for PV).
     """
     if not (0.0 <= pv_silence <= 1.0 and 0.0 <= som_silence <= 1.0):
         raise ValueError("silenced fractions must lie in [0, 1]")
+    if not (0.0 <= pv_random <= 1.0 and 0.0 <= som_random <= 1.0):
+        raise ValueError("randomized fractions must lie in [0, 1]")
     _tv_form(params)  # refuse before any step (a zero-length run never reaches moments)
     p = dict(params)
     p["N"] = {"E": params["N"]["E"], "PV": params["N"]["PV"] * (1.0 - pv_silence),
               "SOM": params["N"]["SOM"] * (1.0 - som_silence)}
+    random = {X: f for X, f in (("PV", pv_random), ("SOM", som_random)) if f > 0.0}
+    if random:
+        if random_rates_hz is None:
+            raise ValueError("randomizing needs random_rates_hz (Hz per type)")
+        p["poisson"] = {X: (f, float(random_rates_hz[X])) for X, f in random.items()}
     nu = np.array(DEFAULT_START[:3] if nu0 is None else nu0, dtype=float)
     w = np.zeros(3) if w0 is None else np.asarray(w0, dtype=float)
     n = int(round(T_s / dt_s))
@@ -280,6 +294,17 @@ def simulate_meanfield(T_s, dt_s=1e-4, params=PARAMS, nu0=None, w0=None,
         nu, w = nu + dt_s * dnu, w + dt_s * dw
         NU[k + 1], W[k + 1] = nu, w
     return t, NU, W
+
+
+def reference_mean_rates(T_s=12.0, discard_s=2.0, dt_s=1e-4, params=PARAMS):
+    """Mean PV and SOM rates (Hz) of the reference mean field over [discard_s, T_s].
+
+    The Fig. 3 Poisson rate: the network runs use the paired-baseline mean rate over the kept window
+    (run_plos_rasters, 2 s discarded); this is the mean field's own reference over the same window.
+    """
+    t, nu, _ = simulate_meanfield(T_s, dt_s, params)
+    m = nu[t >= discard_s].mean(axis=0)
+    return {"PV": float(m[1]), "SOM": float(m[2])}
 
 
 def fixed_point(params=PARAMS, x0=None):

@@ -237,6 +237,36 @@ def test_fig4a_reference_ratio_equals_fig5a_reference_point():
         {k: v for k, v in ref.items() if k != "g_ns"}
 
 
+def test_randomized_zero_fraction_is_the_reference_run():
+    _, nu_ref, _ = mf.simulate_meanfield(0.3)
+    _, nu_r, _ = mf.simulate_meanfield(0.3, pv_random=0.0, som_random=0.0,
+                                      random_rates_hz={"PV": 50.0, "SOM": 50.0})
+    assert np.array_equal(nu_r, nu_ref)
+
+
+@pytest.mark.parametrize("pop", ["PV", "SOM"])
+def test_randomizing_all_at_zero_hz_equals_silencing_all(pop):
+    """Known positive: Poisson units at 0 Hz send what silenced cells send, nothing."""
+    rnd = {"pv_random": 1.0} if pop == "PV" else {"som_random": 1.0}
+    sil = {"pv_silence": 1.0} if pop == "PV" else {"som_silence": 1.0}
+    _, nu_r, _ = mf.simulate_meanfield(0.3, random_rates_hz={"PV": 0.0, "SOM": 0.0}, **rnd)
+    _, nu_s, _ = mf.simulate_meanfield(0.3, **sil)
+    assert np.max(np.abs(nu_s[:, 0] - mf.simulate_meanfield(0.3)[1][:, 0])) > 1e-6  # fixture: silencing acts
+    np.testing.assert_allclose(nu_r, nu_s, rtol=1e-12, atol=0.0)
+
+
+def test_randomized_fraction_changes_trajectory_and_bad_input_is_refused():
+    rates = mf.reference_mean_rates(T_s=1.0, discard_s=0.5)
+    assert set(rates) == {"PV", "SOM"} and min(rates.values()) > 0.0
+    _, nu_r, _ = mf.simulate_meanfield(0.3, pv_random=0.9, random_rates_hz=rates)
+    _, nu_ref, _ = mf.simulate_meanfield(0.3)
+    assert np.max(np.abs(nu_r[:, 0] - nu_ref[:, 0])) > 1e-6
+    with pytest.raises(ValueError):
+        mf.simulate_meanfield(0.1, pv_random=0.4)  # no rates given
+    with pytest.raises(ValueError):
+        mf.simulate_meanfield(0.1, som_random=1.5, random_rates_hz=rates)
+
+
 def test_fig4a_ratio_changes_e_trajectory():
     """A ratio other than 1 is consumed: the E-rate trace differs from the reference."""
     _, nu_mod, _ = mf.simulate_meanfield(0.5, params=mf.params_with_ratio(4.0))

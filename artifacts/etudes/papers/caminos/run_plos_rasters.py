@@ -212,17 +212,49 @@ def _condition_npz(res):
     }
 
 
-def _meanfield_npz(t_s, pv_silence, som_silence):
-    """Last-0.5 s mean-field traces for one silencing pair."""
-    t, nu, w = cmf.simulate_meanfield(t_s, pv_silence=pv_silence, som_silence=som_silence)
+def _meanfield_npz(t_s, pv_silence, som_silence, pv_random=0.0, som_random=0.0, random_rates_hz=None):
+    """Last-0.5 s mean-field traces for one silencing pair (or randomized pair, Fig 3)."""
+    t, nu, w = cmf.simulate_meanfield(t_s, pv_silence=pv_silence, som_silence=som_silence,
+                                      pv_random=pv_random, som_random=som_random,
+                                      random_rates_hz=random_rates_hz)
     sel = np.asarray(t) >= t_s - 0.5
-    return {
+    out = {
         "t_s": np.asarray(t)[sel],
         "nu_hz": np.asarray(nu)[sel],
         "w": np.asarray(w)[sel],
         "pv_silence": np.asarray(float(pv_silence)),
         "som_silence": np.asarray(float(som_silence)),
     }
+    if random_rates_hz is not None:
+        out.update(pv_random=np.asarray(float(pv_random)), som_random=np.asarray(float(som_random)),
+                   random_rate_pv_hz=np.asarray(float(random_rates_hz["PV"])),
+                   random_rate_som_hz=np.asarray(float(random_rates_hz["SOM"])))
+    return out
+
+
+def write_meanfield_randomized(outdir, t_s=12.0, discard_s=2.0):
+    """Fig 3C-F mean-field traces: ``meanfield_<pop>_randomized_<f>.npz`` and a ``manifest.json``.
+
+    Poisson rate per type = ``caminos_meanfield.reference_mean_rates(t_s, discard_s)`` (the mean
+    field's own reference over the kept window). An existing non-empty outdir is refused.
+    """
+    out = Path(outdir)
+    if out.exists() and any(out.iterdir()):
+        raise SystemExit("refusing non-empty outdir %s" % outdir)
+    out.mkdir(parents=True, exist_ok=True)
+    rates = cmf.reference_mean_rates(T_s=t_s, discard_s=discard_s)
+    entries = {}
+    for name, (pop, frac) in _REPLACE_OF.items():
+        start = time.time()
+        pv_r, som_r = (frac, 0.0) if pop == "PV" else (0.0, frac)
+        path = out / ("meanfield_" + name + ".npz")
+        np.savez(path, **_meanfield_npz(t_s, 0.0, 0.0, pv_r, som_r, rates))
+        entries[name] = {"file": path.name, "sha256": _sha256(path), "wall_s": time.time() - start}
+    manifest = {"T_s": t_s, "discard_s": discard_s, "random_rates_hz": rates, "git_sha": git_sha(),
+                "meanfield": entries}
+    with open(out / "manifest.json", "w", encoding="utf-8") as fh:
+        json.dump(manifest, fh, indent=1)
+    return manifest
 
 
 def main(argv=None):

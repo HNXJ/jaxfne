@@ -7,13 +7,16 @@ root, nothing here hard-codes it):
 - ``fig_plos_6a/6b/6c``     linear mean-field model, ``caminos_meanfield`` (CPU, closed form).
 - ``fig_plos_5a``           added PV->SOM and SOM->SOM couplings, a ``caminos_meanfield.fig5a_sweep`` JSON
                             (``plos_text/fig5a_sweep_<sha>.json``).
+- ``fig_plos_4a_meanfield`` SOM/PV ratio on the nonlinear mean field, a ``caminos_meanfield.fig4a_sweep`` JSON
+                            per T_v form (``plos_text/fig4a_sweep_<sha>.json``).
 - ``fig_plos_1e``           mean rate vs connection probability p, counts
                             ``scored/v7_20261012`` (manifest runs or ``counts_seed*_p*.npy``);
                             example 1 s steady-state trace (first 2 s dropped), all populations.
 - ``fig_plos_2a/2b/3a/3b/4a`` sweep panels from ``figP_out/{p2a,p2b,p3a,p3b,p4a}/*.json``
                             (run-JSON rows; f_pk, band-power ratio, max E rate, spectra 5-100 Hz).
 - ``fig_plos_2c..2f, 3c..3f`` raster + rate panels from ``plosr_7f7a660e/seed<s>/<condition>.npz``,
-                            mean-field trace overlaid where ``meanfield_<condition>.npz`` exists.
+                            mean-field trace overlaid where ``meanfield_<condition>.npz`` exists (3C-F:
+                            ``mf_dir``, a ``run_plos_rasters.write_meanfield_randomized`` folder).
 
 Trace files: ``raster`` bool (steps, neurons), ``type_slices`` int (3, 2), ``rate_hz`` float
 (bins, 3) per 1 ms bin, scalars ``f_pk_hz``, ``band_power_25_45``, ``max_e_rate_hz``; PLoS
@@ -70,9 +73,11 @@ SWEEP_REFS = {"2A": ("p2a/silence_pv.json", "fraction", 0.0),
               "4A": ("p4a/fig6a.json", "ratio", 0.5)}
 SWEEP_TITLES = {"2A": "PV silencing", "2B": "SOM silencing", "3A": "PV randomization",
                 "3B": "SOM randomization", "4A": "SOM/PV density ratio"}
-# Conditions with a mean-field trace (run_plos_rasters.MF_CONDITIONS).
+# Conditions with a mean-field trace: run_plos_rasters.MF_CONDITIONS, plus the randomized ones
+# (run_plos_rasters.write_meanfield_randomized, read through mf_dir).
 MF_CONDITIONS = ("baseline", "pv_silenced_0.4", "pv_silenced_0.9",
-                 "som_silenced_0.4", "som_silenced_0.9")
+                 "som_silenced_0.4", "som_silenced_0.9",
+                 "pv_randomized_0.4", "pv_randomized_0.9", "som_randomized_0.4", "som_randomized_0.9")
 REGIME_COLORS = {"pure oscillation": "k", "damped": "#1f77b4",
                  "growing": "#d62728", "positive real": "#d62728", "real": "#7f7f7f"}
 
@@ -251,8 +256,11 @@ def _rate_axis(ax, centers_s, rate, lfp=None, mf=None):
     return ax
 
 
-def raster_figure(run_dir, condition, seed=1, panel=None):
+def raster_figure(run_dir, condition, seed=1, panel=None, mf_dir=None):
     """One paper raster panel: mean field (when present), raster, rate (+LFP, +MF overlay).
+
+    The mean-field trace is ``meanfield_<condition>.npz`` in ``run_dir``, else in ``mf_dir``
+    (the Fig 3 traces come from ``run_plos_rasters.write_meanfield_randomized``).
 
     Rows share one time axis in ms; the population legend appears once per
     figure (on the top row); the data file, seed and subsample go in a grey
@@ -272,8 +280,10 @@ def raster_figure(run_dir, condition, seed=1, panel=None):
     centers = trace["t0_s"] + (np.arange(rate.shape[0]) + 0.5) * (window_s / rate.shape[0])
     mf = None
     if condition in MF_CONDITIONS:
-        mf_path = run_dir / ("meanfield_%s.npz" % condition)
-        if mf_path.is_file():
+        dirs = [run_dir] + ([Path(mf_dir)] if mf_dir is not None else [])
+        mf_path = next((d / ("meanfield_%s.npz" % condition) for d in dirs
+                        if (d / ("meanfield_%s.npz" % condition)).is_file()), None)
+        if mf_path is not None:
             with np.load(mf_path, allow_pickle=False) as z:
                 mf = _bin_meanfield(np.asarray(z["t_s"]), np.asarray(z["nu_hz"]))
     rows = 3 if mf is not None else 2
@@ -312,8 +322,8 @@ def raster_figure(run_dir, condition, seed=1, panel=None):
 
 
 def _raster_panel_fn(panel, condition):
-    def fn(run_dir, seed=1):
-        return raster_figure(run_dir, condition, seed=seed, panel=panel)
+    def fn(run_dir, seed=1, mf_dir=None):
+        return raster_figure(run_dir, condition, seed=seed, panel=panel, mf_dir=mf_dir)
     fn.__name__ = "fig_plos_%s" % panel.lower()
     fn.__doc__ = "Paper panel %s from %s seed %s traces." % (panel, condition, "seed arg")
     return fn
@@ -610,6 +620,35 @@ def fig_plos_5a(json_path):
         ax.plot(g, hi, c="#7f7f7f", lw=1.0)
         ax.set_xlabel("added %s conductance (nS)" % labels[name])
         ax.set_ylabel("E rate (Hz)")
+        ax.legend(fontsize=7)
+    return fig
+
+
+def fig_plos_4a_meanfield(json_path):
+    """Fig 4A bottom, mean field: oscillation frequency and amplitude vs SOM/PV ratio.
+
+    Reads a ``fig4a_sweep`` JSON ({"printed": sweep, "code": sweep}, the two T_v forms). Frequency is drawn
+    at unstable (oscillating) points only; amplitude is half the late E-rate peak-to-peak at every point.
+    """
+    with open(json_path, encoding="utf-8") as f:
+        data = json.load(f)
+    fig = plt.figure(figsize=(9.0, 3.4))
+    grid = fig.add_gridspec(1, 2, wspace=0.3, bottom=0.16)
+    ax_f, ax_a = fig.add_subplot(grid[0, 0]), fig.add_subplot(grid[0, 1])
+    for form, ls in (("printed", "-"), ("code", "--")):
+        rows = data[form]["results"]
+        r = np.array([row["ratio"] for row in rows])
+        unstable = np.array([not row["stable"] for row in rows])
+        ax_f.plot(r[unstable], [row["freq_hz"] for row, u in zip(rows, unstable) if u], "o" + ls, c="k",
+                  ms=3, lw=1.0, label="T$_v$ %s" % form)
+        ax_a.plot(r, [row["amplitude_hz"] for row in rows], "o" + ls, c="m", ms=3, lw=1.0,
+                  label="T$_v$ %s" % form)
+    ax_f.set_ylabel("frequency (Hz)")
+    ax_f.set_title("Fig 4A mean field: oscillation frequency", fontsize=9)
+    ax_a.set_ylabel("E-rate amplitude (Hz)")
+    ax_a.set_title("Fig 4A mean field: oscillation amplitude", fontsize=9)
+    for ax in (ax_f, ax_a):
+        ax.set_xlabel("SOM/PV ratio")
         ax.legend(fontsize=7)
     return fig
 

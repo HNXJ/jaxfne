@@ -198,3 +198,22 @@ def test_nondefault_param_set_and_nonempty_outdir_are_refused(tmp_path):
             os.environ.pop("FIGA_PARAM_SET", None)
         else:
             os.environ["FIGA_PARAM_SET"] = old_ps
+
+
+def test_meanfield_randomized_writes_four_traces_with_hashes(tmp_path):
+    """Fig 3C-F mean field: one trace per randomized condition, hashes in the manifest, rates recorded."""
+    import run_plos_rasters as rpr
+
+    out = tmp_path / "mf"
+    man = rpr.write_meanfield_randomized(out, t_s=1.0, discard_s=0.5)
+    assert sorted(man["meanfield"]) == sorted(rpr._REPLACE_OF)
+    assert min(man["random_rates_hz"].values()) > 0.0
+    for name, e in man["meanfield"].items():
+        path = out / e["file"]
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == e["sha256"]
+        with np.load(path) as z:
+            pop, frac = rpr._REPLACE_OF[name]
+            assert float(z["pv_random" if pop == "PV" else "som_random"]) == frac
+            assert z["nu_hz"].shape[1] == 3 and np.all(np.isfinite(z["nu_hz"]))
+    with pytest.raises(SystemExit):
+        rpr.write_meanfield_randomized(out, t_s=1.0, discard_s=0.5)
