@@ -30,8 +30,9 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
    noise, delays, dt, seeds), and `PREREG_P3.md:1` is still "draft, UNSIGNED" with `(fill)` estimands at `:10` and
    `:26`. Missing: digitized figure targets, a verdict scorer, a rate-route driver, a P4-passing manifest, receipts.
    Closes when: a filled P3 is signed and G6 is scored under it; the inventory is in the lane's records.
-4. TASK-NOTATION (T-101) [A] Notation table S1 over doctrine, methods and code, then a rename pass (plan, Stage 2 gaps).
-   Closes when: no symbol binds two objects across `docs/theory/doctrine/`, `methods.md` and code names.
+4. TASK-NOTATION (T-101) [A] Notation table S1 for the core paper: drafted in the plan (PROPOSED 2026-11-19);
+   the old `methods.md` is the frozen wave-estimator paper's and is not rewritten. Closes when: a non-writing
+   reviewer finds no bare letter bound to two core objects in S1 and its code names resolve.
 5. TASK-UNITS-CSD (T-102) [A] Geometry units per layer with the calibration map; one CSD definition in
    `docs/theory/source_field_equations.md` and `methods.md`. Closes when: both documents agree, reviewed.
 

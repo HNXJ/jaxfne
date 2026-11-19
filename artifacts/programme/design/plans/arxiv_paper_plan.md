@@ -157,7 +157,8 @@ check run at this baseline). Mandatory gates: broad gate and CI per promoted SHA
   separate factorization, spikes -> kernel, not an instance of S -> Q -> F. `jaxfne/fields/head.py` applies
   textbook sphere leadfields (Sarvas 1987, Frank 1952) to Q.
 - Factorization (X,H) -> S -> Q -> F -> Phi -> P -> Y holds on the Izhikevich route only: adex and hh refuse
-  `field()` and `probe()` (`jaxfne/_construct_core.py:528-531,549-551`).
+  `field()` and `probe()`: adex through its allowlist (`jaxfne/_construct_adex.py:35`, `refuse_adex_configuration`
+  :209); for hh only the comment at `_construct_core.py:530` asserts it (refusal site not located).
 - H (TASK-HINV): the barrier term of `methods.md` Eq. 7 makes (H_min, H_max) forward-invariant in continuous
   time; the clamp guards explicit-Euler overshoot. Boundedness and stability are separate claims; W3b gives
   S = 0 and X = 1944, so stability is unresolved. H is outside the core claim.
@@ -190,6 +191,48 @@ check run at this baseline). Mandatory gates: broad gate and CI per promoted SHA
 | phi = K[s] | Phi = F_gamma(Q), post hoc on frozen traces (`methods.md` §1) | linear proxy; kernel LFP is a separate path |
 | lambda_eph C_eph(x, phi) | `ephaptic_field` rule, alpha (`hdp_rules_ephaptic.py`) | lateral voltage coupling; reads v, not Phi |
 | y_m = P_m(s, phi, h; G_m) | Y = P_eta(Phi) | probes |
+
+### S1 notation for the core paper (TASK-NOTATION; PROPOSED 2026-11-19)
+
+Inventory: 221 symbol-meaning rows over the doctrine, `methods.md` and code, 47 base letters or words with two or
+more meanings (scratch `D:/tmp/_temp_ms/notation_inventory.md`, every file:line resolved by
+`_temp_check_inv.py`). Rules: (1) the sealed `tfne/2` symbols win, as written there (`tfne_algebra.md:15-45,
+85-120`: 𝒜, x, y, h, s, 𝓘, O, X, N, P, G, C, L, k, D + K_D); (2) observation-chain operators are calligraphic
+and carry no parameter subscript (their parameters live in s); (3) a bare symbol names one object, and a
+decorated variant may name another only when the bare one is not used for it; (4) out-of-core symbols (H-state,
+ephaptic, EEG/MEG, relative grammar) keep their doctrine letters and stay out of the core text. `methods.md` is
+the wave-estimator paper's (CL-01..CL-21, frozen evidence) and is not rewritten. First review (2026-11-19):
+REVISE, 4 material findings, folded here.
+
+| Object | Symbol | Replaces (collision) | Code name |
+|---|---|---|---|
+| model, typed boundary | 𝒜; x : 𝒜 : y | containment's operator role "O" in (E,S,F,P,O,A) | `realize` (`jaxfne/tfne.py:2617`) |
+| upstream input, output | x, y; probe part of the output y^𝒫 | rbs input u_t; methods state x_t; readout Y | `Configuration.drive` (`_config.py:1828`); `Signals` (`_signals.py:545`) |
+| mutable carry, static state, initial carry | h, s, h_0 | methods spike vector s_t | scan carry (`emitters.py:2397`) |
+| composition rules, rule index; replication | O[k], X[k]; 𝒜^n | methods activity state X | `compile_connection_rules` (`connectivity.py:1074`) |
+| projection, exclusion | >, <, <>; ≯, ≮ | | `compile_connection_rules` |
+| cardinality, proportions, geometry | N, P, G | probe operator P; G(H) | `NeuronalTensor` (`neuronal_tensor.py:1270`), `Geometry3D` (:221) |
+| cell-type domain, subdivision | C, L, L[C] | C_p, C(H), L layer, L_HDP | `NeuronType` (:232), `Layer` (:294) |
+| completion | D + K_D | K neighbour count (methods) | JDNA (`tfne_jdna_boundary.md`) |
+| block-provenance map | 𝓘 | input current I(t) | `tfne.py:2483-2513` |
+| execution normal form, step | (h_t, x_t; s) ↦ (h_{t+1}, y_t); Δt | ODE layer as definition (TASK-DMAP) | `simulate` (`_construct_core.py:104`) |
+| membrane potential, recovery | v, u | u as input | carry `v, u` (`emitters.py:2397`) |
+| external input current | I^ext_t | I(t); J (current density in `fundamental_laws.md:41`) | `current_native` (`emitters.py:304`) |
+| spike indicator per step | o_t ∈ {0,1}^N | s_t, r_i; n (exponent of 𝒜^n) | `prev_spikes` (`emitters.py:2397`) |
+| emitter, its parameters | E_θ, θ | angles θ (use ϑ), thresholds θ_A (use c_A) | `_izhikevich_dv_du` (`emitters.py:304`) |
+| weights; delays | W; τ_ij in ms, ⌈τ_ij/Δt⌉ steps | d_m (d stays the Izhikevich reset) | edge list (`make_edge_list_from_dense`) |
+| neuron positions, conduction velocity | 𝐫_i (unit per layer, TASK-UNITS-CSD), v_cond | x position, R ring radius | `Geometry3D` |
+| source, field, probe operators | 𝒮, ℱ, 𝒫 | S spike trains; F_H, F_W; P proportions; η plasticity rate, γ band | `_source_proxy_from_components` (`emitters.py:36`), `project_laminar_sources` (`fields/proxy.py:222`), `compute_readout` (`_model_readout.py:138`) |
+| relative source, field proxy, readout | Q_t = 𝒮(h_t, x_t), Φ = ℱ(Q), y^𝒫 = 𝒫(Φ) | Q = S_ψ(X); Φ as the ephaptic term | Izhikevich route only |
+| CSD proxy | -∂²Φ/∂z² (CSD = q under the Poisson equation, TASK-UNITS-CSD) | CSD ∝ ∇·q | `fields/probes.py` |
+| kernel LFP | Φ^ker = 𝒦 ⊛ o, kernels 𝒦 | K (neighbour count, K_D); presented as 𝒮 -> ℱ | `kernel_lfp` (`fields/kernel_lfp.py:286`) |
+| reduction map of extension e | ℛ_e | R_k (update map), R(H); k (rule index) | identity tests (TASK-N2-PLANT) |
+| "effective" | only p_eff | causal ΔX: write "intervention effect" | |
+
+Text fact for the new methods (checked 2026-11-19): the `VIP` and `I` presets are Izhikevich 2004 class-1
+cells and run 0.04v² + 4.1v + 108; every other preset runs 0.04v² + 5v + 140 (`jaxfne/emitters.py:124-134`;
+`_v_coefs` :295, called at :667; consumed in `_izhikevich_dv_du` :312; P-054, Hamm 2026-11-02). The old `methods.md:38` gives one form; whether its frozen
+runs predate P-054 is unchecked.
 
 ## Feasibility and novelty gate (Hamm 2026-11-19)
 
@@ -267,7 +310,7 @@ include TASK-FEAS-REVIEW's corrections.
 | N2 reduction identities | TESTED, same backend | `tests/test_hdp_reduction_identity.py:398`, `tests/test_hdp_zero_rule_public_identity.py:56` (edge_list backend), zero-delay bit equivalence (`methods.md` §4), ephaptic alpha = 0 (`tests/test_hdp_rules_ephaptic.py:115`, `:171`) | extension table with planted breaks (TASK-N2-PLANT) |
 | H-state (dropped from core) | IMPLEMENTED, emitter-local; SPECIFIED for S, F, P | 8 registered HDP rules: 5 in `jaxfne/hdp_rule.py:477-618`, plus PCL, Vogels iSTDP, ephaptic, of which 3 return dH = 0 | none for the core |
 | Relative quantities (dropped from core) | SPECIFIED | `docs/theory/doctrine/relative_quantity_grammar.md` (duplicate row :41-42; m classed B at :19, R at :40); `QuantityKind` vocabulary only | none for the core |
-| Emitter families | TESTED per family; heterogeneous REFUSED | registry `izhikevich`, `lif`, `glif` (registered, not routed), `adex`, `rate` (`jaxfne/emitter_registry.py:106-110`, `jaxfne/neuronal_tensor.py:93`); two families in one tensor raise (`neuronal_tensor.py:2953-2959`); adex and hh refuse `field()`/`probe()` (`_construct_core.py:528-551`); HH and Jansen-Rit outside the registry | expansion after the core; stale comments `neuronal_tensor.py:89-91`, `_construct_core.py:535-538` |
+| Emitter families | TESTED per family; heterogeneous REFUSED | registry `izhikevich`, `lif`, `glif` (registered, not routed), `adex`, `rate` (`jaxfne/emitter_registry.py:106-110`, `jaxfne/neuronal_tensor.py:93`); two families in one tensor raise (`neuronal_tensor.py:2953-2959`); adex refuses `field()`/`probe()` (`_construct_adex.py:35,209`), hh unlocated; HH and Jansen-Rit outside the registry | expansion after the core; stale comments `neuronal_tensor.py:89-91`, `_construct_core.py:535-538` |
 | Geometry | TESTED; units conflict | `Geometry3D`, `NeuronalTensor` (mm); `tests/test_geometry_invariants.py:112,136,192`; A3 mutation receipt (release plan) | one length unit per layer and a calibration map (TASK-UNITS-CSD) |
 | LFP, CSD proxies | TESTED | `jaxfne/fields/probes.py:536,612`; `jaxfne/fields/proxy.py:1376` | proxy status kept in text |
 | Kernel LFP | TESTED | `jaxfne/fields/kernel_lfp.py:286`; current balance `tests/test_kernel_lfp.py:32`; P-056 open (deep-layer power) | P-056 |
