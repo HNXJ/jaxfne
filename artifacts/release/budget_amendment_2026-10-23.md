@@ -105,7 +105,9 @@ inside the consolidated budget.
 
 ## Crazy Sailor contract, 2026-11-19 (Hamm: option B)
 
-`budget_files` 2797 -> 2798 on branch `_temp_crazy_sailor_m0m1_b` (base `06f9bf26`), +1 file:
+`budget_files` 2797 -> 2798 on branch `_temp_crazy_sailor_m0m1_b` (base `06f9bf26`), +1 file. Relative to the
+parent of the consolidation commit (`f9c3e696`, `budget_files` 2801, raised by the branch's earlier commits
+`e1b47bf2` and `b0c3f670` era), this commit lowers the value 2801 -> 2798 and reverts those unauthorized raises:
 `artifacts/programme/design/plans/crazy_sailor/m0_contract.md`, the Crazy Sailor independent
 specification (M0 contract, M1 receipts, M2 handoff in §12). Authorized by Hamm in chat 2026-11-19:
 "Authorize Option B ... file budget 2797 -> 2798, restricted to the Crazy Sailor contract". No other file
