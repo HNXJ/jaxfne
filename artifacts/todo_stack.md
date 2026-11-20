@@ -172,7 +172,7 @@ Done (results in contract §13.8 registry): Lane A (F2, F2b, F4 vs F1, not F0), 
 - EX-27 [H] Supply the owner's 15-stage manuscript workflow. It is not in this repo or in jarness; stage numbers in jomission `_temp_plasticity_boat/artifacts/programme/manuscript/plasticity_boat/main.md` are provisional until it is supplied.
 - EX-28 [A] Move every figure-source JSON from `_temp/` to a tracked path before citation. Closes when: `git ls-files` lists each source and each figure's legend cites it.
 - EX-29 [H] Permission to download the AAAI-27 Author Kit (https://aaai.org/authorkit27/; the file size and name are not yet known). Needed for the reproducibility checklist text and the style file for the build gate.
-- EX-31 [A] Plasticity Boat checks that run in jomission `_temp_plasticity_boat`, carried here so they are not lost: the 33-file tier-0 suite under `suite_lock` (not run; the sandbox denies `~/.claude/suite.lock`), and the `release_artifacts` gate (not examined; dist absent). Closes when: each run's summary line is read and recorded in jomission `HANDOFF.md`, or the handoff marks it not run with the reason. Blocked by: none.
+- EX-31 [A] Plasticity Boat checks that run in jomission `_temp_plasticity_boat`, carried here so they are not lost: the 33-file tier-0 suite under `suite_lock` (not run; the sandbox denies the shared `suite.lock`), and the `release_artifacts` gate (not examined; dist absent). Closes when: each run's summary line is read and recorded in jomission `HANDOFF.md`, or the handoff marks it not run with the reason. Blocked by: none.
 Note: EX-17 is now the F6 re-run; EX-18 closes after the last 8 dev starts (R-12) and the held-out run is not part of it.
 - EX-17 [A] F6 rerun storing d[600] and the κ = 0 equivalence. Closes when: F6 mean is recomputed under the pinned window (errors[480:600]).
 - EX-18 [A] F1 at θ = π and 3π/4, K = 600 (item 6 falsifier, 40 starts planned). Closes when: counts of starts with D_j(F1) ≤ R are reported.
@@ -193,7 +193,7 @@ repeated addresses, ties, zero vs epsilon weights) are in `artifacts/assurance/i
 unparseable or status-less receipt is not a record by design (`_is_final_receipt`); no bypass, pinned by
 `tests/test_record_integrity.py::test_corrupt_receipt_unpinned_is_not_a_record_but_pinned_is_caught`.
 
-File-count budget (2026-11-20): `budget_files` raised 2798 -> 2812 (+14 exact, 0 slack; `budget_bytes` unchanged at 96.4 MB) under Hamm's 2026-11-20 remote-branch merge directive. Trigger: the next needed new file. Action then: find removable files with evidence (match-cleanup), or ask Hamm for a `budget_files` ruling; never raise it unasked.
+File-count budget (2026-11-20): `budget_files` raised 2798 -> 2813 (+15 exact, 0 slack: +14 from branch merges + 1 for preserved `scripts/p056_resource_smoke.py`; `budget_bytes` unchanged at 96.4 MB) under Hamm's 2026-11-20 branch consolidation authorizations. Trigger: the next needed new file. Action then: find removable files with evidence (match-cleanup), or ask Hamm for a `budget_files` ruling; never raise it unasked.
 
 AT-10-R6 RSS growth before any run over 100 s; A8 gh-pages policy; architecture split on a measured bottleneck;
 C5-C7 zero/NaN contract; the UNTESTED-exact refusal tail and O-67 skips; S27 population family; agent transport

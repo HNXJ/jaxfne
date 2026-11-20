@@ -89,7 +89,7 @@ Corrections to the result above, found by the reviewer and confirmed by its prob
 - Engagement control (closes the 5b gate): with recurrence zeroed, each of E, PV, SOM in turn at 2x own drive must change its own rate by more than the seed spread, with the other classes unchanged; with recurrence on, E, PV, SOM x2 runs report downstream changes without a pass criterion.
 - Failure rule: a failed limit or check is reported with its log; nothing is retuned and relabelled.
 
-### 5d result (run 2026-11-15; script `scripts/p056_resource_smoke.py` at commit 093483a3 on branch `_temp_t90_smoke_20261115`, clean tree, darwin arm64, jax 0.10.1, float32; not independently reviewed yet)
+### 5d result (run 2026-11-15; script tracked at `scripts/p056_resource_smoke.py` on `dev`, historical run at commit `093483a3` archived at tag `archive/t90-smoke-20261115`, clean tree, darwin arm64, jax 0.10.1, float32; not independently reviewed yet)
 
 Limits met: execute 20.7 s per simulated second (limit 120 s), peak RSS 0.995 GB (limit 4 GB, prediction under 2 GB), output 0.002 MB; 399489 edges. Cost prediction: 12 s if cost follows N, 24 s if it follows edges; observed 20.7 s, closer to the edges prediction (3.4x for 4x edges and 2x N, versus 6.05 s at N = 1000; inferred from two points, and edges scale as N^2, so N versus edges cannot be separated; an affine fit a*N + b*edges through both points gives about 28% N-linear cost at N = 1000, collinear terms, rate and cache effects uncontrolled, so any larger-N sizing is a range; separating the terms needs a run that varies p_connect at fixed N). The 10-step floor run took 0.385 s; compile is not separately measurable. Spikes, `H_final`, `w_final_nS` bit-identical across two runs; counts `[10000, 3]` non-negative integers; all finite.
 
@@ -123,7 +123,7 @@ Observed: with default iSTDP the I-to-E weights grow from zero (weight evolution
 
 ### 5f. Seed-spread preregistration for the 5e contrast (declared 2026-11-15 before any multi-seed run; not run)
 
-- Script: `scripts/p056_istdp_off_control.py OUT.json` on branch `_temp_t90_smoke_20261115` (committed immediately after this section, before the run; run from the clean tree; receipt carries `git_sha`, `git_dirty`; refuses to overwrite). Same configuration as 5d except `seed`.
+- Script: `scripts/p056_istdp_off_control.py OUT.json` (declared on `_temp_t90_smoke_20261115`; note 2026-11-20: that later local commit `da7e895b` was not pushed to `origin`, where the branch ended at `093483a3`, archived at tag `archive/t90-smoke-20261115`; run from the clean tree; receipt carries `git_sha`, `git_dirty`; refuses to overwrite). Same configuration as 5d except `seed`.
 - Seeds 0, 1, 2, 3, 4; each seed sets both the network draw and the simulation seed. Rules: default iSTDP and `hdp_rule_params={"eta": 0.0}`. Drives: base, PV x2, SOM x2. 30 runs, about 10 min.
 - C1: with `eta` 0, `w_final_nS` is exactly 0 on every edge, every seed, every drive.
 - C2: with `eta` 0, E rate under PV x2 and SOM x2 equals the base E rate exactly, every seed.
@@ -148,7 +148,7 @@ Seed 0 reproduces the 5e values exactly. Multi-seed conclusion, separate from th
 {"schema":"jaxfne.p056_istdp_off_control.v1","seeds":[0,1,2,3,4],"E_rate_hz_by_run":{"default_iSTDP":{"base":[7.915,7.909375,7.90625,7.903125,7.90875],"PV_x2":[6.939375,6.93,6.928125,6.92875,6.93125],"SOM_x2":[7.676875,7.651875,7.640625,7.665625,7.668125]},"eta_0":{"base":[8.0,8.0,8.0,8.0,8.0],"PV_x2":[8.0,8.0,8.0,8.0,8.0],"SOM_x2":[8.0,8.0,8.0,8.0,8.0]}},"w_plastic_mean_default":{"base":[0.058194508,0.058119718,0.058166938,0.058320637,0.058064631],"PV_x2":[0.078053136,0.077836828,0.077938716,0.078209459,0.077786859],"SOM_x2":[0.075980247,0.075497148,0.075407419,0.075703593,0.075799476]},"w_max_eta0":0.0,"criteria":{"C1":true,"C2":true,"C4":true},"git_sha":"da7e895b8b702c76e5f0ab2950689bf17c393e8f","git_dirty":false}
 ```
 
-The JSON above is a condensed extract (E rates, mean plastic weights, criteria); PV and SOM rates in every run were the declared 47/85 Hz and 10/20 Hz (PV 47 base, 85 at PV x2; SOM 10 base, 20 at SOM x2). The full receipt is kept at `receipts/p056_istdp_off_control_v1.json` on branch `_temp_t90_smoke_20261115` (not in this tree, file budget); the script at `da7e895b` also regenerates it. Independent review 2026-11-15: ACCEPT with six minor corrections, applied here.
+The JSON above is a condensed extract (E rates, mean plastic weights, criteria); PV and SOM rates in every run were the declared 47/85 Hz and 10/20 Hz (PV 47 base, 85 at PV x2; SOM 10 base, 20 at SOM x2). The full receipt was recorded at `receipts/p056_istdp_off_control_v1.json` with script commit `da7e895b` on local branch `_temp_t90_smoke_20261115` (not in this tree, file budget; note 2026-11-20: `da7e895b` was never pushed to `origin`, so only this embedded condensed extract is in remote git; the 5d script `scripts/p056_resource_smoke.py` is preserved on `dev` and tagged `archive/t90-smoke-20261115`). Independent review 2026-11-15: ACCEPT with six minor corrections, applied here.
 
 ## 5c. What the AdEx route supports today (inventory 2026-11-15, read from source at `fdb62a93`; nothing run)
 
