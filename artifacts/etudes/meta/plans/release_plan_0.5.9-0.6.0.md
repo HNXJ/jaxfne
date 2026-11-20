@@ -126,3 +126,7 @@ T-31 half credit; with items enumerated, T-31 splits into two items, one done.
 
 One Haiku 5.5 subagent per lane in its own clone; the dispatcher keeps science, verdicts and pushes.
 Heavy runs on Colab. Main figures carry no negative results. Missed work moves on with its reason.
+
+## Proposed OCMA / quality continuation through 0.5.15 (2026-11-12)
+
+Planning note: `artifacts/programme/design/plans/ocma_jaxfne_0.5.10-0.5.15.md`. Its 0.5.12–0.5.15 milestones are proposed, not approved release gates. This release plan's existing 0.5.10 and 0.5.11 checklists and 0.6.0 post-review acceptance authority remain unchanged. OCMA agreement is evidence-classification consistency, not biological or numerical validation. Release-sequence changes require Hamm's decision.
