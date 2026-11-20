@@ -63,6 +63,8 @@ def tracked_sizes(repo_root: Path = ROOT) -> dict[str, int]:
         )
     sizes: dict[str, int] = {}
     for path, blob, line in zip(paths, blobs, lines):
+        if path in sizes:
+            raise RuntimeError(f"git ls-files -s: duplicate path {path!r}")
         fields = line.split()
         if len(fields) == 2 and fields[1] == "missing":
             raise RuntimeError(f"git cat-file --batch-check: blob {blob} for {path} missing")

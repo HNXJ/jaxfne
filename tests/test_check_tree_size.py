@@ -177,3 +177,23 @@ def test_reordered_batch_response_fails(tmp_path, monkeypatch):
     _rewrite_batch(monkeypatch, rewrite)
     with pytest.raises(RuntimeError, match="does not match"):
         tracked_sizes(repo)
+
+
+def test_duplicate_path_fails(tmp_path, monkeypatch):
+    from scripts.check_tree_size import tracked_sizes
+
+    repo = _three_files(tmp_path / "dup")
+    assert len(tracked_sizes(repo)) == 3, "fixture must track three files"
+    real_run = subprocess.run
+
+    def fake_run(args, **kw):
+        out = real_run(args, **kw)
+        if list(args[:2]) == ["git", "ls-files"]:
+            first = out.stdout.split("\0", 1)[0]
+            return subprocess.CompletedProcess(args, out.returncode, stdout=out.stdout + first + "\0")
+        return out
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    with pytest.raises(RuntimeError, match="duplicate path"):
+        tracked_sizes(repo)
+

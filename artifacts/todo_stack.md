@@ -86,7 +86,7 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 ## Tier 4: a day or more
 
 - TASK-MIXFAM [A] Expansion after the core (Hamm 2026-11-19, "start narrowed core, we will expand as we go"):
-  mixed-family circuits through one factorization; two families in one tensor are refused today
+  mixed-family circuits through one factorization; two families in one tensor are refused as of 2026-11-19
   (`jaxfne/neuronal_tensor.py:2953-2959`). Starts after the core's stage 2 gaps close. Closes when: a two-family
   circuit runs through `field()`/`probe()` with a test, and the plan's headline is re-reviewed.
 
@@ -140,7 +140,7 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 33. ∥ [A] T-O68 remaining dirty worktrees (`base053`, `bisw1`, `frozen-etude`, `w3`, `jaxfne-wt-p022`,
     `jaxfne-wt-suites`).
 
-## Crazy Sailor M2 (branch `_temp_crazy_sailor_m0m1_b`, not on dev; contract §12)
+## Crazy Sailor M2 (merged to dev 2026-11-20; contract §12)
 
 Scope and decisions: `programme/design/plans/crazy_sailor/m0_contract.md` §12.9. Ordered by effort.
 
@@ -153,8 +153,7 @@ Scope and decisions: `programme/design/plans/crazy_sailor/m0_contract.md` §12.9
 - CS-7 [A] Spike-level feedback validation. Measured by the exploration lanes (EX-1, EX-2; contract §13.1 L2–L3). Closes when: a declared regime shows a reproducible nonzero change in motor counts with distance, or the null is recorded.
 - CS-8 [A] Goal-directed navigation. Measured by EX-4 and EX-5 (§13.1 L3). Closes when: the decoded force points toward `p*` over the declared episode set, against the F0 and F5 controls.
 - CS-9 [H] Empirical calibration of `b_i`, `g_i`, `d0`, the E/I weights, and fixed vs learned weights (§12.6). Hamm supplies the values with sources; the agent does not choose them. Closes when: the values are recorded in the contract and the M2 tests are re-frozen.
-- CS-10 [A] Repository broad gate: the 13 baseline failures (contract §10), in their own workstream, without weakening the gate. Blocks integration. Closes when: `python scripts/run_test_gate.py broad` exits 0 on one SHA.
-- CS-11 [H] File-budget ruling for integration: allowlist 2798 vs ledger 2700 files / 95M bytes; integration adds one file (2799). Closes when: Hamm issues a scoped ruling. No budget change before that.
+- CS-10 [A] Repository broad gate: matching-host broad gate (`T-MATCH`) on dev without weakening the gate. Closes when: `python scripts/run_test_gate.py broad` exits 0 on one SHA.
 
 ## Crazy Sailor exploration (contract §13; exploratory, not confirmatory)
 
@@ -194,7 +193,7 @@ repeated addresses, ties, zero vs epsilon weights) are in `artifacts/assurance/i
 unparseable or status-less receipt is not a record by design (`_is_final_receipt`); no bypass, pinned by
 `tests/test_record_integrity.py::test_corrupt_receipt_unpinned_is_not_a_record_but_pinned_is_caught`.
 
-File-count budget (2026-11-15): the tree sits at `budget_files` 2796 of 2796, so any new tracked file needs a removal; the byte ruling (O-R5SIZE) raised `budget_bytes` only. Trigger: the next needed new file. Action then: find removable files with evidence (match-cleanup), or ask Hamm for a `budget_files` ruling; never raise it unasked.
+File-count budget (2026-11-20): `budget_files` raised 2798 -> 2812 (+14 exact, 0 slack; `budget_bytes` unchanged at 96.4 MB) under Hamm's 2026-11-20 remote-branch merge directive. Trigger: the next needed new file. Action then: find removable files with evidence (match-cleanup), or ask Hamm for a `budget_files` ruling; never raise it unasked.
 
 AT-10-R6 RSS growth before any run over 100 s; A8 gh-pages policy; architecture split on a measured bottleneck;
 C5-C7 zero/NaN contract; the UNTESTED-exact refusal tail and O-67 skips; S27 population family; agent transport

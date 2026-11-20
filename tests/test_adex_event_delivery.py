@@ -11,7 +11,7 @@ import pytest
 
 import jaxfne as jtfne
 from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args
-from jaxfne._model_simulate import simulate_adex_seed_batch
+from jaxfne._model_simulate import simulate_adex_seed_batch, simulate_lif_seed_batch
 from jaxfne.emitters_adex import _event_delivery, make_adex_params, simulate_adex
 
 DT_MS = 0.1
@@ -217,3 +217,39 @@ def test_route_kernel_args_match_direct_event_kernel():
     assert np.array_equal(np.asarray(routed.spikes), np.asarray(direct["spikes"]))
     assert dataclasses.replace(sim.resolved_runtime, edge_delivery="all_edges") == \
         _route_sim("all_edges").resolved_runtime
+
+
+def test_route_event_with_auto_backend_and_lif_seed_batch_refusal():
+    model = _adex_model()
+    ref = model.simulate(_route_sim())
+    sim_auto = jtfne.Simulation(
+        duration_ms=300.0, dt_ms=DT_MS, poisson_drive=_DRIVE,
+        runtime=jtfne.RuntimeConfig(recurrent_backend="auto", edge_delivery="event"),
+    )
+    got = model.simulate(sim_auto)
+    assert np.asarray(ref.spikes).sum() > 0, "fixture must spike"
+    assert np.array_equal(np.asarray(got.spikes), np.asarray(ref.spikes))
+    assert got.metadata["recurrent_backend"] == "edge_list"
+    assert got.metadata["runtime"]["recurrent_backend"] == "auto"
+    assert got.metadata["edge_delivery"]["mode"] == "event"
+
+    lif_tensor = jtfne.NeuronalTensor(
+        name="lif-refusal",
+        areas=[jtfne.Area(
+            name="V1",
+            layers=[jtfne.Layer(
+                name="L4", n_neurons=4,
+                neuron_types=[jtfne.NeuronType.make("E")],
+            )],
+        )],
+    )
+    lif = jtfne.construct(
+        lif_tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=5.0, dt_ms=DT_MS, emitter="lif")
+    )
+    lif_sim = jtfne.Simulation(
+        duration_ms=5.0, dt_ms=DT_MS,
+        runtime=jtfne.RuntimeConfig(recurrent_backend="auto", edge_delivery="event"),
+    )
+    with pytest.raises(ValueError, match="serial AdEx simulate route only"):
+        simulate_lif_seed_batch(lif, lif_sim, [1, 2])
+

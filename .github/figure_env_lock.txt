@@ -1,7 +1,7 @@
 # Figure lock (9F): pip freeze --exclude-editable of the Release CI publication job, run 40444082095
 # (430d2ce3, Python 3.11, ubuntu-latest). The publication job installs with it as constraints and
 # checks that its own freeze equals it. Regenerate from a passing run's figure-env-freeze artifact.
-# ruff set to 0.17.5 by hand on 2026-11-20 to match the dev pin (Hamm ruling; ruff has no dependencies).
+# ruff bumped to 0.17.5 on 2026-11-20 for Dependabot PR #131 to match pyproject.toml (following Hamm's 2026-11-06 standing ruling for ruff==0.17.3; ruff has no dependencies).
 # PyYAML==6.0.3 added by hand on 2026-11-04: the dev extra installs it (PR #121 freeze; no dependencies).
 # Markdown==3.11.2 added by hand on 2026-11-04: the viz extra installs it for the manuscript builder (no dependencies).
 absl-py==2.5.1
