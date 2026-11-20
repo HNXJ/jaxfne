@@ -30,6 +30,22 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 - B1 drive unification (T-79) and baseline parameter match (T-80) done (`b1_harness.py`, `b1_brian2.py`, `b1_nest.py`, `b1_jaxley.py`; `--smoke` verified).
 - `artifacts/state.md` corrected (`artifacts_check.py` ACCEPT).
 
+## Tier 0: sealed next (do before new planning expansion)
+
+1. T-PLAN-REVIEW [A] Independent non-writer review of `_temp_solmind_0510_plans` / `archive/solmind-0510-plans-20261120`
+   (`solmind_0510_{todo,open,execution_contract}.md`: 55 tasks, 15 decision gates) against live `origin/dev` and
+   canonical stacks; adversarial failure cases: stale SHA, missing host, failed gate, authority conflict. Closes when:
+   reviewer VERDICT ACCEPT (or REVISE findings repaired on the planning branch and a fresh ACCEPT). Blocked by: none
+   (O-PLAN).
+2. T-PLAN-INTEGRATE [A] After T-PLAN-REVIEW ACCEPT: integrate the accepted plan into `dev` under
+   `artifacts/programme/design/plans/solmind/` (tree-degree), point stacks at those paths, keep
+   `archive/solmind-0510-plans-20261120`, delete `_temp_solmind_0510_plans` only after unique evidence is preserved.
+   Closes when: plan files on `dev`, remote planning branch gone, O-PLAN closed. Blocked by: T-PLAN-REVIEW.
+3. T-PLAN-EXECUTE [A] Work Solmind packages continuously (max 3 lanes including reviewers); recompute frozen
+   checklist only from exact-SHA receipts; stop at READY_FOR_OWNER_GO for Gate 5 / publication. Closes when:
+   prepublication readiness reported on one candidate SHA with Gates 1–4 green and issue-log Open empty under the
+   release skill (R51–R54). Blocked by: T-PLAN-INTEGRATE. Do not expand planning further.
+
 ## Tier 1: blocked on a ruling
 
 - T-FIG05 [H then A] re-freeze equivalence-gate fig05 and its C3 receipt under change control, or render panel C from

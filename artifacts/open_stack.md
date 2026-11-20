@@ -5,6 +5,10 @@ Anything open right now. Read first at session start, before `todo_stack.md`. On
 it closes; at most 30 lines; a line older than 3 days moves to todo or the issue log, or is dropped.
 Each line has its todo row, named in the line.
 
+## 0.5.10 plan seal (2026-11-20)
+
+- O-PLAN Solmind 0.5.10 execution plan on `_temp_solmind_0510_plans` (`a971288d` / tag `archive/solmind-0510-plans-20261120`) is planning-complete but execution-readiness unverified: independent audit of 55 tasks, 15 decision gates, release criteria, and failure scenarios (stale SHA, missing host, failed gate, authority conflict) not performed; plan not yet integrated into `dev` | agent | since 2026-11-20 | closes when T-PLAN-REVIEW ACCEPT and T-PLAN-INTEGRATE land the accepted plan on `dev`
+
 ## Hamm's calls (0.5.10 review, asked one at a time in this order)
 
 - O-FIG05 equivalence-gate fig05 frozen PNG stale after a disclosed noise-stream change (865e74bb, 2026-09-24; inferred from C3 estimator bisect); CI Linux runs the gate informationally | Hamm (frozen-evidence change control) | since 2026-11-15 | closes when `tests/test_equivalence_gate_v20260815.py` passes on darwin after owner-authorized fig05 re-freeze or panel C renders from frozen V_m (T-FIG05)
