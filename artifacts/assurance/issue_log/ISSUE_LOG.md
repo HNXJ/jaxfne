@@ -397,3 +397,24 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   CI (Fast) 44517404267 green 10/10). Evidence: `F:/warehouse/jaxfne/P-065_2026-11-19/`. Review notes, minor:
   `ablation="disconnected_null"` with delays is refused although zero weights make delays inert; traced
   `delay_steps` skip the check (inferred).
+
+### P-066
+
+- Date: 2026-11-19. Type: BUG. Area: population construction, neuron positions, distance-based connectivity.
+  Found by TASK-UNITS-CSD. Severity: medium for any run whose rules use Euclidean distance (localized sampling,
+  `spatial_sigma`, radius gates) on the laminar construct path; affected runs not enumerated.
+- Observation: x and y are sampled in mm (`[-column_radius_mm, column_radius_mm]` plus the area offset), z in
+  the layer's `layer_fractions` range inside [0,1], never scaled by `column_height_mm`
+  (`jaxfne/_construct_population.py:77-89,505-529`). `column_height_mm` is used only for layer volume
+  (`jaxfne/builders.py:716-731`). `compile_connection_rules` takes Euclidean distance on x, y, z in "the same
+  units as x/y/z" (`jaxfne/connectivity.py:886,1110-1115`), so depth counts 1/1.6 of its mm length at the default
+  height. `NeuronalTensor` documents positions as mm (`neuronal_tensor.py:96-103`).
+- Reproduction (`F:/warehouse/jaxfne/P-066_2026-11-19/probe_zextent.py`, `SHA256SUMS`; `build_laminar_column("V1", 60, geometry="laminar")`):
+  known positive radius 0.25 -> 0.5 mm moves x from ±0.247 to ±0.495; height 1.6, 2.0, 8.0 mm leaves z at
+  [0.0045, 0.9787] in all three. `tests/test_laminar_geometry_consumed.py` checks that height reaches metadata,
+  not positions.
+- Expected: one length unit for positions (mm, z scaled by `column_height_mm`), or z declared relative and
+  distances refused or computed per axis. The field path reads relative depth (contacts in the same [0,1] axis,
+  `fields/proxy.py:266,283-285`) and must move with the choice.
+- Repair: open (todo TASK-UNITS-CSD). Changes realized connectivity of distance-based rules, so it needs a
+  ruling and a before/after table.

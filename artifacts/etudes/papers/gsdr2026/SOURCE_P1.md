@@ -1,5 +1,9 @@
 # Nejat, Sherfey, Bastos 2026 (GSDR): P1 source record
 
+Article: Nejat H, Sherfey J, Bastos AM. A genetic algorithm for self-supervised models of oscillatory
+neurodynamics. PLoS One 21(8): e0354021, published 2026-08-05. doi:10.1371/journal.pone.0354021 (Hamm
+2026-11-19; title, authors and date read from the journal page the same day).
+
 Status: draft from a Muse read of the article, PMC text and `HNXJ/GSDR` (read as data, nothing run), 2026-10-13. Unverified by the dispatcher; values marked unknown wait for the Methods tail and S1. Hamm is an author: gaps go to him.
 
 All items labeled **observed** (with source) or **inferred**. No passage quotes more than 15 words.

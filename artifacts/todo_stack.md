@@ -30,8 +30,27 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
    noise, delays, dt, seeds), and `PREREG_P3.md:1` is still "draft, UNSIGNED" with `(fill)` estimands at `:10` and
    `:26`. Missing: digitized figure targets, a verdict scorer, a rate-route driver, a P4-passing manifest, receipts.
    Closes when: a filled P3 is signed and G6 is scored under it; the inventory is in the lane's records.
+5. TASK-UNITS-CSD (T-102) [A then H] CSD definition corrected and the unit map written (plan, Stage 2 gaps,
+   2026-11-19). Left: P-066 (z stays a depth fraction while x, y are mm; distance rules mix them), which needs a
+   ruling. Closes when: P-066 is repaired with a before/after table of affected rules, reviewed.
 
 ## Tier 3: half a day
+
+- TASK-EPHAPTIC (T-98) [A] Ephaptic operator: rename it a distance-weighted lateral voltage coupling, take it out of HDP
+  semantics, fix alpha's units and lag per route. Closes when: a test pins the same alpha meaning on LIF and
+  Izhikevich.
+- TASK-SOURCE-SCOPE (T-99) [A] Source scope: write S's domain as (X, input) and the observation-claim scope of LFP, CSD, EEG/MEG
+  from Q; name kernel LFP a separate factorization. Closes when: the scope text is reviewed.
+- TASK-HINV (T-100) [A] H invariance: separate continuous-time invariance (barrier, `methods.md` Eq. 7) from discrete
+  clamping and from stability. Outside the core claim. Closes when: the text states each with its evidence.
+- TASK-DMAP (T-103) [A] Discrete-map semantics: the discrete map defines the system; each claimed rule gets a stated
+  consistency order and a dt-refinement test. Closes when: the tests pass for the core rules.
+- TASK-N2-PLANT (T-104) [A] N2 extension table: each extension with its same-backend identity test and a planted break that
+  fails it. Closes when: every planted break turns its test red.
+- TASK-REPL-TFNE (T-105) [A] Route at least two replication lanes through `jaxfne.tfne` and the provenance map, or present the
+  record as simulator validation only. Closes when: the plan states which, with the lanes' receipts.
+- TASK-RECEIPTS (T-106) [A] Receipt durability: copy or hash-anchor each scored lane's receipts in a tracked location (Brunel's
+  are on C:). Closes when: each scored G3 record names a tracked receipt path or sha256 that resolves.
 
 14. T-F5 [A] T-32 candidate batching for AdEx, LIF and `Model.tune` (`_model_tune.py:451`) (checklist F5,
     1.5 pts). Closes when: the batching tests pass across seeds.
@@ -43,6 +62,11 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
     tests for a regular clone, a worktree and a loose ref pass, and the PCL lane passes in a worktree.
 
 ## Tier 4: a day or more
+
+- TASK-MIXFAM [A] Expansion after the core (Hamm 2026-11-19, "start narrowed core, we will expand as we go"):
+  mixed-family circuits through one factorization; two families in one tensor are refused today
+  (`jaxfne/neuronal_tensor.py:2953-2959`). Starts after the core's stage 2 gaps close. Closes when: a two-family
+  circuit runs through `field()`/`probe()` with a test, and the plan's headline is re-reviewed.
 
 18. T-87 [A] F4 scored benchmark across N on CPU and the A4000 with recording controls (checklist B1-B3, 10 pts),
     after T-79 and T-80. Closes when: the receipt records all 6 metrics and is evaluated against the purchase gate.

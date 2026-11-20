@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@56ce3a87 · 2026-11-19. Last broad gate: 56ce3a87 (T-96 run_caminos rename retry) on 2026-11-19, regular clone, Windows: exit 0 on the second run (8335 passed, 0 failed, 48 skipped, 6 xpassed, all lanes PASS; the first run's 16 subprocess timeouts under machine load passed alone, 88 of 88); independent review ACCEPT. CI (Fast) run 44569364330 on 56ce3a87: success, 10 of 10 jobs. Earlier: 314f99f2 (P-061) CI 44546980997, 3bfac5d0 (recurrent_backend validated on every Configuration route) CI 44526636527, 4dee0a6d (P-065) CI 44517404267, 32d24add (P-063, P-064) CI 44442354065, 0f1f0d22 (P-062 step 2) CI 44424229013, 06f9bf26 (P-062 step 1) CI 44392030376, 6b7acd62 (P-057) CI 44324199890, 98d5863c (ephaptic kernel) CI 44249549774, each 10 of 10. GitHub workflows: CI (Fast) re-enabled 2026-11-17 and Dashboard re-enabled 2026-11-19 (Hamm; gh-pages showed dev 24a95963 until the next dev push); Macroscope, Nightly notebooks, Publish and CI (Release & Scheduled) disabled (`disabled_manually` since 2026-11-14). Branches `plan/ocma-jaxfne-0515`, `audit/b1-m3-remote-baseline-20261112`, `audit/pcl-r5-remote-recovery-20261112`, `fix/b1-m3-signed-grid-20261112` keep their names while draft PRs #125-#128 are open (Hamm 2026-11-19; a GitHub branch rename closed PR #125, which was restored). Checklist 0.5.10: 43/100 (2026-11-19: 10G G1 scored 3, the CAMINOS PLoS Fig 5A, 4A and 3C-F mean-field panels exported; 2026-11-12: 10B B4 2, 10D D4 2, 10E E1 7, E2 3, 10F F4 1, 10G G3 1).
+Stamp: jaxfne@dev@022da7a0 · 2026-11-19 (this file on `_temp_tfne-manuscript`@f89bf3e9 plus this handoff). Last broad gate: 022da7a0 (T-86 PLoS panels) on 2026-11-19, regular clone: rc 0 (8337 passed, 0 failed, 48 skipped, 6 xpassed, all lanes PASS); independent review ACCEPT; CI (Fast) and Dashboard on 022da7a0 success; gh-pages 7f9aa2b5 publishes 022da7a0. Before: 56ce3a87 (8335 passed) CI 44569364330. Earlier: 314f99f2 (P-061) CI 44546980997, 3bfac5d0 (recurrent_backend validated on every Configuration route) CI 44526636527, 4dee0a6d (P-065) CI 44517404267, 32d24add (P-063, P-064) CI 44442354065, 0f1f0d22 (P-062 step 2) CI 44424229013, 06f9bf26 (P-062 step 1) CI 44392030376, 6b7acd62 (P-057) CI 44324199890, 98d5863c (ephaptic kernel) CI 44249549774, each 10 of 10. GitHub workflows: CI (Fast) re-enabled 2026-11-17 and Dashboard re-enabled 2026-11-19 (Hamm; gh-pages showed dev 24a95963 until the next dev push); Macroscope, Nightly notebooks, Publish and CI (Release & Scheduled) disabled (`disabled_manually` since 2026-11-14). Branches `plan/ocma-jaxfne-0515`, `audit/b1-m3-remote-baseline-20261112`, `audit/pcl-r5-remote-recovery-20261112`, `fix/b1-m3-signed-grid-20261112` keep their names while draft PRs #125-#128 are open (Hamm 2026-11-19; a GitHub branch rename closed PR #125, which was restored). Checklist 0.5.10: 43/100 (2026-11-19: 10G G1 scored 3, the CAMINOS PLoS Fig 5A, 4A and 3C-F mean-field panels exported; 2026-11-12: 10B B4 2, 10D D4 2, 10E E1 7, E2 3, 10F F4 1, 10G G3 1).
 Checkout `E:/repos/jaxfne` (2026-11-18): clean, at f146932c, two state-only commits of 2026-11-13 ahead of its stale `origin/dev` (24a95963), never pushed; agents work in `D:/tmp` clones.
 OCMA-J24.1 result at `artifacts/etudes/meta/literature/ocma/` (dashboard Reference audit table); tooling and ratings in HNXJ/ocma `cases/jaxfne/`.
 
@@ -39,7 +39,10 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Open decisions for the owner
 
-`open_stack.md` has no items. Ruled 2026-11-08: O-85, O-86, O-87; O-89 done; O-88, O-90, O-91, O-92 on standing go. Waiting on Hamm: the NeuroAI code link (anonymous.4open.science mirror). `origin/_temp_kernel-lfp` (ff45364b, 3 patches not in dev) is kept.
+Asked 2026-11-19, unanswered, one at a time in this order: (1) P-066 repair: scale z by `column_height_mm` so
+positions are all mm (recommended) or keep z relative and refuse Euclidean distance rules; (2) does the Jansen-Rit
+P3 v1 prereg signed by the keeper agent on Hamm's standing go count as Hamm-signed. Ruled 2026-11-19: TFNE paper =
+narrowed core first, "we will expand as we go". `open_stack.md` has no items. Ruled 2026-11-08: O-85, O-86, O-87; O-89 done; O-88, O-90, O-91, O-92 on standing go. Waiting on Hamm: the NeuroAI code link (anonymous.4open.science mirror). `origin/_temp_kernel-lfp` (ff45364b, 3 patches not in dev) is kept.
 
 ## Generated files and their checks
 
@@ -63,6 +66,20 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-Tier 1 is closed except the two blocked items. T-73 waits on committing the R5 artifacts and moving the PCL lane
-SHA in `dashboard/sources.json`; T-77 waits on an `hh-at01` lane folder or a dated exception. Next executable:
-Tier 2 lane on B4 (`build_config`) and F4 (GSDR log-scale names), then T-79/T-80 for the B1 benchmark.
+Handoff 2026-11-19 (main-jaxfne, TFNE manuscript programme, Hamm's 15-stage directive, Option A narrowed):
+
+- Work branch `_temp_tfne-manuscript` (base dev 022da7a0); clone `D:/tmp/_temp_ms_repo`. Single plan home:
+  `artifacts/programme/design/plans/arxiv_paper_plan.md` (sections "Fifteen-stage programme", "Stage 2 gaps",
+  "S1 notation", "Feasibility and novelty gate"). Workflow 43/100 (13 stages started, 0 done); C1-C12 0/100.
+- Done today: feasibility gate (TASK-FEAS-*; independent critic NARROWED; core = N1 composition calculus, N2
+  same-backend reduction contracts, preregistered replication record); TASK-NOTATION (S1 table, review ACCEPT);
+  TASK-UNITS-CSD part (CSD definition corrected in the theory docs, unit map; P-066 logged, waits on ruling).
+- Next, in order: TASK-DMAP (discrete map defines the system; per-rule consistency order; dt-refinement tests),
+  TASK-SOURCE-SCOPE, TASK-N2-PLANT, TASK-EPHAPTIC, TASK-HINV, TASK-REPL-TFNE, TASK-RECEIPTS; TASK-MIXFAM after
+  the stage 2 gaps close. Rows in `todo_stack.md`.
+- Promotion to dev: after a broad gate on the branch tip (0 failed) and an outside review ACCEPT, with CI idle.
+  The branch changes docs and state files only; it carries no code change yet.
+- Scratch, not tracked: `D:/tmp/_temp_ms/` (G4_review.md, S1_review*.md, notation_inventory.md). P-066 probe:
+  `F:/warehouse/jaxfne/P-066_2026-11-19/`.
+- Older carried items: T-73 waits on the R5 artifacts and the PCL lane SHA in `dashboard/sources.json`; T-77 on
+  an `hh-at01` lane folder; the GSDR DOI (doi:10.1371/journal.pone.0354021) is not yet in `dashboard/sources.json`.

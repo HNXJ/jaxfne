@@ -140,7 +140,7 @@ $$\hat{q}_f(t) = \mathcal{F}[\sum_n \phi_f(n) \cdot I_n(t)]$$
 
 ## Proxy field regime
 
-See [Source/Field equations](source_field_equations.md) for the shipped laminar proxy (`proxy_no_field_solve`, `linear_solver`, CSD proxy = ∇·q and LFP proxy = Σ K_LFP·q, scalar uncalibrated conductivity, `physical_amplitude_calibrated=false`). Reserved regimes in [Limitations](../reference/project/limitations_and_future_plans.md).
+See [Source/Field equations](source_field_equations.md) for the shipped laminar proxy (`proxy_no_field_solve`, `linear_solver`, CSD proxy = -∂²φ_e/∂z² and LFP proxy = Σ K_LFP·q, scalar uncalibrated conductivity, `physical_amplitude_calibrated=false`). Reserved regimes in [Limitations](../reference/project/limitations_and_future_plans.md).
 
 ## Extensibility Rule: Adding New Domains
 
