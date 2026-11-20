@@ -40,8 +40,10 @@ def test_model_positions_used_by_default():
     model = _model()
     sources = _sources()
     out = jtfne.project_model_sources(model, sources, n_contacts=8)
+    # P-066: model positions are mm; the delegate needs the column height to read depth.
     ref = jtfne.project_laminar_sources(
-        sources, np.asarray(model.params["positions"]), n_contacts=8
+        sources, np.asarray(model.params["positions"]), n_contacts=8,
+        column_height_mm=float(model.params["column_height_mm"]),
     )
     np.testing.assert_array_equal(np.asarray(out.lfp_proxy), np.asarray(ref.lfp_proxy))
     np.testing.assert_array_equal(np.asarray(out.kernel), np.asarray(ref.kernel))
@@ -68,7 +70,9 @@ def test_pose_z_translation_moves_positions_and_projection():
     assert not np.allclose(
         np.asarray(out_a.lfp_proxy), np.asarray(out_b.lfp_proxy), rtol=1e-6, atol=1e-9
     ), "z-shifted layout must move the projection"
-    ref_b = jtfne.project_laminar_sources(sources, pos_b, n_contacts=8)
+    ref_b = jtfne.project_laminar_sources(
+        sources, pos_b, n_contacts=8, column_height_mm=float(model_b.params["column_height_mm"])
+    )
     np.testing.assert_array_equal(
         np.asarray(out_b.lfp_proxy), np.asarray(ref_b.lfp_proxy)
     )

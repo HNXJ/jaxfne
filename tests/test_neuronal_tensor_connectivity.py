@@ -339,7 +339,9 @@ def test_explicit_tensor_preserves_identity_geometry_sign_and_receptor():
     eps = 1e-5
     assert np.all((positions[:, 0] >= 0.8 - eps) & (positions[:, 0] <= 0.85 + eps))
     assert np.all((positions[:, 1] >= 1.9 - eps) & (positions[:, 1] <= 1.95 + eps))
-    assert np.all((positions[:, 2] >= 3.5 - eps) & (positions[:, 2] <= 3.6 + eps))
+    # P-066: z is mm, the fraction [0.5, 0.6] of the column height, plus the pose z translation 3.0.
+    h = float(model.params["column_height_mm"])
+    assert np.all((positions[:, 2] >= 3.0 + 0.5 * h - eps) & (positions[:, 2] <= 3.0 + 0.6 * h + eps))
 
     labels = np.asarray([row["cell_type"] for row in rows])
     signs = np.asarray(

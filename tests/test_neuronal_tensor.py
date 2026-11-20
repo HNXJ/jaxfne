@@ -671,10 +671,13 @@ def test_declared_layer_geometry_carried_through_bridge():
 
     # Column-relative frame (owner ruling 2026-09-30): z is 20-60 % of the
     # column depth, not of L4's own block; x, y are fractions of the column width.
-    pos = jtfne.construct(cfg).params["positions"]
+    # P-066: realized z is mm, scaled by the column height.
+    model = jtfne.construct(cfg)
+    pos = model.params["positions"]
+    h = float(model.params["column_height_mm"])
     r = float(cfg.metadata.get("column_radius_mm", 0.25))
     eps = 1e-6
-    assert float(pos[:, 2].min()) >= 0.2 - eps and float(pos[:, 2].max()) <= 0.6 + eps
+    assert float(pos[:, 2].min()) >= 0.2 * h - eps and float(pos[:, 2].max()) <= 0.6 * h + eps
     assert float(pos[:, 0].min()) >= -r + 0.25 * 2 * r - eps and float(pos[:, 0].max()) <= -r + 0.75 * 2 * r + eps
     assert float(pos[:, 1].min()) >= -r + 0.1 * 2 * r - eps and float(pos[:, 1].max()) <= -r + 0.5 * 2 * r + eps
 
