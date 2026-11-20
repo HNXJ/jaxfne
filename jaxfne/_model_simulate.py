@@ -1829,6 +1829,7 @@ def simulate(
             positions=positions,
             n_contacts=self.static.get("n_contacts", 16),
             dtype=runtime_cfg.compute_dtype,
+            column_height_mm=self.params.get("column_height_mm"),
         )
         poisson_final_step = _maybe_poisson_final_step(self, sources)
 
@@ -2003,6 +2004,7 @@ def _simulate_homeostatic_ei(
             positions=positions,
             n_contacts=self.static.get("n_contacts", 16),
             dtype=runtime_cfg.compute_dtype,
+            column_height_mm=self.params.get("column_height_mm"),
         )
         field_output = replace(
             field_output,

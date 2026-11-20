@@ -289,7 +289,12 @@ def _apply_canonical_edge_strengthening(emitter, positions, edge_list, cfg):
     pv_e = ((pc == "PV") & (qc == "E")) | ((pc == "E") & (qc == "PV"))
     if pv_e.any():
         w = _np.asarray(edge_list.weight, dtype=float).copy()
-        gate = _np.exp(-((_np.abs(Z[pre] - Z[post]) / 0.15) ** 2))
+        # The 0.15 width is in relative depth. Layered z is mm since P-066, so divide by the
+        # height; uniform_3d z was already mm before P-066 and keeps its pre-change units.
+        Zg = Z
+        if not all(str(x) == "uniform_3d" for x in emitter.layer_labels):
+            Zg = Z / float(cfg.metadata.get("column_height_mm", 1.60))
+        gate = _np.exp(-((_np.abs(Zg[pre] - Zg[post]) / 0.15) ** 2))
         w[pv_e] = w[pv_e] * (1.0 + 2.0 * gate[pv_e])
         edge_list = replace(edge_list, weight=jnp.asarray(w, dtype=jdtype))
 

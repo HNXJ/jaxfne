@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2544 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2546 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -196,6 +196,8 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `ensemble_edge_ownership requires a connect() ensemble model` |
 | `ValueError` | `ensemble metadata lacks member_edge_counts; reconnect the members with this jaxfne version` |
 | `ValueError` | `ensemble edge ranges cover {...} edges but the edge_list carries {...}` |
+| `ValueError` | `connect: refusing to merge laminar (mm z) and non-laminar member models` |
+| `ValueError` | `connect: member models declare different column_height_mm {...}` |
 
 **`jaxfne/_construct_core.py`**
 

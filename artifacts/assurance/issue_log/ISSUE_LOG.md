@@ -416,5 +416,47 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Expected: one length unit for positions (mm, z scaled by `column_height_mm`), or z declared relative and
   distances refused or computed per axis. The field path reads relative depth (contacts in the same [0,1] axis,
   `fields/proxy.py:266,283-285`) and must move with the choice.
-- Repair: open (todo TASK-UNITS-CSD). Changes realized connectivity of distance-based rules, so it needs a
-  ruling and a before/after table.
+- Ruling (Hamm 2026-11-19): z in mm, scaled by `column_height_mm`; field proxy divides depth by the height.
+- Repair (implemented 2026-11-19, checkpoint `31ca6c39` on `_temp_tfne-manuscript`; not merged):
+  - `_construct_population.py`: layer z = fraction x `column_height_mm` (default 1.60, as in the uniform path).
+  - `fields/proxy.py`: `project_laminar_sources(..., column_height_mm=None)` divides depth by the height when given;
+    `project_model_sources` passes `model.params["column_height_mm"]`.
+  - `_construct_core.py`: population models carry `params["column_height_mm"]` (not with a geometry override).
+  - `_construct_connectivity.py connect()`: carries the height; refuses mixed laminar/non-laminar members and
+    mismatched heights.
+  - Tests: `tests/test_laminar_z_mm.py` (3), golden key set in `tests/test_construct_golden_snapshot.py`.
+- Measured (before = `0a0d5ab5`, after = `31ca6c39`; script `_temp_p066_compare.py`, diff `_temp_p066_diff.py`,
+  scratch only, seed-fixed sources, `project_model_sources` on both trees):
+  | scenario | positions | field phi | note |
+  |---|---|---|---|
+  | laminar, height 1.0 | identical | identical | identity check |
+  | laminar, height 1.6 (default) | z x1.6 (max 0.979 -> 1.566) | max rel. diff 1.8e-7 | float32 rounding |
+  | laminar, height 2.0 / 8.0 | z x2 / x8 | identical | depth = fraction again |
+  | laminar, radius 0.5, height 2.0 | z x2; x,y as before | identical | |
+  | merge of two height-2.0 laminar models | z x2 | identical | |
+  | merge of height 2.0 with height 8.0 | baseline merged silently | now refused | intended |
+  | uniform3d, default 1.6 and 2.0 | identical (already mm) | **changed**, max rel. 0.71 and 1.14 | see below |
+  - Unexpected: uniform3d positions were already mm before the change, so the baseline projection read them as
+    fraction. The change divides by the height, which alters the uniform3d field output. Intended by the same
+    logic; not listed in the original observation; needs review.
+  - Not measured: realized connectivity of distance rules (`spatial_sigma`, `spatial_radius`) changes, since z
+    now spans the column height. Probability-only rules do not read positions.
+- Full suite on checkpoint `31ca6c39` (clone): 14 failed, 8391 passed, 49 skipped.
+  Baseline `0a0d5ab5` on the same 8 files: 2 failed (`test_scaling_benchmark`, subprocess cannot import
+  jaxfne; environment, pre-existing). So 12 failures are from this change, classified:
+  - Two real regressions, found and fixed (commit on top of `31ca6c39`):
+    1. `_model_simulate.py` (`simulate(record_fields=True)`, two sites) projected mm positions with no height
+       (canary `field_lfp_csd`, csd_rms 53.9 vs 201.7). Now passes `column_height_mm`.
+    2. `_construct_core.py` canonical PV<->E gate (`exp(-(dz/0.15)^2)`) read raw z; it is a relative-depth
+       width. Now divides by the height for layered models; uniform_3d keeps its pre-change units.
+       Canary `hdp_plastic_w` raster hash matches the register again.
+  - Generated index: `docs/reference/errors.md` stale; regenerated with `scripts/generate_errors_index.py --write`
+    (`test_generate_errors_index` 6 passed).
+  - Intended unit pins, still failing (8 tests; not yet updated, need your sign-off since they pin contracts):
+    `test_fields_positions_g8` x2 (reference call lacks height), `test_neuronal_tensor` x1,
+    `test_neuronal_tensor_connectivity` x1, `test_tfne_parameter_transfer` x2 (z fraction domains),
+    `test_canary_chains::jdna_develop` (only `positions_mean/std` differ; edges, spikes, weights and V_m match),
+    `test_neuronal_tensor_lane6b` digest (includes positions; not separated from edges).
+- Affected subset after fixes (18 files, 227 tests): 8 failed, 219 passed; all 8 are the intended unit pins above.
+- Remaining: rerun full suite after the two fixes (not yet run; the full run takes about 90 minutes);
+  update the 8 pins with your go; independent review; merge decision.
