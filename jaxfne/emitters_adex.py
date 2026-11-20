@@ -739,6 +739,96 @@ def _check_zero_delay_edges(N, R, given):
     }
 
 
+EDGE_DELIVERIES = ("all_edges", "event")
+_EVENT_TIER_GROWTH = 8
+
+
+def _event_delivery(src, n_src, seg, absw, gain_mask, n_out, dtype):
+    """Per-step synaptic sum over the out-edges of active sources only.
+
+    Edge ``e`` leaves source ``src[e]`` (in ``[0, n_src)``) and lands on flat
+    target ``seg[e]`` (in ``[0, n_out)``) with weight ``absw[e]``. Returns
+    ``(deliver, info)``; ``deliver(active, g_t)`` equals the all-edges sum
+    ``segment_sum(where(active[src], w, 0), seg, n_out)`` with
+    ``w = absw * where(gain_mask, g_t, 1)`` (``absw`` when ``gain_mask`` is None).
+
+    Edges are held in CSR order (stable sort by source). A step with ``n``
+    active sources runs the smallest capacity tier ``k >= n`` of ``8, 64, 512,
+    ...`` (tiers kept while ``k < n_src`` and ``2 k D <= E``, ``D`` the max out-degree):
+    it gathers the out-edges of ``k`` sources, padded to ``D``, and
+    scatter-adds them, costing ``k D`` instead of ``E``. A step with more
+    active sources than the largest tier runs the all-edges sum, so no event is
+    dropped. ``lax.switch`` runs one branch per step.
+
+    Summation order: each target gets its terms in (source, edge index) order;
+    the all-edges sum adds them in edge index order. ``info["order_exact"]`` is
+    True when the two orders agree for every target (along edge index, the
+    sources reaching one target never decrease); the sums are then
+    bit-identical on CPU, where XLA scatter-adds in update order (unordered
+    GPU atomics make neither path deterministic); otherwise they may differ by
+    rounding.
+    """
+    src = np.asarray(src, dtype=np.int64)
+    seg = np.asarray(seg, dtype=np.int64)
+    absw = np.asarray(absw, dtype=np.float64)
+    E = int(src.size)
+    perm = np.argsort(src, kind="stable")
+    deg = np.bincount(src, minlength=n_src)
+    start = np.zeros(n_src + 1, np.int64)
+    np.cumsum(deg, out=start[1:])
+    D = int(deg.max())
+    by_seg = np.argsort(seg, kind="stable")
+    same = seg[by_seg][1:] == seg[by_seg][:-1]
+    src_by_seg = src[by_seg]
+    order_exact = bool(np.all(src_by_seg[1:][same] >= src_by_seg[:-1][same]))
+    caps: list[int] = []
+    k = _EVENT_TIER_GROWTH
+    while k < n_src and 2 * k * D <= E:
+        caps.append(k)
+        k *= _EVENT_TIER_GROWTH
+
+    one = jnp.asarray(1.0, dtype)
+    src_d = jnp.asarray(src, jnp.int32)
+    seg_d = jnp.asarray(seg, jnp.int32)
+    w_d = jnp.asarray(absw, dtype)
+    gm_d = None if gain_mask is None else jnp.asarray(gain_mask)
+    # CSR arrays with one pad slot at index E: weight 0, target n_out (dropped).
+    seg_c = jnp.asarray(np.append(seg[perm], n_out), jnp.int32)
+    w_c = jnp.asarray(np.append(absw[perm], 0.0), dtype)
+    gm_c = None if gain_mask is None else jnp.asarray(np.append(np.asarray(gain_mask)[perm], False))
+    start_c = jnp.asarray(start, jnp.int32)  # start_c[n_src] = E: the fill source's slots pad
+    deg_c = jnp.asarray(np.append(deg, 0), jnp.int32)
+    off = jnp.arange(D, dtype=jnp.int32)
+
+    def _all_edges(active, g_t):
+        w = w_d if gm_d is None else w_d * jnp.where(gm_d, g_t, one)
+        return jax.ops.segment_sum(jnp.where(active[src_d], w, 0.0), seg_d, num_segments=n_out)
+
+    def _tier(cap):
+        def run(active, g_t):
+            ids = jnp.nonzero(active, size=cap, fill_value=n_src)[0]
+            slot = start_c[ids][:, None] + off[None, :]
+            slot = jnp.where(off[None, :] < deg_c[ids][:, None], slot, E).reshape(-1)
+            w = w_c[slot]
+            if gm_c is not None:
+                w = w * jnp.where(gm_c[slot], g_t, one)
+            return jnp.zeros((n_out,), dtype).at[seg_c[slot]].add(w, mode="drop")
+
+        return run
+
+    branches = [_tier(c) for c in caps] + [_all_edges]
+    caps_j = jnp.asarray(caps, jnp.int32)
+
+    def deliver(active, g_t=None):
+        if not caps:
+            return _all_edges(active, g_t)
+        n = jnp.sum(active, dtype=jnp.int32)
+        return jax.lax.switch(jnp.sum(n > caps_j, dtype=jnp.int32), branches, active, g_t)
+
+    info = {"tiers": caps, "max_out_degree": D, "n_sources": int(n_src), "order_exact": order_exact}
+    return deliver, info
+
+
 def simulate_adex(
     params: AdExParams,
     *,
@@ -784,6 +874,7 @@ def simulate_adex(
     edge_gain_mask=None,
     edge_gain_schedule=None,
     edge0_gain_mask=None,
+    edge_delivery: str = "all_edges",
 ) -> dict[str, Any]:
     """Simulate conductance-based AdEx cells on a sparse edge list.
 
@@ -923,6 +1014,16 @@ def simulate_adex(
     Absent ``edge0_*``/``intra_step_rounds`` (both None) the scan body
     is the step above byte-for-byte; one without the other is refused.
 
+    ``edge_delivery`` selects how step 3 sums the delayed-edge arrivals:
+    ``"all_edges"`` (default) reads every edge each step; ``"event"`` sums
+    only the out-edges of the (cell, delay) sources that spiked ``delay``
+    steps earlier, in capacity tiers with the all-edges sum as the overflow
+    tier (:func:`_event_delivery`), and returns ``event_delivery`` (tiers,
+    max out-degree, source count, ``order_exact``). With ``order_exact`` True
+    the two are bit-identical on CPU; otherwise they may differ in rounding of the
+    per-target sum. Delay-0 fixed-point rounds read all ``edge0_*`` edges
+    under both.
+
     Returns a dict: ``spikes`` (bool ``[n_steps, N]``), ``V_mV`` (``[n_steps, N]``, after each
     step's update, only if ``record_v``: 4.6 GB in float32 at 9500 cells and 120000 steps),
     and the final ``V``, ``w``, ``ref`` and ``g``. With delay-0 edges, also
@@ -945,6 +1046,8 @@ def simulate_adex(
         raise ValueError(f"n_steps must be a positive integer, got {n_steps!r}")
     if not dt_ms > 0:
         raise ValueError(f"dt_ms must be > 0, got {dt_ms!r}")
+    if edge_delivery not in EDGE_DELIVERIES:
+        raise ValueError(f"edge_delivery must be one of {EDGE_DELIVERIES}, got {edge_delivery!r}")
 
     N = int(jnp.shape(params.C_pF)[0])
     if spike_out_mask is None:
@@ -1273,6 +1376,43 @@ def simulate_adex(
     seg_j = jnp.asarray(edges["post"] * R + edges["receptor"], jnp.int32)
     absw_j = jnp.asarray(np.abs(edges["weight"]), dtype)
     lag_j = jnp.asarray(delay_eff, jnp.int32)
+    deliver = None
+    event_info = None
+    if edge_delivery == "event" and not E:
+        event_info = {"tiers": [], "max_out_degree": 0, "n_sources": 0, "order_exact": True}
+    elif edge_delivery == "event":
+        # One source per distinct (pre, delay) pair, active at step t when its cell
+        # spiked delay steps earlier. Pre-major keys keep a pre-sorted edge list
+        # in its own per-target order (order_exact).
+        src_key, src_of_edge = np.unique(
+            edges["pre"].astype(np.int64) * (L + 1) + delay_eff.astype(np.int64), return_inverse=True
+        )
+        src_pre_j = jnp.asarray(src_key // (L + 1), jnp.int32)
+        src_lag_j = jnp.asarray(src_key % (L + 1), jnp.int32)
+        deliver, event_info = _event_delivery(
+            src_of_edge.reshape(-1), int(src_key.size), edges["post"] * R + edges["receptor"],
+            np.abs(edges["weight"]), None if gain_mask_j is None else np.asarray(gain_mask_j),
+            N * R, dtype,
+        )
+
+    def _arrivals(ring, t):
+        """Conductance increments ``[N, R]`` from the delayed edges arriving at step ``t``."""
+        if not E:
+            return jnp.zeros((N, R), dtype)
+        if deliver is not None:
+            g_t = None if gain_mask_j is None else gain_sched_j[t]
+            return deliver(ring[(t - src_lag_j) % L, src_pre_j], g_t).reshape(N, R)
+        arrived = ring[(t - lag_j) % L, pre_j]
+        if gain_mask_j is None:
+            return jax.ops.segment_sum(
+                jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
+            ).reshape(N, R)
+        g_t = gain_sched_j[t]
+        w_eff = absw_j * jnp.where(gain_mask_j, g_t, jnp.asarray(1.0, dtype))
+        return jax.ops.segment_sum(
+            jnp.where(arrived, w_eff, 0.0), seg_j, num_segments=N * R
+        ).reshape(N, R)
+
     if has_zero:
         assert zero is not None
         pre0_j = jnp.asarray(zero["pre"], jnp.int32)
@@ -1389,22 +1529,7 @@ def simulate_adex(
             rep_po = jax.random.poisson(
                 jax.random.fold_in(rep_base, t), rep_lam_j, shape=(N,)) > 0
         I_t = I_const if I_t is None else I_t
-        if E:
-            arrived = ring[(t - lag_j) % L, pre_j]
-            if gain_mask_j is None:
-                added = jax.ops.segment_sum(
-                    jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
-                ).reshape(N, R)
-            else:
-                g_t = gain_sched_j[t]
-                w_eff = absw_j * jnp.where(
-                    gain_mask_j, g_t, jnp.asarray(1.0, dtype))
-                added = jax.ops.segment_sum(
-                    jnp.where(arrived, w_eff, 0.0), seg_j, num_segments=N * R
-                ).reshape(N, R)
-        else:
-            added = jnp.zeros((N, R), dtype)
-        g = g * decay_j[None, :] + added
+        g = g * decay_j[None, :] + _arrivals(ring, t)
         if ext is not None:
             earr = ering[(t - d_ext) % L]
             g = g.at[targets_j, rec_ext].add(w_ext_j * earr.astype(dtype))
@@ -1522,22 +1647,7 @@ def simulate_adex(
             rep_po = jax.random.poisson(
                 jax.random.fold_in(rep_base, t), rep_lam_j, shape=(N,)) > 0
         I_t = I_const if I_t is None else I_t
-        if E:
-            arrived = ring[(t - lag_j) % L, pre_j]
-            if gain_mask_j is None:
-                added = jax.ops.segment_sum(
-                    jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
-                ).reshape(N, R)
-            else:
-                g_t = gain_sched_j[t]
-                w_eff = absw_j * jnp.where(
-                    gain_mask_j, g_t, jnp.asarray(1.0, dtype))
-                added = jax.ops.segment_sum(
-                    jnp.where(arrived, w_eff, 0.0), seg_j, num_segments=N * R
-                ).reshape(N, R)
-        else:
-            added = jnp.zeros((N, R), dtype)
-        g = g * decay_j[None, :] + added
+        g = g * decay_j[None, :] + _arrivals(ring, t)
         if grouped is not None:
             assert grp_base is not None and grp_unorder_j is not None
             lam_g = lam_2d[t]
@@ -1653,22 +1763,7 @@ def simulate_adex(
                 jax.random.fold_in(rep_base, t), rep_lam_j, shape=(N,)) > 0
         rkey, kss = split_all[:, 0], split_all[:, 1]
         I_t = I_const if I_t is None else I_t
-        if E:
-            arrived = ring[(t - lag_j) % L, pre_j]
-            if gain_mask_j is None:
-                added = jax.ops.segment_sum(
-                    jnp.where(arrived, absw_j, 0.0), seg_j, num_segments=N * R
-                ).reshape(N, R)
-            else:
-                g_t = gain_sched_j[t]
-                w_eff = absw_j * jnp.where(
-                    gain_mask_j, g_t, jnp.asarray(1.0, dtype))
-                added = jax.ops.segment_sum(
-                    jnp.where(arrived, w_eff, 0.0), seg_j, num_segments=N * R
-                ).reshape(N, R)
-        else:
-            added = jnp.zeros((N, R), dtype)
-        g = g * decay_j[None, :] + added
+        g = g * decay_j[None, :] + _arrivals(ring, t)
         rows_m = (t - md_j) % L
         earr = ering[rows_m, jnp.arange(M)]
         g = g.at[mt_j, mr_j].add(mw_j * earr.astype(dtype))
@@ -1785,6 +1880,8 @@ def simulate_adex(
     }
     if record_v:
         result["V_mV"] = ys[1]
+    if event_info is not None:
+        result["event_delivery"] = event_info
     if has_zero:
         result["fixed_point_unresolved"] = ys[2] if record_v else ys[1]
         result["fixed_point_rounds"] = ys[3] if record_v else ys[2]

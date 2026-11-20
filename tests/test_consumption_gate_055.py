@@ -78,6 +78,9 @@ RT_CASES = {
     "seed": ({}, {"seed": 5}, "refuse"),
     "n_steps": ({}, {"n_steps": 7}, "refuse"),
     "recurrent_backend": ({}, {"recurrent_backend": "edge_list"}, "output"),
+    # consumer: emitters_adex.simulate_adex on the AdEx route (tests/test_adex_event_delivery.py);
+    # this Izhikevich model refuses it
+    "edge_delivery": ({}, {"edge_delivery": "event"}, "refuse"),
     "synaptic_kernel": ({"recurrent_backend": "edge_list"},
                         {"recurrent_backend": "edge_list", "synaptic_kernel": "receptor_exponential"},
                         "output"),

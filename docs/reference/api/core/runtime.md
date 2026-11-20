@@ -14,7 +14,7 @@ The runtime module provides configuration objects for controlling JAX execution 
 jaxfne.RuntimeConfig(
     backend="auto", dtype="float32", jit=False, vmap=False,
     precision="default", seed=0, n_steps=0, recurrent_backend="auto",
-    synaptic_kernel="exponential", recompilation_guard="warning",
+    edge_delivery="all_edges", synaptic_kernel="exponential", recompilation_guard="warning",
     enable_homeostasis=False, homeostasis_params={...},
     enable_hdp=False, hdp_params={...},
     device_type=None, dtype_primary=None, x64_enabled=None,
@@ -47,6 +47,12 @@ requested and actual dtype policy.
   `"edge_list"` to override that model-level choice.
   Run metadata `recurrent_backend` records the backend that ran; the runtime report keeps the
   requested value.
+- `edge_delivery` (str): `"all_edges"` (default) | `"event"`; AdEx `Model.simulate` only, refused
+  elsewhere. `"event"` sums each step's delayed-edge arrivals over the out-edges of the cells that
+  spiked one delay earlier (capacity tiers, the all-edges sum when a step overflows them), so a step
+  costs about (spiking sources) x (max out-degree) instead of the edge count. When the edge list is
+  sorted by presynaptic cell within each target (`metadata["edge_delivery"]["order_exact"]`), the
+  run is bit-identical to `"all_edges"` on CPU; otherwise per-target sums may differ by rounding.
 - `synaptic_kernel` (str): `"exponential"` | `"receptor_exponential"`
   (`"receptor_exponential"` runs on edge_list; an explicit `"dense"` with it raises)
 - `recompilation_guard` (str): `"warning"` | `"exception"` | `"off"`
