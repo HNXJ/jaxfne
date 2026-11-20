@@ -3,11 +3,28 @@
 Brian2/NEST/Jaxley run_cell receipts mirror b1_harness.py fields; every
 null leaf carries a reason in ``unavailable``.
 """
+import ast
 import sys
+from pathlib import Path
 
 import pytest
 
 sys.path.insert(0, "artifacts/runs/benchmark/b1")
+
+
+def test_m3_default_grid_matches_signed_prereg():
+    """B1 M3 signed-grid contract: defaults must not silently select a pilot grid."""
+    baseline = Path(__file__).resolve().parent / "b1_jaxley.py"
+    tree = ast.parse(baseline.read_text(encoding="utf-8"))
+    constants = {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id in {
+                    "GRID_DURATION_MS", "GRID_DT_MS"
+                }:
+                    constants[target.id] = ast.literal_eval(node.value)
+    assert constants == {"GRID_DURATION_MS": 1000.0, "GRID_DT_MS": 0.1}
 
 
 def check_receipt(rec):

@@ -2,7 +2,7 @@
   "counts": {
     "archive": 19,
     "benchmark": 1,
-    "dated": 26,
+    "dated": 29,
     "frozen": 28,
     "legacy": 32,
     "prereg": 135,
@@ -210,6 +210,7 @@
     "artifacts/legacy/skills/README.md": "7f78d716562b81c218b60925488c276e6429d53aea4a633bc4542b8eec536c5a",
     "artifacts/legacy/skills/jaxfne-frozen-use/SKILL.md": "f1ce964b28552e040d4d5f65c6cf1d75c8841e9cf2f26b802deba52146c3beb0",
     "artifacts/legacy/v047_refactor_audit.md": "5743686cef543f51c80b72c8cb827a346c4a475333e112549639949319a25518",
+    "artifacts/programme/design/plans/ocma/ocma_jaxfne_goal_match_2026-11-12.md": "6147096243e237df5cd1e6a8cad62abd5776e1b43a6d923d7f532eec6ca377d3",
     "artifacts/programme/handout_opencode_2026-09-29.md": "34d7b4e14520d975c30fc18a575d4a55b7c4241136dab8e14d63ebdafce33e6f",
     "artifacts/programme/metrics_definitions_2026-10-13.md": "164ad840b0aa43cadd73306bee66626383b201b404bebd43b1bc0ab5d3e6e752",
     "artifacts/programme/refreeze_p016_p020_2026-09-30.md": "a9526e10a524ca1b8127663ab52299d5488007f93bed915828df9d3e22fa9c23",
@@ -247,6 +248,7 @@
     "artifacts/release/v0_5_8_release_receipt.json": "558fc2a36301ffa554ed2f1e85e0aad378ece13eaa0f15e61cac768edaa41a1d",
     "artifacts/release/v0_5_9_release_receipt.json": "91e076b9578e21edfc4f9ccfc28c5f528fd4dcac6a3e5ac6b20d7a3cd07b2919",
     "artifacts/runs/benchmark/agent_tasks_055.json": "91dd839b4f8dd0828e3f44218199f6bbcd62fbe64e66f6dead9d266f02a4860c",
+    "artifacts/runs/benchmark/b1/M3_REMOTE_AUDIT_2026-11-12.md": "e50efd40d955bc99967f3298daf867e2b38dfa1a41895dd66461e8dd019037d3",
     "artifacts/runs/benchmark/prereg/PREREG_B1_0510.md": "be70c478818d0b4029f67a44478cd6776f52f519598c9e0b67db28a9c9c177ba",
     "artifacts/runs/benchmark/prereg/PREREG_B1_0510_amendment1.md": "21e80916faa4f7e8ffd2ef5cc0420147c0cf424585551f43a13c579e8463b74d",
     "artifacts/runs/benchmark/prereg/PREREG_B1_0510_amendment1_erratum1.md": "45391b39fcf0483d6d5c7a213c42c5478c3224b743e7ebb527b82cc0bcec410d"
