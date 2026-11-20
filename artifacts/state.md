@@ -13,7 +13,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Broken or in flight
 
-- Remote branches consolidated to `main`, `dev`, and `gh-pages` only (`archive/wip-jaxfne-jaxfne-wt-suites-20261107` preserves `dashboard_suites.py` + 52 PNGs for `T-O68`; `archive/t90-smoke-20261115` preserves `093483a3`, and `scripts/p056_resource_smoke.py` is tracked on `dev`; draft PR #127 closed as superseded by `4849592e`).
+- Remote branches consolidated to `main`, `dev`, and `gh-pages` only (`archive/wip-jaxfne-jaxfne-wt-suites-20261107` preserves `dashboard_suites.py` + 52 PNGs for `T-O68`; `archive/t90-smoke-20261115` preserves `093483a3` and `scripts/p056_resource_smoke.py` is tracked on `dev`; `archive/t90-smoke-receipts-20261115` preserves `da7e895b` + `538f79aa` full receipts; draft PR #127 closed as superseded by `4849592e`).
 - Matching-host broad gate (`T-MATCH`, `CS-10`) pending on Linux/Windows for post-merge `dev`; Mac host baseline failures attributed in `artifacts/assurance/mac_gate_attribution.md` (`O-FIG05`, `O-NUM`).
 - CAMINOS E1 (20/24 not equivalent; oracle kept); PCL R5-exact & R5-approx FAIL (P-055: reported `V = 2.9788` vs `3.1950` mV lack a receipt on disk; replay script missing); P-053 (NOT_REPRODUCED under Amendment 1, open); P-056 (spec v1, blocked on owner inputs); P-066 (z depth-fraction vs x/y mm; probe at `F:/warehouse/jaxfne/P-066_2026-11-19/`). Papers are never failed through 0.6 (Hamm 2026-11-03).
 
