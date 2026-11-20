@@ -209,7 +209,7 @@ Deferred requirements. Not part of M2 acceptance; tracked only in `todo_stack.md
 - Spike-level feedback: a declared regime with a reproducible nonzero change in motor counts. Next milestone (todo CS-7). The regime is Hamm's scientific choice.
 - Goal-directed navigation: a later milestone (todo CS-8).
 - Empirical calibration of `b_i`, `g_i`, `d0`, the E/I weights and fixed vs learned weights (§12.6): Hamm supplies the values (todo CS-9).
-- Integration into `dev`: blocked by the 13 baseline failures (§10; todo CS-10) and the file budget (allowlist 2798; the ledger reads 2700 files / 95M bytes; this integration adds one file, to 2799, which needs a scoped ruling; todo CS-11). Neither is resolved; the integration path stays closed.
+- Integration into `dev`: blocked by the 13 baseline failures (§10; todo CS-10) and the file budget (allowlist 2798; the ledger reads 2700 files / 95M bytes; this integration adds one file, to 2799, which needs a scoped ruling; todo CS-11). Neither is resolved; the integration path stays closed. *(Superseded 2026-11-20: merged into `dev` under Hamm's branch-merge directive with `budget_files` raised 2798 -> 2812 and `budget_amendment_2026-10-23.md` preserved at pinned `c52e830b…`; CS-11 closed, CS-10 matching-host broad gate remains open.)*
 
 ### 12.1 Starting point
 

@@ -196,4 +196,3 @@ def test_duplicate_path_fails(tmp_path, monkeypatch):
     monkeypatch.setattr(subprocess, "run", fake_run)
     with pytest.raises(RuntimeError, match="duplicate path"):
         tracked_sizes(repo)
-

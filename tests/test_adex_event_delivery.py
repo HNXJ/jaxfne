@@ -252,4 +252,3 @@ def test_route_event_with_auto_backend_and_lif_seed_batch_refusal():
     )
     with pytest.raises(ValueError, match="serial AdEx simulate route only"):
         simulate_lif_seed_batch(lif, lif_sim, [1, 2])
-
