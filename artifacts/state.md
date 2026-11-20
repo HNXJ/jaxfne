@@ -71,11 +71,11 @@ Handoff 2026-11-19 (main-jaxfne, TFNE manuscript programme, Hamm's 15-stage dire
 - Work branch `_temp_tfne-manuscript` (base dev 022da7a0); clone `D:/tmp/_temp_ms_repo`. Single plan home:
   `artifacts/programme/design/plans/arxiv_paper_plan.md` (sections "Fifteen-stage programme", "Stage 2 gaps",
   "S1 notation", "Feasibility and novelty gate"). Workflow 43/100 (13 stages started, 0 done); C1-C12 0/100.
-- Done today: feasibility gate (TASK-FEAS-*; independent critic NARROWED; core = N1 composition calculus, N2
-  same-backend reduction contracts, preregistered replication record); TASK-NOTATION (S1 table, review ACCEPT);
-  TASK-UNITS-CSD part (CSD definition corrected in the theory docs, unit map; P-066 logged, waits on ruling).
-- Next, in order: TASK-DMAP (discrete map defines the system; per-rule consistency order; dt-refinement tests),
-  TASK-SOURCE-SCOPE, TASK-N2-PLANT, TASK-EPHAPTIC, TASK-HINV, TASK-REPL-TFNE, TASK-RECEIPTS; TASK-MIXFAM after
+- Done today: feasibility gate (task-feas-*; independent critic NARROWED; core = N1 composition calculus, N2
+  same-backend reduction contracts, preregistered replication record); task-notation (S1 table, review ACCEPT);
+  task-units-csd part (CSD definition corrected in the theory docs, unit map; P-066 logged, waits on ruling).
+- Next, in order: task-dmap (discrete map defines the system; per-rule consistency order; dt-refinement tests),
+  task-source-scope, task-n2-plant, task-ephaptic, task-hinv, task-repl-tfne, task-receipts; task-mixfam after
   the stage 2 gaps close. Rows in `todo_stack.md`.
 - Promotion to dev: after a broad gate on the branch tip (0 failed) and an outside review ACCEPT, with CI idle.
   The branch changes docs and state files only; it carries no code change yet.

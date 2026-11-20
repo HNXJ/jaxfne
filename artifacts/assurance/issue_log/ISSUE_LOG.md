@@ -401,7 +401,7 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 ### P-066
 
 - Date: 2026-11-19. Type: BUG. Area: population construction, neuron positions, distance-based connectivity.
-  Found by TASK-UNITS-CSD. Severity: medium for any run whose rules use Euclidean distance (localized sampling,
+  Found by task-units-csd. Severity: medium for any run whose rules use Euclidean distance (localized sampling,
   `spatial_sigma`, radius gates) on the laminar construct path; affected runs not enumerated.
 - Observation: x and y are sampled in mm (`[-column_radius_mm, column_radius_mm]` plus the area offset), z in
   the layer's `layer_fractions` range inside [0,1], never scaled by `column_height_mm`
