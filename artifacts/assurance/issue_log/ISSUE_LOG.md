@@ -87,11 +87,15 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 
 - Date: 2026-11-02. Type: SCIENCE. Area: PCL event scan (`run_tuning.run_core_events`) against the event
   oracle (`artifacts/etudes/papers/pcl/port/pcl_event_ref.py`). Severity: medium for PCL R3 to R5
-  exactness; none for spikes. Status: reported by the PCL-R3-HARNESS worker; not reproduced. R3 (2026-11-03):
-  the core arm is exact against C++ on training file 0 (max relative weight difference 5.3e-15, `CALIBRATION.md`
-  R3), so the reported gap needs the sparse fixture to show; it stays open until that fixture runs.
-- Minimal reproduction: [MISSING: the worker's fixture; it was not kept]. A synthetic lateral and top-down
-  network with hand-zeroed sparse weights, 60 events, learning on.
+  exactness; none for spikes. Status: NOT_REPRODUCED on the declared sparse fixture under criteria Amendment 1 (a diagnostic validation of
+  run 1; N = 170 exploratory; result `artifacts/etudes/papers/pcl/port/P053_sparse_fixture_result.md`): spikes equal
+  and `w_s`, `wi_s` within rtol 1e-12 for V0 to V3 on seeds 0 to 2, with P5 engagement and the `w_s` control met. Not a
+  refutation of P-053. Review note: V1 (one entry per row) never consumes its LAT half and equals V3 bitwise in seeds
+  1 and 2, so the sparse content that tested the core arm is V2 and V1-TD in seed 0. R3 (2026-11-03): the core arm is exact against C++ on training file 0
+  (max relative weight difference 5.3e-15, `CALIBRATION.md` R3). Stays open for fixture forms not tried.
+- Minimal reproduction: none on the declared fixture. `artifacts/etudes/papers/pcl/port/test_p053_sparse_fixture.py`:
+  a synthetic lateral and top-down network, learning on, LAT and TD hand-zeroed (V1 to V3), 170 events at one pixel,
+  seeds 0 to 2. The worker's 60-event fixture was not kept; 60 events give no spike.
 - Expected: spikes exact and weights within rtol 1e-12, as with dense seeded init weights
   (`test_p_core_arm_equals_oracle_arm_on_chain`).
 - Actual (reported): identical spikes; `w_s` differs by about 0.4%. Suspected cause: the order of STDP

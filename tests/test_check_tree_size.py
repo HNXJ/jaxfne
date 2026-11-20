@@ -5,6 +5,8 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from scripts.check_tree_size import check_tree
 
 CAP = 1048576
@@ -98,3 +100,80 @@ def test_non_ascii_path_matches_allowlist(tmp_path):
     assert "déjà.bin" in tracked_sizes(repo), "fixture must track the raw UTF-8 path"
     violations, _ = check_tree(repo, _allow(files={"déjà.bin": len(big)}))
     assert violations == []
+
+
+def _rewrite_batch(monkeypatch, rewrite) -> None:
+    """Run real git; replace only the cat-file --batch-check stdout with rewrite(stdout)."""
+    real_run = subprocess.run
+
+    def fake_run(args, **kw):
+        out = real_run(args, **kw)
+        if list(args[:2]) == ["git", "cat-file"]:
+            return subprocess.CompletedProcess(args, out.returncode, stdout=rewrite(out.stdout))
+        return out
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+
+def _three_files(root: Path) -> Path:
+    return _make_repo(root, {"a.txt": b"x" * 10, "b.txt": b"y" * 20, "c.txt": b"z" * 30})
+
+
+def test_short_batch_response_fails(tmp_path, monkeypatch):
+    from scripts.check_tree_size import tracked_sizes
+
+    repo = _three_files(tmp_path / "short")
+    assert len(tracked_sizes(repo)) == 3, "fixture must track three files"
+    _rewrite_batch(monkeypatch, lambda out: "".join(out.splitlines(keepends=True)[:2]))
+    with pytest.raises(RuntimeError, match="2 response lines for 3 requested blobs"):
+        tracked_sizes(repo)
+
+
+def test_missing_blob_response_fails(tmp_path, monkeypatch):
+    from scripts.check_tree_size import tracked_sizes
+
+    repo = _three_files(tmp_path / "missing")
+    assert len(tracked_sizes(repo)) == 3, "fixture must track three files"
+
+    def rewrite(out: str) -> str:
+        lines = out.splitlines()
+        oid = lines[0].split()[0]
+        lines[0] = f"{oid} missing"
+        return "\n".join(lines) + "\n"
+
+    _rewrite_batch(monkeypatch, rewrite)
+    with pytest.raises(RuntimeError, match="missing"):
+        tracked_sizes(repo)
+
+
+def test_malformed_batch_line_fails(tmp_path, monkeypatch):
+    from scripts.check_tree_size import tracked_sizes
+
+    repo = _three_files(tmp_path / "malformed")
+    assert len(tracked_sizes(repo)) == 3, "fixture must track three files"
+
+    def rewrite(out: str) -> str:
+        lines = out.splitlines()
+        oid, kind = lines[0].split()[:2]
+        lines[0] = f"{oid} {kind}"  # size field cut off
+        return "\n".join(lines) + "\n"
+
+    _rewrite_batch(monkeypatch, rewrite)
+    with pytest.raises(RuntimeError, match="malformed"):
+        tracked_sizes(repo)
+
+
+def test_reordered_batch_response_fails(tmp_path, monkeypatch):
+    from scripts.check_tree_size import tracked_sizes
+
+    repo = _three_files(tmp_path / "reorder")
+    assert len(tracked_sizes(repo)) == 3, "fixture must track three files"
+
+    def rewrite(out: str) -> str:
+        lines = out.splitlines()
+        lines[0], lines[1] = lines[1], lines[0]
+        return "\n".join(lines) + "\n"
+
+    _rewrite_batch(monkeypatch, rewrite)
+    with pytest.raises(RuntimeError, match="does not match"):
+        tracked_sizes(repo)

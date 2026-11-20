@@ -30,6 +30,16 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 - B1 drive unification (T-79) and baseline parameter match (T-80) done (`b1_harness.py`, `b1_brian2.py`, `b1_nest.py`, `b1_jaxley.py`; `--smoke` verified).
 - `artifacts/state.md` corrected (`artifacts_check.py` ACCEPT).
 
+## Tier 1: blocked on a ruling
+
+- T-FIG05 [H then A] re-freeze equivalence-gate fig05 and its C3 receipt under change control, or render panel C from
+  frozen V_m; print stdout in `_run_gate` failures. Closes when: `tests/test_equivalence_gate_v20260815.py` passes on
+  darwin (O-FIG05, `assurance/mac_gate_attribution.md`).
+- T-NUM [H then A] rule the remedy for the bit-exact XLA assertions and the izh2003 known-answer receipts (record
+  platform and jaxlib). Closes when: the five composition and Gaussian-drive tests and `izh2003_core_path` pass on
+  the Mac and CI with the ruled assertions (O-NUM).
+- T-MATCH [A] run `python scripts/run_test_gate.py broad` unsandboxed on a matching host (Linux, jax 0.10.2) at the
+  integrating SHA. Closes when: it reads 0 failed and CI is green on that SHA.
 ## Tier 2: 1 to 2 hours each
 
 2. T-D3 [A then H] Mejias 2016 G6 — re-tiered 2026-11-12 from "1 to 2 hours" to needs-a-signed-prereg. G6 is not a
@@ -61,11 +71,16 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 
 14. T-F5 [A] T-32 candidate batching for AdEx, LIF and `Model.tune` (`_model_tune.py:451`) (checklist F5,
     1.5 pts). Closes when: the batching tests pass across seeds.
-15. T-83 [A] P-053 sparse-weight fixture: rebuild the minimal lateral and top-down fixture with hand-zeroed sparse
-    weights. Closes when: it either reproduces the weight gap (P-053 confirmed) or passes (closed).
 17. T-90 [A] P-056 kernel-LFP deep-layer power. Closes when: a settled column shows deep alpha-beta power or the
-    cause is named.
-17. T-95 [A] P-058 `_code_sha` worktree portability (`run_r2_reference.py`): resolve HEAD through git. Closes when:
+    cause is named. 2026-11-15 step 1 done: the pilot's estimator, band, layer map, rates and N are not retained
+    (only the diff at tag `archive/kernel-lfp`), so the deficit is unreproduced as measured; the chain
+    kernel_lfp -> Welch -> 8-25 Hz power is validated on a known source (`tests/test_kernel_lfp_band_power.py`: tone
+    power = analytic, x4 for x2 drive, shuffle 0.7%, zero 1e-14; a wrong-frequency expectation would miss by 14-18%).
+    Spec draft: `programme/design/capabilities/p056_diagnostic_spec_v1.md` (estimand, controls, sizing; unsigned). Resource smokes done 2026-11-15 (N 1000 reviewed ACCEPT; N 2000 within limits; receipts in spec 5b, 5d): say nothing about P-056. iSTDP-off control (spec 5e, 5g): `hdp_rule_params={"eta": 0.0}` keeps I-to-E weights at 0 and removes the E-rate change under PV or SOM drive that default iSTDP produces (E ratio 0.876 and 0.969, 5 seeds, far outside spread); resource-smoke network only. Independent review of 5d to 5g: ACCEPT 2026-11-15, six minor corrections applied; open: a fixed-weight control at the grown mean separates plasticity from nonzero weights (unrun). Blocked on owner inputs: population map, per-class N, weights, drive, deep-power threshold; no P-056 intervention until set.
+    Next: rebuild the column pilot from the AdEx route with its metric fixed first (bands, L2/3 normalization,
+    layer map), record per-layer rates and N, then discriminate candidates (rates, deep kernel amplitude,
+    coherence radius) by single-variable interventions; keep the observed deficit as the baseline row.
+18. T-95 [A] P-058 `_code_sha` worktree portability (`run_r2_reference.py`): resolve HEAD through git. Closes when:
     tests for a regular clone, a worktree and a loose ref pass, and the PCL lane passes in a worktree.
 
 ## Tier 4: a day or more
@@ -126,6 +141,15 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
     `jaxfne-wt-suites`).
 
 ## Deferred, each with its trigger
+
+P-053 follow-up, trigger: a new hypothesis or coverage requirement. T-83 (2026-11-15, `pcl/port/P053_sparse_fixture_result.md`)
+is NOT_REPRODUCED under criteria Amendment 1 only; V1's LAT half is never consumed and V1 adds information beyond V3
+in seed 0 through TD, so no general sparse-weight equivalence is shown. Source-only discriminators (event order,
+repeated addresses, ties, zero vs epsilon weights) are in `artifacts/assurance/issue_log/p053_p056_source_audit_2026-11-13.md`. AUD-02 reproduced 2026-11-15: a pinned receipt that is corrupted, status-flipped or deleted is flagged; a new
+unparseable or status-less receipt is not a record by design (`_is_final_receipt`); no bypass, pinned by
+`tests/test_record_integrity.py::test_corrupt_receipt_unpinned_is_not_a_record_but_pinned_is_caught`.
+
+File-count budget (2026-11-15): the tree sits at `budget_files` 2796 of 2796, so any new tracked file needs a removal; the byte ruling (O-R5SIZE) raised `budget_bytes` only. Trigger: the next needed new file. Action then: find removable files with evidence (match-cleanup), or ask Hamm for a `budget_files` ruling; never raise it unasked.
 
 AT-10-R6 RSS growth before any run over 100 s; A8 gh-pages policy; architecture split on a measured bottleneck;
 C5-C7 zero/NaN contract; the UNTESTED-exact refusal tail and O-67 skips; S27 population family; agent transport
