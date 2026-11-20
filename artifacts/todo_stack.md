@@ -140,6 +140,52 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 33. ∥ [A] T-O68 remaining dirty worktrees (`base053`, `bisw1`, `frozen-etude`, `w3`, `jaxfne-wt-p022`,
     `jaxfne-wt-suites`).
 
+## Crazy Sailor M2 (branch `_temp_crazy_sailor_m0m1_b`, not on dev; contract §12)
+
+Scope and decisions: `programme/design/plans/crazy_sailor/m0_contract.md` §12.9. Ordered by effort.
+
+- CS-1 [A] Test hardening: a rollout test with nonzero y-channel counts (the y decode path is covered only by the unit test). Closes when: it passes on HEAD and fails under a y-sign mutant.
+- CS-2 [A] Test hardening: the chunked-vs-continuous test asserts that spikes occur in its fixture. Closes when: the assertion holds on HEAD and the test still fails under the dropped-continuation mutant.
+- CS-3 [A] Generic `controller.init/step` adapter (§12.3.1). Closes when: a test drives the M2 controller through the generic interface and reproduces the rollout trajectory on the fixture.
+- CS-4 [A] 60 s closed-loop episode (3000 control intervals) with spikes, motor commands, positions and distance recorded. Closes when: one reproducible run records SHA, config and seed, with 3000 intervals.
+- CS-5 [A] Dashboard page "The Crazy Sailor" from the CS-4 run. Closes when: it renders from that run's data with provenance. Publishing needs Hamm's authorization.
+- CS-6 [A] GIFs of the CS-4 trajectory. Starts after CS-4 and its data pipeline pass. Closes when: the GIFs render from that run.
+- CS-7 [A] Spike-level feedback validation. Measured by the exploration lanes (EX-1, EX-2; contract §13.1 L2–L3). Closes when: a declared regime shows a reproducible nonzero change in motor counts with distance, or the null is recorded.
+- CS-8 [A] Goal-directed navigation. Measured by EX-4 and EX-5 (§13.1 L3). Closes when: the decoded force points toward `p*` over the declared episode set, against the F0 and F5 controls.
+- CS-9 [H] Empirical calibration of `b_i`, `g_i`, `d0`, the E/I weights, and fixed vs learned weights (§12.6). Hamm supplies the values with sources; the agent does not choose them. Closes when: the values are recorded in the contract and the M2 tests are re-frozen.
+- CS-10 [A] Repository broad gate: the 13 baseline failures (contract §10), in their own workstream, without weakening the gate. Blocks integration. Closes when: `python scripts/run_test_gate.py broad` exits 0 on one SHA.
+- CS-11 [H] File-budget ruling for integration: allowlist 2798 vs ledger 2700 files / 95M bytes; integration adds one file (2799). Closes when: Hamm issues a scoped ruling. No budget change before that.
+
+## Crazy Sailor exploration (contract §13; exploratory, not confirmatory)
+
+Goal and checklist: `programme/design/plans/crazy_sailor/m0_contract.md` §13.1, §13.5. Lanes run in parallel, at most three.
+
+Done (results in contract §13.8 registry): Lane A (F2, F2b, F4 vs F1, not F0), Lane B (F3, F5), Lane C (F0 zero-encoder, F1, F6); each re-derived from its JSON.
+
+- EX-15 [A] Seeds are not replicates: the M2 fixture has no stochastic input, so every seed gives one trajectory. Add seeded start jitter (§13.7). Closes when: EX-12 passes and the held-out set is generated. Blocks: every CI in §13.
+- EX-20 [H] Primary metric: the §13.4 tail mean is K-dependent for F1 (K = 600: 526; K = 3000: 4114) because F1 runs away at constant speed after the transient (R-10). Propose a metric that does not depend on K (for example time to radius r1, distance at a fixed time for each K, or drift rate), then freeze it. Blocks: EX-12.
+- EX-21 [H] Stage-1 working title and provisional abstract ("Fixation Boat", 2026-11-19) are not frozen. Mismatches with the implemented model: "biophysically detailed" (the circuit is 10 LIF neurons, contract §12.3.4, `paradigm.py` emitter "lif"); reward "when the boat enters a predefined fixation region" (implemented reward is dense −Δe, §13.3 F3; no fixation region exists); "fixation" is not a contract term (the goal is drive to p*, §13.1); "HDP-dependent STDP" (F3 uses the HDP eligibility rule, `jaxfne/hdp_rule.py`; "STDP" not checked). Closes when: Hamm picks wording that matches the implemented model, or approves a new goal and scope, recorded in `goal_stack.md` or the manuscript plan. Blocks: manuscript Stage 2.
+- EX-22 [A] Revise §13.7 for the critic round (Agent C, VERDICT REVISE, 9 findings; critique file blocked by a hook, text in the handback). Fix: (1) pin the window: pre-step `errors[480:600]` gives F1 = 526.32, post-step positions 481..600 give 527.86, same trajectory; (2) gate each contrast Δ_j, not per-strategy D_j; exempt F0; add an L2 weight-change gate before any CI; (3) name the baseline per contrast (F1 for H-on-F1, F3 at η = 0, F5 for the shuffle); (4) F1 falsifier names its metric (tail D_j ≤ R: 0 of 3 so far; transient min_k ≥ 1 < R: 2 of 3, R-11); (5) F4 ≡ F2 by construction, report as duplicate, and fix its description (scales input amplitude); F2b missing from §13.3 and §13.6; (6) shuffle permutation seed per start; (7) mark R-03/R-04/R-06 CIs "no CI" (n_eff = 1); (8) pin the dev-start draw call (`default_rng(2025).uniform(0, 2π, 20)`, used in R-12). Closes when: §13.7a records each finding resolved or rejected with a reason, and a fresh reviewer (not the writer) re-reads it.
+- EX-24 [A] Directional positive control on the 10-neuron fixture with the Option A encoder (owner, 2026-11-19): a known-correct controller must bring the boat to p* from all 20 dev starts. Replaces EX-9 for the critical path. Closes when: a JSON with per-start final distance and fixation occupancy, re-derived from source. Blocked by: none.
+- EX-25 [A] Build the 100-neuron LIF circuit spec (E/I 80/20, fixed-seed sparse recurrence, four motor groups, Option A encoder) and run zero-drive and stationary controls. Closes when: a spec file and control JSON exist, and the controls match the expected values. Blocked by: none.
+  Progress 2026-11-19: spec `code/dev100_model.py`; R1, R3, R5 PASS; R2, R4 FAIL (O-8); P1 PASS 20/20, N1 0/20, T05 20/20 (`dev100_gate_record.md`). Files moved to jomission branch `_temp_plasticity_boat` (pushed at 280ebd0; the 13 files are under `_temp_plasticity_boat/artifacts/programme/`); the next step is the jomission todo `PB-DEV100-V2-VALIDATION` (BLOCKED on O-8 and the JaxFNE pin). Open: O-8 (criteria v2 or drop), O-9 (decoder sum vs mean). Not closed: the controls do not match the frozen expected values.
+- EX-26 [H] Freeze the eight-strategy list and the metric (jomission `_temp_plasticity_boat/artifacts/programme/design/plans/plasticity_boat/protocol_v0.md` §3 to §5; resolves EX-20). Blocks: all confirmatory runs. Owner decision: confirm S1 to S8, or name changes.
+- EX-27 [H] Supply the owner's 15-stage manuscript workflow. It is not in this repo or in jarness; stage numbers in jomission `_temp_plasticity_boat/artifacts/programme/manuscript/plasticity_boat/main.md` are provisional until it is supplied.
+- EX-28 [A] Move every figure-source JSON from `_temp/` to a tracked path before citation. Closes when: `git ls-files` lists each source and each figure's legend cites it.
+- EX-29 [H] Permission to download the AAAI-27 Author Kit (https://aaai.org/authorkit27/; the file size and name are not yet known). Needed for the reproducibility checklist text and the style file for the build gate.
+- EX-30 [H] Integrity decision for `artifacts/release/budget_amendment_2026-10-23.md` (O-10). Pinned sha256 `c52e830b…`, live `cdc17e41…`. Either repin to `cdc17e41…` on Hamm's SHA-specific go, or restore `c52e830b…` and re-examine the tree-size allowlist (2797 vs 2798). Either way: its own commit, full gate, independent review. Closes when: `python3 scripts/check_record_integrity.py --check` and `python3 scripts/check_tree_size.py --check` both exit 0 on that SHA. Blocked by: none (owner decision).
+- EX-31 [A] Plasticity Boat checks that run in jomission `_temp_plasticity_boat`, carried here so they are not lost: the 33-file tier-0 suite under `suite_lock` (not run; the sandbox denies `~/.claude/suite.lock`), and the `release_artifacts` gate (not examined; dist absent). Closes when: each run's summary line is read and recorded in jomission `HANDOFF.md`, or the handoff marks it not run with the reason. Blocked by: none.
+Note: EX-17 is now the F6 re-run; EX-18 closes after the last 8 dev starts (R-12) and the held-out run is not part of it.
+- EX-17 [A] F6 rerun storing d[600] and the κ = 0 equivalence. Closes when: F6 mean is recomputed under the pinned window (errors[480:600]).
+- EX-18 [A] F1 at θ = π and 3π/4, K = 600 (item 6 falsifier, 40 starts planned). Closes when: counts of starts with D_j(F1) ≤ R are reported.
+- EX-19 [A] Decoder sweep over e in [0, 5] to check the "+x at every distance" claim (critic finding 7). Closes when: the crossover e is reported from the tonic and baseline values.
+- EX-9 [A] Labelled directional-encoder scenario S3-dir (separate from the fixture; gain on the +x/−x channel by sign of p_x). K=200, starts ±5. Closes when: a JSON with per-start final distance and a corrective-direction count. Blocked by: none; explicitly not the M2 fixture.
+- EX-10 [A] Labelled symmetric-gain scenario S1-sym (g[1] = 24). Prediction: zero net force, boat stays. Closes when: a 40-interval probe confirms or refutes it.
+- EX-11 [H] Hamm decision on the fixture defect (contract §13.7): keep the fixture, or approve a labelled separate scenario. Blocks: confirmatory runs, §13 conclusions, integration.
+- EX-12 [H] Hamm approval of §13.7 gates (after EX-8) before any held-out run. Blocks: the held-out confirmatory set (N = 40).
+- EX-13 [A] Lane A F0 vs F1 K=600 discrepancy (527.86 vs 526.32): find the cause or record it unresolved with the two paths. Closes when: a 40-interval run of both code paths is compared bit-wise and the K=600 cause is named or marked unknown.
+- EX-14 [A] Scale the best one or two strategies to S2. Deferred until EX-11 and EX-12 pass. Closes when: n ≥ 20 start-level results per cell.
+
 ## Deferred, each with its trigger
 
 P-053 follow-up, trigger: a new hypothesis or coverage requirement. T-83 (2026-11-15, `pcl/port/P053_sparse_fixture_result.md`)

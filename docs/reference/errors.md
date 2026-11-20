@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2547 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2565 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -2368,6 +2368,24 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `omission_oddball_paradigm refuses non-default onset values (standard_onset_ms={...}, deviant_onset_m` |
 | `ValueError` | `{...} must be finite, got {...} (P-024)` |
 | `ValueError` | `omission_oddball_paradigm refuses equal standard and deviant drives (standard_drive_amplitude={...},` |
+| `ValueError` | `SailorWhiteNoise.sigma must be >= 0, got {...}` |
+| `ValueError` | `n_dim must be >= 1, got {...}` |
+| `ValueError` | `n_act must be >= 1, got {...}` |
+| `ValueError` | `dt must be > 0, got {...}` |
+| `ValueError` | `damping must be >= 0, got {...}` |
+| `ValueError` | `actuator must have shape {...}, got {...}` |
+| `ValueError` | `target must have shape {...}, got {...}` |
+| `ValueError` | `p0 and v0 must have shape {...}` |
+| `ValueError` | `action must have shape {...}, got {...}` |
+| `ValueError` | `actions must have shape (T, {...}), got {...}` |
+| `ValueError` | `SailorTonicEncoder.d0 must be finite and > 0, got {...}` |
+| `ValueError` | `encoder b and g must share shape (N,), got {...} and {...}` |
+| `ValueError` | `counts must have shape (4,) in (+x, -x, +y, -y) order, got {...}` |
+| `ValueError` | `control_ms ({...}) must be a whole number of dt_ms ({...}) steps` |
+| `ValueError` | `the four-channel decoder drives a 2-D boat: n_dim and n_act must be 2` |
+| `ValueError` | `motor_idx must hold four distinct neurons, got {...}` |
+| `ValueError` | `motor neuron {...} must be an excitatory (E) neuron of the model` |
+| `ValueError` | `encoder must have one value per neuron ({...}), got {...}` |
 
 **`jaxfne/pcl_topology.py`**
 
