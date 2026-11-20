@@ -456,11 +456,13 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
        Canary `hdp_plastic_w` raster hash matches the register again.
   - Generated index: `docs/reference/errors.md` stale; regenerated with `scripts/generate_errors_index.py --write`
     (`test_generate_errors_index` 6 passed).
-  - Intended unit pins, still failing (8 tests; not yet updated, need your sign-off since they pin contracts):
-    `test_fields_positions_g8` x2 (reference call lacks height), `test_neuronal_tensor` x1,
-    `test_neuronal_tensor_connectivity` x1, `test_tfne_parameter_transfer` x2 (z fraction domains),
-    `test_canary_chains::jdna_develop` (only `positions_mean/std` differ; edges, spikes, weights and V_m match),
-    `test_neuronal_tensor_lane6b` digest (includes positions; not separated from edges).
-- Affected subset after fixes (18 files, 227 tests): 8 failed, 219 passed; all 8 are the intended unit pins above.
-- Remaining: rerun full suite after the two fixes (not yet run; the full run takes about 90 minutes);
-  update the 8 pins with your go; independent review; merge decision.
+  - Intended unit pins, updated (approved by Hamm 2026-11-19), each to the new z units:
+    `test_fields_positions_g8` x2 (delegate reference now passes the column height),
+    `test_neuronal_tensor` x1 (z in [0.2h, 0.6h]), `test_neuronal_tensor_connectivity` x1 (z in 3 + [0.5h, 0.6h]),
+    `test_tfne_parameter_transfer` x2 (executed z divided by h against the fractional domain),
+    `canary_register.json` jdna `positions_mean/std` (only these changed; checked before and after),
+    `test_neuronal_tensor_lane6b` (digest split: edges digest unchanged `0bc6b793...`, measured equal on both trees;
+    positions digest now `94cb0202...`).
+  - Touched files: 8 test/register pins above, plus no other test edits.
+- Affected subset after the pin updates: the 8 pinned tests pass (34 in the 5 files; canary 7/7).
+- Remaining: full suite rerun after all changes (not yet run); independent review; merge decision.

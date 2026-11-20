@@ -67,8 +67,8 @@
         "edge_weight_sum": 60.71573066711426,
         "mean_V_m_mV": -67.44032106328011,
         "mean_rate_hz": 9.75,
-        "positions_mean": 0.169778078297774,
-        "positions_std": 0.2640822717875815
+        "positions_mean": 0.2702129229903221,
+        "positions_std": 0.3963632496244899
       }
     },
     "lif_edge": {

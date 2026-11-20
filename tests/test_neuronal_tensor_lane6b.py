@@ -539,14 +539,17 @@ def test_canonical_default_column_build_is_bit_identical():
     tensor = jtfne.load_canonical_neuronal_tensor("default-column")
     model = _construct(tensor)
     edge = model.params["edge_list"]
-    digest = hashlib.sha256()
-    for arr in (np.asarray(edge.pre), np.asarray(edge.post),
-                np.asarray(edge.delay_steps),
-                np.asarray(model.params["positions"])):
-        digest.update(np.ascontiguousarray(arr).tobytes())
+    # Edges and positions are pinned apart. P-066 changed positions (z in mm, scaled by the
+    # column height), so the position digest moved; the edge digest did not.
+    edge_digest = hashlib.sha256()
+    for arr in (np.asarray(edge.pre), np.asarray(edge.post), np.asarray(edge.delay_steps)):
+        edge_digest.update(np.ascontiguousarray(arr).tobytes())
     assert len(np.asarray(edge.pre)) == 3200
-    assert digest.hexdigest() == \
-        "716b415fa8d939b2534c5e9b075ffd048029db40e858cc385abd6abd00a3d607"
+    assert edge_digest.hexdigest() == \
+        "0bc6b793691cbe66cd10b5816515d9a53fd3b2d687b5ff5cf76a9b11de8914ab"
+    pos_digest = hashlib.sha256(np.ascontiguousarray(np.asarray(model.params["positions"])).tobytes())
+    assert pos_digest.hexdigest() == \
+        "94cb0202cb49e7b504ccd716ef1bee1b4f6530dac7135c084127338b4df60080"
 
 
 def test_new_connection_fields_survive_save_load(tmp_path):
