@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@10c417ad · 2026-11-20 · sealed. Last matching-host broad gate: 022da7a0 (2026-11-19, Windows: 8337 passed, 0 failed). On 2026-11-20: remote branch consolidation complete; CI (Fast) green on `10c417ad` ([#44817621200](https://github.com/HNXJ/jaxfne/actions/runs/44817621200), 10/10). Checklist 0.5.10: last recorded 43/100 (2026-11-19); planning adds no verified points. Workflows: CI (Fast) + Dashboard enabled; Macroscope, Nightly notebooks, Publish, CI (Release & Scheduled) disabled since 2026-11-14. `budget_files=2813`, `budget_bytes=96400000` (88.77/96.4 MB).
+Stamp: jaxfne@dev@48ba03ed · 2026-11-20 · sealed. Last matching-host broad gate: 022da7a0 (2026-11-19, Windows: 8337 passed, 0 failed). On 2026-11-20: remote branch consolidation complete; CI (Fast) green on `10c417ad` ([#44817621200](https://github.com/HNXJ/jaxfne/actions/runs/44817621200), 10/10); seal commit `48ba03ed` is stacks-only. Checklist 0.5.10: last recorded 43/100 (2026-11-19); planning adds no verified points. Workflows: CI (Fast) + Dashboard enabled; Macroscope, Nightly notebooks, Publish, CI (Release & Scheduled) disabled since 2026-11-14. `budget_files=2813`, `budget_bytes=96400000` (88.77/96.4 MB). Solmind plan baseline remains `10c417ad`.
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
