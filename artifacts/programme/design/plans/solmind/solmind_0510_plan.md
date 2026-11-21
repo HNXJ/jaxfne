@@ -1,12 +1,12 @@
 # Solmind 0.5.10 plan: execution contract, tasks, decision gates
 
-Status: SPECIFIED, NOT execution-ready. Audit 1 (2026-11-21) REVISE; repairs applied in this revision, audit 2 pending (§7). Owner authorization covers planning only; execution waits on S19 (§9). Canonical execution authority remains JaxFNE's `artifacts/AGENTS.md`, `artifacts/control/skills/jaxfne-release/SKILL.md`, frozen release plan and current project stacks. This file routes the tasks in §8 and the decisions in §9 (merged 2026-11-21 from `solmind_0510_todo.md` and `solmind_0510_open.md`, finding A1); it does not replace or weaken any of them.
+Status: SPECIFIED, NOT execution-ready. Audit 1 (2026-11-21) REVISE; audit 2 (2026-11-21) REVISE; repairs of both applied, audit 3 pending (§7). Owner authorization covers planning only; execution waits on S19 (§9). Canonical execution authority remains JaxFNE's `artifacts/AGENTS.md`, `artifacts/control/skills/jaxfne-release/SKILL.md`, frozen release plan and current project stacks. This file routes the tasks in §8 and the decisions in §9 (merged 2026-11-21 from `solmind_0510_todo.md` and `solmind_0510_open.md`, finding A1); it does not replace or weaken any of them.
 
 ## 0. Objective, baseline, boundaries
 
-Objective: make 0.5.10 releasable at the smallest justified scope and verified cost, without changing frozen scientific verdicts or owner-reserved publication authority. The frozen checklist in `artifacts/etudes/meta/plans/release_plan_0.5.9-0.6.0.md` governs points (70 package + 30 gate). Recorded 43/100 is historical (2026-11-19), not an acceptance result at the current HEAD. Under the frozen contract, Gate 5's six points are earned only after actual publication. Before publication, report `PREPUBLICATION READY/NOT READY/UNKNOWN` separately, never silently remap 94 to 100. Do not claim READY with a nonempty issue-log Open section, missing mandatory check, or unknown required host.
+Objective: make 0.5.10 releasable at the smallest justified scope and verified cost, without changing frozen scientific verdicts or owner-reserved publication authority. The frozen checklist in `artifacts/etudes/meta/plans/release_plan_0.5.9-0.6.0.md` governs points (70 package + 30 gate). Recorded 43/100 is historical (2026-11-19), not an acceptance result at the current HEAD. Under the frozen contract, Gate 5's six points are earned only after actual publication. Before publication, report `PREPUBLICATION READY/NOT READY/UNKNOWN` separately, never silently remap 94 to 100. Do not claim READY with a nonempty issue-log Open section, an undrained release todo section, missing mandatory check, or unknown required host.
 
-Baseline of this plan: `jaxfne@dev@10c417adced394e799b922e78315a0be1f8a82dd`; at execution, fetch the live `dev` SHA and rebase/reconcile the plan, not the scientific evidence. `_temp_solmind_0510_plans` is planning only, not an authorized implementation or release branch. Target integration `dev`; `main`, tags, GitHub Release, PyPI and publication require Hamm's explicit exact-SHA go. Never force-push or rewrite pinned records. Temporary branch retirement follows independent review and preservation of unique evidence.
+Baseline of this plan: written on `jaxfne@dev@10c417adced394e799b922e78315a0be1f8a82dd`; audited against live `dev` `3eb6a6a64c1654637eb9e02011324c44ce10618a` (10c417ad..3eb6a6a6 changes only the three stacks); at execution, fetch the live `dev` SHA and rebase/reconcile the plan, not the scientific evidence. `_temp_solmind_0510_plans` is planning only, not an authorized implementation or release branch. Target integration `dev`; `main`, tags, GitHub Release, PyPI and publication require Hamm's explicit exact-SHA go. Never force-push or rewrite pinned records. Temporary branch retirement follows independent review and preservation of unique evidence.
 
 ## 1. One entrypoint, one accountable lead
 
@@ -25,7 +25,7 @@ A worker packet MUST state: task ID; base branch and full SHA; read/write paths;
 | C: ephaptic scientific audit | R12-R27 | lead proposes; Hamm signs preregs (S17) | existing operator and source/field contracts; S08 for R25 | A, D, E | mathematical/unit tests, adversarial controls, bounded claim verdict; defer physical claims when unproven |
 | D: release packages | R28-R41 | lead; Hamm for S10, S11, S17 rows | preregs, equipment, owner decisions for affected rows | C, E | each frozen checklist row has its own receipt |
 | E: docs/maintenance | R42-R50 | lead | live public API inventory; R46-R50 after R42-R45 selection; S16 for any added file | C, D | measured duplication reduction; API parity, clean tutorial and docs gates |
-| G: issue-log drain | R56-R69 (and R17, R25, R70) | lead fixes; Hamm rules SCIENCE interpretation and any move | none beyond each row | A, C, D, E | issue-log Open empty, each entry with a resolution line in a dated closed batch or a dated Hamm move |
+| G: issue-log drain | R56-R69 (and R17, R25, R70) | lead fixes; Hamm rules SCIENCE interpretation and any move without a fix | none beyond each row | A, C, D, E | issue-log Open empty, each entry with a resolution line in a dated closed batch or a dated Hamm move |
 | F: release closure | R51-R55 | lead; R55 Hamm | A-E and G mandatory scope; no open blocker; S18, S19 | none for final candidate freeze | Gates 1-4 exact-SHA, independent ACCEPT; R55 owner-reserved |
 
 "May share" names packages that can hold lanes at the same time; the cap of three concurrent lanes including reviewers (§1) governs every combination. Within packages, do not interpret task numbering as a strict total order. Work on ready tasks; block dependents only. If a package is not required by the frozen 0.5.10 checklist (for example an experimental ephaptic paper claim or a major docs merger), it MUST NOT delay release unless a reproducible safety/correctness defect or owner ruling makes it mandatory. Every issue-log Open entry is mandatory regardless of package, because the release skill blocks a release with a non-empty Open section (`artifacts/control/skills/jaxfne-release/SKILL.md`, RULES and STANDING ACCEPTANCE); this covers R17 (P-066) and R25 (P-056) in package C. Put discretionary work after the release or in a separately authorized manuscript lineage. Preserve the 15-stage paper programme as distinct from the 0.5.10 score.
@@ -34,17 +34,17 @@ A worker packet MUST state: task ID; base branch and full SHA; read/write paths;
 
 Proceed autonomously on reversible, authorized, in-scope changes with checkable acceptance. If a fix takes <=15 minutes, make the minimal repair and test; otherwise record one todo with its closing check and continue another ready task. Two failed approaches require revising the approach, not more retries. Never relax a threshold, change a frozen preregistration, reinterpret a failed replication, repin an immutable file, or expand the release scope to force PASS.
 
-Owner gates (§9): S01 score semantics (proceeds under the frozen score without a decision); S02 fig05 re-freeze; S03 numeric acceptance semantics; S04 API behavior for O-73..O-75; S08 P-056 inputs; S10 Mejias signature; S11 missing dashboard P1/P2 ruling; S15 release publication; S16 file budget; S17 prereg signatures for R20, R21, R36; S18 CI workflow enablement; S19 execution go; S20 frozen Owner row O-85..O-87; S21 matching-host definition. S07 spatial units was ruled 2026-11-19.
+Owner gates (§9): S01 score semantics (proceeds under the frozen score without a decision); S02 fig05 re-freeze; S03 numeric acceptance semantics; S04 API behavior for O-73..O-75; S08 P-056 inputs; S10 Mejias signature; S11 missing dashboard P1/P2 ruling; S15 release publication; S16 file budget; S17 prereg signatures for R20, R21, R36; S18 CI workflow enablement; S19 execution go; S20 frozen Owner row O-85..O-87; S21 matching-host definition; S22 compatibility scope beyond the frozen checklist. S07 spatial units was ruled 2026-11-19.
 
 Authority: signing or amending a preregistration, changing an acceptance criterion or threshold, re-freezing a figure, raising `budget_files`, enabling a disabled workflow, and moving an issue-log entry without a fix are Hamm's, unless a dated standing ruling covers that exact item. Agents may prepare and validate preregistrations and decision packets.
 
-Conflicts: when two canonical sources disagree (a Hamm ruling, the frozen plan, a stack, a skill, this file), stop the affected item, record both sides with file:line, mark it BLOCKED, ask one ranked question, and continue other lanes. Dated Hamm rulings and the frozen plan outrank this file. Ask ONE ranked question only when its answer blocks the next material action and no other authorized ready work exists. Never assume silence is approval. An optional task blocked by an owner decision stays BLOCKED with a precise packet; other lanes continue.
+Conflicts: when two canonical sources disagree (a Hamm ruling, the frozen plan, a stack, a skill, this file), stop the affected item, record both sides with file:line, mark it BLOCKED, queue its ranked question under the asking rule below, and continue other lanes. Dated Hamm rulings and the frozen plan outrank this file. Ask ONE ranked question only when its answer blocks the next material action and no other authorized ready work exists. Never assume silence is approval. An optional task blocked by an owner decision stays BLOCKED with a precise packet; other lanes continue.
 
 A consequential scientific uncertainty (e.g., ephaptic physical interpretation) yields a restricted claim or explicit UNKNOWN, not an invented result. An unresolved required gate blocks release. An issue-log entry closes either by a fix, with a resolution line and its evidence and a move to a dated closed batch (issue-log header), or by a dated Hamm move with an executable new closing check; it is never silently removed, downgraded or relabeled.
 
 ## 4. Mandatory checks and evidence
 
-At the task level, use the smallest relevant native test plus an adversarial negative or mutant where it would otherwise pass vacuously. At integration, run the relevant native gate. For code changes, `python scripts/run_test_gate.py broad --no-stamp` on the matching host (S21) before push, so the receipt carries the run's own counts; for docs, `python scripts/run_test_gate.py docs`; `python scripts/run_test_gate.py report` is audit-only and is not a broad test. For release (Gate 2), on the release SHA: `python scripts/run_test_gate.py rc`, CI green, `python scripts/check_replications.py --check`, `python scripts/check_tree_size.py --check`, `python scripts/check_record_integrity.py --check`, `python scripts/build_dashboard_data.py --check`, `python scripts/build_dashboard_figures.py --check`, `python scripts/generate_replications_page.py --check`, `mkdocs build --strict`, `python scripts/run_test_gate.py wheel-smoke`, and for Gate 3 `python scripts/release_body.py --tag <tag> --check`, plus candidate-specific release validation in the release skill. Every packet that adds tracked files states its file-count delta against `budget_files` (S16). Use exact commands available on the current SHA; if a named command does not exist, stop that check and correct the packet, not invent a passing substitute.
+At the task level, use the smallest relevant native test plus an adversarial negative or mutant where it would otherwise pass vacuously. At integration, run the relevant native gate. For code changes, `python scripts/run_test_gate.py broad --no-stamp` on the matching host (S21) before push, so the receipt carries the run's own counts; for docs, `python scripts/run_test_gate.py docs`; `python scripts/run_test_gate.py report` is audit-only and is not a broad test. For release (Gate 2), on the release SHA: `python scripts/run_test_gate.py rc`, CI green, `python scripts/check_replications.py --check`, `python scripts/check_tree_size.py --check`, `python scripts/check_record_integrity.py --check`, `python scripts/build_dashboard_data.py --check`, `python scripts/build_dashboard_figures.py --check`, `python scripts/generate_replications_page.py --check`, `mkdocs build --strict`, `python scripts/run_test_gate.py wheel-smoke --venv-python <venv python>`, and for Gate 3 `python scripts/release_body.py --tag <tag> --check`, plus candidate-specific release validation in the release skill. Every packet that adds tracked files states its file-count delta against `budget_files` (S16). Use exact commands available on the current SHA; if a named command does not exist, stop that check and correct the packet, not invent a passing substitute.
 
 For each PASS, record repository, branch, full SHA, host/runtime, command, exit status, test counts, sample size, artifact hash or path, reviewer, and timestamp. Distinguish IMPLEMENTED, TESTED and independently VERIFIED. Missing runtime/host/receipt is UNKNOWN, not PASS. A receipt counts only for the SHA it names; for any other SHA, including the candidate, it is UNKNOWN. A count from another host, environment or SHA (for example another agent's base) is not a baseline. All negative and null results are retained. Do not retune criteria after outcomes. Review the actual diff, not only an agent's summary.
 
@@ -63,7 +63,7 @@ The lead recomputes the frozen checklist after each package, recording each scor
 Each integration cycle: check remote SHA and local status -> choose highest-priority unblocked task -> run bounded packet -> inspect diff -> run relevant tests -> non-writer review -> exact-path commit/push only under existing authority -> update canonical todo/open/state as applicable -> recompute release score -> repeat. The Solmind planning files are design history; avoid a parallel live tracker after integration. Use git history and receipts for completed items, remove closed todo entries. If a task changes the plan, commit its revision to this file at its integrated path on `dev` (before integration: the planning branch) before proceeding.
 
 Terminal states:
-- `READY_FOR_OWNER_GO`: all mandatory prepublication release checks pass on ONE immutable candidate SHA, issue-log Open section empty, independent review ACCEPT, no required UNKNOWN; no tag/main/release yet.
+- `READY_FOR_OWNER_GO`: all mandatory prepublication release checks pass on ONE immutable candidate SHA, issue-log Open section empty, release todo section drained item by item (release skill STANDING ACCEPTANCE), independent review ACCEPT, no required UNKNOWN; no tag/main/release yet.
 - `PUBLISHED`: Hamm authorized exact SHA and release skill confirms tag, main, GitHub Release, PyPI, hashes and clean install; frozen checklist 100/100 only when all checks truly pass.
 - `BLOCKED`: no authorized ready task remains. Report exact unresolved owner questions, impacted checklist points, best safe next action and receipts. Never report completion from static inspection or partial tests.
 
@@ -71,11 +71,11 @@ Handback (<=15 lines plus links): branch@SHA; verified score and coverage; ready
 
 ## 7. Plan audit before autonomous dispatch
 
-Acceptance of this plan as an agent goal requires a reviewer to check: (a) all 55 tasks and 15 risks have a routing home; (b) each mandatory release item 10A-G and Gates 1-5 has an owner and acceptance evidence; (c) no frozen acceptance changed; (d) every owner-only action is gated; (e) three-lane cap and reviewer independence hold; (f) simulated missing-host, failed-gate, conflicting-authority and stale-SHA scenarios produce BLOCKED/UNKNOWN rather than false PASS. Until this audit is executed, the plan is SPECIFIED, not independently VERIFIED.
+Acceptance of this plan as an agent goal requires a reviewer to check: (a) all tasks (R01-R72) and gates (S01-S22) have a routing home (audit 1 checked the original 55 and 15); (b) each mandatory release item 10A-G and Gates 1-5 has an owner and acceptance evidence; (c) no frozen acceptance changed; (d) every owner-only action is gated; (e) three-lane cap and reviewer independence hold; (f) simulated missing-host, failed-gate, conflicting-authority and stale-SHA scenarios produce BLOCKED/UNKNOWN rather than false PASS. Until this audit is executed, the plan is SPECIFIED, not independently VERIFIED.
 
 ### Audit 1 (2026-11-21): REVISE
 
-Plan a971288d against dev 3eb6a6a6. Two independent reviewers (Sonnet high, Opus medium), both REVISE; union below, deduplicated. "v" = dispatcher re-opened the source and confirmed. Passed: R01-R55 and S01-S15 unique and each in one package; no frozen weight, threshold, prereg or score semantics changed; tag/main/Release/PyPI, re-freeze (S02), numeric criteria (S03), Mejias (S10), P-056 inputs (S08) gated to Hamm; every named command exists on dev with the flags used; 10c417ad..3eb6a6a6 changes only stacks; missing-host -> UNKNOWN (:7, :44) and failed-gate -> BLOCKED (:38, :61) have forcing sentences.
+Plan a971288d against dev 3eb6a6a6; ":NN" cites in this audit-1 table refer to the a971288d contract file, not to this merged file. Two independent reviewers (Sonnet high, Opus medium), both REVISE; union below, deduplicated. "v" = dispatcher re-opened the source and confirmed. Passed: R01-R55 and S01-S15 unique and each in one package; no frozen weight, threshold, prereg or score semantics changed; tag/main/Release/PyPI, re-freeze (S02), numeric criteria (S03), Mejias (S10), P-056 inputs (S08) gated to Hamm; every named command exists on dev with the flags used; 10c417ad..3eb6a6a6 changes only stacks; missing-host -> UNKNOWN (:7, :44) and failed-gate -> BLOCKED (:38, :61) have forcing sentences.
 
 | # | Sev | Finding | Repair |
 |---|---|---|---|
@@ -96,17 +96,17 @@ Minors: R and package rows lack an owner column; §2 lists C beside A, D, E (4 l
 
 | # | Disposition | Where | Closing check |
 |---|---|---|---|
-| A1 | PARTLY REPAIRED, gate S16 kept. Three plan files merged into this one (-2). `artifacts/etudes/meta/plans/execution_plans_0.5.9-0.5.10.md` (2026-10-31 lanes for 0.5.10, not a pinned record: 0 keys in `scripts/record_hashes.json`; one pointer, `todo_stack.md`) folded verbatim into Appendix A (-1). Net against dev 3eb6a6a6: 2813 -> 2813 files. A worker inventory of 24 byte-duplicate groups, 3 empty files and 9 leads found no other removable file without unpinning records or breaking references. Every later added file, including each dated closed issue batch, needs S16 or an equal removal. | §8 Appendix A; §4 last sentence; §9 S16 | `python scripts/check_tree_size.py --check` exits 0 on the repaired SHA |
+| A1 | PARTLY REPAIRED, gate S16 kept. Three plan files merged into this one (-2). `artifacts/etudes/meta/plans/execution_plans_0.5.9-0.5.10.md` (2026-10-31 lanes for 0.5.10, not a pinned record: 0 keys in `scripts/record_hashes.json`; one pointer, `todo_stack.md`) folded verbatim into Appendix A (-1). Net against dev 3eb6a6a6: 2813 -> 2813 files. A worker inventory of 24 byte-duplicate groups, 3 empty files and 9 leads found no other removable file without unpinning records or breaking references. Every later added file, including each dated closed issue batch, needs S16 or an equal removal. Audit 2 found the merged file made `programme/design/plans/` hold 8 files against the 7-file folder limit of `tests/test_artifacts_tree_degree.py`; the file now sits in `plans/solmind/` (dev's T-PLAN-INTEGRATE path), leaving `plans/` at 7 files and 4 folders. | §8 Appendix A; §4 last sentence; §9 S16 | `python scripts/check_tree_size.py --check` and `pytest tests/test_artifacts_tree_degree.py` exit 0 on the repaired SHA |
 | A2 | REPAIRED. Package G, R56-R69: one row per undrained Open entry; §2 makes every Open entry mandatory; §3 allows fix-closure by resolution line. | §2, §3, §8 | 14 rows, one per entry; ids match the `## Open` headings of `ISSUE_LOG.md` |
 | A3 | REPAIRED. Conflict and SHA-binding rules added; matching host has two definitions (T-MATCH "Linux, jax 0.10.2" vs state.md labelling a Windows run matching-host), so S21 is BLOCKED under the new conflict rule. Paper-stage cites in R20/R21 now name O-7 as provisional. | §3, §4, §8 R04, R20, R21, §9 S21 | sentence present; scenario walk in audit 2 |
 | A4 | REPAIRED in text; gate S17 kept. §1 lead role; §3 authority rule; R20, R21, R36 prepare and validate, Hamm signs. | §1, §3, §8, §9 S17 | audit 2 |
 | A5 | REPAIRED. S04 owner Hamm, BLOCKED on behavior; R07-R09 prepare comparison and tests. | §3, §8, §9 S04 | S04 owner equals `open_stack.md` O-73..O-75 |
-| A6 | REPAIRED. Frozen wording copied into R10, R31, R32, R40, R53, R54; Gate 2 and Gate 3 commands named and verified to exist with their flags on 3eb6a6a6. | §4, §8 | audit 2 against `release_plan_0.5.9-0.6.0.md:81,102,109,111` |
-| A7 | REPAIRED in text; gates S18, S19 kept. No workflow enabled, no execution begun. | §9 S18, S19; status line | audit 2 |
+| A6 | REPAIRED. Frozen wording copied into R10, R31, R32, R40, R53, R54; Gate 2 and Gate 3 commands named and verified to exist with their flags on 3eb6a6a6 (audit 2: `wheel-smoke` also needs `--venv-python`, now written); READY and the release invariant now also require the release todo section drained; R52 carries changelog and release SHA. | §4, §8 | audit 2 against `release_plan_0.5.9-0.6.0.md:81,102,109,111` |
+| A7 | REPAIRED in text; gates S18, S19 kept. No workflow enabled, no execution begun. Dev's T-PLAN-EXECUTE still reads "work continuously"; this branch cannot edit dev's stack, so S19 records the conflict and T-PLAN-INTEGRATE sets T-PLAN-EXECUTE to "Blocked by: S19". | §9 S18, S19; status line | audit 2 |
 | A8 | REPAIRED. R70: the P-025 regression gets a new P-ID and the assert. | §8 R70 | the named test passes |
 | A9 | REPAIRED. S07 RULED 2026-11-19 (audit 1 said 2026-11-20, taken from the dispatcher's packet; the source `ISSUE_LOG.md:423` on 98d42ce4 and the author dates of commits 3902bd21..9bd24e5c read 2026-11-19); R17 becomes review and integration of 98d42ce4. | §8 R17, §9 S07 | audit 2 |
 | A10 | REPAIRED. Compatibility measured on the pyproject matrix (R71); order dependence R72; drift and engine probe added to R06 and R04. | §8 R04, R06, R71, R72 | R71 matrix receipt |
-| minors | REPAIRED: package owners (§2); lane wording (§2); plan-revision home (§6); S01 status; R17 single gate (S07 ruled, S06 keeps R12-R16, R18-R22); frozen Owner row -> S20 and R51; Crazy Sailor O-1..O-9 declared outside the 0.5.10 checklist (they score no 0.5.10 point; canonical `open_stack.md` keeps them); stamp reuse -> `--no-stamp` (§4). | as listed | audit 2 |
+| minors | REPAIRED: package owners (§2); lane wording (§2); plan-revision home (§6); S01 status; R17 single gate (S07 ruled, S06 keeps R12-R16, R18-R22); frozen Owner row -> S20 and R51; Crazy Sailor O-1..O-4, O-6..O-9 declared outside the 0.5.10 checklist (they score no 0.5.10 point; canonical `open_stack.md` keeps them); stamp reuse -> `--no-stamp` (§4). | as listed | audit 2 |
 
 ## 8. Tasks
 
@@ -116,7 +116,7 @@ Status: PROPOSED; no implementation authorized until S19. Read the frozen releas
 
 **Dependencies:** R01-R11 and R70-R72 first; R12-R27 ephaptic/theory can proceed as a bounded lane beside R28-R41 release packages and R56-R69; R42-R50 docs and code hygiene only after API inventory; R51-R55 sequential release closure. Max three lanes including reviewers. No unapproved changes to frozen figures, preregs, scores or release targets. Negative replication results remain evidence, not release failure unless their registered gate says so. Preserve original 15-stage manuscript authority and new figure remapping; its stage numbering is provisional until O-7 closes.
 
-**Task protocol:** For each row, record base SHA, read/write scope, expected minutes, file-count delta, falsifier, positive/negative controls, exact closing command and non-writer review before execution. The closing phrases below are acceptance designs, not observed PASS. Smallest sufficient change, no automatic scope expansion.
+**Task protocol:** For each row, record base SHA, read/write scope, expected minutes, file-count delta, falsifier, positive/negative controls, exact closing command and non-writer review before execution. An output-changing fix (for example R61-R69) first lists every frozen receipt, prereg and pinned record it changes; any repin goes to Hamm (§3). The closing phrases below are acceptance designs, not observed PASS. Smallest sufficient change, no automatic scope expansion.
 
 | ID | Priority | Action | Authority | Closing evidence |
 |---|---|---|---|---|
@@ -171,7 +171,7 @@ Status: PROPOSED; no implementation authorized until S19. Read the frozen releas
 | R49 | P2 | Audit figure captions, terminology and abbreviations | Docs | Independent interpretability at final print size |
 | R50 | P2 | Regenerate docs/nav/notebooks and strict build | Docs | mkdocs strict, link checks, notebook smoke and dashboard fresh |
 | R51 | P0 | Close package items with exact evidence or owner deferral; put the frozen Owner row (O-85..O-87) to Hamm (S20) | Gate 1 | Every 10A-10G item accepted or dated owner ruling; each S20 yes added as an item with its own row |
-| R52 | P0 | Prepare candidate version, changelog and release body | Gate 3 | Version identity and `release_body.py --tag <tag> --check` pass |
+| R52 | P0 | Prepare candidate version, changelog and release body | Gate 3 | Version identity, changelog, and `release_body.py --tag <tag> --check` PASS on the release SHA |
 | R53 | P0 | Run full RC gates, clean install and adversarial faults | Gate 2 | Same candidate SHA: every §4 release command exits 0, CI green, wheel/sdist hashes and mutants |
 | R54 | P0 | Obtain independent release and scientific review | Gate 4 | Non-writer ACCEPT, findings dispositioned, review receipt committed under `artifacts/release/` |
 | R55 | P0 | Owner release authorization and publication | Gate 5 | Only after owner go: tag/main/Release/PyPI and receipt |
@@ -190,10 +190,10 @@ Status: PROPOSED; no implementation authorized until S19. Read the frozen releas
 | R68 | P0 | Drain P-064 (BUG, `simulate_batch` HDP rule params) | Issue log | Failing test first, fix, resolution line and move |
 | R69 | P0 | Drain P-065 (BUG, homeostasis kernel delay) | Issue log | Failing test first, fix, resolution line and move |
 | R70 | P0 | Record the P-025 regression under a new P-ID and add the repo-root assert to `scripts/p056_resource_smoke.py` | Gate 2 | `pytest tests/test_script_repo_root_guard.py::test_scripts_and_artifacts_assert_repo_package` passes; entry resolved and moved |
-| R71 | P0 | Jaxley/JAX compatibility on the supported matrix | Gate 2 | Measured 2026-11-21 on vwin-pc (Windows, Python 3.14.3), dev code at 3eb6a6a6, 7 Jaxley test files (`test_jaxley_bridge`, `test_jaxley_emitter_bridge_e2e`, `test_emitters_hh`, `test_jaxley_optional_dependency`, `test_jaxley_trace_bridge`, `test_ei_jaxley_izhikevich_parity`, `test_hh_multicompartment`): jaxley 0.13.0, 0.14.0 and 0.14.1, each with jax 0.10.1 and 0.11.2 (the newest below the `<0.12` pin), 98 passed in each of the 6 cells, 0 failed, 0 skipped. Neither jax has native `jnp.clip(a_max=)`. jaxley 0.13.0 has one `a_max` call (`solver_gate.py:9`), which the shim covers; jaxley 0.14.0 and 0.14.1 have none, so the shim is not on their path. The reported `jnp.clip(a_max=)` failure was not reproduced. Open: jax 0.4.25-0.9.x (inside the pin, untested), Linux and macOS, and a shim-off negative control on jaxley 0.13.0. Closes when those cells are run or the pin floor is raised by Hamm, and the reporter's failing command is reproduced or refuted. Receipt: `_temp_a10_matrix.log` (dispatcher scratch; to be committed under `artifacts/release/` when R71 runs) |
+| R71 | P1 | Jaxley/JAX compatibility on the supported matrix | `pyproject.toml` pins; not a frozen Gate 2 item (S22) | Measured 2026-11-21 on vwin-pc (Windows, Python 3.14.3), dev code at 3eb6a6a6, 7 Jaxley test files (`test_jaxley_bridge`, `test_jaxley_emitter_bridge_e2e`, `test_emitters_hh`, `test_jaxley_optional_dependency`, `test_jaxley_trace_bridge`, `test_ei_jaxley_izhikevich_parity`, `test_hh_multicompartment`): jaxley 0.13.0, 0.14.0 and 0.14.1, each with jax 0.10.1 and 0.11.2 (the newest below the `<0.12` pin), 98 passed in each of the 6 cells, 0 failed, 0 skipped. Neither jax has native `jnp.clip(a_max=)`. jaxley 0.13.0 has one `a_max` call (`solver_gate.py:9`), expected to be covered by the shim (inferred: all 98 pass, but the shim-off control is not run); jaxley 0.14.0 and 0.14.1 have none, so the shim is not on their path. The reported `jnp.clip(a_max=)` failure was not reproduced. Open: jax 0.4.25-0.9.x (inside the pin, untested), Linux and macOS, and a shim-off negative control on jaxley 0.13.0. The jax 0.10.2 of T-MATCH is not in the matrix. Closes when the reporter's failing command is reproduced or refuted, the shim-off control fails on jaxley 0.13.0, and the cells S22 requires are run. Receipt: `D:/tmp/_temp_a10_matrix.log` on vwin-pc (not in the repo, so unverifiable by repo readers); when R71 runs, commit its rerun under `artifacts/release/` with a header naming SHA, host, Python and `pip freeze` per cell (S16) |
 | R72 | P0 | Audit order-dependent tests, starting with `tests/test_score_port_parity_checks.py` (reported 2026-11-21, unverified) | Gate 2 | Each suspect run alone and in two different orders; cause named (shared state, RNG, cache, fixture); fixed with a test that fails under the bad order, or refuted |
 
-**Release invariant:** Do not call 0.5.10 READY until all prepublication requirements pass on the exact candidate SHA, issue-log Open section is empty under the release skill, full package/CI/documentation checks pass and owner has reviewed the remaining publication action. Never tag/publish without exact owner go.
+**Release invariant:** Do not call 0.5.10 READY until all prepublication requirements pass on the exact candidate SHA, issue-log Open section is empty and the release todo section drained under the release skill, full package/CI/documentation checks pass and owner has reviewed the remaining publication action. Never tag/publish without exact owner go.
 
 ## 9. Decision gates and risks
 
@@ -216,10 +216,11 @@ Not the canonical `artifacts/open_stack.md`; read it and the issue log first; do
 | S13 | OPEN | File merger may disrupt imports, generated mirrors or sealed artifacts | lead | Dependency map and bounded merge with equivalence tests | R46-R48 |
 | S14 | OPEN | Release gates require exact candidate SHA and non-writer review | lead | Full RC receipt and review ACCEPT | R51-R54 |
 | S15 | BLOCKED | Tag/main/Release/PyPI owner-reserved | Hamm | Explicit exact-SHA go after gates | R55 |
-| S16 | BLOCKED | File budget: dev is at `budget_files` 2813 (`scripts/tree_size_allowlist.json`); this revision nets 0, but R17 (+2 test files on 98d42ce4), each dated closed issue batch, R45 and other rows add files | Hamm | A raise to a stated number, or a rule that each addition is paid by a removal | R17, R45, R56-R70 |
+| S16 | BLOCKED | File budget: dev is at `budget_files` 2813 (`scripts/tree_size_allowlist.json`); this revision nets 0, but R17 (+2 test files on 98d42ce4), each dated closed issue batch, committed receipts (R04, R53, R54, R71), R45 and other rows add files | Hamm | A raise to a stated number, or a rule that each addition is paid by a removal | R04, R17, R45, R53, R54, R56-R71 |
 | S17 | BLOCKED | Prereg signatures for R20, R21, R36 (preparation authorized 2026-11-21; signing reserved) | Hamm | Signed preregs | R20, R21, R36 |
 | S18 | BLOCKED | Publish and CI (Release & Scheduled) workflows disabled since 2026-11-14; Gate 2 CI and Gate 5 need them | Hamm | Hamm enables them or names another CI route | R53, R55 |
-| S19 | BLOCKED | Execution go: planning is authorized, execution is not | Hamm | Dated go naming the plan SHA | all |
+| S19 | BLOCKED | Execution go: planning is authorized, execution is not. Dev `todo_stack.md` T-PLAN-EXECUTE reads "Work Solmind packages continuously ... Blocked by: T-PLAN-INTEGRATE", which conflicts with this gate; T-PLAN-INTEGRATE sets it to "Blocked by: S19" and repoints dev's `state.md`, `open_stack.md` O-PLAN and `todo_stack.md` T-PLAN rows to this path, R01-R72 and S01-S22 | Hamm | Dated go naming the plan SHA | all |
+| S22 | BLOCKED | Compatibility scope beyond the frozen checklist: R71's untested cells (jax 0.4.25-0.9.x inside the pin, Linux, macOS) are not a frozen Gate 2 item | Hamm | Ruling: test the cells, raise the pin floor, or accept the measured matrix for 0.5.10 | R71 |
 | S20 | BLOCKED | Frozen Owner row: P-052 surrogate fitness (O-85), T-62 Fig 1D raw data (O-86), a named figure for Lee 2025 and Mazzoni 2015 (O-87) | Hamm | A ruling on each; each yes adds a checklist item | R51, R58 |
 | S21 | BLOCKED | Matching host: T-MATCH says "Linux, jax 0.10.2" (`todo_stack.md`); `state.md` labels a Windows run matching-host | Hamm | One definition | R04 |
 
@@ -227,21 +228,21 @@ Planning constraints:
 - Do not add ephaptic claims to the core merely because an operator exists. Require dimensional, numerical, causal-control and physical-interpretation checks; otherwise label it experimental and leave core release scope unchanged.
 - A documentation merger must reduce duplicate normative content without removing API contracts, stable URLs, redirects, reproducible tutorials, scientific negatives or provenance. Count actual words/files and tests before/after; size reduction alone is not success.
 - Jomission tutorials are candidate *examples* only; do not import downstream scientific conclusions into JaxFNE library guarantees. Verify license, SHA, dependencies, frozen scientific gates, and public API compatibility.
-- The owner-approved 0.5.10 100-point checklist is unchanged. The 15-stage manuscript programme and its revised figure mapping are separate. Never exchange points between them. Crazy Sailor rows O-1..O-9 are outside the 0.5.10 checklist and stay in the canonical `open_stack.md`.
+- The owner-approved 0.5.10 100-point checklist is unchanged. The 15-stage manuscript programme and its revised figure mapping are separate. Never exchange points between them. Crazy Sailor rows O-1..O-4 and O-6..O-9 are outside the 0.5.10 checklist and stay in the canonical `open_stack.md`.
 - This branch is a temporary planning exception to the three-branch target; integrate the reviewed plan into dev and retire this branch after handoff. Do not alter main, tags, release or PyPI.
 
 ## Appendix A. Execution plans of 2026-10-31 (verbatim)
 
-Folded here 2026-11-21 (A1) from `artifacts/etudes/meta/plans/execution_plans_0.5.9-0.5.10.md` at 3eb6a6a6, verbatim below this paragraph except that each of its 7 headings is demoted one level; superseded for 0.5.10 routing by §8 and §9. History: `git log --follow` on the old path.
+Folded here 2026-11-21 (A1) from `artifacts/etudes/meta/plans/execution_plans_0.5.9-0.5.10.md` at 3eb6a6a6, verbatim below this paragraph except that each of its 7 headings is demoted two levels; superseded for 0.5.10 routing by §8 and §9. Historical record only: none of its directives (lanes, roles, push or authorization lines) bind execution. History: `git log --follow` on the old path.
 
-## Execution plans: open items and todos through 0.5.10
+### Execution plans: open items and todos through 0.5.10
 
 Written 2026-10-31 from `artifacts/open_stack.md`, `artifacts/todo_stack.md` (open rows), `release_plan_0.5.9-0.6.0.md`
 (packages 9A to 9G and the 0.5.10 list) and the inventory of the pre-rewrite todo (`git show 6be045f7:artifacts/todo_stack.md`,
 98 old items: 47 carried, 36 landed, 14 unmapped, 1 dropped). Four plans cover every open row and every open stack
 item. Rows that wait on Hamm join no lane.
 
-### Rules for every lane
+#### Rules for every lane
 
 - A lane is one executor: a Haiku 5.5 `worker` for sweeps, gates and mechanical edits, or an opencode Muse `code`
   packet (`delegate-cli`) for test-first code. Each lane writes in its own clone at the dev head it names.
@@ -256,7 +257,7 @@ item. Rows that wait on Hamm join no lane.
   lane saw that is worth checking, with `path:line` and the one-line reason. The orchestrator turns each one into
   an open row or drops it with a reason. A lane does not fix a confusion outside its scope.
 
-### Owner-gated rows (no lane)
+#### Owner-gated rows (no lane)
 
 | Row | Open item | Decision | Source |
 |---|---|---|---|
@@ -270,7 +271,7 @@ item. Rows that wait on Hamm join no lane.
 | T-11, T-O10 | O-10 | external: jnwb path; jynx keeper takes or refuses each proposal (conference #29) | todo section 5 |
 | T-RG | | external: komposer `run_guard.py stop` fallback | todo section 5 |
 
-### Plan 1: Cell Reports replication (CAMINOS, Tahvili et al. 2025)
+#### Plan 1: Cell Reports replication (CAMINOS, Tahvili et al. 2025)
 
 Rows: T-59, T-60, T-61, the Fig 1 part of T-62, the CAMINOS part of T-30. Release: 0.5.9 package 9D.
 
@@ -285,7 +286,7 @@ Rows: T-59, T-60, T-61, the Fig 1 part of T-62, the CAMINOS part of T-30. Releas
 Acceptance for each lane: its pytest command 0 failed, and `python scripts/run_test_gate.py report` reads clean on
 `replication_audit`.
 
-### Plan 2: Replication core and conformance (PCL, pilots, GSDR, Izhikevich)
+#### Plan 2: Replication core and conformance (PCL, pilots, GSDR, Izhikevich)
 
 Rows: T-3 (R2 to R5), T-22 and T-25 (after R2), T-O70 (pilots only), T-32 (one replication a day), the non-CAMINOS
 part of T-30, O-69 (PCL R2). Release: 0.5.9 packages 9C and 9E.
@@ -298,7 +299,7 @@ part of T-30, O-69 (PCL R2). Release: 0.5.9 packages 9C and 9E.
 | 2d | Haiku worker, high | T-22, T-25: PCL B3 on the core intra-step operator; trained weights load as A' (`with_trained_weights`), after 2a | both run on the core with tests |
 | 2e | Haiku worker, high | T-30 non-CAMINOS entries: Izhikevich net.m order through `construct`; GSDR HH dispatch; Destexhe estimators, LEDGER, RESULT; pcl_h and Q-learning phase records and `sys.path` imports | `python scripts/check_replications.py --check` lists no violation without Hamm's exception |
 
-### Plan 3: Protocols, paper items and dashboard
+#### Plan 3: Protocols, paper items and dashboard
 
 Rows: T-R28 (the executable parts, open stack O-72), T-45, T-46 (the 8 gaps; close test gated), T-10b, T-8, O-68
 (local copies, rescue then delete, see Plan 4 4a). Release: 0.5.9 packages 9A, 9B and 9G.
@@ -314,7 +315,7 @@ Rows: T-R28 (the executable parts, open stack O-72), T-45, T-46 (the 8 gaps; clo
 
 T-8 runs after each push that changes dev: dashboard refresh (skill `jaxfne-dashboard`).
 
-### Plan 4: Fields, records, verification and the 0.5.10 backlog
+#### Plan 4: Fields, records, verification and the 0.5.10 backlog
 
 Rows: O-68 and T-O68, T-47, T-48, T-49 (after Plans 1 and 2 close their lanes), T-42 (waits on the first live CI run,
 which needs a push: not authorised, so no lane), the unmapped and stale items below. Release: 0.5.9 package 9F and 0.5.10.
