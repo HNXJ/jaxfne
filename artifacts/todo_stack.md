@@ -106,7 +106,7 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 22. T-26 [A] Seed and candidate batching for AdEx, LIF and `Model.tune`; Mejias G6; the LIF edge kernel on GPU;
     F2, F4, S16 per the release plan. Closes when: each lands with its test or receipt.
 23. T-R28 [A] Hamm's 2026-10-28 rulings left: dashboard P1 then P2 (ruling text not in the repo,
-    `execution_plans_0.5.9-0.5.10.md:72`); the jitter reader on larger sets; C4's arbitrary-angle S3 panel; C6
+    `programme/design/plans/solmind_0510_plan.md:308`); the jitter reader on larger sets; C4's arbitrary-angle S3 panel; C6
     `geometry="laminar"` with Brian2 and Jaxley baselines. Closes when: each has a commit with its test or receipt.
 24. T-31 [A] AGSDR log-scale bounds (landed 733b3960) used in the GSDR reproduction; a new fit pilot needs a new
     prereg. Closes when: the GSDR lane names its log-scale parameters.
