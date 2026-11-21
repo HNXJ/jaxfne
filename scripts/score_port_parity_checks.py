@@ -35,6 +35,7 @@ import math
 import jax
 import numpy as np
 
+from jaxfne.bridges import require_jaxley
 from jaxfne.emitters_hh import make_hh_params, reference_4comp_morphology, simulate_hh
 from jaxfne.optim.gsdr import mcdp_factors
 
@@ -155,7 +156,7 @@ def check_multicomp_hh_jaxley():
     """Four-compartment HH cell under a step current against jaxley 0.14.0 jx.integrate (rtol 1e-12, atol 1e-9)."""
     reference = "jaxley 0.14.0 jx.integrate, external"
     try:
-        import jaxley
+        jaxley = require_jaxley()  # installs the jnp.clip(a_max=) shim jaxley 0.13 needs
     except ImportError:
         return _skipped(reference, "jaxley not installed")
     t = _load_test("test_hh_multicompartment")

@@ -27,7 +27,9 @@ DT_MS = 0.025
 
 def _one_cell_oracle():
     """4-comp jaxley cell, step into branch 1 loc 0.0, all comps recorded."""
-    import jaxley as jx
+    from jaxfne.bridges import require_jaxley
+
+    jx = require_jaxley()  # installs the jnp.clip(a_max=) shim jaxley 0.13 needs
     from jaxley.channels import HH
 
     comp = jx.Compartment()
