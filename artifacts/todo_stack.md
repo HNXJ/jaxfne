@@ -30,21 +30,14 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 - B1 drive unification (T-79) and baseline parameter match (T-80) done (`b1_harness.py`, `b1_brian2.py`, `b1_nest.py`, `b1_jaxley.py`; `--smoke` verified).
 - `artifacts/state.md` corrected (`artifacts_check.py` ACCEPT).
 
-## Tier 0: sealed next (do before new planning expansion)
+## Tier 0: Solmind 0.5.10 execution (Hamm's go 2026-11-21, S19)
 
-1. T-PLAN-REVIEW [A] Independent non-writer review of `_temp_solmind_0510_plans` / `archive/solmind-0510-plans-20261120`
-   (`solmind_0510_{todo,open,execution_contract}.md`: 55 tasks, 15 decision gates) against live `origin/dev` and
-   canonical stacks; adversarial failure cases: stale SHA, missing host, failed gate, authority conflict. Closes when:
-   reviewer VERDICT ACCEPT (or REVISE findings repaired on the planning branch and a fresh ACCEPT). Blocked by: none
-   (O-PLAN).
-2. T-PLAN-INTEGRATE [A] After T-PLAN-REVIEW ACCEPT: integrate the accepted plan into `dev` under
-   `artifacts/programme/design/plans/solmind/` (tree-degree), point stacks at those paths, keep
-   `archive/solmind-0510-plans-20261120`, delete `_temp_solmind_0510_plans` only after unique evidence is preserved.
-   Closes when: plan files on `dev`, remote planning branch gone, O-PLAN closed. Blocked by: T-PLAN-REVIEW.
-3. T-PLAN-EXECUTE [A] Work Solmind packages continuously (max 3 lanes including reviewers); recompute frozen
-   checklist only from exact-SHA receipts; stop at READY_FOR_OWNER_GO for Gate 5 / publication. Closes when:
-   prepublication readiness reported on one candidate SHA with Gates 1–4 green and issue-log Open empty under the
-   release skill (R51–R54). Blocked by: T-PLAN-INTEGRATE. Do not expand planning further.
+1. T-PLAN-EXECUTE [A] Work the tasks of `artifacts/programme/design/plans/solmind/solmind_0510_plan.md` (R01-R72,
+   gates S01-S23; reviewed, audit 3 ACCEPT) at most 3 lanes including reviewers; a row runs only when its own gates
+   are clear; recompute the frozen checklist only from exact-SHA receipts; stop at READY_FOR_OWNER_GO for Gate 5.
+   First: R01-R04, R70, R72; then R56-R69. Closes when: prepublication readiness reported on one candidate SHA with
+   Gates 1-4 green, issue-log Open empty and the release todo section drained (R51-R54). Blocked by: none for the
+   rows above; other rows by their S gate.
 
 ## Tier 1: blocked on a ruling
 
@@ -122,7 +115,7 @@ Audit 2026-11-12: 0.5.10 checklist holds 40 of 100 (packages 40 of 70, gates 0 o
 22. T-26 [A] Seed and candidate batching for AdEx, LIF and `Model.tune`; Mejias G6; the LIF edge kernel on GPU;
     F2, F4, S16 per the release plan. Closes when: each lands with its test or receipt.
 23. T-R28 [A] Hamm's 2026-10-28 rulings left: dashboard P1 then P2 (ruling text not in the repo,
-    `execution_plans_0.5.9-0.5.10.md:72`); the jitter reader on larger sets; C4's arbitrary-angle S3 panel; C6
+    `programme/design/plans/solmind/solmind_0510_plan.md:315`); the jitter reader on larger sets; C4's arbitrary-angle S3 panel; C6
     `geometry="laminar"` with Brian2 and Jaxley baselines. Closes when: each has a commit with its test or receipt.
 24. T-31 [A] AGSDR log-scale bounds (landed 733b3960) used in the GSDR reproduction; a new fit pilot needs a new
     prereg. Closes when: the GSDR lane names its log-scale parameters.
