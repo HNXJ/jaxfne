@@ -178,7 +178,9 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
   `packed-refs`) in the common dir, HEAD in the worktree's own dir; still no subprocess.
   `test_run_r2_reference.py::test_r_code_sha_regular_clone_packed_ref`, `::test_s_..._worktree_packed_ref_in_common_dir`,
   `::test_t_..._worktree_loose_ref_in_common_dir`: s and t failed on the old code (`FileNotFoundError`), all three
-  pass; the file passes 19 of 19 in a git worktree (vwin-pc). Move to a closed batch waits on S16 (file budget).
+  pass; the file passes 19 of 19 in a git worktree (vwin-pc). Independent review ACCEPT 2026-11-21 (old code
+  raised `FileNotFoundError` on both worktree fixtures; new `_code_sha` equals `git rev-parse HEAD` on a real
+  worktree). On dev with broad gate rc 0 (8459 tests, 0 failed). Move to a closed batch waits on S16 (file budget).
 
 ### P-059
 
