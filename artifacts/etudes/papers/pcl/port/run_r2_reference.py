@@ -85,14 +85,19 @@ def _code_sha(root=None) -> str:
         if first.startswith("gitdir:"):
             target = first[len("gitdir:"):].strip()
             git = Path(target) if Path(target).is_absolute() else root / target
+    # A worktree keeps HEAD in its own dir and branch refs in the common dir (P-058).
+    common = git
+    if (git / "commondir").is_file():
+        target = (git / "commondir").read_text(encoding="utf-8").strip()
+        common = Path(target) if Path(target).is_absolute() else git / target
     head = (git / "HEAD").read_text(encoding="utf-8").strip()
     if head.startswith("ref:"):
-        p = git / head[len("ref:"):].strip()
-        if p.is_file():
-            head = p.read_text(encoding="utf-8").strip()
+        want = head[len("ref:"):].strip()
+        loose = [d / want for d in (git, common) if (d / want).is_file()]
+        if loose:
+            head = loose[0].read_text(encoding="utf-8").strip()
         else:  # packed ref
-            want = head[len("ref:"):].strip()
-            for line in (git / "packed-refs").read_text(encoding="utf-8").splitlines():
+            for line in (common / "packed-refs").read_text(encoding="utf-8").splitlines():
                 if line.startswith("#") or line.startswith("^"):
                     continue
                 sha, _, name = line.partition(" ")
