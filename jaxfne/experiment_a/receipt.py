@@ -70,7 +70,9 @@ def run_observation_suite(
     spec = spec or load_protocol_spec()
     Q = dataset.Q
     positions = dataset.positions
-    z = positions[:, 2]
+    # P-066: mm z is divided by the dataset's column height before the relative-depth leadfield.
+    height = dataset.column_height_mm
+    z = positions[:, 2] if height is None else positions[:, 2] / height
     dt_ms = float(spec["neural_system"]["dt_ms"])
     burn = int(round(BURN_IN_MS / dt_ms))
     q_hash = array_sha256(Q)
@@ -78,7 +80,8 @@ def run_observation_suite(
     fields: dict[str, Any] = {}
     for entry in spec["field_operators_F"]:
         fields[entry["id"]] = project_laminar_sources(
-            jnp.asarray(Q), jnp.asarray(positions), **entry["params"]
+            jnp.asarray(Q), jnp.asarray(positions),
+            **{**entry["params"], "column_height_mm": height},
         )
         if array_sha256(Q) != q_hash:
             raise RuntimeError("Q mutated during field operator pass")

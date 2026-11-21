@@ -38,6 +38,8 @@ class CanonicalDataset:
     cause_hashes: dict[str, str]
     metadata: dict[str, Any]
     package_head: str
+    # P-066: the column height that scales the mm positions; None for legacy fraction positions.
+    column_height_mm: float | None = None
 
 
 def build_experiment_a_config(spec: dict[str, Any] | None = None) -> Any:
@@ -149,6 +151,9 @@ def freeze_canonical_dataset(
         cause_hashes=cause_hashes,
         metadata=meta,
         package_head=package_head,
+        column_height_mm=(
+            float(model.params["column_height_mm"]) if "column_height_mm" in model.params else None
+        ),
     )
 
 
@@ -184,6 +189,9 @@ def load_frozen_canonical_dataset(
         cause_hashes=cause_hashes,
         metadata={},
         package_head=str(np.asarray(data["package_head"])),
+        column_height_mm=(
+            float(data["column_height_mm"]) if "column_height_mm" in data.files else None
+        ),
     )
     if verify_hashes and receipt_path.is_file():
         import json
@@ -212,6 +220,7 @@ def write_canonical_npz(dataset: CanonicalDataset, path: Path) -> None:
         positions=dataset.positions,
         H_semantic=np.array(dataset.H_semantic),
         package_head=np.array(dataset.package_head),
+        **({} if dataset.column_height_mm is None else {"column_height_mm": np.float64(dataset.column_height_mm)}),
     )
 
 

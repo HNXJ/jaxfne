@@ -465,4 +465,12 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
     positions digest now `94cb0202...`).
   - Touched files: 8 test/register pins above, plus no other test edits.
 - Affected subset after the pin updates: the 8 pinned tests pass (34 in the 5 files; canary 7/7).
-- Remaining: full suite rerun after all changes (not yet run); independent review; merge decision.
+- Call-site review (4 Muse lenses, 2026-11-20, read-only; claims checked by hand). Fixed:
+  `project_sources_to_laminar_field` forwards `column_height_mm`; `CanonicalDataset` and `FrozenE4Trajectory`
+  carry the height (default None = legacy fraction; new builds record it; npz round-trips it when present);
+  `materialize_field`, `zero_field`, the receipt leadfield and the E4 field calls use it. Tests:
+  `tests/test_height_callsites.py` (4). Not a defect: geometry override (`LaminarSourceGeometry` validates
+  depth to [0,1], so positions are already relative).
+- Remaining: full suite rerun after all changes (not yet run); connectivity before/after; uniform3d ruling;
+  independent review; merge decision. Pre-existing, separate: `Pose3D` plane xz/yz remaps the depth axis
+  (`neuronal_tensor.py:144-148`) while the proxy reads `positions[:, 2]`.

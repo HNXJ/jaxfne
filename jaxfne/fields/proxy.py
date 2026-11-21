@@ -390,6 +390,7 @@ def project_sources_to_laminar_field(
     *,
     mode: str = "density_preserving",
     dtype: str | None = None,
+    column_height_mm: float | None = None,
 ) -> FieldOutput:
     """Project sources onto ``n_contacts`` laminar contacts (proxy field).
 
@@ -397,7 +398,7 @@ def project_sources_to_laminar_field(
     ``positions`` to a :class:`FieldOutput` via the Gaussian-leadfield laminar
     proxy. This is not a PDE/volume-conductor solve
     (``field_solver_status = "linear_solver"``); outputs are relative-unit
-    proxies.
+    proxies. Pass ``column_height_mm`` when ``positions`` carry mm z (P-066).
     """
     return project_laminar_sources(
         sources,
@@ -405,6 +406,7 @@ def project_sources_to_laminar_field(
         n_contacts=n_contacts,
         mode=mode,
         dtype=dtype,
+        column_height_mm=column_height_mm,
     )
 
 

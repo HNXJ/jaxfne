@@ -68,6 +68,8 @@ class FrozenE4Trajectory:
     identity_map: list[dict[str, Any]]
     time_ms: np.ndarray
     cause_hashes: dict[str, str]
+    # P-066: column height for mm positions; None for legacy fraction positions.
+    column_height_mm: float | None = None
 
 
 @dataclass(frozen=True)
@@ -139,6 +141,9 @@ def freeze_e3_trajectory(
         identity_map=identity_map,
         time_ms=time_ms,
         cause_hashes=cause_hashes,
+        column_height_mm=(
+            float(model.params["column_height_mm"]) if "column_height_mm" in model.params else None
+        ),
     )
 
 
@@ -156,7 +161,7 @@ def run_e4_neural_only(
 
 def materialize_phi_ref(traj: FrozenE4Trajectory, spec: dict[str, Any] | None = None):
     spec = spec or load_e4_spec()
-    params = _field_params(spec, "lfp_ref")
+    params = {**_field_params(spec, "lfp_ref"), "column_height_mm": traj.column_height_mm}
     return project_laminar_sources(
         jnp.asarray(traj.Q, dtype=jnp.float32),
         jnp.asarray(traj.positions, dtype=jnp.float32),
@@ -302,7 +307,7 @@ def verify_zero_source_operators(
     spec: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     spec = spec or load_e4_spec()
-    params = _field_params(spec, "lfp_ref")
+    params = {**_field_params(spec, "lfp_ref"), "column_height_mm": traj.column_height_mm}
     zero_field = project_laminar_sources(
         jnp.zeros_like(jnp.asarray(traj.Q, dtype=jnp.float32)),
         jnp.asarray(traj.positions, dtype=jnp.float32),
@@ -331,7 +336,7 @@ def verify_field_linearity(
     coeff_b: float = 0.4,
 ) -> dict[str, Any]:
     spec = spec or load_e4_spec()
-    params = _field_params(spec, "lfp_ref")
+    params = {**_field_params(spec, "lfp_ref"), "column_height_mm": traj.column_height_mm}
     Q = jnp.asarray(traj.Q, dtype=jnp.float32)
     pos = jnp.asarray(traj.positions, dtype=jnp.float32)
     Q1 = 0.7 * Q
