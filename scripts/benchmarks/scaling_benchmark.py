@@ -235,7 +235,7 @@ def run_sparse_case_isolated(
         capture_output=True,
         text=True,
         check=True,
-        cwd=Path(__file__).resolve().parent.parent,
+        cwd=Path(__file__).resolve().parents[2],  # repo root: `python -c` puts cwd on sys.path
     )
     result = json.loads(proc.stdout.strip().splitlines()[-1])
     result["case_name"] = name
@@ -263,7 +263,7 @@ def run_case_isolated(name: str, n_neurons: int, duration_ms: float = 200.0, dt_
         capture_output=True,
         text=True,
         check=True,
-        cwd=Path(__file__).resolve().parent.parent,
+        cwd=Path(__file__).resolve().parents[2],  # repo root: `python -c` puts cwd on sys.path
     )
     result = json.loads(proc.stdout.strip().splitlines()[-1])
     result["case_name"] = name
