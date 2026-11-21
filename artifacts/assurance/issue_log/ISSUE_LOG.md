@@ -174,6 +174,11 @@ read-only; each line was re-opened and confirmed by the dispatcher unless marked
 - Possible change: resolve with `git rev-parse HEAD` (or read `commondir`), with tests for a regular clone, a
   worktree and a loose ref (Hamm 2026-11-17). Kept out of the `_temp_int-1117` integration by Hamm's ruling.
   Closes when those three tests pass and the PCL lane passes in a worktree.
+- Fix 2026-11-21 (R62, `_temp_p058`): `_code_sha` reads `commondir` and looks up the branch ref (loose, then
+  `packed-refs`) in the common dir, HEAD in the worktree's own dir; still no subprocess.
+  `test_run_r2_reference.py::test_r_code_sha_regular_clone_packed_ref`, `::test_s_..._worktree_packed_ref_in_common_dir`,
+  `::test_t_..._worktree_loose_ref_in_common_dir`: s and t failed on the old code (`FileNotFoundError`), all three
+  pass; the file passes 19 of 19 in a git worktree (vwin-pc). Move to a closed batch waits on S16 (file budget).
 
 ### P-059
 

@@ -442,3 +442,47 @@ def test_p_core_arm_equals_oracle_arm_on_chain(tmp_path):
     assert not np.array_equal(w0, w1), "fixture must move w_s under learning"
     cmp = r2.compare(tmp_path / "out_o" / "1_b", tmp_path / "out_c" / "1_b")
     assert cmp["exact"] is True
+
+
+_SHA_PACKED = "1" * 40
+_SHA_LOOSE = "2" * 40
+
+
+def _common_git(common: Path, loose: bool) -> None:
+    """A git common dir holding branch ``b`` as a loose ref or in packed-refs."""
+    (common / "refs" / "heads").mkdir(parents=True)
+    if loose:
+        (common / "refs" / "heads" / "b").write_text(_SHA_LOOSE + "\n", encoding="utf-8")
+    else:
+        (common / "packed-refs").write_text(
+            f"# pack-refs with: peeled fully-peeled sorted\n{_SHA_PACKED} refs/heads/b\n",
+            encoding="utf-8",
+        )
+
+
+def _worktree(tmp_path: Path, loose: bool) -> Path:
+    """A worktree: ``.git`` file -> per-worktree dir (HEAD, commondir), refs in the common dir (P-058)."""
+    common = tmp_path / "main" / ".git"
+    _common_git(common, loose)
+    wt_git = common / "worktrees" / "wt"
+    wt_git.mkdir(parents=True)
+    (wt_git / "HEAD").write_text("ref: refs/heads/b\n", encoding="utf-8")
+    (wt_git / "commondir").write_text("../..\n", encoding="utf-8")
+    root = tmp_path / "wt"
+    root.mkdir()
+    (root / ".git").write_text(f"gitdir: {wt_git}\n", encoding="utf-8")
+    return root
+
+
+def test_r_code_sha_regular_clone_packed_ref(tmp_path):
+    _common_git(tmp_path / ".git", loose=False)
+    (tmp_path / ".git" / "HEAD").write_text("ref: refs/heads/b\n", encoding="utf-8")
+    assert r2._code_sha(tmp_path) == _SHA_PACKED
+
+
+def test_s_code_sha_worktree_packed_ref_in_common_dir(tmp_path):
+    assert r2._code_sha(_worktree(tmp_path, loose=False)) == _SHA_PACKED
+
+
+def test_t_code_sha_worktree_loose_ref_in_common_dir(tmp_path):
+    assert r2._code_sha(_worktree(tmp_path, loose=True)) == _SHA_LOOSE
