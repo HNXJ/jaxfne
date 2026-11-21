@@ -31,6 +31,10 @@ sys.path.insert(0, str(ROOT))
 from jaxfne.emitters_adex import make_adex_params, simulate_adex_hdp_registered  # noqa: E402
 from jaxfne.istdp_vogels2011 import ISTDP_RULE_NAME, istdp_plasticity_mask  # noqa: E402
 
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
+
 CONFIG = dict(n_e=1600, n_pv=200, n_som=200, dt_ms=0.1, n_steps=10000, floor_steps=10, seed=0, p_connect=0.1,
               w_e_nS=1.0, w_i_nS=3.0, delay_steps=20, drive_pA=300.0, receptor_reversal_mV=(0.0, -80.0),
               receptor_tau_ms=(2.0, 5.0), precision="float32")
