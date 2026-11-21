@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev, stacks commit on 31a80b1b (P-058 on b3a21045: R70, R72) · 2026-11-21 · Solmind execution under S19: R01, R03, R70, R72, P-058 done; R02 partial; rest held on Hamm gates. Last broad gate: b3a21045 (2026-11-21, Windows vwin-pc: 8459 tests, 0 failed, 0 errors, rc 0); Windows is not the S21 matching host. On 2026-11-20: remote branch consolidation complete; CI (Fast) green on `10c417ad` ([#44817621200](https://github.com/HNXJ/jaxfne/actions/runs/44817621200), 10/10); seal commit `48ba03ed` is stacks-only. Checklist 0.5.10: last recorded 43/100 (2026-11-19); planning adds no verified points. Workflows: CI (Fast) + Dashboard enabled; Macroscope, Nightly notebooks, Publish, CI (Release & Scheduled) disabled since 2026-11-14. `budget_files=2813` (tree at 2813), `budget_bytes=96400000`.
+Stamp: jaxfne@dev, S16 commit on 40ce2d24 · 2026-11-21 · Solmind execution under S19: R01, R03, R70, R72, P-058 done; S16 ruled and the closed issue batch moved; R02 partial; rest held on Hamm gates. Last broad gate: b3a21045 (2026-11-21, Windows vwin-pc: 8459 tests, 0 failed, 0 errors, rc 0); Windows is not the S21 matching host. On 2026-11-20: remote branch consolidation complete; CI (Fast) green on `10c417ad` ([#44817621200](https://github.com/HNXJ/jaxfne/actions/runs/44817621200), 10/10); seal commit `48ba03ed` is stacks-only. Checklist 0.5.10: last recorded 43/100 (2026-11-19); planning adds no verified points. Workflows: CI (Fast) + Dashboard enabled; Macroscope, Nightly notebooks, Publish, CI (Release & Scheduled) disabled since 2026-11-14. `budget_files=2825` (S16, Hamm 2026-11-21; tree at 2814), `budget_bytes=96400000`.
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
@@ -10,12 +10,11 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - 2026-11-20: 24 non-core remotes resolved into `dev` or archive tags; PR #127 closed; `scripts/p056_resource_smoke.py` on `dev`; P-056 receipts at `archive/t90-smoke-receipts-20261115`.
 - 2026-11-21: Solmind 0.5.10 plan reviewed (audits 1-2 REVISE, repaired; audit 3 ACCEPT by two independent reviewers) and integrated: `artifacts/programme/design/plans/solmind/solmind_0510_plan.md` (contract, R01-R72, gates S01-S23; 2026-10-31 execution plans folded in as Appendix A). Gates on 5550cf07: plan/stack tests 167 passed; tree-size 2813 files, 0 violations; record integrity 255/255; `run_test_gate.py docs` and `report` rc 0. Original planning commit kept at tag `archive/solmind-0510-plans-20261120`. Execution authorized by Hamm 2026-11-21 (S19).
 - 2026-11-21: Jaxley x JAX matrix (R71): jaxley 0.13.0/0.14.0/0.14.1 x jax 0.10.1/0.11.2, 98 passed in each cell (Windows, Python 3.14.3; log local to vwin-pc).
-
-- 2026-11-21 on dev: R70 (P-025 assert in `scripts/p056_resource_smoke.py`), the scaling-benchmark subprocess cwd, R72 (jaxley oracles call `require_jaxley`; order dependence on jaxley 0.13.0 fixed), P-058 (`_code_sha` in worktrees). R01: 43/100 reconfirmed on b3a21045. R03: every open row and P-ID has one owner, check and plan row. Evidence: plan §8 rows.
+- 2026-11-21 on dev: R70 (P-025 assert in `scripts/p056_resource_smoke.py`), the scaling-benchmark subprocess cwd, R72 (jaxley oracles call `require_jaxley`; order dependence on jaxley 0.13.0 fixed), P-058 (`_code_sha` in worktrees). R01: 43/100 reconfirmed on b3a21045. R03: every open row and P-ID has one owner, check and plan row. Evidence: plan §8 rows. S16 ruled (`budget_files` 2825); P-040, P-057 to P-065 moved to `issues_closed_2026-11-21.md`; issue-log Open holds 6.
 
 ## Broken or in flight
 
-- Solmind execution (T-PLAN-EXECUTE): R04 waits on S21; R17 on S16 and S23; R57 (P-047) on a Hamm public-API pick; issue-log moves (P-040, P-057..P-065) on S16; SCIENCE rows R56/R59/R60/R25 and R58 (O-85) on Hamm. Other gates: plan §9 (S02-S04, S06, S08, S10, S11, S15-S18, S20-S23).
+- Solmind execution (T-PLAN-EXECUTE): R04 waits on S21; R17 on S23 (S16 cleared); R57 (P-047) on a Hamm public-API pick; SCIENCE rows R59/R60/R25 and R58 (O-85) on Hamm. Other gates: plan §9 (S02-S04, S06, S08, S10, S11, S15, S17, S18, S20-S23).
 - Matching-host broad gate (`T-MATCH`, `CS-10`) still pending on Linux/Windows for post-merge `dev`.
 - CAMINOS E1 not equivalent (oracle kept); PCL R5 FAIL + P-055 attributed; P-053 open; P-056 blocked on owner inputs; P-066 ruled 2026-11-19, repair on `_temp_tfne-manuscript` 98d42ce4 awaiting integration (R17). Papers are never failed through 0.6 (Hamm 2026-11-03).
 
@@ -46,4 +45,4 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 ## Environment
 
 - Windows (py 3.14) / WSL `~/venv_jaxfne` (CUDA) / macOS arm64 (py 3.13, jax 0.10.1); warehouse `F:/warehouse/`.
-- Remote branches: `main`, `dev`, `gh-pages`, plus `_temp_tfne-manuscript` (P-066 repair 98d42ce4, R17, held on S16/S23). `_temp_solmind_0510_plans`, `_temp_r70` and `_temp_p058` retired 2026-11-21 after merge into `dev`. Jomission `_temp_solmind` is separate and unaffected.
+- Remote branches: `main`, `dev`, `gh-pages`, plus `_temp_tfne-manuscript` (P-066 repair 98d42ce4, R17, held on S23). `_temp_solmind_0510_plans`, `_temp_r70` and `_temp_p058` retired 2026-11-21 after merge into `dev`. Jomission `_temp_solmind` is separate and unaffected.
