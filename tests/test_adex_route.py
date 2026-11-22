@@ -1042,8 +1042,8 @@ def test_gsc_subset_drive_refuses_grouped_base():
 
 # T-32c numerical contract (Hamm ruling 2026-10-23, option a): spikes bitwise
 # exact; V_m allclose rtol=0, atol=1e-4 mV (provisional, ~2x the largest WSL
-# discrepancy observed; do NOT raise on a future failure). Bitwise-voltage
-# tests are retained as platform diagnostics (marked bitwise_diagnostic).
+# discrepancy observed; do NOT raise on a future failure). One bitwise
+# diagnostic remains (final state, marked bitwise_diagnostic; O-76, R10 2026-11-22).
 V_RTOL = 0.0
 V_ATOL_MV = 1e-4
 EVIDENCE = {

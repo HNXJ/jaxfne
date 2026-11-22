@@ -687,7 +687,7 @@ def _lif_seed_batch_sim(**kwargs):
 # exact; V_m allclose rtol=0, atol=1e-4 mV (provisional, ~2x the largest WSL
 # discrepancy observed; do NOT raise on a future failure). H_final/w_final use
 # the same atol: they share the float32 codegen origin as V_m and were exact
-# where observed. Bitwise tests stay as platform diagnostics (bitwise_diagnostic).
+# where observed. The bitwise diagnostics were retired into these contracts (O-76, R10 2026-11-22).
 V_RTOL = 0.0
 V_ATOL_MV = 1e-4
 HW_ATOL = 1e-4
@@ -750,10 +750,12 @@ def test_lif_seed_batch_contract_spikes_exact_voltage_close():
     out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), seeds)
     assert [int(s) for s in out["metadata"]["seeds"]] == seeds
     worst = 0.0
+    n_spikes = 0
     for k, s in enumerate(seeds):
         ref = model.simulate(_lif_seed_batch_sim(seed=s))
         b_spk = np.asarray(out["spikes"][k])
         r_spk = np.asarray(ref.spikes)
+        n_spikes += int(r_spk.sum())
         assert b_spk.shape == r_spk.shape
         for t in range(b_spk.shape[0]):
             assert np.array_equal(b_spk[t], r_spk[t]), f"spike mismatch seed {s} step {t}"
@@ -762,6 +764,7 @@ def test_lif_seed_batch_contract_spikes_exact_voltage_close():
         worst = max(worst, float(np.max(np.abs(
             np.asarray(out["V_m"][k], dtype=float) - np.asarray(ref.V_m, dtype=float)))))
     print(f"lif contract max |dV| mV: {worst:.3e} evidence: {EVIDENCE}")
+    assert n_spikes > 0, "fixture must spike"
     assert worst <= V_ATOL_MV
 
 
