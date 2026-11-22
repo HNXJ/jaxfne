@@ -5,8 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from jaxfne.experiment_a.canonical import freeze_canonical_dataset
 from jaxfne.experiment_a.receipt import run_observation_suite
 
@@ -23,7 +21,6 @@ def test_b3_observation_suite_levels_and_semantics():
     assert suite["operator_status"]["lfp_ref"] == "relative_proxy"
 
 
-@pytest.mark.skipif(not (BUNDLE / "b3_experiment_a_receipt.json").exists(), reason="run runner first")
 def test_b3_frozen_receipt_in_repo():
     receipt = json.loads((BUNDLE / "b3_experiment_a_receipt.json").read_text(encoding="utf-8"))
     assert receipt["checkpoint"] == "B3"

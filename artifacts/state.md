@@ -23,7 +23,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 ## Open decisions for the owner
 
 - Recommended defaults (proceed under these unless Hamm overrides): (1) retain frozen 100-point checklist; report prepublication readiness separately; (2) keep ephaptic experimental unless physical interpretation and numerical correctness are established; (3) frozen evidence and numerical criteria need Hamm before change; (4) publication remains exact-SHA owner authorization.
-- Canonical open rows: `open_stack.md` (O-FIG05, O-NUM, O-73..O-77, Crazy Sailor O-1..O-4, O-6..O-9). Solmind decision gates S01-S23: plan §9.
+- Canonical open rows: `open_stack.md` (O-FIG05, O-NUM, O-73..O-76, Crazy Sailor O-1..O-4, O-6, O-8, O-9). Solmind decision gates S01-S23: plan §9.
 
 ## Next agent — grab remote and continue
 

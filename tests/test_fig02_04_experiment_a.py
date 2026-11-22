@@ -8,8 +8,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 from jaxfne.experiment_a.canonical import load_frozen_canonical_dataset
 from scripts.internal.publication.fig02_04_protocol import (
     FIG02_PATH,
@@ -40,14 +38,12 @@ def test_validate_fig02_04_spec():
     validate_fig02_04_spec()
 
 
-@pytest.mark.skipif(not NPZ.is_file(), reason="canonical_source.npz not present locally")
 def test_load_frozen_canonical_matches_b1_receipt():
     ds = load_frozen_canonical_dataset(npz_path=NPZ, receipt_path=B1)
     receipt = json.loads(B1.read_text(encoding="utf-8"))
     assert ds.cause_hashes["Q"] == receipt["cause_hashes"]["Q"]
 
 
-@pytest.mark.skipif(not NPZ.is_file(), reason="canonical_source.npz not present locally")
 def test_fig02_04_generator_and_cross_audit():
     result = subprocess.run(
         [sys.executable, str(GENERATOR)],

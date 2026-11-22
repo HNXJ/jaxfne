@@ -109,7 +109,6 @@ def test_equivalence_gate_tracked_report_matches_fresh_run(tmp_path):
     assert fresh_cases == tracked_cases
 
 
-@pytest.mark.skipif(not FROZEN_MANIFEST.is_file(), reason="frozen manifest missing")
 def test_equivalence_gate_frozen_manifest_selfcheck(tmp_path):
     manifest = json.loads(FROZEN_MANIFEST.read_text(encoding="utf-8"))
     files = manifest["files"]

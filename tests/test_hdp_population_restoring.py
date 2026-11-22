@@ -166,7 +166,6 @@ def test_public_population_h_semantics_without_internal_rule_id():
     assert "hdp_rule" not in hdp_meta.get("param_groups", {}).get("h_dynamics", {})
 
 
-@pytest.mark.skipif(not ETUDE_METRICS.exists(), reason="committed Etude metrics bundle required")
 def test_population_restoring_structural_invariants():
     model, mei_mask, e_mask = _mcc3_model()
     hp = _population_hdp_params(mei_mask, e_mask, r0_e=10.9, r0_i=9.14)
@@ -216,7 +215,6 @@ def test_population_continuation_supported():
     assert cont.dynamic.theta_S.shape == (2,)
 
 
-@pytest.mark.skipif(not ETUDE_METRICS.exists(), reason="committed Etude metrics bundle required")
 @pytest.mark.slow
 def test_population_restoring_etude_regression_metrics():
     """Scientific regression against committed Etude metrics (MVC #2, alpha_U=1.2)."""

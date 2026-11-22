@@ -22,7 +22,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 1. T-PLAN-EXECUTE [A] Work the tasks of `artifacts/programme/design/plans/solmind/solmind_0510_plan.md` (R01-R72,
    gates S01-S23; reviewed, audit 3 ACCEPT) at most 3 lanes including reviewers; a row runs only when its own gates
    are clear; recompute the frozen checklist only from exact-SHA receipts; stop at READY_FOR_OWNER_GO for Gate 5.
-   R01, R03, R70, R72 done 2026-11-21; R02 done 2026-11-22 (O-7 ruled, plan amendment 2026-11-22). Next: rows whose gates clear (plan §8 status names each
+   R01, R03, R70, R72 done 2026-11-21; R02 and R11 done 2026-11-22 (O-7 ruled, plan amendment 2026-11-22; O-77 closed); R10 waits on O-NUM. Next: rows whose gates clear (plan §8 status names each
    hold). Closes when: prepublication readiness reported on one candidate SHA with Gates 1-4 green, issue-log Open
    empty and the release todo section drained (R51-R54). Blocked by: R04 by S21, R17 by S23, R57 by P-047; other
    rows by their S gate.

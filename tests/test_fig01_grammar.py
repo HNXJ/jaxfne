@@ -8,8 +8,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 from scripts.internal.publication.fig01_protocol import (
     FIG01_AUDIT_PATH,
     FIG01_FIGURE_PATH,
@@ -43,7 +41,6 @@ def test_validate_fig01_spec():
     validate_fig01_spec()
 
 
-@pytest.mark.skipif(not FIG01_FIGURE_PATH.exists(), reason="figure not generated yet")
 def test_fig01_figure_and_audit_on_disk():
     assert FIG01_AUDIT_PATH.is_file()
     assert FIG01_RECEIPT_PATH.is_file()
