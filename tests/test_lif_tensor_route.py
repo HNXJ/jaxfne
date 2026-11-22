@@ -701,22 +701,6 @@ EVIDENCE = {
 }
 
 
-@pytest.mark.bitwise_diagnostic
-@pytest.mark.xfail(strict=False, reason="bitwise V_m is platform/run-dependent; diagnostic evidence only")
-def test_lif_seed_batch_matches_serial_per_member():
-    """DIAGNOSTIC (bitwise_diagnostic): bitwise V_m holds on Windows CPU and some
-    WSL runs; other WSL runs show ulp-scale V_m differences (max ~5e-5 mV).
-    Spike assertions are contract; V_m bitwise here is evidence, not gate."""
-    model = _spiking_lif_model()
-    seeds = [11, 12, 13]
-    out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), seeds)
-    assert [int(s) for s in out["metadata"]["seeds"]] == seeds
-    for k, s in enumerate(seeds):
-        ref = model.simulate(_lif_seed_batch_sim(seed=s))
-        assert np.array_equal(np.asarray(out["spikes"][k]), np.asarray(ref.spikes))
-        assert np.array_equal(np.asarray(out["V_m"][k]), np.asarray(ref.V_m))
-
-
 def test_lif_seed_batch_members_are_independent():
     model = _spiking_lif_model()
     out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), [11, 12, 13])
@@ -725,22 +709,6 @@ def test_lif_seed_batch_members_are_independent():
     assert not (np.array_equal(spk[0], spk[1]) and np.array_equal(spk[1], spk[2]))
     same = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), [7, 7])
     assert np.array_equal(np.asarray(same["spikes"][0]), np.asarray(same["spikes"][1]))
-
-
-@pytest.mark.bitwise_diagnostic
-@pytest.mark.xfail(strict=False, reason="bitwise V_m is platform/run-dependent; diagnostic evidence only")
-def test_lif_seed_batch_matches_serial_under_hdp_rule():
-    """DIAGNOSTIC (bitwise_diagnostic): same platform note as the serial-parity
-    diagnostic above, under the pcl_stdp rule."""
-    model = _spiking_lif_model()
-    n_edges = int(_edge_arrays(model)[0].shape[0])
-    runtime = _lif_hdp_runtime(_pcl_rule_params(n_edges, eta=0.5))
-    seeds = [11, 12, 13]
-    out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(runtime=runtime), seeds)
-    for k, s in enumerate(seeds):
-        ref = model.simulate(_lif_seed_batch_sim(seed=s, runtime=runtime))
-        assert np.array_equal(np.asarray(out["spikes"][k]), np.asarray(ref.spikes))
-        assert np.array_equal(np.asarray(out["V_m"][k]), np.asarray(ref.V_m))
 
 
 def test_lif_seed_batch_states_the_continuation_refusal():
@@ -772,29 +740,15 @@ def test_lif_seed_batch_final_weights_match_the_edge_list():
         assert np.allclose(np.asarray(out["w_final"][k], dtype=float), want)
 
 
-@pytest.mark.bitwise_diagnostic
-@pytest.mark.xfail(strict=False, reason="bitwise H_final/w_final is platform/run-dependent; diagnostic evidence only")
-def test_lif_seed_batch_hdp_final_state_matches_serial_diagnostics():
-    """DIAGNOSTIC (bitwise_diagnostic): bitwise H_final/w_final holds on Windows
-    CPU; cross-form float32 codegen may differ at ulp scale elsewhere."""
-    model = _spiking_lif_model()
-    n_edges = int(_edge_arrays(model)[0].shape[0])
-    runtime = _lif_hdp_runtime(_pcl_rule_params(n_edges, eta=0.5))
-    seeds = [11, 12, 13]
-    out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(runtime=runtime), seeds)
-    assert "H_final" in out
-    for k, s in enumerate(seeds):
-        model.simulate(_lif_seed_batch_sim(seed=s, runtime=runtime))
-        diag = model.last_hdp_diagnostics()
-        assert np.array_equal(np.asarray(out["H_final"][k]), np.asarray(diag["H_final"]))
-        assert np.array_equal(np.asarray(out["w_final"][k]), np.asarray(diag["w_final"]))
-
-
 def test_lif_seed_batch_contract_spikes_exact_voltage_close():
-    """CONTRACT: spikes bitwise at every timestep; V_m allclose rtol=0, atol=1e-4."""
+    """CONTRACT: spikes bitwise at every timestep; V_m allclose rtol=0, atol=1e-4.
+
+    With the hdp contract below, replaces the three bitwise diagnostics (R10, O-76): V_m, H_final
+    and w_final differ by at most 2.4e-7 (w_final, jax 0.11.2 Linux), 0 on Windows and jax 0.10.1."""
     model = _spiking_lif_model()
     seeds = [11, 12, 13]
     out = simulate_lif_seed_batch(model, _lif_seed_batch_sim(), seeds)
+    assert [int(s) for s in out["metadata"]["seeds"]] == seeds
     worst = 0.0
     for k, s in enumerate(seeds):
         ref = model.simulate(_lif_seed_batch_sim(seed=s))

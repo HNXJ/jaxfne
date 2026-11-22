@@ -1056,23 +1056,6 @@ EVIDENCE = {
 }
 
 
-@pytest.mark.bitwise_diagnostic
-@pytest.mark.xfail(strict=False, reason="bitwise V_m is platform/run-dependent; diagnostic evidence only")
-def test_adex_seed_batch_matches_serial_per_member():
-    """DIAGNOSTIC (bitwise_diagnostic): bitwise V_m holds on Windows CPU and some
-    WSL runs; other WSL runs show ulp-scale V_m differences (max ~5e-5 mV).
-    Spike assertions are contract; V_m bitwise here is evidence, not gate."""
-    model = jtfne.construct(_base())
-    seeds = [7, 8, 9]
-    out = simulate_adex_seed_batch(model, _drive_sim(), seeds)
-    assert [int(s) for s in out["metadata"]["seeds"]] == seeds
-    for k, s in enumerate(seeds):
-        ref = model.simulate(_drive_sim(seed=s))
-        assert int(np.sum(np.asarray(ref.spikes))) > 0, "fixture must spike"
-        assert np.array_equal(np.asarray(out["spikes"][k]), np.asarray(ref.spikes))
-        assert np.array_equal(np.asarray(out["V_m"][k]), np.asarray(ref.V_m))
-
-
 def test_adex_seed_batch_members_are_independent():
     model = jtfne.construct(_base())
     out = simulate_adex_seed_batch(model, _drive_sim(), [7, 8, 9])
@@ -1082,14 +1065,14 @@ def test_adex_seed_batch_members_are_independent():
     assert np.array_equal(np.asarray(same["spikes"][0]), np.asarray(same["spikes"][1]))
 
 
-@pytest.mark.bitwise_diagnostic
-@pytest.mark.xfail(strict=False, reason="bitwise V_m is platform/run-dependent; diagnostic evidence only")
 def test_adex_seed_batch_without_drive_repeats_the_serial_run():
-    """DIAGNOSTIC (bitwise_diagnostic): same platform note as the serial-parity
-    diagnostic above; no-drive runs are bit-identical where observed."""
+    """Without a drive every member repeats the serial run bitwise (R10, O-76: 0 difference on
+    Windows, WSL jax 0.10.1 and WSL jax 0.11.2). The fixture does not spike, so V_m is the oracle;
+    a drive leaking into the batch moves V_m by about 25 mV."""
     model = jtfne.construct(_base())
     out = simulate_adex_seed_batch(model, _sim(), [3, 4])
     ref = model.simulate(_sim())
+    assert float(np.ptp(np.asarray(ref.V_m))) > 0.0, "fixture V_m must move"
     for k in range(2):
         assert np.array_equal(np.asarray(out["spikes"][k]), np.asarray(ref.spikes))
         assert np.array_equal(np.asarray(out["V_m"][k]), np.asarray(ref.V_m))
@@ -1139,16 +1122,41 @@ def test_adex_seed_batch_final_state_matches_the_serial_kernel():
         assert np.array_equal(np.asarray(out["final"]["w"][k]), np.asarray(ref["w"]))
 
 
+def test_adex_seed_batch_final_state_contract():
+    """CONTRACT, the strict replacement for the final-state diagnostic above (R10, O-76): final V
+    within V_ATOL_MV (jax 0.11.2 Linux: up to 3.8e-6 mV; 0 elsewhere); final w exact (0 on Windows,
+    WSL jax 0.10.1 and 0.11.2). A member keyed with its neighbour's seed moves final V by >= 21 mV
+    and final w by >= 49."""
+    from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args
+    from jaxfne.emitters_adex import simulate_adex
+
+    model = jtfne.construct(_base())
+    out = simulate_adex_seed_batch(model, _drive_sim(), [7, 8, 9])
+    kw = adex_kernel_args(model, DT_MS)
+    for k, s in enumerate([7, 8, 9]):
+        ref = simulate_adex(**kw, **adex_external_drive_kwargs(model, _drive_sim(seed=s)),
+                            n_steps=N_STEPS, dt_ms=DT_MS, record_v=True)
+        assert float(np.max(np.abs(np.asarray(ref["w"])))) > 0.0, "fixture must adapt"
+        np.testing.assert_allclose(np.asarray(out["final"]["V"][k]), np.asarray(ref["V"]),
+                                   rtol=V_RTOL, atol=V_ATOL_MV)
+        assert np.array_equal(np.asarray(out["final"]["w"][k]), np.asarray(ref["w"]))
+
+
 def test_adex_seed_batch_contract_spikes_exact_voltage_close():
-    """CONTRACT: spikes bitwise at every timestep; V_m allclose rtol=0, atol=1e-4."""
+    """CONTRACT: spikes bitwise at every timestep; V_m allclose rtol=0, atol=1e-4.
+
+    Replaces the bitwise diagnostic (R10, O-76): under jax 0.11.2 on Linux, V_m differs by
+    up to 5.3e-5 mV with spikes equal; Windows and WSL jax 0.10.1 give 0."""
     model = jtfne.construct(_base())
     seeds = [7, 8, 9]
     out = simulate_adex_seed_batch(model, _drive_sim(), seeds)
+    assert [int(s) for s in out["metadata"]["seeds"]] == seeds
     worst = 0.0
     for k, s in enumerate(seeds):
         ref = model.simulate(_drive_sim(seed=s))
         b_spk = np.asarray(out["spikes"][k])
         r_spk = np.asarray(ref.spikes)
+        assert int(r_spk.sum()) > 0, "fixture must spike"
         assert b_spk.shape == r_spk.shape
         for t in range(b_spk.shape[0]):
             assert np.array_equal(b_spk[t], r_spk[t]), f"spike mismatch seed {s} step {t}"

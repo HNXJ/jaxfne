@@ -20,8 +20,11 @@ import jax.numpy as jnp
 import jaxlib
 import numpy as np
 
-import jaxfne as jtfne
-from jaxfne._model import Model
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+import jaxfne as jtfne  # noqa: E402
+from jaxfne._model import Model  # noqa: E402
+
+assert "site-packages" not in jtfne.__file__, "P-025: jaxfne must resolve to the repo tree"
 
 ROOT = Path(__file__).resolve().parents[2]
 EPS = (1e-6, 1e-5, 1e-4, 1e-3, 1e-2)

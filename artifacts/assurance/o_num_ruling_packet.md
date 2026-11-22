@@ -1,8 +1,9 @@
 # O-NUM ruling packet (2026-11-22; base dev 21ec8655)
 
 Decision for Hamm: what an exactness test asserts when float32 results come from differently compiled, shaped or
-segmented XLA graphs, or from chaotic runs. A ruling closes O-NUM and unblocks R06, R10 (O-76) and T-NUM. This
-packet applies nothing; tolerances in force today are listed below unchanged.
+segmented XLA graphs, or from chaotic runs. A ruling closes O-NUM and unblocks R06, R10 (O-76) and T-NUM. The
+tolerances in force are listed below unchanged. The only change applied is the darwin skip in the 2026-11-22
+ruling section.
 
 ## Evidence (observed; sources cited)
 
@@ -69,8 +70,8 @@ Verification of the skips:
 - Windows and WSL Linux: the three files give 45 passed each.
 - Simulated darwin: `sys.platform` is set after jax/jaxfne are imported. The five tests skip and the other 40 pass.
 
-The 1.5e-2 mV composition bound is not approved. The Gaussian-drive bound is provisional until there is Mac
-evidence.
+The 1.5e-2 mV composition bound is not approved. No Gaussian-drive bound is introduced (see the Mac ruling
+below).
 
 Measured with `scripts/internal/onum_measure.py` at base dev a1cd6e02:
 - Windows: Windows 11, Python 3.14.3, jax/jaxlib 0.10.1, CPU.
@@ -87,8 +88,9 @@ Measured with `scripts/internal/onum_measure.py` at base dev a1cd6e02:
 | Slice vs solo, eager (#4) and jit (#5) | 0, both members | as above | 7.4e-4 / 7.0e-4 / 2.7e-3 / 2.3e-2 / 0.23 | equal at every eps |
 
 Consequences:
-- Windows and Linux: exactness stays (zero difference). CI Linux passing the current `array_equal` assertions
-  implies zero difference there too (inferred, not measured).
+- Windows and Linux: exactness stays (zero difference). Correction (2026-11-22): CI Fast does not run these tests
+  (`DEV_PYTEST_TARGETS` in `scripts/run_test_gate.py`), so CI gives no evidence on them. CI pins jax 0.10.2
+  (py3.11) and 0.11.2 (py3.14). Measured in a WSL venv with jax/jaxlib 0.11.2: all five comparisons give 0.
 - On Mac, the per-test maxima are unknown. vmac answers on tailscale but refuses SSH on port 22 (2026-11-22).
 - In this fixture, a weight error of up to 1% changes no spike. The composition oracle is therefore weak against
   weight errors, so the defect-class mutants below are measured.
@@ -117,8 +119,20 @@ Reading (inferred from these numbers; for Hamm to rule):
 
 ## Effects of option 1
 
-- R10 (O-76): the six xfails duplicate strict contract tests. Either retire them, or keep them as platform-pinned
-  diagnostics (option 2 applied to diagnostics only). No new tolerance is needed for R10.
-- R06: the composition and Gaussian-drive tests take the bound procedure.
+- R10 (O-76), applied 2026-11-22. Maximum batch-vs-serial difference per observable, measured on Windows
+  (jax 0.10.1), WSL jax 0.10.1 (3 processes) and WSL jax 0.11.2. Spikes were equal in every run.
+
+  | xfail | Observable | jax 0.10.1 (Windows, WSL) | WSL jax 0.11.2 | Action |
+  |---|---|---|---|---|
+  | adex `matches_serial_per_member` | V_m | 0 | 5.3e-5 mV (2302 of 90000) | retired; strict contract test, atol 1e-4 (2026-10-23 ruling), takes its seeds and fixture-spike asserts |
+  | adex `without_drive` | V_m | 0 | 0 | now a strict exact test; the fixture does not spike (V_m is the oracle); a leaked drive moves V_m 25 mV |
+  | adex `final_state` | final V, w | 0, 0 | 3.8e-6 mV, 0 | xfail kept (Hamm); strict replacement added: V within 1e-4, w exact; a member keyed with its neighbour's seed moves V >= 21 mV, w >= 49 |
+  | lif `per_member`, `under_hdp_rule`, `hdp_final_state` | V_m, H, w | 0 | V 0, H 0, w 2.4e-7 | retired; strict LIF contracts (atol 1e-4) cover them |
+
+  The three jax 0.11.2 differences reproduce the v0.5.8 receipt's "CI (jax 0.11) xfailed" for the same three
+  tests (known positive). Results: Windows 244 passed, 1 xpassed; WSL jax 0.11.2 244 passed, 1 xfailed (the
+  kept final-state diagnostic). No tolerance is new.
+- R06: the composition and Gaussian-drive tests stay exact on Windows and Linux (zero observed difference) and
+  skip on darwin. No bound is introduced.
 - No frozen receipt or prereg changes. The izh2003 receipts gain fields: this is an S23 repin, listed for approval.
 - Work: one lane, about one day including the evidence matrix runs.
