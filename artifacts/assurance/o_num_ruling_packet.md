@@ -57,6 +57,11 @@ Hamm, 2026-11-22, after checkpoint aafbb027:
   and it is not retired without strict coverage.
 - Windows/Linux agreement alone justifies no further work, and the gates are unchanged.
 
+Hamm, 2026-11-22, later: the Mac is skipped ("wsl is enough as proof"). Per test, Delta_platform = 0 on Windows
+and Linux, so exactness stays for #1-5 and no tolerance is introduced. The Mac differences recorded in
+`mac_gate_attribution.md` (#1: 1.5e-5 mV; #2-5: up to 1.5e-3 mV) mean these exact tests fail on Mac. How they
+are handled on Mac is open for Hamm.
+
 The 1.5e-2 mV composition bound is not approved. The Gaussian-drive bound is provisional until there is Mac
 evidence.
 
