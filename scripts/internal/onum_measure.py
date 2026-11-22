@@ -127,6 +127,50 @@ def composition():
     return res
 
 
+def defects():
+    """Defect-class mutants: the faults each identity test exists to catch."""
+    g = _load("test_construct_weight_range_gaussian_drive")
+    a = _load("test_composition_aspects_054")
+    out = {}
+
+    # Gaussian drive (P-045: per-cell std equals the scalar noise_scale).
+    model = g._ei_model()
+
+    def run(gauss=None, hdp=None, seed=0):
+        rt = jtfne.RuntimeConfig(recurrent_backend="edge_list",
+                                 synaptic_kernel="receptor_exponential", hdp_params=hdp)
+        sim = jtfne.Simulation(duration_ms=50.0, dt_ms=0.5, seed=seed, runtime=rt, gaussian_drive=gauss)
+        return np.asarray(model.simulate(sim).V_m)
+
+    ref = run(hdp={"noise_scale": 3.0})
+    out["gaussian_std_as_variance"] = _pair(run(gauss=g._gauss(9.0, 9.0)), ref)
+    out["gaussian_one_type_dropped"] = _pair(run(gauss=g._gauss(3.0, 0.0)), ref)
+    out["gaussian_wrong_seed"] = _pair(run(gauss=g._gauss(3.0, 3.0), seed=1), ref)
+
+    # Composition (member RNG domains, zero cross coupling, block placement, continuation state).
+    m1, m2 = a._col("V1", a.N1, 0), a._col("V2", a.N2, 1)
+    ens = jtfne.connect(m1, m2, namespace=("A", "B"))
+    full = a._sim(ens, a.SEED)
+    v, s = np.asarray(full.V_m), np.asarray(full.spikes)
+    s0, s1 = (jtfne.ensemble_member_seed(a.SEED, k, 2) for k in (0, 1))
+    solo0, solo1 = a._sim(m1, s0), a._sim(m2, s1)
+    wrong = a._sim(m1, s1)
+    out["member_seed_swapped"] = _pair(v[:, :a.N1], wrong.V_m, s[:, :a.N1], wrong.spikes)
+    out["block_offset_by_one"] = _pair(v[:, 1:a.N1 + 1], solo0.V_m, s[:, 1:a.N1 + 1], solo0.spikes)
+    for w in (0.05, 0.5):
+        leak = jtfne.connect(m1, m2, namespace=("A", "B"), edges=[dict(
+            source={"model": 0, "area": "V1", "cell_type": "E"}, target={"model": 1, "area": "V2"},
+            probability=0.3, weight=w, sign="excitatory")])
+        lk = a._sim(leak, a.SEED)
+        out[f"cross_leak_w{w}"] = _pair(np.asarray(lk.V_m)[:, a.N1:], solo1.V_m,
+                                        np.asarray(lk.spikes)[:, a.N1:], solo1.spikes)
+    seg1 = jtfne.simulate(ens, duration_ms=20.0, dt_ms=a.DT_MS, seed=a.SEED)
+    fresh = jtfne.simulate(ens, duration_ms=20.0, dt_ms=a.DT_MS, seed=a.SEED)
+    cat = np.concatenate([np.asarray(seg1.V_m), np.asarray(fresh.V_m)], axis=0)
+    out["continuation_state_lost"] = _pair(v, cat)
+    return out
+
+
 def main(out_path):
     rec = {
         "host": {"platform": platform.platform(), "machine": platform.machine(),
@@ -134,6 +178,7 @@ def main(out_path):
                  "jaxlib": jaxlib.__version__, "backend": jax.default_backend()},
         "gaussian_drive_receptor": gaussian_drive(),
         "composition": composition(),
+        "defects": defects(),
     }
     Path(out_path).write_text(json.dumps(rec, indent=1, sort_keys=True), encoding="utf-8")
     print(json.dumps(rec["host"]))

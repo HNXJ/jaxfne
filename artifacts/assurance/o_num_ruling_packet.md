@@ -39,6 +39,61 @@ only the bitwise evidence. The composition cases (#2-5, up to 1.5e-3 mV) exceed 
 3. **x64 for exactness tests.** Rejected on evidence: x64 changes the random draws (#6-7), so it is no rounding
    control. It also changes the dtype contract.
 
+## Ruling and measurements (2026-11-22)
+
+Hamm approved option 1 on 2026-11-22, with conditions:
+- spikes stay exact;
+- zero observed difference keeps exactness;
+- a bound counts only if, per test i, 10 x Delta_platform,i < Delta_mutant,i, where the mutant is a scientifically
+  meaningful defect. Mutant size may not be raised until this passes;
+- no xfail may mask a regression.
+
+The 1.5e-2 mV composition bound is not approved. The Gaussian-drive bound is provisional until there is Mac
+evidence.
+
+Measured with `scripts/internal/onum_measure.py` at base dev a1cd6e02:
+- Windows: Windows 11, Python 3.14.3, jax/jaxlib 0.10.1, CPU.
+- Linux: WSL2 Ubuntu (glibc 2.39), Python 3.12.3, jax/jaxlib 0.10.1, CPU.
+- The two hosts give identical numbers, mutants included. The weight mutants scale one side's recurrent weights,
+  or the Gaussian std, by 1 + eps.
+
+| Comparison | Windows, Linux max abs dV (mV) | Mac (recorded) | Weight-mutant max abs dV at eps = 1e-6 / 1e-5 / 1e-4 / 1e-3 / 1e-2 (mV) | Spikes under mutants |
+|---|---|---|---|---|
+| Gaussian drive (#1) | 0 | 1.5e-5 | 2.1e-3 / 1.8e-2 / 0.23 / 2.4 / 81 | no spike probe |
+| Continuation, member 0 vs solo (#2) | 0 | aggregate only: <= 1.5e-3 over #2-5 | 7.4e-4 / 7.0e-4 / 2.7e-3 / 2.3e-2 / 0.23 | equal at every eps |
+| Continuation, segments vs full | 0 | as above | (no mutant) | n/a |
+| Three-area middle member (#3) | 0 | as above | 0 / 5.0e-5 / 6.5e-4 / 1.3e-2 / 0.14 | equal at every eps |
+| Slice vs solo, eager (#4) and jit (#5) | 0, both members | as above | 7.4e-4 / 7.0e-4 / 2.7e-3 / 2.3e-2 / 0.23 | equal at every eps |
+
+Consequences:
+- Windows and Linux: exactness stays (zero difference). CI Linux passing the current `array_equal` assertions
+  implies zero difference there too (inferred, not measured).
+- On Mac, the per-test maxima are unknown. vmac answers on tailscale but refuses SSH on port 22 (2026-11-22).
+- In this fixture, a weight error of up to 1% changes no spike. The composition oracle is therefore weak against
+  weight errors, so the defect-class mutants below are measured.
+
+Defect-class mutants: the faults each identity test exists to catch (`defects()` in `onum_measure.py`). Windows and
+Linux give identical numbers.
+
+| Test | Defect | max abs dV (mV) | Spikes |
+|---|---|---|---|
+| #1 Gaussian drive (P-045) | std applied as variance (9 for 3) | 86 | no probe |
+| #1 | one cell type's std dropped | 88 | no probe |
+| #1 | wrong noise seed | 101 | no probe |
+| #2, #4, #5 | member seeds swapped | 84 | differ |
+| #4, #5 | block offset by one neuron | 101 | differ |
+| #3, #4, #5 | cross-model edge leak, p = 0.3, weight 0.05 / 0.5 | 93 / 97 | differ |
+| #2 segments | continuation state dropped (second segment restarts) | 99 | n/a in that comparison |
+
+Reading (inferred from these numbers; for Hamm to rule):
+- Each defect gives Delta_mutant,i >= 84 mV. The inequality 10 x Delta_platform,i < Delta_mutant,i therefore holds
+  wherever Delta_platform,i < 8.4 mV, and the largest recorded Mac difference is 1.5e-3 mV.
+- Every composition defect also changes spikes, so the exact spike check alone detects them.
+- The weight-scaling mutants are not defects these tests guard. On them the oracle is weak: no spike change up
+  to 1% and sub-mV V_m changes. An oracle that must detect parameter errors needs a fixture that spikes more
+  densely or a probe sensitive to weights (inferred).
+- This does not replace the per-test Mac maxima. It only says which mutant class makes the inequality meaningful.
+
 ## Effects of option 1
 
 - R10 (O-76): the six xfails duplicate strict contract tests. Either retire them, or keep them as platform-pinned
