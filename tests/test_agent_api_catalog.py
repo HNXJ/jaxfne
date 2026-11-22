@@ -16,6 +16,8 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG = REPO_ROOT / "internal_docs" / "JAXFNE_AGENT_API_CATALOG.md"
 
+pytestmark = pytest.mark.data_gated
+
 SPECTRO_REQUIRED = [
     "make_laminar_column_config",
     "build_laminar_column",

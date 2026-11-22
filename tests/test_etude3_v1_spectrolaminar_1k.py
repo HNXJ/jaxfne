@@ -66,6 +66,7 @@ def test_notebook_has_correct_cell_types_count():
     # We have exactly 6 code cells: Setup, Config, Construct, Simulate, Visualize, Artifacts
     assert len(code_cells) == 6, f"Expected 6 code cells, got {len(code_cells)}"
 
+@pytest.mark.data_gated
 def test_json_artifacts_exist_and_conform_to_contract():
     manifest_path = OUTPUT_DIR / "manifest.json"
     validation_path = OUTPUT_DIR / "validation.json"
@@ -112,6 +113,7 @@ def test_json_artifacts_exist_and_conform_to_contract():
         data = json.loads(path.read_text(encoding="utf-8"))
         json.dumps(data, allow_nan=False)
 
+@pytest.mark.data_gated
 def test_git_ignored_and_no_leaks():
     # 1. Verify target file in local/ is gitignored
     manifest_path = OUTPUT_DIR / "manifest.json"

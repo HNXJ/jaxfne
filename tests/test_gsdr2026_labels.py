@@ -169,6 +169,7 @@ _NEEDS_REAL = pytest.mark.skipif(
     reason="warehouse oxm0818 files absent (they stay out of the repo)")
 
 
+@pytest.mark.data_gated
 @_NEEDS_REAL
 def test_real_file_axes_groups_and_hashes():
     """OBSERVED on the warehouse file: axes, groups, hashes, label sanity."""
