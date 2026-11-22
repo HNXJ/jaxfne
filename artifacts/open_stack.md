@@ -22,6 +22,5 @@ Each line has its todo row, named in the line.
 - O-3 Fixture defect: −x motor has no distance drive, so F1 pushes +x at every distance | Hamm | since 2026-11-19 | closes when Hamm keeps fixture or approves labelled separate scenario (EX-11)
 - O-4 Primary metric is K-dependent for F1 (tail 526 at K=600, 4114 at K=3000) | Hamm | since 2026-11-19 | closes when a K-independent metric is frozen (EX-20)
 - O-6 Plasticity Boat: eight-strategy list and primary metric not frozen | Hamm | since 2026-11-19 | closes when jomission `protocol_v0.md` §3–§5 are frozen (EX-26)
-- O-7 Owner's 15-stage manuscript workflow not in repo or jarness; stage numbering provisional | Hamm | since 2026-11-19 | closes when supplied (EX-27)
 - O-8 Plasticity Boat dev-100: R4 fails at all 7 criteria-v2 g_s tested; R2 passes only at g_s ≤ 4.5 (jomission `O8_decision_packet.md`) | Hamm | since 2026-11-19 | closes when Hamm decides criteria v3 / stop / drop (EX-25)
 - O-9 Plasticity Boat dev-100: decoder group count is sum vs mean over each 5-neuron motor group | Hamm | since 2026-11-19 | closes when Hamm confirms sum or mean (EX-25)

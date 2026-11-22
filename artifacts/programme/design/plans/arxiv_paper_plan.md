@@ -111,6 +111,15 @@ manuscript rewrite, refreeze (C2), review (C11), arXiv (C12). 0.6.0: acceptance.
   carry no negative results" (Fig 7 shows failures). C1-C12 keep their weights and checks; a check naming
   an old figure reads the new one carrying that content (F2 -> 3, F3 -> 5, F4 -> 8, F5-F7 -> 7, F8 -> 7).
   H1's frozen mappings (F1 = fig01, F3 = fig06, S15 = fig05) are audited at stage 12 before any change.
+- 2026-11-22 (Hamm, ruling on O-7, table inspected at dev 007dd80e): the fifteen-stage table below is the
+  authoritative TFNE manuscript workflow. Adopted: each stage's scope, evidence, exit check and
+  non-writing reviewer's ACCEPT; the 2026-11-19 eight-figure mapping, negative replications in Fig 7
+  included; the status words, which grade evidence maturity and do not by themselves close a stage; the
+  workflow score (baseline 43/100) separate from C1-C12 (0/100 until their registered checks run),
+  neither implying scientific validity. Existing freezes, claim limits, C1-C12 weights and mandatory
+  gates stand; H1's mappings change only after the stage-12 audit. Stage 15 needs every registered
+  publication check, independent review and Hamm's explicit submission authorization. The ruling
+  authorizes no push and no freeze change.
 
 ## Fifteen-stage programme (2026-11-19)
 
