@@ -1,11 +1,12 @@
 """The granger scorer writes one {error, tolerance, pass, reference} row per check."""
 
 import importlib.util
-import json
 from pathlib import Path
 
 import numpy as np
 import pytest
+
+from _shared_fixtures import load_score
 
 REPO = Path(__file__).resolve().parents[1]
 SCORER = REPO / "scripts" / "score_granger_checks.py"
@@ -17,10 +18,6 @@ CHECK_IDS = (
     "spectral_gc_var1",
     "reverse_direction_near_zero",
 )
-
-
-def load_score():
-    return json.loads(SCORE.read_text(encoding="utf-8"))
 
 
 def load_pinned_test_module():
@@ -38,7 +35,7 @@ def test_scorer_script_exists_with_repo_root_guard():
 
 
 def test_score_file_holds_two_checks_in_score_form():
-    doc = load_score()
+    doc = load_score(SCORE)
     assert set(doc["checks"]) == set(CHECK_IDS), f"checks are {sorted(doc['checks'])}"
     assert isinstance(doc["pass"], bool), "top-level pass is a boolean"
     for cid in CHECK_IDS:
@@ -50,7 +47,7 @@ def test_score_file_holds_two_checks_in_score_form():
 
 
 def test_every_computed_check_passes():
-    doc = load_score()
+    doc = load_score(SCORE)
     bad = sorted(c for c, r in doc["checks"].items() if not r["pass"])
     assert not bad, f"failing granger checks: {bad}"
 
@@ -89,7 +86,7 @@ def test_tightened_tolerance_flips_a_pass_to_false(monkeypatch, cid):
 def test_recompute_matches_within_rtol_1e_9():
     from scripts import score_granger_checks as scorer
 
-    assert scorer.compare(load_score(), scorer.compute_all(), rtol=1e-9) == []
+    assert scorer.compare(load_score(SCORE), scorer.compute_all(), rtol=1e-9) == []
 
 
 def test_scorer_fixture_is_the_pinned_test_fixture():

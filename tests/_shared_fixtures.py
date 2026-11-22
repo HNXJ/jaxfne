@@ -6,6 +6,8 @@ differs (extra fields, different signature) stays in its own test module.
 
 from __future__ import annotations
 
+import json
+
 import jax.numpy as jnp
 
 import jaxfne
@@ -69,3 +71,8 @@ def _isolated_neuron_params() -> IzhikevichParams:
         layer_labels=("L4",),
         source_calibration_status="uncalibrated_izhikevich_native_current",
     )
+
+
+def load_score(path):
+    """The stored score document at path (one scorer's score.json)."""
+    return json.loads(path.read_text(encoding="utf-8"))

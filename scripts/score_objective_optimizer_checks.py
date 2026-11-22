@@ -19,9 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import argparse
-import contextlib
 import functools
-import json
 import math
 
 import jax
@@ -33,6 +31,7 @@ from jaxfne import objectives as ob
 from jaxfne.optim import core as oc
 from jaxfne.optim.bounds import enforce_parameter_bounds
 from jaxfne.optim.gsgd import step_gsgd_transform
+from scripts import _score_common
 
 assert "site-packages" not in sys.modules["jaxfne"].__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
@@ -86,15 +85,7 @@ DROPPED = {
 }
 
 
-@contextlib.contextmanager
-def _x64():
-    """x64 on for one block, restored after (jax.enable_x64 is missing from older jax in the declared range)."""
-    orig = jax.config.read("jax_enable_x64")
-    jax.config.update("jax_enable_x64", True)
-    try:
-        yield
-    finally:
-        jax.config.update("jax_enable_x64", orig)
+_x64 = _score_common.x64
 
 
 def _f64(fn):
@@ -349,25 +340,7 @@ def compute_all():
 
 def compare(old, new, rtol=RTOL):
     """Mismatch strings between a stored document and a fresh one; [] means agreement."""
-    if set(old.get("checks", ())) != set(new.get("checks", ())):
-        return [f"checks: {sorted(old.get('checks', ()))} != {sorted(new.get('checks', ()))}"]
-    bad = []
-    for name in old["checks"]:
-        o, n = old["checks"][name], new["checks"][name]
-        if o["pass"] != n["pass"]:
-            bad.append(f"{name}.pass: {o['pass']!r} != {n['pass']!r}")
-        for key in ("error", "tolerance"):
-            if math.isclose(o[key], n[key], rel_tol=rtol, abs_tol=1e-15):
-                continue
-            # A rounding-level residual differs across platforms; below a tenth of the tolerance
-            # in both copies it cannot change the verdict.
-            floor = NOISE_FRACTION * min(o["tolerance"], n["tolerance"])
-            if key == "error" and o[key] <= floor and n[key] <= floor:
-                continue
-            bad.append(f"{name}.{key}: {o[key]!r} != {n[key]!r} past rtol {rtol:g}")
-    if old.get("pass") != new.get("pass"):
-        bad.append(f"pass: {old.get('pass')!r} != {new.get('pass')!r}")
-    return bad
+    return _score_common.compare(old, new, rtol, NOISE_FRACTION)
 
 
 README_TEXT = """# Objective and optimizer core-method checks
@@ -465,27 +438,11 @@ Rerun:
 
 
 def write(doc):
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    with open(SCORE_PATH, "w", encoding="utf-8", newline="\n") as fh:
-        fh.write(json.dumps(doc, ensure_ascii=False, indent=2) + "\n")
-    if not README_PATH.is_file():
-        README_PATH.write_text(README_TEXT, encoding="utf-8", newline="\n")
+    _score_common.write(doc, OUT_DIR, SCORE_PATH, README_PATH, README_TEXT)
 
 
 def check(doc):
-    try:
-        stored = json.loads(SCORE_PATH.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as exc:
-        print(f"error: cannot read {SCORE_PATH}: {exc}", file=sys.stderr)
-        return 1
-    bad = compare(stored, doc)
-    if bad:
-        for line in bad:
-            print(f"mismatch: {line}", file=sys.stderr)
-        return 1
-    print(f"fresh: {SCORE_PATH} matches a recomputation within rtol {RTOL:g} "
-          f"(errors under {NOISE_FRACTION:g} x tolerance in both copies count as rounding residuals)")
-    return 0
+    return _score_common.check(doc, SCORE_PATH, RTOL, NOISE_FRACTION)
 
 
 def main(argv=None):

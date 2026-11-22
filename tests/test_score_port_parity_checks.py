@@ -1,8 +1,9 @@
 """The port-parity scorer writes one {error, tolerance, pass, reference} row per core-vs-oracle check."""
 
-import json
 from functools import lru_cache
 from pathlib import Path
+
+from _shared_fixtures import load_score
 
 REPO = Path(__file__).resolve().parents[1]
 SCORER = REPO / "scripts" / "score_port_parity_checks.py"
@@ -16,10 +17,6 @@ CHECK_IDS = (
     "gsdr_mcdp_oracle_zscored",
 )
 TIGHTEN = 1e-6
-
-
-def load_score():
-    return json.loads(SCORE.read_text(encoding="utf-8"))
 
 
 @lru_cache(maxsize=1)
@@ -38,7 +35,7 @@ def test_scorer_script_exists_with_repo_root_guard():
 
 
 def test_score_file_holds_the_checks_in_score_form():
-    doc = load_score()
+    doc = load_score(SCORE)
     assert set(doc["checks"]) == set(CHECK_IDS), f"checks are {sorted(doc['checks'])}"
     assert isinstance(doc["pass"], bool), "top-level pass is a boolean"
     for cid in CHECK_IDS:
@@ -54,7 +51,7 @@ def test_score_file_holds_the_checks_in_score_form():
 
 
 def test_every_computed_check_passes():
-    doc = load_score()
+    doc = load_score(SCORE)
     live = {c: r for c, r in doc["checks"].items() if "skipped" not in r}
     assert live, "at least one check must compute"
     bad = sorted(c for c, r in live.items() if not r["pass"])
@@ -93,4 +90,4 @@ def test_tightened_tolerance_flips_a_pass_to_false(monkeypatch):
 def test_recompute_matches_within_rtol_1e_9():
     from scripts import score_port_parity_checks as scorer
 
-    assert scorer.compare(load_score(), fresh_doc(), rtol=1e-9) == []
+    assert scorer.compare(load_score(SCORE), fresh_doc(), rtol=1e-9) == []
