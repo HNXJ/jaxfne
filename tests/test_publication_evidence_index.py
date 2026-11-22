@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import json
 
-import pytest
-
 from scripts.internal.publication.pec_protocol import (
     PEC_CONSOLIDATION_RECEIPT_PATH,
     load_pec_spec,
@@ -60,10 +58,6 @@ def test_write_consolidation_receipt(tmp_path, monkeypatch):
     assert receipt["figure_rendering_authorized"] is False
 
 
-@pytest.mark.skipif(
-    not PEC_CONSOLIDATION_RECEIPT_PATH.exists(),
-    reason="frozen PEC receipt not present",
-)
 def test_frozen_pec_receipt_on_disk():
     receipt = json.loads(PEC_CONSOLIDATION_RECEIPT_PATH.read_text(encoding="utf-8"))
     assert receipt["status"] == "FROZEN"

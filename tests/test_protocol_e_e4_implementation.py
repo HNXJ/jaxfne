@@ -4,7 +4,6 @@ from __future__ import annotations
 
 
 import numpy as np
-import pytest
 
 from jaxfne.protocol_e_integration.e2_execution import build_e2_model
 from jaxfne.protocol_e_integration.e3_execution import run_e3_kernel
@@ -21,7 +20,6 @@ from jaxfne.protocol_e_integration.e4_execution import (
     write_e4_execution_receipt,
 )
 from jaxfne.protocol_e_integration.e4_protocol import (
-    E4_EXECUTION_RECEIPT_PATH,
     load_e4_spec,
     validate_e4_spec,
 )
@@ -144,10 +142,6 @@ def test_e4_run_gates_and_write_receipt(tmp_path, monkeypatch):
     assert len(receipt["semantic_status_table"]) == 9
 
 
-@pytest.mark.skipif(
-    not E4_EXECUTION_RECEIPT_PATH.exists(),
-    reason="frozen E4 execution receipt not present",
-)
 def test_e4_frozen_execution_receipt_on_disk():
     from jaxfne.protocol_e_integration.e4_execution import load_e4_execution_receipt
 

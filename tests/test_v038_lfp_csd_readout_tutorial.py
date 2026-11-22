@@ -303,6 +303,7 @@ class TestTutorialIndexIntegration:
         assert "# " in content or "##" in content, "Index page should have headings"
 
 
+@pytest.mark.data_gated
 class TestArtifactValidation:
     """Validate generated artifacts (gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS)."""
 

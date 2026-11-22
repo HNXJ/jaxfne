@@ -4,7 +4,6 @@ from __future__ import annotations
 
 
 import numpy as np
-import pytest
 
 from jaxfne.protocol_e_integration.e2_execution import build_e2_model
 from jaxfne.protocol_e_integration.e5_execution import (
@@ -15,7 +14,6 @@ from jaxfne.protocol_e_integration.e5_execution import (
     write_e5_receipts,
 )
 from jaxfne.protocol_e_integration.e5_protocol import (
-    E5_EXECUTION_RECEIPT_PATH,
     load_e5_spec,
     validate_e5_spec,
 )
@@ -101,10 +99,6 @@ def test_e5_run_and_write_receipts(tmp_path, monkeypatch):
     assert out["raw"]["sanity_checks"]["N0_equals_N1_neural"][0]["N0_equals_N1_V_m_bit_exact"]
 
 
-@pytest.mark.skipif(
-    not E5_EXECUTION_RECEIPT_PATH.exists(),
-    reason="frozen E5 execution receipt not present",
-)
 def test_e5_frozen_receipts_on_disk():
     from jaxfne.protocol_e_integration.e5_execution import (
         load_e5_execution_receipt,

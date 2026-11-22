@@ -271,6 +271,7 @@ class TestDocumentationContent:
         assert not offending, f"forbidden claims without a negation: {offending}"
 
 
+@pytest.mark.data_gated
 @pytest.mark.skipif(not ARTIFACT_GATED, reason="Artifact tests gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS")
 class TestTutorialOutputs:
     """Test tutorial outputs (only if JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1)."""

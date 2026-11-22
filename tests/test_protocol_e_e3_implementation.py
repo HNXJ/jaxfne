@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 
 import numpy as np
-import pytest
 
 from jaxfne.protocol_e_integration.e2_execution import build_e2_model, delay_step_occupancy
 from jaxfne.protocol_e_integration.e3_execution import (
@@ -21,7 +20,6 @@ from jaxfne.protocol_e_integration.e3_execution import (
     write_e3_execution_receipt,
 )
 from jaxfne.protocol_e_integration.e3_protocol import (
-    E3_EXECUTION_RECEIPT_PATH,
     load_e3_spec,
     validate_e3_spec,
 )
@@ -139,10 +137,6 @@ def test_e3_run_gates_and_write_receipt(tmp_path, monkeypatch):
     assert on_disk["status"] == "FROZEN"
 
 
-@pytest.mark.skipif(
-    not E3_EXECUTION_RECEIPT_PATH.exists(),
-    reason="frozen E3 execution receipt not present",
-)
 def test_e3_frozen_execution_receipt_on_disk():
     receipt = load_e3_execution_receipt()
     validate_e3_spec()

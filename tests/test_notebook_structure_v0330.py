@@ -51,6 +51,7 @@ class TestNotebookStructureV0330:
             f"Etude No. 1: Adjacent code cells at indices: {adjacent_code}"
         )
 
+    @pytest.mark.data_gated
     def test_etude_no_1_execution_clean(self):
         """Etude No. 1: Execution must complete without cell errors."""
         nb_path = (
