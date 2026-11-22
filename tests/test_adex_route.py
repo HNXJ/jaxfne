@@ -1042,8 +1042,8 @@ def test_gsc_subset_drive_refuses_grouped_base():
 
 # T-32c numerical contract (Hamm ruling 2026-10-23, option a): spikes bitwise
 # exact; V_m allclose rtol=0, atol=1e-4 mV (provisional, ~2x the largest WSL
-# discrepancy observed; do NOT raise on a future failure). One bitwise
-# diagnostic remains (final state, marked bitwise_diagnostic; O-76, R10 2026-11-22).
+# discrepancy observed; do NOT raise on a future failure). The bitwise
+# diagnostics were retired into these contracts (O-76; Hamm 2026-11-22).
 V_RTOL = 0.0
 V_ATOL_MV = 1e-4
 EVIDENCE = {
@@ -1104,26 +1104,8 @@ def test_adex_seed_batch_is_permutation_and_batch_size_invariant():
         assert np.array_equal(np.asarray(wide["V_m"][k]), np.asarray(slim["V_m"][k]))
 
 
-@pytest.mark.bitwise_diagnostic
-@pytest.mark.xfail(strict=False, reason="bitwise final V/w is platform/run-dependent; diagnostic evidence only")
-def test_adex_seed_batch_final_state_matches_the_serial_kernel():
-    """DIAGNOSTIC (bitwise_diagnostic): bitwise final V/w holds on Windows CPU;
-    cross-form float32 codegen may differ at ulp scale elsewhere."""
-    from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args
-    from jaxfne.emitters_adex import simulate_adex
-
-    model = jtfne.construct(_base())
-    out = simulate_adex_seed_batch(model, _drive_sim(), [7, 8, 9])
-    kw = adex_kernel_args(model, DT_MS)
-    for k, s in enumerate([7, 8, 9]):
-        ref = simulate_adex(**kw, **adex_external_drive_kwargs(model, _drive_sim(seed=s)),
-                            n_steps=N_STEPS, dt_ms=DT_MS, record_v=True)
-        assert np.array_equal(np.asarray(out["final"]["V"][k]), np.asarray(ref["V"]))
-        assert np.array_equal(np.asarray(out["final"]["w"][k]), np.asarray(ref["w"]))
-
-
 def test_adex_seed_batch_final_state_contract():
-    """CONTRACT, the strict replacement for the final-state diagnostic above (R10, O-76): final V
+    """CONTRACT, the strict replacement for the retired bitwise final-state diagnostic (O-76): final V
     within V_ATOL_MV (jax 0.11.2 Linux: up to 3.8e-6 mV; 0 elsewhere); final w exact (0 on Windows,
     WSL jax 0.10.1 and 0.11.2). A member keyed with its neighbour's seed moves final V by >= 21 mV
     and final w by >= 49."""

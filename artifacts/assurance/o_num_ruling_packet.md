@@ -126,12 +126,28 @@ Reading (inferred from these numbers; for Hamm to rule):
   |---|---|---|---|---|
   | adex `matches_serial_per_member` | V_m | 0 | 5.3e-5 mV (2302 of 90000) | retired; strict contract test, atol 1e-4 (2026-10-23 ruling), takes its seeds and fixture-spike asserts |
   | adex `without_drive` | V_m | 0 | 0 | now a strict exact test; the fixture does not spike (V_m is the oracle); a leaked drive moves V_m 25 mV |
-  | adex `final_state` | final V, w | 0, 0 | 3.8e-6 mV, 0 | xfail kept (Hamm); strict replacement added: V within 1e-4, w exact; a member keyed with its neighbour's seed moves V >= 21 mV, w >= 49 |
+  | adex `final_state` | final V, w | 0, 0 | 3.8e-6 mV, 0 | retired (Hamm 2026-11-22, second ruling); replaced by the strict `test_adex_seed_batch_final_state_contract` (V within 1e-4, w exact); a member keyed with its neighbour's seed moves V >= 21 mV, w >= 49 |
   | lif `per_member`, `under_hdp_rule`, `hdp_final_state` | V_m, H, w | 0 | V 0, H 0, w 2.4e-7 | retired; strict LIF contracts (atol 1e-4) cover them |
 
   The three jax 0.11.2 differences reproduce the v0.5.8 receipt's "CI (jax 0.11) xfailed" for the same three
   tests (known positive). Results: Windows 244 passed, 1 xpassed; WSL jax 0.11.2 244 passed, 1 xfailed (the
   kept final-state diagnostic). No tolerance is new.
+
+- O-76 receipt (Hamm 2026-11-22: retire the AdEx final-state xfail and close O-76 under conditions):
+  - Retired requirement: bitwise batch-vs-serial equality across jax versions for the six O-76 tests. It
+    does not hold on jax 0.11.2 Linux, which differs by the amounts in the table above.
+  - Original failure evidence: the v0.5.8 receipt (`artifacts/release/v0_5_8_release_receipt.json`, lines
+    47-49) records "CI (jax 0.11) xfailed" for adex `final_state`, adex `per_member` and lif `hdp_final_state`.
+    The three jax 0.11.2 differences above reproduce it.
+  - In force instead: the strict contracts. Spikes are exact; V_m and final V are within 1e-4 mV (Hamm
+    2026-10-23); LIF H and w are within 1e-4; AdEx final w and the no-drive run are exact. They pass on Windows
+    (jax 0.10.1), WSL jax 0.10.1 and WSL jax 0.11.2.
+  - Coverage: CI Fast does not run these tests. The local broad gate runs them. Release CI would also run them,
+    but it has been disabled since 2026-11-14.
+  - macOS: UNKNOWN, recorded neither as passing nor as failing.
+  - Unused after this change: the `bitwise_diagnostic` marker (`pyproject.toml`, `tests/conftest.py`
+    `JUNIT_MARKERS`, the junit comparison scripts) now marks no test. It is kept, because removing it is
+    outside the ruling's scope.
 - R06: the composition and Gaussian-drive tests stay exact on Windows and Linux (zero observed difference) and
   skip on darwin. No bound is introduced.
 - No frozen receipt or prereg changes. The izh2003 receipts gain fields: this is an S23 repin, listed for approval.
