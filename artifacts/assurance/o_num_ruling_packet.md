@@ -48,6 +48,15 @@ Hamm approved option 1 on 2026-11-22, with conditions:
   meaningful defect. Mutant size may not be raised until this passes;
 - no xfail may mask a regression.
 
+Hamm, 2026-11-22, after checkpoint aafbb027:
+- Apply the inequality separately to each test, each observable and each mutant pairing, using the smallest
+  relevant mutant deviation. The aggregate Mac maximum does not count.
+- The 84-101 mV defects support the chosen mutants only. They do not show sensitivity to smaller defects or to
+  other defect classes.
+- The AdEx final-w xfail (`tests/test_adex_route.py:1125`) stays explicitly unresolved. R10 scopes or bounds it,
+  and it is not retired without strict coverage.
+- Windows/Linux agreement alone justifies no further work, and the gates are unchanged.
+
 The 1.5e-2 mV composition bound is not approved. The Gaussian-drive bound is provisional until there is Mac
 evidence.
 
