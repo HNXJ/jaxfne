@@ -15,7 +15,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Broken or in flight
 
-- Solmind execution (T-PLAN-EXECUTE): R04 waits on S21; R17 on S23 (S16 cleared); R57 (P-047) on a Hamm public-API pick; SCIENCE rows R59/R60/R25 and R58 (O-85) on Hamm. Other gates: plan §9 (S02-S04, S06, S08, S10, S11, S15, S17, S18, S20-S23).
+- Solmind execution (T-PLAN-EXECUTE): R04 waits on S21; R17 on S23 (S16 cleared); R57 (P-047) on a Hamm public-API pick; SCIENCE rows R59/R60/R25 on Hamm; R58 (O-85 ruled 2026-11-08) waits on the 0.5.11 held-out training-loss check. Other gates: plan §9 (S02-S04, S06, S08, S10, S11, S15, S17, S18, S20-S23).
 - Audit items held for Hamm (2026-11-21): `jit="auto"` always-jit (warm simulate about 25x faster and first call 13-20% faster below the threshold on vwin-pc, but LIF `V_m` moves up to 9.54e-07 and it reverses the opt051_1 receipt); `int(ms / dt)` truncation with float32 dt at 56 sites (readout values move); compact JSON for receipts; atlas `lfp.html` time-axis duplication (future freezes); results_reconstruction drafts vs manuscript. Not taken: merging `benchmark_051/055_matrix.py` (055 is cited by the signed `PREREG_B1_0510.md`, 051 by the opt051_1 receipt).
 - Matching-host broad gate (`T-MATCH`) still pending on Linux/Windows for post-merge `dev`.
 - CAMINOS E1 not equivalent (oracle kept); PCL R5 FAIL + P-055 attributed; P-053 open; P-056 blocked on owner inputs; P-066 ruled 2026-11-19, repair on `_temp_tfne-manuscript` 98d42ce4 awaiting integration (R17). Papers are never failed through 0.6 (Hamm 2026-11-03).

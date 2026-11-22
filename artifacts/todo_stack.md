@@ -4,6 +4,8 @@
 
 [A then H] Proposed documentation alignment, not a new scientific feature or release criterion. Writes: `README.md`, existing `docs/reference/project/scope_and_status.md` and canonical modeling/quickstart documentation only. Blocked by: owner ruling if product scope, scientific claims or public acceptance would change.
 
+2026-11-21: `fact_stack.md` (public docs row) holds: public pages carry no agent governance. The OCMA, multi-agent and autonomous-agent sentences below stay off public pages unless Hamm changes that fact. Agent work: audit README and `docs/` (excluding `docs/archive`) against that fact and remove agent-governance text (`git grep -liE "agent governance|OCMA|jarness|AGENTS.md" -- README.md docs` lists candidates, among them `docs/reference/project/for_ai_agents.md`; "autonomous" also matches ODE usage). Closes when: each candidate is removed or shown to be no governance text, the docs gate passes and an outside reviewer accepts.
+
 JaxFNE is the biophysical neural simulation/modeling tool for researcher-directed and AI-assisted/autonomous model construction, simulation, falsifiable comparison with neural data, and iterative discovery. Keep the tested chain explicit: model assumptions and units → simulation → observable spikes/population/fields → data comparison, uncertainty and residual structure → constrained mechanistic revision. State that JaxFNE does not independently validate an empirical hypothesis, that OCMA governs multi-agent research strategy, and that Jomission is a downstream scientific project rather than a built-in package workflow. Do not claim a working autonomous research agent unless evidenced. Check: every public capability maps to current API/docs/tests, no duplicate definition or unsupported promise, original source-field identity and JDNA reduction semantics preserved, native docs/link gates and independent reviewer PASS.
 
 
@@ -61,13 +63,17 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
   consistency order and a dt-refinement test. Closes when: the tests pass for the core rules.
 - TASK-N2-PLANT (T-104) [A] N2 extension table: each extension with its same-backend identity test and a planted break that
   fails it. Closes when: every planted break turns its test red.
-- TASK-REPL-TFNE (T-105) [A] Route at least two replication lanes through `jaxfne.tfne` and the provenance map, or present the
-  record as simulator validation only. Closes when: the plan states which, with the lanes' receipts.
+- TASK-REPL-TFNE (T-105) [A] The replication record is scoped as simulator validation until at least two replication
+  lanes run through `jaxfne.tfne` and the provenance map with verified receipts (2026-11-21). Closes when: two lanes'
+  `jaxfne.tfne` receipts are verified and the plan's scope line is updated, or the plan states simulator validation
+  as final.
 - TASK-RECEIPTS (T-106) [A] Receipt durability: copy or hash-anchor each scored lane's receipts in a tracked location (Brunel's
   are on C:). Closes when: each scored G3 record names a tracked receipt path or sha256 that resolves.
 
-14. T-F5 [A] T-32 candidate batching for AdEx, LIF and `Model.tune` (`_model_tune.py:451`) (checklist F5,
-    1.5 pts). Closes when: the batching tests pass across seeds.
+14. T-F5 [A] Candidate batching for AdEx, LIF and `Model.tune` (checklist F5, 1.5 pts). Candidates stay serial
+    (`CANDIDATE_BATCH_STATUS`, `jaxfne/_model_tune.py:150`) until a test proves batched results equal serial ones,
+    including order dependence and reproducibility across seeds. Closes when: that equivalence test passes and
+    fails under a planted order change.
 17. T-90 [A] P-056 kernel-LFP deep-layer power. Closes when: a settled column shows deep alpha-beta power or the
     cause is named. 2026-11-15 step 1 done: the pilot's estimator, band, layer map, rates and N are not retained
     (only the diff at tag `archive/kernel-lfp`), so the deficit is unreproduced as measured; the chain
@@ -85,7 +91,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
   `jaxfne/neuronal_tensor.py:2953-2959`). Starts after the core's stage 2 gaps close. Closes when: a two-family
   circuit runs through `field()`/`probe()` with a test, and the plan's headline is re-reviewed.
 
-18. T-87 [A] F4 scored benchmark across N on CPU and the A4000 with recording controls (checklist B1-B3, 10 pts),
+18. T-87 [A] F4 scored benchmark across N on CPU and the A4000 with recording controls (checklist B1-B3, 10 pts).
     Closes when: the receipt records all 6 metrics and is evaluated against the purchase gate.
 19. T-B5 [A] LIF edge kernel on GPU (checklist B5, 2 pts). Closes when: the GPU receipt equals CPU within the
     declared tolerance.
@@ -120,7 +126,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     2026-11-12: Group Policy sets `ExecutionPolicy=AllSigned` so `cursor-agent.ps1` cannot run; the direct
     `node.exe index.js` launch gets past that but Cursor refuses `--sandbox` on Windows; agy produced no output.
     Options: a macOS/Linux host with Cursor; opencode Muse as the second family; defer the round.
-29. [H] T-72 NeuroAI 2027: the anonymous code mirror, then your read and submit. Deadline 2026-11-20 23:59 AoE.
+29. [H] T-72 NeuroAI 2027: deadline 2026-11-20 23:59 AoE lapsed; the repo holds no submission receipt (last
+    record a1d12c5b, 2026-11-02: draft built, three owner decisions queued). Closes when: Hamm confirms lapsed or
+    supplies the receipt.
 30. [A] T-25 retired names in dated records: history allowlist (asked in jchat, jynx keeper).
 
 ## Beside the path (∥, at most 3 lanes)
