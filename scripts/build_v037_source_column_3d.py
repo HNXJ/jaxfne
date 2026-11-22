@@ -390,14 +390,14 @@ def create_manifest(
 # Main
 # ============================================================================
 
-def main():
+def main(output_dir=None):
     """Build and save interactive 3D column visualization."""
 
     print("Building v0.3.7 Interactive 3D Source/Field/Probe Column...")
     print()
 
     # Create output directory
-    output_dir = Path("docs/assets/interactive")
+    output_dir = Path("docs/assets/interactive") if output_dir is None else Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Configure and simulate

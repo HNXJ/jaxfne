@@ -114,7 +114,7 @@ $$W_{cn} = \frac{\exp\left(-\frac{\|z_c - z_n\|^2}{2\sigma^2}\right)}{\sum_{k=1}
 
 ### Field-to-probe readout (generic operator form)
 
-$$Y_j(t) = \mathcal{O}_j[\phi_{\mathrm{proxy}}, \mathbf{S}, \ldots](../t)$$
+$$Y_j(t) = \mathcal{O}_j[\phi_{\mathrm{proxy}}, \mathbf{S}, \ldots](t)$$
 
 Generic probe operator $\mathcal{O}_j$ applies to field potential, source, or both.
 

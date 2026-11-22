@@ -26,6 +26,19 @@ def column_figure():
     return v037.build_column_figure()
 
 
+@pytest.fixture(scope="module")
+def built_outputs(tmp_path_factory):
+    """Run the builder into a tmp dir (module scope, so tmp_path_factory); return (html, manifest) paths."""
+    scripts = str(Path(__file__).resolve().parents[1] / "scripts")
+    if scripts not in sys.path:
+        sys.path.insert(0, scripts)
+    import build_v037_source_column_3d as v037
+
+    out_dir = tmp_path_factory.mktemp("v037_interactive")
+    v037.main(output_dir=out_dir)
+    return out_dir / "v037_readout_panels.html", out_dir / "v037_source_column_manifest.json"
+
+
 class TestColumnFigure:
     """The 3-D column figure: one scatter3d of 48 neurons, layer hover text, equation annotations."""
 
@@ -46,40 +59,51 @@ class TestColumnFigure:
 
 
 class TestInteractiveHTMLGeneration:
-    """Validate readout panels HTML generation (the 3-D figure is built in memory)."""
+    """Validate readout panels HTML built into tmp_path (the 3-D figure is built in memory)."""
 
-    def test_readout_panels_html_exists(self):
-        """Assert readout panels HTML exists."""
-        html_path = Path("docs/assets/interactive/v037_readout_panels.html")
-        assert html_path.exists(), f"Expected {html_path}"
+    PANEL_TITLES = (
+        "Readout Panels: Source / Field / Probe",
+        "Source Summary",
+        "Population Firing Rate",
+        "LFP-Proxy (sample contact)",
+        "Mean Voltage by Layer",
+    )
+    TRACE_NAMES = ("Source mean", "Population rate", "LFP-proxy", "L2/3", "L4", "L5", "L6")
 
-    def test_readout_panels_contain_traces(self):
-        """Assert readout panels contain expected trace names."""
-        html_path = Path("docs/assets/interactive/v037_readout_panels.html")
-        content = html_path.read_text(encoding='utf-8')
+    def test_readout_panels_html_exists(self, built_outputs):
+        """Assert readout panels HTML is written to the output dir."""
+        html_path, _ = built_outputs
+        assert html_path.is_file(), f"Expected {html_path}"
 
-        # Check for expected subplot titles/traces
-        assert "Source" in content, "Missing Source panel"
-        assert "Rate" in content or "rate" in content, "Missing population rate panel"
+    def test_readout_panels_contain_traces(self, built_outputs):
+        """Assert the built page carries the four panel titles and the trace names."""
+        html_path, _ = built_outputs
+        # Plotly's JSON writes "/" as /; decode it so the literal panel strings match.
+        content = html_path.read_text(encoding='utf-8').replace("\\u002f", "/")
+
+        for title in self.PANEL_TITLES:
+            assert title in content, f"Missing panel title: {title}"
+        for name in self.TRACE_NAMES:
+            assert f'"{name}"' in content, f"Missing trace name: {name}"
 
 
 class TestInteractiveManifest:
     """Validate generated manifest JSON."""
 
-    def test_manifest_file_exists(self):
-        """Assert manifest JSON exists."""
-        manifest_path = Path("docs/assets/interactive/v037_source_column_manifest.json")
-        assert manifest_path.exists(), f"Expected {manifest_path}"
+    def test_manifest_file_exists(self, built_outputs):
+        """Assert manifest JSON is written to the output dir."""
+        _, manifest_path = built_outputs
+        assert manifest_path.is_file(), f"Expected {manifest_path}"
 
-    def test_manifest_valid_json(self):
+    def test_manifest_valid_json(self, built_outputs):
         """Assert manifest is valid JSON."""
-        manifest_path = Path("docs/assets/interactive/v037_source_column_manifest.json")
+        _, manifest_path = built_outputs
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
         assert isinstance(manifest, dict), "Manifest is not a dict"
 
-    def test_manifest_json_serializable_no_nan(self):
+    def test_manifest_json_serializable_no_nan(self, built_outputs):
         """Assert manifest can be serialized with allow_nan=False."""
-        manifest_path = Path("docs/assets/interactive/v037_source_column_manifest.json")
+        _, manifest_path = built_outputs
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
 
         # Re-serialize with allow_nan=False (should not raise)
@@ -88,9 +112,9 @@ class TestInteractiveManifest:
         except ValueError as e:
             pytest.fail(f"Manifest contains NaN/Inf: {e}")
 
-    def test_manifest_required_keys(self):
+    def test_manifest_required_keys(self, built_outputs):
         """Assert manifest has required scope/metadata keys."""
-        manifest_path = Path("docs/assets/interactive/v037_source_column_manifest.json")
+        _, manifest_path = built_outputs
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
 
         required_keys = [
@@ -107,9 +131,9 @@ class TestInteractiveManifest:
         for key in required_keys:
             assert key in manifest, f"Missing required manifest key: {key}"
 
-    def test_manifest_scope_values(self):
+    def test_manifest_scope_values(self, built_outputs):
         """Assert manifest scope values are as expected."""
-        manifest_path = Path("docs/assets/interactive/v037_source_column_manifest.json")
+        _, manifest_path = built_outputs
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
 
         assert manifest["scope_status"] == "computational_scaffold", \
@@ -121,9 +145,9 @@ class TestInteractiveManifest:
         assert manifest["physical_amplitude_calibrated"] is False, \
             "physical_amplitude_calibrated must be False"
 
-    def test_manifest_equations_present(self):
+    def test_manifest_equations_present(self, built_outputs):
         """Assert equation annotations are in manifest."""
-        manifest_path = Path("docs/assets/interactive/v037_source_column_manifest.json")
+        _, manifest_path = built_outputs
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
 
         assert "equations" in manifest, "Missing equations dict in manifest"
@@ -241,9 +265,18 @@ class TestPublicWording:
             assert term in content, f"Missing approved scope term: {term}"
 
     def test_no_internal_terminology_in_docs(self):
-        """Assert internal terminology is not in public docs."""
+        """Assert internal terminology is not in public prose (fenced code blocks are exempt)."""
         docs_path = Path("docs/archive/tutorials/basics/07_v037_source_bookkeeping.md")
         content = docs_path.read_text(encoding='utf-8')
+
+        prose_lines = []
+        in_code = False
+        for line in content.split('\n'):
+            if line.startswith('```'):
+                in_code = not in_code
+            elif not in_code:
+                prose_lines.append(line)
+        assert prose_lines, "no prose lines parsed; fence tracking failed"
 
         forbidden_terms = [
             "claim_level",
@@ -251,15 +284,13 @@ class TestPublicWording:
             "receipt",
             "gamma",
         ]
-
-        for term in forbidden_terms:
-            # Allow only in comments or code blocks
-            lines = content.split('\n')
-            for line in lines:
-                if not line.startswith('```') and term in line.lower():
-                    # Check it's not in a markdown comment or explanation
-                    # (comment context is acceptable; public prose is not)
-                    pass
+        hits = [
+            (term, line)
+            for term in forbidden_terms
+            for line in prose_lines
+            if term in line.lower()
+        ]
+        assert not hits, f"internal terms in public prose: {hits}"
 
 
 # ============================================================================
@@ -280,11 +311,12 @@ class TestEndToEndIntegration:
         assert script_path.exists(), f"Expected {script_path}"
         assert script_path.stat().st_mode & _stat.S_IXUSR, "Script not executable"
 
-    def test_all_artifacts_exist(self):
-        """Assert all expected output artifacts exist."""
+    def test_all_artifacts_exist(self, built_outputs):
+        """Assert the tracked docs page and builder exist, and the builder writes both outputs."""
+        html_path, manifest_path = built_outputs
         artifacts = [
-            Path("docs/assets/interactive/v037_readout_panels.html"),
-            Path("docs/assets/interactive/v037_source_column_manifest.json"),
+            html_path,
+            manifest_path,
             Path("docs/archive/tutorials/basics/07_v037_source_bookkeeping.md"),
             Path("scripts/build_v037_source_column_3d.py"),
         ]

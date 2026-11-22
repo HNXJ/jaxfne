@@ -17,7 +17,6 @@ from typing import Any, Mapping, Optional, Sequence
 import jax
 import jax.numpy as jnp
 import numpy as np
-from scipy import signal
 
 # Canonical source for these field diagnostics/validation helpers is
 # diagnostics.py. They are imported (not redefined) here so that

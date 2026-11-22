@@ -363,7 +363,8 @@ def jaxley_trace_to_signals(
     source : array-like, optional
         Optional external source array (e.g., current density). If None and
         source_mode == "voltage_proxy", trace is used as source.
-        If current-like source_mode requested without source, raises ValueError.
+        If current-like source_mode requested without source, no source is set
+        and the returned Signals.sources is None (no raise).
 
     Returns
     -------

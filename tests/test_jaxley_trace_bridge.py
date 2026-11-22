@@ -138,12 +138,12 @@ class TestBridgeSourceHandling:
         assert signals.sources is not None
         assert jnp.allclose(signals.sources, trace)
 
-    def test_bridge_rejects_current_mode_without_source(self) -> None:
-        """Current-like source_mode without source raises ValueError."""
-        # This should not raise in current implementation (no explicit check)
-        # but documents the expected behavior
-        # (deferred to v0.2.23)
-        JaxleyTraceSpec(source_mode="current_decomposition")
+    def test_bridge_current_mode_without_source_returns_no_sources(self) -> None:
+        """Current-like source_mode without source does not raise and returns sources None (the check is deferred to v0.2.23)."""
+        spec = JaxleyTraceSpec(source_mode="current_decomposition")
+        trace = jnp.array([[1.0, 2.0], [3.0, 4.0]])
+        signals = jaxley_trace_to_signals(trace, spec=spec)
+        assert signals.sources is None
 
     def test_bridge_user_provided_source(self) -> None:
         """User can provide explicit source array."""
