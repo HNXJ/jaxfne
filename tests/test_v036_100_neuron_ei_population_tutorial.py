@@ -247,9 +247,10 @@ class TestDocumentationContent:
         assert "Excitatory rate" in content or "firing rate" in content, "Results table missing"
 
     def test_docs_avoids_forbidden_claims(self):
-        """Documentation avoids forbidden scientific claims."""
+        """Documentation avoids forbidden scientific claims: a line naming one must carry a negation or ✗."""
         with open(TUTORIAL_DOCS, 'r', encoding='utf-8') as f:
             content = f.read()
+        assert content.strip(), "tutorial doc is empty"
 
         forbidden_terms = [
             "biophysically realistic",
@@ -260,16 +261,14 @@ class TestDocumentationContent:
             "Poisson solver",
             "inverse problem",
         ]
-        # Note: allowed to say "NOT" before these terms (in scope scope notes)
-        for term in forbidden_terms:
-            if term in content and f"NOT {term}" not in content and f"not {term}" not in content:
-                # Double-check: if it's in a scope/limitation section, it's okay
-                lines_with_term = [line for line in content.split('\n') if term in line]
-                for line in lines_with_term:
-                    if 'NOT' not in line and 'not' not in line and '✗' not in line:
-                        # This is okay if it's in the figure captions or legitimate context
-                        # For now, we're lenient since the documentation is properly scoped
-                        pass
+        # A scope note may name a forbidden term only when the line negates it.
+        offending = [
+            (term, line)
+            for term in forbidden_terms
+            for line in content.split('\n')
+            if term in line and not any(marker in line for marker in ("NOT", "not", "✗"))
+        ]
+        assert not offending, f"forbidden claims without a negation: {offending}"
 
 
 @pytest.mark.skipif(not ARTIFACT_GATED, reason="Artifact tests gated by JAXFNE_VALIDATE_TUTORIAL_OUTPUTS")
