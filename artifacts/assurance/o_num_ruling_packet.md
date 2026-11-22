@@ -88,8 +88,10 @@ Measured with `scripts/internal/onum_measure.py` at base dev a1cd6e02:
 | Slice vs solo, eager (#4) and jit (#5) | 0, both members | as above | 7.4e-4 / 7.0e-4 / 2.7e-3 / 2.3e-2 / 0.23 | equal at every eps |
 
 Consequences:
-- Windows and Linux: exactness stays (zero difference). Correction (2026-11-22): CI Fast does not run these tests
-  (`DEV_PYTEST_TARGETS` in `scripts/run_test_gate.py`), so CI gives no evidence on them. CI pins jax 0.10.2
+- Windows and Linux: exactness stays (zero difference). Correction (2026-11-22): on pushes outside `main`, CI Fast
+  runs `run_test_gate.py dev`, whose `DEV_PYTEST_TARGETS` include none of these tests, so CI gives no evidence on
+  them. On `main`, CI Fast's `broad` step does run them (`.github/workflows/ci.yml:205-208`); no such run is
+  recorded for them. CI pins jax 0.10.2
   (py3.11) and 0.11.2 (py3.14). Measured in a WSL venv with jax/jaxlib 0.11.2: all five comparisons give 0.
 - On Mac, the per-test maxima are unknown. vmac answers on tailscale but refuses SSH on port 22 (2026-11-22).
 - In this fixture, a weight error of up to 1% changes no spike. The composition oracle is therefore weak against
@@ -131,7 +133,7 @@ Reading (inferred from these numbers; for Hamm to rule):
 
   The three jax 0.11.2 differences reproduce the v0.5.8 receipt's "CI (jax 0.11) xfailed" for the same three
   tests (known positive). Results: Windows 244 passed, 1 xpassed; WSL jax 0.11.2 244 passed, 1 xfailed (the
-  kept final-state diagnostic). No tolerance is new.
+  final-state diagnostic, measured before its retirement). No tolerance is new.
 
 - O-76 receipt (Hamm 2026-11-22: retire the AdEx final-state xfail and close O-76 under conditions):
   - Retired requirement: bitwise batch-vs-serial equality across jax versions for the six O-76 tests. It
@@ -142,7 +144,8 @@ Reading (inferred from these numbers; for Hamm to rule):
   - In force instead: the strict contracts. Spikes are exact; V_m and final V are within 1e-4 mV (Hamm
     2026-10-23); LIF H and w are within 1e-4; AdEx final w and the no-drive run are exact. They pass on Windows
     (jax 0.10.1), WSL jax 0.10.1 and WSL jax 0.11.2.
-  - Coverage: CI Fast does not run these tests. The local broad gate runs them. Release CI would also run them,
+  - Coverage: CI Fast does not run these tests on `dev` or `_temp_*` pushes. On `main` its `broad` step runs
+    them, and no such run is recorded. The local broad gate runs them. Release CI would also run them,
     but it has been disabled since 2026-11-14.
   - macOS: UNKNOWN, recorded neither as passing nor as failing.
   - Unused after this change: the `bitwise_diagnostic` marker (`pyproject.toml`, `tests/conftest.py`

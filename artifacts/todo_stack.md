@@ -32,12 +32,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 - T-FIG05 [H then A] re-freeze equivalence-gate fig05 and its C3 receipt under change control, or render panel C from
   frozen V_m; print stdout in `_run_gate` failures. Closes when: `tests/test_equivalence_gate_v20260815.py` passes on
   darwin (O-FIG05, `assurance/mac_gate_attribution.md`).
-- T-NUM [A; remedy ruled 2026-11-22, O-NUM] apply the ruled remedy to the five composition and Gaussian-drive
-  tests and to R10's six O-76 xfails (retire those duplicated by strict tests; scope or bound the rest). Mac
-  skipped (Hamm 2026-11-22). Windows and WSL Linux give 0 on all five, so exactness stays. The izh2003 rate
-  tolerance stays a Hamm criterion. The five tests skip on darwin (Hamm 2026-11-22). R10 applied 2026-11-22.
-  The AdEx final-state xfail is retired (Hamm 2026-11-22). Closes when: the full suite and the independent review
-  pass on the retiring commit, and the route tests pass on WSL jax 0.11.2 (O-NUM, O-76).
+- T-NUM [A; O-NUM] remedy applied 2026-11-22: darwin skips; R10; O-76 closed. Remaining: Hamm confirms that
+  O-NUM is closed. macOS stays UNKNOWN until a Mac is reachable (platform limitation, not a gate). The izh2003
+  rate tolerance stays a Hamm criterion. Closes when: Hamm closes O-NUM (O-NUM).
 - T-MATCH [A] run `python scripts/run_test_gate.py broad` unsandboxed on a matching host (Linux, jax 0.10.2) at the
   integrating SHA. Closes when: it reads 0 failed and CI is green on that SHA.
 ## Tier 2: 1 to 2 hours each
