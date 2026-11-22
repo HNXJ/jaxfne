@@ -13,6 +13,8 @@ ablations, so its test checks only that the declared noise reaches the E cells.
 
 from __future__ import annotations
 
+import sys
+
 import jax.numpy as jnp
 import numpy as np
 import pytest
@@ -267,6 +269,12 @@ def test_gaussian_drive_net_m_admits_zero_and_refuses_nonzero():
         model.simulate(run(_gauss(3.0)))
 
 
+@pytest.mark.skipif(
+    sys.platform == "darwin",
+    # O-NUM (Hamm 2026-11-22): bit-exact on Windows and Linux only; on macOS 43 of 4000 V_m elements
+    # differ by up to 1.5e-5 mV (artifacts/assurance/o_num_ruling_packet.md).
+    reason="O-NUM: macOS V_m not bit-exact (ruling packet)",
+)
 def test_gaussian_drive_realized_on_receptor_exponential_route():
     # P-045: the receptor kernel takes a per-cell noise_scale; a uniform drive equals the scalar.
     model = _ei_model()

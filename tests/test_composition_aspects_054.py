@@ -8,12 +8,18 @@ replicate by design (statistics utility); member solo-equivalence is
 claimed for simulate(), not for batch.
 """
 
+import sys
+
 import numpy as np
+import pytest
 
 import jaxfne as jtfne
 
 D_MS, DT_MS, SEED = 40.0, 0.5, 7
 N1, N2 = 12, 8
+# O-NUM (Hamm 2026-11-22): bit-exact identity is shown on Windows and Linux only; on macOS V_m
+# differs by up to 1.5e-3 mV (artifacts/assurance/o_num_ruling_packet.md).
+DARWIN_SKIP = pytest.mark.skipif(sys.platform == "darwin", reason="O-NUM: macOS V_m not bit-exact (ruling packet)")
 
 
 def _col(name, n, seed, probes=("spikes", "V_m"), **runtime_kw):
@@ -107,6 +113,7 @@ def test_field_probes_run_finite_on_ensemble():
     assert bool(np.isfinite(np.asarray(sig.field.lfp_proxy)).all())
 
 
+@DARWIN_SKIP
 def test_continuation_matches_continuous_and_solo():
     m1, m2 = _col("V1", N1, 0), _col("V2", N2, 1)
     ens = jtfne.connect(m1, m2, namespace=("A", "B"))
@@ -165,6 +172,7 @@ def test_three_area_chain_runs_with_owned_ranges():
     assert bool(np.isfinite(np.asarray(sig.V_m)).all())
 
 
+@DARWIN_SKIP
 def test_three_area_no_cross_middle_member_identity():
     # Solo-identity needs zero cross edges (cross current would couple);
     # the middle member exercises a non-edge block position.

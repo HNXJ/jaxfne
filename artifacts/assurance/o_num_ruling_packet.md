@@ -59,8 +59,15 @@ Hamm, 2026-11-22, after checkpoint aafbb027:
 
 Hamm, 2026-11-22, later: the Mac is skipped ("wsl is enough as proof"). Per test, Delta_platform = 0 on Windows
 and Linux, so exactness stays for #1-5 and no tolerance is introduced. The Mac differences recorded in
-`mac_gate_attribution.md` (#1: 1.5e-5 mV; #2-5: up to 1.5e-3 mV) mean these exact tests fail on Mac. How they
-are handled on Mac is open for Hamm.
+`mac_gate_attribution.md` (#1: 1.5e-5 mV; #2-5: up to 1.5e-3 mV) mean these exact tests fail on Mac.
+
+Hamm, 2026-11-22, option 1 for Mac: the five tests carry `skipif(sys.platform == "darwin")` with a reason
+citing this packet. Exact equality, dtype and tolerances are unchanged, and no xfail is added. A darwin skip is
+reported as a skip, never counted as a pass, and Mac numerical equivalence is not claimed.
+
+Verification of the skips:
+- Windows and WSL Linux: the three files give 45 passed each.
+- Simulated darwin: `sys.platform` is set after jax/jaxfne are imported. The five tests skip and the other 40 pass.
 
 The 1.5e-2 mV composition bound is not approved. The Gaussian-drive bound is provisional until there is Mac
 evidence.

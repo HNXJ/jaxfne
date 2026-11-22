@@ -35,7 +35,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 - T-NUM [A; remedy ruled 2026-11-22, O-NUM] apply the ruled remedy to the five composition and Gaussian-drive
   tests and to R10's six O-76 xfails (retire those duplicated by strict tests; scope or bound the rest). Mac
   skipped (Hamm 2026-11-22). Windows and WSL Linux give 0 on all five, so exactness stays. The izh2003 rate
-  tolerance stays a Hamm criterion. Closes when: Hamm's choice for the Mac failures is applied and the R10 xfails
+  tolerance stays a Hamm criterion. The five tests skip on darwin (Hamm 2026-11-22). The AdEx final-w xfail
+  (`tests/test_adex_route.py:1125`) stays until a strict replacement test passes. Closes when: the R10 xfails
   are resolved, with gates green on Windows and Linux CI (O-NUM).
 - T-MATCH [A] run `python scripts/run_test_gate.py broad` unsandboxed on a matching host (Linux, jax 0.10.2) at the
   integrating SHA. Closes when: it reads 0 failed and CI is green on that SHA.

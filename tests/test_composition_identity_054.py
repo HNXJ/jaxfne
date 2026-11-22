@@ -7,12 +7,17 @@ cross-model edges are zero, with no paradigm and no poisson_drive (both
 draw global streams by design and are outside the identity contract).
 """
 
+import sys
+
 import numpy as np
 import pytest
 
 import jaxfne as jtfne
 
 D_MS, DT_MS, SEED = 40.0, 0.5, 7
+# O-NUM (Hamm 2026-11-22): bit-exact identity is shown on Windows and Linux only; on macOS V_m
+# differs by up to 1.5e-3 mV (artifacts/assurance/o_num_ruling_packet.md).
+DARWIN_SKIP = pytest.mark.skipif(sys.platform == "darwin", reason="O-NUM: macOS V_m not bit-exact (ruling packet)")
 
 
 def _col(name, n, seed, **runtime_kw):
@@ -46,6 +51,7 @@ def test_ensemble_member_seed_contract():
         jtfne.ensemble_member_seed(SEED, 0, 1)
 
 
+@DARWIN_SKIP
 def test_ensemble_slice_matches_solo_eager():
     m1, m2 = _col("V1", 12, 0), _col("V2", 8, 1)
     ens = jtfne.connect(m1, m2, namespace=("A", "B"))
@@ -60,6 +66,7 @@ def test_ensemble_slice_matches_solo_eager():
     assert bool(np.array_equal(np.asarray(sig.spikes)[:, n1:], np.asarray(solo1.spikes)))
 
 
+@DARWIN_SKIP
 def test_ensemble_slice_matches_solo_jit():
     m1, m2 = _col("V1", 12, 0, jit=True), _col("V2", 8, 1, jit=True)
     ens = jtfne.connect(m1, m2, namespace=("A", "B"))
