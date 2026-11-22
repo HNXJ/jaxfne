@@ -28,11 +28,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import argparse
-import contextlib
-import json
-import math
 
-import jax
 import numpy as np
 from scipy.integrate import quad
 from scipy.special import eval_legendre
@@ -43,6 +39,7 @@ from jaxfne.fields.head import (
     meg_sphere_leadfield,
     sphere_sensor_cap,
 )
+from scripts import _score_common
 
 assert "site-packages" not in sys.modules["jaxfne"].__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
@@ -58,15 +55,7 @@ NOISE_FRACTION = 0.1  # errors below this fraction of the tolerance are compared
 MU0 = 4e-7 * np.pi  # literal, independent of the implementation
 
 
-@contextlib.contextmanager
-def _x64():
-    """x64 on for one block, restored after (jax.enable_x64 is missing from older jax in the declared range)."""
-    orig = jax.config.read("jax_enable_x64")
-    jax.config.update("jax_enable_x64", True)
-    try:
-        yield
-    finally:
-        jax.config.update("jax_enable_x64", orig)
+_x64 = _score_common.x64
 
 # One tolerance entry per check, read by every check_* below: pairs hold the
 # (atol_factor, rtol_factor) of a `tolerance = atol_factor*scale + rtol_factor*scale`
@@ -347,35 +336,7 @@ def compute_all():
 
 def compare(old, new, rtol=RTOL):
     """Mismatch strings between a stored document and a fresh one; [] means agreement."""
-    if set(old.get("checks", ())) != set(new.get("checks", ())):
-        return [f"checks: {sorted(old.get('checks', ()))} != {sorted(new.get('checks', ()))}"]
-    bad = []
-    for name in old["checks"]:
-        o, n = old["checks"][name], new["checks"][name]
-        if "skipped" in n and "skipped" not in o:
-            # This environment lacks the check's optional dependency; the stored row stands.
-            continue
-        if ("skipped" in o) != ("skipped" in n):
-            bad.append(f"{name}: skipped {('skipped' in o)} != {('skipped' in n)}")
-            continue
-        if "skipped" in o:
-            if o["skipped"] != n["skipped"]:
-                bad.append(f"{name}.skipped: {o['skipped']!r} != {n['skipped']!r}")
-            continue
-        if o["pass"] != n["pass"]:
-            bad.append(f"{name}.pass: {o['pass']!r} != {n['pass']!r}")
-        for key in ("error", "tolerance"):
-            if math.isclose(o[key], n[key], rel_tol=rtol, abs_tol=1e-15):
-                continue
-            # A rounding-level residual differs across platforms (BLAS, float32); below a tenth
-            # of the tolerance in both copies it cannot change the verdict.
-            floor = NOISE_FRACTION * min(o["tolerance"], n["tolerance"])
-            if key == "error" and o[key] <= floor and n[key] <= floor:
-                continue
-            bad.append(f"{name}.{key}: {o[key]!r} != {n[key]!r} past rtol {rtol:g}")
-    if old.get("pass") != new.get("pass"):
-        bad.append(f"pass: {old.get('pass')!r} != {new.get('pass')!r}")
-    return bad
+    return _score_common.compare(old, new, rtol, NOISE_FRACTION, skippable=True)
 
 
 README_TEXT = """# Head-forward analytic checks
@@ -412,32 +373,11 @@ under `JAX_PLATFORMS=cpu`.
 
 
 def write(doc):
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    with open(SCORE_PATH, "w", encoding="utf-8", newline="\n") as fh:
-        fh.write(json.dumps(doc, ensure_ascii=False, indent=2) + "\n")
-    if not README_PATH.is_file():
-        README_PATH.write_text(README_TEXT, encoding="utf-8", newline="\n")
+    _score_common.write(doc, OUT_DIR, SCORE_PATH, README_PATH, README_TEXT)
 
 
 def check(doc):
-    try:
-        stored = json.loads(SCORE_PATH.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as exc:
-        print(f"error: cannot read {SCORE_PATH}: {exc}", file=sys.stderr)
-        return 1
-    bad = compare(stored, doc)
-    if bad:
-        for line in bad:
-            print(f"mismatch: {line}", file=sys.stderr)
-        return 1
-    print(f"fresh: {SCORE_PATH} matches a recomputation within rtol {RTOL:g} "
-          f"(errors under {NOISE_FRACTION:g} x tolerance in both copies count as rounding residuals)")
-    unchecked = sorted(name for name, row in doc["checks"].items()
-                       if "skipped" in row and "skipped" not in stored["checks"][name])
-    if unchecked:
-        # The stored rows stand; this environment lacks their optional dependency and did not recompute them.
-        print(f"not rechecked here: {', '.join(unchecked)}")
-    return 0
+    return _score_common.check(doc, SCORE_PATH, RTOL, NOISE_FRACTION, skippable=True)
 
 
 def main(argv=None):
