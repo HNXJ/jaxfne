@@ -80,6 +80,20 @@ def test_shared_binning_refuses_off_grid_bin(fn):
         getattr(m, fn)(spikes, bin_ms=2.3, dt_ms=1.0)
 
 
+def test_changelog_v059_records_off_grid_refusal():
+    """O-74: the refusal has no deprecation path, so the v0.5.9 changelog must name it."""
+    from pathlib import Path
+
+    text = (Path(__file__).resolve().parents[1] / "docs" / "reference" / "changelog.md").read_text(encoding="utf-8")
+    section = text.split("## v0.5.9", 1)[1].split("\n## v", 1)[0]
+    entry = next((ln for ln in section.splitlines() if "off the `dt_ms` step grid" in ln), "")
+    assert entry, "v0.5.9 changelog has no off-grid refusal entry"
+    for name in ("fano_factor", "fleiss_kappa_binary", "pairwise_cc_binned_disjoint",
+                 "mean_pairwise_spike_correlation", "burst_index"):
+        assert f"`{name}`" in entry, name
+    assert "used to round" in entry
+
+
 # --- item 3: population_rates ms keywords and deprecated seconds forms --------
 
 _SIZES = {"E": 1000, "PV": 50, "SOM": 50}

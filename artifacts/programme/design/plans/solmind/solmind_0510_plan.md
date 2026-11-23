@@ -329,14 +329,24 @@ Release CI (disabled).
 4. **G2.** Options: (a) grant dated exceptions for the 28 known violations whose rows are outside 0.5.10 scope and have the lead fix the rest (recommended); (b) fix all 28 (records such as `SOURCE_P1.md` need source content and add files under `budget_files`).
 5. **S18, Release CI.** Options: (a) enable `release_ci.yml` for the candidate (recommended; Gate 2 cites it); (b) name another CI route.
 6. **S21, matching host.** Options: (a) Linux with jax 0.10.2, the CI py3.11 pin, runnable in WSL here (recommended); (b) Windows vwin-pc.
-7. **S04, O-73..O-75 API behaviour.** The lead prepares R07-R09 option packets first; that work is executable now.
+7. **S04, O-73..O-75 API behaviour.** Packets in §10.4: all three restate Hamm's 2026-10-28 rulings (commit 854cade9); the one live question is whether the `dt`/`discard_s` deprecation window ended with v0.5.9.
 8. **S20, O-86 and O-87.** A ruling on each.
 9. **S22, compatibility scope.** Options: (a) accept the measured R71 matrix for 0.5.10 (recommended); (b) test jax 0.4.25-0.9.x and macOS.
 10. **S02, fig05.** Re-freeze under change control, or render panel C from frozen V_m.
 11. **S01.** Keep the frozen score (default).
 12. **R12-R16 rulings (a)-(c), S06.** These do not block 0.5.10; ephaptic stays experimental.
 
-Executable without a ruling: A2 (R29), F5 (R39), R07-R09 packets, B2/B3/B5 runs (S09), R12-R16, A1 (R28), the R42-R50 docs rows, T-AI-DOC, and the five dead tutorial tests (`test_interactive_tutorial_artifacts_v0221.py`).
+Executable without a ruling: A2 (R29), F5 (R39), B2/B3/B5 runs (S09), R12-R16, A1 (R28), the R42-R50 docs rows, T-AI-DOC, and the five dead tutorial tests (`test_interactive_tutorial_artifacts_v0221.py`).
+
+### 10.4 R07-R09 option packets (S04 evidence, lead 2026-11-22, dev 948a5242)
+
+Prior authority: commit 854cade9 (2026-10-28) records Hamm's rulings: textbook Fleiss; every binned metric refuses an off-grid bin; `population_rates` takes `dt_ms`/`discard_ms`, `dt`/`discard_s` "warn for one release". Pins: `tests/test_analysis_rulings_2026_10_28.py`. v0.5.9 (tag; changelog 2026-11-03) shipped all three. O-73..O-75 (opened 2026-11-14) re-ask these; the rows do not cite the ruling. Recommendation: Hamm confirms the 2026-10-28 rulings and the rows close; the O-73 window is the one open choice.
+
+| Item | Current (`jaxfne/analysis/metrics.py`) | v0.5.8 | Options, recommended first | Test after ruling |
+|---|---|---|---|---|
+| R07 / O-73 | `population_rates(counts, dt=None, sizes=None, ...)` :1139; positional `dt` read as seconds via `_seconds_from_ms_or_s` :1123, with DeprecationWarning. Positional 0.1 meant as ms gives dt 0.1 s: rates 1000x low and a 20-step discard instead of 20000 (derived from :1166-1172). | `population_rates(counts, dt, sizes, ...)`, dt in s, :1082 | (a) remove `dt`/`discard_s` in 0.5.10: TypeError naming `dt_ms`; reads "warn for one release" as v0.5.9, now shipped; closes the hazard. (b) keep the warning through 0.5.10, remove in 0.5.11; the hazard stays one more release. (c) keep indefinitely; contradicts the ruling. | (a): `population_rates(c, 0.1, sizes)` raises TypeError naming `dt_ms`; red on current code. (b): removal row in the 0.5.11 todo. |
+| R08 / O-74 | `_validate_bin_steps` :464 refuses `bin_ms/dt_ms` off-integer beyond rel 1e-9, naming the nearest width; used by `_bin_counts` :22 and the binned metrics. No deprecation path. | `max(1, round(bin_ms/dt_ms))` (:46, :396, :1014) | (a) keep refusal as ruled; pin changelog 0.5.9 line 91 with a docs test. A loud refusal breaks no caller silently. (b) warn-and-round one release, refuse in 0.5.11; reintroduces the rounding the ruling removed. | Refusal pinned (`test_*_refuses_off_grid_bin`, 4 tests); changelog pinned by `test_changelog_v059_records_off_grid_refusal` (2026-11-22; red with `fleiss_kappa_binary` dropped from the entry). O-74 closed on its check. |
+| R09 / O-75 | Textbook Fleiss (1971), bins subjects, neurons raters :324-376. | P_o = fraction of bins where all neurons agree; P_e from per-neuron mean squared rates (:409-424). 20 independent Bernoulli(0.2) trains gave -1.0 (changelog :95). | (a) keep textbook (ruled; the 0.5.8 form gives -1.0, not 0, on independent trains, so it is not kappa). (b) revert. (c) textbook under the name, old form under a new name; downstream callers of the old form unknown (not searched). | Pinned: identical 1, independent about 0, hand-computed value (`test_fleiss_*`, 3 tests). |
 
 ## Appendix A. Execution plans of 2026-10-31 (verbatim)
 
