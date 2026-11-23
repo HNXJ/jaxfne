@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@6e24c168 · 2026-11-22 (S04 packets plan §10.4, O-74 closed by `test_changelog_v059_records_off_grid_refusal`; B1 harness `run_s` no longer includes the host copy (prereg E1), `get_s` times the real copy, cell timeouts reported; 11 tests that could not fail removed from `test_interactive_tutorial_artifacts_v0221.py`; B5 CPU-vs-GPU measured (plan §10.3 item 15); later commits change artifacts/ only) · Solmind execution under S19: R01, R02, R03, R10, R11, R70, R72, P-058 done; O-NUM and O-76 closed by Hamm 2026-11-22 (macOS UNKNOWN, T-MAC); R17 repin review done (plan §10.1, S23 awaits Hamm); prepublication checkpoint plan §10, owner decisions §10.3 items 1-17. Last broad gate: 6e24c168 (2026-11-22, Windows vwin-pc, `run_test_gate.py broad --no-stamp` in a clean clone: 8402 passed, 43 skipped, 0 failed, every lane PASS, rc 0; 8445 = 8455 at c0a9021b - 11 removed + 1 pin); independent review ACCEPT (0 majors); Windows is not the S21 matching host. CI (Fast) green on 007dd80e. Checklist 0.5.10: last recorded 43/100 (2026-11-19); planning adds no verified points. Workflows: CI (Fast) + Dashboard enabled; Macroscope, Nightly notebooks, Publish, CI (Release & Scheduled) disabled since 2026-11-14. `budget_files=2825` (S16, Hamm 2026-11-21; tree at 2813, 82.46 MB), `budget_bytes=96400000`.
+Stamp: jaxfne@dev@04f6845b · 2026-11-22 (R17: P-066 repair merged, z in mm, field proxy divides by `column_height_mm`; five S23 repins and the uniform_3d field change approved by Hamm 2026-11-22; P-066 closed to `issues_closed_2026-11-22.md`, Pose3D remap split to P-067; later commits change artifacts/ only) · Solmind execution under S19: R01, R02, R03, R10, R11, R17, R70, R72, P-058 done; O-NUM and O-76 closed by Hamm 2026-11-22 (macOS UNKNOWN, T-MAC); prepublication checkpoint plan §10, owner decisions §10.3 items 1-17 and §10.6 item 6. Last broad gate: 04f6845b (2026-11-22, Windows vwin-pc, `run_test_gate.py broad --no-stamp` in a clean clone: 8409 passed, 43 skipped, 0 failed, every lane PASS, rc 0); independent review ACCEPT (0 majors, 3 minors to T-P066-FOLLOW); Windows is not the S21 matching host. CI (Fast) green on 007dd80e. Checklist 0.5.10: last recorded 43/100 (2026-11-19); planning adds no verified points. Workflows: CI (Fast) + Dashboard enabled; Macroscope, Nightly notebooks, Publish, CI (Release & Scheduled) disabled since 2026-11-14. `budget_files=2825` (S16, Hamm 2026-11-21; tree at 2813, 82.46 MB), `budget_bytes=96400000`.
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
@@ -11,15 +11,15 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Broken or in flight
 
-- Solmind execution (T-PLAN-EXECUTE): R04 waits on S21; R17 on S23 (S16 cleared); R57 (P-047) on a Hamm public-API pick; SCIENCE rows R59/R60/R25 on Hamm; R58 (O-85 ruled 2026-11-08) waits on the 0.5.11 held-out training-loss check. Other gates: plan §9 (S02-S04, S06, S08, S10, S11, S15, S17, S18, S20-S23).
+- Solmind execution (T-PLAN-EXECUTE): R04 waits on S21; R57 (P-047) on a Hamm public-API pick; SCIENCE rows R59/R60/R25 on Hamm; R58 (O-85 ruled 2026-11-08) waits on the 0.5.11 held-out training-loss check. Other gates: plan §9 (S02-S04, S06, S08, S10, S11, S15, S17, S18, S20-S23).
 - Audit items held for Hamm (2026-11-21): `jit="auto"` always-jit (warm simulate about 25x faster and first call 13-20% faster below the threshold on vwin-pc, but LIF `V_m` moves up to 9.54e-07 and it reverses the opt051_1 receipt); `int(ms / dt)` truncation with float32 dt at 56 sites (readout values move); compact JSON for receipts; atlas `lfp.html` time-axis duplication (future freezes); results_reconstruction drafts vs manuscript. Not taken: merging `benchmark_051/055_matrix.py` (055 is cited by the signed `PREREG_B1_0510.md`, 051 by the opt051_1 receipt).
 - Matching-host broad gate (`T-MATCH`) still pending on Linux/Windows for post-merge `dev`.
-- CAMINOS E1 not equivalent (oracle kept); PCL R5 FAIL + P-055 attributed; P-053 open; P-056 blocked on owner inputs; P-066 ruled 2026-11-19, repair on `_temp_tfne-manuscript` 98d42ce4 awaiting integration (R17). Papers are never failed through 0.6 (Hamm 2026-11-03).
+- CAMINOS E1 not equivalent (oracle kept); PCL R5 FAIL + P-055 attributed; P-053 open; P-056 blocked on owner inputs; P-067 (Pose3D xz/yz depth axis vs proxy) open, unmeasured. Cleanup swarm batches on `_temp_clean1` (reviewed ACCEPT) integrate after this. Papers are never failed through 0.6 (Hamm 2026-11-03).
 
 ## Open decisions for the owner
 
 - Recommended defaults (proceed under these unless Hamm overrides): (1) retain frozen 100-point checklist; report prepublication readiness separately; (2) keep ephaptic experimental unless physical interpretation and numerical correctness are established; (3) frozen evidence and numerical criteria need Hamm before change; (4) publication remains exact-SHA owner authorization.
-- Canonical open rows: `open_stack.md` (O-FIG05, O-73, O-75, O-S23, O-PRE, Crazy Sailor O-1..O-4, O-6, O-8, O-9). Solmind decision gates S01-S23: plan §9; the ranked 0.5.10 decision list: plan §10.3.
+- Canonical open rows: `open_stack.md` (O-FIG05, O-73, O-75, O-PRE, Crazy Sailor O-1..O-4, O-6, O-8, O-9). Solmind decision gates S01-S23: plan §9; the ranked 0.5.10 decision list: plan §10.3.
 
 ## Next agent — grab remote and continue
 
@@ -43,4 +43,4 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 ## Environment
 
 - Windows (py 3.14) / WSL `~/venv_jaxfne` (CUDA) / macOS arm64 (py 3.13, jax 0.10.1); warehouse `F:/warehouse/`.
-- Remote branches: `main`, `dev`, `gh-pages`, plus `_temp_tfne-manuscript` (P-066 repair 98d42ce4, R17, held on S23) and `_temp_onum` (kept by Hamm until its evidence and integration status are reconciled; its tip 948a5242 is an ancestor of dev). `_temp_solmind_0510_plans`, `_temp_r70` and `_temp_p058` retired 2026-11-21 after merge into `dev`. Jomission `_temp_solmind` is separate and unaffected.
+- Remote branches: `main`, `dev`, `gh-pages`, plus `_temp_clean1` (cleanup swarm, contains R17) and `_temp_onum` (kept by Hamm until its evidence and integration status are reconciled; its tip 948a5242 is an ancestor of dev). `_temp_solmind_0510_plans`, `_temp_r70` and `_temp_p058` retired 2026-11-21 after merge into `dev`. Jomission `_temp_solmind` is separate and unaffected.
