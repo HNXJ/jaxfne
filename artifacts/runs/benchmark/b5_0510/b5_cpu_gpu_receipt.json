@@ -1,0 +1,86 @@
+{
+  "code_sha": "8414e390828251dca153fbf0b881f5694a51bb35",
+  "contract_pass": true,
+  "cpu_device": "cpu:0",
+  "default_backend": "gpu",
+  "dt_ms": 0.5,
+  "dtype": "float32",
+  "duration_ms": 200.0,
+  "duration_s": 4.137,
+  "gpu_device": "cuda:0",
+  "gpu_device_kind": "NVIDIA RTX A4000",
+  "host": "WSL Ubuntu, venv ~/venv_jaxfne",
+  "jax": "0.10.1",
+  "jaxlib": "0.10.1",
+  "max_abs_dV_mV": {
+    "eager": 9.5367431640625e-07,
+    "seed_batch": 9.5367431640625e-07
+  },
+  "packet": "B5",
+  "paths": {
+    "eager": {
+      "11": {
+        "V_m_within_contract": true,
+        "max_abs_dV_mV": 9.5367431640625e-07,
+        "spikes_bitwise_equal": true,
+        "spikes_cpu": 375,
+        "spikes_gpu": 375
+      },
+      "12": {
+        "V_m_within_contract": true,
+        "max_abs_dV_mV": 9.5367431640625e-07,
+        "spikes_bitwise_equal": true,
+        "spikes_cpu": 373,
+        "spikes_gpu": 373
+      },
+      "13": {
+        "V_m_within_contract": true,
+        "max_abs_dV_mV": 9.5367431640625e-07,
+        "spikes_bitwise_equal": true,
+        "spikes_cpu": 367,
+        "spikes_gpu": 367
+      }
+    },
+    "seed_batch": {
+      "11": {
+        "V_m_within_contract": true,
+        "max_abs_dV_mV": 9.5367431640625e-07,
+        "spikes_bitwise_equal": true,
+        "spikes_cpu": 375,
+        "spikes_gpu": 375
+      },
+      "12": {
+        "V_m_within_contract": true,
+        "max_abs_dV_mV": 9.5367431640625e-07,
+        "spikes_bitwise_equal": true,
+        "spikes_cpu": 373,
+        "spikes_gpu": 373
+      },
+      "13": {
+        "V_m_within_contract": true,
+        "max_abs_dV_mV": 9.5367431640625e-07,
+        "spikes_bitwise_equal": true,
+        "spikes_cpu": 367,
+        "spikes_gpu": 367
+      }
+    }
+  },
+  "poisson_drive": {
+    "amplitude": 100.0,
+    "rate_hz": 50.0
+  },
+  "pytest_summary": "2 passed, 6 warnings in 14.39s",
+  "seeds": [
+    11,
+    12,
+    13
+  ],
+  "test_file": "tests/test_lif_cpu_gpu_b5.py",
+  "tolerance": {
+    "V_m_mV": {
+      "atol": 0.0001,
+      "rtol": 0.0
+    },
+    "spikes": "bitwise at every step"
+  }
+}
