@@ -95,9 +95,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 18. T-87 [A] F4 scored benchmark across N on CPU and the A4000 with recording controls (checklist B1-B3, 10 pts).
     Closes when: the receipt records all 6 metrics and is evaluated against the purchase gate.
-19. T-B5 [A] LIF edge kernel on GPU (checklist B5, 2 pts). Tolerance ruled 2026-11-23: spikes bitwise, V_m atol
-    1e-4 mV (T-32c seed-batch contract). Closes when: a CPU-vs-GPU test (skips without a GPU) passes on WSL cuda:0
-    and its receipt is committed.
 20. T-C1 [A] (moved to 0.5.11, Hamm 2026-11-23) Augmentation ensemble study with provenance and the Fig. S7 panel (checklist C1, 4 pts). Closes when:
     Fig. S7 renders from pinned receipts. Blocked by: S17.
 21. T-92 [A] 0.5.10 exit gates 1-5 (30 pts): broad gate, CI, replications audit and dashboard fresh on one SHA;

@@ -296,7 +296,7 @@ commits behind), the broad gate on the merge SHA, review ACCEPT, and the P-066 r
 | A2 (3) | open | lead | none | S4 from the schema; identity, topology, signs, positions kept, each by a test | R29 |
 | B2 (3) | open | lead | GPU route (WSL CUDA) for the GPU half | hash-pinned CPU and GPU receipts under signed B1 | R31, R32 |
 | B3 (4) | open | lead | baseline libraries on the host | receipt per baseline or a recorded class mismatch | R33 |
-| B5 (2) | open | lead | GPU route | GPU equals CPU within the declared tolerance | R34 |
+| B5 (2) | met 2026-11-23 (receipt SHA 8414e390; counts only at the candidate SHA, §4) | lead | none | GPU equals CPU within the declared tolerance | `tests/test_lif_cpu_gpu_b5.py` on WSL cuda:0 at the candidate; receipt `artifacts/runs/benchmark/b5_0510/b5_cpu_gpu_receipt.json` |
 | C1 (4) | blocked | Hamm | S17 (R36 prereg signature) | S7 from pinned receipts | sign, or move with a dated ruling |
 | D3 (2) | blocked | Hamm | S10 (Mejias P3 signature) | G6 scored | sign, or move |
 | F5 (1.5) | open (AdEx, LIF, `Model.tune` batching) | lead | none | each with its test | R39 / T-F5 |
