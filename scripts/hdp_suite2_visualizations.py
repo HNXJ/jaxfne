@@ -202,7 +202,8 @@ def main() -> None:
     }
 
     nt = model.neuron_table()
-    z = np.array([float(r["z"]) for r in nt])
+    # P-066: neuron_table z is mm for laminar columns; the rescale maps relative depth.
+    z = np.array([float(r["z"]) for r in nt]) / float(model.params.get("column_height_mm", 1.0))
     z_rescaled = CONTACT_DEPTH_LO + z * (CONTACT_DEPTH_HI - CONTACT_DEPTH_LO)
     pos_from_l4 = z_rescaled * COLUMN_HEIGHT_M - 0.60 * COLUMN_HEIGHT_M  # L4 mid-band ~0.60 in rescaled depth
     neurons_df = pd.DataFrame({

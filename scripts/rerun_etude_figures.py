@@ -111,7 +111,7 @@ def _verify_multiscale_claims(bundle_metrics: dict, spikes, V, Q, positions, col
     # fraction-based value by about 2e-8 relative; a wrong height or unit misses by about 2e-2.
     r90 = mean_r90(np.asarray(fo.kernel), z, np.asarray(fo.contact_depths))
     want_r90 = m["r90"]["lfp_ref"]
-    if abs(r90 - want_r90) > 1e-6 * abs(want_r90):
+    if not abs(r90 - want_r90) <= 1e-6 * abs(want_r90):  # a NaN r90 fails too
         raise SystemExit(f"r90 lfp_ref mismatch (rel tol 1e-6): {r90} vs {want_r90}")
     burn = int(round(200.0 / 0.5))
     freqs = np.linspace(1.0, 150.0, 96).astype(np.float32)
