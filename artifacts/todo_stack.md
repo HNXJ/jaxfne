@@ -29,9 +29,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Tier 1: blocked on a ruling
 
-- T-FIG05 [H then A] re-freeze equivalence-gate fig05 and its C3 receipt under change control, or render panel C from
-  frozen V_m; print stdout in `_run_gate` failures. Closes when: `tests/test_equivalence_gate_v20260815.py` passes on
-  darwin (O-FIG05, `assurance/mac_gate_attribution.md`).
+- T-FIG05 [A] re-freeze equivalence-gate fig05 and its C3 receipt under change control (Hamm 2026-11-23, plan §10.3
+  item 10); print stdout in `_run_gate` failures. The freeze platform is macOS with matplotlib 3.10.9
+  (`equivalence_gate.py` `byte_identity_pinned`), so a render from Windows or Linux cannot be the freeze. Closes when:
+  `tests/test_equivalence_gate_v20260815.py` passes on darwin (O-FIG05, `assurance/mac_gate_attribution.md`).
+  Blocked by: Mac access (T-MAC; `ssh vmac` timed out 2026-11-23).
 - T-MAC [nonblocking; O-NUM closed 2026-11-22] macOS validation. Run `scripts/internal/onum_measure.py`, the
   five darwin-skipped tests (forced to run) and `tests/test_adex_route.py` / `tests/test_lif_tensor_route.py` on a
   Mac, and record per-test maxima with the environment and SHA in `o_num_ruling_packet.md`. Until then macOS stays

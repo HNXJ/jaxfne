@@ -7,7 +7,7 @@ Each line has its todo row, named in the line.
 
 ## Hamm's calls (0.5.10 review, asked one at a time in this order)
 
-- O-FIG05 equivalence-gate fig05 frozen PNG stale after a disclosed noise-stream change (865e74bb, 2026-09-24; inferred from C3 estimator bisect); CI Linux runs the gate informationally; re-freeze under change control ruled 2026-11-23 (plan §10.3 item 10) | agent | since 2026-11-15 | closes when `tests/test_equivalence_gate_v20260815.py` passes after the re-freeze (T-FIG05; darwin run under T-MAC)
+- O-FIG05 equivalence-gate fig05 frozen PNG stale after a disclosed noise-stream change (865e74bb, 2026-09-24; inferred from C3 estimator bisect); CI Linux runs the gate informationally; re-freeze under change control ruled 2026-11-23 (plan §10.3 item 10) | agent; blocked on Mac access | since 2026-11-15 | closes when `tests/test_equivalence_gate_v20260815.py` passes on darwin after the re-freeze (T-FIG05, T-MAC)
 - O-73 `population_rates` takes `dt` in seconds positionally (`jaxfne/analysis/metrics.py:1139`); positional ms gives 1000x wrong rates with only a DeprecationWarning; Hamm 2026-11-23: remove `dt`/`discard_s` in 0.5.10 (plan §10.4 option a) | agent | since 2026-11-14 | closes when `population_rates(c, 0.1, sizes)` raises TypeError naming `dt_ms`, red on the old code (plan R07)
 
 ## Crazy Sailor exploration (2026-11-19)
