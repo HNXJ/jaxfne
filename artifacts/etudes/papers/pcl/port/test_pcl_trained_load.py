@@ -1,6 +1,6 @@
 """Acceptance tests for loading the trained PCL network and the numba run path (port stage A).
 
-Spec: artifacts/etudes/pcl/PORT_SPEC.md. Reference: pcl_event_ref.py (pure Python), pcl_event_ref_numba.py.
+Spec: artifacts/etudes/papers/pcl/PORT_SPEC.md. Reference: pcl_event_ref.py (pure Python), pcl_event_ref_numba.py.
 The lateral and top-down maps (<n>li.npy, <n>tdi.npy) of the trained network load in the emulated
 libstdc++ order (libstdcxx_umap.py; pcl_event_ref.py docstring), so the full-network tests run unmarked.
 """

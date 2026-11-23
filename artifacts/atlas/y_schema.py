@@ -181,11 +181,6 @@ def validate(rec: Mapping[str, Any]) -> list[str]:
     return errors
 
 
-def gap_row(rec: Mapping[str, Mapping[str, Any]]) -> dict[str, str]:
-    """Cell states of one record (one column of the Y x AT gap matrix)."""
-    return {key: cell["state"] for key, cell in rec.items()}
-
-
 # ---------------------------------------------------------------------------
 # Extractors: scenario raw dict -> produced values. Each reads only keys the
 # scenario's runner writes (at01_at06_052, at07_at04_053, at08_at09_054,

@@ -182,6 +182,7 @@ def test_fig_2c_raster_with_meanfield(run_dir):
     assert all(points[name] > 0 for name in ps.POP_NAMES)
     # one time axis in ms shared by all three rows (the MF row was in s before)
     assert fig.axes[0].get_xlim() == fig.axes[2].get_xlim()
+    assert fig.axes[0].get_lines(), "MF axis must draw a trace"
     assert all(line.get_xdata().max() > 1000.0 for line in fig.axes[0].get_lines())
     # markers visible at print size (>= 2 px stroke)
     sizes = [s for c in raster_ax.collections for s in np.atleast_1d(c.get_sizes())]

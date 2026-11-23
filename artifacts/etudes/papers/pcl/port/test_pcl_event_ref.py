@@ -1,4 +1,4 @@
-"""Acceptance tests for the PCL event-exact reference (port stage A). Spec: artifacts/etudes/pcl/PORT_SPEC.md."""
+"""Acceptance tests for the PCL event-exact reference (port stage A). Spec: artifacts/etudes/papers/pcl/PORT_SPEC.md."""
 
 from __future__ import annotations
 

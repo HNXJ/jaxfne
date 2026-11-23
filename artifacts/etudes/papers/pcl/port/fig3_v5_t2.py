@@ -1,6 +1,6 @@
 """T2 scorer of the signed PCL Fig. 3 preregistration v5.
 
-Implements exactly ``artifacts/etudes/pcl/prereg/P3_fig3_v5.md`` sections
+Implements exactly ``artifacts/etudes/papers/pcl/prereg/P3_fig3_v5.md`` sections
 "Reference curves", "T2 procedure" and "T2 criterion". Synthetic data only:
 nothing here may be run on the scored outputs until the preregistration is
 signed; the CLI refuses ``F:/warehouse/pcl/runs/*`` unless ``--signed`` is

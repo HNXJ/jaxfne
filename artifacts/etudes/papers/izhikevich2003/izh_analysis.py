@@ -1,6 +1,6 @@
 """Detectors and estimators for the Izhikevich 2003 P3 study.
 
-Spec: ``artifacts/etudes/izhikevich2003/PREREG_P3.md`` ("Fig. 2" time and window
+Spec: ``artifacts/etudes/papers/izhikevich2003/PREREG_P3.md`` ("Fig. 2" time and window
 rules, "Fig. 3", "Peak excess", "Detector calibration").
 
 Times are integer kernel rows. Row k is stamped (k + 1) dt, the input of row k

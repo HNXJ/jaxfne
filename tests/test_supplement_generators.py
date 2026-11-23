@@ -14,10 +14,11 @@ from types import ModuleType
 import numpy as np
 import pytest
 
+from _shared_fixtures import PNG_MAGIC
+
 REPO = Path(__file__).resolve().parents[1]
 GENERATOR = REPO / "scripts/publication_figures/supplement.py"
 DEFINITION_MAP = REPO / "docs/theory/doctrine/definition_map.md"
-PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 
 
 def _load_generator() -> ModuleType:

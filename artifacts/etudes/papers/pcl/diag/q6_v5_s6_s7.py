@@ -1,10 +1,10 @@
 """Unscored diagnostic: sensitivities S6 and S7 of the v5 T2 scorer.
 
-Declared in artifacts/etudes/pcl/prereg/P3_fig3_v5.md: A2 gives S6 (K/k from the
+Declared in artifacts/etudes/papers/pcl/prereg/P3_fig3_v5.md: A2 gives S6 (K/k from the
 measured stimulus periods), A3 gives S7 (response window from 62.5 ms). Reads the
 scored run tree and the stimulus tree (np.load, allow_pickle=False). Writes one
 thing: a new section appended once to
-artifacts/etudes/pcl/prereg/P3_fig3_diagnostic.md. Nothing is scored; the scorer,
+artifacts/etudes/papers/pcl/prereg/P3_fig3_diagnostic.md. Nothing is scored; the scorer,
 the result file and scores/ are not touched. Run with -I. A second run refuses to
 append a duplicate section.
 

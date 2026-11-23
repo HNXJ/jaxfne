@@ -21,13 +21,14 @@ class TestJaxleyLazyLoading:
             "jaxley" not in sys.modules
         ), "jaxley should not be imported when importing jaxfne"
 
-    def test_require_jaxley_fails_without_install(self):
+    def test_require_jaxley_fails_without_install(self, monkeypatch):
         """require_jaxley() should fail loudly if jaxley is not installed."""
         import jaxfne as jtfne
 
-        # We can't actually test this without uninstalling jaxley, but we can
-        # verify the function exists and would have the right error message.
-        assert callable(jtfne.require_jaxley)
+        # A None entry in sys.modules makes `import jaxley` raise ImportError.
+        monkeypatch.setitem(sys.modules, "jaxley", None)
+        with pytest.raises(ImportError, match="requires 'Jaxley'"):
+            jtfne.require_jaxley()
 
     def test_jaxley_bridge_available_in_api(self):
         """JaxleyBridge should be available in public API."""

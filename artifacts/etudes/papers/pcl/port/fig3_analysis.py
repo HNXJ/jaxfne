@@ -1,6 +1,6 @@
 """Fig. 3 analysis: preregistered simple/complex tuning tests T1-T4.
 
-Implements exactly the estimands of ``artifacts/etudes/pcl/prereg/P3_fig3.md``
+Implements exactly the estimands of ``artifacts/etudes/papers/pcl/prereg/P3_fig3.md``
 (draft v4, cited per function as P3 sections). Synthetic data only: nothing
 here may be run on the scored outputs until the preregistration is signed; the
 CLI refuses ``F:/warehouse/pcl/runs/*`` unless ``--signed`` is passed.

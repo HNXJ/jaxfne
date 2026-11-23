@@ -2,7 +2,7 @@
 
 Reference model: Tahvili, Vinck, di Volo, PLoS Comput Biol 2026
 (PMC13286281, CC-BY), Methods Eqs. 15-18, Tables 1-2. Every biophysical
-value below comes from ``artifacts/etudes/caminos/PORT_SPEC.md``; nothing
+value below comes from ``artifacts/etudes/papers/caminos/PORT_SPEC.md``; nothing
 is invented. Whether these equal the Cell Reports 2025 network is an open
 assumption until its STAR Methods are read (see PORT_SPEC.md).
 

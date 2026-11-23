@@ -1,4 +1,4 @@
-"""Acceptance tests for the time-binned JAX port (port stage B). Spec: artifacts/etudes/pcl/PORT_SPEC.md.
+"""Acceptance tests for the time-binned JAX port (port stage B). Spec: artifacts/etudes/papers/pcl/PORT_SPEC.md.
 
 Gate L1-G2 is test (b): per-cell simple and complex spike-count Pearson r >= 0.95 and totals within
 5 % of stage A, at dt = 100 us, with no missed cascade crossings. The tolerances are not loosened;

@@ -7,22 +7,20 @@
 
 from __future__ import annotations
 
-import importlib.util
 import json
 import pathlib
 import types
 
 import numpy as np
 
+from _shared_fixtures import load_module
+
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 RUN_IZH_PATH = REPO_ROOT / "artifacts" / "etudes" / "papers" / "izhikevich2003" / "run_izh.py"
 
 
 def _load_run_izh() -> types.ModuleType:
-    spec = importlib.util.spec_from_file_location("run_izh_t23", RUN_IZH_PATH)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    return load_module("run_izh_t23", RUN_IZH_PATH)
 
 
 def test_seed_defaults_to_whole_network_all():

@@ -14,6 +14,8 @@ import types
 import numpy as np
 import pytest
 
+from _shared_fixtures import load_module
+
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 MODULE_PATH = REPO_ROOT / "artifacts" / "etudes" / "papers" / "izhikevich2003" / "izh_analysis.py"
 DT_MS = 0.1  # kernel dt of the Fig. 2 runs; 10 ms = 100 rows
@@ -273,10 +275,7 @@ NETREF_PATH = REPO_ROOT / "artifacts" / "etudes" / "papers" / "izhikevich2003" /
 
 
 def _load_run_izh() -> types.ModuleType:
-    spec = importlib.util.spec_from_file_location("run_izh", RUN_IZH_PATH)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    return load_module("run_izh", RUN_IZH_PATH)
 
 
 def _load_netref() -> types.ModuleType:

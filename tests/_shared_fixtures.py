@@ -6,7 +6,9 @@ differs (extra fields, different signature) stays in its own test module.
 
 from __future__ import annotations
 
+import importlib.util
 import json
+import types
 
 import jax.numpy as jnp
 
@@ -76,3 +78,14 @@ def _isolated_neuron_params() -> IzhikevichParams:
 def load_score(path):
     """The stored score document at path (one scorer's score.json)."""
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_module(name, path) -> types.ModuleType:
+    """Execute the file at path as a module named name (not registered in sys.modules)."""
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"

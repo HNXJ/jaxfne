@@ -11,11 +11,12 @@ from types import ModuleType
 
 import pytest
 
+from _shared_fixtures import PNG_MAGIC
+
 REPO = Path(__file__).resolve().parents[1]
 GENERATOR = REPO / "scripts/publication_figures/fig07_validation.py"
 PCL_SCORE = REPO / "artifacts/etudes/papers/pcl/prereg/scores/fig3_v4_full.json"
 VOGELS_SCORE = REPO / "artifacts/etudes/papers/vogels2011/run/p3_v4_score.json"
-PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 
 
 def _load_generator() -> ModuleType:

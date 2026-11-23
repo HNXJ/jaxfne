@@ -109,6 +109,7 @@ def test_mechanism_identity_survives_the_bridge(pipeline):
     """The rule's declared mechanism reaches the executed edges."""
     _, _, model, _ = pipeline
     receptors = {e["receptor_type"] for e in model.edge_table()}
+    assert receptors, "fixture must realize edges"
     assert all(r.startswith("AMPA") for r in receptors), receptors
 
 

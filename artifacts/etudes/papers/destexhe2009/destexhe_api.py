@@ -2,7 +2,7 @@
 
 Builds the cortical self-sustained AI network (Fig. 6B, S2) from the jaxfne
 public API and runs it through the AdEx route exactly as
-``artifacts/etudes/caminos/caminos_api.py`` does: ``construct`` the model,
+``artifacts/etudes/papers/caminos/caminos_api.py`` does: ``construct`` the model,
 swap in the Destexhe cell parameters (``jaxfne.adex_destexhe``, a core
 component), then call the model's compiled ``adex_kernel_args`` /
 ``adex_external_drive_kwargs`` through the core kernel
