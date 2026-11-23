@@ -19,10 +19,8 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Tier 0: Solmind 0.5.10 execution (Hamm's go 2026-11-21, S19)
 
-0. T-DASH-P068 [A] P-068 repaired 2026-11-23. Left: confirm the Dashboard workflow green on dev, then move P-068 to
-   a closed batch; add a unit test that feeds `_verify_multiscale_claims` a height-free projection and expects
-   SystemExit. Closes when: that test passes, fails with the rel 1e-6 check removed, and the Dashboard is green on
-   dev. Blocked by: none.
+0. T-DASH-P068 [A] P-068 repaired 2026-11-23 (claims check pinned by `tests/test_rerun_etude_claims_p068.py`).
+   Left: move P-068 to a closed batch. Closes when: the Dashboard workflow is green on dev. Blocked by: none.
 
 1. T-PLAN-EXECUTE [A] Work the tasks of `artifacts/programme/design/plans/solmind/solmind_0510_plan.md` (R01-R72,
    gates S01-S23; reviewed, audit 3 ACCEPT) at most 3 lanes including reviewers; a row runs only when its own gates
