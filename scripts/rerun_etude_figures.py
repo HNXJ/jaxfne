@@ -107,8 +107,12 @@ def _verify_multiscale_claims(bundle_metrics: dict, spikes, V, Q, positions, col
     )
     # P-066: positions carry mm z; the contacts are relative depth, so z is divided by the height.
     z = np.asarray(positions)[:, 2] / column_height_mm
-    if mean_r90(np.asarray(fo.kernel), z, np.asarray(fo.contact_depths)) != m["r90"]["lfp_ref"]:
-        raise SystemExit("r90 lfp_ref mismatch (geometry should be hash-exact)")
+    # Hamm 2026-11-23 (P-068): rel 1e-6, since float32 mm z divided by the height misses the frozen
+    # fraction-based value by about 2e-8 relative; a wrong height or unit misses by about 2e-2.
+    r90 = mean_r90(np.asarray(fo.kernel), z, np.asarray(fo.contact_depths))
+    want_r90 = m["r90"]["lfp_ref"]
+    if abs(r90 - want_r90) > 1e-6 * abs(want_r90):
+        raise SystemExit(f"r90 lfp_ref mismatch (rel tol 1e-6): {r90} vs {want_r90}")
     burn = int(round(200.0 / 0.5))
     freqs = np.linspace(1.0, 150.0, 96).astype(np.float32)
     for key, arr in (
