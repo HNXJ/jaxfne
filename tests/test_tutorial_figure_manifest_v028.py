@@ -12,6 +12,7 @@ Validates:
 8. Metadata integrity
 """
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -119,6 +120,14 @@ class TestFigurePaths:
             path = Path(fig["path"])
             size = path.stat().st_size
             assert size > 1024, f"Figure too small ({size} bytes): {path}"
+
+    def test_all_figures_match_recorded_sha256(self, manifest):
+        """Each figure's bytes must equal the sha256 the manifest records."""
+        repo = Path(__file__).resolve().parents[1]
+        assert manifest["figures"], "manifest must list figures"
+        for fig in manifest["figures"]:
+            digest = hashlib.sha256((repo / fig["path"]).read_bytes()).hexdigest()
+            assert digest == fig["sha256"], f"Figure bytes changed without a manifest update: {fig['path']}"
 
 
 class TestFigureMetadata:

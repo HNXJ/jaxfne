@@ -14,6 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import hashlib
 import json
 import argparse
 
@@ -426,6 +427,7 @@ def main():
                 "visually_confirmed": False,  # To be updated in Phase E
                 "visual_status": "pending",
                 "readout_status": "simulated_proxy",
+                "sha256": hashlib.sha256((output_dir / fig["filename"]).read_bytes()).hexdigest(),
             }
             for fig in figures_metadata
         ],

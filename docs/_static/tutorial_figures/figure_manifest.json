@@ -19,7 +19,8 @@
       "path": "docs/_static/tutorial_figures/01_spike_raster.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "readout_status": "simulated_proxy"
+      "readout_status": "simulated_proxy",
+      "sha256": "2928a8c1f904f5ec7b6bb0bdee4a3ce5804d0c564ee160a7940983f5a52401eb"
     },
     {
       "filename": "02_voltage_traces.png",
@@ -29,7 +30,8 @@
       "path": "docs/_static/tutorial_figures/02_voltage_traces.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "readout_status": "simulated_proxy"
+      "readout_status": "simulated_proxy",
+      "sha256": "6e4a00eda09f8ab768e5b316fe28be78eee485e1e045fcafe8423d28b356c8ad"
     },
     {
       "filename": "03_source_proxy_heatmap.png",
@@ -39,7 +41,8 @@
       "path": "docs/_static/tutorial_figures/03_source_proxy_heatmap.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "readout_status": "simulated_proxy"
+      "readout_status": "simulated_proxy",
+      "sha256": "a9b6ca17fe4b6c3b3f5eff5fca9e54c9651be38585c34d00beaebe3ca49e840e"
     },
     {
       "filename": "04_lfp_proxy_trace.png",
@@ -49,7 +52,8 @@
       "path": "docs/_static/tutorial_figures/04_lfp_proxy_trace.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "readout_status": "simulated_proxy"
+      "readout_status": "simulated_proxy",
+      "sha256": "6c99df9e84eead85b12eaa5e87d34d273cd5eeb06c66e5db9be08f8705c12dbe"
     },
     {
       "filename": "05_csd_proxy_heatmap.png",
@@ -59,7 +63,8 @@
       "path": "docs/_static/tutorial_figures/05_csd_proxy_heatmap.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "readout_status": "simulated_proxy"
+      "readout_status": "simulated_proxy",
+      "sha256": "b4e5ec722976fc76e0a09e6805d46bc8b9616173fe14c58974ea1be36e8dd7b7"
     },
     {
       "filename": "06_phi_e_proxy_heatmap.png",
@@ -69,7 +74,8 @@
       "path": "docs/_static/tutorial_figures/06_phi_e_proxy_heatmap.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "readout_status": "simulated_proxy"
+      "readout_status": "simulated_proxy",
+      "sha256": "0b4b824e199eb20bd6138ffcf20751786fd3e4d63afb2da366bc2b4b22159a47"
     },
     {
       "filename": "07_source_proxy_spatial.png",
@@ -79,7 +85,8 @@
       "path": "docs/_static/tutorial_figures/07_source_proxy_spatial.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "readout_status": "simulated_proxy"
+      "readout_status": "simulated_proxy",
+      "sha256": "c0849bce5ba043a7a0dd691b60c4753f47e88bc498d80c0cc24479439c3fcd43"
     },
     {
       "filename": "08_conservation_diagnostics.png",
@@ -89,7 +96,8 @@
       "path": "docs/_static/tutorial_figures/08_conservation_diagnostics.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "readout_status": "simulated_proxy"
+      "readout_status": "simulated_proxy",
+      "sha256": "543bffaa493e028391174624f744081aa65d9b6dd0935c4ce4067b3262e136af"
     },
     {
       "filename": "09_laminar_profile_depths.png",
@@ -99,7 +107,8 @@
       "path": "docs/_static/tutorial_figures/09_laminar_profile_depths.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "readout_status": "simulated_proxy"
+      "readout_status": "simulated_proxy",
+      "sha256": "6ee361ccf4ec1dd4d2cd8d12e154e35b426533cf7fcd779eb9460a59665f80cf"
     },
     {
       "filename": "10_firing_rate_raster.png",
@@ -109,7 +118,8 @@
       "path": "docs/_static/tutorial_figures/10_firing_rate_raster.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "readout_status": "simulated_proxy"
+      "readout_status": "simulated_proxy",
+      "sha256": "87850cbd2c2ebcce5397eeb34a96de9e37f308a0eefcc9fca775479f2db8a8e0"
     },
     {
       "filename": "11_status_summary.png",
@@ -119,7 +129,8 @@
       "path": "docs/_static/tutorial_figures/11_status_summary.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "readout_status": "simulated_proxy"
+      "readout_status": "simulated_proxy",
+      "sha256": "2334cfacb614e3adddcf376fa8da88da39734c4136a312b031990824811aa593"
     },
     {
       "filename": "12_spectral_summary.png",
@@ -129,7 +140,8 @@
       "path": "docs/_static/tutorial_figures/12_spectral_summary.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "readout_status": "simulated_proxy"
+      "readout_status": "simulated_proxy",
+      "sha256": "62c50455306b408fd045da9d1fa8dfc51e2b47821e4b6e6dd0e1ecf01db6ea52"
     }
   ]
 }

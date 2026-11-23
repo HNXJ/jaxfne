@@ -9,7 +9,6 @@ CLI refuses ``F:/warehouse/pcl/runs/*`` unless ``--signed`` is passed.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import math
 import os
@@ -756,10 +755,6 @@ def main(argv=None):
     Path(args.out).write_text(json.dumps(res, indent=2) + "\n", encoding="utf-8")
     print(f"wrote {args.out} all_pass={res['all_pass']}")
     return 0
-
-
-def _sha256_of_this_file():
-    return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 
 
 if __name__ == "__main__":

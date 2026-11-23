@@ -380,6 +380,8 @@ Owner decisions, ranked:
 6. **Owner-only prose** (swarm C, `S-` ids in its report): public README agent pointer vs `fact_stack.md:138` (S-08); G-2 path in `goal_stack.md:8` (S-09); quickstart drops "relative-unit proxies" (S-21); `memory.md` header rule vs its run-id contents (S-12); "FieldProxy" vs "Field" in the glossary grammar (D-03).
 7. **Large refactors** (1000-line kernels in `emitters.py`, `emitters_adex.py`, `emitters_lif.py`; module splits). Options: (a) defer past 0.5.10 (recommended; bitwise receipts pin them); (b) start now.
 
+Ruling (Hamm 2026-11-22): all recommendations approved. Applied on `_temp_clean1`: 1 supplement text amended; 2 helper deleted, signed pcl outputs bound by git SHA; 3 the three neuron-sweep scripts deleted, the other four kept; 5 skipped test removed, tutorial figure manifest pins each PNG's sha256 (generator writes it, `test_all_figures_match_recorded_sha256` checks it). 4 and 7 deferred past publication and 0.5.10. 6 had no recommendation and stays open.
+
 Executable next without a ruling: shared real-number check (13 sites), `_check_edges` prefix (lif/adex), `neuron_table()` hoist in `canonical_compact_summary`, 27 silent `except: pass` outside frozen modules (after `tests/test_silent_fallbacks_audit.py`), dated history comments in code, b1 lane duplicate helpers, broken paths in `artifacts/etudes/papers/pcl/diag/diag_common.py:25,28`.
 
 ## Appendix A. Execution plans of 2026-10-31 (verbatim)

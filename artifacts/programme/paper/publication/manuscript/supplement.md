@@ -780,7 +780,7 @@ This supplement preserves the frozen receipts byte-for-byte; defects are **discl
 
 **Defect:** V1 executor `e2b_v1_executor.py` introduced four post-freeze invented conjuncts not in frozen classifier strings: `xcorr_shifted<0.20` (linear-roll null), `plv_surr<0.25`, `stationarity(3dB/5Hz)`, `OptionA |dfp|<=5` folded into G_spec; plus plain-string unit variables (`prom_dB` etc) with no type safety. Also `rayleigh_p` stored as exact `0.0` (underflow; log-p needed), `burn_in_ms` never discarded, `theta*.W_ms=60` dead in V1 (H7 compatibility-only).
 
-**Repair (infrastructure before V2):** `artifacts/e2/e2_exec/e2_exec_lib.py:1-140` — `R1` JSON-generated gate predicates (`compile_gate` parses `G_spec/G_rate/G_phase/G_cycle` strings with constants ONLY from JSON, `PingGates` loads at runtime), `R2` typed unit wrappers `Deg/Ms/dB/Hz` with `require_unit` assertions. Verdict-neutral: adversary rescoring with exactly the four frozen strings still yields **0/5 PING_LIKE** (`v1_rescored_frozen_only.json` independent rescorer, shares no code with executor).
+**Repair (infrastructure before V2):** `artifacts/e2/e2_exec/e2_exec_lib.py:1-140` — `R1` JSON-generated gate predicates (`compile_gate` parses `G_spec/G_rate/G_phase/G_cycle` strings with constants ONLY from JSON, `PingGates` loads at runtime), `R2` typed unit wrappers `Deg/Ms/dB/Hz` with `require_unit` assertions (defined; no executor calls them). Verdict-neutral: adversary rescoring with exactly the four frozen strings still yields **0/5 PING_LIKE** (`v1_rescored_frozen_only.json` independent rescorer, shares no code with executor).
 
 #### R-B / R-C / R-D — fold_in seed derivation vs salted hash, independent rescoring
 

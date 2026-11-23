@@ -3,7 +3,6 @@
 Validates that all 4 core tutorials generate:
 - manifest.json, probe_report.json, metrics.json, validation_report.json, asset_hashes.json
 - figures/ directory with at least one static PNG image
-- figure metadata in asset_hashes
 - all data is finite/nonzero/non-flat as expected
 """
 
@@ -115,32 +114,6 @@ class TestTutorialFigureContract:
         for png_file in figures_dir.glob("*.png"):
             size = png_file.stat().st_size
             assert size > 0, f"Figure {png_file.name} is zero bytes in {name}"
-
-    @pytest.mark.skip(reason="legacy output artifact contract superseded by v0.2.28 canonical tutorial figure manifest (docs/_static/tutorial_figures/figure_manifest.json); validation moved to test_tutorial_figure_manifest_v028.py")
-    @pytest.mark.parametrize("name,path", TUTORIAL_OUTPUTS)
-    def test_figure_hash_in_assets(self, tutorial_outputs, name, path):
-        """DEPRECATED: Test that figure hashes are in asset_hashes.json.
-
-        Legacy test for v0.2.19 output artifact contract. Superseded by canonical
-        v0.2.28 tutorial figure manifest validation in test_tutorial_figure_manifest_v028.py.
-
-        The v0.2.28+ canonical figure system is:
-        - docs/_static/tutorial_figures/figure_manifest.json (source of truth)
-        - scripts/generate_tutorial_figures.py (generation script)
-        - test_tutorial_figure_manifest_v028.py (validation test)
-
-        Runtime outputs/ directories contain ephemeral artifacts and are no longer
-        part of the release contract.
-        """
-        outdir = tutorial_outputs / path
-        hashes_file = outdir / "asset_hashes.json"
-        with open(hashes_file) as f:
-            asset_hashes = json.load(f)
-
-        figures_dir = outdir / "figures"
-        for png_file in figures_dir.glob("*.png"):
-            rel_path = f"figures/{png_file.name}"
-            assert rel_path in asset_hashes, f"Figure {rel_path} not in asset_hashes in {name}"
 
     @pytest.mark.parametrize("name,path", TUTORIAL_OUTPUTS)
     def test_claim_gates_frozen(self, tutorial_outputs, name, path):
