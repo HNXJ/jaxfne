@@ -12,6 +12,9 @@ Each line has its todo row, named in the line.
 - O-74 `_bin_counts`, `fleiss_kappa_binary`, `fano_factor`, `pairwise_cc_binned_disjoint` raise ValueError on non-whole `bin_ms/dt_ms` (0.5.8 rounded) with no deprecation path (`jaxfne/analysis/metrics.py`); refusal in `docs/reference/changelog.md` (0.5.9 Fixed), unpinned | Hamm (release) | since 2026-11-14 | closes when deprecation path or changelog entry is pinned by a test (plan R08, S04)
 - O-75 `fleiss_kappa_binary` changed definition at same name/signature (`jaxfne/analysis/metrics.py:324`: textbook Fleiss; verified 2026-11-21 against tag v0.5.8, whose P_o was the fraction of bins where all neurons agree; verification and changelog record done, changelog 0.5.9 Fixed) | Hamm | since 2026-11-14 | closes when Hamm's S04 ruling keeps the textbook form or reverts it (plan R09)
 
+- O-S23 R17 repin approvals: five repins on `_temp_tfne-manuscript` 98d42ce4, each assessed against the S07 invariant (plan §10.1: all legitimate; positions-only change, edges and dynamics bitwise equal) | Hamm | since 2026-11-22 | closes when Hamm approves or rejects each repin (TASK-UNITS-CSD)
+- O-PRE 0.5.10 owner decisions ranked in plan §10.3 (issue-log Open moves, C1/D3/F6 moves, G2 exceptions, S18, S21, S04, S20, S22) | Hamm | since 2026-11-22 | closes when each item has a dated ruling (T-PLAN-EXECUTE)
+
 ## Crazy Sailor exploration (2026-11-19)
 
 - O-1 Stage-1 title and provisional abstract ("Fixation Boat") not frozen: mismatches implemented 10-neuron LIF model and dense −Δe reward | Hamm | since 2026-11-19 | closes when Hamm picks wording (EX-21)

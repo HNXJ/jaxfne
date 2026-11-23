@@ -243,7 +243,7 @@ Not the canonical `artifacts/open_stack.md`; read it and the issue log first; do
 | S20 | BLOCKED | Frozen Owner row: P-052 surrogate fitness (O-85), T-62 Fig 1D raw data (O-86), a named figure for Lee 2025 and Mazzoni 2015 (O-87) | Hamm | A ruling on each; each yes adds a checklist item. O-85 ruled 2026-11-08 (`ISSUE_LOG.md` P-052; R58); open: O-86, O-87 | R51, R58 |
 | S21 | BLOCKED | Matching host: T-MATCH says "Linux, jax 0.10.2" (dev 3eb6a6a6 `todo_stack.md:57`); `state.md:3` labels a Windows run (022da7a0) the last matching-host broad gate | Hamm | One definition | R04 |
 | S22 | BLOCKED | Compatibility scope beyond the frozen checklist: R71's untested cells (jax 0.4.25-0.9.x inside the pin, Linux, macOS) are not a frozen Gate 2 item | Hamm | Ruling: test the cells, raise the pin floor, or accept the measured matrix for 0.5.10 | R71 |
-| S23 | OPEN (fires per fix) | Repin approvals: an output-changing fix in R17 or R56-R70 that changes a frozen receipt, prereg or pinned record needs Hamm's approval for each repin (§3). R17 audit 2026-11-22 (`_temp_tfne-manuscript` 98d42ce4, 8 commits ahead of dev, 36 behind; 4 files changed on both sides: `ISSUE_LOG.md`, `arxiv_paper_plan.md`, `todo_stack.md`, `jaxfne/fields/proxy.py`): `check_record_integrity.py --check` 255/255, 0 violations, so no pinned record moves. The branch already carries its test repins, for review: in `test_neuronal_tensor_lane6b.py` the edge+position digest 716b415f… splits into an edge digest 0bc6b793… and a position digest 94cb0202…; `tests/canary_register.json` `positions_mean`/`positions_std` move from 0.16978/0.26408 to 0.27021/0.39636; `test_construct_golden_snapshot.py` expects `column_height_mm` in `model.params`; `test_fields_positions_g8.py` passes `column_height_mm` to the projection; `test_neuronal_tensor.py` and `test_neuronal_tensor_connectivity.py` bounds move to mm. Hamm 2026-11-22: repin approval deferred until O-NUM closes; the branch and its eight commits are kept, with no rebase or merge. Each repin is then assessed against its scientific invariant: why the old expectation is invalid and why the new one is correct. A changed digest is not a reason. Order: O-NUM, R17 repin review, R17 integration, R12-R16 | Hamm | Each repin approved with a date, or the fix redesigned to change no pinned record | R17, R56-R70 |
+| S23 | OPEN (fires per fix) | Repin approvals: an output-changing fix in R17 or R56-R70 that changes a frozen receipt, prereg or pinned record needs Hamm's approval for each repin (§3). R17 audit 2026-11-22 (`_temp_tfne-manuscript` 98d42ce4, 8 commits ahead of dev, 36 behind; 4 files changed on both sides: `ISSUE_LOG.md`, `arxiv_paper_plan.md`, `todo_stack.md`, `jaxfne/fields/proxy.py`): `check_record_integrity.py --check` 255/255, 0 violations, so no pinned record moves. The branch already carries its test repins, for review: in `test_neuronal_tensor_lane6b.py` the edge+position digest 716b415f… splits into an edge digest 0bc6b793… and a position digest 94cb0202…; `tests/canary_register.json` `positions_mean`/`positions_std` move from 0.16978/0.26408 to 0.27021/0.39636; `test_construct_golden_snapshot.py` expects `column_height_mm` in `model.params`; `test_fields_positions_g8.py` passes `column_height_mm` to the projection; `test_neuronal_tensor.py` and `test_neuronal_tensor_connectivity.py` bounds move to mm. Hamm 2026-11-22: repin approval deferred until O-NUM closes; the branch and its eight commits are kept, with no rebase or merge. Each repin is then assessed against its scientific invariant: why the old expectation is invalid and why the new one is correct. A changed digest is not a reason. Order: O-NUM, R17 repin review, R17 integration, R12-R16. O-NUM closed 2026-11-22; repin review done (§10.1: all five legitimate, approval recommended) | Hamm | Each repin approved with a date, or the fix redesigned to change no pinned record | R17, R56-R70 |
 
 Planning constraints:
 - Do not add ephaptic claims to the core merely because an operator exists. Require dimensional, numerical, causal-control and physical-interpretation checks; otherwise label it experimental and leave core release scope unchanged.
@@ -251,6 +251,92 @@ Planning constraints:
 - Jomission tutorials are candidate *examples* only; do not import downstream scientific conclusions into JaxFNE library guarantees. Verify license, SHA, dependencies, frozen scientific gates, and public API compatibility.
 - The owner-approved 0.5.10 100-point checklist is unchanged. The 15-stage manuscript programme and its revised figure mapping are separate. Never exchange points between them. Crazy Sailor rows O-1..O-4 and O-6..O-9 are outside the 0.5.10 checklist and stay in the canonical `open_stack.md`.
 - This branch is a temporary planning exception to the three-branch target; integrate the reviewed plan into dev and retire this branch after handoff. Do not alter main, tags, release or PyPI.
+
+## 10. Prepublication checkpoint (lead, 2026-11-22, dev db41015c)
+
+The terminal state is READY_FOR_OWNER_GO (§6). Points come from the frozen checklist
+(`release_plan_0.5.9-0.6.0.md:62-112`). This section adds no criterion. It lists each open item with its owner,
+dependency, acceptance, receipt and current state. The verdict today is NOT READY: 43/100 recorded, issue-log Open
+non-empty, and Gates 1-5 not started.
+
+### 10.1 R17 repin review (S23 evidence, prepared for Hamm)
+
+Method: build the repinned fixtures on dev db41015c (pre-P-066) and on `_temp_tfne-manuscript` 98d42ce4, then
+compare arrays. Scratch scripts: `_temp_r17_dump.py`, `_temp_r17_compare.py`, `_temp_r17_spatial*.py`, vwin-pc,
+jax 0.10.1. Invariant (S07, 2026-11-19): realized z = declared depth fraction x `column_height_mm` (default 1.60),
+in mm like x and y. The field proxy reads depth as z / height. Nothing else changes unless a rule consumes 3-D distance.
+
+Observed, in canary chain 7 (jdna develop), the lane6b default column and a three-layer Configuration column:
+- x and y are bitwise equal, and new z equals old z x 1.6 to at most 1.0e-7 relative (float32 rounding).
+- Edges (pre, post), delays and weights are bitwise equal, as are canary spikes and V_m.
+- The column's LFP proxy moves by at most 1.8e-7 of its maximum, from rounding in (z x h) / h.
+- Recomputing the canary's mean and std from the old positions with z x 1.6 reproduces the repinned register
+  values to 5e-9.
+
+Under a distance rule (`_localized_cfg`, `spatial_sigma` 0.1, in-degree 10, 200 neurons), 51.7% of the 2000
+edges change. The mean true-mm length of the chosen edges falls from 0.1307 to 0.1283 (|dz| from 0.0483 to 0.0452).
+This is the intended correction: the old rule measured z in fractions while x and y were in mm.
+
+| Repin | Old expectation | Why invalid | New expectation | Why correct | Verdict |
+|---|---|---|---|---|---|
+| `canary_register.json` positions mean/std | 0.16978 / 0.26408 | computed with z as a fraction mixed with mm x, y | 0.27021 / 0.39636 | equals the old positions with z x 1.6 (5e-9) | legitimate |
+| lane6b digest | one digest over edges and positions, 716b415f… | positions change by S07, so the joint digest must move | edge digest 0bc6b793…, position digest 94cb0202… | edges are shown unchanged (bitwise); the split keeps the edge pin independent of the unit change | legitimate |
+| golden snapshot param keys | `{emitter, positions, edge_list}` | the height must travel with mm positions | adds `column_height_mm` | the projection and the merge refusal read it | legitimate (public `model.params` gains a key) |
+| `test_fields_positions_g8.py` | delegate called without height | mm z would be read as relative depth | passes `column_height_mm` | the reference stays equal to `project_model_sources` | legitimate |
+| `test_neuronal_tensor*.py` z bounds | fractions | z is now mm | fraction x h (+ pose translation) | the same declared band in mm | legitimate |
+
+Recommendation: approve all five repins (S23). R17 integration then needs: a merge of the branch with dev (36
+commits behind), the broad gate on the merge SHA, review ACCEPT, and the P-066 resolution line and move.
+
+### 10.2 Checklist state and route
+
+| Item (pts) | State | Owner | Blocked by | Acceptance (frozen) | Next |
+|---|---|---|---|---|---|
+| A1 (4) | open | lead | none | F2 renders from the AT-10-N20 receipt | R28 |
+| A2 (3) | open | lead | none | S4 from the schema; identity, topology, signs, positions kept, each by a test | R29 |
+| B2 (3) | open | lead | GPU route (WSL CUDA) for the GPU half | hash-pinned CPU and GPU receipts under signed B1 | R31, R32 |
+| B3 (4) | open | lead | baseline libraries on the host | receipt per baseline or a recorded class mismatch | R33 |
+| B5 (2) | open | lead | GPU route | GPU equals CPU within the declared tolerance | R34 |
+| C1 (4) | blocked | Hamm | S17 (R36 prereg signature) | S7 from pinned receipts | sign, or move with a dated ruling |
+| D3 (2) | blocked | Hamm | S10 (Mejias P3 signature) | G6 scored | sign, or move |
+| F5 (1.5) | open (AdEx, LIF, `Model.tune` batching) | lead | none | each with its test | R39 / T-F5 |
+| F6 (1.5) | blocked | Hamm | S11 (P1/P2 text) | each with commit and receipt | recover the text, or move |
+| G2 (2) | open | Hamm and lead | 28 known violations, each `reason: audit 2026-10-17`, none Hamm-authorized (`scripts/replication_known_violations.json`) | no violation without Hamm's exception | fix them, or Hamm grants the exceptions |
+| Gate 1 (6) | not started | Hamm | every package closed or moved | dated rulings | after the above |
+| Gate 2 (8) | not started | lead | S18 (Release CI disabled), S21 (matching host), R04 | broad, CI, replications, dashboard exit 0 on the release SHA | R53 |
+| Gate 3 (4) | not started | lead | candidate | version, changelog, `release_body.py --check` | R52 |
+| Gate 4 (6) | not started | lead | candidate | second review receipt | R54 |
+| Gate 5 (6) | owner-reserved | Hamm | S15 | publication | R55 |
+
+Issue-log Open (READY requires it empty):
+- P-047: Hamm picks keep / refuse / wildcard.
+- P-052: O-85 keeps it open until the 0.5.11 held-out check.
+- P-053, P-055: SCIENCE, Hamm.
+- P-056: S08.
+- P-066: R17, S23.
+
+Coverage UNKNOWN: macOS (T-MAC), CI execution of the O-NUM/O-76 tests (CI Fast's dev gate does not run them),
+Release CI (disabled).
+
+### 10.3 Owner decisions, ranked by what they unblock
+
+1. **S23, R17 repins.** Approve all five (recommended; §10.1), approve some, or redesign. Unblocks R17, P-066 and A1-adjacent geometry.
+2. **Issue-log Open for 0.5.10.** P-052 cannot close inside 0.5.10 by its own ruling. Options:
+   - (a) a dated move of P-052 to 0.5.11 with its held-out check as the closing check (recommended);
+   - (b) hold 0.5.10 for that check.
+   For P-053 and P-055 the same choice applies: (a) a dated move with an executable closing check (recommended), or (b) block. For P-047: keep as designed and move (recommended), refuse, or wildcard. For P-056: give the S08 inputs, or move it to 0.5.11 (recommended while the inputs are unset).
+3. **Blocked package items C1, D3 and F6** (Gate 1 accepts a dated move). Options: (a) move to 0.5.11 (recommended; their preregs and text are unsigned or unrecovered); (b) sign or recover now.
+4. **G2.** Options: (a) grant dated exceptions for the 28 known violations whose rows are outside 0.5.10 scope and have the lead fix the rest (recommended); (b) fix all 28 (records such as `SOURCE_P1.md` need source content and add files under `budget_files`).
+5. **S18, Release CI.** Options: (a) enable `release_ci.yml` for the candidate (recommended; Gate 2 cites it); (b) name another CI route.
+6. **S21, matching host.** Options: (a) Linux with jax 0.10.2, the CI py3.11 pin, runnable in WSL here (recommended); (b) Windows vwin-pc.
+7. **S04, O-73..O-75 API behaviour.** The lead prepares R07-R09 option packets first; that work is executable now.
+8. **S20, O-86 and O-87.** A ruling on each.
+9. **S22, compatibility scope.** Options: (a) accept the measured R71 matrix for 0.5.10 (recommended); (b) test jax 0.4.25-0.9.x and macOS.
+10. **S02, fig05.** Re-freeze under change control, or render panel C from frozen V_m.
+11. **S01.** Keep the frozen score (default).
+12. **R12-R16 rulings (a)-(c), S06.** These do not block 0.5.10; ephaptic stays experimental.
+
+Executable without a ruling: A2 (R29), F5 (R39), R07-R09 packets, B2/B3/B5 runs (S09), R12-R16, A1 (R28), the R42-R50 docs rows, T-AI-DOC, and the five dead tutorial tests (`test_interactive_tutorial_artifacts_v0221.py`).
 
 ## Appendix A. Execution plans of 2026-10-31 (verbatim)
 
