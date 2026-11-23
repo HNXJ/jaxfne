@@ -133,13 +133,38 @@ class _PeakSampler:
         return max(vals) if vals else None
 
 
-def _sync(spikes, v, sources) -> None:
-    import jax
+CELL_TIMEOUT_S = 3600
 
-    arrs = [spikes, v]
-    if sources is not None:
-        arrs.append(sources)
-    jax.block_until_ready(arrs)
+
+def _run_cell_process(cmd: list, timeout_s: float) -> str:
+    """One cell subprocess; a timeout is reported and the driver moves on (no receipt, rerun resumes it)."""
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_s)
+    except subprocess.TimeoutExpired:
+        return f"TIMEOUT after {timeout_s:g} s (no receipt)"
+    return (f"rc={r.returncode} {(r.stdout or '').strip()[-200:]} "
+            f"{(r.stderr or '').strip()[-200:]}")
+
+
+def _block_signals(sig) -> None:
+    """Wait for a run's device arrays without a host copy (prereg E1 times the compiled run only)."""
+    for leaf in (sig.spikes, sig.V_m, sig.sources):
+        if leaf is not None:
+            leaf.block_until_ready()
+
+
+def _host_signals(sig):
+    """Host copies of a run's arrays and the copy's wall time (transfer_s.get_s)."""
+    import numpy as np
+
+    t0 = time.perf_counter()
+    spikes_np = np.asarray(sig.spikes)
+    try:
+        v_np = np.asarray(sig.V_m)
+    except Exception:
+        v_np = np.zeros_like(spikes_np, dtype=float)
+    sources_np = np.asarray(sig.sources) if sig.sources is not None else None
+    return spikes_np, v_np, sources_np, time.perf_counter() - t0
 
 
 def _gpu_mem() -> dict:
@@ -369,9 +394,11 @@ def run_cell(spec: dict) -> dict:
                 t0 = time.perf_counter()
                 last = _run_M3(n, dtype, s, n_steps, dt_ms, recording)
                 run_s.append(time.perf_counter() - t0)
+            t0 = time.perf_counter()
             spikes_np = np.asarray(last[0])
             v_np = (np.asarray(last[1]) if last[1] is not None
                     else np.zeros((n_steps, n)))
+            get_s = time.perf_counter() - t0
             sources_np = None
             pops = {"cell": list(range(n))}
             notes.append("M3 OU noise (tau 20 ms, sigma 0.05 unscaled nominal; "
@@ -389,26 +416,17 @@ def run_cell(spec: dict) -> dict:
             t0 = time.perf_counter()
             warm_sim = make_sim(warmup_seed, recording)
             wsignals = model.simulate(warm_sim)
-            _sync(np.asarray(wsignals.spikes), np.asarray(wsignals.V_m),
-                  np.asarray(wsignals.sources)
-                  if wsignals.sources is not None else None)
+            _block_signals(wsignals)
             t_warm = time.perf_counter() - t0
             run_s, last_signals = [], None
             for s in seeds:
                 sim = make_sim(s, recording)
                 t0 = time.perf_counter()
                 sig = model.simulate(sim)
-                _sync(np.asarray(sig.spikes), np.asarray(sig.V_m),
-                      np.asarray(sig.sources) if sig.sources is not None else None)
+                _block_signals(sig)
                 run_s.append(time.perf_counter() - t0)
                 last_signals = sig
-            spikes_np = np.asarray(last_signals.spikes)
-            try:
-                v_np = np.asarray(last_signals.V_m)
-            except Exception:
-                v_np = np.zeros_like(spikes_np, dtype=float)
-            sources_np = (np.asarray(last_signals.sources)
-                          if last_signals.sources is not None else None)
+            spikes_np, v_np, sources_np, get_s = _host_signals(last_signals)
             pops = _pop_ids(model, model_id, n)
             notes.append("construct covers lane build_spec + construct; timed sims "
                          "share the one model (wiring seed fixed)")
@@ -422,9 +440,6 @@ def run_cell(spec: dict) -> dict:
         put_arr = jax.device_put(_np.zeros((n_steps, n), dtype=_np.float32))
         jax.block_until_ready(put_arr)
         put_s = time.perf_counter() - t0
-        t0 = time.perf_counter()
-        _sync(spikes_np, v_np, sources_np)
-        get_s = time.perf_counter() - t0
 
         ensemble_s, ensemble_mode = None, "not_run"
         if batch > 1:
@@ -437,9 +452,7 @@ def run_cell(spec: dict) -> dict:
                 if model_id == "M3":
                     _run_M3(n, dtype, s, n_steps, dt_ms, recording)
                 else:
-                    sig = model.simulate(make_sim(s, recording))
-                    _sync(np.asarray(sig.spikes), np.asarray(sig.V_m),
-                          np.asarray(sig.sources) if sig.sources is not None else None)
+                    _block_signals(model.simulate(make_sim(s, recording)))
             ensemble_s = time.perf_counter() - t0
             ensemble_mode = "sequential_loop"
 
@@ -474,7 +487,7 @@ def run_cell(spec: dict) -> dict:
             "transfer_s": {"put_s": float(put_s), "get_s": float(get_s),
                            "array_shape": [n_steps, n], "array_dtype": "float32",
                            "note": "device_put of a zeros (steps,N) probe + "
-                                   "block_until_ready over the timed outputs"},
+                                   "host copy of the last timed run's outputs"},
             "numerical_agreement": agreement,
             "validity": {"spikes_gt_zero": bool(agreement["total_spikes"] > 0),
                          "mean_E_rate_hz": e_rate, "valid": valid,
@@ -575,10 +588,7 @@ def main() -> int:
                    "--seeds", ",".join(str(s) for s in c["seeds"]),
                    "--duration-ms", str(c["duration_ms"]),
                    "--dt-ms", str(c["dt_ms"]), "--out", c["receipt"]]
-            r = subprocess.run(cmd, capture_output=True, text=True, timeout=3600)
-            print(f"{c['cell_id']}: rc={r.returncode} "
-                  f"{(r.stdout or '').strip()[-200:]} {(r.stderr or '').strip()[-200:]}",
-                  flush=True)
+            print(f"{c['cell_id']}: {_run_cell_process(cmd, CELL_TIMEOUT_S)}", flush=True)
             ran += 1
         print(f"driver done: ran={ran} skipped={skipped}")
         return 0

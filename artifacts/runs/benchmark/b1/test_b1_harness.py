@@ -79,6 +79,44 @@ def test_m3_tiny_cell_receipt_fields():
     assert rec["validity"]["mean_E_rate_hz"] > 0
 
 
+class _DeviceLeaf:
+    """Stands in for a device array: waitable, and refuses a host copy."""
+
+    def __init__(self):
+        self.waited = 0
+
+    def block_until_ready(self):
+        self.waited += 1
+        return self
+
+    def __array__(self, *args, **kwargs):
+        raise AssertionError("host copy inside the timed window")
+
+
+class _Signals:
+    def __init__(self, sources):
+        self.spikes, self.V_m = _DeviceLeaf(), _DeviceLeaf()
+        self.sources = _DeviceLeaf() if sources else None
+
+
+def test_timed_wait_makes_no_host_copy():
+    """Prereg E1: run_s is the compiled run's wall time; the device-to-host copy is timed apart (get_s)."""
+    for with_sources in (True, False):
+        sig = _Signals(with_sources)
+        H._block_signals(sig)
+        leaves = [sig.spikes, sig.V_m] + ([sig.sources] if with_sources else [])
+        assert all(leaf.waited == 1 for leaf in leaves), "every device leaf must be waited on"
+
+
+def test_cell_timeout_is_reported_not_raised():
+    import sys
+
+    out = H._run_cell_process([sys.executable, "-c", "import time; time.sleep(30)"], 0.5)
+    assert out.startswith("TIMEOUT"), out
+    ok = H._run_cell_process([sys.executable, "-c", "print('done')"], 30)
+    assert ok.startswith("rc=0") and "done" in ok, ok
+
+
 def test_recording_off_rss_reported():
     full = H.run_cell(_spec("full"))
     off = H.run_cell(_spec("off"))
