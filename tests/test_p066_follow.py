@@ -162,3 +162,36 @@ def test_simulate_record_fields_forwards_column_height():
     np.testing.assert_allclose(recorded, np.asarray(with_height.phi_e_proxy, dtype=float), rtol=1e-5, atol=1e-7)
     diff = np.max(np.abs(np.asarray(with_height.phi_e_proxy, dtype=float) - np.asarray(without_height.phi_e_proxy, dtype=float)))
     assert diff > 1e-3, "height must change the projection, or the forwarding check cannot fail"
+
+
+def test_homeostatic_record_fields_forwards_column_height():
+    """The homeostatic_ei route (_simulate_homeostatic_ei) projects with params["column_height_mm"].
+
+    Homeostatic models built today carry no height (z relative, 0..1), so the height is injected
+    into the params; the check is that the route reads it."""
+    H = 2.0
+    cfg = (
+        jtfne.configuration()
+        .runtime(seed=0, duration_ms=20.0, dt_ms=0.5)
+        .network(name="hei", n=16)
+        .set_emitter("homeostatic_ei")
+        .field()
+        .probe(modes=["vm"])
+    )
+    built = jtfne.construct(cfg)
+    assert built.params.get("column_height_mm") is None, "fixture: homeostatic models carry no height"
+    model = dataclasses.replace(built, params={**built.params, "column_height_mm": H})
+    sim = jtfne.simulation(duration_ms=20.0, dt_ms=0.5, seed=0, record_fields=True, record_sources=True)
+    sig = model.simulate(sim)
+    assert sig.field is not None and sig.sources is not None, "fixture must record field and sources"
+    sources = jnp.asarray(sig.sources)
+    assert float(jnp.abs(sources).sum()) > 0.0, "fixture must drive the sources"
+    positions = jnp.asarray(model.params["positions"])
+    n_contacts = int(np.asarray(sig.field.phi_e_proxy).shape[-1])
+
+    with_height = project_laminar_sources(sources, positions, n_contacts=n_contacts, column_height_mm=H)
+    without_height = project_laminar_sources(sources, positions, n_contacts=n_contacts)
+    recorded = np.asarray(sig.field.phi_e_proxy, dtype=float)
+    np.testing.assert_allclose(recorded, np.asarray(with_height.phi_e_proxy, dtype=float), rtol=1e-5, atol=1e-7)
+    diff = np.max(np.abs(np.asarray(with_height.phi_e_proxy, dtype=float) - np.asarray(without_height.phi_e_proxy, dtype=float)))
+    assert diff > 1e-3, "height must change the projection, or the forwarding check cannot fail"

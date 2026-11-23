@@ -47,10 +47,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    noise, delays, dt, seeds), and `PREREG_P3.md:1` is still "draft, UNSIGNED" with `(fill)` estimands at `:10` and
    `:26`. Missing: digitized figure targets, a verdict scorer, a rate-route driver, a P4-passing manifest, receipts.
    Closes when: a filled P3 is signed and G6 is scored under it; the inventory is in the lane's records.
-3. T-P066-FOLLOW [A] P-066 review minors left after `tests/test_p066_follow.py` (2026-11-23: connect height,
-   PV<->E gate incl. the mixed model, record_fields forwarding, each mutant-killed): a forwarding test for the
-   homeostatic `record_fields` site (`_model_simulate.py:2014`); re-record experiment_a b0/b1/b3 receipts on their
-   next regeneration. Closes when: that test fails on a dropped-kwarg mutant and passes. Blocked by: none.
 
 ## Tier 3: half a day
 
@@ -177,6 +173,8 @@ Done (results in contract §13.8 registry): Lane A (F2, F2b, F4 vs F1, not F0), 
 - EX-14 [A] Scale the best one or two strategies to S2. Closes when: n ≥ 20 start-level results per cell. Blocked by: EX-11, EX-12.
 
 ## Deferred, each with its trigger
+
+experiment_a b0/b1/b3 receipts (P-066 review minor, z now in mm), trigger: their next regeneration; re-record them then.
 
 P-053 follow-up, trigger: a new hypothesis or coverage requirement. T-83 (2026-11-15, `artifacts/etudes/papers/pcl/port/P053_sparse_fixture_result.md`)
 is NOT_REPRODUCED under criteria Amendment 1 only; V1's LAT half is never consumed and V1 adds information beyond V3
