@@ -23,7 +23,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any, Mapping, Optional, Sequence
 
 from .io import config_hash
-from ._runtime_config import RuntimeConfig
+from ._runtime_config import RuntimeConfig, is_real_scalar
 
 
 def _default_operator_status() -> dict[str, str]:
@@ -218,7 +218,7 @@ def _check_field_kwargs(kwargs: Mapping[str, Any]) -> None:
         _refuse_unrealized("field", "solver", solver, ("experimental_poisson_1d",))
         # simulate() swallows solver errors (opt-in diagnostic), so bad inputs are refused here.
         cond = kwargs.get("conductivity", 1.0)
-        if isinstance(cond, bool) or not isinstance(cond, numbers.Real) or not (math.isfinite(cond) and cond > 0):
+        if not is_real_scalar(cond) or not (math.isfinite(cond) and cond > 0):
             raise ValueError(f"field(conductivity={cond!r}): the Poisson diagnostic needs a finite conductivity > 0")
         n_bins = kwargs.get("n_bins", 2)
         if isinstance(n_bins, bool) or not isinstance(n_bins, numbers.Integral) or n_bins < 2:
@@ -239,7 +239,7 @@ def poisson_signature(spec: Mapping[str, Any], n_contacts: int) -> tuple[Any, fl
 
 
 def _real_baseline(method: str, value: Any) -> float:
-    if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
+    if not is_real_scalar(value) or not math.isfinite(value):
         raise ValueError(f"{method}(relative_baseline={value!r}) is not realized: it takes a finite real number")
     return float(value)
 
@@ -288,7 +288,7 @@ def _check_cell_type_fractions(fractions: Mapping[str, Any]) -> dict[str, float]
         raise ValueError("cell type fractions must not be empty")
     clean: dict[str, float] = {}
     for key, value in fractions.items():
-        if (isinstance(value, bool) or not isinstance(value, numbers.Real)
+        if (not is_real_scalar(value)
                 or not math.isfinite(value) or value < 0.0):
             raise ValueError(
                 f"cell type fraction for {key!r} must be finite and non-negative; got {value!r}"
@@ -1896,7 +1896,7 @@ class Configuration:
                 for name in ("E", "PV", "SST", "VIP")
             }
         for cell_type, value in dict(baseline_drive_by_cell_type).items():
-            if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
+            if not is_real_scalar(value) or not math.isfinite(value):
                 raise ValueError(
                     f"drive(baseline_drive_by_cell_type={{{cell_type!r}: {value!r}}}) is not realized: "
                     "it takes a finite real number"

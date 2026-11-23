@@ -22,6 +22,8 @@ import numbers
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from ._runtime_config import is_real_scalar
+
 
 _CONSTANT_UNITS = ("native_current", "pA")
 _POISSON_UNIT = "Hz"
@@ -45,8 +47,7 @@ _POISSON_SCHEDULE_KEYS = frozenset(
 
 def _is_finite_real(value: Any) -> bool:
     return (
-        isinstance(value, numbers.Real)
-        and not isinstance(value, bool)
+        is_real_scalar(value)
         and math.isfinite(float(value))
     )
 
@@ -167,7 +168,7 @@ class XSource:
             )
         if adex_keys:
             n_sources = table["n_sources"]
-            if isinstance(n_sources, bool) or not isinstance(n_sources, numbers.Real):
+            if not is_real_scalar(n_sources):
                 raise ValueError(
                     f"poisson XSource n_sources={n_sources!r} must be an int >= 1"
                 )
@@ -445,8 +446,7 @@ def _compile_grouped_adex_sources(
         raise ValueError(f"poisson_drive seed={seed!r} must be an int")
     total = poisson["n_sources"]
     if (
-        isinstance(total, bool)
-        or not isinstance(total, numbers.Real)
+        not is_real_scalar(total)
         or float(total) != float(int(total))
         or int(total) < 1
     ):

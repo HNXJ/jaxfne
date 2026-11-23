@@ -33,7 +33,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from ._runtime_config import refuse_float64_without_x64
+from ._runtime_config import is_real_scalar, refuse_float64_without_x64
 from .pcl_topology import footprint_pairs, validate_footprint, validate_local_inhibition, validate_rounds, validate_weight_sharing
 
 __all__ = [
@@ -150,8 +150,7 @@ def _validate_weight_range(
     bounds: list[float] = []
     for end in value:
         if (
-            isinstance(end, bool)
-            or not isinstance(end, numbers.Real)
+            not is_real_scalar(end)
             or not math.isfinite(float(end))
         ):
             raise ValueError(
@@ -196,8 +195,7 @@ def _validate_in_degree(rule_name: str, in_degree: Any) -> "int | None":
             f"got {in_degree!r}"
         )
         if (
-            not isinstance(in_degree, bool)
-            and isinstance(in_degree, numbers.Real)
+            is_real_scalar(in_degree)
             and math.isfinite(float(in_degree))
             and float(in_degree) > 0.0
             and not float(in_degree).is_integer()
@@ -225,7 +223,7 @@ def _validate_multinomial_in_degree(label: str, in_degree: Any) -> "float | None
     """
     if in_degree is None:
         return None
-    if isinstance(in_degree, bool) or not isinstance(in_degree, numbers.Real):
+    if not is_real_scalar(in_degree):
         raise ValueError(
             f"{label} in_degree with sampling='multinomial' must be a finite "
             f"positive number (the mean in-degree); got {in_degree!r}"
@@ -1465,8 +1463,7 @@ def compile_connection_rules(
                 # and a direct compile_connection_rules call bypasses the builder.
                 p_rule = rule.get("probability")
                 if p_rule is not None and (
-                    isinstance(p_rule, bool)
-                    or not isinstance(p_rule, numbers.Real)
+                    not is_real_scalar(p_rule)
                     or not math.isfinite(float(p_rule))
                     or not (0.0 <= float(p_rule) <= 1.0)
                 ):

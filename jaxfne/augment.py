@@ -35,6 +35,7 @@ from typing import Any, ClassVar, Optional, Sequence
 import numpy as np
 
 from ._config import _check_cell_type_fractions, _counts_from_fractions
+from ._runtime_config import is_real_scalar
 from .jdna.completion import ORIGIN_AUGMENT_SAMPLED, ORIGIN_AUGMENTED
 from .neuronal_tensor import (
     NeuronalTensor,
@@ -58,7 +59,7 @@ _SCALING_NOTE = (
 
 
 def _check_scale_factor(factor: Any) -> float:
-    if isinstance(factor, bool) or not isinstance(factor, numbers.Real):
+    if not is_real_scalar(factor):
         raise ValueError(f"ScaleN factor must be a positive number; got {factor!r}")
     value = float(factor)
     if not math.isfinite(value) or value <= 0.0:
@@ -377,7 +378,7 @@ class AugmentationRecord:
 
 
 def _check_finite(value: Any, where: str) -> float:
-    if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
+    if not is_real_scalar(value) or not math.isfinite(value):
         raise ValueError(f"{where} must be a finite number; got {value!r}")
     return float(value)
 
@@ -409,7 +410,7 @@ def _check_unit_range(value: Any, where: str) -> tuple[float, float]:
 
 def _check_gain_factor(value: Any, label: str) -> float:
     """Shared deterministic-multiplier check (finite, > 0) for every axis."""
-    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+    if not is_real_scalar(value):
         raise ValueError(f"{label} must be a positive number; got {value!r}")
     checked = float(value)
     if not math.isfinite(checked) or checked <= 0.0:
@@ -419,7 +420,7 @@ def _check_gain_factor(value: Any, label: str) -> float:
 
 def _check_scale_jitter(value: Any, label: str) -> float:
     """Shared stochastic half-width check (``0 <= jitter < 1``) for every axis."""
-    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+    if not is_real_scalar(value):
         raise ValueError(f"{label} must be a number in [0, 1); got {value!r}")
     checked = float(value)
     if not math.isfinite(checked) or not 0.0 <= checked < 1.0:
@@ -459,7 +460,7 @@ def _check_connection_targets(targets: Any, label: str) -> tuple[str, ...]:
 
 def _check_offset(value: Any, label: str) -> float:
     """Shared additive-shift check (finite, any sign) for signed states."""
-    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+    if not is_real_scalar(value):
         raise ValueError(f"{label} must be a finite number; got {value!r}")
     checked = float(value)
     if not math.isfinite(checked):
@@ -469,7 +470,7 @@ def _check_offset(value: Any, label: str) -> float:
 
 def _check_abs_jitter(value: Any, label: str) -> float:
     """Shared absolute half-width check (finite, >= 0, no upper bound)."""
-    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+    if not is_real_scalar(value):
         raise ValueError(f"{label} must be a number >= 0; got {value!r}")
     checked = float(value)
     if not math.isfinite(checked) or checked < 0.0:

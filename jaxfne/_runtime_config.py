@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import contextlib
 import math
+import numbers
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -416,6 +417,11 @@ def refuse_float64_without_x64(dtype) -> None:
             'jax.config.update("jax_enable_x64", True) before creating any array '
             "in this process; refusing to silently build float32"
         )
+
+
+def is_real_scalar(value) -> bool:
+    """True for a real number that is not a bool."""
+    return isinstance(value, numbers.Real) and not isinstance(value, bool)
 
 
 def _jaxlib_version() -> str:

@@ -44,6 +44,8 @@ from typing import Any
 
 import numpy as np
 
+from ._runtime_config import is_real_scalar
+
 #: Weight-sharing modes with a core consumer. ``"patch"`` is the oracle's
 #: ``sharingType`` (one plastic weight per receiving depth). Anything else is
 #: refused by :func:`validate_weight_sharing`.
@@ -162,7 +164,7 @@ def _checked_pair(value: Any, *, name: str, label: str, positive: bool) -> tuple
         raise ValueError(f"{label} footprint {name} must be a pair of numbers; got {value!r}")
     out = []
     for item in items:
-        if isinstance(item, bool) or not isinstance(item, numbers.Real):
+        if not is_real_scalar(item):
             raise ValueError(f"{label} footprint {name} must be a pair of numbers; got {value!r}")
         number = float(item)
         if not math.isfinite(number) or (positive and number <= 0.0):
@@ -422,7 +424,7 @@ def resolve_local_inhibition(
         ("tau_m", tau_m), ("tau_rp", tau_rp), ("v_reset", v_reset),
         ("neg_limit", neg_limit),
     ):
-        if not isinstance(number, numbers.Real) or isinstance(number, bool):
+        if not is_real_scalar(number):
             raise ValueError(f"{label} {name} must be a real number; got {number!r}")
     tau_m = float(tau_m)
     tau_rp = float(tau_rp)
@@ -432,7 +434,7 @@ def resolve_local_inhibition(
         raise ValueError(f"{label} tau_rp {tau_rp} must be finite and > 0")
     if adaptive and not (math.isfinite(float(tau_adapt)) and float(tau_adapt) > 0.0):
         raise ValueError(f"{label} tau_adapt must be finite and > 0; got {tau_adapt!r}")
-    if isinstance(t_now, bool) or not isinstance(t_now, numbers.Real):
+    if not is_real_scalar(t_now):
         raise ValueError(f"{label} t_now must be a real timestamp; got {t_now!r}")
     t_now = float(t_now)
     winners = np.zeros(dep, dtype=bool)
@@ -512,7 +514,7 @@ def _checked_feed_inputs(
     :func:`dvs_feed_arrays` and :func:`dvs_feed_ranks` build from, so the
     two agree on which (step, cell) pairs the stream touches.
     """
-    if not isinstance(dt_ms, numbers.Real) or isinstance(dt_ms, bool):
+    if not is_real_scalar(dt_ms):
         raise ValueError(f"{label} dt_ms must be a real number; got {dt_ms!r}")
     dt_ms_f = float(dt_ms)
     if not math.isfinite(dt_ms_f) or dt_ms_f <= 0.0:
@@ -964,7 +966,7 @@ def _scan_whole(value: Any, *, name: str, label: str) -> int:
 
 def _scan_origin(value: Any, *, name: str, label: str) -> int:
     """A whole-number grid origin (``2.0`` admits; NaN/fractions refused)."""
-    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+    if not is_real_scalar(value):
         raise ValueError(f"{label} {name} must be a whole number; got {value!r}")
     number = float(value)
     if not math.isfinite(number) or number != math.floor(number):
@@ -1287,7 +1289,7 @@ def event_scan_events(
         raise ValueError(
             f"{name} event arrays must share one length; got {t.shape}, {x.shape}, "
             f"{y.shape}, {p.shape}")
-    if not isinstance(dt_ms, numbers.Real) or isinstance(dt_ms, bool):
+    if not is_real_scalar(dt_ms):
         raise ValueError(f"{name} dt_ms must be a real number; got {dt_ms!r}")
     dt_f = float(dt_ms)
     if not math.isfinite(dt_f) or dt_f <= 0.0:
@@ -1436,7 +1438,7 @@ def check_event_scan_h_update(h_update: Any, n_cells: int, *, label: str) -> dic
 
     def _real(key: str) -> float:
         value = h_update[key]
-        if (isinstance(value, bool) or not isinstance(value, numbers.Real)
+        if (not is_real_scalar(value)
                 or not math.isfinite(float(value))):
             raise ValueError(
                 f"{label}: h_update[{key!r}] must be a finite real number; got {value!r}")
@@ -1529,7 +1531,7 @@ def _w_update_population(value: Any, *, name: str, label: str,
     present_extra = tuple(k for k in extra_keys if k in value)
     for key in EVENT_SCAN_W_UPDATE_POP_KEYS[1:] + present_extra:
         raw = value[key]
-        if (isinstance(raw, bool) or not isinstance(raw, numbers.Real)
+        if (not is_real_scalar(raw)
                 or not math.isfinite(float(raw))):
             raise ValueError(
                 f"{label}: w_update[{name!r}][{key!r}] must be a finite real number; "
@@ -1827,7 +1829,7 @@ class EventScanDrive:
                 raise ValueError(
                     f"{name} blocks must carry {key!r}; got "
                     f"{sorted(blocks, key=repr)}")
-        if not isinstance(dt_ms, numbers.Real) or isinstance(dt_ms, bool):
+        if not is_real_scalar(dt_ms):
             raise ValueError(f"{name} dt_ms must be a real number; got {dt_ms!r}")
         if not math.isfinite(float(dt_ms)) or float(dt_ms) <= 0.0:
             raise ValueError(f"{name} dt_ms must be > 0; got {dt_ms!r}")

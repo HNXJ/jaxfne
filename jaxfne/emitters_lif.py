@@ -36,7 +36,6 @@ Function-level only. Configuration, construct and simulate wiring is not here.
 from __future__ import annotations
 
 import math
-import numbers
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, NamedTuple
@@ -45,7 +44,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from ._runtime_config import refuse_float64_without_x64
+from ._runtime_config import is_real_scalar, refuse_float64_without_x64
 from .emitters import CELL_TYPE_SIGN
 
 NEVER = -1.0e30  # no spike yet; spiked state is t_last > HAS_SPIKED
@@ -96,7 +95,7 @@ def _check_t_ref_ms(value: float, *, label: str) -> float:
     Bools, strings and other non-reals are refused, never coerced (mirrors
     the triple-drive and in-degree validators).
     """
-    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+    if not is_real_scalar(value):
         raise ValueError(
             f"{label} t_ref_ms must be a finite number >= 0 in ms; got {value!r}"
         )
@@ -115,7 +114,7 @@ def _check_tau_syn_ms(value: float, *, label: str) -> float:
     ``tau_syn_ms`` must clear zero: non-positive, non-finite and non-real
     values are refused, never coerced (mirrors the t_ref_ms validator).
     """
-    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+    if not is_real_scalar(value):
         raise ValueError(
             f"{label} tau_syn_ms must be a finite number > 0 in ms; got {value!r}"
         )

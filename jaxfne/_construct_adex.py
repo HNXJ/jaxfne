@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import dataclasses
 import math
-import numbers
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -25,6 +24,7 @@ import numpy as np
 
 from ._config import Configuration, _counts_from_fractions, edge_seed_from_metadata
 from ._model import Model
+from ._runtime_config import is_real_scalar
 from .connectivity import compile_connection_rules, delay_steps_from_ms
 from .emitters_adex import AdExParams, make_adex_params
 from .emitters_adex import _PARAM_FIELDS as _ADEX_PARAM_FIELDS
@@ -129,7 +129,7 @@ _MAX_SHOWN = 120
 
 
 def _finite_real(value: Any) -> bool:
-    return isinstance(value, numbers.Real) and not isinstance(value, bool) and math.isfinite(value)
+    return is_real_scalar(value) and math.isfinite(value)
 
 
 def _matches(pattern: tuple, path: tuple) -> bool:
@@ -284,8 +284,7 @@ def _refuse_adex_cell_params(cfg: Configuration) -> None:
             )
         for field, value in params.items():
             if (
-                isinstance(value, bool)
-                or not isinstance(value, numbers.Real)
+                not is_real_scalar(value)
                 or not math.isfinite(value)
             ):
                 raise ValueError(
@@ -745,8 +744,7 @@ def _apply_triple_param_overrides(
                     f"{field!r}; expected one of {list(_ADEX_PARAM_FIELDS)}"
                 )
             if (
-                isinstance(value, bool)
-                or not isinstance(value, numbers.Real)
+                not is_real_scalar(value)
                 or not math.isfinite(value)
             ):
                 raise ValueError(

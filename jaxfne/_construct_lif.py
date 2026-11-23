@@ -17,13 +17,14 @@ doi:10.1038/s41467-025-64234-z. Per-type LIF rows and defaults live in
 from __future__ import annotations
 
 import math
-import numbers
 from collections.abc import Mapping, Sequence
 from dataclasses import replace
 from typing import Any
 
 import jax.numpy as jnp
 import numpy as np
+
+from ._runtime_config import is_real_scalar
 
 
 def _position_group_of_neuron(
@@ -116,8 +117,7 @@ def apply_lif_triple_param_overrides(
 
                 _check_tsyn(value, label=f"param_overrides[{key!r}]")
             if (
-                isinstance(value, bool)
-                or not isinstance(value, numbers.Real)
+                not is_real_scalar(value)
                 or not math.isfinite(value)
             ):
                 raise ValueError(

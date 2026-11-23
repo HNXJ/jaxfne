@@ -10,7 +10,6 @@ an explicit calibration bridge is supplied later.
 
 from __future__ import annotations
 
-import numbers
 from collections import Counter
 from dataclasses import dataclass, replace as dataclass_replace
 from functools import lru_cache
@@ -30,7 +29,7 @@ from ._hdp_adaptive import (
     resolve_h_state_locality,
     theta_bounds,
 )
-from ._runtime_config import refuse_float64_without_x64
+from ._runtime_config import is_real_scalar, refuse_float64_without_x64
 from .presets import CELL_TYPE_SIGN, DEFAULT_SPIKE_IMPULSE_GAIN
 
 
@@ -367,7 +366,7 @@ def _cell_labels(n: int, cell_type_fractions: Mapping[str, float]) -> tuple[str,
     items = list(cell_type_fractions.items()) or [("E", 1.0)]
     values: list[tuple[str, float]] = []
     for name, frac in items:
-        if isinstance(frac, bool) or not isinstance(frac, numbers.Real) or not np.isfinite(frac) or frac < 0.0:
+        if not is_real_scalar(frac) or not np.isfinite(frac) or frac < 0.0:
             raise ValueError(
                 f"cell_type_fractions[{str(name)!r}] must be finite and non-negative; got {frac!r}"
             )

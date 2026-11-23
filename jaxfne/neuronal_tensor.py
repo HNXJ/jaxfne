@@ -61,6 +61,7 @@ import jax.numpy as jnp
 from .io import save_json, load_json
 from .core import Configuration, Model, construct
 from ._config import check_n_contacts
+from ._runtime_config import is_real_scalar
 from .emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE, _resolved_edge_weight
 from .emitter_registry import check_emitter_params, is_registered_emitter
 from .pcl_topology import validate_footprint, validate_local_inhibition, validate_weight_sharing
@@ -582,7 +583,7 @@ def _check_triple_drive(drive: "float | None", *, label: str) -> "float | None":
     """
     if drive is None:
         return None
-    if isinstance(drive, bool) or not isinstance(drive, numbers.Real):
+    if not is_real_scalar(drive):
         raise ValueError(
             f"{label} drive must be a finite real number; got {drive!r}"
         )
@@ -1167,7 +1168,7 @@ def _checked_edge_weight_tuple(values: Any) -> tuple:
         ) from None
     out = []
     for v in items:
-        if isinstance(v, bool) or not isinstance(v, numbers.Real):
+        if not is_real_scalar(v):
             raise ValueError(f"TrainedW0 w must hold only real numbers; got {v!r}")
         f = float(v)
         if not math.isfinite(f):

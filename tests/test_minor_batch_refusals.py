@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 import jaxfne as jtfne
-from jaxfne._runtime_config import refuse_float64_without_x64
+from jaxfne._runtime_config import is_real_scalar, refuse_float64_without_x64
 from jaxfne.emitters import _dtype_from_policy
 from jaxfne.fields.proxy import project_laminar_sources
 
@@ -206,6 +206,16 @@ class TestRefuseFloat64Helper:
         with pytest.raises(ValueError) as excinfo:
             jtfne.compile_connection_rules(_NEURONS, [_RULE], _MECHS, seed=0, dtype="float64")
         assert str(excinfo.value) == _F64_NO_X64_MSG
+
+
+class TestIsRealScalar:
+    @pytest.mark.parametrize("value", [1, 1.5, np.float32(2.0), np.int64(3)])
+    def test_real_non_bool_passes(self, value):
+        assert is_real_scalar(value) is True
+
+    @pytest.mark.parametrize("value", [True, False, "1", None, 1 + 2j])
+    def test_bool_and_non_real_refused(self, value):
+        assert is_real_scalar(value) is False
 
 
 class TestD4OffGridDuration:
