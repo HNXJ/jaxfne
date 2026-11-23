@@ -19,6 +19,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Tier 0: Solmind 0.5.10 execution (Hamm's go 2026-11-21, S19)
 
+0. T-DASH-P068 [A] P-068: pass the model's `column_height_mm` at every script call of `project_laminar_sources`
+   whose positions come from a P-066 (mm) model; leave height-free inputs alone. Closes when:
+   `python scripts/build_docs_assets.py --site <tmp>` builds multiscale_observation and heterogeneous_emitters with 0
+   site errors and the Dashboard workflow is green on dev. Blocked by: none.
+
 1. T-PLAN-EXECUTE [A] Work the tasks of `artifacts/programme/design/plans/solmind/solmind_0510_plan.md` (R01-R72,
    gates S01-S23; reviewed, audit 3 ACCEPT) at most 3 lanes including reviewers; a row runs only when its own gates
    are clear; recompute the frozen checklist only from exact-SHA receipts; stop at READY_FOR_OWNER_GO for Gate 5.

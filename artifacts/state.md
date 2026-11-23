@@ -1,30 +1,34 @@
 # state
 
-Stamp: jaxfne@dev@c4e4df8b · 2026-11-22 (cleanup swarm wave 1, plan §10.6: float64 refusal and `is_real_scalar` helpers, dead code and scripts removed, tutorial figure sha256 pinned, Hamm rulings 1-3 and 5 applied; behaviour-preserving, reviewed ACCEPT; errors index regenerated; earlier R17 at 04f6845b: P-066 repair, z in mm, P-066 closed, P-067 split; later commits change artifacts/ only) · Solmind execution under S19: R01, R02, R03, R10, R11, R17, R70, R72, P-058 done; O-NUM and O-76 closed by Hamm 2026-11-22 (macOS UNKNOWN, T-MAC); prepublication checkpoint plan §10, owner decisions §10.3 items 1-17 and §10.6 item 6. Last broad gate: c4e4df8b (2026-11-22, Windows vwin-pc, `run_test_gate.py broad --no-stamp` in a clean clone: 8422 passed, 39 skipped, 0 failed, every lane PASS, rc 0); independent reviews ACCEPT (cleanup: 0 defects; R17: 0 majors, 3 minors to T-P066-FOLLOW); Windows is not the S21 matching host. CI (Fast) green on 262dfdb2. Checklist 0.5.10: last recorded 43/100 (2026-11-19); planning adds no verified points. Workflows: CI (Fast) + Dashboard enabled; Macroscope, Nightly notebooks, Publish, CI (Release & Scheduled) disabled since 2026-11-14. `budget_files=2825` (S16, Hamm 2026-11-21; tree at 2815), `budget_bytes=96400000`.
+Stamp: jaxfne@dev@db9ed99a · 2026-11-23 (Hamm rulings of 2026-11-23 on plan §10.3 items 2-7, 9, 10, 13-17 and §10.6 item 6 recorded; P-047, P-052, P-053, P-055, P-056, C1, D3, F6 and F5's `Model.tune` half moved to 0.5.11; O-73 `population_rates` seconds forms removed (breaking, changelog fragment); G2 met (28 known violations, all Hamm-excepted); B1 amendment 2 pinned; B5 CPU-vs-GPU test and receipt; T-P066-FOLLOW closed (`tests/test_p066_follow.py`); nbconvert in the dev extra and the figure lock; Release CI enabled (S18); later commits change artifacts/ only) · Last broad gate: db9ed99a (2026-11-23, Windows vwin-pc, `run_test_gate.py broad --no-stamp` in a clean clone: 8431 passed, 41 skipped, 0 failed, every lane PASS, rc 0); independent review ACCEPT (first pass REVISE: ruling basis per item, S01 not ruled, glossary row; fixed). CI (Fast) green on 4773b4d9. Release CI 45185114841 on eb0adbb8: tree-check, release-test 3.11 and 3.14, release-build pass, publication failed on the figure lock (fixed at 67452861; publication passes on db9ed99a in run 45198260669). Checklist 0.5.10: last recorded 43/100 (2026-11-19); B5 and G2 met at non-candidate SHAs, counted only at the candidate. Workflows: CI (Fast), Dashboard, CI (Release & Scheduled) enabled; Macroscope, Nightly notebooks, Publish disabled. `budget_files=2825` (tree at 2820), `budget_bytes=96400000`.
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
 ## Works (with evidence)
 
 - 0.5.9 published 2026-11-04 (`v0.5.9` on `main` e0160dfc).
-- 2026-11-20 to 2026-11-22: remote consolidation (P-056 receipts at tag `archive/t90-smoke-receipts-20261115`); Solmind plan integrated at 5550cf07 (tag `archive/solmind-0510-plans-20261120`; S19 go); R01, R02, R03, R11, R70, R71, R72, P-058, S16 done; cleanup batch ending 3a4a9fce (no numeric or public-API change). Records: plan §8 rows R01-R72 and §9 S-rows, `issues_closed_2026-11-21.md`, and those commits' messages.
+- 2026-11-20 to 2026-11-23: Solmind plan rows R01, R02, R03, R10, R11, R17, R70, R71, R72, P-058, S16 done; cleanup swarm wave 1; the 2026-11-23 rulings batch. Records: plan §8-§10, `ISSUE_LOG.md` ("Moved to 0.5.11"), closed batches, and those commits' messages.
+- WSL `~/venv_jaxfne` (Python 3.12.3, jax 0.10.1, CUDA): brian2 2.10.1 and NEST 3.10.0 import (B3 baselines, 2026-11-23).
 
 ## Broken or in flight
 
-- Solmind execution (T-PLAN-EXECUTE): R04 waits on S21; R57 (P-047) on a Hamm public-API pick; SCIENCE rows R59/R60/R25 on Hamm; R58 (O-85 ruled 2026-11-08) waits on the 0.5.11 held-out training-loss check. Other gates: plan §9 (S02-S04, S06, S08, S10, S11, S15, S17, S18, S20-S23).
-- Audit items held for Hamm (2026-11-21): `jit="auto"` always-jit (warm simulate about 25x faster and first call 13-20% faster below the threshold on vwin-pc, but LIF `V_m` moves up to 9.54e-07 and it reverses the opt051_1 receipt); `int(ms / dt)` truncation with float32 dt at 56 sites (readout values move); compact JSON for receipts; atlas `lfp.html` time-axis duplication (future freezes); results_reconstruction drafts vs manuscript. Not taken: merging `benchmark_051/055_matrix.py` (055 is cited by the signed `PREREG_B1_0510.md`, 051 by the opt051_1 receipt).
-- Matching-host broad gate (`T-MATCH`) still pending on Linux/Windows for post-merge `dev`.
-- CAMINOS E1 not equivalent (oracle kept); PCL R5 FAIL + P-055 attributed; P-053 open; P-056 blocked on owner inputs; P-067 (Pose3D xz/yz depth axis vs proxy) open, unmeasured. Papers are never failed through 0.6 (Hamm 2026-11-03).
+- Dashboard workflow red on dev since 4773b4d9 (run 45118760753, figures job): `rerun_etude_figures.py` claims checks fail for `multiscale_observation` (r90 lfp_ref) and `heterogeneous_emitters` (izh P_LFP centroid). Inferred cause: P-066 moved z to mm and these etude scripts project without `column_height_mm` (P-068, T-DASH-P068).
+- T-MATCH (S21 host: Linux, Python 3.11, jax 0.10.2): WSL has no Python 3.11; sudo needs Hamm's password and a hook blocks installing uv. Needs Hamm.
+- T-FIG05 re-freeze needs the macOS freeze platform; vmac unreachable 2026-11-23 (T-MAC).
+- B2 scored run waits on plan §10.3 item 18 (B1 drive scaling, M3 drive) and the `budget_files` raise when it lands.
+- Solmind execution: R57 (P-047) moved; SCIENCE rows on Hamm; S06, S17 (R20, R21) open; S01 proceeds under the frozen score.
+- Audit items held for Hamm (2026-11-21): `jit="auto"` always-jit; `int(ms / dt)` truncation at 56 sites; compact receipt JSON; atlas `lfp.html` time axis; results_reconstruction drafts.
+- P-067 (Pose3D xz/yz depth axis vs proxy) open, unmeasured. CAMINOS E1 not equivalent (oracle kept).
 
 ## Open decisions for the owner
 
-- Recommended defaults (proceed under these unless Hamm overrides): (1) retain frozen 100-point checklist; report prepublication readiness separately; (2) keep ephaptic experimental unless physical interpretation and numerical correctness are established; (3) frozen evidence and numerical criteria need Hamm before change; (4) publication remains exact-SHA owner authorization.
-- Canonical open rows: `open_stack.md` (O-FIG05, O-73, O-75, O-PRE, Crazy Sailor O-1..O-4, O-6, O-8, O-9). Solmind decision gates S01-S23: plan §9; the ranked 0.5.10 decision list: plan §10.3.
+- Plan §10.3 item 18 (B1 (ii)-(iii)); item 12 (R12-R16, S06); T-MATCH Python 3.11 route; S01 if a change is wanted.
+- Canonical open rows: `open_stack.md`. Gates S01-S23: plan §9.
 
 ## Next agent — grab remote and continue
 
-1. `git fetch --all --prune`; checkout `dev` at `origin/dev`; read `artifacts/AGENTS.md`, this file, `open_stack.md`, `todo_stack.md`, then the plan (`artifacts/programme/design/plans/solmind/solmind_0510_plan.md`, §1-§4 and §8-§9).
-2. Work T-PLAN-EXECUTE rows not held (plan §8 status text names each hold), max 3 lanes incl. reviewers. Recompute the checklist only from exact-SHA receipts. Stop at `READY_FOR_OWNER_GO`.
+1. `git fetch --all --prune`; checkout `dev`; read `artifacts/AGENTS.md`, this file, `open_stack.md`, `todo_stack.md`, plan §8-§10.
+2. Top executable: T-DASH-P068, then T-AI-DOC, A1/A2 at the frozen candidate, R42-R50 docs rows. Max 3 lanes incl. reviewers. Stop at `READY_FOR_OWNER_GO`.
 3. Do not tag/`main`/PyPI without Hamm's exact-SHA go.
 
 ## Generated files and their checks
@@ -42,5 +46,5 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Environment
 
-- Windows (py 3.14) / WSL `~/venv_jaxfne` (CUDA) / macOS arm64 (py 3.13, jax 0.10.1); warehouse `F:/warehouse/`.
-- Remote branches (2026-11-22): `main`, `dev`, `gh-pages`. `_temp_onum` (kept by Hamm; tip 948a5242, an ancestor of dev) is absent from the remote since 2026-11-22, removed outside this lane; the local branch remains on vwin-pc. `_temp_r17`, `_temp_tfne-manuscript`, `_temp_clean1`, `_temp_clean2` retired 2026-11-22 after merge into `dev`. Jomission `_temp_solmind` is separate and unaffected.
+- Windows (py 3.14) / WSL `~/venv_jaxfne` (py 3.12.3, jax 0.10.1, CUDA, brian2, NEST) / macOS arm64 (py 3.13, jax 0.10.1; unreachable 2026-11-23); warehouse `F:/warehouse/`.
+- Remote branches (2026-11-23): `main`, `dev`, `gh-pages`, plus other sessions' branches. `_temp_onum`: deleted on the remote, left deleted (Hamm 2026-11-23); local copy on vwin-pc.
