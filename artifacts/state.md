@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@_temp_crazy_sailor_m0m1_b@4b9e58e2 · 2026-11-19. Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
+Stamp: jaxfne@_temp_fixation_seal@e7015a11 · 2026-11-23 (broad gate and integrity checks run at this SHA). Overwritten each session. Where this file and git or a gate disagree, git and the gate win. History: git.
 
 Branch `_temp_crazy_sailor_m0m1_b`, worktree `/Users/hamednejat/workspace/dev/jaxfne-crazy-sailor` on the Mac that ran the work. Upstream `origin/_temp_crazy_sailor_m0m1_b`. `dev` is an ancestor of this branch (checked 2026-11-19).
 Status: push authorized 2026-11-19 on Hamm's explicit instruction ("push please"), given after the integrity FAIL and the 13 baseline failures were reported. Scope: this branch only; not dev, not main; no merge. The override does not waive the gates: the integrity gate stays FAIL (O-10) and the broad gate stays failing (CS-10). This overrides the earlier push block (2026-11-19 ruling) for this push only.
@@ -18,7 +18,7 @@ Status: push authorized 2026-11-19 on Hamm's explicit instruction ("push please"
 | Item | Evidence (observed 2026-11-19) | Row |
 |---|---|---|
 | Record integrity FAIL | `python3 scripts/check_record_integrity.py --check`: violations 1. `artifacts/release/budget_amendment_2026-10-23.md` pinned `c52e830b…`, live `cdc17e41…` | O-10, EX-30 |
-| Broad gate: 13 baseline failures | contract §10; not re-run this session | CS-10 |
+| Broad gate: 13 baseline failures reported 2026-11-19 | Not reproduced at `e7015a11` on 2026-11-23: `scripts/run_test_gate.py broad` exit 0, 9 of 9 lanes PASS (run in a clone of the tip; log in the scratch clone, not in git) | CS-10 |
 | §13.7 critic verdict REVISE, 9 findings | no fix commit yet | O-2, EX-22 |
 | Plasticity Boat dev-100: R4 fails at all seven criteria-v2 `g_s` tested; R2 passes only at `g_s` ≤ 4.5 | jomission `dev100_gate_record.md` | O-8, EX-25 |
 | Plasticity Boat decoder: sum or mean over each motor group | jomission `O8_decision_packet.md` §8 | O-9, EX-25 |
@@ -64,7 +64,7 @@ Discrepancies recorded, not resolved here:
 
 ## Not run or not examined
 
-- Broad gate on this tip: not run this session.
+- Broad gate on `e7015a11`: run 2026-11-23, PASS (exit 0, 9 of 9 lanes). The integrity and tree-size checks also pass at that SHA (0 violations; 2798 files).
 - Plasticity Boat tier-0 suite (33 files) and the `release_artifacts` gate: not run and not examined (EX-31, jomission).
 
 ## Environment
@@ -75,6 +75,6 @@ Discrepancies recorded, not resolved here:
 ## Next action
 
 1. Hamm: decide O-10 (repin to `cdc17e41…` on a SHA-specific go, or restore `c52e830b…`).
-2. Done: push of this branch (Hamm's override, above). Pending: CS-10 (broad gate) and the integrity repair; the branch is not mergeable until both pass.
-3. Then CS-10 (broad gate to 0 failures, without weakening the gate), then EX-22 (critic findings).
+2. Done: push of this branch (Hamm's override, above). Done 2026-11-23: CS-10 broad gate PASS at `e7015a11`. Pending: O-10 integrity decision by Hamm; the 2026-11-19 FAIL is not reproduced at `e7015a11`.
+3. Then EX-22 (critic findings).
 4. Plasticity Boat start steps: jomission `_temp_plasticity_boat/artifacts/programme/design/plans/plasticity_boat/HANDOFF.md`.
