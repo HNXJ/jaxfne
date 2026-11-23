@@ -226,6 +226,7 @@ def project_laminar_sources(
     width: float = 0.10,
     mode: str = "density_preserving",
     dtype: str | None = None,
+    column_height_mm: float | None = None,
 ) -> FieldOutput:
     """Project source traces to laminar proxy contacts.
 
@@ -235,7 +236,12 @@ def project_laminar_sources(
         Source-proxy traces with shape [T, N].
     positions:
         Emitter positions with shape [N, 3]. The third coordinate is
-        interpreted as relative laminar depth in [0, 1].
+        laminar depth: relative in [0, 1] when ``column_height_mm`` is None,
+        in mm when it is given (P-066).
+    column_height_mm:
+        Column height in mm. When given, depth is ``positions[:, 2] /
+        column_height_mm``, so mm positions from the laminar construct map
+        onto the contact span. None keeps the relative-depth reading.
     n_contacts:
         Number of laminar contacts.
     width:
@@ -262,6 +268,8 @@ def project_laminar_sources(
     sources = jnp.asarray(sources, dtype=jdtype)
     positions = jnp.asarray(positions, dtype=jdtype)
     depth = positions[:, 2]
+    if column_height_mm is not None:
+        depth = depth / jnp.asarray(float(column_height_mm), dtype=jdtype)
     contacts = jnp.linspace(0.0, 1.0, int(n_contacts), dtype=jdtype)
     width_value = jnp.asarray(width, dtype=jdtype)
     raw_kernel = jnp.exp(-0.5 * ((contacts[:, None] - depth[None, :]) / width_value) ** 2)
@@ -381,6 +389,7 @@ def project_sources_to_laminar_field(
     *,
     mode: str = "density_preserving",
     dtype: str | None = None,
+    column_height_mm: float | None = None,
 ) -> FieldOutput:
     """Project sources onto ``n_contacts`` laminar contacts (proxy field).
 
@@ -388,7 +397,7 @@ def project_sources_to_laminar_field(
     ``positions`` to a :class:`FieldOutput` via the Gaussian-leadfield laminar
     proxy. This is not a PDE/volume-conductor solve
     (``field_solver_status = "linear_solver"``); outputs are relative-unit
-    proxies.
+    proxies. Pass ``column_height_mm`` when ``positions`` carry mm z (P-066).
     """
     return project_laminar_sources(
         sources,
@@ -396,6 +405,7 @@ def project_sources_to_laminar_field(
         n_contacts=n_contacts,
         mode=mode,
         dtype=dtype,
+        column_height_mm=column_height_mm,
     )
 
 
@@ -466,6 +476,7 @@ def project_model_sources(
         width=width,
         mode=mode,
         dtype=dtype,
+        column_height_mm=model.params.get("column_height_mm"),
     )
     if isinstance(sources, jax.core.Tracer) or isinstance(use_positions, jax.core.Tracer):
         return out

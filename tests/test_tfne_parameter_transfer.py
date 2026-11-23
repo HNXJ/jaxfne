@@ -408,7 +408,9 @@ def test_declared_geometry_reaches_the_executed_positions():
         # RNG stream would both vary and neither could be isolated.
         r = realize(explicit, program, seed=20260918)
         model = jaxfne.construct(to_configuration(r, duration_ms=5.0, dt_ms=DT_MS))
-        return r, np.asarray(model.params["positions"])[:, 2]
+        # P-066: realized z is mm; the declared domain is a fraction of the column height.
+        h = float(model.params["column_height_mm"])
+        return r, np.asarray(model.params["positions"])[:, 2] / h
 
     r_bare, z_bare = executed_z()
     r_unit, z_unit = executed_z(0.0, 1.0)
@@ -464,10 +466,12 @@ def test_geometry_inspection_configured_realized_executed_manifest():
 
     assert r.s["geometry"]["A"] == {"z0": 0.2, "z1": 0.5}
     assert model.cfg.metadata["tfne_geometry"]["domains"] == {"A": {"A": {"z": [0.2, 0.5]}}}
-    z = np.asarray(model.params["positions"])[:, 2]
+    # P-066: realized z is mm; the declared domain is a fraction of the column height.
+    h = float(model.params["column_height_mm"])
+    z = np.asarray(model.params["positions"])[:, 2] / h
     assert float(z.min()) >= 0.2 and float(z.max()) <= 0.5
     assert all(
-        0.2 <= float(row["z"]) <= 0.5 for row in model.neuron_table() if row["z"] is not None
+        0.2 <= float(row["z"]) / h <= 0.5 for row in model.neuron_table() if row["z"] is not None
     )
     man = model.manifest()
     assert man["tfne_geometry"]["declared"] == {"A": {"z0": 0.2, "z1": 0.5}}

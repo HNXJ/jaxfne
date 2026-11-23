@@ -40,7 +40,7 @@ def materialize_field(
 ):
     """Apply F_{G,M} to frozen Q without re-simulating neural dynamics."""
     spec = spec or load_protocol_spec()
-    params = _field_params(spec, field_id)
+    params = {**_field_params(spec, field_id), "column_height_mm": dataset.column_height_mm}
     return project_laminar_sources(
         jnp.asarray(dataset.Q),
         jnp.asarray(dataset.positions),
@@ -112,7 +112,7 @@ def verify_b2_invariants(
     zero_field = project_laminar_sources(
         jnp.zeros_like(jnp.asarray(dataset.Q)),
         jnp.asarray(dataset.positions),
-        **_field_params(spec, "lfp_ref"),
+        **{**_field_params(spec, "lfp_ref"), "column_height_mm": dataset.column_height_mm},
     )
     zero_probe = lfp_proxy_probe(
         zero_field.phi_e_proxy,

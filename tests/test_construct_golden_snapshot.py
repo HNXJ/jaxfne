@@ -227,5 +227,6 @@ def test_construct_returns_model_with_expected_param_keys():
         cell_types={"E": 0.5, "PV": 0.5}, n=6, emitter="izhikevich",
     )
     model = jtfne.construct(cfg)
-    assert set(model.params.keys()) == {"emitter", "positions", "edge_list"}
+    # column_height_mm: P-066, the laminar population's z is in mm and its height travels with params.
+    assert set(model.params.keys()) == {"emitter", "positions", "edge_list", "column_height_mm"}
     assert "operator_status" in model.static
