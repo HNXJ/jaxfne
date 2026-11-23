@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2567 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2560 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -360,8 +360,6 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `{...}({...}, ...) is not realized: no column is named {...}` |
 | `ValueError` | `{...}({...}, ...) is not realized: column {...} is one 'uniform_3d' layer and reads no layer table` |
 | `ValueError` | `{...}(...) is not realized: every column is one 'uniform_3d' layer and reads no layer table. Drop it` |
-| `ValueError` | `dtype='float64' requested but JAX x64 is not enabled -- call jax.config.update("jax_enable_x64", Tru` |
-| `ValueError` | `dtype='float64' requested but JAX x64 is not enabled -- call jax.config.update("jax_enable_x64", Tru` |
 | `ValueError` | `unsupported connectivity_mode for construction: {...}` |
 
 **`jaxfne/_construct_presets.py`**
@@ -673,6 +671,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `surrogate beta must be > 0 (1/mV); got {...}: 0 gives a zero gradient and a negative beta flips its ` |
 | `ValueError` | `x64_enabled=True does not enable x64; call jaxfne.enable_x64() before building arrays and request dt` |
 | `ValueError` | `dtype='float64' requested but JAX x64 is not enabled -- call jax.config.update("jax_enable_x64", Tru` |
+| `ValueError` | `dtype='float64' requested but JAX x64 is not enabled -- call jax.config.update("jax_enable_x64", Tru` |
 | `ValueError` | `Unknown surrogate method: {...} (P-031). Use "none", "straight_through", or "sigmoid_beta".` |
 | `ValueError` | `beta must be finite, got {...} (P-031).` |
 
@@ -751,9 +750,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `poisson_drive target_indices holds {...}: entries must be integer neuron indices` |
 | `ValueError` | `poisson_drive target_indices holds {...}: index out of range for n_neurons={...}` |
 | `ValueError` | `poisson_drive target_indices is empty; refusing a targeted drive that would reach no neuron` |
-| `ValueError` | `dtype='float64' requested but JAX x64 is not enabled -- call jax.config.update("jax_enable_x64", Tru` |
 | `ValueError` | `target_indices out of bounds: min={...}, max={...}, n_neurons={...}` |
-| `ValueError` | `dtype='float64' requested but JAX x64 is not enabled -- call jax.config.update("jax_enable_x64", Tru` |
 | `ValueError` | `SpikeTrainInput n_neurons={...} must be a positive integer` |
 | `ValueError` | `SpikeTrainInput n_neurons={...} must be a positive integer` |
 | `ValueError` | `SpikeTrainInput spike_times must be a mapping of neuron index -> sequence of times in ms; got {...}` |
@@ -963,7 +960,6 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `connection {...} in_degree must be a positive integer; got {...}` |
 | `ValueError` | `{...} in_degree with sampling='multinomial' must be a finite positive number (the mean in-degree); g` |
 | `ValueError` | `{...} in_degree with sampling='multinomial' must be a finite positive number (the mean in-degree); g` |
-| `ValueError` | `dtype='float64' requested but JAX x64 is not enabled -- call jax.config.update("jax_enable_x64", Tru` |
 | `ValueError` | `{...} selector must be a mapping; got {...}` |
 | `ValueError` | `{...} selector declares both {...} and {...}; declare one` |
 | `ValueError` | `selector {...} ({...}) matched zero neurons` |
@@ -982,7 +978,6 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `connection {...} artifact_ref array {...} not supplied; pass it via artifacts={name: array} (compile` |
 | `ValueError` | `connection {...} artifact_ref sha256 mismatch for {...}: declared {...} != supplied-array digest {..` |
 | `ValueError` | `connection {...} unknown weight mode {...}` |
-| `ValueError` | `dtype='float64' requested but JAX x64 is not enabled -- call jax.config.update("jax_enable_x64", Tru` |
 | `ValueError` | `mechanism declaration missing 'name'` |
 | `ValueError` | `mechanism {...} is the tau -> 0 limit: declare tau_ms=0.0; got {...}` |
 | `ValueError` | `mechanism {...} tau_ms must be finite and positive; got {...}` |
@@ -1033,7 +1028,6 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `update_order='net_m' realizes the paper's noise-free thal drive; got nonzero noise_scale={...}` |
 | `ValueError` | `unknown Izhikevich cell type {...}; expected one of {...}` |
 | `ValueError` | `IzhikevichParams: v_lin and v_const must both be set or both be None` |
-| `ValueError` | `dtype='float64' requested but JAX x64 is not enabled -- call jax.config.update("jax_enable_x64", Tru` |
 | `ValueError` | `cell_type_fractions[{...}] must be finite and non-negative; got {...}` |
 | `ValueError` | `cell_type_fractions must have positive mass; got {...}` |
 | `ValueError` | `labels must contain at least one emitter label` |
@@ -1435,7 +1429,6 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `local_inhibition order must be one of {...}; got {...}` |
 | `ValueError` | `cap_groups must have shape ({...},); got {...}` |
 | `ValueError` | `unknown LIF sign label {...}; expected one of {...}` |
-| `ValueError` | `dtype='float64' requested but JAX x64 is not enabled -- call jax.config.update("jax_enable_x64", Tru` |
 | `ValueError` | `labels must contain at least one label` |
 | `ValueError` | `layer_labels length must match labels length` |
 | `ValueError` | `drive_overrides[{...}] must be finite; got {...}` |
