@@ -5,7 +5,7 @@
     "dated": 31,
     "frozen": 28,
     "legacy": 32,
-    "prereg": 135,
+    "prereg": 136,
     "receipts": 11
   },
   "paths": {
@@ -253,6 +253,7 @@
     "artifacts/runs/benchmark/b1/M3_REMOTE_AUDIT_2026-11-12.md": "e50efd40d955bc99967f3298daf867e2b38dfa1a41895dd66461e8dd019037d3",
     "artifacts/runs/benchmark/prereg/PREREG_B1_0510.md": "be70c478818d0b4029f67a44478cd6776f52f519598c9e0b67db28a9c9c177ba",
     "artifacts/runs/benchmark/prereg/PREREG_B1_0510_amendment1.md": "21e80916faa4f7e8ffd2ef5cc0420147c0cf424585551f43a13c579e8463b74d",
-    "artifacts/runs/benchmark/prereg/PREREG_B1_0510_amendment1_erratum1.md": "45391b39fcf0483d6d5c7a213c42c5478c3224b743e7ebb527b82cc0bcec410d"
+    "artifacts/runs/benchmark/prereg/PREREG_B1_0510_amendment1_erratum1.md": "45391b39fcf0483d6d5c7a213c42c5478c3224b743e7ebb527b82cc0bcec410d",
+    "artifacts/runs/benchmark/prereg/PREREG_B1_0510_amendment2.md": "fa408bd0d18f4f25806ae193fae01411eb57c885d95837e8998153323fdd4328"
   }
 }

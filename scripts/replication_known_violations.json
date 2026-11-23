@@ -3,84 +3,84 @@
     "rule": "R1",
     "path": "artifacts/etudes/papers/izhikevich2003",
     "message": "stage P6 paper 'izhikevich2003' lacks the P5 record LEDGER.md",
-    "reason": "audit 2026-10-17",
+    "reason": "audit 2026-10-17. Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "T-30"
   },
   {
     "rule": "R1",
     "path": "artifacts/etudes/papers/pcl",
     "message": "stage P5 paper 'pcl-fig3' lacks the P5 record RESULT_P3*.md",
-    "reason": "audit 2026-10-17",
+    "reason": "audit 2026-10-17. Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "T-30"
   },
   {
     "rule": "R1",
     "path": "artifacts/etudes/papers/qlearning",
     "message": "stage P3 paper 'qlearning' lacks the P1 record SOURCE_P1.md",
-    "reason": "audit 2026-10-17",
+    "reason": "audit 2026-10-17. Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "T-30"
   },
   {
     "rule": "R1",
     "path": "artifacts/etudes/papers/qlearning",
     "message": "stage P3 paper 'qlearning' lacks the P2 record PORT_SPEC.md",
-    "reason": "audit 2026-10-17",
+    "reason": "audit 2026-10-17. Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "T-30"
   },
   {
     "rule": "R1",
     "path": "artifacts/etudes/papers/qlearning",
     "message": "stage P3 paper 'qlearning' lacks the P3 record PREREG_P3*.md (or prereg/P3_*.md)",
-    "reason": "audit 2026-10-17",
+    "reason": "audit 2026-10-17. Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "T-30"
   },
   {
     "rule": "R1",
     "path": "dashboard/sources.json",
     "message": "paper 'hh-at01' (stage P3) names no folder under artifacts/etudes/papers/",
-    "reason": "audit 2026-10-17",
+    "reason": "audit 2026-10-17. Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "T-30"
   },
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/brunel2000",
     "message": "holds 13 files (at most 7)",
-    "reason": "open lane: signed P3 prereg v4, its result, scores and ledger beside the pinned v1-v3 drafts (2026-10-20)",
+    "reason": "open lane: signed P3 prereg v4, its result, scores and ledger beside the pinned v1-v3 drafts (2026-10-20). Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "T-32"
   },
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/caminos",
     "message": "holds 35 files (at most 7)",
-    "reason": "audit 2026-10-17; 28 files after the FIG-A runner, the mean-field port with its result and the PLoS Figs 2-4 scorer with its result (2026-10-31); 30 with the PLoS raster runner and its test, 32 with the raster scorer and its test, 33 with the core-route test test_cellrep_core.py, 35 with the core-route equivalence scorer and its test (2026-11-02)",
+    "reason": "audit 2026-10-17; 28 files after the FIG-A runner, the mean-field port with its result and the PLoS Figs 2-4 scorer with its result (2026-10-31); 30 with the PLoS raster runner and its test, 32 with the raster scorer and its test, 33 with the core-route test test_cellrep_core.py, 35 with the core-route equivalence scorer and its test (2026-11-02). Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "T-30"
   },
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/izhikevich2003",
     "message": "holds 14 files (at most 7)",
-    "reason": "audit 2026-10-17",
+    "reason": "audit 2026-10-17. Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "T-30"
   },
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/pcl",
     "message": "holds 24 files (at most 7)",
-    "reason": "audit 2026-10-17; recounts 2026-10-24 (PCL-R1 receipt) and 2026-10-27 (R2/R4 design study)",
+    "reason": "audit 2026-10-17; recounts 2026-10-24 (PCL-R1 receipt) and 2026-10-27 (R2/R4 design study). Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "T-30"
   },
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/potjans2014",
     "message": "holds 9 files (at most 7)",
-    "reason": "open lane: the signed P3 v2 scored driver adds score_p3.py, its test and RESULT_P3.md (2026-11-02); split by kind when the lane closes",
+    "reason": "open lane: the signed P3 v2 scored driver adds score_p3.py, its test and RESULT_P3.md (2026-11-02); split by kind when the lane closes. Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "T-49"
   },
   {
     "rule": "R6",
     "path": "artifacts/etudes/papers/vogels2011",
     "message": "holds 10 files (at most 7)",
-    "reason": "open lane: the signed P3 v4 scored driver adds score_p3.py, its test and RESULT_P3.md (2026-11-02); split by kind when the lane closes",
+    "reason": "open lane: the signed P3 v4 scored driver adds score_p3.py, its test and RESULT_P3.md (2026-11-02); split by kind when the lane closes. Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "T-49"
   },
   {
@@ -178,21 +178,21 @@
     "rule": "S2",
     "path": "artifacts/etudes/papers/pcl/port/pcl_binned_jax.py",
     "message": "imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref.py",
-    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
+    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle. Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "B4 S2 follow-up"
   },
   {
     "rule": "S2",
     "path": "artifacts/etudes/papers/pcl/port/run_tuning.py",
     "message": "imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref.py",
-    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
+    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle. Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "B4 S2 follow-up"
   },
   {
     "rule": "S2",
     "path": "artifacts/etudes/papers/pcl/port/run_tuning.py",
     "message": "imports oracle artifacts/etudes/papers/pcl/port/pcl_event_ref_numba.py",
-    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle",
+    "reason": "found by S2 when the rule landed (B4); the scored path imports the oracle. Hamm exception 2026-11-23 (G2, plan §10.3 item 4: outside 0.5.10 scope).",
     "todo": "B4 S2 follow-up"
   }
 ]
