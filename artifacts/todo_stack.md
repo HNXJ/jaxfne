@@ -47,11 +47,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    noise, delays, dt, seeds), and `PREREG_P3.md:1` is still "draft, UNSIGNED" with `(fill)` estimands at `:10` and
    `:26`. Missing: digitized figure targets, a verdict scorer, a rate-route driver, a P4-passing manifest, receipts.
    Closes when: a filled P3 is signed and G6 is scored under it; the inventory is in the lane's records.
-3. T-P066-FOLLOW [A] P-066 review minors (closed batch `issues_closed_2026-11-22.md`): tests for `connect()` height
-   merge and refusal, the PV<->E gate rescale (`_construct_core.py:296`, all-uniform_3d vs mixed model) and
-   `simulate(record_fields=True)` height forwarding; decide whether uniform_3d z in a mixed model is divided by the
-   height; re-record experiment_a b0/b1/b3 receipts on their next regeneration. Closes when: each test fails on a
-   seeded mutant and passes, and the mixed-model behaviour is pinned. Blocked by: none.
+3. T-P066-FOLLOW [A] P-066 review minors left after `tests/test_p066_follow.py` (2026-11-23: connect height,
+   PV<->E gate incl. the mixed model, record_fields forwarding, each mutant-killed): a forwarding test for the
+   homeostatic `record_fields` site (`_model_simulate.py:2014`); re-record experiment_a b0/b1/b3 receipts on their
+   next regeneration. Closes when: that test fails on a dropped-kwarg mutant and passes. Blocked by: none.
 
 ## Tier 3: half a day
 
