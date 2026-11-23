@@ -181,14 +181,14 @@ check run at this baseline). Mandatory gates: broad gate and CI per promoted SHA
   |---|---|---|
   | TFNE declaration | fraction of the sampled (area, layer) block, [0,1] per axis | `tfne_algebra.md:91-100`; `tfne.py:3186-3192` |
   | realized x, y | mm: lo + f·span on [-R, R], R = `column_radius_mm` (0.25), plus area offset | `_construct_population.py:505-529` |
-  | realized z | fraction of column height in [0,1] (`layer_fractions`); `column_height_mm` not applied | same; P-066 |
+  | realized z | mm: `layer_fractions` x `column_height_mm` (1.60) | `_construct_population.py`; P-066, merged 04f6845b |
   | delays | ms, round(τ/Δt) steps; distance-derived delays read `NeuronalTensor` mm | `tfne.py:3194-3196`; `neuronal_tensor.py:96-103,349-364` |
-  | field proxy, CSD proxy | relative depth: contacts `linspace(0, 1)`; dz in the same units | `fields/proxy.py:266,283-285,1376` |
+  | field proxy, CSD proxy | relative depth z / `column_height_mm`: contacts `linspace(0, 1)`; dz in the same units | `fields/proxy.py:266,283-285,1376` |
   | kernel LFP | µm | `fields/kernel_lfp.py:9,25` |
   | EEG/MEG (outside core) | m | `fields/head.py:16` |
 
-  The calibration map from TFNE fractions to positions exists for x and y (mm) and stops at z, where depth
-  stays a fraction; distance rules then mix mm with depth fraction (ISSUE_LOG P-066, open, needs a ruling).
+  The calibration map from TFNE fractions to positions covers x, y and z (mm); distance rules read one unit
+  (P-066, ruled 2026-11-19, merged 2026-11-22).
 - CSD (task-units-csd, resolved 2026-11-19): CSD = q under the declared equation ∇·(-σ_e∇φ_e) = q
   (`source_field_equations.md:162,205`); the shipped proxy is -∂²φ_e/∂z² without σ_e (`csd_tensor`,
   `fields/proxy.py:1376`), an estimate of q/σ_e along depth. The ∇·q statements are corrected in
@@ -332,7 +332,7 @@ include task-feas-review's corrections.
 | H-state (dropped from core) | IMPLEMENTED, emitter-local; SPECIFIED for S, F, P | 8 registered HDP rules: 5 in `jaxfne/hdp_rule.py:477-618`, plus PCL, Vogels iSTDP, ephaptic, of which 3 return dH = 0 | none for the core |
 | Relative quantities (dropped from core) | SPECIFIED | `docs/theory/doctrine/relative_quantity_grammar.md` (duplicate row :41-42; m classed B at :19, R at :40); `QuantityKind` vocabulary only | none for the core |
 | Emitter families | TESTED per family; heterogeneous REFUSED | registry `izhikevich`, `lif`, `glif` (registered, not routed), `adex`, `rate` (`jaxfne/emitter_registry.py:106-110`, `jaxfne/neuronal_tensor.py:93`); two families in one tensor raise (`neuronal_tensor.py:2953-2959`); adex refuses `field()`/`probe()` (`_construct_adex.py:35,209`), hh unlocated; HH and Jansen-Rit outside the registry | expansion after the core; stale comments `neuronal_tensor.py:89-91`, `_construct_core.py:535-538` |
-| Geometry | TESTED; units conflict | `Geometry3D`, `NeuronalTensor` (mm); `tests/test_geometry_invariants.py:112,136,192`; A3 mutation receipt (release plan) | one length unit per layer and a calibration map (task-units-csd) |
+| Geometry | TESTED | `Geometry3D`, `NeuronalTensor` (mm); `tests/test_geometry_invariants.py:112,136,192`; `tests/test_laminar_z_mm.py`; A3 mutation receipt (release plan) | none (positions in mm on all axes, P-066) |
 | LFP, CSD proxies | TESTED | `jaxfne/fields/probes.py:536,612`; `jaxfne/fields/proxy.py:1376` | proxy status kept in text |
 | Kernel LFP | TESTED | `jaxfne/fields/kernel_lfp.py:286`; current balance `tests/test_kernel_lfp.py:32`; P-056 open (deep-layer power) | P-056 |
 | EEG/MEG | TESTED (sphere leadfield) | `jaxfne/fields/head.py:227,258`; `tests/test_head_forward.py` | conductivity and source-physics statement; secondary |
