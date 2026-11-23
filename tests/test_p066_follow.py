@@ -114,6 +114,33 @@ def test_pv_e_gate_uses_raw_z_for_uniform_3d():
     assert n_pv_e > 0
 
 
+def _mixed(canonical_on):
+    cfg = (
+        jtfne.Configuration()
+        .column("A", layers=["uniform_3d"], n=60)
+        .column("B", layers=["L2/3", "L5"], n=60)
+        .cell_types({"E": 0.75, "PV": 0.25})
+        .layer_fractions(
+            {"L2/3": (0.0, 0.5), "L5": (0.5, 1.0)},
+            {"L2/3": {"E": 0.75, "PV": 0.25}, "L5": {"E": 0.75, "PV": 0.25}},
+        )
+        .connectivity(within_area="all_to_all_uniform_random", within_gain=0.45)
+    )
+    return _finish(cfg).runtime(canonical_biophysics=canonical_on)
+
+
+def test_pv_e_gate_divides_every_z_by_height_in_a_mixed_model():
+    """Decision (T-P066-FOLLOW, 2026-11-23): a model with uniform_3d and layered columns takes one
+    depth unit, z / column_height_mm, for every neuron; only an all-uniform_3d model keeps raw z."""
+    on = jtfne.construct(_mixed(True))
+    off = jtfne.construct(_mixed(False))
+    labels = set(np.asarray(on.params["emitter"].layer_labels).tolist())
+    assert "uniform_3d" in labels and len(labels) > 1, "fixture must mix uniform_3d and layered labels"
+    height = float(on.cfg.metadata.get("column_height_mm", 1.60))
+    assert height != 1.0, "fixture: a height of 1 cannot tell divided from raw z"
+    assert _check_pv_e_gate(on, off, scale=height) > 0
+
+
 # (3) simulate(record_fields=True) forwards the column height to the projection.
 
 
