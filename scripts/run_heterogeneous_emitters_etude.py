@@ -167,6 +167,7 @@ def simulate_izh(duration_ms: float, u: np.ndarray | None) -> dict[str, Any]:
         "spikes": np.asarray(signals.spikes),
         "Q": np.asarray(signals.sources),
         "positions": np.asarray(model.params["positions"]),
+        "column_height_mm": model.params.get("column_height_mm"),
         "source_calibration_status": str(
             signals.metadata.get("source_calibration_status")
             or "uncalibrated_izhikevich_native_current"
@@ -202,6 +203,7 @@ def simulate_hei(duration_ms: float, u: np.ndarray | None) -> dict[str, Any]:
         "spikes": np.asarray(spikes),
         "Q": np.asarray(sources),
         "positions": np.asarray(model.params["positions"]),
+        "column_height_mm": model.params.get("column_height_mm"),
         "source_calibration_status": str(params.source_calibration_status),
         "emitter_family": "homeostatic_ei",
         "native_state": "homeostatic_ei_x_activity_not_mV",
@@ -214,10 +216,19 @@ def simulate_hei(duration_ms: float, u: np.ndarray | None) -> dict[str, Any]:
     }
 
 
-def observe(Q: np.ndarray, positions: np.ndarray) -> dict[str, Any]:
+def observe(Q: np.ndarray, positions: np.ndarray, column_height_mm: float | None) -> dict[str, Any]:
+    # P-066: laminar positions are mm z; the contacts and the EEG leadfield are relative depth.
     z = np.asarray(positions)[:, 2]
-    fo_ref = project_laminar_sources(jnp.asarray(Q), jnp.asarray(positions), n_contacts=16, width=0.10)
-    fo_wide = project_laminar_sources(jnp.asarray(Q), jnp.asarray(positions), n_contacts=16, width=0.25)
+    if column_height_mm is not None:
+        z = z / float(column_height_mm)
+    fo_ref = project_laminar_sources(
+        jnp.asarray(Q), jnp.asarray(positions), n_contacts=16, width=0.10,
+        column_height_mm=column_height_mm,
+    )
+    fo_wide = project_laminar_sources(
+        jnp.asarray(Q), jnp.asarray(positions), n_contacts=16, width=0.25,
+        column_height_mm=column_height_mm,
+    )
     W_sup = np.exp(
         -0.5
         * ((np.array([0.25, 0.25, 0.25], dtype=np.float32)[:, None] - z[None, :].astype(np.float32))
@@ -261,7 +272,7 @@ def main() -> int:
     obs = {}
     for name, run in runs.items():
         q_hash = array_sha256(run["Q"])
-        o = observe(run["Q"], run["positions"])
+        o = observe(run["Q"], run["positions"], run["column_height_mm"])
         if o["q_hash_after"] != q_hash:
             raise RuntimeError(f"{name} Q mutated under observation")
         run["Q_sha256"] = q_hash

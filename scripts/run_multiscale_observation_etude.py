@@ -183,7 +183,9 @@ def main() -> int:
     V = np.asarray(signals.V_m)
     spikes = np.asarray(signals.spikes)
     positions = np.asarray(model.params["positions"])
-    z = positions[:, 2]
+    column_height_mm = float(model.params["column_height_mm"])
+    # P-066: positions are mm z; the contacts and leadfields are relative depth.
+    z = positions[:, 2] / column_height_mm
     t = np.arange(Q.shape[0], dtype=np.float32) * np.float32(DT_MS)
     burn = int(round(BURN_IN_MS / DT_MS))
     Q_spec = Q[burn:]
@@ -203,7 +205,9 @@ def main() -> int:
     }
     fields: dict[str, Any] = {}
     for name, kw in laminar.items():
-        fields[name] = project_laminar_sources(jnp.asarray(Q), jnp.asarray(positions), **kw)
+        fields[name] = project_laminar_sources(
+            jnp.asarray(Q), jnp.asarray(positions), column_height_mm=column_height_mm, **kw
+        )
         if array_sha256(Q) != cause_hashes["Q"]:
             raise RuntimeError("Q mutated during observation")
 

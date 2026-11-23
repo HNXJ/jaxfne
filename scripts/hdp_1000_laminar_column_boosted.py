@@ -140,6 +140,7 @@ def main() -> None:
     field = jtfne.project_laminar_sources(
         spectro_run["sources"], model.params["positions"],
         n_contacts=16, width=0.10, mode="density_preserving",
+        column_height_mm=model.params.get("column_height_mm"),
     )
     n_steps = spectro_run["n_steps"]
     time_ms = jnp.arange(n_steps, dtype=jnp.float32) * DT_MS

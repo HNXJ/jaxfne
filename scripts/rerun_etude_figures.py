@@ -77,7 +77,7 @@ def _stride(n: int, max_pts: int = 2000) -> int:
     return max(1, int(n // max_pts))
 
 
-def _verify_multiscale_claims(bundle_metrics: dict, spikes, V, Q, positions) -> None:
+def _verify_multiscale_claims(bundle_metrics: dict, spikes, V, Q, positions, column_height_mm: float) -> None:
     """Claims-tier verification (P-003): abort unless published claims re-verify."""
     import numpy as np
 
@@ -101,8 +101,12 @@ def _verify_multiscale_claims(bundle_metrics: dict, spikes, V, Q, positions) -> 
             raise SystemExit(f"{name} outside protocol tolerance: {got} vs {want}")
 
     close(float(np.mean(V)), m["mean_V_m"], "mean_V_m")
-    fo = project_laminar_sources(jnp.asarray(Q), jnp.asarray(positions), n_contacts=16, width=0.10)
-    z = np.asarray(positions)[:, 2]
+    fo = project_laminar_sources(
+        jnp.asarray(Q), jnp.asarray(positions), n_contacts=16, width=0.10,
+        column_height_mm=column_height_mm,
+    )
+    # P-066: positions carry mm z; the contacts are relative depth, so z is divided by the height.
+    z = np.asarray(positions)[:, 2] / column_height_mm
     if mean_r90(np.asarray(fo.kernel), z, np.asarray(fo.contact_depths)) != m["r90"]["lfp_ref"]:
         raise SystemExit("r90 lfp_ref mismatch (geometry should be hash-exact)")
     burn = int(round(200.0 / 0.5))
@@ -148,6 +152,7 @@ def mode_multiscale(out_dir: pathlib.Path, figures: dict | None = None) -> list[
     V = np.asarray(signals.V_m)
     spikes = np.asarray(signals.spikes)
     positions = np.asarray(model.params["positions"])
+    column_height_mm = float(model.params["column_height_mm"])
     got = {
         "V_m": array_sha256(V),
         "spikes": array_sha256(spikes),
@@ -173,7 +178,7 @@ def mode_multiscale(out_dir: pathlib.Path, figures: dict | None = None) -> list[
             "deterministic reproduction; spikes/positions hash-exact, "
             "published claims re-verified within protocol tolerance"
         )
-        _verify_multiscale_claims(bundle_metrics, spikes, V, Q, positions)
+        _verify_multiscale_claims(bundle_metrics, spikes, V, Q, positions, column_height_mm)
     t = np.arange(Q.shape[0], dtype=float) * 0.5
     s = _stride(len(t))
     tt = t[::s]
@@ -215,7 +220,7 @@ def mode_multiscale(out_dir: pathlib.Path, figures: dict | None = None) -> list[
         figures=figures,
     )
 
-    fo = project_laminar_sources(Q, positions, n_contacts=16, width=0.10)
+    fo = project_laminar_sources(Q, positions, n_contacts=16, width=0.10, column_height_mm=column_height_mm)
     lfp = np.asarray(fo.lfp_proxy)
     csd = np.asarray(fo.csd_proxy)
     fig = go.Figure()
@@ -383,7 +388,7 @@ def mode_heterogeneous(out_dir: pathlib.Path, figures: dict | None = None) -> li
         else "reproduced runs (claims-checked P-003: rates exact, "
         "Q float drift, centroids re-verified)"
     )
-    obs = {name: observe(run["Q"], run["positions"]) for name, run in runs.items()}
+    obs = {name: observe(run["Q"], run["positions"], run["column_height_mm"]) for name, run in runs.items()}
     if het_tier == "claims":
         from scripts.run_heterogeneous_emitters_etude import (
             psd_of as _psd,

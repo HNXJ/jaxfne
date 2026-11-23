@@ -450,6 +450,7 @@ def compute_spectrolaminar_motif(
         n_contacts=cfg["n_contacts"],
         width=cfg["contact_width"],
         mode=cfg["projection_mode"],
+        column_height_mm=model.params.get("column_height_mm"),
     )
     fs = 1000.0 / cfg["dt_ms"]
     lfp = np.asarray(field.lfp_proxy)[None, :, :]  # (1, n_steps, n_contacts)

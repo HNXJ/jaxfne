@@ -96,7 +96,9 @@ DT_MS = base.DT_MS
 def rescaled_positions(model: "jtfne.core.Model") -> jnp.Array:
     """Affine-rescale z so 30/32 projection contacts land inside [0,1], 2 outside."""
     positions = np.asarray(model.params["positions"])
-    z = positions[:, 2]
+    height = model.params.get("column_height_mm")
+    # P-066: laminar z is mm; the rescale maps relative depth, so divide by the height first.
+    z = positions[:, 2] if height is None else positions[:, 2] / float(height)
     z_rescaled = CONTACT_DEPTH_LO + z * (CONTACT_DEPTH_HI - CONTACT_DEPTH_LO)
     out = positions.copy()
     out[:, 2] = z_rescaled
