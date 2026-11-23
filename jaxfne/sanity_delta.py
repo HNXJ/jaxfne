@@ -895,7 +895,7 @@ class TaskEpisode:
                     results[check] = True
             elif check == "proxy_safe_readout_names":
                 # Ensure readouts do not contain forbidden '_like' name
-                results[check] = all("_like" not in k for k in self.source_terms.keys())
+                results[check] = all("_like" not in k for k in self.source_terms)
             elif check == "truth_gates_preserved":
                 results[check] = (
                     self.config.claim_level == "computational_scaffold"

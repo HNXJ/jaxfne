@@ -147,11 +147,6 @@ def classify_dt_ms(time_ms: np.ndarray | None, fallback: float) -> DtInference:
     return DtInference(median, DT_SOURCE_INFERRED, None)
 
 
-def _infer_dt_ms(time_ms: np.ndarray | None, fallback: float) -> float:
-    """Return the classified ``dt_ms`` value (see ``classify_dt_ms``)."""
-    return classify_dt_ms(time_ms, fallback).dt_ms
-
-
 def _provenance(
     *,
     config_hash: str,

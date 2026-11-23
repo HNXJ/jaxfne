@@ -26,7 +26,7 @@ import jax.numpy as jnp
 from .fields import FieldOutput
 from .io import config_hash, json_safe
 from .experimental_hpc.contracts import SelectorSpec
-from ._runtime_config import RuntimeConfig
+from ._runtime_config import RuntimeConfig, refuse_float64_without_x64
 from .paradigm import (
     ParadigmEvent,
     ParadigmCondition,
@@ -1294,12 +1294,7 @@ class StimulusSchedule:
 
         Supports optional target_indices in event to apply amplitude only to selected neurons.
         """
-        if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
-            raise ValueError(
-                "dtype='float64' requested but JAX x64 is not enabled -- call "
-                'jax.config.update("jax_enable_x64", True) before creating any array '
-                "in this process; refusing to silently build float32"
-            )
+        refuse_float64_without_x64(dtype)
         schedule = _np.zeros((int(n_steps), int(self.n_neurons)), dtype=_np.float32)
         for ev in self.events:
             if not ev.get("is_drive_event", True):
@@ -1356,12 +1351,7 @@ class StimulusSchedule:
         optional ``frequency_hz`` sinusoidal-drive key (flat amplitude only).
         ``Model.simulate`` calls :meth:`to_array`, not this method.
         """
-        if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
-            raise ValueError(
-                "dtype='float64' requested but JAX x64 is not enabled -- call "
-                'jax.config.update("jax_enable_x64", True) before creating any array '
-                "in this process; refusing to silently build float32"
-            )
+        refuse_float64_without_x64(dtype)
         jdtype = jnp.float64 if (dtype == "float64" and bool(jax.config.read("jax_enable_x64"))) else jnp.float32
         time_ms = jnp.arange(n_steps, dtype=jdtype) * dt_ms
         

@@ -491,6 +491,8 @@ def _simulate_arrays(
     """
     from .emitters import _dtype_from_policy
 
+    guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+
     # Local import: _resolve_homeostasis_k_gain/_homeostasis_params_cache_fingerprint
     # stay in core.py (group-6 construct-pipeline territory); Model is their only
     # caller, so deferring the import here (rather than at module top) avoids a
@@ -659,7 +661,6 @@ def _simulate_arrays(
             Z = int(self.static.get("n_contacts", 16))
             C = int(emitter.n_neurons)
             T = int(sim.n_steps)
-            guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
             cache_key = (
                 "simulate_homeostatic",
                 B,
@@ -868,7 +869,6 @@ def _simulate_arrays(
             Z = int(self.static.get("n_contacts", 16))
             C = int(emitter.n_neurons)
             T = int(sim.n_steps)
-            guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
             if forced_spikes is None:
                 _forced_key = None
             else:
@@ -998,8 +998,6 @@ def _simulate_arrays(
             Z = int(self.static.get("n_contacts", 16))
             C = int(emitter.n_neurons)
             T = int(sim.n_steps)
-            guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
-
             cache_key = (
                 "simulate_recurrent",
                 B,
@@ -1126,8 +1124,6 @@ def _simulate_arrays(
         Z = int(self.static.get("n_contacts", 16))
         C = int(emitter.n_neurons)
         T = int(sim.n_steps)
-        guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
-
         cache_key = (
             "simulate_dense",
             B,
@@ -3586,7 +3582,7 @@ def simulate_batch(
                     hdp_rule_params=_hdp.get("hdp_rule_params", {}),
                     plasticity_mask=kernel_kwargs.get("plasticity_mask"),
                     record_weight_trace=False,
-                    noise_scale=_hdp.get("noise_scale", None),
+                    noise_scale=_hdp.get("noise_scale"),
                 )[:3]
             return simulate_edge_recurrent_izhikevich_hdp(
                 emitter,
@@ -3626,7 +3622,7 @@ def simulate_batch(
                 v_ceiling=_hp.get("v_ceiling", 100.0),
                 u_abs_max=_hp.get("u_abs_max", 2000.0),
                 syn_abs_max=_hp.get("syn_abs_max", 1.0e4),
-                noise_scale=_hp.get("noise_scale", None),
+                noise_scale=_hp.get("noise_scale"),
             )[:3]
         if runtime_cfg.recurrent_backend == "edge_list":
             return edge_kernel_fn(
@@ -3636,11 +3632,11 @@ def simulate_batch(
                 sim.dt_ms,
                 k,
                 dtype=runtime_cfg.compute_dtype,
-                noise_scale=_hdp.get("noise_scale", None),
+                noise_scale=_hdp.get("noise_scale"),
             )[:3]
         return simulate_eig_izhikevich(
             emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.compute_dtype,
-            noise_scale=_hdp.get("noise_scale", None),
+            noise_scale=_hdp.get("noise_scale"),
             surrogate_beta=_batch_surrogate_beta,
         )
 

@@ -45,6 +45,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from ._runtime_config import refuse_float64_without_x64
 from .emitters import CELL_TYPE_SIGN
 
 NEVER = -1.0e30  # no spike yet; spiked state is t_last > HAS_SPIKED
@@ -442,12 +443,7 @@ LIF_DEFAULT_DRIVE_MV = 3.0
 
 def _lif_dtype(dtype: str):
     """float32 default; float64 only with x64 enabled (same refusal as the rest of the package)."""
-    if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
-        raise ValueError(
-            "dtype='float64' requested but JAX x64 is not enabled -- call "
-            'jax.config.update("jax_enable_x64", True) before creating any array '
-            "in this process; refusing to silently build float32"
-        )
+    refuse_float64_without_x64(dtype)
     return jnp.float64 if dtype == "float64" else jnp.float32
 
 

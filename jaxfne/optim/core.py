@@ -1812,7 +1812,7 @@ def _tune_matrix_agsdr_optax(
                 # Preserve both scalar proposal values AND matrix parameters
                 best_parameters = dict(candidate_scalars)
                 # Extract tuned matrices from the refined model for ALL matrix parameters
-                for matrix_name in param_specs.keys():
+                for matrix_name in param_specs:
                     param_spec = param_specs[matrix_name]
                     if isinstance(param_spec, MatrixParameterSpec):
                         try:
@@ -1848,7 +1848,7 @@ def _tune_matrix_agsdr_optax(
 
     # Build matrix parameters metadata (compact, no huge arrays in summary)
     matrix_parameters_meta = {}
-    for matrix_name in param_specs.keys():
+    for matrix_name in param_specs:
         param_spec = param_specs[matrix_name]
         if isinstance(param_spec, MatrixParameterSpec) and matrix_name in best_parameters:
             try:

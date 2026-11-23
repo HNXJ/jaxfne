@@ -408,6 +408,16 @@ def _require_backend_available(backend: Optional[str]) -> None:
         )
 
 
+def refuse_float64_without_x64(dtype) -> None:
+    """Raise when ``dtype`` is ``"float64"`` and JAX x64 is not enabled."""
+    if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
+        raise ValueError(
+            "dtype='float64' requested but JAX x64 is not enabled -- call "
+            'jax.config.update("jax_enable_x64", True) before creating any array '
+            "in this process; refusing to silently build float32"
+        )
+
+
 def _jaxlib_version() -> str:
     try:
         import jaxlib  # type: ignore

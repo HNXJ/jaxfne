@@ -210,7 +210,7 @@ def _evaluate_group_rate_targets(
         })
 
     if weights_dict is None:
-        weights_dict = {name: 1.0 for name in groups_dict.keys()}
+        weights_dict = {name: 1.0 for name in groups_dict}
 
     # Compute dt from metadata to avoid JAX device-to-host transfer
     dt_ms = float(signals.metadata.get("dt_ms", 0.0))

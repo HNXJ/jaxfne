@@ -33,6 +33,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from ._runtime_config import refuse_float64_without_x64
 from .pcl_topology import footprint_pairs, validate_footprint, validate_local_inhibition, validate_rounds, validate_weight_sharing
 
 __all__ = [
@@ -279,12 +280,7 @@ class ConnectionCompileResult:
         """
         from .emitters import EdgeList
 
-        if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
-            raise ValueError(
-                "dtype='float64' requested but JAX x64 is not enabled -- call "
-                'jax.config.update("jax_enable_x64", True) before creating any array '
-                "in this process; refusing to silently build float32"
-            )
+        refuse_float64_without_x64(dtype)
         jdtype = (
             jnp.float64
             if (dtype == "float64" and bool(jax.config.read("jax_enable_x64")))
@@ -1149,12 +1145,7 @@ def compile_connection_rules(
     (a positive int) and carried on the rule for the kernel.
     """
     artifacts = dict(artifacts or {})
-    if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
-        raise ValueError(
-            "dtype='float64' requested but JAX x64 is not enabled -- call "
-            'jax.config.update("jax_enable_x64", True) before creating any array '
-            "in this process; refusing to silently build float32"
-        )
+    refuse_float64_without_x64(dtype)
     jdtype = (
         jnp.float64
         if (dtype == "float64" and bool(jax.config.read("jax_enable_x64")))

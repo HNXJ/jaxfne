@@ -291,7 +291,7 @@ def _compare_backup_resume(episode: Any, resumed: Any, step_idx: int, from_segme
 
 def _make_probe_metrics(signals_dict: Dict[str, jnp.ndarray]) -> Dict[str, Any]:
     """Generates the metadata schema mapping for probe signals."""
-    proxy_safe = all("_like" not in k for k in signals_dict.keys())
+    proxy_safe = all("_like" not in k for k in signals_dict)
     shapes = {k: list(v.shape) for k, v in signals_dict.items()}
     finites = {k: bool(jnp.all(jnp.isfinite(v))) for k, v in signals_dict.items()}
     return {

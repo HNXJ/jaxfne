@@ -267,7 +267,7 @@ def balance_sweep_by_network_size(
 
     K_grid_np = np.asarray(prepare_static_plot_matrix(K_grid))
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.5))
-    for n in H_mean_by_n.keys():
+    for n in H_mean_by_n:
         axes[0].plot(K_grid_np, np.asarray(prepare_static_plot_matrix(H_mean_by_n[n])), marker="o", label=f"N={n}")
         axes[1].plot(K_grid_np, np.asarray(prepare_static_plot_matrix(H_var_by_n[n])), marker="o", label=f"N={n}")
     axes[0].axhline(1.0, color="k", ls="--", lw=0.5)

@@ -166,7 +166,7 @@ def rate_targets(
         raise ValueError("Group names must match between groups and targets_hz")
 
     if weights is None:
-        weights = {name: 1.0 for name in groups.keys()}
+        weights = {name: 1.0 for name in groups}
     if not (math.isfinite(float(burn_in_ms)) and float(burn_in_ms) >= 0.0):
         raise ValueError("burn_in_ms must be finite and non-negative")
     if window_end_ms is not None and not math.isfinite(float(window_end_ms)):
@@ -198,7 +198,7 @@ def rate_targets(
         metadata={
             "groups": groups_lists,
             "targets_hz": {k: float(v) for k, v in targets_hz.items()},
-            "weights": {k: float(weights.get(k, 1.0)) for k in groups.keys()},
+            "weights": {k: float(weights.get(k, 1.0)) for k in groups},
             "burn_in_ms": float(burn_in_ms),
             "window_end_ms": (
                 float(window_end_ms) if window_end_ms is not None else None

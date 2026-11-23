@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 
 import jaxfne as jtfne
+from jaxfne._runtime_config import refuse_float64_without_x64
 from jaxfne.emitters import _dtype_from_policy
 from jaxfne.fields.proxy import project_laminar_sources
 
@@ -180,6 +181,31 @@ class TestD3Float64Refusal:
         rt = jtfne.RuntimeConfig(dtype="float64")
         with pytest.raises(ValueError, match="jax_enable_x64"):
             _ = rt.actual_dtype
+
+
+_F64_NO_X64_MSG = (
+    "dtype='float64' requested but JAX x64 is not enabled -- call "
+    'jax.config.update("jax_enable_x64", True) before creating any array '
+    "in this process; refusing to silently build float32"
+)
+
+
+class TestRefuseFloat64Helper:
+    def test_helper_raises_exact_message_without_x64(self, x64_off):
+        assert not bool(jax.config.read("jax_enable_x64")), "fixture must disable x64"
+        with pytest.raises(ValueError) as excinfo:
+            refuse_float64_without_x64("float64")
+        assert str(excinfo.value) == _F64_NO_X64_MSG
+
+    def test_helper_passes_float32_without_x64(self, x64_off):
+        assert not bool(jax.config.read("jax_enable_x64")), "fixture must disable x64"
+        assert refuse_float64_without_x64("float32") is None
+
+    def test_connectivity_public_path_exact_message_without_x64(self, x64_off):
+        assert not bool(jax.config.read("jax_enable_x64")), "fixture must disable x64"
+        with pytest.raises(ValueError) as excinfo:
+            jtfne.compile_connection_rules(_NEURONS, [_RULE], _MECHS, seed=0, dtype="float64")
+        assert str(excinfo.value) == _F64_NO_X64_MSG
 
 
 class TestD4OffGridDuration:

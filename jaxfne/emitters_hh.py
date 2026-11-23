@@ -1501,7 +1501,7 @@ def simulate_hh_batch(
         elem0[key] = arr[0]
     simulate_hh(params, n_steps=n_steps, dt_ms=dt_ms, **elem0)
 
-    sig_shared = shared.get("ou_sigma", None)
+    sig_shared = shared.get("ou_sigma")
     signp = None if sig_shared is None else np.asarray(sig_shared, dtype=np.float64)
     if shared.get("noise_gain") is not None and "noise_gain" not in stacked:
         try:

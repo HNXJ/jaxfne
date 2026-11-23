@@ -27,6 +27,7 @@ from .emitters import (
 )
 from ._config import Configuration, _counts_from_fractions, edge_seed_from_metadata
 from ._construct_connectivity import _empty_edge_list, _interarea_W
+from ._runtime_config import refuse_float64_without_x64
 
 
 # P-029: the _SUITE2_* tables below are versioned suite-2 experiment presets,
@@ -431,12 +432,7 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
     area_labels: list[str] = []
     neuron_rows: list[dict[str, Any]] = []
     position_chunks: list[jax.Array] = []
-    if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
-        raise ValueError(
-            "dtype='float64' requested but JAX x64 is not enabled -- call "
-            'jax.config.update("jax_enable_x64", True) before creating any array '
-            "in this process; refusing to silently build float32"
-        )
+    refuse_float64_without_x64(dtype)
     jdtype = jnp.float64 if dtype == "float64" and bool(jax.config.read("jax_enable_x64")) else jnp.float32
     neuron_id = 0
 
@@ -653,12 +649,7 @@ def _apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], la
     n = len(cell_labels)
     if n == 0:
         return params, None
-    if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
-        raise ValueError(
-            "dtype='float64' requested but JAX x64 is not enabled -- call "
-            'jax.config.update("jax_enable_x64", True) before creating any array '
-            "in this process; refusing to silently build float32"
-        )
+    refuse_float64_without_x64(dtype)
     jdtype = jnp.float64 if dtype == "float64" and bool(jax.config.read("jax_enable_x64")) else jnp.float32
     connectivity_mode = metadata.get("connectivity_mode")
     if connectivity_mode == "explicit":

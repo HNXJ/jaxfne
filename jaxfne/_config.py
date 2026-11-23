@@ -133,7 +133,7 @@ def _counts_from_fractions(total: int, fractions: Mapping[str, float]) -> dict[s
     if total < 0:
         raise ValueError("total must be non-negative")
     if total == 0:
-        return {str(k): 0 for k in fractions.keys()}
+        return {str(k): 0 for k in fractions}
     items = [(str(k), float(v)) for k, v in fractions.items()]
     if not items:
         raise ValueError("fractions must not be empty")
@@ -739,10 +739,10 @@ class Configuration:
                 "L5": 0.30,
                 "L6": 0.20,
             }
-        layers = [str(k) for k in layer_thickness.keys()]
+        layers = [str(k) for k in layer_thickness]
         if not layers:
             raise ValueError("layer_thickness must not be empty")
-        values = [float(layer_thickness[k]) for k in layer_thickness.keys()]
+        values = [float(layer_thickness[k]) for k in layer_thickness]
         if any((not math.isfinite(v)) or v <= 0.0 for v in values):
             raise ValueError("layer thicknesses must be finite and positive")
         total = sum(values)

@@ -30,6 +30,7 @@ from ._hdp_adaptive import (
     resolve_h_state_locality,
     theta_bounds,
 )
+from ._runtime_config import refuse_float64_without_x64
 from .presets import CELL_TYPE_SIGN, DEFAULT_SPIKE_IMPULSE_GAIN
 
 
@@ -354,12 +355,7 @@ class EIGNetwork:
 
 
 def _dtype_from_policy(dtype: str) -> jnp.dtype:
-    if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
-        raise ValueError(
-            "dtype='float64' requested but JAX x64 is not enabled -- call "
-            'jax.config.update("jax_enable_x64", True) before creating any array '
-            "in this process; refusing to silently build float32"
-        )
+    refuse_float64_without_x64(dtype)
     if dtype == "float64":
         return jnp.float64
     return jnp.float32
@@ -5009,7 +5005,7 @@ def simulate_multi_area_izhikevich(
         key=key,
         dtype=dtype,
         drive_schedule=source_tensor,
-        noise_scale=control_params.get("noise_scale", None),
+        noise_scale=control_params.get("noise_scale"),
     )
 
     return spikes, voltages
