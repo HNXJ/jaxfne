@@ -119,6 +119,21 @@ Reading (inferred from these numbers; for Hamm to rule):
   densely or a probe sensitive to weights (inferred).
 - This does not replace the per-test Mac maxima. It only says which mutant class makes the inequality meaningful.
 
+## Closure (Hamm 2026-11-22)
+
+O-76 was closed at `e17d1ef9`, and O-NUM is now closed, with its scoped numerical contracts satisfied.
+
+Verified scope and evidence:
+- Windows (jax 0.10.1): broad gate at `c0a9021b`, 8407 passed, 48 skipped, 0 failed, every lane PASS.
+- WSL Linux: the route files and the five O-NUM files give 289 passed on jax 0.10.1 and on jax 0.11.2. The
+  five O-NUM comparisons give 0 on both.
+- Independent review: ACCEPT, three rounds.
+- CI: run 45086103453 is green on `e17d1ef9`. It did not execute the affected tests (CI Fast's dev gate).
+
+Excluded: macOS is UNKNOWN and excluded from verified coverage. Its validation is the nonblocking T-MAC. The
+`bitwise_diagnostic` marker is retained unchanged; cleaning it up does not block closure. Hamm ruled on the
+supplied reports and did not rerun the checks.
+
 ## Effects of option 1
 
 - R10 (O-76), applied 2026-11-22. Maximum batch-vs-serial difference per observable, measured on Windows

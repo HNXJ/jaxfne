@@ -223,9 +223,9 @@ Not the canonical `artifacts/open_stack.md`; read it and the issue log first; do
 |---|---|---|---|---|---|
 | S01 | OPEN (proceeds under frozen score) | Owner interpretation of readiness 100 vs frozen 6 publication points | Hamm | Approve distinct prepublication indicator or retain frozen score | R01 |
 | S02 | BLOCKED | O-FIG05 frozen panel mismatch; no silent re-freeze | Hamm | Approved remedy and exact-SHA macOS check | R05 |
-| S03 | BLOCKED | O-NUM platform-specific bitwise criteria | Hamm | Approved criteria and positive/negative tests | R06 |
+| S03 | RULED 2026-11-22 | O-NUM platform-specific bitwise criteria. O-NUM closed by Hamm: exact on Windows and Linux (jax 0.10.1 and 0.11.2); darwin skips; macOS UNKNOWN (T-MAC, nonblocking); see `o_num_ruling_packet.md`, Closure. R06's Izhikevich-drift item is not covered by this ruling | Hamm | Approved criteria and positive/negative tests | R06 |
 | S04 | BLOCKED | O-73 to O-75 API behavior and time units (public-API semantics; `open_stack.md` owner Hamm) | Hamm | Behavior ruling, then tests | R07-R09 |
-| S05 | OPEN | O-76 and O-77 non-vacuous test and skip semantics | lead | Strict xfail or passing test per O-76; clean-clone skip list | R10-R11 |
+| S05 | CLOSED 2026-11-22 (O-77 by R11; O-76 by R10 at e17d1ef9) | O-76 and O-77 non-vacuous test and skip semantics | lead | Strict xfail or passing test per O-76; clean-clone skip list | R10-R11 |
 | S06 | OPEN | Ephaptic operator classified as lateral voltage coupling, not proven physical field mechanism | lead proposes, Hamm rules claims | Units/lag/kernel/exogenous control and bounded claims | R12-R16, R18-R22 |
 | S07 | RULED 2026-11-19 | P-066 depth units: realized z in mm, field proxy divides by `column_height_mm` (ruling recorded at `ISSUE_LOG.md:423` on `_temp_tfne-manuscript` 98d42ce4); the repair stores the height in `model.params` (commit d17812e7) | Hamm | R17 closes | R17 |
 | S08 | BLOCKED | P-056 column inputs and threshold are unspecified | Hamm | Frozen population, weights, drive, bands and criterion | R25 |

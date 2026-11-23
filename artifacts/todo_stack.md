@@ -22,7 +22,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 1. T-PLAN-EXECUTE [A] Work the tasks of `artifacts/programme/design/plans/solmind/solmind_0510_plan.md` (R01-R72,
    gates S01-S23; reviewed, audit 3 ACCEPT) at most 3 lanes including reviewers; a row runs only when its own gates
    are clear; recompute the frozen checklist only from exact-SHA receipts; stop at READY_FOR_OWNER_GO for Gate 5.
-   R01, R03, R70, R72 done 2026-11-21; R02 and R11 done 2026-11-22 (O-7 ruled, plan amendment 2026-11-22; O-77 closed); R10 waits on O-NUM. Next: rows whose gates clear (plan §8 status names each
+   R01, R03, R70, R72 done 2026-11-21; R02 and R11 done 2026-11-22 (O-7 ruled, plan amendment 2026-11-22; O-77 closed); R10 done 2026-11-22 (O-76 and O-NUM closed). Next: rows whose gates clear (plan §8 status names each
    hold). Closes when: prepublication readiness reported on one candidate SHA with Gates 1-4 green, issue-log Open
    empty and the release todo section drained (R51-R54). Blocked by: R04 by S21, R17 by S23, R57 by P-047; other
    rows by their S gate.
@@ -32,9 +32,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 - T-FIG05 [H then A] re-freeze equivalence-gate fig05 and its C3 receipt under change control, or render panel C from
   frozen V_m; print stdout in `_run_gate` failures. Closes when: `tests/test_equivalence_gate_v20260815.py` passes on
   darwin (O-FIG05, `assurance/mac_gate_attribution.md`).
-- T-NUM [A; O-NUM] remedy applied 2026-11-22: darwin skips; R10; O-76 closed. Remaining: Hamm confirms that
-  O-NUM is closed. macOS stays UNKNOWN until a Mac is reachable (platform limitation, not a gate). The izh2003
-  rate tolerance stays a Hamm criterion. Closes when: Hamm closes O-NUM (O-NUM).
+- T-MAC [nonblocking; O-NUM closed 2026-11-22] macOS validation. Run `scripts/internal/onum_measure.py`, the
+  five darwin-skipped tests (forced to run) and `tests/test_adex_route.py` / `tests/test_lif_tensor_route.py` on a
+  Mac, and record per-test maxima with the environment and SHA in `o_num_ruling_packet.md`. Until then macOS stays
+  UNKNOWN in verified coverage. Closes when: that receipt exists. Blocked by: Mac access (SSH to vmac refused).
 - T-MATCH [A] run `python scripts/run_test_gate.py broad` unsandboxed on a matching host (Linux, jax 0.10.2) at the
   integrating SHA. Closes when: it reads 0 failed and CI is green on that SHA.
 ## Tier 2: 1 to 2 hours each
