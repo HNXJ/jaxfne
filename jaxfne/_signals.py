@@ -26,7 +26,7 @@ import jax.numpy as jnp
 from .fields import FieldOutput
 from .io import config_hash, json_safe
 from .experimental_hpc.contracts import SelectorSpec
-from ._runtime_config import RuntimeConfig, refuse_float64_without_x64
+from ._runtime_config import RuntimeConfig, is_real_scalar, refuse_float64_without_x64
 from .paradigm import (
     ParadigmEvent,
     ParadigmCondition,
@@ -95,8 +95,7 @@ def _validate_gaussian_drive(value: Any) -> None:
         )
     for cell_type, std in stds.items():
         if (
-            isinstance(std, bool)
-            or not isinstance(std, numbers.Real)
+            not is_real_scalar(std)
             or not math.isfinite(float(std))
             or float(std) < 0.0
         ):
@@ -233,8 +232,7 @@ def _validate_silence(value: Any) -> None:
         )
     for cell_type, fraction in fractions.items():
         if (
-            isinstance(fraction, bool)
-            or not isinstance(fraction, numbers.Real)
+            not is_real_scalar(fraction)
             or not math.isfinite(float(fraction))
             or not 0.0 <= float(fraction) <= 1.0
         ):
@@ -249,8 +247,7 @@ def _validate_silence(value: Any) -> None:
         raise ValueError(f"Simulation.silence seed must be an int; got {seed!r}")
     onset_ms = value.get("onset_ms", 0.0)
     if (
-        isinstance(onset_ms, bool)
-        or not isinstance(onset_ms, numbers.Real)
+        not is_real_scalar(onset_ms)
         or not math.isfinite(float(onset_ms))
         or float(onset_ms) < 0.0
     ):
@@ -293,8 +290,7 @@ def _validate_replace(value: Any) -> None:
         )
     for cell_type, fraction in fractions.items():
         if (
-            isinstance(fraction, bool)
-            or not isinstance(fraction, numbers.Real)
+            not is_real_scalar(fraction)
             or not math.isfinite(float(fraction))
             or not 0.0 <= float(fraction) <= 1.0
         ):
@@ -317,8 +313,7 @@ def _validate_replace(value: Any) -> None:
                 f"from fractions {sorted(fractions)}"
             )
         if (
-            isinstance(rate, bool)
-            or not isinstance(rate, numbers.Real)
+            not is_real_scalar(rate)
             or not math.isfinite(float(rate))
             or float(rate) < 0.0
         ):
@@ -1449,7 +1444,7 @@ class SpikeTrainInput:
                     f"of spike times in ms; got {type(times).__name__}"
                 )
             for t in times:
-                if isinstance(t, bool) or not isinstance(t, numbers.Real):
+                if not is_real_scalar(t):
                     raise ValueError(
                         f"SpikeTrainInput neuron {int(neuron)} has non-numeric "
                         f"spike time {t!r}; times must be finite ms values"

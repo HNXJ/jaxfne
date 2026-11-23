@@ -12,7 +12,6 @@ split acyclic.
 
 from __future__ import annotations
 
-import numbers
 from dataclasses import replace
 from typing import Any, Mapping, Optional
 
@@ -45,7 +44,7 @@ from ._config import (
     edge_seed_from_metadata,
     poisson_signature,
 )
-from ._runtime_config import RuntimeConfig, _require_backend_available
+from ._runtime_config import RuntimeConfig, _require_backend_available, is_real_scalar
 from ._signals import Simulation, Signals, LaminarSourceGeometry
 from ._model import Model
 from ._construct_connectivity import (
@@ -595,7 +594,7 @@ def _construct_build_network(
     _p_declared = (("connectivity", _p_meta), ("network", net.get("p_connect")))
     for _src, _p in _p_declared:
         # A value outside [0, 1] builds dense connectivity on either route.
-        if _p is not None and (isinstance(_p, bool) or not isinstance(_p, numbers.Real) or not 0.0 <= _p <= 1.0):
+        if _p is not None and (not is_real_scalar(_p) or not 0.0 <= _p <= 1.0):
             raise ValueError(f"{_src}(p_connect={_p!r}) is not realized: it takes a probability in [0, 1]")
     if (
         cfg.metadata.get("columns")
@@ -1218,7 +1217,7 @@ def _refuse_homeostatic_ei_dropped_declarations(cfg: Configuration) -> None:
     # other routes run, then anything but the neutral dense value is refused.
     for _src, _p in (("connectivity", conn.get("p_connect")), ("network", net.get("p_connect"))):
         if _p is not None and (
-            isinstance(_p, bool) or not isinstance(_p, numbers.Real) or not 0.0 <= _p <= 1.0
+            not is_real_scalar(_p) or not 0.0 <= _p <= 1.0
         ):
             raise ValueError(f"{_src}(p_connect={_p!r}) is not realized: it takes a probability in [0, 1]")
         if _p is not None and float(_p) != 1.0:

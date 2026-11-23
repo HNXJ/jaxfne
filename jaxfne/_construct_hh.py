@@ -20,7 +20,6 @@ the reversal sets the sign.
 from __future__ import annotations
 
 import math
-import numbers
 from typing import Any
 
 import jax.numpy as jnp
@@ -28,6 +27,7 @@ import numpy as np
 
 from ._config import _counts_from_fractions, edge_seed_from_metadata
 from ._model import Model
+from ._runtime_config import is_real_scalar
 from .connectivity import compile_connection_rules
 from .emitters_hh import (
     HH_GRADED_S0_DEFAULT,
@@ -56,7 +56,7 @@ _HH_RECEPTOR_DEFAULTS = {
 
 
 def _finite_real(value: Any) -> bool:
-    return isinstance(value, numbers.Real) and not isinstance(value, bool) and math.isfinite(value)
+    return is_real_scalar(value) and math.isfinite(value)
 
 
 def _hh_population(cfg: Any) -> tuple[int, tuple[str, ...]]:

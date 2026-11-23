@@ -11,7 +11,6 @@ working on this split itself.
 from __future__ import annotations
 
 import math
-import numbers
 from dataclasses import replace
 from typing import Any, Mapping, Sequence
 
@@ -27,7 +26,7 @@ from .emitters import (
 )
 from ._config import Configuration, _counts_from_fractions, edge_seed_from_metadata
 from ._construct_connectivity import _empty_edge_list, _interarea_W
-from ._runtime_config import refuse_float64_without_x64
+from ._runtime_config import is_real_scalar, refuse_float64_without_x64
 
 
 # P-029: the _SUITE2_* tables below are versioned suite-2 experiment presets,
@@ -179,7 +178,7 @@ def _refuse_unmatched_baseline_drive(
     the entry is a count artifact, not a dropped declaration."""
     present = set(labels)
     for cell_type, value in (baseline or {}).items():
-        if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
+        if not is_real_scalar(value) or not math.isfinite(value):
             raise ValueError(
                 f"drive(baseline_drive_by_cell_type={{{cell_type!r}: {value!r}}}) is not realized: "
                 "it takes a finite real number"
