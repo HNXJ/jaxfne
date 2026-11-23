@@ -67,3 +67,6 @@ def test_claims_abort_on_a_unit_error_or_an_r90_outside_tolerance():
     m["r90"]["lfp_ref"] *= 1.0 + 2e-6
     with pytest.raises(SystemExit, match="r90"):
         _verify_multiscale_claims(m, spikes, V, Q, pos, H)
+    m["r90"]["lfp_ref"] = float("nan")  # a NaN never compares inside the tolerance
+    with pytest.raises(SystemExit, match="r90"):
+        _verify_multiscale_claims(m, spikes, V, Q, pos, H)
