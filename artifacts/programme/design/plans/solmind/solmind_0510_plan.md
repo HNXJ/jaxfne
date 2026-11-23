@@ -364,6 +364,24 @@ Prior authority: commit 854cade9 (2026-10-28) records Hamm's rulings: textbook F
 | B5 | LIF kernel; GPU via WSL CUDA (RTX A4000, jax 0.10.1 cuda:0 observed) | tolerance; CPU-vs-GPU test; receipt (measurement done, §10.3 item 15) | §10.3 item 15 |
 | F5 | AdEx and LIF seed batch with contracts (`test_adex_route.py`, `test_lif_tensor_route.py`); release-plan row F5 :101 stale on them | Model.tune batching (`serial_only`); gradient tests | §10.3 item 16 |
 
+### 10.6 Cleanup swarm (Hamm 2026-11-22: Haiku swarm, inspect everything, edit, shorten or merge)
+
+Wave 1, baseline e8401b67: four read-only Haiku 5.5 auditors (package, tests and scripts, prose, artifacts Python). The lead re-checked each applied claim. Landed on `_temp_clean1`, integrating after R17:
+- 1a (68727c1c): one float64-without-x64 refusal helper replaces 8 byte-identical blocks (message pinned, mutant-killed), dead `_infer_dt_ms`, `guard_mode` read once per `_simulate_arrays`, dict idioms.
+- 1b (7ce85aa4): `test_require_jaxley_fails_without_install` forces the failure it names; two empty-set passes get preconditions; shared `load_module`/`PNG_MAGIC`; dead atlas `gap_row`; 10 lane comment paths fixed (`run_izh.py` excluded: its hash is in `dashboard/data/replications.json`).
+- 2 (901eb7e6): two public-page wording fixes.
+
+Owner decisions, ranked:
+1. **Manuscript claim, e2 typed units.** `supplement.md:783` lists "`R2` typed unit wrappers `Deg/Ms/dB/Hz` with `require_unit` assertions" as repair infrastructure; `artifacts/e2/e2_exec/e2_exec_lib.py:13-31` defines them and no caller uses them. Options: (a) amend the text to "defined, not used by the executor" (recommended; the verdict is stated independent of them); (b) wire them into the executor (frozen lane code; changes receipts).
+2. **pcl `--signed` provenance.** `artifacts/etudes/papers/pcl/port/fig3_analysis.py:761` `_sha256_of_this_file` is never called; the signed output carries no script hash. Options: (a) delete the helper and record that signed outputs are bound by git SHA (recommended); (b) add the hash to future signed outputs.
+3. **Unreferenced scripts.** `scripts/run_neuron_sweeps.py`, `find_5hz_vmap.py`, `_neuron_sweep_common.py` reference only each other; `scripts/verify_5hz_traces.py`, `hdp_small_scale_balance_sweep.py` only from source comments; `artifacts/e2/e2_exec/e2d_rarity_executor.py`, `rescore_v2_frozen_only.py` have no reference. Options: (a) delete the first three, keep the rest as provenance (recommended); (b) delete all; (c) keep all.
+4. **Frozen-module dead code** (F841 x7, F601 duplicate keys in `w3b_parameter_domain.py:294`; module hashes in receipts). Options: (a) keep until after publication (recommended); (b) edit and re-record hashes.
+5. **Skipped deprecated test** `tests/test_tutorial_figure_contract_v0219.py:118` (`mark.skip`; no successor checks asset hashes). Options: (a) restore a live asset-hash check in `test_tutorial_figure_manifest_v028.py` (recommended); (b) delete it.
+6. **Owner-only prose** (swarm C, `S-` ids in its report): public README agent pointer vs `fact_stack.md:138` (S-08); G-2 path in `goal_stack.md:8` (S-09); quickstart drops "relative-unit proxies" (S-21); `memory.md` header rule vs its run-id contents (S-12); "FieldProxy" vs "Field" in the glossary grammar (D-03).
+7. **Large refactors** (1000-line kernels in `emitters.py`, `emitters_adex.py`, `emitters_lif.py`; module splits). Options: (a) defer past 0.5.10 (recommended; bitwise receipts pin them); (b) start now.
+
+Executable next without a ruling: shared real-number check (13 sites), `_check_edges` prefix (lif/adex), `neuron_table()` hoist in `canonical_compact_summary`, 27 silent `except: pass` outside frozen modules (after `tests/test_silent_fallbacks_audit.py`), dated history comments in code, b1 lane duplicate helpers, broken paths in `artifacts/etudes/papers/pcl/diag/diag_common.py:25,28`.
+
 ## Appendix A. Execution plans of 2026-10-31 (verbatim)
 
 Folded here 2026-11-21 (A1) from `artifacts/etudes/meta/plans/execution_plans_0.5.9-0.5.10.md` at 3eb6a6a6, verbatim below this paragraph except that each of its 7 headings is demoted two levels; superseded for 0.5.10 routing by §8 and §9. Historical record only: none of its directives (lanes, roles, push or authorization lines) bind execution. History: `git log --follow` on the old path.
