@@ -27,6 +27,18 @@ possible future change.
 - Expected: the proxy reads depth along the area's posed depth axis, or refuses a non-"xy" pose.
 - Next: a red test that projects an "xz"-posed laminar area and compares against the same area posed "xy".
 
+### P-068
+
+- Date: 2026-11-23. Type: BUG (cause inferred). Area: etude rerun scripts, Dashboard figures job. Severity: major
+  for the dashboard (G-4); none for the package.
+- Observation: Dashboard run 45118760753 (dev 4773b4d9) fails in `scripts/rerun_etude_figures.py`: "r90 lfp_ref
+  mismatch (geometry should be hash-exact)" (multiscale_observation) and "izh P_LFP centroid outside tolerance"
+  (heterogeneous_emitters). Last green Dashboard: 022da7a0 (2026-11-19), before P-066.
+- Inferred cause: P-066 made realized z mm; these scripts call `project_laminar_sources` without
+  `column_height_mm` (`rerun_etude_figures.py:104,218`, `run_multiscale_observation_etude.py:206`,
+  `run_heterogeneous_emitters_etude.py:219-220`, and other script sites).
+- Next: T-DASH-P068.
+
 ## Moved to 0.5.11 (Hamm 2026-11-23, plan §10.3 item 2)
 
 Not open for 0.5.10. Each entry keeps its closing check; it returns to Open when 0.5.11 starts.
