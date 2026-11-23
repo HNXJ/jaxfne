@@ -12,7 +12,7 @@ Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest
 |---|---|
 | `Emitter` | Local state generator for voltage, spikes, synaptic traces, or typed neural state. |
 | `Source` | Declared source tensor derived from emitter state under one source mode per run. |
-| `FieldProxy` | Fixed computational projection from source tensors to named proxy readouts. |
+| `Field` | Fixed computational projection from source tensors to named proxy readouts. |
 | `Probe` | Selector and sampling operator for a readout family and channel layout. |
 | `Objective` | Metrics, gates, nulls, and scores computed from readouts. |
 | `Optimizer` | Bounded parameter search or gradient path over declared objectives. |
