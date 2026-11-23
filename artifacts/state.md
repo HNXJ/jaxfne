@@ -25,6 +25,19 @@ Status: push authorized 2026-11-19 on Hamm's explicit instruction ("push please"
 | Fixation Boat wording not frozen | contract §13 | O-1, EX-21 |
 | Eight-strategy list and primary metric not frozen | jomission `protocol_v0.md` §3–5 | O-6, EX-26 |
 
+## Frozen Stage 2 abstract (owner freeze 2026-11-20)
+
+Title: A Spiking Circuit Driven by Scalar Distance: Specification and Implemented Status
+
+We specify a 10-neuron spiking circuit (8 excitatory, 2 inhibitory) receiving scalar target distance (e = ||p - p*||) and decoding two-dimensional force from opponent motor-neuron spike counts. Distance-dependent tonic input provides no directional information. The implemented fixture instantiates all 10 neurons, integrates at 1 ms, and applies force one 20 ms control interval after decoding. The specified reward-gated mechanism is not implemented in the registered rule: eligibility traces exist, but reward coupling is absent. An exploratory B2 run separately computed interval rewards. The registered H-gated weight drive has default gain k_w = 0, preventing weight updates under that default. The fixture produces a fixed +x force, demonstrating direction-only output rather than target-directed control or learning. L2 is not demonstrated: the F3 weights saturate at their bound. L3 lacks a confidence-bearing run; L4 remains unexecuted.
+
+Status: verified 2026-11-20 (three lenses, no contradicted claims). Hamm accepted five unchecked items 2026-11-20; still to resolve before Methods:
+1. L2 bound: the registry says "0 bound" (contract R-04, R-08), but the registered rule's default weight floor is 1e-3 (`jaxfne/hdp_rule.py:69`). Name the bound.
+2. The k_w used by the lane B F3 runs is not stated; the k_w = 0 sentence covers only the registered default.
+3. The lane B2 code is not in this checkout; the B2 claim rests on registry row R-08.
+4. Contract line 408 ("holds only partly") conflicts with R-04 ("L2 gate fails"); line 408 is stale.
+5. The contract cites paradigm.py at SHA 584a56ad; the check read HEAD fdb19c9a.
+
 ## Retired authorization record (kept here)
 
 Removed from `artifacts/release/budget_amendment_2026-10-23.md` by `5e5fa70` (restores the file to the `c52e830b…` pin at `21d5da7b`). Kept verbatim so the 2797 -> 2798 authorization stays recorded. Not pinned; no gate reads it.
