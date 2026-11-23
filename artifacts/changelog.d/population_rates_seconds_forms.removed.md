@@ -1,0 +1,1 @@
+- `population_rates` takes `counts` as its one positional argument; `dt_ms`, `sizes`, `pops` and `discard_ms` are keywords. The seconds forms `dt` and `discard_s`, deprecated in 0.5.9, are removed and raise TypeError naming `dt_ms`: a positional `0.1` meant as ms used to read as 0.1 s and gave rates 1000x low.

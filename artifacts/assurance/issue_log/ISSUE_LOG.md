@@ -17,7 +17,24 @@ possible future change.
 
 ## Open
 
+### P-067
+
+- Date: 2026-11-22. Type: BUG (inferred, unmeasured). Area: `NeuronalTensor` pose, field proxy. Severity: unknown.
+  Split from P-066 at its closure.
+- Observation: `Pose3D.plane` "xz" and "yz" map the local depth axis to global y or x (`_PLANE_AXIS_MAP`,
+  `jaxfne/neuronal_tensor.py:143-148`), while `project_laminar_sources` reads depth from `positions[:, 2]`
+  (`jaxfne/fields/proxy.py`). An area posed in xz or yz would project its depth from the wrong axis.
+- Expected: the proxy reads depth along the area's posed depth axis, or refuses a non-"xy" pose.
+- Next: a red test that projects an "xz"-posed laminar area and compares against the same area posed "xy".
+
+## Moved to 0.5.11 (Hamm 2026-11-23, plan §10.3 item 2)
+
+Not open for 0.5.10. Each entry keeps its closing check; it returns to Open when 0.5.11 starts.
+
 ### P-047
+
+- 2026-11-23 (Hamm): kept as designed, moved to 0.5.11. Closes when: the selector docs state that `"all"` is
+  not a wildcard and `test_connections_no_match_marked_compiled_no_edges` still passes.
 
 - Date: 2026-10-26. Type: FRICTION. Area: `Configuration.connections` selectors. Severity: low.
 - A rule with `target={"cell_type": "all"}` compiles 0 edges on both compilers (`{}` selects every
@@ -58,6 +75,8 @@ possible future change.
 - 2026-11-08 (Hamm, O-85): the finite-difference disagreement and the growth with T stand as recorded
   properties; fitness is decided by the held-out training-loss check above, preregistered and run in 0.5.11
   (todo 24).
+- 2026-11-23 (Hamm): moved to 0.5.11. Closes when: the preregistered held-out training-loss check (O-85, R58) is
+  run and scored.
 
 ### P-053
 
@@ -81,6 +100,9 @@ possible future change.
   `p053_p056_source_audit_2026-11-13.md`. Correction (review 2026-11-17): that plan says the oracle
   L1-normalizes the whole simple weight tensor; `pcl_event_ref.py:549,561` normalizes one depth slice `w_s[k]`
   (init likewise, `:459-460`). The plan is a pinned dated record and stays as written.
+- 2026-11-23 (Hamm): moved to 0.5.11. Closes when: a fixture form not yet tried (event order, repeated addresses,
+  ties, zero vs epsilon weights) reproduces the `w_s` difference and it is attributed, or each form is recorded
+  NOT_REPRODUCED.
 
 ### P-055
 
@@ -101,6 +123,8 @@ possible future change.
   on high-drive files matching cell receptive fields (`0/9`, `135/9`, `23/0`), the delayed complex spike delays
   top-down inhibition (`td_on=True`), allowing a simple cell to cross threshold and triggering an avalanche.
   Scoring both arms under signed R4b yields identical test verdicts (`P3_fig3_r5_approx_result.md`). Closed.
+- 2026-11-23 (Hamm): moved to 0.5.11. Closes when: the attribution is reviewed by a non-writer and the entry moves
+  to a closed batch, or a complex-layer exp matched between arms makes the 16 files event-exact.
 
 ### P-056
 
@@ -112,13 +136,5 @@ possible future change.
 - Possible change: settle the column longer, then attribute the deficit (inferred candidates: deep-layer rates,
   kernel amplitude of deep pyramids, coherence radius). Closes when a settled column shows deep alpha-beta power
   or the cause is named. Discriminator plan (static, not run): `p053_p056_source_audit_2026-11-13.md`.
-
-### P-067
-
-- Date: 2026-11-22. Type: BUG (inferred, unmeasured). Area: `NeuronalTensor` pose, field proxy. Severity: unknown.
-  Split from P-066 at its closure.
-- Observation: `Pose3D.plane` "xz" and "yz" map the local depth axis to global y or x (`_PLANE_AXIS_MAP`,
-  `jaxfne/neuronal_tensor.py:143-148`), while `project_laminar_sources` reads depth from `positions[:, 2]`
-  (`jaxfne/fields/proxy.py`). An area posed in xz or yz would project its depth from the wrong axis.
-- Expected: the proxy reads depth along the area's posed depth axis, or refuses a non-"xy" pose.
-- Next: a red test that projects an "xz"-posed laminar area and compares against the same area posed "xy".
+- 2026-11-23 (Hamm): moved to 0.5.11 while the S08 inputs (population map, per-class N, weights, drive, deep-power
+  threshold) are unset. Closes when: as above (T-90).

@@ -1,7 +1,7 @@
 # Quickstart
 
 Simulate **laminar neural dynamics**: spikes, membrane traces, and depth-resolved
-field readouts (LFP, CSD, spectrolaminar PSD), from a circuit defined once
+relative-unit proxy readouts (LFP, CSD, spectrolaminar PSD), from a circuit defined once
 and simulated reproducibly. JaxFNE couples specification, dynamics, biophysical
 state ($H$/RBS/RBD), plasticity, and geometry into sources, fields, and probes,
 from reduced emitters to compartmental models attached via bridges.

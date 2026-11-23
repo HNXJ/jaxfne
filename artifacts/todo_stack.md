@@ -40,7 +40,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
   integrating SHA. Closes when: it reads 0 failed and CI is green on that SHA.
 ## Tier 2: 1 to 2 hours each
 
-2. T-D3 [A then H] Mejias 2016 G6 — re-tiered 2026-11-12 from "1 to 2 hours" to needs-a-signed-prereg. G6 is not a
+2. T-D3 [A then H] (moved to 0.5.11, Hamm 2026-11-23) Mejias 2016 G6 — re-tiered 2026-11-12 from "1 to 2 hours" to needs-a-signed-prereg. G6 is not a
    dashboard metric: `SOURCE_P1.md:70` defines it as the paper's full numerics unknown (time constants, weights,
    noise, delays, dt, seeds), and `PREREG_P3.md:1` is still "draft, UNSIGNED" with `(fill)` estimands at `:10` and
    `:26`. Missing: digitized figure targets, a verdict scorer, a rate-route driver, a P4-passing manifest, receipts.
@@ -71,7 +71,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 - task-receipts (T-106) [A] Receipt durability: copy or hash-anchor each scored lane's receipts in a tracked location (Brunel's
   are on C:). Closes when: each scored G3 record names a tracked receipt path or sha256 that resolves.
 
-14. T-F5 [A] Candidate batching for AdEx, LIF and `Model.tune` (checklist F5, 1.5 pts). Candidates stay serial
+14. T-F5 [A] (`Model.tune` half moved to 0.5.11, Hamm 2026-11-23) Candidate batching for AdEx, LIF and `Model.tune` (checklist F5, 1.5 pts). Candidates stay serial
     (`CANDIDATE_BATCH_STATUS`, `jaxfne/_model_tune.py:150`) until a test proves batched results equal serial ones,
     including order dependence and reproducibility across seeds. Closes when: that equivalence test passes.
 17. T-90 [A] P-056 kernel-LFP deep-layer power. Closes when: a settled column shows deep alpha-beta power or the
@@ -93,9 +93,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 18. T-87 [A] F4 scored benchmark across N on CPU and the A4000 with recording controls (checklist B1-B3, 10 pts).
     Closes when: the receipt records all 6 metrics and is evaluated against the purchase gate.
-19. T-B5 [A] LIF edge kernel on GPU (checklist B5, 2 pts). Closes when: the GPU receipt equals CPU within the
-    declared tolerance.
-20. T-C1 [A] Augmentation ensemble study with provenance and the Fig. S7 panel (checklist C1, 4 pts). Closes when:
+19. T-B5 [A] LIF edge kernel on GPU (checklist B5, 2 pts). Tolerance ruled 2026-11-23: spikes bitwise, V_m atol
+    1e-4 mV (T-32c seed-batch contract). Closes when: a CPU-vs-GPU test (skips without a GPU) passes on WSL cuda:0
+    and its receipt is committed.
+20. T-C1 [A] (moved to 0.5.11, Hamm 2026-11-23) Augmentation ensemble study with provenance and the Fig. S7 panel (checklist C1, 4 pts). Closes when:
     Fig. S7 renders from pinned receipts. Blocked by: S17.
 21. T-92 [A] 0.5.10 exit gates 1-5 (30 pts): broad gate, CI, replications audit and dashboard fresh on one SHA;
     version and changelog; second review receipt; then Hamm's tag and publish. Closes when:

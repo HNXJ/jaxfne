@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2560 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2559 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -826,7 +826,6 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `dt_ms must be > 0, got {...}` |
 | `ValueError` | `spikes must be 2D [n_steps, n_neurons], got {...}D` |
 | `ValueError` | `populations must be a non-empty dict of name -> neuron index array, got {...}` |
-| `ValueError` | `pass only one of {...} and {...}` |
 
 **`jaxfne/analysis/spectral.py`**
 

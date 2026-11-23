@@ -10,7 +10,6 @@ descriptors, not biological validation. No biological truth claims are supported
 
 import numpy as np
 import operator
-import warnings
 from typing import Union, TYPE_CHECKING
 
 from scipy.signal import welch
@@ -1117,27 +1116,11 @@ def mean_rate_hz(
 # --- CAMINOS lane estimators (T-32d stage 2: generic core homes) ----------------
 
 _POP_DEFAULTS = ("E", "PV", "SOM")
-_DISCARD_S_DEFAULT = 2.0
+_DISCARD_MS_DEFAULT = 2000.0
 
 
-def _seconds_from_ms_or_s(name_s, value_s, name_ms, value_ms, default_s=None):
-    """Seconds value of one quantity given as ``name_ms`` or the deprecated ``name_s``."""
-    if value_s is not None and value_ms is not None:
-        raise ValueError(f"pass only one of {name_ms} and {name_s}")
-    if value_ms is not None:
-        return float(value_ms) / 1000.0
-    if value_s is not None:
-        warnings.warn(
-            f"{name_s} is deprecated and will be removed; pass {name_ms} (ms) instead",
-            DeprecationWarning,
-            stacklevel=3,
-        )
-        return float(value_s)
-    return default_s
-
-
-def population_rates(counts, dt=None, sizes=None, pops=_POP_DEFAULTS, discard_s=None,
-                     *, dt_ms=None, discard_ms=None):
+def population_rates(counts, *positional, sizes=None, pops=_POP_DEFAULTS, dt_ms=None,
+                     discard_ms=_DISCARD_MS_DEFAULT, **removed):
     """Mean rate (Hz) per population over the kept window.
 
     ``counts`` is a per-step population count array ``[steps, n_pops]`` in
@@ -1146,18 +1129,21 @@ def population_rates(counts, dt=None, sizes=None, pops=_POP_DEFAULTS, discard_s=
     (default 2000 ms: prereg Runs discard the first 2 s). Returns a dict of
     Python floats.
 
-    The seconds forms ``dt`` and ``discard_s`` are deprecated for one release
-    and emit DeprecationWarning. Passing both forms of one quantity raises
-    ValueError.
+    Only ``counts`` is positional. The seconds forms ``dt`` and ``discard_s``
+    were removed in 0.5.10 and raise TypeError.
     """
+    if positional or removed:
+        raise TypeError(
+            "population_rates() takes only counts positionally; pass dt_ms (ms), sizes, pops"
+            " and discard_ms (ms) by keyword (the seconds forms dt and discard_s were removed"
+            f" in 0.5.10; got {len(positional)} extra positional, keywords {sorted(removed)})"
+        )
     if sizes is None:
         raise TypeError("population_rates() missing required argument: 'sizes'")
-    dt_s = _seconds_from_ms_or_s("dt", dt, "dt_ms", dt_ms)
-    if dt_s is None:
+    if dt_ms is None:
         raise TypeError("population_rates() needs dt_ms")
-    discard = _seconds_from_ms_or_s(
-        "discard_s", discard_s, "discard_ms", discard_ms, _DISCARD_S_DEFAULT
-    )
+    dt_s = float(dt_ms) / 1000.0
+    discard = float(discard_ms) / 1000.0
     if not discard >= 0.0:
         raise ValueError("discard must be >= 0, got %r" % (discard,))
     arr = np.asarray(counts)

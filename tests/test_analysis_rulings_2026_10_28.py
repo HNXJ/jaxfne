@@ -94,7 +94,7 @@ def test_changelog_v059_records_off_grid_refusal():
     assert "used to round" in entry
 
 
-# --- item 3: population_rates ms keywords and deprecated seconds forms --------
+# --- item 3: population_rates ms keywords; seconds forms removed (Hamm 2026-11-23) --
 
 _SIZES = {"E": 1000, "PV": 50, "SOM": 50}
 
@@ -107,35 +107,30 @@ def _rates_counts(seed=3, steps=120000):
     return counts
 
 
-def test_population_rates_ms_keywords_match_seconds_form():
+def test_population_rates_ms_keywords_match_hand_rate():
     counts = _rates_counts()
-    with pytest.warns(DeprecationWarning):
-        old = population_rates(counts, 1e-4, _SIZES, discard_s=2.0)
-    new = population_rates(counts, dt_ms=0.1, sizes=_SIZES, discard_ms=2000.0)
-    assert list(new) == list(old) == ["E", "PV", "SOM"]
-    for pop in old:
-        assert_allclose(new[pop], old[pop], rtol=1e-12)
-
-
-def test_population_rates_seconds_forms_warn_and_ms_forms_do_not():
-    counts = _rates_counts()
-    with pytest.warns(DeprecationWarning, match="dt"):
-        population_rates(counts, 1e-4, _SIZES)
-    with pytest.warns(DeprecationWarning, match="discard_s"):
-        population_rates(counts, 1e-4, _SIZES, discard_s=2.0)
     with warnings.catch_warnings():
         warnings.simplefilter("error", DeprecationWarning)
-        population_rates(counts, dt_ms=0.1, sizes=_SIZES, discard_ms=2000.0)
+        got = population_rates(counts, dt_ms=0.1, sizes=_SIZES, discard_ms=2000.0)
+    assert list(got) == ["E", "PV", "SOM"]
+    kept = counts[20000:]
+    dur_s = kept.shape[0] * 1e-4
+    for i, pop in enumerate(_SIZES):
+        assert_allclose(got[pop], kept[:, i].sum() / dur_s / _SIZES[pop], rtol=1e-12)
 
 
-def test_population_rates_both_forms_of_one_quantity_refused():
+def test_population_rates_positional_seconds_dt_refused():
+    """O-73: positional 0.1 meant as ms used to read as 0.1 s (rates 1000x low)."""
     counts = _rates_counts()
-    with pytest.raises(ValueError, match="dt"):
-        population_rates(counts, 1e-4, _SIZES, dt_ms=0.1)
-    with pytest.raises(ValueError, match="discard"):
-        population_rates(
-            counts, dt_ms=0.1, sizes=_SIZES, discard_s=2.0, discard_ms=2000.0
-        )
+    with pytest.raises(TypeError, match="dt_ms"):
+        population_rates(counts, 0.1, _SIZES)
+
+
+@pytest.mark.parametrize("removed", [{"dt": 1e-4}, {"discard_s": 2.0}])
+def test_population_rates_seconds_keywords_refused(removed):
+    counts = _rates_counts()
+    with pytest.raises(TypeError, match="dt_ms"):
+        population_rates(counts, dt_ms=0.1, sizes=_SIZES, **removed)
 
 
 # --- item 4: welch_numpy uses the periodic Hann window ------------------------

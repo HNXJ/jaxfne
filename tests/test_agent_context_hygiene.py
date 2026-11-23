@@ -174,14 +174,13 @@ class TestAgentContextHygiene:
             assert "Config -> Net -> Paradigm" not in content, f"{path} revives the legacy chain"
             assert "Config → Net → Paradigm" not in content, f"{path} revives the legacy chain"
 
-    def test_agent_context_router_exists_and_is_linked_from_readme(self):
-        """The README's single AI-agent line must resolve to a real policy file."""
-        agents = Path("artifacts/AGENTS.md")
-        assert agents.exists(), f"README points agents at a missing file: {agents}"
-
-        readme = Path("README.md").read_text(encoding="utf-8")
-        assert "artifacts/AGENTS.md" in readme, "README no longer references artifacts/AGENTS.md"
-        assert "If you are an AI agent" in readme, "README lost its agent entry-point line"
+    def test_agent_router_is_root_file_not_public_pages(self):
+        """Agents route through the root AGENTS.md; public pages carry no agent pointer (fact_stack, Hamm 2026-11-23)."""
+        assert Path("artifacts/AGENTS.md").exists()
+        assert "artifacts/AGENTS.md" in Path("AGENTS.md").read_text(encoding="utf-8")
+        for page in ("README.md", "docs/reference/contributing.md"):
+            text = Path(page).read_text(encoding="utf-8")
+            assert "If you are an AI agent" not in text, f"{page} carries an agent pointer"
 
     def test_repository_state_script_is_present(self):
         """Volatile checkout facts have a read-only derivation command."""

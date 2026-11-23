@@ -1,7 +1,7 @@
 # `artifacts/memory.md` — jaxfne agent orientation (durable facts only)
 
 <!-- Every backticked repo path and `jaxfne.*` symbol here is resolved by
-tests/test_memory_brief.py; keep SHAs, versions, counts and status out. -->
+tests/test_memory_brief.py; keep SHAs, versions, counts and status out; CI run ids are allowed as evidence ids. -->
 
 > Read first. Mutable state: `artifacts/todo_stack.md`. Stable facts: `artifacts/fact_stack.md`. Procedure: `artifacts/control/skills/`. Rules: `artifacts/AGENTS.md`. Verified failure lessons: §10. Import: `import jaxfne as jtfne` (`README.md`).
 

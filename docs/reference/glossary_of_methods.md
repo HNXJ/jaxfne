@@ -5,7 +5,7 @@ Package-level terms used by `jaxfne` docs, examples, tests, and manifests.
 ## Objective grammar
 
 ```text
-Emitter -> Source -> FieldProxy -> Probe -> Objective -> Optimizer -> Manifest
+Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest
 ```
 
 | Term | Meaning in `jaxfne` |

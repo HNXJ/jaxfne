@@ -57,8 +57,6 @@ Import convention: `import jaxfne as jtfne`.
 | Public API surface | [docs/reference/public_surface_contract.md](docs/reference/public_surface_contract.md) |
 | Changelog | [docs/reference/changelog.md](docs/reference/changelog.md) |
 
-If you are an AI agent, read [`artifacts/AGENTS.md`](artifacts/AGENTS.md).
-
 ## Citation
 
 Concept DOI (all versions): [10.5281/zenodo.21448155](https://doi.org/10.5281/zenodo.21448155) ·

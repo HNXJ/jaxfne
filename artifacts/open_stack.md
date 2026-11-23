@@ -7,11 +7,8 @@ Each line has its todo row, named in the line.
 
 ## Hamm's calls (0.5.10 review, asked one at a time in this order)
 
-- O-FIG05 equivalence-gate fig05 frozen PNG stale after a disclosed noise-stream change (865e74bb, 2026-09-24; inferred from C3 estimator bisect); CI Linux runs the gate informationally | Hamm (frozen-evidence change control) | since 2026-11-15 | closes when `tests/test_equivalence_gate_v20260815.py` passes on darwin after owner-authorized fig05 re-freeze or panel C renders from frozen V_m (T-FIG05)
-- O-73 `population_rates` takes `dt` in seconds positionally (`jaxfne/analysis/metrics.py:1139`); positional ms gives 1000x wrong rates with only a DeprecationWarning; Hamm's 2026-10-28 ruling (854cade9) set "warn for one release", shipped in v0.5.9; open choice: remove in 0.5.10 or 0.5.11 (plan §10.4) | Hamm (release) | since 2026-11-14 | closes when positional-ms test fails on old form and fix or hard error lands (plan R07, S04)
-- O-75 `fleiss_kappa_binary` changed definition at same name/signature (`jaxfne/analysis/metrics.py:324`: textbook Fleiss; verified 2026-11-21 against tag v0.5.8, whose P_o was the fraction of bins where all neurons agree; verification and changelog record done, changelog 0.5.9 Fixed; textbook form is Hamm's 2026-10-28 ruling, 854cade9; plan §10.4) | Hamm | since 2026-11-14 | closes when Hamm's S04 ruling keeps the textbook form or reverts it (plan R09)
-
-- O-PRE 0.5.10 owner decisions ranked in plan §10.3 (issue-log Open moves, C1/D3/F6 moves, G2 exceptions, S18, S21, S04, S20, S22, S16 tree budget, B1 amendment 2, B5 tolerance, F5 Model.tune, B3 installs) | Hamm | since 2026-11-22 | closes when each item has a dated ruling (T-PLAN-EXECUTE)
+- O-FIG05 equivalence-gate fig05 frozen PNG stale after a disclosed noise-stream change (865e74bb, 2026-09-24; inferred from C3 estimator bisect); CI Linux runs the gate informationally; re-freeze under change control ruled 2026-11-23 (plan §10.3 item 10) | agent | since 2026-11-15 | closes when `tests/test_equivalence_gate_v20260815.py` passes after the re-freeze (T-FIG05; darwin run under T-MAC)
+- O-73 `population_rates` takes `dt` in seconds positionally (`jaxfne/analysis/metrics.py:1139`); positional ms gives 1000x wrong rates with only a DeprecationWarning; Hamm 2026-11-23: remove `dt`/`discard_s` in 0.5.10 (plan §10.4 option a) | agent | since 2026-11-14 | closes when `population_rates(c, 0.1, sizes)` raises TypeError naming `dt_ms`, red on the old code (plan R07)
 
 ## Crazy Sailor exploration (2026-11-19)
 
