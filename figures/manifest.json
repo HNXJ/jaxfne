@@ -1,6 +1,6 @@
 {
   "schema": "figsite.v1",
-  "build_sha": "4773b4d9cf462f683d54f23e07c023e38be5a51f",
+  "build_sha": "10e2f85f7d033507e6280c644542ac9979148cfd",
   "figures": [
     {
       "slug": "calibration_100",
@@ -1784,6 +1784,132 @@
         "docs/etudes/hdp_controllability_reachability.md"
       ],
       "note": "built from the frozen checkpoint theta_hat; the AGSDR tune is not re-run here (O-59)"
+    },
+    {
+      "slug": "multiscale_observation",
+      "panel": "raster",
+      "html": "multiscale_observation/raster.html",
+      "png": "multiscale_observation/raster.png",
+      "png_dark": "multiscale_observation/raster.dark.png",
+      "title": "Spike raster",
+      "status": "available",
+      "docs_pages": [
+        "docs/etudes/multiscale_observation.md"
+      ]
+    },
+    {
+      "slug": "multiscale_observation",
+      "panel": "traces",
+      "html": "multiscale_observation/traces.html",
+      "png": "multiscale_observation/traces.png",
+      "png_dark": "multiscale_observation/traces.dark.png",
+      "title": "Membrane traces",
+      "status": "available",
+      "docs_pages": [
+        "docs/etudes/multiscale_observation.md"
+      ]
+    },
+    {
+      "slug": "multiscale_observation",
+      "panel": "lfp",
+      "html": "multiscale_observation/lfp.html",
+      "png": "multiscale_observation/lfp.png",
+      "png_dark": "multiscale_observation/lfp.dark.png",
+      "title": "LFP proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/etudes/multiscale_observation.md"
+      ]
+    },
+    {
+      "slug": "multiscale_observation",
+      "panel": "csd",
+      "html": "multiscale_observation/csd.html",
+      "png": "multiscale_observation/csd.png",
+      "png_dark": "multiscale_observation/csd.dark.png",
+      "title": "CSD proxy",
+      "status": "available",
+      "docs_pages": [
+        "docs/etudes/multiscale_observation.md"
+      ]
+    },
+    {
+      "slug": "multiscale_observation",
+      "panel": "oscillatory",
+      "html": "multiscale_observation/oscillatory.html",
+      "png": "multiscale_observation/oscillatory.png",
+      "png_dark": "multiscale_observation/oscillatory.dark.png",
+      "title": "Oscillatory response",
+      "status": "available",
+      "docs_pages": [
+        "docs/etudes/multiscale_observation.md"
+      ]
+    },
+    {
+      "slug": "heterogeneous_emitters",
+      "panel": "raster_izh",
+      "html": "heterogeneous_emitters/raster_izh.html",
+      "png": "heterogeneous_emitters/raster_izh.png",
+      "png_dark": "heterogeneous_emitters/raster_izh.dark.png",
+      "title": "Spike raster (Izhikevich)",
+      "status": "available",
+      "docs_pages": [
+        "docs/etudes/heterogeneous_emitters.md"
+      ]
+    },
+    {
+      "slug": "heterogeneous_emitters",
+      "panel": "traces_izh",
+      "html": "heterogeneous_emitters/traces_izh.html",
+      "png": "heterogeneous_emitters/traces_izh.png",
+      "png_dark": "heterogeneous_emitters/traces_izh.dark.png",
+      "title": "Membrane traces (Izhikevich)",
+      "status": "available",
+      "docs_pages": []
+    },
+    {
+      "slug": "heterogeneous_emitters",
+      "panel": "lfp_izh",
+      "html": "heterogeneous_emitters/lfp_izh.html",
+      "png": "heterogeneous_emitters/lfp_izh.png",
+      "png_dark": "heterogeneous_emitters/lfp_izh.dark.png",
+      "title": "LFP proxy (izh)",
+      "status": "available",
+      "docs_pages": []
+    },
+    {
+      "slug": "heterogeneous_emitters",
+      "panel": "lfp_hei",
+      "html": "heterogeneous_emitters/lfp_hei.html",
+      "png": "heterogeneous_emitters/lfp_hei.png",
+      "png_dark": "heterogeneous_emitters/lfp_hei.dark.png",
+      "title": "LFP proxy (hei)",
+      "status": "available",
+      "docs_pages": []
+    },
+    {
+      "slug": "heterogeneous_emitters",
+      "panel": "traces_hei",
+      "html": "heterogeneous_emitters/traces_hei.html",
+      "png": "heterogeneous_emitters/traces_hei.png",
+      "png_dark": "heterogeneous_emitters/traces_hei.dark.png",
+      "title": "State traces (HEI)",
+      "status": "available",
+      "docs_pages": [
+        "docs/etudes/heterogeneous_emitters.md"
+      ]
+    },
+    {
+      "slug": "heterogeneous_emitters",
+      "panel": "oscillatory",
+      "html": "heterogeneous_emitters/oscillatory.html",
+      "png": "heterogeneous_emitters/oscillatory.png",
+      "png_dark": "heterogeneous_emitters/oscillatory.dark.png",
+      "title": "Source spectra by family",
+      "status": "available",
+      "docs_pages": [
+        "docs/etudes/heterogeneous_emitters.md"
+      ]
     },
     {
       "slug": "column_network",
