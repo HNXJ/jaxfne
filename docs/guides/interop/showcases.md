@@ -128,7 +128,7 @@ model = jtfne.construct(cfg)
 sig = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
 ```
 
-**What this run actually shows.** 10,000 neurons, 1000 ms, dt=0.5 ms: Vm
+**What this run shows.** 10,000 neurons, 1000 ms, dt=0.5 ms: Vm
 stays in range (rest ≈ −87 mV, peak ≈ +30 mV), global synchrony stays low
 (κ ≈ 0.020, asynchronous-irregular), and overall rate is ≈36 Hz (elevated by
 the same homeostasis-kick effect documented above).

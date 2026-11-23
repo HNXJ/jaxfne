@@ -106,7 +106,7 @@ I_{\mathrm{cap}} + I_{\mathrm{ion}} + I_{\mathrm{syn}} = I_{\mathrm{ext}}.
 
 This is the **single-compartment** statement; for extended morphology the same balance becomes the cable equation; see §12.
 
-### 3.3 How this law is used — and where JaxFNE stops solving it literally
+### 3.3 How this law is used, and where JaxFNE stops solving it literally
 
 A full biophysical simulator would at each timestep evaluate \(g_k(V,t)\) from gating ODEs (\(\dot m, \dot h, \dot n\)), compute each \((V-E_k)\) driving force, sum branches, and integrate \(V\) with a stiff solver (\(dt \sim 0.01\)–\(0.025\) ms). JaxFNE pathway:
 
