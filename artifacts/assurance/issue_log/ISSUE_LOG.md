@@ -9,7 +9,7 @@ closed batch beside them (`artifacts/archive/0.5.x/issues_closed_<date>.md`, pin
 `issues_closed_2026-10-25.md`; from 0.5.8 the batches sit in `artifacts/archive/0.5.x/issues_closed/`,
 P-037: `issues_closed_2026-10-26.md`; P-045, P-046, P-049, P-050: `issues_closed_2026-10-27.md`; P-048, P-051, P-054:
 `issues_closed_2026-11-03.md`; P-040, P-057 to P-065: `issues_closed_2026-11-21.md`; P-066:
-`issues_closed_2026-11-22.md`).
+`issues_closed_2026-11-22.md`; P-068: `issues_closed_2026-11-23.md`).
 
 Entry fields: date, type (`BUG` `FRICTION` `DOC` `PERF` `SCIENCE` `IDEA`),
 area, observation, severity, minimal reproduction, expected, actual, evidence,
@@ -26,24 +26,6 @@ possible future change.
   (`jaxfne/fields/proxy.py`). An area posed in xz or yz would project its depth from the wrong axis.
 - Expected: the proxy reads depth along the area's posed depth axis, or refuses a non-"xy" pose.
 - Next: a red test that projects an "xz"-posed laminar area and compares against the same area posed "xy".
-
-### P-068
-
-- Date: 2026-11-23. Type: BUG (cause inferred). Area: etude rerun scripts, Dashboard figures job. Severity: major
-  for the dashboard (G-4); none for the package.
-- Observation: Dashboard run 45118760753 (dev 4773b4d9) fails in `scripts/rerun_etude_figures.py`: "r90 lfp_ref
-  mismatch (geometry should be hash-exact)" (multiscale_observation) and "izh P_LFP centroid outside tolerance"
-  (heterogeneous_emitters). Last green Dashboard: 022da7a0 (2026-11-19), before P-066.
-- Inferred cause: P-066 made realized z mm; these scripts call `project_laminar_sources` without
-  `column_height_mm` (`rerun_etude_figures.py:104,218`, `run_multiscale_observation_etude.py:206`,
-  `run_heterogeneous_emitters_etude.py:219-220`, and other script sites).
-- Repair (2026-11-23, `_temp_p068`): 9 script projection sites pass the model's `column_height_mm`; z used beside
-  relative contact depths is divided by it (`observe` leadfield, `mean_r90`, hdp_suite2 rescale and panel-A z).
-  Cause confirmed: with the height the heterogeneous izh P_LFP centroid misses by rel 6.4e-7 (tol 1e-3), without it
-  by 1.46e-2. The multiscale r90 exact check misses by rel 1.9e-8 (float32 mm round trip); Hamm 2026-11-23: rel
-  1e-6 (without the height rel 1.9e-2, still caught). Site build of both etudes: 0 errors. Review ACCEPT (minors
-  fixed). Open: no unit test drives `_verify_multiscale_claims` (todo T-DASH-P068). Closes when the Dashboard
-  workflow is green on dev.
 
 ## Moved to 0.5.11 (Hamm 2026-11-23, plan §10.3 item 2)
 
