@@ -6,11 +6,12 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
+from scipy.linalg import expm
 
 import jaxfne  # noqa: F401  (registers the rule)
 from jaxfne._hdp_registrable_kernel import simulate_edge_recurrent_izhikevich_hdp_registered
 from jaxfne.emitters import EdgeList, IzhikevichParams
-from jaxfne.emitters_lif import make_lif_params, simulate_lif_edge
+from jaxfne.emitters_lif import LIF_CELL_TYPE_DEFAULTS, make_lif_params, simulate_lif_edge
 from jaxfne.hdp_rule import check_hdp_rule_params
 from jaxfne.hdp_rules_ephaptic import (
     EPHAPTIC_RULE_NAME,
@@ -231,3 +232,98 @@ def test_izhikevich_field_changes_activity_and_zero_is_inert():
     assert np.all(np.asarray(d0["aux_final"]) == 0.0)
     assert np.abs(np.asarray(d1["aux_final"])).max() > 0
     assert not np.array_equal(np.asarray(s0), np.asarray(s1))
+
+
+# R14 (Solmind plan): what alpha means across dt on the LIF route.
+LIF_ALPHA_REF_PER_MS = 0.1  # a: reference coupling rate, 1/ms, fixed across dt
+LIF_T_FINAL_MS = 2.0
+LIF_V0_MV = np.array([5.0, -3.0])  # v != v_rest (0 mV, the LIF leak target); zero drive
+LIF_DT_MS = (0.1, 0.05, 0.025, 0.0125)
+LIF_NEG_CONTROL_DT_MS = 0.1  # negative control holds alpha = a * 0.1 ms at every dt
+LIF_TAU_MS = LIF_CELL_TYPE_DEFAULTS["simple"]["tau_m_ms"]
+EPS32 = float(np.finfo(np.float32).eps)
+
+
+def _lif_pair_run(dt, alpha, kernel):
+    """Voltage trace (n_steps, 2) in mV and spike count of the N=2 LIF pair with the rule."""
+    n_steps = int(round(LIF_T_FINAL_MS / dt))
+    none = np.zeros(0, dtype=np.int64)
+    out = simulate_lif_edge(
+        make_lif_params(("simple",) * 2), n_steps=n_steps, dt_ms=dt,
+        edge_pre=none, edge_post=none, edge_weight=np.zeros(0), edge_delay_steps=none,
+        I_ext_pA=jnp.zeros((n_steps, 2)), V0_mV=jnp.asarray(LIF_V0_MV), record_v=True,
+        hdp_rule=EPHAPTIC_RULE_NAME,
+        hdp_rule_params=ephaptic_rule_params(kernel, alpha=alpha, v_rest=0.0),
+    )
+    return np.asarray(out["V_mV"], dtype=np.float64), int(np.asarray(out["spikes"]).sum())
+
+
+def _lif_lag_map(dt, alpha, M):
+    """The kernel's discrete map: exact leak c = exp(-dt/tau), no field at step 1."""
+    c = np.exp(-dt / LIF_TAU_MS)
+    G = c * np.eye(2) + alpha * M
+    x = c * LIF_V0_MV
+    for _ in range(int(round(LIF_T_FINAL_MS / dt)) - 1):
+        x = G @ x
+    return x
+
+
+def test_lif_alpha_is_per_step_coupling_across_dt():
+    """One alpha, one coupling across dt on the LIF route, with positive and negative controls.
+
+    Fixture: N=2 "simple" PCL LIF pair (tau 18 ms, v_thresh 10 mV, v_min -20 mV), v_rest 0 mV
+    (the leak target), zero external drive, V(0) = (5, -3) mV, no edges, T = 2 ms. Two points at
+    distance 1 with cutoff 2, row-normalized: M = [[0, 1], [1, 0]], M^2 = I.
+
+    Reference: dv/dt = -v/tau + a M v, a = 0.1 /ms fixed. Exact: x(T) = expm(T(-I/tau + aM)) x(0)
+    in float64; with M^2 = I this is e^{-T/tau} (cosh(aT) I + sinh(aT) M) x(0).
+
+    Kernel map. lif_step decays V exactly: c = exp(-dt/tau). The field alpha M V is computed from
+    the voltages after step k-1 and enters step k (one-step lag). The bias carry starts at zero,
+    so step 1 carries no field:
+        V(1) = c V(0),    V(k) = (c I + alpha M) V(k-1)  for k >= 2.
+    The test asserts that the float32 kernel equals this map, per arm, to 100 eps32 max|V|.
+
+    Expansion. Positive arm, alpha = a dt. For eigenmode m = +-1 of M:
+        numeric / exact = 1 + dt [T (m a/tau - a^2/2) - m a] + O(dt^2).
+    The -m a dt term is the field lost at step 1. The T(...) term is the one-step lag with
+    forward-Euler coupling; the leak is exact. Both are O(dt), so the error halves per halving and
+    the ratio tends to 2. The window is applied to the two finest halvings.
+    Negative arm, alpha = 0.1 a held: the mode factor is c + 0.1 m a, so the realized rate
+    0.1 a / dt doubles per halving and the error against the a solution grows (ratio < 1).
+
+    Guards: a dt < 0.02 and dt/tau < 0.01 at the coarsest dt; no spike in any run; the finest
+    positive error exceeds 100 eps32 max|V|.
+    """
+    assert LIF_ALPHA_REF_PER_MS * max(LIF_DT_MS) < 0.02 and max(LIF_DT_MS) / LIF_TAU_MS < 0.01, (
+        "fixture must be in the small-step regime (a dt, dt/tau small)"
+    )
+    kernel = ephaptic_kernel(np.array([[0.0, 0.0], [1.0, 0.0]]), sigma=1.0, cutoff=2.0)
+    M = _dense(kernel, 2)
+    assert np.count_nonzero(M) == 2, "fixture must be a coupled pair"
+    exact = expm(LIF_T_FINAL_MS * (-np.eye(2) / LIF_TAU_MS + LIF_ALPHA_REF_PER_MS * M)) @ LIF_V0_MV
+    runs = {}
+    for dt in LIF_DT_MS:
+        arms = (("pos", LIF_ALPHA_REF_PER_MS * dt),
+                ("neg", LIF_ALPHA_REF_PER_MS * LIF_NEG_CONTROL_DT_MS))
+        for arm, alpha in arms:
+            V, spikes = _lif_pair_run(dt, alpha, kernel)
+            assert spikes == 0, f"fixture must not spike: {arm} arm, dt={dt}, {spikes} spikes"
+            runs[arm, dt] = (alpha, V)
+    v_scale = max(float(np.max(np.abs(V))) for _, V in runs.values())
+    tol = 100 * EPS32 * v_scale  # float32 resolution scale of the kernel's voltages
+    for (arm, dt), (alpha, V) in runs.items():
+        np.testing.assert_allclose(V[-1], _lif_lag_map(dt, alpha, M), atol=tol,
+                                   err_msg=f"{arm} arm, dt={dt}: kernel is not the lag map")
+    err = {arm: [float(np.max(np.abs(runs[arm, dt][1][-1] - exact))) for dt in LIF_DT_MS]
+           for arm in ("pos", "neg")}
+    assert err["pos"][-1] > tol, (
+        f"finest positive error {err['pos'][-1]:.3e} is not above float32 resolution {tol:.3e}"
+    )
+    ratio = {arm: [err[arm][i] / err[arm][i + 1] for i in (1, 2)] for arm in ("pos", "neg")}
+    assert all(1.8 <= r <= 2.2 for r in ratio["pos"]), (
+        f"positive-control ratios {ratio['pos']} (0.05/0.025, 0.025/0.0125) outside [1.8, 2.2]"
+    )
+    assert all(r < 1.0 for r in ratio["neg"]), (
+        f"negative-control ratios {ratio['neg']} (0.05/0.025, 0.025/0.0125) not below 1"
+    )
