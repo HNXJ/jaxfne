@@ -45,7 +45,12 @@ possible future change.
   `jaxfne/neuronal_tensor.py:143-148`), while `project_laminar_sources` reads depth from `positions[:, 2]`
   (`jaxfne/fields/proxy.py`). An area posed in xz or yz would project its depth from the wrong axis.
 - Expected: the proxy reads depth along the area's posed depth axis, or refuses a non-"xy" pose.
-- Next: a red test that projects an "xz"-posed laminar area and compares against the same area posed "xy".
+- Measured 2026-11-24: `tests/test_fields_positions_g8.py::test_posed_plane_keeps_the_laminar_projection`
+  ("xz", "yz") failed on 59521ff3 (2 failed: the posed field differs from the "xy" twin).
+- Resolution 2026-11-24: `project_model_sources` reads each neuron's depth from its area's posed axis
+  (`_laminar_frame_positions`, `jaxfne/fields/proxy.py`, from `cfg.metadata["tensor_pose"]`); both cases pass,
+  and the 12 pose and field test files pass (182). Explicit `positions` and `signals_dipole(axis=)` stay in the
+  caller's global frame. Moves to the next closed batch together with P-069 (one new file under `budget_files`).
 
 ## Moved to 0.5.11 (Hamm 2026-11-23, plan §10.3 item 2)
 

@@ -78,6 +78,26 @@ def test_pose_z_translation_moves_positions_and_projection():
     )
 
 
+@pytest.mark.parametrize("plane", ["xz", "yz"])
+def test_posed_plane_keeps_the_laminar_projection(plane):
+    """P-067: a pose plane moves the column, not its laminar readout. The same area
+    posed "xy" and posed ``plane`` projects identical sources to the same field."""
+    base = _model()
+    tensor = jtfne.make_minimal_ei_tensor(n=N)
+    area = dataclasses.replace(tensor.areas[0], pose=jtfne.Pose3D(plane=plane))
+    posed = jtfne.construct_neuronal_tensor(dataclasses.replace(tensor, areas=[area]), seed=0)
+    pos_xy = np.asarray(base.params["positions"])
+    pos_p = np.asarray(posed.params["positions"])
+    assert np.ptp(pos_xy[:, 2]) > 0, "fixture must spread laminar depth"
+    assert not np.allclose(pos_p, pos_xy), "fixture pose must move the positions"
+    sources = _sources()
+    out_xy = jtfne.project_model_sources(base, sources, n_contacts=8)
+    out_p = jtfne.project_model_sources(posed, sources, n_contacts=8)
+    np.testing.assert_allclose(
+        np.asarray(out_p.lfp_proxy), np.asarray(out_xy.lfp_proxy), rtol=1e-6, atol=1e-9
+    )
+
+
 def test_explicit_positions_override_and_match_flag():
     """Explicit model-identical positions agree and flag a match; shifted
     ones differ and flag a mismatch."""

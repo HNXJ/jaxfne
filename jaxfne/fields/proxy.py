@@ -409,6 +409,27 @@ def project_sources_to_laminar_field(
     )
 
 
+def _laminar_frame_positions(model: Any, positions: jax.Array) -> jax.Array:
+    """Positions whose third column is each neuron's posed laminar depth (P-067).
+
+    Identity when the model carries no ``tensor_pose`` metadata or every pose plane
+    is ``"xy"``; otherwise column 2 takes the global axis that holds each area's depth.
+    """
+    pose_spec = (getattr(getattr(model, "cfg", None), "metadata", None) or {}).get("tensor_pose")
+    if not pose_spec:
+        return positions
+    planes = {area: p["plane"] for area, p in pose_spec["poses"].items()}
+    if all(plane == "xy" for plane in planes.values()):
+        return positions
+    from ..neuronal_tensor import _PLANE_AXIS_MAP
+
+    rows = model.static["neuron_metadata"]
+    depth_axis = jnp.asarray([_PLANE_AXIS_MAP[planes.get(r["area"], "xy")][2] for r in rows])
+    arr = jnp.asarray(positions)
+    depth = jnp.take_along_axis(arr, depth_axis[:, None], axis=1)[:, 0]
+    return arr.at[:, 2].set(depth)
+
+
 def project_model_sources(
     model: Any,
     sources: jax.Array | CanonicalSource,
@@ -431,6 +452,11 @@ def project_model_sources(
     ``positions_match_model`` to the output diagnostics on the eager path;
     under ``jax.jit`` tracers diagnostics stay empty per the delegate's
     contract.
+
+    Model positions posed in an ``"xz"`` or ``"yz"`` plane carry each area's
+    laminar depth on its posed global axis; the projection reads depth from
+    that axis (P-067). An explicit ``positions`` is read as given: depth in
+    its third column.
     """
     try:
         model_positions = model.params["positions"]
@@ -453,7 +479,7 @@ def project_model_sources(
             f"carries N = {model_n}; refusing model-unmatched projection"
         )
     if positions is None:
-        use_positions = model_positions
+        use_positions = _laminar_frame_positions(model, model_positions)
         positions_source = "model"
     else:
         use_positions = positions
