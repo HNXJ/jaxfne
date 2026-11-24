@@ -19,6 +19,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Tier 0: Solmind 0.5.10 execution (Hamm's go 2026-11-21, S19)
 
+0. T-P069 [A] P-069: `simulate_adex_seed_batch` and homeostatic E/I (simulate-time runtime) refuse `enable_hdp=True`
+   as their sibling routes do. The Izhikevich case (`enable_hdp=False` with `hdp_params`) refuses only if Hamm
+   agrees that given params without the flag are an error (O-P069). Closes when: the three strict xfails in
+   `tests/test_hdp_rules_ephaptic.py` are plain tests that pass. Blocked by: O-P069 for the Izhikevich case only.
+
 1. T-PLAN-EXECUTE [A] Work the tasks of `artifacts/programme/design/plans/solmind/solmind_0510_plan.md` (R01-R72,
    gates S01-S23; reviewed, audit 3 ACCEPT) at most 3 lanes including reviewers; a row runs only when its own gates
    are clear; recompute the frozen checklist only from exact-SHA receipts; stop at READY_FOR_OWNER_GO for Gate 5.

@@ -17,6 +17,19 @@ possible future change.
 
 ## Open
 
+### P-069
+
+- Date: 2026-11-23. Type: BUG. Area: simulation routes that do not realize HDP. Severity: medium (a requested rule
+  is dropped without an error; the run's output carries no trace of it).
+- Observation (Solmind R12, `artifacts/audit/reviews/ephaptic_routes_r12_2026-11-23.md`): three routes run and drop
+  an HDP request: `simulate_adex_seed_batch` with `enable_hdp=True`; homeostatic E/I with a simulate-time runtime
+  (`Configuration.runtime(enable_hdp=True)` already refuses at construct); Izhikevich with `enable_hdp=False` and
+  `hdp_params` given. Sibling routes (AdEx `Model`, HH, rate, LIF event scan) refuse with a `ValueError`.
+- Reproduction: `pytest --runxfail tests/test_hdp_rules_ephaptic.py -k "seed_batch or homeostatic or without_enable"`:
+  3 failed, "DID NOT RAISE".
+- Expected: a `ValueError` naming the route, as on the sibling routes. Closes when the three strict xfails are
+  plain tests that pass (todo T-P069).
+
 ### P-067
 
 - Date: 2026-11-22. Type: BUG (inferred, unmeasured). Area: `NeuronalTensor` pose, field proxy. Severity: unknown.
