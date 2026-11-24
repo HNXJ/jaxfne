@@ -346,7 +346,7 @@ inside the modeled population.
 
 ### CSD finite difference
 
-**Formal:** $\mathrm{CSD}(z,t) \approx \partial^2 \phi_e / \partial z^2$ on the contact axis.
+**Formal:** $\mathrm{CSD}(z,t) \approx -\partial^2 \phi_e / \partial z^2$ on the contact axis.
 
 **Practice:** CSD-proxy is computed along the laminar contact grid after spatial
 projection; it is a discrete second difference on `phi_e_proxy`, rather than a volume

@@ -28,6 +28,20 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    generated captions through `scripts/generate_gallery.py`). Then the visual half of R49 (print-size render).
    Closes when: every listed page:line is fixed or answered in the audit's follow-up, the docs gate and
    `mkdocs build --strict` pass, and an outside reviewer accepts. Blocked by: none.
+   2026-11-23: text half at 20ef57cf, outside review ACCEPT (every new caption fact traced to a source). Left with
+   no source found: controllability panels A-C and F-L, AAAB, AT-10-N20, parts of the gallery and tutorial-extend
+   rows; then the visual half.
+
+0. T-R46 [A] Merge duplicate docs (plan R46). Overlap measured 2026-11-23 over the five R42 groups: no page without
+   unique content; only verbatim overlap is `guides/grammar/jdna.md` vs `reference/api/model/jdna.md` (6 passages,
+   e.g. the `develop` example 182-189 vs 116-125) and the shared atlas lines with `tutorials/construct/01_define_genome.md`.
+   Guide/API/tutorial pairs stay split; merge the jdna duplicates into one home with a link. Contradictions found:
+   CSD sign (fixed, guard `test_csd_formulas_carry_the_code_sign`), Protocol C status (fixed); left: `06_add_state.md:5`
+   "H inert when HDP is off" vs `guides/state/hdp.md:8-10` (check the code), "Probe Report Sidecar"
+   (`probe_operators.md:255`) vs removed `ProbeReport` (`probes.md:275`), and
+   `test_docs_equations_plotly_v0214.py:163-170` passing on the word inside the "removed" section. Closes when: each
+   left item is fixed or answered, the docs gate and `mkdocs build --strict` pass, and an outside reviewer accepts.
+   Blocked by: none.
 
 1. T-PLAN-EXECUTE [A] Work the tasks of `artifacts/programme/design/plans/solmind/solmind_0510_plan.md` (R01-R72,
    gates S01-S23; reviewed, audit 3 ACCEPT) at most 3 lanes including reviewers; a row runs only when its own gates

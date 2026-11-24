@@ -81,6 +81,16 @@ def test_probe_operators_has_latex_math():
     assert has_inline or has_block, "No LaTeX math delimiters found in probe_operators.md"
 
 
+def test_csd_formulas_carry_the_code_sign():
+    """Every CSD formula on a live page has the minus of ``csd_tensor`` (positive = source)."""
+    pages = [p for p in Path("docs").rglob("*.md") if "archive" not in p.parts]
+    # formulas in the potential phi; the divergence definition CSD = d_i J^i carries no phi
+    pattern = re.compile(r"CSD[^$\n]{0,40}(?:\\approx|=)\s*(-?)\s*\\(?:frac|partial)[^$\n]{0,30}\\phi")
+    found = [(p.as_posix(), m.group(1)) for p in pages for m in pattern.finditer(p.read_text(encoding="utf-8"))]
+    assert len(found) >= 3, f"the scan must see the CSD formulas: {found}"
+    assert [f for f in found if f[1] != "-"] == []
+
+
 # ─── Tensor-Field Workflow Equations Tests ───────────────────────────────────
 
 

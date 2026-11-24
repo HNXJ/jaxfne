@@ -230,7 +230,7 @@ Row-normalized kernel projection: potential at contact $c$ is a weighted sum of 
 
 ### CSD-proxy
 
-$$\mathrm{CSD}_{\mathrm{proxy}}(t,c) \approx \frac{\phi_{\mathrm{proxy}}(t,c+1)-2\phi_{\mathrm{proxy}}(t,c)+\phi_{\mathrm{proxy}}(t,c-1)}{(\Delta z)^2}$$
+$$\mathrm{CSD}_{\mathrm{proxy}}(t,c) \approx -\frac{\phi_{\mathrm{proxy}}(t,c+1)-2\phi_{\mathrm{proxy}}(t,c)+\phi_{\mathrm{proxy}}(t,c-1)}{(\Delta z)^2}$$
 
 Second spatial derivative (Laplacian) of laminar potential proxy. Sign convention: `positive_equals_extracellular_source`.
 

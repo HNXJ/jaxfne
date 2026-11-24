@@ -2,7 +2,7 @@
 
 *Detector specification: protocol C, 0.4.17-C. The scientific content is traveling-wave inference; protocol identifier retained in provenance.*
 
-**Status:** C0 frozen (specification only)  
+**Status:** closed at C4 (`c4_interpretation_receipt.json`); per-layer evidence in [Traveling-Wave Evidence](protocol_c_wave_evidence.md). This page keeps the C0 specification.  
 **Spec:** `artifacts/protocol_c/c0_wave_protocol_spec.json`  
 **Prerequisite:** Experiment A closed (`experiment_a_v0417_b`); Protocol D delay dynamics frozen separately
 
@@ -65,7 +65,7 @@ False positives matter more than a visually impressive positive example.
 | C0 | This specification (no estimator code) |
 | C1 | Estimator validation on synthetic fields (`c1_synthetic_validation_receipt.json`) |
 | C2 | General `Model.simulate` `delay_state` continuation |
-| C3 | Prospective neural geometry/delay experiment (spec frozen; run not authorized) |
+| C3 | Prospective neural geometry/delay experiment (spec frozen; run done, `c3_execution_receipt.json`) |
 | C4 | Frozen receipt before Figure 5 interpretation |
 
 ## Experiment A integration
