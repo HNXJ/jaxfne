@@ -24,6 +24,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    agrees that given params without the flag are an error (O-P069). Closes when: the three strict xfails in
    `tests/test_hdp_rules_ephaptic.py` are plain tests that pass. Blocked by: O-P069 for the Izhikevich case only.
 
+0. T-R49-FIX [A] Repair the caption findings of `artifacts/audit/reviews/caption_audit_r49_2026-11-23.md` (text only;
+   generated captions through `scripts/generate_gallery.py`). Then the visual half of R49 (print-size render).
+   Closes when: every listed page:line is fixed or answered in the audit's follow-up, the docs gate and
+   `mkdocs build --strict` pass, and an outside reviewer accepts. Blocked by: none.
+
 1. T-PLAN-EXECUTE [A] Work the tasks of `artifacts/programme/design/plans/solmind/solmind_0510_plan.md` (R01-R72,
    gates S01-S23; reviewed, audit 3 ACCEPT) at most 3 lanes including reviewers; a row runs only when its own gates
    are clear; recompute the frozen checklist only from exact-SHA receipts; stop at READY_FOR_OWNER_GO for Gate 5.

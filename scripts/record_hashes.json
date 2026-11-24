@@ -2,7 +2,7 @@
   "counts": {
     "archive": 22,
     "benchmark": 1,
-    "dated": 34,
+    "dated": 35,
     "frozen": 28,
     "legacy": 32,
     "prereg": 136,
@@ -33,6 +33,7 @@
     "artifacts/archive/scripts/repair_notebooks.py": "1203e1abf480d11f57fc2e0852a5a74391c71158fa39900c6595faef5572dc84",
     "artifacts/assurance/issue_log/p053_p056_source_audit_2026-11-13.md": "e05bf6c7a216c500065e260c4fd50e0d721bd0a6dfe74b8269f381a4e5209803",
     "artifacts/assurance/open_scan_2026-10-15.md": "d6f6ffce528070f0d692c45af042f592980d5b9ca307dcb904f254dbd2e5a37b",
+    "artifacts/audit/reviews/caption_audit_r49_2026-11-23.md": "c2d13131be69afb9f80665489833626826e13dd0149bc2c65bbb13d63495fb50",
     "artifacts/audit/reviews/context_audit_2026-11-13.md": "47ba6056229772f0bbb457e23c126366d37d108bb2c3c6f3e79d4285b200dfd7",
     "artifacts/audit/reviews/deep_review_89_2026-10-04.md": "dd06c1a14bf9b1f76d9d0a529c2760586190d2b90acd35fa273a34b7c6a699af",
     "artifacts/audit/reviews/docs_inventory_r42_2026-11-23.md": "1d76d53527868087a021e6978c3c5b9f1d30e7b21563047d316bca60ca890e38",
