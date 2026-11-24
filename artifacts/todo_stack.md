@@ -24,7 +24,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    2026-11-23. Closes when: `test_izhikevich_refuses_hdp_params_without_enable_hdp` is a plain passing test, or is
    removed on Hamm's other option with the inert behavior documented. Blocked by: O-P069.
 
-0. T-R49-FIX [A] Repair the caption findings of `artifacts/audit/reviews/caption_audit_r49_2026-11-23.md` (text only;
+0. T-R49-FIX [A] Repair the caption findings of `artifacts/programme/design/plans/solmind/caption_audit_r49_2026-11-23.md` (text only;
    generated captions through `scripts/generate_gallery.py`). Then the visual half of R49 (print-size render).
    Closes when: every listed page:line is fixed or answered in the audit's follow-up, the docs gate and
    `mkdocs build --strict` pass, and an outside reviewer accepts. Blocked by: none.
@@ -36,10 +36,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    unique content; only verbatim overlap is `guides/grammar/jdna.md` vs `reference/api/model/jdna.md` (6 passages,
    e.g. the `develop` example 182-189 vs 116-125) and the shared atlas lines with `tutorials/construct/01_define_genome.md`.
    Guide/API/tutorial pairs stay split; merge the jdna duplicates into one home with a link. Contradictions found:
-   CSD sign (fixed, guard `test_csd_formulas_carry_the_code_sign`), Protocol C status (fixed); left: `06_add_state.md:5`
+   CSD sign (fixed, guard `test_csd_formulas_carry_the_code_sign`), Protocol C status (fixed); left: `docs/tutorials/extend/06_add_state.md:5`
    "H inert when HDP is off" vs `guides/state/hdp.md:8-10` (check the code), "Probe Report Sidecar"
    (`probe_operators.md:255`) vs removed `ProbeReport` (`probes.md:275`), and
-   `test_docs_equations_plotly_v0214.py:163-170` passing on the word inside the "removed" section. Closes when: each
+   `test_docs_equations_plotly_v0214.py:180` passing on the word inside the "removed" section. Closes when: each
    left item is fixed or answered, the docs gate and `mkdocs build --strict` pass, and an outside reviewer accepts.
    Blocked by: none.
 

@@ -82,7 +82,8 @@ def test_probe_operators_has_latex_math():
 
 
 def test_csd_formulas_carry_the_code_sign():
-    """Every CSD formula on a live page has the minus of ``csd_tensor`` (positive = source)."""
+    """Every one-line ``CSD ... = \\frac|\\partial ... \\phi`` formula on a live page has the minus of
+    ``csd_tensor`` (positive = source). Narrow by design: prose, table and multi-line forms are not scanned."""
     pages = [p for p in Path("docs").rglob("*.md") if "archive" not in p.parts]
     # formulas in the potential phi; the divergence definition CSD = d_i J^i carries no phi
     pattern = re.compile(r"CSD[^$\n]{0,40}(?:\\approx|=)\s*(-?)\s*\\(?:frac|partial)[^$\n]{0,30}\\phi")

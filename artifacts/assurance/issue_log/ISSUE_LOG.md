@@ -21,7 +21,7 @@ possible future change.
 
 - Date: 2026-11-23. Type: BUG. Area: simulation routes that do not realize HDP. Severity: medium (a requested rule
   is dropped without an error; the run's output carries no trace of it).
-- Observation (Solmind R12, `artifacts/audit/reviews/ephaptic_routes_r12_2026-11-23.md`): three routes run and drop
+- Observation (Solmind R12, `artifacts/programme/design/plans/solmind/ephaptic_routes_r12_2026-11-23.md`): three routes run and drop
   an HDP request: `simulate_adex_seed_batch` with `enable_hdp=True`; homeostatic E/I with a simulate-time runtime
   (`Configuration.runtime(enable_hdp=True)` already refuses at construct); Izhikevich with `enable_hdp=False` and
   `hdp_params` given. Sibling routes (AdEx `Model`, HH, rate, LIF event scan) refuse with a `ValueError`.
