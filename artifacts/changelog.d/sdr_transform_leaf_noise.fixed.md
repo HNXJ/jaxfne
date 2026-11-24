@@ -1,1 +1,0 @@
-- Fixed `sdr_transform`, `gsdr_transform`, `agsdr_transform` and `gsdr_mcdp_transform` drawing one noise sample for every parameter leaf: each leaf now draws from its own split key, as in the GSDR source, so equal-shape leaves get independent noise. Fixed-seed outputs change for multi-leaf parameter trees; a single-array parameter draws as before (tested in float32).

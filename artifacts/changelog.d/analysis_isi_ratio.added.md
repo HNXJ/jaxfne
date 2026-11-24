@@ -1,1 +1,0 @@
-- Added `isi_ratio` to `jaxfne.analysis`: last ISI over first ISI of one spike-step sequence (None below 2 ISIs), moved from the Izhikevich 2003 lane, which imports it in place of its copy.

@@ -9,10 +9,13 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
-- The dashboard has a Notebooks tab: each paper replication as one notebook that remakes the paper's figures
-  (CAMINOS Cell Reports and PLoS Comput Biol 2026 first), exported by `scripts/export_dashboard_notebook.py`
-  with the code shown. Each CAMINOS notebook opens with its network built and run live in jaxfne
-  (`Configuration`, `construct`, `Model.simulate`); PLoS Fig 1E reads the P6 jaxfne runs.
+## v0.5.10 (2026-11-24)
+
+### Added
+
+- `RuntimeConfig(edge_delivery="event")` on the serial AdEx `simulate` route sums each step's synaptic input over the out-edges of the sources that spiked, at a cost of active sources times maximum out-degree instead of all edges; the default `"all_edges"` is unchanged, any other value is refused, and every other route refuses `"event"`. The run metadata records the mode.
+- Added per-parameter log-scale AGSDR bounds: a bound may be `(lo, hi, "log")` to sweep in `ln(theta)`, with linear `(lo, hi)` unchanged.
+- Added `isi_ratio` to `jaxfne.analysis`: last ISI over first ISI of one spike-step sequence (None below 2 ISIs), moved from the Izhikevich 2003 lane, which imports it in place of its copy.
 - `BackgroundNoise` (Poisson event current: `rate_hz`, `amplitude`, required `seed`, `target`) and the
   `NeuronalTensor` fields `baseline_drive` and `background_noise`, realized on the Izhikevich route and
   recorded as `realized_drive` and `realized_noise` in the metadata and manifest. A caller's
@@ -20,6 +23,38 @@ the rules those releases were held to and are historical context for readers.
   continuation, `SpikeTrainInput` and every other emitter family refuse it. New preset
   `canonical-v1-column-1000n-balanced` meets the P-BALANCED bounds on seeds 0-4 (E rate 8.9-9.1 Hz,
   CV_ISI 0.74-0.76, |r_sc| <= 0.08, inhibition x2 shift 0.24-0.26).
+- `jaxfne.billeh2020`: the Billeh et al. (2020) mouse V1 recurrent connectivity of 17 populations (literature probabilities, Gaussian widths, orientation ratios, synapses per connection), transcribed by script from the release's `v1_conn_props.json` (SHA-256 recorded), and `connection_probability(pre, post, r_um)` for the lateral distance rule.
+- `fields.coherence_limited_lfp_power` and `fields.coherence_patches`: the LFP power spectrum when sources sum in phase within a coherence radius and with independent random phase between square patches of side twice that radius; a radius of half the sheet's span gives the coherent `kernel_lfp` power, a radius below half the source spacing the sum of per-source powers.
+- The dashboard has a Notebooks tab: each paper replication as one notebook that remakes the paper's figures
+  (CAMINOS Cell Reports and PLoS Comput Biol 2026 first), exported by `scripts/export_dashboard_notebook.py`
+  with the code shown. Each CAMINOS notebook opens with its network built and run live in jaxfne
+  (`Configuration`, `construct`, `Model.simulate`); PLoS Fig 1E reads the P6 jaxfne runs.
+- Rule `ephaptic_field` (`jaxfne.hdp_rules_ephaptic`), carried by the HDP rule registry; its dynamics lie outside RBD and HDP (experimental): lateral voltage coupling \(\Phi_i=\alpha\sum_j M_{ij}(v_j-v_{\mathrm{rest}})\) on the Izhikevich and LIF routes, entering the membrane through `drive_bias` at the next step (from post-step voltages on LIF, pre-step voltages on Izhikevich). `ephaptic_kernel` builds a sparse Gaussian kernel \(M\) from positions (cutoff, optional row normalization; coincident positions are dropped, and a row whose weights all underflow stays 0); cost scales with kernel pairs instead of \(N^2\). \(\alpha=0\) reproduces the uncoupled run on the same backend (through `simulate()`, the rule-free run with `recurrent_backend="edge_list"`; an engaged rule always runs the edge-list kernel, ISSUE_LOG P-062). Runs that omit the rule are unchanged.
+- `jaxfne.emitters_jansen_rit`: the Jansen and Rit (1995) neural-mass column (`JansenRitParams`, `check_jansen_rit_params`, `simulate_jansen_rit`) and a single second-order synaptic kernel (`simulate_linear_kernel`), fixed-step RK4 with the drive held per step; the output is `y1 - y2`. Deterministic: one drive array gives one output.
+- `fields.kernel_lfp`: hybrid kernel LFP (Hagen et al. 2016). Vertical passive cable cells (`cable_cell`, and `profile_cell` from depth profiles of membrane area and axial-equivalent diameter, with a per-compartment `area_factor`), area-weighted synapse placement by depth, exact passive cable response and transmembrane currents, line-source potentials averaged over lateral cell distances, per-synapse laminar kernels in mV, and their convolution with network spike counts. Every biophysical value is a required argument; out-of-domain values are refused.
+- `fields.hagen2016_cells`: the Hagen et al. (2016) hybrid-LFP morphologies reduced to 10 µm depth profiles (SHA-256 of each source file recorded), and `hagen2016_cell(population, target_bounds_um)` placing a population's cell in a column with given layer boundaries.
+
+### Changed
+
+- Re-recorded the heterogeneous-emitters etude digest (`metrics_post_p048.json`) under the stable-mode `x` bounds of ±10: the HEI `P_Q` centroid moves from 35.467 to 35.702 Hz, `x` stays below 2.2 in magnitude, and rates, F–I and gates are unchanged.
+- Laminar population depth `z` is realized in mm, the layer fraction times `column_height_mm` (default 1.60), in the same unit as `x` and `y`; before, `z` stayed a [0, 1] fraction, so distance rules (`spatial_sigma`, `spatial_radius`, localized sampling) counted depth at 1/1.6 of its length. Constructed models carry `params["column_height_mm"]`; `project_laminar_sources(column_height_mm=)` divides depth by it, and `project_model_sources` and `simulate(record_fields=True)` pass it. `connect()` refuses merging laminar with non-laminar members or members of different heights. Realized edges of distance rules change on the laminar path (ISSUE_LOG P-066).
+- `RuntimeConfig.recurrent_backend` (and `jtfne.runtime()`, `suite2_simulation()`, `default_cortical_column_config()`) now defaults to `"auto"`, which selects the backend the run needs: edge_list under homeostasis, an engaged HDP rule (any `enable_hdp` in `simulate_batch()`), a model whose edges live in `params["edge_list"]` alone, the receptor kernel, `connections()` rule edges, finite edge delays and full-state continuation, and on the lif, rate and adex routes; dense otherwise. Any value other than `"auto"`, `"dense"` or `"edge_list"` is rejected by `RuntimeConfig` and wherever a `Configuration` is built (`Configuration(metadata=...)`, `runtime()`, `update_metadata()`, `dataclasses.replace`); a direct in-place write to `cfg.metadata` goes unchecked. Default runs that succeeded before give the same spikes, voltages and state. Runs that refused the old default now run. An explicit `RuntimeConfig(recurrent_backend="dense")` under homeostasis, HDP or a model whose edges live in `params["edge_list"]` alone, which used to run edge_list unannounced, is now refused; an explicit `RuntimeConfig(recurrent_backend="edge_list")` now runs where a model-level `runtime(recurrent_backend="dense")` used to refuse it. The lif, rate and adex routes now record `recurrent_backend: "edge_list"` in their run metadata. The runtime report records the requested `"auto"`, so receipt IDs of default runs change (ISSUE_LOG P-062).
+
+### Removed
+
+- `population_rates` takes `counts` as its one positional argument; `dt_ms`, `sizes`, `pops` and `discard_ms` are keywords. The seconds forms `dt` and `discard_s`, deprecated in 0.5.9, are removed and raise TypeError naming `dt_ms`: a positional `0.1` meant as ms used to read as 0.1 s and gave rates 1000x low.
+
+### Fixed
+
+- Fixed `construct()` on the homeostatic_ei route dropping the `x` soft-bound range, so `bound_mode="stable"` clamped `x` at the dataclass default of ±1e6; the canonical range is now from -10 to 10 (the `make_minimal_ei_params` values), settable by `set_emitter(x_min=, x_max=)`, and refused under `bound_mode="minimal"`, where `x` is unbounded. "minimal" output is unchanged.
+- Fixed the `in_degree` refusal to name `sampling="multinomial"` for a non-integer mean in-degree, and the changelog dry run to write UTF-8.
+- Fixed `simulate_adex_seed_batch` and the homeostatic E/I `simulate` route to refuse `enable_hdp=True` with a `ValueError`; both dropped the flag before and raised nothing.
+- Fixed `project_model_sources` reading laminar depth from global `z` for an area posed in the `"xz"` or `"yz"` plane, where its depth lies on global `y` or `x`; the projection now reads each area's posed depth axis and matches the same area posed `"xy"`. Explicit `positions` keep depth in their third column (ISSUE_LOG P-067).
+- Fixed `sdr_transform`, `gsdr_transform`, `agsdr_transform` and `gsdr_mcdp_transform` drawing one noise sample for every parameter leaf: each leaf now draws from its own split key, as in the GSDR source, so equal-shape leaves get independent noise. Fixed-seed outputs change for multi-leaf parameter trees; a single-array parameter draws as before (tested in float32).
+- Fixed `simulate()` and `simulate_batch()` recording `recurrent_backend: "dense"` in the run metadata and manifest when the edge-list kernel ran (homeostasis, HDP, or a model whose edges live in `params["edge_list"]` alone); the metadata now records the backend that ran, and the runtime report keeps the requested value. An explicit model-level `recurrent_backend="dense"` is now refused instead of replaced under homeostasis, under an engaged HDP rule in `simulate()`, and under any `enable_hdp=True` in `simulate_batch()` (which always runs the HDP edge kernel). Spikes, voltages and HDP and homeostasis state are unchanged (ISSUE_LOG P-062).
+- Fixed `simulate_batch()` running a model with nonzero edge `delay_steps` on the dense backend and dropping the delays; an explicit `recurrent_backend="dense"` is now refused there, as in `simulate()`, and `"auto"` runs edge_list. Batch outputs of such models change (ISSUE_LOG P-063).
+- Fixed `simulate_batch()` ignoring `hdp_rule_params` for a registered HDP rule (it ran the rule at its zero-gain defaults, and `ephaptic_field` was refused); the parameters now reach the kernel as in `simulate()`, and so does `plasticity_mask`, which the same call also dropped. Batch outputs of registered rules with parameters or a mask change (ISSUE_LOG P-064).
+- Fixed `simulate()` and `simulate_batch()` with `enable_homeostasis=True` running a model whose edges carry nonzero `delay_steps` and dropping the delays; the homeostasis kernel lacks a delay path, so these runs now raise "enable_homeostasis has no finite-delay path". Runs with zero delays are unchanged (ISSUE_LOG P-065).
 
 ## v0.5.9 (2026-11-03)
 

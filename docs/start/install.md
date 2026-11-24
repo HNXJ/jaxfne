@@ -6,17 +6,17 @@
 pip install -U jaxfne
 ```
 
-The published **PyPI** release is **`jaxfne==0.5.8`** (tag `v0.5.8`),
-built from commit `11957af`. The previous release is **`0.5.7`**
-(tag `v0.5.7`). The
+The published **PyPI** release is **`jaxfne==0.5.9`** (tag `v0.5.9`),
+built from commit `e0160dfc`. The previous release is **`0.5.8`**
+(tag `v0.5.8`). The
 **development** public API on `dev` is documented in
 [Public API contract](../reference/public_surface_contract.md) (209-symbol surface). The
-development tree is at **0.5.9**, a release candidate that is unpublished on
-PyPI; the published release stays at 0.5.8 above. To pin
+development tree is at **0.5.10**, a release candidate that is unpublished on
+PyPI; the published release stays at 0.5.9 above. To pin
 the published PyPI release explicitly:
 
 ```bash
-pip install "jaxfne==0.5.8"
+pip install "jaxfne==0.5.9"
 ```
 
 For a development checkout, use the editable install below and check
