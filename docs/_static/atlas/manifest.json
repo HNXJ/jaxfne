@@ -8,7 +8,7 @@
   "sim_identity": "seed=0 duration_ms=1000.0 dt_ms=0.5",
   "recording_class": "large",
   "recording_budget": "population H, selected traces, summaries; no full T\u00d7E",
-  "jaxfne_version": "0.5.9",
+  "jaxfne_version": "0.5.10",
   "seed": 0,
   "duration_ms": 1000.0,
   "n_neurons": 1000,
@@ -22,7 +22,7 @@
       "panel": "Circuit schematic",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 20046,
+      "bytes": 20047,
       "inputs": {
         "source_artifact": "model",
         "variable": "neuron_table + params.edge_list",
@@ -36,7 +36,7 @@
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 76194,
+      "bytes": 76425,
       "inputs": {
         "source_artifact": "model",
         "variable": "params.positions + params.edge_list",
@@ -50,7 +50,7 @@
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 110657,
+      "bytes": 110658,
       "inputs": {
         "source_artifact": "signals",
         "variable": "spikes [T,N] + neuron_table",
@@ -64,7 +64,7 @@
       "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 362284,
+      "bytes": 362495,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field proxy",
@@ -78,7 +78,7 @@
       "panel": "H dynamics",
       "evidence": "DERIVED",
       "status": "OMITTED",
-      "bytes": 10443,
+      "bytes": 10444,
       "inputs": {
         "source_artifact": "model diagnostics",
         "variable": "H_trace / r_trace",
@@ -92,7 +92,7 @@
       "panel": "HDP plasticity",
       "evidence": "DERIVED",
       "status": "OMITTED",
-      "bytes": 10389,
+      "bytes": 10390,
       "inputs": {
         "source_artifact": "model diagnostics",
         "variable": "w_trace",
@@ -106,7 +106,7 @@
       "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 21647,
+      "bytes": 21668,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field traces",
@@ -116,7 +116,7 @@
       }
     }
   ],
-  "sha256": "883863c47b985de5",
+  "sha256": "7bdf0c8ebcd59b65",
   "promotion": [
     {
       "to": "validated",
@@ -138,6 +138,13 @@
       "promoter": "promote_atlas_state.py",
       "git_head": "ae3eb498137787fd4d3871a20929bff658f33100",
       "utc": "2026-10-21T01:52:38.658854+00:00"
+    },
+    {
+      "to": "validated",
+      "reason": "0.5.10 candidate: version bump regenerated the canonical atlas (config hash 91f037cf383e0bdb unchanged, jaxfne_version 0.5.9 -> 0.5.10, which reset its state); broad gate on c34fb5ea flagged test_canonical_manifest_provenance. Decoded panel data equal to the atlas generated at dev 59521ff3 in all 7 panels; against v0.5.9 (e0160dfc): network_3d z scaled by column_height_mm (P-066, z in mm), lfp max rel 4.2e-7 and oscillatory max rel 5.1e-5 (float32 propagation of P-066, inferred), raster, hdp and h_dynamics identical. README stills re-rasterized on vwin-pc.",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "c34fb5ea0496ab6b43647146282d354e3da2b46a",
+      "utc": "2026-11-24T13:29:46.893526+00:00"
     }
   ]
 }
