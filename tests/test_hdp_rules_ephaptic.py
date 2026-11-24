@@ -9,15 +9,29 @@ import pytest
 from scipy.linalg import expm
 
 import jaxfne  # noqa: F401  (registers the rule)
+from jaxfne import neuronal_tensor as nt
 from jaxfne._hdp_registrable_kernel import simulate_edge_recurrent_izhikevich_hdp_registered
+from jaxfne._model_simulate import simulate_adex_seed_batch
+from jaxfne._runtime_config import RuntimeConfig
 from jaxfne.emitters import EdgeList, IzhikevichParams
+from jaxfne.emitters_adex import AdExParams, make_adex_params, simulate_adex_hdp_registered
+from jaxfne.emitters_hh import HHParams
+from jaxfne.emitters_homeostatic_ei import HomeostaticEIParams
 from jaxfne.emitters_lif import LIF_CELL_TYPE_DEFAULTS, make_lif_params, simulate_lif_edge
+from jaxfne.emitters_rate import RateNetworkParams
 from jaxfne.hdp_rule import check_hdp_rule_params
 from jaxfne.hdp_rules_ephaptic import (
     EPHAPTIC_RULE_NAME,
     ephaptic_field,
     ephaptic_kernel,
     ephaptic_rule_params,
+)
+from jaxfne.pcl_topology import (
+    EventScanDrive,
+    build_s1_scan_tensor,
+    event_scan_events,
+    event_scan_tables,
+    local_inhibition_blocks,
 )
 
 N = 40
@@ -327,3 +341,196 @@ def test_lif_alpha_is_per_step_coupling_across_dt():
     assert all(r < 1.0 for r in ratio["neg"]), (
         f"negative-control ratios {ratio['neg']} (0.05/0.025, 0.025/0.0125) not below 1"
     )
+
+
+# R12 refusal half: the ephaptic request on each simulation route that does not realize HDP.
+# Refusing routes assert the refusal; routes that drop the request silently are xfail(strict)
+# until they refuse (P-069).
+
+
+def _eph_request(n, alpha=0.02):
+    """``hdp_params`` carrying the ephaptic rule for ``n`` neurons (fixed positions)."""
+    pos = np.random.default_rng(0).uniform(0.0, 100.0, size=(n, 3))
+    k = ephaptic_kernel(pos, sigma=15.0, cutoff=40.0)
+    return {"hdp_rule": EPHAPTIC_RULE_NAME,
+            "hdp_rule_params": ephaptic_rule_params(k, alpha=alpha, v_rest=-65.0)}
+
+
+def _adex_model(n=20):
+    model = jaxfne.construct(
+        jaxfne.Configuration()
+        .network(name="adex", n=n, cell_types={"E": 0.8, "PV": 0.2})
+        .emitter(family="adex", adex_decay="exp")
+        .mechanisms(name="ampa", kind="receptor", params={"tau_ms": 2.0, "reversal_mV": 0.0})
+        .connections(name="e_e", source={"cell_type": "E"}, target={"cell_type": "E"},
+                     probability=0.2, weight=0.5, mechanism="ampa", delay_ms=2.0,
+                     sampling="bernoulli")
+        .connectivity(edge_seed=11)
+    )
+    assert isinstance(model.params["emitter"], AdExParams), "fixture must be the adex family"
+    return model
+
+
+def _hh_model():
+    model = jaxfne.construct(
+        jaxfne.configuration()
+        .network(n=10, cell_types={"E": 0.6, "Ig": 0.2, "Il": 0.2})
+        .emitter(family="hh")
+        .mechanisms(name="ampa", kind="receptor",
+                    params={"tau_ms": 2.0, "reversal_mV": 0.0, "tau_r_ms": 0.2,
+                            "slope_mV": 5.0, "v_th_mV": -20.0, "s0": 0.1})
+        .connections(name="e_all", source={"cell_type": "E"}, target={},
+                     probability=None, weight=2.5, mechanism="ampa", sign="excitatory")
+        .connectivity(edge_seed=0)
+    )
+    assert isinstance(model.params["emitter"], HHParams), "fixture must be the hh family"
+    assert "morphology" not in model.static["hh"], "fixture must be single-compartment"
+    return model
+
+
+def _rate_model(n=4):
+    types = [nt.NeuronType.make("E", fraction=0.5, emitter="rate"),
+             nt.NeuronType.make("I", fraction=0.5, emitter="rate")]
+    conn = nt.InterConnection(
+        source_layer="L4", source_neuron_type="E", target_layer="L4", target_neuron_type="I",
+        mechanism="AMPA", static=nt.StaticParams(dT_ms=2.0), delay_ms=1.0)
+    tensor = nt.NeuronalTensor(
+        name="rate-test",
+        areas=[nt.Area(name="V1",
+                       layers=[nt.Layer(name="L4", n_neurons=n, neuron_types=types)],
+                       inter_connections=[conn])])
+    model = jaxfne.construct(tensor, nt.RuntimeConfiguration(
+        seed=0, duration_ms=100.0, dt_ms=0.5, emitter="rate"))
+    assert isinstance(model.params["emitter"], RateNetworkParams), "fixture must be the rate family"
+    return model
+
+
+def _hei_model():
+    model = jaxfne.construct(
+        jaxfne.configuration().network(n=4).emitter(family="homeostatic_ei").field()
+        .probe(name="p"))
+    assert isinstance(model.params["emitter"], HomeostaticEIParams), "fixture must be homeostatic_ei"
+    return model
+
+
+def _izh_model():
+    model = jaxfne.construct(
+        jaxfne.configuration()
+        .network(name="V1", kind="cortical_column", n=6, cell_types={"E": 0.8, "PV": 0.1, "SST": 0.1})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann",
+               gauge="mean_zero")
+        .probe(name="laminar_probe", modes=["spikes", "V_m", "CSD", "LFP"])
+    )
+    assert isinstance(model.params["emitter"], IzhikevichParams), "fixture must be izhikevich"
+    return model
+
+
+def _lif_scan_model():
+    """Tensor LIF model with an event-scan local inhibition, and its EventScanDrive."""
+    w_s = np.zeros((2, 2, 1, 1), dtype=np.float64)
+    w_s[0, 0, 0, 0] = 40.0
+    w_s[0, 1, 0, 0] = 4.0
+    tables = event_scan_tables(
+        nx=1, ny=1, nd=2, cx=1, cy=1, cd=1,
+        origins_x=[0], origins_y=[0], size=(1, 1), weights=w_s,
+        c_cover={(0, 0): [(0, 0)]}, c_ox=[0], c_oy=[0], c_size=(1, 1),
+        c_weights=np.array([[[[40.0, 4.0]]]], dtype=np.float64),
+        vw=1, vh=1, inhib_range=(0, 0), lateral_on=False,
+    )
+    zeros = np.zeros(2, dtype=np.int64)
+    events = event_scan_events(
+        np.array([100, 200]), zeros, zeros, zeros, dt_ms=0.5, n_steps=1, vw=1, vh=1)
+    groups = np.array([0, 0, 1], dtype=np.int64)
+    blocks = local_inhibition_blocks(
+        groups, li_pre=np.zeros(0, dtype=np.int64), li_post=np.zeros(0, dtype=np.int64),
+        li_weight=np.zeros(0, dtype=np.float64))
+    drive = EventScanDrive(events, tables, blocks, groups, dt_ms=0.5, n_steps=1)
+    model = jaxfne.construct(
+        build_s1_scan_tensor(ns=2, nc=1),
+        nt.RuntimeConfiguration(seed=0, dt_ms=0.5, duration_ms=0.5, emitter="lif"))
+    assert model.static["lif"]["local_inhibition"][0]["resolution"] == "event_scan", (
+        "fixture must be the event-scan route")
+    return model, drive
+
+
+def test_lif_event_scan_refuses_ephaptic_request():
+    model, drive = _lif_scan_model()
+    assert isinstance(drive, EventScanDrive), "fixture must pass an EventScanDrive paradigm"
+    sim = jaxfne.Simulation(duration_ms=0.5, dt_ms=0.5, seed=1, runtime=RuntimeConfig(
+        recurrent_backend="edge_list", enable_hdp=True, hdp_params=_eph_request(3)))
+    with pytest.raises(ValueError, match="not realized with local_inhibition resolution 'event_scan'"):
+        model.simulate(sim, paradigm=drive)
+
+
+def test_adex_model_refuses_ephaptic_request():
+    model = _adex_model()
+    sim = jaxfne.Simulation(duration_ms=5.0, dt_ms=0.1, seed=0, runtime=RuntimeConfig(
+        recurrent_backend="edge_list", enable_hdp=True, hdp_params=_eph_request(20)))
+    with pytest.raises(ValueError, match="enable_hdp"):
+        model.simulate(sim)
+
+
+def test_adex_registered_kernel_refuses_drive_bias():
+    n = 6
+    params = make_adex_params(("E",) * n)
+    assert isinstance(params, AdExParams), "fixture must be the adex family"
+    request = _eph_request(n)
+    with pytest.raises(ValueError, match="needing state the 'adex' family lacks"):
+        simulate_adex_hdp_registered(
+            params, n_steps=100, dt_ms=0.1,
+            edge_pre=np.array([0, 1, 2]), edge_post=np.array([1, 2, 0]),
+            edge_weight_nS=np.array([1.0, 1.0, 1.0]), edge_receptor=np.zeros(3, dtype=int),
+            edge_delay_steps=np.ones(3, dtype=int),
+            receptor_reversal_mV=(0.0,), receptor_tau_ms=(5.0,),
+            decay="exp", I_ext_pA=np.full(n, 300.0),
+            ext_targets=[0], ext_lambda=1.0, ext_weight_nS=1.0, ext_receptor=0,
+            ext_delay_steps=1, key=jax.random.PRNGKey(0),
+            hdp_rule=request["hdp_rule"], hdp_rule_params=request["hdp_rule_params"])
+
+
+def test_hh_model_refuses_ephaptic_request():
+    model = _hh_model()
+    sim = jaxfne.Simulation(duration_ms=5.0, dt_ms=0.1, seed=0, runtime=RuntimeConfig(
+        enable_hdp=True, hdp_params=_eph_request(10)))
+    with pytest.raises(ValueError, match="not realized for plasticity on the hh family"):
+        model.simulate(sim)
+
+
+def test_rate_model_refuses_ephaptic_request():
+    model = _rate_model(4)
+    sim = jaxfne.Simulation(duration_ms=100.0, dt_ms=0.5, seed=0, runtime=RuntimeConfig(
+        recurrent_backend="edge_list", enable_hdp=True, hdp_params=_eph_request(4)))
+    with pytest.raises(ValueError, match="not realized for emitter family 'rate'"):
+        model.simulate(sim)
+
+
+@pytest.mark.xfail(strict=True, raises=pytest.fail.Exception,
+                   reason="P-069: simulate_adex_seed_batch ignores the HDP request silently")
+def test_adex_seed_batch_refuses_ephaptic_request():
+    model = _adex_model()
+    sim = jaxfne.Simulation(duration_ms=5.0, dt_ms=0.1, seed=0, runtime=RuntimeConfig(
+        recurrent_backend="edge_list", enable_hdp=True, hdp_params=_eph_request(20)))
+    with pytest.raises(ValueError):
+        simulate_adex_seed_batch(model, sim, [0, 1])
+
+
+@pytest.mark.xfail(strict=True, raises=pytest.fail.Exception,
+                   reason="P-069: homeostatic_ei ignores the HDP request silently")
+def test_homeostatic_ei_refuses_ephaptic_request():
+    model = _hei_model()
+    sim = jaxfne.Simulation(duration_ms=10.0, dt_ms=0.1, seed=0, runtime=RuntimeConfig(
+        enable_hdp=True, hdp_params=_eph_request(4)))
+    with pytest.raises(ValueError):
+        model.simulate(sim)
+
+
+@pytest.mark.xfail(strict=True, raises=pytest.fail.Exception,
+                   reason="P-069: izhikevich ignores the HDP params silently when enable_hdp is False")
+def test_izhikevich_refuses_hdp_params_without_enable_hdp():
+    model = _izh_model()
+    n = int(np.asarray(model.params["emitter"].a).shape[0])
+    sim = jaxfne.Simulation(duration_ms=10.0, dt_ms=0.1, seed=0, runtime=RuntimeConfig(
+        enable_hdp=False, hdp_params=_eph_request(n)))
+    with pytest.raises(ValueError):
+        model.simulate(sim)
