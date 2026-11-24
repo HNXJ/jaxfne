@@ -505,23 +505,19 @@ def test_rate_model_refuses_ephaptic_request():
         model.simulate(sim)
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.fail.Exception,
-                   reason="P-069: simulate_adex_seed_batch ignores the HDP request silently")
 def test_adex_seed_batch_refuses_ephaptic_request():
     model = _adex_model()
     sim = jaxfne.Simulation(duration_ms=5.0, dt_ms=0.1, seed=0, runtime=RuntimeConfig(
         recurrent_backend="edge_list", enable_hdp=True, hdp_params=_eph_request(20)))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="not realized for plasticity on the adex family"):
         simulate_adex_seed_batch(model, sim, [0, 1])
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.fail.Exception,
-                   reason="P-069: homeostatic_ei ignores the HDP request silently")
 def test_homeostatic_ei_refuses_ephaptic_request():
     model = _hei_model()
     sim = jaxfne.Simulation(duration_ms=10.0, dt_ms=0.1, seed=0, runtime=RuntimeConfig(
         enable_hdp=True, hdp_params=_eph_request(4)))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="is not realized on the homeostatic_ei route"):
         model.simulate(sim)
 
 

@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2559 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2561 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -502,6 +502,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `connection rule {...} declares local_inhibition={...}; local inhibition executes on the lif route on` |
 | `ValueError` | `full-state continuation is not available for homeostatic_ei` |
 | `ValueError` | `homeostatic_ei does not consume paradigm/poisson_drive/ablation; drive it via the emitter's own sche` |
+| `ValueError` | `RuntimeConfig(enable_hdp=True) is not realized on the homeostatic_ei route: enable_hdp would be sile` |
 | `ValueError` | `SpikeTrainInput cannot be combined with sim.poisson_drive; pass one declared input` |
 | `ValueError` | `SpikeTrainInput cannot be combined with ablation={...}; the clamp rides the registered-rule kernel, ` |
 | `ValueError` | `SpikeTrainInput n_neurons={...} does not match the model's {...} neurons` |
@@ -562,6 +563,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `seeds must be a non-empty sequence of int seeds; got {...}` |
 | `ValueError` | `simulate_adex_seed_batch is only realized for emitter family 'adex'; got {...}` |
 | `ValueError` | `simulate_adex_seed_batch does not consume Simulation.seed (got {...}); per-member seeds ride poisson` |
+| `ValueError` | `simulate_adex_seed_batch is not realized for plasticity on the adex family: enable_hdp would be sile` |
 | `ValueError` | `simulate_lif_seed_batch is only realized for emitter family 'lif'; got {...}` |
 | `ValueError` | `simulate_lif_seed_batch does not consume Simulation.seed (got {...}); per-member seeds are the seeds` |
 | `ValueError` | `simulate_lif_seed_batch is not realized for local_inhibition resolution {...}; run event replay thro` |

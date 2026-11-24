@@ -1,0 +1,1 @@
+- Fixed `simulate_adex_seed_batch` and the homeostatic E/I `simulate` route to refuse `enable_hdp=True` with a `ValueError`; both ignored the flag silently before.

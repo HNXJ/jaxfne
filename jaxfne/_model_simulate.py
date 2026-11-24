@@ -1691,6 +1691,12 @@ def simulate(
                 "homeostatic_ei does not consume paradigm/poisson_drive/ablation; "
                 "drive it via the emitter's own schedule or use the Izhikevich path"
             )
+        if runtime_cfg.enable_hdp:
+            raise ValueError(
+                "RuntimeConfig(enable_hdp=True) is not realized on the homeostatic_ei route: "
+                "enable_hdp would be silently ignored; plasticity is intrinsic to the circuit, "
+                "not a RuntimeConfig kernel"
+            )
         return self._simulate_homeostatic_ei(sim, key, runtime_cfg)
 
     refuse_poisson_drive_list(sim.poisson_drive, "simulate (emitter family 'izhikevich')")
@@ -3794,6 +3800,11 @@ def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict
     runtime_cfg = sim.resolved_runtime
     _refuse_surrogate(runtime_cfg, "simulate_adex_seed_batch")
     _refuse_event_delivery(runtime_cfg, "simulate_adex_seed_batch")
+    if runtime_cfg.enable_hdp:
+        raise ValueError(
+            "simulate_adex_seed_batch is not realized for plasticity on the adex family: "
+            "enable_hdp would be silently ignored; leave enable_hdp False"
+        )
     kernel_kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.compute_dtype)
     refuse_poisson_drive_list(sim.poisson_drive, "simulate_adex_seed_batch (emitter family 'adex')")
     has_drive = sim.poisson_drive is not None
