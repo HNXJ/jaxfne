@@ -1,7 +1,11 @@
 """B1 harness smoke: one tiny cell in-process; every receipt field present/finite."""
 
+import hashlib
 import importlib.util
+import json
 import math
+import subprocess
+import sys
 from pathlib import Path
 
 _spec = importlib.util.spec_from_file_location(
@@ -124,3 +128,156 @@ def test_recording_off_rss_reported():
     # Presence (not a magnitude): both modes report peak host RSS.
     assert _finite(full["peak_host_rss_mb"])
     assert _finite(off["peak_host_rss_mb"])
+
+
+def _sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def _tiny_plan(tmp_path):
+    """Plan in the driver's format (first three grid cells); receipts live in tmp_path."""
+    cells = H.grid_cells()[:3]
+    for c in cells:
+        c["receipt"] = str(tmp_path / (c["cell_id"] + ".json"))
+    plan = tmp_path / "plan.json"
+    plan.write_bytes(json.dumps({"prereg_sha256": H._prereg_sha256(), "cells": cells},
+                                indent=1).encode("utf-8"))
+    return plan, cells
+
+
+def _receipt(tmp_path, cell, status="MEASURED") -> bytes:
+    data = json.dumps({"cell": cell["cell_id"], "status": status, "run_s": [0.5, 0.6]},
+                      indent=1).encode("utf-8")
+    (tmp_path / (cell["cell_id"] + ".json")).write_bytes(data)
+    return data
+
+
+def test_manifest_pins_present_receipts(tmp_path):
+    plan, cells = _tiny_plan(tmp_path)
+    assert len(cells) == 3
+    data = [_receipt(tmp_path, cells[0]), _receipt(tmp_path, cells[1])]
+    m = H.write_manifest(tmp_path, plan)
+    assert m["n_cells"] == 3 and m["n_present"] == 2
+    assert m["missing"] == [cells[2]["cell_id"]]
+    ids = sorted([cells[0]["cell_id"], cells[1]["cell_id"]])
+    assert [c["cell_id"] for c in m["cells"]] == ids
+    by_id = {c["cell_id"]: c for c in m["cells"]}
+    for cid, blob in zip((cells[0]["cell_id"], cells[1]["cell_id"]), data):
+        entry = by_id[cid]
+        assert entry["receipt"] == cid + ".json"
+        assert entry["sha256"] == _sha(blob)
+        assert entry["bytes"] == len(blob)
+        assert entry["status"] == "MEASURED"
+    assert m["plan_sha256"] == _sha(plan.read_bytes())
+    assert m["prereg_sha256"] == H._prereg_sha256()
+    assert m["git_sha"] == H._git_sha()
+    on_disk = (tmp_path / "manifest.json").read_bytes()
+    assert json.loads(on_disk) == m
+    assert on_disk == (json.dumps(m, indent=1, sort_keys=True) + "\n").encode("utf-8")
+
+
+def test_manifest_bytes_are_stable(tmp_path):
+    plan, cells = _tiny_plan(tmp_path)
+    _receipt(tmp_path, cells[0])
+    H.write_manifest(tmp_path, plan)
+    first = (tmp_path / "manifest.json").read_bytes()
+    H.write_manifest(tmp_path, plan)
+    assert (tmp_path / "manifest.json").read_bytes() == first
+    assert first.endswith(b"\n") and b"\r" not in first
+
+
+def test_manifest_records_plan_prereg_and_check_flags_a_change(tmp_path):
+    plan, cells = _tiny_plan(tmp_path)
+    old = "0" * 64
+    assert old != H._prereg_sha256(), "fixture must differ from the current prereg"
+    blob = json.loads(plan.read_bytes())
+    blob["prereg_sha256"] = old
+    plan.write_bytes(json.dumps(blob, indent=1).encode("utf-8"))
+    _receipt(tmp_path, cells[0])
+    assert H.write_manifest(tmp_path, plan)["prereg_sha256"] == old
+    assert H.check_manifest(tmp_path) == ["prereg sha mismatch: PREREG_B1_0510.md changed since the plan"]
+
+
+def test_check_untouched_dir_is_clean(tmp_path):
+    plan, cells = _tiny_plan(tmp_path)
+    _receipt(tmp_path, cells[0])
+    _receipt(tmp_path, cells[1])
+    H.write_manifest(tmp_path, plan)
+    assert H.check_manifest(tmp_path) == []
+
+
+def test_manifest_tampered_receipt_names_cell(tmp_path):
+    plan, cells = _tiny_plan(tmp_path)
+    _receipt(tmp_path, cells[0])
+    _receipt(tmp_path, cells[1])
+    H.write_manifest(tmp_path, plan)
+    p = tmp_path / (cells[1]["cell_id"] + ".json")
+    data = bytearray(p.read_bytes())
+    data[len(data) // 2] ^= 0x01
+    p.write_bytes(bytes(data))
+    problems = H.check_manifest(tmp_path)
+    assert len(problems) == 1, problems
+    assert cells[1]["cell_id"] in problems[0]
+    assert cells[0]["cell_id"] not in problems[0]
+
+
+def test_manifest_deleted_receipt_is_reported(tmp_path):
+    plan, cells = _tiny_plan(tmp_path)
+    _receipt(tmp_path, cells[0])
+    _receipt(tmp_path, cells[1])
+    H.write_manifest(tmp_path, plan)
+    (tmp_path / (cells[0]["cell_id"] + ".json")).unlink()
+    problems = H.check_manifest(tmp_path)
+    assert len(problems) == 1, problems
+    assert cells[0]["cell_id"] in problems[0] and "absent" in problems[0]
+
+
+def test_manifest_unlisted_receipt_is_reported(tmp_path):
+    plan, cells = _tiny_plan(tmp_path)
+    _receipt(tmp_path, cells[0])
+    H.write_manifest(tmp_path, plan)
+    _receipt(tmp_path, cells[2])  # appears after pinning: must not pass silently
+    problems = H.check_manifest(tmp_path)
+    assert len(problems) == 1, problems
+    assert cells[2]["cell_id"] in problems[0]
+
+
+def test_manifest_plan_change_is_reported(tmp_path):
+    plan, cells = _tiny_plan(tmp_path)
+    _receipt(tmp_path, cells[0])
+    H.write_manifest(tmp_path, plan)
+    plan.write_bytes(plan.read_bytes() + b" ")
+    problems = H.check_manifest(tmp_path)
+    assert len(problems) == 1, problems
+    assert "plan" in problems[0]
+
+
+def test_manifest_stray_receipt_raises(tmp_path):
+    plan, cells = _tiny_plan(tmp_path)
+    _receipt(tmp_path, cells[0])
+    (tmp_path / "stray_M9_N1_float32_cpu_B1_full.json").write_bytes(b"{}")
+    try:
+        H.write_manifest(tmp_path, plan)
+    except ValueError as e:
+        assert "stray_M9_N1_float32_cpu_B1_full.json" in str(e), e
+    else:
+        raise AssertionError("stray receipt was pinned silently")
+    assert not (tmp_path / "manifest.json").exists()
+
+
+def test_manifest_cli_exit_codes(tmp_path):
+    script = Path(__file__).with_name("b1_harness.py")
+    plan, cells = _tiny_plan(tmp_path)
+    _receipt(tmp_path, cells[0])
+    _receipt(tmp_path, cells[1])
+    base = [sys.executable, str(script), "--receipt-dir", str(tmp_path)]
+    w = subprocess.run(base + ["--manifest"], capture_output=True, text=True, timeout=60)
+    assert w.returncode == 0, w.stderr
+    ok = subprocess.run(base + ["--check-manifest"], capture_output=True, text=True, timeout=60)
+    assert ok.returncode == 0, ok.stdout + ok.stderr
+    assert "manifest: cells=3 present=2 missing=1 problems=0" in ok.stdout, ok.stdout
+    p = tmp_path / (cells[0]["cell_id"] + ".json")
+    p.write_bytes(p.read_bytes() + b"\n")
+    bad = subprocess.run(base + ["--check-manifest"], capture_output=True, text=True, timeout=60)
+    assert bad.returncode == 1, bad.stdout + bad.stderr
+    assert "manifest: cells=3 present=2 missing=1 problems=1" in bad.stdout, bad.stdout

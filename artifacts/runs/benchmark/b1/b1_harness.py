@@ -10,6 +10,8 @@ Usage:
     python b1_harness.py --cell --model M1 --n 100 --dtype float32 \\
         --device cpu --batch 1 --recording full --seeds 1,2 --out receipt.json
     python b1_harness.py --driver [--receipt-dir DIR] [--plan-only]
+    python b1_harness.py --manifest [--receipt-dir DIR] [--plan-out PLAN]
+    python b1_harness.py --check-manifest [--receipt-dir DIR] [--plan-out PLAN]
 
 ``--cell`` runs one warm-up then the timed seeds in this process and writes
 one receipt JSON. ``--driver`` writes the prereg grid to a plan JSON and runs
@@ -544,6 +546,86 @@ def grid_cells() -> list[dict]:
     return cells
 
 
+MANIFEST = "manifest.json"
+PLAN = "plan.json"
+
+
+def _sha256_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def _receipt_files(receipt_dir: Path, plan_path: Path) -> list[str]:
+    """Receipt JSON names in the dir: every *.json except the plan and the manifest."""
+    skip = {PLAN, MANIFEST}
+    if plan_path.resolve().parent == receipt_dir.resolve():
+        skip.add(plan_path.name)
+    return sorted(p.name for p in receipt_dir.glob("*.json") if p.name not in skip)
+
+
+def _load_manifest(receipt_dir: Path) -> dict | None:
+    path = receipt_dir / MANIFEST
+    try:
+        return json.loads(path.read_bytes())
+    except (OSError, ValueError):
+        return None
+
+
+def write_manifest(receipt_dir: Path, plan_path: Path) -> dict:
+    """Pin every plan cell's receipt present in receipt_dir (sha256, bytes, status) to manifest.json."""
+    plan_bytes = plan_path.read_bytes()
+    plan = json.loads(plan_bytes)
+    plan_cells = plan["cells"]
+    receipt_of = {c["cell_id"]: Path(c["receipt"]).name for c in plan_cells}
+    strays = sorted(set(_receipt_files(receipt_dir, plan_path))
+                    - set(receipt_of.values()))
+    if strays:
+        raise ValueError(f"stray receipt(s) not in plan {plan_path.name}: {', '.join(strays)}")
+    cells, missing = [], []
+    for cid in sorted(receipt_of):
+        name = receipt_of[cid]
+        path = receipt_dir / name
+        if not path.is_file():
+            missing.append(cid)
+            continue
+        data = path.read_bytes()
+        cells.append({"cell_id": cid, "receipt": name, "sha256": _sha256_bytes(data),
+                      "bytes": len(data), "status": json.loads(data).get("status")})
+    # The prereg the grid was planned under (recorded in the plan), not the file as it is now.
+    manifest = {"prereg_sha256": plan["prereg_sha256"], "plan_sha256": _sha256_bytes(plan_bytes),
+                "git_sha": _git_sha(), "cells": cells, "missing": missing,
+                "n_cells": len(receipt_of), "n_present": len(cells)}
+    text = json.dumps(manifest, indent=1, sort_keys=True) + "\n"
+    (receipt_dir / MANIFEST).write_bytes(text.encode("utf-8"))
+    return manifest
+
+
+def check_manifest(receipt_dir: Path, plan_path: Path | None = None) -> list[str]:
+    """Problems between manifest.json, the plan and the receipts in receipt_dir (empty = clean)."""
+    if plan_path is None:
+        plan_path = receipt_dir / PLAN
+    manifest = _load_manifest(receipt_dir)
+    if manifest is None:
+        return [f"manifest missing or unreadable: {MANIFEST}"]
+    problems = []
+    if not plan_path.is_file():
+        problems.append(f"plan missing: {plan_path.name}")
+    elif _sha256_bytes(plan_path.read_bytes()) != manifest["plan_sha256"]:
+        problems.append(f"plan sha mismatch: {plan_path.name} changed since manifest")
+    if _prereg_sha256() != manifest["prereg_sha256"]:
+        problems.append("prereg sha mismatch: PREREG_B1_0510.md changed since the plan")
+    listed = {c["receipt"] for c in manifest["cells"]}
+    for c in manifest["cells"]:
+        path = receipt_dir / c["receipt"]
+        if not path.is_file():
+            problems.append(f"listed but absent: {c['cell_id']} {c['receipt']}")
+        elif _sha256_bytes(path.read_bytes()) != c["sha256"]:
+            problems.append(f"hash mismatch: {c['cell_id']} {c['receipt']}")
+    for name in _receipt_files(receipt_dir, plan_path):
+        if name not in listed:
+            problems.append(f"present but unlisted: {name}")
+    return problems
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--cell", action="store_true")
@@ -562,7 +644,28 @@ def main() -> int:
                                                 / "benchmark" / "b2_0510"))
     ap.add_argument("--plan-out", default="")
     ap.add_argument("--plan-only", action="store_true")
+    ap.add_argument("--manifest", action="store_true")
+    ap.add_argument("--check-manifest", action="store_true")
     args = ap.parse_args()
+
+    if args.manifest or args.check_manifest:
+        receipt_dir = Path(args.receipt_dir)
+        plan_path = Path(args.plan_out) if args.plan_out else receipt_dir / PLAN
+        if args.manifest:
+            try:
+                m = write_manifest(receipt_dir, plan_path)
+            except ValueError as e:
+                print(f"manifest not written: {e}", file=sys.stderr)
+                return 1
+            print(f"wrote {receipt_dir / MANIFEST} cells={m['n_cells']} present={m['n_present']}")
+            return 0
+        problems = check_manifest(receipt_dir, plan_path)
+        for p in problems:
+            print(p)
+        m = _load_manifest(receipt_dir) or {}
+        print(f"manifest: cells={m.get('n_cells', 0)} present={m.get('n_present', 0)} "
+              f"missing={len(m.get('missing', []))} problems={len(problems)}")
+        return 1 if problems else 0
 
     if args.driver:
         receipt_dir = Path(args.receipt_dir)
@@ -609,7 +712,7 @@ def main() -> int:
                               ("cell", "status", "run_s_median", "validity")}, indent=1))
         return 0
 
-    ap.error("pass --cell or --driver")
+    ap.error("pass --cell, --driver, --manifest or --check-manifest")
     return 2
 
 
