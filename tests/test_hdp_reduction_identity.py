@@ -92,7 +92,8 @@ class Net:
     run_base: Callable[[], np.ndarray]  # -> spikes (T, N) bool, HDP-free kernel
     run_rule: Callable[
         [str, Mapping[str, Any] | None, np.ndarray | None], dict[str, np.ndarray]
-    ]  # -> {"spikes": (T, N) bool, "w": (n_edges,), "H": (N,) or (N, d_H)}
+    ]  # -> {"spikes": (T, N) bool, "w": (n_edges,), "H": (N,) or (N, d_H)}, plus "V" (T, N) where recorded
+    run_base_v: Callable[[], np.ndarray] | None = None  # -> V_mV (T, N), HDP-free kernel; None if not recorded
 
 
 @dataclass(frozen=True)
@@ -106,6 +107,8 @@ class Case:
     # False for a rule that declares no edge_weight target (e.g. a drive_bias-only
     # field rule): its nonzero setting must leave every weight fixed and change spikes.
     moves_weights: bool = True
+    # Nonzero setting that must move V_m; the V_m identity fails if it does not.
+    mutant: Callable[[Net], dict[str, Any]] | None = None
 
 
 def _izh_edges() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -155,18 +158,24 @@ def _izh_net() -> Net:
     )
     key = jax.random.PRNGKey(IZH_KEY_SEED)
 
-    def run_base() -> np.ndarray:
-        _, spikes, _, _ = simulate_edge_recurrent_izhikevich(
+    def run_base_full() -> tuple[np.ndarray, np.ndarray]:
+        V, spikes, _, _ = simulate_edge_recurrent_izhikevich(
             params, edges, IZH_N_STEPS, IZH_DT_MS, key, noise_scale=0.0
         )
-        return np.asarray(spikes) > 0.5
+        return np.asarray(V), np.asarray(spikes) > 0.5
+
+    def run_base() -> np.ndarray:
+        return run_base_full()[1]
+
+    def run_base_v() -> np.ndarray:
+        return run_base_full()[0]
 
     def run_rule(
         name: str,
         rule_params: Mapping[str, Any] | None,
         mask: np.ndarray | None,
     ) -> dict[str, np.ndarray]:
-        _, spikes, _, diag = simulate_edge_recurrent_izhikevich_hdp_registered(
+        V, spikes, _, diag = simulate_edge_recurrent_izhikevich_hdp_registered(
             params,
             edges,
             IZH_N_STEPS,
@@ -179,6 +188,7 @@ def _izh_net() -> Net:
         )
         return {
             "spikes": np.asarray(spikes) > 0.5,
+            "V": np.asarray(V),
             "w": np.asarray(diag["w_final"]),
             "H": np.asarray(diag["H_final"]),
         }
@@ -191,6 +201,7 @@ def _izh_net() -> Net:
         w0=w0,
         run_base=run_base,
         run_rule=run_rule,
+        run_base_v=run_base_v,
     )
 
 
@@ -356,6 +367,8 @@ CASES: dict[str, Case] = {
         nonzero=lambda net: _ephaptic_params(net, alpha=EPHAPTIC_ALPHA),
         h_moves_at_zero=False,
         moves_weights=False,
+        # Probe (scratch, 2026-11-23): alpha 0.05 moves Izhikevich V_m by 101.7 mV; 1e-6 moves it by 1.6e-2 mV.
+        mutant=lambda net: _ephaptic_params(net, alpha=EPHAPTIC_ALPHA),
     ),
 }
 
@@ -406,6 +419,17 @@ def test_zero_drive_reduces_to_base_model(name: str) -> None:
         base.astype(np.int64),
         err_msg="spikes differ from the HDP-free kernel at zero weight drive",
     )
+    if net.run_base_v is not None:
+        base_v = net.run_base_v()
+        np.testing.assert_array_equal(
+            out["V"], base_v, err_msg="V_mV differs from the HDP-free kernel at zero weight drive"
+        )
+    if case.mutant is not None:
+        assert net.run_base_v is not None, "mutant check needs the V_m reference"
+        mutant_v = net.run_rule(name, case.mutant(net), None)["V"]
+        assert not np.array_equal(mutant_v, base_v), (
+            "mutant alpha left V_mV unchanged; the V_m identity cannot fail"
+        )
     np.testing.assert_array_equal(
         out["w"], net.w0, err_msg="weights moved at zero weight drive"
     )

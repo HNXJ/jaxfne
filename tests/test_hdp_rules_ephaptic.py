@@ -64,6 +64,56 @@ def test_kernel_coincident_positions_give_no_pair():
     np.testing.assert_allclose(M[:2, 2], [np.exp(-0.5), np.exp(-0.5)], rtol=1e-12)
 
 
+def test_raw_kernel_is_symmetric():
+    rng = np.random.default_rng(2)
+    pos = rng.uniform(0.0, 100.0, size=(N, 3))
+    M = _dense(ephaptic_kernel(pos, sigma=15.0, cutoff=40.0, normalize="none"), N)
+    assert np.count_nonzero(M) > 2 * N, "fixture must have several pairs"
+    np.testing.assert_allclose(M, M.T, rtol=1e-12)
+
+
+def test_kernel_is_permutation_equivariant():
+    rng = np.random.default_rng(3)
+    pos = rng.uniform(0.0, 100.0, size=(N, 3))
+    perm = rng.permutation(N)
+    assert not np.array_equal(perm, np.arange(N)), "fixture must permute the positions"
+    M = _dense(ephaptic_kernel(pos, sigma=15.0, cutoff=40.0), N)
+    assert np.count_nonzero(M) > 2 * N, "fixture must have several pairs"
+    Mp = _dense(ephaptic_kernel(pos[perm], sigma=15.0, cutoff=40.0), N)
+    P = np.eye(N)[perm]  # row i selects old neuron perm[i]: (P x)_i = x[perm[i]]
+    np.testing.assert_allclose(Mp, P @ M @ P.T, rtol=1e-12)
+
+
+def test_row_normalized_kernel_is_asymmetric():
+    # Positions 0, 1, 3 on a line, sigma 1, all pairs in cutoff. Raw row sums are
+    # 0.6176 (dst 0) and 0.7418 (dst 1), so row normalization divides the two
+    # symmetric pair weights by different sums.
+    pos = np.array([[0.0, 0.0], [1.0, 0.0], [3.0, 0.0]])
+    raw = _dense(ephaptic_kernel(pos, sigma=1.0, cutoff=5.0, normalize="none"), 3)
+    np.testing.assert_allclose(raw, raw.T, rtol=1e-12)
+    raw_rows = raw.sum(axis=1)
+    assert not np.isclose(raw_rows[0], raw_rows[1]), "fixture rows must be uneven before normalization"
+    M = _dense(ephaptic_kernel(pos, sigma=1.0, cutoff=5.0), 3)
+    assert abs(M[0, 1] - M[1, 0]) > 0.1, "row normalization must break symmetry (known positive)"
+
+
+def test_single_neuron_gives_empty_kernel():
+    k = ephaptic_kernel(np.zeros((1, 3)), sigma=1.0, cutoff=1.0)
+    assert k["src"].size == 0 and k["dst"].size == 0 and k["weight"].size == 0
+    assert _dense(k, 1)[0, 0] == 0.0
+
+
+def test_all_isolated_points_give_empty_kernel():
+    # Five points 10 apart on a line; cutoff 2 admits no pair.
+    pos = np.column_stack([np.arange(5) * 10.0, np.zeros(5)])
+    D = np.linalg.norm(pos[:, None, :] - pos[None, :, :], axis=-1)
+    assert D[~np.eye(5, dtype=bool)].min() > 2.0, "fixture must be isolated"
+    for normalize in ("none", "row"):
+        k = ephaptic_kernel(pos, sigma=1.0, cutoff=2.0, normalize=normalize)
+        assert k["weight"].size == 0, f"normalize={normalize!r} kept a pair"
+        assert np.all(_dense(k, 5) == 0.0)
+
+
 def test_field_matches_dense_product():
     rng = np.random.default_rng(1)
     pos = rng.uniform(0.0, 100.0, size=(N, 3))
@@ -119,6 +169,12 @@ def test_lif_zero_coupling_equals_no_rule():
     np.testing.assert_array_equal(np.asarray(eph["spikes"]), np.asarray(base["spikes"]))
     np.testing.assert_array_equal(np.asarray(eph["V_mV"]), np.asarray(base["V_mV"]))
     assert np.all(np.asarray(eph["b_final"]) == 0.0)
+    # Mutant: a nonzero alpha (0.05 moves V_m by about 30 mV in this fixture) must change V_m,
+    # or the identity above cannot fail.
+    mutant, _ = _lif_eph(0.05)
+    assert not np.array_equal(np.asarray(mutant["V_mV"]), np.asarray(base["V_mV"])), (
+        "mutant alpha left V_mV unchanged; the V_m identity cannot fail"
+    )
 
 
 def test_lif_field_is_generated_by_activity():
