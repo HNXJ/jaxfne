@@ -5,6 +5,7 @@ Validates that durable agent context is properly maintained and protected.
 """
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -161,7 +162,6 @@ class TestAgentContextHygiene:
             # in artifacts/context.md and deeper docs.
             "artifacts/context.md",
             "docs/reference/api/index.md",
-            "docs/reference/project/for_ai_agents.md",
             "docs/theory/operator_doctrine.md",
         ]
         for path in surfaces:
@@ -181,6 +181,19 @@ class TestAgentContextHygiene:
         for page in ("README.md", "docs/reference/contributing.md"):
             text = Path(page).read_text(encoding="utf-8")
             assert "If you are an AI agent" not in text, f"{page} carries an agent pointer"
+
+    def test_public_docs_carry_no_agent_governance(self):
+        """fact_stack public-docs row: no agent governance under docs/ (task-ai-doc, 2026-11-23).
+
+        Allowed: the changelog (verbatim history; its scope note names the internal documents) and the
+        RBS/RBD terminology inventory (lists `AGENTS.md` as a file to align, carries no rule)."""
+        allowed = {"docs/reference/changelog.md", "docs/theory/doctrine/rbs_rbd_hdp_inventory.md"}
+        pattern = re.compile(r"agent governance|jarness|AGENTS\.md", re.IGNORECASE)
+        pages = [p for p in Path("docs").rglob("*.md") if "archive" not in p.parts]
+        assert len(pages) > 50, "the scan must see the docs tree"
+        hits = sorted(p.as_posix() for p in pages
+                      if p.as_posix() not in allowed and pattern.search(p.read_text(encoding="utf-8")))
+        assert hits == [], f"agent governance text on public docs pages: {hits}"
 
     def test_repository_state_script_is_present(self):
         """Volatile checkout facts have a read-only derivation command."""
@@ -293,15 +306,6 @@ class TestAgentPathIntegrity:
         """Regression: pre-P0 dead skills must not reappear under artifacts/control/skills/."""
         for path in _REMOVED_DEAD_SKILL_PATHS:
             assert not Path(path).exists(), f"Dead skill path returned: {path}"
-
-    def test_for_ai_agents_does_not_reference_removed_skills(self):
-        text = Path("docs/reference/project/for_ai_agents.md").read_text(encoding="utf-8")
-        for fragment in (
-            "catalog-glossary-jaxfne",
-            "jaxfne-worker-context-router",
-            "jaxfne-frozen-use",
-        ):
-            assert fragment not in text, f"for_ai_agents still references removed skill: {fragment}"
 
     def test_context_is_canonical_router(self):
         context = Path("artifacts/context.md").read_text(encoding="utf-8")

@@ -100,4 +100,4 @@ Do not grow from hypothetical concerns.
 | --- | --- |
 | A | `README.md`, `docs/index.md`, `docs/reference/project/scope_and_status.md`, `docs/start/quickstart.md`, `docs/reference/api/index.md` |
 | B | Remaining mkdocs `nav:` pages under `docs/` |
-| C | `artifacts/context.md`, `artifacts/AGENTS.md`, `artifacts/control/skills/`, `docs/reference/project/for_ai_agents.md` |
+| C | `artifacts/context.md`, `artifacts/AGENTS.md`, `artifacts/control/skills/` |

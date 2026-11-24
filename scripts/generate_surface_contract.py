@@ -198,7 +198,6 @@ DOC_OVERRIDES: dict[str, dict[str, str]] = {
     # Post-move paths keep action ARCHIVE (relocated out of user docs).
     "artifacts/legacy/v047_refactor_audit.md": {"action": "ARCHIVE", "merge_target": None},
     "docs/fullroadmap.md": {"action": "ARCHIVE", "merge_target": None},
-    "docs/reference/project/for_ai_agents.md": {"action": "ARCHIVE", "merge_target": None},
     "artifacts/legacy/reports/STDP_HOMEOSTATIC_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
     "artifacts/legacy/reports/STDP_CLOSED_LOOP_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
     "artifacts/legacy/reports/STDP_GLOBAL_SCALE_REPORT.md": {"action": "ARCHIVE", "merge_target": None},

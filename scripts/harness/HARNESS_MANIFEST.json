@@ -47,7 +47,7 @@
       },
       "check_agent_refs": {
         "file": "scripts/harness/check_agent_refs.py",
-        "sha256": "5740634a62cd315b7d0588a1b78c63423c076cb5e5022dea7ed610ce5a5a7f94"
+        "sha256": "7255f4d7dc2d0f9841b2690edf23054faa2f4831d442e4f85dc32e7e18e244ab"
       },
       "check_memory_hygiene": {
         "file": "scripts/harness/check_memory_hygiene.py",

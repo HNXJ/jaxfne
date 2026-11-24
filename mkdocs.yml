@@ -15,7 +15,6 @@ hooks:
 
 exclude_docs: |
   _generated/version.md
-  reference/project/for_ai_agents.md
   theory/notes/BASELINE_DRIVE_REFERENCE.md
   theory/notes/CORTEX_CALIBRATION_CHECKLIST.md
   theory/notes/NEURON_IO_CHARACTERIZATION.md
