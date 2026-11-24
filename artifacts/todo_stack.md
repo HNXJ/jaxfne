@@ -19,10 +19,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Tier 0: Solmind 0.5.10 execution (Hamm's go 2026-11-21, S19)
 
-0. T-P069 [A] P-069: `simulate_adex_seed_batch` and homeostatic E/I (simulate-time runtime) refuse `enable_hdp=True`
-   as their sibling routes do. The Izhikevich case (`enable_hdp=False` with `hdp_params`) refuses only if Hamm
-   agrees that given params without the flag are an error (O-P069). Closes when: the three strict xfails in
-   `tests/test_hdp_rules_ephaptic.py` are plain tests that pass. Blocked by: O-P069 for the Izhikevich case only.
+0. T-P069 [A] P-069, left: the Izhikevich case (`enable_hdp=False` with `hdp_params`) refuses only if Hamm agrees
+   that given params without the flag are an error (O-P069); the AdEx seed batch and homeostatic E/I refuse since
+   2026-11-23. Closes when: `test_izhikevich_refuses_hdp_params_without_enable_hdp` is a plain passing test, or is
+   removed on Hamm's other option with the inert behavior documented. Blocked by: O-P069.
 
 0. T-R49-FIX [A] Repair the caption findings of `artifacts/audit/reviews/caption_audit_r49_2026-11-23.md` (text only;
    generated captions through `scripts/generate_gallery.py`). Then the visual half of R49 (print-size render).

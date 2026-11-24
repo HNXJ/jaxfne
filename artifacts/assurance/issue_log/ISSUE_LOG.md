@@ -29,6 +29,8 @@ possible future change.
   3 failed, "DID NOT RAISE".
 - Expected: a `ValueError` naming the route, as on the sibling routes. Closes when the three strict xfails are
   plain tests that pass (todo T-P069).
+- 2026-11-23: `simulate_adex_seed_batch` and homeostatic E/I now refuse (two xfails are plain tests, red on the
+  old code). Left: the Izhikevich case, on Hamm's call (O-P069).
 
 ### P-067
 
