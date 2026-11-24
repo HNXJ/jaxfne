@@ -31,6 +31,11 @@ possible future change.
   plain tests that pass (todo T-P069).
 - 2026-11-23: `simulate_adex_seed_batch` and homeostatic E/I now refuse (two xfails are plain tests, red on the
   old code). Left: the Izhikevich case, on Hamm's call (O-P069).
+- Corrections to the pinned R12 table (outside review, 2026-11-23): row 1's `v_rest` refusal is at
+  `hdp_rules_ephaptic.py:106-107` (tree after the R13 docstring change), not 103-104; row 5's `drive_bias` update
+  (`emitters_lif.py:3217-3223`) is drift and jump clipped to `b_min`, `b_max` (unbounded for this rule), not "jump
+  add"; the "Run-time evidence" paragraph splits the second table, and rows 18-19 belong to it. The fix shifts
+  `_model_simulate.py` lines after 1691 by 6 and after 3797 by 11 relative to the table's da42b095.
 
 ### P-067
 
