@@ -8,6 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 _spec = importlib.util.spec_from_file_location(
     "b1_harness", Path(__file__).with_name("b1_harness.py"))
 H = importlib.util.module_from_spec(_spec)
@@ -196,6 +198,22 @@ def test_manifest_records_plan_prereg_and_check_flags_a_change(tmp_path):
     _receipt(tmp_path, cells[0])
     assert H.write_manifest(tmp_path, plan)["prereg_sha256"] == old
     assert H.check_manifest(tmp_path) == ["prereg sha mismatch: PREREG_B1_0510.md changed since the plan"]
+
+
+@pytest.mark.parametrize("blob", [b"[]", b"{}", b'{"cells": 3}', b"not json"])
+def test_check_malformed_manifest_is_a_problem_not_a_crash(tmp_path, blob):
+    plan, cells = _tiny_plan(tmp_path)
+    _receipt(tmp_path, cells[0])
+    H.write_manifest(tmp_path, plan)
+    (tmp_path / "manifest.json").write_bytes(blob)
+    assert H.check_manifest(tmp_path) == ["manifest missing, unreadable or malformed: manifest.json"]
+
+
+def test_receipt_that_is_not_an_object_refuses(tmp_path):
+    plan, cells = _tiny_plan(tmp_path)
+    (tmp_path / (cells[0]["cell_id"] + ".json")).write_bytes(b"[1, 2]")
+    with pytest.raises(ValueError, match="not a JSON object"):
+        H.write_manifest(tmp_path, plan)
 
 
 def test_check_untouched_dir_is_clean(tmp_path):

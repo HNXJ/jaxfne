@@ -562,12 +562,21 @@ def _receipt_files(receipt_dir: Path, plan_path: Path) -> list[str]:
     return sorted(p.name for p in receipt_dir.glob("*.json") if p.name not in skip)
 
 
+_MANIFEST_KEYS = ("prereg_sha256", "plan_sha256", "cells", "missing", "n_cells", "n_present")
+_CELL_KEYS = ("cell_id", "receipt", "sha256")
+
+
 def _load_manifest(receipt_dir: Path) -> dict | None:
+    """The manifest dict, or None when it is missing, not JSON, or not the shape write_manifest writes."""
     path = receipt_dir / MANIFEST
     try:
-        return json.loads(path.read_bytes())
+        m = json.loads(path.read_bytes())
     except (OSError, ValueError):
         return None
+    if not (isinstance(m, dict) and all(k in m for k in _MANIFEST_KEYS) and isinstance(m["cells"], list)
+            and all(isinstance(c, dict) and all(k in c for k in _CELL_KEYS) for c in m["cells"])):
+        return None
+    return m
 
 
 def write_manifest(receipt_dir: Path, plan_path: Path) -> dict:
@@ -588,8 +597,11 @@ def write_manifest(receipt_dir: Path, plan_path: Path) -> dict:
             missing.append(cid)
             continue
         data = path.read_bytes()
+        rec = json.loads(data)
+        if not isinstance(rec, dict):
+            raise ValueError(f"receipt {name} is not a JSON object")
         cells.append({"cell_id": cid, "receipt": name, "sha256": _sha256_bytes(data),
-                      "bytes": len(data), "status": json.loads(data).get("status")})
+                      "bytes": len(data), "status": rec.get("status")})
     # The prereg the grid was planned under (recorded in the plan), not the file as it is now.
     manifest = {"prereg_sha256": plan["prereg_sha256"], "plan_sha256": _sha256_bytes(plan_bytes),
                 "git_sha": _git_sha(), "cells": cells, "missing": missing,
@@ -605,7 +617,7 @@ def check_manifest(receipt_dir: Path, plan_path: Path | None = None) -> list[str
         plan_path = receipt_dir / PLAN
     manifest = _load_manifest(receipt_dir)
     if manifest is None:
-        return [f"manifest missing or unreadable: {MANIFEST}"]
+        return [f"manifest missing, unreadable or malformed: {MANIFEST}"]
     problems = []
     if not plan_path.is_file():
         problems.append(f"plan missing: {plan_path.name}")
