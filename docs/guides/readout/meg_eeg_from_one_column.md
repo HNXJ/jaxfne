@@ -16,11 +16,11 @@ which writes the PNGs to `docs/assets/meg_eeg/` and prints the numbers quoted be
 The column holds 160 Izhikevich neurons (E 0.8, PV 0.2) in three layers, L2/3, L4 and L5, simulated
 for 2400 ms at dt = 0.5 ms with six seeds (100–105; 3326–3332 spikes per seed). `column_dipole`
 reduces its sources to the axial dipole $p(t) = \sum_i Q_i(t)\,(z_i - \bar z)$, which is filtered
-to 1–100 Hz after a 400 ms burn-in and scaled to unit RMS.
+to 1–100 Hz after a 400 ms burn-in and scaled to unit root mean square (RMS).
 
 ![Raster of the column by depth and its dipole p(t)](../../assets/meg_eeg/column.png)
 
-*Spikes by depth (superficial at top) and the column's dipole for seed 100.*
+*Spikes by depth (superficial at top) and the column's dipole p(t), normalized to unit RMS, for seed 100.*
 
 ## 2. The cortex
 
@@ -31,7 +31,7 @@ the radial direction.
 ![Columns on the folded surface coloured by radiality, and the distribution of radiality](../../assets/meg_eeg/cortex.png)
 
 *Columns coloured by |cos| between the column axis and the radial direction; the in-phase patch is
-orange.*
+orange; the histogram counts the columns in each |cos| bin.*
 
 ## 3. The activity
 
@@ -53,17 +53,17 @@ sensitivity stays.
 
 ![Sensitivity maps of MEG and EEG and their dependence on radiality](../../assets/meg_eeg/sensitivity.png)
 
-*Per-column sensitivity on the flattened cortex, and against |cos| to radial.*
+*Per-column sensitivity (fT per 1 nA·m for MEG, µV per 1 nA·m for EEG) on the flattened cortex, and against |cos| to radial.*
 
 ## 5. The sensors
 
-The sum of all 1500 copies gives a median global field power of 96.3 fT for MEG and 5.11 µV for
+The sum of all 1500 copies gives a median global field power (GFP) of 96.3 fT for MEG and 5.11 µV for
 EEG, with peaks of 455 fT and 104.8 µV. At 1984 ms the patch's own field carries 81% of the EEG
 map's RMS and 11% of the MEG map's RMS.
 
 ![MEG and EEG traces with global field power, and topographies with and without the patch](../../assets/meg_eeg/sensors.png)
 
-*Sensor traces with GFP (left) and topographies at 1984 ms with all copies and with the patch
+*Sensor traces (fT for MEG, µV for EEG) with GFP (left) and topographies at 1984 ms with all copies and with the patch
 removed (right).*
 
 ## 6. How copies add up
@@ -75,7 +75,7 @@ cancel.
 
 ![RMS over sensors against the number of copies, in phase and independent](../../assets/meg_eeg/scaling.png)
 
-*RMS over sensors and time; dotted lines are ∝ N and ∝ √N from N = 1.*
+*RMS over sensors and time (fT for MEG, µV for EEG); dotted lines are ∝ N and ∝ √N from N = 1.*
 
 ## 7. Spectra
 

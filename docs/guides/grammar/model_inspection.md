@@ -45,7 +45,7 @@ jaxfne.vis.network_raster(model, signals, dt_ms=0.1, path="raster.png")
 ```
 
 A spike raster with rows ordered area → layer → cell class, over a population-rate
-trace. Call it again after any change with the same arguments; the two
+trace (Hz). Call it again after any change with the same arguments; the two
 figures stay directly comparable because one function computes row order.
 
 ![raster](../../_static/model_inspection/case2_three_area_raster_light.png)

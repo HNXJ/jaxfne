@@ -17,7 +17,7 @@ print(tensor0.provenance)  # genome_sha256, schema_version, development_seed, de
 
 Jitter within declared bands (σ=0.01, deterministic JAX PRNG per layer):
 
-| layer | base E fraction | seed 0 realized | seed 1 realized | band |
+| layer | base excitatory (E) fraction | seed 0 realized | seed 1 realized | band |
 |-------|----------------|-----------------|-----------------|------|
 | L1 | 0.50 | 0.49 (49 E) | 0.50 (50 E) | [0.45,0.55] |
 | L2 | 0.648 | 0.648 (162 E) | 0.648 (162 E) | [0.60,0.70] |

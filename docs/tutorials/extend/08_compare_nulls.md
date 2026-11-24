@@ -40,7 +40,7 @@ This is the endpoint: every earlier step's variable carries forward to a compara
 
     <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html" loading="lazy" title="Power spectrum of the reference run"></iframe>
 
-Power spectrum of the reference run: the baseline that nulls and lesions are compared against. [Open full page](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html).
+Power spectrum of the reference run against frequency (Hz): the baseline that nulls and lesions are compared against. [Open full page](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html).
 
 ## Interactive atlas (dark)
 

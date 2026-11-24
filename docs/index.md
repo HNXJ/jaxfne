@@ -60,7 +60,7 @@ signals = jtfne.simulate(model)
 ## Canonical Visualization Atlas
 
 Seven linked panels (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`, `hdp`, `oscillatory`) label each quantity **OBSERVED** or **DERIVED** and carry
-manifest provenance. A panel whose declared inputs are missing renders an omission card. Representative preview from realized `canonical-v1-column-1000n` output:
+manifest provenance. A panel whose declared inputs are missing renders an omission card. The network 3D panel is a representative preview from realized `canonical-v1-column-1000n` output:
 
 <a href="guides/interop/atlas_suite/">
   <img src="assets/readme/network_3d.png" alt="Network 3D atlas panel" width="100%">
@@ -69,7 +69,7 @@ manifest provenance. A panel whose declared inputs are missing renders an omissi
 Full panel set, generation workflow, and provenance rules:
 [Canonical Atlas Suite guide](guides/interop/atlas_suite.md).
 
-Canonical 1000-neuron column, pinned 1000 ms reference run:
+Canonical 1000-neuron primary visual cortex (V1) column, pinned 1000 ms reference run:
 ![Canonical V1 Column (1000n)](https://hnxj.github.io/jaxfne/figures/readme/raster.png#only-light)
 ![Canonical V1 Column (1000n)](https://hnxj.github.io/jaxfne/figures/readme/raster.dark.png#only-dark)
 *Canonical V1 Column (1000n): spike raster.*
@@ -88,7 +88,7 @@ inter-area edge counts ([full page](https://hnxj.github.io/jaxfne/figures/area_g
 
     <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.html" loading="lazy" title="Twenty-area hierarchy graph"></iframe>
 
-Three-area hierarchy (`V1–V4–PFC`, 100 neurons/area, bidirectional
+Three-area hierarchy (`V1–V4–PFC`, where V4 is visual area 4 and PFC is prefrontal cortex; 100 neurons/area, bidirectional
 feedforward/feedback): [Gallery 09](start/gallery.md#09-three-area-hierarchy-v1v4pfc)
 with the full six-panel atlas:
 

@@ -23,11 +23,13 @@ flowchart LR
   <a href="04_simulate_tensor/"><img src="../assets/readme/raster.png" alt="Spike raster"><strong>04 Simulate</strong><br/>construct → Signals</a>
   <a href="05_observe_fields/"><img src="../assets/readme/lfp.png" alt="Laminar LFP proxy"><strong>05 Observe</strong><br/>Fields and probes</a>
   <a href="06_add_state/"><img src="../assets/visuals/hdp_h_dynamics.png#only-light" alt="Hidden state H over time">
-  <img src="../assets/visuals/hdp_h_dynamics.dark.png#only-dark" alt="Hidden state H over time"><strong>06 Add state</strong><br/>H / RBS container</a>
+  <img src="../assets/visuals/hdp_h_dynamics.dark.png#only-dark" alt="Hidden state H over time"><strong>06 Add state</strong><br/>H / Relative Biophysical State (RBS) container</a>
   <a href="07_add_dynamics/"><img src="../assets/visuals/hdp_weights.png#only-light" alt="Weight trajectories under HDP">
-  <img src="../assets/visuals/hdp_weights.dark.png#only-dark" alt="Weight trajectories under HDP"><strong>07 Add dynamics</strong><br/>HDP adaptation</a>
+  <img src="../assets/visuals/hdp_weights.dark.png#only-dark" alt="Weight trajectories under HDP"><strong>07 Add dynamics</strong><br/>Hidden-state Dependent Plasticity (HDP) adaptation</a>
   <a href="08_compare_nulls/"><img src="../assets/readme/oscillatory.png" alt="Power spectrum"><strong>08 Compare</strong><br/>Nulls and lesions</a>
 </div>
+
+The card thumbnails preview the main figure of each tutorial.
 
 ```python
 import jaxfne as jtfne

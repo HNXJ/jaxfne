@@ -57,17 +57,25 @@ within 2.5–10 Hz; **P4** wired in-band ≥ 0.6.
 
     ![Stage 1c confirmatory figure](../assets/etudes/hdp_balance/stage1c.png)
 
+    *Stage 1c (only sensory→motor synapses plastic, η 1.0, seeds 3000–3015): fraction of time |θ| < 0.25 over training time (s), mean ± s.e.m.; test in-band fraction with learning off for full, frozen and shuffled agents against the wired control; excitatory (E) rate (Hz) over training time against the 5 Hz target.*
+
 === "Stage 1d"
 
     ![Stage 1d confirmatory figure](../assets/etudes/hdp_balance/stage1d.png)
+
+    *Stage 1d (stage 1c plus pooled motor homeostasis, η 10, seeds 4000–4015): fraction of time |θ| < 0.25 over training time (s), mean ± s.e.m.; test in-band fraction with learning off for full, frozen and shuffled agents against the wired control; excitatory (E) rate (Hz) over training time against the 5 Hz target.*
 
 === "Stage 1b"
 
     ![Stage 1b confirmatory figure](../assets/etudes/hdp_balance/stage1b.png)
 
+    *Stage 1b (error filter 0.2 s, $\tau_H$ 50 s, η 0.3, seeds 2000–2015): fraction of time |θ| < 0.25 over training time (s), mean ± s.e.m.; test in-band fraction with learning off for full, frozen and shuffled agents against the wired control; excitatory (E) rate (Hz) over training time against the 5 Hz target.*
+
 === "Stage 1"
 
     ![Stage 1 confirmatory figure](../assets/etudes/hdp_balance/stage1.png)
+
+    *Stage 1 (no change, η 1.0, seeds 1000–1015): fraction of time |θ| < 0.25 over training time (s), mean ± s.e.m.; test in-band fraction with learning off for full, frozen and shuffled agents against the wired control; excitatory (E) rate (Hz) over training time against the 5 Hz target.*
 
 ## Reproduce
 

@@ -35,7 +35,7 @@ Realized `H` is the per-neuron mean over the last 1 s of a 2 s run (N=500, seeds
 
     <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/hdp_10/hdp.html" loading="lazy" title="Weight trajectories W"></iframe>
 
-Weight trajectories W(t) under HDP in the same small run. [Open full page](https://hnxj.github.io/jaxfne/figures/hdp_10/hdp.html).
+Weight trajectories W(t) under Hidden-state Dependent Plasticity (HDP) in the same small run. [Open full page](https://hnxj.github.io/jaxfne/figures/hdp_10/hdp.html).
 
 Next: [08 — Compare](08_compare_nulls.md) — nulls, lesions, and authority.
 

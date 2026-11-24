@@ -2,7 +2,7 @@
 
 > Continued from [05 — Observe](05_observe_fields.md). Same `tensor, model`; add state without dynamics.
 
-Per-neuron `H` seeds the homeostatic controller's initial state only when HDP is later enabled. It is stored but inert when HDP is off (the default).
+Per-neuron `H` seeds the homeostatic controller's initial state only when Hidden-state Dependent Plasticity (HDP) is later enabled. It is stored but inert when HDP is off (the default).
 
 ```python
 import jaxfne as jtfne, numpy as np
@@ -21,7 +21,7 @@ state = jtfne.checkpoint_state(model)
 model2 = jtfne.restore_state(model, state)
 ```
 
-`H_D` (developmental, `ℝ^{d_D}`) ≠ `H_R` (runtime RBS, `ℝ^{d_R}`); the canonical genome declares no `H_D`.
+`H_D` (developmental, `ℝ^{d_D}`) ≠ `H_R` (runtime Relative Biophysical State (RBS), `ℝ^{d_R}`); the canonical genome declares no `H_D`.
 
 <!-- jx-figure -->
 ## Figure
@@ -35,7 +35,7 @@ model2 = jtfne.restore_state(model, state)
 
     <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/hdp_10/h_dynamics.html" loading="lazy" title="Hidden state H over time"></iframe>
 
-Hidden state H over time (population mean ± std) in a small 10-neuron HDP run with full recording. [Open full page](https://hnxj.github.io/jaxfne/figures/hdp_10/h_dynamics.html).
+Relative Biophysical State (RBS) H over time (population mean ± standard deviation (std)) in a small 10-neuron HDP run with full recording. [Open full page](https://hnxj.github.io/jaxfne/figures/hdp_10/h_dynamics.html).
 
 Next: [07 — Add dynamics](07_add_dynamics.md) — enable `enable_hdp`.
 

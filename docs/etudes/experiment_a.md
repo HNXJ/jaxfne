@@ -79,7 +79,7 @@ python scripts/run_experiment_a.py
 *The Interactive tab shows the spike-raster panel; every panel is linked under Interactive panels below.*
 
 
-Rendered still from the frozen `canonical_source.npz` (no resimulation; `python scripts/plot_experiment_a_still.py`).
+Rendered still from the frozen `canonical_source.npz` (no resimulation; `python scripts/plot_experiment_a_still.py`): spikes of the frozen X, membrane traces V_m (mV), mean H (relative), source Q, a field-potential proxy trace per contact (relative) and its aggregate power spectrum (relative power) against frequency (Hz).
 
 ## Interactive panels (dark)
 

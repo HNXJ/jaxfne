@@ -6,7 +6,7 @@ proxies, spectrolaminar summaries, objectives, and manifests on the same signals
 
 | Tool | Best for |
 |------|----------|
-| **Jaxley** | Differentiable HH/compartment models, morphology, channel dynamics |
+| **Jaxley** | Differentiable Hodgkin–Huxley (HH)/compartment models, morphology, channel dynamics |
 | **jaxfne** | Cortical columns, field-proxy chains, multi-trial laminar workflows |
 
 ## Using Jaxley with jaxfne
@@ -156,7 +156,7 @@ Use jaxfne when you want to:
 
 ## Interactive panel (dark)
 
-The bridge returns `Signals` without a `Model`, so there is no full atlas for it; instead, the membrane-potential panel of the HH run above, generated with the canonical `plot_membrane_potentials` plotter:
+The bridge returns `Signals` without a `Model`, so there is no full atlas for it; instead, the membrane-potential (mV) panel of the HH run above, generated with the canonical `plot_membrane_potentials` plotter:
 
 === "Still"
 

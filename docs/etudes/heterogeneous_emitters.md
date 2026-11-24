@@ -170,7 +170,7 @@ PYTHONPATH=. python3 scripts/run_heterogeneous_emitters_etude.py
 *The Interactive tab shows the spike-raster panel; every panel is linked under Interactive panels below.*
 
 
-Committed bundle still (`artifacts/etudes/bundles/heterogeneous_emitters/figure.png`).
+Committed bundle still of the frozen run (`artifacts/etudes/bundles/heterogeneous_emitters/figure.png`); its Interactive tab shows the spike-raster panel.
 
 ## Interactive panels (dark)
 

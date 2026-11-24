@@ -88,9 +88,13 @@ seeds alike. The end-of-epoch snapshot still fails in one fresh network.
 
     ![Simple-cell kernels after C1b training, seed 10](../assets/etudes/pcl/c1b_kernels.png)
 
+    *Simple-cell kernels after C1b training (localized edge segments), seed 10: the kernels become position spots.*
+
 === "C1 kernels"
 
     ![Simple-cell kernels after C1 training, seed 10](../assets/etudes/pcl/c1_kernels.png)
+
+    *Simple-cell kernels after C1 training (drifting bars), seed 10: with bars, every receptive-field centre is crossed at all orientations and the kernels become centre detectors.*
 
 ## Deviations
 

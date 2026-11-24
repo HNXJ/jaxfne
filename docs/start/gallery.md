@@ -12,7 +12,7 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 
 **Configuration:** `suite2_v1_v4_config` · **Seed:** `42`  
 **Status:** `relative_proxy_coordinates`  
-**Description:** Realized spatial locations and cell-class identities in a two-area (V1-V4) laminar network.
+**Description:** Realized spatial locations and cell-class identities in a two-area (V1, primary visual cortex; V4, visual area 4) laminar network.
 
 ---
 
@@ -22,7 +22,7 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 
 **Configuration:** `suite2_net1_config(n=100)` · **Seed:** `10`  
 **Status:** `uncalibrated_computational_scaffold`  
-**Description:** Spike raster and instantaneous population firing rate for a recurrent 100-neuron network.
+**Description:** Spike raster and instantaneous population firing rate (Hz) for a recurrent 100-neuron network.
 
 ---
 
@@ -42,7 +42,7 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 
 **Configuration:** `suite2_net1_config (enable_hdp=True)` · **Seed:** `7`  
 **Status:** `relative_dimensionless_state`  
-**Description:** Dynamic evolution of the Relative Biophysical State $H$ under activity-dependent drain and restorative control.
+**Description:** Dynamic evolution of the Relative Biophysical State (RBS) $H$ under activity-dependent drain and restorative control.
 
 ---
 
@@ -62,7 +62,7 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 
 **Configuration:** `two_neuron_delay_circuit(delay=10ms)` · **Seed:** `1`  
 **Status:** `discrete_delay_buffer_exact`  
-**Description:** Explicit temporal decomposition: presynaptic spike emission, 10 ms axonal transmission buffer latency, arriving synaptic current, and subsequent postsynaptic EPSP integration.
+**Description:** Explicit temporal decomposition: presynaptic spike emission, 10 ms axonal transmission buffer latency, arriving synaptic current, and subsequent integration of the excitatory postsynaptic potential (EPSP).
 
 ---
 
@@ -82,7 +82,7 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 
 **Configuration:** `suite2_net1_config(n=100, enable_hdp=True)` · **Seed:** `7`  
 **Status:** `multiscale_state_coupling`  
-**Description:** Co-registered multiscale trajectories: sub-millisecond membrane state $X$ ($V_m$) alongside slower hidden biophysical state $H$ (RBD dynamics) and plastic synaptic weight coupling $W$ (HDP).
+**Description:** Co-registered multiscale trajectories: sub-millisecond membrane state $X$ ($V_m$, in mV) alongside the slower Relative Biophysical State (RBS) $H$ under Relative Biophysical Dynamics (RBD) and plastic synaptic weight coupling $W$ under Hidden-state Dependent Plasticity (HDP).
 
 ---
 
@@ -92,7 +92,7 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 
 **Configuration:** `build_multi_area_columns(["V1", "V4", "PFC"], n_per_area=100, ei_profile="canonical")` · **Seed:** `0`  
 **Status:** `relative_proxy_coordinates`  
-**Description:** Realized spatial locations and cell-class identities in a three-area laminar hierarchy with bidirectional feedforward/feedback connectivity.
+**Description:** Realized spatial locations and cell-class identities in a three-area laminar hierarchy (V1, V4 and prefrontal cortex (PFC)) with bidirectional feedforward/feedback connectivity.
 
 Seven fixed panels, always emitted (`schema`, `network_3d`, `raster` as **OBSERVED**; `lfp`, `h_dynamics`, `hdp`, `oscillatory` as **DERIVED**), each carrying a provenance card (`config_hash`, N, edges, steps, dt, jaxfne version). A panel whose declared inputs cannot be met renders an explicit omission card:
 
@@ -127,7 +127,7 @@ manifest = build_atlas(
 
 <!-- ATLAS-INDEX:START -->
 
-Evidence index of validated atlases (25 models). Generated from committed `manifest.json` files — do not edit by hand; run `python scripts/generate_gallery.py --write`.
+Evidence index of validated atlases (25 models). Generated from committed `manifest.json` files — do not edit by hand; run `python scripts/generate_gallery.py --write`. In titles, `Nn` is N neurons. E/I = excitatory/inhibitory; CSD = current source density.
 
 ### `atlas/calibration_100` — Calibration-ready column, minimal run (100n, 200 ms)
 

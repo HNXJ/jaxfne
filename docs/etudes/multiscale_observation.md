@@ -208,7 +208,7 @@ Emitter variation is a **later** étude on the same observation stack.
 *The Interactive tab shows the spike-raster panel; every panel is linked under Interactive panels below.*
 
 
-Committed bundle still (`artifacts/etudes/bundles/multiscale_observation/figure.png`).
+Committed bundle still of the frozen run (`artifacts/etudes/bundles/multiscale_observation/figure.png`); its Interactive tab shows the spike-raster panel.
 
 ## Interactive panels (dark)
 
