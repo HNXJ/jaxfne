@@ -47,10 +47,15 @@ possible future change.
 - Expected: the proxy reads depth along the area's posed depth axis, or refuses a non-"xy" pose.
 - Measured 2026-11-24: `tests/test_fields_positions_g8.py::test_posed_plane_keeps_the_laminar_projection`
   ("xz", "yz") failed on 59521ff3 (2 failed: the posed field differs from the "xy" twin).
-- Resolution 2026-11-24: `project_model_sources` reads each neuron's depth from its area's posed axis
-  (`_laminar_frame_positions`, `jaxfne/fields/proxy.py`, from `cfg.metadata["tensor_pose"]`); both cases pass,
-  and the 12 pose and field test files pass (182). Explicit `positions` and `signals_dipole(axis=)` stay in the
-  caller's global frame. Moves to the next closed batch together with P-069 (one new file under `budget_files`).
+- Resolution 2026-11-24: the tensor pose (`_pose_positions_and_rows`, shared by the izhikevich, lif, rate and
+  adex routes) tags each row of an "xz" or "yz" area with `pose_plane`; `_laminar_frame_positions`
+  (`jaxfne/fields/proxy.py`) reads depth from that plane's axis in `project_model_sources` and in both
+  `simulate(record_fields=True)` projections. A first fix read `cfg.metadata["tensor_pose"]`, which the adex
+  route does not write, and missed `simulate`; outside review (REVISE) found both, and the adex and
+  `simulate` tests failed on that fix (4 failed) and pass now. 19 pose, tensor, snapshot and field test files:
+  378 passed. Explicit `positions` and `signals_dipole(axis=)` stay in the caller's global frame;
+  `experiment_a` and `protocol_e_integration` build no posed models. Moves to the next closed batch together
+  with P-069 (one new file under `budget_files`).
 
 ## Moved to 0.5.11 (Hamm 2026-11-23, plan §10.3 item 2)
 

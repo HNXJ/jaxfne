@@ -39,6 +39,7 @@ from .emitters_hh import HHParams
 from .emitters_lif import LIFNetworkParams
 from .emitters_rate import RateNetworkParams
 from .fields import project_laminar_sources
+from .fields.proxy import _laminar_frame_positions
 from .io import config_hash, json_safe
 from ._runtime_config import RuntimeConfig, _device_scope, _require_backend_available
 from ._signals import (
@@ -1839,7 +1840,7 @@ def simulate(
         # projection runs at the compute dtype.
         field_output = project_laminar_sources(
             sources=sources,
-            positions=positions,
+            positions=_laminar_frame_positions(self, positions),
             n_contacts=self.static.get("n_contacts", 16),
             dtype=runtime_cfg.compute_dtype,
             column_height_mm=self.params.get("column_height_mm"),
@@ -2014,7 +2015,7 @@ def _simulate_homeostatic_ei(
         # proxy refuses bfloat16 by name (see _resolve_proxy_dtype).
         field_output = project_laminar_sources(
             sources=sources,
-            positions=positions,
+            positions=_laminar_frame_positions(self, positions),
             n_contacts=self.static.get("n_contacts", 16),
             dtype=runtime_cfg.compute_dtype,
             column_height_mm=self.params.get("column_height_mm"),

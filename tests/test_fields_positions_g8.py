@@ -98,6 +98,55 @@ def test_posed_plane_keeps_the_laminar_projection(plane):
     )
 
 
+def _adex_model(plane):
+    from jaxfne import neuronal_tensor as nt
+
+    static = nt.StaticParams(dT_ms=5.0, reversal_potentials_mV={"AMPA": 0.0})
+    conn = nt.InterConnection(
+        source_layer="L4", source_neuron_type="E", target_layer="L4", target_neuron_type="E",
+        mechanism="AMPA", static=static, delay_ms=1.0,
+    )
+    types = [nt.NeuronType.make(name, emitter="adex") for name in ("E", "PV")]
+    tensor = nt.NeuronalTensor(name="p067", areas=[nt.Area(
+        name="V1", layers=[nt.Layer(name="L4", n_neurons=N, neuron_types=types)],
+        inter_connections=[conn], pose=jtfne.Pose3D(plane=plane),
+    )])
+    runtime = nt.RuntimeConfiguration(seed=0, duration_ms=20.0, dt_ms=0.5, emitter="adex")
+    return jtfne.construct(tensor, runtime)
+
+
+@pytest.mark.parametrize("plane", ["xz", "yz"])
+def test_posed_plane_keeps_the_laminar_projection_on_adex(plane):
+    """P-067 on the adex route, which builds its own configuration."""
+    base, posed = _adex_model("xy"), _adex_model(plane)
+    pos_xy = np.asarray(base.params["positions"])
+    assert np.ptp(pos_xy[:, 2]) > 0, "fixture must spread laminar depth"
+    assert not np.allclose(np.asarray(posed.params["positions"]), pos_xy), "pose must move positions"
+    sources = _sources()
+    np.testing.assert_allclose(
+        np.asarray(jtfne.project_model_sources(posed, sources, n_contacts=8).lfp_proxy),
+        np.asarray(jtfne.project_model_sources(base, sources, n_contacts=8).lfp_proxy),
+        rtol=1e-6, atol=1e-9,
+    )
+
+
+@pytest.mark.parametrize("plane", ["xz", "yz"])
+def test_posed_plane_keeps_recorded_fields(plane):
+    """P-067 on ``simulate(record_fields=True)``: same sources, same recorded field."""
+    base = _model()
+    tensor = jtfne.make_minimal_ei_tensor(n=N)
+    area = dataclasses.replace(tensor.areas[0], pose=jtfne.Pose3D(plane=plane))
+    posed = jtfne.construct_neuronal_tensor(dataclasses.replace(tensor, areas=[area]), seed=0)
+    sim = jtfne.Simulation(duration_ms=20.0, dt_ms=0.1, record_fields=True, record_sources=True)
+    out_xy, out_p = base.simulate(sim), posed.simulate(sim)
+    src = np.asarray(out_xy.sources)
+    assert np.abs(src).max() > 0, "fixture must produce sources"
+    np.testing.assert_array_equal(np.asarray(out_p.sources), src)
+    np.testing.assert_allclose(
+        np.asarray(out_p.field.lfp_proxy), np.asarray(out_xy.field.lfp_proxy), rtol=1e-5, atol=1e-7
+    )
+
+
 def test_explicit_positions_override_and_match_flag():
     """Explicit model-identical positions agree and flag a match; shifted
     ones differ and flag a mismatch."""

@@ -2762,6 +2762,12 @@ def _pose_positions_and_rows(
         )
         for idx, row in enumerate(rows)
     ]
+    # A non-"xy" plane holds depth on global y or x; the row names its plane so field
+    # readouts take depth from that axis (P-067). "xy" rows stay as before.
+    for row in updated_rows:
+        plane = pose_by_area.get(row["area"], Pose3D()).plane
+        if plane != "xy":
+            row["pose_plane"] = plane
     return posed, updated_rows
 
 

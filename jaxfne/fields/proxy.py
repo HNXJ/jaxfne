@@ -412,19 +412,17 @@ def project_sources_to_laminar_field(
 def _laminar_frame_positions(model: Any, positions: jax.Array) -> jax.Array:
     """Positions whose third column is each neuron's posed laminar depth (P-067).
 
-    Identity when the model carries no ``tensor_pose`` metadata or every pose plane
-    is ``"xy"``; otherwise column 2 takes the global axis that holds each area's depth.
+    Identity unless a row of ``model.static["neuron_metadata"]`` carries a
+    ``pose_plane`` (written by the tensor pose for "xz" and "yz" areas on every
+    route); then column 2 takes the global axis that holds that row's depth.
     """
-    pose_spec = (getattr(getattr(model, "cfg", None), "metadata", None) or {}).get("tensor_pose")
-    if not pose_spec:
-        return positions
-    planes = {area: p["plane"] for area, p in pose_spec["poses"].items()}
-    if all(plane == "xy" for plane in planes.values()):
+    static = getattr(model, "static", None)
+    rows = static.get("neuron_metadata") if isinstance(static, dict) else None
+    if not rows or not any("pose_plane" in r for r in rows):
         return positions
     from ..neuronal_tensor import _PLANE_AXIS_MAP
 
-    rows = model.static["neuron_metadata"]
-    depth_axis = jnp.asarray([_PLANE_AXIS_MAP[planes.get(r["area"], "xy")][2] for r in rows])
+    depth_axis = jnp.asarray([_PLANE_AXIS_MAP[r.get("pose_plane", "xy")][2] for r in rows])
     arr = jnp.asarray(positions)
     depth = jnp.take_along_axis(arr, depth_axis[:, None], axis=1)[:, 0]
     return arr.at[:, 2].set(depth)
