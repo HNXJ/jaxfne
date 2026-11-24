@@ -456,6 +456,23 @@ def _noise_scale_cache_suffix(hdp_params) -> tuple:
     return _homeostasis_params_cache_fingerprint({"noise_scale": hdp_params["noise_scale"]})
 
 
+def _refuse_hdp_params_without_hdp(runtime_cfg: RuntimeConfig) -> None:
+    """Refuse ``hdp_params`` keys the Izhikevich route would drop with ``enable_hdp=False`` (P-069).
+
+    ``noise_scale`` is read with HDP off and stays allowed; any other key names an HDP
+    request that this run would not realize.
+    """
+    if bool(getattr(runtime_cfg, "enable_hdp", False)):
+        return
+    dropped = sorted(k for k in (runtime_cfg.hdp_params or {}) if k != "noise_scale")
+    if dropped:
+        raise ValueError(
+            f"hdp_params keys {dropped} are not realized with enable_hdp=False on the "
+            "izhikevich route; set RuntimeConfig(enable_hdp=True) or drop them "
+            "(only 'noise_scale' is read with HDP off)"
+        )
+
+
 def _simulate_arrays(
     self: "Model",
     sim: Simulation,
@@ -719,6 +736,7 @@ def _simulate_arrays(
             )
         return V, S, src
 
+    _refuse_hdp_params_without_hdp(runtime_cfg)
     hp_for_gate = dict(runtime_cfg.hdp_params or {})
     enable_hdp_flag = bool(getattr(runtime_cfg, "enable_hdp", False))
     if enable_hdp_flag and runtime_cfg.synaptic_kernel == "receptor_exponential":
@@ -1317,6 +1335,7 @@ def _simulate_continuation_arrays(
                 f"drive schedule shape must be ({sim.n_steps}, {n_neurons}), got {schedule.shape}"
             )
 
+    _refuse_hdp_params_without_hdp(runtime_cfg)
     hp = dict(runtime_cfg.hdp_params or {}) if runtime_cfg.enable_hdp else {}
     if hp.get("enable_boundary_stabilization", False):
         hp.setdefault("K_HDP", 0.0)

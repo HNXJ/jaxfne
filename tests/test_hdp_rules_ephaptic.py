@@ -521,15 +521,24 @@ def test_homeostatic_ei_refuses_ephaptic_request():
         model.simulate(sim)
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.fail.Exception,
-                   reason="P-069: izhikevich ignores the HDP params silently when enable_hdp is False")
 def test_izhikevich_refuses_hdp_params_without_enable_hdp():
     model = _izh_model()
     n = int(np.asarray(model.params["emitter"].a).shape[0])
     sim = jaxfne.Simulation(duration_ms=10.0, dt_ms=0.1, seed=0, runtime=RuntimeConfig(
         enable_hdp=False, hdp_params=_eph_request(n)))
-    with pytest.raises(ValueError):
+    msg = r"\['hdp_rule', 'hdp_rule_params'\] are not realized with enable_hdp=False"
+    with pytest.raises(ValueError, match=msg):
         model.simulate(sim)
+    with pytest.raises(ValueError, match=msg):
+        model.simulate(sim, return_state=True)
+
+
+def test_izhikevich_keeps_noise_scale_without_enable_hdp():
+    model = _izh_model()
+    sim = jaxfne.Simulation(duration_ms=10.0, dt_ms=0.1, seed=0, runtime=RuntimeConfig(
+        enable_hdp=False, hdp_params={"noise_scale": 0.0}))
+    assert model.simulate(sim) is not None
+    assert model.simulate(sim, return_state=True) is not None
 
 
 # R14 (Solmind plan), Izhikevich half: what alpha means across dt on the registered-HDP route.
