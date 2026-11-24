@@ -328,10 +328,12 @@ Registration and run-time checks reject bad input:
 - at registration: unknown layouts, targets, and inverted bounds;
 - at run time: undeclared update keys.
 
-## Ephaptic field rule
+## Ephaptic lateral voltage coupling (`ephaptic_field`)
 
-`ephaptic_field` (module `jaxfne.hdp_rules_ephaptic`) feeds each neuron the field of
-its neighbours' membrane potentials:
+`ephaptic_field` (module `jaxfne.hdp_rules_ephaptic`; the registry name is historical) is a
+distance-weighted lateral voltage coupling. It uses the HDP registry as a carrier only: it is
+neither RBD nor HDP dynamics and is not derived from the source-field chain. Each neuron
+receives a coupling term from its neighbours' membrane potentials:
 
 $$\Phi_i=\alpha\sum_j M_{ij}\,(v_j-v_{\mathrm{rest}}).$$
 

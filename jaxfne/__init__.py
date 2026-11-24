@@ -108,7 +108,8 @@ from . import adex_destexhe
 # (ADVANCED tier, same pattern: the module is the symbol, reached as
 # jaxfne.istdp_vogels2011; importing it registers the rule).
 from . import istdp_vogels2011
-# Endogenous ephaptic field rule for the Izhikevich and LIF registered-HDP
+# Distance-weighted lateral voltage coupling (registry name ``ephaptic_field``) for the
+# Izhikevich and LIF registered-HDP
 # kernels (ADVANCED tier, same pattern; importing it registers the rule).
 from . import hdp_rules_ephaptic
 from . import export as _export_module

@@ -1,6 +1,9 @@
-"""Endogenous ephaptic field as a registered HDP rule (``ephaptic_field``).
+"""Ephaptic lateral voltage coupling as a registered HDP rule (``ephaptic_field``).
 
-Each neuron receives a field term built from its neighbours' membrane potentials:
+The registry name is historical. The rule uses the HDP registry as a carrier only: it is
+neither RBD nor HDP dynamics and is not derived from the source-field chain.
+
+Each neuron receives a coupling term built from its neighbours' membrane potentials:
 
     Phi_i = alpha * sum_j M_ij (v_j - v_rest)
 
@@ -18,7 +21,7 @@ rule-free run on the same backend: a noise-free LIF kernel run, and through ``si
 the rule-free run with ``recurrent_backend="edge_list"`` (tested; an engaged rule always
 runs the edge-list kernel, ISSUE_LOG P-057 and P-062).
 
-Timing: the field set during step t is applied at step t + 1. The voltages it reads
+Timing: the coupling term set during step t is applied at step t + 1. The voltages it reads
 differ by route: the LIF kernel presents the voltages after step t (one-step lag);
 the Izhikevich registrable kernel presents the voltages entering step t, i.e. after
 step t - 1 (two-step lag).
@@ -26,7 +29,7 @@ step t - 1 (two-step lag).
 The rule's own contribution to ``drive_bias`` is tracked in the per-neuron aux
 coordinate ``phi`` and changed by jumps ``Phi_new - phi``, so superposed rules that
 also write ``drive_bias`` add to it. ``drive_bias`` is unbounded for this rule (a clip
-would change the field).
+would change ``Phi``).
 
 An exogenous (imposed) field is a known time series, not a function of ``v``; supply
 it through the route's drive schedule. It does not use this rule.
