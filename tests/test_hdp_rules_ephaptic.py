@@ -534,3 +534,100 @@ def test_izhikevich_refuses_hdp_params_without_enable_hdp():
         enable_hdp=False, hdp_params=_eph_request(n)))
     with pytest.raises(ValueError):
         model.simulate(sim)
+
+
+# R14 (Solmind plan), Izhikevich half: what alpha means across dt on the registered-HDP route.
+IZH_ALPHA_REF_PER_MS = 0.1  # a: reference coupling rate, 1/ms, fixed across dt (input enters dv/dt)
+IZH_T_FINAL_MS = 2.0
+IZH_V0_MV = np.array([-60.0, -70.0])  # v - v_rest = (+5, -5) mV; zero drive
+IZH_V_REST_MV = -65.0  # the rule's v_rest; the Izhikevich rest for these parameters is -70 mV
+IZH_DT_MS = (0.1, 0.05, 0.025, 0.0125)
+IZH_NEG_CONTROL_DT_MS = 0.1  # negative control holds alpha = a * 0.1 ms / dt at every dt
+
+
+def _izh_pair_params():
+    n = 2
+    return IzhikevichParams(
+        a=jnp.full((n,), 0.02), b=jnp.full((n,), 0.2), c=jnp.full((n,), -65.0),
+        d=jnp.full((n,), 8.0), drive=jnp.zeros((n,)), sign=jnp.ones((n,)),
+        W=jnp.zeros((n, n)), v0=jnp.asarray(IZH_V0_MV), u0=0.2 * jnp.asarray(IZH_V0_MV),
+        source_scale=jnp.ones((n,)), labels=("E",) * n, layer_labels=("L4",) * n,
+        source_calibration_status="x",
+    )
+
+
+def _izh_pair_run(dt, alpha, kernel):
+    """Voltage trace (n_steps, 2) in mV and spike count of the N=2 Izhikevich pair with the rule."""
+    n_steps = int(round(IZH_T_FINAL_MS / dt))
+    no_edges = EdgeList(
+        pre=jnp.zeros((0,), jnp.int32), post=jnp.zeros((0,), jnp.int32),
+        weight=jnp.zeros((0,)), receptor_index=jnp.zeros((0,), jnp.int32),
+        tau_ms=jnp.zeros((0,)), source_calibration_status="x",
+    )
+    V, spikes, _, _ = simulate_edge_recurrent_izhikevich_hdp_registered(
+        _izh_pair_params(), no_edges, n_steps, dt, jax.random.PRNGKey(0),
+        dtype="float64", noise_scale=0.0,
+        hdp_rule=EPHAPTIC_RULE_NAME,
+        hdp_rule_params=ephaptic_rule_params(kernel, alpha=alpha, v_rest=IZH_V_REST_MV),
+    )
+    return np.asarray(V, dtype=np.float64), int(np.asarray(spikes).sum())
+
+
+@pytest.mark.x64
+def test_izhikevich_alpha_is_rate_coupling_across_dt():
+    """One alpha, one coupling across dt on the Izhikevich registered-HDP route, with controls.
+
+    Fixture: N=2 Izhikevich pair (a 0.02, b 0.2, c -65, d 8), zero drive, no synaptic edges,
+    noise_scale 0 (None draws noise of scale 0.5 at 0.5 ms with shape (n_steps, N), so runs at
+    different dt would not share a noise path). V(0) = (-60, -70) mV, u(0) = 0.2 V(0): v - v_rest
+    = (+5, -5) mV at v_rest -65 mV. Two points at distance 1, cutoff 2, row-normalized:
+    M = [[0, 1], [1, 0]]. T = 2 ms; float64 (x64 marker) keeps float32 rounding out of the ratio.
+
+    Reference: the same kernel with alpha = a = 0.1 /ms at dt_ref = dt_finest / 8 (Richardson).
+    The input enters dv/dt, so alpha is a rate: alpha = a at every dt is one coupling.
+    Positive arm: alpha = a. Negative arm: alpha = a * 0.1 ms / dt, so the realized rate doubles
+    per halving.
+
+    Expansion. The integrator is forward Euler, v <- v + dt dv (_hdp_registrable_kernel.py lines
+    389, 428, 567, 608), so it is first order. The field set from the voltages entering step t
+    reaches the current of step t + 1 (module docstring, Timing): a fixed number of steps, so the
+    lag error is also O(dt). Against the reference, err(dt) = |C (dt - dt_ref)| + O(dt^2), and to
+    leading order the ratio of the two finest halvings is (dt - dt_ref) / (dt/2 - dt_ref) = 2.07
+    (0.05/0.025) and 2.14 (0.025/0.0125); the window [1.8, 2.2] holds both. Negative arm: the
+    realized rate doubles per halving, the error against the a solution grows, and the ratio is
+    below 1.
+
+    Guards: a dt < 0.02 at the coarsest dt; no spike in any run; v - v_rest nonzero at t = 0; the
+    finest positive error exceeds 100 eps32 max|V|.
+    """
+    assert IZH_ALPHA_REF_PER_MS * max(IZH_DT_MS) < 0.02, "fixture must be in the small-step regime"
+    kernel = ephaptic_kernel(np.array([[0.0, 0.0], [1.0, 0.0]]), sigma=1.0, cutoff=2.0)
+    M = _dense(kernel, 2)
+    assert np.count_nonzero(M) == 2, "fixture must be a coupled pair"
+    assert np.all(IZH_V0_MV != IZH_V_REST_MV), "fixture must put v - v_rest nonzero at t = 0"
+    dt_ref = IZH_DT_MS[-1] / 8
+    ref_V, ref_spikes = _izh_pair_run(dt_ref, IZH_ALPHA_REF_PER_MS, kernel)
+    assert ref_spikes == 0, f"reference must not spike: {ref_spikes} spikes at dt={dt_ref}"
+    runs = {}
+    for dt in IZH_DT_MS:
+        arms = (("pos", IZH_ALPHA_REF_PER_MS),
+                ("neg", IZH_ALPHA_REF_PER_MS * IZH_NEG_CONTROL_DT_MS / dt))
+        for arm, alpha in arms:
+            V, spikes = _izh_pair_run(dt, alpha, kernel)
+            assert spikes == 0, f"fixture must not spike: {arm} arm, dt={dt}, {spikes} spikes"
+            runs[arm, dt] = (alpha, V)
+    v_scale = max([float(np.max(np.abs(ref_V)))]
+                  + [float(np.max(np.abs(V))) for _, V in runs.values()])
+    tol = 100 * EPS32 * v_scale  # float32 resolution scale of the voltages
+    err = {arm: [float(np.max(np.abs(runs[arm, dt][1][-1] - ref_V[-1]))) for dt in IZH_DT_MS]
+           for arm in ("pos", "neg")}
+    assert err["pos"][-1] > tol, (
+        f"finest positive error {err['pos'][-1]:.3e} is not above float32 resolution {tol:.3e}"
+    )
+    ratio = {arm: [err[arm][i] / err[arm][i + 1] for i in (1, 2)] for arm in ("pos", "neg")}
+    assert all(1.8 <= r <= 2.2 for r in ratio["pos"]), (
+        f"positive-control ratios {ratio['pos']} (0.05/0.025, 0.025/0.0125) outside [1.8, 2.2]"
+    )
+    assert all(r < 1.0 for r in ratio["neg"]), (
+        f"negative-control ratios {ratio['neg']} (0.05/0.025, 0.025/0.0125) not below 1"
+    )
