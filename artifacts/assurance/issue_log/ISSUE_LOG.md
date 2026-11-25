@@ -17,6 +17,47 @@ possible future change.
 
 ## Open
 
+### P-072
+
+- Date: 2026-11-25. Type: DOC / FRICTION. Area: field probes and receipts. Severity: low. Field-operator audit
+  residuals, recorded for separate priority (Hamm 2026-11-25: no incidental API, label or numeric change).
+- D2: `meg_proxy_probe(orientation_convention=...)` is accepted and discarded (`jaxfne/fields/probes.py:729`, documented
+  as a compatibility argument): stored-but-unconsumed; refuse or keep is Hamm's call.
+- D3: `csd_proxy_probe` docstring says it estimates CSD; it passes its input through (`probes.py:612-658`).
+- D6: `run_observation_suite` labels `meg_relative` the EEG leadfield with random sign flips
+  (`jaxfne/experiment_a/receipt.py:101-104`); labels are not changed without a ruling.
+- D7: `spectrolaminar_readout` contact depth = `pos_from_l4 * 0.5`, an undeclared constant (`fields/proxy.py:1186`).
+- D8: `experimental_poisson_1d` docstring claims the scalar path is bit-identical to a constant layered σ; the test
+  checks `atol=1e-4` (`tests/test_experimental_poisson_1d_layered.py`, `test_layered_reduces_to_scalar_path_when_uniform`).
+
+### P-071
+
+- Date: 2026-11-25. Type: BUG (checks weaker than advertised). Area: E4 linearity gate, Poisson gauge gate.
+  Severity: medium (both gates can pass without establishing their property).
+- D4: `verify_field_linearity` (`jaxfne/protocol_e_integration/e4_execution.py:331-357`) combines 0.7 Q and 0.3 Q, so
+  it tests homogeneity only; a positively homogeneous nonlinearity F(|q|) passes it.
+- D5: `validate_poisson_gauge_condition(None)` returns True (`jaxfne/validation.py:915-958`), so the report's gauge
+  pass flag reads the same for missing evidence and a satisfied gauge; `test_gauge_none_data` pins that.
+- Evidence (`_temp_fieldtests` f6163657, test-only): additivity on independent sources at the E4 `lfp_ref`
+  parameters holds within a rigorous float32 bound (excess 2.8e-2); F(|q|) exceeds it 7.0e4x; strict xfails
+  `test_e4_linearity_gate_detects_a_homogeneous_nonlinearity` and
+  `test_gauge_gate_flag_differs_for_missing_and_satisfied_mean`.
+- Expected: closes when a ruled production change turns both xfails into passing tests.
+
+### P-070
+
+- Date: 2026-11-25. Type: BUG. Area: `experimental_poisson_1d` (`jaxfne/fields/solvers.py`). Severity: medium (an
+  unsupported value silently implies a model that was not solved).
+- Observation: `boundary` and `gauge` are written to the manifest only (`solvers.py:148-149`); the assembly is always
+  Neumann and `lstsq` gives the min-norm (mean-zero) gauge, so `boundary="dirichlet"` returns the Neumann solution
+  labelled Dirichlet. `simulate` passes the defaults only (`_model_simulate.py:1249`); direct callers reach it.
+  `build_poisson_admissibility_report` defaults `boundary_condition="dirichlet"` (`validation.py:1018`), the
+  opposite of the solver.
+- Reproduction: strict xfails `test_unsupported_boundary_is_refused`, `test_unsupported_gauge_is_refused`
+  (`tests/test_experimental_poisson_1d_layered.py`, `_temp_fieldtests` f6163657).
+- Expected: a `ValueError` for any value other than `mean_zero_neumann` / `mean_zero`; closes when the xfails pass
+  (production change awaits Hamm's ruling).
+
 ### P-069
 
 - Date: 2026-11-23. Type: BUG. Area: simulation routes that do not realize HDP. Severity: medium (a requested rule

@@ -228,6 +228,26 @@ Text half fixed at 04a86078 and 50123e8f (controllability panels A-L, AAAB, AT-1
 | meg_eeg depth unit | guides/readout/meg_eeg_from_one_column.md:23 | no source found; scripts/generate_meg_eeg_figures.py:197 y label "neuron (superficial → deep)", no unit | Not assigned (proposed: Hamm) |
 | weak captions, heterogeneous_emitters :173, multiscale_observation :211 | etudes/heterogeneous_emitters.md:173; etudes/multiscale_observation.md:211 | name the bundle and tab only; needs a read of the bundle figure.png | Not assigned (left open) |
 
+### Field-operator audit and deferred interface (2026-11-25, dev 7930705b)
+
+Audit (114 operators, 13 clusters, file:line checked at HEAD): 352 gross removable lines (estimate, not verified
+savings), 210 needing caller migration; only C12 and C13 (7 lines) lie in operators that would become G, so a unified
+G removes about zero net lines and its case is capability. Rulings (Hamm 2026-11-25): approve C1-C3, C6, C7, C11
+(proxy.py dead `_traced` branch, FieldOutput copy, trace scan body; probes.py spk/vm/source boilerplate;
+diagnostics.py row-normalization dicts; script copy of `gaussian_leadfield`), preserving public API, output bytes,
+numerical order, pins and receipts; defer C4 and the interface, C5 (pinned report bytes), C9 (validation
+semantics), C10 (frozen experiment receipts); reject C12, C13 (relocation); D1, D4, D5 test-only (P-070, P-071);
+D2, D3, D6-D8 recorded (P-072). Next: O-GPU (3), the Poisson reference-solver question, before any P2 or FNO work.
+
+Deferred interface, kept as design (implement only when a verified consumer needs `adjoint`):
+`LinearFieldOperator` with `domain`, `codomain` (`Space`: size, positive weights w, units), `calibration` (existing
+labels), `apply`, `adjoint`, `matrix` (None if matrix-free). Adjoint under weighted inner products:
+G* = W_s^-1 G^T W_c, valid for positive, nonsingular weights; verify ⟨G x, y⟩_c = ⟨x, G* y⟩_s against each existing
+operator before admission. Reciprocity is declared per operator (`derived`: Sarvas, Frank sphere; `not_claimed`:
+Gaussian, cosine, random proxies); P4's differentiable adjoint stays reserved. CSD stays a separate inverse
+operator; MEG stays distinct (T/(A·m), oriented dipoles). `kernel_lfp` convolves in time: it is not an ordinary
+spatial G, and its space-time adjoint needs stated temporal boundary and inner-product conventions first.
+
 ## 9. Decision gates and risks
 
 Not the canonical `artifacts/open_stack.md`; read it and the issue log first; do not duplicate their ownership or close existing rows from this plan.
