@@ -115,9 +115,11 @@ def _noise_coef(
     # correctly rounded). GPU eager sqrt is not (sqrt(5.0) was 1 ulp low), so eager and jitted
     # runs differed on GPU; on CPU the value is unchanged bit for bit.
     ref_host = np.asarray(DT_REF_MS, dtype=dt_host.dtype)
-    if dt_host == ref_host:
+    if dt_host.ndim == 0 and dt_host == ref_host:
         return base
-    return base * jnp.asarray(np.sqrt(ref_host / dt_host), dtype=dtype)
+    # dt == ref entries get factor 1, so base * 1 keeps them exact (as the device jnp.where did).
+    factor = np.where(dt_host == ref_host, np.ones_like(dt_host), np.sqrt(ref_host / dt_host))
+    return base * jnp.asarray(factor, dtype=dtype)
 
 
 # Canonical Izhikevich cell-type parameter defaults.

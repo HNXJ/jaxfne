@@ -131,3 +131,14 @@ def test_noise_coef_is_correctly_rounded_on_every_backend(platform, noise_scale,
     assert eager.dtype == np.float32 and jitted.dtype == np.float32
     assert eager.tobytes() == f32(expected).tobytes(), (platform, float(eager), float(expected))
     assert jitted.tobytes() == f32(expected).tobytes(), (platform, float(jitted), float(expected))
+
+
+def test_noise_coef_accepts_an_array_dt_elementwise():
+    """An array dt gives one coefficient per entry; dt == DT_REF_MS entries keep the base exactly."""
+    from jaxfne.emitters import DT_REF_MS, _noise_coef
+
+    f32 = np.float32
+    dt = np.array([0.1, DT_REF_MS], dtype=f32)
+    out = np.asarray(_noise_coef(0.5, dt, jnp.float32))
+    expected = np.array([f32(0.5) * np.sqrt(f32(DT_REF_MS) / dt[0]), f32(0.5)], dtype=f32)
+    assert out.tobytes() == expected.tobytes(), (out, expected)
