@@ -50,8 +50,9 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    not in git). Residual 36 diagnosed 2026-11-25 (`decision_matrix.md`, same folder): causes are CPU-jit codegen
    rounding recorded in the pins (CPU jit != sequential float32 in 7/8 Izhikevich cells; GPU matches), jit constant
    folding of exp/sqrt (correctly rounded) vs GPU device kernels (35.6% of float32 exp off by up to 2 ulp), summation
-   order, `jax.random.normal` (4.7% of draws, <=3 ulp), and Poisson float32 conditioning. 1 fixed on `_temp_noisecoef`
-   0fa0d38c (`_noise_coef` host sqrt; CPU broad gate 0 failed), merge after review; 4 contract calls in O-GPU;
+   order, `jax.random.normal` (4.7% of draws, <=3 ulp), and Poisson float32 conditioning. 1 fixed (`_noise_coef` host sqrt, merged 68956a75);
+   O-GPU (1) ruled: `recorded_on("cpu")` on 21 pins (`_temp_pincontract`) plus a live CPU-vs-GPU check whose bound
+   derivation (`live_check_bound.md`, same folder) awaits Hamm; 3 calls left in O-GPU;
    isolate the eager-vs-jit sites of `test_balanced_preset_acceptance`, composition, hdp_zero_rule, mcc2, hdp_delayed.
    `test_consumption_gate_055` tensor `[jit]` fails only at highest precision (exp fold, `emitters.py:1614`). The gates run tests on CPU (`JAX_PLATFORMS=cpu`, the CI backend). Also: the class name
    `TestProbeReportMetadata` (`tests/test_probe_operators_eeg_meg_emm.py:262`) still names `ProbeReport`. Closes
