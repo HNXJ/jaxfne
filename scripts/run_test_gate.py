@@ -274,6 +274,7 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "tree_size_audit",
     },
     "release": {
         "compileall",
@@ -685,6 +686,7 @@ DOCS_AUDIT_FAMILIES = {
     "docs_orphans_check",
     "doc_code_integrity_audit",
     "docs_figures_check",
+    "tree_size_audit",
 }
 
 

@@ -25,3 +25,12 @@ def test_docs_gate_runs_the_docs_hygiene_tests(monkeypatch):
     assert HYGIENE in pytest_calls[0]
     assert "pytest_docs" in rtg.CHECK_FAMILIES
     assert "pytest_docs" in rtg.GATE_CHECK_FAMILIES["docs"]
+
+
+def test_docs_gate_runs_the_tree_size_check(monkeypatch):
+    """2026-11-24: a docs lane added one test file and merged at files=2826 > budget_files=2825."""
+    calls: list[str] = []
+    monkeypatch.setattr(rtg, "_run", lambda cmd, family=None, **kw: calls.append(family))
+    rtg.gate_docs()
+    assert "tree_size_audit" in calls
+    assert "tree_size_audit" in rtg.GATE_CHECK_FAMILIES["docs"]

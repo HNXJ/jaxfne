@@ -2,7 +2,7 @@
 
 > Continued from [05 — Observe](05_observe_fields.md). Same `tensor, model`; add state without dynamics.
 
-Per-neuron `H` (`with_hdp_initial_state(H0=...)`) seeds the HDP controller's initial state. With HDP off (the default), no output depends on it: spikes and V_m are identical for any `H0` (`tests/test_r46_h_inert_without_hdp.py`). With HDP on, `H` changes the outputs; it moves only when a controller gain is nonzero (`DEFAULT_HDP` has `K_ctrl=5`; the `RuntimeConfig` default is 0).
+Per-neuron `H` (`with_hdp_initial_state(H0=...)`) seeds the HDP controller's initial state. With HDP off (the default), no output depends on it: spikes and V_m are identical for any `H0` (`tests/test_hdp_dispatch.py`). With HDP on, `H` changes the outputs; it moves only when a controller gain is nonzero (`DEFAULT_HDP` has `K_ctrl=5`; the `RuntimeConfig` default is 0).
 
 ```python
 import jaxfne as jtfne, numpy as np

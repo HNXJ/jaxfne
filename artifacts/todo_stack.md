@@ -34,7 +34,7 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 0. task-gpunondet [A] GPU run-to-run nondeterminism: on vlix (RTX A4000, jax 0.10.2) two `simulate` calls of one
    model differ in `sources` by up to 4.8e-7 in 1-2 of 1200 entries, in some processes only (R46 worker and reviewer,
-   2026-11-24, fixture `tests/test_r46_h_inert_without_hdp.py`); CPU is bitwise. Check whether the same cause makes
+   2026-11-24, fixture `tests/test_hdp_dispatch.py`); CPU is bitwise. Check whether the same cause makes
    `tests/test_paradigm.py::test_m2_chunked_rollout_equals_one_continuous_simulate` (exact V_m equality) fail on GPU
    (2 of 11 runs paired with a second test, 0 of 12 alone). Siblings: exact-equality tests on GPU outputs. Also:
    `jaxfne/_runtime_config.py:116` comment says all gains default 0 while `K_HDP` defaults 1.0; test docstrings
