@@ -17,6 +17,31 @@ possible future change.
 
 ## Open
 
+### P-073
+
+- Date: 2026-11-25. Type: BUG / SCIENCE. Area: `experimental_poisson_1d` (O-GPU (3)). Severity: medium (blocks P2/FNO
+  admissibility). Layered fixture of `tests/test_experimental_poisson_1d_convergence.py`, N 11-321; paths CPU and GPU
+  float32 (GPU default and highest+deterministic equal), float64; GPU run twice, same values.
+- Status gate: float32 residual / 1e-3 at N=81 is 0.49 (CPU), 1.21 (GPU); fails at N=61, 81 and >= 161 (GPU), >= 161 (CPU).
+  Normwise backward error 0.2-8.9 eps32 for N <= 201 (backward stable); the rounded exact solution leaves <= 8% of tol
+  for N <= 161, so the excess is the solver's, not the residual evaluation's. Flux criteria pass for N <= 161 on every path (GPU N=81: mean 4.1e-4 of the
+  1e-3 rtol). The status is not scale invariant: at N=81 Q -> 2^k Q scales the residual by 2^k at fixed backward error
+  (CPU flips at Q=8, GPU at Q=2).
+- Discretization: the fixture's discrete solution is exactly the continuum one at the nodes (analytic recursion vs
+  float64 lstsq <= 4.7e-12), so it cannot see discretization error. Smooth oracle cos(k pi x): first order with a
+  full-weight boundary source, second order with the half-cell weight (float64, N 21-321, ratio 2.0 vs 4.0); cos(2 pi x)
+  with full weight is incompatible with the Neumann rows (node sum 4 pi^2) and fails at every precision.
+- Rank cut: default `lstsq` rcond = eps32 N truncates the lowest physical mode once cond (0.86 N^2) > 1/(eps32 N):
+  rank N-2 at N=241 and 321 on both backends, forward error 0.998, status "failed" (reported).
+- Controls: interface sigma shift, 1/dx scaling, rcond 1e-3 and a 1e-3 smooth perturbation fail the status; a Dirichlet
+  row at a zero-source node shifts only the gauge (residual and flux blind; forward oracle catches it). Explicit
+  rcond = eps keeps the null vector on CPU (gauge error 0.2): rejected.
+- Candidate (not applied): one fixed-precision refinement step with the same lstsq: residual / tol <= 0.24 for N <= 201
+  on both backends (N=81: 0.073 CPU, 0.067 GPU), GPU N=81 forward error 3.5e-4 -> 4.3e-6; leaves the rank cut; moves
+  float32 outputs and the `score_field_invariant_checks` receipt values.
+- Evidence: scripts and jsonl in `/mnt/e/repos/_wt/jaxfne/_temp_diag_poisson/` (`_temp_oracle.py`, `_temp_candidates.py`).
+- Expected: closes when Hamm rules O-GPU (3) and the ruled change passes the frozen tests on CPU and GPU.
+
 ### P-072
 
 - Date: 2026-11-25. Type: DOC / FRICTION. Area: field probes and receipts. Severity: low. Field-operator audit
