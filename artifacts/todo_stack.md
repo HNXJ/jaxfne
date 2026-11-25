@@ -19,11 +19,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 ## Tier 0: Solmind 0.5.10 execution (Hamm's go 2026-11-21, S19)
 
-0. task-fieldaudit [A] Land the approved field-operator cleanups C1-C3, C6, C7, C11 (`_temp_fieldclean`) and the
-   test-only D1, D4, D5 checks (`_temp_fieldtests` f6163657; P-070, P-071). Rulings and deferred interface: plan §8
-   "Field-operator audit and deferred interface". Closes when: byte parity of every touched function against
-   7930705b, outside review ACCEPT, broad gate 0 failed, both lanes merged into dev. Blocked by: none.
-
 0. T-P069 [A] P-069, left: the Izhikevich case (`enable_hdp=False` with `hdp_params`) refuses only if Hamm agrees
    that given params without the flag are an error (O-P069); the AdEx seed batch and homeostatic E/I refuse since
    2026-11-23. Closes when: `test_izhikevich_refuses_hdp_params_without_enable_hdp` is a plain passing test, or is

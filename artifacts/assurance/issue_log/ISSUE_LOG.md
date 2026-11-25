@@ -38,7 +38,7 @@ possible future change.
   it tests homogeneity only; a positively homogeneous nonlinearity F(|q|) passes it.
 - D5: `validate_poisson_gauge_condition(None)` returns True (`jaxfne/validation.py:915-958`), so the report's gauge
   pass flag reads the same for missing evidence and a satisfied gauge; `test_gauge_none_data` pins that.
-- Evidence (`_temp_fieldtests` f6163657, test-only): additivity on independent sources at the E4 `lfp_ref`
+- Evidence (dev since 8018e191, test-only): additivity on independent sources at the E4 `lfp_ref`
   parameters holds within a rigorous float32 bound (excess 2.8e-2); F(|q|) exceeds it 7.0e4x; strict xfails
   `test_e4_linearity_gate_detects_a_homogeneous_nonlinearity` and
   `test_gauge_gate_flag_differs_for_missing_and_satisfied_mean`.
@@ -54,7 +54,7 @@ possible future change.
   `build_poisson_admissibility_report` defaults `boundary_condition="dirichlet"` (`validation.py:1018`), the
   opposite of the solver.
 - Reproduction: strict xfails `test_unsupported_boundary_is_refused`, `test_unsupported_gauge_is_refused`
-  (`tests/test_experimental_poisson_1d_layered.py`, `_temp_fieldtests` f6163657).
+  (`tests/test_experimental_poisson_1d_layered.py`, on dev since 8018e191).
 - Expected: a `ValueError` for any value other than `mean_zero_neumann` / `mean_zero`; closes when the xfails pass
   (production change awaits Hamm's ruling).
 

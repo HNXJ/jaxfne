@@ -237,7 +237,7 @@ G removes about zero net lines and its case is capability. Rulings (Hamm 2026-11
 diagnostics.py row-normalization dicts; script copy of `gaussian_leadfield`), preserving public API, output bytes,
 numerical order, pins and receipts; defer C4 and the interface, C5 (pinned report bytes), C9 (validation
 semantics), C10 (frozen experiment receipts); reject C12, C13 (relocation); D1, D4, D5 test-only (P-070, P-071);
-D2, D3, D6-D8 recorded (P-072). Next: O-GPU (3), the Poisson reference-solver question, before any P2 or FNO work.
+D2, D3, D6-D8 recorded (P-072). Landed at 8018e191 (C6 reverted: +28 net lines, a relocation). Next: O-GPU (3), the Poisson reference-solver question, before any P2 or FNO work.
 
 Deferred interface, kept as design (implement only when a verified consumer needs `adjoint`):
 `LinearFieldOperator` with `domain`, `codomain` (`Space`: size, positive weights w, units), `calibration` (existing
