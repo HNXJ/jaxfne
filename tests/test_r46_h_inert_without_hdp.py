@@ -1,11 +1,12 @@
 """R46: per-neuron H is inert when HDP is off; it drives state when HDP is on.
 
 - Known-negative: HDP off, H seeded three ways (unseeded, all-ones, non-uniform)
-  -> spikes and V_m bitwise identical, sources equal to float32 rounding;
-  no HDP diagnostics.
-- Known-positive: HDP on (legacy regime), the same two seeds -> H trajectories differ.
+  -> spikes and V_m bitwise identical; sources within rtol 1e-6 (GPU run-to-run,
+  see the comment in the test); no HDP diagnostics.
+- Known-positive: HDP on (legacy regime), the same two seeds -> outputs and H differ.
 - Pure RBD: HDP on with K_HDP = K_w_ctrl = 0 and K_ctrl = 5 -> H evolves, weights fixed.
-- Default gains: HDP on, K_HDP = K_w_ctrl = 0, no controller gains -> H stays at its seed.
+- Null controller gains: HDP on, K_HDP = K_w_ctrl = K_ctrl = 0 -> H stays at its seed.
+- DEFAULT_HDP preset with K_HDP = K_w_ctrl = 0 (K_ctrl = 5) -> H evolves.
 """
 
 import numpy as np
@@ -16,7 +17,8 @@ N = 20
 LEGACY = {"K_HDP": 0.05, "K_ctrl": 0.3, "K_w_ctrl": 0.002, "alpha": 0.05,
           "gamma": 0.05, "C_spike": 0.02, "noise_scale": 0.0}
 PURE_RBD = {"K_HDP": 0.0, "K_w_ctrl": 0.0, "K_ctrl": 5.0, "noise_scale": 0.0}
-DEFAULT_GAINS_RBD = {"K_HDP": 0.0, "K_w_ctrl": 0.0, "noise_scale": 0.0}
+NULL_GAINS_RBD = {"K_HDP": 0.0, "K_w_ctrl": 0.0, "K_ctrl": 0.0, "noise_scale": 0.0}
+DEFAULT_HDP_RBD = {**jtfne.DEFAULT_HDP, "K_HDP": 0.0, "K_w_ctrl": 0.0}
 
 
 def _model():
@@ -56,7 +58,9 @@ def test_h_is_inert_when_hdp_is_off():
         assert seeded.last_hdp_diagnostics() is None
         assert np.array_equal(np.asarray(base.spikes), np.asarray(other.spikes))
         assert np.array_equal(np.asarray(base.V_m), np.asarray(other.V_m))
-        # sources: float32 rounding only (measured max |d| 4.8e-7, 2 of 1200 entries)
+        # sources: bitwise identical on CPU (6 repeats x 3 H0, measured). On the default
+        # GPU backend (RTX A4000) identical unseeded reruns already differ by up to
+        # 4.8e-7 (2 of 1200 entries), so H is not the source of the gap.
         np.testing.assert_allclose(np.asarray(other.sources), np.asarray(base.sources),
                                    rtol=1e-6, atol=0)
 
@@ -86,9 +90,18 @@ def test_pure_rbd_moves_h_and_freezes_weights():
     assert np.array_equal(w, np.broadcast_to(w[:1], w.shape)), "weights must stay fixed"
 
 
-def test_default_gains_hold_h_at_its_seed_under_rbd():
-    """Observed: with the default controller gains H has no dynamics, even with HDP engaged."""
+def test_null_controller_gains_hold_h_at_its_seed_under_rbd():
+    """Observed: with null controller gains (K_ctrl = K_w_ctrl = K_HDP = 0; K_ctrl = 0 is the
+    RuntimeConfig default), H has no dynamics even with HDP engaged."""
     _, spread = _seeded_pair(_model())
-    jtfne.simulate(spread, _sim(DEFAULT_GAINS_RBD))
+    jtfne.simulate(spread, _sim(NULL_GAINS_RBD))
     h = np.asarray(spread.last_hdp_diagnostics()["H_trace"])
-    assert np.array_equal(h, np.broadcast_to(h[:1], h.shape)), "default gains must freeze H"
+    assert np.array_equal(h, np.broadcast_to(h[:1], h.shape)), "null gains must freeze H"
+
+
+def test_default_hdp_preset_moves_h_under_rbd():
+    """Observed: the DEFAULT_HDP preset (K_ctrl = 5) moves H with K_HDP = K_w_ctrl = 0."""
+    _, spread = _seeded_pair(_model())
+    jtfne.simulate(spread, _sim(DEFAULT_HDP_RBD))
+    h = np.asarray(spread.last_hdp_diagnostics()["H_trace"])
+    assert float(np.abs(h - h[:1]).max()) > 1e-3, "DEFAULT_HDP's K_ctrl must move H"

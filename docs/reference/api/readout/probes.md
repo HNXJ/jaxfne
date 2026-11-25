@@ -253,7 +253,7 @@ for r in readouts:
 
 `ReadoutResult` fields (`jaxfne/_signals.py:947-965`): `spec_name`, `metric`,
 `value` (float or `None`), `status` (`"computed"` / `"no_field"` /
-`"empty_time_window"` / `"unknown_metric"`), `claim_level`
+`"missing_sources"` / `"empty_time_window"` / `"unknown_metric"`), `claim_level`
 (`"computational_scaffold"`), `physical_amplitude_calibrated` (always
 `False`), `metadata`.
 

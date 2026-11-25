@@ -427,7 +427,7 @@ jaxfne.ReadoutResult
 - `spec_name` (`str`)
 - `metric` (`str`)
 - `value` (`float | None`)
-- `status` (`str`, default `"computed"`): one of `"computed"`, `"no_field"`, `"unknown_metric"` (also `"empty_time_window"` when a `time_window_ms` slice is empty)
+- `status` (`str`, default `"computed"`): one of `"computed"`, `"no_field"`, `"missing_sources"` (no recorded sources for `source_abs_mean`), `"empty_time_window"` (empty `time_window_ms` slice), `"unknown_metric"`
 - `claim_level` (`str`, default `"computational_scaffold"`)
 - `physical_amplitude_calibrated` (`bool`, default `False`)
 - `metadata` (`dict`, default `{}`)

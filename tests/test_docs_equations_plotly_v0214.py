@@ -183,7 +183,7 @@ def test_probes_api_has_report_contract():
     for field in ("spec_name", "metric", "value", "status", "claim_level",
                   "physical_amplitude_calibrated", "metadata"):
         assert f"`{field}`" in contract, f"ReadoutResult field {field} not documented"
-    for status in ("computed", "no_field", "empty_time_window", "unknown_metric"):
+    for status in ("computed", "no_field", "missing_sources", "empty_time_window", "unknown_metric"):
         assert f'"{status}"' in contract, f"ReadoutResult status {status} not documented"
 
 

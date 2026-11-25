@@ -308,7 +308,7 @@ readouts = model.compute_readout(signals, [
 # - result.spec_name (e.g., "spikes")
 # - result.metric (e.g., "spike_rate_hz")
 # - result.value (float or None)
-# - result.status ("computed", "no_field", "empty_time_window", "unknown_metric")
+# - result.status ("computed", "no_field", "missing_sources", "empty_time_window", "unknown_metric")
 # - result.claim_level, result.physical_amplitude_calibrated (always False), result.metadata
 ```
 

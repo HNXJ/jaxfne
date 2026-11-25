@@ -9,7 +9,7 @@ See [RBS/RBD/HDP doctrine](../../theory/doctrine/rbs_rbd_hdp.md) for the canonic
 - **HDP defines parameter dynamics such as $W$ and may depend on $H$**: Hidden-state Dependent Plasticity governs parameter updates ($\dot{W} = F_W(x, H, W)$).
 - **$H$ may exist and evolve while parameter plasticity is absent**: When $\dot{W} = 0$, $H$ still provides state memory, recovery, and dynamic excitability control under pure RBD.
 
-Implemented: `H` has dynamics only on the HDP route (`enable_hdp=True`); with `K_HDP=K_w_ctrl=0` and `K_ctrl=5` it evolves and the weights stay fixed, while with the default controller gains it stays at its seed ([tutorial 06](../../tutorials/extend/06_add_state.md)).
+Implemented: `H` has dynamics only on the HDP route (`enable_hdp=True`), through its controller gains. With `K_HDP=K_w_ctrl=0` and `K_ctrl=5` it evolves and the weights stay fixed. `H` is frozen only when all controller gains are 0 (the `RuntimeConfig` default); the `DEFAULT_HDP` preset (`K_ctrl=5`) moves it ([tutorial 06](../../tutorials/extend/06_add_state.md)).
 
 Full Markov continuation requires the complete dynamical state
 \(\mathcal X_t=(\mathbf x_t,\mathbf H_t,\mathbf W_t,\mathcal B_t,\ldots)\),
