@@ -865,27 +865,18 @@ def exponential_synaptic_trace(
     alpha = jnp.exp(-dt_ms / tau_ms)
     spikes_arr = jnp.asarray(spikes, dtype=jnp.float32)
 
+    def body_fun(carry, step_spikes):
+        """Documented public function `body_fun`."""
+        next_carry = alpha * carry + step_spikes
+        return next_carry, next_carry
+
     if spikes_arr.ndim == 1:
-
-        def body_fun(carry, spike):
-            """Documented public function `body_fun`."""
-            next_carry = alpha * carry + spike
-            return next_carry, next_carry
-
         init_carry = jnp.zeros((), dtype=jnp.float32)
-        _, trace = jax.lax.scan(body_fun, init_carry, spikes_arr)
-        return trace
     else:
-
-        def body_fun(carry, step_spikes):
-            """Documented public function `body_fun`."""
-            next_carry = alpha * carry + step_spikes
-            return next_carry, next_carry
-
-        T, N = spikes_arr.shape
+        T, N = spikes_arr.shape  # 2D only: other ranks are refused by the unpack
         init_carry = jnp.zeros(N, dtype=jnp.float32)
-        _, trace = jax.lax.scan(body_fun, init_carry, spikes_arr)
-        return trace
+    _, trace = jax.lax.scan(body_fun, init_carry, spikes_arr)
+    return trace
 
 
 def synaptic_current(
