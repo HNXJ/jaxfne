@@ -39,11 +39,18 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    `tests/test_paradigm.py::test_m2_chunked_rollout_equals_one_continuous_simulate` (exact V_m equality) fail on GPU
    (2 of 11 runs paired with a second test, 0 of 12 alone). Siblings fail on GPU and pass on CPU at fa62fb73
    (2026-11-25): `tests/test_hdp_dispatch.py::test_record_weight_trace_false_drops_w_trace_but_keeps_dynamics_identical`,
-   `::test_simulate_batch_engages_hdp_and_default_is_unaffected`; a GPU broad run (stopped at 23%) showed 33 F (names not
-   captured). The gates run tests on CPU (`JAX_PLATFORMS=cpu`, the CI backend). Also: the class name
+   `::test_simulate_batch_engages_hdp_and_default_is_unaffected`. GPU broad pytest at 29db4b15 (2026-11-25, `-n 4`,
+   no preallocation): 116 failed, 8339 passed; all 116 pass on CPU. Reruns (flag x2, default x2, CPU, then
+   `JAX_DEFAULT_MATMUL_PRECISION=highest` with and without the flag): 60 pass only with the flag (scatter-add); 17 pass
+   with highest precision (TF32 matmul), 1 needs both; 36 fail under both, mostly CPU-pinned hashes and bit-exact
+   pins (`test_inputs_xsource_t24` pins, canary chains, lane6b digest, q-oracle), plus pinned values off by up to
+   abs 2.9e-4 (consolidation emitters), rel 5.6e-3 (izh2003 known answer), the experimental 1D Poisson solver not
+   converging at N=81 (residual 1.21e-3 vs 1e-3) and jit vs non-jit numerics (`test_consumption_gate_055`); 2 are
+   CPU-backend tests. Tables: `/mnt/e/repos/_wt/jaxfne/_temp_gpu_out/gpu_classification.md`, `gpu_h1.md` (vlix,
+   not in git). The gates run tests on CPU (`JAX_PLATFORMS=cpu`, the CI backend). Also: the class name
    `TestProbeReportMetadata` (`tests/test_probe_operators_eeg_meg_emm.py:262`) still names `ProbeReport`. Closes
-   when: a GPU run lists every exact-equality failure and each either runs deterministic, states its tolerance with
-   the measured bound, or is marked CPU-only. Owner question (Hamm): whether deterministic GPU ops become the default.
+   when: each of the 116 either runs deterministic, states its tolerance with the measured bound, or is marked
+   CPU-only. Deterministic GPU ops stay off by default (Hamm 2026-11-25) pending this row.
 
 1. T-PLAN-EXECUTE [A] Work the tasks of `artifacts/programme/design/plans/solmind/solmind_0510_plan.md` (R01-R72,
    gates S01-S23; reviewed, audit 3 ACCEPT) at most 3 lanes including reviewers; a row runs only when its own gates
