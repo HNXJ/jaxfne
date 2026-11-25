@@ -216,7 +216,7 @@ Scope: `jaxfne/hdp_rules_ephaptic.py` (docstring and descriptor text only), `tes
 Rulings for Hamm, prepared and not taken: (a) rename the registry name `ephaptic_field` (public API: alias plus deprecation, or keep the name with corrected text); (b) LIF alpha in rate units (1/ms, multiplied by dt inside the step) to match Izhikevich, which changes LIF outputs at a given alpha and needs S23 repins; (c) whether the row-normalized, non-reciprocal coupling stays the default or `normalize="none"` does. R19-R22 stay under S06/S17.
 
 ### R49 caption follow-up (2026-11-24)
-Text half fixed at 04a86078 and 50123e8f (controllability panels A-L, AAAB, AT-10-N20, extend 06-08 units, gallery abbreviations; per-fix sources in `git show 04a86078:artifacts/programme/design/plans/solmind/caption_audit_r49_2026-11-23.md`, "Follow-up 2026-11-24"); the rows below have no repo source or await an owner decision.
+Text half fixed at 04a86078 and 50123e8f (controllability panels A-L, AAAB, AT-10-N20, extend 06-08 units, gallery abbreviations; per-fix sources in `git show 04a86078:artifacts/programme/design/plans/solmind/caption_audit_r49_2026-11-23.md`, "Follow-up 2026-11-24"); the rows below are still open: no repo source, an owner decision, or a figure to read.
 
 | Item | page:line | Evidence | Who decides |
 |---|---|---|---|
