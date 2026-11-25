@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import math
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Mapping, Optional, Sequence
 
 import jax
@@ -480,17 +480,7 @@ def project_model_sources(
         diagnostics["positions_match_model"] = bool(
             np.array_equal(np.asarray(use_positions), np.asarray(model_positions))
         )
-    return FieldOutput(
-        source_proxy=out.source_proxy,
-        phi_e_proxy=out.phi_e_proxy,
-        csd_proxy=out.csd_proxy,
-        lfp_proxy=out.lfp_proxy,
-        kernel=out.kernel,
-        contact_depths=out.contact_depths,
-        diagnostics=diagnostics,
-        epistemic_level=out.epistemic_level,
-        calibration=out.calibration,
-    )
+    return replace(out, diagnostics=diagnostics)
 
 
 def validate_source_field_status(
