@@ -25,7 +25,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 - Plan §10.3 item 18 (B1 (ii)-(iii)); item 12 (R12-R16, S06); T-MATCH Python 3.11 route; S01 if a change is wanted.
 - O-P069 (Izh `enable_hdp=False` with `hdp_params`: refuse or document); O-AIDOC (OCMA section, direction text).
-- 2026-11-25: deterministic GPU ops (`--xla_gpu_deterministic_ops=true`, about 2.8x cost) as default or not; jarness `dev` cf25a11 (`suite_lock.py` cap and group kill) to `main` and install; accept the vlix venv alignment to lock pins.
+- Rulings (Hamm 2026-11-25): deterministic GPU ops stay off until the GPU failures are reproduced, classified and quantified (task-gpunondet); jarness cf25a11 to `main` approved on condition of independent review, passing jarness gates and no broken suite_lock caller, exact SHA presented before the push; vlix venv alignment accepted (`pip check` clean 2026-11-25), prior freeze kept until verification closes; `_temp_jaxfne_bd37s` preserved, repair or inspect from Windows only.
 - Canonical open rows: `open_stack.md`. Gates S01-S23: plan §9.
 
 ## Next agent — grab remote and continue
