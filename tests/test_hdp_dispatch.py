@@ -230,10 +230,14 @@ def test_h_is_inert_when_hdp_is_off():
         assert np.array_equal(np.asarray(base.spikes), np.asarray(other.spikes))
         assert np.array_equal(np.asarray(base.V_m), np.asarray(other.V_m))
         # sources: bitwise identical on CPU (6 repeats x 3 H0, measured). On the default
-        # GPU backend (RTX A4000) identical unseeded reruns already differ by up to
-        # 4.8e-7 (2 of 1200 entries), so H is not the source of the gap.
+        # GPU backend (RTX A4000, JAX 0.10.2) fresh processes differ by up to 1.19e-6
+        # absolute in 2-4 of 1200 entries (12 processes, HDP off, 60 steps x 20 neurons).
+        # The source is the scatter-add in jax.ops.segment_sum; XLA_FLAGS=
+        # --xla_gpu_deterministic_ops=true removes it. atol=2e-5 is ~17x that bound;
+        # rtol=1e-5 scales with the data (CPU, HDP off: max |sources| ~26, median
+        # nonzero |sources| ~5). H is not the source of the gap.
         np.testing.assert_allclose(np.asarray(other.sources), np.asarray(base.sources),
-                                   rtol=1e-6, atol=0)
+                                   rtol=1e-5, atol=2e-5)
 
 
 def test_h_drives_state_when_hdp_is_on():

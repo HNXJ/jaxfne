@@ -1,6 +1,7 @@
 """Comprehensive contract tests for probe reports (v0.2.12).
 
-Tests the ProbeReport/ProbeReadout contract after hardening:
+Tests the ``ProbeReadout.report`` contract of the ``jaxfne.fields`` probe factories
+(spk, vm, source, lfp/csd/eeg/meg/emm proxies) after hardening:
 - All required fields present
 - No *_like terminology in public reports
 - JSON-safe serialization with allow_nan=False

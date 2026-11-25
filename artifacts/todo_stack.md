@@ -32,15 +32,18 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    V1/V4/PFC expansions, construct 03 "mm", MVC#1 placement, `tutorials/index.md` cards) are listed for Hamm in
    `artifacts/programme/design/plans/solmind/solmind_0510_plan.md`, "R49 caption follow-up (2026-11-24)". Left: the visual half (print-size render of the 78 figures).
 
-0. task-gpunondet [A] GPU run-to-run nondeterminism: on vlix (RTX A4000, jax 0.10.2) two `simulate` calls of one
-   model differ in `sources` by up to 4.8e-7 in 1-2 of 1200 entries, in some processes only (R46 worker and reviewer,
-   2026-11-24, fixture `tests/test_hdp_dispatch.py`); CPU is bitwise. Check whether the same cause makes
+0. task-gpunondet [A] GPU run-to-run nondeterminism: the mechanism is `jax.ops.segment_sum` scatter-add
+   (`jaxfne/emitters.py` `_segment_sum`); `XLA_FLAGS=--xla_gpu_deterministic_ops=true` removes it at about 2.8x per
+   simulate. Measured on RTX A4000, jax 0.10.2: fresh processes differ in `sources` by up to 1.19e-6 (12 processes,
+   HDP off, 60 steps x 20 neurons); V_m and spikes bitwise; CPU bitwise. Left: check whether the same cause makes
    `tests/test_paradigm.py::test_m2_chunked_rollout_equals_one_continuous_simulate` (exact V_m equality) fail on GPU
-   (2 of 11 runs paired with a second test, 0 of 12 alone). Siblings: exact-equality tests on GPU outputs. Also:
-   `jaxfne/_runtime_config.py:116` comment says all gains default 0 while `K_HDP` defaults 1.0; test docstrings
-   `test_probe_report_contract_v0212.py:3`, `test_probe_operators_eeg_meg_emm.py:262` still name `ProbeReport`.
-   Closes when: the mechanism is named (op and flag) or the flake is pinned to a reproducing command, and each
-   exact-equality GPU test either runs deterministic or states its tolerance with the measured bound.
+   (2 of 11 runs paired with a second test, 0 of 12 alone). Siblings fail on GPU and pass on CPU at fa62fb73
+   (2026-11-25): `tests/test_hdp_dispatch.py::test_record_weight_trace_false_drops_w_trace_but_keeps_dynamics_identical`,
+   `::test_simulate_batch_engages_hdp_and_default_is_unaffected`; a GPU broad run (stopped at 23%) showed 33 F (names not
+   captured). The gates run tests on CPU (`JAX_PLATFORMS=cpu`, the CI backend). Also: the class name
+   `TestProbeReportMetadata` (`tests/test_probe_operators_eeg_meg_emm.py:262`) still names `ProbeReport`. Closes
+   when: a GPU run lists every exact-equality failure and each either runs deterministic, states its tolerance with
+   the measured bound, or is marked CPU-only. Owner question (Hamm): whether deterministic GPU ops become the default.
 
 1. T-PLAN-EXECUTE [A] Work the tasks of `artifacts/programme/design/plans/solmind/solmind_0510_plan.md` (R01-R72,
    gates S01-S23; reviewed, audit 3 ACCEPT) at most 3 lanes including reviewers; a row runs only when its own gates

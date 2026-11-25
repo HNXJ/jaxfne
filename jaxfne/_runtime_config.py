@@ -113,8 +113,13 @@ class RuntimeConfig:
         "gamma": 0.0, "delta": 0.0, "C_spike": 0.0, "K_ctrl": 0.0,
         "barrier_c": 0.0, "barrier_d": 0.0,
         "h_state_dim": 1, "h_state_readout": None, "h_state_coupling": None,
-    })  # All income/spending/control gains default to 0.0 -- the documented
-    # null control (H_i pinned at 1.0, weight term identically zero).
+    })  # K_HDP=1.0 scales the weight term only; it does not drive H. The
+    # income/spending/control gains default to 0.0, so H_i holds its seed (1.0
+    # unless with_hdp_initial_state(H0=...) sets it; see
+    # test_null_controller_gains_hold_h_at_its_seed_under_rbd in
+    # tests/test_hdp_dispatch.py).
+    # With H uniform at 1.0 the signed_linear basis H_post - H_pre is 0, so the
+    # weight term is zero for any K_HDP.
     # P-052: spike-threshold surrogate gradient; realized on the dense Izhikevich
     # default-order route only (sigmoid_beta), refused on every other route.
     surrogate: Optional["SurrogateConfig"] = None

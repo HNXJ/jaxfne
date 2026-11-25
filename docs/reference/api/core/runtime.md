@@ -153,7 +153,7 @@ model = jtfne.construct(cfg)
 signals = jtfne.simulate(model, seed=7)
 ```
 
-**Property:** With same seed and configuration, simulations produce identical outputs (bitwise reproducible on same hardware/JAX version).
+**Property:** With same seed and configuration, simulations produce identical outputs (bitwise reproducible on same hardware/JAX version, except GPU `sources`; see GPU determinism below).
 
 ### Deterministic Simulation
 
@@ -174,6 +174,10 @@ signals_2 = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=42)
 
 assert (signals_1.V_m == signals_2.V_m).all()  # Bitwise identical
 ```
+
+### GPU determinism
+
+On GPU, `jax.ops.segment_sum` uses scatter-add, so float32 `sources` can differ across processes by about 1e-6 (measured 1.2e-6 absolute on an RTX A4000, JAX 0.10.2); V_m and spikes were bitwise equal in the same runs. Setting `XLA_FLAGS=--xla_gpu_deterministic_ops=true` before importing JAX makes `sources`, V_m and spikes bitwise reproducible. The flag costs time: 0.77 s per simulate against 0.27 s by default (about 2.8x) for an HDP-off run of 60 steps x 20 neurons.
 
 ### Varying Trials with Different Seeds
 
