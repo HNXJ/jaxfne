@@ -215,6 +215,19 @@ Scope: `jaxfne/hdp_rules_ephaptic.py` (docstring and descriptor text only), `tes
 
 Rulings for Hamm, prepared and not taken: (a) rename the registry name `ephaptic_field` (public API: alias plus deprecation, or keep the name with corrected text); (b) LIF alpha in rate units (1/ms, multiplied by dt inside the step) to match Izhikevich, which changes LIF outputs at a given alpha and needs S23 repins; (c) whether the row-normalized, non-reciprocal coupling stays the default or `normalize="none"` does. R19-R22 stay under S06/S17.
 
+### R49 caption follow-up (2026-11-24)
+Text half fixed at 04a86078 and 50123e8f (controllability panels A-L, AAAB, AT-10-N20, extend 06-08 units, gallery abbreviations; per-fix sources in `git show 04a86078:artifacts/programme/design/plans/solmind/caption_audit_r49_2026-11-23.md`, "Follow-up 2026-11-24"); the rows below have no repo source or await an owner decision.
+
+| Item | page:line | Evidence | Who decides |
+|---|---|---|---|
+| EPSP expansion | start/gallery.md:65 | grep EPSP and "excitatory postsynaptic" in docs, jaxfne, artifacts/project_sources: no definition; only jaxfne/emitters_jansen_rit.py:10 "postsynaptic potentials"; expansion left in place, uncited | Hamm (no source) |
+| V1, V4, PFC expansions | start/gallery.md:95; index.md:72, :91 | grep "primary visual", "visual area 4", "prefrontal" in jaxfne, docs, artifacts/project_sources: only the expansions and a mouse-cortex reference; left in place, uncited | Hamm (no source) |
+| construct 03 "(mm)" | tutorials/construct/03_inspect_tensor.md:37 | source conflict: jaxfne/vis/network3d.py:36-38 labels x, y "mm" and z "mm or relative depth"; page's plotly network_3d.html: no unit in jaxfne/vis/plotly/network.py | Hamm (owner) |
+| MVC #1 placement | etudes/hdp_controllability_reachability.md:198 | figure.png shows the MVC#1 annotation beside panel I; D titles carry no MVC#1 label | Hamm: annotation or old "in D" text |
+| tutorials/index.md card labels | tutorials/index.md:19-29 | label-only cards not captioned; audit allows "caption or mark decorative" | Hamm (presentation choice) |
+| meg_eeg depth unit | guides/readout/meg_eeg_from_one_column.md:23 | no source found; scripts/generate_meg_eeg_figures.py:197 y label "neuron (superficial → deep)", no unit | Not assigned (proposed: Hamm) |
+| weak captions, heterogeneous_emitters :173, multiscale_observation :211 | etudes/heterogeneous_emitters.md:173; etudes/multiscale_observation.md:211 | name the bundle and tab only; needs a read of the bundle figure.png | Not assigned (left open) |
+
 ## 9. Decision gates and risks
 
 Not the canonical `artifacts/open_stack.md`; read it and the issue log first; do not duplicate their ownership or close existing rows from this plan.

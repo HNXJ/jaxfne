@@ -25,33 +25,3 @@ vacuous on 20 of 21 pages. Rendering at print size (the visual half of R49) was 
 | `tutorials/index.md:19-29` | a, b | eight cards with a label only; RBS (26), HDP (28) unexpanded | caption or mark decorative; expand |
 | `tutorials/construct/02_develop_genome.md:39`, `03_inspect_tensor.md:37`, `04_simulate_tensor.md:36` | b, c | E undefined; coordinates without unit; dt unexpanded | define; add unit |
 | `tutorials/extend/05_observe_fields.md:41`, `06_add_state.md:38`, `07_add_dynamics.md:38`, `08_compare_nulls.md:43` | b, c | LFP, HDP, std unexpanded; time, H, W(t), power and frequency without unit or "relative" | expand; add units or "relative" |
-
-## Follow-up 2026-11-24
-
-Text half, left items of T-R49-FIX (worker pass, HEAD 59521ff3 plus this change). Rows marked "fixed at 20ef57cf" were re-read in this pass; rows not listed were not re-checked. Gates: docs gate 293 passed, mkdocs strict rc 0, `generate_gallery.py --check` rc 0 (25 atlases), `tests/test_generate_gallery.py` 6 passed.
-
-| item | status | page:line | source or search |
-|---|---|---|---|
-| controllability panels A-C, F-L | fixed | etudes/hdp_controllability_reachability.md:194-198 | panel titles printed on artifacts/etudes/bundles/hdp_controllability_reachability/figure.png; the drawing script is not in the repo (consolidate_hdp_controllability_etude.py packages the PNG) |
-| controllability "MVC #1 inset in D" | fixed as observed; conflict | :198 | figure.png shows the MVC#1 annotation beside panel I; D titles carry no MVC#1 label. Owner decides whether the annotation or the old "in D" text is right |
-| controllability MVC expansion | fixed at 20ef57cf | :80 | heading "Minimal vector-H controller" at :84 |
-| AAAB (gallery.md:462-475, generated) | fixed | scripts/generate_gallery.py:119-122 | jaxfne/sanity_delta.py:398 and :411 (sequence A, A, A, B); jaxfne/_construct_extras.py:57 |
-| AT-10-N20 expansion | fixed | docs/index.md:79 | artifacts/atlas/at10_n20_055.py:1-2 (AT-10 on N_20, 20-area hierarchy) |
-| AT-10-N20 in gallery.md | not present | start/gallery.md | grep finds no AT-10 in gallery.md |
-| gallery generated captions (rows 190, 220, 235, 265, 295, 445, 475) | verified correct | generated | all 25 entries have representative raster.html (scratch run of collect() and _representative_file) |
-| gallery header HDP, LFP | fixed | scripts/generate_gallery.py:119-122 | HDP: docs/theory/doctrine/rbs_rbd_hdp.md:191; LFP: docs/reference/api/readout/fields.md:190 |
-| gallery.md:65 EPSP (expansion at 20ef57cf) | no source found | start/gallery.md:65 | grep EPSP and "excitatory postsynaptic" in docs, jaxfne, artifacts/project_sources: no definition; only jaxfne/emitters_jansen_rit.py:10 "postsynaptic potentials". Expansion left in place, uncited |
-| V1, V4, PFC expansions (20ef57cf: gallery.md:95, index.md:72, :91) | no source found | as listed | grep "primary visual", "visual area 4", "prefrontal" in jaxfne, docs, artifacts/project_sources: only the expansions themselves and a mouse-cortex reference. Expansions left in place, uncited |
-| extend 05 :41 | fixed | tutorials/extend/05_observe_fields.md:41 | jaxfne/vis/atlas_suite.py:559 units "relative proxy" |
-| extend 06 :38 | fixed now | tutorials/extend/06_add_state.md:38 | atlas_suite.py:267 x axis "step"; :567 units "relative state"; :278 title "mean ± std" |
-| extend 07 :38 | fixed now | tutorials/extend/07_add_dynamics.md:38 | atlas_suite.py:267 x axis "step"; :575 units "relative weights"; :307 title "|w| mean ± std" |
-| extend 08 :43 | fixed now | tutorials/extend/08_compare_nulls.md:43 | atlas_suite.py:601 units "relative power"; jaxfne/vis/canonical.py:356 "Frequency (Hz)" |
-| construct 02 :39 "E*" | fixed | tutorials/construct/02_develop_genome.md:20 | excitatory (E) defined at :20 on the same page |
-| construct 03 :37 "(mm)" | source conflict; left at 20ef57cf wording | tutorials/construct/03_inspect_tensor.md:37 | jaxfne/vis/network3d.py:36-38 labels x, y "mm" and z "mm or relative depth" (matplotlib module). The page's plotly network_3d.html: no unit found in jaxfne/vis/plotly/network.py. Owner decides |
-| construct 04 :36 dt | fixed at 20ef57cf | tutorials/construct/04_simulate_tensor.md:36 | jaxfne/_model_evaluate.py:471 "Simulation time step in milliseconds" |
-| tutorials/index.md:19-29 card labels | RBS and HDP expansions fixed at 20ef57cf; label-only cards not captioned | tutorials/index.md:19-29 | audit allows "caption or mark decorative"; a presentation choice, owner decides |
-| meg_eeg :23 depth unit | no source found; no unit added | guides/readout/meg_eeg_from_one_column.md:23 | scripts/generate_meg_eeg_figures.py:197 y label "neuron (superficial → deep)", no unit |
-| meg_eeg :19, :34, :56, :60, :66-67, :78 | fixed at 20ef57cf, re-read | guides/readout/meg_eeg_from_one_column.md | scripts/generate_meg_eeg_figures.py:201 "(unit RMS)"; :220-221 histogram axes; :250, :253 fT and µV colorbars; :279 "GFP"; :318 RMS label |
-| jaxley :9 HH, :159 mV | fixed at 20ef57cf, re-read | guides/interop/jaxley_interop.md:9, :159 | jaxfne/tutorial_utils.py:159 Hodgkin-Huxley; jaxfne/vis/canonical.py:249 "V_m proxy (mV)" |
-| model_inspection :47-48 Hz | fixed at 20ef57cf, re-read | guides/grammar/model_inspection.md:48 | jaxfne/util.py:856 spike_rate_hz_mean units "Hz" |
-| weak captions experiment_a :82, heterogeneous_emitters :173, multiscale_observation :211 | experiment_a fixed at 20ef57cf; heterogeneous :173 and multiscale :211 still name the bundle and tab only | etudes pages | not in the todo's left list; needs a read of the bundle figure.png; left open |

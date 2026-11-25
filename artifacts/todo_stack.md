@@ -26,11 +26,11 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 0. T-R49-FIX [A] Repair the caption findings of `artifacts/programme/design/plans/solmind/caption_audit_r49_2026-11-23.md` (text only;
    generated captions through `scripts/generate_gallery.py`). Then the visual half of R49 (print-size render).
-   Closes when: every listed page:line is fixed or answered in the audit's follow-up, the docs gate and
+   Closes when: every listed page:line is fixed or answered in the "R49 caption follow-up (2026-11-24)" of `solmind_0510_plan.md` (section 8), the docs gate and
    `mkdocs build --strict` pass, and an outside reviewer accepts. Blocked by: none.
    2026-11-24: text half closed (20ef57cf, e1a1cbe5; outside reviews ACCEPT). Rows with no repo source (EPSP,
-   V1/V4/PFC expansions, construct 03 "mm", MVC#1 placement, `tutorials/index.md` cards) are listed in the audit's
-   "Follow-up 2026-11-24" for Hamm. Left: the visual half (print-size render of the 78 figures).
+   V1/V4/PFC expansions, construct 03 "mm", MVC#1 placement, `tutorials/index.md` cards) are listed for Hamm in
+   `artifacts/programme/design/plans/solmind/solmind_0510_plan.md`, "R49 caption follow-up (2026-11-24)". Left: the visual half (print-size render of the 78 figures).
 
 0. task-gpunondet [A] GPU run-to-run nondeterminism: on vlix (RTX A4000, jax 0.10.2) two `simulate` calls of one
    model differ in `sources` by up to 4.8e-7 in 1-2 of 1200 entries, in some processes only (R46 worker and reviewer,
