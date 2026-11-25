@@ -996,4 +996,5 @@ def test_chrome_present_in_ci_when_kaleido_v1_installed():
     from choreographer.browsers.chromium import Chromium
 
     if Chromium.find_browser(skip_local=False) is None:
-        pytest.fail("CI has kaleido v1 but no Chrome: install Chrome or drop the viz extra from that job")
+        # GitHub's ubuntu-24.04 and ubuntu-26.04 images ship Google Chrome (runner-images readmes, 2026-11-16).
+        pytest.fail("CI has kaleido v1 (dev extra) but no Chrome: add a Chrome install step to the job")
