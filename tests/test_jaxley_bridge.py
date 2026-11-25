@@ -4,6 +4,8 @@ Validates source extraction on mock compartmental signals, unimplemented excepti
 and bridge reporting metadata.
 """
 
+import os
+
 import jax.numpy as jnp
 import numpy as np
 import pytest
@@ -149,3 +151,13 @@ def test_homeostatic_off_grid_window_refused():
             duration_ms=400.0, window_ms=20.03, dt_ms=0.025,
             base_current_nA=0.01, target_rate_hz=40.0,
         )
+
+
+def test_jaxley_present_in_ci():
+    """On CI (CI=true) a missing jaxley fails here instead of silently skipping the jaxley tests."""
+    if os.environ.get("CI", "").strip().lower() not in {"1", "true", "yes", "on"}:
+        pytest.skip("local run: jaxley optional")
+    try:
+        import jaxley  # noqa: F401
+    except ImportError as exc:
+        pytest.fail(f'CI requires the `jaxley` extra (pip install -e ".[jaxley]"): {exc}')

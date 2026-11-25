@@ -981,3 +981,20 @@ def test_no_undocumented_skips_placeholder():
     entry rather than silently omitting coverage.
     """
     assert len(CASES) == 69
+
+
+def test_chrome_present_in_ci_when_kaleido_v1_installed():
+    """On CI (CI=true) with kaleido v1, a missing Chrome fails here instead of skipping export."""
+    if os.environ.get("CI", "").strip().lower() not in {"1", "true", "yes", "on"}:
+        pytest.skip("local run: Chrome optional")
+    pytest.importorskip("kaleido")
+    try:
+        from kaleido.errors import ChromeNotFoundError  # noqa: F401  (kaleido v1 only)
+    except ImportError:
+        pytest.skip("kaleido 0.x bundles its own browser")
+    # kaleido v1 locates Chrome through choreographer with skip_local=False.
+    from choreographer.browsers.chromium import Chromium
+
+    if Chromium.find_browser(skip_local=False) is None:
+        # GitHub's ubuntu-24.04 and ubuntu-26.04 images ship Google Chrome (runner-images readmes, 2026-11-16).
+        pytest.fail("CI has kaleido v1 (dev extra) but no Chrome: add a Chrome install step to the job")
