@@ -106,3 +106,39 @@ def test_izhikevich_emitter_step_noise_is_dt_invariant():
     """Noise coefficient is 0.5 at dt 0.5 ms and scales by sqrt(0.5 / dt) (D1)."""
     np.testing.assert_allclose(_realized_noise_coef(0.5), 0.5, rtol=1e-3)
     np.testing.assert_allclose(_realized_noise_coef(0.125), 1.0, rtol=1e-3)
+
+
+@pytest.mark.parametrize("platform", ["cpu", "gpu"])
+@pytest.mark.parametrize("noise_scale, dt_ms", [(None, 0.1), (0.5, 0.1), (0.7, 0.025), (0.5, 0.5)])
+def test_noise_coef_is_correctly_rounded_on_every_backend(platform, noise_scale, dt_ms):
+    """The coefficient equals the IEEE float32 chain base * sqrt(ref / dt), eager and jitted.
+
+    GPU eager sqrt(5.0) gave 2.2360678 (1 ulp below the correctly rounded 2.2360680, which jit
+    constant folding gives), so a jit and an eager run differed (test_consumption_gate_055[jit]).
+    """
+    from jaxfne.emitters import DT_REF_MS, _noise_coef
+
+    try:
+        device = jax.devices(platform)[0]
+    except RuntimeError:
+        pytest.skip(f"no {platform} device visible to jax")
+    f32 = np.float32
+    base = f32(0.5 if noise_scale is None else noise_scale)
+    expected = base if dt_ms == DT_REF_MS else base * np.sqrt(f32(DT_REF_MS) / f32(dt_ms))
+    with jax.default_device(device):
+        eager = np.asarray(_noise_coef(noise_scale, dt_ms, jnp.float32))
+        jitted = np.asarray(jax.jit(lambda s: _noise_coef(s, dt_ms, jnp.float32))(noise_scale))
+    assert eager.dtype == np.float32 and jitted.dtype == np.float32
+    assert eager.tobytes() == f32(expected).tobytes(), (platform, float(eager), float(expected))
+    assert jitted.tobytes() == f32(expected).tobytes(), (platform, float(jitted), float(expected))
+
+
+def test_noise_coef_accepts_an_array_dt_elementwise():
+    """An array dt gives one coefficient per entry; dt == DT_REF_MS entries keep the base exactly."""
+    from jaxfne.emitters import DT_REF_MS, _noise_coef
+
+    f32 = np.float32
+    dt = np.array([0.1, DT_REF_MS], dtype=f32)
+    out = np.asarray(_noise_coef(0.5, dt, jnp.float32))
+    expected = np.array([f32(0.5) * np.sqrt(f32(DT_REF_MS) / dt[0]), f32(0.5)], dtype=f32)
+    assert out.tobytes() == expected.tobytes(), (out, expected)
