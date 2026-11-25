@@ -116,7 +116,9 @@ def render(entries: list[dict]) -> str:
              f"Evidence index of validated atlases ({len(entries)} models). "
              "Generated from committed `manifest.json` files — do not edit by hand; "
              "run `python scripts/generate_gallery.py --write`. "
-             "In titles, `Nn` is N neurons. E/I = excitatory/inhibitory; CSD = current source density.", ""]
+             "In titles, `Nn` is N neurons. E/I = excitatory/inhibitory; CSD = current source density; "
+             "LFP = local field potential; HDP = Hidden-state Dependent Plasticity; "
+             "AAAB = oddball sequence A, A, A, B.", ""]
     for e in entries:
         slug, m, state = e["slug"], e["manifest"], e["state"]
         fslug = _figure_slug(slug)

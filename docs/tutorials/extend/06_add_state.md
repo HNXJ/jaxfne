@@ -35,7 +35,7 @@ model2 = jtfne.restore_state(model, state)
 
     <iframe class="jx-frame" src="https://hnxj.github.io/jaxfne/figures/hdp_10/h_dynamics.html" loading="lazy" title="Hidden state H over time"></iframe>
 
-Relative Biophysical State (RBS) H over time (population mean ± standard deviation (std)) in a small 10-neuron HDP run with full recording. [Open full page](https://hnxj.github.io/jaxfne/figures/hdp_10/h_dynamics.html).
+Relative Biophysical State (RBS) H against step (relative state; population mean ± standard deviation (std)) in a small 10-neuron HDP run with full recording. [Open full page](https://hnxj.github.io/jaxfne/figures/hdp_10/h_dynamics.html).
 
 Next: [07 — Add dynamics](07_add_dynamics.md) — enable `enable_hdp`.
 

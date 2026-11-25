@@ -127,7 +127,7 @@ manifest = build_atlas(
 
 <!-- ATLAS-INDEX:START -->
 
-Evidence index of validated atlases (25 models). Generated from committed `manifest.json` files — do not edit by hand; run `python scripts/generate_gallery.py --write`. In titles, `Nn` is N neurons. E/I = excitatory/inhibitory; CSD = current source density.
+Evidence index of validated atlases (25 models). Generated from committed `manifest.json` files — do not edit by hand; run `python scripts/generate_gallery.py --write`. In titles, `Nn` is N neurons. E/I = excitatory/inhibitory; CSD = current source density; LFP = local field potential; HDP = Hidden-state Dependent Plasticity; AAAB = oddball sequence A, A, A, B.
 
 ### `atlas/calibration_100` — Calibration-ready column, minimal run (100n, 200 ms)
 

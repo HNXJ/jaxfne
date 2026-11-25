@@ -191,7 +191,11 @@ Package-native operators used: `Signals` field proxy (`phi_e_proxy`, `csd_proxy`
 *The Interactive tab shows the spike-raster panel; every panel is linked under Interactive panels below.*
 
 
-Panels A–L (panel E = OFF | scalar | vector spike-raster panels; MVC #1 inset in D).
+Panels A–L, titles as printed on the plate (`artifacts/etudes/bundles/hdp_controllability_reachability/figure.png`):
+A MCC-3 E/PV (5+5) network; B rank(J_W)=1, rank(J_Theta)=2; C frozen vector-H controller; D authority R(U,C) (parameter box, rate plane, adaptation envelope);
+E spike rasters, OFF | scalar | vector; F r_E, OFF | scalar | vector; G vector H / Theta_S; H native V (Izh; relative);
+I Q mean source (relative); J Phi(z,t) proxy, vector late; K PSD epochs, vector (f in Hz); L recovery summary, R_EI and R_P for OFF | scalar | vector.
+The annotation "MVC#1 inset (1.5 U0)" sits beside I; the D titles carry no MVC#1 label.
 
 ---
 

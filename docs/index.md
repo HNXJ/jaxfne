@@ -76,7 +76,7 @@ Canonical 1000-neuron primary visual cortex (V1) column, pinned 1000 ms referenc
 
 ([Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)).
 
-Twenty-area hierarchy (Atlas AT-10-N20), areas in hierarchy order with
+Twenty-area hierarchy (Atlas AT-10-N20: AT-10 run on N_20, the 20-area network), areas in hierarchy order with
 inter-area edge counts ([full page](https://hnxj.github.io/jaxfne/figures/area_graph_n20/area_graph_n20.html)):
 
 === "Still"
