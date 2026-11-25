@@ -47,4 +47,5 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 ## Environment
 
 - Windows (py 3.14) / WSL `~/venv_jaxfne` (py 3.12.3, jax 0.10.1, CUDA, brian2, NEST) / macOS arm64 (py 3.13, jax 0.10.1; unreachable 2026-11-23); warehouse `F:/warehouse/`.
+- vlix (Ubuntu side of vwin-pc, checkout `/mnt/e/repos/jaxfne`): `~/.venvs/jaxfne` (py 3.14.4, jax 0.10.2 GPU, jaxfne editable, pytest 9.2.0, mkdocs 1.6.1), built 2026-11-24; docs gate and `mkdocs build --strict` rc 0 at 59521ff3. `origin` here is HTTPS with no credential: push via `git@github.com:HNXJ/jaxfne.git`.
 - Remote branches (2026-11-23): `main`, `dev`, `gh-pages`, plus other sessions' branches. `_temp_onum`: deleted on the remote, left deleted (Hamm 2026-11-23); local copy on vwin-pc.
