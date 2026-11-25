@@ -160,6 +160,24 @@ class TestPoissonGaugeCondition:
         assert is_satisfied
         assert "not tested" in msg or "not available" in msg
 
+    def test_gauge_missing_mean_is_told_apart_from_a_satisfied_gauge(self):
+        """D5: the message separates missing evidence from a verified zero mean."""
+        _, msg_missing = validate_poisson_gauge_condition(None)
+        _, msg_zero = validate_poisson_gauge_condition(0.0)
+        assert "not tested" in msg_missing and "satisfied" not in msg_missing
+        assert "satisfied" in msg_zero and "not tested" not in msg_zero
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason="D5 (2026-11-25): the gauge gate passes with no mean, so its pass flag cannot tell missing "
+        "evidence from a satisfied gauge; the production change awaits a ruling",
+    )
+    def test_gauge_gate_flag_differs_for_missing_and_satisfied_mean(self):
+        missing = build_poisson_admissibility_report(mean_potential=None)["gates"]["gauge_condition"]
+        zero = build_poisson_admissibility_report(mean_potential=0.0)["gates"]["gauge_condition"]
+        assert zero["passed"] is True, "fixture: a zero mean must satisfy the gauge"
+        assert missing["passed"] != zero["passed"]
+
     def test_gauge_other_type(self):
         """Unsupported gauge types raise until an implementation exists."""
         with pytest.raises(NotImplementedError):

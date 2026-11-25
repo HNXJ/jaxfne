@@ -17,8 +17,45 @@ from __future__ import annotations
 
 import numpy as np
 import jax.numpy as jnp
+import pytest
 
 from jaxfne.fields.solvers import experimental_poisson_1d
+
+
+_D1 = (
+    "D1 (2026-11-25): boundary and gauge are recorded in the manifest only; the solve is always Neumann with the "
+    "min-norm (mean-zero) gauge, so an unsupported value silently implies a model that was not solved; the "
+    "production change awaits a ruling"
+)
+
+
+def _neutral_sources(n=8):
+    rng = np.random.default_rng(1)
+    s = rng.normal(size=n)
+    return jnp.asarray(s - s.mean(), dtype=jnp.float32)
+
+
+def _refused(**kwargs):
+    try:
+        experimental_poisson_1d(_neutral_sources(), 1.0, 0.1, **kwargs)
+    except ValueError:
+        return True
+    return False
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason=_D1)
+def test_unsupported_boundary_is_refused():
+    assert _refused(boundary="dirichlet")
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason=_D1)
+def test_unsupported_gauge_is_refused():
+    assert _refused(gauge="pinned_node")
+
+
+def test_supported_boundary_and_gauge_are_not_refused():
+    """Known negative for the two refusal checks above: the defaults must still solve."""
+    assert not _refused(boundary="mean_zero_neumann", gauge="mean_zero")
 
 
 def test_layered_reduces_to_scalar_path_when_uniform():
