@@ -18,7 +18,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - Solmind execution: R57 (P-047) moved; SCIENCE rows on Hamm; S06, S17 (R20, R21) open; S01 proceeds under the frozen score.
 - Audit items held for Hamm (2026-11-21): `jit="auto"` always-jit; `int(ms / dt)` truncation at 56 sites; compact receipt JSON; atlas `lfp.html` time axis; results_reconstruction drafts.
 - P-067 (Pose3D xz/yz depth axis vs proxy) open, unmeasured. CAMINOS E1 not equivalent (oracle kept).
-- task-gpunondet: GPU broad pytest at 29db4b15: 116 failed, all pass on CPU; 60 scatter-add (flag clears), 18 TF32 matmul, 36 CPU-pinned exact values or margins, 2 CPU-backend tests (todo row). Gates run on CPU.
+- task-gpunondet: GPU broad pytest at 29db4b15: 116 failed, all pass on CPU; 60 scatter-add (flag clears), 18 TF32 matmul, 36 residual diagnosed (matrix, todo row; 4 calls in O-GPU); `_temp_noisecoef` 0fa0d38c fixes 1 (CPU broad gate 8461 passed, 0 failed), review pending. Gates run on CPU.
 - vlix worktree admin entry `_temp_jaxfne_bd37s` is partial (no HEAD); repair from Windows or Hamm decides. Never `git worktree prune` here.
 
 ## Open decisions for the owner

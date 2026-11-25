@@ -47,7 +47,13 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    abs 2.9e-4 (consolidation emitters), rel 5.6e-3 (izh2003 known answer), the experimental 1D Poisson solver not
    converging at N=81 (residual 1.21e-3 vs 1e-3) and jit vs non-jit numerics (`test_consumption_gate_055`); 2 are
    CPU-backend tests. Tables: `/mnt/e/repos/_wt/jaxfne/_temp_gpu_out/gpu_classification.md`, `gpu_h1.md` (vlix,
-   not in git). The gates run tests on CPU (`JAX_PLATFORMS=cpu`, the CI backend). Also: the class name
+   not in git). Residual 36 diagnosed 2026-11-25 (`decision_matrix.md`, same folder): causes are CPU-jit codegen
+   rounding recorded in the pins (CPU jit != sequential float32 in 7/8 Izhikevich cells; GPU matches), jit constant
+   folding of exp/sqrt (correctly rounded) vs GPU device kernels (35.6% of float32 exp off by up to 2 ulp), summation
+   order, `jax.random.normal` (4.7% of draws, <=3 ulp), and Poisson float32 conditioning. 1 fixed on `_temp_noisecoef`
+   0fa0d38c (`_noise_coef` host sqrt; CPU broad gate 0 failed), merge after review; 4 contract calls in O-GPU;
+   isolate the eager-vs-jit sites of `test_balanced_preset_acceptance`, composition, hdp_zero_rule, mcc2, hdp_delayed.
+   `test_consumption_gate_055` tensor `[jit]` fails only at highest precision (exp fold, `emitters.py:1614`). The gates run tests on CPU (`JAX_PLATFORMS=cpu`, the CI backend). Also: the class name
    `TestProbeReportMetadata` (`tests/test_probe_operators_eeg_meg_emm.py:262`) still names `ProbeReport`. Closes
    when: each of the 116 either runs deterministic, states its tolerance with the measured bound, or is marked
    CPU-only. Deterministic GPU ops stay off by default (Hamm 2026-11-25) pending this row.
