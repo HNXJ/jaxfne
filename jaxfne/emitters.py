@@ -105,9 +105,19 @@ def _noise_coef(
         if noise_scale is None
         else jnp.asarray(noise_scale, dtype=dtype)
     )
-    dt = jnp.asarray(dt_ms, dtype=dtype)
-    ref = jnp.asarray(DT_REF_MS, dtype=dtype)
-    return jnp.where(dt == ref, base, base * jnp.sqrt(ref / dt))
+    try:
+        dt_host = np.asarray(dt_ms, dtype=np.dtype(base.dtype))  # realized dtype (x64 off: float32)
+    except jax.errors.TracerArrayConversionError:
+        dt = jnp.asarray(dt_ms, dtype=dtype)
+        ref = jnp.asarray(DT_REF_MS, dtype=dtype)
+        return jnp.where(dt == ref, base, base * jnp.sqrt(ref / dt))
+    # Concrete dt: the factor sqrt(ref / dt) is computed on the host in the run dtype (IEEE,
+    # correctly rounded). GPU eager sqrt is not (sqrt(5.0) was 1 ulp low), so eager and jitted
+    # runs differed on GPU; on CPU the value is unchanged bit for bit.
+    ref_host = np.asarray(DT_REF_MS, dtype=dt_host.dtype)
+    if dt_host == ref_host:
+        return base
+    return base * jnp.asarray(np.sqrt(ref_host / dt_host), dtype=dtype)
 
 
 # Canonical Izhikevich cell-type parameter defaults.
