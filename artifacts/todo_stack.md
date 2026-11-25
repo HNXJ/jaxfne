@@ -32,16 +32,15 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
    V1/V4/PFC expansions, construct 03 "mm", MVC#1 placement, `tutorials/index.md` cards) are listed in the audit's
    "Follow-up 2026-11-24" for Hamm. Left: the visual half (print-size render of the 78 figures).
 
-0. T-R46 [A] Merge duplicate docs (plan R46). Overlap measured 2026-11-23 over the five R42 groups: no page without
-   unique content; only verbatim overlap is `guides/grammar/jdna.md` vs `reference/api/model/jdna.md` (6 passages,
-   e.g. the `develop` example 182-189 vs 116-125) and the shared atlas lines with `tutorials/construct/01_define_genome.md`.
-   Guide/API/tutorial pairs stay split; merge the jdna duplicates into one home with a link. Contradictions found:
-   CSD sign (fixed, guard `test_csd_formulas_carry_the_code_sign`), Protocol C status (fixed); left: `docs/tutorials/extend/06_add_state.md:5`
-   "H inert when HDP is off" vs `guides/state/hdp.md:8-10` (check the code), "Probe Report Sidecar"
-   (`probe_operators.md:255`) vs removed `ProbeReport` (`probes.md:275`), and
-   `test_docs_equations_plotly_v0214.py:180` passing on the word inside the "removed" section. Closes when: each
-   left item is fixed or answered, the docs gate and `mkdocs build --strict` pass, and an outside reviewer accepts.
-   Blocked by: none.
+0. task-gpunondet [A] GPU run-to-run nondeterminism: on vlix (RTX A4000, jax 0.10.2) two `simulate` calls of one
+   model differ in `sources` by up to 4.8e-7 in 1-2 of 1200 entries, in some processes only (R46 worker and reviewer,
+   2026-11-24, fixture `tests/test_r46_h_inert_without_hdp.py`); CPU is bitwise. Check whether the same cause makes
+   `tests/test_paradigm.py::test_m2_chunked_rollout_equals_one_continuous_simulate` (exact V_m equality) fail on GPU
+   (2 of 11 runs paired with a second test, 0 of 12 alone). Siblings: exact-equality tests on GPU outputs. Also:
+   `jaxfne/_runtime_config.py:116` comment says all gains default 0 while `K_HDP` defaults 1.0; test docstrings
+   `test_probe_report_contract_v0212.py:3`, `test_probe_operators_eeg_meg_emm.py:262` still name `ProbeReport`.
+   Closes when: the mechanism is named (op and flag) or the flake is pinned to a reproducing command, and each
+   exact-equality GPU test either runs deterministic or states its tolerance with the measured bound.
 
 1. T-PLAN-EXECUTE [A] Work the tasks of `artifacts/programme/design/plans/solmind/solmind_0510_plan.md` (R01-R72,
    gates S01-S23; reviewed, audit 3 ACCEPT) at most 3 lanes including reviewers; a row runs only when its own gates
