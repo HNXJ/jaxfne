@@ -233,7 +233,7 @@ The **real, complete** set of valid `metric` values is
 Any other `metric` string (e.g. `"mean_LFP"`, `"mean_EEG"`,
 `"burst_frequency_hz"`) falls outside `_KNOWN_READOUT_METRICS`; passing one
 is handled gracefully; `compute_readout` returns a `ReadoutResult` with
-`status="unknown_metric"` and `value=None` (`jaxfne/core.py:5039-5046`).
+`status="unknown_metric"` and `value=None` (`jaxfne/_model_readout.py:166`).
 Burst-frequency, peak-rate, min/max-voltage, and EEG/MEG/EMM metrics remain
 unwired in `compute_readout` today.
 
@@ -251,7 +251,7 @@ for r in readouts:
     print(r.spec_name, r.metric, r.value, r.status)
 ```
 
-`ReadoutResult` fields (`jaxfne/core.py:3137-3155`): `spec_name`, `metric`,
+`ReadoutResult` fields (`jaxfne/_signals.py:947-965`): `spec_name`, `metric`,
 `value` (float or `None`), `status` (`"computed"` / `"no_field"` /
 `"empty_time_window"` / `"unknown_metric"`), `claim_level`
 (`"computational_scaffold"`), `physical_amplitude_calibrated` (always
@@ -280,7 +280,7 @@ shaped things exist under similar names. Treat them as distinct from the
 removed `ProbeReport`:
 
 1. **`jaxfne.io.probe_report(n_probes, probe_types=None, metadata=None)`**
-   (`jaxfne/io.py:218-234`): a plain JSON-bundle builder rather than a per-probe
+   (`jaxfne/io.py:327-346`): a plain JSON-bundle builder rather than a per-probe
    report object. It returns:
    ```python
    {

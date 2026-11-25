@@ -172,13 +172,19 @@ def test_probes_api_is_not_placeholder():
 
 
 def test_probes_api_has_report_contract():
-    """docs/reference/api/readout/probes.md must document ProbeReport contract."""
+    """probes.md must document the current per-call report, ReadoutResult (ProbeReport is removed)."""
     doc_path = Path("docs/reference/api/readout/probes.md")
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    assert "ProbeReport" in content, "ProbeReport not documented"
-    assert "kind" in content.lower(), "Probe kind field not documented"
+    match = re.search(r"`ReadoutResult` fields.*?(?=\n\n)", content, re.S)
+    assert match, "ReadoutResult field contract section not found in probes.md"
+    contract = match.group(0)
+    for field in ("spec_name", "metric", "value", "status", "claim_level",
+                  "physical_amplitude_calibrated", "metadata"):
+        assert f"`{field}`" in contract, f"ReadoutResult field {field} not documented"
+    for status in ("computed", "no_field", "empty_time_window", "unknown_metric"):
+        assert f'"{status}"' in contract, f"ReadoutResult status {status} not documented"
 
 
 # ─── Plotly Visualization Guide Tests ────────────────────────────────────────

@@ -115,6 +115,7 @@ pseudo-random (JAX PRNG), i.e. reproducible. Variation across seeds is
 
 ```python
 import jaxfne as jtfne
+jtfne.enable_x64()
 
 genome = jtfne.load_canonical_pseudogenome("canonical-v1-column-1000n")
 tensor = jtfne.develop(genome, seed=0)

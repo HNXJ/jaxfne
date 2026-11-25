@@ -93,7 +93,7 @@ $$
 | `Config` / `Configuration` | typed circuit, runtime, source, probe, and task specification |
 | `Model` / `Net` | constructed computational graph and identity map |
 | `Signals` | tensor output container with semantic selectors |
-| `ProbeReport` | readout metadata and interpretation status |
+| `ReadoutResult` | per-spec readout value, status and claim level |
 | `RuntimeReport` | backend, dtype, device, and timing receipt |
 
 ## See also

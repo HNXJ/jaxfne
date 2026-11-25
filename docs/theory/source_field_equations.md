@@ -293,9 +293,9 @@ were never written by any manifest builder and have been retired from this
 document; the single immutable amplitude gate is
 `physical_amplitude_calibrated=False`.
 
-### Readout Report Fields
+### Readout Result Fields
 
-The `ProbeReport` returned by `compute_readout()` includes per-operator metadata:
+`compute_readout()` returns a list of `ReadoutResult` objects, one per spec:
 
 ```python
 readouts = model.compute_readout(signals, [
@@ -305,11 +305,11 @@ readouts = model.compute_readout(signals, [
 ])
 
 # Each ReadoutResult includes:
-# - result.name (e.g., "spikes")
+# - result.spec_name (e.g., "spikes")
 # - result.metric (e.g., "spike_rate_hz")
-# - result.value (computed value)
-# - result.status (e.g., "computed", "placeholder")
-# - result.operator_status (if applicable)
+# - result.value (float or None)
+# - result.status ("computed", "no_field", "empty_time_window", "unknown_metric")
+# - result.claim_level, result.physical_amplitude_calibrated (always False), result.metadata
 ```
 
 ---

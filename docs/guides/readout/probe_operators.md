@@ -252,11 +252,9 @@ $$\mathrm{EMM}_{\mathrm{proxy}}(t) = \alpha \|S(t,\cdot)\|_1 + \beta \|\phi_{\ma
 
 Normalized electrophysiological activity cost proxy combining source and field energy norms. Represents signaling-energy proxy; valid for relative within-run comparisons and optimization workflows.
 
-### Probe Report Sidecar
+### Operator status in the manifest
 
-$$R_k = \{\mathrm{kind}, \mathrm{method}, \mathrm{units\_or\_status}, \mathrm{operator\_status}, \mathrm{physical\_amplitude\_statement\_allowed}, \ldots\}$$
-
-Each operator returns a JSON-safe report $R_k$ declaring operator type, computation method, status (proxy/simulated), and statement constraints.
+`jaxfne.io.manifest()` writes `operator_status` (a status map from the configuration metadata) and `physical_amplitude_calibrated: false`. No per-operator report object exists; see the [Probes API](../../reference/api/readout/probes.md).
 
 ---
 

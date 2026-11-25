@@ -2,7 +2,7 @@
 
 > Continued from [05 — Observe](05_observe_fields.md). Same `tensor, model`; add state without dynamics.
 
-Per-neuron `H` seeds the homeostatic controller's initial state only when Hidden-state Dependent Plasticity (HDP) is later enabled. It is stored but inert when HDP is off (the default).
+Per-neuron `H` (`with_hdp_initial_state(H0=...)`) seeds the HDP controller's initial state. With HDP off (the default), no output depends on it: spikes and V_m are identical for any `H0`, and sources differ only at float32 rounding (`tests/test_r46_h_inert_without_hdp.py`). With HDP on, `H` changes the outputs.
 
 ```python
 import jaxfne as jtfne, numpy as np
@@ -16,9 +16,9 @@ model = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=1, duration_ms=1
 model_h = model.with_hdp_initial_state(H0=np.ones(len(model.neuron_table())))
 print(model_h.last_hdp_diagnostics())  # None — HDP not enabled
 
-# pause/resume identity of the container
-state = jtfne.checkpoint_state(model)
-model2 = jtfne.restore_state(model, state)
+# pause/resume of the container: checkpoint writes .npz; restore returns (leaves, static), not a Model
+path = jtfne.checkpoint_state(model, "h_state.npz")
+leaves, static = jtfne.restore_state(path)
 ```
 
 `H_D` (developmental, `ℝ^{d_D}`) ≠ `H_R` (runtime Relative Biophysical State (RBS), `ℝ^{d_R}`); the canonical genome declares no `H_D`.

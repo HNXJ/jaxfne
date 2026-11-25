@@ -179,14 +179,7 @@ Root exports: `jtfne.PseudoGenome`, `jtfne.develop`, `jtfne.load_pseudogenome`,
 
 ## Example
 
-```python
-import jaxfne as jtfne
-jtfne.enable_x64()
-genome = jtfne.load_canonical_pseudogenome("canonical-v1-column-1000n")
-tensor = jtfne.develop(genome, seed=0)
-model = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=1, duration_ms=1000.0, dt_ms=0.5))
-signals = jtfne.simulate(model)
-```
+The call sequence (`develop` → `construct` → `simulate`) is in the [JDNA API reference](../../reference/api/model/jdna.md), minimal example.
 
 This path uses the ordinary tensor → model → signals pipeline. JDNA is
 optional; the existing `Configuration`/`NeuronalTensor` direct paths remain
@@ -211,9 +204,7 @@ Realization of `N` via `develop` does not establish effectiveness (`ΔX` under i
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the pinned 1000 ms reference run of the canonical column — the same develop path as §Example above: [Circuit schematic](https://hnxj.github.io/jaxfne/figures/readme/schema.html) · [Network 3D](https://hnxj.github.io/jaxfne/figures/readme/network_3d.html) · [Spike raster](https://hnxj.github.io/jaxfne/figures/readme/raster.html) · [LFP proxy](https://hnxj.github.io/jaxfne/figures/readme/lfp.html) · [Oscillatory response](https://hnxj.github.io/jaxfne/figures/readme/oscillatory.html)
-
-Regenerate: `python scripts/generate_readme_atlas.py --html-only`.
+Dark-theme Plotly panels from the pinned 1000 ms reference run of the canonical column — the same develop path as §Example above. Panels, links and the regeneration command: [define tutorial, interactive atlas](../../tutorials/construct/01_define_genome.md#interactive-atlas-dark).
 
 ## References
 
