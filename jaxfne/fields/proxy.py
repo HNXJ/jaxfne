@@ -345,31 +345,23 @@ def project_laminar_sources(
         source_conservation_claim_allowed=False,
     )
 
-    _traced = isinstance(sources, jax.core.Tracer) or isinstance(positions, jax.core.Tracer)
-    if _traced:
-        # JAX jit output validation permits array leaves only; the diagnostics
-        # dict (including observation provenance) cannot be a traced return
-        # value. Under jit the arrays are unchanged and diagnostics is empty;
-        # the full S→F→P receipt stays on the eager/evidence path.
-        diagnostics = {}
-    else:
-        diagnostics.update(field_solution_report)
-        diagnostics.update(
-            {
-                "field_solver": "linear_solver",
-                "source_projection_status": f"laminar_{mode}_projection",
-                "source_calibration_status": "uncalibrated_izhikevich_native_current",
-                "source_decomposition": "proxy_reduced_emitter",
-                "observation": laminar_projection_observation_receipt(
-                    n_sources=int(sources.shape[1]),
-                    n_contacts=int(n_contacts),
-                    width=float(width),
-                    normalization_mode=str(mode),
-                    contact_z_min=float(contacts[0]),
-                    contact_z_max=float(contacts[-1]),
-                ),
-            }
-        )
+    diagnostics.update(field_solution_report)
+    diagnostics.update(
+        {
+            "field_solver": "linear_solver",
+            "source_projection_status": f"laminar_{mode}_projection",
+            "source_calibration_status": "uncalibrated_izhikevich_native_current",
+            "source_decomposition": "proxy_reduced_emitter",
+            "observation": laminar_projection_observation_receipt(
+                n_sources=int(sources.shape[1]),
+                n_contacts=int(n_contacts),
+                width=float(width),
+                normalization_mode=str(mode),
+                contact_z_min=float(contacts[0]),
+                contact_z_max=float(contacts[-1]),
+            ),
+        }
+    )
 
     return FieldOutput(
         source_proxy=source_proxy,
