@@ -159,8 +159,6 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
 
 Scope and decisions: `programme/design/plans/crazy_sailor/m0_contract.md` §12.9. Ordered by effort.
 
-- CS-1 [A] Test hardening: a rollout test with nonzero y-channel counts (the y decode path is covered only by the unit test). Closes when: it passes on HEAD and fails under a y-sign mutant.
-- CS-2 [A] Test hardening: the chunked-vs-continuous test asserts that spikes occur in its fixture. Closes when: the assertion holds on HEAD and the test still fails under the dropped-continuation mutant.
 - CS-3 [A] Generic `controller.init/step` adapter (§12.3.1). Closes when: a test drives the M2 controller through the generic interface and reproduces the rollout trajectory on the fixture.
 - CS-4 [A] 60 s closed-loop episode (3000 control intervals) with spikes, motor commands, positions and distance recorded. Closes when: one reproducible run records SHA, config and seed, with 3000 intervals.
 - CS-5 [A] Dashboard page "The Crazy Sailor" from the CS-4 run. Closes when: it renders from that run's data with provenance. Publishing needs Hamm's authorization.

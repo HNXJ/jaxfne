@@ -658,6 +658,24 @@ def test_m2_causal_loop_spikes_drive_boat_and_feedback():
     assert np.allclose(np.stack(traj), r["positions"], rtol=1e-6, atol=1e-6), "whole trajectory"
 
 
+def test_m2_y_channel_rollout_spikes_and_decodes_with_sign():
+    """Both y motor groups spike; the decoded y force and the boat's y motion carry the decoder's sign."""
+    enc = _sp.SailorTonicEncoder(
+        b=np.zeros(_M2_N, np.float32), g=np.array([24, 0, 24, 8, 24, 24, 24, 24, 0, 0], np.float32), d0=1.0)
+    r = _m2_rollout(n_intervals=30, enc=enc)
+    blocks = r["spikes"].reshape(30, 20, _M2_N)
+    y_plus = blocks[:, :, _M2_MOTOR[2]].sum(axis=1)
+    y_minus = blocks[:, :, _M2_MOTOR[3]].sum(axis=1)
+    assert y_plus.sum() > 0 and y_minus.sum() > 0, "fixture must spike on y"
+    assert np.array_equal(r["counts"][:, 2], y_plus) and np.array_equal(r["counts"][:, 3], y_minus), (
+        "counts must be the +y and -y motor spike sums")
+    net = y_plus - y_minus  # interval k's net count drives the force applied in interval k+1
+    assert net.sum() > 0, "fixture: net +y counts"
+    assert np.allclose(r["actions"][1:, 1], _M2_F0 * net[:-1]), "decoded y force = f0 (n(+y) - n(-y)), one interval later"
+    assert r["actions"][:, 1].sum() > 0, "decoded net y force must be +y"
+    assert r["positions"][-1, 1] > 0, "boat must move +y under the net +y force"
+
+
 def test_m2_distance_feedback_alters_subsequent_membrane_activity():
     """Counterfactual: same seed and start; only the decoder differs.
 
@@ -676,6 +694,7 @@ def test_m2_chunked_rollout_equals_one_continuous_simulate():
     """Full-state continuation: three 20 ms chunks with a constant drive equal one 60 ms simulate."""
     r = _m2_rollout(n_intervals=3, f0=0.0)
     assert np.all(r["drive"] == r["drive"][0]), "fixture: constant drive"
+    assert int(np.sum(r["spikes"])) > 0, "fixture must spike"
     sched = jtfne.stimulus_schedule(
         [{"onset_ms": 0.0, "duration_ms": 60.0, "amplitude": float(c), "target_indices": [i]}
          for i, c in enumerate(r["drive"][0])], _M2_N)
