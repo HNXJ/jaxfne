@@ -20,6 +20,7 @@ import numpy as np
 
 import jaxfne as jtfne
 from jaxfne.analysis.spectral import spectrolaminar_psd_jax
+from jaxfne.experiment_a.receipt import gaussian_leadfield
 from jaxfne.fields import LinearReadout, eeg_proxy_transform, meg_proxy_transform, project_laminar_sources
 from jaxfne.io import json_safe
 from jaxfne.vis.evidence_export import save_matplotlib_evidence_figure
@@ -144,13 +145,6 @@ def build_config() -> Any:
         )
         .probe(name="etude_probe", modes=["spikes", "V_m"])
     )
-
-
-def gaussian_leadfield(z: np.ndarray, centers: np.ndarray, widths: np.ndarray) -> np.ndarray:
-    z = np.asarray(z, dtype=np.float32)
-    centers = np.asarray(centers, dtype=np.float32)
-    widths = np.asarray(widths, dtype=np.float32)
-    return np.exp(-0.5 * ((centers[:, None] - z[None, :]) / widths[:, None]) ** 2).astype(np.float32)
 
 
 def contact_row(z: np.ndarray, center: float, width: float) -> np.ndarray:
