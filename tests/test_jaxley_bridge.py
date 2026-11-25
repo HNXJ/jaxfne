@@ -135,6 +135,7 @@ def test_source_mode_non_default_refused():
 
 def test_homeostatic_off_grid_window_refused():
     """simulate_homeostatic refuses an off-grid window_ms instead of rounding."""
+    pytest.importorskip("jaxley")
     import jaxfne.bridges as bridges
     from types import SimpleNamespace
 

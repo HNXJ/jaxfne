@@ -180,6 +180,10 @@ def _case_export_figure():
 
 def _case_export_figures():
     pytest.importorskip("kaleido")
+    try:
+        from kaleido.errors import ChromeNotFoundError  # kaleido v1
+    except ImportError:  # kaleido 0.x bundles its browser
+        ChromeNotFoundError = ()
     import matplotlib.pyplot as plt
     import plotly.graph_objects as go
     fig_mpl, ax = plt.subplots()
@@ -187,7 +191,13 @@ def _case_export_figures():
     fig_plotly = go.Figure(go.Scatter(x=[0, 1], y=[0, 1]))
     with tempfile.TemporaryDirectory() as d:
         from jaxfne.vis.exporters import export_figures
-        manifest = export_figures({"a": fig_mpl, "b": fig_plotly}, d, formats=("png",))
+        try:
+            manifest = export_figures({"a": fig_mpl, "b": fig_plotly}, d, formats=("png",))
+        except RuntimeError as exc:
+            # plotly re-raises kaleido's ChromeNotFoundError as RuntimeError; any other error fails.
+            if not isinstance(exc.__context__, ChromeNotFoundError):
+                raise
+            pytest.skip("kaleido v1 needs Google Chrome, which is not installed")
         assert set(manifest.keys()) == {"a", "b"}
         assert os.path.exists(manifest["a"]["png"])
         assert os.path.exists(manifest["b"]["png"])
