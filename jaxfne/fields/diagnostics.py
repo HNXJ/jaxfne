@@ -33,25 +33,16 @@ def _finite_flag(array: jax.Array):
 def _test_kernel_row_normalization(kernel: jax.Array, tol: float = 1e-6) -> dict[str, Any]:
     """Verify that projection kernel is row-stochastic (rows sum to 1.0)."""
     row_sums = jnp.sum(kernel, axis=1)
-    max_abs_error_arr = jnp.max(jnp.abs(row_sums - 1.0))
-
-    if isinstance(max_abs_error_arr, jax.core.Tracer):
-        is_valid = max_abs_error_arr < tol
-        return {
-            "kernel_row_normalization_valid": is_valid,
-            "kernel_row_sum_max_abs_error": max_abs_error_arr,
-            "kernel_row_sum_tolerance": tol,
-            "kernel_row_stochastic_valid": is_valid,
-        }
-    else:
-        max_abs_error = float(max_abs_error_arr)
-        is_valid = max_abs_error < tol
-        return {
-            "kernel_row_normalization_valid": is_valid,
-            "kernel_row_sum_max_abs_error": max_abs_error,
-            "kernel_row_sum_tolerance": tol,
-            "kernel_row_stochastic_valid": is_valid,
-        }
+    max_abs_error = jnp.max(jnp.abs(row_sums - 1.0))
+    if not isinstance(max_abs_error, jax.core.Tracer):
+        max_abs_error = float(max_abs_error)
+    is_valid = max_abs_error < tol
+    return {
+        "kernel_row_normalization_valid": is_valid,
+        "kernel_row_sum_max_abs_error": max_abs_error,
+        "kernel_row_sum_tolerance": tol,
+        "kernel_row_stochastic_valid": is_valid,
+    }
 
 
 def validate_projection_invariants(
@@ -77,23 +68,14 @@ def validate_projection_invariants(
     the proxy operator's internal consistency only; it makes no claim of
     physical correctness.
     """
-    kernel_norm_tests = _test_kernel_row_normalization(kernel, tol=1e-6)
-    kernel_row_sum_max_abs_error = kernel_norm_tests["kernel_row_sum_max_abs_error"]
-
-    if isinstance(kernel_row_sum_max_abs_error, jax.core.Tracer):
-        kernel_row_sum_max_abs_error_val = kernel_row_sum_max_abs_error
-        row_normalization_valid = (
-            kernel_row_sum_max_abs_error < 1e-6
-            if mode != "density_preserving"
-            else None
-        )
-    else:
-        kernel_row_sum_max_abs_error_val = float(kernel_row_sum_max_abs_error)
-        row_normalization_valid = (
-            kernel_row_sum_max_abs_error_val < 1e-6
-            if mode != "density_preserving"
-            else None
-        )
+    tol = 1e-6
+    kernel_norm_tests = _test_kernel_row_normalization(kernel, tol=tol)
+    kernel_row_sum_max_abs_error_val = kernel_norm_tests["kernel_row_sum_max_abs_error"]
+    row_normalization_valid = (
+        kernel_row_sum_max_abs_error_val < tol
+        if mode != "density_preserving"
+        else None
+    )
     normalization_valid = (
         True if mode == "density_preserving" else row_normalization_valid
     )

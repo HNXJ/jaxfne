@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import math
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Mapping, Optional, Sequence
 
 import jax
@@ -345,31 +345,23 @@ def project_laminar_sources(
         source_conservation_claim_allowed=False,
     )
 
-    _traced = isinstance(sources, jax.core.Tracer) or isinstance(positions, jax.core.Tracer)
-    if _traced:
-        # JAX jit output validation permits array leaves only; the diagnostics
-        # dict (including observation provenance) cannot be a traced return
-        # value. Under jit the arrays are unchanged and diagnostics is empty;
-        # the full S→F→P receipt stays on the eager/evidence path.
-        diagnostics = {}
-    else:
-        diagnostics.update(field_solution_report)
-        diagnostics.update(
-            {
-                "field_solver": "linear_solver",
-                "source_projection_status": f"laminar_{mode}_projection",
-                "source_calibration_status": "uncalibrated_izhikevich_native_current",
-                "source_decomposition": "proxy_reduced_emitter",
-                "observation": laminar_projection_observation_receipt(
-                    n_sources=int(sources.shape[1]),
-                    n_contacts=int(n_contacts),
-                    width=float(width),
-                    normalization_mode=str(mode),
-                    contact_z_min=float(contacts[0]),
-                    contact_z_max=float(contacts[-1]),
-                ),
-            }
-        )
+    diagnostics.update(field_solution_report)
+    diagnostics.update(
+        {
+            "field_solver": "linear_solver",
+            "source_projection_status": f"laminar_{mode}_projection",
+            "source_calibration_status": "uncalibrated_izhikevich_native_current",
+            "source_decomposition": "proxy_reduced_emitter",
+            "observation": laminar_projection_observation_receipt(
+                n_sources=int(sources.shape[1]),
+                n_contacts=int(n_contacts),
+                width=float(width),
+                normalization_mode=str(mode),
+                contact_z_min=float(contacts[0]),
+                contact_z_max=float(contacts[-1]),
+            ),
+        }
+    )
 
     return FieldOutput(
         source_proxy=source_proxy,
@@ -488,17 +480,7 @@ def project_model_sources(
         diagnostics["positions_match_model"] = bool(
             np.array_equal(np.asarray(use_positions), np.asarray(model_positions))
         )
-    return FieldOutput(
-        source_proxy=out.source_proxy,
-        phi_e_proxy=out.phi_e_proxy,
-        csd_proxy=out.csd_proxy,
-        lfp_proxy=out.lfp_proxy,
-        kernel=out.kernel,
-        contact_depths=out.contact_depths,
-        diagnostics=diagnostics,
-        epistemic_level=out.epistemic_level,
-        calibration=out.calibration,
-    )
+    return replace(out, diagnostics=diagnostics)
 
 
 def validate_source_field_status(
@@ -883,27 +865,18 @@ def exponential_synaptic_trace(
     alpha = jnp.exp(-dt_ms / tau_ms)
     spikes_arr = jnp.asarray(spikes, dtype=jnp.float32)
 
+    def body_fun(carry, step_spikes):
+        """Documented public function `body_fun`."""
+        next_carry = alpha * carry + step_spikes
+        return next_carry, next_carry
+
     if spikes_arr.ndim == 1:
-
-        def body_fun(carry, spike):
-            """Documented public function `body_fun`."""
-            next_carry = alpha * carry + spike
-            return next_carry, next_carry
-
         init_carry = jnp.zeros((), dtype=jnp.float32)
-        _, trace = jax.lax.scan(body_fun, init_carry, spikes_arr)
-        return trace
     else:
-
-        def body_fun(carry, step_spikes):
-            """Documented public function `body_fun`."""
-            next_carry = alpha * carry + step_spikes
-            return next_carry, next_carry
-
-        T, N = spikes_arr.shape
+        T, N = spikes_arr.shape  # 2D only: other ranks are refused by the unpack
         init_carry = jnp.zeros(N, dtype=jnp.float32)
-        _, trace = jax.lax.scan(body_fun, init_carry, spikes_arr)
-        return trace
+    _, trace = jax.lax.scan(body_fun, init_carry, spikes_arr)
+    return trace
 
 
 def synaptic_current(
