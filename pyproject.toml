@@ -260,4 +260,5 @@ markers = [
   "notebook: interactive tutorial notebook execution tests",
   "release: complete T2 release-gate tests including docs and full examples",
   "canary: seeded end-to-end data-path chains; outputs frozen in tests/canary_register.json (CI canary job)",
+  "recorded_on(backend): exact pin recorded on that JAX backend (XLA codegen rounding); skipped on other backends, cross-backend agreement is checked separately",
 ]

@@ -202,6 +202,7 @@ def _laminar(n: int, duration_ms: float):
     )
 
 
+@pytest.mark.recorded_on("cpu")
 def test_chain3_hdp_run_with_plastic_w():
     model = jtfne.construct(_laminar(8, 200.0))
     w0 = np.asarray(model.params["edge_list"].weight, dtype=float)
@@ -368,6 +369,7 @@ def test_chain4_event_scan_replay_with_declared_h_and_w_update():
 # Fixture: tests/test_laminar_1000n_lfp_csd_hdp.py (field readout), without HDP.
 
 
+@pytest.mark.recorded_on("cpu")
 def test_chain5_field_probe_lfp_and_csd():
     model = jtfne.construct(_laminar(8, 200.0))
     sig = jtfne.simulate(model, duration_ms=200.0, dt_ms=0.1, seed=0, record_fields=True)

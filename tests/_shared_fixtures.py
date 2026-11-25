@@ -88,4 +88,16 @@ def load_module(name, path) -> types.ModuleType:
     return module
 
 
+def recorded_on_skip_reason(recorded: str, current: str) -> str | None:
+    """Skip reason for an exact pin recorded on another JAX backend; None when it matches."""
+    if recorded not in {"cpu", "gpu", "tpu"}:
+        raise ValueError(f"unknown recorded backend: {recorded!r}")
+    if recorded == current:
+        return None
+    return (
+        f"pin recorded on {recorded} (XLA {recorded} codegen rounding); current backend {current}; "
+        "cross-backend agreement is checked separately (Hamm 2026-11-25)"
+    )
+
+
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"

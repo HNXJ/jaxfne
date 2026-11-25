@@ -534,6 +534,7 @@ def test_zero_conductance_edge_refused_on_the_adex_route():
 
 
 # Lane 6e: existing callers stay bit-identical; new fields round-trip.
+@pytest.mark.recorded_on("cpu")
 def test_canonical_default_column_build_is_bit_identical():
     import hashlib
     tensor = jtfne.load_canonical_neuronal_tensor("default-column")

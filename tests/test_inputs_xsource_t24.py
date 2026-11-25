@@ -144,6 +144,7 @@ AD_DRIVE = {
 # --- Byte-identity pins (baseline e5ba1258) ----------------------------------
 
 
+@pytest.mark.recorded_on("cpu")
 def test_pin_izhi_default():
     # P-048 (u0 = b * v0): V=2663eab9... spikes=54506def...; was V=880d49c4... spikes=fbcef97b...
     signals = jtfne.simulate(_izhi_model())
@@ -156,6 +157,7 @@ def test_pin_izhi_default():
     assert np.array_equal(np.asarray(repeat.spikes), np.asarray(signals.spikes))
 
 
+@pytest.mark.recorded_on("cpu")
 def test_pin_izhi_pertype_drive():
     # P-048 (u0 = b * v0): V=dc4aa66b... spikes=5b05c9a6...; was V=94b94796... spikes=77609ebb...
     model = jtfne.construct(
@@ -170,6 +172,7 @@ def test_pin_izhi_pertype_drive():
     assert np.array_equal(np.asarray(repeat.spikes), np.asarray(signals.spikes))
 
 
+@pytest.mark.recorded_on("cpu")
 def test_pin_izhi_poisson_drive():
     # P-048 (u0 = b * v0): V=f9a990d6... spikes=ba09e074...; was V=d276e1ce... spikes=b71a9523...
     model = _izhi_model()
@@ -189,6 +192,7 @@ def test_pin_izhi_poisson_drive():
     assert np.array_equal(np.asarray(repeat.spikes), np.asarray(signals.spikes))
 
 
+@pytest.mark.recorded_on("cpu")
 def test_pin_lif_default():
     # baseline V=6bd3fdb4... spikes=f555501d...
     signals = jtfne.simulate(_lif_model())
@@ -201,6 +205,7 @@ def test_pin_lif_default():
     assert np.array_equal(np.asarray(repeat.spikes), np.asarray(signals.spikes))
 
 
+@pytest.mark.recorded_on("cpu")
 def test_pin_lif_pertype_drive():
     # baseline V=1ecb4d57... spikes=5acb822b...
     tensor = _tensor([_nt("E", drive=9.0), _nt("PV")])
@@ -214,6 +219,7 @@ def test_pin_lif_pertype_drive():
     assert np.array_equal(np.asarray(repeat.spikes), np.asarray(signals.spikes))
 
 
+@pytest.mark.recorded_on("cpu")
 def test_pin_lif_poisson_drive():
     # baseline V=9e5f29c6... spikes=6688b871...
     model = _lif_model()
@@ -245,6 +251,7 @@ def test_pin_adex_default():
     assert np.array_equal(np.asarray(repeat.spikes), np.asarray(signals.spikes))
 
 
+@pytest.mark.recorded_on("cpu")
 def test_pin_adex_pertype_drive():
     # baseline V=fd9d43aa... spikes=31bf2217... (300 pA triple drive).
     tensor = _adex_tensor([_nt("E", emitter="adex", drive=300.0),
@@ -261,6 +268,7 @@ def test_pin_adex_pertype_drive():
     assert np.array_equal(np.asarray(repeat.spikes), np.asarray(signals.spikes))
 
 
+@pytest.mark.recorded_on("cpu")
 def test_pin_adex_poisson_drive():
     # baseline V=6b4c5f4f... spikes=79fdc387...
     model = jtfne.construct(_adex_cfg())

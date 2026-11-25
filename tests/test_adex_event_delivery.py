@@ -32,6 +32,7 @@ def _random_edges(seed, n_src, n_out, n_edges, sort_by_src):
 
 
 @pytest.mark.parametrize("gain", [False, True])
+@pytest.mark.recorded_on("cpu")
 def test_event_delivery_equals_all_edges_sum_on_every_tier(gain):
     """Each tier, the overflow branch and the empty step give the all-edges segment sum bit-for-bit."""
     n_src, n_out, n_edges = 600, 400, 30000

@@ -95,6 +95,7 @@ def frozen():
     }
 
 
+@pytest.mark.recorded_on("cpu")
 def test_oracle_array_path_matches_prechange(frozen):
     f = frozen
     assert _h(spk_probe(jnp.asarray(f["spikes"])).data) == ORACLE["spk"]

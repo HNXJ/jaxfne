@@ -1161,6 +1161,7 @@ def test_adex_seed_batch_repeated_compiled_runs_are_bit_identical():
         assert np.array_equal(np.asarray(a["final"][key]), np.asarray(b["final"][key]))
 
 
+@pytest.mark.recorded_on("cpu")
 def test_adex_seed_batch_vmap_form_matches_contract():
     """Same seeds across scalar, vmap and compiled forms: spikes exact, V close."""
     from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args

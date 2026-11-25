@@ -11,6 +11,8 @@ from scripts.compare_pytest_junit import compare, load, load_many
 
 from scripts.run_test_gate import BROAD_PYTEST_IGNORE
 
+from _shared_fixtures import recorded_on_skip_reason
+
 
 def _junit(path: Path, cases: list[tuple[str, str, str]]) -> Path:
     """Write a minimal pytest-junit file. Each case: (node, outcome, reason)."""
@@ -256,3 +258,12 @@ def test_load_reads_marker_property_and_skip_type(tmp_path):
     assert rec["markers"] == ["bitwise_diagnostic"]
     assert rec["skip_type"] == "pytest.xfail"
     assert load(_xml(tmp_path / "plain.xml", _case("a::t1", "passed")))["a::t1"]["markers"] == []
+
+
+def test_recorded_on_skip_reason():
+    assert recorded_on_skip_reason("cpu", "cpu") is None
+    assert recorded_on_skip_reason("gpu", "gpu") is None
+    reason = recorded_on_skip_reason("cpu", "gpu")
+    assert "recorded on cpu" in reason and "gpu" in reason
+    with pytest.raises(ValueError):
+        recorded_on_skip_reason("metal", "cpu")

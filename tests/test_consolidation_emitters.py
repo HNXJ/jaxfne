@@ -344,6 +344,7 @@ def _run(record: bool, with_schedule: bool) -> dict[str, np.ndarray]:
 
 
 @pytest.mark.parametrize(("name", "record", "with_schedule"), PATHS)
+@pytest.mark.recorded_on("cpu")
 def test_scan_path_reproduces_pinned_outputs(name, record, with_schedule):
     out = _run(record, with_schedule)
     pinned = PINNED[name]

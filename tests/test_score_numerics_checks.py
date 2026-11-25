@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import pytest
+
 from _shared_fixtures import load_score
 
 REPO = Path(__file__).resolve().parents[1]
@@ -93,6 +95,7 @@ def test_compare_accepts_rounding_residuals_and_refuses_real_changes():
     assert scorer.compare(_doc(a=_row(1e-6, 1.0)), _doc(a=_row(1e-6, 1.1))) != []
 
 
+@pytest.mark.recorded_on("cpu")
 def test_recompute_matches_within_rtol_1e_9():
     from scripts import score_numerics_checks as scorer
 

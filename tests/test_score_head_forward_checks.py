@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import pytest
+
 from _shared_fixtures import load_score
 
 REPO = Path(__file__).resolve().parents[1]
@@ -110,6 +112,7 @@ def test_compare_lets_a_missing_optional_dependency_stand_on_the_stored_row():
     assert scorer.compare(_doc(a=skipped), _doc(a=_row(1e-5))) == ["a: skipped True != False"]
 
 
+@pytest.mark.recorded_on("cpu")
 def test_recompute_matches_within_rtol_1e_9():
     from scripts import score_head_forward_checks as scorer
 

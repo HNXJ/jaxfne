@@ -19,6 +19,8 @@ import pytest
 
 from jaxfne import compilation_registry
 
+from _shared_fixtures import recorded_on_skip_reason
+
 
 @pytest.fixture(autouse=True)
 def _reset_jax_x64_between_tests(request):
@@ -55,4 +57,12 @@ def pytest_collection_modifyitems(config, items):
         for name in JUNIT_MARKERS:
             if item.get_closest_marker(name) is not None:
                 item.user_properties.append((JUNIT_MARKER_PROPERTY, name))
+    # Exact pins recorded on one backend are skipped elsewhere (Hamm 2026-11-25).
+    recorded = [item for item in items if item.get_closest_marker("recorded_on") is not None]
+    if recorded:
+        current = jax.default_backend()
+        for item in recorded:
+            reason = recorded_on_skip_reason(item.get_closest_marker("recorded_on").args[0], current)
+            if reason is not None:
+                item.add_marker(pytest.mark.skip(reason=reason))
 
