@@ -511,7 +511,8 @@ def _run_capped(cmd: list[str], *, cwd: Path, env: dict[str, str]) -> int:
             raise
     finally:
         for sig, handler in previous.items():
-            signal.signal(sig, handler)
+            if handler is not None:  # signal.signal(sig, None) raises TypeError
+                signal.signal(sig, handler)
 
 
 def _run(
@@ -604,6 +605,9 @@ def run_isolated_wheel_smoke(
     isolated_env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
     isolated_env["PYTHONIOENCODING"] = "utf-8"
     isolated_env["PYTHONUTF8"] = "1"
+    # The PYTEST_ENV defaults: CPU and no GPU preallocation unless the caller sets them.
+    isolated_env.setdefault("JAX_PLATFORMS", "cpu")
+    isolated_env.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
     print("+ Running isolated wheel smoke simulation...", flush=True)
     _run(
         [str(venv_python), "-c", wheel_smoke_code(expected_version)],
@@ -1161,11 +1165,20 @@ def _test_modules() -> dict[str, str]:
 
 
 def _slow_node_ids() -> frozenset[str]:
-    """Node ids of the slow-marked tests, from collection only (no test runs). RuntimeError when collection fails."""
-    res = subprocess.run(
-        [sys.executable, "-m", "pytest", "tests", "--collect-only", "-q", "-m", "slow", "-p", "no:cacheprovider"],
-        cwd=ROOT, capture_output=True, text=True, check=False,
-    )
+    """Node ids of the slow-marked tests, from collection only (no test runs).
+
+    RuntimeError when collection fails or runs past the step cap (rc 124).
+    """
+    try:
+        res = subprocess.run(
+            [sys.executable, "-m", "pytest", "tests", "--collect-only", "-q", "-m", "slow", "-p", "no:cacheprovider"],
+            cwd=ROOT, capture_output=True, text=True, check=False,
+            env=PYTEST_ENV, timeout=GATE_STEP_TIMEOUT_S,
+        )
+    except subprocess.TimeoutExpired as e:
+        raise RuntimeError(
+            f"slow-test collection ran past {GATE_STEP_TIMEOUT_S:g} s (rc {TIMEOUT_RC})"
+        ) from e
     if res.returncode != 0:
         raise RuntimeError(f"slow-test collection exited {res.returncode}")
     ids = frozenset(

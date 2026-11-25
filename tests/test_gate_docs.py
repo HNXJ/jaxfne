@@ -177,3 +177,53 @@ def test_signal_to_gate_stops_the_step_tree(tmp_path, sig):
                 os.kill(pid, signal.SIGKILL)
             except ProcessLookupError:
                 pass
+
+
+def test_slow_collection_runs_on_cpu_with_a_cap(monkeypatch):
+    """2026-11-25: the slow-node collection inherited the GPU env and had no cap."""
+    seen: dict = {}
+
+    def fake_run(cmd, **kwargs):
+        seen.update(kwargs)
+        return subprocess.CompletedProcess(cmd, 0, stdout="tests/test_x.py::test_a\n", stderr="")
+
+    monkeypatch.setattr(rtg.subprocess, "run", fake_run)
+    monkeypatch.setattr(rtg, "GATE_STEP_TIMEOUT_S", 7.0)
+    assert rtg._slow_node_ids() == frozenset({"tests/test_x.py::test_a"})
+    assert seen["env"]["JAX_PLATFORMS"] == "cpu"
+    assert seen["timeout"] == 7.0
+
+
+def test_slow_collection_timeout_fails_loudly(monkeypatch):
+    def fake_run(cmd, **kwargs):
+        raise subprocess.TimeoutExpired(cmd, kwargs["timeout"])
+
+    monkeypatch.setattr(rtg.subprocess, "run", fake_run)
+    monkeypatch.setattr(rtg, "GATE_STEP_TIMEOUT_S", 7.0)
+    with pytest.raises(RuntimeError, match="rc 124"):
+        rtg._slow_node_ids()
+
+
+def test_isolated_wheel_smoke_env_defaults_to_cpu(monkeypatch, tmp_path):
+    seen: dict = {}
+    monkeypatch.setattr(rtg, "_run", lambda cmd, **kwargs: seen.update(kwargs))
+    monkeypatch.delenv("JAX_PLATFORMS", raising=False)
+    monkeypatch.delenv(PREALLOCATE, raising=False)
+    rtg.run_isolated_wheel_smoke(sys.executable, "0.0.0", cwd=tmp_path)
+    assert seen["env"]["JAX_PLATFORMS"] == "cpu"
+    assert seen["env"][PREALLOCATE] == "false"
+
+
+@pytest.mark.skipif(os.name != "posix", reason="signal handlers are POSIX here")
+def test_capped_run_skips_restoring_a_handler_python_cannot_reinstall(monkeypatch):
+    """signal.signal(sig, None) raises TypeError, so a previous handler of None is not restored."""
+    calls: list[tuple[int, object]] = []
+
+    def fake_signal(sig, handler):
+        calls.append((sig, handler))
+        return None
+
+    monkeypatch.setattr(rtg.signal, "signal", fake_signal)
+    rtg._run_capped([sys.executable, "-c", "pass"], cwd=rtg.ROOT, env=rtg.PYTEST_ENV)
+    assert calls, "fixture must install the stop handlers"
+    assert all(handler is not None for _, handler in calls)
