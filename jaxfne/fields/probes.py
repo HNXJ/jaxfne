@@ -451,31 +451,6 @@ def create_probe(
     return ProbeReadout(name=kind, kind=kind, data=data, report=report)
 
 
-def _declared_probe(
-    name: str,
-    kind: str,
-    data: jax.Array | CanonicalSource,
-    *,
-    position: Any,
-    reference: Any,
-    filter_spec: Any,
-    **create_kwargs,
-) -> ProbeReadout:
-    """Shared body of the spk, vm and source probes.
-
-    Refuses the electrode keywords under the public ``name``, unwraps ``data``
-    and builds the readout with the electrode report fragment.
-    """
-    _refuse_electrode_declarations(name, position, reference, filter_spec)
-    data, _src = _unwrap_probe_input(data)
-    return create_probe(
-        kind,
-        data,
-        extra_fields={**_src, **_electrode_report_fragment(position, reference, filter_spec)},
-        **create_kwargs,
-    )
-
-
 def spk_probe(
     spikes: jax.Array | CanonicalSource,
     *,
@@ -488,17 +463,16 @@ def spk_probe(
     ``position`` takes None; ``reference`` and ``filter_spec`` take None or
     ``"none"``. The probe applies none of them.
     """
-    return _declared_probe(
-        "spk_probe",
+    _refuse_electrode_declarations("spk_probe", position, reference, filter_spec)
+    spikes, _src = _unwrap_probe_input(spikes)
+    return create_probe(
         "spk",
         spikes,
-        position=position,
-        reference=reference,
-        filter_spec=filter_spec,
         method="threshold_or_emitter_spike_array",
         units_or_status="binary_spike_indicator",
         input_representation="relative_spike_events",
         assumptions=["spike_array_from_emitter_or_threshold", "binary_or_threshold_values"],
+        extra_fields={**_src, **_electrode_report_fragment(position, reference, filter_spec)},
     )
 
 
@@ -514,13 +488,11 @@ def vm_probe(
     ``position`` takes None; ``reference`` and ``filter_spec`` take None or
     ``"none"``. The probe applies none of them.
     """
-    return _declared_probe(
-        "vm_probe",
+    _refuse_electrode_declarations("vm_probe", position, reference, filter_spec)
+    voltage, _src = _unwrap_probe_input(voltage)
+    return create_probe(
         "vm",
         voltage,
-        position=position,
-        reference=reference,
-        filter_spec=filter_spec,
         method="emitter_state_voltage_trace",
         units_or_status="mV_or_native_model_voltage",
         input_representation="relative_vm_state",
@@ -528,6 +500,7 @@ def vm_probe(
             "voltage_from_emitter_native_state",
             "not_physical_membrane_voltage_unless_calibrated",
         ],
+        extra_fields={**_src, **_electrode_report_fragment(position, reference, filter_spec)},
     )
 
 
@@ -543,13 +516,11 @@ def source_probe(
     ``position`` takes None; ``reference`` and ``filter_spec`` take None or
     ``"none"``. The probe applies none of them.
     """
-    return _declared_probe(
-        "source_probe",
+    _refuse_electrode_declarations("source_probe", position, reference, filter_spec)
+    source, _src = _unwrap_probe_input(source)
+    return create_probe(
         "source",
         source,
-        position=position,
-        reference=reference,
-        filter_spec=filter_spec,
         method="declared_source_projection_or_proxy",
         units_or_status="native_current_units_or_proxy",
         input_representation="canonical_relative_source",
@@ -558,6 +529,7 @@ def source_probe(
             "source_from_emitter_native_state",
             "not_physical_membrane_current_unless_calibrated",
         ],
+        extra_fields={**_src, **_electrode_report_fragment(position, reference, filter_spec)},
     )
 
 
