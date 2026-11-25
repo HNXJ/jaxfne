@@ -33,9 +33,11 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -48,6 +50,13 @@ PYTEST_ENV = {
     "PYTHONIOENCODING": "utf-8",
     "PYTHONUTF8": "1",
 }
+# xdist workers each preallocate 75% of GPU memory: 12 workers hung the suite (2026-11-25).
+PYTEST_ENV.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
+# CPU is the CI and exact-equality contract: test_hdp_dispatch fails on GPU, passes on CPU.
+PYTEST_ENV.setdefault("JAX_PLATFORMS", "cpu")
+# Wall-clock cap per gate step; a step past it fails with 124, the coreutils timeout code.
+GATE_STEP_TIMEOUT_S = float(os.environ.get("JAXFNE_GATE_STEP_TIMEOUT_S", "3600"))
+TIMEOUT_RC = 124
 
 # Curated dev gate — owned here, not in docs/reference/project/ci_policy.md prose.
 DEV_PYTEST_TARGETS = [
@@ -445,6 +454,66 @@ def observed_pass_families() -> set[str]:
     }
 
 
+def _kill_group(proc: subprocess.Popen) -> None:
+    """Stop the step's process group (SIGTERM, then SIGKILL) and reap the child.
+
+    The group holds pytest-xdist workers, which a kill of the direct child leaves running.
+    """
+    if os.name != "posix":
+        proc.kill()
+        proc.wait()
+        return
+    try:
+        os.killpg(proc.pid, signal.SIGTERM)
+        proc.wait(timeout=10)
+    except (ProcessLookupError, subprocess.TimeoutExpired):
+        pass
+    try:
+        os.killpg(proc.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    proc.wait()
+
+
+def _run_capped(cmd: list[str], *, cwd: Path, env: dict[str, str]) -> int:
+    """Run ``cmd`` in its own process group; return its exit code, or 124 past the cap.
+
+    On POSIX, SIGTERM and SIGHUP to the gate stop the group before the gate exits, so a
+    task stop or a closed terminal leaves no pytest tree behind.
+    """
+    children: list[subprocess.Popen] = []
+
+    def _stop(signum, frame):
+        for child in children:
+            _kill_group(child)
+        raise SystemExit(128 + signum)
+
+    previous: dict[int, object] = {}
+    if os.name == "posix" and threading.current_thread() is threading.main_thread():
+        for name in ("SIGTERM", "SIGHUP"):
+            sig = getattr(signal, name)
+            previous[sig] = signal.signal(sig, _stop)
+    try:
+        proc = subprocess.Popen(cmd, cwd=cwd, env=env, start_new_session=True)
+        children.append(proc)
+        try:
+            return proc.wait(timeout=GATE_STEP_TIMEOUT_S)
+        except subprocess.TimeoutExpired:
+            print(
+                f"TIMEOUT: {' '.join(cmd)} ran past {GATE_STEP_TIMEOUT_S:g} s "
+                "(JAXFNE_GATE_STEP_TIMEOUT_S); killed its process group",
+                flush=True,
+            )
+            _kill_group(proc)
+            return TIMEOUT_RC
+        except BaseException:
+            _kill_group(proc)
+            raise
+    finally:
+        for sig, handler in previous.items():
+            signal.signal(sig, handler)
+
+
 def _run(
     cmd: list[str],
     *,
@@ -454,14 +523,14 @@ def _run(
 ) -> None:
     print("+", " ".join(cmd), flush=True)
     started = _utcnow()
-    proc = subprocess.run(cmd, cwd=cwd or ROOT, check=False, env=env or PYTEST_ENV)
+    returncode = _run_capped(cmd, cwd=cwd or ROOT, env=env or PYTEST_ENV)
     completed = _utcnow()
     if family is not None:
         if family not in CHECK_FAMILIES:
             raise RuntimeError(f"Unknown check family {family!r}; add it to CHECK_FAMILIES")
-        record_execution(family, cmd, started, completed, proc.returncode)
-    if proc.returncode != 0:
-        raise subprocess.CalledProcessError(proc.returncode, cmd)
+        record_execution(family, cmd, started, completed, returncode)
+    if returncode != 0:
+        raise subprocess.CalledProcessError(returncode, cmd)
 
 
 # --- Shared CI-owned checks ----------------------------------------------------
@@ -756,7 +825,7 @@ def _run_lane(lane: str) -> int:
     """Run one lane in its own pytest process; return its exit code."""
     cmd = _lane_argv(lane)
     print("+", " ".join(cmd), flush=True)
-    return subprocess.run(cmd, cwd=ROOT, check=False, env=PYTEST_ENV).returncode
+    return _run_capped(cmd, cwd=ROOT, env=PYTEST_ENV)
 
 
 def gate_pytest_lanes(lanes: list[str] | None = None) -> None:
