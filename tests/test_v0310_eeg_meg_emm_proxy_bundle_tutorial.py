@@ -8,11 +8,19 @@ Validates that:
 """
 
 import jax.numpy as jnp
+import pytest
 from jaxfne.fields import (
     eeg_proxy_probe,
     meg_proxy_probe,
     emm_proxy_probe,
 )
+
+
+def test_v0310_meg_refuses_other_orientation_convention():
+    """Only the default orientation_convention="declared" is accepted; others are refused."""
+    lfp_dummy = jnp.ones((10, 2))
+    with pytest.raises(ValueError, match="orientation_convention"):
+        meg_proxy_probe(lfp_dummy, orientation_convention="current")
 
 def test_v0310_operator_separation():
     """Verify that EEG, MEG, and EMM-proxy are distinct operators producing separate outputs."""

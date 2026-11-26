@@ -613,7 +613,12 @@ def csd_proxy_probe(
     csd: jax.Array | CanonicalSource,
     csd_sign_convention: str = "positive_equals_extracellular_source",
 ) -> ProbeReadout:
-    """CSD-proxy probe operator: estimate source-profile-like CSD-proxy readout."""
+    """CSD-proxy probe operator: pass-through readout of its input.
+
+    The input is returned unchanged as ``data``; no CSD is estimated here. The
+    report labels the output as a CSD proxy, but the second-derivative or
+    divergence step named in ``method`` is not applied in this function.
+    """
     csd, _src = _unwrap_probe_input(csd)
     report = _make_probe_report(
         kind="csd_proxy",
@@ -722,11 +727,16 @@ def meg_proxy_probe(
     """MEG-proxy probe operator: wrap a relative linear map of scalar source ``Q``.
 
     Does not construct oriented current or a physical MEG forward operator.
-    ``orientation_convention`` is retained as a compatibility argument and is
-    not interpreted as a current-orientation claim.
+    ``orientation_convention`` accepts only ``"declared"`` (the default), which
+    is not interpreted as a current-orientation claim; other values raise
+    ``ValueError``.
     """
     meg, _src = _unwrap_probe_input(meg)
-    _ = orientation_convention  # compatibility argument; not a current-orientation claim
+    if orientation_convention != "declared":
+        raise ValueError(
+            "orientation_convention must be 'declared' (the only supported value); "
+            f"got {orientation_convention!r}"
+        )
     extra = {
         **_src,
         "leadfield_status": leadfield_status,

@@ -1098,7 +1098,12 @@ def spectrolaminar_readout(
     n_contacts: int | None = None,
     dt_ms: float = 0.1,
 ) -> dict[str, Any]:
-    """Documented public function `spectrolaminar_readout`."""
+    """Documented public function `spectrolaminar_readout`.
+
+    ``contact_depths_m`` is ``pos_from_l4 * 0.5``: a stated factor of 0.5 that
+    halves the layer-4-relative position. The factor is not calibrated, so the
+    depths are not physical distances in metres.
+    """
     signal_arr = np.asarray(signal_arr, dtype=np.float32)
     T, N = signal_arr.shape
 
