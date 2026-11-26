@@ -10,7 +10,8 @@ the rules those releases were held to and are historical context for readers.
 ## [Unreleased]
 
 - `experimental_poisson_1d` float32 solves take one iterative-refinement step on the same `lstsq` (P-073). Float32
-  outputs change at float32 scale; the residual gate passes at more grids. Float64 and the layered rank cut above
+  outputs change at float32 scale; the residual gate passes at more grids, including uniform-conductivity N=241 (layered
+  forward error is not increased for N<=201; uniform GPU N=41 forward error rises 6%). Float64 and the layered rank cut above
   N~240 are unchanged. `score.json` Poisson receipt values move accordingly.
 - The dashboard has a Notebooks tab: each paper replication as one notebook that remakes the paper's figures
   (CAMINOS Cell Reports and PLoS Comput Biol 2026 first), exported by `scripts/export_dashboard_notebook.py`

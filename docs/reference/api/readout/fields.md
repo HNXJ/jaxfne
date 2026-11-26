@@ -495,7 +495,7 @@ against the solver's own output in `tests/test_experimental_poisson_1d_convergen
 
 **Known limitation:** an observed float32 conditioning failure of the dense
 `jnp.linalg.lstsq` solve; no universal grid-size law is established. The recorded sweep
-has residual_norm about 1e-3 at N=161 and a failed solve at N=321; the live
+has residual_norm about 1e-3 at N=161 and a failed solve at N=321 (before the P-073 refinement; the sweep is the reference for the pre-P-073 behavior); the live
 test requires N=321 to report `convergence_status="failed"` with residual_norm
 > 1e-3. `precision="float64"` with x64 enabled converges at N=300 in that
 test file.
@@ -504,7 +504,9 @@ test file.
 step on the same `lstsq`, so float32 outputs differ from the pre-P-073 solve.
 For N<=201 on the layered fixture it lowers the residual on CPU and GPU and
 does not increase the forward error (it lowers it at N=81 on both). It does
-not remove the rank truncation above N~240 on the layered fixture. `convergence_status` is a residual gate and does not by itself
+not remove the rank truncation above N~240 on the layered fixture. The uniform
+branch takes the same step: its GPU forward error at N=41 rises from 3.9e-6 to
+4.2e-6, and its N=241 status flips to converged on both backends. `convergence_status` is a residual gate and does not by itself
 establish forward accuracy.
 
 **Returns:** `(phi, residual, manifest)`:
@@ -552,8 +554,9 @@ fully independent of `project_laminar_sources` and the default
   `(n_bins-1,)`, always caller-supplied. Jaxfne treats every conductivity
   value as uncalibrated, so this is a required input here too, the same as
   every other field-projection entry point.
-- `n_bins` (int): depth-grid resolution. Keep below ~150 per
-  `experimental_poisson_1d`'s documented convergence ceiling.
+- `n_bins` (int): depth-grid resolution. Keep below ~240: the layered rank
+  truncation in `experimental_poisson_1d` (P-073); the residual status was
+  checked through N=201.
 - `z_min`, `z_max` (float, optional): depth range; default to the actual
   min/max `z` in `neuron_table`.
 

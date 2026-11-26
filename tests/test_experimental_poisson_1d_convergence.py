@@ -109,7 +109,9 @@ def test_phi_matches_exact_discrete_solution_at_frozen_resolutions():
     F_i = -dx * cumsum(s)[i], phi increments are dx F_i / sigma_{i+1/2}, and the
     mean-zero gauge is removed. The float32 solve's relative forward error against
     it must stay below 1e-4 at N = 21, 41, 81 (the frozen flux-test grids). The
-    pre-P-073 solve gave 3.5e-4 at N=81 on GPU, so this check fails there."""
+    pre-P-073 solve gave 3.5e-4 at N=81 on GPU and 3.0e-5 on CPU, so this check
+    discriminates on GPU only: on CPU the pre-P-073 forward error is already
+    below the threshold at these N."""
     for N in (21, 41, 81):
         dx = 1.0 / (N - 1)
         iface_node = N // 2

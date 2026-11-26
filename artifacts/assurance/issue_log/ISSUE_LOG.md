@@ -39,9 +39,11 @@ possible future change.
 - Ruling (Hamm 2026-11-25, conditional): one float32 iterative-refinement step on the same min-norm `lstsq`, float32
   path only (float64 unchanged); frozen criterion kept; no rank-cutoff, tolerance, boundary or label change.
 - Applied: `jaxfne/fields/solvers.py` (pending gate and review). Residual / tol at N=81: CPU 0.49 -> 0.073, GPU 1.21 -> 0.067.
-  Forward error vs the exact discrete solution at N=81: GPU 3.5e-4 -> 4.3e-6, CPU 3.0e-5 -> 1.4e-5. Forward error is
-  equal or lower at every tested N <= 201 on both backends (unchanged within 2 significant figures at GPU N=41, CPU N=161
-  and CPU N=201, where it is 3e-4 to 5e-4).
+  Forward error vs the exact discrete solution at N=81: GPU 3.5e-4 -> 4.3e-6, CPU 3.0e-5 -> 1.4e-5. Layered fixture:
+  forward error and residual are not increased at any tested N <= 201 on either backend (all N checked, script
+  `_temp_check_claims.py`); the changes at N=41, 161 and 201 are GPU 2.877e-5 -> 2.861e-5, CPU 5.497e-4 -> 5.403e-4,
+  CPU 3.136e-4 -> 3.064e-4. Uniform branch: GPU N=41 forward error rises 3.931e-6 -> 4.160e-6; N=241 status flips to
+  converged (residual/tol CPU 2.15 -> 0.17, GPU 6.26 -> 0.28).
 - Caveat for the status: the residual gate now reads "converged" at CPU N=161 (5.4e-4 forward error) and CPU N=201
   (3.1e-4), where it read "failed" before. Forward error did not improve there. Whether the status may pass at those N
   is Hamm's call.
@@ -49,7 +51,10 @@ possible future change.
   branch converges at N=241 with forward error 2.6e-5 (GPU) and 8.1e-5 (CPU).
 - Tests: new oracle test `test_phi_matches_exact_discrete_solution_at_frozen_resolutions`; on the pre-change solver on GPU
   it and both frozen flux tests fail; on the refined solver all 7 tests in the convergence file pass on GPU and CPU.
-  Solver-dependent files on CPU: 252 passed, 2 xfailed.
+  The new test is GPU-discriminating only: the pre-change CPU forward error at these N is below its 1e-4 threshold.
+  Solver-dependent files on CPU: 252 passed, 2 xfailed. One transient failure of
+  `test_precision_float64_converges_at_n300_when_x64_enabled` was seen in an independent review run; not reproduced in
+  six later runs (three GPU, three CPU). Cause unknown; its subprocess timeout is 120 s (unverified hypothesis).
 - Receipts: `artifacts/etudes/core_checks/fields/score.json` regenerated on CPU. `poisson_1d_flux_magnitude` error
   3.425e-05 -> 5.09e-07; `poisson_1d_flux_span` 2.570e-06 -> 1.118e-07. Pre-change values are at eb5cc9cd.
   The dashboard reads the fields lane at its pinned SHA, so it shows the old values until that lane advances (Hamm).

@@ -38,7 +38,7 @@ def experimental_poisson_1d(
 
     KNOWN LIMITATION (float32 dense ``lstsq``, both conductivity paths): an
     observed conditioning failure, not a universal grid-size law. The
-    2026-07-18 sweep recorded in
+    2026-07-18 sweep (before the P-073 refinement) recorded in
     ``tests/test_experimental_poisson_1d_convergence.py`` has residual_norm
     about 1e-3 at N=161 and a failed solve at N=321; the live test still
     requires N=321 to report ``convergence_status="failed"`` with
@@ -49,12 +49,14 @@ def experimental_poisson_1d(
     solve of this size.
 
     float32 refinement (P-073): the float32 solve takes one iterative-refinement
-    step on the same min-norm ``lstsq``. For N<=201 on the layered fixture it
+    step on the same min-norm ``lstsq``. On the layered fixture, for N<=201 it
     lowers the residual on both CPU and GPU, and it does not increase the
     forward error against the exact discrete solution (it lowers it at N=81 on
-    both). Above N~240 it changes nothing: the rank truncation remains and the
-    layered solve still reports ``"failed"``. Status is a residual gate: it does
-    not by itself establish forward accuracy.
+    both). On the layered fixture, above N~240 it changes nothing: the rank
+    truncation remains and the solve still reports ``"failed"``. On the uniform
+    branch it does change results: GPU forward error at N=41 rises from 3.9e-6
+    to 4.2e-6, and the N=241 status flips to converged. Status is a residual
+    gate: it does not by itself establish forward accuracy.
 
     Parameters
     ----------
