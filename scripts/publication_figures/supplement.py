@@ -1,6 +1,7 @@
 """Supplement items S1 (notation table), S2 (calibration transforms), S5
-(HDP reduction identity of the weight rules), S12 (the scored Vogels P3 v4), S13 (PCL Fig. 3), S14 (the scored GSDR P3 fit)
-and S16 (the scored Destexhe 2009 P3 replication).
+(HDP reduction identity of the weight rules), S4 (NeuronalTensor flattening: layer boxes, the
+declared edge rule, identity through a JSON round trip), S12 (the scored Vogels P3 v4), S13 (PCL
+Fig. 3), S14 (the scored GSDR P3 fit) and S16 (the scored Destexhe 2009 P3 replication).
 
 S1 parses docs/theory/doctrine/definition_map.md. A row is mapped when its symbol and
 test are both named, otherwise open. S2 applies every public calibration transform
@@ -719,6 +720,191 @@ def write_s16(out_dir: Path, score_path: Path = DESTEXHE_P3_VERDICT) -> dict[str
     return {"seeds": len(rows), "rows": len(rows), "passing": passing, "verdict": verdict}
 
 
+# S4 (checklist A2): NeuronalTensor flattening. Expectations come from the declaration (layer
+# boxes, pose translation, the in-degree rule), not from another compiled array. Layer positions
+# are i.i.d. draws with no declared per-neuron value, so within-layer relabelling is outside
+# these checks; S4_RESIDUAL records it.
+S4_TRANSLATION = (1.0, 2.0, 3.0)  # area pose translation, mm
+S4_BOXES = {  # layer -> (x0, x1, y0, y1, z0, z1), fractions of the column (P-022)
+    "L23": (0.0, 0.2, 0.0, 0.2, 0.0, 0.2),
+    "L4": (0.6, 0.8, 0.6, 0.8, 0.6, 0.8),
+}
+S4_EPS = 1e-5
+S4_RESIDUAL = (
+    "Within-layer relabelling is not detected: a layer's positions are i.i.d. uniform draws with "
+    "no declared per-neuron value, so a per-neuron expectation would have to copy the sampler."
+)
+
+
+def s4_example_tensor():
+    """One posed area: two layers with disjoint boxes; L4 carries an in-degree-3 E->PV rule."""
+    from jaxfne import neuronal_tensor as nt
+
+    def layer(name: str):
+        x0, x1, y0, y1, z0, z1 = S4_BOXES[name]
+        return nt.Layer(
+            name=name,
+            n_neurons=6,
+            neuron_types=[
+                nt.NeuronType.make("E", fraction=0.5),
+                nt.NeuronType.make("PV", fraction=0.5),
+            ],
+            geometry=nt.Geometry3D(x_range=(x0, x1), y_range=(y0, y1), z_range=(z0, z1)),
+        )
+
+    area = nt.Area(
+        name="V1",
+        layers=[layer("L23"), layer("L4")],
+        pose=nt.Pose3D(translation=S4_TRANSLATION),
+        inter_connections=[
+            nt.InterConnection(
+                "L4", "E", "L4", "PV", "AMPA",
+                static=nt.StaticParams(dT_ms=2.0),
+                in_degree=3,
+            )
+        ],
+    )
+    return nt.NeuronalTensor(name="s4-flattening", areas=[area])
+
+
+def _s4_bounds(layer: str, column_height_mm: float):
+    """Box of a layer in mm: x = tx - 0.25 + 0.5 f, y likewise, z = tz + h f (P-022 mapping)."""
+    tx, ty, tz = S4_TRANSLATION
+    x0, x1, y0, y1, z0, z1 = S4_BOXES[layer]
+    lo = np.array([tx - 0.25 + 0.5 * x0, ty - 0.25 + 0.5 * y0, tz + column_height_mm * z0])
+    hi = np.array([tx - 0.25 + 0.5 * x1, ty - 0.25 + 0.5 * y1, tz + column_height_mm * z1])
+    return lo - S4_EPS, hi + S4_EPS
+
+
+def s4_position_check(rows, positions, column_height_mm: float):
+    """Return (row indices outside their own layer's box, row indices inside another layer's box)."""
+    positions = np.asarray(positions, dtype=float)
+    own_outside: list[int] = []
+    in_other: list[int] = []
+    for i, row in enumerate(rows):
+        p = positions[i]
+        for layer in S4_BOXES:
+            lo, hi = _s4_bounds(layer, column_height_mm)
+            inside = bool(np.all((p >= lo) & (p <= hi)))
+            if layer == row["layer"] and not inside:
+                own_outside.append(i)
+            if layer != row["layer"] and inside:
+                in_other.append(i)
+    return own_outside, in_other
+
+
+def s4_expected_pairs(rows) -> set[tuple[int, int]]:
+    """Declared rule: every E neuron of L4 to every PV neuron of L4 (in_degree equals the E count)."""
+
+    def members(cell_type: str) -> set[int]:
+        return {i for i, r in enumerate(rows) if r["layer"] == "L4" and r["cell_type"] == cell_type}
+
+    return {(e, p) for e in members("E") for p in members("PV")}
+
+
+def s4_actual_pairs(model) -> set[tuple[int, int]]:
+    edges = model.params["edge_list"]
+    return set(zip(np.asarray(edges.pre).tolist(), np.asarray(edges.post).tolist()))
+
+
+def s4_pair_difference(actual: set, expected: set) -> dict[str, list]:
+    return {"missing": sorted(expected - actual), "extra": sorted(actual - expected)}
+
+
+def s4_check_model(model) -> dict[str, object]:
+    rows = model.neuron_table()
+    own_outside, in_other = s4_position_check(
+        rows, model.params["positions"], float(model.params["column_height_mm"])
+    )
+    expected = s4_expected_pairs(rows)
+    return {
+        "neurons": len(rows),
+        "expected_edges": len(expected),
+        "edges": len(s4_actual_pairs(model)),
+        "positions_outside_own_layer_box": own_outside,
+        "positions_inside_other_layer_box": in_other,
+        "edge_difference": s4_pair_difference(s4_actual_pairs(model), expected),
+    }
+
+
+def _s4_canonical(payload) -> str:
+    return json.dumps(payload, sort_keys=True, default=str)
+
+
+def write_s4(out_dir: Path) -> dict[str, object]:
+    """Write the S4 receipt: the schema of the example tensor, the flattening checks, and identity
+    through a JSON save and reload. Verdict PASS only when every check holds with nonzero expectations."""
+    import tempfile
+
+    import jaxfne as jtfne
+    from jaxfne import neuronal_tensor as nt
+
+    runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=2.0, dt_ms=0.5)
+    tensor = s4_example_tensor()
+    model = jtfne.construct(tensor, runtime)
+    check = s4_check_model(model)
+    with tempfile.TemporaryDirectory() as tmp:
+        path = nt.save_neuronal_tensor(tensor, Path(tmp) / "s4_tensor.json")
+        reloaded = nt.load_neuronal_tensor(path)
+    model2 = jtfne.construct(reloaded, runtime)
+    # JSON stores tuples as lists, so identity is compared on the canonical JSON form of both
+    # sides: equal exactly when the values agree and the two differ only in tuple/list type.
+    identity = {
+        "to_dict_equal": _s4_canonical(reloaded.to_dict()) == _s4_canonical(tensor.to_dict()),
+        "positions_equal": bool(
+            np.array_equal(np.asarray(model.params["positions"]), np.asarray(model2.params["positions"]))
+        ),
+        "edges_equal": s4_actual_pairs(model) == s4_actual_pairs(model2),
+    }
+    diff = check["edge_difference"]
+    verdict = (
+        "PASS"
+        if (
+            not check["positions_outside_own_layer_box"]
+            and not check["positions_inside_other_layer_box"]
+            and not diff["missing"]
+            and not diff["extra"]
+            and check["expected_edges"] > 0
+            and all(identity.values())
+        )
+        else "FAIL"
+    )
+    out = {
+        "schema_version": nt.NEURONAL_TENSOR_SCHEMA_VERSION,
+        "to_dict_keys": sorted(tensor.to_dict().keys()),
+        "example": {"areas": 1, "layers": ["L23", "L4"], "boxes_fraction": S4_BOXES,
+                    "translation_mm": list(S4_TRANSLATION), "rule": "L4 E->PV in_degree=3"},
+        "checks": check,
+        "identity": identity,
+        "residual": S4_RESIDUAL,
+        "verdict": verdict,
+    }
+    (out_dir / "S4_neuronal_tensor.json").write_text(
+        json.dumps(out, indent=2, allow_nan=False, default=str) + "\n", encoding="utf-8"
+    )
+    lines = [
+        "# S4. NeuronalTensor flattening (checklist A2)",
+        "",
+        f"Schema: `{out['schema_version']}`. Verdict: **{verdict}**.",
+        "",
+        f"- Neurons {check['neurons']}; expected E->PV edges {check['expected_edges']}; compiled edges {check['edges']}.",
+        f"- Positions outside their own layer box: {len(check['positions_outside_own_layer_box'])}; "
+        f"inside another layer's box: {len(check['positions_inside_other_layer_box'])}.",
+        f"- Edge difference: missing {len(diff['missing'])}, extra {len(diff['extra'])}.",
+        f"- Identity through JSON save and reload: to_dict {identity['to_dict_equal']}, "
+        f"positions {identity['positions_equal']}, edges {identity['edges_equal']}.",
+        "",
+        f"Residual, not claimed: {S4_RESIDUAL}",
+    ]
+    (out_dir / "S4_neuronal_tensor.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return {
+        "neurons": check["neurons"],
+        "expected_edges": check["expected_edges"],
+        "edges": check["edges"],
+        "verdict": verdict,
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
@@ -731,6 +917,7 @@ def main(argv: list[str] | None = None) -> int:
     s13 = write_s13(args.out)
     s14 = write_s14(args.out)
     s16 = write_s16(args.out)
+    s4 = write_s4(args.out)
     print(f"S1 rows={counts['rows']} mapped={counts['mapped']} open={counts['open']}")
     print(f"S2 rows={s2['rows']} checked={s2['checked']} failed={s2['failed']}")
     print(f"S5 rules={len(rules)} out={args.out}")
@@ -738,6 +925,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"S13 files={s13['files']} core_equal={s13['core_equal']} verdict={s13['verdict']} out={args.out}")
     print(f"S14 rows={s14['rows']} passing={s14['passing']} verdict={s14['verdict']} out={args.out}")
     print(f"S16 seeds={s16['seeds']} passing={s16['passing']} verdict={s16['verdict']} out={args.out}")
+    print(f"S4 neurons={s4['neurons']} expected_edges={s4['expected_edges']} edges={s4['edges']} verdict={s4['verdict']} out={args.out}")
     return 1 if s2["failed"] else 0
 
 
