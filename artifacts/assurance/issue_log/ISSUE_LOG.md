@@ -66,9 +66,12 @@ possible future change.
   No threshold, criterion or rank-cutoff change.
 - Independent review: ACCEPT on 93e0257c (2026-11-25; two rounds, findings fixed in the docs commit).
 - Gate: broad gate at `93e0257c` rc=0 (2026-11-25): pytest 8467 passed, 54 skipped, 5 xfailed, 0 failed; every
-  lane rc=0; audit checks passed. The candidate run on the dev tip `efc1c2d4` stopped at the public-docs language
-  audit (`docs/start/faq.md`, "not validated"; reworded, audit passes). The full broad gate reruns on the final dev
-  tip, and the dev push waits for it.
+  lane rc=0; audit checks passed. Candidate `efc1c2d4` stopped at the public-docs language audit
+  (`docs/start/faq.md`, "not validated"; reworded). Candidate `daa17386`: pytest 8467 passed, 54 skipped, 3 xfailed
+  (5 at 93e0257c: two P-070 xfails became plain tests in `5f00da8d`), 3 failed: the errors-index check (2 tests) and
+  the "X, not Y" docs check at `runtime.md:180`. `d5ae605f` regenerates `docs/reference/errors.md` and rewords that
+  sentence; the 3 tests pass there (293 and 6 passed), and the docs-reading audits pass. The code is identical to
+  `daa17386`, so no full pytest run is repeated; the dev push follows review and the state record.
 - Expected: closes when the candidate gate passes and the dev push lands; then a resolution line and a move to a dated
   closed batch (the budget decision is pending, see the Solmind plan §10.8).
 
