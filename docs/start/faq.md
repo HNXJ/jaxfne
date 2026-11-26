@@ -11,7 +11,7 @@ A: jaxfne requires Python 3.11 or later (supports 3.11-3.14). Blocking CI valida
 
 **Q: Can I run jaxfne on GPU?**
 
-A: JAX can place jaxfne computations on a GPU through its device configuration. Examples are CPU-first, and 0.5.10 release acceptance is CPU only. GPU numerical equivalence and deterministic behaviour are not validated; see the GPU findings in the runtime reference.
+A: JAX can place jaxfne computations on a GPU through its device configuration. Examples are CPU-first, and 0.5.10 release acceptance is CPU only. GPU numerical equivalence and deterministic behaviour are outside the 0.5.10 acceptance; see the GPU findings in the runtime reference.
 
 **Q: How do I install JAX with GPU support?**
 
