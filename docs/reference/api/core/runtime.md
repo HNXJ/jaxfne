@@ -153,7 +153,7 @@ model = jtfne.construct(cfg)
 signals = jtfne.simulate(model, seed=7)
 ```
 
-**Property (CPU, the 0.5.10 acceptance backend):** With same seed and configuration, simulations produce identical outputs, bitwise, on the same JAX version. GPU reproducibility is not a release guarantee; see GPU findings below.
+**Property (CPU, the 0.5.10 acceptance backend):** With same seed and configuration, simulations produce identical outputs, bitwise, on the same hardware and JAX version. GPU reproducibility is not a release guarantee; see GPU findings below.
 
 ### Deterministic Simulation
 
