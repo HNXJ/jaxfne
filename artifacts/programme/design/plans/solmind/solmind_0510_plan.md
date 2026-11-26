@@ -326,17 +326,17 @@ commits behind), the broad gate on the merge SHA, review ACCEPT, and the P-066 r
 | Item (pts) | State | Owner | Blocked by | Acceptance (frozen) | Next |
 |---|---|---|---|---|---|
 | A1 (4) | open | lead | none | F2 renders from the AT-10-N20 receipt | R28 |
-| A2 (3) | open | lead | none | S4 from the schema; identity, topology, signs, positions kept, each by a test | R29 |
-| B2 (3) | open | lead | GPU route (WSL CUDA) for the GPU half | hash-pinned CPU and GPU receipts under signed B1 | R31, R32 |
-| B3 (4) | open | lead | baseline libraries on the host | receipt per baseline or a recorded class mismatch | R33 |
-| B5 (2) | met 2026-11-23 (receipt SHA 8414e390; counts only at the candidate SHA, §4) | lead | none | GPU equals CPU within the declared tolerance | `tests/test_lif_cpu_gpu_b5.py` on WSL cuda:0 at the candidate; receipt `artifacts/runs/benchmark/b5_0510/b5_cpu_gpu_receipt.json` |
-| C1 (4) | blocked | Hamm | S17 (R36 prereg signature) | S7 from pinned receipts | sign, or move with a dated ruling |
-| D3 (2) | blocked | Hamm | S10 (Mejias P3 signature) | G6 scored | sign, or move |
-| F5 (1.5) | open (AdEx, LIF, `Model.tune` batching) | lead | none | each with its test | R39 / T-F5 |
-| F6 (1.5) | blocked | Hamm | S11 (P1/P2 text) | each with commit and receipt | recover the text, or move |
-| G2 (2) | met 2026-11-23 | Hamm and lead | none: 28 known violations (`scripts/replication_known_violations.json`); 13 carried Hamm exceptions of 2026-10-28 or 2026-11-03 (the earlier "none Hamm-authorized" was wrong), 15 got the §10.3 item 4 exception 2026-11-23 (each needs source content, a frozen-folder split or a scored-code change) | no violation without Hamm's exception | `check_replications.py --check`: findings 28, known 28, unlisted 0 |
+| A2 (3) | open (2026-11-25): `NEURONAL_TENSOR_SCHEMA_VERSION` and `to_dict` exist; the S4 writer and its tests do not | lead | none | S4 from the schema; identity, topology, signs, positions kept, each by a test | R29 |
+| B2 (3) | open, CPU only (2026-11-25): the GPU half moves with task-gpunondet. Harness fixed 2026-11-22; no manifest writer and no 20% validity check yet | lead | manifest writer and validity check (lead); `budget_files` raise for the cell receipts (ruled 2026-11-23, §10.3 item 13) | hash-pinned CPU receipts under signed B1 with item 14 ruled | R31 |
+| B3 (4) | open (2026-11-25): Jaxley imports in `~/.venvs/jaxfne`; brian2 and NEST do not. Install ruled 2026-11-23 (§10.3 item 17a) | lead | install of brian2 and NEST | receipt per baseline or a recorded class mismatch | R33 |
+| B5 (2) | met 2026-11-23 (receipt 8414e390, counts only at the candidate SHA). Whether the 2026-11-25 GPU ruling moves it is not ruled (O-B5) | lead | Hamm's ruling (O-B5) | GPU equals CPU within the declared tolerance | `tests/test_lif_cpu_gpu_b5.py` on WSL cuda:0 at the candidate; receipt `artifacts/runs/benchmark/b5_0510/b5_cpu_gpu_receipt.json` |
+| C1 (4) | moved to 0.5.11 (Hamm 2026-11-23; T-C1) | Hamm | none | S7 from pinned receipts | 0.5.11 |
+| D3 (2) | moved to 0.5.11 (Hamm 2026-11-23; T-D3) | Hamm | none | G6 scored | 0.5.11 |
+| F5 (1.5) | open: AdEx and LIF batching; the `Model.tune` half moved 2026-11-23. The 1.5 split is not ruled (O-F5SPLIT) | lead | Hamm's split (O-F5SPLIT) | each with its test | R39 / T-F5 |
+| F6 (1.5) | moved to 0.5.11 (Hamm 2026-11-23; S11 open: the P1/P2 text is unrecovered) | Hamm | none | each with commit and receipt | 0.5.11 |
+| G2 (2) | met 2026-11-23; re-verified 2026-11-25 (broad gate at daa17386: findings 28, known 28, unlisted 0) | Hamm and lead | none: 28 known violations (`scripts/replication_known_violations.json`); 13 carried Hamm exceptions of 2026-10-28 or 2026-11-03 (the earlier "none Hamm-authorized" was wrong), 15 got the §10.3 item 4 exception 2026-11-23 (each needs source content, a frozen-folder split or a scored-code change) | no violation without Hamm's exception | `check_replications.py --check`: findings 28, known 28, unlisted 0 |
 | Gate 1 (6) | not started | Hamm | every package closed or moved | dated rulings | after the above |
-| Gate 2 (8) | not started | lead | S18 (Release CI disabled), S21 (matching host), R04 | broad, CI, replications, dashboard exit 0 on the release SHA | R53 |
+| Gate 2 (8) | not started | lead | S18 done (`CI (Release & Scheduled)` active, REST 2026-11-25); S21 ruled Linux jax 0.10.2 (the gate venv has it); R04 open | broad, CI, replications, dashboard exit 0 on the release SHA | R53 |
 | Gate 3 (4) | not started | lead | candidate | version, changelog, `release_body.py --check` | R52 |
 | Gate 4 (6) | not started | lead | candidate | second review receipt | R54 |
 | Gate 5 (6) | owner-reserved | Hamm | S15 | publication | R55 |

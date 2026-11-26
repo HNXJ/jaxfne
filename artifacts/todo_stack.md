@@ -128,7 +128,10 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
   `jaxfne/neuronal_tensor.py:2953-2959`). Starts after the core's stage 2 gaps close. Closes when: a two-family
   circuit runs through `field()`/`probe()` with a test, and the plan's headline is re-reviewed.
 
-18. T-87 [A] F4 scored benchmark across N on CPU and the A4000 with recording controls (checklist B1-B3, 10 pts).
+18. T-87 [A] F4 scored benchmark across N, CPU only (checklist B2 and B3, 7 pts; the GPU half moved with task-gpunondet
+    2026-11-25). Status 2026-11-25: needs the B1 manifest writer, the 20% validity check against the reference tool, the
+    `budget_files` raise for the cell receipts (§10.3 item 13), and brian2 and NEST installed (§10.3 item 17a).
+    The run is pinned to the candidate SHA, so it starts after the code work.
     Closes when: the receipt records all 6 metrics and is evaluated against the purchase gate.
 20. T-C1 [A] (moved to 0.5.11, Hamm 2026-11-23) Augmentation ensemble study with provenance and the Fig. S7 panel (checklist C1, 4 pts). Closes when:
     Fig. S7 renders from pinned receipts. Blocked by: S17.
@@ -136,10 +139,13 @@ Problems: `open_stack.md`; issues: `assurance/issue_log/ISSUE_LOG.md`; rules B1-
     version and changelog; second review receipt; then Hamm's tag and publish. Closes when:
     `python scripts/run_test_gate.py broad` and `python scripts/check_replications.py --check` exit 0 on one SHA
     and the review receipt is committed.
+    Status 2026-11-25: Gate 2 needs R04 (matching-host broad run on the candidate; S21 ruled Linux jax 0.10.2, which the
+    gate venv has) and R53 (RC gates on the candidate; `CI (Release & Scheduled)` is active). Gate 3 needs the 0.5.10
+    version bump and `release_body.py --check`. Gate 4 needs a second review receipt. Gate 5 is Hamm's.
 
 ## 0.5.10 rows still open, carried with their checks
 
-23. T-R28 [A] Hamm's 2026-10-28 rulings left: dashboard P1 then P2 (ruling text not in the repo,
+23. T-R28 [A] Hamm's 2026-10-28 rulings left: dashboard P1 then P2 (moved to 0.5.11 with F6, Hamm 2026-11-23; ruling text not in the repo,
     `programme/design/plans/solmind/solmind_0510_plan.md:315`); the jitter reader on larger sets; C4's arbitrary-angle S3 panel; C6
     `geometry="laminar"` with Brian2 and Jaxley baselines. Closes when: each has a commit with its test or receipt.
 25. T-32 [A] 0.5.11 lanes picked 2026-11-08 (O-87; `etudes/papers/{lee2025,mazzoni2015}/NOTES.md`): Lee 2025 Fig 6
