@@ -103,6 +103,33 @@ def test_solver_honestly_self_reports_failure_above_the_confirmed_ceiling():
     assert status == "failed"
 
 
+def test_phi_matches_exact_discrete_solution_at_frozen_resolutions():
+    """Forward-accuracy oracle (P-073), independent of the residual gate. For the
+    layered fixture the discrete solution has a closed form: the interface flux is
+    F_i = -dx * cumsum(s)[i], phi increments are dx F_i / sigma_{i+1/2}, and the
+    mean-zero gauge is removed. The float32 solve's relative forward error against
+    it must stay below 1e-4 at N = 21, 41, 81 (the frozen flux-test grids). The
+    pre-P-073 solve gave 3.5e-4 at N=81 on GPU, so this check fails there."""
+    for N in (21, 41, 81):
+        dx = 1.0 / (N - 1)
+        iface_node = N // 2
+        src_node = max(1, N // 6)
+        sink_node = min(N - 2, N - N // 6 - 1)
+        assert src_node < sink_node, "fixture must have a source-sink pair"
+        sigma_face = np.where(np.arange(N - 1) < iface_node, 1.0, 3.0).astype(np.float32)
+        sources = np.zeros(N, dtype=np.float32)
+        sources[src_node] = 2.0
+        sources[sink_node] = -2.0
+
+        phi, _, _ = experimental_poisson_1d(jnp.asarray(sources), jnp.asarray(sigma_face), dx)
+
+        flux_exact = -dx * np.cumsum(sources.astype(np.float64))[:-1]
+        phi_exact = np.concatenate([[0.0], np.cumsum(dx * flux_exact / sigma_face.astype(np.float64))])
+        phi_exact -= phi_exact.mean()
+        rel = np.linalg.norm(np.asarray(phi, dtype=np.float64) - phi_exact) / np.linalg.norm(phi_exact)
+        assert rel < 1e-4, f"N={N}: forward error {rel:.3g} against the exact discrete solution"
+
+
 # --- precision opt-in (Phase 4 wave1: explicit float64 solve path) ---------
 #
 # x64 is a process-wide JAX config flag, so the "x64 actually enabled" case

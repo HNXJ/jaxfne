@@ -36,11 +36,26 @@ possible future change.
 - Controls: interface sigma shift, 1/dx scaling, rcond 1e-3 and a 1e-3 smooth perturbation fail the status; a Dirichlet
   row at a zero-source node shifts only the gauge (residual and flux blind; forward oracle catches it). Explicit
   rcond = eps keeps the null vector on CPU (gauge error 0.2): rejected.
-- Candidate (not applied): one fixed-precision refinement step with the same lstsq: residual / tol <= 0.24 for N <= 201
-  on both backends (N=81: 0.073 CPU, 0.067 GPU), GPU N=81 forward error 3.5e-4 -> 4.3e-6; leaves the rank cut; moves
-  float32 outputs and the `score_field_invariant_checks` receipt values.
-- Evidence: scripts and jsonl in `/mnt/e/repos/_wt/jaxfne/_temp_diag_poisson/` (`_temp_oracle.py`, `_temp_candidates.py`).
-- Expected: closes when Hamm rules O-GPU (3) and the ruled change passes the frozen tests on CPU and GPU.
+- Ruling (Hamm 2026-11-25, conditional): one float32 iterative-refinement step on the same min-norm `lstsq`, float32
+  path only (float64 unchanged); frozen criterion kept; no rank-cutoff, tolerance, boundary or label change.
+- Applied: `jaxfne/fields/solvers.py` (pending gate and review). Residual / tol at N=81: CPU 0.49 -> 0.073, GPU 1.21 -> 0.067.
+  Forward error vs the exact discrete solution at N=81: GPU 3.5e-4 -> 4.3e-6, CPU 3.0e-5 -> 1.4e-5. Forward error is
+  equal or lower at every tested N <= 201 on both backends (unchanged within 2 significant figures at GPU N=41, CPU N=161
+  and CPU N=201, where it is 3e-4 to 5e-4).
+- Caveat for the status: the residual gate now reads "converged" at CPU N=161 (5.4e-4 forward error) and CPU N=201
+  (3.1e-4), where it read "failed" before. Forward error did not improve there. Whether the status may pass at those N
+  is Hamm's call.
+- Rank cut (N >= 241, layered): still "failed" at N=241 (304 x tol) and N=321 (264 x tol) on both backends. The uniform
+  branch converges at N=241 with forward error 2.6e-5 (GPU) and 8.1e-5 (CPU).
+- Tests: new oracle test `test_phi_matches_exact_discrete_solution_at_frozen_resolutions`; on the pre-change solver on GPU
+  it and both frozen flux tests fail; on the refined solver all 7 tests in the convergence file pass on GPU and CPU.
+  Solver-dependent files on CPU: 252 passed, 2 xfailed.
+- Receipts: `artifacts/etudes/core_checks/fields/score.json` regenerated on CPU. `poisson_1d_flux_magnitude` error
+  3.425e-05 -> 5.09e-07; `poisson_1d_flux_span` 2.570e-06 -> 1.118e-07. Pre-change values are at eb5cc9cd.
+  The dashboard reads the fields lane at its pinned SHA, so it shows the old values until that lane advances (Hamm).
+- Evidence: scratch scripts and jsonl in `/mnt/e/repos/_wt/jaxfne/_temp_diag_poisson/` (`_temp_oracle.py`,
+  `_temp_candidates.py`, `_temp_uniform.py`; `oracle/*.jsonl`).
+- Expected: closes when the broad gate and an independent review pass on the refinement commit and Hamm rules the N=161 and N=201 status caveat.
 
 ### P-072
 

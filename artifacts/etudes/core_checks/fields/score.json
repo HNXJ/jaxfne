@@ -25,13 +25,13 @@
       "reference": "exact discrete response of the cascade, |H| = (alpha / |1 - (1-alpha) e^{-j 2 pi f dt}|)^order, alpha = 1 - exp(-dt/tau), at 5, 20, 100 Hz (tau 20 ms, dt 0.5 ms; relative)"
     },
     "poisson_1d_flux_magnitude": {
-      "error": 3.425031900400333e-05,
+      "error": 5.088470599046158e-07,
       "tolerance": 0.001,
       "pass": true,
       "reference": "Gauss's law: interior flux = -Q dx at N = 21, 41, 81 (signed, relative)"
     },
     "poisson_1d_flux_span": {
-      "error": 2.5704503059387207e-06,
+      "error": 1.1175870895385742e-07,
       "tolerance": 0.0001,
       "pass": true,
       "reference": "Gauss's law: flux zero outside [src, sink) and constant inside (N = 81, absolute)"

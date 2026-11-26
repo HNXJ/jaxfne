@@ -43,7 +43,7 @@ All four public solver entry points, with their verified contracts:
 |---|---|---|---|---|---|---|
 | `project_laminar_sources` | `sources` shape `[T, N]`; `positions` shape `[N, 3]` (third coordinate = relative laminar depth in `[0, 1]`); `n_contacts`, `width`, `mode`, `dtype` | `FieldOutput` (`source_proxy`, `phi_e_proxy`, `csd_proxy`, `lfp_proxy`, `kernel`, `contact_depths`, `diagnostics`), all proxy arrays `[T, n_contacts]` | `proxy_readout` | `linear_solver` | `False` | Gaussian-leadfield laminar projection; `mode="density_preserving"` (default) or `"row_normalize"` |
 | `project_sources_to_laminar_field` | same as `project_laminar_sources` | `FieldOutput` (same convention) | `proxy_readout` | `linear_solver` | `False` | Thin wrapper that delegates to `project_laminar_sources` |
-| `experimental_poisson_1d` | `sources` shape `[N]`; `conductivity` scalar or per-face array `(N-1,)`; `dx`; `boundary`; `gauge`; `precision` (`"float32"` default, `"float64"` requires x64 enabled) | `(phi, residual, manifest)`, arrays shape `[N]` | `proxy_readout` | `experimental_pde_solver` | `False` | Dense 1D Poisson solve, mean-zero-Neumann boundaries / mean-zero gauge; float32 convergence ceiling ~N 150-200 |
+| `experimental_poisson_1d` | `sources` shape `[N]`; `conductivity` scalar or per-face array `(N-1,)`; `dx`; `boundary`; `gauge`; `precision` (`"float32"` default, `"float64"` requires x64 enabled) | `(phi, residual, manifest)`, arrays shape `[N]` | `proxy_readout` | `experimental_pde_solver` | `False` | Dense 1D Poisson solve, mean-zero-Neumann boundaries / mean-zero gauge; float32 solve with one refinement step (P-073); layered rank truncation above N~240 |
 | `experimental_poisson_1d_from_neuron_table` | `neuron_table` (each row needs a numeric `"z"`); `sources` shape `[N]`; `conductivity`; `n_bins`; `z_min`/`z_max` | `(phi, residual, manifest)`, arrays shape `[n_bins]` | `proxy_readout` | `experimental_pde_solver` | `False` | Bins per-neuron source values into depth bins (summed), then delegates to `experimental_poisson_1d`; adds `bin_edges` and `neurons_per_bin` to the manifest |
 
 Wrapper language is exact: `project_sources_to_laminar_field` delegates to
@@ -72,8 +72,9 @@ output object and no new public API is proposed.
   path for field readouts.
 - Use `experimental_poisson_1d` only for the explicit one-dimensional,
   mean-zero-Neumann / mean-zero-gauge experimental PDE workflow. The float32
-  dense solve is observed to fail its 1e-3 residual check at N=321; that
-  observation covers the tested size only.
+  dense solve (with one refinement step, P-073) is observed to fail its 1e-3
+  residual check at N=321 on the layered fixture; that observation covers the
+  tested size only.
 - Use `experimental_poisson_1d_from_neuron_table` when the source values
   start on a `Model.neuron_table()` (per-neuron depths and sources).
 - `field_solver_status` distinguishes implementation type and leaves

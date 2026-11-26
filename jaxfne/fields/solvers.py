@@ -32,8 +32,9 @@ def experimental_poisson_1d(
     ambiguous at a node sitting exactly on a layer boundary):
     ``[sigma_{i+1/2}(phi_{i+1}-phi_i) - sigma_{i-1/2}(phi_i-phi_{i-1})] / dx**2``.
     Passing a scalar reduces to exactly the original uniform-conductivity
-    matrix (verified in tests/test_experimental_poisson_1d_layered.py) --
-    zero behavior change for every existing caller.
+    matrix (verified in tests/test_experimental_poisson_1d_layered.py). The
+    float32 refinement step (P-073) applies to both forms and changes float32
+    outputs for every caller.
 
     KNOWN LIMITATION (float32 dense ``lstsq``, both conductivity paths): an
     observed conditioning failure, not a universal grid-size law. The
@@ -46,6 +47,14 @@ def experimental_poisson_1d(
     check in that file. ``precision="float64"`` with x64 enabled converges
     at N=300 there, so the failure is this float32 dense solve, not every
     solve of this size.
+
+    float32 refinement (P-073): the float32 solve takes one iterative-refinement
+    step on the same min-norm ``lstsq``. For N<=201 on the layered fixture it
+    lowers the residual on both CPU and GPU, and it does not increase the
+    forward error against the exact discrete solution (it lowers it at N=81 on
+    both). Above N~240 it changes nothing: the rank truncation remains and the
+    layered solve still reports ``"failed"``. Status is a residual gate: it does
+    not by itself establish forward accuracy.
 
     Parameters
     ----------
@@ -62,9 +71,9 @@ def experimental_poisson_1d(
         Gauge choice.
     precision : str, default "float32"
         Numerical dtype for the assembly + solve. The default ``"float32"``
-        is the original, unchanged behavior (bit-identical to every prior
-        caller -- see tests/test_experimental_poisson_1d_layered.py's
-        ``test_original_smoke_case_unchanged``). Pass ``"float64"`` to opt
+        applies one iterative-refinement step (P-073), so its outputs differ
+        from the pre-P-073 solve at float32 rounding and refinement scale.
+        Pass ``"float64"`` to opt
         into the real double-precision solve path that resolves the
         float32 convergence ceiling documented above (float64 converges
         cleanly at every N up to 500 with the identical dense-Laplacian +
@@ -133,6 +142,10 @@ def experimental_poisson_1d(
 
     # Solve minimal norm (which satisfies mean-zero gauge)
     phi, _, _, _ = jnp.linalg.lstsq(A, b)
+    if solve_dtype == jnp.float32:
+        # One float32 iterative-refinement step on the same min-norm lstsq (P-073):
+        # the correction solves A dphi = b - A phi, so the gauge and rank cut are unchanged.
+        phi = phi + jnp.linalg.lstsq(A, b - A @ phi)[0]
 
     residual = A @ phi - b
     residual_norm = float(jnp.linalg.norm(residual))

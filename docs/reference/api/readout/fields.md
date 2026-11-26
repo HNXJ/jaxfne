@@ -475,8 +475,8 @@ from the fenced multi-dimensional placeholder below.
   constant "layered" medium, e.g. distinct cortical-layer conductivities).
   The layered case discretizes the variable-coefficient flux divergence at
   cell faces, the standard finite-difference treatment for `d/dx(sigma(x) dphi/dx)`.
-  Passing a scalar is bit-identical to the uniform conductivity formulation
-  (verified in `tests/test_experimental_poisson_1d_layered.py`).
+  Passing a scalar gives the same matrix as the uniform conductivity
+  formulation (verified in `tests/test_experimental_poisson_1d_layered.py`).
 - `dx` (float): grid spacing.
 - `boundary` (str, default `"mean_zero_neumann"`): boundary condition declaration.
 - `gauge` (str, default `"mean_zero"`): gauge choice; the returned `phi` is the
@@ -499,6 +499,13 @@ has residual_norm about 1e-3 at N=161 and a failed solve at N=321; the live
 test requires N=321 to report `convergence_status="failed"` with residual_norm
 > 1e-3. `precision="float64"` with x64 enabled converges at N=300 in that
 test file.
+
+**float32 refinement (P-073):** the float32 solve takes one iterative-refinement
+step on the same `lstsq`, so float32 outputs differ from the pre-P-073 solve.
+For N<=201 on the layered fixture it lowers the residual on CPU and GPU and
+does not increase the forward error (it lowers it at N=81 on both). It does
+not remove the rank truncation above N~240 on the layered fixture. `convergence_status` is a residual gate and does not by itself
+establish forward accuracy.
 
 **Returns:** `(phi, residual, manifest)`:
 - `phi` (`jax.Array`): solved potential array.
