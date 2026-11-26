@@ -504,6 +504,39 @@ Distance: not quantified. The engineering blockers are A1, A2, B2, B3, F5 (AdEx,
 task-gpunondet policy; the gates run after them. No day estimate is given because A1 (the AT-10-N20 atlas) and the
 GPU receipts have no measured duration.
 
+### 10.8 Hamm's scope and execution ruling (2026-11-25)
+
+Approved: the fastest defensible path to the full 0.5.10 release. Not a waiver of scientific correctness, mandatory
+gates or independent verification. Each item below is its scope; nothing else is approved by it.
+
+| Item | Ruling | Applied as |
+|---|---|---|
+| P-073 file budget | remove or consolidate a verified redundant file; else `budget_files` +1 for the dated closure record only | see the budget entry below |
+| GPU nondeterminism | 0.5.10 release acceptance is CPU. GPU findings preserved; unresolved GPU-specific acceptance moves to 0.5.11. No GPU numerical equivalence or deterministic behaviour advertised | task-gpunondet, B2 GPU half, B5 (GPU equals CPU) move to 0.5.11 |
+| T-R49-FIX | the remaining 78-figure print-size visual audit moves to 0.5.11; a confirmed incorrect scientific claim or a broken required figure stays blocking | visual half moves |
+| T-32, T-54, T-94, T-11, T-RG | deferral to 0.5.11, or the downstream repository | moved |
+| P-072 | dated deferral of documented low-severity residuals, provided none violates a frozen acceptance criterion | see below |
+| P-069 | refuse `hdp_params` when `enable_hdp=False` with `ValueError`, as the sibling routes do | not implemented: a blanket refusal breaks 16 `noise_scale` callers (`_model_simulate.py` consumes `noise_scale` with HDP off); test stays xfail; scope needs Hamm's decision |
+| P-073 | the unchanged residual-based convergence criterion and its documented status changes are accepted; close only after the required gate passes | pending gate |
+| other numerical or scientific decisions | preserve existing criteria; no inferred approval for estimands, tolerances, equations or numerical oracles | none |
+
+Interpretations to confirm with Hamm (not stated in the ruling):
+- P-070 (`boundary`/`gauge` recorded but not consumed) is refused with `ValueError`, not deferred. The project's
+  invariant is that a public parameter either changes the realized object or is refused (`artifacts/AGENTS.md`,
+  mathematical invariants), so a dated deferral would violate it.
+- P-072 D2 (`meg_proxy_probe(orientation_convention=...)` stored but unconsumed) is refused for any value other than
+  the default `"declared"`, for the same reason. D3 and D7 are fixed as docstring corrections. D6 (the `meg_relative`
+  label on an EEG leadfield) is deferred with a release note, because changing a receipt label is not in the ruling.
+  D8 is a docstring correction.
+- P-071 (validation-gate semantics, medium severity) is not covered by the ruling and remains open. Its two xfails stay.
+- P-069 needs a scope decision the ruling does not give: refuse only the `noise_scale`-free case, or refuse all
+  `hdp_params` and migrate the 16 callers. Until then the xfail stays and P-069 is open.
+- B5 moves because its frozen check is GPU equals CPU, which the ruling excludes from acceptance. Its points are
+  reported as moved, not earned.
+
+Budget: `budget_files` stays 2825 unless the closure record needs a new file. Removal candidates are checked before any
+raise. Score: reported as moved items, never remapped to 100.
+
 ## Appendix A. Execution plans of 2026-10-31 (verbatim)
 
 Folded here 2026-11-21 (A1) from `artifacts/etudes/meta/plans/execution_plans_0.5.9-0.5.10.md` at 3eb6a6a6, verbatim below this paragraph except that each of its 7 headings is demoted two levels; superseded for 0.5.10 routing by §8 and §9. Historical record only: none of its directives (lanes, roles, push or authorization lines) bind execution. History: `git log --follow` on the old path.
