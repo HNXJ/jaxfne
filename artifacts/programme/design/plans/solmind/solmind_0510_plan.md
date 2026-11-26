@@ -516,7 +516,7 @@ gates or independent verification. Each item below is its scope; nothing else is
 | T-R49-FIX | the remaining 78-figure print-size visual audit moves to 0.5.11; a confirmed incorrect scientific claim or a broken required figure stays blocking | visual half moves |
 | T-32, T-54, T-94, T-11, T-RG | deferral to 0.5.11, or the downstream repository | moved |
 | P-072 | dated deferral of documented low-severity residuals, provided none violates a frozen acceptance criterion | see below |
-| P-069 | refuse `hdp_params` when `enable_hdp=False` with `ValueError`, as the sibling routes do | not implemented: a blanket refusal breaks 16 `noise_scale` callers (`_model_simulate.py` consumes `noise_scale` with HDP off); test stays xfail; scope needs Hamm's decision |
+| P-069 | refuse `hdp_params` when `enable_hdp=False` with `ValueError`, as the sibling routes do | two of three routes refuse since 2026-11-23 (AdEx seed batch, homeostatic E/I). Izhikevich not: a blanket refusal breaks 16 `noise_scale` callers (`_model_simulate.py` consumes `noise_scale` with HDP off); its xfail stays; scope needs Hamm's decision |
 | P-073 | the unchanged residual-based convergence criterion and its documented status changes are accepted; close only after the required gate passes | pending gate |
 | other numerical or scientific decisions | preserve existing criteria; no inferred approval for estimands, tolerances, equations or numerical oracles | none |
 

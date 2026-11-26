@@ -80,6 +80,10 @@ possible future change.
 - D7: `spectrolaminar_readout` contact depth = `pos_from_l4 * 0.5`, an undeclared constant (`fields/proxy.py:1186`).
 - D8: `experimental_poisson_1d` docstring claims the scalar path is bit-identical to a constant layered σ; the test
   checks `atol=1e-4` (`tests/test_experimental_poisson_1d_layered.py`, `test_layered_reduces_to_scalar_path_when_uniform`).
+- Applied (pending broad gate and independent review). D2 in `16dc1b96`: `meg_proxy_probe` raises `ValueError` for any
+  `orientation_convention` other than `"declared"`; this follows plan §10.8 and is to be confirmed. D3 and D7 docstrings
+  corrected in `16dc1b96` (D7's constant is named, not declared as a parameter). D8 docstring in `5f00da8d`. D6: deferred
+  2026-11-25 with labels unchanged; its release note is not yet written. Closes when the gate passes and that note exists.
 
 ### P-071
 
@@ -106,8 +110,10 @@ possible future change.
   opposite of the solver.
 - Reproduction: strict xfails `test_unsupported_boundary_is_refused`, `test_unsupported_gauge_is_refused`
   (`tests/test_experimental_poisson_1d_layered.py`, on dev since 8018e191).
-- Expected: a `ValueError` for any value other than `mean_zero_neumann` / `mean_zero`; closes when the xfails pass
-  (production change awaits Hamm's ruling).
+- Expected: a `ValueError` for any value other than `mean_zero_neumann` / `mean_zero`.
+- Applied: `5f00da8d` (pending broad gate and independent review). The refusal follows plan §10.8 (a public parameter is
+  refused, not deferred). Hamm's ruling text does not name P-070; the reading is to be confirmed. Closes when the
+  candidate gate passes and the review accepts `5f00da8d`.
 
 ### P-069
 
