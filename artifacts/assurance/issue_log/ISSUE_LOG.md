@@ -84,6 +84,10 @@ possible future change.
   `orientation_convention` other than `"declared"`; this follows plan §10.8 and is to be confirmed. D3 and D7 docstrings
   corrected in `16dc1b96` (D7's constant is named, not declared as a parameter). D8 docstring in `5f00da8d`. D6: deferred
   2026-11-25 with labels unchanged; its release note is not yet written. Closes when the gate passes and that note exists.
+- Residual, not changed (no label change in this batch): the CSD report still carries `stencil`
+  `negative_second_difference_edge_padded` and `identity` `laminar_second_derivative` (`probes.py`, observation block
+  ~649-655), which describe a second difference the function does not apply. `contact_depths_m` keeps a `_m` suffix
+  while its docstring says the values are not metres.
 
 ### P-071
 
