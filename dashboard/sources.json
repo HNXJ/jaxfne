@@ -1189,7 +1189,7 @@
       "tier": "T-jaxfne",
       "lane": {
         "branch": "dev",
-        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
+        "sha": "93e0257c06b0e95453e191cb78609f5f18ac1ebd"
       },
       "summary": "Six agreements of the field and probe operators, scored from the inputs of their pinned tests: LinearReadout, EEG and MEG proxies superpose and scale against the hand formula S W^T; csd_tensor is zero on a constant and -phi'' on a quadratic at interior contacts; the cable filter gain equals the exact discrete response of its one-pole cascade at 5, 20 and 100 Hz; the one-dimensional Poisson solver's flux obeys Gauss's law.",
       "preregs": [],

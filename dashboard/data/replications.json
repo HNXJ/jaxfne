@@ -2,9 +2,9 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-11-12T18:00:21Z",
-    "dev_sha": "d30e74188e33feca2e3337dfe2a74a109f9a366a",
-    "data_revision": "aa63c741743bc77b1db99268eec8ac2a7f632b68788dadd6432153184766ff9b"
+    "utc": "2026-11-26T01:20:18Z",
+    "dev_sha": "49c1ae2c76e4f38a8d8ffde99c6665b398bdf82c",
+    "data_revision": "09f545eadcd2c7bb5983489f24230db8478582f3fe789fba67885067025eef3b"
   },
   "papers": [
     {
@@ -6839,7 +6839,7 @@
       ],
       "lane": {
         "branch": "dev",
-        "sha": "a13884f58b908a711bd747e34c99327d41bd036c"
+        "sha": "93e0257c06b0e95453e191cb78609f5f18ac1ebd"
       },
       "stage_artifacts": [],
       "verdict": null,
@@ -6866,8 +6866,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/fields/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json",
-            "sha256": "c43a711d25813f079be356d2f1444c3e953006b925f95d9c972a213d88aa51c4"
+            "url": "https://github.com/hnxj/jaxfne/blob/93e0257c06b0e95453e191cb78609f5f18ac1ebd/artifacts/etudes/core_checks/fields/score.json",
+            "sha256": "2846b3851c07308deccc0b3330b46002db702aa7f309f9ee3e627f247c045f22"
           }
         },
         {
@@ -6889,8 +6889,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/fields/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json",
-            "sha256": "c43a711d25813f079be356d2f1444c3e953006b925f95d9c972a213d88aa51c4"
+            "url": "https://github.com/hnxj/jaxfne/blob/93e0257c06b0e95453e191cb78609f5f18ac1ebd/artifacts/etudes/core_checks/fields/score.json",
+            "sha256": "2846b3851c07308deccc0b3330b46002db702aa7f309f9ee3e627f247c045f22"
           }
         },
         {
@@ -6912,8 +6912,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/fields/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json",
-            "sha256": "c43a711d25813f079be356d2f1444c3e953006b925f95d9c972a213d88aa51c4"
+            "url": "https://github.com/hnxj/jaxfne/blob/93e0257c06b0e95453e191cb78609f5f18ac1ebd/artifacts/etudes/core_checks/fields/score.json",
+            "sha256": "2846b3851c07308deccc0b3330b46002db702aa7f309f9ee3e627f247c045f22"
           }
         },
         {
@@ -6935,8 +6935,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/fields/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json",
-            "sha256": "c43a711d25813f079be356d2f1444c3e953006b925f95d9c972a213d88aa51c4"
+            "url": "https://github.com/hnxj/jaxfne/blob/93e0257c06b0e95453e191cb78609f5f18ac1ebd/artifacts/etudes/core_checks/fields/score.json",
+            "sha256": "2846b3851c07308deccc0b3330b46002db702aa7f309f9ee3e627f247c045f22"
           }
         },
         {
@@ -6945,8 +6945,8 @@
           "claim": "the one-dimensional solver's flux carries Q dx across the source-sink span",
           "estimand": "worst-case relative deviation of |interior flux| from Q dx at N = 21, 41, 81",
           "criterion": "relative error ≤ 1e-3",
-          "value": 3.425031900400333e-05,
-          "value_text": "3.43e-05",
+          "value": 5.088470599046158e-07,
+          "value_text": "5.09e-07",
           "value_label": "max relative deviation",
           "paper_value": null,
           "unit": "",
@@ -6958,8 +6958,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/fields/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json",
-            "sha256": "c43a711d25813f079be356d2f1444c3e953006b925f95d9c972a213d88aa51c4"
+            "url": "https://github.com/hnxj/jaxfne/blob/93e0257c06b0e95453e191cb78609f5f18ac1ebd/artifacts/etudes/core_checks/fields/score.json",
+            "sha256": "2846b3851c07308deccc0b3330b46002db702aa7f309f9ee3e627f247c045f22"
           }
         },
         {
@@ -6968,8 +6968,8 @@
           "claim": "the one-dimensional solver's flux vanishes outside the source-sink span and is constant inside",
           "estimand": "worst-case |flux| outside the span and std inside, N = 81",
           "criterion": "error ≤ 1e-4",
-          "value": 2.5704503059387207e-06,
-          "value_text": "2.57e-06",
+          "value": 1.1175870895385742e-07,
+          "value_text": "1.12e-07",
           "value_label": "max |deviation|",
           "paper_value": null,
           "unit": "",
@@ -6981,8 +6981,8 @@
           "prereg": null,
           "evidence": {
             "path": "artifacts/etudes/core_checks/fields/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/a13884f58b908a711bd747e34c99327d41bd036c/artifacts/etudes/core_checks/fields/score.json",
-            "sha256": "c43a711d25813f079be356d2f1444c3e953006b925f95d9c972a213d88aa51c4"
+            "url": "https://github.com/hnxj/jaxfne/blob/93e0257c06b0e95453e191cb78609f5f18ac1ebd/artifacts/etudes/core_checks/fields/score.json",
+            "sha256": "2846b3851c07308deccc0b3330b46002db702aa7f309f9ee3e627f247c045f22"
           }
         }
       ],
