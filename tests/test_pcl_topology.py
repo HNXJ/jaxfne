@@ -729,6 +729,18 @@ def test_local_inhibition_refused_on_the_default_simulate_path():
         model.simulate(jtfne.Simulation(duration_ms=20.0, dt_ms=0.5))
 
 
+def test_event_scan_local_inhibition_patch_does_not_key_error():
+    """P-074: the event_scan spec has no 'rounds' key; the patch must not read one."""
+    from jaxfne.connectivity import with_rule_local_inhibition
+
+    cfg = with_rule_local_inhibition(
+        _sign_only_column().connections(
+            name="rec", source={}, target={}, weight=0.03),
+        "rec", {"resolution": "event_scan"})
+    with pytest.raises(ValueError, match="local_inhibition"):
+        jtfne.construct(cfg)
+
+
 def test_local_inhibition_delay_zero_runs_inside_the_step():
     tensor = _tensor(delay_ms=0.0, local_inhibition={"rounds": 2})
     model = _construct(tensor, emitter="lif")

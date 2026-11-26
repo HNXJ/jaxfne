@@ -1723,10 +1723,12 @@ def with_rule_local_inhibition(cfg: Any, rule_name: str, spec: Any) -> Any:
 
     Same idiom as :func:`with_rule_allow_self_connections` (:meth:
     `Configuration.connections` has no ``local_inhibition`` kwarg): the
-    named rule entry is copied with ``local_inhibition={"rounds", "order"}``
-    (plus ``"resolution"`` when explicitly declared, so default specs stay
-    byte-identical) and everything else byte-identical. ``spec`` is revalidated here
-    (fail-closed); :func:`compile_connection_rules` echoes it onto the
+    named rule entry is copied with ``local_inhibition`` set to the validated
+    spec, ``{"rounds", "order"}`` (plus ``"resolution"`` when explicitly
+    declared, so default specs stay byte-identical), or ``{"order",
+    "resolution"}`` under ``"event_scan"``, which has no ``rounds``. Everything
+    else is byte-identical. ``spec`` is revalidated here (fail-closed);
+    :func:`compile_connection_rules` echoes it onto the
     connection-table row so the declared intra-step fixed point rides the
     manifest. The rule must exist exactly once.
     """
@@ -1743,11 +1745,7 @@ def with_rule_local_inhibition(cfg: Any, rule_name: str, spec: Any) -> Any:
         )
     patched = dict(
         rules[hits[0]],
-        local_inhibition={
-            "rounds": normalized["rounds"], "order": normalized["order"],
-            **({"resolution": normalized["resolution"]}
-               if "resolution" in normalized else {}),
-        },
+        local_inhibition=dict(normalized),
     )
     rules[hits[0]] = patched
     circuit["connections"] = rules

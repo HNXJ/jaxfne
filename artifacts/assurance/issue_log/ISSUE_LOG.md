@@ -17,6 +17,22 @@ possible future change.
 
 ## Open
 
+### P-074
+
+- Date: 2026-11-25. Type: BUG. Area: `with_rule_local_inhibition` (`jaxfne/connectivity.py:1744`) under
+  `resolution="event_scan"`. Severity: medium (a valid declaration fails with `KeyError`, not its refusal).
+- Observation: `validate_local_inhibition` returns `{"order", "resolution"}` for `event_scan` with no `rounds`
+  (its docstring says so, `jaxfne/pcl_topology.py`). The patch read `normalized["rounds"]` unconditionally, so every
+  `event_scan` declaration raised `KeyError: 'rounds'`. Found in passing by the F5 worker; reproduced in the lead tree.
+- Reproduction: `pytest tests/test_pcl_topology.py -k event_scan_local_inhibition_patch_does_not_key_error` before the
+  fix: 1 failed, `KeyError: 'rounds'` at `connectivity.py:1747`.
+- Expected: no `KeyError`; the sign-only route refuses the declared spec with `ValueError` naming `local_inhibition`,
+  as its sibling tests assert.
+- Applied (pending broad gate and review): `local_inhibition=dict(normalized)`. Read from the validator's return
+  values, the old dict and the new one carry the same keys in the same order for every non-`event_scan` spec
+  (`rounds`, `order`, `resolution` if declared); not byte-compared. `tests/test_pcl_topology.py`: 68 passed.
+  Closes when the candidate gate passes and a non-writer accepts the change.
+
 ### P-073
 
 - Date: 2026-11-25. Type: BUG / SCIENCE. Area: `experimental_poisson_1d` (O-GPU (3)). Severity: medium (blocks P2/FNO
