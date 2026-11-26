@@ -731,8 +731,11 @@ S4_BOXES = {  # layer -> (x0, x1, y0, y1, z0, z1), fractions of the column (P-02
 }
 S4_EPS = 1e-5
 S4_RESIDUAL = (
-    "Within-layer relabelling is not detected: a layer's positions are i.i.d. uniform draws with "
-    "no declared per-neuron value, so a per-neuron expectation would have to copy the sampler."
+    "Not detected: (1) within-layer relabelling, since a layer's positions are i.i.d. uniform draws "
+    "with no declared per-neuron value and a per-neuron expectation would copy the sampler; "
+    "(2) position checks establish box membership only, not the declared per-neuron value; "
+    "(3) edge checks cover pre/post pairs only, so weights, delays and receptors are unchecked "
+    "here (sign and tau are covered by test_explicit_tensor_preserves_identity_geometry_sign_and_receptor)."
 )
 
 
