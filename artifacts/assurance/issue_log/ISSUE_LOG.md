@@ -40,8 +40,8 @@ possible future change.
   path only (float64 unchanged); frozen criterion kept; no rank-cutoff, tolerance, boundary or label change.
 - Applied: `jaxfne/fields/solvers.py` (pending gate and review). Residual / tol at N=81: CPU 0.49 -> 0.073, GPU 1.21 -> 0.067.
   Forward error vs the exact discrete solution at N=81: GPU 3.5e-4 -> 4.3e-6, CPU 3.0e-5 -> 1.4e-5. Layered fixture:
-  forward error and residual are not increased at any tested N <= 201 on either backend (all N checked, script
-  `_temp_check_claims.py`); the changes at N=41, 161 and 201 are GPU 2.877e-5 -> 2.861e-5, CPU 5.497e-4 -> 5.403e-4,
+  forward error and residual are not increased at any tested N <= 201 on either backend (all N checked, scratch
+  script `/mnt/e/repos/_wt/jaxfne/_temp_diag_poisson/_temp_check_claims.py`, outside the repo); the changes at N=41, 161 and 201 are GPU 2.877e-5 -> 2.861e-5, CPU 5.497e-4 -> 5.403e-4,
   CPU 3.136e-4 -> 3.064e-4. Uniform branch: GPU N=41 forward error rises 3.931e-6 -> 4.160e-6; N=241 status flips to
   converged (residual/tol CPU 2.15 -> 0.17, GPU 6.26 -> 0.28).
 - Caveat for the status: the residual gate now reads "converged" at CPU N=161 (5.4e-4 forward error) and CPU N=201
@@ -60,7 +60,13 @@ possible future change.
   The dashboard reads the fields lane at its pinned SHA, so it shows the old values until that lane advances (Hamm).
 - Evidence: scratch scripts and jsonl in `/mnt/e/repos/_wt/jaxfne/_temp_diag_poisson/` (`_temp_oracle.py`,
   `_temp_candidates.py`, `_temp_uniform.py`; `oracle/*.jsonl`).
-- Expected: closes when the broad gate and an independent review pass on the refinement commit and Hamm rules the N=161 and N=201 status caveat.
+- Status ruling (Hamm 2026-11-25): `convergence_status` is `"converged"` exactly when the existing residual criterion
+  (residual_norm < 1e-3, unchanged) holds. Forward error is a separate metric: it stays in the oracle test and in this
+  entry, and is not part of the status. The uniform N=241 status change is disclosed (solvers.py, fields.md, changelog).
+  No threshold, criterion or rank-cutoff change.
+- Independent review: ACCEPT on 93e0257c (2026-11-25; two rounds, findings fixed in the docs commit).
+- Expected: closes when the broad gate passes at 93e0257c (0 failed) and the dev push lands; then a resolution line and
+  a move to a dated closed batch.
 
 ### P-072
 

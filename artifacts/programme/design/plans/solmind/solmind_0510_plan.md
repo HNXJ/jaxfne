@@ -429,6 +429,81 @@ Ruling (Hamm 2026-11-22): all recommendations approved. Applied on `_temp_clean1
 
 Executable next without a ruling: shared real-number check (13 sites), `_check_edges` prefix (lif/adex), `neuron_table()` hoist in `canonical_compact_summary`, 27 silent `except: pass` outside frozen modules (after `tests/test_silent_fallbacks_audit.py`), dated history comments in code, b1 lane duplicate helpers, broken paths in `artifacts/etudes/papers/pcl/diag/diag_common.py:25,28`.
 
+### 10.7 Release scope: mandatory versus deferred (lead, 2026-11-25)
+
+Rule (§2 and the frozen checklist, `artifacts/etudes/meta/plans/release_plan_0.5.9-0.6.0.md`). Mandatory means: a frozen
+0.5.10 item not met (10A-10G, Gates 1-5); every Open entry in `ISSUE_LOG.md` (§2 rule); every row of the release todo
+section (`todo_stack.md`, "0.5.10 rows still open") unless a dated Hamm move takes it out; or a reproducible correctness
+defect. Everything else is deferred and does not delay release (§2). Moves out of 0.5.10 are Hamm's. The rows below
+propose them; none is moved until Hamm records it.
+
+Already moved by the 2026-11-23 ruling (item 3, option a): C1, D3, F6 to 0.5.11. Item 16: the `Model.tune` half of F5 to
+0.5.11. Items 2, 4-6, 9, 13, 15, 17 took their recommended options; §10.2 does not yet show these.
+
+**Mandatory open frozen items** (READY needs all of them met or moved):
+
+| Item (pts) | State 2026-11-25 | Next | Blocker |
+|---|---|---|---|
+| A1 (4) | open | R28: AT-10-N20 receipt, F2 render | engineering |
+| A2 (3) | open | R29: S4 schema, identity/topology/signs/positions tests | engineering |
+| B2 (3) | open | R31, R32: CPU and GPU receipts, budget raise (item 13) | GPU route on WSL |
+| B3 (4) | open | R33: brian2 and NEST installed in WSL (item 17), then receipts | install |
+| F5 (1.5) | open for AdEx and LIF batching | R39 | engineering |
+| B5 (2) | met at candidate SHA only | candidate receipt | counts at the candidate |
+| G2 (2) | met with dated exceptions (item 4) | exceptions recorded in the replication list | Hamm record |
+| Gate 1 (6) | not started | dated moves recorded (this section) | Hamm |
+| Gate 2 (8) | not started | S18 release CI enabled (item 5), S21 matching host (item 6), R04, R53 | engineering |
+| Gate 3 (4) | not started | version, changelog, `release_body.py --check` (R52) | after candidate |
+| Gate 4 (6) | not started | second review receipt (R54) | after candidate |
+| Gate 5 (6) | owner-reserved | Hamm's exact-SHA go (R55) | Hamm |
+
+**Issue-log Open** (READY requires empty; a move needs a dated Hamm record and an executable closing check):
+
+| Entry | Question | Proposed route |
+|---|---|---|
+| P-067 | Pose3D `xz`/`yz` depth axis, unmeasured | write the red test (`NeuronalTensor` xz-posed area vs xy) and decide; or dated move |
+| P-069 | `enable_hdp=False` with `hdp_params` (O-P069) | Hamm picks refuse (recommended) or document |
+| P-070 | `boundary`/`gauge` unsupported values silently accepted; two strict xfails on dev | production change awaits Hamm's ruling (refuse, recommended) |
+| P-071 | D4/D5 tests on dev; `verify_field_linearity` and gauge gate semantics unchanged | production change awaits Hamm's ruling; or dated move |
+| P-072 | D2, D3, D6, D7, D8 residuals, low severity | dated move to 0.5.11 with closing checks (recommended) |
+| P-073 | Poisson status | gate and dev push pending; status ruling 2026-11-25 applied (`ISSUE_LOG.md`) |
+
+**Release todo rows** (`todo_stack.md` section "0.5.10 rows still open, carried with their checks"):
+
+| Row | Proposed route |
+|---|---|
+| T-R28 | mandatory for its A1, A2, C4 and C6 parts; the dashboard P1/P2 part moved with F6 (item 3) |
+| T-32 (GSDR, Lee 2025, Mazzoni 2015 lanes) | dated move: its own text says 0.5.11 |
+| T-54 (awesome-jax PR) | dated move: its own text says after 0.5.10 |
+| T-11, T-RG (`jnwb`, `komposer`) | out of jaxfne's release; move to those repos' trackers |
+| T-94 (ephaptic contrast, R19) | dated move; ephaptic stays experimental (item 12) |
+| T-P069 | follows P-069 |
+| T-R49-FIX | text half closed (`20ef57cf`, `e1a1cbe5`); the visual half (print-size render of 78 figures) is the question: dated move (recommended) or do it |
+| task-gpunondet | mandatory by carry: 116 GPU failures, 36 unresolved residual cases, O-GPU (2) and (4) open; closure needs a Hamm policy per class, or a dated move with an explicit CPU-scoped release statement |
+
+**Hamm calls in `open_stack.md`:** O-FIG05 (darwin re-freeze; Mac unreachable since 2026-11-23; no macOS runner in
+`.github/workflows`, so it is a coverage gap, not a CI gate): mandatory only if the re-freeze stays in 0.5.10, else a
+dated move. O-AIDOC: needed only if the release docs carry the direction text. O-GPU (3) is closed by the 2026-11-25
+ruling.
+
+**Deferred to 0.5.11 without a ruling** (outside the frozen checklist, §2): R12-R27 ephaptic operator audit and
+prereg work (R13 wording needs a check: if a public page still calls the lateral voltage coupling a field, that is a
+correctness defect and becomes mandatory); R19-R22 and R36-R38 with their packages; R42-R48 docs, tutorials and
+consolidation; R50 except the docs gate and `mkdocs build --strict`, which stay in Gate 2. R71: accepted measured matrix
+(item 9); its receipt is committed under `artifacts/release/` when rerun.
+
+**Ranked Hamm decisions** (the first one blocks the most):
+1. task-gpunondet policy: which of the 116 are CPU-scoped, which are deterministic, which tolerance (O-GPU (2), (4)).
+2. P-070 and P-069: refuse or document; both are small once decided.
+3. P-071: production validation-semantics change, or a dated move.
+4. P-072 and P-067: dated move with closing checks, or fix now.
+5. O-FIG05: keep the darwin re-freeze in 0.5.10 (needs vmac access) or move it.
+6. Release todo moves: T-32, T-54, T-94, T-11, T-RG, and the visual half of T-R49-FIX.
+
+Distance: not quantified. The engineering blockers are A1, A2, B2, B3, F5 (AdEx, LIF), P-067 and P-070/P-071 fixes, and the
+task-gpunondet policy; the gates run after them. No day estimate is given because A1 (the AT-10-N20 atlas) and the
+GPU receipts have no measured duration.
+
 ## Appendix A. Execution plans of 2026-10-31 (verbatim)
 
 Folded here 2026-11-21 (A1) from `artifacts/etudes/meta/plans/execution_plans_0.5.9-0.5.10.md` at 3eb6a6a6, verbatim below this paragraph except that each of its 7 headings is demoted two levels; superseded for 0.5.10 routing by §8 and §9. Historical record only: none of its directives (lanes, roles, push or authorization lines) bind execution. History: `git log --follow` on the old path.
