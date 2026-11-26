@@ -65,8 +65,12 @@ possible future change.
   entry, and is not part of the status. The uniform N=241 status change is disclosed (solvers.py, fields.md, changelog).
   No threshold, criterion or rank-cutoff change.
 - Independent review: ACCEPT on 93e0257c (2026-11-25; two rounds, findings fixed in the docs commit).
-- Expected: closes when the broad gate passes at 93e0257c (0 failed) and the dev push lands; then a resolution line and
-  a move to a dated closed batch.
+- Gate: broad gate at `93e0257c` rc=0 (2026-11-25): pytest 8467 passed, 54 skipped, 5 xfailed, 0 failed; every
+  lane rc=0; audit checks passed. The candidate run on the dev tip `efc1c2d4` stopped at the public-docs language
+  audit (`docs/start/faq.md`, "not validated"; reworded, audit passes). The full broad gate reruns on the final dev
+  tip, and the dev push waits for it.
+- Expected: closes when the candidate gate passes and the dev push lands; then a resolution line and a move to a dated
+  closed batch (the budget decision is pending, see the Solmind plan §10.8).
 
 ### P-072
 
