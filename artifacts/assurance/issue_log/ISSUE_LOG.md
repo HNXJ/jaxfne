@@ -41,23 +41,26 @@ possible future change.
   474c4065). Severity: medium (the 0.5.10 atlas numbers and F2 would come from a superseded default).
 - Observation: at HEAD the CPU run reproduces itself (two runs equal except `wall_s`) but not the tracked file:
   baseline 9.1736 vs 9.2374 Hz, hebbian_hdp 8.9989 vs 9.0911, noisy_hdp 9.1730 vs 9.2393; `n_significant` 11, 8, 11
-  unchanged. The CPU run at the tracked commit `cd4453bd` reproduces the tracked rates exactly. The tracked JSON
-  predates the `h_space` block (`ab2cd208`) and lacks three `method` labels that the run writes. The GPU is not
-  reproducible: at HEAD, run 1 equals the CPU rates, run 2 does not (hebbian 9.0190; noisy 9.1800, `n_significant` 12).
+  unchanged. The CPU run at the tracked commit `cd4453bd` reproduces the tracked rates exactly. The tracked JSON has
+  no `h_space` block (the CPU runs have 18; `ab2cd208`), and its `psd.method` is `jaxfne.vis.core.welch_psd nperseg=256`
+  where the runs write `scipy.signal.welch nperseg=256`. The GPU is not reproducible: at HEAD, GPU run 1 equals the CPU
+  rates; GPU run 2 gives baseline 9.1738, hebbian 9.0190, noisy 9.1800 with `n_significant` 12 (`gpu_head_run1.json`,
+  `gpu_head_run2.json`).
 - Cause (bisect, 19 CPU runs on baseline rate, both boundaries checked): the first commit that moves the rates is
   `b1d9dfe1` (T-R28 wave 2, Izhikevich: default `u0 = b * v0` per cell, the P-048 ruling of 2026-10-28, and an
   instantaneous receptor). The runner does not set `u0`, so the default reaches the result. Which of the two changes
   moves the rates is not separated. Monotonicity between the boundaries is assumed, not shown.
-- Also: the verdict objects under `assay.arms.*.h_space.stability` differ between `cd4453bd` and HEAD (PERSISTING 7 to
-  4, RETURNING 11 to 9, DIVERGING 0 to 5). The row-level SUPPORTED criterion is in neither the runner, the results file,
-  nor the atlas, plan, fact or todo files searched, so whether the row verdict changes is unknown.
+- Also: 18 `h_space.stability` verdicts (assay and replicates 0-1, 6 arms each) pool to PERSISTING 7, RETURNING 11,
+  DIVERGING 0 at `cd4453bd`, and PERSISTING 4, RETURNING 9, DIVERGING 5 at HEAD. The assay seed alone goes PERSISTING
+  2 to 1, RETURNING 4 to 3, DIVERGING 0 to 2. Also shifted, not previously reported: `n_significant_vs_null` 16, 11, 16
+  to 15, 10, 15; `null.rate_hz` 8.8564 to 8.7568; `null.threshold_hz` 2.7245 to 3.6327. The row-level SUPPORTED
+  criterion is in neither the runner, the results file, nor the atlas, plan, fact or todo files searched, so whether the
+  row verdict changes is unknown.
 - Expected: AT-10-N20 regenerated at the frozen candidate SHA into a new bundle path (the generator refuses an existing
   AT directory), with the default change and the row criterion stated, and F2 rendered to a new file. Or Hamm rules
   that the atlas pins the pre-P-048 default, which is a runner change. Closes when one is recorded with its numbers.
-- Evidence (scratch, not durable): `scratchpad/at_probe/` (`cpu_a.json`, `cpu_b.json`, `cpu_base_cd4453bd.json`,
-  `bisect_r1..r3`), driver `scratchpad/_temp_bisect_round.sh`, runner `scratchpad/_temp_at_det.py`.
-
-### P-074
+- Evidence: `artifacts/_temp/p075_evidence/` (gitignored: `cpu_a.json`, `cpu_b.json`, `cpu_base_cd4453bd.json`,
+  `gpu_head_run1.json`, `gpu_head_run2.json`, and the three bisect result files). The bisect driver is outside the repo.
 
 ### P-073
 
