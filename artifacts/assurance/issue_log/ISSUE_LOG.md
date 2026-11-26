@@ -19,7 +19,7 @@ possible future change.
 
 ### P-074
 
-- Date: 2026-11-25. Type: BUG. Area: `with_rule_local_inhibition` (`jaxfne/connectivity.py:1744`) under
+- Date: 2026-11-25. Type: BUG. Area: `with_rule_local_inhibition` (`jaxfne/connectivity.py:1746`) under
   `resolution="event_scan"`. Severity: medium (a valid declaration fails with `KeyError`, not its refusal).
 - Observation: `validate_local_inhibition` returns `{"order", "resolution"}` for `event_scan` with no `rounds`
   (its docstring says so, `jaxfne/pcl_topology.py`). The patch read `normalized["rounds"]` unconditionally, so every

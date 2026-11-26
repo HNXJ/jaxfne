@@ -279,7 +279,6 @@ def test_same_seed_reproduces_and_seed_1_differs(route):
 # ConcretizationTypeError when ``float()`` meets the traced amplitude). No documented gradient contract exists, so the
 # gradient tests assert that both paths refuse the same way, and they never invent a gradient.
 ADEX_N = 60
-ADEX_DT_MS = 0.1
 ADEX_DUR_MS = 50.0
 ADEX_DRIVE = {
     "n_sources": 560, "rate_hz": 4.0, "weight_nS": 2.5, "mechanism": "ampa",

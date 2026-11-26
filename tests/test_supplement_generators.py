@@ -442,7 +442,6 @@ def test_s16_synthetic_passing_score_and_mismatch_refused(tmp_path: Path) -> Non
 
 # ---- S4 (checklist A2): NeuronalTensor flattening against the declaration ----
 # Moved here from tests/test_s4_neuronal_tensor_flattening.py (tree-size budget).
-# S4 (checklist A2): NeuronalTensor flattening, checked against the declaration.
 #
 # The checks live in scripts/publication_figures/supplement.py and are shared with the S4
 # writer. Expectations come from the declared layer boxes, the pose translation and the
@@ -450,18 +449,6 @@ def test_s16_synthetic_passing_score_and_mismatch_refused(tmp_path: Path) -> Non
 # swap and a dropped edge must each be detected. Not claimed: within-layer relabelling
 # (``S4_RESIDUAL``).
 RUNTIME = jtfne.RuntimeConfiguration(seed=0, duration_ms=2.0, dt_ms=0.5)
-
-
-def _load_generator() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("supplement", GENERATOR)
-    assert spec is not None and spec.loader is not None, f"cannot load {GENERATOR}"
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-supplement = _load_generator()
 
 
 @pytest.fixture(scope="module")
