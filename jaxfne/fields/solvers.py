@@ -31,10 +31,12 @@ def experimental_poisson_1d(
     ``d/dx(sigma(x) dphi/dx)``, not a per-node conductivity, which would be
     ambiguous at a node sitting exactly on a layer boundary):
     ``[sigma_{i+1/2}(phi_{i+1}-phi_i) - sigma_{i-1/2}(phi_i-phi_{i-1})] / dx**2``.
-    Passing a scalar reduces to exactly the original uniform-conductivity
-    matrix (verified in tests/test_experimental_poisson_1d_layered.py). The
-    float32 refinement step (P-073) applies to both forms and changes float32
-    outputs for every caller.
+    Passing a scalar gives the same matrix as the uniform-conductivity
+    formulation, up to rounding (the two branches build it in a different
+    order); the solutions agree within atol 1e-4 (verified in
+    tests/test_experimental_poisson_1d_layered.py). The float32 refinement
+    step (P-073) applies to both forms and changes float32 outputs for every
+    caller.
 
     KNOWN LIMITATION (float32 dense ``lstsq``, both conductivity paths): an
     observed conditioning failure, not a universal grid-size law. The
@@ -103,6 +105,15 @@ def experimental_poisson_1d(
     if precision not in ("float32", "float64"):
         raise ValueError(
             f"precision must be 'float32' or 'float64', got {precision!r}"
+        )
+    # P-070: boundary and gauge are not consumed by the assembly or the lstsq gauge; refuse, do not record only.
+    if boundary != "mean_zero_neumann":
+        raise ValueError(
+            f"boundary must be 'mean_zero_neumann' (the only supported boundary), got {boundary!r}"
+        )
+    if gauge != "mean_zero":
+        raise ValueError(
+            f"gauge must be 'mean_zero' (the only supported gauge), got {gauge!r}"
         )
     if precision == "float64" and not jax.config.jax_enable_x64:
         raise ValueError(

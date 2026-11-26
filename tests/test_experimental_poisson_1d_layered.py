@@ -3,10 +3,9 @@ conductivity) mode, added toward plans.json's
 novelty::tfne-differentiable-field-solver / tfne-analytic-ground-truth-
 validation initiative.
 
-Two things verified: (1) the scalar-conductivity path is bit-identical to
-the original implementation (backward compatibility -- every existing
-caller, including tests/test_solver_smoke_v0401.py, sees zero behavior
-change); (2) the new layered path matches a real, independently-derived
+Two things verified: (1) the scalar-conductivity path and a constant
+per-face array agree within atol 1e-4 (test_layered_reduces_to_scalar_path_when_uniform);
+(2) the new layered path matches a real, independently-derived
 closed-form analytic solution -- the classical "two half-space" point-
 source volume-conductor result -- at both physically-meaningful limiting
 cases (equal conductivities reduces to uniform; large conductivity ratio
@@ -17,16 +16,8 @@ from __future__ import annotations
 
 import numpy as np
 import jax.numpy as jnp
-import pytest
 
 from jaxfne.fields.solvers import experimental_poisson_1d
-
-
-_D1 = (
-    "D1 (2026-11-25): boundary and gauge are recorded in the manifest only; the solve is always Neumann with the "
-    "min-norm (mean-zero) gauge, so an unsupported value silently implies a model that was not solved; the "
-    "production change awaits a ruling"
-)
 
 
 def _neutral_sources(n=8):
@@ -43,12 +34,10 @@ def _refused(**kwargs):
     return False
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=_D1)
 def test_unsupported_boundary_is_refused():
     assert _refused(boundary="dirichlet")
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=_D1)
 def test_unsupported_gauge_is_refused():
     assert _refused(gauge="pinned_node")
 
