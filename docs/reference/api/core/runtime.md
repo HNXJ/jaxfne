@@ -177,7 +177,7 @@ assert (signals_1.V_m == signals_2.V_m).all()  # Bitwise identical
 
 ### GPU findings (not a release guarantee)
 
-0.5.10 acceptance is CPU only. These are measured findings, not a claim of GPU equivalence or deterministic behaviour. On GPU, `jax.ops.segment_sum` uses scatter-add, so float32 `sources` differed across processes by about 1e-6 (measured 1.2e-6 absolute on an RTX A4000, JAX 0.10.2); V_m and spikes were bitwise equal in the same runs. Setting `XLA_FLAGS=--xla_gpu_deterministic_ops=true` before importing JAX removed that variation in the measured runs. It costs time: 0.77 s per simulate against 0.27 s by default (about 2.8x) for an HDP-off run of 60 steps x 20 neurons. GPU numerical acceptance moves to 0.5.11.
+0.5.10 acceptance is CPU only. The following are measured findings; GPU equivalence and deterministic behaviour are outside the 0.5.10 acceptance. On GPU, `jax.ops.segment_sum` uses scatter-add, so float32 `sources` differed across processes by about 1e-6 (measured 1.2e-6 absolute on an RTX A4000, JAX 0.10.2); V_m and spikes were bitwise equal in the same runs. Setting `XLA_FLAGS=--xla_gpu_deterministic_ops=true` before importing JAX removed that variation in the measured runs. It costs time: 0.77 s per simulate against 0.27 s by default (about 2.8x) for an HDP-off run of 60 steps x 20 neurons. GPU numerical acceptance moves to 0.5.11.
 
 ### Varying Trials with Different Seeds
 

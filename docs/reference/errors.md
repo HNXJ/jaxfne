@@ -24,7 +24,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 
 <!-- ERRORS-INDEX:START -->
 
-2561 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
+2564 raise sites in 121 modules. Generated from `jaxfne/**/*.py` by `python scripts/generate_errors_index.py --write`; do not edit by hand.
 
 **`jaxfne/_config.py`**
 
@@ -1746,6 +1746,7 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | `ValueError` | `phi_e must be 2D (T, C); got shape {...}` |
 | `ValueError` | `field_contact_depths length {...} != phi_e channels {...}` |
 | `ValueError` | `lfp_proxy_probe refuses to invent field contacts: contact_depths was given without field_contact_dep` |
+| `ValueError` | `orientation_convention must be 'declared' (the only supported value); got {...}` |
 | `ValueError` | `{...} must be 2D [T, K], got shape {...}` |
 | `ValueError` | `leadfield must be 2D [C, K], got shape {...}` |
 | `ValueError` | `{...} and leadfield K dimension mismatch: {...} vs {...}` |
@@ -1800,6 +1801,8 @@ Every `raise ValueError(...)`, `raise TFNEError(...)` and `raise EpistemicRefusa
 | Class | Message |
 |---|---|
 | `ValueError` | `precision must be 'float32' or 'float64', got {...}` |
+| `ValueError` | `boundary must be 'mean_zero_neumann' (the only supported boundary), got {...}` |
+| `ValueError` | `gauge must be 'mean_zero' (the only supported gauge), got {...}` |
 | `ValueError` | `experimental_poisson_1d(precision='float64') requires x64 to already be enabled -- call jax.config.u` |
 | `ValueError` | `conductivity array must have shape (N-1,)={...}, got {...}` |
 | `ValueError` | `experimental_poisson_1d_from_neuron_table requires every neuron_table row to have a numeric 'z' -- g` |
